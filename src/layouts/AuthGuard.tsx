@@ -1,32 +1,49 @@
+import { Suspense, lazy } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/features/users";
-import AuthPage from "@/features/auth/pages/AuthPage";
-import { CustomerPortalRoutes } from "@/layouts/CustomerPortalRoutes";
+import { PageFallback } from "@/routes/routes-config";
+
+const AuthPage = lazy(() => import("@/features/auth/pages/AuthPage"));
+const CustomerPortalRoutes = lazy(() =>
+  import("@/layouts/CustomerPortalRoutes").then((m) => ({ default: m.CustomerPortalRoutes })),
+);
+
+function AppLoader() {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="flex flex-col items-center gap-4">
+        <div
+          className="h-12 w-12 rounded-xl bg-primary animate-spin [animation-duration:1.5s]"
+          style={{ borderRadius: "30% 70% 70% 30% / 30% 30% 70% 70%" }}
+        />
+        <p className="text-sm text-muted-foreground">Cargando LiftGo…</p>
+      </div>
+    </div>
+  );
+}
 
 export function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
   const { data: role, isLoading: roleLoading } = useUserRole();
 
   if (isLoading || (user && roleLoading)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="flex flex-col items-center gap-4">
-          <div
-            className="h-12 w-12 rounded-xl bg-primary animate-spin [animation-duration:1.5s]"
-            style={{ borderRadius: "30% 70% 70% 30% / 30% 30% 70% 70%" }}
-          />
-          <p className="text-sm text-muted-foreground">Cargando LiftGo…</p>
-        </div>
-      </div>
-    );
+    return <AppLoader />;
   }
 
   if (!user) {
-    return <AuthPage />;
+    return (
+      <Suspense fallback={<AppLoader />}>
+        <AuthPage />
+      </Suspense>
+    );
   }
 
   if (role === "customer") {
-    return <CustomerPortalRoutes />;
+    return (
+      <Suspense fallback={<PageFallback />}>
+        <CustomerPortalRoutes />
+      </Suspense>
+    );
   }
 
   return <>{children}</>;

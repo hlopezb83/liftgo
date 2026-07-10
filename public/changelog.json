@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.1.0",
+    "date": "2026-07-10",
+    "type": "minor",
+    "title": "Perf · Reducción del bundle inicial post React 19",
+    "description": "Auditoría de bundle con rollup-plugin-visualizer (opt-in vía ANALYZE=1) y code-splitting adicional: `AuthPage` y `CustomerPortalRoutes` (con sus 11 páginas internas) ahora se cargan de forma diferida desde `AuthGuard`. El entry principal baja de 667 → 615 KB (188 → 176 KB gzip, -12.5 KB gzip en la primera pintura). Sin cambios de UX ni de lógica; 804/804 tests OK.",
+    "category": "improvement"
+  },
+  {
     "version": "7.0.1",
     "date": "2026-07-10",
     "type": "patch",

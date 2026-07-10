@@ -1,67 +1,64 @@
-# Migración a React 19 — Análisis y Plan
+## Objetivo
+Medir el rendimiento actual (post React 19) con Lighthouse, comparar contra un baseline React 18 reproducible, y atacar los cuellos de botella reales del tiempo de carga.
 
-## Estado actual del proyecto
-- React **18.3.1** + React DOM 18.3.1
-- Vite 5 + `@vitejs/plugin-react-swc` 3.11 (compatible con R19 sin cambios)
-- 34 archivos con `forwardRef` (todos son wrappers shadcn/ui)
-- **0 usos de `defaultProps`** en componentes función (era el mayor breaking change)
-- Sin string refs, sin `PropTypes`, sin `ReactDOM.render` legacy
-- Librerías clave ya soportan R19: `@tanstack/react-query` 5, Radix UI (todas ≥1.2), `react-hook-form` 7.80, `react-router-dom` 6.30, `sonner` 1.7, `recharts` 3, `cmdk` 1.1
+## Fase 1 — Preparación de mediciones
 
-## Complejidad estimada: **BAJA** (1–2 sesiones)
-No hay bloqueadores. Los breaking changes reales de R19 no aplican aquí:
-- ❌ No usamos `propTypes` / `defaultProps` en function components
-- ❌ No usamos string refs ni `React.createFactory`
-- ❌ No usamos `ReactDOM.render` / `hydrate` (usamos `createRoot`)
-- ⚠️ Único cambio de tipos: `ref` deja de necesitar `forwardRef` (opcional refactor)
-- ⚠️ Cambios de tipos en `@types/react` 19 (algunos hijos ahora más estrictos, `useRef` requiere argumento inicial)
+1. Build de producción local (`bun run build && bun run preview`) sobre puerto fijo.
+2. Ejecutar Lighthouse vía Playwright + `lighthouse` CLI (headless Chromium ya disponible en sandbox) contra 3 rutas clave:
+   - `/` (landing / login)
+   - `/dashboard` (autenticado, con sesión inyectada)
+   - `/reservas` (tabla densa, caso típico de uso)
+3. Guardar reportes JSON+HTML en `/mnt/documents/perf/after-react19/` con métricas: LCP, FCP, TBT, CLS, TTI, bundle size, unused JS.
 
-## Beneficios concretos para LiftGo
+## Fase 2 — Baseline React 18 (comparativo)
 
-### Ganancias inmediatas (sin refactor)
-1. **Mejores errores de hidratación** — diffs claros en consola (útil en el portal de clientes).
-2. **Document metadata nativo** — `<title>` y `<meta>` desde componentes; sustituye parches ad-hoc de SEO.
-3. **Precarga de recursos** — `preload`, `preinit` para PDFs (jsPDF lazy) y fuentes.
-4. **Stack traces más limpios** en errores capturados por `sonner`.
+1. Checkout temporal en worktree aislado (`/tmp/perf-baseline`) con `react@18.3.1` + `react-dom@18.3.1`.
+2. Build + Lighthouse sobre las mismas 3 rutas.
+3. Guardar en `/mnt/documents/perf/before-react19/`.
+4. Generar tabla comparativa en `/mnt/documents/perf/COMPARISON.md` (delta por métrica y por ruta).
 
-### Ganancias tras refactor selectivo (opcional, gradual)
-5. **`useOptimistic`** — encaja perfecto con la memoria `optimistic-ui` del proyecto (eliminaciones inmediatas con rollback); podría reemplazar patrones manuales en mutaciones.
-6. **`useActionState` + `<form action={}>`** — simplifica flujos RHF que hoy usan `isPending` + `onSubmit` manual (Bookings, Quotes, Invoices).
-7. **`ref` como prop** — permite eliminar `forwardRef` en los ~34 wrappers de shadcn/ui (reducción DRY natural).
-8. **`use()` hook** — leer contextos condicionalmente (útil en `MainLayout` para permisos por rol).
+## Fase 3 — Análisis de bundle
 
-### NO aplica
-- Server Components / Server Actions (somos SPA Vite, no Next).
-- React Compiler es independiente de R19 (se puede activar por separado en R18 también).
+1. `vite build --mode production` con `rollup-plugin-visualizer` (temporal, no se commitea).
+2. Identificar top 10 chunks pesados y dependencias sospechosas (jsPDF ya lazy, revisar: recharts, facturapi client, date-fns locales, lucide-react tree-shaking).
+3. Detectar imports síncronos que deberían ser `lazy()` (rutas admin, reportes, PDFs).
 
-## Plan de migración por fases
+## Fase 4 — Optimizaciones dirigidas (solo lo que la data justifique)
 
-### Fase 1 — Bump y verificación (~1 h)
-1. `bun add react@^19 react-dom@^19` y `bun add -D @types/react@^19 @types/react-dom@^19`.
-2. Ejecutar codemod oficial de tipos:
-   `bunx types-react-codemod@latest preset-19 ./src`
-   (arregla `useRef` sin argumento, `ReactElement` genéricos, etc.)
-3. `bunx tsgo` → resolver errores de tipos que resulten (esperamos <10, mayormente en refs y `children`).
-4. `bunx vitest run` → suite 804 tests debe seguir verde.
-5. Smoke test manual: login, dashboard, crear reserva, generar PDF, portal de clientes.
+Candidatos probables (priorizados por impacto esperado):
 
-### Fase 2 — Validación runtime (~30 min)
-6. Verificar consola sin nuevos warnings en las rutas críticas (Bookings, Quotes, Invoices, Portal, Maintenance).
-7. Comprobar que Radix, `cmdk` y `recharts` renderizan sin regresiones.
-8. Publicar changelog `v6.152.0` (minor, no breaking para el usuario final).
+- **Route-level code splitting**: convertir a `lazy()` rutas pesadas no críticas (Reportes, Auditoría, Facturación PDF, Portal cliente si no lo está).
+- **Preload LCP**: `<link rel="preload">` para logo/hero + `fetchpriority="high"`.
+- **Recharts**: importar sub-módulos específicos en lugar del barrel si el visualizer lo señala.
+- **Lucide-react**: verificar imports individuales (no `import * as`).
+- **date-fns**: garantizar solo locale `es` importado.
+- **React Query**: revisar `staleTime` en queries del dashboard para reducir refetch en navegación.
+- **React 19 nativo**: usar `<title>`/`<meta>` in-component donde aplique para eliminar wrappers manuales si los hay.
 
-### Fase 3 — Aprovechar novedades (opcional, siguientes sprints)
-9. Migrar wrappers de shadcn/ui: eliminar `forwardRef` en los 34 archivos (−~60 LOC, cuadra con el sprint DRY).
-10. Introducir `useOptimistic` en los hooks de eliminación optimista existentes.
-11. Reemplazar tags manuales de `<title>`/meta por soporte nativo de R19 en rutas SEO.
+Cada optimización aplicada se remide con Lighthouse antes de aceptarse.
 
-## Riesgos y mitigación
-- **Tipos más estrictos en `children`** → algunas props `ReactNode` pueden requerir cast. Se resuelve con el codemod + ajustes puntuales.
-- **`useRef()` sin argumento inicial** → ahora obliga a pasar `null`. El codemod lo hace automáticamente.
-- **Radix / cmdk peer deps** → todos ya declaran `react: ">=16 || 17 || 18 || 19"` en sus últimas versiones instaladas. Sin acción requerida.
-- **Rollback trivial** → volver a `react@18.3.1` con un `bun add` si algo crítico aparece.
+## Fase 5 — Verificación final
 
-## Recomendación
-Ejecutar **Fase 1 + 2** en una sola sesión (bajo riesgo, alto valor por mejores errores + metadata nativo + desbloquea R19 APIs). Dejar Fase 3 como parte del sprint DRY en curso — encaja naturalmente con los objetivos de reducción de LOC.
+1. Re-ejecutar Lighthouse en las 3 rutas post-optimización → `/mnt/documents/perf/after-optimizations/`.
+2. Actualizar tabla comparativa (before-18 / after-19-baseline / after-optimized).
+3. `tsgo` + `vitest run` + smoke test Playwright.
+4. Changelog `v7.1.0` (minor: mejoras de rendimiento medibles) con deltas concretos.
 
-¿Procedemos con Fase 1+2 ahora, o prefieres incluir también la Fase 3 (limpieza de `forwardRef`) en el mismo cambio?
+## Detalles técnicos
+
+- Lighthouse se instalará on-demand vía `nix run nixpkgs#lighthouse` o `bunx lighthouse`.
+- Auth para rutas protegidas: sesión Supabase inyectada como en el flujo estándar de Playwright del proyecto.
+- `rollup-plugin-visualizer` se agrega como `devDependency` temporal y se remueve al cerrar el sprint (o queda gated por env var).
+- Sin cambios de lógica de negocio; solo carga/split/preload/imports.
+
+## Entregables
+
+- `/mnt/documents/perf/COMPARISON.md` con métricas antes/después.
+- PR de optimizaciones acotadas y justificadas por métrica.
+- Changelog `v7.1.0`.
+
+## Fuera de alcance
+
+- Migración a SSR/RSC.
+- Cambios visuales o de UX.
+- Rewrites de módulos completos.
