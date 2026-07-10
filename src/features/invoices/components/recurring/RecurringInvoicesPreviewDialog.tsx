@@ -1,17 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { EmptyState } from "@/components/feedback/EmptyState";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { applyVat } from "@/lib/money";
-
 import { formatMonthLongEs } from "@/lib/format/formatMonthEs";
-import { AlertCircle, Receipt } from "lucide-react";
-import { Link } from "react-router-dom";
+import { RecurringPreviewBody } from "./RecurringPreviewBody";
 import type {
   RecurringPreviewLine,
   RecurringPreviewResponse,
@@ -25,14 +18,6 @@ interface Props {
   isGenerating: boolean;
   onConfirm: (bookingIds: string[]) => void;
 }
-
-const REASON_LABEL: Record<NonNullable<RecurringPreviewLine["reason"]>, string> = {
-  already_invoiced: "Ya facturada",
-  no_customer: "Sin cliente asignado",
-  no_monthly_rate: "Sin tarifa mensual",
-  period_in_future: "Período futuro",
-  period_too_old: "Período atrasado — requiere revisión",
-};
 
 function periodTitle(period: string | null): string {
   if (!period) return "Vista previa";
