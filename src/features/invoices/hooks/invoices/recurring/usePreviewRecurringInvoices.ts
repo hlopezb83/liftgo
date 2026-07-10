@@ -34,7 +34,7 @@ export interface RecurringPreviewResponse {
  * sin escribir nada. Devuelve elegibles y no-elegibles (con motivo).
  */
 export function usePreviewRecurringInvoices() {
-  return useEntityMutation({
+  return useEntityMutation<void, RecurringPreviewResponse>({
     mutationFn: async (): Promise<RecurringPreviewResponse> => {
       const res = await invokeEdgeFunction<RecurringPreviewResponse>(
         "generate-recurring-invoices",
