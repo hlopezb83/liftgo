@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getAdminClient, getCallerClient } from "../_shared/supabaseClients.ts";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 
 const SYSTEM_PROMPT =
