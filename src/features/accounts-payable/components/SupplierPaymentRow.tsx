@@ -106,7 +106,7 @@ export function SupplierPaymentRow({ payment: p, billId, currency, billCancelled
         onConfirm={a.confirmDelete}
       />
 
-      {Button ? null : null /* keep Button import used elsewhere */}
+
     </div>
   );
 }
