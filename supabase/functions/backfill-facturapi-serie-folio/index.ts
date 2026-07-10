@@ -1,7 +1,8 @@
 // Backfill retroactivo de serie/folio de Facturapi para facturas ya timbradas
 // cuyas columnas `serie` y `folio` quedaron en NULL antes de v6.106.3.
 // Solo accesible por administradores. Idempotente.
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { requireAdmin } from "../_shared/auth.ts";
 import {
   createFacturapiClient,
