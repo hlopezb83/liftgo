@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.148.0",
+    "date": "2026-07-10",
+    "type": "minor",
+    "title": "DRY Lote 2 (parte 5): invoices y bank imports migrados a useEntityMutation",
+    "description": "Se migran 10 hooks: useDeleteInvoice, useSyncInvoiceBookings, useCancelCfdi, useStampPaymentComplement, useCancelPaymentComplement, useRefreshCancellationStatus, useGenerateRecurringInvoices, usePreviewRecurringInvoices, useValidateReceptorTaxInfo, useUpdateReceptorFiscalInfo y useDeleteBankImport. Preserva removeQueries del detalle en useDeleteInvoice y toasts contextuales SAT (info/warning/success) vía onSuccess callback. useStampCfdi permanece con useMutation nativo por requerir traducción dinámica del error Facturapi. -80 LOC netos, 802 tests verdes, typecheck limpio.",
+    "category": "refactor"
+  },
+  {
     "version": "6.147.0",
     "date": "2026-07-10",
     "type": "minor",
