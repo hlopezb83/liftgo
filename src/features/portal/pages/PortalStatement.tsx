@@ -9,7 +9,7 @@ import { Download, ChevronDown, ChevronRight } from "lucide-react";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { useCustomerSummary, usePortalCustomer, usePortalInvoices, usePortalPayments } from "@/features/customers";
-import { exportCustomerStatementPdf } from "@/lib/pdf/customerStatement";
+
 import { notifyError } from "@/lib/ui/appFeedback";
 
 type Payment = { id: string; invoice_id: string | null; payment_date: string; payment_method: string | null; reference_number: string | null; amount: number | string };
@@ -43,6 +43,8 @@ export default function PortalStatement() {
   const handleDownload = async () => {
     if (!customer || !summary) return;
     try {
+      // Lazy: keep @react-pdf/renderer out of the initial bundle.
+      const { exportCustomerStatementPdf } = await import("@/lib/pdf/customerStatement");
       await exportCustomerStatementPdf({ customer, summary });
     } catch (e: unknown) {
       notifyError({

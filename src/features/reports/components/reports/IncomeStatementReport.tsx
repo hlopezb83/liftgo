@@ -6,7 +6,7 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import { TrendingUp, TrendingDown, DollarSign, Percent, AlertTriangle } from "lucide-react";
 
 import { useIncomeStatementData } from "../../hooks/useIncomeStatementData";
-import { exportIncomeStatementPdf } from "@/lib/pdf/incomeStatement";
+
 import { IncomeStatementToolbar } from "./IncomeStatementToolbar";
 import { IncomeStatementTable } from "./IncomeStatementTable";
 
@@ -40,6 +40,8 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
   const handleExportPdf = async () => {
     setPdfLoading(true);
     try {
+      // Lazy: keep @react-pdf/renderer out of the initial bundle.
+      const { exportIncomeStatementPdf } = await import("@/lib/pdf/incomeStatement");
       await exportIncomeStatementPdf({
         filteredData, statementRows, comparisonRows, yearTotals,
         isComparison, selectedYear, availableYears, startDate, endDate,
