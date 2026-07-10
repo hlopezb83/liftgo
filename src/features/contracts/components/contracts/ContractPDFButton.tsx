@@ -5,6 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { FileDown, ChevronDown } from "lucide-react";
 import type { ContractData } from "@/lib/pdf/contract/data";
 import type { PDFMode } from "@/lib/pdf/documents/ContractDocument";
+import { buildContractPdf } from "@/lib/pdf/contract/build";
 
 export type { ContractData } from "@/lib/pdf/contract/data";
 
@@ -14,8 +15,6 @@ export function ContractPDFButton({ contract }: { contract: ContractData }) {
   const handleDownload = async (mode: PDFMode) => {
     setLoading(true);
     try {
-      // Lazy: keep @react-pdf/renderer out of the initial bundle.
-      const { buildContractPdf } = await import("@/lib/pdf/contract/build");
       await buildContractPdf(contract, mode);
     } catch (err: unknown) {
       notifyError({ error: err, message: "Error al generar PDF" });
