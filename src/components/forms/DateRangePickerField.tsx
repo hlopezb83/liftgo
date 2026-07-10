@@ -103,42 +103,83 @@ export function DateRangePickerField({
       </Label>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <Button
-            type="button"
-            variant="outline"
-            className={cn(
-              "w-full justify-start text-left font-normal",
-              !dateRange?.from && "text-muted-foreground",
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {triggerLabel}
-          </Button>
+          <RangeTriggerButton hasFrom={!!dateRange?.from} label={triggerLabel} />
         </DialogTrigger>
-        <DialogContent className="max-w-fit p-0 gap-0">
-          <DialogHeader className="px-5 pt-5 pb-3 border-b">
-            <DialogTitle className="text-base">{label.replace(/\s*\*\s*$/, "")}</DialogTitle>
-            <p className="text-sm text-muted-foreground font-mono mt-1">{liveLabel}</p>
-          </DialogHeader>
-          <div className="p-3">
-            <Calendar
-              mode="range"
-              selected={localRange}
-              onSelect={(r) => setLocalRange(normalizeRange(r))}
-              numberOfMonths={isMobile ? 1 : 2}
-              defaultMonth={localRange?.from ?? new Date()}
-              className="pointer-events-auto"
-            />
-          </div>
-          <DateRangeFooter
-            localRange={localRange}
-            onClear={() => setLocalRange(undefined)}
-            onCancel={() => setOpen(false)}
-            onApply={handleApply}
-          />
-        </DialogContent>
+        <RangeDialogBody
+          label={label}
+          liveLabel={liveLabel}
+          localRange={localRange}
+          isMobile={isMobile}
+          onCalendarSelect={(r) => setLocalRange(normalizeRange(r))}
+          onClear={() => setLocalRange(undefined)}
+          onCancel={() => setOpen(false)}
+          onApply={handleApply}
+        />
       </Dialog>
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
     </div>
+  );
+}
+
+function RangeTriggerButton({ hasFrom, label }: { hasFrom: boolean; label: string }) {
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      className={cn(
+        "w-full justify-start text-left font-normal",
+        !hasFrom && "text-muted-foreground",
+      )}
+    >
+      <CalendarIcon className="mr-2 h-4 w-4" />
+      {label}
+    </Button>
+  );
+}
+
+function RangeDialogBody({
+  label,
+  liveLabel,
+  localRange,
+  isMobile,
+  onCalendarSelect,
+  onClear,
+  onCancel,
+  onApply,
+}: {
+  label: string;
+  liveLabel: string;
+  localRange?: DateRange;
+  isMobile: boolean;
+  onCalendarSelect: (r?: DateRange) => void;
+  onClear: () => void;
+  onCancel: () => void;
+  onApply: () => void;
+}) {
+  const defaultMonth = localRange?.from ?? new Date();
+  const months = isMobile ? 1 : 2;
+  return (
+    <DialogContent className="max-w-fit p-0 gap-0">
+      <DialogHeader className="px-5 pt-5 pb-3 border-b">
+        <DialogTitle className="text-base">{label.replace(/\s*\*\s*$/, "")}</DialogTitle>
+        <p className="text-sm text-muted-foreground font-mono mt-1">{liveLabel}</p>
+      </DialogHeader>
+      <div className="p-3">
+        <Calendar
+          mode="range"
+          selected={localRange}
+          onSelect={onCalendarSelect}
+          numberOfMonths={months}
+          defaultMonth={defaultMonth}
+          className="pointer-events-auto"
+        />
+      </div>
+      <DateRangeFooter
+        localRange={localRange}
+        onClear={onClear}
+        onCancel={onCancel}
+        onApply={onApply}
+      />
+    </DialogContent>
   );
 }
