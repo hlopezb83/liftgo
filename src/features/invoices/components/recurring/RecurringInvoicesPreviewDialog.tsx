@@ -105,104 +105,17 @@ export function RecurringInvoicesPreviewDialog({
         </>
       }
     >
-      {isLoading ? (
-        <div className="space-y-2">
-          <Skeleton className="h-8 w-full" />
-          <Skeleton className="h-16 w-full" />
-          <Skeleton className="h-16 w-full" />
-        </div>
-      ) : lines.length === 0 ? (
-        <EmptyState
-          icon={Receipt}
-          title="Sin facturas pendientes"
-          subtitle="No hay reservas con facturación recurrente elegibles este mes."
-        />
-      ) : (
-        <>
-          <div className="flex items-center gap-4 text-sm border rounded-md p-3 bg-muted/30">
-            <div>
-              <span className="text-muted-foreground">Elegibles: </span>
-              <span className="font-semibold">{eligibleIds.length}</span>
-            </div>
-            <div>
-              <span className="text-muted-foreground">Seleccionadas: </span>
-              <span className="font-semibold">{selectedCount}</span>
-            </div>
-            <div className="ml-auto">
-              <span className="text-muted-foreground">Total: </span>
-              <span className="font-mono font-bold">{formatCurrency(totalSelected)}</span>
-              <span className="text-xs text-muted-foreground ml-1">(IVA incl.)</span>
-            </div>
-          </div>
-
-          <ScrollArea className="max-h-[50vh] pr-3 mt-3">
-            <div className="space-y-4">
-              {groups.map(([customer, groupLines]) => {
-                const groupEligible = groupLines.filter((l) => l.eligible);
-                const allSelected = groupEligible.length > 0 && groupEligible.every((l) => selected.has(l.bookingId));
-                return (
-                  <div key={customer} className="border rounded-md overflow-hidden">
-                    <div className="flex items-center gap-2 px-3 py-2 bg-muted/40 border-b">
-                      {groupEligible.length > 0 && (
-                        <Checkbox
-                          checked={allSelected}
-                          onCheckedChange={() => toggleGroup(groupLines)}
-                          aria-label={`Seleccionar todas de ${customer}`}
-                        />
-                      )}
-                      <span className="font-semibold text-sm">{customer}</span>
-                      <span className="text-xs text-muted-foreground ml-auto">
-                        {groupEligible.length} de {groupLines.length} elegibles
-                      </span>
-                    </div>
-                    <div className="divide-y">
-                      {groupLines.map((line) => (
-                        <div key={line.bookingId} className="flex items-center gap-3 px-3 py-2 text-sm">
-                          <Checkbox
-                            checked={line.eligible && selected.has(line.bookingId)}
-                            disabled={!line.eligible}
-                            onCheckedChange={() => line.eligible && toggle(line.bookingId)}
-                            aria-label={`Facturar ${line.bookingCode ?? line.bookingId}`}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center gap-2">
-                              <span className="font-mono text-xs">
-                                {line.bookingCode ?? line.bookingId.slice(0, 8)}
-                              </span>
-                              {line.forkliftName && (
-                                <span className="text-muted-foreground truncate">— {line.forkliftName}</span>
-                              )}
-                            </div>
-                            <div className="text-xs text-muted-foreground">{line.periodLabel}</div>
-                          </div>
-                          {line.eligible ? (
-                            <span className="font-mono text-sm">{formatCurrency(line.monthlyRate)}</span>
-                          ) : (
-                            <Badge variant="secondary" className="gap-1">
-                              <AlertCircle className="h-3 w-3" />
-                              {line.reason === "already_invoiced" && line.existingInvoiceId ? (
-                                <Link
-                                  to={`/invoices/${line.existingInvoiceId}`}
-                                  className="underline"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  {line.existingInvoiceNumber ?? "Ya facturada"}
-                                </Link>
-                              ) : (
-                                REASON_LABEL[line.reason ?? "no_customer"]
-                              )}
-                            </Badge>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </ScrollArea>
-        </>
-      )}
+      <PreviewBody
+        isLoading={isLoading}
+        lines={lines}
+        eligibleCount={eligibleIds.length}
+        selectedCount={selectedCount}
+        totalSelected={totalSelected}
+        groups={groups}
+        selected={selected}
+        onToggle={toggle}
+        onToggleGroup={toggleGroup}
+      />
 
       <FormDialogFooter>
         <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isGenerating}>
