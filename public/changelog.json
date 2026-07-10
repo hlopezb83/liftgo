@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.144.0",
+    "date": "2026-07-10",
+    "type": "minor",
+    "title": "DRY Lote 2 (parte 1): hooks migrados a useEntityMutation + tests de helpers",
+    "description": "Se migran 4 hooks al patrón canónico useEntityMutation eliminando boilerplate onSuccess/onError/notify: useSupplierBillMutations (4 mutations), useBankLineActions (3 mutations con invalidación dinámica por bankAccountId), useCashFlowSettings y useAuditLogs (delete + revert). Se extiende useEntityMutation con invalidateKeysFn(data, vars) para query keys derivadas del payload. Se añaden tests unitarios de _shared/http.ts (5), _shared/auth.ts (6) y smoke tests de download-cfdi (3). 802 tests frontend + 24 tests Deno verdes; typecheck limpio.",
+    "category": "refactor"
+  },
+  {
     "version": "6.143.0",
     "date": "2026-07-10",
     "type": "minor",

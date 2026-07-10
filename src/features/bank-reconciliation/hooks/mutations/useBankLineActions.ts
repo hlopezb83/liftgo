@@ -1,18 +1,18 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { BANK_LINES_QK } from "../useBankStatementLines";
 
 export function useConfirmBankMatch() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (args: {
+  return useEntityMutation<
+    {
       lineId: string;
       bankAccountId: string;
       paymentId?: string;
       supplierPaymentId?: string;
-    }) => {
+    },
+    void
+  >({
+    mutationFn: async (args) => {
       const { error } = await supabase.rpc("confirm_bank_match", {
         p_line_id: args.lineId,
         p_payment_id: args.paymentId ?? undefined,
@@ -20,43 +20,35 @@ export function useConfirmBankMatch() {
       });
       if (error) throw error;
     },
-    onSuccess: (_d, vars) => {
-      qc.invalidateQueries({ queryKey: BANK_LINES_QK(vars.bankAccountId) });
-      notifySuccess("Movimiento conciliado");
-    },
-    onError: (e: Error) => notifyError({ error: e, message: e.message }),
+    invalidateKeysFn: (_d, vars) => [BANK_LINES_QK(vars.bankAccountId)],
+    successMsg: "Movimiento conciliado",
+    errorTitle: "No se pudo conciliar el movimiento",
   });
 }
 
 export function useUnmatchBankLine() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (args: { lineId: string; bankAccountId: string }) => {
+  return useEntityMutation<{ lineId: string; bankAccountId: string }, void>({
+    mutationFn: async (args) => {
       const { error } = await supabase.rpc("unmatch_bank_line", { p_line_id: args.lineId });
       if (error) throw error;
     },
-    onSuccess: (_d, vars) => {
-      qc.invalidateQueries({ queryKey: BANK_LINES_QK(vars.bankAccountId) });
-      notifySuccess("Movimiento desemparejado");
-    },
-    onError: (e: Error) => notifyError({ error: e, message: e.message }),
+    invalidateKeysFn: (_d, vars) => [BANK_LINES_QK(vars.bankAccountId)],
+    successMsg: "Movimiento desemparejado",
+    errorTitle: "No se pudo desemparejar el movimiento",
   });
 }
 
 export function useIgnoreBankLine() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (args: { lineId: string; bankAccountId: string; reason: string }) => {
+  return useEntityMutation<{ lineId: string; bankAccountId: string; reason: string }, void>({
+    mutationFn: async (args) => {
       const { error } = await supabase
         .from("bank_statement_lines")
         .update({ status: "ignored", ignored_reason: args.reason })
         .eq("id", args.lineId);
       if (error) throw error;
     },
-    onSuccess: (_d, vars) => {
-      qc.invalidateQueries({ queryKey: BANK_LINES_QK(vars.bankAccountId) });
-      notifySuccess("Movimiento marcado como ignorado");
-    },
-    onError: (e: Error) => notifyError({ error: e, message: e.message }),
+    invalidateKeysFn: (_d, vars) => [BANK_LINES_QK(vars.bankAccountId)],
+    successMsg: "Movimiento marcado como ignorado",
+    errorTitle: "No se pudo marcar el movimiento como ignorado",
   });
 }
