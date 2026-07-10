@@ -1,7 +1,6 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { invoiceKeys } from "../../lib/queryKeys";
 
 export interface ReceptorValidationResult {
@@ -22,15 +21,14 @@ export interface ReceptorValidationResult {
  * No consume timbre.
  */
 export function useValidateReceptorTaxInfo() {
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (invoiceId: string): Promise<ReceptorValidationResult> => {
       return await invokeEdgeFunction<ReceptorValidationResult>(
         "validate-receptor-tax-info",
         { body: { invoice_id: invoiceId } },
       );
     },
-    onError: (err) =>
-      notifyError({ error: err, message: "Error al validar datos fiscales" }),
+    errorTitle: "Error al validar datos fiscales",
   });
 }
 
@@ -50,8 +48,7 @@ interface UpdateReceptorInput {
  * sincroniza los mismos valores en el cliente.
  */
 export function useUpdateReceptorFiscalInfo() {
-  const qc = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (input: UpdateReceptorInput) => {
       const { error } = await supabase
         .from("invoices")
@@ -69,15 +66,13 @@ export function useUpdateReceptorFiscalInfo() {
           .eq("id", input.customerId);
         if (cErr) throw cErr;
       }
+      return input;
     },
-    onSuccess: (_d, vars) => {
-      qc.invalidateQueries({ queryKey: invoiceKeys.detail(vars.invoiceId) });
-      qc.invalidateQueries({ queryKey: invoiceKeys.all });
-      if (vars.customerId) {
-        qc.invalidateQueries({ queryKey: ["customers"] });
-      }
-    },
-    onError: (err) =>
-      notifyError({ error: err, message: "Error al actualizar datos fiscales" }),
+    invalidateKeys: [invoiceKeys.all],
+    invalidateKeysFn: (_d, vars) => [
+      invoiceKeys.detail(vars.invoiceId),
+      ...(vars.customerId ? [["customers"] as const] : []),
+    ],
+    errorTitle: "Error al actualizar datos fiscales",
   });
 }
