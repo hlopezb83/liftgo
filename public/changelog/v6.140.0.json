@@ -1,0 +1,17 @@
+{
+  "version": "6.140.0",
+  "date": "2026-07-10",
+  "type": "minor",
+  "title": "Sprint DRY · Lote 9: helpers compartidos en Edge Functions",
+  "description": "Centraliza la construcción de Supabase clients y respuestas HTTP en helpers compartidos de Edge Functions.",
+  "category": "improvement",
+  "details": [
+    "Nuevo `supabase/functions/_shared/supabaseClients.ts` con `getAdminClient()` y `getCallerClient(req)`.",
+    "Nuevo `supabase/functions/_shared/http.ts` con `jsonResponse` y `jsonError`.",
+    "`_shared/auth.ts` refactorizado para usar los nuevos factories.",
+    "15+ funciones migradas: generate-recurring-maintenance, generate-recurring-invoices, generate-invoice-pdf, generate-manual, classify-feedback-report, stamp-cfdi, stamp-credit-note, stamp-payment-complement, cancel-cfdi, cancel-credit-note, cancel-payment-complement, refresh-cancellation-status, download-cfdi, validate-supplier-rep, validate-receptor-tax-info.",
+    "Se eliminan lecturas duplicadas de `SUPABASE_URL`, `SUPABASE_ANON_KEY` y `SUPABASE_SERVICE_ROLE_KEY` en cada handler.",
+    "~200 LOC menos de boilerplate en el runtime de Edge Functions.",
+    "Vitest: 802 tests verdes (136 archivos)."
+  ]
+}

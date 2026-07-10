@@ -1,4 +1,4 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { getAdminClient, getCallerClient } from "../_shared/supabaseClients.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 
@@ -60,9 +60,6 @@ Deno.serve(async (req) => {
       });
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
     const lovableKey = Deno.env.get("LOVABLE_API_KEY");
     if (!lovableKey) {
       return new Response(
@@ -71,9 +68,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    const caller = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
+    const caller = getCallerClient(req);
     const token = authHeader.replace("Bearer ", "");
     const { data: claims, error: claimsErr } = await caller.auth.getClaims(
       token,
@@ -85,7 +80,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const admin = createClient(supabaseUrl, serviceRoleKey);
+    const admin = getAdminClient();
 
     const { data: roleRow } = await admin
       .from("user_roles")

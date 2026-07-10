@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.140.0",
+    "date": "2026-07-10",
+    "type": "minor",
+    "title": "Sprint DRY · Lote 9: helpers compartidos en Edge Functions (supabaseClients, http)",
+    "description": "Se centraliza la inicialización de Supabase clients en Edge Functions vía `_shared/supabaseClients.ts` (`getAdminClient`, `getCallerClient`) y helpers HTTP en `_shared/http.ts` (`jsonResponse`, `jsonError`). Migradas 15+ funciones: generate-recurring-maintenance, generate-recurring-invoices, generate-invoice-pdf, generate-manual, classify-feedback-report, stamp-cfdi, stamp-credit-note, stamp-payment-complement, cancel-cfdi, cancel-credit-note, cancel-payment-complement, refresh-cancellation-status, download-cfdi, validate-supplier-rep y validate-receptor-tax-info. Elimina lecturas duplicadas de SUPABASE_URL / SUPABASE_ANON_KEY / SUPABASE_SERVICE_ROLE_KEY y ~200 LOC de boilerplate. 802 tests verdes.",
+    "category": "improvement"
+  },
+  {
     "version": "6.139.0",
     "date": "2026-07-09",
     "type": "minor",
