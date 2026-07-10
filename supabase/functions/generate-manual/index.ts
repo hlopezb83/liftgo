@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { getAdminClient, getCallerClient } from "../_shared/supabaseClients.ts";
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { requireAdmin } from "../_shared/auth.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
+import { handleCors } from "../_shared/cors.ts";
 
 const SYSTEM_PROMPT =
   `Eres un redactor técnico experto en sistemas ERP y software de gestión. Tu tarea es generar un manual de usuario completo, detallado y profesional para la aplicación "Lift Go" — un sistema de gestión de renta de montacargas.
