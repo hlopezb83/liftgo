@@ -1,49 +1,25 @@
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
-import { getAdminClient, getCallerClient } from "../_shared/supabaseClients.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
+import { requireAuth } from "../_shared/auth.ts";
 import { isUUID } from "../_shared/validate.ts";
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
-  const corsHeaders = getCorsHeaders(req);
 
   try {
     const url = new URL(req.url);
     const invoiceId = url.searchParams.get("invoiceId");
     if (!isUUID(invoiceId)) {
-      return new Response(
-        JSON.stringify({ error: "invoiceId must be a valid UUID" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonError(req, 400, "invoiceId must be a valid UUID");
     }
 
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const token = authHeader.replace("Bearer ", "");
-    const callerClient = getCallerClient(req);
-    const { data: claimsData, error: claimsError } = await callerClient.auth
-      .getClaims(token);
-    if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const user = { id: claimsData.claims.sub as string };
-
-    const adminClient = getAdminClient();
+    const auth = await requireAuth(req);
+    if (!auth.ok) return auth.response;
+    const adminClient = auth.adminClient;
 
     const { data: roles } = await adminClient.from("user_roles").select("role")
-      .eq("user_id", user.id);
+      .eq("user_id", auth.userId);
     const userRoles = (roles || []).map((r: { role: string }) => r.role);
     const isStaff = userRoles.some((r: string) =>
       ["admin", "dispatcher", "administrativo", "ventas", "auditor"].includes(r)
@@ -52,22 +28,14 @@ Deno.serve(async (req) => {
     const { data: invoice, error } = await adminClient.from("invoices").select(
       "*",
     ).eq("id", invoiceId).single();
-    if (error || !invoice) {
-      return new Response(JSON.stringify({ error: "Invoice not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    if (error || !invoice) return jsonError(req, 404, "Invoice not found");
 
     if (!isStaff) {
       const { data: customer } = await adminClient.from("customers").select(
         "id",
-      ).eq("user_id", user.id).maybeSingle();
+      ).eq("user_id", auth.userId).maybeSingle();
       if (!customer || invoice.customer_id !== customer.id) {
-        return new Response(JSON.stringify({ error: "Forbidden" }), {
-          status: 403,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
+        return jsonError(req, 403, "Forbidden");
       }
     }
 
@@ -82,13 +50,8 @@ Deno.serve(async (req) => {
       return rest;
     })();
 
-    return new Response(JSON.stringify(safeInvoice), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse(req, safeInvoice);
   } catch (_err) {
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-    });
+    return jsonError(req, 500, "Internal server error");
   }
 });
