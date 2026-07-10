@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { roundMoney, sumMoney, toMxn } from "@/lib/money";
+import { roundMoney, sumMoney, toMxn, applyVat, DEFAULT_VAT_RATE } from "@/lib/money";
 
 describe("roundMoney", () => {
   it("removes binary tails from common float ops", () => {
