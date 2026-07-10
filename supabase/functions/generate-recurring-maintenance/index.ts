@@ -1,15 +1,14 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
+import { getAdminClient, getCallerClient, getSupabaseEnv } from "../_shared/supabaseClients.ts";
 
 Deno.serve(async (req) => {
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
-  const headers = getCorsHeaders(req);
 
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, serviceKey);
+    const supabase = getAdminClient();
+    const { serviceKey } = getSupabaseEnv();
 
     // Always require Authorization header. Either:
     //  - CRON_SECRET dedicado (cron / scheduled invocations), o
@@ -17,10 +16,7 @@ Deno.serve(async (req) => {
     //  - JWT de admin/administrativo
     const authHeader = req.headers.get("authorization") ?? "";
     if (!authHeader.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "No autorizado" }), {
-        status: 401,
-        headers: { ...headers, "Content-Type": "application/json" },
-      });
+      return jsonError(req, 401, "No autorizado");
     }
     const bearer = authHeader.slice("Bearer ".length).trim();
     const cronSecret = Deno.env.get("CRON_SECRET") ?? "";
@@ -29,19 +25,11 @@ Deno.serve(async (req) => {
     const isServiceCall = (cronSecret.length > 0 && bearer === cronSecret) ||
       bearer === serviceKey;
     if (!isServiceCall) {
-      const token = bearer;
-
-      const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-      const callerClient = createClient(supabaseUrl, anonKey, {
-        global: { headers: { Authorization: authHeader } },
-      });
+      const callerClient = getCallerClient(req);
       const { data: claimsData, error: claimsError } = await callerClient.auth
-        .getClaims(token);
+        .getClaims(bearer);
       if (claimsError || !claimsData?.claims) {
-        return new Response(JSON.stringify({ error: "No autorizado" }), {
-          status: 401,
-          headers: { ...headers, "Content-Type": "application/json" },
-        });
+        return jsonError(req, 401, "No autorizado");
       }
       const callerId = claimsData.claims.sub as string;
       const { data: roleData } = await supabase
@@ -50,15 +38,7 @@ Deno.serve(async (req) => {
         .eq("user_id", callerId);
       const roles = (roleData ?? []).map((r: { role: string }) => r.role);
       if (!roles.includes("admin") && !roles.includes("administrativo")) {
-        return new Response(
-          JSON.stringify({
-            error: "Solo admin/administrativo puede ejecutar esta función",
-          }),
-          {
-            status: 403,
-            headers: { ...headers, "Content-Type": "application/json" },
-          },
-        );
+        return jsonError(req, 403, "Solo admin/administrativo puede ejecutar esta función");
       }
     }
 
@@ -138,21 +118,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(
-      JSON.stringify({ generated, skipped, month: currentMonth, details }),
-      {
-        status: 200,
-        headers: { ...headers, "Content-Type": "application/json" },
-      },
-    );
+    return jsonResponse(req, { generated, skipped, month: currentMonth, details });
   } catch (err) {
     console.error("[generate-recurring-maintenance]", err);
-    return new Response(
-      JSON.stringify({ error: "Error interno del servidor" }),
-      {
-        status: 500,
-        headers: { ...headers, "Content-Type": "application/json" },
-      },
-    );
+    return jsonError(req, 500, "Error interno del servidor");
   }
 });
