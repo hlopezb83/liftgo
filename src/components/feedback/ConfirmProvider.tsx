@@ -2,7 +2,7 @@ import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ConfirmContext, type Confirm, type ConfirmOptions } from "./confirmContext";
 
-export { useConfirm } from "./useConfirm";
+
 
 interface DialogState extends ConfirmOptions {
   open: boolean;

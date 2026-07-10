@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { useConfirm } from "@/components/feedback/ConfirmProvider";
+import { useConfirm } from "@/components/feedback/useConfirm";
 import { useBankAccounts, useDeleteBankAccount, type BankAccount } from "../hooks/useBankAccounts";
 import { BankAccountFormDialog } from "../components/BankAccountFormDialog";
 
