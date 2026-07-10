@@ -1,6 +1,5 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError } from "@/lib/ui/appFeedback";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 
 import { invoiceKeys } from "../../../lib/queryKeys";
 
@@ -20,9 +19,7 @@ export interface GenerateRecurringResponse {
  * Si se pasan `bookingIds`, genera SOLO esas; si no, todas las elegibles.
  */
 export function useGenerateRecurringInvoices() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (
       bookingIds?: string[],
     ): Promise<GenerateRecurringResponse> => {
@@ -31,15 +28,7 @@ export function useGenerateRecurringInvoices() {
         { body: { preview: false, bookingIds } },
       );
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
-    },
-    onError: (err: unknown) => {
-      notifyError({
-        error: err,
-        title: "Error al generar facturas",
-        description: err instanceof Error ? err.message : "Intenta de nuevo.",
-      });
-    },
+    invalidateKeys: [invoiceKeys.all],
+    errorTitle: "Error al generar facturas",
   });
 }
