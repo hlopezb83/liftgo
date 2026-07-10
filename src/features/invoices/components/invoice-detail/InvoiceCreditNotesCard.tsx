@@ -52,6 +52,7 @@ export function InvoiceCreditNotesCard({ invoice, totalPaid }: Props) {
   const [cancelTarget, setCancelTarget] = useState<CreditNote | null>(null);
   const stampMutation = useStampCreditNote();
   const deleteMutation = useDeleteCreditNote();
+  const confirm = useConfirm();
 
   const activeCredits = creditNotes
     .filter((cn) => cn.cfdi_status === "stamped" && cn.cancellation_status !== "accepted" && cn.status !== "cancelled")
@@ -121,8 +122,14 @@ export function InvoiceCreditNotesCard({ invoice, totalPaid }: Props) {
                             <Button variant="outline" size="sm" className="h-7 text-xs" disabled={stampMutation.isPending} onClick={() => stampMutation.mutate(cn.id)}>
                               <Stamp className="h-3 w-3 mr-1" /> Timbrar
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" title="Eliminar borrador" onClick={() => {
-                              if (confirm("¿Eliminar borrador?")) deleteMutation.mutate(cn.id);
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" title="Eliminar borrador" onClick={async () => {
+                              const ok = await confirm({
+                                title: "Eliminar borrador",
+                                description: `¿Eliminar el borrador de la nota de crédito ${cn.folio ?? ""}? Esta acción no se puede deshacer.`,
+                                confirmLabel: "Eliminar",
+                                destructive: true,
+                              });
+                              if (ok) deleteMutation.mutate(cn.id);
                             }}>
                               <Trash2 className="h-3.5 w-3.5" />
                             </Button>
