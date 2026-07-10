@@ -1,0 +1,13 @@
+{
+  "version": "6.148.2",
+  "date": "2026-07-10",
+  "type": "patch",
+  "title": "Fix ReferenceError jsonHeaders en stamp-cfdi y stamp-credit-note",
+  "category": "fix",
+  "summary": "Los handlers de stamp-cfdi y stamp-credit-note pasaban `jsonHeaders` como argumento al helper local `json(...)` sin definirlo, provocando `ReferenceError` en producción y devolviendo 500 en lugar de 401 ante peticiones sin Authorization. Se agrega la declaración local para restaurar el comportamiento correcto y los smoke tests Deno.",
+  "changes": [
+    "supabase/functions/stamp-cfdi/handler.ts: declara `const jsonHeaders = undefined` dentro del handler para evitar el ReferenceError.",
+    "supabase/functions/stamp-credit-note/handler.ts: mismo ajuste.",
+    "Restablece los smoke tests `stamp-cfdi/index_test.ts` y `stamp-credit-note/index_test.ts` (esperaban 401 y recibían 500 por el ReferenceError)."
+  ]
+}

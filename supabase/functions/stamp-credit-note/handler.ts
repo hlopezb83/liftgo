@@ -38,6 +38,7 @@ export async function handleStampCreditNote(
   if (corsRes) return corsRes;
   const json = (body: unknown, status: number, _headers?: unknown) =>
     jsonResponse(req, body, { status });
+  const jsonHeaders = undefined;
 
   let credit_note_id: unknown = undefined;
   let userId: string | undefined = undefined;
