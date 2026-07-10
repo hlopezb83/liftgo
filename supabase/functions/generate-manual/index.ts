@@ -66,55 +66,17 @@ SECCIONES:
 serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
-  const corsHeaders = getCorsHeaders(req);
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "No autorizado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const supabase = getAdminClient();
-
-    // Verify user is admin or administrativo
-    const token = authHeader.replace("Bearer ", "");
-    const anonClient = getCallerClient(req);
-    const { data: claimsData, error: claimsError } = await anonClient.auth
-      .getClaims(token);
-    if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "No autorizado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const user = { id: claimsData.claims.sub as string };
-
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .single();
-
-    if (!roleData || roleData.role !== "admin") {
-      return new Response(JSON.stringify({ error: "Sin permisos" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const auth = await requireAdmin(req);
+    if (!auth.ok) return auth.response;
+    const supabase = auth.adminClient;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
-      return new Response(
-        JSON.stringify({ error: "LOVABLE_API_KEY no configurada" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonError(req, 500, "LOVABLE_API_KEY no configurada");
     }
+
 
     // Call Lovable AI with tool calling to get structured JSON
     const aiResponse = await fetch(
