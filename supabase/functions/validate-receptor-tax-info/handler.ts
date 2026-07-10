@@ -6,7 +6,7 @@ import { handleCors } from "../_shared/cors.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
-import { resolveFacturapiKey } from "../_shared/facturapi/client.ts";
+import { getFacturapiConfig } from "../_shared/facturapi/client.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 
 export type { SupabaseLike };
@@ -80,21 +80,7 @@ export async function handleValidateReceptor(
     }
     const inv = invoice as Record<string, unknown>;
 
-    const { data: company } = await supabase
-      .from("company_settings").select("facturapi_mode").limit(1).maybeSingle();
-    const { data: secrets } = await supabase
-      .from("billing_secrets").select("facturapi_test_key, facturapi_live_key")
-      .limit(1).maybeSingle();
-    const co = (company ?? {}) as Record<string, unknown>;
-    const sec = (secrets ?? {}) as Record<string, unknown>;
-    const mode = (co.facturapi_mode as string | undefined) || "test";
-    const apiKey = resolveFacturapiKey({
-      mode: mode === "live" ? "live" : "test",
-      dbTestKey: sec.facturapi_test_key as string | null | undefined,
-      dbLiveKey: sec.facturapi_live_key as string | null | undefined,
-      envTestKey: deps.env("FACTURAPI_TEST_KEY"),
-      envLiveKey: deps.env("FACTURAPI_LIVE_KEY"),
-    });
+    const { apiKey } = await getFacturapiConfig(supabase, deps.env);
     if (!apiKey) {
       return json(
         { error: "Facturapi API key not configured" },

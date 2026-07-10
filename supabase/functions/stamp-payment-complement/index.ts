@@ -7,7 +7,7 @@ import {
   binaryToText,
   createFacturapiClient,
   describeFacturapiError,
-  resolveFacturapiKey,
+  getFacturapiConfig,
 } from "../_shared/facturapi/client.ts";
 
 const BUCKET = "cfdi-files";
@@ -119,24 +119,10 @@ Deno.serve(async (req) => {
     // Tax breakdown (IVA 16% único)
     const base = Number((amount / (1 + IVA_RATE)).toFixed(2));
 
-    const { data: company } = await supabase
-      .from("company_settings")
-      .select("facturapi_mode")
-      .limit(1)
-      .maybeSingle();
-    const { data: secrets } = await supabase
-      .from("billing_secrets")
-      .select("facturapi_test_key, facturapi_live_key")
-      .limit(1)
-      .maybeSingle();
-    const mode = (company?.facturapi_mode as string | undefined) || "test";
-    const apiKey = resolveFacturapiKey({
-      mode: mode === "live" ? "live" : "test",
-      dbTestKey: secrets?.facturapi_test_key as string | null | undefined,
-      dbLiveKey: secrets?.facturapi_live_key as string | null | undefined,
-      envTestKey: Deno.env.get("FACTURAPI_TEST_KEY"),
-      envLiveKey: Deno.env.get("FACTURAPI_LIVE_KEY"),
-    });
+    const { apiKey } = await getFacturapiConfig(
+      supabase,
+      (k) => Deno.env.get(k),
+    );
     if (!apiKey) return jsonError(req, 400, "Facturapi key not configured");
 
     const paymentDateIso = `${payment.payment_date}T12:00:00`;

@@ -4,7 +4,7 @@ import { jsonError } from "../_shared/http.ts";
 import { requireRole } from "../_shared/auth.ts";
 import { isUUID } from "../_shared/validate.ts";
 import {
-  resolveFacturapiKey,
+  getFacturapiConfig,
   retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
 
@@ -72,19 +72,12 @@ const fetchAcuseFromFacturapi = (
 async function loadFacturapiKey(
   supabase: SupabaseClient,
 ): Promise<string | null> {
-  const { data: company } = await supabase
-    .from("company_settings").select("facturapi_mode").limit(1).maybeSingle();
-  const { data: secrets } = await supabase
-    .from("billing_secrets").select("facturapi_test_key, facturapi_live_key")
-    .limit(1).maybeSingle();
-  const mode = (company?.facturapi_mode as string | undefined) || "test";
-  return resolveFacturapiKey({
-    mode: mode === "live" ? "live" : "test",
-    dbTestKey: secrets?.facturapi_test_key ?? null,
-    dbLiveKey: secrets?.facturapi_live_key ?? null,
-    envTestKey: Deno.env.get("FACTURAPI_TEST_KEY"),
-    envLiveKey: Deno.env.get("FACTURAPI_LIVE_KEY"),
-  });
+  // deno-lint-ignore no-explicit-any
+  const { apiKey } = await getFacturapiConfig(
+    supabase as any,
+    (k) => Deno.env.get(k),
+  );
+  return apiKey;
 }
 
 function attachmentResponse(

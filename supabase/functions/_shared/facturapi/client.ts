@@ -49,6 +49,46 @@ export function resolveFacturapiKey(input: ResolveKeyInput): string | null {
   return key && key.length > 0 ? key : null;
 }
 
+export interface FacturapiConfig {
+  mode: FacturapiMode;
+  apiKey: string | null;
+}
+
+/**
+ * Lee `company_settings.facturapi_mode` + `billing_secrets` y resuelve la
+ * API key para el modo activo. Concentra el boilerplate repetido en
+ * stamp-*, cancel-*, download-cfdi, refresh-cancellation-status, etc.
+ *
+ * `modeOverride` evita una segunda lectura de `company_settings` cuando el
+ * handler ya obtuvo el modo (p. ej. porque necesita otros campos).
+ */
+// deno-lint-ignore no-explicit-any
+export async function getFacturapiConfig(
+  admin: { from: (table: string) => any },
+  env: (key: string) => string | undefined,
+  opts?: { modeOverride?: string | null | undefined },
+): Promise<FacturapiConfig> {
+  let modeRaw: string | null | undefined = opts?.modeOverride;
+  if (modeRaw === undefined) {
+    const { data: co } = await admin
+      .from("company_settings").select("facturapi_mode").limit(1).maybeSingle();
+    modeRaw = (co?.facturapi_mode as string | undefined) ?? null;
+  }
+  const mode: FacturapiMode = modeRaw === "live" ? "live" : "test";
+  const { data: secrets } = await admin
+    .from("billing_secrets")
+    .select("facturapi_test_key, facturapi_live_key").limit(1).maybeSingle();
+  const sec = (secrets ?? {}) as Record<string, unknown>;
+  const apiKey = resolveFacturapiKey({
+    mode,
+    dbTestKey: sec.facturapi_test_key as string | null | undefined,
+    dbLiveKey: sec.facturapi_live_key as string | null | undefined,
+    envTestKey: env("FACTURAPI_TEST_KEY"),
+    envLiveKey: env("FACTURAPI_LIVE_KEY"),
+  });
+  return { mode, apiKey };
+}
+
 /** Crea una instancia del SDK con la API key resuelta. */
 /** Crea una instancia del SDK con la API key resuelta. */
 export function createFacturapiClient(apiKey: string): FacturapiClient {

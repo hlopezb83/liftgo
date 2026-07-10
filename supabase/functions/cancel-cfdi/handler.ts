@@ -6,7 +6,7 @@ import type { SupabaseLike } from "../_shared/types.ts";
 import {
   createFacturapiClient,
   describeFacturapiError,
-  resolveFacturapiKey,
+  getFacturapiConfig,
 } from "../_shared/facturapi/client.ts";
 
 export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
@@ -104,22 +104,7 @@ export async function handleCancelCfdi(
       return json({ error: "Only stamped invoices can be cancelled" }, 400);
     }
 
-    const { data: company } = await supabase
-      .from("company_settings").select("facturapi_mode").limit(1).maybeSingle();
-    const { data: secrets } = await supabase
-      .from("billing_secrets")
-      .select("facturapi_test_key, facturapi_live_key").limit(1).maybeSingle();
-
-    const co = (company ?? {}) as Record<string, unknown>;
-    const sec = (secrets ?? {}) as Record<string, unknown>;
-    const mode = (co.facturapi_mode as string) || "test";
-    const apiKey = resolveFacturapiKey({
-      mode: mode === "live" ? "live" : "test",
-      dbTestKey: sec.facturapi_test_key as string | null | undefined,
-      dbLiveKey: sec.facturapi_live_key as string | null | undefined,
-      envTestKey: deps.env("FACTURAPI_TEST_KEY"),
-      envLiveKey: deps.env("FACTURAPI_LIVE_KEY"),
-    });
+    const { apiKey } = await getFacturapiConfig(supabase, deps.env);
     const facturApiId = inv.facturapi_invoice_id as string | null | undefined;
 
     let satStatus = "accepted";

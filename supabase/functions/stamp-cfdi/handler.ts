@@ -9,7 +9,7 @@ import {
   binaryToText,
   createFacturapiClient,
   describeFacturapiError,
-  resolveFacturapiKey,
+  getFacturapiConfig,
   retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
 
@@ -148,11 +148,6 @@ export async function handleStampCfdi(
 
     const { data: company } = await supabase
       .from("company_settings").select("*").limit(1).maybeSingle();
-    const { data: secrets } = await supabase
-      .from("billing_secrets")
-      .select("facturapi_test_key, facturapi_live_key")
-      .limit(1).maybeSingle();
-
     if (!company) {
       console.error("[stamp-cfdi] company_settings missing", { invoice_id });
       return json(
@@ -161,20 +156,9 @@ export async function handleStampCfdi(
         jsonHeaders,
       );
     }
-
     const co = company as Record<string, unknown>;
-    const sec = (secrets ?? {}) as Record<string, unknown>;
-    const mode = (co.facturapi_mode as string) || "test";
-    const dbTestKey = (sec.facturapi_test_key as string | null | undefined) ??
-      null;
-    const dbLiveKey = (sec.facturapi_live_key as string | null | undefined) ??
-      null;
-    const apiKey = resolveFacturapiKey({
-      mode: mode === "live" ? "live" : "test",
-      dbTestKey,
-      dbLiveKey,
-      envTestKey: deps.env("FACTURAPI_TEST_KEY"),
-      envLiveKey: deps.env("FACTURAPI_LIVE_KEY"),
+    const { apiKey } = await getFacturapiConfig(supabase, deps.env, {
+      modeOverride: (co.facturapi_mode as string | undefined) ?? null,
     });
 
     if (!apiKey) {
