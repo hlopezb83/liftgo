@@ -1,7 +1,6 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { notifySuccess } from "@/lib/ui/appFeedback";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import type { ParsedBankLine } from "../../lib/csvParsers";
 import { BANK_LINES_QK } from "../useBankStatementLines";
 
@@ -14,8 +13,7 @@ interface ImportArgs {
 }
 
 export function useImportBankStatement() {
-  const qc = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (args: ImportArgs) => {
       const { data: imp, error: impErr } = await supabase
         .from("bank_statement_imports")
@@ -51,8 +49,9 @@ export function useImportBankStatement() {
       if (matchErr) throw matchErr;
       return matchRes;
     },
-    onSuccess: (res, vars) => {
-      qc.invalidateQueries({ queryKey: BANK_LINES_QK(vars.bankAccountId) });
+    invalidateKeysFn: (_res, vars) => [BANK_LINES_QK(vars.bankAccountId)],
+    errorTitle: "Error al importar estado de cuenta",
+    onSuccess: (res) => {
       const summary = Array.isArray(res) && res[0] ? res[0] : null;
       if (summary) {
         notifySuccess(
@@ -62,6 +61,6 @@ export function useImportBankStatement() {
         notifySuccess("Importación completada");
       }
     },
-    onError: (e: Error) => notifyError({ error: e, message: e.message }),
   });
 }
+

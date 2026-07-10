@@ -1,7 +1,7 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 
 import type { TablesInsert } from "@/integrations/supabase/types";
 import type { FeedbackFormValues } from "../lib/schema";
@@ -31,10 +31,9 @@ async function uploadScreenshot(userId: string, file: File): Promise<string | nu
 }
 
 export function useCreateFeedback() {
-  const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (input: CreateFeedbackInput) => {
       if (!user?.id) throw new Error("Sesión no disponible");
 
@@ -43,8 +42,6 @@ export function useCreateFeedback() {
         screenshotUrl = await uploadScreenshot(user.id, input.screenshot);
       }
 
-      // module y severity se omiten: el AI los asigna del lado admin.
-      // module usa default 'Sin clasificar' de la columna.
       const payload: TablesInsert<"feedback_reports"> = {
         reporter_id: user.id,
         reporter_type: input.reporterType,
@@ -65,14 +62,12 @@ export function useCreateFeedback() {
       if (error) throw error;
       return data;
     },
+    invalidateKeys: [["feedback_reports"]],
+    errorTitle: "No se pudo enviar el reporte",
     onSuccess: (report) => {
-      queryClient.invalidateQueries({ queryKey: ["feedback_reports"] });
       notifySuccess(`Reporte enviado: ${report.folio}`, {
         description: "¡Gracias por ayudarnos a mejorar!",
       });
-    },
-    onError: (err: Error) => {
-      notifyError({ title: "No se pudo enviar el reporte", error: err });
     },
   });
 }

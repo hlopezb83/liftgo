@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.147.0",
+    "date": "2026-07-10",
+    "type": "minor",
+    "title": "DRY Lote 2 (parte 4): feedback y bank-reconciliation migrados a useEntityMutation",
+    "description": "Se migran useCreateFeedback, useClassifyFeedback, useUpdateFeedbackStatus, useImportBankStatement, useUpsertBankAccount y useDeleteBankAccount al patrón canónico useEntityMutation. Invalidación dinámica por bankAccountId vía invalidateKeysFn en el import de estados de cuenta. -70 LOC netos, 802 tests verdes, typecheck limpio.",
+    "category": "refactor"
+  },
+  {
     "version": "6.146.0",
     "date": "2026-07-10",
     "type": "minor",
