@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { callRpc } from "@/lib/rpc";
+
+type PublicBrandingRow = { logo_url: string | null; razon_social: string | null };
 
 /**
  * Obtiene logo y razón social de la empresa SIN requerir sesión.
@@ -11,10 +13,9 @@ export function usePublicBranding() {
     queryKey: ["public_branding"],
     staleTime: 10 * 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_public_branding");
-      if (error) throw error;
+      const data = await callRpc<PublicBrandingRow[] | null>("get_public_branding");
       const row = Array.isArray(data) && data.length > 0 ? data[0] : null;
-      return row as { logo_url: string | null; razon_social: string | null } | null;
+      return row;
     },
   });
 }
