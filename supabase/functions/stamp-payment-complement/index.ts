@@ -1,5 +1,5 @@
-import { handleCors } from "../_shared/cors.ts";
-import { jsonError, jsonResponse } from "../_shared/http.ts";
+import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { jsonError } from "../_shared/http.ts";
 import { getAdminClient, getCallerClient } from "../_shared/supabaseClients.ts";
 import { isUUID } from "../_shared/validate.ts";
 import {
@@ -16,6 +16,9 @@ const IVA_RATE = 0.16;
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
+  const corsHeaders = getCorsHeaders(req);
+  const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
+
 
   try {
     const authHeader = req.headers.get("Authorization");
