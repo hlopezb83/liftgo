@@ -7,6 +7,7 @@ import { Plus, Stamp, FileText, Download, XCircle, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { notifyError } from "@/lib/ui/appFeedback";
+import { useConfirm } from "@/components/feedback/ConfirmProvider";
 import { downloadCfdiBlob, type CfdiFormat } from "../../lib/downloadCfdiBlob";
 import { CreateCreditNoteDialog } from "./CreateCreditNoteDialog";
 import { CancelCreditNoteDialog } from "./CancelCreditNoteDialog";
