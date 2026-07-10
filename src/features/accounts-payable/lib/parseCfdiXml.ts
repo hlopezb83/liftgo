@@ -86,15 +86,13 @@ function sumRetencionByImpuesto(
   return total;
 }
 
-export function parseCfdiXml(xml: string): CfdiParsed {
+function parseAndValidateDoc(xml: string): Element {
   const trimmed = xml.trim();
   if (!trimmed) throw new CfdiParseError("XML vacío");
 
   const doc = new DOMParser().parseFromString(trimmed, "application/xml");
   const parserError = doc.getElementsByTagName("parsererror")[0];
-  if (parserError) {
-    throw new CfdiParseError("El archivo XML está mal formado");
-  }
+  if (parserError) throw new CfdiParseError("El archivo XML está mal formado");
 
   const comprobante = doc.documentElement;
   if (!comprobante || comprobante.localName !== "Comprobante") {
@@ -105,33 +103,49 @@ export function parseCfdiXml(xml: string): CfdiParsed {
   if (tipo && tipo !== "I") {
     throw new CfdiParseError(`Solo se aceptan CFDI de Ingreso (I). Este es tipo "${tipo}".`);
   }
+  return comprobante;
+}
 
-  const emisor = findChildByLocalName(comprobante, "Emisor");
-  const receptor = findChildByLocalName(comprobante, "Receptor");
-  const timbre = findFirstDescendant(comprobante, "TimbreFiscalDigital");
-
+function extractCurrency(comprobante: Element): { currency: "MXN" | "USD"; exchangeRate: number } {
   const monedaAttr = comprobante.getAttribute("Moneda");
   const currency: "MXN" | "USD" = monedaAttr === "USD" ? "USD" : "MXN";
   const exchangeRate = num(comprobante.getAttribute("TipoCambio")) || 1;
+  return { currency, exchangeRate };
+}
 
-  // Impuestos: SOLO el nodo hijo directo del Comprobante (totales oficiales).
-  // Recorrer todos los descendientes duplicaría con los impuestos por concepto.
+function extractImpuestos(comprobante: Element): {
+  taxAmount: number; retentionIva: number; retentionIsr: number;
+} {
+  // Solo el nodo hijo directo (totales oficiales del CFDI).
   const impuestosNode = findChildByLocalName(comprobante, "Impuestos");
   const trasladosWrapper = impuestosNode ? findChildByLocalName(impuestosNode, "Traslados") : null;
   const retencionesWrapper = impuestosNode ? findChildByLocalName(impuestosNode, "Retenciones") : null;
 
-  // Preferir atributos agregados del PAC cuando estén presentes.
   const totalTrasladadosAttr = impuestosNode?.getAttribute("TotalImpuestosTrasladados");
   const taxAmount = totalTrasladadosAttr !== null && totalTrasladadosAttr !== undefined
     ? num(totalTrasladadosAttr)
     : sumDirectImporte(trasladosWrapper, "Traslado");
 
-  const retentionIva = sumRetencionByImpuesto(retencionesWrapper, "002");
-  const retentionIsr = sumRetencionByImpuesto(retencionesWrapper, "001");
+  return {
+    taxAmount,
+    retentionIva: sumRetencionByImpuesto(retencionesWrapper, "002"),
+    retentionIsr: sumRetencionByImpuesto(retencionesWrapper, "001"),
+  };
+}
 
+function extractPaymentMethod(comprobante: Element): "PUE" | "PPD" | null {
   const metodoPago = comprobante.getAttribute("MetodoPago");
-  const paymentMethodSat: "PUE" | "PPD" | null =
-    metodoPago === "PUE" || metodoPago === "PPD" ? metodoPago : null;
+  return metodoPago === "PUE" || metodoPago === "PPD" ? metodoPago : null;
+}
+
+export function parseCfdiXml(xml: string): CfdiParsed {
+  const comprobante = parseAndValidateDoc(xml);
+  const emisor = findChildByLocalName(comprobante, "Emisor");
+  const receptor = findChildByLocalName(comprobante, "Receptor");
+  const timbre = findFirstDescendant(comprobante, "TimbreFiscalDigital");
+
+  const { currency, exchangeRate } = extractCurrency(comprobante);
+  const { taxAmount, retentionIva, retentionIsr } = extractImpuestos(comprobante);
 
   return {
     uuid: timbre?.getAttribute("UUID")?.toUpperCase() ?? null,
@@ -145,11 +159,12 @@ export function parseCfdiXml(xml: string): CfdiParsed {
     retentionIva,
     retentionIsr,
     total: num(comprobante.getAttribute("Total")),
-    paymentMethodSat,
+    paymentMethodSat: extractPaymentMethod(comprobante),
     formaPago: comprobante.getAttribute("FormaPago"),
     emitterRfc: emisor?.getAttribute("Rfc")?.toUpperCase() ?? null,
     emitterName: emisor?.getAttribute("Nombre") ?? null,
     receiverRfc: receptor?.getAttribute("Rfc")?.toUpperCase() ?? null,
-    comprobanteType: tipo,
+    comprobanteType: comprobante.getAttribute("TipoDeComprobante"),
   };
 }
+
