@@ -66,13 +66,9 @@ Deno.serve(async (req) => {
       .or("serie.is.null,folio.is.null");
 
     if (error) {
-      return new Response(
-        JSON.stringify({
-          error: "Failed to query invoices",
-          detail: error.message,
-        }),
-        { status: 500, headers: jsonHeaders },
-      );
+      return jsonError(req, 500, "Failed to query invoices", {
+        detail: error.message,
+      });
     }
 
     const invoices = (rows ?? []) as InvoiceRow[];
