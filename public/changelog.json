@@ -1,5 +1,14 @@
 [
   {
+    "version": "7.0.1",
+    "date": "2026-07-10",
+    "type": "patch",
+    "title": "Fix deno lint · elimina ignores redundantes y cast innecesario",
+    "description": "Resuelve 3 errores de `deno lint` en CI: retira `deno-lint-ignore no-explicit-any` redundante en `_shared/facturapi/client.ts` (el archivo ya usa `deno-lint-ignore-file`) y elimina el cast `supabase as any` en `download-cfdi/index.ts` (el parámetro ya acepta el SupabaseClient por su interfaz estructural).",
+    "category": "fix"
+  },
+  {
+
     "version": "7.0.0",
     "date": "2026-07-10",
     "type": "major",
