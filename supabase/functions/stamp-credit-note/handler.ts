@@ -1,5 +1,6 @@
 // Pure handler for stamp-credit-note, deps-injected for testability.
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
@@ -35,8 +36,9 @@ export async function handleStampCreditNote(
 ): Promise<Response> {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
-  const corsHeaders = getCorsHeaders(req);
-  const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
+  const json = (body: unknown, status: number, _headers?: unknown) =>
+    jsonResponse(req, body, { status });
+
 
   let credit_note_id: unknown = undefined;
   let userId: string | undefined = undefined;
@@ -398,17 +400,7 @@ export async function handleStampCreditNote(
       message: err instanceof Error ? err.message : String(err),
       stack: err instanceof Error ? err.stack : undefined,
     });
-    return json({ error: "Internal server error" }, 500, {
-      ...getCorsHeaders(req),
-      "Content-Type": "application/json",
-    });
+    return json({ error: "Internal server error" }, 500);
   }
 }
 
-function json(
-  body: unknown,
-  status: number,
-  headers: Record<string, string>,
-): Response {
-  return new Response(JSON.stringify(body), { status, headers });
-}

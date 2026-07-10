@@ -1,6 +1,7 @@
-import { getAdminClient, getCallerClient } from "../_shared/supabaseClients.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
+import { requireRole } from "../_shared/auth.ts";
 
 const SEVERITIES = ["critical", "high", "medium", "low"] as const;
 const MODULES = [
@@ -46,62 +47,22 @@ const ClassificationSchema = z.object({
 Deno.serve(async (req) => {
   const cors = handleCors(req);
   if (cors) return cors;
-  const headers = {
-    ...getCorsHeaders(req),
-    "Content-Type": "application/json",
-  };
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers,
-      });
-    }
-
     const lovableKey = Deno.env.get("LOVABLE_API_KEY");
     if (!lovableKey) {
-      return new Response(
-        JSON.stringify({ error: "LOVABLE_API_KEY no configurada" }),
-        { status: 500, headers },
-      );
+      return jsonError(req, 500, "LOVABLE_API_KEY no configurada");
     }
 
-    const caller = getCallerClient(req);
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claims, error: claimsErr } = await caller.auth.getClaims(
-      token,
-    );
-    if (claimsErr || !claims?.claims?.sub) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers,
-      });
-    }
-
-    const admin = getAdminClient();
-
-    const { data: roleRow } = await admin
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", claims.claims.sub)
-      .in("role", ["admin", "administrativo"])
-      .maybeSingle();
-    if (!roleRow) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
-        headers,
-      });
-    }
+    const auth = await requireRole(req, ["admin", "administrativo"]);
+    if (!auth.ok) return auth.response;
+    const admin = auth.adminClient;
 
     const parsed = BodySchema.safeParse(await req.json());
     if (!parsed.success) {
-      return new Response(JSON.stringify({ error: parsed.error.flatten() }), {
-        status: 400,
-        headers,
-      });
+      return jsonError(req, 400, "Invalid body", { detail: parsed.error.flatten() });
     }
+
 
     const { data: report, error: reportErr } = await admin
       .from("feedback_reports")
@@ -109,10 +70,7 @@ Deno.serve(async (req) => {
       .eq("id", parsed.data.report_id)
       .maybeSingle();
     if (reportErr || !report) {
-      return new Response(JSON.stringify({ error: "Reporte no encontrado" }), {
-        status: 404,
-        headers,
-      });
+      return jsonError(req, 404, "Reporte no encontrado");
     }
 
     const ctx = (report.context_json ?? {}) as Record<string, unknown>;
@@ -181,23 +139,12 @@ Responde estrictamente con JSON: {"severity": "...", "module": "...", "reasoning
     if (!aiResp.ok) {
       const errText = await aiResp.text();
       if (aiResp.status === 429) {
-        return new Response(
-          JSON.stringify({
-            error: "Rate limit excedido, intenta de nuevo en unos segundos",
-          }),
-          { status: 429, headers },
-        );
+        return jsonError(req, 429, "Rate limit excedido, intenta de nuevo en unos segundos");
       }
       if (aiResp.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Créditos de AI agotados" }),
-          { status: 402, headers },
-        );
+        return jsonError(req, 402, "Créditos de AI agotados");
       }
-      return new Response(
-        JSON.stringify({ error: `AI gateway error: ${errText.slice(0, 200)}` }),
-        { status: 500, headers },
-      );
+      return jsonError(req, 500, `AI gateway error: ${errText.slice(0, 200)}`);
     }
 
     const aiJson = await aiResp.json();
@@ -208,10 +155,7 @@ Responde estrictamente con JSON: {"severity": "...", "module": "...", "reasoning
       classification = ClassificationSchema.parse(parsedAi);
     } catch (parseErr) {
       console.error("[classify-feedback] parse fail", parseErr, rawContent);
-      return new Response(
-        JSON.stringify({ error: "Respuesta de AI inválida" }),
-        { status: 502, headers },
-      );
+      return jsonError(req, 502, "Respuesta de AI inválida");
     }
 
     const newContext = {
@@ -239,21 +183,12 @@ Responde estrictamente con JSON: {"severity": "...", "module": "...", "reasoning
       .single();
 
     if (updateErr) {
-      return new Response(JSON.stringify({ error: updateErr.message }), {
-        status: 500,
-        headers,
-      });
+      return jsonError(req, 500, updateErr.message);
     }
 
-    return new Response(JSON.stringify({ report: updated, classification }), {
-      status: 200,
-      headers,
-    });
+    return jsonResponse(req, { report: updated, classification });
   } catch (err) {
     console.error("[classify-feedback] fatal", err);
-    return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : "unknown" }),
-      { status: 500, headers },
-    );
+    return jsonError(req, 500, err instanceof Error ? err.message : "unknown");
   }
 });

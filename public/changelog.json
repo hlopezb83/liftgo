@@ -1,5 +1,14 @@
 [
   {
+    "version": "6.142.0",
+    "date": "2026-07-10",
+    "type": "minor",
+    "title": "DRY Lote 1 (cont.): migración a jsonResponse/jsonError y requireRole",
+    "description": "Se migran 6 edge functions adicionales (stamp-payment-complement, backfill-facturapi-serie-folio, generate-invoice-pdf, parse-csf, classify-feedback-report, parse-cfdi-expense) para consumir requireRole/requireAuth y los helpers jsonResponse/jsonError de _shared. Se eliminan ~180 LOC de boilerplate (auth manual con getClaims + roles, jsonHeaders duplicados y respuestas manuales). Sin cambios funcionales; 802 tests pasan.",
+    "category": "refactor"
+  },
+
+  {
     "version": "6.141.0",
     "date": "2026-07-10",
     "type": "minor",

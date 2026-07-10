@@ -2,7 +2,8 @@
 // Consulta el endpoint público de Facturapi `/v2/tools/tax_id_validation`
 // para descubrir qué campo del receptor no coincide con la Constancia de
 // Situación Fiscal registrada en el SAT. No consume timbre.
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 import { resolveFacturapiKey } from "../_shared/facturapi/client.ts";
@@ -36,8 +37,9 @@ export async function handleValidateReceptor(
 ): Promise<Response> {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
-  const corsHeaders = getCorsHeaders(req);
-  const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
+  const json = (body: unknown, status: number, _headers?: unknown) =>
+    jsonResponse(req, body, { status });
+
 
   try {
     const authHeader = req.headers.get("Authorization");
@@ -198,10 +200,3 @@ export async function handleValidateReceptor(
   }
 }
 
-function json(
-  body: unknown,
-  status: number,
-  headers: Record<string, string>,
-): Response {
-  return new Response(JSON.stringify(body), { status, headers });
-}

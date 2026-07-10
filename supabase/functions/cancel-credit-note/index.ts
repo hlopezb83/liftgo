@@ -1,5 +1,6 @@
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
-import { getAdminClient, getCallerClient } from "../_shared/supabaseClients.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
+import { requireRole } from "../_shared/auth.ts";
 import { isNonEmptyString, isUUID } from "../_shared/validate.ts";
 import {
   createFacturapiClient,
@@ -12,72 +13,27 @@ const VALID_MOTIVES = new Set(["01", "02", "03", "04"]);
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
-  const corsHeaders = getCorsHeaders(req);
-  const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: jsonHeaders,
-      });
-    }
-    const token = authHeader.replace("Bearer ", "");
-
-    const callerClient = getCallerClient(req);
-    const { data: claimsData, error: claimsErr } = await callerClient.auth
-      .getClaims(token);
-    if (claimsErr || !claimsData?.claims?.sub) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: jsonHeaders,
-      });
-    }
-    const userId = claimsData.claims.sub as string;
-
-    const supabase = getAdminClient();
-    const { data: roles } = await supabase.from("user_roles").select("role").eq(
-      "user_id",
-      userId,
-    );
-    const allowed = (roles ?? []).some((r) =>
-      r.role === "admin" || r.role === "administrativo"
-    );
-    if (!allowed) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
-        headers: jsonHeaders,
-      });
-    }
+    const auth = await requireRole(req, ["admin", "administrativo"]);
+    if (!auth.ok) return auth.response;
+    const supabase = auth.adminClient;
 
     const body = await req.json().catch(() => null);
     const { credit_note_id, motive, substitution_uuid, cancellation_reason } =
       body ?? {};
 
     if (!isUUID(credit_note_id)) {
-      return new Response(
-        JSON.stringify({ error: "credit_note_id must be UUID" }),
-        { status: 400, headers: jsonHeaders },
-      );
+      return jsonError(req, 400, "credit_note_id must be UUID");
     }
     if (typeof motive !== "string" || !VALID_MOTIVES.has(motive)) {
-      return new Response(JSON.stringify({ error: "motive must be 01-04" }), {
-        status: 400,
-        headers: jsonHeaders,
-      });
+      return jsonError(req, 400, "motive must be 01-04");
     }
     if (motive === "01" && !isUUID(substitution_uuid)) {
-      return new Response(
-        JSON.stringify({ error: "substitution_uuid requerido para motivo 01" }),
-        { status: 400, headers: jsonHeaders },
-      );
+      return jsonError(req, 400, "substitution_uuid requerido para motivo 01");
     }
     if (cancellation_reason && !isNonEmptyString(cancellation_reason, 1000)) {
-      return new Response(
-        JSON.stringify({ error: "cancellation_reason too long" }),
-        { status: 400, headers: jsonHeaders },
-      );
+      return jsonError(req, 400, "cancellation_reason too long");
     }
 
     const { data: nc, error: ncErr } = await supabase
@@ -85,17 +41,9 @@ Deno.serve(async (req) => {
       .select("cfdi_status, facturapi_invoice_id")
       .eq("id", credit_note_id)
       .single();
-    if (ncErr || !nc) {
-      return new Response(JSON.stringify({ error: "Credit note not found" }), {
-        status: 404,
-        headers: jsonHeaders,
-      });
-    }
+    if (ncErr || !nc) return jsonError(req, 404, "Credit note not found");
     if (nc.cfdi_status !== "stamped") {
-      return new Response(
-        JSON.stringify({ error: "Only stamped credit notes can be cancelled" }),
-        { status: 400, headers: jsonHeaders },
-      );
+      return jsonError(req, 400, "Only stamped credit notes can be cancelled");
     }
 
     const { data: company } = await supabase.from("company_settings").select(
@@ -135,13 +83,9 @@ Deno.serve(async (req) => {
             : "pending";
       } catch (err) {
         const desc = describeFacturapiError(err);
-        return new Response(
-          JSON.stringify({
-            error: `Facturapi cancel error: ${desc.status}`,
-            detail: desc.detail,
-          }),
-          { status: 502, headers: jsonHeaders },
-        );
+        return jsonError(req, 502, `Facturapi cancel error: ${desc.status}`, {
+          detail: desc.detail,
+        });
       }
     }
 
@@ -160,27 +104,16 @@ Deno.serve(async (req) => {
 
     const { error: updErr } = await supabase.from("credit_notes").update(update)
       .eq("id", credit_note_id);
-    if (updErr) {
-      return new Response(
-        JSON.stringify({ error: "Failed to update credit note" }),
-        { status: 500, headers: jsonHeaders },
-      );
-    }
+    if (updErr) return jsonError(req, 500, "Failed to update credit note");
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        stub: isStub,
-        cancellation_status: satStatus,
-        accepted: isAccepted,
-      }),
-      { headers: jsonHeaders },
-    );
+    return jsonResponse(req, {
+      success: true,
+      stub: isStub,
+      cancellation_status: satStatus,
+      accepted: isAccepted,
+    });
   } catch (err) {
     console.error("cancel-credit-note error:", err);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-    });
+    return jsonError(req, 500, "Internal server error");
   }
 });

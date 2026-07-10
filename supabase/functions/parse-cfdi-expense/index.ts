@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { enforceRateLimit, requireRole } from "../_shared/auth.ts";
 import {
   CATEGORIES,
@@ -94,8 +95,6 @@ function addDays(ymd: string, days: number): string {
 serve(async (req) => {
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
-  const cors = getCorsHeaders(req);
-  const jsonHeaders = { ...cors, "Content-Type": "application/json" };
 
   try {
     const auth = await requireRole(req, ["admin", "administrativo"]);
@@ -115,16 +114,10 @@ serve(async (req) => {
     const xml: unknown = body?.xml;
     const create: boolean = body?.create === true;
     if (typeof xml !== "string" || xml.length === 0) {
-      return new Response(JSON.stringify({ error: "xml es requerido" }), {
-        status: 400,
-        headers: jsonHeaders,
-      });
+      return jsonError(req, 400, "xml es requerido");
     }
     if (xml.length > MAX_XML_BYTES) {
-      return new Response(JSON.stringify({ error: "XML excede 1MB" }), {
-        status: 413,
-        headers: jsonHeaders,
-      });
+      return jsonError(req, 413, "XML excede 1MB");
     }
 
     let cfdi: ParsedCfdi;
@@ -132,10 +125,7 @@ serve(async (req) => {
       cfdi = parseCfdi(xml);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "XML inválido";
-      return new Response(JSON.stringify({ error: msg }), {
-        status: 400,
-        headers: jsonHeaders,
-      });
+      return jsonError(req, 400, msg);
     }
 
     // Duplicate by UUID in supplier_bills
@@ -146,15 +136,12 @@ serve(async (req) => {
       .maybeSingle();
 
     if (existing) {
-      return new Response(
-        JSON.stringify({
-          duplicate: true,
-          existing_id: existing.id,
-          bill_number: existing.bill_number,
-          cfdi_uuid: cfdi.cfdi_uuid,
-        }),
-        { headers: jsonHeaders },
-      );
+      return jsonResponse(req, {
+        duplicate: true,
+        existing_id: existing.id,
+        bill_number: existing.bill_number,
+        cfdi_uuid: cfdi.cfdi_uuid,
+      });
     }
 
     // Match supplier by RFC (auto-create if missing)
@@ -219,30 +206,27 @@ serve(async (req) => {
 
     // Preview mode: just return parsed payload
     if (!create) {
-      return new Response(
-        JSON.stringify({
-          duplicate: false,
-          cfdi_uuid: cfdi.cfdi_uuid,
-          folio: cfdi.folio,
-          serie: cfdi.serie,
-          total: cfdi.total,
-          subtotal: cfdi.subtotal,
-          tax_amount: cfdi.tax_amount,
-          retention_iva: cfdi.retention_iva,
-          retention_isr: cfdi.retention_isr,
-          moneda: cfdi.moneda,
-          tipo_cambio: cfdi.tipo_cambio,
-          payment_method_sat: cfdi.payment_method_sat,
-          fecha: cfdi.fecha,
-          due_date,
-          emisor: cfdi.emisor,
-          description,
-          conceptos_resumen,
-          categoria_sugerida,
-          supplier_match,
-        }),
-        { headers: jsonHeaders },
-      );
+      return jsonResponse(req, {
+        duplicate: false,
+        cfdi_uuid: cfdi.cfdi_uuid,
+        folio: cfdi.folio,
+        serie: cfdi.serie,
+        total: cfdi.total,
+        subtotal: cfdi.subtotal,
+        tax_amount: cfdi.tax_amount,
+        retention_iva: cfdi.retention_iva,
+        retention_isr: cfdi.retention_isr,
+        moneda: cfdi.moneda,
+        tipo_cambio: cfdi.tipo_cambio,
+        payment_method_sat: cfdi.payment_method_sat,
+        fecha: cfdi.fecha,
+        due_date,
+        emisor: cfdi.emisor,
+        description,
+        conceptos_resumen,
+        categoria_sugerida,
+        supplier_match,
+      });
     }
 
     // Create supplier_bill
@@ -273,27 +257,18 @@ serve(async (req) => {
 
     if (billErr) {
       console.error("bill insert error", billErr);
-      return new Response(JSON.stringify({ error: billErr.message }), {
-        status: 500,
-        headers: jsonHeaders,
-      });
+      return jsonError(req, 500, billErr.message);
     }
 
-    return new Response(
-      JSON.stringify({
-        created: true,
-        bill_id: bill.id,
-        bill_number: bill.bill_number,
-        supplier_match,
-      }),
-      { headers: jsonHeaders },
-    );
+    return jsonResponse(req, {
+      created: true,
+      bill_id: bill.id,
+      bill_number: bill.bill_number,
+      supplier_match,
+    });
   } catch (e) {
     console.error("parse-cfdi-expense error", e);
     const msg = e instanceof Error ? e.message : "Error desconocido";
-    return new Response(JSON.stringify({ error: msg }), {
-      status: 500,
-      headers: { ...cors, "Content-Type": "application/json" },
-    });
+    return jsonError(req, 500, msg);
   }
 });

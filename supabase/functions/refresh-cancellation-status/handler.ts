@@ -1,5 +1,6 @@
 // Pure handler for refresh-cancellation-status, deps-injected for testability.
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 import {
@@ -30,10 +31,7 @@ export async function handleRefreshCancellation(
 ): Promise<Response> {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
-  const corsHeaders = getCorsHeaders(req);
-  const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
-  const json = (body: unknown, status: number) =>
-    new Response(JSON.stringify(body), { status, headers: jsonHeaders });
+  const json = (body: unknown, status: number) => jsonResponse(req, body, { status });
 
   try {
     const authHeader = req.headers.get("Authorization");
@@ -169,9 +167,6 @@ export async function handleRefreshCancellation(
 
     return json({ success: true, cancellation_status: satStatus }, 200);
   } catch (_err) {
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-    });
+    return jsonError(req, 500, "Internal server error");
   }
 }

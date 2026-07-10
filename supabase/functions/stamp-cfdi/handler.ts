@@ -1,6 +1,7 @@
 // Pure handler for stamp-cfdi, deps-injected for testability.
 // The Deno.serve entry in index.ts wires real createClient + fetch + env.
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import type { QueryBuilderLike, SupabaseLike } from "../_shared/types.ts";
 import {
@@ -35,8 +36,8 @@ export async function handleStampCfdi(
 ): Promise<Response> {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
-  const corsHeaders = getCorsHeaders(req);
-  const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
+  const json = (body: unknown, status: number, _headers?: unknown) =>
+    jsonResponse(req, body, { status });
 
   try {
     const authHeader = req.headers.get("Authorization");
@@ -479,17 +480,7 @@ export async function handleStampCfdi(
     );
   } catch (err) {
     console.error("[stamp-cfdi] unhandled exception", err);
-    return json({ error: "Internal server error" }, 500, {
-      ...getCorsHeaders(req),
-      "Content-Type": "application/json",
-    });
+    return json({ error: "Internal server error" }, 500);
   }
 }
 
-function json(
-  body: unknown,
-  status: number,
-  headers: Record<string, string>,
-): Response {
-  return new Response(JSON.stringify(body), { status, headers });
-}

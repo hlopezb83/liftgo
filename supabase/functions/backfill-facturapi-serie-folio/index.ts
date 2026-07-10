@@ -1,7 +1,8 @@
 // Backfill retroactivo de serie/folio de Facturapi para facturas ya timbradas
 // cuyas columnas `serie` y `folio` quedaron en NULL antes de v6.106.3.
 // Solo accesible por administradores. Idempotente.
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { requireAdmin } from "../_shared/auth.ts";
 import {
   createFacturapiClient,
@@ -22,8 +23,6 @@ interface InvoiceRow {
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
-  const corsHeaders = getCorsHeaders(req);
-  const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
 
   try {
     const auth = await requireAdmin(req);
@@ -67,13 +66,9 @@ Deno.serve(async (req) => {
       .or("serie.is.null,folio.is.null");
 
     if (error) {
-      return new Response(
-        JSON.stringify({
-          error: "Failed to query invoices",
-          detail: error.message,
-        }),
-        { status: 500, headers: jsonHeaders },
-      );
+      return jsonError(req, 500, "Failed to query invoices", {
+        detail: error.message,
+      });
     }
 
     const invoices = (rows ?? []) as InvoiceRow[];
@@ -147,21 +142,15 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        scanned: invoices.length,
-        updated,
-        failed,
-        results,
-      }),
-      { status: 200, headers: jsonHeaders },
-    );
+    return jsonResponse(req, {
+      success: true,
+      scanned: invoices.length,
+      updated,
+      failed,
+      results,
+    });
   } catch (err) {
     console.error("[backfill-facturapi-serie-folio] error:", err);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: jsonHeaders },
-    );
+    return jsonError(req, 500, "Internal server error");
   }
 });

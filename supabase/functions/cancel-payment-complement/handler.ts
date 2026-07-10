@@ -1,5 +1,6 @@
 // Pure handler for cancel-payment-complement, deps-injected for testability.
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import type { StampCfdiDeps, SupabaseLike } from "../stamp-cfdi/handler.ts";
 import {
@@ -20,20 +21,18 @@ export async function handleCancelPaymentComplement(
 ): Promise<Response> {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
-  const corsHeaders = getCorsHeaders(req);
-  const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
 
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return json({ error: "Unauthorized" }, 401, jsonHeaders);
+      return jsonError(req, 401, "Unauthorized");
     }
     const token = authHeader.replace("Bearer ", "");
     const callerClient = deps.createCallerClient(authHeader);
     const { data: claimsData, error: claimsErr } = await callerClient.auth
       .getClaims(token);
     if (claimsErr || !claimsData?.claims?.sub) {
-      return json({ error: "Unauthorized" }, 401, jsonHeaders);
+      return jsonError(req, 401, "Unauthorized");
     }
     const userId = claimsData.claims.sub;
 
@@ -48,9 +47,7 @@ export async function handleCancelPaymentComplement(
     const allowed = (roles ?? []).some((r) =>
       r.role === "admin" || r.role === "administrativo"
     );
-    if (!allowed) {
-      return json({ error: "Forbidden" }, 403, jsonHeaders);
-    }
+    if (!allowed) return jsonError(req, 403, "Forbidden");
 
     const body = await req.json().catch(() => ({}));
     const { payment_id, motive } = body as {
@@ -58,11 +55,7 @@ export async function handleCancelPaymentComplement(
       motive?: unknown;
     };
     if (!isUUID(payment_id)) {
-      return json(
-        { error: "payment_id must be a valid UUID" },
-        400,
-        jsonHeaders,
-      );
+      return jsonError(req, 400, "payment_id must be a valid UUID");
     }
     const motiveCode = typeof motive === "string" && VALID_MOTIVES.has(motive)
       ? motive
@@ -73,12 +66,10 @@ export async function handleCancelPaymentComplement(
         "id",
         payment_id,
       ).single();
-    if (!payment) {
-      return json({ error: "Payment not found" }, 404, jsonHeaders);
-    }
+    if (!payment) return jsonError(req, 404, "Payment not found");
     const pay = payment as Record<string, unknown>;
     if (pay.rep_cfdi_status !== "stamped" || !pay.rep_facturapi_id) {
-      return json({ error: "El REP no está timbrado" }, 400, jsonHeaders);
+      return jsonError(req, 400, "El REP no está timbrado");
     }
 
     const { data: company } = await supabase
@@ -96,9 +87,7 @@ export async function handleCancelPaymentComplement(
       envTestKey: deps.env("FACTURAPI_TEST_KEY"),
       envLiveKey: deps.env("FACTURAPI_LIVE_KEY"),
     });
-    if (!apiKey) {
-      return json({ error: "Facturapi key not configured" }, 400, jsonHeaders);
-    }
+    if (!apiKey) return jsonError(req, 400, "Facturapi key not configured");
 
     const client = createFacturapiClient(apiKey);
     try {
@@ -108,14 +97,9 @@ export async function handleCancelPaymentComplement(
       );
     } catch (err) {
       const desc = describeFacturapiError(err);
-      return json(
-        {
-          error: `Facturapi cancel error: ${desc.status}`,
-          detail: desc.detail,
-        },
-        502,
-        jsonHeaders,
-      );
+      return jsonError(req, 502, `Facturapi cancel error: ${desc.status}`, {
+        detail: desc.detail,
+      });
     }
 
     await supabase.from("payments")
@@ -125,19 +109,8 @@ export async function handleCancelPaymentComplement(
       })
       .eq("id", payment_id);
 
-    return json({ success: true }, 200, jsonHeaders);
+    return jsonResponse(req, { success: true });
   } catch (_err) {
-    return json({ error: "Internal server error" }, 500, {
-      ...getCorsHeaders(req),
-      "Content-Type": "application/json",
-    });
+    return jsonError(req, 500, "Internal server error");
   }
-}
-
-function json(
-  body: unknown,
-  status: number,
-  headers: Record<string, string>,
-): Response {
-  return new Response(JSON.stringify(body), { status, headers });
 }
