@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.4.2",
+    "date": "2026-07-10",
+    "type": "patch",
+    "title": "Fix CI — dependencia faltante en useMemo",
+    "description": "Se agregó `confirm` al array de dependencias del `useMemo` en `usePaymentHistoryColumns.tsx`. El handler de \"Cancelar REP\" usa `confirm` (de `useConfirm()`) pero no estaba declarado, provocando el único error de ESLint en CI (`react-hooks/exhaustive-deps`). Sin cambios de comportamiento.",
+    "category": "bugfix"
+  },
+  {
     "version": "7.4.1",
     "date": "2026-07-10",
     "type": "patch",

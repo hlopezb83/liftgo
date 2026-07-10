@@ -1,0 +1,22 @@
+{
+  "version": "7.4.2",
+  "date": "2026-07-10",
+  "type": "patch",
+  "title": "Fix CI — dependencia faltante en useMemo",
+  "summary": "Se corrigió el único error de ESLint (`react-hooks/exhaustive-deps`) que bloqueaba CI.",
+  "sections": [
+    {
+      "heading": "Cambio",
+      "items": [
+        "`src/features/invoices/hooks/invoices/usePaymentHistoryColumns.tsx`: se agregó `confirm` al array de dependencias del `useMemo` que arma las columnas de la tabla de pagos. El handler de 'Cancelar REP' usa `confirm` (de `useConfirm()`) pero no estaba declarado."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "Sin cambios de comportamiento: `confirm` es una referencia estable expuesta por `ConfirmProvider`.",
+        "Resto de jobs de CI ya venían verdes: 804 tests unitarios, 33 RLS, 43 smoke Deno, ambos shards de Playwright, Typecheck, Build, Knip y Secrets."
+      ]
+    }
+  ]
+}
