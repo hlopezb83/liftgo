@@ -4,12 +4,10 @@ import { callRpc } from "@/lib/rpc";
 import { supplierBillKeys } from "./useSupplierBills";
 
 const invalidationKeys = (billId?: string | null) => {
-  const keys: readonly unknown[][] = [
-    supplierBillKeys.all as unknown as readonly unknown[],
-    ["accounts_payable_kpis"],
-  ];
-  return (billId ? [...keys, supplierBillKeys.detail(billId) as unknown as readonly unknown[]] : keys) as readonly (readonly unknown[])[];
+  const base = [supplierBillKeys.all, ["accounts_payable_kpis"] as const];
+  return billId ? [...base, supplierBillKeys.detail(billId)] : base;
 };
+
 
 function fileToBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
