@@ -1,0 +1,34 @@
+{
+  "version": "7.1.1",
+  "date": "2026-07-10",
+  "type": "patch",
+  "title": "Fix · Loop infinito en usePageActions bajo React 19",
+  "category": "fix",
+  "summary": "Reparado el loop de renders en usePageActions que congelaba la UI en React 19 y hacía fallar los E2E de Clientes y Mantenimiento.",
+  "changes": [
+    {
+      "area": "Causa raíz",
+      "items": [
+        "`usePageActions` declaraba `useEffect(..., [ctx, newLabel])`. El objeto `ctx` proviene de `PageActionsProvider`, cuyo `value = useMemo(() => ({ actions, register }), [actions, register])` cambia de identidad cada vez que `actions` se actualiza.",
+        "El flujo era: mount → register(a) → setActions(a) → nueva identidad de `ctx` → useEffect re-corre → register(a) de nuevo → loop.",
+        "React 18 toleraba el loop en silencio pero congelaba interacciones; React 19 lo detecta y aborta con `Maximum update depth exceeded`, dejando los botones sin responder (dialog nunca abría)."
+      ]
+    },
+    {
+      "area": "Fix",
+      "items": [
+        "`usePageActions` ahora depende sólo de `ctx?.register` (estable, viene de `useCallback(..., [])`) y de `newLabel` (string serializable). No se toca la API pública del hook.",
+        "Callbacks siguen leyéndose vía `ref.current`, así que las páginas no necesitan memoizar `onNew` / `onRefresh`."
+      ]
+    },
+    {
+      "area": "Impacto CI",
+      "items": [
+        "Repara `tests/e2e/customer-create.spec.ts` (dialog `Nuevo Cliente` no abría tras click en \"Agregar cliente\").",
+        "Repara `tests/e2e/maintenance-kanban.spec.ts` (toggle de vista tablero no reaccionaba al click).",
+        "Verificado con Playwright local: `dialogs: 1`, `max-depth errors: 0`, `total console errors: 0`.",
+        "804/804 tests unitarios siguen pasando."
+      ]
+    }
+  ]
+}
