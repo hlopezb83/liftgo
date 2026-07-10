@@ -1,7 +1,5 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-
 import { supabase } from "@/integrations/supabase/client";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { supplierBillKeys } from "./useSupplierBills";
 
 interface DeleteSupplierPaymentInput {
@@ -16,8 +14,7 @@ interface DeleteSupplierPaymentInput {
  * desvincula cualquier línea bancaria conciliada.
  */
 export function useDeleteSupplierPayment() {
-  const qc = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ paymentId }: DeleteSupplierPaymentInput) => {
       const { error } = await supabase
         .from("supplier_payments")
@@ -26,15 +23,14 @@ export function useDeleteSupplierPayment() {
       if (error) throw error;
       return paymentId;
     },
-    onSuccess: (paymentId, vars) => {
-      qc.invalidateQueries({ queryKey: supplierBillKeys.all });
-      qc.invalidateQueries({ queryKey: supplierBillKeys.detail(vars.billId) });
-      qc.invalidateQueries({ queryKey: ["accounts_payable_kpis"] });
-      qc.invalidateQueries({ queryKey: ["reconciliation_status", `supplier:${paymentId}`] });
-      qc.invalidateQueries({ queryKey: ["bank_statement_lines"] });
-      notifySuccess("Pago eliminado");
-    },
-    onError: (e: unknown) =>
-      notifyError({ error: e, message: "No se pudo eliminar el pago" }),
+    invalidateKeysFn: (paymentId, vars) => [
+      supplierBillKeys.all,
+      supplierBillKeys.detail(vars.billId),
+      ["accounts_payable_kpis"],
+      ["reconciliation_status", `supplier:${paymentId}`],
+      ["bank_statement_lines"],
+    ],
+    successMsg: "Pago eliminado",
+    errorTitle: "No se pudo eliminar el pago",
   });
 }

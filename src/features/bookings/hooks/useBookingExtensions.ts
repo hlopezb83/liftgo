@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { bookingKeys } from "../lib/queryKeys";
 
 export function useBookingExtensions(bookingId?: string) {
@@ -22,10 +22,8 @@ export function useBookingExtensions(bookingId?: string) {
 }
 
 export function useCreateBookingExtension() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (ext: { booking_id: string; original_end_date: string; new_end_date: string; reason?: string }) => {
-      // Update booking end_date
       const { data: updated, error: bookingError } = await supabase
         .from("bookings")
         .update({ end_date: ext.new_end_date })
@@ -34,7 +32,6 @@ export function useCreateBookingExtension() {
       if (bookingError) throw bookingError;
       assertRowsAffected(updated, "Extender reserva");
 
-      // Record extension
       const { data, error } = await supabase
         .from("booking_extensions")
         .insert(ext)
@@ -43,11 +40,9 @@ export function useCreateBookingExtension() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: bookingKeys.extensions(variables.booking_id) });
-      queryClient.invalidateQueries({ queryKey: bookingKeys.all });
-      notifySuccess("Reserva extendida exitosamente");
-    },
-    onError: (err: Error) => notifyError({ title: "Error al extender reserva", error: err }),
+    invalidateKeysFn: (_d, vars) => [bookingKeys.extensions(vars.booking_id), bookingKeys.all],
+    successMsg: "Reserva extendida exitosamente",
+    errorTitle: "Error al extender reserva",
   });
 }
+

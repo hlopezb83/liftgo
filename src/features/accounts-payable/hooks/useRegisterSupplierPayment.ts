@@ -1,6 +1,4 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { callRpc } from "@/lib/rpc";
 import { supplierBillKeys } from "./useSupplierBills";
 
@@ -16,10 +14,9 @@ export interface RegisterPaymentInput {
 }
 
 export function useRegisterSupplierPayment() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (input: RegisterPaymentInput) => {
-      return callRpc<string>("register_supplier_payment", {
+  return useEntityMutation({
+    mutationFn: async (input: RegisterPaymentInput) =>
+      callRpc<string>("register_supplier_payment", {
         p_bill_id: input.bill_id,
         p_amount: input.amount,
         p_payment_date: input.payment_date,
@@ -28,15 +25,13 @@ export function useRegisterSupplierPayment() {
         p_reference: input.reference,
         p_receipt_url: input.receipt_url,
         p_notes: input.notes,
-      });
-    },
-    onSuccess: (_id, variables) => {
-      qc.invalidateQueries({ queryKey: supplierBillKeys.all });
-      qc.invalidateQueries({ queryKey: supplierBillKeys.detail(variables.bill_id) });
-      qc.invalidateQueries({ queryKey: ["accounts_payable_kpis"] });
-      notifySuccess("Pago registrado");
-    },
-    onError: (e: unknown) =>
-      notifyError({ error: e, message: "No se pudo registrar el pago" }),
+      }),
+    invalidateKeysFn: (_id, vars) => [
+      supplierBillKeys.all,
+      supplierBillKeys.detail(vars.bill_id),
+      ["accounts_payable_kpis"],
+    ],
+    successMsg: "Pago registrado",
+    errorTitle: "No se pudo registrar el pago",
   });
 }

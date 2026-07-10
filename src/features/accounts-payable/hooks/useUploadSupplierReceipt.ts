@@ -1,6 +1,5 @@
-import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 
 const BUCKET = "supplier-payment-receipts";
 const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
@@ -12,7 +11,7 @@ export interface UploadedReceipt {
 }
 
 export function useUploadSupplierReceipt() {
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ file, billId }: { file: File; billId: string }): Promise<UploadedReceipt> => {
       if (file.size > MAX_BYTES) throw new Error("El archivo excede 5 MB");
       if (!ACCEPTED.includes(file.type)) throw new Error("Formato no permitido (PDF, JPG, PNG, WEBP)");
@@ -29,6 +28,6 @@ export function useUploadSupplierReceipt() {
       if (signErr || !signed) throw signErr ?? new Error("No se pudo firmar la URL");
       return { path, signedUrl: signed.signedUrl };
     },
-    onError: (e: unknown) => notifyError({ error: e, message: "No se pudo subir el comprobante" }),
+    errorTitle: "No se pudo subir el comprobante",
   });
 }
