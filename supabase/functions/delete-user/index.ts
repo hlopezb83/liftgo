@@ -1,11 +1,11 @@
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { handleCors } from "../_shared/cors.ts";
 import { enforceRateLimit, requireAdmin } from "../_shared/auth.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
-  const corsHeaders = getCorsHeaders(req);
 
   try {
     const auth = await requireAdmin(req);
@@ -19,27 +19,13 @@ Deno.serve(async (req) => {
     );
     if (limited) return limited;
 
-    const body = await req.json();
-    const { user_id } = body;
+    const { user_id } = await req.json();
 
     if (!isUUID(user_id)) {
-      return new Response(
-        JSON.stringify({ error: "user_id must be a valid UUID" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonError(req, 400, "user_id must be a valid UUID");
     }
-
     if (user_id === auth.userId) {
-      return new Response(
-        JSON.stringify({ error: "Cannot delete your own account" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonError(req, 400, "Cannot delete your own account");
     }
 
     await auth.adminClient.from("user_roles").delete().eq("user_id", user_id);
@@ -49,27 +35,12 @@ Deno.serve(async (req) => {
       user_id,
     );
     if (deleteErr) {
-      return new Response(JSON.stringify({ error: "Failed to delete user" }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonError(req, 400, "Failed to delete user");
     }
 
-    return new Response(
-      JSON.stringify({ success: true }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+    return jsonResponse(req, { success: true });
   } catch (_err) {
     console.error("delete-user error:", _err);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+    return jsonError(req, 500, "Internal server error");
   }
 });

@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { getAdminClient, getCallerClient } from "../_shared/supabaseClients.ts";
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { requireAdmin } from "../_shared/auth.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
+import { handleCors } from "../_shared/cors.ts";
 
 const SYSTEM_PROMPT =
   `Eres un redactor técnico experto en sistemas ERP y software de gestión. Tu tarea es generar un manual de usuario completo, detallado y profesional para la aplicación "Lift Go" — un sistema de gestión de renta de montacargas.
@@ -65,55 +66,17 @@ SECCIONES:
 serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
-  const corsHeaders = getCorsHeaders(req);
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "No autorizado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const supabase = getAdminClient();
-
-    // Verify user is admin or administrativo
-    const token = authHeader.replace("Bearer ", "");
-    const anonClient = getCallerClient(req);
-    const { data: claimsData, error: claimsError } = await anonClient.auth
-      .getClaims(token);
-    if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "No autorizado" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const user = { id: claimsData.claims.sub as string };
-
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .single();
-
-    if (!roleData || roleData.role !== "admin") {
-      return new Response(JSON.stringify({ error: "Sin permisos" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const auth = await requireAdmin(req);
+    if (!auth.ok) return auth.response;
+    const supabase = auth.adminClient;
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     if (!LOVABLE_API_KEY) {
-      return new Response(
-        JSON.stringify({ error: "LOVABLE_API_KEY no configurada" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonError(req, 500, "LOVABLE_API_KEY no configurada");
     }
+
 
     // Call Lovable AI with tool calling to get structured JSON
     const aiResponse = await fetch(
@@ -181,35 +144,12 @@ serve(async (req) => {
       console.error("AI gateway error:", aiResponse.status, errText);
 
       if (aiResponse.status === 429) {
-        return new Response(
-          JSON.stringify({
-            error: "Límite de solicitudes excedido, intenta más tarde.",
-          }),
-          {
-            status: 429,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
-        );
+        return jsonError(req, 429, "Límite de solicitudes excedido, intenta más tarde.");
       }
       if (aiResponse.status === 402) {
-        return new Response(
-          JSON.stringify({
-            error: "Se requieren créditos adicionales para generar el manual.",
-          }),
-          {
-            status: 402,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
-        );
+        return jsonError(req, 402, "Se requieren créditos adicionales para generar el manual.");
       }
-
-      return new Response(
-        JSON.stringify({ error: "Error al generar el manual con IA" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonError(req, 500, "Error al generar el manual con IA");
     }
 
     const aiData = await aiResponse.json();
@@ -217,26 +157,14 @@ serve(async (req) => {
 
     if (!toolCall?.function?.arguments) {
       console.error("No tool call in AI response:", JSON.stringify(aiData));
-      return new Response(
-        JSON.stringify({ error: "La IA no retornó el formato esperado" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonError(req, 500, "La IA no retornó el formato esperado");
     }
 
     const parsedArgs = JSON.parse(toolCall.function.arguments);
     const sections = parsedArgs.sections;
 
     if (!Array.isArray(sections) || sections.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "No se generaron secciones" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonError(req, 500, "No se generaron secciones");
     }
 
     // Calculate next version
@@ -266,26 +194,12 @@ serve(async (req) => {
 
     if (insertError) {
       console.error("Insert error:", insertError);
-      return new Response(
-        JSON.stringify({ error: "Error al guardar el manual" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonError(req, 500, "Error al guardar el manual");
     }
 
-    return new Response(JSON.stringify({ success: true, manual }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse(req, { success: true, manual });
   } catch (e) {
     console.error("[generate-manual] error:", e);
-    return new Response(
-      JSON.stringify({ error: "Error interno del servidor" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+    return jsonError(req, 500, "Error interno del servidor");
   }
 });

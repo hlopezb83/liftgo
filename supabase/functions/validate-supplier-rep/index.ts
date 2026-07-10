@@ -1,5 +1,6 @@
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
-import { getAdminClient, getCallerClient } from "../_shared/supabaseClients.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { requireRole } from "../_shared/auth.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 
 const BUCKET = "cfdi-files";
@@ -53,42 +54,11 @@ function extractPagoNodes(
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
-  const corsHeaders = getCorsHeaders(req);
-  const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: jsonHeaders,
-      });
-    }
-    const caller = getCallerClient(req);
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claims, error: claimsErr } = await caller.auth.getClaims(
-      token,
-    );
-    if (claimsErr || !claims?.claims?.sub) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: jsonHeaders,
-      });
-    }
-    const userId = claims.claims.sub as string;
-
-    const supabase = getAdminClient();
-    const { data: roles } = await supabase
-      .from("user_roles").select("role").eq("user_id", userId);
-    const allowed = (roles ?? []).some((r) =>
-      r.role === "admin" || r.role === "administrativo"
-    );
-    if (!allowed) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
-        headers: jsonHeaders,
-      });
-    }
+    const auth = await requireRole(req, ["admin", "administrativo"]);
+    if (!auth.ok) return auth.response;
+    const { userId, adminClient: supabase } = auth;
 
     const body = await req.json().catch(() => ({}));
     const { payment_id, xml_base64, pdf_base64 } = body as {
@@ -97,16 +67,10 @@ Deno.serve(async (req) => {
       pdf_base64?: string | null;
     };
     if (!isUUID(payment_id)) {
-      return new Response(JSON.stringify({ error: "payment_id inválido" }), {
-        status: 400,
-        headers: jsonHeaders,
-      });
+      return jsonError(req, 400, "payment_id inválido");
     }
     if (!xml_base64 || typeof xml_base64 !== "string") {
-      return new Response(
-        JSON.stringify({ error: "xml_base64 es obligatorio" }),
-        { status: 400, headers: jsonHeaders },
-      );
+      return jsonError(req, 400, "xml_base64 es obligatorio");
     }
 
     // Load payment + bill + supplier
@@ -115,16 +79,10 @@ Deno.serve(async (req) => {
       .select("id, bill_id, amount, rep_status, rep_required")
       .eq("id", payment_id).single();
     if (payErr || !payment) {
-      return new Response(JSON.stringify({ error: "Pago no encontrado" }), {
-        status: 404,
-        headers: jsonHeaders,
-      });
+      return jsonError(req, 404, "Pago no encontrado");
     }
     if (!payment.rep_required) {
-      return new Response(
-        JSON.stringify({ error: "Este pago no requiere REP" }),
-        { status: 400, headers: jsonHeaders },
-      );
+      return jsonError(req, 400, "Este pago no requiere REP");
     }
 
     const { data: bill } = await supabase
@@ -134,16 +92,10 @@ Deno.serve(async (req) => {
       )
       .eq("id", payment.bill_id).single();
     if (!bill) {
-      return new Response(JSON.stringify({ error: "Factura no encontrada" }), {
-        status: 404,
-        headers: jsonHeaders,
-      });
+      return jsonError(req, 404, "Factura no encontrada");
     }
     if (!bill.cfdi_uuid) {
-      return new Response(
-        JSON.stringify({ error: "La factura no tiene UUID CFDI" }),
-        { status: 400, headers: jsonHeaders },
-      );
+      return jsonError(req, 400, "La factura no tiene UUID CFDI");
     }
 
     // Decode XML
@@ -154,21 +106,16 @@ Deno.serve(async (req) => {
       for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
       xmlText = new TextDecoder("utf-8").decode(bytes);
     } catch {
-      return new Response(JSON.stringify({ error: "XML inválido (base64)" }), {
-        status: 400,
-        headers: jsonHeaders,
-      });
+      return jsonError(req, 400, "XML inválido (base64)");
     }
 
     // Validaciones
     const tipo = extractAttr(xmlText, "Comprobante", "TipoDeComprobante");
     if (tipo !== "P") {
-      return new Response(
-        JSON.stringify({
-          error:
-            "El XML no es un Complemento de Pago (TipoDeComprobante distinto de P)",
-        }),
-        { status: 400, headers: jsonHeaders },
+      return jsonError(
+        req,
+        400,
+        "El XML no es un Complemento de Pago (TipoDeComprobante distinto de P)",
       );
     }
 
@@ -176,40 +123,32 @@ Deno.serve(async (req) => {
     const supplierRfc = (bill.suppliers as { rfc?: string | null } | null)?.rfc
       ?.trim().toUpperCase();
     if (!supplierRfc) {
-      return new Response(
-        JSON.stringify({ error: "El proveedor no tiene RFC capturado" }),
-        { status: 400, headers: jsonHeaders },
-      );
+      return jsonError(req, 400, "El proveedor no tiene RFC capturado");
     }
     if (!rfcEmisor || rfcEmisor.trim().toUpperCase() !== supplierRfc) {
-      return new Response(
-        JSON.stringify({
-          error: `RFC emisor (${
-            rfcEmisor ?? "n/a"
-          }) no coincide con el proveedor (${supplierRfc})`,
-        }),
-        { status: 400, headers: jsonHeaders },
+      return jsonError(
+        req,
+        400,
+        `RFC emisor (${
+          rfcEmisor ?? "n/a"
+        }) no coincide con el proveedor (${supplierRfc})`,
       );
     }
 
     // UUID del REP
     const repUuid = extractAttr(xmlText, "TimbreFiscalDigital", "UUID");
     if (!repUuid || !isUUID(repUuid)) {
-      return new Response(
-        JSON.stringify({
-          error: "No se encontró UUID válido en TimbreFiscalDigital",
-        }),
-        { status: 400, headers: jsonHeaders },
+      return jsonError(
+        req,
+        400,
+        "No se encontró UUID válido en TimbreFiscalDigital",
       );
     }
 
     // Pagos: validar que al menos uno referencie nuestra factura con monto correcto
     const pagos = extractPagoNodes(xmlText);
     if (pagos.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "El XML no contiene nodos Pago" }),
-        { status: 400, headers: jsonHeaders },
-      );
+      return jsonError(req, 400, "El XML no contiene nodos Pago");
     }
 
     const targetUuid = bill.cfdi_uuid.toLowerCase();
@@ -228,10 +167,7 @@ Deno.serve(async (req) => {
           expectedAmount.toFixed(2)
         })`
         : `El REP no incluye la factura ${bill.cfdi_uuid}`;
-      return new Response(JSON.stringify({ error: msg }), {
-        status: 400,
-        headers: jsonHeaders,
-      });
+      return jsonError(req, 400, msg);
     }
 
     // Verificar UUID único: no permitir el mismo REP en otro pago
@@ -242,11 +178,10 @@ Deno.serve(async (req) => {
       .neq("id", payment_id)
       .maybeSingle();
     if (dup) {
-      return new Response(
-        JSON.stringify({
-          error: `El UUID ${repUuid} ya está registrado en otro pago`,
-        }),
-        { status: 409, headers: jsonHeaders },
+      return jsonError(
+        req,
+        409,
+        `El UUID ${repUuid} ya está registrado en otro pago`,
       );
     }
 
@@ -258,10 +193,7 @@ Deno.serve(async (req) => {
       { contentType: "application/xml", upsert: true },
     );
     if (xmlErr) {
-      return new Response(
-        JSON.stringify({ error: `No se pudo subir XML: ${xmlErr.message}` }),
-        { status: 500, headers: jsonHeaders },
-      );
+      return jsonError(req, 500, `No se pudo subir XML: ${xmlErr.message}`);
     }
 
     // Upload PDF (opcional, sin validar)
@@ -298,10 +230,7 @@ Deno.serve(async (req) => {
       .eq("id", payment_id);
 
     if (updErr) {
-      return new Response(
-        JSON.stringify({ error: `No se pudo guardar: ${updErr.message}` }),
-        { status: 500, headers: jsonHeaders },
-      );
+      return jsonError(req, 500, `No se pudo guardar: ${updErr.message}`);
     }
 
     // Activity feed (best effort)
@@ -319,20 +248,14 @@ Deno.serve(async (req) => {
       console.error("activity_feed insert failed:", e);
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        rep_cfdi_uuid: repUuid,
-        xml_url: xmlPath,
-        pdf_url: pdfPath,
-      }),
-      { headers: jsonHeaders },
-    );
+    return jsonResponse(req, {
+      success: true,
+      rep_cfdi_uuid: repUuid,
+      xml_url: xmlPath,
+      pdf_url: pdfPath,
+    });
   } catch (err) {
     console.error("validate-supplier-rep error:", err);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-    });
+    return jsonError(req, 500, "Internal server error");
   }
 });

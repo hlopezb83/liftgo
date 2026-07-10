@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.141.0",
+    "date": "2026-07-10",
+    "type": "minor",
+    "title": "DRY Lote 1 (parcial): auth y respuestas JSON unificadas en Edge Functions",
+    "description": "Se migran 7 edge functions (validate-supplier-rep, invite-user, invite-customer, delete-user, toggle-user-status, reset-user-password, generate-manual) para consumir requireAdmin/requireRole y los helpers jsonResponse/jsonError de _shared. Se eliminan ~360 LOC de boilerplate (auth manual con getClaims + roles y respuestas con headers CORS duplicados). Sin cambios funcionales; 802 tests pasan.",
+    "category": "refactor"
+  },
+  {
     "version": "6.140.1",
     "date": "2026-07-10",
     "type": "patch",

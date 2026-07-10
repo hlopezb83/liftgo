@@ -1,0 +1,14 @@
+{
+  "version": "6.141.0",
+  "date": "2026-07-10",
+  "type": "minor",
+  "title": "DRY Lote 1 (parcial): auth y respuestas JSON unificadas en Edge Functions",
+  "summary": "Primer batch del Lote 1 de la auditoría DRY. 7 edge functions migradas al patrón compartido (requireAdmin/requireRole + jsonResponse/jsonError). Reducción neta ≈360 LOC.",
+  "changes": [
+    "validate-supplier-rep: reemplazo de auth manual (getClaims + user_roles) por requireRole(['admin','administrativo']); todas las respuestas usan jsonResponse/jsonError. 338 → 261 LOC.",
+    "generate-manual: migrado a requireAdmin y helpers jsonResponse/jsonError. 291 → 205 LOC.",
+    "invite-user, invite-customer, delete-user, toggle-user-status, reset-user-password: reemplazan bloques new Response(JSON.stringify(...)) + headers manuales por jsonError/jsonResponse.",
+    "Sin cambios de comportamiento: mismos endpoints, mismos códigos HTTP, mismos payloads. Los 802 tests de Vitest siguen pasando.",
+    "Pendiente en próximos turnos: cancel-cfdi, stamp-cfdi, stamp-credit-note, cancel-credit-note, stamp-payment-complement, cancel-payment-complement, refresh-cancellation-status, validate-receptor-tax-info, download-cfdi, parse-csf, parse-cfdi-expense, classify-feedback-report, generate-invoice-pdf, generate-recurring-invoices; luego Lote 2 (hooks), Lote 4 (utils) y Lote 3 (UI)."
+  ]
+}
