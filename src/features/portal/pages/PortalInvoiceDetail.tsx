@@ -10,6 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateDisplay } from "@/lib/utils";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { TotalsBreakdown } from "../components/TotalsBreakdown";
+
 
 type LineItem = { description?: string; quantity?: number; unit_price?: number; amount?: number };
 type Payment = { id: string; payment_date: string; payment_method: string | null; reference_number: string | null; amount: number | string };
