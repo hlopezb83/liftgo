@@ -28,8 +28,14 @@ import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 export interface UseEntityMutationOptions<TVar, TData> {
   /** Función que ejecuta la mutación (llamada Supabase, RPC, etc.). Debe lanzar en error. */
   mutationFn: (vars: TVar) => Promise<TData>;
-  /** Query keys a invalidar tras éxito. Se ejecutan en paralelo. */
-  invalidateKeys: readonly QueryKey[];
+  /** Query keys estáticas a invalidar tras éxito. Se ejecutan en paralelo. */
+  invalidateKeys?: readonly QueryKey[];
+  /**
+   * Fábrica de query keys dinámicas basadas en el resultado / variables. Útil cuando
+   * la key depende de un id del payload (ej: `BANK_LINES_QK(vars.bankAccountId)`).
+   * Se combina con `invalidateKeys` (ambas se invalidan).
+   */
+  invalidateKeysFn?: (data: TData, vars: TVar) => readonly QueryKey[];
   /** Título del toast de error. Requerido para trazabilidad en logs y UX consistente. */
   errorTitle: string;
   /** Mensaje del toast de éxito. Omite para no mostrar toast. */
@@ -44,13 +50,23 @@ export function useEntityMutation<TVar, TData>(
   options: UseEntityMutationOptions<TVar, TData>,
 ): UseMutationResult<TData, Error, TVar> {
   const queryClient = useQueryClient();
-  const { mutationFn, invalidateKeys, errorTitle, successMsg, onSuccess, errorSeverity } = options;
+  const {
+    mutationFn,
+    invalidateKeys = [],
+    invalidateKeysFn,
+    errorTitle,
+    successMsg,
+    onSuccess,
+    errorSeverity,
+  } = options;
 
   return useMutation<TData, Error, TVar>({
     mutationFn,
     onSuccess: async (data, vars) => {
+      const dynamicKeys = invalidateKeysFn ? invalidateKeysFn(data, vars) : [];
+      const allKeys = [...invalidateKeys, ...dynamicKeys];
       await Promise.all(
-        invalidateKeys.map((key) => queryClient.invalidateQueries({ queryKey: key })),
+        allKeys.map((key) => queryClient.invalidateQueries({ queryKey: key })),
       );
       if (successMsg) notifySuccess(successMsg);
       if (onSuccess) await onSuccess(data, vars);

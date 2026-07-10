@@ -1,7 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 
 export interface CashFlowSettings {
   id: string | null;
@@ -33,11 +32,11 @@ export function useCashFlowSettings() {
 }
 
 export function useUpdateCashFlowSettings() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (
-      input: { id: string | null; initialBalance: number; safetyBuffer: number },
-    ) => {
+  return useEntityMutation<
+    { id: string | null; initialBalance: number; safetyBuffer: number },
+    void
+  >({
+    mutationFn: async (input) => {
       if (!input.id) {
         throw new Error(
           "Primero captura los Datos Fiscales para crear la configuración base de la empresa.",
@@ -52,11 +51,8 @@ export function useUpdateCashFlowSettings() {
         .eq("id", input.id);
       if (error) throw error;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: CASH_FLOW_SETTINGS_QK });
-      qc.invalidateQueries({ queryKey: ["company_settings"] });
-      notifySuccess("Preferencias de flujo de caja actualizadas");
-    },
-    onError: (e: Error) => notifyError({ error: e, message: e.message }),
+    invalidateKeys: [CASH_FLOW_SETTINGS_QK, ["company_settings"]],
+    successMsg: "Preferencias de flujo de caja actualizadas",
+    errorTitle: "No se pudieron actualizar las preferencias de flujo de caja",
   });
 }

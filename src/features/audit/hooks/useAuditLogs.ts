@@ -1,5 +1,5 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { useQuery } from "@tanstack/react-query";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { supabase } from "@/integrations/supabase/client";
 
 export interface AuditLog {
@@ -59,37 +59,27 @@ export function useAuditLogs(filters?: { table_name?: string; record_id?: string
 }
 
 export function useDeleteAuditLog() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: string) => {
+  return useEntityMutation<string, void>({
+    mutationFn: async (id) => {
       const { error } = await supabase.from("audit_logs").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["audit_logs"] });
-      notifySuccess("Registro eliminado correctamente");
-    },
-    onError: (err) => {
-      notifyError({ error: err, message: "Error al eliminar el registro" });
-    },
+    invalidateKeys: [["audit_logs"]],
+    successMsg: "Registro eliminado correctamente",
+    errorTitle: "Error al eliminar el registro",
   });
 }
 
 export function useRevertAuditLog() {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ id, tableName }: { id: string; tableName: string }) => {
+  return useEntityMutation<{ id: string; tableName: string }, string>({
+    mutationFn: async ({ id, tableName }) => {
       const { error } = await supabase.rpc("revert_audit_log", { p_audit_log_id: id });
       if (error) throw error;
       return tableName;
     },
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["audit_logs"] });
-      queryClient.invalidateQueries({ queryKey: [variables.tableName] });
-      notifySuccess("Acción revertida y registro eliminado correctamente");
-    },
-    onError: (error: Error) => {
-      notifyError({ error, message: error?.message || "Error al revertir la acción" });
-    },
+    invalidateKeys: [["audit_logs"]],
+    invalidateKeysFn: (tableName) => [[tableName]],
+    successMsg: "Acción revertida y registro eliminado correctamente",
+    errorTitle: "Error al revertir la acción",
   });
 }
