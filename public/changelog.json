@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.149.0",
+    "date": "2026-07-10",
+    "type": "minor",
+    "title": "DRY Lote 1 · getFacturapiConfig centraliza resolución de API key",
+    "description": "Nuevo helper `getFacturapiConfig(admin, env, { modeOverride? })` en `_shared/facturapi/client.ts` que concentra la lectura de `company_settings.facturapi_mode` + `billing_secrets` y resuelve la API key para el modo activo. Migrados 8 handlers (cancel-cfdi, refresh-cancellation-status, cancel-payment-complement, stamp-credit-note, stamp-cfdi, stamp-payment-complement, validate-receptor-tax-info, download-cfdi, cancel-credit-note) eliminando ~110 LOC de boilerplate duplicado. `stamp-cfdi` usa `modeOverride` para reutilizar el `company_settings.select('*')` que ya necesita para otros campos. `backfill-facturapi-serie-folio` se mantiene con `resolveFacturapiKey` porque resuelve ambas keys (test+live) en paralelo.",
+    "category": "refactor"
+  },
+  {
     "version": "6.148.2",
     "date": "2026-07-10",
     "type": "patch",
