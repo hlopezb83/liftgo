@@ -184,9 +184,6 @@ export async function handleCancelCfdi(
       200,
     );
   } catch (_err) {
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-    });
+    return err(500, "Internal server error");
   }
 }
