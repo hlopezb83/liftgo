@@ -1,0 +1,27 @@
+{
+  "version": "6.142.0",
+  "date": "2026-07-10",
+  "type": "minor",
+  "title": "DRY Lote 1 (cont.): migración a jsonResponse/jsonError y requireRole",
+  "category": "refactor",
+  "summary": "Segunda tanda de migración DRY en Edge Functions: 6 funciones más adoptan requireRole/requireAuth y jsonResponse/jsonError.",
+  "changes": [
+    "stamp-payment-complement: reemplaza validación manual de JWT + roles por requireRole(['admin','administrativo']) y todas las respuestas usan jsonResponse/jsonError.",
+    "backfill-facturapi-serie-folio: elimina jsonHeaders locales y usa jsonResponse/jsonError.",
+    "generate-invoice-pdf: usa requireAuth y jsonResponse/jsonError manteniendo la verificación de rol staff vs cliente.",
+    "parse-csf: elimina jsonHeaders locales; todas las respuestas usan helpers compartidos.",
+    "classify-feedback-report: adopta requireRole(['admin','administrativo']) y jsonResponse/jsonError.",
+    "parse-cfdi-expense: elimina jsonHeaders locales y usa jsonResponse/jsonError."
+  ],
+  "impact": "Reducción de ~180 LOC de boilerplate en Edge Functions. Sin cambios funcionales; 802 tests pasan.",
+  "technical": {
+    "files_modified": [
+      "supabase/functions/stamp-payment-complement/index.ts",
+      "supabase/functions/backfill-facturapi-serie-folio/index.ts",
+      "supabase/functions/generate-invoice-pdf/index.ts",
+      "supabase/functions/parse-csf/index.ts",
+      "supabase/functions/classify-feedback-report/index.ts",
+      "supabase/functions/parse-cfdi-expense/index.ts"
+    ]
+  }
+}
