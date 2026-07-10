@@ -1,0 +1,35 @@
+{
+  "version": "6.143.0",
+  "date": "2026-07-10",
+  "type": "minor",
+  "title": "DRY Lote 1 (final): download-cfdi y generate-recurring-invoices al patrón compartido",
+  "summary": "Cierre del Lote 1 de la auditoría DRY con -371 LOC en las dos edge functions más grandes.",
+  "sections": [
+    {
+      "heading": "download-cfdi: 623 → 297 LOC (-326)",
+      "items": [
+        "Auth manual (getClaims + user_roles lookup + guard) reemplazada por requireRole(['admin','administrativo','ventas']).",
+        "Extraído fetchFacturapiBinary(apiKey, path) unificando fetchFromFacturapi y fetchAcuseFromFacturapi (dedup ~50 LOC).",
+        "Extraído loadFacturapiKey(supabase) que resuelve company_settings + billing_secrets + fallback env (antes duplicado 4 veces).",
+        "Extraídos tryStorageDownload, persistDownload y attachmentResponse: los 4 flujos (invoice, acuse, REP, credit note) usan la misma coreografía.",
+        "Errores Facturapi centralizados en facturapiErrorResponse con mensaje amigable 5xx/404.",
+        "Todas las respuestas JSON migradas a jsonError/jsonResponse (CORS consistente)."
+      ]
+    },
+    {
+      "heading": "generate-recurring-invoices: 487 → 442 LOC (-45)",
+      "items": [
+        "Auth manual + role guard reemplazadas por requireRole(['admin','administrativo']).",
+        "Respuestas de éxito y error migradas a jsonResponse/jsonError.",
+        "Se elimina la dependencia directa de getAdminClient/getCallerClient (via auth.adminClient)."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "802 tests pasan (136 archivos).",
+        "Sin cambios en contratos públicos: mismos payloads, mismos códigos HTTP, misma semántica de descarga binaria."
+      ]
+    }
+  ]
+}
