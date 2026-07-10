@@ -139,23 +139,12 @@ Responde estrictamente con JSON: {"severity": "...", "module": "...", "reasoning
     if (!aiResp.ok) {
       const errText = await aiResp.text();
       if (aiResp.status === 429) {
-        return new Response(
-          JSON.stringify({
-            error: "Rate limit excedido, intenta de nuevo en unos segundos",
-          }),
-          { status: 429, headers },
-        );
+        return jsonError(req, 429, "Rate limit excedido, intenta de nuevo en unos segundos");
       }
       if (aiResp.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Créditos de AI agotados" }),
-          { status: 402, headers },
-        );
+        return jsonError(req, 402, "Créditos de AI agotados");
       }
-      return new Response(
-        JSON.stringify({ error: `AI gateway error: ${errText.slice(0, 200)}` }),
-        { status: 500, headers },
-      );
+      return jsonError(req, 500, `AI gateway error: ${errText.slice(0, 200)}`);
     }
 
     const aiJson = await aiResp.json();
@@ -166,10 +155,7 @@ Responde estrictamente con JSON: {"severity": "...", "module": "...", "reasoning
       classification = ClassificationSchema.parse(parsedAi);
     } catch (parseErr) {
       console.error("[classify-feedback] parse fail", parseErr, rawContent);
-      return new Response(
-        JSON.stringify({ error: "Respuesta de AI inválida" }),
-        { status: 502, headers },
-      );
+      return jsonError(req, 502, "Respuesta de AI inválida");
     }
 
     const newContext = {
@@ -197,21 +183,12 @@ Responde estrictamente con JSON: {"severity": "...", "module": "...", "reasoning
       .single();
 
     if (updateErr) {
-      return new Response(JSON.stringify({ error: updateErr.message }), {
-        status: 500,
-        headers,
-      });
+      return jsonError(req, 500, updateErr.message);
     }
 
-    return new Response(JSON.stringify({ report: updated, classification }), {
-      status: 200,
-      headers,
-    });
+    return jsonResponse(req, { report: updated, classification });
   } catch (err) {
     console.error("[classify-feedback] fatal", err);
-    return new Response(
-      JSON.stringify({ error: err instanceof Error ? err.message : "unknown" }),
-      { status: 500, headers },
-    );
+    return jsonError(req, 500, err instanceof Error ? err.message : "unknown");
   }
 });
