@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { handleCors } from "../_shared/cors.ts";
+import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { requireRole } from "../_shared/auth.ts";
 import { isUUID } from "../_shared/validate.ts";
@@ -72,29 +72,13 @@ async function loadFacturapiKey(supabase: SupabaseClient): Promise<string | null
   });
 }
 
-function binaryResponse(
-  req: Request,
-  body: BodyInit,
-  contentType: string,
-  filename: string,
-): Response {
-  return jsonResponse(req, null, { headers: {} }).then ? new Response(body) : new Response(body); // fallback (unreached)
-}
-
-// Constructor real (jsonResponse fuerza JSON; aquí necesitamos binario con CORS).
 function attachmentResponse(
   req: Request,
   body: BodyInit,
   contentType: string,
   filename: string,
 ): Response {
-  const headers = new Headers();
-  const cors = (jsonResponse(req, {}, {}).headers);
-  cors.forEach((v, k) => {
-    if (k.toLowerCase().startsWith("access-control") || k.toLowerCase() === "vary") {
-      headers.set(k, v);
-    }
-  });
+  const headers = new Headers(getCorsHeaders(req));
   headers.set("Content-Type", contentType);
   headers.set("Content-Disposition", `attachment; filename="${filename}"`);
   return new Response(body, { headers });
