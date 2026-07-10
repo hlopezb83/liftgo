@@ -48,31 +48,31 @@ export async function invokeEdgeFunction<T = unknown>(
   return data as T;
 }
 
-async function extractErrorMessage(error: unknown): Promise<string> {
-  const fallback = error instanceof Error
-    ? error.message
-    : typeof error === "string"
-    ? error
-    : typeof (error as { message?: unknown })?.message === "string"
-    ? (error as { message: string }).message
-    : "Edge Function error";
+function getFallbackMessage(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === "string") return error;
+  const msg = (error as { message?: unknown })?.message;
+  return typeof msg === "string" ? msg : "Edge Function error";
+}
 
+function pickErrorField(parsed: Record<string, unknown>): string | null {
+  const candidate = parsed.error ?? parsed.message ?? parsed.detail;
+  if (typeof candidate === "string" && candidate.length > 0) return candidate;
+  if (candidate) return JSON.stringify(candidate);
+  return null;
+}
+
+async function extractErrorMessage(error: unknown): Promise<string> {
+  const fallback = getFallbackMessage(error);
   const ctx = (error as { context?: unknown }).context;
-  if (!ctx || typeof (ctx as Response).clone !== "function") {
-    return fallback;
-  }
+  if (!ctx || typeof (ctx as Response).clone !== "function") return fallback;
 
   try {
     const text = await (ctx as Response).clone().text();
     if (!text) return fallback;
     try {
       const parsed = JSON.parse(text) as Record<string, unknown>;
-      const candidate = parsed.error ?? parsed.message ?? parsed.detail;
-      if (typeof candidate === "string" && candidate.length > 0) {
-        return candidate;
-      }
-      if (candidate) return JSON.stringify(candidate);
-      return fallback;
+      return pickErrorField(parsed) ?? fallback;
     } catch {
       return text.slice(0, 500);
     }
