@@ -7,6 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { applyVat } from "@/lib/money";
+
 import { formatMonthLongEs } from "@/lib/format/formatMonthEs";
 import { AlertCircle, Receipt } from "lucide-react";
 import { Link } from "react-router-dom";
