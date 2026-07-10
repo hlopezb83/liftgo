@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.143.0",
+    "date": "2026-07-10",
+    "type": "minor",
+    "title": "DRY Lote 1 (final): download-cfdi y generate-recurring-invoices al patrón compartido",
+    "description": "Se refactorizan las dos edge functions más grandes del lote. download-cfdi (623→297 LOC): auth manual reemplazada por requireRole(['admin','administrativo','ventas']); se extraen helpers fetchFacturapiBinary, loadFacturapiKey, tryStorageDownload, persistDownload, attachmentResponse y facturapiErrorResponse, eliminando ~7 duplicados de lookup de API key + 6 constructores manuales de Response. generate-recurring-invoices (487→442 LOC): auth con getClaims + role lookup sustituida por requireRole(['admin','administrativo']); respuestas migradas a jsonResponse/jsonError. Neto: -371 LOC en Edge Functions, 802 tests pasan.",
+    "category": "refactor"
+  },
+  {
     "version": "6.142.0",
     "date": "2026-07-10",
     "type": "minor",
