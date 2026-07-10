@@ -167,9 +167,6 @@ export async function handleRefreshCancellation(
 
     return json({ success: true, cancellation_status: satStatus }, 200);
   } catch (_err) {
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-    });
+    return jsonError(req, 500, "Internal server error");
   }
 }
