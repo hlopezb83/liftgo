@@ -15,6 +15,8 @@ interface StampCfdiResponse {
 
 /**
  * Timbra una factura ante el PAC (Facturapi) vía edge function `stamp-cfdi`.
+ * NOTA: no se migra a `useEntityMutation` porque el título del toast de error
+ * requiere traducción dinámica del código Facturapi (no encaja con `errorTitle` estático).
  */
 export function useStampCfdi() {
   const queryClient = useQueryClient();

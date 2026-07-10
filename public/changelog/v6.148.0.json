@@ -1,0 +1,34 @@
+{
+  "version": "6.148.0",
+  "date": "2026-07-10",
+  "type": "minor",
+  "title": "DRY Lote 2 (parte 5): invoices y bank imports migrados a useEntityMutation",
+  "summary": "10 hooks de facturación (CFDI, REP, recurrentes, receptor) y bank imports migrados al patrón canónico.",
+  "changes": [
+    {
+      "type": "refactor",
+      "title": "Invoices core",
+      "description": "useDeleteInvoice migrado preservando removeQueries del detalle vía onSuccess callback (evita PGRST116 en useInvoice). useSyncInvoiceBookings unificado con invalidateKeysFn dinámico por invoiceId."
+    },
+    {
+      "type": "refactor",
+      "title": "CFDI + REP",
+      "description": "useCancelCfdi, useStampPaymentComplement, useCancelPaymentComplement y useRefreshCancellationStatus migrados. Los toasts contextuales SAT (accepted/rejected/expired) se preservan en onSuccess. useStampCfdi permanece con useMutation nativo por requerir translateFacturapiError dinámico en el título del toast (no encaja con errorTitle estático)."
+    },
+    {
+      "type": "refactor",
+      "title": "Recurring + Receptor",
+      "description": "useGenerateRecurringInvoices y usePreviewRecurringInvoices (con TVar=void) migrados. useValidateReceptorTaxInfo y useUpdateReceptorFiscalInfo unificados, con invalidateKeysFn condicional para customers cuando syncCustomer=true."
+    },
+    {
+      "type": "refactor",
+      "title": "Bank imports",
+      "description": "useDeleteBankImport migrado con invalidateKeys estáticos [BANK_IMPORTS_QK, bank_statement_lines]."
+    },
+    {
+      "type": "quality",
+      "title": "Verificación",
+      "description": "802 tests en verde, tsgo sin errores. -80 LOC netos aproximados."
+    }
+  ]
+}

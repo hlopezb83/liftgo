@@ -1,6 +1,5 @@
-import { useMutation } from "@tanstack/react-query";
-import { notifyError } from "@/lib/ui/appFeedback";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 
 export type PreviewReason =
   | "already_invoiced"
@@ -35,7 +34,7 @@ export interface RecurringPreviewResponse {
  * sin escribir nada. Devuelve elegibles y no-elegibles (con motivo).
  */
 export function usePreviewRecurringInvoices() {
-  return useMutation({
+  return useEntityMutation<void, RecurringPreviewResponse>({
     mutationFn: async (): Promise<RecurringPreviewResponse> => {
       const res = await invokeEdgeFunction<RecurringPreviewResponse>(
         "generate-recurring-invoices",
@@ -46,12 +45,6 @@ export function usePreviewRecurringInvoices() {
         lines: Array.isArray(res.lines) ? res.lines : [],
       };
     },
-    onError: (err: unknown) => {
-      notifyError({
-        error: err,
-        title: "Error al calcular vista previa",
-        description: err instanceof Error ? err.message : "Intenta de nuevo.",
-      });
-    },
+    errorTitle: "Error al calcular vista previa",
   });
 }

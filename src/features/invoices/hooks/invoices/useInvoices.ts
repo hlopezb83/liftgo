@@ -1,6 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+
 
 import { EXCLUDE_E2E_FILTER, LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import { invoiceKeys } from "../../lib/queryKeys";
@@ -75,20 +75,21 @@ export function useUpdateInvoice() {
 
 export function useDeleteInvoice() {
   const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("invoices").delete().eq("id", id);
       if (error) throw error;
       return id;
     },
+    invalidateKeys: [invoiceKeys.lists()],
+    successMsg: "Factura eliminada",
+    errorTitle: "Error al eliminar factura",
     onSuccess: (id) => {
-      // Removemos el detalle del cache ANTES de invalidar para que
-      // `useInvoice(id)` no refetchee una fila borrada (PGRST116).
+      // Removemos el detalle del cache para que `useInvoice(id)` no refetchee
+      // una fila borrada (PGRST116).
       queryClient.removeQueries({ queryKey: invoiceKeys.detail(id), exact: true });
-      queryClient.invalidateQueries({ queryKey: invoiceKeys.lists() });
-      notifySuccess("Factura eliminada");
     },
-    onError: (err: Error) => notifyError({ title: "Error al eliminar factura", error: err }),
   });
 }
+
 
