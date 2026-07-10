@@ -15,35 +15,21 @@ import { InvoiceDetailDialogs } from "./InvoiceDetailDialogs";
 import { StampErrorDialog } from "../StampErrorDialog";
 import { InvoiceCreditNotesCard } from "./InvoiceCreditNotesCard";
 import { InvoiceDetailBadges } from "./InvoiceDetailBadges";
+import type { useInvoice } from "../../hooks/invoices/useInvoices";
+import type { usePayments } from "../../hooks/usePayments";
+import type { useQuote } from "@/features/quotes";
+import type { useInvoiceDetailActions } from "../../hooks/invoiceDetail/useInvoiceDetailActions";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import type { computeInvoiceVisibility } from "../../lib/invoiceVisibility";
 
+type Invoice = NonNullable<ReturnType<typeof useInvoice>["data"]>;
+type Payment = NonNullable<ReturnType<typeof usePayments>["data"]>[number];
+type Quote = ReturnType<typeof useQuote>["data"];
+type ActionsBundle = ReturnType<typeof useInvoiceDetailActions>;
 type Visibility = ReturnType<typeof computeInvoiceVisibility>;
 
-interface Invoice {
-  id: string;
-  invoice_number: string;
-  status: string;
-  cfdi_status: string | null;
-  cfdi_uuid: string | null;
-  cfdi_error_message: string | null;
-  serie: string | null;
-  folio: string | null;
-  customer_name: string | null;
-  receptor_rfc: string | null;
-  issued_at: string;
-  due_date: string | null;
-  paid_at: string | null;
-  quote_id: string | null;
-  notes: string | null;
-  subtotal: number | string;
-  tax_rate: number | string;
-  tax_amount: number | string;
-  total: number | string;
-}
-
 interface Derived {
-  paymentList: Array<{ id: string; amount: number | string }>;
+  paymentList: Payment[];
   lineItems: LineItem[];
   cfdiStatus: string;
   totalPaid: number;
@@ -56,29 +42,13 @@ interface Derived {
   ppdStamped: boolean;
 }
 
-interface ActionsBundle {
-  stampCfdi: { isPending: boolean };
-  paymentDialogOpen: boolean;
-  setPaymentDialogOpen: (o: boolean) => void;
-  cancelDialogOpen: boolean;
-  setCancelDialogOpen: (o: boolean) => void;
-  deleteDialogOpen: boolean;
-  setDeleteDialogOpen: (o: boolean) => void;
-  handleEdit: () => void;
-  handleStamp: () => void;
-  handleDownloadXml: () => void;
-  handleDelete: () => void;
-  stampError: { message: string; kind: string; customerId: string | null; receptor?: unknown } | null;
-  clearStampError: () => void;
-}
-
 interface Props {
   invoice: Invoice;
   id: string;
   derived: Derived;
   actions: ActionsBundle;
   userRole?: string;
-  sourceQuote: unknown;
+  sourceQuote: Quote;
   sourceBookings: BookingWithForklift[];
   refetch: () => void;
 }

@@ -79,10 +79,10 @@ export default function InvoiceDetail() {
   return (
     <PageContainer maxWidth="wide">
       <InvoiceDetailBody
-        invoice={invoice as Parameters<typeof InvoiceDetailBody>[0]["invoice"]}
+        invoice={invoice}
         id={id}
         derived={derived}
-        actions={actions as Parameters<typeof InvoiceDetailBody>[0]["actions"]}
+        actions={actions}
         userRole={userRole ?? undefined}
         sourceQuote={sourceQuote}
         sourceBookings={sourceBookings}
@@ -91,3 +91,4 @@ export default function InvoiceDetail() {
     </PageContainer>
   );
 }
+
