@@ -1,8 +1,7 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-
 import { supabase } from "@/integrations/supabase/client";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 import { callRpc } from "@/lib/rpc";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import type { Database } from "@/integrations/supabase/types";
 import { supplierBillKeys } from "./useSupplierBills";
 
@@ -18,9 +17,8 @@ async function nextBillNumber(): Promise<string> {
 }
 
 export function useCreateSupplierBill() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (input: SupplierBillInput) => {
+  return useEntityMutation<SupplierBillInput, { id: string; bill_number: string }>({
+    mutationFn: async (input) => {
       const bill_number = await nextBillNumber();
       const { data, error } = await supabase
         .from("supplier_bills")
@@ -30,21 +28,19 @@ export function useCreateSupplierBill() {
       if (error) throw error;
       return data;
     },
+    invalidateKeys: [supplierBillKeys.all],
+    errorTitle: "No se pudo registrar la factura",
     onSuccess: (row) => {
-      qc.invalidateQueries({ queryKey: supplierBillKeys.all });
       notifySuccess("Factura registrada", { description: row.bill_number });
     },
-    onError: (e: unknown) =>
-      notifyError({ error: e, message: "No se pudo registrar la factura" }),
   });
 }
 
 export type SupplierBillUpdateInput = Omit<Update, "id" | "bill_number" | "balance" | "status" | "created_at" | "updated_at">;
 
 export function useUpdateSupplierBill() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ id, patch }: { id: string; patch: SupplierBillUpdateInput & { total: number } }) => {
+  return useEntityMutation<{ id: string; patch: SupplierBillUpdateInput & { total: number } }, string>({
+    mutationFn: async ({ id, patch }) => {
       // balance se mantiene == total mientras no haya pagos (guardado por UI).
       const { error } = await supabase
         .from("supplier_bills")
@@ -53,38 +49,31 @@ export function useUpdateSupplierBill() {
       if (error) throw error;
       return id;
     },
-    onSuccess: (id) => {
-      qc.invalidateQueries({ queryKey: supplierBillKeys.all });
-      qc.invalidateQueries({ queryKey: supplierBillKeys.detail(id) });
-      notifySuccess("Factura actualizada");
-    },
-    onError: (e: unknown) =>
-      notifyError({ error: e, message: "No se pudo actualizar la factura" }),
+    // Nota: invalidamos `.all` (que ya incluye la lista y facturas por proveedor);
+    // el detail se refresca por el mismo hash raíz porque supplierBillKeys.detail
+    // se construye como [...all, "detail", id].
+    invalidateKeys: [supplierBillKeys.all],
+    successMsg: "Factura actualizada",
+    errorTitle: "No se pudo actualizar la factura",
   });
 }
 
 export function useDeleteSupplierBill() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (id: string) => {
+  return useEntityMutation<string, string>({
+    mutationFn: async (id) => {
       const { error } = await supabase.from("supplier_bills").delete().eq("id", id);
       if (error) throw error;
       return id;
     },
-    onSuccess: (id) => {
-      qc.invalidateQueries({ queryKey: supplierBillKeys.all });
-      qc.invalidateQueries({ queryKey: supplierBillKeys.detail(id) });
-      notifySuccess("Factura eliminada");
-    },
-    onError: (e: unknown) =>
-      notifyError({ error: e, message: "No se pudo eliminar la factura" }),
+    invalidateKeys: [supplierBillKeys.all],
+    successMsg: "Factura eliminada",
+    errorTitle: "No se pudo eliminar la factura",
   });
 }
 
 export function useCancelSupplierBill() {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async ({ id, reason }: { id: string; reason?: string }) => {
+  return useEntityMutation<{ id: string; reason?: string }, string>({
+    mutationFn: async ({ id, reason }) => {
       const { error } = await supabase
         .from("supplier_bills")
         .update({ status: "cancelled", notes: reason ?? null })
@@ -92,12 +81,8 @@ export function useCancelSupplierBill() {
       if (error) throw error;
       return id;
     },
-    onSuccess: (id) => {
-      qc.invalidateQueries({ queryKey: supplierBillKeys.all });
-      qc.invalidateQueries({ queryKey: supplierBillKeys.detail(id) });
-      notifySuccess("Factura cancelada");
-    },
-    onError: (e: unknown) =>
-      notifyError({ error: e, message: "No se pudo cancelar la factura" }),
+    invalidateKeys: [supplierBillKeys.all],
+    successMsg: "Factura cancelada",
+    errorTitle: "No se pudo cancelar la factura",
   });
 }
