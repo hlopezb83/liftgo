@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.3.0",
+    "date": "2026-07-10",
+    "type": "minor",
+    "title": "Lego · Lote B — Primitivos UI + fin del window.confirm",
+    "description": "Segundo lote de la auditoría 'Lego'. Nuevos primitivos reutilizables: (1) `CardListSkeleton` y `FormSkeleton` para eliminar los skeletons ad-hoc que cada módulo dibujaba a mano; (2) `<ListToolbar>` como slot único 'búsqueda + filtros + acciones' con Sheet colapsable en móvil; (3) `<DetailLayout sections={[…]}>` declarativo sobre `DetailPageHeader` para reemplazar la composición manual de secciones en páginas de detalle. Además: `useConfirm()` + `<ConfirmProvider>` como reemplazo directo del antipatrón `if (window.confirm(…))` — se migran los 5 usos restantes en `SupplierContactsSection`, `SupplierBankAccountsSection`, `BankAccountsPage`, `usePaymentHistoryColumns` (cancelar REP) y `InvoiceCreditNotesCard` (borrar borrador NC), ahora con AlertDialog accesible, variante destructive y focus trap. Fix: `SearchBar` migrado a `react-hotkeys-hook` con nueva prop `captureCtrlK` (default false) — antes registraba un listener global de Ctrl+K por cada instancia, colisionando con el command palette de `GlobalSearch`. Typecheck OK, 804/804 tests.",
+    "category": "improvement"
+  },
+  {
     "version": "7.2.0",
     "date": "2026-07-10",
     "type": "minor",
