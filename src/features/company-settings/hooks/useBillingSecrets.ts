@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { callRpc } from "@/lib/rpc";
 
 /**
  * Estado de llaves Facturapi: solo indica si están configuradas, nunca devuelve los valores.
@@ -11,13 +12,14 @@ export interface BillingSecretsStatus {
   has_live_key: boolean;
 }
 
+type BillingSecretsRow = { id: string | null; has_test_key: boolean | null; has_live_key: boolean | null };
+
 export function useBillingSecrets() {
   return useQuery<BillingSecretsStatus | null>({
     queryKey: ["billing_secrets_status"],
     staleTime: 5 * 60_000,
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("get_billing_secrets_status");
-      if (error) throw error;
+      const data = await callRpc<BillingSecretsRow[] | null>("get_billing_secrets_status");
       const row = Array.isArray(data) && data.length > 0 ? data[0] : null;
       if (!row) return { id: null, has_test_key: false, has_live_key: false };
       return {
@@ -28,6 +30,7 @@ export function useBillingSecrets() {
     },
   });
 }
+
 
 export function useUpsertBillingSecrets() {
   const queryClient = useQueryClient();
