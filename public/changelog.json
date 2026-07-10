@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.1.1",
+    "date": "2026-07-10",
+    "type": "patch",
+    "title": "Fix · Loop infinito en usePageActions bajo React 19",
+    "description": "En React 19 los tests E2E `customer-create` y `maintenance-kanban` fallaban porque `usePageActions` dependía del objeto de contexto completo (`ctx`), cuya identidad cambia cada vez que el provider actualiza `actions`. Esto disparaba register → setState → re-render → register infinito y React 19 abortaba con \"Maximum update depth exceeded\", congelando los clics (los diálogos nunca abrían). Se cambia la dependencia a `register` (estable vía `useCallback`) + `newLabel`. Verificado con Playwright: dialog abre, 0 errores en consola, 804/804 tests OK.",
+    "category": "fix"
+  },
+  {
     "version": "7.1.0",
     "date": "2026-07-10",
     "type": "minor",

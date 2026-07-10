@@ -31,15 +31,22 @@ export function usePageActions(actions: PageActions): void {
   const ref = useRef(actions);
   ref.current = actions;
 
+  // Sólo dependemos de `register` (estable vía useCallback) y de `newLabel`
+  // (dato serializable). NO dependemos del objeto `ctx` completo: su identidad
+  // cambia cada vez que `actions` se actualiza dentro del provider, lo que
+  // dispararía un loop infinito de register → setState → re-render → register.
+  // React 19 detecta el loop y aborta con "Maximum update depth exceeded";
+  // React 18 lo toleraba silenciosamente pero congelaba interacciones.
+  const register = ctx?.register;
   const newLabel = actions.newLabel;
 
   useEffect(() => {
-    if (!ctx) return;
-    const unregister = ctx.register({
+    if (!register) return;
+    const unregister = register({
       newLabel,
       onNew: () => ref.current.onNew?.(),
       onRefresh: () => ref.current.onRefresh?.(),
     });
     return unregister;
-  }, [ctx, newLabel]);
+  }, [register, newLabel]);
 }
