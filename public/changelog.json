@@ -1,5 +1,14 @@
 [
   {
+    "version": "6.150.0",
+    "date": "2026-07-10",
+    "type": "minor",
+    "title": "DRY Lote 4 · Centraliza tasa de IVA (applyVat / DEFAULT_VAT_RATE)",
+    "description": "Nuevos helpers `DEFAULT_VAT_RATE` (0.16) y `applyVat(amount, rate?)` en `src/lib/money`. Se elimina el magic number `* 1.16` hardcoded en `RecurringInvoicesPreviewDialog` (estimado de facturación recurrente). Nota: los documentos fiscales siguen usando el `tax_rate` de cada línea/documento como fuente de verdad; este helper es solo para previews internas.",
+    "category": "refactor"
+  },
+  {
+
     "version": "6.149.0",
     "date": "2026-07-10",
     "type": "minor",
