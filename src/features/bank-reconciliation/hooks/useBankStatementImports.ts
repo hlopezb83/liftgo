@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
 export interface BankStatementImportRow {
   id: string;
