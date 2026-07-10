@@ -1,25 +1,22 @@
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { handleCors } from "../_shared/cors.ts";
 import {
   enforceRateLimit,
   generateSecurePassword,
   requireAdmin,
 } from "../_shared/auth.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 
 function passwordValidationResponse(
+  req: Request,
   payload: { error: string; code: "weak_password" | "pwned" },
-  corsHeaders: Record<string, string>,
 ) {
-  return new Response(JSON.stringify({ success: false, ...payload }), {
-    status: 200,
-    headers: { ...corsHeaders, "Content-Type": "application/json" },
-  });
+  return jsonResponse(req, { success: false, ...payload });
 }
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
-  const corsHeaders = getCorsHeaders(req);
 
   try {
     const auth = await requireAdmin(req);
@@ -33,29 +30,19 @@ Deno.serve(async (req) => {
     );
     if (limited) return limited;
 
-    const body = await req.json();
-    const { user_id, new_password } = body;
+    const { user_id, new_password } = await req.json();
 
     if (!isUUID(user_id)) {
-      return new Response(
-        JSON.stringify({ error: "user_id must be a valid UUID" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonError(req, 400, "user_id must be a valid UUID");
     }
 
     let newPassword: string;
     if (typeof new_password === "string" && new_password.length > 0) {
       if (new_password.length < 8 || new_password.length > 72) {
-        return passwordValidationResponse(
-          {
-            error: "La contraseña debe tener entre 8 y 72 caracteres",
-            code: "weak_password",
-          },
-          corsHeaders,
-        );
+        return passwordValidationResponse(req, {
+          error: "La contraseña debe tener entre 8 y 72 caracteres",
+          code: "weak_password",
+        });
       }
       newPassword = new_password;
     } else {
@@ -65,19 +52,11 @@ Deno.serve(async (req) => {
     const { data: userData, error: getUserErr } = await auth.adminClient.auth
       .admin.getUserById(user_id);
     if (getUserErr || !userData?.user) {
-      return new Response(
-        JSON.stringify({ error: "User not found" }),
-        {
-          status: 404,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonError(req, 404, "User not found");
     }
 
     const { error: updateErr } = await auth.adminClient.auth.admin
-      .updateUserById(user_id, {
-        password: newPassword,
-      });
+      .updateUserById(user_id, { password: newPassword });
 
     if (updateErr) {
       const raw = updateErr.message || "Error desconocido";
@@ -107,35 +86,16 @@ Deno.serve(async (req) => {
           "Contraseña no aceptada por la política de seguridad. Evita patrones comunes y prueba con 'Generar contraseña segura'.";
         code = "weak_password";
       }
-      if (code !== "other") {
-        console.error("[reset-user-password] raw error:", raw);
-        return passwordValidationResponse(
-          { error: friendly, code },
-          corsHeaders,
-        );
-      }
       console.error("[reset-user-password] raw error:", raw);
-      return new Response(JSON.stringify({ error: friendly, code }), {
-        status: 400,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      if (code !== "other") {
+        return passwordValidationResponse(req, { error: friendly, code });
+      }
+      return jsonError(req, 400, friendly, { code });
     }
 
-    return new Response(
-      JSON.stringify({ success: true, email: userData.user.email }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+    return jsonResponse(req, { success: true, email: userData.user.email });
   } catch (_err) {
     console.error("reset-user-password error:", _err);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      {
-        status: 500,
-        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-      },
-    );
+    return jsonError(req, 500, "Internal server error");
   }
 });
