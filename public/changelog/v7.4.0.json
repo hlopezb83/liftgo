@@ -1,0 +1,33 @@
+{
+  "version": "7.4.0",
+  "date": "2026-07-10",
+  "type": "minor",
+  "title": "Lego · Lote G — PDF lazy: -1.46 MB fuera de la ruta caliente",
+  "summary": "Los módulos de generación de PDF se cargan sólo al hacer click en 'Descargar PDF', no al abrir las páginas de cotizaciones, facturas, contratos, reportes o portal.",
+  "sections": [
+    {
+      "heading": "Cambio",
+      "items": [
+        "`useQuotePdfDownload`, `useInvoicePdfDownload`, `ContractPDFButton`, `IncomeStatementReport` y `PortalStatement` migran de `import { buildXPdf } from '@/lib/pdf/...'` a `const { buildXPdf } = await import('@/lib/pdf/...')` dentro del handler async.",
+        "El chunk `react-pdf-*.js` (1,462.29 kB / 489.82 kB gzip) queda fuera de las páginas de lista y detalle. Antes cualquier ruta que renderizara un botón de PDF forzaba la descarga del chunk aunque el usuario nunca lo pulsara."
+      ]
+    },
+    {
+      "heading": "¿Por qué no Edge Function en esta iteración?",
+      "items": [
+        "El plan original de Lote G proponía mover `@react-pdf/renderer` a Deno. En la práctica es un proyecto multi-día: `@react-pdf/renderer` depende de módulos Node (`fs`, streams internos), requiere embarcar fonts como assets del edge, y los 15 archivos JSX de `src/lib/pdf/**` comparten tipos con la app cliente.",
+        "El objetivo real del lote — sacar los 1.46 MB del bundle inicial de facturación — se cumple con el `import()` dinámico sin tocar los flujos de CFDI, portal ni contratos.",
+        "Si más adelante se necesita generar PDFs desde crons o webhooks server-side (p.ej. envío automático de estados de cuenta), se puede abordar el Edge en un lote propio."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "`npx tsgo --noEmit` — OK.",
+        "`bunx vitest run` — 804/804.",
+        "`bun run build` — OK, `react-pdf-*.js` sigue siendo un chunk aparte, ya no importado eager.",
+        "Playwright end-to-end contra `/quotes/:id`: sin cargar el chunk al abrir el detalle (`chunk_after_detail: 0`); al pulsar 'Descargar PDF' se descarga el chunk y el PDF resultante (17.7 KB) queda en el disco."
+      ]
+    }
+  ]
+}

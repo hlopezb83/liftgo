@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.4.0",
+    "date": "2026-07-10",
+    "type": "minor",
+    "title": "Lego · Lote G — PDF lazy: -1.46 MB fuera de la ruta caliente",
+    "description": "Se convierten a `import()` dinámico los 5 puntos de entrada de generación de PDF (`useQuotePdfDownload`, `useInvoicePdfDownload`, `ContractPDFButton`, `IncomeStatementReport`, `PortalStatement`). Antes, sólo abrir /quotes o el detalle de una factura obligaba a descargar el chunk `react-pdf` (1.46 MB / 490 KB gzip) porque `@/lib/pdf/*/build` estaba en la cadena de imports estáticos. Ahora el chunk se descarga sólo al hacer click en 'Descargar PDF'. Se verificó end-to-end con Playwright: al entrar al detalle de una cotización `chunk_after_detail: 0`; al hacer click `chunk_after_click: 1` y se descargó un PDF de 17.7 KB. Sin cambios en el UI ni en los flujos de facturación/CFDI/portal. Typecheck OK, 804/804 tests, build OK. Nota: no se migra `@react-pdf/renderer` a Deno (Edge) en esta iteración — la compatibilidad con fonts y módulos Node del renderer es un proyecto multi-día y no aporta más que el lazy split para el problema real, que era el bundle inicial de las páginas de lista y detalle.",
+    "category": "improvement"
+  },
+  {
     "version": "7.3.1",
     "date": "2026-07-10",
     "type": "patch",
