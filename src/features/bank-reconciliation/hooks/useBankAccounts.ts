@@ -46,8 +46,7 @@ export interface BankAccountInput {
 }
 
 export function useUpsertBankAccount() {
-  const qc = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (input: BankAccountInput) => {
       if (input.id) {
         const { error } = await supabase.from("bank_accounts").update(input).eq("id", input.id);
@@ -57,25 +56,21 @@ export function useUpsertBankAccount() {
         if (error) throw error;
       }
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: BANK_ACCOUNTS_QK });
-      notifySuccess("Cuenta bancaria guardada");
-    },
-    onError: (e: Error) => notifyError({ error: e, message: e.message }),
+    invalidateKeys: [BANK_ACCOUNTS_QK],
+    successMsg: "Cuenta bancaria guardada",
+    errorTitle: "Error al guardar cuenta bancaria",
   });
 }
 
 export function useDeleteBankAccount() {
-  const qc = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("bank_accounts").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: BANK_ACCOUNTS_QK });
-      notifySuccess("Cuenta eliminada");
-    },
-    onError: (e: Error) => notifyError({ error: e, message: e.message }),
+    invalidateKeys: [BANK_ACCOUNTS_QK],
+    successMsg: "Cuenta eliminada",
+    errorTitle: "Error al eliminar cuenta",
   });
 }
+
