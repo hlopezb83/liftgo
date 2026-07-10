@@ -1,5 +1,6 @@
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
+import { getAdminClient, getCallerClient } from "../_shared/supabaseClients.ts";
 import { isUUID } from "../_shared/validate.ts";
 import {
   binaryToBytes,
@@ -15,35 +16,22 @@ const IVA_RATE = 0.16;
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
-  const corsHeaders = getCorsHeaders(req);
-  const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
 
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: jsonHeaders,
-      });
+      return jsonError(req, 401, "Unauthorized");
     }
-    const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
-    const ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const SERVICE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const callerClient = createClient(SUPABASE_URL, ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
-    });
+    const callerClient = getCallerClient(req);
     const token = authHeader.replace("Bearer ", "");
     const { data: claimsData, error: claimsErr } = await callerClient.auth
       .getClaims(token);
     if (claimsErr || !claimsData?.claims?.sub) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: jsonHeaders,
-      });
+      return jsonError(req, 401, "Unauthorized");
     }
     const userId = claimsData.claims.sub as string;
 
-    const supabase = createClient(SUPABASE_URL, SERVICE_KEY);
+    const supabase = getAdminClient();
     const { data: rolesRows } = await supabase
       .from("user_roles")
       .select("role")
