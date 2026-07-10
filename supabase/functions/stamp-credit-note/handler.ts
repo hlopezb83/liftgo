@@ -39,7 +39,6 @@ export async function handleStampCreditNote(
   const json = (body: unknown, status: number, _headers?: unknown) =>
     jsonResponse(req, body, { status });
 
-
   let credit_note_id: unknown = undefined;
   let userId: string | undefined = undefined;
   try {
@@ -403,4 +402,3 @@ export async function handleStampCreditNote(
     return json({ error: "Internal server error" }, 500);
   }
 }
-

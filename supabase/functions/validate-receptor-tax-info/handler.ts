@@ -40,7 +40,6 @@ export async function handleValidateReceptor(
   const json = (body: unknown, status: number, _headers?: unknown) =>
     jsonResponse(req, body, { status });
 
-
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
@@ -199,4 +198,3 @@ export async function handleValidateReceptor(
     return json({ error: "Internal server error" }, 500, jsonHeaders);
   }
 }
-

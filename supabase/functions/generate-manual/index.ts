@@ -77,7 +77,6 @@ serve(async (req) => {
       return jsonError(req, 500, "LOVABLE_API_KEY no configurada");
     }
 
-
     // Call Lovable AI with tool calling to get structured JSON
     const aiResponse = await fetch(
       "https://ai.gateway.lovable.dev/v1/chat/completions",
@@ -144,10 +143,18 @@ serve(async (req) => {
       console.error("AI gateway error:", aiResponse.status, errText);
 
       if (aiResponse.status === 429) {
-        return jsonError(req, 429, "Límite de solicitudes excedido, intenta más tarde.");
+        return jsonError(
+          req,
+          429,
+          "Límite de solicitudes excedido, intenta más tarde.",
+        );
       }
       if (aiResponse.status === 402) {
-        return jsonError(req, 402, "Se requieren créditos adicionales para generar el manual.");
+        return jsonError(
+          req,
+          402,
+          "Se requieren créditos adicionales para generar el manual.",
+        );
       }
       return jsonError(req, 500, "Error al generar el manual con IA");
     }
