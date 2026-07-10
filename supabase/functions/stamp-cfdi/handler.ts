@@ -480,17 +480,7 @@ export async function handleStampCfdi(
     );
   } catch (err) {
     console.error("[stamp-cfdi] unhandled exception", err);
-    return json({ error: "Internal server error" }, 500, {
-      ...getCorsHeaders(req),
-      "Content-Type": "application/json",
-    });
+    return json({ error: "Internal server error" }, 500);
   }
 }
 
-function json(
-  body: unknown,
-  status: number,
-  headers: Record<string, string>,
-): Response {
-  return new Response(JSON.stringify(body), { status, headers });
-}
