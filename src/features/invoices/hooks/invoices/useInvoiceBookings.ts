@@ -45,15 +45,14 @@ export function useAllInvoiceBookings() {
 
 /** Sincroniza las reservas de una factura (delete + insert). */
 export function useSyncInvoiceBookings() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ invoiceId, bookingIds }: { invoiceId: string; bookingIds: string[] }) => {
       const { error: delErr } = await supabase
         .from("invoice_bookings")
         .delete()
         .eq("invoice_id", invoiceId);
       if (delErr) throw delErr;
-      if (bookingIds.length === 0) return;
+      if (bookingIds.length === 0) return { invoiceId };
       const rows = bookingIds.map((booking_id, line_index) => ({
         invoice_id: invoiceId,
         booking_id,
@@ -61,11 +60,10 @@ export function useSyncInvoiceBookings() {
       }));
       const { error: insErr } = await supabase.from("invoice_bookings").insert(rows);
       if (insErr) throw insErr;
+      return { invoiceId };
     },
-    onSuccess: (_data, vars) => {
-      queryClient.invalidateQueries({ queryKey: ibKeys.byInvoice(vars.invoiceId) });
-      queryClient.invalidateQueries({ queryKey: ibKeys.all });
-      queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
-    },
+    invalidateKeys: [ibKeys.all, invoiceKeys.all],
+    invalidateKeysFn: (_data, vars) => [ibKeys.byInvoice(vars.invoiceId)],
+    errorTitle: "Error al sincronizar reservas",
   });
 }
