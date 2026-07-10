@@ -1,0 +1,43 @@
+{
+  "version": "6.144.0",
+  "date": "2026-07-10",
+  "type": "minor",
+  "title": "DRY Lote 2 (parte 1): hooks al patrón useEntityMutation + cobertura de helpers compartidos",
+  "summary": "Primera tanda del Lote 2 con extensión del helper canónico y cobertura de tests para los shared de edge functions.",
+  "sections": [
+    {
+      "heading": "Hooks migrados a useEntityMutation",
+      "items": [
+        "useSupplierBillMutations: create, update, delete y cancel dejan de duplicar onSuccess/onError/notify (~30 LOC).",
+        "useBankLineActions: confirmMatch, unmatch e ignore usan invalidateKeysFn para BANK_LINES_QK(bankAccountId) dinámica (~15 LOC).",
+        "useCashFlowSettings: mutación de settings homogeneizada con el resto de la app (~10 LOC).",
+        "useAuditLogs: delete y revert consolidados; revert usa invalidateKeysFn para invalidar la tabla revertida (~15 LOC)."
+      ]
+    },
+    {
+      "heading": "Extensión de useEntityMutation",
+      "items": [
+        "Nueva opción invalidateKeysFn(data, vars) → readonly QueryKey[] para query keys derivadas del resultado o de las variables.",
+        "invalidateKeys pasa a opcional; ambas fuentes se combinan y se invalidan en paralelo.",
+        "Sin cambios en las mutaciones ya migradas: retro-compatible."
+      ]
+    },
+    {
+      "heading": "Tests nuevos",
+      "items": [
+        "supabase/functions/_shared/http_test.ts: cubre jsonResponse (status, headers extras, body null) y jsonError (extras, ACAO restringido).",
+        "supabase/functions/_shared/auth_test.ts: cubre requireAuth/requireRole sin Authorization, malformado y propagación 401, más generateSecurePassword (longitud/charset/entropía).",
+        "supabase/functions/download-cfdi/index_test.ts: smoke de CORS preflight + guards de auth.",
+        "Actualización de useRevertAuditLog.test.ts a la firma canónica de notifyError({ title, error })."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "802 tests frontend pasan (136 archivos), 24 tests Deno verdes.",
+        "tsgo --noEmit sin errores.",
+        "Cero cambios funcionales: mismas mutaciones, mismas invalidaciones, mismos toasts."
+      ]
+    }
+  ]
+}
