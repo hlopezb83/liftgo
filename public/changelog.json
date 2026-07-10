@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.145.0",
+    "date": "2026-07-10",
+    "type": "minor",
+    "title": "DRY Lote 2 (parte 2): 5 hooks más migrados a useEntityMutation",
+    "description": "Se migran useBillApprovalMutations (3 muts), useSupplierRepMutations (3 muts), useSuppliers (create/update), useCompanySettings (upsert) y useCxpApprovalThreshold al patrón canónico useEntityMutation. Se centraliza translateSupplierError como parte del mutationFn, y las invalidaciones dinámicas de bill/REP usan invalidateKeysFn. -85 LOC netos, 802 tests verdes, typecheck limpio.",
+    "category": "refactor"
+  },
+  {
     "version": "6.144.0",
     "date": "2026-07-10",
     "type": "minor",

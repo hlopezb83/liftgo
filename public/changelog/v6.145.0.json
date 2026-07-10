@@ -1,0 +1,27 @@
+{
+  "version": "6.145.0",
+  "date": "2026-07-10",
+  "type": "minor",
+  "title": "DRY Lote 2 (parte 2): 5 hooks adicionales al patrón canónico",
+  "summary": "Continuación del barrido de mutaciones a useEntityMutation eliminando boilerplate onSuccess/onError/notify.",
+  "sections": [
+    {
+      "heading": "Hooks migrados",
+      "items": [
+        "useBillApprovalMutations: approve, reject y requestReapproval — invalidaciones dinámicas por billId vía invalidateKeysFn.",
+        "useSupplierRepMutations: upload/reject/reset — mismo patrón dinámico + preservación de parseFunctionsError.",
+        "useSuppliers: create y update — translateSupplierError ahora corre dentro del mutationFn.",
+        "useCompanySettings: upsert consolidado (upsert condicional según settings.id).",
+        "useCxpApprovalThreshold: update con guard temprano si no existe row base."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "802 tests verdes (136 archivos); ajuste de useBillApprovalMutations.test.ts a la firma canónica title/error.",
+        "tsgo --noEmit sin errores.",
+        "Sin cambios funcionales: mismas invalidaciones, mismos toasts, mismos errores."
+      ]
+    }
+  ]
+}
