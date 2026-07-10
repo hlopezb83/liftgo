@@ -54,3 +54,17 @@ export function toMxn(
   return Number.isFinite(rate) && rate > 0 ? amount * rate : amount;
 }
 
+/**
+ * Tasa de IVA general vigente en México (16%).
+ * Centralizada para evitar magic numbers (`* 1.16`) dispersos en el código.
+ * Nota: NO usar como fuente de verdad para facturación fiscal — ahí siempre
+ * viene del campo `tax_rate` de cada línea/documento.
+ */
+export const DEFAULT_VAT_RATE = 0.16;
+
+/** Aplica IVA a un monto usando la tasa por defecto (o una custom). */
+export function applyVat(amount: number, rate: number = DEFAULT_VAT_RATE): number {
+  return amount * (1 + rate);
+}
+
+

@@ -7,6 +7,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { applyVat } from "@/lib/money";
+
 import { formatMonthLongEs } from "@/lib/format/formatMonthEs";
 import { AlertCircle, Receipt } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -60,9 +62,10 @@ export function RecurringInvoicesPreviewDialog({
   }, [lines]);
 
   const totalSelected = useMemo(
-    () => lines.filter((l) => selected.has(l.bookingId)).reduce((acc, l) => acc + l.monthlyRate * 1.16, 0),
+    () => lines.filter((l) => selected.has(l.bookingId)).reduce((acc, l) => acc + applyVat(l.monthlyRate), 0),
     [lines, selected],
   );
+
 
   const toggle = (id: string) => {
     setSelected((prev) => {
