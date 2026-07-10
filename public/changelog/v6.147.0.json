@@ -1,0 +1,24 @@
+{
+  "version": "6.147.0",
+  "date": "2026-07-10",
+  "type": "minor",
+  "title": "DRY Lote 2 (parte 4): feedback y bank-reconciliation migrados a useEntityMutation",
+  "summary": "6 hooks migrados al patrón canónico useEntityMutation con invalidaciones dinámicas.",
+  "changes": [
+    {
+      "type": "refactor",
+      "title": "Feedback hooks migrados",
+      "description": "useCreateFeedback preserva upload de screenshot y toast custom con folio. useClassifyFeedback (invocación de edge function) y useUpdateFeedbackStatus (RPC change_feedback_status) migrados con invalidaciones consolidadas de feedback_reports y feedback_leaderboard."
+    },
+    {
+      "type": "refactor",
+      "title": "Bank reconciliation hooks migrados",
+      "description": "useImportBankStatement migra el pipeline (insert import → upsert lines → RPC match) usando invalidateKeysFn para invalidar BANK_LINES_QK(bankAccountId). useUpsertBankAccount y useDeleteBankAccount unificados con toasts estándar."
+    },
+    {
+      "type": "quality",
+      "title": "Verificación",
+      "description": "802 tests en verde, tsgo sin errores. -70 LOC netos aproximados."
+    }
+  ]
+}
