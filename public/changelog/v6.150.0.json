@@ -1,0 +1,22 @@
+{
+  "version": "6.150.0",
+  "date": "2026-07-10",
+  "type": "minor",
+  "title": "DRY Lote 4 · Centraliza tasa de IVA (applyVat / DEFAULT_VAT_RATE)",
+  "category": "refactor",
+  "changes": [
+    {
+      "type": "added",
+      "description": "`DEFAULT_VAT_RATE = 0.16` y `applyVat(amount, rate?)` exportados desde `src/lib/money`."
+    },
+    {
+      "type": "refactor",
+      "description": "`RecurringInvoicesPreviewDialog.totalSelected` usa `applyVat(l.monthlyRate)` en lugar de `* 1.16`."
+    },
+    {
+      "type": "tests",
+      "description": "Nuevos tests unitarios para `applyVat` (tasa por defecto y tasa custom incluyendo 0)."
+    }
+  ],
+  "notes": "Este helper es para previews/estimados internos. La facturación fiscal sigue leyendo `tax_rate` de cada línea/documento."
+}
