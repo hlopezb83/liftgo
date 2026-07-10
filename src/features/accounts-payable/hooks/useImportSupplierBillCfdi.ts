@@ -45,9 +45,8 @@ function buildInitialValues(parsed: CfdiParsed, supplierId: string): Partial<Sup
     tax_amount: parsed.taxAmount,
     retention_iva: parsed.retentionIva,
     retention_isr: parsed.retentionIsr,
-    cfdi_uuid: parsed.uuid,
+    cfdi_uuid: parsed.uuid ?? undefined,
     payment_method_sat: parsed.paymentMethodSat ?? undefined,
-    // ensure not null,
     issue_date: parsed.issueDate ?? new Date(),
     description: [parsed.serie, parsed.folio].filter(Boolean).join("-") || "",
   };
