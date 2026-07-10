@@ -160,7 +160,7 @@ export function SupplierBillDetailContent({ bill, perms, isAdmin, dialogs, onClo
       <BillApprovalSection
         billId={bill.id}
         billNumber={bill.bill_number}
-        approvalStatus={bill.approval_status}
+        approvalStatus={bill.approval_status as "approved" | "not_required" | "pending" | "rejected"}
         approvalNotes={bill.approval_notes}
         approvedAt={bill.approved_at}
       />
