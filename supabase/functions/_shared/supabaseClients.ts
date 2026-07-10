@@ -7,7 +7,11 @@ import {
   type SupabaseClient,
 } from "https://esm.sh/@supabase/supabase-js@2";
 
-export function getSupabaseEnv(): { url: string; anonKey: string; serviceKey: string } {
+export function getSupabaseEnv(): {
+  url: string;
+  anonKey: string;
+  serviceKey: string;
+} {
   return {
     url: Deno.env.get("SUPABASE_URL")!,
     anonKey: Deno.env.get("SUPABASE_ANON_KEY")!,

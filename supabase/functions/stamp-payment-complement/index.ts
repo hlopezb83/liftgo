@@ -54,7 +54,11 @@ Deno.serve(async (req) => {
       console.error("[stamp-payment-complement] claim failed", claimRes.error);
     }
     if (!claimRes.data) {
-      return jsonError(req, 409, "REP ya está siendo timbrado o ya fue timbrado");
+      return jsonError(
+        req,
+        409,
+        "REP ya está siendo timbrado o ya fue timbrado",
+      );
     }
 
     // Load invoice
@@ -67,10 +71,18 @@ Deno.serve(async (req) => {
       .single();
     if (!invoice) return jsonError(req, 404, "Invoice not found");
     if (invoice.metodo_pago !== "PPD") {
-      return jsonError(req, 400, "Solo facturas PPD requieren Complemento de Pago");
+      return jsonError(
+        req,
+        400,
+        "Solo facturas PPD requieren Complemento de Pago",
+      );
     }
     if (invoice.cfdi_status !== "stamped" || !invoice.cfdi_uuid) {
-      return jsonError(req, 400, "La factura debe estar timbrada para generar REP");
+      return jsonError(
+        req,
+        400,
+        "La factura debe estar timbrada para generar REP",
+      );
     }
 
     // Calculate prior_balance: sum of all stamped/none REP payments BEFORE this one
@@ -97,7 +109,11 @@ Deno.serve(async (req) => {
     const priorBalance = Number((invoiceTotal - priorPaid).toFixed(2));
     const amount = Number(payment.amount);
     if (amount <= 0 || amount > priorBalance + 0.01) {
-      return jsonError(req, 400, `Monto inválido. Saldo previo: ${priorBalance}`);
+      return jsonError(
+        req,
+        400,
+        `Monto inválido. Saldo previo: ${priorBalance}`,
+      );
     }
 
     // Tax breakdown (IVA 16% único)

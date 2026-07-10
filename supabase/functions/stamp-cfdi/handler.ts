@@ -483,4 +483,3 @@ export async function handleStampCfdi(
     return json({ error: "Internal server error" }, 500);
   }
 }
-

@@ -41,7 +41,10 @@ async function fetchFacturapiBinary(
     return { ok: true, bytes };
   } catch (err) {
     const e = err as { status?: number; detail?: string; message?: string };
-    console.error("[download-cfdi] Facturapi failed", { path, status: e.status ?? 500 });
+    console.error("[download-cfdi] Facturapi failed", {
+      path,
+      status: e.status ?? 500,
+    });
     return {
       ok: false,
       status: e.status ?? 500,
@@ -50,13 +53,25 @@ async function fetchFacturapiBinary(
   }
 }
 
-const fetchFromFacturapi = (apiKey: string, facturapiId: string, format: BaseFormat) =>
-  fetchFacturapiBinary(apiKey, `/invoices/${facturapiId}/${format}`);
+const fetchFromFacturapi = (
+  apiKey: string,
+  facturapiId: string,
+  format: BaseFormat,
+) => fetchFacturapiBinary(apiKey, `/invoices/${facturapiId}/${format}`);
 
-const fetchAcuseFromFacturapi = (apiKey: string, facturapiId: string, format: BaseFormat) =>
-  fetchFacturapiBinary(apiKey, `/invoices/${facturapiId}/cancellation_receipt/${format}`);
+const fetchAcuseFromFacturapi = (
+  apiKey: string,
+  facturapiId: string,
+  format: BaseFormat,
+) =>
+  fetchFacturapiBinary(
+    apiKey,
+    `/invoices/${facturapiId}/cancellation_receipt/${format}`,
+  );
 
-async function loadFacturapiKey(supabase: SupabaseClient): Promise<string | null> {
+async function loadFacturapiKey(
+  supabase: SupabaseClient,
+): Promise<string | null> {
   const { data: company } = await supabase
     .from("company_settings").select("facturapi_mode").limit(1).maybeSingle();
   const { data: secrets } = await supabase
@@ -113,7 +128,11 @@ async function persistDownload(
   await supabase.from(table).update(updates).eq(matchColumn, matchValue);
 }
 
-function facturapiErrorResponse(req: Request, res: Extract<FacturapiFetch, { ok: false }>, notFoundMsg?: string) {
+function facturapiErrorResponse(
+  req: Request,
+  res: Extract<FacturapiFetch, { ok: false }>,
+  notFoundMsg?: string,
+) {
   const msg = res.status >= 500
     ? "Facturapi está experimentando problemas. Intenta de nuevo en unos segundos."
     : res.status === 404 && notFoundMsg
@@ -146,8 +165,12 @@ Deno.serve(async (req) => {
     }
 
     const isAcuse = format === "acuse_pdf" || format === "acuse_xml";
-    const baseFormat: BaseFormat = format === "pdf" || format === "acuse_pdf" ? "pdf" : "xml";
-    const contentType = baseFormat === "pdf" ? "application/pdf" : "application/xml";
+    const baseFormat: BaseFormat = format === "pdf" || format === "acuse_pdf"
+      ? "pdf"
+      : "xml";
+    const contentType = baseFormat === "pdf"
+      ? "application/pdf"
+      : "application/xml";
 
     if (isAcuse && !isUUID(invoice_id)) {
       return jsonError(req, 400, "Acuse download requires invoice_id");
@@ -168,22 +191,39 @@ Deno.serve(async (req) => {
       const filename = `${cn.credit_note_number || cn.cfdi_uuid}.${baseFormat}`;
       const existing = await tryStorageDownload(
         supabase,
-        (baseFormat === "pdf" ? cn.cfdi_pdf_url : cn.cfdi_xml_url) as string | null,
+        (baseFormat === "pdf" ? cn.cfdi_pdf_url : cn.cfdi_xml_url) as
+          | string
+          | null,
       );
-      if (existing) return attachmentResponse(req, existing, contentType, filename);
+      if (existing) {
+        return attachmentResponse(req, existing, contentType, filename);
+      }
 
-      if (!cn.facturapi_invoice_id) return jsonError(req, 404, "Missing facturapi reference");
+      if (!cn.facturapi_invoice_id) {
+        return jsonError(req, 404, "Missing facturapi reference");
+      }
       const apiKey = await loadFacturapiKey(supabase);
       if (!apiKey) return jsonError(req, 500, "Facturapi key not configured");
 
-      const res = await fetchFromFacturapi(apiKey, cn.facturapi_invoice_id as string, baseFormat);
+      const res = await fetchFromFacturapi(
+        apiKey,
+        cn.facturapi_invoice_id as string,
+        baseFormat,
+      );
       if (!res.ok) return facturapiErrorResponse(req, res);
 
       const newPath = `credit-notes/${cn.id}/${cn.cfdi_uuid}.${baseFormat}`;
       await persistDownload(
-        supabase, newPath, res.bytes, contentType, "credit_notes",
-        baseFormat === "pdf" ? { cfdi_pdf_url: newPath } : { cfdi_xml_url: newPath },
-        "id", credit_note_id,
+        supabase,
+        newPath,
+        res.bytes,
+        contentType,
+        "credit_notes",
+        baseFormat === "pdf"
+          ? { cfdi_pdf_url: newPath }
+          : { cfdi_xml_url: newPath },
+        "id",
+        credit_note_id,
       );
       return attachmentResponse(req, res.bytes, contentType, filename);
     }
@@ -197,28 +237,49 @@ Deno.serve(async (req) => {
         )
         .eq("id", payment_id)
         .single();
-      if (!payment || payment.rep_cfdi_status !== "stamped" || !payment.rep_cfdi_uuid) {
+      if (
+        !payment || payment.rep_cfdi_status !== "stamped" ||
+        !payment.rep_cfdi_uuid
+      ) {
         return jsonError(req, 409, "REP not stamped");
       }
       const filename = `REP-${payment.rep_cfdi_uuid}.${baseFormat}`;
       const existing = await tryStorageDownload(
         supabase,
-        (baseFormat === "pdf" ? payment.rep_pdf_url : payment.rep_xml_url) as string | null,
+        (baseFormat === "pdf" ? payment.rep_pdf_url : payment.rep_xml_url) as
+          | string
+          | null,
       );
-      if (existing) return attachmentResponse(req, existing, contentType, filename);
+      if (existing) {
+        return attachmentResponse(req, existing, contentType, filename);
+      }
 
-      if (!payment.rep_facturapi_id) return jsonError(req, 404, "Missing facturapi REP reference");
+      if (!payment.rep_facturapi_id) {
+        return jsonError(req, 404, "Missing facturapi REP reference");
+      }
       const apiKey = await loadFacturapiKey(supabase);
       if (!apiKey) return jsonError(req, 500, "Facturapi key not configured");
 
-      const res = await fetchFromFacturapi(apiKey, payment.rep_facturapi_id as string, baseFormat);
+      const res = await fetchFromFacturapi(
+        apiKey,
+        payment.rep_facturapi_id as string,
+        baseFormat,
+      );
       if (!res.ok) return facturapiErrorResponse(req, res);
 
-      const newPath = `${payment.invoice_id}/rep-${payment.rep_cfdi_uuid}.${baseFormat}`;
+      const newPath =
+        `${payment.invoice_id}/rep-${payment.rep_cfdi_uuid}.${baseFormat}`;
       await persistDownload(
-        supabase, newPath, res.bytes, contentType, "payments",
-        baseFormat === "pdf" ? { rep_pdf_url: newPath } : { rep_xml_url: newPath },
-        "id", payment_id,
+        supabase,
+        newPath,
+        res.bytes,
+        contentType,
+        "payments",
+        baseFormat === "pdf"
+          ? { rep_pdf_url: newPath }
+          : { rep_xml_url: newPath },
+        "id",
+        payment_id,
       );
       return attachmentResponse(req, res.bytes, contentType, filename);
     }
@@ -232,62 +293,110 @@ Deno.serve(async (req) => {
       .eq("id", invoice_id)
       .single();
     if (invErr || !invoice) return jsonError(req, 404, "Invoice not found");
-    const cfdiOk = invoice.cfdi_status === "stamped" || invoice.cfdi_status === "cancelled";
-    if (!cfdiOk || !invoice.cfdi_uuid) return jsonError(req, 409, "Invoice not stamped");
+    const cfdiOk = invoice.cfdi_status === "stamped" ||
+      invoice.cfdi_status === "cancelled";
+    if (!cfdiOk || !invoice.cfdi_uuid) {
+      return jsonError(req, 409, "Invoice not stamped");
+    }
 
     if (isAcuse) {
       if (invoice.cancellation_status !== "accepted") {
         return jsonError(
-          req, 409,
+          req,
+          409,
           "El acuse aún no está disponible. Actualiza el estado SAT hasta que la cancelación esté aceptada.",
         );
       }
-      const filename = `Acuse-${invoice.invoice_number || invoice.cfdi_uuid}.${baseFormat}`;
+      const filename = `Acuse-${
+        invoice.invoice_number || invoice.cfdi_uuid
+      }.${baseFormat}`;
       const existing = await tryStorageDownload(
         supabase,
-        (baseFormat === "pdf" ? invoice.acuse_pdf_url : invoice.acuse_xml_url) as string | null,
+        (baseFormat === "pdf"
+          ? invoice.acuse_pdf_url
+          : invoice.acuse_xml_url) as string | null,
       );
-      if (existing) return attachmentResponse(req, existing, contentType, filename);
+      if (existing) {
+        return attachmentResponse(req, existing, contentType, filename);
+      }
 
-      if (!invoice.facturapi_invoice_id) return jsonError(req, 404, "Missing facturapi reference");
+      if (!invoice.facturapi_invoice_id) {
+        return jsonError(req, 404, "Missing facturapi reference");
+      }
       const apiKey = await loadFacturapiKey(supabase);
       if (!apiKey) return jsonError(req, 500, "Facturapi key not configured");
 
-      const res = await fetchAcuseFromFacturapi(apiKey, invoice.facturapi_invoice_id as string, baseFormat);
-      if (!res.ok) return facturapiErrorResponse(req, res, "El acuse aún no está disponible en Facturapi.");
+      const res = await fetchAcuseFromFacturapi(
+        apiKey,
+        invoice.facturapi_invoice_id as string,
+        baseFormat,
+      );
+      if (!res.ok) {
+        return facturapiErrorResponse(
+          req,
+          res,
+          "El acuse aún no está disponible en Facturapi.",
+        );
+      }
 
       const newPath = `${invoice_id}/acuse-${invoice.cfdi_uuid}.${baseFormat}`;
       await persistDownload(
-        supabase, newPath, res.bytes, contentType, "invoices",
-        baseFormat === "pdf" ? { acuse_pdf_url: newPath } : { acuse_xml_url: newPath },
-        "id", invoice_id,
+        supabase,
+        newPath,
+        res.bytes,
+        contentType,
+        "invoices",
+        baseFormat === "pdf"
+          ? { acuse_pdf_url: newPath }
+          : { acuse_xml_url: newPath },
+        "id",
+        invoice_id,
       );
       return attachmentResponse(req, res.bytes, contentType, filename);
     }
 
-    const filename = `${invoice.invoice_number || invoice.cfdi_uuid}.${baseFormat}`;
+    const filename = `${
+      invoice.invoice_number || invoice.cfdi_uuid
+    }.${baseFormat}`;
     const existing = await tryStorageDownload(
       supabase,
-      (baseFormat === "pdf" ? invoice.cfdi_pdf_url : invoice.cfdi_xml_url) as string | null,
+      (baseFormat === "pdf" ? invoice.cfdi_pdf_url : invoice.cfdi_xml_url) as
+        | string
+        | null,
     );
-    if (existing) return attachmentResponse(req, existing, contentType, filename);
+    if (existing) {
+      return attachmentResponse(req, existing, contentType, filename);
+    }
 
     if (baseFormat === "xml" && invoice.cfdi_xml) {
       return attachmentResponse(req, invoice.cfdi_xml, contentType, filename);
     }
 
-    if (!invoice.facturapi_invoice_id) return jsonError(req, 404, "Missing facturapi reference");
+    if (!invoice.facturapi_invoice_id) {
+      return jsonError(req, 404, "Missing facturapi reference");
+    }
     const apiKey = await loadFacturapiKey(supabase);
     if (!apiKey) return jsonError(req, 500, "Facturapi key not configured");
 
-    const res = await fetchFromFacturapi(apiKey, invoice.facturapi_invoice_id as string, baseFormat);
+    const res = await fetchFromFacturapi(
+      apiKey,
+      invoice.facturapi_invoice_id as string,
+      baseFormat,
+    );
     if (!res.ok) return facturapiErrorResponse(req, res);
 
     const newPath = `${invoice_id}/${invoice.cfdi_uuid}.${baseFormat}`;
     await persistDownload(
-      supabase, newPath, res.bytes, contentType, "invoices",
-      baseFormat === "pdf" ? { cfdi_pdf_url: newPath } : { cfdi_xml_url: newPath },
-      "id", invoice_id,
+      supabase,
+      newPath,
+      res.bytes,
+      contentType,
+      "invoices",
+      baseFormat === "pdf"
+        ? { cfdi_pdf_url: newPath }
+        : { cfdi_xml_url: newPath },
+      "id",
+      invoice_id,
     );
     return attachmentResponse(req, res.bytes, contentType, filename);
   } catch (err) {

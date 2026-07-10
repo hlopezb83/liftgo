@@ -31,7 +31,8 @@ export async function handleRefreshCancellation(
 ): Promise<Response> {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
-  const json = (body: unknown, status: number) => jsonResponse(req, body, { status });
+  const json = (body: unknown, status: number) =>
+    jsonResponse(req, body, { status });
 
   try {
     const authHeader = req.headers.get("Authorization");

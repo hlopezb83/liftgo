@@ -35,7 +35,11 @@ serve(async (req) => {
     }
     // Approx size: base64 length * 3/4
     if (pdf_base64.length > Math.ceil(MAX_PDF_BYTES * 4 / 3)) {
-      return jsonError(req, 413, "El PDF excede el tamaño máximo permitido (5MB)");
+      return jsonError(
+        req,
+        413,
+        "El PDF excede el tamaño máximo permitido (5MB)",
+      );
     }
 
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
@@ -142,10 +146,18 @@ Si un campo no se encuentra, devuelve una cadena vacía.`;
       const errText = await response.text();
       console.error("AI gateway error:", response.status, errText);
       if (response.status === 429) {
-        return jsonError(req, 429, "Demasiadas solicitudes, intenta de nuevo en un momento.");
+        return jsonError(
+          req,
+          429,
+          "Demasiadas solicitudes, intenta de nuevo en un momento.",
+        );
       }
       if (response.status === 402) {
-        return jsonError(req, 402, "Créditos insuficientes para el servicio de IA.");
+        return jsonError(
+          req,
+          402,
+          "Créditos insuficientes para el servicio de IA.",
+        );
       }
       return jsonError(req, 500, "Error al procesar el documento con IA");
     }

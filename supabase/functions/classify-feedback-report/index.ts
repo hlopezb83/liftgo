@@ -60,9 +60,10 @@ Deno.serve(async (req) => {
 
     const parsed = BodySchema.safeParse(await req.json());
     if (!parsed.success) {
-      return jsonError(req, 400, "Invalid body", { detail: parsed.error.flatten() });
+      return jsonError(req, 400, "Invalid body", {
+        detail: parsed.error.flatten(),
+      });
     }
-
 
     const { data: report, error: reportErr } = await admin
       .from("feedback_reports")
@@ -139,7 +140,11 @@ Responde estrictamente con JSON: {"severity": "...", "module": "...", "reasoning
     if (!aiResp.ok) {
       const errText = await aiResp.text();
       if (aiResp.status === 429) {
-        return jsonError(req, 429, "Rate limit excedido, intenta de nuevo en unos segundos");
+        return jsonError(
+          req,
+          429,
+          "Rate limit excedido, intenta de nuevo en unos segundos",
+        );
       }
       if (aiResp.status === 402) {
         return jsonError(req, 402, "Créditos de AI agotados");

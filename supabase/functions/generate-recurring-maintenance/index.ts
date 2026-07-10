@@ -1,6 +1,10 @@
 import { handleCors } from "../_shared/cors.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
-import { getAdminClient, getCallerClient, getSupabaseEnv } from "../_shared/supabaseClients.ts";
+import {
+  getAdminClient,
+  getCallerClient,
+  getSupabaseEnv,
+} from "../_shared/supabaseClients.ts";
 
 Deno.serve(async (req) => {
   const corsResponse = handleCors(req);
@@ -38,7 +42,11 @@ Deno.serve(async (req) => {
         .eq("user_id", callerId);
       const roles = (roleData ?? []).map((r: { role: string }) => r.role);
       if (!roles.includes("admin") && !roles.includes("administrativo")) {
-        return jsonError(req, 403, "Solo admin/administrativo puede ejecutar esta función");
+        return jsonError(
+          req,
+          403,
+          "Solo admin/administrativo puede ejecutar esta función",
+        );
       }
     }
 
@@ -118,7 +126,12 @@ Deno.serve(async (req) => {
       }
     }
 
-    return jsonResponse(req, { generated, skipped, month: currentMonth, details });
+    return jsonResponse(req, {
+      generated,
+      skipped,
+      month: currentMonth,
+      details,
+    });
   } catch (err) {
     console.error("[generate-recurring-maintenance]", err);
     return jsonError(req, 500, "Error interno del servidor");
