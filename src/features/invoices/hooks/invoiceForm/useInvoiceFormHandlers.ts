@@ -72,6 +72,8 @@ function collectExtraLinesFromQuotes(
     extraLines.push(...extractNonRentalLines(q.line_items));
   }
   return extraLines;
+}
+
 
 export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes }: Props) {
   const handleCustomerSelect = useCallback((selectedCustomerId: string) => {
