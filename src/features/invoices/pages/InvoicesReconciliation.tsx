@@ -1,5 +1,4 @@
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { Download, AlertTriangle } from "lucide-react";
 
@@ -9,26 +8,11 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
 import { nowMty } from "@/lib/utils";
 
 import {
@@ -36,6 +20,7 @@ import {
   type ReconciliationFilters,
 } from "../hooks/reconciliation/useReconciliationData";
 import { downloadReconciliationXlsx } from "../lib/reconciliationExport";
+import { ReconciliationTable } from "../components/reconciliation/ReconciliationTable";
 
 function defaultFilters(): ReconciliationFilters {
   const today = nowMty();
@@ -47,19 +32,7 @@ function defaultFilters(): ReconciliationFilters {
   };
 }
 
-function envBadge(env: string | null) {
-  if (env === "live") return <Badge variant="secondary">Producción</Badge>;
-  if (env === "test") return <Badge variant="outline">Sandbox</Badge>;
-  return <span className="text-muted-foreground">—</span>;
-}
 
-function fiscalBadge(cfdiStatus: string | null, status: string) {
-  if (cfdiStatus === "cancelled" || status === "cancelled")
-    return <Badge variant="destructive">Cancelada</Badge>;
-  if (cfdiStatus === "stamped") return <Badge>Timbrada</Badge>;
-  if (status === "draft") return <Badge variant="outline">Borrador</Badge>;
-  return <Badge variant="secondary">{status}</Badge>;
-}
 
 export default function InvoicesReconciliation() {
   const [filters, setFilters] = useState<ReconciliationFilters>(defaultFilters);
