@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useUserRole } from "@/features/users";
-import { useReconciliationStatus } from "@/features/bank-reconciliation/hooks/useReconciliationStatus";
+import { useReconciliationStatus } from "@/features/bank-reconciliation";
 import { useRejectSupplierRep, useResetSupplierRep } from "./useSupplierRepMutations";
 import { useDeleteSupplierPayment } from "./useDeleteSupplierPayment";
 import type { SupplierPayment } from "./useSupplierBill";

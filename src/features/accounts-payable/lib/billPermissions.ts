@@ -11,31 +11,33 @@ export interface BillPermissions {
   deleteBlockedReason: string | null;
 }
 
+const EMPTY: BillPermissions = { canEdit: false, canDelete: false, editBlockedReason: null, deleteBlockedReason: null };
+
+function editReason(bill: Bill, hasPayments: boolean): string | null {
+  if (bill.status === "cancelled") return "Factura cancelada";
+  if (bill.status === "paid") return "Factura pagada";
+  if (hasPayments) return "Tiene pagos registrados";
+  if (bill.approval_status === "approved") return "Ya fue aprobada";
+  if (bill.approval_status === "rejected") return "Fue rechazada";
+  return null;
+}
+
+function deleteReason(bill: Bill, hasPayments: boolean): string | null {
+  if (hasPayments) return "Tiene pagos registrados";
+  if (bill.approval_status === "approved") return "Ya fue aprobada — usa Cancelar";
+  if (bill.status === "cancelled") return "Ya está cancelada";
+  return null;
+}
+
 export function computeBillPermissions(bill: Bill | null | undefined): BillPermissions {
-  if (!bill) {
-    return { canEdit: false, canDelete: false, editBlockedReason: null, deleteBlockedReason: null };
-  }
+  if (!bill) return EMPTY;
   const hasPayments = bill.payments.length > 0;
-
-  const canEdit =
-    bill.approval_status !== "approved" &&
-    bill.approval_status !== "rejected" &&
-    bill.status !== "cancelled" &&
-    bill.status !== "paid" &&
-    !hasPayments;
-
-  const editBlockedReason =
-    bill.status === "cancelled" ? "Factura cancelada" :
-    bill.status === "paid" ? "Factura pagada" :
-    hasPayments ? "Tiene pagos registrados" :
-    bill.approval_status === "approved" ? "Ya fue aprobada" :
-    bill.approval_status === "rejected" ? "Fue rechazada" : null;
-
-  const canDelete = !hasPayments && bill.approval_status !== "approved" && bill.status !== "cancelled";
-  const deleteBlockedReason =
-    hasPayments ? "Tiene pagos registrados" :
-    bill.approval_status === "approved" ? "Ya fue aprobada — usa Cancelar" :
-    bill.status === "cancelled" ? "Ya está cancelada" : null;
-
-  return { canEdit, canDelete, editBlockedReason, deleteBlockedReason };
+  const editBlockedReason = editReason(bill, hasPayments);
+  const deleteBlockedReason = deleteReason(bill, hasPayments);
+  return {
+    canEdit: editBlockedReason === null,
+    canDelete: deleteBlockedReason === null,
+    editBlockedReason,
+    deleteBlockedReason,
+  };
 }
