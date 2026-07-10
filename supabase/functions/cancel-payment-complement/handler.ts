@@ -6,7 +6,7 @@ import type { StampCfdiDeps, SupabaseLike } from "../stamp-cfdi/handler.ts";
 import {
   createFacturapiClient,
   describeFacturapiError,
-  resolveFacturapiKey,
+  getFacturapiConfig,
 } from "../_shared/facturapi/client.ts";
 
 export type { SupabaseLike };
