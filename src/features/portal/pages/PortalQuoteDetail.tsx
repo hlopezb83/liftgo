@@ -17,6 +17,8 @@ import {
   useRejectPortalQuote,
 } from "../hooks/usePortalExtras";
 import { canActOnPortalQuote, isQuoteAccepted } from "@/lib/rules/quotes";
+import { TotalsBreakdown } from "../components/TotalsBreakdown";
+
 
 interface LineItem {
   description?: string;
