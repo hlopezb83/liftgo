@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { callRpc } from "@/lib/rpc";
 
 export interface PortalCollectionAccount {
   bank: string | null;
@@ -14,10 +14,8 @@ export function usePortalCollectionAccount() {
     queryKey: ["portal_collection_account"],
     staleTime: 5 * 60_000,
     queryFn: async (): Promise<PortalCollectionAccount | null> => {
-      const { data, error } = await supabase.rpc("get_portal_collection_account");
-      if (error) throw error;
-      const row = (data ?? [])[0];
-      return row ?? null;
+      const data = await callRpc<PortalCollectionAccount[] | null>("get_portal_collection_account");
+      return (data ?? [])[0] ?? null;
     },
   });
 }
