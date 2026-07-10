@@ -23,8 +23,6 @@ interface InvoiceRow {
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
-  const corsHeaders = getCorsHeaders(req);
-  const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
 
   try {
     const auth = await requireAdmin(req);
