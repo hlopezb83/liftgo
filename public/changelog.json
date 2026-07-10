@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.148.1",
+    "date": "2026-07-10",
+    "type": "patch",
+    "title": "CI verde: Deno fmt y Knip",
+    "description": "Se aplica `deno fmt` a supabase/functions (12 archivos) y se ajusta knip.json para ignorar 8 exports de librerías internas reutilizables (field wrappers CustomerField/DateRangeField/ForkliftField, SupplierSelector, supplierKeys, SUPPLIER_BILLS_QK alias deprecado, translateByCode, LostReason). Restablece los jobs `Edge Functions (Deno smoke tests)` y `Knip` en verde.",
+    "category": "fix"
+  },
+  {
     "version": "6.148.0",
     "date": "2026-07-10",
     "type": "minor",
