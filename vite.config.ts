@@ -5,6 +5,7 @@ import { componentTagger } from "lovable-tagger";
 import { visualizer } from "rollup-plugin-visualizer";
 
 // https://vitejs.dev/config/
+// ANALYZE=1 bun run build → generates /tmp/bundle-stats.html for bundle audits.
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
