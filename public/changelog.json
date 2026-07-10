@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.2.0",
+    "date": "2026-07-10",
+    "type": "minor",
+    "title": "Lego · Lote A — Higiene: react-hotkeys-hook + html-to-image",
+    "description": "Primer lote de la auditoría 'Lego' (menos código custom, más piezas estándar). (1) Se reemplaza el hook custom `src/hooks/useHotkeys.ts` (107 LOC, combos/singles/sequences) por `react-hotkeys-hook` (estándar de la comunidad React) para combos y teclas sueltas, y un helper mínimo `src/lib/shortcuts/useKeySequence.ts` (~60 LOC) que preserva las secuencias tipo Gmail (g d, g c…) usadas por `NAV_SHORTCUTS`. (2) Se reemplaza `html2canvas` (~180 KB) por `html-to-image` (~30 KB, ~4× más ligero) en `feedback/captureScreenshot.ts`, con fast-path directo a Blob cuando no hay highlight. Deps: −html2canvas, +react-hotkeys-hook, +html-to-image. Sin cambios en UX ni superficie pública. Typecheck OK, 804/804 tests pasan.",
+    "category": "improvement"
+  },
+  {
     "version": "7.1.1",
     "date": "2026-07-10",
     "type": "patch",
