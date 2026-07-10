@@ -6,7 +6,7 @@ import { handleCors } from "../_shared/cors.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
-import { resolveFacturapiKey } from "../_shared/facturapi/client.ts";
+import { getFacturapiConfig } from "../_shared/facturapi/client.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 
 export type { SupabaseLike };
