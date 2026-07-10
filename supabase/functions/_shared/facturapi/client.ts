@@ -62,7 +62,7 @@ export interface FacturapiConfig {
  * `modeOverride` evita una segunda lectura de `company_settings` cuando el
  * handler ya obtuvo el modo (p. ej. porque necesita otros campos).
  */
-// deno-lint-ignore no-explicit-any
+
 export async function getFacturapiConfig(
   admin: { from: (table: string) => any },
   env: (key: string) => string | undefined,
