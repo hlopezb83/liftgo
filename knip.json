@@ -16,5 +16,13 @@
     "@sentry/react",
     "@sentry/vite-plugin"
   ],
-  "ignoreExportsUsedInFile": true
+  "ignoreExportsUsedInFile": true,
+  "ignoreExports": [
+    "src/components/forms/fields/*.tsx",
+    "src/features/suppliers/components/suppliers/SupplierSelector.tsx",
+    "src/features/suppliers/lib/queryKeys.ts",
+    "src/features/accounts-payable/hooks/useSupplierBills.ts",
+    "src/lib/domain/errorCatalog.ts",
+    "src/features/crm/lib/constants.ts"
+  ]
 }
