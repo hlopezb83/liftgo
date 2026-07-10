@@ -1,5 +1,6 @@
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
-import { getAdminClient, getCallerClient } from "../_shared/supabaseClients.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { requireRole } from "../_shared/auth.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 
 const BUCKET = "cfdi-files";
