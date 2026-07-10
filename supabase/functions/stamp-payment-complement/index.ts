@@ -7,7 +7,7 @@ import {
   binaryToText,
   createFacturapiClient,
   describeFacturapiError,
-  resolveFacturapiKey,
+  getFacturapiConfig,
 } from "../_shared/facturapi/client.ts";
 
 const BUCKET = "cfdi-files";
