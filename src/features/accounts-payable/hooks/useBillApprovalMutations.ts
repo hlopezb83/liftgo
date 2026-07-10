@@ -1,52 +1,40 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { callRpc } from "@/lib/rpc";
 import { supplierBillKeys } from "./useSupplierBills";
 
-function buildInvalidator(qc: ReturnType<typeof useQueryClient>, billId: string) {
-  qc.invalidateQueries({ queryKey: supplierBillKeys.all });
-  qc.invalidateQueries({ queryKey: supplierBillKeys.detail(billId) });
-  qc.invalidateQueries({ queryKey: ["accounts_payable_kpis"] });
-  qc.invalidateQueries({ queryKey: ["supplier_bill_approvals", billId] });
-}
+const invalidationKeys = (billId: string) => [
+  supplierBillKeys.all,
+  supplierBillKeys.detail(billId),
+  ["accounts_payable_kpis"] as const,
+  ["supplier_bill_approvals", billId] as const,
+];
 
 export function useApproveSupplierBill() {
-  const qc = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ billId, notes }: { billId: string; notes?: string }) =>
       callRpc<null>("approve_supplier_bill", { p_bill_id: billId, p_notes: notes ?? null }),
-    onSuccess: (_d, vars) => {
-      buildInvalidator(qc, vars.billId);
-      notifySuccess("Factura aprobada");
-    },
-    onError: (e: unknown) => notifyError({ error: e, message: "No se pudo aprobar la factura" }),
+    invalidateKeysFn: (_d, vars) => invalidationKeys(vars.billId),
+    successMsg: "Factura aprobada",
+    errorTitle: "No se pudo aprobar la factura",
   });
 }
 
 export function useRejectSupplierBill() {
-  const qc = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ billId, notes }: { billId: string; notes: string }) =>
       callRpc<null>("reject_supplier_bill", { p_bill_id: billId, p_notes: notes }),
-    onSuccess: (_d, vars) => {
-      buildInvalidator(qc, vars.billId);
-      notifySuccess("Factura rechazada");
-    },
-    onError: (e: unknown) => notifyError({ error: e, message: "No se pudo rechazar la factura" }),
+    invalidateKeysFn: (_d, vars) => invalidationKeys(vars.billId),
+    successMsg: "Factura rechazada",
+    errorTitle: "No se pudo rechazar la factura",
   });
 }
 
 export function useRequestBillReapproval() {
-  const qc = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ billId, notes }: { billId: string; notes?: string }) =>
       callRpc<null>("request_bill_reapproval", { p_bill_id: billId, p_notes: notes ?? null }),
-    onSuccess: (_d, vars) => {
-      buildInvalidator(qc, vars.billId);
-      notifySuccess("Reaprobación solicitada");
-    },
-    onError: (e: unknown) =>
-      notifyError({ error: e, message: "No se pudo solicitar reaprobación" }),
+    invalidateKeysFn: (_d, vars) => invalidationKeys(vars.billId),
+    successMsg: "Reaprobación solicitada",
+    errorTitle: "No se pudo solicitar reaprobación",
   });
 }

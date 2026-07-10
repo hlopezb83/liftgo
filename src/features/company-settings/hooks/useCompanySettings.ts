@@ -1,5 +1,6 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 
 export function useCompanySettings() {
   return useQuery({
@@ -18,8 +19,7 @@ export function useCompanySettings() {
 }
 
 export function useUpsertCompanySettings() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (settings: {
       id?: string;
       rfc: string;
@@ -29,24 +29,14 @@ export function useUpsertCompanySettings() {
       logo_url?: string | null;
       facturapi_mode?: string | null;
     }) => {
-      if (settings.id) {
-        const { data, error } = await supabase
-          .from("company_settings")
-          .update(settings)
-          .eq("id", settings.id)
-          .select()
-          .single();
-        if (error) throw error;
-        return data;
-      }
-      const { data, error } = await supabase
-        .from("company_settings")
-        .insert(settings)
-        .select()
-        .single();
+      const query = settings.id
+        ? supabase.from("company_settings").update(settings).eq("id", settings.id)
+        : supabase.from("company_settings").insert(settings);
+      const { data, error } = await query.select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["company_settings"] }),
+    invalidateKeys: [["company_settings"]],
+    errorTitle: "Error al guardar datos fiscales",
   });
 }

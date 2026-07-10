@@ -1,6 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+
 
 export interface Supplier {
   id: string;
@@ -56,34 +57,29 @@ function translateSupplierError(err: Error): string {
 }
 
 export function useCreateSupplier() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (supplier: Omit<Supplier, "id" | "created_at" | "updated_at">) => {
       const { data, error } = await supabase.from("suppliers").insert(supplier).select().single();
-      if (error) throw error;
+      if (error) throw new Error(translateSupplierError(error));
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["suppliers"] });
-      notifySuccess("Proveedor creado");
-    },
-    onError: (err: Error) => notifyError({ error: err, message: `Error al crear proveedor: ${translateSupplierError(err)}` }),
+    invalidateKeys: [["suppliers"]],
+    successMsg: "Proveedor creado",
+    errorTitle: "Error al crear proveedor",
   });
 }
 
 export function useUpdateSupplier() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ id, ...updates }: Partial<Supplier> & { id: string }) => {
       const { data, error } = await supabase.from("suppliers").update(updates).eq("id", id).select().single();
-      if (error) throw error;
+      if (error) throw new Error(translateSupplierError(error));
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["suppliers"] });
-      notifySuccess("Proveedor actualizado");
-    },
-    onError: (err: Error) => notifyError({ error: err, message: `Error al actualizar proveedor: ${translateSupplierError(err)}` }),
+    invalidateKeys: [["suppliers"]],
+    successMsg: "Proveedor actualizado",
+    errorTitle: "Error al actualizar proveedor",
   });
 }
+
 
