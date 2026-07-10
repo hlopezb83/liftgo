@@ -1,17 +1,8 @@
-import { createContext, useCallback, useContext, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useMemo, useRef, useState, type ReactNode } from "react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { ConfirmContext, type Confirm, type ConfirmOptions } from "./confirmContext";
 
-interface ConfirmOptions {
-  title: string;
-  description?: string;
-  confirmLabel?: string;
-  cancelLabel?: string;
-  destructive?: boolean;
-}
 
-type Confirm = (opts: ConfirmOptions) => Promise<boolean>;
-
-const ConfirmContext = createContext<Confirm | null>(null);
 
 interface DialogState extends ConfirmOptions {
   open: boolean;
@@ -42,8 +33,6 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const confirm = useCallback<Confirm>((opts) => {
-    // Si hay una promesa pendiente sin resolver, la resolvemos como false para
-    // evitar leaks al re-abrir.
     resolverRef.current?.(false);
     return new Promise<boolean>((resolve) => {
       resolverRef.current = resolve;
@@ -70,10 +59,4 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
       />
     </ConfirmContext.Provider>
   );
-}
-
-export function useConfirm(): Confirm {
-  const ctx = useContext(ConfirmContext);
-  if (!ctx) throw new Error("useConfirm must be used within <ConfirmProvider>");
-  return ctx;
 }

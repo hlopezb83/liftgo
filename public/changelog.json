@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.5.0",
+    "date": "2026-07-10",
+    "type": "minor",
+    "title": "Barrido ESLint 32 → 13: subcomponentes y helpers extraídos",
+    "description": "Refactor DRY siguiendo Power of 10. Se dividieron componentes y hooks que excedían complejidad ciclomática 12 o 150 líneas por función. Sin cambios de comportamiento observable.",
+    "category": "refactor"
+  },
+  {
     "version": "7.4.2",
     "date": "2026-07-10",
     "type": "patch",

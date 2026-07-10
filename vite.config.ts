@@ -35,25 +35,26 @@ export default defineConfig(({ mode }) => ({
     rollupOptions: {
       output: {
         manualChunks: (id) => {
-          if (id.includes("node_modules")) {
-            if (id.includes("recharts") || id.includes("d3-")) return "recharts";
-            if (id.includes("@radix-ui")) return "radix";
-            if (id.includes("@react-pdf")) return "react-pdf";
-            if (id.includes("jspdf") || id.includes("html2canvas") || id.includes("canvg")) return "jspdf";
-            if (id.includes("xlsx")) return "xlsx";
-            if (id.includes("date-fns")) return "date-fns";
-            if (id.includes("lucide-react")) return "icons";
-            if (
-              id.includes("react-dom") ||
-              id.includes("react-router") ||
-              id.includes("@tanstack/react-query") ||
-              id.includes("/react/")
-            ) {
-              return "vendor";
-            }
+          if (!id.includes("node_modules")) return;
+          for (const { name, match } of CHUNK_GROUPS) {
+            if (match.some((frag) => id.includes(frag))) return name;
           }
         },
       },
     },
   },
 }));
+
+const CHUNK_GROUPS: ReadonlyArray<{ name: string; match: readonly string[] }> = [
+  { name: "recharts", match: ["recharts", "d3-"] },
+  { name: "radix", match: ["@radix-ui"] },
+  { name: "react-pdf", match: ["@react-pdf"] },
+  { name: "jspdf", match: ["jspdf", "html2canvas", "canvg"] },
+  { name: "xlsx", match: ["xlsx"] },
+  { name: "date-fns", match: ["date-fns"] },
+  { name: "icons", match: ["lucide-react"] },
+  {
+    name: "vendor",
+    match: ["react-dom", "react-router", "@tanstack/react-query", "/react/"],
+  },
+];

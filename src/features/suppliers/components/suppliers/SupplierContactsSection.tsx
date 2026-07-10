@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/table";
 import { Plus, Pencil, Trash2, Users, Star } from "lucide-react";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { useConfirm } from "@/components/feedback/ConfirmProvider";
+import { useConfirm } from "@/components/feedback/useConfirm";
 import { useSupplierContacts, useDeleteSupplierContact, type SupplierContact } from "../../hooks/useSupplierContacts";
 import { SupplierContactFormDialog } from "./SupplierContactFormDialog";
 

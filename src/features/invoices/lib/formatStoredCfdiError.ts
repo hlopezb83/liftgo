@@ -5,26 +5,26 @@ import { classifyFacturapiError } from "./facturapiErrors";
  * plano) al mensaje amigable en español-MX. Prioriza `errors[0].code` porque
  * ahí viene el CFDI40xxx real; el `code` outer suele ser `invoice_stamping_failed`.
  */
+function parseCfdiJson(raw: string): string {
+  try {
+    const parsed = JSON.parse(raw) as {
+      code?: string;
+      message?: string;
+      errors?: Array<{ code?: string; message?: string }>;
+    };
+    const inner = parsed.errors?.[0];
+    const code = inner?.code ?? parsed.code ?? null;
+    const message = inner?.message ?? parsed.message ?? raw;
+    return code ? `${code}: ${message}` : message;
+  } catch {
+    return raw;
+  }
+}
+
 export function formatStoredCfdiError(raw: string | null | undefined): string | null {
   if (!raw) return null;
   const trimmed = raw.trim();
   if (trimmed === "") return null;
-
-  let source = trimmed;
-  if (trimmed.startsWith("{")) {
-    try {
-      const parsed = JSON.parse(trimmed) as {
-        code?: string;
-        message?: string;
-        errors?: Array<{ code?: string; message?: string }>;
-      };
-      const inner = parsed.errors?.[0];
-      const code = inner?.code ?? parsed.code ?? null;
-      const message = inner?.message ?? parsed.message ?? trimmed;
-      source = code ? `${code}: ${message}` : message;
-    } catch {
-      // JSON malformado: usar el string crudo
-    }
-  }
+  const source = trimmed.startsWith("{") ? parseCfdiJson(trimmed) : trimmed;
   return classifyFacturapiError(source).message;
 }

@@ -38,27 +38,24 @@ type CompanyLike =
   | null
   | undefined;
 
+function resolveSandboxChip(invoice: InvoiceLike, company: CompanyLike, hasCfdiDoc: boolean): boolean {
+  // Con CFDI ya emitido → ambiente persistido en la factura.
+  // Sin CFDI → toggle actual de la empresa como heads-up.
+  if (hasCfdiDoc) return (invoice.facturapi_env ?? null) === "test";
+  return (company?.facturapi_mode ?? "test") !== "live";
+}
+
 export function computeInvoiceVisibility(
   invoice: InvoiceLike,
   company: CompanyLike,
 ): InvoiceVisibility {
   const cfdiStatus = invoice.cfdi_status ?? "pending";
-  const status = invoice.status;
   const cancellationStatus = invoice.cancellation_status ?? "none";
 
   const isPpd = invoice.metodo_pago === "PPD";
   const isStamped = cfdiStatus === "stamped";
-  const isCancelled = cfdiStatus === "cancelled" || status === "cancelled";
-  const hasCfdiDoc = isStamped || isCancelled; // hay CFDI válido descargable
-
-  // Sandbox chip:
-  // - Si la factura ya tiene CFDI: usar el ambiente persistido en la factura.
-  // - Si aún no tiene CFDI: usar el toggle actual de la empresa como heads-up.
-  const invoiceEnv = invoice.facturapi_env ?? null;
-  const currentPacMode = company?.facturapi_mode ?? "test";
-  const showSandboxChip = hasCfdiDoc
-    ? invoiceEnv === "test"
-    : currentPacMode !== "live";
+  const isCancelled = cfdiStatus === "cancelled" || invoice.status === "cancelled";
+  const hasCfdiDoc = isStamped || isCancelled;
 
   return {
     showDraftPdf: !hasCfdiDoc,
@@ -68,6 +65,6 @@ export function computeInvoiceVisibility(
     showAcuseSyncHint: isCancelled && cancellationStatus !== "accepted",
     showRepColumn: isPpd && hasCfdiDoc,
     allowRepMutations: isPpd && isStamped && !isCancelled,
-    showSandboxChip,
+    showSandboxChip: resolveSandboxChip(invoice, company, hasCfdiDoc),
   };
 }

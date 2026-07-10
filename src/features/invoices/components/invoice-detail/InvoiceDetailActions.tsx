@@ -79,56 +79,47 @@ function AcuseDownloadButtons({ invoiceId, invoiceNumber }: { invoiceId: string;
 
 
 
-export function InvoiceDetailActions({
-  invoice, cfdiStatus, userRole: _userRole, visibility,
-  isStamping, onOpenPayment, onEdit, onStamp, onDownloadXml, onCancelCfdi, onDelete,
-}: Props) {
-  const flags = computeInvoiceFlags(invoice, cfdiStatus, null);
-  const pdfMode: "draft" | "cfdi" | "hidden" = visibility.showCfdiPdf
-    ? "cfdi"
-    : visibility.showDraftPdf
-      ? "draft"
-      : "hidden";
+function resolvePdfMode(visibility: InvoiceVisibility): "draft" | "cfdi" | "hidden" {
+  if (visibility.showCfdiPdf) return "cfdi";
+  if (visibility.showDraftPdf) return "draft";
+  return "hidden";
+}
+
+function StampButtons({ flags, isStamping, onStamp }: { flags: Flags; isStamping: boolean; onStamp: () => void }) {
+  if (!flags.canStamp) return null;
+  const label = isStamping ? "Timbrando..." : "Timbrar CFDI";
+  const variant = flags.isDraft ? undefined : "outline";
+  return (
+    <Button size="sm" variant={variant} onClick={onStamp} disabled={isStamping}>
+      <Stamp className="h-4 w-4 mr-1" /> {label}
+    </Button>
+  );
+}
+
+function CfdiXmlActions({
+  invoice,
+  visibility,
+  flags,
+  onDownloadXml,
+  onCancelCfdi,
+}: {
+  invoice: Tables<"invoices">;
+  visibility: InvoiceVisibility;
+  flags: Flags;
+  onDownloadXml: () => void;
+  onCancelCfdi: () => void;
+}) {
   return (
     <>
-      <CancellationBlock flags={flags} invoiceId={invoice.id} />
-      {flags.canEdit && (
-        <Button size="sm" variant="outline" onClick={onEdit}>
-          <Edit className="h-4 w-4 mr-1" /> Editar
-        </Button>
-      )}
-      {flags.isDraft && flags.canStamp && (
-        <Button size="sm" onClick={onStamp} disabled={isStamping}>
-          <Stamp className="h-4 w-4 mr-1" />
-          {isStamping ? "Timbrando..." : "Timbrar CFDI"}
-        </Button>
-      )}
-      {flags.canStamp && !flags.isDraft && (
-        <Button size="sm" variant="outline" onClick={onStamp} disabled={isStamping}>
-          <Stamp className="h-4 w-4 mr-1" /> {isStamping ? "Timbrando..." : "Timbrar CFDI"}
-        </Button>
-      )}
-      {flags.showPaymentBtn && (
-        <Button size="sm" onClick={onOpenPayment}>
-          <DollarSign className="h-4 w-4 mr-1" />Registrar Pago
-        </Button>
-      )}
-      {pdfMode !== "hidden" && (
-        <InvoicePDFButton
-          invoiceId={invoice.id}
-          mode={pdfMode}
-          invoiceNumber={invoice.invoice_number}
-        />
-      )}
-      {visibility.showCfdiXml && (
+      {visibility.showCfdiXml ? (
         <Button size="sm" variant="outline" onClick={onDownloadXml}>
           <FileCode2 className="h-4 w-4 mr-1" /> CFDI XML
         </Button>
-      )}
-      {visibility.showAcuseButtons && (
+      ) : null}
+      {visibility.showAcuseButtons ? (
         <AcuseDownloadButtons invoiceId={invoice.id} invoiceNumber={invoice.invoice_number} />
-      )}
-      {flags.canCancelCfdi && (
+      ) : null}
+      {flags.canCancelCfdi ? (
         <Button
           size="sm"
           variant="outline"
@@ -137,9 +128,46 @@ export function InvoiceDetailActions({
         >
           <XCircle className="h-4 w-4 mr-1" /> Cancelar CFDI
         </Button>
-      )}
+      ) : null}
+    </>
+  );
+}
 
-      {flags.canDelete && (
+export function InvoiceDetailActions({
+  invoice, cfdiStatus, userRole: _userRole, visibility,
+  isStamping, onOpenPayment, onEdit, onStamp, onDownloadXml, onCancelCfdi, onDelete,
+}: Props) {
+  const flags = computeInvoiceFlags(invoice, cfdiStatus, null);
+  const pdfMode = resolvePdfMode(visibility);
+  return (
+    <>
+      <CancellationBlock flags={flags} invoiceId={invoice.id} />
+      {flags.canEdit ? (
+        <Button size="sm" variant="outline" onClick={onEdit}>
+          <Edit className="h-4 w-4 mr-1" /> Editar
+        </Button>
+      ) : null}
+      <StampButtons flags={flags} isStamping={isStamping} onStamp={onStamp} />
+      {flags.showPaymentBtn ? (
+        <Button size="sm" onClick={onOpenPayment}>
+          <DollarSign className="h-4 w-4 mr-1" />Registrar Pago
+        </Button>
+      ) : null}
+      {pdfMode !== "hidden" ? (
+        <InvoicePDFButton
+          invoiceId={invoice.id}
+          mode={pdfMode}
+          invoiceNumber={invoice.invoice_number}
+        />
+      ) : null}
+      <CfdiXmlActions
+        invoice={invoice}
+        visibility={visibility}
+        flags={flags}
+        onDownloadXml={onDownloadXml}
+        onCancelCfdi={onCancelCfdi}
+      />
+      {flags.canDelete ? (
         <RoleGuard module="Facturas" minAccess="full">
           <Button
             size="sm"
@@ -150,7 +178,7 @@ export function InvoiceDetailActions({
             <Trash2 className="h-4 w-4 mr-1" /> Eliminar
           </Button>
         </RoleGuard>
-      )}
+      ) : null}
     </>
   );
 }

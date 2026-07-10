@@ -46,6 +46,29 @@ const BG_BY_COLOR: Record<string, string> = {
   "text-muted-foreground": "bg-muted",
 };
 
+function resolveValueClass(value: ReactNode, valueSize: "sm" | "lg"): string {
+  if (valueSize === "lg") return "text-2xl font-bold tabular-nums";
+  const isString = typeof value === "string";
+  return cn(
+    isString ? "text-sm sm:text-base" : "text-lg sm:text-2xl",
+    "font-bold truncate tabular-nums",
+  );
+}
+
+function KpiInteractiveWrapper({
+  href,
+  onClick,
+  children,
+}: {
+  href?: string;
+  onClick?: () => void;
+  children: ReactNode;
+}) {
+  if (href) return <Link to={href} className="group">{children}</Link>;
+  if (onClick) return <button type="button" onClick={onClick} className="group text-left w-full">{children}</button>;
+  return <>{children}</>;
+}
+
 export const KpiTile = memo(function KpiTile({
   label,
   value,
@@ -58,65 +81,40 @@ export const KpiTile = memo(function KpiTile({
   valueSize = "sm",
   className,
 }: KpiTileProps) {
-  const isValueString = typeof value === "string";
-  const isNumeric = typeof value === "number";
+  const isPrimitive = typeof value === "string" || typeof value === "number";
   const isInteractive = Boolean(href || onClick);
   const bg = iconBg ?? BG_BY_COLOR[iconColor] ?? "bg-muted";
+  const valueClass = resolveValueClass(value, valueSize);
 
-  const valueClass =
-    valueSize === "lg"
-      ? "text-2xl font-bold tabular-nums"
-      : cn(
-          isValueString ? "text-sm sm:text-base" : "text-lg sm:text-2xl",
-          "font-bold truncate tabular-nums",
-        );
-
-  const inner = (
-    <Card
-      className={cn(
-        "hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200",
-        isInteractive && "cursor-pointer group-hover:ring-2 group-hover:ring-primary/20",
-        className,
-      )}
-    >
-      <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 overflow-hidden">
-        {Icon ? (
-          <div className={cn("p-2 sm:p-2.5 rounded-xl shrink-0", bg)}>
-            <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5", iconColor)} />
+  return (
+    <KpiInteractiveWrapper href={href} onClick={onClick}>
+      <Card
+        className={cn(
+          "hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200",
+          isInteractive && "cursor-pointer group-hover:ring-2 group-hover:ring-primary/20",
+          className,
+        )}
+      >
+        <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 overflow-hidden">
+          {Icon ? (
+            <div className={cn("p-2 sm:p-2.5 rounded-xl shrink-0", bg)}>
+              <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5", iconColor)} />
+            </div>
+          ) : null}
+          <div className="min-w-0 flex-1">
+            <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight truncate" title={label}>
+              {label}
+            </p>
+            <p className={valueClass} title={isPrimitive ? String(value) : undefined}>
+              {value}
+            </p>
+            {hint ? <div className="mt-0.5">{hint}</div> : null}
           </div>
-        ) : null}
-        <div className="min-w-0 flex-1">
-          <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight truncate" title={label}>
-            {label}
-          </p>
-          <p
-            className={valueClass}
-            title={isValueString || isNumeric ? String(value) : undefined}
-          >
-            {value}
-          </p>
-          {hint ? <div className="mt-0.5">{hint}</div> : null}
-        </div>
-        {isInteractive ? (
-          <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 hidden sm:block" />
-        ) : null}
-      </CardContent>
-    </Card>
+          {isInteractive ? (
+            <ArrowRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0 hidden sm:block" />
+          ) : null}
+        </CardContent>
+      </Card>
+    </KpiInteractiveWrapper>
   );
-
-  if (href) {
-    return (
-      <Link to={href} className="group">
-        {inner}
-      </Link>
-    );
-  }
-  if (onClick) {
-    return (
-      <button type="button" onClick={onClick} className="group text-left w-full">
-        {inner}
-      </button>
-    );
-  }
-  return inner;
 });

@@ -32,29 +32,36 @@ export interface InvoiceFlags extends InvoiceActionFlags {
   visibility: InvoiceVisibility;
 }
 
-function computeActionFlags(invoice: InvoiceLike, cfdiStatus: string): InvoiceActionFlags {
-  const status = invoice.status;
-  const isDraft = status === "draft";
-  const isPayable = status === "sent" || status === "overdue";
+function computeCfdiFlags(invoice: InvoiceLike, cfdiStatus: string) {
   const cancellationStatus = invoice.cancellation_status ?? "none";
   const hasMotive = Boolean(invoice.cancellation_motive);
   const isStamped = cfdiStatus === "stamped";
-  const isCancelled = cfdiStatus === "cancelled" || status === "cancelled";
+  const isCancelled = cfdiStatus === "cancelled" || invoice.status === "cancelled";
   const isPendingCancel =
     cancellationStatus === "pending" ||
     (hasMotive && !isCancelled && cancellationStatus !== "rejected");
   return {
-    isDraft,
-    isPayable,
-    showPaymentBtn: isPayable || status === "partial",
-    canEdit: isDraft && !isStamped && !isCancelled,
-    canDelete: isDraft && !isStamped && !isCancelled,
-    canStamp: (cfdiStatus === "pending" || cfdiStatus === "error") && status !== "cancelled",
-    canCancelCfdi: isStamped && !isPendingCancel,
     isStamped,
     isCancelled,
     isPendingCancel,
     isRejectedCancel: cancellationStatus === "rejected",
+    canStamp: (cfdiStatus === "pending" || cfdiStatus === "error") && invoice.status !== "cancelled",
+    canCancelCfdi: isStamped && !isPendingCancel,
+  };
+}
+
+function computeActionFlags(invoice: InvoiceLike, cfdiStatus: string): InvoiceActionFlags {
+  const status = invoice.status;
+  const isDraft = status === "draft";
+  const isPayable = status === "sent" || status === "overdue";
+  const cfdi = computeCfdiFlags(invoice, cfdiStatus);
+  return {
+    isDraft,
+    isPayable,
+    showPaymentBtn: isPayable || status === "partial",
+    canEdit: isDraft && !cfdi.isStamped && !cfdi.isCancelled,
+    canDelete: isDraft && !cfdi.isStamped && !cfdi.isCancelled,
+    ...cfdi,
   };
 }
 

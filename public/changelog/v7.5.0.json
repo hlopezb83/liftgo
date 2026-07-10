@@ -1,0 +1,48 @@
+{
+  "version": "7.5.0",
+  "date": "2026-07-10",
+  "type": "minor",
+  "title": "Barrido ESLint 32 → 13: subcomponentes y helpers extraídos",
+  "summary": "Refactor DRY (Power of 10) que redujo los warnings de ESLint de 32 a 13, sin cambios de comportamiento.",
+  "sections": [
+    {
+      "heading": "Componentes divididos en subcomponentes",
+      "items": [
+        "`KpiTile.tsx`: extraído `KpiInteractiveWrapper` y `resolveValueClass` (complejidad 16 → OK).",
+        "`StatementTableRow.tsx`: separado en `StatementMainRow` + `BreakdownRowGroup` (complejidad 16 → OK).",
+        "`DateRangePickerField.tsx`: extraídos `RangeTriggerButton`, `RangeDialogBody`, `DateRangeFooter` y helper `formatRangeLabel`.",
+        "`InvoiceFiscalDataCard.tsx`: campos listados en constante + subcomponente `FiscalFieldsGrid` (complejidad 13 → OK).",
+        "`InvoicePaymentSummary.tsx`: extraído `PaymentSummaryCard` y helper `countPendingReps`.",
+        "`InvoiceDetailActions.tsx`: subcomponentes `StampButtons`, `CfdiXmlActions` y helper `resolvePdfMode` (complejidad 16 → OK).",
+        "`RecurringInvoicesPreviewDialog.tsx`: cuerpo movido a `RecurringPreviewBody.tsx` con `SummaryBar`, `CustomerGroup`, `LineRow`, `IneligibleBadge` (169 líneas → OK)."
+      ]
+    },
+    {
+      "heading": "Hooks y utilerías: complejidad reducida",
+      "items": [
+        "`useInvoiceFormHandlers.ts`: `handleBookingsChange` delega a `applyPrimaryCustomer` y `collectExtraLinesFromQuotes` (complejidad 13 → OK).",
+        "`useImportSupplierBillCfdi.ts`: `importXml` delega a `parseAndValidateXml`, `matchSupplierId`, `buildInitialValues`, `warnIfRfcMismatch`, `warnIfSupplierMissing`, `extractImportErrorMessage` (complejidad 23 → OK). Corregido import restringido `@/features/company-settings/hooks/…` → barrel público `@/features/company-settings`.",
+        "`invokeEdgeFunction.ts`: `extractErrorMessage` usa `getFallbackMessage` y `pickErrorField`.",
+        "`rules/invoices.ts`: `computeActionFlags` usa `computeCfdiFlags`.",
+        "`formatStoredCfdiError.ts`: `parseCfdiJson` extraído.",
+        "`invoiceVisibility.ts`: `resolveSandboxChip` extraído.",
+        "`vite.config.ts`: `manualChunks` usa constante `CHUNK_GROUPS`."
+      ]
+    },
+    {
+      "heading": "Higiene de exports (react-refresh)",
+      "items": [
+        "`ConfirmProvider.tsx`: `useConfirm` movido a `useConfirm.ts` y `ConfirmContext`/tipos a `confirmContext.ts` para no romper HMR.",
+        "`ProspectDialogParts.tsx`: constantes de copy movidas a `prospectDialogCopy.ts`.",
+        "`PartFormDialog.tsx`: removida directiva `eslint-disable` sin uso."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "Typecheck limpio (`tsgo -p tsconfig.app.json`).",
+        "ESLint: 32 → 13 warnings (0 errores). Los 13 restantes son deuda arquitectónica en Invoices/AP (`SupplierBillDetailSheet` 32, `parseCfdiXml` 27, `SupplierPaymentRow` 20, `InvoiceDetail` 21, páginas > 150 líneas)."
+      ]
+    }
+  ]
+}

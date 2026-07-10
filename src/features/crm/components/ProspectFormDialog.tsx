@@ -6,9 +6,11 @@ import {
   ProspectCreatorBlock,
   ProspectDialogFooter,
   ProspectStageBadgeBlock,
+} from "./prospect-form/ProspectDialogParts";
+import {
   prospectDialogDescription,
   prospectDialogTitle,
-} from "./prospect-form/ProspectDialogParts";
+} from "./prospect-form/prospectDialogCopy";
 import type { Prospect } from "../hooks/useProspects";
 
 interface Props {
