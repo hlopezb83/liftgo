@@ -31,10 +31,8 @@ export async function handleCancelCfdi(
 ): Promise<Response> {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
-  const corsHeaders = getCorsHeaders(req);
-  const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
-  const json = (body: unknown, status: number) =>
-    new Response(JSON.stringify(body), { status, headers: jsonHeaders });
+  const json = (body: unknown, status: number) => jsonResponse(req, body, { status });
+  const err = (status: number, message: string) => jsonError(req, status, message);
 
   try {
     const authHeader = req.headers.get("Authorization");
