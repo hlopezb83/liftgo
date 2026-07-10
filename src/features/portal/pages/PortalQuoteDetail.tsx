@@ -17,6 +17,8 @@ import {
   useRejectPortalQuote,
 } from "../hooks/usePortalExtras";
 import { canActOnPortalQuote, isQuoteAccepted } from "@/lib/rules/quotes";
+import { TotalsBreakdown } from "../components/TotalsBreakdown";
+
 
 interface LineItem {
   description?: string;
@@ -81,20 +83,16 @@ export default function PortalQuoteDetail() {
               ))}
             </tbody>
           </table>
-          <div className="border-t p-4 space-y-1 text-sm">
-            <div className="flex justify-end gap-8">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span className="font-mono">{formatCurrency(Number(quote.subtotal))}</span>
-            </div>
-            <div className="flex justify-end gap-8">
-              <span className="text-muted-foreground">IVA ({quote.tax_rate}%)</span>
-              <span className="font-mono">{formatCurrency(Number(quote.tax_amount))}</span>
-            </div>
-            <div className="flex justify-end gap-8 font-bold text-base">
-              <span>Total</span>
-              <span className="font-mono">{formatCurrency(Number(quote.total))}</span>
-            </div>
+          <div className="border-t p-4">
+            <TotalsBreakdown
+              subtotal={quote.subtotal}
+              taxRate={quote.tax_rate}
+              taxAmount={quote.tax_amount}
+              total={quote.total}
+              emphasizeTotal
+            />
           </div>
+
         </CardContent>
       </Card>
 

@@ -10,6 +10,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatDateDisplay } from "@/lib/utils";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { TotalsBreakdown } from "../components/TotalsBreakdown";
+
 
 type LineItem = { description?: string; quantity?: number; unit_price?: number; amount?: number };
 type Payment = { id: string; payment_date: string; payment_method: string | null; reference_number: string | null; amount: number | string };
@@ -118,21 +120,16 @@ export default function PortalInvoiceDetail() {
         </CardHeader>
         <CardContent className="p-0 pt-0">
           <DataTableV2 table={lineTable} emptyMessage="Sin partidas" />
-          <div className="mt-4 border-t pt-3 space-y-1 text-sm text-right">
-            <div className="flex justify-end gap-8">
-              <span className="text-muted-foreground">Subtotal</span>
-              <span className="font-mono">{formatCurrency(Number(invoice.subtotal))}</span>
-            </div>
-            <div className="flex justify-end gap-8">
-              <span className="text-muted-foreground">IVA ({invoice.tax_rate}%)</span>
-              <span className="font-mono">{formatCurrency(Number(invoice.tax_amount))}</span>
-            </div>
-            <div className="flex justify-end gap-8 font-bold">
-              <span>Total</span>
-              <span className="font-mono">{formatCurrency(Number(invoice.total))}</span>
-            </div>
+          <div className="mt-4 border-t pt-3">
+            <TotalsBreakdown
+              subtotal={invoice.subtotal}
+              taxRate={invoice.tax_rate}
+              taxAmount={invoice.tax_amount}
+              total={invoice.total}
+            />
           </div>
         </CardContent>
+
       </Card>
 
       <Card>

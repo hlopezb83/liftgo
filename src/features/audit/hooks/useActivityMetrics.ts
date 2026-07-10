@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { callRpc } from "@/lib/rpc";
 import type {
   ActivityRange,
   ActivityMetrics,
@@ -23,15 +23,14 @@ export function useActivityMetrics(range: ActivityRange) {
     staleTime: 60_000,
     queryFn: async (): Promise<ActivityMetrics> => {
       // RPC server-side: agrega en DB en vez de descargar hasta 10k filas.
-      const { data, error } = await supabase.rpc("get_activity_metrics", {
+      const payload = await callRpc<RpcPayload | null>("get_activity_metrics", {
         p_from: range.from.toISOString(),
         p_to: range.to.toISOString(),
-      });
-      if (error) throw error;
-      const payload = (data ?? {}) as unknown as RpcPayload;
+      }) ?? ({} as RpcPayload);
       const byMember = payload.byMember ?? [];
       const byModule = payload.byModule ?? [];
       const byHour = payload.byHour ?? [];
+
 
       const totalCurrent = byMember.reduce((sum, m) => sum + m.total, 0);
       const uniqueActors = byMember.filter((m) => m.actorId !== null).length;

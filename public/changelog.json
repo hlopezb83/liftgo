@@ -1,5 +1,14 @@
 [
   {
+    "version": "6.151.0",
+    "date": "2026-07-10",
+    "type": "minor",
+    "title": "DRY Lote 4 · TotalsBreakdown compartido y callRpc en hooks read-only",
+    "description": "Nuevo componente `TotalsBreakdown` en `src/features/portal/components/` que unifica el bloque Subtotal/IVA/Total antes duplicado en `PortalInvoiceDetail` y `PortalQuoteDetail`. Migrados 5 hooks read-only a `callRpc<T>()` eliminando el `if (error) throw` boilerplate: `useLeaderboard`, `usePublicBranding`, `useBillingSecrets` (query), `usePortalCollectionAccount`, `useActivityMetrics`. Sin cambios funcionales; 804 tests siguen pasando.",
+    "category": "refactor"
+  },
+  {
+
     "version": "6.150.0",
     "date": "2026-07-10",
     "type": "minor",

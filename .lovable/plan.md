@@ -27,14 +27,15 @@ Todavía en `useMutation` crudo:
 
 Ahorro estimado restante: **~60-80 LOC** (sin contar optimistic).
 
-### Lote 4 — Utils / Schemas / Rules (no iniciado)
-- Migrar ~15 hooks de `supabase.rpc(...)` directo a `callRpc<T>()` (~30 LOC).
-- `LineItem` y totales duplicados en `PortalInvoiceDetail` / `PortalQuoteDetail` → `src/lib/domain/invoiceTotals.ts` (~13 LOC).
+### Lote 4 — Utils / Schemas / Rules (en progreso)
+- ✅ IVA hardcodeado `* 1.16` → `applyVat` / `DEFAULT_VAT_RATE` (`v6.150.0`).
+- ✅ `TotalsBreakdown` compartido en portal + 5 hooks read-only migrados a `callRpc<T>()` (`v6.151.0`).
+- Restantes ~10 hooks con `supabase.rpc(...)` directo (create/cancel booking, portal accept/reject quote, next_*_number, etc.) — muchos usan la respuesta como paso previo (no un simple query), migrar caso a caso.
 - Nuevos schemas comunes en `src/lib/schemas/common.ts`: `rfcPublicoGeneral`, `addressSchema`, `notesSchema`, `phoneSchema` (~22 LOC).
 - Coerción numérica manual en editores de líneas → `src/lib/coerce.ts` (~12 LOC).
-- IVA hardcodeado (`* 1.16`) en `RecurringInvoicesPreviewDialog` → helper `money()` (~2 LOC).
 
-Ahorro estimado: **~95 LOC**.
+Ahorro restante estimado: **~55 LOC**.
+
 
 ### Lote 3 — Componentes UI (no iniciado, el último por diseño)
 - Reports charts (Revenue, MaintenanceCost, Utilization, CashFlow) → `ReportChartCard` (~55 LOC).
