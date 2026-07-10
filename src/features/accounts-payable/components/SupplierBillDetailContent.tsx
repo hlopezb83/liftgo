@@ -95,7 +95,7 @@ interface Props {
 function BillHeaderRow({ bill }: { bill: DetailBill }) {
   return (
     <div className="flex items-center justify-between">
-      <StatusBadge status={bill.status} label={SUPPLIER_BILL_STATUS_LABELS[bill.status]} />
+      <StatusBadge status={bill.status} label={SUPPLIER_BILL_STATUS_LABELS[bill.status as keyof typeof SUPPLIER_BILL_STATUS_LABELS]} />
       <div className="text-right">
         <p className="text-xs text-muted-foreground">Saldo</p>
         <p className="text-xl font-bold font-mono">{formatCurrencyWithCode(Number(bill.balance), bill.currency)}</p>
@@ -109,7 +109,7 @@ function BillMetadataRows({ bill }: { bill: DetailBill }) {
     <div className="space-y-0">
       <Row label="Proveedor" value={bill.suppliers?.name} />
       <Row label="RFC" value={bill.suppliers?.rfc} />
-      <Row label="Categoría" value={bill.category ? EXPENSE_CATEGORY_LABELS[bill.category] : "—"} />
+      <Row label="Categoría" value={bill.category ? EXPENSE_CATEGORY_LABELS[bill.category as keyof typeof EXPENSE_CATEGORY_LABELS] : "—"} />
       <Row label="Emisión" value={formatDateDisplay(bill.issue_date)} />
       <Row label="Vencimiento" value={formatDateDisplay(bill.due_date)} />
     </div>
