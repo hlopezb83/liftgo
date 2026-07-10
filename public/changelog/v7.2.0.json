@@ -1,0 +1,41 @@
+{
+  "version": "7.2.0",
+  "date": "2026-07-10",
+  "type": "minor",
+  "title": "Lego · Lote A — Higiene: react-hotkeys-hook + html-to-image",
+  "summary": "Primer lote de la auditoría 'Lego': se reemplazan dos piezas custom por dependencias estándar más ligeras y mantenidas por la comunidad.",
+  "sections": [
+    {
+      "heading": "Hotkeys — react-hotkeys-hook",
+      "items": [
+        "Se elimina `src/hooks/useHotkeys.ts` (107 LOC custom con combos, singles y sequences).",
+        "Combos con modificadores (`mod+shift+n`, `mod+shift+f`, `mod+/`) y teclas sueltas (`/`, `n`, `r`, `?`) migradas a `react-hotkeys-hook` en `MainLayout.tsx`.",
+        "Se preserva el patrón Gmail (`g` + tecla) para navegación rápida con un helper mínimo `src/lib/shortcuts/useKeySequence.ts` (~60 LOC) — no existe un estándar equivalente en el ecosistema."
+      ]
+    },
+    {
+      "heading": "Screenshots de feedback — html-to-image",
+      "items": [
+        "Se reemplaza `html2canvas` (~180 KB) por `html-to-image` (~30 KB) en `src/features/feedback/lib/captureScreenshot.ts`.",
+        "Fast-path directo `dataURL → Blob → File` cuando no se pinta un highlight; sólo se re-decodifica en canvas si hay que dibujar el marco rojo.",
+        "Mismo API público (`captureScreenshotFile`), sin cambios en el consumidor `FeedbackFab`."
+      ]
+    },
+    {
+      "heading": "Dependencias",
+      "items": [
+        "−`html2canvas`",
+        "+`react-hotkeys-hook@^5`",
+        "+`html-to-image@^1`"
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "`npx tsgo --noEmit` — OK sin errores.",
+        "`bunx vitest run` — 804/804 tests en verde (136 archivos).",
+        "Sin cambios visibles de UX; superficie pública intacta."
+      ]
+    }
+  ]
+}

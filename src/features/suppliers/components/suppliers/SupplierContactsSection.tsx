@@ -7,21 +7,27 @@ import {
 } from "@/components/ui/table";
 import { Plus, Pencil, Trash2, Users, Star } from "lucide-react";
 import { RoleGuard } from "@/layouts/RoleGuard";
+import { useConfirm } from "@/components/feedback/ConfirmProvider";
 import { useSupplierContacts, useDeleteSupplierContact, type SupplierContact } from "../../hooks/useSupplierContacts";
 import { SupplierContactFormDialog } from "./SupplierContactFormDialog";
 
 export function SupplierContactsSection({ supplierId }: { supplierId: string }) {
   const { data: contacts = [], isLoading } = useSupplierContacts(supplierId);
   const del = useDeleteSupplierContact();
+  const confirm = useConfirm();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<SupplierContact | null>(null);
 
   const onAdd = () => { setEditing(null); setOpen(true); };
   const onEdit = (c: SupplierContact) => { setEditing(c); setOpen(true); };
-  const onDelete = (c: SupplierContact) => {
-    if (confirm(`¿Eliminar el contacto "${c.name}"?`)) {
-      del.mutate({ id: c.id, supplier_id: supplierId });
-    }
+  const onDelete = async (c: SupplierContact) => {
+    const ok = await confirm({
+      title: "Eliminar contacto",
+      description: `¿Eliminar el contacto "${c.name}"? Esta acción no se puede deshacer.`,
+      confirmLabel: "Eliminar",
+      destructive: true,
+    });
+    if (ok) del.mutate({ id: c.id, supplier_id: supplierId });
   };
 
   return (

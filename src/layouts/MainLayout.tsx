@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
+import { useHotkeys } from "react-hotkeys-hook";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/layouts/AppSidebar";
 import { ErrorBoundary } from "@/layouts/ErrorBoundary";
@@ -8,7 +9,7 @@ import { GlobalSearch } from "@/layouts/GlobalSearch";
 import { FeedbackFab } from "@/features/feedback";
 import { PageActionsProvider } from "@/contexts/PageActionsContext";
 import { usePageActionsContext } from "@/contexts/pageActions";
-import { useHotkeys } from "@/hooks/useHotkeys";
+import { useKeySequence } from "@/lib/shortcuts/useKeySequence";
 import { NAV_SHORTCUTS } from "@/lib/shortcuts/registry";
 import { KeyboardShortcutsDialog } from "@/components/feedback/KeyboardShortcutsDialog";
 
@@ -30,27 +31,27 @@ function HotkeysHost() {
   const { actions } = usePageActionsContext();
   const [helpOpen, setHelpOpen] = useState(false);
 
-  const sequences: Record<string, Record<string, () => void>> = {
-    g: NAV_SHORTCUTS.reduce<Record<string, () => void>>((acc, n) => {
-      acc[n.key] = () => navigate(n.url);
-      return acc;
-    }, {}),
-  };
+  // Combos con modificadores — permitidos siempre (también dentro de inputs).
+  useHotkeys("mod+shift+n", (e) => { e.preventDefault(); actions.onNew?.(); }, { enableOnFormTags: true });
+  useHotkeys("mod+shift+f", (e) => { e.preventDefault(); focusSearchInput(); }, { enableOnFormTags: true });
+  useHotkeys("mod+/", (e) => { e.preventDefault(); setHelpOpen((v) => !v); }, { enableOnFormTags: true });
 
-  useHotkeys({
-    combos: {
-      "mod+shift+n": () => actions.onNew?.(),
-      "mod+shift+f": () => focusSearchInput(),
-      "mod+/": () => setHelpOpen((v) => !v),
-      "?": () => setHelpOpen((v) => !v),
-    },
-    sequences,
-    singles: {
-      "/": () => focusSearchInput(),
-      n: () => actions.onNew?.(),
-      r: () => actions.onRefresh?.(),
-    },
-  });
+  // Teclas sueltas — sólo fuera de inputs (comportamiento por defecto).
+  useHotkeys("shift+/", () => setHelpOpen((v) => !v)); // "?"
+  useHotkeys("/", (e) => { e.preventDefault(); focusSearchInput(); });
+  useHotkeys("n", () => actions.onNew?.());
+  useHotkeys("r", () => actions.onRefresh?.());
+
+  // Secuencias tipo Gmail (g + tecla) — navegación rápida.
+  const navSequence = useMemo(
+    () =>
+      NAV_SHORTCUTS.reduce<Record<string, () => void>>((acc, n) => {
+        acc[n.key] = () => navigate(n.url);
+        return acc;
+      }, {}),
+    [navigate],
+  );
+  useKeySequence("g", navSequence);
 
   return <KeyboardShortcutsDialog open={helpOpen} onOpenChange={setHelpOpen} />;
 }

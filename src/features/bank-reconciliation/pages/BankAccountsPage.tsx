@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { useConfirm } from "@/components/feedback/ConfirmProvider";
 import { useBankAccounts, useDeleteBankAccount, type BankAccount } from "../hooks/useBankAccounts";
 import { BankAccountFormDialog } from "../components/BankAccountFormDialog";
 
@@ -16,9 +17,19 @@ export default function BankAccountsPage() {
   const [editing, setEditing] = useState<BankAccount | null>(null);
   const [open, setOpen] = useState(false);
   const del = useDeleteBankAccount();
+  const confirm = useConfirm();
 
   const handleNew = () => { setEditing(null); setOpen(true); };
   const handleEdit = (a: BankAccount) => { setEditing(a); setOpen(true); };
+  const handleDelete = async (a: BankAccount) => {
+    const ok = await confirm({
+      title: "Eliminar cuenta bancaria",
+      description: `¿Eliminar "${a.name}"? Los movimientos conciliados quedarán huérfanos.`,
+      confirmLabel: "Eliminar",
+      destructive: true,
+    });
+    if (ok) del.mutate(a.id);
+  };
 
   return (
     <RoleGuard module="Facturas de Proveedor" minAccess="read">
@@ -59,7 +70,7 @@ export default function BankAccountsPage() {
                     </td>
                     <td className="px-3 py-2 text-right whitespace-nowrap">
                       <Button variant="ghost" size="sm" onClick={() => handleEdit(a)}><Pencil className="h-3.5 w-3.5" /></Button>
-                      <Button variant="ghost" size="sm" onClick={() => { if (confirm(`¿Eliminar "${a.name}"?`)) del.mutate(a.id); }}><Trash2 className="h-3.5 w-3.5" /></Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(a)}><Trash2 className="h-3.5 w-3.5" /></Button>
                     </td>
                   </tr>
                 ))}

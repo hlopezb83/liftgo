@@ -7,6 +7,7 @@ import { formatDateDisplay } from "@/lib/utils";
 import { type ColumnDef } from "@/components/dataTable/v2";
 import { useStampPaymentComplement, useCancelPaymentComplement } from "./cfdi/usePaymentComplement";
 import { notifyError } from "@/lib/ui/appFeedback";
+import { useConfirm } from "@/components/feedback/ConfirmProvider";
 import { downloadCfdiBlob, type CfdiFormat } from "../../lib/downloadCfdiBlob";
 import { ReconciliationBadge } from "@/features/bank-reconciliation";
 import { RepBadge } from "../../components/invoice-detail/RepBadge";
@@ -30,6 +31,7 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
   const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
   const stampRep = useStampPaymentComplement();
   const cancelRep = useCancelPaymentComplement();
+  const confirm = useConfirm();
 
   const columns = useMemo<ColumnDef<Payment>[]>(() => {
     const base: ColumnDef<Payment>[] = [
@@ -83,10 +85,15 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
                     <Button
                       variant="ghost" size="icon" className="h-7 w-7 text-destructive"
                       title="Cancelar REP" disabled={cancelRep.isPending}
-                      onClick={() => {
-                        if (confirm("¿Cancelar el Complemento de Pago ante el SAT?")) {
-                          cancelRep.mutate({ paymentId: p.id, motive: "02" });
-                        }
+                      onClick={async () => {
+                        const ok = await confirm({
+                          title: "Cancelar Complemento de Pago",
+                          description: "¿Cancelar el Complemento de Pago (REP) ante el SAT? El motivo enviado será \"02 · Comprobante emitido con errores sin relación\".",
+                          confirmLabel: "Cancelar REP",
+                          cancelLabel: "Volver",
+                          destructive: true,
+                        });
+                        if (ok) cancelRep.mutate({ paymentId: p.id, motive: "02" });
                       }}
                     >
                       <XCircle className="h-3.5 w-3.5" />

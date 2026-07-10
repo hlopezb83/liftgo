@@ -1,0 +1,42 @@
+{
+  "version": "7.3.0",
+  "date": "2026-07-10",
+  "type": "minor",
+  "title": "Lego · Lote B — Primitivos UI + fin del window.confirm",
+  "summary": "Segundo lote de la auditoría 'Lego': se consolidan los patrones de carga, listado y detalle en primitivas reutilizables, y se elimina por completo el uso de window.confirm en la app.",
+  "sections": [
+    {
+      "heading": "Nuevos primitivos",
+      "items": [
+        "`CardListSkeleton` (src/components/feedback/CardListSkeleton.tsx) — skeleton estándar para MobileCardList, dashboards y listas de tarjetas. Reemplaza los `Array.from({ length: 4 }).map(<Skeleton/>)` copy-pasteados.",
+        "`FormSkeleton` (src/components/feedback/FormSkeleton.tsx) — pares label + input consistentes con `TextField`, para pantallas de formulario en carga inicial o durante prefills.",
+        "`ListToolbar` (src/components/layout/ListToolbar.tsx) — slot único 'buscador + filtros + acciones + chips activos'. En móvil los filtros se pliegan dentro de un Sheet; en desktop se muestran en línea.",
+        "`DetailLayout` (src/components/layout/DetailLayout.tsx) — layout declarativo `sections={[{ id, title, content, visible }]}` sobre `DetailPageHeader`, con headings semánticos y `aria-labelledby`."
+      ]
+    },
+    {
+      "heading": "Fin del window.confirm",
+      "items": [
+        "Se introduce `useConfirm()` + `<ConfirmProvider>` en `AppProviders`, un hook que devuelve `Promise<boolean>` y usa el `ConfirmDialog` existente por debajo.",
+        "Migrados los 5 `confirm()` restantes: `SupplierContactsSection`, `SupplierBankAccountsSection`, `BankAccountsPage`, `usePaymentHistoryColumns` (cancelar REP con motivo 02) y `InvoiceCreditNotesCard` (eliminar borrador de NC).",
+        "Beneficios: consistencia visual, accesibilidad (focus trap, ESC, aria), variante `destructive` y posibilidad de mostrar `descriptionNode` enriquecido."
+      ]
+    },
+    {
+      "heading": "Fix · Colisión Ctrl+K en SearchBar",
+      "items": [
+        "`SearchBar` registraba un listener global `keydown` para Ctrl/Cmd+K en cada instancia — chocaba con `GlobalSearch` (command palette) y se apilaba con múltiples buscadores en pantalla.",
+        "Migrado a `react-hotkeys-hook` con la nueva prop `captureCtrlK` (default `false`). El badge 'Ctrl+K' sólo se muestra si el atajo está habilitado.",
+        "Cambio no-breaking: las llamadas existentes siguen funcionando pero ya no capturan Ctrl+K por defecto."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "`npx tsgo --noEmit` — OK sin errores.",
+        "`bunx vitest run` — 804/804 tests en verde.",
+        "Migración de páginas existentes a `ListToolbar` / `DetailLayout` queda como trabajo incremental (piloto planeado en Lote C junto con la unificación de tablas)."
+      ]
+    }
+  ]
+}

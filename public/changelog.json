@@ -1,5 +1,21 @@
 [
   {
+    "version": "7.3.0",
+    "date": "2026-07-10",
+    "type": "minor",
+    "title": "Lego · Lote B — Primitivos UI + fin del window.confirm",
+    "description": "Segundo lote de la auditoría 'Lego'. Nuevos primitivos reutilizables: (1) `CardListSkeleton` y `FormSkeleton` para eliminar los skeletons ad-hoc que cada módulo dibujaba a mano; (2) `<ListToolbar>` como slot único 'búsqueda + filtros + acciones' con Sheet colapsable en móvil; (3) `<DetailLayout sections={[…]}>` declarativo sobre `DetailPageHeader` para reemplazar la composición manual de secciones en páginas de detalle. Además: `useConfirm()` + `<ConfirmProvider>` como reemplazo directo del antipatrón `if (window.confirm(…))` — se migran los 5 usos restantes en `SupplierContactsSection`, `SupplierBankAccountsSection`, `BankAccountsPage`, `usePaymentHistoryColumns` (cancelar REP) y `InvoiceCreditNotesCard` (borrar borrador NC), ahora con AlertDialog accesible, variante destructive y focus trap. Fix: `SearchBar` migrado a `react-hotkeys-hook` con nueva prop `captureCtrlK` (default false) — antes registraba un listener global de Ctrl+K por cada instancia, colisionando con el command palette de `GlobalSearch`. Typecheck OK, 804/804 tests.",
+    "category": "improvement"
+  },
+  {
+    "version": "7.2.0",
+    "date": "2026-07-10",
+    "type": "minor",
+    "title": "Lego · Lote A — Higiene: react-hotkeys-hook + html-to-image",
+    "description": "Primer lote de la auditoría 'Lego' (menos código custom, más piezas estándar). (1) Se reemplaza el hook custom `src/hooks/useHotkeys.ts` (107 LOC, combos/singles/sequences) por `react-hotkeys-hook` (estándar de la comunidad React) para combos y teclas sueltas, y un helper mínimo `src/lib/shortcuts/useKeySequence.ts` (~60 LOC) que preserva las secuencias tipo Gmail (g d, g c…) usadas por `NAV_SHORTCUTS`. (2) Se reemplaza `html2canvas` (~180 KB) por `html-to-image` (~30 KB, ~4× más ligero) en `feedback/captureScreenshot.ts`, con fast-path directo a Blob cuando no hay highlight. Deps: −html2canvas, +react-hotkeys-hook, +html-to-image. Sin cambios en UX ni superficie pública. Typecheck OK, 804/804 tests pasan.",
+    "category": "improvement"
+  },
+  {
     "version": "7.1.1",
     "date": "2026-07-10",
     "type": "patch",

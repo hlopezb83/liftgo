@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from "@ta
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ErrorDetailsDialog } from "@/components/ui/ErrorDetailsDialog";
+import { ConfirmProvider } from "@/components/feedback/ConfirmProvider";
 import { AuthSnapshotSync } from "@/features/users";
 import { AuthQueryCacheSync } from "@/lib/ui/AuthQueryCacheSync";
 import { notifyError } from "@/lib/ui/appFeedback";
@@ -51,7 +52,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
           <TooltipProvider>
             <Sonner />
             <ErrorDetailsDialog />
-            {children}
+            <ConfirmProvider>{children}</ConfirmProvider>
           </TooltipProvider>
         </AuthProvider>
       </QueryClientProvider>
