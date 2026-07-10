@@ -24,10 +24,11 @@ const CURRENCY_OPTIONS: SelectOption[] = CURRENCIES.map((c) => ({ value: c, labe
 
 const EMPTY_FORM = {
   supplier_id: "", category: "", description: "",
-  issue_date: new Date(), currency: "MXN", exchange_rate: 1,
+  issue_date: new Date(), currency: "MXN" as const, exchange_rate: 1,
   subtotal: 0, tax_amount: 0, retention_iva: 0, retention_isr: 0,
   cfdi_uuid: "",
 };
+
 
 export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, titleOverride }: Props) {
   const isEdit = !!bill;
