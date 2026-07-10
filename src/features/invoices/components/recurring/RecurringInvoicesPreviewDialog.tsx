@@ -60,9 +60,10 @@ export function RecurringInvoicesPreviewDialog({
   }, [lines]);
 
   const totalSelected = useMemo(
-    () => lines.filter((l) => selected.has(l.bookingId)).reduce((acc, l) => acc + l.monthlyRate * 1.16, 0),
+    () => lines.filter((l) => selected.has(l.bookingId)).reduce((acc, l) => acc + applyVat(l.monthlyRate), 0),
     [lines, selected],
   );
+
 
   const toggle = (id: string) => {
     setSelected((prev) => {
