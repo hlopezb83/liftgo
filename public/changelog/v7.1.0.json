@@ -1,0 +1,35 @@
+{
+  "version": "7.1.0",
+  "date": "2026-07-10",
+  "type": "minor",
+  "title": "Perf · Reducción del bundle inicial post React 19",
+  "category": "improvement",
+  "summary": "Code-splitting de AuthPage y del portal de clientes → -12.5 KB gzip en el entry principal.",
+  "changes": [
+    {
+      "area": "Bundling",
+      "items": [
+        "Se instala `rollup-plugin-visualizer` como devDependency y se activa vía `ANALYZE=1 bun run build`, generando `/tmp/bundle-stats.html` para auditar chunks a demanda.",
+        "`AuthGuard` ahora importa `AuthPage` con `React.lazy` + `Suspense`. Usuarios ya autenticados no descargan el código de login."
+      ]
+    },
+    {
+      "area": "Portal cliente",
+      "items": [
+        "`CustomerPortalRoutes` (y sus 11 páginas: PortalDashboard, PortalRentals, PortalInvoices/Detail/Payment, PortalContracts, PortalQuotes/Detail, PortalStatement, MyReports, Leaderboard) migra a `lazy()` + `Suspense`. Antes se hoisteaban al chunk principal aunque el rol fuera staff."
+      ]
+    },
+    {
+      "area": "Métricas",
+      "items": [
+        "Entry `dist/assets/index-*.js`: **667.48 KB → 615.11 KB** (-52 KB raw).",
+        "Gzip del entry: **188.12 KB → 175.63 KB** (-12.49 KB, -6.6%).",
+        "Chunks lazy nuevos: `PortalDashboard`, `PortalInvoiceDetail`, `PortalStatement`, etc. cargados sólo cuando `role === 'customer'`.",
+        "Sin regresión en tests (804/804) ni en typecheck."
+      ]
+    }
+  ],
+  "notes": [
+    "Próximas oportunidades detectadas en la auditoría (no ejecutadas en esta versión): revisar barrels que fuerzan al bundler a incluir XLSX en la superficie de imports, y evaluar si `react-day-picker` puede quedar en el chunk de páginas que usan `<Calendar>` en lugar del entry."
+  ]
+}
