@@ -95,8 +95,6 @@ function addDays(ymd: string, days: number): string {
 serve(async (req) => {
   const corsResponse = handleCors(req);
   if (corsResponse) return corsResponse;
-  const cors = getCorsHeaders(req);
-  const jsonHeaders = { ...cors, "Content-Type": "application/json" };
 
   try {
     const auth = await requireRole(req, ["admin", "administrativo"]);
