@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { notifyError, notifyWarning } from "@/lib/ui/appFeedback";
 import { useSuppliers } from "@/features/suppliers";
-import { useCompanySettings } from "@/features/company-settings/hooks/useCompanySettings";
+import { useCompanySettings } from "@/features/company-settings";
 import { parseCfdiXml, CfdiParseError, type CfdiParsed } from "../lib/parseCfdiXml";
 import { useUploadSupplierBillXml, type UploadedCfdiXml } from "./useUploadSupplierBillXml";
 import { checkSupplierBillCfdiUuid } from "./useCheckSupplierBillCfdiUuid";
