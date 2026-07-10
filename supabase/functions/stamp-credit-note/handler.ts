@@ -9,7 +9,7 @@ import {
   binaryToText,
   createFacturapiClient,
   describeFacturapiError,
-  resolveFacturapiKey,
+  getFacturapiConfig,
 } from "../_shared/facturapi/client.ts";
 
 export type { SupabaseLike };
