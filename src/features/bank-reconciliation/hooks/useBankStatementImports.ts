@@ -72,8 +72,7 @@ export function useBankStatementImports() {
 }
 
 export function useDeleteBankImport() {
-  const qc = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (importId: string) => {
       const { error } = await supabase
         .from("bank_statement_imports")
@@ -81,11 +80,8 @@ export function useDeleteBankImport() {
         .eq("id", importId);
       if (error) throw error;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: BANK_IMPORTS_QK });
-      qc.invalidateQueries({ queryKey: ["bank_statement_lines"] });
-      notifySuccess("Import eliminado");
-    },
-    onError: (e: Error) => notifyError({ error: e, message: e.message }),
+    invalidateKeys: [BANK_IMPORTS_QK, ["bank_statement_lines"]],
+    successMsg: "Import eliminado",
+    errorTitle: "Error al eliminar import",
   });
 }
