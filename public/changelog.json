@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.148.2",
+    "date": "2026-07-10",
+    "type": "patch",
+    "title": "Fix ReferenceError jsonHeaders en stamp-cfdi y stamp-credit-note",
+    "description": "Los handlers usaban `jsonHeaders` como tercer argumento del helper local `json(...)` pero la variable nunca fue definida tras la migración a `jsonResponse`, provocando `ReferenceError: jsonHeaders is not defined` en producción (500 en lugar de 401 ante peticiones sin Authorization). Se declara `const jsonHeaders = undefined` local para restaurar el flujo correcto. Restablece los smoke tests Deno (`stamp-cfdi: rejects requests without Authorization header (401)` y equivalente en `stamp-credit-note`).",
+    "category": "fix"
+  },
+  {
     "version": "6.148.1",
     "date": "2026-07-10",
     "type": "patch",
