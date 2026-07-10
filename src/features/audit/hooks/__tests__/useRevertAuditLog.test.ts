@@ -76,7 +76,7 @@ describe("useRevertAuditLog", () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
 
     expect(notifyErrorMock).toHaveBeenCalledWith(expect.objectContaining({
-      message: "Solo administradores pueden revertir",
+      title: "Error al revertir la acción",
     }));
     expect(toastSuccess).not.toHaveBeenCalled();
   });
@@ -90,7 +90,7 @@ describe("useRevertAuditLog", () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
 
     expect(notifyErrorMock).toHaveBeenCalledWith(expect.objectContaining({
-      message: "Error al revertir la acción",
+      title: "Error al revertir la acción",
     }));
   });
 });
