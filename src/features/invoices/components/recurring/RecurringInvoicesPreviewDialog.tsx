@@ -90,7 +90,7 @@ export function RecurringInvoicesPreviewDialog({
         </>
       }
     >
-      <PreviewBody
+      <RecurringPreviewBody
         isLoading={isLoading}
         lines={lines}
         eligibleCount={eligibleIds.length}
