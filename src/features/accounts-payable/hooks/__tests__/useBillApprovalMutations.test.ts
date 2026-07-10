@@ -107,7 +107,7 @@ describe("useBillApprovalMutations", () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
 
     expect(notifyErrorMock).toHaveBeenCalledWith(
-      expect.objectContaining({ message: "No se pudo aprobar la factura" }),
+      expect.objectContaining({ title: "No se pudo aprobar la factura" }),
     );
     expect(toastSuccess).not.toHaveBeenCalled();
   });
