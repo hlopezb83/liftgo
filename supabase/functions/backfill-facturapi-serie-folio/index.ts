@@ -142,21 +142,15 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        scanned: invoices.length,
-        updated,
-        failed,
-        results,
-      }),
-      { status: 200, headers: jsonHeaders },
-    );
+    return jsonResponse(req, {
+      success: true,
+      scanned: invoices.length,
+      updated,
+      failed,
+      results,
+    });
   } catch (err) {
     console.error("[backfill-facturapi-serie-folio] error:", err);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      { status: 500, headers: jsonHeaders },
-    );
+    return jsonError(req, 500, "Internal server error");
   }
 });
