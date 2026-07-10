@@ -5,7 +5,7 @@ import { isNonEmptyString, isUUID } from "../_shared/validate.ts";
 import {
   createFacturapiClient,
   describeFacturapiError,
-  resolveFacturapiKey,
+  getFacturapiConfig,
 } from "../_shared/facturapi/client.ts";
 
 const VALID_MOTIVES = new Set(["01", "02", "03", "04"]);
