@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/table";
 import { Plus, Pencil, Trash2, Landmark, Star } from "lucide-react";
 import { RoleGuard } from "@/layouts/RoleGuard";
+import { useConfirm } from "@/components/feedback/ConfirmProvider";
 import {
   useSupplierBankAccounts,
   useDeleteSupplierBankAccount,
@@ -18,15 +19,20 @@ import { SupplierBankAccountFormDialog } from "./SupplierBankAccountFormDialog";
 export function SupplierBankAccountsSection({ supplierId }: { supplierId: string }) {
   const { data: accounts = [], isLoading } = useSupplierBankAccounts(supplierId);
   const del = useDeleteSupplierBankAccount();
+  const confirm = useConfirm();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<SupplierBankAccount | null>(null);
 
   const onAdd = () => { setEditing(null); setOpen(true); };
   const onEdit = (a: SupplierBankAccount) => { setEditing(a); setOpen(true); };
-  const onDelete = (a: SupplierBankAccount) => {
-    if (confirm(`¿Eliminar la cuenta de "${a.bank_name}"?`)) {
-      del.mutate({ id: a.id, supplier_id: supplierId });
-    }
+  const onDelete = async (a: SupplierBankAccount) => {
+    const ok = await confirm({
+      title: "Eliminar cuenta bancaria",
+      description: `¿Eliminar la cuenta de "${a.bank_name}"? Esta acción no se puede deshacer.`,
+      confirmLabel: "Eliminar",
+      destructive: true,
+    });
+    if (ok) del.mutate({ id: a.id, supplier_id: supplierId });
   };
 
   return (
