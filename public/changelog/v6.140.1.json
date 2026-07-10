@@ -1,0 +1,20 @@
+{
+  "version": "6.140.1",
+  "date": "2026-07-10",
+  "type": "patch",
+  "category": "security",
+  "title": "Hardening RLS: company_settings y XML CFDI de proveedores",
+  "description": "Se cierran dos hallazgos del escáner de seguridad.",
+  "changes": [
+    {
+      "type": "security",
+      "title": "company_settings: se elimina lectura pública (anon)",
+      "description": "Se dropea la policy 'Public read company_settings' que exponía a anon columnas internas (cash_safety_buffer, cash_initial_balance, cxp_approval_threshold_mxn, facturapi_mode, allow_e2e_seed). Los datos de marca (logo, razón social) siguen disponibles vía la RPC get_public_branding, que ya usa usePublicBranding en pantallas pre-login."
+    },
+    {
+      "type": "security",
+      "title": "supplier-bill-cfdi-xml: lectura restringida a personal interno",
+      "description": "Se reemplaza la policy 'Authenticated read supplier-bill-cfdi-xml' (cualquier authenticated) por 'Staff read supplier-bill-cfdi-xml' limitada a admin, administrativo y auditor. Clientes del portal y mecánicos ya no pueden descargar XML CFDI de proveedores."
+    }
+  ]
+}
