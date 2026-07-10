@@ -1,10 +1,12 @@
 // Helpers compartidos de autenticación / autorización para Edge Functions admin.
 // Centralizan validación de JWT, lookup de rol y generación de contraseñas seguras.
-import {
-  createClient,
-  type SupabaseClient,
-} from "https://esm.sh/@supabase/supabase-js@2";
+import { type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "./cors.ts";
+import { jsonError } from "./http.ts";
+import { getAdminClient, getCallerClient } from "./supabaseClients.ts";
+
+// Re-export para retro-compatibilidad con call sites existentes.
+export { jsonError } from "./http.ts";
 
 export type AuthSuccess = {
   ok: true;
@@ -21,13 +23,6 @@ export type AuthFailure = {
 
 export type AuthResult = AuthSuccess | AuthFailure;
 
-function jsonError(req: Request, status: number, message: string): Response {
-  return new Response(JSON.stringify({ error: message }), {
-    status,
-    headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-  });
-}
-
 /** Valida el JWT del caller. Devuelve userId + adminClient (service role). */
 export async function requireAuth(req: Request): Promise<AuthResult> {
   const authHeader = req.headers.get("Authorization");
@@ -35,20 +30,14 @@ export async function requireAuth(req: Request): Promise<AuthResult> {
     return { ok: false, response: jsonError(req, 401, "Unauthorized") };
   }
 
-  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-
-  const callerClient = createClient(supabaseUrl, anonKey, {
-    global: { headers: { Authorization: authHeader } },
-  });
+  const callerClient = getCallerClient(req);
   const token = authHeader.replace("Bearer ", "");
   const { data, error } = await callerClient.auth.getClaims(token);
   if (error || !data?.claims) {
     return { ok: false, response: jsonError(req, 401, "Unauthorized") };
   }
 
-  const adminClient = createClient(supabaseUrl, serviceRoleKey);
+  const adminClient = getAdminClient();
   const userId = data.claims.sub as string;
   const email = (data.claims.email as string | undefined) ?? null;
 
