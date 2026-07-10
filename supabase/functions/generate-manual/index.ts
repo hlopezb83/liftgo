@@ -144,35 +144,12 @@ serve(async (req) => {
       console.error("AI gateway error:", aiResponse.status, errText);
 
       if (aiResponse.status === 429) {
-        return new Response(
-          JSON.stringify({
-            error: "Límite de solicitudes excedido, intenta más tarde.",
-          }),
-          {
-            status: 429,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
-        );
+        return jsonError(req, 429, "Límite de solicitudes excedido, intenta más tarde.");
       }
       if (aiResponse.status === 402) {
-        return new Response(
-          JSON.stringify({
-            error: "Se requieren créditos adicionales para generar el manual.",
-          }),
-          {
-            status: 402,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
-        );
+        return jsonError(req, 402, "Se requieren créditos adicionales para generar el manual.");
       }
-
-      return new Response(
-        JSON.stringify({ error: "Error al generar el manual con IA" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonError(req, 500, "Error al generar el manual con IA");
     }
 
     const aiData = await aiResponse.json();
@@ -180,26 +157,14 @@ serve(async (req) => {
 
     if (!toolCall?.function?.arguments) {
       console.error("No tool call in AI response:", JSON.stringify(aiData));
-      return new Response(
-        JSON.stringify({ error: "La IA no retornó el formato esperado" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonError(req, 500, "La IA no retornó el formato esperado");
     }
 
     const parsedArgs = JSON.parse(toolCall.function.arguments);
     const sections = parsedArgs.sections;
 
     if (!Array.isArray(sections) || sections.length === 0) {
-      return new Response(
-        JSON.stringify({ error: "No se generaron secciones" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonError(req, 500, "No se generaron secciones");
     }
 
     // Calculate next version
@@ -229,26 +194,12 @@ serve(async (req) => {
 
     if (insertError) {
       console.error("Insert error:", insertError);
-      return new Response(
-        JSON.stringify({ error: "Error al guardar el manual" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonError(req, 500, "Error al guardar el manual");
     }
 
-    return new Response(JSON.stringify({ success: true, manual }), {
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
+    return jsonResponse(req, { success: true, manual });
   } catch (e) {
     console.error("[generate-manual] error:", e);
-    return new Response(
-      JSON.stringify({ error: "Error interno del servidor" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+    return jsonError(req, 500, "Error interno del servidor");
   }
 });
