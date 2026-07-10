@@ -1,6 +1,7 @@
 // Pure handler for stamp-cfdi, deps-injected for testability.
 // The Deno.serve entry in index.ts wires real createClient + fetch + env.
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import type { QueryBuilderLike, SupabaseLike } from "../_shared/types.ts";
 import {
