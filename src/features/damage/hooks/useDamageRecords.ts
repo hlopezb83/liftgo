@@ -1,7 +1,7 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 export type { DamageRecord } from "@/types/rental";
 
 export function useDamageRecords() {
@@ -21,31 +21,26 @@ export function useDamageRecords() {
 }
 
 export function useCreateDamageRecord() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (record: TablesInsert<"damage_records">) => {
       const { data, error } = await supabase.from("damage_records").insert(record).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["damage_records"] }),
-    onError: (err: Error) => {
-      notifyError({ title: "Error al crear registro de daño", error: err });
-    },
+    invalidateKeys: [["damage_records"]],
+    errorTitle: "Error al crear registro de daño",
   });
 }
 
 export function useUpdateDamageRecord() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ id, ...updates }: TablesUpdate<"damage_records"> & { id: string }) => {
       const { data, error } = await supabase.from("damage_records").update(updates).eq("id", id).select().single();
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["damage_records"] }),
-    onError: (err: Error) => {
-      notifyError({ title: "Error al actualizar registro de daño", error: err });
-    },
+    invalidateKeys: [["damage_records"]],
+    errorTitle: "Error al actualizar registro de daño",
   });
 }
+

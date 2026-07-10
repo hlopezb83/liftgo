@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.146.0",
+    "date": "2026-07-10",
+    "type": "minor",
+    "title": "DRY Lote 2 (parte 3): 6 hooks más migrados a useEntityMutation",
+    "description": "Se migran useUploadSupplierReceipt, useDeleteSupplierPayment, useCreatePaymentBatch, useRegisterSupplierPayment, useBookingExtensions (create) y useDamageRecords (create/update) al patrón canónico useEntityMutation. Invalidaciones dinámicas dependientes de billId/bookingId vía invalidateKeysFn. -60 LOC netos, 802 tests verdes, typecheck limpio.",
+    "category": "refactor"
+  },
+  {
     "version": "6.145.0",
     "date": "2026-07-10",
     "type": "minor",
