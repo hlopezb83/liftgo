@@ -1,5 +1,6 @@
-import { getAdminClient, getCallerClient } from "../_shared/supabaseClients.ts";
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
+import { requireRole } from "../_shared/auth.ts";
 
 const TZ = "America/Monterrey";
 
@@ -394,42 +395,11 @@ async function executePlan(supabase: any, items: PlanItem[]) {
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
-  const corsHeaders = getCorsHeaders(req);
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    const token = authHeader.replace("Bearer ", "");
-    const callerClient = getCallerClient(req);
-    const { data: claimsData, error: claimsError } = await callerClient.auth
-      .getClaims(token);
-    if (claimsError || !claimsData?.claims) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-    const user = { id: claimsData.claims.sub as string };
-
-    const supabase = getAdminClient();
-    const { data: roleData } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", user.id)
-      .single();
-
-    if (!roleData || !["admin", "administrativo"].includes(roleData.role)) {
-      return new Response(JSON.stringify({ error: "Admin access required" }), {
-        status: 403,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
+    const auth = await requireRole(req, ["admin", "administrativo"]);
+    if (!auth.ok) return auth.response;
+    const supabase = auth.adminClient;
 
     // Parse body (may be empty for legacy callers)
     let body: { preview?: boolean; bookingIds?: string[] } = {};
@@ -440,22 +410,13 @@ Deno.serve(async (req) => {
 
     const { lines, items: allItems } = await buildPlan(supabase);
 
-    // Build target period from lines (first eligible one; all eligible share month typically)
     const eligibleLines = lines.filter((l) => l.eligible);
     const periodMonth = eligibleLines[0]?.periodStart?.slice(0, 7) ?? null;
 
     if (body.preview) {
-      return new Response(
-        JSON.stringify({
-          success: true,
-          period: periodMonth,
-          lines,
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-      );
+      return jsonResponse(req, { success: true, period: periodMonth, lines });
     }
 
-    // Execute mode: filter items by bookingIds if provided
     const targetItems = body.bookingIds && body.bookingIds.length > 0
       ? allItems.filter((i) => body.bookingIds!.includes(i.bookingId))
       : allItems;
@@ -467,21 +428,15 @@ Deno.serve(async (req) => {
       0,
     );
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        invoicesCreated,
-        bookingsBilled,
-        created,
-        failed,
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } },
-    );
+    return jsonResponse(req, {
+      success: true,
+      invoicesCreated,
+      bookingsBilled,
+      created,
+      failed,
+    });
   } catch (err) {
     console.error("[generate-recurring-invoices]", err);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-    });
+    return jsonError(req, 500, "Internal server error");
   }
 });
