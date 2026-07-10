@@ -1,15 +1,15 @@
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { handleCors } from "../_shared/cors.ts";
 import {
   enforceRateLimit,
   generateSecurePassword,
   requireAdmin,
 } from "../_shared/auth.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { isEmail, isUUID } from "../_shared/validate.ts";
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
-  const corsHeaders = getCorsHeaders(req);
 
   try {
     const auth = await requireAdmin(req);
@@ -23,26 +23,13 @@ Deno.serve(async (req) => {
     );
     if (limited) return limited;
 
-    const body = await req.json();
-    const { customer_id, email } = body;
+    const { customer_id, email } = await req.json();
 
     if (!isUUID(customer_id)) {
-      return new Response(
-        JSON.stringify({ error: "customer_id must be a valid UUID" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonError(req, 400, "customer_id must be a valid UUID");
     }
     if (!isEmail(email)) {
-      return new Response(
-        JSON.stringify({ error: "A valid email is required" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonError(req, 400, "A valid email is required");
     }
 
     const { data: customer, error: custErr } = await auth.adminClient
@@ -52,20 +39,10 @@ Deno.serve(async (req) => {
       .single();
 
     if (custErr || !customer) {
-      return new Response(JSON.stringify({ error: "Customer not found" }), {
-        status: 404,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      return jsonError(req, 404, "Customer not found");
     }
-
     if (customer.user_id) {
-      return new Response(
-        JSON.stringify({ error: "Customer already has portal access" }),
-        {
-          status: 409,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonError(req, 409, "Customer already has portal access");
     }
 
     // Contraseña segura no predecible (rejection sampling, sin sufijo fijo).
@@ -78,15 +55,7 @@ Deno.serve(async (req) => {
         user_metadata: { full_name: customer.name },
       });
 
-    if (createErr) {
-      return new Response(
-        JSON.stringify({ error: createErr.message }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
-    }
+    if (createErr) return jsonError(req, 400, createErr.message);
 
     const userId = newUser.user.id;
 
@@ -118,21 +87,9 @@ Deno.serve(async (req) => {
       console.error("Password reset email error:", resetErr.message);
     }
 
-    return new Response(
-      JSON.stringify({ success: true, user_id: userId }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+    return jsonResponse(req, { success: true, user_id: userId });
   } catch (_err) {
     console.error("invite-customer error:", _err);
-    return new Response(
-      JSON.stringify({ error: "Internal server error" }),
-      {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+    return jsonError(req, 500, "Internal server error");
   }
 });
