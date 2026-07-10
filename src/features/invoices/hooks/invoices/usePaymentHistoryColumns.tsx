@@ -7,6 +7,7 @@ import { formatDateDisplay } from "@/lib/utils";
 import { type ColumnDef } from "@/components/dataTable/v2";
 import { useStampPaymentComplement, useCancelPaymentComplement } from "./cfdi/usePaymentComplement";
 import { notifyError } from "@/lib/ui/appFeedback";
+import { useConfirm } from "@/components/feedback/ConfirmProvider";
 import { downloadCfdiBlob, type CfdiFormat } from "../../lib/downloadCfdiBlob";
 import { ReconciliationBadge } from "@/features/bank-reconciliation";
 import { RepBadge } from "../../components/invoice-detail/RepBadge";
