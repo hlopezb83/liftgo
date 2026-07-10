@@ -1,78 +1,65 @@
-# Auditoría DRY · Estimado consolidado
+# Estado del plan DRY · Pendientes
 
-4 subagentes recorrieron en paralelo edge functions, hooks, componentes UI y `src/lib`. Estimado total: **~1,380 LOC eliminables** sin cambios funcionales, aplicando helpers canónicos ya existentes.
+Recorriendo el plan original (`.lovable/plan.md`, estimado ~1,380 LOC) y los changelogs entregados (`v6.141.0` → `v6.148.2`), esto es lo que **ya está hecho** y lo que **queda pendiente**.
 
-## Resumen ejecutivo
+## ✅ Completado
 
-| Área | LOC eliminables | Helpers canónicos disponibles | Nuevos helpers a crear |
-| --- | --- | --- | --- |
-| Edge Functions | **~615** | `getAdminClient`, `getCallerClient`, `jsonResponse`, `jsonError`, `corsHeaders` | `requireRole(req, roles)`, `getFacturapiConfig()`, `_shared/cfdi.ts` |
-| Hooks / Mutations | **~480** | `useEntityMutation`, `createEntityKeys`, `notifyError/Success` | — |
-| Componentes UI | **~190** | `ReportChartCard`, `DetailRow`, `DataTableV2`, `FormDialog`, field wrappers | `useDialogs` (multi-dialog state) |
-| Utils / Schemas / Rules | **~95** | `callRpc`, `computeTotals`, `LineItem`, `formatCurrency`, `coerce`, `schemas/common` | `rfcPublicoGeneral`, `addressSchema`, `notesSchema`, `phoneSchema` |
-| **TOTAL** | **~1,380 LOC** | | |
+- **Lote 1 — Edge Functions (parcial):** `requireAdmin`/`requireRole`, `jsonResponse`/`jsonError`, refactor de `delete-user`, CFDI stampers, `refresh-cancellation-status`, formateo `deno fmt`, fix ReferenceError `jsonHeaders` (`v6.141.0`-`v6.143.0`, `v6.148.1`, `v6.148.2`).
+- **Lote 2 — Hooks (mayor parte, ~5 partes):** Supplier Bills, Bank Line Actions, Audit Logs, Bill Approvals, Suppliers, Company Settings, Payment Batches, Booking Extensions, Invoices/CFDI/REP, Bank Imports, Receptor Fiscal Info, Recurring Invoices Preview (`v6.144.0`-`v6.148.0`).
 
-## Lote 1 — Edge Functions (~615 LOC, mayor ROI)
+## ⏳ Pendiente
 
-Aunque el Lote 9 anterior migró clients y responses en varias funciones, quedan **17 funciones** con auth manual y **72 instancias** de `new Response(JSON.stringify(...))`. Además hay boilerplate de Facturapi y parsers XML duplicados.
+### Lote 1 — Edge Functions (resto)
+- **`_shared/facturapi.ts::getFacturapiConfig(admin)`** — centralizar lectura de `company_settings.facturapi_mode` + `billing_secrets` (hoy repetido en stamp-cfdi, stamp-credit-note, stamp-payment-complement, cancel-*).
+- **`_shared/cfdi.ts`** — unificar parsers XML CFDI (hoy `validate-supplier-rep` reimplementa lo que ya vive en `parse-cfdi-expense/cfdi-parser.ts`).
+- **72 → resto de `new Response(JSON.stringify(...))`** en funciones no migradas todavía (validate-supplier-rep, cancel-credit-note, generate-invoice-pdf, parse-csf, invite-*).
 
-Acciones:
-1. Crear `_shared/auth.ts::requireRole(req, roles[])` que unifique `getCallerClient` + `getClaims` + `has_role` + respuesta 401/403.
-2. Crear `_shared/facturapi.ts::getFacturapiConfig(admin)` que lea `company_settings.facturapi_mode` + `billing_secrets` y devuelva `{ mode, apiKey }`.
-3. Centralizar parsers XML CFDI en `_shared/cfdi.ts` (hoy `validate-supplier-rep` reimplementa lo que ya existe en `parse-cfdi-expense/cfdi-parser.ts`).
-4. Reemplazar los 72 `new Response(JSON.stringify(...))` restantes por `jsonResponse`/`jsonError`.
+Ahorro estimado restante: **~200-250 LOC**.
 
-Top 5 archivos: `validate-supplier-rep` (65), `stamp-cfdi` (45), `stamp-credit-note` (45), `cancel-cfdi` (45), `cancel-credit-note` (40).
+### Lote 2 — Hooks (cola)
+Todavía en `useMutation` crudo:
+- `useForkliftMutations.ts` (~28 LOC) — usa `setQueryData` optimista; requiere extender `useEntityMutation` con opción `optimistic` **o** dejarlo fuera de alcance (marcado como opcional).
+- `useCashFlowSettings.ts` (~15 LOC).
+- `useInviteUser.ts` (~12 LOC).
+- `useBookings.ts` create/update (~12 LOC).
+- `useCreatePaymentIntent.ts` (~10 LOC).
+- `useSuppliers.ts` create/update (~22 LOC) — marcado fuera de alcance por `translateSupplierError`.
 
-## Lote 2 — Hooks y Mutations (~480 LOC)
+Ahorro estimado restante: **~60-80 LOC** (sin contar optimistic).
 
-Quedan ~40 hooks con `useMutation` crudo (onSuccess/onError manuales) que deberían usar `useEntityMutation`, más algunas query keys como arrays literales.
-
-Top 10 archivos:
-- `useSupplierBillMutations.ts` (32), `useForkliftMutations.ts` (28), `useBankLineActions.ts` (24)
-- `useSuppliers.ts` (22), `useAuditLogs.ts` (18), `useInvoices.ts` (15)
-- `useCashFlowSettings.ts` (15), `useInviteUser.ts` (12), `useBookings.ts` (12)
-- `useCreatePaymentIntent.ts` (10)
-
-Nota: `useForkliftMutations` tiene optimistic updates (`setQueryData`) — requiere extender `useEntityMutation` con opción `optimistic` o dejar fuera del alcance.
-
-## Lote 3 — Componentes UI (~190 LOC)
-
-Duplicaciones detectadas:
-- **Reports charts** (RevenueReport, MaintenanceCostReport, UtilizationReport, CashFlowChart): ~55 LOC migrando a `ReportChartCard`.
-- **AuditDiffTables**: 40 LOC migrando a `DataTableV2`.
-- **SupplierBillDetailSheet**: 30 LOC (extraer `Row` local a `DetailRow` + hook `useDialogs` para 4 diálogos).
-- **ContractDetail / ContractDetailsCard**: 30 LOC con `DetailRow` en lugar de Cards manuales.
-- **RegisterSupplierPaymentDialog**: 8 LOC con `FileField` wrapper.
-
-## Lote 4 — Utils, Schemas, Rules (~95 LOC)
-
+### Lote 4 — Utils / Schemas / Rules (no iniciado)
 - Migrar ~15 hooks de `supabase.rpc(...)` directo a `callRpc<T>()` (~30 LOC).
-- Redefiniciones de `LineItem` y cálculo de totales en `PortalInvoiceDetail`/`PortalQuoteDetail` → usar `src/lib/domain/invoiceTotals.ts` (~13 LOC).
-- Refactor de RFC público y schemas comunes (address, notes, phone) en `src/lib/schemas/common.ts` (~22 LOC).
+- `LineItem` y totales duplicados en `PortalInvoiceDetail` / `PortalQuoteDetail` → `src/lib/domain/invoiceTotals.ts` (~13 LOC).
+- Nuevos schemas comunes en `src/lib/schemas/common.ts`: `rfcPublicoGeneral`, `addressSchema`, `notesSchema`, `phoneSchema` (~22 LOC).
 - Coerción numérica manual en editores de líneas → `src/lib/coerce.ts` (~12 LOC).
 - IVA hardcodeado (`* 1.16`) en `RecurringInvoicesPreviewDialog` → helper `money()` (~2 LOC).
 
-## Orden sugerido
+Ahorro estimado: **~95 LOC**.
 
-1. **Lote 1 (Edge Functions)** — mayor ROI, riesgo aislado por función, tests unitarios ya cubren cada handler.
-2. **Lote 2 (Hooks)** — barrido mecánico, patrón ya validado en Lotes 7-8 anteriores.
-3. **Lote 4 (Utils/Schemas)** — desbloquea Lote 3 al centralizar `LineItem` y schemas.
-4. **Lote 3 (UI)** — el más visible; se hace al final tras estabilizar helpers.
+### Lote 3 — Componentes UI (no iniciado, el último por diseño)
+- Reports charts (Revenue, MaintenanceCost, Utilization, CashFlow) → `ReportChartCard` (~55 LOC).
+- `AuditDiffTables` → `DataTableV2` (~40 LOC).
+- `SupplierBillDetailSheet`: extraer `Row` local a `DetailRow` + hook `useDialogs` para 4 diálogos (~30 LOC).
+- `ContractDetail` / `ContractDetailsCard` → `DetailRow` (~30 LOC).
+- `RegisterSupplierPaymentDialog` → `FileField` wrapper (~8 LOC).
+- Nuevo helper `useDialogs` (multi-dialog state).
 
-## Criterios de éxito
+Ahorro estimado: **~190 LOC**.
 
-- Reducción neta ≥ 1,200 LOC (dejando margen para helpers nuevos que suman ~100 LOC).
-- 0 regresiones: `bunx vitest run` verde tras cada lote.
-- 0 cambios funcionales: mismos endpoints, misma UI, mismas RLS.
-- Changelog por lote (`v6.141.0` … `v6.144.0`).
+## Recuento
 
-## Fuera de alcance
+| Bloque | LOC pendientes |
+| --- | --- |
+| Lote 1 (edge functions restantes) | ~200-250 |
+| Lote 2 (hooks cola) | ~60-80 |
+| Lote 4 (utils/schemas) | ~95 |
+| Lote 3 (UI) | ~190 |
+| **Total pendiente** | **~545-615 LOC** |
 
-- `useForkliftMutations` (optimistic updates especiales) salvo que se extienda `useEntityMutation`.
-- `useCreateSupplier`/`useUpdateSupplier` (translateSupplierError propio).
-- Duplicaciones cosméticas o de <5 LOC por archivo.
+Ya se han eliminado del orden de **~750-830 LOC** de los ~1,380 estimados iniciales.
 
-## Confirmación requerida
+## Próximo paso propuesto
 
-¿Ejecutamos los 4 lotes en secuencia (Lote 1 → 2 → 4 → 3) o prefieres empezar solo por el Lote 1 (Edge Functions, mayor ahorro) y evaluar antes de continuar?
+**Cerrar Lote 1** creando `_shared/facturapi.ts` + `_shared/cfdi.ts` y migrando las funciones que aún declaran su propio boilerplate Facturapi/XML — es el mayor ahorro restante por archivo y desbloquea limpiar los `new Response(JSON.stringify(...))` que quedan.
+
+¿Continuamos con ese cierre de Lote 1, o prefieres saltar directo a Lote 4 (utils/schemas, más rápido) o Lote 3 (UI, más visible)?
