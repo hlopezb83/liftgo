@@ -73,8 +73,10 @@ async function loadFacturapiKey(
   supabase: SupabaseClient,
 ): Promise<string | null> {
   // deno-lint-ignore no-explicit-any
-  const { apiKey } = await getFacturapiConfig(supabase as any, (k) =>
-    Deno.env.get(k));
+  const { apiKey } = await getFacturapiConfig(
+    supabase as any,
+    (k) => Deno.env.get(k),
+  );
   return apiKey;
 }
 
