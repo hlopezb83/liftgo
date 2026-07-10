@@ -73,3 +73,15 @@ describe("toMxn", () => {
     expect(toMxn(10, "mxn", 17)).toBe(10);
   });
 });
+
+describe("applyVat", () => {
+  it("aplica la tasa por defecto (16%)", () => {
+    expect(DEFAULT_VAT_RATE).toBe(0.16);
+    expect(applyVat(100)).toBeCloseTo(116, 5);
+  });
+  it("acepta tasa custom", () => {
+    expect(applyVat(100, 0.08)).toBeCloseTo(108, 5);
+    expect(applyVat(100, 0)).toBe(100);
+  });
+});
+
