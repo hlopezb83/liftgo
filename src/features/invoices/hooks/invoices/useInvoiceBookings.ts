@@ -1,6 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { invoiceKeys } from "../../lib/queryKeys";
+
 
 const ibKeys = {
   all: ["invoice_bookings"] as const,
