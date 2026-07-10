@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.4.1",
+    "date": "2026-07-10",
+    "type": "patch",
+    "title": "Reporte Lighthouse — verificación de Lote G (antes / después)",
+    "description": "Se re-corrió Lighthouse (desktop preset) contra el build de producción servido con `vite preview`. Landing pública: score 96, FCP 0.9 s, LCP 1.3 s, TBT 0 ms, SI 0.9 s, JS total 448 KB / 9 archivos (idéntico antes y después, correcto: la landing no consume PDF). Para medir el impacto real del Lote G se rehizo el build revirtiendo temporalmente los 5 imports a estáticos y se comparó qué route chunks referencian `react-pdf-*.js` (1.46 MB / 490 KB gzip): ANTES 4 páginas — QuoteDetail (25 KB), InvoiceDetail (73 KB), IncomeStatementReport (18 KB), ContractDetail (13 KB) — encadenaban eagerly el chunk react-pdf; DESPUÉS ninguna. Solo los módulos internos de renderizado (`*Document`, `build-*`) siguen enlazados a react-pdf, lo cual es correcto porque son el código PDF. Ganancia real: 1.46 MB / 490 KB gzip fuera del hot-path para 4 vistas de detalle que se abren muchas veces al día. Reportes guardados en /tmp/lh/. Sin cambios de código de aplicación en este parche.",
+    "category": "improvement"
+  },
+  {
     "version": "7.4.0",
     "date": "2026-07-10",
     "type": "minor",
