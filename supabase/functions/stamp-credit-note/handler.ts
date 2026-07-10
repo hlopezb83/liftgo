@@ -1,5 +1,6 @@
 // Pure handler for stamp-credit-note, deps-injected for testability.
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
