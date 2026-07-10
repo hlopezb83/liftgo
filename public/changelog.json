@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.5.1",
+    "date": "2026-07-10",
+    "type": "patch",
+    "title": "ESLint a 0 warnings: refactor de Cuentas por Pagar",
+    "description": "Se eliminaron los 13 warnings restantes descomponiendo SupplierBillDetailSheet, SupplierPaymentRow y SupplierBillFormDialog. Nuevos módulos: billPermissions.ts, useSupplierPaymentActions, SupplierBillDetailContent, SupplierBillPaymentActions, SupplierPaymentDeleteButton y SupplierBillFormFields. 804/804 tests OK.",
+    "category": "refactor"
+  },
+  {
     "version": "7.5.0",
     "date": "2026-07-10",
     "type": "minor",

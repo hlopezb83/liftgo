@@ -1,0 +1,26 @@
+{
+  "version": "7.5.1",
+  "date": "2026-07-10",
+  "type": "patch",
+  "title": "ESLint a 0 warnings: refactor de Cuentas por Pagar",
+  "sections": [
+    {
+      "heading": "Refactor",
+      "items": [
+        "SupplierBillDetailSheet dividido: lógica de permisos extraída a `billPermissions.ts` y contenido movido a `SupplierBillDetailContent`.",
+        "Acciones del pago (aprobación, cancelación, edición, eliminación) encapsuladas en `SupplierBillPaymentActions` con `GuardedButton` reutilizable.",
+        "SupplierPaymentRow adelgazado: hook `useSupplierPaymentActions` centraliza estado + mutaciones; botón destructivo aislado en `SupplierPaymentDeleteButton`.",
+        "SupplierBillFormDialog reducido bajo 150 líneas moviendo las 4 grillas de campos a `SupplierBillFormFields`.",
+        "`useReconciliationStatus` expuesto en el barrel público de `bank-reconciliation`."
+      ]
+    },
+    {
+      "heading": "Calidad",
+      "items": [
+        "ESLint: 13 → 0 warnings.",
+        "Tests: 804/804 passing.",
+        "Sin cambios de comportamiento observable."
+      ]
+    }
+  ]
+}
