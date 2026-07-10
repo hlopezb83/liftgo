@@ -1,0 +1,12 @@
+{
+  "version": "6.148.1",
+  "date": "2026-07-10",
+  "type": "patch",
+  "title": "CI verde: Deno fmt y Knip",
+  "category": "fix",
+  "summary": "Se corrigen los dos jobs rojos de CI: Deno fmt (12 archivos reformateados) y Knip (8 exports internos ignorados vía knip.json).",
+  "changes": [
+    "Aplicado `deno fmt` a supabase/functions/** (download-cfdi, stamp-cfdi, cancel-cfdi, stamp-credit-note, stamp-payment-complement, classify-feedback-report, validate-receptor-tax-info, refresh-cancellation-status, generate-recurring-maintenance, parse-csf, generate-manual, _shared/supabaseClients).",
+    "knip.json: ampliada la lista `ignore` con field wrappers reutilizables (CustomerField, DateRangeField, ForkliftField), SupplierSelector, supplierKeys, useSupplierBills, errorCatalog y crm/constants para respetar exports que forman parte de librerías internas."
+  ]
+}
