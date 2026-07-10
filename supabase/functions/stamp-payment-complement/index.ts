@@ -1,6 +1,6 @@
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
-import { jsonError } from "../_shared/http.ts";
-import { getAdminClient, getCallerClient } from "../_shared/supabaseClients.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
+import { requireRole } from "../_shared/auth.ts";
 import { isUUID } from "../_shared/validate.ts";
 import {
   binaryToBytes,
@@ -16,45 +16,15 @@ const IVA_RATE = 0.16;
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
-  const corsHeaders = getCorsHeaders(req);
-  const jsonHeaders = { ...corsHeaders, "Content-Type": "application/json" };
-
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return jsonError(req, 401, "Unauthorized");
-    }
-    const callerClient = getCallerClient(req);
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: claimsErr } = await callerClient.auth
-      .getClaims(token);
-    if (claimsErr || !claimsData?.claims?.sub) {
-      return jsonError(req, 401, "Unauthorized");
-    }
-    const userId = claimsData.claims.sub as string;
-
-    const supabase = getAdminClient();
-    const { data: rolesRows } = await supabase
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", userId);
-    const allowed = (rolesRows ?? []).some((r) =>
-      r.role === "admin" || r.role === "administrativo"
-    );
-    if (!allowed) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
-        headers: jsonHeaders,
-      });
-    }
+    const auth = await requireRole(req, ["admin", "administrativo"]);
+    if (!auth.ok) return auth.response;
+    const supabase = auth.adminClient;
 
     const { payment_id } = await req.json().catch(() => ({}));
     if (!isUUID(payment_id)) {
-      return new Response(
-        JSON.stringify({ error: "payment_id must be a valid UUID" }),
-        { status: 400, headers: jsonHeaders },
-      );
+      return jsonError(req, 400, "payment_id must be a valid UUID");
     }
 
     // Load payment
@@ -63,23 +33,12 @@ Deno.serve(async (req) => {
       .select("*")
       .eq("id", payment_id)
       .single();
-    if (payErr || !payment) {
-      return new Response(JSON.stringify({ error: "Payment not found" }), {
-        status: 404,
-        headers: jsonHeaders,
-      });
-    }
+    if (payErr || !payment) return jsonError(req, 404, "Payment not found");
     if (payment.rep_cfdi_status === "stamped") {
-      return new Response(
-        JSON.stringify({ error: "Este pago ya tiene un REP timbrado" }),
-        { status: 409, headers: jsonHeaders },
-      );
+      return jsonError(req, 409, "Este pago ya tiene un REP timbrado");
     }
     if (!payment.payment_form_sat) {
-      return new Response(
-        JSON.stringify({ error: "Falta forma de pago SAT en el pago" }),
-        { status: 400, headers: jsonHeaders },
-      );
+      return jsonError(req, 400, "Falta forma de pago SAT en el pago");
     }
     // Claim atómico: solo una petición concurrente puede transicionar
     // de pending|error → stamping. Cierra la ventana antes de llamar a Facturapi.
@@ -95,12 +54,7 @@ Deno.serve(async (req) => {
       console.error("[stamp-payment-complement] claim failed", claimRes.error);
     }
     if (!claimRes.data) {
-      return new Response(
-        JSON.stringify({
-          error: "REP ya está siendo timbrado o ya fue timbrado",
-        }),
-        { status: 409, headers: jsonHeaders },
-      );
+      return jsonError(req, 409, "REP ya está siendo timbrado o ya fue timbrado");
     }
 
     // Load invoice
@@ -111,27 +65,12 @@ Deno.serve(async (req) => {
       )
       .eq("id", payment.invoice_id)
       .single();
-    if (!invoice) {
-      return new Response(JSON.stringify({ error: "Invoice not found" }), {
-        status: 404,
-        headers: jsonHeaders,
-      });
-    }
+    if (!invoice) return jsonError(req, 404, "Invoice not found");
     if (invoice.metodo_pago !== "PPD") {
-      return new Response(
-        JSON.stringify({
-          error: "Solo facturas PPD requieren Complemento de Pago",
-        }),
-        { status: 400, headers: jsonHeaders },
-      );
+      return jsonError(req, 400, "Solo facturas PPD requieren Complemento de Pago");
     }
     if (invoice.cfdi_status !== "stamped" || !invoice.cfdi_uuid) {
-      return new Response(
-        JSON.stringify({
-          error: "La factura debe estar timbrada para generar REP",
-        }),
-        { status: 400, headers: jsonHeaders },
-      );
+      return jsonError(req, 400, "La factura debe estar timbrada para generar REP");
     }
 
     // Calculate prior_balance: sum of all stamped/none REP payments BEFORE this one
@@ -158,12 +97,7 @@ Deno.serve(async (req) => {
     const priorBalance = Number((invoiceTotal - priorPaid).toFixed(2));
     const amount = Number(payment.amount);
     if (amount <= 0 || amount > priorBalance + 0.01) {
-      return new Response(
-        JSON.stringify({
-          error: `Monto inválido. Saldo previo: ${priorBalance}`,
-        }),
-        { status: 400, headers: jsonHeaders },
-      );
+      return jsonError(req, 400, `Monto inválido. Saldo previo: ${priorBalance}`);
     }
 
     // Tax breakdown (IVA 16% único)
@@ -187,12 +121,7 @@ Deno.serve(async (req) => {
       envTestKey: Deno.env.get("FACTURAPI_TEST_KEY"),
       envLiveKey: Deno.env.get("FACTURAPI_LIVE_KEY"),
     });
-    if (!apiKey) {
-      return new Response(
-        JSON.stringify({ error: "Facturapi key not configured" }),
-        { status: 400, headers: jsonHeaders },
-      );
-    }
+    if (!apiKey) return jsonError(req, 400, "Facturapi key not configured");
 
     const paymentDateIso = `${payment.payment_date}T12:00:00`;
     const currency = (payment.currency as string | null) || "MXN";
@@ -252,13 +181,9 @@ Deno.serve(async (req) => {
           rep_error_message: desc.detail.slice(0, 1000),
         })
         .eq("id", payment_id);
-      return new Response(
-        JSON.stringify({
-          error: `Facturapi error: ${desc.status}`,
-          detail: desc.detail,
-        }),
-        { status: 502, headers: jsonHeaders },
-      );
+      return jsonError(req, 502, `Facturapi error: ${desc.status}`, {
+        detail: desc.detail,
+      });
     }
 
     const repId = repInvoice.id;
@@ -313,10 +238,7 @@ Deno.serve(async (req) => {
 
     if (updErr) {
       console.error("DB update error after REP stamp:", updErr);
-      return new Response(
-        JSON.stringify({ error: "REP timbrado pero no se pudo guardar en DB" }),
-        { status: 500, headers: jsonHeaders },
-      );
+      return jsonError(req, 500, "REP timbrado pero no se pudo guardar en DB");
     }
 
     // Folio de Facturapi = fuente de verdad. Guardamos CP-<folio> como rep_number.
@@ -347,21 +269,15 @@ Deno.serve(async (req) => {
       }
     }
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        rep_cfdi_uuid: repUuid,
-        rep_facturapi_id: repId,
-        rep_number: repNumber,
-        installment_number: installmentNumber,
-      }),
-      { headers: jsonHeaders },
-    );
+    return jsonResponse(req, {
+      success: true,
+      rep_cfdi_uuid: repUuid,
+      rep_facturapi_id: repId,
+      rep_number: repNumber,
+      installment_number: installmentNumber,
+    });
   } catch (err) {
     console.error("stamp-payment-complement error:", err);
-    return new Response(JSON.stringify({ error: "Internal server error" }), {
-      status: 500,
-      headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-    });
+    return jsonError(req, 500, "Internal server error");
   }
 });
