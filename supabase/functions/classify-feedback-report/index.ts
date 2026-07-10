@@ -1,6 +1,7 @@
-import { getAdminClient, getCallerClient } from "../_shared/supabaseClients.ts";
 import { z } from "https://esm.sh/zod@3.23.8";
-import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
+import { requireRole } from "../_shared/auth.ts";
 
 const SEVERITIES = ["critical", "high", "medium", "low"] as const;
 const MODULES = [
@@ -46,62 +47,22 @@ const ClassificationSchema = z.object({
 Deno.serve(async (req) => {
   const cors = handleCors(req);
   if (cors) return cors;
-  const headers = {
-    ...getCorsHeaders(req),
-    "Content-Type": "application/json",
-  };
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers,
-      });
-    }
-
     const lovableKey = Deno.env.get("LOVABLE_API_KEY");
     if (!lovableKey) {
-      return new Response(
-        JSON.stringify({ error: "LOVABLE_API_KEY no configurada" }),
-        { status: 500, headers },
-      );
+      return jsonError(req, 500, "LOVABLE_API_KEY no configurada");
     }
 
-    const caller = getCallerClient(req);
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claims, error: claimsErr } = await caller.auth.getClaims(
-      token,
-    );
-    if (claimsErr || !claims?.claims?.sub) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers,
-      });
-    }
-
-    const admin = getAdminClient();
-
-    const { data: roleRow } = await admin
-      .from("user_roles")
-      .select("role")
-      .eq("user_id", claims.claims.sub)
-      .in("role", ["admin", "administrativo"])
-      .maybeSingle();
-    if (!roleRow) {
-      return new Response(JSON.stringify({ error: "Forbidden" }), {
-        status: 403,
-        headers,
-      });
-    }
+    const auth = await requireRole(req, ["admin", "administrativo"]);
+    if (!auth.ok) return auth.response;
+    const admin = auth.adminClient;
 
     const parsed = BodySchema.safeParse(await req.json());
     if (!parsed.success) {
-      return new Response(JSON.stringify({ error: parsed.error.flatten() }), {
-        status: 400,
-        headers,
-      });
+      return jsonError(req, 400, "Invalid body", { detail: parsed.error.flatten() });
     }
+
 
     const { data: report, error: reportErr } = await admin
       .from("feedback_reports")
