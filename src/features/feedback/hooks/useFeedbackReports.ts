@@ -66,8 +66,7 @@ export function useFeedbackHistory(reportId: string | null) {
 }
 
 export function useUpdateFeedbackStatus() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({
       reportId,
       newStatus,
@@ -85,14 +84,9 @@ export function useUpdateFeedbackStatus() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: QUERY_KEY });
-      queryClient.invalidateQueries({ queryKey: ["feedback_reports"] });
-      queryClient.invalidateQueries({ queryKey: ["feedback_leaderboard"] });
-      notifySuccess("Estado actualizado");
-    },
-    onError: (err: Error) => {
-      notifyError({ title: "Error al cambiar estado", error: err });
-    },
+    invalidateKeys: [QUERY_KEY, ["feedback_leaderboard"]],
+    successMsg: "Estado actualizado",
+    errorTitle: "Error al cambiar estado",
   });
 }
+
