@@ -1,9 +1,8 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { useDialogState } from "@/hooks/useDialogState";
 
 interface ListToolbarProps {
   /** Slot izquierdo: normalmente `<SearchBar />`. */
@@ -31,7 +30,7 @@ export function ListToolbar({
   mobileFiltersLabel = "Filtros",
 }: ListToolbarProps) {
   const isMobile = useIsMobile();
-  const sheet = useDialogState();
+  const [sheetOpen, setSheetOpen] = useState(false);
   const showFiltersInSheet = isMobile && !!filters;
 
   return (
@@ -39,7 +38,7 @@ export function ListToolbar({
       <div className="flex flex-col sm:flex-row sm:items-center gap-2">
         {search && <div className="flex-1 min-w-0">{search}</div>}
         {showFiltersInSheet ? (
-          <Sheet open={sheet.open} onOpenChange={sheet.onOpenChange}>
+          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild>
               <Button variant="outline" size="sm" className="touch:h-11 gap-2">
                 <SlidersHorizontal className="h-4 w-4" />
