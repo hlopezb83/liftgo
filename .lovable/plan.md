@@ -1,66 +1,67 @@
-# Estado del plan DRY · Pendientes
+# Migración a React 19 — Análisis y Plan
 
-Recorriendo el plan original (`.lovable/plan.md`, estimado ~1,380 LOC) y los changelogs entregados (`v6.141.0` → `v6.148.2`), esto es lo que **ya está hecho** y lo que **queda pendiente**.
+## Estado actual del proyecto
+- React **18.3.1** + React DOM 18.3.1
+- Vite 5 + `@vitejs/plugin-react-swc` 3.11 (compatible con R19 sin cambios)
+- 34 archivos con `forwardRef` (todos son wrappers shadcn/ui)
+- **0 usos de `defaultProps`** en componentes función (era el mayor breaking change)
+- Sin string refs, sin `PropTypes`, sin `ReactDOM.render` legacy
+- Librerías clave ya soportan R19: `@tanstack/react-query` 5, Radix UI (todas ≥1.2), `react-hook-form` 7.80, `react-router-dom` 6.30, `sonner` 1.7, `recharts` 3, `cmdk` 1.1
 
-## ✅ Completado
+## Complejidad estimada: **BAJA** (1–2 sesiones)
+No hay bloqueadores. Los breaking changes reales de R19 no aplican aquí:
+- ❌ No usamos `propTypes` / `defaultProps` en function components
+- ❌ No usamos string refs ni `React.createFactory`
+- ❌ No usamos `ReactDOM.render` / `hydrate` (usamos `createRoot`)
+- ⚠️ Único cambio de tipos: `ref` deja de necesitar `forwardRef` (opcional refactor)
+- ⚠️ Cambios de tipos en `@types/react` 19 (algunos hijos ahora más estrictos, `useRef` requiere argumento inicial)
 
-- **Lote 1 — Edge Functions (parcial):** `requireAdmin`/`requireRole`, `jsonResponse`/`jsonError`, refactor de `delete-user`, CFDI stampers, `refresh-cancellation-status`, formateo `deno fmt`, fix ReferenceError `jsonHeaders` (`v6.141.0`-`v6.143.0`, `v6.148.1`, `v6.148.2`).
-- **Lote 2 — Hooks (mayor parte, ~5 partes):** Supplier Bills, Bank Line Actions, Audit Logs, Bill Approvals, Suppliers, Company Settings, Payment Batches, Booking Extensions, Invoices/CFDI/REP, Bank Imports, Receptor Fiscal Info, Recurring Invoices Preview (`v6.144.0`-`v6.148.0`).
+## Beneficios concretos para LiftGo
 
-## ⏳ Pendiente
+### Ganancias inmediatas (sin refactor)
+1. **Mejores errores de hidratación** — diffs claros en consola (útil en el portal de clientes).
+2. **Document metadata nativo** — `<title>` y `<meta>` desde componentes; sustituye parches ad-hoc de SEO.
+3. **Precarga de recursos** — `preload`, `preinit` para PDFs (jsPDF lazy) y fuentes.
+4. **Stack traces más limpios** en errores capturados por `sonner`.
 
-### Lote 1 — Edge Functions (resto)
-- **`_shared/facturapi.ts::getFacturapiConfig(admin)`** — centralizar lectura de `company_settings.facturapi_mode` + `billing_secrets` (hoy repetido en stamp-cfdi, stamp-credit-note, stamp-payment-complement, cancel-*).
-- **`_shared/cfdi.ts`** — unificar parsers XML CFDI (hoy `validate-supplier-rep` reimplementa lo que ya vive en `parse-cfdi-expense/cfdi-parser.ts`).
-- **72 → resto de `new Response(JSON.stringify(...))`** en funciones no migradas todavía (validate-supplier-rep, cancel-credit-note, generate-invoice-pdf, parse-csf, invite-*).
+### Ganancias tras refactor selectivo (opcional, gradual)
+5. **`useOptimistic`** — encaja perfecto con la memoria `optimistic-ui` del proyecto (eliminaciones inmediatas con rollback); podría reemplazar patrones manuales en mutaciones.
+6. **`useActionState` + `<form action={}>`** — simplifica flujos RHF que hoy usan `isPending` + `onSubmit` manual (Bookings, Quotes, Invoices).
+7. **`ref` como prop** — permite eliminar `forwardRef` en los ~34 wrappers de shadcn/ui (reducción DRY natural).
+8. **`use()` hook** — leer contextos condicionalmente (útil en `MainLayout` para permisos por rol).
 
-Ahorro estimado restante: **~200-250 LOC**.
+### NO aplica
+- Server Components / Server Actions (somos SPA Vite, no Next).
+- React Compiler es independiente de R19 (se puede activar por separado en R18 también).
 
-### Lote 2 — Hooks (cola)
-Todavía en `useMutation` crudo:
-- `useForkliftMutations.ts` (~28 LOC) — usa `setQueryData` optimista; requiere extender `useEntityMutation` con opción `optimistic` **o** dejarlo fuera de alcance (marcado como opcional).
-- `useCashFlowSettings.ts` (~15 LOC).
-- `useInviteUser.ts` (~12 LOC).
-- `useBookings.ts` create/update (~12 LOC).
-- `useCreatePaymentIntent.ts` (~10 LOC).
-- `useSuppliers.ts` create/update (~22 LOC) — marcado fuera de alcance por `translateSupplierError`.
+## Plan de migración por fases
 
-Ahorro estimado restante: **~60-80 LOC** (sin contar optimistic).
+### Fase 1 — Bump y verificación (~1 h)
+1. `bun add react@^19 react-dom@^19` y `bun add -D @types/react@^19 @types/react-dom@^19`.
+2. Ejecutar codemod oficial de tipos:
+   `bunx types-react-codemod@latest preset-19 ./src`
+   (arregla `useRef` sin argumento, `ReactElement` genéricos, etc.)
+3. `bunx tsgo` → resolver errores de tipos que resulten (esperamos <10, mayormente en refs y `children`).
+4. `bunx vitest run` → suite 804 tests debe seguir verde.
+5. Smoke test manual: login, dashboard, crear reserva, generar PDF, portal de clientes.
 
-### Lote 4 — Utils / Schemas / Rules (en progreso)
-- ✅ IVA hardcodeado `* 1.16` → `applyVat` / `DEFAULT_VAT_RATE` (`v6.150.0`).
-- ✅ `TotalsBreakdown` compartido en portal + 5 hooks read-only migrados a `callRpc<T>()` (`v6.151.0`).
-- Restantes ~10 hooks con `supabase.rpc(...)` directo (create/cancel booking, portal accept/reject quote, next_*_number, etc.) — muchos usan la respuesta como paso previo (no un simple query), migrar caso a caso.
-- Nuevos schemas comunes en `src/lib/schemas/common.ts`: `rfcPublicoGeneral`, `addressSchema`, `notesSchema`, `phoneSchema` (~22 LOC).
-- Coerción numérica manual en editores de líneas → `src/lib/coerce.ts` (~12 LOC).
+### Fase 2 — Validación runtime (~30 min)
+6. Verificar consola sin nuevos warnings en las rutas críticas (Bookings, Quotes, Invoices, Portal, Maintenance).
+7. Comprobar que Radix, `cmdk` y `recharts` renderizan sin regresiones.
+8. Publicar changelog `v6.152.0` (minor, no breaking para el usuario final).
 
-Ahorro restante estimado: **~55 LOC**.
+### Fase 3 — Aprovechar novedades (opcional, siguientes sprints)
+9. Migrar wrappers de shadcn/ui: eliminar `forwardRef` en los 34 archivos (−~60 LOC, cuadra con el sprint DRY).
+10. Introducir `useOptimistic` en los hooks de eliminación optimista existentes.
+11. Reemplazar tags manuales de `<title>`/meta por soporte nativo de R19 en rutas SEO.
 
+## Riesgos y mitigación
+- **Tipos más estrictos en `children`** → algunas props `ReactNode` pueden requerir cast. Se resuelve con el codemod + ajustes puntuales.
+- **`useRef()` sin argumento inicial** → ahora obliga a pasar `null`. El codemod lo hace automáticamente.
+- **Radix / cmdk peer deps** → todos ya declaran `react: ">=16 || 17 || 18 || 19"` en sus últimas versiones instaladas. Sin acción requerida.
+- **Rollback trivial** → volver a `react@18.3.1` con un `bun add` si algo crítico aparece.
 
-### Lote 3 — Componentes UI (no iniciado, el último por diseño)
-- Reports charts (Revenue, MaintenanceCost, Utilization, CashFlow) → `ReportChartCard` (~55 LOC).
-- `AuditDiffTables` → `DataTableV2` (~40 LOC).
-- `SupplierBillDetailSheet`: extraer `Row` local a `DetailRow` + hook `useDialogs` para 4 diálogos (~30 LOC).
-- `ContractDetail` / `ContractDetailsCard` → `DetailRow` (~30 LOC).
-- `RegisterSupplierPaymentDialog` → `FileField` wrapper (~8 LOC).
-- Nuevo helper `useDialogs` (multi-dialog state).
+## Recomendación
+Ejecutar **Fase 1 + 2** en una sola sesión (bajo riesgo, alto valor por mejores errores + metadata nativo + desbloquea R19 APIs). Dejar Fase 3 como parte del sprint DRY en curso — encaja naturalmente con los objetivos de reducción de LOC.
 
-Ahorro estimado: **~190 LOC**.
-
-## Recuento
-
-| Bloque | LOC pendientes |
-| --- | --- |
-| Lote 1 (edge functions restantes) | ~200-250 |
-| Lote 2 (hooks cola) | ~60-80 |
-| Lote 4 (utils/schemas) | ~95 |
-| Lote 3 (UI) | ~190 |
-| **Total pendiente** | **~545-615 LOC** |
-
-Ya se han eliminado del orden de **~750-830 LOC** de los ~1,380 estimados iniciales.
-
-## Próximo paso propuesto
-
-**Cerrar Lote 1** creando `_shared/facturapi.ts` + `_shared/cfdi.ts` y migrando las funciones que aún declaran su propio boilerplate Facturapi/XML — es el mayor ahorro restante por archivo y desbloquea limpiar los `new Response(JSON.stringify(...))` que quedan.
-
-¿Continuamos con ese cierre de Lote 1, o prefieres saltar directo a Lote 4 (utils/schemas, más rápido) o Lote 3 (UI, más visible)?
+¿Procedemos con Fase 1+2 ahora, o prefieres incluir también la Fase 3 (limpieza de `forwardRef`) en el mismo cambio?
