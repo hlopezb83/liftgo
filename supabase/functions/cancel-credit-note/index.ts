@@ -46,20 +46,8 @@ Deno.serve(async (req) => {
       return jsonError(req, 400, "Only stamped credit notes can be cancelled");
     }
 
-    const { data: company } = await supabase.from("company_settings").select(
-      "facturapi_mode",
-    ).limit(1).maybeSingle();
-    const { data: secrets } = await supabase.from("billing_secrets").select(
-      "facturapi_test_key, facturapi_live_key",
-    ).limit(1).maybeSingle();
-    const mode = (company?.facturapi_mode as string | undefined) || "test";
-    const apiKey = resolveFacturapiKey({
-      mode: mode === "live" ? "live" : "test",
-      dbTestKey: secrets?.facturapi_test_key as string | null | undefined,
-      dbLiveKey: secrets?.facturapi_live_key as string | null | undefined,
-      envTestKey: Deno.env.get("FACTURAPI_TEST_KEY"),
-      envLiveKey: Deno.env.get("FACTURAPI_LIVE_KEY"),
-    });
+    const { apiKey } = await getFacturapiConfig(supabase, (k) =>
+      Deno.env.get(k));
 
     let satStatus = "accepted";
     const isStub = !apiKey || !nc.facturapi_invoice_id;
