@@ -125,7 +125,7 @@ export function InvoiceCreditNotesCard({ invoice, totalPaid }: Props) {
                             <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" title="Eliminar borrador" onClick={async () => {
                               const ok = await confirm({
                                 title: "Eliminar borrador",
-                                description: `¿Eliminar el borrador de la nota de crédito ${cn.folio ?? ""}? Esta acción no se puede deshacer.`,
+                                description: "¿Eliminar el borrador de la nota de crédito? Esta acción no se puede deshacer.",
                                 confirmLabel: "Eliminar",
                                 destructive: true,
                               });
