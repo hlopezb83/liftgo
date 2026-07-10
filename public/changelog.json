@@ -1,5 +1,14 @@
 [
   {
+    "version": "7.0.0",
+    "date": "2026-07-10",
+    "type": "major",
+    "title": "Migración a React 19",
+    "description": "Upgrade de React 18.3.1 → 19.2.7 (react-dom y @types/react-dom incluidos). Typecheck limpio sin necesidad de codemod (no usábamos `defaultProps`, string refs ni `ReactDOM.render` legacy). 804/804 tests siguen pasando y no aparecen nuevos warnings en runtime. Desbloquea `useOptimistic`, `useActionState`, `ref` como prop, metadata nativo (`<title>`/`<meta>`) y mejores mensajes de hidratación. La limpieza de `forwardRef` en wrappers shadcn/ui queda como refactor DRY posterior.",
+    "category": "chore"
+  },
+  {
+
     "version": "6.151.0",
     "date": "2026-07-10",
     "type": "minor",
