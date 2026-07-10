@@ -4,7 +4,7 @@ import { jsonError } from "../_shared/http.ts";
 import { requireRole } from "../_shared/auth.ts";
 import { isUUID } from "../_shared/validate.ts";
 import {
-  resolveFacturapiKey,
+  getFacturapiConfig,
   retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
 
