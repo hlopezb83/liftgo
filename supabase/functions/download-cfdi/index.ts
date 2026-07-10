@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
-import { jsonError, jsonResponse } from "../_shared/http.ts";
+import { jsonError } from "../_shared/http.ts";
 import { requireRole } from "../_shared/auth.ts";
 import { isUUID } from "../_shared/validate.ts";
 import {
