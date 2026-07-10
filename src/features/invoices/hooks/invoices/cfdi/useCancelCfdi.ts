@@ -1,6 +1,6 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError, notifyInfo, notifySuccess, notifyWarning } from "@/lib/ui/appFeedback";
+import { notifyInfo, notifySuccess, notifyWarning } from "@/lib/ui/appFeedback";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 
 import { invoiceKeys } from "../../../lib/queryKeys";
 interface CancelCfdiVars {
@@ -21,9 +21,7 @@ interface CancelCfdiResponse {
  * Cancela un CFDI timbrado vía edge function `cancel-cfdi`.
  */
 export function useCancelCfdi() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ invoiceId, motive, substitutionUuid, cancellationReason }: CancelCfdiVars): Promise<CancelCfdiResponse> => {
       return await invokeEdgeFunction<CancelCfdiResponse>("cancel-cfdi", {
         body: {
@@ -34,18 +32,16 @@ export function useCancelCfdi() {
         },
       });
     },
-    onSuccess: (data, { invoiceId }) => {
+    invalidateKeys: [invoiceKeys.all],
+    invalidateKeysFn: (_data, { invoiceId }) => [invoiceKeys.detail(invoiceId)],
+    errorTitle: "Error al cancelar",
+    onSuccess: (data) => {
       if (data?.accepted) {
         notifySuccess("CFDI cancelado ante el SAT");
       } else {
         notifyInfo("Solicitud de cancelación enviada al SAT");
       }
       if (data?.warning) notifyWarning({ title: data.warning });
-      queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
-      queryClient.invalidateQueries({ queryKey: invoiceKeys.detail(invoiceId) });
-    },
-    onError: (err: unknown) => {
-      notifyError({ error: err, message: "Error al cancelar" });
     },
   });
 }
