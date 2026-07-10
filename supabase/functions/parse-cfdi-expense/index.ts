@@ -114,16 +114,10 @@ serve(async (req) => {
     const xml: unknown = body?.xml;
     const create: boolean = body?.create === true;
     if (typeof xml !== "string" || xml.length === 0) {
-      return new Response(JSON.stringify({ error: "xml es requerido" }), {
-        status: 400,
-        headers: jsonHeaders,
-      });
+      return jsonError(req, 400, "xml es requerido");
     }
     if (xml.length > MAX_XML_BYTES) {
-      return new Response(JSON.stringify({ error: "XML excede 1MB" }), {
-        status: 413,
-        headers: jsonHeaders,
-      });
+      return jsonError(req, 413, "XML excede 1MB");
     }
 
     let cfdi: ParsedCfdi;
@@ -131,10 +125,7 @@ serve(async (req) => {
       cfdi = parseCfdi(xml);
     } catch (e) {
       const msg = e instanceof Error ? e.message : "XML inválido";
-      return new Response(JSON.stringify({ error: msg }), {
-        status: 400,
-        headers: jsonHeaders,
-      });
+      return jsonError(req, 400, msg);
     }
 
     // Duplicate by UUID in supplier_bills
@@ -145,15 +136,12 @@ serve(async (req) => {
       .maybeSingle();
 
     if (existing) {
-      return new Response(
-        JSON.stringify({
-          duplicate: true,
-          existing_id: existing.id,
-          bill_number: existing.bill_number,
-          cfdi_uuid: cfdi.cfdi_uuid,
-        }),
-        { headers: jsonHeaders },
-      );
+      return jsonResponse(req, {
+        duplicate: true,
+        existing_id: existing.id,
+        bill_number: existing.bill_number,
+        cfdi_uuid: cfdi.cfdi_uuid,
+      });
     }
 
     // Match supplier by RFC (auto-create if missing)
