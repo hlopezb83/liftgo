@@ -4,15 +4,12 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { Download, ChevronDown, ChevronRight } from "lucide-react";
+import { Download } from "lucide-react";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
 import { useCustomerSummary, usePortalCustomer, usePortalInvoices, usePortalPayments } from "@/features/customers";
-
 import { notifyError } from "@/lib/ui/appFeedback";
+import { PortalInvoicesTable, type PortalPayment } from "../components/statement/PortalInvoicesTable";
 
-type Payment = { id: string; invoice_id: string | null; payment_date: string; payment_method: string | null; reference_number: string | null; amount: number | string };
 
 export default function PortalStatement() {
   const { data: customer, isLoading: cl } = usePortalCustomer();
@@ -25,12 +22,13 @@ export default function PortalStatement() {
   const rows = useMemo(() => {
     const list = invoices ?? [];
     return list.map((inv) => {
-      const invPayments = (payments ?? []).filter((p: Payment) => p.invoice_id === inv.id);
-      const paid = invPayments.reduce((s, p: Payment) => s + Number(p.amount), 0);
+      const invPayments = (payments ?? []).filter((p: PortalPayment) => p.invoice_id === inv.id);
+      const paid = invPayments.reduce((s, p: PortalPayment) => s + Number(p.amount), 0);
       const balance = Number(inv.total) - paid;
       return { inv, payments: invPayments, paid, balance };
     });
   }, [invoices, payments]);
+
 
   const filtered = onlyBalance ? rows.filter((r) => r.balance > 0.009) : rows;
 
