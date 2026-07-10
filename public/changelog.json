@@ -1,5 +1,13 @@
 [
   {
+    "version": "6.140.1",
+    "date": "2026-07-10",
+    "type": "patch",
+    "title": "Hardening RLS: company_settings y XML CFDI de proveedores",
+    "description": "Se elimina la política pública de lectura sobre company_settings (los datos de marca siguen disponibles vía la RPC get_public_branding; el resto de campos internos ya no se exponen a anon). Se restringe la lectura del bucket supplier-bill-cfdi-xml a admin, administrativo y auditor; antes cualquier usuario autenticado (incluyendo clientes del portal) podía descargar los XML.",
+    "category": "security"
+  },
+  {
     "version": "6.140.0",
     "date": "2026-07-10",
     "type": "minor",
