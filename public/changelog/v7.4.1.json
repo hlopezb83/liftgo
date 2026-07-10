@@ -1,0 +1,42 @@
+{
+  "version": "7.4.1",
+  "date": "2026-07-10",
+  "type": "patch",
+  "title": "Reporte Lighthouse — verificación de Lote G (antes / después)",
+  "summary": "Segunda corrida de Lighthouse contra el build de producción para confirmar el impacto real de los `import()` dinámicos de PDF (Lote G, v7.4.0).",
+  "sections": [
+    {
+      "heading": "Metodología",
+      "items": [
+        "Build de producción (`bun run build`) servido con `vite preview` en 127.0.0.1:4173.",
+        "Lighthouse 13.4.0 — preset desktop, chromium headless.",
+        "Baseline (ANTES): se revirtieron temporalmente los 5 hooks/componentes a `import` estático de `@/lib/pdf/*/build`, se rehizo el build y se compararon los chunks que referencian `react-pdf-*.js`.",
+        "Actual (DESPUÉS): estado en `main` (v7.4.0)."
+      ]
+    },
+    {
+      "heading": "Landing pública (login) — sin diferencia esperada",
+      "items": [
+        "Antes: score 96 · FCP 0.9 s · LCP 1.3 s · TBT 0 ms · SI 0.9 s · JS 448 KB / 9 archivos.",
+        "Después: score 96 · FCP 0.9 s · LCP 1.3 s · TBT 0 ms · SI 0.9 s · JS 448 KB / 9 archivos.",
+        "Interpretación: el login no cargaba react-pdf en ningún escenario, por eso es idéntico. La ganancia del Lote G vive en las páginas de detalle."
+      ]
+    },
+    {
+      "heading": "Route chunks que referencian react-pdf (1.46 MB / 490 KB gzip)",
+      "items": [
+        "ANTES (4 rutas cargaban react-pdf al abrirse): QuoteDetail (25 KB), InvoiceDetail (73 KB), IncomeStatementReport (18 KB), ContractDetail (13 KB).",
+        "DESPUÉS: 0 rutas. Solo módulos internos de render (`QuoteDocument`, `InvoiceDocument`, `IncomeStatementDocument`, `CustomerStatementDocument`, `ContractDocument`, `build-*`) siguen enlazados al chunk react-pdf, y esos únicamente se descargan cuando el usuario presiona 'Descargar PDF'.",
+        "Ganancia real: **-1.46 MB descomprimidos / -490 KB gzip** fuera del hot-path para las 4 vistas de detalle más navegadas del sistema."
+      ]
+    },
+    {
+      "heading": "Confirmación end-to-end (Playwright)",
+      "items": [
+        "Navegación autenticada a `/quotes/:id`: `pdf_chunk_after_detail = 0`.",
+        "Click en 'Descargar PDF': `pdf_chunk_after_click = 1`, PDF de 17.7 KB descargado correctamente.",
+        "Smoke E2E previo (v7.4.0) confirmó 0 errores de consola en /maintenance, /invoices, /quotes, /cuentas-por-pagar, /contracts, /reports y en los diálogos 'Nueva Factura' y 'Registrar Mantenimiento'."
+      ]
+    }
+  ]
+}
