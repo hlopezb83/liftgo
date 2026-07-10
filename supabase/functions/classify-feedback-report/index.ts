@@ -70,10 +70,7 @@ Deno.serve(async (req) => {
       .eq("id", parsed.data.report_id)
       .maybeSingle();
     if (reportErr || !report) {
-      return new Response(JSON.stringify({ error: "Reporte no encontrado" }), {
-        status: 404,
-        headers,
-      });
+      return jsonError(req, 404, "Reporte no encontrado");
     }
 
     const ctx = (report.context_json ?? {}) as Record<string, unknown>;
