@@ -1,0 +1,27 @@
+{
+  "version": "6.146.0",
+  "date": "2026-07-10",
+  "type": "minor",
+  "title": "DRY Lote 2 (parte 3): 6 hooks al patrón canónico",
+  "summary": "Tercera tanda del barrido de mutaciones a useEntityMutation.",
+  "sections": [
+    {
+      "heading": "Hooks migrados",
+      "items": [
+        "useUploadSupplierReceipt: upload a storage con validaciones de tamaño/tipo, sin invalidaciones (mutation puramente I/O).",
+        "useDeleteSupplierPayment: invalidateKeysFn dependiente de billId + paymentId (bill detail, KPIs, reconciliation).",
+        "useCreatePaymentBatch: 4 invalidaciones estáticas de payables (bills, exportable, batches, KPIs).",
+        "useRegisterSupplierPayment: invalidateKeysFn(bill_id) + toast estándar.",
+        "useBookingExtensions.useCreateBookingExtension: preserva assertRowsAffected + invalidación de extensiones/bookings.",
+        "useDamageRecords.useCreateDamageRecord / useUpdateDamageRecord: invalidan damage_records."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "802 tests verdes (136 archivos), tsgo limpio.",
+        "Sin cambios funcionales: mismas invalidaciones, mismos toasts, mismos errores."
+      ]
+    }
+  ]
+}
