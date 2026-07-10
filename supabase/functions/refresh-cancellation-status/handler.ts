@@ -6,7 +6,7 @@ import type { SupabaseLike } from "../_shared/types.ts";
 import {
   createFacturapiClient,
   describeFacturapiError,
-  resolveFacturapiKey,
+  getFacturapiConfig,
 } from "../_shared/facturapi/client.ts";
 
 export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
