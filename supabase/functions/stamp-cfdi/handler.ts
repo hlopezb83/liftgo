@@ -38,6 +38,7 @@ export async function handleStampCfdi(
   if (corsRes) return corsRes;
   const json = (body: unknown, status: number, _headers?: unknown) =>
     jsonResponse(req, body, { status });
+  const jsonHeaders = undefined;
 
   try {
     const authHeader = req.headers.get("Authorization");
