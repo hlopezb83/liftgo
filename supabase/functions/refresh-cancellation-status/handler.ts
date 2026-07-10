@@ -79,22 +79,7 @@ export async function handleRefreshCancellation(
       return json({ error: "Invoice has no Facturapi reference" }, 404);
     }
 
-    const { data: company } = await supabase
-      .from("company_settings").select("facturapi_mode").limit(1).maybeSingle();
-    const { data: secrets } = await supabase
-      .from("billing_secrets")
-      .select("facturapi_test_key, facturapi_live_key").limit(1).maybeSingle();
-
-    const co = (company ?? {}) as Record<string, unknown>;
-    const sec = (secrets ?? {}) as Record<string, unknown>;
-    const mode = (co.facturapi_mode as string) || "test";
-    const apiKey = resolveFacturapiKey({
-      mode: mode === "live" ? "live" : "test",
-      dbTestKey: sec.facturapi_test_key as string | null | undefined,
-      dbLiveKey: sec.facturapi_live_key as string | null | undefined,
-      envTestKey: deps.env("FACTURAPI_TEST_KEY"),
-      envLiveKey: deps.env("FACTURAPI_LIVE_KEY"),
-    });
+    const { apiKey } = await getFacturapiConfig(supabase, deps.env);
     if (!apiKey) return json({ error: "Facturapi key not configured" }, 400);
 
     const fid = inv.facturapi_invoice_id as string;
