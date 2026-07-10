@@ -1,7 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+
 
 import type { Tables } from "@/integrations/supabase/types";
 import type { FeedbackStatus } from "../lib/constants";
