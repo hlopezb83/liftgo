@@ -1,0 +1,28 @@
+{
+  "version": "6.149.0",
+  "date": "2026-07-10",
+  "type": "minor",
+  "title": "DRY Lote 1 · getFacturapiConfig centraliza resolución de API key",
+  "category": "refactor",
+  "highlights": [
+    "Nuevo helper `getFacturapiConfig` en `_shared/facturapi/client.ts` que consolida la lectura de `company_settings.facturapi_mode` + `billing_secrets` y devuelve `{ mode, apiKey }`.",
+    "Soporta `modeOverride` para handlers como `stamp-cfdi` que ya cargan `company_settings.select('*')` y no deben re-consultar la tabla.",
+    "Migrados 9 handlers: cancel-cfdi, refresh-cancellation-status, cancel-payment-complement, stamp-credit-note, stamp-cfdi, stamp-payment-complement, validate-receptor-tax-info, download-cfdi, cancel-credit-note.",
+    "`backfill-facturapi-serie-folio` se mantiene con `resolveFacturapiKey` porque necesita ambas keys (test+live) simultáneamente.",
+    "Neto: ~110 LOC menos y una sola fuente de verdad para la resolución de credenciales Facturapi."
+  ],
+  "technical": {
+    "files_changed": [
+      "supabase/functions/_shared/facturapi/client.ts",
+      "supabase/functions/cancel-cfdi/handler.ts",
+      "supabase/functions/refresh-cancellation-status/handler.ts",
+      "supabase/functions/cancel-payment-complement/handler.ts",
+      "supabase/functions/stamp-credit-note/handler.ts",
+      "supabase/functions/stamp-cfdi/handler.ts",
+      "supabase/functions/stamp-payment-complement/index.ts",
+      "supabase/functions/validate-receptor-tax-info/handler.ts",
+      "supabase/functions/download-cfdi/index.ts",
+      "supabase/functions/cancel-credit-note/index.ts"
+    ]
+  }
+}
