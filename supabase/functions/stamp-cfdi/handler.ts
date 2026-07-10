@@ -148,6 +148,14 @@ export async function handleStampCfdi(
 
     const { data: company } = await supabase
       .from("company_settings").select("*").limit(1).maybeSingle();
+    if (!company) {
+      console.error("[stamp-cfdi] company_settings missing", { invoice_id });
+      return json(
+        { error: "Company settings not configured" },
+        400,
+        jsonHeaders,
+      );
+    }
     const co = company as Record<string, unknown>;
     const { apiKey } = await getFacturapiConfig(supabase, deps.env, {
       modeOverride: (co.facturapi_mode as string | undefined) ?? null,
