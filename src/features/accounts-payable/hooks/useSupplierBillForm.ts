@@ -2,6 +2,7 @@ import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
+import { nonNegativeAmountCoerced, positiveAmountCoerced } from "@/lib/schemas";
 import { useSuppliers } from "@/features/suppliers";
 import { toYMD } from "@/lib/date/toYMD";
 import { nowMty } from "@/lib/utils";
@@ -16,11 +17,11 @@ export const supplierBillFormSchema = z.object({
   issue_date: z.date({ error: "Fecha de emisión requerida" }),
   due_date: z.date().optional(),
   currency: z.enum(["MXN", "USD"]),
-  exchange_rate: z.coerce.number().positive().default(1),
-  subtotal: z.coerce.number().nonnegative("Subtotal inválido"),
-  tax_amount: z.coerce.number().nonnegative().default(0),
-  retention_iva: z.coerce.number().nonnegative().default(0),
-  retention_isr: z.coerce.number().nonnegative().default(0),
+  exchange_rate: positiveAmountCoerced("Tipo de cambio inválido").default(1),
+  subtotal: nonNegativeAmountCoerced("Subtotal inválido"),
+  tax_amount: nonNegativeAmountCoerced("Impuesto inválido").default(0),
+  retention_iva: nonNegativeAmountCoerced("Retención IVA inválida").default(0),
+  retention_isr: nonNegativeAmountCoerced("Retención ISR inválida").default(0),
   cfdi_uuid: z.string().default(""),
   payment_method_sat: z.enum(["PUE", "PPD"]).optional(),
 });
