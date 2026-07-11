@@ -12,5 +12,5 @@ export function PageActionsProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo(() => ({ actions, register }), [actions, register]);
-  return <PageActionsContext.Provider value={value}>{children}</PageActionsContext.Provider>;
+  return <PageActionsContext value={value}>{children}</PageActionsContext>;
 }
