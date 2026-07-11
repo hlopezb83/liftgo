@@ -1,4 +1,3 @@
-import { memo } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { ExpenseIcon } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -54,7 +53,7 @@ function CashFlowTooltip({ active, payload }: { active?: boolean; payload?: Tool
   );
 }
 
-export const CashFlowChart = memo(function CashFlowChart({ data }: CashFlowChartProps) {
+export function CashFlowChart({ data }: CashFlowChartProps) {
   return (
     <ReportChartCard
       title="Flujo de Efectivo"
@@ -84,4 +83,4 @@ export const CashFlowChart = memo(function CashFlowChart({ data }: CashFlowChart
       )}
     </ReportChartCard>
   );
-});
+}

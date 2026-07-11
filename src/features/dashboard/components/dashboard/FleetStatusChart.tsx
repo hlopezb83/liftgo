@@ -1,4 +1,3 @@
-import { memo } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { PieChart as PieChartIcon } from "@/components/icons";
 import { ReportChartCard } from "@/components/domain/ReportChartCard";
@@ -13,7 +12,7 @@ interface FleetStatusChartProps {
   data: PieDataItem[];
 }
 
-export const FleetStatusChart = memo(function FleetStatusChart({ data }: FleetStatusChartProps) {
+export function FleetStatusChart({ data }: FleetStatusChartProps) {
   return (
     <ReportChartCard
       title="Estado de la Flota"
@@ -45,4 +44,4 @@ export const FleetStatusChart = memo(function FleetStatusChart({ data }: FleetSt
       )}
     </ReportChartCard>
   );
-});
+}

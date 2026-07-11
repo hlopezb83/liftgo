@@ -1,3 +1,4 @@
+import { Activity } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -23,6 +24,7 @@ export function MaintenanceDetailSheet({ log, onClose }: Props) {
               <SheetDescription>{log.forklift_name}</SheetDescription>
             </SheetHeader>
 
+            <Activity mode={log ? "visible" : "hidden"}>
             <div className="mt-6 space-y-6">
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
@@ -59,6 +61,7 @@ export function MaintenanceDetailSheet({ log, onClose }: Props) {
                 currentCost={log.cost || 0}
               />
             </div>
+            </Activity>
           </>
         )}
       </SheetContent>

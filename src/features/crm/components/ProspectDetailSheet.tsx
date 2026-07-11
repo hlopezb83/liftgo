@@ -1,3 +1,4 @@
+import { Activity } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -52,6 +53,7 @@ export function ProspectDetailSheet({ prospect, open, onOpenChange, onEdit, quot
           </SheetTitle>
         </SheetHeader>
 
+        <Activity mode={open ? "visible" : "hidden"}>
         <div className="mt-4 space-y-4">
           <Badge variant={STAGE_COLORS[prospect.stage] || "outline"}>
             {STAGE_LABELS[prospect.stage] || prospect.stage}
@@ -75,6 +77,7 @@ export function ProspectDetailSheet({ prospect, open, onOpenChange, onEdit, quot
           <Separator />
           <ProspectActions prospect={prospect} onEdit={() => onEdit(prospect)} onClose={close} />
         </div>
+        </Activity>
       </SheetContent>
     </Sheet>
   );

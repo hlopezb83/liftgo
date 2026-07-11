@@ -1,0 +1,25 @@
+{
+  "version": "7.18.0",
+  "date": "2026-07-11",
+  "type": "minor",
+  "title": "Fase D.2 — Poda de React.memo y adopción de <Activity>",
+  "summary": "Se retiran 12 wrappers `memo()` manuales en componentes de dashboard, calendario y primitivas UI donde el React Compiler ya garantiza la memoización. Se adopta `<Activity>` (React 19.2 estable) en las 5 detail sheets críticas para preservar el estado interno del subárbol durante cierres/re-aperturas rápidos.",
+  "sections": [
+    {
+      "heading": "React.memo eliminado (compilador toma el relevo)",
+      "items": [
+        "Dashboard: `StatCards`, `InsuranceAlert`, `FleetStatusChart`, `CashFlowChart`, `CollectionForecast`, `UtilizationCharts`.",
+        "Calendario: `BookingRow` interno de `EquipmentListView`.",
+        "Primitivas UI: `TablePagination`, `MobileCardList`, `DataTableV2`, `KpiTile`, `ReportChartCard`.",
+        "`DataTablePaginationV2` reescrito como función simple sin memo redundante."
+      ]
+    },
+    {
+      "heading": "<Activity> en detail sheets",
+      "items": [
+        "`DamageDetailSheet`, `ProspectDetailSheet`, `BankLineDetailSheet`, `MaintenanceDetailSheet`, `SupplierBillDetailSheet`: el contenido interno se envuelve en `<Activity mode={open ? 'visible' : 'hidden'}>` para señalar al motor de React 19.2 que el subárbol debe preservarse — evita reinicializar formularios anidados (p. ej. `MaintenancePartsSection`, `SupplierBillDetailContent`) cuando el usuario cierra y re-abre la ficha en cuestión de segundos."
+      ]
+    }
+  ],
+  "impact": "12 wrappers `memo()` menos (~40 líneas). Menor superficie que mantener y comportamiento equivalente en producción gracias al React Compiler. Detail sheets con estado local (importes, notas, uploads) sobreviven a cierres accidentales."
+}

@@ -1,3 +1,4 @@
+import { Activity } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
@@ -69,6 +70,7 @@ export function BankLineDetailSheet({ line, open, onOpenChange }: Props) {
         <SheetHeader>
           <SheetTitle>{isCharge ? "Cargo" : "Abono"} · {formatDateDisplay(line.posted_date)}</SheetTitle>
         </SheetHeader>
+        <Activity mode={open ? "visible" : "hidden"}>
         <div className="mt-4 space-y-4">
           <div className="rounded-md border p-3 space-y-1">
             <div className="flex justify-between"><span className="text-xs text-muted-foreground">Importe</span><span className="font-mono font-bold">{formatCurrency(line.signed_amount)}</span></div>
@@ -91,6 +93,7 @@ export function BankLineDetailSheet({ line, open, onOpenChange }: Props) {
             onUnmatch={handleUnmatch}
           />
         </div>
+        </Activity>
       </SheetContent>
     </Sheet>
   );

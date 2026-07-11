@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react";
+import { useMemo } from "react";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { TrendingUpIcon, TrendingDownIcon, RemoveIcon } from "@/components/icons";
 import { ReportChartCard } from "@/components/domain/ReportChartCard";
@@ -45,7 +45,7 @@ function computeTrend(data: MonthlyUtilizationItem[]): { points: TrendPoint[]; d
   return { points, delta };
 }
 
-export const UtilizationCharts = memo(function UtilizationCharts({ monthlyUtilization }: UtilizationChartsProps) {
+export function UtilizationCharts({ monthlyUtilization }: UtilizationChartsProps) {
   const { points, delta } = useMemo(() => computeTrend(monthlyUtilization), [monthlyUtilization]);
   const trendLabel = delta > 1
     ? { icon: TrendingUpIcon, text: `Subiendo ${Math.abs(delta)}%`, cls: "text-status-available" }
@@ -85,4 +85,4 @@ export const UtilizationCharts = memo(function UtilizationCharts({ monthlyUtiliz
       )}
     </ReportChartCard>
   );
-});
+}

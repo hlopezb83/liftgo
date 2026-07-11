@@ -1,3 +1,4 @@
+import { Activity } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
@@ -32,6 +33,7 @@ export function DamageDetailSheet({ record, open, onOpenChange }: Props) {
           </SheetTitle>
         </SheetHeader>
 
+        <Activity mode={open ? "visible" : "hidden"}>
         <div className="mt-4 space-y-4">
           <StatusBadge status={record.status} />
 
@@ -68,6 +70,7 @@ export function DamageDetailSheet({ record, open, onOpenChange }: Props) {
             <p>Actualizado: {format(new Date(record.updated_at), "dd MMM yyyy, HH:mm", { locale: es })}</p>
           </div>
         </div>
+        </Activity>
       </SheetContent>
     </Sheet>
   );

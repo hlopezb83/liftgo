@@ -1,4 +1,4 @@
-import { memo, type ElementType, type ReactNode } from "react";
+import { type ElementType, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "@/components/icons";
 import { Card, CardContent } from "@/components/ui/card";
@@ -69,7 +69,7 @@ function KpiInteractiveWrapper({
   return <>{children}</>;
 }
 
-export const KpiTile = memo(function KpiTile({
+export function KpiTile({
   label,
   value,
   icon: Icon,
@@ -117,4 +117,4 @@ export const KpiTile = memo(function KpiTile({
       </Card>
     </KpiInteractiveWrapper>
   );
-});
+}

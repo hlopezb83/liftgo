@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.18.0",
+    "date": "2026-07-11",
+    "type": "minor",
+    "title": "Fase D.2 — Poda de React.memo y adopción de <Activity>",
+    "description": "12 wrappers `memo()` manuales eliminados en dashboard (`StatCards`, `InsuranceAlert`, `FleetStatusChart`, `CashFlowChart`, `CollectionForecast`, `UtilizationCharts`), calendario (`BookingRow` de `EquipmentListView`) y primitivas UI (`TablePagination`, `MobileCardList`, `DataTableV2`, `DataTablePaginationV2`, `KpiTile`, `ReportChartCard`) — el React Compiler ya garantiza la memoización automáticamente. En paralelo, las 5 detail sheets críticas (`DamageDetailSheet`, `ProspectDetailSheet`, `BankLineDetailSheet`, `MaintenanceDetailSheet`, `SupplierBillDetailSheet`) envuelven su contenido interno en `<Activity mode={open ? 'visible' : 'hidden'}>` (React 19.2 estable) para preservar estado local — formularios anidados, importes, notas y uploads sobreviven a cierres accidentales.",
+    "category": "improvement"
+  },
+  {
     "version": "7.17.0",
     "date": "2026-07-11",
     "type": "minor",

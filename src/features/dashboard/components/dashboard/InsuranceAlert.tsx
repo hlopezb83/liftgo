@@ -1,4 +1,3 @@
-import { memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShieldAlert } from "@/components/icons";
 import { useNavigate } from "react-router-dom";
@@ -9,7 +8,7 @@ interface InsuranceAlertProps {
   data: InsuranceAlertsData | undefined;
 }
 
-export const InsuranceAlert = memo(function InsuranceAlert({ data }: InsuranceAlertProps) {
+export function InsuranceAlert({ data }: InsuranceAlertProps) {
   const navigate = useNavigate();
   const expiring = data?.expiring ?? [];
   const noInsuranceCount = data?.no_insurance_count ?? 0;
@@ -47,4 +46,4 @@ export const InsuranceAlert = memo(function InsuranceAlert({ data }: InsuranceAl
       </CardContent>
     </Card>
   );
-});
+}

@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo } from "react";
+import { useCallback, useMemo } from "react";
 import {
   Pagination,
   PaginationContent,
@@ -15,7 +15,7 @@ interface TablePaginationProps {
   onPageChange: (page: number) => void;
 }
 
-function TablePaginationInner({ page, totalPages, onPageChange }: TablePaginationProps) {
+export function TablePagination({ page, totalPages, onPageChange }: TablePaginationProps) {
   const visiblePages = useMemo(() => {
     const pages: (number | "ellipsis")[] = [];
     if (totalPages <= 7) {
@@ -73,5 +73,3 @@ function TablePaginationInner({ page, totalPages, onPageChange }: TablePaginatio
     </Pagination>
   );
 }
-
-export const TablePagination = memo(TablePaginationInner);

@@ -1,4 +1,4 @@
-import { memo, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import type { Table as TanstackTable } from "@tanstack/react-table";
 import { Table } from "@/components/ui/table";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
@@ -41,7 +41,7 @@ function buildToolbar<T>(
   return render(ctx);
 }
 
-function Inner<T>({
+export function DataTableV2<T>({
   table,
   isLoading,
   emptyMessage = "Sin resultados",
@@ -95,5 +95,3 @@ function Inner<T>({
     </div>
   );
 }
-
-export const DataTableV2 = memo(Inner) as typeof Inner;
