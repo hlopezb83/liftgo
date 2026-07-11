@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -31,9 +31,16 @@ export function RecurringInvoicesPreviewDialog({
 }: Props) {
   const lines = useMemo(() => data?.lines ?? [], [data?.lines]);
   const eligibleIds = useMemo(() => lines.filter((l) => l.eligible).map((l) => l.bookingId), [lines]);
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selected, setSelected] = useState<Set<string>>(() => new Set(eligibleIds));
 
-  useEffect(() => { setSelected(new Set(eligibleIds)); }, [eligibleIds]);
+  // Rehidratar la selección cuando cambia la identidad de `eligibleIds` — patrón
+  // React "adjust state during render" en vez de un useEffect que agregaría
+  // una render extra. https://react.dev/learn/you-might-not-need-an-effect
+  const prevEligibleRef = useRef(eligibleIds);
+  if (prevEligibleRef.current !== eligibleIds) {
+    prevEligibleRef.current = eligibleIds;
+    setSelected(new Set(eligibleIds));
+  }
 
   const groups = useMemo(() => {
     const map = new Map<string, RecurringPreviewLine[]>();

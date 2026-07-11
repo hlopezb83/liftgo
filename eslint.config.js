@@ -30,11 +30,12 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      // React Compiler ESLint checks — habilitar cuando migremos a
-      // @vitejs/plugin-react + babel-plugin-react-compiler. Ya instalado como
-      // dependencia; se puede activar puntualmente con
-      //   /* eslint react-compiler/react-compiler: "warn" */
-      "react-compiler/react-compiler": "off",
+      // React Compiler ESLint checks — activado como `warn` para análisis
+      // estático (detecta mutaciones de state, refs mal usadas, hooks fuera
+      // de spec) SIN necesidad de correr el compilador todavía. La activación
+      // completa (babel-plugin-react-compiler + @vitejs/plugin-react) queda
+      // como paso opcional siguiente; hoy sólo cosechamos los diagnósticos.
+      "react-compiler/react-compiler": "warn",
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
 
 

@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.15.0",
+    "date": "2026-07-11",
+    "type": "minor",
+    "title": "React 19.2: useEffectEvent, derived state fuera de useEffect y linter del Compiler",
+    "description": "Auditoría integral de la implementación de React. Confirmado que estamos en react@19.2.7 (última estable) con 0 forwardRef, 0 React.FC, lazy() + Suspense por ruta y providers ya en la nueva sintaxis <Context value>. Lote 5 aplica tres mejoras quirúrgicas: (1) `usePrefillEffect` y `usePageActions` migran del polyfill `ref.current = callback` al hook estable `useEffectEvent` de React 19.2, dejando los callbacks siempre frescos sin re-disparar el efecto ni acoplarse a identidades de objeto; (2) se elimina el derived-state con useEffect en `ChangelogPage` (reset de página al cambiar filtros) y en `RecurringInvoicesPreviewDialog` (rehidratar Set de seleccionados) reemplazándolos por el patrón oficial 'adjust state during render' con `useRef` comparativo — menos renders y sin efectos innecesarios; (3) activada la regla `react-compiler/react-compiler` de ESLint como warn: análisis estático inmediato para detectar mutaciones de state y refs mal usadas sin cambiar aún el pipeline SWC. tsgo OK · 0 errors de lint · 913/913 tests.",
+    "category": "improvement"
+  },
+  {
     "version": "7.14.0",
     "date": "2026-07-11",
     "type": "minor",

@@ -1,0 +1,17 @@
+{
+  "version": "7.15.0",
+  "date": "2026-07-11",
+  "type": "minor",
+  "title": "React 19.2: useEffectEvent, derived state fuera de useEffect y linter del Compiler",
+  "category": "improvement",
+  "description": "Auditoría integral de la implementación de React y ejecución del Lote 5 de modernización.",
+  "changes": [
+    "Diagnóstico: react@19.2.7 (última estable de la línea 19, publicada en oct-2026). 0 React.forwardRef, 0 React.FC, 0 PropTypes, 0 lifecycles de clase, 0 'use client' parásitos. Providers propios ya usan la sintaxis JSX <Context value> de React 19. Routing con lazy() + Suspense por ruta con PageFallback tolerante a fallos. useDeferredValue y useOptimistic ya adoptados en filtros y feedback. `eslint-plugin-react-compiler` instalado.",
+    "usePrefillEffect (src/hooks/): reemplazado el polyfill manual `ref.current = effect` por `useEffectEvent` estable de React 19.2. El único `eslint-disable react-hooks/exhaustive-deps` queda igualmente contenido aquí porque el spread `deps: unknown[]` no es estáticamente verificable — pero el código ya no simula useEffectEvent, lo usa de verdad.",
+    "usePageActions (src/contexts/pageActions.ts): los callbacks `onNew` y `onRefresh` que antes se leían vía `ref.current` ahora se envuelven en `useEffectEvent`. El efecto sólo depende de `register` y de la etiqueta serializable `newLabel`; los callbacks nunca disparan re-registro aunque el consumer los reasigne cada render.",
+    "ChangelogPage: eliminado `useEffect(() => setPage(1), [filter, categoryFilter, search, setPage])`. Reemplazado por el patrón oficial 'adjust state during render' con un `useRef` que compara la key de filtros y llama setPage(1) durante el render — ahorra una render extra y no genera efecto en cascada. Referencia: https://react.dev/reference/react/useState#storing-information-from-previous-renders.",
+    "RecurringInvoicesPreviewDialog: mismo tratamiento para `setSelected(new Set(eligibleIds))` cuando cambia la identidad de eligibleIds. `useState` ahora se inicializa perezosamente con `() => new Set(eligibleIds)` y la rehidratación posterior ocurre durante el render, no en un efecto.",
+    "eslint.config.js: regla `react-compiler/react-compiler` sube de `off` a `warn`. Detecta violaciones de las reglas de React (mutaciones de props/state, refs mal usadas, hooks impuros) que impedirían al compilador optimizar un componente. Aparecen 13 warnings informativos preexistentes en archivos con `eslint-disable-next-line` legítimos — sirven de mapa para futuras limpiezas y para cuando se active el compilador en el build (Fase A completa: swap a `@vitejs/plugin-react` + `babel-plugin-react-compiler`, pendiente para próximo sprint).",
+    "Verificación: `bunx tsgo --noEmit` sin errores · `bun run lint` 0 errores (15 warnings, todos informativos del compilador o preexistentes) · `bun run test` 913/913 · 139 test files."
+  ]
+}

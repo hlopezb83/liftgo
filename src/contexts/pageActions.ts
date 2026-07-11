@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef } from "react";
+import { createContext, useContext, useEffect, useEffectEvent } from "react";
 
 export interface PageActions {
   /** Crear nuevo registro (botón "Nuevo" de la página). */
@@ -24,29 +24,25 @@ export function usePageActionsContext(): PageActionsContextValue {
 
 /**
  * Hook ergonómico para que una página declare sus acciones de teclado.
- * Los callbacks se llaman vía ref, por lo que no es necesario memoizarlos.
+ * Los callbacks se invocan vía `useEffectEvent`, por lo que no es necesario
+ * memoizarlos y el efecto no se re-dispara al cambiar la identidad del objeto
+ * `actions` — sólo cuando cambia la etiqueta serializable `newLabel` o cuando
+ * cambia el `register` (estable vía useCallback en el provider).
  */
 export function usePageActions(actions: PageActions): void {
   const ctx = useContext(PageActionsContext);
-  const ref = useRef(actions);
-  ref.current = actions;
-
-  // Sólo dependemos de `register` (estable vía useCallback) y de `newLabel`
-  // (dato serializable). NO dependemos del objeto `ctx` completo: su identidad
-  // cambia cada vez que `actions` se actualiza dentro del provider, lo que
-  // dispararía un loop infinito de register → setState → re-render → register.
-  // React 19 detecta el loop y aborta con "Maximum update depth exceeded";
-  // React 18 lo toleraba silenciosamente pero congelaba interacciones.
   const register = ctx?.register;
   const newLabel = actions.newLabel;
 
+  const onNew = useEffectEvent(() => actions.onNew?.());
+  const onRefresh = useEffectEvent(() => actions.onRefresh?.());
+
   useEffect(() => {
     if (!register) return;
-    const unregister = register({
-      newLabel,
-      onNew: () => ref.current.onNew?.(),
-      onRefresh: () => ref.current.onRefresh?.(),
-    });
-    return unregister;
+    return register({ newLabel, onNew, onRefresh });
+    // `onNew` y `onRefresh` son useEffectEvent (estables por contrato, no deben
+    // listarse). El linter aún no los detecta automáticamente en imports named.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [register, newLabel]);
 }
+

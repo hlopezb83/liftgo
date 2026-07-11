@@ -1,80 +1,74 @@
-# Auditoría de React — Estado actual
+## Auditoría de React — Estado actual
 
-**Versión:** `react@19.2.7` (última estable, publicada oct-2025). `react-dom@19`, `@types/react@19`. ✅ Al día.
+### Versión
+- `react` / `react-dom` / `@types/react`: **19.2.7** (última estable de la línea 19; la 19.2 salió en oct-2026 y trae `<Activity>`, `useEffectEvent`, `cacheSignal`).
+- `vite` 5.4.21 · `@vitejs/plugin-react-swc` (SWC, sin Babel).
+- `@tanstack/react-query` 5.101, `react-hook-form` 7.81, `react-router-dom` 6.
+- ESLint 9 + `eslint-plugin-react-hooks` + `eslint-plugin-react-refresh` + `eslint-plugin-react-compiler` (instalado, regla en `off`).
 
-## Fortalezas
+### ¿Está limpia? Sí, muy limpia
+Señales positivas:
+- **0 `React.forwardRef`** en todo `src/` — Lote 1 de la modernización a 19 completado.
+- **0 `React.FC`**, **0 `PropTypes`**, **0 lifecycles de clase**, **0 `'use client'`** parásitos.
+- Routing con `lazy()` + `Suspense` por ruta, `PageFallback` con timeout de 10s, `RouteErrorBoundary` en cada Route → el árbol es split de verdad.
+- Providers propios ya migrados a la sintaxis `<Context value={…}>` de React 19.
+- APIs concurrentes ya en uso: `useDeferredValue` en `useListFilters` (7 pantallas), `useOptimistic` en Feedback.
+- `useSyncExternalStore` presente (1 store externo). `React.memo` usado en apenas 13 archivos: uso responsable, no cargo-cult.
+- Helper `usePrefillEffect` para centralizar el único `exhaustive-deps` disable del proyecto.
+- Vite dedupe `react`/`react-dom`, chunking manual, visualizer bajo `ANALYZE=1`.
 
-- `StrictMode` activo en `main.tsx`.
-- `ErrorBoundary` global + `RouteErrorBoundary` por ruta con `key={pathname}` (reset correcto al navegar).
-- `Suspense` con `lazy()` en `App.tsx`, `AuthGuard`, `CustomerPortalRoutes` — code-splitting bien aplicado.
-- Manejo de `vite:preloadError` para chunks stale (patrón moderno).
-- TanStack Query, RHF + Zod, Radix/shadcn — stack canónico.
-- Reglas ESLint de hooks activas, 0 warnings.
+### Anti-patrones remanentes (menores, no bloqueantes)
+1. `useEffect(() => setPage(1), [filter, ...])` en `ChangelogPage` y `useEffect(() => setSelected(new Set(eligibleIds)), [eligibleIds])` en `RecurringInvoicesPreviewDialog` — clásico "derived state" que se puede reemplazar por `useMemo` + `key`.
+2. `useCallback`/`useMemo` "por defecto" en algunos hooks (`useDashboardSections`, `useStatementRows`, `useListPage`) — con React Compiler activo dejan de ser necesarios.
+3. `React Compiler` está instalado pero **desactivado** porque el pipeline usa SWC. Migrar a `@vitejs/plugin-react` (Babel) permitiría prender el compilador y borrar la mayoría de los `useMemo`/`useCallback` manuales.
 
-## Brechas vs. "top of the line" React 19
+### ¿Es top of the line? Con dos movimientos, sí.
 
-Cinco puntos concretos, ordenados por impacto:
+---
 
-### 1. `forwardRef` obsoleto en 34 archivos
-En React 19 `ref` es una prop normal en componentes de función. Todos los primitivos shadcn/ui (`button.tsx`, `card.tsx`, `input.tsx`, `dialog.tsx`, `form.tsx`, `tabs.tsx`, `chart.tsx`, `toggle-group.tsx`, ~26 más) siguen envueltos en `React.forwardRef`. Eliminarlo:
-- Reduce ~1 nivel de indirección por primitivo (mejor stack traces).
-- Simplifica tipos (`ComponentProps<'button'> & { ref?: Ref<HTMLButtonElement> }`).
-- ~150–200 LOC menos.
+## Propuesta de mejora — Auditoría React (Lote 5)
 
-### 2. Cero adopción de APIs nuevas de React 19 / 18
-`rg` no encuentra ni un uso de: `useTransition`, `useDeferredValue`, `useOptimistic`, `useActionState`, `useFormStatus`, `use()`. Oportunidades reales:
-- **`useDeferredValue`** en barras de búsqueda de listados grandes (Facturas, Reservas, Clientes, Inventario) — desacopla el input del filtrado pesado sin debounce manual.
-- **`useTransition`** para cambios de tab/filtros que remontan tablas virtualizadas.
-- **`useOptimistic`** en mutaciones de estado corto (marcar leído, cambiar status kanban) complementando TanStack Query en UI local.
-- **`use(promise)`** para lecturas suspendibles en detalles ya envueltos por `Suspense` (opcional, requiere refactor de fetchers).
+Alcance quirúrgico, sin cambios de comportamiento visibles al usuario.
 
-### 3. React Compiler no instalado
-`babel-plugin-react-compiler` (RC estable con React 19.2) memoriza componentes/hooks automáticamente. Impacto esperado:
-- Elimina la necesidad de la mayoría de los `useMemo`/`useCallback` manuales (~600 usos en el repo).
-- Reduce re-renders sin cambiar código de aplicación.
-- Compatible con Vite vía `vite-plugin-react` + opción `babel.plugins`.
-Riesgo: requiere que el código cumpla las Reglas de React (el linter `eslint-plugin-react-compiler` ya identifica violaciones; hay que correrlo primero en modo advertencia).
+### Fase A — Activar React Compiler (opt-in)
+1. Añadir plugin Babel como pipeline paralelo al SWC actual: mantener `@vitejs/plugin-react-swc` para HMR/dev y encender `babel-plugin-react-compiler` sólo en build de producción vía `@vitejs/plugin-react` en un `defineConfig` condicional. Alternativa más simple: swap completo a `@vitejs/plugin-react` y medir HMR.
+2. Configurar el compilador en modo **annotation-only** (`compilationMode: "annotation"`) para arrancar: sólo compila archivos con `"use memo"` en la cabecera. Riesgo cero.
+3. Prender `react-compiler/react-compiler: "warn"` en ESLint globalmente para detectar violaciones (mutaciones, refs mal usadas).
+4. Piloto: anotar 3 hooks calientes (`useDashboardSections`, `useListFilters`, `useStatementRows`) y verificar que el bundle no crece y los tests pasan.
 
-### 4. `useEffect` sobre-usado (596 matches en 201 archivos)
-Sample de auditoría muestra tres anti-patrones recurrentes:
-- **Sincronizar estado derivado** (`useEffect(() => setX(deriveFromProps()), [props])`) — debería ser cálculo directo en el render o `useMemo`.
-- **`form.reset` dentro de effects** cuando el ID cambia — patrón React 19 preferido: `key={id}` para remount, o `useEffect` con guard mínimo.
-- **Effects que despachan side-effects que son en realidad event handlers** (ej. abrir dialog al cambiar prop) — deben moverse al handler que causa el cambio.
-No es urgente pero da fruta madura al pasar módulo por módulo.
+**Beneficio**: cuando movamos a `compilationMode: "infer"`, podemos borrar la mayoría de `useMemo`/`useCallback` manuales del proyecto (estimado 150-250 LOC).
 
-### 5. `<Context.Provider>` legado
-Todos los providers (`PageActionsProvider`, `AuthContext`, `ConfirmProvider`, etc.) usan `<Context.Provider value={...}>`. En React 19 puedes renderizar `<Context value={...}>` directamente. Cosmético pero es el patrón nuevo.
+### Fase B — Eliminar "derived state" con `useEffect`
+1. `ChangelogPage`: reemplazar el efecto que resetea `page` a 1 por `useMemo` que deriva la página o por `key={filter+categoryFilter+search}` en el subárbol paginado.
+2. `RecurringInvoicesPreviewDialog`: reemplazar el efecto que rehidrata `selected` cuando cambia `eligibleIds` por `useMemo` + un `Set` local sin `useState`, o por `key={eligibleIds.join()}` en el subárbol.
+3. Barrido con `rg` para detectar el patrón `useEffect(() => { setX(...) }, [prop])` en el resto del proyecto.
 
-## Plan propuesto (4 lotes, ordenados por ROI)
+### Fase C — Adoptar `useEffectEvent` de React 19.2
+1. Reemplazar `usePrefillEffect` (que hoy usa un `ref` manual como polyfill) por el nuevo `useEffectEvent` estable en 19.2.
+2. Eliminar el único `eslint-disable react-hooks/exhaustive-deps` del proyecto, contenido en ese helper.
+3. Auditar `usePageActions` — su `ref.current = actions` es otro caso claro para `useEffectEvent`.
 
-### Lote 1 — Eliminar `forwardRef` en primitivos shadcn/ui
-- 34 archivos en `src/components/ui/*` + `src/components/feedback/EmptyRow.tsx`.
-- Reemplazar `React.forwardRef<T, P>((props, ref) => …)` por función que recibe `ref` como prop.
-- Actualizar `displayName` (o eliminarlo cuando no aporte).
-- Verificar consumidores que hagan `React.ElementRef<typeof Button>` — sigue funcionando.
-- Salida: `-150/200 LOC`, tests verdes, `tsgo` OK.
+### Fase D — Ajustes finos
+1. `useSyncExternalStore` review: confirmar que `getServerSnapshot` está tipado, no genera flash de hidratación.
+2. Revisar los 13 archivos con `React.memo`: dejarlo sólo donde el profiler muestra beneficio; con React Compiler la mayoría se vuelven redundantes.
+3. Considerar `<Activity mode="hidden">` (nuevo en 19.2) para el sheet lateral de detalles: mantiene state cuando el sheet se cierra sin desmontarlo, evitando refetch al reabrir.
 
-### Lote 2 — Habilitar React Compiler
-1. Instalar `babel-plugin-react-compiler` + `eslint-plugin-react-compiler`.
-2. Añadir la regla ESLint en modo `warn`, correr y catalogar violaciones (esperado: bajo, código ya cumple Rules of Hooks).
-3. Enchufar el plugin en `vite.config.ts` bajo `react({ babel: { plugins: [...] } })`.
-4. Medir bundle y correr suite completa (913 tests).
-5. Documentar en `mem://tech/stack` y changelog.
+### Verificación por fase
+- `tsgo` (typecheck) OK, `bun run lint` 0 warnings, `bun run test` verde (913 tests hoy).
+- Bundle diff con `ANALYZE=1 bun run build` antes/después de Fase A.
+- Smoke manual: login, dashboard, factura, cotización, sheet de feedback.
 
-### Lote 3 — Adopción selectiva de APIs 19
-- `useDeferredValue` en 4 listados de alto volumen (Facturas, Reservas, Clientes, Inventario). Reemplaza `useDebouncedValue` donde aplique.
-- `useOptimistic` en cambios de status del kanban de Mantenimiento y de Feedback.
-- `useTransition` para toggles de filtros que remontan `DataTableV2` virtualizado.
-- Sin refactor masivo; solo casos con beneficio medible.
+### Detalle técnico condensado
+- **Compiler**: `compilationMode: "annotation"` → `"infer"` con `panicThreshold: "none"`. Chequeo con `react-compiler-runtime` en dev.
+- **`<Activity>`**: `import { unstable_Activity as Activity } from "react"` (aún prefijado unstable_ en 19.2). Alternativa segura: dejar para 19.3.
+- **`useEffectEvent`**: `import { experimental_useEffectEvent as useEffectEvent } from "react"` — check final del nombre en 19.2 antes de mergear.
 
-### Lote 4 — Higiene de `useEffect` + Context
-- Barrido dirigido: identificar los 20–30 `useEffect` que son estado derivado y convertirlos a `useMemo` o cálculo inline.
-- Reemplazar `<Context.Provider>` → `<Context>` en los ~10 providers.
-- Reglas ESLint recomendadas: `react-hooks/exhaustive-deps` ya activa; añadir `react-you-might-not-need-an-effect` (opcional) para señalar candidatos.
+### Fuera de alcance
+- No tocar shadcn/ui (`src/components/ui/**` ya está en ignore de ESLint).
+- No migrar a Server Components / Next.js — este es un SPA client-side, no aplica.
+- No cambiar React Query, React Hook Form ni React Router.
+- No modificar Edge Functions.
 
-## Verificación por lote
-`tsgo` · `bunx vitest run` (913 tests) · `bun run lint` (0 warnings) · smoke test manual del preview · changelog `v7.12.0` → `v7.15.0`.
-
-## No cambia
-- Router, TanStack Query, Zod, Radix, Tailwind, shadcn API pública, layouts, features de negocio.
-- Sin migración a Server Components (no aplica en Vite SPA).
+### Salida esperada
+- Reporte de LOC borradas por el compilador.
+- 1 changelog `v7.15.0` (Compiler + fases B/C) o hasta `v7.18.0` si preferimos entregar fase por fase.
