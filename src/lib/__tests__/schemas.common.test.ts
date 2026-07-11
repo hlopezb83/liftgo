@@ -80,12 +80,15 @@ describe("schemas/common — CLABE", () => {
   });
 });
 
-describe("schemas/common — positiveAmount", () => {
+describe("schemas/common — positiveAmount (Zod 4 API)", () => {
   const schema = positiveAmount();
   it("acepta número > 0", () => {
     const r = schema.safeParse(100.5);
     expect(r.success).toBe(true);
     if (r.success) expect(r.data).toBe(100.5);
+  });
+  it("acepta valores muy pequeños > 0", () => {
+    expect(schema.safeParse(0.01).success).toBe(true);
   });
   it("rechaza 0", () => {
     expect(schema.safeParse(0).success).toBe(false);
@@ -93,11 +96,35 @@ describe("schemas/common — positiveAmount", () => {
   it("rechaza negativos", () => {
     expect(schema.safeParse(-5).success).toBe(false);
   });
-  it("rechaza tipos no numéricos con mensaje custom", () => {
+  it("rechaza NaN", () => {
+    expect(schema.safeParse(NaN).success).toBe(false);
+  });
+  it("rechaza undefined", () => {
+    expect(schema.safeParse(undefined).success).toBe(false);
+  });
+  it("rechaza null", () => {
+    expect(schema.safeParse(null).success).toBe(false);
+  });
+  it("rechaza strings numéricos (sin coerción)", () => {
+    expect(schema.safeParse("100").success).toBe(false);
+  });
+  it("usa mensaje custom en error de tipo", () => {
     const custom = positiveAmount("Monto inválido");
     const r = custom.safeParse("abc");
     expect(r.success).toBe(false);
     if (!r.success) expect(r.error.issues[0].message).toBe("Monto inválido");
+  });
+  it("usa mensaje custom en error de rango (≤ 0)", () => {
+    const custom = positiveAmount("Monto inválido");
+    const r = custom.safeParse(-1);
+    expect(r.success).toBe(false);
+    if (!r.success) expect(r.error.issues[0].message).toBe("Monto inválido");
+  });
+  it("compone con .optional() sin efectos colaterales", () => {
+    const optional = positiveAmount().optional();
+    expect(optional.safeParse(undefined).success).toBe(true);
+    expect(optional.safeParse(10).success).toBe(true);
+    expect(optional.safeParse(0).success).toBe(false);
   });
 });
 

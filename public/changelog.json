@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.7.1",
+    "date": "2026-07-11",
+    "type": "patch",
+    "title": "positiveAmount: cobertura de casos borde en Zod 4",
+    "description": "Se verificó que positiveAmount() y sus 4 consumidores (ReportTransferDialog, CloseWonDialog, supplierPaymentSchema, EditPaymentDialog) ya usan el API v4 (error: '...'). Se ampliaron las pruebas unitarias en schemas.common.test.ts de 4 a 11 casos: valores muy pequeños > 0, NaN, undefined, null, strings numéricos (sin coerción), mensaje custom en errores de rango y composición con .optional(). 26/26 tests verdes.",
+    "category": "improvement"
+  },
+  {
     "version": "7.7.0",
     "date": "2026-07-11",
     "type": "major",
