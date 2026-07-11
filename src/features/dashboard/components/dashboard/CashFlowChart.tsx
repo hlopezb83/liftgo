@@ -1,4 +1,3 @@
-import { memo } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { ExpenseIcon } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
