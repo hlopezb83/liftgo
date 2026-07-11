@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Wallet } from "@/components/icons";
+import { ExpenseIcon } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { ReportChartCard } from "@/components/domain/ReportChartCard";
 
@@ -58,7 +58,7 @@ export const CashFlowChart = memo(function CashFlowChart({ data }: CashFlowChart
   return (
     <ReportChartCard
       title="Flujo de Efectivo"
-      icon={Wallet}
+      icon={ExpenseIcon}
       iconColor="text-status-rented"
       iconBg="bg-status-rented/10"
       footer={
