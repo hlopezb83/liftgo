@@ -91,13 +91,14 @@ export function RegisterSupplierPaymentDialog({
     defaultValues: buildDefaults(balance),
   });
 
+  const resetForOpen = useEffectEvent(() => {
+    setReceiptFile(null);
+    form.reset(buildDefaults(balance));
+  });
   useEffect(() => {
-    if (open) {
-      setReceiptFile(null);
-      form.reset(buildDefaults(balance));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, balance]);
+    if (open) resetForOpen();
+  }, [open, balance, resetForOpen]);
+
 
   const onSubmit = async (data: SupplierPaymentFormData) => {
     let receipt_url = data.receipt_url || undefined;
