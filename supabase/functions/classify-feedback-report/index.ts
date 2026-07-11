@@ -36,7 +36,7 @@ const MODULES = [
   "Otro / General",
 ] as const;
 
-const BodySchema = z.object({ report_id: z.string().uuid() });
+const BodySchema = z.object({ report_id: z.uuid() });
 
 const ClassificationSchema = z.object({
   severity: z.enum(SEVERITIES),
