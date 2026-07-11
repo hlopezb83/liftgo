@@ -41,7 +41,7 @@ function buildToolbar<T>(
   return render(ctx);
 }
 
-function Inner<T>({
+export function DataTableV2<T>({
   table,
   isLoading,
   emptyMessage = "Sin resultados",
