@@ -27,7 +27,7 @@ interface CollectionForecastProps {
  * Calcula el monto esperado a cobrar en los próximos 7 y 30 días,
  * incluyendo facturas vencidas (cobranza inmediata) + próximas a vencer.
  */
-export const CollectionForecast = memo(function CollectionForecast({
+export function CollectionForecast({
   overdueInvoices,
   upcomingInvoices = [],
 }: CollectionForecastProps) {
