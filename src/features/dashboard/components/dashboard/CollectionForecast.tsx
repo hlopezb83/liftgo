@@ -123,4 +123,4 @@ export function CollectionForecast({
       </CardContent>
     </Card>
   );
-});
+}
