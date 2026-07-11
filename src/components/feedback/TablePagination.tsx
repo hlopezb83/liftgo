@@ -15,7 +15,7 @@ interface TablePaginationProps {
   onPageChange: (page: number) => void;
 }
 
-function TablePaginationInner({ page, totalPages, onPageChange }: TablePaginationProps) {
+export function TablePagination({ page, totalPages, onPageChange }: TablePaginationProps) {
   const visiblePages = useMemo(() => {
     const pages: (number | "ellipsis")[] = [];
     if (totalPages <= 7) {
