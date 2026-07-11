@@ -1,3 +1,4 @@
+import { Activity } from "react";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -55,6 +56,7 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
         </SheetHeader>
 
 
+        <Activity mode={report ? "visible" : "hidden"}>
         <div className="mt-4 space-y-4">
           <FeedbackChipsRow
             type={report.type}
@@ -123,6 +125,7 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
 
           <FeedbackHistoryList history={history} />
         </div>
+        </Activity>
       </SheetContent>
     </Sheet>
   );
