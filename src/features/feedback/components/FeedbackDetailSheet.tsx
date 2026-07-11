@@ -40,6 +40,15 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
     }
   }, [report?.id]);
 
+  // React 19: reflejamos el nuevo estado en el badge del header sin esperar la
+  // respuesta del servidor. Debe declararse ANTES de cualquier early return
+  // para respetar rules-of-hooks. Si la mutación falla, React descarta el
+  // valor optimista y volvemos al `report.status` real vía React Query.
+  const [optimisticStatus, applyOptimisticStatus] = useOptimistic(
+    report?.status ?? "",
+    (_current, next: string) => next,
+  );
+
   if (!report) return null;
   const ctx = (report.context_json ?? {}) as Record<string, unknown>;
   const aiClass = ctx.ai_classification as
@@ -48,15 +57,6 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
   const selectedEl = ctx.selected_element as
     | { tagName: string; text: string; cssPath: string }
     | undefined;
-  
-
-  // React 19: reflejamos el nuevo estado en el badge del header sin esperar la
-  // respuesta del servidor. Si la mutación falla, React descarta el valor
-  // optimista y volvemos al `report.status` real vía React Query.
-  const [optimisticStatus, applyOptimisticStatus] = useOptimistic(
-    report.status,
-    (_current, next: string) => next,
-  );
 
   const handleApply = () => {
     if (!newStatus) return;
@@ -66,6 +66,7 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
       { onSuccess: () => { setNewStatus(""); setComment(""); } },
     );
   };
+
 
   return (
     <Sheet open={!!report} onOpenChange={(o) => { if (!o) onClose(); }}>
