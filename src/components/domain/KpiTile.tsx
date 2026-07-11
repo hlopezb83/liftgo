@@ -69,7 +69,7 @@ function KpiInteractiveWrapper({
   return <>{children}</>;
 }
 
-export const KpiTile = memo(function KpiTile({
+export function KpiTile({
   label,
   value,
   icon: Icon,
