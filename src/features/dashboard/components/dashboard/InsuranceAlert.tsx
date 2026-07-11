@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShieldAlert } from "@/components/icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateDisplay } from "@/lib/utils";
 import type { InsuranceAlertsData } from "@/features/fleet";
 
@@ -9,7 +9,7 @@ interface InsuranceAlertProps {
 }
 
 export function InsuranceAlert({ data }: InsuranceAlertProps) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const expiring = data?.expiring ?? [];
   const noInsuranceCount = data?.no_insurance_count ?? 0;
 

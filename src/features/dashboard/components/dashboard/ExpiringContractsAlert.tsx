@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DocumentIcon, RefreshIcon } from "@/components/icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateDisplay } from "@/lib/utils";
 
 interface ExpiringContract {
@@ -18,7 +18,7 @@ interface ExpiringContractsAlertProps {
 }
 
 export function ExpiringContractsAlert({ contracts }: ExpiringContractsAlertProps) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
 
   if (contracts.length === 0) return null;
 

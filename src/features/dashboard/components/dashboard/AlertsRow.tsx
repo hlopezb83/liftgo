@@ -1,5 +1,5 @@
 import { MaintenanceIcon, SuccessIcon, ClipboardList, OverdueIcon } from "@/components/icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useUpdateInvoice } from "@/features/invoices";
 import { useUpdateBooking } from "@/features/bookings";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -43,7 +43,7 @@ interface AlertsRowProps {
 }
 
 export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, overdueBookings }: AlertsRowProps) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const updateInvoice = useUpdateInvoice();
   const updateBooking = useUpdateBooking();
 
