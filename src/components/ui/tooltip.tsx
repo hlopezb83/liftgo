@@ -9,11 +9,9 @@ const Tooltip = TooltipPrimitive.Root;
 
 const TooltipTrigger = TooltipPrimitive.Trigger;
 
-const TooltipContent = React.forwardRef<
-  React.ElementRef<typeof TooltipPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content>
->(({ className, sideOffset = 4, ...props }, ref) => (
-  <TooltipPrimitive.Content
+const TooltipContent = ({ className, sideOffset = 4, ref, ...props }: React.ComponentPropsWithoutRef<typeof TooltipPrimitive.Content> & { ref?: React.Ref<React.ElementRef<typeof TooltipPrimitive.Content>> }) => {
+  return (
+    <TooltipPrimitive.Content
     ref={ref}
     sideOffset={sideOffset}
     className={cn(
@@ -22,7 +20,8 @@ const TooltipContent = React.forwardRef<
     )}
     {...props}
   />
-));
+  );
+};
 TooltipContent.displayName = TooltipPrimitive.Content.displayName;
 
 export { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider };
