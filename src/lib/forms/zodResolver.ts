@@ -20,5 +20,5 @@ import type { FieldValues, Resolver } from "react-hook-form";
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function zodResolver<Values extends FieldValues>(schema: any): Resolver<Values> {
   // `raw: true` -> Resolver<Input, Ctx, Input>, lo tratamos como Resolver<Values>.
-  return baseZodResolver(schema, undefined, { raw: true }) as unknown as Resolver<Values>;
+  return baseZodResolver(schema) as unknown as Resolver<Values>;
 }
