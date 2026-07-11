@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/forms/zodResolver";
 import { useSearchParams } from "react-router-dom";
 
 import { useCreateReturnInspection } from "../useReturnInspections";

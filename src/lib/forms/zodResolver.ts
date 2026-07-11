@@ -14,7 +14,7 @@
  * Runtime idéntico: la validación sigue siendo Zod. Sólo cambia la
  * inferencia de tipos.
  */
-import { zodResolver as baseZodResolver } from "@hookform/resolvers/zod";
+import { zodResolver as baseZodResolver } from "@/lib/forms/zodResolver";
 import type { FieldValues, Resolver } from "react-hook-form";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

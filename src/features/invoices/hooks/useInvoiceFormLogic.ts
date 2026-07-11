@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/forms/zodResolver";
 import { useBookings, type BookingWithForklift } from "@/features/bookings";
 import { useForklifts, useQuoteAssignments } from "@/features/fleet";
 import { useInvoice, useInvoices } from "./invoices/useInvoices";

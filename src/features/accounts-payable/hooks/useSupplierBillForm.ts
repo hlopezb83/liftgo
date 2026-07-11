@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
 import { useSuppliers } from "@/features/suppliers";
 import { toYMD } from "@/lib/date/toYMD";
