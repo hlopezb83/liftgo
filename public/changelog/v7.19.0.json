@@ -1,0 +1,24 @@
+{
+  "version": "7.19.0",
+  "date": "2026-07-11",
+  "type": "minor",
+  "title": "Fase D.3 — <Activity> extendido a sheets restantes",
+  "summary": "Se completa la adopción de `<Activity>` (React 19.2 estable) en las detail sheets con estado local que quedaban fuera de la Fase D.2. Ahora las 8 detail sheets del sistema preservan su subárbol interno durante cierres/re-aperturas rápidos.",
+  "sections": [
+    {
+      "heading": "<Activity> en sheets adicionales",
+      "items": [
+        "`FeedbackDetailSheet`: preserva el borrador de comentario y el nuevo estado seleccionado en `FeedbackStatusChanger` si el usuario cierra por accidente.",
+        "`PartDetailSheet`: mantiene el estado del `ConfirmDialog` de eliminación al re-abrir.",
+        "`MaintenanceDetailSheet` (vista principal): conserva el estado interno de `MaintenancePartsSection` y del `ConfirmDialog` de archivo."
+      ]
+    },
+    {
+      "heading": "Auditoría de memo() restante",
+      "items": [
+        "Barrido `rg` sobre `src/` confirma cero `memo()` manuales sobrevivientes tras la Fase D.2 — el React Compiler es la única fuente de memoización de componentes en el proyecto."
+      ]
+    }
+  ],
+  "impact": "Cobertura completa de `<Activity>` sobre las 8 detail sheets de la app. Sin `memo()` manuales pendientes: la superficie de mantenimiento queda alineada con las recomendaciones de React 19.2."
+}
