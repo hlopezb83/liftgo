@@ -64,17 +64,22 @@ const CommandList = ({ className, ref, ...props }: React.ComponentPropsWithoutRe
 
 CommandList.displayName = CommandPrimitive.List.displayName;
 
-const CommandEmpty = React.forwardRef<
-  React.ElementRef<typeof CommandPrimitive.Empty>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Empty>
->((props, ref) => <CommandPrimitive.Empty ref={ref} className="py-6 text-center text-sm" {...props} />);
+const CommandEmpty = ({
+  ref,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Empty> & {
+  ref?: React.Ref<React.ElementRef<typeof CommandPrimitive.Empty>>;
+}) => <CommandPrimitive.Empty ref={ref} className="py-6 text-center text-sm" {...props} />;
 
 CommandEmpty.displayName = CommandPrimitive.Empty.displayName;
 
-const CommandGroup = React.forwardRef<
-  React.ElementRef<typeof CommandPrimitive.Group>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group>
->(({ className, ...props }, ref) => (
+const CommandGroup = ({
+  className,
+  ref,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group> & {
+  ref?: React.Ref<React.ElementRef<typeof CommandPrimitive.Group>>;
+}) => (
   <CommandPrimitive.Group
     ref={ref}
     className={cn(
@@ -83,22 +88,26 @@ const CommandGroup = React.forwardRef<
     )}
     {...props}
   />
-));
+);
 
 CommandGroup.displayName = CommandPrimitive.Group.displayName;
 
-const CommandSeparator = React.forwardRef<
-  React.ElementRef<typeof CommandPrimitive.Separator>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Separator>
->(({ className, ...props }, ref) => (
-  <CommandPrimitive.Separator ref={ref} className={cn("-mx-1 h-px bg-border", className)} {...props} />
-));
+const CommandSeparator = ({
+  className,
+  ref,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Separator> & {
+  ref?: React.Ref<React.ElementRef<typeof CommandPrimitive.Separator>>;
+}) => <CommandPrimitive.Separator ref={ref} className={cn("-mx-1 h-px bg-border", className)} {...props} />;
 CommandSeparator.displayName = CommandPrimitive.Separator.displayName;
 
-const CommandItem = React.forwardRef<
-  React.ElementRef<typeof CommandPrimitive.Item>,
-  React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item>
->(({ className, ...props }, ref) => (
+const CommandItem = ({
+  className,
+  ref,
+  ...props
+}: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item> & {
+  ref?: React.Ref<React.ElementRef<typeof CommandPrimitive.Item>>;
+}) => (
   <CommandPrimitive.Item
     ref={ref}
     className={cn(
@@ -107,9 +116,10 @@ const CommandItem = React.forwardRef<
     )}
     {...props}
   />
-));
+);
 
 CommandItem.displayName = CommandPrimitive.Item.displayName;
+
 
 const CommandShortcut = ({ className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => {
   return <span className={cn("ml-auto text-xs tracking-widest text-muted-foreground", className)} {...props} />;
