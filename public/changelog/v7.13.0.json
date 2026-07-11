@@ -1,0 +1,16 @@
+{
+  "version": "7.13.0",
+  "date": "2026-07-11",
+  "type": "minor",
+  "title": "React 19: useDeferredValue en listas + useOptimistic en feedback",
+  "category": "improvement",
+  "description": "Adopción quirúrgica de dos APIs concurrentes de React 19 en los puntos con mayor impacto perceptible de fluidez.",
+  "changes": [
+    "useListFilters (hook central de las 7 pantallas de lista: Facturas, Cotizaciones, Reservas, Contratos, Mantenimiento, Daños, Clientes) ahora envuelve el término de búsqueda y el filtro de estado en useDeferredValue. Escribir en el input responde inmediato mientras el filter() sobre miles de items ocurre en una render de baja prioridad — sin bloquear el teclado.",
+    "El hook expone el flag `isStale` para que los consumers puedan mostrar la tabla dimmed cuando el input va adelantado respecto a los datos filtrados.",
+    "FeedbackDetailSheet: el badge de estado del header se actualiza con useOptimistic al aplicar un cambio; si la mutación falla, React descarta el valor y volvemos al real vía React Query.",
+    "Nueva utilidad `useFeedbackStatusUpdate` (src/features/feedback/hooks/) encapsula estado local + useOptimistic + mutación, manteniendo FeedbackDetailSheet por debajo del límite de complejidad ciclomática.",
+    "React Query sigue siendo la capa canónica de optimism para mutaciones globales (onMutate); useOptimistic queda reservado para UI local que necesita reflejar cambios instantáneos sin invalidar caché.",
+    "Verificación: tsgo OK · bun run lint 0 warnings · 913/913 tests passing."
+  ]
+}
