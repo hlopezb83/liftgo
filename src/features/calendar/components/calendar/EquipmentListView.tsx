@@ -82,7 +82,7 @@ export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProp
   );
 }
 
-const BookingRow = memo(function BookingRow({ booking, label }: { booking: BookingWithForklift; label: string }) {
+function BookingRow({ booking, label }: { booking: BookingWithForklift; label: string }) {
   const duration = differenceInDays(parseISO(booking.end_date), parseISO(booking.start_date)) + 1;
   return (
     <div className="flex items-center justify-between p-2 rounded bg-background border text-sm">
@@ -99,4 +99,4 @@ const BookingRow = memo(function BookingRow({ booking, label }: { booking: Booki
       </div>
     </div>
   );
-});
+}
