@@ -1,5 +1,4 @@
 import { type LucideIcon } from "@/components/icons";
-import { type LucideIcon } from "@/components/icons";
 import { KpiTile } from "@/components/domain/KpiTile";
 
 interface StatCard {
@@ -16,7 +15,7 @@ interface StatCardsProps {
   cards: StatCard[];
 }
 
-export const StatCards = memo(function StatCards({ cards }: StatCardsProps) {
+export function StatCards({ cards }: StatCardsProps) {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-4">
       {cards.map((card) => (
@@ -31,4 +30,5 @@ export const StatCards = memo(function StatCards({ cards }: StatCardsProps) {
       ))}
     </div>
   );
-});
+}
+
