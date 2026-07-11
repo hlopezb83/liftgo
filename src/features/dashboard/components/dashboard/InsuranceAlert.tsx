@@ -46,4 +46,4 @@ export function InsuranceAlert({ data }: InsuranceAlertProps) {
       </CardContent>
     </Card>
   );
-});
+}
