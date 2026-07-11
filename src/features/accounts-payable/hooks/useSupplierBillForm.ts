@@ -88,11 +88,14 @@ export function useSupplierBillForm(
     defaultValues: buildDefaults(),
   });
 
+  const resetForOpen = useEffectEvent(() => {
+    form.reset(buildDefaults());
+  });
   useEffect(() => {
     if (!open) return;
-    form.reset(buildDefaults());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, initialBill?.id]);
+    resetForOpen();
+  }, [open, initialBill?.id, resetForOpen]);
+
 
   const { data: suppliersList } = useSuppliers();
   const supplierId = form.watch("supplier_id");
