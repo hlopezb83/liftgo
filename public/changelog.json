@@ -1,5 +1,14 @@
 [
   {
+    "version": "7.12.0",
+    "date": "2026-07-11",
+    "type": "minor",
+    "title": "React 19: eliminación de forwardRef en primitivos + linter React Compiler",
+    "description": "Auditoría de React 19. Fase 1: eliminado React.forwardRef en 34 primitivos shadcn/ui (button, card, input, dialog, form, select, sheet, dropdown-menu, tabs, tooltip, etc.), en NavLink y en EmptyRow. En React 19 `ref` es una prop normal, así que se removió la envoltura y las firmas quedaron como funciones que reciben `ref?: React.Ref<T>` en el tipo de props. Fase 2: instalados `eslint-plugin-react-compiler` y `babel-plugin-react-compiler` como dependencias de desarrollo; la regla queda en `off` por defecto y se activa por archivo o al migrar de @vitejs/plugin-react-swc a @vitejs/plugin-react. tsgo OK · 0 warnings · 913/913 tests.",
+    "category": "improvement"
+  },
+  {
+
     "version": "7.11.1",
     "date": "2026-07-11",
     "type": "patch",
