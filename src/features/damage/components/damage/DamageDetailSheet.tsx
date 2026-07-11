@@ -70,6 +70,7 @@ export function DamageDetailSheet({ record, open, onOpenChange }: Props) {
             <p>Actualizado: {format(new Date(record.updated_at), "dd MMM yyyy, HH:mm", { locale: es })}</p>
           </div>
         </div>
+        </Activity>
       </SheetContent>
     </Sheet>
   );
