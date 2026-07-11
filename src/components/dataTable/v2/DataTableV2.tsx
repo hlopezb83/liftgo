@@ -1,4 +1,4 @@
-import { memo, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import type { Table as TanstackTable } from "@tanstack/react-table";
 import { Table } from "@/components/ui/table";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
