@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
 import { positiveAmount } from "@/lib/schemas/common";
 import { Trophy } from "lucide-react";
@@ -22,7 +22,7 @@ interface Props {
 
 const schema = z.object({
   finalAmount: positiveAmount("Debe ser mayor a 0"),
-  closedAt: z.date({ required_error: "Requerido" }),
+  closedAt: z.date({ error: "Requerido" }),
   extraNote: z.string().default(""),
 });
 

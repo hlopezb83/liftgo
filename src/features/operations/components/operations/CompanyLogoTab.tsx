@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/forms/zodResolver";
 import { LogoUploader, useCompanySettings, useUpsertCompanySettings } from "@/features/company-settings";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

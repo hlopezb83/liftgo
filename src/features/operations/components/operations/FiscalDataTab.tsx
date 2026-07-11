@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/forms/zodResolver";
 import { CompanyFiscalForm, PacConfigForm, useBillingSecrets, useCompanySettings, useUpsertBillingSecrets, useUpsertCompanySettings } from "@/features/company-settings";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Form } from "@/components/ui/form";

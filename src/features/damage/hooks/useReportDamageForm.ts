@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 

@@ -1,0 +1,37 @@
+{
+  "version": "7.7.0",
+  "date": "2026-07-11",
+  "type": "major",
+  "title": "Migración a Zod 4 + @hookform/resolvers 5",
+  "sections": [
+    {
+      "heading": "Dependencias",
+      "items": [
+        "zod: 3.25.x → 4.4.3",
+        "@hookform/resolvers: 3.x → 5.4.0"
+      ]
+    },
+    {
+      "heading": "Compatibilidad",
+      "items": [
+        "Nuevo wrapper src/lib/forms/zodResolver.ts: castea el Resolver de Zod 4 a Resolver<Values> para preservar useForm<z.infer<typeof schema>> sin migrar 40+ formularios.",
+        "Todas las importaciones de @hookform/resolvers/zod migradas a @/lib/forms/zodResolver."
+      ]
+    },
+    {
+      "heading": "API deprecada",
+      "items": [
+        "required_error / invalid_type_error reemplazados por `error: '...'` en useSupplierBillForm, BankAccountFormDialog, CloseWonDialog, deliveryFormSchema, partFormSchema y ReportTransferDialog.",
+        "positiveAmount (src/lib/schemas/common.ts) actualizado a la firma Zod 4."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "tsgo --noEmit: 0 errores.",
+        "ESLint: 0 warnings.",
+        "Vitest: 804/804 tests OK."
+      ]
+    }
+  ]
+}

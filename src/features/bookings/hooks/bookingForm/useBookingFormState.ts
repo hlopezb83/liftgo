@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/forms/zodResolver";
 import type { DateRange } from "react-day-picker";
 import { useAvailableForklifts } from "@/features/fleet";
 import { bookingFormSchema, type BookingFormData } from "../../lib/bookingFormSchema";

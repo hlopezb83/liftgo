@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.7.0",
+    "date": "2026-07-11",
+    "type": "major",
+    "title": "Migración a Zod 4 + @hookform/resolvers 5",
+    "description": "Se actualizó zod a 4.4.3 y @hookform/resolvers a 5.4.0. Se creó el wrapper src/lib/forms/zodResolver.ts que preserva la ergonomía previa (useForm<z.infer<typeof schema>>) casteando el Resolver a input=output para no romper los ~40 formularios existentes. Se migraron los usos deprecados de required_error / invalid_type_error al nuevo API unificado `error: '...'` en useSupplierBillForm, BankAccountFormDialog, CloseWonDialog, deliveryFormSchema, partFormSchema y ReportTransferDialog. positiveAmount en lib/schemas/common.ts adoptó la firma Zod 4. Se reemplazaron todas las importaciones de @hookform/resolvers/zod por @/lib/forms/zodResolver. Verificación: tsgo OK, ESLint 0 warnings, 804/804 tests OK.",
+    "category": "improvement"
+  },
+  {
     "version": "7.6.0",
     "date": "2026-07-11",
     "type": "minor",

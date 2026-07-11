@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/forms/zodResolver";
 
 import {
   useCreateMaintenanceLog, useUpdateMaintenanceLog, type MaintenanceLog,

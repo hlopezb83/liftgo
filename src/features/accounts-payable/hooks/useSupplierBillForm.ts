@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
 import { useSuppliers } from "@/features/suppliers";
 import { toYMD } from "@/lib/date/toYMD";
@@ -13,7 +13,7 @@ export const supplierBillFormSchema = z.object({
   supplier_id: z.string().min(1, "Selecciona un proveedor"),
   category: z.string().min(1, "Selecciona una categoría"),
   description: z.string().default(""),
-  issue_date: z.date({ required_error: "Fecha de emisión requerida" }),
+  issue_date: z.date({ error: "Fecha de emisión requerida" }),
   due_date: z.date().optional(),
   currency: z.enum(["MXN", "USD"]),
   exchange_rate: z.coerce.number().positive().default(1),

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormSection } from "@/components/forms/FormSection";
@@ -29,7 +29,7 @@ const schema = z.object({
     .default("")
     .refine((v) => !v || /^\d{1,4}$/.test(v), { message: "Solo dígitos, máx 4" }),
   currency: z.enum(["MXN", "USD"]).default("MXN"),
-  initialBalance: z.number({ invalid_type_error: "Monto inválido" }).default(0),
+  initialBalance: z.number({ error: "Monto inválido" }).default(0),
   isActive: z.boolean().default(true),
   notes: z.string().default(""),
 });

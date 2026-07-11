@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
 import { positiveAmount } from "@/lib/schemas/common";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
@@ -21,7 +21,7 @@ interface Props {
 }
 
 const schema = z.object({
-  transferDate: z.date({ required_error: "La fecha es obligatoria" }),
+  transferDate: z.date({ error: "La fecha es obligatoria" }),
   amount: positiveAmount(),
   senderBank: z.string().default(""),
   senderLast4: z
