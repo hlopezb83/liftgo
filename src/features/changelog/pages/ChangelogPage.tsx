@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 import { InfoAlertIcon } from "@/components/icons";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -34,7 +34,16 @@ export default function ChangelogPage() {
   }, [changelog, filter, categoryFilter, search]);
 
   const { page, setPage, totalPages, paginatedItems } = useListPage(filtered);
-  useEffect(() => { setPage(1); }, [filter, categoryFilter, search, setPage]);
+
+  // Reset a página 1 cuando cambian los filtros — patrón React "adjust state
+  // during render" (https://react.dev/reference/react/useState#storing-information-from-previous-renders).
+  // Evita el efecto adicional que dispararía otra render en cascada.
+  const filtersKey = `${filter}|${categoryFilter}|${search}`;
+  const prevFiltersKey = useRef(filtersKey);
+  if (prevFiltersKey.current !== filtersKey) {
+    prevFiltersKey.current = filtersKey;
+    if (page !== 1) setPage(1);
+  }
 
   if (isLoading) {
     return (
