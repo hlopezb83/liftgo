@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { useMechanics, useCreateMechanic, useUpdateMechanic, useDeleteMechanic, Mechanic } from "@/features/maintenance";
 import { Button } from "@/components/ui/button";
@@ -43,29 +43,26 @@ export function MechanicsTab() {
     }
   };
 
-  const columns = useMemo<ColumnDef<Mechanic>[]>(
-    () => [
-      { id: "name", header: "Nombre", accessorKey: "name", cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },
-      { id: "phone", header: "Teléfono", accessorKey: "phone", enableSorting: false, cell: ({ row }) => row.original.phone || "—" },
-      { id: "email", header: "Correo", accessorKey: "email", enableSorting: false, cell: ({ row }) => row.original.email || "—" },
-      { id: "specialization", header: "Especialización", accessorKey: "specialization", cell: ({ row }) => row.original.specialization || "—" },
-      { id: "is_active", header: "Estado", accessorKey: "is_active", cell: ({ row }) => <StatusBadge status={row.original.is_active ? "active" : "inactive"} /> },
-      {
-        id: "actions",
-        header: "",
-        enableSorting: false,
-        cell: ({ row }) => (
-          <MechanicRowActions
-            mechanic={row.original}
-            onEdit={() => openEdit(row.original)}
-            onDelete={() => del.mutate(row.original.id, { onSuccess: () => notifySuccess("Eliminado") })}
-          />
-        ),
-      },
-    ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
+  const columns: ColumnDef<Mechanic>[] = [
+    { id: "name", header: "Nombre", accessorKey: "name", cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },
+    { id: "phone", header: "Teléfono", accessorKey: "phone", enableSorting: false, cell: ({ row }) => row.original.phone || "—" },
+    { id: "email", header: "Correo", accessorKey: "email", enableSorting: false, cell: ({ row }) => row.original.email || "—" },
+    { id: "specialization", header: "Especialización", accessorKey: "specialization", cell: ({ row }) => row.original.specialization || "—" },
+    { id: "is_active", header: "Estado", accessorKey: "is_active", cell: ({ row }) => <StatusBadge status={row.original.is_active ? "active" : "inactive"} /> },
+    {
+      id: "actions",
+      header: "",
+      enableSorting: false,
+      cell: ({ row }) => (
+        <MechanicRowActions
+          mechanic={row.original}
+          onEdit={() => openEdit(row.original)}
+          onDelete={() => del.mutate(row.original.id, { onSuccess: () => notifySuccess("Eliminado") })}
+        />
+      ),
+    },
+  ];
+
 
   const table = useLiftgoTable<Mechanic>({
     data: mechanics,

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { useDrivers, useCreateDriver, useUpdateDriver, useDeleteDriver, Driver } from "@/features/fleet";
 import { Button } from "@/components/ui/button";
@@ -43,29 +43,30 @@ export function DriversTab() {
     }
   };
 
-  const columns = useMemo<ColumnDef<Driver>[]>(
-    () => [
-      { id: "name", header: "Nombre", accessorKey: "name", cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },
-      { id: "phone", header: "Teléfono", accessorKey: "phone", enableSorting: false, cell: ({ row }) => row.original.phone || "—" },
-      { id: "email", header: "Correo", accessorKey: "email", enableSorting: false, cell: ({ row }) => row.original.email || "—" },
-      { id: "license_number", header: "Licencia", accessorKey: "license_number", cell: ({ row }) => row.original.license_number || "—" },
-      { id: "is_active", header: "Estado", accessorKey: "is_active", cell: ({ row }) => <StatusBadge status={row.original.is_active ? "active" : "inactive"} /> },
-      {
-        id: "actions",
-        header: "",
-        enableSorting: false,
-        cell: ({ row }) => (
-          <DriverRowActions
-            driver={row.original}
-            onEdit={() => openEdit(row.original)}
-            onDelete={() => del.mutate(row.original.id, { onSuccess: () => notifySuccess("Eliminado") })}
-          />
-        ),
-      },
-    ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
+  // Columns se recrean por render — con React Compiler activo el array se
+  // memoiza automáticamente cuando los callbacks (openEdit, del.mutate) mantienen
+  // identidad estable. Antes había un useMemo(..., []) con `eslint-disable`
+  // porque las cells cerraban sobre state; el disable bloqueaba al compilador.
+  const columns: ColumnDef<Driver>[] = [
+    { id: "name", header: "Nombre", accessorKey: "name", cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },
+    { id: "phone", header: "Teléfono", accessorKey: "phone", enableSorting: false, cell: ({ row }) => row.original.phone || "—" },
+    { id: "email", header: "Correo", accessorKey: "email", enableSorting: false, cell: ({ row }) => row.original.email || "—" },
+    { id: "license_number", header: "Licencia", accessorKey: "license_number", cell: ({ row }) => row.original.license_number || "—" },
+    { id: "is_active", header: "Estado", accessorKey: "is_active", cell: ({ row }) => <StatusBadge status={row.original.is_active ? "active" : "inactive"} /> },
+    {
+      id: "actions",
+      header: "",
+      enableSorting: false,
+      cell: ({ row }) => (
+        <DriverRowActions
+          driver={row.original}
+          onEdit={() => openEdit(row.original)}
+          onDelete={() => del.mutate(row.original.id, { onSuccess: () => notifySuccess("Eliminado") })}
+        />
+      ),
+    },
+  ];
+
 
   const table = useLiftgoTable<Driver>({
     data: drivers,

@@ -1,74 +1,75 @@
-## Auditoría de React — Estado actual
+# Auditoría React — estado actual
 
-### Versión
-- `react` / `react-dom` / `@types/react`: **19.2.7** (última estable de la línea 19; la 19.2 salió en oct-2026 y trae `<Activity>`, `useEffectEvent`, `cacheSignal`).
-- `vite` 5.4.21 · `@vitejs/plugin-react-swc` (SWC, sin Babel).
-- `@tanstack/react-query` 5.101, `react-hook-form` 7.81, `react-router-dom` 6.
-- ESLint 9 + `eslint-plugin-react-hooks` + `eslint-plugin-react-refresh` + `eslint-plugin-react-compiler` (instalado, regla en `off`).
+## Diagnóstico
 
-### ¿Está limpia? Sí, muy limpia
-Señales positivas:
-- **0 `React.forwardRef`** en todo `src/` — Lote 1 de la modernización a 19 completado.
-- **0 `React.FC`**, **0 `PropTypes`**, **0 lifecycles de clase**, **0 `'use client'`** parásitos.
-- Routing con `lazy()` + `Suspense` por ruta, `PageFallback` con timeout de 10s, `RouteErrorBoundary` en cada Route → el árbol es split de verdad.
-- Providers propios ya migrados a la sintaxis `<Context value={…}>` de React 19.
-- APIs concurrentes ya en uso: `useDeferredValue` en `useListFilters` (7 pantallas), `useOptimistic` en Feedback.
-- `useSyncExternalStore` presente (1 store externo). `React.memo` usado en apenas 13 archivos: uso responsable, no cargo-cult.
-- Helper `usePrefillEffect` para centralizar el único `exhaustive-deps` disable del proyecto.
-- Vite dedupe `react`/`react-dom`, chunking manual, visualizer bajo `ANALYZE=1`.
+**Versión.** `react@19.2.7` y `react-dom@19.2.7` — última estable de la línea 19 (React Labs aún no promueve una 19.3/20 estable, así que estamos en el techo).
 
-### Anti-patrones remanentes (menores, no bloqueantes)
-1. `useEffect(() => setPage(1), [filter, ...])` en `ChangelogPage` y `useEffect(() => setSelected(new Set(eligibleIds)), [eligibleIds])` en `RecurringInvoicesPreviewDialog` — clásico "derived state" que se puede reemplazar por `useMemo` + `key`.
-2. `useCallback`/`useMemo` "por defecto" en algunos hooks (`useDashboardSections`, `useStatementRows`, `useListPage`) — con React Compiler activo dejan de ser necesarios.
-3. `React Compiler` está instalado pero **desactivado** porque el pipeline usa SWC. Migrar a `@vitejs/plugin-react` (Babel) permitiría prender el compilador y borrar la mayoría de los `useMemo`/`useCallback` manuales.
+**Higiene estructural — impecable.**
+- `0` usos de `React.forwardRef` (migrados en v7.12).
+- `0` usos de `React.FC` / `React.FunctionComponent`.
+- `0` componentes de clase, `0` PropTypes, `0` `'use client'` parásitos.
+- Providers propios en la nueva sintaxis `<Context value>` de React 19.
+- Routing con `lazy()` + `Suspense` por ruta, `PageFallback` tolerante a fallos.
+- `19` `ErrorBoundary` distribuidos en rutas y widgets críticos.
 
-### ¿Es top of the line? Con dos movimientos, sí.
+**Pipeline moderno (v7.15–v7.16).**
+- `useDeferredValue` en filtros globales (`useListFilters`).
+- `useOptimistic` en Feedback.
+- `useEffectEvent` nativo en `usePrefillEffect` y `usePageActions`.
+- Derived state fuera de `useEffect` (patrón oficial *adjust state during render*).
+- **React Compiler activo en el build de producción** (`babel-plugin-react-compiler` con `target: 19`).
+- ESLint `react-compiler/react-compiler` como `warn` para detectar bail-outs.
 
----
+**Lo que aún no está óptimo — 3 hallazgos.**
 
-## Propuesta de mejora — Auditoría React (Lote 5)
+1. **15 warnings del Compiler.** 14 son bail-outs causados por `eslint-disable-next-line react-hooks/exhaustive-deps` que dejamos como cinturón de seguridad. Cada archivo con un disable queda excluido de la auto-memoización del Compiler. Hoy pierden optimización: `useListFilters`, `usePrefillEffect`, `pageActions`, `SearchBar`, `CustomersPage`, `useInvoicePrefill`, `useSupplierBillForm`, `SupplierBillFormDialog`, `RegisterSupplierPaymentDialog`, y los 4 tabs de Operations (`DriversTab`, `MechanicsTab`, `EquipmentModelsTab`, `MaintenancePoliciesTab`). El 15º es una impureza legítima en un test (`AuthQueryCacheSync.test.tsx`).
+2. **197 llamadas a `useMemo`/`useCallback`/`memo` en `src/`.** Con Compiler activo la mayoría son redundantes, pero **no hay que borrarlas a mano**: el compilador ya las omite en producción y borrarlas manualmente sin auditoría rompería fast refresh y comportamiento en dev. Estrategia: dejarlas y priorizar sólo los archivos donde causan ruido de mantenimiento.
+3. **`<Activity>` infrautilizado.** Sólo 1 import en todo el repo. Es la API estable de React 19.2 para preservar estado de UI oculta sin desmontar el árbol — ideal para nuestros drill-down sheets, tabs de Operations y modales pesados que hoy remontan `react-hook-form` cada vez que se abren.
 
-Alcance quirúrgico, sin cambios de comportamiento visibles al usuario.
+## Plan de mejoras (Fase D + limpieza de bail-outs)
 
-### Fase A — Activar React Compiler (opt-in)
-1. Añadir plugin Babel como pipeline paralelo al SWC actual: mantener `@vitejs/plugin-react-swc` para HMR/dev y encender `babel-plugin-react-compiler` sólo en build de producción vía `@vitejs/plugin-react` en un `defineConfig` condicional. Alternativa más simple: swap completo a `@vitejs/plugin-react` y medir HMR.
-2. Configurar el compilador en modo **annotation-only** (`compilationMode: "annotation"`) para arrancar: sólo compila archivos con `"use memo"` en la cabecera. Riesgo cero.
-3. Prender `react-compiler/react-compiler: "warn"` en ESLint globalmente para detectar violaciones (mutaciones, refs mal usadas).
-4. Piloto: anotar 3 hooks calientes (`useDashboardSections`, `useListFilters`, `useStatementRows`) y verificar que el bundle no crece y los tests pasan.
+### Lote D.1 — Eliminar bail-outs del Compiler
+Objetivo: bajar de 14 a ≤3 warnings de `react-compiler`.
 
-**Beneficio**: cuando movamos a `compilationMode: "infer"`, podemos borrar la mayoría de `useMemo`/`useCallback` manuales del proyecto (estimado 150-250 LOC).
+- **`useListFilters`, `usePrefillEffect`, `pageActions`**: hoy usan `useEffectEvent` correctamente, pero conservan un `eslint-disable exhaustive-deps` por callbacks estables que el linter aún no infiere. Reemplazar el disable por refactor que ponga la dependencia real (una key primitiva) para que el linter esté conforme sin necesidad del comentario.
+- **Tabs de Operations (`DriversTab`, `MechanicsTab`, `EquipmentModelsTab`, `MaintenancePoliciesTab`)**: comparten un patrón `useEffect([id]) → fetch → setState` con disable. Extraer a `useEffectEvent` para el fetch y depender sólo de `id`.
+- **`SearchBar`, `CustomersPage`, `useInvoicePrefill`, `useSupplierBillForm`, `SupplierBillFormDialog`, `RegisterSupplierPaymentDialog`**: revisar caso por caso, eliminar el disable convirtiendo callbacks en `useEffectEvent` o moviendo la lógica al render cuando aplique.
+- **`AuthQueryCacheSync.test.tsx`**: silenciar la regla sólo para tests (`overrides` en `eslint.config.js`) ya que la mutación es parte del setup, no del código de app.
 
-### Fase B — Eliminar "derived state" con `useEffect`
-1. `ChangelogPage`: reemplazar el efecto que resetea `page` a 1 por `useMemo` que deriva la página o por `key={filter+categoryFilter+search}` en el subárbol paginado.
-2. `RecurringInvoicesPreviewDialog`: reemplazar el efecto que rehidrata `selected` cuando cambia `eligibleIds` por `useMemo` + un `Set` local sin `useState`, o por `key={eligibleIds.join()}` en el subárbol.
-3. Barrido con `rg` para detectar el patrón `useEffect(() => { setX(...) }, [prop])` en el resto del proyecto.
+Verificación: `bun run lint` con ≤3 warnings, `bun run test` 913/913.
 
-### Fase C — Adoptar `useEffectEvent` de React 19.2
-1. Reemplazar `usePrefillEffect` (que hoy usa un `ref` manual como polyfill) por el nuevo `useEffectEvent` estable en 19.2.
-2. Eliminar el único `eslint-disable react-hooks/exhaustive-deps` del proyecto, contenido en ese helper.
-3. Auditar `usePageActions` — su `ref.current = actions` es otro caso claro para `useEffectEvent`.
+### Lote D.2 — `<Activity>` en superficies pesadas
+Adoptar `<Activity mode="visible|hidden">` para preservar estado (scroll, form, filtros) sin desmontar en:
 
-### Fase D — Ajustes finos
-1. `useSyncExternalStore` review: confirmar que `getServerSnapshot` está tipado, no genera flash de hidratación.
-2. Revisar los 13 archivos con `React.memo`: dejarlo sólo donde el profiler muestra beneficio; con React Compiler la mayoría se vuelven redundantes.
-3. Considerar `<Activity mode="hidden">` (nuevo en 19.2) para el sheet lateral de detalles: mantiene state cuando el sheet se cierra sin desmontarlo, evitando refetch al reabrir.
+- **Detail sheets con tabs** (`BookingDetailSheet`, `MaintenanceDetailPanel`, `SupplierBillDetailSheet`, `CustomerDetailSheet`): las tabs inactivas hoy se desmontan → perdemos scroll y form draft. Envolver cada tab en `<Activity mode={active ? 'visible' : 'hidden'}>`.
+- **Command palette / global search** (`Ctrl+K`): al cerrar hoy pierde el query. Con `<Activity>` preservamos el input y los resultados listos para reabrir.
+- **Dashboard con múltiples widgets pesados** (Recharts): ocultar los que están fuera del viewport con `<Activity mode="hidden">` cuando se colapsa una sección, en vez de condicional que remonta el chart.
 
-### Verificación por fase
-- `tsgo` (typecheck) OK, `bun run lint` 0 warnings, `bun run test` verde (913 tests hoy).
-- Bundle diff con `ANALYZE=1 bun run build` antes/después de Fase A.
-- Smoke manual: login, dashboard, factura, cotización, sheet de feedback.
+Verificación: navegar entre tabs de un `BookingDetailSheet`, cambiar de tab y volver — el scroll y el formulario deben permanecer intactos. Screenshot como evidencia.
 
-### Detalle técnico condensado
-- **Compiler**: `compilationMode: "annotation"` → `"infer"` con `panicThreshold: "none"`. Chequeo con `react-compiler-runtime` en dev.
-- **`<Activity>`**: `import { unstable_Activity as Activity } from "react"` (aún prefijado unstable_ en 19.2). Alternativa segura: dejar para 19.3.
-- **`useEffectEvent`**: `import { experimental_useEffectEvent as useEffectEvent } from "react"` — check final del nombre en 19.2 antes de mergear.
+### Lote D.3 — Poda selectiva de `memo`/`useMemo`/`useCallback`
+Sólo tras D.1: el Compiler ya auto-memoiza los archivos limpios, así que en esos archivos podemos borrar la memoización manual sin regresión. Alcance conservador: sólo componentes de UI puros con dependencies triviales (candidatos: `Sidebar`, `StatusBadge`, `IconButton`, `KpiTile`, `DetailRow`).
 
-### Fuera de alcance
-- No tocar shadcn/ui (`src/components/ui/**` ya está en ignore de ESLint).
-- No migrar a Server Components / Next.js — este es un SPA client-side, no aplica.
-- No cambiar React Query, React Hook Form ni React Router.
-- No modificar Edge Functions.
+**No tocar** en este lote:
+- `useMemo` sobre objetos que se pasan como dependencias de `useQuery` (React Query depende de identidad estable de `queryKey`).
+- `useCallback` que se pasa como prop a componentes de terceros (Radix, dnd-kit).
 
-### Salida esperada
-- Reporte de LOC borradas por el compilador.
-- 1 changelog `v7.15.0` (Compiler + fases B/C) o hasta `v7.18.0` si preferimos entregar fase por fase.
+Verificación: DevTools Profiler antes/después en `Dashboard` y `BookingsPage` — no debe haber más renders que la baseline.
+
+### Fuera de alcance (para futuros sprints)
+- `use()` para promises/context condicionales: hoy no tenemos flows que lo justifiquen (todo va por React Query).
+- Server Components: no aplica, somos SPA con Vite.
+- `useSyncExternalStore` para stores custom: no tenemos stores propios fuera de React Query y contextos ligeros.
+
+## Detalles técnicos
+
+- `eslint.config.js` requiere un bloque `overrides` para relajar `react-compiler/react-compiler` sólo en `src/**/*.test.tsx`.
+- `Activity` es un export top-level de `react@19.2`. TypeScript ya lo reconoce con `@types/react@^19`.
+- Al eliminar `useMemo`/`useCallback` en D.3, mantener los tests de rendering para atrapar regresiones sutiles de identidad (por ejemplo, `queryKey` inestable causando refetch loops).
+
+## Verificación global al cerrar el sprint
+- `bunx tsgo --noEmit` sin errores.
+- `bun run lint` con ≤3 warnings (todos justificados).
+- `bun run test` 913/913.
+- `bun run build` completa < 60s.
+- Changelog `v7.17.0` (D.1) y `v7.18.0` (D.2 + D.3).

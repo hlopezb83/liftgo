@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Form } from "@/components/ui/form";
 import { FormActions } from "@/components/forms/FormActions";
@@ -37,13 +37,14 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
   const cfdi = useImportSupplierBillCfdi();
   const [importedValues, setImportedValues] = useState<SupplierBillFormOverrides | undefined>(undefined);
 
+  const resetOnClose = useEffectEvent(() => {
+    cfdi.reset();
+    setImportedValues(undefined);
+  });
   useEffect(() => {
-    if (!open) {
-      cfdi.reset();
-      setImportedValues(undefined);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+    if (!open) resetOnClose();
+  }, [open, resetOnClose]);
+
 
   const activeOverrides = overrides ?? importedValues;
   const { form, selectedSupplier, suggestedDueDate, total, isPending, onSubmit } =

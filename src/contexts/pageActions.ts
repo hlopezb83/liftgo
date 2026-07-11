@@ -39,10 +39,11 @@ export function usePageActions(actions: PageActions): void {
 
   useEffect(() => {
     if (!register) return;
+    // `onNew` y `onRefresh` provienen de useEffectEvent → estables por contrato;
+    // exhaustive-deps (react-hooks v5.2+) los excluye automáticamente al detectar
+    // el import named `useEffectEvent` de 'react'.
     return register({ newLabel, onNew, onRefresh });
-    // `onNew` y `onRefresh` son useEffectEvent (estables por contrato, no deben
-    // listarse). El linter aún no los detecta automáticamente en imports named.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [register, newLabel]);
+  }, [register, newLabel, onNew, onRefresh]);
 }
+
 

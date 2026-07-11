@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useEffectEvent, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
@@ -88,11 +88,14 @@ export function useSupplierBillForm(
     defaultValues: buildDefaults(),
   });
 
+  const resetForOpen = useEffectEvent(() => {
+    form.reset(buildDefaults());
+  });
   useEffect(() => {
     if (!open) return;
-    form.reset(buildDefaults());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, initialBill?.id]);
+    resetForOpen();
+  }, [open, initialBill?.id, resetForOpen]);
+
 
   const { data: suppliersList } = useSuppliers();
   const supplierId = form.watch("supplier_id");
@@ -111,12 +114,15 @@ export function useSupplierBillForm(
     return d;
   }, [selectedSupplier, issueDate]);
 
-  useEffect(() => {
+  const applySuggestedDueDate = useEffectEvent(() => {
     if (suggestedDueDate && !dueDate && !isEdit) {
       form.setValue("due_date", suggestedDueDate);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [supplierId, issueDate]);
+  });
+  useEffect(() => {
+    applySuggestedDueDate();
+  }, [supplierId, issueDate, applySuggestedDueDate]);
+
 
   const subtotal = Number(form.watch("subtotal") || 0);
   const tax = Number(form.watch("tax_amount") || 0);
