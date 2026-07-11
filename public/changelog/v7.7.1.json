@@ -1,0 +1,30 @@
+{
+  "version": "7.7.1",
+  "date": "2026-07-11",
+  "type": "patch",
+  "title": "positiveAmount: cobertura de casos borde en Zod 4",
+  "sections": [
+    {
+      "heading": "Auditoría",
+      "items": [
+        "positiveAmount() en src/lib/schemas/common.ts ya usa la firma Zod 4 (`z.number({ error }).positive(error)`).",
+        "Consumidores validados sin cambios: ReportTransferDialog, CloseWonDialog, supplierPaymentSchema (Cuentas por Pagar), EditPaymentDialog (Facturas)."
+      ]
+    },
+    {
+      "heading": "Pruebas ampliadas (4 → 11 casos)",
+      "items": [
+        "Acepta números > 0 y valores muy pequeños (0.01).",
+        "Rechaza 0, negativos, NaN, undefined, null y strings numéricos (sin coerción implícita).",
+        "Mensaje custom aplicado tanto en error de tipo como de rango (≤ 0).",
+        "Composición con .optional() sin efectos colaterales."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "26/26 tests verdes en schemas.common.test.ts."
+      ]
+    }
+  ]
+}
