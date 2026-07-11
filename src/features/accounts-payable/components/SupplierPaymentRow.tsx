@@ -1,4 +1,4 @@
-import { SpinnerIcon, ExternalLink } from "@/components/icons";
+import { SpinnerIcon, OpenLinkIcon } from "@/components/icons";
 
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
@@ -34,7 +34,7 @@ function PaymentHeader({ p, currency }: { p: SupplierPayment; currency: string }
       </p>
       {p.receipt_url && (
         <a href={p.receipt_url} target="_blank" rel="noreferrer" className="text-primary inline-flex items-center gap-1 hover:underline">
-          Comprobante <ExternalLink className="h-3 w-3" />
+          Comprobante <OpenLinkIcon className="h-3 w-3" />
         </a>
       )}
     </>

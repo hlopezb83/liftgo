@@ -1,4 +1,4 @@
-import { WarnIcon, MaintenanceIcon, SuccessIcon, ClipboardList, ClockIcon } from "@/components/icons";
+import { WarnIcon, MaintenanceIcon, SuccessIcon, ClipboardList, OverdueIcon } from "@/components/icons";
 import { useNavigate } from "react-router-dom";
 import { useUpdateInvoice } from "@/features/invoices";
 import { useUpdateBooking } from "@/features/bookings";
@@ -71,7 +71,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
     <div className="grid grid-cols-1 gap-4">
       {overdueInvoices.length > 0 && (
         <AlertCard
-          icon={WarnIcon}
+          icon={OverdueIcon}
           title="Facturas Vencidas"
           count={overdueInvoices.length}
           tone="destructive"
@@ -101,7 +101,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
       )}
 
       {overdueBookings.length > 0 && (
-        <AlertCard icon={ClockIcon} title="Rentas Vencidas" count={overdueBookings.length} tone="warning">
+        <AlertCard icon={OverdueIcon} title="Rentas Vencidas" count={overdueBookings.length} tone="warning">
           {overdueBookings.slice(0, 5).map((ob) => (
             <AlertRow
               key={ob.booking_id}

@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserIcon } from "@/components/icons";
+import { CalendarIcon } from "@/components/icons";
 import { InfoRow } from "@/components/forms/InfoRow";
 import { formatDateRange } from "@/lib/utils";
 import type { ReturnInspectionWithJoins } from "@/types/rental";
@@ -9,7 +9,7 @@ export function BookingCard({ ins }: { ins: ReturnInspectionWithJoins }) {
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
-          <UserIcon className="h-4 w-4 text-muted-foreground" />Reserva
+          <CalendarIcon className="h-4 w-4 text-muted-foreground" />Reserva
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">

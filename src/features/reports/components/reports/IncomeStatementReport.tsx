@@ -3,7 +3,7 @@ import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { TrendingUpIcon, TrendingDownIcon, MoneyIcon, Percent, WarnIcon } from "@/components/icons";
+import { TrendingUpIcon, TrendingDownIcon, RevenueIcon, Percent, WarnIcon } from "@/components/icons";
 
 import { useIncomeStatementData } from "../../hooks/useIncomeStatementData";
 
@@ -31,7 +31,7 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
   const netPositive = totals.netProfit >= 0;
   const marginPositive = totals.margin >= 0;
   const kpis = [
-    { label: "Ingresos", value: formatCurrency(totals.revenue), icon: MoneyIcon, color: "text-chart-2" },
+    { label: "Ingresos", value: formatCurrency(totals.revenue), icon: RevenueIcon, color: "text-chart-2" },
     { label: "Total Egresos", value: formatCurrency(totals.totalExpenses), icon: TrendingDownIcon, color: "text-destructive" },
     { label: "Utilidad Neta", value: formatCurrency(totals.netProfit), icon: netPositive ? TrendingUpIcon : TrendingDownIcon, color: netPositive ? "text-chart-2" : "text-destructive" },
     { label: "Margen Neto", value: `${totals.margin.toFixed(1)}%`, icon: Percent, color: marginPositive ? "text-chart-2" : "text-destructive" },

@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ExternalLink, X, ResetIcon } from "@/components/icons";
+import { OpenLinkIcon, X, ResetIcon } from "@/components/icons";
 import { openStorageFile } from "@/lib/storage/openStorageFile";
 import { formatDateDisplay } from "@/lib/utils";
 import type { SupplierPayment } from "../hooks/useSupplierBill";
@@ -30,13 +30,13 @@ export function SupplierPaymentRepReceived({
         {p.rep_xml_url && (
           <button type="button" onClick={() => openStorageFile(BUCKET, p.rep_xml_url as string)}
             className="text-primary inline-flex items-center gap-1 hover:underline">
-            XML <ExternalLink className="h-3 w-3" />
+            XML <OpenLinkIcon className="h-3 w-3" />
           </button>
         )}
         {p.rep_pdf_url && (
           <button type="button" onClick={() => openStorageFile(BUCKET, p.rep_pdf_url as string)}
             className="text-primary inline-flex items-center gap-1 hover:underline">
-            PDF <ExternalLink className="h-3 w-3" />
+            PDF <OpenLinkIcon className="h-3 w-3" />
           </button>
         )}
         {canAct && (

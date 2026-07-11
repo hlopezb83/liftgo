@@ -1,4 +1,4 @@
-import { MoneyIcon, TrendingUpIcon, CalendarClock, WarnIcon } from "@/components/icons";
+import { RevenueIcon, TrendingUpIcon, CalendarClock, OverdueIcon } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { KpiTile } from "@/components/domain/KpiTile";
 
@@ -14,7 +14,7 @@ export function FinancialKpiCards({ mrr, utilizationPercent, dso, overdueTotal }
     {
       label: "Ingreso Mensual Recurrente",
       value: formatCurrency(mrr),
-      icon: MoneyIcon,
+      icon: RevenueIcon,
       color: "text-success",
       bgColor: "bg-success/10",
       href: "/mrr",
@@ -38,7 +38,7 @@ export function FinancialKpiCards({ mrr, utilizationPercent, dso, overdueTotal }
     {
       label: "Cartera Vencida",
       value: formatCurrency(overdueTotal),
-      icon: WarnIcon,
+      icon: OverdueIcon,
       color: overdueTotal > 0 ? "text-destructive" : "text-muted-foreground",
       bgColor: overdueTotal > 0 ? "bg-destructive/10" : "bg-muted",
       href: "/invoices?status=overdue",

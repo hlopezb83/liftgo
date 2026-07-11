@@ -19,7 +19,7 @@ import { SupplierBankAccountsSection } from "../components/suppliers/SupplierBan
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
-import { DocumentIcon, MaintenanceIcon, MoneyIcon, EditIcon } from "@/components/icons";
+import { DocumentIcon, MaintenanceIcon, ExpenseIcon, EditIcon } from "@/components/icons";
 
 type LinkedExpense = { id: string; expense_date: string; category: string; description: string | null; amount: number };
 
@@ -135,7 +135,7 @@ export default function SupplierDetailPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card>
           <CardContent className="flex items-center gap-4 py-5">
-            <div className="rounded-full bg-primary/10 p-3"><MoneyIcon className="h-5 w-5 text-primary" /></div>
+            <div className="rounded-full bg-primary/10 p-3"><ExpenseIcon className="h-5 w-5 text-primary" /></div>
             <div>
               <p className="text-sm text-muted-foreground">Total Gastos Operativos</p>
               <p className="text-xl font-bold font-mono">{formatCurrency(totalExpenses)}</p>

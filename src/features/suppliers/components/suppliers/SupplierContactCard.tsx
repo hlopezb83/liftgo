@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, PhoneIcon, Globe, LocationIcon } from "@/components/icons";
+import { EmailIcon, PhoneIcon, Globe, LocationIcon } from "@/components/icons";
 
 type SupplierContactInfo = {
   contact_person?: string | null;
@@ -30,7 +30,7 @@ export function SupplierContactCard({ supplier }: { supplier: SupplierContactInf
           )}
           {supplier.email && (
             <div className="flex items-center gap-2 text-sm">
-              <Mail className="h-4 w-4 text-muted-foreground" />
+              <EmailIcon className="h-4 w-4 text-muted-foreground" />
               <a href={`mailto:${supplier.email}`} className="text-primary hover:underline">
                 {supplier.email}
               </a>
