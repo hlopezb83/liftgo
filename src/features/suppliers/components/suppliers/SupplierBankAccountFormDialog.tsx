@@ -13,8 +13,8 @@ import {
   SwitchField,
   type SelectOption,
 } from "@/components/forms/fields";
+import { clabeOptional } from "@/lib/schemas";
 import {
-  isValidClabe,
   useCreateSupplierBankAccount,
   useUpdateSupplierBankAccount,
   type SupplierBankAccount,
@@ -30,10 +30,7 @@ interface Props {
 const schema = z.object({
   bank_name: z.string().trim().min(1, "El banco es requerido"),
   account_holder: z.string().trim().min(1, "El titular es requerido"),
-  clabe: z
-    .string()
-    .default("")
-    .refine((v) => !v || isValidClabe(v), { message: "La CLABE debe tener exactamente 18 dígitos" }),
+  clabe: clabeOptional("La CLABE debe tener exactamente 18 dígitos"),
   account_number: z.string().default(""),
   currency: z.enum(["MXN", "USD"]).default("MXN"),
   notes: z.string().default(""),

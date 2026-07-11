@@ -1,4 +1,4 @@
-import { z } from "https://esm.sh/zod@3.23.8";
+import { z } from "https://esm.sh/zod@4.4.3";
 import { handleCors } from "../_shared/cors.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { requireRole } from "../_shared/auth.ts";
@@ -36,7 +36,7 @@ const MODULES = [
   "Otro / General",
 ] as const;
 
-const BodySchema = z.object({ report_id: z.string().uuid() });
+const BodySchema = z.object({ report_id: z.uuid() });
 
 const ClassificationSchema = z.object({
   severity: z.enum(SEVERITIES),
@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
     const parsed = BodySchema.safeParse(await req.json());
     if (!parsed.success) {
       return jsonError(req, 400, "Invalid body", {
-        detail: parsed.error.flatten(),
+        detail: z.treeifyError(parsed.error),
       });
     }
 

@@ -2,6 +2,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import { ErrorBoundary } from "./layouts/ErrorBoundary";
+import "./lib/forms/zodConfig";
 import "./index.css";
 
 const RELOAD_KEY = "vite-preload-reload";

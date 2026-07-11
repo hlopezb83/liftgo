@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.8.0",
+    "date": "2026-07-11",
+    "type": "minor",
+    "title": "Zod 4 — Hardening completo (10 hallazgos)",
+    "description": "Auditoría y limpieza integral de la implementación Zod 4. Edge function classify-feedback-report migrada de zod 3.23 a 4.4.3, reemplazando .flatten() por z.treeifyError() y z.string().uuid() por z.uuid(). optionalEmail() en lib/schemas/common.ts ahora usa z.email() top-level (mejor tree-shaking). Nuevas fábricas positiveAmountCoerced() y nonNegativeAmountCoerced() en common.ts para casos con coerción string→number. SupplierBankAccountFormDialog deja de duplicar el refine de CLABE y consume clabeOptional() con mensaje custom. Nuevo barrel src/lib/schemas/index.ts. Locale es-MX aplicado globalmente vía z.config(z.locales.es()) desde src/lib/forms/zodConfig.ts (importado en main.tsx). zodResolver.ts limpiado: comentario obsoleto de source-map removido, agregada guía z.input vs z.infer. Nuevo test src/features/__tests__/domain-schemas.test.ts con 10 casos table-driven cubriendo customer/supplier/part y las nuevas fábricas coerced. Verificación: tsgo OK, ESLint 0 warnings, 843/843 tests OK, edge function desplegada.",
+    "category": "improvement"
+  },
+  {
     "version": "7.7.2",
     "date": "2026-07-11",
     "type": "patch",

@@ -8,6 +8,9 @@
  * Convención: los helpers son **fábricas** (funciones) para preservar la
  * naturaleza inmutable de Zod y permitir componer con `.optional()`, `.nullable()`,
  * `.transform()`, etc., sin efectos colaterales entre consumidores.
+ *
+ * Zod 4: usamos los validadores top-level (`z.email`, `z.uuid`, etc.) por su
+ * mejor tree-shaking y por evitar los helpers deprecados de `z.string()`.
  */
 import { z } from "zod";
 
@@ -18,13 +21,14 @@ import { z } from "zod";
 
 /**
  * Campo de email opcional. Default `""` para RHF (evita `undefined` en inputs
- * controlados). Válido si es cadena vacía o pasa el parser de email de Zod.
+ * controlados). Válido si es cadena vacía o pasa el parser de email de Zod 4
+ * top-level `z.email()`.
  */
 export const optionalEmail = () =>
   z
     .string()
     .default("")
-    .refine((v) => !v || z.string().email().safeParse(v).success, {
+    .refine((v) => !v || z.email().safeParse(v).success, {
       message: "Correo electrónico inválido",
     });
 
@@ -74,24 +78,38 @@ export const isValidClabe = (v: string | null | undefined): boolean =>
 /**
  * Campo CLABE opcional para formularios (default `""`, valida 18 dígitos si hay valor).
  */
-export const clabeOptional = () =>
+export const clabeOptional = (message = "La CLABE debe tener 18 dígitos") =>
   z
     .string()
     .default("")
-    .refine(isValidClabe, { message: "La CLABE debe tener 18 dígitos" });
+    .refine(isValidClabe, { message });
 
 // ---------------------------------------------------------------------------
-// Monto positivo.
+// Montos numéricos.
 // ---------------------------------------------------------------------------
 
 /**
- * Monto numérico > 0. Mensaje por defecto en es-MX; se puede sobreescribir por contexto.
+ * Monto numérico **estricto** > 0. NO coerciona strings.
  *
- * Usa `z.number()` (no `coerce`) para preservar la inferencia estricta que RHF
- * espera cuando el input proviene de `CurrencyField`/`NumberField` (que ya
- * emiten `number`). Si el formulario recibe strings sin transformar, envuelve
- * con `z.preprocess(Number, positiveAmount())` en el schema del feature.
+ * Usar cuando el input proviene de un componente que ya emite `number`
+ * (`CurrencyField`, `NumberField`). Si el `<input>` es HTML nativo y emite
+ * string, usar `positiveAmountCoerced()`.
  */
 export const positiveAmount = (message = "El monto debe ser mayor a 0") =>
   z.number({ error: message }).positive(message);
 
+/**
+ * Monto numérico > 0 con **coerción** de string → number.
+ *
+ * Usar cuando el input viene de un `<input type="number">` nativo que emite
+ * string, o de imports XML/CFDI donde los montos llegan como texto.
+ */
+export const positiveAmountCoerced = (message = "El monto debe ser mayor a 0") =>
+  z.coerce.number({ error: message }).positive(message);
+
+/**
+ * Monto numérico ≥ 0 con coerción. Útil para subtotales, impuestos y
+ * retenciones que pueden ser 0 pero no negativos.
+ */
+export const nonNegativeAmountCoerced = (message = "No puede ser negativo") =>
+  z.coerce.number({ error: message }).nonnegative(message);
