@@ -5,7 +5,7 @@ import { QuotePDFButton } from "./QuotePDFButton";
 import { useState } from "react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Edit, Send, SuccessIcon, ErrorIcon, BookOpen, DeleteIcon, InvoiceIcon } from "@/components/icons";
+import { EditIcon, DeliveryIcon, SuccessIcon, ErrorIcon, BookOpen, DeleteIcon, InvoiceIcon } from "@/components/icons";
 import type { Tables } from "@/integrations/supabase/types";
 import { isQuoteEditable, canConvertQuote } from "@/lib/rules/quotes";
 
@@ -109,12 +109,12 @@ export function QuoteDetailActions({
       <QuotePDFButton quoteId={quote.id} />
       {isEditable && (
         <Button variant="outline" size="sm" onClick={() => navigate(`/quotes/${quote.id}/edit`)}>
-          <Edit className="h-4 w-4 mr-1" />Editar
+          <EditIcon className="h-4 w-4 mr-1" />Editar
         </Button>
       )}
       {quote.status === "draft" && (
         <Button size="sm" onClick={() => onSetStatus("sent")}>
-          <Send className="h-4 w-4 mr-1" />Marcar Enviada
+          <DeliveryIcon className="h-4 w-4 mr-1" />Marcar Enviada
         </Button>
       )}
       <ConvertButton
