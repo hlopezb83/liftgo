@@ -1,9 +1,12 @@
 import { defineConfig } from "vitest/config";
-import react from "@vitejs/plugin-react-swc";
+import react from "@vitejs/plugin-react";
 import path from "path";
 
 export default defineConfig({
+  // Sin `babel-plugin-react-compiler` aquí: el compiler no aporta valor bajo
+  // vitest/jsdom y suma tiempo de transformación en cada test file.
   plugins: [react()],
+
   test: {
     environment: "jsdom",
     globals: true,
