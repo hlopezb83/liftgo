@@ -1,5 +1,6 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useCustomers } from "@/features/customers";
 import { useEquipmentModels } from "@/features/fleet";
 import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "./quotes/useQuotes";
@@ -12,7 +13,7 @@ import { notifySuccess } from "@/lib/ui/appFeedback";
 
 export function useQuoteFormLogic() {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const { data: customers } = useCustomers();
   const { data: existingQuote } = useQuote(id);
   const { data: nextNumber } = useNextQuoteNumber();

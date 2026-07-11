@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { InvoiceIcon } from "@/components/icons";
@@ -15,7 +16,7 @@ interface InvoiceRow {
 }
 
 export function CustomerInvoicesList({ invoices }: { invoices: InvoiceRow[] }) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   return (
     <Card>
       <CardHeader>

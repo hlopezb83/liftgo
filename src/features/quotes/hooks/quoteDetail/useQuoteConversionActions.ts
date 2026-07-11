@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
 import { quoteStatusLabel } from "../../constants";
@@ -17,7 +18,7 @@ type StateResult = ReturnType<typeof useQuoteConversionState>;
  * de la creación de bookings a useQuoteBookingCreator.
  */
 export function useQuoteConversionActions(id: string | undefined, data: DataResult, state: StateResult) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const updateQuote = useUpdateQuote();
   const deleteQuote = useDeleteQuote();
   const { createBookingsFor, convertLegacy } = useQuoteBookingCreator(data, state);

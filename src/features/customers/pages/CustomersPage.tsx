@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useEffect, useEffectEvent, useState } from "react";
 import { useCustomers, useCreateCustomer, useUpdateCustomer } from "../hooks/customers/useCustomers";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,7 +9,7 @@ import { useListFilters } from "@/hooks/useListFilters";
 import { useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { ChevronRightIcon, AddIcon, PhoneIcon } from "@/components/icons";
 
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useUpdateProspect } from "@/features/crm";
 import { CustomerFormDialog } from "../components/customers/CustomerFormDialog";
 import { usePageActions } from "@/contexts/pageActions";
@@ -23,7 +24,7 @@ type Customer = NonNullable<ReturnType<typeof useCustomers>["data"]>[number];
 
 export default function CustomersPage() {
   const { data: customers, isLoading, refetch } = useCustomers();
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const isMobile = useIsTabletOrBelow();
   const [searchParams, setSearchParams] = useSearchParams();
   const createCustomer = useCreateCustomer();

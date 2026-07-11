@@ -1,10 +1,11 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { SecurityIcon, UsersIcon } from "@/components/icons";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { STAFF_ROLES } from "@/lib/constants";
 import type { AppRole } from "../hooks/useUserRole";
@@ -26,7 +27,7 @@ import { useLiftgoTable } from "@/components/dataTable/v2";
 type UserItem = UserRow & { id?: string };
 
 export default function UserManagementPage() {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const { user: currentUser } = useAuth();
   const { data: users, isLoading } = useUsersWithRoles();
   const toggleStatus = useToggleStatus();

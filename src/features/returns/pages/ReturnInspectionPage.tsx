@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useState, useMemo } from "react";
 import { useBookings } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
@@ -13,13 +14,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { PlusCircle } from "@/components/icons";
 import { format } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";
-import { useNavigate } from "react-router-dom";
+
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
 type Inspection = NonNullable<ReturnType<typeof useReturnInspections>["data"]>[number];
 
 export default function ReturnInspectionPage() {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const { data: bookings } = useBookings();
   const { forkliftMap } = useForkliftMap();
   const { data: inspections, isLoading } = useReturnInspections();

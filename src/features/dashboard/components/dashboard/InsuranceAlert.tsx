@@ -1,6 +1,6 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShieldAlert } from "@/components/icons";
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateDisplay } from "@/lib/utils";
 import type { InsuranceAlertsData } from "@/features/fleet";
 

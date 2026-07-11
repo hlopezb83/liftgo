@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useMemo, useState } from "react";
 import { useSuppliers, SUPPLIER_CATEGORIES } from "../hooks/useSuppliers";
 import type { Supplier } from "../hooks/useSuppliers";
@@ -8,7 +9,7 @@ import { PlusCircle, DownloadIcon, ChevronRightIcon } from "@/components/icons";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
 import { Badge } from "@/components/ui/badge";
-import { useNavigate } from "react-router-dom";
+
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { SupplierFormDialog } from "../components/suppliers/SupplierFormDialog";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
@@ -16,7 +17,7 @@ import { usePageActions } from "@/contexts/pageActions";
 
 export default function SuppliersPage() {
   const { data: suppliers, isLoading } = useSuppliers();
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Supplier | null>(null);

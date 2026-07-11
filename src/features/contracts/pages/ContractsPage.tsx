@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+
 import { useMemo } from "react";
 import { STATUS_LABELS } from "@/lib/constants";
 import { useContracts } from "../hooks/useContracts";
@@ -19,7 +20,7 @@ type Contract = NonNullable<ReturnType<typeof useContracts>["data"]>[number];
 
 export default function ContractsPage() {
   const { data: contracts, isLoading } = useContracts();
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
 
   const { search, setSearch, statusFilter, setStatusFilter, filtered } = useListFilters(contracts, {
     searchFields: ["contract_number", "customer_name"],

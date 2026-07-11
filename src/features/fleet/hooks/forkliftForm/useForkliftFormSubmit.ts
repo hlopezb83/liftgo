@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
 import { useCreateForklift, useUpdateForklift, useForklifts } from "../forklifts/useForklifts";
@@ -15,7 +16,7 @@ interface Args {
 }
 
 export function useForkliftFormSubmit({ id, isEdit }: Args) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const create = useCreateForklift();
   const update = useUpdateForklift();
   const { data: allForklifts } = useForklifts();

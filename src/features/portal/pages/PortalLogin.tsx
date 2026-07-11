@@ -1,6 +1,7 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useState, useEffect } from "react";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
-import { useNavigate } from "react-router-dom";
+
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -21,7 +22,7 @@ function getPortalSubmitLabel(loading: boolean, mode: Mode): string {
 export default function PortalLogin() {
   const { user, signIn, resetPassword } = useAuth();
   const { data: company } = usePublicBranding();
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const [mode, setMode] = useState<Mode>("sign-in");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

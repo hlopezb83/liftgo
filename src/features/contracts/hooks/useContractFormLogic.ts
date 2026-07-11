@@ -1,4 +1,5 @@
-import { useParams, useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { useParams, useSearchParams } from "react-router-dom";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
 import { useContract, useCreateContract, useUpdateContract } from "./useContracts";
@@ -11,7 +12,7 @@ import { buildContractPayload } from "../lib/contractPayload";
 export function useContractFormLogic() {
   const { id } = useParams();
   const isEdit = !!id;
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const [searchParams] = useSearchParams();
   const bookingId = searchParams.get("booking_id");
   const { data: existing } = useContract(isEdit ? id : undefined);

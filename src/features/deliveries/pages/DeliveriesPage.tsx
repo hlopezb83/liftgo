@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+
 import { useMemo } from "react";
 import { useForkliftMap } from "@/features/fleet";
 import { useDeliveries } from "../hooks/useDeliveries";
@@ -12,7 +13,7 @@ import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 type Delivery = NonNullable<ReturnType<typeof useDeliveries>["data"]>[number];
 
 export default function DeliveriesPage() {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const { forkliftMap } = useForkliftMap();
   const { data: deliveries, isLoading } = useDeliveries();
 

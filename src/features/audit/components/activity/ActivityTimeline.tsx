@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -7,7 +8,7 @@ import { ActorAvatar } from "./ActorAvatar";
 import { useActivityFeed, type ActivityFilters } from "@/features/dashboard";
 import { ENTITY_LABELS, ENTITY_ROUTES, EVENT_LABELS, EVENT_TYPES } from "../../lib/activityConstants";
 import { translateActivityTitle, translateActivityDescription } from "@/lib/domain/activityTranslations";
-import { useNavigate } from "react-router-dom";
+
 import { format } from "date-fns";
 import { X } from "@/components/icons";
 import type { MemberStat } from "../../hooks/useActivityMetrics";
@@ -22,7 +23,7 @@ interface Props {
 
 export function ActivityTimeline({ filters, onFilterChange, onReset, members }: Props) {
   const { data, isLoading } = useActivityFeed(200, filters);
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
 
   const hasFilter = Boolean(
     filters.actorId || filters.entityType || filters.eventType || filters.search

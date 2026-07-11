@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+
 import { Button } from "@/components/ui/button";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { QuotePDFButton } from "./QuotePDFButton";
@@ -44,7 +45,7 @@ function ConvertButton({ quote, isSale, alreadyConverted, isConverting, onConver
 function InvoiceButton({ quote, isSale, alreadyInvoiced, canInvoice, invoiceBlockedReason }: {
   quote: Tables<"quotes">; isSale: boolean; alreadyInvoiced: boolean; canInvoice: boolean; invoiceBlockedReason?: string;
 }) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   if (!isSale) return null;
   if (alreadyInvoiced) {
     return (
@@ -102,7 +103,7 @@ export function QuoteDetailActions({
   canInvoice, invoiceBlockedReason,
   onSetStatus, onConvertClick, onDelete,
 }: Props) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const isEditable = isQuoteEditable(quote);
   return (
     <>

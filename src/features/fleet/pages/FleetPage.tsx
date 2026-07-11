@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useMemo } from "react";
 import { useForklifts } from "../hooks/forklifts/useForklifts";
 import { useMaintenancePolicies } from "@/features/maintenance";
@@ -8,7 +9,7 @@ import type { Forklift } from "../hooks/forklifts/useForklifts";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useNavigate } from "react-router-dom";
+
 import { AddIcon, DownloadIcon, Forklift as ForkliftIcon } from "@/components/icons";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
@@ -44,7 +45,7 @@ export default function FleetPage() {
     return map;
   }, [contracts, deliveries]);
 
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   usePageActions({ onNew: () => navigate("/fleet/new"), newLabel: "Nuevo equipo" });
 
   const columns = useFleetColumns(activePolicyForkliftIds, locationMap);

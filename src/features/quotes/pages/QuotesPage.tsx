@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+
 import { useMemo } from "react";
 import { useQuotes } from "../hooks/quotes/useQuotes";
 import { useListFilters } from "@/hooks/useListFilters";
@@ -23,7 +24,7 @@ type Quote = NonNullable<ReturnType<typeof useQuotes>["data"]>[number];
 
 export default function QuotesPage() {
   const { data: quotes, isLoading, refetch } = useQuotes();
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   usePageActions({ onNew: () => navigate("/quotes/new"), onRefresh: refetch, newLabel: "Nueva cotización" });
 
   const { search, setSearch, statusFilter, setStatusFilter, filtered } = useListFilters(quotes, {

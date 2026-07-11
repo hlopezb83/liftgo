@@ -1,6 +1,7 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { format } from "date-fns";
-import { useNavigate } from "react-router-dom";
+
 
 import {
   useUpdateBooking,
@@ -20,7 +21,7 @@ export const BOOKING_STATUS_LABELS: Record<string, string> = {
  * Sin estado de UI; las páginas pasan los valores desde useBookingDialogsState.
  */
 export function useBookingActions(booking: BookingWithForklift) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const updateBooking = useUpdateBooking();
   const deleteBooking = useDeleteBooking();
   const cancelBooking = useCancelBooking();

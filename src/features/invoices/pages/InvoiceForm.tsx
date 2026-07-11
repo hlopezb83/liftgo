@@ -1,4 +1,5 @@
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { useParams, useSearchParams } from "react-router-dom";
 import { useInvoiceFormLogic } from "../hooks/useInvoiceFormLogic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -22,7 +23,7 @@ import type { InvoiceFormValues } from "../lib/invoiceFormSchema";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 
 export default function InvoiceForm() {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const fromQuoteId = searchParams.get("from_quote");

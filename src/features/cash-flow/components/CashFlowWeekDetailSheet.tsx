@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -49,7 +50,7 @@ function Section({ title, items, kind, onClick }: { title: string; items: CashFl
 }
 
 export function CashFlowWeekDetailSheet({ bucket, open, onOpenChange }: Props) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const inflows = bucket?.items.filter((i) => i.kind === "in") ?? [];
   const outflows = bucket?.items.filter((i) => i.kind === "out") ?? [];
   const go = (it: CashFlowItem) => {

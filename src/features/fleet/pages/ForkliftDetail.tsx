@@ -1,4 +1,5 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { useParams } from "react-router-dom";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useForklift, useDeleteForklift, useStatusLogs } from "../hooks/forklifts/useForklifts";
 import { useBookings } from "@/features/bookings";
@@ -28,7 +29,7 @@ import { ForkliftHourometerHistory } from "../components/forklift-detail/Forklif
 
 export default function ForkliftDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const { data: forklift, isLoading } = useForklift(id);
   const { data: logs } = useStatusLogs(id);
   const { data: bookings } = useBookings(id);

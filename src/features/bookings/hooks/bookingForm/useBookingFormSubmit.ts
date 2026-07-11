@@ -1,5 +1,6 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+
 import { format } from "date-fns";
 
 import { useCustomers } from "@/features/customers";
@@ -17,7 +18,7 @@ interface PostBookingState {
 }
 
 export function useBookingFormSubmit() {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const isMounted = useIsMounted();
   const { data: customers } = useCustomers();
   const { data: policies } = useMaintenancePolicies();

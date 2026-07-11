@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+
 
 import { useUpdateCustomer, useDeleteCustomer } from "../customers/useCustomers";
 import { useInviteCustomer } from "../customers/useInviteCustomer";
@@ -26,7 +27,7 @@ interface Params {
 }
 
 export function useCustomerDetailActions({ id, setInviteOpen, setEditOpen }: Params) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const updateCustomer = useUpdateCustomer();
   const deleteCustomer = useDeleteCustomer();
   const inviteCustomer = useInviteCustomer();

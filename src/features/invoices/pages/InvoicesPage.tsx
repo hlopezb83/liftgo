@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+
 import { useMemo, useState } from "react";
 import { useInvoices } from "../hooks/invoices/useInvoices";
 import { useGenerateRecurringInvoices } from "../hooks/invoices/recurring/useGenerateRecurringInvoices";
@@ -105,7 +106,7 @@ function InvoiceCard({ inv, onClick }: { inv: Invoice; onClick: () => void }) {
 
 export default function InvoicesPage() {
   const { data: invoices, isLoading } = useInvoices();
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [resultOpen, setResultOpen] = useState(false);
   usePageActions({ onNew: () => navigate("/invoices/new"), newLabel: "Nueva factura" });

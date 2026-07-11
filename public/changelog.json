@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.21.0",
+    "date": "2026-07-11",
+    "type": "minor",
+    "title": "useNavigateTransition en toda la app",
+    "description": "Propagado `useNavigateTransition` a 37 pantallas y hooks compartidos con navegación intensiva (listados, detalles y acciones de Cotizaciones, Reservas, Contratos, Facturas, Clientes, Proveedores, Flota, Entregas, Devoluciones, Mantenimiento/CRM, Cash Flow, Bancos, Auditoría, Usuarios y Portal del Cliente). Todas las transiciones de ruta ahora corren dentro de `startTransition`, manteniendo la UI actual interactiva mientras React 19 monta Suspense/chunks lazy. Layouts raíz (`MainLayout`, `CustomerPortalLayout`) preservan `useNavigate` síncrono para redirecciones de autenticación.",
+    "category": "improvement"
+  },
+  {
     "version": "7.20.0",
     "date": "2026-07-11",
     "type": "minor",

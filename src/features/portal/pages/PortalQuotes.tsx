@@ -1,5 +1,6 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
@@ -14,7 +15,7 @@ type Quote = NonNullable<ReturnType<typeof usePortalQuotes>["data"]>[number];
 
 export default function PortalQuotes() {
   const { data, isLoading } = usePortalQuotes();
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
 
   const columns = useMemo<ColumnDef<Quote>[]>(() => [
     { id: "quote_number", header: "Cotización #", accessorKey: "quote_number",

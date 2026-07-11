@@ -1,5 +1,6 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { CompanyIcon, UserIcon, DocumentIcon, CalendarIcon } from "@/components/icons";
-import { useNavigate } from "react-router-dom";
+
 import { Badge } from "@/components/ui/badge";
 import { ROUTES } from "@/routes/routes";
 import type { Prospect } from "../hooks/useProspects";
@@ -24,7 +25,7 @@ interface ExpandedProps {
 }
 
 export function ProspectCardExpanded({ prospect, quoteNumber }: ExpandedProps) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const showQuote = Boolean(prospect.quoteId && quoteNumber);
   const showFooter = Boolean(prospect.createdByName || prospect.createdAtLabel);
 

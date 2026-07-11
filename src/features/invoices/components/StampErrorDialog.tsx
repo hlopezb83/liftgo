@@ -1,4 +1,5 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+
 import { InfoAlertIcon, DuplicateIcon } from "@/components/icons";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
@@ -112,7 +113,7 @@ function FieldRow({ label, value, mono }: FieldRowProps) {
 }
 
 export function StampErrorDialog({ open, onOpenChange, message, kind, customerId, receptor }: Props) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const copy = getCopy(kind, customerId, message);
   const showReceptor = kind === "receptor_data" && !!receptor;
 

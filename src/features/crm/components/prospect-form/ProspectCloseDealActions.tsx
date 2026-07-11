@@ -1,6 +1,7 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { SuccessIcon, UserPlus } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+
 import type { Prospect } from "../../hooks/useProspects";
 
 interface Props {
@@ -10,7 +11,7 @@ interface Props {
 }
 
 export function ProspectCloseDealActions({ prospect, canCloseDeal, onClose }: Props) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
 
   return (
     <div className="rounded-lg border border-dashed p-3">
