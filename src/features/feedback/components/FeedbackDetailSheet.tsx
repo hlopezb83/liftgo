@@ -1,4 +1,4 @@
-import { usePrefillEffect as _keep } from "@/hooks/usePrefillEffect"; void _keep;
+import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
