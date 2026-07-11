@@ -95,7 +95,8 @@ export default tseslint.config(
     // Registry de íconos: NADIE fuera de src/components/icons/** puede
     // importar de `lucide-react`. Consumir siempre `@/components/icons`
     // para poder consolidar duplicados semánticos, renombrar y auditar
-    // en un solo lugar.
+    // en un solo lugar. Además, dentro del registry desincentivamos los
+    // nombres crudos de lucide cuando existe un alias semántico canónico.
     files: ["src/**/*.{ts,tsx}"],
     ignores: ["src/components/icons/**"],
     rules: {
@@ -105,10 +106,29 @@ export default tseslint.config(
             name: "lucide-react",
             message: "Importa desde '@/components/icons' (registry). Ver src/components/icons/index.ts para aliases semánticos (DeleteIcon, EditIcon, SuccessIcon, etc.).",
           },
+          {
+            name: "@/components/icons",
+            importNames: [
+              "Trash2", "Pencil", "Plus", "FileText", "Receipt", "Truck",
+              "Wrench", "CheckCircle", "CheckCircle2", "Check",
+              "AlertTriangle", "XCircle", "AlertCircle", "Loader2", "Save",
+              "Copy", "RefreshCw", "Download", "Upload", "Eye", "EyeOff",
+              "Search", "Minus", "Undo2", "RotateCcw", "Info", "Home",
+              "DollarSign", "Calendar", "Clock", "User", "Users",
+              "Building2", "ShieldCheck", "Package", "History", "Phone",
+              "MapPin", "Landmark", "Handshake", "Stamp", "Settings",
+              "LayoutDashboard", "BarChart3", "TrendingUp", "TrendingDown",
+              "Target", "Trophy", "Activity", "Star", "HelpCircle",
+              "KeyRound", "ArrowLeft", "ChevronRight", "ChevronLeft",
+              "ChevronUp", "ChevronDown",
+            ],
+            message: "Usa el alias semántico del registry (DeleteIcon, EditIcon, AddIcon, DocumentIcon, SuccessIcon, WarnIcon, ErrorIcon, SpinnerIcon, ...). Ver JSDoc en src/components/icons/index.ts.",
+          },
         ],
       }],
     },
   },
+
   {
     // Auditoría arquitectura — paso 2: desincentivar imports profundos
     // cross-feature. Cada feature debería exponer su API pública vía

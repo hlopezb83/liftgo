@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3 } from "@/components/icons";
+import { ChartIcon } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { ForkliftFinancials } from "../../hooks/forklifts/useForkliftFinancials";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,7 +26,7 @@ export function ForkliftFinancialCard({ financials, isLoading }: ForkliftFinanci
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
-          <BarChart3 className="h-4 w-4" /> Resumen Financiero
+          <ChartIcon className="h-4 w-4" /> Resumen Financiero
         </CardTitle>
       </CardHeader>
       <CardContent>

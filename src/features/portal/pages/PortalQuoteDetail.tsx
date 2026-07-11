@@ -6,7 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { CheckCircle2 } from "@/components/icons";
+import { SuccessIcon } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -99,7 +99,7 @@ export default function PortalQuoteDetail() {
       {wasAccepted && (
         <Card className="border-status-available/40 bg-status-available/5">
           <CardContent className="pt-4 flex items-start gap-3">
-            <CheckCircle2 className="h-5 w-5 text-status-available mt-0.5" />
+            <SuccessIcon className="h-5 w-5 text-status-available mt-0.5" />
             <div className="text-sm">
               <p className="font-semibold">Cotización aceptada</p>
               <p className="text-muted-foreground">

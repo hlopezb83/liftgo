@@ -14,7 +14,7 @@ import {
 import { RequiredMark } from "@/components/forms/RequiredMark";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Upload, Loader2 } from "@/components/icons";
+import { UploadIcon, SpinnerIcon } from "@/components/icons";
 import { useUploadSupplierRep } from "../hooks/useSupplierRepMutations";
 
 interface Props {
@@ -117,9 +117,9 @@ export function UploadSupplierRepDialog({
             </Button>
             <Button type="submit" disabled={!form.formState.isValid || upload.isPending}>
               {upload.isPending ? (
-                <><Loader2 className="h-4 w-4 mr-1 animate-spin" /> Validando…</>
+                <><SpinnerIcon className="h-4 w-4 mr-1 animate-spin" /> Validando…</>
               ) : (
-                <><Upload className="h-4 w-4 mr-1" /> Cargar y validar</>
+                <><UploadIcon className="h-4 w-4 mr-1" /> Cargar y validar</>
               )}
             </Button>
           </FormDialogFooter>

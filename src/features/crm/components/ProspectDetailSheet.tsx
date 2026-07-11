@@ -2,7 +2,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
-import { Building2, User, Mail, Phone, DollarSign } from "@/components/icons";
+import { CompanyIcon, UserIcon, Mail, PhoneIcon, MoneyIcon } from "@/components/icons";
 import type { Prospect } from "../hooks/useProspects";
 import { ProspectHistoryCard } from "./ProspectHistoryCard";
 import { ProspectQuoteLink, ProspectNotes, ProspectClosureInfo } from "./prospectDetail/ProspectInfoBlocks";
@@ -47,7 +47,7 @@ export function ProspectDetailSheet({ prospect, open, onOpenChange, onEdit, quot
       <SheetContent className="sm:max-w-md overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5" />
+            <CompanyIcon className="h-5 w-5" />
             {prospect.companyName}
           </SheetTitle>
         </SheetHeader>
@@ -58,10 +58,10 @@ export function ProspectDetailSheet({ prospect, open, onOpenChange, onEdit, quot
           </Badge>
 
           <div className="space-y-1">
-            <DetailRow icon={User} label="Contacto" value={prospect.contactPerson} />
+            <DetailRow icon={UserIcon} label="Contacto" value={prospect.contactPerson} />
             <DetailRow icon={Mail} label="Correo" value={prospect.email} />
-            <DetailRow icon={Phone} label="Teléfono" value={prospect.phone} />
-            <DetailRow icon={DollarSign} label="Valor Estimado" value={prospect.dealValueLabel} />
+            <DetailRow icon={PhoneIcon} label="Teléfono" value={prospect.phone} />
+            <DetailRow icon={MoneyIcon} label="Valor Estimado" value={prospect.dealValueLabel} />
           </div>
 
           <ProspectQuoteLink prospect={prospect} quoteNumber={quoteNumber} onNavigate={close} />

@@ -1,4 +1,4 @@
-import { Plus } from "@/components/icons";
+import { AddIcon } from "@/components/icons";
 import { Droppable } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -80,7 +80,7 @@ export function KanbanColumn({
 
       <div className="p-2 border-t">
         <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={onAdd}>
-          <Plus className="h-3.5 w-3.5 mr-1" /> Agregar
+          <AddIcon className="h-3.5 w-3.5 mr-1" /> Agregar
         </Button>
       </div>
     </div>

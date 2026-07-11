@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Download } from "@/components/icons";
+import { DownloadIcon } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { useCustomerSummary, usePortalCustomer, usePortalInvoices, usePortalPayments } from "@/features/customers";
 import { notifyError } from "@/lib/ui/appFeedback";
@@ -62,7 +62,7 @@ export default function PortalStatement() {
         title="Estado de Cuenta"
         actions={
           <Button variant="outline" onClick={handleDownload} disabled={!summary || !customer}>
-            <Download className="h-4 w-4 mr-2" /> Descargar PDF
+            <DownloadIcon className="h-4 w-4 mr-2" /> Descargar PDF
           </Button>
         }
       />

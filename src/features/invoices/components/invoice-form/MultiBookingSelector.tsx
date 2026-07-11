@@ -1,4 +1,4 @@
-import { Check, ChevronsUpDown, X, CalendarIcon } from "@/components/icons";
+import { SuccessIcon, ChevronsUpDown, X, CalendarIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -77,7 +77,7 @@ export function MultiBookingSelector({ bookings, selectedIds, onChange }: Props)
                       onSelect={() => toggle(b.id)}
                       className="flex items-start gap-2"
                     >
-                      <Check className={cn("h-4 w-4 mt-1", isSelected ? "opacity-100" : "opacity-0")} />
+                      <SuccessIcon className={cn("h-4 w-4 mt-1", isSelected ? "opacity-100" : "opacity-0")} />
                       <div className="flex flex-col">
                         <span className="font-medium">
                           {b.forklifts?.name} — {b.customer_name || "Sin cliente"}

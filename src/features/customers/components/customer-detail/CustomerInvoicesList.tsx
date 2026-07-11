@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { Receipt } from "@/components/icons";
+import { InvoiceIcon } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 
@@ -20,7 +20,7 @@ export function CustomerInvoicesList({ invoices }: { invoices: InvoiceRow[] }) {
     <Card>
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
-          <Receipt className="h-4 w-4" /> Facturas
+          <InvoiceIcon className="h-4 w-4" /> Facturas
         </CardTitle>
       </CardHeader>
       <CardContent>

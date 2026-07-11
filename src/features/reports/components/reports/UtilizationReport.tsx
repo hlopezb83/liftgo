@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { exportToCsv } from "@/lib/exportCsv";
 import { differenceInDays, parseISO, isWithinInterval } from "date-fns";
-import { Download } from "@/components/icons";
+import { DownloadIcon } from "@/components/icons";
 import { useForklifts } from "@/features/fleet";
 import { useBookings } from "@/features/bookings";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
@@ -55,7 +55,7 @@ export function UtilizationReport({ startDate, endDate }: Props) {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Utilización de Flota</CardTitle>
           <Button variant="outline" size="sm" onClick={() => exportToCsv("reporte-utilizacion.csv", data)}>
-            <Download className="h-4 w-4 mr-1" />Exportar CSV
+            <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
           </Button>
         </CardHeader>
         <CardContent>

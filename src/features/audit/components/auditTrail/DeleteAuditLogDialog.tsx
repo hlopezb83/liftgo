@@ -1,4 +1,4 @@
-import { Trash2, AlertTriangle, Undo2 } from "@/components/icons";
+import { DeleteIcon, WarnIcon, UndoIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { FormDialog } from "@/components/forms/FormDialog";
 import type { AuditLog } from "../../hooks/useAuditLogs";
@@ -52,7 +52,7 @@ export function DeleteAuditLogDialog({ log, isDeleting, isReverting, onClose, on
               disabled={isPending}
               onClick={() => onDelete(log)}
             >
-              <Trash2 className="h-4 w-4 mr-2" />
+              <DeleteIcon className="h-4 w-4 mr-2" />
               {isDeleting ? "Eliminando…" : "Solo borrar de bitácora"}
             </Button>
 
@@ -63,11 +63,11 @@ export function DeleteAuditLogDialog({ log, isDeleting, isReverting, onClose, on
                 disabled={isPending || isRevertDisabled(log)}
                 onClick={() => onRevert(log)}
               >
-                <Undo2 className="h-4 w-4 mr-2" />
+                <UndoIcon className="h-4 w-4 mr-2" />
                 {isReverting ? "Revirtiendo…" : "Revertir acción original"}
               </Button>
               <p className="text-xs text-muted-foreground mt-1.5 flex items-start gap-1">
-                <AlertTriangle className="h-3 w-3 mt-0.5 shrink-0 text-warning" />
+                <WarnIcon className="h-3 w-3 mt-0.5 shrink-0 text-warning" />
                 {revertHint(log)}
               </p>
             </div>

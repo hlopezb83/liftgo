@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { Building2 } from "@/components/icons";
+import { CompanyIcon } from "@/components/icons";
 import { usePublicBranding } from "@/features/company-settings";
 
 type Mode = "sign-in" | "forgot";
@@ -96,7 +96,7 @@ export default function PortalLogin() {
             <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">o</span></div>
           </div>
           <Button variant="outline" className="w-full" onClick={() => window.location.href = "/"}>
-            <Building2 className="mr-2 h-4 w-4" /> Acceso Empleados
+            <CompanyIcon className="mr-2 h-4 w-4" /> Acceso Empleados
           </Button>
         </CardContent>
       </Card>

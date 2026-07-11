@@ -1,4 +1,4 @@
-import { FileText, Search } from "@/components/icons";
+import { DocumentIcon, SearchIcon } from "@/components/icons";
 import { Input } from "@/components/ui/input";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { renderSafeMarkdown } from "../lib/markdown";
@@ -14,7 +14,7 @@ export function ManualSections({ search, onSearchChange, sections }: Props) {
   return (
     <>
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
           placeholder="Buscar en el manual…"
           value={search}
@@ -37,7 +37,7 @@ export function ManualSections({ search, onSearchChange, sections }: Props) {
             >
               <AccordionTrigger className="text-left font-semibold">
                 <span className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-primary shrink-0" />
+                  <DocumentIcon className="h-4 w-4 text-primary shrink-0" />
                   {section.title}
                 </span>
               </AccordionTrigger>

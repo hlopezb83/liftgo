@@ -1,4 +1,4 @@
-import { Plus, Trash2 } from "@/components/icons";
+import { AddIcon, DeleteIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
@@ -18,12 +18,12 @@ export function EditableList({ items, onChange }: { items: string[]; onChange: (
             className="min-h-[40px]"
           />
           <Button variant="ghost" size="icon" className="mt-1 shrink-0" onClick={() => onChange(items.filter((_, j) => j !== i))} aria-label="Eliminar elemento">
-            <Trash2 className="h-4 w-4 text-destructive" />
+            <DeleteIcon className="h-4 w-4 text-destructive" />
           </Button>
         </div>
       ))}
       <Button variant="outline" size="sm" onClick={() => onChange([...items, ""])}>
-        <Plus className="h-4 w-4 mr-1" />Agregar
+        <AddIcon className="h-4 w-4 mr-1" />Agregar
       </Button>
     </div>
   );

@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useDropzone } from "react-dropzone";
 import { useUploadDocument } from "@/hooks/useDocuments";
-import { Upload, X, Loader2, ImageIcon } from "@/components/icons";
+import { UploadIcon, X, SpinnerIcon, ImageIcon } from "@/components/icons";
 
 import { cn } from "@/lib/utils";
 
@@ -76,7 +76,7 @@ export function DragDropImageUploader({ entityType, entityId, maxFiles = 10, cla
             isDragActive ? "bg-primary/10" : "bg-muted"
           )}>
             {isDragActive ? (
-              <Upload className="h-6 w-6 text-primary" />
+              <UploadIcon className="h-6 w-6 text-primary" />
             ) : (
               <ImageIcon className="h-6 w-6 text-muted-foreground" />
             )}
@@ -114,7 +114,7 @@ export function DragDropImageUploader({ entityType, entityId, maxFiles = 10, cla
             disabled={uploading}
             className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
           >
-            {uploading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}
+            {uploading ? <SpinnerIcon className="h-4 w-4 animate-spin" /> : <UploadIcon className="h-4 w-4" />}
             {uploading ? "Subiendo..." : `Subir ${previews.length} foto(s)`}
           </button>
         </>

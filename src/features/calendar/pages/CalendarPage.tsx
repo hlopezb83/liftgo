@@ -13,7 +13,7 @@ import { nowMty, formatMtyDate } from "@/lib/utils";
 import { es } from "date-fns/locale";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, AlertTriangle } from "@/components/icons";
+import { ChevronLeftIcon, ChevronRightIcon, WarnIcon } from "@/components/icons";
 import { CalendarStatCards } from "../components/calendar/CalendarStatCards";
 import { GanttChart } from "../components/calendar/GanttChart";
 import { EquipmentListView } from "../components/calendar/EquipmentListView";
@@ -73,7 +73,7 @@ export default function CalendarPage() {
         <Card className="border-status-maintenance/30 bg-status-maintenance/5">
           <CardContent className="p-4">
             <div className="flex items-center gap-2 mb-2">
-              <AlertTriangle className="h-4 w-4 text-status-maintenance" />
+              <WarnIcon className="h-4 w-4 text-status-maintenance" />
               <span className="font-medium text-sm">Reservas por vencer ({endingSoon.length})</span>
             </div>
             <div className="space-y-1">
@@ -121,7 +121,7 @@ export default function CalendarPage() {
                     onClick={navigateBack}
                     aria-label={fns.prevLabel}
                   >
-                    <ChevronLeft className="h-4 w-4" />
+                    <ChevronLeftIcon className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>{fns.prevLabel}</TooltipContent>
@@ -142,7 +142,7 @@ export default function CalendarPage() {
                     onClick={navigateForward}
                     aria-label={fns.nextLabel}
                   >
-                    <ChevronRight className="h-4 w-4" />
+                    <ChevronRightIcon className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>{fns.nextLabel}</TooltipContent>

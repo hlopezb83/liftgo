@@ -2,7 +2,7 @@ import { useState } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { FileDown, ChevronDown } from "@/components/icons";
+import { FileDown, ChevronDownIcon } from "@/components/icons";
 import type { ContractData } from "@/lib/pdf/contract/data";
 import type { PDFMode } from "@/lib/pdf/documents/ContractDocument";
 
@@ -30,7 +30,7 @@ export function ContractPDFButton({ contract }: { contract: ContractData }) {
         <Button variant="outline" size="sm" disabled={loading}>
           <FileDown className="h-4 w-4 mr-1" />
           {loading ? "Generando..." : "Descargar PDF"}
-          <ChevronDown className="h-3 w-3 ml-1" />
+          <ChevronDownIcon className="h-3 w-3 ml-1" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

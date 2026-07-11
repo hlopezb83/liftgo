@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { SearchBar } from "@/components/forms/SearchBar";
-import { PlusCircle, Download } from "@/components/icons";
+import { PlusCircle, DownloadIcon } from "@/components/icons";
 import { exportToCsv } from "@/lib/exportCsv";
 import type { Customer } from "../../hooks/customers/useCustomers";
 
@@ -30,7 +30,7 @@ export function CustomersActions({ filtered, onCreate }: Pick<Props, "filtered" 
           )
         }
       >
-        <Download className="h-4 w-4 mr-1" />Exportar CSV
+        <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
       </Button>
       <Button onClick={onCreate} size="sm" aria-label="Agregar cliente"><PlusCircle className="h-4 w-4 mr-1" /> Nuevo Cliente</Button>
     </div>

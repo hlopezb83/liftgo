@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, Trophy, ArrowRight } from "@/components/icons";
+import { TrendingUpIcon, TrophyIcon, ArrowRight } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { CRMMetrics } from "../hooks/useCRMMetrics";
 
@@ -19,13 +19,13 @@ export function CRMHeaderKPIs({ metrics }: Props) {
       </div>
       <div className="h-4 w-px bg-border" />
       <div className="flex items-center gap-1.5">
-        <TrendingUp className="h-3.5 w-3.5 text-muted-foreground" />
+        <TrendingUpIcon className="h-3.5 w-3.5 text-muted-foreground" />
         <span className="text-muted-foreground">Win rate 30d:</span>
         <span className="font-semibold tabular-nums">{metrics.winRate30d}%</span>
       </div>
       <div className="h-4 w-px bg-border" />
       <div className="flex items-center gap-1.5">
-        <Trophy className="h-3.5 w-3.5 text-success" />
+        <TrophyIcon className="h-3.5 w-3.5 text-success" />
         <span className="text-muted-foreground">Ganados mes:</span>
         <span className="font-semibold tabular-nums">
           {metrics.wonCountMTD} · {formatCurrency(metrics.wonTotalMTD)}

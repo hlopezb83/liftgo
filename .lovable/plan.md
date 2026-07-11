@@ -1,75 +1,77 @@
-# Auditoría lucide-react
 
-## Estado actual
+## Diagnóstico
 
-- **246 archivos** importan de `lucide-react`, con **133 íconos únicos**.
-- **Bundle:** ~64 KB rendered / 45 KB gzip (chunk `icons`). Tree-shaking funciona correctamente vía ESM — no hay barrel import roto.
-- **Config:** `vite.config.ts` ya aísla `lucide-react` en su propio `manualChunk`.
-- **No hay** `DynamicIcon` ni imports desde `lucide-react/dynamic` (correcto: rompería tree-shaking).
-- **No hay** wrapper `<Icon>` central ni registry semántico.
+Se auditaron 247 archivos que importan de `@/components/icons`. El registry está montado y el ESLint guard funciona, pero **la adopción real es baja**:
 
-## Hallazgos
+| Métrica | Estado |
+|---|---|
+| Archivos que usan `<Icon>` wrapper (tokens xs/sm/md/lg/xl) | **0 / 247** |
+| Archivos que usan al menos un alias semántico (`DeleteIcon`, `EditIcon`, …) | **2 / 247** |
+| Archivos con tamaño hardcodeado `h-4 w-4` / `h-5 w-5` | **211** |
+| `Trash2` importado crudo (debería ser `DeleteIcon`) | 35 archivos |
+| `Plus` crudo (debería ser `AddIcon`) | 28 |
+| `FileText` crudo (debería ser `DocumentIcon`) | 26 |
+| `AlertTriangle` crudo (debería ser `WarnIcon`) | 24 |
+| `Loader2` crudo (debería ser `SpinnerIcon`) | 21 |
+| `Pencil` crudo (debería ser `EditIcon`) | 20 |
 
+### Drift semántico detectado
 
-| #   | Sev  | Hallazgo                                                                                                                                                                                                                                                                                      | Riesgo                                                                                         |
-| --- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| 1   | HIGH | **Duplicados semánticos** en uso paralelo: `Check` (9) + `CheckCircle` (7) + `CheckCircle2` (11); `AlertTriangle` (20) + `AlertCircle` (9); `X` (14) + `XCircle` (10); `Pencil` (19) + posibles `Edit`/`Edit2`.                                                                               | Inconsistencia visual entre módulos para la misma acción.                                      |
-| 2   | HIGH | **Tamaños hardcoded** sin escala: `h-4 w-4` (356), `h-3 w-3` (48), `h-5 w-5` (24), `h-7 w-7` (16), `h-8 w-8` (10), `h-6 w-6` (10), `h-10 w-10` (7), `h-12 w-12` (5), `h-14 w-14` (4), `h-9 w-9` (2)… Además mezclas incorrectas como `h-10 w-64`, `h-10 w-8`, `h-8 w-48` (ratio no-cuadrado). | Sin escala tipo `xs/sm/md/lg` cada dev inventa un tamaño; los ratios erróneos deforman íconos. |
-| 3   | MED  | **246 imports directos** repartidos por todo el árbol, sin capa de abstracción. Cambiar el set de íconos o renombrar uno obliga a tocar N archivos.                                                                                                                                           | Fricción alta para futuros rebrands / migraciones.                                             |
-| 4   | MED  | **Sin ESLint guard** que impida `import { Foo } from "lucide-react"` fuera de una capa central.                                                                                                                                                                                               | El drift semántico (hallazgo 1) se reproducirá.                                                |
-| 5   | LOW  | `**strokeWidth` implícito** (default 2) — la memoria menciona estética "industrial minimalist"; no se aprovecha `strokeWidth={1.5}` para look premium.                                                                                                                                        | Consistencia visual no forzada.                                                                |
-| 6   | LOW  | **Chunk `icons` separado** (~45 KB gzip). Split razonable, pero al ser un chunk chico podría fusionarse con `vendor` para reducir requests.                                                                                                                                                   | Optimización marginal.                                                                         |
-| 7   | OK   | Tree-shaking, ESM, no dynamic loader, `sideEffects: false` upstream.                                                                                                                                                                                                                          | —                                                                                              |
+1. **Éxito duplicado**: `CheckCircle2` en 13 archivos + `CheckCircle` en 8 archivos + `Check` suelto — todos deberían ser `SuccessIcon`.
+2. **Cerrar vs error**: `X` (11) usado como cerrar modal, `XCircle` (9) como error, sin distinción — usar `CloseIcon` vs `ErrorIcon`.
+3. **Añadir**: `Plus` (28) y `PlusCircle` (2) mezclados — canonizar `AddIcon`.
+4. **Fleet inconsistente**: `Truck` (14) y `TruckIcon` alias local (2) — usar `FleetIcon`.
+5. **Tamaños ad-hoc**: `h-3 w-3`, `h-4 w-4`, `h-5 w-5`, `h-6 w-6` mezclados sin criterio en 211 archivos — reemplazar por tokens `size="xs|sm|md|lg|xl"` del wrapper.
+6. **Stroke width**: nadie usa el default `1.75` del wrapper — todo llega con el 2 default de lucide, rompiendo la línea visual del registry.
 
+## Plan
 
-## Veredicto
+### Lote 1 — Ampliar registry y tokens (bajo riesgo)
+- Agregar aliases faltantes en `src/components/icons/index.ts`:
+  - `MapPin → LocationIcon`, `Settings → SettingsIcon`, `LayoutDashboard → DashboardIcon`, `Home → HomeIcon`, `Star → StarIcon`, `HelpCircle → HelpIcon`, `KeyRound → KeyIcon`, `Stamp → StampIcon`, `Handshake → DealIcon`, `Target → TargetIcon`, `Activity → ActivityIcon`, `BarChart3 → ChartIcon`, `TrendingDown → TrendingDownIcon`, `Landmark → BankIcon`, `Undo2 → UndoIcon`, `RotateCcw → ResetIcon`, `EyeOff → HideIcon`, `Minus → RemoveIcon`, `Info → InfoIcon`.
+- Documentar en el JSDoc del index qué alias usar para cada acción/estado.
 
-**No es "top of the line"**, pero tampoco está sucia: el runtime/bundle está bien; lo que falta es **capa semántica y disciplina**. La app es un buen candidato al patrón "lego" ya establecido en memoria (`ListToolbar`, `DetailLayout`, etc.).
+### Lote 2 — Migración masiva a aliases semánticos
+Codemod (ripgrep + sed asistido) sobre los 247 archivos:
+- `Trash2` → `DeleteIcon`
+- `Pencil` → `EditIcon`
+- `Plus` / `PlusCircle` → `AddIcon`
+- `FileText` → `DocumentIcon`
+- `Receipt` → `InvoiceIcon`
+- `Truck` / `TruckIcon` local → `FleetIcon`
+- `Wrench` → `MaintenanceIcon`
+- `CheckCircle` / `CheckCircle2` / `Check` (cuando denote éxito) → `SuccessIcon`
+- `AlertTriangle` → `WarnIcon`
+- `XCircle` → `ErrorIcon`
+- `AlertCircle` → `InfoAlertIcon`
+- `Loader2` → `SpinnerIcon`
+- `X` en botones de cerrar → `CloseIcon`
+- `Save`, `Copy`, `RefreshCw`, `Download`, `Upload`, `Eye`, `Search`, `DollarSign`, `Calendar`, `Clock`, `User`, `Users`, `Building2`, `ShieldCheck`, `Package`, `History`, `Phone`, `TrendingUp`, `Trophy` → sus aliases correspondientes.
 
-## Plan propuesto (3 lotes)
+**Regla de escape**: cuando el ícono es puramente decorativo/marketing sin semántica CRUD, dejar el nombre crudo (permitido por el re-export `export * from "lucide-react"`).
 
-### Lote 1 — Registry semántico + tokens de tamaño (alto impacto, bajo riesgo)
+### Lote 3 — Adopción del wrapper `<Icon>` y tokens de tamaño
+- Reemplazar `className="h-3 w-3"` → `size="xs"`, `h-4 w-4` → `size="sm"`, `h-5 w-5` → `size="md"`, `h-6 w-6` → `size="lg"`, `h-8 w-8` → `size="xl"` en los 211 archivos.
+- Migrar los sitios de alto impacto visual (botones, `ListToolbar`, `StatusBadge`, `DetailPageHeader`, `KpiTile`, sidebar) primero para asegurar el stroke 1.75 consistente.
+- Los íconos dentro de `<Button>` shadcn mantienen `className` de color (`text-destructive`, etc.), solo cambia el tamaño.
 
-1. Crear `src/components/icons/index.ts` — **registry semántico** por acción/dominio, no por nombre lucide:
-  ```ts
-   export { Trash2 as DeleteIcon, Pencil as EditIcon,
-            Plus as AddIcon, CheckCircle2 as SuccessIcon,
-            AlertTriangle as WarnIcon, XCircle as ErrorIcon,
-            Loader2 as SpinnerIcon, ... } from "lucide-react";
-  ```
-   Consolida los duplicados (hallazgo 1): un único ícono canónico por acción.
-2. Crear `src/components/icons/Icon.tsx` — wrapper con **tokens de tamaño**:
-  ```tsx
-   type IconSize = "xs" | "sm" | "md" | "lg" | "xl";  // 12/16/20/24/32
-   <Icon as={DeleteIcon} size="sm" />
-  ```
-   `strokeWidth` default `1.75` (premium industrial).
-3. Codemod (jscodeshift o `sed` guiado): reemplazar los ~356 usos de `h-4 w-4` por `size="sm"` etc. Solo tocar `className` con patrones cuadrados; los no-cuadrados (`h-10 w-8`) se marcan para revisión manual.
+### Lote 4 — Verificación y guardas
+- Añadir ESLint custom rule (o pattern `no-restricted-syntax`) que marque `<Trash2 />`, `<Pencil />`, `<CheckCircle2 />` como warning con mensaje "usa el alias semántico".
+- Ampliar el snapshot test del registry: enumerar aliases y garantizar que cada uno resuelve a un componente válido.
+- `tsgo` + `bun lint` + `bunx vitest run` (843 tests) verdes.
+- Medir bundle del chunk `icons` antes/después (esperado: sin cambio material — mismo tree-shake).
 
-### Lote 2 — ESLint guard + migración progresiva
-
-4. Regla `no-restricted-imports` bloqueando `lucide-react` excepto en `src/components/icons/**`. Nuevos archivos obligados al registry.
-5. Migrar módulos de mayor tráfico primero: `layouts/sidebar/*`, `components/ui/*`, dashboard, cotizaciones, reservas. Los 246 archivos se reducen gradualmente a imports desde `@/components/icons`.
-
-### Lote 3 — Optimización de bundle (opcional)
-
-6. Medir chunk `icons` post-consolidación (esperado -20% por dedupe). Evaluar fusionar con `vendor` si baja de 30 KB gzip.
-7. Auditar íconos con **1 solo uso** (~40+ candidatos) — revisar si son reemplazables por el registry canónico.
-
-## Métricas objetivo
-
-- Íconos únicos: **133 → ≤ 90** (dedupe semántico).
-- Imports directos de `lucide-react`: **246 → 0** fuera del registry.
-- Tamaños hardcoded (`h-N w-N` en JSX): **~470 → ≤ 20** (edge cases).
-- Bundle chunk `icons`: **45 KB gzip → ~35 KB gzip**.
-- Warnings ESLint tras guard: **0**.
+### Lote 5 — Documentación
+- Actualizar `mem://design/icons-registry.md` con: tabla de aliases canónicos por dominio, cuándo usar `size` token vs `className`, y el ejemplo de escape para íconos ad-hoc.
+- Changelog `v7.10.0` (minor: mejora arquitectural sin cambio de UX).
 
 ## Detalles técnicos
 
-- **Sin cambio de dependencia** (`lucide-react` ^0.462.0 se queda).
-- **Sin breaking changes** visuales si el codemod mapea tamaños con equivalencia 1:1 (`h-4 w-4` = `size="sm"` = 16px).
-- Compatible con memoria "power of 10" (componentes ≤150 LOC — el wrapper `Icon.tsx` ~30 LOC).
-- Compatible con DRY: `Icon` + registry son helpers canónicos nuevos.
-- Changelog: `v7.9.0` (Lote 1), `v7.9.1` (Lote 2), `v7.9.2` (Lote 3).
+- El re-export `export * from "lucide-react"` seguirá permitido para no romper íconos ad-hoc, pero los aliases canónicos serán la vía preferida y la ESLint rule empujará hacia ellos.
+- El wrapper `Icon` acepta `iconNode` y aplica `strokeWidth={1.75}` + tokens de tamaño; se puede seguir usando `<DeleteIcon />` directo cuando basta el default de lucide (16 px).
+- Riesgo bajo: sin cambios de comportamiento, solo renombres y tokens de tamaño. Sin migraciones de DB ni de edge functions.
 
-¿Ejecutamos los 3 lotes en secuencia, o prefieres empezar sólo por el Lote 1 (registry + tokens) y evaluar antes de forzar el ESLint guard? ejecuta TODO.
+## Alcance estimado
+- ~247 archivos tocados por el codemod (Lote 2).
+- ~211 archivos tocados por Lote 3.
+- Cero cambios de lógica de negocio; solo capa de presentación.

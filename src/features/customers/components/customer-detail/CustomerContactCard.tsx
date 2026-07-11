@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Phone, Globe, MapPin } from "@/components/icons";
+import { Mail, PhoneIcon, Globe, LocationIcon } from "@/components/icons";
 import type { Tables } from "@/integrations/supabase/types";
 
 interface CustomerContactCardProps {
@@ -21,13 +21,13 @@ export function CustomerContactCard({ customer }: CustomerContactCardProps) {
           <div className="flex items-center gap-2"><Mail className="h-3.5 w-3.5 text-muted-foreground" /><span>{customer.email}</span></div>
         )}
         {customer.phone && (
-          <div className="flex items-center gap-2"><Phone className="h-3.5 w-3.5 text-muted-foreground" /><span>{customer.phone}</span></div>
+          <div className="flex items-center gap-2"><PhoneIcon className="h-3.5 w-3.5 text-muted-foreground" /><span>{customer.phone}</span></div>
         )}
         {customer.website && (
           <div className="flex items-center gap-2"><Globe className="h-3.5 w-3.5 text-muted-foreground" /><span>{customer.website}</span></div>
         )}
         {customer.address && (
-          <div className="flex items-center gap-2"><MapPin className="h-3.5 w-3.5 text-muted-foreground" /><span>{customer.address}</span></div>
+          <div className="flex items-center gap-2"><LocationIcon className="h-3.5 w-3.5 text-muted-foreground" /><span>{customer.address}</span></div>
         )}
         {customer.tax_id && (
           <div><p className="text-xs text-muted-foreground">RFC</p><p className="font-medium">{customer.tax_id}</p></div>

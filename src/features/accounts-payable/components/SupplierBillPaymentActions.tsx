@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { CreditCard, XCircle, Pencil, Trash2 } from "@/components/icons";
+import { CreditCard, ErrorIcon, EditIcon, DeleteIcon } from "@/components/icons";
 import type { BillPermissions } from "../lib/billPermissions";
 
 interface BillActionsState {
@@ -69,16 +69,16 @@ export function SupplierBillPaymentActions({
         <Button variant="outline"
           disabled={bill.status === "cancelled" || bill.payments.length > 0}
           onClick={onCancelClick}>
-          <XCircle className="h-4 w-4 mr-1" /> Cancelar
+          <ErrorIcon className="h-4 w-4 mr-1" /> Cancelar
         </Button>
       </div>
       <div className="flex gap-2">
         <GuardedButton variant="outline" disabled={!canEdit} reason={!canEdit ? editBlockedReason : null} onClick={onEditClick}>
-          <Pencil className="h-4 w-4 mr-1" /> Editar
+          <EditIcon className="h-4 w-4 mr-1" /> Editar
         </GuardedButton>
         {isAdmin && (
           <GuardedButton variant="destructive" disabled={!canDelete} reason={!canDelete ? deleteBlockedReason : null} onClick={onDeleteClick}>
-            <Trash2 className="h-4 w-4 mr-1" /> Eliminar
+            <DeleteIcon className="h-4 w-4 mr-1" /> Eliminar
           </GuardedButton>
         )}
       </div>

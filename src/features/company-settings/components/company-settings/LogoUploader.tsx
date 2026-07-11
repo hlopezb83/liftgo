@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Upload, Trash2, ImageIcon } from "@/components/icons";
+import { UploadIcon, DeleteIcon, ImageIcon } from "@/components/icons";
 import { useUploadCompanyLogo } from "../../hooks/useUploadCompanyLogo";
 
 interface Props {
@@ -43,12 +43,12 @@ export function LogoUploader({ logoUrl, onChange }: Props) {
             onChange={handleUpload}
           />
           <Button type="button" variant="outline" size="sm" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
-            <Upload className="h-4 w-4 mr-1" />
+            <UploadIcon className="h-4 w-4 mr-1" />
             {uploading ? "Subiendo..." : "Subir Logo"}
           </Button>
           {logoUrl && (
             <Button type="button" variant="ghost" size="sm" onClick={() => onChange("")} className="text-destructive hover:text-destructive">
-              <Trash2 className="h-4 w-4 mr-1" /> Eliminar
+              <DeleteIcon className="h-4 w-4 mr-1" /> Eliminar
             </Button>
           )}
         </div>

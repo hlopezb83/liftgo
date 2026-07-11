@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Phone } from "@/components/icons";
+import { UserIcon, PhoneIcon } from "@/components/icons";
 import { InfoRow } from "@/components/forms/InfoRow";
 
 interface Props {
@@ -14,7 +14,7 @@ export function BookingCustomerCard({ customerName, customerContact, siteContact
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
-          <User className="h-4 w-4 text-muted-foreground" /> Cliente
+          <UserIcon className="h-4 w-4 text-muted-foreground" /> Cliente
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
@@ -23,7 +23,7 @@ export function BookingCustomerCard({ customerName, customerContact, siteContact
         {siteContactName && <InfoRow label="Contacto en sitio" value={siteContactName} />}
         {siteContactPhone && (
           <InfoRow
-            label={<span className="flex items-center gap-1"><Phone className="h-3 w-3" /> Tel. sitio</span>}
+            label={<span className="flex items-center gap-1"><PhoneIcon className="h-3 w-3" /> Tel. sitio</span>}
             value={siteContactPhone}
           />
         )}

@@ -1,6 +1,6 @@
 import { usePortalCustomer, usePortalBookings, usePortalInvoices } from "@/features/customers";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { CalendarDays, Receipt, DollarSign } from "@/components/icons";
+import { CalendarDays, InvoiceIcon, MoneyIcon } from "@/components/icons";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PortalStatCard } from "../components/PortalStatCard";
 import { PortalBookingsCard, PortalRecentInvoicesCard } from "../components/PortalSections";
@@ -50,13 +50,13 @@ export default function PortalDashboard() {
         <PortalStatCard
           title="Saldo Pendiente"
           value={formatCurrency(outstanding)}
-          icon={<DollarSign className="h-4 w-4 text-muted-foreground" />}
+          icon={<MoneyIcon className="h-4 w-4 text-muted-foreground" />}
           valueClassName={balanceClass}
         />
         <PortalStatCard
           title="Total de Facturas"
           value={invoiceList.length}
-          icon={<Receipt className="h-4 w-4 text-muted-foreground" />}
+          icon={<InvoiceIcon className="h-4 w-4 text-muted-foreground" />}
         />
       </div>
 

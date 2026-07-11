@@ -1,4 +1,4 @@
-import { Search, X, LayoutGrid, Rows3, Plus } from "@/components/icons";
+import { SearchIcon, X, LayoutGrid, Rows3, AddIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -57,7 +57,7 @@ export function CRMToolbar({
               </ToggleGroupItem>
             </ToggleGroup>
             <Button onClick={onCreate} size="sm" className="h-9">
-              <Plus className="h-4 w-4 mr-1" /> Nuevo Prospecto
+              <AddIcon className="h-4 w-4 mr-1" /> Nuevo Prospecto
             </Button>
           </>
         }
@@ -66,7 +66,7 @@ export function CRMToolbar({
 
       <div className="flex items-center gap-2 flex-wrap">
         <div className="relative w-64">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+          <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
             value={filters.search}
             onChange={(e) => update("search", e.target.value)}

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { Building2, Save } from "@/components/icons";
+import { CompanyIcon, SaveIcon } from "@/components/icons";
 import { REGIMEN_FISCAL } from "@/lib/domain/satCatalogs";
 
 export interface FiscalFormValues {
@@ -25,7 +25,7 @@ export function CompanyFiscalForm({ isPending }: Props) {
     <Card>
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
-          <Building2 className="h-4 w-4" /> Información Fiscal
+          <CompanyIcon className="h-4 w-4" /> Información Fiscal
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -78,7 +78,7 @@ export function CompanyFiscalForm({ isPending }: Props) {
 
         <div className="pt-2">
           <Button type="submit" disabled={isPending}>
-            <Save className="h-4 w-4 mr-1" />
+            <SaveIcon className="h-4 w-4 mr-1" />
             {isPending ? "Guardando..." : "Guardar"}
           </Button>
         </div>

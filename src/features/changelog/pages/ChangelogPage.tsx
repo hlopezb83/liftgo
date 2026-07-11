@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
-import { AlertCircle } from "@/components/icons";
+import { InfoAlertIcon } from "@/components/icons";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardContent } from "@/components/ui/card";
@@ -51,7 +51,7 @@ export default function ChangelogPage() {
       <PageContainer maxWidth="form">
         <Card>
           <CardContent className="text-center space-y-2">
-            <AlertCircle className="h-8 w-8 text-destructive mx-auto" />
+            <InfoAlertIcon className="h-8 w-8 text-destructive mx-auto" />
             <p className="font-semibold">No se pudo cargar el historial de cambios</p>
             <p className="text-sm text-muted-foreground">{error.message}</p>
           </CardContent>

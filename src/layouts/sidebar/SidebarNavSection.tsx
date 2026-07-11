@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
-import { ChevronRight } from "@/components/icons";
+import { ChevronRightIcon } from "@/components/icons";
 import { NavLink } from "@/layouts/NavLink";
 import {
   SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
@@ -58,7 +58,7 @@ export function SidebarNavSection({ group }: { group: NavGroup }) {
             className="cursor-pointer flex items-center justify-between hover:text-sidebar-foreground"
           >
             <span>{group.label}</span>
-            <ChevronRight
+            <ChevronRightIcon
               className={`h-3.5 w-3.5 transition-transform ${open || hasActive ? "rotate-90" : ""}`}
             />
           </SidebarGroupLabel>

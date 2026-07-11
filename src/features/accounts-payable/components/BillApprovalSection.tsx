@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Check, X, RotateCcw, ShieldCheck, ShieldAlert, Loader2 } from "@/components/icons";
+import { SuccessIcon, X, ResetIcon, SecurityIcon, ShieldAlert, SpinnerIcon } from "@/components/icons";
 import { useUserRole } from "@/features/users";
 import { formatDateDisplay } from "@/lib/utils";
 import { ApproveBillDialog } from "./ApproveBillDialog";
@@ -52,7 +52,7 @@ function ApprovalTimeline({ history, isLoading }: { history: HistoryEntry[] | un
         Bitácora ({history?.length ?? 0})
       </p>
       {isLoading ? (
-        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+        <SpinnerIcon className="h-4 w-4 animate-spin text-muted-foreground" />
       ) : !history || history.length === 0 ? (
         <p className="text-xs text-muted-foreground italic">Sin movimientos</p>
       ) : (
@@ -91,7 +91,7 @@ function ApprovalActions({
     return (
       <div className="flex gap-2">
         <Button size="sm" className="flex-1" onClick={onApprove}>
-          <Check className="h-4 w-4 mr-1" /> Aprobar
+          <SuccessIcon className="h-4 w-4 mr-1" /> Aprobar
         </Button>
         <Button size="sm" variant="destructive" className="flex-1" onClick={onReject}>
           <X className="h-4 w-4 mr-1" /> Rechazar
@@ -102,7 +102,7 @@ function ApprovalActions({
   if (status === "rejected" && (isAdmin || isAdministrativo)) {
     return (
       <Button size="sm" variant="outline" disabled={reapprovalPending} onClick={onReapproval}>
-        <RotateCcw className="h-4 w-4 mr-1" />
+        <ResetIcon className="h-4 w-4 mr-1" />
         {reapprovalPending ? "Enviando…" : "Solicitar reaprobación"}
       </Button>
     );
@@ -134,7 +134,7 @@ export function BillApprovalSection({
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {approvalStatus === "approved" ? (
-              <ShieldCheck className="h-4 w-4 text-success" />
+              <SecurityIcon className="h-4 w-4 text-success" />
             ) : (
               <ShieldAlert className="h-4 w-4 text-warning" />
             )}

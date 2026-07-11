@@ -4,7 +4,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { Plus, Download, RefreshCw, X, AlertTriangle } from "@/components/icons";
+import { AddIcon, DownloadIcon, RefreshIcon, X, WarnIcon } from "@/components/icons";
 import { STATUS_LABELS } from "@/lib/constants";
 import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import type { DateRange } from "react-day-picker";
@@ -23,14 +23,14 @@ export function InvoicesActionsBar({ onOpenPreview, onExport, onNew, previewPend
     <div className="flex gap-2">
       <RoleGuard module="Facturas" minAccess="full">
         <Button variant="outline" size="sm" onClick={onOpenPreview} disabled={previewPending}>
-          <RefreshCw className={`h-4 w-4 mr-1 ${previewPending ? "animate-spin" : ""}`} />
+          <RefreshIcon className={`h-4 w-4 mr-1 ${previewPending ? "animate-spin" : ""}`} />
           Generar Recurrentes
         </Button>
       </RoleGuard>
       <Button variant="outline" size="sm" onClick={onExport}>
-        <Download className="h-4 w-4 mr-1" />Exportar CSV
+        <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
       </Button>
-      <Button size="sm" onClick={onNew}><Plus className="h-4 w-4 mr-1" />Nueva Factura</Button>
+      <Button size="sm" onClick={onNew}><AddIcon className="h-4 w-4 mr-1" />Nueva Factura</Button>
     </div>
   );
 }
@@ -52,7 +52,7 @@ export function InvoicesFiltersBar({
     <div className="space-y-3">
       {reachedLimit && (
         <Alert>
-          <AlertTriangle className="h-4 w-4" />
+          <WarnIcon className="h-4 w-4" />
           <AlertDescription>
             Mostrando los primeros {LIST_PAGE_LIMIT} registros. Refina los filtros para ver más.
           </AlertDescription>

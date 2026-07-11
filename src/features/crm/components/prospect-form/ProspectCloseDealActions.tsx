@@ -1,4 +1,4 @@
-import { CheckCircle2, UserPlus } from "@/components/icons";
+import { SuccessIcon, UserPlus } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import type { Prospect } from "../../hooks/useProspects";
@@ -20,7 +20,7 @@ export function ProspectCloseDealActions({ prospect, canCloseDeal, onClose }: Pr
         </p>
       ) : prospect.customerId ? (
         <div className="flex items-center gap-2">
-          <CheckCircle2 className="h-4 w-4 text-primary" />
+          <SuccessIcon className="h-4 w-4 text-primary" />
           <span className="text-sm font-medium text-primary">Cliente creado</span>
           <Button
             type="button"

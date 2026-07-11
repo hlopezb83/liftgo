@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { CheckCircle2 } from "@/components/icons";
+import { SuccessIcon } from "@/components/icons";
 import { formatDateDisplay } from "@/lib/utils";
 import { useReconciliationStatus } from "../hooks/useReconciliationStatus";
 
@@ -18,7 +18,7 @@ export function ReconciliationBadge({ paymentId, supplierPaymentId }: Props) {
       <Tooltip>
         <TooltipTrigger asChild>
           <Badge className="bg-status-available text-white border-transparent text-[10px] gap-1">
-            <CheckCircle2 className="h-3 w-3" />
+            <SuccessIcon className="h-3 w-3" />
             Conciliado {formatDateDisplay(data.matched_at)}
           </Badge>
         </TooltipTrigger>

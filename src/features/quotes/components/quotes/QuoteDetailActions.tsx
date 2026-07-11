@@ -5,7 +5,7 @@ import { QuotePDFButton } from "./QuotePDFButton";
 import { useState } from "react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Edit, Send, CheckCircle, XCircle, BookOpen, Trash2, Receipt } from "@/components/icons";
+import { Edit, Send, SuccessIcon, ErrorIcon, BookOpen, DeleteIcon, InvoiceIcon } from "@/components/icons";
 import type { Tables } from "@/integrations/supabase/types";
 import { isQuoteEditable, canConvertQuote } from "@/lib/rules/quotes";
 
@@ -49,7 +49,7 @@ function InvoiceButton({ quote, isSale, alreadyInvoiced, canInvoice, invoiceBloc
   if (alreadyInvoiced) {
     return (
       <Button size="sm" variant="outline" disabled className="opacity-70">
-        <Receipt className="h-4 w-4 mr-1" />Ya facturada
+        <InvoiceIcon className="h-4 w-4 mr-1" />Ya facturada
       </Button>
     );
   }
@@ -57,7 +57,7 @@ function InvoiceButton({ quote, isSale, alreadyInvoiced, canInvoice, invoiceBloc
   if (canInvoice) {
     return (
       <Button size="sm" variant="default" onClick={() => navigate(`/invoices/new?from_quote=${quote.id}`)}>
-        <Receipt className="h-4 w-4 mr-1" />Facturar
+        <InvoiceIcon className="h-4 w-4 mr-1" />Facturar
       </Button>
     );
   }
@@ -67,7 +67,7 @@ function InvoiceButton({ quote, isSale, alreadyInvoiced, canInvoice, invoiceBloc
         <TooltipTrigger asChild>
           <span tabIndex={0}>
             <Button size="sm" variant="default" disabled className="pointer-events-none opacity-60">
-              <Receipt className="h-4 w-4 mr-1" />Facturar
+              <InvoiceIcon className="h-4 w-4 mr-1" />Facturar
             </Button>
           </span>
         </TooltipTrigger>
@@ -82,7 +82,7 @@ function DeleteDialog({ quoteNumber, onDelete }: { quoteNumber: string; onDelete
   return (
     <RoleGuard module="Cotizaciones" minAccess="full">
       <Button size="sm" variant="destructive" onClick={() => setOpen(true)}>
-        <Trash2 className="h-4 w-4 mr-1" />Eliminar
+        <DeleteIcon className="h-4 w-4 mr-1" />Eliminar
       </Button>
       <ConfirmDialog
         open={open}
@@ -128,10 +128,10 @@ export function QuoteDetailActions({
       {quote.status === "sent" && (
         <>
           <Button size="sm" variant="default" onClick={() => onSetStatus("accepted")}>
-            <CheckCircle className="h-4 w-4 mr-1" />Aceptar
+            <SuccessIcon className="h-4 w-4 mr-1" />Aceptar
           </Button>
           <Button size="sm" variant="destructive" onClick={() => onSetStatus("declined")}>
-            <XCircle className="h-4 w-4 mr-1" />Rechazar
+            <ErrorIcon className="h-4 w-4 mr-1" />Rechazar
           </Button>
         </>
       )}

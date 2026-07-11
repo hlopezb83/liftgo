@@ -1,4 +1,4 @@
-import { Eye, EyeOff, Sparkles } from "@/components/icons";
+import { ViewIcon, HideIcon, Sparkles } from "@/components/icons";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -54,7 +54,7 @@ export function SetPasswordDialog({ user, onClose }: Props) {
                 onClick={toggleShow}
                 className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
               >
-                {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {show ? <HideIcon className="h-4 w-4" /> : <ViewIcon className="h-4 w-4" />}
               </button>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock } from "@/components/icons";
+import { ClockIcon } from "@/components/icons";
 import { InfoRow } from "@/components/forms/InfoRow";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { RecurringBillingBadge } from "../bookings/RecurringBillingBadge";
@@ -12,7 +12,7 @@ export function BookingBillingCard({ booking }: { booking: BookingWithForklift }
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
-          <Clock className="h-4 w-4 text-muted-foreground" /> Facturación
+          <ClockIcon className="h-4 w-4 text-muted-foreground" /> Facturación
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">

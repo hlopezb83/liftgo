@@ -6,7 +6,7 @@ import { SearchBar } from "@/components/forms/SearchBar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2 } from "@/components/icons";
+import { DeleteIcon } from "@/components/icons";
 import type { AuditLog } from "../hooks/useAuditLogs";
 import {
   TABLES, getRecordLabel, actionIcon, actionBadgeVariant,
@@ -109,7 +109,7 @@ export default function AuditTrailPage() {
               className="h-8 w-8 text-destructive hover:text-destructive"
               onClick={(e) => { e.stopPropagation(); setLogToDelete(row.original); }}
             >
-              <Trash2 className="h-4 w-4" />
+              <DeleteIcon className="h-4 w-4" />
             </Button>
           ),
         });

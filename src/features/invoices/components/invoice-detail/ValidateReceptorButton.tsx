@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertCircle, CheckCircle2, Loader2, Pencil, ShieldCheck } from "@/components/icons";
+import { InfoAlertIcon, SuccessIcon, SpinnerIcon, EditIcon, SecurityIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { notifySuccess } from "@/lib/ui/appFeedback";
@@ -46,7 +46,7 @@ export function ValidateReceptorButton({ invoice }: Props) {
   return (
     <>
       <Button size="sm" variant="outline" onClick={handleValidate}>
-        <ShieldCheck className="h-4 w-4 mr-1" /> Validar contra SAT
+        <SecurityIcon className="h-4 w-4 mr-1" /> Validar contra SAT
       </Button>
 
       <FormDialog
@@ -58,7 +58,7 @@ export function ValidateReceptorButton({ invoice }: Props) {
       >
         {validate.isPending && (
           <div className="flex items-center gap-2 py-6 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" /> Consultando al SAT…
+            <SpinnerIcon className="h-4 w-4 animate-spin" /> Consultando al SAT…
           </div>
         )}
 
@@ -73,7 +73,7 @@ export function ValidateReceptorButton({ invoice }: Props) {
 
             {result.is_valid ? (
               <div className="flex items-start gap-2 rounded-md border border-success/30 bg-success/10 p-3 text-sm">
-                <CheckCircle2 className="h-4 w-4 mt-0.5 text-success" />
+                <SuccessIcon className="h-4 w-4 mt-0.5 text-success" />
                 <div>
                   <p className="font-medium">Los datos coinciden con la CSF del SAT.</p>
                   {result.note && <p className="text-xs text-muted-foreground mt-1">{result.note}</p>}
@@ -82,7 +82,7 @@ export function ValidateReceptorButton({ invoice }: Props) {
             ) : (
               <div className="space-y-2">
                 <div className="flex items-start gap-2 rounded-md border border-destructive/30 bg-destructive/10 p-3 text-sm">
-                  <AlertCircle className="h-4 w-4 mt-0.5 text-destructive" />
+                  <InfoAlertIcon className="h-4 w-4 mt-0.5 text-destructive" />
                   <div>
                     <p className="font-medium text-destructive">El SAT rechazaría el timbrado.</p>
                     <p className="text-xs text-muted-foreground mt-1">
@@ -116,7 +116,7 @@ export function ValidateReceptorButton({ invoice }: Props) {
               setEditOpen(true);
             }}
           >
-            <Pencil className="h-4 w-4 mr-1" /> Editar datos fiscales
+            <EditIcon className="h-4 w-4 mr-1" /> Editar datos fiscales
           </Button>
         </FormDialogFooter>
       </FormDialog>

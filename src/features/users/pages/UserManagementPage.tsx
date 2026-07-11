@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, Users } from "@/components/icons";
+import { SecurityIcon, UsersIcon } from "@/components/icons";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -69,7 +69,7 @@ export default function UserManagementPage() {
         actions={
           <div className="flex gap-2">
             <Button variant="outline" onClick={() => navigate("/users/permissions")}>
-              <ShieldCheck className="mr-2 h-4 w-4" />Ver permisos
+              <SecurityIcon className="mr-2 h-4 w-4" />Ver permisos
             </Button>
             <InviteUserDialog onCreated={() => {}} />
           </div>
@@ -91,7 +91,7 @@ export default function UserManagementPage() {
         isLoading={isLoading}
         table={table}
         emptyMessage="No hay usuarios"
-        emptyIcon={Users}
+        emptyIcon={UsersIcon}
         skeletonColumns={6}
         mobileCardRender={(u) => (
           <UserMobileCard

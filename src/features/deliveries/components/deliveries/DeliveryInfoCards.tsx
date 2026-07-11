@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays, Truck, MapPin, User } from "@/components/icons";
+import { CalendarDays, FleetIcon, LocationIcon, UserIcon } from "@/components/icons";
 import { formatDateDisplay, parseDateLocal, formatDateRange } from "@/lib/utils";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 
@@ -49,7 +49,7 @@ export function DeliveryEquipmentCard({ forkliftName, forkliftModel, hoursReadin
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2"><Truck className="h-4 w-4 text-muted-foreground" />Equipo</CardTitle>
+        <CardTitle className="text-base flex items-center gap-2"><FleetIcon className="h-4 w-4 text-muted-foreground" />Equipo</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <InfoRow label="Nombre" value={forkliftName || "—"} />
@@ -78,7 +78,7 @@ export function DeliveryLogisticsCard({ address, driverName, driverPhone, transp
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2"><MapPin className="h-4 w-4 text-muted-foreground" />Logística</CardTitle>
+        <CardTitle className="text-base flex items-center gap-2"><LocationIcon className="h-4 w-4 text-muted-foreground" />Logística</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <InfoRow label="Dirección" value={address || "—"} />
@@ -109,7 +109,7 @@ export function DeliveryBookingCard({ bookingNumber, customerName, startDate, en
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2"><User className="h-4 w-4 text-muted-foreground" />Reserva Vinculada</CardTitle>
+        <CardTitle className="text-base flex items-center gap-2"><UserIcon className="h-4 w-4 text-muted-foreground" />Reserva Vinculada</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <InfoRow label="Número" value={bookingNumber} />

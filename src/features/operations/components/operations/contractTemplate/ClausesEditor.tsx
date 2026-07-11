@@ -1,4 +1,4 @@
-import { Plus, Trash2 } from "@/components/icons";
+import { AddIcon, DeleteIcon } from "@/components/icons";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,7 @@ export function ClausesEditor({ clauses, onChange }: Props) {
                 className="font-semibold"
               />
               <Button variant="ghost" size="icon" onClick={() => onChange(clauses.filter((_, j) => j !== i))} aria-label="Eliminar cláusula">
-                <Trash2 className="h-4 w-4 text-destructive" />
+                <DeleteIcon className="h-4 w-4 text-destructive" />
               </Button>
             </div>
             <Textarea
@@ -43,7 +43,7 @@ export function ClausesEditor({ clauses, onChange }: Props) {
         </Card>
       ))}
       <Button variant="outline" size="sm" onClick={() => onChange([...clauses, { title: "", body: "" }])}>
-        <Plus className="h-4 w-4 mr-1" />Agregar Cláusula
+        <AddIcon className="h-4 w-4 mr-1" />Agregar Cláusula
       </Button>
     </div>
   );

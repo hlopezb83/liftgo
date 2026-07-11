@@ -1,4 +1,4 @@
-import { CheckCircle } from "@/components/icons";
+import { SuccessIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { useUpdateStatus } from "../../hooks/forklifts/useForklifts";
@@ -34,7 +34,7 @@ export function MarkAvailableDialog({ open, onOpenChange, forkliftId, forkliftNa
       title="¿Marcar como Disponible?"
       description={
         <span className="flex items-start gap-2">
-          <CheckCircle className="h-4 w-4 text-status-available mt-0.5 shrink-0" />
+          <SuccessIcon className="h-4 w-4 text-status-available mt-0.5 shrink-0" />
           {forkliftName} está actualmente en mantenimiento. ¿Marcarlo como disponible?
         </span>
       }

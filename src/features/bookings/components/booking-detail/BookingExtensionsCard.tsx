@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { History } from "@/components/icons";
+import { HistoryIcon } from "@/components/icons";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 
 interface Extension {
@@ -16,7 +16,7 @@ export function BookingExtensionsCard({ extensions }: { extensions: Extension[] 
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
-          <History className="h-4 w-4 text-muted-foreground" /> Extensiones
+          <HistoryIcon className="h-4 w-4 text-muted-foreground" /> Extensiones
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">

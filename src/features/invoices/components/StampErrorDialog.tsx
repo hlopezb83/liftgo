@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { AlertCircle, Copy } from "@/components/icons";
+import { InfoAlertIcon, DuplicateIcon } from "@/components/icons";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { notifySuccess } from "@/lib/ui/appFeedback";
@@ -103,7 +103,7 @@ function FieldRow({ label, value, mono }: FieldRowProps) {
             onClick={handleCopy}
             aria-label={`Copiar ${label}`}
           >
-            <Copy className="h-3.5 w-3.5" />
+            <DuplicateIcon className="h-3.5 w-3.5" />
           </Button>
         )}
       </div>
@@ -125,7 +125,7 @@ export function StampErrorDialog({ open, onOpenChange, message, kind, customerId
       description={
         <span className="flex flex-col gap-1">
           <span className="flex items-center gap-2 text-destructive">
-            <AlertCircle className="h-4 w-4" /> Error al timbrar
+            <InfoAlertIcon className="h-4 w-4" /> Error al timbrar
           </span>
           <span>{message}</span>
         </span>

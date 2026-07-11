@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download } from "@/components/icons";
+import { DownloadIcon } from "@/components/icons";
 import { exportToCsv } from "@/lib/exportCsv";
 import { useForklifts } from "@/features/fleet";
 import { useBookings } from "@/features/bookings";
@@ -55,7 +55,7 @@ export function UtilizationByModelReport({ startDate, endDate }: Props) {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Utilización por Modelo</CardTitle>
           <Button variant="outline" size="sm" onClick={handleExport}>
-            <Download className="h-4 w-4 mr-1" />Exportar CSV
+            <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
           </Button>
         </CardHeader>
         <CardContent>

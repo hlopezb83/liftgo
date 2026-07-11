@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { PackageCheck, AlertTriangle } from "@/components/icons";
+import { PackageCheck, WarnIcon } from "@/components/icons";
 import { useAssignForklift, useForklifts, useQuoteAssignments, useUnassignForklift } from "@/features/fleet";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { AssignForkliftsLineRow } from "./AssignForkliftsLineRow";
@@ -98,7 +98,7 @@ export function AssignForkliftsCard({ quoteId, lineItems }: Props) {
           if (totalAssigned >= totalRequired) return null;
           return (
             <Alert variant="default" className="border-warning/30 bg-warning/10">
-              <AlertTriangle className="h-4 w-4 text-warning" />
+              <WarnIcon className="h-4 w-4 text-warning" />
               <AlertDescription className="text-warning">
                 Faltan {totalRequired - totalAssigned} equipo(s) por asignar para poder facturar esta cotización.
               </AlertDescription>

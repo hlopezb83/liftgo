@@ -1,4 +1,4 @@
-import { Check, ChevronsUpDown, AlertTriangle, Plus } from "@/components/icons";
+import { SuccessIcon, ChevronsUpDown, WarnIcon, AddIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,11 +55,11 @@ export function AddMaintenancePartForm({
                         value={`${part.name} ${part.sku || ""}`}
                         onSelect={() => { setSelectedPart(part); setOpen(false); }}
                       >
-                        <Check className={cn("mr-2 h-4 w-4", selectedPart?.id === part.id ? "opacity-100" : "opacity-0")} />
+                        <SuccessIcon className={cn("mr-2 h-4 w-4", selectedPart?.id === part.id ? "opacity-100" : "opacity-0")} />
                         <div className="flex flex-col flex-1 min-w-0">
                           <div className="flex items-center gap-2">
                             <span className="truncate font-medium">{part.name}</span>
-                            {isLow && <AlertTriangle className="h-3 w-3 text-destructive shrink-0" />}
+                            {isLow && <WarnIcon className="h-3 w-3 text-destructive shrink-0" />}
                           </div>
                           <div className="flex items-center gap-2 text-xs text-muted-foreground">
                             {part.sku && <span>{part.sku}</span>}
@@ -89,7 +89,7 @@ export function AddMaintenancePartForm({
       </div>
 
       <Button size="sm" onClick={onAdd} disabled={!selectedPart || isAdding}>
-        <Plus className="h-4 w-4 mr-1" />
+        <AddIcon className="h-4 w-4 mr-1" />
         Agregar
       </Button>
     </div>

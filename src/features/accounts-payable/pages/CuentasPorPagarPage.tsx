@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Plus, FileClock, BarChart3, FileSpreadsheet } from "@/components/icons";
+import { AddIcon, FileClock, ChartIcon, FileSpreadsheet } from "@/components/icons";
 import { Link } from "react-router-dom";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { useLiftgoTable } from "@/components/dataTable/v2";
@@ -46,14 +46,14 @@ export default function CuentasPorPagarPage() {
           <div className="flex gap-2">
             <Link to="/cuentas-por-pagar/antiguedad">
               <Button variant="outline">
-                <BarChart3 className="h-4 w-4 mr-1" />Antigüedad
+                <ChartIcon className="h-4 w-4 mr-1" />Antigüedad
               </Button>
             </Link>
             <Button variant="outline" onClick={exportDialog.openDialog}>
               <FileSpreadsheet className="h-4 w-4 mr-1" />Exportar pagos
             </Button>
             <Button onClick={createDialog.openDialog}>
-              <Plus className="h-4 w-4 mr-1" />Nueva Factura
+              <AddIcon className="h-4 w-4 mr-1" />Nueva Factura
             </Button>
           </div>
         }

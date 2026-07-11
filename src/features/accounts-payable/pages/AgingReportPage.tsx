@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Download, FileClock } from "@/components/icons";
+import { DownloadIcon, FileClock } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { exportToCsv } from "@/lib/exportCsv";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
@@ -49,7 +49,7 @@ export default function AgingReportPage() {
         backLabel="Cuentas por pagar"
         actions={
           <Button variant="outline" onClick={handleExport} disabled={rows.length === 0}>
-            <Download className="h-4 w-4 mr-1" />Exportar CSV
+            <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
           </Button>
         }
       />

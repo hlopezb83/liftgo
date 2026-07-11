@@ -1,12 +1,12 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, HelpCircle, FileText } from "@/components/icons";
+import { RefreshIcon, HelpIcon, DocumentIcon } from "@/components/icons";
 
 export function ManualGeneratingCard() {
   return (
     <Card>
       <CardContent className="py-12 flex flex-col items-center gap-4 text-center">
-        <RefreshCw className="h-10 w-10 animate-spin text-primary" />
+        <RefreshIcon className="h-10 w-10 animate-spin text-primary" />
         <div>
           <p className="font-semibold text-lg">Generando manual con IA…</p>
           <p className="text-sm text-muted-foreground">
@@ -22,7 +22,7 @@ export function ManualEmptyCard({ isAdmin, onGenerate }: { isAdmin: boolean; onG
   return (
     <Card>
       <CardContent className="py-12 flex flex-col items-center gap-4 text-center">
-        <HelpCircle className="h-12 w-12 text-muted-foreground" />
+        <HelpIcon className="h-12 w-12 text-muted-foreground" />
         <div>
           <p className="font-semibold text-lg">No hay manual generado</p>
           <p className="text-sm text-muted-foreground">
@@ -33,7 +33,7 @@ export function ManualEmptyCard({ isAdmin, onGenerate }: { isAdmin: boolean; onG
         </div>
         {isAdmin && (
           <Button onClick={onGenerate}>
-            <FileText className="h-4 w-4 mr-2" />
+            <DocumentIcon className="h-4 w-4 mr-2" />
             Generar Manual
           </Button>
         )}

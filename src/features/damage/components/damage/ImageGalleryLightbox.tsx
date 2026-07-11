@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut } from "@/components/icons";
+import { ChevronLeftIcon, ChevronRightIcon, X, ZoomIn, ZoomOut } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 interface ImageGalleryLightboxProps {
@@ -91,7 +91,7 @@ export function ImageGalleryLightbox({ images, initialIndex = 0, open, onOpenCha
               onClick={prev}
               aria-label="Imagen anterior"
             >
-              <ChevronLeft className="h-5 w-5" />
+              <ChevronLeftIcon className="h-5 w-5" />
             </Button>
             <Button
               variant="ghost"
@@ -100,7 +100,7 @@ export function ImageGalleryLightbox({ images, initialIndex = 0, open, onOpenCha
               onClick={next}
               aria-label="Siguiente imagen"
             >
-              <ChevronRight className="h-5 w-5" />
+              <ChevronRightIcon className="h-5 w-5" />
             </Button>
           </>
         )}

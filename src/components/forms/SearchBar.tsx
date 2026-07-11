@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Input } from "@/components/ui/input";
-import { Search } from "@/components/icons";
+import { SearchIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 
@@ -54,7 +54,7 @@ export function SearchBar({
 
   return (
     <div className={`relative flex-1 ${className}`}>
-      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
       <Input
         ref={inputRef}
         placeholder={placeholder}

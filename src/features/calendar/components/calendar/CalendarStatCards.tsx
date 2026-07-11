@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { StatCards } from "@/features/dashboard";
-import { Truck, CheckCircle, Wrench, BarChart3 } from "@/components/icons";
+import { FleetIcon, SuccessIcon, MaintenanceIcon, ChartIcon } from "@/components/icons";
 import type { BookingWithForklift } from "@/features/bookings";
 import type { Tables } from "@/integrations/supabase/types";
 import { parseISO, isWithinInterval } from "date-fns";
@@ -48,10 +48,10 @@ export function CalendarStatCards({ forklifts, bookings }: CalendarStatCardsProp
   }, [forklifts, bookings]);
 
   const cards = [
-    { label: "Disponibles", value: stats.available, icon: CheckCircle, color: "text-success" },
-    { label: "Rentados", value: stats.rented, icon: Truck, color: "text-info" },
-    { label: "Mantenimiento", value: stats.maintenance, icon: Wrench, color: "text-warning" },
-    { label: "Utilización", value: stats.utilization, icon: BarChart3, color: "text-chart-5" },
+    { label: "Disponibles", value: stats.available, icon: SuccessIcon, color: "text-success" },
+    { label: "Rentados", value: stats.rented, icon: FleetIcon, color: "text-info" },
+    { label: "Mantenimiento", value: stats.maintenance, icon: MaintenanceIcon, color: "text-warning" },
+    { label: "Utilización", value: stats.utilization, icon: ChartIcon, color: "text-chart-5" },
   ];
 
   return <StatCards cards={cards} />;

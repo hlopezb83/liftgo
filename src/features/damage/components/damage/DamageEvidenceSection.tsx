@@ -1,6 +1,6 @@
 import { useDropzone } from "react-dropzone";
 import { Label } from "@/components/ui/label";
-import { Upload, X, ImageIcon } from "@/components/icons";
+import { UploadIcon, X, ImageIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import type { DamagePreview } from "../../hooks/useReportDamageForm";
 
@@ -31,7 +31,7 @@ export function DamageEvidenceSection({ previews, onDrop, onRemove }: Props) {
         <input {...getInputProps()} capture="environment" />
         <div className="flex flex-col items-center gap-1.5">
           <div className={cn("rounded-full p-2 transition-colors", isDragActive ? "bg-primary/10" : "bg-muted")}>
-            {isDragActive ? <Upload className="h-5 w-5 text-primary" /> : <ImageIcon className="h-5 w-5 text-muted-foreground" />}
+            {isDragActive ? <UploadIcon className="h-5 w-5 text-primary" /> : <ImageIcon className="h-5 w-5 text-muted-foreground" />}
           </div>
           <p className="text-xs text-muted-foreground">
             {isDragActive ? "Suelta las fotos aquí" : "Arrastra fotos o toca para abrir cámara"}

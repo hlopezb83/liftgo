@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { format, startOfMonth, endOfMonth } from "date-fns";
-import { Download, AlertTriangle } from "@/components/icons";
+import { DownloadIcon, WarnIcon } from "@/components/icons";
 
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -65,7 +65,7 @@ export default function InvoicesReconciliation() {
             onClick={() => downloadReconciliationXlsx(rows)}
             disabled={rows.length === 0}
           >
-            <Download className="h-4 w-4 mr-2" /> Exportar XLSX
+            <DownloadIcon className="h-4 w-4 mr-2" /> Exportar XLSX
           </Button>
         }
       />
@@ -142,7 +142,7 @@ export default function InvoicesReconciliation() {
 
       {summary && summary.gaps.length > 0 && (
         <Alert>
-          <AlertTriangle className="h-4 w-4" />
+          <WarnIcon className="h-4 w-4" />
           <AlertDescription>
             Folios internos faltantes en el rango: {summary.gaps.map((g) => `FAC-${g}`).join(", ")}.
             Puede ser normal si esos folios se emitieron fuera del rango, o indicar folios cancelados/eliminados.

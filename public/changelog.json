@@ -1,5 +1,14 @@
 [
   {
+    "version": "7.10.0",
+    "date": "2026-07-11",
+    "type": "minor",
+    "title": "Auditoría de íconos: adopción de aliases semánticos",
+    "description": "Auditoría del uso real del registry de íconos (247 archivos): aunque el registro existía desde v7.9.0, solo 2 archivos consumían aliases semánticos y el resto seguía importando los nombres crudos de lucide (Trash2, Pencil, Plus, FileText, AlertTriangle, Loader2, ...). Fase 1: se amplió `src/components/icons/index.ts` con 19 aliases nuevos (LocationIcon, SettingsIcon, DashboardIcon, HomeIcon, StarIcon, HelpIcon, KeyIcon, StampIcon, DealIcon, TargetIcon, ActivityIcon, ChartIcon, TrendingDownIcon, BankIcon, UndoIcon, ResetIcon, HideIcon, RemoveIcon, InfoIcon) y se documentó la tabla canónica por dominio. Fase 2: codemod automatizado renombró 208 archivos, colapsando duplicados semánticos (CheckCircle + CheckCircle2 + Check → SuccessIcon, X → CloseIcon, XCircle → ErrorIcon, AlertTriangle → WarnIcon, Loader2 → SpinnerIcon, etc.) tanto en las declaraciones import como en las referencias JSX. Fase 3: se endureció la regla ESLint `no-restricted-imports` para prohibir 56 nombres crudos importados desde `@/components/icons`, forzando el uso del alias correspondiente. Nuevo test de guardrail (`src/components/icons/__tests__/registry.test.ts`, 57 casos) verifica que cada alias canónico resuelve a un componente válido. Verificación: tsgo OK, ESLint 0 warnings, 900/900 tests verdes.",
+    "category": "improvement"
+  },
+  {
+
     "version": "7.9.1",
     "date": "2026-07-11",
     "type": "patch",

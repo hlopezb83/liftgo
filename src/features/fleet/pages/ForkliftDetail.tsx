@@ -12,7 +12,7 @@ import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useState } from "react";
-import { Edit, Trash2 } from "@/components/icons";
+import { Edit, DeleteIcon } from "@/components/icons";
 
 import { DocumentAttachments } from "../components/forklift-detail/DocumentAttachments";
 import { NotesCard } from "@/components/domain/NotesCard";
@@ -61,7 +61,7 @@ export default function ForkliftDetail() {
               <Edit className="h-4 w-4 mr-1" /> Editar
             </Button>
             <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
-              <Trash2 className="h-4 w-4 mr-1" /> Archivar
+              <DeleteIcon className="h-4 w-4 mr-1" /> Archivar
             </Button>
             <ConfirmDialog
               open={deleteOpen}

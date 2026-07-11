@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, Stamp, FileText, Download, XCircle, Trash2 } from "@/components/icons";
+import { AddIcon, StampIcon, DocumentIcon, DownloadIcon, ErrorIcon, DeleteIcon } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { notifyError } from "@/lib/ui/appFeedback";
@@ -73,7 +73,7 @@ export function InvoiceCreditNotesCard({ invoice, totalPaid }: Props) {
           <CardTitle className="text-base">Notas de Crédito</CardTitle>
           {canCreate && (
             <Button size="sm" variant="outline" onClick={() => setCreateOpen(true)}>
-              <Plus className="h-4 w-4 mr-1" /> Nueva NC
+              <AddIcon className="h-4 w-4 mr-1" /> Nueva NC
             </Button>
           )}
         </CardHeader>
@@ -105,14 +105,14 @@ export function InvoiceCreditNotesCard({ invoice, totalPaid }: Props) {
                         {cn.cfdi_status === "stamped" && (
                           <>
                             <Button variant="ghost" size="icon" className="h-7 w-7" title="PDF SAT" onClick={() => downloadCreditNote(cn.id, "pdf", cn.credit_note_number)}>
-                              <FileText className="h-3.5 w-3.5" />
+                              <DocumentIcon className="h-3.5 w-3.5" />
                             </Button>
                             <Button variant="ghost" size="icon" className="h-7 w-7" title="XML SAT" onClick={() => downloadCreditNote(cn.id, "xml", cn.credit_note_number)}>
-                              <Download className="h-3.5 w-3.5" />
+                              <DownloadIcon className="h-3.5 w-3.5" />
                             </Button>
                             {cn.cancellation_status !== "pending" && cn.status !== "cancelled" && (
                               <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" title="Cancelar NC" onClick={() => setCancelTarget(cn)}>
-                                <XCircle className="h-3.5 w-3.5" />
+                                <ErrorIcon className="h-3.5 w-3.5" />
                               </Button>
                             )}
                           </>
@@ -120,7 +120,7 @@ export function InvoiceCreditNotesCard({ invoice, totalPaid }: Props) {
                         {cn.status === "draft" && (
                           <>
                             <Button variant="outline" size="sm" className="h-7 text-xs" disabled={stampMutation.isPending} onClick={() => stampMutation.mutate(cn.id)}>
-                              <Stamp className="h-3 w-3 mr-1" /> Timbrar
+                              <StampIcon className="h-3 w-3 mr-1" /> Timbrar
                             </Button>
                             <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" title="Eliminar borrador" onClick={async () => {
                               const ok = await confirm({
@@ -131,7 +131,7 @@ export function InvoiceCreditNotesCard({ invoice, totalPaid }: Props) {
                               });
                               if (ok) deleteMutation.mutate(cn.id);
                             }}>
-                              <Trash2 className="h-3.5 w-3.5" />
+                              <DeleteIcon className="h-3.5 w-3.5" />
                             </Button>
                           </>
                         )}

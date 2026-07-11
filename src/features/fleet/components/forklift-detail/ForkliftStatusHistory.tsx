@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { History } from "@/components/icons";
+import { HistoryIcon } from "@/components/icons";
 import { format } from "date-fns";
 
 import type { Tables } from "@/integrations/supabase/types";
@@ -11,7 +11,7 @@ interface ForkliftStatusHistoryProps {
 export function ForkliftStatusHistory({ logs }: ForkliftStatusHistoryProps) {
   return (
     <Card>
-      <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><History className="h-4 w-4" /> Historial de Estado</CardTitle></CardHeader>
+      <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><HistoryIcon className="h-4 w-4" /> Historial de Estado</CardTitle></CardHeader>
       <CardContent>
         {logs.length > 0 ? (
           <div className="space-y-3">

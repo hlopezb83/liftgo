@@ -4,7 +4,7 @@ import { zodResolver } from "@/lib/forms/zodResolver";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Form, FormItem, FormLabel, FormControl } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Upload, X } from "@/components/icons";
+import { UploadIcon, X } from "@/components/icons";
 import { FormActions } from "@/components/forms/FormActions";
 import {
   CurrencyField, DateField, SelectField, TextField, TextareaField, type SelectOption,
@@ -68,7 +68,7 @@ function ReceiptField({ file, onChange, disabled }: ReceiptFieldProps) {
         }}
       />
       <Button type="button" variant="outline" size="sm" onClick={() => ref.current?.click()} disabled={disabled}>
-        <Upload className="h-4 w-4 mr-1" />Adjuntar archivo
+        <UploadIcon className="h-4 w-4 mr-1" />Adjuntar archivo
       </Button>
     </div>
   );

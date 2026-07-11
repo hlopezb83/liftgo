@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { InvoicePDFButton } from "../invoices/InvoicePDFButton";
-import { Edit, Stamp, XCircle, DollarSign, Trash2, RefreshCw, FileText, FileCode2 } from "@/components/icons";
+import { Edit, StampIcon, ErrorIcon, MoneyIcon, DeleteIcon, RefreshIcon, DocumentIcon, FileCode2 } from "@/components/icons";
 import type { Tables } from "@/integrations/supabase/types";
 import { useRefreshCancellationStatus } from "../../hooks/invoices/cfdi/useRefreshCancellationStatus";
 import { useState } from "react";
@@ -43,7 +43,7 @@ function CancellationBlock({ flags, invoiceId }: { flags: Flags; invoiceId: stri
       )}
       {flags.isRejectedCancel && <Badge variant="destructive">Cancelación rechazada</Badge>}
       <Button size="sm" variant="outline" onClick={() => refresh.mutate(invoiceId)} disabled={refresh.isPending}>
-        <RefreshCw className={`h-4 w-4 mr-1 ${refresh.isPending ? "animate-spin" : ""}`} />
+        <RefreshIcon className={`h-4 w-4 mr-1 ${refresh.isPending ? "animate-spin" : ""}`} />
         Actualizar estado SAT
       </Button>
     </>
@@ -66,7 +66,7 @@ function AcuseDownloadButtons({ invoiceId, invoiceNumber }: { invoiceId: string;
   return (
     <>
       <Button size="sm" variant="outline" onClick={() => handle("acuse_pdf")} disabled={loading !== null}>
-        <FileText className="h-4 w-4 mr-1" />
+        <DocumentIcon className="h-4 w-4 mr-1" />
         {loading === "pdf" ? "Descargando…" : "Acuse PDF"}
       </Button>
       <Button size="sm" variant="outline" onClick={() => handle("acuse_xml")} disabled={loading !== null}>
@@ -91,7 +91,7 @@ function StampButtons({ flags, isStamping, onStamp }: { flags: Flags; isStamping
   const variant = flags.isDraft ? undefined : "outline";
   return (
     <Button size="sm" variant={variant} onClick={onStamp} disabled={isStamping}>
-      <Stamp className="h-4 w-4 mr-1" /> {label}
+      <StampIcon className="h-4 w-4 mr-1" /> {label}
     </Button>
   );
 }
@@ -126,7 +126,7 @@ function CfdiXmlActions({
           onClick={onCancelCfdi}
           className="text-destructive hover:text-destructive"
         >
-          <XCircle className="h-4 w-4 mr-1" /> Cancelar CFDI
+          <ErrorIcon className="h-4 w-4 mr-1" /> Cancelar CFDI
         </Button>
       ) : null}
     </>
@@ -150,7 +150,7 @@ export function InvoiceDetailActions({
       <StampButtons flags={flags} isStamping={isStamping} onStamp={onStamp} />
       {flags.showPaymentBtn ? (
         <Button size="sm" onClick={onOpenPayment}>
-          <DollarSign className="h-4 w-4 mr-1" />Registrar Pago
+          <MoneyIcon className="h-4 w-4 mr-1" />Registrar Pago
         </Button>
       ) : null}
       {pdfMode !== "hidden" ? (
@@ -175,7 +175,7 @@ export function InvoiceDetailActions({
             onClick={onDelete}
             className="text-destructive hover:text-destructive"
           >
-            <Trash2 className="h-4 w-4 mr-1" /> Eliminar
+            <DeleteIcon className="h-4 w-4 mr-1" /> Eliminar
           </Button>
         </RoleGuard>
       ) : null}

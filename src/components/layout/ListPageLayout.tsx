@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
-import { type LucideIcon, Loader2, RefreshCw, SlidersHorizontal } from "@/components/icons";
+import { type LucideIcon, SpinnerIcon, RefreshIcon, SlidersHorizontal } from "@/components/icons";
 import type { Table as TanstackTable } from "@tanstack/react-table";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -163,10 +163,10 @@ function PullToRefreshIndicator({
       aria-live="polite"
     >
       {isRefreshing ? (
-        <span className="flex items-center gap-2"><Loader2 className="h-4 w-4 animate-spin" />Actualizando…</span>
+        <span className="flex items-center gap-2"><SpinnerIcon className="h-4 w-4 animate-spin" />Actualizando…</span>
       ) : (
         <span className="flex items-center gap-2">
-          <RefreshCw className={`h-4 w-4 transition-transform ${ready ? "rotate-180" : ""}`} />
+          <RefreshIcon className={`h-4 w-4 transition-transform ${ready ? "rotate-180" : ""}`} />
           {ready ? "Suelta para actualizar" : "Desliza para actualizar"}
         </span>
       )}

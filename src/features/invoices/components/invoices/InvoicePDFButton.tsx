@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { FileText } from "@/components/icons";
+import { DocumentIcon } from "@/components/icons";
 import { useState } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { useInvoicePdfDownload } from "../../hooks/invoices/pdf/useInvoicePdfDownload";
@@ -35,7 +35,7 @@ export function InvoicePDFButton({ invoiceId, mode, invoiceNumber }: InvoicePDFB
   const busy = loading || satLoading;
   return (
     <Button variant="outline" size="sm" onClick={handleClick} disabled={busy}>
-      <FileText className="h-4 w-4 mr-1" />
+      <DocumentIcon className="h-4 w-4 mr-1" />
       {busy ? "Generando…" : isCfdi ? "CFDI PDF" : "PDF borrador"}
     </Button>
   );

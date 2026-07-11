@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Save, Info } from "@/components/icons";
+import { SaveIcon, InfoIcon } from "@/components/icons";
 
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -67,7 +67,7 @@ export function ContractTemplateTab() {
       <Collapsible>
         <CollapsibleTrigger asChild>
           <Button variant="outline" size="sm" className="gap-2 mb-2">
-            <Info className="h-4 w-4" />
+            <InfoIcon className="h-4 w-4" />
             Placeholders disponibles
           </Button>
         </CollapsibleTrigger>
@@ -131,7 +131,7 @@ export function ContractTemplateTab() {
       </Accordion>
 
       <Button onClick={handleSave} disabled={updateMutation.isPending} className="gap-2">
-        <Save className="h-4 w-4" />
+        <SaveIcon className="h-4 w-4" />
         {updateMutation.isPending ? "Guardando..." : "Guardar Plantilla"}
       </Button>
     </div>

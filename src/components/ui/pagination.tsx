@@ -1,5 +1,5 @@
 import * as React from "react";
-import { ChevronLeft, ChevronRight, MoreHorizontal } from "@/components/icons";
+import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontal } from "@/components/icons";
 
 import { cn } from "@/lib/utils";
 import { ButtonProps, buttonVariants } from "@/components/ui/button";
@@ -55,7 +55,7 @@ PaginationLink.displayName = "PaginationLink";
 const PaginationPrevious = React.forwardRef<HTMLAnchorElement, React.ComponentProps<typeof PaginationLink>>(
   ({ className, ...props }, ref) => (
     <PaginationLink ref={ref} aria-label="Ir a la página anterior" size="default" className={cn("gap-1 pl-2.5", className)} {...props}>
-      <ChevronLeft className="h-4 w-4" />
+      <ChevronLeftIcon className="h-4 w-4" />
       <span>Anterior</span>
     </PaginationLink>
   ),
@@ -66,7 +66,7 @@ const PaginationNext = React.forwardRef<HTMLAnchorElement, React.ComponentProps<
   ({ className, ...props }, ref) => (
     <PaginationLink ref={ref} aria-label="Ir a la página siguiente" size="default" className={cn("gap-1 pr-2.5", className)} {...props}>
       <span>Siguiente</span>
-      <ChevronRight className="h-4 w-4" />
+      <ChevronRightIcon className="h-4 w-4" />
     </PaginationLink>
   ),
 );

@@ -3,7 +3,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Pencil, KeyRound, ShieldCheck as ShieldIcon } from "@/components/icons";
+import { DeleteIcon, EditIcon, KeyIcon, ShieldCheck as ShieldIcon } from "@/components/icons";
 import { format } from "date-fns";
 import { STAFF_ROLES } from "@/lib/constants";
 import { RoleBadge } from "../../components/users/RoleBadge";
@@ -99,14 +99,14 @@ export function useUserManagementColumns({
           return (
             <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
               <Button variant="ghost" size="icon" title="Editar nombre" onClick={() => onEdit(u)}>
-                <Pencil className="h-4 w-4" />
+                <EditIcon className="h-4 w-4" />
               </Button>
               <Button variant="ghost" size="icon" title="Asignar contraseña" onClick={() => onSetPassword(u)}>
-                <KeyRound className="h-4 w-4" />
+                <KeyIcon className="h-4 w-4" />
               </Button>
               {!isSelf && (
                 <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" title="Eliminar" onClick={() => onDelete(u)}>
-                  <Trash2 className="h-4 w-4" />
+                  <DeleteIcon className="h-4 w-4" />
                 </Button>
               )}
             </div>

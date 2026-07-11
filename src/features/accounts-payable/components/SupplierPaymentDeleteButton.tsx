@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "@/components/icons";
+import { DeleteIcon } from "@/components/icons";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Props {
@@ -23,7 +23,7 @@ export function SupplierPaymentDeleteButton({ canDelete, deleteBlocked, isPendin
                 disabled={!canDelete || isPending}
                 onClick={onClick}
               >
-                <Trash2 className="h-3 w-3 mr-1" /> Eliminar pago
+                <DeleteIcon className="h-3 w-3 mr-1" /> Eliminar pago
               </Button>
             </span>
           </TooltipTrigger>

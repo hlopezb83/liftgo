@@ -9,7 +9,7 @@ import { useDeletePart, type PartInventory } from "../../hooks/usePartsInventory
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Pencil, Trash2, Package, Hash, Tag, Layers, AlertTriangle, DollarSign } from "@/components/icons";
+import { EditIcon, DeleteIcon, InventoryIcon, Hash, Tag, Layers, WarnIcon, MoneyIcon } from "@/components/icons";
 import { DetailRow } from "@/components/domain/DetailRow";
 
 interface Props {
@@ -41,7 +41,7 @@ export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
       <SheetContent className="sm:max-w-md overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
-            <Package className="h-5 w-5" />
+            <InventoryIcon className="h-5 w-5" />
             {part.name}
           </SheetTitle>
         </SheetHeader>
@@ -51,7 +51,7 @@ export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
             <Badge variant="outline">{part.category}</Badge>
             {isLow && (
               <Badge variant="destructive" className="gap-1">
-                <AlertTriangle className="h-3 w-3" /> Stock bajo
+                <WarnIcon className="h-3 w-3" /> Stock bajo
               </Badge>
             )}
           </div>
@@ -59,7 +59,7 @@ export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
           <div className="space-y-1">
             <DetailRow icon={Hash} label="SKU" value={<span className="font-mono">{part.sku}</span>} />
             <DetailRow icon={Tag} label="Categoría" value={part.category} />
-            <DetailRow icon={DollarSign} label="Costo Unitario" value={formatCurrency(part.unit_cost)} />
+            <DetailRow icon={MoneyIcon} label="Costo Unitario" value={formatCurrency(part.unit_cost)} />
           </div>
 
           <Separator />
@@ -74,13 +74,13 @@ export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
                 </Badge>
               }
             />
-            <DetailRow icon={AlertTriangle} label="Stock Mínimo" value={`${part.min_stock_level} unidades`} />
+            <DetailRow icon={WarnIcon} label="Stock Mínimo" value={`${part.min_stock_level} unidades`} />
           </div>
 
           {part.location && (
             <>
               <Separator />
-              <DetailRow icon={Package} label="Ubicación" value={part.location} />
+              <DetailRow icon={InventoryIcon} label="Ubicación" value={part.location} />
             </>
           )}
 
@@ -94,10 +94,10 @@ export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
           <RoleGuard module="Refacciones" minAccess="full">
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1" onClick={() => { onEdit(part); onOpenChange(false); }}>
-                <Pencil className="h-4 w-4 mr-1" /> Editar
+                <EditIcon className="h-4 w-4 mr-1" /> Editar
               </Button>
               <Button variant="destructive" className="flex-1" onClick={() => setConfirmOpen(true)}>
-                <Trash2 className="h-4 w-4 mr-1" /> Eliminar
+                <DeleteIcon className="h-4 w-4 mr-1" /> Eliminar
               </Button>
               <ConfirmDialog
                 open={confirmOpen}

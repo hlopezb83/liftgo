@@ -1,4 +1,4 @@
-import { Truck, CheckCircle, Clock, Wrench, ShoppingCart } from "@/components/icons";
+import { FleetIcon, SuccessIcon, ClockIcon, MaintenanceIcon, ShoppingCart } from "@/components/icons";
 import { formatMonthShortEs } from "@/lib/format/formatMonthEs";
 
 export const STATUS_COLORS = {
@@ -36,10 +36,10 @@ export function buildPieData(counts: FleetCounts) {
 
 export function buildStatCards(counts: FleetCounts, activeFleet: number) {
   return [
-    { label: "Flota Activa", value: activeFleet, icon: Truck, color: "text-primary" },
-    { label: "Disponibles", value: counts.available, icon: CheckCircle, color: "text-status-available" },
-    { label: "Rentados", value: counts.rented, icon: Clock, color: "text-status-rented" },
-    { label: "Mantenimiento", value: counts.maintenance, icon: Wrench, color: "text-status-maintenance" },
+    { label: "Flota Activa", value: activeFleet, icon: FleetIcon, color: "text-primary" },
+    { label: "Disponibles", value: counts.available, icon: SuccessIcon, color: "text-status-available" },
+    { label: "Rentados", value: counts.rented, icon: ClockIcon, color: "text-status-rented" },
+    { label: "Mantenimiento", value: counts.maintenance, icon: MaintenanceIcon, color: "text-status-maintenance" },
     { label: "Vendidos", value: counts.sold, icon: ShoppingCart, color: "text-status-sold" },
   ];
 }

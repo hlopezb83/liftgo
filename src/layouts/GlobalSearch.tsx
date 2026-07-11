@@ -1,11 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  CalendarDays, Truck, Users, FileText, BookOpen, ScrollText, TruckIcon,
-  ClipboardCheck, Receipt, Wrench, AlertTriangle, Package, Handshake,
-  Wallet, DollarSign, BarChart3, Activity, History, Settings, Building2,
-  ShieldCheck, HelpCircle, Target, LayoutDashboard, Search,
-} from "@/components/icons";
+import { CalendarDays, FleetIcon, UsersIcon, DocumentIcon, BookOpen, ScrollText, TruckIcon, ClipboardCheck, InvoiceIcon, MaintenanceIcon, WarnIcon, InventoryIcon, DealIcon, Wallet, MoneyIcon, ChartIcon, ActivityIcon, HistoryIcon, SettingsIcon, CompanyIcon, SecurityIcon, HelpIcon, TargetIcon, DashboardIcon, SearchIcon } from "@/components/icons";
 import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command";
@@ -15,31 +10,31 @@ import { Badge } from "@/components/ui/badge";
 type Item = { title: string; url: string; icon: React.ElementType; group: string; keywords?: string };
 
 const ITEMS: Item[] = [
-  { title: "Panel", url: "/", icon: LayoutDashboard, group: "General" },
+  { title: "Panel", url: "/", icon: DashboardIcon, group: "General" },
   { title: "Calendario", url: "/calendar", icon: CalendarDays, group: "General", keywords: "gantt reservas" },
-  { title: "CRM", url: "/crm", icon: Target, group: "Comercial", keywords: "prospectos pipeline" },
-  { title: "Clientes", url: "/customers", icon: Users, group: "Comercial" },
-  { title: "Cotizaciones", url: "/quotes", icon: FileText, group: "Comercial" },
+  { title: "CRM", url: "/crm", icon: TargetIcon, group: "Comercial", keywords: "prospectos pipeline" },
+  { title: "Clientes", url: "/customers", icon: UsersIcon, group: "Comercial" },
+  { title: "Cotizaciones", url: "/quotes", icon: DocumentIcon, group: "Comercial" },
   { title: "Reservas", url: "/bookings", icon: BookOpen, group: "Comercial" },
   { title: "Contratos", url: "/contracts", icon: ScrollText, group: "Operaciones" },
   { title: "Entregas", url: "/deliveries", icon: TruckIcon, group: "Operaciones" },
   { title: "Devoluciones", url: "/returns", icon: ClipboardCheck, group: "Operaciones" },
-  { title: "Facturas", url: "/invoices", icon: Receipt, group: "Operaciones" },
-  { title: "Equipos", url: "/fleet", icon: Truck, group: "Flota", keywords: "montacargas" },
-  { title: "Mantenimiento", url: "/maintenance", icon: Wrench, group: "Flota" },
-  { title: "Daños", url: "/damage", icon: AlertTriangle, group: "Flota" },
-  { title: "Refacciones", url: "/inventory", icon: Package, group: "Flota" },
-  { title: "Proveedores", url: "/suppliers", icon: Handshake, group: "Administración" },
+  { title: "Facturas", url: "/invoices", icon: InvoiceIcon, group: "Operaciones" },
+  { title: "Equipos", url: "/fleet", icon: FleetIcon, group: "Flota", keywords: "montacargas" },
+  { title: "Mantenimiento", url: "/maintenance", icon: MaintenanceIcon, group: "Flota" },
+  { title: "Daños", url: "/damage", icon: WarnIcon, group: "Flota" },
+  { title: "Refacciones", url: "/inventory", icon: InventoryIcon, group: "Flota" },
+  { title: "Proveedores", url: "/suppliers", icon: DealIcon, group: "Administración" },
   { title: "Gastos Operativos", url: "/expenses", icon: Wallet, group: "Administración" },
-  { title: "Estado de Resultados", url: "/income-statement", icon: DollarSign, group: "Administración" },
-  { title: "Reportes", url: "/reports", icon: BarChart3, group: "Administración" },
-  { title: "Actividad", url: "/activity", icon: Activity, group: "Administración" },
-  { title: "Bitácora", url: "/audit", icon: History, group: "Administración", keywords: "auditoria audit trail" },
-  { title: "Configuración Operativa", url: "/settings/operations", icon: Settings, group: "Administración" },
-  { title: "Datos Fiscales", url: "/settings/company", icon: Building2, group: "Administración" },
-  { title: "Usuarios", url: "/users", icon: ShieldCheck, group: "Administración" },
+  { title: "Estado de Resultados", url: "/income-statement", icon: MoneyIcon, group: "Administración" },
+  { title: "Reportes", url: "/reports", icon: ChartIcon, group: "Administración" },
+  { title: "Actividad", url: "/activity", icon: ActivityIcon, group: "Administración" },
+  { title: "Bitácora", url: "/audit", icon: HistoryIcon, group: "Administración", keywords: "auditoria audit trail" },
+  { title: "Configuración Operativa", url: "/settings/operations", icon: SettingsIcon, group: "Administración" },
+  { title: "Datos Fiscales", url: "/settings/company", icon: CompanyIcon, group: "Administración" },
+  { title: "Usuarios", url: "/users", icon: SecurityIcon, group: "Administración" },
   { title: "Changelog", url: "/changelog", icon: ScrollText, group: "Administración" },
-  { title: "Ayuda", url: "/help", icon: HelpCircle, group: "Administración" },
+  { title: "Ayuda", url: "/help", icon: HelpIcon, group: "Administración" },
 ];
 
 export function GlobalSearch() {
@@ -84,7 +79,7 @@ export function GlobalSearch() {
         className="h-8 gap-2 text-muted-foreground hover:text-foreground px-2.5 touch:h-11 touch:min-w-11"
         aria-label="Búsqueda global"
       >
-        <Search className="h-3.5 w-3.5" />
+        <SearchIcon className="h-3.5 w-3.5" />
         <span className="hidden md:inline text-xs">Buscar…</span>
         <Badge variant="secondary" className="hidden md:inline-flex text-[10px] px-1.5 py-0 font-mono opacity-70">
           Ctrl+K

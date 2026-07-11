@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { STATUS_LABELS } from "@/lib/constants";
 import { QUOTE_STATUS_LABELS, quoteStatusLabel as quoteLabel } from "../constants";
-import { Plus, PlusCircle, ChevronRight } from "@/components/icons";
+import { AddIcon, PlusCircle, ChevronRightIcon } from "@/components/icons";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { usePageActions } from "@/contexts/pageActions";
@@ -94,7 +94,7 @@ export default function QuotesPage() {
       onRefresh={refetch}
       title="Cotizaciones"
       subtitle="Crea y administra cotizaciones para clientes"
-      actions={<Button onClick={() => navigate("/quotes/new")} size="sm"><Plus className="h-4 w-4 mr-1" />Nueva Cotización</Button>}
+      actions={<Button onClick={() => navigate("/quotes/new")} size="sm"><AddIcon className="h-4 w-4 mr-1" />Nueva Cotización</Button>}
       mobileFab={
         <Button onClick={() => navigate("/quotes/new")} size="icon" className="h-14 w-14 rounded-full shadow-lg" aria-label="Nueva cotización">
           <PlusCircle className="h-6 w-6" />
@@ -133,7 +133,7 @@ export default function QuotesPage() {
               <span className="text-xs text-muted-foreground">{formatDateRange(q.start_date, q.end_date)}</span>
               <div className="flex items-center gap-1">
                 <span className="text-sm font-semibold font-mono">{formatCurrency(q.total)}</span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
               </div>
             </div>
           </CardContent>

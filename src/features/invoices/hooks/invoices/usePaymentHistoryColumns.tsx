@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 
-import { Pencil, Stamp, FileText, FileCode2, XCircle } from "@/components/icons";
+import { EditIcon, StampIcon, DocumentIcon, FileCode2, ErrorIcon } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { type ColumnDef } from "@/components/dataTable/v2";
@@ -76,7 +76,7 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
               {status === "stamped" && (
                 <>
                   <Button variant="ghost" size="icon" className="h-7 w-7" title="REP PDF" onClick={() => downloadRep(p.id, "pdf")}>
-                    <FileText className="h-3.5 w-3.5" />
+                    <DocumentIcon className="h-3.5 w-3.5" />
                   </Button>
                   <Button variant="ghost" size="icon" className="h-7 w-7" title="REP XML" onClick={() => downloadRep(p.id, "xml")}>
                     <FileCode2 className="h-3.5 w-3.5" />
@@ -96,7 +96,7 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
                         if (ok) cancelRep.mutate({ paymentId: p.id, motive: "02" });
                       }}
                     >
-                      <XCircle className="h-3.5 w-3.5" />
+                      <ErrorIcon className="h-3.5 w-3.5" />
                     </Button>
                   )}
                 </>
@@ -107,7 +107,7 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
                   disabled={stampRep.isPending}
                   onClick={() => stampRep.mutate(p.id)}
                 >
-                  <Stamp className="h-3 w-3 mr-1" /> Timbrar REP
+                  <StampIcon className="h-3 w-3 mr-1" /> Timbrar REP
                 </Button>
               )}
             </div>
@@ -120,7 +120,7 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
       id: "actions", header: "", enableSorting: false,
       cell: ({ row }) => (
         <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingPayment(row.original)} aria-label="Editar pago" title="Editar pago">
-          <Pencil className="h-3.5 w-3.5" />
+          <EditIcon className="h-3.5 w-3.5" />
         </Button>
       ),
     });

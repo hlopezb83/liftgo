@@ -9,7 +9,7 @@ import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
-import { Plus, Eye, ChevronRight } from "@/components/icons";
+import { AddIcon, ViewIcon, ChevronRightIcon } from "@/components/icons";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
@@ -69,7 +69,7 @@ export default function ContractsPage() {
         header: "",
         enableSorting: false,
         meta: { cellClassName: "w-12" },
-        cell: () => <Eye className="h-4 w-4 text-muted-foreground" />,
+        cell: () => <ViewIcon className="h-4 w-4 text-muted-foreground" />,
       },
     ],
     [],
@@ -85,7 +85,7 @@ export default function ContractsPage() {
     <ListPageLayout
       title="Contratos"
       subtitle="Administrar contratos de renta"
-      actions={<Button size="sm" onClick={() => navigate("/contracts/new")}><Plus className="h-4 w-4 mr-1" />Nuevo Contrato</Button>}
+      actions={<Button size="sm" onClick={() => navigate("/contracts/new")}><AddIcon className="h-4 w-4 mr-1" />Nuevo Contrato</Button>}
       filters={
         <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
           <Tabs value={statusFilter} onValueChange={setStatusFilter}>
@@ -114,7 +114,7 @@ export default function ContractsPage() {
               <span className="text-xs text-muted-foreground">
                 {formatDateRange(c.start_date, c.end_date)}
               </span>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>

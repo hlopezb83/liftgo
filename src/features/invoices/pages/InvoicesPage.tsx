@@ -11,7 +11,7 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Eye, ChevronRight, Receipt } from "@/components/icons";
+import { ViewIcon, ChevronRightIcon, InvoiceIcon } from "@/components/icons";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatDateDisplay } from "@/lib/utils";
 import { type ColumnDef } from "@/components/dataTable/v2";
@@ -71,7 +71,7 @@ function useInvoiceColumns(): ColumnDef<Invoice>[] {
       { id: "due_date", header: "Vencimiento", accessorFn: (i) => i.due_date || "",
         cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateDisplay(row.original.due_date)}</span> },
       { id: "view", header: "", enableSorting: false, meta: { cellClassName: "w-12" },
-        cell: () => <Eye className="h-4 w-4 text-muted-foreground" /> },
+        cell: () => <ViewIcon className="h-4 w-4 text-muted-foreground" /> },
     ],
     [],
   );
@@ -95,7 +95,7 @@ function InvoiceCard({ inv, onClick }: { inv: Invoice; onClick: () => void }) {
           </div>
           <div className="flex items-center gap-1">
             <span className="text-sm font-semibold font-mono">{formatCurrency(Number(inv.total))}</span>
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
           </div>
         </div>
       </CardContent>
@@ -159,7 +159,7 @@ export default function InvoicesPage() {
         table={table}
         onRowClick={(inv) => navigate(`/invoices/${inv.id}`)}
         emptyMessage="No se encontraron facturas"
-        emptyIcon={Receipt}
+        emptyIcon={InvoiceIcon}
         emptyActionLabel="Nueva Factura"
         onEmptyAction={() => navigate("/invoices/new")}
         skeletonColumns={7}

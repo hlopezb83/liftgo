@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
-import { History, Eye } from "@/components/icons";
+import { HistoryIcon, ViewIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -43,7 +43,7 @@ export function InvoiceHistoryCard({ invoiceId }: Props) {
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base flex items-center gap-2">
-            <History className="h-4 w-4 text-muted-foreground" />
+            <HistoryIcon className="h-4 w-4 text-muted-foreground" />
             Historial de Cambios
           </CardTitle>
         </CardHeader>
@@ -86,7 +86,7 @@ export function InvoiceHistoryCard({ invoiceId }: Props) {
                         onClick={() => setSelected(log)}
                         aria-label="Ver detalle"
                       >
-                        <Eye className="h-3.5 w-3.5" />
+                        <ViewIcon className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                   );

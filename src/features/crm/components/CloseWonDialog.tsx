@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
 import { positiveAmount } from "@/lib/schemas";
-import { Trophy } from "@/components/icons";
+import { TrophyIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
@@ -97,7 +97,7 @@ export function CloseWonDialog({ prospect, open, onOpenChange, onConfirm, isPend
               disabled={isPending}
               className="bg-success hover:bg-success/90 text-success-foreground"
             >
-              <Trophy className="h-4 w-4 mr-1" />
+              <TrophyIcon className="h-4 w-4 mr-1" />
               Confirmar Ganado
             </Button>
           </FormDialogFooter>

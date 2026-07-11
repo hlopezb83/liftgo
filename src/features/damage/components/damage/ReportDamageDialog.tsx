@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertTriangle, Loader2 } from "@/components/icons";
+import { WarnIcon, SpinnerIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
@@ -39,7 +39,7 @@ export function ReportDamageDialog() {
     <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); }}>
       <DialogTrigger asChild>
         <Button>
-          <AlertTriangle className="h-4 w-4 mr-2" />
+          <WarnIcon className="h-4 w-4 mr-2" />
           Reportar Daño
         </Button>
       </DialogTrigger>
@@ -82,7 +82,7 @@ export function ReportDamageDialog() {
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
               <Button type="submit" disabled={isProcessing}>
                 {isProcessing
-                  ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Guardando…</>
+                  ? <><SpinnerIcon className="h-4 w-4 animate-spin mr-2" />Guardando…</>
                   : getReportButtonLabel(previews.length)}
               </Button>
             </FormDialogFooter>

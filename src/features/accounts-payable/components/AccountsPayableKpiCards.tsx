@@ -1,8 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import {
-  Clock, AlertTriangle, CalendarClock, CheckCircle2, ShieldAlert, FileWarning,
-} from "@/components/icons";
+import { ClockIcon, WarnIcon, CalendarClock, SuccessIcon, ShieldAlert, FileWarning } from "@/components/icons";
 import type { AccountsPayableKpis } from "../hooks/useAccountsPayableKpis";
 
 interface Props {
@@ -14,18 +12,18 @@ type Tone = "text-foreground" | "text-destructive" | "text-warning" | "text-succ
 interface KpiItem {
   key: keyof AccountsPayableKpis;
   label: string;
-  icon: typeof Clock;
+  icon: typeof ClockIcon;
   tone: Tone;
   asCount?: boolean;
 }
 
 const ITEMS: readonly KpiItem[] = [
-  { key: "totalPendiente", label: "Pendiente total", icon: Clock, tone: "text-foreground" },
-  { key: "totalVencido", label: "Vencido", icon: AlertTriangle, tone: "text-destructive" },
+  { key: "totalPendiente", label: "Pendiente total", icon: ClockIcon, tone: "text-foreground" },
+  { key: "totalVencido", label: "Vencido", icon: WarnIcon, tone: "text-destructive" },
   { key: "totalPorVencer", label: "Por vencer (7 días)", icon: CalendarClock, tone: "text-warning" },
   { key: "totalPorAprobar", label: "Por aprobar", icon: ShieldAlert, tone: "text-warning" },
   { key: "repPendientes", label: "REP pendientes", icon: FileWarning, tone: "text-warning", asCount: true },
-  { key: "pagadoMesActual", label: "Pagado este mes", icon: CheckCircle2, tone: "text-success" },
+  { key: "pagadoMesActual", label: "Pagado este mes", icon: SuccessIcon, tone: "text-success" },
 ] as const;
 
 export function AccountsPayableKpiCards({ kpis }: Props) {

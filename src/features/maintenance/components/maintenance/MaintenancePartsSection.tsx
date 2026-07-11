@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
-import { Package } from "@/components/icons";
+import { InventoryIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import {
@@ -59,7 +59,7 @@ export function MaintenancePartsSection({ maintenanceLogId, currentCost }: Props
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <Package className="h-4 w-4 text-muted-foreground" />
+        <InventoryIcon className="h-4 w-4 text-muted-foreground" />
         <h4 className="font-semibold text-sm">Refacciones Utilizadas</h4>
         {partsCost > 0 && (
           <Badge variant="secondary" className="ml-auto">{formatCurrency(partsCost)}</Badge>

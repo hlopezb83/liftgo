@@ -6,7 +6,7 @@ import { RoleGuard } from "@/layouts/RoleGuard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Pencil, Trash2 } from "@/components/icons";
+import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { useConfirm } from "@/components/feedback/useConfirm";
 import { useBankAccounts, useDeleteBankAccount, type BankAccount } from "../hooks/useBankAccounts";
@@ -38,7 +38,7 @@ export default function BankAccountsPage() {
           <PageHeader
             title="Cuentas bancarias"
             subtitle="Catálogo de cuentas para conciliación bancaria"
-            action={<Button onClick={handleNew}><Plus className="h-4 w-4 mr-2" /> Nueva cuenta</Button>}
+            action={<Button onClick={handleNew}><AddIcon className="h-4 w-4 mr-2" /> Nueva cuenta</Button>}
           />
           <Card><CardContent className="p-0 overflow-x-auto">
             <table className="w-full text-sm">
@@ -69,8 +69,8 @@ export default function BankAccountsPage() {
                       <Badge variant={a.is_active ? "default" : "secondary"}>{a.is_active ? "Activa" : "Inactiva"}</Badge>
                     </td>
                     <td className="px-3 py-2 text-right whitespace-nowrap">
-                      <Button variant="ghost" size="sm" onClick={() => handleEdit(a)}><Pencil className="h-3.5 w-3.5" /></Button>
-                      <Button variant="ghost" size="sm" onClick={() => handleDelete(a)}><Trash2 className="h-3.5 w-3.5" /></Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleEdit(a)}><EditIcon className="h-3.5 w-3.5" /></Button>
+                      <Button variant="ghost" size="sm" onClick={() => handleDelete(a)}><DeleteIcon className="h-3.5 w-3.5" /></Button>
                     </td>
                   </tr>
                 ))}

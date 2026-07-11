@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { Upload, FileText, Loader2, CheckCircle2 } from "@/components/icons";
+import { UploadIcon, DocumentIcon, SpinnerIcon, SuccessIcon } from "@/components/icons";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { useParseCsf, type ParsedCsfData } from "@/features/customers/hooks/useParseCsf";
 
@@ -55,12 +55,12 @@ export function CsfDropzone<T>({ onParsed, mapData }: Props<T>) {
   if (parsed) {
     return (
       <div className="flex items-center gap-3 rounded-lg border border-primary/30 bg-primary/5 p-4">
-        <CheckCircle2 className="h-5 w-5 text-primary shrink-0" />
+        <SuccessIcon className="h-5 w-5 text-primary shrink-0" />
         <div className="flex-1 min-w-0">
           <p className="text-sm font-medium">Datos extraídos correctamente</p>
           <p className="text-xs text-muted-foreground">Revisa y completa los campos faltantes antes de guardar.</p>
         </div>
-        <FileText className="h-5 w-5 text-muted-foreground shrink-0" />
+        <DocumentIcon className="h-5 w-5 text-muted-foreground shrink-0" />
       </div>
     );
   }
@@ -75,12 +75,12 @@ export function CsfDropzone<T>({ onParsed, mapData }: Props<T>) {
       <input {...getInputProps()} />
       {parsing ? (
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-10 w-10 text-primary animate-spin" />
+          <SpinnerIcon className="h-10 w-10 text-primary animate-spin" />
           <p className="text-sm text-muted-foreground">Extrayendo datos fiscales…</p>
         </div>
       ) : (
         <div className="flex flex-col items-center gap-3">
-          <Upload className="h-10 w-10 text-muted-foreground" />
+          <UploadIcon className="h-10 w-10 text-muted-foreground" />
           <div>
             <p className="text-sm font-medium">Arrastra tu CSF aquí o haz clic para seleccionar</p>
             <p className="text-xs text-muted-foreground mt-1">Constancia de Situación Fiscal del SAT (PDF, máx. 10 MB)</p>

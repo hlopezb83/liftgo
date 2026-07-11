@@ -6,7 +6,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { FormActions } from "@/components/forms/FormActions";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { AlertTriangle } from "@/components/icons";
+import { WarnIcon } from "@/components/icons";
 import { useForkliftFormLogic } from "../hooks/useForkliftFormLogic";
 import { EquipmentDetailsSection } from "../components/forklift-form/EquipmentDetailsSection";
 import { RatesSection } from "../components/forklift-form/RatesSection";
@@ -24,7 +24,7 @@ export default function ForkliftForm() {
       <PageContainer maxWidth="form">
         <FormPageHeader title="Agregar Montacargas" />
         <Alert className="mt-6">
-          <AlertTriangle className="h-5 w-5" />
+          <WarnIcon className="h-5 w-5" />
           <AlertTitle>Configura modelos de equipo primero</AlertTitle>
           <AlertDescription className="mt-2">
             Para agregar un montacargas, primero debes registrar al menos un modelo de equipo en Configuración de Operaciones.

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "@/components/icons";
+import { SpinnerIcon } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { useManualMatchCandidates, type ManualMatchKind } from "../hooks/useManualMatchCandidates";
@@ -27,7 +27,7 @@ export function ManualMatchPicker({ kind, onSelect }: Props) {
     <div className="space-y-2">
       <Input placeholder="Buscar por monto, referencia o nombre..." value={query} onChange={(e) => setQuery(e.target.value)} />
       {isPending ? (
-        <div className="flex items-center justify-center py-4 text-muted-foreground text-xs"><Loader2 className="h-3 w-3 animate-spin mr-1" /> Cargando candidatos…</div>
+        <div className="flex items-center justify-center py-4 text-muted-foreground text-xs"><SpinnerIcon className="h-3 w-3 animate-spin mr-1" /> Cargando candidatos…</div>
       ) : filtered.length === 0 ? (
         <p className="text-xs text-muted-foreground italic">Sin candidatos</p>
       ) : (

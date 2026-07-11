@@ -1,7 +1,7 @@
 import { useMemo, memo } from "react";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { ChevronRight } from "@/components/icons";
+import { ChevronRightIcon } from "@/components/icons";
 import { parseISO, differenceInDays, isWithinInterval } from "date-fns";
 import { nowMty, formatMtyDate } from "@/lib/utils";
 
@@ -51,7 +51,7 @@ export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProp
           <Collapsible key={fl.id}>
             <CollapsibleTrigger className="flex items-center justify-between w-full p-3 rounded-lg bg-muted/40 hover:bg-muted/60 transition-colors group text-left">
               <div className="flex items-center gap-3">
-                <ChevronRight className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-90" />
+                <ChevronRightIcon className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-90" />
                 <span className="text-sm font-mono font-medium">{fl.name}</span>
                 <span className="text-xs text-muted-foreground">{fl.model}</span>
                 <StatusBadge status={fl.status} />

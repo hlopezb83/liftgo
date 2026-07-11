@@ -7,7 +7,7 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { DamageRecordWithJoins } from "@/types/rental";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { AlertTriangle, Truck, User, FileText, DollarSign, Calendar } from "@/components/icons";
+import { WarnIcon, FleetIcon, UserIcon, DocumentIcon, MoneyIcon, CalendarIcon } from "@/components/icons";
 import { DetailRow } from "@/components/domain/DetailRow";
 
 interface Props {
@@ -27,7 +27,7 @@ export function DamageDetailSheet({ record, open, onOpenChange }: Props) {
       <SheetContent className="sm:max-w-md overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
-            <AlertTriangle className="h-5 w-5" />
+            <WarnIcon className="h-5 w-5" />
             Detalle de Daño
           </SheetTitle>
         </SheetHeader>
@@ -36,19 +36,19 @@ export function DamageDetailSheet({ record, open, onOpenChange }: Props) {
           <StatusBadge status={record.status} />
 
           <div className="space-y-1">
-            <DetailRow icon={Truck} label="Montacargas" value={record.forklifts?.name || "—"} />
-            <DetailRow icon={User} label="Cliente" value={record.customers?.name || "—"} />
-            <DetailRow icon={DollarSign} label="Costo Estimado" value={formatCurrency(record.estimated_cost ?? 0)} />
+            <DetailRow icon={FleetIcon} label="Montacargas" value={record.forklifts?.name || "—"} />
+            <DetailRow icon={UserIcon} label="Cliente" value={record.customers?.name || "—"} />
+            <DetailRow icon={MoneyIcon} label="Costo Estimado" value={formatCurrency(record.estimated_cost ?? 0)} />
             {record.actual_cost != null && record.actual_cost > 0 && (
-              <DetailRow icon={DollarSign} label="Costo Real" value={formatCurrency(record.actual_cost)} />
+              <DetailRow icon={MoneyIcon} label="Costo Real" value={formatCurrency(record.actual_cost)} />
             )}
-            <DetailRow icon={Calendar} label="Fecha" value={format(new Date(record.created_at), "dd MMMM yyyy", { locale: es })} />
+            <DetailRow icon={CalendarIcon} label="Fecha" value={format(new Date(record.created_at), "dd MMMM yyyy", { locale: es })} />
           </div>
 
           <Separator />
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <FileText className="h-4 w-4 text-muted-foreground" />
+              <DocumentIcon className="h-4 w-4 text-muted-foreground" />
               <p className="text-xs text-muted-foreground">Descripción</p>
             </div>
             <p className="text-sm whitespace-pre-wrap">{record.description}</p>

@@ -1,4 +1,4 @@
-import { RefreshCw } from "@/components/icons";
+import { RefreshIcon } from "@/components/icons";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -56,7 +56,7 @@ export function HelpPageHeader({
           )}
           {isAdmin && (
             <Button onClick={onGenerate} disabled={isGenerating} size="sm">
-              <RefreshCw className={`h-4 w-4 mr-2 ${isGenerating ? "animate-spin" : ""}`} />
+              <RefreshIcon className={`h-4 w-4 mr-2 ${isGenerating ? "animate-spin" : ""}`} />
               {getButtonLabel(isGenerating, hasManual)}
             </Button>
           )}

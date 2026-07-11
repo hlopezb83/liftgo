@@ -5,7 +5,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NotesCard } from "@/components/domain/NotesCard";
-import { UserPlus, Pencil, Trash2, FileDown } from "@/components/icons";
+import { UserPlus, EditIcon, DeleteIcon, FileDown } from "@/components/icons";
 
 import { CustomerContactCard } from "../components/customer-detail/CustomerContactCard";
 import { CustomerFinancialSummary } from "../components/customer-detail/CustomerFinancialSummary";
@@ -47,11 +47,11 @@ export default function CustomerDetailPage() {
               <FileDown className="h-4 w-4 mr-2" /> Estado de Cuenta
             </Button>
             <Button variant="outline" size="sm" onClick={() => s.setEditOpen(true)}>
-              <Pencil className="h-4 w-4 mr-2" /> Editar
+              <EditIcon className="h-4 w-4 mr-2" /> Editar
             </Button>
             {s.role === "admin" && (
               <Button variant="destructive" size="sm" onClick={() => s.setDeleteOpen(true)}>
-                <Trash2 className="h-4 w-4 mr-2" /> Eliminar
+                <DeleteIcon className="h-4 w-4 mr-2" /> Eliminar
               </Button>
             )}
             {s.role === "admin" && !s.hasPortalAccess && (

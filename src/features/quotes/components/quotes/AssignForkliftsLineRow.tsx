@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Unlink } from "@/components/icons";
+import { WarnIcon, Unlink } from "@/components/icons";
 
 interface AssignedForklift {
   id: string;
@@ -95,7 +95,7 @@ export function AssignForkliftsLineRow({
 
       {noStock && (
         <p className="text-xs text-warning flex items-center gap-1">
-          <AlertTriangle className="h-3 w-3" />
+          <WarnIcon className="h-3 w-3" />
           No hay equipos disponibles de este modelo en inventario
         </p>
       )}

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { FileText, Loader2 } from "@/components/icons";
+import { DocumentIcon, SpinnerIcon } from "@/components/icons";
 import { useSupplierBill } from "../hooks/useSupplierBill";
 import { useDeleteSupplierBill } from "../hooks/useSupplierBillMutations";
 import { useUserRole } from "@/features/users/hooks/useUserRole";
@@ -30,14 +30,14 @@ export function SupplierBillDetailSheet({ billId, open, onOpenChange }: Props) {
       <SheetContent className="sm:max-w-lg overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
+            <DocumentIcon className="h-5 w-5" />
             {bill?.bill_number ?? "Cargando…"}
           </SheetTitle>
         </SheetHeader>
 
         {isLoading || !bill ? (
           <div className="flex items-center justify-center py-12 text-muted-foreground">
-            <Loader2 className="h-5 w-5 animate-spin" />
+            <SpinnerIcon className="h-5 w-5 animate-spin" />
           </div>
         ) : (
           <SupplierBillDetailContent

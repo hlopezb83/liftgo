@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Upload } from "@/components/icons";
+import { UploadIcon } from "@/components/icons";
 import { SupplierRepStatusBadge } from "./SupplierRepStatusBadge";
 import { SupplierPaymentRepReceived } from "./SupplierPaymentRepReceived";
 import type { SupplierPayment } from "../hooks/useSupplierBill";
@@ -29,7 +29,7 @@ export function SupplierPaymentRepSection({
         <SupplierRepStatusBadge status={repStatus} />
         {showUpload && (
           <Button size="sm" variant="outline" className="h-6 text-[11px]" onClick={onUpload}>
-            <Upload className="h-3 w-3 mr-1" /> {uploadLabel}
+            <UploadIcon className="h-3 w-3 mr-1" /> {uploadLabel}
           </Button>
         )}
       </div>

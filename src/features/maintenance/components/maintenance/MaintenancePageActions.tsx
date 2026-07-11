@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { Plus, Download, List, LayoutGrid, RefreshCw } from "@/components/icons";
+import { AddIcon, DownloadIcon, List, LayoutGrid, RefreshIcon } from "@/components/icons";
 
 type Props = {
   viewMode: "list" | "board";
@@ -36,16 +36,16 @@ export function MaintenancePageActions({
         </ToggleGroupItem>
       </ToggleGroup>
       <Button variant="outline" size="sm" onClick={onExport}>
-        <Download className="h-4 w-4 mr-1" />Exportar CSV
+        <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
       </Button>
       <RoleGuard module="Mantenimiento" minAccess="full">
         <Button variant="outline" size="sm" onClick={onGenerateRecurring} disabled={isGenerating}>
-          <RefreshCw className={`h-4 w-4 mr-1 ${isGenerating ? "animate-spin" : ""}`} />
+          <RefreshIcon className={`h-4 w-4 mr-1 ${isGenerating ? "animate-spin" : ""}`} />
           Generar Recurrente
         </Button>
       </RoleGuard>
       <Button onClick={onCreate} size="sm">
-        <Plus className="h-4 w-4 mr-1" /> Registrar Servicio
+        <AddIcon className="h-4 w-4 mr-1" /> Registrar Servicio
       </Button>
     </div>
   );

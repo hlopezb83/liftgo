@@ -13,7 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { Plus, Pencil, Trash2 } from "@/components/icons";
+import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
 import { MaintenancePolicyForm } from "./MaintenancePolicyForm";
 import { EMPTY_POLICY_FORM, type MaintenancePolicyFormValues } from "./maintenancePolicyFormTypes";
 
@@ -113,7 +113,7 @@ export function MaintenancePoliciesTab() {
         <p className="text-sm text-muted-foreground">
           Configura pólizas de mantenimiento con proveedores externos. Se generará un registro automático cada mes para cada montacargas rentado con póliza activa.
         </p>
-        <Button size="sm" onClick={openNew}><Plus className="h-4 w-4 mr-1" />Nueva Póliza</Button>
+        <Button size="sm" onClick={openNew}><AddIcon className="h-4 w-4 mr-1" />Nueva Póliza</Button>
       </div>
 
       <div className="border rounded-lg">
@@ -138,8 +138,8 @@ function MaintenancePolicyRowActions({ policy, onEdit, onDelete }: { policy: Mai
   const [open, setOpen] = useState(false);
   return (
     <div className="flex gap-1">
-      <Button variant="ghost" size="icon" onClick={onEdit}><Pencil className="h-4 w-4" /></Button>
-      <Button variant="ghost" size="icon" onClick={() => setOpen(true)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+      <Button variant="ghost" size="icon" onClick={onEdit}><EditIcon className="h-4 w-4" /></Button>
+      <Button variant="ghost" size="icon" onClick={() => setOpen(true)}><DeleteIcon className="h-4 w-4 text-destructive" /></Button>
       <ConfirmDialog
         open={open}
         onOpenChange={setOpen}

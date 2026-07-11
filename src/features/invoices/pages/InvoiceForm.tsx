@@ -16,7 +16,7 @@ import { CfdiFieldsCard } from "../components/invoice-form/CfdiFieldsCard";
 import { EditableLineItemsTable } from "../components/invoice-form/EditableLineItemsTable";
 import { MultiBookingSelector } from "../components/invoice-form/MultiBookingSelector";
 
-import { AlertTriangle } from "@/components/icons";
+import { WarnIcon } from "@/components/icons";
 import { useNextInvoiceNumber } from "../hooks/invoices/useNextInvoiceNumber";
 import type { InvoiceFormValues } from "../lib/invoiceFormSchema";
 import { notifySuccess } from "@/lib/ui/appFeedback";
@@ -60,7 +60,7 @@ export default function InvoiceForm() {
       <PageContainer maxWidth="wide">
         <FormPageHeader title="Nueva Factura" />
         <Alert variant="destructive" className="mt-6">
-          <AlertTriangle className="h-5 w-5" />
+          <WarnIcon className="h-5 w-5" />
           <AlertTitle>
             Asigna los equipos del inventario antes de facturar ({totalAssigned}/{totalRequired})
           </AlertTitle>

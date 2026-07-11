@@ -10,7 +10,7 @@ import { useDeleteMaintenanceLog } from "../../hooks/maintenance/useMaintenanceL
 import { useSuppliers } from "@/features/suppliers";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
-import { Pencil, Trash2, Wrench, Calendar, User, DollarSign, Truck, FileText } from "@/components/icons";
+import { EditIcon, DeleteIcon, MaintenanceIcon, CalendarIcon, UserIcon, MoneyIcon, FleetIcon, DocumentIcon } from "@/components/icons";
 import { DetailRow } from "@/components/domain/DetailRow";
 
 import type { MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
@@ -58,7 +58,7 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
       <SheetContent className="sm:max-w-md overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
-            <Wrench className="h-5 w-5" />
+            <MaintenanceIcon className="h-5 w-5" />
             {log.service_type}
           </SheetTitle>
         </SheetHeader>
@@ -67,12 +67,12 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
           <Badge variant={status.variant}>{status.label}</Badge>
 
           <div className="space-y-1">
-            <DetailRow icon={Truck} label="Montacargas" value={forkliftName} />
-            <DetailRow icon={Calendar} label="Fecha de Servicio" value={formatDateDisplay(log.performed_at)} />
-            <DetailRow icon={User} label="Realizado Por" value={log.performed_by} />
-            <DetailRow icon={DollarSign} label="Costo" value={formatCurrency(log.cost || 0)} />
-            <DetailRow icon={Calendar} label="Próximo Servicio" value={formatDateDisplay(log.next_service_date)} />
-            {supplier && <DetailRow icon={Truck} label="Proveedor" value={supplier.name} />}
+            <DetailRow icon={FleetIcon} label="Montacargas" value={forkliftName} />
+            <DetailRow icon={CalendarIcon} label="Fecha de Servicio" value={formatDateDisplay(log.performed_at)} />
+            <DetailRow icon={UserIcon} label="Realizado Por" value={log.performed_by} />
+            <DetailRow icon={MoneyIcon} label="Costo" value={formatCurrency(log.cost || 0)} />
+            <DetailRow icon={CalendarIcon} label="Próximo Servicio" value={formatDateDisplay(log.next_service_date)} />
+            {supplier && <DetailRow icon={FleetIcon} label="Proveedor" value={supplier.name} />}
           </div>
 
           {log.description && (
@@ -80,7 +80,7 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
               <Separator />
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <FileText className="h-4 w-4 text-muted-foreground" />
+                  <DocumentIcon className="h-4 w-4 text-muted-foreground" />
                   <p className="text-xs text-muted-foreground">Descripción</p>
                 </div>
                 <p className="text-sm whitespace-pre-wrap">{log.description}</p>
@@ -95,10 +95,10 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
           <RoleGuard module="Mantenimiento" minAccess="full">
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1" onClick={() => { onEdit(log); onOpenChange(false); }}>
-                <Pencil className="h-4 w-4 mr-1" /> Editar
+                <EditIcon className="h-4 w-4 mr-1" /> Editar
               </Button>
               <Button variant="destructive" className="flex-1" onClick={() => setConfirmOpen(true)}>
-                <Trash2 className="h-4 w-4 mr-1" /> Archivar
+                <DeleteIcon className="h-4 w-4 mr-1" /> Archivar
               </Button>
               <ConfirmDialog
                 open={confirmOpen}

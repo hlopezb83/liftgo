@@ -2,7 +2,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Copy, Check } from "@/components/icons";
+import { DuplicateIcon, Check } from "@/components/icons";
 import { useErrorReport, closeErrorReport } from "@/lib/ui/errorDetailsStore";
 import { formatReportText } from "@/lib/ui/errorReportFormat";
 import { notifySuccess } from "@/lib/ui/appFeedback";
@@ -75,7 +75,7 @@ export function ErrorDetailsDialog() {
         <DialogFooter>
           <Button variant="outline" onClick={() => closeErrorReport()}>Cerrar</Button>
           <Button onClick={handleCopy}>
-            {copied ? <Check className="h-4 w-4 mr-2" /> : <Copy className="h-4 w-4 mr-2" />}
+            {copied ? <Check className="h-4 w-4 mr-2" /> : <DuplicateIcon className="h-4 w-4 mr-2" />}
             {copied ? "Copiado" : "Copiar reporte"}
           </Button>
         </DialogFooter>

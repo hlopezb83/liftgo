@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { Plus, Pencil, Trash2 } from "@/components/icons";
+import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
 
 import { FUEL_TYPES, FUEL_TYPE_LABELS } from "@/lib/constants";
 
@@ -75,7 +75,7 @@ export function EquipmentModelsTab() {
   return (
     <div>
       <div className="flex justify-end mb-4">
-        <Button onClick={openNew} size="sm"><Plus className="h-4 w-4 mr-2" />Agregar Modelo</Button>
+        <Button onClick={openNew} size="sm"><AddIcon className="h-4 w-4 mr-2" />Agregar Modelo</Button>
       </div>
       <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay modelos de equipo configurados" />
       <FormDialog open={open} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} Modelo de Equipo`} description="Define una combinación de fabricante/modelo con especificaciones predeterminadas.">
@@ -112,8 +112,8 @@ function EquipmentModelRowActions({ model, onEdit, onDelete }: { model: Equipmen
   const [open, setOpen] = useState(false);
   return (
     <div className="flex gap-1">
-      <Button variant="ghost" size="icon" onClick={onEdit}><Pencil className="h-4 w-4" /></Button>
-      <Button variant="ghost" size="icon" onClick={() => setOpen(true)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+      <Button variant="ghost" size="icon" onClick={onEdit}><EditIcon className="h-4 w-4" /></Button>
+      <Button variant="ghost" size="icon" onClick={() => setOpen(true)}><DeleteIcon className="h-4 w-4 text-destructive" /></Button>
       <ConfirmDialog
         open={open}
         onOpenChange={setOpen}

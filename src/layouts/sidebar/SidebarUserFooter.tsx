@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LogOut, KeyRound } from "@/components/icons";
+import { LogOut, KeyIcon } from "@/components/icons";
 import { NavLink } from "@/layouts/NavLink";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -35,7 +35,7 @@ export function SidebarUserFooter({ email, role, currentVersion, onSignOut }: Si
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="sm" aria-label="Cambiar contraseña" onClick={() => setPwDialogOpen(true)} className="text-sidebar-foreground/60 hover:text-sidebar-foreground">
-                <KeyRound className="h-4 w-4" />
+                <KeyIcon className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>Cambiar contraseña</TooltipContent>

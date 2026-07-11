@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
-import { ChevronDown, ChevronRight } from "@/components/icons";
+import { ChevronDownIcon, ChevronRightIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -104,7 +104,7 @@ function ReceptorSummaryHeader({
       </div>
       <CollapsibleTrigger asChild>
         <Button type="button" variant="ghost" size="sm" className="gap-1" onClick={onToggle}>
-          {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+          {open ? <ChevronDownIcon className="h-4 w-4" /> : <ChevronRightIcon className="h-4 w-4" />}
           {open ? "Cerrar" : "Editar"}
         </Button>
       </CollapsibleTrigger>

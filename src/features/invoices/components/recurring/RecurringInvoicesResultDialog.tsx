@@ -1,7 +1,7 @@
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { CheckCircle2, XCircle } from "@/components/icons";
+import { SuccessIcon, ErrorIcon } from "@/components/icons";
 import { Link } from "react-router-dom";
 import type { GenerateRecurringResponse } from "../../hooks/invoices/recurring/useGenerateRecurringInvoices";
 
@@ -36,7 +36,7 @@ export function RecurringInvoicesResultDialog({ open, onOpenChange, result, onRe
           {created.length > 0 && (
             <div>
               <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                <CheckCircle2 className="h-4 w-4 text-success" />
+                <SuccessIcon className="h-4 w-4 text-success" />
                 Creadas ({created.length})
               </h4>
               <div className="border rounded-md divide-y">
@@ -57,7 +57,7 @@ export function RecurringInvoicesResultDialog({ open, onOpenChange, result, onRe
           {failed.length > 0 && (
             <div>
               <h4 className="text-sm font-semibold mb-2 flex items-center gap-2">
-                <XCircle className="h-4 w-4 text-destructive" />
+                <ErrorIcon className="h-4 w-4 text-destructive" />
                 Fallidas ({failed.length})
               </h4>
               <div className="border rounded-md divide-y">

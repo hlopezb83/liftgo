@@ -4,7 +4,7 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import { differenceInDays } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, FileText, TrendingUp } from "@/components/icons";
+import { MoneyIcon, DocumentIcon, TrendingUpIcon } from "@/components/icons";
 
 interface RentalFinancialSummaryProps {
   bookingId: string;
@@ -43,7 +43,7 @@ export function RentalFinancialSummary({
         <div className="grid grid-cols-3 gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
-              <TrendingUp className="h-3.5 w-3.5" />
+              <TrendingUpIcon className="h-3.5 w-3.5" />
               Revenue Esperado
             </div>
             <p className="text-lg font-bold">{formatCurrency(expectedRevenue)}</p>
@@ -51,7 +51,7 @@ export function RentalFinancialSummary({
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
-              <FileText className="h-3.5 w-3.5" />
+              <DocumentIcon className="h-3.5 w-3.5" />
               Facturado
             </div>
             <p className="text-lg font-bold">{formatCurrency(invoicedAmount)}</p>
@@ -59,7 +59,7 @@ export function RentalFinancialSummary({
           </div>
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
-              <DollarSign className="h-3.5 w-3.5" />
+              <MoneyIcon className="h-3.5 w-3.5" />
               Balance Restante
             </div>
             <p className={`text-lg font-bold ${remaining <= 0 ? "text-success" : "text-warning"}`}>

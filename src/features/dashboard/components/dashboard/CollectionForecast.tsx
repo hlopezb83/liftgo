@@ -1,7 +1,7 @@
 import { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, ArrowRight, Calendar } from "@/components/icons";
+import { TrendingUpIcon, ArrowRight, CalendarIcon } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { parseISO, addDays } from "date-fns";
 import { nowMty } from "@/lib/utils";
@@ -79,7 +79,7 @@ export const CollectionForecast = memo(function CollectionForecast({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <div className="p-2 rounded-lg bg-success/10">
-              <TrendingUp className="h-4 w-4 text-success" />
+              <TrendingUpIcon className="h-4 w-4 text-success" />
             </div>
             <h3 className="text-sm font-semibold">Pronóstico de Cobranza</h3>
           </div>
@@ -103,7 +103,7 @@ export const CollectionForecast = memo(function CollectionForecast({
           </div>
           <div>
             <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-              <Calendar className="h-3 w-3" /> Próximos 7 días
+              <CalendarIcon className="h-3 w-3" /> Próximos 7 días
             </p>
             <p className="text-lg font-bold font-mono">{formatCurrency(forecast.expected7)}</p>
             <p className="text-[10px] text-muted-foreground mt-0.5">
@@ -112,7 +112,7 @@ export const CollectionForecast = memo(function CollectionForecast({
           </div>
           <div>
             <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-              <Calendar className="h-3 w-3" /> Próximos 30 días
+              <CalendarIcon className="h-3 w-3" /> Próximos 30 días
             </p>
             <p className="text-lg font-bold font-mono text-success">
               {formatCurrency(forecast.expected30)}

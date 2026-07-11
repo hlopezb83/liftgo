@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "@/components/icons";
+import { BackIcon } from "@/components/icons";
 import { PageHeader } from "./PageHeader";
 
 interface FormPageHeaderProps {
@@ -25,7 +25,7 @@ export function FormPageHeader({ title, subtitle, onBack }: FormPageHeaderProps)
         onClick={handleBack}
         className="-ml-2 h-7 px-2 text-muted-foreground hover:text-foreground"
       >
-        <ArrowLeft className="h-3.5 w-3.5 mr-1" />
+        <BackIcon className="h-3.5 w-3.5 mr-1" />
         Volver
       </Button>
       <div className="flex-1 min-w-0">

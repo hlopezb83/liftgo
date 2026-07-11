@@ -2,19 +2,19 @@ import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePublicBranding } from "@/features/company-settings";
-import { LogOut, LayoutDashboard, CalendarDays, Receipt, FileText, MessageSquare, Trophy, FileCheck2, Wallet } from "@/components/icons";
+import { LogOut, DashboardIcon, CalendarDays, InvoiceIcon, DocumentIcon, MessageSquare, TrophyIcon, FileCheck2, Wallet } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { FeedbackFab } from "@/features/feedback";
 
 const tabs = [
-  { path: "/portal", label: "Panel", icon: LayoutDashboard },
+  { path: "/portal", label: "Panel", icon: DashboardIcon },
   { path: "/portal/rentals", label: "Rentas", icon: CalendarDays },
   { path: "/portal/quotes", label: "Cotizaciones", icon: FileCheck2 },
-  { path: "/portal/invoices", label: "Facturas", icon: Receipt },
+  { path: "/portal/invoices", label: "Facturas", icon: InvoiceIcon },
   { path: "/portal/estado-cuenta", label: "Estado de Cuenta", icon: Wallet },
-  { path: "/portal/contracts", label: "Contratos", icon: FileText },
+  { path: "/portal/contracts", label: "Contratos", icon: DocumentIcon },
   { path: "/portal/mis-reportes", label: "Mis Reportes", icon: MessageSquare },
-  { path: "/portal/leaderboard", label: "Tabla de Honor", icon: Trophy },
+  { path: "/portal/leaderboard", label: "Tabla de Honor", icon: TrophyIcon },
 ];
 
 export default function CustomerPortalLayout() {

@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { ChevronRight, Home } from "@/components/icons";
+import { ChevronRightIcon, HomeIcon } from "@/components/icons";
 import { useBreadcrumbEntityLabel } from "@/layouts/hooks/useBreadcrumbEntityLabel";
 
 // Etiquetas de segmentos comunes (es-MX). Si no está en el mapa se capitaliza el slug.
@@ -66,7 +66,7 @@ export function TopbarBreadcrumbs() {
   if (segments.length === 0) {
     return (
       <nav aria-label="Ruta" className="flex items-center text-sm text-muted-foreground">
-        <Home className="h-3.5 w-3.5" />
+        <HomeIcon className="h-3.5 w-3.5" />
         <span className="ml-1.5 font-medium text-foreground">Panel</span>
       </nav>
     );
@@ -86,11 +86,11 @@ export function TopbarBreadcrumbs() {
   return (
     <nav aria-label="Ruta" className="flex items-center gap-1 text-sm text-muted-foreground min-w-0 overflow-hidden">
       <Link to="/" className="hover:text-foreground transition-colors flex items-center" aria-label="Inicio">
-        <Home className="h-3.5 w-3.5" />
+        <HomeIcon className="h-3.5 w-3.5" />
       </Link>
       {crumbs.map((c) => (
         <span key={c.path} className="flex items-center gap-1 min-w-0">
-          <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-50" />
+          <ChevronRightIcon className="h-3.5 w-3.5 shrink-0 opacity-50" />
           {c.isLast ? (
             <span className="font-medium text-foreground truncate">{c.label}</span>
           ) : (

@@ -1,5 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
-import { AlertTriangle, RefreshCw, Home } from "@/components/icons";
+import { WarnIcon, RefreshIcon, HomeIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 
 interface Props {
@@ -91,7 +91,7 @@ export class ErrorBoundary extends Component<Props, State> {
         <div className="max-w-md w-full bg-card border border-border rounded-lg p-8 shadow-sm">
           <div className="flex items-center gap-3 mb-4">
             <div className="rounded-full bg-destructive/10 p-2">
-              <AlertTriangle className="h-5 w-5 text-destructive" />
+              <WarnIcon className="h-5 w-5 text-destructive" />
             </div>
             <h1 className="text-lg font-semibold text-foreground">{title}</h1>
           </div>
@@ -108,12 +108,12 @@ export class ErrorBoundary extends Component<Props, State> {
           )}
           <div className="flex gap-2">
             <Button onClick={this.handleReload} className="flex-1" variant="default">
-              <RefreshCw className="h-4 w-4 mr-2" />
+              <RefreshIcon className="h-4 w-4 mr-2" />
               Refrescar app
             </Button>
             {scope === "app" && (
               <Button onClick={this.handleGoHome} className="flex-1" variant="outline">
-                <Home className="h-4 w-4 mr-2" />
+                <HomeIcon className="h-4 w-4 mr-2" />
                 Ir al inicio
               </Button>
             )}

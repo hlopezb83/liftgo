@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { useCollectionNotes, useCreateCollectionNote } from "../../hooks/invoices/collections/useCollectionNotes";
-import { PhoneCall, Plus, Calendar } from "@/components/icons";
+import { PhoneCall, AddIcon, CalendarIcon } from "@/components/icons";
 import { formatDateDisplay } from "@/lib/utils";
 import { toYMD } from "@/lib/date/toYMD";
 import { DatePickerField } from "@/components/forms/DatePickerField";
@@ -37,7 +37,7 @@ export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
             <PhoneCall className="h-4 w-4" /> Gestiones de Cobranza
           </CardTitle>
           <Button variant="outline" size="sm" onClick={() => setShowForm(!showForm)}>
-            <Plus className="h-4 w-4 mr-1" /> Nueva Gestión
+            <AddIcon className="h-4 w-4 mr-1" /> Nueva Gestión
           </Button>
         </div>
       </CardHeader>
@@ -78,7 +78,7 @@ export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
               <span>{n.created_at ? format(new Date(n.created_at), "dd/MM/yyyy HH:mm") : "—"}</span>
               {n.next_followup_date && (
                 <span className="flex items-center gap-1 text-primary">
-                  <Calendar className="h-3 w-3" /> Seguimiento: {formatDateDisplay(n.next_followup_date)}
+                  <CalendarIcon className="h-3 w-3" /> Seguimiento: {formatDateDisplay(n.next_followup_date)}
                 </span>
               )}
             </div>

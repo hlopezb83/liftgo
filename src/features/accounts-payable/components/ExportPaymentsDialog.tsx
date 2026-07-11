@@ -1,6 +1,6 @@
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
-import { Download, Loader2 } from "@/components/icons";
+import { DownloadIcon, SpinnerIcon } from "@/components/icons";
 import { useExportPaymentsForm } from "../hooks/useExportPaymentsForm";
 import { PaymentsExportTable } from "./PaymentsExportTable";
 import { PaymentsExportSummary } from "./PaymentsExportSummary";
@@ -48,9 +48,9 @@ export function ExportPaymentsDialog({ open, onOpenChange }: Props) {
         </Button>
         <Button onClick={form.handleExport} disabled={!form.canExport}>
           {form.isSubmitting ? (
-            <Loader2 className="h-4 w-4 animate-spin mr-1" />
+            <SpinnerIcon className="h-4 w-4 animate-spin mr-1" />
           ) : (
-            <Download className="h-4 w-4 mr-1" />
+            <DownloadIcon className="h-4 w-4 mr-1" />
           )}
           Descargar Excel ({form.selected.length})
         </Button>

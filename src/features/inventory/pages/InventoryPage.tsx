@@ -3,7 +3,7 @@ import { KpiTile } from "@/components/domain/KpiTile";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Package } from "@/components/icons";
+import { AddIcon, InventoryIcon } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { usePartsInventory, type PartInventory } from "../hooks/usePartsInventory";
 import { PartDetailSheet } from "../components/inventory/PartDetailSheet";
@@ -107,14 +107,14 @@ export default function InventoryPage() {
         title="Control de Refacciones"
         subtitle="Gestiona el inventario de partes y refacciones"
         totalCount={filtered.length}
-        actions={<Button onClick={openCreate}><Plus className="h-4 w-4 mr-1" />Nueva Refacción</Button>}
+        actions={<Button onClick={openCreate}><AddIcon className="h-4 w-4 mr-1" />Nueva Refacción</Button>}
         filters={
           <div className="space-y-3">
             {lowStockCount > 0 && (
               <KpiTile
                 label="Refacciones con stock bajo"
                 value={lowStockCount}
-                icon={Package}
+                icon={InventoryIcon}
                 iconColor="text-destructive"
                 iconBg="bg-destructive/10"
                 valueSize="lg"
@@ -137,7 +137,7 @@ export default function InventoryPage() {
         table={table}
         onRowClick={(p) => detail.open(p)}
         emptyMessage="Sin refacciones registradas"
-        emptyIcon={Package}
+        emptyIcon={InventoryIcon}
         emptyActionLabel="Nueva Refacción"
         onEmptyAction={openCreate}
         skeletonColumns={5}

@@ -6,7 +6,7 @@ import { MobileCardList } from "@/components/layout/MobileCardList";
 import { SwipeableCard } from "@/components/feedback/SwipeableCard";
 import { useListFilters } from "@/hooks/useListFilters";
 import { useIsTabletOrBelow } from "@/hooks/use-mobile";
-import { ChevronRight, Plus, Phone } from "@/components/icons";
+import { ChevronRightIcon, AddIcon, PhoneIcon } from "@/components/icons";
 
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useUpdateProspect } from "@/features/crm";
@@ -78,7 +78,7 @@ export default function CustomersPage() {
           onClick={() => navigate(`/customers/${c.id}`)}
           rightActions={c.phone ? [{
             label: "Llamar",
-            icon: Phone,
+            icon: PhoneIcon,
             className: "bg-primary",
             onAction: () => { window.location.href = `tel:${c.phone}`; },
           }] : []}
@@ -87,7 +87,7 @@ export default function CustomersPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-1">
                 <span className="font-semibold text-sm">{c.name}</span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
               </div>
               {c.rfc && <p className="text-xs font-mono text-muted-foreground">{c.rfc}</p>}
               <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
@@ -139,7 +139,7 @@ export default function CustomersPage() {
             aria-label="Agregar cliente"
             className="h-14 w-14 rounded-full shadow-lg bg-primary text-primary-foreground flex items-center justify-center"
           >
-            <Plus className="h-6 w-6" />
+            <AddIcon className="h-6 w-6" />
           </button>
         }
         filters={<CustomersFilters search={search} onSearchChange={setSearch} />}

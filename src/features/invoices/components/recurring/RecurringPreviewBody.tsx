@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { AlertCircle, Receipt } from "@/components/icons";
+import { InfoAlertIcon, InvoiceIcon } from "@/components/icons";
 import { Link } from "react-router-dom";
 import type { RecurringPreviewLine } from "../../hooks/invoices/recurring/usePreviewRecurringInvoices";
 
@@ -60,7 +60,7 @@ function IneligibleBadge({ line }: { line: RecurringPreviewLine }) {
   const isAlreadyInvoiced = line.reason === "already_invoiced" && line.existingInvoiceId;
   return (
     <Badge variant="secondary" className="gap-1">
-      <AlertCircle className="h-3 w-3" />
+      <InfoAlertIcon className="h-3 w-3" />
       {isAlreadyInvoiced ? (
         <Link
           to={`/invoices/${line.existingInvoiceId}`}
@@ -175,7 +175,7 @@ export function RecurringPreviewBody({
   if (lines.length === 0) {
     return (
       <EmptyState
-        icon={Receipt}
+        icon={InvoiceIcon}
         title="Sin facturas pendientes"
         subtitle="No hay reservas con facturación recurrente elegibles este mes."
       />

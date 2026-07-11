@@ -3,15 +3,15 @@ import { DragDropContext } from "@hello-pangea/dnd";
 import { type MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
 import { useMaintenanceKanban } from "../../hooks/maintenance/useMaintenanceKanban";
 import { MAINTENANCE_WORK_STATUSES, MAINTENANCE_WORK_STATUS_LABELS } from "@/lib/constants";
-import { Wrench, Clock, Package, CheckCircle2 } from "@/components/icons";
+import { MaintenanceIcon, ClockIcon, InventoryIcon, SuccessIcon } from "@/components/icons";
 import { MaintenanceKanbanColumn } from "./kanban/MaintenanceKanbanColumn";
 import { MaintenanceDetailSheet } from "./kanban/MaintenanceDetailSheet";
 
-const COLUMN_CONFIG: Record<string, { icon: typeof Wrench; color: string; bg: string; border: string }> = {
-  pending: { icon: Clock, color: "text-warning", bg: "bg-warning/10", border: "border-warning/30" },
-  in_progress: { icon: Wrench, color: "text-info", bg: "bg-info/10", border: "border-info/30" },
-  waiting_parts: { icon: Package, color: "text-warning", bg: "bg-warning/10", border: "border-warning/30" },
-  completed: { icon: CheckCircle2, color: "text-success", bg: "bg-success/10", border: "border-success/30" },
+const COLUMN_CONFIG: Record<string, { icon: typeof MaintenanceIcon; color: string; bg: string; border: string }> = {
+  pending: { icon: ClockIcon, color: "text-warning", bg: "bg-warning/10", border: "border-warning/30" },
+  in_progress: { icon: MaintenanceIcon, color: "text-info", bg: "bg-info/10", border: "border-info/30" },
+  waiting_parts: { icon: InventoryIcon, color: "text-warning", bg: "bg-warning/10", border: "border-warning/30" },
+  completed: { icon: SuccessIcon, color: "text-success", bg: "bg-success/10", border: "border-success/30" },
 };
 
 interface Props {
