@@ -50,8 +50,17 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
     | undefined;
   
 
+  // React 19: reflejamos el nuevo estado en el badge del header sin esperar la
+  // respuesta del servidor. Si la mutación falla, React descarta el valor
+  // optimista y volvemos al `report.status` real vía React Query.
+  const [optimisticStatus, applyOptimisticStatus] = useOptimistic(
+    report.status,
+    (_current, next: string) => next,
+  );
+
   const handleApply = () => {
     if (!newStatus) return;
+    startTransition(() => applyOptimisticStatus(newStatus));
     update.mutate(
       { reportId: report.id, newStatus, comment: comment.trim() || undefined },
       { onSuccess: () => { setNewStatus(""); setComment(""); } },
@@ -64,9 +73,10 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <span className="font-mono text-sm">{report.folio}</span>
-            <FeedbackStatusBadge status={report.status} />
+            <FeedbackStatusBadge status={optimisticStatus} />
           </SheetTitle>
         </SheetHeader>
+
 
         <div className="mt-4 space-y-4">
           <FeedbackChipsRow
