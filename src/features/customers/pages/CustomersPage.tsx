@@ -34,24 +34,27 @@ export default function CustomersPage() {
   const [prospectId, setProspectId] = useState<string | null>(null);
   const [initialData, setInitialData] = useState<Partial<CustomerFormData> | undefined>();
 
-  // Auto-open dialog with pre-filled data from prospect conversion
+  // Auto-open dialog with pre-filled data from prospect conversion.
+  // `runProspectPrefill` es useEffectEvent → lee siempre los searchParams frescos
+  // y llama a los setters estables sin necesidad de listarlos en las deps.
+  const runProspectPrefill = useEffectEvent(() => {
+    if (searchParams.get("from_prospect") !== "true") return;
+    const pId = searchParams.get("prospect_id");
+    setProspectId(pId);
+    setEditId(null);
+    setInitialData({
+      name: searchParams.get("company") || "",
+      contact_person: searchParams.get("contact") || "",
+      email: searchParams.get("email") || "",
+      phone: searchParams.get("phone") || "",
+    });
+    setDialogOpen(true);
+    setSearchParams({}, { replace: true });
+  });
   useEffect(() => {
-    if (searchParams.get("from_prospect") === "true") {
-      const pId = searchParams.get("prospect_id");
-      setProspectId(pId);
-      setEditId(null);
-      setInitialData({
-        name: searchParams.get("company") || "",
-        contact_person: searchParams.get("contact") || "",
-        email: searchParams.get("email") || "",
-        phone: searchParams.get("phone") || "",
-      });
-      setDialogOpen(true);
-      setSearchParams({}, { replace: true });
-    }
-    // Solo se ejecuta una vez al montar para leer query params iniciales.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    runProspectPrefill();
+  }, [runProspectPrefill]);
+
 
   const { search, setSearch, filtered } = useListFilters(customers, {
     searchFields: ["name", "company", "email"],
