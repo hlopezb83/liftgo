@@ -1,0 +1,8 @@
+{
+  "version": "7.11.1",
+  "date": "2026-07-11",
+  "type": "patch",
+  "title": "Fase 2 auditoría de íconos: aliases financieros, filtros y enlaces",
+  "description": "Barrido final del uso semántico de íconos con base en un reporte dirigido de subagente sobre los 248 archivos consumidores del registry. Se agregaron 4 aliases canónicos: RevenueIcon (CircleDollarSign) para métricas de ingresos/MRR, FilterIcon (SlidersHorizontal) para toolbars de listado, EmailIcon (Mail) para contactos y OpenLinkIcon (ExternalLink) para enlaces a comprobantes/XML/PDF. Se migraron 13 archivos con hallazgos accionables: (1) Cards 'Reserva Vinculada' (Entregas) y 'Reserva' (Devoluciones) pasan de UserIcon a CalendarIcon, coherente con su contenido de periodo/booking; (2) 'Cartera Vencida' y 'Rentas/Facturas Vencidas' del dashboard usan OverdueIcon (CalendarX) en vez de WarnIcon/ClockIcon genéricos; (3) 'Costo Unitario' (Inventario) y 'Costo' (Mantenimiento) usan CostIcon; (4) 'Total Gastos Operativos' (Proveedores) y 'Saldo Pendiente' (Portal) usan ExpenseIcon; (5) 'Ingresos', 'MRR' y 'Ingreso Mensual Recurrente' usan RevenueIcon; (6) EmptyState de MRR sin equipos rentados usa FleetIcon en vez de MoneyIcon; (7) ProspectDetailSheet, CustomerContactCard, SupplierContactCard y CredentialsDialog usan EmailIcon; (8) SupplierPaymentRow, SupplierPaymentRepReceived y MrrDetailPage usan OpenLinkIcon; (9) ListPageLayout y ListToolbar usan FilterIcon. ESLint guard extendido con 4 nombres crudos bloqueados (CircleDollarSign, SlidersHorizontal, Mail, ExternalLink) y test del registry a 70 aliases canónicos. Verificación: tsgo OK, 0 warnings, 913/913 tests verdes.",
+  "category": "improvement"
+}

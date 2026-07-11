@@ -124,6 +124,8 @@ export default tseslint.config(
               // Aliases nuevos v7.11 — bloquear nombres crudos:
               "Send", "FileSignature", "HandCoins", "Banknote", "Factory",
               "PackageSearch", "FileCheck2", "Wallet", "CalendarX",
+              // v7.11.1 — nuevos aliases (RevenueIcon, FilterIcon, EmailIcon, OpenLinkIcon):
+              "CircleDollarSign", "SlidersHorizontal", "Mail", "ExternalLink",
               // TruckIcon fue eliminado del uso: Truck ya cubre FleetIcon,
               // y Entregas ahora usa DeliveryIcon (Send).
               "TruckIcon",

@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays, FleetIcon, LocationIcon, UserIcon } from "@/components/icons";
+import { CalendarDays, FleetIcon, LocationIcon, CalendarIcon } from "@/components/icons";
 import { formatDateDisplay, parseDateLocal, formatDateRange } from "@/lib/utils";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 
@@ -109,7 +109,7 @@ export function DeliveryBookingCard({ bookingNumber, customerName, startDate, en
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2"><UserIcon className="h-4 w-4 text-muted-foreground" />Reserva Vinculada</CardTitle>
+        <CardTitle className="text-base flex items-center gap-2"><CalendarIcon className="h-4 w-4 text-muted-foreground" />Reserva Vinculada</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
         <InfoRow label="Número" value={bookingNumber} />

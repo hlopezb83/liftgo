@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { MoneyIcon, ExternalLink } from "@/components/icons";
+import { RevenueIcon, FleetIcon, OpenLinkIcon } from "@/components/icons";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { KpiTile } from "@/components/domain/KpiTile";
@@ -34,7 +34,7 @@ export default function MrrDetailPage() {
             className="font-medium text-primary hover:underline inline-flex items-center gap-1"
           >
             {row.original.forklift_name}
-            <ExternalLink className="h-3 w-3" />
+            <OpenLinkIcon className="h-3 w-3" />
           </Link>
         ),
       },
@@ -107,7 +107,7 @@ export default function MrrDetailPage() {
       <KpiTile
         label="MRR Total"
         value={isLoading ? "…" : formatCurrency(data?.total_mrr ?? 0)}
-        icon={MoneyIcon}
+        icon={RevenueIcon}
         iconColor="text-success"
         iconBg="bg-success/10"
         valueSize="lg"
@@ -121,7 +121,7 @@ export default function MrrDetailPage() {
         <CardContent className="p-0">
           {!isLoading && !data?.items.length ? (
             <div className="py-12">
-              <EmptyState icon={MoneyIcon} title="Sin montacargas rentados" subtitle="Actualmente no hay equipos con status 'rentado'." />
+              <EmptyState icon={FleetIcon} title="Sin montacargas rentados" subtitle="Actualmente no hay equipos con status 'rentado'." />
             </div>
           ) : (
             <DataTableV2

@@ -2,7 +2,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
-import { CompanyIcon, UserIcon, Mail, PhoneIcon, PaymentIcon } from "@/components/icons";
+import { CompanyIcon, UserIcon, EmailIcon, PhoneIcon, PaymentIcon } from "@/components/icons";
 import type { Prospect } from "../hooks/useProspects";
 import { ProspectHistoryCard } from "./ProspectHistoryCard";
 import { ProspectQuoteLink, ProspectNotes, ProspectClosureInfo } from "./prospectDetail/ProspectInfoBlocks";
@@ -59,7 +59,7 @@ export function ProspectDetailSheet({ prospect, open, onOpenChange, onEdit, quot
 
           <div className="space-y-1">
             <DetailRow icon={UserIcon} label="Contacto" value={prospect.contactPerson} />
-            <DetailRow icon={Mail} label="Correo" value={prospect.email} />
+            <DetailRow icon={EmailIcon} label="Correo" value={prospect.email} />
             <DetailRow icon={PhoneIcon} label="Teléfono" value={prospect.phone} />
             <DetailRow icon={PaymentIcon} label="Valor Estimado" value={prospect.dealValueLabel} />
           </div>

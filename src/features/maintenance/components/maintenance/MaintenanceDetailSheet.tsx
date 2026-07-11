@@ -10,7 +10,7 @@ import { useDeleteMaintenanceLog } from "../../hooks/maintenance/useMaintenanceL
 import { useSuppliers } from "@/features/suppliers";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
-import { EditIcon, DeleteIcon, MaintenanceIcon, CalendarIcon, UserIcon, MoneyIcon, FleetIcon, DocumentIcon } from "@/components/icons";
+import { EditIcon, DeleteIcon, MaintenanceIcon, CalendarIcon, UserIcon, CostIcon, FleetIcon, DocumentIcon } from "@/components/icons";
 import { DetailRow } from "@/components/domain/DetailRow";
 
 import type { MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
@@ -70,7 +70,7 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
             <DetailRow icon={FleetIcon} label="Montacargas" value={forkliftName} />
             <DetailRow icon={CalendarIcon} label="Fecha de Servicio" value={formatDateDisplay(log.performed_at)} />
             <DetailRow icon={UserIcon} label="Realizado Por" value={log.performed_by} />
-            <DetailRow icon={MoneyIcon} label="Costo" value={formatCurrency(log.cost || 0)} />
+            <DetailRow icon={CostIcon} label="Costo" value={formatCurrency(log.cost || 0)} />
             <DetailRow icon={CalendarIcon} label="Próximo Servicio" value={formatDateDisplay(log.next_service_date)} />
             {supplier && <DetailRow icon={FleetIcon} label="Proveedor" value={supplier.name} />}
           </div>

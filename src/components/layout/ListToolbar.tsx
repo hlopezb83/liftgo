@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from "react";
-import { SlidersHorizontal } from "@/components/icons";
+import { FilterIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -41,7 +41,7 @@ export function ListToolbar({
           <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild>
               <Button variant="outline" size="sm" className="touch:h-11 gap-2">
-                <SlidersHorizontal className="h-4 w-4" />
+                <FilterIcon className="h-4 w-4" />
                 {mobileFiltersLabel}
               </Button>
             </SheetTrigger>

@@ -1,77 +1,49 @@
+## Estado actual
 
-## Diagnóstico
+Los 3 lotes anteriores cubrieron los hallazgos más visibles (colisiones en sidebar, `MoneyIcon` sobrecargado en pagos/costos, `Send` genérico para entregas y firmas). Pero la auditoría **no fue exhaustiva por archivo**: se enfocó en ~10 pantallas de alto tráfico. Aún quedan **248 archivos** consumiendo el registry y **11 archivos** con `MoneyIcon` sin revisar caso por caso.
 
-Se auditaron 247 archivos que importan de `@/components/icons`. El registry está montado y el ESLint guard funciona, pero **la adopción real es baja**:
+## Qué falta auditar
 
-| Métrica | Estado |
-|---|---|
-| Archivos que usan `<Icon>` wrapper (tokens xs/sm/md/lg/xl) | **0 / 247** |
-| Archivos que usan al menos un alias semántico (`DeleteIcon`, `EditIcon`, …) | **2 / 247** |
-| Archivos con tamaño hardcodeado `h-4 w-4` / `h-5 w-5` | **211** |
-| `Trash2` importado crudo (debería ser `DeleteIcon`) | 35 archivos |
-| `Plus` crudo (debería ser `AddIcon`) | 28 |
-| `FileText` crudo (debería ser `DocumentIcon`) | 26 |
-| `AlertTriangle` crudo (debería ser `WarnIcon`) | 24 |
-| `Loader2` crudo (debería ser `SpinnerIcon`) | 21 |
-| `Pencil` crudo (debería ser `EditIcon`) | 20 |
+Un barrido final por dominio, revisando cada uso restante y decidiendo si el alias actual es el más específico posible.
 
-### Drift semántico detectado
+**Zonas prioritarias (aún sin peinar):**
 
-1. **Éxito duplicado**: `CheckCircle2` en 13 archivos + `CheckCircle` en 8 archivos + `Check` suelto — todos deberían ser `SuccessIcon`.
-2. **Cerrar vs error**: `X` (11) usado como cerrar modal, `XCircle` (9) como error, sin distinción — usar `CloseIcon` vs `ErrorIcon`.
-3. **Añadir**: `Plus` (28) y `PlusCircle` (2) mezclados — canonizar `AddIcon`.
-4. **Fleet inconsistente**: `Truck` (14) y `TruckIcon` alias local (2) — usar `FleetIcon`.
-5. **Tamaños ad-hoc**: `h-3 w-3`, `h-4 w-4`, `h-5 w-5`, `h-6 w-6` mezclados sin criterio en 211 archivos — reemplazar por tokens `size="xs|sm|md|lg|xl"` del wrapper.
-6. **Stroke width**: nadie usa el default `1.75` del wrapper — todo llega con el 2 default de lucide, rompiendo la línea visual del registry.
+1. **Reportes / dashboards financieros** — `FinancialKpiCards`, `IncomeStatementReport`, `MrrDetailPage`, `RentalFinancialSummary`, `ForkliftRatesCard`. Distinguir: ingresos (MoneyIcon OK), utilidad (TrendingUpIcon), margen (TargetIcon), MRR (ActivityIcon o TrendingUpIcon), tarifa (PaymentIcon vs MoneyIcon).
+2. **Portal cliente** — `PortalDashboard`, `SupplierDetailPage`. Confirmar que balances/saldos usan el ícono correcto (ExpenseIcon para deuda, PaymentIcon para pagos, MoneyIcon para totales facturados).
+3. **Mantenimiento** — `MaintenanceDetailSheet` y componentes vecinos. Verificar refacciones vs. inventario, técnico asignado (UserIcon vs. otro), costos.
+4. **Botones de acción secundarios** en detail pages menos visitadas (fleet, damage, logistics, accounts-payable, quotes drafts).
+5. **Estados/badges** — buscar usos de `AlertTriangle`/`Info`/`Clock` que podrían tener alias más específicos (ej. `OverdueIcon` para vencidos, nuevo `PendingIcon` si aplica).
+6. **Iconos que aún no tienen alias** — `Filter`, `SlidersHorizontal`, `MoreHorizontal`, `ExternalLink`, `Link`, `Mail`, `Image`, `Camera`, `Paperclip`, etc. Decidir cuáles merecen entrada semántica.
 
-## Plan
+## Enfoque propuesto
 
-### Lote 1 — Ampliar registry y tokens (bajo riesgo)
-- Agregar aliases faltantes en `src/components/icons/index.ts`:
-  - `MapPin → LocationIcon`, `Settings → SettingsIcon`, `LayoutDashboard → DashboardIcon`, `Home → HomeIcon`, `Star → StarIcon`, `HelpCircle → HelpIcon`, `KeyRound → KeyIcon`, `Stamp → StampIcon`, `Handshake → DealIcon`, `Target → TargetIcon`, `Activity → ActivityIcon`, `BarChart3 → ChartIcon`, `TrendingDown → TrendingDownIcon`, `Landmark → BankIcon`, `Undo2 → UndoIcon`, `RotateCcw → ResetIcon`, `EyeOff → HideIcon`, `Minus → RemoveIcon`, `Info → InfoIcon`.
-- Documentar en el JSDoc del index qué alias usar para cada acción/estado.
+**Lote A — Auditoría dirigida (read-only, con subagente)**
+- Subagente peina los 248 archivos y produce un reporte tabular: `archivo | ícono actual | contexto (label/tooltip) | recomendación | severidad`.
+- Filtrar el reporte a hallazgos accionables (drift claro, no preferencia estética).
 
-### Lote 2 — Migración masiva a aliases semánticos
-Codemod (ripgrep + sed asistido) sobre los 247 archivos:
-- `Trash2` → `DeleteIcon`
-- `Pencil` → `EditIcon`
-- `Plus` / `PlusCircle` → `AddIcon`
-- `FileText` → `DocumentIcon`
-- `Receipt` → `InvoiceIcon`
-- `Truck` / `TruckIcon` local → `FleetIcon`
-- `Wrench` → `MaintenanceIcon`
-- `CheckCircle` / `CheckCircle2` / `Check` (cuando denote éxito) → `SuccessIcon`
-- `AlertTriangle` → `WarnIcon`
-- `XCircle` → `ErrorIcon`
-- `AlertCircle` → `InfoAlertIcon`
-- `Loader2` → `SpinnerIcon`
-- `X` en botones de cerrar → `CloseIcon`
-- `Save`, `Copy`, `RefreshCw`, `Download`, `Upload`, `Eye`, `Search`, `DollarSign`, `Calendar`, `Clock`, `User`, `Users`, `Building2`, `ShieldCheck`, `Package`, `History`, `Phone`, `TrendingUp`, `Trophy` → sus aliases correspondientes.
+**Lote B — Ampliación del registry**
+- Agregar aliases nuevos justificados por el reporte (candidatos: `FilterIcon`, `MoreIcon`, `ExternalLinkIcon`, `MailIcon`, `AttachmentIcon`, `PhotoIcon`, y posiblemente `RevenueIcon`/`ProfitIcon`/`MarginIcon` si el dominio financiero lo pide).
+- Actualizar JSDoc y test del registry.
 
-**Regla de escape**: cuando el ícono es puramente decorativo/marketing sin semántica CRUD, dejar el nombre crudo (permitido por el re-export `export * from "lucide-react"`).
+**Lote C — Migración**
+- Aplicar cambios sugeridos por el reporte en batches por dominio (financiero, mantenimiento, portal, catálogos).
+- Extender ESLint guard con los nuevos nombres crudos.
 
-### Lote 3 — Adopción del wrapper `<Icon>` y tokens de tamaño
-- Reemplazar `className="h-3 w-3"` → `size="xs"`, `h-4 w-4` → `size="sm"`, `h-5 w-5` → `size="md"`, `h-6 w-6` → `size="lg"`, `h-8 w-8` → `size="xl"` en los 211 archivos.
-- Migrar los sitios de alto impacto visual (botones, `ListToolbar`, `StatusBadge`, `DetailPageHeader`, `KpiTile`, sidebar) primero para asegurar el stroke 1.75 consistente.
-- Los íconos dentro de `<Button>` shadcn mantienen `className` de color (`text-destructive`, etc.), solo cambia el tamaño.
+**Lote D — Verificación y changelog**
+- `tsgo`, `bunx eslint .`, `bunx vitest run`.
+- Changelog `v7.11.1` (patch — refinamiento sobre 7.11.0).
 
-### Lote 4 — Verificación y guardas
-- Añadir ESLint custom rule (o pattern `no-restricted-syntax`) que marque `<Trash2 />`, `<Pencil />`, `<CheckCircle2 />` como warning con mensaje "usa el alias semántico".
-- Ampliar el snapshot test del registry: enumerar aliases y garantizar que cada uno resuelve a un componente válido.
-- `tsgo` + `bun lint` + `bunx vitest run` (843 tests) verdes.
-- Medir bundle del chunk `icons` antes/después (esperado: sin cambio material — mismo tree-shake).
+## Estimación de esfuerzo
 
-### Lote 5 — Documentación
-- Actualizar `mem://design/icons-registry.md` con: tabla de aliases canónicos por dominio, cuándo usar `size` token vs `className`, y el ejemplo de escape para íconos ad-hoc.
-- Changelog `v7.10.0` (minor: mejora arquitectural sin cambio de UX).
+- Lote A: análisis, sin cambios. Salida es un reporte para tu revisión.
+- Lote B-D: dependiendo del reporte, típicamente 15–40 archivos tocados.
+
+## Alternativa más ligera
+
+Si prefieres cerrar el tema en vez de un barrido completo: parar aquí, marcar la auditoría como "cubrió zonas de alto tráfico" y abrir refinamientos puntuales solo cuando aparezcan (regla: cualquier ícono nuevo pasa por el registry, el ESLint guard ya lo fuerza).
 
 ## Detalles técnicos
 
-- El re-export `export * from "lucide-react"` seguirá permitido para no romper íconos ad-hoc, pero los aliases canónicos serán la vía preferida y la ESLint rule empujará hacia ellos.
-- El wrapper `Icon` acepta `iconNode` y aplica `strokeWidth={1.75}` + tokens de tamaño; se puede seguir usando `<DeleteIcon />` directo cuando basta el default de lucide (16 px).
-- Riesgo bajo: sin cambios de comportamiento, solo renombres y tokens de tamaño. Sin migraciones de DB ni de edge functions.
-
-## Alcance estimado
-- ~247 archivos tocados por el codemod (Lote 2).
-- ~211 archivos tocados por Lote 3.
-- Cero cambios de lógica de negocio; solo capa de presentación.
+- El reporte de Lote A se genera con `rg` + inspección por subagente, agrupando por directorio de feature.
+- El registry ya expone 66 aliases; los nuevos irán en la sección correspondiente del JSDoc (Dominio LiftGo / Genéricos / Estados).
+- No se tocan tests existentes salvo `registry.test.ts` para incluir aliases nuevos.

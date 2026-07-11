@@ -27,15 +27,15 @@
  *                      SpinnerIcon
  *   Navegación       → ChevronLeft/Right/Up/DownIcon, BackIcon, CloseIcon, HomeIcon
  *   Dominio LiftGo   → FleetIcon, MaintenanceIcon, DocumentIcon, InvoiceIcon,
- *                      MoneyIcon, PaymentIcon, CostIcon, ExpenseIcon,
+ *                      MoneyIcon, RevenueIcon, PaymentIcon, CostIcon, ExpenseIcon,
  *                      CalendarIcon, ClockIcon, UserIcon, UsersIcon,
  *                      CompanyIcon, SupplierIcon, SecurityIcon, InventoryIcon,
- *                      WaitingPartsIcon, HistoryIcon, PhoneIcon, LocationIcon,
- *                      BankIcon, DealIcon, StampIcon, SignIcon, DeliveryIcon,
- *                      VerifiedDocIcon, OverdueIcon, SettingsIcon,
+ *                      WaitingPartsIcon, HistoryIcon, PhoneIcon, EmailIcon,
+ *                      LocationIcon, BankIcon, DealIcon, StampIcon, SignIcon,
+ *                      DeliveryIcon, VerifiedDocIcon, OverdueIcon, SettingsIcon,
  *                      DashboardIcon, ChartIcon, TrendingUpIcon,
  *                      TrendingDownIcon, TargetIcon, TrophyIcon, ActivityIcon,
- *                      StarIcon, HelpIcon, KeyIcon
+ *                      StarIcon, HelpIcon, KeyIcon, FilterIcon, OpenLinkIcon
  */
 
 // -----------------------------------------------------------------------------
@@ -81,6 +81,7 @@ export {
   FileText as DocumentIcon,
   Receipt as InvoiceIcon,
   DollarSign as MoneyIcon,
+  CircleDollarSign as RevenueIcon,
   HandCoins as PaymentIcon,
   Banknote as CostIcon,
   Wallet as ExpenseIcon,
@@ -114,6 +115,9 @@ export {
   Star as StarIcon,
   HelpCircle as HelpIcon,
   KeyRound as KeyIcon,
+  SlidersHorizontal as FilterIcon,
+  Mail as EmailIcon,
+  ExternalLink as OpenLinkIcon,
 } from "lucide-react";
 
 // -----------------------------------------------------------------------------

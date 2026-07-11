@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
-import { type LucideIcon, SpinnerIcon, RefreshIcon, SlidersHorizontal } from "@/components/icons";
+import { type LucideIcon, SpinnerIcon, RefreshIcon, FilterIcon } from "@/components/icons";
 import type { Table as TanstackTable } from "@tanstack/react-table";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -183,7 +183,7 @@ function FiltersSlot({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
         <Button variant="outline" size="sm" className="touch:h-11 w-full justify-center gap-2">
-          <SlidersHorizontal className="h-4 w-4" />
+          <FilterIcon className="h-4 w-4" />
           Filtros
         </Button>
       </SheetTrigger>
