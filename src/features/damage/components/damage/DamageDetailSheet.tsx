@@ -7,7 +7,7 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { DamageRecordWithJoins } from "@/types/rental";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { WarnIcon, FleetIcon, UserIcon, DocumentIcon, MoneyIcon, CalendarIcon } from "@/components/icons";
+import { WarnIcon, FleetIcon, UserIcon, DocumentIcon, CostIcon, CalendarIcon } from "@/components/icons";
 import { DetailRow } from "@/components/domain/DetailRow";
 
 interface Props {
@@ -38,9 +38,9 @@ export function DamageDetailSheet({ record, open, onOpenChange }: Props) {
           <div className="space-y-1">
             <DetailRow icon={FleetIcon} label="Montacargas" value={record.forklifts?.name || "—"} />
             <DetailRow icon={UserIcon} label="Cliente" value={record.customers?.name || "—"} />
-            <DetailRow icon={MoneyIcon} label="Costo Estimado" value={formatCurrency(record.estimated_cost ?? 0)} />
+            <DetailRow icon={CostIcon} label="Costo Estimado" value={formatCurrency(record.estimated_cost ?? 0)} />
             {record.actual_cost != null && record.actual_cost > 0 && (
-              <DetailRow icon={MoneyIcon} label="Costo Real" value={formatCurrency(record.actual_cost)} />
+              <DetailRow icon={CostIcon} label="Costo Real" value={formatCurrency(record.actual_cost)} />
             )}
             <DetailRow icon={CalendarIcon} label="Fecha" value={format(new Date(record.created_at), "dd MMMM yyyy", { locale: es })} />
           </div>

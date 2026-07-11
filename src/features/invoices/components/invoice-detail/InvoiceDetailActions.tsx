@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { InvoicePDFButton } from "../invoices/InvoicePDFButton";
-import { Edit, StampIcon, ErrorIcon, MoneyIcon, DeleteIcon, RefreshIcon, DocumentIcon, FileCode2 } from "@/components/icons";
+import { EditIcon, StampIcon, ErrorIcon, PaymentIcon, DeleteIcon, RefreshIcon, DocumentIcon, FileCode2 } from "@/components/icons";
 import type { Tables } from "@/integrations/supabase/types";
 import { useRefreshCancellationStatus } from "../../hooks/invoices/cfdi/useRefreshCancellationStatus";
 import { useState } from "react";
@@ -144,13 +144,13 @@ export function InvoiceDetailActions({
       <CancellationBlock flags={flags} invoiceId={invoice.id} />
       {flags.canEdit ? (
         <Button size="sm" variant="outline" onClick={onEdit}>
-          <Edit className="h-4 w-4 mr-1" /> Editar
+          <EditIcon className="h-4 w-4 mr-1" /> Editar
         </Button>
       ) : null}
       <StampButtons flags={flags} isStamping={isStamping} onStamp={onStamp} />
       {flags.showPaymentBtn ? (
         <Button size="sm" onClick={onOpenPayment}>
-          <MoneyIcon className="h-4 w-4 mr-1" />Registrar Pago
+          <PaymentIcon className="h-4 w-4 mr-1" />Registrar Pago
         </Button>
       ) : null}
       {pdfMode !== "hidden" ? (
