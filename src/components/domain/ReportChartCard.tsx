@@ -1,4 +1,4 @@
-import { memo, type ElementType, type ReactNode } from "react";
+import { type ElementType, type ReactNode } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 
