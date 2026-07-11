@@ -93,5 +93,5 @@ export const clabeOptional = () =>
  * con `z.preprocess(Number, positiveAmount())` en el schema del feature.
  */
 export const positiveAmount = (message = "El monto debe ser mayor a 0") =>
-  z.number({ invalid_type_error: message }).positive(message);
+  z.number({ error: message }).positive(message);
 
