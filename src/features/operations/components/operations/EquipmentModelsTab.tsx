@@ -40,29 +40,26 @@ export function EquipmentModelsTab() {
     }
   };
 
-  const columns = useMemo<ColumnDef<EquipmentModel>[]>(
-    () => [
-      { id: "manufacturer", header: "Fabricante", accessorKey: "manufacturer", cell: ({ row }) => <span className="font-medium">{row.original.manufacturer}</span> },
-      { id: "model", header: "Modelo", accessorKey: "model", cell: ({ row }) => row.original.model },
-      { id: "default_capacity_kg", header: "Capacidad (kg)", accessorKey: "default_capacity_kg", meta: { align: "right" }, cell: ({ row }) => row.original.default_capacity_kg ?? "—" },
-      { id: "default_mast_height_m", header: "Altura Mástil (m)", accessorKey: "default_mast_height_m", meta: { align: "right" }, cell: ({ row }) => row.original.default_mast_height_m ?? "—" },
-      { id: "default_fuel_type", header: "Combustible", accessorKey: "default_fuel_type", cell: ({ row }) => FUEL_TYPE_LABELS[row.original.default_fuel_type] || row.original.default_fuel_type },
-      {
-        id: "actions",
-        header: "",
-        enableSorting: false,
-        cell: ({ row }) => (
-          <EquipmentModelRowActions
-            model={row.original}
-            onEdit={() => openEdit(row.original)}
-            onDelete={() => del.mutate(row.original.id, { onSuccess: () => notifySuccess("Eliminado") })}
-          />
-        ),
-      },
-    ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
+  const columns: ColumnDef<EquipmentModel>[] = [
+    { id: "manufacturer", header: "Fabricante", accessorKey: "manufacturer", cell: ({ row }) => <span className="font-medium">{row.original.manufacturer}</span> },
+    { id: "model", header: "Modelo", accessorKey: "model", cell: ({ row }) => row.original.model },
+    { id: "default_capacity_kg", header: "Capacidad (kg)", accessorKey: "default_capacity_kg", meta: { align: "right" }, cell: ({ row }) => row.original.default_capacity_kg ?? "—" },
+    { id: "default_mast_height_m", header: "Altura Mástil (m)", accessorKey: "default_mast_height_m", meta: { align: "right" }, cell: ({ row }) => row.original.default_mast_height_m ?? "—" },
+    { id: "default_fuel_type", header: "Combustible", accessorKey: "default_fuel_type", cell: ({ row }) => FUEL_TYPE_LABELS[row.original.default_fuel_type] || row.original.default_fuel_type },
+    {
+      id: "actions",
+      header: "",
+      enableSorting: false,
+      cell: ({ row }) => (
+        <EquipmentModelRowActions
+          model={row.original}
+          onEdit={() => openEdit(row.original)}
+          onDelete={() => del.mutate(row.original.id, { onSuccess: () => notifySuccess("Eliminado") })}
+        />
+      ),
+    },
+  ];
+
 
   const table = useLiftgoTable<EquipmentModel>({
     data: models,
