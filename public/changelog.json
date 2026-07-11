@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.22.0",
+    "date": "2026-07-11",
+    "type": "minor",
+    "title": "GlobalSearch — feedback de carga, errores y hints de teclado",
+    "description": "El paladar Ctrl+K ahora muestra un spinner 'Cargando…' mientras React 19 monta la ruta destino (vía `useTransition`), deshabilita ítems durante la transición para evitar dobles navegaciones, captura errores con `toast.error` en Español, y expone un footer permanente con atajos (↑ ↓ Enter Esc). El `CommandEmpty` incluye microcopy secundaria.",
+    "category": "improvement"
+  },
+  {
     "version": "7.21.0",
     "date": "2026-07-11",
     "type": "minor",

@@ -1,0 +1,20 @@
+{
+  "version": "7.22.0",
+  "date": "2026-07-11",
+  "type": "minor",
+  "title": "GlobalSearch — feedback de carga, errores y hints de teclado",
+  "summary": "Mejoras UX del paladar de comandos (Ctrl+K): indicador de carga durante la transición de ruta, manejo de errores con toast y guía visible de atajos de teclado.",
+  "sections": [
+    {
+      "heading": "Cambios",
+      "items": [
+        "`useTransition` local: cada `onSelect` corre en `startTransition`, exponiendo `isPending` para pintar un `SpinnerIcon` + 'Cargando…' en el footer del dialog mientras React 19 monta el chunk destino.",
+        "Items del `CommandList` se deshabilitan durante `isPending` para evitar dobles navegaciones accidentales.",
+        "Manejo de errores: `try/catch` alrededor de `navigate()` con `toast.error` en Español si la ruta falla, más `console.error` para diagnóstico.",
+        "Footer permanente con hints de teclado (↑ ↓ navegar · Enter abrir · Esc cerrar) usando `<kbd>` con estilo tokenizado.",
+        "`CommandEmpty` reforzado con microcopy secundaria ('Prueba con otro término o revisa la ortografía')."
+      ]
+    }
+  ],
+  "impact": "El usuario percibe respuesta inmediata al abrir un módulo y descubre los atajos de teclado sin abandonar el flujo."
+}

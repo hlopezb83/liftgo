@@ -1,6 +1,7 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { useEffect, useState, useMemo } from "react";
-import { CalendarDays, FleetIcon, UsersIcon, DocumentIcon, BookOpen, ScrollText, DeliveryIcon, ClipboardCheck, InvoiceIcon, MaintenanceIcon, WarnIcon, InventoryIcon, SupplierIcon, ExpenseIcon, ChartIcon, ActivityIcon, HistoryIcon, SettingsIcon, CompanyIcon, SecurityIcon, HelpIcon, TargetIcon, DashboardIcon, SearchIcon } from "@/components/icons";
+import { useEffect, useState, useMemo, useTransition } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
+import { CalendarDays, FleetIcon, UsersIcon, DocumentIcon, BookOpen, ScrollText, DeliveryIcon, ClipboardCheck, InvoiceIcon, MaintenanceIcon, WarnIcon, InventoryIcon, SupplierIcon, ExpenseIcon, ChartIcon, ActivityIcon, HistoryIcon, SettingsIcon, CompanyIcon, SecurityIcon, HelpIcon, TargetIcon, DashboardIcon, SearchIcon, SpinnerIcon } from "@/components/icons";
 import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command";
@@ -39,7 +40,8 @@ const ITEMS: Item[] = [
 
 export function GlobalSearch() {
   const [open, setOpen] = useState(false);
-  const navigate = useNavigateTransition();
+  const navigate = useNavigate();
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
@@ -67,7 +69,14 @@ export function GlobalSearch() {
 
   const go = (url: string) => {
     setOpen(false);
-    navigate(url);
+    startTransition(() => {
+      try {
+        navigate(url);
+      } catch (err) {
+        console.error("GlobalSearch navigation failed", err);
+        toast.error("No se pudo abrir la sección. Intenta de nuevo.");
+      }
+    });
   };
 
   return (
@@ -89,7 +98,12 @@ export function GlobalSearch() {
       <CommandDialog open={open} onOpenChange={setOpen}>
         <CommandInput placeholder="Buscar módulo o ir a…" />
         <CommandList>
-          <CommandEmpty>Sin resultados.</CommandEmpty>
+          <CommandEmpty>
+            <div className="flex flex-col items-center gap-1 py-4 text-xs text-muted-foreground">
+              <span>Sin resultados.</span>
+              <span className="opacity-70">Prueba con otro término o revisa la ortografía.</span>
+            </div>
+          </CommandEmpty>
           {groups.map(([group, items]) => (
             <CommandGroup key={group} heading={group}>
               {items.map((item) => (
@@ -97,6 +111,7 @@ export function GlobalSearch() {
                   key={item.url}
                   value={`${item.title} ${item.keywords ?? ""}`}
                   onSelect={() => go(item.url)}
+                  disabled={isPending}
                 >
                   <item.icon className="mr-2 h-4 w-4" />
                   <span>{item.title}</span>
@@ -105,7 +120,21 @@ export function GlobalSearch() {
             </CommandGroup>
           ))}
         </CommandList>
+        <div className="flex items-center justify-between border-t px-3 py-2 text-[10px] text-muted-foreground">
+          <div className="flex items-center gap-3">
+            <span><kbd className="rounded border bg-muted px-1 font-mono">↑</kbd> <kbd className="rounded border bg-muted px-1 font-mono">↓</kbd> navegar</span>
+            <span><kbd className="rounded border bg-muted px-1 font-mono">Enter</kbd> abrir</span>
+            <span><kbd className="rounded border bg-muted px-1 font-mono">Esc</kbd> cerrar</span>
+          </div>
+          {isPending ? (
+            <span className="flex items-center gap-1 text-primary">
+              <SpinnerIcon className="h-3 w-3 animate-spin" />
+              Cargando…
+            </span>
+          ) : null}
+        </div>
       </CommandDialog>
     </>
   );
 }
+
