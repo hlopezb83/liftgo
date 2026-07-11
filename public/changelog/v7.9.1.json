@@ -1,0 +1,18 @@
+{
+  "version": "7.9.1",
+  "date": "2026-07-11",
+  "type": "patch",
+  "title": "Actualización de lucide-react a v1.24.0",
+  "description": "Se actualizó lucide-react de 0.462.0 a 1.24.0 (major v1). El único breaking change relevante fue la eliminación de íconos de marca (GitHub, Figma, Slack, etc.), los cuales no se utilizan en el proyecto gracias al registro centralizado en src/components/icons/. No se requirieron cambios de código adicionales. Verificación: tsgo OK, ESLint 0 warnings, 843/843 tests verdes.",
+  "category": "improvement",
+  "changes": [
+    {
+      "type": "changed",
+      "description": "lucide-react actualizado de ^0.462.0 a ^1.24.0"
+    },
+    {
+      "type": "security",
+      "description": "Se elimina la dependencia de íconos de marca removidos en v1; el registro propio nunca los referenció"
+    }
+  ]
+}
