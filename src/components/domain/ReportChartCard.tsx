@@ -24,7 +24,7 @@ export interface ReportChartCardProps {
   children: ReactNode;
 }
 
-export const ReportChartCard = memo(function ReportChartCard({
+export function ReportChartCard({
   title,
   icon: Icon,
   iconColor = "text-primary",
