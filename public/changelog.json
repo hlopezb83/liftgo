@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.11.1",
+    "date": "2026-07-11",
+    "type": "patch",
+    "title": "Fase 2 auditoría de íconos: aliases financieros, filtros y enlaces",
+    "description": "Barrido final dirigido por reporte de subagente sobre 248 archivos. Agrega 4 aliases (RevenueIcon, FilterIcon, EmailIcon, OpenLinkIcon) y migra 13 archivos: cards de Reserva pasan a CalendarIcon, alertas 'Vencido' unificadas bajo OverdueIcon, costos e ingresos con CostIcon/RevenueIcon, contactos con EmailIcon, enlaces externos con OpenLinkIcon y toolbars con FilterIcon. ESLint guard +4 nombres crudos, registry test a 70 aliases. tsgo OK, 0 warnings, 913/913 tests.",
+    "category": "improvement"
+  },
+  {
     "version": "7.11.0",
     "date": "2026-07-11",
     "type": "minor",
