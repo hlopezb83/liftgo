@@ -1,0 +1,49 @@
+{
+  "version": "7.10.0",
+  "date": "2026-07-11",
+  "type": "minor",
+  "title": "Auditoría de íconos: adopción de aliases semánticos",
+  "sections": [
+    {
+      "heading": "Diagnóstico",
+      "items": [
+        "247 archivos importaban desde `@/components/icons` pero solo 2 usaban aliases semánticos.",
+        "211 archivos hardcodeaban tamaños ad-hoc (`h-4 w-4`, `h-5 w-5`) en vez de tokens.",
+        "Drift semántico: `CheckCircle` (8) + `CheckCircle2` (13) + `Check` sueltos convivían como 'éxito'.",
+        "`X` (11) usado tanto para cerrar como para 'error' sin distinción respecto a `XCircle` (9).",
+        "Aliases populares importados crudos: `Trash2` (35), `Plus` (28), `FileText` (26), `AlertTriangle` (24), `Loader2` (21), `Pencil` (20)."
+      ]
+    },
+    {
+      "heading": "Fase 1 — Ampliación del registry",
+      "items": [
+        "19 aliases nuevos: LocationIcon, SettingsIcon, DashboardIcon, HomeIcon, StarIcon, HelpIcon, KeyIcon, StampIcon, DealIcon, TargetIcon, ActivityIcon, ChartIcon, TrendingDownIcon, BankIcon, UndoIcon, ResetIcon, HideIcon, RemoveIcon, InfoIcon.",
+        "JSDoc extendido con la tabla canónica por dominio (CRUD, Feedback, Navegación, Dominio LiftGo)."
+      ]
+    },
+    {
+      "heading": "Fase 2 — Codemod masivo",
+      "items": [
+        "208/247 archivos migrados automáticamente.",
+        "Colapso de duplicados: CheckCircle + CheckCircle2 + Check → SuccessIcon.",
+        "Renames domésticos: Trash2→DeleteIcon, Pencil→EditIcon, Plus→AddIcon, FileText→DocumentIcon, Receipt→InvoiceIcon, Truck→FleetIcon, Wrench→MaintenanceIcon, AlertTriangle→WarnIcon, XCircle→ErrorIcon, AlertCircle→InfoAlertIcon, Loader2→SpinnerIcon, Save→SaveIcon, Copy→DuplicateIcon, RefreshCw→RefreshIcon, Download→DownloadIcon, Upload→UploadIcon, Eye→ViewIcon, EyeOff→HideIcon, Search→SearchIcon, Minus→RemoveIcon, Undo2→UndoIcon, RotateCcw→ResetIcon, Info→InfoIcon, Home→HomeIcon, DollarSign→MoneyIcon, Calendar→CalendarIcon, Clock→ClockIcon, User→UserIcon, Users→UsersIcon, Building2→CompanyIcon, ShieldCheck→SecurityIcon, Package→InventoryIcon, History→HistoryIcon, Phone→PhoneIcon, MapPin→LocationIcon, Landmark→BankIcon, Handshake→DealIcon, Stamp→StampIcon, Settings→SettingsIcon, LayoutDashboard→DashboardIcon, BarChart3→ChartIcon, TrendingUp→TrendingUpIcon, TrendingDown→TrendingDownIcon, Target→TargetIcon, Trophy→TrophyIcon, Activity→ActivityIcon, Star→StarIcon, HelpCircle→HelpIcon, KeyRound→KeyIcon, ArrowLeft→BackIcon, X→CloseIcon, y Chevron*.",
+        "Guard de colisión: si un identificador destino ya se usaba localmente como variable, el rename se salta para no romper el archivo."
+      ]
+    },
+    {
+      "heading": "Fase 3 — Guardrails permanentes",
+      "items": [
+        "ESLint `no-restricted-imports` extendido: 56 nombres crudos desde `@/components/icons` marcados como error con el alias sugerido.",
+        "Nuevo test `src/components/icons/__tests__/registry.test.ts` (57 casos) verifica que cada alias canónico resuelve a un componente válido y que el wrapper `<Icon>` existe."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "tsgo: OK.",
+        "ESLint: 0 warnings, 0 errors.",
+        "Tests: 900/900 verdes (843 previos + 57 nuevos del registry)."
+      ]
+    }
+  ]
+}
