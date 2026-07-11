@@ -19,9 +19,12 @@ const CANONICAL_ALIASES = [
   "BackIcon", "CloseIcon", "HomeIcon",
   // Dominio LiftGo
   "FleetIcon", "MaintenanceIcon", "DocumentIcon", "InvoiceIcon", "MoneyIcon",
-  "CalendarIcon", "ClockIcon", "UserIcon", "UsersIcon", "CompanyIcon",
-  "SecurityIcon", "InventoryIcon", "HistoryIcon", "PhoneIcon", "LocationIcon",
-  "BankIcon", "DealIcon", "StampIcon", "SettingsIcon", "DashboardIcon",
+  "PaymentIcon", "CostIcon", "ExpenseIcon",
+  "CalendarIcon", "OverdueIcon", "ClockIcon", "UserIcon", "UsersIcon",
+  "CompanyIcon", "SupplierIcon", "SecurityIcon", "InventoryIcon",
+  "WaitingPartsIcon", "HistoryIcon", "PhoneIcon", "LocationIcon",
+  "BankIcon", "DealIcon", "StampIcon", "SignIcon", "DeliveryIcon",
+  "VerifiedDocIcon", "SettingsIcon", "DashboardIcon",
   "ChartIcon", "TrendingUpIcon", "TrendingDownIcon", "TargetIcon",
   "TrophyIcon", "ActivityIcon", "StarIcon", "HelpIcon", "KeyIcon",
 ] as const;

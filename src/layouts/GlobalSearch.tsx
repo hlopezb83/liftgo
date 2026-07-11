@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { CalendarDays, FleetIcon, UsersIcon, DocumentIcon, BookOpen, ScrollText, TruckIcon, ClipboardCheck, InvoiceIcon, MaintenanceIcon, WarnIcon, InventoryIcon, DealIcon, Wallet, MoneyIcon, ChartIcon, ActivityIcon, HistoryIcon, SettingsIcon, CompanyIcon, SecurityIcon, HelpIcon, TargetIcon, DashboardIcon, SearchIcon } from "@/components/icons";
+import { CalendarDays, FleetIcon, UsersIcon, DocumentIcon, BookOpen, ScrollText, DeliveryIcon, ClipboardCheck, InvoiceIcon, MaintenanceIcon, WarnIcon, InventoryIcon, SupplierIcon, ExpenseIcon, ChartIcon, ActivityIcon, HistoryIcon, SettingsIcon, CompanyIcon, SecurityIcon, HelpIcon, TargetIcon, DashboardIcon, SearchIcon } from "@/components/icons";
 import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command";
@@ -17,16 +17,16 @@ const ITEMS: Item[] = [
   { title: "Cotizaciones", url: "/quotes", icon: DocumentIcon, group: "Comercial" },
   { title: "Reservas", url: "/bookings", icon: BookOpen, group: "Comercial" },
   { title: "Contratos", url: "/contracts", icon: ScrollText, group: "Operaciones" },
-  { title: "Entregas", url: "/deliveries", icon: TruckIcon, group: "Operaciones" },
+  { title: "Entregas", url: "/deliveries", icon: DeliveryIcon, group: "Operaciones" },
   { title: "Devoluciones", url: "/returns", icon: ClipboardCheck, group: "Operaciones" },
   { title: "Facturas", url: "/invoices", icon: InvoiceIcon, group: "Operaciones" },
   { title: "Equipos", url: "/fleet", icon: FleetIcon, group: "Flota", keywords: "montacargas" },
   { title: "Mantenimiento", url: "/maintenance", icon: MaintenanceIcon, group: "Flota" },
   { title: "Daños", url: "/damage", icon: WarnIcon, group: "Flota" },
   { title: "Refacciones", url: "/inventory", icon: InventoryIcon, group: "Flota" },
-  { title: "Proveedores", url: "/suppliers", icon: DealIcon, group: "Administración" },
-  { title: "Gastos Operativos", url: "/expenses", icon: Wallet, group: "Administración" },
-  { title: "Estado de Resultados", url: "/income-statement", icon: MoneyIcon, group: "Administración" },
+  { title: "Proveedores", url: "/suppliers", icon: SupplierIcon, group: "Administración" },
+  { title: "Gastos Operativos", url: "/expenses", icon: ExpenseIcon, group: "Administración" },
+  { title: "Estado de Resultados", url: "/income-statement", icon: ChartIcon, group: "Administración" },
   { title: "Reportes", url: "/reports", icon: ChartIcon, group: "Administración" },
   { title: "Actividad", url: "/activity", icon: ActivityIcon, group: "Administración" },
   { title: "Bitácora", url: "/audit", icon: HistoryIcon, group: "Administración", keywords: "auditoria audit trail" },

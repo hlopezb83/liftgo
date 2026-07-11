@@ -9,7 +9,7 @@ import { useDeletePart, type PartInventory } from "../../hooks/usePartsInventory
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { EditIcon, DeleteIcon, InventoryIcon, Hash, Tag, Layers, WarnIcon, MoneyIcon } from "@/components/icons";
+import { EditIcon, DeleteIcon, InventoryIcon, Hash, Tag, Layers, WarnIcon, MoneyIcon, LocationIcon } from "@/components/icons";
 import { DetailRow } from "@/components/domain/DetailRow";
 
 interface Props {
@@ -80,7 +80,7 @@ export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
           {part.location && (
             <>
               <Separator />
-              <DetailRow icon={InventoryIcon} label="Ubicación" value={part.location} />
+              <DetailRow icon={LocationIcon} label="Ubicación" value={part.location} />
             </>
           )}
 

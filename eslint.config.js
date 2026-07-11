@@ -121,8 +121,14 @@ export default tseslint.config(
               "Target", "Trophy", "Activity", "Star", "HelpCircle",
               "KeyRound", "ArrowLeft", "ChevronRight", "ChevronLeft",
               "ChevronUp", "ChevronDown",
+              // Aliases nuevos v7.11 — bloquear nombres crudos:
+              "Send", "FileSignature", "HandCoins", "Banknote", "Factory",
+              "PackageSearch", "FileCheck2", "Wallet", "CalendarX",
+              // TruckIcon fue eliminado del uso: Truck ya cubre FleetIcon,
+              // y Entregas ahora usa DeliveryIcon (Send).
+              "TruckIcon",
             ],
-            message: "Usa el alias semántico del registry (DeleteIcon, EditIcon, AddIcon, DocumentIcon, SuccessIcon, WarnIcon, ErrorIcon, SpinnerIcon, ...). Ver JSDoc en src/components/icons/index.ts.",
+            message: "Usa el alias semántico del registry (DeleteIcon, EditIcon, DeliveryIcon, PaymentIcon, CostIcon, SignIcon, SupplierIcon, ...). Ver JSDoc en src/components/icons/index.ts.",
           },
         ],
       }],

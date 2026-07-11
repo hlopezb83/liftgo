@@ -1,4 +1,4 @@
-import { DashboardIcon, FleetIcon, CalendarDays, BookOpen, UsersIcon, MaintenanceIcon, InvoiceIcon, SettingsIcon, ClipboardCheck, TruckIcon, DocumentIcon, ActivityIcon, ChartIcon, WarnIcon, SecurityIcon, ScrollText, HistoryIcon, HelpIcon, InventoryIcon, TargetIcon, MoneyIcon, DealIcon, MessageSquare, TrophyIcon, Megaphone, FileClock, TrendingUpIcon, BankIcon, ArrowLeftRight, GitCompareArrows } from "@/components/icons";
+import { DashboardIcon, FleetIcon, CalendarDays, BookOpen, UsersIcon, MaintenanceIcon, InvoiceIcon, SettingsIcon, ClipboardCheck, DeliveryIcon, DocumentIcon, ActivityIcon, ChartIcon, WarnIcon, SecurityIcon, ScrollText, HistoryIcon, HelpIcon, InventoryIcon, TargetIcon, SupplierIcon, MessageSquare, TrophyIcon, Megaphone, FileClock, TrendingUpIcon, BankIcon, ArrowLeftRight, GitCompareArrows } from "@/components/icons";
 
 export type NavItem = { title: string; url: string; icon: React.ElementType };
 export type NavGroup = { label: string; items: NavItem[]; collapsible?: boolean };
@@ -26,7 +26,7 @@ export const NAV_GROUPS: NavGroup[] = [
     collapsible: true,
     items: [
       { title: "Reservas", url: "/bookings", icon: BookOpen },
-      { title: "Entregas", url: "/deliveries", icon: TruckIcon },
+      { title: "Entregas", url: "/deliveries", icon: DeliveryIcon },
       { title: "Devoluciones", url: "/returns", icon: ClipboardCheck },
     ],
   },
@@ -34,7 +34,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Compras",
     collapsible: true,
     items: [
-      { title: "Proveedores", url: "/suppliers", icon: DealIcon },
+      { title: "Proveedores", url: "/suppliers", icon: SupplierIcon },
       { title: "Facturas de Proveedor", url: "/cuentas-por-pagar", icon: FileClock },
     ],
   },
@@ -47,7 +47,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { title: "Flujo de Caja", url: "/flujo-de-caja", icon: TrendingUpIcon },
       { title: "Cuentas Bancarias", url: "/cuentas-bancarias", icon: BankIcon },
       { title: "Conciliación Bancaria", url: "/conciliacion-bancaria", icon: ArrowLeftRight },
-      { title: "Estado de Resultados", url: "/income-statement", icon: MoneyIcon },
+      { title: "Estado de Resultados", url: "/income-statement", icon: ChartIcon },
     ],
   },
   {
