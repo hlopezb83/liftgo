@@ -22,7 +22,7 @@ interface Props {
 
 const schema = z.object({
   finalAmount: positiveAmount("Debe ser mayor a 0"),
-  closedAt: z.date({ required_error: "Requerido" }),
+  closedAt: z.date({ error: "Requerido" }),
   extraNote: z.string().default(""),
 });
 

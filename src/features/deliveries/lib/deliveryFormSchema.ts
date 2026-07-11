@@ -4,7 +4,7 @@ export const deliverySchema = z.object({
   forkliftId: z.string().min(1, "Selecciona un montacargas"),
   bookingId: z.string(),
   type: z.string().min(1),
-  scheduledDate: z.date({ required_error: "Fecha requerida" }),
+  scheduledDate: z.date({ error: "Fecha requerida" }),
   scheduledTime: z.string(),
   address: z.string(),
   driverName: z.string(),

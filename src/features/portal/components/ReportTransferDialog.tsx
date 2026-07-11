@@ -21,7 +21,7 @@ interface Props {
 }
 
 const schema = z.object({
-  transferDate: z.date({ required_error: "La fecha es obligatoria" }),
+  transferDate: z.date({ error: "La fecha es obligatoria" }),
   amount: positiveAmount(),
   senderBank: z.string().default(""),
   senderLast4: z

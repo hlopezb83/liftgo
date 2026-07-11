@@ -13,7 +13,7 @@ export const supplierBillFormSchema = z.object({
   supplier_id: z.string().min(1, "Selecciona un proveedor"),
   category: z.string().min(1, "Selecciona una categoría"),
   description: z.string().default(""),
-  issue_date: z.date({ required_error: "Fecha de emisión requerida" }),
+  issue_date: z.date({ error: "Fecha de emisión requerida" }),
   due_date: z.date().optional(),
   currency: z.enum(["MXN", "USD"]),
   exchange_rate: z.coerce.number().positive().default(1),
