@@ -1,16 +1,16 @@
-import { useState, useEffect, useOptimistic, startTransition } from "react";
+import { useEffect } from "react";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { useUpdateFeedbackStatus, useFeedbackHistory, type FeedbackReport } from "../hooks/useFeedbackReports";
+import { useFeedbackHistory, type FeedbackReport } from "../hooks/useFeedbackReports";
 import { useFeedbackScreenshotUrl } from "../hooks/useFeedbackScreenshotUrl";
 import { useClassifyFeedback } from "../hooks/useClassifyFeedback";
+import { useFeedbackStatusUpdate } from "../hooks/useFeedbackStatusUpdate";
 import { FeedbackStatusBadge } from "./FeedbackStatusBadge";
 import { FeedbackMetaList, FeedbackHistoryList } from "./FeedbackDetailParts";
 import { FeedbackChipsRow, AiReasoningCard } from "./FeedbackDetailChips";
 import { FeedbackStatusChanger } from "./FeedbackStatusChanger";
-import { type FeedbackStatus } from "../lib/constants";
 
 interface Props {
   report: FeedbackReport | null;
@@ -18,17 +18,10 @@ interface Props {
 }
 
 export function FeedbackDetailSheet({ report, onClose }: Props) {
-  const [newStatus, setNewStatus] = useState<FeedbackStatus | "">("");
-  const [comment, setComment] = useState("");
-  const update = useUpdateFeedbackStatus();
+  const statusUpdate = useFeedbackStatusUpdate(report);
   const classify = useClassifyFeedback();
   const { data: history } = useFeedbackHistory(report?.id ?? null);
   const { data: signedUrl } = useFeedbackScreenshotUrl(report?.screenshot_url);
-
-  useEffect(() => {
-    setNewStatus("");
-    setComment("");
-  }, [report]);
 
   // Auto-trigger AI classification when report opens with no classification yet.
   usePrefillEffect(() => {
@@ -40,15 +33,6 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
     }
   }, [report?.id]);
 
-  // React 19: reflejamos el nuevo estado en el badge del header sin esperar la
-  // respuesta del servidor. Debe declararse ANTES de cualquier early return
-  // para respetar rules-of-hooks. Si la mutación falla, React descarta el
-  // valor optimista y volvemos al `report.status` real vía React Query.
-  const [optimisticStatus, applyOptimisticStatus] = useOptimistic(
-    report?.status ?? "",
-    (_current, next: string) => next,
-  );
-
   if (!report) return null;
   const ctx = (report.context_json ?? {}) as Record<string, unknown>;
   const aiClass = ctx.ai_classification as
@@ -58,14 +42,6 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
     | { tagName: string; text: string; cssPath: string }
     | undefined;
 
-  const handleApply = () => {
-    if (!newStatus) return;
-    startTransition(() => applyOptimisticStatus(newStatus));
-    update.mutate(
-      { reportId: report.id, newStatus, comment: comment.trim() || undefined },
-      { onSuccess: () => { setNewStatus(""); setComment(""); } },
-    );
-  };
 
 
   return (
