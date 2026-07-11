@@ -33,6 +33,7 @@ export function DamageDetailSheet({ record, open, onOpenChange }: Props) {
           </SheetTitle>
         </SheetHeader>
 
+        <Activity mode={open ? "visible" : "hidden"}>
         <div className="mt-4 space-y-4">
           <StatusBadge status={record.status} />
 
