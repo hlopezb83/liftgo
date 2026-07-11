@@ -29,15 +29,20 @@ export function useInvoicePrefill({
   }, [existing, customers]);
 
   // Hydrate bookingIds from pivot table once it loads.
-  useEffect(() => {
-    if (!existing || !existingBookingIds) return;
-    if (existingBookingIds.length === 0) return;
+  // `hydrate` es useEffectEvent → lee el `form` fresco y sólo re-dispara al
+  // cambiar el booking activo o la lista de pivots (key primitivo).
+  const hydrate = useEffectEvent(() => {
+    if (!existing || !existingBookingIds || existingBookingIds.length === 0) return;
     form.setValue("bookingIds", existingBookingIds, { shouldDirty: false });
     if (!form.getValues("bookingId")) {
       form.setValue("bookingId", existingBookingIds[0] ?? "", { shouldDirty: false });
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [existing?.booking_id, existingBookingIds?.join(",")]);
+  });
+  const bookingIdsKey = existingBookingIds?.join(",") ?? "";
+  useEffect(() => {
+    hydrate();
+  }, [existing?.booking_id, bookingIdsKey, hydrate]);
+
 
   usePrefillEffect(() => {
     if (!sourceQuote || isEdit) return;
