@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useEffectEvent, useState } from "react";
 import { useCustomers, useCreateCustomer, useUpdateCustomer } from "../hooks/customers/useCustomers";
 import { Card, CardContent } from "@/components/ui/card";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
