@@ -2,8 +2,8 @@ import * as React from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cn } from "@/lib/utils";
 
-export const SidebarMenuSub = React.forwardRef<HTMLUListElement, React.ComponentProps<"ul">>(
-  ({ className, ...props }, ref) => (
+export const SidebarMenuSub = ({ className, ref, ...props }: React.ComponentProps<"ul"> & { ref?: React.Ref<HTMLUListElement> }) => {
+  return (
     <ul
       ref={ref}
       data-sidebar="menu-sub"
@@ -14,23 +14,22 @@ export const SidebarMenuSub = React.forwardRef<HTMLUListElement, React.Component
       )}
       {...props}
     />
-  ),
-);
+  );
+};
 SidebarMenuSub.displayName = "SidebarMenuSub";
 
-export const SidebarMenuSubItem = React.forwardRef<HTMLLIElement, React.ComponentProps<"li">>(
-  ({ ...props }, ref) => <li ref={ref} {...props} />,
-);
+export const SidebarMenuSubItem = ({ ref, ...props }: React.ComponentProps<"li"> & { ref?: React.Ref<HTMLLIElement> }) => {
+  return (
+    <li ref={ref} {...props} />
+  );
+};
 SidebarMenuSubItem.displayName = "SidebarMenuSubItem";
 
-export const SidebarMenuSubButton = React.forwardRef<
-  HTMLAnchorElement,
-  React.ComponentProps<"a"> & {
+export const SidebarMenuSubButton = ({ asChild = false, size = "md", isActive, className, ref, ...props }: React.ComponentProps<"a"> & {
     asChild?: boolean;
     size?: "sm" | "md";
     isActive?: boolean;
-  }
->(({ asChild = false, size = "md", isActive, className, ...props }, ref) => {
+  } & { ref?: React.Ref<HTMLAnchorElement> }) => {
   const Comp = asChild ? Slot : "a";
   return (
     <Comp
@@ -49,5 +48,5 @@ export const SidebarMenuSubButton = React.forwardRef<
       {...props}
     />
   );
-});
+};
 SidebarMenuSubButton.displayName = "SidebarMenuSubButton";

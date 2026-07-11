@@ -29,13 +29,10 @@ function useChart() {
   return context;
 }
 
-const ChartContainer = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentProps<"div"> & {
+const ChartContainer = ({ id, className, children, config, ref, ...props }: React.ComponentProps<"div"> & {
     config: ChartConfig;
     children: React.ComponentProps<typeof RechartsPrimitive.ResponsiveContainer>["children"];
-  }
->(({ id, className, children, config, ...props }, ref) => {
+  } & { ref?: React.Ref<HTMLDivElement> }) => {
   const uniqueId = React.useId();
   const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`;
 
@@ -55,7 +52,7 @@ const ChartContainer = React.forwardRef<
       </div>
     </ChartContext.Provider>
   );
-});
+};
 ChartContainer.displayName = "Chart";
 
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
@@ -120,25 +117,7 @@ type ChartTooltipContentProps =
     labelKey?: string;
   };
 
-const ChartTooltipContent = React.forwardRef<HTMLDivElement, ChartTooltipContentProps>(
-  (
-    {
-      active,
-      payload,
-      className,
-      indicator = "dot",
-      hideLabel = false,
-      hideIndicator = false,
-      label,
-      labelFormatter,
-      labelClassName,
-      formatter,
-      color,
-      nameKey,
-      labelKey,
-    },
-    ref,
-  ) => {
+const ChartTooltipContent = ({ active, payload, className, indicator = "dot", hideLabel = false, hideIndicator = false, label, labelFormatter, labelClassName, formatter, color, nameKey, labelKey, ref }: ChartTooltipContentProps & { ref?: React.Ref<HTMLDivElement> }) => {
     const { config } = useChart();
 
     const tooltipLabel = React.useMemo(() => {
@@ -242,8 +221,7 @@ const ChartTooltipContent = React.forwardRef<HTMLDivElement, ChartTooltipContent
         </div>
       </div>
     );
-  },
-);
+  };
 ChartTooltipContent.displayName = "ChartTooltip";
 
 const ChartLegend = RechartsPrimitive.Legend;
@@ -264,8 +242,7 @@ type ChartLegendContentProps =
     nameKey?: string;
   };
 
-const ChartLegendContent = React.forwardRef<HTMLDivElement, ChartLegendContentProps>(
-  ({ className, hideIcon = false, payload, verticalAlign = "bottom", nameKey }, ref) => {
+const ChartLegendContent = ({ className, hideIcon = false, payload, verticalAlign = "bottom", nameKey, ref }: ChartLegendContentProps & { ref?: React.Ref<HTMLDivElement> }) => {
   const { config } = useChart();
 
   if (!payload?.length) {
@@ -302,7 +279,7 @@ const ChartLegendContent = React.forwardRef<HTMLDivElement, ChartLegendContentPr
       })}
     </div>
   );
-});
+};
 ChartLegendContent.displayName = "ChartLegend";
 
 // Helper to extract item config from a payload.

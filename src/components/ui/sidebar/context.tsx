@@ -30,14 +30,21 @@ export function useSidebar(): SidebarContextValue {
   return context;
 }
 
-export const SidebarProvider = React.forwardRef<
-  HTMLDivElement,
-  React.ComponentProps<"div"> & {
-    defaultOpen?: boolean;
-    open?: boolean;
-    onOpenChange?: (open: boolean) => void;
-  }
->(({ defaultOpen = true, open: openProp, onOpenChange: setOpenProp, className, style, children, ...props }, ref) => {
+export const SidebarProvider = ({
+  defaultOpen = true,
+  open: openProp,
+  onOpenChange: setOpenProp,
+  className,
+  style,
+  children,
+  ref,
+  ...props
+}: React.ComponentProps<"div"> & {
+  defaultOpen?: boolean;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  ref?: React.Ref<HTMLDivElement>;
+}) => {
   const isMobile = useIsMobile();
   const [openMobile, setOpenMobile] = React.useState(false);
 
@@ -98,5 +105,6 @@ export const SidebarProvider = React.forwardRef<
       </TooltipProvider>
     </SidebarContext.Provider>
   );
-});
+};
 SidebarProvider.displayName = "SidebarProvider";
+

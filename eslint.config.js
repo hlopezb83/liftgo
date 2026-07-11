@@ -2,7 +2,9 @@ import js from "@eslint/js";
 import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
+import reactCompiler from "eslint-plugin-react-compiler";
 import tseslint from "typescript-eslint";
+
 
 export default tseslint.config(
   {
@@ -24,10 +26,18 @@ export default tseslint.config(
     plugins: {
       "react-hooks": reactHooks,
       "react-refresh": reactRefresh,
+      "react-compiler": reactCompiler,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      // React Compiler ESLint checks — habilitar cuando migremos a
+      // @vitejs/plugin-react + babel-plugin-react-compiler. Ya instalado como
+      // dependencia; se puede activar puntualmente con
+      //   /* eslint react-compiler/react-compiler: "warn" */
+      "react-compiler/react-compiler": "off",
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+
+
       "@typescript-eslint/no-unused-vars": "off",
       // === Power of 10 (LiftGo) — enforced ===
       // Tipado fuerte (regla 5/10): prohibido `any` y non-null assertion.

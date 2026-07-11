@@ -4,8 +4,8 @@ import { ChevronLeftIcon, ChevronRightIcon, MoreHorizontal } from "@/components/
 import { cn } from "@/lib/utils";
 import { ButtonProps, buttonVariants } from "@/components/ui/button";
 
-const Pagination = React.forwardRef<HTMLElement, React.ComponentProps<"nav">>(
-  ({ className, ...props }, ref) => (
+const Pagination = ({ className, ref, ...props }: React.ComponentProps<"nav"> & { ref?: React.Ref<HTMLElement> }) => {
+  return (
     <nav
       ref={ref}
       role="navigation"
@@ -13,20 +13,22 @@ const Pagination = React.forwardRef<HTMLElement, React.ComponentProps<"nav">>(
       className={cn("mx-auto flex w-full justify-center", className)}
       {...props}
     />
-  ),
-);
+  );
+};
 Pagination.displayName = "Pagination";
 
-const PaginationContent = React.forwardRef<HTMLUListElement, React.ComponentProps<"ul">>(
-  ({ className, ...props }, ref) => (
+const PaginationContent = ({ className, ref, ...props }: React.ComponentProps<"ul"> & { ref?: React.Ref<HTMLUListElement> }) => {
+  return (
     <ul ref={ref} className={cn("flex flex-row items-center gap-1", className)} {...props} />
-  ),
-);
+  );
+};
 PaginationContent.displayName = "PaginationContent";
 
-const PaginationItem = React.forwardRef<HTMLLIElement, React.ComponentProps<"li">>(({ className, ...props }, ref) => (
-  <li ref={ref} className={cn("", className)} {...props} />
-));
+const PaginationItem = ({ className, ref, ...props }: React.ComponentProps<"li"> & { ref?: React.Ref<HTMLLIElement> }) => {
+  return (
+    <li ref={ref} className={cn("", className)} {...props} />
+  );
+};
 PaginationItem.displayName = "PaginationItem";
 
 type PaginationLinkProps = {
@@ -34,8 +36,8 @@ type PaginationLinkProps = {
 } & Pick<ButtonProps, "size"> &
   React.ComponentProps<"a">;
 
-const PaginationLink = React.forwardRef<HTMLAnchorElement, PaginationLinkProps>(
-  ({ className, isActive, size = "icon", ...props }, ref) => (
+const PaginationLink = ({ className, isActive, size = "icon", ref, ...props }: PaginationLinkProps & { ref?: React.Ref<HTMLAnchorElement> }) => {
+  return (
     <a
       ref={ref}
       aria-current={isActive ? "page" : undefined}
@@ -48,28 +50,28 @@ const PaginationLink = React.forwardRef<HTMLAnchorElement, PaginationLinkProps>(
       )}
       {...props}
     />
-  ),
-);
+  );
+};
 PaginationLink.displayName = "PaginationLink";
 
-const PaginationPrevious = React.forwardRef<HTMLAnchorElement, React.ComponentProps<typeof PaginationLink>>(
-  ({ className, ...props }, ref) => (
+const PaginationPrevious = ({ className, ref, ...props }: React.ComponentProps<typeof PaginationLink> & { ref?: React.Ref<HTMLAnchorElement> }) => {
+  return (
     <PaginationLink ref={ref} aria-label="Ir a la página anterior" size="default" className={cn("gap-1 pl-2.5", className)} {...props}>
       <ChevronLeftIcon className="h-4 w-4" />
       <span>Anterior</span>
     </PaginationLink>
-  ),
-);
+  );
+};
 PaginationPrevious.displayName = "PaginationPrevious";
 
-const PaginationNext = React.forwardRef<HTMLAnchorElement, React.ComponentProps<typeof PaginationLink>>(
-  ({ className, ...props }, ref) => (
+const PaginationNext = ({ className, ref, ...props }: React.ComponentProps<typeof PaginationLink> & { ref?: React.Ref<HTMLAnchorElement> }) => {
+  return (
     <PaginationLink ref={ref} aria-label="Ir a la página siguiente" size="default" className={cn("gap-1 pr-2.5", className)} {...props}>
       <span>Siguiente</span>
       <ChevronRightIcon className="h-4 w-4" />
     </PaginationLink>
-  ),
-);
+  );
+};
 PaginationNext.displayName = "PaginationNext";
 
 const PaginationEllipsis = ({ className, ...props }: React.ComponentProps<"span">) => (
