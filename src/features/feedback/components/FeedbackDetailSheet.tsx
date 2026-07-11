@@ -50,7 +50,7 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <span className="font-mono text-sm">{report.folio}</span>
-            <FeedbackStatusBadge status={optimisticStatus} />
+            <FeedbackStatusBadge status={statusUpdate.optimisticStatus} />
           </SheetTitle>
         </SheetHeader>
 
