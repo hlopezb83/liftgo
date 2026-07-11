@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
-import { positiveAmount } from "@/lib/schemas/common";
+import { positiveAmount } from "@/lib/schemas";
 import { parseISO } from "date-fns";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { roundMoney } from "@/lib/money";

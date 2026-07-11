@@ -1,86 +1,49 @@
-# Auditoría de la implementación de Zod 4
+# Auditoría de Zod — Estado actual
 
-**Veredicto general:** limpia y consistente para un ERP de este tamaño. La migración está completa (0 usos de `required_error` / `invalid_type_error` / `errorMap:` / `.deepPartial()` / `.nonempty()` en el frontend), todos los formularios pasan por el wrapper único `@/lib/forms/zodResolver`, y hay una capa de schemas compartidos en `src/lib/schemas/common.ts` con tests. **No** está "top of the line" todavía: quedan 3 inconsistencias reales y ~5 oportunidades de pulido. Ninguna es crítica.
+Ejecuté un barrido completo sobre `src/` y `supabase/functions/`. **La implementación está limpia y alineada con Zod 4.** Sólo detecté 3 mejoras cosméticas (todas LOW). No hay bugs ni deuda técnica real.
 
----
+## Resultados del barrido
 
-## Lo que está bien
+| Chequeo | Resultado |
+|---|---|
+| `zod` instalado | ✅ `4.4.3` |
+| `@hookform/resolvers` | ✅ `5.4.0` |
+| Edge functions con Zod en v4 | ✅ 1/1 (`classify-feedback-report@4.4.3`) |
+| APIs eliminadas (`required_error`, `invalid_type_error`, `errorMap:`, `.deepPartial()`, `.nonempty()`, `z.function()`) | ✅ 0 usos |
+| `.flatten()` deprecado | ✅ 0 usos (migrado a `z.treeifyError`) |
+| `z.string().uuid()/.email()/.url()/.datetime()` (deprecados en v4) | ✅ 0 usos |
+| Imports directos a `@hookform/resolvers/zod` | ✅ Sólo el wrapper `src/lib/forms/zodResolver.ts` |
+| Locale es-MX global | ✅ `z.config(z.locales.es())` en `zodConfig.ts` |
+| Barrel `@/lib/schemas` disponible | ✅ Creado |
+| Tests | ✅ 843/843 verdes |
 
-- **1 sólo wrapper de resolver** (`src/lib/forms/zodResolver.ts`); ningún archivo importa `@hookform/resolvers/zod` directo.
-- **APIs deprecadas de v3 = 0** en `src/`. Todo migrado a `error: '...'`.
-- **Schemas compartidos** en `src/lib/schemas/common.ts`: `optionalEmail`, `rfcRequired`, `rfcOptional`, `clabeOptional`, `positiveAmount` — todos como fábricas (composables).
-- **Tests de contrato** en `schemas.common.test.ts` (26 casos) y `accounts-payable/__tests__/schemas.zodResolver.test.ts` (22 casos).
-- **37 archivos** consumen Zod, con patrón uniforme (`z.object({...})` + `type X = z.infer<typeof schema>`).
+## Hallazgos (LOW)
 
----
+**H1 — `useSupplierBillForm.ts` todavía usa `z.coerce.number()` ad-hoc**
+Líneas 19-23: 5 campos declarados como `z.coerce.number().nonnegative(...)` en vez de las fábricas `positiveAmountCoerced()` / `nonNegativeAmountCoerced()` que introdujimos en `v7.8.0`.
+- Impacto: inconsistencia con el catálogo DRY. Mensajes de error no unificados.
+- Fix: sustituir por los helpers de `@/lib/schemas`.
 
-## Hallazgos — ordenados por severidad
+**H2 — Barrel `@/lib/schemas` sub-utilizado**
+9 archivos importan de `@/lib/schemas/common` directo vs 2 del barrel. El barrel existe pero no se está adoptando.
+- Impacto: convención inconsistente; si mañana subdividimos `common.ts` habrá que tocar los 9.
+- Fix: reemplazar los 9 imports por el barrel `@/lib/schemas`.
 
-### 🔴 HIGH — Edge Function fuera de sincronía
+**H3 — `z.ZodTypeAny` en 2 tests**
+`domain-schemas.test.ts:19` y `schemas.zodResolver.test.ts:19`. `ZodTypeAny` sigue funcionando en v4 pero la guía oficial recomienda `z.ZodType` genérico.
+- Impacto: cosmético.
+- Fix: sustituir por `z.ZodType`.
 
-**1. `supabase/functions/classify-feedback-report/index.ts:1**` — Sigue en `zod@3.23.8` vía CDN y usa `parsed.error.flatten()` (deprecado). Es la **única** función edge que valida con Zod hoy; queda como isla de v3.
+## Plan de ejecución
 
-- Fix: subir a `zod@4` (esm.sh) y cambiar `flatten()` por `z.treeifyError()`. Riesgo: cambia la forma del payload de error que se loguea.
+1. **H1** — `src/features/accounts-payable/hooks/useSupplierBillForm.ts`: importar `positiveAmountCoerced` y `nonNegativeAmountCoerced` desde `@/lib/schemas` y reemplazar las 5 líneas ad-hoc. Correr `schemas.zodResolver.test.ts` para confirmar contrato intacto.
+2. **H2** — Reemplazar los 9 imports `from "@/lib/schemas/common"` por `from "@/lib/schemas"`.
+3. **H3** — Sustituir `z.ZodTypeAny` por `z.ZodType` en los 2 tests.
+4. Verificación final: `tsgo` + ESLint + Vitest completo.
+5. Changelog `v7.8.1` (patch) documentando los tres ajustes.
 
-### 🟠 MEDIUM — Inconsistencias reales
+## Sección técnica
 
-**2. `src/lib/schemas/common.ts:27**` — `optionalEmail` usa `z.string().email()` (v3-style, deprecado en v4 en favor de `z.email()` como validador top-level más rápido y con mejor tree-shaking).
+Estimado: **< 50 LOC modificadas**, todo cambio superficial. Sin riesgo funcional: los tipos derivados (`z.infer`) se preservan porque las fábricas devuelven exactamente el mismo `ZodNumber` con `coerce`. La suite de 22 tests de `schemas.zodResolver.test.ts` cubre precisamente el pipeline coerce→positive/nonnegative usado en `useSupplierBillForm`.
 
-- Fix: `z.email().safeParse(v)` o directamente `z.email().or(z.literal(""))`. Bajo riesgo, misma semántica.
-
-**3. Duplicación de `clabeOptional**` — `src/features/suppliers/components/suppliers/SupplierBankAccountFormDialog.tsx:36` reimplementa el refine de CLABE con mensaje propio en lugar de usar `clabeOptional()` de `common.ts`. Rompe DRY.
-
-- Fix: reemplazar por `clabeOptional()` o exponer variante con mensaje custom.
-
-**4. Postura numérica inconsistente**
-
-- `useSupplierBillForm.ts:19-23` usa `z.coerce.number()` para 5 campos.
-- `partFormSchema.ts:7-9` usa `z.coerce.number({ error })`.
-- `positiveAmount()` en `common.ts` **explícitamente evita coerce** (comentario lo justifica), pero no hay una fábrica hermana `positiveAmountCoerced()` para casos donde el input viene como string.
-- Resultado: cada feature decide su propio estilo; el newcomer no sabe cuál usar.
-- Fix: definir 2 fábricas hermanas en `common.ts` (`positiveAmount`, `nonNegativeNumberCoerced`) y documentar cuándo usar cada una.
-
-**5. Mezcla de `z.input<>` vs `z.infer<>**` — 9 componentes usan `z.input<typeof schema>` (RejectBillDialog, ReportTransferDialog, BankAccountFormDialog, etc.) y el resto usa `z.infer<>`. Es correcto en ambos casos (los que usan `.transform().pipe()` necesitan `z.input`), pero no está documentado ni obvio para el próximo desarrollador.
-
-- Fix: comentario en `zodResolver.ts` con la regla ("usa `z.input` si tu schema tiene `.transform()`/`.pipe()`/`.default()` y quieres los tipos del formulario; `z.infer` (=`z.output`) para el payload post-validación").
-
-### 🟡 LOW — Pulido / "top of the line"
-
-**6. Sin `z.config(z.locales.es())**` — Zod 4 trae locales built-in con mensajes traducidos. Todo mensaje hoy está hardcoded en español por schema (~200 strings). Configurar el locale global reduce ~30% de mensajes redundantes.
-
-- Fix: `import { es } from "zod/locales"; z.config({ locale: es() });` en `src/main.tsx`. Riesgo: algunos mensajes cambian de wording exacto — hay que revisar formularios visualmente o dejar overrides puntuales.
-
-**7. Wrapper `zodResolver` usa `schema: any**` — El cast a `Resolver<Values>` funciona, pero perdemos inferencia si algún día alguien quiere `useForm<z.input, ctx, z.output>` (patrón recomendado por hookform para v4).
-
-- Fix opcional: exponer segunda firma `zodResolverStrict<Schema>()` que preserve `Input/Output` para nuevos formularios que quieran adoptar el patrón moderno, sin romper los ~40 existentes.
-
-**8. Sin barrel `src/lib/schemas/index.ts**` — Cada consumidor importa desde `@/lib/schemas/common`. Un barrel permitiría subdividir sin romper imports (ej: `common`, `money`, `fiscal`).
-
-- Fix: crear `index.ts` que re-exporta y opcionalmente romper `common.ts` en `fiscal.ts` (RFC/CLABE), `contact.ts` (email), `money.ts` (positiveAmount).
-
-**9. Cobertura de tests parcial** — Sólo `common.ts` + 2 schemas de AP tienen tests. Los otros ~15 schemas de dominio (bookings, quotes, invoices, deliveries, returns, damage, feedback, operations, customers, suppliers, forklift, part, maintenance, CRM Close*, portal) validan sólo en producción vía RHF.
-
-- Fix: añadir suite genérica que itere sobre schemas exportados y valide `{ valid, invalid }` fixtures — patrón table-driven. Sirve también como documentación viva.
-
-**10. `zodResolver.ts` — comentario source-map obsoleto** — El header dice "renombramos la import para evitar ambigüedad con nuestro export homónimo (algunas cadenas de source-map fusionaban ambos frames)". Ese bug ya no aplica en resolvers 5.x + Vite 5.
-
-- Fix: limpiar comentario, dejar sólo la justificación del cast Input↔Output.
-
----
-
-## Recomendación de sprint
-
-Si querés cerrar la migración al 100% "clean", ejecutar en este orden:
-
-1. **HIGH #1** — actualizar edge function a Zod 4 (10 min).
-2. **MEDIUM #2, #3, #4** — 3 fixes puntuales, ~30 min total.
-3. **LOW #6** — probar `z.locales.es()` en una rama y validar formularios (1-2 h).
-4. **LOW #8, #9, #10** — refactor cosmético (1 h).
-
-**Tiempo total estimado:** ~3-4 horas. Nada bloqueante, todo es pulido para dejar la implementación en estado "referencia".
-
----
-
-**Nada de esto se implementa aún** — es sólo la auditoría. Decime cuáles hallazgos querés que ataque y en qué orden.
-
-Vamos a corregir todos los a hallazgos
+¿Ejecuto los tres ajustes o prefieres que sólo aplique H1 (el único con valor DRY real) y deje H2/H3 como convenciones opcionales?

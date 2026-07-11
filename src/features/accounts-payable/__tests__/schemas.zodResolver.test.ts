@@ -16,7 +16,7 @@ import { supplierBillFormSchema } from "../hooks/useSupplierBillForm";
 import { supplierPaymentSchema } from "../lib/supplierPaymentSchema";
 
 // Utilidad: invoca el resolver como lo hace RHF (values, context, options).
-async function runResolver<T extends z.ZodTypeAny>(
+async function runResolver<T extends z.ZodType>(
   schema: T,
   values: unknown,
 ) {

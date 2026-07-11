@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
-import { positiveAmount } from "@/lib/schemas/common";
+import { positiveAmount } from "@/lib/schemas";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Form, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";

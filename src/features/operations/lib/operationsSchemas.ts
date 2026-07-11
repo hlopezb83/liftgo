@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { rfcRequired } from "@/lib/schemas/common";
+import { rfcRequired } from "@/lib/schemas";
 
 export const fiscalSchema = z.object({
   rfc: rfcRequired(),

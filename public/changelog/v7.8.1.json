@@ -1,0 +1,46 @@
+{
+  "version": "7.8.1",
+  "date": "2026-07-11",
+  "type": "patch",
+  "title": "Zod 4 — Pulido post-auditoría (H1/H2/H3)",
+  "sections": [
+    {
+      "heading": "Auditoría — resultado",
+      "items": [
+        "Zod 4.4.3 + @hookform/resolvers 5.4.0 confirmados.",
+        "0 APIs deprecadas (required_error, invalid_type_error, errorMap:, .flatten(), z.string().uuid/email/url/datetime, .deepPartial, .nonempty, z.function).",
+        "Único import de @hookform/resolvers/zod = el wrapper src/lib/forms/zodResolver.ts.",
+        "Edge function classify-feedback-report ya en Zod 4.4.3."
+      ]
+    },
+    {
+      "heading": "H1 — Coerción unificada en Cuentas por Pagar",
+      "items": [
+        "useSupplierBillForm.ts: exchange_rate → positiveAmountCoerced('Tipo de cambio inválido').default(1).",
+        "subtotal / tax_amount / retention_iva / retention_isr → nonNegativeAmountCoerced() con mensajes propios.",
+        "Elimina 5 usos ad-hoc de z.coerce.number() y homologa el catálogo DRY."
+      ]
+    },
+    {
+      "heading": "H2 — Barrel adoptado",
+      "items": [
+        "9 archivos migrados de '@/lib/schemas/common' → '@/lib/schemas' (customers, suppliers, accounts-payable, portal, operations, crm, invoices).",
+        "Permite subdividir common.ts sin refactor global."
+      ]
+    },
+    {
+      "heading": "H3 — Tipos genéricos modernos",
+      "items": [
+        "z.ZodTypeAny → z.ZodType en domain-schemas.test.ts y schemas.zodResolver.test.ts."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "tsgo --noEmit OK.",
+        "ESLint 0 warnings.",
+        "843/843 tests verdes."
+      ]
+    }
+  ]
+}

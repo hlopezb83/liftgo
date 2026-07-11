@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { CLABE_REGEX, isValidClabe } from "@/lib/schemas/common";
+import { CLABE_REGEX, isValidClabe } from "@/lib/schemas";
 import { supplierBankAccountKeys } from "../lib/queryKeys";
 import type { Database } from "@/integrations/supabase/types";
 

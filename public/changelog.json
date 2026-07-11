@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.8.1",
+    "date": "2026-07-11",
+    "type": "patch",
+    "title": "Zod 4 — Pulido post-auditoría (H1/H2/H3)",
+    "description": "Auditoría de seguimiento sin bugs detectados. Se aplicaron 3 ajustes cosméticos: (H1) useSupplierBillForm ahora consume positiveAmountCoerced() y nonNegativeAmountCoerced() en vez de z.coerce.number() ad-hoc, unificando mensajes de error (exchange_rate, subtotal, tax_amount, retention_iva, retention_isr); (H2) los 9 imports directos a @/lib/schemas/common migrados al barrel @/lib/schemas para blindar futuras subdivisiones; (H3) z.ZodTypeAny → z.ZodType en las 2 suites de tests. Verificación: tsgo OK, ESLint 0 warnings, 843/843 tests verdes.",
+    "category": "improvement"
+  },
+  {
     "version": "7.8.0",
     "date": "2026-07-11",
     "type": "minor",
