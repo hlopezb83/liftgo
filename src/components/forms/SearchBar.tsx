@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useEffectEvent, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { Input } from "@/components/ui/input";
 import { SearchIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+
 
 interface SearchBarProps {
   value: string;
