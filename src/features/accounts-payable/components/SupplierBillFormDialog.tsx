@@ -37,13 +37,14 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
   const cfdi = useImportSupplierBillCfdi();
   const [importedValues, setImportedValues] = useState<SupplierBillFormOverrides | undefined>(undefined);
 
+  const resetOnClose = useEffectEvent(() => {
+    cfdi.reset();
+    setImportedValues(undefined);
+  });
   useEffect(() => {
-    if (!open) {
-      cfdi.reset();
-      setImportedValues(undefined);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+    if (!open) resetOnClose();
+  }, [open, resetOnClose]);
+
 
   const activeOverrides = overrides ?? importedValues;
   const { form, selectedSupplier, suggestedDueDate, total, isPending, onSubmit } =
