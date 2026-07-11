@@ -1,0 +1,8 @@
+{
+  "version": "7.9.0",
+  "date": "2026-07-11",
+  "type": "minor",
+  "title": "Registry central de íconos (lucide-react)",
+  "description": "Auditoría de lucide-react + refactor completo. Nuevo módulo src/components/icons/ con (1) index.ts que expone 33 aliases semánticos canónicos (DeleteIcon, EditIcon, AddIcon, SuccessIcon, WarnIcon, ErrorIcon, SpinnerIcon, FleetIcon, MaintenanceIcon, etc.) y re-exporta el resto de lucide-react preservando tree-shaking, y (2) Icon.tsx wrapper con escala tokenizada xs/sm/md/lg/xl (12/16/20/24/32 px) y strokeWidth 1.75 por default (estética industrial premium). Migración masiva vía script: 246 archivos ahora importan desde '@/components/icons' en vez de 'lucide-react' directamente. Nueva regla ESLint no-restricted-imports bloquea futuros imports directos fuera del registry. Chunk 'icons' del bundle: 10.22 KB gzip. Verificación: tsgo OK, ESLint 0 warnings, 843/843 tests verdes.",
+  "category": "improvement"
+}
