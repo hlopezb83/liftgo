@@ -1,0 +1,33 @@
+{
+  "version": "7.6.0",
+  "date": "2026-07-11",
+  "type": "minor",
+  "title": "Dependency Hygiene: actualización masiva de dependencias safe",
+  "category": "improvement",
+  "summary": "Se actualizan 31 dependencias npm a su última minor/patch sin breaking changes conocidos, reduciendo deuda técnica y superficie de vulnerabilidades.",
+  "changes": [
+    {
+      "type": "changed",
+      "title": "Batch A: Radix UI primitives",
+      "description": "16 dependencias @radix-ui/react-* actualizadas a sus últimos parches/menores (ej. react-dialog 1.1.17→1.1.19, react-dropdown-menu 2.1.18→2.1.20, react-select 2.3.2→2.3.3)."
+    },
+    {
+      "type": "changed",
+      "title": "Batch B: producción",
+      "description": "@sentry/react 10.64→10.65, @supabase/supabase-js 2.108→2.110, @tanstack/react-query 5.101.1→5.101.2, @tanstack/react-virtual 3.14.4→3.14.5, react-hook-form 7.80→7.81, recharts 3.8→3.9."
+    },
+    {
+      "type": "changed",
+      "title": "Batch B: desarrollo",
+      "description": "@eslint/js 9.39.4→9.39.5, @sentry/vite-plugin 5.3→5.4, @types/node 22.20.0→22.20.1, @vitest/coverage-v8 4.0.18→4.1.10, eslint 9.39.4→9.39.5, knip 6.22→6.26, lovable-tagger 1.3.0→1.3.1, postcss 8.5.15→8.5.16, typescript-eslint 8.62→8.63, vitest 4.1.9→4.1.10."
+    },
+    {
+      "type": "verified",
+      "title": "Verificación completa",
+      "description": "Typecheck OK, ESLint 0 errores / 0 warnings, 804/804 tests pasan, build de producción OK, npm audit sin vulnerabilidades altas ni críticas."
+    }
+  ],
+  "notes": [
+    "Las actualizaciones major (Tailwind 4, Vite 8, React Router 7, Zod 4, Sonner 2, @hookform/resolvers 5, date-fns 4, lucide-react 1, react-day-picker 10, eslint 10, typescript 7) quedan fuera de este scope por requerir migraciones con breaking changes."
+  ]
+}
