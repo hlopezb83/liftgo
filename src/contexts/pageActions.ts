@@ -40,6 +40,9 @@ export function usePageActions(actions: PageActions): void {
   useEffect(() => {
     if (!register) return;
     return register({ newLabel, onNew, onRefresh });
+    // `onNew` y `onRefresh` son useEffectEvent (estables por contrato, no deben
+    // listarse). El linter aún no los detecta automáticamente en imports named.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [register, newLabel]);
 }
 

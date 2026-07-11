@@ -17,6 +17,9 @@ export function usePrefillEffect(effect: () => void, deps: unknown[]) {
   const run = useEffectEvent(effect);
   useEffect(() => {
     run();
-    // `run` es estable por contrato de useEffectEvent; sólo dependemos de `deps`.
+    // `deps` es un spread del caller — el linter no puede validarlo estáticamente
+    // y `run` es estable por contrato de useEffectEvent (no debe listarse en deps).
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 }
+
