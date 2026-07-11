@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.16.0",
+    "date": "2026-07-11",
+    "type": "minor",
+    "title": "React Compiler activo en build de producción",
+    "description": "Fase A del Lote 5 de modernización. Swap del pipeline de Vite: `@vitejs/plugin-react-swc` → `@vitejs/plugin-react@4` con `babel-plugin-react-compiler` configurado en `target: 19`. El compilador auto-memoiza componentes y hooks que cumplen las Reglas de React (elimina `useMemo`/`useCallback`/`React.memo` innecesarios en tiempo de compilación); los archivos que las violan se dejan intactos con bail-out silencioso — el linter `react-compiler/react-compiler` ya activo desde v7.15.0 marca esos casos como warnings informativos para pulido futuro. Vitest se mantiene con `@vitejs/plugin-react` puro (sin compiler) para no penalizar el tiempo de transformación en jsdom. Build de producción: 43s, 913/913 tests OK, dev server sano.",
+    "category": "improvement"
+  },
+  {
     "version": "7.15.0",
     "date": "2026-07-11",
     "type": "minor",
