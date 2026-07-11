@@ -1,11 +1,14 @@
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react-swc";
+import react from "@vitejs/plugin-react";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { visualizer } from "rollup-plugin-visualizer";
 
 // https://vitejs.dev/config/
 // ANALYZE=1 bun run build → generates /tmp/bundle-stats.html for bundle audits.
+// React Compiler (babel-plugin-react-compiler) auto-memoiza componentes y hooks
+// que cumplen las reglas de React; los que las violan quedan intactos (bail-out
+// silencioso). El linter `react-compiler/react-compiler` marca esos bail-outs.
 export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
@@ -15,7 +18,11 @@ export default defineConfig(({ mode }) => ({
     },
   },
   plugins: [
-    react(),
+    react({
+      babel: {
+        plugins: [["babel-plugin-react-compiler", { target: "19" }]],
+      },
+    }),
     mode === "development" && componentTagger(),
     process.env.ANALYZE === "1" &&
       visualizer({
@@ -25,6 +32,7 @@ export default defineConfig(({ mode }) => ({
         brotliSize: false,
       }),
   ].filter(Boolean),
+
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
