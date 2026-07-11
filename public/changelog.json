@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.14.0",
+    "date": "2026-07-11",
+    "type": "minor",
+    "title": "React 19: providers usan `<Context>` directo sin `.Provider`",
+    "description": "Lote 4 de la modernización a React 19. Los tres contexts propios de la app (AuthContext, PageActionsContext, ConfirmProvider) migran a la nueva sintaxis JSX de React 19 en la que el propio Context es el Provider: `<AuthContext value={value}>` en lugar de `<AuthContext.Provider value={value}>`. Se conserva `createContext` para el descriptor y `useContext` para el consumo; sólo cambia el sitio de render. Efectos revisados uno por uno: `AuthProvider` mantiene cleanup del `subscription.unsubscribe()`, `usePullToRefresh`/`use-mobile`/`useDebouncedValue` ya tienen cleanup correcto y `usePageActions` sigue reflejando callbacks vía ref para no re-registrar en cada render. tsgo OK · 0 warnings.",
+    "category": "improvement"
+  },
+  {
     "version": "7.13.0",
     "date": "2026-07-11",
     "type": "minor",

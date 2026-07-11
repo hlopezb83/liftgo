@@ -43,7 +43,7 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
   const value = useMemo(() => confirm, [confirm]);
 
   return (
-    <ConfirmContext.Provider value={value}>
+    <ConfirmContext value={value}>
       {children}
       <ConfirmDialog
         open={state.open}
@@ -57,6 +57,6 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
         destructive={state.destructive}
         onConfirm={() => settle(true)}
       />
-    </ConfirmContext.Provider>
+    </ConfirmContext>
   );
 }

@@ -81,7 +81,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [user, session, isLoading, signUp, signIn, signOut, resetPassword, updatePassword],
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  // React 19: `<Context>` como Provider directo, sin `.Provider`.
+  return <AuthContext value={value}>{children}</AuthContext>;
 }
 
 
