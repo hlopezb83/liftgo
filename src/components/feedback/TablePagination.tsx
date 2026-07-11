@@ -73,5 +73,3 @@ export function TablePagination({ page, totalPages, onPageChange }: TablePaginat
     </Pagination>
   );
 }
-
-export const TablePagination = memo(TablePaginationInner);
