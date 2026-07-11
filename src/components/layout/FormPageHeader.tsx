@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { Button } from "@/components/ui/button";
 import { BackIcon } from "@/components/icons";
 import { PageHeader } from "./PageHeader";
@@ -15,7 +15,7 @@ interface FormPageHeaderProps {
  * dedicado cuando se necesita un callback personalizado (no solo `navigate(-1)`).
  */
 export function FormPageHeader({ title, subtitle, onBack }: FormPageHeaderProps) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const handleBack = onBack ?? (() => navigate(-1));
   return (
     <div className="flex items-start gap-2">
