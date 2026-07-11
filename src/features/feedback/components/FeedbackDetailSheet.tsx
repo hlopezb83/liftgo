@@ -109,13 +109,14 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
 
           <FeedbackStatusChanger
             currentStatus={report.status}
-            newStatus={newStatus}
-            onNewStatusChange={setNewStatus}
-            comment={comment}
-            onCommentChange={setComment}
-            onApply={handleApply}
-            pending={update.isPending}
+            newStatus={statusUpdate.newStatus}
+            onNewStatusChange={statusUpdate.setNewStatus}
+            comment={statusUpdate.comment}
+            onCommentChange={statusUpdate.setComment}
+            onApply={statusUpdate.apply}
+            pending={statusUpdate.pending}
           />
+
 
 
           <Separator />
