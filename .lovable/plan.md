@@ -1,75 +1,86 @@
-# Migración a Zod 4
+# Auditoría de la implementación de Zod 4
 
-## Alcance
-- `zod` `^3.25.76` → `^4.x` en el proyecto frontend y en las Edge Functions.
-- 36 archivos usan `zod` directamente. La superficie de API "riesgosa" es acotada:
-  - **9** usos de `invalid_type_error` / `required_error` (API de mensajes deprecada en v4).
-  - **3** usos de `.transform(...).pipe(...)` (patrón que cambia en v4).
-  - `.brand()` no se usa. `z.record()` no se usa. `errorMap` global no se usa.
-  - `ZodError.issues` (lo que ya leemos en `errorDetailsExtract.ts`) sigue siendo la forma oficial en v4 ✅.
-- `@hookform/resolvers` `^3.10` es compatible con Zod 4 vía `zodResolver` sin cambios.
+**Veredicto general:** limpia y consistente para un ERP de este tamaño. La migración está completa (0 usos de `required_error` / `invalid_type_error` / `errorMap:` / `.deepPartial()` / `.nonempty()` en el frontend), todos los formularios pasan por el wrapper único `@/lib/forms/zodResolver`, y hay una capa de schemas compartidos en `src/lib/schemas/common.ts` con tests. **No** está "top of the line" todavía: quedan 3 inconsistencias reales y ~5 oportunidades de pulido. Ninguna es crítica.
 
-## Cambios clave que introduce Zod 4
-1. `invalid_type_error` / `required_error` se reemplazan por la nueva API `{ error: (issue) => "..." }` o por `.refine`/mensajes en cada validador.
-2. `.transform(...).pipe(schema)` sigue existiendo, pero la forma canónica pasa a ser `z.pipe(input, output)` o encadenar directo; hay que verificar que la inferencia de tipos siga correcta.
-3. `z.string().email()` y otros validadores string ahora son subtipos (`z.email()`), pero `.email()` sigue funcionando como shortcut compatible.
-4. `ZodError.errors` → renombrado a `.issues` (ya usamos `.issues`).
-5. `.default()` ahora es sólo para input, la salida es siempre requerida (impacta tipos `z.infer`, no comportamiento runtime).
+---
 
-## Plan de ejecución
+## Lo que está bien
 
-### Paso 1 — Instalar y compilar
-- Actualizar `zod` a `^4.0.0` en `package.json` y correr `bun install`.
-- Ejecutar `tsgo` y capturar la lista completa de errores de tipos.
+- **1 sólo wrapper de resolver** (`src/lib/forms/zodResolver.ts`); ningún archivo importa `@hookform/resolvers/zod` directo.
+- **APIs deprecadas de v3 = 0** en `src/`. Todo migrado a `error: '...'`.
+- **Schemas compartidos** en `src/lib/schemas/common.ts`: `optionalEmail`, `rfcRequired`, `rfcOptional`, `clabeOptional`, `positiveAmount` — todos como fábricas (composables).
+- **Tests de contrato** en `schemas.common.test.ts` (26 casos) y `accounts-payable/__tests__/schemas.zodResolver.test.ts` (22 casos).
+- **37 archivos** consumen Zod, con patrón uniforme (`z.object({...})` + `type X = z.infer<typeof schema>`).
 
-### Paso 2 — Refactor de APIs deprecadas (antes de tocar tests)
-Archivos a editar:
-- `src/lib/schemas/common.ts` — reemplazar `z.number({ invalid_type_error })` por firma v4.
-- `src/features/deliveries/lib/deliveryFormSchema.ts`
-- `src/features/portal/components/ReportTransferDialog.tsx`
-- `src/features/bank-reconciliation/components/BankAccountFormDialog.tsx`
-- `src/features/accounts-payable/hooks/useSupplierBillForm.ts`
-- `src/features/crm/components/CloseWonDialog.tsx`
-- `src/features/inventory/lib/partFormSchema.ts` (3 ocurrencias)
+---
 
-Patrón de reemplazo:
-```ts
-// Antes (v3)
-z.date({ required_error: "Fecha requerida" })
-z.number({ invalid_type_error: "Monto inválido" })
+## Hallazgos — ordenados por severidad
 
-// Después (v4)
-z.date({ error: (iss) => iss.input === undefined ? "Fecha requerida" : "Fecha inválida" })
-z.number({ error: "Monto inválido" })
-```
+### 🔴 HIGH — Edge Function fuera de sincronía
 
-### Paso 3 — Revisar `.transform().pipe()`
-- `src/lib/schemas/common.ts` (rfc: `.transform().pipe(z.string().regex(...))`)
-- `src/features/invoices/components/invoice-detail/PaymentIntentsSection.tsx`
-- `src/features/accounts-payable/components/SupplierPaymentRejectDialog.tsx`
-- `src/features/accounts-payable/components/RejectBillDialog.tsx`
+**1. `supabase/functions/classify-feedback-report/index.ts:1**` — Sigue en `zod@3.23.8` vía CDN y usa `parsed.error.flatten()` (deprecado). Es la **única** función edge que valida con Zod hoy; queda como isla de v3.
 
-Verificar que la inferencia de `z.infer<>` siga siendo `string` y que el resolver de RHF reciba el tipo correcto. Si hay ruido de tipos, migrar a:
-```ts
-z.string().min(3).transform(v => v.trim().toUpperCase()).refine(v => RFC_REGEX.test(v), "...")
-```
+- Fix: subir a `zod@4` (esm.sh) y cambiar `flatten()` por `z.treeifyError()`. Riesgo: cambia la forma del payload de error que se loguea.
 
-### Paso 4 — Compilar iterativamente
-- `tsgo` hasta 0 errores.
-- Ajustar cualquier `z.infer` que quede desalineado por el cambio de `.default()` en v4 (usualmente basta con `z.infer<typeof s>` → `z.input<typeof s>` en el lado del formulario RHF si aparece un mismatch de tipos).
+### 🟠 MEDIUM — Inconsistencias reales
 
-### Paso 5 — Verificación
-- `bun run lint` (0 warnings — no romper el barrido reciente).
-- `bunx vitest run` (804 tests deben seguir pasando).
-- Smoke manual: abrir 2 formularios representativos (SupplierBill y Booking) en el preview y validar mensajes de error.
+**2. `src/lib/schemas/common.ts:27**` — `optionalEmail` usa `z.string().email()` (v3-style, deprecado en v4 en favor de `z.email()` como validador top-level más rápido y con mejor tree-shaking).
 
-### Paso 6 — Changelog
-- `public/changelog.json` + `public/changelog/v7.7.0.json` con nota **major dependency bump** describiendo Zod 4.
+- Fix: `z.email().safeParse(v)` o directamente `z.email().or(z.literal(""))`. Bajo riesgo, misma semántica.
 
-## Riesgos
-- **Bajo/Medio**: la superficie con APIs realmente removidas es chica (≤15 archivos). El mayor riesgo es que algún `z.infer` cambie de shape por el nuevo tratamiento de `.default()`, lo que se detecta directo en `tsgo`.
-- **Edge Functions (Deno)**: usan `zod` desde `deno.json`/`import_map`. Hay que subir también la versión ahí; el cambio es idéntico al del front.
+**3. Duplicación de `clabeOptional**` — `src/features/suppliers/components/suppliers/SupplierBankAccountFormDialog.tsx:36` reimplementa el refine de CLABE con mensaje propio en lugar de usar `clabeOptional()` de `common.ts`. Rompe DRY.
 
-## Fuera de alcance
-- Migración a `z.email()` / `z.uuid()` como top-level (opcional, no breaking en v4).
-- Cambios de estilo o refactors DRY adicionales.
+- Fix: reemplazar por `clabeOptional()` o exponer variante con mensaje custom.
+
+**4. Postura numérica inconsistente**
+
+- `useSupplierBillForm.ts:19-23` usa `z.coerce.number()` para 5 campos.
+- `partFormSchema.ts:7-9` usa `z.coerce.number({ error })`.
+- `positiveAmount()` en `common.ts` **explícitamente evita coerce** (comentario lo justifica), pero no hay una fábrica hermana `positiveAmountCoerced()` para casos donde el input viene como string.
+- Resultado: cada feature decide su propio estilo; el newcomer no sabe cuál usar.
+- Fix: definir 2 fábricas hermanas en `common.ts` (`positiveAmount`, `nonNegativeNumberCoerced`) y documentar cuándo usar cada una.
+
+**5. Mezcla de `z.input<>` vs `z.infer<>**` — 9 componentes usan `z.input<typeof schema>` (RejectBillDialog, ReportTransferDialog, BankAccountFormDialog, etc.) y el resto usa `z.infer<>`. Es correcto en ambos casos (los que usan `.transform().pipe()` necesitan `z.input`), pero no está documentado ni obvio para el próximo desarrollador.
+
+- Fix: comentario en `zodResolver.ts` con la regla ("usa `z.input` si tu schema tiene `.transform()`/`.pipe()`/`.default()` y quieres los tipos del formulario; `z.infer` (=`z.output`) para el payload post-validación").
+
+### 🟡 LOW — Pulido / "top of the line"
+
+**6. Sin `z.config(z.locales.es())**` — Zod 4 trae locales built-in con mensajes traducidos. Todo mensaje hoy está hardcoded en español por schema (~200 strings). Configurar el locale global reduce ~30% de mensajes redundantes.
+
+- Fix: `import { es } from "zod/locales"; z.config({ locale: es() });` en `src/main.tsx`. Riesgo: algunos mensajes cambian de wording exacto — hay que revisar formularios visualmente o dejar overrides puntuales.
+
+**7. Wrapper `zodResolver` usa `schema: any**` — El cast a `Resolver<Values>` funciona, pero perdemos inferencia si algún día alguien quiere `useForm<z.input, ctx, z.output>` (patrón recomendado por hookform para v4).
+
+- Fix opcional: exponer segunda firma `zodResolverStrict<Schema>()` que preserve `Input/Output` para nuevos formularios que quieran adoptar el patrón moderno, sin romper los ~40 existentes.
+
+**8. Sin barrel `src/lib/schemas/index.ts**` — Cada consumidor importa desde `@/lib/schemas/common`. Un barrel permitiría subdividir sin romper imports (ej: `common`, `money`, `fiscal`).
+
+- Fix: crear `index.ts` que re-exporta y opcionalmente romper `common.ts` en `fiscal.ts` (RFC/CLABE), `contact.ts` (email), `money.ts` (positiveAmount).
+
+**9. Cobertura de tests parcial** — Sólo `common.ts` + 2 schemas de AP tienen tests. Los otros ~15 schemas de dominio (bookings, quotes, invoices, deliveries, returns, damage, feedback, operations, customers, suppliers, forklift, part, maintenance, CRM Close*, portal) validan sólo en producción vía RHF.
+
+- Fix: añadir suite genérica que itere sobre schemas exportados y valide `{ valid, invalid }` fixtures — patrón table-driven. Sirve también como documentación viva.
+
+**10. `zodResolver.ts` — comentario source-map obsoleto** — El header dice "renombramos la import para evitar ambigüedad con nuestro export homónimo (algunas cadenas de source-map fusionaban ambos frames)". Ese bug ya no aplica en resolvers 5.x + Vite 5.
+
+- Fix: limpiar comentario, dejar sólo la justificación del cast Input↔Output.
+
+---
+
+## Recomendación de sprint
+
+Si querés cerrar la migración al 100% "clean", ejecutar en este orden:
+
+1. **HIGH #1** — actualizar edge function a Zod 4 (10 min).
+2. **MEDIUM #2, #3, #4** — 3 fixes puntuales, ~30 min total.
+3. **LOW #6** — probar `z.locales.es()` en una rama y validar formularios (1-2 h).
+4. **LOW #8, #9, #10** — refactor cosmético (1 h).
+
+**Tiempo total estimado:** ~3-4 horas. Nada bloqueante, todo es pulido para dejar la implementación en estado "referencia".
+
+---
+
+**Nada de esto se implementa aún** — es sólo la auditoría. Decime cuáles hallazgos querés que ataque y en qué orden.
+
+Vamos a corregir todos los a hallazgos
