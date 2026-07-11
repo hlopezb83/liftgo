@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.7.2",
+    "date": "2026-07-11",
+    "type": "patch",
+    "title": "Tests de validación y tipos para formularios de Cuentas por Pagar",
+    "description": "Nuevo archivo src/features/accounts-payable/__tests__/schemas.zodResolver.test.ts con 22 casos que cubren supplierBillFormSchema (proveedor requerido, categoría requerida, issue_date con mensaje custom, due_date opcional, currency MXN|USD, coerción de subtotal/tax/retenciones/exchange_rate, rechazo de negativos, defaults de campos opcionales, PUE|PPD), supplierPaymentSchema (amount > 0 sin coerción, payment_date requerido, defaults de payment_method/bank_account/reference/receipt_url/notes) e integración con el wrapper zodResolver simulando la invocación de react-hook-form (values/errors por campo). Chequeos de tipos vía z.infer en compile-time. 22/22 verdes.",
+    "category": "improvement"
+  },
+  {
     "version": "7.7.1",
     "date": "2026-07-11",
     "type": "patch",

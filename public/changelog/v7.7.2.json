@@ -1,0 +1,47 @@
+{
+  "version": "7.7.2",
+  "date": "2026-07-11",
+  "type": "patch",
+  "title": "Tests de validación y tipos para formularios de Cuentas por Pagar",
+  "sections": [
+    {
+      "heading": "Nueva suite",
+      "items": [
+        "src/features/accounts-payable/__tests__/schemas.zodResolver.test.ts — 22 casos."
+      ]
+    },
+    {
+      "heading": "supplierBillFormSchema",
+      "items": [
+        "Payload válido, supplier_id/category requeridos con mensaje custom.",
+        "issue_date con mensaje 'Fecha de emisión requerida' y due_date opcional.",
+        "currency restringido a MXN | USD.",
+        "Coerción numérica de subtotal, tax_amount, retention_iva, retention_isr y exchange_rate desde strings.",
+        "Rechazo de subtotal negativo y exchange_rate ≤ 0.",
+        "Defaults aplicados en description/cfdi_uuid/exchange_rate/tax_amount/retenciones.",
+        "payment_method_sat sólo acepta PUE | PPD."
+      ]
+    },
+    {
+      "heading": "supplierPaymentSchema",
+      "items": [
+        "amount > 0 sin coerción implícita (rechaza strings).",
+        "payment_date requerido como Date.",
+        "Defaults de payment_method='transferencia' y campos opcionales vacíos."
+      ]
+    },
+    {
+      "heading": "Integración zodResolver",
+      "items": [
+        "Simula la invocación de react-hook-form y verifica values/errors por campo en payloads válidos e inválidos.",
+        "Contratos de tipos z.infer chequeados en compile-time por tsgo."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "22/22 tests verdes al primer intento."
+      ]
+    }
+  ]
+}
