@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
     const parsed = BodySchema.safeParse(await req.json());
     if (!parsed.success) {
       return jsonError(req, 400, "Invalid body", {
-        detail: parsed.error.flatten(),
+        detail: z.treeifyError(parsed.error),
       });
     }
 
