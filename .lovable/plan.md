@@ -1,73 +1,71 @@
-## Barrido completo de warnings de ESLint (32 → 0)
+Plan: Dependency hygiene — safe minor/patch updates
 
-Objetivo: eliminar los 32 warnings actuales (`complexity`, `max-lines-per-function`, `max-lines`, `react-refresh/only-export-components`, `no-restricted-imports`, directiva no usada) **sin cambiar comportamiento**. Todo se hace por extracción de subcomponentes y helpers puros, siguiendo Power of 10 y DRY.
+Objective
+Update all npm dependencies that have a safe minor or patch release available, while keeping major-version bumps (Tailwind 4, React Router 7, Zod 4, Sonner 2, etc.) out of scope. Reduce bug-fix and performance debt without introducing breaking changes.
 
-### Reglas del sprint
-- Cada archivo tocado se cubre con `bun run lint <file>` y los tests existentes del módulo.
-- Cero cambios de UI visible, cero cambios de queries, cero cambios de tipos públicos.
-- Los helpers extraídos van al mismo directorio del archivo (o a `lib/` de la feature si aplican a varios).
-- Al final: `bun run lint` limpio + `bunx vitest run` verde + smoke Playwright de facturación/mantenimiento.
+Scope
+- Update only packages where the "Update" column in `bun outdated` is higher than "Current" but stays within the same major version line.
+- Exclude major-version migrations and intentionally pinned packages:
+  - `jspdf` / `jspdf-autotable` remain locked at ≤4.0.0 per project memory.
+  - No Tailwind 4, React Router 7, Zod 4, TypeScript 7, Vite 8, Sonner 2, date-fns 4, etc.
 
----
+Packages to update
+Production (18 packages):
+- @radix-ui/react-accordion 1.2.14 → 1.2.16
+- @radix-ui/react-alert-dialog 1.1.17 → 1.1.19
+- @radix-ui/react-checkbox 1.3.5 → 1.3.7
+- @radix-ui/react-collapsible 1.1.14 → 1.1.16
+- @radix-ui/react-dialog 1.1.17 → 1.1.19
+- @radix-ui/react-dropdown-menu 2.1.18 → 2.1.20
+- @radix-ui/react-label 2.1.10 → 2.1.11
+- @radix-ui/react-popover 1.1.17 → 1.1.19
+- @radix-ui/react-scroll-area 1.2.12 → 1.2.14
+- @radix-ui/react-select 2.3.1 → 2.3.3
+- @radix-ui/react-separator 1.1.10 → 1.1.11
+- @radix-ui/react-switch 1.3.1 → 1.3.3
+- @radix-ui/react-tabs 1.1.15 → 1.1.17
+- @radix-ui/react-toggle 1.1.12 → 1.1.14
+- @radix-ui/react-toggle-group 1.1.13 → 1.1.15
+- @radix-ui/react-tooltip 1.2.10 → 1.2.12
+- @sentry/react 10.64.0 → 10.65.0
+- @supabase/supabase-js 2.108.2 → 2.110.2
+- @tanstack/react-query 5.101.1 → 5.101.2
+- @tanstack/react-virtual 3.14.4 → 3.14.5
+- react-hook-form 7.80.0 → 7.81.0
+- recharts 3.8.1 → 3.9.2
 
-### Lote 1 — Trivial (2 warnings, ~10 min)
+Development (10 packages):
+- @eslint/js 9.39.4 → 9.39.5
+- @sentry/vite-plugin 5.3.0 → 5.4.0
+- @types/node 22.20.0 → 22.20.1
+- @vitest/coverage-v8 4.0.18 → 4.1.10
+- eslint 9.39.4 → 9.39.5
+- knip 6.22.0 → 6.26.0
+- lovable-tagger 1.3.0 → 1.3.1
+- postcss 8.5.15 → 8.5.16
+- typescript-eslint 8.62.0 → 8.63.0
+- vitest 4.1.9 → 4.1.10
 
-1. `src/features/inventory/components/inventory/PartFormDialog.tsx` — quitar la línea `/* eslint-disable react-refresh/only-export-components */` no usada.
-2. `src/features/crm/components/prospect-form/ProspectDialogParts.tsx` — mover las 2 constantes exportadas a `prospect-form/constants.ts` para que el archivo solo exporte componentes.
+Execution approach
+1. Run `bun update` for the safe set in two batches:
+   - Batch A: Radix UI primitives (single command, they share internals).
+   - Batch B: Remaining production + dev dependencies.
+2. After each batch run the verification gate.
+3. If a batch introduces failures, roll back that batch and document the blocker.
 
-### Lote 2 — Invoices (12 warnings, riesgo bajo-medio)
+Verification gate (after each batch)
+- `bun install` / lockfile consistency check.
+- `npx tsgo --noEmit` (typecheck).
+- `bun run lint` (ESLint 0 warnings target).
+- `bunx vitest run` (804 tests baseline).
+- `bun run test:e2e` smoke navigation spec.
+- `ANALYZE=1 bun run build` to confirm bundle size did not regress.
 
-Módulo con más deuda. Cada uno se divide en subcomponentes puros.
+Risk and rollback
+- Low risk: all updates are within the same major version line.
+- If any update breaks the build or tests, revert the specific package to its previous version and continue with the rest.
 
-- `pages/InvoicesPage.tsx` (195 LOC) → extraer `InvoicesToolbar`, `InvoicesFiltersRow`.
-- `pages/InvoicesReconciliation.tsx` (168 LOC) → extraer `ReconciliationSummary`, `ReconciliationTable`.
-- `pages/InvoiceDetail.tsx` (complexity 21) → mover la lógica de `flags`/`visibility` a un hook `useInvoiceDetailState`.
-- `components/invoice-form/CfdiFieldsCard.tsx` (182 LOC, complexity 13) → extraer `CfdiUsageField`, `CfdiPaymentFormField`.
-- `components/recurring/RecurringInvoicesPreviewDialog.tsx` (169 LOC) → extraer `PreviewSummary`, `PreviewLineRow`.
-- `components/invoice-detail/InvoiceDetailActions.tsx` (complexity 16) — dividir en `PrimaryActions` y `SecondaryActions`.
-- `components/invoice-detail/InvoiceFiscalDataCard.tsx` (13) — early returns por estado fiscal.
-- `components/invoice-detail/InvoicePaymentSummary.tsx` (13) — extraer helper `resolvePaymentStatus`.
-- `hooks/invoiceForm/useInvoiceFormHandlers.ts` (13) — extraer `buildInvoicePayload`.
-- `lib/formatStoredCfdiError.ts` (13) — tabla `{code → message}` en lugar de cadena de `if`.
-- `lib/invoiceVisibility.ts` (13) — dividir `computeInvoiceVisibility` en `canView`/`canEdit`/`canDelete`.
-
-Tests: `src/lib/domain/__tests__/invoiceHelpers.test.ts`, `invoiceTotals.test.ts` + smoke `/invoices` con Playwright.
-
-### Lote 3 — Suppliers & AP (6 warnings, riesgo bajo)
-
-- `SupplierBillDetailSheet.tsx` (306 LOC file, 151 LOC function, complexity 32) — dividir en `BillHeaderCard`, `BillLinesTable`, `BillPaymentsCard`. Este es el más pesado del sprint.
-- `SupplierBillFormDialog.tsx` (172 LOC) — extraer `BillLineItemsField`, `BillSummaryFooter`.
-- `SupplierPaymentRow.tsx` (complexity 20) — mover badges/acciones a subcomponentes `PaymentStatusBadge`, `PaymentRowActions`.
-- `PaymentActions.tsx` (13) — early returns por estado.
-- Fix de `no-restricted-imports`: reemplazar `import … from "@/features/company-settings/hooks/useCompanySettings"` por el barrel público `@/features/company-settings`.
-
-### Lote 4 — Reportes y componentes compartidos (5 warnings)
-
-- `components/domain/KpiTile.tsx` (16) — dividir render en `<KpiHeader>` + `<KpiBody>` según `variant`.
-- `components/forms/fields/DateRangeField` (13) — extraer `buildRangePresets`.
-- `features/reports/…/StatementTableRow.tsx` (16) — extraer helper `formatCell` con lookup por tipo de fila.
-- `features/portal/pages/PortalStatement.tsx` (153 LOC) — extraer `StatementSummary`, `StatementLineRow`.
-- `features/company-settings/…/CompanyLogoTab.tsx` (regla `react-refresh` en línea 75) — mover el helper exportado a `companyLogoHelpers.ts`.
-
-### Lote 5 — Utilidades y config (7 warnings)
-
-- `lib/rules/invoices.ts::computeActionFlags` (15) — dividir en `computeCfdiFlags` + `computePaymentFlags` y componer.
-- `lib/supabase/invokeEdgeFunction.ts::extractErrorMessage` (15) — tabla `{shape → parser}` en vez de cadena de `if`.
-- `features/expenses/…/parseCfdiXml` (27) — extraer `parseEmisor`, `parseReceptor`, `parseConceptos`, `parseImpuestos` (helpers puros ya testeados vía snapshot).
-- `features/accounts-payable/hooks/useSupplierBillActions.ts` (complexity 23 en arrow) — dividir `handleStatusChange` por transición de estado.
-- `vite.config.ts::manualChunks` (16) — extraer objeto `CHUNK_GROUPS` con matcher por regex; el método queda de 3 líneas.
-
-### Verificación final
-
-1. `bun run lint` → 0 problems.
-2. `bunx vitest run` → 804/804 verde.
-3. Smoke Playwright: `/invoices`, `/invoices/:id`, `/cuentas-por-pagar`, `/reports/estado-resultados`, `/portal/estado-cuenta`.
-4. Registro en changelog `v7.5.0` (minor) — refactor amplio pero sin cambios funcionales.
-
-### Detalles técnicos
-
-- **`react-refresh/only-export-components`**: la regla exige que un archivo solo exporte componentes React para que Vite HMR pueda hacer fast refresh. Cualquier `export const X = …` no-componente rompe la garantía. Fix: mover a `*.constants.ts` o `*.helpers.ts` hermanos.
-- **`complexity` (max 12)**: cuenta caminos independientes (if/else, `&&`, `||`, `?:`, `switch`, `catch`). Los patrones de fix habituales del proyecto son (a) early returns, (b) tablas `{key → fn}`, (c) extraer helpers puros, (d) dividir componentes por `variant`.
-- **`max-lines-per-function` (150) y `max-lines` (300)**: umbrales de v5.80.0. Ningún archivo del sprint requiere subir el umbral; todos bajan por extracción.
-- **Riesgo**: bajo en lotes 1, 4, 5 (helpers puros y presentacionales). Medio en 2 y 3 (Invoices y SupplierBillDetailSheet manejan estado fiscal). Mitigación: los hooks y llamadas Supabase no se tocan, solo la composición del render.
-- **Fuera de alcance**: no se cambian tipos exportados, no se renombran archivos públicos, no se tocan Edge Functions ni migraciones.
+Deliverables
+- Updated `package.json` and lockfile.
+- New changelog entry `v7.6.0` describing the dependency hygiene batch.
+- Report of any packages that could not be updated and why.
