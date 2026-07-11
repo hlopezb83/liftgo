@@ -56,4 +56,4 @@ export function ReportChartCard({
       </CardContent>
     </Card>
   );
-});
+}
