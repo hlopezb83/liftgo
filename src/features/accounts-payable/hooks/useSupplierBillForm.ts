@@ -114,12 +114,15 @@ export function useSupplierBillForm(
     return d;
   }, [selectedSupplier, issueDate]);
 
-  useEffect(() => {
+  const applySuggestedDueDate = useEffectEvent(() => {
     if (suggestedDueDate && !dueDate && !isEdit) {
       form.setValue("due_date", suggestedDueDate);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [supplierId, issueDate]);
+  });
+  useEffect(() => {
+    applySuggestedDueDate();
+  }, [supplierId, issueDate, applySuggestedDueDate]);
+
 
   const subtotal = Number(form.watch("subtotal") || 0);
   const tax = Number(form.watch("tax_amount") || 0);
