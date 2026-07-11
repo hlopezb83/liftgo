@@ -12,7 +12,7 @@ interface FleetStatusChartProps {
   data: PieDataItem[];
 }
 
-export const FleetStatusChart = memo(function FleetStatusChart({ data }: FleetStatusChartProps) {
+export function FleetStatusChart({ data }: FleetStatusChartProps) {
   return (
     <ReportChartCard
       title="Estado de la Flota"
