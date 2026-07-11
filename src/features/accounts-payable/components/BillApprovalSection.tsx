@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Check, X, ResetIcon, SecurityIcon, ShieldAlert, SpinnerIcon } from "@/components/icons";
+import { SuccessIcon, X, ResetIcon, SecurityIcon, ShieldAlert, SpinnerIcon } from "@/components/icons";
 import { useUserRole } from "@/features/users";
 import { formatDateDisplay } from "@/lib/utils";
 import { ApproveBillDialog } from "./ApproveBillDialog";
@@ -91,7 +91,7 @@ function ApprovalActions({
     return (
       <div className="flex gap-2">
         <Button size="sm" className="flex-1" onClick={onApprove}>
-          <Check className="h-4 w-4 mr-1" /> Aprobar
+          <SuccessIcon className="h-4 w-4 mr-1" /> Aprobar
         </Button>
         <Button size="sm" variant="destructive" className="flex-1" onClick={onReject}>
           <X className="h-4 w-4 mr-1" /> Rechazar

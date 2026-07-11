@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Check, DuplicateIcon, InfoIcon } from "@/components/icons";
+import { SuccessIcon, DuplicateIcon, InfoIcon } from "@/components/icons";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 
 interface Props {
@@ -55,7 +55,7 @@ function IdRow({ label, tooltip, value, placeholder = "— pendiente de timbrado
         </span>
         {!isEmpty && (
           <Button variant="ghost" size="icon" className="h-6 w-6 shrink-0" onClick={copy} aria-label={`Copiar ${label}`}>
-            {copied ? <Check className="h-3.5 w-3.5 text-success" /> : <DuplicateIcon className="h-3.5 w-3.5" />}
+            {copied ? <SuccessIcon className="h-3.5 w-3.5 text-success" /> : <DuplicateIcon className="h-3.5 w-3.5" />}
           </Button>
         )}
       </div>
