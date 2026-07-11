@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.11.0",
+    "date": "2026-07-11",
+    "type": "minor",
+    "title": "Auditoría semántica de íconos: aliases dedicados por dominio",
+    "description": "Se resolvieron colisiones visuales (Truck duplicado en sidebar, Handshake compartido entre CRM y Proveedores) y se desdobló el sobrecargado MoneyIcon en PaymentIcon/CostIcon/ExpenseIcon según contexto. Nuevo set de 9 aliases (DeliveryIcon, PaymentIcon, CostIcon, ExpenseIcon, SupplierIcon, WaitingPartsIcon, SignIcon, VerifiedDocIcon, OverdueIcon), guard ESLint ampliado y test del registry a 66 alias. tsgo OK, 0 warnings, 909/909 tests.",
+    "category": "improvement"
+  },
+  {
     "version": "7.10.0",
     "date": "2026-07-11",
     "type": "minor",
