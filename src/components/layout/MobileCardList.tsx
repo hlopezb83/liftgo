@@ -1,4 +1,4 @@
-import { ReactNode, memo } from "react";
+import { ReactNode } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 
 interface MobileCardListProps<T> {
