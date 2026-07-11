@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus } from "@/components/icons";
+import { AddIcon } from "@/components/icons";
 import type { EquipmentModel } from "@/features/fleet";
 import { RentalLineRow } from "./RentalLineRow";
 
@@ -75,7 +75,7 @@ export function RentalLineItems({ lines, onChange, models, startDate, endDate }:
         ))}
 
         <Button type="button" variant="outline" size="sm" onClick={addLine} className="w-full">
-          <Plus className="h-4 w-4 mr-1" /> Agregar modelo
+          <AddIcon className="h-4 w-4 mr-1" /> Agregar modelo
         </Button>
 
         {models.length === 0 && (

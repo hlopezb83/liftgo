@@ -3,7 +3,7 @@ import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { TrendingUp, TrendingDown, DollarSign, Percent, AlertTriangle } from "@/components/icons";
+import { TrendingUpIcon, TrendingDownIcon, MoneyIcon, Percent, WarnIcon } from "@/components/icons";
 
 import { useIncomeStatementData } from "../../hooks/useIncomeStatementData";
 
@@ -31,9 +31,9 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
   const netPositive = totals.netProfit >= 0;
   const marginPositive = totals.margin >= 0;
   const kpis = [
-    { label: "Ingresos", value: formatCurrency(totals.revenue), icon: DollarSign, color: "text-chart-2" },
-    { label: "Total Egresos", value: formatCurrency(totals.totalExpenses), icon: TrendingDown, color: "text-destructive" },
-    { label: "Utilidad Neta", value: formatCurrency(totals.netProfit), icon: netPositive ? TrendingUp : TrendingDown, color: netPositive ? "text-chart-2" : "text-destructive" },
+    { label: "Ingresos", value: formatCurrency(totals.revenue), icon: MoneyIcon, color: "text-chart-2" },
+    { label: "Total Egresos", value: formatCurrency(totals.totalExpenses), icon: TrendingDownIcon, color: "text-destructive" },
+    { label: "Utilidad Neta", value: formatCurrency(totals.netProfit), icon: netPositive ? TrendingUpIcon : TrendingDownIcon, color: netPositive ? "text-chart-2" : "text-destructive" },
     { label: "Margen Neto", value: `${totals.margin.toFixed(1)}%`, icon: Percent, color: marginPositive ? "text-chart-2" : "text-destructive" },
   ];
 
@@ -58,7 +58,7 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
     <>
       {rentedWithoutCost.length > 0 && (
         <Alert variant="warning">
-          <AlertTriangle className="h-4 w-4" />
+          <WarnIcon className="h-4 w-4" />
           <AlertTitle>Equipos sin costo de adquisición</AlertTitle>
           <AlertDescription>
             Los siguientes equipos rentados no tienen costo de adquisición registrado y se omiten del cálculo de depreciación:{" "}
@@ -70,7 +70,7 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
 
       {soldWithoutCost.length > 0 && (
         <Alert variant="warning">
-          <AlertTriangle className="h-4 w-4" />
+          <WarnIcon className="h-4 w-4" />
           <AlertTitle>Equipos vendidos sin costo de adquisición</AlertTitle>
           <AlertDescription>
             Los siguientes equipos están marcados como vendidos pero no tienen costo de adquisición registrado, por lo que no aparecen en el Costo de Equipos Vendidos:{" "}

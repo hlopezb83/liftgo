@@ -9,7 +9,7 @@ import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { Plus, Pencil, Trash2 } from "@/components/icons";
+import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
 
 export function MechanicsTab() {
   const { data: mechanics, isLoading } = useMechanics();
@@ -78,7 +78,7 @@ export function MechanicsTab() {
   return (
     <div>
       <div className="flex justify-end mb-4">
-        <Button onClick={openNew} size="sm"><Plus className="h-4 w-4 mr-2" />Agregar Mecánico</Button>
+        <Button onClick={openNew} size="sm"><AddIcon className="h-4 w-4 mr-2" />Agregar Mecánico</Button>
       </div>
       <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay mecánicos registrados" />
       <FormDialog open={open} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} Mecánico`} description="Administrar datos del mecánico para asignación de mantenimientos.">
@@ -108,8 +108,8 @@ function MechanicRowActions({ mechanic, onEdit, onDelete }: { mechanic: Mechanic
   const [open, setOpen] = useState(false);
   return (
     <div className="flex gap-1">
-      <Button variant="ghost" size="icon" onClick={onEdit}><Pencil className="h-4 w-4" /></Button>
-      <Button variant="ghost" size="icon" onClick={() => setOpen(true)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+      <Button variant="ghost" size="icon" onClick={onEdit}><EditIcon className="h-4 w-4" /></Button>
+      <Button variant="ghost" size="icon" onClick={() => setOpen(true)}><DeleteIcon className="h-4 w-4 text-destructive" /></Button>
       <ConfirmDialog
         open={open}
         onOpenChange={setOpen}

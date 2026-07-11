@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Mail, Phone, Globe, MapPin } from "@/components/icons";
+import { Mail, PhoneIcon, Globe, LocationIcon } from "@/components/icons";
 
 type SupplierContactInfo = {
   contact_person?: string | null;
@@ -38,7 +38,7 @@ export function SupplierContactCard({ supplier }: { supplier: SupplierContactInf
           )}
           {supplier.phone && (
             <div className="flex items-center gap-2 text-sm">
-              <Phone className="h-4 w-4 text-muted-foreground" />
+              <PhoneIcon className="h-4 w-4 text-muted-foreground" />
               <span>{supplier.phone}</span>
             </div>
           )}
@@ -57,7 +57,7 @@ export function SupplierContactCard({ supplier }: { supplier: SupplierContactInf
           )}
           {supplier.address && (
             <div className="flex items-center gap-2 text-sm sm:col-span-2">
-              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <LocationIcon className="h-4 w-4 text-muted-foreground" />
               <span>{supplier.address}</span>
             </div>
           )}

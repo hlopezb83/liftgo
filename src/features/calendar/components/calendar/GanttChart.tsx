@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { parseISO, isToday } from "date-fns";
-import { ChevronDown, ChevronRight } from "@/components/icons";
+import { ChevronDownIcon, ChevronRightIcon } from "@/components/icons";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { BookingWithForklift } from "@/features/bookings";
 import type { Tables } from "@/integrations/supabase/types";
@@ -126,7 +126,7 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd }: GanttC
       {customerColorMap.size > 0 && (
         <Collapsible open={legendOpen} onOpenChange={setLegendOpen} className="mt-4 pt-3 border-t">
           <CollapsibleTrigger className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
-            {legendOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+            {legendOpen ? <ChevronDownIcon className="h-3 w-3" /> : <ChevronRightIcon className="h-3 w-3" />}
             Leyenda de clientes ({customerColorMap.size})
           </CollapsibleTrigger>
           <CollapsibleContent>

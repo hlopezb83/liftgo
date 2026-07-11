@@ -1,5 +1,5 @@
 import { Draggable } from "@hello-pangea/dnd";
-import { AlertCircle } from "@/components/icons";
+import { InfoAlertIcon } from "@/components/icons";
 import { Card } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ProspectCardCompact, ProspectCardExpanded } from "./ProspectCardParts";
@@ -33,7 +33,7 @@ export function ProspectCard({ prospect, index, quoteNumber, density, onClick }:
               </TooltipTrigger>
               <TooltipContent side="left">
                 <span className="flex items-center gap-1.5 text-xs">
-                  <AlertCircle className="h-3 w-3" />
+                  <InfoAlertIcon className="h-3 w-3" />
                   Sin movimiento hace {prospect.staleDays} días
                 </span>
               </TooltipContent>

@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User } from "@/components/icons";
+import { UserIcon } from "@/components/icons";
 
 interface Props {
   customerName: string | null | undefined;
@@ -12,7 +12,7 @@ export function QuoteCustomerCard({ customerName, rfc, cp }: Props) {
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
-          <User className="h-4 w-4 text-muted-foreground" /> Cliente
+          <UserIcon className="h-4 w-4 text-muted-foreground" /> Cliente
         </CardTitle>
       </CardHeader>
       <CardContent>

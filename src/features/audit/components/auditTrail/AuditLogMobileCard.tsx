@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Trash2 } from "@/components/icons";
+import { DeleteIcon } from "@/components/icons";
 import type { AuditLog } from "../../hooks/useAuditLogs";
 import { actionIcon, actionBadgeVariant, translateAction, translateTable, translateField, formatTimestamp, getRecordLabel } from "./auditTrailConstants";
 
@@ -23,7 +23,7 @@ export function AuditLogMobileCard({ log, isAdmin, onSelect, onDeleteRequest }: 
           </div>
           {isAdmin && (
             <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); onDeleteRequest(log); }}>
-              <Trash2 className="h-4 w-4" />
+              <DeleteIcon className="h-4 w-4" />
             </Button>
           )}
         </div>

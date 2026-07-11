@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { ChevronRight, ShieldCheck } from "@/components/icons";
+import { ChevronRightIcon, SecurityIcon } from "@/components/icons";
 import { FUEL_TYPE_LABELS } from "@/lib/constants";
 import type { Forklift } from "../../hooks/forklifts/useForklifts";
 
@@ -28,7 +28,7 @@ export function FleetMobileCard({ forklift: f, hasActivePolicy, onClick }: CardP
         <div className="flex items-center justify-between mb-2">
           <span className="font-mono font-semibold text-sm flex items-center gap-1.5">
             {f.name}
-            {hasActivePolicy && <ShieldCheck className="h-3.5 w-3.5 text-success shrink-0" />}
+            {hasActivePolicy && <SecurityIcon className="h-3.5 w-3.5 text-success shrink-0" />}
           </span>
           <StatusBadge status={f.status} />
         </div>
@@ -38,7 +38,7 @@ export function FleetMobileCard({ forklift: f, hasActivePolicy, onClick }: CardP
           <div className="flex gap-4 text-xs text-muted-foreground">
             {f.fuel_type && <span>{FUEL_TYPE_LABELS[f.fuel_type] || f.fuel_type}</span>}
           </div>
-          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+          <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
         </div>
       </CardContent>
     </Card>

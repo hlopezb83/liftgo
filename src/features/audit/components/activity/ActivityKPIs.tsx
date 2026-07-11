@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingDown, TrendingUp, Activity, Users, Layers, Clock } from "@/components/icons";
+import { TrendingDownIcon, TrendingUpIcon, ActivityIcon, UsersIcon, Layers, ClockIcon } from "@/components/icons";
 import type { ActivityMetrics } from "../../hooks/useActivityMetrics";
 import { ENTITY_LABELS } from "../../lib/activityConstants";
 import { cn } from "@/lib/utils";
@@ -17,18 +17,18 @@ export function ActivityKPIs({ metrics, rangeLabel }: Props) {
 
   const cards = [
     {
-      icon: Activity,
+      icon: ActivityIcon,
       label: `Acciones · ${rangeLabel}`,
       value: metrics.totalCurrent.toLocaleString("es-MX"),
       hint: (
         <span className={cn("flex items-center gap-1 text-xs", isUp ? "text-success" : "text-destructive")}>
-          {isUp ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
+          {isUp ? <TrendingUpIcon className="h-3 w-3" /> : <TrendingDownIcon className="h-3 w-3" />}
           {Math.abs(delta)}% vs. anterior
         </span>
       ),
     },
     {
-      icon: Users,
+      icon: UsersIcon,
       label: "Usuarios activos",
       value: metrics.uniqueActors.toLocaleString("es-MX"),
       hint: <span className="text-xs text-muted-foreground">personas con actividad</span>,
@@ -40,7 +40,7 @@ export function ActivityKPIs({ metrics, rangeLabel }: Props) {
       hint: <span className="text-xs text-muted-foreground">por número de acciones</span>,
     },
     {
-      icon: Clock,
+      icon: ClockIcon,
       label: "Hora pico",
       value: metrics.peakHour !== null ? `${String(metrics.peakHour).padStart(2, "0")}:00` : "—",
       hint: <span className="text-xs text-muted-foreground">mayor concentración</span>,

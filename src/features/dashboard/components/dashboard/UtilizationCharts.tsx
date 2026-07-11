@@ -1,6 +1,6 @@
 import { memo, useMemo } from "react";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { TrendingUp, TrendingDown, Minus } from "@/components/icons";
+import { TrendingUpIcon, TrendingDownIcon, RemoveIcon } from "@/components/icons";
 import { ReportChartCard } from "@/components/domain/ReportChartCard";
 
 interface MonthlyUtilizationItem {
@@ -48,16 +48,16 @@ function computeTrend(data: MonthlyUtilizationItem[]): { points: TrendPoint[]; d
 export const UtilizationCharts = memo(function UtilizationCharts({ monthlyUtilization }: UtilizationChartsProps) {
   const { points, delta } = useMemo(() => computeTrend(monthlyUtilization), [monthlyUtilization]);
   const trendLabel = delta > 1
-    ? { icon: TrendingUp, text: `Subiendo ${Math.abs(delta)}%`, cls: "text-status-available" }
+    ? { icon: TrendingUpIcon, text: `Subiendo ${Math.abs(delta)}%`, cls: "text-status-available" }
     : delta < -1
-    ? { icon: TrendingDown, text: `Bajando ${Math.abs(delta)}%`, cls: "text-destructive" }
-    : { icon: Minus, text: "Estable", cls: "text-muted-foreground" };
+    ? { icon: TrendingDownIcon, text: `Bajando ${Math.abs(delta)}%`, cls: "text-destructive" }
+    : { icon: RemoveIcon, text: "Estable", cls: "text-muted-foreground" };
   const TrendIcon = trendLabel.icon;
 
   return (
     <ReportChartCard
       title="Utilización de Flota — Últimos 6 meses (%)"
-      icon={TrendingUp}
+      icon={TrendingUpIcon}
       iconColor="text-primary"
       iconBg="bg-primary/10"
       action={

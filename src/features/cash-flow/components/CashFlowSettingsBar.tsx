@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Save } from "@/components/icons";
+import { SaveIcon } from "@/components/icons";
 import { useUserRole } from "@/features/users";
 import { useCashFlowSettings, useUpdateCashFlowSettings } from "../hooks/useCashFlowSettings";
 
@@ -84,7 +84,7 @@ export function CashFlowSettingsBar({ weeks, onChangeWeeks }: Props) {
             })
           }
         >
-          <Save className="h-4 w-4 mr-1" /> Guardar
+          <SaveIcon className="h-4 w-4 mr-1" /> Guardar
         </Button>
       )}
     </div>

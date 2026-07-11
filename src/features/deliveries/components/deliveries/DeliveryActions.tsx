@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { CheckCircle, Trash2 } from "@/components/icons";
+import { SuccessIcon, DeleteIcon } from "@/components/icons";
 
 interface DeliveryActionsProps {
   status: string;
@@ -16,12 +16,12 @@ export function DeliveryActions({ status, onComplete, onDelete }: DeliveryAction
     <div className="flex gap-2">
       {status !== "completed" && (
         <Button size="sm" onClick={onComplete}>
-          <CheckCircle className="h-4 w-4 mr-1" /> Completar
+          <SuccessIcon className="h-4 w-4 mr-1" /> Completar
         </Button>
       )}
       <RoleGuard module="Entregas" minAccess="full">
         <Button variant="outline" size="sm" className="text-destructive" onClick={() => setOpen(true)}>
-          <Trash2 className="h-4 w-4 mr-1" /> Eliminar
+          <DeleteIcon className="h-4 w-4 mr-1" /> Eliminar
         </Button>
         <ConfirmDialog
           open={open}

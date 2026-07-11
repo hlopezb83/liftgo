@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { FileText, StickyNote } from "@/components/icons";
+import { DocumentIcon, StickyNote } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { LOST_REASON_LABELS } from "../../lib/constants";
 import type { Prospect } from "../../hooks/useProspects";
@@ -19,7 +19,7 @@ export function ProspectQuoteLink({ prospect, quoteNumber, onNavigate }: Props) 
     <>
       <Separator />
       <div className="flex items-start gap-3 py-2">
-        <FileText className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
+        <DocumentIcon className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
         <div>
           <p className="text-xs text-muted-foreground">Cotización Vinculada</p>
           <Badge
@@ -27,7 +27,7 @@ export function ProspectQuoteLink({ prospect, quoteNumber, onNavigate }: Props) 
             className="cursor-pointer hover:bg-accent gap-1 mt-1"
             onClick={() => { onNavigate(); navigate(`/quotes/${prospect.quoteId}`); }}
           >
-            <FileText className="h-3 w-3" />
+            <DocumentIcon className="h-3 w-3" />
             {quoteNumber}
           </Badge>
         </div>

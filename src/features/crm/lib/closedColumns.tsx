@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { RotateCcw } from "@/components/icons";
+import { ResetIcon } from "@/components/icons";
 import type { ColumnDef } from "@/components/dataTable/v2";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { LOST_REASON_LABELS } from "./constants";
@@ -84,7 +84,7 @@ export function buildClosedColumns(
     meta: { headClassName: "w-[120px]" },
     cell: ({ row }) => (
       <Button size="sm" variant="ghost" onClick={() => onReopen(row.original)}>
-        <RotateCcw className="h-3.5 w-3.5 mr-1" /> Reabrir
+        <ResetIcon className="h-3.5 w-3.5 mr-1" /> Reabrir
       </Button>
     ),
   });

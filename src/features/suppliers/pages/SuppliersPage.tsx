@@ -4,7 +4,7 @@ import type { Supplier } from "../hooks/useSuppliers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
-import { PlusCircle, Download, ChevronRight } from "@/components/icons";
+import { PlusCircle, DownloadIcon, ChevronRightIcon } from "@/components/icons";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
 import { Badge } from "@/components/ui/badge";
@@ -116,7 +116,7 @@ export default function SuppliersPage() {
         actions={
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleExport}>
-              <Download className="h-4 w-4 mr-1" />Exportar CSV
+              <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
             </Button>
             <RoleGuard module="Proveedores" minAccess="full">
               <Button onClick={openCreate} size="sm">
@@ -135,7 +135,7 @@ export default function SuppliersPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-1">
                 <span className="font-semibold">{s.name}</span>
-                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
               </div>
               {s.category && (
                 <Badge variant="outline" className="mb-1">

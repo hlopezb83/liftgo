@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { ChevronDown, ChevronRight } from "@/components/icons";
+import { ChevronDownIcon, ChevronRightIcon } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { StatementRow } from "../../../hooks/useIncomeStatementData";
 import { cellColor, formatCell, type BreakdownRow } from "./incomeStatementHelpers";
@@ -46,8 +46,8 @@ function StatementMainRow({
       <TableCell className={`sticky left-0 bg-background z-10 ${row.isSubtotal ? "font-semibold bg-muted/40" : ""}`}>
         <span className="flex items-center gap-1">
           {isExpandable ? (isOpen
-            ? <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
-            : <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />) : null}
+            ? <ChevronDownIcon className="h-3.5 w-3.5 text-muted-foreground" />
+            : <ChevronRightIcon className="h-3.5 w-3.5 text-muted-foreground" />) : null}
           {row.label}
         </span>
       </TableCell>

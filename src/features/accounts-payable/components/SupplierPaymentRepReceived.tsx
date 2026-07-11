@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ExternalLink, X, RotateCcw } from "@/components/icons";
+import { ExternalLink, X, ResetIcon } from "@/components/icons";
 import { openStorageFile } from "@/lib/storage/openStorageFile";
 import { formatDateDisplay } from "@/lib/utils";
 import type { SupplierPayment } from "../hooks/useSupplierBill";
@@ -47,7 +47,7 @@ export function SupplierPaymentRepReceived({
             </Button>
             <Button size="sm" variant="ghost" className="h-6 text-[11px]"
               disabled={resetPending} onClick={onReset}>
-              <RotateCcw className="h-3 w-3 mr-1" /> Reiniciar
+              <ResetIcon className="h-3 w-3 mr-1" /> Reiniciar
             </Button>
           </>
         )}

@@ -1,4 +1,4 @@
-import { Loader2, ExternalLink } from "@/components/icons";
+import { SpinnerIcon, ExternalLink } from "@/components/icons";
 
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
@@ -60,7 +60,7 @@ export function SupplierPaymentRow({ payment: p, billId, currency, billCancelled
         onReset={() => a.setResetOpen(true)}
       />
 
-      {anyPending && <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />}
+      {anyPending && <SpinnerIcon className="h-3 w-3 animate-spin text-muted-foreground" />}
 
       {a.isAdmin && (
         <SupplierPaymentDeleteButton

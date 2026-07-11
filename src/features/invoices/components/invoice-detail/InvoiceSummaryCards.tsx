@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Calendar } from "@/components/icons";
+import { UserIcon, CalendarIcon } from "@/components/icons";
 import { formatDateDisplay } from "@/lib/utils";
 import { formatStoredCfdiError } from "@/features/invoices/lib/formatStoredCfdiError";
 
@@ -43,7 +43,7 @@ export function InvoiceSummaryCards({
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <User className="h-4 w-4 text-muted-foreground" /> Cliente
+              <UserIcon className="h-4 w-4 text-muted-foreground" /> Cliente
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-1 text-sm">
@@ -54,7 +54,7 @@ export function InvoiceSummaryCards({
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" /> Fechas
+              <CalendarIcon className="h-4 w-4 text-muted-foreground" /> Fechas
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-1 text-sm">

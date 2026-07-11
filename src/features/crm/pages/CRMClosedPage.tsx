@@ -1,4 +1,4 @@
-import { Search } from "@/components/icons";
+import { SearchIcon } from "@/components/icons";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -22,7 +22,7 @@ export default function CRMClosedPage() {
           backLabel="Pipeline"
           actions={
             <div className="relative w-64">
-              <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
+              <SearchIcon className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
                 value={s.search}
                 onChange={(e) => s.setSearch(e.target.value)}

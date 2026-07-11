@@ -6,7 +6,7 @@ import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
 import { formatMonthShortEsFromDate } from "@/lib/format/formatMonthEs";
-import { Download } from "@/components/icons";
+import { DownloadIcon } from "@/components/icons";
 import { useInvoices } from "@/features/invoices";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
@@ -56,7 +56,7 @@ export function RevenueReport({ startDate, endDate }: Props) {
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Ingresos</CardTitle>
           <Button variant="outline" size="sm" onClick={() => exportToCsv("reporte-ingresos.csv", data)}>
-            <Download className="h-4 w-4 mr-1" />Exportar CSV
+            <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
           </Button>
         </CardHeader>
         <CardContent>

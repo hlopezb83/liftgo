@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Upload, Loader2 } from "@/components/icons";
+import { UploadIcon, SpinnerIcon } from "@/components/icons";
 import { parseBankCsv } from "../lib/csvParsers";
 import { CSV_PROFILES, CSV_PROFILE_LABELS, type CsvProfile } from "../lib/bankReconciliationConstants";
 import { useImportBankStatement } from "../hooks/useBankReconciliationMutations";
@@ -51,7 +51,7 @@ export function BankStatementUploader({ bankAccountId }: Props) {
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2"><Upload className="h-4 w-4" /> Subir estado de cuenta (CSV)</CardTitle>
+        <CardTitle className="text-base flex items-center gap-2"><UploadIcon className="h-4 w-4" /> Subir estado de cuenta (CSV)</CardTitle>
       </CardHeader>
       <CardContent className="grid sm:grid-cols-3 gap-3">
         <div className="grid gap-1.5">
@@ -75,7 +75,7 @@ export function BankStatementUploader({ bankAccountId }: Props) {
         </div>
         <div className="flex items-end">
           <Button onClick={handleImport} disabled={!file || importMut.isPending} className="w-full">
-            {importMut.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
+            {importMut.isPending ? <SpinnerIcon className="h-4 w-4 animate-spin mr-2" /> : <UploadIcon className="h-4 w-4 mr-2" />}
             Importar y emparejar
           </Button>
         </div>

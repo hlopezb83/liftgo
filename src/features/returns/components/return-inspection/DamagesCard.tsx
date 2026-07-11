@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { AlertTriangle } from "@/components/icons";
+import { WarnIcon } from "@/components/icons";
 import { InfoRow } from "@/components/forms/InfoRow";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { ReturnInspectionWithJoins } from "@/types/rental";
@@ -12,7 +12,7 @@ export function DamagesCard({ ins }: { ins: ReturnInspectionWithJoins }) {
     <Card className="md:col-span-2">
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
-          <AlertTriangle className="h-4 w-4 text-destructive" />Daños
+          <WarnIcon className="h-4 w-4 text-destructive" />Daños
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">

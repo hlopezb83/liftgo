@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Loader2, RefreshCw } from "@/components/icons";
+import { Sparkles, SpinnerIcon, RefreshIcon } from "@/components/icons";
 import {
   FEEDBACK_TYPE_LABELS,
   FEEDBACK_SEVERITY_LABELS,
@@ -31,7 +31,7 @@ export function FeedbackChipsRow({ type, module, severity, hasAi, classifying, p
       )}
       {classifying && (
         <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
-          <Loader2 className="h-3 w-3 animate-spin" /> Clasificando con AI…
+          <SpinnerIcon className="h-3 w-3 animate-spin" /> Clasificando con AI…
         </span>
       )}
       <Badge variant="secondary" className="ml-auto">{points} pts</Badge>
@@ -60,7 +60,7 @@ export function AiReasoningCard({ reasoning, onReclassify, reclassifying }: AiCa
           onClick={onReclassify}
           disabled={reclassifying}
         >
-          <RefreshCw className="h-3 w-3 mr-1" /> Reclasificar
+          <RefreshIcon className="h-3 w-3 mr-1" /> Reclasificar
         </Button>
       </div>
       <p>{reasoning}</p>

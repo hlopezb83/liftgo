@@ -9,7 +9,7 @@
  * Preferir SIEMPRE el alias semántico sobre el nombre crudo de lucide:
  *
  *   ✅ import { DeleteIcon } from "@/components/icons";
- *   ❌ import { Trash2 } from "@/components/icons";
+ *   ❌ import { DeleteIcon } from "@/components/icons";
  *
  * Íconos sin alias canónico se re-exportan tal cual (bloque 2) para casos
  * ad-hoc y decorativos.
@@ -42,7 +42,7 @@ export {
   // Acciones CRUD
   Plus as AddIcon,
   Pencil as EditIcon,
-  Trash2 as DeleteIcon,
+  DeleteIcon as DeleteIcon,
   Save as SaveIcon,
   Copy as DuplicateIcon,
   RefreshCw as RefreshIcon,

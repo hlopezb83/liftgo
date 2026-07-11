@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trash2, Pencil, KeyRound } from "@/components/icons";
+import { DeleteIcon, EditIcon, KeyIcon } from "@/components/icons";
 import { format } from "date-fns";
 import { STAFF_ROLES } from "@/lib/constants";
 import { RoleBadge } from "./RoleBadge";
@@ -34,14 +34,14 @@ export function UserMobileCard({ u, actions }: { u: UserRow; actions: UserRowAct
           </div>
           <div className="flex gap-1">
             <Button variant="ghost" size="icon" onClick={() => actions.onEdit(u)} aria-label="Editar usuario">
-              <Pencil className="h-4 w-4" />
+              <EditIcon className="h-4 w-4" />
             </Button>
             <Button variant="ghost" size="icon" onClick={() => actions.onSetPassword(u)} aria-label="Asignar contraseña">
-              <KeyRound className="h-4 w-4" />
+              <KeyIcon className="h-4 w-4" />
             </Button>
             {!isSelf && (
               <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => actions.onDelete(u)} aria-label="Eliminar usuario">
-                <Trash2 className="h-4 w-4" />
+                <DeleteIcon className="h-4 w-4" />
               </Button>
             )}
           </div>

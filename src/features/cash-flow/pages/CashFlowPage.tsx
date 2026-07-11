@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Loader2, TrendingUp } from "@/components/icons";
+import { SpinnerIcon, TrendingUpIcon } from "@/components/icons";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -39,7 +39,7 @@ export default function CashFlowPage() {
 
           {isLoading || !buckets ? (
             <Card><CardContent className="py-12 flex items-center justify-center text-muted-foreground">
-              <Loader2 className="h-5 w-5 animate-spin mr-2" /> Calculando proyección…
+              <SpinnerIcon className="h-5 w-5 animate-spin mr-2" /> Calculando proyección…
             </CardContent></Card>
           ) : (
             <>
@@ -48,7 +48,7 @@ export default function CashFlowPage() {
                 <CardContent className="p-0">
                   {buckets.every((b) => b.items.length === 0) ? (
                     <div className="py-12 flex flex-col items-center justify-center text-muted-foreground gap-2">
-                      <TrendingUp className="h-8 w-8" />
+                      <TrendingUpIcon className="h-8 w-8" />
                       <p className="text-sm">No hay facturas ni cuentas por pagar en el horizonte seleccionado.</p>
                     </div>
                   ) : (

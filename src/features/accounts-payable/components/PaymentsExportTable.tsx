@@ -1,4 +1,4 @@
-import { AlertCircle, Loader2 } from "@/components/icons";
+import { InfoAlertIcon, SpinnerIcon } from "@/components/icons";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -28,7 +28,7 @@ export function PaymentsExportTable({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-10">
-        <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+        <SpinnerIcon className="h-5 w-5 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -81,7 +81,7 @@ export function PaymentsExportTable({
               <td className="px-2 py-1.5">
                 {blocked ? (
                   <span className="inline-flex items-center gap-1 text-destructive text-xs">
-                    <AlertCircle className="h-3.5 w-3.5" /> Sin CLABE válida
+                    <InfoAlertIcon className="h-3.5 w-3.5" /> Sin CLABE válida
                   </span>
                 ) : (
                   <>

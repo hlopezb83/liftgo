@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { FormField, FormItem, FormControl } from "@/components/ui/form";
-import { ShieldCheck, Save, Eye, EyeOff, CheckCircle2, AlertTriangle } from "@/components/icons";
+import { SecurityIcon, SaveIcon, ViewIcon, HideIcon, SuccessIcon, WarnIcon } from "@/components/icons";
 
 export interface PacFormValues {
   facturapi_mode: string;
@@ -35,8 +35,8 @@ function ApiKeyField({ label, value, onChange, placeholder, isConfigured }: KeyF
       <Label className="flex items-center gap-1.5">
         {label}
         {(isConfigured || value)
-          ? <CheckCircle2 className="h-3.5 w-3.5 text-success" />
-          : <AlertTriangle className="h-3.5 w-3.5 text-warning" />}
+          ? <SuccessIcon className="h-3.5 w-3.5 text-success" />
+          : <WarnIcon className="h-3.5 w-3.5 text-warning" />}
         {isConfigured && !value && (
           <span className="text-[10px] uppercase tracking-wide text-muted-foreground ml-1">
             configurada
@@ -59,7 +59,7 @@ function ApiKeyField({ label, value, onChange, placeholder, isConfigured }: KeyF
           className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
           onClick={() => setShow(!show)}
         >
-          {show ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          {show ? <HideIcon className="h-4 w-4" /> : <ViewIcon className="h-4 w-4" />}
         </Button>
       </div>
     </div>
@@ -74,7 +74,7 @@ export function PacConfigForm({ isPending, hasTestKey, hasLiveKey }: Props) {
     <Card className="mt-6">
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
-          <ShieldCheck className="h-4 w-4" /> Configuración PAC (Facturapi)
+          <SecurityIcon className="h-4 w-4" /> Configuración PAC (Facturapi)
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -130,7 +130,7 @@ export function PacConfigForm({ isPending, hasTestKey, hasLiveKey }: Props) {
 
         <div className="pt-2">
           <Button type="submit" disabled={isPending}>
-            <Save className="h-4 w-4 mr-1" />
+            <SaveIcon className="h-4 w-4 mr-1" />
             {isPending ? "Guardando..." : "Guardar Configuración"}
           </Button>
         </div>

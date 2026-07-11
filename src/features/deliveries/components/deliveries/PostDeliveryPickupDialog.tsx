@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
-import { Truck } from "@/components/icons";
+import { FleetIcon } from "@/components/icons";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -86,7 +86,7 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
       title="¿Programar Recolección?"
       description={
         <span className="flex items-start gap-2">
-          <Truck className="h-4 w-4 text-primary mt-0.5 shrink-0" />
+          <FleetIcon className="h-4 w-4 text-primary mt-0.5 shrink-0" />
           <span>La entrega de {forkliftName} se completó. ¿Deseas programar la recolección?</span>
         </span>
       }
@@ -94,7 +94,7 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
       {!showForm ? (
         <FormDialogFooter className="flex-col gap-2 sm:flex-col">
           <Button className="w-full" onClick={() => setShowForm(true)}>
-            <Truck className="h-4 w-4 mr-2" /> Programar Recolección
+            <FleetIcon className="h-4 w-4 mr-2" /> Programar Recolección
           </Button>
           <Button variant="outline" className="w-full" onClick={() => onOpenChange(false)}>Omitir por Ahora</Button>
         </FormDialogFooter>

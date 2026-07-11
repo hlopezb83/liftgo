@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { Pencil, Trash2, Trophy, XCircle, RotateCcw } from "@/components/icons";
+import { EditIcon, DeleteIcon, TrophyIcon, ErrorIcon, ResetIcon } from "@/components/icons";
 import { useDeleteProspect, useUpdateProspect, type Prospect } from "../../hooks/useProspects";
 import { useProspectGuard } from "../../hooks/useProspectGuard";
 import { CloseWonDialog } from "../CloseWonDialog";
@@ -46,24 +46,24 @@ export function ProspectActions({ prospect, onEdit, onClose }: Props) {
               className="bg-success hover:bg-success/90 text-success-foreground"
               disabled={!canCloseDeal}
             >
-              <Trophy className="h-4 w-4 mr-1" /> Ganado
+              <TrophyIcon className="h-4 w-4 mr-1" /> Ganado
             </Button>
             <Button variant="destructive" onClick={() => setLostOpen(true)}>
-              <XCircle className="h-4 w-4 mr-1" /> Perdido
+              <ErrorIcon className="h-4 w-4 mr-1" /> Perdido
             </Button>
           </div>
         )}
         {isClosed && (
           <Button variant="outline" className="w-full" onClick={handleReopen} disabled={updateProspect.isPending}>
-            <RotateCcw className="h-4 w-4 mr-1" /> Reabrir deal
+            <ResetIcon className="h-4 w-4 mr-1" /> Reabrir deal
           </Button>
         )}
         <div className="flex gap-2">
           <Button variant="outline" className="flex-1" onClick={() => { onEdit(); onClose(); }}>
-            <Pencil className="h-4 w-4 mr-1" /> Editar
+            <EditIcon className="h-4 w-4 mr-1" /> Editar
           </Button>
           <Button variant="ghost" className="flex-1 text-destructive hover:text-destructive" onClick={() => setConfirmOpen(true)}>
-            <Trash2 className="h-4 w-4 mr-1" /> Eliminar
+            <DeleteIcon className="h-4 w-4 mr-1" /> Eliminar
           </Button>
           <ConfirmDialog
             open={confirmOpen}

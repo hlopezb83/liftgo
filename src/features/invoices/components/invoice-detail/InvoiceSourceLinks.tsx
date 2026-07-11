@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, CalendarIcon } from "@/components/icons";
+import { DocumentIcon, CalendarIcon } from "@/components/icons";
 import { formatDateRange } from "@/lib/utils";
 import type { BookingWithForklift } from "@/features/bookings";
 import type { Tables } from "@/integrations/supabase/types";
@@ -24,7 +24,7 @@ export function InvoiceSourceLinks({ sourceQuote, sourceBooking, sourceBookings 
       {sourceQuote && (
         <Card>
           <CardContent className="py-3 flex items-center gap-2">
-            <FileText className="h-4 w-4 text-muted-foreground" />
+            <DocumentIcon className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm text-muted-foreground">Generada desde cotización:</span>
             <Link to={`/quotes/${sourceQuote.id}`}>
               <Badge variant="outline" className="cursor-pointer hover:bg-accent">

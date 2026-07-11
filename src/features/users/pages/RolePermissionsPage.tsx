@@ -3,7 +3,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Check, Eye, Minus, Loader2 } from "@/components/icons";
+import { BackIcon, Check, ViewIcon, RemoveIcon, SpinnerIcon } from "@/components/icons";
 import { useNavigate } from "react-router-dom";
 import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
 import { useRolePermissions, useUpdatePermission, MODULES, type AccessLevel } from "../hooks/useRolePermissions";
@@ -13,8 +13,8 @@ import { cn } from "@/lib/utils";
 
 const accessConfig = {
   full: { icon: Check, color: "text-success", label: "Acceso completo" },
-  read: { icon: Eye, color: "text-info", label: "Solo lectura" },
-  none: { icon: Minus, color: "text-muted-foreground/40", label: "Sin acceso" },
+  read: { icon: ViewIcon, color: "text-info", label: "Solo lectura" },
+  none: { icon: RemoveIcon, color: "text-muted-foreground/40", label: "Sin acceso" },
 };
 
 const CYCLE: AccessLevel[] = ["none", "read", "full"];
@@ -50,7 +50,7 @@ export default function RolePermissionsPage() {
       subtitle={isAdmin ? "Haz clic en un icono para cambiar el nivel de acceso" : "Consulta los niveles de acceso de cada rol del sistema por módulo"}
       action={
         <Button variant="outline" onClick={() => navigate("/users")}>
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <BackIcon className="mr-2 h-4 w-4" />
           Volver a Usuarios
         </Button>
       }
@@ -63,7 +63,7 @@ export default function RolePermissionsPage() {
         <PageContainer>
           {header}
           <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <SpinnerIcon className="h-6 w-6 animate-spin text-muted-foreground" />
           </div>
         </PageContainer>
       </PageTransition>

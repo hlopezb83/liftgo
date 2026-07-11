@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Send, CheckCircle, XCircle, Edit } from "@/components/icons";
+import { Send, SuccessIcon, ErrorIcon, Edit } from "@/components/icons";
 import { ContractPDFButton, type ContractData } from "./ContractPDFButton";
 
 interface ContractDetailActionsProps {
@@ -26,12 +26,12 @@ export function ContractDetailActions({ id, status, contract, onSetStatus }: Con
       )}
       {status === "sent" && (
         <Button size="sm" onClick={() => onSetStatus("signed", { signed_at: new Date().toISOString() })}>
-          <CheckCircle className="h-4 w-4 mr-1" />Marcar Firmado
+          <SuccessIcon className="h-4 w-4 mr-1" />Marcar Firmado
         </Button>
       )}
       {(status === "draft" || status === "sent") && (
         <Button variant="destructive" size="sm" onClick={() => onSetStatus("cancelled")}>
-          <XCircle className="h-4 w-4 mr-1" />Cancelar
+          <ErrorIcon className="h-4 w-4 mr-1" />Cancelar
         </Button>
       )}
       <ContractPDFButton contract={contract} />

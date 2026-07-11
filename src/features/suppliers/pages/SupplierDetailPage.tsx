@@ -19,7 +19,7 @@ import { SupplierBankAccountsSection } from "../components/suppliers/SupplierBan
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
-import { FileText, Wrench, DollarSign, Pencil } from "@/components/icons";
+import { DocumentIcon, MaintenanceIcon, MoneyIcon, EditIcon } from "@/components/icons";
 
 type LinkedExpense = { id: string; expense_date: string; category: string; description: string | null; amount: number };
 
@@ -112,7 +112,7 @@ export default function SupplierDetailPage() {
         actions={
           <RoleGuard module="Proveedores" minAccess="full">
             <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
-              <Pencil className="h-4 w-4 mr-2" /> Editar
+              <EditIcon className="h-4 w-4 mr-2" /> Editar
             </Button>
           </RoleGuard>
         }
@@ -135,7 +135,7 @@ export default function SupplierDetailPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card>
           <CardContent className="flex items-center gap-4 py-5">
-            <div className="rounded-full bg-primary/10 p-3"><DollarSign className="h-5 w-5 text-primary" /></div>
+            <div className="rounded-full bg-primary/10 p-3"><MoneyIcon className="h-5 w-5 text-primary" /></div>
             <div>
               <p className="text-sm text-muted-foreground">Total Gastos Operativos</p>
               <p className="text-xl font-bold font-mono">{formatCurrency(totalExpenses)}</p>
@@ -145,7 +145,7 @@ export default function SupplierDetailPage() {
         </Card>
         <Card>
           <CardContent className="flex items-center gap-4 py-5">
-            <div className="rounded-full bg-primary/10 p-3"><Wrench className="h-5 w-5 text-primary" /></div>
+            <div className="rounded-full bg-primary/10 p-3"><MaintenanceIcon className="h-5 w-5 text-primary" /></div>
             <div>
               <p className="text-sm text-muted-foreground">Total Mantenimiento</p>
               <p className="text-xl font-bold font-mono">{formatCurrency(totalMaintenance)}</p>
@@ -156,14 +156,14 @@ export default function SupplierDetailPage() {
       </div>
 
       <Card>
-        <CardHeader><CardTitle className="text-base flex items-center gap-2"><FileText className="h-4 w-4" />Gastos Operativos Vinculados</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base flex items-center gap-2"><DocumentIcon className="h-4 w-4" />Gastos Operativos Vinculados</CardTitle></CardHeader>
         <CardContent className="p-0">
           <DataTableV2 table={expensesTable} emptyMessage="Sin gastos vinculados" />
         </CardContent>
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="text-base flex items-center gap-2"><Wrench className="h-4 w-4" />Mantenimiento Vinculado</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="text-base flex items-center gap-2"><MaintenanceIcon className="h-4 w-4" />Mantenimiento Vinculado</CardTitle></CardHeader>
         <CardContent className="p-0">
           <DataTableV2 table={maintenanceTable} emptyMessage="Sin mantenimiento vinculado" />
         </CardContent>

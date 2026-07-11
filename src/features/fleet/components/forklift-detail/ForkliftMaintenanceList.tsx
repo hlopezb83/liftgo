@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wrench } from "@/components/icons";
+import { MaintenanceIcon } from "@/components/icons";
 import { format } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";
 
@@ -13,7 +13,7 @@ interface ForkliftMaintenanceListProps {
 export function ForkliftMaintenanceList({ logs }: ForkliftMaintenanceListProps) {
   return (
     <Card>
-      <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><Wrench className="h-4 w-4" /> Historial de Mantenimiento</CardTitle></CardHeader>
+      <CardHeader className="pb-3"><CardTitle className="text-base flex items-center gap-2"><MaintenanceIcon className="h-4 w-4" /> Historial de Mantenimiento</CardTitle></CardHeader>
       <CardContent>
         {logs.length > 0 ? (
           <div className="space-y-2">

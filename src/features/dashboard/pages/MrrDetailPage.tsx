@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { DollarSign, ExternalLink } from "@/components/icons";
+import { MoneyIcon, ExternalLink } from "@/components/icons";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { KpiTile } from "@/components/domain/KpiTile";
@@ -107,7 +107,7 @@ export default function MrrDetailPage() {
       <KpiTile
         label="MRR Total"
         value={isLoading ? "…" : formatCurrency(data?.total_mrr ?? 0)}
-        icon={DollarSign}
+        icon={MoneyIcon}
         iconColor="text-success"
         iconBg="bg-success/10"
         valueSize="lg"
@@ -121,7 +121,7 @@ export default function MrrDetailPage() {
         <CardContent className="p-0">
           {!isLoading && !data?.items.length ? (
             <div className="py-12">
-              <EmptyState icon={DollarSign} title="Sin montacargas rentados" subtitle="Actualmente no hay equipos con status 'rentado'." />
+              <EmptyState icon={MoneyIcon} title="Sin montacargas rentados" subtitle="Actualmente no hay equipos con status 'rentado'." />
             </div>
           ) : (
             <DataTableV2

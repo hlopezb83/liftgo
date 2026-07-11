@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@/lib/forms/zodResolver";
-import { Pencil, FileText } from "@/components/icons";
+import { EditIcon, DocumentIcon } from "@/components/icons";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
@@ -131,11 +131,11 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
           <Tabs value={tab} onValueChange={setTab}>
             <TabsList className="w-full">
               <TabsTrigger value="manual" className="flex-1">
-                <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                <EditIcon className="h-3.5 w-3.5 mr-1.5" />
                 Llenar manualmente
               </TabsTrigger>
               <TabsTrigger value="csf" className="flex-1">
-                <FileText className="h-3.5 w-3.5 mr-1.5" />
+                <DocumentIcon className="h-3.5 w-3.5 mr-1.5" />
                 Importar desde CSF
               </TabsTrigger>
             </TabsList>

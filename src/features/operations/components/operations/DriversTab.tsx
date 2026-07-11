@@ -9,7 +9,7 @@ import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { Plus, Pencil, Trash2 } from "@/components/icons";
+import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
 
 export function DriversTab() {
   const { data: drivers, isLoading } = useDrivers();
@@ -78,7 +78,7 @@ export function DriversTab() {
   return (
     <div>
       <div className="flex justify-end mb-4">
-        <Button onClick={openNew} size="sm"><Plus className="h-4 w-4 mr-2" />Agregar Operador</Button>
+        <Button onClick={openNew} size="sm"><AddIcon className="h-4 w-4 mr-2" />Agregar Operador</Button>
       </div>
       <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay operadores registrados" />
       <FormDialog open={open} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} Operador`} description="Administrar datos del operador para programación de entregas.">
@@ -108,8 +108,8 @@ function DriverRowActions({ driver, onEdit, onDelete }: { driver: Driver; onEdit
   const [open, setOpen] = useState(false);
   return (
     <div className="flex gap-1">
-      <Button variant="ghost" size="icon" onClick={onEdit}><Pencil className="h-4 w-4" /></Button>
-      <Button variant="ghost" size="icon" onClick={() => setOpen(true)}><Trash2 className="h-4 w-4 text-destructive" /></Button>
+      <Button variant="ghost" size="icon" onClick={onEdit}><EditIcon className="h-4 w-4" /></Button>
+      <Button variant="ghost" size="icon" onClick={() => setOpen(true)}><DeleteIcon className="h-4 w-4 text-destructive" /></Button>
       <ConfirmDialog
         open={open}
         onOpenChange={setOpen}

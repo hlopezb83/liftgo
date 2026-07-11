@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { type BookingWithForklift } from "../../hooks/useBookings";
-import { CalendarPlus, Undo2, XCircle, FileText, Trash2, RefreshCw } from "@/components/icons";
+import { CalendarPlus, UndoIcon, ErrorIcon, DocumentIcon, DeleteIcon, RefreshIcon } from "@/components/icons";
 import { formatDateRange } from "@/lib/utils";
 import { useBookingActionsLogic } from "../../hooks/useBookingActionsLogic";
 import { BookingStatusChangeDialog, BookingExtendDialog } from "./BookingActionDialogs";
@@ -51,7 +51,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
   const deleteButton = (
     <>
       <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
-        <Trash2 className="h-4 w-4 mr-1" />Eliminar
+        <DeleteIcon className="h-4 w-4 mr-1" />Eliminar
       </Button>
       {deleteDialog}
     </>
@@ -62,7 +62,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
     return (
       <div className="flex gap-2">
         <Button variant="outline" size="sm" onClick={() => { setNewStatus(""); setStatusDialogOpen(true); }}>
-          <RefreshCw className="h-4 w-4 mr-1" />Cambiar Estatus
+          <RefreshIcon className="h-4 w-4 mr-1" />Cambiar Estatus
         </Button>
         {deleteButton}
         {statusChangeDialog}
@@ -73,26 +73,26 @@ export function BookingActions({ booking }: BookingActionsProps) {
   return (
     <div className="flex gap-2">
       <Button size="sm" onClick={() => navigate(`/contracts/new?booking_id=${booking.id}`)}>
-        <FileText className="h-4 w-4 mr-1" />Crear Contrato
+        <DocumentIcon className="h-4 w-4 mr-1" />Crear Contrato
       </Button>
       <Button variant="outline" size="sm" onClick={() => { setNewEndDate(undefined); setExtendOpen(true); }}>
         <CalendarPlus className="h-4 w-4 mr-1" />Extender
       </Button>
       <Button variant="outline" size="sm" onClick={() => navigate(`/returns?booking_id=${booking.id}`)}>
-        <Undo2 className="h-4 w-4 mr-1" />Devolución Anticipada
+        <UndoIcon className="h-4 w-4 mr-1" />Devolución Anticipada
       </Button>
 
       {isAdmin && (
         <>
           <Button variant="outline" size="sm" onClick={() => { setNewStatus(""); setStatusDialogOpen(true); }}>
-            <RefreshCw className="h-4 w-4 mr-1" />Cambiar Estatus
+            <RefreshIcon className="h-4 w-4 mr-1" />Cambiar Estatus
           </Button>
           {deleteButton}
         </>
       )}
 
       <Button variant="destructive" size="sm" onClick={() => setCancelOpen(true)}>
-        <XCircle className="h-4 w-4 mr-1" />Cancelar
+        <ErrorIcon className="h-4 w-4 mr-1" />Cancelar
       </Button>
       <ConfirmDialog
         open={cancelOpen}

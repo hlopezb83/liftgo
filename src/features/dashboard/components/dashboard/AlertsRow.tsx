@@ -1,4 +1,4 @@
-import { AlertTriangle, Wrench, CheckCircle, ClipboardList, Clock } from "@/components/icons";
+import { WarnIcon, MaintenanceIcon, SuccessIcon, ClipboardList, ClockIcon } from "@/components/icons";
 import { useNavigate } from "react-router-dom";
 import { useUpdateInvoice } from "@/features/invoices";
 import { useUpdateBooking } from "@/features/bookings";
@@ -71,7 +71,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
     <div className="grid grid-cols-1 gap-4">
       {overdueInvoices.length > 0 && (
         <AlertCard
-          icon={AlertTriangle}
+          icon={WarnIcon}
           title="Facturas Vencidas"
           count={overdueInvoices.length}
           tone="destructive"
@@ -94,14 +94,14 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
               onClick={() => navigate(`/invoices/${inv.id}`)}
               rightTop={<span className="font-mono font-semibold text-destructive">{formatCurrency(Number(inv.total))}</span>}
               rightBottom={`Vence: ${formatDateDisplay(inv.due_date)}`}
-              action={{ icon: CheckCircle, title: "Marcar Pagada", onClick: (e) => handleMarkPaid(inv, e), className: "text-status-available" }}
+              action={{ icon: SuccessIcon, title: "Marcar Pagada", onClick: (e) => handleMarkPaid(inv, e), className: "text-status-available" }}
             />
           ))}
         </AlertCard>
       )}
 
       {overdueBookings.length > 0 && (
-        <AlertCard icon={Clock} title="Rentas Vencidas" count={overdueBookings.length} tone="warning">
+        <AlertCard icon={ClockIcon} title="Rentas Vencidas" count={overdueBookings.length} tone="warning">
           {overdueBookings.slice(0, 5).map((ob) => (
             <AlertRow
               key={ob.booking_id}
@@ -122,7 +122,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
       )}
 
       {maintenanceAlerts.length > 0 && (
-        <AlertCard icon={Wrench} title="Servicio Pendiente" count={maintenanceAlerts.length} tone="maintenance">
+        <AlertCard icon={MaintenanceIcon} title="Servicio Pendiente" count={maintenanceAlerts.length} tone="maintenance">
           {maintenanceAlerts.map((a) => (
             <AlertRow
               key={a.forkliftId}

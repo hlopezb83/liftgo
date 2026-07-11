@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
-import { XCircle } from "@/components/icons";
+import { ErrorIcon } from "@/components/icons";
 import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -100,7 +100,7 @@ export function CloseLostDialog({ prospect, open, onOpenChange, onConfirm, isPen
               Cancelar
             </Button>
             <Button type="submit" variant="destructive" disabled={isPending}>
-              <XCircle className="h-4 w-4 mr-1" />
+              <ErrorIcon className="h-4 w-4 mr-1" />
               Confirmar Perdido
             </Button>
           </FormDialogFooter>

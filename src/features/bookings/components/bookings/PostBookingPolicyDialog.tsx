@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
-import { ShieldCheck } from "@/components/icons";
+import { SecurityIcon } from "@/components/icons";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -67,7 +67,7 @@ export function PostBookingPolicyDialog({ open, onOpenChange, forkliftId, forkli
       title="Póliza de Mantenimiento"
       description={
         <span className="flex items-start gap-2">
-          <ShieldCheck className="h-4 w-4 text-warning mt-0.5 shrink-0" />
+          <SecurityIcon className="h-4 w-4 text-warning mt-0.5 shrink-0" />
           <span>El montacargas <span className="font-medium">{forkliftName}</span> no tiene una póliza de mantenimiento activa. ¿Deseas crear una?</span>
         </span>
       }
@@ -75,7 +75,7 @@ export function PostBookingPolicyDialog({ open, onOpenChange, forkliftId, forkli
       {!showForm ? (
         <FormDialogFooter className="flex-col gap-2 sm:flex-col">
           <Button className="w-full" onClick={() => setShowForm(true)}>
-            <ShieldCheck className="h-4 w-4 mr-2" /> Crear Póliza
+            <SecurityIcon className="h-4 w-4 mr-2" /> Crear Póliza
           </Button>
           <Button variant="outline" className="w-full" onClick={onSkip}>
             Omitir por Ahora

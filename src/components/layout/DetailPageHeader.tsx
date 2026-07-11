@@ -1,7 +1,7 @@
 import { ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "@/components/icons";
+import { BackIcon } from "@/components/icons";
 
 interface DetailPageHeaderProps {
   title: string;
@@ -31,7 +31,7 @@ export function DetailPageHeader({ title, subtitle, badges, backTo, actions, pri
     <div className={hasActions ? "flex flex-col gap-3" : "flex items-center gap-2"}>
       <div className="flex items-center gap-2 sm:gap-3 min-w-0">
         <Button variant="ghost" size="icon" onClick={handleBack} aria-label="Volver" className="touch:h-11 touch:w-11 shrink-0">
-          <ArrowLeft className="h-4 w-4" />
+          <BackIcon className="h-4 w-4" />
         </Button>
         <div className="min-w-0 flex-1">
           <h1 className="text-xl sm:text-2xl font-semibold tracking-tight truncate">{title}</h1>

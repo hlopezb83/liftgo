@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { ArrowLeft } from "@/components/icons";
+import { BackIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 
 interface PageHeaderProps {
@@ -21,7 +21,7 @@ export function PageHeader({ title, subtitle, action, actions, backHref, backLab
         {backHref && (
           <Button asChild variant="ghost" size="sm" className="-ml-2 h-7 px-2 text-muted-foreground hover:text-foreground">
             <Link to={backHref}>
-              <ArrowLeft className="h-3.5 w-3.5 mr-1" />
+              <BackIcon className="h-3.5 w-3.5 mr-1" />
               {backLabel ?? "Volver"}
             </Link>
           </Button>

@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Form, FormField, FormItem, FormControl } from "@/components/ui/form";
 
-import { Image as ImageIcon, Save, CheckCircle2, AlertCircle, ImageOff } from "@/components/icons";
+import { Image as ImageIcon, SaveIcon, SuccessIcon, InfoAlertIcon, ImageOff } from "@/components/icons";
 import { logoSchema, type LogoFormValues } from "../../lib/operationsSchemas";
 
 export function CompanyLogoTab() {
@@ -60,7 +60,7 @@ export function CompanyLogoTab() {
             </CardTitle>
             {hasSaved ? (
               <Badge variant="outline" className="gap-1 text-success border-success/30">
-                <CheckCircle2 className="h-3.5 w-3.5" /> Logo guardado
+                <SuccessIcon className="h-3.5 w-3.5" /> Logo guardado
               </Badge>
             ) : (
               <Badge variant="outline" className="gap-1 text-muted-foreground">
@@ -84,7 +84,7 @@ export function CompanyLogoTab() {
             {hasPendingChange && (
               <div className="rounded-md border border-warning/30 bg-warning/5 p-3 space-y-2">
                 <div className="flex items-center gap-2 text-warning dark:text-warning text-sm font-medium">
-                  <AlertCircle className="h-4 w-4" />
+                  <InfoAlertIcon className="h-4 w-4" />
                   Cambios sin guardar — vista previa
                 </div>
                 <div className="grid grid-cols-2 gap-3">
@@ -117,7 +117,7 @@ export function CompanyLogoTab() {
             </p>
             <div className="pt-2">
               <Button type="submit" disabled={upsert.isPending || !hasPendingChange}>
-                <Save className="h-4 w-4 mr-1" />
+                <SaveIcon className="h-4 w-4 mr-1" />
                 {upsert.isPending ? "Guardando..." : "Guardar Logo"}
               </Button>
             </div>

@@ -7,7 +7,7 @@ import { RoleGuard } from "@/layouts/RoleGuard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Settings } from "@/components/icons";
+import { SettingsIcon } from "@/components/icons";
 import { useBankAccounts } from "../hooks/useBankAccounts";
 import { useBankStatementLines, type BankStatementLine } from "../hooks/useBankStatementLines";
 import { BankStatementUploader } from "../components/BankStatementUploader";
@@ -52,7 +52,7 @@ export default function BankReconciliationPage() {
             subtitle="Sube tu estado de cuenta y empareja con los pagos del sistema"
             action={
               <Button asChild variant="outline" size="sm">
-                <Link to="/cuentas-bancarias"><Settings className="h-4 w-4 mr-2" /> Cuentas bancarias</Link>
+                <Link to="/cuentas-bancarias"><SettingsIcon className="h-4 w-4 mr-2" /> Cuentas bancarias</Link>
               </Button>
             }
           />

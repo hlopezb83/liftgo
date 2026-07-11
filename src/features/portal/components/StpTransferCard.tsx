@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy } from "@/components/icons";
+import { DuplicateIcon } from "@/components/icons";
 
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { usePortalCollectionAccount } from "../hooks/usePortalExtras";
@@ -56,7 +56,7 @@ export function StpTransferCard({ amount, concept }: Props) {
                 <span className="font-mono text-sm">{r.value}</span>
                 {r.copyable && (
                   <Button size="icon" variant="ghost" className="h-7 w-7" onClick={() => copy(r.value, r.label)} aria-label={`Copiar ${r.label}`}>
-                    <Copy className="h-3.5 w-3.5" />
+                    <DuplicateIcon className="h-3.5 w-3.5" />
                   </Button>
                 )}
               </div>

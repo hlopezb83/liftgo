@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { ShieldCheck } from "@/components/icons";
+import { SecurityIcon } from "@/components/icons";
 import { FUEL_TYPE_LABELS } from "@/lib/constants";
 import type { ColumnDef } from "@/components/dataTable/v2";
 import type { Forklift } from "../forklifts/useForklifts";
@@ -24,7 +24,7 @@ export function useFleetColumns(
               {activePolicyForkliftIds.has(f.id) && (
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <ShieldCheck className="h-3.5 w-3.5 text-success shrink-0" />
+                    <SecurityIcon className="h-3.5 w-3.5 text-success shrink-0" />
                   </TooltipTrigger>
                   <TooltipContent>Póliza de mantenimiento activa</TooltipContent>
                 </Tooltip>

@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download } from "@/components/icons";
+import { DownloadIcon } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay, nowMty } from "@/lib/utils";
 import { differenceInDays, format, parseISO } from "date-fns";
@@ -104,7 +104,7 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
               Detalle de Cartera Vencida — Total: {formatCurrency(grandTotal)}
             </CardTitle>
             <Button variant="outline" size="sm" onClick={handleExport}>
-              <Download className="h-4 w-4 mr-1" /> Exportar CSV
+              <DownloadIcon className="h-4 w-4 mr-1" /> Exportar CSV
             </Button>
           </div>
         </CardHeader>

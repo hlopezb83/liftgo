@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, ArrowLeft } from "@/components/icons";
+import { DeleteIcon, BackIcon } from "@/components/icons";
 import { formatDateDisplay } from "@/lib/utils";
 import { useUserRole } from "@/features/users";
 import { useBankStatementImports, useDeleteBankImport } from "../hooks/useBankStatementImports";
@@ -27,7 +27,7 @@ export default function BankStatementImportsHistoryPage() {
           subtitle="Estados de cuenta cargados y porcentaje de conciliación por archivo"
         />
         <Button variant="outline" size="sm" onClick={() => navigate("/conciliacion-bancaria")}>
-          <ArrowLeft className="h-4 w-4 mr-1" /> Volver
+          <BackIcon className="h-4 w-4 mr-1" /> Volver
         </Button>
       </div>
 
@@ -91,7 +91,7 @@ export default function BankStatementImportsHistoryPage() {
                         ) : (
                           <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive"
                             onClick={() => setConfirmId(i.id)}>
-                            <Trash2 className="h-3.5 w-3.5" />
+                            <DeleteIcon className="h-3.5 w-3.5" />
                           </Button>
                         )
                       )}

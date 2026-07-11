@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, FileDown } from "@/components/icons";
+import { DownloadIcon, FileDown } from "@/components/icons";
 import { exportToCsv } from "@/lib/exportCsv";
 
 type CsvRow = Record<string, unknown>;
@@ -32,7 +32,7 @@ export function IncomeStatementToolbar({
         </Select>
       )}
       <Button variant="outline" size="sm" onClick={() => exportToCsv("estado-resultados.csv", csvRows)}>
-        <Download className="h-4 w-4 mr-1" />CSV
+        <DownloadIcon className="h-4 w-4 mr-1" />CSV
       </Button>
       <Button variant="outline" size="sm" onClick={onExportPdf} disabled={pdfLoading}>
         <FileDown className="h-4 w-4 mr-1" />{pdfLoading ? "Generando..." : "PDF"}

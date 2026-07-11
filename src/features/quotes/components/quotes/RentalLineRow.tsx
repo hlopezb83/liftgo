@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { Trash2 } from "@/components/icons";
+import { DeleteIcon } from "@/components/icons";
 import type { EquipmentModel } from "@/features/fleet";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { RentalLine } from "./RentalLineItems";
@@ -53,7 +53,7 @@ export function RentalLineRow({ line, index, models, disableRemove, startDate, e
         </div>
         <div>
           <Button type="button" variant="ghost" size="icon" className="h-10 w-10" onClick={() => onRemove(index)} disabled={disableRemove}>
-            <Trash2 className="h-4 w-4 text-destructive" />
+            <DeleteIcon className="h-4 w-4 text-destructive" />
           </Button>
         </div>
       </div>

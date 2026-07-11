@@ -9,7 +9,7 @@ import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
-import { Plus, Download, Forklift as ForkliftIcon } from "@/components/icons";
+import { AddIcon, DownloadIcon, Forklift as ForkliftIcon } from "@/components/icons";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
 import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
@@ -77,9 +77,9 @@ export default function FleetPage() {
   const actions = (
     <div className="flex gap-2">
       <Button variant="outline" size="sm" onClick={() => exportToCsv("flota.csv", filtered.map((f) => ({ Nombre: f.name, Modelo: f.model, "No. de Serie": f.serial_number || "", Combustible: f.fuel_type || "", Estado: f.status })))}>
-        <Download className="h-4 w-4 mr-1" />Exportar CSV
+        <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
       </Button>
-      <Button onClick={() => navigate("/fleet/new")} size="sm"><Plus className="h-4 w-4 mr-1" /> Agregar Montacargas</Button>
+      <Button onClick={() => navigate("/fleet/new")} size="sm"><AddIcon className="h-4 w-4 mr-1" /> Agregar Montacargas</Button>
     </div>
   );
 

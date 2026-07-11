@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { History } from "@/components/icons";
+import { HistoryIcon } from "@/components/icons";
 import { format } from "date-fns";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import {
@@ -175,7 +175,7 @@ export function BookingStatusHistory({ bookingId }: BookingStatusHistoryProps) {
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
-          <History className="h-4 w-4 text-muted-foreground" />
+          <HistoryIcon className="h-4 w-4 text-muted-foreground" />
           Historial de la Reserva
         </CardTitle>
       </CardHeader>

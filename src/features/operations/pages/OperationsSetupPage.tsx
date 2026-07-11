@@ -1,7 +1,7 @@
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Truck, Wrench, FileText, ShieldCheck, Building2, Image as ImageIcon, ShieldAlert } from "@/components/icons";
+import { SettingsIcon, FleetIcon, MaintenanceIcon, DocumentIcon, SecurityIcon, CompanyIcon, Image as ImageIcon, ShieldAlert } from "@/components/icons";
 import { EquipmentModelsTab } from "../components/operations/EquipmentModelsTab";
 import { DriversTab } from "../components/operations/DriversTab";
 import { MechanicsTab } from "../components/operations/MechanicsTab";
@@ -18,12 +18,12 @@ export default function OperationsSetupPage() {
       <PageHeader title="Configuración" subtitle="Administrar modelos de equipo, operadores, mecánicos, pólizas, plantillas, datos fiscales, logo y aprobaciones" />
       <Tabs defaultValue="equipment" className="mt-6">
         <TabsList className="flex-wrap h-auto">
-          <TabsTrigger value="equipment" className="gap-2"><Settings className="h-4 w-4" />Modelos de Equipo</TabsTrigger>
-          <TabsTrigger value="drivers" className="gap-2"><Truck className="h-4 w-4" />Operadores</TabsTrigger>
-          <TabsTrigger value="mechanics" className="gap-2"><Wrench className="h-4 w-4" />Mecánicos</TabsTrigger>
-          <TabsTrigger value="policies" className="gap-2"><ShieldCheck className="h-4 w-4" />Pólizas de Mantenimiento</TabsTrigger>
-          <TabsTrigger value="contract-template" className="gap-2"><FileText className="h-4 w-4" />Plantilla de Contrato</TabsTrigger>
-          <TabsTrigger value="fiscal" className="gap-2"><Building2 className="h-4 w-4" />Datos Fiscales</TabsTrigger>
+          <TabsTrigger value="equipment" className="gap-2"><SettingsIcon className="h-4 w-4" />Modelos de Equipo</TabsTrigger>
+          <TabsTrigger value="drivers" className="gap-2"><FleetIcon className="h-4 w-4" />Operadores</TabsTrigger>
+          <TabsTrigger value="mechanics" className="gap-2"><MaintenanceIcon className="h-4 w-4" />Mecánicos</TabsTrigger>
+          <TabsTrigger value="policies" className="gap-2"><SecurityIcon className="h-4 w-4" />Pólizas de Mantenimiento</TabsTrigger>
+          <TabsTrigger value="contract-template" className="gap-2"><DocumentIcon className="h-4 w-4" />Plantilla de Contrato</TabsTrigger>
+          <TabsTrigger value="fiscal" className="gap-2"><CompanyIcon className="h-4 w-4" />Datos Fiscales</TabsTrigger>
           <TabsTrigger value="logo" className="gap-2"><ImageIcon className="h-4 w-4" />Logo</TabsTrigger>
           <TabsTrigger value="cxp-approval" className="gap-2"><ShieldAlert className="h-4 w-4" />Aprobaciones CxP</TabsTrigger>
         </TabsList>

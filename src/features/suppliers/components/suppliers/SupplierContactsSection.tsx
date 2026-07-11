@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Users, Star } from "@/components/icons";
+import { AddIcon, EditIcon, DeleteIcon, UsersIcon, StarIcon } from "@/components/icons";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { useConfirm } from "@/components/feedback/useConfirm";
 import { useSupplierContacts, useDeleteSupplierContact, type SupplierContact } from "../../hooks/useSupplierContacts";
@@ -34,12 +34,12 @@ export function SupplierContactsSection({ supplierId }: { supplierId: string }) 
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0">
         <CardTitle className="text-base flex items-center gap-2">
-          <Users className="h-4 w-4" />
+          <UsersIcon className="h-4 w-4" />
           Contactos <span className="text-muted-foreground font-normal">({contacts.length})</span>
         </CardTitle>
         <RoleGuard module="Proveedores" minAccess="full">
           <Button size="sm" variant="outline" onClick={onAdd}>
-            <Plus className="h-4 w-4 mr-1" />Agregar
+            <AddIcon className="h-4 w-4 mr-1" />Agregar
           </Button>
         </RoleGuard>
       </CardHeader>
@@ -67,7 +67,7 @@ export function SupplierContactsSection({ supplierId }: { supplierId: string }) 
                       {c.name}
                       {c.is_primary && (
                         <Badge variant="secondary" className="gap-1">
-                          <Star className="h-3 w-3" />Primario
+                          <StarIcon className="h-3 w-3" />Primario
                         </Badge>
                       )}
                     </div>
@@ -78,10 +78,10 @@ export function SupplierContactsSection({ supplierId }: { supplierId: string }) 
                   <TableCell className="text-right">
                     <RoleGuard module="Proveedores" minAccess="full">
                       <Button size="icon" variant="ghost" onClick={() => onEdit(c)}>
-                        <Pencil className="h-4 w-4" />
+                        <EditIcon className="h-4 w-4" />
                       </Button>
                       <Button size="icon" variant="ghost" onClick={() => onDelete(c)}>
-                        <Trash2 className="h-4 w-4" />
+                        <DeleteIcon className="h-4 w-4" />
                       </Button>
                     </RoleGuard>
                   </TableCell>

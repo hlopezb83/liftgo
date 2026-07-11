@@ -1,4 +1,4 @@
-import { Link as LinkIcon, AlertCircle, ChevronDown, ChevronRight } from "@/components/icons";
+import { Link as LinkIcon, InfoAlertIcon, ChevronDownIcon, ChevronRightIcon } from "@/components/icons";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
 import { es } from "date-fns/locale";
@@ -46,9 +46,9 @@ export function ChangelogEntryCard({ entry, expanded, onToggle, highlighted }: P
             aria-controls={`detail-${entry.version}`}
           >
             {expanded ? (
-              <ChevronDown className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
+              <ChevronDownIcon className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
             ) : (
-              <ChevronRight className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
+              <ChevronRightIcon className="h-4 w-4 mt-1 text-muted-foreground flex-shrink-0" />
             )}
             <div className="flex-1 space-y-2">
               <div className="flex items-center gap-2 flex-wrap">
@@ -82,7 +82,7 @@ export function ChangelogEntryCard({ entry, expanded, onToggle, highlighted }: P
               )}
               {detailError && (
                 <p className="text-sm text-destructive flex items-center gap-2">
-                  <AlertCircle className="h-4 w-4" /> No se pudo cargar el detalle
+                  <InfoAlertIcon className="h-4 w-4" /> No se pudo cargar el detalle
                 </p>
               )}
               {detail && (

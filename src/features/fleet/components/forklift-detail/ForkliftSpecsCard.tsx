@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Truck } from "@/components/icons";
+import { FleetIcon } from "@/components/icons";
 import type { Tables } from "@/integrations/supabase/types";
 import { FUEL_TYPE_LABELS } from "@/lib/constants";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -30,7 +30,7 @@ export function ForkliftSpecsCard({ forklift, currentLocation }: ForkliftSpecsCa
   return (
     <Card className="lg:col-span-2">
       <CardHeader className="pb-3">
-        <CardTitle className="text-base flex items-center gap-2"><Truck className="h-4 w-4" /> Especificaciones</CardTitle>
+        <CardTitle className="text-base flex items-center gap-2"><FleetIcon className="h-4 w-4" /> Especificaciones</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-2 gap-4">

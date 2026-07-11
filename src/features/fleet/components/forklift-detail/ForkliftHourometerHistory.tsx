@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock } from "@/components/icons";
+import { ClockIcon } from "@/components/icons";
 import { formatDateDisplay } from "@/lib/utils";
 import type { ForkliftFinancials } from "../../hooks/forklifts/useForkliftFinancials";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
@@ -59,7 +59,7 @@ export function ForkliftHourometerHistory({ history }: ForkliftHourometerHistory
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base flex items-center gap-2">
-          <Clock className="h-4 w-4" /> Historial de Horómetro
+          <ClockIcon className="h-4 w-4" /> Historial de Horómetro
         </CardTitle>
       </CardHeader>
       <CardContent>

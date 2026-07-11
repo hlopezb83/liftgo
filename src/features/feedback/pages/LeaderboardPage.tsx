@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Trophy, Medal } from "@/components/icons";
+import { TrophyIcon, Medal } from "@/components/icons";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { useLeaderboard, type LeaderboardPeriod, type LeaderboardRow } from "../hooks/useLeaderboard";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -11,7 +11,7 @@ const PODIUM_COLORS = ["text-warning", "text-muted-foreground", "text-[hsl(var(-
 
 function PositionCell({ pos }: { pos: number }) {
   if (pos <= 3) {
-    const Icon = pos === 1 ? Trophy : Medal;
+    const Icon = pos === 1 ? TrophyIcon : Medal;
     return <Icon className={`h-5 w-5 ${PODIUM_COLORS[pos - 1]}`} aria-label={`Posición ${pos}`} />;
   }
   return <span className="text-sm font-medium text-muted-foreground">{pos}</span>;

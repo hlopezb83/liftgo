@@ -1,11 +1,11 @@
-import { ArrowUpCircle, PlusCircle, Trash2, Clock } from "@/components/icons";
+import { ArrowUpCircle, PlusCircle, DeleteIcon, ClockIcon } from "@/components/icons";
 
 export const actionIcon = (action: string) => {
   switch (action) {
     case "INSERT": return <PlusCircle className="h-4 w-4 text-success" />;
     case "UPDATE": return <ArrowUpCircle className="h-4 w-4 text-info" />;
-    case "DELETE": return <Trash2 className="h-4 w-4 text-destructive" />;
-    default: return <Clock className="h-4 w-4 text-muted-foreground" />;
+    case "DELETE": return <DeleteIcon className="h-4 w-4 text-destructive" />;
+    default: return <ClockIcon className="h-4 w-4 text-muted-foreground" />;
   }
 };
 

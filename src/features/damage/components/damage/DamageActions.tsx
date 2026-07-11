@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useUpdateDamageRecord } from "../../hooks/useDamageRecords";
 import type { DamageRecordWithJoins } from "@/types/rental";
 import { useCreateMaintenanceLog } from "@/features/maintenance";
-import { Wrench, Receipt } from "@/components/icons";
+import { MaintenanceIcon, InvoiceIcon } from "@/components/icons";
 
 import { notifySuccess } from "@/lib/ui/appFeedback";
 
@@ -31,12 +31,12 @@ export function DamageActions({ record }: DamageActionsProps) {
     <div className="flex gap-1">
       {record.status === "reported" && (
         <Button variant="ghost" size="sm" onClick={handleCreateWorkOrder} disabled={createMaintenance.isPending}>
-          <Wrench className="h-3.5 w-3.5 mr-1" />Reparar
+          <MaintenanceIcon className="h-3.5 w-3.5 mr-1" />Reparar
         </Button>
       )}
       {(record.status === "repaired" || record.status === "reported") && (
         <Button variant="ghost" size="sm" onClick={handleCreateInvoice}>
-          <Receipt className="h-3.5 w-3.5 mr-1" />Cobrar
+          <InvoiceIcon className="h-3.5 w-3.5 mr-1" />Cobrar
         </Button>
       )}
     </div>

@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-import { Users } from "@/components/icons";
+import { UsersIcon } from "@/components/icons";
 import { useCurrentVersion } from "@/features/changelog";
 import { usePublicBranding } from "@/features/company-settings";
 import { useAuthPasswordRecoveryListener } from "../hooks/useAuthPasswordRecoveryListener";
@@ -96,7 +96,7 @@ export default function AuthPage() {
             <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">o</span></div>
           </div>
           <Button variant="outline" className="w-full" onClick={() => window.location.href = "/portal/login"}>
-            <Users className="mr-2 h-4 w-4" /> Portal de Clientes
+            <UsersIcon className="mr-2 h-4 w-4" /> Portal de Clientes
           </Button>
           {currentVersion && (
             <p className="mt-4 text-center text-[10px] text-muted-foreground/60 font-mono">v{currentVersion}</p>

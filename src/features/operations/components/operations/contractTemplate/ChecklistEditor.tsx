@@ -1,4 +1,4 @@
-import { Plus, Trash2 } from "@/components/icons";
+import { AddIcon, DeleteIcon } from "@/components/icons";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,7 @@ export function ChecklistEditor({ sections, onChange }: Props) {
                 className="font-semibold"
               />
               <Button variant="ghost" size="icon" onClick={() => onChange(sections.filter((_, j) => j !== si))} aria-label="Eliminar sección">
-                <Trash2 className="h-4 w-4 text-destructive" />
+                <DeleteIcon className="h-4 w-4 text-destructive" />
               </Button>
             </div>
             <EditableList items={section.items} onChange={(items) => update(si, { items })} />
@@ -38,7 +38,7 @@ export function ChecklistEditor({ sections, onChange }: Props) {
         </Card>
       ))}
       <Button variant="outline" size="sm" onClick={() => onChange([...sections, { title: "", items: [] }])}>
-        <Plus className="h-4 w-4 mr-1" />Agregar Sección
+        <AddIcon className="h-4 w-4 mr-1" />Agregar Sección
       </Button>
     </div>
   );

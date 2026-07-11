@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { MapPin, Target, X, Loader2 } from "@/components/icons";
+import { LocationIcon, TargetIcon, X, SpinnerIcon } from "@/components/icons";
 import type { UseFormReturn } from "react-hook-form";
 import { TextField, TextareaField } from "@/components/forms/fields";
 import type { FeedbackFormValues } from "../lib/schema";
@@ -47,7 +47,7 @@ export function FeedbackFormFields({
       </div>
 
       <div className="flex items-center gap-2 text-xs text-muted-foreground bg-muted/40 rounded-md px-2.5 py-1.5">
-        <MapPin className="h-3.5 w-3.5 shrink-0" />
+        <LocationIcon className="h-3.5 w-3.5 shrink-0" />
         <span className="truncate font-mono">{route}</span>
       </div>
 
@@ -93,16 +93,16 @@ export function FeedbackFormFields({
               />
             )}
             <Button type="button" size="sm" variant="outline" onClick={onStartPicker} className="w-full" disabled={isCapturing}>
-              {isCapturing ? <Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" /> : <Target className="h-3.5 w-3.5 mr-1" />}
+              {isCapturing ? <SpinnerIcon className="h-3.5 w-3.5 mr-1 animate-spin" /> : <TargetIcon className="h-3.5 w-3.5 mr-1" />}
               Cambiar selección
             </Button>
           </div>
         ) : (
           <Button type="button" size="sm" variant="outline" onClick={onStartPicker} className="w-full" disabled={isCapturing}>
             {isCapturing ? (
-              <><Loader2 className="h-3.5 w-3.5 mr-1 animate-spin" />Capturando…</>
+              <><SpinnerIcon className="h-3.5 w-3.5 mr-1 animate-spin" />Capturando…</>
             ) : (
-              <><Target className="h-3.5 w-3.5 mr-1" />Señalar elemento en la página</>
+              <><TargetIcon className="h-3.5 w-3.5 mr-1" />Señalar elemento en la página</>
             )}
           </Button>
         )}

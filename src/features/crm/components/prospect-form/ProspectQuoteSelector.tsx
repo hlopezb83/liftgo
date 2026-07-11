@@ -1,4 +1,4 @@
-import { FileText } from "@/components/icons";
+import { DocumentIcon } from "@/components/icons";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -31,7 +31,7 @@ export function ProspectQuoteSelector({ quoteId, onChange, matchingQuotes, selec
           {matchingQuotes.map((q) => (
             <SelectItem key={q.id} value={q.id}>
               <span className="flex items-center gap-2">
-                <FileText className="h-3.5 w-3.5" />
+                <DocumentIcon className="h-3.5 w-3.5" />
                 {q.quote_number} — {q.customer_name} — {formatCurrency(q.total)}
               </span>
             </SelectItem>

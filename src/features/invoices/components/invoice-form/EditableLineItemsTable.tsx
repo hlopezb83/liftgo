@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { Plus, Trash2 } from "@/components/icons";
+import { AddIcon, DeleteIcon } from "@/components/icons";
 import { useInvoiceLineItemHandlers } from "../../hooks/invoiceForm/useInvoiceLineItemHandlers";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { CLAVE_PROD_SERV, CLAVE_UNIDAD } from "@/lib/domain/satCatalogs";
@@ -23,7 +23,7 @@ export function EditableLineItemsTable() {
         <div className="flex items-center justify-between">
           <CardTitle className="text-base">Partidas</CardTitle>
           <Button type="button" variant="outline" size="sm" onClick={addLineItem}>
-            <Plus className="h-3 w-3 mr-1" />Agregar Fila
+            <AddIcon className="h-3 w-3 mr-1" />Agregar Fila
           </Button>
         </div>
       </CardHeader>
@@ -140,7 +140,7 @@ function LineItemRow({ index, onRemove }: RowProps) {
       <TableCell className="text-right font-mono">{formatCurrency(total)}</TableCell>
       <TableCell>
         <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => onRemove(index)}>
-          <Trash2 className="h-3.5 w-3.5 text-destructive" />
+          <DeleteIcon className="h-3.5 w-3.5 text-destructive" />
         </Button>
       </TableCell>
     </TableRow>

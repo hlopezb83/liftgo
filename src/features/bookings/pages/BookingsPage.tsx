@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Plus, ChevronRight, CalendarDays, AlertTriangle } from "@/components/icons";
+import { AddIcon, ChevronRightIcon, CalendarDays, WarnIcon } from "@/components/icons";
 import { type ColumnDef } from "@/components/dataTable/v2";
 import { usePageActions } from "@/contexts/pageActions";
 import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
@@ -107,11 +107,11 @@ export default function BookingsPage() {
       title="Reservas"
       subtitle="Administrar reservas de equipos"
       totalCount={filtered.length}
-      actions={isAdmin ? <Button size="sm" onClick={() => navigate("/bookings/new")}><Plus className="h-4 w-4 mr-1" />Nueva Reserva</Button> : undefined}
+      actions={isAdmin ? <Button size="sm" onClick={() => navigate("/bookings/new")}><AddIcon className="h-4 w-4 mr-1" />Nueva Reserva</Button> : undefined}
       mobileFab={
         isAdmin ? (
           <Button size="icon" className="h-14 w-14 rounded-full shadow-lg" onClick={() => navigate("/bookings/new")} aria-label="Nueva reserva">
-            <Plus className="h-6 w-6" />
+            <AddIcon className="h-6 w-6" />
           </Button>
         ) : undefined
       }
@@ -119,7 +119,7 @@ export default function BookingsPage() {
         <div className="space-y-3">
           {hasReachedListLimit(bookings) && (
             <Alert>
-              <AlertTriangle className="h-4 w-4" />
+              <WarnIcon className="h-4 w-4" />
               <AlertDescription>
                 Mostrando los primeros {LIST_PAGE_LIMIT} registros. Refina los filtros para ver más.
               </AlertDescription>
@@ -159,7 +159,7 @@ export default function BookingsPage() {
               <span className="text-xs text-muted-foreground">
                 {formatDate(b.start_date)} → {formatDate(b.end_date)} · {getDuration(b.start_date, b.end_date)}
               </span>
-              <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
             </div>
           </CardContent>
         </Card>

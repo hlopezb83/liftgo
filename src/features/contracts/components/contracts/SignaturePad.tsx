@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Eraser, Undo2 } from "@/components/icons";
+import { Eraser, UndoIcon } from "@/components/icons";
 
 interface SignaturePadProps {
   onSave: (base64: string) => void;
@@ -124,7 +124,7 @@ export function SignaturePad({ onSave, onClear, width = 400, height = 200 }: Sig
       </div>
       <div className="flex items-center gap-2">
         <Button type="button" variant="outline" size="sm" onClick={undo} disabled={history.length === 0}>
-          <Undo2 className="h-4 w-4 mr-1" /> Deshacer
+          <UndoIcon className="h-4 w-4 mr-1" /> Deshacer
         </Button>
         <Button type="button" variant="outline" size="sm" onClick={clear}>
           <Eraser className="h-4 w-4 mr-1" /> Limpiar

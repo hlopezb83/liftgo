@@ -1,4 +1,4 @@
-import { Eye, EyeOff } from "@/components/icons";
+import { ViewIcon, HideIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -51,7 +51,7 @@ export function AuthForm({
               onClick={onToggleShowPassword}
               className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
             >
-              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              {showPassword ? <HideIcon className="h-4 w-4" /> : <ViewIcon className="h-4 w-4" />}
             </button>
           </div>
         </div>

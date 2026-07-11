@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, RefreshCw } from "@/components/icons";
+import { DocumentIcon, RefreshIcon } from "@/components/icons";
 import { useNavigate } from "react-router-dom";
 import { formatDateDisplay } from "@/lib/utils";
 
@@ -26,7 +26,7 @@ export function ExpiringContractsAlert({ contracts }: ExpiringContractsAlertProp
     <Card className="border-warning/30 bg-warning/5">
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2 text-warning">
-          <FileText className="h-4 w-4" /> Contratos por Vencer ({contracts.length})
+          <DocumentIcon className="h-4 w-4" /> Contratos por Vencer ({contracts.length})
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
@@ -57,7 +57,7 @@ export function ExpiringContractsAlert({ contracts }: ExpiringContractsAlertProp
                 onClick={(e) => { e.stopPropagation(); navigate(`/contracts/${c.id}`); }}
                 title="Ver Contrato"
               >
-                <RefreshCw className="h-4 w-4 text-warning" />
+                <RefreshIcon className="h-4 w-4 text-warning" />
               </Button>
             </div>
           </div>

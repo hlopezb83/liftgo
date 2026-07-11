@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { Lock, RefreshCw, UserX, AlertTriangle } from "@/components/icons";
+import { Lock, RefreshIcon, UserX, WarnIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUserRole } from "@/features/users";
@@ -34,7 +34,7 @@ const REASON_CONFIG: Record<NoAccessReason, { icon: typeof Lock; title: string; 
     description: "Tu cuenta no tiene un rol asignado todavía. Contacta a un administrador para que te asigne uno y puedas acceder al sistema.",
   },
   error: {
-    icon: AlertTriangle,
+    icon: WarnIcon,
     title: "No pudimos verificar tus permisos",
     description: "Ocurrió un error al cargar tu rol o permisos. Recarga tu sesión para reintentar; si el problema persiste, contacta a soporte.",
   },
@@ -95,7 +95,7 @@ export function NoAccess({ module, reason = "forbidden", requiredAccess, current
           </div>
           <div className="flex gap-2">
             <Button onClick={handleReload} className="flex-1" variant="default">
-              <RefreshCw className="mr-2 h-4 w-4" />
+              <RefreshIcon className="mr-2 h-4 w-4" />
               Recargar sesión
             </Button>
             <Button onClick={handleSignOut} variant="outline" className="flex-1">

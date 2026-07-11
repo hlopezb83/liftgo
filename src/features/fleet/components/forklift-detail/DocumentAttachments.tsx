@@ -1,14 +1,14 @@
 import { useDocuments, useUploadDocument, useDeleteDocument } from "@/hooks/useDocuments";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Paperclip, Trash2, Upload, FileText, Image, File } from "@/components/icons";
+import { Paperclip, DeleteIcon, UploadIcon, DocumentIcon, Image, File } from "@/components/icons";
 
 import { useRef } from "react";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 
 function FileIcon({ mime }: { mime?: string | null }) {
   if (mime?.startsWith("image/")) return <Image className="h-4 w-4 text-status-rented" />;
-  if (mime?.includes("pdf")) return <FileText className="h-4 w-4 text-destructive" />;
+  if (mime?.includes("pdf")) return <DocumentIcon className="h-4 w-4 text-destructive" />;
   return <File className="h-4 w-4 text-muted-foreground" />;
 }
 
@@ -43,7 +43,7 @@ export function DocumentAttachments({ entityType, entityId }: { entityType: stri
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2"><Paperclip className="h-4 w-4" /> Adjuntos</CardTitle>
           <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploadDoc.isPending}>
-            <Upload className="h-3.5 w-3.5 mr-1" />{uploadDoc.isPending ? "Subiendo..." : "Subir"}
+            <UploadIcon className="h-3.5 w-3.5 mr-1" />{uploadDoc.isPending ? "Subiendo..." : "Subir"}
           </Button>
           <input ref={fileRef} type="file" multiple className="hidden" onChange={handleUpload} />
         </div>
@@ -61,7 +61,7 @@ export function DocumentAttachments({ entityType, entityId }: { entityType: stri
                   <span className="text-xs text-muted-foreground shrink-0">{formatSize(doc.file_size)}</span>
                 </a>
                 <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => handleDelete(doc.id)}>
-                  <Trash2 className="h-3.5 w-3.5 text-destructive" />
+                  <DeleteIcon className="h-3.5 w-3.5 text-destructive" />
                 </Button>
               </div>
             ))}
