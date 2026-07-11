@@ -1,0 +1,19 @@
+{
+  "version": "7.20.0",
+  "date": "2026-07-11",
+  "type": "minor",
+  "title": "Fase E — useTransition en navegación pesada",
+  "summary": "Nuevo hook `useNavigateTransition` que envuelve `useNavigate` en `startTransition` (React 19). La ruta actual permanece interactiva mientras el destino monta Suspense, chunks lazy o queries pesadas — sin parpadeos ni bloqueos percibidos.",
+  "sections": [
+    {
+      "heading": "Superficies de alto tráfico migradas",
+      "items": [
+        "`GlobalSearch` (Ctrl+K) — el paladar responde instantáneo al Enter mientras la ruta destino se carga.",
+        "`AlertsRow` del dashboard (facturas vencidas, rentas vencidas, servicios pendientes).",
+        "`InsuranceAlert` y `ExpiringContractsAlert` del dashboard.",
+        "`DetailPageHeader` y `FormPageHeader` — el botón 'Volver' de todas las páginas de detalle/formulario ya usa la transición."
+      ]
+    }
+  ],
+  "impact": "Navegación a rutas pesadas (reportes, calendario, PDFs) percibida como fluida: la vista previa se mantiene visible durante el fetch del chunk y las queries iniciales."
+}

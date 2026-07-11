@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { Button } from "@/components/ui/button";
 import { BackIcon } from "@/components/icons";
 
@@ -14,7 +14,7 @@ interface DetailPageHeaderProps {
 }
 
 export function DetailPageHeader({ title, subtitle, badges, backTo, actions, primaryAction }: DetailPageHeaderProps) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
 
   const handleBack = () => {
     const savedParams = sessionStorage.getItem(`list-filters:${backTo}`);
