@@ -1,0 +1,15 @@
+{
+  "version": "7.16.0",
+  "date": "2026-07-11",
+  "type": "minor",
+  "title": "React Compiler activo en build de producción",
+  "category": "improvement",
+  "description": "Fase A del Lote 5: activación del compilador de React en el pipeline de build.",
+  "changes": [
+    "vite.config.ts: swap `@vitejs/plugin-react-swc` → `@vitejs/plugin-react@4.7` con `babel: { plugins: [['babel-plugin-react-compiler', { target: '19' }]] }`. El compilador procesa cada componente/hook y genera memoización automática cuando el código cumple las Reglas de React; los archivos que las violan quedan intactos (bail-out silencioso).",
+    "vitest.config.ts: también migra a `@vitejs/plugin-react` pero SIN el compiler. Bajo jsdom no aporta valor de runtime y sumaría segundos a cada transform. Los tests validan comportamiento, no optimizaciones del compilador.",
+    "package.json: `@vitejs/plugin-react-swc` removido, `@vitejs/plugin-react@^4` instalado (v4 es la línea compatible con Vite 5; v6 requiere Vite 7). `babel-plugin-react-compiler@^1.0.0` ya estaba instalado desde antes.",
+    "Sinergia con v7.15.0: el linter `react-compiler/react-compiler` ya alerta en desarrollo sobre bail-outs; ahora el compilador realmente aprovecha los archivos limpios en producción. Cero cambios de código en componentes — la optimización es transparente.",
+    "Verificación: build de producción en 43s (comparable al SWC, el overhead de Babel se compensa con menos JS generado a mediano plazo), 913/913 tests OK, dev server sano en localhost:8080."
+  ]
+}
