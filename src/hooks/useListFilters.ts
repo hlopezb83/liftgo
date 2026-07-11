@@ -1,4 +1,4 @@
-import { useMemo, useCallback, useEffect } from "react";
+import { useMemo, useCallback, useEffect, useDeferredValue } from "react";
 import { useSearchParams, useLocation } from "react-router-dom";
 
 interface UseListFiltersOptions<T> {
@@ -60,13 +60,19 @@ export function useListFilters<T extends Record<string, unknown>>(
     [setSearchParams, statusParam]
   );
 
+  // React 19: diferimos search y statusFilter para que el input responda instantáneo
+  // mientras el filtrado sobre listas grandes se computa en una render de baja prioridad.
+  // La URL y el value del input se actualizan sync; sólo el trabajo pesado se pospone.
+  const deferredSearch = useDeferredValue(search);
+  const deferredStatus = useDeferredValue(statusFilter);
+
   const filtered = useMemo(() => {
     return (items ?? []).filter((item) => {
-      if (options.statusField && statusFilter !== "all") {
-        if (item[options.statusField] !== statusFilter) return false;
+      if (options.statusField && deferredStatus !== "all") {
+        if (item[options.statusField] !== deferredStatus) return false;
       }
-      if (search) {
-        const q = search.toLowerCase();
+      if (deferredSearch) {
+        const q = deferredSearch.toLowerCase();
         const fieldMatch = options.searchFields.some((field) => {
           const val = item[field];
           return typeof val === "string" && val.toLowerCase().includes(q);
@@ -84,7 +90,10 @@ export function useListFilters<T extends Record<string, unknown>>(
     // Incluirlos en deps causa nueva referencia de `filtered` en cada render → cascada que
     // dispara autoResetPageIndex de TanStack Table en loop infinito.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items, search, statusFilter]);
+  }, [items, deferredSearch, deferredStatus]);
 
-  return { search, setSearch, statusFilter, setStatusFilter, filtered };
+  const isStale = deferredSearch !== search || deferredStatus !== statusFilter;
+
+  return { search, setSearch, statusFilter, setStatusFilter, filtered, isStale };
 }
+

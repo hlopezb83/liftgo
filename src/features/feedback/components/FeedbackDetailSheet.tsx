@@ -1,16 +1,16 @@
-import { useState, useEffect } from "react";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
+
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { useUpdateFeedbackStatus, useFeedbackHistory, type FeedbackReport } from "../hooks/useFeedbackReports";
+import { useFeedbackHistory, type FeedbackReport } from "../hooks/useFeedbackReports";
 import { useFeedbackScreenshotUrl } from "../hooks/useFeedbackScreenshotUrl";
 import { useClassifyFeedback } from "../hooks/useClassifyFeedback";
+import { useFeedbackStatusUpdate } from "../hooks/useFeedbackStatusUpdate";
 import { FeedbackStatusBadge } from "./FeedbackStatusBadge";
 import { FeedbackMetaList, FeedbackHistoryList } from "./FeedbackDetailParts";
 import { FeedbackChipsRow, AiReasoningCard } from "./FeedbackDetailChips";
 import { FeedbackStatusChanger } from "./FeedbackStatusChanger";
-import { type FeedbackStatus } from "../lib/constants";
 
 interface Props {
   report: FeedbackReport | null;
@@ -18,17 +18,10 @@ interface Props {
 }
 
 export function FeedbackDetailSheet({ report, onClose }: Props) {
-  const [newStatus, setNewStatus] = useState<FeedbackStatus | "">("");
-  const [comment, setComment] = useState("");
-  const update = useUpdateFeedbackStatus();
+  const statusUpdate = useFeedbackStatusUpdate(report);
   const classify = useClassifyFeedback();
   const { data: history } = useFeedbackHistory(report?.id ?? null);
   const { data: signedUrl } = useFeedbackScreenshotUrl(report?.screenshot_url);
-
-  useEffect(() => {
-    setNewStatus("");
-    setComment("");
-  }, [report]);
 
   // Auto-trigger AI classification when report opens with no classification yet.
   usePrefillEffect(() => {
@@ -48,15 +41,8 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
   const selectedEl = ctx.selected_element as
     | { tagName: string; text: string; cssPath: string }
     | undefined;
-  
 
-  const handleApply = () => {
-    if (!newStatus) return;
-    update.mutate(
-      { reportId: report.id, newStatus, comment: comment.trim() || undefined },
-      { onSuccess: () => { setNewStatus(""); setComment(""); } },
-    );
-  };
+
 
   return (
     <Sheet open={!!report} onOpenChange={(o) => { if (!o) onClose(); }}>
@@ -64,9 +50,10 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <span className="font-mono text-sm">{report.folio}</span>
-            <FeedbackStatusBadge status={report.status} />
+            <FeedbackStatusBadge status={statusUpdate.optimisticStatus} />
           </SheetTitle>
         </SheetHeader>
+
 
         <div className="mt-4 space-y-4">
           <FeedbackChipsRow
@@ -122,13 +109,14 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
 
           <FeedbackStatusChanger
             currentStatus={report.status}
-            newStatus={newStatus}
-            onNewStatusChange={setNewStatus}
-            comment={comment}
-            onCommentChange={setComment}
-            onApply={handleApply}
-            pending={update.isPending}
+            newStatus={statusUpdate.newStatus}
+            onNewStatusChange={statusUpdate.setNewStatus}
+            comment={statusUpdate.comment}
+            onCommentChange={statusUpdate.setComment}
+            onApply={statusUpdate.apply}
+            pending={statusUpdate.pending}
           />
+
 
 
           <Separator />

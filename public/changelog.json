@@ -1,5 +1,14 @@
 [
   {
+    "version": "7.13.0",
+    "date": "2026-07-11",
+    "type": "minor",
+    "title": "React 19: useDeferredValue en filtros de listas + useOptimistic en feedback",
+    "description": "Fluidez perceptible en las 7 pantallas de lista: el input de búsqueda y el select de estado responden instantáneo mientras el filtrado sobre datasets grandes ocurre en render de baja prioridad vía useDeferredValue en useListFilters. El hook ahora expone `isStale` para que las tablas puedan mostrar dimmed durante recomputo. Además, el sheet de detalle de Feedback usa useOptimistic para reflejar el nuevo estado en el badge del header en cuanto se hace clic en Aplicar, sin esperar la respuesta del servidor; el estado optimista + la mutación quedan encapsulados en useFeedbackStatusUpdate. tsgo OK · 0 warnings · 913/913 tests.",
+    "category": "improvement"
+  },
+  {
+
     "version": "7.12.0",
     "date": "2026-07-11",
     "type": "minor",
