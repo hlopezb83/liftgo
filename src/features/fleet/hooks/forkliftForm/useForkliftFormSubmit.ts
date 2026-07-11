@@ -1,10 +1,10 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
 import { useCreateForklift, useUpdateForklift, useForklifts } from "../forklifts/useForklifts";
 import type { ForkliftFormData } from "../../lib/forkliftFormSchema";
 import {
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
   buildForkliftPayload,
   validateForkliftUniqueness,
   mapForkliftMutationError,

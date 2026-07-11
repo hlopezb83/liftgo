@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useEffect, useEffectEvent, useState } from "react";
 import { useCustomers, useCreateCustomer, useUpdateCustomer } from "../hooks/customers/useCustomers";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,7 +20,6 @@ import { useLiftgoTable } from "@/components/dataTable/v2";
 import { useCustomersColumns } from "../hooks/customers/useCustomersColumns";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 type Customer = NonNullable<ReturnType<typeof useCustomers>["data"]>[number];
 
 export default function CustomersPage() {

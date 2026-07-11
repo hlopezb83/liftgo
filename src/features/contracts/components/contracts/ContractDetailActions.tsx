@@ -1,9 +1,9 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
 import { Button } from "@/components/ui/button";
 import { DeliveryIcon, SignIcon, ErrorIcon, EditIcon } from "@/components/icons";
 import { ContractPDFButton, type ContractData } from "./ContractPDFButton";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 interface ContractDetailActionsProps {
   id: string;
   status: string;

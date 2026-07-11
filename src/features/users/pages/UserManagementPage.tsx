@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,6 @@ import { RoleBadge } from "../components/users/RoleBadge";
 import { UserMobileCard } from "../components/users/UserMobileCard";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 type UserItem = UserRow & { id?: string };
 
 export default function UserManagementPage() {

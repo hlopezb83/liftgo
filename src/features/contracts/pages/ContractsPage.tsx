@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
 import { useMemo } from "react";
 import { STATUS_LABELS } from "@/lib/constants";
@@ -13,7 +14,6 @@ import { AddIcon, ViewIcon, ChevronRightIcon } from "@/components/icons";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 const STATUSES = ["all", "draft", "sent", "signed", "cancelled"] as const;
 
 type Contract = NonNullable<ReturnType<typeof useContracts>["data"]>[number];

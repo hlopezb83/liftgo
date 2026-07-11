@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
 import { Button } from "@/components/ui/button";
 import { RoleGuard } from "@/layouts/RoleGuard";
@@ -9,7 +10,6 @@ import { EditIcon, DeliveryIcon, SuccessIcon, ErrorIcon, BookOpen, DeleteIcon, I
 import type { Tables } from "@/integrations/supabase/types";
 import { isQuoteEditable, canConvertQuote } from "@/lib/rules/quotes";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 interface Props {
   quote: Tables<"quotes">;
   isSale: boolean;

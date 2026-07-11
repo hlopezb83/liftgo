@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +14,6 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { TotalsBreakdown } from "../components/TotalsBreakdown";
 
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 type LineItem = { description?: string; quantity?: number; unit_price?: number; amount?: number };
 type Payment = { id: string; payment_date: string; payment_method: string | null; reference_number: string | null; amount: number | string };
 

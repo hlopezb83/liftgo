@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useState } from "react";
 
 
@@ -9,7 +10,6 @@ import { useDownloadInvoiceXml } from "./useDownloadInvoiceXml";
 import type { Tables } from "@/integrations/supabase/types";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 /**
  * Orchestrator hook for InvoiceDetail page actions.
  * Encapsulates dialog state and mutations to keep the page component declarative.

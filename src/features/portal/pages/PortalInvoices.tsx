@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useMemo } from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +11,6 @@ import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTa
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 type Invoice = NonNullable<ReturnType<typeof usePortalInvoices>["data"]>[number];
 
 export default function PortalInvoices() {

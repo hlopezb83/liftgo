@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
 import { Button } from "@/components/ui/button";
 import { useUpdateDamageRecord } from "../../hooks/useDamageRecords";
@@ -7,7 +8,6 @@ import { MaintenanceIcon, InvoiceIcon } from "@/components/icons";
 
 import { notifySuccess } from "@/lib/ui/appFeedback";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 interface DamageActionsProps { record: DamageRecordWithJoins; }
 
 export function DamageActions({ record }: DamageActionsProps) {

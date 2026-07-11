@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useState, useEffect } from "react";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
@@ -10,7 +11,6 @@ import { Label } from "@/components/ui/label";
 import { CompanyIcon } from "@/components/icons";
 import { usePublicBranding } from "@/features/company-settings";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 type Mode = "sign-in" | "forgot";
 
 function getPortalSubmitLabel(loading: boolean, mode: Mode): string {

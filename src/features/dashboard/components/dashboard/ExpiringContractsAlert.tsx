@@ -1,7 +1,7 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DocumentIcon, RefreshIcon } from "@/components/icons";
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateDisplay } from "@/lib/utils";
 
 interface ExpiringContract {

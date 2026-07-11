@@ -1,9 +1,9 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { SuccessIcon, UserPlus } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 
 import type { Prospect } from "../../hooks/useProspects";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 interface Props {
   prospect: Prospect;
   canCloseDeal: boolean;

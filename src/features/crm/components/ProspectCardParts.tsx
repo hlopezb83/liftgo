@@ -1,10 +1,10 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { CompanyIcon, UserIcon, DocumentIcon, CalendarIcon } from "@/components/icons";
 
 import { Badge } from "@/components/ui/badge";
 import { ROUTES } from "@/routes/routes";
 import type { Prospect } from "../hooks/useProspects";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 export function ProspectCardCompact({ prospect }: { prospect: Prospect }) {
   return (
     <div className="flex items-center justify-between gap-2 pr-3">

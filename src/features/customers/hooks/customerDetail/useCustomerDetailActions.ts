@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
 
 import { useUpdateCustomer, useDeleteCustomer } from "../customers/useCustomers";
@@ -5,7 +6,6 @@ import { useInviteCustomer } from "../customers/useInviteCustomer";
 import type { CustomerFormData } from "../../lib/customerFormSchema";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 const OPTIONAL_NULL_FIELDS = [
   "email", "phone", "address", "notes", "website", "contact_person",
   "rfc", "regimen_fiscal", "uso_cfdi", "domicilio_fiscal_cp", "representante_legal",

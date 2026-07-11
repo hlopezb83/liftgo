@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { useCustomers } from "@/features/customers";
@@ -10,7 +11,6 @@ import { useQuotePrefill } from "./quoteForm/useQuotePrefill";
 import { buildSaleItems, buildRentalItems, validateQuoteForm, buildQuotePayload } from "./quoteForm/quoteFormHelpers";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 export function useQuoteFormLogic() {
   const { id } = useParams();
   const navigate = useNavigateTransition();

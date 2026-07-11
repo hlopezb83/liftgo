@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
 import { useMemo } from "react";
 import { useQuotes } from "../hooks/quotes/useQuotes";
@@ -17,7 +18,6 @@ import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { usePageActions } from "@/contexts/pageActions";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 const STATUSES = ["all", "draft", "sent", "accepted", "declined", "expired"];
 
 type Quote = NonNullable<ReturnType<typeof useQuotes>["data"]>[number];

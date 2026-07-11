@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -13,7 +14,6 @@ import { X } from "@/components/icons";
 import type { MemberStat } from "../../hooks/useActivityMetrics";
 import type { AppRole } from "@/features/users";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 interface Props {
   filters: ActivityFilters;
   onFilterChange: (next: Partial<ActivityFilters>) => void;

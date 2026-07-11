@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useParams, useSearchParams } from "react-router-dom";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
@@ -8,7 +9,6 @@ import { useContractFormState } from "./contractForm/useContractFormState";
 import { useContractFormPrefill } from "./contractForm/useContractFormPrefill";
 import { buildContractPayload } from "../lib/contractPayload";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 export function useContractFormLogic() {
   const { id } = useParams();
   const isEdit = !!id;

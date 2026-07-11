@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
 import { InfoAlertIcon, DuplicateIcon } from "@/components/icons";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
@@ -5,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import type { FacturapiErrorKind } from "../lib/facturapiErrors";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 interface ReceptorSnapshot {
   rfc: string | null;
   razonSocial: string | null;

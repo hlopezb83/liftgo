@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useState, useMemo } from "react";
 import { useBookings } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
@@ -16,7 +17,6 @@ import { parseDateLocal } from "@/lib/utils";
 
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 type Inspection = NonNullable<ReturnType<typeof useReturnInspections>["data"]>[number];
 
 export default function ReturnInspectionPage() {

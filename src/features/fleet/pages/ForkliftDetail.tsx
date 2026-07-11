@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useParams } from "react-router-dom";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useForklift, useDeleteForklift, useStatusLogs } from "../hooks/forklifts/useForklifts";
@@ -26,7 +27,6 @@ import { StatusChangeCard } from "../components/forklift-detail/StatusChangeCard
 import { ForkliftFinancialCard } from "../components/forklift-detail/ForkliftFinancialCard";
 import { ForkliftHourometerHistory } from "../components/forklift-detail/ForkliftHourometerHistory";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 export default function ForkliftDetail() {
   const { id } = useParams();
   const navigate = useNavigateTransition();

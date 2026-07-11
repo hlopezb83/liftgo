@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
 
@@ -10,7 +11,6 @@ import { NotesCard } from "@/components/domain/NotesCard";
 import { DeliveryDetailDialogs } from "../components/deliveries/DeliveryDetailDialogs";
 import { DeliverySignatureCard } from "../components/deliveries/DeliverySignatureCard";
 import {
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
   DeliveryStatusCard, DeliveryEquipmentCard, DeliveryLogisticsCard, DeliveryBookingCard,
 } from "../components/deliveries/DeliveryInfoCards";
 import { DeliveryActions } from "../components/deliveries/DeliveryActions";

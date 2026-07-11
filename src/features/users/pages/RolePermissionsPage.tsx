@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
@@ -11,7 +12,6 @@ import { useUserRole } from "../hooks/useUserRole";
 import type { AppRole } from "../hooks/useUserRole";
 import { cn } from "@/lib/utils";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 const accessConfig = {
   full: { icon: SuccessIcon, color: "text-success", label: "Acceso completo" },
   read: { icon: ViewIcon, color: "text-info", label: "Solo lectura" },

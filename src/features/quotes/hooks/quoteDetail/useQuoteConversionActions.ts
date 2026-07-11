@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
@@ -8,7 +9,6 @@ import { isPublicoGeneral } from "./useQuoteDetailData";
 import type { useQuoteConversionState } from "./useQuoteConversionState";
 import { useQuoteBookingCreator, type Assignment } from "./useQuoteBookingCreator";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 type DataResult = ReturnType<typeof useQuoteDetailData>;
 type StateResult = ReturnType<typeof useQuoteConversionState>;
 

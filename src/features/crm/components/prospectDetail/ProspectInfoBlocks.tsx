@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
@@ -6,7 +7,6 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import { LOST_REASON_LABELS } from "../../lib/constants";
 import type { Prospect } from "../../hooks/useProspects";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 interface Props {
   prospect: Prospect;
   quoteNumber?: string;

@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
 import { useMemo, useState } from "react";
 import { useInvoices } from "../hooks/invoices/useInvoices";
@@ -21,7 +22,6 @@ import { hasReachedListLimit } from "@/lib/supabase/constants";
 import { Untranslated } from "@/components/ui/Untranslated";
 import { InvoicesActionsBar, InvoicesFiltersBar } from "../components/list/InvoicesToolbar";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 type Invoice = NonNullable<ReturnType<typeof useInvoices>["data"]>[number];
 
 function useRecurringHandlers(setPreviewOpen: (o: boolean) => void, setResultOpen: (o: boolean) => void) {

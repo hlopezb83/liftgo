@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useState } from "react";
 
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -11,7 +12,6 @@ import { formatDateDisplay } from "@/lib/utils";
 import { useUserRole } from "@/features/users";
 import { useBankStatementImports, useDeleteBankImport } from "../hooks/useBankStatementImports";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 export default function BankStatementImportsHistoryPage() {
   const navigate = useNavigateTransition();
   const { data: imports, isLoading } = useBankStatementImports();

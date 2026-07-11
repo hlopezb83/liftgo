@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useMemo } from "react";
 import { useForklifts } from "../hooks/forklifts/useForklifts";
 import { useMaintenancePolicies } from "@/features/maintenance";
@@ -18,7 +19,6 @@ import { useFleetColumns } from "../hooks/fleet/useFleetColumns";
 import { usePageActions } from "@/contexts/pageActions";
 import { useResourceList } from "@/hooks/useResourceList";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 export default function FleetPage() {
   const { data: forklifts, isLoading } = useForklifts();
   const { data: policies } = useMaintenancePolicies();

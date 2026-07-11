@@ -1,3 +1,4 @@
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useMemo, useState } from "react";
 import { useSuppliers, SUPPLIER_CATEGORIES } from "../hooks/useSuppliers";
 import type { Supplier } from "../hooks/useSuppliers";
@@ -14,7 +15,6 @@ import { SupplierFormDialog } from "../components/suppliers/SupplierFormDialog";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { usePageActions } from "@/contexts/pageActions";
 
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 export default function SuppliersPage() {
   const { data: suppliers, isLoading } = useSuppliers();
   const navigate = useNavigateTransition();
