@@ -1,8 +1,9 @@
-import { useNavigate } from "react-router-dom";
+
 import { Button } from "@/components/ui/button";
 import { DeliveryIcon, SignIcon, ErrorIcon, EditIcon } from "@/components/icons";
 import { ContractPDFButton, type ContractData } from "./ContractPDFButton";
 
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 interface ContractDetailActionsProps {
   id: string;
   status: string;
@@ -11,7 +12,7 @@ interface ContractDetailActionsProps {
 }
 
 export function ContractDetailActions({ id, status, contract, onSetStatus }: ContractDetailActionsProps) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   return (
     <>
       {status === "draft" && (

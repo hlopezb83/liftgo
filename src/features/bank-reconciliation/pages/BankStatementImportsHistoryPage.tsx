@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -11,8 +11,9 @@ import { formatDateDisplay } from "@/lib/utils";
 import { useUserRole } from "@/features/users";
 import { useBankStatementImports, useDeleteBankImport } from "../hooks/useBankStatementImports";
 
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 export default function BankStatementImportsHistoryPage() {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const { data: imports, isLoading } = useBankStatementImports();
   const { data: role } = useUserRole();
   const del = useDeleteBankImport();

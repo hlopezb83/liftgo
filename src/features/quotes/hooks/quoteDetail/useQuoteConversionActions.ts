@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
 import { quoteStatusLabel } from "../../constants";
@@ -8,6 +8,7 @@ import { isPublicoGeneral } from "./useQuoteDetailData";
 import type { useQuoteConversionState } from "./useQuoteConversionState";
 import { useQuoteBookingCreator, type Assignment } from "./useQuoteBookingCreator";
 
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 type DataResult = ReturnType<typeof useQuoteDetailData>;
 type StateResult = ReturnType<typeof useQuoteConversionState>;
 
@@ -17,7 +18,7 @@ type StateResult = ReturnType<typeof useQuoteConversionState>;
  * de la creación de bookings a useQuoteBookingCreator.
  */
 export function useQuoteConversionActions(id: string | undefined, data: DataResult, state: StateResult) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const updateQuote = useUpdateQuote();
   const deleteQuote = useDeleteQuote();
   const { createBookingsFor, convertLegacy } = useQuoteBookingCreator(data, state);

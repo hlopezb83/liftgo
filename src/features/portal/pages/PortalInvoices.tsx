@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { usePortalInvoices } from "@/features/customers";
@@ -10,11 +10,12 @@ import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTa
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 type Invoice = NonNullable<ReturnType<typeof usePortalInvoices>["data"]>[number];
 
 export default function PortalInvoices() {
   const { data: invoices, isLoading } = usePortalInvoices();
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
 
   const columns = useMemo<ColumnDef<Invoice>[]>(
     () => [

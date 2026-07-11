@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+
 
 import { STATUS_LABELS } from "@/lib/constants";
 import { useUpdateInvoice, useDeleteInvoice } from "../invoices/useInvoices";
@@ -9,12 +9,13 @@ import { useDownloadInvoiceXml } from "./useDownloadInvoiceXml";
 import type { Tables } from "@/integrations/supabase/types";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 /**
  * Orchestrator hook for InvoiceDetail page actions.
  * Encapsulates dialog state and mutations to keep the page component declarative.
  */
 export function useInvoiceDetailActions(invoice: Tables<"invoices"> | undefined, refetch: () => void) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const updateInvoice = useUpdateInvoice();
   const deleteInvoice = useDeleteInvoice();
   const updateBooking = useUpdateBooking();

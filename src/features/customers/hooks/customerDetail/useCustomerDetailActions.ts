@@ -1,10 +1,11 @@
-import { useNavigate } from "react-router-dom";
+
 
 import { useUpdateCustomer, useDeleteCustomer } from "../customers/useCustomers";
 import { useInviteCustomer } from "../customers/useInviteCustomer";
 import type { CustomerFormData } from "../../lib/customerFormSchema";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 const OPTIONAL_NULL_FIELDS = [
   "email", "phone", "address", "notes", "website", "contact_person",
   "rfc", "regimen_fiscal", "uso_cfdi", "domicilio_fiscal_cp", "representante_legal",
@@ -26,7 +27,7 @@ interface Params {
 }
 
 export function useCustomerDetailActions({ id, setInviteOpen, setEditOpen }: Params) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const updateCustomer = useUpdateCustomer();
   const deleteCustomer = useDeleteCustomer();
   const inviteCustomer = useInviteCustomer();

@@ -8,7 +8,7 @@ import { useListFilters } from "@/hooks/useListFilters";
 import { useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { ChevronRightIcon, AddIcon, PhoneIcon } from "@/components/icons";
 
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import { useUpdateProspect } from "@/features/crm";
 import { CustomerFormDialog } from "../components/customers/CustomerFormDialog";
 import { usePageActions } from "@/contexts/pageActions";
@@ -19,11 +19,12 @@ import { useLiftgoTable } from "@/components/dataTable/v2";
 import { useCustomersColumns } from "../hooks/customers/useCustomersColumns";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 type Customer = NonNullable<ReturnType<typeof useCustomers>["data"]>[number];
 
 export default function CustomersPage() {
   const { data: customers, isLoading, refetch } = useCustomers();
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const isMobile = useIsTabletOrBelow();
   const [searchParams, setSearchParams] = useSearchParams();
   const createCustomer = useCreateCustomer();

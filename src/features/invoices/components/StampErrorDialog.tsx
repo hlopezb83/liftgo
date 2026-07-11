@@ -1,10 +1,11 @@
-import { useNavigate } from "react-router-dom";
+
 import { InfoAlertIcon, DuplicateIcon } from "@/components/icons";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import type { FacturapiErrorKind } from "../lib/facturapiErrors";
 
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 interface ReceptorSnapshot {
   rfc: string | null;
   razonSocial: string | null;
@@ -112,7 +113,7 @@ function FieldRow({ label, value, mono }: FieldRowProps) {
 }
 
 export function StampErrorDialog({ open, onOpenChange, message, kind, customerId, receptor }: Props) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const copy = getCopy(kind, customerId, message);
   const showReceptor = kind === "receptor_data" && !!receptor;
 

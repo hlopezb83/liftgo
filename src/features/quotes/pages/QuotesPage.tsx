@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+
 import { useMemo } from "react";
 import { useQuotes } from "../hooks/quotes/useQuotes";
 import { useListFilters } from "@/hooks/useListFilters";
@@ -17,13 +17,14 @@ import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { usePageActions } from "@/contexts/pageActions";
 
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 const STATUSES = ["all", "draft", "sent", "accepted", "declined", "expired"];
 
 type Quote = NonNullable<ReturnType<typeof useQuotes>["data"]>[number];
 
 export default function QuotesPage() {
   const { data: quotes, isLoading, refetch } = useQuotes();
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   usePageActions({ onNew: () => navigate("/quotes/new"), onRefresh: refetch, newLabel: "Nueva cotización" });
 
   const { search, setSearch, statusFilter, setStatusFilter, filtered } = useListFilters(quotes, {

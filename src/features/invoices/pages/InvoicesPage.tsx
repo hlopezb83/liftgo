@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+
 import { useMemo, useState } from "react";
 import { useInvoices } from "../hooks/invoices/useInvoices";
 import { useGenerateRecurringInvoices } from "../hooks/invoices/recurring/useGenerateRecurringInvoices";
@@ -21,6 +21,7 @@ import { hasReachedListLimit } from "@/lib/supabase/constants";
 import { Untranslated } from "@/components/ui/Untranslated";
 import { InvoicesActionsBar, InvoicesFiltersBar } from "../components/list/InvoicesToolbar";
 
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 type Invoice = NonNullable<ReturnType<typeof useInvoices>["data"]>[number];
 
 function useRecurringHandlers(setPreviewOpen: (o: boolean) => void, setResultOpen: (o: boolean) => void) {
@@ -105,7 +106,7 @@ function InvoiceCard({ inv, onClick }: { inv: Invoice; onClick: () => void }) {
 
 export default function InvoicesPage() {
   const { data: invoices, isLoading } = useInvoices();
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [resultOpen, setResultOpen] = useState(false);
   usePageActions({ onNew: () => navigate("/invoices/new"), newLabel: "Nueva factura" });

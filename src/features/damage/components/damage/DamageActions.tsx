@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+
 import { Button } from "@/components/ui/button";
 import { useUpdateDamageRecord } from "../../hooks/useDamageRecords";
 import type { DamageRecordWithJoins } from "@/types/rental";
@@ -7,10 +7,11 @@ import { MaintenanceIcon, InvoiceIcon } from "@/components/icons";
 
 import { notifySuccess } from "@/lib/ui/appFeedback";
 
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 interface DamageActionsProps { record: DamageRecordWithJoins; }
 
 export function DamageActions({ record }: DamageActionsProps) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const updateDamage = useUpdateDamageRecord();
   const createMaintenance = useCreateMaintenanceLog();
 

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+
 import { format } from "date-fns";
 
 import { useCustomers } from "@/features/customers";
@@ -9,6 +9,7 @@ import { useIsMounted } from "@/hooks/useIsMounted";
 import type { BookingFormData } from "../../lib/bookingFormSchema";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 interface PostBookingState {
   bookingId: string;
   forkliftId: string;
@@ -17,7 +18,7 @@ interface PostBookingState {
 }
 
 export function useBookingFormSubmit() {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const isMounted = useIsMounted();
   const { data: customers } = useCustomers();
   const { data: policies } = useMaintenancePolicies();

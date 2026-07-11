@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 
 import { useDelivery, useDeliveries, useUpdateDelivery, useDeleteDelivery } from "../hooks/useDeliveries";
 import { useBookings } from "@/features/bookings";
@@ -10,6 +10,7 @@ import { NotesCard } from "@/components/domain/NotesCard";
 import { DeliveryDetailDialogs } from "../components/deliveries/DeliveryDetailDialogs";
 import { DeliverySignatureCard } from "../components/deliveries/DeliverySignatureCard";
 import {
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
   DeliveryStatusCard, DeliveryEquipmentCard, DeliveryLogisticsCard, DeliveryBookingCard,
 } from "../components/deliveries/DeliveryInfoCards";
 import { DeliveryActions } from "../components/deliveries/DeliveryActions";
@@ -27,7 +28,7 @@ type PickupPrompt = {
 
 export default function DeliveryDetail() {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const { data: delivery, isLoading } = useDelivery(id);
   const { data: siblingDeliveries } = useDeliveries(delivery?.booking_id ?? undefined);
   const { data: bookings } = useBookings();

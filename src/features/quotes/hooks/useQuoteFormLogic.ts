@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { useCustomers } from "@/features/customers";
 import { useEquipmentModels } from "@/features/fleet";
 import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "./quotes/useQuotes";
@@ -10,9 +10,10 @@ import { useQuotePrefill } from "./quoteForm/useQuotePrefill";
 import { buildSaleItems, buildRentalItems, validateQuoteForm, buildQuotePayload } from "./quoteForm/quoteFormHelpers";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 export function useQuoteFormLogic() {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const { data: customers } = useCustomers();
   const { data: existingQuote } = useQuote(id);
   const { data: nextNumber } = useNextQuoteNumber();

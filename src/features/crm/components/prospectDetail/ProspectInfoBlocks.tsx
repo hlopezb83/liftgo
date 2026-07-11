@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 import { DocumentIcon, StickyNote } from "@/components/icons";
@@ -6,6 +6,7 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import { LOST_REASON_LABELS } from "../../lib/constants";
 import type { Prospect } from "../../hooks/useProspects";
 
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 interface Props {
   prospect: Prospect;
   quoteNumber?: string;
@@ -13,7 +14,7 @@ interface Props {
 }
 
 export function ProspectQuoteLink({ prospect, quoteNumber, onNavigate }: Props) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   if (!prospect.quoteId || !quoteNumber) return null;
   return (
     <>

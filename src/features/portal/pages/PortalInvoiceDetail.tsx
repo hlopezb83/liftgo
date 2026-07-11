@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
@@ -13,12 +13,13 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { TotalsBreakdown } from "../components/TotalsBreakdown";
 
 
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 type LineItem = { description?: string; quantity?: number; unit_price?: number; amount?: number };
 type Payment = { id: string; payment_date: string; payment_method: string | null; reference_number: string | null; amount: number | string };
 
 export default function PortalInvoiceDetail() {
   const { id } = useParams();
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const { data: invoices, isLoading: invoicesLoading } = usePortalInvoices();
   const { data: payments, isLoading: paymentsLoading } = usePortalPayments();
   const isLoading = invoicesLoading || paymentsLoading;

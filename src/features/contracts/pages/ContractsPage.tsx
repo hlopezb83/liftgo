@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+
 import { useMemo } from "react";
 import { STATUS_LABELS } from "@/lib/constants";
 import { useContracts } from "../hooks/useContracts";
@@ -13,13 +13,14 @@ import { AddIcon, ViewIcon, ChevronRightIcon } from "@/components/icons";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 const STATUSES = ["all", "draft", "sent", "signed", "cancelled"] as const;
 
 type Contract = NonNullable<ReturnType<typeof useContracts>["data"]>[number];
 
 export default function ContractsPage() {
   const { data: contracts, isLoading } = useContracts();
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
 
   const { search, setSearch, statusFilter, setStatusFilter, filtered } = useListFilters(contracts, {
     searchFields: ["contract_number", "customer_name"],

@@ -4,13 +4,14 @@ import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { BackIcon, SuccessIcon, ViewIcon, RemoveIcon, SpinnerIcon } from "@/components/icons";
-import { useNavigate } from "react-router-dom";
+
 import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
 import { useRolePermissions, useUpdatePermission, MODULES, type AccessLevel } from "../hooks/useRolePermissions";
 import { useUserRole } from "../hooks/useUserRole";
 import type { AppRole } from "../hooks/useUserRole";
 import { cn } from "@/lib/utils";
 
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 const accessConfig = {
   full: { icon: SuccessIcon, color: "text-success", label: "Acceso completo" },
   read: { icon: ViewIcon, color: "text-info", label: "Solo lectura" },
@@ -20,7 +21,7 @@ const accessConfig = {
 const CYCLE: AccessLevel[] = ["none", "read", "full"];
 
 export default function RolePermissionsPage() {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const { data: perms, isLoading } = useRolePermissions();
   const { data: currentRole } = useUserRole();
   const updateMutation = useUpdatePermission();

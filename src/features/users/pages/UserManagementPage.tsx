@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { SecurityIcon, UsersIcon } from "@/components/icons";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { useAuth } from "@/contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { STAFF_ROLES } from "@/lib/constants";
 import type { AppRole } from "../hooks/useUserRole";
@@ -23,10 +23,11 @@ import { RoleBadge } from "../components/users/RoleBadge";
 import { UserMobileCard } from "../components/users/UserMobileCard";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 type UserItem = UserRow & { id?: string };
 
 export default function UserManagementPage() {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const { user: currentUser } = useAuth();
   const { data: users, isLoading } = useUsersWithRoles();
   const toggleStatus = useToggleStatus();

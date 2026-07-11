@@ -1,9 +1,10 @@
-import { useNavigate } from "react-router-dom";
+
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
 import { useCreateForklift, useUpdateForklift, useForklifts } from "../forklifts/useForklifts";
 import type { ForkliftFormData } from "../../lib/forkliftFormSchema";
 import {
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
   buildForkliftPayload,
   validateForkliftUniqueness,
   mapForkliftMutationError,
@@ -15,7 +16,7 @@ interface Args {
 }
 
 export function useForkliftFormSubmit({ id, isEdit }: Args) {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const create = useCreateForklift();
   const update = useUpdateForklift();
   const { data: allForklifts } = useForklifts();
