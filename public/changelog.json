@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.20.0",
+    "date": "2026-07-11",
+    "type": "minor",
+    "title": "Fase E — useTransition en navegación pesada",
+    "description": "Nuevo hook `useNavigateTransition` (`src/hooks/useNavigateTransition.ts`) que envuelve `useNavigate` en `startTransition` de React 19: la ruta actual permanece interactiva mientras el destino monta Suspense, chunks lazy o queries pesadas. Migradas las superficies de mayor tráfico: `GlobalSearch` (Ctrl+K), `AlertsRow` del dashboard (facturas vencidas, rentas vencidas, servicios pendientes), `InsuranceAlert`, `ExpiringContractsAlert`, y los headers compartidos `DetailPageHeader` y `FormPageHeader` — el botón 'Volver' de todas las páginas de detalle/formulario hereda la transición sin cambios en llamadas existentes.",
+    "category": "improvement"
+  },
+  {
     "version": "7.19.0",
     "date": "2026-07-11",
     "type": "minor",
