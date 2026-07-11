@@ -14,7 +14,7 @@ import {
 import { RequiredMark } from "@/components/forms/RequiredMark";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Upload, Loader2 } from "lucide-react";
+import { Upload, Loader2 } from "@/components/icons";
 import { useUploadSupplierRep } from "../hooks/useSupplierRepMutations";
 
 interface Props {

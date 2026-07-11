@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { AlertCircle, Copy } from "lucide-react";
+import { AlertCircle, Copy } from "@/components/icons";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { notifySuccess } from "@/lib/ui/appFeedback";

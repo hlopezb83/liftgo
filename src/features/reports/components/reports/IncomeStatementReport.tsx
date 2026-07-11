@@ -3,7 +3,7 @@ import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { TrendingUp, TrendingDown, DollarSign, Percent, AlertTriangle } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, Percent, AlertTriangle } from "@/components/icons";
 
 import { useIncomeStatementData } from "../../hooks/useIncomeStatementData";
 

@@ -1,5 +1,5 @@
 import { Draggable } from "@hello-pangea/dnd";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle } from "@/components/icons";
 import { Card } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { ProspectCardCompact, ProspectCardExpanded } from "./ProspectCardParts";

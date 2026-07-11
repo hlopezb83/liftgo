@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Wrench } from "lucide-react";
+import { Wrench } from "@/components/icons";
 import { format } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";
 

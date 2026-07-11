@@ -1,4 +1,4 @@
-import { Repeat } from "lucide-react";
+import { Repeat } from "@/components/icons";
 import { format, addDays, parseISO } from "date-fns";
 
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";

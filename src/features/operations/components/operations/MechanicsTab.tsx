@@ -9,7 +9,7 @@ import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "@/components/icons";
 
 export function MechanicsTab() {
   const { data: mechanics, isLoading } = useMechanics();

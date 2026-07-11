@@ -4,7 +4,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { AlertCircle, Receipt } from "lucide-react";
+import { AlertCircle, Receipt } from "@/components/icons";
 import { Link } from "react-router-dom";
 import type { RecurringPreviewLine } from "../../hooks/invoices/recurring/usePreviewRecurringInvoices";
 

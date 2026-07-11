@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock } from "lucide-react";
+import { Clock } from "@/components/icons";
 import { InfoRow } from "@/components/forms/InfoRow";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { RecurringBillingBadge } from "../bookings/RecurringBillingBadge";

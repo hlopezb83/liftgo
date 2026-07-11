@@ -1,4 +1,4 @@
-import { FileText, Search } from "lucide-react";
+import { FileText, Search } from "@/components/icons";
 import { Input } from "@/components/ui/input";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { renderSafeMarkdown } from "../lib/markdown";

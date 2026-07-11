@@ -1,4 +1,4 @@
-import { Check, ChevronsUpDown, X, CalendarIcon } from "lucide-react";
+import { Check, ChevronsUpDown, X, CalendarIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {

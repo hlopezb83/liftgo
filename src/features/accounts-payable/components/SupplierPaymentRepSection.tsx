@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Upload } from "lucide-react";
+import { Upload } from "@/components/icons";
 import { SupplierRepStatusBadge } from "./SupplierRepStatusBadge";
 import { SupplierPaymentRepReceived } from "./SupplierPaymentRepReceived";
 import type { SupplierPayment } from "../hooks/useSupplierBill";

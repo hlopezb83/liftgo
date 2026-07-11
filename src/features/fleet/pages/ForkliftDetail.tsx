@@ -12,7 +12,7 @@ import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useState } from "react";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2 } from "@/components/icons";
 
 import { DocumentAttachments } from "../components/forklift-detail/DocumentAttachments";
 import { NotesCard } from "@/components/domain/NotesCard";

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Download, FileDown } from "lucide-react";
+import { Download, FileDown } from "@/components/icons";
 import { exportToCsv } from "@/lib/exportCsv";
 
 type CsvRow = Record<string, unknown>;

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { FileDown, ChevronDown } from "lucide-react";
+import { FileDown, ChevronDown } from "@/components/icons";
 import type { ContractData } from "@/lib/pdf/contract/data";
 import type { PDFMode } from "@/lib/pdf/documents/ContractDocument";
 

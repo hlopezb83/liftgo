@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertCircle, CheckCircle2, Loader2, Pencil, ShieldCheck } from "lucide-react";
+import { AlertCircle, CheckCircle2, Loader2, Pencil, ShieldCheck } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { notifySuccess } from "@/lib/ui/appFeedback";

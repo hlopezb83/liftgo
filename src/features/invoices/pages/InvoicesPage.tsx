@@ -11,7 +11,7 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Eye, ChevronRight, Receipt } from "lucide-react";
+import { Eye, ChevronRight, Receipt } from "@/components/icons";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatDateDisplay } from "@/lib/utils";
 import { type ColumnDef } from "@/components/dataTable/v2";

@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { DollarSign, ExternalLink } from "lucide-react";
+import { DollarSign, ExternalLink } from "@/components/icons";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { KpiTile } from "@/components/domain/KpiTile";

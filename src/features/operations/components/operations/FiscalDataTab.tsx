@@ -6,7 +6,7 @@ import { CompanyFiscalForm, PacConfigForm, useBillingSecrets, useCompanySettings
 import { Skeleton } from "@/components/ui/skeleton";
 import { Form } from "@/components/ui/form";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Lock } from "lucide-react";
+import { Lock } from "@/components/icons";
 import { useUserRole } from "@/features/users";
 
 import { fiscalSchema, type FiscalDataValues } from "../../lib/operationsSchemas";

@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DAMAGE_STATUSES, STATUS_LABELS } from "@/lib/constants";
-import { Camera } from "lucide-react";
+import { Camera } from "@/components/icons";
 import { format } from "date-fns";
 import type { DamageRecordWithJoins } from "@/types/rental";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";

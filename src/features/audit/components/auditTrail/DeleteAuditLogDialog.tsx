@@ -1,4 +1,4 @@
-import { Trash2, AlertTriangle, Undo2 } from "lucide-react";
+import { Trash2, AlertTriangle, Undo2 } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { FormDialog } from "@/components/forms/FormDialog";
 import type { AuditLog } from "../../hooks/useAuditLogs";

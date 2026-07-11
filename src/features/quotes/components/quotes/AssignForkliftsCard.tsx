@@ -1,7 +1,7 @@
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { PackageCheck, AlertTriangle } from "lucide-react";
+import { PackageCheck, AlertTriangle } from "@/components/icons";
 import { useAssignForklift, useForklifts, useQuoteAssignments, useUnassignForklift } from "@/features/fleet";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { AssignForkliftsLineRow } from "./AssignForkliftsLineRow";

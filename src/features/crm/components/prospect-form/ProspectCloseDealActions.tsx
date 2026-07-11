@@ -1,4 +1,4 @@
-import { CheckCircle2, UserPlus } from "lucide-react";
+import { CheckCircle2, UserPlus } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import type { Prospect } from "../../hooks/useProspects";

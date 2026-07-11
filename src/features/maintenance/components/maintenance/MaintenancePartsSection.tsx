@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
-import { Package } from "lucide-react";
+import { Package } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import {

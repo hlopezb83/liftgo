@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { Plus, Pencil, Trash2, Landmark, Star } from "lucide-react";
+import { Plus, Pencil, Trash2, Landmark, Star } from "@/components/icons";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { useConfirm } from "@/components/feedback/useConfirm";
 import {

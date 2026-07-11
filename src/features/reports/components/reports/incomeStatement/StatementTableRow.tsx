@@ -1,6 +1,6 @@
 import { Fragment } from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { StatementRow } from "../../../hooks/useIncomeStatementData";
 import { cellColor, formatCell, type BreakdownRow } from "./incomeStatementHelpers";

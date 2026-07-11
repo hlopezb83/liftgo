@@ -1,4 +1,4 @@
-import { DollarSign, TrendingUp, CalendarClock, AlertTriangle } from "lucide-react";
+import { DollarSign, TrendingUp, CalendarClock, AlertTriangle } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { KpiTile } from "@/components/domain/KpiTile";
 

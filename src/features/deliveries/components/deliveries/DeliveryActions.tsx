@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { CheckCircle, Trash2 } from "lucide-react";
+import { CheckCircle, Trash2 } from "@/components/icons";
 
 interface DeliveryActionsProps {
   status: string;

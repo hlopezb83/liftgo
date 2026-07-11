@@ -4,7 +4,7 @@ import { zodResolver } from "@/lib/forms/zodResolver";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Form, FormItem, FormLabel, FormControl } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
-import { Upload, X } from "lucide-react";
+import { Upload, X } from "@/components/icons";
 import { FormActions } from "@/components/forms/FormActions";
 import {
   CurrencyField, DateField, SelectField, TextField, TextareaField, type SelectOption,

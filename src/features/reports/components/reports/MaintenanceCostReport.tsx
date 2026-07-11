@@ -5,7 +5,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recha
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { parseISO, isWithinInterval } from "date-fns";
-import { Download } from "lucide-react";
+import { Download } from "@/components/icons";
 import { useForklifts } from "@/features/fleet";
 import { useMaintenanceLogs } from "@/features/maintenance";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";

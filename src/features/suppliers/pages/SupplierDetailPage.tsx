@@ -19,7 +19,7 @@ import { SupplierBankAccountsSection } from "../components/suppliers/SupplierBan
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
-import { FileText, Wrench, DollarSign, Pencil } from "lucide-react";
+import { FileText, Wrench, DollarSign, Pencil } from "@/components/icons";
 
 type LinkedExpense = { id: string; expense_date: string; category: string; description: string | null; amount: number };
 

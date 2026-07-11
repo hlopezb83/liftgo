@@ -6,7 +6,7 @@ import { SearchBar } from "@/components/forms/SearchBar";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2 } from "lucide-react";
+import { Trash2 } from "@/components/icons";
 import type { AuditLog } from "../hooks/useAuditLogs";
 import {
   TABLES, getRecordLabel, actionIcon, actionBadgeVariant,

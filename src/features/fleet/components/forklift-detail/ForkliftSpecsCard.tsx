@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Truck } from "lucide-react";
+import { Truck } from "@/components/icons";
 import type { Tables } from "@/integrations/supabase/types";
 import { FUEL_TYPE_LABELS } from "@/lib/constants";
 import { formatCurrency } from "@/lib/format/formatCurrency";

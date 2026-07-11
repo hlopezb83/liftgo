@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { FileText, Loader2 } from "lucide-react";
+import { FileText, Loader2 } from "@/components/icons";
 import { useSupplierBill } from "../hooks/useSupplierBill";
 import { useDeleteSupplierBill } from "../hooks/useSupplierBillMutations";
 import { useUserRole } from "@/features/users/hooks/useUserRole";

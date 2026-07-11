@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { Plus, Download, List, LayoutGrid, RefreshCw } from "lucide-react";
+import { Plus, Download, List, LayoutGrid, RefreshCw } from "@/components/icons";
 
 type Props = {
   viewMode: "list" | "board";

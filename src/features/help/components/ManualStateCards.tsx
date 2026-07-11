@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, HelpCircle, FileText } from "lucide-react";
+import { RefreshCw, HelpCircle, FileText } from "@/components/icons";
 
 export function ManualGeneratingCard() {
   return (

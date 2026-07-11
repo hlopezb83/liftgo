@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User } from "lucide-react";
+import { User } from "@/components/icons";
 import { InfoRow } from "@/components/forms/InfoRow";
 import { formatDateRange } from "@/lib/utils";
 import type { ReturnInspectionWithJoins } from "@/types/rental";

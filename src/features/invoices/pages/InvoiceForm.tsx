@@ -16,7 +16,7 @@ import { CfdiFieldsCard } from "../components/invoice-form/CfdiFieldsCard";
 import { EditableLineItemsTable } from "../components/invoice-form/EditableLineItemsTable";
 import { MultiBookingSelector } from "../components/invoice-form/MultiBookingSelector";
 
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "@/components/icons";
 import { useNextInvoiceNumber } from "../hooks/invoices/useNextInvoiceNumber";
 import type { InvoiceFormValues } from "../lib/invoiceFormSchema";
 import { notifySuccess } from "@/lib/ui/appFeedback";

@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { Upload, FileText, Loader2, CheckCircle2 } from "lucide-react";
+import { Upload, FileText, Loader2, CheckCircle2 } from "@/components/icons";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { useParseCsf, type ParsedCsfData } from "@/features/customers/hooks/useParseCsf";
 

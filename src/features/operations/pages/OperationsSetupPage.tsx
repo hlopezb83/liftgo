@@ -1,7 +1,7 @@
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Settings, Truck, Wrench, FileText, ShieldCheck, Building2, Image as ImageIcon, ShieldAlert } from "lucide-react";
+import { Settings, Truck, Wrench, FileText, ShieldCheck, Building2, Image as ImageIcon, ShieldAlert } from "@/components/icons";
 import { EquipmentModelsTab } from "../components/operations/EquipmentModelsTab";
 import { DriversTab } from "../components/operations/DriversTab";
 import { MechanicsTab } from "../components/operations/MechanicsTab";

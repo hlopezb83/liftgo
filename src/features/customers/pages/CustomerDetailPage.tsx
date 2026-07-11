@@ -5,7 +5,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { NotesCard } from "@/components/domain/NotesCard";
-import { UserPlus, Pencil, Trash2, FileDown } from "lucide-react";
+import { UserPlus, Pencil, Trash2, FileDown } from "@/components/icons";
 
 import { CustomerContactCard } from "../components/customer-detail/CustomerContactCard";
 import { CustomerFinancialSummary } from "../components/customer-detail/CustomerFinancialSummary";

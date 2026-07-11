@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ExternalLink, X, RotateCcw } from "lucide-react";
+import { ExternalLink, X, RotateCcw } from "@/components/icons";
 import { openStorageFile } from "@/lib/storage/openStorageFile";
 import { formatDateDisplay } from "@/lib/utils";
 import type { SupplierPayment } from "../hooks/useSupplierBill";

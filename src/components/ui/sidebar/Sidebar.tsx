@@ -1,5 +1,5 @@
 import * as React from "react";
-import { PanelLeft } from "lucide-react";
+import { PanelLeft } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent } from "@/components/ui/sheet";

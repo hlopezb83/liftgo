@@ -6,7 +6,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { FormActions } from "@/components/forms/FormActions";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle } from "@/components/icons";
 import { useForkliftFormLogic } from "../hooks/useForkliftFormLogic";
 import { EquipmentDetailsSection } from "../components/forklift-form/EquipmentDetailsSection";
 import { RatesSection } from "../components/forklift-form/RatesSection";

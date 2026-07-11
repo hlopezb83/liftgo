@@ -1,4 +1,4 @@
-import { Search, X, LayoutGrid, Rows3, Plus } from "lucide-react";
+import { Search, X, LayoutGrid, Rows3, Plus } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";

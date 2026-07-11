@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign } from "lucide-react";
+import { DollarSign } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { Tables } from "@/integrations/supabase/types";
 

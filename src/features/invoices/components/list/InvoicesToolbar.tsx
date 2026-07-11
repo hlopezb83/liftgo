@@ -4,7 +4,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { Plus, Download, RefreshCw, X, AlertTriangle } from "lucide-react";
+import { Plus, Download, RefreshCw, X, AlertTriangle } from "@/components/icons";
 import { STATUS_LABELS } from "@/lib/constants";
 import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import type { DateRange } from "react-day-picker";

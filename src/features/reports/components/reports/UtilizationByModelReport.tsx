@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download } from "lucide-react";
+import { Download } from "@/components/icons";
 import { exportToCsv } from "@/lib/exportCsv";
 import { useForklifts } from "@/features/fleet";
 import { useBookings } from "@/features/bookings";

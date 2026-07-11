@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { Lock, RefreshCw, UserX, AlertTriangle } from "lucide-react";
+import { Lock, RefreshCw, UserX, AlertTriangle } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useUserRole } from "@/features/users";

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "react-router-dom";
-import { ChevronRight } from "lucide-react";
+import { ChevronRight } from "@/components/icons";
 import { NavLink } from "@/layouts/NavLink";
 import {
   SidebarGroup, SidebarGroupContent, SidebarGroupLabel,

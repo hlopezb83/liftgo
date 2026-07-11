@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useDropzone } from "react-dropzone";
 import { useUploadDocument } from "@/hooks/useDocuments";
-import { Upload, X, Loader2, ImageIcon } from "lucide-react";
+import { Upload, X, Loader2, ImageIcon } from "@/components/icons";
 
 import { cn } from "@/lib/utils";
 

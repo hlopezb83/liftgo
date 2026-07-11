@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { format, startOfMonth, endOfMonth } from "date-fns";
-import { Download, AlertTriangle } from "lucide-react";
+import { Download, AlertTriangle } from "@/components/icons";
 
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";

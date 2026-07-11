@@ -1,4 +1,4 @@
-import { type LucideIcon, PackageOpen } from "lucide-react";
+import { type LucideIcon, PackageOpen } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 
 interface EmptyStateProps {

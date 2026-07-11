@@ -3,7 +3,7 @@ import { useDocuments } from "@/hooks/useDocuments";
 import { DragDropImageUploader } from "@/components/forms/DragDropImageUploader";
 import { ImageGalleryLightbox } from "./ImageGalleryLightbox";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Camera } from "lucide-react";
+import { Camera } from "@/components/icons";
 
 interface DamagePhotosSectionProps {
   entityType: string;

@@ -3,7 +3,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Check, Eye, Minus, Loader2 } from "lucide-react";
+import { ArrowLeft, Check, Eye, Minus, Loader2 } from "@/components/icons";
 import { useNavigate } from "react-router-dom";
 import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
 import { useRolePermissions, useUpdatePermission, MODULES, type AccessLevel } from "../hooks/useRolePermissions";

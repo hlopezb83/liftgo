@@ -3,7 +3,7 @@ import {
   ClipboardCheck, TruckIcon, FileText, Activity, BarChart3, AlertTriangle, ShieldCheck,
   ScrollText, History, HelpCircle, Package, Target, DollarSign, Handshake,
   MessageSquare, Trophy, Megaphone, FileClock, TrendingUp, Landmark, ArrowLeftRight, GitCompareArrows,
-} from "lucide-react";
+} from "@/components/icons";
 
 export type NavItem = { title: string; url: string; icon: React.ElementType };
 export type NavGroup = { label: string; items: NavItem[]; collapsible?: boolean };

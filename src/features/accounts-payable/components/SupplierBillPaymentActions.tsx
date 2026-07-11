@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { CreditCard, XCircle, Pencil, Trash2 } from "lucide-react";
+import { CreditCard, XCircle, Pencil, Trash2 } from "@/components/icons";
 import type { BillPermissions } from "../lib/billPermissions";
 
 interface BillActionsState {

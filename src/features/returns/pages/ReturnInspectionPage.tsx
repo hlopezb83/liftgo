@@ -10,7 +10,7 @@ import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ReturnInspectionDialog } from "../components/return-inspection/ReturnInspectionDialog";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { Card, CardContent } from "@/components/ui/card";
-import { PlusCircle } from "lucide-react";
+import { PlusCircle } from "@/components/icons";
 import { format } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";

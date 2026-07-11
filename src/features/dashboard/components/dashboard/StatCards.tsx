@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { type LucideIcon } from "lucide-react";
+import { type LucideIcon } from "@/components/icons";
 import { KpiTile } from "@/components/domain/KpiTile";
 
 interface StatCard {

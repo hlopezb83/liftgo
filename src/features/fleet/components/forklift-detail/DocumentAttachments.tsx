@@ -1,7 +1,7 @@
 import { useDocuments, useUploadDocument, useDeleteDocument } from "@/hooks/useDocuments";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Paperclip, Trash2, Upload, FileText, Image, File } from "lucide-react";
+import { Paperclip, Trash2, Upload, FileText, Image, File } from "@/components/icons";
 
 import { useRef } from "react";
 import { notifySuccess } from "@/lib/ui/appFeedback";

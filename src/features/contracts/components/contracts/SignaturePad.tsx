@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Eraser, Undo2 } from "lucide-react";
+import { Eraser, Undo2 } from "@/components/icons";
 
 interface SignaturePadProps {
   onSave: (base64: string) => void;
