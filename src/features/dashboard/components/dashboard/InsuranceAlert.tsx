@@ -1,4 +1,3 @@
-import { memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShieldAlert } from "@/components/icons";
 import { useNavigate } from "react-router-dom";
