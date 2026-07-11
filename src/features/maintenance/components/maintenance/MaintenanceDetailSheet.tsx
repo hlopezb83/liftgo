@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Activity, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -63,6 +63,7 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
           </SheetTitle>
         </SheetHeader>
 
+        <Activity mode={open ? "visible" : "hidden"}>
         <div className="mt-4 space-y-4">
           <Badge variant={status.variant}>{status.label}</Badge>
 
@@ -113,6 +114,7 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
             </div>
           </RoleGuard>
         </div>
+        </Activity>
       </SheetContent>
     </Sheet>
   );

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { Activity, useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -46,6 +46,7 @@ export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
           </SheetTitle>
         </SheetHeader>
 
+        <Activity mode={open ? "visible" : "hidden"}>
         <div className="mt-4 space-y-4">
           <div className="flex items-center gap-2 flex-wrap">
             <Badge variant="outline">{part.category}</Badge>
@@ -112,6 +113,7 @@ export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
             </div>
           </RoleGuard>
         </div>
+        </Activity>
       </SheetContent>
     </Sheet>
   );

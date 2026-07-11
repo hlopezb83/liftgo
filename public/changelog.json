@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.19.0",
+    "date": "2026-07-11",
+    "type": "minor",
+    "title": "Fase D.3 — <Activity> extendido a sheets restantes",
+    "description": "Se completa la adopción de `<Activity>` (React 19.2 estable) en las detail sheets con estado local que quedaban fuera de la Fase D.2: `FeedbackDetailSheet` (borrador de comentario y nuevo estado en `FeedbackStatusChanger`), `PartDetailSheet` (estado del `ConfirmDialog` de eliminación) y `MaintenanceDetailSheet` en su vista principal (`MaintenancePartsSection` y `ConfirmDialog` de archivo). Las 8 detail sheets del sistema quedan cubiertas. Auditoría paralela con `rg` confirma cero `memo()` manuales sobrevivientes tras la Fase D.2 — el React Compiler es ya la única fuente de memoización de componentes en el proyecto.",
+    "category": "improvement"
+  },
+  {
     "version": "7.18.0",
     "date": "2026-07-11",
     "type": "minor",
