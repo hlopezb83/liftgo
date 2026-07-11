@@ -19,14 +19,15 @@ const CANONICAL_ALIASES = [
   "BackIcon", "CloseIcon", "HomeIcon",
   // Dominio LiftGo
   "FleetIcon", "MaintenanceIcon", "DocumentIcon", "InvoiceIcon", "MoneyIcon",
-  "PaymentIcon", "CostIcon", "ExpenseIcon",
+  "RevenueIcon", "PaymentIcon", "CostIcon", "ExpenseIcon",
   "CalendarIcon", "OverdueIcon", "ClockIcon", "UserIcon", "UsersIcon",
   "CompanyIcon", "SupplierIcon", "SecurityIcon", "InventoryIcon",
-  "WaitingPartsIcon", "HistoryIcon", "PhoneIcon", "LocationIcon",
+  "WaitingPartsIcon", "HistoryIcon", "PhoneIcon", "EmailIcon", "LocationIcon",
   "BankIcon", "DealIcon", "StampIcon", "SignIcon", "DeliveryIcon",
   "VerifiedDocIcon", "SettingsIcon", "DashboardIcon",
   "ChartIcon", "TrendingUpIcon", "TrendingDownIcon", "TargetIcon",
   "TrophyIcon", "ActivityIcon", "StarIcon", "HelpIcon", "KeyIcon",
+  "FilterIcon", "OpenLinkIcon",
 ] as const;
 
 describe("icons registry", () => {
