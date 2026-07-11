@@ -1,5 +1,14 @@
 [
   {
+    "version": "7.17.0",
+    "date": "2026-07-11",
+    "type": "minor",
+    "title": "Fase D.1 — Bail-outs del React Compiler eliminados",
+    "description": "Refactor de 8 archivos con `eslint-disable react-hooks/exhaustive-deps` para desbloquear la auto-memoización del compilador. Efectos con dependencias 'de conveniencia' (setters, prefill, resets) migrados a `useEffectEvent` (React 19.2 estable) — sin cambio de comportamiento pero con dependencias completas y honestas: `SearchBar` (emit debounced), `CustomersPage` (prefill desde prospecto), `useInvoicePrefill` (hydrate de pivots), `useSupplierBillForm` (reset y sugerencia de vencimiento), `SupplierBillFormDialog` (reset CFDI al cerrar), `RegisterSupplierPaymentDialog` (reset al abrir). Los cuatro tabs de Operaciones (`DriversTab`, `MechanicsTab`, `EquipmentModelsTab`, `MaintenancePoliciesTab`) sueltan el `useMemo(cols, [])` con disable — el compilador ahora memoiza las definiciones de columnas automáticamente al detectar que los callbacks (`openEdit`, `del.mutate`, `toggleActive`) mantienen identidad estable. Único disable superviviente: `useListFilters` con nota inline que documenta el loop de `autoResetPageIndex` de TanStack Table.",
+    "category": "improvement"
+  },
+  {
+
     "version": "7.16.0",
     "date": "2026-07-11",
     "type": "minor",
