@@ -1,4 +1,4 @@
-import { memo, useMemo } from "react";
+import { useMemo } from "react";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { TrendingUpIcon, TrendingDownIcon, RemoveIcon } from "@/components/icons";
 import { ReportChartCard } from "@/components/domain/ReportChartCard";
