@@ -35,6 +35,7 @@ export function SupplierBillDetailSheet({ billId, open, onOpenChange }: Props) {
           </SheetTitle>
         </SheetHeader>
 
+        <Activity mode={open ? "visible" : "hidden"}>
         {isLoading || !bill ? (
           <div className="flex items-center justify-center py-12 text-muted-foreground">
             <SpinnerIcon className="h-5 w-5 animate-spin" />
@@ -61,6 +62,7 @@ export function SupplierBillDetailSheet({ billId, open, onOpenChange }: Props) {
             }}
           />
         )}
+        </Activity>
       </SheetContent>
     </Sheet>
   );
