@@ -18,7 +18,8 @@ export function usePrefillEffect(effect: () => void, deps: unknown[]) {
   const depKey = serializeDeps(deps);
   useEffect(() => {
     run();
-  }, [depKey]);
+  }, [depKey, run]);
+
 }
 
 function serializeDeps(deps: unknown[]): string {
