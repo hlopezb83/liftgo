@@ -93,6 +93,7 @@ export function BankLineDetailSheet({ line, open, onOpenChange }: Props) {
             onUnmatch={handleUnmatch}
           />
         </div>
+        </Activity>
       </SheetContent>
     </Sheet>
   );
