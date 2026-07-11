@@ -85,4 +85,4 @@ export function UtilizationCharts({ monthlyUtilization }: UtilizationChartsProps
       )}
     </ReportChartCard>
   );
-});
+}
