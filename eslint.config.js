@@ -26,10 +26,13 @@ export default tseslint.config(
     plugins: {
       "react-hooks": reactHooks,
       "react-refresh": reactRefresh,
+      "react-compiler": reactCompiler,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      "react-compiler/react-compiler": "warn",
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+
       "@typescript-eslint/no-unused-vars": "off",
       // === Power of 10 (LiftGo) — enforced ===
       // Tipado fuerte (regla 5/10): prohibido `any` y non-null assertion.
