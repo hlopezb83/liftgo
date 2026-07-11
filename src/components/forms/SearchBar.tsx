@@ -38,11 +38,15 @@ export function SearchBar({
     setLocal(value);
   }, [value]);
 
-  // Emite cambios debounced hacia el padre.
+  // Emite cambios debounced hacia el padre. `emit` es useEffectEvent →
+  // captura siempre el `onChange` y `value` frescos sin refrescar el efecto.
+  const emit = useEffectEvent((next: string) => {
+    if (next !== value) onChange(next);
+  });
   useEffect(() => {
-    if (debounced !== value) onChange(debounced);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debounced]);
+    emit(debounced);
+  }, [debounced, emit]);
+
 
   useHotkeys(
     "mod+k",
