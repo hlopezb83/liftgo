@@ -53,7 +53,7 @@ function CashFlowTooltip({ active, payload }: { active?: boolean; payload?: Tool
   );
 }
 
-export const CashFlowChart = memo(function CashFlowChart({ data }: CashFlowChartProps) {
+export function CashFlowChart({ data }: CashFlowChartProps) {
   return (
     <ReportChartCard
       title="Flujo de Efectivo"
