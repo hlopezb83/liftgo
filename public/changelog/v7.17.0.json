@@ -1,0 +1,34 @@
+{
+  "version": "7.17.0",
+  "date": "2026-07-11",
+  "type": "minor",
+  "title": "Fase D.1 — Bail-outs del React Compiler eliminados",
+  "summary": "Refactor de 8 archivos con `eslint-disable react-hooks/exhaustive-deps` para desbloquear la auto-memoización del compilador en formularios críticos y catálogos de operaciones.",
+  "sections": [
+    {
+      "heading": "useEffectEvent en efectos de prefill y reset",
+      "items": [
+        "`src/components/forms/SearchBar.tsx`: `emit` (debounced → onChange padre) migrado a `useEffectEvent` — deja de depender de `value/onChange` volátiles.",
+        "`src/features/customers/pages/CustomersPage.tsx`: prefill desde `?from_prospect=true` movido a `useEffectEvent`, se elimina el `useEffect(() => {...}, [])` con disable.",
+        "`src/features/invoices/hooks/invoiceForm/useInvoicePrefill.ts`: hydrate de `bookingIds` usa key primitivo (`bookingIdsKey`) + `useEffectEvent` en vez de `array.join(',')` en deps.",
+        "`src/features/accounts-payable/hooks/useSupplierBillForm.ts`: reset por `open/initialBill.id` y sugerencia de `due_date` refactorizados a dos `useEffectEvent` separados.",
+        "`src/features/accounts-payable/components/SupplierBillFormDialog.tsx`: reset del importador CFDI al cerrar el diálogo vía `useEffectEvent`.",
+        "`src/features/accounts-payable/components/RegisterSupplierPaymentDialog.tsx`: reset del formulario y del archivo de recibo al abrir consolidado en `useEffectEvent`."
+      ]
+    },
+    {
+      "heading": "Columnas de tabla sin useMemo manual",
+      "items": [
+        "`DriversTab`, `MechanicsTab`, `EquipmentModelsTab`, `MaintenancePoliciesTab`: se elimina el `useMemo<ColumnDef[]>(() => [...], [])` con `eslint-disable`. El React Compiler ahora memoiza las definiciones automáticamente al detectar que `openEdit`, `del.mutate` y `toggleActive` mantienen identidad estable (React Rules honradas).",
+        "Comentario inline en `DriversTab` explica el patrón para futuros catálogos."
+      ]
+    },
+    {
+      "heading": "Disables restantes",
+      "items": [
+        "`src/hooks/useListFilters.ts` conserva el disable único con nota explícita: incluir `options.searchFields/searchAccessors/statusField` en deps de `useMemo(filtered)` refresca la referencia cada render y dispara el loop de `autoResetPageIndex` de TanStack Table. Config literal por callsite → seguro omitir."
+      ]
+    }
+  ],
+  "impact": "8 warnings menos del `react-compiler/react-compiler`. Componentes de formulario y catálogos ahora reciben auto-memoización en el build de producción. Sin cambios funcionales."
+}
