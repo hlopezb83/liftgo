@@ -74,30 +74,27 @@ export function MaintenancePoliciesTab() {
     update.mutate({ id: p.id, is_active: !p.is_active });
   };
 
-  const columns = useMemo<ColumnDef<MaintenancePolicy>[]>(
-    () => [
-      { id: "forklift_name", header: "Montacargas", accessorKey: "forklift_name", cell: ({ row }) => <span className="font-medium">{row.original.forklift_name}</span> },
-      { id: "provider_name", header: "Proveedor", accessorKey: "provider_name", cell: ({ row }) => row.original.provider_name },
-      { id: "service_type", header: "Tipo de Servicio", accessorKey: "service_type", cell: ({ row }) => row.original.service_type },
-      { id: "monthly_cost", header: "Costo Mensual", accessorKey: "monthly_cost", meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.monthly_cost)}</span> },
-      { id: "is_active", header: "Estado", enableSorting: false, cell: ({ row }) => <Switch checked={row.original.is_active} onCheckedChange={() => toggleActive(row.original)} /> },
-      { id: "last_generated_month", header: "Último Mes Generado", accessorKey: "last_generated_month", cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.last_generated_month ?? "—"}</span> },
-      {
-        id: "actions",
-        header: "",
-        enableSorting: false,
-        cell: ({ row }) => (
-          <MaintenancePolicyRowActions
-            policy={row.original}
-            onEdit={() => openEdit(row.original)}
-            onDelete={() => del.mutate(row.original.id)}
-          />
-        ),
-      },
-    ],
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
+  const columns: ColumnDef<MaintenancePolicy>[] = [
+    { id: "forklift_name", header: "Montacargas", accessorKey: "forklift_name", cell: ({ row }) => <span className="font-medium">{row.original.forklift_name}</span> },
+    { id: "provider_name", header: "Proveedor", accessorKey: "provider_name", cell: ({ row }) => row.original.provider_name },
+    { id: "service_type", header: "Tipo de Servicio", accessorKey: "service_type", cell: ({ row }) => row.original.service_type },
+    { id: "monthly_cost", header: "Costo Mensual", accessorKey: "monthly_cost", meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.monthly_cost)}</span> },
+    { id: "is_active", header: "Estado", enableSorting: false, cell: ({ row }) => <Switch checked={row.original.is_active} onCheckedChange={() => toggleActive(row.original)} /> },
+    { id: "last_generated_month", header: "Último Mes Generado", accessorKey: "last_generated_month", cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.last_generated_month ?? "—"}</span> },
+    {
+      id: "actions",
+      header: "",
+      enableSorting: false,
+      cell: ({ row }) => (
+        <MaintenancePolicyRowActions
+          policy={row.original}
+          onEdit={() => openEdit(row.original)}
+          onDelete={() => del.mutate(row.original.id)}
+        />
+      ),
+    },
+  ];
+
 
   const table = useLiftgoTable<MaintenancePolicy>({
     data: policies,
