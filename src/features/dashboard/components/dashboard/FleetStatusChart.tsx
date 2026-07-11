@@ -1,4 +1,3 @@
-import { memo } from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { PieChart as PieChartIcon } from "@/components/icons";
 import { ReportChartCard } from "@/components/domain/ReportChartCard";
