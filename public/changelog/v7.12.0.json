@@ -1,0 +1,15 @@
+{
+  "version": "7.12.0",
+  "date": "2026-07-11",
+  "type": "minor",
+  "title": "React 19: eliminación de forwardRef en primitivos + linter React Compiler",
+  "category": "improvement",
+  "description": "Auditoría exhaustiva de nuestra implementación de React 19. Removida la API obsoleta forwardRef de todos los primitivos shadcn/ui y añadido el linter oficial de React Compiler para preparar la memoización automática.",
+  "changes": [
+    "Eliminado React.forwardRef en 34 primitivos: button, card, input, label, textarea, checkbox, switch, badge, alert, dialog, alert-dialog, sheet, popover, tooltip, dropdown-menu, select, tabs, accordion, table, toggle, toggle-group, scroll-area, separator, pagination, chart, form, command y toda la familia sidebar.",
+    "Removido forwardRef en NavLink (layouts) y EmptyRow (feedback). En React 19 `ref` es una prop regular, la envoltura ya no aporta valor.",
+    "Codemod verificado: firmas nuevas del tipo `({...props, ref}: Props & { ref?: React.Ref<T> }) => JSX`, respetando displayName y compatibilidad con `React.ElementRef<typeof X>`.",
+    "Instalado `eslint-plugin-react-compiler` y `babel-plugin-react-compiler` como devDependencies. La regla queda en `off` por defecto; se puede habilitar puntualmente con directiva por archivo hasta que migremos de plugin-react-swc a plugin-react (Babel) para activar el compiler completo.",
+    "Verificación: tsgo OK · bun run lint 0 warnings · 913/913 tests passing."
+  ]
+}
