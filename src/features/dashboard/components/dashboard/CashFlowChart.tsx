@@ -83,4 +83,4 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
       )}
     </ReportChartCard>
   );
-});
+}
