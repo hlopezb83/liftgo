@@ -1,71 +1,75 @@
-Plan: Dependency hygiene — safe minor/patch updates
+# Migración a Zod 4
 
-Objective
-Update all npm dependencies that have a safe minor or patch release available, while keeping major-version bumps (Tailwind 4, React Router 7, Zod 4, Sonner 2, etc.) out of scope. Reduce bug-fix and performance debt without introducing breaking changes.
+## Alcance
+- `zod` `^3.25.76` → `^4.x` en el proyecto frontend y en las Edge Functions.
+- 36 archivos usan `zod` directamente. La superficie de API "riesgosa" es acotada:
+  - **9** usos de `invalid_type_error` / `required_error` (API de mensajes deprecada en v4).
+  - **3** usos de `.transform(...).pipe(...)` (patrón que cambia en v4).
+  - `.brand()` no se usa. `z.record()` no se usa. `errorMap` global no se usa.
+  - `ZodError.issues` (lo que ya leemos en `errorDetailsExtract.ts`) sigue siendo la forma oficial en v4 ✅.
+- `@hookform/resolvers` `^3.10` es compatible con Zod 4 vía `zodResolver` sin cambios.
 
-Scope
-- Update only packages where the "Update" column in `bun outdated` is higher than "Current" but stays within the same major version line.
-- Exclude major-version migrations and intentionally pinned packages:
-  - `jspdf` / `jspdf-autotable` remain locked at ≤4.0.0 per project memory.
-  - No Tailwind 4, React Router 7, Zod 4, TypeScript 7, Vite 8, Sonner 2, date-fns 4, etc.
+## Cambios clave que introduce Zod 4
+1. `invalid_type_error` / `required_error` se reemplazan por la nueva API `{ error: (issue) => "..." }` o por `.refine`/mensajes en cada validador.
+2. `.transform(...).pipe(schema)` sigue existiendo, pero la forma canónica pasa a ser `z.pipe(input, output)` o encadenar directo; hay que verificar que la inferencia de tipos siga correcta.
+3. `z.string().email()` y otros validadores string ahora son subtipos (`z.email()`), pero `.email()` sigue funcionando como shortcut compatible.
+4. `ZodError.errors` → renombrado a `.issues` (ya usamos `.issues`).
+5. `.default()` ahora es sólo para input, la salida es siempre requerida (impacta tipos `z.infer`, no comportamiento runtime).
 
-Packages to update
-Production (18 packages):
-- @radix-ui/react-accordion 1.2.14 → 1.2.16
-- @radix-ui/react-alert-dialog 1.1.17 → 1.1.19
-- @radix-ui/react-checkbox 1.3.5 → 1.3.7
-- @radix-ui/react-collapsible 1.1.14 → 1.1.16
-- @radix-ui/react-dialog 1.1.17 → 1.1.19
-- @radix-ui/react-dropdown-menu 2.1.18 → 2.1.20
-- @radix-ui/react-label 2.1.10 → 2.1.11
-- @radix-ui/react-popover 1.1.17 → 1.1.19
-- @radix-ui/react-scroll-area 1.2.12 → 1.2.14
-- @radix-ui/react-select 2.3.1 → 2.3.3
-- @radix-ui/react-separator 1.1.10 → 1.1.11
-- @radix-ui/react-switch 1.3.1 → 1.3.3
-- @radix-ui/react-tabs 1.1.15 → 1.1.17
-- @radix-ui/react-toggle 1.1.12 → 1.1.14
-- @radix-ui/react-toggle-group 1.1.13 → 1.1.15
-- @radix-ui/react-tooltip 1.2.10 → 1.2.12
-- @sentry/react 10.64.0 → 10.65.0
-- @supabase/supabase-js 2.108.2 → 2.110.2
-- @tanstack/react-query 5.101.1 → 5.101.2
-- @tanstack/react-virtual 3.14.4 → 3.14.5
-- react-hook-form 7.80.0 → 7.81.0
-- recharts 3.8.1 → 3.9.2
+## Plan de ejecución
 
-Development (10 packages):
-- @eslint/js 9.39.4 → 9.39.5
-- @sentry/vite-plugin 5.3.0 → 5.4.0
-- @types/node 22.20.0 → 22.20.1
-- @vitest/coverage-v8 4.0.18 → 4.1.10
-- eslint 9.39.4 → 9.39.5
-- knip 6.22.0 → 6.26.0
-- lovable-tagger 1.3.0 → 1.3.1
-- postcss 8.5.15 → 8.5.16
-- typescript-eslint 8.62.0 → 8.63.0
-- vitest 4.1.9 → 4.1.10
+### Paso 1 — Instalar y compilar
+- Actualizar `zod` a `^4.0.0` en `package.json` y correr `bun install`.
+- Ejecutar `tsgo` y capturar la lista completa de errores de tipos.
 
-Execution approach
-1. Run `bun update` for the safe set in two batches:
-   - Batch A: Radix UI primitives (single command, they share internals).
-   - Batch B: Remaining production + dev dependencies.
-2. After each batch run the verification gate.
-3. If a batch introduces failures, roll back that batch and document the blocker.
+### Paso 2 — Refactor de APIs deprecadas (antes de tocar tests)
+Archivos a editar:
+- `src/lib/schemas/common.ts` — reemplazar `z.number({ invalid_type_error })` por firma v4.
+- `src/features/deliveries/lib/deliveryFormSchema.ts`
+- `src/features/portal/components/ReportTransferDialog.tsx`
+- `src/features/bank-reconciliation/components/BankAccountFormDialog.tsx`
+- `src/features/accounts-payable/hooks/useSupplierBillForm.ts`
+- `src/features/crm/components/CloseWonDialog.tsx`
+- `src/features/inventory/lib/partFormSchema.ts` (3 ocurrencias)
 
-Verification gate (after each batch)
-- `bun install` / lockfile consistency check.
-- `npx tsgo --noEmit` (typecheck).
-- `bun run lint` (ESLint 0 warnings target).
-- `bunx vitest run` (804 tests baseline).
-- `bun run test:e2e` smoke navigation spec.
-- `ANALYZE=1 bun run build` to confirm bundle size did not regress.
+Patrón de reemplazo:
+```ts
+// Antes (v3)
+z.date({ required_error: "Fecha requerida" })
+z.number({ invalid_type_error: "Monto inválido" })
 
-Risk and rollback
-- Low risk: all updates are within the same major version line.
-- If any update breaks the build or tests, revert the specific package to its previous version and continue with the rest.
+// Después (v4)
+z.date({ error: (iss) => iss.input === undefined ? "Fecha requerida" : "Fecha inválida" })
+z.number({ error: "Monto inválido" })
+```
 
-Deliverables
-- Updated `package.json` and lockfile.
-- New changelog entry `v7.6.0` describing the dependency hygiene batch.
-- Report of any packages that could not be updated and why.
+### Paso 3 — Revisar `.transform().pipe()`
+- `src/lib/schemas/common.ts` (rfc: `.transform().pipe(z.string().regex(...))`)
+- `src/features/invoices/components/invoice-detail/PaymentIntentsSection.tsx`
+- `src/features/accounts-payable/components/SupplierPaymentRejectDialog.tsx`
+- `src/features/accounts-payable/components/RejectBillDialog.tsx`
+
+Verificar que la inferencia de `z.infer<>` siga siendo `string` y que el resolver de RHF reciba el tipo correcto. Si hay ruido de tipos, migrar a:
+```ts
+z.string().min(3).transform(v => v.trim().toUpperCase()).refine(v => RFC_REGEX.test(v), "...")
+```
+
+### Paso 4 — Compilar iterativamente
+- `tsgo` hasta 0 errores.
+- Ajustar cualquier `z.infer` que quede desalineado por el cambio de `.default()` en v4 (usualmente basta con `z.infer<typeof s>` → `z.input<typeof s>` en el lado del formulario RHF si aparece un mismatch de tipos).
+
+### Paso 5 — Verificación
+- `bun run lint` (0 warnings — no romper el barrido reciente).
+- `bunx vitest run` (804 tests deben seguir pasando).
+- Smoke manual: abrir 2 formularios representativos (SupplierBill y Booking) en el preview y validar mensajes de error.
+
+### Paso 6 — Changelog
+- `public/changelog.json` + `public/changelog/v7.7.0.json` con nota **major dependency bump** describiendo Zod 4.
+
+## Riesgos
+- **Bajo/Medio**: la superficie con APIs realmente removidas es chica (≤15 archivos). El mayor riesgo es que algún `z.infer` cambie de shape por el nuevo tratamiento de `.default()`, lo que se detecta directo en `tsgo`.
+- **Edge Functions (Deno)**: usan `zod` desde `deno.json`/`import_map`. Hay que subir también la versión ahí; el cambio es idéntico al del front.
+
+## Fuera de alcance
+- Migración a `z.email()` / `z.uuid()` como top-level (opcional, no breaking en v4).
+- Cambios de estilo o refactors DRY adicionales.
