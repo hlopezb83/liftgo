@@ -95,5 +95,3 @@ export function DataTableV2<T>({
     </div>
   );
 }
-
-export const DataTableV2 = memo(Inner) as typeof Inner;
