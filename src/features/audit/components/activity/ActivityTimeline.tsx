@@ -9,7 +9,7 @@ import { ENTITY_LABELS, ENTITY_ROUTES, EVENT_LABELS, EVENT_TYPES } from "../../l
 import { translateActivityTitle, translateActivityDescription } from "@/lib/domain/activityTranslations";
 import { useNavigate } from "react-router-dom";
 import { format } from "date-fns";
-import { X } from "lucide-react";
+import { X } from "@/components/icons";
 import type { MemberStat } from "../../hooks/useActivityMetrics";
 import type { AppRole } from "@/features/users";
 

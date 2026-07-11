@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/forms/zodResolver";
-import { Pencil, FileText } from "lucide-react";
+import { Pencil, FileText } from "@/components/icons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormActions } from "@/components/forms/FormActions";

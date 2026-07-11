@@ -1,6 +1,6 @@
 import React from "react";
 import { TableRow, TableCell } from "@/components/ui/table";
-import { Inbox } from "lucide-react";
+import { Inbox } from "@/components/icons";
 
 export const EmptyRow = React.forwardRef<
   HTMLTableRowElement,

@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
-import { type LucideIcon, Loader2, RefreshCw, SlidersHorizontal } from "lucide-react";
+import { type LucideIcon, Loader2, RefreshCw, SlidersHorizontal } from "@/components/icons";
 import type { Table as TanstackTable } from "@tanstack/react-table";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { PageHeader } from "@/components/layout/PageHeader";

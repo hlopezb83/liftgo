@@ -1,7 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
-import { FileText, StickyNote } from "lucide-react";
+import { FileText, StickyNote } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { LOST_REASON_LABELS } from "../../lib/constants";
 import type { Prospect } from "../../hooks/useProspects";

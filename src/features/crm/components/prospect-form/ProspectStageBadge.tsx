@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { STAGE_LABELS } from "../../hooks/useProspectForm";
 

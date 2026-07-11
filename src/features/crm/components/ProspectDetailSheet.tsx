@@ -2,7 +2,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
-import { Building2, User, Mail, Phone, DollarSign } from "lucide-react";
+import { Building2, User, Mail, Phone, DollarSign } from "@/components/icons";
 import type { Prospect } from "../hooks/useProspects";
 import { ProspectHistoryCard } from "./ProspectHistoryCard";
 import { ProspectQuoteLink, ProspectNotes, ProspectClosureInfo } from "./prospectDetail/ProspectInfoBlocks";

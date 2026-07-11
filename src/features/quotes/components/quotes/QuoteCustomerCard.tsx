@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User } from "lucide-react";
+import { User } from "@/components/icons";
 
 interface Props {
   customerName: string | null | undefined;

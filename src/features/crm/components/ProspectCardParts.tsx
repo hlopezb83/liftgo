@@ -1,4 +1,4 @@
-import { Building2, User, FileText, Calendar } from "lucide-react";
+import { Building2, User, FileText, Calendar } from "@/components/icons";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { ROUTES } from "@/routes/routes";

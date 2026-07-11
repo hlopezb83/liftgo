@@ -4,7 +4,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
-import { Users } from "lucide-react";
+import { Users } from "@/components/icons";
 import { useCurrentVersion } from "@/features/changelog";
 import { usePublicBranding } from "@/features/company-settings";
 import { useAuthPasswordRecoveryListener } from "../hooks/useAuthPasswordRecoveryListener";

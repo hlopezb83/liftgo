@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Copy } from "lucide-react";
+import { Copy } from "@/components/icons";
 
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { usePortalCollectionAccount } from "../hooks/usePortalExtras";

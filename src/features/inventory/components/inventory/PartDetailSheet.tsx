@@ -9,7 +9,7 @@ import { useDeletePart, type PartInventory } from "../../hooks/usePartsInventory
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { Pencil, Trash2, Package, Hash, Tag, Layers, AlertTriangle, DollarSign } from "lucide-react";
+import { Pencil, Trash2, Package, Hash, Tag, Layers, AlertTriangle, DollarSign } from "@/components/icons";
 import { DetailRow } from "@/components/domain/DetailRow";
 
 interface Props {

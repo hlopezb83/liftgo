@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { Wallet } from "lucide-react";
+import { Wallet } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { ReportChartCard } from "@/components/domain/ReportChartCard";
 

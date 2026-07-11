@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Calendar } from "lucide-react";
+import { Calendar } from "@/components/icons";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 
 interface Props {

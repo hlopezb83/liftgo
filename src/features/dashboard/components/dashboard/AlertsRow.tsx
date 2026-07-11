@@ -1,4 +1,4 @@
-import { AlertTriangle, Wrench, CheckCircle, ClipboardList, Clock } from "lucide-react";
+import { AlertTriangle, Wrench, CheckCircle, ClipboardList, Clock } from "@/components/icons";
 import { useNavigate } from "react-router-dom";
 import { useUpdateInvoice } from "@/features/invoices";
 import { useUpdateBooking } from "@/features/bookings";

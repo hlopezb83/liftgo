@@ -7,7 +7,7 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { DamageRecordWithJoins } from "@/types/rental";
 import { format } from "date-fns";
 import { es } from "date-fns/locale";
-import { AlertTriangle, Truck, User, FileText, DollarSign, Calendar } from "lucide-react";
+import { AlertTriangle, Truck, User, FileText, DollarSign, Calendar } from "@/components/icons";
 import { DetailRow } from "@/components/domain/DetailRow";
 
 interface Props {

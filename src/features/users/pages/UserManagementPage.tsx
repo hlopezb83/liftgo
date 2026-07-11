@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { ShieldCheck, Users } from "lucide-react";
+import { ShieldCheck, Users } from "@/components/icons";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useNavigate } from "react-router-dom";

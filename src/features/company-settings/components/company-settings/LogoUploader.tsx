@@ -1,7 +1,7 @@
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Upload, Trash2, ImageIcon } from "lucide-react";
+import { Upload, Trash2, ImageIcon } from "@/components/icons";
 import { useUploadCompanyLogo } from "../../hooks/useUploadCompanyLogo";
 
 interface Props {

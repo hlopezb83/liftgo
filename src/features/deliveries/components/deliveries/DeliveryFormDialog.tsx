@@ -3,7 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { format } from "date-fns";
 
-import { PlusCircle } from "lucide-react";
+import { PlusCircle } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormActions } from "@/components/forms/FormActions";

@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
-import { Truck } from "lucide-react";
+import { Truck } from "@/components/icons";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";

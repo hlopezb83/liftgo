@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LogOut, KeyRound } from "lucide-react";
+import { LogOut, KeyRound } from "@/components/icons";
 import { NavLink } from "@/layouts/NavLink";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";

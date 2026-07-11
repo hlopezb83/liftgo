@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { History, Eye } from "lucide-react";
+import { History, Eye } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";

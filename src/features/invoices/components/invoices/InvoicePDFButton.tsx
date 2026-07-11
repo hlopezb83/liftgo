@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { FileText } from "lucide-react";
+import { FileText } from "@/components/icons";
 import { useState } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { useInvoicePdfDownload } from "../../hooks/invoices/pdf/useInvoicePdfDownload";

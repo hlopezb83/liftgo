@@ -1,6 +1,6 @@
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
-import { Mail } from "lucide-react";
+import { Mail } from "@/components/icons";
 
 interface CredentialsDialogProps {
   email: string | null;

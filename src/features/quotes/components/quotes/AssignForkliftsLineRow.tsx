@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { AlertTriangle, Unlink } from "lucide-react";
+import { AlertTriangle, Unlink } from "@/components/icons";
 
 interface AssignedForklift {
   id: string;

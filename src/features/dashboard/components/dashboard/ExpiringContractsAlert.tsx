@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FileText, RefreshCw } from "lucide-react";
+import { FileText, RefreshCw } from "@/components/icons";
 import { useNavigate } from "react-router-dom";
 import { formatDateDisplay } from "@/lib/utils";
 

@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BarChart3 } from "lucide-react";
+import { BarChart3 } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { ForkliftFinancials } from "../../hooks/forklifts/useForkliftFinancials";
 import { Skeleton } from "@/components/ui/skeleton";

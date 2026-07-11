@@ -1,4 +1,4 @@
-import { Link as LinkIcon, AlertCircle, ChevronDown, ChevronRight } from "lucide-react";
+import { Link as LinkIcon, AlertCircle, ChevronDown, ChevronRight } from "@/components/icons";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
 import { es } from "date-fns/locale";

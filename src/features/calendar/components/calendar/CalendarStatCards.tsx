@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import { StatCards } from "@/features/dashboard";
-import { Truck, CheckCircle, Wrench, BarChart3 } from "lucide-react";
+import { Truck, CheckCircle, Wrench, BarChart3 } from "@/components/icons";
 import type { BookingWithForklift } from "@/features/bookings";
 import type { Tables } from "@/integrations/supabase/types";
 import { parseISO, isWithinInterval } from "date-fns";

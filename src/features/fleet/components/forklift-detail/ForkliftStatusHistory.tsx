@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { History } from "lucide-react";
+import { History } from "@/components/icons";
 import { format } from "date-fns";
 
 import type { Tables } from "@/integrations/supabase/types";

@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { History } from "lucide-react";
+import { History } from "@/components/icons";
 import { format } from "date-fns";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import {

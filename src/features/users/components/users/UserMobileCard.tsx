@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Trash2, Pencil, KeyRound } from "lucide-react";
+import { Trash2, Pencil, KeyRound } from "@/components/icons";
 import { format } from "date-fns";
 import { STAFF_ROLES } from "@/lib/constants";
 import { RoleBadge } from "./RoleBadge";

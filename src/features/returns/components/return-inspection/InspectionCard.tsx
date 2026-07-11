@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ClipboardCheck } from "lucide-react";
+import { ClipboardCheck } from "@/components/icons";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { InfoRow } from "@/components/forms/InfoRow";
 import { parseDateLocal } from "@/lib/utils";

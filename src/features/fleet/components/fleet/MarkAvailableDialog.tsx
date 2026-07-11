@@ -1,4 +1,4 @@
-import { CheckCircle } from "lucide-react";
+import { CheckCircle } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { useUpdateStatus } from "../../hooks/forklifts/useForklifts";

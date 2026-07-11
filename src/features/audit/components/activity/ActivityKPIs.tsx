@@ -1,5 +1,5 @@
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingDown, TrendingUp, Activity, Users, Layers, Clock } from "lucide-react";
+import { TrendingDown, TrendingUp, Activity, Users, Layers, Clock } from "@/components/icons";
 import type { ActivityMetrics } from "../../hooks/useActivityMetrics";
 import { ENTITY_LABELS } from "../../lib/activityConstants";
 import { cn } from "@/lib/utils";

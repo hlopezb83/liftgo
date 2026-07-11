@@ -1,6 +1,6 @@
 import { usePortalCustomer, usePortalBookings, usePortalInvoices } from "@/features/customers";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { CalendarDays, Receipt, DollarSign } from "lucide-react";
+import { CalendarDays, Receipt, DollarSign } from "@/components/icons";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PortalStatCard } from "../components/PortalStatCard";
 import { PortalBookingsCard, PortalRecentInvoicesCard } from "../components/PortalSections";

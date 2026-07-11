@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Send, CheckCircle, XCircle, Edit } from "lucide-react";
+import { Send, CheckCircle, XCircle, Edit } from "@/components/icons";
 import { ContractPDFButton, type ContractData } from "./ContractPDFButton";
 
 interface ContractDetailActionsProps {

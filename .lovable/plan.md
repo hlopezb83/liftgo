@@ -1,49 +1,75 @@
-# Auditoría de Zod — Estado actual
+# Auditoría lucide-react
 
-Ejecuté un barrido completo sobre `src/` y `supabase/functions/`. **La implementación está limpia y alineada con Zod 4.** Sólo detecté 3 mejoras cosméticas (todas LOW). No hay bugs ni deuda técnica real.
+## Estado actual
 
-## Resultados del barrido
+- **246 archivos** importan de `lucide-react`, con **133 íconos únicos**.
+- **Bundle:** ~64 KB rendered / 45 KB gzip (chunk `icons`). Tree-shaking funciona correctamente vía ESM — no hay barrel import roto.
+- **Config:** `vite.config.ts` ya aísla `lucide-react` en su propio `manualChunk`.
+- **No hay** `DynamicIcon` ni imports desde `lucide-react/dynamic` (correcto: rompería tree-shaking).
+- **No hay** wrapper `<Icon>` central ni registry semántico.
 
-| Chequeo | Resultado |
-|---|---|
-| `zod` instalado | ✅ `4.4.3` |
-| `@hookform/resolvers` | ✅ `5.4.0` |
-| Edge functions con Zod en v4 | ✅ 1/1 (`classify-feedback-report@4.4.3`) |
-| APIs eliminadas (`required_error`, `invalid_type_error`, `errorMap:`, `.deepPartial()`, `.nonempty()`, `z.function()`) | ✅ 0 usos |
-| `.flatten()` deprecado | ✅ 0 usos (migrado a `z.treeifyError`) |
-| `z.string().uuid()/.email()/.url()/.datetime()` (deprecados en v4) | ✅ 0 usos |
-| Imports directos a `@hookform/resolvers/zod` | ✅ Sólo el wrapper `src/lib/forms/zodResolver.ts` |
-| Locale es-MX global | ✅ `z.config(z.locales.es())` en `zodConfig.ts` |
-| Barrel `@/lib/schemas` disponible | ✅ Creado |
-| Tests | ✅ 843/843 verdes |
+## Hallazgos
 
-## Hallazgos (LOW)
 
-**H1 — `useSupplierBillForm.ts` todavía usa `z.coerce.number()` ad-hoc**
-Líneas 19-23: 5 campos declarados como `z.coerce.number().nonnegative(...)` en vez de las fábricas `positiveAmountCoerced()` / `nonNegativeAmountCoerced()` que introdujimos en `v7.8.0`.
-- Impacto: inconsistencia con el catálogo DRY. Mensajes de error no unificados.
-- Fix: sustituir por los helpers de `@/lib/schemas`.
+| #   | Sev  | Hallazgo                                                                                                                                                                                                                                                                                      | Riesgo                                                                                         |
+| --- | ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| 1   | HIGH | **Duplicados semánticos** en uso paralelo: `Check` (9) + `CheckCircle` (7) + `CheckCircle2` (11); `AlertTriangle` (20) + `AlertCircle` (9); `X` (14) + `XCircle` (10); `Pencil` (19) + posibles `Edit`/`Edit2`.                                                                               | Inconsistencia visual entre módulos para la misma acción.                                      |
+| 2   | HIGH | **Tamaños hardcoded** sin escala: `h-4 w-4` (356), `h-3 w-3` (48), `h-5 w-5` (24), `h-7 w-7` (16), `h-8 w-8` (10), `h-6 w-6` (10), `h-10 w-10` (7), `h-12 w-12` (5), `h-14 w-14` (4), `h-9 w-9` (2)… Además mezclas incorrectas como `h-10 w-64`, `h-10 w-8`, `h-8 w-48` (ratio no-cuadrado). | Sin escala tipo `xs/sm/md/lg` cada dev inventa un tamaño; los ratios erróneos deforman íconos. |
+| 3   | MED  | **246 imports directos** repartidos por todo el árbol, sin capa de abstracción. Cambiar el set de íconos o renombrar uno obliga a tocar N archivos.                                                                                                                                           | Fricción alta para futuros rebrands / migraciones.                                             |
+| 4   | MED  | **Sin ESLint guard** que impida `import { Foo } from "lucide-react"` fuera de una capa central.                                                                                                                                                                                               | El drift semántico (hallazgo 1) se reproducirá.                                                |
+| 5   | LOW  | `**strokeWidth` implícito** (default 2) — la memoria menciona estética "industrial minimalist"; no se aprovecha `strokeWidth={1.5}` para look premium.                                                                                                                                        | Consistencia visual no forzada.                                                                |
+| 6   | LOW  | **Chunk `icons` separado** (~45 KB gzip). Split razonable, pero al ser un chunk chico podría fusionarse con `vendor` para reducir requests.                                                                                                                                                   | Optimización marginal.                                                                         |
+| 7   | OK   | Tree-shaking, ESM, no dynamic loader, `sideEffects: false` upstream.                                                                                                                                                                                                                          | —                                                                                              |
 
-**H2 — Barrel `@/lib/schemas` sub-utilizado**
-9 archivos importan de `@/lib/schemas/common` directo vs 2 del barrel. El barrel existe pero no se está adoptando.
-- Impacto: convención inconsistente; si mañana subdividimos `common.ts` habrá que tocar los 9.
-- Fix: reemplazar los 9 imports por el barrel `@/lib/schemas`.
 
-**H3 — `z.ZodTypeAny` en 2 tests**
-`domain-schemas.test.ts:19` y `schemas.zodResolver.test.ts:19`. `ZodTypeAny` sigue funcionando en v4 pero la guía oficial recomienda `z.ZodType` genérico.
-- Impacto: cosmético.
-- Fix: sustituir por `z.ZodType`.
+## Veredicto
 
-## Plan de ejecución
+**No es "top of the line"**, pero tampoco está sucia: el runtime/bundle está bien; lo que falta es **capa semántica y disciplina**. La app es un buen candidato al patrón "lego" ya establecido en memoria (`ListToolbar`, `DetailLayout`, etc.).
 
-1. **H1** — `src/features/accounts-payable/hooks/useSupplierBillForm.ts`: importar `positiveAmountCoerced` y `nonNegativeAmountCoerced` desde `@/lib/schemas` y reemplazar las 5 líneas ad-hoc. Correr `schemas.zodResolver.test.ts` para confirmar contrato intacto.
-2. **H2** — Reemplazar los 9 imports `from "@/lib/schemas/common"` por `from "@/lib/schemas"`.
-3. **H3** — Sustituir `z.ZodTypeAny` por `z.ZodType` en los 2 tests.
-4. Verificación final: `tsgo` + ESLint + Vitest completo.
-5. Changelog `v7.8.1` (patch) documentando los tres ajustes.
+## Plan propuesto (3 lotes)
 
-## Sección técnica
+### Lote 1 — Registry semántico + tokens de tamaño (alto impacto, bajo riesgo)
 
-Estimado: **< 50 LOC modificadas**, todo cambio superficial. Sin riesgo funcional: los tipos derivados (`z.infer`) se preservan porque las fábricas devuelven exactamente el mismo `ZodNumber` con `coerce`. La suite de 22 tests de `schemas.zodResolver.test.ts` cubre precisamente el pipeline coerce→positive/nonnegative usado en `useSupplierBillForm`.
+1. Crear `src/components/icons/index.ts` — **registry semántico** por acción/dominio, no por nombre lucide:
+  ```ts
+   export { Trash2 as DeleteIcon, Pencil as EditIcon,
+            Plus as AddIcon, CheckCircle2 as SuccessIcon,
+            AlertTriangle as WarnIcon, XCircle as ErrorIcon,
+            Loader2 as SpinnerIcon, ... } from "lucide-react";
+  ```
+   Consolida los duplicados (hallazgo 1): un único ícono canónico por acción.
+2. Crear `src/components/icons/Icon.tsx` — wrapper con **tokens de tamaño**:
+  ```tsx
+   type IconSize = "xs" | "sm" | "md" | "lg" | "xl";  // 12/16/20/24/32
+   <Icon as={DeleteIcon} size="sm" />
+  ```
+   `strokeWidth` default `1.75` (premium industrial).
+3. Codemod (jscodeshift o `sed` guiado): reemplazar los ~356 usos de `h-4 w-4` por `size="sm"` etc. Solo tocar `className` con patrones cuadrados; los no-cuadrados (`h-10 w-8`) se marcan para revisión manual.
 
-¿Ejecuto los tres ajustes o prefieres que sólo aplique H1 (el único con valor DRY real) y deje H2/H3 como convenciones opcionales?
+### Lote 2 — ESLint guard + migración progresiva
+
+4. Regla `no-restricted-imports` bloqueando `lucide-react` excepto en `src/components/icons/**`. Nuevos archivos obligados al registry.
+5. Migrar módulos de mayor tráfico primero: `layouts/sidebar/*`, `components/ui/*`, dashboard, cotizaciones, reservas. Los 246 archivos se reducen gradualmente a imports desde `@/components/icons`.
+
+### Lote 3 — Optimización de bundle (opcional)
+
+6. Medir chunk `icons` post-consolidación (esperado -20% por dedupe). Evaluar fusionar con `vendor` si baja de 30 KB gzip.
+7. Auditar íconos con **1 solo uso** (~40+ candidatos) — revisar si son reemplazables por el registry canónico.
+
+## Métricas objetivo
+
+- Íconos únicos: **133 → ≤ 90** (dedupe semántico).
+- Imports directos de `lucide-react`: **246 → 0** fuera del registry.
+- Tamaños hardcoded (`h-N w-N` en JSX): **~470 → ≤ 20** (edge cases).
+- Bundle chunk `icons`: **45 KB gzip → ~35 KB gzip**.
+- Warnings ESLint tras guard: **0**.
+
+## Detalles técnicos
+
+- **Sin cambio de dependencia** (`lucide-react` ^0.462.0 se queda).
+- **Sin breaking changes** visuales si el codemod mapea tamaños con equivalencia 1:1 (`h-4 w-4` = `size="sm"` = 16px).
+- Compatible con memoria "power of 10" (componentes ≤150 LOC — el wrapper `Icon.tsx` ~30 LOC).
+- Compatible con DRY: `Icon` + registry son helpers canónicos nuevos.
+- Changelog: `v7.9.0` (Lote 1), `v7.9.1` (Lote 2), `v7.9.2` (Lote 3).
+
+¿Ejecutamos los 3 lotes en secuencia, o prefieres empezar sólo por el Lote 1 (registry + tokens) y evaluar antes de forzar el ESLint guard? ejecuta TODO.

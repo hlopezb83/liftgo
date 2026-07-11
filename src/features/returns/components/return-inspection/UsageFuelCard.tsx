@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Fuel } from "lucide-react";
+import { Fuel } from "@/components/icons";
 import { InfoRow } from "@/components/forms/InfoRow";
 import { FUEL_LEVEL_LABELS } from "@/lib/constants";
 import type { ReturnInspectionWithJoins } from "@/types/rental";

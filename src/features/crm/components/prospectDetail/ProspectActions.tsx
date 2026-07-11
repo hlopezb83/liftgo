@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { Pencil, Trash2, Trophy, XCircle, RotateCcw } from "lucide-react";
+import { Pencil, Trash2, Trophy, XCircle, RotateCcw } from "@/components/icons";
 import { useDeleteProspect, useUpdateProspect, type Prospect } from "../../hooks/useProspects";
 import { useProspectGuard } from "../../hooks/useProspectGuard";
 import { CloseWonDialog } from "../CloseWonDialog";

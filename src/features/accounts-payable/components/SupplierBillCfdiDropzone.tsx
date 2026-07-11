@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { FileUp, Loader2, CheckCircle2, AlertCircle, X } from "lucide-react";
+import { FileUp, Loader2, CheckCircle2, AlertCircle, X } from "@/components/icons";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import type { ImportedCfdi } from "../hooks/useImportSupplierBillCfdi";

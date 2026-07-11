@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays, Truck, MapPin, User } from "lucide-react";
+import { CalendarDays, Truck, MapPin, User } from "@/components/icons";
 import { formatDateDisplay, parseDateLocal, formatDateRange } from "@/lib/utils";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 

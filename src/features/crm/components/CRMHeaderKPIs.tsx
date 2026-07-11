@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { TrendingUp, Trophy, ArrowRight } from "lucide-react";
+import { TrendingUp, Trophy, ArrowRight } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { CRMMetrics } from "../hooks/useCRMMetrics";
 

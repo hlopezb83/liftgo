@@ -3,7 +3,7 @@ import { KpiTile } from "@/components/domain/KpiTile";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Package } from "lucide-react";
+import { Plus, Package } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { usePartsInventory, type PartInventory } from "../hooks/usePartsInventory";
 import { PartDetailSheet } from "../components/inventory/PartDetailSheet";

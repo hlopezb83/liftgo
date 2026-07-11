@@ -1,6 +1,6 @@
 import { memo, useMemo } from "react";
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { TrendingUp, TrendingDown, Minus } from "@/components/icons";
 import { ReportChartCard } from "@/components/domain/ReportChartCard";
 
 interface MonthlyUtilizationItem {

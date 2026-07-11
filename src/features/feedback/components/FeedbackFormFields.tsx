@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Label } from "@/components/ui/label";
-import { MapPin, Target, X, Loader2 } from "lucide-react";
+import { MapPin, Target, X, Loader2 } from "@/components/icons";
 import type { UseFormReturn } from "react-hook-form";
 import { TextField, TextareaField } from "@/components/forms/fields";
 import type { FeedbackFormValues } from "../lib/schema";

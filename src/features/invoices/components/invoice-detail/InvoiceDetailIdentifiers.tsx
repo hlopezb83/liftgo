@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Check, Copy, Info } from "lucide-react";
+import { Check, Copy, Info } from "@/components/icons";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 
 interface Props {

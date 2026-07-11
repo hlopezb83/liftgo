@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { ChevronRight, ShieldCheck } from "lucide-react";
+import { ChevronRight, ShieldCheck } from "@/components/icons";
 import { FUEL_TYPE_LABELS } from "@/lib/constants";
 import type { Forklift } from "../../hooks/forklifts/useForklifts";
 

@@ -1,7 +1,7 @@
 import { memo, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, ArrowRight, Calendar } from "lucide-react";
+import { TrendingUp, ArrowRight, Calendar } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { parseISO, addDays } from "date-fns";
 import { nowMty } from "@/lib/utils";

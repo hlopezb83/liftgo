@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Sparkles, Loader2, RefreshCw } from "lucide-react";
+import { Sparkles, Loader2, RefreshCw } from "@/components/icons";
 import {
   FEEDBACK_TYPE_LABELS,
   FEEDBACK_SEVERITY_LABELS,

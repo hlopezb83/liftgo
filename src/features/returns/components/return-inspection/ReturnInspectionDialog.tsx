@@ -1,5 +1,5 @@
 import type { UseFormReturn } from "react-hook-form";
-import { ClipboardCheck } from "lucide-react";
+import { ClipboardCheck } from "@/components/icons";
 import { FormDialog } from "@/components/forms/FormDialog";
 import { FormActions } from "@/components/forms/FormActions";
 import { DragDropImageUploader } from "@/components/forms/DragDropImageUploader";

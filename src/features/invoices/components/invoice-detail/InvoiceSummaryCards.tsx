@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Calendar } from "lucide-react";
+import { User, Calendar } from "@/components/icons";
 import { formatDateDisplay } from "@/lib/utils";
 import { formatStoredCfdiError } from "@/features/invoices/lib/formatStoredCfdiError";
 

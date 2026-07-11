@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Form, FormField, FormItem, FormControl } from "@/components/ui/form";
 
-import { Image as ImageIcon, Save, CheckCircle2, AlertCircle, ImageOff } from "lucide-react";
+import { Image as ImageIcon, Save, CheckCircle2, AlertCircle, ImageOff } from "@/components/icons";
 import { logoSchema, type LogoFormValues } from "../../lib/operationsSchemas";
 
 export function CompanyLogoTab() {

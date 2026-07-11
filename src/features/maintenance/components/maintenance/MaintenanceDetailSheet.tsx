@@ -10,7 +10,7 @@ import { useDeleteMaintenanceLog } from "../../hooks/maintenance/useMaintenanceL
 import { useSuppliers } from "@/features/suppliers";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
-import { Pencil, Trash2, Wrench, Calendar, User, DollarSign, Truck, FileText } from "lucide-react";
+import { Pencil, Trash2, Wrench, Calendar, User, DollarSign, Truck, FileText } from "@/components/icons";
 import { DetailRow } from "@/components/domain/DetailRow";
 
 import type { MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";

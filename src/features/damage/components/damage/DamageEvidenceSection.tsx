@@ -1,6 +1,6 @@
 import { useDropzone } from "react-dropzone";
 import { Label } from "@/components/ui/label";
-import { Upload, X, ImageIcon } from "lucide-react";
+import { Upload, X, ImageIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import type { DamagePreview } from "../../hooks/useReportDamageForm";
 

@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { useUpdateDamageRecord } from "../../hooks/useDamageRecords";
 import type { DamageRecordWithJoins } from "@/types/rental";
 import { useCreateMaintenanceLog } from "@/features/maintenance";
-import { Wrench, Receipt } from "lucide-react";
+import { Wrench, Receipt } from "@/components/icons";
 
 import { notifySuccess } from "@/lib/ui/appFeedback";
 

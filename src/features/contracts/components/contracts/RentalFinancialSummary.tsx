@@ -4,7 +4,7 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import { differenceInDays } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, FileText, TrendingUp } from "lucide-react";
+import { DollarSign, FileText, TrendingUp } from "@/components/icons";
 
 interface RentalFinancialSummaryProps {
   bookingId: string;

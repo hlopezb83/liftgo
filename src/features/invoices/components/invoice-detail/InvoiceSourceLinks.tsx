@@ -1,7 +1,7 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { FileText, CalendarIcon } from "lucide-react";
+import { FileText, CalendarIcon } from "@/components/icons";
 import { formatDateRange } from "@/lib/utils";
 import type { BookingWithForklift } from "@/features/bookings";
 import type { Tables } from "@/integrations/supabase/types";

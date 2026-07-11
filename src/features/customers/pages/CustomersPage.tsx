@@ -6,7 +6,7 @@ import { MobileCardList } from "@/components/layout/MobileCardList";
 import { SwipeableCard } from "@/components/feedback/SwipeableCard";
 import { useListFilters } from "@/hooks/useListFilters";
 import { useIsTabletOrBelow } from "@/hooks/use-mobile";
-import { ChevronRight, Plus, Phone } from "lucide-react";
+import { ChevronRight, Plus, Phone } from "@/components/icons";
 
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useUpdateProspect } from "@/features/crm";

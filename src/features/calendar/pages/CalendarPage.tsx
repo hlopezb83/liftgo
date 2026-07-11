@@ -13,7 +13,7 @@ import { nowMty, formatMtyDate } from "@/lib/utils";
 import { es } from "date-fns/locale";
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, AlertTriangle } from "lucide-react";
+import { ChevronLeft, ChevronRight, AlertTriangle } from "@/components/icons";
 import { CalendarStatCards } from "../components/calendar/CalendarStatCards";
 import { GanttChart } from "../components/calendar/GanttChart";
 import { EquipmentListView } from "../components/calendar/EquipmentListView";

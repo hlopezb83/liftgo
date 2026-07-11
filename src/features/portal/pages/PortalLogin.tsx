@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-import { Building2 } from "lucide-react";
+import { Building2 } from "@/components/icons";
 import { usePublicBranding } from "@/features/company-settings";
 
 type Mode = "sign-in" | "forgot";

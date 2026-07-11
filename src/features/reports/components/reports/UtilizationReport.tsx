@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { exportToCsv } from "@/lib/exportCsv";
 import { differenceInDays, parseISO, isWithinInterval } from "date-fns";
-import { Download } from "lucide-react";
+import { Download } from "@/components/icons";
 import { useForklifts } from "@/features/fleet";
 import { useBookings } from "@/features/bookings";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";

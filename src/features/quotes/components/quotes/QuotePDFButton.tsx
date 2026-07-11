@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { FileDown } from "lucide-react";
+import { FileDown } from "@/components/icons";
 import { useQuotePdfDownload } from "../../hooks/quotes/useQuotePdfDownload";
 
 interface QuotePDFButtonProps {

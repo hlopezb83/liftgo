@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { type BookingWithForklift } from "../../hooks/useBookings";
-import { CalendarPlus, Undo2, XCircle, FileText, Trash2, RefreshCw } from "lucide-react";
+import { CalendarPlus, Undo2, XCircle, FileText, Trash2, RefreshCw } from "@/components/icons";
 import { formatDateRange } from "@/lib/utils";
 import { useBookingActionsLogic } from "../../hooks/useBookingActionsLogic";
 import { BookingStatusChangeDialog, BookingExtendDialog } from "./BookingActionDialogs";

@@ -7,7 +7,7 @@ import { RoleGuard } from "@/layouts/RoleGuard";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Settings } from "lucide-react";
+import { Settings } from "@/components/icons";
 import { useBankAccounts } from "../hooks/useBankAccounts";
 import { useBankStatementLines, type BankStatementLine } from "../hooks/useBankStatementLines";
 import { BankStatementUploader } from "../components/BankStatementUploader";

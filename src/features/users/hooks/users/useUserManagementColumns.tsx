@@ -3,7 +3,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Pencil, KeyRound, ShieldCheck as ShieldIcon } from "lucide-react";
+import { Trash2, Pencil, KeyRound, ShieldCheck as ShieldIcon } from "@/components/icons";
 import { format } from "date-fns";
 import { STAFF_ROLES } from "@/lib/constants";
 import { RoleBadge } from "../../components/users/RoleBadge";

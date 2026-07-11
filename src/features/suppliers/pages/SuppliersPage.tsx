@@ -4,7 +4,7 @@ import type { Supplier } from "../hooks/useSuppliers";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
-import { PlusCircle, Download, ChevronRight } from "lucide-react";
+import { PlusCircle, Download, ChevronRight } from "@/components/icons";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { exportToCsv } from "@/lib/exportCsv";
 import { Badge } from "@/components/ui/badge";

@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { User, Phone } from "lucide-react";
+import { User, Phone } from "@/components/icons";
 import { InfoRow } from "@/components/forms/InfoRow";
 
 interface Props {

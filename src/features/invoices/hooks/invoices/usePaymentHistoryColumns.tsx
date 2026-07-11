@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 
-import { Pencil, Stamp, FileText, FileCode2, XCircle } from "lucide-react";
+import { Pencil, Stamp, FileText, FileCode2, XCircle } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { type ColumnDef } from "@/components/dataTable/v2";

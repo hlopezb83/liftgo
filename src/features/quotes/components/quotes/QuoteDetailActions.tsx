@@ -5,7 +5,7 @@ import { QuotePDFButton } from "./QuotePDFButton";
 import { useState } from "react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Edit, Send, CheckCircle, XCircle, BookOpen, Trash2, Receipt } from "lucide-react";
+import { Edit, Send, CheckCircle, XCircle, BookOpen, Trash2, Receipt } from "@/components/icons";
 import type { Tables } from "@/integrations/supabase/types";
 import { isQuoteEditable, canConvertQuote } from "@/lib/rules/quotes";
 

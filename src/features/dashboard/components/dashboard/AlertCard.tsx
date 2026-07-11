@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { type LucideIcon } from "lucide-react";
+import { type LucideIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 interface AlertCardProps {

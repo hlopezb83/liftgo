@@ -5,7 +5,7 @@ import {
   ClipboardCheck, Receipt, Wrench, AlertTriangle, Package, Handshake,
   Wallet, DollarSign, BarChart3, Activity, History, Settings, Building2,
   ShieldCheck, HelpCircle, Target, LayoutDashboard, Search,
-} from "lucide-react";
+} from "@/components/icons";
 import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command";

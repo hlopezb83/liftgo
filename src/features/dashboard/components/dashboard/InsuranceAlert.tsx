@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ShieldAlert } from "lucide-react";
+import { ShieldAlert } from "@/components/icons";
 import { useNavigate } from "react-router-dom";
 import { formatDateDisplay } from "@/lib/utils";
 import type { InsuranceAlertsData } from "@/features/fleet";

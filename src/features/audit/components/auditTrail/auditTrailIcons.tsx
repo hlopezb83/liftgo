@@ -1,4 +1,4 @@
-import { ArrowUpCircle, PlusCircle, Trash2, Clock } from "lucide-react";
+import { ArrowUpCircle, PlusCircle, Trash2, Clock } from "@/components/icons";
 
 export const actionIcon = (action: string) => {
   switch (action) {

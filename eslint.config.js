@@ -92,6 +92,24 @@ export default tseslint.config(
     },
   },
   {
+    // Registry de íconos: NADIE fuera de src/components/icons/** puede
+    // importar de `lucide-react`. Consumir siempre `@/components/icons`
+    // para poder consolidar duplicados semánticos, renombrar y auditar
+    // en un solo lugar.
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: ["src/components/icons/**"],
+    rules: {
+      "no-restricted-imports": ["error", {
+        paths: [
+          {
+            name: "lucide-react",
+            message: "Importa desde '@/components/icons' (registry). Ver src/components/icons/index.ts para aliases semánticos (DeleteIcon, EditIcon, SuccessIcon, etc.).",
+          },
+        ],
+      }],
+    },
+  },
+  {
     // Auditoría arquitectura — paso 2: desincentivar imports profundos
     // cross-feature. Cada feature debería exponer su API pública vía
     // `src/features/<feature>/index.ts`. Importar rutas internas de OTRA

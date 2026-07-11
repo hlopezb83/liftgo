@@ -1,4 +1,4 @@
-import { Truck, CheckCircle, Clock, Wrench, ShoppingCart } from "lucide-react";
+import { Truck, CheckCircle, Clock, Wrench, ShoppingCart } from "@/components/icons";
 import { formatMonthShortEs } from "@/lib/format/formatMonthEs";
 
 export const STATUS_COLORS = {
