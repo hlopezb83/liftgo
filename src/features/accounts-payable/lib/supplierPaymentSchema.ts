@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { positiveAmount } from "@/lib/schemas/common";
+import { positiveAmount } from "@/lib/schemas";
 
 export const supplierPaymentSchema = z.object({
   amount: positiveAmount(),

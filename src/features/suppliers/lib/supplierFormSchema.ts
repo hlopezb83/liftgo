@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { optionalEmail, rfcOptional } from "@/lib/schemas/common";
+import { optionalEmail, rfcOptional } from "@/lib/schemas";
 
 /**
  * Schema validacional del formulario de Proveedor.

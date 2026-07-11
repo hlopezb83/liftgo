@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { optionalEmail, rfcOptional } from "@/lib/schemas/common";
+import { optionalEmail, rfcOptional } from "@/lib/schemas";
 
 export const customerFormSchema = z.object({
   name: z.string().min(1, "El nombre es requerido"),

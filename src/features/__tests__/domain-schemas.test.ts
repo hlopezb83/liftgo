@@ -16,7 +16,7 @@ import { optionalEmail, positiveAmountCoerced, nonNegativeAmountCoerced } from "
 
 interface Case {
   name: string;
-  schema: z.ZodTypeAny;
+  schema: z.ZodType;
   valid: unknown;
   invalid: { payload: unknown; errorMatches: RegExp | string };
 }
