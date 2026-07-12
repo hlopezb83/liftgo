@@ -1,0 +1,26 @@
+{
+  "version": "7.55.0",
+  "date": "2026-07-12",
+  "type": "patch",
+  "title": "Money helpers delegan aritmética a currency.js",
+  "summary": "Auditoría DRY de dependencias. roundMoney y sumMoney (src/lib/money/index.ts) ahora usan currency.js como motor de precisión, eliminando el hack Number.EPSILON y consolidando la aritmética monetaria en una sola dependencia.",
+  "sections": [
+    {
+      "title": "src/lib/money/index.ts",
+      "items": [
+        "roundMoney(n) → currency(v, { precision: 2 }).value en vez de `Math.round((v + EPSILON) * 100) / 100`.",
+        "sumMoney(values) acumula con `currency(0).add(v)` para evitar drift IEEE-754 durante la agregación.",
+        "toMxn y applyVat sin cambios; el módulo mantiene su API pública."
+      ]
+    },
+    {
+      "title": "Motivación",
+      "items": [
+        "invoiceTotals.ts y rentalCalculation.ts ya usaban currency.js. money/index.ts implementaba su propio redondeo con Number.EPSILON, produciendo dos algoritmos distintos para el mismo problema.",
+        "Consolidación: única fuente de verdad para redondeo monetario (currency.js, precision 2)."
+      ]
+    }
+  ],
+  "impact": "Sin cambios de API. Reduce riesgo de discrepancias entre agregadores (cash-flow, cuentas por pagar, P&L) y elimina duplicación de algoritmos de redondeo.",
+  "files": ["src/lib/money/index.ts"]
+}
