@@ -1,0 +1,12 @@
+{
+  "version": "7.44.1",
+  "date": "2026-07-12",
+  "type": "patch",
+  "title": "Limpieza de dependencia fantasma: zod-validation-error",
+  "description": "Knip reportó `zod-validation-error` como devDependency no utilizada. Se eliminó del bloque de devDependencies manteniendo el `override` que fuerza la versión transitiva ^4.0.2. Knip pasa limpio.",
+  "category": "fix",
+  "changes": [
+    { "type": "removed", "description": "`zod-validation-error` de devDependencies (se mantiene solo en overrides)" },
+    { "type": "fixed", "description": "Knip: 0 dependencias no utilizadas" }
+  ]
+}
