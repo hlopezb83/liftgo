@@ -1,26 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import type { Forklift } from "@/types/rental";
 import { forkliftKeys, statusLogKeys } from "../../lib/queryKeys";
 
 export type { Forklift } from "@/types/rental";
-
-export const statusLogQueries = defineEntityQueries<"status_logs", Forklift[], never>(
-  "status_logs",
-  {
-    list: (filter) => async () => {
-      const forkliftId = filter?.forkliftId as string | undefined;
-      if (!forkliftId) throw new Error("Forklift ID is required for status logs");
-      const { data, error } = await supabase
-        .from("status_logs").select("*").eq("forklift_id", forkliftId)
-        .order("changed_at", { ascending: false });
-      if (error) throw error;
-      return data as unknown as Forklift[];
-    },
-    staleTime: 60_000,
-  },
-);
 
 export function useForklifts() {
   return useQuery({
