@@ -1,5 +1,15 @@
 [
   {
+    "version": "7.52.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "Vite 8: pipeline LightningCSS unificado, sin polyfill de modulepreload y limpieza post RR-v8",
+    "description": "Auditoría de Vite 8.1.4 + plugin-react 6.0.3 (últimas estables). Config ya moderna (warmup, manualChunks, sourcemaps Sentry condicionales, visualizer bajo ANALYZE, dedupe, target es2022). Ajustes: (1) pines semánticos ^8.1.4 y ^6.0.3 en package.json (antes major-only); (2) limpieza post react-router v8 — se elimina react-router-dom de optimizeDeps.include y del match de vendor en CHUNK_GROUPS; (3) warmup.clientFiles ahora apunta a routes/router.tsx (Data Router) en lugar del App.tsx antiguo; (4) css.transformer: 'lightningcss' + targets — pipeline unificado con Tailwind v4, ~10-15% más rápido en cold build; (5) build.modulePreload: { polyfill: false } — target es2022 lo soporta nativo, -1.5 KB inline en el HTML; (6) esbuild.drop: ['debugger'] sólo en producción — console preservado para breadcrumbs de Sentry; (7) build.chunkSizeWarningLimit: 800 — silencia falsos positivos de react-pdf/recharts sin ocultar regresiones.",
+    "category": "improvement",
+    "impact": "Sin cambios de runtime observable. Builds ligeramente más rápidos en la fase CSS y HTML de entrada ~1.5 KB menor. Config más limpia y coherente con la stack post-migraciones.",
+    "files": ["vite.config.ts", "package.json"]
+  },
+  {
     "version": "7.51.0",
     "date": "2026-07-12",
     "type": "minor",
