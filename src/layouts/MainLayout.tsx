@@ -1,17 +1,19 @@
-import { useMemo, useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { useMemo, useRef, useState } from "react";
+import { Outlet } from "react-router-dom";
 import { useHotkeys } from "react-hotkeys-hook";
+import { KeyboardShortcutsDialog } from "@/components/feedback/KeyboardShortcutsDialog";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { AppSidebar } from "@/layouts/AppSidebar";
-import { ErrorBoundary } from "@/layouts/ErrorBoundary";
-import { TopbarBreadcrumbs } from "@/layouts/TopbarBreadcrumbs";
-import { GlobalSearch } from "@/layouts/GlobalSearch";
-import { FeedbackFab } from "@/features/feedback";
 import { PageActionsProvider } from "@/contexts/PageActionsContext";
 import { usePageActionsContext } from "@/contexts/pageActions";
-import { useKeySequence } from "@/lib/shortcuts/useKeySequence";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { AppSidebar } from "@/layouts/AppSidebar";
+import { ErrorBoundary } from "@/layouts/ErrorBoundary";
+import { FeedbackFab } from "@/features/feedback";
+import { GlobalSearch } from "@/layouts/GlobalSearch";
+import { TopbarBreadcrumbs } from "@/layouts/TopbarBreadcrumbs";
+import { useMainScrollRestoration } from "@/layouts/hooks/useMainScrollRestoration";
 import { NAV_SHORTCUTS } from "@/lib/shortcuts/registry";
-import { KeyboardShortcutsDialog } from "@/components/feedback/KeyboardShortcutsDialog";
+import { useKeySequence } from "@/lib/shortcuts/useKeySequence";
 
 function focusSearchInput() {
   const candidates = document.querySelectorAll<HTMLInputElement>(
@@ -27,7 +29,7 @@ function focusSearchInput() {
 }
 
 function HotkeysHost() {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const { actions } = usePageActionsContext();
   const [helpOpen, setHelpOpen] = useState(false);
 
