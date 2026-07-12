@@ -1,4 +1,5 @@
-import { useOptimistic, startTransition, useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useOptimisticStatus } from "@/hooks/useOptimisticStatus";
 import { useUpdateFeedbackStatus, type FeedbackReport } from "./useFeedbackReports";
 import type { FeedbackStatus } from "../lib/constants";
 
@@ -18,14 +19,17 @@ export function useFeedbackStatusUpdate(report: FeedbackReport | null) {
     setComment("");
   }, [report?.id]);
 
-  const [optimisticStatus, applyOptimisticStatus] = useOptimistic(
+  const [optimisticStatus, setOptimisticStatus] = useOptimisticStatus<string>(
     report?.status ?? "",
-    (_current, next: string) => next,
+    async () => {
+      // La mutación se dispara desde `apply` con los args completos.
+      // Aquí solo actualizamos el estado optimista.
+    },
   );
 
   const apply = () => {
     if (!report || !newStatus) return;
-    startTransition(() => applyOptimisticStatus(newStatus));
+    setOptimisticStatus(newStatus);
     update.mutate(
       { reportId: report.id, newStatus, comment: comment.trim() || undefined },
       { onSuccess: () => { setNewStatus(""); setComment(""); } },
