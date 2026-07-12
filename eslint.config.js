@@ -121,6 +121,10 @@ export default tseslint.config(
             message: "Importa desde '@/components/icons' (registry). Ver src/components/icons/index.ts para aliases semánticos (DeleteIcon, EditIcon, SuccessIcon, etc.).",
           },
           {
+            name: "sonner",
+            message: "Usa notifySuccess/notifyError/notifyInfo/notifyWarning/notifyAsync de @/lib/ui/appFeedback en lugar de importar `sonner` directamente.",
+          },
+          {
             name: "@/components/icons",
             importNames: [
               "Trash2", "Pencil", "Plus", "FileText", "Receipt", "Truck",
