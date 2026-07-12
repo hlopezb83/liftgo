@@ -156,6 +156,7 @@ export default function InvoicesPage() {
         isLoading={isLoading}
         table={table}
         onRowClick={(inv) => navigate(`/invoices/${inv.id}`)}
+        onRowPrefetch={(inv) => invoiceQueries.detail(inv.id)}
         emptyMessage="No se encontraron facturas"
         emptyIcon={InvoiceIcon}
         emptyActionLabel="Nueva Factura"

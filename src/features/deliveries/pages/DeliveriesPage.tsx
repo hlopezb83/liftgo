@@ -68,6 +68,7 @@ export default function DeliveriesPage() {
       isLoading={isLoading}
       table={table}
       onRowClick={(d) => navigate(`/deliveries/${d.id}`)}
+      onRowPrefetch={(d) => deliveryQueries.detail(d.id)}
       emptyMessage="No hay entregas programadas"
       mobileCardRender={(d) => (
         <Card className="cursor-pointer" onClick={() => navigate(`/deliveries/${d.id}`)}>

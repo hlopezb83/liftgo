@@ -136,6 +136,7 @@ export default function BookingsPage() {
       isLoading={isLoading}
       table={table}
       onRowClick={(b) => navigate(`/bookings/${b.id}`)}
+      onRowPrefetch={(b) => bookingQueries.detail(b.id)}
       emptyMessage={isAdmin ? "No se encontraron reservas" : "No se encontraron reservas. Las reservas se crean convirtiendo una cotización aceptada."}
       emptyIcon={CalendarDays}
       emptyActionLabel={isAdmin ? "Nueva Reserva" : undefined}
