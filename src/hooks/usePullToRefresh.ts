@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useRef, useState } from "react";
 import { useDrag } from "@use-gesture/react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 interface UsePullToRefreshOptions {
   onRefresh: () => Promise<unknown> | void;
