@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { PartInventory } from "../usePartsInventory";
 
 /**
@@ -9,21 +9,16 @@ export function useInventoryFilters(parts: PartInventory[] | undefined) {
   const [search, setSearch] = useState("");
   const [filterCategory, setFilterCategory] = useState("all");
 
-  const filtered = useMemo(() => {
-    return (parts || []).filter((p) => {
-      if (filterCategory !== "all" && p.category !== filterCategory) return false;
-      if (search) {
-        const q = search.toLowerCase();
-        if (!p.name.toLowerCase().includes(q) && !(p.sku || "").toLowerCase().includes(q)) return false;
-      }
-      return true;
-    });
-  }, [parts, filterCategory, search]);
+  const filtered = (parts || []).filter((p) => {
+    if (filterCategory !== "all" && p.category !== filterCategory) return false;
+    if (search) {
+      const q = search.toLowerCase();
+      if (!p.name.toLowerCase().includes(q) && !(p.sku || "").toLowerCase().includes(q)) return false;
+    }
+    return true;
+  });
 
-  const lowStockCount = useMemo(
-    () => (parts || []).filter((p) => p.stock_quantity <= p.min_stock_level).length,
-    [parts],
-  );
+  const lowStockCount = (parts || []).filter((p) => p.stock_quantity <= p.min_stock_level).length;
 
   return { search, setSearch, filterCategory, setFilterCategory, filtered, lowStockCount };
 }
