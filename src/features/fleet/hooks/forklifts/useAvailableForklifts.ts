@@ -3,8 +3,8 @@ import type { Tables } from "@/integrations/supabase/types";
 import { toYMD } from "@/lib/date/toYMD";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { callRpc } from "@/lib/rpc";
-import type { DateRange } from "react-day-picker";
 import { forkliftKeys } from "../../lib/queryKeys";
+import type { DateRange } from "react-day-picker";
 
 type Forklift = Tables<"forklifts">;
 

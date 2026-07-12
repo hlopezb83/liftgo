@@ -1,5 +1,5 @@
-import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { supabase } from "@/integrations/supabase/client";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 
 const SIGNED_URL_TTL_SECONDS = 60 * 60; // 1h
 

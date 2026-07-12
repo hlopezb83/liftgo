@@ -1,6 +1,6 @@
+import { supabase } from "@/integrations/supabase/client";
 import { createEntityKeys } from "@/lib/query/createEntityKeys";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import { supabase } from "@/integrations/supabase/client";
 import type { AppRole } from "../hooks/useUserRole";
 
 export interface UserRow {

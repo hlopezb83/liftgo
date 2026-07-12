@@ -6,13 +6,13 @@
  * feed de actividad) define su propio contrato con `defineEntityQueries`
  * porque cada una tiene una forma de dato distinta.
  */
-import { todayKeyMty } from "@/lib/format/dateFormats";
-import { roundMoney } from "@/lib/money";
-import { callRpc } from "@/lib/rpc";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
+import { todayKeyMty } from "@/lib/format/dateFormats";
+import { roundMoney } from "@/lib/money";
 import { createEntityKeys } from "@/lib/query/createEntityKeys";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { callRpc } from "@/lib/rpc";
 
 export const dashboardKeys = createEntityKeys("dashboard");
 

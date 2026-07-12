@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import type { Tables } from "@/integrations/supabase/types";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { quoteAssignedForkliftKeys } from "../../../lib/queryKeys";
 
 type QuoteAssignedForklift = Tables<"quote_assigned_forklifts">;

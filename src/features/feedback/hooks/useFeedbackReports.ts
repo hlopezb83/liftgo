@@ -4,8 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import type { FeedbackStatus } from "../lib/constants";
 import { feedbackHistoryKeys, feedbackLeaderboardKeys, feedbackReportKeys } from "../lib/queryKeys";
+import type { FeedbackStatus } from "../lib/constants";
 
 export type FeedbackReport = Tables<"feedback_reports">;
 

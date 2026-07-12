@@ -8,10 +8,10 @@
  * faltantes.
  */
 import { supabase } from "@/integrations/supabase/client";
-import { callRpc } from "@/lib/rpc";
+import type { Tables } from "@/integrations/supabase/types";
 import { createEntityKeys } from "@/lib/query/createEntityKeys";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import type { Tables } from "@/integrations/supabase/types";
+import { callRpc } from "@/lib/rpc";
 
 /** Root genérico de la feature, útil para invalidaciones amplias. */
 export const portalKeys = createEntityKeys("portal");

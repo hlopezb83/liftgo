@@ -7,9 +7,9 @@
  * de dato distintas.
  */
 import { supabase } from "@/integrations/supabase/client";
-import { callRpc } from "@/lib/rpc";
 import { createEntityKeys } from "@/lib/query/createEntityKeys";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { callRpc } from "@/lib/rpc";
 import type {
   ActivityRange,
   ActivityMetrics,
