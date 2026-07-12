@@ -35,6 +35,8 @@ interface ListPageLayoutProps<T> {
   table?: TanstackTable<T>;
   /** Click handler para filas (modo tabla). */
   onRowClick?: (item: T) => void;
+  /** Handler opcional para prefetch de detalle al hacer hover en fila. */
+  onRowPrefetch?: (item: T) => FetchQueryOptions;
   /** Si se provee, en mobile/tablet se renderiza como tarjetas en lugar de tabla. */
   mobileCardRender?: (item: T) => ReactNode;
   /** Extractor de key para mobile cards. Default: (item).id */
