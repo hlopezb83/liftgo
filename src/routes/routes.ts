@@ -5,12 +5,15 @@
  *   import { ROUTES } from "@/routes/routes";
  *   navigate(ROUTES.invoices.detail(id));
  *   navigate(ROUTES.bookings.list);
+ *
+ * ⚠️ Cualquier ruta añadida aquí DEBE existir también en `appRoutes`
+ *    (src/routes/routes-config.tsx) o vivir bajo `/portal/*`.
+ *    Guardrail: `src/routes/__tests__/routes.test.ts`.
  */
 
 export const ROUTES = {
   // Generales
   dashboard: "/",
-  auth: "/auth",
   changelog: "/changelog",
   help: "/help",
 
@@ -40,7 +43,10 @@ export const ROUTES = {
   inventory: "/inventory",
 
   // Comercial
-  crm: "/crm",
+  crm: {
+    list: "/crm",
+    cerrados: "/crm/cerrados",
+  },
   customers: {
     list: "/customers",
     detail: (id: string) => `/customers/${id}`,
@@ -55,6 +61,7 @@ export const ROUTES = {
     list: "/contracts",
     new: "/contracts/new",
     detail: (id: string) => `/contracts/${id}`,
+    edit: (id: string) => `/contracts/${id}/edit`,
   },
 
   // Finanzas
@@ -63,8 +70,19 @@ export const ROUTES = {
     new: "/invoices/new",
     reconciliation: "/invoices/reconciliation",
     detail: (id: string) => `/invoices/${id}`,
+    edit: (id: string) => `/invoices/${id}/edit`,
   },
   expenses: "/expenses",
+  cuentasPorPagar: {
+    list: "/cuentas-por-pagar",
+    antiguedad: "/cuentas-por-pagar/antiguedad",
+  },
+  flujoDeCaja: "/flujo-de-caja",
+  cuentasBancarias: "/cuentas-bancarias",
+  conciliacionBancaria: {
+    list: "/conciliacion-bancaria",
+    historial: "/conciliacion-bancaria/historial",
+  },
   reports: "/reports",
   incomeStatement: "/income-statement",
   mrr: "/mrr",
@@ -77,9 +95,20 @@ export const ROUTES = {
   activity: "/activity",
   audit: "/audit",
   users: "/users",
-  rolePermissions: "/role-permissions",
+  rolePermissions: "/users/permissions",
+  settings: {
+    root: "/settings",
+    company: "/settings/company",
+    operations: "/settings/operations",
+  },
+  // Alias legacy para compatibilidad de imports existentes.
   companySettings: "/settings/company",
   operationsSetup: "/settings/operations",
+
+  // Comunidad
+  misReportes: "/mis-reportes",
+  leaderboard: "/leaderboard",
+  feedback: "/feedback",
 
   // Portal cliente
   portal: {
@@ -93,5 +122,7 @@ export const ROUTES = {
     invoicePayment: (id: string) => `/portal/invoices/${id}/pago`,
     statement: "/portal/estado-cuenta",
     contracts: "/portal/contracts",
+    misReportes: "/portal/mis-reportes",
+    leaderboard: "/portal/leaderboard",
   },
 } as const;
