@@ -1,6 +1,5 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
-import { useMemo } from "react";
 import { useForkliftMap } from "@/features/fleet";
 import { useDeliveries } from "../hooks/useDeliveries";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
@@ -17,8 +16,7 @@ export default function DeliveriesPage() {
   const { forkliftMap } = useForkliftMap();
   const { data: deliveries, isLoading } = useDeliveries();
 
-  const columns = useMemo<ColumnDef<Delivery>[]>(
-    () => [
+  const columns: ColumnDef<Delivery>[] = [
       {
         id: "delivery_number",
         header: "Entrega #",
@@ -54,9 +52,7 @@ export default function DeliveriesPage() {
         accessorKey: "status",
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
-    ],
-    [forkliftMap],
-  );
+    ];
 
   const table = useLiftgoTable<Delivery>({
     data: deliveries ?? [],

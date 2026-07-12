@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { usePortalContracts } from "@/features/customers";
@@ -17,8 +17,7 @@ type Contract = NonNullable<ReturnType<typeof usePortalContracts>["data"]>[numbe
 export default function PortalContracts() {
   const { data: contracts, isLoading } = usePortalContracts();
 
-  const columns = useMemo<ColumnDef<Contract>[]>(
-    () => [
+  const columns: ColumnDef<Contract>[] = [
       {
         id: "contract_number",
         accessorKey: "contract_number",
@@ -53,9 +52,7 @@ export default function PortalContracts() {
         header: "Estado",
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
-    ],
-    [],
-  );
+    ];
 
   const table = useLiftgoTable<Contract>({
     data: contracts,

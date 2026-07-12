@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef } from "react";
+import { useState, useRef } from "react";
 import { InfoAlertIcon } from "@/components/icons";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -23,7 +23,7 @@ export default function ChangelogPage() {
   const [search, setSearch] = useState("");
   const { expanded, highlighted, toggle } = useChangelogDeepLink(changelog);
 
-  const filtered = useMemo(() => {
+  const filtered = (() => {
     const q = search.trim().toLowerCase();
     return changelog.filter((e) => {
       if (filter !== "all" && e.type !== filter) return false;
@@ -31,7 +31,7 @@ export default function ChangelogPage() {
       if (q && !`${e.version} ${e.title}`.toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [changelog, filter, categoryFilter, search]);
+  })();
 
   const { page, setPage, totalPages, paginatedItems } = useListPage(filtered);
 

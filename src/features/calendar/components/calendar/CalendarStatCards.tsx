@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import { StatCards } from "@/features/dashboard";
 import { FleetIcon, SuccessIcon, MaintenanceIcon, ChartIcon } from "@/components/icons";
 import type { BookingWithForklift } from "@/features/bookings";
@@ -6,7 +6,6 @@ import type { Tables } from "@/integrations/supabase/types";
 import { parseISO, isWithinInterval } from "date-fns";
 import { nowMty } from "@/lib/utils";
 import { BOOKING_STATUS, FORKLIFT_STATUS } from "@/lib/constants";
-
 
 type Forklift = Tables<"forklifts">;
 
@@ -16,7 +15,7 @@ interface CalendarStatCardsProps {
 }
 
 export function CalendarStatCards({ forklifts, bookings }: CalendarStatCardsProps) {
-  const stats = useMemo(() => {
+  const stats = (() => {
     if (!forklifts) return { available: 0, rented: 0, maintenance: 0, utilization: "0%" };
 
     const today = nowMty();
@@ -43,9 +42,8 @@ export function CalendarStatCards({ forklifts, bookings }: CalendarStatCardsProp
     const totalActive = forklifts.filter((f) => f.status !== FORKLIFT_STATUS.retired && f.status !== FORKLIFT_STATUS.sold).length;
     const utilization = totalActive > 0 ? Math.round((rented / totalActive) * 100) : 0;
 
-
     return { available, rented, maintenance, utilization: `${utilization}%` };
-  }, [forklifts, bookings]);
+  })();
 
   const cards = [
     { label: "Disponibles", value: stats.available, icon: SuccessIcon, color: "text-success" },

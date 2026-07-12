@@ -1,9 +1,8 @@
-import { useMemo } from "react";
+
 import { RevenueIcon, FleetIcon, OpenLinkIcon } from "@/components/icons";
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { KpiTile } from "@/components/domain/KpiTile";
-
 
 import { TableFooter, TableRow, TableCell } from "@/components/ui/table";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
@@ -22,8 +21,7 @@ const fmt = (d: string | null) => formatMtyDate(d, "dd MMM yyyy", es);
 export default function MrrDetailPage() {
   const { data, isLoading } = useMrrDetail();
 
-  const columns = useMemo<ColumnDef<MrrItem>[]>(
-    () => [
+  const columns: ColumnDef<MrrItem>[] = [
       {
         id: "forklift_name",
         header: "Equipo",
@@ -83,9 +81,7 @@ export default function MrrDetailPage() {
           <span className="font-medium font-mono">{formatCurrency(row.original.monthly_rate)}</span>
         ),
       },
-    ],
-    [],
-  );
+    ];
 
   const table = useLiftgoTable<MrrItem>({
     data: data?.items,
@@ -112,7 +108,6 @@ export default function MrrDetailPage() {
         iconBg="bg-success/10"
         valueSize="lg"
       />
-
 
       <Card>
         <CardHeader className="pb-2">
