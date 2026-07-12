@@ -30,6 +30,7 @@ export default function InvoiceForm() {
 
   const f = useInvoiceFormLogic({ id, fromQuoteId });
   const { data: nextNumber, isLoading: loadingNext } = useNextInvoiceNumber(!f.isEdit);
+  const taxRate = useWatch({ control: f.form.control, name: "taxRate" });
 
   const onSubmit = (values: InvoiceFormValues) => {
     const payload = f.onSubmit(values);
