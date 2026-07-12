@@ -1,6 +1,8 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
-import { notifyError, notifyInfo, notifySuccess } from "@/lib/ui/appFeedback";
+import { notifyInfo, notifySuccess } from "@/lib/ui/appFeedback";
+import { maintenanceLogKeys } from "../../lib/queryKeys";
 
 interface GenerateMaintenanceResponse {
   generated: number;
@@ -16,7 +18,7 @@ interface GenerateMaintenanceResponse {
 export function useGenerateRecurringMaintenance() {
   const queryClient = useQueryClient();
 
-  return useMutation({
+  return useEntityMutation<void, GenerateMaintenanceResponse>({
     mutationFn: async (): Promise<GenerateMaintenanceResponse> => {
       return await invokeEdgeFunction<GenerateMaintenanceResponse>(
         "generate-recurring-maintenance",
@@ -27,13 +29,11 @@ export function useGenerateRecurringMaintenance() {
         notifySuccess(
           `${result.generated} registro(s) de mantenimiento generado(s) para ${result.month}`,
         );
-        queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] });
+        void queryClient.invalidateQueries({ queryKey: maintenanceLogKeys.all });
       } else {
         notifyInfo("No hay pólizas pendientes de generar para este mes");
       }
     },
-    onError: (err: unknown) => {
-      notifyError({ error: err, message: "Error al generar mantenimiento recurrente" });
-    },
+    errorTitle: "Error al generar mantenimiento recurrente",
   });
 }

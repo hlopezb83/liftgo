@@ -1,6 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { createEntityKeys } from "@/lib/query/createEntityKeys";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { telemetry } from "@/lib/telemetry";
 import { nowMty } from "@/lib/utils";
@@ -52,11 +54,13 @@ export const ROUTE_TO_MODULE: Record<string, string> = {
 };
 
 
+export const rolePermissionKeys = createEntityKeys("role_permissions");
+
 export function useRolePermissions() {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ["role_permissions", user?.id],
+    queryKey: user?.id ? rolePermissionKeys.detail(user.id) : rolePermissionKeys.all,
     enabled: !!user,
     staleTime: 5 * 60 * 1000,
     queryFn: async () => {
@@ -77,9 +81,7 @@ export function useRolePermissions() {
 }
 
 export function useUpdatePermission() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ role, module, access_level }: { role: AppRole; module: string; access_level: AccessLevel }) => {
       const { data, error } = await supabase
         .from("role_permissions")
@@ -90,9 +92,8 @@ export function useUpdatePermission() {
       if (error) throw error;
       assertRowsAffected(data, "Actualizar permiso de rol");
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["role_permissions"] });
-    },
+    invalidateKeys: [rolePermissionKeys.all],
+    errorTitle: "Error al actualizar permiso de rol",
   });
 }
 

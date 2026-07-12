@@ -1,12 +1,10 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
-import { forkliftKeys } from "../../../lib/queryKeys";
+import { forkliftKeys, quoteAssignedForkliftKeys, statusLogKeys } from "../../../lib/queryKeys";
 
 export function useAssignForklift() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (assignments: { quoteId: string; forkliftId: string; lineIndex: number }[]) => {
       const rows = assignments.map((a) => ({
         quote_id: a.quoteId,
@@ -42,14 +40,8 @@ export function useAssignForklift() {
       const { error: logsError } = await supabase.from("status_logs").insert(logs);
       if (logsError) throw logsError;
     },
-    onSuccess: () => {
-      notifySuccess("Equipos asignados correctamente");
-    },
-    onError: (err: Error) => notifyError({ error: err }),
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["quote_assigned_forklifts"] });
-      queryClient.invalidateQueries({ queryKey: forkliftKeys.all });
-      queryClient.invalidateQueries({ queryKey: ["status_logs"] });
-    },
+    invalidateKeys: [quoteAssignedForkliftKeys.all, forkliftKeys.all, statusLogKeys.all],
+    successMsg: "Equipos asignados correctamente",
+    errorTitle: "Error al asignar montacargas",
   });
 }

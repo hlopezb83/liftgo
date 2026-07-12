@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { bankAccountKeys } from "../lib/queryKeys";
 
 export interface BankAccount {
   id: string;
@@ -14,13 +15,11 @@ export interface BankAccount {
   notes: string | null;
 }
 
-export const BANK_ACCOUNTS_QK = ["bank_accounts"] as const;
-
-export function useBankAccounts() {
-  return useQuery({
-    queryKey: BANK_ACCOUNTS_QK,
+export const bankAccountQueries = defineEntityQueries<"bank_accounts", BankAccount[], never>(
+  "bank_accounts",
+  {
     staleTime: 60_000,
-    queryFn: async (): Promise<BankAccount[]> => {
+    list: () => async () => {
       const { data, error } = await supabase
         .from("bank_accounts")
         .select("id, name, bank, last4, currency, initial_balance, is_active, notes")
@@ -31,7 +30,11 @@ export function useBankAccounts() {
         initial_balance: Number(r.initial_balance ?? 0),
       }));
     },
-  });
+  },
+);
+
+export function useBankAccounts() {
+  return useQuery(bankAccountQueries.list());
 }
 
 export interface BankAccountInput {
@@ -56,7 +59,7 @@ export function useUpsertBankAccount() {
         if (error) throw error;
       }
     },
-    invalidateKeys: [BANK_ACCOUNTS_QK],
+    invalidateKeys: [bankAccountKeys.all],
     successMsg: "Cuenta bancaria guardada",
     errorTitle: "Error al guardar cuenta bancaria",
   });
@@ -68,9 +71,8 @@ export function useDeleteBankAccount() {
       const { error } = await supabase.from("bank_accounts").delete().eq("id", id);
       if (error) throw error;
     },
-    invalidateKeys: [BANK_ACCOUNTS_QK],
+    invalidateKeys: [bankAccountKeys.all],
     successMsg: "Cuenta eliminada",
     errorTitle: "Error al eliminar cuenta",
   });
 }
-

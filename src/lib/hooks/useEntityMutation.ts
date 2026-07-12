@@ -38,6 +38,8 @@ export interface UseEntityMutationOptions<TVar, TData> {
   invalidateKeysFn?: (data: TData, vars: TVar) => readonly QueryKey[];
   /** Título del toast de error. Requerido para trazabilidad en logs y UX consistente. */
   errorTitle: string;
+  /** Mensaje del toast de error, o función que recibe el error y devuelve el mensaje. */
+  errorMessage?: string | ((error: Error) => string);
   /** Mensaje del toast de éxito. Omite para no mostrar toast. */
   successMsg?: string;
   /** Callback custom tras éxito, se ejecuta DESPUÉS de invalidar y del toast. */

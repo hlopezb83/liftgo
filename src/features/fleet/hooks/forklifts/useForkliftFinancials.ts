@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { callRpc } from "@/lib/rpc";
 
 export interface ForkliftFinancials {
@@ -20,14 +21,18 @@ export interface ForkliftFinancials {
   }>;
 }
 
-export function useForkliftFinancials(forkliftId: string | undefined) {
-  return useQuery({
-    queryKey: ["forklift-financials", forkliftId],
-    enabled: !!forkliftId,
-    queryFn: () => {
-      if (!forkliftId) throw new Error("ID requerido");
-      return callRpc<ForkliftFinancials>("get_forklift_financials", { p_forklift_id: forkliftId });
+export const forkliftFinancialsQueries = defineEntityQueries<"forklift-financials", never, ForkliftFinancials>(
+  "forklift-financials",
+  {
+    list: () => () => {
+      throw new Error("forklift-financials: usar detail(forkliftId)");
     },
+    detail: (forkliftId: string) => () =>
+      callRpc<ForkliftFinancials>("get_forklift_financials", { p_forklift_id: forkliftId }),
     staleTime: 60_000,
-  });
+  },
+);
+
+export function useForkliftFinancials(forkliftId: string | undefined) {
+  return useQuery(forkliftFinancialsQueries.detail(forkliftId ?? ""));
 }

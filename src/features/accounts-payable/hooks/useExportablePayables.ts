@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 
 export interface ExportablePayable {
   id: string;
@@ -19,8 +20,6 @@ export interface ExportablePayable {
   has_valid_clabe: boolean;
 }
 
-export const EXPORTABLE_PAYABLES_QK = ["exportable_payables"] as const;
-
 interface BankAccountRow {
   supplier_id: string;
   bank_name: string;
@@ -31,38 +30,43 @@ interface BankAccountRow {
   created_at: string;
 }
 
-export function useExportablePayables() {
-  return useQuery({
-    queryKey: EXPORTABLE_PAYABLES_QK,
-    staleTime: 30_000,
-    queryFn: async (): Promise<ExportablePayable[]> => {
-      const [billsRes, banksRes] = await Promise.all([
-        supabase
-          .from("supplier_bills")
-          .select("id, bill_number, supplier_id, due_date, balance, currency, description, payment_in_progress_at, suppliers(name, rfc)")
-          .eq("approval_status", "approved")
-          .gt("balance", 0)
-          .order("due_date", { ascending: true, nullsFirst: false }),
-        supabase
-          .from("supplier_bank_accounts")
-          .select("supplier_id, bank_name, clabe, account_number, account_holder, is_primary, created_at"),
-      ]);
-      if (billsRes.error) throw billsRes.error;
-      if (banksRes.error) throw banksRes.error;
+export const exportablePayableQueries = defineEntityQueries<
+  "exportable_payables",
+  ExportablePayable[],
+  never
+>("exportable_payables", {
+  staleTime: 30_000,
+  list: () => async () => {
+    const [billsRes, banksRes] = await Promise.all([
+      supabase
+        .from("supplier_bills")
+        .select("id, bill_number, supplier_id, due_date, balance, currency, description, payment_in_progress_at, suppliers(name, rfc)")
+        .eq("approval_status", "approved")
+        .gt("balance", 0)
+        .order("due_date", { ascending: true, nullsFirst: false }),
+      supabase
+        .from("supplier_bank_accounts")
+        .select("supplier_id, bank_name, clabe, account_number, account_holder, is_primary, created_at"),
+    ]);
+    if (billsRes.error) throw billsRes.error;
+    if (banksRes.error) throw banksRes.error;
 
-      const bySupplier = new Map<string, BankAccountRow>();
-      for (const b of (banksRes.data ?? []) as BankAccountRow[]) {
-        const existing = bySupplier.get(b.supplier_id);
-        if (!existing) {
-          bySupplier.set(b.supplier_id, b);
-          continue;
-        }
-        if (b.is_primary && !existing.is_primary) bySupplier.set(b.supplier_id, b);
+    const bySupplier = new Map<string, BankAccountRow>();
+    for (const b of (banksRes.data ?? []) as BankAccountRow[]) {
+      const existing = bySupplier.get(b.supplier_id);
+      if (!existing) {
+        bySupplier.set(b.supplier_id, b);
+        continue;
       }
+      if (b.is_primary && !existing.is_primary) bySupplier.set(b.supplier_id, b);
+    }
 
-      return (billsRes.data ?? []).map((row) => toExportable(row, bySupplier));
-    },
-  });
+    return (billsRes.data ?? []).map((row) => toExportable(row, bySupplier));
+  },
+});
+
+export function useExportablePayables() {
+  return useQuery(exportablePayableQueries.list());
 }
 
 interface BankInfo {

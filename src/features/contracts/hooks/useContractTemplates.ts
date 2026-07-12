@@ -6,6 +6,7 @@ import { parseJsonbArray } from "@/lib/domain/lineItems";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { nowMty } from "@/lib/utils";
+import { contractTemplateKeys } from "../lib/queryKeys";
 
 // Re-export para compatibilidad con consumidores existentes. La fuente de
 // verdad de estos tipos vive en `@/lib/domain/contractTypes`.
@@ -28,7 +29,7 @@ export interface ContractTemplate {
 
 export function useDefaultContractTemplate() {
   return useQuery({
-    queryKey: ["contract_templates", "default"],
+    queryKey: contractTemplateKeys.default(),
     staleTime: 60_000,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -66,7 +67,7 @@ export function useUpdateContractTemplate() {
       if (error) throw error;
       assertRowsAffected(data, "Actualizar plantilla de contrato");
     },
-    invalidateKeys: [["contract_templates"]],
+    invalidateKeys: [contractTemplateKeys.all],
     errorTitle: "Error al actualizar plantilla",
   });
 }

@@ -1,13 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
-import { fetchChangelogIndex, fetchChangelogDetail, getCurrentVersion } from "../lib/changelog";
+import { getCurrentVersion } from "../lib/changelog";
+import { changelogQueries } from "../lib/queryKeys";
 
 export function useChangelog() {
   const query = useQuery({
-    queryKey: ["changelog", "index"],
-    queryFn: fetchChangelogIndex,
-    staleTime: Infinity,
+    ...changelogQueries.list(),
     gcTime: Infinity,
     retry: 2,
   });
@@ -19,10 +18,8 @@ export function useChangelog() {
 
 export function useChangelogEntry(version: string | null, enabled = true) {
   return useQuery({
-    queryKey: ["changelog", "detail", version],
-    queryFn: () => fetchChangelogDetail(version ?? ""),
+    ...changelogQueries.detail(version ?? ""),
     enabled: enabled && !!version,
-    staleTime: Infinity,
     gcTime: Infinity,
     retry: 1,
   });

@@ -23,24 +23,26 @@ import { createEntityKeys, type EntityKeys } from "./createEntityKeys";
 
 type Fetcher<T> = () => Promise<T>;
 
-export interface DefineEntityConfig<TList, TDetail = never> {
-  readonly list: (filter?: Readonly<Record<string, unknown>>) => Fetcher<TList>;
+export interface DefineEntityConfig<TList, TDetail = never, F = Readonly<Record<string, unknown>>> {
+  readonly list: (filter?: F) => Fetcher<TList>;
   /** Opcional: hooks sin fetch de detalle solo definen `list`. */
   readonly detail?: (id: string) => Fetcher<TDetail>;
   /** staleTime por default en ms (default: 60_000). */
   readonly staleTime?: number;
 }
 
-export function defineEntityQueries<Root extends string, TList, TDetail = never>(
-  root: Root,
-  config: DefineEntityConfig<TList, TDetail>,
-) {
+export function defineEntityQueries<
+  Root extends string,
+  TList = unknown,
+  TDetail = never,
+  F extends Readonly<Record<string, unknown>> = Readonly<Record<string, unknown>>,
+>(root: Root, config: DefineEntityConfig<TList, TDetail, F>) {
   const keys: EntityKeys<Root> = createEntityKeys(root);
   const staleTime = config.staleTime ?? 60_000;
 
-  const list = (filter?: Readonly<Record<string, unknown>>) =>
+  const list = (filter?: F) =>
     queryOptions({
-      queryKey: (filter ? keys.byFilter(filter) : keys.lists()) as readonly unknown[],
+      queryKey: (filter ? keys.byFilter(filter as Readonly<Record<string, unknown>>) : keys.lists()) as readonly unknown[],
       queryFn: config.list(filter),
       staleTime,
     });

@@ -4,7 +4,7 @@ import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import reactCompiler from "eslint-plugin-react-compiler";
 import jsxA11y from "eslint-plugin-jsx-a11y";
-import importPlugin from "eslint-plugin-import";
+import importPlugin from "eslint-plugin-import-x";
 import tseslint from "typescript-eslint";
 
 
@@ -34,7 +34,7 @@ export default tseslint.config(
       "react-refresh": reactRefresh,
       "react-compiler": reactCompiler,
       "jsx-a11y": jsxA11y,
-      import: importPlugin,
+      "import-x": importPlugin,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -45,7 +45,7 @@ export default tseslint.config(
       "jsx-a11y/no-static-element-interactions": "warn",
       "jsx-a11y/label-has-associated-control": "warn",
       // Orden de imports consistente (autofix con `bun run lint --fix`).
-      "import/order": ["warn", {
+      "import-x/order": ["warn", {
         groups: ["builtin", "external", "internal", "parent", "sibling", "index", "type"],
         "newlines-between": "never",
         alphabetize: { order: "asc", caseInsensitive: true },
@@ -115,8 +115,8 @@ export default tseslint.config(
       "@typescript-eslint/no-non-null-assertion": "off",
       "max-lines-per-function": "off",
       // vi.mock() debe ir antes de imports que dependen del módulo mockeado,
-      // lo que rompe el orden alfabético estricto de import/order.
-      "import/order": "off",
+      // lo que rompe el orden alfabético estricto de import-x/order.
+      "import-x/order": "off",
     },
   },
   {

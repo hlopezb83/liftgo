@@ -1,40 +1,16 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { callRpc } from "@/lib/rpc";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { billingSecretsQueries, type BillingSecretsStatus } from "../lib/queryKeys";
 
-/**
- * Estado de llaves Facturapi: solo indica si están configuradas, nunca devuelve los valores.
- * Las llaves reales solo viven en el servidor (Edge Functions con service role).
- */
-export interface BillingSecretsStatus {
-  id: string | null;
-  has_test_key: boolean;
-  has_live_key: boolean;
-}
-
-type BillingSecretsRow = { id: string | null; has_test_key: boolean | null; has_live_key: boolean | null };
+export type { BillingSecretsStatus };
 
 export function useBillingSecrets() {
-  return useQuery<BillingSecretsStatus | null>({
-    queryKey: ["billing_secrets_status"],
-    staleTime: 5 * 60_000,
-    queryFn: async () => {
-      const data = await callRpc<BillingSecretsRow[] | null>("get_billing_secrets_status");
-      const row = Array.isArray(data) && data.length > 0 ? data[0] : null;
-      if (!row) return { id: null, has_test_key: false, has_live_key: false };
-      return {
-        id: row.id ?? null,
-        has_test_key: !!row.has_test_key,
-        has_live_key: !!row.has_live_key,
-      };
-    },
-  });
+  return useQuery(billingSecretsQueries.list());
 }
 
-
 export function useUpsertBillingSecrets() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (input: {
       id?: string;
       facturapi_test_key?: string | null;
@@ -73,6 +49,7 @@ export function useUpsertBillingSecrets() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["billing_secrets"] }),
+    invalidateKeys: [billingSecretsQueries.keys.all],
+    errorTitle: "Error al guardar las llaves de facturación",
   });
 }

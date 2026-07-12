@@ -1,12 +1,10 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
-import { forkliftKeys } from "../../../lib/queryKeys";
+import { forkliftKeys, quoteAssignedForkliftKeys, statusLogKeys } from "../../../lib/queryKeys";
 
 export function useUnassignForklift() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ assignmentId, forkliftId }: { assignmentId: string; forkliftId: string }) => {
       const { error } = await supabase
         .from("quote_assigned_forklifts")
@@ -29,14 +27,8 @@ export function useUnassignForklift() {
         note: "Desasignado de cotización de venta",
       });
     },
-    onSuccess: () => {
-      notifySuccess("Equipo desasignado");
-    },
-    onError: (err: Error) => notifyError({ error: err }),
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ["quote_assigned_forklifts"] });
-      queryClient.invalidateQueries({ queryKey: forkliftKeys.all });
-      queryClient.invalidateQueries({ queryKey: ["status_logs"] });
-    },
+    invalidateKeys: [quoteAssignedForkliftKeys.all, forkliftKeys.all, statusLogKeys.all],
+    successMsg: "Equipo desasignado",
+    errorTitle: "Error al desasignar montacargas",
   });
 }

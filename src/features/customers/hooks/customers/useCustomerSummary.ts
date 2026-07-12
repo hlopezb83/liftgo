@@ -5,6 +5,7 @@ import type {
   CustomerSummaryInvoice,
 } from "@/lib/domain/customerTypes";
 import { callRpc } from "@/lib/rpc";
+import { customerKeys } from "../../lib/queryKeys";
 
 // Re-export para compatibilidad con consumidores existentes. La fuente de
 // verdad de estos tipos vive en `@/lib/domain/customerTypes`.
@@ -13,7 +14,7 @@ export type { CustomerSummary, CustomerSummaryBooking, CustomerSummaryInvoice };
 
 export function useCustomerSummary(customerId: string | undefined) {
   return useQuery({
-    queryKey: ["customer_summary", customerId],
+    queryKey: customerId ? customerKeys.summary(customerId) : customerKeys.details(),
     enabled: !!customerId,
     staleTime: 60_000,
     queryFn: () =>

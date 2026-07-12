@@ -1,17 +1,19 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 
 /**
  * Resolves the current location of a forklift:
  * 1. From an active/signed contract's usage_location.
  * 2. Falls back to the latest completed delivery address.
  */
-export function useForkliftLocation(forkliftId: string | undefined) {
-  return useQuery({
-    queryKey: ["forklift-location", forkliftId],
-    enabled: !!forkliftId,
-    queryFn: async () => {
-      if (!forkliftId) return null;
+export const forkliftLocationQueries = defineEntityQueries<"forklift-location", never, string | null>(
+  "forklift-location",
+  {
+    list: () => () => {
+      throw new Error("forklift-location: usar detail(forkliftId)");
+    },
+    detail: (forkliftId: string) => async () => {
       const { data: contract } = await supabase
         .from("contracts")
         .select("usage_location")
@@ -32,5 +34,9 @@ export function useForkliftLocation(forkliftId: string | undefined) {
         .maybeSingle();
       return delivery?.address ?? null;
     },
-  });
+  },
+);
+
+export function useForkliftLocation(forkliftId: string | undefined) {
+  return useQuery(forkliftLocationQueries.detail(forkliftId ?? ""));
 }

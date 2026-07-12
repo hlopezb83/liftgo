@@ -1,5 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { notifyError } from "@/lib/ui/appFeedback";
+import { maintenanceLogKeys } from "../../lib/queryKeys";
 import {
   useUpdateMaintenanceLog,
   type MaintenanceLog,
@@ -20,15 +21,16 @@ export function useMaintenanceKanban() {
     const logId = result.draggableId;
     const newStatus = result.destination.droppableId;
 
-    queryClient.setQueryData<MaintenanceLog[]>(["maintenance_logs", undefined], (old) =>
-      old?.map((l) => (l.id === logId ? { ...l, work_status: newStatus } : l)),
+    queryClient.setQueryData<MaintenanceLog[]>(
+      maintenanceLogKeys.byFilter({ forkliftId: null }),
+      (old) => old?.map((l) => (l.id === logId ? { ...l, work_status: newStatus } : l)),
     );
 
     updateLog.mutate(
       { id: logId, work_status: newStatus },
       {
         onError: (err) => {
-          queryClient.invalidateQueries({ queryKey: ["maintenance_logs"] });
+          void queryClient.invalidateQueries({ queryKey: maintenanceLogKeys.all });
           notifyError({ error: err, message: "Error al actualizar estado" });
         },
       },

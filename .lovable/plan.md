@@ -1,91 +1,86 @@
-# Auditoría: Vite 8, plugin-react 6, ESLint 10, react-hooks 7, @types/node 26, tailwind-merge 3
+# Plan: Hardening de @tanstack/react-query
 
-## Veredicto general
+## Objetivo
+Llevar la implementación de TanStack Query v5 a grado "production-grade": todas las query keys generadas por factories, los hooks crudos migrados a `defineEntityQueries` / `useEntityMutation`, prefetching sistemático y cero duplicidad de invalidaciones.
 
-**Nivel profesional: sí.** Stack en la última mayor de cada herramienta (excepto TS 7 y react-day-picker 10, ambos diferidos con justificación). Config de Vite competente (sourcemaps Sentry, `manualChunks` explícito, `optimizeDeps.include`, `target: es2022`, `dedupe`, `reportCompressedSize: false`). ESLint 10 con overrides temáticos (guardrails de imports, monetaria, hooks/páginas, registry de íconos). Zero-warning en CI.
+## Estado actual (baseline)
+- **Versión:** ya estamos en `@tanstack/react-query@5.101.2` (última estable al momento del análisis).
+- **Adopción de patrones canónicos:** ~35 % del código usa `defineEntityQueries` / `useEntityMutation`.
+- **Hooks crudos:** ~42 archivos con `useQuery` / `useMutation` directos.
+- **Keys ad-hoc:** ~48 instancias de `queryKey` como string/array literal.
+- **Prefetching:** solo en `DataTableBodyV2` y `SidebarNavSection`; < 5 % de listados aprovechan prefetch de detalle.
 
-**No es top-of-the-line todavía.** Hay 6 gaps concretos, principalmente deuda que quedó tras la migración de Lote 2 (react-hooks 7).
+## Hallazgos priorizados
 
----
+### Alta prioridad
+1. **Users (`src/features/users/hooks/`)**
+   - `useUsersQuery.ts` define `USERS_QUERY_KEY = ["users_with_roles"]` a mano.
+   - `useToggleStatus.ts`, `useInviteUser.ts`, `useDeleteUser.ts`, `useResetPassword.ts` usan `useMutation` crudo con `notifySuccess` manual.
+   - Riesgo: invalidaciones inconsistentes y UX de toast fragmentada.
 
-## Hallazgos y correcciones propuestas
+2. **Customer Portal (`src/features/portal/hooks/`)**
+   - Keys hardcodeadas como `["portal_quotes"]`, `["portal_collection_account"]`.
+   - Riesgo de colisión con keys del admin y cache stale para usuarios del portal.
 
-### 1. `react-hooks/*` experimentales desactivadas globalmente — ALTA
+### Media prioridad
+3. **Dashboard / Analytics (`src/features/dashboard/hooks/`)**
+   - `useMrrDetail.ts`, `useFinancialKpis.ts`, `useDashboardStats.ts` usan `useQuery` crudo con lógica de `dateKey`.
+   - Fácilmente migrables a `defineEntityQueries` con `list(filter)`.
 
-Tras subir a v7, se apagaron 10 reglas nuevas (`refs`, `set-state-in-effect`, `purity`, `immutability`, `preserve-manual-memoization`, `set-state-in-render`, `gating`, `incompatible-library`, `static-components`, `use-memo`) para mantener 0 warnings. Es la parte más valiosa de v7 y hoy está muda.
+4. **Audit & Logs (`src/features/audit/hooks/`)**
+   - `useAuditLogs.ts` y `useActivityMetrics.ts` tienen query keys inline complejos.
 
-**Fix**: activar las 10 como `warn` en un archivo `eslint.config.js` aparte, correr `bun run lint`, capturar el volumen y triagear por lotes (arrancar por `set-state-in-effect` y `refs` que suelen ser bugs reales). Registrar el conteo inicial en un TODO en el config.
+### Baja prioridad
+5. **Guardias `enabled` redundantes:** `useInvoices.ts` y `useForklifts.ts` agregan `enabled: !!id` aunque `defineEntityQueries.detail(id)` ya lo provee.
+6. **Oportunidades de prefetch:** Suppliers, Parts, Mechanics, etc., no precargan filas al hacer hover.
 
-### 2. `ecmaVersion: 2020` desalineado con `build.target: es2022` — MEDIA
+## Fases de trabajo
 
-ESLint parsea como 2020 pero Vite emite 2022. Sintaxis moderna válida (top-level await, `.at()`, `#private`) puede pasar sin lint. 
+### Fase 1 — Consolidar keys de Users y Portal
+- Crear `src/features/users/lib/queryKeys.ts` con `createEntityKeys("users")`.
+- Crear `src/features/portal/lib/queryKeys.ts` con `createEntityKeys("portal")`.
+- Refactorizar mutaciones de users a `useEntityMutation` con `invalidateKeys` centralizadas.
+- Refactorizar hooks de portal a `useQuery(portalQueries.xxx())`.
+- Ajustar consumidores y tests.
 
-**Fix**: subir `languageOptions.ecmaVersion` a `2022` en `eslint.config.js`.
+### Fase 2 — Migrar Dashboard y Audit a `defineEntityQueries`
+- `useMrrDetail.ts`, `useFinancialKpis.ts`, `useDashboardStats.ts` → `dashboardQueries`.
+- `useAuditLogs.ts`, `useActivityMetrics.ts` → `auditQueries`.
+- Aprovechar `list(filter)` para parámetros dinámicos (fecha, rango, etc.).
 
-### 3. `@types/node` 26 sin runtime alineado — MEDIA
+### Fase 3 — Barrer hooks sueltos restantes
+- Revisar raw `useQuery` en: `useDocuments.ts`, `usePublicBranding.ts`, `useCompanySettings.ts`, `useCxpApprovalThreshold.ts`, `useChangelog.ts`, `useCashFlowSettings.ts`, `useCashFlowProjection.ts`, etc.
+- Criterio: si el hook lee una tabla/entidad, migrar a `defineEntityQueries`; si es un cálculo/derivado, mantener `useQuery` pero centralizar la key en una factory.
 
-`engines.node: >=24` y `.nvmrc: 24`, pero los tipos son de Node 26. Puede exponer APIs no disponibles en CI/local.
+### Fase 4 — Estandarizar prefetching en listados
+- Extender `DataTableV2` / list pages para pasar `onRowPrefetch` que llame `queryClient.prefetchQuery(entityQueries.detail(row.id))`.
+- Empezar por módulos de alta frecuencia: Quotes, Bookings, Invoices, Customers, Forklifts.
+- Añadir `staleTime` adecuado para detalles (ej. 60_000 ms).
 
-**Fix**: bajar a `@types/node@24` (alineado con runtime) o subir `.nvmrc`/`engines` y CI a Node 26.
+### Fase 5 — Limpieza y alineación
+- Eliminar `enabled: !!id` redundante donde `defineEntityQueries` ya lo gestione.
+- Revisar `gcTime`, `retry` y `refetchOnWindowFocus`; respetar defaults globales de `AppProviders.tsx` salvo justificación documentada.
+- Asegurar que `queryClient` no se use para invalidaciones manuales fuera de helpers; preferir `invalidateKeys` en `useEntityMutation`.
 
-### 4. `tailwind-merge@3` sin verificar tokens custom — MEDIA
+### Fase 6 — Verificación
+- `bun run typecheck`
+- `bun run lint`
+- `bun run test`
+- `bun run knip`
+- Smoke manual en listados con prefetch (hover → Devtools → query Fresh).
 
-v3 rescribió el generador de reglas. Nuestro `cn()` usa clases con `[var(--...)]` y `hsl(var(--...))`. No hay test que confirme que merge sigue resolviendo colisiones correctamente en clases tokenizadas.
+### Fase 7 — Documentación y Changelog
+- Actualizar `src/lib/query/README.md` (o crearlo) con ejemplos de `defineEntityQueries`, `useEntityMutation`, `createEntityKeys` y reglas de prefetch.
+- Agregar entrada `v{X.Y.Z}` a `public/changelog.json` y detalle en `public/changelog/v{X.Y.Z}.json`.
 
-**Fix**: agregar 4-5 unit tests en `src/lib/__tests__/utils.cn.test.ts` cubriendo: colisión `bg-[hsl(var(--primary))]` vs `bg-transparent`, tamaños arbitrarios, variantes responsive, `data-[state=open]:...`.
+## Entregables
+- Keys de Users y Portal 100 % factory-based.
+- Dashboard y Audit migrados a `defineEntityQueries`.
+- Prefetch de detalle en listados principales.
+- Tests pasando, cero nuevos warnings.
+- Documento de patrones y changelog actualizado.
 
-### 5. `@vitejs/plugin-react@6` — configuración mínima — BAJA
-
-v6 soporta `include`/`exclude` explícitos y `babel.parserOpts` finos. Hoy sólo pasamos el compiler plugin.
-
-**Fix**: agregar `include: /\.(jsx|tsx)$/` para evitar transformar `.ts` puros (ahorra ~5% del tiempo de dev startup en proyectos medianos como el nuestro).
-
-### 6. `vite@8` — dos oportunidades menores — BAJA
-
-- `build.cssMinify: 'lightningcss'` no está seteado (Vite 8 lo soporta nativo y comprime ~15% más que esbuild en Tailwind v4).
-- `server.warmup.clientFiles` no está configurado. Warmup de `src/App.tsx`, `src/main.tsx` y `src/layouts/AppSidebar.tsx` acelera el primer render en dev.
-
-**Fix**: agregar ambos al `vite.config.ts`.
-
-### 7. Overrides + resolutions duplicados — TRIVIAL
-
-`package.json` tiene `overrides` **y** `resolutions` para `zod-validation-error`. Bun respeta ambos pero el legado (`resolutions` es yarn) confunde.
-
-**Fix**: eliminar `resolutions`, dejar sólo `overrides`.
-
----
-
-## Fuera de alcance (ya diferido con nota)
-
-- `react-day-picker@10` — rewrite de `classNames`/`Chevron`, alto riesgo visual.
-- `typescript@7` — ecosistema (tsgo, typescript-eslint) no listo.
-- `jsdom` pinned a 26.1.0 — bloqueado por `react-pdf`.
-
----
-
-## Plan de ejecución
-
-**Fase A — Alineación (30 min)**
-
-1. Subir `ecmaVersion` a 2022 (#2).
-2. Bajar `@types/node` a 24 (#3).
-3. Limpiar `resolutions` duplicado (#7).
-4. Agregar `include` a plugin-react (#5), `cssMinify: 'lightningcss'` y `warmup.clientFiles` (#6).
-
-**Fase B — Tests de `cn` (20 min)**
-5. Crear `src/lib/__tests__/utils.cn.test.ts` con 5 casos representativos (#4).
-
-**Fase C — react-hooks 7 completo (tiempo variable)**
-6. Reactivar las 10 reglas como `warn`, correr lint, publicar changelog con el conteo y un plan de triaje por lote.
-
-**Verificación**: `bun run lint`, `bun run typecheck`, `bunx vitest run`, `bun run build`. Publicar `v7.44.0`.
-
-## Detalle técnico
-
-- `plugin-react@6` con `include: /\.(jsx|tsx)$/` requiere confirmar que ningún `.ts` contiene JSX (si lo hay, renombrarlo o mantener el filtro por defecto).
-- `set-state-in-effect` puede generar decenas de warnings en formularios controlados; el plan es **capturar el número**, no arreglar todo en una sola pasada.
-- `lightningcss` como minificador CSS sólo requiere el flag; Vite 8 ya lo trae bundleado.
-
-## Pregunta
-
-¿Ejecuto A + B en un solo commit (`v7.44.0`) y dejo C para una sesión dedicada, o prefieres las tres fases seguidas? ejecuta las 3 fases.
+## Métrica de éxito
+- Reducir instancias de `queryKey:` literales de ~48 a < 10 (casos justificados de cálculos derivados).
+- Aumentar adopción de `defineEntityQueries` / `useEntityMutation` de ~35 % a > 80 %.
+- Prefetch activo en ≥ 6 listados principales.

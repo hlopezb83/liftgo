@@ -1,6 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { EXCLUDE_E2E_FILTER } from "@/lib/supabase/constants";
+import { invoiceKeys } from "../../lib/queryKeys";
 
 export interface ReconciliationRow {
   id: string;
@@ -65,9 +66,9 @@ function computeSummary(rows: ReconciliationRow[]): ReconciliationSummary {
   return { totalStampedLive, countStamped, countCancelled, countDraft, gaps };
 }
 
-export function useReconciliationData(filters: ReconciliationFilters) {
-  return useQuery({
-    queryKey: ["invoices", "reconciliation", filters],
+function buildReconciliationQuery(filters: ReconciliationFilters) {
+  return queryOptions({
+    queryKey: invoiceKeys.reconciliation(filters),
     staleTime: 30_000,
     queryFn: async () => {
       let q = supabase
@@ -94,4 +95,8 @@ export function useReconciliationData(filters: ReconciliationFilters) {
       return { rows, summary: computeSummary(rows) };
     },
   });
+}
+
+export function useReconciliationData(filters: ReconciliationFilters) {
+  return useQuery(buildReconciliationQuery(filters));
 }

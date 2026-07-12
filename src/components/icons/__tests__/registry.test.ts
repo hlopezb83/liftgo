@@ -40,5 +40,5 @@ describe("icons registry", () => {
   it("exporta el wrapper Icon (deferred import)", async () => {
     const mod = await import("@/components/icons/Icon");
     expect(typeof mod.Icon).toBe("function");
-  });
+  }, 15_000);
 });

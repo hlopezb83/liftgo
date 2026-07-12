@@ -1,6 +1,7 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { invoiceKeys, paymentKeys } from "@/features/invoices/lib/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { portalQueries } from "../../lib/queryKeys";
 
 interface ReviewParams {
   intentId: string;
@@ -13,8 +14,7 @@ interface ReviewParams {
 }
 
 export function useReviewPaymentIntent() {
-  const qc = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (params: ReviewParams) => {
       const { intentId, action, notes, invoiceId, amount, transferDate, trackingKey } = params;
       if (action === "approve") {
@@ -38,12 +38,8 @@ export function useReviewPaymentIntent() {
         .eq("id", intentId);
       if (error) throw error;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["admin_payment_intents"] });
-      qc.invalidateQueries({ queryKey: ["invoice_payments"] });
-      qc.invalidateQueries({ queryKey: ["invoices"] });
-      notifySuccess("Intento de pago actualizado");
-    },
-    onError: (e: Error) => notifyError({ error: e, message: e.message }),
+    invalidateKeys: [portalQueries.adminPaymentIntents.keys.all, paymentKeys.all, invoiceKeys.all],
+    successMsg: "Intento de pago actualizado",
+    errorTitle: "Error al actualizar intento de pago",
   });
 }

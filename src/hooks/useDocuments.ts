@@ -1,49 +1,18 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
-const SIGNED_URL_TTL_SECONDS = 60 * 60; // 1h
-
-function extractStoragePath(fileUrl: string): string | null {
-  const marker = "/documents/";
-  const idx = fileUrl.indexOf(marker);
-  if (idx === -1) return null;
-  return fileUrl.slice(idx + marker.length);
-}
-
-async function attachSignedUrls<T extends { file_url: string }>(rows: T[]): Promise<T[]> {
-  return Promise.all(
-    rows.map(async (row) => {
-      const path = extractStoragePath(row.file_url);
-      if (!path) return row;
-      const { data } = await supabase.storage
-        .from("documents")
-        .createSignedUrl(path, SIGNED_URL_TTL_SECONDS);
-      return data?.signedUrl ? { ...row, file_url: data.signedUrl } : row;
-    }),
-  );
-}
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { documentsQueries, extractStoragePath, type DocumentsFilter } from "@/lib/query/documentsQueryKeys";
 
 export function useDocuments(entityType: string, entityId: string | undefined) {
+  const filter: DocumentsFilter = { entityType, entityId };
   return useQuery({
-    queryKey: ["documents", entityType, entityId],
+    ...documentsQueries.list(filter),
     enabled: !!entityId,
-    staleTime: 60_000,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("documents")
-        .select("*")
-        .eq("entity_type", entityType)
-        .eq("entity_id", entityId ?? "")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return attachSignedUrls(data ?? []);
-    },
   });
 }
 
 export function useUploadDocument() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({
       file,
       entityType,
@@ -77,13 +46,13 @@ export function useUploadDocument() {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["documents"] }),
+    invalidateKeys: [documentsQueries.keys.all],
+    errorTitle: "Error al subir el documento",
   });
 }
 
 export function useDeleteDocument() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (id: string) => {
       const { data: doc } = await supabase
         .from("documents")
@@ -97,6 +66,7 @@ export function useDeleteDocument() {
       const { error } = await supabase.from("documents").delete().eq("id", id);
       if (error) throw error;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["documents"] }),
+    invalidateKeys: [documentsQueries.keys.all],
+    errorTitle: "Error al eliminar el documento",
   });
 }

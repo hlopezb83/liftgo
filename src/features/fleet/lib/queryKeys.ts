@@ -2,6 +2,8 @@
  * Query key factory para la feature `fleet` (montacargas, modelos, choferes, seguros).
  * Usar en todos los hooks nuevos.
  */
+import { createEntityKeys } from "@/lib/query/createEntityKeys";
+
 export const forkliftKeys = {
   all: ["forklifts"] as const,
   lists: () => [...forkliftKeys.all, "list"] as const,
@@ -26,3 +28,7 @@ export const driverKeys = {
   all: ["drivers"] as const,
   list: () => [...driverKeys.all, "list"] as const,
 } as const;
+
+export const insuranceAlertsKeys = createEntityKeys("insurance-alerts");
+export const statusLogKeys = createEntityKeys("status_logs");
+export const quoteAssignedForkliftKeys = createEntityKeys("quote_assigned_forklifts");

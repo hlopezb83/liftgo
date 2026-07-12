@@ -1,10 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { collectionNoteKeys } from "../../../lib/queryKeys";
 
-export function useCollectionNotes(invoiceId?: string) {
-  return useQuery({
+function buildCollectionNotesQuery(invoiceId: string | undefined) {
+  return queryOptions({
     queryKey: invoiceId ? collectionNoteKeys.byInvoice(invoiceId) : collectionNoteKeys.all,
     enabled: !!invoiceId,
     staleTime: 60_000,
@@ -15,9 +15,13 @@ export function useCollectionNotes(invoiceId?: string) {
         .eq("invoice_id", invoiceId ?? "")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data;
+      return data ?? [];
     },
   });
+}
+
+export function useCollectionNotes(invoiceId?: string) {
+  return useQuery(buildCollectionNotesQuery(invoiceId));
 }
 
 export function useCreateCollectionNote() {

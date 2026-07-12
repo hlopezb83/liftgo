@@ -1,0 +1,17 @@
+{
+  "version": "7.45.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "Hardening de TanStack Query: catálogo de keys y migración a import-x",
+  "description": "Seguimiento de la dependencia @tanstack/react-query: se completó el barrido de keys propietarias en favor de createEntityKeys/defineEntityQueries y useEntityMutation. Se migraron los hooks de facturación (cobranza, conciliación, timbrado CFDI, reservas vinculadas) y el detalle de cotizaciones a factories canónicas. Se añadió soporte de `errorMessage` dinámico en useEntityMutation para traducir errores de Facturapi. Paralelamente se reemplazó `eslint-plugin-import` por `eslint-plugin-import-x` para resolver el crash de `import/order` bajo ESLint 10. Typecheck y lint quedan verdes; 43 warnings restantes son diagnósticos experimentales de react-hooks@7 ya planeados para triaje.",
+  "category": "improvement",
+  "changes": [
+    { "type": "changed", "description": "invoiceKeys, paymentKeys, creditNoteKeys, collectionNoteKeys e invoiceBookingKeys ahora usan createEntityKeys" },
+    { "type": "changed", "description": "Hooks de facturación migrados a defineEntityQueries/useEntityMutation: useInvoicesWithBalance, useReconciliationData, useNextInvoiceNumber, useCollectionNotes, useInvoiceBookings, useStampCfdi" },
+    { "type": "changed", "description": "useQuoteDetailData usa bookingKeys/invoiceKeys en lugar de queryKey strings" },
+    { "type": "added", "description": "useEntityMutation acepta errorMessage como string o callback (error) => string" },
+    { "type": "changed", "description": "defineEntityQueries: generics reordenados para soportar filtros tipados sin romper llamadas existentes" },
+    { "type": "changed", "description": "Reemplazo de eslint-plugin-import por eslint-plugin-import-x para compatibilidad con ESLint 10" },
+    { "type": "fixed", "description": "Import order warnings resueltos vía autofix" }
+  ]
+}

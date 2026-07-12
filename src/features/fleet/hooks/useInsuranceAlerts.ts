@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { callRpc } from "@/lib/rpc";
+import { insuranceAlertsKeys } from "../lib/queryKeys";
 
 export interface InsuranceExpiringItem {
   id: string;
@@ -14,10 +16,14 @@ export interface InsuranceAlertsData {
   no_insurance_count: number;
 }
 
-export function useInsuranceAlerts() {
-  return useQuery({
-    queryKey: ["insurance-alerts"],
+export const insuranceAlertsQueries = defineEntityQueries<"insurance-alerts", InsuranceAlertsData, never>(
+  insuranceAlertsKeys.all[0],
+  {
+    list: () => () => callRpc<InsuranceAlertsData>("get_insurance_alerts"),
     staleTime: 5 * 60_000,
-    queryFn: () => callRpc<InsuranceAlertsData>("get_insurance_alerts"),
-  });
+  },
+);
+
+export function useInsuranceAlerts() {
+  return useQuery(insuranceAlertsQueries.list());
 }

@@ -1,3 +1,5 @@
+import { reconciliationStatusKey } from "@/features/bank-reconciliation/hooks/useReconciliationStatus";
+import { bankLineKeys } from "@/features/bank-reconciliation/lib/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { supplierBillKeys } from "./useSupplierBills";
@@ -27,8 +29,8 @@ export function useDeleteSupplierPayment() {
       supplierBillKeys.all,
       supplierBillKeys.detail(vars.billId),
       ["accounts_payable_kpis"],
-      ["reconciliation_status", `supplier:${paymentId}`],
-      ["bank_statement_lines"],
+      reconciliationStatusKey({ supplierPaymentId: paymentId }),
+      bankLineKeys.all,
     ],
     successMsg: "Pago eliminado",
     errorTitle: "No se pudo eliminar el pago",

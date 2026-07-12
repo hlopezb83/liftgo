@@ -1,8 +1,11 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { parseJsonbArray } from "@/lib/domain/lineItems";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { notifySuccess } from "@/lib/ui/appFeedback";
+import { userManualKeys, userManualVersionKeys } from "../lib/queryKeys";
 
 export interface ManualSection {
   title: string;
@@ -18,48 +21,58 @@ export interface UserManual {
   updated_at: string;
 }
 
+export const userManualVersionQueries = defineEntityQueries<
+  typeof userManualVersionKeys.all[number],
+  { id: string; version: string; generated_at: string }[],
+  never
+>("user-manual-versions", {
+  list: () => async () => {
+    const { data, error } = await supabase
+      .from("user_manual")
+      .select("id, version, generated_at")
+      .order("generated_at", { ascending: false });
+    if (error) throw error;
+    return (data ?? []) as { id: string; version: string; generated_at: string }[];
+  },
+});
+
+export const userManualQueries = defineEntityQueries<
+  typeof userManualKeys.all[number],
+  UserManual | null,
+  never
+>("user-manual", {
+  list: (filter) => async () => {
+    const selectedVersion = (filter?.selectedVersion as string | null | undefined) ?? null;
+    let q = supabase
+      .from("user_manual")
+      .select("*");
+
+    if (selectedVersion) {
+      q = q.eq("id", selectedVersion);
+    } else {
+      q = q.order("generated_at", { ascending: false }).limit(1);
+    }
+
+    const { data, error } = await q.maybeSingle();
+    if (error) throw error;
+    if (!data) return null;
+    return {
+      ...data,
+      content: parseJsonbArray<ManualSection>(data.content),
+    } as UserManual;
+  },
+});
+
 export function useUserManual() {
-  const queryClient = useQueryClient();
   const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
 
   // Fetch all versions for the selector
-  const versionsQuery = useQuery({
-    queryKey: ["user-manual-versions"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("user_manual")
-        .select("id, version, generated_at")
-        .order("generated_at", { ascending: false });
-      if (error) throw error;
-      return (data ?? []) as { id: string; version: string; generated_at: string }[];
-    },
-  });
+  const versionsQuery = useQuery(userManualVersionQueries.list());
 
   // Fetch the selected (or latest) manual
-  const query = useQuery({
-    queryKey: ["user-manual", selectedVersion],
-    queryFn: async () => {
-      let q = supabase
-        .from("user_manual")
-        .select("*");
+  const query = useQuery(userManualQueries.list({ selectedVersion }));
 
-      if (selectedVersion) {
-        q = q.eq("id", selectedVersion);
-      } else {
-        q = q.order("generated_at", { ascending: false }).limit(1);
-      }
-
-      const { data, error } = await q.maybeSingle();
-      if (error) throw error;
-      if (!data) return null;
-      return {
-        ...data,
-        content: parseJsonbArray<ManualSection>(data.content),
-      } as UserManual;
-    },
-  });
-
-  const generateMutation = useMutation({
+  const generateMutation = useEntityMutation({
     mutationFn: async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) throw new Error("No autenticado");
@@ -83,21 +96,18 @@ export function useUserManual() {
 
       return response.json();
     },
+    invalidateKeys: [userManualKeys.all, userManualVersionKeys.all],
+    errorTitle: "Error",
     onSuccess: () => {
       setSelectedVersion(null);
-      queryClient.invalidateQueries({ queryKey: ["user-manual"] });
-      queryClient.invalidateQueries({ queryKey: ["user-manual-versions"] });
       notifySuccess("Manual generado", { description: "El manual de usuario se generó exitosamente." });
-    },
-    onError: (error: Error) => {
-      notifyError({ title: "Error", error: error });
     },
   });
 
   return {
     manual: query.data,
     isLoading: query.isLoading,
-    generate: generateMutation.mutate,
+    generate: () => generateMutation.mutate(undefined),
     isGenerating: generateMutation.isPending,
     versions: versionsQuery.data ?? [],
     selectedVersion,

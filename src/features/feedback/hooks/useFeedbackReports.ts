@@ -3,28 +3,34 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { feedbackHistoryKeys, feedbackLeaderboardKeys, feedbackReportKeys } from "../lib/queryKeys";
 import type { FeedbackStatus } from "../lib/constants";
 
 export type FeedbackReport = Tables<"feedback_reports">;
 
-const QUERY_KEY = ["feedback_reports"] as const;
-const MY_KEY = ["feedback_reports", "mine"] as const;
+const MY_KEY = [...feedbackReportKeys.all, "mine"] as const;
+
+export const feedbackReportQueries = defineEntityQueries<
+  typeof feedbackReportKeys.all[number],
+  FeedbackReport[],
+  never
+>("feedback_reports", {
+  list: () => async () => {
+    const { data, error } = await supabase
+      .from("feedback_reports")
+      .select("*")
+      .order("created_at", { ascending: false })
+      .limit(500);
+    if (error) throw error;
+    return data;
+  },
+  staleTime: 30_000,
+});
 
 /** All reports — admin/administrativo/auditor only (RLS enforces). */
 export function useAllFeedbackReports() {
-  return useQuery({
-    queryKey: QUERY_KEY,
-    staleTime: 30_000,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("feedback_reports")
-        .select("*")
-        .order("created_at", { ascending: false })
-        .limit(500);
-      if (error) throw error;
-      return data;
-    },
-  });
+  return useQuery(feedbackReportQueries.list());
 }
 
 /** Reports created by the current user. */
@@ -49,7 +55,7 @@ export function useMyFeedbackReports() {
 
 export function useFeedbackHistory(reportId: string | null) {
   return useQuery({
-    queryKey: ["feedback_history", reportId],
+    queryKey: feedbackHistoryKeys.byFilter({ reportId }),
     enabled: !!reportId,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -82,9 +88,8 @@ export function useUpdateFeedbackStatus() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [QUERY_KEY, ["feedback_leaderboard"]],
+    invalidateKeys: [feedbackReportKeys.all, feedbackLeaderboardKeys.all],
     successMsg: "Estado actualizado",
     errorTitle: "Error al cambiar estado",
   });
 }
-

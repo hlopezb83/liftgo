@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 
 export type ManualMatchKind = "payment" | "supplier_payment";
 
@@ -10,8 +11,6 @@ export interface MatchCandidate {
   reference: string | null;
   label: string;
 }
-
-export const MANUAL_MATCH_CANDIDATES_QK = "manual-match-candidates" as const;
 
 async function fetchCandidates(kind: ManualMatchKind): Promise<MatchCandidate[]> {
   if (kind === "payment") {
@@ -44,11 +43,18 @@ async function fetchCandidates(kind: ManualMatchKind): Promise<MatchCandidate[]>
   }));
 }
 
+export const manualMatchCandidateQueries = defineEntityQueries<
+  "manual_match_candidates",
+  MatchCandidate[],
+  never
+>("manual_match_candidates", {
+  staleTime: 30_000,
+  list: (filter) => async () => fetchCandidates((filter?.kind as ManualMatchKind) ?? "payment"),
+});
+
 export function useManualMatchCandidates(kind: ManualMatchKind, enabled = true) {
   return useQuery({
-    queryKey: [MANUAL_MATCH_CANDIDATES_QK, kind],
-    queryFn: () => fetchCandidates(kind),
+    ...manualMatchCandidateQueries.list({ kind }),
     enabled,
-    staleTime: 30_000,
   });
 }

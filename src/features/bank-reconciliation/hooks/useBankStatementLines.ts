@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import type { BankLineStatus } from "../lib/bankReconciliationConstants";
 
 export interface BankStatementLine {
@@ -20,27 +21,37 @@ export interface BankStatementLine {
   ignored_reason: string | null;
 }
 
-export const BANK_LINES_QK = (accountId: string | null) => ["bank_statement_lines", accountId] as const;
+export const bankLineQueries = defineEntityQueries<
+  "bank_statement_lines",
+  BankStatementLine[],
+  never
+>("bank_statement_lines", {
+  staleTime: 30_000,
+  list: (filter) => async () => {
+    const bankAccountId = (filter?.bankAccountId as string | null | undefined) ?? null;
+    if (!bankAccountId) return [];
+    const { data, error } = await supabase
+      .from("bank_statement_lines")
+      .select(
+        "id, import_id, bank_account_id, posted_date, description, signed_amount, reference, status, matched_payment_id, matched_supplier_payment_id, suggested_payment_id, suggested_supplier_payment_id, match_score, matched_at, ignored_reason",
+      )
+      .eq("bank_account_id", bankAccountId)
+      .order("posted_date", { ascending: false });
+    if (error) throw error;
+    return (data ?? []).map((r) => ({
+      ...r,
+      signed_amount: Number(r.signed_amount),
+    })) as BankStatementLine[];
+  },
+});
+
+/** Query key para las líneas de un estado de cuenta, filtradas por cuenta bancaria. */
+export const bankLinesKey = (bankAccountId: string | null) =>
+  bankLineQueries.list({ bankAccountId }).queryKey;
 
 export function useBankStatementLines(bankAccountId: string | null) {
   return useQuery({
+    ...bankLineQueries.list({ bankAccountId }),
     enabled: !!bankAccountId,
-    queryKey: BANK_LINES_QK(bankAccountId),
-    staleTime: 30_000,
-    queryFn: async (): Promise<BankStatementLine[]> => {
-      if (!bankAccountId) return [];
-      const { data, error } = await supabase
-        .from("bank_statement_lines")
-        .select(
-          "id, import_id, bank_account_id, posted_date, description, signed_amount, reference, status, matched_payment_id, matched_supplier_payment_id, suggested_payment_id, suggested_supplier_payment_id, match_score, matched_at, ignored_reason",
-        )
-        .eq("bank_account_id", bankAccountId)
-        .order("posted_date", { ascending: false });
-      if (error) throw error;
-      return (data ?? []).map((r) => ({
-        ...r,
-        signed_amount: Number(r.signed_amount),
-      })) as BankStatementLine[];
-    },
   });
 }

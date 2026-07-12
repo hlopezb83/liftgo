@@ -1,11 +1,12 @@
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { portalKeys } from "../../lib/queryKeys";
 
 export function usePortalCustomer() {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ["portal_customer", user?.id],
+    queryKey: portalKeys.customer(user?.id),
     enabled: !!user,
     staleTime: 60_000,
     queryFn: async () => {
@@ -33,7 +34,7 @@ async function fetchForkliftsBriefMap(): Promise<Map<string, ForkliftBrief>> {
 export function usePortalBookings() {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ["portal_bookings", user?.id],
+    queryKey: portalKeys.bookings(user?.id),
     enabled: !!user,
     staleTime: 60_000,
     queryFn: async () => {
@@ -56,7 +57,7 @@ export function usePortalBookings() {
 export function usePortalInvoices() {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ["portal_invoices", user?.id],
+    queryKey: portalKeys.invoices(user?.id),
     enabled: !!user,
     staleTime: 60_000,
     queryFn: async () => {
@@ -70,7 +71,7 @@ export function usePortalInvoices() {
 export function usePortalContracts() {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ["portal_contracts", user?.id],
+    queryKey: portalKeys.contracts(user?.id),
     enabled: !!user,
     staleTime: 60_000,
     queryFn: async () => {
@@ -90,7 +91,7 @@ export function usePortalContracts() {
 export function usePortalPayments() {
   const { user } = useAuth();
   return useQuery({
-    queryKey: ["portal_payments", user?.id],
+    queryKey: portalKeys.payments(user?.id),
     enabled: !!user,
     staleTime: 60_000,
     queryFn: async () => {

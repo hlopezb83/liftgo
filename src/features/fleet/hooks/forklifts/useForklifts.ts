@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { forkliftKeys } from "../../lib/queryKeys";
+import { forkliftKeys, statusLogKeys } from "../../lib/queryKeys";
 
 export type { Forklift } from "@/types/rental";
 
@@ -31,7 +31,7 @@ export function useForklift(id: string | undefined) {
 
 export function useStatusLogs(forkliftId: string | undefined) {
   return useQuery({
-    queryKey: ["status_logs", forkliftId],
+    queryKey: statusLogKeys.byFilter({ forkliftId }),
     enabled: !!forkliftId,
     staleTime: 60_000,
     queryFn: async () => {

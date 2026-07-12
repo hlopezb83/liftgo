@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { invoiceKeys } from "../../lib/queryKeys";
 
@@ -28,15 +28,7 @@ interface Filter {
   withBalanceOnly?: boolean;
 }
 
-/**
- * Fuente única de verdad para "facturas + saldo".
- * Lee de la vista SQL `v_invoices_with_balance`, que calcula
- * `paid_amount` y `balance = total - paid_amount` aplicando RLS
- * de la tabla `invoices`.
- *
- * Reemplaza patrones tipo `select payments + reducir paidByInvoice`.
- */
-export function useInvoicesWithBalance(filter: Filter = {}) {
+function buildInvoicesWithBalanceQuery(filter: Filter) {
   const {
     statuses = ["sent", "partial", "overdue"],
     dueFrom,
@@ -44,7 +36,7 @@ export function useInvoicesWithBalance(filter: Filter = {}) {
     withBalanceOnly = true,
   } = filter;
 
-  return useQuery({
+  return queryOptions({
     queryKey: invoiceKeys.withBalance({ statuses, dueFrom, dueTo, withBalanceOnly }),
     staleTime: 60_000,
     queryFn: async (): Promise<InvoiceWithBalance[]> => {
@@ -79,4 +71,16 @@ export function useInvoicesWithBalance(filter: Filter = {}) {
       }));
     },
   });
+}
+
+/**
+ * Fuente única de verdad para "facturas + saldo".
+ * Lee de la vista SQL `v_invoices_with_balance`, que calcula
+ * `paid_amount` y `balance = total - paid_amount` aplicando RLS
+ * de la tabla `invoices`.
+ *
+ * Reemplaza patrones tipo `select payments + reducir paidByInvoice`.
+ */
+export function useInvoicesWithBalance(filter: Filter = {}) {
+  return useQuery(buildInvoicesWithBalanceQuery(filter));
 }

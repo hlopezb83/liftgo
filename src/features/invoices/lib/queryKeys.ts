@@ -1,19 +1,20 @@
 /**
  * Query key factory para la feature `invoices`.
  *
- * Resuelve la inconsistencia detectada en la auditoría (algunos hooks usan
- * `["invoice", id]` en singular y otros `["invoices", id]` en plural para el
- * mismo recurso). Todos los nuevos hooks deben consumir este objeto en lugar
- * de literales sueltos.
- *
- * Patrón TanStack Query: jerárquico desde la raíz `all` para que una sola
- * `invalidateQueries({ queryKey: invoiceKeys.all })` invalide todo el árbol.
+ * Todos los namespaces derivan de `createEntityKeys` para garantizar una
+ * estructura jerárquica consistente (`all` → `list`/`detail`). Las keys
+ * especializadas (`withBalance`, `reconciliation`, etc.) extienden la base
+ * sin romper el patrón de invalidación por scope.
  */
+import { createEntityKeys } from "@/lib/query/createEntityKeys";
+
+const invoiceBase = createEntityKeys("invoices");
+
 export const invoiceKeys = {
-  all: ["invoices"] as const,
-  lists: () => [...invoiceKeys.all, "list"] as const,
-  list: (filters: Record<string, unknown>) =>
-    [...invoiceKeys.lists(), filters] as const,
+  ...invoiceBase,
+  byFilter: (filters: Record<string, unknown>) => invoiceBase.byFilter(filters),
+  /** Alias retro-compatible para consumidores que usan `invoiceKeys.list(...)`. */
+  list: (filters: Record<string, unknown>) => invoiceBase.byFilter(filters),
   withBalance: (params: {
     statuses?: readonly string[];
     dueFrom?: string | null;
@@ -21,32 +22,51 @@ export const invoiceKeys = {
     withBalanceOnly?: boolean;
   }) =>
     [
-      ...invoiceKeys.all,
+      ...invoiceBase.all,
       "with-balance",
       params.statuses ?? null,
       params.dueFrom ?? null,
       params.dueTo ?? null,
       params.withBalanceOnly ?? null,
     ] as const,
-  upcoming: () => [...invoiceKeys.all, "upcoming"] as const,
-  nextNumber: () => [...invoiceKeys.all, "next-number"] as const,
-  details: () => [...invoiceKeys.all, "detail"] as const,
-  detail: (id: string) => [...invoiceKeys.details(), id] as const,
+  upcoming: () => [...invoiceBase.all, "upcoming"] as const,
+  nextNumber: () => [...invoiceBase.all, "next-number"] as const,
+  byQuote: (quoteId: string) => [...invoiceBase.all, "quote", quoteId] as const,
+  reconciliation: (filters: {
+    from: string;
+    to: string;
+    fiscalState: string;
+    env: string;
+  }) => [...invoiceBase.all, "reconciliation", filters] as const,
 } as const;
+
+const paymentBase = createEntityKeys("payments");
 
 export const paymentKeys = {
-  all: ["payments"] as const,
-  byInvoice: (invoiceId: string) => [...paymentKeys.all, invoiceId] as const,
+  ...paymentBase,
+  byInvoice: (invoiceId: string) => [...paymentBase.all, invoiceId] as const,
 } as const;
+
+const creditNoteBase = createEntityKeys("credit_notes");
 
 export const creditNoteKeys = {
-  all: ["credit_notes"] as const,
+  ...creditNoteBase,
   byInvoice: (invoiceId: string) =>
-    [...creditNoteKeys.all, "invoice", invoiceId] as const,
+    [...creditNoteBase.all, "invoice", invoiceId] as const,
 } as const;
 
+const collectionNoteBase = createEntityKeys("collection_notes");
+
 export const collectionNoteKeys = {
-  all: ["collection_notes"] as const,
+  ...collectionNoteBase,
   byInvoice: (invoiceId: string) =>
-    [...collectionNoteKeys.all, invoiceId] as const,
+    [...collectionNoteBase.all, invoiceId] as const,
+} as const;
+
+const invoiceBookingBase = createEntityKeys("invoice_bookings");
+
+export const invoiceBookingKeys = {
+  ...invoiceBookingBase,
+  byInvoice: (invoiceId: string) =>
+    [...invoiceBookingBase.all, invoiceId] as const,
 } as const;
