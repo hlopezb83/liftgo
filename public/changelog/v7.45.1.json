@@ -1,0 +1,11 @@
+{
+  "version": "7.45.1",
+  "date": "2026-07-12",
+  "type": "patch",
+  "title": "Limpieza: eliminar queryKeys huérfano en accounts-payable",
+  "description": "Se removió src/features/accounts-payable/lib/queryKeys.ts porque no era importado por ningún módulo (flagged por knip). Los factories billApprovalKeys y exportablePayableKeys se recrearán bajo demanda cuando se agreguen hooks reales para esas entidades.",
+  "category": "improvement",
+  "changes": [
+    { "type": "removed", "description": "Archivo huérfano src/features/accounts-payable/lib/queryKeys.ts" }
+  ]
+}
