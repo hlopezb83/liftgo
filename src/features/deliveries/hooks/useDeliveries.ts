@@ -1,35 +1,52 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
-import { createEntityKeys } from "@/lib/query/createEntityKeys";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 
-export const deliveryKeys = createEntityKeys("deliveries");
+type DeliveryRow = Awaited<ReturnType<typeof fetchDeliveryDetail>>;
+type DeliveryList = Awaited<ReturnType<typeof fetchDeliveryList>>;
+
+async function fetchDeliveryDetail(id: string) {
+  const { data, error } = await supabase
+    .from("deliveries")
+    .select("*, forklifts(name, model)")
+    .eq("id", id)
+    .single();
+  if (error) throw error;
+  return data;
+}
+
+async function fetchDeliveryList(bookingId?: string) {
+  let query = supabase.from("deliveries").select("*, forklifts(name, model)").order("scheduled_date");
+  if (bookingId) query = query.eq("booking_id", bookingId);
+  const { data, error } = await query;
+  if (error) throw error;
+  return data;
+}
+
+export const deliveryQueries = defineEntityQueries<"deliveries", DeliveryList, DeliveryRow>(
+  "deliveries",
+  {
+    list: (filter) => async () => {
+      const bookingId = filter?.bookingId as string | null | undefined;
+      return fetchDeliveryList(bookingId ?? undefined);
+    },
+    detail: (id: string) => async () => fetchDeliveryDetail(id),
+  },
+);
+
+export const deliveryKeys = deliveryQueries.keys;
 
 export function useDelivery(id?: string) {
   return useQuery({
-    queryKey: id ? deliveryKeys.detail(id) : deliveryKeys.details(),
+    ...deliveryQueries.detail(id ?? ""),
     enabled: !!id,
-    queryFn: async () => {
-      const { data, error } = await supabase.from("deliveries").select("*, forklifts(name, model)").eq("id", id ?? "").single();
-      if (error) throw error;
-      return data;
-    },
   });
 }
 
 export function useDeliveries(bookingId?: string) {
-  return useQuery({
-    queryKey: deliveryKeys.byFilter({ bookingId: bookingId ?? null }),
-    staleTime: 60_000,
-    queryFn: async () => {
-      let query = supabase.from("deliveries").select("*, forklifts(name, model)").order("scheduled_date");
-      if (bookingId) query = query.eq("booking_id", bookingId);
-      const { data, error } = await query;
-      if (error) throw error;
-      return data;
-    },
-  });
+  return useQuery(deliveryQueries.list({ bookingId: bookingId ?? null }));
 }
 
 export function useCreateDelivery() {

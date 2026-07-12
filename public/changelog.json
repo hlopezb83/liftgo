@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.27.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "TanStack Query — Devtools, persistencia, defineEntityQueries y prefetch on intent",
+    "description": "Lote 1 (DX): Devtools en DEV, helper `defineEntityQueries` con `queryOptions()`, migradas useQuotes/useContracts/useDeliveries. Lote 2 (UX): `usePrefetchOnHover` (handlers onMouseEnter/onFocus con delay 120ms para precalentar cache). Lote 3 (Clean): re-export `useSuspenseQuery` con convenciones LiftGo. Lote 4 (Advanced): `PersistQueryClientProvider` con whitelist estricta (catálogos/dashboards/KPIs, 24h TTL) y `useOptimisticListMutation` (snapshot→mutate→rollback→invalidate). Typecheck en verde.",
+    "category": "improvement"
+  },
+  {
     "version": "7.26.0",
     "date": "2026-07-12",
     "type": "minor",

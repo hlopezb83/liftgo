@@ -2,46 +2,58 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesUpdate } from "@/integrations/supabase/types";
 import type { ContractViewModel } from "@/types/rental";
-import { createEntityKeys } from "@/lib/query/createEntityKeys";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 
 type Contract = ContractViewModel;
 
-export const contractKeys = createEntityKeys("contracts");
+type ContractRelations = { customers?: { name?: string } | null; forklifts?: { name?: string } | null };
+
+function mapRow<T extends ContractRelations>(row: T): T & { customer_name?: string; forklift_name?: string } {
+  return {
+    ...row,
+    customer_name: row.customers?.name ?? undefined,
+    forklift_name: row.forklifts?.name ?? undefined,
+  };
+}
+
+async function fetchList() {
+  const { data, error } = await supabase
+    .from("contracts")
+    .select("*, customers(name), forklifts(name)")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map(mapRow);
+}
+
+async function fetchDetail(id: string) {
+  const { data, error } = await supabase
+    .from("contracts")
+    .select("*, customers(name), forklifts(name)")
+    .eq("id", id)
+    .single();
+  if (error) throw error;
+  return mapRow(data);
+}
+
+export const contractQueries = defineEntityQueries(
+  "contracts",
+  {
+    list: () => fetchList,
+    detail: (id: string) => () => fetchDetail(id),
+  },
+);
+
+export const contractKeys = contractQueries.keys;
 
 export function useContracts() {
-  return useQuery({
-    queryKey: contractKeys.lists(),
-    staleTime: 60_000,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("contracts")
-        .select("*, customers(name), forklifts(name)")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data.map((c) => ({
-        ...c,
-        customer_name: c.customers?.name || null,
-        forklift_name: c.forklifts?.name || null,
-      }));
-    },
-  });
+  return useQuery(contractQueries.list());
 }
 
 export function useContract(id: string | undefined) {
   return useQuery({
-    queryKey: id ? contractKeys.detail(id) : contractKeys.details(),
+    ...contractQueries.detail(id ?? ""),
     enabled: !!id,
-    queryFn: async () => {
-      if (!id) throw new Error("Contract ID is required");
-      const { data, error } = await supabase
-        .from("contracts")
-        .select("*, customers(name), forklifts(name)")
-        .eq("id", id)
-        .single();
-      if (error) throw error;
-      return { ...data, customer_name: data.customers?.name || null, forklift_name: data.forklifts?.name || null };
-    },
   });
 }
 

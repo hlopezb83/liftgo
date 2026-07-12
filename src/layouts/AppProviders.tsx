@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from "@tanstack/react-query";
+import { QueryClient, QueryCache, MutationCache } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ErrorDetailsDialog } from "@/components/ui/ErrorDetailsDialog";
@@ -9,6 +11,11 @@ import { ConfirmProvider } from "@/components/feedback/ConfirmProvider";
 import { AuthSnapshotSync } from "@/features/users";
 import { AuthQueryCacheSync } from "@/lib/ui/AuthQueryCacheSync";
 import { notifyError } from "@/lib/ui/appFeedback";
+import {
+  createBrowserPersister,
+  shouldPersistQuery,
+  PERSIST_MAX_AGE_MS,
+} from "@/lib/query/persister";
 
 /**
  * Handlers globales: si una query/mutación no marca `meta.silent = true`,
@@ -42,10 +49,19 @@ const queryClient = new QueryClient({
   }),
 });
 
+const persister = createBrowserPersister();
+
 export function AppProviders({ children }: { children: ReactNode }) {
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem storageKey="forklift-theme">
-      <QueryClientProvider client={queryClient}>
+      <PersistQueryClientProvider
+        client={queryClient}
+        persistOptions={{
+          persister,
+          maxAge: PERSIST_MAX_AGE_MS,
+          dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
+        }}
+      >
         <AuthProvider>
           <AuthQueryCacheSync />
           <AuthSnapshotSync />
@@ -55,7 +71,10 @@ export function AppProviders({ children }: { children: ReactNode }) {
             <ConfirmProvider>{children}</ConfirmProvider>
           </TooltipProvider>
         </AuthProvider>
-      </QueryClientProvider>
+        {import.meta.env.DEV ? (
+          <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" />
+        ) : null}
+      </PersistQueryClientProvider>
     </ThemeProvider>
   );
 }

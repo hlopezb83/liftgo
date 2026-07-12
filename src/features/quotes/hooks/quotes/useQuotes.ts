@@ -2,18 +2,18 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { callRpc } from "@/lib/rpc";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
-import { createEntityKeys } from "@/lib/query/createEntityKeys";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 export type { Quote } from "@/types/rental";
 import type { Quote } from "@/types/rental";
 
-export const quoteKeys = createEntityKeys("quotes");
+type QuoteListRow = Quote;
+type QuoteRow = Quote;
 
-export function useQuotes() {
-  return useQuery({
-    queryKey: quoteKeys.lists(),
-    staleTime: 60_000,
-    queryFn: async () => {
+export const quoteQueries = defineEntityQueries<"quotes", QuoteListRow[], QuoteRow>(
+  "quotes",
+  {
+    list: () => async () => {
       const { data, error } = await supabase
         .from("quotes")
         .select("*")
@@ -21,21 +21,28 @@ export function useQuotes() {
         .order("created_at", { ascending: false })
         .limit(500);
       if (error) throw error;
-      return data;
+      return data as QuoteListRow[];
     },
-  });
+    detail: (id: string) => async () => {
+      if (!id) throw new Error("Quote ID is required");
+      const { data, error } = await supabase.from("quotes").select("*").eq("id", id).single();
+      if (error) throw error;
+      return data as QuoteRow;
+    },
+  },
+);
+
+// Alias retro-compat para consumidores existentes.
+export const quoteKeys = quoteQueries.keys;
+
+export function useQuotes() {
+  return useQuery(quoteQueries.list());
 }
 
 export function useQuote(id?: string) {
   return useQuery({
-    queryKey: id ? quoteKeys.detail(id) : quoteKeys.details(),
+    ...quoteQueries.detail(id ?? ""),
     enabled: !!id,
-    queryFn: async () => {
-      if (!id) throw new Error("Quote ID is required");
-      const { data, error } = await supabase.from("quotes").select("*").eq("id", id).single();
-      if (error) throw error;
-      return data;
-    },
   });
 }
 
