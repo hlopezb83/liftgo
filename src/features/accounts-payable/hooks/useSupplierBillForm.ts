@@ -1,5 +1,5 @@
 import { useEffect, useEffectEvent } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { useSuppliers } from "@/features/suppliers";
 import { toYMD } from "@/lib/date/toYMD";
@@ -98,9 +98,10 @@ export function useSupplierBillForm(
 
 
   const { data: suppliersList } = useSuppliers();
-  const supplierId = form.watch("supplier_id");
-  const issueDate = form.watch("issue_date");
-  const dueDate = form.watch("due_date");
+  const [supplierId, issueDate, dueDate, subtotalRaw, taxRaw, retIvaRaw, retIsrRaw] = useWatch({
+    control: form.control,
+    name: ["supplier_id", "issue_date", "due_date", "subtotal", "tax_amount", "retention_iva", "retention_isr"],
+  });
 
   const selectedSupplier = suppliersList?.find((s) => s.id === supplierId);
   const suggestedDueDate = (() => {
@@ -121,10 +122,10 @@ export function useSupplierBillForm(
   }, [supplierId, issueDate]);
 
 
-  const subtotal = Number(form.watch("subtotal") || 0);
-  const tax = Number(form.watch("tax_amount") || 0);
-  const retIva = Number(form.watch("retention_iva") || 0);
-  const retIsr = Number(form.watch("retention_isr") || 0);
+  const subtotal = Number(subtotalRaw || 0);
+  const tax = Number(taxRaw || 0);
+  const retIva = Number(retIvaRaw || 0);
+  const retIsr = Number(retIsrRaw || 0);
   const total = subtotal + tax - retIva - retIsr;
 
   const onSubmit = (data: SupplierBillFormData) => {

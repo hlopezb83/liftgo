@@ -1,3 +1,4 @@
+import { useWatch } from "react-hook-form";
 import { useParams, useSearchParams } from "react-router-dom";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
 import { DatePickerField } from "@/components/forms/DatePickerField";
@@ -29,6 +30,7 @@ export default function InvoiceForm() {
 
   const f = useInvoiceFormLogic({ id, fromQuoteId });
   const { data: nextNumber, isLoading: loadingNext } = useNextInvoiceNumber(!f.isEdit);
+  const taxRate = useWatch({ control: f.form.control, name: "taxRate" });
 
   const onSubmit = (values: InvoiceFormValues) => {
     const payload = f.onSubmit(values);
@@ -155,7 +157,7 @@ export default function InvoiceForm() {
 
           <TotalsSummary
             subtotal={f.subtotal}
-            taxRate={f.form.watch("taxRate")}
+            taxRate={taxRate}
             taxAmount={f.taxAmount}
             total={f.total}
             onTaxRateChange={(v) => f.form.setValue("taxRate", v, { shouldDirty: true })}

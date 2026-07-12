@@ -1,10 +1,11 @@
 import { differenceInDays } from "date-fns";
+import { useWatch } from "react-hook-form";
+import { SwitchField } from "@/components/forms/fields";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Switch } from "@/components/ui/switch";
 import { CustomerSelector } from "@/features/customers";
 import { ForkliftSelector } from "@/features/fleet";
 import { BookingPostDialogs } from "../components/bookings/BookingPostDialogs";
@@ -22,6 +23,12 @@ export default function BookingForm() {
     dateRangeError,
     navigate,
   } = useBookingFormLogic();
+
+  // Suscripciones aisladas: cambian sin re-renderizar el árbol de la reserva.
+  const [customerId, customerName, customerContact] = useWatch({
+    control: form.control,
+    name: ["customer_id", "customer_name", "customer_contact"],
+  });
 
   const startDate = dateRange?.from;
   const endDate = dateRange?.to;
@@ -59,23 +66,22 @@ export default function BookingForm() {
               error={form.formState.errors.forklift_id?.message}
             />
             {showRecurring && (
-              <div className="flex items-center justify-between p-3 rounded-lg bg-muted">
-                <div>
-                  <p className="text-sm font-medium">Habilitar Facturación Recurrente</p>
-                  <p className="text-xs text-muted-foreground">Generar facturas mensuales automáticamente para esta reserva</p>
-                </div>
-                <Switch checked={form.watch("recurring_billing")} onCheckedChange={(v) => form.setValue("recurring_billing", v)} />
-              </div>
+              <SwitchField
+                control={form.control}
+                name="recurring_billing"
+                label="Habilitar Facturación Recurrente"
+                description="Generar facturas mensuales automáticamente para esta reserva"
+              />
             )}
           </CardContent>
         </Card>
         <CustomerSelector
           customers={customers}
-          customerId={form.watch("customer_id")}
-          customerName={form.watch("customer_name")}
+          customerId={customerId}
+          customerName={customerName}
           onCustomerIdChange={handleCustomerIdChange}
           onCustomerNameChange={(v) => form.setValue("customer_name", v)}
-          customerContact={form.watch("customer_contact")}
+          customerContact={customerContact}
           onCustomerContactChange={(v) => form.setValue("customer_contact", v)}
         />
         <FormActions submitLabel="Crear Reserva" isPending={createBooking.isPending} onCancel={() => navigate(-1)} />

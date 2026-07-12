@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useForm, Controller } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { RequiredMark } from "@/components/forms/RequiredMark";
@@ -70,10 +70,10 @@ export function UploadSupplierRepDialog({
     >
       <Form {...form}>
         <form onSubmit={onSubmit} className="space-y-4">
-          <Controller
+          <FormField
             control={form.control}
             name="xml"
-            render={({ field, fieldState }) => (
+            render={({ field }) => (
               <FormItem>
                 <FormLabel>
                   XML del REP<RequiredMark />
@@ -85,7 +85,7 @@ export function UploadSupplierRepDialog({
                     onChange={(e) => field.onChange(e.target.files?.[0] ?? null)}
                   />
                 </FormControl>
-                {fieldState.error && <FormMessage>{fieldState.error.message}</FormMessage>}
+                <FormMessage />
               </FormItem>
             )}
           />

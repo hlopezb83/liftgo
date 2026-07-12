@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import { SecurityIcon, SaveIcon, ViewIcon, HideIcon, SuccessIcon, WarnIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -68,7 +68,7 @@ function ApiKeyField({ label, value, onChange, placeholder, isConfigured }: KeyF
 
 export function PacConfigForm({ isPending, hasTestKey, hasLiveKey }: Props) {
   const form = useFormContext<PacFormValues>();
-  const mode = form.watch("facturapi_mode");
+  const mode = useWatch({ control: form.control, name: "facturapi_mode" });
   const isLive = mode === "live";
   return (
     <Card className="mt-6">

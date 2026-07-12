@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Badge } from "@/components/ui/badge";
@@ -94,7 +94,7 @@ export function EquipmentAssignmentDialog({
 
   useEffect(() => { form.reset({ assignments: slots }); }, [slots, form]);
 
-  const watched = form.watch("assignments");
+  const watched = useWatch({ control: form.control, name: "assignments" });
 
   const getAvailableForModel = (modelId: string, currentIndex: number) => {
     const model = models.find((m) => m.id === modelId);
