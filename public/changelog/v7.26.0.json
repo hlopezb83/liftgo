@@ -1,0 +1,17 @@
+{
+  "version": "7.26.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "Fase F Lote 2 — Poda de useMemo/useCallback redundantes (ronda 3)",
+  "description": "Ronda 3 final: ~50 memoizaciones residuales podadas en 49 archivos vía codemod (~48 automáticos + 4 arreglos manuales para preservar tipado en hooks que hacen `return useMemo<T>(...)`). React Compiler ahora es la única fuente de memoización en toda la capa de features.",
+  "category": "improvement",
+  "details": {
+    "changes": [
+      "Codemod Python con parser tolerante a JSX y template literals: 42 archivos en primera pasada + 8 en segunda tras endurecer el tokenizador (stack para `${...}` y comentarios `//`, `/* */`).",
+      "Se preservó el tipado añadiendo return-type explícito `ColumnDef<T>[]` a `useCustomersColumns`, `useUserManagementColumns`, `useFleetColumns`, `useSupplierBillColumns` (evitando `as` conforme a Power of 10).",
+      "Se eliminaron imports huérfanos de `useMemo` en `useDashboardSections.ts` y `RecurringInvoicesPreviewDialog.tsx`.",
+      "Verificación: `bunx tsgo --noEmit` → 0 errores. `bunx vitest run` → 913/913 tests pasando en 139 archivos."
+    ],
+    "residual": "53 usos globales conservados intencionalmente en hooks utilitarios (`useDialogState`, `useListPage`, `useListFilters`, `ConfirmProvider`, `GlobalSearch`, `usePullToRefresh`, `useResourceList`, `useNavigateTransition`, `useIsMounted`, `useVisibleNavGroups`) donde la estabilidad de referencia forma parte del contrato público del hook."
+  }
+}
