@@ -1,38 +1,62 @@
 import DOMPurify from "dompurify";
+import { Marked } from "marked";
 
-/** Convierte un subset de Markdown a HTML con clases Tailwind. Liviano, sin deps externas. */
+/**
+ * Motor Markdown → HTML basado en `marked` (CommonMark + GFM opcional).
+ * Reemplaza el parser artesanal a base de regex: obtenemos soporte real de
+ * listas anidadas, code blocks, tablas, enlaces y escapes con ~10 LOC.
+ *
+ * El estilo visual lo aporta Tailwind Typography (`prose prose-sm`) desde el
+ * wrapper en `renderSafeMarkdown()`, así el HTML producido queda limpio y
+ * portable (sin clases inline).
+ */
+const marked = new Marked({
+  gfm: true,
+  breaks: true,
+});
+
 export function renderMarkdown(md: string): string {
-  const html = md
-    .replace(/^#### (.+)$/gm, '<h4 class="text-sm font-semibold mt-4 mb-1">$1</h4>')
-    .replace(/^### (.+)$/gm, '<h3 class="text-base font-semibold mt-5 mb-2">$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2 class="text-lg font-bold mt-6 mb-2">$1</h2>')
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
-    .replace(/\*(.+?)\*/g, "<em>$1</em>")
-    .replace(
-      /^> (.+)$/gm,
-      '<div class="border-l-4 border-primary/40 bg-muted/50 pl-3 py-1 my-2 text-sm rounded-r">$1</div>'
-    )
-    .replace(/^(\d+)\. (.+)$/gm, '<li class="ml-5 list-decimal text-sm leading-relaxed">$2</li>')
-    .replace(/^[-•] (.+)$/gm, '<li class="ml-5 list-disc text-sm leading-relaxed">$1</li>')
-    .replace(/\n\n/g, '</p><p class="text-sm leading-relaxed mb-2">')
-    .replace(/\n/g, "<br/>");
-
-  return `<div class="prose-manual"><p class="text-sm leading-relaxed mb-2">${html}</p></div>`;
+  return marked.parse(md, { async: false }) as string;
 }
 
 /**
- * Whitelist estricta: sólo las etiquetas que emite `renderMarkdown()` arriba.
- * Cualquier `<script>`, `<iframe>`, `<style>`, `<form>`, `<a href="javascript:...">`,
- * atributo `on*`, o vector similar queda fuera. `class` es el único atributo
- * permitido (los estilos vienen de Tailwind).
+ * Whitelist estricta para el manual interno.
+ * Anchors permitidos pero forzamos `rel="noopener noreferrer"` y `target="_blank"`
+ * vía hook `uponSanitizeElement`.
  */
 const SANITIZE_CONFIG = {
-  ALLOWED_TAGS: ["div", "p", "span", "h2", "h3", "h4", "strong", "em", "li", "br"],
-  ALLOWED_ATTR: ["class"],
+  ALLOWED_TAGS: [
+    "h1", "h2", "h3", "h4", "h5", "h6",
+    "p", "span", "div",
+    "strong", "em", "u", "s", "del",
+    "ul", "ol", "li",
+    "blockquote", "hr", "br",
+    "code", "pre",
+    "a",
+    "table", "thead", "tbody", "tr", "th", "td",
+  ],
+  ALLOWED_ATTR: ["href", "title", "target", "rel"],
   ALLOW_DATA_ATTR: false,
   ALLOW_UNKNOWN_PROTOCOLS: false,
+  ALLOWED_URI_REGEXP: /^(?:https?:|mailto:|tel:|#)/i,
 };
 
+// Hook: cualquier <a> resultante fuerza noopener/noreferrer + target=_blank.
+let hookInstalled = false;
+function ensureHook() {
+  if (hookInstalled) return;
+  DOMPurify.addHook("afterSanitizeAttributes", (node) => {
+    if (node.tagName === "A") {
+      node.setAttribute("rel", "noopener noreferrer");
+      node.setAttribute("target", "_blank");
+    }
+  });
+  hookInstalled = true;
+}
+
 export function renderSafeMarkdown(md: string): string {
-  return DOMPurify.sanitize(renderMarkdown(md), SANITIZE_CONFIG);
+  ensureHook();
+  const raw = renderMarkdown(md);
+  const clean = DOMPurify.sanitize(raw, SANITIZE_CONFIG);
+  return `<div class="prose prose-sm max-w-none dark:prose-invert">${clean}</div>`;
 }
