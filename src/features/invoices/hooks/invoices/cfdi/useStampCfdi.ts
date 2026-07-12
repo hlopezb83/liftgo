@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 import { notifySuccess } from "@/lib/ui/appFeedback";
@@ -18,8 +17,6 @@ interface StampCfdiResponse {
  * códigos de error de Facturapi sin renunciar a la invalidación estándar.
  */
 export function useStampCfdi() {
-  const queryClient = useQueryClient();
-
   return useEntityMutation<string, StampCfdiResponse>({
     mutationFn: async (invoiceId) => {
       return await invokeEdgeFunction<StampCfdiResponse>("stamp-cfdi", {
@@ -40,9 +37,6 @@ export function useStampCfdi() {
         ? ` — folio asignado: ${data.invoice_number}`
         : " exitosamente";
       notifySuccess(`CFDI timbrado${suffix} — UUID: ${data.cfdi_uuid}`);
-      // Invalidación manual adicional para asegurar que el detalle se refresque
-      // inmediatamente tras el timbrado (el hook de detalle puede tener staleTime alto).
-      void queryClient.invalidateQueries({ queryKey: invoiceKeys.all });
     },
   });
 }
