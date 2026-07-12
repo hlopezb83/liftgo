@@ -213,6 +213,7 @@ interface TableContentProps<T> {
   emptyActionLabel?: string;
   onEmptyAction?: () => void;
   onRowClick?: (item: T) => void;
+  onRowPrefetch?: (item: T) => FetchQueryOptions;
   mobileCardRender?: (item: T) => ReactNode;
   mobileKeyExtractor?: (item: T) => string;
   skeletonColumns?: number;
