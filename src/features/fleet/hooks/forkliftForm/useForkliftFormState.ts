@@ -1,4 +1,5 @@
 
+import { useWatch } from "react-hook-form";
 import type { Tables } from "@/integrations/supabase/types";
 import { useEquipmentModels } from "../useEquipmentModels";
 import type { ForkliftFormData } from "../../lib/forkliftFormSchema";
@@ -15,7 +16,7 @@ export function useForkliftFormState(
   existing: ExistingForklift,
 ) {
   const { data: equipmentModels } = useEquipmentModels();
-  const manufacturer = form.watch("manufacturer");
+  const manufacturer = useWatch({ control: form.control, name: "manufacturer" });
 
   const hasModels = !!(equipmentModels && equipmentModels.length > 0);
 
