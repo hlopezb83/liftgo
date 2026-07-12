@@ -65,24 +65,19 @@ function matches(bill: SupplierBillListItem, f: FilterState): boolean {
 export function useAccountsPayableFilters(bills: SupplierBillListItem[]) {
   const [state, setState] = useState<FilterState>(INITIAL);
 
-  const filtered = useMemo(() => bills.filter((b) => matches(b, state)), [bills, state]);
+  const filtered = bills.filter((b) => matches(b, state));
 
-  const availableMonths = useMemo(() => {
-    const set = new Set<string>();
-    for (const b of bills) set.add(b.issue_date.slice(0, 7));
-    return Array.from(set).sort().reverse();
-  }, [bills]);
+  const monthsSet = new Set<string>();
+  for (const b of bills) monthsSet.add(b.issue_date.slice(0, 7));
+  const availableMonths = Array.from(monthsSet).sort().reverse();
 
-  const set = useCallback(<K extends keyof FilterState>(k: K, v: FilterState[K]) => {
+  const set = <K extends keyof FilterState>(k: K, v: FilterState[K]) => {
     setState((s) => ({ ...s, [k]: v }));
-  }, []);
+  };
 
-  const reset = useCallback(() => setState(INITIAL), []);
+  const reset = () => setState(INITIAL);
 
-  const hasActive = useMemo(
-    () => JSON.stringify(state) !== JSON.stringify(INITIAL),
-    [state],
-  );
+  const hasActive = JSON.stringify(state) !== JSON.stringify(INITIAL);
 
   return { ...state, filtered, availableMonths, set, reset, hasActive };
 }
