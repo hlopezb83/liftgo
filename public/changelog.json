@@ -1,5 +1,17 @@
 [
   {
+    "version": "7.34.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "react-router 6 → 7",
+    "description": "Bump de `react-router-dom` a `^7.18.1` (con `react-router@^7.18.1` explícito). En modo librería (sin framework/data mode/SSR), v7 es drop-in de v6.4+: `BrowserRouter`, `Routes`, `Route`, `NavLink`, `useNavigate`, `useParams`, `useSearchParams`, `useLocation`, `Outlet` mantienen la misma superficie. 51 archivos siguen importando desde `react-router-dom` (v7 lo re-exporta) sin cambios. Typecheck limpio, 921/921 tests verdes.",
+    "category": "improvement",
+    "changes": [
+      { "type": "changed", "description": "react-router-dom: ^6.30.4 → ^7.18.1" },
+      { "type": "added", "description": "react-router: ^7.18.1 (paquete unificado v7)" }
+    ]
+  },
+  {
     "version": "7.33.0",
     "date": "2026-07-12",
     "type": "minor",
