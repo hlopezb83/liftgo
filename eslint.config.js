@@ -208,6 +208,10 @@ export default tseslint.config(
     // `format` desde `date-fns` o el locale `es` directamente. Así se garantiza
     // TZ America/Monterrey y locale es-MX en toda la UI.
     //
+    // Nivel `warn` (no `error`) durante la migración incremental — los archivos
+    // nuevos deben respetarlo; los ~30 sitios legacy con `format(...)` inline
+    // se migran por lotes en cambios sucesivos.
+    //
     // Excepciones legítimas (siguen pudiendo importar `date-fns` puro):
     //  - src/lib/** (los propios helpers y capa de PDFs)
     //  - src/components/ui/calendar.tsx (react-day-picker requiere el objeto locale)
