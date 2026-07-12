@@ -9,7 +9,7 @@ import { STATUS_LABELS } from "@/lib/constants";
 import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import type { DateRange } from "react-day-picker";
 
-export const INVOICE_STATUSES = ["all", "draft", "sent", "partial", "paid", "overdue"] as const;
+const INVOICE_STATUSES = ["all", "draft", "sent", "partial", "paid", "overdue"] as const;
 
 interface ActionsProps {
   onOpenPreview: () => void;

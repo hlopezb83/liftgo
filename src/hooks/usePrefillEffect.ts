@@ -22,7 +22,7 @@ export function usePrefillEffect(effect: () => void, deps: unknown[]) {
     // NO debe listarse en deps. Si se lista, cada render regenera su identidad
     // y el effect se re-dispara pisando estado del usuario (bug real: form.reset
     // llamado dos veces al abrir un dialog borraba lo escrito por E2E).
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps, react-compiler/react-compiler
   }, [depKey]);
 }
 
