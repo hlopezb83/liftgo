@@ -7,15 +7,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { usePageActions } from "@/contexts/pageActions";
 import { useListFilters } from "@/hooks/useListFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-
-import { useQuotes, quoteQueries } from "../hooks/quotes/useQuotes";
-import { formatCurrency } from "@/lib/format/formatCurrency";
 import { STATUS_LABELS } from "@/lib/constants";
-import { QUOTE_STATUS_LABELS, quoteStatusLabel as quoteLabel } from "../constants";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
-import { usePageActions } from "@/contexts/pageActions";
+import { QUOTE_STATUS_LABELS, quoteStatusLabel as quoteLabel } from "../constants";
+import { useQuotes, quoteQueries } from "../hooks/quotes/useQuotes";
 
 const STATUSES = ["all", "draft", "sent", "accepted", "declined", "expired"];
 

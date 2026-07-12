@@ -8,13 +8,13 @@ import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useBookings } from "@/features/bookings";
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useForkliftMap } from "@/features/fleet";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { formatCurrency } from "@/lib/format/formatCurrency";
+import { parseDateLocal } from "@/lib/utils";
 import { ReturnInspectionDialog } from "../components/return-inspection/ReturnInspectionDialog";
 import { useReturnInspectionDialog } from "../hooks/returnInspection/useReturnInspectionDialog";
 import { useReturnInspections } from "../hooks/useReturnInspections";
-import { formatCurrency } from "@/lib/format/formatCurrency";
-import { parseDateLocal } from "@/lib/utils";
 
 type Inspection = NonNullable<ReturnType<typeof useReturnInspections>["data"]>[number];
 

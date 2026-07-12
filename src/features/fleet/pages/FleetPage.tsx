@@ -8,13 +8,13 @@ import { useContracts } from "@/features/contracts";
 import { useDeliveries } from "@/features/deliveries";
 import { useMaintenancePolicies } from "@/features/maintenance";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { useForklifts } from "../hooks/forklifts/useForklifts";
-import type { Forklift } from "../hooks/forklifts/useForklifts";
-import { exportToCsv } from "@/lib/exportCsv";
+import { useResourceList } from "@/hooks/useResourceList";
 import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
+import { exportToCsv } from "@/lib/exportCsv";
 import { FleetMobileCard } from "../components/fleet/FleetRowAndCard";
 import { useFleetColumns } from "../hooks/fleet/useFleetColumns";
-import { useResourceList } from "@/hooks/useResourceList";
+import { useForklifts } from "../hooks/forklifts/useForklifts";
+import type { Forklift } from "../hooks/forklifts/useForklifts";
 
 export default function FleetPage() {
   const { data: forklifts, isLoading } = useForklifts();

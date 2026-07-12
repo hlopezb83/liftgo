@@ -3,8 +3,6 @@ import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { Camera } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
-import { DamageDetailSheet } from "../components/damage/DamageDetailSheet";
-import { ReportDamageDialog } from "../components/damage/ReportDamageDialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -14,6 +12,8 @@ import { DAMAGE_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { DamageRecordWithJoins } from "@/types/rental";
+import { DamageDetailSheet } from "../components/damage/DamageDetailSheet";
+import { ReportDamageDialog } from "../components/damage/ReportDamageDialog";
 import { useDamagePhotoCounts } from "../hooks/useDamagePhotoCounts";
 import { useDamageRecords } from "../hooks/useDamageRecords";
 

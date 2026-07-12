@@ -14,10 +14,10 @@ import { MaintenanceFormDialog } from "../components/maintenance/MaintenanceForm
 import { MaintenanceKanban } from "../components/maintenance/MaintenanceKanban";
 import { MaintenancePageActions } from "../components/maintenance/MaintenancePageActions";
 import { MaintenanceMobileCard } from "../components/maintenance/MaintenanceRow";
-import { useActiveMechanics } from "../hooks/maintenance/useMechanics";
 import { useGenerateRecurringMaintenance } from "../hooks/maintenance/useGenerateRecurringMaintenance";
 import { useMaintenanceForm } from "../hooks/maintenance/useMaintenanceForm";
 import { useMaintenanceLogs, type MaintenanceLog } from "../hooks/maintenance/useMaintenanceLogs";
+import { useActiveMechanics } from "../hooks/maintenance/useMechanics";
 import { enrichLogs, maintenanceCsvRows, sumCost, type EnrichedMaintenanceLog } from "../lib/maintenancePageHelpers";
 
 export default function MaintenancePage() {

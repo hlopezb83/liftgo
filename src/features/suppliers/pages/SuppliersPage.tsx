@@ -8,11 +8,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { usePageActions } from "@/contexts/pageActions";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import { exportToCsv } from "@/lib/exportCsv";
+import { SupplierFormDialog } from "../components/suppliers/SupplierFormDialog";
 import { useSuppliers, SUPPLIER_CATEGORIES } from "../hooks/useSuppliers";
 import type { Supplier } from "../hooks/useSuppliers";
-import { RoleGuard } from "@/layouts/RoleGuard";
-import { SupplierFormDialog } from "../components/suppliers/SupplierFormDialog";
 
 export default function SuppliersPage() {
   const { data: suppliers, isLoading } = useSuppliers();

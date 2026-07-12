@@ -8,14 +8,14 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUserRole } from "@/features/users";
 import { AuditLogDetailDialog } from "../components/auditTrail/AuditLogDetailDialog";
+import { AuditLogMobileCard } from "../components/auditTrail/AuditLogMobileCard";
 import {
   TABLES, getRecordLabel, actionIcon, actionBadgeVariant,
   translateAction, translateTable, translateField, formatTimestamp,
 } from "../components/auditTrail/auditTrailConstants";
+import { DeleteAuditLogDialog } from "../components/auditTrail/DeleteAuditLogDialog";
 import { useAuditLogs, useDeleteAuditLog, useRevertAuditLog } from "../hooks/useAuditLogs";
 import type { AuditLog } from "../hooks/useAuditLogs";
-import { DeleteAuditLogDialog } from "../components/auditTrail/DeleteAuditLogDialog";
-import { AuditLogMobileCard } from "../components/auditTrail/AuditLogMobileCard";
 
 export default function AuditTrailPage() {
   const [tableFilter, setTableFilter] = useState("all");
