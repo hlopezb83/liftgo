@@ -276,5 +276,32 @@ export default tseslint.config(
       }],
     },
   },
+
+  {
+    // Guardrail Tailwind: prohibido usar utilities de color crudas de la
+    // paleta por defecto (bg-white, text-gray-500, border-slate-200…) fuera
+    // de src/components/ui/**. Toda superficie de la app se debe pintar con
+    // tokens semánticos (background, foreground, muted, primary, warning,
+    // success, status-*, gantt-*, etc.) declarados en src/index.css @theme.
+    //
+    // Excepciones: primitives shadcn en components/ui/**, PDFs (usan estilos
+    // inline de react-pdf) y tests.
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: [
+      "src/components/ui/**",
+      "src/lib/pdf/**",
+      "**/__tests__/**",
+      "**/*.test.{ts,tsx}",
+    ],
+    rules: {
+      "no-restricted-syntax": ["warn",
+        {
+          selector: "Literal[value=/\\\\b(bg|text|border|from|to|via|ring|divide|outline|placeholder|caret|fill|stroke|shadow|decoration|accent)-(white|black|slate|gray|zinc|neutral|stone|red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose)-\\\\d{2,3}\\\\b/]",
+          message: "Usa un token semántico (bg-primary, text-muted-foreground, border-warning/40, bg-status-*, bg-gantt-*, …) en lugar de la paleta cruda de Tailwind. Los tokens están en src/index.css.",
+        },
+      ],
+    },
+  },
 );
+
 
