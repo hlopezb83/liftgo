@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.61.2",
+    "date": "2026-07-12",
+    "type": "patch",
+    "title": "Fix: logo horizontal invisible en el sidebar",
+    "description": "El logo de la empresa se renderizaba dentro de un contenedor cuadrado de 36×36 con padding, aplastando logos horizontales (aspect ratio >2:1) hasta hacerlos ilegibles. Ahora, cuando hay logo cargado, se muestra a altura fija (h-9) respetando el ancho natural con max-w-[7rem] y sin fondo. El fallback 'LG' se conserva.",
+    "category": "bugfix",
+    "files": [
+      "src/layouts/sidebar/SidebarBranding.tsx",
+      "public/changelog/v7.61.2.json",
+      "public/changelog.json"
+    ]
+  },
+  {
     "version": "7.61.1",
     "date": "2026-07-12",
     "type": "patch",
