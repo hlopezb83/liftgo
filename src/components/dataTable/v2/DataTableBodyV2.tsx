@@ -26,7 +26,22 @@ export function DataTableBodyV2<T>({
   showSelection,
   onRowClick,
   rowClassName,
+  onRowPrefetch,
 }: Props<T>): ReactNode {
+  const queryClient = useQueryClient();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const armPrefetch = (item: T) => {
+    if (!onRowPrefetch) return;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      void queryClient.prefetchQuery(onRowPrefetch(item));
+    }, PREFETCH_DELAY_MS);
+  };
+  const disarmPrefetch = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = undefined;
+  };
+
   if (rows.length === 0) {
     return (
       <TableBody>
