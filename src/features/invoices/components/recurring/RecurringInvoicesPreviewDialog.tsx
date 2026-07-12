@@ -29,6 +29,9 @@ function periodTitle(period: string | null): string {
 export function RecurringInvoicesPreviewDialog({
   open, onOpenChange, data, isLoading, isGenerating, onConfirm,
 }: Props) {
+  // `lines` y `eligibleIds` conservan useMemo: alimentan el patrón
+  // "adjust state during render" via `prevEligibleRef`. Sin identidad estable
+  // el efecto re-dispararía y provocaría un loop de setState.
   const lines = useMemo(() => data?.lines ?? [], [data?.lines]);
   const eligibleIds = useMemo(() => lines.filter((l) => l.eligible).map((l) => l.bookingId), [lines]);
   const [selected, setSelected] = useState<Set<string>>(() => new Set(eligibleIds));
@@ -42,21 +45,19 @@ export function RecurringInvoicesPreviewDialog({
     setSelected(new Set(eligibleIds));
   }
 
-  const groups = useMemo(() => {
-    const map = new Map<string, RecurringPreviewLine[]>();
-    for (const line of lines) {
-      const key = line.customerName ?? "Sin cliente";
-      const arr = map.get(key) ?? [];
-      arr.push(line);
-      map.set(key, arr);
-    }
-    return Array.from(map.entries()).sort((a, b) => a[0].localeCompare(b[0], "es"));
-  }, [lines]);
+  // Derivaciones puras: React Compiler las memoiza.
+  const groupMap = new Map<string, RecurringPreviewLine[]>();
+  for (const line of lines) {
+    const key = line.customerName ?? "Sin cliente";
+    const arr = groupMap.get(key) ?? [];
+    arr.push(line);
+    groupMap.set(key, arr);
+  }
+  const groups = Array.from(groupMap.entries()).sort((a, b) => a[0].localeCompare(b[0], "es"));
 
-  const totalSelected = useMemo(
-    () => lines.filter((l) => selected.has(l.bookingId)).reduce((acc, l) => acc + applyVat(l.monthlyRate), 0),
-    [lines, selected],
-  );
+  const totalSelected = lines
+    .filter((l) => selected.has(l.bookingId))
+    .reduce((acc, l) => acc + applyVat(l.monthlyRate), 0);
 
 
   const toggle = (id: string) => {
