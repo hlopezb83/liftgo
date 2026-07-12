@@ -34,7 +34,7 @@ export default tseslint.config(
       "react-refresh": reactRefresh,
       "react-compiler": reactCompiler,
       "jsx-a11y": jsxA11y,
-      import: importPlugin,
+      "import-x": importPlugin,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
@@ -45,7 +45,7 @@ export default tseslint.config(
       "jsx-a11y/no-static-element-interactions": "warn",
       "jsx-a11y/label-has-associated-control": "warn",
       // Orden de imports consistente (autofix con `bun run lint --fix`).
-      "import/order": ["warn", {
+      "import-x/order": ["warn", {
         groups: ["builtin", "external", "internal", "parent", "sibling", "index", "type"],
         "newlines-between": "never",
         alphabetize: { order: "asc", caseInsensitive: true },
