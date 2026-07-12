@@ -3,25 +3,30 @@ import { supabase } from "@/integrations/supabase/client";
 import { syncInvoiceStatus } from "../lib/syncInvoiceStatus";
 import { invoiceKeys, paymentKeys } from "../lib/queryKeys";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 
 export type Payment = Tables<"payments">;
 
+export const paymentQueries = defineEntityQueries<"payments", Payment[], never>("payments", {
+  list: (filter) => async () => {
+    const invoiceId = filter?.invoiceId as string | undefined;
+    let q = supabase
+      .from("payments")
+      .select("*")
+      .order("payment_date", { ascending: false });
+    if (invoiceId) q = q.eq("invoice_id", invoiceId);
+    const { data, error } = await q;
+    if (error) throw error;
+    return data;
+  },
+});
+
 export function usePayments(invoiceId: string | undefined) {
   return useQuery({
-    queryKey: invoiceId ? paymentKeys.byInvoice(invoiceId) : paymentKeys.all,
+    ...paymentQueries.list({ invoiceId: invoiceId ?? null }),
     enabled: !!invoiceId,
-    staleTime: 60_000,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("payments")
-        .select("*")
-        .eq("invoice_id", invoiceId ?? "")
-        .order("payment_date", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
   });
 }
 

@@ -5,39 +5,48 @@ import { supabase } from "@/integrations/supabase/client";
 import { EXCLUDE_E2E_FILTER, LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import { invoiceKeys } from "../../lib/queryKeys";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
+type InvoiceListRow = Awaited<ReturnType<typeof fetchInvoiceList>>[number];
+type InvoiceDetailRow = Awaited<ReturnType<typeof fetchInvoiceDetail>>;
+
+async function fetchInvoiceList() {
+  const { data, error } = await supabase
+    .from("invoices")
+    .select("*")
+    .or(EXCLUDE_E2E_FILTER)
+    .order("created_at", { ascending: false })
+    .limit(LIST_PAGE_LIMIT);
+  if (error) throw error;
+  return data ?? [];
+}
+
+async function fetchInvoiceDetail(id: string) {
+  const { data, error } = await supabase.from("invoices").select("*").eq("id", id).maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export const invoiceQueries = defineEntityQueries<"invoices", InvoiceListRow[], InvoiceDetailRow>(
+  "invoices",
+  {
+    list: () => fetchInvoiceList,
+    detail: (id) => () => fetchInvoiceDetail(id),
+  },
+);
+
 export function useInvoices() {
-  return useQuery({
-    queryKey: invoiceKeys.lists(),
-    staleTime: 60_000,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("invoices")
-        .select("*")
-        .or(EXCLUDE_E2E_FILTER)
-        .order("created_at", { ascending: false })
-        .limit(LIST_PAGE_LIMIT);
-      if (error) throw error;
-      return data;
-    },
-  });
+  return useQuery(invoiceQueries.list());
 }
 
 export function useInvoice(id: string | undefined) {
   return useQuery({
-    queryKey: id ? invoiceKeys.detail(id) : invoiceKeys.details(),
+    ...invoiceQueries.detail(id ?? ""),
     enabled: !!id,
-    // El detalle puede quedar huérfano (borrado en otra pestaña, RLS, id inválido
-    // en URL). El componente ya maneja `!invoice` → "Factura no encontrada",
-    // así que silenciamos el toast global para este caso benigno.
+    // Detalle huérfano (borrado / RLS / id inválido en URL) → toast global silenciado;
+    // el componente ya renderiza "Factura no encontrada".
     meta: { silent: true },
-    queryFn: async () => {
-      if (!id) throw new Error("Invoice ID is required");
-      const { data, error } = await supabase.from("invoices").select("*").eq("id", id).maybeSingle();
-      if (error) throw error;
-      return data;
-    },
   });
 }
 
@@ -91,5 +100,3 @@ export function useDeleteInvoice() {
     },
   });
 }
-
-
