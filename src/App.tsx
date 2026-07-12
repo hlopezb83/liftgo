@@ -1,12 +1,12 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { AdminRouteGuard } from "@/layouts/AdminRouteGuard";
 import { AppProviders } from "@/layouts/AppProviders";
 import { AuthGuard } from "@/layouts/AuthGuard";
-import { appRoutes, PageFallback } from "@/routes/routes-config";
-import { RoleGuard } from "@/layouts/RoleGuard";
-import { AdminRouteGuard } from "@/layouts/AdminRouteGuard";
 import MainLayout from "@/layouts/MainLayout";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import { RouteErrorBoundary } from "@/layouts/RouteErrorBoundary";
+import { appRoutes, PageFallback } from "@/routes/routes-config";
 
 
 const PortalLogin = lazy(() => import("@/features/portal/pages/PortalLogin"));
@@ -14,7 +14,7 @@ const NotFound = lazy(() => import("./features/system/pages/NotFound"));
 
 const App = () => (
   <AppProviders>
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <BrowserRouter>
       <Routes>
         <Route
           path="/portal/login"
