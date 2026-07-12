@@ -17,7 +17,7 @@ export function useInvoicesFilters(invoices: Invoice[] | undefined) {
     statusField: "status",
   });
 
-  const computeStatusFiltered = (): Invoice[] | undefined => {
+  const computeStatusFiltered = () => {
     if (statusFilter !== "overdue") return baseFiltered;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
