@@ -1,3 +1,4 @@
+import { useWatch } from "react-hook-form";
 import { TextField, TextareaField } from "@/components/forms/fields";
 import { LocationIcon, TargetIcon, X, SpinnerIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +22,7 @@ export function FeedbackFormFields({
   form, route, selectedElement, screenshotPreview, isCapturing,
   onStartPicker, onClearElement,
 }: Props) {
-  const type = form.watch("type");
+  const type = useWatch({ control: form.control, name: "type" });
 
   return (
     <>
