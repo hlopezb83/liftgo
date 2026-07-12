@@ -22,7 +22,11 @@ export function ProspectCard({ prospect, quoteNumber, density, onClick }: Prospe
   });
 
   const style = {
-    transform: CSS.Translate.toString(transform),
+    // `CSS.Transform.toString` (vs `Translate`) es la variante recomendada por
+    // dnd-kit para `useSortable`: además del translate serializa scaleX/scaleY
+    // que emiten estrategias no-verticales y evita jitter cuando el activator
+    // cambia entre drag/keyboard.
+    transform: CSS.Transform.toString(transform),
     transition,
     opacity: isDragging ? 0.4 : 1,
   };
