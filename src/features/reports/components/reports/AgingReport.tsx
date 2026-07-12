@@ -3,7 +3,8 @@ import { Button } from "@/components/ui/button";
 import { DownloadIcon } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay, nowMty } from "@/lib/utils";
-import { differenceInDays, format, parseISO } from "date-fns";
+import { todayKeyMty } from "@/lib/format/dateFormats";
+import { differenceInDays, parseISO } from "date-fns";
 import { exportToCsv } from "@/lib/exportCsv";
 
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
@@ -22,7 +23,7 @@ function getAgingBucket(days: number): string {
 }
 
 export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingReportProps) {
-  const todayYmd = format(nowMty(), "yyyy-MM-dd");
+  const todayYmd = todayKeyMty();
   // Vista unificada: ya viene con balance > 0 y status filtrado.
   const { data: rawOverdue } = useInvoicesWithBalance({
     statuses: ["sent", "partial", "overdue"],
