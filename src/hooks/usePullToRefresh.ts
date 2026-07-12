@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useRef, useState } from "react";
 import { useDrag } from "@use-gesture/react";
+import { useCallback, useMemo, useRef, useState } from "react";
 
 interface UsePullToRefreshOptions {
   onRefresh: () => Promise<unknown> | void;
@@ -50,12 +50,12 @@ export function usePullToRefresh({
   const targetRef = useMemo(() => ({ current: target }), [target]);
 
   useDrag(
-    ({ movement: [, my], last, canceled, first, event }) => {
+    ({ movement: [, my], last, canceled, first, event, cancel }) => {
       if (!enabled || !target) return;
 
       // Solo interceptamos si el contenedor está en el tope del scroll al iniciar.
       if (first && target.scrollTop > 0) {
-        canceled = true;
+        cancel();
         return;
       }
       if (target.scrollTop > 0) {

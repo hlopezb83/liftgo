@@ -1,0 +1,12 @@
+{
+  "version": "7.61.6",
+  "date": "2026-07-12",
+  "type": "patch",
+  "title": "CI: fix eslint no-useless-assignment en usePullToRefresh",
+  "category": "fix",
+  "changes": [
+    "Reemplazado `canceled = true` (reasignación inútil de una variable local destructurada) por la llamada real `cancel()` expuesta por `useDrag` de @use-gesture/react, que sí cancela el gesto en la librería.",
+    "Corregido orden de imports (`import-x/order`) en `src/hooks/usePullToRefresh.ts`: `@use-gesture/react` antes que `react`.",
+    "Resultado: ESLint pasa de `✖ 100 problems (1 error, 99 warnings)` a `98 warnings`, CI vuelve a verde. Los 98 warnings restantes son deuda incremental no bloqueante (import-x/order, react-compiler hints)."
+  ]
+}
