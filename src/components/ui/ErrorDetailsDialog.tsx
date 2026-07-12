@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useCopyToClipboard } from "usehooks-ts";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { DuplicateIcon, Check } from "@/components/icons";
@@ -10,42 +11,16 @@ import { notifySuccess, notifyWarning } from "@/lib/ui/appFeedback";
  * Diálogo global de detalles de error. Montar una sola vez en el root.
  * Se controla vía `openErrorReport()` desde cualquier toast destructive.
  */
-async function copyToClipboard(text: string): Promise<boolean> {
-  try {
-    if (typeof navigator !== "undefined" && navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(text);
-      return true;
-    }
-  } catch {
-    // fall through to legacy fallback
-  }
-  try {
-    const ta = document.createElement("textarea");
-    ta.value = text;
-    ta.setAttribute("readonly", "");
-    ta.style.position = "fixed";
-    ta.style.top = "0";
-    ta.style.left = "0";
-    ta.style.opacity = "0";
-    document.body.appendChild(ta);
-    ta.focus();
-    ta.select();
-    const ok = document.execCommand("copy");
-    document.body.removeChild(ta);
-    return ok;
-  } catch {
-    return false;
-  }
-}
 export function ErrorDetailsDialog() {
   const { open, report } = useErrorReport();
+  const [, copy] = useCopyToClipboard();
   const [copied, setCopied] = useState(false);
 
   const text = report ? formatReportText(report) : "";
 
   const handleCopy = async () => {
     if (!text) return;
-    const ok = await copyToClipboard(text);
+    const ok = await copy(text);
     if (ok) {
       setCopied(true);
       notifySuccess("Reporte copiado al portapapeles");

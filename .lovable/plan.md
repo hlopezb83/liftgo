@@ -1,69 +1,48 @@
+# Auditoría: código custom reemplazable por dependencias
 
-## Sprint: Migración Kanbans → @dnd-kit (Lote F)
+## Resumen ejecutivo
 
-**Alcance:** reemplazar `@hello-pangea/dnd` por `@dnd-kit/*` en los 2 Kanbans existentes, sin cambiar UX ni lógica de negocio (reglas de guardas, optimistic updates, apertura de diálogo al mover a `cerrado_ganado`).
+La base está **bien alineada** con las dependencias instaladas. Ya se apoya correctamente en:
 
-### Archivos afectados (7)
+- **Fechas** → `date-fns` + `date-fns-tz` (`src/lib/utils.ts`, `src/lib/format/dateFormats.ts`)
+- **Dinero** → `currency.js` (`src/lib/money/index.ts`)
+- **CSV** → `papaparse` (`src/lib/exportCsv.ts`)
+- **Markdown + sanitización** → `marked` + `dompurify` (`src/features/help/lib/markdown.ts`)
+- **Tablas + virtualización** → `@tanstack/react-table` + `@tanstack/react-virtual` (`src/components/dataTable/v2/*`)
+- **Persistencia de cache** → `@tanstack/query-sync-storage-persister`
+- **PDFs** → `@react-pdf/renderer` en todo `src/lib/pdf/*`
 
-| Archivo | Rol tras migración |
-|---|---|
-| `src/features/crm/pages/CRMPage.tsx` | Cambia firma de `onDragEnd(result: DropResult)` → `onDragEnd(event: DragEndEvent)` |
-| `src/features/crm/components/CRMKanbanGrid.tsx` | Monta `<DndContext>` + `<DragOverlay>` |
-| `src/features/crm/components/KanbanColumn.tsx` | Usa `useDroppable` en lugar de `<Droppable>`; envuelve items en `<SortableContext strategy={verticalListSortingStrategy}>` |
-| `src/features/crm/components/ProspectCard.tsx` | Usa `useSortable` en lugar de `<Draggable>` |
-| `src/features/maintenance/components/maintenance/MaintenanceKanban.tsx` | Monta `<DndContext>` |
-| `src/features/maintenance/components/maintenance/kanban/MaintenanceKanbanColumn.tsx` | `useDroppable` + `SortableContext` |
-| `src/features/maintenance/hooks/maintenance/useMaintenanceKanban.ts` | Firma cambia a `DragEndEvent`; misma lógica de optimistic update |
+**Conclusión:** el margen real de reemplazo es pequeño y se concentra en hooks utilitarios y un helper de clipboard. No hay virtualización, paginación, retry/backoff, slugify, deep-equal, uuid ni focus-trap reinventados.
 
-### Dependencias
+## Hallazgos priorizados
 
-Instalar:
-```
-@dnd-kit/core@^6
-@dnd-kit/sortable@^10
-@dnd-kit/utilities@^3
-```
-Remover `@hello-pangea/dnd` una vez migrado y `tsgo` limpio.
+Ordenados por (Impacto desc, Complejidad asc).
 
-### Diseño técnico
 
-**Sensors (compartidos por ambos Kanbans):**
-```ts
-useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
-useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
-```
-`distance: 4` evita drags accidentales al hacer click en la card (que abre detalle). Con `@hello-pangea/dnd` esto no era problema porque distingue click vs drag internamente; en dnd-kit hay que declararlo.
+| #   | Archivo                                               | Custom                                                                                    | Reemplazo                                                                                                                  | Impacto | Complejidad |
+| --- | ----------------------------------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------- | ----------- |
+| 1   | `src/hooks/useListFilters.ts:78-98`                   | Filtrado manual de listas por búsqueda/status en paralelo a `DataTableV2`                 | `@tanstack/react-table` (`globalFilter` / `columnFilters`) — **ya instalada**                                              | Medio   | Alta        |
+| 2   | `src/hooks/use-mobile.tsx:5-27`                       | `useMatchMedia` / `useIsMobile` / `useIsTabletOrBelow` con `matchMedia` + listener manual | `usehooks-ts` `useMediaQuery` — **añadir dependencia**                                                                     | Medio   | Baja        |
+| 3   | `src/hooks/useKeySequence.ts` + `src/lib/shortcuts/*` | Secuencias multi-tecla (`g d`) con `keydown` manual                                       | `react-hotkeys-hook` v5 soporta secuencias — **ya instalada**. Requiere verificar API `useHotkeys("g>d")` antes de migrar. | Medio   | Baja/Media  |
+| 4   | `src/hooks/usePullToRefresh.ts`                       | Pull-to-refresh táctil manual (touchstart/move/end)                                       | `react-simple-pull-to-refresh` — **no instalada**; solo si se acepta nueva dep                                             | Medio   | Media       |
+| 5   | `src/hooks/useDebouncedValue.ts:7-14`                 | Debounce con `useState` + `setTimeout`                                                    | `usehooks-ts` `useDebounce` — **añadir dependencia**                                                                       | Bajo    | Baja        |
+| 6   | `src/components/ui/ErrorDetailsDialog.tsx:13-39`      | `copyToClipboard` con fallback manual `execCommand` + `<textarea>`                        | `usehooks-ts` `useCopyToClipboard`                                                                                         | Bajo    | Baja        |
+| 7   | `src/lib/ui/errorReport.ts:54-59`                     | `safeUuid()` fallback manual sobre `crypto.randomUUID`                                    | Simplificar (no requiere dependencia)                                                                                      | Bajo    | Baja        |
 
-**Detección de colisión:** `closestCorners` (comportamiento equivalente al de pangea para columnas verticales).
 
-**Identidad:** `id` de draggables = `prospect.id` / `log.id`. Columnas droppables usan `id` = `stageKey` / `work_status`. Se agrega `data: { type: "card" | "column", ... }` a cada draggable/droppable para que el handler distinga en `onDragEnd`.
+## Recomendación de sprint
 
-**Reordenamiento intra-columna (solo CRM):** El código actual llama `updateProspect({ id, stage_order: destination.index })`. Con dnd-kit se calcula el nuevo índice desde `over.data.current.sortable.index` (provisto por `SortableContext`). Se mantiene el mismo mutation.
+Propongo agrupar por impacto y complejidad. **Este es solo el reporte** — dime cuáles autorizas para ejecutar en un sprint posterior:
 
-**Cross-column:** Cuando `active.data.current.columnId !== over.data.current.columnId` se dispara la misma lógica actual (para CRM: abrir diálogo si es `cerrado_ganado`, sin persistir aún; para mantenimiento: optimistic update + mutation).
+- **Lote G1 (rápido, alto ROI):** instalar `usehooks-ts` y migrar hallazgos #2, #5, #6. ~1 dependencia nueva, elimina 3 hooks caseros y un helper con fallback frágil.
+- **Lote G2 (verificación previa):** revisar API de secuencias en `react-hotkeys-hook@5.3.3` (hallazgo #3). Si soporta `g>d`, migrar `useKeySequence` y consolidar en una sola librería de atajos.
+- **Lote G3 (mayor esfuerzo):** migrar `useListFilters` a `globalFilter`/`columnFilters` de `@tanstack/react-table` (hallazgo #1). Requiere tocar cada call-site y mantener el sync a `searchParams`/`sessionStorage`.
+- **Descartar / opcional:** #4 (pull-to-refresh) solo si se acepta dependencia nueva; #7 puede simplemente simplificarse sin migración.
 
-**DragOverlay:** Renderiza una copia visual de la card arrastrada mientras `activeId` está seteado — reemplaza el efecto `rotate-1 shadow-lg` que hoy va sobre el nodo original. Esto elimina el hack de `snap.isDragging` sobre la Card.
+## Notas técnicas
 
-**Accesibilidad:** dnd-kit trae keyboard navigation (Space para tomar, arrows para mover, Space para soltar, Esc para cancelar) y announcements ARIA nativos — pangea también los tenía; se mantiene paridad.
+- No se detectó uso de `file-saver`, comparadores locale custom fuera de `dataTable/v2/sorting.ts` (que usa `localeCompare` correctamente), ni generación PDF ad hoc.
+- Zonas ya óptimas que **no** requieren cambios: fechas, dinero, CSV, markdown, tablas, virtualización, PDFs, query cache.
+- Ninguna acción se ejecuta hasta que aprueben el sprint correspondiente.
 
-### Verificación
-
-1. `tsgo` limpio en los 7 archivos.
-2. Playwright headless en `/crm` y `/mantenimiento`:
-   - montar página, screenshot de estado idle
-   - simular drag con `page.mouse.down/move/up` sobre una card hacia otra columna
-   - verificar console 0 errores y screenshot posterior
-3. Verificar que click simple en una card sigue abriendo el detalle (no dispara drag por el `activationConstraint`).
-4. Verificar reordenamiento intra-columna en CRM (persistencia de `stage_order`).
-5. Verificar guarda: mover una card a `cerrado_ganado` como usuario no-admin muestra el toast de error y revierte.
-
-### Cierre
-
-- Desinstalar `@hello-pangea/dnd`.
-- Agregar entrada al changelog como **minor** (v7.58.0): "Migración de Kanbans (CRM + Mantenimiento) a @dnd-kit con mejor accesibilidad por teclado y DragOverlay nativo".
-
-### Fuera de alcance
-
-- No se toca UX del kanban (columnas, colores, densidad, filtros, toolbar).
-- No se cambia lógica de negocio (guardas, mutations, side-effects al mover a ganado).
-- No se agregan features nuevas (drag entre múltiples boards, virtualización, etc.).
+Implementamos los 7 hallazgos

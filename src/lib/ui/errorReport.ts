@@ -52,11 +52,9 @@ function getAppVersion(): string {
 }
 
 function safeUuid(): string {
-  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
-    return crypto.randomUUID();
-  }
-  // Fallback determinista por timestamp (no debería ejecutarse en navegadores modernos).
-  return `req-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  // `crypto.randomUUID` está disponible en todos los navegadores objetivo del app
+  // y en el runtime de Node de las Edge Functions. No requerimos fallback.
+  return crypto.randomUUID();
 }
 
 function currentRoute(): string {
