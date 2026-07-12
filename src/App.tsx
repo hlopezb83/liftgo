@@ -14,7 +14,7 @@ const NotFound = lazy(() => import("./features/system/pages/NotFound"));
 
 const App = () => (
   <AppProviders>
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Routes>
         <Route
           path="/portal/login"
