@@ -49,7 +49,7 @@ export default defineConfig(({ mode }) => ({
         sourcemaps: { assets: "./dist/**" },
         telemetry: false,
       }),
-  ].filter(Boolean),
+  ].filter(Boolean) as import("vite").PluginOption[],
 
   resolve: {
     alias: {
