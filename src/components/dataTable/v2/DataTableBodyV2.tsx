@@ -1,7 +1,6 @@
 import { useRef, type ReactNode } from "react";
 import { flexRender, type Row } from "@tanstack/react-table";
 import { useQueryClient, type QueryClient } from "@tanstack/react-query";
-type PrefetchQueryOptions = Parameters<QueryClient["prefetchQuery"]>[0];
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { EmptyRow } from "@/components/feedback/EmptyRow";
@@ -17,7 +16,7 @@ interface Props<T> {
   showSelection: boolean;
   onRowClick?: (item: T) => void;
   rowClassName?: (item: T) => string | undefined;
-  onRowPrefetch?: (item: T) => PrefetchQueryOptions;
+  onRowPrefetch?: (item: T) => unknown;
 }
 
 export function DataTableBodyV2<T>({
@@ -35,7 +34,7 @@ export function DataTableBodyV2<T>({
     if (!onRowPrefetch) return;
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
-      void queryClient.prefetchQuery(onRowPrefetch(item));
+      void queryClient.prefetchQuery(onRowPrefetch(item) as Parameters<QueryClient["prefetchQuery"]>[0]);
     }, PREFETCH_DELAY_MS);
   };
   const disarmPrefetch = () => {

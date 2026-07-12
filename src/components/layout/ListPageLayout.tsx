@@ -2,7 +2,6 @@ import { ReactNode, useEffect, useRef, useState } from "react";
 import { type LucideIcon, SpinnerIcon, RefreshIcon, FilterIcon } from "@/components/icons";
 import type { Table as TanstackTable } from "@tanstack/react-table";
 import type { QueryClient } from "@tanstack/react-query";
-type PrefetchQueryOptions = Parameters<QueryClient["prefetchQuery"]>[0];
 import { PageTransition } from "@/components/layout/PageTransition";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
@@ -37,7 +36,7 @@ interface ListPageLayoutProps<T> {
   /** Click handler para filas (modo tabla). */
   onRowClick?: (item: T) => void;
   /** Handler opcional para prefetch de detalle al hacer hover en fila. */
-  onRowPrefetch?: (item: T) => PrefetchQueryOptions;
+  onRowPrefetch?: (item: T) => unknown;
   /** Si se provee, en mobile/tablet se renderiza como tarjetas en lugar de tabla. */
   mobileCardRender?: (item: T) => ReactNode;
   /** Extractor de key para mobile cards. Default: (item).id */
@@ -214,7 +213,7 @@ interface TableContentProps<T> {
   emptyActionLabel?: string;
   onEmptyAction?: () => void;
   onRowClick?: (item: T) => void;
-  onRowPrefetch?: (item: T) => PrefetchQueryOptions;
+  onRowPrefetch?: (item: T) => unknown;
   mobileCardRender?: (item: T) => ReactNode;
   mobileKeyExtractor?: (item: T) => string;
   skeletonColumns?: number;
