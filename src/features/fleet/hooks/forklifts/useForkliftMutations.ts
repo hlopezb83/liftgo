@@ -1,14 +1,14 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { notifyError } from "@/lib/ui/appFeedback";
 import type { Forklift } from "@/types/rental";
-import { forkliftKeys } from "../../lib/queryKeys";
+import { forkliftKeys, insuranceAlertsKeys, statusLogKeys } from "../../lib/queryKeys";
 
 export function useCreateForklift() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (forklift: TablesInsert<"forklifts">) => {
       const { data, error } = await supabase.from("forklifts").insert(forklift).select().single();
       if (error) throw error;
@@ -19,10 +19,8 @@ export function useCreateForklift() {
       });
       return data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: forkliftKeys.all }),
-    onError: (err: Error) => {
-      notifyError({ title: "Error al crear montacargas", error: err });
-    },
+    invalidateKeys: [forkliftKeys.all],
+    errorTitle: "Error al crear montacargas",
   });
 }
 
@@ -41,7 +39,7 @@ export function useUpdateForklift() {
       queryClient.setQueryData(forkliftKeys.detail(data.id), data);
       queryClient.invalidateQueries({ queryKey: ["forklift-options"] });
       queryClient.invalidateQueries({ queryKey: ["supplier_bills"] });
-      queryClient.invalidateQueries({ queryKey: ["insurance-alerts"] });
+      queryClient.invalidateQueries({ queryKey: insuranceAlertsKeys.all });
     },
     onError: (err: Error) => {
       notifyError({ title: "Error al actualizar montacargas", error: err });
@@ -70,8 +68,7 @@ export function useDeleteForklift() {
 }
 
 export function useUpdateStatus() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({
       forkliftId, fromStatus, toStatus, note,
     }: { forkliftId: string; fromStatus: string; toStatus: string; note?: string }) => {
@@ -90,9 +87,7 @@ export function useUpdateStatus() {
       // menos depreciación acumulada). NO insertamos una factura `costo_venta`
       // para evitar doble conteo del COGS en el P&L (v6.92.0).
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: forkliftKeys.all });
-      queryClient.invalidateQueries({ queryKey: ["status_logs"] });
-    },
+    invalidateKeys: [forkliftKeys.all, statusLogKeys.all],
+    errorTitle: "Error al actualizar estado de montacargas",
   });
 }

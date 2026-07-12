@@ -1,18 +1,31 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import type { Tables } from "@/integrations/supabase/types";
+import { quoteAssignedForkliftKeys } from "../../../lib/queryKeys";
+
+type QuoteAssignedForklift = Tables<"quote_assigned_forklifts">;
+
+export const quoteAssignmentsQueries = defineEntityQueries<
+  typeof quoteAssignedForkliftKeys.all[number],
+  QuoteAssignedForklift[],
+  never
+>("quote_assigned_forklifts", {
+  list: (filter) => async () => {
+    const quoteId = filter?.quoteId as string | undefined;
+    const { data, error } = await supabase
+      .from("quote_assigned_forklifts")
+      .select("*")
+      .eq("quote_id", quoteId ?? "")
+      .order("line_index");
+    if (error) throw error;
+    return data;
+  },
+});
 
 export function useQuoteAssignments(quoteId: string | undefined) {
   return useQuery({
-    queryKey: ["quote_assigned_forklifts", quoteId],
+    ...quoteAssignmentsQueries.list({ quoteId }),
     enabled: !!quoteId,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("quote_assigned_forklifts")
-        .select("*")
-        .eq("quote_id", quoteId ?? "")
-        .order("line_index");
-      if (error) throw error;
-      return data;
-    },
   });
 }

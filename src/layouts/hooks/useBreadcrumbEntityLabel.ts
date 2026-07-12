@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { breadcrumbLabelQueries, type BreadcrumbResolver, type BreadcrumbFilter } from "../lib/queryKeys";
 
 const ID_REGEX = /^[0-9a-f-]{20,}$/i;
 
@@ -11,22 +11,7 @@ function pickString(value: unknown): string | null {
   return typeof value === "string" && value.length > 0 ? value : null;
 }
 
-interface ResolvedLabel {
-  table:
-    | "forklifts"
-    | "invoices"
-    | "quotes"
-    | "customers"
-    | "contracts"
-    | "bookings"
-    | "deliveries"
-    | "return_inspections"
-    | "suppliers";
-  select: string;
-  format: (row: Record<string, unknown>) => string | null;
-}
-
-const RESOLVERS: Record<string, ResolvedLabel> = {
+const RESOLVERS: Record<string, BreadcrumbResolver> = {
   fleet: {
     table: "forklifts",
     select: "name,model,manufacturer",
@@ -87,23 +72,11 @@ export function useBreadcrumbEntityLabel(pathname: string) {
   }
 
   const resolver = parent ? RESOLVERS[parent] : null;
+  const filter: BreadcrumbFilter = { resolver, id };
 
   const query = useQuery({
-    queryKey: ["breadcrumb-label", parent, id],
+    ...breadcrumbLabelQueries.list(filter),
     enabled: !!resolver && !!id,
-    staleTime: 60_000,
-    queryFn: async () => {
-      if (!resolver || !id) return null;
-      // Boundary: supabase typings no soportan select dinámico desde unión de tablas.
-      // Castigo aislado a una sola línea; el resto del hook es 100% tipado.
-      const { data, error } = await supabase
-        .from(resolver.table)
-        .select(resolver.select)
-        .eq("id", id)
-        .maybeSingle<Record<string, unknown>>();
-      if (error || !data) return null;
-      return resolver.format(data);
-    },
   });
 
   return {
