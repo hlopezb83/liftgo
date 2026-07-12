@@ -20,17 +20,27 @@ export default defineConfig(({ mode }) => ({
     hmr: {
       overlay: false,
     },
+    // Warmup: precalienta el grafo de módulos de las rutas críticas para
+    // que el primer render en dev no espere transforms secuenciales.
+    warmup: {
+      clientFiles: [
+        "./src/main.tsx",
+        "./src/App.tsx",
+        "./src/layouts/AppSidebar.tsx",
+        "./src/routes/routes-config.tsx",
+      ],
+    },
   },
   preview: {
     host: "::",
     port: 8080,
   },
   plugins: [
-    react({
-      babel: {
-        plugins: [["babel-plugin-react-compiler", { target: "19" }]],
-      },
-    }),
+    // plugin-react v6 usa Oxc para JSX/HMR y ya NO acepta `babel`. El
+    // React Compiler queda cubierto por eslint-plugin-react-compiler
+    // (análisis estático). Migración a runtime compiler requiere
+    // rolldown-vite + `reactCompilerPreset` — pendiente.
+    react(),
     mode === "development" && componentTagger(),
     process.env.ANALYZE === "1" &&
       visualizer({
