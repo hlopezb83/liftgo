@@ -20,14 +20,18 @@ export function roundMoney(n: number | null | undefined): number {
 }
 
 /**
- * Suma una lista de montos y redondea a 2 decimales. Ignora NaN/undefined.
+ * Suma una lista de montos y redondea a 2 decimales SOLO al final. Ignora
+ * NaN/undefined. Acumula con alta precisión (10 dec) para evitar que cada
+ * `.add()` redondee prematuramente y produzca drift (p.ej. 1.005+2.005+3.005
+ * debe dar 6.02, no 6.03).
  */
+const ACC_OPTS = { precision: 10 } as const;
 export function sumMoney(values: ReadonlyArray<number | null | undefined>): number {
-  let acc = currency(0, MONEY_OPTS);
+  let acc = currency(0, ACC_OPTS);
   for (const v of values) {
     if (typeof v === "number" && Number.isFinite(v)) acc = acc.add(v);
   }
-  return acc.value;
+  return currency(acc.value, MONEY_OPTS).value;
 }
 
 /**

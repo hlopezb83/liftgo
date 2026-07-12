@@ -1,0 +1,15 @@
+{
+  "version": "7.61.5",
+  "date": "2026-07-12",
+  "type": "patch",
+  "title": "Fix: sumMoney acumula sin redondeo prematuro",
+  "description": "Bug introducido en la migración a currency.js: sumMoney construía el acumulador con precision:2, provocando que cada .add() redondeara y generara drift monetario (1.005+2.005+3.005 → 6.03 en vez de 6.02). Fix: acumulador con precision:10 y redondeo único al final vía currency(acc.value, {precision:2}).",
+  "category": "fix",
+  "impact": "Corrige totales de reportes financieros, cash-flow, cuentas por pagar y cualquier agregación que use sumMoney sobre valores con más de 2 decimales.",
+  "files": [
+    "src/lib/money/index.ts"
+  ],
+  "tests": [
+    "src/lib/money/money.test.ts (sumMoney > sums and rounds to 2 decimals) — PASS"
+  ]
+}
