@@ -149,7 +149,7 @@ export function IncomeStatementDocument(props: IncomeStatementDocumentProps) {
           <View style={sharedStyles.headerRight}>
             <Text style={sharedStyles.headerKicker}>ESTADO DE RESULTADOS</Text>
             <Text style={sharedStyles.headerNumber}>{periodLabel(props)}</Text>
-            <Text style={sharedStyles.headerMeta}>Emitido: {format(nowMty(), "dd/MM/yyyy")}</Text>
+            <Text style={sharedStyles.headerMeta}>Emitido: {formatDateMty(nowMty())}</Text>
           </View>
         </View>
         <View style={sharedStyles.separator} />
