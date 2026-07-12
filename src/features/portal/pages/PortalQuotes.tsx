@@ -1,5 +1,4 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { useMemo } from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -17,7 +16,7 @@ export default function PortalQuotes() {
   const { data, isLoading } = usePortalQuotes();
   const navigate = useNavigateTransition();
 
-  const columns = useMemo<ColumnDef<Quote>[]>(() => [
+  const columns: ColumnDef<Quote>[] = [
     { id: "quote_number", header: "Cotización #", accessorKey: "quote_number",
       cell: ({ row }) => <span className="font-medium">{row.original.quote_number}</span> },
     { id: "created_at", header: "Fecha", accessorKey: "created_at",
@@ -28,7 +27,7 @@ export default function PortalQuotes() {
       cell: ({ row }) => <span className="font-mono">{formatCurrency(Number(row.original.total))}</span> },
     { id: "status", header: "Estado", accessorKey: "status",
       cell: ({ row }) => <StatusBadge status={row.original.status} /> },
-  ], []);
+  ];
 
   const table = useLiftgoTable<Quote>({
     data, columns, getRowId: (q) => q.id,

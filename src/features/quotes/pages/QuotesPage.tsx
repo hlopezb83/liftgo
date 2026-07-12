@@ -1,6 +1,5 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
-import { useMemo } from "react";
 import { useQuotes } from "../hooks/quotes/useQuotes";
 import { useListFilters } from "@/hooks/useListFilters";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
@@ -32,8 +31,7 @@ export default function QuotesPage() {
     statusField: "status",
   });
 
-  const columns = useMemo<ColumnDef<Quote>[]>(
-    () => [
+  const columns: ColumnDef<Quote>[] = [
       {
         id: "quote_number",
         header: "Cotización #",
@@ -80,9 +78,7 @@ export default function QuotesPage() {
         accessorFn: (q) => q.valid_until || "",
         cell: ({ row }) => <span className="whitespace-nowrap">{formatDateDisplay(row.original.valid_until)}</span>,
       },
-    ],
-    [],
-  );
+    ];
 
   const table = useLiftgoTable<Quote>({
     data: filtered,

@@ -1,5 +1,5 @@
 import { useDialogState } from "@/hooks/useDialogState";
-import { useMemo } from "react";
+
 import { useDamageRecords } from "../hooks/useDamageRecords";
 import { useDamagePhotoCounts } from "../hooks/useDamagePhotoCounts";
 import { useListFilters } from "@/hooks/useListFilters";
@@ -36,8 +36,7 @@ export default function DamageTrackingPage() {
     statusField: "status",
   });
 
-  const columns = useMemo<ColumnDef<DamageRow>[]>(
-    () => [
+  const columns: ColumnDef<DamageRow>[] = [
       {
         id: "created_at",
         header: "Fecha",
@@ -91,9 +90,7 @@ export default function DamageTrackingPage() {
         accessorKey: "status",
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
-    ],
-    [photoCounts],
-  );
+    ];
 
   const table = useLiftgoTable<DamageRow>({
     data: filtered,

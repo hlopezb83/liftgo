@@ -48,11 +48,11 @@ export function useDashboardSections() {
   const { data: insuranceData } = useInsuranceAlerts();
   const { data: upcomingInvoices } = useUpcomingInvoices();
 
-  const counts = useMemo(() => stats?.fleet_counts ?? EMPTY_COUNTS, [stats?.fleet_counts]);
+  const counts = stats?.fleet_counts ?? EMPTY_COUNTS;
   const activeFleet = counts.total - counts.retired - counts.sold;
   const utilizationPercent = computeUtilizationPercent(counts, activeFleet);
 
-  const overdueInvoices = useMemo(() => stats?.overdue_invoices ?? [], [stats?.overdue_invoices]);
+  const overdueInvoices = stats?.overdue_invoices ?? [];
 
   // Nota: React Compiler memoiza las derivaciones puras siguientes.
   // Sólo conservamos useMemo para `counts` y `overdueInvoices` porque

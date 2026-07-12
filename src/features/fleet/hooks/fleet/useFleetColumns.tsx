@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { SecurityIcon } from "@/components/icons";
@@ -10,8 +10,7 @@ export function useFleetColumns(
   activePolicyForkliftIds: Set<string>,
   locationMap: Map<string, string>,
 ) {
-  return useMemo<ColumnDef<Forklift>[]>(
-    () => [
+  return [
       {
         id: "name",
         header: "ID",
@@ -59,7 +58,5 @@ export function useFleetColumns(
         meta: { cellClassName: "hidden lg:table-cell text-xs text-muted-foreground max-w-[200px] truncate" },
         cell: ({ row }) => locationMap.get(row.original.id) || "—",
       },
-    ],
-    [activePolicyForkliftIds, locationMap],
-  );
+    ];
 }

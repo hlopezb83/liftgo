@@ -1,12 +1,11 @@
-import { useMemo } from "react";
+
 import type { ColumnDef } from "@/components/dataTable/v2";
 import type { useCustomers } from "./useCustomers";
 
 type Customer = NonNullable<ReturnType<typeof useCustomers>["data"]>[number];
 
 export function useCustomersColumns() {
-  return useMemo<ColumnDef<Customer>[]>(
-    () => [
+  return [
       {
         id: "name",
         header: "Nombre",
@@ -37,7 +36,5 @@ export function useCustomersColumns() {
         accessorFn: (c) => c.contact_person || "",
         cell: ({ row }) => row.original.contact_person || "—",
       },
-    ],
-    [],
-  );
+    ];
 }

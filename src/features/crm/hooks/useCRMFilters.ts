@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import type { Prospect } from "./useProspects";
 
 export type ValueRange = "all" | "lt100k" | "100k-500k" | "gt500k";
@@ -38,7 +38,7 @@ function matchesSearch(p: Prospect, query: string): boolean {
 export function useCRMFilters(prospects: Prospect[]) {
   const [filters, setFilters] = useState<CRMFilters>(DEFAULT_FILTERS);
 
-  const filtered = useMemo(() => {
+  const filtered = (() => {
     const now = Date.now();
     const q = filters.search.trim().toLowerCase();
     return prospects.filter((p) => {
@@ -48,7 +48,7 @@ export function useCRMFilters(prospects: Prospect[]) {
       if (!matchesAge(p.updatedAt, filters.ageRange, now)) return false;
       return true;
     });
-  }, [prospects, filters]);
+  })();
 
   const update = <K extends keyof CRMFilters>(key: K, value: CRMFilters[K]) =>
     setFilters((f) => ({ ...f, [key]: value }));

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ChevronRightIcon } from "@/components/icons";
@@ -10,7 +10,6 @@ import type { Tables } from "@/integrations/supabase/types";
 import { RecurringBillingBadge } from "@/features/bookings";
 import { BOOKING_STATUS } from "@/lib/constants";
 
-
 type Forklift = Tables<"forklifts">;
 
 interface EquipmentListViewProps {
@@ -19,7 +18,7 @@ interface EquipmentListViewProps {
 }
 
 export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProps) {
-  const bookingsByForklift = useMemo(() => {
+  const bookingsByForklift = (() => {
     const map = new Map<string, BookingWithForklift[]>();
     bookings?.forEach((b) => {
       if (b.status !== BOOKING_STATUS.confirmed && b.status !== BOOKING_STATUS.completed) return;
@@ -28,8 +27,7 @@ export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProp
       else map.set(b.forklift_id, [b]);
     });
     return map;
-  }, [bookings]);
-
+  })();
 
   const today = nowMty();
 
@@ -45,7 +43,6 @@ export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProp
         const upcoming = flBookings
           .filter((b) => parseISO(b.start_date) > today && b.status === BOOKING_STATUS.confirmed)
           .sort((a, b) => parseISO(a.start_date).getTime() - parseISO(b.start_date).getTime());
-
 
         return (
           <Collapsible key={fl.id}>

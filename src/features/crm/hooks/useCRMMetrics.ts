@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import { useProspects, type Prospect } from "./useProspects";
 
 export interface CRMMetrics {
@@ -17,7 +17,7 @@ export interface CRMMetrics {
 export function useCRMMetrics(): { data: CRMMetrics; isLoading: boolean } {
   const { data: prospects = [], isLoading } = useProspects();
 
-  const data = useMemo<CRMMetrics>(() => {
+  const data: CRMMetrics = (() => {
     const active = prospects.filter((p) => !p.isClosed);
     const closed = prospects.filter((p) => p.isClosed);
     const won = closed.filter((p) => p.stage === "cerrado_ganado");
@@ -47,7 +47,7 @@ export function useCRMMetrics(): { data: CRMMetrics; isLoading: boolean } {
       won,
       lost,
     };
-  }, [prospects]);
+  })();
 
   return { data, isLoading };
 }

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -17,13 +17,13 @@ export default function FeedbackManagementPage() {
   const { data: reports, isLoading } = useAllFeedbackReports();
   const [selected, setSelected] = useState<FeedbackReport | null>(null);
 
-  const grouped = useMemo(() => {
+  const grouped = (() => {
     const acc: Record<FeedbackStatus, FeedbackReport[]> = {
       new: [], triage: [], accepted: [], in_progress: [], resolved: [], closed: [], rejected: [], duplicate: [],
     };
     for (const r of reports ?? []) acc[r.status as FeedbackStatus]?.push(r);
     return acc;
-  }, [reports]);
+  })();
 
   return (
     <PageContainer>
@@ -31,7 +31,6 @@ export default function FeedbackManagementPage() {
         title="Gestión de Feedback"
         subtitle="Reportes de bugs y mejoras enviados por los usuarios."
       />
-
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Cargando…</p>

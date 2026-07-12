@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { TrophyIcon, Medal } from "@/components/icons";
@@ -20,8 +20,7 @@ function PositionCell({ pos }: { pos: number }) {
 function LeaderboardTable({ period }: { period: LeaderboardPeriod }) {
   const { data, isLoading } = useLeaderboard(period);
 
-  const columns = useMemo<ColumnDef<LeaderboardRow>[]>(
-    () => [
+  const columns: ColumnDef<LeaderboardRow>[] = [
       {
         id: "position",
         header: "#",
@@ -69,9 +68,7 @@ function LeaderboardTable({ period }: { period: LeaderboardPeriod }) {
           <span className="tabular-nums font-semibold">{row.original.total_points}</span>
         ),
       },
-    ],
-    [],
-  );
+    ];
 
   const table = useLiftgoTable<LeaderboardRow>({
     data,

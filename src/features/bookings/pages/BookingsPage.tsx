@@ -1,7 +1,7 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
 import { differenceInDays, parseISO } from "date-fns";
-import { useMemo } from "react";
+
 import { formatMtyDate } from "@/lib/utils";
 
 import { STATUS_LABELS } from "@/lib/constants";
@@ -38,8 +38,7 @@ export default function BookingsPage() {
   const isAdmin = role === "admin";
   usePageActions({ onNew: isAdmin ? () => navigate("/bookings/new") : undefined, onRefresh: refetch, newLabel: "Nueva reserva" });
 
-  const columns = useMemo<ColumnDef<Booking>[]>(
-    () => [
+  const columns: ColumnDef<Booking>[] = [
       {
         id: "booking_number",
         header: "Reserva #",
@@ -87,9 +86,7 @@ export default function BookingsPage() {
         accessorKey: "status",
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
-    ],
-    [],
-  );
+    ];
 
   const { search, setSearch, statusFilter, setStatusFilter, filtered, table } =
     useResourceList<Booking>({

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { TrendingUpIcon, ArrowRight, CalendarIcon } from "@/components/icons";
@@ -31,7 +31,7 @@ export function CollectionForecast({
   overdueInvoices,
   upcomingInvoices = [],
 }: CollectionForecastProps) {
-  const forecast = useMemo(() => {
+  const forecast = (() => {
     const today = nowMty();
     const in7 = addDays(today, 7);
     const in30 = addDays(today, 30);
@@ -71,7 +71,7 @@ export function CollectionForecast({
         return due >= today && due <= in7;
       }).length,
     };
-  }, [overdueInvoices, upcomingInvoices]);
+  })();
 
   return (
     <Card>

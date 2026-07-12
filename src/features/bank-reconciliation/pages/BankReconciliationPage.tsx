@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -29,13 +29,13 @@ export default function BankReconciliationPage() {
   const [selected, setSelected] = useState<BankStatementLine | null>(null);
   const { data: lines, isLoading } = useBankStatementLines(accountId);
 
-  const grouped = useMemo(() => {
+  const grouped = (() => {
     const g: Record<BankLineStatus, BankStatementLine[]> = {
       unmatched: [], suggested: [], matched: [], ignored: [],
     };
     for (const l of lines ?? []) g[l.status].push(l);
     return g;
-  }, [lines]);
+  })();
 
   useEffect(() => {
     if (accountId || !accounts || accounts.length === 0) return;
