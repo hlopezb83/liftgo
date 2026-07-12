@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.61.3",
+    "date": "2026-07-12",
+    "type": "patch",
+    "title": "Fondo blanco detrás del logo en el sidebar",
+    "description": "El logo de la empresa se mostraba directamente sobre el fondo oscuro del sidebar, lo que hacía perder contraste en logos con colores oscuros o transparencias. Ahora el logo se renderiza dentro de un contenedor blanco (bg-white) con bordes redondeados y padding, respetando la altura fija y el ancho máximo.",
+    "category": "bugfix",
+    "files": [
+      "src/layouts/sidebar/SidebarBranding.tsx",
+      "public/changelog/v7.61.3.json",
+      "public/changelog.json"
+    ]
+  },
+  {
     "version": "7.61.2",
     "date": "2026-07-12",
     "type": "patch",

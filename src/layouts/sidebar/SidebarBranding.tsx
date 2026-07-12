@@ -11,11 +11,13 @@ export function SidebarBranding({ logoUrl, razonSocial }: SidebarBrandingProps) 
     <SidebarHeader className="p-3 border-b border-sidebar-border">
       <div className="flex items-center gap-2.5 min-w-0">
         {logoUrl ? (
-          <img
-            src={logoUrl}
-            alt="Logo"
-            className="h-9 w-auto max-w-[7rem] shrink-0 object-contain"
-          />
+          <div className="flex h-9 max-w-[7rem] items-center justify-center rounded-md bg-white px-2 py-1 shrink-0">
+            <img
+              src={logoUrl}
+              alt="Logo"
+              className="h-full w-auto max-w-full object-contain"
+            />
+          </div>
         ) : (
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-gold text-sidebar-primary-foreground font-bold text-sm">
             LG
