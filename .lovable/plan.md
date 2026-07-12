@@ -1,107 +1,62 @@
 
-# Auditoría e implementación de Vite
+## Auditoría react-day-picker
 
-## Auditoría de uso actual
+**Versión actual**: `^8.10.2` · **Última estable**: `10.0.1` (mayor con breaking changes en v9 y v10).
 
-- `vite@8.1.4` (última estable), `@vitejs/plugin-react@6.0.3` (última), `vitest@4.1.10` (última). Sin métodos deprecated ni versiones atrasadas.
-- Única superficie configurable: `vite.config.ts` (138 líneas), muy bien tuneado en pases anteriores:
-  - `server.warmup` con 4 rutas críticas.
-  - `plugins`: React (Oxc) + Babel(React Compiler target 19) + `componentTagger` en dev + `visualizer` bajo `ANALYZE=1` + `sentryVitePlugin` sólo cuando hay token.
-  - `resolve.dedupe` para React.
-  - `optimizeDeps.include` de deps de primer render.
-  - `build`: target `es2022`, `sourcemap: true`, `cssMinify: "lightningcss"`, `reportCompressedSize: false`, `manualChunks` por grupos (recharts, radix, react-pdf, jspdf, xlsx, date-fns, icons, vendor).
-- Uso en el código:
-  - `import.meta.env` en 4 puntos (DEV flag + `VITE_SUPABASE_*`). Correcto.
-  - `import.meta.glob` / `import.meta.hot`: no se usan (no aplica; plugin-react gestiona HMR).
-  - `src/vite-env.d.ts` con `/// <reference types="vite/client" />`. Correcto.
-- `package.json`: `"vite": 8` y `"@vitejs/plugin-react": 6` son major-only (sin caret ni minor), un descuido menor de higiene.
+**Superficie de uso** (10 archivos):
+- `src/components/ui/calendar.tsx` — wrapper shadcn sobre `<DayPicker>` con `classNames` completo, `components.IconLeft/IconRight` y `locale={es}` de `date-fns/locale`.
+- `src/components/forms/DatePickerField.tsx`, `DateRangePickerField.tsx` — consumen tipos `Matcher` / `DateRange`.
+- `src/components/forms/fields/DateField.tsx`, `DateRangeField.tsx` — wrappers RHF.
+- Consumidores de tipo `DateRange`: `ReportsPage`, `InvoicesToolbar`, `useAvailableForklifts`, `useBookingFormState`, `useQuoteFormState`.
 
-**Conclusión**: la implementación ya está al día. Los ajustes son pulido fino, no rescate. Todos son low-risk y respetan el runtime del ERP.
+**Problemas detectados**
+1. API v8 obsoleta en `calendar.tsx`: `IconLeft` / `IconRight` (removidos en v9), keys de `classNames` estilo `nav_button`, `head_row`, `head_cell`, `row`, `cell`, `day`, `day_selected`, `day_today`, `day_outside`, `day_disabled`, `day_hidden`, `day_range_*`, `caption` — todas renombradas en v9/v10.
+2. `locale` importado desde `date-fns/locale`: en v9+ RDP trae sus propios locales (`react-day-picker/locale`) permitiendo mejor tree-shaking (evita cargar todo `date-fns/locale`).
+3. No se importan estilos base de v9 (necesarios si se usa Chevron / dropdowns nativos).
+4. `components.IconLeft/IconRight` → API v9 unificada en `components.Chevron` que recibe `{ orientation }`.
 
-## Ajustes propuestos (sin cambios de comportamiento observable)
+## Plan de refactor
 
-### 1. Pin semántico de versiones
+### 1. Bump de dependencia
+- `react-day-picker`: `^8.10.2` → `^10.0.1` (peer: React 19 ✅, date-fns ≥4 ✅).
 
-Cambiar en `package.json`:
+### 2. Reescribir `src/components/ui/calendar.tsx`
+- Cambiar `locale` a `import { es } from "react-day-picker/locale"` (drop `date-fns/locale` import).
+- Reemplazar `components.IconLeft/IconRight` por un único `Chevron` con `orientation`:
+  ```tsx
+  components={{
+    Chevron: ({ orientation }) =>
+      orientation === "left" ? <ChevronLeftIcon className="h-4 w-4" /> : <ChevronRightIcon className="h-4 w-4" />,
+  }}
+  ```
+- Migrar el mapa `classNames` a las **nuevas claves v10** (camelCase):
+  - `caption` → `month_caption`
+  - `caption_label` → `caption_label` (igual)
+  - `nav_button_previous/next` → `button_previous` / `button_next`
+  - `head_row` → `weekdays`; `head_cell` → `weekday`
+  - `row` → `week`; `cell` → `day`; `day` (botón) → `day_button`
+  - `day_selected` → `selected`; `day_today` → `today`; `day_outside` → `outside`; `day_disabled` → `disabled`; `day_hidden` → `hidden`
+  - `day_range_start/end/middle` → `range_start` / `range_end` / `range_middle`
+- Añadir soporte oficial a `mode="range"` con `range_start/end/middle` (reemplaza el hack `[&:has([aria-selected])]` sobre `cell`).
+- Mantener API pública (`CalendarProps = ComponentProps<typeof DayPicker>`) — consumidores no cambian.
 
-```diff
--    "vite": 8,
-+    "vite": "^8.1.4",
--    "@vitejs/plugin-react": 6,
-+    "@vitejs/plugin-react": "^6.0.3",
-```
+### 3. Consumidores de tipos
+- `Matcher` y `DateRange` siguen exportándose desde `react-day-picker` en v10 → **cero cambios** en:
+  `DatePickerField.tsx`, `DateRangePickerField.tsx`, `DateField.tsx`, `DateRangeField.tsx`, `ReportsPage.tsx`, `InvoicesToolbar.tsx`, `useAvailableForklifts.ts`, `useBookingFormState.ts`, `useQuoteFormState.ts`.
+- Verificar `onSelect` de rango: firma sigue `(range: DateRange | undefined, selectedDay, activeModifiers, e) => void` compatible.
 
-Reproducibilidad y updates explícitos vía Renovate/Dependabot.
+### 4. Optimización de imports / tree-shaking
+- Locale desde `react-day-picker/locale` (subpath export, sólo el objeto `es`, sin arrastrar el resto de `date-fns/locale`).
+- Sin cambios en imports nombrados de `DayPicker`, `DateRange`, `Matcher` (ya son named).
 
-### 2. Limpieza post-migración a react-router v8
+### 5. Verificación
+- `tsgo --noEmit` (tipos `Chevron`, `classNames` keys).
+- Smoke visual: DatePicker en formularios, DateRange en Reportes/Facturas, footer con presets, indicadores de rango (start/end/middle).
+- Test suite completa (`vitest run`).
 
-Ya no queda ni un `import` de `react-router-dom` en `src/**` y la dependencia se removió del `package.json`. Sin embargo `vite.config.ts` sigue mencionándolo:
+### 6. Changelog
+- Publicar `v7.53.0` — "react-day-picker v10".
 
-- `optimizeDeps.include`: eliminar `"react-router-dom"`.
-- `CHUNK_GROUPS.vendor.match`: eliminar `"/react-router-dom/"`.
-
-Efecto: menos ruido de config; el pre-bundling de deps deja de intentar resolver un paquete inexistente (advertencia silenciosa que hoy se ignora).
-
-### 3. `warmup.clientFiles` actualizado
-
-Tras la migración al Data Router, `src/App.tsx` quedó reducido a ~10 líneas y ya no es "caliente". Reemplazarlo por `src/routes/router.tsx`, que es el nuevo punto de arranque real donde vive `createBrowserRouter`.
-
-### 4. `css.transformer: "lightningcss"` — pipeline unificado
-
-Hoy sólo se minifica con LightningCSS (`cssMinify: "lightningcss"`). Vite 8 permite usar LightningCSS también como transformer completo:
-
-```ts
-css: {
-  transformer: "lightningcss",
-  lightningcss: { targets: { chrome: 111, safari: 16 << 16 | 4, firefox: 128 } },
-},
-```
-
-Con Tailwind v4 (que ya emite CSS moderno) esto acelera la fase de CSS ~10-15% en cold build y unifica el pipeline (mismo motor para parse, transform y minify).
-
-### 5. `build.modulePreload: { polyfill: false }`
-
-Target `es2022` implica navegadores que soportan `<link rel="modulepreload">` nativo (Safari 16.4+, Chrome 111+, Firefox 128+). Deshabilitar el polyfill ahorra ~1.5 KB inline en el HTML de entrada y simplifica el head.
-
-### 6. `esbuild.drop` para producción
-
-Añadir:
-
-```ts
-esbuild: {
-  drop: mode === "production" ? ["debugger"] : [],
-},
-```
-
-Elimina cualquier `debugger;` que se cuele en prod. Se deja `console` fuera del drop porque Sentry captura `console.error` como breadcrumbs — dropear consola reduciría visibilidad de errores en producción.
-
-### 7. `build.chunkSizeWarningLimit: 800`
-
-Con `react-pdf` (~1.5 MB pre-gzip) y `recharts` (~500 KB) en chunks vendor dedicados, el warning default (500 KB) es ruido en cada build. Subirlo a 800 mantiene la utilidad como detector de regresiones sin falsos positivos.
-
-### 8. Eliminar cast innecesario en `plugins`
-
-`defineConfig` infiere el tipo del array después de `.filter(Boolean)`. En Vite 8 `PluginOption` acepta `false | null | undefined`, así que `as import("vite").PluginOption[]` es redundante. Se elimina el cast y se importa el tipo si se necesita en algún punto (no debería).
-
-## Fuera de alcance (decidido)
-
-- **`rolldown-vite`** (Rolldown como bundler de producción): opt-in experimental; incompatibilidades conocidas con `rollup-plugin-visualizer` y matices con `@sentry/vite-plugin`. Se mantiene Vite 8 sobre Rollup estable.
-- **`experimental.hmrPartialAccept`**: útil para bundles con miles de módulos por chunk; `warmup` + `manualChunks` ya dan HMR suficientemente rápido.
-- **Environment API / SSR / `ssr.noExternal`**: no aplica (SPA client-side).
-- **`assetsInlineLimit`**: valor default (4 KB) sigue siendo correcto para logos y sprites.
-- **Vitest**: `vitest@4.1.10` ya está en la última y su config vive en `vite.config.ts` implícitamente. Sin cambios.
-- **Actualizaciones mayores**: Vite 9 no existe; no hay migración pendiente.
-
-## Entregables
-
-1. `vite.config.ts` refactorizado con los 6 ajustes técnicos (2–8, sin el pin).
-2. `package.json` con pines semánticos (`^8.1.4`, `^6.0.3`).
-3. Entrada de changelog **v7.52.0** (minor: pulido de config + limpieza post RR-v8).
-4. Verificación:
-   - `tsgo --noEmit`, `bun lint`, `bun test` (suite completa).
-   - `bun run build` y comparación de tamaños vs baseline (cambios esperados: -~1.5 KB polyfill en entry HTML, misma o menor CSS gzipped).
-   - `ANALYZE=1 bun run build` para confirmar que la agrupación de chunks se mantiene idéntica.
-
-## Estimación
-
-2 archivos tocados (`vite.config.ts`, `package.json`) + changelog. Cero cambios de código de aplicación. Sin cambios visibles en runtime salvo builds ~10-15% más rápidos en la fase CSS y HTML de entrada ligeramente menor.
+## Estimación de LOC
+- `calendar.tsx`: reescritura ~55 líneas (misma dimensión, sin bloat).
+- Neto ≈ 0 LOC pero elimina API deprecada y una dependencia transitiva (`date-fns/locale` completo si sólo se usaba aquí — a validar en el bump).
