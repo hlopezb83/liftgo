@@ -1,4 +1,5 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { useDrag } from "@use-gesture/react";
 
 interface UsePullToRefreshOptions {
   onRefresh: () => Promise<unknown> | void;
@@ -14,7 +15,11 @@ interface UsePullToRefreshOptions {
 
 /**
  * Pull-to-refresh para contenedores con scroll vertical.
- * Solo dispara cuando el contenedor ya está en `scrollTop === 0`.
+ *
+ * Delegamos la detección del gesto en `useDrag` de @use-gesture/react
+ * (pointer events + touch normalizados, cancelación, tap detection). Solo
+ * conservamos la lógica de dominio: gate `scrollTop === 0`, curva de
+ * resistencia y decisión de disparo por umbral.
  */
 export function usePullToRefresh({
   onRefresh,
@@ -23,74 +28,72 @@ export function usePullToRefresh({
   maxDistance = 110,
   enabled = true,
 }: UsePullToRefreshOptions) {
-  const containerRef = useRef<HTMLElement | null>(null);
-  containerRef.current = target;
   const [pullDistance, setPullDistance] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const startYRef = useRef<number | null>(null);
-  const pullingRef = useRef(false);
+  const isRefreshingRef = useRef(false);
 
   const trigger = useCallback(async () => {
+    if (isRefreshingRef.current) return;
+    isRefreshingRef.current = true;
     setIsRefreshing(true);
     try {
       await onRefresh();
     } finally {
+      isRefreshingRef.current = false;
       setIsRefreshing(false);
       setPullDistance(0);
     }
   }, [onRefresh]);
 
-  useEffect(() => {
-    if (!enabled) return;
-    const el = containerRef.current;
-    if (!el) return;
+  // `useDrag` requiere un ref-like con `.current`. Envolvemos el `target` en un
+  // objeto memoizado con esa forma para que la lib pueda re-attach cuando cambia.
+  const targetRef = useMemo(() => ({ current: target }), [target]);
 
-    const onTouchStart = (e: TouchEvent) => {
-      if (el.scrollTop > 0) return;
-      startYRef.current = e.touches[0].clientY;
-      pullingRef.current = true;
-    };
+  useDrag(
+    ({ movement: [, my], last, canceled, first, event }) => {
+      if (!enabled || !target) return;
 
-    const onTouchMove = (e: TouchEvent) => {
-      if (!pullingRef.current || startYRef.current === null) return;
-      if (el.scrollTop > 0) {
-        pullingRef.current = false;
+      // Solo interceptamos si el contenedor está en el tope del scroll al iniciar.
+      if (first && target.scrollTop > 0) {
+        canceled = true;
+        return;
+      }
+      if (target.scrollTop > 0) {
         setPullDistance(0);
         return;
       }
-      const delta = e.touches[0].clientY - startYRef.current;
-      if (delta <= 0) {
-        setPullDistance(0);
+      if (my <= 0) {
+        if (last) setPullDistance(0);
+        else setPullDistance(0);
         return;
       }
-      // Resistencia para que se sienta natural
-      const eased = Math.min(maxDistance, delta * 0.5);
+
+      // Evitamos que el navegador dispare pull-to-refresh nativo del sistema
+      // mientras el usuario esté arrastrando dentro del área.
+      if (event.cancelable) event.preventDefault();
+
+      const eased = Math.min(maxDistance, my * 0.5);
+
+      if (last) {
+        if (!canceled && eased >= threshold) {
+          void trigger();
+        } else {
+          setPullDistance(0);
+        }
+        return;
+      }
+
       setPullDistance(eased);
-    };
-
-    const onTouchEnd = () => {
-      if (!pullingRef.current) return;
-      pullingRef.current = false;
-      startYRef.current = null;
-      if (pullDistance >= threshold && !isRefreshing) {
-        void trigger();
-      } else {
-        setPullDistance(0);
-      }
-    };
-
-    el.addEventListener("touchstart", onTouchStart, { passive: true });
-    el.addEventListener("touchmove", onTouchMove, { passive: true });
-    el.addEventListener("touchend", onTouchEnd);
-    el.addEventListener("touchcancel", onTouchEnd);
-
-    return () => {
-      el.removeEventListener("touchstart", onTouchStart);
-      el.removeEventListener("touchmove", onTouchMove);
-      el.removeEventListener("touchend", onTouchEnd);
-      el.removeEventListener("touchcancel", onTouchEnd);
-    };
-  }, [enabled, threshold, maxDistance, pullDistance, isRefreshing, trigger, target]);
+    },
+    {
+      target: targetRef,
+      enabled: enabled && !!target,
+      axis: "y",
+      pointer: { touch: true },
+      filterTaps: true,
+      eventOptions: { passive: false },
+    },
+  );
 
   return { pullDistance, isRefreshing, threshold };
 }
