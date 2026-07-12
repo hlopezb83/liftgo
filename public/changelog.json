@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.43.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "Dependencias: Vite 8, plugin-react 6, ESLint 10, tailwind-merge 3",
+    "description": "Lote de actualizaciones de dependencias. Vite 7.3 → 8.1 y @vitejs/plugin-react 5 → 6 (peer requerido). ESLint 9 → 10, @eslint/js 9 → 10, globals 15 → 17 y eslint-plugin-react-hooks 5 → 7. Se añade override de `zod-validation-error@4` para resolver el subpath `./v4` que exige react-hooks@7. Las reglas experimentales nuevas de react-hooks@7 (`refs`, `set-state-in-effect`, `incompatible-library`, `purity`, `static-components`, etc.) quedan desactivadas — migración incremental en un lote separado. La regla mejorada de `exhaustive-deps` sí detectó 9 bugs reales: funciones de `useEffectEvent` listadas en dep arrays de 8 hooks/componentes, corregidas removiéndolas de las deps (contrato de React 19 garantiza estabilidad). Adicional: @types/node 22 → 26 y tailwind-merge 2 → 3 (compatible con Tailwind v4). Diferido: react-day-picker 8 → 10 (requiere rewrite completo del API de `classNames` y slots) y TypeScript 5 → 7 (ecosistema aún inmaduro). Verificación: build ok, 992/992 tests pasando, lint sin warnings.",
+    "category": "improvement",
+    "changes": [
+      { "type": "changed", "description": "Vite 7.3.1 → 8.1.4 + @vitejs/plugin-react 5 → 6" },
+      { "type": "changed", "description": "ESLint 9 → 10, @eslint/js 9 → 10, globals 15 → 17, eslint-plugin-react-hooks 5 → 7" },
+      { "type": "changed", "description": "@types/node 22 → 26, tailwind-merge 2 → 3, zod-validation-error → 4 (override)" },
+      { "type": "fixed", "description": "8 hooks/componentes: funciones de `useEffectEvent` removidas de dep arrays (detectado por exhaustive-deps mejorado)" },
+      { "type": "changed", "description": "Reglas experimentales de react-hooks@7 desactivadas (migración incremental pendiente)" }
+    ]
+  },
+  {
     "version": "7.42.1",
     "date": "2026-07-12",
     "type": "patch",
