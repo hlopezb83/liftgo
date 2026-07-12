@@ -1,62 +1,69 @@
 
-## Contexto
+## Sprint: Migración Kanbans → @dnd-kit (Lote F)
 
-Sprint pendiente del audit report (Lote E): bump de `react-dropzone` de `^15.0.0` a `^16.0.0`, con verificación visual/funcional de los 3 componentes que la consumen.
+**Alcance:** reemplazar `@hello-pangea/dnd` por `@dnd-kit/*` en los 2 Kanbans existentes, sin cambiar UX ni lógica de negocio (reglas de guardas, optimistic updates, apertura de diálogo al mover a `cerrado_ganado`).
 
-### Superficie de consumo (auditada)
+### Archivos afectados (7)
 
-Sólo 3 archivos importan `react-dropzone`, ningún test la mockea, y todos usan la API mínima idéntica:
-
-| Archivo | Props usadas |
+| Archivo | Rol tras migración |
 |---|---|
-| `src/components/forms/CsfDropzone.tsx` | `useDropzone({ onDrop, accept, maxFiles, disabled }) → { getRootProps, getInputProps, isDragActive }` |
-| `src/components/forms/DragDropImageUploader.tsx` | `useDropzone({ onDrop, accept, maxFiles, multiple }) → { getRootProps, getInputProps, isDragActive }` |
-| `src/features/damage/components/damage/DamageEvidenceSection.tsx` | idem |
+| `src/features/crm/pages/CRMPage.tsx` | Cambia firma de `onDragEnd(result: DropResult)` → `onDragEnd(event: DragEndEvent)` |
+| `src/features/crm/components/CRMKanbanGrid.tsx` | Monta `<DndContext>` + `<DragOverlay>` |
+| `src/features/crm/components/KanbanColumn.tsx` | Usa `useDroppable` en lugar de `<Droppable>`; envuelve items en `<SortableContext strategy={verticalListSortingStrategy}>` |
+| `src/features/crm/components/ProspectCard.tsx` | Usa `useSortable` en lugar de `<Draggable>` |
+| `src/features/maintenance/components/maintenance/MaintenanceKanban.tsx` | Monta `<DndContext>` |
+| `src/features/maintenance/components/maintenance/kanban/MaintenanceKanbanColumn.tsx` | `useDroppable` + `SortableContext` |
+| `src/features/maintenance/hooks/maintenance/useMaintenanceKanban.ts` | Firma cambia a `DragEndEvent`; misma lógica de optimistic update |
 
-Ninguno consume `isDragReject`, `fileRejections`, `onDropRejected`, `onDropAccepted` ni `acceptedFiles` del hook. Puntos de montaje reales para las 3 pantallas:
+### Dependencias
 
-- **CsfDropzone** → diálogos "Nuevo cliente" (`/customers`) y "Nuevo proveedor" (`/suppliers`).
-- **DragDropImageUploader** → `ReturnInspectionDialog` (returns) y `DamagePhotosSection` (detalle de un daño).
-- **DamageEvidenceSection** → diálogo "Reportar Daño" (`/damages` con el CTA).
+Instalar:
+```
+@dnd-kit/core@^6
+@dnd-kit/sortable@^10
+@dnd-kit/utilities@^3
+```
+Remover `@hello-pangea/dnd` una vez migrado y `tsgo` limpio.
 
-### Breaking changes documentados
+### Diseño técnico
 
-- **v15.0.0** (ya instalada): `isDragReject` sólo refleja drag activo. No aplica — no la usamos.
-- **v16.0.0**: no hay release notes públicas en GitHub aún (npm sí publica 16.0.0). El registro interno lo lista como major. Los tipos y superficie mínima (`useDropzone`, `getRootProps`, `getInputProps`, `isDragActive`, `onDrop`) son estables. Cualquier ruptura real la atrapamos con `tsgo` + auditoría visual.
+**Sensors (compartidos por ambos Kanbans):**
+```ts
+useSensor(PointerSensor, { activationConstraint: { distance: 4 } })
+useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+```
+`distance: 4` evita drags accidentales al hacer click en la card (que abre detalle). Con `@hello-pangea/dnd` esto no era problema porque distingue click vs drag internamente; en dnd-kit hay que declararlo.
 
-## Cambios propuestos
+**Detección de colisión:** `closestCorners` (comportamiento equivalente al de pangea para columnas verticales).
 
-1. **`package.json`** — subir `react-dropzone` de `^15.0.0` a `^16.0.0`. Ejecutar `bun add react-dropzone@^16.0.0` para actualizar lockfile.
+**Identidad:** `id` de draggables = `prospect.id` / `log.id`. Columnas droppables usan `id` = `stageKey` / `work_status`. Se agrega `data: { type: "card" | "column", ... }` a cada draggable/droppable para que el handler distinga en `onDragEnd`.
 
-2. **Verificación estática** (sin cambios de código a priori):
-   - `tsgo` sobre los 3 archivos consumidores. Si los tipos cambiaron (por ejemplo signature de `onDrop` con `FileWithPath[]` vs `File[]`), ajustar los callbacks locales.
-   - Sanity check en runtime: buscar re-exports rotos con `rg "from \"react-dropzone\"" src/`.
+**Reordenamiento intra-columna (solo CRM):** El código actual llama `updateProspect({ id, stage_order: destination.index })`. Con dnd-kit se calcula el nuevo índice desde `over.data.current.sortable.index` (provisto por `SortableContext`). Se mantiene el mismo mutation.
 
-3. **Verificación visual con Playwright** — script único que:
-   - Autentica con la sesión gestionada.
-   - Abre secuencialmente `/customers` (CTA Nuevo cliente → tab con CSF), `/suppliers` (Nuevo proveedor), `/damages` (Reportar Daño), y una vista con `DragDropImageUploader` (ReturnInspection o detalle de daño).
-   - Screenshots en `/tmp/browser/dropzone-v16/` de cada dropzone en estado idle + con archivo cargado (usando `page.locator('input[type=file]').setInputFiles(...)`).
-   - Colecta `pageerror` y falla si ≠ 0.
+**Cross-column:** Cuando `active.data.current.columnId !== over.data.current.columnId` se dispara la misma lógica actual (para CRM: abrir diálogo si es `cerrado_ganado`, sin persistir aún; para mantenimiento: optimistic update + mutation).
 
-4. **Prueba funcional mínima**:
-   - CsfDropzone: setInputFiles con un PDF fake → verificar que se dispara `parseCsf` (aparece spinner "Extrayendo datos fiscales…").
-   - DragDropImageUploader: setInputFiles con 1 PNG fake → verificar que aparece la grilla de previews con la miniatura.
-   - DamageEvidenceSection: idem que el anterior, en el diálogo de reporte.
+**DragOverlay:** Renderiza una copia visual de la card arrastrada mientras `activeId` está seteado — reemplaza el efecto `rotate-1 shadow-lg` que hoy va sobre el nodo original. Esto elimina el hack de `snap.isDragging` sobre la Card.
 
-5. **Changelog**: nueva entrada `v7.56.0` (minor por bump de major upstream) en `public/changelog.json` + `public/changelog/v7.56.0.json`, listando el bump, la ausencia de cambios de código de aplicación y la verificación visual/funcional.
+**Accesibilidad:** dnd-kit trae keyboard navigation (Space para tomar, arrows para mover, Space para soltar, Esc para cancelar) y announcements ARIA nativos — pangea también los tenía; se mantiene paridad.
 
-## Detalles técnicos
+### Verificación
 
-- No se toca lógica de negocio ni de subida a Storage — sólo la dependencia.
-- Si `tsgo` marca un mismatch de tipos en `onDrop`, ajustar la firma del callback local (probablemente `(acceptedFiles: File[]) => void` sigue válido; si no, alinear con `FileWithPath[]` re-exportado).
-- Si el consumo produce warnings/errores en runtime (por ejemplo por ESM only + Vite), tratar caso por caso; hoy Vite ya consume la v15 como ESM.
+1. `tsgo` limpio en los 7 archivos.
+2. Playwright headless en `/crm` y `/mantenimiento`:
+   - montar página, screenshot de estado idle
+   - simular drag con `page.mouse.down/move/up` sobre una card hacia otra columna
+   - verificar console 0 errores y screenshot posterior
+3. Verificar que click simple en una card sigue abriendo el detalle (no dispara drag por el `activationConstraint`).
+4. Verificar reordenamiento intra-columna en CRM (persistencia de `stage_order`).
+5. Verificar guarda: mover una card a `cerrado_ganado` como usuario no-admin muestra el toast de error y revierte.
 
-## Fuera de alcance
+### Cierre
 
-- Migración a `@dnd-kit` (Lote F, sprint separado).
-- Cambios de UI de los dropzones (mismos textos, estilos, `capture="environment"`).
-- Añadir tests unitarios de RTL para los dropzones (no existían y no forman parte del sprint).
+- Desinstalar `@hello-pangea/dnd`.
+- Agregar entrada al changelog como **minor** (v7.58.0): "Migración de Kanbans (CRM + Mantenimiento) a @dnd-kit con mejor accesibilidad por teclado y DragOverlay nativo".
 
-## Rollback
+### Fuera de alcance
 
-Si el humo visual falla, revertir el bump a `^15.0.0` con `bun add react-dropzone@^15.0.0` y descartar la entrada del changelog. No hay migraciones ni cambios de datos.
+- No se toca UX del kanban (columnas, colores, densidad, filtros, toolbar).
+- No se cambia lógica de negocio (guardas, mutations, side-effects al mover a ganado).
+- No se agregan features nuevas (drag entre múltiples boards, virtualización, etc.).
