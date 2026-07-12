@@ -1,50 +1,62 @@
-## Diagnóstico
+# Plan: Actualización de dependencias pendientes
 
-El CI de ESLint reporta **2111 problems (1 error, 2110 warnings)**. Distribución:
+Estado actual (bun outdated): 11 paquetes con nuevas versiones mayores disponibles. Los agrupo por riesgo y esfuerzo.
 
-| Regla | Cantidad | Auto-fixable |
-|---|---|---|
-| `import/order` | ~2074 | ✅ Sí |
-| `no-console` | ~20 | ❌ Manual |
-| `jsx-a11y/click-events-have-key-events` + `no-static-element-interactions` | ~10 (5 componentes × 2) | ❌ Manual |
-| `no-empty` (error) | 1 | ❌ Manual |
-| `Unused eslint-disable` | 1 | ✅ Sí (`--fix`) |
+## Lote 1 — Bajo riesgo (patch/minor sin breaking)
 
-**Total auto-fixable: 2015 · Manual: ~96**
+- `vite` 7.3.1 → **7.3.6** (patch del major actual)
+- `jsdom` 26.1.0 → mantener pinned (ya sabemos que `react-pdf` rompe con >26 — sin cambio)
 
-## Plan
+Validación: build + tests.
 
-### Fase 1 · Auto-fix masivo
-Ejecutar `bun run lint --fix` sobre `src/`. Resuelve los ~2015 `import/order` + la directiva `eslint-disable` sin uso. Cero riesgo semántico (sólo reordena imports).
+## Lote 2 — Herramientas de lint (major, riesgo bajo-medio)
 
-### Fase 2 · Fix manual del único `error`
-`audit_screenshots_remaining.ts:30` — bloque `catch {}` vacío. Es un script de auditoría en la raíz (no forma parte del bundle). Opciones:
-- Añadir comentario `/* noop */` dentro del catch, o
-- Excluir el archivo del lint (agregar a `ignores` en `eslint.config.js`) ya que es utilería local.
+- `@eslint/js` 9 → **10**
+- `eslint` 9 → **10**
+- `eslint-plugin-react-hooks` 5 → **7** (nueva API de reglas para React 19)
+- `globals` 15 → **17**
 
-Elijo **añadir comentario** para mantener el lint global consistente.
+Ajustes esperados en `eslint.config.js`. Validación: `bun run lint`.
 
-### Fase 3 · `no-console` (~20 ocurrencias)
-Todas están en scripts de auditoría (`audit_*.ts`) y en algunos helpers de debug (`lib/ui/errorReport.ts`). Convertir a `console.warn`/`console.error` (permitidos) o silenciar con `// eslint-disable-next-line no-console` sólo cuando sea logging deliberado en herramientas locales.
+## Lote 3 — Tipos y build (major, riesgo medio)
 
-### Fase 4 · `jsx-a11y` (5 componentes)
-Componentes afectados: `SwipeableCard.tsx`, y 4 tarjetas en features (kanbans/dashboards). Fix estándar:
-- Cambiar `<div onClick>` a `<div role="button" tabIndex={0} onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && handler()}>`, o
-- Reemplazar por `<button>` con `type="button"` cuando el nodo no contenga controles interactivos anidados.
+- `@types/node` 22 → **26** (alinear con Node 22+ runtime)
+- `@vitejs/plugin-react` 5 → **6** (compatible con Vite 7; revisar opciones de Babel/SWC)
 
-### Fase 5 · Verificación
-Correr `bun run lint` local. Meta: **0 errores, 0 warnings**.
+Validación: build + `tsgo --noEmit`.
 
-### Fase 6 · Changelog
-Nueva entrada `v7.42.0` (minor — limpieza masiva de calidad) con detalle en `public/changelog/v7.42.0.json`.
+## Lote 4 — UI (major, riesgo medio-alto)
 
-## Detalles técnicos
+- `tailwind-merge` 2 → **3** (compatible con Tailwind v4; revisar `cn()` helper y clases custom)
+- `react-day-picker` 8 → **10** (API rediseñada; afecta `Calendar` de shadcn y `DateField` wrapper)
 
-- `import/order` corre con `alphabetize: { order: 'asc' }` y grupos separados por saltos — el `--fix` respeta la configuración actual sin tocar lógica.
-- El único cambio no-trivial es Fase 4 (a11y): añade `role`, `tabIndex` y handler de teclado; no cambia el comportamiento del mouse ni las clases Tailwind.
-- Ningún archivo bajo `src/integrations/supabase/` se modifica (auto-generados).
+Validación: smoke visual de `DateField`, pickers en Reservas/Cotizaciones + tests.
+
+## Lote 5 — TypeScript 7 (major, riesgo alto — diferir)
+
+- `typescript` 5.9 → **7.0**
+
+TS 7 aún es muy reciente; nuestro toolchain (tsgo, vite, eslint) puede no estar listo. **Recomiendo NO actualizar en este sprint** y esperar a que el ecosistema se estabilice.
+
+## Orden de ejecución
+
+1. Lote 1 (10 min)
+2. Lote 2 (30 min)
+3. Lote 3 (20 min)
+4. Lote 4 (45 min — mayor esfuerzo por react-day-picker)
+5. Cada lote: cambios → `bun run lint` + `tsgo` + `bunx vitest run` + changelog patch/minor
+
+## Detalle técnico
+
+- `react-day-picker@10` cambia props (`mode`, `selected`, `onSelect` similares, pero elimina classNames legacy). Habrá que ajustar `src/components/ui/calendar.tsx`.
+- `tailwind-merge@3` requiere Tailwind ≥ 3.3; con Tailwind v4 debería funcionar directo, pero validar clases arbitrarias tokenizadas (`[var(--...)]`).
+- `eslint-plugin-react-hooks@7` incluye reglas del React Compiler; puede levantar warnings nuevos.
 
 ## Fuera de alcance
 
-- Warnings de `deno` / edge functions (log `3_Edge Functions`): no reportaron esta vez.
-- No se re-arquitectura de imports ni se cambian aliases.
+- Migrar a TS 7 (Lote 5).
+- Reintentar `jsdom` >26 (bloqueado por react-pdf).
+
+## Pregunta
+
+¿Ejecuto los 4 lotes seguidos en una sola sesión, o prefieres aprobar/validar lote por lote? ejecuta los 4

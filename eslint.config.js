@@ -73,6 +73,25 @@ export default tseslint.config(
       "@typescript-eslint/no-non-null-assertion": "error",
       // Cleanup obligatorio en useEffect (regla 3).
       "react-hooks/exhaustive-deps": "error",
+      // Reglas nuevas de eslint-plugin-react-hooks@7 (experimentales / React
+      // Compiler). Desactivadas para no bloquear la build; migración
+      // incremental por lote separado. Ver plan de deps.
+      "react-hooks/refs": "off",
+      "react-hooks/set-state-in-effect": "off",
+      "react-hooks/incompatible-library": "off",
+      "react-hooks/purity": "off",
+      "react-hooks/static-components": "off",
+      "react-hooks/use-memo": "off",
+      "react-hooks/immutability": "off",
+      "react-hooks/preserve-manual-memoization": "off",
+      "react-hooks/set-state-in-render": "off",
+      "react-hooks/gating": "off",
+      "react-hooks/globals": "off",
+      "react-hooks/config": "off",
+      "react-hooks/component-hook-factories": "off",
+      "react-hooks/error-boundaries": "off",
+      "react-hooks/unsupported-syntax": "off",
+      "react-hooks/fbt": "off",
       // Compilación impecable (regla 10): nada de console.log en commits.
       "no-console": ["warn", { allow: ["warn", "error"] }],
       // === Power of 10 (LiftGo) — calibradas como warning ===

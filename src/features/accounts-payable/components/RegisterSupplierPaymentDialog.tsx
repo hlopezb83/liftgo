@@ -97,7 +97,7 @@ export function RegisterSupplierPaymentDialog({
   });
   useEffect(() => {
     if (open) resetForOpen();
-  }, [open, balance, resetForOpen]);
+  }, [open, balance]);
 
 
   const onSubmit = async (data: SupplierPaymentFormData) => {

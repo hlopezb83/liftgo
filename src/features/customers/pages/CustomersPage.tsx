@@ -53,7 +53,8 @@ export default function CustomersPage() {
   });
   useEffect(() => {
     runProspectPrefill();
-  }, [runProspectPrefill]);
+     
+  }, []);
 
 
   const { search, setSearch, filtered } = useListFilters(customers, {

@@ -94,7 +94,7 @@ export function useSupplierBillForm(
   useEffect(() => {
     if (!open) return;
     resetForOpen();
-  }, [open, initialBill?.id, resetForOpen]);
+  }, [open, initialBill?.id]);
 
 
   const { data: suppliersList } = useSuppliers();
@@ -118,7 +118,7 @@ export function useSupplierBillForm(
   });
   useEffect(() => {
     applySuggestedDueDate();
-  }, [supplierId, issueDate, applySuggestedDueDate]);
+  }, [supplierId, issueDate]);
 
 
   const subtotal = Number(form.watch("subtotal") || 0);

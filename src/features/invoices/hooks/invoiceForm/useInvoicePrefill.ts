@@ -41,7 +41,7 @@ export function useInvoicePrefill({
   const bookingIdsKey = existingBookingIds?.join(",") ?? "";
   useEffect(() => {
     hydrate();
-  }, [existing?.booking_id, bookingIdsKey, hydrate]);
+  }, [existing?.booking_id, bookingIdsKey]);
 
 
   usePrefillEffect(() => {
