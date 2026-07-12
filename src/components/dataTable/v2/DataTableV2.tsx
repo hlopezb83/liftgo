@@ -14,6 +14,7 @@ interface Props<T> {
   isLoading?: boolean;
   emptyMessage?: string;
   onRowClick?: (item: T) => void;
+  onRowPrefetch?: (item: T) => unknown;
   rowClassName?: (item: T) => string | undefined;
   mobileCardRender?: (item: T) => ReactNode;
   footer?: ReactNode;
@@ -46,6 +47,7 @@ export function DataTableV2<T>({
   isLoading,
   emptyMessage = "Sin resultados",
   onRowClick,
+  onRowPrefetch,
   rowClassName,
   mobileCardRender,
   footer,
@@ -81,6 +83,7 @@ export function DataTableV2<T>({
     emptyMessage,
     showSelection: enableRowSelection,
     onRowClick,
+    onRowPrefetch,
     rowClassName,
   };
 

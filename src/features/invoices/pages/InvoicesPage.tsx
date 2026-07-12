@@ -1,7 +1,7 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
 import { useState } from "react";
-import { useInvoices } from "../hooks/invoices/useInvoices";
+import { useInvoices, invoiceQueries } from "../hooks/invoices/useInvoices";
 import { useGenerateRecurringInvoices } from "../hooks/invoices/recurring/useGenerateRecurringInvoices";
 import { usePreviewRecurringInvoices } from "../hooks/invoices/recurring/usePreviewRecurringInvoices";
 import { RecurringInvoicesPreviewDialog } from "../components/recurring/RecurringInvoicesPreviewDialog";
@@ -156,6 +156,7 @@ export default function InvoicesPage() {
         isLoading={isLoading}
         table={table}
         onRowClick={(inv) => navigate(`/invoices/${inv.id}`)}
+        onRowPrefetch={(inv) => invoiceQueries.detail(inv.id)}
         emptyMessage="No se encontraron facturas"
         emptyIcon={InvoiceIcon}
         emptyActionLabel="Nueva Factura"

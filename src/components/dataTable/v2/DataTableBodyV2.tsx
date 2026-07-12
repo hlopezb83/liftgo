@@ -1,10 +1,13 @@
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import { flexRender, type Row } from "@tanstack/react-table";
+import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { EmptyRow } from "@/components/feedback/EmptyRow";
 import { cn } from "@/lib/utils";
 import { alignClass } from "./sorting";
+
+const PREFETCH_DELAY_MS = 120;
 
 interface Props<T> {
   rows: Row<T>[];
@@ -13,7 +16,43 @@ interface Props<T> {
   showSelection: boolean;
   onRowClick?: (item: T) => void;
   rowClassName?: (item: T) => string | undefined;
+  onRowPrefetch?: (item: T) => unknown;
 }
+
+interface RowHandlerCtx<T> {
+  onRowClick?: (item: T) => void;
+  onRowPrefetch?: (item: T) => unknown;
+  armPrefetch: (item: T) => void;
+  disarmPrefetch: () => void;
+}
+
+function buildRowHandlers<T>(item: T, ctx: RowHandlerCtx<T>) {
+  const { onRowClick, onRowPrefetch, armPrefetch, disarmPrefetch } = ctx;
+  const clickHandlers = onRowClick
+    ? {
+        onClick: () => onRowClick(item),
+        onKeyDown: (e: React.KeyboardEvent) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onRowClick(item);
+          }
+        },
+        tabIndex: 0,
+        role: "button" as const,
+      }
+    : {};
+  const prefetchHandlers = onRowPrefetch
+    ? {
+        onMouseEnter: () => armPrefetch(item),
+        onMouseLeave: disarmPrefetch,
+        onFocus: () => armPrefetch(item),
+        onBlur: disarmPrefetch,
+      }
+    : {};
+  return { ...clickHandlers, ...prefetchHandlers };
+}
+
+
 
 export function DataTableBodyV2<T>({
   rows,
@@ -22,7 +61,22 @@ export function DataTableBodyV2<T>({
   showSelection,
   onRowClick,
   rowClassName,
+  onRowPrefetch,
 }: Props<T>): ReactNode {
+  const queryClient = useQueryClient();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const armPrefetch = (item: T) => {
+    if (!onRowPrefetch) return;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      void queryClient.prefetchQuery(onRowPrefetch(item) as Parameters<QueryClient["prefetchQuery"]>[0]);
+    }, PREFETCH_DELAY_MS);
+  };
+  const disarmPrefetch = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = undefined;
+  };
+
   if (rows.length === 0) {
     return (
       <TableBody>
@@ -44,15 +98,7 @@ export function DataTableBodyV2<T>({
               onRowClick && "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
               rowClassName?.(item),
             )}
-            onClick={onRowClick ? () => onRowClick(item) : undefined}
-            onKeyDown={onRowClick ? (e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onRowClick(item);
-              }
-            } : undefined}
-            tabIndex={onRowClick ? 0 : undefined}
-            role={onRowClick ? "button" : undefined}
+            {...buildRowHandlers(item, { onRowClick, onRowPrefetch, armPrefetch, disarmPrefetch })}
           >
             {showSelection && (
               <TableCell className="w-10 px-3" onClick={(e) => e.stopPropagation()}>

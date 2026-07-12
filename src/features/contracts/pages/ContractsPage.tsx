@@ -1,7 +1,7 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
 import { STATUS_LABELS } from "@/lib/constants";
-import { useContracts } from "../hooks/useContracts";
+import { useContracts, contractQueries } from "../hooks/useContracts";
 import { useListFilters } from "@/hooks/useListFilters";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { SearchBar } from "@/components/forms/SearchBar";
@@ -96,6 +96,7 @@ export default function ContractsPage() {
       isLoading={isLoading}
       table={table}
       onRowClick={(c) => navigate(`/contracts/${c.id}`)}
+      onRowPrefetch={(c) => contractQueries.detail(c.id)}
       emptyMessage="No se encontraron contratos"
       skeletonColumns={7}
       mobileCardRender={(c) => (

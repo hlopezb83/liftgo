@@ -1,6 +1,6 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
-import { useQuotes } from "../hooks/quotes/useQuotes";
+import { useQuotes, quoteQueries } from "../hooks/quotes/useQuotes";
 import { useListFilters } from "@/hooks/useListFilters";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { SearchBar } from "@/components/forms/SearchBar";
@@ -111,6 +111,7 @@ export default function QuotesPage() {
       isLoading={isLoading}
       table={table}
       onRowClick={(q) => navigate(`/quotes/${q.id}`)}
+      onRowPrefetch={(q) => quoteQueries.detail(q.id)}
       emptyMessage="No hay cotizaciones aún"
       skeletonColumns={7}
       mobileCardRender={(q) => (

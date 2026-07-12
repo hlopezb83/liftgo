@@ -1,7 +1,7 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
 import { useForkliftMap } from "@/features/fleet";
-import { useDeliveries } from "../hooks/useDeliveries";
+import { useDeliveries, deliveryQueries } from "../hooks/useDeliveries";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Card, CardContent } from "@/components/ui/card";
@@ -68,6 +68,7 @@ export default function DeliveriesPage() {
       isLoading={isLoading}
       table={table}
       onRowClick={(d) => navigate(`/deliveries/${d.id}`)}
+      onRowPrefetch={(d) => deliveryQueries.detail(d.id)}
       emptyMessage="No hay entregas programadas"
       mobileCardRender={(d) => (
         <Card className="cursor-pointer" onClick={() => navigate(`/deliveries/${d.id}`)}>

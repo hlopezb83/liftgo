@@ -5,7 +5,7 @@ import { differenceInDays, parseISO } from "date-fns";
 import { formatMtyDate } from "@/lib/utils";
 
 import { STATUS_LABELS } from "@/lib/constants";
-import { useBookings } from "../hooks/useBookings";
+import { useBookings, bookingQueries } from "../hooks/useBookings";
 import { useResourceList } from "@/hooks/useResourceList";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { SearchBar } from "@/components/forms/SearchBar";
@@ -136,6 +136,7 @@ export default function BookingsPage() {
       isLoading={isLoading}
       table={table}
       onRowClick={(b) => navigate(`/bookings/${b.id}`)}
+      onRowPrefetch={(b) => bookingQueries.detail(b.id)}
       emptyMessage={isAdmin ? "No se encontraron reservas" : "No se encontraron reservas. Las reservas se crean convirtiendo una cotización aceptada."}
       emptyIcon={CalendarDays}
       emptyActionLabel={isAdmin ? "Nueva Reserva" : undefined}

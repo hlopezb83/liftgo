@@ -34,6 +34,8 @@ interface ListPageLayoutProps<T> {
   table?: TanstackTable<T>;
   /** Click handler para filas (modo tabla). */
   onRowClick?: (item: T) => void;
+  /** Handler opcional para prefetch de detalle al hacer hover en fila. */
+  onRowPrefetch?: (item: T) => unknown;
   /** Si se provee, en mobile/tablet se renderiza como tarjetas en lugar de tabla. */
   mobileCardRender?: (item: T) => ReactNode;
   /** Extractor de key para mobile cards. Default: (item).id */
@@ -59,6 +61,7 @@ export function ListPageLayout<T extends { id?: string }>({
   onEmptyAction,
   table,
   onRowClick,
+  onRowPrefetch,
   mobileCardRender,
   mobileKeyExtractor,
   customContent,
@@ -133,6 +136,7 @@ export function ListPageLayout<T extends { id?: string }>({
                 emptyActionLabel={emptyActionLabel}
                 onEmptyAction={onEmptyAction}
                 onRowClick={onRowClick}
+                onRowPrefetch={onRowPrefetch}
                 mobileCardRender={mobileCardRender}
                 mobileKeyExtractor={mobileKeyExtractor}
                 skeletonColumns={skeletonColumns}
@@ -208,6 +212,7 @@ interface TableContentProps<T> {
   emptyActionLabel?: string;
   onEmptyAction?: () => void;
   onRowClick?: (item: T) => void;
+  onRowPrefetch?: (item: T) => unknown;
   mobileCardRender?: (item: T) => ReactNode;
   mobileKeyExtractor?: (item: T) => string;
   skeletonColumns?: number;
@@ -216,7 +221,7 @@ interface TableContentProps<T> {
 function TableContent<T extends { id?: string }>({
   isLoading, showEmpty, showMobileCards, items, table,
   emptyMessage, emptyIcon, emptyActionLabel, onEmptyAction,
-  onRowClick, mobileCardRender, mobileKeyExtractor, skeletonColumns,
+  onRowClick, onRowPrefetch, mobileCardRender, mobileKeyExtractor, skeletonColumns,
 }: TableContentProps<T>) {
   if (isLoading) return <TableSkeleton columnCount={skeletonColumns} />;
   if (showEmpty) {
@@ -243,7 +248,7 @@ function TableContent<T extends { id?: string }>({
     );
   }
   if (table) {
-    return <DataTableV2 table={table} emptyMessage={emptyMessage} onRowClick={onRowClick} />;
+    return <DataTableV2 table={table} emptyMessage={emptyMessage} onRowClick={onRowClick} onRowPrefetch={onRowPrefetch} />;
   }
   return null;
 }

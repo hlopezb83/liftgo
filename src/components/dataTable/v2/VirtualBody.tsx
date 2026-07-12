@@ -1,11 +1,14 @@
 import { useRef, type ReactNode } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { flexRender, type Row } from "@tanstack/react-table";
+import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { EmptyRow } from "@/components/feedback/EmptyRow";
 import { cn } from "@/lib/utils";
 import { alignClass } from "./sorting";
+
+const PREFETCH_DELAY_MS = 120;
 
 interface Props<T> {
   rows: Row<T>[];
@@ -14,6 +17,7 @@ interface Props<T> {
   showSelection: boolean;
   onRowClick?: (item: T) => void;
   rowClassName?: (item: T) => string | undefined;
+  onRowPrefetch?: (item: T) => unknown;
   estimateRowHeight?: number;
   maxHeight?: number;
 }
@@ -25,10 +29,24 @@ export function VirtualBody<T>({
   showSelection,
   onRowClick,
   rowClassName,
+  onRowPrefetch,
   estimateRowHeight = 44,
   maxHeight = 600,
 }: Props<T>): ReactNode {
   const parentRef = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const armPrefetch = (item: T) => {
+    if (!onRowPrefetch) return;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      void queryClient.prefetchQuery(onRowPrefetch(item) as Parameters<QueryClient["prefetchQuery"]>[0]);
+    }, PREFETCH_DELAY_MS);
+  };
+  const disarmPrefetch = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = undefined;
+  };
   const virtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => parentRef.current,
@@ -70,6 +88,10 @@ export function VirtualBody<T>({
             className={cn("table w-full table-fixed", onRowClick && "cursor-pointer", rowClassName?.(item))}
             style={{ display: "table", width: "100%" }}
             onClick={onRowClick ? () => onRowClick(item) : undefined}
+            onMouseEnter={onRowPrefetch ? () => armPrefetch(item) : undefined}
+            onMouseLeave={onRowPrefetch ? disarmPrefetch : undefined}
+            onFocus={onRowPrefetch ? () => armPrefetch(item) : undefined}
+            onBlur={onRowPrefetch ? disarmPrefetch : undefined}
           >
             {showSelection && (
               <TableCell className="w-10 px-3" onClick={(e) => e.stopPropagation()}>
