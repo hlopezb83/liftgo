@@ -176,4 +176,29 @@ export default tseslint.config(
       }],
     },
   },
+  {
+    // Guardrail sonner: fuera de la plataforma de feedback (`appFeedback.ts`)
+    // y del Toaster de shadcn (`components/ui/sonner.tsx`), nadie puede
+    // importar de `sonner`. Toda notificación debe pasar por notifySuccess/
+    // notifyError/notifyInfo/notifyWarning/notifyAsync para garantizar
+    // consistencia visual, reporte estructurado y un solo punto de auditoría.
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: [
+      "src/lib/ui/appFeedback.ts",
+      "src/lib/ui/__tests__/**",
+      "src/components/ui/sonner.tsx",
+      "**/__tests__/**",
+      "**/*.test.{ts,tsx}",
+    ],
+    rules: {
+      "no-restricted-imports": ["error", {
+        paths: [
+          {
+            name: "sonner",
+            message: "Usa notifySuccess/notifyError/notifyInfo/notifyWarning/notifyAsync de @/lib/ui/appFeedback en lugar de importar `sonner` directamente.",
+          },
+        ],
+      }],
+    },
+  },
 );
