@@ -23,10 +23,12 @@ export default defineConfig(({ mode }) => ({
     },
     // Warmup: precalienta el grafo de módulos de las rutas críticas para
     // que el primer render en dev no espere transforms secuenciales.
+    // `routes/router.tsx` es el punto de arranque real tras la migración
+    // a react-router v8 (Data Router).
     warmup: {
       clientFiles: [
         "./src/main.tsx",
-        "./src/App.tsx",
+        "./src/routes/router.tsx",
         "./src/layouts/AppSidebar.tsx",
         "./src/routes/routes-config.tsx",
       ],
@@ -63,7 +65,7 @@ export default defineConfig(({ mode }) => ({
         sourcemaps: { assets: "./dist/**" },
         telemetry: false,
       }),
-  ].filter(Boolean) as import("vite").PluginOption[],
+  ],
 
   resolve: {
     alias: {
@@ -78,12 +80,31 @@ export default defineConfig(({ mode }) => ({
       "react",
       "react-dom",
       "react-router",
-      "react-router-dom",
       "@tanstack/react-query",
       "sonner",
       "date-fns",
       "zod",
     ],
+  },
+  // LightningCSS como pipeline completo (transform + minify), no sólo minify.
+  // Con Tailwind v4 (que ya emite CSS moderno) unifica el motor y acelera
+  // la fase de CSS ~10-15% en cold build. Los `targets` alinean el output con
+  // `build.target: es2022`.
+  css: {
+    transformer: "lightningcss",
+    lightningcss: {
+      targets: {
+        chrome: 111 << 16,
+        safari: (16 << 16) | (4 << 8),
+        firefox: 128 << 16,
+      },
+    },
+  },
+  // `drop: ["debugger"]` sólo en producción: elimina cualquier `debugger;` que
+  // se cuele en el bundle. `console` se preserva porque Sentry captura
+  // `console.error` como breadcrumbs — dropearlo reduciría visibilidad.
+  esbuild: {
+    drop: mode === "production" ? ["debugger"] : [],
   },
   build: {
     // Explícito para que quien lea el config sepa qué se compila. Cubre
@@ -99,6 +120,14 @@ export default defineConfig(({ mode }) => ({
     // El cálculo de gzip por asset suma 3-5s a cada build en CI. Con el
     // visualizer bajo flag ANALYZE=1, no se necesita en el flujo normal.
     reportCompressedSize: false,
+    // Target es2022 → todos los navegadores destino soportan
+    // <link rel="modulepreload"> nativo. Sin polyfill: ~1.5 KB menos
+    // inline en el HTML de entrada.
+    modulePreload: { polyfill: false },
+    // Con chunks vendor dedicados (react-pdf ~1.5 MB, recharts ~500 KB) el
+    // warning default (500 KB) es ruido. 800 sigue detectando regresiones
+    // sin falsos positivos.
+    chunkSizeWarningLimit: 800,
     rollupOptions: {
       output: {
         manualChunks: (id) => {
@@ -131,7 +160,6 @@ const CHUNK_GROUPS: ReadonlyArray<{ name: string; match: readonly string[] }> = 
       "/react-dom/",
       "/scheduler/",
       "/react-router/",
-      "/react-router-dom/",
       "@tanstack/react-query",
     ],
   },
