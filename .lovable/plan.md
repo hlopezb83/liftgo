@@ -1,49 +1,52 @@
-# Auditoría React Router 7 — Plan de mejora
+# Plan: Migración a Tailwind CSS v4
 
-Base sólida: v7.18, layout estático, Suspense + error boundary por ruta, guards composables, `useNavigateTransition`. Los cambios corrigen inconsistencias, cierran un bug latente y añaden dos optimizaciones de UX.
+Actualmente estamos en `tailwindcss@3.4.19`. La v4 es un cambio **major** con motor nuevo (Oxide), configuración CSS-first, nuevo plugin PostCSS y varios breakings. Propongo migración completa por lotes con validación al final de cada uno.
 
-## Lote A — Correctness y limpieza (bloquea drift silencioso)
+## Alcance
 
-1. **Fix bug**: `ROUTES.rolePermissions` → `/users/permissions` (hoy apunta a `/role-permissions`, que no existe).
-2. **Quitar `future` flags** de `<BrowserRouter>` en `App.tsx` (defaults en v7, deprecados).
-3. **Sincronizar `ROUTES`** con `appRoutes`: añadir entries faltantes (`damage`, `inventory`, `cuentasPorPagar`, `flujoDeCaja`, `cuentasBancarias`, `conciliacionBancaria`, `crm.cerrados`, `feedback`, `misReportes`, `leaderboard`, `settings.root`, `activity`, `audit`, `changelog`, `help`) + builders `edit` para bookings/invoices/contracts.
-4. **Guardrail**: test unitario `src/routes/__tests__/routes.test.ts` que recorre `ROUTES` recursivamente y valida que cada string estático (y cada builder llamado con `":id"`) esté presente en `appRoutes` o bajo `/portal/`.
-5. **Eliminar `ExpensesRedirect`**: reemplazar en `App.tsx` por `<Route path="/expenses" element={<Navigate to="/cuentas-por-pagar" replace />} />`. Borrar el archivo y su lazy import.
+- `tailwindcss` 3.4 → 4.x
+- `postcss.config.js` → usar `@tailwindcss/postcss`
+- `tailwind.config.ts` → migrar tokens al bloque `@theme` en `src/index.css` (o mantener `@config` como puente temporal)
+- `tailwindcss-animate` → reemplazar por `tw-animate-css` (recomendado oficial para v4) o mantener vía `@plugin`
+- `@tailwindcss/typography` → cargar vía `@plugin "@tailwindcss/typography"`
+- Codemods automáticos + auditoría manual de clases removidas/renombradas
 
-## Lote B — Consistencia de navegación
+## Lotes
 
-6. **Migrar los 2 `useNavigate` directos** a `useNavigateTransition`:
-   - `src/layouts/GlobalSearch.tsx` (Ctrl+K salta a rutas lazy).
-   - `HotkeysHost` en `src/layouts/MainLayout.tsx` (secuencias `g+t`).
-   - `CustomerPortalLayout` y el wrapper propio quedan como están.
-7. **ESLint guardrail (warn)**: `no-restricted-syntax` que marca `ImportSpecifier[imported.name="useNavigate"]` en `src/features/**` y `src/components/**` sugiriendo `useNavigateTransition` (excepciones: `src/hooks/useNavigateTransition.ts`, `src/layouts/**`).
+**Lote 1 — Setup y dependencias**
+- Instalar `tailwindcss@4`, `@tailwindcss/postcss`, `tw-animate-css`
+- Reescribir `postcss.config.js` con `@tailwindcss/postcss`
+- Cambiar `@tailwind base/components/utilities` por `@import "tailwindcss"` en `src/index.css`
+- Cargar plugins con `@plugin` directives
+- Mantener `@config "./tailwind.config.ts"` como puente para no perder tokens en el paso 1
 
-## Lote C — UX enhancements
+**Lote 2 — Codemod y clases renombradas**
+- Ejecutar `npx @tailwindcss/upgrade` (codemod oficial)
+- Revisar reemplazos comunes: `shadow-sm`→`shadow-xs`, `shadow`→`shadow-sm`, `rounded-sm`→`rounded-xs`, `outline-none`→`outline-hidden`, `ring`→`ring-3`, opacidad de bordes por defecto (`border-gray-200` ya no aplica opacity default), `bg-opacity-*` deprecado, etc.
+- Revisar variantes `space-x-*` (cambio en selector) en listas críticas
 
-8. **Prefetch de chunks lazy en hover del sidebar**:
-   - Extender `appRoutes` con un `loader?: () => Promise<unknown>` opcional que apunte al mismo `import()` del `lazy(...)` (evita duplicar la ruta del módulo).
-   - `SidebarNavSection` dispara `loader()` en `onMouseEnter`/`onFocus` del `NavLink`, con debounce de 120ms como en las tablas.
-   - Beneficio medible: click → mount inmediato en la 2ª navegación al mismo módulo.
-9. **Scroll restoration manual** en `MainLayout`:
-   - Hook `useMainScrollRestoration(ref)`: guarda `main.scrollTop` por `location.key` en un `Map` en memoria; al `PUSH` resetea a 0; al `POP` restaura el valor guardado.
-   - Se conecta al `<main id="main-content">` existente. Sin dependencias nuevas.
+**Lote 3 — Migrar tokens a `@theme` CSS-first**
+- Trasladar `colors`, `borderRadius`, `fontFamily`, `keyframes`, `animation` de `tailwind.config.ts` a bloque `@theme` en `src/index.css`
+- Mantener variables HSL semánticas existentes (`--primary`, `--status-*`, `--gantt-*`, `--crm-*`, `--accent-gold`) sin cambios; sólo mapear en `@theme` con `--color-primary: hsl(var(--primary))` etc.
+- Eliminar `tailwind.config.ts` y la directiva `@config` una vez validado
+
+**Lote 4 — Validación**
+- `tsgo` typecheck
+- `vitest run` (esperado 921+ tests verdes)
+- `bun run build` y verificar tamaño de CSS (debería bajar)
+- Recorrido visual smoke: Dashboard, Cotizaciones, Reservas, Facturación, CRM, Mantenimiento, Portal Cliente (dark + light mode)
+- Verificar PDFs (react-pdf no depende de Tailwind pero validar que no se rompa el build)
+- Changelog `v7.36.0` (minor por infraestructura, sin cambios funcionales)
 
 ## Detalles técnicos
 
-- **No migramos a data mode / framework mode**: el proyecto es SPA con TanStack Query como capa de datos; loaders/actions duplicarían responsabilidades.
-- **No convertimos rutas a árbol anidado por módulo**: rompe la simplicidad del array declarativo (`appRoutes.map`) sin beneficio real mientras el layout sea único.
-- **Testing**: la suite actual (921 tests) cubre `useListFilters`, `InvoicesPage` y `StampErrorDialog` con router de memoria; los nuevos tests de `ROUTES` viven aislados (sin render).
-- **Changelog**: `v7.35.0` (minor) + detalle en `public/changelog/v7.35.0.json`.
+- **Navegadores soportados por v4**: Safari 16.4+, Chrome 111+, Firefox 128+. Confirmar que aplica a la base de usuarios (interno, sí aplica).
+- **Riesgos**:
+  - `tailwindcss-animate` no es oficialmente v4-compatible; `tw-animate-css` es drop-in recomendado por shadcn.
+  - Cambio de default color de `border-*` de `gray-200` a `currentColor`; podría alterar bordes sin color explícito. Auditar con `rg "className=[\"'][^\"']*\\bborder\\b(?![-:])"` y agregar `border-border` donde falte.
+  - `shadcn/ui` componentes ya soportan v4 pero pueden requerir ajustes menores en `components.json` (`tailwind.css` en vez de `tailwind.config`).
+- **Rollback**: mantener commit granular por lote para revertir individualmente.
 
-## Verificación
+## Alternativa (si prefieres cero riesgo hoy)
 
-- `tsgo --noEmit` limpio.
-- `bun run lint` sin nuevos errores; el guardrail emite warnings sobre archivos que aún no migran (0 esperados tras Lote B).
-- `bunx vitest run` con nuevo test de sincronía `ROUTES ↔ appRoutes` verde.
-- Smoke manual: Ctrl+K → salto a `/reports` mantiene sidebar interactivo; hover en "Facturas" del sidebar carga el chunk antes del click; volver con back a `/invoices` restaura scroll.
-
-## Fuera de alcance
-
-- Migración a `createBrowserRouter` + `RouterProvider` (data mode).
-- Refactor de `CustomerPortalRoutes` para integrarlo al árbol principal.
-- Reemplazo de `<AuthPage>` inline por ruta `/auth` pública.
+Quedarnos en v3 y sólo bumpear a la última `3.4.x` patch. Sin ganancias de performance del motor Oxide ni CSS-first, pero cero riesgo. Recomiendo **no** ir por acá — v3 ya no recibe features nuevas.
