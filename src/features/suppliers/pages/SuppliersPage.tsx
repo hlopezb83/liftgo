@@ -1,5 +1,5 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useSuppliers, SUPPLIER_CATEGORIES } from "../hooks/useSuppliers";
 import type { Supplier } from "../hooks/useSuppliers";
 import { Button } from "@/components/ui/button";
@@ -22,63 +22,56 @@ export default function SuppliersPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Supplier | null>(null);
 
-  const filtered = useMemo(
-    () =>
-      (suppliers || []).filter((s) => {
-        if (!search) return true;
-        const q = search.toLowerCase();
-        return (
-          s.name.toLowerCase().includes(q) ||
-          (s.rfc || "").toLowerCase().includes(q) ||
-          (s.email || "").toLowerCase().includes(q) ||
-          (s.contact_person || "").toLowerCase().includes(q)
-        );
-      }),
-    [suppliers, search],
-  );
+  const filtered = (suppliers || []).filter((s) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      s.name.toLowerCase().includes(q) ||
+      (s.rfc || "").toLowerCase().includes(q) ||
+      (s.email || "").toLowerCase().includes(q) ||
+      (s.contact_person || "").toLowerCase().includes(q)
+    );
+  });
 
-  const columns = useMemo<ColumnDef<Supplier>[]>(
-    () => [
-      {
-        id: "name",
-        header: "Nombre",
-        accessorKey: "name",
-        cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
-      },
-      {
-        id: "rfc",
-        header: "RFC",
-        accessorFn: (s) => s.rfc || "",
-        cell: ({ row }) => <span className="font-mono text-sm">{row.original.rfc || "—"}</span>,
-      },
-      {
-        id: "category",
-        header: "Categoría",
-        accessorFn: (s) => s.category || "",
-        cell: ({ row }) =>
-          row.original.category ? (
-            <Badge variant="outline">
-              {SUPPLIER_CATEGORIES[row.original.category] || row.original.category}
-            </Badge>
-          ) : (
-            "—"
-          ),
-      },
-      {
-        id: "email",
-        header: "Correo",
-        accessorFn: (s) => s.email || "",
-        cell: ({ row }) => row.original.email || "—",
-      },
-      {
-        id: "phone",
-        header: "Teléfono",
-        accessorFn: (s) => s.phone || "",
-        cell: ({ row }) => row.original.phone || "—",
-      },
-    ],
-    [],
-  );
+  const columns: ColumnDef<Supplier>[] = [
+    {
+      id: "name",
+      header: "Nombre",
+      accessorKey: "name",
+      cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+    },
+    {
+      id: "rfc",
+      header: "RFC",
+      accessorFn: (s) => s.rfc || "",
+      cell: ({ row }) => <span className="font-mono text-sm">{row.original.rfc || "—"}</span>,
+    },
+    {
+      id: "category",
+      header: "Categoría",
+      accessorFn: (s) => s.category || "",
+      cell: ({ row }) =>
+        row.original.category ? (
+          <Badge variant="outline">
+            {SUPPLIER_CATEGORIES[row.original.category] || row.original.category}
+          </Badge>
+        ) : (
+          "—"
+        ),
+    },
+    {
+      id: "email",
+      header: "Correo",
+      accessorFn: (s) => s.email || "",
+      cell: ({ row }) => row.original.email || "—",
+    },
+    {
+      id: "phone",
+      header: "Teléfono",
+      accessorFn: (s) => s.phone || "",
+      cell: ({ row }) => row.original.phone || "—",
+    },
+  ];
 
   const table = useLiftgoTable<Supplier>({
     data: filtered,

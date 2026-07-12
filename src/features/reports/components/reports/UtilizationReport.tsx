@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
@@ -20,26 +20,21 @@ export function UtilizationReport({ startDate, endDate }: Props) {
   const { data: forklifts = [] } = useForklifts();
   const { data: bookings = [] } = useBookings();
 
-  const data = useMemo<Row[]>(() => {
-    const totalDays = Math.max(differenceInDays(endDate, startDate), 1);
-    return forklifts.map((fl) => {
-      const flBookings = bookings.filter((b) => b.forklift_id === fl.id &&
-        isWithinInterval(parseISO(b.start_date), { start: startDate, end: endDate }));
-      const bookedDays = flBookings.reduce((sum, b) => sum + differenceInDays(parseISO(b.end_date), parseISO(b.start_date)) + 1, 0);
-      const utilization = Math.min(Math.round((bookedDays / totalDays) * 100), 100);
-      return { name: fl.name, bookedDays, totalDays, utilization };
-    });
-  }, [forklifts, bookings, startDate, endDate]);
+  const totalDaysRange = Math.max(differenceInDays(endDate, startDate), 1);
+  const data: Row[] = forklifts.map((fl) => {
+    const flBookings = bookings.filter((b) => b.forklift_id === fl.id &&
+      isWithinInterval(parseISO(b.start_date), { start: startDate, end: endDate }));
+    const bookedDays = flBookings.reduce((sum, b) => sum + differenceInDays(parseISO(b.end_date), parseISO(b.start_date)) + 1, 0);
+    const utilization = Math.min(Math.round((bookedDays / totalDaysRange) * 100), 100);
+    return { name: fl.name, bookedDays, totalDays: totalDaysRange, utilization };
+  });
 
-  const columns = useMemo<ColumnDef<Row>[]>(
-    () => [
-      { id: "name", header: "Montacargas", accessorKey: "name", cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },
-      { id: "bookedDays", header: "Días Reservados", accessorKey: "bookedDays", meta: { align: "right" }, cell: ({ row }) => row.original.bookedDays },
-      { id: "totalDays", header: "Días Totales", accessorKey: "totalDays", meta: { align: "right" }, cell: ({ row }) => row.original.totalDays },
-      { id: "utilization", header: "Utilización", accessorKey: "utilization", meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{row.original.utilization}%</span> },
-    ],
-    [],
-  );
+  const columns: ColumnDef<Row>[] = [
+    { id: "name", header: "Montacargas", accessorKey: "name", cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },
+    { id: "bookedDays", header: "Días Reservados", accessorKey: "bookedDays", meta: { align: "right" }, cell: ({ row }) => row.original.bookedDays },
+    { id: "totalDays", header: "Días Totales", accessorKey: "totalDays", meta: { align: "right" }, cell: ({ row }) => row.original.totalDays },
+    { id: "utilization", header: "Utilización", accessorKey: "utilization", meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{row.original.utilization}%</span> },
+  ];
 
   const table = useLiftgoTable<Row>({
     data,

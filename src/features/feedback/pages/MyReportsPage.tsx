@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -14,59 +14,53 @@ type Report = NonNullable<ReturnType<typeof useMyFeedbackReports>["data"]>[numbe
 export default function MyReportsPage() {
   const { data: reports, isLoading } = useMyFeedbackReports();
 
-  const totalPoints = useMemo(
-    () => (reports ?? []).reduce((sum, r) => sum + (r.points_awarded ?? 0), 0),
-    [reports],
-  );
+  const totalPoints = (reports ?? []).reduce((sum, r) => sum + (r.points_awarded ?? 0), 0);
 
-  const columns = useMemo<ColumnDef<Report>[]>(
-    () => [
-      {
-        id: "folio",
-        header: "Folio",
-        accessorKey: "folio",
-        cell: ({ row }) => <span className="font-mono text-xs">{row.original.folio}</span>,
-      },
-      {
-        id: "type",
-        header: "Tipo",
-        accessorKey: "type",
-        cell: ({ row }) => FEEDBACK_TYPE_LABELS[row.original.type as "bug" | "improvement"] ?? row.original.type,
-      },
-      {
-        id: "module",
-        header: "Módulo",
-        accessorKey: "module",
-        cell: ({ row }) => <span className="text-sm">{row.original.module}</span>,
-      },
-      {
-        id: "title",
-        header: "Título",
-        accessorKey: "title",
-        meta: { cellClassName: "max-w-[280px] truncate" },
-      },
-      {
-        id: "status",
-        header: "Estado",
-        accessorKey: "status",
-        cell: ({ row }) => <FeedbackStatusBadge status={row.original.status} />,
-      },
-      {
-        id: "points_awarded",
-        header: "Puntos",
-        accessorKey: "points_awarded",
-        meta: { align: "right" },
-        cell: ({ row }) => <span className="font-medium">{row.original.points_awarded}</span>,
-      },
-      {
-        id: "created_at",
-        header: "Fecha",
-        accessorKey: "created_at",
-        cell: ({ row }) => <span className="text-xs text-muted-foreground">{format(new Date(row.original.created_at), "dd/MM/yyyy")}</span>,
-      },
-    ],
-    [],
-  );
+  const columns: ColumnDef<Report>[] = [
+    {
+      id: "folio",
+      header: "Folio",
+      accessorKey: "folio",
+      cell: ({ row }) => <span className="font-mono text-xs">{row.original.folio}</span>,
+    },
+    {
+      id: "type",
+      header: "Tipo",
+      accessorKey: "type",
+      cell: ({ row }) => FEEDBACK_TYPE_LABELS[row.original.type as "bug" | "improvement"] ?? row.original.type,
+    },
+    {
+      id: "module",
+      header: "Módulo",
+      accessorKey: "module",
+      cell: ({ row }) => <span className="text-sm">{row.original.module}</span>,
+    },
+    {
+      id: "title",
+      header: "Título",
+      accessorKey: "title",
+      meta: { cellClassName: "max-w-[280px] truncate" },
+    },
+    {
+      id: "status",
+      header: "Estado",
+      accessorKey: "status",
+      cell: ({ row }) => <FeedbackStatusBadge status={row.original.status} />,
+    },
+    {
+      id: "points_awarded",
+      header: "Puntos",
+      accessorKey: "points_awarded",
+      meta: { align: "right" },
+      cell: ({ row }) => <span className="font-medium">{row.original.points_awarded}</span>,
+    },
+    {
+      id: "created_at",
+      header: "Fecha",
+      accessorKey: "created_at",
+      cell: ({ row }) => <span className="text-xs text-muted-foreground">{format(new Date(row.original.created_at), "dd/MM/yyyy")}</span>,
+    },
+  ];
 
   const table = useLiftgoTable<Report>({
     data: reports ?? [],
