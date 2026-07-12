@@ -68,7 +68,7 @@ function ApiKeyField({ label, value, onChange, placeholder, isConfigured }: KeyF
 
 export function PacConfigForm({ isPending, hasTestKey, hasLiveKey }: Props) {
   const form = useFormContext<PacFormValues>();
-  const mode = form.watch("facturapi_mode");
+  const mode = useWatch({ control: form.control, name: "facturapi_mode" });
   const isLive = mode === "live";
   return (
     <Card className="mt-6">
