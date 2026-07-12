@@ -1,6 +1,6 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
-import { useQuotes } from "../hooks/quotes/useQuotes";
+import { useQuotes, quoteQueries } from "../hooks/quotes/useQuotes";
 import { useListFilters } from "@/hooks/useListFilters";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { SearchBar } from "@/components/forms/SearchBar";
