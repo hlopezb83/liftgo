@@ -115,8 +115,8 @@ export default tseslint.config(
       "@typescript-eslint/no-non-null-assertion": "off",
       "max-lines-per-function": "off",
       // vi.mock() debe ir antes de imports que dependen del módulo mockeado,
-      // lo que rompe el orden alfabético estricto de import/order.
-      "import/order": "off",
+      // lo que rompe el orden alfabético estricto de import-x/order.
+      "import-x/order": "off",
     },
   },
   {
