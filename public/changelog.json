@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.46.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "React Hook Form: modernización con useWatch y FormField",
+    "description": "Se migraron múltiples watch() a useWatch para aislar re-renders y se reemplazaron Controllers crudos por el wrapper FormField. Incluye BookingForm, useSupplierBillForm, DeliveryFormFields, PacConfigForm, FeedbackFormFields, ReturnInspectionDialog, EquipmentAssignmentDialog, InvoiceForm, useBookingFormState, useForkliftFormState, UploadSupplierRepDialog y ReportTransferDialog.",
+    "category": "improvement",
+    "changes": [
+      { "type": "changed", "description": "watch() reemplazado por useWatch en 10+ formularios para reducir re-renders" },
+      { "type": "changed", "description": "Controller crudo migrado a FormField en UploadSupplierRepDialog y ReportTransferDialog" },
+      { "type": "changed", "description": "BookingForm usa SwitchField para recurring_billing (form-controlled)" }
+    ]
+  },
+  {
     "version": "7.45.1",
     "date": "2026-07-12",
     "type": "patch",
