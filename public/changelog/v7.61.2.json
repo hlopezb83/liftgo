@@ -1,0 +1,19 @@
+{
+  "version": "7.61.2",
+  "date": "2026-07-12",
+  "type": "patch",
+  "title": "Fix: logo horizontal invisible en el sidebar",
+  "category": "bugfix",
+  "description": "SidebarBranding renderizaba el logo dentro de un contenedor cuadrado de 36×36 px con padding, lo que reducía logos horizontales (por ejemplo 253×75) a una franja de ~28 px y los hacía parecer vacíos.",
+  "changes": [
+    {
+      "type": "fix",
+      "title": "Contenedor del logo respeta aspect ratio",
+      "details": [
+        "Se eliminó el wrapper cuadrado bg-sidebar-accent + p-1 cuando hay logoUrl.",
+        "El <img> ahora usa h-9 w-auto max-w-[7rem] object-contain.",
+        "El fallback 'LG' (36×36, bg-accent-gold) se mantiene sin cambios."
+      ]
+    }
+  ]
+}
