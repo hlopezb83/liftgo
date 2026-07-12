@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.38.0",
+    "date": "2026-07-12",
+    "type": "major",
+    "title": "Vite 7 + @vitejs/plugin-react 5",
+    "description": "Actualización del toolchain a Vite 7.3.1 y @vitejs/plugin-react 5.2.0. No se requirieron cambios en vite.config.ts (chunking, alias, React Compiler babel plugin y componentTagger siguen intactos). Build ✓ 41s · 992/992 tests · sin cambios de comportamiento.",
+    "category": "improvement",
+    "changes": [
+      { "type": "changed", "description": "vite ^5.4.21 → ^7.3.1" },
+      { "type": "changed", "description": "@vitejs/plugin-react ^4 → ^5.2.0" },
+      { "type": "verified", "description": "Build de producción OK, 992/992 tests, dev server reiniciado sin regresiones" }
+    ]
+  },
+  {
     "version": "7.37.0",
     "date": "2026-07-12",
     "type": "minor",
