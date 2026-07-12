@@ -17,7 +17,7 @@ export function useInvoicesFilters(invoices: Invoice[] | undefined) {
     statusField: "status",
   });
 
-  const statusFiltered = useMemo(() => {
+  const computeStatusFiltered = (): Invoice[] | undefined => {
     if (statusFilter !== "overdue") return baseFiltered;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -31,19 +31,19 @@ export function useInvoicesFilters(invoices: Invoice[] | undefined) {
       }
       return true;
     });
-  }, [invoices, baseFiltered, statusFilter, search]);
+  };
+  const statusFiltered = computeStatusFiltered();
 
   const [searchParams, setSearchParams] = useSearchParams();
   const fromParam = searchParams.get("from");
   const toParam = searchParams.get("to");
 
-  const dateRange = useMemo(() => {
-    if (!fromParam && !toParam) return undefined;
-    return {
-      from: fromParam ? parseISO(fromParam) : undefined,
-      to: toParam ? parseISO(toParam) : undefined,
-    };
-  }, [fromParam, toParam]);
+  const dateRange = (fromParam || toParam)
+    ? {
+        from: fromParam ? parseISO(fromParam) : undefined,
+        to: toParam ? parseISO(toParam) : undefined,
+      }
+    : undefined;
 
   const setDateRange = (range?: { from?: Date; to?: Date }) => {
     setSearchParams(
@@ -60,16 +60,17 @@ export function useInvoicesFilters(invoices: Invoice[] | undefined) {
     );
   };
 
-  const filtered = useMemo(() => {
+  const computeFiltered = (): Invoice[] | undefined => {
     if (!statusFiltered) return statusFiltered;
     if (!dateRange?.from && !dateRange?.to) return statusFiltered;
     const start = dateRange.from ? startOfDay(dateRange.from) : new Date(-8640000000000000);
     const end = dateRange.to ? endOfDay(dateRange.to) : new Date(8640000000000000);
-    return statusFiltered.filter((inv) => {
+    return statusFiltered.filter((inv: Invoice) => {
       if (!inv.issued_at) return false;
       return isWithinInterval(parseISO(inv.issued_at), { start, end });
     });
-  }, [statusFiltered, dateRange]);
+  };
+  const filtered = computeFiltered();
 
   return {
     search,
