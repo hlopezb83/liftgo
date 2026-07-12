@@ -1,5 +1,15 @@
 [
   {
+    "version": "7.53.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "react-day-picker v10: nueva API de classNames, Chevron unificado y locale nativo",
+    "description": "Migración de react-day-picker v8.10.2 → v10.0.1. Se moderniza src/components/ui/calendar.tsx a las claves camelCase de v10 (month_caption, weekdays, weekday, week, day, day_button, selected, today, outside, range_start/end/middle), se sustituye components.IconLeft/IconRight por el nuevo componente único Chevron con orientation, y el locale español ahora se importa desde 'react-day-picker/locale' desacoplando el Calendar de date-fns/locale (mejor tree-shaking). DatePickerField cambia initialFocus por autoFocus (renombre v9). Los 5 consumidores de tipos DateRange/Matcher no requieren cambios: la API pública del Calendar se mantiene.",
+    "category": "improvement",
+    "impact": "Sin cambios visibles de UX. Elimina API deprecada, prepara la stack para features nativas de rango en v10 y reduce arrastre de date-fns/locale desde el wrapper del calendario.",
+    "files": ["src/components/ui/calendar.tsx", "src/components/forms/DatePickerField.tsx", "package.json"]
+  },
+  {
     "version": "7.52.0",
     "date": "2026-07-12",
     "type": "minor",
