@@ -84,7 +84,7 @@ export function DatePickerField({
               onSelect={(d) => setLocalDate(normalize(d))}
               defaultMonth={localDate ?? new Date()}
               disabled={disabled}
-              initialFocus
+              autoFocus
               className="pointer-events-auto"
             />
           </div>
