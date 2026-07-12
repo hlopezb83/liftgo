@@ -56,7 +56,7 @@ function formatValue(field: string, value: unknown, currency: string): string {
   if (value === null || value === undefined || value === "") return "—";
   if (DATE_FIELDS.has(field)) {
     try {
-      return format(new Date(String(value)), "dd/MM/yyyy");
+      return formatDateMty(String(value));
     } catch {
       return String(value);
     }
