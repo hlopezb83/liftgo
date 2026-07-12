@@ -63,19 +63,7 @@ export function DataTableBodyV2<T>({
               onRowClick && "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
               rowClassName?.(item),
             )}
-            onClick={onRowClick ? () => onRowClick(item) : undefined}
-            onKeyDown={onRowClick ? (e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                onRowClick(item);
-              }
-            } : undefined}
-            onMouseEnter={onRowPrefetch ? () => armPrefetch(item) : undefined}
-            onMouseLeave={onRowPrefetch ? disarmPrefetch : undefined}
-            onFocus={onRowPrefetch ? () => armPrefetch(item) : undefined}
-            onBlur={onRowPrefetch ? disarmPrefetch : undefined}
-            tabIndex={onRowClick ? 0 : undefined}
-            role={onRowClick ? "button" : undefined}
+            {...buildRowHandlers(item, { onRowClick, onRowPrefetch, armPrefetch, disarmPrefetch })}
           >
             {showSelection && (
               <TableCell className="w-10 px-3" onClick={(e) => e.stopPropagation()}>
