@@ -88,8 +88,10 @@ export function DatePickerField({
               mode="single"
               selected={localDate}
               onSelect={(d) => setLocalDate(normalize(d))}
-              defaultMonth={localDate ?? new Date()}
               disabled={disabled}
+              captionLayout={captionLayout}
+              startMonth={startMonth}
+              endMonth={endMonth}
               autoFocus
               className="pointer-events-auto"
             />
