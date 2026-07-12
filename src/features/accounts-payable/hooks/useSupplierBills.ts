@@ -77,13 +77,14 @@ async function fetchList(): Promise<SupplierBillListItem[]> {
   return bills;
 }
 
-async function fetchDetail(id: string): Promise<SupplierBillDetail> {
+async function fetchDetail(id: string): Promise<SupplierBillDetail | null> {
   const { data, error } = await supabase
     .from("supplier_bills")
     .select("*, suppliers(id, name, rfc), payments:supplier_payments(*)")
     .eq("id", id)
     .maybeSingle();
   if (error) throw error;
+  if (!data) return null;
   const detail = data as unknown as SupplierBillDetail;
   detail.payments = (detail.payments ?? []).sort(
     (a, b) => b.payment_date.localeCompare(a.payment_date),
@@ -94,7 +95,7 @@ async function fetchDetail(id: string): Promise<SupplierBillDetail> {
 export const supplierBillQueries = defineEntityQueries<
   "supplier_bills",
   SupplierBillListItem[],
-  SupplierBillDetail
+  SupplierBillDetail | null
 >("supplier_bills", {
   staleTime: 30_000,
   list: () => fetchList,
