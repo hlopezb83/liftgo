@@ -49,20 +49,46 @@ const queryClient = new QueryClient({
   }),
 });
 
+const persister = createBrowserPersister();
+
 export function AppProviders({ children }: { children: ReactNode }) {
+  const content = (
+    <>
+      <AuthProvider>
+        <AuthQueryCacheSync />
+        <AuthSnapshotSync />
+        <TooltipProvider>
+          <Sonner />
+          <ErrorDetailsDialog />
+          <ConfirmProvider>{children}</ConfirmProvider>
+        </TooltipProvider>
+      </AuthProvider>
+      {import.meta.env.DEV ? <ReactQueryDevtools initialIsOpen={false} buttonPosition="bottom-left" /> : null}
+    </>
+  );
+
   return (
     <ThemeProvider attribute="class" defaultTheme="light" enableSystem storageKey="forklift-theme">
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <AuthQueryCacheSync />
-          <AuthSnapshotSync />
-          <TooltipProvider>
-            <Sonner />
-            <ErrorDetailsDialog />
-            <ConfirmProvider>{children}</ConfirmProvider>
-          </TooltipProvider>
-        </AuthProvider>
-      </QueryClientProvider>
+      {persister ? (
+        <PersistQueryClientProvider
+          client={queryClient}
+          persistOptions={{
+            persister,
+            maxAge: PERSIST_MAX_AGE_MS,
+            dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
+          }}
+        >
+          {content}
+        </PersistQueryClientProvider>
+      ) : (
+        <QueryClientProviderFallback>{content}</QueryClientProviderFallback>
+      )}
     </ThemeProvider>
   );
+}
+
+// SSR fallback (sin window). Import lazy para no cargar el provider dos veces en cliente.
+function QueryClientProviderFallback({ children }: { children: ReactNode }) {
+  const { QueryClientProvider } = require("@tanstack/react-query") as typeof import("@tanstack/react-query");
+  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
 }
