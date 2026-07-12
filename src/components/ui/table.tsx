@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 
 const Table = ({ className, ref, ...props }: React.HTMLAttributes<HTMLTableElement> & { ref?: React.Ref<HTMLTableElement> }) => {
   return (
-    <div className="relative w-full overflow-auto max-h-[calc(100vh-20rem)]">
+    <div className="relative w-full overflow-auto">
       <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...props} />
     </div>
   );
@@ -13,7 +13,7 @@ Table.displayName = "Table";
 
 const TableHeader = ({ className, ref, ...props }: React.HTMLAttributes<HTMLTableSectionElement> & { ref?: React.Ref<HTMLTableSectionElement> }) => {
   return (
-    <thead ref={ref} className={cn("sticky top-0 z-10 bg-muted/50 [&_tr]:border-b-2 [&_tr]:border-border", className)} {...props} />
+    <thead ref={ref} className={cn("sticky top-0 z-10 bg-card [&_tr]:border-b-2 [&_tr]:border-border", className)} {...props} />
   );
 };
 TableHeader.displayName = "TableHeader";
@@ -48,7 +48,7 @@ const TableHead = ({ className, ref, ...props }: React.ThHTMLAttributes<HTMLTabl
     <th
       ref={ref}
       className={cn(
-        "h-9 px-3 text-left align-middle text-xs font-semibold uppercase tracking-wider text-muted-foreground [&:has([role=checkbox])]:pr-0",
+        "h-9 px-3 text-left align-middle text-xs font-semibold uppercase tracking-wide text-muted-foreground [&:has([role=checkbox])]:pr-0",
         className,
       )}
       {...props}

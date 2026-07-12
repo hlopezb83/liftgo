@@ -1,60 +1,65 @@
 ## Contexto
 
-CI del run `78954727240` falla solo en **E2E shard 1/2** con 3 tests reales (no flake de fuentes — mi patch anterior de `document.fonts.ready` ya está en el spec y no resolvió). Los demás jobs (Build, Typecheck, Vitest, Knip, ESLint, RLS, Edge Functions, shard 2) pasaron.
+Auditoría visual con 4 subagentes en paralelo (2 completaron capturas Playwright reales en `/tmp/browser/`, 2 no pudieron ejecutar navegador en su entorno). Verifiqué manualmente el hallazgo #1 leyendo `src/layouts/MainLayout.tsx` y viendo el screenshot `/tmp/browser/dashboard/desktop/mrr.png`: **el sidebar tapa el título y las primeras columnas** en desktop y tablet. Root cause: tras la actualización a shadcn sidebar moderno + Tailwind v4, el componente `<Sidebar>` se renderiza como `position: fixed`; sin `<SidebarInset>` como hermano, el `<main class="flex-1">` no recibe el offset del ancho del sidebar y se solapa.
 
-### Fallas exactas
+## Fallas priorizadas (evidencia en `/tmp/browser/`)
 
-1. **`customer-create.spec.ts:53`** — `expect(dialog).toBeHidden()` 15 s timeout. El modal `customer-form-dialog` sigue visible 33 chequeos después de click en "Agregar cliente". Signal: el submit RHF no cierra el diálogo → validación falla en silencio o `createCustomer.mutate` errorea (RLS/columna) y `handleCreateSuccess` nunca corre.
-2. **`maintenance-kanban.spec.ts:25`** — `getByLabel(/vista de tablero/i).click()` supera 30 s. El `ToggleGroupItem value="board"` existe (`MaintenancePageActions.tsx:34`), pero probablemente el toolbar no está montado dentro del tiempo (SSR de la ruta lazy `/maintenance` + hidratación con Vite 7 + fuentes async).
-3. **`quote-pdf.spec.ts:23`** — `waitForEvent("download", 20 000)` timeout. `useQuotePdfDownload` importa `@/lib/pdf/quote/build` en lazy; en CI cold-start supera 20 s o `buildQuotePdf` falla en silencio (notifyError sin download).
+### CRÍTICO — bloquea uso en desktop y tablet
 
-## Plan de fix
+1. **Sidebar tapa contenido en todas las rutas** — `src/layouts/MainLayout.tsx:65-91`. El `<main>` no está dentro de `<SidebarInset>`. Se ve en `dashboard/desktop/mrr.png` (título "MRR recurrente" y primeras columnas tapadas) y `dashboard/tablet-portrait/mrr.png`. Afecta toda la app.
 
-### Bloque A — Diagnóstico en el propio spec (defensivo, no cambia lógica)
+### WARNING — degradan lectura
 
-Agregar en los 3 specs, antes de la acción crítica:
+2. **Sticky `TableHeader` translúcido** — `src/components/ui/table.tsx:16`. `bg-muted/50` deja ver el contenido debajo al hacer scroll. Reducir opacidad → `bg-card` o `bg-muted` sólido + `backdrop-blur` opcional.
+3. **Wrapper de tabla con altura rígida** — `src/components/ui/table.tsx:7`. `max-h-[calc(100vh-20rem)]` genera scrollbars innecesarios en listas cortas y desperdicia espacio. Delegar altura al layout de la página (`ListPageLayout` ya la controla).
+4. **Grid KPI dashboard inconsistente** — `src/features/dashboard/components/dashboard/StatCards.tsx`. Fila 2 (Utilización, DSO) con anchos distintos a fila 1. Verificar `grid-cols-*` uniforme.
+5. **Tablas /mrr en tablet-portrait** — columnas CLIENTE y PERIODO wrappean agresivo. Añadir `min-w-*` o truncar con tooltip en columnas de fecha.
+6. **`TableHead` uppercase + `tracking-wider`** — provoca saltos de línea en columnas densas en tablet. Reducir `tracking` o quitar `uppercase` en tablas densas.
 
-```ts
-page.on("pageerror", (e) => console.log("[pageerror]", e.message));
-page.on("console", (m) => { if (m.type() === "error") console.log("[console]", m.text()); });
-```
+### BAJO — inconsistencias visuales menores
 
-Y en `customer-create` capturar el texto del alert de validación / toast de error si el dialog sigue abierto (`await dialog.locator('[role="alert"], .text-destructive').allTextContents()`) e imprimirlo antes de que expire el `toBeHidden`. Sin `test.skip` — el objetivo es que la próxima corrida deje evidencia en el log.
+7. **CTA duplicado en `/suppliers`** — el botón "Nuevo" se declara vía `usePageActions` Y en el prop `actions` de `ListPageLayout`. Elegir una fuente única.
+8. **FAB mobile inconsistente** — `CustomersPage` implementa `mobileFab` manual; el resto delega en `ListPageLayout`. Consolidar en el layout.
 
-### Bloque B — Fixes directos por hipótesis dominante
+## Plan de ejecución (por lotes)
 
-1. **customer-create**
-   - Hipótesis: el resolver Zod está en `mode: onSubmit` y el `TextField` de RFC transforma `.trim().toUpperCase()` post-parse; si el input llega con espacios trailing no hay bug, pero el `usePrefillEffect` corre con `useEffectEvent` y lista `run` en deps (contra la doc de React 19). En re-render `run` cambia y **resetea el form al segundo render**, borrando lo que el test escribió.
-   - Fix: quitar `run` del array de deps de `useEffect` en `src/hooks/usePrefillEffect.ts` y añadir eslint-disable justificado (`react-hooks/exhaustive-deps`) porque `useEffectEvent` es estable por contrato.
+### Lote 1 — CRÍTICO: reparar layout global (bloqueante)
 
-2. **maintenance-kanban**
-   - Hipótesis: `getByLabel` no espera al mount. Cambiar el paso a `await expect(page.getByLabel(/vista de tablero/i)).toBeEnabled({ timeout: 15_000 }); await page.getByLabel(/vista de tablero/i).click();` para que Playwright espere hidratación.
-   - Sin tocar producción.
+- `src/layouts/MainLayout.tsx`: importar `SidebarInset` de `@/components/ui/sidebar`, reemplazar `<main …>` por `<SidebarInset asChild><main …></main></SidebarInset>` (o envolver directo si `SidebarInset` ya renderiza `<main>`). Verificar que `min-h-[100dvh] flex w-full` sigue siendo válido y que `SidebarInset` no rompe `sticky top-0` del header interno.
+- Verificación: capturar `/`, `/mrr`, `/customers`, `/quotes` a 1440x900, 1024x768, 768x1024 con Playwright y comparar contra screenshots del subagente. Sidebar debe empujar el contenido, no taparlo. Confirmar que el `SidebarTrigger` sigue funcionando en el topbar.
 
-3. **quote-pdf**
-   - Subir el timeout de descarga de 20 s a 45 s (cold-start del chunk `@react-pdf/renderer` de ~1.46 MB en CI). Además, `await expect(pdfButton).toBeEnabled({ timeout: 15_000 })` antes de click para asegurar que la lazy-chunk ya cargó.
-   - `test.setTimeout(60_000)` en el spec.
+### Lote 2 — WARNING: tabla base
 
-### Bloque C — Verificación
+- `src/components/ui/table.tsx`: (a) header sólido `bg-card` con borde inferior en vez de `bg-muted/50`; (b) quitar `max-h-[calc(100vh-20rem)]` del wrapper y dejar que el contenedor de página controle altura. Auditar consumers para asegurar que la lista sigue teniendo scroll (spot-check en `/customers`, `/quotes`, `/invoices`).
+- `TableHead` en `table.tsx`: mantener `uppercase` pero reducir `tracking-wider` → `tracking-wide` o quitar; verificar contra `maintenance_tablet.png`.
 
-- `bun run lint` (mantener 0 errores).
+### Lote 3 — WARNING: dashboard y /mrr
+
+- `src/features/dashboard/components/dashboard/StatCards.tsx`: uniformar grid para que ambas filas usen la misma cantidad de columnas y anchos (probablemente `grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4` estable).
+- `src/features/dashboard/pages/MrrDetailPage.tsx`: `min-w` en columnas CLIENTE (200px) y PERIODO (180px); truncar con tooltip cuando exceda.
+
+### Lote 4 — BAJO: consistencia CTA / FAB
+
+- `SuppliersPage`: eliminar duplicación del CTA "Nuevo proveedor" (una sola fuente).
+- `CustomersPage`: eliminar `mobileFab` manual y delegar en `ListPageLayout`.
+
+### Verificación al cierre de cada lote
+
+- `bun run lint` (0 errores).
 - `bun run build`.
-- `bunx vitest run` (esperado 992/992; el flake preexistente de `registry.test.ts` corre aislado como en la corrida anterior).
-- E2E se re-ejecuta en CI; Bloque A garantiza evidencia si algún fix no cierra el gap.
+- Capturas Playwright antes/después en `/tmp/browser/audit-after/` para las rutas afectadas del lote.
+- `bunx vitest run` al final (solo Lote 1-2 tocan código compartido).
 
-### Bloque D — Changelog
+### Changelog
 
-`public/changelog.json` + `public/changelog/v7.39.2.json` como `patch`: "Estabilización E2E shard 1: fix real en `usePrefillEffect` + esperas explícitas en specs sensibles a hidratación y a lazy chunks".
+- `v7.40.0` **minor** — "Fix crítico de layout global: `SidebarInset` restaurado + estabilización de tabla base y dashboard en desktop/tablet post Tailwind v4". Un único changelog al final del sprint (o uno por lote si el usuario prefiere granular — pregunto abajo).
 
 ## Detalles técnicos
 
-- `src/hooks/usePrefillEffect.ts`: eliminar `run` del array de deps del `useEffect` interno. `useEffectEvent` está diseñado para NO listarse; incluirlo hace que cada render regenere la identidad y dispare el effect en loop de un solo tick, sobrescribiendo el `form.reset` del usuario.
-- `tests/e2e/customer-create.spec.ts`: añadir listeners `pageerror`/`console` + captura de alertas antes del `toBeHidden`.
-- `tests/e2e/maintenance-kanban.spec.ts`: `await expect(toggle).toBeEnabled(...)` antes del click.
-- `tests/e2e/quote-pdf.spec.ts`: `test.setTimeout(60_000)`, `toBeEnabled` en `pdfButton`, `timeout: 45_000` en `waitForEvent("download")`.
-- No se tocan warnings de `import/order` (2096 warnings, 0 errores — no bloquean CI).
+- El bug del sidebar es una regresión estructural, no un cambio de tokens. `SidebarInset` es el helper de shadcn que renderiza el `<main>` con `md:peer-data-[state=expanded]:pl-[var(--sidebar-width)]` (o equivalente), imprescindible cuando el sidebar es `fixed`.
+- El header interno (`sticky top-0 z-30`) del `<main>` debe seguir funcionando dentro de `SidebarInset`; validar que no se le aplique `overflow` propio que rompa el sticky.
+- Los subagentes 3 y 4 no lograron capturas (falta de auth seed y libglib respectivamente). Si tras Lote 1-3 quedan dudas de detalles/dialogs, corro yo Playwright directamente con la sesión inyectada (`LOVABLE_BROWSER_AUTH_STATUS=injected`) en Lote 5 opcional.
 
-## Riesgos
+## Riesgo
 
-- Si el fix de `usePrefillEffect` no es la causa raíz de customer-create, el Bloque A dejará el `pageerror`/alert-text en el log y podremos ajustar en el siguiente turno sin más adivinanzas.
-- Aumentar timeouts en quote-pdf es reversible; no oculta regresiones porque `pageerror` seguirá haciendo fallar el test si el chunk lanza excepción.
+- `SidebarInset` puede afectar breakpoints `md:` del sidebar colapsable; si el usuario dependía del comportamiento actual en mobile, validamos en 375px antes de cerrar Lote 1.
