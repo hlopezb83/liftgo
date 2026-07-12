@@ -1,7 +1,9 @@
+import { IncomeStatementDocument } from "@/lib/pdf/documents/IncomeStatementDocument";
+import { renderAndSave } from "@/lib/pdf/renderAndSave";
+import { fetchCompanyDataAndLogo } from "@/lib/pdf/shared";
 import type {
   StatementRow, ComparisonRow, YearTotals, MonthData,
 } from "@/features/reports/hooks/useIncomeStatementData";
-import { fetchCompanyDataAndLogo } from "@/lib/pdf/shared";
 
 interface ExportPdfParams {
   filteredData: MonthData[];
@@ -17,13 +19,8 @@ interface ExportPdfParams {
 
 export async function exportIncomeStatementPdf(params: ExportPdfParams): Promise<void> {
   const { company, logoBase64 } = await fetchCompanyDataAndLogo();
-  const [{ pdf }, { saveAs }, { IncomeStatementDocument }] = await Promise.all([
-    import("@react-pdf/renderer"),
-    import("file-saver"),
-    import("@/lib/pdf/documents/IncomeStatementDocument"),
-  ]);
-  const blob = await pdf(
-    <IncomeStatementDocument company={company} logoBase64={logoBase64} {...params} />
-  ).toBlob();
-  saveAs(blob, `estado-resultados${params.selectedYear !== "all" ? `-${params.selectedYear}` : ""}.pdf`);
+  await renderAndSave(
+    <IncomeStatementDocument company={company} logoBase64={logoBase64} {...params} />,
+    `estado-resultados${params.selectedYear !== "all" ? `-${params.selectedYear}` : ""}.pdf`,
+  );
 }
