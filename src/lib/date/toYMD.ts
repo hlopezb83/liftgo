@@ -5,6 +5,8 @@
  *
  * Para columnas `timestamptz` sí usar `.toISOString()`.
  */
+export function toYMD(date: Date): string;
+export function toYMD(date: Date | undefined | null): string | undefined;
 export function toYMD(date: Date | undefined | null): string | undefined {
   if (!date) return undefined;
   const y = date.getFullYear();
