@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+// React Compiler memoiza automáticamente las derivaciones puras de este hook.
 import { useSearchParams } from "react-router-dom";
 import { parseISO, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import { useListFilters } from "@/hooks/useListFilters";
