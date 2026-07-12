@@ -1,5 +1,6 @@
 import { useMemo, useCallback, useEffect, useDeferredValue } from "react";
 import { useSearchParams, useLocation } from "react-router";
+import { matchSorter, rankings } from "match-sorter";
 
 interface UseListFiltersOptions<T> {
   searchFields: (keyof T)[];
@@ -68,32 +69,35 @@ export function useListFilters<T extends Record<string, unknown>>(
 
   // React 19: diferimos search y statusFilter para que el input responda instantáneo
   // mientras el filtrado sobre listas grandes se computa en una render de baja prioridad.
-  // La URL y el value del input se actualizan sync; sólo el trabajo pesado se pospone.
   const deferredSearch = useDeferredValue(search);
   const deferredStatus = useDeferredValue(statusFilter);
 
-  // Deps completas: bajo React Compiler los literales de callsite (searchFields, accessors)
-  // se memoizan automáticamente, así que su identidad es estable render a render.
-  // Esto satisface exhaustive-deps sin bailouts del Compiler.
   const filtered = useMemo(() => {
-    return (items ?? []).filter((item) => {
+    // Paso 1: filtro por status (equality trivial, no requiere librería).
+    const base = (items ?? []).filter((item) => {
       if (statusField && deferredStatus !== "all") {
-        if (item[statusField] !== deferredStatus) return false;
-      }
-      if (deferredSearch) {
-        const q = deferredSearch.toLowerCase();
-        const fieldMatch = searchFields.some((field) => {
-          const val = item[field];
-          return typeof val === "string" && val.toLowerCase().includes(q);
-        });
-        if (fieldMatch) return true;
-        const accessorMatch = searchAccessors?.some((acc) => {
-          const val = acc(item);
-          return typeof val === "string" && val.toLowerCase().includes(q);
-        });
-        return Boolean(accessorMatch);
+        return item[statusField] === deferredStatus;
       }
       return true;
+    });
+
+    // Paso 2: búsqueda por texto vía `match-sorter`.
+    // Preservamos el orden original con `baseSort` indexado para evitar
+    // reordenamientos inesperados en tablas que ya ordenan por su cuenta.
+    if (!deferredSearch) return base;
+
+    const keys = [
+      ...searchFields.map((field) => (item: T) => {
+        const val = item[field];
+        return typeof val === "string" ? val : "";
+      }),
+      ...(searchAccessors ?? []).map((acc) => (item: T) => acc(item) ?? ""),
+    ];
+
+    return matchSorter(base, deferredSearch, {
+      keys,
+      threshold: rankings.CONTAINS,
+      baseSort: (a, b) => a.index - b.index,
     });
   }, [items, deferredSearch, deferredStatus, searchFields, searchAccessors, statusField]);
 
@@ -101,4 +105,3 @@ export function useListFilters<T extends Record<string, unknown>>(
 
   return { search, setSearch, statusFilter, setStatusFilter, filtered, isStale };
 }
-
