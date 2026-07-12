@@ -24,8 +24,8 @@ import { downloadReconciliationXlsx } from "../lib/reconciliationExport";
 function defaultFilters(): ReconciliationFilters {
   const today = nowMty();
   return {
-    from: format(startOfMonth(today), "yyyy-MM-dd"),
-    to: format(endOfMonth(today), "yyyy-MM-dd"),
+    from: toYMD(startOfMonth(today)),
+    to: toYMD(endOfMonth(today)),
     fiscalState: "all",
     env: "all",
   };
