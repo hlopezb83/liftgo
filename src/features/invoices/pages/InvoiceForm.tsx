@@ -157,7 +157,7 @@ export default function InvoiceForm() {
 
           <TotalsSummary
             subtotal={f.subtotal}
-            taxRate={f.form.watch("taxRate")}
+            taxRate={taxRate}
             taxAmount={f.taxAmount}
             total={f.total}
             onTaxRateChange={(v) => f.form.setValue("taxRate", v, { shouldDirty: true })}
