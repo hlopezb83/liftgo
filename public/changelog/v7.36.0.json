@@ -1,0 +1,15 @@
+{
+  "version": "7.36.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "Migración a Tailwind CSS v4",
+  "description": "Upgrade de `tailwindcss` 3.4 → 4.3 con el motor Oxide. `postcss.config.js` usa el nuevo `@tailwindcss/postcss`; `src/index.css` cambia `@tailwind base/components/utilities` por `@import \"tailwindcss\"`. Plugins se cargan vía `@plugin` (`@tailwindcss/typography`) y `@import` (`tw-animate-css` reemplaza a `tailwindcss-animate`). `tailwind.config.ts` se mantiene como puente vía `@config` para preservar todos los tokens semánticos (`--status-*`, `--gantt-*`, `--crm-*`, `--accent-gold`, sidebar, chart) sin migrar aún al bloque `@theme`. `darkMode: class` legacy re-expuesto en v4 con `@custom-variant dark`. Build 40s ✓ · 992/992 tests verdes · CSS bundle 122 kB.",
+  "category": "improvement",
+  "changes": [
+    { "type": "changed", "description": "tailwindcss 3.4.19 → 4.3.2 (motor Oxide)" },
+    { "type": "added", "description": "@tailwindcss/postcss 4.3.2 como plugin PostCSS oficial de v4" },
+    { "type": "changed", "description": "tailwindcss-animate → tw-animate-css 1.4.0 (drop-in v4-native)" },
+    { "type": "changed", "description": "src/index.css usa `@import \"tailwindcss\"` + `@config` + `@plugin` + `@custom-variant dark`" },
+    { "type": "changed", "description": "postcss.config.js sustituye plugin `tailwindcss` por `@tailwindcss/postcss`" }
+  ]
+}
