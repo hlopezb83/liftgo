@@ -44,8 +44,8 @@ export default function CalendarPage() {
   const navigateToday = () => setCurrentDate(nowMty());
 
   const rangeLabel = ganttRange === "month"
-    ? format(currentDate, "MMMM yyyy", { locale: APP_LOCALE })
-    : `${format(rangeStart, "dd/MM")} – ${format(rangeEnd, "dd/MM/yyyy")}`;
+    ? formatMonthLongEs(currentDate)
+    : `${formatDayMonthMty(rangeStart)} – ${formatDateMty(rangeEnd)}`;
 
   const endingSoon = bookings
     ? bookings.filter((b) => {
