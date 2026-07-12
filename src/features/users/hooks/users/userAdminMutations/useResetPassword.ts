@@ -3,6 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { PasswordValidationError } from "../../../lib/PasswordValidationError";
 
+/**
+ * No usa `useEntityMutation` porque necesita suprimir el toast global de error
+ * cuando la falla es una `PasswordValidationError` (se muestra inline en el
+ * formulario), comportamiento que `useEntityMutation` no permite personalizar.
+ */
 export function useResetPassword() {
   return useMutation({
     mutationFn: async ({ userId, newPassword }: { userId: string; newPassword: string }) => {

@@ -1,34 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { cashFlowSettingsQueries, type CashFlowSettings } from "../lib/queryKeys";
 
-export interface CashFlowSettings {
-  id: string | null;
-  initialBalance: number;
-  safetyBuffer: number;
-}
-
-export const CASH_FLOW_SETTINGS_QK = ["cash_flow_settings"] as const;
+export type { CashFlowSettings };
+export const CASH_FLOW_SETTINGS_QK = cashFlowSettingsQueries.keys.lists();
 
 export function useCashFlowSettings() {
-  return useQuery({
-    queryKey: CASH_FLOW_SETTINGS_QK,
-    staleTime: 5 * 60_000,
-    queryFn: async (): Promise<CashFlowSettings> => {
-      const { data, error } = await supabase
-        .from("company_settings")
-        .select("id, cash_initial_balance, cash_safety_buffer")
-        .order("created_at", { ascending: true })
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      return {
-        id: data?.id ?? null,
-        initialBalance: Number(data?.cash_initial_balance ?? 0),
-        safetyBuffer: Number(data?.cash_safety_buffer ?? 0),
-      };
-    },
-  });
+  return useQuery(cashFlowSettingsQueries.list());
 }
 
 export function useUpdateCashFlowSettings() {
@@ -51,7 +30,7 @@ export function useUpdateCashFlowSettings() {
         .eq("id", input.id);
       if (error) throw error;
     },
-    invalidateKeys: [CASH_FLOW_SETTINGS_QK, ["company_settings"]],
+    invalidateKeys: [cashFlowSettingsQueries.keys.all, ["company_settings"]],
     successMsg: "Preferencias de flujo de caja actualizadas",
     errorTitle: "No se pudieron actualizar las preferencias de flujo de caja",
   });
