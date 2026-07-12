@@ -1,73 +1,49 @@
-# Auditoría date-fns
+# Auditoría React Router 7 — Plan de mejora
 
-## Veredicto
-Implementación **sólida** (v4, TZ centralizada en `nowMty`/`formatMtyDate`, locale `es` correctamente aislado en `date-fns/locale`, sin importar el bundle completo), pero **no top-of-the-line**: hay duplicación de patrones de formato y falta guardrail arquitectónico.
+Base sólida: v7.18, layout estático, Suspense + error boundary por ruta, guards composables, `useNavigateTransition`. Los cambios corrigen inconsistencias, cierran un bug latente y añaden dos optimizaciones de UX.
 
-## Hallazgos
+## Lote A — Correctness y limpieza (bloquea drift silencioso)
 
-### 🟢 Lo que ya está bien
-- `date-fns@4.4.0` + `date-fns-tz@3.2` (última compatible).
-- Tree-shaking correcto: imports puntuales, nunca `import * from "date-fns"`.
-- Locale `es` importado desde `date-fns/locale` (path estable v4).
-- `toZonedTime` **solo** vive en `src/lib/utils.ts` (1 sitio) — TZ Monterrey encapsulada.
-- Helpers canónicos existen: `nowMty()`, `formatMtyDate()`, `formatDateDisplay()`, `formatDateRange()`, `parseDateLocal()`, `formatMonthEs()`.
+1. **Fix bug**: `ROUTES.rolePermissions` → `/users/permissions` (hoy apunta a `/role-permissions`, que no existe).
+2. **Quitar `future` flags** de `<BrowserRouter>` en `App.tsx` (defaults en v7, deprecados).
+3. **Sincronizar `ROUTES`** con `appRoutes`: añadir entries faltantes (`damage`, `inventory`, `cuentasPorPagar`, `flujoDeCaja`, `cuentasBancarias`, `conciliacionBancaria`, `crm.cerrados`, `feedback`, `misReportes`, `leaderboard`, `settings.root`, `activity`, `audit`, `changelog`, `help`) + builders `edit` para bookings/invoices/contracts.
+4. **Guardrail**: test unitario `src/routes/__tests__/routes.test.ts` que recorre `ROUTES` recursivamente y valida que cada string estático (y cada builder llamado con `":id"`) esté presente en `appRoutes` o bajo `/portal/`.
+5. **Eliminar `ExpensesRedirect`**: reemplazar en `App.tsx` por `<Route path="/expenses" element={<Navigate to="/cuentas-por-pagar" replace />} />`. Borrar el archivo y su lazy import.
 
-### 🟡 Duplicación evitable
-1. **`format(new Date(row.created_at), "dd/MM/yyyy")`** repetido en **30+ componentes** (users, damage, inventory, invoices, fleet, feedback, audit…). Debería usarse `formatMtyDate(row.created_at)`.
-2. **`import { es } from "date-fns/locale"`** duplicado en **11 archivos**. Un único re-export `APP_LOCALE` desde `@/lib/utils` (o `@/lib/format/locale`) elimina el import trasnochado.
-3. **`format(nowMty(), "yyyy-MM-dd")`** copiado en 3 hooks de dashboard (`useMrrDetail`, `useFinancialKpis`, `useDashboardStats`) para armar query keys → helper `todayKeyMty()`.
-4. **`format(d, "yyyy-MM-dd")`** para persistencia en form submit (contracts, maintenance…): ya existe `toYMD()` en el core rules — auditar migraciones faltantes.
-5. **`parseISO`** vs `new Date(iso)` mezclados (64 vs muchos). En v4 ambos funcionan pero `parseISO` es más estricto y explícito para strings ISO — estandarizar hacia `parseISO`.
+## Lote B — Consistencia de navegación
 
-### 🟡 Falta de guardrail
-- No hay regla ESLint que impida `import { format } from "date-fns"` fuera de la capa `lib/format`/`lib/utils`. Cualquier archivo puede reintroducir el patrón ad-hoc.
-- Sin regla contra `format(new Date(), "dd/MM/yyyy")` inline (patrón obvio para code-review pero fugaz en PRs grandes).
+6. **Migrar los 2 `useNavigate` directos** a `useNavigateTransition`:
+   - `src/layouts/GlobalSearch.tsx` (Ctrl+K salta a rutas lazy).
+   - `HotkeysHost` en `src/layouts/MainLayout.tsx` (secuencias `g+t`).
+   - `CustomerPortalLayout` y el wrapper propio quedan como están.
+7. **ESLint guardrail (warn)**: `no-restricted-syntax` que marca `ImportSpecifier[imported.name="useNavigate"]` en `src/features/**` y `src/components/**` sugiriendo `useNavigateTransition` (excepciones: `src/hooks/useNavigateTransition.ts`, `src/layouts/**`).
 
-### 🟡 TZ inconsistente en display
-- `format(new Date(row.created_at), ...)` **no aplica** TZ Monterrey — usa TZ del navegador. Para columnas de auditoría en dashboard interno con usuarios en MX no se nota, pero para PDFs o exports puede desalinear a medianoche.
-- `formatMtyDate` sí aplica TZ. Migrar los 30+ sitios cierra este bug latente.
+## Lote C — UX enhancements
 
-## Plan de mejora
+8. **Prefetch de chunks lazy en hover del sidebar**:
+   - Extender `appRoutes` con un `loader?: () => Promise<unknown>` opcional que apunte al mismo `import()` del `lazy(...)` (evita duplicar la ruta del módulo).
+   - `SidebarNavSection` dispara `loader()` en `onMouseEnter`/`onFocus` del `NavLink`, con debounce de 120ms como en las tablas.
+   - Beneficio medible: click → mount inmediato en la 2ª navegación al mismo módulo.
+9. **Scroll restoration manual** en `MainLayout`:
+   - Hook `useMainScrollRestoration(ref)`: guarda `main.scrollTop` por `location.key` en un `Map` en memoria; al `PUSH` resetea a 0; al `POP` restaura el valor guardado.
+   - Se conecta al `<main id="main-content">` existente. Sin dependencias nuevas.
 
-### Lote A · Helpers unificados (`src/lib/format/dateFormats.ts`)
-Nuevo módulo con presets tipados:
-```ts
-export const DF = {
-  dateShort: "dd/MM/yyyy",
-  dateTime:  "dd/MM/yyyy HH:mm",
-  dateLong:  "dd 'de' MMMM 'de' yyyy",  // con locale es
-  dayMonth:  "dd MMM",
-  isoDay:    "yyyy-MM-dd",
-} as const;
+## Detalles técnicos
 
-export const APP_LOCALE = es;                      // único re-export
-export const todayKeyMty = () => format(nowMty(), DF.isoDay);
-export const formatDateTimeMty = (v) => formatMtyDate(v, DF.dateTime);
-export const formatDateLongMty  = (v) => formatMtyDate(v, DF.dateLong, APP_LOCALE);
-```
+- **No migramos a data mode / framework mode**: el proyecto es SPA con TanStack Query como capa de datos; loaders/actions duplicarían responsabilidades.
+- **No convertimos rutas a árbol anidado por módulo**: rompe la simplicidad del array declarativo (`appRoutes.map`) sin beneficio real mientras el layout sea único.
+- **Testing**: la suite actual (921 tests) cubre `useListFilters`, `InvoicesPage` y `StampErrorDialog` con router de memoria; los nuevos tests de `ROUTES` viven aislados (sin render).
+- **Changelog**: `v7.35.0` (minor) + detalle en `public/changelog/v7.35.0.json`.
 
-### Lote B · Migración masiva (subagentes)
-- Reemplazar `format(new Date(x.created_at), "dd/MM/yyyy")` → `formatMtyDate(x.created_at)` en ~30 archivos.
-- Reemplazar `format(new Date(x), "dd/MM/yyyy HH:mm")` → `formatDateTimeMty(x)` en 6-8 archivos (audit/activity).
-- Sustituir 11 imports duplicados de `es` por `APP_LOCALE` desde `@/lib/format`.
-- Reemplazar 3 usos de `format(nowMty(), "yyyy-MM-dd")` → `todayKeyMty()`.
+## Verificación
 
-### Lote C · Guardrails ESLint
-- `no-restricted-imports` para `date-fns`:
-  - Prohibir en `src/features/**` y `src/components/**`. Permitir sólo en `src/lib/format/**`, `src/lib/utils.ts`, `src/lib/pdf/**`, `src/lib/domain/rentalCalculation.ts`, `src/components/ui/calendar.tsx` (necesita `es` para react-day-picker).
-- `no-restricted-syntax` (opcional) contra literales `"dd/MM/yyyy"` fuera de `lib/format`.
+- `tsgo --noEmit` limpio.
+- `bun run lint` sin nuevos errores; el guardrail emite warnings sobre archivos que aún no migran (0 esperados tras Lote B).
+- `bunx vitest run` con nuevo test de sincronía `ROUTES ↔ appRoutes` verde.
+- Smoke manual: Ctrl+K → salto a `/reports` mantiene sidebar interactivo; hover en "Facturas" del sidebar carga el chunk antes del click; volver con back a `/invoices` restaura scroll.
 
-### Lote D · parseISO consistente (opcional, bajo impacto)
-- Auditar los ~40 `new Date(isoString)` restantes y migrar a `parseISO` cuando la fuente sea DB. Reduce ambigüedad y facilita testing.
+## Fuera de alcance
 
-### Lote E · Changelog
-- `v7.33.0` (minor): helpers unificados + migración + guardrails.
-
-## Estimación
-- ~120 líneas menos (30 sitios × ~2 líneas de import/format + 11 re-imports de locale).
-- 1 bug latente corregido (TZ en display de `created_at`).
-- Guardrail impide reintroducción.
-
-## Riesgos
-- **Bajo**. Cambio puramente presentacional, sin lógica de negocio.
-- Tests visuales de audit/activity y dashboards para confirmar mismos strings.
+- Migración a `createBrowserRouter` + `RouterProvider` (data mode).
+- Refactor de `CustomerPortalRoutes` para integrarlo al árbol principal.
+- Reemplazo de `<AuthPage>` inline por ruta `/auth` pública.
