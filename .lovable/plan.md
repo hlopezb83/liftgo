@@ -1,60 +1,60 @@
-# Plan: Estabilizar CI (Knip + ESLint + E2E)
+## Contexto
 
-Los logs del run muestran **4 jobs fallando**. Los agrupo por causa raíz.
+CI del run `78954727240` falla solo en **E2E shard 1/2** con 3 tests reales (no flake de fuentes — mi patch anterior de `document.fonts.ready` ya está en el spec y no resolvió). Los demás jobs (Build, Typecheck, Vitest, Knip, ESLint, RLS, Edge Functions, shard 2) pasaron.
 
-## 1) Knip (blocker) — 3 archivos y 5 deps sin uso
+### Fallas exactas
 
-```
-Unused files (3):
-  src/hooks/usePrefetchOnHover.ts
-  src/lib/hooks/useOptimisticListMutation.ts
-  src/lib/query/useSuspenseQuery.ts
+1. **`customer-create.spec.ts:53`** — `expect(dialog).toBeHidden()` 15 s timeout. El modal `customer-form-dialog` sigue visible 33 chequeos después de click en "Agregar cliente". Signal: el submit RHF no cierra el diálogo → validación falla en silencio o `createCustomer.mutate` errorea (RLS/columna) y `handleCreateSuccess` nunca corre.
+2. **`maintenance-kanban.spec.ts:25`** — `getByLabel(/vista de tablero/i).click()` supera 30 s. El `ToggleGroupItem value="board"` existe (`MaintenancePageActions.tsx:34`), pero probablemente el toolbar no está montado dentro del tiempo (SSR de la ruta lazy `/maintenance` + hidratación con Vite 7 + fuentes async).
+3. **`quote-pdf.spec.ts:23`** — `waitForEvent("download", 20 000)` timeout. `useQuotePdfDownload` importa `@/lib/pdf/quote/build` en lazy; en CI cold-start supera 20 s o `buildQuotePdf` falla en silencio (notifyError sin download).
 
-Unused dependencies:  react-router, tailwindcss-animate
-Unused devDependencies: @tailwindcss/typography, tailwindcss, tw-animate-css
-```
+## Plan de fix
 
-Análisis:
-- **Archivos**: los tres son helpers que quedaron huérfanos tras refactors previos. Se borran.
-- **`react-router`**: sólo `react-router-dom` se importa. Se remueve.
-- **`tailwindcss-animate`**: reemplazado por `tw-animate-css` en el sprint Tailwind v4. Se remueve.
-- **`tailwindcss`**, **`@tailwindcss/typography`**, **`tw-animate-css`**: se cargan vía `@import "tw-animate-css"` y `@plugin "@tailwindcss/typography"` en `src/index.css`, que Knip 6 no rastrea. **NO** se remueven — se agregan a `ignoreDependencies` en `knip.json` con comentario.
+### Bloque A — Diagnóstico en el propio spec (defensivo, no cambia lógica)
 
-## 2) ESLint (blocker) — 10 errores reales
+Agregar en los 3 specs, antes de la acción crítica:
 
-| Archivo | Línea | Regla | Fix |
-|---|---|---|---|
-| `src/components/dataTable/v2/DataTableHeaderV2.tsx` | 52 | `jsx-a11y/role-supports-aria-props` (aria-sort en `<button>`) | Mover `aria-sort` al `<TableHead>` padre (celda `columnheader`). |
-| `src/features/bookings/hooks/useBookings.ts` | 50, 56 | `react-hooks/rules-of-hooks` (useQuery condicional) | Colapsar en un solo `useQuery` que elige queryKey/queryFn según `forkliftId`. |
-| `src/features/damage/components/damage/ImageGalleryLightbox.tsx` | 23, 24, 69, 72 | exhaustive-deps + a11y | Envolver `prev`/`next` en `useCallback`; extraer swipe handlers a `<button>` o quitar listeners del `<div>` (usar wrapper con `role="group"` sin handlers de mouse/kb). |
-| `src/features/invoices/hooks/invoices/useUpcomingInvoices.ts` | 23 | `no-non-null-assertion` | `toYMD(addDays(nowMty(), 30)) ?? todayKeyMty()` (o assert previo). |
-| `src/features/quotes/hooks/quoteForm/quoteFormPayload.ts` | 37, 38 | `no-non-null-assertion` (×2) | `toYMD(a.startDate) ?? today` idem endDate. |
-
-Ninguno cambia comportamiento — son limpiezas mecánicas.
-
-## 3) E2E shard 1/2 — 3 tests flakes
-
-```
-customer-create.spec.ts:50   → dialog no se cierra tras submit (retry falla)
-maintenance-kanban.spec.ts:19 → click timeout 30s
-quote-pdf.spec.ts:22          → waitForEvent("download") timeout 20s
+```ts
+page.on("pageerror", (e) => console.log("[pageerror]", e.message));
+page.on("console", (m) => { if (m.type() === "error") console.log("[console]", m.text()); });
 ```
 
-Diagnóstico: los tres son intermitencias clásicas de E2E, no bugs de código. **Sospecha principal**: mi cambio de fuentes a `<link rel="preload" as="style" onload>` puede haber corrido el FCP y hecho que los primeros clicks pasen antes de la hidratación en runners lentos. Propongo:
+Y en `customer-create` capturar el texto del alert de validación / toast de error si el dialog sigue abierto (`await dialog.locator('[role="alert"], .text-destructive').allTextContents()`) e imprimirlo antes de que expire el `toBeHidden`. Sin `test.skip` — el objetivo es que la próxima corrida deje evidencia en el log.
 
-- Añadir `await page.waitForLoadState("networkidle")` en el `beforeEach` de esos tres specs (o `page.evaluate(() => document.fonts.ready)`).
-- Si sigue fallando tras el push, revertir sólo el `onload` de fuentes y volver al stylesheet directo (dejando el `preconnect`). Prefiero no revertir preventivamente.
+### Bloque B — Fixes directos por hipótesis dominante
 
-## Fuera de alcance
+1. **customer-create**
+   - Hipótesis: el resolver Zod está en `mode: onSubmit` y el `TextField` de RFC transforma `.trim().toUpperCase()` post-parse; si el input llega con espacios trailing no hay bug, pero el `usePrefillEffect` corre con `useEffectEvent` y lista `run` en deps (contra la doc de React 19). En re-render `run` cambia y **resetea el form al segundo render**, borrando lo que el test escribió.
+   - Fix: quitar `run` del array de deps de `useEffect` en `src/hooks/usePrefillEffect.ts` y añadir eslint-disable justificado (`react-hooks/exhaustive-deps`) porque `useEffectEvent` es estable por contrato.
 
-- Los ~2097 warnings de ESLint (`import/order`, jsx-a11y menores) — no bloquean CI, se abordan en un lote de higiene aparte.
-- El warning de "Node.js 20 deprecated" en `actions/cache@v4` — pendiente de Dependabot.
+2. **maintenance-kanban**
+   - Hipótesis: `getByLabel` no espera al mount. Cambiar el paso a `await expect(page.getByLabel(/vista de tablero/i)).toBeEnabled({ timeout: 15_000 }); await page.getByLabel(/vista de tablero/i).click();` para que Playwright espere hidratación.
+   - Sin tocar producción.
 
-## Verificación
+3. **quote-pdf**
+   - Subir el timeout de descarga de 20 s a 45 s (cold-start del chunk `@react-pdf/renderer` de ~1.46 MB en CI). Además, `await expect(pdfButton).toBeEnabled({ timeout: 15_000 })` antes de click para asegurar que la lazy-chunk ya cargó.
+   - `test.setTimeout(60_000)` en el spec.
 
-- `bunx knip --include files,dependencies,binaries` → 0 blockers.
-- `bun run lint` → 0 errores.
-- `bun run build` + `bunx vitest run` → verdes.
-- Changelog `v7.39.1` (patch: CI stabilization).
+### Bloque C — Verificación
 
-¿Aplico los 3 bloques en un solo PR, o preferís separar E2E flakes por si el fix no cierra el gap?
+- `bun run lint` (mantener 0 errores).
+- `bun run build`.
+- `bunx vitest run` (esperado 992/992; el flake preexistente de `registry.test.ts` corre aislado como en la corrida anterior).
+- E2E se re-ejecuta en CI; Bloque A garantiza evidencia si algún fix no cierra el gap.
+
+### Bloque D — Changelog
+
+`public/changelog.json` + `public/changelog/v7.39.2.json` como `patch`: "Estabilización E2E shard 1: fix real en `usePrefillEffect` + esperas explícitas en specs sensibles a hidratación y a lazy chunks".
+
+## Detalles técnicos
+
+- `src/hooks/usePrefillEffect.ts`: eliminar `run` del array de deps del `useEffect` interno. `useEffectEvent` está diseñado para NO listarse; incluirlo hace que cada render regenere la identidad y dispare el effect en loop de un solo tick, sobrescribiendo el `form.reset` del usuario.
+- `tests/e2e/customer-create.spec.ts`: añadir listeners `pageerror`/`console` + captura de alertas antes del `toBeHidden`.
+- `tests/e2e/maintenance-kanban.spec.ts`: `await expect(toggle).toBeEnabled(...)` antes del click.
+- `tests/e2e/quote-pdf.spec.ts`: `test.setTimeout(60_000)`, `toBeEnabled` en `pdfButton`, `timeout: 45_000` en `waitForEvent("download")`.
+- No se tocan warnings de `import/order` (2096 warnings, 0 errores — no bloquean CI).
+
+## Riesgos
+
+- Si el fix de `usePrefillEffect` no es la causa raíz de customer-create, el Bloque A dejará el `pageerror`/alert-text en el log y podremos ajustar en el siguiente turno sin más adivinanzas.
+- Aumentar timeouts en quote-pdf es reversible; no oculta regresiones porque `pageerror` seguirá haciendo fallar el test si el chunk lanza excepción.

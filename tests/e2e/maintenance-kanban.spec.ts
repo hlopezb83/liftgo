@@ -17,13 +17,18 @@ import { test, expect } from "./fixtures/seed";
  * Vitest.
  */
 test("seeded maintenance work order appears in pending column", async ({ page, seed }) => {
+  page.on("pageerror", (e) => console.log("[pageerror]", e.message));
+  page.on("console", (m) => { if (m.type() === "error") console.log("[console]", m.text()); });
+
   await page.goto("/maintenance", { waitUntil: "domcontentloaded" });
   await page.evaluate(() => document.fonts?.ready).catch(() => {});
 
   // Vista por defecto es "list". Activamos el toggle "board" (Kanban) via su
-  // aria-label estable. NOTA: Radix ToggleGroup type="single" renderiza los items
-  // con role="radio" (no button), así que usamos getByLabel que es agnóstico al role.
-  await page.getByLabel(/vista de tablero/i).click();
+  // aria-label estable. Espera explícita a que el toolbar esté hidratado antes
+  // de click, evita timeouts en runners fríos.
+  const boardToggle = page.getByLabel(/vista de tablero/i);
+  await expect(boardToggle).toBeEnabled({ timeout: 15_000 });
+  await boardToggle.click();
 
   const pendingColumn = page.getByTestId("maintenance-kanban-column-pending");
   await expect(pendingColumn).toBeVisible({ timeout: 15_000 });

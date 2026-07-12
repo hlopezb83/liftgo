@@ -29,9 +29,12 @@ test("create a customer through the UI with E2E isolation", async ({ page }) => 
     window.localStorage.setItem("liftgo:e2e_scope", scope);
   }, e2eScope);
 
+  // Diagnóstico defensivo: si un pageerror o console.error dispara durante el
+  // submit, queda en el log de CI para acortar el próximo debug loop.
+  page.on("pageerror", (e) => console.log("[pageerror]", e.message));
+  page.on("console", (m) => { if (m.type() === "error") console.log("[console]", m.text()); });
+
   await page.goto("/customers", { waitUntil: "domcontentloaded" });
-  // Fuentes ahora se cargan non-blocking (v7.39.0). Esperar `document.fonts.ready`
-  // evita clicks pre-hidratación en runners lentos de CI.
   await page.evaluate(() => document.fonts?.ready).catch(() => {});
 
   await page.getByRole("button", { name: /agregar cliente/i }).first().click();
@@ -50,7 +53,14 @@ test("create a customer through the UI with E2E isolation", async ({ page }) => 
   await dialog.getByRole("button", { name: /agregar cliente|guardar|crear|registrar/i }).last().click();
 
   // El dialog se cierra al éxito; el cliente debe aparecer en la lista.
-  await expect(dialog).toBeHidden({ timeout: 15_000 });
+  try {
+    await expect(dialog).toBeHidden({ timeout: 15_000 });
+  } catch (err) {
+    // Volcar errores de validación visibles + toasts para dejar traza real en CI.
+    const alerts = await page.locator('[role="alert"], .text-destructive, [data-sonner-toast]').allTextContents();
+    console.log("[customer-create] dialog still visible. Alerts:", JSON.stringify(alerts));
+    throw err;
+  }
   await page.waitForLoadState("networkidle").catch(() => {});
 
   // Teardown obligatorio: el cliente nace marcado is_e2e=true desde la UI, por lo
