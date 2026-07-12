@@ -50,7 +50,18 @@ export function shouldPersistQuery(query: Query): boolean {
 }
 
 export function createBrowserPersister() {
-  if (typeof window === "undefined") return undefined;
+  if (typeof window === "undefined") {
+    // Fallback en memoria (no-op) para SSR/tests.
+    return createSyncStoragePersister({
+      storage: {
+        getItem: () => null,
+        setItem: () => undefined,
+        removeItem: () => undefined,
+      },
+      key: STORAGE_KEY,
+      throttleTime: 1000,
+    });
+  }
   return createSyncStoragePersister({
     storage: window.localStorage,
     key: STORAGE_KEY,
