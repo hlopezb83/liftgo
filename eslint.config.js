@@ -36,7 +36,10 @@ export default tseslint.config(
       // completa (babel-plugin-react-compiler + @vitejs/plugin-react) queda
       // como paso opcional siguiente; hoy sólo cosechamos los diagnósticos.
       "react-compiler/react-compiler": "warn",
-      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+      "react-refresh/only-export-components": ["warn", {
+        allowConstantExport: true,
+        allowExportNames: ["meta", "loader", "action", "links", "headers", "handle"],
+      }],
 
 
       "@typescript-eslint/no-unused-vars": "off",
@@ -116,6 +119,10 @@ export default tseslint.config(
           {
             name: "lucide-react",
             message: "Importa desde '@/components/icons' (registry). Ver src/components/icons/index.ts para aliases semánticos (DeleteIcon, EditIcon, SuccessIcon, etc.).",
+          },
+          {
+            name: "sonner",
+            message: "Usa notifySuccess/notifyError/notifyInfo/notifyWarning/notifyAsync de @/lib/ui/appFeedback en lugar de importar `sonner` directamente.",
           },
           {
             name: "@/components/icons",

@@ -1,5 +1,6 @@
 import { useTheme } from "next-themes";
-import { Toaster as Sonner, toast } from "sonner";
+// eslint-disable-next-line no-restricted-imports -- Toaster de shadcn: único componente autorizado a montar el <Toaster/> de sonner.
+import { Toaster as Sonner } from "sonner";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 type ToasterProps = React.ComponentProps<typeof Sonner>;
@@ -30,4 +31,4 @@ const Toaster = ({ ...props }: ToasterProps) => {
   );
 };
 
-export { Toaster, toast };
+export { Toaster };

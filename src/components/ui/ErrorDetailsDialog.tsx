@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { toast } from "sonner";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { DuplicateIcon, Check } from "@/components/icons";
 import { useErrorReport, closeErrorReport } from "@/lib/ui/errorDetailsStore";
 import { formatReportText } from "@/lib/ui/errorReportFormat";
-import { notifySuccess } from "@/lib/ui/appFeedback";
+import { notifySuccess, notifyWarning } from "@/lib/ui/appFeedback";
 
 /**
  * Diálogo global de detalles de error. Montar una sola vez en el root.
@@ -52,7 +51,7 @@ export function ErrorDetailsDialog() {
       notifySuccess("Reporte copiado al portapapeles");
       setTimeout(() => setCopied(false), 2000);
     } else {
-      toast.error("No se pudo copiar. Selecciona el texto manualmente y usa Ctrl+C.");
+      notifyWarning("No se pudo copiar. Selecciona el texto manualmente y usa Ctrl+C.");
     }
   };
 

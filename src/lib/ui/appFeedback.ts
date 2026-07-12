@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-restricted-imports -- Plataforma única de feedback: único punto autorizado para importar sonner.
 import { toast } from "sonner";
 import { buildErrorReport } from "@/lib/ui/errorReport";
 import { openErrorReport } from "@/lib/ui/errorDetailsStore";

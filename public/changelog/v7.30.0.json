@@ -1,0 +1,16 @@
+{
+  "version": "7.30.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "Auditoría Lote 1: endurecer dompurify + sonner + eslint",
+  "description": "Auditoría de las 5 dependencias actualizadas la semana pasada (dompurify, postcss, sonner, eslint-plugin-react-refresh, jsdom). Se implementaron los hallazgos de bajo riesgo: whitelist explícita en `renderSafeMarkdown` (bloquea `<script>`, `<iframe>`, `<style>`, `<form>` y atributos `on*`); se elimina el re-export de `toast` en `src/components/ui/sonner.tsx` para forzar el uso exclusivo de la plataforma `appFeedback`; nueva regla ESLint `no-restricted-imports` bloquea importar `sonner` fuera de `appFeedback.ts` y `Toaster`; se agrega `allowExportNames` a `react-refresh/only-export-components` para reducir falsos positivos. Se migraron los 2 call-sites que aún usaban `toast.error` directo (`GlobalSearch`, `ErrorDetailsDialog`) a `notifyError`/`notifyWarning`. postcss y jsdom se dejan sin cambios (config idiomática / migración a happy-dom queda como sprint futuro). 5 tests nuevos, 918/918 verdes.",
+  "category": "improvement",
+  "changes": [
+    { "type": "changed", "description": "renderSafeMarkdown: whitelist explícita de tags (h2-h4, p, strong, em, li, br, div, span) y solo atributo `class`" },
+    { "type": "added", "description": "5 tests para renderSafeMarkdown: bloqueo de <script>, <iframe>, <style>, <form>, atributos on*" },
+    { "type": "changed", "description": "src/components/ui/sonner.tsx: eliminado re-export de `toast` (sólo se expone `Toaster`)" },
+    { "type": "added", "description": "ESLint `no-restricted-imports`: prohíbe importar `sonner` fuera de `appFeedback.ts` y `sonner.tsx`" },
+    { "type": "changed", "description": "GlobalSearch.tsx y ErrorDetailsDialog.tsx migrados de `toast.*` a `notifyError`/`notifyWarning`" },
+    { "type": "changed", "description": "react-refresh/only-export-components: `allowExportNames` para meta/loader/action/links/headers/handle" }
+  ]
+}
