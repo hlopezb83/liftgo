@@ -19,6 +19,38 @@ interface Props<T> {
   onRowPrefetch?: (item: T) => unknown;
 }
 
+interface RowHandlerCtx<T> {
+  onRowClick?: (item: T) => void;
+  onRowPrefetch?: (item: T) => unknown;
+  armPrefetch: (item: T) => void;
+  disarmPrefetch: () => void;
+}
+
+function buildRowHandlers<T>(item: T, ctx: RowHandlerCtx<T>) {
+  const { onRowClick, onRowPrefetch, armPrefetch, disarmPrefetch } = ctx;
+  const clickHandlers = onRowClick
+    ? {
+        onClick: () => onRowClick(item),
+        onKeyDown: (e: React.KeyboardEvent) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onRowClick(item);
+          }
+        },
+        tabIndex: 0,
+        role: "button" as const,
+      }
+    : {};
+  const prefetchHandlers = onRowPrefetch
+    ? {
+        onMouseEnter: () => armPrefetch(item),
+        onMouseLeave: disarmPrefetch,
+        onFocus: () => armPrefetch(item),
+        onBlur: disarmPrefetch,
+      }
+    : {};
+  return { ...clickHandlers, ...prefetchHandlers };
+
 export function DataTableBodyV2<T>({
   rows,
   columnCount,
