@@ -1,88 +1,73 @@
-# Auditoría TanStack (Query + Table + Virtual)
+# Auditoría — 5 dependencias del Lote 1
 
-## Estado actual
+## Veredicto general
 
+| Dep | Versión | Uso real | Estado |
+|---|---|---|---|
+| dompurify | 3.4.12 | 1 archivo (`renderSafeMarkdown`) | ⚠️ Config subóptima |
+| postcss | 8.5.17 | `postcss.config.js` (tailwind + autoprefixer) | ✅ Limpio |
+| sonner | 2.0.7 | `appFeedback.ts` + `Toaster` shadcn | ⚠️ Duplica API |
+| eslint-plugin-react-refresh | 0.5.3 | `eslint.config.js` | ⚠️ Falta `vite` flag |
+| jsdom | 26.1.0 (pineado) | `vitest.config.ts` | ⚠️ Alternativa 3-5× más rápida |
 
-| Paquete                   | Instalada | Última  | Estado   |
-| ------------------------- | --------- | ------- | -------- |
-| `@tanstack/react-query`   | 5.101.2   | 5.101.2 | ✅ al día |
-| `@tanstack/react-table`   | 8.21.3    | 8.21.3  | ✅ al día |
-| `@tanstack/react-virtual` | 3.14.5    | 3.14.5  | ✅ al día |
-
-
-**106** hooks usan React Query; **50** archivos usan `useEntityMutation`; existe `createEntityKeys` como factory de query keys.
-
-## Lo que está limpio ✅
-
-- **QueryClient centralizado** en `AppProviders.tsx` con `staleTime`, `gcTime`, `retry`, `refetchOnWindowFocus:false` y `QueryCache`/`MutationCache` con `meta.silent` para toasts globales.
-- **Factory de query keys** (`createEntityKeys`) con niveles `all/lists/details/detail`.
-- **Abstracción `useEntityMutation**` para invalidaciones consistentes (DRY).
-- **AuthQueryCacheSync**: limpieza de cache al cambio de sesión.
-
-## Lo que NO está top-of-the-line ⚠️
-
-1. `**queryOptions()` v5 sin adoptar** — 0 usos. Es el idiom oficial de v5 para colocar `queryKey + queryFn + select` en un solo objeto tipado (habilita `prefetchQuery`, `ensureQueryData`, `useSuspenseQuery` con el mismo contrato).
-2. **Sin `useSuspenseQuery` / `useSuspenseQueries**` — 0 usos. Ya hay `Suspense` por ruta (Fase F Lote 3) pero los datos siguen con `isLoading` manual → skeletons duplicados.
-3. **Sin `prefetchQuery` / `ensureQueryData**` — 0 usos. `useNavigateTransition` navega en transición pero no precalienta cache en hover/focus (patrón "prefetch on intent").
-4. **Sin `ReactQueryDevtools**` — DX inferior; solo en `import.meta.env.DEV`.
-5. **Sin `useInfiniteQuery` ni `useQueries**` — listas grandes paginan client-side (25) sobre datasets completos; oportunidad para tablas con paginación server-side.
-6. `**select:` infrautilizado** (2 usos) — la mayoría transforma en el consumidor, gastando renders y sin cachear la proyección.
-7. `**isLoading` vs `isPending` mezclado** — semántica v5 confusa (`isLoading = isPending && isFetching && !data`, pero `isPending` es el estado real "sin data aún"); usar `isPending` es la recomendación oficial.
-8. **Optimistic UI solo con `useOptimistic**` (React 19) — `onMutate`/`setQueryData`/rollback con `context` sigue siendo superior para invalidación cruzada (ej: eliminar factura y ajustar KPIs del dashboard).
-9. **Sin `persistQueryClient**` — cold start recarga todo; el usuario ya reportó querer fluidez.
-10. `**react-table` sin `@tanstack/match-sorter-utils**` para filtrado difuso global; hoy se filtra manualmente en `useListFilters`.
+Ninguna implementación está rota. La base es sólida (single-point `appFeedback`, ESLint plano moderno, tailwind + autoprefixer estándar). Los hallazgos son de "top of the line", no de bugs.
 
 ---
 
-## Plan propuesto — 4 lotes
+## Hallazgos y mejoras propuestas
 
-### Lote 1 — Fundacional (DX + tipos) — bajo riesgo
+### 1. dompurify — configuración por defecto insegura para Markdown con HTML injectado (MEDIA)
+`renderSafeMarkdown` llama a `DOMPurify.sanitize(html)` con la config default, que permite `<iframe>`, atributos `on*` bloqueados pero también `<style>` y `<form>`. Para un renderer de Markdown de ayuda basta:
+- `ALLOWED_TAGS`: whitelist a `h2..h4, p, strong, em, li, br, div, span`.
+- `ALLOWED_ATTR`: solo `class`.
+- `RETURN_TRUSTED_TYPES: true` cuando el navegador lo soporta (defensa extra en Chrome).
+- Memoizar la instancia (`DOMPurify()` se puede reusar) — pequeño, pero elimina re-init por llamada.
 
-- Instalar `@tanstack/react-query-devtools` y montar `<ReactQueryDevtools />` gated por `import.meta.env.DEV` en `AppProviders`.
-- Crear `src/lib/query/defineEntityQueries.ts`: helper que envuelve `queryOptions()` combinándolo con `createEntityKeys` para exponer `list(filter)`, `detail(id)` tipados y reutilizables entre `useQuery`, `prefetchQuery` y `useSuspenseQuery`.
-- Migrar 3 hooks piloto (`useContracts`, `useDeliveries`, `useQuotes`) a `queryOptions()` sin cambiar consumidores.
-- Codemod ligero `isLoading → isPending` donde no dependa de refetch (excluye guards que sí necesitan `isFetching`).
+### 2. sonner — el `Toaster` de shadcn re-exporta `toast` (HIGH, escala DRY)
+`src/components/ui/sonner.tsx` re-exporta `toast` desde sonner. Eso invita a usar `import { toast } from "@/components/ui/sonner"` y saltarse `appFeedback`. Hoy el guardrail no existe.
+- Quitar el re-export de `toast` en `sonner.tsx` (solo dejar `Toaster`).
+- Agregar `no-restricted-imports` en `eslint.config.js`:
+  - Bloquear `sonner` fuera de `src/lib/ui/appFeedback.ts` y `src/components/ui/sonner.tsx`.
+  - Mensaje: "Usa notifySuccess/notifyError/notifyInfo/notifyWarning/notifyAsync de @/lib/ui/appFeedback."
+- Migrar los 2 call-sites que usan `toast.*` directo (`GlobalSearch.tsx`, `ErrorDetailsDialog.tsx`) a `notify*`.
 
-### Lote 2 — Prefetch on intent — impacto UX alto
+### 3. eslint-plugin-react-refresh — falta la opción `allowExportNames`/`vite` (LOW)
+La v0.5 introdujo el preset `vite` que reduce falsos positivos para archivos que exportan hooks/constantes junto con componentes. Cambiar a:
+```
+"react-refresh/only-export-components": ["warn", { allowConstantExport: true, allowExportNames: ["meta", "loader", "action"] }]
+```
+o directamente `reactRefresh.configs.vite` cuando esté disponible. Reduce el ruido en `warn` sin perder cobertura.
 
-- Extender `useNavigateTransition` para aceptar `prefetch: () => queryOptions` opcional y llamar `queryClient.prefetchQuery` en `onMouseEnter`/`onFocus`.
-- Aplicar en filas de listas críticas: Cotizaciones, Reservas, Facturas, Mantenimiento, CRM, Clientes, Flota, Proveedores.
-- Detalle abre "instantáneo" cuando el usuario ya pasó por encima 150 ms.
+### 4. jsdom — considerar `happy-dom` como opcional (LOW, opcional)
+La suite corre 913 tests bajo `jsdom` (necesario para `react-pdf`). Migrar completo NO recomendable (rompimos `jsdom@29` la semana pasada por eso mismo). Alternativa realista:
+- Dejar `environment: "jsdom"` como default.
+- Habilitar `environmentMatchGlobs` para correr tests puros de lógica (hooks, utils, dominio) bajo `happy-dom` (3-5× más rápido). Reservar `jsdom` sólo para `**/pdf/**` y componentes que serializan CSS.
+- Estimado: 40-50% de los archivos son elegibles ⇒ ~20-30% menos de tiempo total. Es un cambio con QA, mejor **fuera** de esta auditoría.
+- Recomendación por ahora: **no tocar**, dejar registrado como Lote futuro.
 
-### Lote 3 — Suspense + select — reduce boilerplate
-
-- Migrar rutas de detalle (Quote/Booking/Invoice/Contract/Forklift Detail) a `useSuspenseQuery`, eliminando `isLoading`/skeletons duplicados por el `Suspense` de ruta.
-- Empujar transformaciones (mapeos, ordenamientos, cálculos) a `select:` colocado en el `queryOptions`, cacheado por referencia.
-
-### Lote 4 — Persistencia + optimismo profundo (opcional, evaluar)
-
-- Instalar `@tanstack/query-sync-storage-persister` + `persistQueryClientProvider` con whitelist de queries (dashboards, KPIs, catálogos) y `maxAge: 24h`. Excluir queries sensibles (roles, secretos).
-- Convertir 3 mutaciones de alto tráfico (cambio de status de reserva, marca de pago, aprobación de gasto) a `onMutate`/`setQueryData`/rollback vía extensión de `useEntityMutation` (`optimistic: (old, vars) => next`).
+### 5. postcss — sin cambios (OK)
+Config mínima idiomática. Vite ya carga `postcss.config.js` automáticamente. Cuando migremos a Tailwind 4 (Lote 3 del roadmap de dependencias), esto se colapsa en `@tailwindcss/postcss` y `postcss.config.js` puede desaparecer. Nada que hacer hoy.
 
 ---
+
+## Alcance de la implementación propuesta (si aprobás)
+
+**Cambios en este sprint (bajo riesgo, alto retorno):**
+1. Endurecer `renderSafeMarkdown` con whitelist explícita de DOMPurify.
+2. Quitar `toast` del re-export de `src/components/ui/sonner.tsx`.
+3. Migrar `GlobalSearch.tsx` y `ErrorDetailsDialog.tsx` a `notify*`.
+4. Añadir `no-restricted-imports` para `sonner` en `eslint.config.js`.
+5. Ajustar la regla de `react-refresh` con `allowExportNames`.
+6. Test unitario para `renderSafeMarkdown` verificando que se strippean `<script>`, `<iframe>`, `on*`.
+7. Actualizar changelog `v7.30.0` (minor: endurecimiento + guardrail nuevo).
+
+**Fuera de alcance (queda anotado):**
+- `happy-dom` split por globs — sprint dedicado con benchmark.
+- Tailwind 4 / vite 6 / react-router 7 — Lote 3 del roadmap ya planeado.
 
 ## Detalles técnicos
 
-- `queryOptions()` requiere `@tanstack/react-query` ≥ 5.28 → ya cubierto.
-- Devtools: `bun add -D @tanstack/react-query-devtools`.
-- Persister: `bun add @tanstack/query-sync-storage-persister @tanstack/react-query-persist-client`.
-- Codemod `isLoading→isPending`: script Python que solo reemplaza el destructuring de `useQuery`/`useSuspenseQuery`, respeta `isFetching`/`isRefetching`. Verificación con `bunx tsgo --noEmit` + `bunx vitest run`.
-- Sin cambios en `AppProviders.tsx` salvo agregar `<ReactQueryDevtools />` y (Lote 4) envolver con `PersistQueryClientProvider`.
-- Sin cambios en RLS/backend, sin cambios visuales fuera del Devtools flotante en dev.
-
-## Estimación
-
-
-| Lote | Archivos tocados | Riesgo     | Ganancia                                   |
-| ---- | ---------------- | ---------- | ------------------------------------------ |
-| 1    | ~8               | bajo       | Tipado + DX                                |
-| 2    | ~20              | bajo       | UX percibida (navegación instantánea)      |
-| 3    | ~15              | medio      | −200 LOC skeletons, código más declarativo |
-| 4    | ~10              | medio-alto | Cold start + optimismo                     |
-
-
-## Recomendación
-
-Ejecutar **Lote 1 + Lote 2** ahora (bajo riesgo, alto retorno). Evaluar Lote 3/4 después de medir impacto real.
-
-¿Arrancamos con Lote 1 + 2, o prefieres los 4 completos? Los 4
+- Test target: `src/features/help/lib/__tests__/renderSafeMarkdown.test.ts` con casos `<script>`, `<iframe>`, `<a href="javascript:...">`, `onerror` attr.
+- ESLint `no-restricted-imports` para `sonner` va como bloque nuevo con `files: ["src/**/*.{ts,tsx}"]` e `ignores` a `appFeedback.ts` y `sonner.tsx`.
+- Cero cambios en runtime toasts existentes: la firma de `notify*` ya cubre 100% del uso actual.
+- Verificación: `bun run lint`, `bun run test`, `tsgo`.
