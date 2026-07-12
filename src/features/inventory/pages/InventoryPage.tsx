@@ -12,7 +12,7 @@ import { SearchBar } from "@/components/forms/SearchBar";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { useDialogState, useToggleDialog } from "@/hooks/useDialogState";
 import { useInventoryFilters } from "../hooks/inventory/useInventoryFilters";
-import { useState, useCallback, useMemo } from "react";
+import { useState } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
 export default function InventoryPage() {
@@ -25,54 +25,51 @@ export default function InventoryPage() {
   const { search, setSearch, filterCategory, setFilterCategory, filtered, lowStockCount } =
     useInventoryFilters(parts);
 
-  const openCreate = useCallback(() => { setEditing(null); formDialog.openDialog(); }, [formDialog]);
-  const openEdit = useCallback((p: PartInventory) => { setEditing(p); formDialog.openDialog(); }, [formDialog]);
+  const openCreate = () => { setEditing(null); formDialog.openDialog(); };
+  const openEdit = (p: PartInventory) => { setEditing(p); formDialog.openDialog(); };
 
-  const columns = useMemo<ColumnDef<PartInventory>[]>(
-    () => [
-      {
-        id: "sku",
-        header: "SKU",
-        accessorFn: (p) => p.sku || "",
-        cell: ({ row }) => <span className="font-mono text-muted-foreground">{row.original.sku || "—"}</span>,
+  const columns: ColumnDef<PartInventory>[] = [
+    {
+      id: "sku",
+      header: "SKU",
+      accessorFn: (p) => p.sku || "",
+      cell: ({ row }) => <span className="font-mono text-muted-foreground">{row.original.sku || "—"}</span>,
+    },
+    {
+      id: "name",
+      header: "Nombre",
+      accessorKey: "name",
+      cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+    },
+    {
+      id: "category",
+      header: "Categoría",
+      accessorKey: "category",
+      cell: ({ row }) => <Badge variant="outline">{row.original.category}</Badge>,
+    },
+    {
+      id: "unit_cost",
+      header: "Costo Unitario",
+      accessorKey: "unit_cost",
+      meta: { align: "right" },
+      cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.unit_cost)}</span>,
+    },
+    {
+      id: "stock_quantity",
+      header: "Stock",
+      accessorKey: "stock_quantity",
+      meta: { align: "center" },
+      cell: ({ row }) => {
+        const p = row.original;
+        const isLow = p.stock_quantity <= p.min_stock_level;
+        return (
+          <Badge variant={isLow ? "destructive" : "secondary"}>
+            {isLow ? `${p.stock_quantity} - Reabastecer` : p.stock_quantity}
+          </Badge>
+        );
       },
-      {
-        id: "name",
-        header: "Nombre",
-        accessorKey: "name",
-        cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
-      },
-      {
-        id: "category",
-        header: "Categoría",
-        accessorKey: "category",
-        cell: ({ row }) => <Badge variant="outline">{row.original.category}</Badge>,
-      },
-      {
-        id: "unit_cost",
-        header: "Costo Unitario",
-        accessorKey: "unit_cost",
-        meta: { align: "right" },
-        cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.unit_cost)}</span>,
-      },
-      {
-        id: "stock_quantity",
-        header: "Stock",
-        accessorKey: "stock_quantity",
-        meta: { align: "center" },
-        cell: ({ row }) => {
-          const p = row.original;
-          const isLow = p.stock_quantity <= p.min_stock_level;
-          return (
-            <Badge variant={isLow ? "destructive" : "secondary"}>
-              {isLow ? `${p.stock_quantity} - Reabastecer` : p.stock_quantity}
-            </Badge>
-          );
-        },
-      },
-    ],
-    [],
-  );
+    },
+  ];
 
   const table = useLiftgoTable<PartInventory>({
     data: filtered,

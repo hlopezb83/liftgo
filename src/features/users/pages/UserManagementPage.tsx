@@ -1,5 +1,5 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { useCallback } from "react";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { SecurityIcon, UsersIcon } from "@/components/icons";
@@ -36,13 +36,13 @@ export default function UserManagementPage() {
   const { search, setSearch, filterRole, setFilterRole, filtered } = useUserManagementFilters(users);
   const { setEditTarget, setPasswordTarget, setDeleteTarget, setRoleChangeTarget } = dialogs;
 
-  const onRoleChange = useCallback((u: UserRow, newRole: AppRole) => setRoleChangeTarget({ user: u, newRole }), [setRoleChangeTarget]);
-  const onToggleStatus = useCallback((userId: string, currentActive: boolean) => {
+  const onRoleChange = (u: UserRow, newRole: AppRole) => setRoleChangeTarget({ user: u, newRole });
+  const onToggleStatus = (userId: string, currentActive: boolean) => {
     toggleStatus.mutate({ userId, isActive: !currentActive });
-  }, [toggleStatus]);
-  const onEdit = useCallback((u: UserRow) => setEditTarget(u), [setEditTarget]);
-  const onSetPassword = useCallback((u: UserRow) => setPasswordTarget(u), [setPasswordTarget]);
-  const onDelete = useCallback((u: UserRow) => setDeleteTarget(u), [setDeleteTarget]);
+  };
+  const onEdit = (u: UserRow) => setEditTarget(u);
+  const onSetPassword = (u: UserRow) => setPasswordTarget(u);
+  const onDelete = (u: UserRow) => setDeleteTarget(u);
 
   const columns = useUserManagementColumns({
     currentUserId: currentUser?.id,
