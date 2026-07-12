@@ -46,8 +46,12 @@ function HeaderCell<T>({ header }: { header: Header<T, unknown> }): ReactNode {
       {canSort && <SortIcon dir={sortDir} />}
     </>
   );
+  const ariaSort = sortDir === "asc" ? "ascending" : sortDir === "desc" ? "descending" : "none";
   return (
-    <TableHead className={className}>
+    <TableHead
+      className={className}
+      aria-sort={canSort ? ariaSort : undefined}
+    >
       {canSort ? (
         <button
           type="button"
@@ -57,7 +61,6 @@ function HeaderCell<T>({ header }: { header: Header<T, unknown> }): ReactNode {
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm",
           )}
           onClick={header.column.getToggleSortingHandler()}
-          aria-sort={sortDir === "asc" ? "ascending" : sortDir === "desc" ? "descending" : "none"}
         >
           {content}
         </button>

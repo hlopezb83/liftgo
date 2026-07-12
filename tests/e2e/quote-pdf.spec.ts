@@ -12,6 +12,7 @@ import { test, expect } from "./fixtures/seed";
  */
 test("download PDF from seeded quote produces a COT-*.pdf file", async ({ page, seed }) => {
   await page.goto(`/quotes/${seed.quote_id}`, { waitUntil: "domcontentloaded" });
+  await page.evaluate(() => document.fonts?.ready).catch(() => {});
   await expect(page.getByText(seed.quote_number).first()).toBeVisible({ timeout: 15_000 });
 
   const pdfButton = page.getByRole("button", { name: /descargar pdf|pdf/i }).first();

@@ -20,7 +20,7 @@ export interface UpcomingInvoice {
  */
 export function useUpcomingInvoices() {
   const today = todayKeyMty();
-  const in30 = toYMD(addDays(nowMty(), 30))!;
+  const in30 = toYMD(addDays(nowMty(), 30)) ?? today;
 
   const query = useInvoicesWithBalance({
     statuses: ["sent", "partial"],

@@ -34,8 +34,8 @@ function resolveDateStrings(a: BuildQuotePayloadArgs): { startStr: string; endSt
   const today = todayKeyMty();
   const isRental = a.quoteType === "rental";
   return {
-    startStr: isRental && a.startDate ? toYMD(a.startDate)! : today,
-    endStr: isRental && a.endDate ? toYMD(a.endDate)! : today,
+    startStr: (isRental && a.startDate ? toYMD(a.startDate) : null) ?? today,
+    endStr: (isRental && a.endDate ? toYMD(a.endDate) : null) ?? today,
   };
 }
 

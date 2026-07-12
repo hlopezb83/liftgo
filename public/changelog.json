@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.39.1",
+    "date": "2026-07-12",
+    "type": "patch",
+    "title": "Estabilización CI: knip, ESLint y flakes E2E",
+    "description": "Cierre de bloqueadores de CI post-v7.39.0. Knip: eliminados 3 hooks huérfanos (`usePrefetchOnHover`, `useOptimisticListMutation`, `useSuspenseQuery`) y removidas deps fantasma (`react-router`, `tailwindcss-animate`); plugins CSS-only añadidos a `ignoreDependencies`. ESLint (10→0 errores): `aria-sort` movido a `TableHead` en `DataTableHeaderV2`; `useBookings` colapsa el condicional en una sola llamada a `useQuery`; `prev`/`next` en `ImageGalleryLightbox` envueltos en `useCallback` y el `<img>` interactivo movido a `<button>` accesible; removidas 3 non-null assertions con fallbacks seguros; removido `tabIndex={0}` innecesario en `QuoteDetailActions`. E2E: agregado `await document.fonts.ready` en los 3 specs sensibles a hidratación (customer-create, maintenance-kanban, quote-pdf) para absorber el shift de FCP introducido por el font-loading non-blocking.",
+    "category": "fix",
+    "changes": [
+      { "type": "fixed", "description": "Knip: eliminados hooks huérfanos y deps fantasma" },
+      { "type": "fixed", "description": "ESLint: 10 errores → 0 (aria-sort, rules-of-hooks, exhaustive-deps, a11y, no-non-null-assertion)" },
+      { "type": "fixed", "description": "E2E: espera `document.fonts.ready` para evitar clicks pre-hidratación" }
+    ]
+  },
+  {
     "version": "7.39.0",
     "date": "2026-07-12",
     "type": "minor",

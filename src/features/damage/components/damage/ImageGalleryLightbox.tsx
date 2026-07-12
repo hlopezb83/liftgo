@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ChevronLeftIcon, ChevronRightIcon, X, ZoomIn, ZoomOut } from "@/components/icons";
@@ -20,8 +20,8 @@ export function ImageGalleryLightbox({ images, initialIndex = 0, open, onOpenCha
     if (open) { setCurrent(initialIndex); setZoomed(false); }
   }, [open, initialIndex]);
 
-  const prev = () => { setCurrent((c) => (c > 0 ? c - 1 : images.length - 1)); setZoomed(false); };
-  const next = () => { setCurrent((c) => (c < images.length - 1 ? c + 1 : 0)); setZoomed(false); };
+  const prev = useCallback(() => { setCurrent((c) => (c > 0 ? c - 1 : images.length - 1)); setZoomed(false); }, [images.length]);
+  const next = useCallback(() => { setCurrent((c) => (c < images.length - 1 ? c + 1 : 0)); setZoomed(false); }, [images.length]);
 
   useEffect(() => {
     if (!open) return;
@@ -69,16 +69,22 @@ export function ImageGalleryLightbox({ images, initialIndex = 0, open, onOpenCha
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          <img
-            src={images[current]?.url}
-            alt={images[current]?.name}
-            className={cn(
-              "max-h-[85vh] transition-transform duration-200 select-none",
-              zoomed ? "max-w-none cursor-zoom-out scale-150" : "max-w-full cursor-zoom-in object-contain"
-            )}
+          <button
+            type="button"
             onClick={() => setZoomed(!zoomed)}
-            draggable={false}
-          />
+            aria-label={zoomed ? "Alejar imagen" : "Acercar imagen"}
+            className="border-0 bg-transparent p-0 cursor-inherit"
+          >
+            <img
+              src={images[current]?.url}
+              alt={images[current]?.name}
+              className={cn(
+                "max-h-[85vh] transition-transform duration-200 select-none",
+                zoomed ? "max-w-none cursor-zoom-out scale-150" : "max-w-full cursor-zoom-in object-contain"
+              )}
+              draggable={false}
+            />
+          </button>
         </div>
 
         {/* Navigation arrows */}

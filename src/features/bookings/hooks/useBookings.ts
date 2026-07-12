@@ -46,14 +46,16 @@ export const bookingQueries = defineEntityQueries<"bookings", BookingListRow[], 
 export function useBookings(forkliftId?: string) {
   // Mantiene el key legacy `bookingKeys.byForklift(id)` para no romper invalidaciones
   // dispersas y prefetches en calendarios; el listado plano usa el key canónico.
-  if (forkliftId) {
-    return useQuery({
-      queryKey: bookingKeys.byForklift(forkliftId),
-      staleTime: 60_000,
-      queryFn: () => fetchBookingList(forkliftId),
-    });
-  }
-  return useQuery(bookingQueries.list());
+  const listOptions = bookingQueries.list();
+  return useQuery(
+    forkliftId
+      ? {
+          queryKey: bookingKeys.byForklift(forkliftId),
+          staleTime: 60_000,
+          queryFn: () => fetchBookingList(forkliftId),
+        }
+      : listOptions,
+  );
 }
 
 /**
