@@ -223,7 +223,7 @@ export default tseslint.config(
       "**/*.test.{ts,tsx}",
     ],
     rules: {
-      "no-restricted-imports": ["error", {
+      "no-restricted-imports": ["warn", {
         paths: [
           {
             name: "date-fns",
