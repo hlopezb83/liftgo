@@ -60,12 +60,12 @@ export function useInvoicesFilters(invoices: Invoice[] | undefined) {
     );
   };
 
-  const computeFiltered = (): Invoice[] | undefined => {
+  const computeFiltered = () => {
     if (!statusFiltered) return statusFiltered;
     if (!dateRange?.from && !dateRange?.to) return statusFiltered;
     const start = dateRange.from ? startOfDay(dateRange.from) : new Date(-8640000000000000);
     const end = dateRange.to ? endOfDay(dateRange.to) : new Date(8640000000000000);
-    return statusFiltered.filter((inv: Invoice) => {
+    return statusFiltered.filter((inv) => {
       if (!inv.issued_at) return false;
       return isWithinInterval(parseISO(inv.issued_at), { start, end });
     });
