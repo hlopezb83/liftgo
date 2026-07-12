@@ -1,0 +1,15 @@
+{
+  "version": "7.57.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "Modernización react-dropzone v16",
+  "description": "Se auditaron los 4 consumidores de react-dropzone en el repo y se aplicaron las prácticas idiomáticas de v16.",
+  "category": "improvement",
+  "changes": [
+    { "type": "changed", "description": "CsfDropzone: eliminada la validación manual de tipo/tamaño; se delega a `accept` + `maxSize`. Rechazos vía `onDropRejected` + `ErrorCode` (FileInvalidType, FileTooLarge, TooManyFiles) con mensajes en español." },
+    { "type": "changed", "description": "SupplierBillCfdiDropzone: migrado de drag-drop manual (onDragOver/onDrop + useState) a `useDropzone`. Se ganan role='button', foco visible y navegación por teclado sin código adicional." },
+    { "type": "added", "description": "DragDropImageUploader y DamageEvidenceSection: feedback visual `isDragReject` (borde destructive) cuando se arrastra un tipo no aceptado." },
+    { "type": "changed", "description": "Todos los consumidores usan `onDropAccepted` en lugar de `onDrop` para separar responsabilidades entre aceptados y rechazados." },
+    { "type": "security", "description": "Imports ya óptimos: named ESM import sobre paquete con `sideEffects: false`. Sin ajustes de tree-shaking necesarios." }
+  ]
+}

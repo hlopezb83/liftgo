@@ -11,8 +11,8 @@ interface Props {
 }
 
 export function DamageEvidenceSection({ previews, onDrop, onRemove }: Props) {
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
+  const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
+    onDropAccepted: onDrop,
     accept: { "image/*": [".png", ".jpg", ".jpeg", ".webp", ".heic"] },
     maxFiles: 10,
     multiple: true,
@@ -25,7 +25,11 @@ export function DamageEvidenceSection({ previews, onDrop, onRemove }: Props) {
         {...getRootProps()}
         className={cn(
           "border-2 border-dashed rounded-lg p-4 text-center cursor-pointer transition-colors",
-          isDragActive ? "border-primary bg-primary/5" : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/30"
+          isDragReject
+            ? "border-destructive bg-destructive/5"
+            : isDragActive
+              ? "border-primary bg-primary/5"
+              : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/30",
         )}
       >
         <input {...getInputProps()} capture="environment" />

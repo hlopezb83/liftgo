@@ -25,8 +25,8 @@ export function DragDropImageUploader({ entityType, entityId, maxFiles = 10, cla
     setPreviews((prev) => [...prev, ...newPreviews].slice(0, maxFiles));
   }, [maxFiles]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
+  const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
+    onDropAccepted: onDrop,
     accept: { "image/*": [".png", ".jpg", ".jpeg", ".webp", ".heic"] },
     maxFiles,
     multiple: true,
@@ -63,9 +63,11 @@ export function DragDropImageUploader({ entityType, entityId, maxFiles = 10, cla
         {...getRootProps()}
         className={cn(
           "border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors",
-          isDragActive
-            ? "border-primary bg-primary/5"
-            : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/30"
+          isDragReject
+            ? "border-destructive bg-destructive/5"
+            : isDragActive
+              ? "border-primary bg-primary/5"
+              : "border-muted-foreground/25 hover:border-primary/50 hover:bg-muted/30",
         )}
       >
         <input {...getInputProps()} capture="environment" />

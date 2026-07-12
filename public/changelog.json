@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.57.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "Modernización de react-dropzone v16 en todos los consumidores",
+    "description": "Auditoría y refactor de los 4 puntos de uso: (1) CsfDropzone deja de validar tipo/tamaño a mano — se delega a `accept` + `maxSize` y los rechazos se manejan con `onDropAccepted`/`onDropRejected` + `ErrorCode` tipado, con mensajes en español por código. (2) SupplierBillCfdiDropzone migra de una reimplementación manual (onDragOver/onDrop + useState 'dragging' + input oculto) al hook `useDropzone`, ganando accesibilidad por teclado, foco visible y `role='button'` gratis. (3) DragDropImageUploader y DamageEvidenceSection ahora exponen `isDragReject` para feedback visual (borde destructive) cuando se arrastra un tipo no aceptado, y usan `onDropAccepted` en lugar de `onDrop` para desacoplar la lógica de rechazos. Imports ya eran óptimos: named import ESM sobre paquete `sideEffects: false`.",
+    "category": "improvement",
+    "impact": "Menos código custom, mejor accesibilidad y feedback visual consistente en los 4 dropzones. Sin cambios de superficie para consumidores de CsfDropzone/DragDropImageUploader.",
+    "files": [
+      "src/components/forms/CsfDropzone.tsx",
+      "src/components/forms/DragDropImageUploader.tsx",
+      "src/features/damage/components/damage/DamageEvidenceSection.tsx",
+      "src/features/accounts-payable/components/SupplierBillCfdiDropzone.tsx"
+    ]
+  },
+  {
     "version": "7.56.1",
     "date": "2026-07-12",
     "type": "patch",
