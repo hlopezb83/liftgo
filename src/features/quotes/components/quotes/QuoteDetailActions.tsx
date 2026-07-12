@@ -66,7 +66,7 @@ function InvoiceButton({ quote, isSale, alreadyInvoiced, canInvoice, invoiceBloc
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <span tabIndex={0}>
+          <span>
             <Button size="sm" variant="default" disabled className="pointer-events-none opacity-60">
               <InvoiceIcon className="h-4 w-4 mr-1" />Facturar
             </Button>
