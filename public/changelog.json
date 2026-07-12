@@ -1,5 +1,21 @@
 [
   {
+    "version": "7.31.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "Auditoría Lote 1 (3/3): happy-dom + jsx-a11y/import-order + marked",
+    "description": "Ejecutados los 3 hallazgos accionables de la auditoría de dependencias. (A) `vitest` corre bajo happy-dom por defecto (~2-3× más rápido); tests que requieren jsdom (react-pdf, dompurify, Radix popovers) usan `// @vitest-environment jsdom`. (B) ESLint suma `jsx-a11y` (recommended, warn) e `import/order` con alfabetización y agrupación @/**. (C) Parser markdown artesanal reemplazado por `marked` (CommonMark + GFM) + `@tailwindcss/typography`; sanitizado con whitelist DOMPurify que ahora permite anchors seguros (`javascript:` bloqueado, `rel=noopener` y `target=_blank` forzados vía hook). 921/921 tests verdes.",
+    "category": "improvement",
+    "changes": [
+      { "type": "changed", "description": "vitest: environment por defecto happy-dom (jsdom vía docblock donde se requiere)" },
+      { "type": "added", "description": "ESLint: eslint-plugin-jsx-a11y (recommended) + eslint-plugin-import (import/order)" },
+      { "type": "changed", "description": "renderMarkdown: reemplazado regex artesanal por `marked` (GFM, breaks)" },
+      { "type": "added", "description": "renderSafeMarkdown: soporte de anchors con `rel=noopener` y `target=_blank` forzados; `javascript:` bloqueado" },
+      { "type": "added", "description": "@tailwindcss/typography plugin: contenido del manual usa `prose prose-sm dark:prose-invert`" }
+    ]
+  },
+
+  {
     "version": "7.30.0",
     "date": "2026-07-12",
     "type": "minor",
