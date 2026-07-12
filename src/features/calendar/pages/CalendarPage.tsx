@@ -13,7 +13,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useBookingsRange } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
-import { APP_LOCALE } from "@/lib/format/dateFormats";
 import { nowMty, formatMtyDate } from "@/lib/utils";
 import { CalendarStatCards } from "../components/calendar/CalendarStatCards";
 import { EquipmentListView } from "../components/calendar/EquipmentListView";
