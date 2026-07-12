@@ -133,7 +133,3 @@ describe("useCreatePayment + syncInvoiceStatus — hooks reales", () => {
     expect(state.invoicesCalls.find((c) => c.method === "update")).toBeUndefined();
   });
 });
-
-// PaymentRow/InvoiceRow interfaces retained as documentation reference.
-export type _PaymentRow = PaymentRow;
-export type _InvoiceRow = InvoiceRow;
