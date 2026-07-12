@@ -1,6 +1,7 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { type LucideIcon, SpinnerIcon, RefreshIcon, FilterIcon } from "@/components/icons";
 import type { Table as TanstackTable } from "@tanstack/react-table";
+import type { FetchQueryOptions } from "@tanstack/react-query";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
