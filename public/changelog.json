@@ -1,5 +1,17 @@
 [
   {
+    "version": "7.32.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "date-fns 3 → 4",
+    "description": "Bump de `date-fns` a `^4.1.0` (instalado 4.4.0). Superficie API utilizada (`format`, `parseISO`, aritmética, `startOf*`, locale `es`) es estable entre v3 y v4, sin cambios de comportamiento. `date-fns-tz@3.2` continúa como puente compatible con v4. 921/921 tests verdes; formatos DD/MM/YYYY, Gantt semanal (lunes) y cálculos de renta por meses calendario preservados.",
+    "category": "improvement",
+    "changes": [
+      { "type": "changed", "description": "date-fns: ^3.6.0 → ^4.1.0 (ESM-first, tree-shaking mejorado)" },
+      { "type": "changed", "description": "date-fns-tz: mantenido en ^3.2.0 (compatible con v4)" }
+    ]
+  },
+  {
     "version": "7.31.0",
     "date": "2026-07-12",
     "type": "minor",
