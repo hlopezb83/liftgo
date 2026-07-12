@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { toYMD } from "@/lib/format/dateFormats";
 import { useState, useEffect } from "react";
 import { roundMoney } from "@/lib/money";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
@@ -56,7 +56,7 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, onO
       {
         invoice_id: invoiceId,
         amount: amt,
-        payment_date: format(date, "yyyy-MM-dd"),
+        payment_date: toYMD(date),
         payment_method: method,
         payment_form_sat: paymentFormSat,
         currency,
