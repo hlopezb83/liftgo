@@ -115,5 +115,11 @@
     "vite": "7.3.6",
     "vitest": "^4.1.10",
     "zod-validation-error": "4"
+  },
+  "overrides": {
+    "zod-validation-error": "^4.0.2"
+  },
+  "resolutions": {
+    "zod-validation-error": "^4.0.2"
   }
 }
