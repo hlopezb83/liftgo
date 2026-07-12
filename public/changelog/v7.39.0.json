@@ -1,0 +1,43 @@
+{
+  "version": "7.39.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "Auditoría Vite 7: sourcemaps Sentry, fuentes non-blocking, config endurecido",
+  "category": "improvement",
+  "description": "Cierre de los huecos detectados en la auditoría de Vite. Sentry ahora recibe sourcemaps en builds de CI (stack traces legibles en producción), la carga de Google Fonts deja de bloquear el FCP, y el config declara explícitamente target, sourcemaps y pre-bundle de deps críticas.",
+  "sections": [
+    {
+      "heading": "Lote A — Alto impacto",
+      "items": [
+        "vite.config.ts: nuevo `sentryVitePlugin` gated por SENTRY_AUTH_TOKEN (no-op en local/sin secret). Sube sourcemaps a Sentry y habilita mapeo de stack traces en producción.",
+        "vite.config.ts: `build.sourcemap: true` para alimentar al plugin de Sentry.",
+        "vite.config.ts: `build.target: 'es2022'` explícito (Safari 16.4+, Chrome 111+, Firefox 128+).",
+        "index.html: fuentes Google cargadas con `<link rel=\"preload\" as=\"style\" onload=\"...\">` + fallback `<noscript>`. Desbloquea FCP ~150-300ms."
+      ]
+    },
+    {
+      "heading": "Lote B — Higiene DX y build",
+      "items": [
+        "vite.config.ts: `optimizeDeps.include` con las 8 deps críticas de primer render (react, react-dom, react-router*, @tanstack/react-query, sonner, date-fns, zod). Evita full reloads en el primer `vite dev` frío.",
+        "vite.config.ts: `manualChunks` endurecido — el grupo `vendor` ahora lista `/react/`, `/react-dom/`, `/scheduler/`, `/react-router*/`, `@tanstack/react-query` con separadores para evitar falsos positivos con react-hook-form, react-day-picker, etc.",
+        "vite.config.ts: `build.reportCompressedSize: false` — ahorra 3-5s por build en CI. El visualizer bajo `ANALYZE=1` sigue disponible para auditorías puntuales.",
+        "vite.config.ts: `preview: { host: '::', port: 8080 }` en paridad con `server`."
+      ]
+    },
+    {
+      "heading": "Lote C — Simplificación",
+      "items": [
+        "postcss.config.js: eliminado `autoprefixer`. Tailwind v4 + @tailwindcss/postcss ya aplica prefixing vía Lightning CSS según el target.",
+        "package.json: `autoprefixer` removido de devDependencies."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "bun run build: OK en 42s. Chunks estables (vendor 296 KB, react-pdf 1.46 MB lazy, recharts 400 KB).",
+        "bunx vitest run: 992/992 tests verdes.",
+        "tsgo -p tsconfig.node.json: sin errores."
+      ]
+    }
+  ]
+}
