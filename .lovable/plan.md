@@ -1,65 +1,61 @@
-## Contexto
+# Auditoría visual — Lote 2
 
-Auditoría visual con 4 subagentes en paralelo (2 completaron capturas Playwright reales en `/tmp/browser/`, 2 no pudieron ejecutar navegador en su entorno). Verifiqué manualmente el hallazgo #1 leyendo `src/layouts/MainLayout.tsx` y viendo el screenshot `/tmp/browser/dashboard/desktop/mrr.png`: **el sidebar tapa el título y las primeras columnas** en desktop y tablet. Root cause: tras la actualización a shadcn sidebar moderno + Tailwind v4, el componente `<Sidebar>` se renderiza como `position: fixed`; sin `<SidebarInset>` como hermano, el `<main class="flex-1">` no recibe el offset del ancho del sidebar y se solapa.
+El fix crítico del sidebar (Tailwind v4 `w-[var(--sidebar-width)]`) y el saneo de `<Table>` ya están en `v7.40.0`. Los 3 subagentes barrieron formularios, detalles y listados y encontraron redundancias y ajustes finos, no bugs bloqueantes. Este plan los agrupa por dolor visual.
 
-## Fallas priorizadas (evidencia en `/tmp/browser/`)
+## Lote 1 — CTAs duplicados en listados (alto impacto)
 
-### CRÍTICO — bloquea uso en desktop y tablet
+En 8 páginas se pasa `usePageActions({ onNew })` (que ya renderiza el botón en el header global) **y** además se pasa `actions=<Button>Nuevo…</Button>` a `ListPageLayout`, produciendo dos botones idénticos en desktop.
 
-1. **Sidebar tapa contenido en todas las rutas** — `src/layouts/MainLayout.tsx:65-91`. El `<main>` no está dentro de `<SidebarInset>`. Se ve en `dashboard/desktop/mrr.png` (título "MRR recurrente" y primeras columnas tapadas) y `dashboard/tablet-portrait/mrr.png`. Afecta toda la app.
+Quitar el `actions` local (o el `usePageActions`, según qué otras acciones ya vivan ahí) en:
 
-### WARNING — degradan lectura
+- `src/features/bookings/pages/BookingsPage.tsx`
+- `src/features/customers/pages/CustomersPage.tsx` (también el `mobileFab` custom → usa el estándar)
+- `src/features/fleet/pages/FleetPage.tsx`
+- `src/features/quotes/pages/QuotesPage.tsx`
+- `src/features/invoices/pages/InvoicesPage.tsx`
+- `src/features/maintenance/pages/MaintenancePage.tsx`
+- `src/features/suppliers/pages/SuppliersPage.tsx`
+- `src/features/accounts-payable/pages/CuentasPorPagarPage.tsx`
 
-2. **Sticky `TableHeader` translúcido** — `src/components/ui/table.tsx:16`. `bg-muted/50` deja ver el contenido debajo al hacer scroll. Reducir opacidad → `bg-card` o `bg-muted` sólido + `backdrop-blur` opcional.
-3. **Wrapper de tabla con altura rígida** — `src/components/ui/table.tsx:7`. `max-h-[calc(100vh-20rem)]` genera scrollbars innecesarios en listas cortas y desperdicia espacio. Delegar altura al layout de la página (`ListPageLayout` ya la controla).
-4. **Grid KPI dashboard inconsistente** — `src/features/dashboard/components/dashboard/StatCards.tsx`. Fila 2 (Utilización, DSO) con anchos distintos a fila 1. Verificar `grid-cols-*` uniforme.
-5. **Tablas /mrr en tablet-portrait** — columnas CLIENTE y PERIODO wrappean agresivo. Añadir `min-w-*` o truncar con tooltip en columnas de fecha.
-6. **`TableHead` uppercase + `tracking-wider`** — provoca saltos de línea en columnas densas en tablet. Reducir `tracking` o quitar `uppercase` en tablas densas.
+Criterio: si `actions` sólo trae "Nuevo X", eliminarlo. Si trae exportar/otros, dejar sólo los extras y quitar el "Nuevo".
 
-### BAJO — inconsistencias visuales menores
+## Lote 2 — Grids KPI y dashboard
 
-7. **CTA duplicado en `/suppliers`** — el botón "Nuevo" se declara vía `usePageActions` Y en el prop `actions` de `ListPageLayout`. Elegir una fuente única.
-8. **FAB mobile inconsistente** — `CustomersPage` implementa `mobileFab` manual; el resto delega en `ListPageLayout`. Consolidar en el layout.
+- `src/features/dashboard/pages/Dashboard.tsx:25` — skeleton `lg:grid-cols-5` no coincide con `StatCards` (`xl:grid-cols-5`). Unificar a `xl:grid-cols-5` para evitar salto en 1024-1279px.
+- `src/features/dashboard/components/dashboard/StatCards.tsx:20` — cambiar `grid-cols-2 md:grid-cols-3 xl:grid-cols-5` a `grid-cols-2 md:grid-cols-3 lg:grid-cols-5` para llenar tablet landscape sin fila huérfana.
 
-## Plan de ejecución (por lotes)
+## Lote 3 — Grids de detalle (tablet)
 
-### Lote 1 — CRÍTICO: reparar layout global (bloqueante)
+Aprovechar mejor 768-1024px:
+- `src/features/fleet/pages/ForkliftDetail.tsx:81` — añadir breakpoint `md:grid-cols-2 lg:grid-cols-3`.
+- `src/features/customers/pages/CustomerDetailPage.tsx:69` — mismo patrón.
+- `src/features/suppliers/pages/SupplierDetailPage.tsx:109/123` — alinear ambas filas al mismo breakpoint (`md:grid-cols-2 lg:grid-cols-3`).
 
-- `src/layouts/MainLayout.tsx`: importar `SidebarInset` de `@/components/ui/sidebar`, reemplazar `<main …>` por `<SidebarInset asChild><main …></main></SidebarInset>` (o envolver directo si `SidebarInset` ya renderiza `<main>`). Verificar que `min-h-[100dvh] flex w-full` sigue siendo válido y que `SidebarInset` no rompe `sticky top-0` del header interno.
-- Verificación: capturar `/`, `/mrr`, `/customers`, `/quotes` a 1440x900, 1024x768, 768x1024 con Playwright y comparar contra screenshots del subagente. Sidebar debe empujar el contenido, no taparlo. Confirmar que el `SidebarTrigger` sigue funcionando en el topbar.
+## Lote 4 — Overlays y diálogos
 
-### Lote 2 — WARNING: tabla base
+- `src/components/ui/alert-dialog.tsx:17` — reemplazar overlay `bg-black/80` por `bg-background/80 backdrop-blur-sm` para consistencia con `Dialog` estándar y soporte tema claro/oscuro.
+- `src/components/ui/ErrorDetailsDialog.tsx:69` — `max-h-[60vh]` demasiado alto en tablet landscape (768px alto); bajar a `max-h-[50vh]` o cambiar a `flex-1 min-h-0` para que el footer sticky no salga del viewport.
+- `src/features/damage/components/damage/ImageGalleryLightbox.tsx:73` — añadir `max-w-6xl` junto al `max-w-[95vw]` para evitar estiramiento en desktop grande.
 
-- `src/components/ui/table.tsx`: (a) header sólido `bg-card` con borde inferior en vez de `bg-muted/50`; (b) quitar `max-h-[calc(100vh-20rem)]` del wrapper y dejar que el contenedor de página controle altura. Auditar consumers para asegurar que la lista sigue teniendo scroll (spot-check en `/customers`, `/quotes`, `/invoices`).
-- `TableHead` en `table.tsx`: mantener `uppercase` pero reducir `tracking-wider` → `tracking-wide` o quitar; verificar contra `maintenance_tablet.png`.
+## Lote 5 — Headers y sheets
 
-### Lote 3 — WARNING: dashboard y /mrr
+- `src/components/layout/DetailPageHeader.tsx:37-38` y `src/components/layout/PageHeader.tsx:29` — quitar `truncate` del título/subtítulo o cambiar a `line-clamp-2` para que en tablet portrait no se corte información crítica del nombre/modelo.
+- `src/features/feedback/components/FeedbackDetailSheet.tsx:50` y `src/features/bank-reconciliation/components/BankLineDetailSheet.tsx:69` — `sm:max-w-xl` se siente apretado; subir a `sm:max-w-2xl` para tablet.
 
-- `src/features/dashboard/components/dashboard/StatCards.tsx`: uniformar grid para que ambas filas usen la misma cantidad de columnas y anchos (probablemente `grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4` estable).
-- `src/features/dashboard/pages/MrrDetailPage.tsx`: `min-w` en columnas CLIENTE (200px) y PERIODO (180px); truncar con tooltip cuando exceda.
+## Verificación
 
-### Lote 4 — BAJO: consistencia CTA / FAB
+Playwright headless (1280×1800 desktop, 1024×768 tablet-landscape, 768×1024 tablet-portrait) en las 8 páginas del Lote 1 más `/`, `/mrr`, un detalle de flota y un detalle de proveedor. Confirmar visualmente:
+- Un solo CTA "Nuevo" por página.
+- KPIs en fila completa sin huecos raros en 1024px.
+- Sin doble scroll en `ErrorDetailsDialog` a 768px alto.
+- Títulos largos legibles en tablet portrait.
 
-- `SuppliersPage`: eliminar duplicación del CTA "Nuevo proveedor" (una sola fuente).
-- `CustomersPage`: eliminar `mobileFab` manual y delegar en `ListPageLayout`.
+## Entregable
 
-### Verificación al cierre de cada lote
+Changelog `v7.41.0` (minor) documentando cada lote y sus archivos.
 
-- `bun run lint` (0 errores).
-- `bun run build`.
-- Capturas Playwright antes/después en `/tmp/browser/audit-after/` para las rutas afectadas del lote.
-- `bunx vitest run` al final (solo Lote 1-2 tocan código compartido).
+## Fuera de alcance
 
-### Changelog
-
-- `v7.40.0` **minor** — "Fix crítico de layout global: `SidebarInset` restaurado + estabilización de tabla base y dashboard en desktop/tablet post Tailwind v4". Un único changelog al final del sprint (o uno por lote si el usuario prefiere granular — pregunto abajo).
-
-## Detalles técnicos
-
-- El bug del sidebar es una regresión estructural, no un cambio de tokens. `SidebarInset` es el helper de shadcn que renderiza el `<main>` con `md:peer-data-[state=expanded]:pl-[var(--sidebar-width)]` (o equivalente), imprescindible cuando el sidebar es `fixed`.
-- El header interno (`sticky top-0 z-30`) del `<main>` debe seguir funcionando dentro de `SidebarInset`; validar que no se le aplique `overflow` propio que rompa el sticky.
-- Los subagentes 3 y 4 no lograron capturas (falta de auth seed y libglib respectivamente). Si tras Lote 1-3 quedan dudas de detalles/dialogs, corro yo Playwright directamente con la sesión inyectada (`LOVABLE_BROWSER_AUTH_STATUS=injected`) en Lote 5 opcional.
-
-## Riesgo
-
-- `SidebarInset` puede afectar breakpoints `md:` del sidebar colapsable; si el usuario dependía del comportamiento actual en mobile, validamos en 375px antes de cerrar Lote 1.
+- Migrar filtros inline a `Sheet` también en tablet (Lote 3.1 del auditor) — cambio de UX, requiere confirmación aparte.
+- Sustituir `touch:h-11` por media queries de capacidad — cosmético, no urgente.
+- Reescribir `mobileFab` con detección de `BottomNav` — bug menor, sólo aparece en overlaps puntuales.

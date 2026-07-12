@@ -66,7 +66,7 @@ export function BankLineDetailSheet({ line, open, onOpenChange }: Props) {
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="sm:max-w-xl overflow-y-auto">
+      <SheetContent className="sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
           <SheetTitle>{isCharge ? "Cargo" : "Abono"} · {formatDateDisplay(line.posted_date)}</SheetTitle>
         </SheetHeader>

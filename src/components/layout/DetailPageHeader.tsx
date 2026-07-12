@@ -34,8 +34,8 @@ export function DetailPageHeader({ title, subtitle, badges, backTo, actions, pri
           <BackIcon className="h-4 w-4" />
         </Button>
         <div className="min-w-0 flex-1">
-          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight truncate">{title}</h1>
-          {subtitle && <p className="text-xs sm:text-sm text-muted-foreground truncate">{subtitle}</p>}
+          <h1 className="text-xl sm:text-2xl font-semibold tracking-tight line-clamp-2">{title}</h1>
+          {subtitle && <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">{subtitle}</p>}
           {badges && <div className="flex items-center gap-2 flex-wrap mt-1">{badges}</div>}
         </div>
       </div>
