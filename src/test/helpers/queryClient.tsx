@@ -12,7 +12,7 @@ export function createQueryWrapper() {
       mutations: { retry: false },
     },
   });
-  function Wrapper({ children }: { children: React.ReactNode }) {
+  function Wrapper({ children }: { children: ReactNode }) {
     return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
   }
   return { Wrapper, queryClient: qc };
