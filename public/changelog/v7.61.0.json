@@ -1,0 +1,14 @@
+{
+  "version": "7.61.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "Lote G (cierre): usePullToRefresh migrado a @use-gesture/react",
+  "description": "Se cierra el hallazgo 7/7 del audit de código custom-made. `src/hooks/usePullToRefresh.ts` deja de gestionar manualmente `touchstart/move/end/cancel` y delega la detección del gesto en `useDrag` de @use-gesture/react (Poimandres, ~13 KB gz, pointer events normalizados, cancelación, tap filtering). Se conserva la lógica de dominio en el hook: gate `scrollTop === 0`, curva de resistencia (`delta * 0.5`, cap en `maxDistance`) y decisión de disparo cuando `pullDistance >= threshold`. La API pública (`{ pullDistance, isRefreshing, threshold }` y opciones) se mantiene idéntica, así `ListPageLayout` y el `PullToRefreshIndicator` no requieren cambios. Se añadió `src/hooks/__tests__/usePullToRefresh.test.ts` con smoke tests de contrato (retorno, threshold custom, no-op con target=null o enabled=false).",
+  "category": "improvement",
+  "impact": "Menos superficie de bugs en el manejo de touch events (SSR-safe, iOS Safari, cancel). Cero cambios visibles en la UI móvil ni en las páginas lista que usan pull-to-refresh.",
+  "files": [
+    "src/hooks/usePullToRefresh.ts",
+    "src/hooks/__tests__/usePullToRefresh.test.ts",
+    "package.json"
+  ]
+}
