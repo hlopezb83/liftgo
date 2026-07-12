@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.24.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "Fase F Lote 2 — Poda de useMemo/useCallback redundantes (ronda 1)",
+    "description": "Bajo React Compiler activo, la mayoría de memoizaciones manuales son ruido. Auditados 186 sitios en `src/` (excl. tests) y podados 44 en los 10 archivos de mayor impacto: `useDashboardSections` (-8), `useStatementRows` + `useComparisonRows` (-6), `CRMPage` (-6), `useClosedProspects` (-5), `useAccountsPayableFilters` (-5), `RecurringInvoicesPreviewDialog` (-2), `useInvoicesFilters` (-3), `usePaymentSelection` (-3), `TablePagination` (-3), `SwipeableCard` (-3). Preservadas las memoizaciones que alimentan cascadas (`counts`, `overdueInvoices`, `stagesData`, `statementRows`) o el patrón 'adjust state during render' (`lines`, `eligibleIds` en el preview de recurrentes). Typecheck limpio, lint sin warnings.",
+    "category": "improvement"
+  },
+  {
     "version": "7.23.0",
     "date": "2026-07-12",
     "type": "minor",
