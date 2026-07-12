@@ -1,6 +1,6 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useInvoices } from "../hooks/invoices/useInvoices";
 import { useGenerateRecurringInvoices } from "../hooks/invoices/recurring/useGenerateRecurringInvoices";
 import { usePreviewRecurringInvoices } from "../hooks/invoices/recurring/usePreviewRecurringInvoices";
@@ -57,8 +57,7 @@ function useRecurringHandlers(setPreviewOpen: (o: boolean) => void, setResultOpe
 }
 
 function useInvoiceColumns(): ColumnDef<Invoice>[] {
-  return useMemo(
-    () => [
+  return [
       { id: "invoice_number", header: "Factura #", accessorKey: "invoice_number",
         cell: ({ row }) => <Untranslated className="font-medium">{row.original.invoice_number}</Untranslated> },
       { id: "customer_name", header: "Cliente", accessorFn: (i) => i.customer_name || "",
@@ -73,9 +72,7 @@ function useInvoiceColumns(): ColumnDef<Invoice>[] {
         cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateDisplay(row.original.due_date)}</span> },
       { id: "view", header: "", enableSorting: false, meta: { cellClassName: "w-12" },
         cell: () => <ViewIcon className="h-4 w-4 text-muted-foreground" /> },
-    ],
-    [],
-  );
+    ];
 }
 
 function InvoiceCard({ inv, onClick }: { inv: Invoice; onClick: () => void }) {

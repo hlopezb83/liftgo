@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PackageCheck, WarnIcon } from "@/components/icons";
@@ -33,10 +33,7 @@ export function AssignForkliftsCard({ quoteId, lineItems }: Props) {
 
   const [selections, setSelections] = useState<Record<number, string>>({});
 
-  const assignedForkliftIds = useMemo(
-    () => new Set((assignments || []).map((a) => a.forklift_id)),
-    [assignments]
-  );
+  const assignedForkliftIds = new Set((assignments || []).map((a) => a.forklift_id));
 
   if (isLoading) return null;
 

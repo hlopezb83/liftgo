@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { format, startOfMonth, endOfMonth } from "date-fns";
 import { DownloadIcon, WarnIcon } from "@/components/icons";
 
@@ -32,8 +32,6 @@ function defaultFilters(): ReconciliationFilters {
   };
 }
 
-
-
 export default function InvoicesReconciliation() {
   const [filters, setFilters] = useState<ReconciliationFilters>(defaultFilters);
   const { data, isLoading } = useReconciliationData(filters);
@@ -41,8 +39,7 @@ export default function InvoicesReconciliation() {
   const rows = data?.rows ?? [];
   const summary = data?.summary;
 
-  const kpis = useMemo(
-    () => [
+  const kpis = [
       {
         label: "Total timbrado (producción)",
         value: formatCurrency(summary?.totalStampedLive ?? 0),
@@ -50,9 +47,7 @@ export default function InvoicesReconciliation() {
       { label: "Timbradas", value: String(summary?.countStamped ?? 0) },
       { label: "Canceladas", value: String(summary?.countCancelled ?? 0) },
       { label: "Borradores", value: String(summary?.countDraft ?? 0) },
-    ],
-    [summary],
-  );
+    ];
 
   return (
     <PageContainer maxWidth="wide" className="space-y-6">

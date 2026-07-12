@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -24,7 +24,7 @@ function generateMonthOptions(count: number) {
 }
 
 export default function IncomeStatementPage() {
-  const monthOptions = useMemo(() => generateMonthOptions(24), []);
+  const monthOptions = generateMonthOptions(24);
 
   const [startMonth, setStartMonth] = useState(() => format(subMonths(nowMty(), 3), "yyyy-MM"));
   const [endMonth, setEndMonth] = useState(() => format(nowMty(), "yyyy-MM"));

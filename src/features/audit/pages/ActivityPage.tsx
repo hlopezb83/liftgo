@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -14,7 +14,7 @@ import type { ActivityMetrics } from "../hooks/activityMetricsTypes";
 
 export default function ActivityPage() {
   const [rangeKey, setRangeKey] = useState<RangeKey>("7d");
-  const range = useMemo(() => getRange(rangeKey), [rangeKey]);
+  const range = getRange(rangeKey);
   const [filters, setFilters] = useState<ActivityFilters>({});
 
   const { data: metrics } = useActivityMetrics({ from: range.from, to: range.to });

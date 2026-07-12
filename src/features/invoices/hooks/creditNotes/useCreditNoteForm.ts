@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { parseLineItems } from "@/lib/domain/lineItems";
 import { useCreateCreditNote } from "./useCreditNotes";
 import type { Tables } from "@/integrations/supabase/types";
@@ -11,10 +11,7 @@ export function useCreditNoteForm(
   maxCreditable: number,
   onClose: () => void,
 ) {
-  const original = useMemo(
-    () => parseLineItems<LineItem>(invoice.line_items),
-    [invoice.line_items],
-  );
+  const original = parseLineItems<LineItem>(invoice.line_items);
   const [motive, setMotive] = useState<string>("return");
   const [reason, setReason] = useState("");
   const [lines, setLines] = useState<EditableCreditNoteLine[]>(() =>

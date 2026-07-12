@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import {
   type MonthData, type ComparisonRow, type YearTotals,
   DIRECT_COST_CATEGORIES, OPERATING_EXPENSE_GROUPS, EXPENSE_CATEGORY_LABELS,
@@ -22,10 +22,7 @@ export function useStatementRows(filteredData: MonthData[], totals: Totals) {
   // `statementRows` alimenta a `csvRows`; conservamos su memoización manual
   // como identidad estable garantizada. El resto son derivaciones puras que
   // React Compiler memoiza automáticamente.
-  const statementRows = useMemo(
-    () => buildStatementRows(filteredData, totals),
-    [filteredData, totals],
-  );
+  const statementRows = buildStatementRows(filteredData, totals);
   const csvRows = buildCsvRows(statementRows, filteredData);
   const depreciationBreakdownRows = buildBreakdownRows(filteredData, (m) => m.depreciationByForklift, true);
   const cogsBreakdownRows = buildBreakdownRows(filteredData, (m) => m.cogsByForklift, true);
@@ -34,7 +31,6 @@ export function useStatementRows(filteredData: MonthData[], totals: Totals) {
 
   return { statementRows, csvRows, depreciationBreakdownRows, cogsBreakdownRows, rentalBreakdownRows, salesBreakdownRows };
 }
-
 
 export function useComparisonRows(yearTotals: YearTotals[]): ComparisonRow[] {
   if (yearTotals.length < 2) return [];

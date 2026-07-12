@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
@@ -83,7 +83,7 @@ interface EquipmentAssignmentDialogProps {
 export function EquipmentAssignmentDialog({
   open, onOpenChange, rentalMeta, models, forklifts, onConfirm, isLoading,
 }: EquipmentAssignmentDialogProps) {
-  const slots = useMemo(() => buildAssignmentSlots(rentalMeta, models), [rentalMeta, models]);
+  const slots = buildAssignmentSlots(rentalMeta, models);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),

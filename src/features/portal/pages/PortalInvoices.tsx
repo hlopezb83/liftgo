@@ -1,5 +1,4 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { useMemo } from "react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
@@ -17,8 +16,7 @@ export default function PortalInvoices() {
   const { data: invoices, isLoading } = usePortalInvoices();
   const navigate = useNavigateTransition();
 
-  const columns = useMemo<ColumnDef<Invoice>[]>(
-    () => [
+  const columns: ColumnDef<Invoice>[] = [
       {
         id: "invoice_number",
         header: "Factura #",
@@ -50,9 +48,7 @@ export default function PortalInvoices() {
         accessorKey: "status",
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
-    ],
-    [],
-  );
+    ];
 
   const table = useLiftgoTable<Invoice>({
     data: invoices,

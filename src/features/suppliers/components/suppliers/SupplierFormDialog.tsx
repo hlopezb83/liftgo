@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { EditIcon, DocumentIcon } from "@/components/icons";
@@ -83,7 +83,7 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
     form.reset(supplier ? supplierToFormData(supplier) : emptySupplierFormData);
   }, [open, supplier]);
 
-  const handleCsfParsed = useCallback((patch: Partial<SupplierFormData>, file: File) => {
+  const handleCsfParsed = (patch: Partial<SupplierFormData>, file: File) => {
     setCsfFile(file);
     const current = form.getValues();
     const next: SupplierFormData = { ...current };
@@ -92,7 +92,7 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
       if (v !== undefined && v !== "") (next as Record<string, unknown>)[k] = v;
     });
     form.reset(next, { keepDirty: true });
-  }, [form]);
+  };
 
   const uploadCsfIfAny = async (supplierId: string) => {
     if (!csfFile) return;

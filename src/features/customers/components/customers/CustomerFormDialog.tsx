@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/forms/zodResolver";
@@ -50,7 +50,7 @@ export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, is
     }
   }, [open]);
 
-  const handleCsfParsed = useCallback((patch: Partial<CustomerFormData>) => {
+  const handleCsfParsed = (patch: Partial<CustomerFormData>) => {
     const current = form.getValues();
     const next: CustomerFormData = { ...current };
     (Object.keys(patch) as (keyof CustomerFormData)[]).forEach((k) => {
@@ -58,7 +58,7 @@ export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, is
       if (v !== undefined && v !== "") (next as Record<string, unknown>)[k] = v;
     });
     form.reset(next, { keepDirty: true });
-  }, [form]);
+  };
 
   return (
     <FormDialog

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -26,10 +26,7 @@ export default function PortalInvoicePayment() {
   const [dlgOpen, setDlgOpen] = useState(false);
 
   const invoice = invoices?.find((i) => i.id === id);
-  const invoicePayments = useMemo(
-    () => (payments?.filter((p) => p.invoice_id === id) ?? []),
-    [payments, id],
-  );
+  const invoicePayments = (payments?.filter((p) => p.invoice_id === id) ?? []);
 
   if (il || pl) return <Skeleton className="h-96" />;
   if (!invoice) return <p className="text-muted-foreground">Factura no encontrada</p>;

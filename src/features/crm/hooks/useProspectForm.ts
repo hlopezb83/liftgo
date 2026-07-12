@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuotes } from "@/features/quotes";
 import type { Prospect } from "./useProspects";
 import {
@@ -32,10 +32,7 @@ export function useProspectForm({
 
   const { data: allQuotes = [] } = useQuotes();
 
-  const matchingQuotes = useMemo(
-    () => sortQuotesByCompanyMatch(allQuotes, company),
-    [allQuotes, company],
-  );
+  const matchingQuotes = sortQuotesByCompanyMatch(allQuotes, company);
 
   const effectiveStage = overrideStage ?? prospect?.stage ?? defaultStage;
   const requiresDealValue = STAGES_REQUIRING_DEAL_VALUE.includes(effectiveStage);

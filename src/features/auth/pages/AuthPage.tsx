@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useAuth } from "@/contexts/AuthContext";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -26,7 +26,7 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const currentVersion = useCurrentVersion();
 
-  useAuthPasswordRecoveryListener(useCallback(() => setMode("reset"), []));
+  useAuthPasswordRecoveryListener(() => setMode("reset"));
 
   const runSubmit = async () => {
     if (mode === "forgot") {

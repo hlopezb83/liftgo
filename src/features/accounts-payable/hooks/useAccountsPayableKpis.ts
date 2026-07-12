@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import { useSupplierBills, type SupplierBillListItem } from "./useSupplierBills";
 import { nowMty } from "@/lib/utils";
 import { toYMD } from "@/lib/date/toYMD";
@@ -38,7 +38,7 @@ function accumulateBill(acc: AccountsPayableKpis, b: SupplierBillListItem, ctx: 
 export function useAccountsPayableKpis() {
   const { data, isLoading } = useSupplierBills();
 
-  const kpis = useMemo<AccountsPayableKpis>(() => {
+  const kpis: AccountsPayableKpis = (() => {
     const today = nowMty();
     const todayYmd = toYMD(today) ?? "";
     const in7 = new Date(today);
@@ -51,7 +51,7 @@ export function useAccountsPayableKpis() {
     };
     for (const b of data ?? []) accumulateBill(acc, b, ctx);
     return acc;
-  }, [data]);
+  })();
 
   return { kpis, isLoading, bills: (data ?? []) as SupplierBillListItem[] };
 }

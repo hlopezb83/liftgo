@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 
 import { EditIcon, StampIcon, DocumentIcon, FileCode2, ErrorIcon } from "@/components/icons";
@@ -33,7 +33,7 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
   const cancelRep = useCancelPaymentComplement();
   const confirm = useConfirm();
 
-  const columns = useMemo<ColumnDef<Payment>[]>(() => {
+  const columns: ColumnDef<Payment>[] = (() => {
     const base: ColumnDef<Payment>[] = [
       {
         id: "payment_date", header: "Fecha", accessorKey: "payment_date",
@@ -126,7 +126,7 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
     });
 
     return base;
-  }, [ppdStamped, allowRepMutations, stampRep, cancelRep, confirm]);
+  })();
 
   return { columns, editingPayment, setEditingPayment };
 }

@@ -1,11 +1,11 @@
-import { useMemo } from "react";
+
 import { useWatch, type UseFormReturn } from "react-hook-form";
 import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
 import { computeTotals } from "@/lib/domain/invoiceHelpers";
 
 export function useInvoiceFormTotals(form: UseFormReturn<InvoiceFormValues>) {
   const watched = useWatch({ control: form.control, name: ["lineItems", "taxRate"] });
-  return useMemo(() => {
+  return (() => {
     const items = (watched[0] ?? []).map((i) => ({
       description: i?.description ?? "",
       quantity: Number(i?.quantity ?? 0),
@@ -15,5 +15,5 @@ export function useInvoiceFormTotals(form: UseFormReturn<InvoiceFormValues>) {
       discount_type: i?.discount_type,
     }));
     return computeTotals(items, Number(watched[1] ?? 0));
-  }, [watched]);
+  })();
 }

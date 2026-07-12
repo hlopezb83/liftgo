@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import { useSupplierBills } from "./useSupplierBills";
 import { nowMty } from "@/lib/utils";
 import { toYMD } from "@/lib/date/toYMD";
@@ -40,7 +40,7 @@ const EMPTY_TOTALS: AgingTotals = { current: 0, d1_30: 0, d31_60: 0, d61_90: 0, 
 export function useAgingReport() {
   const { data, isLoading } = useSupplierBills();
 
-  const { rows, totals } = useMemo(() => {
+  const { rows, totals } = (() => {
     const todayYmd = toYMD(nowMty()) ?? "";
     const byId = new Map<string, AgingRow>();
 
@@ -75,7 +75,7 @@ export function useAgingReport() {
     );
 
     return { rows, totals };
-  }, [data]);
+  })();
 
   return { rows, totals, isLoading };
 }

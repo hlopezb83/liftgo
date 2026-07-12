@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.26.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "Fase F Lote 2 — Poda de useMemo/useCallback redundantes (ronda 3)",
+    "description": "Ronda 3 final: ~50 memoizaciones residuales podadas en 49 archivos vía codemod (~48 auto + 4 arreglos manuales). Cubre `ColumnDef[]` inline en QuotesPage, BookingsPage, DeliveriesPage, InvoicesPage, MrrDetailPage, ContractsPage, DamageTrackingPage, PortalContracts/Invoices/Quotes/Rentals/InvoicePayment, ForkliftHourometerHistory, useCustomersColumns, useUserManagementColumns, useFleetColumns, supplierBillColumns; hooks de CRM (`useCRMFilters`, `useCRMMetrics`, `useProspectForm`), facturas (`useCreditNoteForm`, `useInvoiceFormTotals`, `usePaymentHistoryColumns`, `RecurringInvoicesPreviewDialog`), cotizaciones (`AssignForkliftsCard`, `EquipmentAssignmentDialog`, `useQuoteSaleAssignmentStatus`, `useQuoteFormLogic`), calendario (`CalendarStatCards`, `EquipmentListView`), dashboard (`CollectionForecast`, `UtilizationCharts`, `useDashboardSections`), reportes (`useStatementRows`, `IncomeStatementPage`), y otros (`useAccountsPayableKpis`, `useAgingReport`, `AuthPage`, `BankReconciliationPage`, `useExtendBookingPreview`, `ClosedTable`, `CustomerFormDialog`, `FeedbackManagementPage`, `LeaderboardPage`, `useForkliftMap`, `InvoicesReconciliation`, `SupplierFormDialog`, `useUserManagementFilters`, `ChangelogPage`, `ActivityPage`, `CRMPage`). Donde `useMemo<T>` era el `return` de un hook, se preservó tipado añadiendo return-type explícito a la función (ColumnDef<T>[]). Typecheck en verde (0 errores). 913 tests pasando. Residual global: 53 sitios (mayoría hooks utilitarios como `useDialogState`, `useListPage`, `useListFilters`, `ConfirmProvider`, `GlobalSearch` donde la estabilidad de referencia es intencional).",
+    "category": "improvement"
+  },
+  {
     "version": "7.25.0",
     "date": "2026-07-12",
     "type": "minor",

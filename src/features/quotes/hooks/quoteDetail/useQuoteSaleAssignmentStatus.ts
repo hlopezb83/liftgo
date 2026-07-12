@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import { useQuoteAssignments } from "@/features/fleet";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { getSaleLines } from "../../utils/saleLines";
@@ -17,7 +17,7 @@ export function useQuoteSaleAssignmentStatus(
 ): SaleAssignmentStatus {
   const { data: assignments } = useQuoteAssignments(quoteId);
 
-  return useMemo(() => {
+  return (() => {
     const saleLines = getSaleLines(lineItems);
     if (saleLines.length === 0) {
       const empty: SaleAssignmentStatus["missingByLine"] = [];
@@ -45,5 +45,5 @@ export function useQuoteSaleAssignmentStatus(
       isComplete: missingByLine.length === 0,
       missingByLine,
     };
-  }, [lineItems, assignments]);
+  })();
 }

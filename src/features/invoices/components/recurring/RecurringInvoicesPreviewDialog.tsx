@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -32,8 +32,8 @@ export function RecurringInvoicesPreviewDialog({
   // `lines` y `eligibleIds` conservan useMemo: alimentan el patrón
   // "adjust state during render" via `prevEligibleRef`. Sin identidad estable
   // el efecto re-dispararía y provocaría un loop de setState.
-  const lines = useMemo(() => data?.lines ?? [], [data?.lines]);
-  const eligibleIds = useMemo(() => lines.filter((l) => l.eligible).map((l) => l.bookingId), [lines]);
+  const lines = data?.lines ?? [];
+  const eligibleIds = lines.filter((l) => l.eligible).map((l) => l.bookingId);
   const [selected, setSelected] = useState<Set<string>>(() => new Set(eligibleIds));
 
   // Rehidratar la selección cuando cambia la identidad de `eligibleIds` — patrón
@@ -58,7 +58,6 @@ export function RecurringInvoicesPreviewDialog({
   const totalSelected = lines
     .filter((l) => selected.has(l.bookingId))
     .reduce((acc, l) => acc + applyVat(l.monthlyRate), 0);
-
 
   const toggle = (id: string) => {
     setSelected((prev) => {

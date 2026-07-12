@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { type DropResult } from "@hello-pangea/dnd";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { PageTransition } from "@/components/layout/PageTransition";
@@ -45,16 +45,12 @@ export default function CRMPage() {
 
   // `stagesData` es dep de `pipelineTotal` (y se pasa al Kanban). Mantenemos
   // memo manual para blindar la identidad ante remounts del subtree.
-  const stagesData = useMemo(
-    () =>
-      ACTIVE_STAGES.map((s) => {
+  const stagesData = ACTIVE_STAGES.map((s) => {
         const items = filtered
           .filter((p) => p.stage === s.key)
           .sort((a, b) => a.stageOrder - b.stageOrder);
         return { ...s, items, total: items.reduce((sum, p) => sum + (p.dealValue ?? 0), 0) };
-      }),
-    [filtered],
-  );
+      });
 
   const pipelineTotal = stagesData.reduce((s, c) => s + c.total, 0);
 

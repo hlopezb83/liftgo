@@ -1,6 +1,5 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
-import { useMemo } from "react";
 import { STATUS_LABELS } from "@/lib/constants";
 import { useContracts } from "../hooks/useContracts";
 import { useListFilters } from "@/hooks/useListFilters";
@@ -27,8 +26,7 @@ export default function ContractsPage() {
     statusField: "status",
   });
 
-  const columns = useMemo<ColumnDef<Contract>[]>(
-    () => [
+  const columns: ColumnDef<Contract>[] = [
       {
         id: "contract_number",
         header: "Contrato #",
@@ -72,9 +70,7 @@ export default function ContractsPage() {
         meta: { cellClassName: "w-12" },
         cell: () => <ViewIcon className="h-4 w-4 text-muted-foreground" />,
       },
-    ],
-    [],
-  );
+    ];
 
   const table = useLiftgoTable<Contract>({
     data: filtered,

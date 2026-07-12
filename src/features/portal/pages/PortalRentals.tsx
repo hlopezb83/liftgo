@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { usePortalBookings } from "@/features/customers";
@@ -13,8 +13,7 @@ type Booking = NonNullable<ReturnType<typeof usePortalBookings>["data"]>[number]
 export default function PortalRentals() {
   const { data: bookings, isLoading } = usePortalBookings();
 
-  const columns = useMemo<ColumnDef<Booking>[]>(
-    () => [
+  const columns: ColumnDef<Booking>[] = [
       {
         id: "equipo",
         header: "Equipo",
@@ -43,9 +42,7 @@ export default function PortalRentals() {
         accessorKey: "status",
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
-    ],
-    [],
-  );
+    ];
 
   const table = useLiftgoTable<Booking>({
     data: bookings,

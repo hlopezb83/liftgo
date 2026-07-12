@@ -1,19 +1,14 @@
-import { useMemo } from "react";
 import { useForklifts } from "./useForklifts";
 import type { Tables } from "@/integrations/supabase/types";
 
 /**
- * Returns a memoized Map of forklift ID → forklift object.
- * Consolidates the repeated pattern across MaintenancePage, DeliveriesPage,
- * ReturnInspectionPage, and MaintenanceCostReport.
+ * Returns a Map of forklift ID → forklift object.
+ * React Compiler memoiza automáticamente.
  */
 export function useForkliftMap() {
   const { data: forklifts, isLoading } = useForklifts();
-
-  const forkliftMap = useMemo(
-    () => new Map<string, Tables<"forklifts">>(forklifts?.map((f) => [f.id, f]) || []),
-    [forklifts]
+  const forkliftMap = new Map<string, Tables<"forklifts">>(
+    forklifts?.map((f) => [f.id, f]) || [],
   );
-
   return { forkliftMap, forklifts, isLoading };
 }

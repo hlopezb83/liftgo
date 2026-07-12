@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ClockIcon } from "@/components/icons";
 import { formatDateDisplay } from "@/lib/utils";
@@ -12,8 +12,7 @@ interface ForkliftHourometerHistoryProps {
 type Entry = ForkliftFinancials["hourometer_history"][number];
 
 export function ForkliftHourometerHistory({ history }: ForkliftHourometerHistoryProps) {
-  const columns = useMemo<ColumnDef<Entry>[]>(
-    () => [
+  const columns: ColumnDef<Entry>[] = [
       {
         id: "date",
         header: "Fecha",
@@ -41,9 +40,7 @@ export function ForkliftHourometerHistory({ history }: ForkliftHourometerHistory
         meta: { align: "right" },
         cell: ({ row }) => <span className="font-mono font-semibold">{row.original.hours_reading}</span>,
       },
-    ],
-    [],
-  );
+    ];
 
   const table = useLiftgoTable<Entry>({
     data: history,

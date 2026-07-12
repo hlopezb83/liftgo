@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -25,9 +25,8 @@ interface Params {
 
 export function useUserManagementColumns({
   currentUserId, isToggling, onRoleChange, onToggleStatus, onEdit, onSetPassword, onDelete,
-}: Params) {
-  return useMemo<ColumnDef<UserItem>[]>(
-    () => [
+}: Params): ColumnDef<UserItem>[] {
+  return [
       {
         id: "full_name",
         header: "Nombre",
@@ -113,7 +112,5 @@ export function useUserManagementColumns({
           );
         },
       },
-    ],
-    [currentUserId, isToggling, onRoleChange, onToggleStatus, onEdit, onSetPassword, onDelete],
-  );
+    ];
 }

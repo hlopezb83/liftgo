@@ -1,5 +1,5 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { useMemo } from "react";
+
 import { useParams } from "react-router-dom";
 import { useCustomers } from "@/features/customers";
 import { useEquipmentModels } from "@/features/fleet";
@@ -33,7 +33,7 @@ export function useQuoteFormLogic() {
   const startDate = dateRange?.from;
   const endDate = dateRange?.to;
 
-  const lineItems: LineItem[] = useMemo(() => {
+  const lineItems: LineItem[] = (() => {
     if (!equipmentModels) return [];
     let items: LineItem[];
     if (quoteType === "sale") {
@@ -46,7 +46,7 @@ export function useQuoteFormLogic() {
       items.push({ description: "Servicio de Logística", quantity: 1, unit_price: logisticsCost, total: logisticsCost });
     }
     return items;
-  }, [equipmentModels, rentalLines, startDate, endDate, quoteType, saleLines, includeLogistics, logisticsCost]);
+  })();
 
   const { subtotal, taxAmount, total } = computeTotals(lineItems, Number(taxRate) || 0);
 
