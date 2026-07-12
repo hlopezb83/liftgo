@@ -57,7 +57,7 @@ export function AppProviders({ children }: { children: ReactNode }) {
       <PersistQueryClientProvider
         client={queryClient}
         persistOptions={{
-          persister: persister!,
+          persister,
           maxAge: PERSIST_MAX_AGE_MS,
           dehydrateOptions: { shouldDehydrateQuery: shouldPersistQuery },
         }}
