@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 import { userKeys } from "../../../lib/queryKeys";
 
 export function useToggleStatus() {
@@ -13,7 +14,7 @@ export function useToggleStatus() {
     invalidateKeys: [userKeys.all],
     errorTitle: "Error al cambiar estado",
     onSuccess: (_data, vars) => {
-      // El toast estándar no puede reflejar el estado dinámico; se dispara aquí.
+      notifySuccess(vars.isActive ? "Usuario activado" : "Usuario desactivado");
     },
   });
 }

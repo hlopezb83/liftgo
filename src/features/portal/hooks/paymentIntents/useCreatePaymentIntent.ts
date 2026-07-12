@@ -1,6 +1,6 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { portalQueries } from "../../lib/queryKeys";
 
 export interface PaymentIntentInput {
   invoice_id: string;
@@ -25,8 +25,7 @@ async function uploadProof(input: PaymentIntentInput): Promise<string | null> {
 }
 
 export function useCreatePaymentIntent() {
-  const qc = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async (input: PaymentIntentInput) => {
       const proofUrl = await uploadProof(input);
       const { error } = await supabase.from("customer_payment_intents").insert({
@@ -41,10 +40,8 @@ export function useCreatePaymentIntent() {
       });
       if (error) throw error;
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["portal_payment_intents"] });
-      notifySuccess("Reporte de pago enviado. Lo revisaremos a la brevedad.");
-    },
-    onError: (e: Error) => notifyError({ error: e, message: e.message }),
+    invalidateKeys: [portalQueries.paymentIntents.keys.all],
+    successMsg: "Reporte de pago enviado. Lo revisaremos a la brevedad.",
+    errorTitle: "Error al enviar reporte de pago",
   });
 }
