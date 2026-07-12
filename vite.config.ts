@@ -89,6 +89,9 @@ export default defineConfig(({ mode }) => ({
     // Requerido por sentryVitePlugin para mapear stack traces en producción.
     // El costo de tamaño lo absorbe gzip/brotli del hosting.
     sourcemap: true,
+    // Lightning CSS: ~15% mejor compresión que esbuild sobre Tailwind v4
+    // (Vite 8 lo trae bundleado, no requiere dep extra).
+    cssMinify: "lightningcss",
     // El cálculo de gzip por asset suma 3-5s a cada build en CI. Con el
     // visualizer bajo flag ANALYZE=1, no se necesita en el flujo normal.
     reportCompressedSize: false,
