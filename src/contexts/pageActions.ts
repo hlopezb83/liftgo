@@ -43,7 +43,7 @@ export function usePageActions(actions: PageActions): void {
     // exhaustive-deps (react-hooks v5.2+) los excluye automáticamente al detectar
     // el import named `useEffectEvent` de 'react'.
     return register({ newLabel, onNew, onRefresh });
-  }, [register, newLabel, onNew, onRefresh]);
+  }, [register, newLabel]);
 }
 
 
