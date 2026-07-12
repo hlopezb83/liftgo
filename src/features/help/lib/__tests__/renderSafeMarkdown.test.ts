@@ -35,4 +35,15 @@ describe("renderSafeMarkdown", () => {
     expect(html).toContain("<em>italic</em>");
     expect(html).toContain("<li");
   });
+
+  it("fuerza rel=noopener y target=_blank en enlaces", () => {
+    const html = renderSafeMarkdown("[link](https://example.com)");
+    expect(html).toContain('rel="noopener noreferrer"');
+    expect(html).toContain('target="_blank"');
+  });
+
+  it("bloquea href javascript:", () => {
+    const html = renderSafeMarkdown("[x](javascript:alert(1))");
+    expect(html).not.toContain("javascript:");
+  });
 });
