@@ -1,5 +1,15 @@
 [
   {
+    "version": "7.50.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "React 19: named imports de tipos + auditoría post-Compiler",
+    "description": "Auditoría completa de React tras la instalación del Compiler: 0 usos de React.memo/forwardRef/import*/default import, sólo 21 archivos con useMemo/useCallback fuera del scope del Compiler, useSyncExternalStore/useDeferredValue/<Activity> ya adoptados donde suman. Codemod de tipos: 43 sustituciones React.X → named imports (import type) en 43 archivos; los tipos con colisión DOM (MouseEvent, KeyboardEvent, FormEvent, ChangeEvent, TouchEvent, PointerEvent) se alias 'as ReactXxxEvent'. Cero cambios de runtime.",
+    "category": "improvement",
+    "impact": "Consistencia total de imports de tipos de React (habilita verbatimModuleSyntax a futuro y mejora tree-shaking de @types/react); 0 nuevos warnings de react-compiler/react-compiler o react-hooks/*.",
+    "files": ["src/**/*.{ts,tsx} (43 archivos)"]
+  },
+  {
     "version": "7.49.0",
     "date": "2026-07-12",
     "type": "minor",
