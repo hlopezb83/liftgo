@@ -29,7 +29,8 @@ describe("cn (tailwind-merge v3 sanity)", () => {
   });
 
   it("clsx: descarta falsy y deduplica clases idénticas", () => {
-    const result = cn("flex", false && "hidden", null, "flex", undefined);
+    const falsyFlag = false as boolean;
+    const result = cn("flex", falsyFlag && "hidden", null, "flex", undefined);
     expect(result).toBe("flex");
   });
 });
