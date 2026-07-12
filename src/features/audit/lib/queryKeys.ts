@@ -41,6 +41,7 @@ export interface AuditLog {
 export interface AuditLogFilters {
   table_name?: string;
   record_id?: string;
+  [key: string]: unknown;
 }
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
