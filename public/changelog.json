@@ -1,5 +1,21 @@
 [
   {
+    "version": "7.39.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "Auditoría Vite 7: sourcemaps Sentry, fuentes non-blocking, config endurecido",
+    "description": "Cierre de la auditoría de Vite. Se agrega `sentryVitePlugin` (gated por SENTRY_AUTH_TOKEN) con `build.sourcemap: true` para stack traces legibles en producción. Google Fonts pasa a `<link rel=preload as=style onload>` con fallback `<noscript>` (desbloquea FCP ~150-300ms). Config endurecido: `build.target: es2022` explícito, `optimizeDeps.include` con 8 deps críticas, `manualChunks` con separadores para evitar falsos positivos, `reportCompressedSize: false` (-3-5s/build en CI), `preview` con host/port en paridad con `server`. Simplificación: removido `autoprefixer` (Tailwind v4 lo cubre vía Lightning CSS). Build ✓ 42s · 992/992 tests · sin cambios de comportamiento.",
+    "category": "improvement",
+    "changes": [
+      { "type": "added", "description": "sentryVitePlugin gated por SENTRY_AUTH_TOKEN + build.sourcemap: true" },
+      { "type": "changed", "description": "index.html: fuentes Google con preload+onload no bloqueante y fallback noscript" },
+      { "type": "added", "description": "vite.config.ts: build.target 'es2022', optimizeDeps.include, preview host/port, reportCompressedSize: false" },
+      { "type": "changed", "description": "manualChunks: vendor con separadores /react/, /react-dom/, /scheduler/, /react-router*/, @tanstack/react-query" },
+      { "type": "removed", "description": "autoprefixer (redundante con Tailwind v4 + @tailwindcss/postcss)" },
+      { "type": "verified", "description": "Build 42s, 992/992 tests verdes, typecheck limpio" }
+    ]
+  },
+  {
     "version": "7.38.0",
     "date": "2026-07-12",
     "type": "major",

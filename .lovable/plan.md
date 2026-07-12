@@ -1,76 +1,103 @@
+# Auditoría Vite 7 — LiftGo
 
-# Auditoría Tailwind v4.3 — LiftGo
+## Veredicto
 
-## Veredicto general
-
-**Implementación limpia y sólida (8/10).** Está por encima del promedio: v4 con motor Oxide, tokens semánticos vía CSS variables HSL, cero colores hardcoded en componentes (0 `[#hex]`, sólo 1 archivo con clases `bg-gray-…`), 246 archivos con iconos centralizados y guardrails ESLint. **No está top-of-the-line todavía** por 4 razones específicas abajo.
-
----
+**Implementación limpia y moderna (8.5/10).** Está en la última mayor (Vite 7.3 + `@vitejs/plugin-react` 5), con React Compiler en build de producción, `manualChunks` semánticos, lazy imports en rutas y `rollup-plugin-visualizer` bajo flag. No es "top of the line" todavía por 5 huecos concretos, todos accionables.
 
 ## Lo que está bien
 
-- **v4 nativo** con `@import "tailwindcss"`, `@tailwindcss/postcss` y `tw-animate-css` (no legacy).
-- **Design tokens** completos en `src/index.css` (status, gantt, crm, chart, sidebar) con dark mode paralelo.
-- **Sin abuso de `@apply`** (sólo 4 usos totales en base/components).
-- **Sin `!important`** salvo 2 casos justificados en sidebar variants.
-- **cn()** consistente con `clsx + tailwind-merge`, `cva` en 7 primitives shadcn.
-- Guardrails: ESLint bloquea lucide directo, prohíbe hex arbitrarios en components.
+- Vite 7 y `@vitejs/plugin-react` 5 al día; sin plugins obsoletos.
+- React Compiler activo en build, desactivado en Vitest (correcto — no aporta en jsdom/happy-dom).
+- `manualChunks` por dominio (recharts, radix, react-pdf, jspdf, xlsx, date-fns, icons, vendor) — mejor que el default.
+- `dedupe: ["react", "react-dom"]` previene doble instancia con Vite 7.
+- HMR overlay off (consistente con Sentry como fuente de verdad).
+- `main.tsx` maneja `vite:preloadError` con reload-once → resuelve chunks stale tras deploy.
+- ANALYZE=1 opcional evita costo en build normal.
+- `lovable-tagger` solo en `mode === "development"`.
 
-## Lo que se puede mejorar
+## Huecos detectados
 
-### 1. Config puente v3 → migrar a CSS-first puro (`@theme`) — HIGH
-Hoy `tailwind.config.ts` (146 LOC) sólo mapea variables HSL a utilities. En v4 esto es **redundante**: el motor Oxide genera utilities automáticamente desde `@theme` en CSS. Beneficios:
-- Elimina 146 LOC de config TS.
-- HMR más rápido (sin recompilar TS).
-- Utilities auto-generadas (`text-status-available`, `bg-gantt-3`) sin duplicar mapeos.
+### 1. Falta Sentry sourcemaps en build de producción `[alto valor]`
+`@sentry/vite-plugin@5.4.0` está en devDependencies pero **no se usa en `vite.config.ts`**. Sentry recibe stack traces minificadas → los errores en producción son casi ilegibles. Es el hueco más importante dado que ya pagás Sentry (`@sentry/react` 10.65).
 
-**Riesgo**: bajo, pero requiere migrar `hsl(var(--x))` → sintaxis v4 `--color-x: hsl(var(--x))` dentro de `@theme`.
+### 2. Fuentes cargadas por `<link rel="stylesheet">` bloqueante
+`index.html` línea 9 hace `<link rel="stylesheet" ...fonts.googleapis.com...>` sin `media="print" onload` ni preload del woff2. Bloquea FCP ~150-300ms. Ya hay `preconnect`, falta el patrón non-blocking.
 
-### 2. Fonts vía `<link>` en `index.html` en lugar de `@import` CSS — MEDIUM
-`src/index.css:1` importa Google Fonts con `@import url(...)`, lo que **bloquea el render del CSS crítico**. Mejor: `<link rel="preconnect">` + `<link rel="stylesheet">` en `index.html` (o self-host con `@fontsource/inter`) para paralelizar y evitar FOIT.
+### 3. `build.target` implícito (baseline "widely available")
+Vite 7 cambió el default a `baseline-widely-available` (Safari 15.4+, Chrome 107+). No está declarado, así que cualquiera que abra `vite.config.ts` no sabe qué se compila. Debería ser explícito.
 
-### 3. Dark mode declarado pero apenas usado — LOW
-Sólo 9 archivos usan `dark:`. Tokens dark existen en `:root .dark` pero no hay toggle ni cobertura. **Decidir**: (a) remover tokens dark y `@custom-variant dark` para simplificar, o (b) completar cobertura + toggle. Actualmente es peso muerto ambiguo.
+### 4. `optimizeDeps.include` no está afinado
+Deps grandes que sí se usan en la primera pantalla (`@tanstack/react-query`, `react-router`, `sonner`, `date-fns`, `zod`) no están pre-bundleadas explícitamente. El primer `vite dev` frío hace muchos "new dependency detected" y recarga. Costo dev, no prod.
 
-### 4. Scrollbar CSS repetido — LOW
-`src/index.css:190-227` define scrollbars globales + variante sidebar con selectores duplicados. Extraer a `@utility scrollbar-thin` (nueva API v4) o consolidar con custom property `--scrollbar-thumb`.
+### 5. `manualChunks` como función tiene un false-positive
+`/react/` matchea también `react-dom`, `react-router`, `react-hook-form`, `@tanstack/react-query`, `react-day-picker`, etc. La intención era aislar `react` core, pero el orden actual funciona por casualidad (react-dom se captura antes en `vendor`). Frágil ante el próximo edit.
 
-### 5. Features v4 sin adoptar (oportunidades) — INFO
-- **`@container` queries**: 0 usos. Ideal para tarjetas KPI, sidebar responsive, tablas densas.
-- **`text-shadow-*`** (nuevo v4.1) y **`inset-shadow-*`** para depth en cards premium.
-- **`starting:` variant** para animaciones de entrada declarativas (reemplaza JS/framer-motion en casos simples).
-- **`not-*` variant** para reducir CSS combinatorio.
-- **Composable variants** (`group-has-*`, `peer-has-*`) para forms complejos.
+### 6. Sin `build.reportCompressedSize: false`
+Cada build calcula gzip de cada asset — suma 3-5s en CI. Con `visualizer` ya bajo flag, esto es puro overhead.
 
----
+### 7. `postcss.config.js` con `autoprefixer` explícito
+Tailwind v4 + `@tailwindcss/postcss` ya incluye autoprefixing vía Lightning CSS. `autoprefixer` en el pipeline es redundante y suma un paso PostCSS extra.
 
-## Plan propuesto (3 lotes)
+### 8. `preview` sin puerto/host fijo
+`bun run preview` no hereda `server.host/port`. Menor, pero rompe QA reproducible.
 
-### Lote A — Simplificación estructural (HIGH)
-1. Migrar `tailwind.config.ts` a bloque `@theme` en `src/index.css`. Eliminar el archivo TS y la directiva `@config`.
-2. Mover `@import` de Google Fonts a `<link>` con `preconnect` en `index.html`.
-3. Decidir destino de dark mode (recomiendo **remover** dado el uso actual; podemos re-agregar cuando exista requisito real).
+## Plan de mejora propuesto (por lote)
 
-### Lote B — Utilities & tokens polish (MEDIUM)
-4. Extraer scrollbars a `@utility scrollbar-thin` v4.
-5. Refactor de `GlobalInvoiceFields.tsx` (único archivo con `bg-gray-*`).
-6. Agregar ESLint rule `no-restricted-syntax` que bloquee `bg-(white|black|gray)-\d+` fuera de tokens.
+### Lote A — Alto impacto (30 min)
+1. **Sentry sourcemaps**: agregar `sentryVitePlugin` al final del array de plugins, gated por `process.env.SENTRY_AUTH_TOKEN` para no romper builds locales/CI sin secret.
+2. **Fonts non-blocking**: cambiar `<link rel="stylesheet">` a `<link rel="preload" as="style" onload="this.rel='stylesheet'">` + `<noscript>` fallback.
+3. **Explicit `build.target`**: declarar `build: { target: "es2022" }` (o `baseline-widely-available`) con comentario.
 
-### Lote C — Adopción de features v4 (INFO / opcional)
-7. Introducir `@container` en `KpiTile`, `DetailLayout` y sidebar.
-8. Usar `starting:` variant en sheets/dialogs para animaciones de entrada sin JS.
-9. Aplicar `text-shadow-sm` en headers de PDFs/cards premium.
+### Lote B — Higiene DX (20 min)
+4. **`optimizeDeps.include`**: listar las 6-8 deps críticas de first paint.
+5. **`manualChunks` robusto**: reemplazar `/react/` por match exacto `react/`+`scheduler/` y reordenar para que `vendor` sea el fallback explícito.
+6. **`build.reportCompressedSize: false`** con nota en config.
+7. **`preview: { host: "::", port: 8080 }`** para paridad con `server`.
 
----
+### Lote C — Simplificación (10 min)
+8. Quitar `autoprefixer` de `postcss.config.js` y de devDependencies (Tailwind v4 lo cubre).
 
-## Estimado de impacto
+## Detalles técnicos
 
-| Lote | LOC removidas | Perf | Riesgo |
-|------|--------------:|-----:|-------:|
-| A    | ~150          | +HMR, +FCP | Bajo-medio |
-| B    | ~40           | — | Bajo |
-| C    | +feats        | +UX percibida | Bajo |
+Diff aproximado de `vite.config.ts` tras Lotes A+B:
 
-**Tests**: 992/992 deben seguir pasando; validación con `bun run build` y comparación de tamaño CSS (baseline 122 kB).
+```ts
+plugins: [
+  react({ babel: { plugins: [["babel-plugin-react-compiler", { target: "19" }]] } }),
+  mode === "development" && componentTagger(),
+  process.env.ANALYZE === "1" && visualizer({ ... }),
+  process.env.SENTRY_AUTH_TOKEN && sentryVitePlugin({
+    org: "liftgo",
+    project: "liftgo-web",
+    authToken: process.env.SENTRY_AUTH_TOKEN,
+    sourcemaps: { assets: "./dist/**" },
+  }),
+].filter(Boolean),
+build: {
+  target: "es2022",              // Safari 16.4+, Chrome 111+, Firefox 128+
+  sourcemap: true,               // requerido por Sentry, gzip lo compensa
+  reportCompressedSize: false,
+  rollupOptions: { output: { manualChunks: (id) => { ... } } },
+},
+optimizeDeps: {
+  include: [
+    "react", "react-dom", "react-router", "react-router-dom",
+    "@tanstack/react-query", "sonner", "date-fns", "zod",
+  ],
+},
+preview: { host: "::", port: 8080 },
+```
 
-¿Ejecuto los **3 lotes** completos, sólo **A + B** (limpieza), o prefieres empezar por uno específico?
+## Fuera de alcance (mencionado pero no ejecutado)
+- No migro a **Rolldown** (`rolldown-vite`): sigue en beta, incompatible con `@vitejs/plugin-react` 5 y con `manualChunks` como función.
+- No toco `vitest.config.ts` (ya es óptimo: happy-dom por default, sin compiler).
+- No agrego CSP nonces vía Vite: eso vive en el edge/hosting.
+
+## Verificación post-cambio
+- `bun run build` — comparar tamaño de `dist/` y tiempo vs baseline (41s / 296 KB vendor).
+- `bunx vitest run` — 992/992 tests verdes.
+- Deploy preview y forzar error para confirmar que Sentry muestra stack con líneas de fuente.
+- Changelog `v7.39.0` (minor: sourcemaps + fonts non-blocking) o `v7.38.1` (patch) según se acuerde.
+
+## Decisión pendiente
+¿Ejecuto los tres lotes en un solo PR (60 min, un solo changelog `v7.39.0`) o los separo? Mi recomendación es **todo junto** — son cambios ortogonales y bajos de riesgo, y el mayor valor (Sentry sourcemaps) no rinde solo sin el resto de la limpieza.
