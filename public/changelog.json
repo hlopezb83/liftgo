@@ -1,5 +1,21 @@
 [
   {
+    "version": "7.61.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "Lote G (cierre): usePullToRefresh migrado a @use-gesture/react",
+    "description": "Se cierra el hallazgo 7/7 del audit. `usePullToRefresh` delega la detección del gesto en `useDrag` de @use-gesture/react (pointer events normalizados, cancelación, tap filtering). Se conserva toda la lógica de dominio (scrollTop gate, resistencia, threshold) y la API pública, por lo que `ListPageLayout` y el indicador visual no cambian. Se añadió test unitario de contrato.",
+    "category": "improvement",
+    "impact": "Menos código custom que mantener y mejor manejo de eventos táctiles en iOS. Cero cambios visibles en la UI móvil.",
+    "files": [
+      "src/hooks/usePullToRefresh.ts",
+      "src/hooks/__tests__/usePullToRefresh.test.ts",
+      "package.json",
+      "public/changelog/v7.61.0.json",
+      "public/changelog.json"
+    ]
+  },
+  {
     "version": "7.60.0",
     "date": "2026-07-12",
     "type": "minor",
