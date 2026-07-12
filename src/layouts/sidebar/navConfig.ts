@@ -1,6 +1,7 @@
+import type { ElementType } from "react";
 import { DashboardIcon, FleetIcon, CalendarDays, BookOpen, UsersIcon, MaintenanceIcon, InvoiceIcon, SettingsIcon, ClipboardCheck, DeliveryIcon, DocumentIcon, ActivityIcon, ChartIcon, WarnIcon, SecurityIcon, ScrollText, HistoryIcon, HelpIcon, InventoryIcon, TargetIcon, SupplierIcon, MessageSquare, TrophyIcon, Megaphone, FileClock, TrendingUpIcon, BankIcon, ArrowLeftRight, GitCompareArrows } from "@/components/icons";
 
-export type NavItem = { title: string; url: string; icon: React.ElementType };
+export type NavItem = { title: string; url: string; icon: ElementType };
 export type NavGroup = { label: string; items: NavItem[]; collapsible?: boolean };
 
 export const NAV_GROUPS: NavGroup[] = [

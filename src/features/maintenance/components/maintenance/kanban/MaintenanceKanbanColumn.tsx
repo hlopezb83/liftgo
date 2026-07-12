@@ -1,4 +1,4 @@
-import type { HTMLAttributes } from "react";
+import type { HTMLAttributes, ComponentType } from "react";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 import { cn } from "@/lib/utils";
 import { MaintenanceKanbanCard } from "./MaintenanceKanbanCard";
@@ -7,7 +7,7 @@ import type { MaintenanceLog } from "../../../hooks/maintenance/useMaintenanceLo
 interface Props {
   id: string;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   color: string;
   bg: string;
   border: string;

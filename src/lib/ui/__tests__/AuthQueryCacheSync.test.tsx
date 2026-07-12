@@ -1,3 +1,4 @@
+import type { ReactElement } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
@@ -31,7 +32,7 @@ function renderWith(user: { id: string } | null, queryClient: QueryClient) {
 }
 
 function rerenderWith(
-  rerender: (ui: React.ReactElement) => void,
+  rerender: (ui: ReactElement) => void,
   user: { id: string } | null,
   queryClient: QueryClient,
 ) {
