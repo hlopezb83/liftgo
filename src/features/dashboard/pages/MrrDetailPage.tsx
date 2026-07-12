@@ -16,7 +16,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 
 type MrrItem = NonNullable<ReturnType<typeof useMrrDetail>["data"]>["items"][number];
 
-const fmt = (d: string | null) => formatMtyDate(d, "dd MMM yyyy", es);
+const fmt = (d: string | null) => formatMtyDate(d, "dd MMM yyyy", APP_LOCALE);
 
 export default function MrrDetailPage() {
   const { data, isLoading } = useMrrDetail();

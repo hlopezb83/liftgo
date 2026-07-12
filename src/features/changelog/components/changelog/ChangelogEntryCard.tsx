@@ -56,7 +56,7 @@ export function ChangelogEntryCard({ entry, expanded, onToggle, highlighted }: P
                 <Badge variant="outline">{TYPE_LABELS[entry.type]}</Badge>
                 {entry.category && <Badge variant="secondary">{CATEGORY_LABELS[entry.category]}</Badge>}
                 <span className="text-xs text-muted-foreground">
-                  {formatMtyDate(entry.date, "d 'de' MMMM, yyyy", es)}
+                  {formatMtyDate(entry.date, "d 'de' MMMM, yyyy", APP_LOCALE)}
                 </span>
                 <Button
                   variant="ghost"
