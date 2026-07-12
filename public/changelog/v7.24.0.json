@@ -1,0 +1,44 @@
+{
+  "version": "7.24.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "Fase F Lote 2 — Poda de useMemo/useCallback redundantes (ronda 1)",
+  "sections": [
+    {
+      "heading": "Contexto",
+      "items": [
+        "Con `babel-plugin-react-compiler@1.0.0` activo (target: 19), la mayoría de `useMemo` / `useCallback` manuales son redundantes: el Compiler memoiza valores, callbacks y JSX cuando el componente respeta las reglas de React.",
+        "Auditados 186 sitios totales en `src/` (excluyendo `__tests__`). El auditor identificó 137 candidatos podables (74%) y 49 a preservar (deps de cascadas, cálculos costosos, hooks compartidos)."
+      ]
+    },
+    {
+      "heading": "Ronda 1 — 10 archivos, 44 podas",
+      "items": [
+        "`src/features/dashboard/hooks/dashboard/useDashboardSections.ts`: podados 8 `useMemo` de derivaciones puras (`statCards`, `pieData`, `agingBuckets`, `maintenanceAlerts`, `monthlyUtilization`, `revenuePerUnit`, `invoiceBreakdown`, `cashFlowData`). Preservados `counts` y `overdueInvoices` porque alimentan cascadas.",
+        "`src/features/reports/hooks/incomeStatement/useStatementRows.ts`: podados 5 memos + el memo completo de `useComparisonRows`. Preservado `statementRows` (dep de `csvRows`).",
+        "`src/features/crm/pages/CRMPage.tsx`: podados 6 wrappers (`activeProspects`, `quoteMap`, `creators`, `pipelineTotal`, `openCreate`, `openEdit`, `onDragEnd`). Preservado `stagesData` (dep de `pipelineTotal` y del Kanban).",
+        "`src/features/crm/hooks/useClosedProspects.ts`: podados 5 (`filterRows`, `wonRows`, `lostRows`, `handleReopen`, `confirmReopen`).",
+        "`src/features/accounts-payable/hooks/useAccountsPayableFilters.ts`: podados 5 (`filtered`, `availableMonths`, `set`, `reset`, `hasActive`).",
+        "`src/features/invoices/components/recurring/RecurringInvoicesPreviewDialog.tsx`: podados 2 (`groups`, `totalSelected`). Preservados `lines` y `eligibleIds`: sostienen el patrón 'adjust state during render' via `prevEligibleRef` — sin identidad estable habría loop de setState.",
+        "`src/features/invoices/hooks/invoices/useInvoicesFilters.ts`: podados 3 memos (`statusFiltered`, `dateRange`, `filtered`).",
+        "`src/features/accounts-payable/hooks/usePaymentSelection.ts`: podados 3 memos (`selected`, `total`, `eligible`).",
+        "`src/components/feedback/TablePagination.tsx`: podados 3 (`visiblePages`, `goPrev`, `goNext`).",
+        "`src/components/feedback/SwipeableCard.tsx`: podados 3 handlers `useCallback` (`handleTouchStart/Move/End`)."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "`bunx tsgo --noEmit` en verde.",
+        "Sin cambios de comportamiento observable — sólo eliminación de wrappers redundantes."
+      ]
+    },
+    {
+      "heading": "Cola pendiente",
+      "items": [
+        "~93 sitios adicionales en ~60 archivos (top files: `GanttChart`, `useQuoteDetailData`, `useInvoiceFormLogic`, `useInvoiceLineItemHandlers`, `useInvoiceFormHandlers`, `CalendarPage`, `useReturnInspectionDialog`, `AgingReport`, `PortalStatement`, `MaintenancePage`, `InventoryPage`, `FleetPage`, `useForkliftFormState`, y ~39 archivos con 1 memo cada uno — mayoría son `ColumnDef[]` inline en páginas de listado).",
+        "Se ejecutan en una ronda 2 cuando lo solicites."
+      ]
+    }
+  ]
+}
