@@ -1,3 +1,9 @@
+/**
+ * @vitest-environment jsdom
+ *
+ * DOMPurify requiere jsdom (happy-dom no implementa completamente los APIs
+ * de sanitización usados por dompurify v3).
+ */
 import { describe, it, expect } from "vitest";
 import { renderSafeMarkdown } from "../markdown";
 
@@ -34,5 +40,16 @@ describe("renderSafeMarkdown", () => {
     expect(html).toContain("<strong>bold</strong>");
     expect(html).toContain("<em>italic</em>");
     expect(html).toContain("<li");
+  });
+
+  it("fuerza rel=noopener y target=_blank en enlaces", () => {
+    const html = renderSafeMarkdown("[link](https://example.com)");
+    expect(html).toContain('rel="noopener noreferrer"');
+    expect(html).toContain('target="_blank"');
+  });
+
+  it("bloquea href javascript:", () => {
+    const html = renderSafeMarkdown("[x](javascript:alert(1))");
+    expect(html).not.toContain("javascript:");
   });
 });

@@ -8,7 +8,11 @@ export default defineConfig({
   plugins: [react()],
 
   test: {
-    environment: "jsdom",
+    // happy-dom es ~2-3× más rápido que jsdom y suficiente para el 99% de la
+    // suite. Los tests que necesiten jsdom (p.ej. serialización de estilos de
+    // @react-pdf/renderer) deben declarar `// @vitest-environment jsdom` en
+    // el docblock del archivo.
+    environment: "happy-dom",
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.{test,spec}.{ts,tsx}"],

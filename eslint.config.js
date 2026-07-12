@@ -3,6 +3,8 @@ import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
 import reactRefresh from "eslint-plugin-react-refresh";
 import reactCompiler from "eslint-plugin-react-compiler";
+import jsxA11y from "eslint-plugin-jsx-a11y";
+import importPlugin from "eslint-plugin-import";
 import tseslint from "typescript-eslint";
 
 
@@ -27,9 +29,27 @@ export default tseslint.config(
       "react-hooks": reactHooks,
       "react-refresh": reactRefresh,
       "react-compiler": reactCompiler,
+      "jsx-a11y": jsxA11y,
+      import: importPlugin,
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
+      ...jsxA11y.configs.recommended.rules,
+      // a11y calibrado como warn: no bloquea la build mientras migramos.
+      "jsx-a11y/no-autofocus": "warn",
+      "jsx-a11y/click-events-have-key-events": "warn",
+      "jsx-a11y/no-static-element-interactions": "warn",
+      "jsx-a11y/label-has-associated-control": "warn",
+      // Orden de imports consistente (autofix con `bun run lint --fix`).
+      "import/order": ["warn", {
+        groups: ["builtin", "external", "internal", "parent", "sibling", "index", "type"],
+        "newlines-between": "never",
+        alphabetize: { order: "asc", caseInsensitive: true },
+        pathGroups: [
+          { pattern: "@/**", group: "internal", position: "after" },
+        ],
+        pathGroupsExcludedImportTypes: ["builtin"],
+      }],
       // React Compiler ESLint checks — activado como `warn` para análisis
       // estático (detecta mutaciones de state, refs mal usadas, hooks fuera
       // de spec) SIN necesidad de correr el compilador todavía. La activación
