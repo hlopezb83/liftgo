@@ -1,0 +1,22 @@
+{
+  "version": "7.29.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "TanStack Query — Prefetch on hover cableado en listados principales",
+  "description": "Se agregó el prop `onRowPrefetch` a `ListPageLayout`/`DataTableV2`/`DataTableBodyV2`/`VirtualBody`: recibe una fábrica `(item) => queryOptions` y monta handlers `onMouseEnter`/`onFocus` con delay 120ms que precalientan la cache vía `queryClient.prefetchQuery`. Cableado en cinco pantallas de listado principales — Cotizaciones, Facturas, Reservas, Contratos y Entregas — para que al detenerse >120ms sobre una fila el detalle ya esté resuelto antes del click. Handlers extraídos a helper `buildRowHandlers` para mantener complejidad ≤12. Typecheck 0 errores, 913 tests pasando.",
+  "category": "improvement",
+  "changes": [
+    {
+      "type": "added",
+      "description": "Prop `onRowPrefetch` en `ListPageLayout`, `DataTableV2`, `DataTableBodyV2` y `VirtualBody` con delay 120ms y disarm en mouseleave/blur"
+    },
+    {
+      "type": "added",
+      "description": "Prefetch de detalle al hover en las páginas Cotizaciones, Facturas, Reservas, Contratos y Entregas usando los `*.detail()` de sus `defineEntityQueries`"
+    },
+    {
+      "type": "changed",
+      "description": "Helper `buildRowHandlers` extraído en `DataTableBodyV2` para consolidar handlers de click/keyboard/prefetch y mantener complejidad ≤12"
+    }
+  ]
+}
