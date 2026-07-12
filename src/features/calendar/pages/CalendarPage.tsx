@@ -11,7 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, parseISO, startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
 import { nowMty, formatMtyDate } from "@/lib/utils";
 import { es } from "date-fns/locale";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeftIcon, ChevronRightIcon, WarnIcon } from "@/components/icons";
 import { CalendarStatCards } from "../components/calendar/CalendarStatCards";
@@ -26,8 +26,8 @@ function rangeFns(mode: "month" | "week") {
 
 export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(nowMty());
-  const fetchFrom = useMemo(() => subMonths(currentDate, 1), [currentDate]);
-  const fetchTo = useMemo(() => addMonths(currentDate, 1), [currentDate]);
+  const fetchFrom = subMonths(currentDate, 1);
+  const fetchTo = addMonths(currentDate, 1);
   const { data: bookings, isLoading: bLoading } = useBookingsRange(fetchFrom, fetchTo);
   const { forkliftMap, forklifts, isLoading: fLoading } = useForkliftMap();
 
@@ -46,14 +46,13 @@ export default function CalendarPage() {
     ? format(currentDate, "MMMM yyyy", { locale: es })
     : `${format(rangeStart, "dd/MM")} – ${format(rangeEnd, "dd/MM/yyyy")}`;
 
-  const endingSoon = useMemo(() => {
-    if (!bookings) return [];
-    return bookings.filter((b) => {
-      const endDate = parseISO(b.end_date);
-      const daysLeft = differenceInDays(endDate, nowMty());
-      return b.status === "confirmed" && daysLeft >= 0 && daysLeft <= 3;
-    });
-  }, [bookings]);
+  const endingSoon = bookings
+    ? bookings.filter((b) => {
+        const endDate = parseISO(b.end_date);
+        const daysLeft = differenceInDays(endDate, nowMty());
+        return b.status === "confirmed" && daysLeft >= 0 && daysLeft <= 3;
+      })
+    : [];
 
 
   if (bLoading || fLoading) {

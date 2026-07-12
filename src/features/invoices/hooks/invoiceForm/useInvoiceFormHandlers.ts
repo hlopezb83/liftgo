@@ -1,4 +1,4 @@
-import { useCallback } from "react";
+
 import type { UseFormReturn } from "react-hook-form";
 import type { InvoiceFormValues, LineItemValues } from "../../lib/invoiceFormSchema";
 import { generateLineItems } from "@/lib/domain/invoiceHelpers";
@@ -76,15 +76,15 @@ function collectExtraLinesFromQuotes(
 
 
 export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes }: Props) {
-  const handleCustomerSelect = useCallback((selectedCustomerId: string) => {
+  const handleCustomerSelect = (selectedCustomerId: string) => {
     form.setValue("customerId", selectedCustomerId, { shouldDirty: true });
     const customer = customers?.find((c) => c.id === selectedCustomerId);
     if (!customer) return;
     form.setValue("customerName", customer.name, { shouldDirty: true });
     applyCfdiPatch(form, customer);
-  }, [form, customers]);
+  };
 
-  const handleBookingsChange = useCallback((selectedIds: string[]) => {
+  const handleBookingsChange = (selectedIds: string[]) => {
     const selected = selectedIds
       .map((id) => bookings?.find((b) => b.id === id))
       .filter((b): b is Booking => !!b);
@@ -100,12 +100,12 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
     const extraLines = collectExtraLinesFromQuotes(selected, quotes);
 
     form.setValue("lineItems", [...rentalLines, ...extraLines], { shouldDirty: true });
-  }, [form, bookings, customers, forklifts, quotes]);
+  };
 
   // Compat: handler antiguo single-select (delega al multi).
-  const handleBookingSelect = useCallback((id: string) => {
+  const handleBookingSelect = (id: string) => {
     handleBookingsChange(id ? [id] : []);
-  }, [handleBookingsChange]);
+  };
 
   return { handleCustomerSelect, handleBookingSelect, handleBookingsChange };
 }
