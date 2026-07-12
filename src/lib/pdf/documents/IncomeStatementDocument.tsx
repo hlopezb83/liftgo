@@ -1,5 +1,5 @@
 import { Document, Page, Text, View } from "@react-pdf/renderer";
-import { format } from "date-fns";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import type {
   StatementRow, ComparisonRow, YearTotals, MonthData,
 } from "@/features/reports/hooks/useIncomeStatementData";
@@ -26,7 +26,7 @@ export interface IncomeStatementDocumentProps {
 }
 
 function periodLabel(p: IncomeStatementDocumentProps): string {
-  if (p.selectedYear === "all") return `${format(p.startDate, "dd/MM/yyyy")} — ${format(p.endDate, "dd/MM/yyyy")}`;
+  if (p.selectedYear === "all") return `${formatDateMty(p.startDate)} — ${formatDateMty(p.endDate)}`;
   if (p.selectedYear === "compare") return `Comparativo: ${p.availableYears.join(" vs ")}`;
   return `Año ${p.selectedYear}`;
 }

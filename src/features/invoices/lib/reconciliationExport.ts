@@ -1,5 +1,5 @@
 import * as XLSX from "@e965/xlsx";
-import { format } from "date-fns";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { nowMty } from "@/lib/utils";
 import type { ReconciliationRow } from "../hooks/reconciliation/useReconciliationData";
 
@@ -17,7 +17,7 @@ const HEADERS = [
 
 function fmtDate(iso: string): string {
   const d = new Date(iso);
-  return format(d, "dd/MM/yyyy");
+  return formatDateMty(d);
 }
 
 export function downloadReconciliationXlsx(rows: ReconciliationRow[]): string {

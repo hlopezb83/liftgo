@@ -25,11 +25,11 @@ export function RecurringBillingBadge({ booking }: RecurringBillingBadgeProps) {
       <TooltipContent side="top" className="text-xs space-y-1">
         <p>
           <span className="text-muted-foreground">Últ. factura:</span>{" "}
-           {lastBilled ? format(lastBilled, "dd/MM/yyyy") : "Sin facturar aún"}
+           {lastBilled ? formatDateMty(lastBilled) : "Sin facturar aún"}
         </p>
         <p>
           <span className="text-muted-foreground">Próx. factura:</span>{" "}
-          {format(nextBilling, "dd/MM/yyyy")}
+          {formatDateMty(nextBilling)}
         </p>
       </TooltipContent>
     </Tooltip>

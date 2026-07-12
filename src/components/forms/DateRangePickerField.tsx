@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { useEffect, useState } from "react";
 import { CalendarIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -33,9 +33,9 @@ const normalizeRange = (r?: DateRange): DateRange | undefined =>
 
 function formatRangeLabel(range: DateRange | undefined, empty: string, partialSuffix: string): string {
   if (!range?.from) return empty;
-  const from = format(range.from, "dd/MM/yyyy");
+  const from = formatDateMty(range.from);
   if (!range.to) return `${from} — ${partialSuffix}`;
-  const to = format(range.to, "dd/MM/yyyy");
+  const to = formatDateMty(range.to);
   return `${from} — ${to}`;
 }
 
