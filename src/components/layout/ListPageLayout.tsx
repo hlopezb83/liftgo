@@ -62,6 +62,7 @@ export function ListPageLayout<T extends { id?: string }>({
   onEmptyAction,
   table,
   onRowClick,
+  onRowPrefetch,
   mobileCardRender,
   mobileKeyExtractor,
   customContent,
