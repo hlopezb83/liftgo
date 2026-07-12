@@ -86,20 +86,11 @@ export default defineConfig(({ mode }) => ({
       "zod",
     ],
   },
-  // LightningCSS como pipeline completo (transform + minify), no sólo minify.
-  // Con Tailwind v4 (que ya emite CSS moderno) unifica el motor y acelera
-  // la fase de CSS ~10-15% en cold build. Los `targets` alinean el output con
-  // `build.target: es2022`.
-  css: {
-    transformer: "lightningcss",
-    lightningcss: {
-      targets: {
-        chrome: 111 << 16,
-        safari: (16 << 16) | (4 << 8),
-        firefox: 128 << 16,
-      },
-    },
-  },
+  // Nota: NO usar `css.transformer: "lightningcss"` — eso salta PostCSS y
+  // rompe Tailwind v4 (`@import "tailwindcss"` / `@utility` quedan sin
+  // procesar). Mantenemos PostCSS (con `@tailwindcss/postcss`) como
+  // transformer y sólo usamos LightningCSS para minificar el output
+  // final vía `build.cssMinify`.
   // `drop: ["debugger"]` sólo en producción: elimina cualquier `debugger;` que
   // se cuele en el bundle. `console` se preserva porque Sentry captura
   // `console.error` como breadcrumbs — dropearlo reduciría visibilidad.
