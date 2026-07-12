@@ -1,5 +1,6 @@
 import { type ReactNode } from "react";
 import type { Table as TanstackTable } from "@tanstack/react-table";
+import type { FetchQueryOptions } from "@tanstack/react-query";
 import { Table } from "@/components/ui/table";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { MobileCardList } from "@/components/layout/MobileCardList";
@@ -14,6 +15,7 @@ interface Props<T> {
   isLoading?: boolean;
   emptyMessage?: string;
   onRowClick?: (item: T) => void;
+  onRowPrefetch?: (item: T) => FetchQueryOptions;
   rowClassName?: (item: T) => string | undefined;
   mobileCardRender?: (item: T) => ReactNode;
   footer?: ReactNode;
