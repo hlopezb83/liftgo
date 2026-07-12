@@ -2,32 +2,35 @@ import { renderHook, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { useCreateInvoice } from "@/features/invoices";
 import { createQueryWrapper } from "@/test/helpers/queryClient";
-import {
-  createSupabaseChainMock,
-  type ChainCall,
-  type SupabaseMockResponse,
-} from "@/test/helpers/supabaseChain";
+import type { ChainCall, SupabaseMockResponse } from "@/test/helpers/supabaseChain";
 
-let nextNumberResp: SupabaseMockResponse = { data: "BORRADOR-0042", error: null };
-let invoiceInsertResp: SupabaseMockResponse = {
-  data: { id: "inv-1", invoice_number: "BORRADOR-0042", total: 1000 },
-  error: null,
-};
-const invoicesCalls: ChainCall[] = [];
-
-vi.mock("@/integrations/supabase/client", () => ({
-  supabase: createSupabaseChainMock({
-    rpcResolvers: {
-      next_draft_invoice_number: () => nextNumberResp,
-    },
-    tableResolvers: {
-      invoices: (calls) => {
-        invoicesCalls.push(...calls);
-        return invoiceInsertResp;
-      },
-    },
-  }),
+// Estado mutable hoisted — vi.mock se eleva sobre los imports, por lo que
+// cualquier variable que use el factory debe crearse dentro de vi.hoisted().
+const state = vi.hoisted(() => ({
+  nextNumberResp: { data: "BORRADOR-0042", error: null } as SupabaseMockResponse,
+  invoiceInsertResp: {
+    data: { id: "inv-1", invoice_number: "BORRADOR-0042", total: 1000 },
+    error: null,
+  } as SupabaseMockResponse,
+  invoicesCalls: [] as ChainCall[],
 }));
+
+vi.mock("@/integrations/supabase/client", async () => {
+  const { createSupabaseChainMock } = await import("@/test/helpers/supabaseChain");
+  return {
+    supabase: createSupabaseChainMock({
+      rpcResolvers: {
+        next_draft_invoice_number: () => state.nextNumberResp,
+      },
+      tableResolvers: {
+        invoices: (calls) => {
+          state.invoicesCalls.push(...calls);
+          return state.invoiceInsertResp;
+        },
+      },
+    }),
+  };
+});
 
 const notifyErrorMock = vi.fn();
 vi.mock("@/lib/ui/appFeedback", () => ({
@@ -42,14 +45,16 @@ vi.mock("@/lib/ui/appFeedback", () => ({
 
 describe("useCreateInvoice — hook real", () => {
   beforeEach(() => {
-    nextNumberResp = { data: "BORRADOR-0042", error: null };
-    invoiceInsertResp = {
+    state.nextNumberResp = { data: "BORRADOR-0042", error: null };
+    state.invoiceInsertResp = {
       data: { id: "inv-1", invoice_number: "BORRADOR-0042", total: 1000 },
       error: null,
     };
-    invoicesCalls.length = 0;
+    state.invoicesCalls.length = 0;
     notifyErrorMock.mockClear();
   });
+
+
 
   it("genera numero via next_draft_invoice_number y luego inserta con ese numero", async () => {
     const { Wrapper, queryClient } = createQueryWrapper();
@@ -67,7 +72,7 @@ describe("useCreateInvoice — hook real", () => {
 
     expect(created).toMatchObject({ id: "inv-1", invoice_number: "BORRADOR-0042" });
 
-    const insertCall = invoicesCalls.find((c) => c.method === "insert");
+    const insertCall = state.invoicesCalls.find((c) => c.method === "insert");
     expect(insertCall).toBeDefined();
     expect(insertCall?.args[0]).toMatchObject({
       invoice_number: "BORRADOR-0042",
@@ -84,7 +89,7 @@ describe("useCreateInvoice — hook real", () => {
   });
 
   it("si next_draft_invoice_number falla, NO ejecuta el insert", async () => {
-    nextNumberResp = { data: null, error: { message: "sequence error" } };
+    state.nextNumberResp = { data: null, error: { message: "sequence error" } };
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useCreateInvoice(), { wrapper: Wrapper });
 
@@ -99,7 +104,7 @@ describe("useCreateInvoice — hook real", () => {
       } as unknown as Parameters<typeof result.current.mutateAsync>[0]),
     ).rejects.toMatchObject({ message: "sequence error" });
 
-    expect(invoicesCalls.find((c) => c.method === "insert")).toBeUndefined();
+    expect(state.invoicesCalls.find((c) => c.method === "insert")).toBeUndefined();
     await waitFor(() =>
       expect(notifyErrorMock).toHaveBeenCalledWith(
         expect.objectContaining({ title: "Error al crear factura" }),
@@ -108,7 +113,7 @@ describe("useCreateInvoice — hook real", () => {
   });
 
   it("propaga error de RLS en insert", async () => {
-    invoiceInsertResp = {
+    state.invoiceInsertResp = {
       data: null,
       error: { code: "42501", message: "permission denied for table invoices" },
     };

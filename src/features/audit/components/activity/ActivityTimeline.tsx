@@ -111,7 +111,6 @@ export function ActivityTimeline({ filters, onFilterChange, onReset, members }: 
                 <div
                   key={a.id}
                   {...interactive}
-                  // eslint-disable-next-line jsx-a11y/no-static-element-interactions
                   className={`flex items-center gap-3 px-4 py-2.5 hover:bg-muted/40 transition-colors ${idx % 2 === 0 ? "bg-background" : "bg-muted/10"} ${route ? "cursor-pointer" : ""}`}
                 >
                   <div className="w-[180px] shrink-0">

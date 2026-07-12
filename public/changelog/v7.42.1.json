@@ -1,0 +1,13 @@
+{
+  "version": "7.42.1",
+  "date": "2026-07-12",
+  "type": "patch",
+  "title": "CI verde: knip, ESLint y vitest (hoist de mocks)",
+  "description": "Reparados los tres frenos del último run de CI: knip (exports huérfanos en `dateFormats.ts`), ESLint (un `eslint-disable` inútil en `ActivityTimeline.tsx`) y dos suites de vitest (`invoiceFlow`, `paymentFlow`) que fallaban por variables de nivel de módulo referenciadas dentro del factory de `vi.mock` — se migran a `vi.hoisted()` con factory `async` + `await import()`.",
+  "category": "improvement",
+  "changes": [
+    { "type": "fixed", "description": "Knip: eliminados `formatDateLongMty` y `formatDayMonthShortMty` sin consumidores" },
+    { "type": "fixed", "description": "ESLint: eliminado directive `jsx-a11y/no-static-element-interactions` obsoleto en `ActivityTimeline`" },
+    { "type": "fixed", "description": "Vitest: mocks de `invoiceFlow.test.ts` y `paymentFlow.test.ts` usan `vi.hoisted()` + `await import()` (patrón Vitest 4)" }
+  ]
+}
