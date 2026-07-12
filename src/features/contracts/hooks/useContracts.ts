@@ -4,6 +4,7 @@ import type { TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import type { ContractViewModel } from "@/types/rental";
+import { contractKeys } from "../lib/queryKeys";
 
 type Contract = ContractViewModel;
 
@@ -43,8 +44,6 @@ export const contractQueries = defineEntityQueries(
     detail: (id: string) => () => fetchDetail(id),
   },
 );
-
-export const contractKeys = contractQueries.keys;
 
 export function useContracts() {
   return useQuery(contractQueries.list());
