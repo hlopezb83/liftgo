@@ -59,7 +59,7 @@ export function useBookingActions(booking: BookingWithForklift) {
   const handleExtend = (newEndDate: Date | undefined, onDone: () => void) => {
     if (!newEndDate) return;
     updateBooking.mutate(
-      { id: booking.id, end_date: format(newEndDate, "yyyy-MM-dd") },
+      { id: booking.id, end_date: toYMD(newEndDate) },
       { onSuccess: () => { notifySuccess("Reserva extendida"); onDone(); } }
     );
   };
