@@ -13,7 +13,6 @@ import { GlobalSearch } from "@/layouts/GlobalSearch";
 import { useMainScrollRestoration } from "@/layouts/hooks/useMainScrollRestoration";
 import { TopbarBreadcrumbs } from "@/layouts/TopbarBreadcrumbs";
 import { NAV_SHORTCUTS } from "@/lib/shortcuts/registry";
-import { useKeySequence } from "@/lib/shortcuts/useKeySequence";
 
 function focusSearchInput() {
   const candidates = document.querySelectorAll<HTMLInputElement>(
@@ -45,15 +44,21 @@ function HotkeysHost() {
   useHotkeys("r", () => actions.onRefresh?.());
 
   // Secuencias tipo Gmail (g + tecla) — navegación rápida.
-  const navSequence = useMemo(
-    () =>
-      NAV_SHORTCUTS.reduce<Record<string, () => void>>((acc, n) => {
-        acc[n.key] = () => navigate(n.url);
-        return acc;
-      }, {}),
-    [navigate],
+  // `react-hotkeys-hook` v5 soporta secuencias con `sequenceSplitKey` (por defecto ">").
+  const navByKey = useMemo(
+    () => new Map(NAV_SHORTCUTS.map((n) => [n.key, n.url] as const)),
+    [],
   );
-  useKeySequence("g", navSequence);
+  useHotkeys(
+    NAV_SHORTCUTS.map((n) => `g>${n.key}`),
+    (_e, handler) => {
+      const second = handler.keys?.[handler.keys.length - 1];
+      const url = second ? navByKey.get(second) : undefined;
+      if (url) navigate(url);
+    },
+    { preventDefault: true },
+    [navByKey, navigate],
+  );
 
   return <KeyboardShortcutsDialog open={helpOpen} onOpenChange={setHelpOpen} />;
 }
