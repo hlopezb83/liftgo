@@ -1,4 +1,5 @@
-import { Droppable } from "@hello-pangea/dnd";
+import { useDroppable } from "@dnd-kit/core";
+import { SortableContext, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { AddIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -33,6 +34,13 @@ export function KanbanColumn({
 }: KanbanColumnProps) {
   const pct = pipelineTotal > 0 ? Math.min(100, (total / pipelineTotal) * 100) : 0;
 
+  const { setNodeRef, isOver } = useDroppable({
+    id: stageKey,
+    data: { type: "column", stage: stageKey },
+  });
+
+  const itemIds = items.map((p) => p.id);
+
   return (
     <div className="w-[clamp(220px,18vw,280px)] shrink-0 flex flex-col rounded-xl bg-muted/40 border">
       <div className="px-3 py-2.5 border-b">
@@ -54,29 +62,24 @@ export function KanbanColumn({
         </div>
       </div>
 
-      <Droppable droppableId={stageKey}>
-        {(provided, snapshot) => (
-          <ScrollArea className="flex-1">
-            <div
-              ref={provided.innerRef}
-              {...provided.droppableProps}
-              className={`p-2 min-h-[200px] transition-colors ${snapshot.isDraggingOver ? "bg-accent/30" : ""}`}
-            >
-              {items.map((prospect, index) => (
-                <ProspectCard
-                  key={prospect.id}
-                  prospect={prospect}
-                  index={index}
-                  density={density}
-                  quoteNumber={prospect.quoteId ? quoteMap.get(prospect.quoteId) : undefined}
-                  onClick={() => onCardClick(prospect)}
-                />
-              ))}
-              {provided.placeholder}
-            </div>
-          </ScrollArea>
-        )}
-      </Droppable>
+      <ScrollArea className="flex-1">
+        <div
+          ref={setNodeRef}
+          className={`p-2 min-h-[200px] transition-colors ${isOver ? "bg-accent/30" : ""}`}
+        >
+          <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
+            {items.map((prospect) => (
+              <ProspectCard
+                key={prospect.id}
+                prospect={prospect}
+                density={density}
+                quoteNumber={prospect.quoteId ? quoteMap.get(prospect.quoteId) : undefined}
+                onClick={() => onCardClick(prospect)}
+              />
+            ))}
+          </SortableContext>
+        </div>
+      </ScrollArea>
 
       <div className="p-2 border-t">
         <Button variant="ghost" size="sm" className="w-full text-muted-foreground" onClick={onAdd}>

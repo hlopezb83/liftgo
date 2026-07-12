@@ -1,5 +1,24 @@
 [
   {
+    "version": "7.58.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "Migración de Kanbans (CRM + Mantenimiento) a @dnd-kit",
+    "description": "Reemplazo de @hello-pangea/dnd por @dnd-kit/core + @dnd-kit/sortable + @dnd-kit/utilities en los 2 Kanbans. CRMKanbanGrid y MaintenanceKanban montan `DndContext` con `PointerSensor` (activationConstraint distance:4 para no interferir con click→abrir detalle) y `KeyboardSensor` (navegación por teclado nativa). Cada columna es `useDroppable` y sus items viven en `SortableContext` (verticalListSortingStrategy). Las cards usan `useSortable` con `CSS.Translate` para el transform. `DragOverlay` reemplaza el hack de `rotate-1 shadow-lg` sobre el nodo original, dejando el original semitransparente durante el drag. La lógica de negocio (guardas de rol para `cerrado_ganado`, optimistic update en mantenimiento, apertura de diálogo al cambiar stage) se preserva 1:1. Paquete @hello-pangea/dnd desinstalado.",
+    "category": "improvement",
+    "impact": "Kanbans con accesibilidad por teclado nativa (Space/arrows/Esc), animaciones de drop suaves, y una lib más pequeña y activamente mantenida. Sin cambios de UX visibles.",
+    "files": [
+      "src/features/crm/pages/CRMPage.tsx",
+      "src/features/crm/components/CRMKanbanGrid.tsx",
+      "src/features/crm/components/KanbanColumn.tsx",
+      "src/features/crm/components/ProspectCard.tsx",
+      "src/features/maintenance/components/maintenance/MaintenanceKanban.tsx",
+      "src/features/maintenance/components/maintenance/kanban/MaintenanceKanbanColumn.tsx",
+      "src/features/maintenance/hooks/maintenance/useMaintenanceKanban.ts",
+      "package.json"
+    ]
+  },
+  {
     "version": "7.57.0",
     "date": "2026-07-12",
     "type": "minor",

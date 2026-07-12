@@ -1,4 +1,4 @@
-import { type DropResult } from "@hello-pangea/dnd";
+import type { DragEndEvent } from "@dnd-kit/core";
 import { useState } from "react";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -70,15 +70,29 @@ export default function CRMPage() {
     dialogs.setDialogOpen(true);
   };
 
-  const onDragEnd = (result: DropResult) => {
-    if (!result.destination) return;
-    const { draggableId, source, destination } = result;
-    const newStage = destination.droppableId;
+  const onDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    const draggableId = String(active.id);
+    const sourceStage = (active.data.current?.stage as string | undefined) ?? null;
+
+    // El "over" puede ser una columna (droppable) o una card (sortable). Resolvemos el stage destino.
+    const overType = over.data.current?.type as "column" | "card" | undefined;
+    const newStage =
+      overType === "column"
+        ? String(over.id)
+        : (over.data.current?.stage as string | undefined) ?? String(over.id);
+
+    if (!newStage || !sourceStage) return;
     if (newStage === "cerrado_ganado" && !assertCanClose("move")) return;
-    if (source.droppableId === newStage) {
-      updateProspect.mutate({ id: draggableId, stage_order: destination.index });
+
+    if (sourceStage === newStage) {
+      const newIndex = (over.data.current?.sortable?.index as number | undefined) ?? 0;
+      updateProspect.mutate({ id: draggableId, stage_order: newIndex });
       return;
     }
+
     const prospect = prospects.find((p) => p.id === draggableId);
     if (prospect) {
       dialogs.setEditingProspect(prospect);

@@ -1,6 +1,19 @@
-import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  KeyboardSensor,
+  closestCorners,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { useState } from "react";
 import { ACTIVE_STAGES } from "../lib/constants";
 import { KanbanColumn } from "./KanbanColumn";
+import { ProspectCardOverlay } from "./ProspectCard";
 import type { Prospect } from "../hooks/useProspects";
 
 interface StageData {
@@ -17,7 +30,7 @@ interface Props {
   pipelineTotal: number;
   density: "comfortable" | "compact";
   quoteMap: Map<string, string>;
-  onDragEnd: (result: DropResult) => void;
+  onDragEnd: (event: DragEndEvent) => void;
   onAdd: (stageKey: string) => void;
   onCardClick: (p: Prospect) => void;
 }
@@ -25,6 +38,17 @@ interface Props {
 export function CRMKanbanGrid({
   isLoading, stagesData, pipelineTotal, density, quoteMap, onDragEnd, onAdd, onCardClick,
 }: Props) {
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  const activeProspect = activeId
+    ? stagesData.flatMap((s) => s.items).find((p) => p.id === activeId)
+    : null;
+
   if (isLoading) {
     return (
       <div className="flex gap-4">
@@ -34,8 +58,24 @@ export function CRMKanbanGrid({
       </div>
     );
   }
+
+  const handleDragStart = (event: DragStartEvent) => {
+    setActiveId(String(event.active.id));
+  };
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveId(null);
+    onDragEnd(event);
+  };
+
   return (
-    <DragDropContext onDragEnd={onDragEnd}>
+    <DndContext
+      sensors={sensors}
+      collisionDetection={closestCorners}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+      onDragCancel={() => setActiveId(null)}
+    >
       <div className="flex gap-3 h-full min-w-max">
         {stagesData.map((stage) => (
           <KanbanColumn
@@ -53,6 +93,15 @@ export function CRMKanbanGrid({
           />
         ))}
       </div>
-    </DragDropContext>
+      <DragOverlay dropAnimation={null}>
+        {activeProspect ? (
+          <ProspectCardOverlay
+            prospect={activeProspect}
+            density={density}
+            quoteNumber={activeProspect.quoteId ? quoteMap.get(activeProspect.quoteId) : undefined}
+          />
+        ) : null}
+      </DragOverlay>
+    </DndContext>
   );
 }

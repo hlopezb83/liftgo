@@ -1,11 +1,11 @@
 import { useQueryClient } from "@tanstack/react-query";
+import type { DragEndEvent } from "@dnd-kit/core";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { maintenanceLogKeys } from "../../lib/queryKeys";
 import {
   useUpdateMaintenanceLog,
   type MaintenanceLog,
 } from "./useMaintenanceLogs";
-import type { DropResult } from "@hello-pangea/dnd";
 
 /**
  * Encapsula el optimistic update del kanban de mantenimiento al arrastrar
@@ -16,10 +16,20 @@ export function useMaintenanceKanban() {
   const updateLog = useUpdateMaintenanceLog();
   const queryClient = useQueryClient();
 
-  const onDragEnd = (result: DropResult) => {
-    if (!result.destination || result.source.droppableId === result.destination.droppableId) return;
-    const logId = result.draggableId;
-    const newStatus = result.destination.droppableId;
+  const onDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over) return;
+
+    const logId = String(active.id);
+    const sourceStatus = (active.data.current?.status as string | undefined) ?? null;
+
+    const overType = over.data.current?.type as "column" | "card" | undefined;
+    const newStatus =
+      overType === "column"
+        ? String(over.id)
+        : (over.data.current?.status as string | undefined) ?? String(over.id);
+
+    if (!newStatus || !sourceStatus || sourceStatus === newStatus) return;
 
     queryClient.setQueryData<MaintenanceLog[]>(
       maintenanceLogKeys.byFilter({ forkliftId: null }),
