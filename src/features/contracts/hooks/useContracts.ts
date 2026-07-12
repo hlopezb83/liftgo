@@ -2,37 +2,33 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesUpdate } from "@/integrations/supabase/types";
 import type { ContractViewModel } from "@/types/rental";
-import { createEntityKeys } from "@/lib/query/createEntityKeys";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 
 type Contract = ContractViewModel;
+type ContractListRow = Contract;
+type ContractRow = Contract;
 
-export const contractKeys = createEntityKeys("contracts");
+async function mapListRow(rows: unknown[]): Promise<ContractListRow[]> {
+  return (rows as Array<Record<string, unknown> & { customers?: { name?: string } | null; forklifts?: { name?: string } | null }>).map((c) => ({
+    ...(c as unknown as ContractListRow),
+    customer_name: c.customers?.name ?? null,
+    forklift_name: c.forklifts?.name ?? null,
+  }));
+}
 
-export function useContracts() {
-  return useQuery({
-    queryKey: contractKeys.lists(),
-    staleTime: 60_000,
-    queryFn: async () => {
+export const contractQueries = defineEntityQueries<"contracts", ContractListRow[], ContractRow>(
+  "contracts",
+  {
+    list: () => async () => {
       const { data, error } = await supabase
         .from("contracts")
         .select("*, customers(name), forklifts(name)")
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data.map((c) => ({
-        ...c,
-        customer_name: c.customers?.name || null,
-        forklift_name: c.forklifts?.name || null,
-      }));
+      return mapListRow(data ?? []);
     },
-  });
-}
-
-export function useContract(id: string | undefined) {
-  return useQuery({
-    queryKey: id ? contractKeys.detail(id) : contractKeys.details(),
-    enabled: !!id,
-    queryFn: async () => {
+    detail: (id: string) => async () => {
       if (!id) throw new Error("Contract ID is required");
       const { data, error } = await supabase
         .from("contracts")
@@ -40,8 +36,25 @@ export function useContract(id: string | undefined) {
         .eq("id", id)
         .single();
       if (error) throw error;
-      return { ...data, customer_name: data.customers?.name || null, forklift_name: data.forklifts?.name || null };
+      return {
+        ...(data as unknown as ContractRow),
+        customer_name: data.customers?.name ?? null,
+        forklift_name: data.forklifts?.name ?? null,
+      };
     },
+  },
+);
+
+export const contractKeys = contractQueries.keys;
+
+export function useContracts() {
+  return useQuery(contractQueries.list());
+}
+
+export function useContract(id: string | undefined) {
+  return useQuery({
+    ...contractQueries.detail(id ?? ""),
+    enabled: !!id,
   });
 }
 
