@@ -118,7 +118,7 @@ export function useSupplierBillForm(
   });
   useEffect(() => {
     applySuggestedDueDate();
-  }, [supplierId, issueDate, applySuggestedDueDate]);
+  }, [supplierId, issueDate]);
 
 
   const subtotal = Number(form.watch("subtotal") || 0);
