@@ -56,7 +56,11 @@ function readAuditLogFilters(filter: Readonly<Record<string, unknown>> | undefin
   return filters;
 }
 
-export const auditLogsQueries = defineEntityQueries<"audit-logs", AuditLog[]>(
+function normalizeJson(value: unknown): Record<string, unknown> | null {
+  return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : null;
+}
+
+export const auditLogsQueries = defineEntityQueries<"audit-logs", AuditLog[], never, AuditLogFilters>(
   "audit-logs",
   {
     list: (filter) => async () => {
@@ -78,7 +82,11 @@ export const auditLogsQueries = defineEntityQueries<"audit-logs", AuditLog[]>(
       const { data, error } = await query;
       if (error) throw error;
 
-      const logs: AuditLog[] = data ?? [];
+      const logs: AuditLog[] = (data ?? []).map((row) => ({
+        ...row,
+        old_data: normalizeJson(row.old_data),
+        new_data: normalizeJson(row.new_data),
+      }));
       const userIds = [...new Set(logs.map((l) => l.user_id).filter((id): id is string => id !== null))];
 
       if (userIds.length > 0) {
