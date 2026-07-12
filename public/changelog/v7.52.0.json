@@ -1,0 +1,48 @@
+{
+  "version": "7.52.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "Vite 8: pipeline LightningCSS unificado, sin polyfill de modulepreload y limpieza post RR-v8",
+  "summary": "Auditoría de la implementación de Vite. Ajustes de pulido: pines semánticos, limpieza de referencias a react-router-dom, warmup actualizado, LightningCSS como pipeline completo, modulePreload sin polyfill, drop de debugger en prod y chunkSizeWarningLimit realista.",
+  "sections": [
+    {
+      "heading": "Auditoría",
+      "items": [
+        "vite@8.1.4 (última estable), @vitejs/plugin-react@6.0.3 (última), vitest@4.1.10 (última). Sin métodos deprecated ni versiones atrasadas.",
+        "Config ya bien tuneada en pases anteriores: warmup, manualChunks por grupos, cssMinify LightningCSS, sourcemaps Sentry condicionales, visualizer bajo ANALYZE, dedupe react/react-dom, target es2022.",
+        "Uso en código: import.meta.env en 4 puntos (DEV + VITE_SUPABASE_*), sin import.meta.glob/hot (no aplica).",
+        "package.json declaraba `\"vite\": 8` y `\"@vitejs/plugin-react\": 6` (major-only) — descuido menor de higiene."
+      ]
+    },
+    {
+      "heading": "Ajustes aplicados",
+      "items": [
+        "Pin semántico: `^8.1.4` y `^6.0.3` en package.json para reproducibilidad y updates explícitos.",
+        "Limpieza post react-router v8: eliminado `react-router-dom` de optimizeDeps.include y del `vendor.match` en CHUNK_GROUPS (la dep ya no existe).",
+        "warmup.clientFiles: reemplazado el antiguo `src/App.tsx` por `src/routes/router.tsx`, que es el punto de arranque real tras la migración al Data Router.",
+        "css.transformer: 'lightningcss' con `targets` chrome 111 / safari 16.4 / firefox 128 — pipeline unificado (transform + minify) con Tailwind v4, ~10-15% más rápido en cold build.",
+        "build.modulePreload: { polyfill: false } — target es2022 implica soporte nativo de `<link rel=modulepreload>`; ahorra ~1.5 KB inline en el HTML de entrada.",
+        "esbuild.drop: ['debugger'] sólo en producción (mode === 'production'). `console` NO se dropea: Sentry captura console.error como breadcrumbs y perderíamos visibilidad de errores en prod.",
+        "build.chunkSizeWarningLimit: 800 — react-pdf (~1.5 MB) y recharts (~500 KB) tienen su chunk vendor dedicado; el warning default (500 KB) era ruido en cada build."
+      ]
+    },
+    {
+      "heading": "Fuera de alcance (decidido)",
+      "items": [
+        "rolldown-vite (Rolldown como bundler de producción): opt-in experimental con incompatibilidades conocidas con rollup-plugin-visualizer y matices con @sentry/vite-plugin. Se mantiene Vite 8 sobre Rollup estable.",
+        "experimental.hmrPartialAccept: warmup + manualChunks ya dan HMR suficientemente rápido; el beneficio no compensa el estado experimental.",
+        "Environment API / SSR / ssr.noExternal: no aplica al SPA client-side.",
+        "assetsInlineLimit (4 KB default): correcto para logos y sprites del ERP.",
+        "Actualizaciones mayores: Vite 9 aún no existe, sin migración pendiente."
+      ]
+    },
+    {
+      "heading": "Validación",
+      "items": [
+        "tsgo --noEmit: sin errores.",
+        "bun run build: exitoso; assets estables (vendor 307 KB, radix 175 KB, react-pdf 1.43 MB en chunk propio).",
+        "bunx vitest run: 997/997 tests pasan (142 archivos)."
+      ]
+    }
+  ]
+}

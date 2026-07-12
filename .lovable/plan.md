@@ -1,119 +1,107 @@
 
-# Auditoría e implementación de @react-pdf/renderer
+# Auditoría e implementación de Vite
 
 ## Auditoría de uso actual
 
-`@react-pdf/renderer@^4.5.1` (versión estable más reciente de la línea v4; v5 aún no publicada).
+- `vite@8.1.4` (última estable), `@vitejs/plugin-react@6.0.3` (última), `vitest@4.1.10` (última). Sin métodos deprecated ni versiones atrasadas.
+- Única superficie configurable: `vite.config.ts` (138 líneas), muy bien tuneado en pases anteriores:
+  - `server.warmup` con 4 rutas críticas.
+  - `plugins`: React (Oxc) + Babel(React Compiler target 19) + `componentTagger` en dev + `visualizer` bajo `ANALYZE=1` + `sentryVitePlugin` sólo cuando hay token.
+  - `resolve.dedupe` para React.
+  - `optimizeDeps.include` de deps de primer render.
+  - `build`: target `es2022`, `sourcemap: true`, `cssMinify: "lightningcss"`, `reportCompressedSize: false`, `manualChunks` por grupos (recharts, radix, react-pdf, jspdf, xlsx, date-fns, icons, vendor).
+- Uso en el código:
+  - `import.meta.env` en 4 puntos (DEV flag + `VITE_SUPABASE_*`). Correcto.
+  - `import.meta.glob` / `import.meta.hot`: no se usan (no aplica; plugin-react gestiona HMR).
+  - `src/vite-env.d.ts` con `/// <reference types="vite/client" />`. Correcto.
+- `package.json`: `"vite": 8` y `"@vitejs/plugin-react": 6` son major-only (sin caret ni minor), un descuido menor de higiene.
 
-**28 archivos** en `src/lib/pdf/**` y `src/features/**` consumen la librería. Distribución:
+**Conclusión**: la implementación ya está al día. Los ajustes son pulido fino, no rescate. Todos son low-risk y respetan el runtime del ERP.
 
-- **Documents** (5): `InvoiceDocument`, `QuoteDocument`, `ContractDocument`, `CustomerStatementDocument`, `IncomeStatementDocument` + subcomponentes de contrato.
-- **Componentes reutilizables** (8): `Header`, `Footer`, `AccentBar`, `InfoCards`, `LineItemsTable`, `TotalsBox`, styles/tokens.
-- **Builders** (5 `build.tsx`): `quote/build`, `contract/build`, `incomeStatement`, `customerStatement`, `features/invoices/lib/pdf/build`. Cada uno replica el mismo patrón `Promise.all([import("@react-pdf/renderer"), import("file-saver"), import("...Document")])` + `pdf(<Doc/>).toBlob()` + `saveAs()`.
-- **Hooks/Botones de descarga** (5): `useQuotePdfDownload`, `useInvoicePdfDownload`, `ContractPDFButton`, `PortalStatement`, `IncomeStatementReport`. Todos hacen `import()` dinámico del `build.tsx` correspondiente.
-- **Test**: `documents.smoke.test.tsx` mockea la librería a tags React planos.
+## Ajustes propuestos (sin cambios de comportamiento observable)
 
-**API en uso**: `Document`, `Page`, `Text`, `View`, `Image`, `StyleSheet.create`, `pdf().toBlob()`, props nativas `fixed` y `wrap={false}`. Nada deprecated. Nada de `PDFDownloadLink`, `PDFViewer`, `BlobProvider`, `usePDF`, `renderToStream`/`Buffer` (todo ok para SPA client-side lazy).
+### 1. Pin semántico de versiones
 
-**Estado de imports**: 100% named imports por punto de entrada ESM raíz, ya tree-shakeables. `vite.config.ts` ya declara un `manualChunks` con grupo `react-pdf` (`{ name: "react-pdf", match: ["@react-pdf"] }`), así que la librería se carga una sola vez para las 5 descargas.
+Cambiar en `package.json`:
 
-**Modernidad**: buena. Los patrones actuales son los recomendados por la doc oficial de v4. Los focos de mejora no están en la librería en sí sino alrededor:
-
-## Modernización propuesta
-
-Cuatro cambios reales, todos low-risk:
-
-### 1. Helper unificado `renderAndSave` — elimina duplicación de los 5 builders
-
-Los 5 `build.tsx` repiten:
-
-```tsx
-const [{ pdf }, { saveAs }, { XDocument }] = await Promise.all([
-  import("@react-pdf/renderer"),
-  import("file-saver"),
-  import("@/lib/pdf/documents/XDocument"),
-]);
-const blob = await pdf(<XDocument {...props} />).toBlob();
-saveAs(blob, filename);
+```diff
+-    "vite": 8,
++    "vite": "^8.1.4",
+-    "@vitejs/plugin-react": 6,
++    "@vitejs/plugin-react": "^6.0.3",
 ```
 
-Nuevo `src/lib/pdf/renderAndSave.tsx`:
+Reproducibilidad y updates explícitos vía Renovate/Dependabot.
 
-```tsx
-import type { DocumentProps } from "@react-pdf/renderer";
-import type { ReactElement } from "react";
+### 2. Limpieza post-migración a react-router v8
 
-export async function renderAndSave(
-  doc: ReactElement<DocumentProps>,
-  filename: string,
-): Promise<void> {
-  const { pdf } = await import("@react-pdf/renderer");
-  const blob = await pdf(doc).toBlob();
-  saveBlob(blob, filename);
-}
-```
+Ya no queda ni un `import` de `react-router-dom` en `src/**` y la dependencia se removió del `package.json`. Sin embargo `vite.config.ts` sigue mencionándolo:
 
-Cada builder queda en 2 líneas efectivas. **Ahorro estimado: -30 LOC** repartidos en 5 archivos.
+- `optimizeDeps.include`: eliminar `"react-router-dom"`.
+- `CHUNK_GROUPS.vendor.match`: eliminar `"/react-router-dom/"`.
 
-### 2. Eliminar `file-saver` (menos 1 dependencia)
+Efecto: menos ruido de config; el pre-bundling de deps deja de intentar resolver un paquete inexistente (advertencia silenciosa que hoy se ignora).
 
-`file-saver@2.0.5` es un shim histórico para IE10/Edge Legacy; en 2026 todos los navegadores soportan `<a download>` + `URL.createObjectURL`. Se sustituye por 8 líneas inline en `renderAndSave.tsx`:
+### 3. `warmup.clientFiles` actualizado
+
+Tras la migración al Data Router, `src/App.tsx` quedó reducido a ~10 líneas y ya no es "caliente". Reemplazarlo por `src/routes/router.tsx`, que es el nuevo punto de arranque real donde vive `createBrowserRouter`.
+
+### 4. `css.transformer: "lightningcss"` — pipeline unificado
+
+Hoy sólo se minifica con LightningCSS (`cssMinify: "lightningcss"`). Vite 8 permite usar LightningCSS también como transformer completo:
 
 ```ts
-function saveBlob(blob: Blob, filename: string) {
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = filename;
-  a.rel = "noopener";
-  a.click();
-  URL.revokeObjectURL(url);
-}
+css: {
+  transformer: "lightningcss",
+  lightningcss: { targets: { chrome: 111, safari: 16 << 16 | 4, firefox: 128 } },
+},
 ```
 
-**Impacto bundle**: -1 dep (`file-saver`) + -1 dep de tipos (`@types/file-saver`), ~4 KB gzip menos, un import dinámico menos por descarga (más rápido).
+Con Tailwind v4 (que ya emite CSS moderno) esto acelera la fase de CSS ~10-15% en cold build y unifica el pipeline (mismo motor para parse, transform y minify).
 
-### 3. Desactivar autohyphenation para textos en español
+### 5. `build.modulePreload: { polyfill: false }`
 
-`@react-pdf/renderer` corta palabras con guiones automáticamente. En español eso produce cortes raros ("compra-venta" partido a medias, "manteni-miento", etc.), especialmente en contratos y estados de cuenta con párrafos largos.
+Target `es2022` implica navegadores que soportan `<link rel="modulepreload">` nativo (Safari 16.4+, Chrome 111+, Firefox 128+). Deshabilitar el polyfill ahorra ~1.5 KB inline en el HTML de entrada y simplifica el head.
 
-La librería expone `Font.registerHyphenationCallback((word) => [word])` para desactivarlo. Se llama una única vez desde `renderAndSave.tsx` (o desde un módulo `bootstrap.ts` cargado por el helper):
+### 6. `esbuild.drop` para producción
+
+Añadir:
 
 ```ts
-import { Font } from "@react-pdf/renderer";
-let bootstrapped = false;
-function bootstrap() {
-  if (bootstrapped) return;
-  Font.registerHyphenationCallback((word) => [word]);
-  bootstrapped = true;
-}
+esbuild: {
+  drop: mode === "production" ? ["debugger"] : [],
+},
 ```
 
-Es una API nativa poco conocida, pensada exactamente para este caso.
+Elimina cualquier `debugger;` que se cuele en prod. Se deja `console` fuera del drop porque Sentry captura `console.error` como breadcrumbs — dropear consola reduciría visibilidad de errores en producción.
 
-### 4. Metadata consistente en `<Document>`
+### 7. `build.chunkSizeWarningLimit: 800`
 
-Aprovechar el helper para dejar constancia de origen: cuando la doc no traiga `producer`/`creator`, se puede aplicar al blob a través del propio JSX del document (los 5 documents pasarán `producer="LiftGo"` y `creator="LiftGo"`), o mejor: dejar cada `<Document title=…>` como está (ya lo tienen) y añadir los dos campos que faltan en un solo lugar. Cambio cosmético, opcional; se incluye por completitud de auditoría.
+Con `react-pdf` (~1.5 MB pre-gzip) y `recharts` (~500 KB) en chunks vendor dedicados, el warning default (500 KB) es ruido en cada build. Subirlo a 800 mantiene la utilidad como detector de regresiones sin falsos positivos.
+
+### 8. Eliminar cast innecesario en `plugins`
+
+`defineConfig` infiere el tipo del array después de `.filter(Boolean)`. En Vite 8 `PluginOption` acepta `false | null | undefined`, así que `as import("vite").PluginOption[]` es redundante. Se elimina el cast y se importa el tipo si se necesita en algún punto (no debería).
 
 ## Fuera de alcance (decidido)
 
-- **`usePDF` / `PDFDownloadLink` / `PDFViewer` / `BlobProvider`**: cargarían la librería (~1.46 MB) en el bundle inicial. La estrategia actual `import()` dinámico + `pdf().toBlob()` es óptima para descargas one-shot.
-- **`renderToStream` / `renderToBuffer` / `renderToFile`**: sólo Node. No aplica al SPA.
-- **`Font.register` con TTF custom**: aumenta el bundle del chunk `react-pdf`. Helvetica base cubre bien es-MX en todas las pruebas del proyecto.
-- **`<Svg>` / `<Canvas>` / `<Link>` / `<Note>` / `<PageNumber>`**: no requeridos por los 5 documents actuales.
-- **Migración a v5**: no publicada aún; sin acción.
+- **`rolldown-vite`** (Rolldown como bundler de producción): opt-in experimental; incompatibilidades conocidas con `rollup-plugin-visualizer` y matices con `@sentry/vite-plugin`. Se mantiene Vite 8 sobre Rollup estable.
+- **`experimental.hmrPartialAccept`**: útil para bundles con miles de módulos por chunk; `warmup` + `manualChunks` ya dan HMR suficientemente rápido.
+- **Environment API / SSR / `ssr.noExternal`**: no aplica (SPA client-side).
+- **`assetsInlineLimit`**: valor default (4 KB) sigue siendo correcto para logos y sprites.
+- **Vitest**: `vitest@4.1.10` ya está en la última y su config vive en `vite.config.ts` implícitamente. Sin cambios.
+- **Actualizaciones mayores**: Vite 9 no existe; no hay migración pendiente.
 
 ## Entregables
 
-1. Nuevo `src/lib/pdf/renderAndSave.tsx` (helper + hyphenation bootstrap + saveBlob).
-2. Refactor de los 5 `build.tsx` para consumir `renderAndSave`.
-3. Remover `file-saver` y `@types/file-saver` de `package.json` (via `bun remove`).
+1. `vite.config.ts` refactorizado con los 6 ajustes técnicos (2–8, sin el pin).
+2. `package.json` con pines semánticos (`^8.1.4`, `^6.0.3`).
+3. Entrada de changelog **v7.52.0** (minor: pulido de config + limpieza post RR-v8).
 4. Verificación:
-   - `tsgo --noEmit`, `bun lint`, `bun test` (incluye `documents.smoke.test.tsx`, que ya mockea `Font.registerHyphenationCallback`).
-   - `bun run build` con `ANALYZE=1` para confirmar que el chunk `react-pdf` sigue siendo lazy y que `file-saver` desaparece del grafo.
-   - Playwright: descargar una cotización, una factura y un contrato desde el preview y verificar visualmente el PDF resultante (una sola pasada, tres artefactos).
-5. Entrada de changelog **v7.51.0** (minor: reducción de superficie + calidad tipográfica).
+   - `tsgo --noEmit`, `bun lint`, `bun test` (suite completa).
+   - `bun run build` y comparación de tamaños vs baseline (cambios esperados: -~1.5 KB polyfill en entry HTML, misma o menor CSS gzipped).
+   - `ANALYZE=1 bun run build` para confirmar que la agrupación de chunks se mantiene idéntica.
 
 ## Estimación
 
-~5 archivos tocados + 1 nuevo. -1 dependencia, -30 LOC netos, mejor tipografía en español. Sin cambios visibles fuera del hyphenation en párrafos largos.
+2 archivos tocados (`vite.config.ts`, `package.json`) + changelog. Cero cambios de código de aplicación. Sin cambios visibles en runtime salvo builds ~10-15% más rápidos en la fase CSS y HTML de entrada ligeramente menor.
