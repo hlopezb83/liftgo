@@ -1,3 +1,4 @@
+import type { MouseEvent as ReactMouseEvent } from "react";
 import { Link as LinkIcon, InfoAlertIcon, ChevronDownIcon, ChevronRightIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ interface Props {
 export function ChangelogEntryCard({ entry, expanded, onToggle, highlighted }: Props) {
   const { data: detail, isLoading: detailLoading, error: detailError } = useChangelogEntry(entry.version, expanded);
 
-  const copyLink = (e: React.MouseEvent) => {
+  const copyLink = (e: ReactMouseEvent) => {
     e.stopPropagation();
     const url = `${window.location.origin}/changelog#v${entry.version}`;
     navigator.clipboard.writeText(url).then(

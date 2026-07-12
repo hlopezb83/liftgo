@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import type { ReactNode, MouseEvent as ReactMouseEvent } from "react";
 import { SpinnerIcon } from "@/components/icons";
 import {
   AlertDialog,
@@ -43,7 +43,7 @@ export function ConfirmDialog({
   hideConfirm = false,
   onConfirm,
 }: ConfirmDialogProps) {
-  const handleConfirm = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleConfirm = (event: ReactMouseEvent<HTMLButtonElement>) => {
     if (loading || !onConfirm) {
       event.preventDefault();
       return;

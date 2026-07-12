@@ -1,3 +1,4 @@
+import type { MouseEvent as ReactMouseEvent, ReactNode } from "react";
 import { type LucideIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,8 +9,8 @@ interface AlertCardProps {
   title: string;
   count: number;
   tone: "destructive" | "warning" | "maintenance";
-  children: React.ReactNode;
-  footer?: React.ReactNode;
+  children: ReactNode;
+  footer?: ReactNode;
 }
 
 const TONE: Record<AlertCardProps["tone"], { card: string; title: string }> = {
@@ -38,10 +39,10 @@ export function AlertCard({ icon: Icon, title, count, tone, children, footer }: 
 interface AlertRowProps {
   primary: string;
   secondary?: string | null;
-  rightTop: React.ReactNode;
-  rightBottom?: React.ReactNode;
+  rightTop: ReactNode;
+  rightBottom?: ReactNode;
   onClick: () => void;
-  action?: { icon: LucideIcon; title: string; onClick: (e: React.MouseEvent) => void; className?: string };
+  action?: { icon: LucideIcon; title: string; onClick: (e: ReactMouseEvent) => void; className?: string };
 }
 
 export function AlertRow({ primary, secondary, rightTop, rightBottom, onClick, action }: AlertRowProps) {

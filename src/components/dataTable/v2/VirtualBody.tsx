@@ -1,7 +1,7 @@
 import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { flexRender, type Row } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useRef, type ReactNode } from "react";
+import { useRef, type ReactNode, type Ref } from "react";
 import { EmptyRow } from "@/components/feedback/EmptyRow";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
@@ -69,7 +69,7 @@ export function VirtualBody<T>({
 
   return (
     <TableBody
-      ref={parentRef as unknown as React.Ref<HTMLTableSectionElement>}
+      ref={parentRef as unknown as Ref<HTMLTableSectionElement>}
       style={{ display: "block", maxHeight, overflow: "auto" }}
     >
       {paddingTop > 0 && (

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type FormEvent as ReactFormEvent } from "react";
 import { useResetPassword, type UserRow } from "./useUserManagement";
 
 function generatePassword(length = 16): string {
@@ -42,7 +42,7 @@ export function useSetPasswordForm(user: UserRow | null, onClose: () => void) {
     setErrorMsg(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: ReactFormEvent) => {
     e.preventDefault();
     if (!user) return;
     setErrorMsg(null);

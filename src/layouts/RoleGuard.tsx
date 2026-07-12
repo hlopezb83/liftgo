@@ -1,11 +1,12 @@
+import type { ReactNode } from "react";
 import { getAccessLevel, type AccessLevel, useRolePermissions, useUserRole } from "@/features/users";
 import { NoAccess } from "@/layouts/NoAccess";
 
 interface RoleGuardProps {
   module?: string;
   minAccess?: AccessLevel;
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
+  children: ReactNode;
+  fallback?: ReactNode;
 }
 
 const ACCESS_HIERARCHY: AccessLevel[] = ["none", "read", "full"];
@@ -25,7 +26,7 @@ function resolveGuardReason(args: {
   return "ok";
 }
 
-function renderFallback(fallback: React.ReactNode, node: React.ReactNode) {
+function renderFallback(fallback: ReactNode, node: ReactNode) {
   return <>{fallback ?? node}</>;
 }
 

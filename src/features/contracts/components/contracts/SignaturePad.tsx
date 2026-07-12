@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect, useCallback } from "react";
+import { useRef, useState, useEffect, useCallback, type PointerEvent as ReactPointerEvent } from "react";
 import { Eraser, UndoIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 
@@ -37,7 +37,7 @@ export function SignaturePad({ onSave, onClear, width = 400, height = 200 }: Sig
     setHistory((prev) => [...prev, ctx.getImageData(0, 0, canvas.width, canvas.height)]);
   };
 
-  const getPos = (e: React.PointerEvent<HTMLCanvasElement>) => {
+  const getPos = (e: ReactPointerEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
     if (!canvas) return { x: 0, y: 0 };
     const rect = canvas.getBoundingClientRect();
@@ -47,7 +47,7 @@ export function SignaturePad({ onSave, onClear, width = 400, height = 200 }: Sig
     };
   };
 
-  const handlePointerDown = (e: React.PointerEvent<HTMLCanvasElement>) => {
+  const handlePointerDown = (e: ReactPointerEvent<HTMLCanvasElement>) => {
     e.preventDefault();
     canvasRef.current?.setPointerCapture(e.pointerId);
     saveSnapshot();
@@ -59,7 +59,7 @@ export function SignaturePad({ onSave, onClear, width = 400, height = 200 }: Sig
     setIsDrawing(true);
   };
 
-  const handlePointerMove = (e: React.PointerEvent<HTMLCanvasElement>) => {
+  const handlePointerMove = (e: ReactPointerEvent<HTMLCanvasElement>) => {
     if (!isDrawing) return;
     const ctx = getCtx();
     if (!ctx) return;

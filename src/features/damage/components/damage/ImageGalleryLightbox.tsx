@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, type TouchEvent as ReactTouchEvent } from "react";
 import { ChevronLeftIcon, ChevronRightIcon, X, ZoomIn, ZoomOut } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -36,8 +36,8 @@ export function ImageGalleryLightbox({ images, initialIndex = 0, open, onOpenCha
 
   if (images.length === 0) return null;
 
-  const handleTouchStart = (e: React.TouchEvent) => setTouchStart(e.touches[0].clientX);
-  const handleTouchEnd = (e: React.TouchEvent) => {
+  const handleTouchStart = (e: ReactTouchEvent) => setTouchStart(e.touches[0].clientX);
+  const handleTouchEnd = (e: ReactTouchEvent) => {
     if (touchStart === null) return;
     const diff = e.changedTouches[0].clientX - touchStart;
     if (Math.abs(diff) > 60) { if (diff > 0) prev(); else next(); }

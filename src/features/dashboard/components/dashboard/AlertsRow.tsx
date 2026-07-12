@@ -1,3 +1,4 @@
+import type { MouseEvent as ReactMouseEvent } from "react";
 import { MaintenanceIcon, SuccessIcon, ClipboardList, OverdueIcon } from "@/components/icons";
 import { useUpdateBooking } from "@/features/bookings";
 import { useUpdateInvoice } from "@/features/invoices";
@@ -48,7 +49,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
 
   if (overdueInvoices.length === 0 && maintenanceAlerts.length === 0 && overdueBookings.length === 0) return null;
 
-  const handleMarkPaid = (inv: OverdueInvoice, e: React.MouseEvent) => {
+  const handleMarkPaid = (inv: OverdueInvoice, e: ReactMouseEvent) => {
     e.stopPropagation();
     updateInvoice.mutate(
       { id: inv.id, status: "paid", paid_at: toYMD(nowMty()) },

@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Separator } from "@/components/ui/separator";
@@ -16,7 +17,7 @@ import { SupplierBillPaymentActions } from "./SupplierBillPaymentActions";
 import { SupplierPaymentRow } from "./SupplierPaymentRow";
 import type { BillPermissions } from "../lib/billPermissions";
 
-function Row({ label, value }: { label: string; value: React.ReactNode }) {
+function Row({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="flex items-start justify-between gap-3 py-1.5 text-sm">
       <span className="text-muted-foreground">{label}</span>

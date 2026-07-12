@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { ChevronDownIcon, ChevronRightIcon } from "@/components/icons";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -26,7 +26,7 @@ function StatementMainRow({
   toggle: () => void;
 }) {
   const handleKeyDown = isExpandable
-    ? (e: React.KeyboardEvent) => {
+    ? (e: ReactKeyboardEvent) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
           toggle();

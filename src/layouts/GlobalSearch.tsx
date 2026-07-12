@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useTransition } from "react";
+import { useEffect, useState, useMemo, useTransition, type ElementType } from "react";
 import { CalendarDays, FleetIcon, UsersIcon, DocumentIcon, BookOpen, ScrollText, DeliveryIcon, ClipboardCheck, InvoiceIcon, MaintenanceIcon, WarnIcon, InventoryIcon, SupplierIcon, ExpenseIcon, ChartIcon, ActivityIcon, HistoryIcon, SettingsIcon, CompanyIcon, SecurityIcon, HelpIcon, TargetIcon, DashboardIcon, SearchIcon, SpinnerIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -9,7 +9,7 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { routeLoaders } from "@/routes/routes-config";
 
-type Item = { title: string; url: string; icon: React.ElementType; group: string; keywords?: string };
+type Item = { title: string; url: string; icon: ElementType; group: string; keywords?: string };
 
 const ITEMS: Item[] = [
   { title: "Panel", url: "/", icon: DashboardIcon, group: "General" },

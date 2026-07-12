@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, type ChangeEvent as ReactChangeEvent } from "react";
 import { UploadIcon, DeleteIcon, ImageIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -13,7 +13,7 @@ export function LogoUploader({ logoUrl, onChange }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { upload, uploading } = useUploadCompanyLogo();
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = async (e: ReactChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     const url = await upload(file);

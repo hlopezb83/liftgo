@@ -1,9 +1,10 @@
+import type { ReactNode } from "react";
 import { useUserRole } from "@/features/users";
 import { NoAccess } from "@/layouts/NoAccess";
 
 interface AdminRouteGuardProps {
   module?: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }
 
 /**

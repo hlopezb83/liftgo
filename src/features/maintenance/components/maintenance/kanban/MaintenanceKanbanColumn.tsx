@@ -1,3 +1,4 @@
+import type { HTMLAttributes, ComponentType } from "react";
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 import { cn } from "@/lib/utils";
 import { MaintenanceKanbanCard } from "./MaintenanceKanbanCard";
@@ -6,7 +7,7 @@ import type { MaintenanceLog } from "../../../hooks/maintenance/useMaintenanceLo
 interface Props {
   id: string;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   color: string;
   bg: string;
   border: string;
@@ -40,8 +41,8 @@ export function MaintenanceKanbanColumn({ id, label, icon: Icon, color, bg, bord
                 {(prov, snap) => (
                   <div
                     ref={prov.innerRef}
-                    {...(prov.draggableProps as unknown as React.HTMLAttributes<HTMLDivElement>)}
-                    {...(prov.dragHandleProps as unknown as React.HTMLAttributes<HTMLDivElement>)}
+                    {...(prov.draggableProps as unknown as HTMLAttributes<HTMLDivElement>)}
+                    {...(prov.dragHandleProps as unknown as HTMLAttributes<HTMLDivElement>)}
                     data-testid={`maintenance-kanban-card-${log.id}`}
                   >
                     <MaintenanceKanbanCard log={log} isDragging={snap.isDragging} onSelect={() => onSelectLog(log)} />

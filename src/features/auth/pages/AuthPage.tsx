@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type FormEvent as ReactFormEvent } from "react";
 import { UsersIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -45,7 +45,7 @@ export default function AuthPage() {
     if (error) notifyError({ error: error });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: ReactFormEvent) => {
     e.preventDefault();
     setLoading(true);
     await runSubmit();

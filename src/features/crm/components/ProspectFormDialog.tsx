@@ -1,3 +1,4 @@
+import type { FormEvent as ReactFormEvent } from "react";
 import { FormDialog } from "@/components/forms/FormDialog";
 import { useProspectForm, type ProspectFormPayload } from "../hooks/useProspectForm";
 import { ProspectCloseDealActions } from "./prospect-form/ProspectCloseDealActions";
@@ -32,7 +33,7 @@ export function ProspectFormDialog({
   const { fields, setters, matchingQuotes, selectedQuote, effectiveStage, requiresDealValue, buildPayload } =
     useProspectForm({ prospect, open, defaultStage, overrideStage });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: ReactFormEvent) => {
     e.preventDefault();
     const payload = buildPayload();
     if (!payload) return;

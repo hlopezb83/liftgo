@@ -1,70 +1,75 @@
-# Auditoría y modernización de `react-router-dom`
 
-## 1. Estado actual
+# Auditoría e implementación React 19 + Compiler
 
-- Versión: `react-router-dom@^7.18.1` (v7 estable, monorepo unificado).
-- 50 archivos importan de `react-router-dom`. APIs usadas: `BrowserRouter`, `Routes`, `Route`, `Navigate`, `Outlet`, `Link`, `NavLink`, `useNavigate`, `useLocation`, `useParams`, `useSearchParams`, `useNavigationType`, `MemoryRouter` (tests).
-- Router en `src/App.tsx` es **declarativo** (`<BrowserRouter><Routes>…`) mapeando `appRoutes` desde `src/routes/routes-config.tsx`.
-- Wrappers propios que hoy duplican funcionalidad nativa de v7:
-  - `src/hooks/useNavigateTransition.ts` (29 LOC) — envuelve `navigate()` en `startTransition`.
-  - `src/layouts/RouteErrorBoundary.tsx` (28 LOC) — `ErrorBoundary` manual por ruta.
-  - `src/layouts/hooks/useMainScrollRestoration.ts` (41 LOC) — restauración de scroll a mano.
+## Estado actual (hallazgos)
 
-## 2. Diagnóstico vs. v7 best practices
+Post-instalación del Compiler y de los sprints previos, el repo ya está en muy buena forma:
 
-| Problema | Recomendación v7 |
-|---|---|
-| Paquete `react-router-dom` es un **re-export** de `react-router` en v7 (queda por compatibilidad). Los docs oficiales recomiendan importar desde `react-router`. | Codemod: `react-router-dom` → `react-router` en 50 archivos. |
-| `<BrowserRouter>` + `<Routes>` no habilita loaders, `errorElement`, `HydrateFallback`, `ScrollRestoration` ni transitions automáticas en navegaciones. | Migrar a **Data Router**: `createBrowserRouter(routes)` + `<RouterProvider>`. |
-| `useNavigateTransition` es innecesario con Data Router: v7 envuelve navegaciones en transitions automáticamente. | Eliminar hook; reemplazar 100% por `useNavigate()`. |
-| `<RouteErrorBoundary>` envuelve cada `<Route element={…}>` manualmente. | Definir `errorElement` una sola vez por rama en la config. |
-| `useMainScrollRestoration` reinventa lo que hace `<ScrollRestoration>`. | Reemplazar por `<ScrollRestoration getKey={…}>` con clave por `location.key`. |
-| `Suspense` + `PageFallback` envuelven cada `element`. | Usar `lazy: async () => ({ Component })` en la definición de la ruta + `HydrateFallback` global. |
-| Legacy redirect `/expenses` con `<Navigate>` que renderiza componente. | Definir la ruta con `loader: () => redirect("/cuentas-por-pagar")` (evita render). |
-| `NavLink` propio no aprovecha `isPending` / `isTransitioning`. | Añadir estado visual `data-pending` en `NavLink` para feedback durante transitions. |
+- `react@19` y `react-dom@19` con `babel-plugin-react-compiler@1.0.0` activo vía `@rolldown/plugin-babel` y `reactCompilerPreset({ target: "19" })`.
+- **0** usos de `React.memo`, `forwardRef` (React 19 acepta `ref` como prop normal), `import * as React`, o `import React from "react"`.
+- Solo **21** archivos con `useMemo/useCallback` (la mayoría legítimos en contexts/providers/hooks fuera del scope del Compiler).
+- **11** archivos ya usan `<Activity>` para paneles/sheets.
+- `useSyncExternalStore` y `useDeferredValue` ya adoptados donde suman.
+- `useOptimisticStatus` existe como helper genérico pero solo se consume en `useFeedbackStatusUpdate`.
 
-## 3. Plan de ejecución (5 fases atómicas)
+## Oportunidades reales
 
-**Fase A — Codemod de imports (bajo riesgo)**
-- Reemplazo global `from "react-router-dom"` → `from "react-router"` en los 50 archivos. Deja `react-router-dom` en `package.json` sólo mientras dure la migración; se elimina al final.
-- Verificación: `tsgo --noEmit` + `bun run build`.
+Cuatro focos concretos, todos low-risk:
 
-**Fase B — Data Router en el árbol principal**
-- Reescribir `src/App.tsx`:
-  - Construir `routes: RouteObject[]` a partir de `appRoutes` con `lazy` por ruta (elimina el `Suspense` manual y el import estático de `NotFound`/`PortalLogin`).
-  - Añadir `errorElement: <RouteErrorBoundary />` a nivel del layout raíz (elimina wrapping por ruta).
-  - Añadir `HydrateFallback` global (`<PageFallback />`).
-  - Redirect `/expenses` → `loader: () => redirect("/cuentas-por-pagar")`.
-  - Sustituir `<BrowserRouter>` por `createBrowserRouter(routes, { future: { v7_partialHydration: true } })` + `<RouterProvider router={router} />`.
+### 1. Named imports para tipos de React (~37 archivos)
 
-**Fase C — ScrollRestoration + transitions nativas**
-- Montar `<ScrollRestoration getKey={(loc) => loc.pathname}/>` dentro de `MainLayout`.
-- Borrar `src/layouts/hooks/useMainScrollRestoration.ts` (–41 LOC) y su ref en `MainLayout`.
-- Borrar `src/hooks/useNavigateTransition.ts` (–29 LOC). Migrar sus 2 usos (`MainLayout` hotkeys, `NavLink` si aplica) a `useNavigate()` directo — Data Router ya aplica `startTransition` internamente para todas las navegaciones.
+Todavía quedan referencias tipo `React.FC`, `React.ReactNode`, `React.ComponentProps`, `React.MouseEvent`, `React.KeyboardEvent`, `React.CSSProperties`, `React.Dispatch`, `React.SetStateAction`, etc. en ~37 archivos de `src/`.
 
-**Fase D — Portal secundario y NavLink**
-- `CustomerPortalRoutes.tsx`: convertir a rama del router principal (`children` bajo `/portal`) o mantenerlo como `<Routes>` anidado si conviene el split de guard. Decisión: mantener anidado dentro del layout del portal para preservar el `AuthGuard`, pero re-exportado con `Route` v7 (sin cambios funcionales).
-- `NavLink.tsx`: usar la render prop `({ isActive, isPending }) => …` para pintar `data-pending` durante lazy chunk load (feedback visual gratis).
+**Por qué migrar**: consistencia con el resto del repo (ya migrado a named imports), habilita el `verbatimModuleSyntax` de TS más adelante, y facilita el tree-shaking cuando `@types/react` reexporta desde submódulos.
 
-**Fase E — Limpieza**
-- Retirar `react-router-dom` de `package.json` (queda sólo `react-router`).
-- Actualizar `MemoryRouter` en tests: import desde `react-router`.
-- Publicar `v7.49.0` en changelog (index + detalle).
+**Acción**: codemod (`sed`/regex acotado por archivo) que reemplaza cada `React.X` por el símbolo importado y ajusta el `import type { X } from "react"`. Además, eliminar `React.FC<Props>` en favor de `({ ... }: Props) => …` (patrón ya usado en el resto del repo).
 
-## 4. Impacto estimado
+### 2. Ampliar adopción de `useOptimisticStatus`
 
-- **LOC borrados**: ~100 (wrappers propios) + reducción de boilerplate `<Suspense>` / `<RouteErrorBoundary>` por ruta en `App.tsx` (~40 LOC).
-- **Bundle**: 1 paquete menos alias (`react-router-dom` re-export) y mejores `lazy` chunks manejados por el router (dedupe del `Suspense` de segundo nivel).
-- **UX**: navegación con `isPending` y `<ScrollRestoration>` nativos → feedback consistente en toda la app.
-- **Riesgo**: bajo-medio. La Fase B toca el bootstrap; se valida con `build` + smoke test de rutas críticas (`/`, `/cotizaciones/:id`, `/portal/login`).
+`src/hooks/useOptimisticStatus.ts` ya envuelve `useOptimistic` de React 19 pero solo lo consume feedback. Los siguientes flujos disparan un `updateStatus` seguido de una invalidación de query y son candidatos naturales:
 
-## Detalles técnicos clave
+- `features/bookings/hooks/useBookingActionsLogic.ts` + `BookingActions.tsx` (confirmar/cancelar/completar).
+- `features/invoices/components/list/InvoicesToolbar.tsx` y acciones de detalle (marcar pagada, cancelar).
+- `features/contracts/hooks/contractDetail/useContractDetailLogic.ts` (activar/rescindir).
 
-- `lazy` en `RouteObject`: `{ path, lazy: async () => { const m = await import("…"); return { Component: m.default }; } }`.
-- `errorElement` recibe el error vía `useRouteError()` — `RouteErrorBoundary` se reescribe como componente que lo consume (elimina el `try/catch` manual actual).
-- `redirect()` en loader retorna 302 sin montar componente → arregla el flash del `<Navigate>` legacy.
-- `future.v7_partialHydration: true` habilita `HydrateFallback` por rama (mejor UX que fallback global).
+**Ganancia**: feedback instantáneo en el badge de estatus antes de que la mutación de TanStack Query resuelva, con rollback automático si falla.
 
-## Fuera de alcance
-- No se agregan `loader`/`action` de datos por ruta (mantendremos TanStack Query como fuente de datos; sólo usamos Data Router para navegación/estructura).
-- No se toca lógica de negocio ni RLS.
+**Alcance sugerido**: sólo el badge/etiqueta visible en la fila o encabezado; no se toca la lógica de mutación ni la invalidación.
+
+### 3. `useTransition` en filtros pesados de listas grandes
+
+Hoy `useDeferredValue` cubre `useListFilters`. Para acciones explícitas que sí conocemos que son caras (cambio de vista Kanban↔Lista en Mantenimiento, cambio de agrupación en el Reporte P&L), envolver el `setState` en `startTransition` mantiene la UI responsiva sin diferir el valor.
+
+Alcance: 2 puntos concretos, sin refactor global.
+
+### 4. Limpieza fina
+
+- `src/lib/ui/errorDetailsStore.ts`: revisar que el `useSyncExternalStore` no exponga un snapshot recreado por render (causa re-renders innecesarios post-Compiler).
+- Confirmar que no queden `useCallback` sobre handlers inline que ya no aportan tras el Compiler; si el linter `react-compiler/react-compiler` no marca bail-out, dejarlos (el Compiler los omite).
+
+## Fuera de alcance (decidido)
+
+- **`use()` API para promesas**: TanStack Query cubre todo el estado async. Adoptar `use()` requeriría promesas suspendidas que hoy no existen; sin beneficio real.
+- **`useActionState` / `useFormStatus`**: son para forms nativos con `<form action>`. Todo el repo usa RHF + Zod, mucho más potente para nuestro caso.
+- **Más `<Suspense>` boundaries**: el router ya hace code-splitting y `RouteSkeletons` cubre cada ruta. Añadir boundaries granulares no aporta valor visible.
+- **Server Components / SSR**: no aplica (SPA con Vite + RouterProvider).
+
+## Entregables
+
+1. Codemod de tipos (`React.X` → named imports) en los ~37 archivos.
+2. Adopción de `useOptimisticStatus` en bookings, invoices y contratos (3 flujos).
+3. `startTransition` en cambio de vista Kanban/Lista y grupo del P&L.
+4. Revisión del snapshot en `errorDetailsStore`.
+5. Validación: `tsgo --noEmit`, build de producción, suite de tests (997), sin nuevos warnings de `react-compiler/react-compiler` ni de `react-hooks/*`.
+6. Entrada de changelog **v7.50.0** (minor: adopta APIs de React 19 de forma más consistente sin cambios funcionales visibles).
+
+## Detalles técnicos
+
+- Los `React.MouseEvent<HTMLButtonElement>` etc. se traducen a `MouseEvent<HTMLButtonElement>` con `import type { MouseEvent } from "react"`. Cuidado con colisiones con el `MouseEvent` global del DOM: se importa con alias `type ReactMouseEvent` cuando el archivo también usa el global.
+- `React.FC<Props>` → firma explícita `({ … }: Props)` para no forzar `children` implícito.
+- `useOptimistic` requiere que el componente que lo llama monte el `<Badge>` (no funciona a través de props stateless); el helper actual ya está preparado para eso.
+- El React Compiler bail-out se verifica corriendo `bun lint` y buscando `react-compiler/react-compiler` en la salida.
+
+## Estimación
+
+~40 archivos tocados, cambios mecánicos + 3 adopciones puntuales. Sin migraciones de datos ni de dependencias.

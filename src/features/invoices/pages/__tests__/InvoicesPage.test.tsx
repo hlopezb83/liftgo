@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
 import { BrowserRouter } from "react-router";
@@ -35,7 +36,7 @@ vi.mock("../../hooks/invoices/recurring/useGenerateRecurringInvoices", () => ({
 }));
 
 vi.mock("@/layouts/RoleGuard", () => ({
-  RoleGuard: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  RoleGuard: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
 function renderPage() {

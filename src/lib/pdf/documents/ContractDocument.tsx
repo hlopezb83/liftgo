@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Document, Page, Text, View, Image } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import { AccentBar } from "@/lib/pdf/components/AccentBar";
@@ -69,7 +70,7 @@ function ContractPageWrapper({
   logoBase64: string | null;
   contractNumber: string;
   footerPrefix: string;
-  children: React.ReactNode;
+  children: ReactNode;
 }) {
   return (
     <Page size="A4" style={sharedStyles.page}>

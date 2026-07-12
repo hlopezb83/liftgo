@@ -1,3 +1,4 @@
+import type { HTMLAttributes } from "react";
 import { Draggable } from "@hello-pangea/dnd";
 import { InfoAlertIcon } from "@/components/icons";
 import { Card } from "@/components/ui/card";
@@ -21,8 +22,8 @@ export function ProspectCard({ prospect, index, quoteNumber, density, onClick }:
       {(prov, snap) => (
         <Card
           ref={prov.innerRef}
-          {...(prov.draggableProps as unknown as React.HTMLAttributes<HTMLDivElement>)}
-          {...(prov.dragHandleProps as unknown as React.HTMLAttributes<HTMLDivElement>)}
+          {...(prov.draggableProps as unknown as HTMLAttributes<HTMLDivElement>)}
+          {...(prov.dragHandleProps as unknown as HTMLAttributes<HTMLDivElement>)}
           className={`relative mb-2 ${isCompact ? "p-2" : "p-3"} cursor-grab active:cursor-grabbing border hover:shadow-md transition-shadow ${snap.isDragging ? "shadow-lg rotate-1" : ""}`}
           onClick={onClick}
         >

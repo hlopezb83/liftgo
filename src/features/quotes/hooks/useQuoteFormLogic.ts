@@ -1,3 +1,4 @@
+import type { FormEvent as ReactFormEvent } from "react";
 
 import { useParams } from "react-router";
 import { useCustomers } from "@/features/customers";
@@ -49,7 +50,7 @@ export function useQuoteFormLogic() {
 
   const { subtotal, taxAmount, total } = computeTotals(lineItems, Number(taxRate) || 0);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: ReactFormEvent) => {
     e.preventDefault();
     if (!validateQuoteForm({ customerId, quoteType, startDate, endDate, rentalLines, saleLines })) return;
 

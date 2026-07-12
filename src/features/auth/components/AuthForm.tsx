@@ -1,3 +1,4 @@
+import type { FormEvent as ReactFormEvent } from "react";
 import { ViewIcon, HideIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +16,7 @@ interface Props {
   onEmailChange: (v: string) => void;
   onPasswordChange: (v: string) => void;
   onToggleShowPassword: () => void;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: ReactFormEvent) => void;
 }
 
 export function AuthForm({

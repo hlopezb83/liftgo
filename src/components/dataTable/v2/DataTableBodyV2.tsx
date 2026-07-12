@@ -1,6 +1,6 @@
 import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { flexRender, type Row } from "@tanstack/react-table";
-import { useRef, type ReactNode } from "react";
+import { useRef, type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { EmptyRow } from "@/components/feedback/EmptyRow";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
@@ -31,7 +31,7 @@ function buildRowHandlers<T>(item: T, ctx: RowHandlerCtx<T>) {
   const clickHandlers = onRowClick
     ? {
         onClick: () => onRowClick(item),
-        onKeyDown: (e: React.KeyboardEvent) => {
+        onKeyDown: (e: ReactKeyboardEvent) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             onRowClick(item);
