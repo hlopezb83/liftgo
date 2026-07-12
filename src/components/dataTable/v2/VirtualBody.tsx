@@ -29,10 +29,24 @@ export function VirtualBody<T>({
   showSelection,
   onRowClick,
   rowClassName,
+  onRowPrefetch,
   estimateRowHeight = 44,
   maxHeight = 600,
 }: Props<T>): ReactNode {
   const parentRef = useRef<HTMLDivElement>(null);
+  const queryClient = useQueryClient();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const armPrefetch = (item: T) => {
+    if (!onRowPrefetch) return;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      void queryClient.prefetchQuery(onRowPrefetch(item));
+    }, PREFETCH_DELAY_MS);
+  };
+  const disarmPrefetch = () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = undefined;
+  };
   const virtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => parentRef.current,
