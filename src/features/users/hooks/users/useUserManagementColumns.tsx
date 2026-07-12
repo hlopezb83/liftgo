@@ -77,7 +77,7 @@ export function useUserManagementColumns({
           const u = row.original;
           const isSelf = u.user_id === currentUserId;
           return !isSelf ? (
-            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()} role="presentation">
               <Switch checked={u.is_active} onCheckedChange={() => onToggleStatus(u.user_id, u.is_active)} disabled={isToggling} />
               <span className="text-xs text-muted-foreground">{u.is_active ? "Activo" : "Inactivo"}</span>
             </div>
@@ -96,7 +96,7 @@ export function useUserManagementColumns({
           const u = row.original;
           const isSelf = u.user_id === currentUserId;
           return (
-            <div className="flex gap-1" onClick={(e) => e.stopPropagation()}>
+            <div className="flex gap-1" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()} role="presentation">
               <Button variant="ghost" size="icon" title="Editar nombre" onClick={() => onEdit(u)}>
                 <EditIcon className="h-4 w-4" />
               </Button>

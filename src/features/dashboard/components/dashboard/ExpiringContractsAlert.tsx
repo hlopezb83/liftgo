@@ -33,8 +33,11 @@ export function ExpiringContractsAlert({ contracts }: ExpiringContractsAlertProp
         {contracts.slice(0, 5).map((c) => (
           <div
             key={c.id}
+            role="button"
+            tabIndex={0}
             className="flex items-center justify-between p-2 rounded-lg bg-background/80 text-sm cursor-pointer hover:bg-background"
             onClick={() => navigate(`/contracts/${c.id}`)}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate(`/contracts/${c.id}`); } }}
           >
             <div>
               <span className="font-medium">{c.contract_number}</span>

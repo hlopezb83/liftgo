@@ -94,13 +94,17 @@ export function ActivityTimeline({ filters, onFilterChange, onReset, members }: 
               const route = ENTITY_ROUTES[a.entity_type];
               const actorName = a.actor_name ?? "Sistema";
               const moduleLabel = ENTITY_LABELS[a.entity_type] ?? a.entity_type;
+              const go = () => {
+                if (route) navigate(route.includes(":id") ? route.replace(":id", a.entity_id) : route);
+              };
               return (
                 <div
                   key={a.id}
+                  role={route ? "button" : undefined}
+                  tabIndex={route ? 0 : undefined}
                   className={`flex items-center gap-3 px-4 py-2.5 hover:bg-muted/40 transition-colors ${idx % 2 === 0 ? "bg-background" : "bg-muted/10"} ${route ? "cursor-pointer" : ""}`}
-                  onClick={() => {
-                    if (route) navigate(route.includes(":id") ? route.replace(":id", a.entity_id) : route);
-                  }}
+                  onClick={go}
+                  onKeyDown={route ? (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } } : undefined}
                 >
                   <div className="w-[180px] shrink-0">
                     <ActorAvatar

@@ -26,8 +26,11 @@ export function InsuranceAlert({ data }: InsuranceAlertProps) {
         {expiring.map((f) => (
           <div
             key={f.id}
+            role="button"
+            tabIndex={0}
             className="flex items-center justify-between p-2 rounded-lg bg-background/80 text-sm cursor-pointer hover:bg-background"
             onClick={() => navigate(`/fleet/${f.id}`)}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate(`/fleet/${f.id}`); } }}
           >
             <span className="font-medium">{f.name}</span>
             <div className="text-right">

@@ -116,8 +116,8 @@ export default function PortalQuoteDetail() {
           <CardContent className="space-y-4">
             {!rejectingMode ? (
               <>
-                <label className="flex items-start gap-2 text-sm">
-                  <Checkbox checked={agreed} onCheckedChange={(v) => setAgreed(v === true)} />
+                <label htmlFor="portal-quote-terms" className="flex items-start gap-2 text-sm">
+                  <Checkbox id="portal-quote-terms" checked={agreed} onCheckedChange={(v) => setAgreed(v === true)} />
                   <span>He leído y acepto los términos comerciales y condiciones de renta.</span>
                 </label>
                 <div className="flex gap-2">
