@@ -137,6 +137,7 @@ export function ListPageLayout<T extends { id?: string }>({
                 emptyActionLabel={emptyActionLabel}
                 onEmptyAction={onEmptyAction}
                 onRowClick={onRowClick}
+                onRowPrefetch={onRowPrefetch}
                 mobileCardRender={mobileCardRender}
                 mobileKeyExtractor={mobileKeyExtractor}
                 skeletonColumns={skeletonColumns}
