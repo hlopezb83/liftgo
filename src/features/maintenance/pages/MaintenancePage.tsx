@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useDialogState } from "@/hooks/useDialogState";
 import { MarkAvailableDialog, useForkliftMap } from "@/features/fleet";
 import { useMaintenanceLogs, type MaintenanceLog } from "../hooks/maintenance/useMaintenanceLogs";
@@ -32,58 +32,52 @@ export default function MaintenancePage() {
   const formCtl = useMaintenanceForm(forkliftMap);
   usePageActions({ onNew: formCtl.openCreate, newLabel: "Nuevo servicio" });
 
-  const enrichedLogs = useMemo(() => enrichLogs(logs, forkliftMap), [logs, forkliftMap]);
+  const enrichedLogs = enrichLogs(logs, forkliftMap);
 
   const { search, setSearch, filtered: searchFiltered } = useListFilters(enrichedLogs, {
     searchFields: ["service_type", "performed_by", "description", "forklift_name"],
   });
 
-  const filtered = useMemo(
-    () => (searchFiltered ?? []).filter((log) => forkliftFilter === "all" || log.forklift_id === forkliftFilter),
-    [searchFiltered, forkliftFilter],
-  );
+  const filtered = (searchFiltered ?? []).filter((log) => forkliftFilter === "all" || log.forklift_id === forkliftFilter);
 
-  const columns = useMemo<ColumnDef<EnrichedMaintenanceLog>[]>(
-    () => [
-      {
-        id: "performed_at",
-        header: "Fecha",
-        accessorKey: "performed_at",
-        cell: ({ row }) => <span className="font-mono text-sm">{formatDateDisplay(row.original.performed_at)}</span>,
-      },
-      {
-        id: "forklift_name",
-        header: "Montacargas",
-        accessorKey: "forklift_name",
-        cell: ({ row }) => <span className="font-medium">{row.original.forklift_name || "—"}</span>,
-      },
-      {
-        id: "service_type",
-        header: "Tipo de Servicio",
-        accessorKey: "service_type",
-      },
-      {
-        id: "performed_by",
-        header: "Realizado Por",
-        accessorFn: (l) => l.performed_by ?? "",
-        cell: ({ row }) => row.original.performed_by || "—",
-      },
-      {
-        id: "cost",
-        header: "Costo",
-        accessorFn: (l) => l.cost ?? 0,
-        meta: { align: "right" },
-        cell: ({ row }) => <span className="font-medium">{formatCurrency(row.original.cost || 0)}</span>,
-      },
-      {
-        id: "next_service_date",
-        header: "Próximo Servicio",
-        accessorFn: (l) => l.next_service_date ?? "",
-        cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateDisplay(row.original.next_service_date)}</span>,
-      },
-    ],
-    [],
-  );
+  const columns: ColumnDef<EnrichedMaintenanceLog>[] = [
+    {
+      id: "performed_at",
+      header: "Fecha",
+      accessorKey: "performed_at",
+      cell: ({ row }) => <span className="font-mono text-sm">{formatDateDisplay(row.original.performed_at)}</span>,
+    },
+    {
+      id: "forklift_name",
+      header: "Montacargas",
+      accessorKey: "forklift_name",
+      cell: ({ row }) => <span className="font-medium">{row.original.forklift_name || "—"}</span>,
+    },
+    {
+      id: "service_type",
+      header: "Tipo de Servicio",
+      accessorKey: "service_type",
+    },
+    {
+      id: "performed_by",
+      header: "Realizado Por",
+      accessorFn: (l) => l.performed_by ?? "",
+      cell: ({ row }) => row.original.performed_by || "—",
+    },
+    {
+      id: "cost",
+      header: "Costo",
+      accessorFn: (l) => l.cost ?? 0,
+      meta: { align: "right" },
+      cell: ({ row }) => <span className="font-medium">{formatCurrency(row.original.cost || 0)}</span>,
+    },
+    {
+      id: "next_service_date",
+      header: "Próximo Servicio",
+      accessorFn: (l) => l.next_service_date ?? "",
+      cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateDisplay(row.original.next_service_date)}</span>,
+    },
+  ];
 
   const table = useLiftgoTable<EnrichedMaintenanceLog>({
     data: filtered,

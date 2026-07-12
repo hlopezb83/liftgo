@@ -5,7 +5,7 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay, nowMty } from "@/lib/utils";
 import { differenceInDays, format, parseISO } from "date-fns";
 import { exportToCsv } from "@/lib/exportCsv";
-import { useMemo } from "react";
+
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { useInvoicesWithBalance } from "@/features/invoices";
 
@@ -29,39 +29,27 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
     dueTo: todayYmd,
   });
 
-  const overdueInvoices = useMemo(() => {
-    return (rawOverdue ?? [])
-      .filter((i) => i.due_date && parseISO(i.due_date) < nowMty())
-      .map((i) => {
-        const days = differenceInDays(nowMty(), parseISO(i.due_date as string));
-        return {
-          ...i,
-          days_overdue: days,
-          bucket: getAgingBucket(days),
-        };
-      });
-  }, [rawOverdue]);
+  const overdueInvoices = (rawOverdue ?? [])
+    .filter((i) => i.due_date && parseISO(i.due_date) < nowMty())
+    .map((i) => {
+      const days = differenceInDays(nowMty(), parseISO(i.due_date as string));
+      return { ...i, days_overdue: days, bucket: getAgingBucket(days) };
+    });
 
-  const bucketTotals = useMemo(() => {
-    const buckets: Record<string, number> = { "0-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
-    overdueInvoices.forEach((i) => { buckets[i.bucket] += i.balance; });
-    return buckets;
-  }, [overdueInvoices]);
+  const bucketTotals: Record<string, number> = { "0-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
+  overdueInvoices.forEach((i) => { bucketTotals[i.bucket] += i.balance; });
 
   const grandTotal = Object.values(bucketTotals).reduce((s, v) => s + v, 0);
 
   type Row = typeof overdueInvoices[number];
-  const columns = useMemo<ColumnDef<Row>[]>(
-    () => [
-      { id: "invoice_number", header: "Factura", accessorKey: "invoice_number", cell: ({ row }) => <span className="font-mono font-medium">{row.original.invoice_number}</span> },
-      { id: "customer_name", header: "Cliente", accessorKey: "customer_name", cell: ({ row }) => row.original.customer_name || "—" },
-      { id: "total", header: "Saldo", accessorFn: (i) => i.balance, meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.balance)}</span> },
-      { id: "due_date", header: "Vencimiento", accessorKey: "due_date", cell: ({ row }) => formatDateDisplay(row.original.due_date) },
-      { id: "days_overdue", header: "Días", accessorKey: "days_overdue", meta: { align: "right" }, cell: ({ row }) => <span className="font-mono font-semibold text-destructive">{row.original.days_overdue}</span> },
-      { id: "bucket", header: "Bucket", accessorKey: "bucket", cell: ({ row }) => `${row.original.bucket}d` },
-    ],
-    [],
-  );
+  const columns: ColumnDef<Row>[] = [
+    { id: "invoice_number", header: "Factura", accessorKey: "invoice_number", cell: ({ row }) => <span className="font-mono font-medium">{row.original.invoice_number}</span> },
+    { id: "customer_name", header: "Cliente", accessorKey: "customer_name", cell: ({ row }) => row.original.customer_name || "—" },
+    { id: "total", header: "Saldo", accessorFn: (i) => i.balance, meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.balance)}</span> },
+    { id: "due_date", header: "Vencimiento", accessorKey: "due_date", cell: ({ row }) => formatDateDisplay(row.original.due_date) },
+    { id: "days_overdue", header: "Días", accessorKey: "days_overdue", meta: { align: "right" }, cell: ({ row }) => <span className="font-mono font-semibold text-destructive">{row.original.days_overdue}</span> },
+    { id: "bucket", header: "Bucket", accessorKey: "bucket", cell: ({ row }) => `${row.original.bucket}d` },
+  ];
 
   const table = useLiftgoTable<Row>({
     data: overdueInvoices,

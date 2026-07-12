@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
@@ -20,9 +20,9 @@ type Row = { name: string; totalCost: number; count: number };
 export function MaintenanceCostReport({ startDate, endDate }: Props) {
   const { data: forklifts = [] } = useForklifts();
   const { data: maintenanceLogs = [] } = useMaintenanceLogs();
-  const forkliftMap = useMemo(() => new Map(forklifts.map((f) => [f.id, f.name])), [forklifts]);
+  const forkliftMap = new Map(forklifts.map((f) => [f.id, f.name]));
 
-  const data = useMemo<Row[]>(() => {
+  const data: Row[] = (() => {
     const filtered = maintenanceLogs.filter((m) => isWithinInterval(parseISO(m.performed_at), { start: startDate, end: endDate }));
     const byForklift: Record<string, Row> = {};
     filtered.forEach((m) => {
@@ -32,18 +32,15 @@ export function MaintenanceCostReport({ startDate, endDate }: Props) {
       byForklift[m.forklift_id].count++;
     });
     return Object.values(byForklift);
-  }, [maintenanceLogs, startDate, endDate, forkliftMap]);
+  })();
 
-  const chartData = useMemo(() => [...data].sort((a, b) => b.totalCost - a.totalCost), [data]);
+  const chartData = [...data].sort((a, b) => b.totalCost - a.totalCost);
 
-  const columns = useMemo<ColumnDef<Row>[]>(
-    () => [
-      { id: "name", header: "Montacargas", accessorKey: "name", cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },
-      { id: "count", header: "Trabajos", accessorKey: "count", meta: { align: "right" }, cell: ({ row }) => row.original.count },
-      { id: "totalCost", header: "Costo Total", accessorKey: "totalCost", meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.totalCost)}</span> },
-    ],
-    [],
-  );
+  const columns: ColumnDef<Row>[] = [
+    { id: "name", header: "Montacargas", accessorKey: "name", cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },
+    { id: "count", header: "Trabajos", accessorKey: "count", meta: { align: "right" }, cell: ({ row }) => row.original.count },
+    { id: "totalCost", header: "Costo Total", accessorKey: "totalCost", meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.totalCost)}</span> },
+  ];
 
   const table = useLiftgoTable<Row>({
     data,

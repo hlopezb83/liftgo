@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
@@ -19,7 +19,7 @@ type Row = { month: string; invoiced: number; paid: number; count: number };
 
 export function RevenueReport({ startDate, endDate }: Props) {
   const { data: invoices = [] } = useInvoices();
-  const data = useMemo<Row[]>(() => {
+  const data: Row[] = (() => {
     const filtered = invoices.filter((inv) => isWithinInterval(parseISO(inv.issued_at), { start: startDate, end: endDate }));
     const months: Record<string, Row> = {};
     filtered.forEach((inv) => {
@@ -31,17 +31,14 @@ export function RevenueReport({ startDate, endDate }: Props) {
       if (inv.status === "paid") months[key].paid += Number(inv.total);
     });
     return Object.entries(months).sort(([a], [b]) => a.localeCompare(b)).map(([, d]) => d);
-  }, [invoices, startDate, endDate]);
+  })();
 
-  const columns = useMemo<ColumnDef<Row>[]>(
-    () => [
-      { id: "month", header: "Mes", accessorKey: "month", cell: ({ row }) => <span className="font-medium">{row.original.month}</span> },
-      { id: "count", header: "Facturas", accessorKey: "count", meta: { align: "right" }, cell: ({ row }) => row.original.count },
-      { id: "invoiced", header: "Facturado", accessorKey: "invoiced", meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.invoiced)}</span> },
-      { id: "paid", header: "Pagado", accessorKey: "paid", meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.paid)}</span> },
-    ],
-    [],
-  );
+  const columns: ColumnDef<Row>[] = [
+    { id: "month", header: "Mes", accessorKey: "month", cell: ({ row }) => <span className="font-medium">{row.original.month}</span> },
+    { id: "count", header: "Facturas", accessorKey: "count", meta: { align: "right" }, cell: ({ row }) => row.original.count },
+    { id: "invoiced", header: "Facturado", accessorKey: "invoiced", meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.invoiced)}</span> },
+    { id: "paid", header: "Pagado", accessorKey: "paid", meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.paid)}</span> },
+  ];
 
   const table = useLiftgoTable<Row>({
     data,

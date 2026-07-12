@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import type { UseFormReturn } from "react-hook-form";
 import { useEquipmentModels } from "../useEquipmentModels";
 import type { ForkliftFormData } from "../../lib/forkliftFormSchema";
@@ -19,14 +19,14 @@ export function useForkliftFormState(
 
   const hasModels = !!(equipmentModels && equipmentModels.length > 0);
 
-  const manufacturers = useMemo(() => {
+  const manufacturers = (() => {
     if (!equipmentModels) return [];
     const set = new Set(equipmentModels.map((m) => m.manufacturer));
     if (existing?.manufacturer && !set.has(existing.manufacturer)) set.add(existing.manufacturer);
     return [...set].sort();
-  }, [equipmentModels, existing]);
+  })();
 
-  const filteredModels = useMemo(() => {
+  const filteredModels = (() => {
     if (!equipmentModels || !manufacturer) return [];
     const models = equipmentModels.filter((m) => m.manufacturer === manufacturer);
     if (existing?.model && existing?.manufacturer === manufacturer && !models.some((m) => m.model === existing.model)) {
@@ -38,7 +38,7 @@ export function useForkliftFormState(
       });
     }
     return models;
-  }, [equipmentModels, manufacturer, existing]);
+  })();
 
   return { equipmentModels, hasModels, manufacturers, filteredModels };
 }

@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { notifyError, notifyWarning } from "@/lib/ui/appFeedback";
 import { useSuppliers } from "@/features/suppliers";
 import { useCompanySettings } from "@/features/company-settings";
@@ -84,40 +84,37 @@ export function useImportSupplierBillCfdi() {
   const { data: company } = useCompanySettings();
   const uploadXml = useUploadSupplierBillXml();
 
-  const reset = useCallback(() => {
+  const reset = () => {
     setBusy(false);
     setError(null);
     setResult(null);
-  }, []);
+  };
 
-  const importXml = useCallback(
-    async (file: File): Promise<ImportedCfdi | null> => {
-      setError(null);
-      setBusy(true);
-      try {
-        const parsed = await parseAndValidateXml(file);
-        const supplierId = matchSupplierId(parsed.emitterRfc, suppliers);
-        const initialValues = buildInitialValues(parsed, supplierId);
-        const uploaded = await uploadXml.mutateAsync({ file, uuid: parsed.uuid ?? "" });
+  const importXml = async (file: File): Promise<ImportedCfdi | null> => {
+    setError(null);
+    setBusy(true);
+    try {
+      const parsed = await parseAndValidateXml(file);
+      const supplierId = matchSupplierId(parsed.emitterRfc, suppliers);
+      const initialValues = buildInitialValues(parsed, supplierId);
+      const uploaded = await uploadXml.mutateAsync({ file, uuid: parsed.uuid ?? "" });
 
-        warnIfRfcMismatch(parsed.receiverRfc, company?.rfc);
-        warnIfSupplierMissing(supplierId, parsed.emitterRfc);
+      warnIfRfcMismatch(parsed.receiverRfc, company?.rfc);
+      warnIfSupplierMissing(supplierId, parsed.emitterRfc);
 
-        const next: ImportedCfdi = { parsed, uploaded, initialValues };
-        setResult(next);
-        return next;
-      } catch (e: unknown) {
-        setError(extractImportErrorMessage(e));
-        if (!(e instanceof CfdiParseError)) {
-          notifyError({ error: e, message: "Error al importar XML" });
-        }
-        return null;
-      } finally {
-        setBusy(false);
+      const next: ImportedCfdi = { parsed, uploaded, initialValues };
+      setResult(next);
+      return next;
+    } catch (e: unknown) {
+      setError(extractImportErrorMessage(e));
+      if (!(e instanceof CfdiParseError)) {
+        notifyError({ error: e, message: "Error al importar XML" });
       }
-    },
-    [suppliers, uploadXml, company?.rfc],
-  );
+      return null;
+    } finally {
+      setBusy(false);
+    }
+  };
 
   return { importXml, busy, error, reset, result };
 }

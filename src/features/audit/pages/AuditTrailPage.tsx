@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useAuditLogs, useDeleteAuditLog, useRevertAuditLog } from "../hooks/useAuditLogs";
 import { useUserRole } from "@/features/users";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
@@ -32,92 +32,85 @@ export default function AuditTrailPage() {
     tableFilter !== "all" ? { table_name: tableFilter } : undefined,
   );
 
-  const filtered = useMemo(
-    () =>
-      (logs ?? []).filter((log) => {
-        if (!search) return true;
-        const q = search.toLowerCase();
-        return (
-          log.table_name.toLowerCase().includes(q) ||
-          log.action.toLowerCase().includes(q) ||
-          (log.user_email || "").toLowerCase().includes(q) ||
-          getRecordLabel(log).toLowerCase().includes(q)
-        );
-      }),
-    [logs, search],
-  );
+  const filtered = (logs ?? []).filter((log) => {
+    if (!search) return true;
+    const q = search.toLowerCase();
+    return (
+      log.table_name.toLowerCase().includes(q) ||
+      log.action.toLowerCase().includes(q) ||
+      (log.user_email || "").toLowerCase().includes(q) ||
+      getRecordLabel(log).toLowerCase().includes(q)
+    );
+  });
 
-  const columns = useMemo<ColumnDef<AuditLog>[]>(
-    () => {
-      const base: ColumnDef<AuditLog>[] = [
-        {
-          id: "icon",
-          header: "",
-          enableSorting: false,
-          meta: { cellClassName: "w-10" },
-          cell: ({ row }) => actionIcon(row.original.action),
-        },
-        {
-          id: "action",
-          header: "Acción",
-          accessorKey: "action",
-          cell: ({ row }) => <Badge variant={actionBadgeVariant(row.original.action)}>{translateAction(row.original.action)}</Badge>,
-        },
-        {
-          id: "table_name",
-          header: "Tabla",
-          accessorKey: "table_name",
-          cell: ({ row }) => <span className="text-sm">{translateTable(row.original.table_name)}</span>,
-        },
-        {
-          id: "record",
-          header: "Registro",
-          enableSorting: false,
-          meta: { cellClassName: "text-sm font-medium max-w-[160px] truncate" },
-          cell: ({ row }) => getRecordLabel(row.original),
-        },
-        {
-          id: "fields",
-          header: "Campos Modificados",
-          enableSorting: false,
-          meta: { cellClassName: "text-sm text-muted-foreground max-w-[200px] truncate" },
-          cell: ({ row }) => row.original.changed_fields?.map(translateField).join(", ") || "—",
-        },
-        {
-          id: "user",
-          header: "Usuario",
-          accessorFn: (l) => l.user_email || "Sistema",
-          cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.user_email || "Sistema"}</span>,
-        },
-        {
-          id: "created_at",
-          header: "Cuándo",
-          accessorKey: "created_at",
-          cell: ({ row }) => <span className="text-sm text-muted-foreground whitespace-nowrap">{formatTimestamp(row.original.created_at)}</span>,
-        },
-      ];
-      if (isAdmin) {
-        base.push({
-          id: "delete",
-          header: "",
-          enableSorting: false,
-          meta: { cellClassName: "w-10" },
-          cell: ({ row }) => (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-8 w-8 text-destructive hover:text-destructive"
-              onClick={(e) => { e.stopPropagation(); setLogToDelete(row.original); }}
-            >
-              <DeleteIcon className="h-4 w-4" />
-            </Button>
-          ),
-        });
-      }
-      return base;
-    },
-    [isAdmin],
-  );
+  const columns: ColumnDef<AuditLog>[] = (() => {
+    const base: ColumnDef<AuditLog>[] = [
+      {
+        id: "icon",
+        header: "",
+        enableSorting: false,
+        meta: { cellClassName: "w-10" },
+        cell: ({ row }) => actionIcon(row.original.action),
+      },
+      {
+        id: "action",
+        header: "Acción",
+        accessorKey: "action",
+        cell: ({ row }) => <Badge variant={actionBadgeVariant(row.original.action)}>{translateAction(row.original.action)}</Badge>,
+      },
+      {
+        id: "table_name",
+        header: "Tabla",
+        accessorKey: "table_name",
+        cell: ({ row }) => <span className="text-sm">{translateTable(row.original.table_name)}</span>,
+      },
+      {
+        id: "record",
+        header: "Registro",
+        enableSorting: false,
+        meta: { cellClassName: "text-sm font-medium max-w-[160px] truncate" },
+        cell: ({ row }) => getRecordLabel(row.original),
+      },
+      {
+        id: "fields",
+        header: "Campos Modificados",
+        enableSorting: false,
+        meta: { cellClassName: "text-sm text-muted-foreground max-w-[200px] truncate" },
+        cell: ({ row }) => row.original.changed_fields?.map(translateField).join(", ") || "—",
+      },
+      {
+        id: "user",
+        header: "Usuario",
+        accessorFn: (l) => l.user_email || "Sistema",
+        cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.user_email || "Sistema"}</span>,
+      },
+      {
+        id: "created_at",
+        header: "Cuándo",
+        accessorKey: "created_at",
+        cell: ({ row }) => <span className="text-sm text-muted-foreground whitespace-nowrap">{formatTimestamp(row.original.created_at)}</span>,
+      },
+    ];
+    if (isAdmin) {
+      base.push({
+        id: "delete",
+        header: "",
+        enableSorting: false,
+        meta: { cellClassName: "w-10" },
+        cell: ({ row }) => (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8 text-destructive hover:text-destructive"
+            onClick={(e) => { e.stopPropagation(); setLogToDelete(row.original); }}
+          >
+            <DeleteIcon className="h-4 w-4" />
+          </Button>
+        ),
+      });
+    }
+    return base;
+  })();
 
   const table = useLiftgoTable<AuditLog>({
     data: filtered,

@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DownloadIcon } from "@/components/icons";
@@ -28,15 +28,15 @@ export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
   const { data: maintenanceLogs = [] } = useMaintenanceLogs();
   const { data: damageRecords = [] } = useDamageRecords();
 
-  const rows = useMemo<ModelRow[]>(() => {
+  const rows: ModelRow[] = (() => {
     const { modelUnits } = buildModelUnitsMap(forklifts as Forklift[]);
     const revenueByForklift = buildRevenueMap(invoices as Invoice[], bookings as Booking[], startDate, endDate);
     const maintByForklift = buildCostMap(maintenanceLogs as MaintLog[], (l) => l.performed_at, (l) => Number(l.cost || 0), startDate, endDate);
     const dmgByForklift = buildCostMap(damageRecords as DamageRec[], (d) => d.created_at, (d) => Number(d.actual_cost || 0), startDate, endDate);
     return aggregateRows(modelUnits, revenueByForklift, maintByForklift, dmgByForklift);
-  }, [forklifts, invoices, bookings, maintenanceLogs, damageRecords, startDate, endDate]);
+  })();
 
-  const chartRows = useMemo(() => [...rows].sort((a, b) => b.profit - a.profit), [rows]);
+  const chartRows = [...rows].sort((a, b) => b.profit - a.profit);
 
   const table = useLiftgoTable<ModelRow>({
     data: rows,

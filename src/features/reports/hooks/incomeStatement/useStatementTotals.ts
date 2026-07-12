@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { roundMoney } from "@/lib/money";
 import {
   type MonthData, type YearTotals, type ExpenseCategory,
@@ -48,27 +48,23 @@ function aggregate(rows: MonthData[]) {
 
 
 export function useStatementTotals(data: MonthData[]) {
-  const availableYears = useMemo(() => {
-    return [...new Set(data.map((d) => d.monthKey.substring(0, 4)))].sort();
-  }, [data]);
+  const availableYears = [...new Set(data.map((d) => d.monthKey.substring(0, 4)))].sort();
 
   const [selectedYear, setSelectedYear] = useState<string>("all");
   const isComparison = selectedYear === "compare";
 
-  const filteredData = useMemo(() => {
-    if (selectedYear === "all" || selectedYear === "compare") return data;
-    return data.filter((d) => d.monthKey.startsWith(selectedYear));
-  }, [data, selectedYear]);
+  const filteredData = (selectedYear === "all" || selectedYear === "compare")
+    ? data
+    : data.filter((d) => d.monthKey.startsWith(selectedYear));
 
-  const totals = useMemo(() => aggregate(filteredData), [filteredData]);
+  const totals = aggregate(filteredData);
 
-  const yearTotals = useMemo((): YearTotals[] => {
-    if (!isComparison) return [];
-    return availableYears.map((year) => {
-      const yearData = data.filter((d) => d.monthKey.startsWith(year));
-      return { year, ...aggregate(yearData) };
-    });
-  }, [isComparison, availableYears, data]);
+  const yearTotals: YearTotals[] = isComparison
+    ? availableYears.map((year) => {
+        const yearData = data.filter((d) => d.monthKey.startsWith(year));
+        return { year, ...aggregate(yearData) };
+      })
+    : [];
 
   return {
     filteredData, totals, yearTotals,

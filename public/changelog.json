@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.25.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "Fase F Lote 2 — Poda de useMemo/useCallback redundantes (ronda 2)",
+    "description": "Segunda pasada masiva de limpieza post React Compiler: ~90 memoizaciones podadas en 33 archivos adicionales. Impacto por dominio — Reportes: `UtilizationReport`, `UtilizationByModelReport`, `RevenueReport`, `ProfitabilityByModelReport`, `MaintenanceCostReport`, `AgingReport`, `useStatementTotals`. Facturas: `useInvoiceFormLogic`, `useInvoiceFormHandlers`, `useInvoiceLineItemHandlers`, `PortalInvoiceDetail`, `PortalStatement`. Calendario: `GanttChart`, `CalendarPage`, `useGanttSegments`. CRM/Mantenimiento/Inventario/Flota/Devoluciones/Proveedores/Cotizaciones: `MaintenancePage`, `InventoryPage`, `useInventoryFilters`, `FleetPage`, `useForkliftFormState`, `ReturnInspectionPage`, `useReturnInspectionDialog`, `SuppliersPage`, `SupplierDetailPage`, `useQuoteDetailData`. Feedback/Daños/Auditoría/Usuarios: `FeedbackFormDialog`, `MyReportsPage`, `useReportDamageForm`, `ImageGalleryLightbox`, `AuditTrailPage`, `UserManagementPage`. Cuentas por pagar: `useSupplierBillForm`, `useImportSupplierBillCfdi`. Cola pendiente: ~50 archivos con 1 memo residual cada uno (mayoría `ColumnDef[]` inline) que se abordarán en una ronda 3 si es necesario. Typecheck en verde.",
+    "category": "improvement"
+  },
+  {
     "version": "7.24.0",
     "date": "2026-07-12",
     "type": "minor",

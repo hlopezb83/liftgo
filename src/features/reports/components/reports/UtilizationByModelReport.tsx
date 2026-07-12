@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { DownloadIcon } from "@/components/icons";
@@ -19,10 +19,7 @@ export function UtilizationByModelReport({ startDate, endDate }: Props) {
   const { data: forklifts = [] } = useForklifts();
   const { data: bookings = [] } = useBookings();
 
-  const data = useMemo<ModelRow[]>(
-    () => buildUtilizationRows(forklifts, bookings, startDate, endDate),
-    [forklifts, bookings, startDate, endDate],
-  );
+  const data: ModelRow[] = buildUtilizationRows(forklifts, bookings, startDate, endDate);
 
   const table = useLiftgoTable<ModelRow>({
     data,
@@ -32,10 +29,7 @@ export function UtilizationByModelReport({ startDate, endDate }: Props) {
     paginated: false,
   });
 
-  const chartData = useMemo(
-    () => [...data].sort((a, b) => b.utilization - a.utilization),
-    [data],
-  );
+  const chartData = [...data].sort((a, b) => b.utilization - a.utilization);
 
   const handleExport = () => {
     exportToCsv("reporte-utilizacion-modelo.csv", chartData.map((r) => ({

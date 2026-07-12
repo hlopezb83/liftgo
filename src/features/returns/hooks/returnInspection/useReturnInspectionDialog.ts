@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { useForm } from "react-hook-form";
@@ -35,42 +35,39 @@ export function useReturnInspectionDialog(bookings: Booking[] | undefined, activ
     }
   }, [searchParams, activeBookings]);
 
-  const openNew = useCallback(() => {
+  const openNew = () => {
     form.reset(initialReturnInspectionForm);
     setDialogOpen(true);
-  }, [form]);
+  };
 
-  const onSubmit = useCallback(
-    (values: ReturnInspectionFormValues) => {
-      const booking = bookings?.find((b) => b.id === values.bookingId);
-      if (!booking) {
-        notifyValidation({ message: "Reserva no encontrada" });
-        return;
-      }
-      const damageCost = values.damageCost ? parseFloat(values.damageCost) : 0;
-      createInspection.mutate(
-        {
-          booking_id: values.bookingId,
-          forklift_id: booking.forklift_id,
-          condition: values.condition,
-          damage_notes: values.damageNotes || null,
-          damage_cost: damageCost,
-          hours_used: values.hoursUsed ? parseFloat(values.hoursUsed) : null,
-          fuel_level: values.fuelLevel || null,
-          inspected_by: values.inspectedBy || null,
-          inspected_at: values.inspectedAt.toISOString(),
+  const onSubmit = (values: ReturnInspectionFormValues) => {
+    const booking = bookings?.find((b) => b.id === values.bookingId);
+    if (!booking) {
+      notifyValidation({ message: "Reserva no encontrada" });
+      return;
+    }
+    const damageCost = values.damageCost ? parseFloat(values.damageCost) : 0;
+    createInspection.mutate(
+      {
+        booking_id: values.bookingId,
+        forklift_id: booking.forklift_id,
+        condition: values.condition,
+        damage_notes: values.damageNotes || null,
+        damage_cost: damageCost,
+        hours_used: values.hoursUsed ? parseFloat(values.hoursUsed) : null,
+        fuel_level: values.fuelLevel || null,
+        inspected_by: values.inspectedBy || null,
+        inspected_at: values.inspectedAt.toISOString(),
+      },
+      {
+        onSuccess: () => {
+          notifySuccess("Inspección de devolución registrada — montacargas marcado como disponible");
+          setDialogOpen(false);
+          form.reset(initialReturnInspectionForm);
         },
-        {
-          onSuccess: () => {
-            notifySuccess("Inspección de devolución registrada — montacargas marcado como disponible");
-            setDialogOpen(false);
-            form.reset(initialReturnInspectionForm);
-          },
-        },
-      );
-    },
-    [bookings, createInspection, form],
-  );
+      },
+    );
+  };
 
   return {
     dialogOpen,

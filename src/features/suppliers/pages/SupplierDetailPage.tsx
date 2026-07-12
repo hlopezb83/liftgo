@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useParams } from "react-router-dom";
 import { useSuppliers, SUPPLIER_CATEGORIES } from "../hooks/useSuppliers";
 import { useSupplierBills } from "@/features/accounts-payable";
@@ -35,45 +35,33 @@ export default function SupplierDetailPage() {
   const supplier = suppliers?.find((s) => s.id === id);
   const [editOpen, setEditOpen] = useState(false);
 
-  const linkedExpenses = useMemo<LinkedExpense[]>(
-    () => (bills || [])
-      .filter((b) => b.supplier_id === id && b.status !== "cancelled")
-      .map((b) => ({
-        id: b.id,
-        expense_date: b.issue_date,
-        category: b.category ?? "—",
-        description: b.description,
-        amount: Number(b.total),
-      })),
-    [bills, id],
-  );
-  const linkedMaintenance = useMemo(
-    () => (maintenanceLogs || []).filter((m) => m.supplier_id === id),
-    [maintenanceLogs, id],
-  );
+  const linkedExpenses: LinkedExpense[] = (bills || [])
+    .filter((b) => b.supplier_id === id && b.status !== "cancelled")
+    .map((b) => ({
+      id: b.id,
+      expense_date: b.issue_date,
+      category: b.category ?? "—",
+      description: b.description,
+      amount: Number(b.total),
+    }));
+  const linkedMaintenance = (maintenanceLogs || []).filter((m) => m.supplier_id === id);
 
   const totalExpenses = linkedExpenses.reduce((sum, e) => sum + e.amount, 0);
   const totalMaintenance = linkedMaintenance.reduce((sum, m) => sum + (m.cost || 0), 0);
 
-  const expenseColumns = useMemo<ColumnDef<LinkedExpense>[]>(
-    () => [
-      { id: "expense_date", header: "Fecha", accessorKey: "expense_date", cell: ({ row }) => <span className="font-mono text-sm">{formatDateDisplay(row.original.expense_date)}</span> },
-      { id: "category", header: "Categoría", accessorKey: "category", cell: ({ row }) => <Badge variant="outline">{row.original.category}</Badge> },
-      { id: "description", header: "Descripción", accessorKey: "description", cell: ({ row }) => <span className="text-muted-foreground">{row.original.description || "—"}</span> },
-      { id: "amount", header: "Monto", accessorKey: "amount", meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.amount)}</span> },
-    ],
-    [],
-  );
+  const expenseColumns: ColumnDef<LinkedExpense>[] = [
+    { id: "expense_date", header: "Fecha", accessorKey: "expense_date", cell: ({ row }) => <span className="font-mono text-sm">{formatDateDisplay(row.original.expense_date)}</span> },
+    { id: "category", header: "Categoría", accessorKey: "category", cell: ({ row }) => <Badge variant="outline">{row.original.category}</Badge> },
+    { id: "description", header: "Descripción", accessorKey: "description", cell: ({ row }) => <span className="text-muted-foreground">{row.original.description || "—"}</span> },
+    { id: "amount", header: "Monto", accessorKey: "amount", meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.amount)}</span> },
+  ];
 
-  const maintenanceColumns = useMemo<ColumnDef<LinkedMaintenance>[]>(
-    () => [
-      { id: "performed_at", header: "Fecha", accessorKey: "performed_at", cell: ({ row }) => <span className="font-mono text-sm">{formatDateDisplay(row.original.performed_at)}</span> },
-      { id: "forklift", header: "Montacargas", accessorFn: (m) => forkliftMap.get(m.forklift_id)?.name ?? "", cell: ({ row }) => forkliftMap.get(row.original.forklift_id)?.name || "—" },
-      { id: "service_type", header: "Tipo de Servicio", accessorKey: "service_type", cell: ({ row }) => row.original.service_type },
-      { id: "cost", header: "Costo", accessorFn: (m) => m.cost ?? 0, meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.cost || 0)}</span> },
-    ],
-    [forkliftMap],
-  );
+  const maintenanceColumns: ColumnDef<LinkedMaintenance>[] = [
+    { id: "performed_at", header: "Fecha", accessorKey: "performed_at", cell: ({ row }) => <span className="font-mono text-sm">{formatDateDisplay(row.original.performed_at)}</span> },
+    { id: "forklift", header: "Montacargas", accessorFn: (m) => forkliftMap.get(m.forklift_id)?.name ?? "", cell: ({ row }) => forkliftMap.get(row.original.forklift_id)?.name || "—" },
+    { id: "service_type", header: "Tipo de Servicio", accessorKey: "service_type", cell: ({ row }) => row.original.service_type },
+    { id: "cost", header: "Costo", accessorFn: (m) => m.cost ?? 0, meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.cost || 0)}</span> },
+  ];
 
   const expensesTable = useLiftgoTable<LinkedExpense>({
     data: linkedExpenses,

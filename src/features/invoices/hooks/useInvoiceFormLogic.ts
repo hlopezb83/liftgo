@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { useBookings, type BookingWithForklift } from "@/features/bookings";
@@ -45,10 +45,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId }: UseInvoiceFormLogicArgs
   const { data: invoices } = useInvoices();
   const { data: allInvoiceBookings } = useAllInvoiceBookings();
   const { data: invoiceBookingsRows } = useInvoiceBookings(id);
-  const existingBookingIds = useMemo(
-    () => (invoiceBookingsRows ?? []).map((r) => r.booking_id),
-    [invoiceBookingsRows],
-  );
+  const existingBookingIds = (invoiceBookingsRows ?? []).map((r) => r.booking_id);
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
@@ -57,38 +54,34 @@ export function useInvoiceFormLogic({ id, fromQuoteId }: UseInvoiceFormLogicArgs
 
   useInvoicePrefill({ existing, sourceQuote, assignments, forklifts, customers, isEdit, form, existingBookingIds });
 
-  const quoteLineItems = useMemo<LineItem[]>(
-    () => (Array.isArray(sourceQuote?.line_items) ? (sourceQuote?.line_items as unknown as LineItem[]) : []),
-    [sourceQuote],
-  );
+  const quoteLineItems: LineItem[] = Array.isArray(sourceQuote?.line_items)
+    ? (sourceQuote?.line_items as unknown as LineItem[])
+    : [];
   const quoteAssignmentStatus = useQuoteSaleAssignmentStatus(fromQuoteId || undefined, quoteLineItems);
 
-  const saleAssignmentGuard: SaleAssignmentGuard = useMemo(() => {
-    const shouldBlock =
+  const saleAssignmentGuard: SaleAssignmentGuard = {
+    shouldBlock:
       !isEdit &&
       !!sourceQuote &&
       !!fromQuoteId &&
       sourceQuote.quote_type === "sale" &&
-      !quoteAssignmentStatus.isComplete;
-    return {
-      shouldBlock,
-      totalAssigned: quoteAssignmentStatus.totalAssigned,
-      totalRequired: quoteAssignmentStatus.totalRequired,
-      missingByLine: quoteAssignmentStatus.missingByLine,
-    };
-  }, [isEdit, sourceQuote, fromQuoteId, quoteAssignmentStatus]);
+      !quoteAssignmentStatus.isComplete,
+    totalAssigned: quoteAssignmentStatus.totalAssigned,
+    totalRequired: quoteAssignmentStatus.totalRequired,
+    missingByLine: quoteAssignmentStatus.missingByLine,
+  };
 
   const submit = useInvoiceFormSubmit();
-  const uniqueBookingQuoteIds = useMemo(() => {
+  const uniqueBookingQuoteIds = (() => {
     const set = new Set<string>();
     bookings?.forEach((b) => { if (b.quote_id) set.add(b.quote_id); });
     return Array.from(set);
-  }, [bookings]);
+  })();
   const { data: bookingSourceQuotes } = useQuotesByIds(uniqueBookingQuoteIds);
   const { handleCustomerSelect, handleBookingSelect, handleBookingsChange } = useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes: bookingSourceQuotes });
   const totals = useInvoiceFormTotals(form);
 
-  const invoicedBookingIds = useMemo(() => {
+  const invoicedBookingIds = (() => {
     const set = new Set<string>();
     invoices?.forEach((inv) => {
       if (inv.status !== "cancelled" && inv.booking_id) set.add(inv.booking_id);
@@ -99,7 +92,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId }: UseInvoiceFormLogicArgs
       set.add(row.booking_id);
     });
     return set;
-  }, [invoices, allInvoiceBookings, isEdit, id]);
+  })();
 
   const availableBookings = bookings?.filter(
     (booking) => booking.status === "confirmed" && !invoicedBookingIds.has(booking.id),

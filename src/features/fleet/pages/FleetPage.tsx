@@ -1,5 +1,5 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { useMemo } from "react";
+
 import { useForklifts } from "../hooks/forklifts/useForklifts";
 import { useMaintenancePolicies } from "@/features/maintenance";
 import { useContracts } from "@/features/contracts";
@@ -25,12 +25,9 @@ export default function FleetPage() {
   const { data: contracts } = useContracts();
   const { data: deliveries } = useDeliveries();
 
-  const activePolicyForkliftIds = useMemo(
-    () => new Set(policies?.filter((p) => p.is_active).map((p) => p.forklift_id) ?? []),
-    [policies],
-  );
+  const activePolicyForkliftIds = new Set(policies?.filter((p) => p.is_active).map((p) => p.forklift_id) ?? []);
 
-  const locationMap = useMemo(() => {
+  const locationMap = (() => {
     const map = new Map<string, string>();
     contracts?.forEach((c) => {
       if (c.forklift_id && c.status === "active" && c.usage_location) {
@@ -43,7 +40,7 @@ export default function FleetPage() {
       }
     });
     return map;
-  }, [contracts, deliveries]);
+  })();
 
   const navigate = useNavigateTransition();
   usePageActions({ onNew: () => navigate("/fleet/new"), newLabel: "Nuevo equipo" });

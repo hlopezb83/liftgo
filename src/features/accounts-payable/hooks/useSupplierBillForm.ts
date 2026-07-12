@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useMemo } from "react";
+import { useEffect, useEffectEvent } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
@@ -102,17 +102,14 @@ export function useSupplierBillForm(
   const issueDate = form.watch("issue_date");
   const dueDate = form.watch("due_date");
 
-  const selectedSupplier = useMemo(
-    () => suppliersList?.find((s) => s.id === supplierId),
-    [suppliersList, supplierId],
-  );
-  const suggestedDueDate = useMemo(() => {
+  const selectedSupplier = suppliersList?.find((s) => s.id === supplierId);
+  const suggestedDueDate = (() => {
     const days = selectedSupplier?.default_payment_terms_days;
     if (!days || !issueDate) return null;
     const d = new Date(issueDate);
     d.setDate(d.getDate() + days);
     return d;
-  }, [selectedSupplier, issueDate]);
+  })();
 
   const applySuggestedDueDate = useEffectEvent(() => {
     if (suggestedDueDate && !dueDate && !isEdit) {

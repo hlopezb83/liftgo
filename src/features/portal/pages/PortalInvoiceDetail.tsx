@@ -1,5 +1,5 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { useMemo } from "react";
+
 import { useParams } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -25,34 +25,22 @@ export default function PortalInvoiceDetail() {
   const isLoading = invoicesLoading || paymentsLoading;
 
   const invoice = invoices?.find((i) => i.id === id);
-  const invoicePayments = useMemo<Payment[]>(
-    () => (payments?.filter((p) => p.invoice_id === id) || []) as Payment[],
-    [payments, id],
-  );
-  const lineItems = useMemo<LineItem[]>(
-    () => (Array.isArray(invoice?.line_items) ? (invoice?.line_items as LineItem[]) : []),
-    [invoice],
-  );
+  const invoicePayments: Payment[] = (payments?.filter((p) => p.invoice_id === id) || []) as Payment[];
+  const lineItems: LineItem[] = Array.isArray(invoice?.line_items) ? (invoice?.line_items as LineItem[]) : [];
 
-  const lineColumns = useMemo<ColumnDef<LineItem>[]>(
-    () => [
-      { id: "description", header: "Descripción", accessorKey: "description", enableSorting: false, cell: ({ row }) => row.original.description || "—" },
-      { id: "quantity", header: "Cant.", accessorKey: "quantity", enableSorting: false, meta: { align: "right" }, cell: ({ row }) => row.original.quantity || 1 },
-      { id: "unit_price", header: "Precio Unit.", accessorKey: "unit_price", enableSorting: false, meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(Number(row.original.unit_price || 0))}</span> },
-      { id: "amount", header: "Importe", accessorKey: "amount", enableSorting: false, meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(Number(row.original.amount || 0))}</span> },
-    ],
-    [],
-  );
+  const lineColumns: ColumnDef<LineItem>[] = [
+    { id: "description", header: "Descripción", accessorKey: "description", enableSorting: false, cell: ({ row }) => row.original.description || "—" },
+    { id: "quantity", header: "Cant.", accessorKey: "quantity", enableSorting: false, meta: { align: "right" }, cell: ({ row }) => row.original.quantity || 1 },
+    { id: "unit_price", header: "Precio Unit.", accessorKey: "unit_price", enableSorting: false, meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(Number(row.original.unit_price || 0))}</span> },
+    { id: "amount", header: "Importe", accessorKey: "amount", enableSorting: false, meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(Number(row.original.amount || 0))}</span> },
+  ];
 
-  const paymentColumns = useMemo<ColumnDef<Payment>[]>(
-    () => [
-      { id: "payment_date", header: "Fecha", accessorKey: "payment_date", cell: ({ row }) => formatDateDisplay(row.original.payment_date) },
-      { id: "payment_method", header: "Método", accessorKey: "payment_method", enableSorting: false, cell: ({ row }) => row.original.payment_method || "—" },
-      { id: "reference_number", header: "Referencia", accessorKey: "reference_number", enableSorting: false, cell: ({ row }) => row.original.reference_number || "—" },
-      { id: "amount", header: "Monto", accessorFn: (p) => Number(p.amount), meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(Number(row.original.amount))}</span> },
-    ],
-    [],
-  );
+  const paymentColumns: ColumnDef<Payment>[] = [
+    { id: "payment_date", header: "Fecha", accessorKey: "payment_date", cell: ({ row }) => formatDateDisplay(row.original.payment_date) },
+    { id: "payment_method", header: "Método", accessorKey: "payment_method", enableSorting: false, cell: ({ row }) => row.original.payment_method || "—" },
+    { id: "reference_number", header: "Referencia", accessorKey: "reference_number", enableSorting: false, cell: ({ row }) => row.original.reference_number || "—" },
+    { id: "amount", header: "Monto", accessorFn: (p) => Number(p.amount), meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(Number(row.original.amount))}</span> },
+  ];
 
   const lineTable = useLiftgoTable<LineItem>({
     data: lineItems,

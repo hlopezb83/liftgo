@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,24 +19,21 @@ export default function PortalStatement() {
   const [onlyBalance, setOnlyBalance] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
-  const rows = useMemo(() => {
-    const list = invoices ?? [];
-    return list.map((inv) => {
-      const invPayments = (payments ?? []).filter((p: PortalPayment) => p.invoice_id === inv.id);
-      const paid = invPayments.reduce((s, p: PortalPayment) => s + Number(p.amount), 0);
-      const balance = Number(inv.total) - paid;
-      return { inv, payments: invPayments, paid, balance };
-    });
-  }, [invoices, payments]);
+  const rows = (invoices ?? []).map((inv) => {
+    const invPayments = (payments ?? []).filter((p: PortalPayment) => p.invoice_id === inv.id);
+    const paid = invPayments.reduce((s, p: PortalPayment) => s + Number(p.amount), 0);
+    const balance = Number(inv.total) - paid;
+    return { inv, payments: invPayments, paid, balance };
+  });
 
 
   const filtered = onlyBalance ? rows.filter((r) => r.balance > 0.009) : rows;
 
-  const totals = useMemo(() => {
+  const totals = (() => {
     const invoiced = rows.reduce((s, r) => s + Number(r.inv.total), 0);
     const paid = rows.reduce((s, r) => s + r.paid, 0);
     return { invoiced, paid, balance: invoiced - paid };
-  }, [rows]);
+  })();
 
   const handleDownload = async () => {
     if (!customer || !summary) return;

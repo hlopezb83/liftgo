@@ -1,5 +1,5 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useBookings } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
 import { useReturnInspections } from "../hooks/useReturnInspections";
@@ -36,60 +36,57 @@ export default function ReturnInspectionPage() {
   const { dialogOpen, setDialogOpen, form, openNew, handleSubmit, isPending } =
     useReturnInspectionDialog(bookings, activeBookings);
 
-  const filteredInspections = useMemo(() => {
-    if (!inspections) return [];
-    if (!filterDate) return inspections;
-    return inspections.filter((i) => {
-      const d = parseDateLocal(i.inspected_at);
-      return (
-        d.getFullYear() === filterDate.getFullYear() &&
-        d.getMonth() === filterDate.getMonth() &&
-        d.getDate() === filterDate.getDate()
-      );
-    });
-  }, [inspections, filterDate]);
+  const filteredInspections = !inspections
+    ? []
+    : !filterDate
+      ? inspections
+      : inspections.filter((i) => {
+          const d = parseDateLocal(i.inspected_at);
+          return (
+            d.getFullYear() === filterDate.getFullYear() &&
+            d.getMonth() === filterDate.getMonth() &&
+            d.getDate() === filterDate.getDate()
+          );
+        });
 
-  const columns = useMemo<ColumnDef<Inspection>[]>(
-    () => [
-      {
-        id: "inspection_number",
-        header: "Devolución #",
-        accessorKey: "inspection_number",
-        cell: ({ row }) => <span className="font-mono text-sm text-primary">{row.original.inspection_number}</span>,
-      },
-      {
-        id: "inspected_at",
-        header: "Fecha",
-        accessorKey: "inspected_at",
-        cell: ({ row }) => <span className="font-mono text-sm">{format(parseDateLocal(row.original.inspected_at), "dd/MM/yyyy")}</span>,
-      },
-      {
-        id: "forklift_name",
-        header: "Montacargas",
-        accessorFn: (i) => i.forklifts?.name || "",
-        cell: ({ row }) => <span className="font-medium">{row.original.forklifts?.name || "—"}</span>,
-      },
-      {
-        id: "customer_name",
-        header: "Cliente",
-        accessorFn: (i) => i.bookings?.customer_name || "",
-        cell: ({ row }) => row.original.bookings?.customer_name || "—",
-      },
-      {
-        id: "condition",
-        header: "Condición",
-        accessorKey: "condition",
-        cell: ({ row }) => <StatusBadge status={row.original.condition} />,
-      },
-      {
-        id: "inspected_by",
-        header: "Inspector",
-        accessorFn: (i) => i.inspected_by || "",
-        cell: ({ row }) => row.original.inspected_by || "—",
-      },
-    ],
-    [],
-  );
+  const columns: ColumnDef<Inspection>[] = [
+    {
+      id: "inspection_number",
+      header: "Devolución #",
+      accessorKey: "inspection_number",
+      cell: ({ row }) => <span className="font-mono text-sm text-primary">{row.original.inspection_number}</span>,
+    },
+    {
+      id: "inspected_at",
+      header: "Fecha",
+      accessorKey: "inspected_at",
+      cell: ({ row }) => <span className="font-mono text-sm">{format(parseDateLocal(row.original.inspected_at), "dd/MM/yyyy")}</span>,
+    },
+    {
+      id: "forklift_name",
+      header: "Montacargas",
+      accessorFn: (i) => i.forklifts?.name || "",
+      cell: ({ row }) => <span className="font-medium">{row.original.forklifts?.name || "—"}</span>,
+    },
+    {
+      id: "customer_name",
+      header: "Cliente",
+      accessorFn: (i) => i.bookings?.customer_name || "",
+      cell: ({ row }) => row.original.bookings?.customer_name || "—",
+    },
+    {
+      id: "condition",
+      header: "Condición",
+      accessorKey: "condition",
+      cell: ({ row }) => <StatusBadge status={row.original.condition} />,
+    },
+    {
+      id: "inspected_by",
+      header: "Inspector",
+      accessorFn: (i) => i.inspected_by || "",
+      cell: ({ row }) => row.original.inspected_by || "—",
+    },
+  ];
 
   const table = useLiftgoTable<Inspection>({
     data: filteredInspections,

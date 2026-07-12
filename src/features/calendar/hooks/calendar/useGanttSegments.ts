@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+
 import { eachDayOfInterval, parseISO, differenceInDays } from "date-fns";
 import type { BookingWithForklift } from "@/features/bookings";
 
@@ -27,10 +27,10 @@ export function useGanttSegments(
   rangeStart: Date,
   rangeEnd: Date,
 ) {
-  const days = useMemo(() => eachDayOfInterval({ start: rangeStart, end: rangeEnd }), [rangeStart, rangeEnd]);
+  const days = eachDayOfInterval({ start: rangeStart, end: rangeEnd });
   const totalDays = days.length;
 
-  const bookingsByForklift = useMemo(() => {
+  const bookingsByForklift = (() => {
     const map = new Map<string, BookingWithForklift[]>();
     bookings?.forEach((b) => {
       const list = map.get(b.forklift_id);
@@ -38,7 +38,7 @@ export function useGanttSegments(
       else map.set(b.forklift_id, [b]);
     });
     return map;
-  }, [bookings]);
+  })();
 
   const getSegments = (forkliftId: string): BarSegment[] => {
     const fBookings = bookingsByForklift.get(forkliftId) || [];
@@ -65,7 +65,7 @@ export function useGanttSegments(
     return segments;
   };
 
-  const customerColorMap = useMemo(() => {
+  const customerColorMap = (() => {
     const map = new Map<string, string>();
     bookings?.forEach((b) => {
       if (!b.customer_name || map.has(b.customer_name)) return;
@@ -76,7 +76,7 @@ export function useGanttSegments(
       }
     });
     return map;
-  }, [bookings, rangeStart, rangeEnd]);
+  })();
 
   return { days, totalDays, getSegments, customerColorMap };
 }

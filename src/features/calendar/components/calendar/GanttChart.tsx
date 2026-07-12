@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { parseISO, isToday } from "date-fns";
 import { ChevronDownIcon, ChevronRightIcon } from "@/components/icons";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -61,7 +61,7 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd }: GanttC
   const { days, getSegments, customerColorMap } = useGanttSegments(bookings, rangeStart, rangeEnd);
   const [legendOpen, setLegendOpen] = useState(false);
 
-  const forkliftsWithActivity = useMemo(() => {
+  const forkliftsWithActivity = (() => {
     const set = new Set<string>();
     bookings?.forEach((b) => {
       if (b.status !== BOOKING_STATUS.confirmed) return;
@@ -70,9 +70,9 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd }: GanttC
       if (bEnd >= rangeStart && bStart <= rangeEnd) set.add(b.forklift_id);
     });
     return set;
-  }, [bookings, rangeStart, rangeEnd]);
+  })();
 
-  const { active, available, sold } = useMemo(() => {
+  const { active, available, sold } = (() => {
     const sorted = [...(forklifts ?? [])].sort((a, b) => a.name.localeCompare(b.name));
     const activeList: Forklift[] = [];
     const availableList: Forklift[] = [];
@@ -83,13 +83,13 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd }: GanttC
       else availableList.push(f);
     }
     return { active: activeList, available: availableList, sold: soldList };
-  }, [forklifts, forkliftsWithActivity]);
+  })();
 
-  const availableGroups = useMemo(() => groupByModel(available), [available]);
-  const soldGroups = useMemo(() => groupByModel(sold), [sold]);
+  const availableGroups = groupByModel(available);
+  const soldGroups = groupByModel(sold);
 
   // Posición de la línea vertical "hoy"
-  const todayIdx = useMemo(() => days.findIndex((d) => isToday(d)), [days]);
+  const todayIdx = days.findIndex((d) => isToday(d));
   const todayLeftPct = todayIdx >= 0 && days.length > 0 ? ((todayIdx + 0.5) / days.length) * 100 : null;
 
   return (
