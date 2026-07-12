@@ -43,7 +43,7 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
   });
   useEffect(() => {
     if (!open) resetOnClose();
-  }, [open, resetOnClose]);
+  }, [open]);
 
 
   const activeOverrides = overrides ?? importedValues;
