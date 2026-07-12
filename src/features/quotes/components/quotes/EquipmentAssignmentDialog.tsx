@@ -94,7 +94,7 @@ export function EquipmentAssignmentDialog({
 
   useEffect(() => { form.reset({ assignments: slots }); }, [slots, form]);
 
-  const watched = form.watch("assignments");
+  const watched = useWatch({ control: form.control, name: "assignments" });
 
   const getAvailableForModel = (modelId: string, currentIndex: number) => {
     const model = models.find((m) => m.id === modelId);
