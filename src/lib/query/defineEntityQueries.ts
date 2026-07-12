@@ -23,14 +23,15 @@ import { createEntityKeys, type EntityKeys } from "./createEntityKeys";
 
 type Fetcher<T> = () => Promise<T>;
 
-export interface DefineEntityConfig<TList, TDetail> {
+export interface DefineEntityConfig<TList, TDetail = never> {
   readonly list: (filter?: Readonly<Record<string, unknown>>) => Fetcher<TList>;
-  readonly detail: (id: string) => Fetcher<TDetail>;
+  /** Opcional: hooks sin fetch de detalle solo definen `list`. */
+  readonly detail?: (id: string) => Fetcher<TDetail>;
   /** staleTime por default en ms (default: 60_000). */
   readonly staleTime?: number;
 }
 
-export function defineEntityQueries<Root extends string, TList, TDetail>(
+export function defineEntityQueries<Root extends string, TList, TDetail = never>(
   root: Root,
   config: DefineEntityConfig<TList, TDetail>,
 ) {
@@ -44,13 +45,16 @@ export function defineEntityQueries<Root extends string, TList, TDetail>(
       staleTime,
     });
 
-  const detail = (id: string) =>
-    queryOptions({
+  const detail = (id: string) => {
+    if (!config.detail) throw new Error(`defineEntityQueries("${root}"): detail no está configurado`);
+    const fetcher = config.detail;
+    return queryOptions({
       queryKey: keys.detail(id) as readonly unknown[],
-      queryFn: config.detail(id),
+      queryFn: fetcher(id),
       staleTime,
       enabled: !!id,
     });
+  };
 
   return { keys, list, detail } as const;
 }
