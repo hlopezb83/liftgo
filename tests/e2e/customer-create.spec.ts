@@ -30,6 +30,9 @@ test("create a customer through the UI with E2E isolation", async ({ page }) => 
   }, e2eScope);
 
   await page.goto("/customers", { waitUntil: "domcontentloaded" });
+  // Fuentes ahora se cargan non-blocking (v7.39.0). Esperar `document.fonts.ready`
+  // evita clicks pre-hidratación en runners lentos de CI.
+  await page.evaluate(() => document.fonts?.ready).catch(() => {});
 
   await page.getByRole("button", { name: /agregar cliente/i }).first().click();
 

@@ -18,6 +18,7 @@ import { test, expect } from "./fixtures/seed";
  */
 test("seeded maintenance work order appears in pending column", async ({ page, seed }) => {
   await page.goto("/maintenance", { waitUntil: "domcontentloaded" });
+  await page.evaluate(() => document.fonts?.ready).catch(() => {});
 
   // Vista por defecto es "list". Activamos el toggle "board" (Kanban) via su
   // aria-label estable. NOTA: Radix ToggleGroup type="single" renderiza los items
