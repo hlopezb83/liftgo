@@ -20,11 +20,13 @@
  *     `type Values = z.input<typeof schema>`.
  */
 import { zodResolver as hookformZodResolver } from "@hookform/resolvers/zod";
-import type { ZodType } from "zod";
 import type { FieldValues, Resolver } from "react-hook-form";
 
-export function zodResolver<Values extends FieldValues, Output = Values>(
-  schema: ZodType<Output, Values>,
-): Resolver<Values> {
+// Type intentionally opaque: consumidores usan z.input o z.infer según su schema.
+// El cast interno absorbe la incompatibilidad Input↔Output introducida por Zod 4.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnySchema = any;
+
+export function zodResolver<Values extends FieldValues>(schema: AnySchema): Resolver<Values> {
   return hookformZodResolver(schema) as unknown as Resolver<Values>;
 }
