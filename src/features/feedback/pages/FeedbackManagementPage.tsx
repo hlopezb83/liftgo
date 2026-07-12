@@ -60,7 +60,7 @@ export default function FeedbackManagementPage() {
                     <p className="text-sm font-medium line-clamp-2">{r.title}</p>
                     <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground">
                       <span className="truncate">{r.module}</span>
-                      <span>{format(new Date(r.created_at), "dd/MM")}</span>
+                      <span>{formatMtyDate(r.created_at, "dd/MM")}</span>
                     </div>
                   </Card>
                 ))}

@@ -124,7 +124,7 @@ export function ActivityTimeline({ filters, onFilterChange, onReset, members }: 
                       {moduleLabel}
                     </span>
                     <p className="text-[11px] text-muted-foreground mt-0.5 tabular-nums">
-                      {format(new Date(a.created_at), "dd/MM HH:mm")}
+                      {formatDateTimeShortMty(a.created_at)}
                     </p>
                   </div>
                 </div>
