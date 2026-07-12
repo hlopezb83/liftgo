@@ -106,10 +106,10 @@ export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId
             name="trackingKey"
             label="Clave de rastreo SPEI (opcional)"
           />
-          <Controller
+          <FormField
             control={form.control}
             name="proofFile"
-            render={({ field, fieldState }) => (
+            render={({ field }) => (
               <FormItem>
                 <FormLabel>Comprobante (PDF o imagen, opcional)</FormLabel>
                 <FormControl>
@@ -119,7 +119,7 @@ export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId
                     onChange={(e) => field.onChange(e.target.files?.[0] ?? null)}
                   />
                 </FormControl>
-                {fieldState.error && <FormMessage>{fieldState.error.message}</FormMessage>}
+                <FormMessage />
               </FormItem>
             )}
           />
