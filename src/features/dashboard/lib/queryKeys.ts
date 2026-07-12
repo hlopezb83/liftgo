@@ -44,7 +44,7 @@ export interface MrrDetail {
 export const mrrDetailQueries = defineEntityQueries<"dashboard-mrr-detail", MrrDetail>(
   "dashboard-mrr-detail",
   {
-    list: (filter) => async () => {
+    list: () => async () => {
       const result = await callRpc<MrrDetail>("get_mrr_detail");
       return {
         items: result?.items ?? [],
@@ -72,10 +72,10 @@ export interface FinancialKpis {
   }>;
 }
 
-export const financialKpisQueries = defineEntityQueries<"dashboard-financial-kpis", FinancialKpis | null>(
+export const financialKpisQueries = defineEntityQueries<"dashboard-financial-kpis", FinancialKpis>(
   "dashboard-financial-kpis",
   {
-    list: (filter) => () => callRpc<FinancialKpis>("get_financial_kpis"),
+    list: () => () => callRpc<FinancialKpis>("get_financial_kpis"),
     staleTime: 30_000,
   },
 );
@@ -145,10 +145,10 @@ export interface DashboardStats {
   }>;
 }
 
-export const dashboardStatsQueries = defineEntityQueries<"dashboard-stats", DashboardStats | null>(
+export const dashboardStatsQueries = defineEntityQueries<"dashboard-stats", DashboardStats>(
   "dashboard-stats",
   {
-    list: (filter) => () => callRpc<DashboardStats>("get_dashboard_stats"),
+    list: () => () => callRpc<DashboardStats>("get_dashboard_stats"),
     staleTime: 30_000,
   },
 );

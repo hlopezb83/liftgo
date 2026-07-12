@@ -1,6 +1,5 @@
-import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 
 const BUCKET = "supplier-bill-cfdi-xml";
 const MAX_BYTES = 2 * 1024 * 1024; // 2 MB (un XML CFDI rara vez supera 100 KB)
@@ -11,7 +10,7 @@ export interface UploadedCfdiXml {
 }
 
 export function useUploadSupplierBillXml() {
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({
       file,
       uuid,
@@ -31,6 +30,6 @@ export function useUploadSupplierBillXml() {
       if (signErr || !signed) throw signErr ?? new Error("No se pudo firmar la URL");
       return { path, signedUrl: signed.signedUrl };
     },
-    onError: (e: unknown) => notifyError({ error: e, message: "No se pudo subir el XML" }),
+    errorTitle: "No se pudo subir el XML",
   });
 }

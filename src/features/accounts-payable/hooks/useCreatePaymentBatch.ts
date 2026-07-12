@@ -1,6 +1,6 @@
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { callRpc } from "@/lib/rpc";
-import { EXPORTABLE_PAYABLES_QK } from "./useExportablePayables";
+import { exportablePayableQueries } from "./useExportablePayables";
 import { PAYMENT_BATCHES_QK } from "./usePaymentBatches";
 import { supplierBillKeys } from "./useSupplierBills";
 
@@ -19,7 +19,7 @@ export function useCreatePaymentBatch() {
       }),
     invalidateKeys: [
       supplierBillKeys.all,
-      EXPORTABLE_PAYABLES_QK,
+      exportablePayableQueries.keys.all,
       PAYMENT_BATCHES_QK,
       ["accounts_payable_kpis"],
     ],

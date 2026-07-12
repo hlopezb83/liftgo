@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { callRpc } from "@/lib/rpc";
+import { feedbackLeaderboardKeys } from "../lib/queryKeys";
 
 export type LeaderboardPeriod = "month" | "year" | "all";
 
@@ -12,13 +14,19 @@ export interface LeaderboardRow {
   total_points: number;
 }
 
+export const leaderboardQueries = defineEntityQueries<
+  typeof feedbackLeaderboardKeys.all[number],
+  LeaderboardRow[],
+  never
+>("feedback_leaderboard", {
+  list: (filter) => async () => {
+    const period = (filter?.period as LeaderboardPeriod | undefined) ?? "all";
+    const data = await callRpc<LeaderboardRow[] | null>("get_feedback_leaderboard", { _period: period });
+    return data ?? [];
+  },
+  staleTime: 60_000,
+});
+
 export function useLeaderboard(period: LeaderboardPeriod) {
-  return useQuery<LeaderboardRow[]>({
-    queryKey: ["feedback_leaderboard", period],
-    staleTime: 60_000,
-    queryFn: async () => {
-      const data = await callRpc<LeaderboardRow[] | null>("get_feedback_leaderboard", { _period: period });
-      return data ?? [];
-    },
-  });
+  return useQuery(leaderboardQueries.list({ period }));
 }

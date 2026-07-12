@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { formatMonthShortEs } from "@/lib/format/formatMonthEs";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { callRpc } from "@/lib/rpc";
+import { incomeStatementKeys } from "../../lib/queryKeys";
 import {
   type MonthData, type AccountingBasis, type ExpenseCategory,
   emptyExpenses, computeDerivedTotals,
@@ -36,20 +38,31 @@ interface RpcResult {
   sold_without_cost: { id: string; name: string }[];
 }
 
+export const incomeStatementQueries = defineEntityQueries<
+  typeof incomeStatementKeys.all[number],
+  RpcResult,
+  never
+>("income_statement", {
+  list: (filter) => () => {
+    const startStr = filter?.startStr as string;
+    const endStr = filter?.endStr as string;
+    const accountingBasis = filter?.accountingBasis as AccountingBasis;
+    return callRpc<RpcResult>("get_income_statement", {
+      p_start_date: startStr,
+      p_end_date: endStr,
+      p_basis: accountingBasis,
+    });
+  },
+  staleTime: 60_000,
+});
+
 export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
   const startStr = format(startDate, "yyyy-MM-dd");
   const endStr = format(endDate, "yyyy-MM-dd");
 
-  const { data: rpc } = useQuery({
-    queryKey: ["income_statement", startStr, endStr, accountingBasis],
-    staleTime: 60_000,
-    queryFn: () =>
-      callRpc<RpcResult>("get_income_statement", {
-        p_start_date: startStr,
-        p_end_date: endStr,
-        p_basis: accountingBasis,
-      }),
-  });
+  const { data: rpc } = useQuery(
+    incomeStatementQueries.list({ startStr, endStr, accountingBasis }),
+  );
 
   const data: MonthData[] = (rpc?.months ?? []).map((m): MonthData => {
     const rawExpenses = { ...emptyExpenses(), ...m.expenses } as Record<ExpenseCategory, number>;
