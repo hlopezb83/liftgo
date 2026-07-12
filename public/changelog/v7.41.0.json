@@ -1,0 +1,37 @@
+{
+  "version": "7.41.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "Auditoría visual — Lote 2: grids, overlays y headers responsive",
+  "summary": "Ajustes finos de responsive tras el fix crítico del sidebar. KPIs mejor distribuidos en tablet, overlays consistentes con tema, títulos largos ya no se cortan y sheets más anchos en tablet.",
+  "sections": [
+    {
+      "title": "Grids",
+      "items": [
+        "Dashboard (skeleton) y StatCards: `grid-cols-2 md:grid-cols-3 lg:grid-cols-5` para que 5 KPIs llenen tablet landscape sin fila huérfana.",
+        "ForkliftDetail, CustomerDetailPage: `grid-cols-1 md:grid-cols-2 lg:grid-cols-3` para aprovechar 768-1024px.",
+        "SupplierDetailPage: primera fila con 2 cards pasa a `md:grid-cols-2` (era `md:grid-cols-3`, dejando hueco)."
+      ]
+    },
+    {
+      "title": "Overlays y diálogos",
+      "items": [
+        "AlertDialog overlay: `bg-background/80 backdrop-blur-sm` (era `bg-black/80` opaco).",
+        "ErrorDetailsDialog: `max-h-[50vh]` (era 60vh) para no comer footer en tablet landscape."
+      ]
+    },
+    {
+      "title": "Headers y sheets",
+      "items": [
+        "PageHeader y DetailPageHeader: `line-clamp-2` en lugar de `truncate` para nombres largos en tablet portrait.",
+        "FeedbackDetailSheet y BankLineDetailSheet: `sm:max-w-2xl` (era `xl`)."
+      ]
+    },
+    {
+      "title": "Descartado",
+      "items": [
+        "El auditor reportó 'CTAs duplicados' en 8 páginas. Falso positivo: `usePageActions` sólo registra hotkeys (n/r), no renderiza UI. El `actions` de ListPageLayout es el único botón visible."
+      ]
+    }
+  ]
+}

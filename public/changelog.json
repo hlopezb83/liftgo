@@ -1,5 +1,22 @@
 [
   {
+    "version": "7.41.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "Auditoría visual — Lote 2: grids, overlays y headers responsive",
+    "description": "Segunda ola de correcciones tras el fix crítico del sidebar (v7.40.0). Los 3 subagentes que auditaron formularios, detalles y listados en desktop/tablet destaparon inconsistencias en KPIs, overlays y anchos de sheets. Se descarta el hallazgo de 'CTAs duplicados' del auditor porque `usePageActions` sólo registra atajos de teclado (n/r), no renderiza botón. Cambios: (1) Dashboard skeleton y `StatCards` alineados a `md:grid-cols-3 lg:grid-cols-5` para que 5 KPIs llenen bien tablet landscape (1024px) sin fila huérfana. (2) `ForkliftDetail`, `CustomerDetailPage` y `SupplierDetailPage` añaden breakpoint `md:grid-cols-2` para aprovechar 768-1024px en vez de saltar directo de 1→3 columnas. (3) `AlertDialog` overlay pasa de `bg-black/80` a `bg-background/80 backdrop-blur-sm` para igualar `Dialog` estándar y respetar tema. (4) `ErrorDetailsDialog` `max-h-[60vh]→[50vh]` para tablet landscape (768px alto). (5) `DetailPageHeader` y `PageHeader` cambian `truncate` por `line-clamp-2` para no cortar nombres de entidad en tablet portrait. (6) `FeedbackDetailSheet` y `BankLineDetailSheet` suben de `sm:max-w-xl` a `sm:max-w-2xl` para tablet.",
+    "category": "improvement",
+    "changes": [
+      { "type": "improved", "description": "Dashboard/StatCards: grid alineado a `md:grid-cols-3 lg:grid-cols-5` (skeleton y real)" },
+      { "type": "improved", "description": "Detalles (Forklift/Customer/Supplier): añadido breakpoint `md:grid-cols-2` para tablet" },
+      { "type": "improved", "description": "AlertDialog overlay: `bg-black/80` → `bg-background/80 backdrop-blur-sm` (respeta tema)" },
+      { "type": "improved", "description": "ErrorDetailsDialog: `max-h` reducido para tablet landscape" },
+      { "type": "improved", "description": "PageHeader/DetailPageHeader: `truncate` → `line-clamp-2` (títulos largos legibles en tablet portrait)" },
+      { "type": "improved", "description": "Sheets Feedback/BankLine: `sm:max-w-xl` → `sm:max-w-2xl` para tablet" }
+    ]
+  },
+
+  {
     "version": "7.40.0",
     "date": "2026-07-12",
     "type": "minor",
