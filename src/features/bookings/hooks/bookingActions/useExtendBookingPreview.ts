@@ -16,7 +16,9 @@ export function useExtendBookingPreview(
   return (() => {
     const forklift = forklifts?.find((f) => f.id === booking.forklift_id);
     if (!forklift || !newEndDate) return null;
-    const items = generateLineItems(forklift, booking.start_date, toYMD(newEndDate)!);
+    const endYMD = toYMD(newEndDate);
+    if (!endYMD) return null;
+    const items = generateLineItems(forklift, booking.start_date, endYMD);
     return computeTotals(items, 21);
   })();
 }
