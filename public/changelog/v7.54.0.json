@@ -1,0 +1,43 @@
+{
+  "version": "7.54.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "react-day-picker v10: animate, cleanup CSS de rango y captionLayout opcional",
+  "summary": "Auditoría post-migración a v10.0.1. Activamos la animación nativa del calendario, limpiamos el CSS legacy del modo rango y exponemos captionLayout/startMonth/endMonth como props opcionales en DatePickerField.",
+  "sections": [
+    {
+      "title": "Wrapper Calendar (src/components/ui/calendar.tsx)",
+      "items": [
+        "Se añade la prop `animate` al DayPicker: transiciones nativas al navegar entre meses/años sin coste adicional de bundle.",
+        "Se elimina el selector heredado `[&:has([aria-selected])]:bg-accent first/last:[&:has([aria-selected])]:rounded-*` sobre el className `day`. En v10 este resaltado ya lo cubren `range_start` / `range_middle` / `range_end`, y el selector duplicaba pintado sobre días `outside`.",
+        "`range_start` y `range_end` ahora heredan el fondo `primary` con esquina redondeada; `range_middle` pinta `bg-accent text-accent-foreground rounded-none`."
+      ]
+    },
+    {
+      "title": "DatePickerField (src/components/forms/DatePickerField.tsx)",
+      "items": [
+        "Nuevas props opcionales `captionLayout`, `startMonth`, `endMonth`, pasadas directamente al Calendar. Habilitan dropdowns de mes/año cuando la fecha objetivo puede estar lejos (nacimientos, vencimientos, históricos).",
+        "Se remueve `defaultMonth={localDate ?? new Date()}`: react-day-picker v10 abre por defecto en el mes de `selected`."
+      ]
+    },
+    {
+      "title": "DateRangePickerField (src/components/forms/DateRangePickerField.tsx)",
+      "items": [
+        "Se remueve el `defaultMonth` derivado por el mismo motivo. Sin cambios de API pública."
+      ]
+    },
+    {
+      "title": "Optimización de imports y bundle",
+      "items": [
+        "No hay barrels que limpiar: `DayPicker` y los tipos vienen como named imports; el locale español se sigue importando desde el subpath `react-day-picker/locale`.",
+        "Impacto en bundle: neutro (features ya presentes en el peso base de v10)."
+      ]
+    }
+  ],
+  "impact": "UX: transición animada al cambiar de mes, resaltado del rango consistente sin doble pintado, y navegación por dropdown disponible como opt-in por campo.",
+  "files": [
+    "src/components/ui/calendar.tsx",
+    "src/components/forms/DatePickerField.tsx",
+    "src/components/forms/DateRangePickerField.tsx"
+  ]
+}
