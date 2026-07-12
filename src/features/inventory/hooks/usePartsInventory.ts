@@ -1,20 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 
 export type PartInventory = Tables<"parts_inventory">;
 
-export function usePartsInventory() {
-  return useQuery({
-    queryKey: ["parts_inventory"],
-    staleTime: 60_000,
-    queryFn: async () => {
+export const partsInventoryQueries = defineEntityQueries<"parts_inventory", PartInventory[], never>(
+  "parts_inventory",
+  {
+    list: () => async () => {
       const { data, error } = await supabase
         .from("parts_inventory").select("*").order("name");
       if (error) throw error;
       return data;
     },
-  });
+  },
+);
+
+export function usePartsInventory() {
+  return useQuery(partsInventoryQueries.list());
 }
 
 export function useMaintenanceParts(maintenanceLogId?: string) {

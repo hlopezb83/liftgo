@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { driverKeys } from "../lib/queryKeys";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -16,35 +17,23 @@ type DriverInput = {
   notes?: string | null;
 };
 
+export const driverQueries = defineEntityQueries<"drivers", Driver[], never>("drivers", {
+  staleTime: 5 * 60_000,
+  list: (filter) => async () => {
+    let q = supabase.from("drivers").select("*").order("name");
+    if (filter?.active === true) q = q.eq("is_active", true);
+    const { data, error } = await q;
+    if (error) throw error;
+    return data;
+  },
+});
+
 export function useDrivers() {
-  return useQuery({
-    queryKey: driverKeys.all,
-    staleTime: 5 * 60_000,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("drivers")
-        .select("*")
-        .order("name");
-      if (error) throw error;
-      return data;
-    },
-  });
+  return useQuery(driverQueries.list());
 }
 
 export function useActiveDrivers() {
-  return useQuery({
-    queryKey: [...driverKeys.all, "active"] as const,
-    staleTime: 5 * 60_000,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("drivers")
-        .select("*")
-        .eq("is_active", true)
-        .order("name");
-      if (error) throw error;
-      return data;
-    },
-  });
+  return useQuery(driverQueries.list({ active: true }));
 }
 
 export function useCreateDriver() {

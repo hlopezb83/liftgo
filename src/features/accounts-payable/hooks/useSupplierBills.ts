@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
-import { createEntityKeys } from "@/lib/query/createEntityKeys";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import type { SupplierRepStatus } from "../lib/supplierRepConstants";
 
 type Row = Database["public"]["Tables"]["supplier_bills"]["Row"];
+type SupplierPayment = Database["public"]["Tables"]["supplier_payments"]["Row"];
 
 export interface BillRepSummary {
   pending: number;
@@ -19,9 +20,10 @@ export interface SupplierBillListItem extends Row {
   rep_summary: BillRepSummary;
 }
 
-export const supplierBillKeys = createEntityKeys("supplier_bills");
-/** @deprecated usar `supplierBillKeys.all` (alias mantenido por retro-compatibilidad). */
-export const SUPPLIER_BILLS_QK = supplierBillKeys.all;
+export interface SupplierBillDetail extends Row {
+  suppliers: { id: string; name: string; rfc: string | null } | null;
+  payments: SupplierPayment[];
+}
 
 
 type PaymentRepRow = {
@@ -52,31 +54,58 @@ function accumulatePayment(summaryMap: Map<string, BillRepSummary>, p: PaymentRe
   summaryMap.set(p.bill_id, cur);
 }
 
+async function fetchList(): Promise<SupplierBillListItem[]> {
+  const [billsRes, paymentsRes] = await Promise.all([
+    supabase
+      .from("supplier_bills")
+      .select("*, suppliers(id, name)")
+      .order("issue_date", { ascending: false }),
+    supabase
+      .from("supplier_payments")
+      .select("bill_id, rep_required, rep_status"),
+  ]);
+  if (billsRes.error) throw billsRes.error;
+  if (paymentsRes.error) throw paymentsRes.error;
+
+  const summaryMap = new Map<string, BillRepSummary>();
+  for (const p of (paymentsRes.data ?? []) as PaymentRepRow[]) accumulatePayment(summaryMap, p);
+
+  const bills = (billsRes.data ?? []) as unknown as SupplierBillListItem[];
+  for (const b of bills) {
+    b.rep_summary = summaryMap.get(b.id) ?? emptySummary();
+  }
+  return bills;
+}
+
+async function fetchDetail(id: string): Promise<SupplierBillDetail | null> {
+  const { data, error } = await supabase
+    .from("supplier_bills")
+    .select("*, suppliers(id, name, rfc), payments:supplier_payments(*)")
+    .eq("id", id)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  const detail = data as unknown as SupplierBillDetail;
+  detail.payments = (detail.payments ?? []).sort(
+    (a, b) => b.payment_date.localeCompare(a.payment_date),
+  );
+  return detail;
+}
+
+export const supplierBillQueries = defineEntityQueries<
+  "supplier_bills",
+  SupplierBillListItem[],
+  SupplierBillDetail | null
+>("supplier_bills", {
+  staleTime: 30_000,
+  list: () => fetchList,
+  detail: (id) => () => fetchDetail(id),
+});
+
+export const supplierBillKeys = supplierBillQueries.keys;
+/** @deprecated usar `supplierBillKeys.all` (alias mantenido por retro-compatibilidad). */
+export const SUPPLIER_BILLS_QK = supplierBillKeys.all;
+
 export function useSupplierBills() {
-  return useQuery({
-    queryKey: supplierBillKeys.lists(),
-    staleTime: 60_000,
-    queryFn: async (): Promise<SupplierBillListItem[]> => {
-      const [billsRes, paymentsRes] = await Promise.all([
-        supabase
-          .from("supplier_bills")
-          .select("*, suppliers(id, name)")
-          .order("issue_date", { ascending: false }),
-        supabase
-          .from("supplier_payments")
-          .select("bill_id, rep_required, rep_status"),
-      ]);
-      if (billsRes.error) throw billsRes.error;
-      if (paymentsRes.error) throw paymentsRes.error;
-
-      const summaryMap = new Map<string, BillRepSummary>();
-      for (const p of (paymentsRes.data ?? []) as PaymentRepRow[]) accumulatePayment(summaryMap, p);
-
-      const bills = (billsRes.data ?? []) as unknown as SupplierBillListItem[];
-      for (const b of bills) {
-        b.rep_summary = summaryMap.get(b.id) ?? emptySummary();
-      }
-      return bills;
-    },
-  });
+  return useQuery(supplierBillQueries.list());
 }

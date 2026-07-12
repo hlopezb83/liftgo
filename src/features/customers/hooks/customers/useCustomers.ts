@@ -2,27 +2,28 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { customerKeys } from "../../lib/queryKeys";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 
 export type Customer = Tables<"customers">;
 
+export const customerQueries = defineEntityQueries<"customers", Customer[], never>("customers", {
+  list: () => async () => {
+    const { data, error } = await supabase
+      .from("customers")
+      .select("*")
+      .is("deleted_at", null)
+      .or("is_e2e.is.null,is_e2e.eq.false")
+      .not("name", "ilike", "E2E%")
+      .or("email.is.null,email.neq.e2e-ui@test.local")
+      .order("name");
+    if (error) throw error;
+    return data;
+  },
+});
+
 export function useCustomers() {
-  return useQuery({
-    queryKey: customerKeys.all,
-    staleTime: 60_000,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("customers")
-        .select("*")
-        .is("deleted_at", null)
-        .or("is_e2e.is.null,is_e2e.eq.false")
-        .not("name", "ilike", "E2E%")
-        .or("email.is.null,email.neq.e2e-ui@test.local")
-        .order("name");
-      if (error) throw error;
-      return data;
-    },
-  });
+  return useQuery(customerQueries.list());
 }
 
 export function useCreateCustomer() {

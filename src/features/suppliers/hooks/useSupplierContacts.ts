@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { supplierContactKeys } from "../lib/queryKeys";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import type { Database } from "@/integrations/supabase/types";
 
 export type SupplierContact = Database["public"]["Tables"]["supplier_contacts"]["Row"];
@@ -19,22 +20,29 @@ export const SUPPLIER_CONTACT_ROLES = [
   "Otro",
 ] as const;
 
+export const supplierContactQueries = defineEntityQueries<
+  "supplier_contacts",
+  SupplierContact[],
+  never
+>("supplier_contacts", {
+  list: (filter) => async () => {
+    const supplierId = filter?.supplierId as string | undefined;
+    if (!supplierId) return [];
+    const { data, error } = await supabase
+      .from("supplier_contacts")
+      .select("*")
+      .eq("supplier_id", supplierId)
+      .order("is_primary", { ascending: false })
+      .order("name");
+    if (error) throw error;
+    return data as SupplierContact[];
+  },
+});
+
 export function useSupplierContacts(supplierId: string | undefined) {
   return useQuery({
-    queryKey: supplierContactKeys.detail(supplierId ?? "none"),
+    ...supplierContactQueries.list({ supplierId: supplierId ?? null }),
     enabled: Boolean(supplierId),
-    staleTime: 60_000,
-    queryFn: async () => {
-      if (!supplierId) return [];
-      const { data, error } = await supabase
-        .from("supplier_contacts")
-        .select("*")
-        .eq("supplier_id", supplierId)
-        .order("is_primary", { ascending: false })
-        .order("name");
-      if (error) throw error;
-      return data as SupplierContact[];
-    },
   });
 }
 

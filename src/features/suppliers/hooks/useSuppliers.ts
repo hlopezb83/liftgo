@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 
 
 export interface Supplier {
@@ -28,20 +29,21 @@ export const SUPPLIER_CATEGORIES: Record<string, string> = {
   otro: "Otro",
 };
 
+export const suppliersQueries = defineEntityQueries<"suppliers", Supplier[], never>("suppliers", {
+  staleTime: 5 * 60_000,
+  list: () => async () => {
+    const { data, error } = await supabase
+      .from("suppliers")
+      .select("*")
+      .is("deleted_at", null)
+      .order("name");
+    if (error) throw error;
+    return data as Supplier[];
+  },
+});
+
 export function useSuppliers() {
-  return useQuery({
-    queryKey: ["suppliers"],
-    staleTime: 5 * 60_000,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("suppliers")
-        .select("*")
-        .is("deleted_at", null)
-        .order("name");
-      if (error) throw error;
-      return data as Supplier[];
-    },
-  });
+  return useQuery(suppliersQueries.list());
 }
 
 // Nota: `useDeleteSupplier` se retiró por estar sin uso. La eliminación se
@@ -63,7 +65,7 @@ export function useCreateSupplier() {
       if (error) throw new Error(translateSupplierError(error));
       return data;
     },
-    invalidateKeys: [["suppliers"]],
+    invalidateKeys: [suppliersQueries.keys.all],
     successMsg: "Proveedor creado",
     errorTitle: "Error al crear proveedor",
   });
@@ -76,10 +78,8 @@ export function useUpdateSupplier() {
       if (error) throw new Error(translateSupplierError(error));
       return data;
     },
-    invalidateKeys: [["suppliers"]],
+    invalidateKeys: [suppliersQueries.keys.all],
     successMsg: "Proveedor actualizado",
     errorTitle: "Error al actualizar proveedor",
   });
 }
-
-

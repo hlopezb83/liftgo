@@ -1,0 +1,30 @@
+{
+  "version": "7.28.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "TanStack Query — Adopción de defineEntityQueries en 20+ hooks",
+  "highlights": [
+    "20+ hooks de listado/detalle migrados al contrato `defineEntityQueries` + `queryOptions()` v5",
+    "Fetchers colocalizados con el tipado inferido end-to-end",
+    "Query keys jerárquicos canónicos (`[root, 'list'|'detail', ...]`) vía `createEntityKeys`",
+    "`detail` marcado como opcional en el helper — habilita hooks solo-lista",
+    "Retro-compatibilidad de keys legacy preservada (bookingKeys.byForklift, supplierBillKeys, returnInspectionKeys)"
+  ],
+  "modules": [
+    "Suppliers: useSuppliers, useSupplierContacts, useSupplierBankAccounts",
+    "Customers: useCustomers",
+    "Fleet: useEquipmentModels, useDrivers, useActiveDrivers",
+    "Maintenance: useMechanics, useActiveMechanics, useMaintenancePolicies, useMaintenanceLogs (filtro forkliftId)",
+    "CRM: useProspects",
+    "Bookings: useBookings, useBooking",
+    "Damage: useDamageRecords",
+    "Inventory: usePartsInventory",
+    "Returns: useReturnInspections (filtro forkliftId), useReturnInspection",
+    "Accounts Payable: useSupplierBills, useSupplierBill",
+    "Invoices: useInvoices, useInvoice, usePayments (filtro invoiceId), useCreditNotesForInvoice (filtro invoiceId)"
+  ],
+  "verification": [
+    "tsgo --noEmit: 0 errores",
+    "vitest run: 913/913 tests passing"
+  ]
+}
