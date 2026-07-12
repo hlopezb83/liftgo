@@ -47,13 +47,13 @@ export default function ContractForm() {
             <DatePickerField
               label="Fecha de Inicio"
               date={form.start_date ? parseISO(form.start_date) : undefined}
-              onSelect={(d) => updateField("start_date", d ? format(d, "yyyy-MM-dd") : "")}
+              onSelect={(d) => updateField("start_date", d ? toYMD(d) : "")}
               placeholder="Seleccionar fecha"
             />
             <DatePickerField
               label="Fecha de Fin"
               date={form.end_date ? parseISO(form.end_date) : undefined}
-              onSelect={(d) => updateField("end_date", d ? format(d, "yyyy-MM-dd") : "")}
+              onSelect={(d) => updateField("end_date", d ? toYMD(d) : "")}
               placeholder="Seleccionar fecha"
             />
           </div>
