@@ -48,6 +48,7 @@ export function DataTableV2<T>({
   isLoading,
   emptyMessage = "Sin resultados",
   onRowClick,
+  onRowPrefetch,
   rowClassName,
   mobileCardRender,
   footer,
@@ -83,6 +84,7 @@ export function DataTableV2<T>({
     emptyMessage,
     showSelection: enableRowSelection,
     onRowClick,
+    onRowPrefetch,
     rowClassName,
   };
 
