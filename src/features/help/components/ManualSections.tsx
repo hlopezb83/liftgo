@@ -42,10 +42,7 @@ export function ManualSections({ search, onSearchChange, sections }: Props) {
                 </span>
               </AccordionTrigger>
               <AccordionContent>
-                <div
-                  className="manual-content"
-                  dangerouslySetInnerHTML={{ __html: renderSafeMarkdown(section.content) }}
-                />
+                <div dangerouslySetInnerHTML={{ __html: renderSafeMarkdown(section.content) }} />
               </AccordionContent>
             </AccordionItem>
           ))}
