@@ -1,0 +1,18 @@
+{
+  "version": "7.39.1",
+  "date": "2026-07-12",
+  "type": "patch",
+  "title": "Estabilización CI: knip, ESLint y flakes E2E",
+  "description": "Cierre de bloqueadores de CI post-v7.39.0. Knip limpio, ESLint 0 errores y specs E2E sensibles a hidratación esperan a `document.fonts.ready`.",
+  "category": "fix",
+  "changes": [
+    { "type": "fixed", "description": "Knip: eliminados 3 hooks huérfanos (usePrefetchOnHover, useOptimisticListMutation, useSuspenseQuery)" },
+    { "type": "fixed", "description": "Knip: removidas deps fantasma react-router y tailwindcss-animate; ignoreDependencies para plugins CSS-only (tailwindcss, @tailwindcss/typography, tw-animate-css)" },
+    { "type": "fixed", "description": "ESLint: aria-sort movido de <button> a <TableHead> en DataTableHeaderV2" },
+    { "type": "fixed", "description": "ESLint: useBookings colapsa el useQuery condicional en una sola llamada" },
+    { "type": "fixed", "description": "ESLint: prev/next envueltos en useCallback y <img> interactivo migrado a <button> accesible en ImageGalleryLightbox" },
+    { "type": "fixed", "description": "ESLint: removidas 3 non-null assertions (useUpcomingInvoices, quoteFormPayload) con fallbacks seguros" },
+    { "type": "fixed", "description": "ESLint: removido tabIndex={0} innecesario en QuoteDetailActions" },
+    { "type": "fixed", "description": "E2E: await document.fonts.ready en customer-create, maintenance-kanban y quote-pdf para absorber el shift de FCP del font-loading non-blocking" }
+  ]
+}
