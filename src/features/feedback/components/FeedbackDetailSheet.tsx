@@ -47,7 +47,7 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
 
   return (
     <Sheet open={!!report} onOpenChange={(o) => { if (!o) onClose(); }}>
-      <SheetContent className="w-full sm:max-w-xl overflow-y-auto">
+      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <span className="font-mono text-sm">{report.folio}</span>

@@ -66,7 +66,7 @@ export function ErrorDetailsDialog() {
             <div className="text-sm text-muted-foreground">
               Copia este reporte y compártelo con soporte para que podamos ayudarte más rápido.
             </div>
-            <pre className="max-h-[60vh] overflow-auto rounded-md border bg-muted/30 p-3 text-xs leading-relaxed whitespace-pre-wrap break-words">
+            <pre className="max-h-[50vh] overflow-auto rounded-md border bg-muted/30 p-3 text-xs leading-relaxed whitespace-pre-wrap break-words">
               {text}
             </pre>
           </div>
