@@ -41,8 +41,8 @@ export function buildMaintenancePayload(values: MaintenanceFormValues) {
     description: values.description || null,
     cost: values.cost ? parseFloat(values.cost) : 0,
     performed_by: values.performedBy || null,
-    performed_at: format(values.performedAt, "yyyy-MM-dd"),
-    next_service_date: values.nextServiceDate ? format(values.nextServiceDate, "yyyy-MM-dd") : null,
+    performed_at: toYMD(values.performedAt),
+    next_service_date: values.nextServiceDate ? toYMD(values.nextServiceDate) : null,
     supplier_id: values.supplierId || null,
   };
 }
