@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useWatch } from "react-hook-form";
 import {
   TextField, TextareaField, DateField, SelectField, type SelectOption,
 } from "@/components/forms/fields";
@@ -43,12 +44,13 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
     activeDrivers?.map((d) => ({ value: d.name, label: d.name })) ?? [];
 
   // Auto-rellena el teléfono cuando cambia el operador seleccionado.
-  const driverName = form.watch("driverName");
+  const driverName = useWatch({ control: form.control, name: "driverName" });
   useEffect(() => {
     if (!driverName) return;
     const driver = activeDrivers?.find((d) => d.name === driverName);
     if (driver?.phone) form.setValue("driverPhone", driver.phone, { shouldDirty: true });
   }, [driverName, activeDrivers, form]);
+
 
 
   return (
