@@ -1,3 +1,9 @@
+/**
+ * @vitest-environment jsdom
+ *
+ * DOMPurify requiere jsdom (happy-dom no implementa completamente los APIs
+ * de sanitización usados por dompurify v3).
+ */
 import { describe, it, expect } from "vitest";
 import { renderMarkdown, renderSafeMarkdown } from "../markdown";
 
