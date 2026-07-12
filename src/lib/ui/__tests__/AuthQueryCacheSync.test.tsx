@@ -12,17 +12,31 @@ vi.mock("@/contexts/AuthContext", () => ({
 import { AuthQueryCacheSync } from "@/lib/ui/AuthQueryCacheSync";
 
 interface TestWrapperProps {
-  user: { id: string } | null;
   queryClient: QueryClient;
 }
 
-function TestWrapper({ user, queryClient }: TestWrapperProps) {
-  currentUser = user;
+// Nota: `currentUser` se muta desde el test antes de renderizar (ver `renderWith`).
+// Este wrapper es puro: sólo lee el mock ya configurado.
+function TestWrapper({ queryClient }: TestWrapperProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthQueryCacheSync />
     </QueryClientProvider>
   );
+}
+
+function renderWith(user: { id: string } | null, queryClient: QueryClient) {
+  currentUser = user;
+  return render(<TestWrapper queryClient={queryClient} />);
+}
+
+function rerenderWith(
+  rerender: (ui: React.ReactElement) => void,
+  user: { id: string } | null,
+  queryClient: QueryClient,
+) {
+  currentUser = user;
+  rerender(<TestWrapper queryClient={queryClient} />);
 }
 
 describe("AuthQueryCacheSync", () => {

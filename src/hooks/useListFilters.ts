@@ -31,7 +31,13 @@ export function useListFilters<T extends Record<string, unknown>>(
       sessionStorage.removeItem(key);
     }
   }, [searchParams, location.pathname]);
-  const { searchParam = "q", statusParam = "status" } = options;
+  const {
+    searchFields,
+    searchAccessors,
+    statusField,
+    searchParam = "q",
+    statusParam = "status",
+  } = options;
 
   const search = searchParams.get(searchParam) || "";
   const statusFilter = searchParams.get(statusParam) || "all";
@@ -66,19 +72,22 @@ export function useListFilters<T extends Record<string, unknown>>(
   const deferredSearch = useDeferredValue(search);
   const deferredStatus = useDeferredValue(statusFilter);
 
+  // Deps completas: bajo React Compiler los literales de callsite (searchFields, accessors)
+  // se memoizan automáticamente, así que su identidad es estable render a render.
+  // Esto satisface exhaustive-deps sin bailouts del Compiler.
   const filtered = useMemo(() => {
     return (items ?? []).filter((item) => {
-      if (options.statusField && deferredStatus !== "all") {
-        if (item[options.statusField] !== deferredStatus) return false;
+      if (statusField && deferredStatus !== "all") {
+        if (item[statusField] !== deferredStatus) return false;
       }
       if (deferredSearch) {
         const q = deferredSearch.toLowerCase();
-        const fieldMatch = options.searchFields.some((field) => {
+        const fieldMatch = searchFields.some((field) => {
           const val = item[field];
           return typeof val === "string" && val.toLowerCase().includes(q);
         });
         if (fieldMatch) return true;
-        const accessorMatch = options.searchAccessors?.some((acc) => {
+        const accessorMatch = searchAccessors?.some((acc) => {
           const val = acc(item);
           return typeof val === "string" && val.toLowerCase().includes(q);
         });
@@ -86,11 +95,7 @@ export function useListFilters<T extends Record<string, unknown>>(
       }
       return true;
     });
-    // Config options (searchFields, searchAccessors, statusField) son literales por callsite.
-    // Incluirlos en deps causa nueva referencia de `filtered` en cada render → cascada que
-    // dispara autoResetPageIndex de TanStack Table en loop infinito.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [items, deferredSearch, deferredStatus]);
+  }, [items, deferredSearch, deferredStatus, searchFields, searchAccessors, statusField]);
 
   const isStale = deferredSearch !== search || deferredStatus !== statusFilter;
 
