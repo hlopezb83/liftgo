@@ -9,7 +9,7 @@ import type { Forklift } from "../forklifts/useForklifts";
 export function useFleetColumns(
   activePolicyForkliftIds: Set<string>,
   locationMap: Map<string, string>,
-) {
+): ColumnDef<Forklift>[] {
   return [
       {
         id: "name",
