@@ -72,11 +72,16 @@ export function useBreadcrumbEntityLabel(pathname: string) {
   }
 
   const resolver = parent ? RESOLVERS[parent] : null;
-  const filter: BreadcrumbFilter = { resolver, id };
+  const filter: BreadcrumbFilter = {
+    table: resolver?.table ?? null,
+    select: resolver?.select ?? null,
+    id,
+  };
 
   const query = useQuery({
     ...breadcrumbLabelQueries.list(filter),
     enabled: !!resolver && !!id,
+    select: (row) => (row && resolver ? resolver.format(row) : null),
   });
 
   return {
