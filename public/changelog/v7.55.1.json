@@ -1,0 +1,12 @@
+{
+  "version": "7.55.1",
+  "date": "2026-07-12",
+  "type": "patch",
+  "title": "Fix loop infinito en facturación recurrente y locale del calendario",
+  "description": "Dos regresiones detectadas por auditoría visual con Playwright: (1) RecurringInvoicesPreviewDialog crasheaba con 'Too many re-renders' porque el patrón 'adjust state during render' comparaba identidad de arrays que se recrean en cada render, disparando setSelected en loop. Se reemplaza por una comparación por clave string estable (eligibleIds.join('|')). (2) El Calendar de shadcn pasaba a react-day-picker v10 el objeto locale 'es' de date-fns v4, cuyo campo 'code' no es un BCP-47 válido para new Intl.Locale, generando RangeError intermitentes. Se fija code: 'es-MX' en el locale.",
+  "category": "bugfix",
+  "changes": [
+    { "type": "fixed", "description": "RecurringInvoicesPreviewDialog: loop infinito de renders resuelto usando clave string estable en lugar de identidad de array" },
+    { "type": "fixed", "description": "Calendar: fuerza code BCP-47 'es-MX' en el locale para evitar RangeError de Intl.Locale" }
+  ]
+}

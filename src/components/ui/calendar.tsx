@@ -1,17 +1,25 @@
 import type { ComponentProps } from "react";
 import { DayPicker } from "react-day-picker";
-import { es } from "react-day-picker/locale";
+import { es as esRdp } from "react-day-picker/locale";
 
 import { ChevronLeftIcon, ChevronRightIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+
+// react-day-picker v10 llama `new Intl.Locale(locale.code)` internamente en
+// `getDefaultLocale` → `isRTL`. El objeto `es` re-exportado por
+// `react-day-picker/locale` (vía date-fns v4) no expone un `code` BCP-47
+// consumible por `Intl.Locale`, lo que lanza `RangeError: Incorrect locale
+// information provided` al montar cualquier `Calendar`. Forzamos el `code`
+// para restaurar el i18n sin depender de la forma interna del locale.
+const esLocale = { ...esRdp, code: "es-MX" };
 
 export type CalendarProps = ComponentProps<typeof DayPicker>;
 
 function Calendar({ className, classNames, showOutsideDays = true, ...props }: CalendarProps) {
   return (
     <DayPicker
-      locale={es}
+      locale={esLocale}
       animate
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}

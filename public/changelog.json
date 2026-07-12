@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.55.1",
+    "date": "2026-07-12",
+    "type": "patch",
+    "title": "Fix loop infinito en facturación recurrente y locale del calendario",
+    "description": "RecurringInvoicesPreviewDialog entraba en 'Too many re-renders' porque el patrón 'adjust state during render' comparaba identidad de arrays recreados en cada render. Ahora se compara una clave string estable derivada de los IDs elegibles. Además se fuerza el 'code' BCP-47 en el locale del Calendar para evitar RangeError de Intl.Locale cuando el objeto de locale de react-day-picker v10 no lo expone.",
+    "category": "bugfix",
+    "impact": "Restaura la carga de /invoices con el diálogo de facturación recurrente abierto y elimina RangeError intermitentes en entornos con locale no BCP-47.",
+    "files": [
+      "src/features/invoices/components/recurring/RecurringInvoicesPreviewDialog.tsx",
+      "src/components/ui/calendar.tsx"
+    ]
+  },
+  {
     "version": "7.55.0",
     "date": "2026-07-12",
     "type": "patch",

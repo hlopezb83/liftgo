@@ -29,19 +29,21 @@ function periodTitle(period: string | null): string {
 export function RecurringInvoicesPreviewDialog({
   open, onOpenChange, data, isLoading, isGenerating, onConfirm,
 }: Props) {
-  // `lines` y `eligibleIds` conservan useMemo: alimentan el patrón
-  // "adjust state during render" via `prevEligibleRef`. Sin identidad estable
-  // el efecto re-dispararía y provocaría un loop de setState.
+  // Derivaciones puras (React Compiler memoiza). Nota: `lines`/`eligibleIds`
+  // son arrays nuevos en cada render, por lo que la comparación de identidad
+  // NO es válida para el patrón "adjust state during render". Usamos una
+  // clave string estable derivada de los ids elegibles.
   const lines = data?.lines ?? [];
   const eligibleIds = lines.filter((l) => l.eligible).map((l) => l.bookingId);
+  const eligibleKey = eligibleIds.join("|");
   const [selected, setSelected] = useState<Set<string>>(() => new Set(eligibleIds));
 
-  // Rehidratar la selección cuando cambia la identidad de `eligibleIds` — patrón
+  // Rehidratar la selección cuando cambia el conjunto de elegibles — patrón
   // React "adjust state during render" en vez de un useEffect que agregaría
   // una render extra. https://react.dev/learn/you-might-not-need-an-effect
-  const prevEligibleRef = useRef(eligibleIds);
-  if (prevEligibleRef.current !== eligibleIds) {
-    prevEligibleRef.current = eligibleIds;
+  const prevEligibleKeyRef = useRef(eligibleKey);
+  if (prevEligibleKeyRef.current !== eligibleKey) {
+    prevEligibleKeyRef.current = eligibleKey;
     setSelected(new Set(eligibleIds));
   }
 
