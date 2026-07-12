@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { useAvailableForklifts } from "@/features/fleet";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { bookingFormSchema, type BookingFormData } from "../../lib/bookingFormSchema";
@@ -18,8 +18,8 @@ export function useBookingFormState() {
     },
   });
 
-  const dateRange = form.watch("date_range") as DateRange | undefined;
-  const forkliftId = form.watch("forklift_id");
+  const dateRange = useWatch({ control: form.control, name: "date_range" }) as DateRange | undefined;
+  const forkliftId = useWatch({ control: form.control, name: "forklift_id" });
 
   const { availableForklifts, forklifts, datesSelected } = useAvailableForklifts(dateRange);
 
