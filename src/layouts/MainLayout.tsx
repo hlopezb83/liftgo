@@ -1,17 +1,19 @@
-import { useMemo, useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { useMemo, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
+import { Outlet } from "react-router-dom";
+import { KeyboardShortcutsDialog } from "@/components/feedback/KeyboardShortcutsDialog";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
+import { usePageActionsContext } from "@/contexts/pageActions";
+import { PageActionsProvider } from "@/contexts/PageActionsContext";
+import { FeedbackFab } from "@/features/feedback";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { AppSidebar } from "@/layouts/AppSidebar";
 import { ErrorBoundary } from "@/layouts/ErrorBoundary";
-import { TopbarBreadcrumbs } from "@/layouts/TopbarBreadcrumbs";
 import { GlobalSearch } from "@/layouts/GlobalSearch";
-import { FeedbackFab } from "@/features/feedback";
-import { PageActionsProvider } from "@/contexts/PageActionsContext";
-import { usePageActionsContext } from "@/contexts/pageActions";
-import { useKeySequence } from "@/lib/shortcuts/useKeySequence";
+import { useMainScrollRestoration } from "@/layouts/hooks/useMainScrollRestoration";
+import { TopbarBreadcrumbs } from "@/layouts/TopbarBreadcrumbs";
 import { NAV_SHORTCUTS } from "@/lib/shortcuts/registry";
-import { KeyboardShortcutsDialog } from "@/components/feedback/KeyboardShortcutsDialog";
+import { useKeySequence } from "@/lib/shortcuts/useKeySequence";
 
 function focusSearchInput() {
   const candidates = document.querySelectorAll<HTMLInputElement>(
@@ -27,7 +29,7 @@ function focusSearchInput() {
 }
 
 function HotkeysHost() {
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const { actions } = usePageActionsContext();
   const [helpOpen, setHelpOpen] = useState(false);
 
@@ -57,6 +59,8 @@ function HotkeysHost() {
 }
 
 export default function MainLayout() {
+  const mainRef = useRef<HTMLElement>(null);
+  useMainScrollRestoration(mainRef);
   return (
     <SidebarProvider>
       <PageActionsProvider>
@@ -68,7 +72,7 @@ export default function MainLayout() {
             Saltar al contenido
           </a>
           <AppSidebar />
-          <main id="main-content" className="flex-1 overflow-auto pb-[env(safe-area-inset-bottom)]">
+          <main ref={mainRef} id="main-content" className="flex-1 overflow-auto pb-[env(safe-area-inset-bottom)]">
             <header className="sticky top-0 z-30 h-12 flex items-center gap-3 border-b px-4 bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 pt-[env(safe-area-inset-top)] pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
               <SidebarTrigger className="touch:h-11 touch:w-11" />
               <div className="flex-1 min-w-0">

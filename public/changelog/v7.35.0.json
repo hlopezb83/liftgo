@@ -1,0 +1,40 @@
+{
+  "version": "7.35.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "Auditoría react-router 7 — correctness, consistencia y UX",
+  "sections": [
+    {
+      "title": "Correctness",
+      "items": [
+        "ROUTES ↔ appRoutes: se completó el índice de rutas centralizado (damage, inventory, cuentas-por-pagar, flujo de caja, conciliación bancaria, MRR, CRM cerrados, usuarios y portal) y se corrigió `rolePermissions` para apuntar a `/users/permissions`.",
+        "Nuevo test guardrail `src/routes/__tests__/routes.test.ts` que enumera todos los paths en `ROUTES` (incluyendo builders `(id) => \\`/x/${id}\\``) y falla si alguno no existe en `appRoutes` o en la whitelist del portal.",
+        "Redirect legacy `/expenses → /cuentas-por-pagar` migrado a `<Navigate to=\"/cuentas-por-pagar\" replace />` inline en `App.tsx`. Se elimina el componente `ExpensesRedirect.tsx` y el chunk lazy que se cargaba sólo para hacer `navigate()` en un `useEffect`.",
+        "Removidas las `future` flags `v7_startTransition` y `v7_relativeSplatPath` de `<BrowserRouter>` — ya son el default en v7."
+      ]
+    },
+    {
+      "title": "Consistencia",
+      "items": [
+        "`src/routes/routes-config.tsx` refactor: se define `rawRoutes` con `path`, `loader`, `module`, `adminOnly`. `appRoutes` se deriva con `lazy(loader)` y además se exporta `routeLoaders: Record<path, loader>` para poder prefetchear el chunk sin duplicar los `import()`.",
+        "`src/layouts/GlobalSearch.tsx` y `src/layouts/MainLayout.tsx` (HotkeysHost) migrados de `useNavigate` a `useNavigateTransition`, envolviendo la navegación en `startTransition` para que Suspense pueda mostrar el fallback sin bloquear la UI.",
+        "Nueva regla ESLint (`warn`) en `eslint.config.js`: `no-restricted-imports` para `useNavigate` desde `react-router-dom` y `react-router`. Excepciones: el propio hook `useNavigateTransition`, el flujo de auth (pre-sesión) y los tests."
+      ]
+    },
+    {
+      "title": "UX",
+      "items": [
+        "Prefetch de chunks lazy en el Sidebar: `SidebarNavSection.NavMenuItem` arma un `setTimeout(120ms)` al `onMouseEnter`/`onFocus` que dispara `routeLoaders[url]()`. El timer se cancela al `onMouseLeave`/`onBlur` para no cargar chunks al pasar el cursor sin intención (mismo debounce que las tablas).",
+        "Prefetch también en `GlobalSearch`: `CommandItem.onMouseEnter` dispara `routeLoaders[url]?.()` inmediatamente (el usuario ya escribió y filtró, la intención es explícita).",
+        "Scroll restoration manual del contenedor `<main>`: nuevo `src/layouts/hooks/useMainScrollRestoration.ts` que guarda `el.scrollTop` por `location.key` en un `Map` en memoria. En `useLayoutEffect`, si `navigationType === \"POP\"` restaura el scroll guardado; en cualquier otro caso resetea a 0. Reemplaza el comportamiento por defecto (ninguno para contenedores overflow no-window)."
+      ]
+    },
+    {
+      "title": "Métricas",
+      "items": [
+        "992/992 tests verdes (incluyendo los 71 casos del nuevo guardrail de rutas).",
+        "Chunks lazy afectados: se elimina `ExpensesRedirect` (~0.3 kB). El resto son ganancias de UX, no de bundle."
+      ]
+    }
+  ]
+}

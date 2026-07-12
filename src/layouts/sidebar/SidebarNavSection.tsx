@@ -1,15 +1,37 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { ChevronRightIcon } from "@/components/icons";
-import { NavLink } from "@/layouts/NavLink";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar,
 } from "@/components/ui/sidebar";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { NavLink } from "@/layouts/NavLink";
+import { routeLoaders } from "@/routes/routes-config";
 import type { NavGroup, NavItem } from "./navConfig";
 
+// Debounce igual al de tablas: dispara el `import()` sólo si el hover
+// sostiene 120ms. Evita cargar chunks al pasar el cursor sin intención.
+const PREFETCH_DELAY_MS = 120;
+
 function NavMenuItem({ item }: { item: NavItem }) {
+  const timerRef = useRef<number | null>(null);
+  const loader = routeLoaders[item.url];
+
+  const schedulePrefetch = () => {
+    if (!loader || timerRef.current !== null) return;
+    timerRef.current = window.setTimeout(() => {
+      timerRef.current = null;
+      loader();
+    }, PREFETCH_DELAY_MS);
+  };
+  const cancelPrefetch = () => {
+    if (timerRef.current !== null) {
+      window.clearTimeout(timerRef.current);
+      timerRef.current = null;
+    }
+  };
+
   return (
     <SidebarMenuItem>
       <SidebarMenuButton asChild>
@@ -18,6 +40,10 @@ function NavMenuItem({ item }: { item: NavItem }) {
           end={item.url === "/"}
           className="flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
           activeClassName="bg-sidebar-accent text-sidebar-primary font-semibold"
+          onMouseEnter={schedulePrefetch}
+          onMouseLeave={cancelPrefetch}
+          onFocus={schedulePrefetch}
+          onBlur={cancelPrefetch}
         >
           <item.icon className="h-4 w-4" />
           <span>{item.title}</span>

@@ -1,5 +1,24 @@
 [
   {
+    "version": "7.35.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "Auditoría react-router 7 — correctness, consistencia y UX",
+    "description": "Hardening de la implementación de react-router 7 en 3 frentes. Correctness: `ROUTES` sincronizado con `appRoutes` (+guardrail de test que valida cada path), redirect legacy `/expenses → /cuentas-por-pagar` movido a `<Navigate />` inline (elimina chunk lazy dedicado y componente `ExpensesRedirect`), y `future` flags v7 removidas de `<BrowserRouter>` (ya son default). Consistencia: `GlobalSearch` y `MainLayout` migrados a `useNavigateTransition` para envolver toda navegación en `startTransition` (evita jank con rutas lazy); nueva regla ESLint (`warn`) que prohíbe `useNavigate` crudo fuera del hook wrapper. UX: prefetch de chunks lazy en el sidebar (hover ≥120ms dispara el `import()` con `routeLoaders`), prefetch en `GlobalSearch` (hover sobre resultado), y scroll restoration manual del `<main>` (POP restaura, PUSH resetea a 0). 992/992 tests verdes.",
+    "category": "improvement",
+    "changes": [
+      { "type": "fixed", "description": "ROUTES sincronizado con appRoutes: se añaden damage/inventory/finanzas/CRM/portal y se corrige `rolePermissions → /users/permissions`" },
+      { "type": "added", "description": "Test guardrail `src/routes/__tests__/routes.test.ts` — falla si ROUTES referencia un path que no existe" },
+      { "type": "changed", "description": "`routes-config.tsx` refactor: `rawRoutes` con `loader` reutilizable + export `routeLoaders` para prefetch" },
+      { "type": "removed", "description": "`ExpensesRedirect.tsx` y su chunk lazy; redirect ahora es `<Navigate />` inline en App.tsx" },
+      { "type": "removed", "description": "`v7_startTransition` / `v7_relativeSplatPath` en <BrowserRouter> (default en v7)" },
+      { "type": "changed", "description": "`GlobalSearch` y `MainLayout.HotkeysHost` usan `useNavigateTransition`" },
+      { "type": "added", "description": "Regla ESLint: `useNavigate` de react-router-(dom) restringido a `useNavigateTransition`" },
+      { "type": "added", "description": "Prefetch de chunks lazy en Sidebar y GlobalSearch (hover/focus, debounce 120ms)" },
+      { "type": "added", "description": "`useMainScrollRestoration` en <main>: POP restaura scroll por `location.key`, PUSH/REPLACE reset a 0" }
+    ]
+  },
+  {
     "version": "7.34.0",
     "date": "2026-07-12",
     "type": "minor",

@@ -243,4 +243,38 @@ export default tseslint.config(
       }],
     },
   },
+
+  {
+    // Guardrail react-router: `useNavigate` crudo se salta el envoltorio
+    // `startTransition` de React 19 que aplica `useNavigateTransition`,
+    // haciendo que las navegaciones a rutas lazy congelen la UI mientras
+    // Suspense resuelve. Usar siempre `@/hooks/useNavigateTransition`.
+    //
+    // Excepciones: el propio hook, el flujo de auth (pre-sesión, sin lazy
+    // chunks pesados) y tests.
+    files: ["src/**/*.{ts,tsx}"],
+    ignores: [
+      "src/hooks/useNavigateTransition.ts",
+      "src/features/auth/**",
+      "**/__tests__/**",
+      "**/*.test.{ts,tsx}",
+    ],
+    rules: {
+      "no-restricted-imports": ["warn", {
+        paths: [
+          {
+            name: "react-router-dom",
+            importNames: ["useNavigate"],
+            message: "Usa `useNavigateTransition` desde '@/hooks/useNavigateTransition'. Envuelve la navegación en startTransition y evita bloquear la UI cuando la ruta destino es lazy.",
+          },
+          {
+            name: "react-router",
+            importNames: ["useNavigate"],
+            message: "Usa `useNavigateTransition` desde '@/hooks/useNavigateTransition'.",
+          },
+        ],
+      }],
+    },
+  },
 );
+
