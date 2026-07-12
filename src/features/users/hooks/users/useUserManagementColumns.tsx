@@ -25,7 +25,7 @@ interface Params {
 
 export function useUserManagementColumns({
   currentUserId, isToggling, onRoleChange, onToggleStatus, onEdit, onSetPassword, onDelete,
-}: Params) {
+}: Params): ColumnDef<UserItem>[] {
   return [
       {
         id: "full_name",
