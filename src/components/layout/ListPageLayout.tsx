@@ -36,7 +36,7 @@ interface ListPageLayoutProps<T> {
   /** Click handler para filas (modo tabla). */
   onRowClick?: (item: T) => void;
   /** Handler opcional para prefetch de detalle al hacer hover en fila. */
-  onRowPrefetch?: (item: T) => FetchQueryOptions;
+  onRowPrefetch?: (item: T) => FetchQueryOptions<any, any, any, any>;
   /** Si se provee, en mobile/tablet se renderiza como tarjetas en lugar de tabla. */
   mobileCardRender?: (item: T) => ReactNode;
   /** Extractor de key para mobile cards. Default: (item).id */
@@ -213,7 +213,7 @@ interface TableContentProps<T> {
   emptyActionLabel?: string;
   onEmptyAction?: () => void;
   onRowClick?: (item: T) => void;
-  onRowPrefetch?: (item: T) => FetchQueryOptions;
+  onRowPrefetch?: (item: T) => FetchQueryOptions<any, any, any, any>;
   mobileCardRender?: (item: T) => ReactNode;
   mobileKeyExtractor?: (item: T) => string;
   skeletonColumns?: number;

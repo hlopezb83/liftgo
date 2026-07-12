@@ -17,7 +17,7 @@ interface Props<T> {
   showSelection: boolean;
   onRowClick?: (item: T) => void;
   rowClassName?: (item: T) => string | undefined;
-  onRowPrefetch?: (item: T) => FetchQueryOptions;
+  onRowPrefetch?: (item: T) => FetchQueryOptions<any, any, any, any>;
   estimateRowHeight?: number;
   maxHeight?: number;
 }

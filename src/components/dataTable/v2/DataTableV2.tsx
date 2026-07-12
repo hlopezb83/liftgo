@@ -15,7 +15,7 @@ interface Props<T> {
   isLoading?: boolean;
   emptyMessage?: string;
   onRowClick?: (item: T) => void;
-  onRowPrefetch?: (item: T) => FetchQueryOptions;
+  onRowPrefetch?: (item: T) => FetchQueryOptions<any, any, any, any>;
   rowClassName?: (item: T) => string | undefined;
   mobileCardRender?: (item: T) => ReactNode;
   footer?: ReactNode;
