@@ -15,12 +15,12 @@ describe("renderMarkdown", () => {
   });
 
   it("convierte listas ordenadas y desordenadas", () => {
-    expect(renderMarkdown("1. uno")).toContain("list-decimal");
-    expect(renderMarkdown("- uno")).toContain("list-disc");
+    expect(renderMarkdown("1. uno")).toMatch(/<ol[^>]*>[\s\S]*<li>uno<\/li>/);
+    expect(renderMarkdown("- uno")).toMatch(/<ul[^>]*>[\s\S]*<li>uno<\/li>/);
   });
 
   it("convierte blockquote", () => {
-    expect(renderMarkdown("> nota")).toContain("border-l-4");
+    expect(renderMarkdown("> nota")).toContain("<blockquote");
   });
 });
 
@@ -29,5 +29,10 @@ describe("renderSafeMarkdown", () => {
     const out = renderSafeMarkdown("**hola** <script>alert(1)</script>");
     expect(out).not.toContain("<script>");
     expect(out).toContain("<strong>hola</strong>");
+  });
+
+  it("envuelve en contenedor prose", () => {
+    const out = renderSafeMarkdown("Hola");
+    expect(out).toContain('class="prose');
   });
 });
