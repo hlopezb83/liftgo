@@ -1,0 +1,15 @@
+{
+  "version": "7.29.1",
+  "date": "2026-07-12",
+  "type": "patch",
+  "title": "Lote 1 de actualización de dependencias",
+  "description": "Se actualizaron dependencias sin breaking changes reales: `dompurify` 3.4.11 → 3.4.12 (patch), `postcss` 8.5.16 → 8.5.17 (patch), `sonner` 1.7.4 → 2.0.7 (major, API compatible con nuestro uso de `toast()`), `eslint-plugin-react-refresh` 0.4.26 → 0.5.3 (dev, minor), `jsdom` 20 → 26 (dev, major). Se descartó `jsdom` 29 porque rompe la serialización de estilos de `react-pdf` en el entorno de test (`TypeError: 'set' on proxy: trap returned falsish for property '0'`); se fija en 26.1.0 estable. Typecheck 0 errores, 913/913 tests verdes.",
+  "category": "improvement",
+  "changes": [
+    { "type": "changed", "description": "dompurify 3.4.11 → 3.4.12" },
+    { "type": "changed", "description": "postcss 8.5.16 → 8.5.17" },
+    { "type": "changed", "description": "sonner 1.7.4 → 2.0.7 (major sin impacto de API en nuestro uso)" },
+    { "type": "changed", "description": "eslint-plugin-react-refresh 0.4.26 → 0.5.3 (dev)" },
+    { "type": "changed", "description": "jsdom 20 → 26.1.0 (dev); v29 rompe react-pdf en tests" }
+  ]
+}
