@@ -1,0 +1,31 @@
+{
+  "version": "7.40.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "Fix crítico: sidebar dejaba de reservar espacio en Tailwind v4",
+  "summary": "Migración de sintaxis abreviada de CSS variables a la forma v4 (`[var(--x)]`) en el Sidebar, resolviendo el overlap con el contenido principal detectado en la auditoría visual. Además, `TableHeader` sticky sólido y `<Table>` sin `max-h` global.",
+  "sections": [
+    {
+      "title": "Root cause",
+      "items": [
+        "Tailwind v4 dejó de expandir `w-[--sidebar-width]` a `var(--sidebar-width)`. El spacer del sidebar colapsaba a 0px y el sidebar fijo se superponía al `<main>`."
+      ]
+    },
+    {
+      "title": "Cambios",
+      "items": [
+        "`src/components/ui/sidebar/Sidebar.tsx`: 6 utilities `-[--sidebar-width...]` → `-[var(--sidebar-width...)]`.",
+        "`src/components/ui/sidebar/SidebarMenu.tsx`: `max-w-[--skeleton-width]` → `max-w-[var(--skeleton-width)]`.",
+        "`src/components/ui/chart.tsx`: `border-[--color-border]`, `bg-[--color-bg]` → sintaxis v4.",
+        "`src/components/ui/table.tsx`: `TableHeader` de `bg-muted/50` a `bg-card`; wrapper sin `max-h`; `tracking-wider` → `tracking-wide`."
+      ]
+    },
+    {
+      "title": "Verificación",
+      "items": [
+        "Playwright headless en /, /mrr y /customers a 1280×1800, 1024×768, 768×1024.",
+        "Sidebar reserva 16rem (expandido) / 3rem (colapsado) sin overlap. Tabla MRR renderiza 6 columnas sin recorte."
+      ]
+    }
+  ]
+}
