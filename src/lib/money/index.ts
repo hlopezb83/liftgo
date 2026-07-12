@@ -1,32 +1,33 @@
 /**
  * Money rounding helpers.
  *
- * JavaScript floats (IEEE-754) produce binary tails on common decimal ops
- * (e.g. 0.1 + 0.2 = 0.30000000000000004). When persisting monetary values
- * to the database or aggregating across many rows, we want clean 2-decimal
- * numbers. Use these helpers at write boundaries and final aggregations,
- * not on every intermediate calculation.
+ * Delegan la aritmética a `currency.js` (2 decimales, MXN-compatible) para
+ * evitar drift de IEEE-754 sin depender del truco `Number.EPSILON`. Usar en
+ * fronteras de persistencia y agregaciones finales, no en cada cálculo
+ * intermedio.
  */
+import currency from "currency.js";
+
+const MONEY_OPTS = { precision: 2 } as const;
 
 /**
- * Round a numeric value to 2 decimals using an epsilon adjustment to avoid
- * binary rounding artifacts. Returns 0 for non-finite inputs.
+ * Redondea a 2 decimales monetarios vía `currency.js`. Devuelve 0 para
+ * entradas no finitas.
  */
 export function roundMoney(n: number | null | undefined): number {
   const v = typeof n === "number" && Number.isFinite(n) ? n : 0;
-  return Math.round((v + Number.EPSILON) * 100) / 100;
+  return currency(v, MONEY_OPTS).value;
 }
 
 /**
- * Sum an array of monetary values and round the result to 2 decimals.
- * Skips NaN/undefined entries safely.
+ * Suma una lista de montos y redondea a 2 decimales. Ignora NaN/undefined.
  */
 export function sumMoney(values: ReadonlyArray<number | null | undefined>): number {
-  let acc = 0;
+  let acc = currency(0, MONEY_OPTS);
   for (const v of values) {
-    if (typeof v === "number" && Number.isFinite(v)) acc += v;
+    if (typeof v === "number" && Number.isFinite(v)) acc = acc.add(v);
   }
-  return roundMoney(acc);
+  return acc.value;
 }
 
 /**
