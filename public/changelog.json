@@ -1,5 +1,15 @@
 [
   {
+    "version": "7.56.1",
+    "date": "2026-07-12",
+    "type": "patch",
+    "title": "Fix crítico: CSS de Tailwind v4 no cargaba (LightningCSS transformer)",
+    "description": "vite.config.ts tenía `css.transformer: \"lightningcss\"`, lo que hace que Vite salte PostCSS entero. Con Tailwind v4 el pipeline es `@tailwindcss/postcss`, así que las directivas `@import \"tailwindcss\"` y `@utility` llegaban crudas a LightningCSS y fallaban con \"Unknown at rule: @utility\", dejando la app sin estilos. Se remueve el transformer y se mantiene sólo `build.cssMinify: \"lightningcss\"` para minificar el output final.",
+    "category": "bugfix",
+    "impact": "Restaura todos los estilos de la aplicación en dev y build.",
+    "files": ["vite.config.ts"]
+  },
+  {
     "version": "7.56.0",
     "date": "2026-07-12",
     "type": "minor",
