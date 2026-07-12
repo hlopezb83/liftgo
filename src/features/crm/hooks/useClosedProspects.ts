@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useState } from "react";
 import { useCRMMetrics } from "./useCRMMetrics";
 import { useUpdateProspect, type Prospect } from "./useProspects";
 
@@ -7,6 +7,8 @@ import { useUpdateProspect, type Prospect } from "./useProspects";
  * filtrado por término, métricas y diálogo de reapertura.
  *
  * Extraído de la página para mantenerla como container puro.
+ * Todas las derivaciones puras (filterRows, wonRows, lostRows y los
+ * handlers) las memoiza React Compiler automáticamente.
  */
 export function useClosedProspects() {
   const { data: metrics, isLoading } = useCRMMetrics();
@@ -14,7 +16,7 @@ export function useClosedProspects() {
   const [search, setSearch] = useState("");
   const [reopenTarget, setReopenTarget] = useState<Prospect | null>(null);
 
-  const filterRows = useCallback((rows: Prospect[]) => {
+  const filterRows = (rows: Prospect[]) => {
     const q = search.trim().toLowerCase();
     if (!q) return rows;
     return rows.filter(
@@ -22,18 +24,18 @@ export function useClosedProspects() {
         p.companyName.toLowerCase().includes(q) ||
         (p.contactPerson ?? "").toLowerCase().includes(q),
     );
-  }, [search]);
+  };
 
-  const wonRows = useMemo(() => filterRows(metrics.won), [metrics.won, filterRows]);
-  const lostRows = useMemo(() => filterRows(metrics.lost), [metrics.lost, filterRows]);
+  const wonRows = filterRows(metrics.won);
+  const lostRows = filterRows(metrics.lost);
 
-  const handleReopen = useCallback((p: Prospect) => setReopenTarget(p), []);
+  const handleReopen = (p: Prospect) => setReopenTarget(p);
 
-  const confirmReopen = useCallback(() => {
+  const confirmReopen = () => {
     if (!reopenTarget) return;
     updateProspect.mutate({ id: reopenTarget.id, stage: "negociacion" });
     setReopenTarget(null);
-  }, [reopenTarget, updateProspect]);
+  };
 
   return {
     metrics,

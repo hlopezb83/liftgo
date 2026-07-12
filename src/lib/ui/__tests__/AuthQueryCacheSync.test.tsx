@@ -12,17 +12,31 @@ vi.mock("@/contexts/AuthContext", () => ({
 import { AuthQueryCacheSync } from "@/lib/ui/AuthQueryCacheSync";
 
 interface TestWrapperProps {
-  user: { id: string } | null;
   queryClient: QueryClient;
 }
 
-function TestWrapper({ user, queryClient }: TestWrapperProps) {
-  currentUser = user;
+// Nota: `currentUser` se muta desde el test antes de renderizar (ver `renderWith`).
+// Este wrapper es puro: sólo lee el mock ya configurado.
+function TestWrapper({ queryClient }: TestWrapperProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthQueryCacheSync />
     </QueryClientProvider>
   );
+}
+
+function renderWith(user: { id: string } | null, queryClient: QueryClient) {
+  currentUser = user;
+  return render(<TestWrapper queryClient={queryClient} />);
+}
+
+function rerenderWith(
+  rerender: (ui: React.ReactElement) => void,
+  user: { id: string } | null,
+  queryClient: QueryClient,
+) {
+  currentUser = user;
+  rerender(<TestWrapper queryClient={queryClient} />);
 }
 
 describe("AuthQueryCacheSync", () => {
@@ -34,7 +48,7 @@ describe("AuthQueryCacheSync", () => {
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const clearSpy = vi.spyOn(qc, "clear");
 
-    render(<TestWrapper user={currentUser} queryClient={qc} />);
+    renderWith(currentUser, qc);
 
     expect(clearSpy).not.toHaveBeenCalled();
     clearSpy.mockRestore();
@@ -44,11 +58,11 @@ describe("AuthQueryCacheSync", () => {
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const clearSpy = vi.spyOn(qc, "clear");
 
-    const { rerender } = render(<TestWrapper user={{ id: "user-1" }} queryClient={qc} />);
+    const { rerender } = renderWith({ id: "user-1" }, qc);
 
     expect(clearSpy).not.toHaveBeenCalled();
 
-    rerender(<TestWrapper user={{ id: "user-2" }} queryClient={qc} />);
+    rerenderWith(rerender, { id: "user-2" }, qc);
 
     expect(clearSpy).toHaveBeenCalledTimes(1);
     clearSpy.mockRestore();
@@ -58,11 +72,11 @@ describe("AuthQueryCacheSync", () => {
     const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
     const clearSpy = vi.spyOn(qc, "clear");
 
-    const { rerender } = render(<TestWrapper user={{ id: "user-1" }} queryClient={qc} />);
+    const { rerender } = renderWith({ id: "user-1" }, qc);
 
     expect(clearSpy).not.toHaveBeenCalled();
 
-    rerender(<TestWrapper user={null} queryClient={qc} />);
+    rerenderWith(rerender, null, qc);
 
     expect(clearSpy).toHaveBeenCalledTimes(1);
     clearSpy.mockRestore();

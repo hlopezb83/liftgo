@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import type { ExportablePayable } from "./useExportablePayables";
 
 interface RowState {
@@ -27,21 +27,11 @@ export function usePaymentSelection(open: boolean, bills: SupplierBillRow[] | un
     setRowState(init);
   }, [open, bills]);
 
-  const selected = useMemo(
-    () => (bills ?? []).filter((b) => rowState[b.id]?.selected),
-    [bills, rowState],
-  );
-
-  const total = useMemo(
-    () => selected.reduce((acc, b) => acc + (rowState[b.id]?.amount ?? 0), 0),
-    [selected, rowState],
-  );
-
+  const selected: SupplierBillRow[] = (bills ?? []).filter((b) => rowState[b.id]?.selected);
+  const total = selected.reduce((acc, b) => acc + (rowState[b.id]?.amount ?? 0), 0);
   const hasInvalid = selected.some((b) => !b.has_valid_clabe);
-
-  const eligible = useMemo(
-    () => (bills ?? []).filter((b) => b.has_valid_clabe && !b.payment_in_progress_at),
-    [bills],
+  const eligible: SupplierBillRow[] = (bills ?? []).filter(
+    (b) => b.has_valid_clabe && !b.payment_in_progress_at,
   );
 
   const allEligibleSelected =

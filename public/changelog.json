@@ -1,5 +1,21 @@
 [
   {
+    "version": "7.24.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "Fase F Lote 2 — Poda de useMemo/useCallback redundantes (ronda 1)",
+    "description": "Bajo React Compiler activo, la mayoría de memoizaciones manuales son ruido. Auditados 186 sitios en `src/` (excl. tests) y podados 44 en los 10 archivos de mayor impacto: `useDashboardSections` (-8), `useStatementRows` + `useComparisonRows` (-6), `CRMPage` (-6), `useClosedProspects` (-5), `useAccountsPayableFilters` (-5), `RecurringInvoicesPreviewDialog` (-2), `useInvoicesFilters` (-3), `usePaymentSelection` (-3), `TablePagination` (-3), `SwipeableCard` (-3). Preservadas las memoizaciones que alimentan cascadas (`counts`, `overdueInvoices`, `stagesData`, `statementRows`) o el patrón 'adjust state during render' (`lines`, `eligibleIds` en el preview de recurrentes). Typecheck limpio, lint sin warnings.",
+    "category": "improvement"
+  },
+  {
+    "version": "7.23.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "Fase F — Suspense skeletons semánticos + limpieza de bailouts",
+    "description": "Lote 1 (compiler bailouts): `useListFilters` desestructura `options` para deps estables y elimina el `eslint-disable exhaustive-deps`, dejando que React Compiler memoice sin fricción; el test `AuthQueryCacheSync` reemplaza la reasignación impura por helpers `renderWith` / `rerenderWith`. Lote 3 (Suspense granular): nuevo `src/routes/RouteSkeletons.tsx` con esqueletos semánticos (`Dashboard`, `List`, `Detail`, `Form`) que se seleccionan según el pathname; el spinner genérico se sustituye por siluetas que coinciden con la página destino y el mensaje de recarga tras 10s ahora es un toast flotante no invasivo. Zero warnings de ESLint/typecheck.",
+    "category": "improvement"
+  },
+  {
     "version": "7.22.0",
     "date": "2026-07-11",
     "type": "minor",

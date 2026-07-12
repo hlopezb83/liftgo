@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { type DropResult } from "@hello-pangea/dnd";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { PageTransition } from "@/components/layout/PageTransition";
@@ -27,51 +27,54 @@ export default function CRMPage() {
 
   const [density, setDensity] = useState<"comfortable" | "compact">("comfortable");
 
-  const activeProspects = useMemo(
-    () => prospects.filter((p) => p.stage !== "cerrado_ganado" && p.stage !== "cerrado_perdido"),
-    [prospects]
+  const activeProspects = prospects.filter(
+    (p) => p.stage !== "cerrado_ganado" && p.stage !== "cerrado_perdido",
   );
 
   const { filters, update, reset, filtered, hasActive } = useCRMFilters(activeProspects);
 
-  const quoteMap = useMemo(() => new Map(quotes.map((q) => [q.id, q.quote_number])), [quotes]);
+  const quoteMap = new Map(quotes.map((q) => [q.id, q.quote_number]));
 
-  const creators = useMemo<[string, string][]>(() => {
-    const map = new Map<string, string>();
-    activeProspects.forEach((p) => {
-      if (p.createdBy && p.createdByName) map.set(p.createdBy, p.createdByName);
-    });
-    return [...map.entries()].sort((a, b) => a[1].localeCompare(b[1]));
-  }, [activeProspects]);
+  const creatorMap = new Map<string, string>();
+  activeProspects.forEach((p) => {
+    if (p.createdBy && p.createdByName) creatorMap.set(p.createdBy, p.createdByName);
+  });
+  const creators: [string, string][] = [...creatorMap.entries()].sort((a, b) =>
+    a[1].localeCompare(b[1]),
+  );
 
+  // `stagesData` es dep de `pipelineTotal` (y se pasa al Kanban). Mantenemos
+  // memo manual para blindar la identidad ante remounts del subtree.
   const stagesData = useMemo(
     () =>
       ACTIVE_STAGES.map((s) => {
-        const items = filtered.filter((p) => p.stage === s.key).sort((a, b) => a.stageOrder - b.stageOrder);
+        const items = filtered
+          .filter((p) => p.stage === s.key)
+          .sort((a, b) => a.stageOrder - b.stageOrder);
         return { ...s, items, total: items.reduce((sum, p) => sum + (p.dealValue ?? 0), 0) };
       }),
-    [filtered]
+    [filtered],
   );
 
-  const pipelineTotal = useMemo(() => stagesData.reduce((s, c) => s + c.total, 0), [stagesData]);
+  const pipelineTotal = stagesData.reduce((s, c) => s + c.total, 0);
 
-  const openCreate = useCallback((stage: string) => {
+  const openCreate = (stage: string) => {
     if (stage === "cerrado_ganado" && !assertCanClose("create")) return;
     dialogs.setEditingProspect(null);
     dialogs.setDefaultStage(stage);
     dialogs.setOverrideStage(undefined);
     dialogs.setDialogOpen(true);
-  }, [assertCanClose, dialogs]);
+  };
 
   usePageActions({ onNew: () => openCreate("nuevo_prospecto"), newLabel: "Nuevo prospecto" });
 
-  const openEdit = useCallback((p: Prospect) => {
+  const openEdit = (p: Prospect) => {
     dialogs.setEditingProspect(p);
     dialogs.setOverrideStage(undefined);
     dialogs.setDialogOpen(true);
-  }, [dialogs]);
+  };
 
-  const onDragEnd = useCallback((result: DropResult) => {
+  const onDragEnd = (result: DropResult) => {
     if (!result.destination) return;
     const { draggableId, source, destination } = result;
     const newStage = destination.droppableId;
@@ -86,7 +89,7 @@ export default function CRMPage() {
       dialogs.setOverrideStage(newStage);
       dialogs.setDialogOpen(true);
     }
-  }, [updateProspect, prospects, assertCanClose, dialogs]);
+  };
 
   return (
     <TooltipProvider delayDuration={300}>
