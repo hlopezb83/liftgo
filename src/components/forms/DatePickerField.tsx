@@ -44,8 +44,8 @@ export function DatePickerField({
     if (open) setLocalDate(date);
   }, [open, date]);
 
-  const triggerLabel = date ? format(date, "dd/MM/yyyy") : placeholder;
-  const liveLabel = localDate ? format(localDate, "dd/MM/yyyy") : "Selecciona una fecha";
+  const triggerLabel = date ? formatDateMty(date) : placeholder;
+  const liveLabel = localDate ? formatDateMty(localDate) : "Selecciona una fecha";
 
   const handleApply = () => {
     onSelect(normalize(localDate));
