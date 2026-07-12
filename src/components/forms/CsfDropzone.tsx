@@ -1,8 +1,9 @@
 import { useCallback, useState } from "react";
-import { useDropzone } from "react-dropzone";
+import { ErrorCode, useDropzone, type FileRejection } from "react-dropzone";
 import { UploadIcon, DocumentIcon, SpinnerIcon, SuccessIcon } from "@/components/icons";
 import { useParseCsf, type ParsedCsfData } from "@/features/customers/hooks/useParseCsf";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
+import { cn } from "@/lib/utils";
 
 interface Props<T> {
   /** Receives the mapped patch plus the original File for later upload. */
@@ -11,44 +12,67 @@ interface Props<T> {
   mapData: (data: ParsedCsfData) => Partial<T>;
 }
 
+const MAX_SIZE_BYTES = 10 * 1024 * 1024;
+
+/** Mensaje user-facing en español para cada ErrorCode nativo de la librería. */
+function messageFor(rejection: FileRejection): string {
+  const code = rejection.errors[0]?.code;
+  switch (code) {
+    case ErrorCode.FileInvalidType:
+      return "Solo se aceptan archivos PDF";
+    case ErrorCode.FileTooLarge:
+      return "El archivo no debe superar 10 MB";
+    case ErrorCode.TooManyFiles:
+      return "Sólo puedes subir un archivo a la vez";
+    default:
+      return "Archivo no válido";
+  }
+}
+
 /**
  * Generic CSF (Constancia de Situación Fiscal) PDF dropzone.
  * Shared across Cliente / Proveedor dialogs to keep one visual language.
+ *
+ * v16: la validación de tipo/tamaño se delega a `accept` + `maxSize` y los
+ * rechazos se manejan con `onDropRejected` + `ErrorCode` tipado (no más checks
+ * a mano). `isDragReject` da feedback visual cuando arrastras algo inválido.
  */
 export function CsfDropzone<T>({ onParsed, mapData }: Props<T>) {
   const parseCsf = useParseCsf();
   const parsing = parseCsf.isPending;
   const [parsed, setParsed] = useState(false);
 
-  const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    const file = acceptedFiles[0];
-    if (!file) return;
-    if (file.type !== "application/pdf") {
-      notifyValidation({ message: "Solo se aceptan archivos PDF" });
-      return;
-    }
-    if (file.size > 10 * 1024 * 1024) {
-      notifyValidation({ message: "El archivo no debe superar 10 MB" });
-      return;
-    }
+  const onDropAccepted = useCallback(
+    (acceptedFiles: File[]) => {
+      const file = acceptedFiles[0];
+      if (!file) return;
+      setParsed(false);
+      parseCsf.mutate(file, {
+        onSuccess: (data) => {
+          onParsed(mapData(data), file);
+          setParsed(true);
+          notifySuccess("Datos fiscales extraídos. Revisa y completa la información.");
+        },
+        onError: (e: unknown) => {
+          notifyError({ error: e, message: "Error al procesar la constancia" });
+        },
+      });
+    },
+    [parseCsf, onParsed, mapData],
+  );
 
-    setParsed(false);
-    parseCsf.mutate(file, {
-      onSuccess: (data) => {
-        onParsed(mapData(data), file);
-        setParsed(true);
-        notifySuccess("Datos fiscales extraídos. Revisa y completa la información.");
-      },
-      onError: (e: unknown) => {
-        notifyError({ error: e, message: "Error al procesar la constancia" });
-      },
-    });
-  }, [parseCsf, onParsed, mapData]);
+  const onDropRejected = useCallback((rejections: FileRejection[]) => {
+    const first = rejections[0];
+    if (first) notifyValidation({ message: messageFor(first) });
+  }, []);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
+  const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
+    onDropAccepted,
+    onDropRejected,
     accept: { "application/pdf": [".pdf"] },
+    maxSize: MAX_SIZE_BYTES,
     maxFiles: 1,
+    multiple: false,
     disabled: parsing,
   });
 
@@ -68,9 +92,16 @@ export function CsfDropzone<T>({ onParsed, mapData }: Props<T>) {
   return (
     <div
       {...getRootProps()}
-      className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-        isDragActive ? "border-primary bg-primary/5" : "border-muted-foreground/25 hover:border-primary/50"
-      } ${parsing ? "pointer-events-none opacity-60" : ""}`}
+      className={cn(
+        "border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors",
+        isDragReject
+          ? "border-destructive bg-destructive/5"
+          : isDragActive
+            ? "border-primary bg-primary/5"
+            : "border-muted-foreground/25 hover:border-primary/50",
+        parsing && "pointer-events-none opacity-60",
+      )}
+      aria-label="Zona para subir Constancia de Situación Fiscal (PDF)"
     >
       <input {...getInputProps()} />
       {parsing ? (
@@ -82,8 +113,14 @@ export function CsfDropzone<T>({ onParsed, mapData }: Props<T>) {
         <div className="flex flex-col items-center gap-3">
           <UploadIcon className="h-10 w-10 text-muted-foreground" />
           <div>
-            <p className="text-sm font-medium">Arrastra tu CSF aquí o haz clic para seleccionar</p>
-            <p className="text-xs text-muted-foreground mt-1">Constancia de Situación Fiscal del SAT (PDF, máx. 10 MB)</p>
+            <p className="text-sm font-medium">
+              {isDragReject
+                ? "Formato no válido — solo PDF"
+                : "Arrastra tu CSF aquí o haz clic para seleccionar"}
+            </p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Constancia de Situación Fiscal del SAT (PDF, máx. 10 MB)
+            </p>
           </div>
         </div>
       )}
