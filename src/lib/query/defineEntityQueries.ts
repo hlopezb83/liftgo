@@ -23,7 +23,7 @@ import { createEntityKeys, type EntityKeys } from "./createEntityKeys";
 
 type Fetcher<T> = () => Promise<T>;
 
-export interface DefineEntityConfig<F, TList, TDetail = never> {
+export interface DefineEntityConfig<TList, TDetail = never, F = Readonly<Record<string, unknown>>> {
   readonly list: (filter?: F) => Fetcher<TList>;
   /** Opcional: hooks sin fetch de detalle solo definen `list`. */
   readonly detail?: (id: string) => Fetcher<TDetail>;
@@ -33,10 +33,10 @@ export interface DefineEntityConfig<F, TList, TDetail = never> {
 
 export function defineEntityQueries<
   Root extends string,
-  F extends Readonly<Record<string, unknown>> = Readonly<Record<string, unknown>>,
   TList = unknown,
   TDetail = never,
->(root: Root, config: DefineEntityConfig<F, TList, TDetail>) {
+  F extends Readonly<Record<string, unknown>> = Readonly<Record<string, unknown>>,
+>(root: Root, config: DefineEntityConfig<TList, TDetail, F>) {
   const keys: EntityKeys<Root> = createEntityKeys(root);
   const staleTime = config.staleTime ?? 60_000;
 
