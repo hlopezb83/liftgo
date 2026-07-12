@@ -1,5 +1,6 @@
 import { useEffect, useState, useMemo, useTransition } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { routeLoaders } from "@/routes/routes-config";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { CalendarDays, FleetIcon, UsersIcon, DocumentIcon, BookOpen, ScrollText, DeliveryIcon, ClipboardCheck, InvoiceIcon, MaintenanceIcon, WarnIcon, InventoryIcon, SupplierIcon, ExpenseIcon, ChartIcon, ActivityIcon, HistoryIcon, SettingsIcon, CompanyIcon, SecurityIcon, HelpIcon, TargetIcon, DashboardIcon, SearchIcon, SpinnerIcon } from "@/components/icons";
 import {
@@ -40,7 +41,7 @@ const ITEMS: Item[] = [
 
 export function GlobalSearch() {
   const [open, setOpen] = useState(false);
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
@@ -111,6 +112,7 @@ export function GlobalSearch() {
                   key={item.url}
                   value={`${item.title} ${item.keywords ?? ""}`}
                   onSelect={() => go(item.url)}
+                  onMouseEnter={() => routeLoaders[item.url]?.()}
                   disabled={isPending}
                 >
                   <item.icon className="mr-2 h-4 w-4" />
