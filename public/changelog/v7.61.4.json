@@ -1,0 +1,13 @@
+{
+  "version": "7.61.4",
+  "date": "2026-07-12",
+  "type": "patch",
+  "title": "Sidebar branding centrado: logo arriba, nombre abajo",
+  "description": "Se reorganizó el encabezado del sidebar para mostrar el logo de la empresa centrado horizontalmente y el nombre de la empresa (más el subtítulo 'Montacargas') debajo del logo, en lugar de la disposición horizontal anterior. Se aumentó ligeramente el tamaño del logo/fallback para mejorar legibilidad en el nuevo layout vertical.",
+  "category": "ui",
+  "files": [
+    "src/layouts/sidebar/SidebarBranding.tsx",
+    "public/changelog/v7.61.4.json",
+    "public/changelog.json"
+  ]
+}
