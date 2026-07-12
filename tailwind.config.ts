@@ -144,5 +144,5 @@ export default {
       },
     },
   },
-  plugins: [animatePlugin],
+  plugins: [animatePlugin, typographyPlugin],
 } satisfies Config;
