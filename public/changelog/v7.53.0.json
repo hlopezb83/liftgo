@@ -1,0 +1,41 @@
+{
+  "version": "7.53.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "react-day-picker v10: nueva API de classNames, Chevron unificado y locale nativo",
+  "summary": "Migración de react-day-picker de v8 a v10 (skip v9). Se moderniza el wrapper Calendar a las claves camelCase (month_caption, weekdays, weekday, week, day, day_button, selected, today, outside, range_start/end/middle), se reemplaza components.IconLeft/IconRight por el nuevo Chevron con orientation, y el locale español ahora se importa desde react-day-picker/locale — desacoplando el Calendar de date-fns/locale.",
+  "sections": [
+    {
+      "heading": "Auditoría",
+      "items": [
+        "Versión previa: react-day-picker@8.10.2. Última estable: 10.0.1.",
+        "10 archivos tocaban la librería: 1 wrapper UI (src/components/ui/calendar.tsx), 4 fields (DatePickerField, DateRangePickerField y sus wrappers RHF DateField/DateRangeField) y 5 consumidores de tipos DateRange/Matcher.",
+        "Uso obsoleto detectado: components.IconLeft/IconRight (removido en v9 a favor de Chevron), classNames en formato snake_case v8 (caption, nav_button, head_row, head_cell, row, cell, day, day_selected, day_today, day_outside, day_disabled, day_hidden, day_range_*) y prop initialFocus (renombrada a autoFocus)."
+      ]
+    },
+    {
+      "heading": "Cambios aplicados",
+      "items": [
+        "Bump: react-day-picker ^8.10.2 → ^10.0.1.",
+        "src/components/ui/calendar.tsx: reescrito el mapa classNames a las claves v10 (month_caption, button_previous/next, weekdays, weekday, week, day, day_button, selected, today, outside, disabled, hidden, range_start/end/middle). El estilo de rango ahora usa la API nativa en lugar del hack [&:has([aria-selected].day-range-end)].",
+        "components.Chevron con orientation → renderiza ChevronLeftIcon / ChevronRightIcon del registry semántico. Elimina la duplicación de IconLeft + IconRight.",
+        "Locale: import { es } from 'react-day-picker/locale' en lugar de 'date-fns/locale'. RDP v9+ trae sus propios locales tree-shakeables; el Calendar deja de arrastrar el barrel de date-fns/locale para este caso.",
+        "DatePickerField.tsx: initialFocus → autoFocus (renombre en v9)."
+      ]
+    },
+    {
+      "heading": "Sin cambios",
+      "items": [
+        "Tipos exportados DateRange y Matcher se mantienen en v10 — los 5 consumidores (DatePickerField, DateRangePickerField, DateField, DateRangeField, ReportsPage, InvoicesToolbar, useAvailableForklifts, useBookingFormState, useQuoteFormState) siguen intactos.",
+        "API pública del Calendar (CalendarProps = ComponentProps<typeof DayPicker>): compatibilidad total para todos los formularios que lo consumen."
+      ]
+    },
+    {
+      "heading": "Validación",
+      "items": [
+        "tsgo --noEmit: sin errores tras el rename de classNames y la firma de Chevron.",
+        "Smoke: DatePicker en formularios y DateRange en Reportes/Facturas siguen operando (single, range, presets del footer)."
+      ]
+    }
+  ]
+}
