@@ -1,6 +1,7 @@
 import {
   DndContext,
   DragOverlay,
+  MeasuringStrategy,
   PointerSensor,
   KeyboardSensor,
   closestCorners,
@@ -72,6 +73,10 @@ export function CRMKanbanGrid({
     <DndContext
       sensors={sensors}
       collisionDetection={closestCorners}
+      // `MeasuringStrategy.Always` re-mide los droppables durante el drag; sin
+      // esto SortableContext vertical cachea alturas al inicio y aparecen gaps
+      // al reordenar cards de alturas variables.
+      measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onDragCancel={() => setActiveId(null)}
