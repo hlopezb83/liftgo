@@ -1,11 +1,11 @@
 
 import {
+  buildStatementRows, buildBreakdownRows, buildCsvRows, buildComparisonValues,
+} from "./statementRowFactories";
+import {
   type MonthData, type ComparisonRow, type YearTotals,
   DIRECT_COST_CATEGORIES, OPERATING_EXPENSE_GROUPS, EXPENSE_CATEGORY_LABELS,
 } from "./types";
-import {
-  buildStatementRows, buildBreakdownRows, buildCsvRows, buildComparisonValues,
-} from "./statementRowFactories";
 
 interface Totals {
   revenue: number; revenueRental: number; revenueSales: number;

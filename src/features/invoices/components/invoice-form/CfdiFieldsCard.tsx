@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { useFormContext, useWatch } from "react-hook-form";
 import { ChevronDownIcon, ChevronRightIcon } from "@/components/icons";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FORMA_PAGO, METODO_PAGO, USO_CFDI, MONEDA } from "@/lib/domain/satCatalogs";
-import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
 import { GlobalInvoiceFields } from "./GlobalInvoiceFields";
 import { ReceptorFiscalFields } from "./ReceptorFiscalFields";
+import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
 
 function CfdiCatalogSelects() {
   const { control } = useFormContext<InvoiceFormValues>();

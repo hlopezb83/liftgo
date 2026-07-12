@@ -1,7 +1,7 @@
 import { useRef } from "react";
+import { UploadIcon, DeleteIcon, ImageIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { UploadIcon, DeleteIcon, ImageIcon } from "@/components/icons";
 import { useUploadCompanyLogo } from "../../hooks/useUploadCompanyLogo";
 
 interface Props {

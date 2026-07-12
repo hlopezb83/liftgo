@@ -1,5 +1,5 @@
-import { fetchCompanyDataAndLogo, type PdfLineItem } from "@/lib/pdf/shared";
 import { parseLineItems } from "@/lib/domain/lineItems";
+import { fetchCompanyDataAndLogo, type PdfLineItem } from "@/lib/pdf/shared";
 import type { InvoicePdfPayload } from "../../api/fetchInvoicePdfData";
 
 /**

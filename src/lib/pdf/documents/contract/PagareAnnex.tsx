@@ -1,8 +1,8 @@
 import { Text, View } from "@react-pdf/renderer";
-import { contractStyles } from "@/lib/pdf/theme/styles";
 import { replacePlaceholders } from "@/lib/domain/templateUtils";
-import { DEFAULT_PAGARE } from "@/lib/pdf/contract/data-templates";
 import type { TemplateData, ContractData } from "@/lib/pdf/contract/data";
+import { DEFAULT_PAGARE } from "@/lib/pdf/contract/data-templates";
+import { contractStyles } from "@/lib/pdf/theme/styles";
 
 interface PagareAnnexProps {
   contract: ContractData;

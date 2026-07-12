@@ -1,17 +1,16 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-
-import { STATUS_LABELS } from "@/lib/constants";
-import { useContracts, contractQueries } from "../hooks/useContracts";
-import { useListFilters } from "@/hooks/useListFilters";
-import { ListPageLayout } from "@/components/layout/ListPageLayout";
-import { SearchBar } from "@/components/forms/SearchBar";
-import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
-import { AddIcon, ViewIcon, ChevronRightIcon } from "@/components/icons";
-import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
+import { SearchBar } from "@/components/forms/SearchBar";
+import { AddIcon, ViewIcon, ChevronRightIcon } from "@/components/icons";
+import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useListFilters } from "@/hooks/useListFilters";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { STATUS_LABELS } from "@/lib/constants";
+import { formatDateDisplay, formatDateRange } from "@/lib/utils";
+import { useContracts, contractQueries } from "../hooks/useContracts";
 
 const STATUSES = ["all", "draft", "sent", "signed", "cancelled"] as const;
 

@@ -1,14 +1,14 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { DownloadIcon } from "@/components/icons";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useInvoices } from "@/features/invoices";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
 import { formatMonthShortEsFromDate } from "@/lib/format/formatMonthEs";
-import { DownloadIcon } from "@/components/icons";
-import { useInvoices } from "@/features/invoices";
-import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
 interface Props {
   startDate: Date;

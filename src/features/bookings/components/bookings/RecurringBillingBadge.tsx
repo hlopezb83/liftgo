@@ -1,6 +1,5 @@
-import { Repeat } from "@/components/icons";
 import { format, addDays, parseISO } from "date-fns";
-
+import { Repeat } from "@/components/icons";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import type { Booking } from "../../hooks/useBookings";
 

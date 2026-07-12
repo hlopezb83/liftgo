@@ -2,13 +2,13 @@ import { Activity } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
-import { BankLineActions } from "./BankLineActions";
 import {
   useConfirmBankMatch,
   useIgnoreBankLine,
   useUnmatchBankLine,
 } from "../hooks/useBankReconciliationMutations";
 import { BANK_LINE_STATUS_LABELS } from "../lib/bankReconciliationConstants";
+import { BankLineActions } from "./BankLineActions";
 import type { BankStatementLine } from "../hooks/useBankStatementLines";
 
 interface Props {

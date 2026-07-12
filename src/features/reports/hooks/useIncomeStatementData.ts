@@ -1,6 +1,6 @@
 import { useMonthlyData } from "./incomeStatement/useMonthlyData";
-import { useStatementTotals } from "./incomeStatement/useStatementTotals";
 import { useStatementRows, useComparisonRows } from "./incomeStatement/useStatementRows";
+import { useStatementTotals } from "./incomeStatement/useStatementTotals";
 import type { AccountingBasis } from "./incomeStatement/types";
 
 export type {

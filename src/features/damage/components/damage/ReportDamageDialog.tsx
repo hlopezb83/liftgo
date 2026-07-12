@@ -1,12 +1,12 @@
 import { useState } from "react";
+import { CurrencyField, SelectField, TextareaField } from "@/components/forms/fields";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { WarnIcon, SpinnerIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
-import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
-import { CurrencyField, SelectField, TextareaField } from "@/components/forms/fields";
-import { useForklifts } from "@/features/fleet";
 import { useCustomers } from "@/features/customers";
+import { useForklifts } from "@/features/fleet";
 import { useReportDamageForm } from "../../hooks/useReportDamageForm";
 import { DamageEvidenceSection } from "./DamageEvidenceSection";
 

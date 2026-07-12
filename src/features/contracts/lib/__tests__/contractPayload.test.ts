@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildContractPayload } from "../contractPayload";
 import { defaultContractForm } from "../../hooks/contractForm/contractFormDefaults";
+import { buildContractPayload } from "../contractPayload";
 
 describe("buildContractPayload", () => {
   it("aplica defaults sensatos cuando los campos están vacíos", () => {

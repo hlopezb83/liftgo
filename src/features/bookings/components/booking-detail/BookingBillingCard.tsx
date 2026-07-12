@@ -1,9 +1,9 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ClockIcon } from "@/components/icons";
-import { InfoRow } from "@/components/forms/InfoRow";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { RecurringBillingBadge } from "../bookings/RecurringBillingBadge";
+import { InfoRow } from "@/components/forms/InfoRow";
+import { ClockIcon } from "@/components/icons";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatMtyDate } from "@/lib/utils";
+import { RecurringBillingBadge } from "../bookings/RecurringBillingBadge";
 import type { BookingWithForklift } from "../../hooks/useBookings";
 
 export function BookingBillingCard({ booking }: { booking: BookingWithForklift }) {

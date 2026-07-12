@@ -1,7 +1,7 @@
 import { Droppable, Draggable } from "@hello-pangea/dnd";
 import { cn } from "@/lib/utils";
-import type { MaintenanceLog } from "../../../hooks/maintenance/useMaintenanceLogs";
 import { MaintenanceKanbanCard } from "./MaintenanceKanbanCard";
+import type { MaintenanceLog } from "../../../hooks/maintenance/useMaintenanceLogs";
 
 interface Props {
   id: string;

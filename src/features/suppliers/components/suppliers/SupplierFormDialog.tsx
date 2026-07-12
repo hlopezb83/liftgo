@@ -1,24 +1,22 @@
 import { useState } from "react";
 import { useForm, FormProvider } from "react-hook-form";
-import { zodResolver } from "@/lib/forms/zodResolver";
-import { EditIcon, DocumentIcon } from "@/components/icons";
-
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
-import { FormActions } from "@/components/forms/FormActions";
 import { CsfDropzone } from "@/components/forms/CsfDropzone";
-import { notifyError } from "@/lib/ui/appFeedback";
-import { usePrefillEffect } from "@/hooks/usePrefillEffect";
+import { FormActions } from "@/components/forms/FormActions";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { EditIcon, DocumentIcon } from "@/components/icons";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUploadDocument } from "@/hooks/useDocuments";
-
+import { usePrefillEffect } from "@/hooks/usePrefillEffect";
+import { zodResolver } from "@/lib/forms/zodResolver";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { useCreateSupplier, useUpdateSupplier } from "../../hooks/useSuppliers";
-import type { Supplier } from "../../hooks/useSuppliers";
 import {
   supplierFormSchema,
   emptySupplierFormData,
   type SupplierFormData,
 } from "../../lib/supplierFormSchema";
 import { SupplierFormFields } from "./SupplierFormFields";
+import type { Supplier } from "../../hooks/useSuppliers";
 
 interface SupplierFormDialogProps {
   open: boolean;

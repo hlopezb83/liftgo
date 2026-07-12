@@ -1,13 +1,13 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
-import { exportToCsv } from "@/lib/exportCsv";
 import { differenceInDays, parseISO, isWithinInterval } from "date-fns";
-import { DownloadIcon } from "@/components/icons";
-import { useForklifts } from "@/features/fleet";
-import { useBookings } from "@/features/bookings";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { DownloadIcon } from "@/components/icons";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useBookings } from "@/features/bookings";
+import { useForklifts } from "@/features/fleet";
+import { exportToCsv } from "@/lib/exportCsv";
 
 interface Props {
   startDate: Date;

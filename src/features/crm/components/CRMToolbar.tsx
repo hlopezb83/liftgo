@@ -1,12 +1,12 @@
 import { SearchIcon, X, LayoutGrid, Rows3, AddIcon } from "@/components/icons";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { CRMHeaderKPIs } from "./CRMHeaderKPIs";
 import { VALUE_RANGE_OPTIONS, AGE_RANGE_OPTIONS } from "../lib/constants";
+import { CRMHeaderKPIs } from "./CRMHeaderKPIs";
 import type { CRMFilters, ValueRange, AgeRange } from "../hooks/useCRMFilters";
 import type { CRMMetrics } from "../hooks/useCRMMetrics";
 

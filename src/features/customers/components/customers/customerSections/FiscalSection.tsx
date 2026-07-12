@@ -1,6 +1,6 @@
 import { useFormContext } from "react-hook-form";
-import { FormSection } from "@/components/forms/FormSection";
 import { TextField, SelectField, type SelectOption } from "@/components/forms/fields";
+import { FormSection } from "@/components/forms/FormSection";
 import { REGIMEN_FISCAL, USO_CFDI } from "@/lib/domain/satCatalogs";
 import type { CustomerFormData } from "../../../lib/customerFormSchema";
 

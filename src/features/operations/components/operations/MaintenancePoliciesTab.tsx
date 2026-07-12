@@ -1,5 +1,10 @@
 import { useState } from "react";
-import { notifyValidation } from "@/lib/ui/appFeedback";
+import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
+import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { Switch } from "@/components/ui/switch";
+import { useForklifts } from "@/features/fleet";
 import {
   useMaintenancePolicies,
   useCreateMaintenancePolicy,
@@ -7,13 +12,8 @@ import {
   useDeleteMaintenancePolicy,
   MaintenancePolicy,
 } from "@/features/maintenance";
-import { useForklifts } from "@/features/fleet";
-import { Button } from "@/components/ui/button";
-import { Switch } from "@/components/ui/switch";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
+import { notifyValidation } from "@/lib/ui/appFeedback";
 import { MaintenancePolicyForm } from "./MaintenancePolicyForm";
 import { EMPTY_POLICY_FORM, type MaintenancePolicyFormValues } from "./maintenancePolicyFormTypes";
 

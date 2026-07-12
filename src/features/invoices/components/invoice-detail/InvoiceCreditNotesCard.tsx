@@ -1,25 +1,25 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { AddIcon, StampIcon, DocumentIcon, DownloadIcon, ErrorIcon, DeleteIcon } from "@/components/icons";
-import { formatCurrency } from "@/lib/format/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
-import { notifyError } from "@/lib/ui/appFeedback";
 import { useConfirm } from "@/components/feedback/useConfirm";
-import { downloadCfdiBlob, type CfdiFormat } from "../../lib/downloadCfdiBlob";
-import { CreateCreditNoteDialog } from "./CreateCreditNoteDialog";
-import { CancelCreditNoteDialog } from "./CancelCreditNoteDialog";
+import { AddIcon, StampIcon, DocumentIcon, DownloadIcon, ErrorIcon, DeleteIcon } from "@/components/icons";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import type { Tables } from "@/integrations/supabase/types";
+import { CREDIT_NOTE_MOTIVE_LABELS as MOTIVE_LABELS } from "@/lib/domain/creditNoteMotives";
+import { formatCurrency } from "@/lib/format/formatCurrency";
+import { notifyError } from "@/lib/ui/appFeedback";
+import { formatDateDisplay } from "@/lib/utils";
 import {
   useCreditNotesForInvoice,
   useStampCreditNote,
   useDeleteCreditNote,
   type CreditNote,
 } from "../../hooks/creditNotes/useCreditNotes";
-import type { Tables } from "@/integrations/supabase/types";
+import { downloadCfdiBlob, type CfdiFormat } from "../../lib/downloadCfdiBlob";
+import { CancelCreditNoteDialog } from "./CancelCreditNoteDialog";
+import { CreateCreditNoteDialog } from "./CreateCreditNoteDialog";
 
-import { CREDIT_NOTE_MOTIVE_LABELS as MOTIVE_LABELS } from "@/lib/domain/creditNoteMotives";
 
 async function downloadCreditNote(creditNoteId: string, format: CfdiFormat, number: string) {
   try {

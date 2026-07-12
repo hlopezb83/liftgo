@@ -1,11 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { DuplicateIcon } from "@/components/icons";
-
-import { formatCurrency } from "@/lib/format/formatCurrency";
-import { usePortalCollectionAccount } from "../hooks/usePortalExtras";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifySuccess } from "@/lib/ui/appFeedback";
+import { usePortalCollectionAccount } from "../hooks/usePortalExtras";
 
 interface Props {
   amount: number;

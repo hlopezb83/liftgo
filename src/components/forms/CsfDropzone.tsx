@@ -1,8 +1,8 @@
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { UploadIcon, DocumentIcon, SpinnerIcon, SuccessIcon } from "@/components/icons";
-import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { useParseCsf, type ParsedCsfData } from "@/features/customers/hooks/useParseCsf";
+import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
 interface Props<T> {
   /** Receives the mapped patch plus the original File for later upload. */

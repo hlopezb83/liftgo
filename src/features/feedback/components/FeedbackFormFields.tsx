@@ -1,11 +1,11 @@
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { LocationIcon, TargetIcon, X, SpinnerIcon } from "@/components/icons";
-import type { UseFormReturn } from "react-hook-form";
 import { TextField, TextareaField } from "@/components/forms/fields";
-import type { FeedbackFormValues } from "../lib/schema";
+import { LocationIcon, TargetIcon, X, SpinnerIcon } from "@/components/icons";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import type { SelectedElementInfo } from "../lib/cssPath";
+import type { FeedbackFormValues } from "../lib/schema";
+import type { UseFormReturn } from "react-hook-form";
 
 interface Props {
   form: UseFormReturn<FeedbackFormValues>;

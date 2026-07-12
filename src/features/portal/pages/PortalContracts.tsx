@@ -1,16 +1,16 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { usePortalContracts } from "@/features/customers";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
   DataTableV2,
   DataTablePaginationV2,
   useLiftgoTable,
   type ColumnDef,
 } from "@/components/dataTable/v2";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { usePortalContracts } from "@/features/customers";
 
 type Contract = NonNullable<ReturnType<typeof usePortalContracts>["data"]>[number];
 

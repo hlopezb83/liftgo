@@ -1,6 +1,6 @@
+import type { Tables } from "@/integrations/supabase/types";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { fetchCfdiBlob, triggerBlobDownload } from "../../lib/downloadCfdiBlob";
-import type { Tables } from "@/integrations/supabase/types";
 
 export function useDownloadInvoiceXml() {
   return async (invoice: Tables<"invoices"> | undefined) => {

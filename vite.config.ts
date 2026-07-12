@@ -1,9 +1,9 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
 import path from "path";
+import { sentryVitePlugin } from "@sentry/vite-plugin";
+import react from "@vitejs/plugin-react";
 import { componentTagger } from "lovable-tagger";
 import { visualizer } from "rollup-plugin-visualizer";
-import { sentryVitePlugin } from "@sentry/vite-plugin";
+import { defineConfig } from "vite";
 
 // https://vitejs.dev/config/
 // ANALYZE=1 bun run build → /tmp/bundle-stats.html para auditorías de bundle.

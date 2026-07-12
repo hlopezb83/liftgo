@@ -1,14 +1,14 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
-import { Button } from "@/components/ui/button";
-import { RoleGuard } from "@/layouts/RoleGuard";
-import { QuotePDFButton } from "./QuotePDFButton";
 import { useState } from "react";
+import { EditIcon, DeliveryIcon, SuccessIcon, ErrorIcon, BookOpen, DeleteIcon, InvoiceIcon } from "@/components/icons";
+import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { EditIcon, DeliveryIcon, SuccessIcon, ErrorIcon, BookOpen, DeleteIcon, InvoiceIcon } from "@/components/icons";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import type { Tables } from "@/integrations/supabase/types";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import { isQuoteEditable, canConvertQuote } from "@/lib/rules/quotes";
+import { QuotePDFButton } from "./QuotePDFButton";
 
 interface Props {
   quote: Tables<"quotes">;

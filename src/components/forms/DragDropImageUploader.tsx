@@ -1,9 +1,8 @@
 import { useCallback, useState } from "react";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useDropzone } from "react-dropzone";
-import { useUploadDocument } from "@/hooks/useDocuments";
 import { UploadIcon, X, SpinnerIcon, ImageIcon } from "@/components/icons";
-
+import { useUploadDocument } from "@/hooks/useDocuments";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { cn } from "@/lib/utils";
 
 interface DragDropImageUploaderProps {

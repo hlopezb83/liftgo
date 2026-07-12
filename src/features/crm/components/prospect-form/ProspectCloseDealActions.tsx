@@ -1,7 +1,6 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { SuccessIcon, UserPlus } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import type { Prospect } from "../../hooks/useProspects";
 
 interface Props {

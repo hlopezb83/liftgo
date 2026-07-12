@@ -1,9 +1,9 @@
 
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import type { ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { SecurityIcon } from "@/components/icons";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { FUEL_TYPE_LABELS } from "@/lib/constants";
-import type { ColumnDef } from "@/components/dataTable/v2";
 import type { Forklift } from "../forklifts/useForklifts";
 
 export function useFleetColumns(

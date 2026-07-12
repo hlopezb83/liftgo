@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import { useBookings } from "@/features/bookings";
 import { useCompanySettings } from "@/features/company-settings";
-import { useDefaultContractTemplate } from "../useContractTemplates";
-import { replacePlaceholders } from "@/lib/domain/templateUtils";
-import type { ContractFormShape } from "./contractFormDefaults";
 import type { Database } from "@/integrations/supabase/types";
+import { replacePlaceholders } from "@/lib/domain/templateUtils";
+import { useDefaultContractTemplate } from "../useContractTemplates";
 import { buildTemplateReplacements } from "./contractTemplateReplacements";
+import type { ContractFormShape } from "./contractFormDefaults";
 
 type Customer = Database["public"]["Tables"]["customers"]["Row"];
 type Forklift = Database["public"]["Tables"]["forklifts"]["Row"];

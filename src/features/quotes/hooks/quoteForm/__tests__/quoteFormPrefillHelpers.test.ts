@@ -1,9 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
+import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import {
   applyBaseFields, applyLogistics, applySaleLines, applyRentalLines, defaultValidUntil,
   type ExistingQuote, type EquipmentModel, type QuoteFormState,
 } from "../quoteFormPrefillHelpers";
-import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import type { RentalLine } from "../../../components/quotes/RentalLineItems";
 
 function makeState(): QuoteFormState {

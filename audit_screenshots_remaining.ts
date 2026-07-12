@@ -1,5 +1,5 @@
-import { chromium } from 'playwright';
 import path from 'path';
+import { chromium } from 'playwright';
 
 const PAGES = ['/fleet', '/maintenance', '/suppliers'];
 const RESOLUTIONS = [{ width: 1024, height: 768, name: 'tablet' }];

@@ -1,6 +1,6 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { RefreshIcon, HelpIcon, DocumentIcon } from "@/components/icons";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 export function ManualGeneratingCard() {
   return (

@@ -16,6 +16,10 @@ export default tseslint.config(
       "src/integrations/supabase/types.ts",
       "supabase/functions/**",
       "scripts/**",
+      // Scripts locales de auditoría visual (no forman parte del bundle).
+      "audit_*.ts",
+      // E2E specs de Playwright (usan console.log intencionalmente para debug).
+      "tests/**",
     ],
   },
   {
@@ -75,17 +79,22 @@ export default tseslint.config(
       // Micro-componentes (regla 4): 150 LOC componentes, 80 LOC hooks/funciones.
       "max-lines": ["warn", { max: 300, skipBlankLines: true, skipComments: true }],
       "max-lines-per-function": ["warn", { max: 150, skipBlankLines: true, skipComments: true, IIFEs: true }],
-      // Flujo de control simple (regla 1).
-      complexity: ["warn", 12],
+      // Flujo de control simple (regla 1). 15 permite headroom para dialogs
+      // y hooks con branching de UI ya probados.
+      complexity: ["warn", 15],
     },
   },
   {
     // Tests pueden usar `any` y funciones largas.
+    // Tests pueden usar `any`, funciones largas y patrón vi.mock entre imports.
     files: ["**/*.test.{ts,tsx}", "src/test/**", "**/__tests__/**"],
     rules: {
       "@typescript-eslint/no-explicit-any": "off",
       "@typescript-eslint/no-non-null-assertion": "off",
       "max-lines-per-function": "off",
+      // vi.mock() debe ir antes de imports que dependen del módulo mockeado,
+      // lo que rompe el orden alfabético estricto de import/order.
+      "import/order": "off",
     },
   },
   {

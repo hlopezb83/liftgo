@@ -1,12 +1,12 @@
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ContractDetailActions } from "../components/contracts/ContractDetailActions";
-import { RentalFinancialSummary } from "../components/contracts/RentalFinancialSummary";
 import { ContractConditionsCard } from "../components/contracts/ContractConditionsCard";
+import { ContractDetailActions } from "../components/contracts/ContractDetailActions";
 import { ContractDetailsCard, ContractTextCard } from "../components/contracts/ContractDetailCards";
+import { RentalFinancialSummary } from "../components/contracts/RentalFinancialSummary";
 import { useContractDetailLogic } from "../hooks/contractDetail/useContractDetailLogic";
 
 function contractDates(contract: { start_date: string | null; end_date: string | null }) {

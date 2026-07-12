@@ -1,8 +1,8 @@
 import { format } from "date-fns";
+import type { Tables } from "@/integrations/supabase/types";
+import type { CustomerSummary } from "@/lib/domain/customerTypes";
 import { fetchCompanyDataAndLogo } from "@/lib/pdf/shared";
 import { nowMty } from "@/lib/utils";
-import type { CustomerSummary } from "@/lib/domain/customerTypes";
-import type { Tables } from "@/integrations/supabase/types";
 
 interface ExportStatementParams {
   customer: Tables<"customers">;

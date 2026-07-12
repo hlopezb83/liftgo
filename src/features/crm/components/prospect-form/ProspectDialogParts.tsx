@@ -1,6 +1,6 @@
+import { FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { FormDialogFooter } from "@/components/forms/FormDialog";
 import { ProspectStageBadge } from "./ProspectStageBadge";
 import type { Prospect } from "../../hooks/useProspects";
 

@@ -3,8 +3,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const toastWarning = vi.fn();
 vi.mock("sonner", () => ({ toast: { warning: (...a: unknown[]) => toastWarning(...a), error: vi.fn() } }));
 
-import { validateQuoteForm } from "../quoteFormValidation";
 import { buildSaleItems, buildRentalItems, type RentalLine, type SaleLine, type EquipmentModel } from "../quoteFormBuilders";
+import { validateQuoteForm } from "../quoteFormValidation";
 
 const models: EquipmentModel[] = [
   { id: "m1", manufacturer: "Toyota", model: "8FGCU25" },

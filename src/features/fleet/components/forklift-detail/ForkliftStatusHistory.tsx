@@ -1,8 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HistoryIcon } from "@/components/icons";
-import { formatDateTimeMty } from "@/lib/format/dateFormats";
-
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Tables } from "@/integrations/supabase/types";
+import { formatDateTimeMty } from "@/lib/format/dateFormats";
 
 interface ForkliftStatusHistoryProps {
   logs: Tables<"status_logs">[];

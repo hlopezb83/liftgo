@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { LogOut, KeyIcon } from "@/components/icons";
-import { NavLink } from "@/layouts/NavLink";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { SidebarFooter } from "@/components/ui/sidebar";
-import { ChangePasswordDialog } from "@/layouts/sidebar/ChangePasswordDialog";
-import { ThemeToggle } from "./ThemeToggle";
-import { ROLE_LABELS } from "@/lib/constants";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { AppRole } from "@/features/users";
+import { NavLink } from "@/layouts/NavLink";
+import { ChangePasswordDialog } from "@/layouts/sidebar/ChangePasswordDialog";
+import { ROLE_LABELS } from "@/lib/constants";
+import { ThemeToggle } from "./ThemeToggle";
 
 interface SidebarUserFooterProps {
   email?: string | null;

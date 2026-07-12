@@ -1,15 +1,15 @@
+import { subMonths, startOfMonth, endOfMonth, format } from "date-fns";
 import { useState } from "react";
-import { PageTransition } from "@/components/layout/PageTransition";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { PageTransition } from "@/components/layout/PageTransition";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { IncomeStatementReport } from "../components/reports/IncomeStatementReport";
-import { subMonths, startOfMonth, endOfMonth, format } from "date-fns";
+import { Switch } from "@/components/ui/switch";
 import { formatMonthLongEs } from "@/lib/format/formatMonthEs";
 import { nowMty } from "@/lib/utils";
+import { IncomeStatementReport } from "../components/reports/IncomeStatementReport";
 
 function generateMonthOptions(count: number) {
   const now = nowMty();

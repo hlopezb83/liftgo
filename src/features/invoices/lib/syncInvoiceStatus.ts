@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
-import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { roundMoney, sumMoney } from "@/lib/money";
+import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 
 interface PaymentLite { amount: number | string; payment_date?: string }
 

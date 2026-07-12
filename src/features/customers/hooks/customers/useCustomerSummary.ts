@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-import { callRpc } from "@/lib/rpc";
 import type {
   CustomerSummary,
   CustomerSummaryBooking,
   CustomerSummaryInvoice,
 } from "@/lib/domain/customerTypes";
+import { callRpc } from "@/lib/rpc";
 
 // Re-export para compatibilidad con consumidores existentes. La fuente de
 // verdad de estos tipos vive en `@/lib/domain/customerTypes`.

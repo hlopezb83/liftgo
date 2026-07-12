@@ -1,11 +1,6 @@
 import { SuccessIcon, ChevronsUpDown, X, CalendarIcon } from "@/components/icons";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -14,8 +9,13 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { cn, formatDateRange } from "@/lib/utils";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import type { BookingWithForklift } from "@/features/bookings";
+import { cn, formatDateRange } from "@/lib/utils";
 
 interface Props {
   bookings: BookingWithForklift[];

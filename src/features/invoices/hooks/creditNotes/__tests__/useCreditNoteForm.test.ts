@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
-import { createQueryWrapper } from "@/test/helpers/queryClient";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Tables } from "@/integrations/supabase/types";
+import { createQueryWrapper } from "@/test/helpers/queryClient";
 
 /**
  * useCreditNoteForm — la regla fiscal `exceedsMax = total > maxCreditable + 0.01`

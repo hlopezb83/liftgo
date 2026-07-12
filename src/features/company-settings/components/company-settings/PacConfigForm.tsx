@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useFormContext } from "react-hook-form";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { SecurityIcon, SaveIcon, ViewIcon, HideIcon, SuccessIcon, WarnIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormField, FormItem, FormControl } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { FormField, FormItem, FormControl } from "@/components/ui/form";
-import { SecurityIcon, SaveIcon, ViewIcon, HideIcon, SuccessIcon, WarnIcon } from "@/components/icons";
 
 export interface PacFormValues {
   facturapi_mode: string;

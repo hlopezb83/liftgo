@@ -2,8 +2,8 @@ import { useRef, useState } from "react";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { applyVat } from "@/lib/money";
 import { formatMonthLongEs } from "@/lib/format/formatMonthEs";
+import { applyVat } from "@/lib/money";
 import { RecurringPreviewBody } from "./RecurringPreviewBody";
 import type {
   RecurringPreviewLine,

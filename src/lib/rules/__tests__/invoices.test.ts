@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { computeInvoiceFlags } from "../invoices";
 import type { Tables } from "@/integrations/supabase/types";
+import { computeInvoiceFlags } from "../invoices";
 
 const inv = (partial: Partial<Tables<"invoices">> & Record<string, unknown>): Tables<"invoices"> =>
   ({

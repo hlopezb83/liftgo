@@ -1,24 +1,23 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useEffect, useEffectEvent, useState } from "react";
-import { useCustomers, useCreateCustomer, useUpdateCustomer } from "../hooks/customers/useCustomers";
-import { Card, CardContent } from "@/components/ui/card";
+import { useSearchParams } from "react-router-dom";
+import { useLiftgoTable } from "@/components/dataTable/v2";
+import { SwipeableCard } from "@/components/feedback/SwipeableCard";
+import { ChevronRightIcon, AddIcon, PhoneIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { MobileCardList } from "@/components/layout/MobileCardList";
-import { SwipeableCard } from "@/components/feedback/SwipeableCard";
-import { useListFilters } from "@/hooks/useListFilters";
-import { useIsTabletOrBelow } from "@/hooks/use-mobile";
-import { ChevronRightIcon, AddIcon, PhoneIcon } from "@/components/icons";
-
-import { useSearchParams } from "react-router-dom";
-import { useUpdateProspect } from "@/features/crm";
-import { CustomerFormDialog } from "../components/customers/CustomerFormDialog";
+import { Card, CardContent } from "@/components/ui/card";
 import { usePageActions } from "@/contexts/pageActions";
-import { CustomersActions, CustomersFilters } from "../components/customers/CustomersToolbar";
-import type { CustomerFormData } from "../lib/customerFormSchema";
-import { buildCustomerPayload, getE2ECustomerMetadata } from "../lib/customerPayload";
-import { useLiftgoTable } from "@/components/dataTable/v2";
-import { useCustomersColumns } from "../hooks/customers/useCustomersColumns";
+import { useUpdateProspect } from "@/features/crm";
+import { useIsTabletOrBelow } from "@/hooks/use-mobile";
+import { useListFilters } from "@/hooks/useListFilters";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifySuccess } from "@/lib/ui/appFeedback";
+import { CustomerFormDialog } from "../components/customers/CustomerFormDialog";
+import { CustomersActions, CustomersFilters } from "../components/customers/CustomersToolbar";
+import { useCustomers, useCreateCustomer, useUpdateCustomer } from "../hooks/customers/useCustomers";
+import { useCustomersColumns } from "../hooks/customers/useCustomersColumns";
+import { buildCustomerPayload, getE2ECustomerMetadata } from "../lib/customerPayload";
+import type { CustomerFormData } from "../lib/customerFormSchema";
 
 type Customer = NonNullable<ReturnType<typeof useCustomers>["data"]>[number];
 

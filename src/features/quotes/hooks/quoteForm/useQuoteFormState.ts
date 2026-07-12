@@ -1,7 +1,7 @@
 import { useState } from "react";
-import type { DateRange } from "react-day-picker";
-import type { SaleLine } from "../../components/quotes/SaleLineItems";
 import type { RentalLine } from "../../components/quotes/RentalLineItems";
+import type { SaleLine } from "../../components/quotes/SaleLineItems";
+import type { DateRange } from "react-day-picker";
 
 export const EMPTY_SALE_LINE: SaleLine = { modelId: "", quantity: 1, unitPrice: 0, discount: 0, discountType: "%" };
 export const EMPTY_RENTAL_LINE: RentalLine = { modelId: "", quantity: 1, dailyRate: 0, weeklyRate: 0, monthlyRate: 0, discount: 0, discountType: "%" };

@@ -1,8 +1,8 @@
-import type { UseFormReturn } from "react-hook-form";
-import type { ForkliftFormData } from "../../lib/forkliftFormSchema";
+import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import type { Tables } from "@/integrations/supabase/types";
 import { toStr, toNumStr } from "@/lib/coerce";
-import { usePrefillEffect } from "@/hooks/usePrefillEffect";
+import type { ForkliftFormData } from "../../lib/forkliftFormSchema";
+import type { UseFormReturn } from "react-hook-form";
 
 type ExistingForklift = Tables<"forklifts"> | null | undefined;
 

@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from "react";
-import { Button } from "@/components/ui/button";
 import { Eraser, UndoIcon } from "@/components/icons";
+import { Button } from "@/components/ui/button";
 
 interface SignaturePadProps {
   onSave: (base64: string) => void;

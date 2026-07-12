@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildUtilizationRows, getUtilColor } from "../utilizationHelpers";
 import type { Tables } from "@/integrations/supabase/types";
+import { buildUtilizationRows, getUtilColor } from "../utilizationHelpers";
 
 const f = (over: Partial<Tables<"forklifts">>): Tables<"forklifts"> =>
   ({

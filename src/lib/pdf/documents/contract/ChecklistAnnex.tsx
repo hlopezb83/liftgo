@@ -1,6 +1,6 @@
 import { Text, View } from "@react-pdf/renderer";
-import { contractStyles } from "@/lib/pdf/theme/styles";
 import type { TemplateData, ContractData } from "@/lib/pdf/contract/data";
+import { contractStyles } from "@/lib/pdf/theme/styles";
 
 interface ChecklistAnnexProps {
   contract: ContractData;

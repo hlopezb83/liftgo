@@ -1,20 +1,20 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { DataTableV2, useLiftgoTable } from "@/components/dataTable/v2";
 import { DownloadIcon } from "@/components/icons";
-import { exportToCsv } from "@/lib/exportCsv";
-import { useForklifts } from "@/features/fleet";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useBookings } from "@/features/bookings";
+import { useDamageRecords } from "@/features/damage";
+import { useForklifts } from "@/features/fleet";
 import { useInvoices } from "@/features/invoices";
 import { useMaintenanceLogs } from "@/features/maintenance";
-import { useDamageRecords } from "@/features/damage";
-import { DataTableV2, useLiftgoTable } from "@/components/dataTable/v2";
+import { exportToCsv } from "@/lib/exportCsv";
+import { ProfitabilityChart } from "./profitabilityByModel/ProfitabilityChart";
+import { profitabilityColumns } from "./profitabilityByModel/profitabilityColumns";
 import {
   aggregateRows, buildCostMap, buildModelUnitsMap, buildRevenueMap,
   type Booking, type DamageRec, type Forklift, type Invoice, type MaintLog, type ModelRow,
 } from "./profitabilityByModel/profitabilityHelpers";
-import { ProfitabilityChart } from "./profitabilityByModel/ProfitabilityChart";
-import { profitabilityColumns } from "./profitabilityByModel/profitabilityColumns";
 
 interface Props {
   startDate: Date;

@@ -1,5 +1,5 @@
-import { AddIcon } from "@/components/icons";
 import { Droppable } from "@hello-pangea/dnd";
+import { AddIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { formatCurrency } from "@/lib/format/formatCurrency";

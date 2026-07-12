@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { mapProspectRow } from "../lib/prospectMapper";
 import type { Prospect, ProspectRow } from "../lib/prospectTypes";
-import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 
 export type { Prospect, ProspectRow } from "../lib/prospectTypes";
 

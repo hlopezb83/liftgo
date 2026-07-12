@@ -1,8 +1,8 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ShieldAlert } from "@/components/icons";
-import { formatDateDisplay } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { InsuranceAlertsData } from "@/features/fleet";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { formatDateDisplay } from "@/lib/utils";
 
 interface InsuranceAlertProps {
   data: InsuranceAlertsData | undefined;
@@ -26,8 +26,11 @@ export function InsuranceAlert({ data }: InsuranceAlertProps) {
         {expiring.map((f) => (
           <div
             key={f.id}
+            role="button"
+            tabIndex={0}
             className="flex items-center justify-between p-2 rounded-lg bg-background/80 text-sm cursor-pointer hover:bg-background"
             onClick={() => navigate(`/fleet/${f.id}`)}
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate(`/fleet/${f.id}`); } }}
           >
             <span className="font-medium">{f.name}</span>
             <div className="text-right">

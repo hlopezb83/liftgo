@@ -1,8 +1,8 @@
 
 import { format } from "date-fns";
 import { useForklifts } from "@/features/fleet";
-import type { BookingWithForklift } from "../useBookings";
 import { generateLineItems, computeTotals } from "@/lib/domain/invoiceHelpers";
+import type { BookingWithForklift } from "../useBookings";
 
 /**
  * Cálculo derivado del preview de extensión de reserva.

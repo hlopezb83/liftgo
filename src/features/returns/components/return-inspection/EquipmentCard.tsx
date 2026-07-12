@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FleetIcon } from "@/components/icons";
 import { InfoRow } from "@/components/forms/InfoRow";
+import { FleetIcon } from "@/components/icons";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { ReturnInspectionWithJoins } from "@/types/rental";
 
 export function EquipmentCard({ ins }: { ins: ReturnInspectionWithJoins }) {

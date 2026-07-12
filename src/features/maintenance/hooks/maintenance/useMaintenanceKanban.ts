@@ -1,11 +1,10 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { notifyError } from "@/lib/ui/appFeedback";
-
-import type { DropResult } from "@hello-pangea/dnd";
 import {
   useUpdateMaintenanceLog,
   type MaintenanceLog,
 } from "./useMaintenanceLogs";
+import type { DropResult } from "@hello-pangea/dnd";
 
 /**
  * Encapsula el optimistic update del kanban de mantenimiento al arrastrar

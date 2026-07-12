@@ -1,6 +1,6 @@
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { useUpdateRole, type UserRow } from "../../hooks/useUserManagement";
 import { ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
+import { useUpdateRole, type UserRow } from "../../hooks/useUserManagement";
 import type { AppRole } from "../../hooks/useUserRole";
 
 interface RoleChangeDialogProps {

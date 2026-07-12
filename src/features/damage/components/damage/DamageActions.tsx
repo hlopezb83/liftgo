@@ -1,12 +1,10 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-
-import { Button } from "@/components/ui/button";
-import { useUpdateDamageRecord } from "../../hooks/useDamageRecords";
-import type { DamageRecordWithJoins } from "@/types/rental";
-import { useCreateMaintenanceLog } from "@/features/maintenance";
 import { MaintenanceIcon, InvoiceIcon } from "@/components/icons";
-
+import { Button } from "@/components/ui/button";
+import { useCreateMaintenanceLog } from "@/features/maintenance";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifySuccess } from "@/lib/ui/appFeedback";
+import type { DamageRecordWithJoins } from "@/types/rental";
+import { useUpdateDamageRecord } from "../../hooks/useDamageRecords";
 
 interface DamageActionsProps { record: DamageRecordWithJoins; }
 

@@ -1,12 +1,12 @@
 import { SuccessIcon, ChevronsUpDown, WarnIcon, AddIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
-import { cn } from "@/lib/utils";
-import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { PartInventory } from "@/features/inventory";
+import { formatCurrency } from "@/lib/format/formatCurrency";
+import { cn } from "@/lib/utils";
 
 interface Props {
   open: boolean;

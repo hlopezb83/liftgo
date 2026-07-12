@@ -1,7 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { prospectKeys } from "../lib/queryKeys";
-
 import type { ProspectInsert, ProspectUpdate } from "./useProspects";
 
 export function useCreateProspect() {

@@ -1,16 +1,16 @@
 import { useState } from "react";
-import { PageTransition } from "@/components/layout/PageTransition";
+import { useConfirm } from "@/components/feedback/useConfirm";
+import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { RoleGuard } from "@/layouts/RoleGuard";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { PageTransition } from "@/components/layout/PageTransition";
 import { Badge } from "@/components/ui/badge";
-import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { useConfirm } from "@/components/feedback/useConfirm";
-import { useBankAccounts, useDeleteBankAccount, type BankAccount } from "../hooks/useBankAccounts";
 import { BankAccountFormDialog } from "../components/BankAccountFormDialog";
+import { useBankAccounts, useDeleteBankAccount, type BankAccount } from "../hooks/useBankAccounts";
 
 export default function BankAccountsPage() {
   const { data: accounts, isLoading } = useBankAccounts();

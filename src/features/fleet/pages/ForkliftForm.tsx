@@ -1,16 +1,16 @@
-import { Button } from "@/components/ui/button";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
-import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { FormActions } from "@/components/forms/FormActions";
+import { WarnIcon } from "@/components/icons";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { WarnIcon } from "@/components/icons";
-import { useForkliftFormLogic } from "../hooks/useForkliftFormLogic";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { Textarea } from "@/components/ui/textarea";
 import { EquipmentDetailsSection } from "../components/forklift-form/EquipmentDetailsSection";
-import { RatesSection } from "../components/forklift-form/RatesSection";
 import { InsuranceSection } from "../components/forklift-form/InsuranceSection";
+import { RatesSection } from "../components/forklift-form/RatesSection";
+import { useForkliftFormLogic } from "../hooks/useForkliftFormLogic";
 
 export default function ForkliftForm() {
   const {

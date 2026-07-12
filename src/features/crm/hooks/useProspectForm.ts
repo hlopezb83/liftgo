@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { useQuotes } from "@/features/quotes";
-import type { Prospect } from "./useProspects";
 import {
   STAGES_REQUIRING_DEAL_VALUE,
   sortQuotesByCompanyMatch,
   validateDealValue,
   type ProspectFormPayload,
 } from "../lib/prospectFormSchema";
+import type { Prospect } from "./useProspects";
 
 export { STAGE_LABELS, STAGES_REQUIRING_DEAL_VALUE } from "../lib/prospectFormSchema";
 export type { ProspectFormPayload } from "../lib/prospectFormSchema";

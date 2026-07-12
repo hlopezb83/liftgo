@@ -1,10 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-
-
+import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import type { FeedbackStatus } from "../lib/constants";
 
 export type FeedbackReport = Tables<"feedback_reports">;

@@ -1,9 +1,9 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { ClockIcon } from "@/components/icons";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateDisplay } from "@/lib/utils";
 import type { ForkliftFinancials } from "../../hooks/forklifts/useForkliftFinancials";
-import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
 interface ForkliftHourometerHistoryProps {
   history: ForkliftFinancials["hourometer_history"];

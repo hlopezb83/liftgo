@@ -1,15 +1,14 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
 import { useParams } from "react-router-dom";
 import { useCustomers } from "@/features/customers";
 import { useEquipmentModels } from "@/features/fleet";
-import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "./quotes/useQuotes";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
-
+import { notifySuccess } from "@/lib/ui/appFeedback";
+import { buildSaleItems, buildRentalItems, validateQuoteForm, buildQuotePayload } from "./quoteForm/quoteFormHelpers";
 import { useQuoteFormState } from "./quoteForm/useQuoteFormState";
 import { useQuotePrefill } from "./quoteForm/useQuotePrefill";
-import { buildSaleItems, buildRentalItems, validateQuoteForm, buildQuotePayload } from "./quoteForm/quoteFormHelpers";
-import { notifySuccess } from "@/lib/ui/appFeedback";
+import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "./quotes/useQuotes";
 
 export function useQuoteFormLogic() {
   const { id } = useParams();

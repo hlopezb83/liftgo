@@ -1,9 +1,8 @@
-import { useDocuments, useUploadDocument, useDeleteDocument } from "@/hooks/useDocuments";
+import { useRef } from "react";
+import { Paperclip, DeleteIcon, UploadIcon, DocumentIcon, Image, File } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Paperclip, DeleteIcon, UploadIcon, DocumentIcon, Image, File } from "@/components/icons";
-
-import { useRef } from "react";
+import { useDocuments, useUploadDocument, useDeleteDocument } from "@/hooks/useDocuments";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 
 function FileIcon({ mime }: { mime?: string | null }) {

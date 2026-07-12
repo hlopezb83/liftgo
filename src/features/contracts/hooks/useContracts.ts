@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesUpdate } from "@/integrations/supabase/types";
-import type { ContractViewModel } from "@/types/rental";
-import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import type { ContractViewModel } from "@/types/rental";
 
 type Contract = ContractViewModel;
 

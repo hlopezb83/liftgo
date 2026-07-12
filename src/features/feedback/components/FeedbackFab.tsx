@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 import { MessageSquarePlus } from "@/components/icons";
+import { Button } from "@/components/ui/button";
 import { FeedbackFormDialog } from "./FeedbackFormDialog";
 
 export function FeedbackFab() {

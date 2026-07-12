@@ -1,13 +1,13 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
+import { useConfirm } from "@/components/feedback/useConfirm";
+import { AddIcon, EditIcon, DeleteIcon, UsersIcon, StarIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
-import { AddIcon, EditIcon, DeleteIcon, UsersIcon, StarIcon } from "@/components/icons";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { useConfirm } from "@/components/feedback/useConfirm";
 import { useSupplierContacts, useDeleteSupplierContact, type SupplierContact } from "../../hooks/useSupplierContacts";
 import { SupplierContactFormDialog } from "./SupplierContactFormDialog";
 

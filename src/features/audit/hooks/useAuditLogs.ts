@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { supabase } from "@/integrations/supabase/client";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 
 export interface AuditLog {
   id: string;

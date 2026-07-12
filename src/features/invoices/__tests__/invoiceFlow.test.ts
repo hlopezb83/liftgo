@@ -1,11 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { useCreateInvoice } from "@/features/invoices";
+import { createQueryWrapper } from "@/test/helpers/queryClient";
 import {
   createSupabaseChainMock,
   type ChainCall,
   type SupabaseMockResponse,
 } from "@/test/helpers/supabaseChain";
-import { createQueryWrapper } from "@/test/helpers/queryClient";
 
 let nextNumberResp: SupabaseMockResponse = { data: "BORRADOR-0042", error: null };
 let invoiceInsertResp: SupabaseMockResponse = {
@@ -38,7 +39,6 @@ vi.mock("@/lib/ui/appFeedback", () => ({
   notifyAsync: vi.fn(),
 }));
 
-import { useCreateInvoice } from "@/features/invoices";
 
 describe("useCreateInvoice — hook real", () => {
   beforeEach(() => {

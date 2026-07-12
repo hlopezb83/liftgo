@@ -1,19 +1,18 @@
 import { useState, useEffect } from "react";
-import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
-import { useDefaultContractTemplate, useUpdateContractTemplate, type ContractClause, type ChecklistSection } from "@/features/contracts";
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Button } from "@/components/ui/button";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { SaveIcon, InfoIcon } from "@/components/icons";
-
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
+import { SaveIcon, InfoIcon } from "@/components/icons";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Textarea } from "@/components/ui/textarea";
+import { useDefaultContractTemplate, useUpdateContractTemplate, type ContractClause, type ChecklistSection } from "@/features/contracts";
 import { CONTRACT_PLACEHOLDERS as PLACEHOLDERS } from "@/lib/pdf/contract/placeholderRegistry";
-import { EditableList } from "./contractTemplate/EditableList";
-import { ClausesEditor } from "./contractTemplate/ClausesEditor";
+import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { ChecklistEditor } from "./contractTemplate/ChecklistEditor";
+import { ClausesEditor } from "./contractTemplate/ClausesEditor";
+import { EditableList } from "./contractTemplate/EditableList";
 
 export function ContractTemplateTab() {
   const { data: template, isLoading } = useDefaultContractTemplate();

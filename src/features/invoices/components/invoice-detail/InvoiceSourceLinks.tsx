@@ -1,10 +1,10 @@
 import { Link } from "react-router-dom";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { DocumentIcon, CalendarIcon } from "@/components/icons";
-import { formatDateRange } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import type { BookingWithForklift } from "@/features/bookings";
 import type { Tables } from "@/integrations/supabase/types";
+import { formatDateRange } from "@/lib/utils";
 
 interface Props {
   sourceQuote?: Pick<Tables<"quotes">, "id" | "quote_number"> | null;

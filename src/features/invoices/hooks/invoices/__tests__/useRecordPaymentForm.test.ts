@@ -1,5 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, act } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { satCodeForMethod } from "@/features/invoices/lib/paymentMethods";
 import { createQueryWrapper } from "@/test/helpers/queryClient";
 
 const createPaymentMutate = vi.fn();
@@ -43,7 +44,6 @@ vi.mock("@/features/invoices/hooks/invoices/cfdi/usePaymentComplement", () => ({
 }));
 
 import { useRecordPaymentForm } from "../useRecordPaymentForm";
-import { satCodeForMethod } from "@/features/invoices/lib/paymentMethods";
 
 function renderForm(overrides: Partial<Parameters<typeof useRecordPaymentForm>[0]> = {}) {
   const { Wrapper } = createQueryWrapper();

@@ -1,15 +1,15 @@
+import { format } from "date-fns";
 import { Activity } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Separator } from "@/components/ui/separator";
+import { DetailRow } from "@/components/domain/DetailRow";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { DamageActions } from "./DamageActions";
-import { DamagePhotosSection } from "./DamagePhotosSection";
+import { WarnIcon, FleetIcon, UserIcon, DocumentIcon, CostIcon, CalendarIcon } from "@/components/icons";
+import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { APP_LOCALE } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { DamageRecordWithJoins } from "@/types/rental";
-import { format } from "date-fns";
-import { APP_LOCALE } from "@/lib/format/dateFormats";
-import { WarnIcon, FleetIcon, UserIcon, DocumentIcon, CostIcon, CalendarIcon } from "@/components/icons";
-import { DetailRow } from "@/components/domain/DetailRow";
+import { DamageActions } from "./DamageActions";
+import { DamagePhotosSection } from "./DamagePhotosSection";
 
 interface Props {
   record: DamageRecordWithJoins | null;

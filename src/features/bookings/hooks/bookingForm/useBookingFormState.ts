@@ -1,9 +1,9 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@/lib/forms/zodResolver";
-import type { DateRange } from "react-day-picker";
 import { useAvailableForklifts } from "@/features/fleet";
+import { zodResolver } from "@/lib/forms/zodResolver";
 import { bookingFormSchema, type BookingFormData } from "../../lib/bookingFormSchema";
+import type { DateRange } from "react-day-picker";
 
 export function useBookingFormState() {
   const form = useForm<BookingFormData>({

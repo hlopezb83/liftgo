@@ -1,8 +1,8 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { InvoiceIcon } from "@/components/icons";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 
@@ -30,8 +30,11 @@ export function CustomerInvoicesList({ invoices }: { invoices: InvoiceRow[] }) {
             {invoices.map((inv) => (
               <div
                 key={inv.id}
+                role="button"
+                tabIndex={0}
                 className="flex items-center justify-between p-3 rounded-lg bg-muted/40 text-sm cursor-pointer hover:bg-muted/60"
                 onClick={() => navigate(`/invoices/${inv.id}`)}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); navigate(`/invoices/${inv.id}`); } }}
               >
                 <div>
                   <p className="font-medium">{inv.invoice_number}</p>

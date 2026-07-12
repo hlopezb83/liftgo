@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { TrophyIcon, Medal } from "@/components/icons";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { useLeaderboard, type LeaderboardPeriod, type LeaderboardRow } from "../hooks/useLeaderboard";
+import { TrophyIcon, Medal } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { useLeaderboard, type LeaderboardPeriod, type LeaderboardRow } from "../hooks/useLeaderboard";
 
 const PODIUM_COLORS = ["text-warning", "text-muted-foreground", "text-[hsl(var(--chart-2))]"];
 

@@ -1,18 +1,17 @@
 
-import { RevenueIcon, FleetIcon, OpenLinkIcon } from "@/components/icons";
 import { Link } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { KpiTile } from "@/components/domain/KpiTile";
-
-import { TableFooter, TableRow, TableCell } from "@/components/ui/table";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { formatCurrency } from "@/lib/format/formatCurrency";
-import { useMrrDetail } from "../hooks/useMrrDetail";
+import { KpiTile } from "@/components/domain/KpiTile";
 import { EmptyState } from "@/components/feedback/EmptyState";
-import { APP_LOCALE } from "@/lib/format/dateFormats";
-import { formatMtyDate } from "@/lib/utils";
+import { RevenueIcon, FleetIcon, OpenLinkIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { TableFooter, TableRow, TableCell } from "@/components/ui/table";
+import { APP_LOCALE } from "@/lib/format/dateFormats";
+import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatMtyDate } from "@/lib/utils";
+import { useMrrDetail } from "../hooks/useMrrDetail";
 
 type MrrItem = NonNullable<ReturnType<typeof useMrrDetail>["data"]>["items"][number];
 

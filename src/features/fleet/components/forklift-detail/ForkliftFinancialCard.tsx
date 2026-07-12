@@ -1,8 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ChartIcon } from "@/components/icons";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { ForkliftFinancials } from "../../hooks/forklifts/useForkliftFinancials";
-import { Skeleton } from "@/components/ui/skeleton";
 
 interface ForkliftFinancialCardProps {
   financials: ForkliftFinancials | undefined;

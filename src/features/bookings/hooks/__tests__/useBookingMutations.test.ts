@@ -1,10 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { createQueryWrapper } from "@/test/helpers/queryClient";
 import {
   createSupabaseChainMock,
   type ChainResolver,
 } from "@/test/helpers/supabaseChain";
-import { createQueryWrapper } from "@/test/helpers/queryClient";
 
 // vi.mock se hoistea — el estado mutable y los resolvers deben vivir dentro
 // de vi.hoisted() para estar disponibles cuando el factory se evalúa.

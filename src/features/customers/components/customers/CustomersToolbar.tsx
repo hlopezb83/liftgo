@@ -1,6 +1,6 @@
-import { Button } from "@/components/ui/button";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { PlusCircle, DownloadIcon } from "@/components/icons";
+import { Button } from "@/components/ui/button";
 import { exportToCsv } from "@/lib/exportCsv";
 import type { Customer } from "../../hooks/customers/useCustomers";
 

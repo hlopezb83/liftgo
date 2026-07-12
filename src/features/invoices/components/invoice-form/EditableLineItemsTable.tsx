@@ -1,15 +1,15 @@
 import { useFormContext, useWatch } from "react-hook-form";
-import { lineItemTotal } from "@/lib/domain/invoiceHelpers";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { AddIcon, DeleteIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { AddIcon, DeleteIcon } from "@/components/icons";
-import { useInvoiceLineItemHandlers } from "../../hooks/invoiceForm/useInvoiceLineItemHandlers";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { lineItemTotal } from "@/lib/domain/invoiceHelpers";
 import { CLAVE_PROD_SERV, CLAVE_UNIDAD } from "@/lib/domain/satCatalogs";
+import { formatCurrency } from "@/lib/format/formatCurrency";
+import { useInvoiceLineItemHandlers } from "../../hooks/invoiceForm/useInvoiceLineItemHandlers";
 import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
 
 export function EditableLineItemsTable() {

@@ -1,13 +1,13 @@
 import { SearchIcon } from "@/components/icons";
-import { PageTransition } from "@/components/layout/PageTransition";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { PageTransition } from "@/components/layout/PageTransition";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { useClosedProspects } from "../hooks/useClosedProspects";
 import { ClosedTable } from "../components/closed/ClosedTable";
+import { useClosedProspects } from "../hooks/useClosedProspects";
 
 export default function CRMClosedPage() {
   const s = useClosedProspects();

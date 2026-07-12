@@ -1,10 +1,10 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { format } from "date-fns";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { CalendarDays } from "@/components/icons";
-import { format } from "date-fns";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import type { Tables } from "@/integrations/supabase/types";
 import { parseDateLocal } from "@/lib/utils";
 
-import type { Tables } from "@/integrations/supabase/types";
 
 interface ForkliftBookingsListProps {
   bookings: Tables<"bookings">[];

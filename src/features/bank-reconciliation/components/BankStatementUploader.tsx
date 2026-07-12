@@ -1,14 +1,14 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { UploadIcon, SpinnerIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UploadIcon, SpinnerIcon } from "@/components/icons";
-import { parseBankCsv } from "../lib/csvParsers";
-import { CSV_PROFILES, CSV_PROFILE_LABELS, type CsvProfile } from "../lib/bankReconciliationConstants";
-import { useImportBankStatement } from "../hooks/useBankReconciliationMutations";
 import { notifyError, notifyWarning } from "@/lib/ui/appFeedback";
+import { useImportBankStatement } from "../hooks/useBankReconciliationMutations";
+import { CSV_PROFILES, CSV_PROFILE_LABELS, type CsvProfile } from "../lib/bankReconciliationConstants";
+import { parseBankCsv } from "../lib/csvParsers";
 
 interface Props {
   bankAccountId: string;

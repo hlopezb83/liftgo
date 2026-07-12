@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { getMissingStampFields } from "../cfdiPrechecks";
 import type { Tables } from "@/integrations/supabase/types";
+import { getMissingStampFields } from "../cfdiPrechecks";
 
 type Invoice = Tables<"invoices">;
 

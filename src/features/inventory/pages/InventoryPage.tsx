@@ -1,19 +1,19 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { KpiTile } from "@/components/domain/KpiTile";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { AddIcon, InventoryIcon } from "@/components/icons";
-import { formatCurrency } from "@/lib/format/formatCurrency";
-import { usePartsInventory, type PartInventory } from "../hooks/usePartsInventory";
-import { PartDetailSheet } from "../components/inventory/PartDetailSheet";
-import { PartFormDialog, PART_CATEGORIES } from "../components/inventory/PartFormDialog";
-import { SearchBar } from "@/components/forms/SearchBar";
-import { ListPageLayout } from "@/components/layout/ListPageLayout";
-import { useDialogState, useToggleDialog } from "@/hooks/useDialogState";
-import { useInventoryFilters } from "../hooks/inventory/useInventoryFilters";
 import { useState } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { KpiTile } from "@/components/domain/KpiTile";
+import { SearchBar } from "@/components/forms/SearchBar";
+import { AddIcon, InventoryIcon } from "@/components/icons";
+import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useDialogState, useToggleDialog } from "@/hooks/useDialogState";
+import { formatCurrency } from "@/lib/format/formatCurrency";
+import { PartDetailSheet } from "../components/inventory/PartDetailSheet";
+import { PartFormDialog, PART_CATEGORIES } from "../components/inventory/PartFormDialog";
+import { useInventoryFilters } from "../hooks/inventory/useInventoryFilters";
+import { usePartsInventory, type PartInventory } from "../hooks/usePartsInventory";
 
 export default function InventoryPage() {
   const { data: parts, isLoading } = usePartsInventory();

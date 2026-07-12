@@ -1,5 +1,5 @@
-import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
+import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import {
   applyBaseFields, applyLogistics, applySaleLines, applyRentalLines, defaultValidUntil,
   type ExistingQuote, type EquipmentModel, type QuoteFormState,

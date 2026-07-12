@@ -1,23 +1,20 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-
-import { useForklifts } from "../hooks/forklifts/useForklifts";
-import { useMaintenancePolicies } from "@/features/maintenance";
-import { useContracts } from "@/features/contracts";
-import { useDeliveries } from "@/features/deliveries";
-import type { Forklift } from "../hooks/forklifts/useForklifts";
-
+import { SearchBar } from "@/components/forms/SearchBar";
+import { AddIcon, DownloadIcon, Forklift as ForkliftIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-import { AddIcon, DownloadIcon, Forklift as ForkliftIcon } from "@/components/icons";
-import { SearchBar } from "@/components/forms/SearchBar";
-import { exportToCsv } from "@/lib/exportCsv";
+import { usePageActions } from "@/contexts/pageActions";
+import { useContracts } from "@/features/contracts";
+import { useDeliveries } from "@/features/deliveries";
+import { useMaintenancePolicies } from "@/features/maintenance";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { useResourceList } from "@/hooks/useResourceList";
 import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
+import { exportToCsv } from "@/lib/exportCsv";
 import { FleetMobileCard } from "../components/fleet/FleetRowAndCard";
 import { useFleetColumns } from "../hooks/fleet/useFleetColumns";
-import { usePageActions } from "@/contexts/pageActions";
-import { useResourceList } from "@/hooks/useResourceList";
+import { useForklifts } from "../hooks/forklifts/useForklifts";
+import type { Forklift } from "../hooks/forklifts/useForklifts";
 
 export default function FleetPage() {
   const { data: forklifts, isLoading } = useForklifts();

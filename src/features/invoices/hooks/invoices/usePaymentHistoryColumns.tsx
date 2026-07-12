@@ -1,17 +1,16 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-
-import { EditIcon, StampIcon, DocumentIcon, FileCode2, ErrorIcon } from "@/components/icons";
-import { formatCurrency } from "@/lib/format/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
 import { type ColumnDef } from "@/components/dataTable/v2";
-import { useStampPaymentComplement, useCancelPaymentComplement } from "./cfdi/usePaymentComplement";
-import { notifyError } from "@/lib/ui/appFeedback";
 import { useConfirm } from "@/components/feedback/useConfirm";
-import { downloadCfdiBlob, type CfdiFormat } from "../../lib/downloadCfdiBlob";
+import { EditIcon, StampIcon, DocumentIcon, FileCode2, ErrorIcon } from "@/components/icons";
+import { Button } from "@/components/ui/button";
 import { ReconciliationBadge } from "@/features/bank-reconciliation";
-import { RepBadge } from "../../components/invoice-detail/RepBadge";
 import type { Tables } from "@/integrations/supabase/types";
+import { formatCurrency } from "@/lib/format/formatCurrency";
+import { notifyError } from "@/lib/ui/appFeedback";
+import { formatDateDisplay } from "@/lib/utils";
+import { RepBadge } from "../../components/invoice-detail/RepBadge";
+import { downloadCfdiBlob, type CfdiFormat } from "../../lib/downloadCfdiBlob";
+import { useStampPaymentComplement, useCancelPaymentComplement } from "./cfdi/usePaymentComplement";
 
 type Payment = Tables<"payments">;
 

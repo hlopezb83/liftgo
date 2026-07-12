@@ -111,12 +111,20 @@ export function SwipeableCard({ children, rightActions = [], threshold = 60, dis
         </div>
       )}
       <div
+        role="button"
+        tabIndex={0}
         className="relative transition-transform duration-200 ease-out touch-pan-y"
         style={{ transform: `translateX(${translateX}px)` }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onClick={handleClick}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onClick?.();
+          }
+        }}
       >
         {children}
       </div>

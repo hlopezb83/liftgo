@@ -1,6 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { USERS_QUERY_KEY } from "../useUsersQuery";
 

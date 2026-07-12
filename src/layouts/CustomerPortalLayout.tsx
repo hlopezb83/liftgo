@@ -1,10 +1,11 @@
-import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Link, Outlet, useLocation } from "react-router-dom";
+import { LogOut, DashboardIcon, CalendarDays, InvoiceIcon, DocumentIcon, MessageSquare, TrophyIcon, VerifiedDocIcon, ExpenseIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePublicBranding } from "@/features/company-settings";
-import { LogOut, DashboardIcon, CalendarDays, InvoiceIcon, DocumentIcon, MessageSquare, TrophyIcon, VerifiedDocIcon, ExpenseIcon } from "@/components/icons";
-import { cn } from "@/lib/utils";
 import { FeedbackFab } from "@/features/feedback";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { cn } from "@/lib/utils";
 
 const tabs = [
   { path: "/portal", label: "Panel", icon: DashboardIcon },
@@ -21,7 +22,7 @@ export default function CustomerPortalLayout() {
   const { user, signOut } = useAuth();
   const { data: company } = usePublicBranding();
   const location = useLocation();
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
 
   const handleLogout = async () => {
     await signOut();

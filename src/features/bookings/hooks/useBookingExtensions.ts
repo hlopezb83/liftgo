@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { bookingKeys } from "../lib/queryKeys";
 
 export function useBookingExtensions(bookingId?: string) {

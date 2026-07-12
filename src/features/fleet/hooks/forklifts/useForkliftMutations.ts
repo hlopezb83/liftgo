@@ -1,11 +1,10 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
-import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
-
-import { forkliftKeys } from "../../lib/queryKeys";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
+import { notifyError } from "@/lib/ui/appFeedback";
 import type { Forklift } from "@/types/rental";
+import { forkliftKeys } from "../../lib/queryKeys";
 
 export function useCreateForklift() {
   const queryClient = useQueryClient();

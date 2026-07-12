@@ -1,6 +1,6 @@
+import { CashFlowChart } from "./CashFlowChart";
 import { FleetStatusChart } from "./FleetStatusChart";
 import { UtilizationCharts } from "./UtilizationCharts";
-import { CashFlowChart } from "./CashFlowChart";
 import type { ComponentProps } from "react";
 
 type FleetProps = ComponentProps<typeof FleetStatusChart>;

@@ -1,6 +1,6 @@
-import { test as setup, expect } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
+import { test as setup, expect } from "@playwright/test";
 
 const STORAGE_PATH = "tests/e2e/.auth/admin.json";
 

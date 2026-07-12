@@ -1,9 +1,9 @@
 import { AddIcon, DeleteIcon } from "@/components/icons";
-import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { EditableList } from "./EditableList";
 import type { ChecklistSection } from "@/features/contracts";
+import { EditableList } from "./EditableList";
 
 interface Props {
   sections: ChecklistSection[];

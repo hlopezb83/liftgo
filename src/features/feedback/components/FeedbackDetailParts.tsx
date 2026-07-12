@@ -1,7 +1,7 @@
 import { Separator } from "@/components/ui/separator";
+import type { Tables } from "@/integrations/supabase/types";
 import { formatDateTimeMty } from "@/lib/format/dateFormats";
 import { FEEDBACK_STATUS_LABELS, type FeedbackStatus } from "../lib/constants";
-import type { Tables } from "@/integrations/supabase/types";
 type FeedbackHistoryEntry = Tables<"feedback_status_history">;
 
 type MetaItem = { label: string; value: string; breakAll?: boolean };

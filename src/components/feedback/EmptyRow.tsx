@@ -1,6 +1,6 @@
 import React from "react";
-import { TableRow, TableCell } from "@/components/ui/table";
 import { Inbox } from "@/components/icons";
+import { TableRow, TableCell } from "@/components/ui/table";
 
 export const EmptyRow = ({ colSpan, message = "Sin resultados", ref }: { colSpan: number; message?: string } & { ref?: React.Ref<HTMLTableRowElement> }) => {
   return (

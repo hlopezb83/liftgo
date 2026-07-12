@@ -1,7 +1,7 @@
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
-import { supabase } from "@/integrations/supabase/client";
 
 export function useUploadCompanyLogo() {
   const [uploading, setUploading] = useState(false);

@@ -1,12 +1,12 @@
 import { useState } from "react";
-import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@/lib/forms/zodResolver";
+import { CsfDropzone } from "@/components/forms/CsfDropzone";
+import { FormActions } from "@/components/forms/FormActions";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { EditIcon, DocumentIcon } from "@/components/icons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
-import { FormActions } from "@/components/forms/FormActions";
-import { CsfDropzone } from "@/components/forms/CsfDropzone";
+import { usePrefillEffect } from "@/hooks/usePrefillEffect";
+import { zodResolver } from "@/lib/forms/zodResolver";
 import { sanitizeCsfName } from "../../lib/csfSanitize";
 import { customerFormSchema, type CustomerFormData } from "../../lib/customerFormSchema";
 import {

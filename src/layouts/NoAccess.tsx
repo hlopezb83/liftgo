@@ -2,10 +2,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { Lock, RefreshIcon, UserX, WarnIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useUserRole } from "@/features/users";
-import { ROLE_LABELS } from "@/lib/constants";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserRole } from "@/features/users";
 import type { AccessLevel } from "@/features/users";
+import { ROLE_LABELS } from "@/lib/constants";
 
 export type NoAccessReason = "forbidden" | "no-role" | "error";
 

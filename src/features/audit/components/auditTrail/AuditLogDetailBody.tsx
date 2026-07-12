@@ -1,9 +1,9 @@
+import { visibleFields } from "./auditDiffHelpers";
+import { AuditSnapshotTable, AuditUpdateDiffTable } from "./AuditDiffTables";
 import {
   translateField,
   formatTimestamp,
 } from "./auditTrailConstants";
-import { AuditSnapshotTable, AuditUpdateDiffTable } from "./AuditDiffTables";
-import { visibleFields } from "./auditDiffHelpers";
 import type { AuditLog } from "../../hooks/useAuditLogs";
 
 function renderDataBlock(log: AuditLog) {

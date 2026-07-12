@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
-import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 
 type DeliveryRow = Awaited<ReturnType<typeof fetchDeliveryDetail>>;
 type DeliveryList = Awaited<ReturnType<typeof fetchDeliveryList>>;

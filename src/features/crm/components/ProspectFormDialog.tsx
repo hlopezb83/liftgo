@@ -1,16 +1,16 @@
-import { useProspectForm, type ProspectFormPayload } from "../hooks/useProspectForm";
 import { FormDialog } from "@/components/forms/FormDialog";
+import { useProspectForm, type ProspectFormPayload } from "../hooks/useProspectForm";
 import { ProspectCloseDealActions } from "./prospect-form/ProspectCloseDealActions";
-import { ProspectFormFields } from "./prospect-form/ProspectFormFields";
+import {
+  prospectDialogDescription,
+  prospectDialogTitle,
+} from "./prospect-form/prospectDialogCopy";
 import {
   ProspectCreatorBlock,
   ProspectDialogFooter,
   ProspectStageBadgeBlock,
 } from "./prospect-form/ProspectDialogParts";
-import {
-  prospectDialogDescription,
-  prospectDialogTitle,
-} from "./prospect-form/prospectDialogCopy";
+import { ProspectFormFields } from "./prospect-form/ProspectFormFields";
 import type { Prospect } from "../hooks/useProspects";
 
 interface Props {

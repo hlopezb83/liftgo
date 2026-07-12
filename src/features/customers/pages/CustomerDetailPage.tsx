@@ -1,19 +1,18 @@
 import { useParams } from "react-router-dom";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { NotesCard } from "@/components/domain/NotesCard";
+import { UserPlus, EditIcon, DeleteIcon, FileDown } from "@/components/icons";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { NotesCard } from "@/components/domain/NotesCard";
-import { UserPlus, EditIcon, DeleteIcon, FileDown } from "@/components/icons";
-
-import { CustomerContactCard } from "../components/customer-detail/CustomerContactCard";
-import { CustomerFinancialSummary } from "../components/customer-detail/CustomerFinancialSummary";
-import { CustomerProfitabilityCard } from "../components/customer-detail/CustomerProfitabilityCard";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { CustomerBookingsHistory } from "../components/customer-detail/CustomerBookingsHistory";
-import { CustomerInvoicesList } from "../components/customer-detail/CustomerInvoicesList";
+import { CustomerContactCard } from "../components/customer-detail/CustomerContactCard";
 import { CustomerDeleteDialog } from "../components/customer-detail/CustomerDeleteDialog";
+import { CustomerFinancialSummary } from "../components/customer-detail/CustomerFinancialSummary";
 import { CustomerInviteDialog } from "../components/customer-detail/CustomerInviteDialog";
+import { CustomerInvoicesList } from "../components/customer-detail/CustomerInvoicesList";
+import { CustomerProfitabilityCard } from "../components/customer-detail/CustomerProfitabilityCard";
 import { CustomerFormDialog } from "../components/customers/CustomerFormDialog";
 import { useCustomerDetailPage } from "../hooks/customers/useCustomerDetailPage";
 

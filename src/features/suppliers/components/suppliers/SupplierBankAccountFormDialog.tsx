@@ -1,11 +1,6 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
-import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
-import { FormSection } from "@/components/forms/FormSection";
-import { FormActions } from "@/components/forms/FormActions";
-import { Form } from "@/components/ui/form";
 import {
   TextField,
   TextareaField,
@@ -13,6 +8,11 @@ import {
   SwitchField,
   type SelectOption,
 } from "@/components/forms/fields";
+import { FormActions } from "@/components/forms/FormActions";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormSection } from "@/components/forms/FormSection";
+import { Form } from "@/components/ui/form";
+import { zodResolver } from "@/lib/forms/zodResolver";
 import { clabeOptional } from "@/lib/schemas";
 import {
   useCreateSupplierBankAccount,

@@ -1,14 +1,13 @@
 
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { parseISO, differenceInDays, isWithinInterval } from "date-fns";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ChevronRightIcon } from "@/components/icons";
-import { parseISO, differenceInDays, isWithinInterval } from "date-fns";
-import { nowMty, formatMtyDate } from "@/lib/utils";
-
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import type { BookingWithForklift } from "@/features/bookings";
-import type { Tables } from "@/integrations/supabase/types";
 import { RecurringBillingBadge } from "@/features/bookings";
+import type { Tables } from "@/integrations/supabase/types";
 import { BOOKING_STATUS } from "@/lib/constants";
+import { nowMty, formatMtyDate } from "@/lib/utils";
 
 type Forklift = Tables<"forklifts">;
 

@@ -33,11 +33,9 @@ export function useMainScrollRestoration(ref: RefObject<HTMLElement | null>) {
   useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
-    if (navType === "POP") {
-      const saved = scrollByKey.get(location.key) ?? 0;
-      el.scrollTop = saved;
-    } else {
-      el.scrollTop = 0;
-    }
+    // React Compiler advierte por mutar `ref.current`, pero acá el ref apunta al
+    // DOM (<main>) y la mutación es sobre el nodo, no sobre el objeto ref.
+    // eslint-disable-next-line react-compiler/react-compiler
+    el.scrollTop = navType === "POP" ? (scrollByKey.get(location.key) ?? 0) : 0;
   }, [ref, location.key, navType]);
 }

@@ -1,9 +1,4 @@
-import type { UseFormReturn } from "react-hook-form";
-import { ClipboardCheck } from "@/components/icons";
-import { FormDialog } from "@/components/forms/FormDialog";
-import { FormActions } from "@/components/forms/FormActions";
 import { DragDropImageUploader } from "@/components/forms/DragDropImageUploader";
-import { Form, FormLabel } from "@/components/ui/form";
 import {
   SelectField,
   TextField,
@@ -11,11 +6,16 @@ import {
   DateField,
   type SelectOption,
 } from "@/components/forms/fields";
-import { INSPECTION_CONDITIONS, FUEL_LEVELS, STATUS_LABELS, FUEL_LEVEL_LABELS } from "@/lib/constants";
-import { formatDateRange } from "@/lib/utils";
+import { FormActions } from "@/components/forms/FormActions";
+import { FormDialog } from "@/components/forms/FormDialog";
+import { ClipboardCheck } from "@/components/icons";
+import { Form, FormLabel } from "@/components/ui/form";
 import type { Booking } from "@/features/bookings";
 import type { Forklift } from "@/features/fleet";
+import { INSPECTION_CONDITIONS, FUEL_LEVELS, STATUS_LABELS, FUEL_LEVEL_LABELS } from "@/lib/constants";
+import { formatDateRange } from "@/lib/utils";
 import type { ReturnInspectionFormValues } from "../../hooks/returnInspection/useReturnInspectionDialog";
+import type { UseFormReturn } from "react-hook-form";
 
 interface Props {
   open: boolean;

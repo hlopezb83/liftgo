@@ -1,25 +1,25 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { useSuppliers, SUPPLIER_CATEGORIES } from "../hooks/useSuppliers";
-import { useSupplierBills } from "@/features/accounts-payable";
-import { useMaintenanceLogs } from "@/features/maintenance";
-import { DocumentAttachments, useForkliftMap } from "@/features/fleet";
+import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { NotesCard } from "@/components/domain/NotesCard";
+import { DocumentIcon, MaintenanceIcon, ExpenseIcon, EditIcon } from "@/components/icons";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { NotesCard } from "@/components/domain/NotesCard";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { SupplierContactCard } from "../components/suppliers/SupplierContactCard";
-import { SupplierFormDialog } from "../components/suppliers/SupplierFormDialog";
-import { SupplierContactsSection } from "../components/suppliers/SupplierContactsSection";
-import { SupplierBankAccountsSection } from "../components/suppliers/SupplierBankAccountsSection";
+import { useSupplierBills } from "@/features/accounts-payable";
+import { DocumentAttachments, useForkliftMap } from "@/features/fleet";
+import { useMaintenanceLogs } from "@/features/maintenance";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
-import { DocumentIcon, MaintenanceIcon, ExpenseIcon, EditIcon } from "@/components/icons";
+import { SupplierBankAccountsSection } from "../components/suppliers/SupplierBankAccountsSection";
+import { SupplierContactCard } from "../components/suppliers/SupplierContactCard";
+import { SupplierContactsSection } from "../components/suppliers/SupplierContactsSection";
+import { SupplierFormDialog } from "../components/suppliers/SupplierFormDialog";
+import { useSuppliers, SUPPLIER_CATEGORIES } from "../hooks/useSuppliers";
 
 type LinkedExpense = { id: string; expense_date: string; category: string; description: string | null; amount: number };
 

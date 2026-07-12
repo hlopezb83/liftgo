@@ -1,7 +1,7 @@
 import { type FieldPath, type FieldValues, type Control } from "react-hook-form";
+import { RequiredMark } from "@/components/forms/RequiredMark";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
-import { RequiredMark } from "@/components/forms/RequiredMark";
 
 interface TextareaFieldProps<TFieldValues extends FieldValues> {
   control: Control<TFieldValues>;

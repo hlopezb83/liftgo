@@ -1,7 +1,7 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { ReportChartCard } from "@/components/domain/ReportChartCard";
 import { ExpenseIcon } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { ReportChartCard } from "@/components/domain/ReportChartCard";
 
 function formatCompactMxn(v: number): string {
   const abs = Math.abs(v);

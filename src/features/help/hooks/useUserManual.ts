@@ -1,9 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { parseJsonbArray } from "@/lib/domain/lineItems";
-
-import { useState } from "react";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
 export interface ManualSection {
   title: string;

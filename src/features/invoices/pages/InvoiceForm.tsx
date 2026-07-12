@@ -1,26 +1,25 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useParams, useSearchParams } from "react-router-dom";
-import { useInvoiceFormLogic } from "../hooks/useInvoiceFormLogic";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
+import { TotalsSummary } from "@/components/domain/TotalsSummary";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { FormActions } from "@/components/forms/FormActions";
+import { WarnIcon } from "@/components/icons";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { TotalsSummary } from "@/components/domain/TotalsSummary";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 import { CfdiFieldsCard } from "../components/invoice-form/CfdiFieldsCard";
 import { EditableLineItemsTable } from "../components/invoice-form/EditableLineItemsTable";
 import { MultiBookingSelector } from "../components/invoice-form/MultiBookingSelector";
-
-import { WarnIcon } from "@/components/icons";
 import { useNextInvoiceNumber } from "../hooks/invoices/useNextInvoiceNumber";
+import { useInvoiceFormLogic } from "../hooks/useInvoiceFormLogic";
 import type { InvoiceFormValues } from "../lib/invoiceFormSchema";
-import { notifySuccess } from "@/lib/ui/appFeedback";
 
 export default function InvoiceForm() {
   const navigate = useNavigateTransition();

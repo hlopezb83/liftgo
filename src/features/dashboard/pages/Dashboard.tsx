@@ -1,11 +1,11 @@
-import { PageTransition } from "@/components/layout/PageTransition";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { PageTransition } from "@/components/layout/PageTransition";
 import { Skeleton } from "@/components/ui/skeleton";
-import { StatCards } from "../components/dashboard/StatCards";
-import { FinancialKpiCards } from "../components/dashboard/FinancialKpiCards";
 import { DashboardAlertsSection } from "../components/dashboard/DashboardAlertsSection";
 import { DashboardChartsSection } from "../components/dashboard/DashboardChartsSection";
+import { FinancialKpiCards } from "../components/dashboard/FinancialKpiCards";
+import { StatCards } from "../components/dashboard/StatCards";
 import { useDashboardSections } from "../hooks/dashboard/useDashboardSections";
 
 export default function Dashboard() {

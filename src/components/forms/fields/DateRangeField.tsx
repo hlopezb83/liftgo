@@ -1,7 +1,7 @@
 import { type FieldPath, type FieldValues, type Control } from "react-hook-form";
-import type { DateRange } from "react-day-picker";
-import { FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
+import { FormField, FormItem, FormControl, FormMessage } from "@/components/ui/form";
+import type { DateRange } from "react-day-picker";
 
 interface DateRangeFieldProps<TFieldValues extends FieldValues> {
   control: Control<TFieldValues>;

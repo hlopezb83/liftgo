@@ -1,16 +1,15 @@
 import { useState } from "react";
-import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
-import { useEquipmentModels, useCreateEquipmentModel, useUpdateEquipmentModel, useDeleteEquipmentModel, EquipmentModel } from "@/features/fleet";
+import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
-
+import { useEquipmentModels, useCreateEquipmentModel, useUpdateEquipmentModel, useDeleteEquipmentModel, EquipmentModel } from "@/features/fleet";
 import { FUEL_TYPES, FUEL_TYPE_LABELS } from "@/lib/constants";
+import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
 export function EquipmentModelsTab() {
   const { data: models, isLoading } = useEquipmentModels();

@@ -1,12 +1,10 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { TablesInsert } from "@/integrations/supabase/types";
+import { satStatusLabel } from "@/lib/domain/feedbackMessages";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 import { notifyInfo, notifySuccess } from "@/lib/ui/appFeedback";
-import { satStatusLabel } from "@/lib/domain/feedbackMessages";
-
-import type { TablesInsert } from "@/integrations/supabase/types";
-
 import { creditNoteKeys, invoiceKeys } from "../../lib/queryKeys";
-import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 
 /**
  * Keys invalidadas tras cualquier mutación de nota de crédito:

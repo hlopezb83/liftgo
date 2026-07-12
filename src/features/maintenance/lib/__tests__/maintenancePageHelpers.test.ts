@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
+import type { Tables } from "@/integrations/supabase/types";
 import { enrichLogs, forkliftName, maintenanceCsvRows, sumCost } from "../maintenancePageHelpers";
 import type { MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
-import type { Tables } from "@/integrations/supabase/types";
 
 const forkliftMap = new Map<string, Tables<"forklifts">>([
   ["f1", { id: "f1", name: "MC-001" } as Tables<"forklifts">],

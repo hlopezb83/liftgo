@@ -1,10 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook, waitFor } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { createQueryWrapper } from "@/test/helpers/queryClient";
 import {
   createSupabaseChainMock,
   type FunctionsInvokeResponse,
 } from "@/test/helpers/supabaseChain";
-import { createQueryWrapper } from "@/test/helpers/queryClient";
 
 const h = vi.hoisted(() => {
   const state = {

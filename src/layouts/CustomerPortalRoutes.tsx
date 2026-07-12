@@ -1,5 +1,5 @@
-import { Routes, Route } from "react-router-dom";
 import { Suspense, lazy } from "react";
+import { Routes, Route } from "react-router-dom";
 import { PageFallback } from "@/routes/routes-config";
 
 const CustomerPortalLayout = lazy(() => import("@/layouts/CustomerPortalLayout"));

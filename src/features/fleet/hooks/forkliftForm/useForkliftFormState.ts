@@ -1,8 +1,8 @@
 
-import type { UseFormReturn } from "react-hook-form";
+import type { Tables } from "@/integrations/supabase/types";
 import { useEquipmentModels } from "../useEquipmentModels";
 import type { ForkliftFormData } from "../../lib/forkliftFormSchema";
-import type { Tables } from "@/integrations/supabase/types";
+import type { UseFormReturn } from "react-hook-form";
 
 type ExistingForklift = Tables<"forklifts"> | null | undefined;
 

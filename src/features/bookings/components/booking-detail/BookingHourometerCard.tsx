@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Gauge } from "@/components/icons";
 import { InfoRow } from "@/components/forms/InfoRow";
+import { Gauge } from "@/components/icons";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Props {
   deliveryHours: number | null;

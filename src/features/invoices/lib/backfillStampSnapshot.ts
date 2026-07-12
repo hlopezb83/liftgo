@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
-import { getMissingStampFields } from "./cfdiPrechecks";
 import type { Tables } from "@/integrations/supabase/types";
+import { getMissingStampFields } from "./cfdiPrechecks";
 
 /**
  * Backfill snapshot fiscal del receptor + defaults SAT en facturas antiguas

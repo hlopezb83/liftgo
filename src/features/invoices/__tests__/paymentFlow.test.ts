@@ -1,11 +1,12 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
 import { renderHook } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { useCreatePayment } from "@/features/invoices";
+import { createQueryWrapper } from "@/test/helpers/queryClient";
 import {
   createSupabaseChainMock,
   type ChainCall,
   type SupabaseMockResponse,
 } from "@/test/helpers/supabaseChain";
-import { createQueryWrapper } from "@/test/helpers/queryClient";
 
 interface PaymentRow {
   amount: number;
@@ -51,7 +52,6 @@ vi.mock("@/integrations/supabase/client", () => ({
   }),
 }));
 
-import { useCreatePayment } from "@/features/invoices";
 
 describe("useCreatePayment + syncInvoiceStatus — hooks reales", () => {
   beforeEach(() => {

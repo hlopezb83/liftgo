@@ -1,11 +1,11 @@
-import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { EmptyState } from "@/components/feedback/EmptyState";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { formatCurrency } from "@/lib/format/formatCurrency";
-import { InfoAlertIcon, InvoiceIcon } from "@/components/icons";
 import { Link } from "react-router-dom";
+import { EmptyState } from "@/components/feedback/EmptyState";
+import { InfoAlertIcon, InvoiceIcon } from "@/components/icons";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { RecurringPreviewLine } from "../../hooks/invoices/recurring/usePreviewRecurringInvoices";
 
 const REASON_LABEL: Record<NonNullable<RecurringPreviewLine["reason"]>, string> = {

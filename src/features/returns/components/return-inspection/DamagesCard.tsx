@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { WarnIcon } from "@/components/icons";
 import { InfoRow } from "@/components/forms/InfoRow";
+import { WarnIcon } from "@/components/icons";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { ReturnInspectionWithJoins } from "@/types/rental";
 

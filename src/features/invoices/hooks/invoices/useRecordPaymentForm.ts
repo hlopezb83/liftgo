@@ -1,12 +1,11 @@
-import { useState, useEffect } from "react";
 import { format } from "date-fns";
-
-import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
+import { useState, useEffect } from "react";
 import { roundMoney } from "@/lib/money";
+import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { nowMty } from "@/lib/utils";
+import { satCodeForMethod } from "../../lib/paymentMethods";
 import { useCreatePayment } from "../usePayments";
 import { useStampPaymentComplement } from "./cfdi/usePaymentComplement";
-import { satCodeForMethod } from "../../lib/paymentMethods";
 
 interface Args {
   open: boolean;

@@ -1,8 +1,7 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-
-import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
 import { DocumentIcon, StickyNote } from "@/components/icons";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { LOST_REASON_LABELS } from "../../lib/constants";
 import type { Prospect } from "../../hooks/useProspects";

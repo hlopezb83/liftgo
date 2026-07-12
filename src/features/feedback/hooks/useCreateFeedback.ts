@@ -1,12 +1,11 @@
-import { notifySuccess } from "@/lib/ui/appFeedback";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-
+import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert } from "@/integrations/supabase/types";
-import type { FeedbackFormValues } from "../lib/schema";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 import type { FeedbackContext } from "./useFeedbackContext";
 import type { SelectedElementInfo } from "../lib/cssPath";
+import type { FeedbackFormValues } from "../lib/schema";
 
 interface ExtendedContext extends FeedbackContext {
   selected_element: SelectedElementInfo | null;

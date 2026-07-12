@@ -1,28 +1,26 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { SecurityIcon, UsersIcon } from "@/components/icons";
+import { useLiftgoTable } from "@/components/dataTable/v2";
 import { SearchBar } from "@/components/forms/SearchBar";
-import { useAuth } from "@/contexts/AuthContext";
-
+import { SecurityIcon, UsersIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { STAFF_ROLES } from "@/lib/constants";
-import type { AppRole } from "../hooks/useUserRole";
-
-import { useUsersWithRoles, useToggleStatus, type UserRow } from "../hooks/useUserManagement";
-import { useUserManagementDialogs } from "../hooks/users/useUserManagementDialogs";
-import { useUserManagementFilters } from "../hooks/users/useUserManagementFilters";
-import { useUserManagementColumns } from "../hooks/users/useUserManagementColumns";
 import { CredentialsDialog } from "../components/users/CredentialsDialog";
-import { InviteUserDialog } from "../components/users/InviteUserDialog";
-import { EditNameDialog } from "../components/users/EditNameDialog";
 import { DeleteUserDialog } from "../components/users/DeleteUserDialog";
+import { EditNameDialog } from "../components/users/EditNameDialog";
+import { InviteUserDialog } from "../components/users/InviteUserDialog";
+import { RoleBadge } from "../components/users/RoleBadge";
 import { RoleChangeDialog } from "../components/users/RoleChangeDialog";
 import { SetPasswordDialog } from "../components/users/SetPasswordDialog";
-import { RoleBadge } from "../components/users/RoleBadge";
 import { UserMobileCard } from "../components/users/UserMobileCard";
-import { useLiftgoTable } from "@/components/dataTable/v2";
+import { useUserManagementColumns } from "../hooks/users/useUserManagementColumns";
+import { useUserManagementDialogs } from "../hooks/users/useUserManagementDialogs";
+import { useUserManagementFilters } from "../hooks/users/useUserManagementFilters";
+import { useUsersWithRoles, useToggleStatus, type UserRow } from "../hooks/useUserManagement";
+import type { AppRole } from "../hooks/useUserRole";
+
 
 type UserItem = UserRow & { id?: string };
 

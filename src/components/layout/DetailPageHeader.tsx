@@ -1,7 +1,7 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { ReactNode } from "react";
-import { Button } from "@/components/ui/button";
 import { BackIcon } from "@/components/icons";
+import { Button } from "@/components/ui/button";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
 interface DetailPageHeaderProps {
   title: string;

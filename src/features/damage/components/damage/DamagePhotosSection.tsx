@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { useDocuments } from "@/hooks/useDocuments";
 import { DragDropImageUploader } from "@/components/forms/DragDropImageUploader";
-import { ImageGalleryLightbox } from "./ImageGalleryLightbox";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Camera } from "@/components/icons";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useDocuments } from "@/hooks/useDocuments";
+import { ImageGalleryLightbox } from "./ImageGalleryLightbox";
 
 interface DamagePhotosSectionProps {
   entityType: string;

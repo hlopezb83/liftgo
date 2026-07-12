@@ -1,9 +1,9 @@
-import { Card, CardContent } from "@/components/ui/card";
+import { DeleteIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { DeleteIcon } from "@/components/icons";
-import type { AuditLog } from "../../hooks/useAuditLogs";
+import { Card, CardContent } from "@/components/ui/card";
 import { actionIcon, actionBadgeVariant, translateAction, translateTable, translateField, formatTimestamp, getRecordLabel } from "./auditTrailConstants";
+import type { AuditLog } from "../../hooks/useAuditLogs";
 
 interface Props {
   log: AuditLog;

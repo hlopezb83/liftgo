@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { customerKeys } from "../../lib/queryKeys";
-import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { customerKeys } from "../../lib/queryKeys";
 
 export type Customer = Tables<"customers">;
 

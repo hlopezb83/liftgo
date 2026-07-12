@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { nowMty } from "@/lib/utils";
 import type { TablesInsert } from "@/integrations/supabase/types";
-import type { ReturnInspectionWithJoins } from "@/types/rental";
-import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { nowMty } from "@/lib/utils";
+import type { ReturnInspectionWithJoins } from "@/types/rental";
 
 const SELECT_WITH_JOINS =
   "*, bookings(customer_name, start_date, end_date), forklifts(name, model)";

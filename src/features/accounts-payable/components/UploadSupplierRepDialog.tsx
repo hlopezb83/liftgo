@@ -1,8 +1,10 @@
 import { useEffect } from "react";
 import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { RequiredMark } from "@/components/forms/RequiredMark";
+import { UploadIcon, SpinnerIcon } from "@/components/icons";
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormField,
@@ -11,10 +13,8 @@ import {
   FormControl,
   FormMessage,
 } from "@/components/ui/form";
-import { RequiredMark } from "@/components/forms/RequiredMark";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { UploadIcon, SpinnerIcon } from "@/components/icons";
+import { zodResolver } from "@/lib/forms/zodResolver";
 import { useUploadSupplierRep } from "../hooks/useSupplierRepMutations";
 
 interface Props {

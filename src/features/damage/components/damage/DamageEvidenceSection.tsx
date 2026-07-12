@@ -1,6 +1,6 @@
 import { useDropzone } from "react-dropzone";
-import { Label } from "@/components/ui/label";
 import { UploadIcon, X, ImageIcon } from "@/components/icons";
+import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import type { DamagePreview } from "../../hooks/useReportDamageForm";
 

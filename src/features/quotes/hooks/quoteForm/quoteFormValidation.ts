@@ -1,5 +1,5 @@
-import type { RentalLine, SaleLine } from "./quoteFormBuilders";
 import { notifyValidation } from "@/lib/ui/appFeedback";
+import type { RentalLine, SaleLine } from "./quoteFormBuilders";
 
 export function validateQuoteForm(opts: {
   customerId: string;

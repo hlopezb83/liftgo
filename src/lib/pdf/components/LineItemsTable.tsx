@@ -1,8 +1,8 @@
 import { Text, View } from "@react-pdf/renderer";
-import { sharedStyles } from "@/lib/pdf/theme/styles";
-import { formatCurrency, formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { applyDiscount } from "@/lib/domain/invoiceHelpers";
+import { formatCurrency, formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import type { PdfLineItem } from "@/lib/pdf/shared";
+import { sharedStyles } from "@/lib/pdf/theme/styles";
 
 interface LineItemsTableProps {
   items: PdfLineItem[];

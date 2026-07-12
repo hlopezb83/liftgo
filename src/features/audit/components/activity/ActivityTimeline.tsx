@@ -1,18 +1,17 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ActorAvatar } from "./ActorAvatar";
-import { useActivityFeed, type ActivityFilters } from "@/features/dashboard";
-import { ENTITY_LABELS, ENTITY_ROUTES, EVENT_LABELS, EVENT_TYPES } from "../../lib/activityConstants";
-import { translateActivityTitle, translateActivityDescription } from "@/lib/domain/activityTranslations";
-
-import { formatDateTimeShortMty } from "@/lib/format/dateFormats";
 import { X } from "@/components/icons";
-import type { MemberStat } from "../../hooks/useActivityMetrics";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useActivityFeed, type ActivityFilters } from "@/features/dashboard";
 import type { AppRole } from "@/features/users";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { translateActivityTitle, translateActivityDescription } from "@/lib/domain/activityTranslations";
+import { formatDateTimeShortMty } from "@/lib/format/dateFormats";
+import { ENTITY_LABELS, ENTITY_ROUTES, EVENT_LABELS, EVENT_TYPES } from "../../lib/activityConstants";
+import { ActorAvatar } from "./ActorAvatar";
+import type { MemberStat } from "../../hooks/useActivityMetrics";
 
 interface Props {
   filters: ActivityFilters;
@@ -95,13 +94,25 @@ export function ActivityTimeline({ filters, onFilterChange, onReset, members }: 
               const route = ENTITY_ROUTES[a.entity_type];
               const actorName = a.actor_name ?? "Sistema";
               const moduleLabel = ENTITY_LABELS[a.entity_type] ?? a.entity_type;
+              const interactive = route
+                ? {
+                    role: "button" as const,
+                    tabIndex: 0,
+                    onClick: () => navigate(route.includes(":id") ? route.replace(":id", a.entity_id) : route),
+                    onKeyDown: (e: React.KeyboardEvent) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        navigate(route.includes(":id") ? route.replace(":id", a.entity_id) : route);
+                      }
+                    },
+                  }
+                : {};
               return (
                 <div
                   key={a.id}
+                  {...interactive}
+                  // eslint-disable-next-line jsx-a11y/no-static-element-interactions
                   className={`flex items-center gap-3 px-4 py-2.5 hover:bg-muted/40 transition-colors ${idx % 2 === 0 ? "bg-background" : "bg-muted/10"} ${route ? "cursor-pointer" : ""}`}
-                  onClick={() => {
-                    if (route) navigate(route.includes(":id") ? route.replace(":id", a.entity_id) : route);
-                  }}
                 >
                   <div className="w-[180px] shrink-0">
                     <ActorAvatar

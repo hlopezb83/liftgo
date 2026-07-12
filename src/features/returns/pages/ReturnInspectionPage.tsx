@@ -1,21 +1,20 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { format } from "date-fns";
 import { useState } from "react";
+import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
+import { DatePickerField } from "@/components/forms/DatePickerField";
+import { PlusCircle } from "@/components/icons";
+import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { useBookings } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
-import { useReturnInspections } from "../hooks/useReturnInspections";
-import { useReturnInspectionDialog } from "../hooks/returnInspection/useReturnInspectionDialog";
-import { ListPageLayout } from "@/components/layout/ListPageLayout";
-import { DatePickerField } from "@/components/forms/DatePickerField";
-import { Button } from "@/components/ui/button";
-import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { ReturnInspectionDialog } from "../components/return-inspection/ReturnInspectionDialog";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { Card, CardContent } from "@/components/ui/card";
-import { PlusCircle } from "@/components/icons";
-import { format } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";
-
-import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { ReturnInspectionDialog } from "../components/return-inspection/ReturnInspectionDialog";
+import { useReturnInspectionDialog } from "../hooks/returnInspection/useReturnInspectionDialog";
+import { useReturnInspections } from "../hooks/useReturnInspections";
 
 type Inspection = NonNullable<ReturnType<typeof useReturnInspections>["data"]>[number];
 

@@ -1,8 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatCurrency } from "@/lib/format/formatCurrency";
 import { applyDiscount } from "@/lib/domain/invoiceHelpers";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 
 interface ReadOnlyLineItemsTableProps {
   lineItems: LineItem[];

@@ -1,7 +1,7 @@
+import type { ColumnDef } from "@/components/dataTable/v2";
+import { ResetIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ResetIcon } from "@/components/icons";
-import type { ColumnDef } from "@/components/dataTable/v2";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { LOST_REASON_LABELS } from "./constants";
 import type { Prospect } from "../hooks/useProspects";

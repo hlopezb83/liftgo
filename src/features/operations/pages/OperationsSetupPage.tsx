@@ -1,16 +1,16 @@
-import { PageHeader } from "@/components/layout/PageHeader";
-import { PageContainer } from "@/components/layout/PageContainer";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SettingsIcon, FleetIcon, MaintenanceIcon, DocumentIcon, SecurityIcon, CompanyIcon, Image as ImageIcon, ShieldAlert } from "@/components/icons";
-import { EquipmentModelsTab } from "../components/operations/EquipmentModelsTab";
-import { DriversTab } from "../components/operations/DriversTab";
-import { MechanicsTab } from "../components/operations/MechanicsTab";
-import { ContractTemplateTab } from "../components/operations/ContractTemplateTab";
-import { MaintenancePoliciesTab } from "../components/operations/MaintenancePoliciesTab";
-import { FiscalDataTab } from "../components/operations/FiscalDataTab";
-import { CompanyLogoTab } from "../components/operations/CompanyLogoTab";
-import { CxpApprovalTab } from "../components/operations/CxpApprovalTab";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RoleGuard } from "@/layouts/RoleGuard";
+import { CompanyLogoTab } from "../components/operations/CompanyLogoTab";
+import { ContractTemplateTab } from "../components/operations/ContractTemplateTab";
+import { CxpApprovalTab } from "../components/operations/CxpApprovalTab";
+import { DriversTab } from "../components/operations/DriversTab";
+import { EquipmentModelsTab } from "../components/operations/EquipmentModelsTab";
+import { FiscalDataTab } from "../components/operations/FiscalDataTab";
+import { MaintenancePoliciesTab } from "../components/operations/MaintenancePoliciesTab";
+import { MechanicsTab } from "../components/operations/MechanicsTab";
 
 export default function OperationsSetupPage() {
   return (

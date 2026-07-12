@@ -1,9 +1,9 @@
 import { Text, View } from "@react-pdf/renderer";
-import { PAGE_MARGIN } from "@/lib/pdf/theme/tokens";
-import { contractStyles } from "@/lib/pdf/theme/styles";
-import type { TemplateData, ContractData } from "@/lib/pdf/contract/data";
 import { replacePlaceholders } from "@/lib/domain/templateUtils";
+import type { TemplateData, ContractData } from "@/lib/pdf/contract/data";
 import { DEFAULT_INTRO } from "@/lib/pdf/contract/data-templates";
+import { contractStyles } from "@/lib/pdf/theme/styles";
+import { PAGE_MARGIN } from "@/lib/pdf/theme/tokens";
 
 interface PartiesContractBodyProps {
   contract: ContractData;

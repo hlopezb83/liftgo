@@ -1,11 +1,11 @@
 import { useState } from "react";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useUserManual } from "../hooks/useUserManual";
 import { useUserRole } from "@/features/users";
 import { HelpPageHeader } from "../components/HelpPageHeader";
-import { ManualEmptyCard, ManualGeneratingCard } from "../components/ManualStateCards";
 import { ManualSections } from "../components/ManualSections";
-import { PageContainer } from "@/components/layout/PageContainer";
+import { ManualEmptyCard, ManualGeneratingCard } from "../components/ManualStateCards";
+import { useUserManual } from "../hooks/useUserManual";
 
 export default function HelpPage() {
   const { manual, isLoading, generate, isGenerating, versions, selectedVersion, setSelectedVersion } = useUserManual();

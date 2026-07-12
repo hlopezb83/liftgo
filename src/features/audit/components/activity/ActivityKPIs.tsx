@@ -1,8 +1,8 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { TrendingDownIcon, TrendingUpIcon, ActivityIcon, UsersIcon, Layers, ClockIcon } from "@/components/icons";
-import type { ActivityMetrics } from "../../hooks/useActivityMetrics";
-import { ENTITY_LABELS } from "../../lib/activityConstants";
+import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import { ENTITY_LABELS } from "../../lib/activityConstants";
+import type { ActivityMetrics } from "../../hooks/useActivityMetrics";
 
 interface Props {
   metrics: ActivityMetrics;

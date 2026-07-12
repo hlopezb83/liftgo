@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { appRoutes } from "@/routes/routes-config";
 import { ROUTES } from "@/routes/routes";
+import { appRoutes } from "@/routes/routes-config";
 
 // -----------------------------------------------------------------------------
 // Guardrail: cada string en `ROUTES` debe existir en `appRoutes` (con :id

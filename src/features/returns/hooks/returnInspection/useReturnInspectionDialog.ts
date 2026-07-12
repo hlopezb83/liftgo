@@ -1,17 +1,16 @@
 import { useState } from "react";
-import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
-import { usePrefillEffect } from "@/hooks/usePrefillEffect";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@/lib/forms/zodResolver";
 import { useSearchParams } from "react-router-dom";
-
-import { useCreateReturnInspection } from "../useReturnInspections";
+import type { Booking } from "@/features/bookings";
+import { usePrefillEffect } from "@/hooks/usePrefillEffect";
+import { zodResolver } from "@/lib/forms/zodResolver";
+import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import {
   returnInspectionSchema,
   initialReturnInspectionForm,
   type ReturnInspectionFormValues,
 } from "../../lib/returnInspectionSchema";
-import type { Booking } from "@/features/bookings";
+import { useCreateReturnInspection } from "../useReturnInspections";
 
 export { returnInspectionSchema, initialReturnInspectionForm } from "../../lib/returnInspectionSchema";
 export type { ReturnInspectionFormValues } from "../../lib/returnInspectionSchema";

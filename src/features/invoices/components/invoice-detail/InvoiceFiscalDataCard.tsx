@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Tables } from "@/integrations/supabase/types";
+import type { ReactNode } from "react";
 
 interface InvoiceFiscalDataCardProps {
   invoice: Tables<"invoices">;

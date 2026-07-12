@@ -1,12 +1,12 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { usePortalBookings } from "@/features/customers";
-import { Skeleton } from "@/components/ui/skeleton";
-import { formatDateDisplay } from "@/lib/utils";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { usePortalBookings } from "@/features/customers";
+import { formatDateDisplay } from "@/lib/utils";
 
 type Booking = NonNullable<ReturnType<typeof usePortalBookings>["data"]>[number];
 

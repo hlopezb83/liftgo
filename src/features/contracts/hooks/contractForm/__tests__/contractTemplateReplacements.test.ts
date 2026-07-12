@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildTemplateReplacements } from "../contractTemplateReplacements";
 import { defaultContractForm } from "../contractFormDefaults";
+import { buildTemplateReplacements } from "../contractTemplateReplacements";
 
 // Casts mínimos para satisfacer los tipos de Supabase sin acoplar al schema completo.
 const customer = {

@@ -1,15 +1,14 @@
 import { useParams } from "react-router-dom";
-
-import { useReturnInspection } from "../hooks/useReturnInspections";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { EquipmentCard } from "../components/return-inspection/EquipmentCard";
 import { BookingCard } from "../components/return-inspection/BookingCard";
+import { DamagesCard } from "../components/return-inspection/DamagesCard";
+import { EquipmentCard } from "../components/return-inspection/EquipmentCard";
 import { InspectionCard } from "../components/return-inspection/InspectionCard";
 import { UsageFuelCard } from "../components/return-inspection/UsageFuelCard";
-import { DamagesCard } from "../components/return-inspection/DamagesCard";
+import { useReturnInspection } from "../hooks/useReturnInspections";
 
 export default function ReturnInspectionDetail() {
   const { id } = useParams<{ id: string }>();

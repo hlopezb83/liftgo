@@ -1,5 +1,5 @@
-import React from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import React from "react";
 
 /**
  * Wrapper de QueryClient para tests de hooks. Cada llamada crea un cliente

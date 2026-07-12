@@ -1,8 +1,8 @@
-import { Button } from "@/components/ui/button";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { Button } from "@/components/ui/button";
+import { PostBookingDeliveryDialog } from "@/features/bookings";
 import { CustomerSelector } from "@/features/customers";
 import { EquipmentAssignmentDialog } from "./EquipmentAssignmentDialog";
-import { PostBookingDeliveryDialog } from "@/features/bookings";
 import type { useQuoteDetailLogic } from "../../hooks/useQuoteDetailLogic";
 
 type Logic = ReturnType<typeof useQuoteDetailLogic>;

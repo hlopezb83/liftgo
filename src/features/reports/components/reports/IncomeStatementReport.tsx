@@ -1,14 +1,12 @@
 import { useState } from "react";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { TrendingUpIcon, TrendingDownIcon, RevenueIcon, Percent, WarnIcon } from "@/components/icons";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { TrendingUpIcon, TrendingDownIcon, RevenueIcon, Percent, WarnIcon } from "@/components/icons";
-
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useIncomeStatementData } from "../../hooks/useIncomeStatementData";
-
-import { IncomeStatementToolbar } from "./IncomeStatementToolbar";
 import { IncomeStatementTable } from "./IncomeStatementTable";
+import { IncomeStatementToolbar } from "./IncomeStatementToolbar";
 
 interface Props {
   startDate: Date;
