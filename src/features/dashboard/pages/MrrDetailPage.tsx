@@ -1,5 +1,5 @@
 
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { KpiTile } from "@/components/domain/KpiTile";
 import { EmptyState } from "@/components/feedback/EmptyState";

@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter } from "react-router";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as hooks from "../../hooks/invoices/useInvoices";
 import InvoicesPage from "../InvoicesPage";

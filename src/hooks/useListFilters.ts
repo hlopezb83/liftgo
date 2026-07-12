@@ -1,5 +1,5 @@
 import { useMemo, useCallback, useEffect, useDeferredValue } from "react";
-import { useSearchParams, useLocation } from "react-router-dom";
+import { useSearchParams, useLocation } from "react-router";
 
 interface UseListFiltersOptions<T> {
   searchFields: (keyof T)[];

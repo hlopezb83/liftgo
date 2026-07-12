@@ -1,5 +1,5 @@
 import { useEffect, useEffectEvent, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { SwipeableCard } from "@/components/feedback/SwipeableCard";
 import { ChevronRightIcon, AddIcon, PhoneIcon } from "@/components/icons";

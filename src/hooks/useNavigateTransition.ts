@@ -1,29 +1,12 @@
-import { startTransition, useCallback } from "react";
-import { useNavigate, type NavigateOptions, type To } from "react-router-dom";
+import { useNavigate } from "react-router";
 
 /**
- * Wrapper de `useNavigate` que envuelve la navegación en `startTransition`
- * para que React 19 pueda mantener la UI actual interactiva mientras la
- * ruta destino monta (Suspense, lazy chunks, queries pesadas).
+ * v7 Data Router envuelve automáticamente cada navegación en `startTransition`
+ * y aplica Suspense de forma nativa, así que ya no necesitamos un wrapper
+ * manual. Se conserva el nombre como alias para no romper los ~50 callsites.
  *
- * Uso idéntico a `useNavigate()`:
  *   const navigate = useNavigateTransition();
  *   navigate("/reports");
  *   navigate(-1);
  */
-export function useNavigateTransition() {
-  const navigate = useNavigate();
-
-  return useCallback(
-    (to: To | number, options?: NavigateOptions) => {
-      startTransition(() => {
-        if (typeof to === "number") {
-          navigate(to);
-        } else {
-          navigate(to, options);
-        }
-      });
-    },
-    [navigate],
-  );
-}
+export const useNavigateTransition = useNavigate;

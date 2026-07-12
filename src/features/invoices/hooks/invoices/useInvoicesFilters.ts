@@ -1,6 +1,6 @@
 // React Compiler memoiza automáticamente las derivaciones puras de este hook.
 import { parseISO, isWithinInterval, startOfDay, endOfDay } from "date-fns";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams } from "react-router";
 import { useListFilters } from "@/hooks/useListFilters";
 import { toYMD } from "@/lib/date/toYMD";
 import type { Invoice } from "@/types/rental";

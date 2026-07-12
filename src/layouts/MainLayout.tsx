@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import { Outlet } from "react-router-dom";
+import { Outlet } from "react-router";
 import { KeyboardShortcutsDialog } from "@/components/feedback/KeyboardShortcutsDialog";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { usePageActionsContext } from "@/contexts/pageActions";

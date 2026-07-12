@@ -1,120 +1,70 @@
-## Auditoría de React (v19.2)
+# Auditoría y modernización de `react-router-dom`
 
-### Estado actual
+## 1. Estado actual
 
-- `react@^19` + `react-dom@^19` con JSX runtime automático.
-- **Ya adoptado**: `useEffectEvent` (usePrefillEffect, SearchBar), `useOptimistic` + `startTransition` (feedback), `useTransition` (GlobalSearch), `useDeferredValue` (useListFilters), `<Activity>` (8 detail sheets), `React.lazy` + `Suspense` (rutas y portal), `useId` (form/chart).
-- `**eslint-plugin-react-compiler**` habilitado como `warn`, pero el compiler NO corre en build — `vite.config.ts` deja el preset "pendiente". Toda memoización sigue siendo manual.
-- **Sin `forwardRef`, `React.FC`, `defaultProps`, `propTypes`, `class components**` → ya en patrón moderno.
+- Versión: `react-router-dom@^7.18.1` (v7 estable, monorepo unificado).
+- 50 archivos importan de `react-router-dom`. APIs usadas: `BrowserRouter`, `Routes`, `Route`, `Navigate`, `Outlet`, `Link`, `NavLink`, `useNavigate`, `useLocation`, `useParams`, `useSearchParams`, `useNavigationType`, `MemoryRouter` (tests).
+- Router en `src/App.tsx` es **declarativo** (`<BrowserRouter><Routes>…`) mapeando `appRoutes` desde `src/routes/routes-config.tsx`.
+- Wrappers propios que hoy duplican funcionalidad nativa de v7:
+  - `src/hooks/useNavigateTransition.ts` (29 LOC) — envuelve `navigate()` en `startTransition`.
+  - `src/layouts/RouteErrorBoundary.tsx` (28 LOC) — `ErrorBoundary` manual por ruta.
+  - `src/layouts/hooks/useMainScrollRestoration.ts` (41 LOC) — restauración de scroll a mano.
 
-### Hallazgos
+## 2. Diagnóstico vs. v7 best practices
 
-**CRITICAL / HIGH**
+| Problema | Recomendación v7 |
+|---|---|
+| Paquete `react-router-dom` es un **re-export** de `react-router` en v7 (queda por compatibilidad). Los docs oficiales recomiendan importar desde `react-router`. | Codemod: `react-router-dom` → `react-router` en 50 archivos. |
+| `<BrowserRouter>` + `<Routes>` no habilita loaders, `errorElement`, `HydrateFallback`, `ScrollRestoration` ni transitions automáticas en navegaciones. | Migrar a **Data Router**: `createBrowserRouter(routes)` + `<RouterProvider>`. |
+| `useNavigateTransition` es innecesario con Data Router: v7 envuelve navegaciones en transitions automáticamente. | Eliminar hook; reemplazar 100% por `useNavigate()`. |
+| `<RouteErrorBoundary>` envuelve cada `<Route element={…}>` manualmente. | Definir `errorElement` una sola vez por rama en la config. |
+| `useMainScrollRestoration` reinventa lo que hace `<ScrollRestoration>`. | Reemplazar por `<ScrollRestoration getKey={…}>` con clave por `location.key`. |
+| `Suspense` + `PageFallback` envuelven cada `element`. | Usar `lazy: async () => ({ Component })` en la definición de la ruta + `HydrateFallback` global. |
+| Legacy redirect `/expenses` con `<Navigate>` que renderiza componente. | Definir la ruta con `loader: () => redirect("/cuentas-por-pagar")` (evita render). |
+| `NavLink` propio no aprovecha `isPending` / `isTransitioning`. | Añadir estado visual `data-pending` en `NavLink` para feedback durante transitions. |
 
-1. **React Compiler no está activo en build** — solo linter. `vite.config.ts` documenta explícitamente que `babel-plugin-react-compiler + @vitejs/plugin-react` queda pendiente por incompatibilidad con `rolldown-vite`.
-  - Impacto: 26 archivos usan `useCallback`/`useMemo` manuales que el compiler eliminaría.
-  - Fix: agregar `babel-plugin-react-compiler` al `plugins` de `@vitejs/plugin-react` con target `19` (ver "Detalles técnicos").
-2. **35 archivos `shadcn/ui` usan `import * as React**` — namespace import obliga a bundlear todo el módulo sin tree-shaking selectivo y contradice la guía de React 19 ("import only what you use").
-  - Fix: convertir a imports nombrados (`import { forwardRef, ComponentProps } from "react"`) o tipos separados. shadcn/ui oficial ya emite el patrón nombrado.
-3. `**import React from "react"**` en `src/components/feedback/EmptyRow.tsx` + 9 tests. Con JSX runtime automático es innecesario y el linter `react/jsx-uses-react` ya está off.
-  - Fix: reemplazar por `import type { Ref } from "react"` en EmptyRow; borrar el default import en tests (no se usa la referencia `React`, solo aparece por hábito).
+## 3. Plan de ejecución (5 fases atómicas)
 
-**HIGH**
+**Fase A — Codemod de imports (bajo riesgo)**
+- Reemplazo global `from "react-router-dom"` → `from "react-router"` en los 50 archivos. Deja `react-router-dom` en `package.json` sólo mientras dure la migración; se elimina al final.
+- Verificación: `tsgo --noEmit` + `bun run build`.
 
-4. **useOptimistic infrautilizado** — solo en `useFeedbackStatusUpdate`. Los mismos flujos de "cambio de status con mutación async" existen en:
-  - `useCRMPageDialogs` (prospect stage kanban)
-  - `useBookingActions` (confirm/cancel booking)
-  - `useMaintenanceKanban` (drag entre columnas)
-  - Fix: extraer `useOptimisticStatus<TStatus>(current, mutate)` a `src/hooks/useOptimisticStatus.ts` y adoptar en los 3 flujos. Elimina el flicker de espera del optimistic manual actual con `queryClient.setQueryData`.
-5. `**use()` hook no adoptado para contexts condicionales** — `useConfirm`, `useAuth`, `useSidebar` fuerzan `useContext` incluso dentro de branches. React 19 permite `use(Context)` dentro de condicionales.
-  - Impacto bajo pero mejora legibilidad en `ConfirmProvider` y `AuthContext` cuando se lee context solo si un modal está abierto.
+**Fase B — Data Router en el árbol principal**
+- Reescribir `src/App.tsx`:
+  - Construir `routes: RouteObject[]` a partir de `appRoutes` con `lazy` por ruta (elimina el `Suspense` manual y el import estático de `NotFound`/`PortalLogin`).
+  - Añadir `errorElement: <RouteErrorBoundary />` a nivel del layout raíz (elimina wrapping por ruta).
+  - Añadir `HydrateFallback` global (`<PageFallback />`).
+  - Redirect `/expenses` → `loader: () => redirect("/cuentas-por-pagar")`.
+  - Sustituir `<BrowserRouter>` por `createBrowserRouter(routes, { future: { v7_partialHydration: true } })` + `<RouterProvider router={router} />`.
 
-**MEDIUM**
+**Fase C — ScrollRestoration + transitions nativas**
+- Montar `<ScrollRestoration getKey={(loc) => loc.pathname}/>` dentro de `MainLayout`.
+- Borrar `src/layouts/hooks/useMainScrollRestoration.ts` (–41 LOC) y su ref en `MainLayout`.
+- Borrar `src/hooks/useNavigateTransition.ts` (–29 LOC). Migrar sus 2 usos (`MainLayout` hotkeys, `NavLink` si aplica) a `useNavigate()` directo — Data Router ya aplica `startTransition` internamente para todas las navegaciones.
 
-6. `**useTransition` no usado en filtros pesados**. `useListFilters` ya usa `useDeferredValue`, pero cambios de filtro (status/tipo) siguen sin transition. Envolver los `setStatusFilter` en `startTransition` marca la UI como "urgente vs. transición" y baja LCP percibido en tablas grandes.
-7. `**useSyncExternalStore` candidato para `useDialogState` global** — actualmente los hooks Zustand-like usan `useState` en providers. Para el portal cache o suscripciones a `window` events (`useMediaQuery`, `useOnlineStatus`) `useSyncExternalStore` da SSR-safe + tearing-free.
+**Fase D — Portal secundario y NavLink**
+- `CustomerPortalRoutes.tsx`: convertir a rama del router principal (`children` bajo `/portal`) o mantenerlo como `<Routes>` anidado si conviene el split de guard. Decisión: mantener anidado dentro del layout del portal para preservar el `AuthGuard`, pero re-exportado con `Route` v7 (sin cambios funcionales).
+- `NavLink.tsx`: usar la render prop `({ isActive, isPending }) => …` para pintar `data-pending` durante lazy chunk load (feedback visual gratis).
 
-**OK / no tocar**
+**Fase E — Limpieza**
+- Retirar `react-router-dom` de `package.json` (queda sólo `react-router`).
+- Actualizar `MemoryRouter` en tests: import desde `react-router`.
+- Publicar `v7.49.0` en changelog (index + detalle).
 
-- `useEffectEvent` bien empleado (React 19.2).
-- `Activity` adoptado.
-- Rutas ya lazy.
-- Sin `forwardRef` (React 19 acepta `ref` como prop plana).
+## 4. Impacto estimado
 
----
+- **LOC borrados**: ~100 (wrappers propios) + reducción de boilerplate `<Suspense>` / `<RouteErrorBoundary>` por ruta en `App.tsx` (~40 LOC).
+- **Bundle**: 1 paquete menos alias (`react-router-dom` re-export) y mejores `lazy` chunks manejados por el router (dedupe del `Suspense` de segundo nivel).
+- **UX**: navegación con `isPending` y `<ScrollRestoration>` nativos → feedback consistente en toda la app.
+- **Riesgo**: bajo-medio. La Fase B toca el bootstrap; se valida con `build` + smoke test de rutas críticas (`/`, `/cotizaciones/:id`, `/portal/login`).
 
-### Plan de ejecución
+## Detalles técnicos clave
 
-**Fase A — Modernización de imports** (bajo riesgo, alto impacto de tree-shaking)
+- `lazy` en `RouteObject`: `{ path, lazy: async () => { const m = await import("…"); return { Component: m.default }; } }`.
+- `errorElement` recibe el error vía `useRouteError()` — `RouteErrorBoundary` se reescribe como componente que lo consume (elimina el `try/catch` manual actual).
+- `redirect()` en loader retorna 302 sin montar componente → arregla el flash del `<Navigate>` legacy.
+- `future.v7_partialHydration: true` habilita `HydrateFallback` por rama (mejor UX que fallback global).
 
-- Reemplazar `import * as React` en `src/components/ui/**` por imports nombrados.
-- Eliminar `import React from "react"` residual en tests y `EmptyRow`.
-
-**Fase B — Activar React Compiler en build**
-
-- Añadir `babel-plugin-react-compiler` a `plugins: [react({ babel: { plugins: [["babel-plugin-react-compiler", { target: "19" }]] } })]`.
-- Verificar con `bun run build` y una corrida de `bunx tsgo --noEmit`.
-- Auditar visualmente la app para descartar bail-outs regresivos.
-
-**Fase C — Adoptar `useOptimistic` compartido**
-
-- Crear `src/hooks/useOptimisticStatus.ts` (genérico).
-- Migrar prospect stage (kanban CRM), booking status, maintenance kanban.
-
-**Fase D — Micro-optimizaciones**
-
-- `startTransition` para filtros no-urgentes en tablas grandes (CustomersPage, ForkliftsPage).
-- `use(Context)` donde hoy hay ramas condicionales de `useContext`.
-
-**Fase E — Cleanup post-compiler** (después de Fase B en verde)
-
-- Retirar `useCallback`/`useMemo` marcados por `react-compiler/react-compiler` como redundantes en 26 archivos.
-- Objetivo: -300 LOC.
-
----
-
-### Detalles técnicos
-
-Compiler config sugerida:
-
-```ts
-// vite.config.ts
-plugins: [
-  react({
-    babel: {
-      plugins: [["babel-plugin-react-compiler", { target: "19" }]],
-    },
-  }),
-  ...
-]
-```
-
-Hook genérico propuesto:
-
-```ts
-// src/hooks/useOptimisticStatus.ts
-export function useOptimisticStatus<T extends string>(
-  current: T,
-  mutate: (next: T) => Promise<void>,
-) {
-  const [optimistic, apply] = useOptimistic(current, (_, next: T) => next);
-  const setStatus = (next: T) =>
-    startTransition(async () => {
-      apply(next);
-      await mutate(next);
-    });
-  return [optimistic, setStatus] as const;
-}
-```
-
-### Changelog
-
-Al terminar cada fase se agrega entrada a `public/changelog.json` + `public/changelog/vX.Y.Z.json` (minor por cada fase).
-
-### Fuera de alcance
-
-- Migración a Server Components / Server Actions (requiere Next.js).
-- Reescribir formularios con `useActionState` (RHF ya cubre el flujo).
-- `renderToPipeableStream` / streaming SSR (proyecto es SPA).
-
-¿Autorizas ejecutar de A → E secuencialmente, o prefieres empezar por una fase específica (recomiendo A + B primero: máximo impacto, mínimo riesgo)? Lo hacemos todo en secuencia. 
+## Fuera de alcance
+- No se agregan `loader`/`action` de datos por ruta (mantendremos TanStack Query como fuente de datos; sólo usamos Data Router para navegación/estructura).
+- No se toca lógica de negocio ni RLS.
