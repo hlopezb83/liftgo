@@ -1,4 +1,5 @@
-import { format, addDays, parseISO } from "date-fns";
+import { addDays, parseISO } from "date-fns";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { Repeat } from "@/components/icons";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import type { Booking } from "../../hooks/useBookings";
