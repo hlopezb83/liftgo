@@ -200,4 +200,47 @@ export default tseslint.config(
       }],
     },
   },
+
+  {
+    // Guardrail date-fns: features/**, hooks/**, components/** deben usar los
+    // helpers de `@/lib/format/dateFormats` (formatDateMty, formatDateTimeMty,
+    // todayKeyMty, APP_LOCALE) o `@/lib/date/toYMD`, en lugar de importar
+    // `format` desde `date-fns` o el locale `es` directamente. Así se garantiza
+    // TZ America/Monterrey y locale es-MX en toda la UI.
+    //
+    // Nivel `warn` (no `error`) durante la migración incremental — los archivos
+    // nuevos deben respetarlo; los ~30 sitios legacy con `format(...)` inline
+    // se migran por lotes en cambios sucesivos.
+    //
+    // Excepciones legítimas (siguen pudiendo importar `date-fns` puro):
+    //  - src/lib/** (los propios helpers y capa de PDFs)
+    //  - src/components/ui/calendar.tsx (react-day-picker requiere el objeto locale)
+    //  - src/features/calendar/** y src/features/cash-flow/** (aritmética de fechas: addDays, differenceInDays, startOfWeek, etc.)
+    //  - tests
+    files: ["src/features/**/*.{ts,tsx}", "src/components/**/*.{ts,tsx}"],
+    ignores: [
+      "src/lib/**",
+      "src/components/ui/calendar.tsx",
+      "src/features/calendar/**",
+      "src/features/cash-flow/**",
+      "**/__tests__/**",
+      "**/*.test.{ts,tsx}",
+    ],
+    rules: {
+      "no-restricted-imports": ["warn", {
+        paths: [
+          {
+            name: "date-fns",
+            importNames: ["format"],
+            message: "Usa formatDateMty / formatDateTimeMty / formatDateLongMty / formatDayMonthShortMty / formatDateTimeShortMty / todayKeyMty desde '@/lib/format/dateFormats', o toYMD desde '@/lib/date/toYMD'. Aplican TZ America/Monterrey y locale es-MX.",
+          },
+          {
+            name: "date-fns/locale",
+            importNames: ["es"],
+            message: "Importa APP_LOCALE desde '@/lib/format/dateFormats' en lugar del locale `es` crudo.",
+          },
+        ],
+      }],
+    },
+  },
 );

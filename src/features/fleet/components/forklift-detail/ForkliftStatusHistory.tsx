@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HistoryIcon } from "@/components/icons";
-import { format } from "date-fns";
+import { formatDateTimeMty } from "@/lib/format/dateFormats";
 
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -24,7 +24,7 @@ export function ForkliftStatusHistory({ logs }: ForkliftStatusHistoryProps) {
                   <span className="font-medium">{log.to_status}</span>
                   {log.note && <span className="text-muted-foreground ml-2">— {log.note}</span>}
                 </div>
-                <span className="text-xs text-muted-foreground">{format(new Date(log.changed_at), "dd/MM/yyyy HH:mm")}</span>
+                <span className="text-xs text-muted-foreground">{formatDateTimeMty(log.changed_at)}</span>
               </div>
             ))}
           </div>

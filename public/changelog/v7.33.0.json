@@ -1,0 +1,54 @@
+{
+  "version": "7.33.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "Auditoría date-fns: helpers unificados + guardrail ESLint",
+  "sections": [
+    {
+      "heading": "Diagnóstico",
+      "items": [
+        "date-fns@4.4.0 + date-fns-tz@3.2 en 82 archivos; tree-shaking correcto, TZ Monterrey ya encapsulada en `nowMty()`/`formatMtyDate()`.",
+        "Hallazgo #1: `format(new Date(x.created_at), \"dd/MM/yyyy\")` repetido en 24+ componentes → no aplicaba TZ Monterrey (usaba TZ del navegador).",
+        "Hallazgo #2: `import { es } from \"date-fns/locale\"` duplicado en 11 archivos.",
+        "Hallazgo #3: `format(nowMty(), \"yyyy-MM-dd\")` copiado en 7 hooks/páginas para armar keys de query.",
+        "Hallazgo #4: sin guardrail ESLint que impida reintroducir el patrón ad-hoc."
+      ]
+    },
+    {
+      "heading": "Nuevo módulo `src/lib/format/dateFormats.ts`",
+      "items": [
+        "`DATE_PATTERNS`: constantes tipadas (`dateShort`, `dateTime`, `dateLong`, `dayMonthShort`, `dateTimeShort`, `isoDay`).",
+        "Helpers: `formatDateMty`, `formatDateTimeMty`, `formatDateLongMty`, `formatDayMonthShortMty`, `formatDateTimeShortMty`, `todayKeyMty`.",
+        "`APP_LOCALE` como único re-export del locale `es` de date-fns."
+      ]
+    },
+    {
+      "heading": "Migraciones aplicadas",
+      "items": [
+        "Componentes de tabla y detalle: fleet ForkliftStatusHistory, users (columns + mobile card), feedback (MyReports + Management + Detail parts), damage (page + detail sheet), inventory (part detail), audit (labels, valueFormatters, timeline, activityByMember), bookings (status history), invoices (history + collection notes), help (header).",
+        "Persistencia YMD: quoteFormPayload y useUpcomingInvoices ahora usan `toYMD()` en vez de `format(d, \"yyyy-MM-dd\")` (alineado con la guía Postgres `date` vs `timestamptz`).",
+        "Query keys: dashboards (MRR, Financial, Stats), CRM CloseLost y AgingReport usan `todayKeyMty()`.",
+        "Locale: 10 archivos migran a `APP_LOCALE` (calendar page, GanttHeader, MrrDetail, changelog card, cashFlowUtils, activityByMember, supplierBills filters, prospectMapper, damage/inventory detail sheets).",
+        "Excepción: `src/components/ui/calendar.tsx` sigue importando `es` porque react-day-picker requiere el objeto locale directamente."
+      ]
+    },
+    {
+      "heading": "Guardrail ESLint (warn)",
+      "items": [
+        "`no-restricted-imports` sobre `src/features/**` y `src/components/**`:",
+        " · Bloquea `format` desde `date-fns` — mensaje sugiere helpers de `@/lib/format/dateFormats` o `toYMD`.",
+        " · Bloquea `es` desde `date-fns/locale` — mensaje sugiere `APP_LOCALE`.",
+        "Ignores: `src/lib/**`, `src/features/calendar/**` (aritmética Gantt), `src/features/cash-flow/**` (agrupamiento semanal), `src/components/ui/calendar.tsx`, tests.",
+        "Nivel `warn` durante migración incremental: los ~30 sitios legacy restantes se limpian por lotes; nuevos archivos deben respetarlo."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "921/921 tests verdes.",
+        "Sin errores ESLint nuevos (solo warnings del guardrail sobre archivos legacy pendientes).",
+        "Bug latente cerrado: fechas de columnas `created_at` en tablas/exports ahora se muestran en TZ Monterrey."
+      ]
+    }
+  ]
+}

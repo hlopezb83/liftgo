@@ -9,14 +9,14 @@ import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTa
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { useMrrDetail } from "../hooks/useMrrDetail";
 import { EmptyState } from "@/components/feedback/EmptyState";
-import { es } from "date-fns/locale";
+import { APP_LOCALE } from "@/lib/format/dateFormats";
 import { formatMtyDate } from "@/lib/utils";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 
 type MrrItem = NonNullable<ReturnType<typeof useMrrDetail>["data"]>["items"][number];
 
-const fmt = (d: string | null) => formatMtyDate(d, "dd MMM yyyy", es);
+const fmt = (d: string | null) => formatMtyDate(d, "dd MMM yyyy", APP_LOCALE);
 
 export default function MrrDetailPage() {
   const { data, isLoading } = useMrrDetail();

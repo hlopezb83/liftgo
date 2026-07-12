@@ -7,7 +7,7 @@ import { DamagePhotosSection } from "./DamagePhotosSection";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { DamageRecordWithJoins } from "@/types/rental";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { APP_LOCALE } from "@/lib/format/dateFormats";
 import { WarnIcon, FleetIcon, UserIcon, DocumentIcon, CostIcon, CalendarIcon } from "@/components/icons";
 import { DetailRow } from "@/components/domain/DetailRow";
 
@@ -44,7 +44,7 @@ export function DamageDetailSheet({ record, open, onOpenChange }: Props) {
             {record.actual_cost != null && record.actual_cost > 0 && (
               <DetailRow icon={CostIcon} label="Costo Real" value={formatCurrency(record.actual_cost)} />
             )}
-            <DetailRow icon={CalendarIcon} label="Fecha" value={format(new Date(record.created_at), "dd MMMM yyyy", { locale: es })} />
+            <DetailRow icon={CalendarIcon} label="Fecha" value={format(new Date(record.created_at), "dd MMMM yyyy", { locale: APP_LOCALE })} />
           </div>
 
           <Separator />
@@ -66,8 +66,8 @@ export function DamageDetailSheet({ record, open, onOpenChange }: Props) {
           </div>
 
           <div className="text-xs text-muted-foreground space-y-1">
-            <p>Creado: {format(new Date(record.created_at), "dd MMM yyyy, HH:mm", { locale: es })}</p>
-            <p>Actualizado: {format(new Date(record.updated_at), "dd MMM yyyy, HH:mm", { locale: es })}</p>
+            <p>Creado: {format(new Date(record.created_at), "dd MMM yyyy, HH:mm", { locale: APP_LOCALE })}</p>
+            <p>Actualizado: {format(new Date(record.updated_at), "dd MMM yyyy, HH:mm", { locale: APP_LOCALE })}</p>
           </div>
         </div>
         </Activity>

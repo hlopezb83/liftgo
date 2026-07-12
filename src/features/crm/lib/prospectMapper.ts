@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { APP_LOCALE } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { nowMty } from "@/lib/utils";
 import { CLOSED_STAGES, type Prospect, type ProspectRow } from "./prospectTypes";
@@ -15,7 +15,7 @@ function formatDateLabel(iso: string | null): string | null {
   if (!iso) return null;
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return null;
-  return format(d, "dd/MM/yyyy", { locale: es });
+  return format(d, "dd/MM/yyyy", { locale: APP_LOCALE });
 }
 
 function computeStaleDays(updatedAt: string): number {

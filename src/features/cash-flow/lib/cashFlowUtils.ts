@@ -1,5 +1,5 @@
 import { addDays, format, startOfWeek } from "date-fns";
-import { es } from "date-fns/locale";
+import { APP_LOCALE } from "@/lib/format/dateFormats";
 
 export type LightColor = "red" | "amber" | "green";
 
@@ -31,7 +31,7 @@ const DATE_FMT = "yyyy-MM-dd";
 
 /** Lunes de la semana (es-MX) para una fecha. */
 export function mondayOf(d: Date): Date {
-  return startOfWeek(d, { weekStartsOn: 1, locale: es });
+  return startOfWeek(d, { weekStartsOn: 1, locale: APP_LOCALE });
 }
 
 export function buildWeekBuckets(today: Date, weeks: number): CashFlowBucket[] {
@@ -40,7 +40,7 @@ export function buildWeekBuckets(today: Date, weeks: number): CashFlowBucket[] {
     {
       index: 0,
       label: "Vencido",
-      rangeLabel: `Antes de ${format(today, "dd MMM", { locale: es })}`,
+      rangeLabel: `Antes de ${format(today, "dd MMM", { locale: APP_LOCALE })}`,
       startDate: null,
       endDate: todayYmd,
       inflow: 0,
@@ -58,7 +58,7 @@ export function buildWeekBuckets(today: Date, weeks: number): CashFlowBucket[] {
     buckets.push({
       index: i + 1,
       label: `Sem ${i + 1}`,
-      rangeLabel: `${format(start, "dd MMM", { locale: es })} – ${format(end, "dd MMM", { locale: es })}`,
+      rangeLabel: `${format(start, "dd MMM", { locale: APP_LOCALE })} – ${format(end, "dd MMM", { locale: APP_LOCALE })}`,
       startDate: format(start, DATE_FMT),
       endDate: format(end, DATE_FMT),
       inflow: 0,

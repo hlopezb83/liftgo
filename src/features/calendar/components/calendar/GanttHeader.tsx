@@ -1,5 +1,5 @@
 import { format, getDay, isToday, startOfWeek, isSameDay } from "date-fns";
-import { es } from "date-fns/locale";
+import { APP_LOCALE } from "@/lib/format/dateFormats";
 
 function getDayNumberClass(today: boolean, isWeekend: boolean): string {
   if (today) return "font-bold text-primary";
@@ -23,7 +23,7 @@ export function GanttHeader({ days }: { days: Date[] }) {
                 key={`wd-${day.toISOString()}`}
                 className={`flex-1 text-center text-[9px] font-medium ${isWeekend ? "text-destructive/60" : "text-muted-foreground/60"} ${weekStart ? "border-l border-border" : ""}`}
               >
-                {format(day, "EEE", { locale: es })}
+                {format(day, "EEE", { locale: APP_LOCALE })}
               </div>
             );
           })}

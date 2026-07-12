@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatDateMty, formatDateTimeMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { STATUS_LABELS, FUEL_TYPE_LABELS, FUEL_LEVEL_LABELS, MAINTENANCE_WORK_STATUS_LABELS } from "@/lib/constants";
 import { STAGE_LABELS, LOST_REASON_LABELS } from "@/features/crm";
@@ -36,11 +36,11 @@ const ENUM_LABEL_FIELDS: Record<string, Record<string, string>> = {
 function formatDateString(field: string, value: string): string | null {
   if (DATETIME_FIELDS.has(field) || /^\d{4}-\d{2}-\d{2}T/.test(value)) {
     const d = new Date(value);
-    if (!isNaN(d.getTime())) return format(d, "dd/MM/yyyy HH:mm");
+    if (!isNaN(d.getTime())) return formatDateTimeMty(d);
   }
   if (DATE_ONLY_FIELDS.has(field) || /^\d{4}-\d{2}-\d{2}$/.test(value)) {
     const d = new Date(value);
-    if (!isNaN(d.getTime())) return format(d, "dd/MM/yyyy");
+    if (!isNaN(d.getTime())) return formatDateMty(d);
   }
   return null;
 }

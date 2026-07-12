@@ -1,5 +1,5 @@
 import { Separator } from "@/components/ui/separator";
-import { format } from "date-fns";
+import { formatDateTimeMty } from "@/lib/format/dateFormats";
 import { FEEDBACK_STATUS_LABELS, type FeedbackStatus } from "../lib/constants";
 import type { Tables } from "@/integrations/supabase/types";
 type FeedbackHistoryEntry = Tables<"feedback_status_history">;
@@ -19,7 +19,7 @@ export function FeedbackMetaList({
 }) {
   const items: MetaItem[] = [
     { label: "Reportado por", value: `${reporterName ?? "—"} (${reporterType})` },
-    { label: "Fecha", value: format(new Date(createdAt), "dd/MM/yyyy HH:mm") },
+    { label: "Fecha", value: formatDateTimeMty(createdAt) },
   ];
   if (ctx.route) items.push({ label: "Ruta", value: String(ctx.route) });
   if (ctx.viewport) items.push({ label: "Viewport", value: String(ctx.viewport) });
@@ -52,7 +52,7 @@ export function FeedbackHistoryList({ history }: { history: FeedbackHistoryEntry
           return (
             <li key={h.id} className="text-xs border-l-2 border-border pl-3 py-1">
               <div className="font-medium">{fromLabel}{toLabel}</div>
-              <div className="text-muted-foreground">{format(new Date(h.changed_at), "dd/MM/yyyy HH:mm")}</div>
+              <div className="text-muted-foreground">{formatDateTimeMty(h.changed_at)}</div>
               {h.comment && <div className="text-muted-foreground italic mt-0.5">{h.comment}</div>}
             </li>
           );

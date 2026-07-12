@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { APP_LOCALE } from "@/lib/format/dateFormats";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { capitalize, parseDateLocal } from "@/lib/utils";
@@ -56,7 +56,7 @@ export function SupplierBillsFilters({ filters: f, kpis, suppliers }: Props) {
             <SelectItem value="all">Todos los meses</SelectItem>
             {f.availableMonths.map((m) => (
               <SelectItem key={m} value={m}>
-                {capitalize(format(parseDateLocal(m + "-15"), "MMM yyyy", { locale: es }))}
+                {capitalize(format(parseDateLocal(m + "-15"), "MMM yyyy", { locale: APP_LOCALE }))}
               </SelectItem>
             ))}
           </SelectContent>

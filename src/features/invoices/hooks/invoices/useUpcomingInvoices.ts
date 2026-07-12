@@ -1,5 +1,7 @@
-import { addDays, format } from "date-fns";
+import { addDays } from "date-fns";
 import { nowMty } from "@/lib/utils";
+import { todayKeyMty } from "@/lib/format/dateFormats";
+import { toYMD } from "@/lib/date/toYMD";
 import { useInvoicesWithBalance } from "./useInvoicesWithBalance";
 
 export interface UpcomingInvoice {
@@ -17,8 +19,8 @@ export interface UpcomingInvoice {
  * Consume la vista única `v_invoices_with_balance` (paso 1 auditoría).
  */
 export function useUpcomingInvoices() {
-  const today = format(nowMty(), "yyyy-MM-dd");
-  const in30 = format(addDays(nowMty(), 30), "yyyy-MM-dd");
+  const today = todayKeyMty();
+  const in30 = toYMD(addDays(nowMty(), 30))!;
 
   const query = useInvoicesWithBalance({
     statuses: ["sent", "partial"],

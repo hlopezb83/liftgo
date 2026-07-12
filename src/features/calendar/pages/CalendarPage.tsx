@@ -10,7 +10,7 @@ import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/comp
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, parseISO, startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
 import { nowMty, formatMtyDate } from "@/lib/utils";
-import { es } from "date-fns/locale";
+import { APP_LOCALE } from "@/lib/format/dateFormats";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeftIcon, ChevronRightIcon, WarnIcon } from "@/components/icons";
@@ -43,7 +43,7 @@ export default function CalendarPage() {
   const navigateToday = () => setCurrentDate(nowMty());
 
   const rangeLabel = ganttRange === "month"
-    ? format(currentDate, "MMMM yyyy", { locale: es })
+    ? format(currentDate, "MMMM yyyy", { locale: APP_LOCALE })
     : `${format(rangeStart, "dd/MM")} – ${format(rangeEnd, "dd/MM/yyyy")}`;
 
   const endingSoon = bookings

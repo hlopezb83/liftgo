@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { HistoryIcon } from "@/components/icons";
-import { format } from "date-fns";
+import { formatDateMty, formatDateTimeMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import {
   useBookingStatusHistory,
@@ -56,7 +56,7 @@ function formatValue(field: string, value: unknown, currency: string): string {
   if (value === null || value === undefined || value === "") return "—";
   if (DATE_FIELDS.has(field)) {
     try {
-      return format(new Date(String(value)), "dd/MM/yyyy");
+      return formatDateMty(String(value));
     } catch {
       return String(value);
     }
@@ -135,7 +135,7 @@ function HistoryEntry({ log }: { log: BookingHistoryLog }) {
       <span className="absolute -left-[5px] top-1.5 h-2.5 w-2.5 rounded-full bg-primary" />
       <div className="flex items-center gap-2 flex-wrap text-xs text-muted-foreground">
         <span className="font-medium text-foreground">
-          {format(new Date(log.created_at), "dd/MM/yyyy HH:mm")}
+          {formatDateTimeMty(log.created_at)}
         </span>
         <span>·</span>
         <span>{author}</span>

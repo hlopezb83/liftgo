@@ -4,7 +4,7 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { DeleteIcon, EditIcon, KeyIcon } from "@/components/icons";
-import { format } from "date-fns";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { STAFF_ROLES } from "@/lib/constants";
 import { RoleBadge } from "./RoleBadge";
 import type { UserRow } from "../../hooks/useUserManagement";
@@ -47,7 +47,7 @@ export function UserMobileCard({ u, actions }: { u: UserRow; actions: UserRowAct
           </div>
         </div>
         <p className="text-xs text-muted-foreground mb-1">{u.email ?? "—"}</p>
-        <p className="text-xs text-muted-foreground mb-2">{format(new Date(u.created_at), "dd/MM/yyyy")}</p>
+        <p className="text-xs text-muted-foreground mb-2">{formatDateMty(u.created_at)}</p>
         <Select defaultValue={u.role} onValueChange={(val) => actions.onRoleChange(u, val as AppRole)}>
           <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
           <SelectContent>

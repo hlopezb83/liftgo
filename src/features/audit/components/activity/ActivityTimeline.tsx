@@ -9,7 +9,7 @@ import { useActivityFeed, type ActivityFilters } from "@/features/dashboard";
 import { ENTITY_LABELS, ENTITY_ROUTES, EVENT_LABELS, EVENT_TYPES } from "../../lib/activityConstants";
 import { translateActivityTitle, translateActivityDescription } from "@/lib/domain/activityTranslations";
 
-import { format } from "date-fns";
+import { formatDateTimeShortMty } from "@/lib/format/dateFormats";
 import { X } from "@/components/icons";
 import type { MemberStat } from "../../hooks/useActivityMetrics";
 import type { AppRole } from "@/features/users";
@@ -124,7 +124,7 @@ export function ActivityTimeline({ filters, onFilterChange, onReset, members }: 
                       {moduleLabel}
                     </span>
                     <p className="text-[11px] text-muted-foreground mt-0.5 tabular-nums">
-                      {format(new Date(a.created_at), "dd/MM HH:mm")}
+                      {formatDateTimeShortMty(a.created_at)}
                     </p>
                   </div>
                 </div>

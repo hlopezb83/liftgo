@@ -1,7 +1,7 @@
 import { Link as LinkIcon, InfoAlertIcon, ChevronDownIcon, ChevronRightIcon } from "@/components/icons";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
-import { es } from "date-fns/locale";
+import { APP_LOCALE } from "@/lib/format/dateFormats";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -56,7 +56,7 @@ export function ChangelogEntryCard({ entry, expanded, onToggle, highlighted }: P
                 <Badge variant="outline">{TYPE_LABELS[entry.type]}</Badge>
                 {entry.category && <Badge variant="secondary">{CATEGORY_LABELS[entry.category]}</Badge>}
                 <span className="text-xs text-muted-foreground">
-                  {formatMtyDate(entry.date, "d 'de' MMMM, yyyy", es)}
+                  {formatMtyDate(entry.date, "d 'de' MMMM, yyyy", APP_LOCALE)}
                 </span>
                 <Button
                   variant="ghost"

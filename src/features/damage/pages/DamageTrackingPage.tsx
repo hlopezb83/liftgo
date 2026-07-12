@@ -14,7 +14,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DAMAGE_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { Camera } from "@/components/icons";
-import { format } from "date-fns";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import type { DamageRecordWithJoins } from "@/types/rental";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
@@ -41,7 +41,7 @@ export default function DamageTrackingPage() {
         id: "created_at",
         header: "Fecha",
         accessorKey: "created_at",
-        cell: ({ row }) => <span className="font-mono text-sm">{format(new Date(row.original.created_at), "dd/MM/yyyy")}</span>,
+        cell: ({ row }) => <span className="font-mono text-sm">{formatDateMty(row.original.created_at)}</span>,
       },
       {
         id: "forklift_name",
@@ -127,7 +127,7 @@ export default function DamageTrackingPage() {
             <CardContent className="p-4 space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <span className="font-mono text-sm">{format(new Date(r.created_at), "dd/MM/yyyy")}</span>
+                  <span className="font-mono text-sm">{formatDateMty(r.created_at)}</span>
                   {getPhotoCount(r.id) > 0 && (
                     <Badge variant="secondary" className="gap-1 text-xs px-1.5 py-0">
                       <Camera className="h-3 w-3" /> {getPhotoCount(r.id)}

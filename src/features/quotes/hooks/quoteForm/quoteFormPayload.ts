@@ -1,7 +1,7 @@
-import { format } from "date-fns";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { toJsonArray } from "@/lib/domain/lineItems";
-import { nowMty } from "@/lib/utils";
+import { toYMD } from "@/lib/date/toYMD";
+import { todayKeyMty } from "@/lib/format/dateFormats";
 import { roundMoney } from "@/lib/money";
 import type { RentalLine, SaleLine } from "./quoteFormBuilders";
 
@@ -31,11 +31,11 @@ function pickFirstModelId(a: BuildQuotePayloadArgs): string | null {
 }
 
 function resolveDateStrings(a: BuildQuotePayloadArgs): { startStr: string; endStr: string } {
-  const today = format(nowMty(), "yyyy-MM-dd");
+  const today = todayKeyMty();
   const isRental = a.quoteType === "rental";
   return {
-    startStr: isRental && a.startDate ? format(a.startDate, "yyyy-MM-dd") : today,
-    endStr: isRental && a.endDate ? format(a.endDate, "yyyy-MM-dd") : today,
+    startStr: isRental && a.startDate ? toYMD(a.startDate)! : today,
+    endStr: isRental && a.endDate ? toYMD(a.endDate)! : today,
   };
 }
 
@@ -55,7 +55,7 @@ export function buildQuotePayload(a: BuildQuotePayloadArgs) {
     tax_amount: roundMoney(a.taxAmount),
     total: roundMoney(a.total),
     status: a.existingQuote?.status || "draft",
-    valid_until: a.validUntil ? format(a.validUntil, "yyyy-MM-dd") : null,
+    valid_until: a.validUntil ? toYMD(a.validUntil) ?? null : null,
     notes: a.notes || null,
     quote_type: a.quoteType,
     currency: a.currency,

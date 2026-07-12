@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.33.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "Auditoría date-fns: helpers unificados + guardrail ESLint",
+    "description": "Consolidación de formatos de fecha. Nuevo módulo `src/lib/format/dateFormats.ts` con presets tipados (`formatDateMty`, `formatDateTimeMty`, `formatDateLongMty`, `formatDayMonthShortMty`, `formatDateTimeShortMty`, `todayKeyMty`, `APP_LOCALE`) que aplican TZ America/Monterrey y locale es-MX. Migrados 24+ sitios ad-hoc que hacían `format(new Date(x), \"dd/MM/yyyy\")` sin TZ (bug latente cerrado). Locale `es` centralizado como `APP_LOCALE` — eliminados 10 imports duplicados. Dashboards, cotizaciones y facturación upcoming usan `todayKeyMty()` y `toYMD()` en lugar de `format(nowMty(), \"yyyy-MM-dd\")`. ESLint suma guardrail `no-restricted-imports` (nivel warn) contra `format` de `date-fns` y locale `es` crudo en `src/features/**` y `src/components/**` (excepciones: `src/lib/**`, `calendar/**`, `cash-flow/**`, `components/ui/calendar.tsx`).",
+    "category": "improvement",
+    "changes": [
+      { "type": "added", "description": "src/lib/format/dateFormats.ts: presets `formatDateMty`, `formatDateTimeMty`, `formatDateLongMty`, `formatDayMonthShortMty`, `formatDateTimeShortMty`, `todayKeyMty`, `APP_LOCALE`" },
+      { "type": "changed", "description": "24+ componentes migrados de `format(new Date(x), \"dd/MM/yyyy\")` a `formatDateMty(x)` — ahora respetan TZ America/Monterrey" },
+      { "type": "changed", "description": "10 imports `import { es } from \"date-fns/locale\"` reemplazados por `APP_LOCALE` centralizado" },
+      { "type": "changed", "description": "Dashboards (MRR, Financial, Stats), CRM CloseLost, Aging report, Upcoming invoices, Quote payload: `format(nowMty(), \"yyyy-MM-dd\")` → `todayKeyMty()` / `toYMD()`" },
+      { "type": "added", "description": "ESLint `no-restricted-imports` (warn): bloquea `format` de date-fns y locale `es` en features/components; permite en `lib/`, `calendar/`, `cash-flow/`, `ui/calendar.tsx`" }
+    ]
+  },
+  {
     "version": "7.32.0",
     "date": "2026-07-12",
     "type": "minor",

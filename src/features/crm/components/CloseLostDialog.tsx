@@ -1,14 +1,13 @@
+import { todayKeyMty } from "@/lib/format/dateFormats";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
 import { ErrorIcon } from "@/components/icons";
-import { format } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { SelectField, TextareaField } from "@/components/forms/fields";
-import { nowMty } from "@/lib/utils";
 import { LOST_REASONS } from "../lib/constants";
 import type { Prospect } from "../hooks/useProspects";
 
@@ -48,7 +47,7 @@ export function CloseLostDialog({ prospect, open, onOpenChange, onConfirm, isPen
   const requiresNote = reason === "otro";
 
   const handleSubmit = form.handleSubmit((values) => {
-    const today = format(nowMty(), "yyyy-MM-dd");
+    const today = todayKeyMty();
     const baseNotes = prospect.notes ? `${prospect.notes}\n\n` : "";
     const reasonLabel = LOST_REASONS.find((r) => r.value === values.reason)?.label ?? values.reason;
     const trimmedNote = values.extraNote.trim();

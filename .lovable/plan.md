@@ -1,50 +1,73 @@
-# Migración date-fns 3 → 4
+# Auditoría date-fns
 
-## Contexto
-- Uso actual: `date-fns@^3.6.0` + `date-fns-tz@^3.2.0` en 82 archivos.
-- API usada: `format`, `parseISO`, `addDays/Months`, `differenceIn*`, `startOf*`, `endOf*`, `eachDayOfInterval`, `isToday`, `isSameDay`, `getDay`, `isWithinInterval`, `subMonths/Weeks`, `addWeeks`, locale `es` desde `date-fns/locale`, y `toZonedTime` desde `date-fns-tz`.
-- `date-fns-tz@3.2` ya es compatible con v4 (soporta el nuevo sistema de context/timezone), no requiere bump.
+## Veredicto
+Implementación **sólida** (v4, TZ centralizada en `nowMty`/`formatMtyDate`, locale `es` correctamente aislado en `date-fns/locale`, sin importar el bundle completo), pero **no top-of-the-line**: hay duplicación de patrones de formato y falta guardrail arquitectónico.
 
-## Cambios relevantes de v4
-1. ESM-first + tree-shaking mejorado. Vite lo maneja sin cambios.
-2. Nuevo argumento opcional `in` (context) para timezone nativo — **no lo usamos, no rompe nada**.
-3. Locale sigue en `date-fns/locale` (import estable).
-4. Firmas de `format`, `parseISO`, aritmética y comparación **no cambian** para nuestro uso.
-5. Requiere TS ≥ 5.0 y Node ≥ 18 (ya cumplimos).
+## Hallazgos
 
-## Plan de ejecución
+### 🟢 Lo que ya está bien
+- `date-fns@4.4.0` + `date-fns-tz@3.2` (última compatible).
+- Tree-shaking correcto: imports puntuales, nunca `import * from "date-fns"`.
+- Locale `es` importado desde `date-fns/locale` (path estable v4).
+- `toZonedTime` **solo** vive en `src/lib/utils.ts` (1 sitio) — TZ Monterrey encapsulada.
+- Helpers canónicos existen: `nowMty()`, `formatMtyDate()`, `formatDateDisplay()`, `formatDateRange()`, `parseDateLocal()`, `formatMonthEs()`.
 
-### 1. Bump de dependencia
-- `bun add date-fns@^4.1.0`
-- Mantener `date-fns-tz@^3.2.0` (compatible con v4).
+### 🟡 Duplicación evitable
+1. **`format(new Date(row.created_at), "dd/MM/yyyy")`** repetido en **30+ componentes** (users, damage, inventory, invoices, fleet, feedback, audit…). Debería usarse `formatMtyDate(row.created_at)`.
+2. **`import { es } from "date-fns/locale"`** duplicado en **11 archivos**. Un único re-export `APP_LOCALE` desde `@/lib/utils` (o `@/lib/format/locale`) elimina el import trasnochado.
+3. **`format(nowMty(), "yyyy-MM-dd")`** copiado en 3 hooks de dashboard (`useMrrDetail`, `useFinancialKpis`, `useDashboardStats`) para armar query keys → helper `todayKeyMty()`.
+4. **`format(d, "yyyy-MM-dd")`** para persistencia en form submit (contracts, maintenance…): ya existe `toYMD()` en el core rules — auditar migraciones faltantes.
+5. **`parseISO`** vs `new Date(iso)` mezclados (64 vs muchos). En v4 ambos funcionan pero `parseISO` es más estricto y explícito para strings ISO — estandarizar hacia `parseISO`.
 
-### 2. Verificación estática
-- `tsgo` sobre el proyecto: revisar que ningún `format`/`parseISO` haya endurecido tipos (`Date | number | string` sigue vigente en v4; `parseISO` sigue devolviendo `Date`).
-- Revisar `src/lib/utils.ts` (helper `nowMty` + `formatDateMty`) que combina `toZonedTime` + `format` con locale `es`: comportamiento idéntico en v4.
-- Revisar `src/lib/domain/rentalCalculation.ts` (`differenceInCalendarMonths`, `addMonths`) — semántica preservada.
+### 🟡 Falta de guardrail
+- No hay regla ESLint que impida `import { format } from "date-fns"` fuera de la capa `lib/format`/`lib/utils`. Cualquier archivo puede reintroducir el patrón ad-hoc.
+- Sin regla contra `format(new Date(), "dd/MM/yyyy")` inline (patrón obvio para code-review pero fugaz en PRs grandes).
 
-### 3. Puntos sensibles a validar manualmente
-- **Calendario / Gantt** (`CalendarPage`, `GanttHeader`, `GanttRow`, `useGanttSegments`): asegurar que `startOfWeek` sigue tomando `weekStartsOn` (semana inicia lunes en es-MX).
-- **PDFs** (`ContractDocument`, `CustomerStatementDocument`, `IncomeStatementDocument`, `customerStatement`, `Header`): formatos DD/MM/YYYY intactos.
-- **Cash Flow** (`cashFlowUtils`): agrupamiento semanal con `startOfWeek`.
-- **Recurring billing / MRR** (`useMrrDetail`, `rentalCalculation`): meses exactos vía `differenceInCalendarMonths`.
+### 🟡 TZ inconsistente en display
+- `format(new Date(row.created_at), ...)` **no aplica** TZ Monterrey — usa TZ del navegador. Para columnas de auditoría en dashboard interno con usuarios en MX no se nota, pero para PDFs o exports puede desalinear a medianoche.
+- `formatMtyDate` sí aplica TZ. Migrar los 30+ sitios cierra este bug latente.
 
-### 4. Testing
-- Ejecutar la suite completa (`bunx vitest run`, 921 tests). Focos:
-  - `schemas.zodResolver.test.ts` (fechas Zod).
-  - Tests de `rentalCalculation`, `cashFlowUtils`, formatters de fecha (`formatMonthEs`, `formatDateMty`).
-  - Snapshot/lógica de Gantt si existe.
-- Smoke visual en preview: Calendar (mes/semana), MrrDetail, un PDF (Contrato o Estado de Cuenta).
+## Plan de mejora
 
-### 5. Changelog
-- Nueva entrada `v7.32.0` (minor: bump de dependencia mayor sin cambios de UI): index + `public/changelog/v7.32.0.json`.
+### Lote A · Helpers unificados (`src/lib/format/dateFormats.ts`)
+Nuevo módulo con presets tipados:
+```ts
+export const DF = {
+  dateShort: "dd/MM/yyyy",
+  dateTime:  "dd/MM/yyyy HH:mm",
+  dateLong:  "dd 'de' MMMM 'de' yyyy",  // con locale es
+  dayMonth:  "dd MMM",
+  isoDay:    "yyyy-MM-dd",
+} as const;
+
+export const APP_LOCALE = es;                      // único re-export
+export const todayKeyMty = () => format(nowMty(), DF.isoDay);
+export const formatDateTimeMty = (v) => formatMtyDate(v, DF.dateTime);
+export const formatDateLongMty  = (v) => formatMtyDate(v, DF.dateLong, APP_LOCALE);
+```
+
+### Lote B · Migración masiva (subagentes)
+- Reemplazar `format(new Date(x.created_at), "dd/MM/yyyy")` → `formatMtyDate(x.created_at)` en ~30 archivos.
+- Reemplazar `format(new Date(x), "dd/MM/yyyy HH:mm")` → `formatDateTimeMty(x)` en 6-8 archivos (audit/activity).
+- Sustituir 11 imports duplicados de `es` por `APP_LOCALE` desde `@/lib/format`.
+- Reemplazar 3 usos de `format(nowMty(), "yyyy-MM-dd")` → `todayKeyMty()`.
+
+### Lote C · Guardrails ESLint
+- `no-restricted-imports` para `date-fns`:
+  - Prohibir en `src/features/**` y `src/components/**`. Permitir sólo en `src/lib/format/**`, `src/lib/utils.ts`, `src/lib/pdf/**`, `src/lib/domain/rentalCalculation.ts`, `src/components/ui/calendar.tsx` (necesita `es` para react-day-picker).
+- `no-restricted-syntax` (opcional) contra literales `"dd/MM/yyyy"` fuera de `lib/format`.
+
+### Lote D · parseISO consistente (opcional, bajo impacto)
+- Auditar los ~40 `new Date(isoString)` restantes y migrar a `parseISO` cuando la fuente sea DB. Reduce ambigüedad y facilita testing.
+
+### Lote E · Changelog
+- `v7.33.0` (minor): helpers unificados + migración + guardrails.
+
+## Estimación
+- ~120 líneas menos (30 sitios × ~2 líneas de import/format + 11 re-imports de locale).
+- 1 bug latente corregido (TZ en display de `created_at`).
+- Guardrail impide reintroducción.
 
 ## Riesgos
-- **Bajo**. Nuestra API superficie usa funciones estables entre v3 y v4. `date-fns-tz@3.2` fue publicado justamente para puentear v3→v4.
-- Si algún test de fecha falla por microsegundos de TZ, se ajusta puntualmente (no se espera).
-
-## Entregable
-- `package.json` con `date-fns@^4.1.0`.
-- 0 warnings de tsgo/eslint nuevos.
-- 921/921 tests verdes.
-- Changelog `v7.32.0` publicado.
+- **Bajo**. Cambio puramente presentacional, sin lógica de negocio.
+- Tests visuales de audit/activity y dashboards para confirmar mismos strings.
