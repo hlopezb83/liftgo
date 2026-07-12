@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { CreditCard, ErrorIcon, EditIcon, DeleteIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -36,7 +37,7 @@ function GuardedButton({
 }: {
   disabled: boolean;
   reason: string | null;
-  children: React.ReactNode;
+  children: ReactNode;
   onClick: () => void;
   variant?: "default" | "outline" | "destructive";
 }) {

@@ -1,3 +1,4 @@
+import type { ComponentProps } from "react";
 // @vitest-environment jsdom
 import { render, screen, fireEvent } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
@@ -8,7 +9,7 @@ vi.mock("@/lib/ui/appFeedback", () => ({
   notifySuccess: vi.fn(),
 }));
 
-function renderDialog(props: Partial<React.ComponentProps<typeof StampErrorDialog>> = {}) {
+function renderDialog(props: Partial<ComponentProps<typeof StampErrorDialog>> = {}) {
   return render(
     <MemoryRouter>
       <StampErrorDialog

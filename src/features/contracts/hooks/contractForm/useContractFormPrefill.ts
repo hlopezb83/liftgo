@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, type Dispatch, type SetStateAction } from "react";
 import { useBookings } from "@/features/bookings";
 import { useCompanySettings } from "@/features/company-settings";
 import type { Database } from "@/integrations/supabase/types";
@@ -14,7 +14,7 @@ interface Args {
   isEdit: boolean;
   bookingId: string | null;
   form: ContractFormShape;
-  setForm: React.Dispatch<React.SetStateAction<ContractFormShape>>;
+  setForm: Dispatch<SetStateAction<ContractFormShape>>;
   customers?: Customer[];
   forklifts?: Forklift[];
   templateApplied: boolean;

@@ -1,3 +1,4 @@
+import type { FormEvent as ReactFormEvent } from "react";
 import { DragDropImageUploader } from "@/components/forms/DragDropImageUploader";
 import {
   SelectField,
@@ -24,7 +25,7 @@ interface Props {
   activeBookings?: Booking[];
   forkliftMap: Map<string, Forklift>;
   isPending: boolean;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: ReactFormEvent) => void;
 }
 
 export function ReturnInspectionDialog({

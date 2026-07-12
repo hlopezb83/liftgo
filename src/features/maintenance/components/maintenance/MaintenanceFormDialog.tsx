@@ -1,3 +1,4 @@
+import type { FormEvent as ReactFormEvent } from "react";
 import {
   TextareaField,
   SelectField,
@@ -22,7 +23,7 @@ interface Props {
   isEdit: boolean;
   isPending: boolean;
   form: UseFormReturn<MaintenanceFormValues>;
-  onSubmit: (e: React.FormEvent) => void;
+  onSubmit: (e: ReactFormEvent) => void;
   forklifts: ForkliftOption[] | undefined;
   mechanics: MechanicOption[] | undefined;
 }

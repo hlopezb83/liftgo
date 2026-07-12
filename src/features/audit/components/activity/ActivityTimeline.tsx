@@ -1,3 +1,4 @@
+import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { X } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -99,7 +100,7 @@ export function ActivityTimeline({ filters, onFilterChange, onReset, members }: 
                     role: "button" as const,
                     tabIndex: 0,
                     onClick: () => navigate(route.includes(":id") ? route.replace(":id", a.entity_id) : route),
-                    onKeyDown: (e: React.KeyboardEvent) => {
+                    onKeyDown: (e: ReactKeyboardEvent) => {
                       if (e.key === "Enter" || e.key === " ") {
                         e.preventDefault();
                         navigate(route.includes(":id") ? route.replace(":id", a.entity_id) : route);

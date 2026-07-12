@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type FormEvent as ReactFormEvent } from "react";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,7 +17,7 @@ export function ChangePasswordDialog({ open, onOpenChange }: Props) {
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: ReactFormEvent) => {
     e.preventDefault();
     if (password.length < 6) {
       notifyValidation({ message: "La contraseña debe tener al menos 6 caracteres" });

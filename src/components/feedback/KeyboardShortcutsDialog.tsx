@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { usePageActionsContext } from "@/contexts/pageActions";
 import { GLOBAL_SHORTCUTS, NAV_SHORTCUTS, PAGE_SHORTCUTS } from "@/lib/shortcuts/registry";
@@ -7,7 +8,7 @@ interface Props {
   onOpenChange: (v: boolean) => void;
 }
 
-function Kbd({ children }: { children: React.ReactNode }) {
+function Kbd({ children }: { children: ReactNode }) {
   return (
     <kbd className="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded border bg-muted text-[10px] font-mono text-muted-foreground">
       {children}

@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, type ChangeEvent as ReactChangeEvent } from "react";
 import { Paperclip, DeleteIcon, UploadIcon, DocumentIcon, Image, File } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,7 +17,7 @@ export function DocumentAttachments({ entityType, entityId }: { entityType: stri
   const deleteDoc = useDeleteDocument();
   const fileRef = useRef<HTMLInputElement>(null);
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUpload = async (e: ReactChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
     for (const file of Array.from(files)) { await uploadDoc.mutateAsync({ file, entityType, entityId }); }

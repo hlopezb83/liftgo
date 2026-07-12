@@ -1,3 +1,4 @@
+import type { FormEvent as ReactFormEvent } from "react";
 import { useParams, useSearchParams } from "react-router";
 import { useCustomers } from "@/features/customers";
 import { useForklifts } from "@/features/fleet";
@@ -30,7 +31,7 @@ export function useContractFormLogic() {
 
   const isPending = createContract.isPending || updateContract.isPending;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = (e: ReactFormEvent) => {
     e.preventDefault();
     if (!form.customer_id || !form.forklift_id) {
       notifyValidation({ message: "Cliente y equipo son requeridos" });

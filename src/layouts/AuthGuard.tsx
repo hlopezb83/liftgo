@@ -1,4 +1,4 @@
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, type ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/features/users";
 import { PageFallback } from "@/routes/routes-config";
@@ -22,7 +22,7 @@ function AppLoader() {
   );
 }
 
-export function AuthGuard({ children }: { children: React.ReactNode }) {
+export function AuthGuard({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
   const { data: role, isLoading: roleLoading } = useUserRole();
 

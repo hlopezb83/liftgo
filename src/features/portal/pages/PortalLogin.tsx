@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, type FormEvent as ReactFormEvent } from "react";
 import { CompanyIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -30,7 +30,7 @@ export default function PortalLogin() {
     if (user) navigate("/", { replace: true });
   }, [user, navigate]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: ReactFormEvent) => {
     e.preventDefault();
     setLoading(true);
 
