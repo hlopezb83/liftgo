@@ -1,10 +1,13 @@
-import type { ReactNode } from "react";
+import { useRef, type ReactNode } from "react";
 import { flexRender, type Row } from "@tanstack/react-table";
+import { useQueryClient, type FetchQueryOptions } from "@tanstack/react-query";
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { EmptyRow } from "@/components/feedback/EmptyRow";
 import { cn } from "@/lib/utils";
 import { alignClass } from "./sorting";
+
+const PREFETCH_DELAY_MS = 120;
 
 interface Props<T> {
   rows: Row<T>[];
@@ -13,6 +16,7 @@ interface Props<T> {
   showSelection: boolean;
   onRowClick?: (item: T) => void;
   rowClassName?: (item: T) => string | undefined;
+  onRowPrefetch?: (item: T) => FetchQueryOptions;
 }
 
 export function DataTableBodyV2<T>({
