@@ -20,6 +20,19 @@ export function renderMarkdown(md: string): string {
   return `<div class="prose-manual"><p class="text-sm leading-relaxed mb-2">${html}</p></div>`;
 }
 
+/**
+ * Whitelist estricta: sólo las etiquetas que emite `renderMarkdown()` arriba.
+ * Cualquier `<script>`, `<iframe>`, `<style>`, `<form>`, `<a href="javascript:...">`,
+ * atributo `on*`, o vector similar queda fuera. `class` es el único atributo
+ * permitido (los estilos vienen de Tailwind).
+ */
+const SANITIZE_CONFIG: DOMPurify.Config = {
+  ALLOWED_TAGS: ["div", "p", "span", "h2", "h3", "h4", "strong", "em", "li", "br"],
+  ALLOWED_ATTR: ["class"],
+  ALLOW_DATA_ATTR: false,
+  ALLOW_UNKNOWN_PROTOCOLS: false,
+};
+
 export function renderSafeMarkdown(md: string): string {
-  return DOMPurify.sanitize(renderMarkdown(md));
+  return DOMPurify.sanitize(renderMarkdown(md), SANITIZE_CONFIG) as string;
 }
