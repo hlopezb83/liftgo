@@ -1,6 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { renderHook, waitFor } from "@testing-library/react";
-import React from "react";
+import { createElement, type ReactNode } from "react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import {
   createSupabaseChainMock,
@@ -15,9 +15,9 @@ vi.mock("@/integrations/supabase/client", () => ({
 
 import { usePublicBranding } from "../usePublicBranding";
 
-function wrapper({ children }: { children: React.ReactNode }) {
+function wrapper({ children }: { children: ReactNode }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return React.createElement(QueryClientProvider, { client: qc }, children);
+  return createElement(QueryClientProvider, { client: qc }, children);
 }
 
 describe("usePublicBranding — RPC pública (sin sesión)", () => {
