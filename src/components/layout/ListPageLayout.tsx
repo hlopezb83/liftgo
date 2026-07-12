@@ -222,7 +222,7 @@ interface TableContentProps<T> {
 function TableContent<T extends { id?: string }>({
   isLoading, showEmpty, showMobileCards, items, table,
   emptyMessage, emptyIcon, emptyActionLabel, onEmptyAction,
-  onRowClick, mobileCardRender, mobileKeyExtractor, skeletonColumns,
+  onRowClick, onRowPrefetch, mobileCardRender, mobileKeyExtractor, skeletonColumns,
 }: TableContentProps<T>) {
   if (isLoading) return <TableSkeleton columnCount={skeletonColumns} />;
   if (showEmpty) {
