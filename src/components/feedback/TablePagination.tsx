@@ -16,7 +16,7 @@ interface TablePaginationProps {
 }
 
 export function TablePagination({ page, totalPages, onPageChange }: TablePaginationProps) {
-  const visiblePages = useMemo(() => {
+  const computeVisiblePages = (): (number | "ellipsis")[] => {
     const pages: (number | "ellipsis")[] = [];
     if (totalPages <= 7) {
       for (let i = 1; i <= totalPages; i++) pages.push(i);
@@ -30,10 +30,11 @@ export function TablePagination({ page, totalPages, onPageChange }: TablePaginat
       pages.push(totalPages);
     }
     return pages;
-  }, [page, totalPages]);
+  };
+  const visiblePages = computeVisiblePages();
 
-  const goPrev = useCallback(() => onPageChange(Math.max(1, page - 1)), [onPageChange, page]);
-  const goNext = useCallback(() => onPageChange(Math.min(totalPages, page + 1)), [onPageChange, page, totalPages]);
+  const goPrev = () => onPageChange(Math.max(1, page - 1));
+  const goNext = () => onPageChange(Math.min(totalPages, page + 1));
 
   if (totalPages <= 1) return null;
 
