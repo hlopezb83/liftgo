@@ -11,7 +11,7 @@ import {
   KANBAN_COLUMNS,
   type FeedbackStatus,
 } from "../lib/constants";
-import { format } from "date-fns";
+import { formatMtyDate } from "@/lib/utils";
 
 export default function FeedbackManagementPage() {
   const { data: reports, isLoading } = useAllFeedbackReports();
