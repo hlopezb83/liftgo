@@ -70,6 +70,10 @@ export function DataTableBodyV2<T>({
                 onRowClick(item);
               }
             } : undefined}
+            onMouseEnter={onRowPrefetch ? () => armPrefetch(item) : undefined}
+            onMouseLeave={onRowPrefetch ? disarmPrefetch : undefined}
+            onFocus={onRowPrefetch ? () => armPrefetch(item) : undefined}
+            onBlur={onRowPrefetch ? disarmPrefetch : undefined}
             tabIndex={onRowClick ? 0 : undefined}
             role={onRowClick ? "button" : undefined}
           >
