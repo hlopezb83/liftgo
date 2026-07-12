@@ -1,0 +1,22 @@
+{
+  "version": "7.37.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "Tailwind v4 CSS-first: `@theme inline` + guardrail de tokens",
+  "description": "Auditoría Tailwind: migración a CSS-first, eliminación de la config puente TypeScript y guardrail ESLint contra el uso de la paleta cruda de Tailwind.",
+  "category": "improvement",
+  "changes": [
+    { "type": "removed", "description": "tailwind.config.ts (146 LOC) — reemplazado por `@theme inline` en src/index.css" },
+    { "type": "added", "description": "Bloque `@theme inline` con --color-*, --radius-*, --animate-*, --font-*, y `@utility container`" },
+    { "type": "added", "description": "@custom-variant touch para media (hover: none) and (pointer: coarse)" },
+    { "type": "changed", "description": "Google Fonts: `@import` CSS bloqueante → `<link rel=preconnect>` + stylesheet en index.html (mejora FCP)" },
+    { "type": "changed", "description": "GlobalInvoiceFields usa border-warning/40 + bg-warning/10 (antes amber-300/amber-50)" },
+    { "type": "added", "description": "ESLint no-restricted-syntax: warn cuando se usa la paleta cruda de Tailwind (bg-white, text-gray-500, border-slate-200, …) fuera de components/ui/**" }
+  ],
+  "metrics": {
+    "tests": "992/992",
+    "buildTimeSec": 41,
+    "cssBundleKb": 121,
+    "linesRemoved": 146
+  }
+}

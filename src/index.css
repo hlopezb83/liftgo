@@ -1,16 +1,16 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
-
 @import "tailwindcss";
-@config "../tailwind.config.ts";
 @plugin "@tailwindcss/typography";
 @import "tw-animate-css";
 
-/* v4 uses `@custom-variant` for the dark class strategy declared in the legacy config. */
+/* Dark mode via `.dark` class (declared on <html> when toggle exists). */
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* v4 preserves v3 border default color (gray-200) via compatibility layer.
-   We rely on `* { @apply border-border }` below, so no override needed. */
+/* Coarse-pointer / touch devices. */
+@custom-variant touch (@media (hover: none) and (pointer: coarse));
 
+/* ------------------------------------------------------------------ */
+/* Design tokens — HSL triplets so they can be composed with alpha.    */
+/* ------------------------------------------------------------------ */
 @layer base {
   :root {
     --background: 220 20% 97%;
@@ -63,7 +63,6 @@
     --sidebar-border: 220 35% 22%;
     --sidebar-ring: 38 40% 50%;
 
-    /* Status colors */
     --status-available: 142 71% 45%;
     --status-rented: 217 91% 60%;
     --status-maintenance: 38 92% 50%;
@@ -74,7 +73,6 @@
     --status-draft: 220 10% 55%;
     --status-warning: 45 93% 47%;
 
-    /* Gantt / calendar palette */
     --gantt-1: 217 91% 60%;
     --gantt-2: 25 95% 53%;
     --gantt-3: 280 65% 60%;
@@ -84,7 +82,6 @@
     --gantt-7: 190 80% 45%;
     --gantt-8: 60 70% 45%;
 
-    /* CRM Kanban stage palette */
     --crm-stage-new: var(--primary);
     --crm-stage-contacted: 210 80% 55%;
     --crm-stage-quoted: 45 93% 47%;
@@ -126,49 +123,127 @@
     --input: 220 20% 18%;
     --ring: 220 45% 25%;
 
-    --accent-gold: 38 40% 50%;
-
     --sidebar-background: 220 40% 8%;
-    --sidebar-foreground: 220 10% 80%;
-    --sidebar-primary: 38 40% 50%;
-    --sidebar-primary-foreground: 0 0% 100%;
     --sidebar-accent: 220 35% 14%;
-    --sidebar-accent-foreground: 220 10% 90%;
     --sidebar-border: 220 35% 16%;
-    --sidebar-ring: 38 40% 50%;
 
-    --status-available: 142 71% 45%;
-    --status-rented: 217 91% 60%;
-    --status-maintenance: 38 92% 50%;
-    --status-retired: 220 10% 55%;
-    --status-sold: 200 15% 45%;
     --status-completed: 220 15% 50%;
-    --status-overdue: 0 84% 60%;
-    --status-draft: 220 10% 55%;
-    --status-warning: 45 93% 47%;
-
-    --gantt-1: 217 91% 60%;
-    --gantt-2: 25 95% 53%;
-    --gantt-3: 280 65% 60%;
-    --gantt-4: 142 71% 45%;
-    --gantt-5: 38 92% 50%;
-    --gantt-6: 340 75% 55%;
-    --gantt-7: 190 80% 45%;
-    --gantt-8: 60 70% 45%;
-
-    --crm-stage-new: var(--primary);
-    --crm-stage-contacted: 210 80% 55%;
-    --crm-stage-quoted: 45 93% 47%;
-    --crm-stage-negotiating: 280 60% 55%;
 
     --chart-1: 220 45% 25%;
-    --chart-2: 142 71% 45%;
-    --chart-3: 217 91% 60%;
-    --chart-4: 38 40% 50%;
-    --chart-5: 280 65% 60%;
   }
 }
 
+/* ------------------------------------------------------------------ */
+/* v4 CSS-first theme: map tokens to utilities via `@theme inline`.    */
+/* `inline` keeps `hsl(var(--x))` so runtime theming stays live.       */
+/* ------------------------------------------------------------------ */
+@theme inline {
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+
+  --color-success: hsl(var(--success));
+  --color-success-foreground: hsl(var(--success-foreground));
+  --color-warning: hsl(var(--warning));
+  --color-warning-foreground: hsl(var(--warning-foreground));
+  --color-info: hsl(var(--info));
+  --color-info-foreground: hsl(var(--info-foreground));
+
+  --color-accent-gold: hsl(var(--accent-gold));
+
+  --color-sidebar: hsl(var(--sidebar-background));
+  --color-sidebar-foreground: hsl(var(--sidebar-foreground));
+  --color-sidebar-primary: hsl(var(--sidebar-primary));
+  --color-sidebar-primary-foreground: hsl(var(--sidebar-primary-foreground));
+  --color-sidebar-accent: hsl(var(--sidebar-accent));
+  --color-sidebar-accent-foreground: hsl(var(--sidebar-accent-foreground));
+  --color-sidebar-border: hsl(var(--sidebar-border));
+  --color-sidebar-ring: hsl(var(--sidebar-ring));
+
+  --color-status-available: hsl(var(--status-available));
+  --color-status-rented: hsl(var(--status-rented));
+  --color-status-maintenance: hsl(var(--status-maintenance));
+  --color-status-retired: hsl(var(--status-retired));
+  --color-status-sold: hsl(var(--status-sold));
+  --color-status-completed: hsl(var(--status-completed));
+  --color-status-overdue: hsl(var(--status-overdue));
+  --color-status-draft: hsl(var(--status-draft));
+  --color-status-warning: hsl(var(--status-warning));
+
+  --color-crm-new: hsl(var(--crm-stage-new));
+  --color-crm-contacted: hsl(var(--crm-stage-contacted));
+  --color-crm-quoted: hsl(var(--crm-stage-quoted));
+  --color-crm-negotiating: hsl(var(--crm-stage-negotiating));
+
+  --color-gantt-1: hsl(var(--gantt-1));
+  --color-gantt-2: hsl(var(--gantt-2));
+  --color-gantt-3: hsl(var(--gantt-3));
+  --color-gantt-4: hsl(var(--gantt-4));
+  --color-gantt-5: hsl(var(--gantt-5));
+  --color-gantt-6: hsl(var(--gantt-6));
+  --color-gantt-7: hsl(var(--gantt-7));
+  --color-gantt-8: hsl(var(--gantt-8));
+
+  --color-chart-1: hsl(var(--chart-1));
+  --color-chart-2: hsl(var(--chart-2));
+  --color-chart-3: hsl(var(--chart-3));
+  --color-chart-4: hsl(var(--chart-4));
+  --color-chart-5: hsl(var(--chart-5));
+
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-sm: calc(var(--radius) - 4px);
+
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+  --animate-accordion-up: accordion-up 0.2s ease-out;
+
+  --font-sans: "Inter", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+@keyframes accordion-down {
+  from { height: 0; }
+  to { height: var(--radix-accordion-content-height); }
+}
+@keyframes accordion-up {
+  from { height: var(--radix-accordion-content-height); }
+  to { height: 0; }
+}
+
+/* Container utility (replaces v3 `theme.container`). */
+@utility container {
+  margin-inline: auto;
+  padding-inline: 2rem;
+  @media (min-width: 1400px) {
+    max-width: 1400px;
+  }
+}
+
+/* v4 preserves v3 default border color via compatibility layer,
+   but we standardize on the semantic token. */
 @layer base {
   * {
     @apply border-border;
@@ -176,7 +251,6 @@
 
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    font-family: 'Inter', system-ui, sans-serif;
   }
 }
 
@@ -187,41 +261,29 @@
   }
 }
 
+/* ------------------------------------------------------------------ */
+/* Scrollbars: thin, transparent track, muted thumb.                   */
+/* ------------------------------------------------------------------ */
 @layer base {
-
-  /* Global scrollbar */
   * {
     scrollbar-width: thin;
     scrollbar-color: hsla(220, 10%, 50%, 0.3) transparent;
   }
-
-  *::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
-  }
-
-  *::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
+  *::-webkit-scrollbar { width: 6px; height: 6px; }
+  *::-webkit-scrollbar-track { background: transparent; }
   *::-webkit-scrollbar-thumb {
     background: hsla(220, 10%, 50%, 0.3);
     border-radius: 3px;
   }
+  *::-webkit-scrollbar-thumb:hover { background: hsla(220, 10%, 50%, 0.5); }
 
-  *::-webkit-scrollbar-thumb:hover {
-    background: hsla(220, 10%, 50%, 0.5);
-  }
-
-  /* Sidebar scrollbar (light thumb on dark bg) */
+  /* Sidebar variant: light thumb over dark bg. */
   [data-sidebar="content"] {
     scrollbar-color: hsla(0, 0%, 100%, 0.15) transparent;
   }
-
   [data-sidebar="content"]::-webkit-scrollbar-thumb {
     background: hsla(0, 0%, 100%, 0.15);
   }
-
   [data-sidebar="content"]::-webkit-scrollbar-thumb:hover {
     background: hsla(0, 0%, 100%, 0.3);
   }

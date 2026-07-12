@@ -27,9 +27,9 @@ const MONTH_OPTIONS = [
 export function GlobalInvoiceFields() {
   const { control } = useFormContext<InvoiceFormValues>();
   return (
-    <div className="rounded-md border border-amber-300 bg-amber-50 dark:bg-amber-950/20 p-4 space-y-3">
+    <div className="rounded-md border border-warning/40 bg-warning/10 p-4 space-y-3">
       <div className="flex flex-col">
-        <span className="text-xs font-semibold uppercase text-amber-800 dark:text-amber-200 tracking-wider">
+        <span className="text-xs font-semibold uppercase text-warning-foreground/90 tracking-wider">
           Factura Global · Público en General
         </span>
         <span className="text-xs text-muted-foreground">

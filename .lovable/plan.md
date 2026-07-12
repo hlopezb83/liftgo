@@ -1,52 +1,76 @@
-# Plan: Migración a Tailwind CSS v4
 
-Actualmente estamos en `tailwindcss@3.4.19`. La v4 es un cambio **major** con motor nuevo (Oxide), configuración CSS-first, nuevo plugin PostCSS y varios breakings. Propongo migración completa por lotes con validación al final de cada uno.
+# Auditoría Tailwind v4.3 — LiftGo
 
-## Alcance
+## Veredicto general
 
-- `tailwindcss` 3.4 → 4.x
-- `postcss.config.js` → usar `@tailwindcss/postcss`
-- `tailwind.config.ts` → migrar tokens al bloque `@theme` en `src/index.css` (o mantener `@config` como puente temporal)
-- `tailwindcss-animate` → reemplazar por `tw-animate-css` (recomendado oficial para v4) o mantener vía `@plugin`
-- `@tailwindcss/typography` → cargar vía `@plugin "@tailwindcss/typography"`
-- Codemods automáticos + auditoría manual de clases removidas/renombradas
+**Implementación limpia y sólida (8/10).** Está por encima del promedio: v4 con motor Oxide, tokens semánticos vía CSS variables HSL, cero colores hardcoded en componentes (0 `[#hex]`, sólo 1 archivo con clases `bg-gray-…`), 246 archivos con iconos centralizados y guardrails ESLint. **No está top-of-the-line todavía** por 4 razones específicas abajo.
 
-## Lotes
+---
 
-**Lote 1 — Setup y dependencias**
-- Instalar `tailwindcss@4`, `@tailwindcss/postcss`, `tw-animate-css`
-- Reescribir `postcss.config.js` con `@tailwindcss/postcss`
-- Cambiar `@tailwind base/components/utilities` por `@import "tailwindcss"` en `src/index.css`
-- Cargar plugins con `@plugin` directives
-- Mantener `@config "./tailwind.config.ts"` como puente para no perder tokens en el paso 1
+## Lo que está bien
 
-**Lote 2 — Codemod y clases renombradas**
-- Ejecutar `npx @tailwindcss/upgrade` (codemod oficial)
-- Revisar reemplazos comunes: `shadow-sm`→`shadow-xs`, `shadow`→`shadow-sm`, `rounded-sm`→`rounded-xs`, `outline-none`→`outline-hidden`, `ring`→`ring-3`, opacidad de bordes por defecto (`border-gray-200` ya no aplica opacity default), `bg-opacity-*` deprecado, etc.
-- Revisar variantes `space-x-*` (cambio en selector) en listas críticas
+- **v4 nativo** con `@import "tailwindcss"`, `@tailwindcss/postcss` y `tw-animate-css` (no legacy).
+- **Design tokens** completos en `src/index.css` (status, gantt, crm, chart, sidebar) con dark mode paralelo.
+- **Sin abuso de `@apply`** (sólo 4 usos totales en base/components).
+- **Sin `!important`** salvo 2 casos justificados en sidebar variants.
+- **cn()** consistente con `clsx + tailwind-merge`, `cva` en 7 primitives shadcn.
+- Guardrails: ESLint bloquea lucide directo, prohíbe hex arbitrarios en components.
 
-**Lote 3 — Migrar tokens a `@theme` CSS-first**
-- Trasladar `colors`, `borderRadius`, `fontFamily`, `keyframes`, `animation` de `tailwind.config.ts` a bloque `@theme` en `src/index.css`
-- Mantener variables HSL semánticas existentes (`--primary`, `--status-*`, `--gantt-*`, `--crm-*`, `--accent-gold`) sin cambios; sólo mapear en `@theme` con `--color-primary: hsl(var(--primary))` etc.
-- Eliminar `tailwind.config.ts` y la directiva `@config` una vez validado
+## Lo que se puede mejorar
 
-**Lote 4 — Validación**
-- `tsgo` typecheck
-- `vitest run` (esperado 921+ tests verdes)
-- `bun run build` y verificar tamaño de CSS (debería bajar)
-- Recorrido visual smoke: Dashboard, Cotizaciones, Reservas, Facturación, CRM, Mantenimiento, Portal Cliente (dark + light mode)
-- Verificar PDFs (react-pdf no depende de Tailwind pero validar que no se rompa el build)
-- Changelog `v7.36.0` (minor por infraestructura, sin cambios funcionales)
+### 1. Config puente v3 → migrar a CSS-first puro (`@theme`) — HIGH
+Hoy `tailwind.config.ts` (146 LOC) sólo mapea variables HSL a utilities. En v4 esto es **redundante**: el motor Oxide genera utilities automáticamente desde `@theme` en CSS. Beneficios:
+- Elimina 146 LOC de config TS.
+- HMR más rápido (sin recompilar TS).
+- Utilities auto-generadas (`text-status-available`, `bg-gantt-3`) sin duplicar mapeos.
 
-## Detalles técnicos
+**Riesgo**: bajo, pero requiere migrar `hsl(var(--x))` → sintaxis v4 `--color-x: hsl(var(--x))` dentro de `@theme`.
 
-- **Navegadores soportados por v4**: Safari 16.4+, Chrome 111+, Firefox 128+. Confirmar que aplica a la base de usuarios (interno, sí aplica).
-- **Riesgos**:
-  - `tailwindcss-animate` no es oficialmente v4-compatible; `tw-animate-css` es drop-in recomendado por shadcn.
-  - Cambio de default color de `border-*` de `gray-200` a `currentColor`; podría alterar bordes sin color explícito. Auditar con `rg "className=[\"'][^\"']*\\bborder\\b(?![-:])"` y agregar `border-border` donde falte.
-  - `shadcn/ui` componentes ya soportan v4 pero pueden requerir ajustes menores en `components.json` (`tailwind.css` en vez de `tailwind.config`).
-- **Rollback**: mantener commit granular por lote para revertir individualmente.
+### 2. Fonts vía `<link>` en `index.html` en lugar de `@import` CSS — MEDIUM
+`src/index.css:1` importa Google Fonts con `@import url(...)`, lo que **bloquea el render del CSS crítico**. Mejor: `<link rel="preconnect">` + `<link rel="stylesheet">` en `index.html` (o self-host con `@fontsource/inter`) para paralelizar y evitar FOIT.
 
-## Alternativa (si prefieres cero riesgo hoy)
+### 3. Dark mode declarado pero apenas usado — LOW
+Sólo 9 archivos usan `dark:`. Tokens dark existen en `:root .dark` pero no hay toggle ni cobertura. **Decidir**: (a) remover tokens dark y `@custom-variant dark` para simplificar, o (b) completar cobertura + toggle. Actualmente es peso muerto ambiguo.
 
-Quedarnos en v3 y sólo bumpear a la última `3.4.x` patch. Sin ganancias de performance del motor Oxide ni CSS-first, pero cero riesgo. Recomiendo **no** ir por acá — v3 ya no recibe features nuevas.
+### 4. Scrollbar CSS repetido — LOW
+`src/index.css:190-227` define scrollbars globales + variante sidebar con selectores duplicados. Extraer a `@utility scrollbar-thin` (nueva API v4) o consolidar con custom property `--scrollbar-thumb`.
+
+### 5. Features v4 sin adoptar (oportunidades) — INFO
+- **`@container` queries**: 0 usos. Ideal para tarjetas KPI, sidebar responsive, tablas densas.
+- **`text-shadow-*`** (nuevo v4.1) y **`inset-shadow-*`** para depth en cards premium.
+- **`starting:` variant** para animaciones de entrada declarativas (reemplaza JS/framer-motion en casos simples).
+- **`not-*` variant** para reducir CSS combinatorio.
+- **Composable variants** (`group-has-*`, `peer-has-*`) para forms complejos.
+
+---
+
+## Plan propuesto (3 lotes)
+
+### Lote A — Simplificación estructural (HIGH)
+1. Migrar `tailwind.config.ts` a bloque `@theme` en `src/index.css`. Eliminar el archivo TS y la directiva `@config`.
+2. Mover `@import` de Google Fonts a `<link>` con `preconnect` en `index.html`.
+3. Decidir destino de dark mode (recomiendo **remover** dado el uso actual; podemos re-agregar cuando exista requisito real).
+
+### Lote B — Utilities & tokens polish (MEDIUM)
+4. Extraer scrollbars a `@utility scrollbar-thin` v4.
+5. Refactor de `GlobalInvoiceFields.tsx` (único archivo con `bg-gray-*`).
+6. Agregar ESLint rule `no-restricted-syntax` que bloquee `bg-(white|black|gray)-\d+` fuera de tokens.
+
+### Lote C — Adopción de features v4 (INFO / opcional)
+7. Introducir `@container` en `KpiTile`, `DetailLayout` y sidebar.
+8. Usar `starting:` variant en sheets/dialogs para animaciones de entrada sin JS.
+9. Aplicar `text-shadow-sm` en headers de PDFs/cards premium.
+
+---
+
+## Estimado de impacto
+
+| Lote | LOC removidas | Perf | Riesgo |
+|------|--------------:|-----:|-------:|
+| A    | ~150          | +HMR, +FCP | Bajo-medio |
+| B    | ~40           | — | Bajo |
+| C    | +feats        | +UX percibida | Bajo |
+
+**Tests**: 992/992 deben seguir pasando; validación con `bun run build` y comparación de tamaño CSS (baseline 122 kB).
+
+¿Ejecuto los **3 lotes** completos, sólo **A + B** (limpieza), o prefieres empezar por uno específico?
