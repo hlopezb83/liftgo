@@ -82,4 +82,21 @@ describe("mapMonthlyUtilization / mapCashFlow", () => {
     expect(mapCashFlow({ cash_flow: [{ month: "May 2026", month_key: "2026-05", invoiced: 100, paid: 80 }] }))
       .toEqual([{ month: "May 26", invoiced: 100, paid: 80 }]);
   });
+
+  it("permite paid > invoiced (cobros de facturas emitidas en meses anteriores)", () => {
+    expect(
+      mapCashFlow({
+        cash_flow: [{ month: "Mar 2026", month_key: "2026-03", invoiced: 100, paid: 250 }],
+      }),
+    ).toEqual([{ month: "Mar 26", invoiced: 100, paid: 250 }]);
+  });
+
+  it("preserva meses con 0 facturado y 0 pagado (huecos rellenados por el RPC)", () => {
+    expect(
+      mapCashFlow({
+        cash_flow: [{ month: "Abr 2026", month_key: "2026-04", invoiced: 0, paid: 0 }],
+      }),
+    ).toEqual([{ month: "Abr 26", invoiced: 0, paid: 0 }]);
+  });
 });
+
