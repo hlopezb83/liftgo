@@ -1,4 +1,4 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { parseJsonbArray } from "@/lib/domain/lineItems";
@@ -64,7 +64,6 @@ export const userManualQueries = defineEntityQueries<
 });
 
 export function useUserManual() {
-  const queryClient = useQueryClient();
   const [selectedVersion, setSelectedVersion] = useState<string | null>(null);
 
   // Fetch all versions for the selector
@@ -108,7 +107,7 @@ export function useUserManual() {
   return {
     manual: query.data,
     isLoading: query.isLoading,
-    generate: generateMutation.mutate,
+    generate: () => generateMutation.mutate(undefined),
     isGenerating: generateMutation.isPending,
     versions: versionsQuery.data ?? [],
     selectedVersion,
