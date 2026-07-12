@@ -19,7 +19,7 @@ export function useQuoteDetailData(id: string | undefined) {
   const { data: equipmentModels } = useEquipmentModels();
 
   const { data: linkedBookings } = useQuery({
-    ...bookingKeys.byFilter({ quote_id: id ?? "" }),
+    queryKey: bookingKeys.byFilter({ quote_id: id ?? "" }),
     enabled: !!id,
     queryFn: async () => {
       const { data } = await supabase.from("bookings").select("id").eq("quote_id", id ?? "");
@@ -29,7 +29,7 @@ export function useQuoteDetailData(id: string | undefined) {
   const alreadyConverted = (linkedBookings?.length ?? 0) > 0;
 
   const { data: linkedInvoices } = useQuery({
-    ...invoiceKeys.byFilter({ quote_id: id ?? "" }),
+    queryKey: invoiceKeys.byFilter({ quote_id: id ?? "" }),
     enabled: !!id,
     queryFn: async () => {
       const { data } = await supabase
