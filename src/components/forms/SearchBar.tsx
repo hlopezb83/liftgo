@@ -45,7 +45,7 @@ export function SearchBar({
   });
   useEffect(() => {
     emit(debounced);
-  }, [debounced, emit]);
+  }, [debounced]);
 
 
   useHotkeys(
