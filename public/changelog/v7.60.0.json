@@ -1,0 +1,15 @@
+{
+  "version": "7.60.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "Lote H: modernización de dnd-kit en Kanbans CRM y Mantenimiento",
+  "description": "Auditoría completa de @dnd-kit tras la migración. Cambios aplicados: (1) `CSS.Translate.toString(transform)` → `CSS.Transform.toString(transform)` en `ProspectCard` y `MaintenanceKanbanColumn` — variante recomendada por dnd-kit para useSortable, serializa también scaleX/scaleY y evita jitter al alternar entre pointer/keyboard activators. (2) Se añadió `measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}` a ambos `DndContext` — obliga a re-medir droppables durante el drag y elimina gaps visuales conocidos en SortableContext vertical con cards de altura variable. Se verificó que las versiones instaladas son las últimas estables (@dnd-kit/core@6.3.1, /sortable@10.0.0, /utilities@3.2.2); v7 sigue en alpha bajo `@dnd-kit/react`. Imports ya eran named y tree-shakeables.",
+  "category": "improvement",
+  "impact": "Reordenamiento más suave en columnas con cards de altura variable, sin regresiones funcionales.",
+  "files": [
+    "src/features/crm/components/ProspectCard.tsx",
+    "src/features/crm/components/CRMKanbanGrid.tsx",
+    "src/features/maintenance/components/maintenance/MaintenanceKanban.tsx",
+    "src/features/maintenance/components/maintenance/kanban/MaintenanceKanbanColumn.tsx"
+  ]
+}
