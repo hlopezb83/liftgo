@@ -1,5 +1,5 @@
 
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import { useCustomers } from "@/features/customers";
 import { useEquipmentModels } from "@/features/fleet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";

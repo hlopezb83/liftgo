@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { SuccessIcon, ErrorIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";

@@ -1,5 +1,5 @@
 import { startTransition, useCallback } from "react";
-import { useNavigate, type NavigateOptions, type To } from "react-router-dom";
+import { useNavigate, type NavigateOptions, type To } from "react-router";
 
 /**
  * Wrapper de `useNavigate` que envuelve la navegación en `startTransition`

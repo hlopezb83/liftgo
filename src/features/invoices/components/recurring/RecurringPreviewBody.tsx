@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { InfoAlertIcon, InvoiceIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";

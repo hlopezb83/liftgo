@@ -1,4 +1,4 @@
-import { useLocation } from "react-router-dom";
+import { useLocation } from "react-router";
 import { useChangelog } from "@/features/changelog";
 
 export interface FeedbackContext {

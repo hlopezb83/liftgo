@@ -1,5 +1,5 @@
 
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { PageContainer } from "@/components/layout/PageContainer";

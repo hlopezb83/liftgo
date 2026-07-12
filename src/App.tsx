@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router";
 import { AdminRouteGuard } from "@/layouts/AdminRouteGuard";
 import { AppProviders } from "@/layouts/AppProviders";
 import { AuthGuard } from "@/layouts/AuthGuard";

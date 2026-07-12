@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link } from "react-router";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { AddIcon, FileClock, ChartIcon, FileSpreadsheet } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";

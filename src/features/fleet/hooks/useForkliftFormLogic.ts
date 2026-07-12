@@ -1,5 +1,5 @@
 import { useForm } from "react-hook-form";
-import { useParams } from "react-router-dom";
+import { useParams } from "react-router";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { forkliftFormSchema, type ForkliftFormData } from "../lib/forkliftFormSchema";
 import { useForkliftFormState } from "./forkliftForm/useForkliftFormState";
