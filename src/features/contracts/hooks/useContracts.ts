@@ -6,42 +6,41 @@ import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 
 type Contract = ContractViewModel;
-type ContractListRow = Contract;
-type ContractRow = Contract;
 
-async function mapListRow(rows: unknown[]): Promise<ContractListRow[]> {
-  return (rows as Array<Record<string, unknown> & { customers?: { name?: string } | null; forklifts?: { name?: string } | null }>).map((c) => ({
-    ...(c as unknown as ContractListRow),
-    customer_name: c.customers?.name ?? null,
-    forklift_name: c.forklifts?.name ?? null,
-  }));
+type ContractRelations = { customers?: { name?: string } | null; forklifts?: { name?: string } | null };
+
+function mapRow<T extends ContractRelations>(row: T): T & { customer_name?: string; forklift_name?: string } {
+  return {
+    ...row,
+    customer_name: row.customers?.name ?? undefined,
+    forklift_name: row.forklifts?.name ?? undefined,
+  };
 }
 
-export const contractQueries = defineEntityQueries<"contracts", ContractListRow[], ContractRow>(
+async function fetchList() {
+  const { data, error } = await supabase
+    .from("contracts")
+    .select("*, customers(name), forklifts(name)")
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return (data ?? []).map(mapRow);
+}
+
+async function fetchDetail(id: string) {
+  const { data, error } = await supabase
+    .from("contracts")
+    .select("*, customers(name), forklifts(name)")
+    .eq("id", id)
+    .single();
+  if (error) throw error;
+  return mapRow(data);
+}
+
+export const contractQueries = defineEntityQueries(
   "contracts",
   {
-    list: () => async () => {
-      const { data, error } = await supabase
-        .from("contracts")
-        .select("*, customers(name), forklifts(name)")
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return mapListRow(data ?? []);
-    },
-    detail: (id: string) => async () => {
-      if (!id) throw new Error("Contract ID is required");
-      const { data, error } = await supabase
-        .from("contracts")
-        .select("*, customers(name), forklifts(name)")
-        .eq("id", id)
-        .single();
-      if (error) throw error;
-      return {
-        ...(data as unknown as ContractRow),
-        customer_name: data.customers?.name ?? null,
-        forklift_name: data.forklifts?.name ?? null,
-      };
-    },
+    list: () => fetchList,
+    detail: (id: string) => () => fetchDetail(id),
   },
 );
 
