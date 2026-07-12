@@ -12,7 +12,7 @@ export interface UserRow {
   is_active: boolean;
 }
 
-export interface UsersFilter {
+export interface UsersFilter extends Record<string, unknown> {
   role?: AppRole;
   isActive?: boolean;
 }
