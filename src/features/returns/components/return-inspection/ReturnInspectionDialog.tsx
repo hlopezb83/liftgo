@@ -15,7 +15,7 @@ import type { Forklift } from "@/features/fleet";
 import { INSPECTION_CONDITIONS, FUEL_LEVELS, STATUS_LABELS, FUEL_LEVEL_LABELS } from "@/lib/constants";
 import { formatDateRange } from "@/lib/utils";
 import type { ReturnInspectionFormValues } from "../../hooks/returnInspection/useReturnInspectionDialog";
-import type { UseFormReturn } from "react-hook-form";
+import { useWatch, type UseFormReturn } from "react-hook-form";
 
 interface Props {
   open: boolean;
@@ -30,7 +30,7 @@ interface Props {
 export function ReturnInspectionDialog({
   open, onOpenChange, form, activeBookings, forkliftMap, isPending, onSubmit,
 }: Props) {
-  const bookingId = form.watch("bookingId");
+  const bookingId = useWatch({ control: form.control, name: "bookingId" });
 
   const bookingOptions: SelectOption[] =
     activeBookings?.map((b) => ({
