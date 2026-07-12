@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.39.2",
+    "date": "2026-07-12",
+    "type": "patch",
+    "title": "E2E shard 1 estable: fix real en usePrefillEffect + esperas de hidratación",
+    "description": "Cierre de las 3 fallas de E2E shard 1 del run 78954727240. Root cause en `customer-create`: `usePrefillEffect` listaba `run` (de `useEffectEvent`) en las deps del `useEffect`, contra el contrato de React 19 — cada render regeneraba la identidad y disparaba el effect de nuevo, ejecutando `form.reset(emptyCustomer)` DESPUÉS de que el usuario/E2E escribía en el formulario. El dialog quedaba abierto porque el submit disparaba sobre un form vacío que fallaba validación silenciosamente. Fix: `run` fuera de deps con eslint-disable justificado. E2E `maintenance-kanban` ahora espera `toBeEnabled` en el toggle antes del click (hidratación fría). E2E `quote-pdf` sube timeout de descarga a 45s y setTimeout del test a 60s para absorber cold-start de `@react-pdf/renderer` (~1.46 MB lazy). Los 3 specs registran `pageerror` y `console.error` para dejar traza si algún fix no cierra el gap.",
+    "category": "fix",
+    "changes": [
+      { "type": "fixed", "description": "usePrefillEffect: `run` sacado de deps del useEffect (bug real que reseteaba forms tras escritura del usuario)" },
+      { "type": "fixed", "description": "E2E maintenance-kanban: espera `toBeEnabled` en toggle de vista de tablero antes del click" },
+      { "type": "fixed", "description": "E2E quote-pdf: waitForEvent download 20s→45s y test.setTimeout 60s (cold-start react-pdf)" },
+      { "type": "improved", "description": "E2E: los 3 specs sensibles registran pageerror y console.error para acelerar debug futuro" }
+    ]
+  },
+  {
     "version": "7.39.1",
     "date": "2026-07-12",
     "type": "patch",

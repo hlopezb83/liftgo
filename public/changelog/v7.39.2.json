@@ -1,0 +1,14 @@
+{
+  "version": "7.39.2",
+  "date": "2026-07-12",
+  "type": "patch",
+  "title": "E2E shard 1 estable: fix real en usePrefillEffect + esperas de hidratación",
+  "description": "Cierre de las 3 fallas de E2E shard 1. Root cause en customer-create era un bug en usePrefillEffect que reseteaba el form tras la escritura del usuario. maintenance-kanban y quote-pdf ahora esperan hidratación y cold-start de lazy chunks explícitamente.",
+  "category": "fix",
+  "changes": [
+    { "type": "fixed", "description": "usePrefillEffect: `run` de useEffectEvent removido del array de deps del useEffect. Cada render regeneraba su identidad y el effect se re-disparaba en loop, sobrescribiendo el state escrito por el usuario/E2E con `form.reset(emptyCustomer)`. Esto causaba que el submit del dialog de cliente corriera contra un form vacío que fallaba validación silenciosamente." },
+    { "type": "fixed", "description": "E2E maintenance-kanban: `await expect(boardToggle).toBeEnabled({ timeout: 15_000 })` antes del click para absorber hidratación fría del toolbar" },
+    { "type": "fixed", "description": "E2E quote-pdf: `test.setTimeout(60_000)`, `waitForEvent('download')` 20s→45s, `toBeEnabled` en el botón antes de click. Cold-start de `@react-pdf/renderer` (~1.46 MB lazy) puede tardar >20s en CI" },
+    { "type": "improved", "description": "E2E customer-create/maintenance-kanban/quote-pdf: listeners de `pageerror` y `console.error` volcados a stdout. customer-create además loguea el texto de alerts/toasts si el dialog no se cierra, para dejar evidencia útil en el log de CI" }
+  ]
+}
