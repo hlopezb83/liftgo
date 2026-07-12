@@ -1,0 +1,59 @@
+{
+  "version": "7.51.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "@react-pdf/renderer: helper renderAndSave, drop file-saver, hyphenation es-MX",
+  "summary": "Auditoría y modernización de @react-pdf/renderer: helper unificado de renderizado + descarga, eliminación de file-saver y desactivación del hyphenation automático que cortaba mal palabras en español.",
+  "sections": [
+    {
+      "heading": "Auditoría",
+      "items": [
+        "@react-pdf/renderer@4.5.1 (última estable de la línea v4; v5 aún no publicada).",
+        "28 archivos consumen la librería: 5 documents, 8 componentes reutilizables, 5 builders (build.tsx), 5 hooks/botones de descarga y 1 test smoke.",
+        "API 100% moderna en uso: Document, Page, Text, View, Image, StyleSheet.create, pdf().toBlob(), props fixed y wrap={false}. Sin PDFDownloadLink/PDFViewer/BlobProvider/usePDF (correcto para SPA).",
+        "Imports named por punto de entrada raíz, ya tree-shakeables. vite.config.ts declara manualChunks con grupo react-pdf, así que la librería se descarga una sola vez para las 5 salidas."
+      ]
+    },
+    {
+      "heading": "Helper unificado renderAndSave",
+      "items": [
+        "Nuevo src/lib/pdf/renderAndSave.tsx: import dinámico de @react-pdf/renderer + pdf(doc).toBlob() + saveBlob() en un único punto.",
+        "Los 5 builders pasan de ~5 líneas de plumbing (Promise.all con 3 imports + saveAs) a 1 llamada.",
+        "Se preserva el code-splitting: cada builder ya vivía tras un import() dinámico, y @react-pdf/renderer queda en su chunk lazy compartido."
+      ]
+    },
+    {
+      "heading": "Eliminación de file-saver",
+      "items": [
+        "file-saver@2.0.5 y @types/file-saver removidos del package.json (bun remove).",
+        "Sustituido por saveBlob() nativo: URL.createObjectURL + <a download> + revokeObjectURL. Todos los navegadores modernos lo soportan; file-saver era un shim para IE10/Edge Legacy.",
+        "Impacto: -1 dependencia runtime, -1 dep de tipos, ~4 KB gzip menos y un import dinámico menos por descarga."
+      ]
+    },
+    {
+      "heading": "Desactivación de autohyphenation",
+      "items": [
+        "Font.registerHyphenationCallback((word) => [word]) se llama una única vez desde el bootstrap del helper.",
+        "Antes: párrafos largos en español (contratos, estados de cuenta) partían palabras con guiones incorrectos porque el algoritmo por defecto está calibrado para inglés.",
+        "Ahora: las palabras se envuelven completas al siguiente renglón; salida más limpia y profesional en documentos largos."
+      ]
+    },
+    {
+      "heading": "Fuera de alcance (decidido)",
+      "items": [
+        "usePDF / PDFDownloadLink / PDFViewer / BlobProvider: cargarían la librería (~1.46 MB) en el bundle inicial. El patrón actual pdf().toBlob() detrás de import() dinámico es óptimo para descargas one-shot.",
+        "renderToStream / renderToBuffer / renderToFile: sólo Node, no aplica al SPA.",
+        "Font.register con TTF custom: aumentaría el chunk react-pdf; Helvetica base cubre bien es-MX.",
+        "Migración a v5: la versión aún no está publicada; sin acción."
+      ]
+    },
+    {
+      "heading": "Validación",
+      "items": [
+        "tsgo --noEmit: sin errores.",
+        "bun lint: 0 errores.",
+        "bun test src/lib/pdf/documents/__tests__/documents.smoke.test.tsx: 7/7 pasan (el mock ya cubre Font.registerHyphenationCallback)."
+      ]
+    }
+  ]
+}
