@@ -1,7 +1,7 @@
 import { Link as LinkIcon, InfoAlertIcon, ChevronDownIcon, ChevronRightIcon } from "@/components/icons";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
-import { es } from "date-fns/locale";
+import { APP_LOCALE } from "@/lib/format/dateFormats";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";

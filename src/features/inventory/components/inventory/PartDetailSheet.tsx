@@ -8,7 +8,7 @@ import { RoleGuard } from "@/layouts/RoleGuard";
 import { useDeletePart, type PartInventory } from "../../hooks/usePartsInventory";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { format } from "date-fns";
-import { es } from "date-fns/locale";
+import { APP_LOCALE } from "@/lib/format/dateFormats";
 import { EditIcon, DeleteIcon, InventoryIcon, Hash, Tag, Layers, WarnIcon, CostIcon, LocationIcon } from "@/components/icons";
 import { DetailRow } from "@/components/domain/DetailRow";
 
@@ -87,8 +87,8 @@ export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
 
           <Separator />
           <div className="text-xs text-muted-foreground space-y-1">
-            <p>Creado: {format(new Date(part.created_at), "dd MMM yyyy, HH:mm", { locale: es })}</p>
-            <p>Actualizado: {format(new Date(part.updated_at), "dd MMM yyyy, HH:mm", { locale: es })}</p>
+            <p>Creado: {format(new Date(part.created_at), "dd MMM yyyy, HH:mm", { locale: APP_LOCALE })}</p>
+            <p>Actualizado: {format(new Date(part.updated_at), "dd MMM yyyy, HH:mm", { locale: APP_LOCALE })}</p>
           </div>
 
           <Separator />

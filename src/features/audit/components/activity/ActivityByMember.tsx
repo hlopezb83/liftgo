@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ActorAvatar } from "./ActorAvatar";
 import { formatDistanceToNow } from "date-fns";
-import { es } from "date-fns/locale";
+import { APP_LOCALE } from "@/lib/format/dateFormats";
 import type { MemberStat } from "../../hooks/useActivityMetrics";
 
 interface Props {
@@ -42,7 +42,7 @@ export function ActivityByMember({ members, onSelect, selectedActorId }: Props) 
                 <div className="text-right shrink-0">
                   <p className="text-sm font-semibold tabular-nums">{m.total}</p>
                   <p className="text-[10px] text-muted-foreground">
-                    {formatDistanceToNow(new Date(m.lastAt), { locale: es, addSuffix: true })}
+                    {formatDistanceToNow(new Date(m.lastAt), { locale: APP_LOCALE, addSuffix: true })}
                   </p>
                 </div>
               </div>

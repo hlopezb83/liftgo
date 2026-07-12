@@ -9,7 +9,7 @@ import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTa
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { useMrrDetail } from "../hooks/useMrrDetail";
 import { EmptyState } from "@/components/feedback/EmptyState";
-import { es } from "date-fns/locale";
+import { APP_LOCALE } from "@/lib/format/dateFormats";
 import { formatMtyDate } from "@/lib/utils";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
