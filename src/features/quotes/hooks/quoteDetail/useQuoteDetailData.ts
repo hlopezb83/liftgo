@@ -1,8 +1,9 @@
-
 import { useQuery } from "@tanstack/react-query";
 import { differenceInDays } from "date-fns";
+import { bookingKeys } from "@/features/bookings/lib/queryKeys";
 import { useCustomers } from "@/features/customers";
 import { useEquipmentModels, useForklifts } from "@/features/fleet";
+import { invoiceKeys } from "@/features/invoices/lib/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { parseLineItems, parseRentalMeta } from "@/lib/domain/lineItems";
@@ -18,7 +19,7 @@ export function useQuoteDetailData(id: string | undefined) {
   const { data: equipmentModels } = useEquipmentModels();
 
   const { data: linkedBookings } = useQuery({
-    queryKey: ["bookings_for_quote", id],
+    ...bookingKeys.byFilter({ quote_id: id ?? "" }),
     enabled: !!id,
     queryFn: async () => {
       const { data } = await supabase.from("bookings").select("id").eq("quote_id", id ?? "");
@@ -28,7 +29,7 @@ export function useQuoteDetailData(id: string | undefined) {
   const alreadyConverted = (linkedBookings?.length ?? 0) > 0;
 
   const { data: linkedInvoices } = useQuery({
-    queryKey: ["invoices_for_quote", id],
+    ...invoiceKeys.byFilter({ quote_id: id ?? "" }),
     enabled: !!id,
     queryFn: async () => {
       const { data } = await supabase
