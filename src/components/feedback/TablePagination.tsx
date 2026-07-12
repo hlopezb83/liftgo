@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from "react";
+// React Compiler memoiza `visiblePages` y los callbacks de este componente.
 import {
   Pagination,
   PaginationContent,
