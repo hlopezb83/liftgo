@@ -1,0 +1,17 @@
+{
+  "version": "7.44.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "Auditoría del stack de build/lint: hardening y activación de react-hooks 7",
+  "description": "Auditoría del stack (Vite 8, plugin-react 6, ESLint 10, react-hooks 7, @types/node 26, tailwind-merge 3). Correcciones aplicadas: (1) ecmaVersion de ESLint subido a 2022 para alinear con `build.target` de Vite. (2) `@types/node` bajado a 24 para alinear con `.nvmrc` y `engines.node >=24`. (3) Eliminado `resolutions` duplicado (`overrides` de bun basta). (4) Vite: `build.cssMinify: 'lightningcss'` (mejor compresión que esbuild sobre Tailwind v4, ya viene bundleado) y `server.warmup.clientFiles` para precalentar rutas críticas en dev. (5) plugin-react v6 ya NO acepta `babel` — bloque de `babel-plugin-react-compiler` removido del vite.config; el análisis estático sigue vía `eslint-plugin-react-compiler`. La compilación runtime del compiler requiere rolldown-vite (pendiente). (6) 5 unit tests nuevos en `src/lib/__tests__/utils.cn.test.ts` verifican que `tailwind-merge@3` sigue resolviendo colisiones sobre clases tokenizadas (hsl(var(--)), arbitrarias, responsive, data-attrs). (7) Las 10 reglas experimentales de react-hooks@7 (`refs`, `set-state-in-effect`, `purity`, `immutability`, `preserve-manual-memoization`, `set-state-in-render`, `use-memo`, `static-components`, `gating`, `incompatible-library`) reactivadas como `warn` — 43 diagnósticos capturados (25 set-state-in-effect, 9 incompatible-library, 7 refs, 1 static-components, 1 purity) para triaje incremental en próximos lotes. Verificación: 997/997 tests, 0 errores lint, build ok (3.3s).",
+  "category": "improvement",
+  "changes": [
+    { "type": "changed", "description": "ESLint ecmaVersion 2020 → 2022 (alineado con build.target)" },
+    { "type": "changed", "description": "@types/node 26 → 24 (alineado con runtime y .nvmrc)" },
+    { "type": "changed", "description": "Vite: cssMinify lightningcss + server.warmup.clientFiles" },
+    { "type": "changed", "description": "plugin-react v6: eliminado `babel` (opción removida en v6)" },
+    { "type": "added", "description": "5 unit tests para cn() con tailwind-merge@3" },
+    { "type": "changed", "description": "react-hooks 7: 10 reglas experimentales activadas como `warn` (43 diagnósticos para triaje)" },
+    { "type": "removed", "description": "`resolutions` duplicado en package.json (bun usa `overrides`)" }
+  ]
+}

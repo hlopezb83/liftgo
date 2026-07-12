@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.44.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "Auditoría del stack de build/lint: hardening y activación de react-hooks 7",
+    "description": "Alineación del stack tras la migración de dependencias: ESLint ecmaVersion 2022 (match con build.target), @types/node 24 (match con runtime), Vite cssMinify lightningcss + warmup, plugin-react v6 sin `babel` (opción removida en v6), 5 tests de sanity para tailwind-merge@3, y las 10 reglas experimentales de react-hooks@7 activadas como `warn` — 43 diagnósticos capturados para triaje incremental. 997/997 tests, 0 errores lint, build ok.",
+    "category": "improvement",
+    "changes": [
+      { "type": "changed", "description": "ESLint ecmaVersion 2020 → 2022, @types/node 26 → 24, plugin-react v6 sin `babel`" },
+      { "type": "changed", "description": "Vite: cssMinify lightningcss + server.warmup.clientFiles" },
+      { "type": "added", "description": "5 unit tests para cn() con tailwind-merge@3" },
+      { "type": "changed", "description": "react-hooks 7: 10 reglas experimentales como `warn` (43 diagnósticos)" },
+      { "type": "removed", "description": "`resolutions` duplicado en package.json" }
+    ]
+  },
+  {
     "version": "7.43.0",
     "date": "2026-07-12",
     "type": "minor",

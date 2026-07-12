@@ -26,7 +26,7 @@ export default tseslint.config(
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
-      ecmaVersion: 2020,
+      ecmaVersion: 2022,
       globals: globals.browser,
     },
     plugins: {
@@ -76,16 +76,19 @@ export default tseslint.config(
       // Reglas nuevas de eslint-plugin-react-hooks@7 (experimentales / React
       // Compiler). Desactivadas para no bloquear la build; migración
       // incremental por lote separado. Ver plan de deps.
-      "react-hooks/refs": "off",
-      "react-hooks/set-state-in-effect": "off",
-      "react-hooks/incompatible-library": "off",
-      "react-hooks/purity": "off",
-      "react-hooks/static-components": "off",
-      "react-hooks/use-memo": "off",
-      "react-hooks/immutability": "off",
-      "react-hooks/preserve-manual-memoization": "off",
-      "react-hooks/set-state-in-render": "off",
-      "react-hooks/gating": "off",
+      // Reglas experimentales de react-hooks@7 activadas como `warn` para
+      // cosechar diagnósticos sin bloquear CI. Triaje incremental por lote.
+      "react-hooks/refs": "warn",
+      "react-hooks/set-state-in-effect": "warn",
+      "react-hooks/incompatible-library": "warn",
+      "react-hooks/purity": "warn",
+      "react-hooks/static-components": "warn",
+      "react-hooks/use-memo": "warn",
+      "react-hooks/immutability": "warn",
+      "react-hooks/preserve-manual-memoization": "warn",
+      "react-hooks/set-state-in-render": "warn",
+      "react-hooks/gating": "warn",
+      // Reglas meta/infra que no aportan señal accionable aún.
       "react-hooks/globals": "off",
       "react-hooks/config": "off",
       "react-hooks/component-hook-factories": "off",
