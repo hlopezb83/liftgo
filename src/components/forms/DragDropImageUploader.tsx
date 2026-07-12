@@ -25,8 +25,8 @@ export function DragDropImageUploader({ entityType, entityId, maxFiles = 10, cla
     setPreviews((prev) => [...prev, ...newPreviews].slice(0, maxFiles));
   }, [maxFiles]);
 
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
+  const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
+    onDropAccepted: onDrop,
     accept: { "image/*": [".png", ".jpg", ".jpeg", ".webp", ".heic"] },
     maxFiles,
     multiple: true,
