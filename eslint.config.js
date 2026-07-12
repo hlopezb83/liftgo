@@ -36,7 +36,10 @@ export default tseslint.config(
       // completa (babel-plugin-react-compiler + @vitejs/plugin-react) queda
       // como paso opcional siguiente; hoy sólo cosechamos los diagnósticos.
       "react-compiler/react-compiler": "warn",
-      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+      "react-refresh/only-export-components": ["warn", {
+        allowConstantExport: true,
+        allowExportNames: ["meta", "loader", "action", "links", "headers", "handle"],
+      }],
 
 
       "@typescript-eslint/no-unused-vars": "off",
