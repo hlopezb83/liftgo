@@ -11,8 +11,8 @@ interface Props {
 }
 
 export function DamageEvidenceSection({ previews, onDrop, onRemove }: Props) {
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
+  const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
+    onDropAccepted: onDrop,
     accept: { "image/*": [".png", ".jpg", ".jpeg", ".webp", ".heic"] },
     maxFiles: 10,
     multiple: true,
