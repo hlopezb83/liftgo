@@ -27,6 +27,8 @@ const App = () => (
           }
         />
         <Route element={<AuthGuard><MainLayout /></AuthGuard>}>
+          {/* Redirect legacy /expenses → /cuentas-por-pagar sin cargar chunk. */}
+          <Route path="/expenses" element={<Navigate to="/cuentas-por-pagar" replace />} />
           {appRoutes.map(({ path, component: Component, module, adminOnly }) => {
             const guarded = module ? (
               <RoleGuard module={module}>
