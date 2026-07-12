@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.61.1",
+    "date": "2026-07-12",
+    "type": "patch",
+    "title": "Fix: cálculo del Flujo de Efectivo del Dashboard",
+    "description": "Se corrigieron 6 bugs en la carta de Flujo de Efectivo: ventana temporal ahora incluye 6 meses completos, meses sin datos aparecen con 0, se excluyen facturas y notas de crédito canceladas, la barra 'Pagado' agrupa por mes real del cobro (no por mes de emisión), se consideran pagos parciales sumando la tabla `payments` (con fallback para facturas legadas) y se restan notas de crédito del facturado neto.",
+    "category": "bugfix",
+    "impact": "Los datos del chart son ahora consistentes con la contabilidad. Es esperado que 'Pagado' supere a 'Facturado' en meses con cobros diferidos.",
+    "files": [
+      "supabase/migrations/*_fix_dashboard_cash_flow.sql",
+      "src/features/dashboard/lib/__tests__/dashboardSectionHelpers.test.ts",
+      "public/changelog/v7.61.1.json",
+      "public/changelog.json"
+    ]
+  },
+  {
     "version": "7.61.0",
     "date": "2026-07-12",
     "type": "minor",
