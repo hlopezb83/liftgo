@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { toYMD } from "@/lib/format/dateFormats";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { FormActions } from "@/components/forms/FormActions";
@@ -36,7 +36,7 @@ export function DeliveryFormDialog() {
         forklift_id: values.forkliftId,
         booking_id: values.bookingId || null,
         type: values.type,
-        scheduled_date: format(values.scheduledDate, "yyyy-MM-dd"),
+        scheduled_date: toYMD(values.scheduledDate),
         scheduled_time: values.scheduledTime || null,
         address: values.address || null,
         driver_name: values.driverName || null,

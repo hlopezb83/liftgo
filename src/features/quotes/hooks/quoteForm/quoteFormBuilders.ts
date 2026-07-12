@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { toYMD } from "@/lib/format/dateFormats";
 import { generateLineItemsFromModel, type LineItem } from "@/lib/domain/invoiceHelpers";
 
 export type EquipmentModel = { id: string; manufacturer: string; model: string };
@@ -31,7 +31,7 @@ export function buildRentalItems(
     const modelName = model ? `${model.manufacturer} ${model.model}` : "Equipo";
     const generated = generateLineItemsFromModel(
       modelName, line.dailyRate, line.weeklyRate, line.monthlyRate,
-      format(startDate, "yyyy-MM-dd"), format(endDate, "yyyy-MM-dd"), line.quantity,
+      toYMD(startDate), toYMD(endDate), line.quantity,
     );
     for (const item of generated) {
       if (line.discount && line.discount > 0) {

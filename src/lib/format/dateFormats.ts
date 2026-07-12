@@ -31,13 +31,17 @@ export const formatDateMty = (value: Date | string | null | undefined): string =
 export const formatDateTimeMty = (value: Date | string | null | undefined): string =>
   formatMtyDate(value, DATE_PATTERNS.dateTime);
 
-// Presets disponibles bajo demanda (no exportados aún — activarlos cuando
-// alguna vista los necesite para mantener a Knip contento):
-// - dateLong ("12 de julio de 2026") y dayMonthShort ("12 jul") viven en
-//   DATE_PATTERNS y pueden pasarse directo a `formatMtyDate`.
+export const formatDateLongMty = (value: Date | string | null | undefined): string =>
+  formatMtyDate(value, DATE_PATTERNS.dateLong);
+
+export const formatDayMonthMty = (value: Date | string | null | undefined): string =>
+  formatMtyDate(value, DATE_PATTERNS.dayMonthShort);
 
 export const formatDateTimeShortMty = (value: Date | string | null | undefined): string =>
   formatMtyDate(value, DATE_PATTERNS.dateTimeShort);
 
 /** Clave de fecha (YYYY-MM-DD) en TZ Monterrey. Útil para query keys que expiran diario. */
 export const todayKeyMty = (): string => format(nowMty(), DATE_PATTERNS.isoDay);
+
+// Re-export para tener un único entry point de helpers de fecha.
+export { toYMD } from "@/lib/date/toYMD";

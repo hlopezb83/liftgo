@@ -1,4 +1,5 @@
-import { format, startOfMonth, endOfMonth } from "date-fns";
+import { startOfMonth, endOfMonth } from "date-fns";
+import { toYMD } from "@/lib/format/dateFormats";
 import { useState } from "react";
 import { DownloadIcon, WarnIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -23,8 +24,8 @@ import { downloadReconciliationXlsx } from "../lib/reconciliationExport";
 function defaultFilters(): ReconciliationFilters {
   const today = nowMty();
   return {
-    from: format(startOfMonth(today), "yyyy-MM-dd"),
-    to: format(endOfMonth(today), "yyyy-MM-dd"),
+    from: toYMD(startOfMonth(today)),
+    to: toYMD(endOfMonth(today)),
     fiscalState: "all",
     env: "all",
   };

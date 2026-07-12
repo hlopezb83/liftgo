@@ -1,4 +1,6 @@
-import { format, parseISO, startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
+import { parseISO, startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
+import { formatDateMty, formatDayMonthMty } from "@/lib/format/dateFormats";
+import { formatMonthLongEs } from "@/lib/format/formatMonthEs";
 import { useState } from "react";
 import { ChevronLeftIcon, ChevronRightIcon, WarnIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -11,7 +13,6 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useBookingsRange } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
-import { APP_LOCALE } from "@/lib/format/dateFormats";
 import { nowMty, formatMtyDate } from "@/lib/utils";
 import { CalendarStatCards } from "../components/calendar/CalendarStatCards";
 import { EquipmentListView } from "../components/calendar/EquipmentListView";
@@ -42,8 +43,8 @@ export default function CalendarPage() {
   const navigateToday = () => setCurrentDate(nowMty());
 
   const rangeLabel = ganttRange === "month"
-    ? format(currentDate, "MMMM yyyy", { locale: APP_LOCALE })
-    : `${format(rangeStart, "dd/MM")} – ${format(rangeEnd, "dd/MM/yyyy")}`;
+    ? formatMonthLongEs(currentDate)
+    : `${formatDayMonthMty(rangeStart)} – ${formatDateMty(rangeEnd)}`;
 
   const endingSoon = bookings
     ? bookings.filter((b) => {

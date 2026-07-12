@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { toYMD } from "@/lib/format/dateFormats";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import {
@@ -59,7 +59,7 @@ export function useBookingActions(booking: BookingWithForklift) {
   const handleExtend = (newEndDate: Date | undefined, onDone: () => void) => {
     if (!newEndDate) return;
     updateBooking.mutate(
-      { id: booking.id, end_date: format(newEndDate, "yyyy-MM-dd") },
+      { id: booking.id, end_date: toYMD(newEndDate) },
       { onSuccess: () => { notifySuccess("Reserva extendida"); onDone(); } }
     );
   };

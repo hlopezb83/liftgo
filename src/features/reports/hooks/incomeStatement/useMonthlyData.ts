@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { toYMD } from "@/lib/format/dateFormats";
 import { formatMonthShortEs } from "@/lib/format/formatMonthEs";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { callRpc } from "@/lib/rpc";
@@ -57,8 +57,8 @@ export const incomeStatementQueries = defineEntityQueries<
 });
 
 export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
-  const startStr = format(startDate, "yyyy-MM-dd");
-  const endStr = format(endDate, "yyyy-MM-dd");
+  const startStr = toYMD(startDate);
+  const endStr = toYMD(endDate);
 
   const { data: rpc } = useQuery(
     incomeStatementQueries.list({ startStr, endStr, accountingBasis }),

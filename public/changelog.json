@@ -1,5 +1,15 @@
 [
   {
+    "version": "7.47.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "date-fns: centralización de formatos con toYMD y formatDateMty",
+    "description": "Se eliminaron 20+ usos inline de format(d,'yyyy-MM-dd') y format(d,'dd/MM/yyyy') migrándolos a los helpers canónicos toYMD y formatDateMty. Incluye BookingForm, ContractForm, DeliveryFormDialog, MaintenanceForm, QuoteBuilders, useRecordPaymentForm, InvoicesReconciliation, useMonthlyData, useExtendBookingPreview, DatePickerField, DateRangePickerField, RecurringBillingBadge, CalendarPage (rango con formatMonthLongEs) y IncomeStatementDocument. toYMD ahora tiene overload que preserva string cuando la entrada es Date.",
+    "category": "improvement",
+    "impact": "Elimina formatos duplicados y garantiza timezone Monterrey en toda la app.",
+    "files": ["src/lib/date/toYMD.ts", "src/lib/format/dateFormats.ts", "src/features/**"]
+  },
+  {
     "version": "7.46.0",
     "date": "2026-07-12",
     "type": "minor",
