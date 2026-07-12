@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.28.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "TanStack Query — Adopción de defineEntityQueries en 20+ hooks",
+    "description": "Propagación del contrato `defineEntityQueries` + `queryOptions()` a 20+ hooks de listado/detalle: useSuppliers, useCustomers, useEquipmentModels, useDrivers/useActiveDrivers, useMechanics/useActiveMechanics, useMaintenancePolicies, useMaintenanceLogs (con filtro forkliftId), useProspects, useBookings/useBooking, useDamageRecords, usePartsInventory, useReturnInspections/useReturnInspection (con filtro), useSupplierBills/useSupplierBill, useInvoices/useInvoice, usePayments (filtro invoiceId), useCreditNotesForInvoice (filtro invoiceId), useSupplierContacts, useSupplierBankAccounts. Cada archivo ahora expone `xxxQueries = defineEntityQueries<Root, ListT, DetailT>(root, { list, detail? })` y consume vía `useQuery(xxxQueries.list(...))` / `useQuery(xxxQueries.detail(id))` — queryKeys jerárquicos canónicos (`[root, 'list'|'detail', ...]`), fetchers colocalizados y tipado inferido end-to-end. `detail` marcado como opcional en el helper para permitir hooks solo-lista. Retro-compatibilidad: keys legacy (`bookingKeys.byForklift`, `supplierBillKeys`, `returnInspectionKeys`) preservados como alias. Typecheck 0 errores. 913 tests pasando.",
+    "category": "improvement"
+  },
+  {
     "version": "7.27.0",
     "date": "2026-07-12",
     "type": "minor",
