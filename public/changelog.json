@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.40.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "Fix crítico: sidebar dejaba de reservar espacio en Tailwind v4",
+    "description": "En Tailwind v4 la sintaxis abreviada `w-[--var]` para custom properties dejó de resolverse a `var(--var)` y devolvía un ancho vacío. El spacer del `<Sidebar>` colapsaba a 0px y el sidebar fijo se superponía al contenido en desktop y tablet (visible en /mrr, dashboard, listados). Migradas todas las ocurrencias a la sintaxis v4 (`w-[var(--sidebar-width)]`, `[var(--color-bg)]`, etc.) en `Sidebar.tsx`, `SidebarMenu.tsx` y `chart.tsx`. Verificado con Playwright en desktop (1280×1800) y tablet portrait/landscape. De paso: `TableHeader` pasa de `bg-muted/50` (translúcido, dejaba ver contenido debajo al hacer sticky) a `bg-card` sólido, se elimina el `max-h-[calc(100vh-20rem)]` rígido de `<Table>` que recortaba tablas largas, y `tracking-wider` → `tracking-wide` para consistencia con el resto de encabezados densos.",
+    "category": "fix",
+    "changes": [
+      { "type": "fixed", "description": "Sidebar: shorthand Tailwind v3 `w-[--sidebar-width]` migrado a `w-[var(--sidebar-width)]` (v4). Cierra bug de overlap con el contenido principal." },
+      { "type": "fixed", "description": "chart.tsx: `border-[--color-*]` y `bg-[--color-*]` migrados a sintaxis v4." },
+      { "type": "improved", "description": "TableHeader sticky ahora usa `bg-card` sólido (no translúcido) para no dejar ver filas al hacer scroll." },
+      { "type": "improved", "description": "Table wrapper: eliminado `max-h-[calc(100vh-20rem)]` global — cada consumidor define su propio contenedor de scroll." }
+    ]
+  },
+
+  {
     "version": "7.39.2",
     "date": "2026-07-12",
     "type": "patch",
