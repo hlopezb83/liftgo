@@ -1,5 +1,25 @@
 [
   {
+    "version": "7.59.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "Lote G: consolidación de hooks utilitarios en librerías estándar",
+    "description": "Reemplazo de código custom-made por dependencias del ecosistema: `useDebouncedValue` y las media queries (`useIsMobile`, `useIsTabletOrBelow`) delegan en usehooks-ts (`useDebounceValue`, `useMediaQuery`). `ErrorDetailsDialog` usa `useCopyToClipboard` en lugar del helper con fallback a `document.execCommand`. `useKeySequence` (secuencias tipo Gmail `g + tecla`) se eliminó a favor de `useHotkeys(['g>d', 'g>k', …])` de react-hotkeys-hook v5. `useListFilters` conserva su API pública pero la búsqueda por texto ahora usa `matchSorter` (threshold CONTAINS, `baseSort` por índice para preservar orden estable). `safeUuid` se simplificó eliminando el fallback a `Math.random`. Pull-to-refresh se documentó como fuera de alcance para este lote (la alternativa evaluada implica reubicar el scroll container y el riesgo de regresión visual supera el beneficio). Se instalaron usehooks-ts@^3.1.1 y match-sorter@^8.3.0.",
+    "category": "improvement",
+    "impact": "Menos superficie de bugs en hooks de utilidad (listeners de matchMedia, debounce, clipboard fallback, keydown manual), API pública sin cambios, mismos tests unitarios verdes, tsgo limpio.",
+    "files": [
+      "src/hooks/useDebouncedValue.ts",
+      "src/hooks/use-mobile.tsx",
+      "src/hooks/useListFilters.ts",
+      "src/components/ui/ErrorDetailsDialog.tsx",
+      "src/layouts/MainLayout.tsx",
+      "src/lib/shortcuts/useKeySequence.ts",
+      "src/lib/ui/errorReport.ts",
+      "public/changelog/v7.59.0.json",
+      "public/changelog.json"
+    ]
+  },
+  {
     "version": "7.58.0",
     "date": "2026-07-12",
     "type": "minor",
