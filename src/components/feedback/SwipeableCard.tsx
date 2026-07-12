@@ -122,7 +122,7 @@ export function SwipeableCard({ children, rightActions = [], threshold = 60, dis
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            handleClick();
+            onClick?.();
           }
         }}
       >

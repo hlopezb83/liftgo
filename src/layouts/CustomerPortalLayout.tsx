@@ -22,7 +22,7 @@ export default function CustomerPortalLayout() {
   const { user, signOut } = useAuth();
   const { data: company } = usePublicBranding();
   const location = useLocation();
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
 
   const handleLogout = async () => {
     await signOut();
