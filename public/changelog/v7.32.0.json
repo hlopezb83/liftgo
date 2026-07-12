@@ -1,0 +1,39 @@
+{
+  "version": "7.32.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "date-fns 3 → 4",
+  "sections": [
+    {
+      "heading": "Bump de dependencia",
+      "items": [
+        "`date-fns`: `^3.6.0` → `^4.1.0` (instalado 4.4.0).",
+        "`date-fns-tz`: mantenido en `^3.2.0`, versión puente oficialmente compatible con v4."
+      ]
+    },
+    {
+      "heading": "Compatibilidad",
+      "items": [
+        "Superficie API usada (`format`, `parseISO`, `addDays/Months`, `differenceIn*`, `startOf*`, `endOf*`, `eachDayOfInterval`, `isToday`, `isSameDay`, `getDay`, `isWithinInterval`) es estable v3 → v4.",
+        "Locale `es` sigue importándose desde `date-fns/locale`.",
+        "`toZonedTime` desde `date-fns-tz` sin cambios; `nowMty()` y `formatDateMty()` preservan comportamiento."
+      ]
+    },
+    {
+      "heading": "Áreas revalidadas",
+      "items": [
+        "Calendario / Gantt: `startOfWeek({ weekStartsOn: 1 })` conserva semana lunes-domingo.",
+        "PDFs (Contract, CustomerStatement, IncomeStatement, Header): formato DD/MM/YYYY intacto.",
+        "Cash Flow: agrupamiento semanal preservado.",
+        "MRR / Recurring billing: meses calendario exactos vía `differenceInCalendarMonths`."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "921/921 tests verdes.",
+        "Sin cambios de código de aplicación: bump aislado."
+      ]
+    }
+  ]
+}
