@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { CLABE_REGEX, isValidClabe } from "@/lib/schemas";
 import { supplierBankAccountKeys } from "../lib/queryKeys";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import type { Database } from "@/integrations/supabase/types";
 
 export type SupplierBankAccount = Database["public"]["Tables"]["supplier_bank_accounts"]["Row"];
@@ -21,23 +22,29 @@ export function maskClabe(clabe: string | null): string {
   return "•".repeat(trimmed.length - 4) + trimmed.slice(-4);
 }
 
+export const supplierBankAccountQueries = defineEntityQueries<
+  "supplier_bank_accounts",
+  SupplierBankAccount[],
+  never
+>("supplier_bank_accounts", {
+  list: (filter) => async () => {
+    const supplierId = filter?.supplierId as string | undefined;
+    if (!supplierId) return [];
+    const { data, error } = await supabase
+      .from("supplier_bank_accounts")
+      .select("*")
+      .eq("supplier_id", supplierId)
+      .order("is_primary", { ascending: false })
+      .order("bank_name");
+    if (error) throw error;
+    return data as SupplierBankAccount[];
+  },
+});
 
 export function useSupplierBankAccounts(supplierId: string | undefined) {
   return useQuery({
-    queryKey: supplierBankAccountKeys.detail(supplierId ?? "none"),
+    ...supplierBankAccountQueries.list({ supplierId: supplierId ?? null }),
     enabled: Boolean(supplierId),
-    staleTime: 60_000,
-    queryFn: async () => {
-      if (!supplierId) return [];
-      const { data, error } = await supabase
-        .from("supplier_bank_accounts")
-        .select("*")
-        .eq("supplier_id", supplierId)
-        .order("is_primary", { ascending: false })
-        .order("bank_name");
-      if (error) throw error;
-      return data as SupplierBankAccount[];
-    },
   });
 }
 
