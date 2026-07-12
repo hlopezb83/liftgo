@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.42.1",
+    "date": "2026-07-12",
+    "type": "patch",
+    "title": "CI verde: knip, ESLint y vitest (hoist de mocks)",
+    "description": "Reparados los tres frenos del último run de CI. (1) Knip: `formatDateLongMty` y `formatDayMonthShortMty` en `src/lib/format/dateFormats.ts` no tenían consumidores; se eliminan y quedan disponibles vía `DATE_PATTERNS.dateLong` / `dayMonthShort` para reactivar cuando alguna vista los necesite. (2) ESLint: `ActivityTimeline.tsx` mantenía un `eslint-disable-next-line jsx-a11y/no-static-element-interactions` obsoleto tras la migración a `role='button' + tabIndex + onKeyDown` — se elimina el directive. (3) Vitest: `invoiceFlow.test.ts` y `paymentFlow.test.ts` fallaban con `Cannot access '__vi_import_3__' before initialization` porque el factory de `vi.mock` (hoisted por Vitest sobre los imports) referenciaba variables `let`/`const` de nivel de módulo. Se migra el estado mutable a `vi.hoisted()` y el factory se declara `async` para importar `createSupabaseChainMock` mediante `await import()` — patrón oficial recomendado por Vitest 4 para mocks con estado. Verificación: `bunx vitest run` de ambos archivos → 7/7 tests, `bunx knip` limpio, `bun run lint` sin warnings.",
+    "category": "improvement",
+    "changes": [
+      { "type": "fixed", "description": "Knip: eliminados dos exports huérfanos en `dateFormats.ts`" },
+      { "type": "fixed", "description": "ESLint: eliminado `eslint-disable` inútil en `ActivityTimeline.tsx`" },
+      { "type": "fixed", "description": "Vitest: `vi.mock` de `invoiceFlow` y `paymentFlow` refactorizado con `vi.hoisted()` + factory async" }
+    ]
+  },
+
+  {
     "version": "7.42.0",
     "date": "2026-07-12",
     "type": "minor",
