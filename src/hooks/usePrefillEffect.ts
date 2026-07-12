@@ -1,4 +1,3 @@
-/* eslint-disable react-compiler/react-compiler -- convive con useEffectEvent + exhaustive-deps deshabilitado por diseño (ver comentario dentro del hook). */
 import { useEffect, useEffectEvent } from "react";
 
 /**
