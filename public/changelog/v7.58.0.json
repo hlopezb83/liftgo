@@ -1,0 +1,34 @@
+{
+  "version": "7.58.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "Migración de Kanbans (CRM + Mantenimiento) a @dnd-kit",
+  "summary": "Se reemplazó @hello-pangea/dnd por @dnd-kit en los 2 tableros Kanban del sistema, ganando accesibilidad por teclado nativa y un DragOverlay más suave, sin cambiar la UX.",
+  "sections": [
+    {
+      "heading": "Qué cambió",
+      "items": [
+        "CRMKanbanGrid y MaintenanceKanban ahora montan `DndContext` con PointerSensor (distance:4 evita drags accidentales en click→detalle) y KeyboardSensor (Space toma, arrows mueven, Esc cancela).",
+        "Cada columna es `useDroppable` y sus items viven dentro de `SortableContext` con `verticalListSortingStrategy`.",
+        "Las cards (ProspectCard y card de mantenimiento) usan `useSortable`; el transform aplica vía `CSS.Translate.toString(transform)` de @dnd-kit/utilities.",
+        "`DragOverlay` renderiza una copia visual (rotada y con sombra) durante el drag y deja el original al 40% de opacidad — reemplaza el hack anterior de aplicar `rotate-1 shadow-lg` sobre el nodo original."
+      ]
+    },
+    {
+      "heading": "Lógica preservada",
+      "items": [
+        "Guardas de rol al mover a `cerrado_ganado` (assertCanClose) siguen activas en CRM.",
+        "Reordenamiento intra-columna en CRM lee el nuevo índice de `over.data.current.sortable.index` y persiste vía la misma mutation `updateProspect({ stage_order })`.",
+        "Optimistic update de mantenimiento en TanStack Query mantiene su rollback en `onError`.",
+        "Apertura del diálogo de edición cuando la card cambia de stage en CRM se mantiene 1:1."
+      ]
+    },
+    {
+      "heading": "Paquetes",
+      "items": [
+        "Se instalaron @dnd-kit/core@^6.3.1, @dnd-kit/sortable@^10.0.0, @dnd-kit/utilities@^3.2.2.",
+        "Se desinstaló @hello-pangea/dnd."
+      ]
+    }
+  ]
+}
