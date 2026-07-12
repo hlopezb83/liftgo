@@ -32,8 +32,8 @@ export function useBookingFormSubmit() {
     createBooking.mutate(
       {
         forklift_id: data.forklift_id,
-        start_date: format(from, "yyyy-MM-dd"),
-        end_date: format(to, "yyyy-MM-dd"),
+        start_date: toYMD(from),
+        end_date: toYMD(to),
         customer_name: selectedCustomer?.name || data.customer_name || null,
         customer_contact: selectedCustomer?.email || data.customer_contact || null,
         customer_id: data.customer_id || null,
@@ -49,7 +49,7 @@ export function useBookingFormSubmit() {
           setPostBooking({
             bookingId,
             forkliftId: data.forklift_id,
-            startDate: format(from, "yyyy-MM-dd"),
+            startDate: toYMD(from),
             customerAddress: cust?.address || null,
           });
         },
