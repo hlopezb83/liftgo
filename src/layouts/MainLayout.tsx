@@ -1,17 +1,17 @@
 import { useMemo, useRef, useState } from "react";
-import { Outlet } from "react-router-dom";
 import { useHotkeys } from "react-hotkeys-hook";
+import { Outlet } from "react-router-dom";
 import { KeyboardShortcutsDialog } from "@/components/feedback/KeyboardShortcutsDialog";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { PageActionsProvider } from "@/contexts/PageActionsContext";
 import { usePageActionsContext } from "@/contexts/pageActions";
+import { PageActionsProvider } from "@/contexts/PageActionsContext";
+import { FeedbackFab } from "@/features/feedback";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { AppSidebar } from "@/layouts/AppSidebar";
 import { ErrorBoundary } from "@/layouts/ErrorBoundary";
-import { FeedbackFab } from "@/features/feedback";
 import { GlobalSearch } from "@/layouts/GlobalSearch";
-import { TopbarBreadcrumbs } from "@/layouts/TopbarBreadcrumbs";
 import { useMainScrollRestoration } from "@/layouts/hooks/useMainScrollRestoration";
+import { TopbarBreadcrumbs } from "@/layouts/TopbarBreadcrumbs";
 import { NAV_SHORTCUTS } from "@/lib/shortcuts/registry";
 import { useKeySequence } from "@/lib/shortcuts/useKeySequence";
 
