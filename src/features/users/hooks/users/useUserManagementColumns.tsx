@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { DeleteIcon, EditIcon, KeyIcon, ShieldCheck as ShieldIcon } from "@/components/icons";
-import { format } from "date-fns";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { STAFF_ROLES } from "@/lib/constants";
 import { RoleBadge } from "../../components/users/RoleBadge";
 import type { ColumnDef } from "@/components/dataTable/v2";
@@ -52,7 +52,7 @@ export function useUserManagementColumns({
         id: "created_at",
         header: "Fecha de Registro",
         accessorKey: "created_at",
-        cell: ({ row }) => <span className="text-muted-foreground text-sm">{format(new Date(row.original.created_at), "dd/MM/yyyy")}</span>,
+        cell: ({ row }) => <span className="text-muted-foreground text-sm">{formatDateMty(row.original.created_at)}</span>,
       },
       {
         id: "role",

@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { formatDateTimeMty } from "@/lib/format/dateFormats";
 
 export const TABLES = [
   { value: "all", label: "Todas las Tablas" },
@@ -56,7 +56,7 @@ export const translateAction = (action: string) => ACTION_LABELS[action] || acti
 export const translateTable = (table: string) => TABLE_LABELS[table] || table.replace(/_/g, " ");
 
 export function formatTimestamp(ts: string) {
-  return format(new Date(ts), "dd/MM/yyyy HH:mm");
+  return formatDateTimeMty(ts);
 }
 
 export const HIDDEN_DIFF_FIELDS = new Set([

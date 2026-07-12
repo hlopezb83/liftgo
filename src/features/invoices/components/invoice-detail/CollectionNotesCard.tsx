@@ -8,7 +8,7 @@ import { PhoneCall, AddIcon, CalendarIcon } from "@/components/icons";
 import { formatDateDisplay } from "@/lib/utils";
 import { toYMD } from "@/lib/date/toYMD";
 import { DatePickerField } from "@/components/forms/DatePickerField";
-import { format } from "date-fns";
+import { formatDateTimeMty } from "@/lib/format/dateFormats";
 
 interface CollectionNotesCardProps {
   invoiceId: string;
@@ -75,7 +75,7 @@ export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
           <div key={n.id} className="p-3 rounded-lg bg-muted/40 space-y-1">
             <p className="text-sm">{n.note}</p>
             <div className="flex items-center gap-3 text-xs text-muted-foreground">
-              <span>{n.created_at ? format(new Date(n.created_at), "dd/MM/yyyy HH:mm") : "—"}</span>
+              <span>{n.created_at ? formatDateTimeMty(n.created_at) : "—"}</span>
               {n.next_followup_date && (
                 <span className="flex items-center gap-1 text-primary">
                   <CalendarIcon className="h-3 w-3" /> Seguimiento: {formatDateDisplay(n.next_followup_date)}

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { format } from "date-fns";
+import { formatDateTimeMty } from "@/lib/format/dateFormats";
 import { HistoryIcon, ViewIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -67,7 +67,7 @@ export function InvoiceHistoryCard({ invoiceId }: Props) {
                             <span className="text-xs text-muted-foreground">por {log.user_email}</span>
                           )}
                           <span className="text-xs text-muted-foreground ml-auto whitespace-nowrap">
-                            {format(new Date(log.created_at), "dd/MM/yyyy HH:mm")}
+                            {formatDateTimeMty(log.created_at)}
                           </span>
                         </div>
                         <ul className="mt-1 space-y-0.5 text-xs text-muted-foreground">

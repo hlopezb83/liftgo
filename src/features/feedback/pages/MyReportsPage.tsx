@@ -7,7 +7,7 @@ import { useMyFeedbackReports } from "../hooks/useFeedbackReports";
 import { FeedbackStatusBadge } from "../components/FeedbackStatusBadge";
 import { FEEDBACK_TYPE_LABELS } from "../lib/constants";
 import { DataTableV2, DataTablePaginationV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { format } from "date-fns";
+import { formatDateMty } from "@/lib/format/dateFormats";
 
 type Report = NonNullable<ReturnType<typeof useMyFeedbackReports>["data"]>[number];
 
@@ -58,7 +58,7 @@ export default function MyReportsPage() {
       id: "created_at",
       header: "Fecha",
       accessorKey: "created_at",
-      cell: ({ row }) => <span className="text-xs text-muted-foreground">{format(new Date(row.original.created_at), "dd/MM/yyyy")}</span>,
+      cell: ({ row }) => <span className="text-xs text-muted-foreground">{formatDateMty(row.original.created_at)}</span>,
     },
   ];
 

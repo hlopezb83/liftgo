@@ -1,5 +1,5 @@
 import { RefreshIcon } from "@/components/icons";
-import { format } from "date-fns";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -28,7 +28,7 @@ export function HelpPageHeader({
   isAdmin, isGenerating, hasManual, onGenerate,
 }: Props) {
   const subtitle = generatedAt
-    ? `Generado el ${format(new Date(generatedAt), "dd/MM/yyyy")}`
+    ? `Generado el ${formatDateMty(generatedAt)}`
     : "Aún no se ha generado el manual";
 
   return (
