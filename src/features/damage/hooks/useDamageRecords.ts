@@ -5,18 +5,22 @@ import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 export type { DamageRecord } from "@/types/rental";
 
-export const damageRecordQueries = defineEntityQueries<"damage_records", unknown[], never>(
+type DamageListRow = Awaited<ReturnType<typeof fetchDamageList>>[number];
+
+async function fetchDamageList() {
+  const { data, error } = await supabase
+    .from("damage_records")
+    .select("*, forklifts(name, model), customers(name)")
+    .is("deleted_at", null)
+    .order("created_at", { ascending: false });
+  if (error) throw error;
+  return data ?? [];
+}
+
+export const damageRecordQueries = defineEntityQueries<"damage_records", DamageListRow[], never>(
   "damage_records",
   {
-    list: () => async () => {
-      const { data, error } = await supabase
-        .from("damage_records")
-        .select("*, forklifts(name, model), customers(name)")
-        .is("deleted_at", null)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data;
-    },
+    list: () => fetchDamageList,
   },
 );
 
