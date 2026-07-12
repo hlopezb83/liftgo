@@ -54,20 +54,23 @@ export function useDashboardSections() {
 
   const overdueInvoices = useMemo(() => stats?.overdue_invoices ?? [], [stats?.overdue_invoices]);
 
+  // Nota: React Compiler memoiza las derivaciones puras siguientes.
+  // Sólo conservamos useMemo para `counts` y `overdueInvoices` porque
+  // sus identidades alimentan cascadas y queremos garantía manual.
   return {
     isLoading,
     insuranceData,
     utilizationPercent,
     overdueInvoices,
     outstandingRevenue: stats?.invoice_stats?.outstanding_revenue ?? 0,
-    statCards: useMemo(() => buildStatCards(counts, activeFleet), [counts, activeFleet]),
-    pieData: useMemo(() => buildPieData(counts), [counts]),
-    agingBuckets: useMemo(() => computeAgingBuckets(overdueInvoices), [overdueInvoices]),
-    maintenanceAlerts: useMemo(() => mapMaintenanceAlerts(stats?.maintenance_alerts), [stats?.maintenance_alerts]),
-    monthlyUtilization: useMemo(() => mapMonthlyUtilization(stats), [stats]),
-    revenuePerUnit: useMemo(() => mapRevenuePerUnit(stats), [stats]),
-    invoiceBreakdown: useMemo(() => mapInvoiceBreakdown(stats?.invoice_stats?.breakdown), [stats?.invoice_stats?.breakdown]),
-    cashFlowData: useMemo(() => mapCashFlow(stats), [stats]),
+    statCards: buildStatCards(counts, activeFleet),
+    pieData: buildPieData(counts),
+    agingBuckets: computeAgingBuckets(overdueInvoices),
+    maintenanceAlerts: mapMaintenanceAlerts(stats?.maintenance_alerts),
+    monthlyUtilization: mapMonthlyUtilization(stats),
+    revenuePerUnit: mapRevenuePerUnit(stats),
+    invoiceBreakdown: mapInvoiceBreakdown(stats?.invoice_stats?.breakdown),
+    cashFlowData: mapCashFlow(stats),
     financials: buildFinancials(kpis),
     alertsProps: buildAlertsProps(stats, upcomingInvoices, kpis),
   };
