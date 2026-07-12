@@ -4,14 +4,6 @@ import { useCreatePayment } from "@/features/invoices";
 import { createQueryWrapper } from "@/test/helpers/queryClient";
 import type { ChainCall, SupabaseMockResponse } from "@/test/helpers/supabaseChain";
 
-interface PaymentRow {
-  amount: number;
-  payment_date?: string;
-}
-interface InvoiceRow {
-  total: number;
-  status: string;
-}
 
 // Estado mutable hoisted — vi.mock se eleva sobre los imports.
 const state = vi.hoisted(() => ({
