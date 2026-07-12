@@ -1,62 +1,48 @@
 
-## Auditoría react-day-picker
+## Auditoría post v10 (react-day-picker@10.0.1)
 
-**Versión actual**: `^8.10.2` · **Última estable**: `10.0.1` (mayor con breaking changes en v9 y v10).
+**Estado actual** (10 archivos, ninguno con API obsoleta):
+- `src/components/ui/calendar.tsx` — wrapper v10 ya migrado (classNames camelCase, `Chevron`, locale nativo).
+- `DatePickerField.tsx` / `DateRangePickerField.tsx` — modal shell propio, `mode="single" | "range"`, `autoFocus` ok.
+- 5 consumidores usan sólo tipos `DateRange` / `Matcher` (correctos en v10).
 
-**Superficie de uso** (10 archivos):
-- `src/components/ui/calendar.tsx` — wrapper shadcn sobre `<DayPicker>` con `classNames` completo, `components.IconLeft/IconRight` y `locale={es}` de `date-fns/locale`.
-- `src/components/forms/DatePickerField.tsx`, `DateRangePickerField.tsx` — consumen tipos `Matcher` / `DateRange`.
-- `src/components/forms/fields/DateField.tsx`, `DateRangeField.tsx` — wrappers RHF.
-- Consumidores de tipo `DateRange`: `ReportsPage`, `InvoicesToolbar`, `useAvailableForklifts`, `useBookingFormState`, `useQuoteFormState`.
+## Oportunidades detectadas
 
-**Problemas detectados**
-1. API v8 obsoleta en `calendar.tsx`: `IconLeft` / `IconRight` (removidos en v9), keys de `classNames` estilo `nav_button`, `head_row`, `head_cell`, `row`, `cell`, `day`, `day_selected`, `day_today`, `day_outside`, `day_disabled`, `day_hidden`, `day_range_*`, `caption` — todas renombradas en v9/v10.
-2. `locale` importado desde `date-fns/locale`: en v9+ RDP trae sus propios locales (`react-day-picker/locale`) permitiendo mejor tree-shaking (evita cargar todo `date-fns/locale`).
-3. No se importan estilos base de v9 (necesarios si se usa Chevron / dropdowns nativos).
-4. `components.IconLeft/IconRight` → API v9 unificada en `components.Chevron` que recibe `{ orientation }`.
+1. **CSS legacy sobre `day`**: `calendar.tsx:35` conserva el hack v8 `[&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md`. En v10 el resaltado del rango ya lo cubren las claves `range_start` / `range_middle` / `range_end`, por lo que este selector duplica el estilo (y en algunos días con `outside` puede pintar accent doble).
+2. **Falta `animate` prop** (v9.5+): la transición nativa al cambiar de mes/año es gratis y elimina la sensación de "salto".
+3. **`defaultMonth` innecesario**: en v10 cuando `selected` está definido el DayPicker abre en el mes correcto por defecto. Podemos remover el fallback `defaultMonth={localDate ?? new Date()}` (RDP hace lo mismo internamente).
+4. **`captionLayout` moderno no aprovechado**: para fechas que pueden estar lejos (nacimientos, fechas de compra, vencimientos de seguros) la navegación mes-por-mes es lenta. v10 ofrece `captionLayout="dropdown"` + `startMonth`/`endMonth` — 0 código extra nuestro, sólo pasar props opcionales.
+5. **`required` para modo single**: cuando `date` es obligatorio, el usuario puede clickear el día seleccionado y quitarlo por accidente. `required` en v10 lo previene nativamente (elimina un edge case de validación).
 
 ## Plan de refactor
 
-### 1. Bump de dependencia
-- `react-day-picker`: `^8.10.2` → `^10.0.1` (peer: React 19 ✅, date-fns ≥4 ✅).
+### 1. `src/components/ui/calendar.tsx`
+- Añadir `animate` al `<DayPicker>` para transiciones nativas (~2 KB gz, ya presentes en el bundle).
+- Simplificar el className de `day`: quitar el hack `[&:has([aria-selected])]:bg-accent ...` (redundante con `range_*`). Queda sólo `h-9 w-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20`.
+- Ajustar `range_middle` para pintar el fondo entre días (antes lo hacía el hack en `day`): `bg-accent text-accent-foreground rounded-none`.
+- Ajustar `range_start` / `range_end`: heredan `selected` para el fondo primary; sólo redondean el extremo.
 
-### 2. Reescribir `src/components/ui/calendar.tsx`
-- Cambiar `locale` a `import { es } from "react-day-picker/locale"` (drop `date-fns/locale` import).
-- Reemplazar `components.IconLeft/IconRight` por un único `Chevron` con `orientation`:
-  ```tsx
-  components={{
-    Chevron: ({ orientation }) =>
-      orientation === "left" ? <ChevronLeftIcon className="h-4 w-4" /> : <ChevronRightIcon className="h-4 w-4" />,
-  }}
-  ```
-- Migrar el mapa `classNames` a las **nuevas claves v10** (camelCase):
-  - `caption` → `month_caption`
-  - `caption_label` → `caption_label` (igual)
-  - `nav_button_previous/next` → `button_previous` / `button_next`
-  - `head_row` → `weekdays`; `head_cell` → `weekday`
-  - `row` → `week`; `cell` → `day`; `day` (botón) → `day_button`
-  - `day_selected` → `selected`; `day_today` → `today`; `day_outside` → `outside`; `day_disabled` → `disabled`; `day_hidden` → `hidden`
-  - `day_range_start/end/middle` → `range_start` / `range_end` / `range_middle`
-- Añadir soporte oficial a `mode="range"` con `range_start/end/middle` (reemplaza el hack `[&:has([aria-selected])]` sobre `cell`).
-- Mantener API pública (`CalendarProps = ComponentProps<typeof DayPicker>`) — consumidores no cambian.
+### 2. `src/components/forms/DatePickerField.tsx`
+- Aceptar props opcionales `captionLayout?: "label" | "dropdown"` y `startMonth?`, `endMonth?` que se pasan al `<Calendar>`. Sin defaults nuevos — puramente aditivo para llamantes que quieran dropdowns (fechas remotas).
+- Añadir `required?: boolean` que además de la etiqueta pase `required` al `<Calendar mode="single" required>` — evita deselect accidental.
+- Remover `defaultMonth={localDate ?? new Date()}` (RDP v10 lo infiere de `selected`).
 
-### 3. Consumidores de tipos
-- `Matcher` y `DateRange` siguen exportándose desde `react-day-picker` en v10 → **cero cambios** en:
-  `DatePickerField.tsx`, `DateRangePickerField.tsx`, `DateField.tsx`, `DateRangeField.tsx`, `ReportsPage.tsx`, `InvoicesToolbar.tsx`, `useAvailableForklifts.ts`, `useBookingFormState.ts`, `useQuoteFormState.ts`.
-- Verificar `onSelect` de rango: firma sigue `(range: DateRange | undefined, selectedDay, activeModifiers, e) => void` compatible.
+### 3. `src/components/forms/DateRangePickerField.tsx`
+- Remover `defaultMonth={localRange?.from ?? new Date()}` por la misma razón.
+- Sin cambio de API pública para los consumidores existentes.
 
-### 4. Optimización de imports / tree-shaking
-- Locale desde `react-day-picker/locale` (subpath export, sólo el objeto `es`, sin arrastrar el resto de `date-fns/locale`).
-- Sin cambios en imports nombrados de `DayPicker`, `DateRange`, `Matcher` (ya son named).
+### 4. Optimización de imports
+- Ya tree-shaken: `DayPicker` y tipos vienen named. Locale desde subpath `react-day-picker/locale`. No hay barrels a limpiar.
 
 ### 5. Verificación
-- `tsgo --noEmit` (tipos `Chevron`, `classNames` keys).
-- Smoke visual: DatePicker en formularios, DateRange en Reportes/Facturas, footer con presets, indicadores de rango (start/end/middle).
-- Test suite completa (`vitest run`).
+- `tsgo --noEmit`.
+- Smoke visual: DatePicker single (formularios), DateRange (Reportes/Facturas) — que el resaltado del rango siga funcionando tras quitar el hack CSS.
+- `bunx vitest run` completo.
 
 ### 6. Changelog
-- Publicar `v7.53.0` — "react-day-picker v10".
+- Publicar `v7.54.0` — "react-day-picker v10: cleanup CSS, animate y features opcionales".
 
-## Estimación de LOC
-- `calendar.tsx`: reescritura ~55 líneas (misma dimensión, sin bloat).
-- Neto ≈ 0 LOC pero elimina API deprecada y una dependencia transitiva (`date-fns/locale` completo si sólo se usaba aquí — a validar en el bump).
+## Impacto estimado
+- **LOC**: −4 líneas de CSS legacy + posibles opt-ins.
+- **Bundle**: sin cambios (todo ya venía en el peso base de v10).
+- **UX**: transición animada gratis, resaltado de rango más limpio, opción de dropdown de año/mes para fechas remotas.
