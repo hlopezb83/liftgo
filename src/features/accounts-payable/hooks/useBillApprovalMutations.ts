@@ -1,12 +1,13 @@
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { callRpc } from "@/lib/rpc";
 import { supplierBillKeys } from "./useSupplierBills";
+import { billApprovalQueries } from "./useBillApprovalHistory";
 
 const invalidationKeys = (billId: string) => [
   supplierBillKeys.all,
   supplierBillKeys.detail(billId),
   ["accounts_payable_kpis"] as const,
-  ["supplier_bill_approvals", billId] as const,
+  billApprovalQueries.list({ billId }).queryKey,
 ];
 
 export function useApproveSupplierBill() {
