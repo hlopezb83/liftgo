@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.30.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "Auditoría Lote 1: endurecer dompurify + sonner + eslint",
+    "description": "Auditoría de las 5 dependencias actualizadas la semana pasada. Se implementaron los hallazgos de bajo riesgo: whitelist explícita en `renderSafeMarkdown` (bloquea `<script>`, `<iframe>`, `<style>`, `<form>` y atributos `on*`); se elimina el re-export de `toast` en `src/components/ui/sonner.tsx`; nueva regla ESLint `no-restricted-imports` bloquea `sonner` fuera de `appFeedback.ts`; `allowExportNames` en `react-refresh`. Se migraron los 2 call-sites que aún usaban `toast.error` directo. 5 tests nuevos, 918/918 verdes.",
+    "category": "improvement",
+    "changes": [
+      { "type": "changed", "description": "renderSafeMarkdown: whitelist explícita de tags y atributos" },
+      { "type": "added", "description": "5 tests para renderSafeMarkdown (script/iframe/style/form/on*)" },
+      { "type": "changed", "description": "sonner.tsx: eliminado re-export de `toast`" },
+      { "type": "added", "description": "ESLint: prohíbe importar `sonner` fuera de appFeedback" },
+      { "type": "changed", "description": "GlobalSearch y ErrorDetailsDialog migrados a notifyError/notifyWarning" }
+    ]
+  },
+  {
     "version": "7.29.1",
     "date": "2026-07-12",
     "type": "patch",
