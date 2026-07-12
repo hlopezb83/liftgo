@@ -1,5 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
-import { lazy, useEffect, useState, type ComponentType } from "react";
+import { lazy, type ComponentType } from "react";
+
+export { PageFallback } from "@/routes/RouteSkeletons";
 
 // Lazy-loaded pages
 const Dashboard = lazy(() => import("@/features/dashboard/pages/Dashboard"));
@@ -55,30 +57,6 @@ const BankAccountsPage = lazy(() => import("@/features/bank-reconciliation/pages
 const BankReconciliationPage = lazy(() => import("@/features/bank-reconciliation/pages/BankReconciliationPage"));
 const BankStatementImportsHistoryPage = lazy(() => import("@/features/bank-reconciliation/pages/BankStatementImportsHistoryPage"));
 
-// Shared fallback con timeout: si tras 10s sigue cargando, sugerimos recargar.
-export const PageFallback = () => {
-  const [stalled, setStalled] = useState(false);
-  useEffect(() => {
-    const t = window.setTimeout(() => setStalled(true), 10_000);
-    return () => window.clearTimeout(t);
-  }, []);
-
-  return (
-    <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-      <div className="h-12 w-12 rounded-xl bg-primary animate-spin [animation-duration:1.5s]" style={{ borderRadius: "30% 70% 70% 30% / 30% 30% 70% 70%" }} />
-      <span className="text-sm font-medium text-muted-foreground tracking-wide">Cargando LiftGo…</span>
-      {stalled && (
-        <button
-          type="button"
-          onClick={() => window.location.reload()}
-          className="text-xs text-primary underline-offset-4 hover:underline"
-        >
-          La carga está tardando. Recarga la página
-        </button>
-      )}
-    </div>
-  );
-};
 
 // Route configuration — uses module names from role_permissions table
 export interface RouteConfig {
