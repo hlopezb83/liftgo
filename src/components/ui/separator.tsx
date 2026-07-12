@@ -1,9 +1,9 @@
-import * as React from "react";
+import type { ComponentPropsWithoutRef, ElementRef, Ref } from "react";
 import * as SeparatorPrimitive from "@radix-ui/react-separator";
 
 import { cn } from "@/lib/utils";
 
-const Separator = ({ className, orientation = "horizontal", decorative = true, ref, ...props }: React.ComponentPropsWithoutRef<typeof SeparatorPrimitive.Root> & { ref?: React.Ref<React.ElementRef<typeof SeparatorPrimitive.Root>> }) => {
+const Separator = ({ className, orientation = "horizontal", decorative = true, ref, ...props }: ComponentPropsWithoutRef<typeof SeparatorPrimitive.Root> & { ref?: Ref<ElementRef<typeof SeparatorPrimitive.Root>> }) => {
   return (
     <SeparatorPrimitive.Root
     ref={ref}

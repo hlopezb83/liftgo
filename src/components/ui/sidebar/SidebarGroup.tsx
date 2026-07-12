@@ -1,8 +1,8 @@
-import * as React from "react";
+import type { ComponentProps, Ref } from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cn } from "@/lib/utils";
 
-export const SidebarGroup = ({ className, ref, ...props }: React.ComponentProps<"div"> & { ref?: React.Ref<HTMLDivElement> }) => {
+export const SidebarGroup = ({ className, ref, ...props }: ComponentProps<"div"> & { ref?: Ref<HTMLDivElement> }) => {
   return (
     <div
       ref={ref}
@@ -14,7 +14,7 @@ export const SidebarGroup = ({ className, ref, ...props }: React.ComponentProps<
 };
 SidebarGroup.displayName = "SidebarGroup";
 
-export const SidebarGroupLabel = ({ className, asChild = false, ref, ...props }: React.ComponentProps<"div"> & { asChild?: boolean } & { ref?: React.Ref<HTMLDivElement> }) => {
+export const SidebarGroupLabel = ({ className, asChild = false, ref, ...props }: ComponentProps<"div"> & { asChild?: boolean } & { ref?: Ref<HTMLDivElement> }) => {
   const Comp = asChild ? Slot : "div";
   return (
     <Comp
@@ -31,7 +31,7 @@ export const SidebarGroupLabel = ({ className, asChild = false, ref, ...props }:
 };
 SidebarGroupLabel.displayName = "SidebarGroupLabel";
 
-export const SidebarGroupAction = ({ className, asChild = false, ref, ...props }: React.ComponentProps<"button"> & { asChild?: boolean } & { ref?: React.Ref<HTMLButtonElement> }) => {
+export const SidebarGroupAction = ({ className, asChild = false, ref, ...props }: ComponentProps<"button"> & { asChild?: boolean } & { ref?: Ref<HTMLButtonElement> }) => {
   const Comp = asChild ? Slot : "button";
   return (
     <Comp
@@ -49,7 +49,7 @@ export const SidebarGroupAction = ({ className, asChild = false, ref, ...props }
 };
 SidebarGroupAction.displayName = "SidebarGroupAction";
 
-export const SidebarGroupContent = ({ className, ref, ...props }: React.ComponentProps<"div"> & { ref?: React.Ref<HTMLDivElement> }) => {
+export const SidebarGroupContent = ({ className, ref, ...props }: ComponentProps<"div"> & { ref?: Ref<HTMLDivElement> }) => {
   return (
     <div ref={ref} data-sidebar="group-content" className={cn("w-full text-sm", className)} {...props} />
   );

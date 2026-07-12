@@ -1,4 +1,5 @@
-import * as React from "react";
+import { createContext, useContext, useId, useMemo } from "react";
+import type { CSSProperties, ComponentProps, ComponentType, ReactNode, Ref } from "react";
 import * as RechartsPrimitive from "recharts";
 
 import { cn } from "@/lib/utils";
@@ -8,8 +9,8 @@ const THEMES = { light: "", dark: ".dark" } as const;
 
 export type ChartConfig = {
   [k in string]: {
-    label?: React.ReactNode;
-    icon?: React.ComponentType;
+    label?: ReactNode;
+    icon?: ComponentType;
   } & ({ color?: string; theme?: never } | { color?: never; theme: Record<keyof typeof THEMES, string> });
 };
 
@@ -17,10 +18,10 @@ type ChartContextProps = {
   config: ChartConfig;
 };
 
-const ChartContext = React.createContext<ChartContextProps | null>(null);
+const ChartContext = createContext<ChartContextProps | null>(null);
 
 function useChart() {
-  const context = React.useContext(ChartContext);
+  const context = useContext(ChartContext);
 
   if (!context) {
     throw new Error("useChart must be used within a <ChartContainer />");
@@ -29,11 +30,11 @@ function useChart() {
   return context;
 }
 
-const ChartContainer = ({ id, className, children, config, ref, ...props }: React.ComponentProps<"div"> & {
+const ChartContainer = ({ id, className, children, config, ref, ...props }: ComponentProps<"div"> & {
     config: ChartConfig;
-    children: React.ComponentProps<typeof RechartsPrimitive.ResponsiveContainer>["children"];
-  } & { ref?: React.Ref<HTMLDivElement> }) => {
-  const uniqueId = React.useId();
+    children: ComponentProps<typeof RechartsPrimitive.ResponsiveContainer>["children"];
+  } & { ref?: Ref<HTMLDivElement> }) => {
+  const uniqueId = useId();
   const chartId = `chart-${id || uniqueId.replace(/:/g, "")}`;
 
   return (
@@ -95,19 +96,19 @@ type TooltipItem = {
 };
 
 type ChartTooltipContentProps =
-  & React.ComponentProps<"div">
+  & ComponentProps<"div">
   & {
     active?: boolean;
     payload?: TooltipItem[];
     label?: unknown;
-    labelFormatter?: (value: unknown, payload: TooltipItem[]) => React.ReactNode;
+    labelFormatter?: (value: unknown, payload: TooltipItem[]) => ReactNode;
     formatter?: (
       value: TooltipItem["value"],
       name: TooltipItem["name"],
       item: TooltipItem,
       index: number,
       payload: TooltipItem["payload"],
-    ) => React.ReactNode;
+    ) => ReactNode;
     color?: string;
     labelClassName?: string;
     hideLabel?: boolean;
@@ -117,10 +118,10 @@ type ChartTooltipContentProps =
     labelKey?: string;
   };
 
-const ChartTooltipContent = ({ active, payload, className, indicator = "dot", hideLabel = false, hideIndicator = false, label, labelFormatter, labelClassName, formatter, color, nameKey, labelKey, ref }: ChartTooltipContentProps & { ref?: React.Ref<HTMLDivElement> }) => {
+const ChartTooltipContent = ({ active, payload, className, indicator = "dot", hideLabel = false, hideIndicator = false, label, labelFormatter, labelClassName, formatter, color, nameKey, labelKey, ref }: ChartTooltipContentProps & { ref?: Ref<HTMLDivElement> }) => {
     const { config } = useChart();
 
-    const tooltipLabel = React.useMemo(() => {
+    const tooltipLabel = useMemo(() => {
       if (hideLabel || !payload?.length) {
         return null;
       }
@@ -192,7 +193,7 @@ const ChartTooltipContent = ({ active, payload, className, indicator = "dot", hi
                             {
                               "--color-bg": indicatorColor,
                               "--color-border": indicatorColor,
-                            } as React.CSSProperties
+                            } as CSSProperties
                           }
                         />
                       )
@@ -234,7 +235,7 @@ type LegendItem = {
 };
 
 type ChartLegendContentProps =
-  & React.ComponentProps<"div">
+  & ComponentProps<"div">
   & {
     payload?: LegendItem[];
     verticalAlign?: "top" | "middle" | "bottom";
@@ -242,7 +243,7 @@ type ChartLegendContentProps =
     nameKey?: string;
   };
 
-const ChartLegendContent = ({ className, hideIcon = false, payload, verticalAlign = "bottom", nameKey, ref }: ChartLegendContentProps & { ref?: React.Ref<HTMLDivElement> }) => {
+const ChartLegendContent = ({ className, hideIcon = false, payload, verticalAlign = "bottom", nameKey, ref }: ChartLegendContentProps & { ref?: Ref<HTMLDivElement> }) => {
   const { config } = useChart();
 
   if (!payload?.length) {

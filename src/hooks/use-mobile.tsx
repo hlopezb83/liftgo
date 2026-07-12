@@ -1,13 +1,12 @@
-import * as React from "react";
-
+import { useEffect, useState } from "react";
 const MOBILE_BREAKPOINT = 768;
 const TABLET_BREAKPOINT = 1024;
 
 function useMatchMedia(query: string): boolean {
-  const [matches, setMatches] = React.useState<boolean>(() =>
+  const [matches, setMatches] = useState<boolean>(() =>
     typeof window === "undefined" ? false : window.matchMedia(query).matches,
   );
-  React.useEffect(() => {
+  useEffect(() => {
     const mql = window.matchMedia(query);
     const onChange = () => setMatches(mql.matches);
     mql.addEventListener("change", onChange);

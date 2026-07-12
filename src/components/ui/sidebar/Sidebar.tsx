@@ -1,4 +1,4 @@
-import * as React from "react";
+import type { CSSProperties, ComponentProps, ElementRef, Ref } from "react";
 import { PanelLeft } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -6,11 +6,11 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { useSidebar } from "./context";
 import { SIDEBAR_WIDTH_MOBILE } from "./constants";
 
-export const Sidebar = ({ side = "left", variant = "sidebar", collapsible = "offcanvas", className, children, ref, ...props }: React.ComponentProps<"div"> & {
+export const Sidebar = ({ side = "left", variant = "sidebar", collapsible = "offcanvas", className, children, ref, ...props }: ComponentProps<"div"> & {
     side?: "left" | "right";
     variant?: "sidebar" | "floating" | "inset";
     collapsible?: "offcanvas" | "icon" | "none";
-  } & { ref?: React.Ref<HTMLDivElement> }) => {
+  } & { ref?: Ref<HTMLDivElement> }) => {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
 
   if (collapsible === "none") {
@@ -32,7 +32,7 @@ export const Sidebar = ({ side = "left", variant = "sidebar", collapsible = "off
           data-sidebar="sidebar"
           data-mobile="true"
           className="w-[var(--sidebar-width)] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
-          style={{ "--sidebar-width": SIDEBAR_WIDTH_MOBILE } as React.CSSProperties}
+          style={{ "--sidebar-width": SIDEBAR_WIDTH_MOBILE } as CSSProperties}
           side={side}
         >
           <div className="flex h-full w-full flex-col">{children}</div>
@@ -85,7 +85,7 @@ export const Sidebar = ({ side = "left", variant = "sidebar", collapsible = "off
 };
 Sidebar.displayName = "Sidebar";
 
-export const SidebarTrigger = ({ className, onClick, ref, ...props }: React.ComponentProps<typeof Button> & { ref?: React.Ref<React.ElementRef<typeof Button>> }) => {
+export const SidebarTrigger = ({ className, onClick, ref, ...props }: ComponentProps<typeof Button> & { ref?: Ref<ElementRef<typeof Button>> }) => {
   const { toggleSidebar } = useSidebar();
   return (
     <Button
@@ -107,7 +107,7 @@ export const SidebarTrigger = ({ className, onClick, ref, ...props }: React.Comp
 };
 SidebarTrigger.displayName = "SidebarTrigger";
 
-export const SidebarRail = ({ className, ref, ...props }: React.ComponentProps<"button"> & { ref?: React.Ref<HTMLButtonElement> }) => {
+export const SidebarRail = ({ className, ref, ...props }: ComponentProps<"button"> & { ref?: Ref<HTMLButtonElement> }) => {
     const { toggleSidebar } = useSidebar();
     return (
       <button
@@ -132,7 +132,7 @@ export const SidebarRail = ({ className, ref, ...props }: React.ComponentProps<"
   };
 SidebarRail.displayName = "SidebarRail";
 
-export const SidebarInset = ({ className, ref, ...props }: React.ComponentProps<"main"> & { ref?: React.Ref<HTMLDivElement> }) => {
+export const SidebarInset = ({ className, ref, ...props }: ComponentProps<"main"> & { ref?: Ref<HTMLDivElement> }) => {
   return (
     <main
       ref={ref}

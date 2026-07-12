@@ -1,8 +1,8 @@
-import * as React from "react";
+import type { ComponentProps, Ref } from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { cn } from "@/lib/utils";
 
-export const SidebarMenuSub = ({ className, ref, ...props }: React.ComponentProps<"ul"> & { ref?: React.Ref<HTMLUListElement> }) => {
+export const SidebarMenuSub = ({ className, ref, ...props }: ComponentProps<"ul"> & { ref?: Ref<HTMLUListElement> }) => {
   return (
     <ul
       ref={ref}
@@ -18,18 +18,18 @@ export const SidebarMenuSub = ({ className, ref, ...props }: React.ComponentProp
 };
 SidebarMenuSub.displayName = "SidebarMenuSub";
 
-export const SidebarMenuSubItem = ({ ref, ...props }: React.ComponentProps<"li"> & { ref?: React.Ref<HTMLLIElement> }) => {
+export const SidebarMenuSubItem = ({ ref, ...props }: ComponentProps<"li"> & { ref?: Ref<HTMLLIElement> }) => {
   return (
     <li ref={ref} {...props} />
   );
 };
 SidebarMenuSubItem.displayName = "SidebarMenuSubItem";
 
-export const SidebarMenuSubButton = ({ asChild = false, size = "md", isActive, className, ref, ...props }: React.ComponentProps<"a"> & {
+export const SidebarMenuSubButton = ({ asChild = false, size = "md", isActive, className, ref, ...props }: ComponentProps<"a"> & {
     asChild?: boolean;
     size?: "sm" | "md";
     isActive?: boolean;
-  } & { ref?: React.Ref<HTMLAnchorElement> }) => {
+  } & { ref?: Ref<HTMLAnchorElement> }) => {
   const Comp = asChild ? Slot : "a";
   return (
     <Comp

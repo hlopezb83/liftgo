@@ -1,4 +1,5 @@
-import * as React from "react";
+import { useMemo } from "react";
+import type { CSSProperties, ComponentProps, Ref } from "react";
 import { Slot } from "@radix-ui/react-slot";
 import { VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
@@ -7,25 +8,25 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { useSidebar } from "./context";
 import { sidebarMenuButtonVariants } from "./variants";
 
-export const SidebarMenu = ({ className, ref, ...props }: React.ComponentProps<"ul"> & { ref?: React.Ref<HTMLUListElement> }) => {
+export const SidebarMenu = ({ className, ref, ...props }: ComponentProps<"ul"> & { ref?: Ref<HTMLUListElement> }) => {
   return (
     <ul ref={ref} data-sidebar="menu" className={cn("flex w-full min-w-0 flex-col gap-1", className)} {...props} />
   );
 };
 SidebarMenu.displayName = "SidebarMenu";
 
-export const SidebarMenuItem = ({ className, ref, ...props }: React.ComponentProps<"li"> & { ref?: React.Ref<HTMLLIElement> }) => {
+export const SidebarMenuItem = ({ className, ref, ...props }: ComponentProps<"li"> & { ref?: Ref<HTMLLIElement> }) => {
   return (
     <li ref={ref} data-sidebar="menu-item" className={cn("group/menu-item relative", className)} {...props} />
   );
 };
 SidebarMenuItem.displayName = "SidebarMenuItem";
 
-export const SidebarMenuButton = ({ asChild = false, isActive = false, variant = "default", size = "default", tooltip, className, ref, ...props }: React.ComponentProps<"button"> & {
+export const SidebarMenuButton = ({ asChild = false, isActive = false, variant = "default", size = "default", tooltip, className, ref, ...props }: ComponentProps<"button"> & {
     asChild?: boolean;
     isActive?: boolean;
-    tooltip?: string | React.ComponentProps<typeof TooltipContent>;
-  } & VariantProps<typeof sidebarMenuButtonVariants> & { ref?: React.Ref<HTMLButtonElement> }) => {
+    tooltip?: string | ComponentProps<typeof TooltipContent>;
+  } & VariantProps<typeof sidebarMenuButtonVariants> & { ref?: Ref<HTMLButtonElement> }) => {
   const Comp = asChild ? Slot : "button";
   const { isMobile, state } = useSidebar();
 
@@ -53,10 +54,10 @@ export const SidebarMenuButton = ({ asChild = false, isActive = false, variant =
 };
 SidebarMenuButton.displayName = "SidebarMenuButton";
 
-export const SidebarMenuAction = ({ className, asChild = false, showOnHover = false, ref, ...props }: React.ComponentProps<"button"> & {
+export const SidebarMenuAction = ({ className, asChild = false, showOnHover = false, ref, ...props }: ComponentProps<"button"> & {
     asChild?: boolean;
     showOnHover?: boolean;
-  } & { ref?: React.Ref<HTMLButtonElement> }) => {
+  } & { ref?: Ref<HTMLButtonElement> }) => {
   const Comp = asChild ? Slot : "button";
   return (
     <Comp
@@ -79,7 +80,7 @@ export const SidebarMenuAction = ({ className, asChild = false, showOnHover = fa
 };
 SidebarMenuAction.displayName = "SidebarMenuAction";
 
-export const SidebarMenuBadge = ({ className, ref, ...props }: React.ComponentProps<"div"> & { ref?: React.Ref<HTMLDivElement> }) => {
+export const SidebarMenuBadge = ({ className, ref, ...props }: ComponentProps<"div"> & { ref?: Ref<HTMLDivElement> }) => {
   return (
     <div
       ref={ref}
@@ -99,8 +100,8 @@ export const SidebarMenuBadge = ({ className, ref, ...props }: React.ComponentPr
 };
 SidebarMenuBadge.displayName = "SidebarMenuBadge";
 
-export const SidebarMenuSkeleton = ({ className, showIcon = false, ref, ...props }: React.ComponentProps<"div"> & { showIcon?: boolean } & { ref?: React.Ref<HTMLDivElement> }) => {
-  const width = React.useMemo(() => `${Math.floor(Math.random() * 40) + 50}%`, []);
+export const SidebarMenuSkeleton = ({ className, showIcon = false, ref, ...props }: ComponentProps<"div"> & { showIcon?: boolean } & { ref?: Ref<HTMLDivElement> }) => {
+  const width = useMemo(() => `${Math.floor(Math.random() * 40) + 50}%`, []);
   return (
     <div
       ref={ref}
@@ -112,7 +113,7 @@ export const SidebarMenuSkeleton = ({ className, showIcon = false, ref, ...props
       <Skeleton
         className="h-4 max-w-[var(--skeleton-width)] flex-1"
         data-sidebar="menu-skeleton-text"
-        style={{ "--skeleton-width": width } as React.CSSProperties}
+        style={{ "--skeleton-width": width } as CSSProperties}
       />
     </div>
   );

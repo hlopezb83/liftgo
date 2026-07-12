@@ -1,4 +1,4 @@
-import * as React from "react";
+import type { ComponentPropsWithoutRef, ElementRef, Ref } from "react";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";
 import { ChevronDownIcon } from "@/components/icons";
 
@@ -6,14 +6,14 @@ import { cn } from "@/lib/utils";
 
 const Accordion = AccordionPrimitive.Root;
 
-const AccordionItem = ({ className, ref, ...props }: React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Item> & { ref?: React.Ref<React.ElementRef<typeof AccordionPrimitive.Item>> }) => {
+const AccordionItem = ({ className, ref, ...props }: ComponentPropsWithoutRef<typeof AccordionPrimitive.Item> & { ref?: Ref<ElementRef<typeof AccordionPrimitive.Item>> }) => {
   return (
     <AccordionPrimitive.Item ref={ref} className={cn("border-b", className)} {...props} />
   );
 };
 AccordionItem.displayName = "AccordionItem";
 
-const AccordionTrigger = ({ className, children, ref, ...props }: React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger> & { ref?: React.Ref<React.ElementRef<typeof AccordionPrimitive.Trigger>> }) => {
+const AccordionTrigger = ({ className, children, ref, ...props }: ComponentPropsWithoutRef<typeof AccordionPrimitive.Trigger> & { ref?: Ref<ElementRef<typeof AccordionPrimitive.Trigger>> }) => {
   return (
     <AccordionPrimitive.Header className="flex">
     <AccordionPrimitive.Trigger
@@ -32,7 +32,7 @@ const AccordionTrigger = ({ className, children, ref, ...props }: React.Componen
 };
 AccordionTrigger.displayName = AccordionPrimitive.Trigger.displayName;
 
-const AccordionContent = ({ className, children, ref, ...props }: React.ComponentPropsWithoutRef<typeof AccordionPrimitive.Content> & { ref?: React.Ref<React.ElementRef<typeof AccordionPrimitive.Content>> }) => {
+const AccordionContent = ({ className, children, ref, ...props }: ComponentPropsWithoutRef<typeof AccordionPrimitive.Content> & { ref?: Ref<ElementRef<typeof AccordionPrimitive.Content>> }) => {
   return (
     <AccordionPrimitive.Content
     ref={ref}

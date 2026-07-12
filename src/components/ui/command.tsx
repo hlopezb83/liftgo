@@ -1,4 +1,4 @@
-import * as React from "react";
+import type { ComponentPropsWithoutRef, ElementRef, HTMLAttributes, Ref } from "react";
 import { type DialogProps } from "@radix-ui/react-dialog";
 import { Command as CommandPrimitive } from "cmdk";
 import { SearchIcon } from "@/components/icons";
@@ -6,7 +6,7 @@ import { SearchIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
-const Command = ({ className, ref, ...props }: React.ComponentPropsWithoutRef<typeof CommandPrimitive> & { ref?: React.Ref<React.ElementRef<typeof CommandPrimitive>> }) => {
+const Command = ({ className, ref, ...props }: ComponentPropsWithoutRef<typeof CommandPrimitive> & { ref?: Ref<ElementRef<typeof CommandPrimitive>> }) => {
   return (
     <CommandPrimitive
     ref={ref}
@@ -34,7 +34,7 @@ const CommandDialog = ({ children, ...props }: CommandDialogProps) => {
   );
 };
 
-const CommandInput = ({ className, ref, ...props }: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Input> & { ref?: React.Ref<React.ElementRef<typeof CommandPrimitive.Input>> }) => {
+const CommandInput = ({ className, ref, ...props }: ComponentPropsWithoutRef<typeof CommandPrimitive.Input> & { ref?: Ref<ElementRef<typeof CommandPrimitive.Input>> }) => {
   return (
     <div className="flex items-center border-b px-3" cmdk-input-wrapper="">
     <SearchIcon className="mr-2 h-4 w-4 shrink-0 opacity-50" />
@@ -52,7 +52,7 @@ const CommandInput = ({ className, ref, ...props }: React.ComponentPropsWithoutR
 
 CommandInput.displayName = CommandPrimitive.Input.displayName;
 
-const CommandList = ({ className, ref, ...props }: React.ComponentPropsWithoutRef<typeof CommandPrimitive.List> & { ref?: React.Ref<React.ElementRef<typeof CommandPrimitive.List>> }) => {
+const CommandList = ({ className, ref, ...props }: ComponentPropsWithoutRef<typeof CommandPrimitive.List> & { ref?: Ref<ElementRef<typeof CommandPrimitive.List>> }) => {
   return (
     <CommandPrimitive.List
     ref={ref}
@@ -67,8 +67,8 @@ CommandList.displayName = CommandPrimitive.List.displayName;
 const CommandEmpty = ({
   ref,
   ...props
-}: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Empty> & {
-  ref?: React.Ref<React.ElementRef<typeof CommandPrimitive.Empty>>;
+}: ComponentPropsWithoutRef<typeof CommandPrimitive.Empty> & {
+  ref?: Ref<ElementRef<typeof CommandPrimitive.Empty>>;
 }) => <CommandPrimitive.Empty ref={ref} className="py-6 text-center text-sm" {...props} />;
 
 CommandEmpty.displayName = CommandPrimitive.Empty.displayName;
@@ -77,8 +77,8 @@ const CommandGroup = ({
   className,
   ref,
   ...props
-}: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Group> & {
-  ref?: React.Ref<React.ElementRef<typeof CommandPrimitive.Group>>;
+}: ComponentPropsWithoutRef<typeof CommandPrimitive.Group> & {
+  ref?: Ref<ElementRef<typeof CommandPrimitive.Group>>;
 }) => (
   <CommandPrimitive.Group
     ref={ref}
@@ -96,8 +96,8 @@ const CommandSeparator = ({
   className,
   ref,
   ...props
-}: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Separator> & {
-  ref?: React.Ref<React.ElementRef<typeof CommandPrimitive.Separator>>;
+}: ComponentPropsWithoutRef<typeof CommandPrimitive.Separator> & {
+  ref?: Ref<ElementRef<typeof CommandPrimitive.Separator>>;
 }) => <CommandPrimitive.Separator ref={ref} className={cn("-mx-1 h-px bg-border", className)} {...props} />;
 CommandSeparator.displayName = CommandPrimitive.Separator.displayName;
 
@@ -105,8 +105,8 @@ const CommandItem = ({
   className,
   ref,
   ...props
-}: React.ComponentPropsWithoutRef<typeof CommandPrimitive.Item> & {
-  ref?: React.Ref<React.ElementRef<typeof CommandPrimitive.Item>>;
+}: ComponentPropsWithoutRef<typeof CommandPrimitive.Item> & {
+  ref?: Ref<ElementRef<typeof CommandPrimitive.Item>>;
 }) => (
   <CommandPrimitive.Item
     ref={ref}
@@ -121,7 +121,7 @@ const CommandItem = ({
 CommandItem.displayName = CommandPrimitive.Item.displayName;
 
 
-const CommandShortcut = ({ className, ...props }: React.HTMLAttributes<HTMLSpanElement>) => {
+const CommandShortcut = ({ className, ...props }: HTMLAttributes<HTMLSpanElement>) => {
   return <span className={cn("ml-auto text-xs tracking-widest text-muted-foreground", className)} {...props} />;
 };
 CommandShortcut.displayName = "CommandShortcut";
