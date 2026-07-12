@@ -39,6 +39,9 @@ export function DatePickerField({
   required,
   error,
   disabled,
+  captionLayout,
+  startMonth,
+  endMonth,
 }: DatePickerFieldProps) {
   const [open, setOpen] = useState(false);
   const [localDate, setLocalDate] = useState<Date | undefined>(date);
