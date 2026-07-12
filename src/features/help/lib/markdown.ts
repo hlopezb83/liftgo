@@ -26,13 +26,13 @@ export function renderMarkdown(md: string): string {
  * atributo `on*`, o vector similar queda fuera. `class` es el único atributo
  * permitido (los estilos vienen de Tailwind).
  */
-const SANITIZE_CONFIG: DOMPurify.Config = {
+const SANITIZE_CONFIG = {
   ALLOWED_TAGS: ["div", "p", "span", "h2", "h3", "h4", "strong", "em", "li", "br"],
   ALLOWED_ATTR: ["class"],
   ALLOW_DATA_ATTR: false,
   ALLOW_UNKNOWN_PROTOCOLS: false,
-};
+} as const;
 
 export function renderSafeMarkdown(md: string): string {
-  return DOMPurify.sanitize(renderMarkdown(md), SANITIZE_CONFIG) as string;
+  return DOMPurify.sanitize(renderMarkdown(md), SANITIZE_CONFIG);
 }

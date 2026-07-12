@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useTransition } from "react";
 import { useNavigate } from "react-router-dom";
-import { toast } from "sonner";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { CalendarDays, FleetIcon, UsersIcon, DocumentIcon, BookOpen, ScrollText, DeliveryIcon, ClipboardCheck, InvoiceIcon, MaintenanceIcon, WarnIcon, InventoryIcon, SupplierIcon, ExpenseIcon, ChartIcon, ActivityIcon, HistoryIcon, SettingsIcon, CompanyIcon, SecurityIcon, HelpIcon, TargetIcon, DashboardIcon, SearchIcon, SpinnerIcon } from "@/components/icons";
 import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
@@ -74,7 +74,7 @@ export function GlobalSearch() {
         navigate(url);
       } catch (err) {
         console.error("GlobalSearch navigation failed", err);
-        toast.error("No se pudo abrir la sección. Intenta de nuevo.");
+        notifyError({ error: err, title: "No se pudo abrir la sección. Intenta de nuevo.", severity: "warning" });
       }
     });
   };
