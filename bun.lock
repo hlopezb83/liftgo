@@ -96,7 +96,6 @@
         "typescript-eslint": "^8.63.0",
         "vite": "8",
         "vitest": "^4.1.10",
-        "zod-validation-error": "4",
       },
     },
   },
