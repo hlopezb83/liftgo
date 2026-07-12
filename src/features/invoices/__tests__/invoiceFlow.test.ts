@@ -7,12 +7,12 @@ import type { ChainCall, SupabaseMockResponse } from "@/test/helpers/supabaseCha
 // Estado mutable hoisted — vi.mock se eleva sobre los imports, por lo que
 // cualquier variable que use el factory debe crearse dentro de vi.hoisted().
 const state = vi.hoisted(() => ({
-  state.nextNumberResp: { data: "BORRADOR-0042", error: null } as SupabaseMockResponse,
-  state.invoiceInsertResp: {
+  nextNumberResp: { data: "BORRADOR-0042", error: null } as SupabaseMockResponse,
+  invoiceInsertResp: {
     data: { id: "inv-1", invoice_number: "BORRADOR-0042", total: 1000 },
     error: null,
   } as SupabaseMockResponse,
-  state.invoicesCalls: [] as ChainCall[],
+  invoicesCalls: [] as ChainCall[],
 }));
 
 vi.mock("@/integrations/supabase/client", async () => {
@@ -20,12 +20,12 @@ vi.mock("@/integrations/supabase/client", async () => {
   return {
     supabase: createSupabaseChainMock({
       rpcResolvers: {
-        next_draft_invoice_number: () => state.state.nextNumberResp,
+        next_draft_invoice_number: () => state.nextNumberResp,
       },
       tableResolvers: {
         invoices: (calls) => {
-          state.state.invoicesCalls.push(...calls);
-          return state.state.invoiceInsertResp;
+          state.invoicesCalls.push(...calls);
+          return state.invoiceInsertResp;
         },
       },
     }),
@@ -45,14 +45,15 @@ vi.mock("@/lib/ui/appFeedback", () => ({
 
 describe("useCreateInvoice — hook real", () => {
   beforeEach(() => {
-    state.state.nextNumberResp = { data: "BORRADOR-0042", error: null };
-    state.state.invoiceInsertResp = {
+    state.nextNumberResp = { data: "BORRADOR-0042", error: null };
+    state.invoiceInsertResp = {
       data: { id: "inv-1", invoice_number: "BORRADOR-0042", total: 1000 },
       error: null,
     };
-    state.state.invoicesCalls.length = 0;
+    state.invoicesCalls.length = 0;
     notifyErrorMock.mockClear();
   });
+
 
 
   it("genera numero via next_draft_invoice_number y luego inserta con ese numero", async () => {
