@@ -1,13 +1,11 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
-import { USERS_QUERY_KEY } from "./useUsersQuery";
+import { userKeys } from "../../lib/queryKeys";
 import type { AppRole } from "../useUserRole";
 
 export function useUpdateRole() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: AppRole }) => {
       const { data, error } = await supabase
         .from("user_roles")
@@ -17,17 +15,14 @@ export function useUpdateRole() {
       if (error) throw error;
       assertRowsAffected(data, "Actualizar rol");
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
-      notifySuccess("Rol actualizado");
-    },
-    onError: (err: Error) => notifyError({ title: "Error al actualizar rol", error: err }),
+    invalidateKeys: [userKeys.all],
+    successMsg: "Rol actualizado",
+    errorTitle: "Error al actualizar rol",
   });
 }
 
 export function useUpdateName() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ userId, fullName }: { userId: string; fullName: string }) => {
       const { data, error } = await supabase
         .from("profiles")
@@ -37,10 +32,8 @@ export function useUpdateName() {
       if (error) throw error;
       assertRowsAffected(data, "Actualizar nombre");
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
-      notifySuccess("Nombre actualizado");
-    },
-    onError: (err: Error) => notifyError({ title: "Error al actualizar nombre", error: err }),
+    invalidateKeys: [userKeys.all],
+    successMsg: "Nombre actualizado",
+    errorTitle: "Error al actualizar nombre",
   });
 }

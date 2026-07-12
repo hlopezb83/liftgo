@@ -1,8 +1,7 @@
 /**
  * Query keys y contratos de queries del módulo Dashboard.
  *
- * `dashboardKeys` provee el namespace raíz para invalidaciones amplias
- * (ej: tras crear/editar una reserva se invalida todo `dashboardKeys.all`).
+ * `dashboardKeys` provee el namespace raíz para invalidaciones amplias.
  * Cada fuente de datos del tablero (MRR, KPIs financieros, stats generales,
  * feed de actividad) define su propio contrato con `defineEntityQueries`
  * porque cada una tiene una forma de dato distinta.
@@ -11,6 +10,7 @@ import { todayKeyMty } from "@/lib/format/dateFormats";
 import { roundMoney } from "@/lib/money";
 import { callRpc } from "@/lib/rpc";
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import { createEntityKeys } from "@/lib/query/createEntityKeys";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 
@@ -44,7 +44,7 @@ export interface MrrDetail {
 export const mrrDetailQueries = defineEntityQueries<"dashboard-mrr-detail", MrrDetail>(
   "dashboard-mrr-detail",
   {
-    list: () => async () => {
+    list: (filter) => async () => {
       const result = await callRpc<MrrDetail>("get_mrr_detail");
       return {
         items: result?.items ?? [],
@@ -75,7 +75,7 @@ export interface FinancialKpis {
 export const financialKpisQueries = defineEntityQueries<"dashboard-financial-kpis", FinancialKpis | null>(
   "dashboard-financial-kpis",
   {
-    list: () => () => callRpc<FinancialKpis>("get_financial_kpis"),
+    list: (filter) => () => callRpc<FinancialKpis>("get_financial_kpis"),
     staleTime: 30_000,
   },
 );
@@ -148,7 +148,7 @@ export interface DashboardStats {
 export const dashboardStatsQueries = defineEntityQueries<"dashboard-stats", DashboardStats | null>(
   "dashboard-stats",
   {
-    list: () => () => callRpc<DashboardStats>("get_dashboard_stats"),
+    list: (filter) => () => callRpc<DashboardStats>("get_dashboard_stats"),
     staleTime: 30_000,
   },
 );
@@ -166,26 +166,33 @@ export interface ActivityFilters {
   search?: string;
 }
 
-export interface ActivityFeedRow {
-  id: string;
-  created_at: string;
-  actor_id: string | null;
-  entity_type: string | null;
-  event_type: string | null;
-  description: string | null;
-  [key: string]: unknown;
-}
+export type ActivityFeedRow = Database["public"]["Tables"]["activity_feed"]["Row"];
 
-interface ActivityFeedFilter {
+function readActivityFeedFilter(filter: Readonly<Record<string, unknown>> | undefined): {
   limit: number;
   filters: ActivityFilters;
+} {
+  const limitRaw = filter?.limit;
+  const filtersRaw = filter?.filters;
+  const limit = typeof limitRaw === "number" ? limitRaw : 50;
+  const filters: ActivityFilters = {};
+  if (filtersRaw && typeof filtersRaw === "object") {
+    const f = filtersRaw as Readonly<Record<string, unknown>>;
+    if (f.from instanceof Date) filters.from = f.from;
+    if (f.to instanceof Date) filters.to = f.to;
+    if (typeof f.actorId === "string") filters.actorId = f.actorId;
+    if (typeof f.entityType === "string") filters.entityType = f.entityType;
+    if (typeof f.eventType === "string") filters.eventType = f.eventType;
+    if (typeof f.search === "string") filters.search = f.search;
+  }
+  return { limit, filters };
 }
 
 export const activityFeedQueries = defineEntityQueries<"dashboard-activity-feed", ActivityFeedRow[]>(
   "dashboard-activity-feed",
   {
     list: (filter) => async () => {
-      const { limit, filters } = (filter ?? { limit: 50, filters: {} }) as unknown as ActivityFeedFilter;
+      const { limit, filters } = readActivityFeedFilter(filter);
 
       let query = supabase
         .from("activity_feed")
@@ -207,7 +214,7 @@ export const activityFeedQueries = defineEntityQueries<"dashboard-activity-feed"
 
       const { data, error } = await query;
       if (error) throw error;
-      return (data ?? []) as unknown as ActivityFeedRow[];
+      return data ?? [];
     },
     staleTime: 60_000,
   },

@@ -4,7 +4,6 @@ import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { cashFlowSettingsQueries, type CashFlowSettings } from "../lib/queryKeys";
 
 export type { CashFlowSettings };
-export const CASH_FLOW_SETTINGS_QK = cashFlowSettingsQueries.keys.lists();
 
 export function useCashFlowSettings() {
   return useQuery(cashFlowSettingsQueries.list());
