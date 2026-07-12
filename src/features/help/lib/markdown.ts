@@ -31,7 +31,7 @@ const SANITIZE_CONFIG = {
   ALLOWED_ATTR: ["class"],
   ALLOW_DATA_ATTR: false,
   ALLOW_UNKNOWN_PROTOCOLS: false,
-} as const;
+};
 
 export function renderSafeMarkdown(md: string): string {
   return DOMPurify.sanitize(renderMarkdown(md), SANITIZE_CONFIG);
