@@ -1,0 +1,39 @@
+{
+  "version": "7.34.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "react-router 6 → 7",
+  "sections": [
+    {
+      "heading": "Contexto",
+      "items": [
+        "Estábamos en `react-router-dom@6.30.4`. React Router 7 (v7.18.1) unifica los paquetes y estabiliza el modo librería como sucesor directo de v6.4+.",
+        "Este proyecto usa router en modo librería (BrowserRouter + <Routes>): no hay data mode, loaders, actions, SSR ni framework mode. La migración es drop-in."
+      ]
+    },
+    {
+      "heading": "Cambio aplicado",
+      "items": [
+        "`bun add react-router-dom@^7 react-router@^7` → instalados 7.18.1.",
+        "Sin cambios en imports: los 51 archivos que hacen `from \"react-router-dom\"` siguen funcionando porque v7 re-exporta la misma superficie API que usamos: `BrowserRouter`, `Routes`, `Route`, `Outlet`, `Link`, `NavLink`, `Navigate`, `useNavigate`, `useLocation`, `useParams`, `useSearchParams`, `useMatch`.",
+        "`useNavigateTransition` (wrapper propio sobre `useNavigate` + `startTransition`) sigue operando idéntico."
+      ]
+    },
+    {
+      "heading": "Qué NO se activó (opt-in en v7)",
+      "items": [
+        "Data mode (loaders/actions) — seguimos con TanStack Query como fuente de datos, ya diseñado para este stack.",
+        "Framework mode (file-system routing, SSR) — no aplica; somos SPA client-side.",
+        "Future flags v7 (`v7_startTransition`, `v7_relativeSplatPath`, etc.) — ya son el default en v7, así que desaparecen del código sin necesidad de configurarlas."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "Typecheck limpio (`tsgo --noEmit` sin errores).",
+        "921/921 tests verdes (incluye `useListFilters.test.tsx`, `InvoicesPage.test.tsx`, `StampErrorDialog.test.tsx` que ejercitan router en tests).",
+        "Rutas anidadas de MainLayout, CustomerPortalRoutes, Suspense por ruta y RouteErrorBoundary siguen operando."
+      ]
+    }
+  ]
+}
