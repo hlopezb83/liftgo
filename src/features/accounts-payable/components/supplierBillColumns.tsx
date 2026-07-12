@@ -7,7 +7,7 @@ import { formatDateDisplay } from "@/lib/utils";
 import { EXPENSE_CATEGORY_LABELS, SUPPLIER_BILL_STATUS_LABELS, APPROVAL_STATUS_LABELS } from "../lib/supplierBillConstants";
 import type { SupplierBillListItem } from "../hooks/useSupplierBills";
 
-export function useSupplierBillColumns() {
+export function useSupplierBillColumns(): ColumnDef<SupplierBillListItem>[] {
   return [
     {
       id: "bill_number", header: "Folio", accessorKey: "bill_number",
