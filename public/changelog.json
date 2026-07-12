@@ -1,5 +1,15 @@
 [
   {
+    "version": "7.48.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "React 19: Compiler activo en build + modernización de imports",
+    "description": "Se activó babel-plugin-react-compiler en vite.config (vía @rolldown/plugin-babel + reactCompilerPreset target: '19'), habilitando auto-memoización de componentes/hooks que cumplen las Reglas de React. 35 archivos shadcn/ui migraron de 'import * as React' a imports nombrados (mejor tree-shaking). Se eliminó 'import React from react' residual en EmptyRow y 10 tests. Nuevo hook src/hooks/useOptimisticStatus.ts como wrapper genérico de useOptimistic + startTransition; adoptado en useFeedbackStatusUpdate.",
+    "category": "improvement",
+    "impact": "Compiler runtime elimina el costo de memoizaciones manuales; imports nombrados mejoran el tree-shaking del bundle de UI primitives.",
+    "files": ["vite.config.ts", "src/components/ui/**", "src/hooks/useOptimisticStatus.ts", "src/features/feedback/hooks/useFeedbackStatusUpdate.ts"]
+  },
+  {
     "version": "7.47.0",
     "date": "2026-07-12",
     "type": "minor",

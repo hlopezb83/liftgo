@@ -9,17 +9,17 @@
  *
  * Requiere jsdom (no happy-dom) por la serialización de estilos de react-pdf.
  */
-import React from "react";
+import { createElement, type ReactNode, type ReactElement } from "react";
 import { describe, it, expect, vi } from "vitest";
 
 vi.mock("@react-pdf/renderer", () => {
   const tag = (name: string) =>
-    function PdfTag(props: { children?: React.ReactNode; [k: string]: unknown }) {
+    function PdfTag(props: { children?: ReactNode; [k: string]: unknown }) {
       const safe: Record<string, unknown> = {};
       Object.keys(props).forEach((k) => {
         if (k === "children" || k === "style" || k === "src" || k === "id") safe[k] = props[k];
       });
-      return React.createElement("pdf-" + name, safe, props.children as React.ReactNode);
+      return createElement("pdf-" + name, safe, props.children as ReactNode);
     };
   return {
     Document: tag("document"),
@@ -45,7 +45,7 @@ import {
 } from "./__fixtures__/pdfFixtures";
 
 
-function snap(el: React.ReactElement) {
+function snap(el: ReactElement) {
   const { container, unmount } = render(el);
   const html = container.innerHTML;
   unmount();

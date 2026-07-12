@@ -1,11 +1,11 @@
-import * as React from "react";
+import type { ComponentPropsWithoutRef, ElementRef, Ref } from "react";
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 
 import { cn } from "@/lib/utils";
 
 const Tabs = TabsPrimitive.Root;
 
-const TabsList = ({ className, ref, ...props }: React.ComponentPropsWithoutRef<typeof TabsPrimitive.List> & { ref?: React.Ref<React.ElementRef<typeof TabsPrimitive.List>> }) => {
+const TabsList = ({ className, ref, ...props }: ComponentPropsWithoutRef<typeof TabsPrimitive.List> & { ref?: Ref<ElementRef<typeof TabsPrimitive.List>> }) => {
   return (
     <TabsPrimitive.List
     ref={ref}
@@ -19,7 +19,7 @@ const TabsList = ({ className, ref, ...props }: React.ComponentPropsWithoutRef<t
 };
 TabsList.displayName = TabsPrimitive.List.displayName;
 
-const TabsTrigger = ({ className, ref, ...props }: React.ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger> & { ref?: React.Ref<React.ElementRef<typeof TabsPrimitive.Trigger>> }) => {
+const TabsTrigger = ({ className, ref, ...props }: ComponentPropsWithoutRef<typeof TabsPrimitive.Trigger> & { ref?: Ref<ElementRef<typeof TabsPrimitive.Trigger>> }) => {
   return (
     <TabsPrimitive.Trigger
     ref={ref}
@@ -33,7 +33,7 @@ const TabsTrigger = ({ className, ref, ...props }: React.ComponentPropsWithoutRe
 };
 TabsTrigger.displayName = TabsPrimitive.Trigger.displayName;
 
-const TabsContent = ({ className, ref, ...props }: React.ComponentPropsWithoutRef<typeof TabsPrimitive.Content> & { ref?: React.Ref<React.ElementRef<typeof TabsPrimitive.Content>> }) => {
+const TabsContent = ({ className, ref, ...props }: ComponentPropsWithoutRef<typeof TabsPrimitive.Content> & { ref?: Ref<ElementRef<typeof TabsPrimitive.Content>> }) => {
   return (
     <TabsPrimitive.Content
     ref={ref}

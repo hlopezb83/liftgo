@@ -1,4 +1,5 @@
-import * as React from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import type { CSSProperties, ComponentProps, Ref } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -20,10 +21,10 @@ export type SidebarContextValue = {
   toggleSidebar: () => void;
 };
 
-const SidebarContext = React.createContext<SidebarContextValue | null>(null);
+const SidebarContext = createContext<SidebarContextValue | null>(null);
 
 export function useSidebar(): SidebarContextValue {
-  const context = React.useContext(SidebarContext);
+  const context = useContext(SidebarContext);
   if (!context) {
     throw new Error("useSidebar must be used within a SidebarProvider.");
   }
@@ -39,18 +40,18 @@ export const SidebarProvider = ({
   children,
   ref,
   ...props
-}: React.ComponentProps<"div"> & {
+}: ComponentProps<"div"> & {
   defaultOpen?: boolean;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
-  ref?: React.Ref<HTMLDivElement>;
+  ref?: Ref<HTMLDivElement>;
 }) => {
   const isMobile = useIsMobile();
-  const [openMobile, setOpenMobile] = React.useState(false);
+  const [openMobile, setOpenMobile] = useState(false);
 
-  const [_open, _setOpen] = React.useState(defaultOpen);
+  const [_open, _setOpen] = useState(defaultOpen);
   const open = openProp ?? _open;
-  const setOpen = React.useCallback(
+  const setOpen = useCallback(
     (value: boolean | ((value: boolean) => boolean)) => {
       const openState = typeof value === "function" ? value(open) : value;
       if (setOpenProp) {
@@ -63,11 +64,11 @@ export const SidebarProvider = ({
     [setOpenProp, open],
   );
 
-  const toggleSidebar = React.useCallback(() => {
+  const toggleSidebar = useCallback(() => {
     return isMobile ? setOpenMobile((v) => !v) : setOpen((v) => !v);
   }, [isMobile, setOpen, setOpenMobile]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === SIDEBAR_KEYBOARD_SHORTCUT && (event.metaKey || event.ctrlKey)) {
         event.preventDefault();
@@ -80,7 +81,7 @@ export const SidebarProvider = ({
 
   const state = open ? "expanded" : "collapsed";
 
-  const contextValue = React.useMemo<SidebarContextValue>(
+  const contextValue = useMemo<SidebarContextValue>(
     () => ({ state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar }),
     [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar],
   );
@@ -94,7 +95,7 @@ export const SidebarProvider = ({
               "--sidebar-width": SIDEBAR_WIDTH,
               "--sidebar-width-icon": SIDEBAR_WIDTH_ICON,
               ...style,
-            } as React.CSSProperties
+            } as CSSProperties
           }
           className={cn("group/sidebar-wrapper flex min-h-svh w-full has-[[data-variant=inset]]:bg-sidebar", className)}
           ref={ref}

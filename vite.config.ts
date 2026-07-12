@@ -1,6 +1,7 @@
 import path from "path";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
-import react from "@vitejs/plugin-react";
+import babel from "@rolldown/plugin-babel";
+import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { componentTagger } from "lovable-tagger";
 import { visualizer } from "rollup-plugin-visualizer";
 import { defineConfig } from "vite";
@@ -36,11 +37,14 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
   },
   plugins: [
-    // plugin-react v6 usa Oxc para JSX/HMR y ya NO acepta `babel`. El
-    // React Compiler queda cubierto por eslint-plugin-react-compiler
-    // (análisis estático). Migración a runtime compiler requiere
-    // rolldown-vite + `reactCompilerPreset` — pendiente.
+    // plugin-react v6 usa Oxc para JSX/HMR. El React Compiler corre como
+    // preset de Babel vía @rolldown/plugin-babel: auto-memoiza componentes/hooks
+    // que cumplen las Reglas de React y hace bail-out silencioso en los que no.
+    // El linter `react-compiler/react-compiler` reporta los bail-outs.
     react(),
+    babel({
+      presets: [reactCompilerPreset({ target: "19" })],
+    }),
     mode === "development" && componentTagger(),
     process.env.ANALYZE === "1" &&
       visualizer({

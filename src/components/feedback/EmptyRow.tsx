@@ -1,8 +1,8 @@
-import React from "react";
+import type { Ref } from "react";
 import { Inbox } from "@/components/icons";
 import { TableRow, TableCell } from "@/components/ui/table";
 
-export const EmptyRow = ({ colSpan, message = "Sin resultados", ref }: { colSpan: number; message?: string } & { ref?: React.Ref<HTMLTableRowElement> }) => {
+export const EmptyRow = ({ colSpan, message = "Sin resultados", ref }: { colSpan: number; message?: string } & { ref?: Ref<HTMLTableRowElement> }) => {
   return (
     <TableRow ref={ref}>
     <TableCell colSpan={colSpan} className="text-center py-14">

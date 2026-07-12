@@ -1,4 +1,4 @@
-import * as React from "react";
+import type { ComponentProps } from "react";
 import { ChevronLeftIcon, ChevronRightIcon } from "@/components/icons";
 import { DayPicker } from "react-day-picker";
 import { es } from "date-fns/locale";
@@ -6,7 +6,7 @@ import { es } from "date-fns/locale";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 
-export type CalendarProps = React.ComponentProps<typeof DayPicker>;
+export type CalendarProps = ComponentProps<typeof DayPicker>;
 
 function Calendar({ className, classNames, showOutsideDays = true, ...props }: CalendarProps) {
   return (

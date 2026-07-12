@@ -9,7 +9,7 @@ async function waitUntil(predicate: () => boolean, timeout = 3000) {
   }
 }
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import React from "react";
+import { createElement, type ReactNode } from "react";
 import { getAccessLevel, type PermissionsMap, useUserRole } from "@/features/users";
 // ---- Supabase + Auth mocks ----
 const selectMock = vi.fn();
@@ -28,9 +28,9 @@ vi.mock("@/contexts/AuthContext", () => ({
   useAuth: () => ({ user: { id: "user-non-admin" } }),
 }));
 
-function wrapper({ children }: { children: React.ReactNode }) {
+function wrapper({ children }: { children: ReactNode }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  return React.createElement(QueryClientProvider, { client: qc }, children);
+  return createElement(QueryClientProvider, { client: qc }, children);
 }
 
 describe("useUserRole — RLS visibility of own role", () => {

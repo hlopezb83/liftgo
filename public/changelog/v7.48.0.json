@@ -1,0 +1,40 @@
+{
+  "version": "7.48.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "React 19: Compiler activo en build + modernización de imports",
+  "summary": "Se habilitó React Compiler en el pipeline de build, se modernizaron imports React en 45 archivos y se agregó un hook genérico useOptimisticStatus.",
+  "sections": [
+    {
+      "title": "React Compiler en build",
+      "items": [
+        "Se instalaron @rolldown/plugin-babel, @babel/core, babel-plugin-react-compiler y @types/babel__core como devDependencies.",
+        "vite.config.ts agrega babel({ presets: [reactCompilerPreset({ target: '19' })] }) tras el plugin react().",
+        "El compiler auto-memoiza componentes y hooks que cumplen las Reglas de React; los bail-outs siguen siendo reportados por eslint-plugin-react-compiler."
+      ]
+    },
+    {
+      "title": "Modernización de imports React",
+      "items": [
+        "35 archivos en src/components/ui/** migrados de 'import * as React' a imports nombrados (useState, useMemo, createContext, useId) + type-only imports para tipos (ComponentPropsWithoutRef, ElementRef, Ref, HTMLAttributes).",
+        "src/components/feedback/EmptyRow.tsx: default React import reemplazado por 'import type { Ref } from react'.",
+        "9 archivos de tests (RLS + rolePermissions + queryClient wrapper + documents.smoke) migrados a 'import { createElement, type ReactNode } from react'."
+      ]
+    },
+    {
+      "title": "Hook compartido useOptimisticStatus",
+      "items": [
+        "Nuevo src/hooks/useOptimisticStatus.ts: wrapper genérico sobre useOptimistic + startTransition para el patrón 'cambio de status con mutación async'.",
+        "Adoptado en useFeedbackStatusUpdate como primer consumidor.",
+        "Diseñado para adoptarse a futuro en flujos kanban (cuando se sume drag&drop) sin duplicar la lógica optimista."
+      ]
+    },
+    {
+      "title": "Estado actual React 19",
+      "items": [
+        "Ya adoptado: useEffectEvent (React 19.2), useOptimistic, useTransition, useDeferredValue, <Activity>, React.lazy + Suspense, useId.",
+        "Cero forwardRef, React.FC, defaultProps, propTypes o class components en el proyecto."
+      ]
+    }
+  ]
+}
