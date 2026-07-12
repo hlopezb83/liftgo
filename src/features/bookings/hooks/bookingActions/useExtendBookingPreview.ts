@@ -1,5 +1,5 @@
 
-import { format } from "date-fns";
+import { toYMD } from "@/lib/format/dateFormats";
 import { useForklifts } from "@/features/fleet";
 import { generateLineItems, computeTotals } from "@/lib/domain/invoiceHelpers";
 import type { BookingWithForklift } from "../useBookings";
