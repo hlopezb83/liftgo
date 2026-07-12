@@ -1,56 +1,92 @@
-## Objetivo
+# Auditoría — Carta "Flujo de Efectivo" del Dashboard
 
-Cerrar el hallazgo 7/7 del audit de código custom-made migrando `src/hooks/usePullToRefresh.ts` a `@use-gesture/react` sin cambiar la API pública ni el comportamiento visual en móvil.
+Fuente de datos: bloque `'cash_flow'` dentro del RPC de estadísticas del dashboard (última migración `20260615003939_*.sql`). Componente cliente: `src/features/dashboard/components/dashboard/CashFlowChart.tsx` (barras Facturado vs Pagado, 6 meses).
 
-## Alcance
+## Bugs encontrados
 
-**Sí:** el hook `usePullToRefresh` y su consumidor `ListPageLayout`.
-**No:** el componente `PullToRefreshIndicator`, el layout de `<main>`, ni el resto de la app.
+Sí, hay varios problemas. Verificados contra la base:
 
-## Pasos
+1. **Ventana temporal parcial (mes recortado).** El filtro es `issued_at >= CURRENT_DATE - INTERVAL '6 months'`. Hoy (12 jul) eso arranca el **12 de enero**, así que la barra de enero omite las facturas del 1 al 11 de enero. La consulta confirma: enero 2026 muestra sólo 2 facturas / $45,240 (mes truncado).
+2. **Meses sin datos = huecos.** No hay `generate_series`. Si un mes no tuvo facturas, simplemente no aparece la barra (parece que "faltan datos"). El resto de charts del dashboard sí generan la serie completa.
+3. **Facturas canceladas incluidas.** No se filtra por `status <> 'cancelled'` ni `cancelled_at IS NULL`. Julio ya trae 9 canceladas dentro de los $737,064 "facturados".
+4. **`Pagado` atribuido al mes de emisión, no al mes del cobro.** La consulta hace `SUM(CASE WHEN paid_at IS NOT NULL THEN total)` agrupado por `issued_at`. Para un *flujo de efectivo* la barra "Pagado" debería representar el dinero que entró ese mes (agrupar por `paid_at`), no facturas emitidas ese mes que en algún momento se pagaron.
+5. **Pagos parciales ignorados.** Se usa `total` como monto pagado; una factura sólo cuenta si `paid_at IS NOT NULL` (todo-o-nada). Con la tabla `payments` que ya soporta pagos parciales (memoria "Payment Tracking"), el monto real cobrado debería salir de `SUM(payments.amount)`.
+6. **Notas de crédito no restan.** `credit_notes` no se resta del facturado neto.
 
-1. **Instalar dependencia**
-   - `bun add @use-gesture/react@^10.3.1` (~13 KB gz, mantenida por Poimandres; ya validada como estable).
+## Alcance del cambio
 
-2. **Reescribir `src/hooks/usePullToRefresh.ts`**
-   - Sustituir `useEffect` + listeners manuales de `touchstart/move/end/cancel` por `useDrag` de `@use-gesture/react`, adjuntándolo al `target` con `target: containerRef` y `pointer: { touch: true }`.
-   - Configurar en el propio `useDrag`:
-     - `axis: 'y'` para bloquear a vertical.
-     - `enabled` reactivo (parametrizado como hoy).
-     - `from: () => [0, 0]` y `bounds: { top: 0 }` para permitir sólo pull hacia abajo.
-     - Gate `active && el.scrollTop === 0` dentro del handler para respetar el requisito actual (solo dispara con scroll en tope).
-   - Mantener la resistencia visual (`eased = min(maxDistance, delta * 0.5)`).
-   - Al `last === true`: si `pullDistance >= threshold` disparar `trigger()`; si no, reset a 0.
-   - Preservar exactamente los mismos returns: `{ pullDistance, isRefreshing, threshold }`.
-   - Preservar la firma de opciones: `{ onRefresh, target, threshold?, maxDistance?, enabled? }`.
+Sólo el bloque `'cash_flow'` del RPC del dashboard + una prueba unitaria de `mapCashFlow`. No se toca la UI (el contrato `{ month, month_key, invoiced, paid }` se conserva). No se toca la página `/cash-flow` (módulo aparte, proyecciones).
 
-3. **Verificar consumidor**
-   - `ListPageLayout.tsx` no debería requerir cambios (API pública intacta). Confirmar que sigue pasando `target={scrollTarget}` y `enabled={isMobile && !!onRefresh}`.
+## Cambios
 
-4. **Validación visual**
-   - Playwright con viewport móvil (390×844) en `/cotizaciones` y `/reservas`: simular gesto vertical (`page.mouse.down/move/up` sobre el `<main>` con `hasTouch: true`) y verificar que aparece el `PullToRefreshIndicator` con `"Desliza para actualizar"` → `"Suelta para actualizar"` → `"Actualizando…"`.
-   - Confirmar 0 errores en consola durante el drag.
+### 1. Nueva migración: reescribir el sub-select `cash_flow`
 
-5. **Test unitario del hook**
-   - Añadir `src/hooks/__tests__/usePullToRefresh.test.tsx`: mount con `target=null` (inactivo), luego con un div mock; simular drag vía la API interna de `@use-gesture/react` (o vía `renderHook` + eventos sintéticos) y verificar que `onRefresh` se llama cuando `pullDistance >= threshold`.
+Reemplazar el bloque por una versión con:
 
-6. **Changelog v7.61.0 (minor)**
-   - Nueva entrada en `public/changelog.json` + archivo detalle `public/changelog/v7.61.0.json`.
-   - Título: *"Lote G (cierre): usePullToRefresh migrado a @use-gesture/react"*.
-   - Impacto: se cierra el 7/7 del audit sin cambios en API pública.
+- CTE `months` con `generate_series(5, 0, -1)` produciendo 6 meses completos alineados a `DATE_TRUNC('month', CURRENT_DATE)`.
+- CTE `invoiced_by_month`: `SUM(total)` de `invoices` **excluyendo canceladas** (`status <> 'cancelled' AND cancelled_at IS NULL`), agrupado por `DATE_TRUNC('month', issued_at)`.
+- CTE `credited_by_month`: `SUM(total)` de `credit_notes` no canceladas por mes emisión, para restar del facturado neto.
+- CTE `paid_by_month`: `SUM(amount)` de `payments` agrupado por `DATE_TRUNC('month', paid_at)` (mes real del cobro), con el mismo filtro anti-cancelación por join a `invoices`.
+- `LEFT JOIN` de las tres CTEs contra `months`; `COALESCE` a 0.
 
-## Detalles técnicos
+```sql
+'cash_flow', (
+  WITH months AS (
+    SELECT (DATE_TRUNC('month', CURRENT_DATE)::date - make_interval(months => m))::date AS m
+    FROM generate_series(5, 0, -1) AS m
+  ),
+  invoiced_cte AS (
+    SELECT DATE_TRUNC('month', issued_at)::date AS m, SUM(total) AS amt
+    FROM invoices
+    WHERE issued_at >= (DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '5 months')
+      AND status <> 'cancelled' AND cancelled_at IS NULL
+    GROUP BY 1
+  ),
+  credited_cte AS (
+    SELECT DATE_TRUNC('month', issued_at)::date AS m, SUM(total) AS amt
+    FROM credit_notes
+    WHERE issued_at >= (DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '5 months')
+      AND COALESCE(status,'') <> 'cancelled'
+    GROUP BY 1
+  ),
+  paid_cte AS (
+    SELECT DATE_TRUNC('month', p.paid_at)::date AS m, SUM(p.amount) AS amt
+    FROM payments p
+    JOIN invoices i ON i.id = p.invoice_id
+    WHERE p.paid_at >= (DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '5 months')
+      AND i.status <> 'cancelled' AND i.cancelled_at IS NULL
+    GROUP BY 1
+  )
+  SELECT COALESCE(json_agg(json_build_object(
+    'month',     TO_CHAR(months.m, 'Mon YYYY'),
+    'month_key', TO_CHAR(months.m, 'YYYY-MM'),
+    'invoiced',  COALESCE(i.amt, 0) - COALESCE(c.amt, 0),
+    'paid',      COALESCE(p.amt, 0)
+  ) ORDER BY months.m), '[]'::json)
+  FROM months
+  LEFT JOIN invoiced_cte i ON i.m = months.m
+  LEFT JOIN credited_cte c ON c.m = months.m
+  LEFT JOIN paid_cte     p ON p.m = months.m
+)
+```
 
-- **API pública sin cambios** → cero cambios en `ListPageLayout` y por transitividad cero regresiones en las páginas lista.
-- **Tree-shaking**: import nombrado `import { useDrag } from '@use-gesture/react'`.
-- **SSR / desktop**: `useDrag` con `enabled: false` es no-op; sigue siendo seguro pasar `enabled: isMobile && !!onRefresh`.
-- **Comportamiento de scroll**: el gate `el.scrollTop === 0` se mantiene explícito para no interceptar el scroll normal.
-- **Riesgo**: bajo. La lib sólo reemplaza el manejo de eventos táctiles; toda la lógica de umbral, resistencia y disparo permanece en nuestro hook.
+Antes de escribir la migración, verificaré con `supabase--read_query` los nombres exactos de columnas en `payments` (`invoice_id`, `paid_at`, `amount`) y `credit_notes` para no romper la firma.
 
-## Criterios de aceptación
+### 2. Test unitario adicional
 
-- `bun run test` verde (incluye nuevo test de `usePullToRefresh`).
-- `tsgo` limpio.
-- Playwright móvil: indicador aparece, cambia a "Suelta…" al pasar threshold, dispara `onRefresh` al soltar, no dispara si se cancela.
-- 0 imports de `@use-gesture/react` fuera de `usePullToRefresh.ts` (mantener la migración quirúrgica).
-- Changelog v7.61.0 registrado.
+En `src/features/dashboard/lib/__tests__/dashboardSectionHelpers.test.ts`: caso con `paid > invoiced` en el mismo mes (cobros de facturas antiguas) para verificar que la UI no rompe con esa relación.
+
+### 3. Changelog
+
+Nueva entrada `v7.61.1` (patch): bugfix en flujo de efectivo del dashboard (ventana temporal completa, cancelaciones excluidas, notas de crédito restadas, pagos parciales, "Pagado" ahora por mes de cobro).
+
+## Fuera de alcance
+
+- No se cambia el color/leyenda ni el tooltip.
+- No se toca la página `/cash-flow` ni sus proyecciones.
+- No se agregan filtros por moneda (MXN/USD) — se puede evaluar en otro sprint.
+
+## Riesgos
+
+- Los números de la barra **cambiarán visiblemente** para meses con cobros de facturas antiguas: es lo correcto. Se documenta en el changelog para que el usuario no lo perciba como regresión.
+- Si `payments` no tiene un pago migrado para facturas viejas marcadas con `paid_at`, esas facturas podrían dejar de contribuir a "Pagado". Verificaré con una consulta rápida (`SELECT COUNT(*) FROM invoices WHERE paid_at IS NOT NULL AND NOT EXISTS (SELECT 1 FROM payments WHERE invoice_id = invoices.id)`) antes de aplicar el cambio, y si hay casos huérfanos añadiré un fallback en la CTE `paid_cte` con `UNION ALL` sobre `invoices.paid_at` para esos ids.
