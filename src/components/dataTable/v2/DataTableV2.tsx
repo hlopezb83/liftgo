@@ -1,6 +1,5 @@
 import { type ReactNode } from "react";
 import type { Table as TanstackTable } from "@tanstack/react-table";
-import type { QueryClient } from "@tanstack/react-query";
 import { Table } from "@/components/ui/table";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { MobileCardList } from "@/components/layout/MobileCardList";
