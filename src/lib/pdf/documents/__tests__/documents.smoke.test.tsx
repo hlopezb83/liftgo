@@ -1,9 +1,13 @@
 /**
+ * @vitest-environment jsdom
+ *
  * Smoke + render structural de los 5 Documents PDF.
  *
  * @react-pdf/renderer está mockeado a tags React planos para evitar el motor
  * Yoga/binario PDF. Esto da cobertura de los Document components y detecta
  * regresiones de imports, tipos y props sin requerir un PDF real.
+ *
+ * Requiere jsdom (no happy-dom) por la serialización de estilos de react-pdf.
  */
 import { describe, it, expect, vi } from "vitest";
 import React from "react";
