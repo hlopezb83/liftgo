@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.37.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "Tailwind v4 CSS-first: `@theme inline` + guardrail de tokens",
+    "description": "Auditoría Tailwind. Eliminado `tailwind.config.ts` (146 LOC) migrando todos los tokens semánticos (color, radius, animation, font, container, breakpoints, custom-variants) a un bloque `@theme inline` dentro de `src/index.css`. Google Fonts movido de `@import` CSS bloqueante a `<link rel=\"preconnect\"+stylesheet>` en `index.html` para desbloquear el CSS crítico. `GlobalInvoiceFields` deja de usar la paleta cruda amber-* y se apoya en el token `warning`. Nueva regla ESLint `no-restricted-syntax` avisa cuando se usa la paleta cruda de Tailwind fuera de `components/ui/**` para forzar el uso de tokens. Build ✓ · 992/992 tests · CSS bundle 121 kB.",
+    "category": "improvement",
+    "changes": [
+      { "type": "removed", "description": "tailwind.config.ts (146 LOC) — reemplazado por `@theme inline` en src/index.css" },
+      { "type": "added", "description": "Bloque `@theme inline` con --color-*, --radius-*, --animate-*, --font-*, `@utility container`" },
+      { "type": "changed", "description": "Google Fonts: `@import` CSS → `<link preconnect>` + stylesheet en index.html (mejora FCP)" },
+      { "type": "changed", "description": "GlobalInvoiceFields usa border-warning/40 + bg-warning/10 (antes amber-300/50)" },
+      { "type": "added", "description": "ESLint guardrail: prohíbe utilities de paleta cruda (bg-white, text-gray-500, …) fuera de components/ui/**" }
+    ]
+  },
+  {
     "version": "7.36.0",
     "date": "2026-07-12",
     "type": "minor",
