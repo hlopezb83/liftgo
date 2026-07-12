@@ -1,0 +1,47 @@
+{
+  "version": "7.25.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "Fase F Lote 2 — Poda de useMemo/useCallback redundantes (ronda 2)",
+  "sections": [
+    {
+      "heading": "Contexto",
+      "items": [
+        "Continuación del barrido iniciado en v7.24.0. React Compiler (target 19) estabiliza identidades por defecto, por lo que la mayoría de `useMemo`/`useCallback` manuales fuera de infraestructura son redundantes.",
+        "Ronda 2 aborda la cola larga: derivaciones puras, arreglos `ColumnDef[]` inline y handlers de eventos."
+      ]
+    },
+    {
+      "heading": "Podas por dominio (~90 sitios en 33 archivos)",
+      "items": [
+        "Reportes: `UtilizationReport`, `UtilizationByModelReport`, `RevenueReport`, `ProfitabilityByModelReport`, `MaintenanceCostReport`, `AgingReport`, `useStatementTotals`.",
+        "Facturas: `useInvoiceFormLogic`, `useInvoiceFormHandlers`, `useInvoiceLineItemHandlers`, `PortalInvoiceDetail`, `PortalStatement`.",
+        "Calendario: `GanttChart` (5 memos), `CalendarPage` (fetchFrom/fetchTo/endingSoon), `useGanttSegments`.",
+        "Mantenimiento/Inventario/Flota/Devoluciones/Proveedores: `MaintenancePage`, `InventoryPage`, `useInventoryFilters`, `FleetPage`, `useForkliftFormState`, `ReturnInspectionPage`, `useReturnInspectionDialog`, `SuppliersPage`, `SupplierDetailPage`.",
+        "Cotizaciones: `useQuoteDetailData` (customerMatch, lineItems, durationDays, rentalMeta).",
+        "Feedback/Daños/Auditoría/Usuarios: `FeedbackFormDialog`, `MyReportsPage`, `useReportDamageForm`, `ImageGalleryLightbox`, `AuditTrailPage`, `UserManagementPage`.",
+        "Cuentas por pagar: `useSupplierBillForm` (selectedSupplier, suggestedDueDate), `useImportSupplierBillCfdi` (reset, importXml)."
+      ]
+    },
+    {
+      "heading": "Preservados intencionalmente",
+      "items": [
+        "Hooks de infraestructura en `src/hooks/`, valores de contexto (`AuthContext`, `PageActionsContext`, `ConfirmProvider`, sidebar), y sitios ya blindados en v7.24.0 (`counts`/`overdueInvoices` en dashboard, `statementRows`, `lines`/`eligibleIds` del preview de recurrentes).",
+        "`todayIdx`, callbacks internos de `GlobalSearch` y hooks pesados de agregación que ya usaban el Compiler correctamente."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "`bunx tsgo --noEmit` en verde tras cada sub-lote.",
+        "Sin cambios de comportamiento observable — sólo eliminación de wrappers redundantes."
+      ]
+    },
+    {
+      "heading": "Cola restante",
+      "items": [
+        "~50 archivos con 1 `useMemo`/`useCallback` residual cada uno (mayoría `ColumnDef[]` en páginas de listado o filtros triviales)."
+      ]
+    }
+  ]
+}
