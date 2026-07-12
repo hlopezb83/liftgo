@@ -1,9 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { invoiceKeys } from "../../lib/queryKeys";
 
-export function useNextInvoiceNumber(enabled = true) {
-  return useQuery({
+const nextNumberQuery = (enabled = true) =>
+  queryOptions({
     queryKey: invoiceKeys.nextNumber(),
     enabled,
     staleTime: 0,
@@ -13,4 +13,7 @@ export function useNextInvoiceNumber(enabled = true) {
       return data as string;
     },
   });
+
+export function useNextInvoiceNumber(enabled = true) {
+  return useQuery(nextNumberQuery(enabled));
 }
