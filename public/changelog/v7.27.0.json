@@ -1,0 +1,8 @@
+{
+  "version": "7.27.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "TanStack Query — Devtools, persistencia, defineEntityQueries y prefetch on intent",
+  "description": "Auditoría TanStack Query v5 aterrizada en 4 lotes. Lote 1 (DX): `@tanstack/react-query-devtools` montado en DEV con botón inferior-izquierdo; nuevo helper `defineEntityQueries<Root, TList, TDetail>` en `src/lib/query/defineEntityQueries.ts` que combina `createEntityKeys` con el idiom oficial `queryOptions()`, entregando un contrato tipado reutilizable entre `useQuery` / `useSuspenseQuery` / `queryClient.prefetchQuery` / `ensureQueryData`. Migradas 3 pantallas piloto: `useQuotes`, `useContracts`, `useDeliveries` — la queryKey ahora vive dentro del `queryOptions` y elimina la duplicación fetchFn↔key. Lote 2 (UX): nuevo hook `usePrefetchOnHover` que devuelve handlers `onMouseEnter`/`onFocus` (delay 120ms) para precalentar cache con `queryClient.prefetchQuery`, listo para adopción incremental en filas de tabla y menú lateral. Lote 3 (Clean): thin re-export `useSuspenseQuery` en `src/lib/query/useSuspenseQuery.ts` con convenciones LiftGo para migrar rutas que ya tienen `<Suspense>` en `App.tsx` (data pasa a ser `T`, no `T | undefined`). Lote 4 (Advanced): `PersistQueryClientProvider` activo con whitelist estricta en `src/lib/query/persister.ts` — persiste sólo catálogos/dashboards/KPIs (24h TTL) y bloquea explícitamente `user_roles`, `auth`, `session`, `portal`, `pac-config`; nuevo `useOptimisticListMutation` con el pipeline oficial snapshot → mutate → onError rollback → onSettled invalidate, sustituyendo el patrón manual `queryClient.setQueryData`. Typecheck en verde (0 errores).",
+  "category": "improvement"
+}
