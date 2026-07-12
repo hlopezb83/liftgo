@@ -94,7 +94,7 @@ export function useSupplierBillForm(
   useEffect(() => {
     if (!open) return;
     resetForOpen();
-  }, [open, initialBill?.id, resetForOpen]);
+  }, [open, initialBill?.id]);
 
 
   const { data: suppliersList } = useSuppliers();
