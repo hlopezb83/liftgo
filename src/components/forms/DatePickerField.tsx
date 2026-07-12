@@ -23,6 +23,9 @@ interface DatePickerFieldProps {
   required?: boolean;
   error?: string;
   disabled?: Matcher | Matcher[];
+  captionLayout?: "label" | "dropdown" | "dropdown-months" | "dropdown-years";
+  startMonth?: Date;
+  endMonth?: Date;
 }
 
 const normalize = (d?: Date) =>
@@ -36,6 +39,9 @@ export function DatePickerField({
   required,
   error,
   disabled,
+  captionLayout,
+  startMonth,
+  endMonth,
 }: DatePickerFieldProps) {
   const [open, setOpen] = useState(false);
   const [localDate, setLocalDate] = useState<Date | undefined>(date);
@@ -82,8 +88,10 @@ export function DatePickerField({
               mode="single"
               selected={localDate}
               onSelect={(d) => setLocalDate(normalize(d))}
-              defaultMonth={localDate ?? new Date()}
               disabled={disabled}
+              captionLayout={captionLayout}
+              startMonth={startMonth}
+              endMonth={endMonth}
               autoFocus
               className="pointer-events-auto"
             />

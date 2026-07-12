@@ -12,6 +12,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
   return (
     <DayPicker
       locale={es}
+      animate
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
       classNames={{
@@ -32,14 +33,14 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
         weekdays: "flex",
         weekday: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem]",
         week: "flex w-full mt-2",
-        day: "h-9 w-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md",
+        day: "h-9 w-9 text-center text-sm p-0 relative focus-within:relative focus-within:z-20",
         day_button: cn(
           buttonVariants({ variant: "ghost" }),
           "h-9 w-9 p-0 font-normal aria-selected:opacity-100",
         ),
-        range_start: "day-range-start rounded-l-md",
-        range_end: "day-range-end rounded-r-md",
-        range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+        range_start: "day-range-start rounded-l-md bg-primary text-primary-foreground",
+        range_end: "day-range-end rounded-r-md bg-primary text-primary-foreground",
+        range_middle: "bg-accent text-accent-foreground rounded-none",
         selected:
           "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
         today: "bg-accent text-accent-foreground",

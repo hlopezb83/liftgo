@@ -1,5 +1,15 @@
 [
   {
+    "version": "7.54.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "react-day-picker v10: animate, cleanup CSS de rango y captionLayout opcional",
+    "description": "Auditoría post-migración v10. Se activa la prop nativa `animate` en el wrapper Calendar para transiciones de mes/año sin coste adicional. Se elimina el hack CSS heredado de v8 sobre el className `day` ([&:has([aria-selected])]:bg-accent first/last:rounded) que duplicaba el resaltado del rango; ahora `range_start` y `range_end` heredan el fondo primary y `range_middle` pinta el accent, tal como recomienda v10. DatePickerField expone props opcionales `captionLayout`, `startMonth` y `endMonth` para navegación con dropdowns cuando la fecha objetivo es remota. Se remueve el `defaultMonth` redundante en DatePickerField y DateRangePickerField (v10 lo infiere de `selected`).",
+    "category": "improvement",
+    "impact": "UX: transición animada al cambiar de mes, resaltado de rango consistente sin doble pintado en días outside, y navegación por año/mes disponible como opt-in. Sin cambios de API para consumidores existentes.",
+    "files": ["src/components/ui/calendar.tsx", "src/components/forms/DatePickerField.tsx", "src/components/forms/DateRangePickerField.tsx"]
+  },
+  {
     "version": "7.53.0",
     "date": "2026-07-12",
     "type": "minor",

@@ -155,7 +155,6 @@ function RangeDialogBody({
   onCancel: () => void;
   onApply: () => void;
 }) {
-  const defaultMonth = localRange?.from ?? new Date();
   const months = isMobile ? 1 : 2;
   return (
     <DialogContent className="max-w-fit p-0 gap-0">
@@ -169,7 +168,6 @@ function RangeDialogBody({
           selected={localRange}
           onSelect={onCalendarSelect}
           numberOfMonths={months}
-          defaultMonth={defaultMonth}
           className="pointer-events-auto"
         />
       </div>
