@@ -35,14 +35,14 @@ export function SwipeableCard({ children, rightActions = [], threshold = 60, dis
 
   const isInteractive = !disabled && rightActions.length > 0;
 
-  const handleTouchStart = useCallback((e: TouchEvent) => {
+  const handleTouchStart = (e: TouchEvent) => {
     if (!isInteractive) return;
     startXRef.current = e.touches[0].clientX;
     startYRef.current = e.touches[0].clientY;
     swipingRef.current = false;
-  }, [isInteractive]);
+  };
 
-  const handleTouchMove = useCallback((e: TouchEvent) => {
+  const handleTouchMove = (e: TouchEvent) => {
     if (!isInteractive || startXRef.current === null || startYRef.current === null) return;
     const dx = e.touches[0].clientX - startXRef.current;
     const dy = e.touches[0].clientY - startYRef.current;
@@ -54,9 +54,9 @@ export function SwipeableCard({ children, rightActions = [], threshold = 60, dis
     const base = revealed ? -actionsWidth : 0;
     const next = Math.min(0, Math.max(-actionsWidth - 20, base + dx));
     setTranslateX(next);
-  }, [isInteractive, revealed, actionsWidth]);
+  };
 
-  const handleTouchEnd = useCallback(() => {
+  const handleTouchEnd = () => {
     if (!isInteractive) return;
     startXRef.current = null;
     startYRef.current = null;
@@ -69,7 +69,7 @@ export function SwipeableCard({ children, rightActions = [], threshold = 60, dis
       setTranslateX(0);
       setRevealed(false);
     }
-  }, [isInteractive, translateX, threshold, actionsWidth]);
+  };
 
   const handleClick = (e: MouseEvent) => {
     if (revealed) {
