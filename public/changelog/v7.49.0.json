@@ -1,0 +1,40 @@
+{
+  "version": "7.49.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "react-router v8: Data Router + errorElement nativos",
+  "sections": [
+    {
+      "heading": "Modernización a Data Router",
+      "items": [
+        "Nuevo src/routes/router.tsx: createBrowserRouter con árbol tipado (RouteObject[]) y RouterProvider como raíz.",
+        "src/App.tsx pasa de 70 LOC a 10 LOC — solo AppProviders + RouterProvider.",
+        "Redirect legacy /expenses ahora usa loader:redirect('/cuentas-por-pagar'), evitando montar Navigate.",
+        "Guards (RoleGuard/AdminRouteGuard) aplicados dentro de route.lazy para preservar code-splitting por chunk."
+      ]
+    },
+    {
+      "heading": "errorElement + eliminación de boundary manual",
+      "items": [
+        "Nuevo src/layouts/RouteErrorElement.tsx: consume useRouteError() y delega en ErrorBoundary de clase (Rethrow-in-render) para reutilizar la UI y la lógica de recarga de chunks stale.",
+        "Eliminado src/layouts/RouteErrorBoundary.tsx (28 LOC) — errorElement se define una sola vez por rama del router."
+      ]
+    },
+    {
+      "heading": "Codemod de imports",
+      "items": [
+        "50 archivos migran 'react-router-dom' → 'react-router' (paquete unificado en v8).",
+        "package.json: se elimina react-router-dom y se instala react-router@^8."
+      ]
+    },
+    {
+      "heading": "Transitions nativas",
+      "items": [
+        "useNavigateTransition se reduce a 'export const useNavigateTransition = useNavigate;' — v8 envuelve toda navegación en startTransition automáticamente.",
+        "Se conservan los 50 callsites sin refactor porque el hook mantiene la misma firma."
+      ]
+    }
+  ],
+  "impact": "-95 LOC netos, -1 dependencia (react-router-dom alias), errorElement centralizado, transitions consistentes en toda la app.",
+  "verification": ["tsgo --noEmit", "bun run build", "vitest run (997 tests OK)"]
+}

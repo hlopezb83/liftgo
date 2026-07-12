@@ -1,5 +1,15 @@
 [
   {
+    "version": "7.49.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "react-router v8: Data Router + errorElement nativos",
+    "description": "Migración completa a react-router v8 (upgrade desde v7). Se reemplazó BrowserRouter+Routes declarativo por createBrowserRouter + RouterProvider en src/routes/router.tsx; los 50 imports 'react-router-dom' se renombraron a 'react-router' (paquete unificado). Se eliminó RouteErrorBoundary manual y se introdujo RouteErrorElement como errorElement por rama (reutiliza la ErrorBoundary de clase vía Rethrow). Redirect legacy '/expenses' ahora usa loader:redirect() sin montar componente. useNavigateTransition se simplifica a alias de useNavigate ya que v8 aplica startTransition automáticamente en navegaciones. Guards RoleGuard/AdminRouteGuard se aplican dentro de route.lazy para preservar code-splitting.",
+    "category": "improvement",
+    "impact": "Menos boilerplate en el bootstrap del router (-40 LOC en App.tsx, -28 LOC en RouteErrorBoundary, -27 LOC en useNavigateTransition), tree-shaking mejorado al eliminar el alias react-router-dom y transitions nativas en toda la app.",
+    "files": ["src/App.tsx", "src/routes/router.tsx", "src/layouts/RouteErrorElement.tsx", "src/hooks/useNavigateTransition.ts", "package.json"]
+  },
+  {
     "version": "7.48.0",
     "date": "2026-07-12",
     "type": "minor",
