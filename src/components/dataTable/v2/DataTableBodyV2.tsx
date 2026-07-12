@@ -50,6 +50,9 @@ function buildRowHandlers<T>(item: T, ctx: RowHandlerCtx<T>) {
       }
     : {};
   return { ...clickHandlers, ...prefetchHandlers };
+}
+
+
 
 export function DataTableBodyV2<T>({
   rows,
