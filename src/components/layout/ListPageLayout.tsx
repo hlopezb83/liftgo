@@ -249,7 +249,7 @@ function TableContent<T extends { id?: string }>({
     );
   }
   if (table) {
-    return <DataTableV2 table={table} emptyMessage={emptyMessage} onRowClick={onRowClick} />;
+    return <DataTableV2 table={table} emptyMessage={emptyMessage} onRowClick={onRowClick} onRowPrefetch={onRowPrefetch} />;
   }
   return null;
 }
