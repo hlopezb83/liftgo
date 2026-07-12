@@ -1,0 +1,13 @@
+{
+  "version": "7.61.1",
+  "date": "2026-07-12",
+  "type": "patch",
+  "title": "Fix: cálculo del Flujo de Efectivo del Dashboard",
+  "description": "Se reescribió el bloque `cash_flow` del RPC `get_dashboard_stats` que alimenta la gráfica de barras Facturado vs Pagado del dashboard. Bugs corregidos: (1) la ventana temporal usaba `CURRENT_DATE - INTERVAL '6 months'`, lo que recortaba el mes más antiguo (ej. hoy 12/jul enero mostraba solo del 12/ene en adelante); ahora se generan 6 meses completos con `generate_series` alineado a inicio de mes. (2) Los meses sin facturas se omitían; ahora aparecen con valores en 0. (3) Se sumaban facturas canceladas al monto facturado; ahora se excluyen (`status<>'cancelled' AND cancelled_at IS NULL`). (4) La barra 'Pagado' agrupaba por mes de emisión, no por mes de cobro: para un flujo de efectivo real, ahora se agrupa por `payments.payment_date` (mes en que entró el dinero). (5) Los pagos parciales se ignoraban (se usaba `total` cuando había `paid_at`); ahora se suma `payments.amount`, con fallback a `invoices.total` sólo para facturas legadas marcadas como pagadas que no tienen filas en `payments`. (6) Las notas de crédito no se restaban; ahora `invoiced` es neto de `credit_notes.total` del mes.",
+  "category": "bugfix",
+  "impact": "Los números del chart cambian de manera visible pero correcta: para meses con cobros de facturas emitidas antes, la barra 'Pagado' puede superar a 'Facturado' (comportamiento esperado). Julio dejó de contar facturas canceladas y notas de crédito ahora reducen el neto facturado.",
+  "files": [
+    "supabase/migrations/*_fix_dashboard_cash_flow.sql",
+    "src/features/dashboard/lib/__tests__/dashboardSectionHelpers.test.ts"
+  ]
+}
