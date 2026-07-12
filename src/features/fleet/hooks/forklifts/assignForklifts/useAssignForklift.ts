@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { forkliftKeys } from "../../../lib/queryKeys";
 
 export function useAssignForklift() {

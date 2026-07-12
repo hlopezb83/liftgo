@@ -1,5 +1,5 @@
-import { useForklifts } from "./useForklifts";
 import type { Tables } from "@/integrations/supabase/types";
+import { useForklifts } from "./useForklifts";
 
 /**
  * Returns a Map of forklift ID → forklift object.

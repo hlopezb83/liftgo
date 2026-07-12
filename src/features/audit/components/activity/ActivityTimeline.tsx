@@ -1,18 +1,17 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ActorAvatar } from "./ActorAvatar";
-import { useActivityFeed, type ActivityFilters } from "@/features/dashboard";
-import { ENTITY_LABELS, ENTITY_ROUTES, EVENT_LABELS, EVENT_TYPES } from "../../lib/activityConstants";
-import { translateActivityTitle, translateActivityDescription } from "@/lib/domain/activityTranslations";
-
-import { formatDateTimeShortMty } from "@/lib/format/dateFormats";
 import { X } from "@/components/icons";
-import type { MemberStat } from "../../hooks/useActivityMetrics";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useActivityFeed, type ActivityFilters } from "@/features/dashboard";
 import type { AppRole } from "@/features/users";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { translateActivityTitle, translateActivityDescription } from "@/lib/domain/activityTranslations";
+import { formatDateTimeShortMty } from "@/lib/format/dateFormats";
+import { ENTITY_LABELS, ENTITY_ROUTES, EVENT_LABELS, EVENT_TYPES } from "../../lib/activityConstants";
+import { ActorAvatar } from "./ActorAvatar";
+import type { MemberStat } from "../../hooks/useActivityMetrics";
 
 interface Props {
   filters: ActivityFilters;

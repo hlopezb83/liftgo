@@ -1,14 +1,14 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { DownloadIcon } from "@/components/icons";
-import { exportToCsv } from "@/lib/exportCsv";
-import { useForklifts } from "@/features/fleet";
-import { useBookings } from "@/features/bookings";
 import { DataTableV2, useLiftgoTable } from "@/components/dataTable/v2";
-import { buildUtilizationRows, type ModelRow } from "./utilizationByModel/utilizationHelpers";
-import { utilizationColumns } from "./utilizationByModel/utilizationColumns";
+import { DownloadIcon } from "@/components/icons";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useBookings } from "@/features/bookings";
+import { useForklifts } from "@/features/fleet";
+import { exportToCsv } from "@/lib/exportCsv";
 import { UtilizationChart } from "./utilizationByModel/UtilizationChart";
+import { utilizationColumns } from "./utilizationByModel/utilizationColumns";
+import { buildUtilizationRows, type ModelRow } from "./utilizationByModel/utilizationHelpers";
 
 interface Props {
   startDate: Date;

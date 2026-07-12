@@ -1,6 +1,6 @@
+import { Sparkles, SpinnerIcon, RefreshIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Sparkles, SpinnerIcon, RefreshIcon } from "@/components/icons";
 import {
   FEEDBACK_TYPE_LABELS,
   FEEDBACK_SEVERITY_LABELS,

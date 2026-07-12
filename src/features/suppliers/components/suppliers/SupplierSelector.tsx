@@ -1,6 +1,6 @@
-import { useSuppliers } from "../../hooks/useSuppliers";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useSuppliers } from "../../hooks/useSuppliers";
 
 interface SupplierSelectorProps {
   value: string;

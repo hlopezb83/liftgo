@@ -1,22 +1,22 @@
-import { useQuoteFormLogic } from "../hooks/useQuoteFormLogic";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { APP_CONFIG } from "@/lib/config";
-import { CustomerSelector } from "@/features/customers";
+import { NotesCard } from "@/components/domain/NotesCard";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { SaleLineItems } from "../components/quotes/SaleLineItems";
-import { RentalLineItems } from "../components/quotes/RentalLineItems";
-import { CostSummaryCard } from "../components/quotes/CostSummaryCard";
-import { NotesCard } from "@/components/domain/NotesCard";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { CustomerSelector } from "@/features/customers";
+import { APP_CONFIG } from "@/lib/config";
+import { CostSummaryCard } from "../components/quotes/CostSummaryCard";
+import { RentalLineItems } from "../components/quotes/RentalLineItems";
+import { SaleLineItems } from "../components/quotes/SaleLineItems";
+import { useQuoteFormLogic } from "../hooks/useQuoteFormLogic";
 
 export default function QuoteForm() {
   const {

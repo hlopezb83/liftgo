@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 import type { AppRole } from "@/lib/domain/roles";
 
 // Re-export para compatibilidad con consumidores existentes. La fuente de

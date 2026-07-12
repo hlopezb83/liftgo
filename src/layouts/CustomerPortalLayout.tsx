@@ -1,10 +1,10 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
+import { LogOut, DashboardIcon, CalendarDays, InvoiceIcon, DocumentIcon, MessageSquare, TrophyIcon, VerifiedDocIcon, ExpenseIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePublicBranding } from "@/features/company-settings";
-import { LogOut, DashboardIcon, CalendarDays, InvoiceIcon, DocumentIcon, MessageSquare, TrophyIcon, VerifiedDocIcon, ExpenseIcon } from "@/components/icons";
-import { cn } from "@/lib/utils";
 import { FeedbackFab } from "@/features/feedback";
+import { cn } from "@/lib/utils";
 
 const tabs = [
   { path: "/portal", label: "Panel", icon: DashboardIcon },

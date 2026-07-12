@@ -1,6 +1,6 @@
-import { chromium, type Browser, type Page } from 'playwright';
 import fs from 'fs';
 import path from 'path';
+import { chromium, type Browser, type Page } from 'playwright';
 
 const PAGES = [
   '/customers',

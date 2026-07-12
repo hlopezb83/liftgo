@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarIcon } from "@/components/icons";
 import { InfoRow } from "@/components/forms/InfoRow";
+import { CalendarIcon } from "@/components/icons";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateRange } from "@/lib/utils";
 import type { ReturnInspectionWithJoins } from "@/types/rental";
 

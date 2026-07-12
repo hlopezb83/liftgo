@@ -1,20 +1,19 @@
 import { Activity, useState } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { DetailRow } from "@/components/domain/DetailRow";
+import { EditIcon, DeleteIcon, MaintenanceIcon, CalendarIcon, UserIcon, CostIcon, FleetIcon, DocumentIcon } from "@/components/icons";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { RoleGuard } from "@/layouts/RoleGuard";
-import { MaintenancePartsSection } from "./MaintenancePartsSection";
-import { useDeleteMaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useSuppliers } from "@/features/suppliers";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
-import { EditIcon, DeleteIcon, MaintenanceIcon, CalendarIcon, UserIcon, CostIcon, FleetIcon, DocumentIcon } from "@/components/icons";
-import { DetailRow } from "@/components/domain/DetailRow";
-
-import type { MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
 import { notifySuccess } from "@/lib/ui/appFeedback";
+import { formatDateDisplay } from "@/lib/utils";
+import { useDeleteMaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
+import { MaintenancePartsSection } from "./MaintenancePartsSection";
+import type { MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
 
 const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   pending: { label: "Pendiente", variant: "secondary" },

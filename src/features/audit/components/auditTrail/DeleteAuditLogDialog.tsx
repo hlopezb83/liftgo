@@ -1,8 +1,8 @@
+import { FormDialog } from "@/components/forms/FormDialog";
 import { DeleteIcon, WarnIcon, UndoIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { FormDialog } from "@/components/forms/FormDialog";
-import type { AuditLog } from "../../hooks/useAuditLogs";
 import { translateAction, translateTable, formatTimestamp, getRecordLabel } from "./auditTrailConstants";
+import type { AuditLog } from "../../hooks/useAuditLogs";
 
 interface Props {
   log: AuditLog | null;

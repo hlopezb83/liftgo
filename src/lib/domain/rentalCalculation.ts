@@ -1,6 +1,6 @@
 import currency from "currency.js";
-import type { Forklift } from "@/types/rental";
 import { differenceInDays, differenceInCalendarMonths, addMonths, addDays } from "date-fns";
+import type { Forklift } from "@/types/rental";
 import { money, type LineItem } from "./invoiceTotals";
 
 /** Días que componen una semana de renta (constante de dominio). */

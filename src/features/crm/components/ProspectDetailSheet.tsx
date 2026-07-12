@@ -1,14 +1,13 @@
 import { Activity } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { DetailRow } from "@/components/domain/DetailRow";
+import { CompanyIcon, UserIcon, EmailIcon, PhoneIcon, PaymentIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-
-import { CompanyIcon, UserIcon, EmailIcon, PhoneIcon, PaymentIcon } from "@/components/icons";
-import type { Prospect } from "../hooks/useProspects";
-import { ProspectHistoryCard } from "./ProspectHistoryCard";
-import { ProspectQuoteLink, ProspectNotes, ProspectClosureInfo } from "./prospectDetail/ProspectInfoBlocks";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { ProspectActions } from "./prospectDetail/ProspectActions";
-import { DetailRow } from "@/components/domain/DetailRow";
+import { ProspectQuoteLink, ProspectNotes, ProspectClosureInfo } from "./prospectDetail/ProspectInfoBlocks";
+import { ProspectHistoryCard } from "./ProspectHistoryCard";
+import type { Prospect } from "../hooks/useProspects";
 
 const STAGE_LABELS: Record<string, string> = {
   nuevo_prospecto: "Nuevo Prospecto",

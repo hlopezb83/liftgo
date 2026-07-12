@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildQuotePayload, type BuildQuotePayloadArgs } from "../quoteFormPayload";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
+import { buildQuotePayload, type BuildQuotePayloadArgs } from "../quoteFormPayload";
 
 const baseLine: LineItem = { description: "x", quantity: 1, unit_price: 100, total: 100 };
 

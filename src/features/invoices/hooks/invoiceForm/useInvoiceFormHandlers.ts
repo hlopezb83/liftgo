@@ -1,10 +1,10 @@
 
-import type { UseFormReturn } from "react-hook-form";
-import type { InvoiceFormValues, LineItemValues } from "../../lib/invoiceFormSchema";
-import { generateLineItems } from "@/lib/domain/invoiceHelpers";
 import type { Forklift } from "@/features/fleet";
 import { extractNonRentalLines } from "@/features/quotes/utils/nonRentalLines";
+import { generateLineItems } from "@/lib/domain/invoiceHelpers";
 import { cfdiFromCustomer, type Customer } from "./invoiceFormBuilders";
+import type { InvoiceFormValues, LineItemValues } from "../../lib/invoiceFormSchema";
+import type { UseFormReturn } from "react-hook-form";
 
 type Booking = {
   id: string; customer_name?: string | null; customer_id?: string | null;

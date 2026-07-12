@@ -1,16 +1,15 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { PageTransition } from "@/components/layout/PageTransition";
-import { PageContainer } from "@/components/layout/PageContainer";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { Button } from "@/components/ui/button";
 import { BackIcon, SuccessIcon, ViewIcon, RemoveIcon, SpinnerIcon } from "@/components/icons";
-
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { PageTransition } from "@/components/layout/PageTransition";
+import { Button } from "@/components/ui/button";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { cn } from "@/lib/utils";
 import { useRolePermissions, useUpdatePermission, MODULES, type AccessLevel } from "../hooks/useRolePermissions";
 import { useUserRole } from "../hooks/useUserRole";
 import type { AppRole } from "../hooks/useUserRole";
-import { cn } from "@/lib/utils";
 
 const accessConfig = {
   full: { icon: SuccessIcon, color: "text-success", label: "Acceso completo" },

@@ -1,24 +1,22 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-
-import { useBooking } from "../hooks/useBookings";
-import { useDeliveries } from "@/features/deliveries";
-import { useBookingExtensions } from "../hooks/useBookingExtensions";
-import { useBookingHourometer } from "../hooks/bookingDetail/useBookingHourometer";
-
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useDeliveries } from "@/features/deliveries";
+import { BookingBillingCard } from "../components/booking-detail/BookingBillingCard";
+import { BookingCustomerCard } from "../components/booking-detail/BookingCustomerCard";
+import { BookingEquipmentCard } from "../components/booking-detail/BookingEquipmentCard";
 import { BookingActions } from "../components/bookings/BookingActions";
 import { BookingStatusHistory } from "../components/bookings/BookingStatusHistory";
 import { ExtendBookingDialog } from "../components/bookings/ExtendBookingDialog";
-import { BookingEquipmentCard } from "../components/booking-detail/BookingEquipmentCard";
-import { BookingCustomerCard } from "../components/booking-detail/BookingCustomerCard";
 import { BookingPeriodCard } from "../components/booking-detail/BookingPeriodCard";
-import { BookingBillingCard } from "../components/booking-detail/BookingBillingCard";
 import { BookingHourometerCard } from "../components/booking-detail/BookingHourometerCard";
 import { BookingExtensionsCard } from "../components/booking-detail/BookingExtensionsCard";
-import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { Skeleton } from "@/components/ui/skeleton";
+import { useBookingHourometer } from "../hooks/bookingDetail/useBookingHourometer";
+import { useBookingExtensions } from "../hooks/useBookingExtensions";
+import { useBooking } from "../hooks/useBookings";
 
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();

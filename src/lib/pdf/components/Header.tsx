@@ -1,7 +1,7 @@
 import { Image, Text, View } from "@react-pdf/renderer";
 import { format } from "date-fns";
-import { nowMty } from "@/lib/utils";
 import { sharedStyles } from "@/lib/pdf/theme/styles";
+import { nowMty } from "@/lib/utils";
 
 interface HeaderProps {
   logoBase64: string | null;

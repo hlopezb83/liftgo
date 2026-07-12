@@ -1,7 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { supabase } from "@/integrations/supabase/client";
-
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { PasswordValidationError } from "../../../lib/PasswordValidationError";
 
 export function useResetPassword() {

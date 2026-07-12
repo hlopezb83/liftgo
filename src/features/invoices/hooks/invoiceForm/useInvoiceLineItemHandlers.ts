@@ -1,10 +1,10 @@
 import { useFieldArray, type UseFormReturn } from "react-hook-form";
+import { lineItemTotal } from "@/lib/domain/invoiceHelpers";
 import {
   type InvoiceFormValues,
   type LineItemValues,
   EMPTY_LINE,
 } from "../../lib/invoiceFormSchema";
-import { lineItemTotal } from "@/lib/domain/invoiceHelpers";
 
 export function useInvoiceLineItemHandlers(form: UseFormReturn<InvoiceFormValues>) {
   const { fields, append, remove, update } = useFieldArray({

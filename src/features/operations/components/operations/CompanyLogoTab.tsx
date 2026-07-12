@@ -1,15 +1,14 @@
 import { useEffect } from "react";
-import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@/lib/forms/zodResolver";
-import { LogoUploader, useCompanySettings, useUpsertCompanySettings } from "@/features/company-settings";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Badge } from "@/components/ui/badge";
-import { Form, FormField, FormItem, FormControl } from "@/components/ui/form";
-
 import { Image as ImageIcon, SaveIcon, SuccessIcon, InfoAlertIcon, ImageOff } from "@/components/icons";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Form, FormField, FormItem, FormControl } from "@/components/ui/form";
+import { Skeleton } from "@/components/ui/skeleton";
+import { LogoUploader, useCompanySettings, useUpsertCompanySettings } from "@/features/company-settings";
+import { zodResolver } from "@/lib/forms/zodResolver";
+import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { logoSchema, type LogoFormValues } from "../../lib/operationsSchemas";
 
 export function CompanyLogoTab() {

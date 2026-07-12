@@ -1,7 +1,7 @@
 import { FormDialog } from "@/components/forms/FormDialog";
-import type { AuditLog } from "../../hooks/useAuditLogs";
-import { translateAction, translateTable } from "./auditTrailConstants";
 import { AuditLogDetailBody } from "./AuditLogDetailBody";
+import { translateAction, translateTable } from "./auditTrailConstants";
+import type { AuditLog } from "../../hooks/useAuditLogs";
 
 interface Props {
   log: AuditLog | null;

@@ -1,16 +1,16 @@
+import { format } from "date-fns";
 import { Activity, useState } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { DetailRow } from "@/components/domain/DetailRow";
+import { EditIcon, DeleteIcon, InventoryIcon, Hash, Tag, Layers, WarnIcon, CostIcon, LocationIcon } from "@/components/icons";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { useDeletePart, type PartInventory } from "../../hooks/usePartsInventory";
-import { formatCurrency } from "@/lib/format/formatCurrency";
-import { format } from "date-fns";
 import { APP_LOCALE } from "@/lib/format/dateFormats";
-import { EditIcon, DeleteIcon, InventoryIcon, Hash, Tag, Layers, WarnIcon, CostIcon, LocationIcon } from "@/components/icons";
-import { DetailRow } from "@/components/domain/DetailRow";
+import { formatCurrency } from "@/lib/format/formatCurrency";
+import { useDeletePart, type PartInventory } from "../../hooks/usePartsInventory";
 
 interface Props {
   part: PartInventory | null;

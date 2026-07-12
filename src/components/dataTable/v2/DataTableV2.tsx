@@ -1,13 +1,13 @@
 import { type ReactNode } from "react";
-import type { Table as TanstackTable } from "@tanstack/react-table";
-import { Table } from "@/components/ui/table";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { MobileCardList } from "@/components/layout/MobileCardList";
+import { Table } from "@/components/ui/table";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { DataTableHeaderV2 } from "./DataTableHeaderV2";
 import { DataTableBodyV2 } from "./DataTableBodyV2";
+import { DataTableHeaderV2 } from "./DataTableHeaderV2";
 import { VirtualBody } from "./VirtualBody";
 import type { DataTableSelectionContext } from "./types";
+import type { Table as TanstackTable } from "@tanstack/react-table";
 
 interface Props<T> {
   table: TanstackTable<T>;

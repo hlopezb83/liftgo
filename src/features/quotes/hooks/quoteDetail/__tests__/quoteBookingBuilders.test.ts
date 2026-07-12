@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { buildDeliveryInfos, resolveLegacyForkliftIds } from "../quoteBookingBuilders";
 import type { Json } from "@/integrations/supabase/types";
+import { buildDeliveryInfos, resolveLegacyForkliftIds } from "../quoteBookingBuilders";
 
 const emptyLineItems: Json = [];
 

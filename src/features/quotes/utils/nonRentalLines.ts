@@ -1,5 +1,5 @@
-import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import type { LineItemValues } from "@/features/invoices/lib/invoiceFormSchema";
+import type { LineItem } from "@/lib/domain/invoiceHelpers";
 
 const RENTAL_KEYWORDS = ["Renta mensual", "Renta semanal", "Renta diaria"];
 const SALE_SUFFIX = /Venta de equipo/i;

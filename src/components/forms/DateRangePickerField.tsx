@@ -1,11 +1,8 @@
-import { useEffect, useState } from "react";
 import { format } from "date-fns";
+import { useEffect, useState } from "react";
 import { CalendarIcon } from "@/components/icons";
-import type { DateRange } from "react-day-picker";
-
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -14,8 +11,10 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import type { DateRange } from "react-day-picker";
 
 interface DateRangePickerFieldProps {
   label: string;

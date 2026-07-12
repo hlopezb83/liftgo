@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MoneyIcon } from "@/components/icons";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Tables } from "@/integrations/supabase/types";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 
 interface ForkliftRatesCardProps {
   forklift: Tables<"forklifts">;

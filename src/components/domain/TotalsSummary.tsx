@@ -1,7 +1,7 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatCurrency, formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { APP_CONFIG } from "@/lib/config";
+import { formatCurrency, formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 
 interface TotalsSummaryProps {
   subtotal: number;

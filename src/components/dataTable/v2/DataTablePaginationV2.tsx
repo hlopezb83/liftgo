@@ -1,5 +1,5 @@
-import type { Table } from "@tanstack/react-table";
 import { TablePagination } from "@/components/feedback/TablePagination";
+import type { Table } from "@tanstack/react-table";
 
 interface Props<T> {
   table: Table<T>;

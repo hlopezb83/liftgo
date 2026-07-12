@@ -1,14 +1,14 @@
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { DatePickerField } from "@/components/forms/DatePickerField";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { DatePickerField } from "@/components/forms/DatePickerField";
-import { FORMA_PAGO, MONEDA } from "@/lib/domain/satCatalogs";
 import { PAYMENT_METHODS } from "@/features/invoices/lib/paymentMethods";
+import { FORMA_PAGO, MONEDA } from "@/lib/domain/satCatalogs";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { useRecordPaymentForm } from "../../hooks/invoices/useRecordPaymentForm";
 
 interface Props {

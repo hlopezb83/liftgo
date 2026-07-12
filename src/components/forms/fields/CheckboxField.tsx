@@ -1,6 +1,6 @@
 import { type FieldPath, type FieldValues, type Control } from "react-hook-form";
-import { FormField, FormItem, FormControl, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
+import { FormField, FormItem, FormControl, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 
 interface CheckboxFieldProps<TFieldValues extends FieldValues> {
   control: Control<TFieldValues>;

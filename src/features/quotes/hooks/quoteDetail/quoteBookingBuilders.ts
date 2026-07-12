@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { Json } from "@/integrations/supabase/types";
-import { parseLineItems } from "@/lib/domain/lineItems";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
+import { parseLineItems } from "@/lib/domain/lineItems";
 import type { DeliveryInfo } from "./useQuoteConversionState";
 
 export type Assignment = {

@@ -1,6 +1,6 @@
-import { extractErrorDetails, deriveErrorCode, type ExtractedErrorDetails } from "@/lib/ui/errorDetailsExtract";
-import { getAuthSnapshot } from "@/lib/ui/authSnapshot";
 import type { ErrorCode } from "@/lib/domain/errorCatalog";
+import { getAuthSnapshot } from "@/lib/ui/authSnapshot";
+import { extractErrorDetails, deriveErrorCode, type ExtractedErrorDetails } from "@/lib/ui/errorDetailsExtract";
 
 /** Reporte estructurado de error, copiable y enviable a soporte. */
 export interface ErrorReport {

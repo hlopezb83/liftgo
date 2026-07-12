@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
 import * as XLSX from "@e965/xlsx";
+import { describe, it, expect } from "vitest";
 import { buildPaymentsWorkbook, type PaymentExportRow } from "@/features/accounts-payable";
 
 const rows: PaymentExportRow[] = [

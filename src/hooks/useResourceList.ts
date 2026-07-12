@@ -1,7 +1,7 @@
 import { useMemo } from "react";
-import type { ColumnDef, SortingState } from "@tanstack/react-table";
 import { useLiftgoTable } from "@/components/dataTable/v2/useLiftgoTable";
 import { useListFilters } from "@/hooks/useListFilters";
+import type { ColumnDef, SortingState } from "@tanstack/react-table";
 
 interface FilterConfig<T> {
   searchFields: (keyof T)[];

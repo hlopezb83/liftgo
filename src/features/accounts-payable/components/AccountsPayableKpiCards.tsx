@@ -1,6 +1,6 @@
+import { ClockIcon, WarnIcon, CalendarClock, SuccessIcon, ShieldAlert, FileWarning } from "@/components/icons";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { ClockIcon, WarnIcon, CalendarClock, SuccessIcon, ShieldAlert, FileWarning } from "@/components/icons";
 import type { AccountsPayableKpis } from "../hooks/useAccountsPayableKpis";
 
 interface Props {

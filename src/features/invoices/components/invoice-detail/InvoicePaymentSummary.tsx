@@ -1,9 +1,9 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DataTableV2, useLiftgoTable } from "@/components/dataTable/v2";
-import { formatCurrency } from "@/lib/format/formatCurrency";
-import { EditPaymentDialog } from "./EditPaymentDialog";
-import { usePaymentHistoryColumns } from "../../hooks/invoices/usePaymentHistoryColumns";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Tables } from "@/integrations/supabase/types";
+import { formatCurrency } from "@/lib/format/formatCurrency";
+import { usePaymentHistoryColumns } from "../../hooks/invoices/usePaymentHistoryColumns";
+import { EditPaymentDialog } from "./EditPaymentDialog";
 
 type Payment = Tables<"payments">;
 

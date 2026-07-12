@@ -1,5 +1,5 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay, cn } from "@/lib/utils";
 import { BANK_LINE_STATUS_LABELS } from "../lib/bankReconciliationConstants";

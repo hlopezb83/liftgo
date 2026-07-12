@@ -1,9 +1,9 @@
 import { Table, TableBody, TableHead, TableHeader, TableRow, TableCell } from "@/components/ui/table";
+import { visibleFields, visibleSnapshot } from "./auditDiffHelpers";
 import {
   translateField,
   formatAuditValue,
 } from "./auditTrailConstants";
-import { visibleFields, visibleSnapshot } from "./auditDiffHelpers";
 
 export function AuditUpdateDiffTable({
   changedFields, oldData, newData,

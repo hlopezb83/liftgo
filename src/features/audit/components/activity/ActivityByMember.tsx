@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ActorAvatar } from "./ActorAvatar";
 import { formatDistanceToNow } from "date-fns";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { APP_LOCALE } from "@/lib/format/dateFormats";
+import { ActorAvatar } from "./ActorAvatar";
 import type { MemberStat } from "../../hooks/useActivityMetrics";
 
 interface Props {

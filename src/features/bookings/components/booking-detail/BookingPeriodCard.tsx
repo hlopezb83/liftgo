@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CalendarDays } from "@/components/icons";
-import { InfoRow } from "@/components/forms/InfoRow";
 import { differenceInDays, parseISO } from "date-fns";
+import { InfoRow } from "@/components/forms/InfoRow";
+import { CalendarDays } from "@/components/icons";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatMtyDate } from "@/lib/utils";
 
 export function BookingPeriodCard({ startDate, endDate }: { startDate: string; endDate: string }) {

@@ -1,8 +1,8 @@
+import { NotesCard } from "@/components/domain/NotesCard";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { RecordPaymentDialog } from "../invoices/RecordPaymentDialog";
 import { CancelCfdiDialog } from "./CancelCfdiDialog";
 import { CollectionNotesCard } from "./CollectionNotesCard";
-import { NotesCard } from "@/components/domain/NotesCard";
 
 type Props = {
   invoiceId: string;

@@ -1,14 +1,13 @@
 import { useState } from "react";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
-import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-
 import { UsersIcon } from "@/components/icons";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentVersion } from "@/features/changelog";
 import { usePublicBranding } from "@/features/company-settings";
-import { useAuthPasswordRecoveryListener } from "../hooks/useAuthPasswordRecoveryListener";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { AuthForm, type AuthMode } from "../components/AuthForm";
+import { useAuthPasswordRecoveryListener } from "../hooks/useAuthPasswordRecoveryListener";
 
 const TITLES: Record<AuthMode, { title: string; desc: string }> = {
   "sign-in": { title: "Iniciar Sesión", desc: "Ingresa a Lift Go" },

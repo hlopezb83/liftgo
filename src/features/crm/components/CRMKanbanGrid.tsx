@@ -1,6 +1,6 @@
 import { DragDropContext, type DropResult } from "@hello-pangea/dnd";
-import { KanbanColumn } from "./KanbanColumn";
 import { ACTIVE_STAGES } from "../lib/constants";
+import { KanbanColumn } from "./KanbanColumn";
 import type { Prospect } from "../hooks/useProspects";
 
 interface StageData {

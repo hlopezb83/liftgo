@@ -1,10 +1,10 @@
 import { useState } from "react";
+import type { Tables } from "@/integrations/supabase/types";
 import { notifyValidation } from "@/lib/ui/appFeedback";
 import { backfillStampSnapshot } from "../../lib/backfillStampSnapshot";
 import { getMissingStampFields } from "../../lib/cfdiPrechecks";
 import { classifyFacturapiError, type FacturapiErrorKind } from "../../lib/facturapiErrors";
 import { useStampCfdi } from "../invoices/cfdi/useStampCfdi";
-import type { Tables } from "@/integrations/supabase/types";
 
 export interface StampErrorState {
   message: string;

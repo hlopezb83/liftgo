@@ -1,15 +1,15 @@
 import { useState } from "react";
-import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
-import { useMechanics, useCreateMechanic, useUpdateMechanic, useDeleteMechanic, Mechanic } from "@/features/maintenance";
+import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
+import { useMechanics, useCreateMechanic, useUpdateMechanic, useDeleteMechanic, Mechanic } from "@/features/maintenance";
+import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
 export function MechanicsTab() {
   const { data: mechanics, isLoading } = useMechanics();

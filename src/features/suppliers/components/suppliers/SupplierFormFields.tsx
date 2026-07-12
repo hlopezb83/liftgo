@@ -1,11 +1,11 @@
 import { useFormContext } from "react-hook-form";
-import { FormSection } from "@/components/forms/FormSection";
 import {
   TextField,
   TextareaField,
   SelectField,
   type SelectOption,
 } from "@/components/forms/fields";
+import { FormSection } from "@/components/forms/FormSection";
 import { REGIMEN_FISCAL } from "@/lib/domain/satCatalogs";
 import { SUPPLIER_CATEGORIES } from "../../hooks/useSuppliers";
 import type { SupplierFormData } from "../../lib/supplierFormSchema";

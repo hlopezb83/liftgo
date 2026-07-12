@@ -1,12 +1,12 @@
 
-import { differenceInDays } from "date-fns";
 import { useQuery } from "@tanstack/react-query";
-import { useQuote } from "../quotes/useQuotes";
+import { differenceInDays } from "date-fns";
 import { useCustomers } from "@/features/customers";
 import { useEquipmentModels, useForklifts } from "@/features/fleet";
 import { supabase } from "@/integrations/supabase/client";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { parseLineItems, parseRentalMeta } from "@/lib/domain/lineItems";
+import { useQuote } from "../quotes/useQuotes";
 
 export const isPublicoGeneral = (name?: string | null) =>
   !!name && (name.trim().toLowerCase().includes("público en general") || name.trim().toLowerCase().includes("publico en general"));

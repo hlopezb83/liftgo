@@ -1,8 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
-import { notifySuccess } from "@/lib/ui/appFeedback";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import type { ParsedBankLine } from "../../lib/csvParsers";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 import { BANK_LINES_QK } from "../useBankStatementLines";
+import type { ParsedBankLine } from "../../lib/csvParsers";
 
 interface ImportArgs {
   bankAccountId: string;

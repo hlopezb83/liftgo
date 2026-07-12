@@ -1,12 +1,11 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useUpdateStatus } from "../../hooks/forklifts/useForklifts";
 import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
-
 import { notifySuccess } from "@/lib/ui/appFeedback";
+import { useUpdateStatus } from "../../hooks/forklifts/useForklifts";
 
 interface StatusChangeCardProps {
   forkliftId: string;

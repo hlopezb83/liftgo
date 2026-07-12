@@ -1,12 +1,12 @@
 import { useState } from "react";
+import { DownloadIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { DownloadIcon } from "@/components/icons";
-import { formatCurrency } from "@/lib/format/formatCurrency";
 import { useCustomerSummary, usePortalCustomer, usePortalInvoices, usePortalPayments } from "@/features/customers";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { PortalInvoicesTable, type PortalPayment } from "../components/statement/PortalInvoicesTable";
 

@@ -1,5 +1,5 @@
-import { type LucideIcon } from "@/components/icons";
 import { KpiTile } from "@/components/domain/KpiTile";
+import { type LucideIcon } from "@/components/icons";
 
 interface StatCard {
   label: string;

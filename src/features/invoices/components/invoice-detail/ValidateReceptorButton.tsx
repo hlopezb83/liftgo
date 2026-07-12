@@ -1,14 +1,14 @@
 import { useState } from "react";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { InfoAlertIcon, SuccessIcon, SpinnerIcon, EditIcon, SecurityIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import type { Tables } from "@/integrations/supabase/types";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import {
   useValidateReceptorTaxInfo,
   type ReceptorValidationResult,
 } from "../../hooks/invoiceDetail/useReceptorTaxInfo";
 import { EditReceptorFiscalDialog } from "./EditReceptorFiscalDialog";
-import type { Tables } from "@/integrations/supabase/types";
 
 interface Props {
   invoice: Tables<"invoices">;

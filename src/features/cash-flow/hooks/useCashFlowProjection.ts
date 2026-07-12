@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { nowMty } from "@/lib/utils";
-import { bucketByWeek, type CashFlowBucket, type CashFlowItem } from "../lib/cashFlowUtils";
 import {
   buildPaidByInvoice,
   invoiceToItem,
@@ -10,6 +9,7 @@ import {
   type InvoiceRow,
   type PaymentRow,
 } from "../lib/cashFlowTransformers";
+import { bucketByWeek, type CashFlowBucket, type CashFlowItem } from "../lib/cashFlowUtils";
 
 interface Args {
   weeks: number;

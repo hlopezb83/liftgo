@@ -1,13 +1,13 @@
 import { Document, Page, Text, View } from "@react-pdf/renderer";
-import { sharedStyles } from "@/lib/pdf/theme/styles";
-import { COLORS, FONT_SIZES } from "@/lib/pdf/theme/tokens";
 import { AccentBar } from "@/lib/pdf/components/AccentBar";
+import { Footer } from "@/lib/pdf/components/Footer";
 import { Header } from "@/lib/pdf/components/Header";
 import { InfoCards } from "@/lib/pdf/components/InfoCards";
 import { LineItemsTable } from "@/lib/pdf/components/LineItemsTable";
 import { TotalsBox } from "@/lib/pdf/components/TotalsBox";
-import { Footer } from "@/lib/pdf/components/Footer";
 import { fmtDate, type CompanyData, type PdfLineItem } from "@/lib/pdf/shared";
+import { sharedStyles } from "@/lib/pdf/theme/styles";
+import { COLORS, FONT_SIZES } from "@/lib/pdf/theme/tokens";
 
 export interface InvoiceDocumentProps {
   company: CompanyData | null;

@@ -1,8 +1,8 @@
 import { format } from "date-fns";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ClipboardCheck } from "@/components/icons";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { InfoRow } from "@/components/forms/InfoRow";
+import { ClipboardCheck } from "@/components/icons";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { parseDateLocal } from "@/lib/utils";
 import type { ReturnInspectionWithJoins } from "@/types/rental";
 

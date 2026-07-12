@@ -1,10 +1,5 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@/lib/forms/zodResolver";
-import { Button } from "@/components/ui/button";
-import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
-import { FormSection } from "@/components/forms/FormSection";
-import { Form } from "@/components/ui/form";
 import {
   TextField,
   SelectField,
@@ -12,6 +7,11 @@ import {
   CurrencyField,
   type SelectOption,
 } from "@/components/forms/fields";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormSection } from "@/components/forms/FormSection";
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+import { zodResolver } from "@/lib/forms/zodResolver";
 import { useCreatePart, useUpdatePart, type PartInventory } from "../../hooks/usePartsInventory";
 import { partFormSchema, type PartFormData } from "../../lib/partFormSchema";
 

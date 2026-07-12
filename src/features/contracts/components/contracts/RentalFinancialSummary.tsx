@@ -1,10 +1,10 @@
-import { useContractFinancialSummary } from "../../hooks/contractDetail/useContractFinancialSummary";
+import { differenceInDays } from "date-fns";
+import { MoneyIcon, DocumentIcon, TrendingUpIcon } from "@/components/icons";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { calculateRentalCost } from "@/lib/domain/invoiceHelpers";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { differenceInDays } from "date-fns";
 import { parseDateLocal } from "@/lib/utils";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MoneyIcon, DocumentIcon, TrendingUpIcon } from "@/components/icons";
+import { useContractFinancialSummary } from "../../hooks/contractDetail/useContractFinancialSummary";
 
 interface RentalFinancialSummaryProps {
   bookingId: string;

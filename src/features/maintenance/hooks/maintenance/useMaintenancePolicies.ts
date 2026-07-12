@@ -1,8 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { maintenancePolicyKeys } from "../../lib/queryKeys";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { maintenancePolicyKeys } from "../../lib/queryKeys";
 
 export interface MaintenancePolicy {
   id: string;

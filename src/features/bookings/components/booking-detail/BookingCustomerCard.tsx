@@ -1,6 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { UserIcon, PhoneIcon } from "@/components/icons";
 import { InfoRow } from "@/components/forms/InfoRow";
+import { UserIcon, PhoneIcon } from "@/components/icons";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface Props {
   customerName?: string | null;

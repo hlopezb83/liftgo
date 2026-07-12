@@ -1,6 +1,6 @@
+import { KpiTile } from "@/components/domain/KpiTile";
 import { RevenueIcon, TrendingUpIcon, CalendarClock, OverdueIcon } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { KpiTile } from "@/components/domain/KpiTile";
 
 interface FinancialKpiCardsProps {
   mrr: number;

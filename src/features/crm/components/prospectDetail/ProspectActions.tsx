@@ -1,12 +1,12 @@
 import { useState } from "react";
+import { EditIcon, DeleteIcon, TrophyIcon, ErrorIcon, ResetIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { EditIcon, DeleteIcon, TrophyIcon, ErrorIcon, ResetIcon } from "@/components/icons";
-import { useDeleteProspect, useUpdateProspect, type Prospect } from "../../hooks/useProspects";
 import { useProspectGuard } from "../../hooks/useProspectGuard";
-import { CloseWonDialog } from "../CloseWonDialog";
+import { useDeleteProspect, useUpdateProspect, type Prospect } from "../../hooks/useProspects";
 import { CloseLostDialog } from "../CloseLostDialog";
+import { CloseWonDialog } from "../CloseWonDialog";
 
 interface Props {
   prospect: Prospect;

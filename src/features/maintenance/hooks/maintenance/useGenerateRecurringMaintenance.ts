@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { notifyError, notifyInfo, notifySuccess } from "@/lib/ui/appFeedback";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
+import { notifyError, notifyInfo, notifySuccess } from "@/lib/ui/appFeedback";
 
 interface GenerateMaintenanceResponse {
   generated: number;

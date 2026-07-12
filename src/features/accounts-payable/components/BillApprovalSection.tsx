@@ -1,12 +1,10 @@
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import { SuccessIcon, X, ResetIcon, SecurityIcon, ShieldAlert, SpinnerIcon } from "@/components/icons";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 import { useUserRole } from "@/features/users";
 import { formatDateDisplay } from "@/lib/utils";
-import { ApproveBillDialog } from "./ApproveBillDialog";
-import { RejectBillDialog } from "./RejectBillDialog";
 import { useSupplierBillApprovals } from "../hooks/useBillApprovalHistory";
 import { useRequestBillReapproval } from "../hooks/useBillApprovalMutations";
 import {
@@ -14,6 +12,8 @@ import {
   APPROVAL_ACTION_LABELS,
   type SupplierBillApprovalStatus,
 } from "../lib/supplierBillConstants";
+import { ApproveBillDialog } from "./ApproveBillDialog";
+import { RejectBillDialog } from "./RejectBillDialog";
 
 interface Props {
   billId: string;

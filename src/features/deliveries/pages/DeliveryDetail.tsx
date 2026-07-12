@@ -1,24 +1,22 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-
-import { useDelivery, useDeliveries, useUpdateDelivery, useDeleteDelivery } from "../hooks/useDeliveries";
+import { NotesCard } from "@/components/domain/NotesCard";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
+import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useBookings } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
-import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
-import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { NotesCard } from "@/components/domain/NotesCard";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { notifySuccess } from "@/lib/ui/appFeedback";
+import { nowMty } from "@/lib/utils";
+import { DeliveryActions } from "../components/deliveries/DeliveryActions";
 import { DeliveryDetailDialogs } from "../components/deliveries/DeliveryDetailDialogs";
-import { DeliverySignatureCard } from "../components/deliveries/DeliverySignatureCard";
 import {
   DeliveryStatusCard, DeliveryEquipmentCard, DeliveryLogisticsCard, DeliveryBookingCard,
 } from "../components/deliveries/DeliveryInfoCards";
-import { DeliveryActions } from "../components/deliveries/DeliveryActions";
-import { Skeleton } from "@/components/ui/skeleton";
-
-import { nowMty } from "@/lib/utils";
+import { DeliverySignatureCard } from "../components/deliveries/DeliverySignatureCard";
+import { useDelivery, useDeliveries, useUpdateDelivery, useDeleteDelivery } from "../hooks/useDeliveries";
 import { buildCompletionPayload, buildDeliverySubtitle, computeHoursUsed } from "../lib/deliveryDetailHelpers";
-import { notifySuccess } from "@/lib/ui/appFeedback";
 
 type PickupPrompt = {
   delivery: { forklift_id: string; booking_id: string | null; address: string | null; driver_name: string | null; driver_phone: string | null };

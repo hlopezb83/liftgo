@@ -1,16 +1,16 @@
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
 import { SpinnerIcon, TrendingUpIcon } from "@/components/icons";
-import { PageTransition } from "@/components/layout/PageTransition";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { PageTransition } from "@/components/layout/PageTransition";
+import { Card, CardContent } from "@/components/ui/card";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { CashFlowSettingsBar } from "../components/CashFlowSettingsBar";
 import { CashFlowSummaryCards } from "../components/CashFlowSummaryCards";
 import { CashFlowTable } from "../components/CashFlowTable";
 import { CashFlowWeekDetailSheet } from "../components/CashFlowWeekDetailSheet";
-import { useCashFlowSettings } from "../hooks/useCashFlowSettings";
 import { useCashFlowProjection } from "../hooks/useCashFlowProjection";
+import { useCashFlowSettings } from "../hooks/useCashFlowSettings";
 import type { CashFlowBucket } from "../lib/cashFlowUtils";
 
 export default function CashFlowPage() {

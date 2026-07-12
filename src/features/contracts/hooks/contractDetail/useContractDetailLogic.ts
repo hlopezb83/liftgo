@@ -1,8 +1,7 @@
 import { useParams } from "react-router-dom";
-
 import { STATUS_LABELS } from "@/lib/constants";
-import { useContract, useUpdateContract } from "../useContracts";
 import { notifySuccess } from "@/lib/ui/appFeedback";
+import { useContract, useUpdateContract } from "../useContracts";
 
 /**
  * Centraliza el id, fetch, mutación y handler de status de la página de detalle

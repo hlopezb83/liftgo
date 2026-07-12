@@ -1,5 +1,5 @@
-import { Moon, Sun } from "@/components/icons";
 import { useTheme } from "next-themes";
+import { Moon, Sun } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 

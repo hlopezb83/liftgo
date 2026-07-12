@@ -9,8 +9,8 @@
  *
  * Requiere jsdom (no happy-dom) por la serialización de estilos de react-pdf.
  */
-import { describe, it, expect, vi } from "vitest";
 import React from "react";
+import { describe, it, expect, vi } from "vitest";
 
 vi.mock("@react-pdf/renderer", () => {
   const tag = (name: string) =>
@@ -34,16 +34,16 @@ vi.mock("@react-pdf/renderer", () => {
 });
 
 import { render } from "@testing-library/react";
+import { ContractDocument } from "../ContractDocument";
+import { CustomerStatementDocument } from "../CustomerStatementDocument";
+import { IncomeStatementDocument } from "../IncomeStatementDocument";
+import { InvoiceDocument } from "../InvoiceDocument";
+import { QuoteDocument } from "../QuoteDocument";
 import {
   company, lineItems, totals, customerSummary,
   incomeStatement, contract, template,
 } from "./__fixtures__/pdfFixtures";
 
-import { QuoteDocument } from "../QuoteDocument";
-import { InvoiceDocument } from "../InvoiceDocument";
-import { CustomerStatementDocument } from "../CustomerStatementDocument";
-import { IncomeStatementDocument } from "../IncomeStatementDocument";
-import { ContractDocument } from "../ContractDocument";
 
 function snap(el: React.ReactElement) {
   const { container, unmount } = render(el);

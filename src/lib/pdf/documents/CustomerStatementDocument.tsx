@@ -1,16 +1,16 @@
 import { Document, Page, Text, View } from "@react-pdf/renderer";
 import { differenceInDays, parseISO } from "date-fns";
-import { sharedStyles } from "@/lib/pdf/theme/styles";
-import { COLORS, FONT_SIZES } from "@/lib/pdf/theme/tokens";
-import { AccentBar } from "@/lib/pdf/components/AccentBar";
-import { Header } from "@/lib/pdf/components/Header";
-import { InfoCards } from "@/lib/pdf/components/InfoCards";
-import { Footer } from "@/lib/pdf/components/Footer";
-import { fmtDate, type CompanyData } from "@/lib/pdf/shared";
+import type { CustomerSummary } from "@/lib/domain/customerTypes";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { roundMoney } from "@/lib/money";
+import { AccentBar } from "@/lib/pdf/components/AccentBar";
+import { Footer } from "@/lib/pdf/components/Footer";
+import { Header } from "@/lib/pdf/components/Header";
+import { InfoCards } from "@/lib/pdf/components/InfoCards";
+import { fmtDate, type CompanyData } from "@/lib/pdf/shared";
+import { sharedStyles } from "@/lib/pdf/theme/styles";
+import { COLORS, FONT_SIZES } from "@/lib/pdf/theme/tokens";
 import { nowMty } from "@/lib/utils";
-import type { CustomerSummary } from "@/lib/domain/customerTypes";
 
 export interface CustomerStatementDocumentProps {
   company: CompanyData | null;

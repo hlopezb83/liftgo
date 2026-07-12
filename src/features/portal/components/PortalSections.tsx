@@ -1,7 +1,7 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { formatDateDisplay, formatDateRange } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 
 interface Booking {
   id: string;

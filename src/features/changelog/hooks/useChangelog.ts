@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { notifyError } from "@/lib/ui/appFeedback";
-
 import { useEffect } from "react";
+import { notifyError } from "@/lib/ui/appFeedback";
 import { fetchChangelogIndex, fetchChangelogDetail, getCurrentVersion } from "../lib/changelog";
 
 export function useChangelog() {

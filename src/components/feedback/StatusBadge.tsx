@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
 import { STATUS_LABELS } from "@/lib/constants";
+import { cn } from "@/lib/utils";
 
 // Tonos semánticos:
 // - success (verde): available, paid, accepted, confirmed, repaired, good, active, signed

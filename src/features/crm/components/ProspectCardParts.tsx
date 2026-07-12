@@ -1,7 +1,6 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { CompanyIcon, UserIcon, DocumentIcon, CalendarIcon } from "@/components/icons";
-
 import { Badge } from "@/components/ui/badge";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { ROUTES } from "@/routes/routes";
 import type { Prospect } from "../hooks/useProspects";
 

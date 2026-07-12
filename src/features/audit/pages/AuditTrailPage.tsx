@@ -1,21 +1,21 @@
 import { useState } from "react";
-import { useAuditLogs, useDeleteAuditLog, useRevertAuditLog } from "../hooks/useAuditLogs";
-import { useUserRole } from "@/features/users";
-import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { SearchBar } from "@/components/forms/SearchBar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { DeleteIcon } from "@/components/icons";
-import type { AuditLog } from "../hooks/useAuditLogs";
+import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useUserRole } from "@/features/users";
+import { AuditLogDetailDialog } from "../components/auditTrail/AuditLogDetailDialog";
 import {
   TABLES, getRecordLabel, actionIcon, actionBadgeVariant,
   translateAction, translateTable, translateField, formatTimestamp,
 } from "../components/auditTrail/auditTrailConstants";
-import { AuditLogDetailDialog } from "../components/auditTrail/AuditLogDetailDialog";
+import { useAuditLogs, useDeleteAuditLog, useRevertAuditLog } from "../hooks/useAuditLogs";
+import type { AuditLog } from "../hooks/useAuditLogs";
 import { DeleteAuditLogDialog } from "../components/auditTrail/DeleteAuditLogDialog";
 import { AuditLogMobileCard } from "../components/auditTrail/AuditLogMobileCard";
-import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 
 export default function AuditTrailPage() {
   const [tableFilter, setTableFilter] = useState("all");

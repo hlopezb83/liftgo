@@ -1,8 +1,8 @@
 import { ProspectDetailSheet } from "./ProspectDetailSheet";
 import { ProspectFormDialog } from "./ProspectFormDialog";
 import type { useCRMPageDialogs } from "../hooks/useCRMPageDialogs";
-import type { Prospect } from "../hooks/useProspects";
 import type { ProspectFormPayload } from "../hooks/useProspectForm";
+import type { Prospect } from "../hooks/useProspects";
 
 interface Props {
   dialogs: ReturnType<typeof useCRMPageDialogs>;

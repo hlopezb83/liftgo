@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
+import type { ReactNode } from "react";
 
 export interface DetailSection {
   /** Identificador estable para React key. */

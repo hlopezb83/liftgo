@@ -1,7 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
-import { fetchCompanyDataAndLogo, type PdfLineItem } from "@/lib/pdf/shared";
 import { parseLineItems } from "@/lib/domain/lineItems";
 import type { QuoteDocumentProps } from "@/lib/pdf/documents/QuoteDocument";
+import { fetchCompanyDataAndLogo, type PdfLineItem } from "@/lib/pdf/shared";
 
 export async function fetchQuotePdfData(quoteId: string): Promise<QuoteDocumentProps> {
   const { data: quote, error } = await supabase

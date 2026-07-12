@@ -1,6 +1,6 @@
 import { useFormContext } from "react-hook-form";
-import { FormSection } from "@/components/forms/FormSection";
 import { TextField, TextareaField } from "@/components/forms/fields";
+import { FormSection } from "@/components/forms/FormSection";
 import type { CustomerFormData } from "../../../lib/customerFormSchema";
 
 export function AddressNotesSection() {

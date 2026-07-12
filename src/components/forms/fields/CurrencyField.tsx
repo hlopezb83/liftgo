@@ -1,7 +1,7 @@
 import { type FieldPath, type FieldValues, type Control } from "react-hook-form";
+import { RequiredMark } from "@/components/forms/RequiredMark";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { RequiredMark } from "@/components/forms/RequiredMark";
 
 type Currency = "MXN" | "USD";
 

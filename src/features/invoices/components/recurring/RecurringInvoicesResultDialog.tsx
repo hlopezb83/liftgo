@@ -1,8 +1,8 @@
+import { Link } from "react-router-dom";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { SuccessIcon, ErrorIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { SuccessIcon, ErrorIcon } from "@/components/icons";
-import { Link } from "react-router-dom";
 import type { GenerateRecurringResponse } from "../../hooks/invoices/recurring/useGenerateRecurringInvoices";
 
 interface Props {

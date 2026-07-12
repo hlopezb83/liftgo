@@ -1,22 +1,21 @@
-import { useDialogState } from "@/hooks/useDialogState";
-
-import { useDamageRecords } from "../hooks/useDamageRecords";
-import { useDamagePhotoCounts } from "../hooks/useDamagePhotoCounts";
-import { useListFilters } from "@/hooks/useListFilters";
-import { ListPageLayout } from "@/components/layout/ListPageLayout";
-import { SearchBar } from "@/components/forms/SearchBar";
+import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { SearchBar } from "@/components/forms/SearchBar";
+import { Camera } from "@/components/icons";
+import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { DamageDetailSheet } from "../components/damage/DamageDetailSheet";
 import { ReportDamageDialog } from "../components/damage/ReportDamageDialog";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useDialogState } from "@/hooks/useDialogState";
+import { useListFilters } from "@/hooks/useListFilters";
 import { DAMAGE_STATUSES, STATUS_LABELS } from "@/lib/constants";
-import { Camera } from "@/components/icons";
 import { formatDateMty } from "@/lib/format/dateFormats";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { DamageRecordWithJoins } from "@/types/rental";
-import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { useDamagePhotoCounts } from "../hooks/useDamagePhotoCounts";
+import { useDamageRecords } from "../hooks/useDamageRecords";
 
 type DamageRow = NonNullable<ReturnType<typeof useDamageRecords>["data"]>[number];
 

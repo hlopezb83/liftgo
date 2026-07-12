@@ -1,7 +1,7 @@
-import { Button } from "@/components/ui/button";
 import { UploadIcon } from "@/components/icons";
-import { SupplierRepStatusBadge } from "./SupplierRepStatusBadge";
+import { Button } from "@/components/ui/button";
 import { SupplierPaymentRepReceived } from "./SupplierPaymentRepReceived";
+import { SupplierRepStatusBadge } from "./SupplierRepStatusBadge";
 import type { SupplierPayment } from "../hooks/useSupplierBill";
 import type { SupplierRepStatus } from "../lib/supplierRepConstants";
 

@@ -1,11 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { syncInvoiceStatus } from "../lib/syncInvoiceStatus";
-import { invoiceKeys, paymentKeys } from "../lib/queryKeys";
+import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-
-import type { Tables, TablesInsert } from "@/integrations/supabase/types";
+import { invoiceKeys, paymentKeys } from "../lib/queryKeys";
+import { syncInvoiceStatus } from "../lib/syncInvoiceStatus";
 
 export type Payment = Tables<"payments">;
 

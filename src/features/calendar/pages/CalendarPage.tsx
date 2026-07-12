@@ -1,22 +1,21 @@
-import { useBookingsRange } from "@/features/bookings";
-import { useForkliftMap } from "@/features/fleet";
-import { PageTransition } from "@/components/layout/PageTransition";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-import { PageHeader } from "@/components/layout/PageHeader";
+import { format, parseISO, startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
+import { useState } from "react";
+import { ChevronLeftIcon, ChevronRightIcon, WarnIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { PageTransition } from "@/components/layout/PageTransition";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { useBookingsRange } from "@/features/bookings";
+import { useForkliftMap } from "@/features/fleet";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { format, parseISO, startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
-import { nowMty, formatMtyDate } from "@/lib/utils";
 import { APP_LOCALE } from "@/lib/format/dateFormats";
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { ChevronLeftIcon, ChevronRightIcon, WarnIcon } from "@/components/icons";
+import { nowMty, formatMtyDate } from "@/lib/utils";
 import { CalendarStatCards } from "../components/calendar/CalendarStatCards";
-import { GanttChart } from "../components/calendar/GanttChart";
 import { EquipmentListView } from "../components/calendar/EquipmentListView";
+import { GanttChart } from "../components/calendar/GanttChart";
 
 function rangeFns(mode: "month" | "week") {
   return mode === "month"

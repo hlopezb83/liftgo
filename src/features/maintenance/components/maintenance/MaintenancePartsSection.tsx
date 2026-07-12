@@ -1,15 +1,14 @@
 import { useState } from "react";
-import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { InventoryIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
-import { formatCurrency } from "@/lib/format/formatCurrency";
 import {
   usePartsInventory,
   useMaintenanceParts,
   useAddMaintenancePart,
   type PartInventory,
 } from "@/features/inventory";
-
+import { formatCurrency } from "@/lib/format/formatCurrency";
+import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { AddMaintenancePartForm } from "./AddMaintenancePartForm";
 
 interface Props {

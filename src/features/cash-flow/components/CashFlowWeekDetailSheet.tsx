@@ -1,10 +1,9 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { ArrowDownCircle, ArrowUpCircle } from "@/components/icons";
 import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay, cn } from "@/lib/utils";
-import { ArrowDownCircle, ArrowUpCircle } from "@/components/icons";
 import type { CashFlowBucket, CashFlowItem } from "../lib/cashFlowUtils";
 
 interface Props {

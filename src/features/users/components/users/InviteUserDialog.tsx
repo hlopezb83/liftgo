@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { UserPlus } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { UserPlus } from "@/components/icons";
 import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
 import { useInviteUser } from "../../hooks/useUserManagement";
 import type { AppRole } from "../../hooks/useUserRole";

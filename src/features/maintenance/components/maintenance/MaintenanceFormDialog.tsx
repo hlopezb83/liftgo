@@ -1,8 +1,3 @@
-import type { UseFormReturn } from "react-hook-form";
-import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
-import { FormSection } from "@/components/forms/FormSection";
-import { FormActions } from "@/components/forms/FormActions";
-import { Form } from "@/components/ui/form";
 import {
   TextareaField,
   SelectField,
@@ -10,8 +5,13 @@ import {
   CurrencyField,
   SupplierField,
 } from "@/components/forms/fields";
+import { FormActions } from "@/components/forms/FormActions";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormSection } from "@/components/forms/FormSection";
+import { Form } from "@/components/ui/form";
 import { SERVICE_TYPES } from "@/lib/constants";
 import type { MaintenanceFormValues } from "../../hooks/maintenance/useMaintenanceForm";
+import type { UseFormReturn } from "react-hook-form";
 
 interface ForkliftOption { id: string; name: string; model: string }
 interface MechanicOption { id: string; name: string; specialization?: string | null }

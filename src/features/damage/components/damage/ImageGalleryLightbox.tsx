@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { ChevronLeftIcon, ChevronRightIcon, X, ZoomIn, ZoomOut } from "@/components/icons";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 interface ImageGalleryLightboxProps {

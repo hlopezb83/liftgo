@@ -1,13 +1,13 @@
+import { DeleteIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
-import { DeleteIcon } from "@/components/icons";
 import type { EquipmentModel } from "@/features/fleet";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import type { RentalLine } from "./RentalLineItems";
 import { computeRentalLineTotal } from "./rentalLineHelpers";
+import type { RentalLine } from "./RentalLineItems";
 
 
 interface Props {

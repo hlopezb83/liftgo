@@ -1,11 +1,11 @@
 
-import { StatCards } from "@/features/dashboard";
+import { parseISO, isWithinInterval } from "date-fns";
 import { FleetIcon, SuccessIcon, MaintenanceIcon, ChartIcon } from "@/components/icons";
 import type { BookingWithForklift } from "@/features/bookings";
+import { StatCards } from "@/features/dashboard";
 import type { Tables } from "@/integrations/supabase/types";
-import { parseISO, isWithinInterval } from "date-fns";
-import { nowMty } from "@/lib/utils";
 import { BOOKING_STATUS, FORKLIFT_STATUS } from "@/lib/constants";
+import { nowMty } from "@/lib/utils";
 
 type Forklift = Tables<"forklifts">;
 

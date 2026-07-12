@@ -7,12 +7,11 @@
  * documentación viva del contrato de cada formulario.
  */
 import { describe, it, expect } from "vitest";
-import type { z } from "zod";
-
 import { customerFormSchema } from "@/features/customers/lib/customerFormSchema";
-import { supplierFormSchema } from "@/features/suppliers/lib/supplierFormSchema";
 import { partFormSchema } from "@/features/inventory/lib/partFormSchema";
+import { supplierFormSchema } from "@/features/suppliers/lib/supplierFormSchema";
 import { optionalEmail, positiveAmountCoerced, nonNegativeAmountCoerced } from "@/lib/schemas";
+import type { z } from "zod";
 
 interface Case {
   name: string;

@@ -1,6 +1,6 @@
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
-import { Button } from "@/components/ui/button";
 import { EmailIcon } from "@/components/icons";
+import { Button } from "@/components/ui/button";
 
 interface CredentialsDialogProps {
   email: string | null;

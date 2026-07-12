@@ -1,7 +1,7 @@
+import { AddIcon, DownloadIcon, List, LayoutGrid, RefreshIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { AddIcon, DownloadIcon, List, LayoutGrid, RefreshIcon } from "@/components/icons";
 
 type Props = {
   viewMode: "list" | "board";

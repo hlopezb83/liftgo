@@ -1,7 +1,7 @@
 import { useMemo, useCallback } from "react";
-import type { ColumnDef, SortingState } from "@tanstack/react-table";
-import { useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { useLiftgoTable } from "@/components/dataTable/v2/useLiftgoTable";
+import { useIsTabletOrBelow } from "@/hooks/use-mobile";
+import type { ColumnDef, SortingState } from "@tanstack/react-table";
 
 type SortDirection = "asc" | "desc";
 

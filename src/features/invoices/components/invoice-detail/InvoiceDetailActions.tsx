@@ -1,17 +1,15 @@
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { RoleGuard } from "@/layouts/RoleGuard";
-import { InvoicePDFButton } from "../invoices/InvoicePDFButton";
-import { EditIcon, StampIcon, ErrorIcon, PaymentIcon, DeleteIcon, RefreshIcon, DocumentIcon, FileCode2 } from "@/components/icons";
-import type { Tables } from "@/integrations/supabase/types";
-import { useRefreshCancellationStatus } from "../../hooks/invoices/cfdi/useRefreshCancellationStatus";
 import { useState } from "react";
-import { downloadCfdiBlob } from "../../lib/downloadCfdiBlob";
-import { notifyError } from "@/lib/ui/appFeedback";
-
-
-import type { InvoiceVisibility } from "../../lib/invoiceVisibility";
+import { EditIcon, StampIcon, ErrorIcon, PaymentIcon, DeleteIcon, RefreshIcon, DocumentIcon, FileCode2 } from "@/components/icons";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import type { Tables } from "@/integrations/supabase/types";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import { computeInvoiceFlags, type InvoiceActionFlags } from "@/lib/rules/invoices";
+import { notifyError } from "@/lib/ui/appFeedback";
+import { useRefreshCancellationStatus } from "../../hooks/invoices/cfdi/useRefreshCancellationStatus";
+import { downloadCfdiBlob } from "../../lib/downloadCfdiBlob";
+import { InvoicePDFButton } from "../invoices/InvoicePDFButton";
+import type { InvoiceVisibility } from "../../lib/invoiceVisibility";
 
 interface Props {
   invoice: Tables<"invoices">;

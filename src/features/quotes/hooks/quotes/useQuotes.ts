@@ -1,9 +1,9 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { callRpc } from "@/lib/rpc";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
-import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { callRpc } from "@/lib/rpc";
 export type { Quote } from "@/types/rental";
 import type { Quote } from "@/types/rental";
 

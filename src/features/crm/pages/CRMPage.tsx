@@ -1,19 +1,19 @@
-import { useState } from "react";
 import { type DropResult } from "@hello-pangea/dnd";
-import { TooltipProvider } from "@/components/ui/tooltip";
+import { useState } from "react";
 import { PageTransition } from "@/components/layout/PageTransition";
-import { CRMPageDialogs } from "../components/CRMPageDialogs";
-import { CRMKanbanGrid } from "../components/CRMKanbanGrid";
-import { CRMToolbar } from "../components/CRMToolbar";
-import { useProspects, useCreateProspect, useUpdateProspect, useDeleteProspect, type Prospect } from "../hooks/useProspects";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { usePageActions } from "@/contexts/pageActions";
 import { useQuotes } from "@/features/quotes";
-import { useProspectGuard } from "../hooks/useProspectGuard";
+import { formatCurrency } from "@/lib/format/formatCurrency";
+import { CRMKanbanGrid } from "../components/CRMKanbanGrid";
+import { CRMPageDialogs } from "../components/CRMPageDialogs";
+import { CRMToolbar } from "../components/CRMToolbar";
 import { useCRMFilters } from "../hooks/useCRMFilters";
 import { useCRMMetrics } from "../hooks/useCRMMetrics";
 import { useCRMPageDialogs } from "../hooks/useCRMPageDialogs";
+import { useProspectGuard } from "../hooks/useProspectGuard";
+import { useProspects, useCreateProspect, useUpdateProspect, useDeleteProspect, type Prospect } from "../hooks/useProspects";
 import { ACTIVE_STAGES } from "../lib/constants";
-import { formatCurrency } from "@/lib/format/formatCurrency";
-import { usePageActions } from "@/contexts/pageActions";
 
 export default function CRMPage() {
   const { data: prospects = [], isLoading } = useProspects();

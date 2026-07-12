@@ -1,6 +1,6 @@
 import { DocumentIcon, SearchIcon } from "@/components/icons";
-import { Input } from "@/components/ui/input";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Input } from "@/components/ui/input";
 import { renderSafeMarkdown } from "../lib/markdown";
 
 interface Section { title: string; content: string }

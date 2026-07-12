@@ -1,8 +1,8 @@
 import { format } from "date-fns";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CalendarDays, FleetIcon, LocationIcon, CalendarIcon } from "@/components/icons";
-import { formatDateDisplay, parseDateLocal, formatDateRange } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatDateDisplay, parseDateLocal, formatDateRange } from "@/lib/utils";
 
 interface InfoRowProps { label: string; value: string }
 

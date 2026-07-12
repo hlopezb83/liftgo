@@ -1,21 +1,20 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { useState } from "react";
-import { useBookings } from "@/features/bookings";
-import { useForkliftMap } from "@/features/fleet";
-import { useReturnInspections } from "../hooks/useReturnInspections";
-import { useReturnInspectionDialog } from "../hooks/returnInspection/useReturnInspectionDialog";
-import { ListPageLayout } from "@/components/layout/ListPageLayout";
-import { DatePickerField } from "@/components/forms/DatePickerField";
-import { Button } from "@/components/ui/button";
-import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { ReturnInspectionDialog } from "../components/return-inspection/ReturnInspectionDialog";
-import { formatCurrency } from "@/lib/format/formatCurrency";
-import { Card, CardContent } from "@/components/ui/card";
-import { PlusCircle } from "@/components/icons";
 import { format } from "date-fns";
-import { parseDateLocal } from "@/lib/utils";
-
+import { useState } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
+import { DatePickerField } from "@/components/forms/DatePickerField";
+import { PlusCircle } from "@/components/icons";
+import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { useBookings } from "@/features/bookings";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { useForkliftMap } from "@/features/fleet";
+import { ReturnInspectionDialog } from "../components/return-inspection/ReturnInspectionDialog";
+import { useReturnInspectionDialog } from "../hooks/returnInspection/useReturnInspectionDialog";
+import { useReturnInspections } from "../hooks/useReturnInspections";
+import { formatCurrency } from "@/lib/format/formatCurrency";
+import { parseDateLocal } from "@/lib/utils";
 
 type Inspection = NonNullable<ReturnType<typeof useReturnInspections>["data"]>[number];
 

@@ -1,15 +1,15 @@
 import { useState } from "react";
-import { PageTransition } from "@/components/layout/PageTransition";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { PageTransition } from "@/components/layout/PageTransition";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ActivityKPIs } from "../components/activity/ActivityKPIs";
+import type { ActivityFilters } from "@/features/dashboard";
 import { ActivityByMember } from "../components/activity/ActivityByMember";
 import { ActivityByModule } from "../components/activity/ActivityByModule";
+import { ActivityKPIs } from "../components/activity/ActivityKPIs";
 import { ActivityTimeline } from "../components/activity/ActivityTimeline";
 import { useActivityMetrics } from "../hooks/useActivityMetrics";
 import { getRange, type RangeKey } from "../lib/activityConstants";
-import type { ActivityFilters } from "@/features/dashboard";
 import type { ActivityMetrics } from "../hooks/activityMetricsTypes";
 
 export default function ActivityPage() {

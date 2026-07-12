@@ -1,5 +1,5 @@
-import type { ContractFormShape } from "../hooks/contractForm/contractFormDefaults";
 import { roundMoney } from "@/lib/money";
+import type { ContractFormShape } from "../hooks/contractForm/contractFormDefaults";
 
 const nn = (v: string): string | null => v || null;
 const numOrNull = (v: string | null | undefined, fallback: number | null = null): number | null => {

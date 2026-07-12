@@ -1,16 +1,16 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
 import { useParams } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { usePortalInvoices, usePortalPayments } from "@/features/customers";
-import { formatCurrency } from "@/lib/format/formatCurrency";
-import { Skeleton } from "@/components/ui/skeleton";
-import { formatDateDisplay } from "@/lib/utils";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { usePortalInvoices, usePortalPayments } from "@/features/customers";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatDateDisplay } from "@/lib/utils";
 import { TotalsBreakdown } from "../components/TotalsBreakdown";
 
 

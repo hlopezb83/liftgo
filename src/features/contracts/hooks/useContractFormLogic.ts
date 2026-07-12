@@ -1,13 +1,12 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useParams, useSearchParams } from "react-router-dom";
-import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
-
-import { useContract, useCreateContract, useUpdateContract } from "./useContracts";
 import { useCustomers } from "@/features/customers";
 import { useForklifts } from "@/features/fleet";
-import { useContractFormState } from "./contractForm/useContractFormState";
-import { useContractFormPrefill } from "./contractForm/useContractFormPrefill";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { buildContractPayload } from "../lib/contractPayload";
+import { useContractFormPrefill } from "./contractForm/useContractFormPrefill";
+import { useContractFormState } from "./contractForm/useContractFormState";
+import { useContract, useCreateContract, useUpdateContract } from "./useContracts";
 
 export function useContractFormLogic() {
   const { id } = useParams();

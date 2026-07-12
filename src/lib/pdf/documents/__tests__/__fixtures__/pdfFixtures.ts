@@ -3,13 +3,13 @@
  * Mantenerlas chicas: solo se busca verificar que el árbol React se construye
  * y contiene los campos clave. No reflejan necesariamente datos válidos del SAT.
  */
-import type { CompanyData, PdfLineItem } from "@/lib/pdf/shared";
-import type { CustomerSummary } from "@/lib/domain/customerTypes";
+import { emptyExpenses } from "@/features/reports/hooks/incomeStatement/types";
 import type {
   StatementRow, ComparisonRow, YearTotals, MonthData,
 } from "@/features/reports/hooks/useIncomeStatementData";
-import { emptyExpenses } from "@/features/reports/hooks/incomeStatement/types";
+import type { CustomerSummary } from "@/lib/domain/customerTypes";
 import type { ContractData, TemplateData } from "@/lib/pdf/contract/data";
+import type { CompanyData, PdfLineItem } from "@/lib/pdf/shared";
 
 export const company: CompanyData = {
   razon_social: "LiftGo Demo SA de CV",

@@ -1,11 +1,11 @@
-import { useState } from "react";
 import { DragDropContext } from "@hello-pangea/dnd";
-import { type MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
-import { useMaintenanceKanban } from "../../hooks/maintenance/useMaintenanceKanban";
-import { MAINTENANCE_WORK_STATUSES, MAINTENANCE_WORK_STATUS_LABELS } from "@/lib/constants";
+import { useState } from "react";
 import { MaintenanceIcon, ClockIcon, WaitingPartsIcon, SuccessIcon } from "@/components/icons";
-import { MaintenanceKanbanColumn } from "./kanban/MaintenanceKanbanColumn";
+import { MAINTENANCE_WORK_STATUSES, MAINTENANCE_WORK_STATUS_LABELS } from "@/lib/constants";
+import { useMaintenanceKanban } from "../../hooks/maintenance/useMaintenanceKanban";
+import { type MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
 import { MaintenanceDetailSheet } from "./kanban/MaintenanceDetailSheet";
+import { MaintenanceKanbanColumn } from "./kanban/MaintenanceKanbanColumn";
 
 const COLUMN_CONFIG: Record<string, { icon: typeof MaintenanceIcon; color: string; bg: string; border: string }> = {
   pending: { icon: ClockIcon, color: "text-warning", bg: "bg-warning/10", border: "border-warning/30" },

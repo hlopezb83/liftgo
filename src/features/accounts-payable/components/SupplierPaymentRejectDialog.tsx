@@ -1,11 +1,11 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
-import { Button } from "@/components/ui/button";
-import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
-import { Form } from "@/components/ui/form";
 import { TextareaField } from "@/components/forms/fields";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+import { zodResolver } from "@/lib/forms/zodResolver";
 
 interface Props {
   open: boolean;

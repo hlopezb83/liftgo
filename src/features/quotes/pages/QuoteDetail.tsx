@@ -1,18 +1,18 @@
 import { useParams } from "react-router-dom";
-import { TotalsSummary } from "@/components/domain/TotalsSummary";
+import { NotesCard } from "@/components/domain/NotesCard";
 import { ReadOnlyLineItemsTable } from "@/components/domain/ReadOnlyLineItemsTable";
+import { TotalsSummary } from "@/components/domain/TotalsSummary";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { NotesCard } from "@/components/domain/NotesCard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AssignForkliftsCard } from "../components/quotes/AssignForkliftsCard";
-import { QuoteDetailActions } from "../components/quotes/QuoteDetailActions";
 import { QuoteConversionDialogs } from "../components/quotes/QuoteConversionDialogs";
 import { QuoteCustomerCard } from "../components/quotes/QuoteCustomerCard";
 import { QuoteDatesCard } from "../components/quotes/QuoteDatesCard";
+import { QuoteDetailActions } from "../components/quotes/QuoteDetailActions";
 import { QuoteHeaderBadges } from "../components/quotes/QuoteHeaderBadges";
-import { useQuoteDetailLogic } from "../hooks/useQuoteDetailLogic";
 import { useQuoteSaleAssignmentStatus } from "../hooks/quoteDetail/useQuoteSaleAssignmentStatus";
+import { useQuoteDetailLogic } from "../hooks/useQuoteDetailLogic";
 
 export default function QuoteDetail() {
   const { id } = useParams();

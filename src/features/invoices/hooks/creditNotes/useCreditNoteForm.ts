@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { parseLineItems } from "@/lib/domain/lineItems";
-import { useCreateCreditNote } from "./useCreditNotes";
 import type { Tables } from "@/integrations/supabase/types";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
+import { parseLineItems } from "@/lib/domain/lineItems";
+import { useCreateCreditNote } from "./useCreditNotes";
 
 export type EditableCreditNoteLine = LineItem & { _selected: boolean };
 

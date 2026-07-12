@@ -1,10 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { equipmentModelKeys } from "../lib/queryKeys";
-import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-
 import type { Tables } from "@/integrations/supabase/types";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { equipmentModelKeys } from "../lib/queryKeys";
+
 
 export type EquipmentModel = Tables<"equipment_models">;
 

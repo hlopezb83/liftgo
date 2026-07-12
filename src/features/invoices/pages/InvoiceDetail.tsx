@@ -1,19 +1,19 @@
 import { useParams } from "react-router-dom";
-import { useInvoice } from "../hooks/invoices/useInvoices";
-import { useInvoiceBookings } from "../hooks/invoices/useInvoiceBookings";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { Skeleton } from "@/components/ui/skeleton";
 import type { BookingWithForklift } from "@/features/bookings";
-import { usePayments } from "../hooks/usePayments";
+import { useCompanySettings } from "@/features/company-settings";
 import { useQuote } from "@/features/quotes";
 import { useUserRole } from "@/features/users";
-import { useCompanySettings } from "@/features/company-settings";
-import { useInvoiceDetailActions } from "../hooks/invoiceDetail/useInvoiceDetailActions";
-import { PageContainer } from "@/components/layout/PageContainer";
-import { useCreditNotesForInvoice } from "../hooks/creditNotes/useCreditNotes";
-import { Skeleton } from "@/components/ui/skeleton";
-import { parseLineItems } from "@/lib/domain/lineItems";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
-import { computeInvoiceVisibility } from "../lib/invoiceVisibility";
+import { parseLineItems } from "@/lib/domain/lineItems";
 import { InvoiceDetailBody } from "../components/invoice-detail/InvoiceDetailBody";
+import { useCreditNotesForInvoice } from "../hooks/creditNotes/useCreditNotes";
+import { useInvoiceDetailActions } from "../hooks/invoiceDetail/useInvoiceDetailActions";
+import { useInvoiceBookings } from "../hooks/invoices/useInvoiceBookings";
+import { useInvoice } from "../hooks/invoices/useInvoices";
+import { usePayments } from "../hooks/usePayments";
+import { computeInvoiceVisibility } from "../lib/invoiceVisibility";
 
 function computeCreditedAmount(creditNotes: Array<{ cfdi_status: string | null; status: string; cancellation_status: string | null; total: number }>): number {
   return creditNotes

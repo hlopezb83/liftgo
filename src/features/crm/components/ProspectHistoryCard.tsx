@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { HistoryIcon, ViewIcon } from "@/components/icons";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AuditLogDetailDialog, HIDDEN_DIFF_FIELDS, formatAuditValue, formatTimestamp, translateAction, translateField, type AuditLog, useAuditLogs } from "@/features/audit";
 interface Props {

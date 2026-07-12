@@ -1,13 +1,11 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
-
 import { quoteStatusLabel } from "../../constants";
 import { useUpdateQuote, useDeleteQuote } from "../quotes/useQuotes";
-import type { useQuoteDetailData } from "./useQuoteDetailData";
+import { useQuoteBookingCreator, type Assignment } from "./useQuoteBookingCreator";
 import { isPublicoGeneral } from "./useQuoteDetailData";
 import type { useQuoteConversionState } from "./useQuoteConversionState";
-import { useQuoteBookingCreator, type Assignment } from "./useQuoteBookingCreator";
+import type { useQuoteDetailData } from "./useQuoteDetailData";
 
 type DataResult = ReturnType<typeof useQuoteDetailData>;
 type StateResult = ReturnType<typeof useQuoteConversionState>;

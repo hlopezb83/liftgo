@@ -1,11 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
-
 import { supabase } from "@/integrations/supabase/client";
+import type { Database } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { CLABE_REGEX, isValidClabe } from "@/lib/schemas";
 import { supplierBankAccountKeys } from "../lib/queryKeys";
-import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import type { Database } from "@/integrations/supabase/types";
 
 export type SupplierBankAccount = Database["public"]["Tables"]["supplier_bank_accounts"]["Row"];
 type Insert = Database["public"]["Tables"]["supplier_bank_accounts"]["Insert"];

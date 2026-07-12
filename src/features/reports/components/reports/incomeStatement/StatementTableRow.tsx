@@ -1,9 +1,9 @@
 import { Fragment } from "react";
-import { TableCell, TableRow } from "@/components/ui/table";
 import { ChevronDownIcon, ChevronRightIcon } from "@/components/icons";
+import { TableCell, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import type { StatementRow } from "../../../hooks/useIncomeStatementData";
 import { cellColor, formatCell, type BreakdownRow } from "./incomeStatementHelpers";
+import type { StatementRow } from "../../../hooks/useIncomeStatementData";
 
 interface Props {
   row: StatementRow;

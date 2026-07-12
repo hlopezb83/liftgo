@@ -1,15 +1,15 @@
 import { useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
-import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { formatCurrency } from "@/lib/format/formatCurrency";
-import type { RentalLineMeta } from "@/lib/domain/lineItems";
 import type { Tables } from "@/integrations/supabase/types";
+import type { RentalLineMeta } from "@/lib/domain/lineItems";
+import { formatCurrency } from "@/lib/format/formatCurrency";
+import { zodResolver } from "@/lib/forms/zodResolver";
 
 type Forklift = Tables<"forklifts">;
 type EquipmentModel = Tables<"equipment_models">;

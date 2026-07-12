@@ -1,15 +1,13 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useState, useEffect } from "react";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
-
-import { useAuth } from "@/contexts/AuthContext";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { CompanyIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-import { CompanyIcon } from "@/components/icons";
+import { useAuth } from "@/contexts/AuthContext";
 import { usePublicBranding } from "@/features/company-settings";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
 type Mode = "sign-in" | "forgot";
 

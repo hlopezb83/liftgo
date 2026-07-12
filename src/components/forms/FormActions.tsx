@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button";
 import { SpinnerIcon } from "@/components/icons";
+import { Button } from "@/components/ui/button";
 
 interface FormActionsProps {
   submitLabel: string;

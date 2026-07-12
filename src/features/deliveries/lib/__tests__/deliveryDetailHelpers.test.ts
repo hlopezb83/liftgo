@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { computeHoursUsed, buildCompletionPayload, buildDeliverySubtitle } from "../deliveryDetailHelpers";
 import type { Tables } from "@/integrations/supabase/types";
+import { computeHoursUsed, buildCompletionPayload, buildDeliverySubtitle } from "../deliveryDetailHelpers";
 
 type Delivery = Tables<"deliveries">;
 

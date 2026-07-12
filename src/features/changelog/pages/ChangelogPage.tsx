@@ -1,17 +1,17 @@
 import { useState, useRef } from "react";
-import { InfoAlertIcon } from "@/components/icons";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { PageContainer } from "@/components/layout/PageContainer";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { SearchBar } from "@/components/forms/SearchBar";
-import { useChangelog } from "../hooks/useChangelog";
-import { getCurrentVersion } from "../lib/changelog";
-import { useListPage } from "@/hooks/useListPage";
 import { TablePagination } from "@/components/feedback/TablePagination";
+import { SearchBar } from "@/components/forms/SearchBar";
+import { InfoAlertIcon } from "@/components/icons";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useListPage } from "@/hooks/useListPage";
 import { ChangelogEntryCard } from "../components/changelog/ChangelogEntryCard";
+import { useChangelog } from "../hooks/useChangelog";
 import { useChangelogDeepLink } from "../hooks/useChangelogDeepLink";
+import { getCurrentVersion } from "../lib/changelog";
 import {
   TYPE_FILTERS, CATEGORY_FILTERS, type FilterType, type FilterCategory,
 } from "../lib/changelogConstants";

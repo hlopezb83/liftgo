@@ -1,23 +1,23 @@
 import { useState } from "react";
 import { useParams } from "react-router-dom";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Textarea } from "@/components/ui/textarea";
-import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { SuccessIcon } from "@/components/icons";
-import { formatCurrency } from "@/lib/format/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Textarea } from "@/components/ui/textarea";
+import { formatCurrency } from "@/lib/format/formatCurrency";
+import { canActOnPortalQuote, isQuoteAccepted } from "@/lib/rules/quotes";
+import { formatDateDisplay } from "@/lib/utils";
+import { TotalsBreakdown } from "../components/TotalsBreakdown";
 import {
   usePortalQuote,
   useAcceptPortalQuote,
   useRejectPortalQuote,
 } from "../hooks/usePortalExtras";
-import { canActOnPortalQuote, isQuoteAccepted } from "@/lib/rules/quotes";
-import { TotalsBreakdown } from "../components/TotalsBreakdown";
 
 
 interface LineItem {

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
+import { saleLineTotal, applyDiscountToBase } from "@/lib/domain/invoiceHelpers";
 import { computeRentalLineTotal } from "../rentalLineHelpers";
 import { computeSaleLineTotal } from "../saleLineHelpers";
-import { saleLineTotal, applyDiscountToBase } from "@/lib/domain/invoiceHelpers";
 import type { RentalLine } from "../RentalLineItems";
 import type { SaleLine } from "../SaleLineItems";
 

@@ -1,16 +1,15 @@
 import { Activity } from "react";
-import { usePrefillEffect } from "@/hooks/usePrefillEffect";
-
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { usePrefillEffect } from "@/hooks/usePrefillEffect";
+import { useClassifyFeedback } from "../hooks/useClassifyFeedback";
 import { useFeedbackHistory, type FeedbackReport } from "../hooks/useFeedbackReports";
 import { useFeedbackScreenshotUrl } from "../hooks/useFeedbackScreenshotUrl";
-import { useClassifyFeedback } from "../hooks/useClassifyFeedback";
 import { useFeedbackStatusUpdate } from "../hooks/useFeedbackStatusUpdate";
-import { FeedbackStatusBadge } from "./FeedbackStatusBadge";
-import { FeedbackMetaList, FeedbackHistoryList } from "./FeedbackDetailParts";
 import { FeedbackChipsRow, AiReasoningCard } from "./FeedbackDetailChips";
+import { FeedbackMetaList, FeedbackHistoryList } from "./FeedbackDetailParts";
+import { FeedbackStatusBadge } from "./FeedbackStatusBadge";
 import { FeedbackStatusChanger } from "./FeedbackStatusChanger";
 
 interface Props {

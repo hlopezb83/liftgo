@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesUpdate } from "@/integrations/supabase/types";
+import type { ContractClause, ChecklistSection } from "@/lib/domain/contractTypes";
+import { parseJsonbArray } from "@/lib/domain/lineItems";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { nowMty } from "@/lib/utils";
-import { parseJsonbArray } from "@/lib/domain/lineItems";
-import type { ContractClause, ChecklistSection } from "@/lib/domain/contractTypes";
-import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 
 // Re-export para compatibilidad con consumidores existentes. La fuente de
 // verdad de estos tipos vive en `@/lib/domain/contractTypes`.

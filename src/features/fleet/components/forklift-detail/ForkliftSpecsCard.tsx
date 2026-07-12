@@ -1,5 +1,5 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FleetIcon } from "@/components/icons";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Tables } from "@/integrations/supabase/types";
 import { FUEL_TYPE_LABELS } from "@/lib/constants";
 import { formatCurrency } from "@/lib/format/formatCurrency";

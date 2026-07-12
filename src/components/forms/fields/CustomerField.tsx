@@ -1,7 +1,7 @@
 import { type FieldPath, type FieldValues, type Control } from "react-hook-form";
+import { RequiredMark } from "@/components/forms/RequiredMark";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RequiredMark } from "@/components/forms/RequiredMark";
 import { useCustomers } from "@/features/customers/hooks/customers/useCustomers";
 
 interface CustomerFieldProps<TFieldValues extends FieldValues> {

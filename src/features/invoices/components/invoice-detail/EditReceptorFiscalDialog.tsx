@@ -1,21 +1,21 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
-import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
-import { Form } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   CheckboxField,
   SelectField,
   TextField,
 } from "@/components/forms/fields";
+import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { Button } from "@/components/ui/button";
+import { Form } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import type { Tables } from "@/integrations/supabase/types";
 import { REGIMEN_FISCAL } from "@/lib/domain/satCatalogs";
+import { zodResolver } from "@/lib/forms/zodResolver";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { useUpdateReceptorFiscalInfo } from "../../hooks/invoiceDetail/useReceptorTaxInfo";
-import type { Tables } from "@/integrations/supabase/types";
 
 const schema = z.object({
   razonSocial: z.string().trim().min(1, "Requerido").max(254),

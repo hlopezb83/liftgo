@@ -1,15 +1,14 @@
 import { Link as LinkIcon, InfoAlertIcon, ChevronDownIcon, ChevronRightIcon } from "@/components/icons";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
-
-import { APP_LOCALE } from "@/lib/format/dateFormats";
-import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useChangelogEntry } from "../../hooks/useChangelog";
-import type { ChangelogIndexEntry } from "../../lib/changelog";
-import { TYPE_LABELS, TYPE_COLORS, DOT_COLORS, CATEGORY_LABELS } from "../../lib/changelogConstants";
+import { APP_LOCALE } from "@/lib/format/dateFormats";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { formatMtyDate } from "@/lib/utils";
+import { useChangelogEntry } from "../../hooks/useChangelog";
+import { TYPE_LABELS, TYPE_COLORS, DOT_COLORS, CATEGORY_LABELS } from "../../lib/changelogConstants";
+import type { ChangelogIndexEntry } from "../../lib/changelog";
 
 interface Props {
   entry: ChangelogIndexEntry;

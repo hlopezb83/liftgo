@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
+import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
 interface Props {
   open: boolean;
