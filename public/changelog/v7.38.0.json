@@ -1,0 +1,30 @@
+{
+  "version": "7.38.0",
+  "date": "2026-07-12",
+  "type": "major",
+  "title": "Vite 7 + @vitejs/plugin-react 5",
+  "sections": [
+    {
+      "heading": "Dependencias",
+      "items": [
+        "vite: ^5.4.21 → ^7.3.1",
+        "@vitejs/plugin-react: ^4 → ^5.2.0"
+      ]
+    },
+    {
+      "heading": "Compatibilidad",
+      "items": [
+        "vite.config.ts sin cambios: alias @, dedupe react/react-dom, React Compiler (babel-plugin-react-compiler target 19), componentTagger de lovable-tagger y manualChunks intactos.",
+        "rollup-plugin-visualizer (ANALYZE=1) sigue funcionando con la nueva versión de Rollup embebida en Vite 7."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "bun run build: OK en 41s, mismos chunks (react-pdf 1.46 MB lazy, vendor 296 KB, recharts 400 KB).",
+        "bunx vitest run: 992/992 tests verdes.",
+        "Dev server auto-reiniciado sin errores de HMR."
+      ]
+    }
+  ]
+}
