@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { toYMD } from "@/lib/format/dateFormats";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import {
