@@ -1,6 +1,8 @@
 import { format } from "date-fns";
 import type { Tables } from "@/integrations/supabase/types";
 import type { CustomerSummary } from "@/lib/domain/customerTypes";
+import { CustomerStatementDocument } from "@/lib/pdf/documents/CustomerStatementDocument";
+import { renderAndSave } from "@/lib/pdf/renderAndSave";
 import { fetchCompanyDataAndLogo } from "@/lib/pdf/shared";
 import { nowMty } from "@/lib/utils";
 
@@ -13,13 +15,7 @@ export async function exportCustomerStatementPdf({ customer, summary }: ExportSt
   const { company, logoBase64 } = await fetchCompanyDataAndLogo();
   const folio = `EC-${format(nowMty(), "yyyyMMdd")}`;
 
-  const [{ pdf }, { saveAs }, { CustomerStatementDocument }] = await Promise.all([
-    import("@react-pdf/renderer"),
-    import("file-saver"),
-    import("@/lib/pdf/documents/CustomerStatementDocument"),
-  ]);
-
-  const blob = await pdf(
+  await renderAndSave(
     <CustomerStatementDocument
       company={company}
       logoBase64={logoBase64}
@@ -28,7 +24,7 @@ export async function exportCustomerStatementPdf({ customer, summary }: ExportSt
       customerRfc={customer.rfc ?? null}
       customerCp={customer.domicilio_fiscal_cp ?? null}
       summary={summary}
-    />
-  ).toBlob();
-  saveAs(blob, `estado-cuenta-${customer.name.replace(/\s+/g, "-")}-${format(nowMty(), "yyyyMMdd")}.pdf`);
+    />,
+    `estado-cuenta-${customer.name.replace(/\s+/g, "-")}-${format(nowMty(), "yyyyMMdd")}.pdf`,
+  );
 }
