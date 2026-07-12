@@ -1,8 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@config "../tailwind.config.ts";
+@plugin "@tailwindcss/typography";
+@import "tw-animate-css";
+
+/* v4 uses `@custom-variant` for the dark class strategy declared in the legacy config. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* v4 preserves v3 border default color (gray-200) via compatibility layer.
+   We rely on `* { @apply border-border }` below, so no override needed. */
 
 @layer base {
   :root {
