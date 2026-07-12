@@ -2,13 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 export type { DamageRecord } from "@/types/rental";
 
-export function useDamageRecords() {
-  return useQuery({
-    queryKey: ["damage_records"],
-    staleTime: 60_000,
-    queryFn: async () => {
+export const damageRecordQueries = defineEntityQueries<"damage_records", unknown[], never>(
+  "damage_records",
+  {
+    list: () => async () => {
       const { data, error } = await supabase
         .from("damage_records")
         .select("*, forklifts(name, model), customers(name)")
@@ -17,7 +17,11 @@ export function useDamageRecords() {
       if (error) throw error;
       return data;
     },
-  });
+  },
+);
+
+export function useDamageRecords() {
+  return useQuery(damageRecordQueries.list());
 }
 
 export function useCreateDamageRecord() {
@@ -27,7 +31,7 @@ export function useCreateDamageRecord() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [["damage_records"]],
+    invalidateKeys: [damageRecordQueries.keys.all],
     errorTitle: "Error al crear registro de daño",
   });
 }
@@ -39,8 +43,7 @@ export function useUpdateDamageRecord() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [["damage_records"]],
+    invalidateKeys: [damageRecordQueries.keys.all],
     errorTitle: "Error al actualizar registro de daño",
   });
 }
-

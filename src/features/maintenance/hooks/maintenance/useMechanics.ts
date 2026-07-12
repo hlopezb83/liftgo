@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { mechanicKeys } from "../../lib/queryKeys";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -16,35 +17,23 @@ type MechanicInput = {
   notes?: string | null;
 };
 
+export const mechanicQueries = defineEntityQueries<"mechanics", Mechanic[], never>("mechanics", {
+  staleTime: 5 * 60_000,
+  list: (filter) => async () => {
+    let q = supabase.from("mechanics").select("*").order("name");
+    if (filter?.active === true) q = q.eq("is_active", true);
+    const { data, error } = await q;
+    if (error) throw error;
+    return data;
+  },
+});
+
 export function useMechanics() {
-  return useQuery({
-    queryKey: mechanicKeys.all,
-    staleTime: 5 * 60_000,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("mechanics")
-        .select("*")
-        .order("name");
-      if (error) throw error;
-      return data;
-    },
-  });
+  return useQuery(mechanicQueries.list());
 }
 
 export function useActiveMechanics() {
-  return useQuery({
-    queryKey: [...mechanicKeys.all, "active"] as const,
-    staleTime: 5 * 60_000,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("mechanics")
-        .select("*")
-        .eq("is_active", true)
-        .order("name");
-      if (error) throw error;
-      return data;
-    },
-  });
+  return useQuery(mechanicQueries.list({ active: true }));
 }
 
 export function useCreateMechanic() {

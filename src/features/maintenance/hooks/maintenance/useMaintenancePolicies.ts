@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { maintenancePolicyKeys } from "../../lib/queryKeys";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 
 export interface MaintenancePolicy {
   id: string;
@@ -18,11 +19,10 @@ export interface MaintenancePolicy {
   forklift_status?: string;
 }
 
-export function useMaintenancePolicies() {
-  return useQuery({
-    queryKey: maintenancePolicyKeys.all,
-    staleTime: 60_000,
-    queryFn: async () => {
+export const maintenancePolicyQueries = defineEntityQueries<"maintenance_policies", MaintenancePolicy[], never>(
+  "maintenance_policies",
+  {
+    list: () => async () => {
       const { data, error } = await supabase
         .from("maintenance_policies")
         .select("*, forklifts(name, status)")
@@ -34,7 +34,11 @@ export function useMaintenancePolicies() {
         forklift_status: p.forklifts?.status ?? "",
       })) as MaintenancePolicy[];
     },
-  });
+  },
+);
+
+export function useMaintenancePolicies() {
+  return useQuery(maintenancePolicyQueries.list());
 }
 
 export function useCreateMaintenancePolicy() {

@@ -2,22 +2,32 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { maintenanceLogKeys } from "../../lib/queryKeys";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 
 export type MaintenanceLog = Tables<"maintenance_logs">;
 
-export function useMaintenanceLogs(forkliftId?: string) {
-  return useQuery({
-    queryKey: [...maintenanceLogKeys.all, forkliftId] as const,
-    staleTime: 60_000,
-    queryFn: async () => {
-      let query = supabase.from("maintenance_logs").select("*").is("deleted_at", null).order("performed_at", { ascending: false }).limit(500);
-      if (forkliftId) query = query.eq("forklift_id", forkliftId);
-      const { data, error } = await query;
+export const maintenanceLogQueries = defineEntityQueries<"maintenance_logs", MaintenanceLog[], never>(
+  "maintenance_logs",
+  {
+    list: (filter) => async () => {
+      const forkliftId = filter?.forkliftId as string | undefined;
+      let q = supabase
+        .from("maintenance_logs")
+        .select("*")
+        .is("deleted_at", null)
+        .order("performed_at", { ascending: false })
+        .limit(500);
+      if (forkliftId) q = q.eq("forklift_id", forkliftId);
+      const { data, error } = await q;
       if (error) throw error;
       return data;
     },
-  });
+  },
+);
+
+export function useMaintenanceLogs(forkliftId?: string) {
+  return useQuery(maintenanceLogQueries.list({ forkliftId: forkliftId ?? null }));
 }
 
 export function useCreateMaintenanceLog() {

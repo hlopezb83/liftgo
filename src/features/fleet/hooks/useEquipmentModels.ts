@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { equipmentModelKeys } from "../lib/queryKeys";
+import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 
 import type { Tables } from "@/integrations/supabase/types";
 
@@ -18,11 +19,11 @@ type EquipmentModelInput = {
   default_monthly_rate?: number;
 };
 
-export function useEquipmentModels() {
-  return useQuery({
-    queryKey: equipmentModelKeys.all,
+export const equipmentModelQueries = defineEntityQueries<"equipment_models", EquipmentModel[], never>(
+  "equipment_models",
+  {
     staleTime: 5 * 60_000,
-    queryFn: async () => {
+    list: () => async () => {
       const { data, error } = await supabase
         .from("equipment_models")
         .select("*")
@@ -32,7 +33,11 @@ export function useEquipmentModels() {
       if (error) throw error;
       return data;
     },
-  });
+  },
+);
+
+export function useEquipmentModels() {
+  return useQuery(equipmentModelQueries.list());
 }
 
 export function useCreateEquipmentModel() {
