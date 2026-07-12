@@ -23,6 +23,9 @@ interface DatePickerFieldProps {
   required?: boolean;
   error?: string;
   disabled?: Matcher | Matcher[];
+  captionLayout?: "label" | "dropdown" | "dropdown-months" | "dropdown-years";
+  startMonth?: Date;
+  endMonth?: Date;
 }
 
 const normalize = (d?: Date) =>
