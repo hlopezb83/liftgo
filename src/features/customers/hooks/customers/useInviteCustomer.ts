@@ -1,6 +1,6 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 import { customerKeys } from "../../lib/queryKeys";
 
 interface InviteCustomerVars {
@@ -16,9 +16,7 @@ interface InviteCustomerResponse {
  * Crea acceso al portal de clientes mediante el edge function `invite-customer`.
  */
 export function useInviteCustomer() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
+  return useEntityMutation<InviteCustomerVars, InviteCustomerResponse | null>({
     mutationFn: async ({ customerId, email }: InviteCustomerVars) => {
       const res = await supabase.functions.invoke("invite-customer", {
         body: { customer_id: customerId, email },
@@ -28,14 +26,12 @@ export function useInviteCustomer() {
       if (data?.error) throw new Error(data.error);
       return data;
     },
+    invalidateKeys: [customerKeys.all],
     onSuccess: (_data, { email }) => {
       notifySuccess("Invitación enviada", {
         description: `Acceso al portal creado para ${email}`,
       });
-      queryClient.invalidateQueries({ queryKey: customerKeys.all });
     },
-    onError: (err: unknown) => {
-      notifyError({ error: err, title: "Error", description: err instanceof Error ? err.message : "Error desconocido", });
-    },
+    errorTitle: "Error",
   });
 }

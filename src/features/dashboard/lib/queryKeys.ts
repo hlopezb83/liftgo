@@ -168,6 +168,10 @@ export interface ActivityFilters {
 
 export type ActivityFeedRow = Database["public"]["Tables"]["activity_feed"]["Row"];
 
+function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
+  return typeof value === "object" && value !== null;
+}
+
 function readActivityFeedFilter(filter: Readonly<Record<string, unknown>> | undefined): {
   limit: number;
   filters: ActivityFilters;
@@ -176,14 +180,13 @@ function readActivityFeedFilter(filter: Readonly<Record<string, unknown>> | unde
   const filtersRaw = filter?.filters;
   const limit = typeof limitRaw === "number" ? limitRaw : 50;
   const filters: ActivityFilters = {};
-  if (filtersRaw && typeof filtersRaw === "object") {
-    const f = filtersRaw as Readonly<Record<string, unknown>>;
-    if (f.from instanceof Date) filters.from = f.from;
-    if (f.to instanceof Date) filters.to = f.to;
-    if (typeof f.actorId === "string") filters.actorId = f.actorId;
-    if (typeof f.entityType === "string") filters.entityType = f.entityType;
-    if (typeof f.eventType === "string") filters.eventType = f.eventType;
-    if (typeof f.search === "string") filters.search = f.search;
+  if (isRecord(filtersRaw)) {
+    if (filtersRaw.from instanceof Date) filters.from = filtersRaw.from;
+    if (filtersRaw.to instanceof Date) filters.to = filtersRaw.to;
+    if (typeof filtersRaw.actorId === "string") filters.actorId = filtersRaw.actorId;
+    if (typeof filtersRaw.entityType === "string") filters.entityType = filtersRaw.entityType;
+    if (typeof filtersRaw.eventType === "string") filters.eventType = filtersRaw.eventType;
+    if (typeof filtersRaw.search === "string") filters.search = filtersRaw.search;
   }
   return { limit, filters };
 }
