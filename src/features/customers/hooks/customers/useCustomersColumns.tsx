@@ -4,7 +4,7 @@ import type { useCustomers } from "./useCustomers";
 
 type Customer = NonNullable<ReturnType<typeof useCustomers>["data"]>[number];
 
-export function useCustomersColumns() {
+export function useCustomersColumns(): ColumnDef<Customer>[] {
   return [
       {
         id: "name",
