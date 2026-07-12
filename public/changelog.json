@@ -1,5 +1,23 @@
 [
   {
+    "version": "7.51.0",
+    "date": "2026-07-12",
+    "type": "minor",
+    "title": "@react-pdf/renderer: helper renderAndSave, drop file-saver, hyphenation es-MX",
+    "description": "Auditoría de @react-pdf/renderer@4.5.1 (28 archivos, 5 documents, 5 builders): API 100% moderna (Document/Page/Text/View/Image/StyleSheet/pdf().toBlob()), imports named, chunk react-pdf ya aislado en vite.config. Consolidación de los 5 builders (quote, contract, invoice, customerStatement, incomeStatement) en un helper único src/lib/pdf/renderAndSave.tsx que hace lazy-import + toBlob + descarga. Se elimina la dependencia file-saver (+ @types/file-saver) — shim histórico para IE Legacy — sustituida por un saveBlob() nativo de 8 líneas con URL.createObjectURL + <a download>. Se aprovecha Font.registerHyphenationCallback((w) => [w]) para desactivar el corte automático de palabras: los párrafos en español de contratos y estados de cuenta ya no se cortan con guiones incorrectos.",
+    "category": "improvement",
+    "impact": "-1 dependencia runtime (~4KB gzip), -1 dep de tipos, ~30 LOC menos en 5 builders, calidad tipográfica correcta en documentos largos en español. Sin cambios en la superficie pública de los builders; hooks/botones de descarga intactos.",
+    "files": [
+      "src/lib/pdf/renderAndSave.tsx (nuevo)",
+      "src/lib/pdf/quote/build.tsx",
+      "src/lib/pdf/contract/build.tsx",
+      "src/lib/pdf/customerStatement.tsx",
+      "src/lib/pdf/incomeStatement.tsx",
+      "src/features/invoices/lib/pdf/build.tsx",
+      "package.json"
+    ]
+  },
+  {
     "version": "7.50.0",
     "date": "2026-07-12",
     "type": "minor",

@@ -1,4 +1,6 @@
 import { parseLineItems } from "@/lib/domain/lineItems";
+import { InvoiceDocument } from "@/lib/pdf/documents/InvoiceDocument";
+import { renderAndSave } from "@/lib/pdf/renderAndSave";
 import { fetchCompanyDataAndLogo, type PdfLineItem } from "@/lib/pdf/shared";
 import type { InvoicePdfPayload } from "../../api/fetchInvoicePdfData";
 
@@ -21,13 +23,7 @@ export async function buildInvoicePdf(payload: InvoicePdfPayload): Promise<void>
   const lineItems = parseLineItems<PdfLineItem>(invoice.line_items);
   const currency = invoice.moneda || "MXN";
 
-  const [{ pdf }, { saveAs }, { InvoiceDocument }] = await Promise.all([
-    import("@react-pdf/renderer"),
-    import("file-saver"),
-    import("@/lib/pdf/documents/InvoiceDocument"),
-  ]);
-
-  const blob = await pdf(
+  await renderAndSave(
     <InvoiceDocument
       company={company}
       logoBase64={logoBase64}
@@ -49,7 +45,7 @@ export async function buildInvoicePdf(payload: InvoicePdfPayload): Promise<void>
       total={Number(invoice.total)}
       currency={currency}
       notes={invoice.notes ? String(invoice.notes) : null}
-    />
-  ).toBlob();
-  saveAs(blob, `${invoice.invoice_number}.pdf`);
+    />,
+    `${invoice.invoice_number}.pdf`,
+  );
 }
