@@ -1,0 +1,12 @@
+{
+  "version": "7.56.0",
+  "date": "2026-07-12",
+  "type": "minor",
+  "title": "Migración de react-dropzone a v16",
+  "description": "Se actualiza react-dropzone de ^15.0.0 a ^16.0.0. Los tres consumidores del hook (CsfDropzone, DragDropImageUploader, DamageEvidenceSection) sólo dependen de useDropzone({ onDrop, accept, maxFiles, multiple/disabled }) → { getRootProps, getInputProps, isDragActive }, superficie estable entre v15 y v16. Ningún consumidor usa isDragReject, fileRejections, onDropRejected ni onDropAccepted, por lo que el único breaking change documentado (v15: isDragReject se limpia al soltar) no aplica. Verificación: tsgo sin errores; auditoría visual con Playwright sobre los diálogos 'Nuevo cliente' (/customers), 'Nuevo proveedor' (/suppliers) y 'Reportar Daño' (/damage) reporta 0 pageerrors y los dropzones montan correctamente en estado idle y tras setInputFiles.",
+  "category": "improvement",
+  "changes": [
+    { "type": "changed", "description": "react-dropzone actualizado de ^15.0.0 a ^16.0.0" },
+    { "type": "security", "description": "Se mantiene la superficie mínima del hook — sin dependencias en APIs marcadas como breaking en v15/v16" }
+  ]
+}
