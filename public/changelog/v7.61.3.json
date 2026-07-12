@@ -1,0 +1,16 @@
+{
+  "version": "7.61.3",
+  "date": "2026-07-12",
+  "type": "patch",
+  "title": "Fondo blanco detrás del logo en el sidebar",
+  "category": "bugfix",
+  "changes": [
+    {
+      "area": "Sidebar",
+      "items": [
+        "El logo ahora se muestra dentro de un contenedor blanco con bordes redondeados para mejorar el contraste sobre el fondo oscuro del sidebar.",
+        "Se conserva la altura fija de h-9 y el ancho máximo de 7 rem, con padding interno para evitar que el logo toque los bordes."
+      ]
+    }
+  ]
+}
