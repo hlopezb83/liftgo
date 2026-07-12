@@ -88,6 +88,10 @@ export function VirtualBody<T>({
             className={cn("table w-full table-fixed", onRowClick && "cursor-pointer", rowClassName?.(item))}
             style={{ display: "table", width: "100%" }}
             onClick={onRowClick ? () => onRowClick(item) : undefined}
+            onMouseEnter={onRowPrefetch ? () => armPrefetch(item) : undefined}
+            onMouseLeave={onRowPrefetch ? disarmPrefetch : undefined}
+            onFocus={onRowPrefetch ? () => armPrefetch(item) : undefined}
+            onBlur={onRowPrefetch ? disarmPrefetch : undefined}
           >
             {showSelection && (
               <TableCell className="w-10 px-3" onClick={(e) => e.stopPropagation()}>
