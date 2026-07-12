@@ -41,29 +41,22 @@ export function useQuoteDetailData(id: string | undefined) {
   const alreadyInvoiced = (linkedInvoices ?? []).some((i) => i.status !== "cancelled");
 
 
-  const customerMatch = useMemo(
-    () => customers?.find((c) => c.id === quote?.customer_id),
-    [customers, quote?.customer_id],
-  );
+  const customerMatch = customers?.find((c) => c.id === quote?.customer_id);
   const quoteType = quote?.quote_type || "rental";
   const isSale = quoteType === "sale";
-  const lineItems = useMemo(
-    () => parseLineItems<LineItem>(quote?.line_items),
-    [quote?.line_items],
-  );
+  const lineItems = parseLineItems<LineItem>(quote?.line_items);
 
-  const durationDays = useMemo(() => {
-    if (!quote?.start_date || !quote?.end_date) return 0;
-    return differenceInDays(new Date(quote.end_date), new Date(quote.start_date));
-  }, [quote?.start_date, quote?.end_date]);
+  const durationDays = (!quote?.start_date || !quote?.end_date)
+    ? 0
+    : differenceInDays(new Date(quote.end_date), new Date(quote.start_date));
 
-  const rentalMeta = useMemo(() => {
+  const rentalMeta = (() => {
     if (!quote || isSale) return [];
     const fromColumn = parseRentalMeta(quote.rental_meta);
     if (fromColumn.length > 0) return fromColumn;
     const allItems = parseLineItems<LineItem & { _rentalMeta?: { modelId: string; quantity: number }[] }>(quote.line_items);
     return allItems[0]?._rentalMeta ?? [];
-  }, [quote, isSale]);
+  })();
 
   const isModelBasedQuote = rentalMeta.length > 0;
 
