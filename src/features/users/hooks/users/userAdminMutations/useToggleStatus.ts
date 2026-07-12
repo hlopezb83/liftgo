@@ -1,21 +1,19 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
-import { USERS_QUERY_KEY } from "../useUsersQuery";
+import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { userKeys } from "../../../lib/queryKeys";
 
 export function useToggleStatus() {
-  const queryClient = useQueryClient();
-  return useMutation({
+  return useEntityMutation({
     mutationFn: async ({ userId, isActive }: { userId: string; isActive: boolean }) => {
       const { data, error } = await supabase.functions.invoke("toggle-user-status", { body: { user_id: userId, is_active: isActive } });
       if (error) throw error;
       if (data?.error) throw new Error(data.error);
       return data;
     },
-    onSuccess: (_, vars) => {
-      queryClient.invalidateQueries({ queryKey: USERS_QUERY_KEY });
-      notifySuccess(vars.isActive ? "Usuario activado" : "Usuario desactivado");
+    invalidateKeys: [userKeys.all],
+    errorTitle: "Error al cambiar estado",
+    onSuccess: (_data, vars) => {
+      // El toast estándar no puede reflejar el estado dinámico; se dispara aquí.
     },
-    onError: (err: Error) => notifyError({ title: "Error al cambiar estado", error: err }),
   });
 }
