@@ -1,21 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { companySettingsQueries } from "../lib/queryKeys";
 
 export function useCompanySettings() {
-  return useQuery({
-    queryKey: ["company_settings"],
-    staleTime: 5 * 60_000,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("company_settings")
-        .select("*")
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-  });
+  return useQuery(companySettingsQueries.list());
 }
 
 export function useUpsertCompanySettings() {
@@ -36,7 +25,7 @@ export function useUpsertCompanySettings() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [["company_settings"]],
+    invalidateKeys: [companySettingsQueries.keys.all],
     errorTitle: "Error al guardar datos fiscales",
   });
 }

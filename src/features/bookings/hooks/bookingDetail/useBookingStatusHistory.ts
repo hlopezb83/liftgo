@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { bookingKeys } from "../../lib/queryKeys";
 
 export interface BookingHistoryLog {
   id: string;
@@ -16,7 +17,8 @@ export interface BookingHistoryLog {
 
 export function useBookingStatusHistory(bookingId: string) {
   return useQuery({
-    queryKey: ["booking_audit_logs", bookingId],
+    queryKey: bookingKeys.auditLogs(bookingId),
+    enabled: !!bookingId,
     queryFn: async (): Promise<BookingHistoryLog[]> => {
       const { data, error } = await supabase
         .from("audit_logs")
