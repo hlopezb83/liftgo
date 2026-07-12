@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { ChevronLeftIcon, ChevronRightIcon, X, ZoomIn, ZoomOut } from "@/components/icons";
@@ -20,8 +20,8 @@ export function ImageGalleryLightbox({ images, initialIndex = 0, open, onOpenCha
     if (open) { setCurrent(initialIndex); setZoomed(false); }
   }, [open, initialIndex]);
 
-  const prev = useCallback(() => { setCurrent((c) => (c > 0 ? c - 1 : images.length - 1)); setZoomed(false); }, [images.length]);
-  const next = useCallback(() => { setCurrent((c) => (c < images.length - 1 ? c + 1 : 0)); setZoomed(false); }, [images.length]);
+  const prev = () => { setCurrent((c) => (c > 0 ? c - 1 : images.length - 1)); setZoomed(false); };
+  const next = () => { setCurrent((c) => (c < images.length - 1 ? c + 1 : 0)); setZoomed(false); };
 
   useEffect(() => {
     if (!open) return;

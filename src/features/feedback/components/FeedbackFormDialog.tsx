@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { useLocation } from "react-router-dom";
@@ -38,15 +38,15 @@ export function FeedbackFormDialog({ open, onOpenChange }: Props) {
     defaultValues: { type: "bug", title: "", description: "" },
   });
 
-  const resetAll = useCallback(() => {
+  const resetAll = () => {
     form.reset();
     setSelectedElement(null);
     setScreenshot(null);
     if (screenshotPreview) URL.revokeObjectURL(screenshotPreview);
     setScreenshotPreview(null);
-  }, [form, screenshotPreview]);
+  };
 
-  const handlePick = useCallback(async (info: SelectedElementInfo) => {
+  const handlePick = async (info: SelectedElementInfo) => {
     setPicking(false);
     setSelectedElement(info);
     setIsCapturing(true);
@@ -59,7 +59,7 @@ export function FeedbackFormDialog({ open, onOpenChange }: Props) {
       if (screenshotPreview) URL.revokeObjectURL(screenshotPreview);
       setScreenshotPreview(URL.createObjectURL(file));
     }
-  }, [screenshotPreview]);
+  };
 
   const handleStartPicker = () => {
     setPicking(true);

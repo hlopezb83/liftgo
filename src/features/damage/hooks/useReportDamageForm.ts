@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { z } from "zod";
@@ -35,10 +35,10 @@ export function useReportDamageForm(onClose: () => void) {
   const createDamage = useCreateDamageRecord();
   const uploadDoc = useUploadDocument();
 
-  const onDrop = useCallback((acceptedFiles: File[]) => {
+  const onDrop = (acceptedFiles: File[]) => {
     const newPreviews = acceptedFiles.map((file) => ({ file, url: URL.createObjectURL(file) }));
     setPreviews((prev) => [...prev, ...newPreviews].slice(0, 10));
-  }, []);
+  };
 
   const removePreview = (index: number) => {
     setPreviews((prev) => {
@@ -47,13 +47,13 @@ export function useReportDamageForm(onClose: () => void) {
     });
   };
 
-  const reset = useCallback(() => {
+  const reset = () => {
     setPreviews((prev) => {
       prev.forEach((p) => URL.revokeObjectURL(p.url));
       return [];
     });
     form.reset(DEFAULTS);
-  }, [form]);
+  };
 
   useEffect(() => () => {
     previews.forEach((p) => URL.revokeObjectURL(p.url));
