@@ -68,6 +68,7 @@ export function ListPageLayout<T extends { id?: string }>({
   skeletonColumns,
   onRefresh,
 }: ListPageLayoutProps<T>) {
+  "use no memo";
   const isMobile = useIsMobile();
   const isTabletOrBelow = useIsTabletOrBelow();
   const showMobileCards = isTabletOrBelow && !!mobileCardRender;
