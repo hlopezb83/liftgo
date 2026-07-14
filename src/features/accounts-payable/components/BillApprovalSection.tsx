@@ -1,6 +1,6 @@
 import { useState } from "react";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { SuccessIcon, X, ResetIcon, SecurityIcon, ShieldAlert, SpinnerIcon } from "@/components/icons";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useUserRole } from "@/features/users";
@@ -23,17 +23,17 @@ interface Props {
   approvedAt: string | null;
 }
 
+// Mapea el estado de aprobación al tono semántico del StatusBadge global.
+const APPROVAL_STATUS_MAP: Record<SupplierBillApprovalStatus, string> = {
+  not_required: "draft",
+  pending: "pending",
+  approved: "confirmed",
+  rejected: "cancelled",
+};
+
 function StatusBadgeApproval({ status }: { status: SupplierBillApprovalStatus }) {
-  const tone: Record<SupplierBillApprovalStatus, string> = {
-    not_required: "bg-muted text-muted-foreground",
-    pending: "bg-status-warning text-foreground dark:text-background",
-    approved: "bg-status-available text-success-foreground",
-    rejected: "bg-destructive text-destructive-foreground",
-  };
   return (
-    <Badge className={`${tone[status]} border-transparent`}>
-      {APPROVAL_STATUS_LABELS[status]}
-    </Badge>
+    <StatusBadge status={APPROVAL_STATUS_MAP[status]} label={APPROVAL_STATUS_LABELS[status]} />
   );
 }
 

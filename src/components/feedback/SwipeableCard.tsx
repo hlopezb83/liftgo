@@ -98,7 +98,7 @@ export function SwipeableCard({ children, rightActions = [], threshold = 60, dis
                   setTranslateX(0);
                 }}
                 className={cn(
-                  "w-20 flex flex-col items-center justify-center gap-1 text-xs font-medium text-white",
+                  "w-20 flex flex-col items-center justify-center gap-1 text-xs font-medium text-primary-foreground",
                   a.className,
                 )}
                 aria-label={a.label}
