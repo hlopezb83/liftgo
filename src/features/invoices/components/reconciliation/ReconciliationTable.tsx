@@ -1,9 +1,11 @@
+import { useMemo } from "react";
 import { Link } from "react-router";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
-} from "@/components/ui/table";
+  DataTableV2,
+  useLiftgoTable,
+  type ColumnDef,
+} from "@/components/dataTable/v2";
+import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 
@@ -35,56 +37,99 @@ function FiscalBadge({ cfdiStatus, status }: { cfdiStatus: string | null; status
 }
 
 export function ReconciliationTable({ rows, isLoading }: { rows: Row[]; isLoading: boolean }) {
+  const columns = useMemo<ColumnDef<Row>[]>(
+    () => [
+      {
+        id: "invoice_number",
+        header: "Folio interno",
+        accessorKey: "invoice_number",
+        cell: ({ row }) => (
+          <Link to={`/invoices/${row.original.id}`} className="font-mono underline">
+            {row.original.invoice_number}
+          </Link>
+        ),
+      },
+      {
+        id: "issued_at",
+        header: "Fecha",
+        accessorKey: "issued_at",
+        cell: ({ row }) => formatDateDisplay(row.original.issued_at),
+      },
+      {
+        id: "customer_name",
+        header: "Cliente",
+        accessorFn: (r) => r.customer_name ?? "",
+        cell: ({ row }) => (
+          <span className="max-w-[220px] truncate inline-block align-middle">
+            {row.original.customer_name ?? "—"}
+          </span>
+        ),
+      },
+      {
+        id: "fiscal",
+        header: "Estado fiscal",
+        enableSorting: false,
+        cell: ({ row }) => (
+          <FiscalBadge cfdiStatus={row.original.cfdi_status} status={row.original.status} />
+        ),
+      },
+      {
+        id: "cfdi_uuid",
+        header: "UUID SAT",
+        accessorKey: "cfdi_uuid",
+        cell: ({ row }) => (
+          <span
+            className="font-mono text-xs max-w-[220px] truncate inline-block align-middle"
+            title={row.original.cfdi_uuid ?? undefined}
+          >
+            {row.original.cfdi_uuid ?? "—"}
+          </span>
+        ),
+      },
+      {
+        id: "facturapi_invoice_id",
+        header: "ID Facturapi",
+        accessorKey: "facturapi_invoice_id",
+        cell: ({ row }) => (
+          <span
+            className="font-mono text-xs max-w-[180px] truncate inline-block align-middle"
+            title={row.original.facturapi_invoice_id ?? undefined}
+          >
+            {row.original.facturapi_invoice_id ?? "—"}
+          </span>
+        ),
+      },
+      {
+        id: "env",
+        header: "Ambiente",
+        enableSorting: false,
+        cell: ({ row }) => <EnvBadge env={row.original.facturapi_env} />,
+      },
+      {
+        id: "total",
+        header: "Total",
+        meta: { align: "right" },
+        accessorFn: (r) => Number(r.total),
+        cell: ({ row }) => (
+          <span className="text-right font-mono">{formatCurrency(Number(row.original.total))}</span>
+        ),
+      },
+    ],
+    [],
+  );
+
+  const table = useLiftgoTable<Row>({
+    data: rows,
+    columns,
+    getRowId: (r) => r.id,
+    initialSorting: [{ id: "issued_at", desc: true }],
+  });
+
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Folio interno</TableHead>
-          <TableHead>Fecha</TableHead>
-          <TableHead>Cliente</TableHead>
-          <TableHead>Estado fiscal</TableHead>
-          <TableHead>UUID SAT</TableHead>
-          <TableHead>ID Facturapi</TableHead>
-          <TableHead>Ambiente</TableHead>
-          <TableHead className="text-right">Total</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {isLoading ? (
-          Array.from({ length: 6 }).map((_, i) => (
-            <TableRow key={i}>
-              <TableCell colSpan={8}><Skeleton className="h-6 w-full" /></TableCell>
-            </TableRow>
-          ))
-        ) : rows.length === 0 ? (
-          <TableRow>
-            <TableCell colSpan={8} className="text-center text-muted-foreground py-8">
-              Sin facturas en el rango seleccionado.
-            </TableCell>
-          </TableRow>
-        ) : (
-          rows.map((r) => (
-            <TableRow key={r.id}>
-              <TableCell>
-                <Link to={`/invoices/${r.id}`} className="font-mono underline">
-                  {r.invoice_number}
-                </Link>
-              </TableCell>
-              <TableCell>{formatDateDisplay(r.issued_at)}</TableCell>
-              <TableCell className="max-w-[220px] truncate">{r.customer_name ?? "—"}</TableCell>
-              <TableCell><FiscalBadge cfdiStatus={r.cfdi_status} status={r.status} /></TableCell>
-              <TableCell className="font-mono text-xs max-w-[220px] truncate" title={r.cfdi_uuid ?? undefined}>
-                {r.cfdi_uuid ?? "—"}
-              </TableCell>
-              <TableCell className="font-mono text-xs max-w-[180px] truncate" title={r.facturapi_invoice_id ?? undefined}>
-                {r.facturapi_invoice_id ?? "—"}
-              </TableCell>
-              <TableCell><EnvBadge env={r.facturapi_env} /></TableCell>
-              <TableCell className="text-right font-mono">{formatCurrency(Number(r.total))}</TableCell>
-            </TableRow>
-          ))
-        )}
-      </TableBody>
-    </Table>
+    <DataTableV2
+      table={table}
+      isLoading={isLoading}
+      emptyMessage="Sin facturas en el rango seleccionado."
+    />
   );
 }
