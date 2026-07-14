@@ -20,7 +20,7 @@ import { matchSorter, rankings } from "match-sorter";
 type Storage = "url" | "session" | "memory";
 type Mode = "client" | "server";
 
-type FacetType = "text" | "enum" | "month" | "dateRange" | "entityRef";
+// (facet types are inferred structurally via the union `Facet<T>`)
 
 type TextFacet<T> = {
   type: "text";
