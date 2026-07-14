@@ -63,12 +63,12 @@ export default function FleetPage() {
     },
   });
 
-  const { table } = useResourceList<Forklift>({
+  const table = useLiftgoTable<Forklift>({
     data: filtered,
     columns,
-    getRowId: (f) => f.id,
+    getRowId: (f: Forklift) => f.id,
     initialSorting: [{ id: "name", desc: false }],
-    tableResetKey: filterKey,
+    resetKey: filterKey,
   });
 
   const filters = (
