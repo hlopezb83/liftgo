@@ -1,73 +1,46 @@
+## Diagnóstico
 
-## Objetivo
+En `/cuentas-por-pagar` los filtros funcionan en el preview pero no en la app publicada. El síntoma (la tabla no se actualiza al cambiar un filtro y muestra los mismos registros) apunta a una diferencia entre el build de dev y el de producción.
 
-Actualmente no existe un `security-memory` para el proyecto. El scanner y el próximo agente están operando sin contexto, así que:
+La causa más probable es el **React Compiler** (habilitado vía `babel-plugin-react-compiler` en `vite.config.ts`), que sólo despliega toda su auto‑memoización en el build de producción. El hook `useAccountsPayableFilters` está escrito con patrones que el compilador puede memoizar de forma incorrecta:
 
-- Re-flagean cosas intencionales como si fueran bugs (p. ej. tablas de catálogos consultables por staff, `activity_feed` legible por todos los roles internos, cotizaciones que múltiples roles pueden borrar).
-- No entienden que hay **dos audiencias**: staff interno (7 roles jerárquicos) y clientes externos vía `/portal/*` (rol `customer`, read-only).
-- No saben qué RPCs `SECURITY DEFINER` ya fueron endurecidas y cuáles siguen siendo intencionalmente amplias.
-
-Voy a crear `mem://security-memory.md` con el modelo de acceso real de LiftGo y lo que nunca debe pasar, sin listar findings abiertos (la guía del sistema lo prohíbe).
-
-## Contenido propuesto para `mem://security-memory.md`
-
-```md
-# Security Memory — LiftGo ERP
-
-LiftGo es un ERP interno para renta y mantenimiento de montacargas en México. Maneja datos financieros reales (CFDI 4.0, facturas, pagos, RFC de clientes), no es un prototipo con datos demo.
-
-## Modelo de acceso
-
-Dos audiencias claramente separadas:
-
-1. **Staff interno** — 6 roles jerárquicos en `public.user_roles`, chequeados vía `public.has_role(auth.uid(), 'role')` (SECURITY DEFINER, `SET search_path = public`):
-   - `admin` — acceso total, único que puede timbrar/cancelar CFDI, borrar usuarios, revertir audit trail.
-   - `administrativo` — finanzas, facturación, conciliación bancaria, cancelación CFDI.
-   - `auditor` — read-only en finanzas y audit trail.
-   - `ventas` — CRM, cotizaciones, clientes; NO ve cuentas bancarias.
-   - `dispatcher` — flota, reservas, entregas.
-   - `mechanic` — mantenimiento y daños; NO ve facturas ni clientes.
-
-2. **Clientes externos** — rol `customer`, entran por `/portal/login`, son invitados vía edge function `invite-customer`. Solo consumen RPCs `get_portal_*` (dedicadas y filtradas por `auth.uid()`). NUNCA deben tocar tablas internas ni RPCs de staff.
-
-Toda tabla `public.*` tiene RLS habilitado. Las policies usan `has_role()` — nunca subconsultas a la misma tabla (evita recursión).
-
-## Reglas invariantes
-
-- **RLS es obligatoria** en cualquier tabla nueva en `public`. `CREATE TABLE` sin `GRANT` + `ALTER TABLE … ENABLE ROW LEVEL SECURITY` + `CREATE POLICY` es un bug.
-- **Roles NUNCA en `profiles`** ni en `auth.users`. Solo en `public.user_roles`, para evitar privilege escalation.
-- **Funciones `SECURITY DEFINER` deben tener guard interno** (`has_role()` o filtro por `auth.uid()`). Si una RPC devuelve datos financieros, de otros clientes, o metadata operativa interna, debe restringir explícitamente el rol.
-- **Clientes del portal NUNCA deben leer**: `invoices` completas de otros clientes, `activity_feed`, `audit_logs`, `bank_accounts`, `bank_statement_*`, `supplier_*`, `operating_expenses`, `user_roles`, `role_permissions`, `billing_secrets`, `maintenance_logs` internos, márgenes/costos.
-- **Secretos sensibles** (Facturapi keys en `billing_secrets`, credenciales bancarias en `supplier_bank_accounts.clabe`) solo accesibles por `admin`/`administrativo` o `service_role`. Nunca por `anon`.
-- **Edge functions destructivas o financieras** (delete-user, cancel-cfdi, cancel-credit-note, cancel-payment-complement, stamp-*, invite-user, toggle-user-status, reset-user-password) validan JWT con `auth.getClaims()` y chequean rol vía `user_roles` antes de ejecutar. CORS restringido, nunca `*` en producción.
-- **jsPDF pinned ≤4.0.0** por CVE conocido; no upgrade sin verificar.
-- **Password HIBP check** activo en signup y cambio de contraseña.
-
-## Qué NO es vulnerabilidad (accepted risks / intencional)
-
-- `activity_feed`, `audit_logs`, `status_logs` legibles por todos los roles internos (admin/administrativo/auditor/ventas/dispatcher/mechanic) — es trazabilidad compartida, no PII externa. NO restringir más.
-- `equipment_models`, `maintenance_policies`, `contract_templates`, `company_settings`, `invoice_number_settings` legibles por todo staff — son catálogos operativos.
-- `delete_quote_with_unassign` permite borrar cotizaciones a admin/administrativo/dispatcher/ventas (no solo admin) — coincide con RLS de `quotes`, es intencional.
-- Múltiples roles pueden hacer `full` en varios módulos según `role_permissions`; la matriz vive en DB y se testea en `src/test/roleMatrix.test.ts`. No reportar como "overly permissive" sin comparar contra esa matriz.
-- Nombre "Público en General" y RFC genérico `XAXX010101000` en `customers` son intencionales para CFDI 4.0 al público en general.
-- URL de logo público en `company_settings.logo_url` es intencional (se muestra en PDFs y sidebar).
-
-## Qué SÍ debe reportarse siempre
-
-- Cualquier tabla nueva en `public` sin RLS o sin `GRANT`.
-- Cualquier `SECURITY DEFINER` sin `SET search_path = public`.
-- Cualquier RPC `SECURITY DEFINER` que exponga datos de un cliente/factura/pago/margen sin guard por rol o sin filtro por `auth.uid()`.
-- Cualquier policy que use subconsulta recursiva a la misma tabla.
-- Cualquier edge function financiera o destructiva sin `getClaims()` + chequeo de rol.
-- Roles almacenados fuera de `public.user_roles`.
-- CORS con `*` en funciones autenticadas.
-- Secretos hardcodeados en el repo (Facturapi, service_role, DB password).
+```ts
+// src/features/accounts-payable/hooks/useAccountsPayableFilters.ts
+const filtered = bills.filter((b) => matches(b, state));   // sin useMemo
+const monthsSet = new Set<string>();                        // mutación local
+for (const b of bills) monthsSet.add(...);
+const availableMonths = Array.from(monthsSet).sort().reverse();
+const set = <K extends keyof FilterState>(k, v) => setState(...); // sin useCallback
 ```
 
-## Alcance
+En dev cada render recomputa `filtered` con `state` fresco, así que "funciona". En producción, el compilador puede reutilizar el resultado memoizado sin detectar correctamente `state` como dependencia (el patrón de mutación de `monthsSet` + `filter` inline es un caso conocido de bail‑out silencioso). Resultado: `filtered` queda anclado a la primera captura de `state = INITIAL`.
 
-- Crear `mem://security-memory.md` con el contenido de arriba.
-- No tocar código de la app ni migraciones.
-- No listar findings abiertos (lo prohíben las instrucciones del sistema).
+Se ve claro comparándolo con `useListFilters` (que sí funciona en prod) — ese hook usa `useMemo`/`useCallback` explícitos con deps correctas.
 
-Después de crearlo, avisar al usuario para que lo revise y ajuste.
+## Cambio propuesto (sólo un archivo)
+
+Refactorizar `src/features/accounts-payable/hooks/useAccountsPayableFilters.ts` para dejar todas las derivaciones detrás de hooks explícitos, sin cambiar la API pública (`filtered`, `availableMonths`, `set`, `reset`, `hasActive`, propiedades del estado):
+
+- `filtered` → `useMemo(..., [bills, state])`
+- `availableMonths` → `useMemo(..., [bills])`
+- `hasActive` → `useMemo(..., [state])` con comparación por campo (no `JSON.stringify` en cada render)
+- `set` → `useCallback(..., [])` (usa el updater functional de `setState`, no depende de nada externo)
+- `reset` → `useCallback(..., [])`
+
+Comportamiento y firma del hook se conservan al 100%, así que ni `CuentasPorPagarPage.tsx` ni `SupplierBillsFilters.tsx` necesitan tocarse.
+
+## Verificación
+
+1. `bun run build` para confirmar que compila en modo producción sin warnings del linter `react-compiler/react-compiler` sobre este hook.
+2. Playwright contra `http://localhost:8080/cuentas-por-pagar`: aplicar búsqueda, estatus, proveedor, mes, categoría, aprobación y REP; screenshot en cada paso para confirmar que `filtered.length` y las filas cambian.
+3. Publicar y validar en `liftgo.lovable.app` que los filtros ahora responden.
+
+## Changelog
+
+Última entrada: `public/changelog/v7.61.6.json`. Al terminar agrego `public/changelog/v7.61.7.json` (patch, categoría bugfix) y lo referencío en `public/changelog.json`, describiendo que el hook de filtros de cuentas por pagar era incompatible con React Compiler en producción.
+
+## Fuera de alcance
+
+- No toco `useListFilters` ni otros hooks de filtros — sólo el reportado.
+- No cambio la UI de `SupplierBillsFilters`.
+- No modifico `vite.config.ts` ni la configuración global del React Compiler.
