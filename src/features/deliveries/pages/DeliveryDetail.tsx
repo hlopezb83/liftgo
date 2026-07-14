@@ -94,7 +94,7 @@ export default function DeliveryDetail() {
 
   return (
     <>
-      <div className="space-y-6">
+      <PageContainer>
         <DetailPageHeader
           title={delivery.delivery_number}
           subtitle={subtitle}
