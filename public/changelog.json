@@ -1,5 +1,22 @@
 [
   {
+    "version": "7.69.0",
+    "date": "2026-07-14",
+    "type": "minor",
+    "title": "Sprint G — Refactor de useResourceList y migración a DataTableV2",
+    "description": "`useResourceList` deja de filtrar internamente: elimina la dependencia legacy con `useListFilters` y expone únicamente `{ table }` sobre `data` ya filtrada por el hook canónico de la página. Bookings y Fleet migran a `useTableFilters` (persistencia en URL, filterKey estable, hasActive/reset compartidos). Historial de imports bancarios y ReconciliationTable pasan a `DataTableV2` (sorting, zebra densa consistente); el borrado de imports se estandariza con AlertDialog. Se añade cobertura de tests para `useTableFilters` (texto, enum, reset, filterKey).",
+    "category": "refactor",
+    "files": [
+      "src/hooks/useResourceList.ts",
+      "src/features/bookings/pages/BookingsPage.tsx",
+      "src/features/fleet/pages/FleetPage.tsx",
+      "src/features/invoices/pages/InvoicesPage.tsx",
+      "src/features/bank-reconciliation/pages/BankStatementImportsHistoryPage.tsx",
+      "src/features/invoices/components/reconciliation/ReconciliationTable.tsx",
+      "src/hooks/filters/__tests__/useTableFilters.test.tsx"
+    ]
+  },
+  {
     "version": "7.68.0",
     "date": "2026-07-14",
     "type": "minor",

@@ -1,0 +1,32 @@
+{
+  "version": "7.69.0",
+  "date": "2026-07-14",
+  "type": "minor",
+  "title": "Sprint G — Refactor de useResourceList y migración a DataTableV2",
+  "summary": "Se rompe la dependencia legacy con `useListFilters` en `useResourceList`, se migran Bookings y Fleet al hook canónico `useTableFilters` y se llevan dos tablas más a `DataTableV2`.",
+  "sections": [
+    {
+      "title": "G1 — useResourceList sin filtros internos",
+      "items": [
+        "El hook ahora recibe `data` (ya filtrada) y retorna únicamente `{ table }`; se elimina `items`/`externalFiltered`/`filters` heredados.",
+        "Bookings migra a `useTableFilters` (facets `q`+`status`), preservando UI de tabs + SearchBar y añadiendo persistencia en URL.",
+        "Fleet estandariza su toolbar con `FiltersToolbar` (search + status select + ClearAll) y usa `BOOKING_STATUSES`/`FORKLIFT_STATUSES` como fuente de verdad.",
+        "Invoices deja de pasar `externalFiltered` (server-side filtering ya vive en `useInvoices`)."
+      ]
+    },
+    {
+      "title": "G2 — Tablas legacy → DataTableV2",
+      "items": [
+        "Historial de imports bancarios (`/conciliacion-bancaria/historial`): sorting por fecha/cuenta/%, densidad consistente, borrado con AlertDialog.",
+        "ReconciliationTable de facturas: sorting server-agnóstico sobre folio/fecha/cliente/total, zebra + sticky header vía DataTableV2."
+      ]
+    },
+    {
+      "title": "G3 — Tests",
+      "items": [
+        "Cobertura para `useTableFilters`: sin filtros, texto (match-sorter), enum + 'all', reset y `filterKey` reactivo.",
+        "5 casos, todos verdes."
+      ]
+    }
+  ]
+}

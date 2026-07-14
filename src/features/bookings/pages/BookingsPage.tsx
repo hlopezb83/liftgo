@@ -11,15 +11,17 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePageActions } from "@/contexts/pageActions";
 import { useUserRole } from "@/features/users";
+import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useResourceList } from "@/hooks/useResourceList";
-import { STATUS_LABELS } from "@/lib/constants";
+import { BOOKING_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 import { formatMtyDate } from "@/lib/utils";
 import { RecurringBillingBadge } from "../components/bookings/RecurringBillingBadge";
 import { useBookings, bookingQueries } from "../hooks/useBookings";
 
-const STATUSES = ["all", "confirmed", "completed", "cancelled"] as const;
+const STATUSES = ["all", ...BOOKING_STATUSES] as const;
+
 
 type Booking = NonNullable<ReturnType<typeof useBookings>["data"]>[number];
 
@@ -86,16 +88,27 @@ export default function BookingsPage() {
       },
     ];
 
-  const { search, setSearch, statusFilter, setStatusFilter, filtered, table } =
-    useResourceList<Booking>({
-      items: bookings,
-      columns,
-      getRowId: (b) => b.id,
-      filters: {
-        searchFields: ["customer_name", "booking_number"],
-        statusField: "status",
-      },
-    });
+  const { values, set, filtered, filterKey } = useTableFilters<Booking, {
+    q: { type: "text"; fields: (keyof Booking)[] };
+    status: { type: "enum"; field: keyof Booking; options: readonly (typeof STATUSES)[number][] };
+  }>({
+    items: bookings ?? [],
+    facets: {
+      q: { type: "text", fields: ["customer_name", "booking_number"] as (keyof Booking)[] },
+      status: { type: "enum", field: "status", options: STATUSES },
+    },
+  });
+  const search = values.q;
+  const setSearch = (v: string) => set("q", v);
+  const statusFilter = values.status as string;
+  const setStatusFilter = (v: string) => set("status", v);
+
+  const { table } = useResourceList<Booking>({
+    data: filtered,
+    columns,
+    getRowId: (b) => b.id,
+    tableResetKey: filterKey,
+  });
 
   return (
     <ListPageLayout

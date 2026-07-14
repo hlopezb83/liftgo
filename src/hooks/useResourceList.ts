@@ -1,64 +1,35 @@
-import { useMemo } from "react";
 import { useLiftgoTable } from "@/components/dataTable/v2/useLiftgoTable";
-import { useListFilters } from "@/hooks/useListFilters";
 import type { ColumnDef, SortingState } from "@tanstack/react-table";
 
-interface FilterConfig<T> {
-  searchFields: (keyof T)[];
-  searchAccessors?: ((item: T) => string | null | undefined)[];
-  statusField?: keyof T;
-  searchParam?: string;
-  statusParam?: string;
-}
-
 interface UseResourceListOptions<T extends Record<string, unknown>> {
-  items: T[] | undefined;
+  /** Datos ya filtrados por el hook canónico de la página (`useTableFilters`). */
+  data: T[];
   columns: ColumnDef<T>[];
   getRowId: (row: T) => string;
   initialSorting?: SortingState;
-  filters?: FilterConfig<T>;
-  /**
-   * Si se proporciona, omite el filtrado interno y usa este arreglo como fuente
-   * de la tabla. Útil cuando la página tiene un hook de filtros propio
-   * (p.ej. con rango de fechas).
-   */
-  externalFiltered?: T[];
-  /** Token primitivo que reinicia la paginación cuando cambian filtros externos. */
+  /** Token primitivo que reinicia la paginación cuando cambian los filtros. */
   tableResetKey?: string | number;
 }
 
 /**
- * Empaqueta el quinteto (filtros + sort + paginación vía tabla) usado por
- * todas las páginas de listado. Reduce ~5 líneas de boilerplate por página
- * y centraliza las decisiones por defecto (sort inicial, paginación).
+ * Thin wrapper alrededor de `useLiftgoTable`.
+ *
+ * Sprint G (v7.69.0): esta utilería dejó de filtrar internamente. Cada página
+ * es responsable de producir su `data` filtrada vía `useTableFilters` (u otro
+ * hook canónico) antes de pasarla aquí. Con ello retiramos `useListFilters`.
  */
 export function useResourceList<T extends Record<string, unknown>>(
   options: UseResourceListOptions<T>,
 ) {
-  const { items, columns, getRowId, initialSorting, filters, externalFiltered, tableResetKey } =
-    options;
-
-  const internal = useListFilters<T>(items, filters ?? { searchFields: [] });
-
-  const filtered = useMemo(
-    () => externalFiltered ?? internal.filtered,
-    [externalFiltered, internal.filtered],
-  );
+  const { data, columns, getRowId, initialSorting, tableResetKey } = options;
 
   const table = useLiftgoTable<T>({
-    data: filtered,
+    data,
     columns,
     getRowId,
     initialSorting,
     resetKey: tableResetKey,
   });
 
-  return {
-    search: internal.search,
-    setSearch: internal.setSearch,
-    statusFilter: internal.statusFilter,
-    setStatusFilter: internal.setStatusFilter,
-    filtered,
-    table,
-  };
+  return { table };
 }
