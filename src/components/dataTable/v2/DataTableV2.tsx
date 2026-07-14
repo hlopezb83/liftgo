@@ -57,6 +57,7 @@ export function DataTableV2<T>({
   virtualized = false,
   virtualizationThreshold = 100,
 }: Props<T>) {
+  "use no memo";
   const isMobile = useIsMobile();
   const rows = table.getRowModel().rows;
   const columnCount = table.getAllLeafColumns().length;
