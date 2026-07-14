@@ -305,8 +305,6 @@ export function useTableFilters<T, F extends Record<string, Facet<T>>>(
   }, [items]);
 
   const filtered = useMemo<T[]>(() => {
-    // eslint-disable-next-line no-console
-    console.log("[useTableFilters] filtered recompute", { filterKey, itemsLen: (items ?? []).length, valuesSnap: { ...valuesRef.current } });
     if (mode !== "client") return [];
     const source = items ?? [];
     if (!source.length) return [];
