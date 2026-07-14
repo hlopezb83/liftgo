@@ -57,9 +57,13 @@ export default function CustomersPage() {
   }, []);
 
 
-  const { search, setSearch, filtered } = useListFilters(customers, {
-    searchFields: ["name", "company", "email"],
+  const { values, set, reset, hasActive, filtered } = useTableFilters<Customer, {
+    q: { type: "text"; fields: (keyof Customer)[] };
+  }>({
+    items: customers ?? [],
+    facets: { q: { type: "text", fields: ["name", "company", "email"] as (keyof Customer)[] } },
   });
+
 
   const columns = useCustomersColumns();
 
