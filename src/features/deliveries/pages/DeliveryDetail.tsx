@@ -3,6 +3,7 @@ import { useParams } from "react-router";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBookings } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
