@@ -144,10 +144,12 @@ export default function AuditTrailPage() {
   })();
 
   const table = useLiftgoTable<AuditLog>({
-    data: filtered,
+    data: displayed,
     columns,
     getRowId: (l) => l.id,
   });
+
+  const tableLabelMap = new Map(TABLES.map((t) => [t.value, t.label]));
 
   return (
     <>
@@ -155,15 +157,23 @@ export default function AuditTrailPage() {
         title="Bitácora de Cambios"
         subtitle="Rastrea todos los cambios en el sistema"
         filters={
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <Select value={tableFilter} onValueChange={setTableFilter}>
-              <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {TABLES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <SearchBar value={search} onChange={setSearch} placeholder="Buscar en bitácora…" className="w-full sm:w-64" />
-          </div>
+          <FiltersToolbar>
+            <FiltersToolbar.Search
+              value={values.q}
+              onChange={(v) => set("q", v)}
+              placeholder="Buscar en bitácora…"
+            />
+            <FiltersToolbar.StatusSelect
+              value={values.table_name}
+              onChange={(v) => set("table_name", v)}
+              options={TABLES.map((t) => ({
+                value: t.value,
+                label: tableLabelMap.get(t.value) ?? t.label,
+              }))}
+              placeholder="Tabla"
+            />
+            <FiltersToolbar.ClearAll visible={hasActive} onClick={reset} />
+          </FiltersToolbar>
         }
         isLoading={isLoading}
         table={table}
