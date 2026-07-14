@@ -13,8 +13,6 @@ import { createEntityKeys } from "@/lib/query/createEntityKeys";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { callRpc } from "@/lib/rpc";
 
-/** Root genérico de la feature, útil para invalidaciones amplias. */
-const portalKeys = createEntityKeys("portal");
 
 export type PortalQuote = Tables<"quotes">;
 export type PortalPaymentIntent = Tables<"customer_payment_intents">;
