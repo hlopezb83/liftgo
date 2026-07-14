@@ -1,0 +1,14 @@
+{
+  "version": "7.61.9",
+  "date": "2026-07-14",
+  "type": "patch",
+  "title": "Fix: filtros de Facturas consultan datos completos",
+  "category": "bugfix",
+  "description": "Los filtros de /invoices seguían dando resultados incompletos porque la página descargaba primero un listado limitado y después filtraba en cliente. En producción, si la factura buscada no estaba dentro del primer lote, el tab, búsqueda o rango de fechas parecían fallar.",
+  "changes": [
+    "useInvoices ahora recibe filtros normalizados y aplica estado, vencidas, búsqueda y rango de emisión directamente en la consulta al backend antes del límite de filas",
+    "useInvoicesFilters quedó como controlador de URL params y expone queryFilters estables para TanStack Query",
+    "La tabla y el CSV usan el mismo dataset ya filtrado desde backend",
+    "La paginación vuelve a la primera página cuando cambia el dataset filtrado para evitar páginas vacías después de aplicar filtros"
+  ]
+}

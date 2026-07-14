@@ -7,9 +7,8 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { STATUS_LABELS } from "@/lib/constants";
 import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
+import { INVOICE_STATUS_FILTERS } from "../../lib/invoiceListFilters";
 import type { DateRange } from "react-day-picker";
-
-const INVOICE_STATUSES = ["all", "draft", "sent", "partial", "paid", "overdue"] as const;
 
 interface ActionsProps {
   onOpenPreview: () => void;
@@ -61,7 +60,7 @@ export function InvoicesFiltersBar({
       <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
         <Tabs value={statusFilter} onValueChange={setStatusFilter}>
           <TabsList className="flex-nowrap overflow-x-auto w-full sm:w-auto">
-            {INVOICE_STATUSES.map((s) => (
+            {INVOICE_STATUS_FILTERS.map((s) => (
               <TabsTrigger key={s} value={s}>{STATUS_LABELS[s] || s}</TabsTrigger>
             ))}
           </TabsList>

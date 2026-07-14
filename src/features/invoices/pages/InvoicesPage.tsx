@@ -102,7 +102,9 @@ function InvoiceCard({ inv, onClick }: { inv: Invoice; onClick: () => void }) {
 }
 
 export default function InvoicesPage() {
-  const { data: invoices, isLoading } = useInvoices();
+  const { search, setSearch, statusFilter, setStatusFilter, dateRange, setDateRange, queryFilters } =
+    useInvoicesFilters();
+  const { data: invoices, isLoading } = useInvoices(queryFilters);
   const navigate = useNavigateTransition();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [resultOpen, setResultOpen] = useState(false);
@@ -110,21 +112,19 @@ export default function InvoicesPage() {
 
   const { generateRecurring, previewRecurring, openPreview, handleConfirm, handleRetry } =
     useRecurringHandlers(setPreviewOpen, setResultOpen);
-
-  const { search, setSearch, statusFilter, setStatusFilter, dateRange, setDateRange, filtered } =
-    useInvoicesFilters(invoices);
+  const invoiceRows = invoices ?? [];
 
   const columns = useInvoiceColumns();
   const { table } = useResourceList<Invoice>({
-    items: invoices,
+    items: invoiceRows,
     columns,
     getRowId: (i) => i.id,
     initialSorting: [{ id: "invoice_number", desc: true }],
-    externalFiltered: filtered,
+    externalFiltered: invoiceRows,
   });
 
   const exportCsv = () =>
-    exportToCsv("facturas.csv", filtered.map((inv) => ({
+    exportToCsv("facturas.csv", invoiceRows.map((inv) => ({
       "Factura #": inv.invoice_number, Cliente: inv.customer_name || "", Total: inv.total,
       Estado: inv.status, Emitida: inv.issued_at, Vencimiento: inv.due_date || "",
     })));
