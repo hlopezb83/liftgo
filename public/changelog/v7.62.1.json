@@ -1,0 +1,18 @@
+{
+  "version": "7.62.1",
+  "date": "2026-07-14",
+  "type": "patch",
+  "title": "Calendar: locale BCP-47 en formatters",
+  "description": "Formatters custom con Intl.DateTimeFormat('es-MX') para silenciar el warning de react-day-picker v10 en headless.",
+  "category": "fix",
+  "changes": [
+    {
+      "type": "fix",
+      "title": "Formatters BCP-47 en Calendar",
+      "detail": "src/components/ui/calendar.tsx ahora define formatters (formatCaption, formatMonthCaption, formatYearCaption, formatMonthDropdown, formatYearDropdown, formatWeekdayName, formatDay) que usan instancias de Intl.DateTimeFormat inicializadas con la etiqueta BCP-47 'es-MX'. Esto evita que react-day-picker v10 pase el objeto Locale de date-fns a Intl internamente, que era la causa del console.warn 'Incorrect locale information provided' observado en Chromium headless. El locale de date-fns se mantiene para el resto de la aritmética de fechas."
+    }
+  ],
+  "files": [
+    "src/components/ui/calendar.tsx"
+  ]
+}
