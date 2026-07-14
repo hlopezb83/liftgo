@@ -27,7 +27,6 @@ export default function MaintenancePage() {
   const { data: activeMechanics } = useActiveMechanics();
   const generateRecurring = useGenerateRecurringMaintenance();
   const detail = useDialogState<MaintenanceLog>();
-  const [forkliftFilter, setForkliftFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"list" | "board">("list");
 
   const formCtl = useMaintenanceForm(forkliftMap);
@@ -35,11 +34,26 @@ export default function MaintenancePage() {
 
   const enrichedLogs = enrichLogs(logs, forkliftMap);
 
-  const { search, setSearch, filtered: searchFiltered } = useListFilters(enrichedLogs, {
-    searchFields: ["service_type", "performed_by", "description", "forklift_name"],
+  const {
+    values,
+    set,
+    reset,
+    hasActive,
+    filtered,
+  } = useTableFilters<EnrichedMaintenanceLog, {
+    q: { type: "text"; fields: (keyof EnrichedMaintenanceLog)[] };
+    forklift: { type: "entityRef"; field: keyof EnrichedMaintenanceLog };
+  }>({
+    items: enrichedLogs,
+    facets: {
+      q: {
+        type: "text",
+        fields: ["service_type", "performed_by", "description", "forklift_name"] as (keyof EnrichedMaintenanceLog)[],
+      },
+      forklift: { type: "entityRef", field: "forklift_id" },
+    },
   });
 
-  const filtered = (searchFiltered ?? []).filter((log) => forkliftFilter === "all" || log.forklift_id === forkliftFilter);
 
   const columns: ColumnDef<EnrichedMaintenanceLog>[] = [
     {
