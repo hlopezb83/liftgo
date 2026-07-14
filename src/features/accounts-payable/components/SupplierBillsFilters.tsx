@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { APP_LOCALE } from "@/lib/format/dateFormats";
@@ -93,6 +94,7 @@ export function SupplierBillsFilters({ filters: f, kpis, suppliers }: Props) {
             ))}
           </SelectContent>
         </Select>
+        <FiltersToolbar.ClearAll visible={f.hasActive} onClick={f.reset} />
       </div>
     </div>
   );

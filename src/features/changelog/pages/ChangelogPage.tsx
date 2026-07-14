@@ -1,5 +1,6 @@
-import { useState, useRef } from "react";
+import { useRef } from "react";
 import { TablePagination } from "@/components/feedback/TablePagination";
+import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { InfoAlertIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -7,41 +8,49 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useListPage } from "@/hooks/useListPage";
 import { ChangelogEntryCard } from "../components/changelog/ChangelogEntryCard";
 import { useChangelog } from "../hooks/useChangelog";
 import { useChangelogDeepLink } from "../hooks/useChangelogDeepLink";
 import { getCurrentVersion } from "../lib/changelog";
+import type { ChangelogIndexEntry } from "../lib/changelog";
 import {
   TYPE_FILTERS, CATEGORY_FILTERS, type FilterType, type FilterCategory,
 } from "../lib/changelogConstants";
 
+const TYPE_OPTIONS = TYPE_FILTERS.filter((t) => t.value !== "all").map((t) => t.value) as string[];
+const CATEGORY_OPTIONS = CATEGORY_FILTERS.filter((c) => c.value !== "all").map((c) => c.value) as string[];
+
 export default function ChangelogPage() {
   const { data: changelog = [], isLoading, error } = useChangelog();
-  const [filter, setFilter] = useState<FilterType>("all");
-  const [categoryFilter, setCategoryFilter] = useState<FilterCategory>("all");
-  const [search, setSearch] = useState("");
   const { expanded, highlighted, toggle } = useChangelogDeepLink(changelog);
 
-  const filtered = (() => {
-    const q = search.trim().toLowerCase();
-    return changelog.filter((e) => {
-      if (filter !== "all" && e.type !== filter) return false;
-      if (categoryFilter !== "all" && e.category !== categoryFilter) return false;
-      if (q && !`${e.version} ${e.title}`.toLowerCase().includes(q)) return false;
-      return true;
-    });
-  })();
+  const { values, set, reset, hasActive, filtered, filterKey } = useTableFilters<
+    ChangelogIndexEntry,
+    {
+      q: { type: "text"; fields: (keyof ChangelogIndexEntry)[] };
+      type: { type: "enum"; field: "type"; options: string[] };
+      category: { type: "enum"; field: "category"; options: string[] };
+    }
+  >({
+    items: changelog,
+    facets: {
+      q: { type: "text", fields: ["version", "title"] },
+      type: { type: "enum", field: "type", options: TYPE_OPTIONS },
+      category: { type: "enum", field: "category", options: CATEGORY_OPTIONS },
+    },
+  });
+
+  const filter = (values.type || "all") as FilterType;
+  const categoryFilter = (values.category || "all") as FilterCategory;
 
   const { page, setPage, totalPages, paginatedItems } = useListPage(filtered);
 
-  // Reset a página 1 cuando cambian los filtros — patrón React "adjust state
-  // during render" (https://react.dev/reference/react/useState#storing-information-from-previous-renders).
-  // Evita el efecto adicional que dispararía otra render en cascada.
-  const filtersKey = `${filter}|${categoryFilter}|${search}`;
-  const prevFiltersKey = useRef(filtersKey);
-  if (prevFiltersKey.current !== filtersKey) {
-    prevFiltersKey.current = filtersKey;
+  // Reset a página 1 cuando cambian los filtros — patrón "adjust state during render".
+  const prevFiltersKey = useRef(filterKey);
+  if (prevFiltersKey.current !== filterKey) {
+    prevFiltersKey.current = filterKey;
     if (page !== 1) setPage(1);
   }
 
@@ -76,24 +85,43 @@ export default function ChangelogPage() {
         subtitle={`Versión actual: v${getCurrentVersion(changelog)} · ${changelog.length} entradas`}
       />
 
-      <SearchBar value={search} onChange={setSearch} placeholder="Buscar por versión o título…" className="max-w-full" />
+      <FiltersToolbar>
+        <SearchBar
+          value={values.q}
+          onChange={(v) => set("q", v)}
+          placeholder="Buscar por versión o título…"
+          className="w-full sm:max-w-sm"
+        />
+        <FiltersToolbar.ClearAll visible={hasActive} onClick={reset} />
+      </FiltersToolbar>
 
       <div className="space-y-2">
         <div className="flex gap-2 flex-wrap" role="group" aria-label="Filtrar por tipo">
           {TYPE_FILTERS.map((f) => (
-            <Button key={f.value} variant={filter === f.value ? "default" : "outline"} size="sm" onClick={() => setFilter(f.value)}>
+            <Button
+              key={f.value}
+              variant={filter === f.value ? "default" : "outline"}
+              size="sm"
+              onClick={() => set("type", f.value)}
+            >
               {f.label}
             </Button>
           ))}
         </div>
         <div className="flex gap-2 flex-wrap" role="group" aria-label="Filtrar por categoría">
           {CATEGORY_FILTERS.map((f) => (
-            <Button key={f.value} variant={categoryFilter === f.value ? "secondary" : "ghost"} size="sm" onClick={() => setCategoryFilter(f.value)}>
+            <Button
+              key={f.value}
+              variant={categoryFilter === f.value ? "secondary" : "ghost"}
+              size="sm"
+              onClick={() => set("category", f.value)}
+            >
               {f.label}
             </Button>
           ))}
         </div>
       </div>
+
 
       {filtered.length === 0 ? (
         <Card><CardContent className="text-center text-muted-foreground">Sin resultados</CardContent></Card>

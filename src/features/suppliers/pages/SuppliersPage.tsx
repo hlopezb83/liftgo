@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { SearchBar } from "@/components/forms/SearchBar";
+import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { PlusCircle, DownloadIcon, ChevronRightIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { usePageActions } from "@/contexts/pageActions";
+import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { exportToCsv } from "@/lib/exportCsv";
@@ -17,20 +18,19 @@ import type { Supplier } from "../hooks/useSuppliers";
 export default function SuppliersPage() {
   const { data: suppliers, isLoading } = useSuppliers();
   const navigate = useNavigateTransition();
-  const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Supplier | null>(null);
 
-  const filtered = (suppliers || []).filter((s) => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return (
-      s.name.toLowerCase().includes(q) ||
-      (s.rfc || "").toLowerCase().includes(q) ||
-      (s.email || "").toLowerCase().includes(q) ||
-      (s.contact_person || "").toLowerCase().includes(q)
-    );
+  const { values, set, reset, hasActive, filtered } = useTableFilters<
+    Supplier,
+    { q: { type: "text"; fields: (keyof Supplier)[] } }
+  >({
+    items: suppliers ?? [],
+    facets: {
+      q: { type: "text", fields: ["name", "rfc", "email", "contact_person"] },
+    },
   });
+
 
   const columns: ColumnDef<Supplier>[] = [
     {
@@ -118,7 +118,16 @@ export default function SuppliersPage() {
             </RoleGuard>
           </div>
         }
-        filters={<SearchBar value={search} onChange={setSearch} placeholder="Buscar por nombre, RFC, correo…" />}
+        filters={
+          <FiltersToolbar>
+            <FiltersToolbar.Search
+              value={values.q}
+              onChange={(v) => set("q", v)}
+              placeholder="Buscar por nombre, RFC, correo…"
+            />
+            <FiltersToolbar.ClearAll visible={hasActive} onClick={reset} />
+          </FiltersToolbar>
+        }
         isLoading={isLoading}
         table={table}
         onRowClick={(s) => navigate(`/suppliers/${s.id}`)}

@@ -1,0 +1,45 @@
+{
+  "version": "7.62.0",
+  "date": "2026-07-14",
+  "type": "minor",
+  "title": "Estandarización de filtros de tablas (Lotes 1–4)",
+  "description": "Se introdujo el contrato canónico de filtros de tabla para eliminar la deuda de 5 patrones distintos coexistiendo en la app.",
+  "category": "refactor",
+  "sections": [
+    {
+      "title": "Lote 1 — Contrato canónico",
+      "items": [
+        "Nuevo hook src/hooks/filters/useTableFilters.ts con facetas declarativas (text, enum, month, dateRange, entityRef).",
+        "Persistencia por defecto en URL con hidratación a sessionStorage por pathname.",
+        "Valores siempre primitivos + filterKey estable para queryKeys y memoization en React Compiler.",
+        "Fuzzy search vía matchSorter con useDeferredValue para no bloquear el input.",
+        "Nuevo componente src/components/filters/FiltersToolbar.tsx con SearchBar/Tabs/Select/ClearAll."
+      ]
+    },
+    {
+      "title": "Lote 2 — Migración de páginas ad-hoc",
+      "items": [
+        "SuppliersPage: search + status unificados; se elimina useState y filtrado manual.",
+        "AuditTrailPage: search cliente + filtro por tabla server-side coordinados por filterKey.",
+        "ChangelogPage: search + tipo + categoría vía useTableFilters, reset de página automático."
+      ]
+    },
+    {
+      "title": "Lote 4 — Cuentas por Pagar",
+      "items": [
+        "useAccountsPayableFilters reescrito sobre useTableFilters: filtros persistentes en URL.",
+        "SupplierBillsFilters muestra 'Limpiar filtros' cuando hasActive es true.",
+        "Filtro REP se conserva como capa adicional sobre el resultado del hook."
+      ]
+    }
+  ],
+  "files": [
+    "src/hooks/filters/useTableFilters.ts",
+    "src/components/filters/FiltersToolbar.tsx",
+    "src/features/suppliers/pages/SuppliersPage.tsx",
+    "src/features/audit/pages/AuditTrailPage.tsx",
+    "src/features/changelog/pages/ChangelogPage.tsx",
+    "src/features/accounts-payable/hooks/useAccountsPayableFilters.ts",
+    "src/features/accounts-payable/components/SupplierBillsFilters.tsx"
+  ]
+}

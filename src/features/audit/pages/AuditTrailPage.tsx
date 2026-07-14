@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { SearchBar } from "@/components/forms/SearchBar";
+import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { DeleteIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUserRole } from "@/features/users";
+import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { AuditLogDetailDialog } from "../components/auditTrail/AuditLogDetailDialog";
 import { AuditLogMobileCard } from "../components/auditTrail/AuditLogMobileCard";
 import {
@@ -18,8 +18,6 @@ import { useAuditLogs, useDeleteAuditLog, useRevertAuditLog } from "../hooks/use
 import type { AuditLog } from "../hooks/useAuditLogs";
 
 export default function AuditTrailPage() {
-  const [tableFilter, setTableFilter] = useState("all");
-  const [search, setSearch] = useState("");
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
   const [logToDelete, setLogToDelete] = useState<AuditLog | null>(null);
 
@@ -28,20 +26,37 @@ export default function AuditTrailPage() {
   const { mutate: deleteAuditLog, isPending: isDeleting } = useDeleteAuditLog();
   const { mutate: revertAuditLog, isPending: isReverting } = useRevertAuditLog();
 
+  const tableOptions = TABLES.map((t) => t.value).filter((v) => v !== "all") as string[];
+
+  // El filtro por tabla es server-side (afecta la query) → lo leemos del URL
+  // vía useTableFilters y lo pasamos como argumento al hook.
+  const { values, set, reset, hasActive } = useTableFilters<AuditLog, {
+    q: { type: "text" };
+    table_name: { type: "enum"; options: string[]; ui: "select" };
+  }>({
+    facets: {
+      q: { type: "text" },
+      table_name: { type: "enum", options: tableOptions, ui: "select" },
+    },
+  });
+
   const { data: logs, isLoading } = useAuditLogs(
-    tableFilter !== "all" ? { table_name: tableFilter } : undefined,
+    values.table_name !== "all" ? { table_name: values.table_name } : undefined,
   );
 
-  const filtered = (logs ?? []).filter((log) => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return (
-      log.table_name.toLowerCase().includes(q) ||
-      log.action.toLowerCase().includes(q) ||
-      (log.user_email || "").toLowerCase().includes(q) ||
-      getRecordLabel(log).toLowerCase().includes(q)
-    );
-  });
+  // Búsqueda cliente sobre los logs ya filtrados por tabla en el servidor.
+  const search = values.q.toLowerCase();
+  const displayed = !search
+    ? (logs ?? [])
+    : (logs ?? []).filter((log) =>
+        [log.table_name, log.action, log.user_email ?? "", getRecordLabel(log)]
+          .join(" ")
+          .toLowerCase()
+          .includes(search),
+      );
+
+
+
 
   const columns: ColumnDef<AuditLog>[] = (() => {
     const base: ColumnDef<AuditLog>[] = [
@@ -113,7 +128,7 @@ export default function AuditTrailPage() {
   })();
 
   const table = useLiftgoTable<AuditLog>({
-    data: filtered,
+    data: displayed,
     columns,
     getRowId: (l) => l.id,
   });
@@ -124,15 +139,20 @@ export default function AuditTrailPage() {
         title="Bitácora de Cambios"
         subtitle="Rastrea todos los cambios en el sistema"
         filters={
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <Select value={tableFilter} onValueChange={setTableFilter}>
-              <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {TABLES.map((t) => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
-              </SelectContent>
-            </Select>
-            <SearchBar value={search} onChange={setSearch} placeholder="Buscar en bitácora…" className="w-full sm:w-64" />
-          </div>
+          <FiltersToolbar>
+            <FiltersToolbar.Search
+              value={values.q}
+              onChange={(v) => set("q", v)}
+              placeholder="Buscar en bitácora…"
+            />
+            <FiltersToolbar.StatusSelect
+              value={values.table_name}
+              onChange={(v) => set("table_name", v)}
+              options={TABLES.map((t) => ({ value: t.value, label: t.label }))}
+              placeholder="Tabla"
+            />
+            <FiltersToolbar.ClearAll visible={hasActive} onClick={reset} />
+          </FiltersToolbar>
         }
         isLoading={isLoading}
         table={table}

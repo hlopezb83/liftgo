@@ -1,33 +1,25 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
+import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import type { SupplierBillListItem } from "./useSupplierBills";
-import type {
-  SupplierBillStatus,
-  SupplierBillApprovalStatus,
-  ExpenseCategory,
+import {
+  SUPPLIER_BILL_STATUSES,
+  APPROVAL_STATUSES,
+  EXPENSE_CATEGORY_LABELS,
+  type SupplierBillStatus,
+  type SupplierBillApprovalStatus,
+  type ExpenseCategory,
 } from "../lib/supplierBillConstants";
 import type { SupplierRepStatus } from "../lib/supplierRepConstants";
 
-interface FilterState {
-  search: string;
-  status: SupplierBillStatus | "all";
-  supplierId: string | "all";
-  category: ExpenseCategory | "all";
-  month: string;
-  approval: SupplierBillApprovalStatus | "all";
-  rep: SupplierRepStatus | "all";
-}
-
-const INITIAL: FilterState = {
-  search: "",
-  status: "all",
-  supplierId: "all",
-  category: "all",
-  month: "all",
-  approval: "all",
-  rep: "all",
-};
-
-function matchesRep(bill: SupplierBillListItem, rep: FilterState["rep"]): boolean {
+/**
+ * Filtros de Cuentas por Pagar.
+ *
+ * Persisten en URL vía `useTableFilters` (v7.62.0). API compatible con la
+ * versión previa basada en `useState`: mismos nombres (`search`, `status`,
+ * `supplierId`, `category`, `month`, `approval`, `rep`) y helpers
+ * (`set`, `reset`, `hasActive`, `filtered`, `filterKey`).
+ */
+function matchesRep(bill: SupplierBillListItem, rep: string): boolean {
   if (rep === "all") return true;
   const s = bill.rep_summary;
   if (rep === "not_required") return s.total === 0;
@@ -37,79 +29,91 @@ function matchesRep(bill: SupplierBillListItem, rep: FilterState["rep"]): boolea
   return true;
 }
 
-function matchesSearch(bill: SupplierBillListItem, search: string): boolean {
-  if (!search) return true;
-  const q = search.toLowerCase();
-  const hay = [
-    bill.bill_number,
-    bill.cfdi_uuid ?? "",
-    bill.folio ?? "",
-    bill.description ?? "",
-    bill.suppliers?.name ?? "",
-  ].join(" ").toLowerCase();
-  return hay.includes(q);
-}
-
-function matches(bill: SupplierBillListItem, f: FilterState): boolean {
-  return (
-    (f.status === "all" || bill.status === f.status) &&
-    (f.supplierId === "all" || bill.supplier_id === f.supplierId) &&
-    (f.category === "all" || bill.category === f.category) &&
-    (f.month === "all" || bill.issue_date.startsWith(f.month)) &&
-    (f.approval === "all" || bill.approval_status === f.approval) &&
-    matchesRep(bill, f.rep) &&
-    matchesSearch(bill, f.search)
-  );
-}
+const REP_OPTIONS = ["not_required", "pending", "rejected", "received"] as const;
 
 export function useAccountsPayableFilters(bills: SupplierBillListItem[]) {
-  const [state, setState] = useState<FilterState>(INITIAL);
-
-  const filtered = useMemo(
-    () => bills.filter((b) => matches(b, state)),
-    [
-      bills,
-      state.search,
-      state.status,
-      state.supplierId,
-      state.category,
-      state.month,
-      state.approval,
-      state.rep,
-    ],
-  );
-
   const availableMonths = useMemo(() => {
     const monthsSet = new Set<string>();
     for (const b of bills) monthsSet.add(b.issue_date.slice(0, 7));
     return Array.from(monthsSet).sort().reverse();
   }, [bills]);
 
-  const set = useCallback(
-    <K extends keyof FilterState>(k: K, v: FilterState[K]) => {
-      setState((s) => (s[k] === v ? s : { ...s, [k]: v }));
+  const supplierOptions = useMemo(() => {
+    const set = new Set<string>();
+    for (const b of bills) if (b.supplier_id) set.add(b.supplier_id);
+    return Array.from(set);
+  }, [bills]);
+
+  // Nota: en modo cliente puro delegamos casi todo el filtrado a
+  // useTableFilters. `rep` no encaja en las facetas declarativas porque
+  // consulta un objeto derivado (`rep_summary`), así que lo aplicamos aparte.
+  const {
+    values,
+    set: setRaw,
+    reset,
+    hasActive: hasActiveBase,
+    filtered: filteredByFacets,
+    filterKey: baseKey,
+  } = useTableFilters<SupplierBillListItem, {
+    search: { type: "text"; fields: (keyof SupplierBillListItem)[]; accessors: ((b: SupplierBillListItem) => string)[] };
+    status: { type: "enum"; field: "status"; options: string[] };
+    supplierId: { type: "enum"; field: "supplier_id"; options: string[] };
+    category: { type: "enum"; field: "category"; options: string[] };
+    month: { type: "month"; accessor: (b: SupplierBillListItem) => string };
+    approval: { type: "enum"; field: "approval_status"; options: string[] };
+    rep: { type: "enum"; options: string[] };
+  }>({
+    items: bills,
+    facets: {
+      search: {
+        type: "text",
+        fields: ["bill_number", "cfdi_uuid", "folio", "description"],
+        accessors: [(b) => b.suppliers?.name ?? ""],
+      },
+      status: { type: "enum", field: "status", options: SUPPLIER_BILL_STATUSES as unknown as string[] },
+      supplierId: { type: "enum", field: "supplier_id", options: supplierOptions },
+      category: { type: "enum", field: "category", options: Object.keys(EXPENSE_CATEGORY_LABELS) },
+      month: { type: "month", accessor: (b) => b.issue_date },
+      approval: { type: "enum", field: "approval_status", options: APPROVAL_STATUSES as unknown as string[] },
+      rep: { type: "enum", options: [...REP_OPTIONS] },
     },
-    [],
+  });
+
+  // Aplicamos el filtro adicional de REP sobre el resultado del hook.
+  const filtered = useMemo(
+    () => filteredByFacets.filter((b) => matchesRep(b, values.rep)),
+    [filteredByFacets, values.rep],
   );
 
-  const reset = useCallback(() => setState(INITIAL), []);
+  // API pública compatible con el hook anterior. `set(key, value)` acepta
+  // los mismos nombres que antes; el resto son alias directos.
+  const set = <K extends
+    | "search"
+    | "status"
+    | "supplierId"
+    | "category"
+    | "month"
+    | "approval"
+    | "rep"
+  >(k: K, v: string) => setRaw(k, v);
 
-  const hasActive = useMemo(
-    () =>
-      state.search !== INITIAL.search ||
-      state.status !== INITIAL.status ||
-      state.supplierId !== INITIAL.supplierId ||
-      state.category !== INITIAL.category ||
-      state.month !== INITIAL.month ||
-      state.approval !== INITIAL.approval ||
-      state.rep !== INITIAL.rep,
-    [state],
-  );
+  const filterKey = `${baseKey}|rep=${values.rep}`;
 
-  const filterKey = useMemo(
-    () => [state.search, state.status, state.supplierId, state.category, state.month, state.approval, state.rep].join("|"),
-    [state.search, state.status, state.supplierId, state.category, state.month, state.approval, state.rep],
-  );
-
-  return { ...state, filtered, availableMonths, set, reset, hasActive, filterKey };
+  return {
+    // Valores planos con los mismos nombres del hook anterior.
+    search: values.search,
+    status: values.status as SupplierBillStatus | "all",
+    supplierId: values.supplierId as string | "all",
+    category: values.category as ExpenseCategory | "all",
+    month: values.month,
+    approval: values.approval as SupplierBillApprovalStatus | "all",
+    rep: values.rep as SupplierRepStatus | "all",
+    // Helpers
+    set,
+    reset,
+    hasActive: hasActiveBase,
+    filtered,
+    availableMonths,
+    filterKey,
+  };
 }
