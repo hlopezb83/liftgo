@@ -1,31 +1,34 @@
-## Diagnóstico
+## Objetivo
+Corregir el bug donde los filtros de `Facturas` y `Facturas de Proveedor` sólo responden una vez y luego quedan desincronizados/congelados, sin tocar otros módulos.
 
-El problema más probable ya no es visual ni de memoización: la página de Facturas carga sólo los primeros 25 registros y después aplica los filtros en el navegador. En producción, donde hay más datos, los filtros por estado, búsqueda o fecha sólo revisan ese subconjunto, por eso parecen incompletos o incorrectos.
+## Diagnóstico probable
+El patrón actual mezcla estado de filtros, `URLSearchParams`, query keys y tabla TanStack con objetos/callbacks recreados por render. En producción esto puede dejar a Radix Tabs/Select, TanStack Query o la tabla con referencias obsoletas, especialmente al cambiar entre filtros con resultados vacíos y filtros con datos.
 
-## Plan de corrección
+## Plan de implementación
+1. **Reproducir visualmente el bug**
+   - Validar en `/invoices?status=overdue` la secuencia reportada: cambiar tab → funciona una vez → deja de actualizar → seleccionar `Borrador` vacío → vuelve a funcionar una vez.
+   - Validar patrón equivalente en `/cuentas-por-pagar` con el selector de estatus.
 
-1. **Mover los filtros de Facturas a la consulta de datos**
-   - Hacer que `useInvoices` acepte filtros: búsqueda, estado, rango de emisión.
-   - Aplicar esos filtros directamente en la consulta al backend antes del `.limit(25)`.
-   - Mantener `overdue` como caso especial: facturas `sent` o `partial` con `due_date` vencida.
+2. **Blindar los filtros de Facturas**
+   - Mantener `status`, búsqueda y rango en URL, pero estabilizar el controlador de filtros para que cada cambio produzca un estado/query key inequívoco.
+   - Evitar depender de objetos `URLSearchParams` mutables entre renders.
+   - Generar un `queryKey` estable por valores primitivos (`status`, `search`, `from`, `to`) en vez de depender de objetos recreados.
+   - Forzar reset seguro de paginación al cambiar el “fingerprint” real del dataset, no sólo la identidad del arreglo.
 
-2. **Simplificar el hook de filtros de Facturas**
-   - Usar `useInvoicesFilters` principalmente para leer/escribir URL params (`status`, `q`, `from`, `to`).
-   - Evitar filtrar otra vez del lado cliente salvo como respaldo mínimo.
-   - Mantener la API actual para no romper `InvoicesFiltersBar`.
+3. **Blindar los filtros de Facturas de Proveedor**
+   - Convertir el estado local de filtros a actualizaciones totalmente inmutables y estables.
+   - Exponer un `filterKey`/fingerprint primitivo para que la tabla se reinicie correctamente cuando cambie cualquier filtro.
+   - Memoizar KPIs y resultados filtrados sin depender de referencias ambiguas.
 
-3. **Actualizar la tabla para usar resultados ya filtrados**
-   - Pasar a `useResourceList` el arreglo que ya llega filtrado desde backend.
-   - Revisar que exportar CSV use el mismo dataset visible.
-   - Si cambia un filtro, asegurar que la paginación no deje la tabla en una página vacía.
+4. **Ajustar la tabla compartida sólo si es necesario**
+   - Revisar `useLiftgoTable` para que no conserve row models/paginación obsoletos cuando cambia el filtro pero el arreglo mantiene tamaño o vuelve de vacío a datos.
+   - Mantener compatibilidad con todas las demás tablas.
 
-4. **Validación visual**
-   - Abrir `/invoices?status=partial`.
-   - Cambiar entre tabs de estado.
-   - Probar búsqueda por número/cliente.
-   - Probar rango de fecha de emisión.
-   - Confirmar que la tabla sí cambia y que no se queda limitada a los primeros 25 registros sin aplicar filtros.
+5. **Validación**
+   - Probar visualmente secuencias repetidas en Facturas: `Vencidas → Borrador → Pagada → Parcial → Todas → Vencidas`, confirmando que URL, tab activo y filas cambian cada vez.
+   - Probar visualmente Facturas de Proveedor alternando estatus varias veces y búsqueda.
+   - Confirmar que no se rompen paginación, búsqueda ni exportación CSV.
 
-5. **Changelog obligatorio**
-   - Agregar entrada nueva en `public/changelog.json`.
-   - Crear el detalle correspondiente `public/changelog/v7.61.9.json` como patch fix.
+6. **Changelog obligatorio**
+   - Agregar nueva entrada al inicio de `public/changelog.json`.
+   - Crear `public/changelog/v7.61.10.json` como patch con el resumen del fix.

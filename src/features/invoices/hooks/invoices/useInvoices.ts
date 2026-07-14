@@ -1,19 +1,18 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { todayKeyMty } from "@/lib/format/dateFormats";
-import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { EXCLUDE_E2E_FILTER, LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import {
   createInvoiceListFilters,
+  createInvoiceListQueryKey,
   sanitizeInvoiceSearchForQuery,
   type InvoiceListFilters,
 } from "../../lib/invoiceListFilters";
 import { invoiceKeys } from "../../lib/queryKeys";
 
-type InvoiceListRow = Awaited<ReturnType<typeof fetchInvoiceList>>[number];
-type InvoiceDetailRow = Awaited<ReturnType<typeof fetchInvoiceDetail>>;
+const INVOICE_STALE_MS = 60_000;
 
 async function fetchInvoiceList(filters?: InvoiceListFilters) {
   const normalized = createInvoiceListFilters(filters);
@@ -48,16 +47,32 @@ async function fetchInvoiceDetail(id: string) {
   return data;
 }
 
-export const invoiceQueries = defineEntityQueries<"invoices", InvoiceListRow[], InvoiceDetailRow, InvoiceListFilters>(
-  "invoices",
-  {
-    list: (filters) => () => fetchInvoiceList(filters),
-    detail: (id) => () => fetchInvoiceDetail(id),
-  },
-);
+function invoiceListQueryOptions(filters?: InvoiceListFilters) {
+  const normalized = createInvoiceListFilters(filters);
+  return queryOptions({
+    queryKey: createInvoiceListQueryKey(normalized),
+    queryFn: () => fetchInvoiceList(normalized),
+    staleTime: INVOICE_STALE_MS,
+  });
+}
+
+function invoiceDetailQueryOptions(id: string) {
+  return queryOptions({
+    queryKey: invoiceKeys.detail(id),
+    queryFn: () => fetchInvoiceDetail(id),
+    staleTime: INVOICE_STALE_MS,
+    enabled: !!id,
+  });
+}
+
+export const invoiceQueries = {
+  keys: invoiceKeys,
+  list: invoiceListQueryOptions,
+  detail: invoiceDetailQueryOptions,
+};
 
 export function useInvoices(filters?: InvoiceListFilters) {
-  return useQuery(invoiceQueries.list(createInvoiceListFilters(filters)));
+  return useQuery(invoiceQueries.list(filters));
 }
 
 export function useInvoice(id: string | undefined) {

@@ -59,6 +59,16 @@ export function createInvoiceListFilters(input?: Partial<InvoiceListFilters>): I
   return filters;
 }
 
+export function createInvoiceListFilterKey(input?: Partial<InvoiceListFilters>): string {
+  const filters = createInvoiceListFilters(input);
+  return [filters.status, filters.search, filters.from ?? "", filters.to ?? ""].join("|");
+}
+
+export function createInvoiceListQueryKey(input?: Partial<InvoiceListFilters>): unknown[] {
+  const filters = createInvoiceListFilters(input);
+  return ["invoices", "list", "filters", filters.status, filters.search, filters.from ?? null, filters.to ?? null];
+}
+
 export function sanitizeInvoiceSearchForQuery(value: string): string {
   return value.replace(/[%,()]/g, " ").trim();
 }

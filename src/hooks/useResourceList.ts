@@ -23,6 +23,8 @@ interface UseResourceListOptions<T extends Record<string, unknown>> {
    * (p.ej. con rango de fechas).
    */
   externalFiltered?: T[];
+  /** Token primitivo que reinicia la paginación cuando cambian filtros externos. */
+  tableResetKey?: string | number;
 }
 
 /**
@@ -33,7 +35,7 @@ interface UseResourceListOptions<T extends Record<string, unknown>> {
 export function useResourceList<T extends Record<string, unknown>>(
   options: UseResourceListOptions<T>,
 ) {
-  const { items, columns, getRowId, initialSorting, filters, externalFiltered } =
+  const { items, columns, getRowId, initialSorting, filters, externalFiltered, tableResetKey } =
     options;
 
   const internal = useListFilters<T>(items, filters ?? { searchFields: [] });
@@ -48,6 +50,7 @@ export function useResourceList<T extends Record<string, unknown>>(
     columns,
     getRowId,
     initialSorting,
+    resetKey: tableResetKey,
   });
 
   return {

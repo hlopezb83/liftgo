@@ -1,5 +1,26 @@
 [
   {
+    "version": "7.61.10",
+    "date": "2026-07-14",
+    "type": "patch",
+    "title": "Fix: filtros de Facturas no se congelan tras un cambio",
+    "description": "Se blindó el flujo de filtros de Facturas y Facturas de Proveedor para que tabs/selectores funcionen repetidamente en producción: Facturas usa URL params inmutables y query keys primitivas; ambas tablas reinician paginación con un filterKey explícito y Cuentas por Pagar memoiza sus derivaciones por campos concretos.",
+    "category": "fix",
+    "files": [
+      "src/features/invoices/lib/invoiceListFilters.ts",
+      "src/features/invoices/hooks/invoices/useInvoices.ts",
+      "src/features/invoices/hooks/invoices/useInvoicesFilters.ts",
+      "src/features/invoices/pages/InvoicesPage.tsx",
+      "src/features/accounts-payable/hooks/useAccountsPayableFilters.ts",
+      "src/features/accounts-payable/hooks/useAccountsPayableKpis.ts",
+      "src/features/accounts-payable/pages/CuentasPorPagarPage.tsx",
+      "src/components/dataTable/v2/useLiftgoTable.ts",
+      "src/hooks/useResourceList.ts",
+      "public/changelog/v7.61.10.json",
+      "public/changelog.json"
+    ]
+  },
+  {
     "version": "7.61.9",
     "date": "2026-07-14",
     "type": "patch",

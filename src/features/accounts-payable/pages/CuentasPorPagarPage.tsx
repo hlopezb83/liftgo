@@ -34,6 +34,7 @@ export default function CuentasPorPagarPage() {
     data: f.filtered,
     columns,
     getRowId: (b) => b.id,
+    resetKey: f.filterKey,
   });
 
   return (

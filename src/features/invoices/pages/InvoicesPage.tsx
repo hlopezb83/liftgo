@@ -102,7 +102,7 @@ function InvoiceCard({ inv, onClick }: { inv: Invoice; onClick: () => void }) {
 }
 
 export default function InvoicesPage() {
-  const { search, setSearch, statusFilter, setStatusFilter, dateRange, setDateRange, queryFilters } =
+  const { search, setSearch, statusFilter, setStatusFilter, dateRange, setDateRange, queryFilters, filterKey } =
     useInvoicesFilters();
   const { data: invoices, isLoading } = useInvoices(queryFilters);
   const navigate = useNavigateTransition();
@@ -121,6 +121,7 @@ export default function InvoicesPage() {
     getRowId: (i) => i.id,
     initialSorting: [{ id: "invoice_number", desc: true }],
     externalFiltered: invoiceRows,
+    tableResetKey: filterKey,
   });
 
   const exportCsv = () =>
