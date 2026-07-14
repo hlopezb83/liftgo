@@ -1,0 +1,16 @@
+{
+  "version": "7.61.10",
+  "date": "2026-07-14",
+  "type": "patch",
+  "title": "Fix: filtros de Facturas no se congelan tras un cambio",
+  "category": "bugfix",
+  "description": "Los filtros de /invoices y /cuentas-por-pagar podían funcionar una vez y después quedar desincronizados en producción. Se estabilizó la escritura de parámetros de URL, las query keys y el reinicio de paginación para que cada cambio de filtro tenga un token primitivo inequívoco.",
+  "changes": [
+    "useInvoicesFilters ahora construye parámetros desde location.search y navega con URLSearchParams nuevos, evitando mutaciones/referencias obsoletas",
+    "useInvoices usa query keys primitivas por status, búsqueda y rango de fechas, en vez de depender de objetos de filtro en la key",
+    "InvoicesPage pasa filterKey a la tabla para reiniciar paginación en cada cambio real de filtros",
+    "useAccountsPayableFilters memoiza filtered por campos concretos y expone filterKey para reinicio explícito de tabla",
+    "useAccountsPayableKpis memoiza KPIs por dataset para evitar derivaciones recreadas en cada render",
+    "useLiftgoTable acepta resetKey sin cambiar la API existente de las demás tablas"
+  ]
+}

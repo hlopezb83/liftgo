@@ -1,9 +1,10 @@
 import { useCallback, useMemo } from "react";
 import { isValid, parseISO } from "date-fns";
-import { useSearchParams } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { toYMD } from "@/lib/date/toYMD";
 import {
   createInvoiceListFilters,
+  createInvoiceListFilterKey,
   normalizeInvoiceDateParam,
   normalizeInvoiceSearch,
   normalizeInvoiceStatusFilter,
@@ -17,42 +18,47 @@ import {
  * - Query filters consumed by useInvoices so filtering happens before limit()
  */
 export function useInvoicesFilters() {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const search = normalizeInvoiceSearch(searchParams.get("q"));
   const statusFilter = normalizeInvoiceStatusFilter(searchParams.get("status"));
   const fromParam = normalizeInvoiceDateParam(searchParams.get("from"));
   const toParam = normalizeInvoiceDateParam(searchParams.get("to"));
 
-  const setSearch = useCallback(
-    (value: string) => {
-      setSearchParams(
-        (prev) => {
-          const next = new URLSearchParams(prev);
-          const normalized = normalizeInvoiceSearch(value);
-          if (normalized) next.set("q", normalized);
-          else next.delete("q");
-          return next;
-        },
+  const replaceParams = useCallback(
+    (mutate: (params: URLSearchParams) => void) => {
+      const next = new URLSearchParams(location.search);
+      mutate(next);
+      const nextSearch = next.toString();
+      navigate(
+        { pathname: location.pathname, search: nextSearch ? `?${nextSearch}` : "" },
         { replace: true },
       );
     },
-    [setSearchParams],
+    [location.pathname, location.search, navigate],
+  );
+
+  const setSearch = useCallback(
+    (value: string) => {
+      replaceParams((next) => {
+        const normalized = normalizeInvoiceSearch(value);
+        if (normalized) next.set("q", normalized);
+        else next.delete("q");
+      });
+    },
+    [replaceParams],
   );
 
   const setStatusFilter = useCallback(
     (value: string) => {
-      setSearchParams(
-        (prev) => {
-          const next = new URLSearchParams(prev);
-          const normalized = normalizeInvoiceStatusFilter(value);
-          if (normalized === "all") next.delete("status");
-          else next.set("status", normalized);
-          return next;
-        },
-        { replace: true },
-      );
+      replaceParams((next) => {
+        const normalized = normalizeInvoiceStatusFilter(value);
+        if (normalized === "all") next.delete("status");
+        else next.set("status", normalized);
+      });
     },
-    [setSearchParams],
+    [replaceParams],
   );
 
   const dateRange = useMemo(
@@ -70,24 +76,26 @@ export function useInvoicesFilters() {
 
   const setDateRange = useCallback(
     (range?: { from?: Date; to?: Date }) => {
-      setSearchParams(
-        (prev) => {
-          const next = new URLSearchParams(prev);
-          if (range?.from) next.set("from", toYMD(range.from));
-          else next.delete("from");
-          if (range?.to) next.set("to", toYMD(range.to));
-          else next.delete("to");
-          return next;
-        },
-        { replace: true },
-      );
+      replaceParams((next) => {
+        const from = range?.from ? toYMD(range.from) : undefined;
+        const to = range?.to ? toYMD(range.to) : undefined;
+        if (from) next.set("from", from);
+        else next.delete("from");
+        if (to) next.set("to", to);
+        else next.delete("to");
+      });
     },
-    [setSearchParams],
+    [replaceParams],
   );
 
   const queryFilters = useMemo(
     () => createInvoiceListFilters({ search, status: statusFilter, from: fromParam, to: toParam }),
     [search, statusFilter, fromParam, toParam],
+  );
+
+  const filterKey = useMemo(
+    () => createInvoiceListFilterKey(queryFilters),
+    [queryFilters],
   );
 
   return {
@@ -98,5 +106,6 @@ export function useInvoicesFilters() {
     dateRange,
     setDateRange,
     queryFilters,
+    filterKey,
   };
 }

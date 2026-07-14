@@ -25,6 +25,7 @@ interface Options<T> {
   enableRowSelection?: boolean | ((row: T) => boolean);
   globalFilter?: string;
   paginated?: boolean;
+  resetKey?: string | number;
   onSelectionChange?: (ctx: DataTableSelectionContext<T>) => void;
 }
 
@@ -44,6 +45,7 @@ export function useLiftgoTable<T>({
   enableRowSelection = false,
   globalFilter,
   paginated = true,
+  resetKey,
   onSelectionChange,
 }: Options<T>): Table<T> {
   const [sorting, setSorting] = useState<SortingState>(initialSorting);
@@ -57,7 +59,7 @@ export function useLiftgoTable<T>({
 
   useEffect(() => {
     setPagination((prev) => (prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }));
-  }, [tableData]);
+  }, [tableData, resetKey]);
 
   const resolveSelectable =
     typeof enableRowSelection === "function"

@@ -67,7 +67,16 @@ export function useAccountsPayableFilters(bills: SupplierBillListItem[]) {
 
   const filtered = useMemo(
     () => bills.filter((b) => matches(b, state)),
-    [bills, state],
+    [
+      bills,
+      state.search,
+      state.status,
+      state.supplierId,
+      state.category,
+      state.month,
+      state.approval,
+      state.rep,
+    ],
   );
 
   const availableMonths = useMemo(() => {
@@ -78,7 +87,7 @@ export function useAccountsPayableFilters(bills: SupplierBillListItem[]) {
 
   const set = useCallback(
     <K extends keyof FilterState>(k: K, v: FilterState[K]) => {
-      setState((s) => ({ ...s, [k]: v }));
+      setState((s) => (s[k] === v ? s : { ...s, [k]: v }));
     },
     [],
   );
@@ -97,5 +106,10 @@ export function useAccountsPayableFilters(bills: SupplierBillListItem[]) {
     [state],
   );
 
-  return { ...state, filtered, availableMonths, set, reset, hasActive };
+  const filterKey = useMemo(
+    () => [state.search, state.status, state.supplierId, state.category, state.month, state.approval, state.rep].join("|"),
+    [state.search, state.status, state.supplierId, state.category, state.month, state.approval, state.rep],
+  );
+
+  return { ...state, filtered, availableMonths, set, reset, hasActive, filterKey };
 }
