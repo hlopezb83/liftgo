@@ -21,7 +21,6 @@ import { RecurringBillingBadge } from "../components/bookings/RecurringBillingBa
 import { useBookings, bookingQueries } from "../hooks/useBookings";
 
 const STATUSES = ["all", ...BOOKING_STATUSES] as const;
-type BookingStatusFilter = (typeof STATUSES)[number];
 
 
 type Booking = NonNullable<ReturnType<typeof useBookings>["data"]>[number];
