@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.61.8",
+    "date": "2026-07-14",
+    "type": "patch",
+    "title": "Fix: filtros de Facturas no reaccionaban en producción",
+    "description": "Mismo patrón que v7.61.7 pero en /invoices: el hook useInvoicesFilters calculaba `statusFiltered`, `dateRange` y `filtered` con funciones inline y definía `setDateRange` sin useCallback. En el build de producción el React Compiler memoizaba mal esas derivaciones y los tabs de estatus, la búsqueda y el rango de fechas no actualizaban la tabla. Se envolvieron todas las derivaciones en useMemo/useCallback con dependencias explícitas.",
+    "category": "fix",
+    "files": [
+      "src/features/invoices/hooks/invoices/useInvoicesFilters.ts",
+      "public/changelog/v7.61.8.json",
+      "public/changelog.json"
+    ]
+  },
+  {
     "version": "7.61.7",
     "date": "2026-07-14",
     "type": "patch",
