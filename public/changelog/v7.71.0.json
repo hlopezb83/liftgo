@@ -1,0 +1,8 @@
+{
+  "description": "Sprint I cierra los tres hallazgos abiertos de la auditoría visual final a 1600x900 sobre los sprints F/G/H de filtros y tablas.",
+  "changes": [
+    "Quotes: el filtro de estado migró de Select a FiltersToolbar.StatusTabs (Todos / Borrador / Enviada / Aceptada / Rechazada / Vencida), consistente con Invoices y Bookings",
+    "Maintenance: verificada la conexión de hasActive/reset al FiltersToolbar.ClearAll vía MaintenanceFiltersBar; el botón 'Limpiar filtros' aparece con cualquier filtro activo",
+    "FiltersToolbar.StatusTabs: se refuerza el contraste del tab activo (font-semibold + ring-border) para mejor lectura a 1600x900 sin romper el token semántico"
+  ]
+}
