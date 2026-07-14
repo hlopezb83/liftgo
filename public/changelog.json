@@ -1,5 +1,17 @@
 [
   {
+    "version": "7.71.1",
+    "date": "2026-07-14",
+    "type": "patch",
+    "title": "Estado de Resultados — Reclasifica facturas manuales de renta",
+    "description": "Corrige un bug donde facturas de renta creadas manualmente (sin booking_id ni quote_id vinculado) caían al bucket de Ingresos por Ventas. Caso detectado: FAC-0089 Logistorage jul 2026 ($55,500) aparecía como venta. Fix en dos capas: (1) parche de datos vinculando FAC-0089 a sus 3 bookings recurrentes vía invoice_bookings; (2) hardening de `get_income_statement` para clasificar como renta cualquier factura con periodo de facturación (`billing_period_start`/`end`) definido, patrón exclusivo de rentas mensuales. Aplica retroactivamente a todos los meses.",
+    "category": "bugfix",
+    "files": [
+      "supabase (RPC get_income_statement)",
+      "invoice_bookings (data patch FAC-0089)"
+    ]
+  },
+  {
     "version": "7.71.0",
     "date": "2026-07-14",
     "type": "minor",
