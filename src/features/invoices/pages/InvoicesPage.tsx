@@ -155,8 +155,11 @@ export default function InvoicesPage() {
             setDateRange={setDateRange}
             search={search}
             setSearch={setSearch}
+            hasActive={hasActive}
+            onClear={clearAll}
           />
         }
+
         isLoading={isLoading}
         table={table}
         onRowClick={(inv) => navigate(`/invoices/${inv.id}`)}
