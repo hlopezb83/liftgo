@@ -123,13 +123,16 @@ export default function MaintenancePage() {
         }
         filters={
           <MaintenanceFiltersBar
-            search={search}
-            onSearchChange={setSearch}
-            forkliftFilter={forkliftFilter}
-            onForkliftFilterChange={setForkliftFilter}
+            search={values.q}
+            onSearchChange={(v) => set("q", v)}
+            forkliftFilter={values.forklift || "all"}
+            onForkliftFilterChange={(v) => set("forklift", v)}
             forklifts={forklifts}
+            hasActive={hasActive}
+            onClear={reset}
           />
         }
+
         isLoading={isLoading}
         table={isBoard ? undefined : table}
         onRowClick={(log) => detail.open(log)}
