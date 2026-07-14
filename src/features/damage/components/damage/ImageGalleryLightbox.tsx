@@ -54,11 +54,11 @@ export function ImageGalleryLightbox({ images, initialIndex = 0, open, onOpenCha
           </span>
           <span className="text-sm text-foreground truncate max-w-[50%]">{images[current]?.name}</span>
           <div className="flex gap-1">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setZoomed(!zoomed)} aria-label={zoomed ? "Alejar imagen" : "Acercar imagen"}>
-              {zoomed ? <ZoomOut className="h-4 w-4" /> : <ZoomIn className="h-4 w-4" />}
+            <Button variant="ghost" size="iconSm" onClick={() => setZoomed(!zoomed)} aria-label={zoomed ? "Alejar imagen" : "Acercar imagen"}>
+              {zoomed ? <ZoomOut /> : <ZoomIn />}
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => onOpenChange(false)} aria-label="Cerrar galería">
-              <X className="h-4 w-4" />
+            <Button variant="ghost" size="iconSm" onClick={() => onOpenChange(false)} aria-label="Cerrar galería">
+              <X />
             </Button>
           </div>
         </div>

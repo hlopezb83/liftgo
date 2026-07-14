@@ -115,11 +115,11 @@ export default function AuditTrailPage() {
         cell: ({ row }) => (
           <Button
             variant="ghost"
-            size="icon"
-            className="h-8 w-8 text-destructive hover:text-destructive"
+            size="iconSm"
+            className="text-destructive hover:text-destructive"
             onClick={(e) => { e.stopPropagation(); setLogToDelete(row.original); }}
           >
-            <DeleteIcon className="h-4 w-4" />
+            <DeleteIcon />
           </Button>
         ),
       });
