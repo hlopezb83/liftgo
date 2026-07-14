@@ -1,13 +1,12 @@
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { SearchBar } from "@/components/forms/SearchBar";
+import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { Camera } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDialogState } from "@/hooks/useDialogState";
-import { useListFilters } from "@/hooks/useListFilters";
+import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { DAMAGE_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -18,6 +17,11 @@ import { useDamagePhotoCounts } from "../hooks/useDamagePhotoCounts";
 import { useDamageRecords } from "../hooks/useDamageRecords";
 
 type DamageRow = NonNullable<ReturnType<typeof useDamageRecords>["data"]>[number];
+type DamageStatus = (typeof DAMAGE_STATUSES)[number];
+const DAMAGE_STATUS_OPTIONS = [
+  { value: "all" as const, label: "Todos los estados" },
+  ...DAMAGE_STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] ?? s })),
+];
 
 export default function DamageTrackingPage() {
   const { data: records, isLoading } = useDamageRecords();
@@ -26,14 +30,21 @@ export default function DamageTrackingPage() {
 
   const getPhotoCount = (id: string) => photoCounts?.[id] || 0;
 
-  const { search, setSearch, statusFilter, setStatusFilter, filtered } = useListFilters(records, {
-    searchFields: ["description"],
-    searchAccessors: [
-      (r) => r.forklifts?.name,
-      (r) => r.customers?.name,
-    ],
-    statusField: "status",
+  const { values, set, reset, hasActive, filtered } = useTableFilters<DamageRow, {
+    q: { type: "text"; fields: (keyof DamageRow)[]; accessors: ((r: DamageRow) => string | null | undefined)[] };
+    status: { type: "enum"; field: keyof DamageRow; options: readonly (DamageStatus | "all")[] };
+  }>({
+    items: records ?? [],
+    facets: {
+      q: {
+        type: "text",
+        fields: ["description"] as (keyof DamageRow)[],
+        accessors: [(r) => r.forklifts?.name, (r) => r.customers?.name],
+      },
+      status: { type: "enum", field: "status", options: ["all", ...DAMAGE_STATUSES] as const },
+    },
   });
+
 
   const columns: ColumnDef<DamageRow>[] = [
       {
