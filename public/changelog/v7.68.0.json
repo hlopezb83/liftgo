@@ -1,0 +1,19 @@
+{
+  "version": "7.68.0",
+  "date": "2026-07-14",
+  "type": "minor",
+  "title": "Sprint F — Estandarización de filtros de tabla",
+  "summary": "Migración de 5 páginas al contrato canónico `useTableFilters` + `FiltersToolbar`, botón unificado 'Limpiar filtros' en Facturas y bug P0 de Mantenimiento resuelto vía persistencia en URL.",
+  "highlights": [
+    "Cotizaciones, Contratos, Daños, Clientes y Mantenimiento ahora usan `useTableFilters` (URL como storage) y `FiltersToolbar` (Search + StatusTabs/Select + ClearAll).",
+    "Se elimina el estado `useState('all')` del filtro de montacargas en Mantenimiento: ahora vive en `?forklift=` y sobrevive a navegaciones back/adelante.",
+    "`useInvoicesFilters` expone `hasActive` + `clearAll`; el toolbar de Facturas gana 'Limpiar filtros' que resetea search + status + rango de fechas atómicamente.",
+    "`FiltersToolbar` gana el sub-componente `DateRange` (serializa `YYYY-MM-DD..YYYY-MM-DD`) para futuros consumidores del facet `dateRange`.",
+    "Se retira el uso legacy de `useListFilters` en las 5 páginas migradas; el hook queda vigente sólo mientras existan consumidores marginales."
+  ],
+  "technical": {
+    "hookChanges": "useInvoicesFilters ahora devuelve `hasActive` (boolean) y `clearAll` (() => void) sin modificar la API existente.",
+    "componentChanges": "FiltersToolbar añade `DateRange` (compatible con facet `dateRange` de useTableFilters). ClearAll expone `visible` explícito para evitar renderizar botones fantasma.",
+    "verification": "Screenshots visuales a 1600x900 en Cotizaciones, Contratos, Daños, Clientes, Mantenimiento y Facturas. Typecheck limpio."
+  }
+}
