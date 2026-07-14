@@ -1,5 +1,21 @@
 [
   {
+    "version": "7.64.0",
+    "date": "2026-07-14",
+    "type": "minor",
+    "title": "Sprint B — Tablas huérfanas al DataTableV2 y cierre de deuda de Sprint A",
+    "description": "Segundo sprint de la auditoría UI/UX (Desktop 1600x900). BankStatementLinesTable, PaymentsExportTable y PaymentIntentsSection dejan de usar <table> nativo y ahora corren sobre DataTableV2 + useLiftgoTable, heredando densidad, hover, zebra y sorting del sistema. Adicionalmente se cerró la deuda de Sprint A: SupplierRepStatusBadge y el StatusBadgeApproval local de BillApprovalSection se consolidaron en el StatusBadge global (U4/U5), y se eliminó el último text-white hardcoded en SwipeableCard.",
+    "category": "refactor",
+    "files": [
+      "src/features/bank-reconciliation/components/BankStatementLinesTable.tsx",
+      "src/features/accounts-payable/components/PaymentsExportTable.tsx",
+      "src/features/invoices/components/invoice-detail/PaymentIntentsSection.tsx",
+      "src/features/accounts-payable/components/SupplierRepStatusBadge.tsx",
+      "src/features/accounts-payable/components/BillApprovalSection.tsx",
+      "src/components/feedback/SwipeableCard.tsx"
+    ]
+  },
+  {
     "version": "7.63.0",
     "date": "2026-07-14",
     "type": "minor",
