@@ -1,3 +1,4 @@
+import { useLiftgoTable } from "@/components/dataTable/v2";
 import { AddIcon, DownloadIcon, Forklift as ForkliftIcon } from "@/components/icons";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
@@ -7,7 +8,6 @@ import { useContracts } from "@/features/contracts";
 import { useDeliveries } from "@/features/deliveries";
 import { useMaintenancePolicies } from "@/features/maintenance";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { useResourceList } from "@/hooks/useResourceList";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { exportToCsv } from "@/lib/exportCsv";
