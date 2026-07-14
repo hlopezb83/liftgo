@@ -2,20 +2,42 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { todayKeyMty } from "@/lib/format/dateFormats";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { EXCLUDE_E2E_FILTER, LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
+import {
+  createInvoiceListFilters,
+  sanitizeInvoiceSearchForQuery,
+  type InvoiceListFilters,
+} from "../../lib/invoiceListFilters";
 import { invoiceKeys } from "../../lib/queryKeys";
 
 type InvoiceListRow = Awaited<ReturnType<typeof fetchInvoiceList>>[number];
 type InvoiceDetailRow = Awaited<ReturnType<typeof fetchInvoiceDetail>>;
 
-async function fetchInvoiceList() {
-  const { data, error } = await supabase
+async function fetchInvoiceList(filters?: InvoiceListFilters) {
+  const normalized = createInvoiceListFilters(filters);
+  let query = supabase
     .from("invoices")
     .select("*")
-    .or(EXCLUDE_E2E_FILTER)
-    .order("created_at", { ascending: false })
-    .limit(LIST_PAGE_LIMIT);
+    .or(EXCLUDE_E2E_FILTER);
+
+  if (normalized.status === "overdue") {
+    query = query.in("status", ["sent", "partial"]).lt("due_date", todayKeyMty());
+  } else if (normalized.status !== "all") {
+    query = query.eq("status", normalized.status);
+  }
+
+  if (normalized.from) query = query.gte("issued_at", normalized.from);
+  if (normalized.to) query = query.lte("issued_at", normalized.to);
+
+  const search = sanitizeInvoiceSearchForQuery(normalized.search);
+  if (search) {
+    const pattern = `%${search}%`;
+    query = query.or(`invoice_number.ilike.${pattern},customer_name.ilike.${pattern}`);
+  }
+
+  const { data, error } = await query.order("created_at", { ascending: false }).limit(LIST_PAGE_LIMIT);
   if (error) throw error;
   return data ?? [];
 }
@@ -26,16 +48,16 @@ async function fetchInvoiceDetail(id: string) {
   return data;
 }
 
-export const invoiceQueries = defineEntityQueries<"invoices", InvoiceListRow[], InvoiceDetailRow>(
+export const invoiceQueries = defineEntityQueries<"invoices", InvoiceListRow[], InvoiceDetailRow, InvoiceListFilters>(
   "invoices",
   {
-    list: () => fetchInvoiceList,
+    list: (filters) => () => fetchInvoiceList(filters),
     detail: (id) => () => fetchInvoiceDetail(id),
   },
 );
 
-export function useInvoices() {
-  return useQuery(invoiceQueries.list());
+export function useInvoices(filters?: InvoiceListFilters) {
+  return useQuery(invoiceQueries.list(createInvoiceListFilters(filters)));
 }
 
 export function useInvoice(id: string | undefined) {

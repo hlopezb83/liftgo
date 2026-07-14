@@ -11,7 +11,7 @@ import {
   type Table,
   type Updater,
 } from "@tanstack/react-table";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { APP_CONFIG } from "@/lib/config";
 import { liftgoSortingFn } from "./sorting";
 import type { DataTableSelectionContext } from "./types";
@@ -54,6 +54,10 @@ export function useLiftgoTable<T>({
   });
 
   const tableData = useMemo(() => data ?? [], [data]);
+
+  useEffect(() => {
+    setPagination((prev) => (prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }));
+  }, [tableData]);
 
   const resolveSelectable =
     typeof enableRowSelection === "function"
