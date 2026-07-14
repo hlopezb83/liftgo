@@ -1,14 +1,13 @@
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { SearchBar } from "@/components/forms/SearchBar";
+import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { AddIcon, PlusCircle, ChevronRightIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { usePageActions } from "@/contexts/pageActions";
-import { useListFilters } from "@/hooks/useListFilters";
+import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { STATUS_LABELS } from "@/lib/constants";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -16,7 +15,12 @@ import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 import { QUOTE_STATUS_LABELS, quoteStatusLabel as quoteLabel } from "../constants";
 import { useQuotes, quoteQueries } from "../hooks/quotes/useQuotes";
 
-const STATUSES = ["all", "draft", "sent", "accepted", "declined", "expired"];
+const QUOTE_STATUSES = ["draft", "sent", "accepted", "declined", "expired"] as const;
+type QuoteStatus = (typeof QUOTE_STATUSES)[number];
+const QUOTE_STATUS_OPTIONS = [
+  { value: "all" as const, label: QUOTE_STATUS_LABELS.all ?? "Todos" },
+  ...QUOTE_STATUSES.map((s) => ({ value: s, label: QUOTE_STATUS_LABELS[s] ?? s })),
+];
 
 type Quote = NonNullable<ReturnType<typeof useQuotes>["data"]>[number];
 
@@ -25,10 +29,17 @@ export default function QuotesPage() {
   const navigate = useNavigateTransition();
   usePageActions({ onNew: () => navigate("/quotes/new"), onRefresh: refetch, newLabel: "Nueva cotización" });
 
-  const { search, setSearch, statusFilter, setStatusFilter, filtered } = useListFilters(quotes, {
-    searchFields: ["quote_number", "customer_name"],
-    statusField: "status",
+  const { values, set, reset, hasActive, filtered } = useTableFilters<Quote, {
+    q: { type: "text"; fields: (keyof Quote)[] };
+    status: { type: "enum"; field: keyof Quote; options: readonly (QuoteStatus | "all")[] };
+  }>({
+    items: quotes ?? [],
+    facets: {
+      q: { type: "text", fields: ["quote_number", "customer_name"] as (keyof Quote)[] },
+      status: { type: "enum", field: "status", options: ["all", ...QUOTE_STATUSES] as const },
+    },
   });
+
 
   const columns: ColumnDef<Quote>[] = [
       {
