@@ -1,9 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { FiltersToolbar } from "../FiltersToolbar";
 
 describe("FiltersToolbar", () => {
-  it("renders Search and propagates changes", () => {
+  it("renders Search and propagates (debounced) changes", async () => {
     const onChange = vi.fn();
     render(
       <FiltersToolbar>
@@ -12,10 +13,11 @@ describe("FiltersToolbar", () => {
     );
     const input = screen.getByPlaceholderText("Buscar…") as HTMLInputElement;
     fireEvent.change(input, { target: { value: "hola" } });
-    expect(onChange).toHaveBeenCalledWith("hola");
+    await waitFor(() => expect(onChange).toHaveBeenCalledWith("hola"), { timeout: 1000 });
   });
 
-  it("renders StatusTabs options and fires onChange when a tab is clicked", () => {
+  it("renders StatusTabs options and fires onChange when a tab is clicked", async () => {
+    const user = userEvent.setup();
     const onChange = vi.fn();
     render(
       <FiltersToolbar>
@@ -29,7 +31,7 @@ describe("FiltersToolbar", () => {
         />
       </FiltersToolbar>,
     );
-    fireEvent.click(screen.getByRole("tab", { name: "Pagadas" }));
+    await user.click(screen.getByRole("tab", { name: "Pagadas" }));
     expect(onChange).toHaveBeenCalledWith("paid");
   });
 
