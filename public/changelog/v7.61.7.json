@@ -1,0 +1,15 @@
+{
+  "version": "7.61.7",
+  "date": "2026-07-14",
+  "type": "patch",
+  "title": "Fix: filtros de Cuentas por Pagar no reaccionaban en producción",
+  "category": "bugfix",
+  "description": "En /cuentas-por-pagar los filtros (búsqueda, estatus, proveedor, mes, categoría, aprobación, REP) funcionaban en el preview pero la tabla no se actualizaba en la app publicada. Causa: el hook useAccountsPayableFilters calculaba `filtered`, `availableMonths` y `hasActive` inline y definía `set`/`reset` sin useCallback, patrón que el React Compiler (habilitado sólo en el build de producción) memoizaba sin detectar `state` como dependencia estable, dejando `filtered` anclado al estado INITIAL.",
+  "changes": [
+    "useAccountsPayableFilters: `filtered` envuelto en useMemo con deps [bills, state]",
+    "`availableMonths` en useMemo dependiendo de bills",
+    "`hasActive` en useMemo con comparación campo a campo (elimina JSON.stringify por render)",
+    "`set` y `reset` en useCallback para referencias estables",
+    "API pública del hook conservada; no requiere cambios en la página ni en SupplierBillsFilters"
+  ]
+}

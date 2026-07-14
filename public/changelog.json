@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.61.7",
+    "date": "2026-07-14",
+    "type": "patch",
+    "title": "Fix: filtros de Cuentas por Pagar no reaccionaban en producción",
+    "description": "En /cuentas-por-pagar los filtros funcionaban en preview pero no en la app publicada. El hook useAccountsPayableFilters usaba patrones que el React Compiler (activo sólo en producción) memoizaba mal, dejando `filtered` anclado al estado inicial. Se envolvieron `filtered`, `availableMonths` y `hasActive` en useMemo con deps correctas, y `set`/`reset` en useCallback. Ahora los filtros actualizan la tabla en producción igual que en preview.",
+    "category": "fix",
+    "files": [
+      "src/features/accounts-payable/hooks/useAccountsPayableFilters.ts",
+      "public/changelog/v7.61.7.json",
+      "public/changelog.json"
+    ]
+  },
+  {
     "version": "7.61.6",
     "date": "2026-07-12",
     "type": "patch",
