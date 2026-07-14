@@ -133,8 +133,6 @@ export default function AuditTrailPage() {
     getRowId: (l) => l.id,
   });
 
-  const tableLabelMap = new Map(TABLES.map((t) => [t.value, t.label]));
-
   return (
     <>
       <ListPageLayout
@@ -150,10 +148,7 @@ export default function AuditTrailPage() {
             <FiltersToolbar.StatusSelect
               value={values.table_name}
               onChange={(v) => set("table_name", v)}
-              options={TABLES.map((t) => ({
-                value: t.value,
-                label: tableLabelMap.get(t.value) ?? t.label,
-              }))}
+              options={TABLES.map((t) => ({ value: t.value, label: t.label }))}
               placeholder="Tabla"
             />
             <FiltersToolbar.ClearAll visible={hasActive} onClick={reset} />
