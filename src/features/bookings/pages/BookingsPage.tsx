@@ -1,19 +1,16 @@
-
 import { differenceInDays, parseISO } from "date-fns";
-import { type ColumnDef } from "@/components/dataTable/v2";
+import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { SearchBar } from "@/components/forms/SearchBar";
+import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { AddIcon, ChevronRightIcon, CalendarDays, WarnIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePageActions } from "@/contexts/pageActions";
 import { useUserRole } from "@/features/users";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { useResourceList } from "@/hooks/useResourceList";
 import { BOOKING_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 import { formatMtyDate } from "@/lib/utils";
@@ -21,7 +18,8 @@ import { RecurringBillingBadge } from "../components/bookings/RecurringBillingBa
 import { useBookings, bookingQueries } from "../hooks/useBookings";
 
 const STATUSES = ["all", ...BOOKING_STATUSES] as const;
-
+type BookingStatus = (typeof STATUSES)[number];
+const STATUS_OPTIONS = STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] || s }));
 
 type Booking = NonNullable<ReturnType<typeof useBookings>["data"]>[number];
 
@@ -39,58 +37,58 @@ export default function BookingsPage() {
   usePageActions({ onNew: isAdmin ? () => navigate("/bookings/new") : undefined, onRefresh: refetch, newLabel: "Nueva reserva" });
 
   const columns: ColumnDef<Booking>[] = [
-      {
-        id: "booking_number",
-        header: "Reserva #",
-        accessorKey: "booking_number",
-        cell: ({ row }) => <span className="font-mono font-medium">{row.original.booking_number}</span>,
-      },
-      {
-        id: "forklift_name",
-        header: "Equipo",
-        accessorFn: (b) => b.forklifts?.name || "",
-        cell: ({ row }) => <span className="font-medium">{row.original.forklifts?.name || "—"}</span>,
-      },
-      {
-        id: "customer_name",
-        header: "Cliente",
-        accessorFn: (b) => b.customer_name || "",
-        cell: ({ row }) => (
-          <div className="flex items-center gap-2">
-            {row.original.customer_name || "—"}
-            <RecurringBillingBadge booking={row.original} />
-          </div>
-        ),
-      },
-      {
-        id: "start_date",
-        header: "Inicio",
-        accessorKey: "start_date",
-        cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDate(row.original.start_date)}</span>,
-      },
-      {
-        id: "end_date",
-        header: "Fin",
-        accessorKey: "end_date",
-        cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDate(row.original.end_date)}</span>,
-      },
-      {
-        id: "duration",
-        header: "Duración",
-        enableSorting: false,
-        cell: ({ row }) => <span className="text-sm text-muted-foreground">{getDuration(row.original.start_date, row.original.end_date)}</span>,
-      },
-      {
-        id: "status",
-        header: "Estado",
-        accessorKey: "status",
-        cell: ({ row }) => <StatusBadge status={row.original.status} />,
-      },
-    ];
+    {
+      id: "booking_number",
+      header: "Reserva #",
+      accessorKey: "booking_number",
+      cell: ({ row }) => <span className="font-mono font-medium">{row.original.booking_number}</span>,
+    },
+    {
+      id: "forklift_name",
+      header: "Equipo",
+      accessorFn: (b) => b.forklifts?.name || "",
+      cell: ({ row }) => <span className="font-medium">{row.original.forklifts?.name || "—"}</span>,
+    },
+    {
+      id: "customer_name",
+      header: "Cliente",
+      accessorFn: (b) => b.customer_name || "",
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          {row.original.customer_name || "—"}
+          <RecurringBillingBadge booking={row.original} />
+        </div>
+      ),
+    },
+    {
+      id: "start_date",
+      header: "Inicio",
+      accessorKey: "start_date",
+      cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDate(row.original.start_date)}</span>,
+    },
+    {
+      id: "end_date",
+      header: "Fin",
+      accessorKey: "end_date",
+      cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDate(row.original.end_date)}</span>,
+    },
+    {
+      id: "duration",
+      header: "Duración",
+      enableSorting: false,
+      cell: ({ row }) => <span className="text-sm text-muted-foreground">{getDuration(row.original.start_date, row.original.end_date)}</span>,
+    },
+    {
+      id: "status",
+      header: "Estado",
+      accessorKey: "status",
+      cell: ({ row }) => <StatusBadge status={row.original.status} />,
+    },
+  ];
 
-  const { values, set, filtered, filterKey } = useTableFilters<Booking, {
+  const { values, set, filtered, filterKey, hasActive, reset } = useTableFilters<Booking, {
     q: { type: "text"; fields: (keyof Booking)[] };
-    status: { type: "enum"; field: keyof Booking; options: readonly (typeof STATUSES)[number][] };
+    status: { type: "enum"; field: keyof Booking; options: readonly BookingStatus[] };
   }>({
     items: bookings ?? [],
     facets: {
@@ -98,16 +96,12 @@ export default function BookingsPage() {
       status: { type: "enum", field: "status", options: STATUSES },
     },
   });
-  const search = values.q;
-  const setSearch = (v: string) => set("q", v);
-  const statusFilter = values.status as string;
-  const setStatusFilter = (v: string) => set("status", v);
 
-  const { table } = useResourceList<Booking>({
+  const table = useLiftgoTable<Booking>({
     data: filtered,
     columns,
-    getRowId: (b) => b.id,
-    tableResetKey: filterKey,
+    getRowId: (b: Booking) => b.id,
+    resetKey: filterKey,
   });
 
   return (
@@ -134,14 +128,19 @@ export default function BookingsPage() {
               </AlertDescription>
             </Alert>
           )}
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-              <TabsList className="flex-nowrap overflow-x-auto w-full sm:w-auto">
-                {STATUSES.map((s) => <TabsTrigger key={s} value={s}>{STATUS_LABELS[s] || s}</TabsTrigger>)}
-              </TabsList>
-            </Tabs>
-            <SearchBar value={search} onChange={setSearch} placeholder="Buscar por cliente…" className="w-full sm:w-64" />
-          </div>
+          <FiltersToolbar>
+            <FiltersToolbar.Search
+              value={values.q}
+              onChange={(v) => set("q", v)}
+              placeholder="Buscar por cliente…"
+            />
+            <FiltersToolbar.StatusTabs<BookingStatus>
+              value={values.status as BookingStatus}
+              onChange={(v) => set("status", v)}
+              options={STATUS_OPTIONS}
+            />
+            <FiltersToolbar.ClearAll visible={hasActive} onClick={reset} />
+          </FiltersToolbar>
         </div>
       }
       isLoading={isLoading}
