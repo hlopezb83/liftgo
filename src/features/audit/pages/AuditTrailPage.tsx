@@ -74,6 +74,7 @@ export default function AuditTrailPage() {
   void filtered; // el filtrado real ocurre arriba con `logs`
 
 
+
   const columns: ColumnDef<AuditLog>[] = (() => {
     const base: ColumnDef<AuditLog>[] = [
       {
