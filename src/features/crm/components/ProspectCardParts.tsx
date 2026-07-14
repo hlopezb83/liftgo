@@ -47,7 +47,7 @@ export function ProspectCardExpanded({ prospect, quoteNumber }: ExpandedProps) {
         <div className="mt-2">
           <Badge
             variant="secondary"
-            className="text-[11px] cursor-pointer hover:bg-accent gap-1"
+            className="text-2xs cursor-pointer hover:bg-accent gap-1"
             onClick={(e) => {
               e.stopPropagation();
               if (prospect.quoteId) navigate(ROUTES.quotes.detail(prospect.quoteId));
@@ -59,7 +59,7 @@ export function ProspectCardExpanded({ prospect, quoteNumber }: ExpandedProps) {
         </div>
       )}
       {showFooter && (
-        <div className="flex items-center gap-2 mt-2 pt-2 border-t text-[10px] text-muted-foreground/70">
+        <div className="flex items-center gap-2 mt-2 pt-2 border-t text-3xs text-muted-foreground/70">
           {prospect.createdByName && (
             <span className="flex items-center gap-1 truncate">
               <UserIcon className="h-3 w-3 shrink-0" />

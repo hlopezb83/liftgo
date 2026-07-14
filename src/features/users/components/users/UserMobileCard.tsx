@@ -29,8 +29,8 @@ export function UserMobileCard({ u, actions }: { u: UserRow; actions: UserRowAct
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <span className="font-semibold text-sm">{u.full_name ?? "—"}</span>
-            {isSelf && <Badge variant="outline" className="text-[10px] px-1.5">Tú</Badge>}
-            {!u.is_active && <Badge variant="destructive" className="text-[10px] px-1.5">Inactivo</Badge>}
+            {isSelf && <Badge variant="outline" className="text-3xs px-1.5">Tú</Badge>}
+            {!u.is_active && <Badge variant="destructive" className="text-3xs px-1.5">Inactivo</Badge>}
           </div>
           <div className="flex gap-1">
             <Button variant="ghost" size="icon" onClick={() => actions.onEdit(u)} aria-label="Editar usuario">

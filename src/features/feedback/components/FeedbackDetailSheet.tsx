@@ -87,7 +87,7 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
                 <Badge variant="outline" className="font-mono">{selectedEl.tagName}</Badge>
                 {selectedEl.text && <Badge variant="outline">"{selectedEl.text}"</Badge>}
               </div>
-              <div className="font-mono text-[10px] text-muted-foreground truncate">{selectedEl.cssPath}</div>
+              <div className="font-mono text-3xs text-muted-foreground truncate">{selectedEl.cssPath}</div>
             </div>
           )}
 

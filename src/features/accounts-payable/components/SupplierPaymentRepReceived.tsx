@@ -41,11 +41,11 @@ export function SupplierPaymentRepReceived({
         )}
         {canAct && (
           <>
-            <Button size="sm" variant="ghost" className="h-6 text-[11px] text-destructive"
+            <Button size="sm" variant="ghost" className="h-6 text-2xs text-destructive"
               disabled={rejectPending} onClick={onReject}>
               <X className="h-3 w-3 mr-1" /> Rechazar
             </Button>
-            <Button size="sm" variant="ghost" className="h-6 text-[11px]"
+            <Button size="sm" variant="ghost" className="h-6 text-2xs"
               disabled={resetPending} onClick={onReset}>
               <ResetIcon className="h-3 w-3 mr-1" /> Reiniciar
             </Button>

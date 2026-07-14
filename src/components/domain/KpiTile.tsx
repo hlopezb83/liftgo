@@ -102,7 +102,7 @@ export function KpiTile({
             </div>
           ) : null}
           <div className="min-w-0 flex-1">
-            <p className="text-[10px] sm:text-xs text-muted-foreground leading-tight truncate" title={label}>
+            <p className="text-3xs sm:text-xs text-muted-foreground leading-tight truncate" title={label}>
               {label}
             </p>
             <p className={valueClass} title={isPrimitive ? String(value) : undefined}>

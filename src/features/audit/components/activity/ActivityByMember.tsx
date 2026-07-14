@@ -41,7 +41,7 @@ export function ActivityByMember({ members, onSelect, selectedActorId }: Props) 
                 />
                 <div className="text-right shrink-0">
                   <p className="text-sm font-semibold tabular-nums">{m.total}</p>
-                  <p className="text-[10px] text-muted-foreground">
+                  <p className="text-3xs text-muted-foreground">
                     {formatDistanceToNow(new Date(m.lastAt), { locale: APP_LOCALE, addSuffix: true })}
                   </p>
                 </div>

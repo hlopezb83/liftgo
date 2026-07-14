@@ -10,7 +10,7 @@ interface Props {
 
 function Kbd({ children }: { children: ReactNode }) {
   return (
-    <kbd className="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded border bg-muted text-[10px] font-mono text-muted-foreground">
+    <kbd className="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded border bg-muted text-3xs font-mono text-muted-foreground">
       {children}
     </kbd>
   );
@@ -80,7 +80,7 @@ export function KeyboardShortcutsDialog({ open, onOpenChange }: Props) {
                 Esta página no tiene atajos contextuales registrados.
               </p>
             )}
-            <p className="mt-3 text-[11px] text-muted-foreground">
+            <p className="mt-3 text-2xs text-muted-foreground">
               {PAGE_SHORTCUTS.map((s) => s.keys).join(" · ")} están disponibles donde aplique.
             </p>
           </section>

@@ -46,7 +46,7 @@ function CashFlowTooltip({ active, payload }: { active?: boolean; payload?: Tool
           {formatCurrency(net)}
         </span>
       </div>
-      <p className={`text-[11px] text-right ${isPositive ? "text-status-available" : "text-destructive"}`}>
+      <p className={`text-2xs text-right ${isPositive ? "text-status-available" : "text-destructive"}`}>
         {isPositive ? "Flujo positivo" : "Flujo negativo"}
       </p>
     </div>

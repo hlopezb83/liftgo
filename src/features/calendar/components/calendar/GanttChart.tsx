@@ -45,10 +45,10 @@ function ChipCloud({ groups }: { groups: Array<{ key: string; count: number }> }
       {groups.map((g) => (
         <span
           key={g.key}
-          className="inline-flex items-center gap-1.5 text-[11px] font-mono bg-muted/50 border border-border rounded px-2 py-1 text-foreground/80"
+          className="inline-flex items-center gap-1.5 text-2xs font-mono bg-muted/50 border border-border rounded px-2 py-1 text-foreground/80"
         >
           {g.key}
-          <span className="text-[10px] font-semibold text-muted-foreground bg-background border border-border rounded px-1">
+          <span className="text-3xs font-semibold text-muted-foreground bg-background border border-border rounded px-1">
             × {g.count}
           </span>
         </span>

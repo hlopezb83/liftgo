@@ -11,6 +11,7 @@ export function SidebarBranding({ logoUrl, razonSocial }: SidebarBrandingProps) 
     <SidebarHeader className="p-4 border-b border-sidebar-border">
       <div className="flex flex-col items-center text-center gap-2.5 min-w-0">
         {logoUrl ? (
+          // intentional: bg-white required to guarantee logo contrast on dark sidebars
           <div className="flex h-12 max-w-[10rem] items-center justify-center rounded-md bg-white px-3 py-1.5 shrink-0">
             <img
               src={logoUrl}
@@ -30,7 +31,7 @@ export function SidebarBranding({ logoUrl, razonSocial }: SidebarBrandingProps) 
           >
             {name}
           </h2>
-          <p className="text-[11px] text-sidebar-foreground/60 truncate">Montacargas</p>
+          <p className="text-2xs text-sidebar-foreground/60 truncate">Montacargas</p>
         </div>
       </div>
     </SidebarHeader>

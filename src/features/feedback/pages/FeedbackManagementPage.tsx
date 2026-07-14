@@ -52,20 +52,20 @@ export default function FeedbackManagementPage() {
                     className="p-3 cursor-pointer hover:border-primary transition-colors"
                   >
                     <div className="flex items-center justify-between gap-2 mb-1.5">
-                      <span className="font-mono text-[10px] text-muted-foreground">{r.folio}</span>
-                      <Badge variant="outline" className="h-4 px-1 text-[10px]">
+                      <span className="font-mono text-3xs text-muted-foreground">{r.folio}</span>
+                      <Badge variant="outline" className="h-4 px-1 text-3xs">
                         {FEEDBACK_TYPE_LABELS[r.type as "bug" | "improvement"]}
                       </Badge>
                     </div>
                     <p className="text-sm font-medium line-clamp-2">{r.title}</p>
-                    <div className="mt-2 flex items-center justify-between text-[10px] text-muted-foreground">
+                    <div className="mt-2 flex items-center justify-between text-3xs text-muted-foreground">
                       <span className="truncate">{r.module}</span>
                       <span>{formatMtyDate(r.created_at, "dd/MM")}</span>
                     </div>
                   </Card>
                 ))}
                 {grouped[status].length === 0 && (
-                  <div className="text-[11px] text-muted-foreground text-center py-4 border border-dashed rounded-md">
+                  <div className="text-2xs text-muted-foreground text-center py-4 border border-dashed rounded-md">
                     Vacío
                   </div>
                 )}

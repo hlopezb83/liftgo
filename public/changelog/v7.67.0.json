@@ -1,0 +1,49 @@
+{
+  "version": "7.67.0",
+  "date": "2026-07-14",
+  "type": "minor",
+  "title": "Sprint E — General Polish: tokens de micro-tipografía",
+  "description": "Cierre del plan de auditoría UI/UX (Sprints A–E). Se estandariza la micro-tipografía y se documentan las excepciones intencionales de color.",
+  "category": "refactor",
+  "sections": [
+    {
+      "title": "Tokens de micro-tipografía (Tailwind v4)",
+      "items": [
+        "Nuevo utility text-3xs (0.625rem / 10px, line-height 0.875rem) para badges y celdas de máxima densidad.",
+        "Nuevo utility text-2xs (0.6875rem / 11px, line-height 1rem) para labels uppercase small-caps y chips.",
+        "Ambos tokens viven en @theme inline de src/index.css junto al resto del design system."
+      ]
+    },
+    {
+      "title": "Barrido de 37 usos ad-hoc en 34 archivos",
+      "items": [
+        "text-[11px] → text-2xs.",
+        "text-[10px] → text-3xs.",
+        "text-[9px] → text-3xs (unificado al mínimo canónico; el pixel extra no se percibe en el Gantt).",
+        "Afecta Gantt, KPIs de dashboard, sidebar, cash-flow, users, feedback, cfdi/pac, accounts-payable y otros."
+      ]
+    },
+    {
+      "title": "Excepciones intencionales de color documentadas",
+      "items": [
+        "SidebarBranding: bg-white en el contenedor del logo (contraste garantizado en sidebars oscuros).",
+        "DeliverySignatureCard: bg-white en el preview de firma (mimetiza papel)."
+      ]
+    },
+    {
+      "title": "Cierre de auditoría UI/UX",
+      "items": [
+        "Sprint A (v7.63.0): Badges & Tokens — tokens semánticos -foreground.",
+        "Sprint B (v7.64.0): DataTable v2 — migración de tablas legadas.",
+        "Sprint C (v7.65.0): Layout tokens — PageContainer consolidado.",
+        "Sprint D (v7.66.0): Buttons & Modals — variantes xs/iconSm.",
+        "Sprint E (v7.67.0): General Polish — micro-tipografía y excepciones documentadas."
+      ]
+    }
+  ],
+  "files": [
+    "src/index.css",
+    "src/layouts/sidebar/SidebarBranding.tsx",
+    "src/features/deliveries/components/deliveries/DeliverySignatureCard.tsx"
+  ]
+}

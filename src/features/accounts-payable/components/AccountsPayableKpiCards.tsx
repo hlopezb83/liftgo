@@ -41,12 +41,12 @@ export function AccountsPayableKpiCards({ kpis }: Props) {
                 {asCount ? kpis[key] : formatCurrency(kpis[key])}
               </p>
               {key === "totalPorAprobar" && kpis.countPorAprobar > 0 && (
-                <p className="text-[10px] text-muted-foreground">
+                <p className="text-3xs text-muted-foreground">
                   {kpis.countPorAprobar} factura{kpis.countPorAprobar === 1 ? "" : "s"}
                 </p>
               )}
               {key === "repPendientes" && kpis.repPendientes > 0 && (
-                <p className="text-[10px] text-muted-foreground">pago{kpis.repPendientes === 1 ? "" : "s"} PPD</p>
+                <p className="text-3xs text-muted-foreground">pago{kpis.repPendientes === 1 ? "" : "s"} PPD</p>
               )}
             </div>
           </CardContent>

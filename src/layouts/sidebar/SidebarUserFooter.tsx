@@ -24,7 +24,7 @@ export function SidebarUserFooter({ email, role, currentVersion, onSignOut }: Si
       <div className="min-w-0">
         <p className="text-xs text-sidebar-foreground/80 truncate" title={email ?? ""}>{email}</p>
         {role && (
-          <p className="text-[10px] text-sidebar-foreground/50 uppercase tracking-wide font-medium">
+          <p className="text-3xs text-sidebar-foreground/50 uppercase tracking-wide font-medium">
             {ROLE_LABELS[role] ?? role}
           </p>
         )}
@@ -50,7 +50,7 @@ export function SidebarUserFooter({ email, role, currentVersion, onSignOut }: Si
           </Tooltip>
         </div>
         {currentVersion && (
-          <NavLink to="/changelog" className="text-[10px] text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors font-mono shrink-0">
+          <NavLink to="/changelog" className="text-3xs text-sidebar-foreground/50 hover:text-sidebar-foreground transition-colors font-mono shrink-0">
             v{currentVersion}
           </NavLink>
         )}

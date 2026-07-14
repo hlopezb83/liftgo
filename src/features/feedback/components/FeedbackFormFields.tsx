@@ -107,7 +107,7 @@ export function FeedbackFormFields({
             )}
           </Button>
         )}
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-2xs text-muted-foreground">
           Si no señalas nada, se incluirá automáticamente una captura de la pantalla al enviar.
         </p>
       </div>

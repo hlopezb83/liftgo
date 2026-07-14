@@ -97,7 +97,7 @@ export function CollectionForecast({
             <p className="text-lg font-bold font-mono text-destructive">
               {formatCurrency(forecast.overdueTotal)}
             </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">
+            <p className="text-3xs text-muted-foreground mt-0.5">
               {forecast.overdueCount} factura{forecast.overdueCount === 1 ? "" : "s"}
             </p>
           </div>
@@ -106,7 +106,7 @@ export function CollectionForecast({
               <CalendarIcon className="h-3 w-3" /> Próximos 7 días
             </p>
             <p className="text-lg font-bold font-mono">{formatCurrency(forecast.expected7)}</p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">
+            <p className="text-3xs text-muted-foreground mt-0.5">
               Vencidas + {forecast.upcoming7Count} por vencer
             </p>
           </div>
@@ -117,7 +117,7 @@ export function CollectionForecast({
             <p className="text-lg font-bold font-mono text-success">
               {formatCurrency(forecast.expected30)}
             </p>
-            <p className="text-[10px] text-muted-foreground mt-0.5">Cobranza esperada total</p>
+            <p className="text-3xs text-muted-foreground mt-0.5">Cobranza esperada total</p>
           </div>
         </div>
       </CardContent>

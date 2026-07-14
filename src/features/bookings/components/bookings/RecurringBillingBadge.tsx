@@ -17,7 +17,7 @@ export function RecurringBillingBadge({ booking }: RecurringBillingBadgeProps) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
-        <span className="inline-flex items-center gap-1 text-[11px] font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary cursor-default">
+        <span className="inline-flex items-center gap-1 text-2xs font-medium px-2 py-0.5 rounded-full bg-primary/10 text-primary cursor-default">
           <Repeat className="h-3 w-3" />
           Recurrente
         </span>

@@ -21,7 +21,7 @@ export function GanttHeader({ days }: { days: Date[] }) {
             return (
               <div
                 key={`wd-${day.toISOString()}`}
-                className={`flex-1 text-center text-[9px] font-medium ${isWeekend ? "text-destructive/60" : "text-muted-foreground/60"} ${weekStart ? "border-l border-border" : ""}`}
+                className={`flex-1 text-center text-3xs font-medium ${isWeekend ? "text-destructive/60" : "text-muted-foreground/60"} ${weekStart ? "border-l border-border" : ""}`}
               >
                 {format(day, "EEE", { locale: APP_LOCALE })}
               </div>
@@ -41,11 +41,11 @@ export function GanttHeader({ days }: { days: Date[] }) {
             return (
               <div
                 key={day.toISOString()}
-                className={`flex-1 text-center text-[10px] ${getDayNumberClass(today, isWeekend)} ${weekStart ? "border-l border-border" : ""}`}
+                className={`flex-1 text-center text-3xs ${getDayNumberClass(today, isWeekend)} ${weekStart ? "border-l border-border" : ""}`}
               >
                 {today ? (
                   <span
-                    className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary text-primary-foreground text-[10px]"
+                    className="inline-flex items-center justify-center w-5 h-5 rounded-full bg-primary text-primary-foreground text-3xs"
                     title="Hoy"
                   >
                     {format(day, "d")}

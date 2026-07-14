@@ -1,63 +1,60 @@
-## Auditoría Sprint C (v7.65.0)
+## Auditoría Sprint D (v7.66.0)
 
-**Estado:** ✅ OK, sin bugs ni regresiones.
+**Estado:** ✅ OK, sin bugs.
 
-- `PageContainer` en `DeliveryDetail.tsx` y `InvoicesReconciliation.tsx` correctamente aplicado (verificado).
-- No hay tests dedicados a estos wrappers de layout — son componentes puramente presentacionales sin lógica; no requieren tests unitarios (se cubren indirectamente vía E2E/Playwright de las páginas).
-- `PageContainer` (43 usos), `ListPageLayout` (15 páginas de listado), `DetailPageHeader` (7/8), `FormPageHeader` (5/5) — adopción consistente.
+Verificado:
+- `buttonVariants` extiende con `xs` (h-8, px-2.5, text-xs, [&_svg]:size-3.5) y `iconSm` (h-8 w-8, [&_svg]:size-3.5). Cambio 100% aditivo — no rompe llamadas existentes (`default` / `sm` / `lg` / `icon` intactos).
+- 4 migraciones aplicadas correctamente (AuditTrailPage línea 118, AuditLogMobileCard línea 25, ImageGalleryLightbox líneas 57 y 60).
+- Playwright verificó que la app arranca sin errores JS (solo el warning de locale ya conocido). Sidebar muestra `v7.66.0`.
+- No hay `window.confirm` en código productivo. `useConfirm` centraliza 29 flujos destructivos.
+- Los 9 archivos con `Dialog` primitivo son todos casos no-form legítimos.
 
-**Deuda residual detectada** (menor, se arrastra a Sprint D como D0):
-- `DatePickerField` y `DateRangePickerField` usan `DialogFooter` con `px-5 py-3` en vez del token del `FormDialog` (`-mx-6 px-6 py-3`). Inconsistencia visual en el borde inferior.
+**Tests:** `Button` es un CVA puro sin lógica de negocio; `buttonVariants` produce strings de CSS deterministas. No requiere tests unitarios dedicados — está cubierto indirectamente por cada componente que lo usa. Los 3 componentes migrados no cambian comportamiento, solo dimensión visual.
+
+**Deuda residual:** ninguna crítica.
 
 ---
 
-## Sprint D — Buttons & Modals
+## Sprint E — General Polish (final del plan de auditoría UI/UX)
 
-**Objetivo:** unificar variantes/tamaños de botón, footers de `Dialog`, y patrón de confirmación destructiva en toda la app.
+**Objetivo:** cerrar los cabos sueltos de tipografía, color y consistencia visual que quedaron dispersos tras Sprints A–D.
 
-### Hallazgos (auditoría rápida)
+### Hallazgos
 
-1. **`Button` sin tamaño denso.** Solo hay `default (h-10)`, `sm (h-9)`, `lg (h-11)`, `icon (h-10)`. En tablas y toolbars densas se ve mucho `className="h-8"` hardcoded → falta `xs (h-8)` y `icon-sm (h-8 w-8)`.
-2. **`variant="destructive"` en 28 archivos.** Consistente en color pero no en patrón de confirmación: 29 archivos usan `useConfirm` (bien), pero conviene auditar que **toda** acción destructiva pase por `useConfirm` con `tone: "destructive"` (no botón destructivo sin confirmación previa).
-3. **`DialogFooter` inconsistente.** El estándar (`FormDialog`) usa footer sticky `sticky bottom-0 -mx-6 px-6 py-3 bg-background border-t`. `DatePickerField` y `DateRangePickerField` usan `px-5 py-3` sin sticky, sin bleed negativo. Genera 2px de diferencia visual y falta de sticky en modales largos.
-4. **9 archivos importan `Dialog` primitivo directamente.** Legítimos (lightbox, command, keyboard shortcuts, error details, invite user, report damage, form-dialog interno, date pickers). Ninguno es candidato claro a migrar a `FormDialog` (no son forms RHF+Zod). Aceptable — se documenta.
-5. **No hay `window.confirm` en el código productivo** (solo se menciona en el JSDoc de `ConfirmProvider` como antipatrón). ✅
+1. **Micro-tipografía hardcodeada (37 usos).** `text-[10px]`, `text-[11px]`, `text-[9px]` esparcidos en calendario, dashboard, sidebar, cash-flow, users, cfdi. No hay token oficial para tamaños sub-`text-xs` (que es 12px). Los desarrolladores improvisan en cada archivo → drift a 9/10/11px sin criterio.
+2. **`bg-white` residual (2 usos legítimos):** `SidebarBranding` (contenedor del logo — el logo requiere fondo blanco para contraste) y `DeliverySignatureCard` (previsualización de firma — mimetiza papel). Ambos defendibles pero sin documentar. Deben etiquetarse como excepciones intencionales.
+3. **Sin hex hardcoded, sin `rounded-[...]` fuera de primitives.** ✅ Excelente higiene general.
 
-### Alcance (5 tareas)
+### Alcance (3 tareas)
 
-**D1. Extender `Button` con tamaños densos**
-- Agregar `xs: "h-8 rounded-md px-2.5 text-xs"` y `iconSm: "h-8 w-8"` a `buttonVariants` en `src/components/ui/button.tsx`.
-- Sustituir `className="h-8 …"` en botones de toolbars/tablas por `size="xs"` (barrido conservador, solo donde el intent sea claro).
+**E1. Tokens de micro-tipografía**
+- Agregar al `@theme inline` de `src/index.css`:
+  - `--text-2xs: 0.6875rem` (11px) + `--text-2xs--line-height: 1rem`
+  - `--text-3xs: 0.625rem` (10px) + `--text-3xs--line-height: 0.875rem`
+- Esto expone las utilities `text-2xs` y `text-3xs` en Tailwind v4.
+- Migrar los 37 usos:
+  - `text-[11px]` → `text-2xs`
+  - `text-[10px]` → `text-3xs`
+  - `text-[9px]` → dejar puntual en Gantt (caso extremo de densidad) con comentario justificativo, **o** subirlo a `text-3xs` si visualmente no rompe.
 
-**D2. Unificar `DialogFooter` denso**
-- Crear helper `stickyFooterClass` o extraer una variante `<DialogFooter variant="sticky">` que aplique `sticky bottom-0 -mx-6 px-6 py-3 bg-background border-t`.
-- Migrar `DatePickerField` y `DateRangePickerField` a esa variante.
+**E2. Documentar excepciones `bg-white`**
+- Añadir comentario `// intentional: white background required for logo contrast` en `SidebarBranding.tsx`.
+- Añadir comentario similar en `DeliverySignatureCard.tsx` (firma sobre "papel").
+- Actualizar `mem://design/color-tokens` (o crear si no existe) listando esas 2 excepciones canónicas.
 
-**D3. Auditar acciones destructivas sin `useConfirm`**
-- Barrer los 28 archivos con `variant="destructive"` y validar que cada `onClick` invoque `useConfirm({ tone: "destructive" })` antes del mutation. Marcar excepciones (ej. botón de "Cerrar sesión" dentro de un `AlertDialog` propio).
-- Documentar el patrón canónico en JSDoc de `useConfirm`.
-
-**D4. Estandarizar `Dialog` primitivos legítimos**
-- Los 9 archivos que usan `Dialog` directo son casos válidos (no-form). Añadir a `mem://design/form-dialogs` una nota corta: "Modales no-form usan `Dialog` primitivo con `DialogContent` estándar; los forms usan `FormDialog`".
-
-**D5. Changelog + verificación visual**
-- Playwright: capturar screenshots de un modal (BookingForm), una toolbar con botón `size="xs"`, y una acción destructiva confirmada.
-- Bump a **v7.66.0** (minor: extensión pública de `buttonVariants`).
-
-### Detalles técnicos
-
-- `buttonVariants` con `xs` requiere revisar `[&_svg]:size-4` (los iconos siguen bien a h-8; opcional bajar a `size-3.5` solo cuando `size="xs"`, pero preferimos no complicar).
-- El cambio en `DialogFooter` no rompe llamadas existentes (variantes CVA opcionales).
-- Barrido de `h-8` será manual y selectivo: solo botones-de-acción, no chips ni inputs.
+**E3. Changelog + verificación visual**
+- Playwright en `/calendario`, `/panel`, `/flujo-caja` para confirmar que las micro-etiquetas no cambian de tamaño perceptible tras la migración.
+- Bump **v7.67.0** (minor: expone nuevos tokens tipográficos públicos).
+- Marcar cierre del plan de auditoría UI/UX (`.lovable/plan.md`) — Sprints A/B/C/D/E ejecutados.
 
 ### Fuera de alcance
 
-- No se rediseñan colores, radios, tipografía (Sprint E).
-- No se migran los 9 `Dialog` primitivos a `FormDialog` (no aplica).
-- No se tocan `AlertDialog` — solo lo usan `confirm-dialog.tsx` y su primitivo.
+- No se rediseña la paleta ni la escala tipográfica principal (Poppins, tamaños de headings).
+- No se toca el sistema de radios ni de sombras.
+- No se agregan variantes nuevas a badges/tables/buttons (ya cerrado en A–D).
 
 ### Riesgo
 
-Bajo. Los cambios en `Button` son aditivos (nueva variante). El barrido de `h-8 → size="xs"` es cosmético. `DialogFooter` solo afecta 2 componentes.
+Bajo. E1 es una extensión aditiva del theme + un barrido regex-guiado; visualmente idéntico (0.6875rem ≡ 11px, 0.625rem ≡ 10px). E2 son solo comentarios.
 
 ¿Arranco?

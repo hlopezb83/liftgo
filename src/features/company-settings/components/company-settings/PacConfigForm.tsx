@@ -38,7 +38,7 @@ function ApiKeyField({ label, value, onChange, placeholder, isConfigured }: KeyF
           ? <SuccessIcon className="h-3.5 w-3.5 text-success" />
           : <WarnIcon className="h-3.5 w-3.5 text-warning" />}
         {isConfigured && !value && (
-          <span className="text-[10px] uppercase tracking-wide text-muted-foreground ml-1">
+          <span className="text-3xs uppercase tracking-wide text-muted-foreground ml-1">
             configurada
           </span>
         )}
