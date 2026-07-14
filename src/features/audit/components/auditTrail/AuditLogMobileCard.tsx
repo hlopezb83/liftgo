@@ -22,8 +22,8 @@ export function AuditLogMobileCard({ log, isAdmin, onSelect, onDeleteRequest }: 
             <Badge variant={actionBadgeVariant(log.action)}>{translateAction(log.action)}</Badge>
           </div>
           {isAdmin && (
-            <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); onDeleteRequest(log); }}>
-              <DeleteIcon className="h-4 w-4" />
+            <Button variant="ghost" size="iconSm" className="text-destructive hover:text-destructive" onClick={(e) => { e.stopPropagation(); onDeleteRequest(log); }}>
+              <DeleteIcon />
             </Button>
           )}
         </div>
