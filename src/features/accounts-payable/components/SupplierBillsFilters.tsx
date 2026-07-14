@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { APP_LOCALE } from "@/lib/format/dateFormats";
