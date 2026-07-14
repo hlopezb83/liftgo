@@ -1,4 +1,7 @@
 import type { ReactNode } from "react";
+import type { DateRange } from "react-day-picker";
+import { parseISO, isValid } from "date-fns";
+import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,7 +13,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { CloseIcon } from "@/components/icons";
+import { toYMD } from "@/lib/date/toYMD";
 import { cn } from "@/lib/utils";
+
 
 /**
  * Toolbar de filtros canónica.
