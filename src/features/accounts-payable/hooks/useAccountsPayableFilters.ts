@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import type { SupplierBillListItem } from "./useSupplierBills";
 import type {
   SupplierBillStatus,
@@ -65,19 +65,37 @@ function matches(bill: SupplierBillListItem, f: FilterState): boolean {
 export function useAccountsPayableFilters(bills: SupplierBillListItem[]) {
   const [state, setState] = useState<FilterState>(INITIAL);
 
-  const filtered = bills.filter((b) => matches(b, state));
+  const filtered = useMemo(
+    () => bills.filter((b) => matches(b, state)),
+    [bills, state],
+  );
 
-  const monthsSet = new Set<string>();
-  for (const b of bills) monthsSet.add(b.issue_date.slice(0, 7));
-  const availableMonths = Array.from(monthsSet).sort().reverse();
+  const availableMonths = useMemo(() => {
+    const monthsSet = new Set<string>();
+    for (const b of bills) monthsSet.add(b.issue_date.slice(0, 7));
+    return Array.from(monthsSet).sort().reverse();
+  }, [bills]);
 
-  const set = <K extends keyof FilterState>(k: K, v: FilterState[K]) => {
-    setState((s) => ({ ...s, [k]: v }));
-  };
+  const set = useCallback(
+    <K extends keyof FilterState>(k: K, v: FilterState[K]) => {
+      setState((s) => ({ ...s, [k]: v }));
+    },
+    [],
+  );
 
-  const reset = () => setState(INITIAL);
+  const reset = useCallback(() => setState(INITIAL), []);
 
-  const hasActive = JSON.stringify(state) !== JSON.stringify(INITIAL);
+  const hasActive = useMemo(
+    () =>
+      state.search !== INITIAL.search ||
+      state.status !== INITIAL.status ||
+      state.supplierId !== INITIAL.supplierId ||
+      state.category !== INITIAL.category ||
+      state.month !== INITIAL.month ||
+      state.approval !== INITIAL.approval ||
+      state.rep !== INITIAL.rep,
+    [state],
+  );
 
   return { ...state, filtered, availableMonths, set, reset, hasActive };
 }
