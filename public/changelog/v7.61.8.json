@@ -1,0 +1,15 @@
+{
+  "version": "7.61.8",
+  "date": "2026-07-14",
+  "type": "patch",
+  "title": "Fix: filtros de Facturas no reaccionaban en producción",
+  "category": "bugfix",
+  "description": "En /invoices los tabs de estatus (draft/sent/partial/paid/overdue), la búsqueda y el rango de fechas funcionaban en preview pero no actualizaban la tabla en la app publicada. Causa idéntica a v7.61.7 (Cuentas por Pagar): useInvoicesFilters usaba funciones inline (`computeStatusFiltered`, `computeFiltered`) y definía `setDateRange` sin useCallback; el React Compiler activo en producción memoizaba mal esas derivaciones.",
+  "changes": [
+    "useInvoicesFilters: `statusFiltered` en useMemo con deps [statusFilter, baseFiltered, invoices, search]",
+    "`dateRange` en useMemo dependiendo de fromParam/toParam",
+    "`filtered` en useMemo con deps [statusFiltered, dateRange]",
+    "`setDateRange` en useCallback con dep [setSearchParams]",
+    "API pública del hook conservada; InvoicesPage y InvoicesFiltersBar no requieren cambios"
+  ]
+}

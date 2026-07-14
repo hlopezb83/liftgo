@@ -1,4 +1,4 @@
-// React Compiler memoiza automáticamente las derivaciones puras de este hook.
+import { useCallback, useMemo } from "react";
 import { parseISO, isWithinInterval, startOfDay, endOfDay } from "date-fns";
 import { useSearchParams } from "react-router";
 import { useListFilters } from "@/hooks/useListFilters";
@@ -10,6 +10,10 @@ import type { Invoice } from "@/types/rental";
  * - Search + status (delegated to useListFilters)
  * - Special "overdue" pseudo-status (sent/partial past due_date)
  * - Date range filter on issued_at, persisted in URL (?from=&to=)
+ *
+ * Nota: derivaciones envueltas explícitamente en useMemo/useCallback para
+ * evitar que el React Compiler (activo sólo en build de producción) memoice
+ * mal las derivaciones inline —mismo bug que afectó a Cuentas por Pagar en v7.61.7.
  */
 export function useInvoicesFilters(invoices: Invoice[] | undefined) {
   const { search, setSearch, statusFilter, setStatusFilter, filtered: baseFiltered } = useListFilters(invoices, {
@@ -17,7 +21,7 @@ export function useInvoicesFilters(invoices: Invoice[] | undefined) {
     statusField: "status",
   });
 
-  const computeStatusFiltered = () => {
+  const statusFiltered = useMemo(() => {
     if (statusFilter !== "overdue") return baseFiltered;
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -31,36 +35,41 @@ export function useInvoicesFilters(invoices: Invoice[] | undefined) {
       }
       return true;
     });
-  };
-  const statusFiltered = computeStatusFiltered();
+  }, [statusFilter, baseFiltered, invoices, search]);
 
   const [searchParams, setSearchParams] = useSearchParams();
   const fromParam = searchParams.get("from");
   const toParam = searchParams.get("to");
 
-  const dateRange = (fromParam || toParam)
-    ? {
-        from: fromParam ? parseISO(fromParam) : undefined,
-        to: toParam ? parseISO(toParam) : undefined,
-      }
-    : undefined;
+  const dateRange = useMemo(
+    () =>
+      fromParam || toParam
+        ? {
+            from: fromParam ? parseISO(fromParam) : undefined,
+            to: toParam ? parseISO(toParam) : undefined,
+          }
+        : undefined,
+    [fromParam, toParam],
+  );
 
-  const setDateRange = (range?: { from?: Date; to?: Date }) => {
-    setSearchParams(
-      (prev) => {
-        const next = new URLSearchParams(prev);
-        if (range?.from) next.set("from", toYMD(range.from) ?? "");
-        else next.delete("from");
-        if (range?.to) next.set("to", toYMD(range.to) ?? "");
+  const setDateRange = useCallback(
+    (range?: { from?: Date; to?: Date }) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          if (range?.from) next.set("from", toYMD(range.from) ?? "");
+          else next.delete("from");
+          if (range?.to) next.set("to", toYMD(range.to) ?? "");
+          else next.delete("to");
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
 
-        else next.delete("to");
-        return next;
-      },
-      { replace: true },
-    );
-  };
-
-  const computeFiltered = () => {
+  const filtered = useMemo(() => {
     if (!statusFiltered) return statusFiltered;
     if (!dateRange?.from && !dateRange?.to) return statusFiltered;
     const start = dateRange.from ? startOfDay(dateRange.from) : new Date(-8640000000000000);
@@ -69,8 +78,7 @@ export function useInvoicesFilters(invoices: Invoice[] | undefined) {
       if (!inv.issued_at) return false;
       return isWithinInterval(parseISO(inv.issued_at), { start, end });
     });
-  };
-  const filtered = computeFiltered();
+  }, [statusFiltered, dateRange]);
 
   return {
     search,
