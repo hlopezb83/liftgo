@@ -1,5 +1,16 @@
 [
   {
+    "version": "7.71.2",
+    "date": "2026-07-14",
+    "type": "patch",
+    "title": "Cotizaciones — El selector de Periodo de Renta ya abre el modal",
+    "description": "Fix: en /quotes/new el botón de \"Seleccionar fechas\" del Periodo de Renta no abría el modal ni en mobile ni en desktop. El trigger del `DateRangePickerField` usaba un wrapper funcional (`RangeTriggerButton`) dentro de `<DialogTrigger asChild>`, que descartaba los props inyectados por Radix Slot (onClick, ref), impidiendo que el Dialog reaccionara al click. Se inlineó el `<Button>` en el DialogTrigger para restaurar el comportamiento.",
+    "category": "bugfix",
+    "files": [
+      "src/components/forms/DateRangePickerField.tsx"
+    ]
+  },
+  {
     "version": "7.71.1",
     "date": "2026-07-14",
     "type": "patch",
