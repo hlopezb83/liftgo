@@ -119,7 +119,7 @@ export default function QuotesPage() {
             <div className="flex items-center justify-between mb-1">
               <div className="flex items-center gap-1.5">
                 <span className="font-mono font-semibold text-sm">{q.quote_number}</span>
-                <Badge variant={q.quote_type === "sale" ? "default" : "secondary"} className="text-[10px] px-1.5 py-0">
+                <Badge variant={q.quote_type === "sale" ? "default" : "secondary"} className="text-3xs px-1.5 py-0">
                   {STATUS_LABELS[q.quote_type || "rental"] || "Renta"}
                 </Badge>
               </div>

@@ -87,7 +87,7 @@ export function PaymentsExportTable({
         <span className="font-mono text-xs">
           {row.original.bill_number}
           {row.original.payment_in_progress_at && (
-            <Badge variant="outline" className="ml-1 text-[10px]">
+            <Badge variant="outline" className="ml-1 text-3xs">
               en proceso
             </Badge>
           )}

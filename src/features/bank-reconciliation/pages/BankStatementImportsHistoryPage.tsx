@@ -71,7 +71,7 @@ export default function BankStatementImportsHistoryPage() {
                     <TableCell className="text-right font-mono text-xs">{i.total_count}</TableCell>
                     <TableCell className="text-right font-mono text-xs">{i.matched_count}</TableCell>
                     <TableCell className="text-right">
-                      <Badge variant={pct === 100 ? "default" : pct >= 50 ? "secondary" : "outline"} className="text-[10px]">
+                      <Badge variant={pct === 100 ? "default" : pct >= 50 ? "secondary" : "outline"} className="text-3xs">
                         {pct}%
                       </Badge>
                     </TableCell>
@@ -79,12 +79,12 @@ export default function BankStatementImportsHistoryPage() {
                       {canDelete && (
                         confirmId === i.id ? (
                           <div className="flex gap-1 justify-end">
-                            <Button size="sm" variant="destructive" className="h-7 text-[11px]"
+                            <Button size="sm" variant="destructive" className="h-7 text-2xs"
                               disabled={del.isPending}
                               onClick={() => { del.mutate(i.id, { onSettled: () => setConfirmId(null) }); }}>
                               Confirmar
                             </Button>
-                            <Button size="sm" variant="ghost" className="h-7 text-[11px]" onClick={() => setConfirmId(null)}>
+                            <Button size="sm" variant="ghost" className="h-7 text-2xs" onClick={() => setConfirmId(null)}>
                               Cancelar
                             </Button>
                           </div>

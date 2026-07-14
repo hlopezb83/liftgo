@@ -83,7 +83,7 @@ function BookingRow({ booking, label }: { booking: BookingWithForklift; label: s
   return (
     <div className="flex items-center justify-between p-2 rounded bg-background border text-sm">
       <div className="flex items-center gap-2">
-        <span className={`text-[10px] font-medium px-1.5 py-0.5 rounded ${label === "Activa" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
+        <span className={`text-3xs font-medium px-1.5 py-0.5 rounded ${label === "Activa" ? "bg-primary/10 text-primary" : "bg-muted text-muted-foreground"}`}>
           {label}
         </span>
         <span className="font-medium">{booking.customer_name || "Sin cliente"}</span>

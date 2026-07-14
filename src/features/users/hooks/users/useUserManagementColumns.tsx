@@ -37,7 +37,7 @@ export function useUserManagementColumns({
           return (
             <div className="flex items-center gap-2 font-medium">
               {u.full_name ?? "—"}
-              {isSelf && <Badge variant="outline" className="text-[10px] px-1.5">Tú</Badge>}
+              {isSelf && <Badge variant="outline" className="text-3xs px-1.5">Tú</Badge>}
             </div>
           );
         },

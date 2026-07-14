@@ -28,7 +28,7 @@ export function SupplierPaymentRepSection({
       <div className="flex items-center justify-between gap-2">
         <SupplierRepStatusBadge status={repStatus} />
         {showUpload && (
-          <Button size="sm" variant="outline" className="h-6 text-[11px]" onClick={onUpload}>
+          <Button size="sm" variant="outline" className="h-6 text-2xs" onClick={onUpload}>
             <UploadIcon className="h-3 w-3 mr-1" /> {uploadLabel}
           </Button>
         )}

@@ -17,7 +17,7 @@ export function ReconciliationBadge({ paymentId, supplierPaymentId }: Props) {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <Badge className="bg-status-available text-success-foreground border-transparent text-[10px] gap-1">
+          <Badge className="bg-status-available text-success-foreground border-transparent text-3xs gap-1">
             <SuccessIcon className="h-3 w-3" />
             Conciliado {formatDateDisplay(data.matched_at)}
           </Badge>

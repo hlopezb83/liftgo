@@ -31,7 +31,7 @@ interface Props {
 }
 
 export function ActorAvatar({ name, role, size = "md", isSystem }: Props) {
-  const sizeCls = size === "sm" ? "h-6 w-6 text-[10px]" : "h-8 w-8 text-xs";
+  const sizeCls = size === "sm" ? "h-6 w-6 text-3xs" : "h-8 w-8 text-xs";
   const colorCls = isSystem ? "bg-muted-foreground" : actorColor(name);
   return (
     <div className="flex items-center gap-2 min-w-0">
@@ -41,12 +41,12 @@ export function ActorAvatar({ name, role, size = "md", isSystem }: Props) {
       <div className="min-w-0">
         <p className="text-sm font-medium truncate leading-tight">{name}</p>
         {role && (
-          <span className={cn("inline-block text-[10px] px-1.5 py-0 rounded leading-tight", ROLE_COLORS[role])}>
+          <span className={cn("inline-block text-3xs px-1.5 py-0 rounded leading-tight", ROLE_COLORS[role])}>
             {ROLE_LABELS[role]}
           </span>
         )}
         {!role && isSystem && (
-          <span className="inline-block text-[10px] px-1.5 py-0 rounded leading-tight bg-muted text-muted-foreground">
+          <span className="inline-block text-3xs px-1.5 py-0 rounded leading-tight bg-muted text-muted-foreground">
             Automático
           </span>
         )}

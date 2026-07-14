@@ -91,7 +91,7 @@ export function GlobalSearch() {
       >
         <SearchIcon className="h-3.5 w-3.5" />
         <span className="hidden md:inline text-xs">Buscar…</span>
-        <Badge variant="secondary" className="hidden md:inline-flex text-[10px] px-1.5 py-0 font-mono opacity-70">
+        <Badge variant="secondary" className="hidden md:inline-flex text-3xs px-1.5 py-0 font-mono opacity-70">
           Ctrl+K
         </Badge>
       </Button>
@@ -122,7 +122,7 @@ export function GlobalSearch() {
             </CommandGroup>
           ))}
         </CommandList>
-        <div className="flex items-center justify-between border-t px-3 py-2 text-[10px] text-muted-foreground">
+        <div className="flex items-center justify-between border-t px-3 py-2 text-3xs text-muted-foreground">
           <div className="flex items-center gap-3">
             <span><kbd className="rounded border bg-muted px-1 font-mono">↑</kbd> <kbd className="rounded border bg-muted px-1 font-mono">↓</kbd> navegar</span>
             <span><kbd className="rounded border bg-muted px-1 font-mono">Enter</kbd> abrir</span>

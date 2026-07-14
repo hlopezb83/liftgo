@@ -98,7 +98,7 @@ export default function AuthPage() {
             <UsersIcon className="mr-2 h-4 w-4" /> Portal de Clientes
           </Button>
           {currentVersion && (
-            <p className="mt-4 text-center text-[10px] text-muted-foreground/60 font-mono">v{currentVersion}</p>
+            <p className="mt-4 text-center text-3xs text-muted-foreground/60 font-mono">v{currentVersion}</p>
           )}
         </CardContent>
       </Card>

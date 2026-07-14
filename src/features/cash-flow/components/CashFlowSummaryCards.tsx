@@ -26,7 +26,7 @@ export function CashFlowSummaryCards({ buckets, initialBalance }: Props) {
       {cards.map((c) => (
         <Card key={c.label}>
           <CardContent className="p-3">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">{c.label}</p>
+            <p className="text-2xs uppercase tracking-wide text-muted-foreground">{c.label}</p>
             <p
               className={`text-lg font-bold font-mono mt-1 ${
                 c.tone === "bad" ? "text-destructive" : c.tone === "good" ? "text-success" : ""

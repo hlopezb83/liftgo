@@ -70,7 +70,7 @@ export function SearchBar({
       {captureCtrlK && (
         <Badge
           variant="secondary"
-          className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] px-1.5 py-0 font-mono pointer-events-none opacity-60"
+          className="absolute right-2 top-1/2 -translate-y-1/2 text-3xs px-1.5 py-0 font-mono pointer-events-none opacity-60"
         >
           Ctrl+K
         </Badge>

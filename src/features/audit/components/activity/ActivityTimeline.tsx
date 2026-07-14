@@ -131,10 +131,10 @@ export function ActivityTimeline({ filters, onFilterChange, onReset, members }: 
                     </p>
                   </div>
                   <div className="text-right shrink-0">
-                    <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+                    <span className="text-3xs uppercase tracking-wide px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
                       {moduleLabel}
                     </span>
-                    <p className="text-[11px] text-muted-foreground mt-0.5 tabular-nums">
+                    <p className="text-2xs text-muted-foreground mt-0.5 tabular-nums">
                       {formatDateTimeShortMty(a.created_at)}
                     </p>
                   </div>

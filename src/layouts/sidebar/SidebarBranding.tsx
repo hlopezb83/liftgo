@@ -30,7 +30,7 @@ export function SidebarBranding({ logoUrl, razonSocial }: SidebarBrandingProps) 
           >
             {name}
           </h2>
-          <p className="text-[11px] text-sidebar-foreground/60 truncate">Montacargas</p>
+          <p className="text-2xs text-sidebar-foreground/60 truncate">Montacargas</p>
         </div>
       </div>
     </SidebarHeader>
