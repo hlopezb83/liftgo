@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.62.0",
+    "date": "2026-07-14",
+    "type": "minor",
+    "title": "Estandarización de filtros de tablas (Lotes 1–4)",
+    "description": "Se introduce el hook canónico useTableFilters y el componente FiltersToolbar con subcomponentes SearchBar/Tabs/Select/ClearAll. Se migraron Proveedores, Auditoría, Changelog y Cuentas por Pagar al nuevo contrato: filtros persistentes en URL, botón 'Limpiar filtros' unificado, reinicio automático de paginación y valores siempre primitivos compatibles con React Compiler.",
+    "category": "refactor"
+  },
+  {
     "version": "7.61.10",
     "date": "2026-07-14",
     "type": "patch",
