@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.71.0",
+    "date": "2026-07-14",
+    "type": "minor",
+    "title": "Sprint I — Cierre auditoría visual 1600x900",
+    "description": "Cierra los tres hallazgos abiertos de la auditoría final: (I1) Quotes migra el filtro de estado de Select a `FiltersToolbar.StatusTabs` (5 estados ≤ límite de 5), quedando consistente con Invoices y Bookings. (I2) Se verifica que Maintenance ya expone `hasActive`/`reset` al `FiltersToolbar.ClearAll` a través de `MaintenanceFiltersBar`. (I3) Se refuerza el contraste del tab activo en `FiltersToolbar.StatusTabs` (font-semibold + ring-border) para mejor lectura a 1600x900. Sin cambios de lógica ni queries.",
+    "category": "ui",
+    "files": [
+      "src/features/quotes/pages/QuotesPage.tsx",
+      "src/components/filters/FiltersToolbar.tsx"
+    ]
+  },
+  {
+  {
     "version": "7.70.0",
     "date": "2026-07-14",
     "type": "minor",
