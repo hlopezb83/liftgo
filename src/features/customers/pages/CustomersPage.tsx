@@ -150,7 +150,7 @@ export default function CustomersPage() {
             <AddIcon className="h-6 w-6" />
           </button>
         }
-        filters={<CustomersFilters search={search} onSearchChange={setSearch} />}
+        filters={<CustomersFilters search={values.q} onSearchChange={(v) => set("q", v)} hasActive={hasActive} onClear={reset} />}
         isLoading={isLoading}
         table={table}
         onRowClick={(c) => navigate(`/customers/${c.id}`)}
