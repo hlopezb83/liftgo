@@ -142,7 +142,7 @@ export default function DeliveryDetail() {
         {delivery.notes && <NotesCard value={delivery.notes} readOnly title="Notas" />}
 
         <DeliverySignatureCard signatureBase64={delivery.signature_base64} />
-      </div>
+      </PageContainer>
 
       <DeliveryDetailDialogs
         signatureOpen={signatureOpen}
