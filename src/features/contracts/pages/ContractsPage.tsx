@@ -94,15 +94,21 @@ export default function ContractsPage() {
       subtitle="Administrar contratos de renta"
       actions={<Button size="sm" onClick={() => navigate("/contracts/new")}><AddIcon className="h-4 w-4 mr-1" />Nuevo Contrato</Button>}
       filters={
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-            <TabsList className="flex-nowrap overflow-x-auto w-full sm:w-auto">
-              {STATUSES.map((s) => <TabsTrigger key={s} value={s}>{STATUS_LABELS[s] || s}</TabsTrigger>)}
-            </TabsList>
-          </Tabs>
-          <SearchBar value={search} onChange={setSearch} placeholder="Buscar contratos…" className="w-full sm:w-64" />
-        </div>
+        <FiltersToolbar>
+          <FiltersToolbar.Search
+            value={values.q}
+            onChange={(v) => set("q", v)}
+            placeholder="Buscar contratos…"
+          />
+          <FiltersToolbar.StatusTabs
+            value={values.status}
+            onChange={(v) => set("status", v as ContractStatus | "all")}
+            options={CONTRACT_STATUS_OPTIONS}
+          />
+          <FiltersToolbar.ClearAll visible={hasActive} onClick={reset} />
+        </FiltersToolbar>
       }
+
       isLoading={isLoading}
       table={table}
       onRowClick={(c) => navigate(`/contracts/${c.id}`)}
