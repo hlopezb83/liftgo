@@ -102,7 +102,17 @@ export function DateRangePickerField({
       </Label>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogTrigger asChild>
-          <RangeTriggerButton hasFrom={!!dateRange?.from} label={triggerLabel} />
+          <Button
+            type="button"
+            variant="outline"
+            className={cn(
+              "w-full justify-start text-left font-normal",
+              !dateRange?.from && "text-muted-foreground",
+            )}
+          >
+            <CalendarIcon className="mr-2 h-4 w-4" />
+            {triggerLabel}
+          </Button>
         </DialogTrigger>
         <RangeDialogBody
           label={label}
@@ -117,22 +127,6 @@ export function DateRangePickerField({
       </Dialog>
       {error ? <p className="text-sm text-destructive">{error}</p> : null}
     </div>
-  );
-}
-
-function RangeTriggerButton({ hasFrom, label }: { hasFrom: boolean; label: string }) {
-  return (
-    <Button
-      type="button"
-      variant="outline"
-      className={cn(
-        "w-full justify-start text-left font-normal",
-        !hasFrom && "text-muted-foreground",
-      )}
-    >
-      <CalendarIcon className="mr-2 h-4 w-4" />
-      {label}
-    </Button>
   );
 }
 
