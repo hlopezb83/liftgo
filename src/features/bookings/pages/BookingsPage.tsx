@@ -11,15 +11,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePageActions } from "@/contexts/pageActions";
 import { useUserRole } from "@/features/users";
+import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useResourceList } from "@/hooks/useResourceList";
-import { STATUS_LABELS } from "@/lib/constants";
+import { BOOKING_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 import { formatMtyDate } from "@/lib/utils";
 import { RecurringBillingBadge } from "../components/bookings/RecurringBillingBadge";
 import { useBookings, bookingQueries } from "../hooks/useBookings";
 
-const STATUSES = ["all", "confirmed", "completed", "cancelled"] as const;
+const STATUSES = ["all", ...BOOKING_STATUSES] as const;
+type BookingStatusFilter = (typeof STATUSES)[number];
+
 
 type Booking = NonNullable<ReturnType<typeof useBookings>["data"]>[number];
 
