@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { XIcon } from "@/components/icons";
+import { CloseIcon } from "@/components/icons";
 import { cn } from "@/lib/utils";
 
 /**
@@ -134,7 +134,7 @@ function ClearAll({ onClick, visible, label }: ClearAllProps) {
       onClick={onClick}
       className="text-muted-foreground hover:text-foreground gap-1.5"
     >
-      <XIcon className="h-3.5 w-3.5" />
+      <CloseIcon className="h-3.5 w-3.5" />
       {label ?? "Limpiar filtros"}
     </Button>
   );
