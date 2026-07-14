@@ -98,6 +98,18 @@ export function useInvoicesFilters() {
     [queryFilters],
   );
 
+  const hasActive =
+    !!search || statusFilter !== "all" || !!fromParam || !!toParam;
+
+  const clearAll = useCallback(() => {
+    replaceParams((next) => {
+      next.delete("q");
+      next.delete("status");
+      next.delete("from");
+      next.delete("to");
+    });
+  }, [replaceParams]);
+
   return {
     search,
     setSearch,
@@ -107,5 +119,8 @@ export function useInvoicesFilters() {
     setDateRange,
     queryFilters,
     filterKey,
+    hasActive,
+    clearAll,
   };
 }
+
