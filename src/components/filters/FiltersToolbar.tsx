@@ -147,7 +147,3 @@ export const FiltersToolbar = Object.assign(Root, {
   ClearAll,
 });
 
-type FilterOption<V extends string = string> = {
-  value: V | "all";
-  label: string;
-};
