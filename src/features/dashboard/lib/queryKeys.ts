@@ -14,7 +14,7 @@ import { createEntityKeys } from "@/lib/query/createEntityKeys";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { callRpc } from "@/lib/rpc";
 
-export const dashboardKeys = createEntityKeys("dashboard");
+const dashboardKeys = createEntityKeys("dashboard");
 
 // ---------------------------------------------------------------------------
 // MRR detail
