@@ -1,5 +1,16 @@
 [
   {
+    "version": "7.62.1",
+    "date": "2026-07-14",
+    "type": "patch",
+    "title": "Calendar: locale BCP-47 en formatters",
+    "description": "Se agregaron formatters custom en src/components/ui/calendar.tsx que usan Intl.DateTimeFormat('es-MX') directamente en lugar del objeto Locale de date-fns. Silencia el console.warn 'Incorrect locale information provided' emitido por react-day-picker v10 en motores estrictos (Chromium headless) sin cambiar la UI ni el idioma del Calendar.",
+    "category": "fix",
+    "files": [
+      "src/components/ui/calendar.tsx"
+    ]
+  },
+  {
     "version": "7.62.0",
     "date": "2026-07-14",
     "type": "minor",
