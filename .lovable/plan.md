@@ -1,52 +1,60 @@
-## Auditoría Sprint G (v7.69.0)
+# Auditoría visual final — 1600x900
 
-**Verde**
-- ✅ TypeScript: sin errores.
-- ✅ Suite completa: **1008 tests / 144 archivos** — todos verdes (incluye los 5 nuevos de `useTableFilters`).
-- ✅ Bookings, Fleet, Invoices ya no pasan `items`/`externalFiltered`/`filters` a `useResourceList`; el hook expone únicamente `{ table }`.
-- ✅ `useResourceList.ts` es la única referencia textual restante a `useListFilters` (en un comentario). Ningún componente lo importa.
-- ✅ `ReconciliationTable` y `BankStatementImportsHistoryPage` renderizan con `DataTableV2` (sorting + AlertDialog para borrado).
+Objetivo: validar visualmente que las páginas migradas en los sprints F, G y H mantienen densidad, layout y comportamiento de filtros consistentes en la resolución estándar de escritorio (1600x900).
 
-**Deuda detectada**
-1. **Dead code**: `src/hooks/useListFilters.ts` sigue en el repo. Solo lo referencia su propio test (`src/hooks/__tests__/useListFilters.test.tsx`). Debe borrarse para cerrar el sprint anterior.
-2. **Wrapper trivial**: `useResourceList` hoy sólo hace `useLiftgoTable(...)` y devuelve `{ table }`. No aporta valor — es indirección extra que confunde a los agentes.
-3. **Inconsistencia visual en Bookings**: la página se migró al hook canónico pero mantiene `Tabs` + `SearchBar` sueltos en vez de `FiltersToolbar` (rompe la estandarización de Sprint F/G).
-4. **Cobertura de tests incompleta**: el plan G3 original incluía `FiltersToolbar` y `useInvoicesFilters`. Sólo se entregó `useTableFilters`.
-5. **Sin verificación visual**: Sprint G no capturó screenshots Playwright a 1600×900 de las páginas tocadas.
+## Alcance
 
-**Ningún bug funcional detectado** — el sprint es sólido, sólo faltan cierre y homogeneización.
+Rutas a capturar autenticado como admin contra `http://localhost:8080`:
 
----
+**Sprint F/G/H — filtros + tablas migradas**
+- `/invoices` — FiltersToolbar (Search + StatusTabs + DateRange + ClearAll)
+- `/bookings` — nuevo FiltersToolbar (Search + StatusTabs + ClearAll)
+- `/fleet` — FiltersToolbar (Search + StatusTabs)
+- `/quotes`
+- `/contracts`
+- `/damage-tracking`
+- `/customers`
+- `/maintenance`
 
-## Plan Sprint H — Cierre + estandarización visual
+**Tablas migradas a DataTableV2**
+- `/bank-reconciliation` (historial de imports)
+- Panel de reconciliación dentro de `/bank-reconciliation`
 
-**H1 · Cerrar deuda de Sprint F/G**
-- Borrar `src/hooks/useListFilters.ts` y `src/hooks/__tests__/useListFilters.test.tsx`.
-- Inline `useResourceList` en sus 3 consumidores (Bookings, Fleet, Invoices) llamando directamente a `useLiftgoTable`, y eliminar `src/hooks/useResourceList.ts`. Menos indirección, un solo hook de tabla.
+**Regresión rápida**
+- `/` (Dashboard)
+- `/reports/mrr`
+- `/accounts-payable`
 
-**H2 · Bookings → `FiltersToolbar` completo**
-- Reemplazar `Tabs`+`SearchBar` inline por `FiltersToolbar` con `Search`, `StatusTabs` y `ClearAll` (mismo patrón que Quotes/Contracts/Invoices).
-- Preservar `Alert` de límite (`hasReachedListLimit`).
+## Método
 
-**H3 · Cobertura de tests faltante**
-- `FiltersToolbar`: render de `Search`/`StatusSelect`/`StatusTabs`/`DateRange`/`ClearAll`; eventos `onChange`; visibilidad de `ClearAll` cuando `hasActive`.
-- `useInvoicesFilters`: verificar `queryFilters` (mapping status/date/search → params server-side), `clearAll` reset total, `filterKey` estable ante identidad de objetos.
+1. Script Playwright único en `/tmp/browser/visual-audit-h/audit.py`:
+   - Restaura sesión Supabase desde `LOVABLE_BROWSER_SUPABASE_*`.
+   - Viewport fijo `1280x1800` para capturar sin scroll horizontal a 1600x900 no aplica — se usa 1600x900 vía `context.new_page` con `viewport={"width":1600,"height":900}` para replicar el estándar del usuario.
+   - Recorre la lista de rutas; por cada ruta espera `networkidle`, hace screenshot en `/tmp/browser/visual-audit-h/screenshots/<slug>.png`.
+   - En `/invoices` y `/bookings`: interactúa con FiltersToolbar (escribe en Search, cambia StatusTab, hace click en ClearAll) y captura antes/después para confirmar reset visual y que la tabla reacciona.
+   - Registra en un `report.json` cualquier error de consola por ruta.
 
-**H4 · Verificación visual (Playwright, 1600×900)**
-- Capturar screenshots pre/post en `/bookings`, `/fleet`, `/invoices`, `/conciliacion-bancaria/historial`, y la vista de reconciliación fiscal.
-- Confirmar: densidad zebra consistente, sticky header, `ClearAll` visible sólo con filtros activos, alignment de columnas numéricas.
+2. Revisión con `code--view` de cada screenshot buscando:
+   - Densidad consistente (altura de filas, tipografía)
+   - FiltersToolbar alineado y sin wraps rotos a 1600px
+   - Botón "Limpiar filtros" aparece sólo con filtros activos
+   - Zebra + sticky header en DataTableV2
+   - Sin overlaps de sidebar, mobile FAB oculto en desktop
 
-**H5 · Changelog v7.70.0** (patch/minor según impacto — se define al final)
-- Sección "Cleanup" para H1, "Filtros" para H2, "Tests" para H3, "Visual" para H4.
+3. Reporte final en chat con hallazgos clasificados:
+   - **OK**: página cumple estándar.
+   - **NIT**: detalle menor (spacing, alineación, copy).
+   - **BUG**: bloqueante visual o funcional (con screenshot como evidencia).
 
-### Notas técnicas
-- Inline de `useResourceList` es mecánico:
-  ```ts
-  const table = useLiftgoTable<T>({ data: filtered, columns, getRowId, initialSorting, resetKey: filterKey });
-  ```
-- El test de `FiltersToolbar` se puede montar con `MemoryRouter` sin URL sync (los subcomponentes son controlados por props).
-- Para `useInvoicesFilters` reusar el patrón del test de `useTableFilters`: `renderHook` + `MemoryRouter`.
+## Detalles técnicos
 
-### Fuera de alcance (para sprints posteriores)
-- Migración de tablas restantes con `<Table>` crudo (Kanban modals, PDF previews) a `DataTableV2`.
-- Auditoría de rendimiento del `Proxy` en `useLiftgoTable` (referenciado en v7.62.2).
+- No se modifica código en esta iteración; es sólo captura + reporte.
+- Si aparecen BUGs, se listan al final y se propone un mini Sprint I para fixes; los NITs se agrupan como backlog visual.
+- Duración estimada: 1 corrida de Playwright (~2-3 min) + revisión.
+
+## Entregable
+
+Resumen en chat con:
+- Tabla `ruta → estado (OK/NIT/BUG) → nota`.
+- Rutas de screenshots relevantes bajo `/tmp/browser/visual-audit-h/screenshots/`.
+- Lista de errores de consola por ruta, si los hay.
