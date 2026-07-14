@@ -48,7 +48,6 @@ export function useLiftgoTable<T>({
   resetKey,
   onSelectionChange,
 }: Options<T>): Table<T> {
-  "use no memo";
   const [sorting, setSorting] = useState<SortingState>(initialSorting);
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const [pagination, setPagination] = useState<PaginationState>({
