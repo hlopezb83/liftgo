@@ -110,7 +110,16 @@ export function useLiftgoTable<T>({
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: paginated ? getPaginationRowModel() : undefined,
   });
-  // eslint-disable-next-line no-console
-  console.log("[useLiftgoTable] rowModel", { rows: table.getRowModel().rows.length, dataLen: tableData.length });
-  return table;
+
+  // React Compiler + TanStack Table: `useReactTable` retorna la MISMA referencia
+  // en cada render (muta internamente). Sin cambio de identidad, el compiler
+  // memoiza el JSX aguas abajo y las tablas no se actualizan al filtrar/sortear.
+  // Envolvemos con Proxy transparente cuya identidad cambia con `data`, estado
+  // de sort/paginación y selección para invalidar la memoización de forma segura.
+  const dataVersion = tableData.length;
+  const sortKey = sorting.map((s) => `${s.id}:${s.desc ? "d" : "a"}`).join(",");
+  const selKey = Object.keys(rowSelection).length;
+  const pagKey = paginated ? `${pagination.pageIndex}:${pagination.pageSize}` : "";
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  return useMemo(() => new Proxy(table, {}), [table, dataVersion, sortKey, selKey, pagKey]);
 }
