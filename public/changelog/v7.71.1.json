@@ -1,0 +1,23 @@
+{
+  "version": "7.71.1",
+  "date": "2026-07-14",
+  "type": "patch",
+  "title": "Estado de Resultados — Reclasifica facturas manuales de renta",
+  "category": "bugfix",
+  "description": "Corrige la clasificación de ingresos en el Estado de Resultados: las facturas de renta creadas manualmente (sin booking_id, sin quote_id, sin filas en invoice_bookings) aparecían como Ingresos por Ventas en lugar de Ingresos por Rentas. Caso detectado y reportado por el usuario: FAC-0089 (Logistorage, jul 2026, $55,500).",
+  "changes": [
+    {
+      "area": "Datos",
+      "items": [
+        "Vinculada FAC-0089 (Logistorage) a sus 3 bookings recurrentes mediante 3 filas en invoice_bookings — la factura ahora aparece correctamente como renta en julio 2026."
+      ]
+    },
+    {
+      "area": "RPC get_income_statement",
+      "items": [
+        "Se agrega una cuarta señal de clasificación como renta: `billing_period_start IS NOT NULL AND billing_period_end IS NOT NULL`. El generador de facturación recurrente siempre rellena este par; las ventas de equipo no. Cubre facturas manuales sin link explícito.",
+        "Aplica retroactivamente a todos los meses del Estado de Resultados (accrual y cash)."
+      ]
+    }
+  ]
+}
