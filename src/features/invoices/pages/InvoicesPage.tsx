@@ -119,11 +119,10 @@ export default function InvoicesPage() {
 
   const columns = useInvoiceColumns();
   const { table } = useResourceList<Invoice>({
-    items: invoiceRows,
+    data: invoiceRows,
     columns,
     getRowId: (i) => i.id,
     initialSorting: [{ id: "invoice_number", desc: true }],
-    externalFiltered: invoiceRows,
     tableResetKey: filterKey,
   });
 
