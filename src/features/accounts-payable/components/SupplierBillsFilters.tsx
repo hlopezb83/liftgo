@@ -94,6 +94,7 @@ export function SupplierBillsFilters({ filters: f, kpis, suppliers }: Props) {
             ))}
           </SelectContent>
         </Select>
+        <FiltersToolbar.ClearAll visible={f.hasActive} onClick={f.reset} />
       </div>
     </div>
   );
