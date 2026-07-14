@@ -1,4 +1,4 @@
-import { useCallback, useDeferredValue, useEffect, useMemo } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo, useRef } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { matchSorter, rankings } from "match-sorter";
 
@@ -283,22 +283,39 @@ export function useTableFilters<T, F extends Record<string, Facet<T>>>(
       .join("|");
   }, [facets, values]);
 
-  // React 19: diferimos el key para que el input responda instantáneo mientras
-  // matchSorter corre en render de baja prioridad.
-  const deferredValues = useDeferredValue(values);
+  // React 19 + React Compiler: dependemos SOLO de primitivos (`filterKey`,
+  // `itemsVersion`) para invalidar el memo. `values` y `facets` se leen desde
+  // refs para no forzar identidad de objeto en las deps — el mismo patrón
+  // que resolvió la regresión de v7.61.10 en `useInvoices`.
+  const valuesRef = useRef(values);
+  valuesRef.current = values;
+  const facetsRef = useRef(facets);
+  facetsRef.current = facets;
+
   const deferredKey = useDeferredValue(filterKey);
   const isStale = deferredKey !== filterKey;
+
+  // Huella primitiva de `items` — length + primer/último id (si existe).
+  const itemsVersion = useMemo(() => {
+    const src = items ?? [];
+    if (!src.length) return "0";
+    const first = src[0] as unknown as { id?: string | number };
+    const last = src[src.length - 1] as unknown as { id?: string | number };
+    return `${src.length}|${first?.id ?? ""}|${last?.id ?? ""}`;
+  }, [items]);
 
   const filtered = useMemo<T[]>(() => {
     if (mode !== "client") return [];
     const source = items ?? [];
     if (!source.length) return [];
+    const currentValues = valuesRef.current as Record<string, string>;
+    const currentFacets = facetsRef.current as Record<string, Facet<T>>;
 
     // Fase 1: facetas de igualdad + mes + rango.
     let base = source;
-    for (const key of Object.keys(facets)) {
-      const facet = facets[key as keyof F] as Facet<T>;
-      const value = (deferredValues as Record<string, string>)[key];
+    for (const key of Object.keys(currentFacets)) {
+      const facet = currentFacets[key];
+      const value = currentValues[key];
       if (!value || value === defaultForFacet(facet)) continue;
 
       switch (facet.type) {
@@ -346,10 +363,10 @@ export function useTableFilters<T, F extends Record<string, Facet<T>>>(
     }
 
     // Fase 2: text facets — matchSorter con ranking CONTAINS.
-    for (const key of Object.keys(facets)) {
-      const facet = facets[key as keyof F] as Facet<T>;
+    for (const key of Object.keys(currentFacets)) {
+      const facet = currentFacets[key];
       if (facet.type !== "text") continue;
-      const query = (deferredValues as Record<string, string>)[key];
+      const query = currentValues[key];
       if (!query) continue;
       const f = facet as TextFacet<T>;
       const keys = [
@@ -367,7 +384,8 @@ export function useTableFilters<T, F extends Record<string, Facet<T>>>(
     }
 
     return base;
-  }, [mode, items, facets, deferredValues]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode, items, itemsVersion, filterKey]);
 
   return {
     values,
