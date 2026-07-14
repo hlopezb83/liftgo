@@ -1,67 +1,52 @@
-## Auditoría Sprint F
+## Auditoría Sprint G (v7.69.0)
 
-### ✅ Funciona
+**Verde**
+- ✅ TypeScript: sin errores.
+- ✅ Suite completa: **1008 tests / 144 archivos** — todos verdes (incluye los 5 nuevos de `useTableFilters`).
+- ✅ Bookings, Fleet, Invoices ya no pasan `items`/`externalFiltered`/`filters` a `useResourceList`; el hook expone únicamente `{ table }`.
+- ✅ `useResourceList.ts` es la única referencia textual restante a `useListFilters` (en un comentario). Ningún componente lo importa.
+- ✅ `ReconciliationTable` y `BankStatementImportsHistoryPage` renderizan con `DataTableV2` (sorting + AlertDialog para borrado).
 
-- 5 páginas migradas al canónico (`useTableFilters` + `FiltersToolbar`): Cotizaciones, Contratos, Daños, Clientes, Mantenimiento.
-- Facturas: `hasActive`/`clearAll` conectados a botón "Limpiar filtros".
-- `FiltersToolbar.DateRange` añadido; serializa `YYYY-MM-DD..YYYY-MM-DD`.
-- Bug P0 de Mantenimiento resuelto (filtro `?forklift=` persiste en URL).
-- Typecheck limpio; screenshots verificados a 1600x900.
+**Deuda detectada**
+1. **Dead code**: `src/hooks/useListFilters.ts` sigue en el repo. Solo lo referencia su propio test (`src/hooks/__tests__/useListFilters.test.tsx`). Debe borrarse para cerrar el sprint anterior.
+2. **Wrapper trivial**: `useResourceList` hoy sólo hace `useLiftgoTable(...)` y devuelve `{ table }`. No aporta valor — es indirección extra que confunde a los agentes.
+3. **Inconsistencia visual en Bookings**: la página se migró al hook canónico pero mantiene `Tabs` + `SearchBar` sueltos en vez de `FiltersToolbar` (rompe la estandarización de Sprint F/G).
+4. **Cobertura de tests incompleta**: el plan G3 original incluía `FiltersToolbar` y `useInvoicesFilters`. Sólo se entregó `useTableFilters`.
+5. **Sin verificación visual**: Sprint G no capturó screenshots Playwright a 1600×900 de las páginas tocadas.
 
-### 🐛 Bugs / deuda detectada
-
-1. `**useResourceList` sigue usando `useListFilters` internamente** (`src/hooks/useResourceList.ts`). Sus 3 consumidores (Invoices, Bookings, Fleet) ejecutan filtrado interno **redundante** — inofensivo cuando pasan `externalFiltered`, pero mantiene vivo el legacy y duplica lógica.
-2. **Bookings y Fleet no migrados** — todavía dependen del filtrado interno del legacy vía `useResourceList`. No están en el "5/30", así que quedan como generación intermedia.
-3. **Sin tests nuevos** — `FiltersToolbar.DateRange`, `useInvoicesFilters.clearAll`, y el round-trip de URL de `useTableFilters` no tienen cobertura.
-4. **14 tablas usan shadcn `<Table>` crudo**, pero sólo 3 son verdaderas tablas de listado (candidatas a DataTableV2). El resto son tablas de detalle/reporte estructuralmente distintas — mantenerlas fuera de scope.
-
-Sin regresiones bloqueantes. Deuda controlada. Procedo a Sprint G.
+**Ningún bug funcional detectado** — el sprint es sólido, sólo faltan cierre y homogeneización.
 
 ---
 
-## Sprint G — Retiro de `useListFilters` y migración de tablas de listado
+## Plan Sprint H — Cierre + estandarización visual
 
-**Objetivo:** eliminar la doble generación de filtros (legacy + canónico) y migrar las 3 tablas de listado que aún usan shadcn `<Table>` crudo a `DataTableV2`.
+**H1 · Cerrar deuda de Sprint F/G**
+- Borrar `src/hooks/useListFilters.ts` y `src/hooks/__tests__/useListFilters.test.tsx`.
+- Inline `useResourceList` en sus 3 consumidores (Bookings, Fleet, Invoices) llamando directamente a `useLiftgoTable`, y eliminar `src/hooks/useResourceList.ts`. Menos indirección, un solo hook de tabla.
 
-### G1 — Refactor de `useResourceList` (retiro del legacy)
+**H2 · Bookings → `FiltersToolbar` completo**
+- Reemplazar `Tabs`+`SearchBar` inline por `FiltersToolbar` con `Search`, `StatusTabs` y `ClearAll` (mismo patrón que Quotes/Contracts/Invoices).
+- Preservar `Alert` de límite (`hasReachedListLimit`).
 
-- Convertir `useResourceList` en un thin wrapper sobre `useLiftgoTable` que **exige** `externalFiltered` como fuente única (elimina `filters` prop y la rama interna `useListFilters`).
-- Actualizar sus 3 consumidores (`InvoicesPage`, `BookingsPage`, `FleetPage`) para pasar la data ya filtrada por su hook canónico:
-  - Invoices: ya llama `useInvoicesFilters` (canónico) — sólo hay que quitar la config `filters` residual.
-  - Bookings: migrar a `useTableFilters` (search + status).
-  - Fleet: migrar a `useTableFilters` (search + status).
-- Borrar `src/hooks/useListFilters.ts` y su test — dejar de exportarlo.
+**H3 · Cobertura de tests faltante**
+- `FiltersToolbar`: render de `Search`/`StatusSelect`/`StatusTabs`/`DateRange`/`ClearAll`; eventos `onChange`; visibilidad de `ClearAll` cuando `hasActive`.
+- `useInvoicesFilters`: verificar `queryFilters` (mapping status/date/search → params server-side), `clearAll` reset total, `filterKey` estable ante identidad de objetos.
 
-### G2 — Migrar 3 tablas de listado a `DataTableV2`
+**H4 · Verificación visual (Playwright, 1600×900)**
+- Capturar screenshots pre/post en `/bookings`, `/fleet`, `/invoices`, `/conciliacion-bancaria/historial`, y la vista de reconciliación fiscal.
+- Confirmar: densidad zebra consistente, sticky header, `ClearAll` visible sólo con filtros activos, alignment de columnas numéricas.
 
-Sólo las que son estructuralmente listas paginables:
+**H5 · Changelog v7.70.0** (patch/minor según impacto — se define al final)
+- Sección "Cleanup" para H1, "Filtros" para H2, "Tests" para H3, "Visual" para H4.
 
-- `src/features/bank-reconciliation/pages/BankStatementImportsHistoryPage.tsx` (historial de imports).
-- `src/features/invoices/components/reconciliation/ReconciliationTable.tsx` (líneas conciliables).
-- `src/features/dashboard/pages/MrrDetailPage.tsx` (detalle MRR por cliente).
+### Notas técnicas
+- Inline de `useResourceList` es mecánico:
+  ```ts
+  const table = useLiftgoTable<T>({ data: filtered, columns, getRowId, initialSorting, resetKey: filterKey });
+  ```
+- El test de `FiltersToolbar` se puede montar con `MemoryRouter` sin URL sync (los subcomponentes son controlados por props).
+- Para `useInvoicesFilters` reusar el patrón del test de `useTableFilters`: `renderHook` + `MemoryRouter`.
 
-Las 11 restantes (`IncomeStatement*`, `AgingReport`, `CashFlowTable`, `AuditDiffTables`, `CreditNoteLinesTable`, `InvoiceCreditNotesCard`, `EditableLineItemsTable`, `SupplierContactsSection`, `SupplierBankAccountsSection`, `StatementTableRow`) se documentan como excepciones intencionales (tablas de detalle/reporte no paginables) en un comentario inline al top de cada archivo. Sin migración.
-
-### G3 — Tests de las utilidades canónicas
-
-Cobertura mínima para blindar el contrato:
-
-- `src/hooks/filters/__tests__/useTableFilters.test.tsx` — round-trip URL (set/clear/hydrate), facet `dateRange` y `search.accessors`.
-- `src/components/filters/__tests__/FiltersToolbar.test.tsx` — `DateRange` serializa/parsea correctamente; `ClearAll` respeta `visible`.
-- `src/features/invoices/hooks/invoices/__tests__/useInvoicesFilters.test.tsx` — `hasActive` y `clearAll` resetean search + status + rango.
-
-### Detalles técnicos
-
-- **Cambios de API**: `useResourceList` pierde `filters` y `externalFiltered` deja de ser opcional (rename → `data`). Es un hook interno; sólo 3 consumidores.
-- **Riesgo `useListFilters` borrado**: `useResourceList` y su test son los únicos consumidores restantes tras Sprint F. Con G1 completo la eliminación es segura.
-- **DataTableV2 en `MrrDetailPage**`: la tabla actual comparte contenedor con KPIs; hay que preservar el orden visual (KPIs arriba, tabla abajo) y el ordenamiento por MRR desc por defecto.
-- **Verificación**: typecheck + `bunx vitest run` + Playwright a 1600x900 sobre Invoices/Bookings/Fleet/BankStatementImports/MRR.
-- **Changelog**: entrada `v7.69.0` (minor: retiro de API interna + migración de 3 tablas + tests).
-
-### Fuera de scope
-
-- Reescribir tablas de reporte/detalle (Aging, Income Statement, Cash Flow, etc.).
-- Migrar `CRM Pipeline` a `useTableFilters` (usa Kanban, no tabla).
-- Auditoría visual final — la dejamos como cierre de Sprint H.
-
-Ejecuta el playwrite primero. 
+### Fuera de alcance (para sprints posteriores)
+- Migración de tablas restantes con `<Table>` crudo (Kanban modals, PDF previews) a `DataTableV2`.
+- Auditoría de rendimiento del `Proxy` en `useLiftgoTable` (referenciado en v7.62.2).

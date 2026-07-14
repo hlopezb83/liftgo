@@ -1,0 +1,22 @@
+{
+  "version": "7.70.0",
+  "date": "2026-07-14",
+  "type": "minor",
+  "title": "Sprint H — Cierre de deuda de filtros y estandarización visual de Bookings",
+  "summary": "Cierra la deuda del Sprint G: se eliminan `useResourceList` y `useListFilters`, se estandariza BookingsPage con `FiltersToolbar` y se amplía cobertura de tests.",
+  "highlights": [
+    {
+      "title": "H1 · Cierre de deuda técnica",
+      "detail": "Borrado de `src/hooks/useResourceList.ts`, `src/hooks/useListFilters.ts` y su test. Bookings, Fleet e Invoices ahora llaman `useLiftgoTable` directamente sobre `data` ya filtrada por `useTableFilters`, sin capa intermedia."
+    },
+    {
+      "title": "H2 · BookingsPage con FiltersToolbar",
+      "detail": "Reemplazo del `Tabs` + `SearchBar` manual por `FiltersToolbar.Search`, `FiltersToolbar.StatusTabs` y `FiltersToolbar.ClearAll`, alineando densidad, spacing y comportamiento de reset con el resto de la app."
+    },
+    {
+      "title": "H3 · Cobertura de tests",
+      "detail": "Nuevos tests: `FiltersToolbar` (Search debounced, opciones de StatusTabs, ClearAll visible/oculto y click) y `useInvoicesFilters` (URL → estado, `clearAll` y estabilidad de `filterKey`)."
+    }
+  ],
+  "notes": "Auditoría del Sprint G: typecheck limpio y 1008 tests verdes. Restos históricos de `useResourceList`/`useListFilters` sólo permanecen dentro de `public/changelog.json` como memoria del cambio."
+}
