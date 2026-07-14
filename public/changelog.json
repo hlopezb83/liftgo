@@ -1,5 +1,22 @@
 [
   {
+    "version": "7.62.3",
+    "date": "2026-07-14",
+    "type": "patch",
+    "title": "CI verde: fix ESLint no-explicit-any en useTableFilters y limpieza de exports sin uso",
+    "description": "Se corrigieron los 4 errores de ESLint (@typescript-eslint/no-explicit-any) en src/hooks/filters/useTableFilters.ts genericalizando las funciones internas defaultForFacet, normalizeEnumValue y normalizeValue con <T>. Adicionalmente se removieron 7 exports/símbolos sin uso reportados por Knip (manualMatchCandidateKeys, reconciliationStatusKeys, dashboardKeys, portalKeys, serializeDateRange, formatDateLongMty, FilterOption y el alias local Invoice en rental.ts) para dejar el pipeline CI verde.",
+    "category": "fix",
+    "files": [
+      "src/hooks/filters/useTableFilters.ts",
+      "src/components/filters/FiltersToolbar.tsx",
+      "src/features/bank-reconciliation/lib/queryKeys.ts",
+      "src/features/dashboard/lib/queryKeys.ts",
+      "src/features/portal/lib/queryKeys.ts",
+      "src/lib/format/dateFormats.ts",
+      "src/types/rental.ts"
+    ]
+  },
+  {
     "version": "7.62.2",
     "date": "2026-07-14",
     "type": "patch",
