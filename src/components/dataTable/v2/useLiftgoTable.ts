@@ -88,7 +88,7 @@ export function useLiftgoTable<T>({
     });
   };
 
-  return useReactTable<T>({
+  const table = useReactTable<T>({
     autoResetPageIndex: false,
     data: tableData,
     columns,
@@ -109,4 +109,7 @@ export function useLiftgoTable<T>({
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: paginated ? getPaginationRowModel() : undefined,
   });
+  // eslint-disable-next-line no-console
+  console.log("[useLiftgoTable] rowModel", { rows: table.getRowModel().rows.length, dataLen: tableData.length });
+  return table;
 }
