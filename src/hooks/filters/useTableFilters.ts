@@ -160,15 +160,6 @@ function writeSessionParams(pathname: string, params: URLSearchParams) {
   else window.sessionStorage.removeItem(key);
 }
 
-/**
- * Serializa el rango de fechas de vuelta a "from..to" preservando huecos.
- */
-function serializeDateRange(from?: string, to?: string): string {
-  const f = from && YMD_RE.test(from) ? from : "";
-  const t = to && YMD_RE.test(to) ? to : "";
-  if (!f && !t) return "";
-  return `${f}..${t}`;
-}
 
 export function parseDateRange(value: string): { from?: string; to?: string } {
   if (!value.includes("..")) return {};
