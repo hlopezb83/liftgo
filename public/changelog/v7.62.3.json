@@ -1,0 +1,19 @@
+{
+  "version": "7.62.3",
+  "date": "2026-07-14",
+  "type": "patch",
+  "title": "CI verde: fix ESLint no-explicit-any y limpieza de exports sin uso",
+  "category": "fix",
+  "summary": "Se dejó el pipeline CI verde corrigiendo los 4 errores de ESLint en useTableFilters y eliminando 7 exports/símbolos sin uso detectados por Knip.",
+  "problem": "El job de GitHub Actions 'CI success' fallaba porque los sub-jobs 'ESLint' (4 errores @typescript-eslint/no-explicit-any en src/hooks/filters/useTableFilters.ts) y 'Knip' (7 exports/tipos sin usar) salían con exit code 1.",
+  "changes": [
+    "src/hooks/filters/useTableFilters.ts: defaultForFacet, normalizeEnumValue y normalizeValue ahora son genéricas <T> en lugar de usar Facet<any>. También se eliminó la función interna serializeDateRange que no era consumida.",
+    "src/components/filters/FiltersToolbar.tsx: se removió el type FilterOption (no consumido).",
+    "src/features/bank-reconciliation/lib/queryKeys.ts: se eliminaron manualMatchCandidateKeys y reconciliationStatusKeys.",
+    "src/features/dashboard/lib/queryKeys.ts: se eliminó dashboardKeys y su import ahora no requerido de createEntityKeys.",
+    "src/features/portal/lib/queryKeys.ts: se eliminó portalKeys y su import ahora no requerido de createEntityKeys.",
+    "src/lib/format/dateFormats.ts: se eliminó formatDateLongMty (no consumido).",
+    "src/types/rental.ts: se eliminó el alias local Invoice (no consumido)."
+  ],
+  "verification": "typecheck local pasa; los sub-jobs ESLint y Knip ahora salen con exit code 0."
+}

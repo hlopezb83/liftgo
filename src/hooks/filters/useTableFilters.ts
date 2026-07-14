@@ -102,7 +102,7 @@ const DEFAULT_VALUE = "all";
 const TEXT_DEFAULT = "";
 const DATERANGE_DEFAULT = "";
 
-function defaultForFacet(facet: Facet<any>): string {
+function defaultForFacet<T>(facet: Facet<T>): string {
   switch (facet.type) {
     case "text":
       return TEXT_DEFAULT;
@@ -113,9 +113,9 @@ function defaultForFacet(facet: Facet<any>): string {
   }
 }
 
-function normalizeEnumValue(
+function normalizeEnumValue<T>(
   raw: string | null,
-  facet: EnumFacet<any>,
+  facet: EnumFacet<T>,
 ): string {
   if (!raw || raw === "all") return "all";
   return (facet.options as readonly string[]).includes(raw) ? raw : "all";
@@ -124,13 +124,13 @@ function normalizeEnumValue(
 const YMD_RE = /^\d{4}-\d{2}-\d{2}$/;
 const YM_RE = /^\d{4}-\d{2}$/;
 
-function normalizeValue(raw: string | null, facet: Facet<any>): string {
+function normalizeValue<T>(raw: string | null, facet: Facet<T>): string {
   if (raw == null) return defaultForFacet(facet);
   switch (facet.type) {
     case "text":
       return raw.trim();
     case "enum":
-      return normalizeEnumValue(raw, facet as EnumFacet<any>);
+      return normalizeEnumValue(raw, facet);
     case "month":
       return YM_RE.test(raw) ? raw : "all";
     case "dateRange": {
@@ -160,15 +160,6 @@ function writeSessionParams(pathname: string, params: URLSearchParams) {
   else window.sessionStorage.removeItem(key);
 }
 
-/**
- * Serializa el rango de fechas de vuelta a "from..to" preservando huecos.
- */
-export function serializeDateRange(from?: string, to?: string): string {
-  const f = from && YMD_RE.test(from) ? from : "";
-  const t = to && YMD_RE.test(to) ? to : "";
-  if (!f && !t) return "";
-  return `${f}..${t}`;
-}
 
 export function parseDateRange(value: string): { from?: string; to?: string } {
   if (!value.includes("..")) return {};
