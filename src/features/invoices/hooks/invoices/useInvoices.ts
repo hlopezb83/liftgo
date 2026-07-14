@@ -12,9 +12,6 @@ import {
 } from "../../lib/invoiceListFilters";
 import { invoiceKeys } from "../../lib/queryKeys";
 
-type InvoiceListRow = Awaited<ReturnType<typeof fetchInvoiceList>>[number];
-type InvoiceDetailRow = Awaited<ReturnType<typeof fetchInvoiceDetail>>;
-
 const INVOICE_STALE_MS = 60_000;
 
 async function fetchInvoiceList(filters?: InvoiceListFilters) {
