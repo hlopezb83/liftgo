@@ -31,8 +31,6 @@ export const formatDateMty = (value: Date | string | null | undefined): string =
 export const formatDateTimeMty = (value: Date | string | null | undefined): string =>
   formatMtyDate(value, DATE_PATTERNS.dateTime);
 
-const formatDateLongMty = (value: Date | string | null | undefined): string =>
-  formatMtyDate(value, DATE_PATTERNS.dateLong);
 
 export const formatDayMonthMty = (value: Date | string | null | undefined): string =>
   formatMtyDate(value, DATE_PATTERNS.dayMonthShort);
