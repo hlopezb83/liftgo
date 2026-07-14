@@ -42,6 +42,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
   return (
     <DayPicker
       locale={esLocale}
+      formatters={formatters}
       animate
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
