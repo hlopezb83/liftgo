@@ -56,7 +56,7 @@ export function GanttRow({ forklift, segments, days }: Props) {
                   }}
                 >
                   {showLabel && (
-                    <span className="text-[9px] text-white font-medium px-1 truncate drop-shadow-sm">
+                    <span className="text-[9px] text-primary-foreground font-medium px-1 truncate drop-shadow-sm">
                       {seg.label}
                     </span>
                   )}

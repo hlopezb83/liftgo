@@ -8,11 +8,11 @@ import { cn } from "@/lib/utils";
 // - warning (ámbar): maintenance, partial, pending, minor_damage, reported, in_repair, pickup
 // - danger  (rojo):  overdue, cancelled, declined, major_damage, needs_repair
 // - neutral (gris):  draft, retired, expired, completed, sold, inactive
-const SUCCESS = "bg-status-available text-white border-transparent";
-const INFO = "bg-status-rented text-white border-transparent";
+const SUCCESS = "bg-status-available text-success-foreground border-transparent";
+const INFO = "bg-status-rented text-info-foreground border-transparent";
 const WARNING = "bg-status-warning text-foreground border-transparent dark:text-background";
 const DANGER = "bg-destructive text-destructive-foreground border-transparent";
-const NEUTRAL_DARK = "bg-status-completed text-white border-transparent";
+const NEUTRAL_DARK = "bg-status-completed text-primary-foreground border-transparent";
 const NEUTRAL_LIGHT = "bg-muted text-muted-foreground border-transparent";
 
 const statusStyles: Record<string, string> = {

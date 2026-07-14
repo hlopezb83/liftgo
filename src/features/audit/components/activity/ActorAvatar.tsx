@@ -35,7 +35,7 @@ export function ActorAvatar({ name, role, size = "md", isSystem }: Props) {
   const colorCls = isSystem ? "bg-muted-foreground" : actorColor(name);
   return (
     <div className="flex items-center gap-2 min-w-0">
-      <div className={cn("rounded-full flex items-center justify-center font-semibold text-white shrink-0", sizeCls, colorCls)}>
+      <div className={cn("rounded-full flex items-center justify-center font-semibold text-primary-foreground shrink-0", sizeCls, colorCls)}>
         {actorInitials(name)}
       </div>
       <div className="min-w-0">

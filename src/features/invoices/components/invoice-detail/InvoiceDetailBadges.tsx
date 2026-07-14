@@ -4,8 +4,8 @@ type Tone = "neutral" | "info" | "success" | "warning" | "destructive";
 
 const toneClass: Record<Tone, string> = {
   neutral: "bg-muted text-muted-foreground border-transparent",
-  info: "bg-status-rented text-white border-transparent",
-  success: "bg-status-available text-white border-transparent",
+  info: "bg-status-rented text-info-foreground border-transparent",
+  success: "bg-status-available text-success-foreground border-transparent",
   warning: "bg-status-warning text-foreground border-transparent dark:text-background",
   destructive: "bg-destructive text-destructive-foreground border-transparent",
 };
