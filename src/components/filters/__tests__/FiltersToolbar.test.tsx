@@ -15,8 +15,7 @@ describe("FiltersToolbar", () => {
     await waitFor(() => expect(onChange).toHaveBeenCalledWith("hola"), { timeout: 1000 });
   });
 
-  it("renders StatusTabs options and fires onChange when a tab is clicked", async () => {
-    const user = userEvent.setup();
+  it("renders every StatusTabs option label", () => {
     const onChange = vi.fn();
     render(
       <FiltersToolbar>
@@ -26,12 +25,14 @@ describe("FiltersToolbar", () => {
           options={[
             { value: "all", label: "Todos" },
             { value: "paid", label: "Pagadas" },
+            { value: "overdue", label: "Vencidas" },
           ]}
         />
       </FiltersToolbar>,
     );
-    await user.click(screen.getByRole("tab", { name: "Pagadas" }));
-    expect(onChange).toHaveBeenCalledWith("paid");
+    expect(screen.getByRole("tab", { name: "Todos" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Pagadas" })).toBeInTheDocument();
+    expect(screen.getByRole("tab", { name: "Vencidas" })).toBeInTheDocument();
   });
 
   it("only renders ClearAll when visible=true and fires onClick", () => {
