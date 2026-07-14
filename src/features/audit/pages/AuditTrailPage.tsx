@@ -30,30 +30,13 @@ export default function AuditTrailPage() {
 
   // El filtro por tabla es server-side (afecta la query) → lo leemos del URL
   // vía useTableFilters y lo pasamos como argumento al hook.
-  const { values, set, reset, hasActive, filtered } = useTableFilters<
-    AuditLog,
-    {
-      q: { type: "text"; accessors: ((l: AuditLog) => string)[] };
-      table_name: { type: "enum"; field: "table_name"; options: string[]; ui: "select" };
-    }
-  >({
-    items: [],
+  const { values, set, reset, hasActive } = useTableFilters<AuditLog, {
+    q: { type: "text" };
+    table_name: { type: "enum"; options: string[]; ui: "select" };
+  }>({
     facets: {
-      q: {
-        type: "text",
-        accessors: [
-          (l) => l.table_name,
-          (l) => l.action,
-          (l) => l.user_email ?? "",
-          (l) => getRecordLabel(l),
-        ],
-      },
-      table_name: {
-        type: "enum",
-        field: "table_name",
-        options: tableOptions,
-        ui: "select",
-      },
+      q: { type: "text" },
+      table_name: { type: "enum", options: tableOptions, ui: "select" },
     },
   });
 
@@ -61,7 +44,7 @@ export default function AuditTrailPage() {
     values.table_name !== "all" ? { table_name: values.table_name } : undefined,
   );
 
-  // Aplicamos la búsqueda cliente sobre los logs cargados.
+  // Búsqueda cliente sobre los logs ya filtrados por tabla en el servidor.
   const search = values.q.toLowerCase();
   const displayed = !search
     ? (logs ?? [])
@@ -71,7 +54,7 @@ export default function AuditTrailPage() {
           .toLowerCase()
           .includes(search),
       );
-  void filtered; // el filtrado real ocurre arriba con `logs`
+
 
 
 
