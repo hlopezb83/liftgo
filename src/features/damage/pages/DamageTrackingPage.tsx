@@ -115,19 +115,21 @@ export default function DamageTrackingPage() {
         subtitle="Rastrea daños desde inspecciones hasta reparación y facturación"
         actions={<ReportDamageDialog />}
         filters={
-          <div className="flex flex-col sm:flex-row gap-3">
-            <SearchBar value={search} onChange={setSearch} placeholder="Buscar por descripción, montacargas..." />
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full sm:w-[160px]"><SelectValue placeholder="Todos los estados" /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los estados</SelectItem>
-                {DAMAGE_STATUSES.map((s) => (
-                  <SelectItem key={s} value={s}>{STATUS_LABELS[s] || s}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <FiltersToolbar>
+            <FiltersToolbar.Search
+              value={values.q}
+              onChange={(v) => set("q", v)}
+              placeholder="Buscar por descripción, montacargas..."
+            />
+            <FiltersToolbar.StatusSelect
+              value={values.status}
+              onChange={(v) => set("status", v as DamageStatus | "all")}
+              options={DAMAGE_STATUS_OPTIONS}
+            />
+            <FiltersToolbar.ClearAll visible={hasActive} onClick={reset} />
+          </FiltersToolbar>
         }
+
         isLoading={isLoading}
         table={table}
         onRowClick={(r) => detail.open(r as DamageRecordWithJoins)}
