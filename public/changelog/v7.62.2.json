@@ -1,0 +1,16 @@
+{
+  "version": "7.62.2",
+  "date": "2026-07-14",
+  "type": "patch",
+  "title": "Filtros de tablas: fix de memoización con React Compiler + TanStack",
+  "category": "fix",
+  "summary": "Los filtros de las tablas solo funcionaban una vez y luego se congelaban. Corregido a nivel de useLiftgoTable con un Proxy que rompe la memoización del compiler cuando cambian data/sort/paginación/selección.",
+  "problem": "En producción (React Compiler activo), al aplicar un filtro en /cuentas-por-pagar la primera vez funcionaba, pero cambiar de opción no actualizaba la tabla. useTableFilters computaba correctamente 9 resultados y el subtítulo mostraba '9 resultados', pero el <tbody> seguía renderizando las 25 filas iniciales.",
+  "root_cause": "useReactTable de TanStack Table devuelve SIEMPRE la misma referencia de objeto entre renders (muta internamente state/rowModel). React Compiler memoiza el JSX aguas abajo basándose en identidad de props. Como <ListPageLayout table={table}/> recibía siempre la misma table, el compiler saltaba la re-renderización de DataTableV2 y DataTableBodyV2, dejando el DOM congelado con las filas del render inicial.",
+  "fix": "useLiftgoTable ahora retorna new Proxy(table, {}) memoizado con dependencias primitivas (dataVersion, sortKey, selKey, pagKey). El Proxy es transparente (delega todo al table original) pero su identidad cambia cuando algo relevante cambia, invalidando la memoización del compiler en TODOS los consumidores sin necesidad de tocarlos.",
+  "changes": [
+    "src/components/dataTable/v2/useLiftgoTable.ts: envolver el retorno con Proxy memoizado por versión de data/sort/paginación/selección"
+  ],
+  "impact": "Global. Corrige el bug en ~38 páginas y componentes que consumen useLiftgoTable (Cuentas por Pagar, Facturas, Cotizaciones, Clientes, Mantenimiento, Reportes, Portal, etc.) con un único cambio.",
+  "verification": "Playwright reproduce el bug antes del fix (25→25 tras click en 'Pendiente') y valida el fix después (25→9 en 'Pendiente', 25 en 'Pagada')."
+}
