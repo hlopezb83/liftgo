@@ -114,7 +114,7 @@ export default function QuotesPage() {
             onChange={(v) => set("q", v)}
             placeholder="Buscar cotizaciones..."
           />
-          <FiltersToolbar.StatusSelect
+          <FiltersToolbar.StatusTabs
             value={values.status}
             onChange={(v) => set("status", v as QuoteStatus | "all")}
             options={QUOTE_STATUS_OPTIONS}
