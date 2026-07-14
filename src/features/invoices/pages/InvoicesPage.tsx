@@ -102,8 +102,11 @@ function InvoiceCard({ inv, onClick }: { inv: Invoice; onClick: () => void }) {
 }
 
 export default function InvoicesPage() {
-  const { search, setSearch, statusFilter, setStatusFilter, dateRange, setDateRange, queryFilters, filterKey } =
-    useInvoicesFilters();
+  const {
+    search, setSearch, statusFilter, setStatusFilter, dateRange, setDateRange,
+    queryFilters, filterKey, hasActive, clearAll,
+  } = useInvoicesFilters();
+
   const { data: invoices, isLoading } = useInvoices(queryFilters);
   const navigate = useNavigateTransition();
   const [previewOpen, setPreviewOpen] = useState(false);
