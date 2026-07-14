@@ -385,6 +385,8 @@ export function useTableFilters<T, F extends Record<string, Facet<T>>>(
       });
     }
 
+    // eslint-disable-next-line no-console
+    console.log("[useTableFilters] filtered result", { filterKey, len: base.length });
     return base;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, items, itemsVersion, filterKey]);
