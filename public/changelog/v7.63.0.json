@@ -1,0 +1,20 @@
+{
+  "version": "7.63.0",
+  "date": "2026-07-14",
+  "type": "minor",
+  "title": "Sprint A — Badges y tokens semánticos: eliminar text-white hardcoded",
+  "category": "refactor",
+  "summary": "Como primer sprint de la auditoría UI/UX (Desktop 1600x900), se eliminaron todos los usos de text-white hardcoded sobre fondos semánticos en badges de estado y elementos visuales, reemplazándolos por los tokens *-foreground correctos del design system. Esto restaura la capacidad de tematización y prepara el terreno para dark mode consistente.",
+  "problem": "Múltiples componentes de badge (StatusBadge, InvoiceDetailBadges, SupplierRepStatusBadge, BillApprovalSection, ReconciliationBadge) usaban text-white directamente sobre fondos como bg-status-available o bg-status-rented. Esto rompía la tematización, generaba mezclas visuales entre módulos (badges idénticos con matices distintos), y violaba la regla del design system de no hardcodear colores en componentes.",
+  "changes": [
+    "src/components/feedback/StatusBadge.tsx: SUCCESS/INFO/NEUTRAL_DARK ahora usan text-success-foreground / text-info-foreground / text-primary-foreground.",
+    "src/features/bank-reconciliation/components/ReconciliationBadge.tsx: text-white → text-success-foreground.",
+    "src/features/invoices/components/invoice-detail/InvoiceDetailBadges.tsx: toneClass.info/success actualizados a tokens semánticos.",
+    "src/features/accounts-payable/components/SupplierRepStatusBadge.tsx: tono 'received' → text-success-foreground.",
+    "src/features/accounts-payable/components/BillApprovalSection.tsx: tono 'approved' → text-success-foreground.",
+    "src/features/calendar/components/calendar/GanttRow.tsx: label del segmento usa text-primary-foreground.",
+    "src/features/audit/components/activity/ActorAvatar.tsx: iniciales del avatar usan text-primary-foreground."
+  ],
+  "impact": "Global. Badges de estado (Pagado, Rentado, Aprobado, Recibido, Conciliado, etc.) y avatares ahora responden correctamente a los tokens del theme. Cero cambio visual perceptible en light mode porque los foreground tokens ya resolvían a blanco puro; el beneficio real se manifiesta al ajustar el theme o activar dark mode.",
+  "next": "Sprints B (tablas huérfanas → DataTableV2), C (layout tokens), D (botones/modales) y E (pulido) siguen pendientes. Ver .lovable/plan.md."
+}
