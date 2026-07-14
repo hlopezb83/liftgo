@@ -4,7 +4,8 @@ import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { usePageActions } from "@/contexts/pageActions";
 import { MarkAvailableDialog, useForkliftMap } from "@/features/fleet";
 import { useDialogState } from "@/hooks/useDialogState";
-import { useListFilters } from "@/hooks/useListFilters";
+import { useTableFilters } from "@/hooks/filters/useTableFilters";
+
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
