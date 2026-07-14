@@ -1,0 +1,19 @@
+{
+  "version": "7.64.0",
+  "date": "2026-07-14",
+  "type": "minor",
+  "title": "Sprint B — Tablas huérfanas al DataTableV2 y cierre de deuda de Sprint A",
+  "category": "refactor",
+  "summary": "Segundo sprint de la auditoría UI/UX. Se migraron 3 tablas HTML nativas (BankStatementLinesTable, PaymentsExportTable, PaymentIntentsSection) al sistema estándar DataTableV2 + useLiftgoTable, y se cerró la deuda pendiente de Sprint A consolidando los badges duplicados (SupplierRepStatusBadge y StatusBadgeApproval) en el StatusBadge global, además del último text-white hardcoded en SwipeableCard.",
+  "problem": "3 tablas usaban <table> nativo con estilos ad-hoc (bg-muted/20, borders, padding inconsistente) fuera del sistema DataTableV2, rompiendo la consistencia visual con el resto de la app. Además, SupplierRepStatusBadge y StatusBadgeApproval duplicaban el mapeo de tonos que ya vive en StatusBadge, y SwipeableCard conservaba un text-white hardcoded que Sprint A no había alcanzado.",
+  "changes": [
+    "src/features/bank-reconciliation/components/BankStatementLinesTable.tsx: migrado a DataTableV2 con columnas tipadas, row-click de drill-down y StatusBadge global para el estado de conciliación.",
+    "src/features/accounts-payable/components/PaymentsExportTable.tsx: migrado a DataTableV2 preservando checkbox de selección externa y edición de monto por fila.",
+    "src/features/invoices/components/invoice-detail/PaymentIntentsSection.tsx: migrado a DataTableV2 dentro de rounded-md border; conserva flujo de aprobación/rechazo con FormDialog.",
+    "src/features/accounts-payable/components/SupplierRepStatusBadge.tsx: reducido a wrapper de StatusBadge con label 'REP: …' y mapeo semántico (U5 cerrado).",
+    "src/features/accounts-payable/components/BillApprovalSection.tsx: StatusBadgeApproval local ahora usa StatusBadge global (U4 cerrado).",
+    "src/components/feedback/SwipeableCard.tsx: text-white residual → text-primary-foreground."
+  ],
+  "impact": "Global. Consistencia visual: las 3 tablas migradas heredan densidad, hover, zebra y accesibilidad del sistema DataTableV2. Los badges de aprobación y REP ahora participan del tema semántico y responden a dark mode. Cero cambio de negocio: mismos datos, misma interacción.",
+  "next": "Sprint C (layout tokens L1–L8 y wrap de tabs en Configuración V1), Sprint D (botones/modales U6–U10, U13) y Sprint E (pulido) siguen pendientes. Ver .lovable/plan.md."
+}
