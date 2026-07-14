@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { SearchBar } from "@/components/forms/SearchBar";
+import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { DeleteIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useUserRole } from "@/features/users";
+import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { AuditLogDetailDialog } from "../components/auditTrail/AuditLogDetailDialog";
 import { AuditLogMobileCard } from "../components/auditTrail/AuditLogMobileCard";
 import {
@@ -18,8 +18,6 @@ import { useAuditLogs, useDeleteAuditLog, useRevertAuditLog } from "../hooks/use
 import type { AuditLog } from "../hooks/useAuditLogs";
 
 export default function AuditTrailPage() {
-  const [tableFilter, setTableFilter] = useState("all");
-  const [search, setSearch] = useState("");
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
   const [logToDelete, setLogToDelete] = useState<AuditLog | null>(null);
 
@@ -28,20 +26,53 @@ export default function AuditTrailPage() {
   const { mutate: deleteAuditLog, isPending: isDeleting } = useDeleteAuditLog();
   const { mutate: revertAuditLog, isPending: isReverting } = useRevertAuditLog();
 
+  const tableOptions = TABLES.map((t) => t.value).filter((v) => v !== "all") as string[];
+
+  // El filtro por tabla es server-side (afecta la query) → lo leemos del URL
+  // vía useTableFilters y lo pasamos como argumento al hook.
+  const { values, set, reset, hasActive, filtered } = useTableFilters<
+    AuditLog,
+    {
+      q: { type: "text"; accessors: ((l: AuditLog) => string)[] };
+      table_name: { type: "enum"; field: "table_name"; options: string[]; ui: "select" };
+    }
+  >({
+    items: [],
+    facets: {
+      q: {
+        type: "text",
+        accessors: [
+          (l) => l.table_name,
+          (l) => l.action,
+          (l) => l.user_email ?? "",
+          (l) => getRecordLabel(l),
+        ],
+      },
+      table_name: {
+        type: "enum",
+        field: "table_name",
+        options: tableOptions,
+        ui: "select",
+      },
+    },
+  });
+
   const { data: logs, isLoading } = useAuditLogs(
-    tableFilter !== "all" ? { table_name: tableFilter } : undefined,
+    values.table_name !== "all" ? { table_name: values.table_name } : undefined,
   );
 
-  const filtered = (logs ?? []).filter((log) => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return (
-      log.table_name.toLowerCase().includes(q) ||
-      log.action.toLowerCase().includes(q) ||
-      (log.user_email || "").toLowerCase().includes(q) ||
-      getRecordLabel(log).toLowerCase().includes(q)
-    );
-  });
+  // Aplicamos la búsqueda cliente sobre los logs cargados.
+  const search = values.q.toLowerCase();
+  const displayed = !search
+    ? (logs ?? [])
+    : (logs ?? []).filter((log) =>
+        [log.table_name, log.action, log.user_email ?? "", getRecordLabel(log)]
+          .join(" ")
+          .toLowerCase()
+          .includes(search),
+      );
+  void filtered; // el filtrado real ocurre arriba con `logs`
+
 
   const columns: ColumnDef<AuditLog>[] = (() => {
     const base: ColumnDef<AuditLog>[] = [
