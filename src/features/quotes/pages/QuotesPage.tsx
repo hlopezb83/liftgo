@@ -108,16 +108,21 @@ export default function QuotesPage() {
         </Button>
       }
       filters={
-        <div className="flex flex-col sm:flex-row gap-3">
-          <SearchBar value={search} onChange={setSearch} placeholder="Buscar cotizaciones..." className="max-w-xs" />
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-full sm:w-[150px]"><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {STATUSES.map((s) => <SelectItem key={s} value={s}>{QUOTE_STATUS_LABELS[s] || s}</SelectItem>)}
-            </SelectContent>
-          </Select>
-        </div>
+        <FiltersToolbar>
+          <FiltersToolbar.Search
+            value={values.q}
+            onChange={(v) => set("q", v)}
+            placeholder="Buscar cotizaciones..."
+          />
+          <FiltersToolbar.StatusTabs
+            value={values.status}
+            onChange={(v) => set("status", v as QuoteStatus | "all")}
+            options={QUOTE_STATUS_OPTIONS}
+          />
+          <FiltersToolbar.ClearAll visible={hasActive} onClick={reset} />
+        </FiltersToolbar>
       }
+
       isLoading={isLoading}
       table={table}
       onRowClick={(q) => navigate(`/quotes/${q.id}`)}
