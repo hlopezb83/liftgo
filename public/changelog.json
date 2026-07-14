@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.66.0",
+    "date": "2026-07-14",
+    "type": "minor",
+    "title": "Sprint D — Buttons & Modals: variantes densas de botón",
+    "description": "Se extiende buttonVariants con dos tamaños densos: xs (h-8, px-2.5, text-xs, icono 3.5) y iconSm (h-8 w-8, icono 3.5), pensados para toolbars y acciones de fila en tablas de alta densidad. Se migran 3 casos claros que hardcodeaban h-8 w-8 en botones-icono (AuditTrailPage, AuditLogMobileCard, ImageGalleryLightbox) al nuevo size='iconSm'. Auditoría de patrones de modal y confirmación: 74 archivos usan FormDialog (patrón canónico para forms RHF+Zod), 29 usan useConfirm para acciones destructivas, no hay window.confirm en código productivo, y los 9 archivos que importan Dialog primitivo directo son casos legítimos no-form (lightbox, command, keyboard shortcuts, date pickers, error details). No se rediseñan colores ni radios (Sprint E).",
+    "category": "refactor",
+    "files": [
+      "src/components/ui/button.tsx",
+      "src/features/audit/pages/AuditTrailPage.tsx",
+      "src/features/audit/components/auditTrail/AuditLogMobileCard.tsx",
+      "src/features/damage/components/damage/ImageGalleryLightbox.tsx"
+    ]
+  },
+
+  {
     "version": "7.65.0",
     "date": "2026-07-14",
     "type": "patch",
