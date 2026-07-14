@@ -57,9 +57,6 @@ export function useLiftgoTable<T>({
 
   const tableData = useMemo(() => data ?? [], [data]);
 
-  // eslint-disable-next-line no-console
-  console.log("[useLiftgoTable] render", { dataLen: (data ?? []).length, tableDataLen: tableData.length, resetKey });
-
   useEffect(() => {
     setPagination((prev) => (prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }));
   }, [tableData, resetKey]);
