@@ -49,7 +49,7 @@ export default function InvoicesReconciliation() {
     ];
 
   return (
-    <PageContainer maxWidth="wide" className="space-y-6">
+    <PageContainer maxWidth="wide">
       <PageHeader
         title="Conciliación de facturas"
         subtitle="Cruce entre folio interno LiftGo, ID de Facturapi y UUID SAT."

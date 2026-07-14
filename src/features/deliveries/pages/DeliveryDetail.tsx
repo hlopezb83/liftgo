@@ -3,6 +3,7 @@ import { useParams } from "react-router";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
+import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBookings } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
@@ -40,10 +41,10 @@ export default function DeliveryDetail() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
+      <PageContainer>
         <Skeleton className="h-10 w-64" />
         <div className="grid gap-6 md:grid-cols-2"><Skeleton className="h-48" /><Skeleton className="h-48" /></div>
-      </div>
+      </PageContainer>
     );
   }
 
@@ -93,7 +94,7 @@ export default function DeliveryDetail() {
 
   return (
     <>
-      <div className="space-y-6">
+      <PageContainer>
         <DetailPageHeader
           title={delivery.delivery_number}
           subtitle={subtitle}
@@ -141,7 +142,7 @@ export default function DeliveryDetail() {
         {delivery.notes && <NotesCard value={delivery.notes} readOnly title="Notas" />}
 
         <DeliverySignatureCard signatureBase64={delivery.signature_base64} />
-      </div>
+      </PageContainer>
 
       <DeliveryDetailDialogs
         signatureOpen={signatureOpen}

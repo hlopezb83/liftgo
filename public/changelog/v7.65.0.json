@@ -1,0 +1,34 @@
+{
+  "version": "7.65.0",
+  "date": "2026-07-14",
+  "type": "patch",
+  "title": "Sprint C — Auditoría de layout tokens (adopción ya consolidada)",
+  "summary": "Auditoría de PageContainer / ListPageLayout / DetailPageHeader / FormPageHeader. La cobertura del sistema ya estaba en su lugar antes de este sprint: 43 archivos consumen PageContainer y todas las páginas de listado usan ListPageLayout. Solo DeliveryDetail e InvoicesReconciliation presentaban drift menor y se corrigieron.",
+  "sections": [
+    {
+      "title": "Auditoría del sistema de layout",
+      "items": [
+        "PageContainer: 43 usos, incluye variantes full/wide/form/narrow.",
+        "ListPageLayout: usado por Customers, Bookings, Users, Suppliers, CuentasPorPagar, AuditTrail, Quotes, Invoices, Contracts, ReturnInspection, Inventory, Fleet, Deliveries, DamageTracking, Maintenance.",
+        "DetailPageHeader: usado en 7/8 páginas de detalle (Fleet, Bookings, Customers, Contracts, Suppliers, Returns, Quotes). DeliveryDetail era el único fuera del patrón.",
+        "FormPageHeader: usado por BookingForm, ForkliftForm, QuoteForm, InvoiceForm, ContractForm.",
+        "Exceptions justificadas: CRMPage (layout Kanban full-viewport), AuthPage/PortalLogin (layout de autenticación), NotFound (fullscreen)."
+      ]
+    },
+    {
+      "title": "Fixes puntuales de drift",
+      "items": [
+        "DeliveryDetail.tsx: reemplazado <div className=\"space-y-6\"> por PageContainer (tanto en el estado loading como en el render principal).",
+        "InvoicesReconciliation.tsx: eliminado className=\"space-y-6\" redundante en PageContainer (ya lo incluye por default)."
+      ]
+    },
+    {
+      "title": "Conclusión",
+      "items": [
+        "El plan original de Sprint C proponía crear PageContainer/ListPageHeader/DetailPageHeader — ya existían de iteraciones anteriores.",
+        "No se requirieron componentes nuevos ni tokens adicionales.",
+        "El siguiente sprint (D — Buttons & Modals) es el próximo con impacto real."
+      ]
+    }
+  ]
+}

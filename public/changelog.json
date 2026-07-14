@@ -1,5 +1,17 @@
 [
   {
+    "version": "7.65.0",
+    "date": "2026-07-14",
+    "type": "patch",
+    "title": "Sprint C — Auditoría de layout tokens (adopción ya consolidada)",
+    "description": "Auditoría del sistema de layout de páginas (PageContainer, ListPageLayout, DetailPageHeader, FormPageHeader). Resultado: los componentes ya existen y están adoptados en 43 archivos; todas las páginas de listado usan ListPageLayout; 7/8 detalles usan DetailPageHeader + PageContainer. Fixes puntuales: DeliveryDetail ahora envuelve en PageContainer (era el único detalle con <div className=\"space-y-6\"> ad-hoc) y se removió el className redundante space-y-6 de InvoicesReconciliation. Ningún componente nuevo requerido — el drift original ya se había cerrado en iteraciones previas.",
+    "category": "refactor",
+    "files": [
+      "src/features/deliveries/pages/DeliveryDetail.tsx",
+      "src/features/invoices/pages/InvoicesReconciliation.tsx"
+    ]
+  },
+  {
     "version": "7.64.0",
     "date": "2026-07-14",
     "type": "minor",
