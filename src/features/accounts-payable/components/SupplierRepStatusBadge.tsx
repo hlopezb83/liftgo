@@ -7,7 +7,7 @@ import {
 const TONE: Record<SupplierRepStatus, string> = {
   not_required: "bg-muted text-muted-foreground",
   pending: "bg-status-warning text-foreground dark:text-background",
-  received: "bg-status-available text-white",
+  received: "bg-status-available text-success-foreground",
   rejected: "bg-destructive text-destructive-foreground",
 };
 

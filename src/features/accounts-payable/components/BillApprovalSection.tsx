@@ -27,7 +27,7 @@ function StatusBadgeApproval({ status }: { status: SupplierBillApprovalStatus })
   const tone: Record<SupplierBillApprovalStatus, string> = {
     not_required: "bg-muted text-muted-foreground",
     pending: "bg-status-warning text-foreground dark:text-background",
-    approved: "bg-status-available text-white",
+    approved: "bg-status-available text-success-foreground",
     rejected: "bg-destructive text-destructive-foreground",
   };
   return (
