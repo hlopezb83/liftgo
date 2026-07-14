@@ -20,7 +20,6 @@ import { useAccountsPayableKpis } from "../hooks/useAccountsPayableKpis";
 import type { SupplierBillListItem } from "../hooks/useSupplierBills";
 
 export default function CuentasPorPagarPage() {
-  "use no memo";
   const { bills, kpis, isLoading } = useAccountsPayableKpis();
   const { data: suppliers } = useSuppliers();
   const f = useAccountsPayableFilters(bills);
