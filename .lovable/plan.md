@@ -1,100 +1,84 @@
-# Auditoría UI/UX — Desktop 1600x900
+# Auditoría Sprint A + Sprint B
 
-Metodología: capturé 8 rutas a 1600x900 (Panel, Facturas, Reservas, Clientes, Equipos, Cotizaciones, Mantenimiento, Configuración) y disparé 3 subagentes en paralelo (espaciado/layout, tipografía/color, UI Kit). Consolidado abajo, ordenado por severidad y agrupado por eje. Cada fila indica **archivo:línea**, problema y clase/componente sugerido.
+## Auditoría de Sprint A (v7.63.0)
 
----
+### ✅ Completado y funcional
 
-## 1) Bugs visuales confirmados en screenshots (1600x900)
+- T1–T9: `text-white` eliminado en `StatusBadge`, `ReconciliationBadge`, `InvoiceDetailBadges`, `SupplierRepStatusBadge`, `BillApprovalSection`, `GanttRow`, `ActorAvatar`. Verificado visualmente en light mode.
+- No introduce regresiones de theming ni de contraste.
 
-| # | Ruta | Problema visto | Fix propuesto |
-|---|---|---|---|
-| V1 | `/settings/operations` | Los tabs (Modelos, Operadores, Mecánicos, Pólizas, Plantilla, Datos Fiscales, Logo, Aprobaciones) **wrappean a 2 filas** en 1600px — se ve como parche. | Reducir `px` interno del `TabsTrigger` a `px-3`, o convertir en `Tabs` verticales con sidebar interno cuando haya >5 tabs. |
-| V2 | `/settings/operations` | Filas de tabla con altura muy superior al resto de la app (`py-4` vs `py-2` estándar), bordes `rounded-lg` en celdas, columna "Fabricante" repite "LIFT GO" en todas las filas. | Migrar a `DataTableV2` + `useLiftgoTable`. Colapsar Fabricante como agrupación o eliminar la columna si es único. |
-| V3 | Panel (Dashboard) | Dos filas de tarjetas KPI con **estilos de icono distintos**: fila 1 = cuadrados grises con icono negro; fila 2 = círculos tintados con icono de color. Rompe el ritmo visual. | Unificar en `KpiTile`: cuadrado `rounded-lg bg-muted` + icono `text-muted-foreground`. |
-| V4 | `/invoices`, `/fleet` | Los `StatusBadge` mezclan **formas**: "Cancelado" rectángulo rojo relleno vs "Pagado" pill verde vs "Sin Pagar" pill azul vs "Disponible" pill verde vs "Rentado" pill azul. | Estandarizar a pill `rounded-full` con `variant` semántica en `StatusBadge`. Ver hallazgos T1–T4 y U4. |
-| V5 | `/fleet` | Última fila de "Vendido" queda cortada por el fold, y la columna "Ubicación" vacía (—) desperdicia ~120px a 1600. | Colapsar columnas vacías o usar `min-w` en lugar de fijo. Ver L5. |
-| V6 | `/invoices` | Acciones sólo `eye icon` a la derecha; el resto de la app usa drill-down por click en fila. Redundante. | Eliminar columna de acciones (ya existe navegación por row-click). |
+### ⚠️ Deuda del alcance original del sprint
 
----
+El plan de Sprint A también incluía **U4** y **U5** (consolidar `StatusBadgeApproval` local de `BillApprovalSection.tsx` y `SupplierRepStatusBadge.tsx` en el `StatusBadge` global). **No se hicieron.** Ambos badges siguen duplicando la lógica de `StatusBadge`:
 
-## 2) Layout y Espaciado (15 hallazgos)
+- `src/features/accounts-payable/components/BillApprovalSection.tsx:26` — `StatusBadgeApproval` local.
+- `src/features/accounts-payable/components/SupplierRepStatusBadge.tsx:14` — componente paralelo.
 
-| # | Sev | Archivo:Línea | Problema | Fix |
-|---|---|---|---|---|
-| L1 | CRIT | `src/components/layout/ListPageLayout.tsx:107` | `space-y-*` distinto a `PageContainer`. | `space-y-6` para igualar. |
-| L2 | HIGH | `src/components/layout/DetailLayout.tsx:44` | Sin `max-w`; en 1600px+ las secciones se estiran. | Envolver en `PageContainer maxWidth="wide"`. |
-| L3 | HIGH | `src/components/feedback/TableSkeleton.tsx:20` | `p-4` vs `TableCell` real `px-3 py-2`; skeleton más alto. | `px-3 py-2`. |
-| L4 | MED | `src/components/domain/KpiTile.tsx:98` | Mezcla `p-3` y `p-4` en dashboard. | Estandarizar a `p-4`. |
-| L5 | MED | `src/features/audit/pages/AuditTrailPage.tsx:86` | `max-w-[160px]` fuerza truncado. | `max-w-[250px]` o `min-w`. |
-| L6 | MED | `src/components/layout/FormPageHeader.tsx:21` | `gap-2` vs `PageHeader:19` `gap-3`. | `gap-3`. |
-| L7 | MED | `src/components/forms/FormSection.tsx:20` | `space-y-3` denso. | `space-y-4`. |
-| L8 | MED | `src/components/layout/ListToolbar.tsx:37` | `space-y-2` vs `ListPageLayout:198` `space-y-3`. | `space-y-3`. |
-| L9 | MED | `src/features/feedback/pages/FeedbackManagementPage.tsx:38` | Grid salta 1→3→6. | `grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6`. |
-| L10 | LOW | `src/components/layout/ListPageLayout.tsx:165` | Pull-to-refresh usa `-mt-2 -mb-2`. | Posicionamiento absoluto. |
-| L11 | LOW | `src/components/layout/DetailLayout.tsx:64` | `mb-2` insuficiente en títulos de sección. | `mb-4`. |
-| L12 | LOW | `src/components/layout/PageHeader.tsx:22` | `-ml-2` en botón Volver. | Revisar contenedor. |
-| L13 | LOW | `src/components/layout/PageContainer.tsx:21` | `max-w-3xl` estrecho para forms de 2 columnas. | `max-w-4xl`. |
-| L14 | LOW | `src/components/domain/KpiTile.tsx:100` | Icono `rounded-xl` vs botones `rounded-lg`. | `rounded-lg`. |
-| L15 | LOW | `src/components/ui/ErrorDetailsDialog.tsx:44` | Doble scroll potencial. | Coordinar `max-h`. |
+### 🐛 Bug menor detectado
+
+- `src/components/feedback/SwipeableCard.tsx:101` — `text-white` hardcoded en botones swipe móviles. No es crítico (fondos custom por `a.className`), pero rompe el patrón que fijamos en Sprint A. Fix trivial: usar `text-primary-foreground` como default y dejar que `a.className` lo sobrescriba.
+
+### 🧪 Tests
+
+No se agregaron tests. Los cambios son puramente de clases Tailwind; un snapshot test añadiría poco valor. Se puede omitir.
 
 ---
 
-## 3) Tipografía y Color (15 hallazgos)
+## Sprint B — Tablas huérfanas + Modelos (propuesto)
 
-Patrón dominante: `text-white` **hardcoded** sobre badges con fondo semántico → rompe theming.
+Migrar 3 tablas nativas al sistema `DataTableV2` + `useLiftgoTable`, más la tabla de Modelos de Equipo (V2). Además cerrar la deuda de U4/U5 y el `text-white` de `SwipeableCard` para dejar Sprint A al 100%.
 
-| # | Sev | Archivo:Línea | Fix |
-|---|---|---|---|
-| T1 | HIGH | `src/components/feedback/StatusBadge.tsx:11` | `text-white` → `text-success-foreground`. |
-| T2 | HIGH | `src/components/feedback/StatusBadge.tsx:12` | `text-white` → `text-info-foreground`. |
-| T3 | HIGH | `src/components/feedback/StatusBadge.tsx:15` | `text-white` → `text-primary-foreground`. |
-| T4 | HIGH | `src/features/bank-reconciliation/components/ReconciliationBadge.tsx:20` | `text-white` → `text-success-foreground`. |
-| T5 | HIGH | `src/features/invoices/components/invoice-detail/InvoiceDetailBadges.tsx:7-8` | `text-white` → `text-info-foreground` / `text-success-foreground`. |
-| T6 | HIGH | `src/features/accounts-payable/components/SupplierRepStatusBadge.tsx:10` | idem. |
-| T7 | HIGH | `src/features/accounts-payable/components/BillApprovalSection.tsx:30` | idem. |
-| T8 | MED | `src/features/calendar/components/calendar/GanttRow.tsx:59` | `text-white` → `text-primary-foreground`. |
-| T9 | MED | `src/features/audit/components/activity/ActorAvatar.tsx:38` | idem. |
-| T10 | MED | `src/layouts/sidebar/SidebarBranding.tsx:14` | `bg-white` → `bg-card` (evita flash en dark mode). |
-| T11 | MED | `src/layouts/ErrorBoundary.tsx:96` | `text-lg font-semibold` → `text-xl sm:text-2xl` (alinea con PageHeader). |
-| T12 | MED | `src/components/feedback/EmptyState.tsx:24` | `text-lg font-semibold` → `text-xl`. |
-| T13 | LOW | `src/components/layout/DetailLayout.tsx:64` | Extraer `text-xs font-semibold uppercase tracking-wide` a `@apply section-label` (utility). |
-| T14 | LOW | `src/features/feedback/pages/FeedbackManagementPage.tsx:42` | idem. |
-| T15 | LOW | Global | Unificar `text-muted-foreground` (nunca `text-gray-500` / `text-slate-500`). |
+### Alcance
 
----
+**B1. Cerrar deuda de Sprint A** (rápido, ~15 min)
 
-## 4) Consistencia de UI Kit (15 hallazgos)
+- Consolidar `StatusBadgeApproval` en `BillApprovalSection.tsx` → usar `StatusBadge` con variantes semánticas mapeadas.
+- Refactorizar `SupplierRepStatusBadge.tsx` para envolver `StatusBadge` (mantener API pública para no romper llamadas).
+- `SwipeableCard.tsx:101`: `text-white` → `text-primary-foreground` como default.
 
-| # | Sev | Archivo:Línea | Problema | Fix |
-|---|---|---|---|---|
-| U1 | CRIT | `src/features/bank-reconciliation/components/BankStatementLinesTable.tsx:32` | `<table>` HTML nativo. | Migrar a `DataTableV2` + `useLiftgoTable`. |
-| U2 | CRIT | `src/features/accounts-payable/components/PaymentsExportTable.tsx:43` | Tabla nativa. | `DataTableV2`. |
-| U3 | CRIT | `src/features/invoices/components/invoice-detail/PaymentIntentsSection.tsx:72` | Tabla nativa con `bg-muted/20` ad-hoc. | `DataTableV2`. |
-| U4 | HIGH | `src/features/accounts-payable/components/BillApprovalSection.tsx:34` | `StatusBadgeApproval` local. | Reutilizar `StatusBadge`. |
-| U5 | HIGH | `src/features/accounts-payable/components/SupplierRepStatusBadge.tsx:16` | Badge duplicado. | `StatusBadge`. |
-| U6 | HIGH | `src/features/accounts-payable/components/SupplierPaymentRepReceived.tsx:31` | `<button>` con `hover:underline`. | `<Button variant="link" size="sm" className="h-auto p-0">`. |
-| U7 | HIGH | `src/features/audit/components/activity/ActivityByMember.tsx:30` | `<button>` nativo. | `<Button variant="ghost">`. |
-| U8 | HIGH | `src/features/damage/components/damage/DamageEvidenceSection.tsx:51` | `<button>` con `bg-red-500`. | `<Button variant="destructive" size="icon" className="h-6 w-6">`. |
-| U9 | HIGH | `src/features/customers/pages/CustomersPage.tsx:140` | Filtros con `<button>` custom. | Usar `Badge outline` o `Button ghost`. |
-| U10 | MED | `src/components/feedback/KeyboardShortcutsDialog.tsx:37` | `<Dialog>` fuera del patrón `FormDialog`. | Envolver o crear `BaseModal`. |
-| U11 | MED | `src/components/domain/KpiTile.tsx:100` | `rounded-xl` vs `rounded-lg` del sistema. | `rounded-lg`. |
-| U12 | MED | `src/features/auth/pages/AuthPage.tsx:67` | Logo `rounded-2xl`. | `rounded-lg`. |
-| U13 | MED | `src/components/forms/DatePickerField.tsx:67` | Fecha en `<Dialog>` full screen. | Migrar a `Popover`. |
-| U14 | LOW | `src/components/forms/DatePickerField.tsx` vs `DateField.tsx` | Duplicidad. | Consolidar en `fields/`. |
-| U15 | LOW | `src/features/portal/components/statement/PortalInvoicesTable.tsx:70` | `<button>` sin feedback. | `<Button variant="ghost" size="sm">`. |
+**B2. `BankStatementLinesTable.tsx**` (`src/features/bank-reconciliation/components/`)
 
----
+- Migrar `<table>` nativo a `DataTableV2` + `useLiftgoTable`.
+- Columnas: fecha, descripción, monto, referencia, estado de conciliación.
+- Conservar row-click de drill-down (patrón del proyecto).
+- Sin acciones inline (V6).
 
-## Plan de remediación sugerido (5 sprints)
+**B3. `PaymentsExportTable.tsx**` (`src/features/accounts-payable/components/`)
 
-1. **Sprint A — Badges & Tokens (T1–T9, U4, U5).** Un solo PR: elimina todos los `text-white` hardcoded y colapsa `StatusBadgeApproval` / `SupplierRepStatusBadge` en el `StatusBadge` global. Cambio quirúrgico, alto impacto visual.
-2. **Sprint B — Tablas huérfanas (U1, U2, U3, V2).** Migrar `BankStatementLinesTable`, `PaymentsExportTable`, `PaymentIntentsSection` y la tabla de Modelos de Equipo a `DataTableV2`.
-3. **Sprint C — Layout tokens (L1–L8, V1).** Unificar `space-y-*`, `gap-*`, `p-*` en los layouts base y arreglar wrap de tabs en Configuración.
-4. **Sprint D — Botones & Modales (U6–U10, U13).** Eliminar `<button>` nativos y migrar DatePicker a Popover.
-5. **Sprint E — Pulido (L9–L15, T10–T15, U11–U15, V3–V6).** Grids responsive, escalas tipográficas, radios, columnas vacías.
+- Migrar tabla nativa a `DataTableV2`.
+- Contexto: es tabla de export/preview; usar `DataTableV2` con `pagination={false}` si se muestra completa.
+- Densidad compacta (zebra + `px-3 py-2`).
 
-Cada sprint agregaría entrada al changelog (SemVer minor para A–C, patch para D–E).
+**B4. `PaymentIntentsSection.tsx**` (`src/features/invoices/components/invoice-detail/`)
 
-## Alcance de esta interacción
+- Migrar `<table>` con `bg-muted/20` ad-hoc a `DataTableV2`.
+- Como es sección embebida en detalle de factura, envolver en `<div className="rounded-md border">`.
 
-Este mensaje es **sólo el reporte**. No se modifica código hasta que confirmes qué sprint(s) quieres ejecutar (o si prefieres ir uno por uno). ¿Empezamos por **Sprint A (Badges & Tokens)** — el de mayor ratio impacto/riesgo?
+**B5. Tabla de Modelos de Equipo — V2** (`src/features/settings/...` u `operations-setup`)
+
+- Ubicar la tabla actual de Modelos dentro de `/settings/operations`.
+- Migrar a `DataTableV2`, densidad estándar, eliminar la columna "Fabricante" si es única (o mostrar como agrupación).
+- Alinear altura de filas al resto de la app (`py-2`).
+
+### Fuera de alcance
+
+- V1 (wrap de tabs de configuración) → Sprint C.
+- Filtros nuevos ni servidor-side: cada tabla mantiene su dataset actual.
+- Cambios de negocio/RPC.
+
+### Detalles técnicos
+
+- Usar `useLiftgoTable` con `data`/`sorting` locales; ninguna de estas tablas requiere paginación server-side.
+- Columnas definidas con `ColumnDef<T>` tipado (sin `any`).
+- Formateo monetario vía `formatCurrency` de `src/lib/money`, fechas vía helpers `es-MX`.
+- Row-click → `useNavigate` cuando aplique (BankStatementLinesTable, PaymentIntentsSection).
+- Verificación visual con Playwright a 1600x900 en las 4 rutas afectadas.
+- Changelog: **v7.64.0** (minor — refactor de UI en 4 tablas + cierre deuda A).
+
+### Entregable
+
+- 4 archivos migrados + 3 archivos con deuda de Sprint A cerrada.
+- Screenshots antes/después en cada tabla.
+- Entrada en `public/changelog/v7.64.0.json` + índice.
+
+¿Ejecuto Sprint B con este alcance (incluyendo el cierre de deuda de Sprint A en B1)? Si
