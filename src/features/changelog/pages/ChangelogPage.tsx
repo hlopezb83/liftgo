@@ -14,7 +14,7 @@ import { ChangelogEntryCard } from "../components/changelog/ChangelogEntryCard";
 import { useChangelog } from "../hooks/useChangelog";
 import { useChangelogDeepLink } from "../hooks/useChangelogDeepLink";
 import { getCurrentVersion } from "../lib/changelog";
-import type { ChangelogEntry } from "../lib/changelog";
+import type { ChangelogIndexEntry } from "../lib/changelog";
 import {
   TYPE_FILTERS, CATEGORY_FILTERS, type FilterType, type FilterCategory,
 } from "../lib/changelogConstants";
@@ -27,9 +27,9 @@ export default function ChangelogPage() {
   const { expanded, highlighted, toggle } = useChangelogDeepLink(changelog);
 
   const { values, set, reset, hasActive, filtered, filterKey } = useTableFilters<
-    ChangelogEntry,
+    ChangelogIndexEntry,
     {
-      q: { type: "text"; fields: (keyof ChangelogEntry)[] };
+      q: { type: "text"; fields: (keyof ChangelogIndexEntry)[] };
       type: { type: "enum"; field: "type"; options: string[] };
       category: { type: "enum"; field: "category"; options: string[] };
     }
