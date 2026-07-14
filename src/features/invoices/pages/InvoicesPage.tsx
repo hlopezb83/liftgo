@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { type ColumnDef } from "@/components/dataTable/v2";
+import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ViewIcon, ChevronRightIcon, InvoiceIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
@@ -8,7 +8,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Untranslated } from "@/components/ui/Untranslated";
 import { usePageActions } from "@/contexts/pageActions";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { useResourceList } from "@/hooks/useResourceList";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { hasReachedListLimit } from "@/lib/supabase/constants";
