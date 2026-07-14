@@ -1,9 +1,8 @@
+import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
-import { SearchBar } from "@/components/forms/SearchBar";
 import { AddIcon, DownloadIcon, RefreshIcon, X, WarnIcon } from "@/components/icons";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { STATUS_LABELS } from "@/lib/constants";
 import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
@@ -42,10 +41,25 @@ interface FiltersProps {
   setDateRange: (r: DateRange | undefined) => void;
   search: string;
   setSearch: (v: string) => void;
+  hasActive: boolean;
+  onClear: () => void;
 }
 
+const STATUS_OPTIONS = INVOICE_STATUS_FILTERS.map((s) => ({
+  value: s,
+  label: STATUS_LABELS[s] ?? s,
+}));
+
 export function InvoicesFiltersBar({
-  reachedLimit, statusFilter, setStatusFilter, dateRange, setDateRange, search, setSearch,
+  reachedLimit,
+  statusFilter,
+  setStatusFilter,
+  dateRange,
+  setDateRange,
+  search,
+  setSearch,
+  hasActive,
+  onClear,
 }: FiltersProps) {
   return (
     <div className="space-y-3">
@@ -57,15 +71,18 @@ export function InvoicesFiltersBar({
           </AlertDescription>
         </Alert>
       )}
-      <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-        <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-          <TabsList className="flex-nowrap overflow-x-auto w-full sm:w-auto">
-            {INVOICE_STATUS_FILTERS.map((s) => (
-              <TabsTrigger key={s} value={s}>{STATUS_LABELS[s] || s}</TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
-        <div className="flex flex-col sm:flex-row gap-2 items-start sm:items-center w-full sm:w-auto">
+      <FiltersToolbar>
+        <FiltersToolbar.Search
+          value={search}
+          onChange={setSearch}
+          placeholder="Buscar facturas…"
+        />
+        <FiltersToolbar.StatusTabs
+          value={statusFilter}
+          onChange={setStatusFilter}
+          options={STATUS_OPTIONS}
+        />
+        <div className="flex items-center gap-1">
           <div className="w-full sm:w-64">
             <DateRangePickerField
               label=""
@@ -79,9 +96,9 @@ export function InvoicesFiltersBar({
               <X className="h-4 w-4" />
             </Button>
           )}
-          <SearchBar value={search} onChange={setSearch} placeholder="Buscar facturas…" className="w-full sm:w-64" />
         </div>
-      </div>
+        <FiltersToolbar.ClearAll visible={hasActive} onClick={onClear} />
+      </FiltersToolbar>
     </div>
   );
 }

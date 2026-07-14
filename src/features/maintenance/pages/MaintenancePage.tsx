@@ -4,7 +4,8 @@ import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { usePageActions } from "@/contexts/pageActions";
 import { MarkAvailableDialog, useForkliftMap } from "@/features/fleet";
 import { useDialogState } from "@/hooks/useDialogState";
-import { useListFilters } from "@/hooks/useListFilters";
+import { useTableFilters } from "@/hooks/filters/useTableFilters";
+
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
@@ -26,7 +27,6 @@ export default function MaintenancePage() {
   const { data: activeMechanics } = useActiveMechanics();
   const generateRecurring = useGenerateRecurringMaintenance();
   const detail = useDialogState<MaintenanceLog>();
-  const [forkliftFilter, setForkliftFilter] = useState("all");
   const [viewMode, setViewMode] = useState<"list" | "board">("list");
 
   const formCtl = useMaintenanceForm(forkliftMap);
@@ -34,11 +34,26 @@ export default function MaintenancePage() {
 
   const enrichedLogs = enrichLogs(logs, forkliftMap);
 
-  const { search, setSearch, filtered: searchFiltered } = useListFilters(enrichedLogs, {
-    searchFields: ["service_type", "performed_by", "description", "forklift_name"],
+  const {
+    values,
+    set,
+    reset,
+    hasActive,
+    filtered,
+  } = useTableFilters<EnrichedMaintenanceLog, {
+    q: { type: "text"; fields: (keyof EnrichedMaintenanceLog)[] };
+    forklift: { type: "entityRef"; field: keyof EnrichedMaintenanceLog };
+  }>({
+    items: enrichedLogs,
+    facets: {
+      q: {
+        type: "text",
+        fields: ["service_type", "performed_by", "description", "forklift_name"] as (keyof EnrichedMaintenanceLog)[],
+      },
+      forklift: { type: "entityRef", field: "forklift_id" },
+    },
   });
 
-  const filtered = (searchFiltered ?? []).filter((log) => forkliftFilter === "all" || log.forklift_id === forkliftFilter);
 
   const columns: ColumnDef<EnrichedMaintenanceLog>[] = [
     {
@@ -108,13 +123,16 @@ export default function MaintenancePage() {
         }
         filters={
           <MaintenanceFiltersBar
-            search={search}
-            onSearchChange={setSearch}
-            forkliftFilter={forkliftFilter}
-            onForkliftFilterChange={setForkliftFilter}
+            search={values.q}
+            onSearchChange={(v) => set("q", v)}
+            forkliftFilter={values.forklift || "all"}
+            onForkliftFilterChange={(v) => set("forklift", v)}
             forklifts={forklifts}
+            hasActive={hasActive}
+            onClear={reset}
           />
         }
+
         isLoading={isLoading}
         table={isBoard ? undefined : table}
         onRowClick={(log) => detail.open(log)}

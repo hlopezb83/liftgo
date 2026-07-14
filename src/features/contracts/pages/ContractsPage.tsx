@@ -1,18 +1,22 @@
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { SearchBar } from "@/components/forms/SearchBar";
+import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { AddIcon, ViewIcon, ChevronRightIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useListFilters } from "@/hooks/useListFilters";
+import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { STATUS_LABELS } from "@/lib/constants";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 import { useContracts, contractQueries } from "../hooks/useContracts";
 
-const STATUSES = ["all", "draft", "sent", "signed", "cancelled"] as const;
+const CONTRACT_STATUSES = ["draft", "sent", "signed", "cancelled"] as const;
+type ContractStatus = (typeof CONTRACT_STATUSES)[number];
+const CONTRACT_STATUS_OPTIONS = [
+  { value: "all" as const, label: STATUS_LABELS.all ?? "Todos" },
+  ...CONTRACT_STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] ?? s })),
+];
 
 type Contract = NonNullable<ReturnType<typeof useContracts>["data"]>[number];
 
@@ -20,10 +24,17 @@ export default function ContractsPage() {
   const { data: contracts, isLoading } = useContracts();
   const navigate = useNavigateTransition();
 
-  const { search, setSearch, statusFilter, setStatusFilter, filtered } = useListFilters(contracts, {
-    searchFields: ["contract_number", "customer_name"],
-    statusField: "status",
+  const { values, set, reset, hasActive, filtered } = useTableFilters<Contract, {
+    q: { type: "text"; fields: (keyof Contract)[] };
+    status: { type: "enum"; field: keyof Contract; options: readonly (ContractStatus | "all")[] };
+  }>({
+    items: contracts ?? [],
+    facets: {
+      q: { type: "text", fields: ["contract_number", "customer_name"] as (keyof Contract)[] },
+      status: { type: "enum", field: "status", options: ["all", ...CONTRACT_STATUSES] as const },
+    },
   });
+
 
   const columns: ColumnDef<Contract>[] = [
       {
@@ -83,15 +94,21 @@ export default function ContractsPage() {
       subtitle="Administrar contratos de renta"
       actions={<Button size="sm" onClick={() => navigate("/contracts/new")}><AddIcon className="h-4 w-4 mr-1" />Nuevo Contrato</Button>}
       filters={
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <Tabs value={statusFilter} onValueChange={setStatusFilter}>
-            <TabsList className="flex-nowrap overflow-x-auto w-full sm:w-auto">
-              {STATUSES.map((s) => <TabsTrigger key={s} value={s}>{STATUS_LABELS[s] || s}</TabsTrigger>)}
-            </TabsList>
-          </Tabs>
-          <SearchBar value={search} onChange={setSearch} placeholder="Buscar contratos…" className="w-full sm:w-64" />
-        </div>
+        <FiltersToolbar>
+          <FiltersToolbar.Search
+            value={values.q}
+            onChange={(v) => set("q", v)}
+            placeholder="Buscar contratos…"
+          />
+          <FiltersToolbar.StatusTabs
+            value={values.status}
+            onChange={(v) => set("status", v as ContractStatus | "all")}
+            options={CONTRACT_STATUS_OPTIONS}
+          />
+          <FiltersToolbar.ClearAll visible={hasActive} onClick={reset} />
+        </FiltersToolbar>
       }
+
       isLoading={isLoading}
       table={table}
       onRowClick={(c) => navigate(`/contracts/${c.id}`)}

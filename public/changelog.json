@@ -1,5 +1,28 @@
 [
   {
+    "version": "7.68.0",
+    "date": "2026-07-14",
+    "type": "minor",
+    "title": "Sprint F — Estandarización de filtros de tabla",
+    "description": "Cotizaciones, Contratos, Daños, Clientes y Mantenimiento se migran del legacy `useListFilters` al canónico `useTableFilters` con persistencia en URL. Las páginas usan `FiltersToolbar` (Search + StatusTabs/Select + ClearAll) para unificar la densidad y el layout. Facturas expone `hasActive`/`clearAll` desde `useInvoicesFilters` y el toolbar añade el botón 'Limpiar filtros' que resetea search + status + rango de fechas en un click. `FiltersToolbar` gana el sub-componente `DateRange` (serializa a `YYYY-MM-DD..YYYY-MM-DD`) para consumidores futuros. El bug P0 de Mantenimiento (filtro de montacargas perdido al navegar back) queda resuelto porque ahora el estado vive en la URL.",
+    "category": "refactor",
+    "files": [
+      "src/components/filters/FiltersToolbar.tsx",
+      "src/features/quotes/pages/QuotesPage.tsx",
+      "src/features/contracts/pages/ContractsPage.tsx",
+      "src/features/damage/pages/DamageTrackingPage.tsx",
+      "src/features/customers/pages/CustomersPage.tsx",
+      "src/features/customers/components/customers/CustomersToolbar.tsx",
+      "src/features/maintenance/pages/MaintenancePage.tsx",
+      "src/features/maintenance/components/maintenance/MaintenanceFiltersBar.tsx",
+      "src/features/invoices/hooks/invoices/useInvoicesFilters.ts",
+      "src/features/invoices/components/list/InvoicesToolbar.tsx",
+      "src/features/invoices/pages/InvoicesPage.tsx",
+      "public/changelog/v7.68.0.json"
+    ]
+  },
+  {
+
     "version": "7.67.0",
     "date": "2026-07-14",
     "type": "minor",

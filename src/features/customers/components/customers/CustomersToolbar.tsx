@@ -1,4 +1,4 @@
-import { SearchBar } from "@/components/forms/SearchBar";
+import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { PlusCircle, DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { exportToCsv } from "@/lib/exportCsv";
@@ -9,6 +9,8 @@ interface Props {
   search: string;
   onSearchChange: (value: string) => void;
   onCreate: () => void;
+  hasActive?: boolean;
+  onClear?: () => void;
 }
 
 export function CustomersActions({ filtered, onCreate }: Pick<Props, "filtered" | "onCreate">) {
@@ -37,6 +39,18 @@ export function CustomersActions({ filtered, onCreate }: Pick<Props, "filtered" 
   );
 }
 
-export function CustomersFilters({ search, onSearchChange }: Pick<Props, "search" | "onSearchChange">) {
-  return <SearchBar value={search} onChange={onSearchChange} placeholder="Buscar clientes..." />;
+export function CustomersFilters({
+  search,
+  onSearchChange,
+  hasActive,
+  onClear,
+}: Pick<Props, "search" | "onSearchChange" | "hasActive" | "onClear">) {
+  return (
+    <FiltersToolbar>
+      <FiltersToolbar.Search value={search} onChange={onSearchChange} placeholder="Buscar clientes..." />
+      {onClear && (
+        <FiltersToolbar.ClearAll visible={!!hasActive} onClick={onClear} />
+      )}
+    </FiltersToolbar>
+  );
 }

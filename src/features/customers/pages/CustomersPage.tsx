@@ -9,7 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { usePageActions } from "@/contexts/pageActions";
 import { useUpdateProspect } from "@/features/crm";
 import { useIsTabletOrBelow } from "@/hooks/use-mobile";
-import { useListFilters } from "@/hooks/useListFilters";
+import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { CustomerFormDialog } from "../components/customers/CustomerFormDialog";
@@ -57,9 +57,13 @@ export default function CustomersPage() {
   }, []);
 
 
-  const { search, setSearch, filtered } = useListFilters(customers, {
-    searchFields: ["name", "company", "email"],
+  const { values, set, reset, hasActive, filtered } = useTableFilters<Customer, {
+    q: { type: "text"; fields: (keyof Customer)[] };
+  }>({
+    items: customers ?? [],
+    facets: { q: { type: "text", fields: ["name", "company", "email"] as (keyof Customer)[] } },
   });
+
 
   const columns = useCustomersColumns();
 
@@ -146,7 +150,7 @@ export default function CustomersPage() {
             <AddIcon className="h-6 w-6" />
           </button>
         }
-        filters={<CustomersFilters search={search} onSearchChange={setSearch} />}
+        filters={<CustomersFilters search={values.q} onSearchChange={(v) => set("q", v)} hasActive={hasActive} onClear={reset} />}
         isLoading={isLoading}
         table={table}
         onRowClick={(c) => navigate(`/customers/${c.id}`)}
