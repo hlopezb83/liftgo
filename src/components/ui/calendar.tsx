@@ -14,6 +14,28 @@ import { buttonVariants } from "@/components/ui/button";
 // para restaurar el i18n sin depender de la forma interna del locale.
 const esLocale = { ...esRdp, code: "es-MX" };
 
+// Opción A: formatters custom que usan `Intl.DateTimeFormat("es-MX")` directamente
+// en lugar del objeto `Locale` de date-fns. Esto silencia el console.warn
+// "Incorrect locale information provided" que emiten motores estrictos
+// (Chromium headless) cuando rdp v10 pasa el `Locale` a Intl internamente.
+const BCP47 = "es-MX";
+const capitalize = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+const fmtMonthYear = new Intl.DateTimeFormat(BCP47, { month: "long", year: "numeric" });
+const fmtMonth = new Intl.DateTimeFormat(BCP47, { month: "long" });
+const fmtYear = new Intl.DateTimeFormat(BCP47, { year: "numeric" });
+const fmtWeekday = new Intl.DateTimeFormat(BCP47, { weekday: "narrow" });
+const fmtDay = new Intl.DateTimeFormat(BCP47, { day: "numeric" });
+
+const formatters = {
+  formatCaption: (date: Date) => capitalize(fmtMonthYear.format(date)),
+  formatMonthCaption: (date: Date) => capitalize(fmtMonth.format(date)),
+  formatYearCaption: (date: Date) => fmtYear.format(date),
+  formatMonthDropdown: (date: Date) => capitalize(fmtMonth.format(date)),
+  formatYearDropdown: (date: Date) => fmtYear.format(date),
+  formatWeekdayName: (date: Date) => fmtWeekday.format(date),
+  formatDay: (date: Date) => fmtDay.format(date),
+};
+
 export type CalendarProps = ComponentProps<typeof DayPicker>;
 
 function Calendar({ className, classNames, showOutsideDays = true, ...props }: CalendarProps) {
