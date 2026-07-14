@@ -85,8 +85,11 @@ export function DataTableBodyV2<T>({
     );
   }
 
+  // eslint-disable-next-line no-console
+  console.log("[DataTableBodyV2] render rows.length =", rows.length);
+
   return (
-    <TableBody>
+    <TableBody data-rows-len={rows.length}>
       {rows.map((row) => {
         const item = row.original;
         const isSelected = row.getIsSelected();
