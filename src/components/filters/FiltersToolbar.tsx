@@ -145,10 +145,50 @@ function ClearAll({ onClick, visible, label }: ClearAllProps) {
   );
 }
 
+interface DateRangeControlProps {
+  /** Valor serializado como "from..to" (compatible con facet `dateRange` de useTableFilters). */
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  className?: string;
+}
+
+/**
+ * Wrapper de `DateRangePickerField` para el toolbar canónico.
+ * Serializa/deserializa el string `"YYYY-MM-DD..YYYY-MM-DD"` que consume
+ * el hook `useTableFilters` en su facet `dateRange`.
+ */
+function DateRangeControl({ value, onChange, placeholder, className }: DateRangeControlProps) {
+  const [fromStr, toStr] = value.includes("..") ? value.split("..", 2) : ["", ""];
+  const from = fromStr ? parseISO(fromStr) : undefined;
+  const to = toStr ? parseISO(toStr) : undefined;
+  const dateRange: DateRange | undefined =
+    (from && isValid(from)) || (to && isValid(to))
+      ? { from: from && isValid(from) ? from : undefined, to: to && isValid(to) ? to : undefined }
+      : undefined;
+
+  return (
+    <div className={cn("w-full sm:w-64", className)}>
+      <DateRangePickerField
+        label=""
+        dateRange={dateRange}
+        onSelect={(r) => {
+          const f = r?.from ? toYMD(r.from) : "";
+          const t = r?.to ? toYMD(r.to) : "";
+          onChange(f || t ? `${f}..${t}` : "");
+        }}
+        placeholder={placeholder ?? "Filtrar por fecha"}
+      />
+    </div>
+  );
+}
+
 export const FiltersToolbar = Object.assign(Root, {
   Search,
   StatusTabs,
   StatusSelect,
+  DateRange: DateRangeControl,
   ClearAll,
 });
+
 
