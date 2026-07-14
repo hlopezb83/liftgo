@@ -1,5 +1,16 @@
 [
   {
+    "version": "7.62.2",
+    "date": "2026-07-14",
+    "type": "patch",
+    "title": "Filtros de tablas: fix de memoización con React Compiler + TanStack",
+    "description": "Se corrigió que los filtros de las tablas (Cuentas por Pagar, Facturas, y todas las páginas que usan useLiftgoTable) solo funcionaran una vez. Causa raíz: useReactTable de TanStack devuelve siempre la misma referencia de objeto (muta internamente), por lo que el React Compiler memoizaba el JSX aguas abajo y las tablas no se re-renderizaban al cambiar filtros. Fix: useLiftgoTable ahora envuelve el objeto table con un Proxy transparente cuya identidad cambia cuando cambia data, sort, paginación o selección. Solución global que arregla ~38 páginas sin tocarlas individualmente.",
+    "category": "fix",
+    "files": [
+      "src/components/dataTable/v2/useLiftgoTable.ts"
+    ]
+  },
+  {
     "version": "7.62.1",
     "date": "2026-07-14",
     "type": "patch",
