@@ -1,20 +1,22 @@
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import {
   SUPPLIER_REP_STATUS_LABELS,
   type SupplierRepStatus,
 } from "../lib/supplierRepConstants";
 
-const TONE: Record<SupplierRepStatus, string> = {
-  not_required: "bg-muted text-muted-foreground",
-  pending: "bg-status-warning text-foreground dark:text-background",
-  received: "bg-status-available text-success-foreground",
-  rejected: "bg-destructive text-destructive-foreground",
+// Mapea el estado del REP al tono semántico del StatusBadge global.
+const STATUS_MAP: Record<SupplierRepStatus, string> = {
+  not_required: "draft",
+  pending: "pending",
+  received: "confirmed",
+  rejected: "cancelled",
 };
 
 export function SupplierRepStatusBadge({ status }: { status: SupplierRepStatus }) {
   return (
-    <Badge className={`${TONE[status]} border-transparent text-[10px]`}>
-      REP: {SUPPLIER_REP_STATUS_LABELS[status]}
-    </Badge>
+    <StatusBadge
+      status={STATUS_MAP[status]}
+      label={`REP: ${SUPPLIER_REP_STATUS_LABELS[status]}`}
+    />
   );
 }
