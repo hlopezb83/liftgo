@@ -1,5 +1,11 @@
-import { SearchBar } from "@/components/forms/SearchBar";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface ForkliftOption { id: string; name: string }
 
@@ -9,16 +15,28 @@ interface Props {
   forkliftFilter: string;
   onForkliftFilterChange: (v: string) => void;
   forklifts: ForkliftOption[] | undefined;
+  hasActive?: boolean;
+  onClear?: () => void;
 }
 
 export function MaintenanceFiltersBar({
-  search, onSearchChange, forkliftFilter, onForkliftFilterChange, forklifts,
+  search,
+  onSearchChange,
+  forkliftFilter,
+  onForkliftFilterChange,
+  forklifts,
+  hasActive,
+  onClear,
 }: Props) {
   return (
-    <div className="flex flex-col sm:flex-row gap-3">
-      <SearchBar value={search} onChange={onSearchChange} placeholder="Buscar por servicio, técnico..." />
-      <Select value={forkliftFilter} onValueChange={onForkliftFilterChange}>
-        <SelectTrigger className="w-full sm:w-[200px]">
+    <FiltersToolbar>
+      <FiltersToolbar.Search
+        value={search}
+        onChange={onSearchChange}
+        placeholder="Buscar por servicio, técnico..."
+      />
+      <Select value={forkliftFilter || "all"} onValueChange={onForkliftFilterChange}>
+        <SelectTrigger className="w-full sm:w-[200px] h-9">
           <SelectValue placeholder="Todos los montacargas" />
         </SelectTrigger>
         <SelectContent>
@@ -28,6 +46,9 @@ export function MaintenanceFiltersBar({
           ))}
         </SelectContent>
       </Select>
-    </div>
+      {onClear && (
+        <FiltersToolbar.ClearAll visible={!!hasActive} onClick={onClear} />
+      )}
+    </FiltersToolbar>
   );
 }
