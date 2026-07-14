@@ -117,12 +117,12 @@ export default function InvoicesPage() {
   const invoiceRows = invoices ?? [];
 
   const columns = useInvoiceColumns();
-  const { table } = useResourceList<Invoice>({
+  const table = useLiftgoTable<Invoice>({
     data: invoiceRows,
     columns,
     getRowId: (i) => i.id,
     initialSorting: [{ id: "invoice_number", desc: true }],
-    tableResetKey: filterKey,
+    resetKey: filterKey,
   });
 
   const exportCsv = () =>
