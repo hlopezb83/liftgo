@@ -14,7 +14,7 @@ import type { Tables } from "@/integrations/supabase/types";
 export type Booking = Tables<"bookings">;
 export type Forklift = Tables<"forklifts">;
 export type Quote = Tables<"quotes">;
-type Invoice = Tables<"invoices">;
+
 export type DamageRecord = Tables<"damage_records">;
 export type ReturnInspection = Tables<"return_inspections">;
 
