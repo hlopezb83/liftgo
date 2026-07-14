@@ -63,6 +63,7 @@ export function DataTableBodyV2<T>({
   rowClassName,
   onRowPrefetch,
 }: Props<T>): ReactNode {
+  "use no memo";
   const queryClient = useQueryClient();
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const armPrefetch = (item: T) => {
