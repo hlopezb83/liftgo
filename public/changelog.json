@@ -1,5 +1,21 @@
 [
   {
+    "version": "7.72.1",
+    "date": "2026-07-15",
+    "type": "patch",
+    "title": "CI verde: selectores E2E robustos y baselines visuales opt-in",
+    "description": "Se corrigieron los dos flakies de Playwright: (1) `daterange-picker.spec.ts` localiza los días vía el `<button>` interno de la gridcell para tolerar los aria-labels que produce react-day-picker v10 con `Intl.DateTimeFormat('es-MX')`; (2) `filters-invoices.spec.ts` ahora usa los labels vigentes (Sin Pagar / Pagado / Vencido / Todos) y espera al `tablist` antes del primer click. Las suites visuales (`visual-desktop`/`visual-mobile`) quedan detrás del gate `E2E_VISUAL=1` para evitar los 15 fallos por baselines inexistentes; se regeneran con `E2E_VISUAL=1 bun run test:e2e:update-snapshots`. Adicional: se silenció `react-hooks/refs` en `useTableFilters.ts` (falso positivo sobre `f.accessors`) y se sustituyó `ls` por `find` en `supabase-lint.yml` para limpiar el aviso `SC2012` de actionlint.",
+    "category": "quality",
+    "files": [
+      "tests/e2e/daterange-picker.spec.ts",
+      "tests/e2e/filters-invoices.spec.ts",
+      "tests/e2e/visual-desktop.spec.ts",
+      "tests/e2e/visual-mobile.spec.ts",
+      "src/hooks/filters/useTableFilters.ts",
+      ".github/workflows/supabase-lint.yml"
+    ]
+  },
+  {
     "version": "7.72.0",
     "date": "2026-07-15",
     "type": "minor",
