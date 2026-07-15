@@ -38,8 +38,8 @@ for (const route of ROUTES) {
     await page.goto(route, { waitUntil: "domcontentloaded" });
     // Espera a que el contenido principal se pinte y las animaciones acaben.
     await expect(page.locator("main, [role='main']").first()).toBeVisible({ timeout: 15_000 });
-    await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {});
-    await page.waitForTimeout(400);
+    // Fonts listas antes de screenshot para evitar diffs por FOUT.
+    await page.evaluate(() => document.fonts?.ready);
 
     // Máscaras para elementos dinámicos que rompen snapshots deterministas.
     const masks = [
