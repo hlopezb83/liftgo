@@ -1,0 +1,11 @@
+{
+  "version": "7.71.3",
+  "date": "2026-07-15",
+  "type": "patch",
+  "title": "Timbrado CFDI — Fix ReferenceError `mode` en stamp-cfdi",
+  "category": "bugfix",
+  "summary": "El timbrado devolvía 500 Internal server error por un ReferenceError: el handler usaba la variable `mode` sin destructurarla del helper `getFacturapiConfig`.",
+  "changes": [
+    "supabase/functions/stamp-cfdi/handler.ts: destructurar `{ apiKey, mode }` para restaurar la escritura correcta de `facturapi_env` tras timbrar."
+  ]
+}
