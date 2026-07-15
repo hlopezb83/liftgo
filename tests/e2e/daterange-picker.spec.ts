@@ -9,6 +9,10 @@ import { test, expect } from "@playwright/test";
  *
  * Este spec verifica que el picker abre, muestra un calendario navegable y
  * permite seleccionar un rango sin errores en consola.
+ *
+ * v7.72.1: tras migrar `Calendar` a react-day-picker v10 + formatters de
+ * `Intl.DateTimeFormat("es-MX")`, el aria-name de las `gridcell` puede incluir
+ * el mes/año completo. Localizamos los días por texto del botón interno.
  */
 test.describe("DateRangePickerField", () => {
   test("abre desde /quotes/new y permite seleccionar un rango", async ({ page }) => {
@@ -31,9 +35,13 @@ test.describe("DateRangePickerField", () => {
     const grid = page.getByRole("grid").first();
     await expect(grid).toBeVisible({ timeout: 5_000 });
 
-    // Selecciona el día 5 y luego el 20 del mes visible.
-    await grid.getByRole("gridcell", { name: /^5$/ }).first().click();
-    await grid.getByRole("gridcell", { name: /^20$/ }).first().click();
+    // Selecciona el día 5 y luego el 20 del mes visible. En rdp v10 el
+    // día se pinta dentro de un <button> descendiente de la gridcell.
+    const dayButton = (n: number) =>
+      grid.locator("button").filter({ hasText: new RegExp(`^\\s*${n}\\s*$`) }).first();
+
+    await dayButton(5).click();
+    await dayButton(20).click();
 
     // No debe haber errores en consola (RangeError de date-fns v4).
     expect(errors, `Errores JS: ${errors.join(" | ")}`).toEqual([]);
