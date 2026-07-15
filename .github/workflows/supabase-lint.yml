@@ -36,7 +36,7 @@ jobs:
             git fetch origin "${{ github.base_ref }}" --depth=1
             FILES=$(git diff --name-only --diff-filter=AM "origin/${{ github.base_ref }}"...HEAD -- 'supabase/migrations/*.sql' | tr '\n' ' ')
           else
-            FILES=$(ls supabase/migrations/*.sql 2>/dev/null | tr '\n' ' ' || true)
+            FILES=$(find supabase/migrations -maxdepth 1 -name '*.sql' -print 2>/dev/null | tr '\n' ' ' || true)
           fi
           echo "list=${FILES}" >> "$GITHUB_OUTPUT"
           echo "Archivos: ${FILES:-<ninguno>}"
