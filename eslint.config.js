@@ -347,7 +347,7 @@ export default tseslint.config(
     //  - `no-conditional-in-test`: off (usamos condicionales para tolerar
     //    UI opcional en flujos legacy; migración explícita, no bloqueo).
     files: ["tests/e2e/**/*.{ts,tsx}"],
-    plugins: { playwright },
+    plugins: { playwright, "react-hooks": reactHooks },
     languageOptions: {
       parser: tseslint.parser,
       globals: { ...globals.node },
@@ -358,6 +358,10 @@ export default tseslint.config(
       "playwright/no-skipped-test": "warn",
       "playwright/no-conditional-in-test": "off",
       "playwright/no-networkidle": "warn",
+      // Registrado para que los `eslint-disable react-hooks/rules-of-hooks`
+      // en fixtures (Playwright confunde `use()` con un React Hook) no
+      // exploten como "Definition for rule not found".
+      "react-hooks/rules-of-hooks": "off",
     },
   },
 );
