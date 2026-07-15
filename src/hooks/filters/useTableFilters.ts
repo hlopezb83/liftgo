@@ -360,6 +360,9 @@ export function useTableFilters<T, F extends Record<string, Facet<T>>>(
       const query = currentValues[key];
       if (!query) continue;
       const f = facet as TextFacet<T>;
+      // `f.accessors` es un array de callbacks del facet (no un React ref);
+      // la regla react-hooks/refs lo confunde por el nombre. Silenciamos.
+      /* eslint-disable react-hooks/refs */
       const keys = [
         ...(f.fields ?? []).map((field) => (item: T) => {
           const val = (item as Record<string, unknown>)[field as string];
@@ -372,6 +375,7 @@ export function useTableFilters<T, F extends Record<string, Facet<T>>>(
         threshold: rankings.CONTAINS,
         baseSort: (a, b) => a.index - b.index,
       });
+      /* eslint-enable react-hooks/refs */
     }
 
     return base;
