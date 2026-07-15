@@ -1,5 +1,16 @@
 [
   {
+    "version": "7.71.3",
+    "date": "2026-07-15",
+    "type": "patch",
+    "title": "Timbrado CFDI — Fix ReferenceError `mode` en stamp-cfdi",
+    "description": "Al timbrar una factura, la edge function `stamp-cfdi` devolvía 500 \"Internal server error\". Causa: el handler destructuraba solo `{ apiKey }` de `getFacturapiConfig()` pero referenciaba `mode` al escribir `facturapi_env` en la BD (tanto en rama stub como después de timbrar en Facturapi), lanzando un ReferenceError que el catch externo convertía en 500. Fix: destructurar también `mode` del helper compartido.",
+    "category": "bugfix",
+    "files": [
+      "supabase/functions/stamp-cfdi/handler.ts"
+    ]
+  },
+  {
     "version": "7.71.2",
     "date": "2026-07-14",
     "type": "patch",
