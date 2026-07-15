@@ -349,6 +349,7 @@ export default tseslint.config(
     files: ["tests/e2e/**/*.{ts,tsx}"],
     plugins: { playwright },
     languageOptions: {
+      parser: tseslint.parser,
       globals: { ...globals.node },
     },
     rules: {
