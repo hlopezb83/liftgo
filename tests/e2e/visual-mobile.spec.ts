@@ -9,7 +9,9 @@ import { test, expect } from "@playwright/test";
 const ROUTES = ["/", "/invoices", "/bookings", "/customers", "/fleet"] as const;
 
 // v7.72.1: ver nota en visual-desktop.spec.ts. Gate opt-in.
-test.skip(!process.env.E2E_VISUAL, "Auditoría visual desactivada (activa con E2E_VISUAL=1)");
+test.beforeEach(() => {
+  test.skip(!process.env.E2E_VISUAL, "Auditoría visual desactivada (activa con E2E_VISUAL=1)");
+});
 
 test.use({ viewport: { width: 390, height: 800 } });
 

@@ -27,7 +27,9 @@ const ROUTES = [
 // dataset semilla del día. Sin ese gate cada corrida de CI fallaba con
 // "A snapshot doesn't exist". Para regenerar baselines localmente:
 //   E2E_VISUAL=1 bun run test:e2e:update-snapshots -- --grep visual
-test.skip(!process.env.E2E_VISUAL, "Auditoría visual desactivada (activa con E2E_VISUAL=1)");
+test.beforeEach(() => {
+  test.skip(!process.env.E2E_VISUAL, "Auditoría visual desactivada (activa con E2E_VISUAL=1)");
+});
 
 test.use({ viewport: { width: 1600, height: 900 } });
 
