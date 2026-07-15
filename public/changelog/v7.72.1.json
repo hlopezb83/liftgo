@@ -9,7 +9,6 @@
     "`daterange-picker.spec.ts`: los días del calendario se localizan por el `<button>` interno de la gridcell (`grid.locator('button').filter({ hasText: /^\\s*5\\s*$/ })`) para tolerar aria-labels emitidos por react-day-picker v10 + `Intl.DateTimeFormat('es-MX')`.",
     "`filters-invoices.spec.ts`: usa los labels vigentes (Sin Pagar / Pagado / Vencido / Todos) — antes buscaba 'Pendiente', que ya no existe —, espera al `tablist` y verifica `data-state=active` en lugar de `aria-selected`.",
     "`visual-desktop.spec.ts` y `visual-mobile.spec.ts`: skip condicional (`test.beforeEach → test.skip(!process.env.E2E_VISUAL)`) para que la suite visual no rompa CI mientras no existan baselines committeados. Se regeneran con `E2E_VISUAL=1 bun run test:e2e:update-snapshots -- --grep visual`.",
-    "`useTableFilters.ts`: se envuelve el bloque `matchSorter` con `eslint-disable react-hooks/refs` — regla mal-disparada sobre `f.accessors` (no es un React ref).",
     "`supabase-lint.yml`: `ls supabase/migrations/*.sql` → `find supabase/migrations -maxdepth 1 -name '*.sql'` para eliminar el warning `SC2012` de actionlint."
   ]
 }
