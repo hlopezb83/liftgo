@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { createClient } from "@supabase/supabase-js";
+import { getAuthToken, waitForSupabaseResponse, TIMEOUTS } from "./fixtures/helpers";
 
 /**
  * Crear cliente desde la UI (happy path).
@@ -10,9 +11,6 @@ import { createClient } from "@supabase/supabase-js";
  *  3. Llenar nombre + RFC genérico XAXX010101000 (sin lookup SAT)
  *  4. Guardar
  *  5. Verificar en BD que el registro quedó marcado como E2E y limpiarlo
- *
- * No usa el fixture `seed`: crea su propio cliente con prefijo "E2E UI" para
- * que el cleanup post-test pueda borrarlo por nombre vía el JWT del usuario logueado.
  */
 test.setTimeout(60_000);
 
@@ -31,16 +29,17 @@ test("create a customer through the UI with E2E isolation", async ({ page }) => 
 
   // Diagnóstico defensivo: si un pageerror o console.error dispara durante el
   // submit, queda en el log de CI para acortar el próximo debug loop.
+   
   page.on("pageerror", (e) => console.log("[pageerror]", e.message));
+   
   page.on("console", (m) => { if (m.type() === "error") console.log("[console]", m.text()); });
 
   await page.goto("/customers", { waitUntil: "domcontentloaded" });
-  await page.evaluate(() => document.fonts?.ready).catch(() => {});
 
   await page.getByRole("button", { name: /agregar cliente/i }).first().click();
 
   const dialog = page.getByRole("dialog");
-  await expect(dialog).toBeVisible({ timeout: 10_000 });
+  await expect(dialog).toBeVisible({ timeout: TIMEOUTS.medium });
 
   await dialog.getByLabel(/nombre/i).first().fill(customerName);
 
@@ -50,39 +49,28 @@ test("create a customer through the UI with E2E isolation", async ({ page }) => 
   const emailInput = dialog.getByLabel(/email|correo/i).first();
   if ((await emailInput.count()) > 0) await emailInput.fill("e2e-ui@test.local");
 
-  await dialog.getByRole("button", { name: /agregar cliente|guardar|crear|registrar/i }).last().click();
+  // Espera dirigida al INSERT del cliente en lugar de networkidle (que tragaba
+  // timeouts reales). El submit dispara POST /rest/v1/customers.
+  const [insertResp] = await Promise.all([
+    waitForSupabaseResponse(page, /\/rest\/v1\/customers(\?|$)/, TIMEOUTS.long),
+    dialog.getByRole("button", { name: /agregar cliente|guardar|crear|registrar/i }).last().click(),
+  ]);
+  expect(insertResp.status(), "POST /customers debe responder 2xx").toBeLessThan(400);
 
-  // El dialog se cierra al éxito; el cliente debe aparecer en la lista.
   try {
-    await expect(dialog).toBeHidden({ timeout: 15_000 });
+    await expect(dialog).toBeHidden({ timeout: TIMEOUTS.long });
   } catch (err) {
-    // Volcar errores de validación visibles + toasts para dejar traza real en CI.
     const alerts = await page.locator('[role="alert"], .text-destructive, [data-sonner-toast]').allTextContents();
+     
     console.log("[customer-create] dialog still visible. Alerts:", JSON.stringify(alerts));
     throw err;
   }
-  await page.waitForLoadState("networkidle").catch(() => {});
 
-  // Teardown obligatorio: el cliente nace marcado is_e2e=true desde la UI, por lo
-  // que no aparece en la lista productiva y purge_e2e_data puede capturarlo.
-  // Si falla, el test DEBE fallar para que la contaminación se detecte en CI.
+  // Teardown obligatorio (BD).
   if (!SUPABASE_URL || !SUPABASE_KEY) {
     throw new Error("VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY requeridos para teardown");
   }
-  const token = await page.evaluate(() => {
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith("sb-") && key.endsWith("-auth-token")) {
-        try {
-          const parsed = JSON.parse(localStorage.getItem(key) ?? "{}");
-          return parsed?.access_token ?? null;
-        } catch {
-          return null;
-        }
-      }
-    }
-    return null;
-  });
+  const token = await getAuthToken(page);
   if (!token) throw new Error("No se encontró token de sesión para teardown");
 
   const client = createClient(SUPABASE_URL, SUPABASE_KEY, {
@@ -90,9 +78,6 @@ test("create a customer through the UI with E2E isolation", async ({ page }) => 
     global: { headers: { Authorization: `Bearer ${token}` } },
   });
 
-  // try/finally: cualquier expect que falle aquí abajo NO debe impedir el
-  // cleanup. Antes la verificación y el delete corrían en secuencia plana
-  // y un expect fallido dejaba el cliente colgado en BD.
   let createdId: string | null = null;
   try {
     const { data: created, error: selectErr } = await client
@@ -105,8 +90,6 @@ test("create a customer through the UI with E2E isolation", async ({ page }) => 
     expect(created.is_e2e).toBe(true);
     expect(created.e2e_scope).toBe(e2eScope);
   } finally {
-    // Borrado directo por id (rápido) + e2e_teardown por scope como red por
-    // si la UI marcó filas colaterales con el mismo scope.
     if (createdId) {
       await client.from("customers").delete().eq("id", createdId);
     }

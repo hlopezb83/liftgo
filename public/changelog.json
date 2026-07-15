@@ -1,5 +1,26 @@
 [
   {
+    "version": "7.72.2",
+    "date": "2026-07-15",
+    "type": "patch",
+    "title": "Sprint K.1 — Hardening de la suite E2E Playwright",
+    "description": "Eliminadas las fuentes silenciosas de flakiness en Playwright: (1) `global.setup.ts` reemplaza `waitForTimeout(500)` por `waitForAuthToken` con polling de 30s — en runners lentos ya no se genera `storageState` sin sesión; (2) `helpers.ts` centraliza `getAuthToken`, `waitForAuthToken`, `waitForSupabaseResponse`, `collectPageErrors` y constantes `TIMEOUTS` — se elimina la copia inline de la extracción del token en `customer-create.spec.ts` y `seed.ts`; (3) los 6 `waitForLoadState('networkidle').catch(() => {})` que tragaban timeouts se sustituyen por `waitForResponse` dirigido al endpoint REST de Supabase (facturas, customers) o `document.fonts?.ready` cuando aplica; (4) `filters-quotes.spec.ts` deja de saltarse el test cuando falta el searchbox — ahora falla loud porque es una regresión real, y `waitForTimeout(400)` desaparece; (5) `playwright.config.ts` sube a `trace: 'retain-on-failure'` para capturar trace en la primera falla, no solo en retry; (6) se instala `eslint-plugin-playwright` con reglas `no-wait-for-timeout`, `no-networkidle`, `no-skipped-test`, `no-focused-test` activadas sobre `tests/e2e/**` — hoy solo warns, pero futuras regresiones a los antipatrones se detectan en CI.",
+    "category": "quality",
+    "files": [
+      "tests/e2e/fixtures/helpers.ts",
+      "tests/e2e/fixtures/seed.ts",
+      "tests/e2e/global.setup.ts",
+      "tests/e2e/customer-create.spec.ts",
+      "tests/e2e/filters-invoices.spec.ts",
+      "tests/e2e/filters-quotes.spec.ts",
+      "tests/e2e/visual-desktop.spec.ts",
+      "tests/e2e/visual-mobile.spec.ts",
+      "playwright.config.ts",
+      "eslint.config.js",
+      "package.json"
+    ]
+  },
+  {
     "version": "7.72.1",
     "date": "2026-07-15",
     "type": "patch",

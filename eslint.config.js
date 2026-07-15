@@ -5,6 +5,7 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import reactCompiler from "eslint-plugin-react-compiler";
 import jsxA11y from "eslint-plugin-jsx-a11y";
 import importPlugin from "eslint-plugin-import-x";
+import playwright from "eslint-plugin-playwright";
 import tseslint from "typescript-eslint";
 
 
@@ -18,13 +19,14 @@ export default tseslint.config(
       "scripts/**",
       // Scripts locales de auditoría visual (no forman parte del bundle).
       "audit_*.ts",
-      // E2E specs de Playwright (usan console.log intencionalmente para debug).
-      "tests/**",
+      // tests/** se excluye por bloque (no global) para poder aplicar
+      // eslint-plugin-playwright a tests/e2e/** desde un bloque específico.
     ],
   },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
+    ignores: ["tests/**"],
     languageOptions: {
       ecmaVersion: 2022,
       globals: globals.browser,
@@ -333,6 +335,36 @@ export default tseslint.config(
       ],
     },
   },
+  {
+    // v7.72.2 — Playwright linting sobre tests/e2e/**. El `ignores` global
+    // de `tests/**` corta el resto de reglas TS/React, pero flat-config
+    // permite volver a incluir un subset con reglas específicas de test
+    // runner. Aquí solo aplican reglas de eslint-plugin-playwright.
+    //
+    // Niveles calibrados:
+    //  - `no-wait-for-timeout`: warn (queda 1 residual justificado en helpers)
+    //  - `no-focused-test`, `no-skipped-test` (warn), `valid-expect`: on
+    //  - `no-conditional-in-test`: off (usamos condicionales para tolerar
+    //    UI opcional en flujos legacy; migración explícita, no bloqueo).
+    files: ["tests/e2e/**/*.{ts,tsx}"],
+    plugins: { playwright, "react-hooks": reactHooks },
+    languageOptions: {
+      parser: tseslint.parser,
+      globals: { ...globals.node },
+    },
+    rules: {
+      ...playwright.configs["flat/recommended"].rules,
+      "playwright/no-wait-for-timeout": "warn",
+      "playwright/no-skipped-test": "warn",
+      "playwright/no-conditional-in-test": "off",
+      "playwright/no-networkidle": "warn",
+      // Registrado para que los `eslint-disable react-hooks/rules-of-hooks`
+      // en fixtures (Playwright confunde `use()` con un React Hook) no
+      // exploten como "Definition for rule not found".
+      "react-hooks/rules-of-hooks": "off",
+    },
+  },
 );
+
 
 

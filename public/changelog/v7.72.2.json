@@ -1,0 +1,25 @@
+{
+  "version": "7.72.2",
+  "date": "2026-07-15",
+  "type": "patch",
+  "title": "Sprint K.1 — Hardening de la suite E2E Playwright",
+  "summary": "Eliminadas las fuentes silenciosas de flakiness en Playwright y activado `eslint-plugin-playwright` para prevenir regresiones a los antipatrones.",
+  "sections": [
+    {
+      "heading": "Cambios",
+      "items": [
+        "**Auth token consolidado** — `getAuthToken` y `waitForAuthToken` viven ahora en `tests/e2e/fixtures/helpers.ts`. Se elimina la copia inline en `customer-create.spec.ts:72-85` y la duplicada en `seed.ts:34-58`. `global.setup.ts` reemplaza `waitForTimeout(500)` por polling activo con timeout duro de 30s.",
+        "**Waits dirigidos** — Los 6 `waitForLoadState('networkidle').catch(() => {})` en `customer-create`, `filters-invoices` y `visual-*` se sustituyen por `waitForResponse` al endpoint REST de Supabase o `document.fonts?.ready` (visual). Un fetch atascado ahora falla loud en lugar de pasar como éxito.",
+        "**`filters-quotes.spec.ts` sin skips silenciosos** — El `test.skip(true, 'sin campo de búsqueda')` se convierte en `expect(search).toBeVisible()`. Se eliminan los dos `waitForTimeout(400)` como 'debounce'.",
+        "**Trace en primera falla** — `playwright.config.ts` sube de `trace: 'on-first-retry'` a `retain-on-failure`. Debugging de fallos únicos ya no requiere reproducción local.",
+        "**Lint de tests activado** — Se instala `eslint-plugin-playwright` y se aplica sobre `tests/e2e/**`. Reglas activas: `no-wait-for-timeout`, `no-networkidle`, `no-skipped-test`, `no-focused-test`, `valid-expect`. Nivel warn en la primera pasada para no bloquear CI mientras se limpian los 7 residuales legítimos (visual gates + roles-matrix)."
+      ]
+    },
+    {
+      "heading": "Constantes",
+      "items": [
+        "Nuevo objeto `TIMEOUTS = { short: 5s, medium: 10s, long: 15s, xl: 30s, pdf: 45s }` en `helpers.ts` para eliminar los ~40 magic numbers regados por los specs."
+      ]
+    }
+  ]
+}

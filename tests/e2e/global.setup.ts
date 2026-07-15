@@ -1,6 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { test as setup, expect } from "@playwright/test";
+import { waitForAuthToken } from "./fixtures/helpers";
 
 const STORAGE_PATH = "tests/e2e/.auth/admin.json";
 
@@ -47,14 +48,16 @@ setup("authenticate as admin", async ({ page }) => {
 
   // Dashboard or any authenticated admin layout
   await expect(page).toHaveURL(/\/(dashboard)?$/, { timeout: 20_000 });
-  // Wait until the auth screen is gone and the app shell rendered, so that
-  // Supabase has finished persisting the session to localStorage.
+  // Wait until the auth screen is gone and the app shell rendered.
   await expect(page.getByRole("heading", { name: "Iniciar Sesión" })).toHaveCount(0, {
     timeout: 15_000,
   });
   await expect(page.locator("nav, [role='navigation']").first()).toBeVisible({ timeout: 15_000 });
-  // Extra settle time for any pending storage writes.
-  await page.waitForTimeout(500);
+
+  // Poll activo hasta que Supabase persista la sesión en localStorage.
+  // Reemplaza `waitForTimeout(500)` que en runners lentos generaba
+  // storageState vacío y toda la suite fallaba en cascada (v7.72.2).
+  await waitForAuthToken(page, 30_000);
 
   mkdirSync(dirname(STORAGE_PATH), { recursive: true });
   await page.context().storageState({ path: STORAGE_PATH, indexedDB: true });

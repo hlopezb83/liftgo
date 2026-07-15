@@ -53,7 +53,10 @@ export default defineConfig({
     : [["list"], ["html", { outputFolder: "playwright-report", open: "never" }]],
   use: {
     baseURL,
-    trace: "on-first-retry",
+    // v7.72.2: retain-on-failure captura trace la PRIMERA vez que un test
+    // falla, no solo en el retry. Debugging de fallos únicos ya no requiere
+    // reproducción local.
+    trace: "retain-on-failure",
     screenshot: "only-on-failure",
     video: "retain-on-failure",
   },

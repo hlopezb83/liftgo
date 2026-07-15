@@ -19,8 +19,7 @@ for (const route of ROUTES) {
   test(`visual mobile ${route}`, async ({ page }) => {
     await page.goto(route, { waitUntil: "domcontentloaded" });
     await expect(page.locator("main, [role='main']").first()).toBeVisible({ timeout: 15_000 });
-    await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {});
-    await page.waitForTimeout(400);
+    await page.evaluate(() => document.fonts?.ready);
 
     // Sin scroll horizontal — regresión de MobileCardList.
     const scrollWidth = await page.evaluate(() => document.documentElement.scrollWidth);

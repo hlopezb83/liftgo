@@ -1,6 +1,7 @@
 /* eslint-disable react-hooks/rules-of-hooks -- Playwright fixtures receive a `use` callback that the rule mistakes for a React Hook. */
 import { test as base, type Page, type TestInfo } from "@playwright/test";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { getAuthToken } from "./helpers";
 
 export type SeedIds = {
   model_id: string;
@@ -32,25 +33,10 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 }
 
 async function clientFromPage(page: Page): Promise<SupabaseClient> {
-  const token = await page.evaluate(() => {
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith("sb-") && key.endsWith("-auth-token")) {
-        try {
-          const parsed = JSON.parse(localStorage.getItem(key) ?? "{}");
-          return parsed?.access_token ?? null;
-        } catch {
-          return null;
-        }
-      }
-    }
-    return null;
-  });
-
+  const token = await getAuthToken(page);
   if (!token) {
     throw new Error("No Supabase auth token found in localStorage. Did global.setup run?");
   }
-
   return createClient(SUPABASE_URL, SUPABASE_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
     global: { headers: { Authorization: `Bearer ${token}` } },
