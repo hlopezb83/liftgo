@@ -19,14 +19,14 @@ export default tseslint.config(
       "scripts/**",
       // Scripts locales de auditoría visual (no forman parte del bundle).
       "audit_*.ts",
-      // Ignoramos tests/** en el bloque global, pero re-habilitamos linting
-      // específico de Playwright para tests/e2e/** más abajo (v7.72.2).
-      "tests/**",
+      // tests/** se excluye por bloque (no global) para poder aplicar
+      // eslint-plugin-playwright a tests/e2e/** desde un bloque específico.
     ],
   },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
+    ignores: ["tests/**"],
     languageOptions: {
       ecmaVersion: 2022,
       globals: globals.browser,
