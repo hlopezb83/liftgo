@@ -1,32 +1,39 @@
-# Fix: el selector de "Periodo de Renta" no abre el modal
+## Problema
 
-## Diagnóstico
+Al timbrar `/invoices/fcd686e8-...` la edge function `stamp-cfdi` devuelve `500 Internal server error`. El toast del cliente lo muestra como "Error al timbrar CFDI".
 
-En `src/components/forms/DateRangePickerField.tsx` el trigger está estructurado así:
+## Causa raíz
 
-```tsx
-<DialogTrigger asChild>
-  <RangeTriggerButton hasFrom={...} label={...} />
-</DialogTrigger>
+En `supabase/functions/stamp-cfdi/handler.ts` línea 160:
+
+```ts
+const { apiKey } = await getFacturapiConfig(supabase, deps.env, { ... });
 ```
 
-`DialogTrigger asChild` usa el `Slot` de Radix, que clona al hijo inmediato inyectando `onClick`, `ref` y atributos ARIA. Pero `RangeTriggerButton` es un componente funcional wrapper que **no** propaga esos props al `<Button>` interno — los recibe y los descarta. Resultado: el click nunca llega al Button, así que el `Dialog` nunca abre.
+Solo se destructura `apiKey`, pero `getFacturapiConfig` devuelve `{ mode, apiKey }` y el handler usa `mode` en dos lugares:
 
-Es un bug de ambos, desktop y mobile, exactamente lo que reporta el usuario. `DatePickerField` no tiene el problema porque ahí el `<Button>` está inline dentro del `DialogTrigger`.
+- Línea 179 (rama stub): `facturapi_env: mode === "live" ? "live" : "test"`
+- Línea 404 (rama real): mismo campo tras timbrar en Facturapi
 
-## Cambios
+Como `mode` no está definido en scope, se lanza `ReferenceError` **después** de que Facturapi ya timbró el CFDI. El `catch` externo lo convierte en el genérico `"Internal server error"` con status 500. Es un bug introducido cuando se movió la resolución del modo al helper compartido — el handler nunca se actualizó para leer el `mode` devuelto.
 
-**1. `src/components/forms/DateRangePickerField.tsx`**
-- Reemplazar el uso del wrapper `RangeTriggerButton` por un `<Button>` inline dentro del `DialogTrigger asChild` (mismo patrón que `DatePickerField`). Eliminar el componente `RangeTriggerButton`.
+## Fix
 
-**2. `public/changelog.json` + `public/changelog/v7.71.2.json`**
-- Nueva entrada patch v7.71.2 — "Fix: el selector de fechas de Cotizaciones no abría el modal (DialogTrigger + wrapper rompía asChild)".
+Cambiar la línea 160 para destructurar también `mode`:
+
+```ts
+const { apiKey, mode } = await getFacturapiConfig(supabase, deps.env, {
+  modeOverride: (co.facturapi_mode as string | undefined) ?? null,
+});
+```
+
+Sin otros cambios: el resto del handler ya consume `mode` correctamente.
 
 ## Verificación
 
-- Playwright headless: abrir `/quotes/new`, click en "Seleccionar fechas", confirmar que aparece el DialogContent con el calendario, seleccionar dos fechas y Aplicar.
-- Repetir en viewport 390px y 1600px.
+- Correr los tests Deno existentes de `stamp-cfdi` (`index_test.ts`) que ejercitan tanto rama stub como rama Facturapi.
+- Confirmar que la factura afectada (`fcd686e8-...`) queda en estado consistente. Si el timbrado real ya se ejecutó en Facturapi antes del `ReferenceError`, revisar `cfdi_status`/`cfdi_uuid` en DB — puede haber quedado en `stamping` sin `cfdi_uuid`, requiriendo un reset manual (`cfdi_status='pending'`) para reintentar, o si Facturapi ya devolvió UUID, hidratar los campos vía consulta puntual.
 
-## Detalles técnicos
+## Changelog
 
-Radix `Slot` propaga props/ref al **elemento** del hijo directo. Cuando el hijo es un componente funcional, Slot le pasa los props como cualquier otro prop de React, y depende del componente reenviarlos. La regla del proyecto para triggers Radix con `asChild` queda: **el hijo directo debe ser un elemento nativo o un componente shadcn que ya reenvíe `ref` y spread props** (Button de shadcn cumple). Nunca envolver en un wrapper que no haga `...props`.
+Añadir `v7.71.3` (patch) en `public/changelog.json` y `public/changelog/v7.71.3.json` describiendo el fix del ReferenceError en `stamp-cfdi`.

@@ -157,7 +157,7 @@ export async function handleStampCfdi(
       );
     }
     const co = company as Record<string, unknown>;
-    const { apiKey } = await getFacturapiConfig(supabase, deps.env, {
+    const { apiKey, mode } = await getFacturapiConfig(supabase, deps.env, {
       modeOverride: (co.facturapi_mode as string | undefined) ?? null,
     });
 
