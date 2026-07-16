@@ -1,0 +1,25 @@
+{
+  "version": "7.72.3",
+  "date": "2026-07-16",
+  "type": "patch",
+  "title": "Sprint K.2 — Selectors E2E estables (data-testid)",
+  "summary": "Se desacoplan los tests E2E del copy en español introduciendo `data-testid` en los puntos más frágiles (auth submit + filtros) y un helper `signIn` compartido.",
+  "sections": [
+    {
+      "heading": "Cambios",
+      "items": [
+        "**`AuthForm` con testid** — el botón de submit ahora expone `data-testid=\"auth-submit\"`. Reemplaza `getByRole(\"button\", { name: /iniciar sesión|entrar|sign in/i })` en `global.setup.ts`, `roles-matrix.spec.ts` y `portal.spec.ts` (los dos primeros migrados en esta versión, portal queda pendiente por depender de UI de invitación distinta).",
+        "**`SearchBar` acepta `data-testid`** — nueva prop opcional pasada al `<Input>` interno. `FiltersToolbar.Search` la emite fija como `\"filters-search\"` para que cualquier página que use la toolbar canónica quede automáticamente cubierta.",
+        "**`filters-quotes.spec.ts` con selector estable** — el buscador se ubica por `getByTestId(\"filters-search\")` con fallback encadenado a `role=searchbox` y placeholder mientras el resto de páginas migran a `FiltersToolbar`.",
+        "**Helper `signIn(page, email, password)`** — vive en `fixtures/helpers.ts`. `global.setup.ts` y `roles-matrix.spec.ts` dejan de duplicar los tres `fill/click` para login."
+      ]
+    },
+    {
+      "heading": "Sin cambios",
+      "items": [
+        "Copy visible, roles ARIA, labels y placeholders permanecen idénticos.",
+        "Ninguna página migró de `SearchBar` suelto a `FiltersToolbar.Search`; el testid sólo se activa donde la toolbar canónica ya se usa."
+      ]
+    }
+  ]
+}
