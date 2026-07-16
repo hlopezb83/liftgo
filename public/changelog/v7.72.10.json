@@ -1,0 +1,16 @@
+{
+  "version": "7.72.10",
+  "date": "2026-07-16",
+  "type": "patch",
+  "title": "E2E filters-invoices: test.setTimeout(90s) para el stress loop",
+  "description": "Sube el timeout del test de 30s (default Playwright) a 90s. El stress loop de 20 clicks con polls encadenados excedía el presupuesto en runners CI lentos.",
+  "category": "bug",
+  "files": [
+    "tests/e2e/filters-invoices.spec.ts"
+  ],
+  "details": {
+    "signal": "Shard 1/2 falló ambos intentos con `Test timeout of 30000ms exceeded` en `target.click()` (línea 66), tras el cambio de aserción por URL en v7.72.8.",
+    "math": "5 iteraciones × 4 tabs = 20 clicks. Cada click hace `waitForResponse(medium=10s)` + `expect.poll(URL, medium=10s)`. En runners con red degradada el promedio por iteración pasa de ~800ms a ~1.8s → total >30s.",
+    "fix": "`test.setTimeout(90_000)` al inicio del test. No cambia la lógica ni oculta regresiones: si el hook del Proxy vuelve a congelarse, los polls internos siguen fallando ruidosamente dentro del presupuesto ampliado."
+  }
+}

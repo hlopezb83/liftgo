@@ -1,5 +1,16 @@
 [
   {
+    "version": "7.72.10",
+    "date": "2026-07-16",
+    "type": "patch",
+    "title": "E2E filters-invoices: test.setTimeout(90s) para el stress loop",
+    "description": "Tras v7.72.8 el test seguía fallando en CI con `Test timeout of 30000ms exceeded` + `Target page has been closed`. La causa es aritmética, no funcional: el loop hace 20 clicks (5×4) y cada uno espera `waitForResponse` + `expect.poll` de URL (hasta 10s c/u en runners lentos), lo que excede fácilmente los 30s por defecto de Playwright. Se sube el timeout del test a 90s. Sin cambios en código de app.",
+    "category": "bug",
+    "files": [
+      "tests/e2e/filters-invoices.spec.ts"
+    ]
+  },
+  {
     "version": "7.72.9",
     "date": "2026-07-16",
     "type": "patch",
