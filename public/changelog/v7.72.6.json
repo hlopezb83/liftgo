@@ -1,0 +1,20 @@
+{
+  "version": "7.72.6",
+  "date": "2026-07-16",
+  "type": "patch",
+  "title": "E2E filters-invoices: endurecer contra flake de hidratación en CI",
+  "description": "Race entre click y hidratación de Radix TabsTrigger en runners CI. Fix del spec (no del app): pre-verifica hidratación del tab 'Todos', valida `data-state` presente antes de cada click, sube timeouts a `medium`.",
+  "category": "bug",
+  "files": [
+    "tests/e2e/filters-invoices.spec.ts"
+  ],
+  "details": {
+    "root_cause": "En CI el shard 1/2 fallaba en `filters-invoices.spec.ts:26` con `toHaveAttribute('data-state','active')` recibiendo `\"\"`. Local (25 clicks consecutivos con la misma secuencia): 0 fallos. Diagnóstico: el `data-state` de Radix se propaga tras el efecto de hidratación; en runners lentos el primer click ocurría antes de que TabsTrigger cableara sus listeners y actualizara atributos, dejando el trigger sin transición.",
+    "changes": [
+      "Assert `data-state='active'` en tab 'Todos' antes del stress loop (prueba de hidratación).",
+      "En cada iteración, esperar a que el target tenga `data-state` matching `/^(active|inactive)$/` antes de hacer click.",
+      "Subir el timeout de `waitForResponse` y de la aserción `data-state=active` de `TIMEOUTS.short` (5s) a `TIMEOUTS.medium` (10s)."
+    ],
+    "no_app_changes": "El código de `useLiftgoTable`/Proxy y `useInvoicesFilters` sigue intacto. El bug histórico v7.62.2 (congelamiento entre tabs) sigue cubierto por las 5 vueltas del loop."
+  }
+}
