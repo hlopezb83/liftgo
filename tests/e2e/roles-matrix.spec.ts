@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { signIn } from "./fixtures/helpers";
 
 /**
  * Matriz de roles — valida que cada rol ve/no ve las acciones destructivas
@@ -53,9 +54,7 @@ async function loginAs(page: Page, email: string, password: string) {
   await expect(page.getByRole("heading", { name: "Iniciar Sesión" })).toBeVisible({
     timeout: 15_000,
   });
-  await page.locator("#auth-email").fill(email);
-  await page.locator("#auth-password").fill(password);
-  await page.getByRole("button", { name: /iniciar sesión|entrar/i }).click();
+  await signIn(page, email, password);
   await page.waitForURL(/\/(dashboard)?$/, { timeout: 20_000 });
 }
 

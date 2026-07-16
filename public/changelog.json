@@ -1,5 +1,22 @@
 [
   {
+    "version": "7.72.3",
+    "date": "2026-07-16",
+    "type": "patch",
+    "title": "Sprint K.2 — Selectors E2E estables (data-testid)",
+    "description": "Se sustituyen los selectors dependientes de copy español por `data-testid` en los puntos más frágiles: (1) `AuthForm` marca el botón de submit con `data-testid=\"auth-submit\"` — antes se buscaba por regex `/iniciar sesión|entrar|sign in/i` en 3 specs; (2) `SearchBar` acepta prop `data-testid` y `FiltersToolbar.Search` lo emite como `\"filters-search\"` — el buscador de cotizaciones ahora se ubica por testid con fallback a `role=searchbox` y placeholder hasta migrar el resto de páginas; (3) nuevo helper `signIn(page, email, password)` en `fixtures/helpers.ts` centraliza el flujo de login E2E — `global.setup.ts` y `roles-matrix.spec.ts` dejan de duplicar los tres `page.locator(...).fill/click`. Cero cambios de UI; el copy y las etiquetas visibles quedan intactos.",
+    "category": "quality",
+    "files": [
+      "src/features/auth/components/AuthForm.tsx",
+      "src/components/forms/SearchBar.tsx",
+      "src/components/filters/FiltersToolbar.tsx",
+      "tests/e2e/fixtures/helpers.ts",
+      "tests/e2e/global.setup.ts",
+      "tests/e2e/roles-matrix.spec.ts",
+      "tests/e2e/filters-quotes.spec.ts"
+    ]
+  },
+  {
     "version": "7.72.2",
     "date": "2026-07-15",
     "type": "patch",

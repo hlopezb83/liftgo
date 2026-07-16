@@ -1,7 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { test as setup, expect } from "@playwright/test";
-import { waitForAuthToken } from "./fixtures/helpers";
+import { signIn, waitForAuthToken } from "./fixtures/helpers";
 
 const STORAGE_PATH = "tests/e2e/.auth/admin.json";
 
@@ -19,9 +19,7 @@ setup("authenticate as admin", async ({ page }) => {
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Iniciar Sesión" })).toBeVisible({ timeout: 15_000 });
 
-  await page.locator("#auth-email").fill(email);
-  await page.locator("#auth-password").fill(password);
-  await page.getByRole("button", { name: /iniciar sesión|entrar|sign in/i }).click();
+  await signIn(page, email, password);
 
   // Esperar redirección post-login a una ruta de admin. Antes usábamos
   // `waitForLoadState("networkidle").catch(() => {})`, que silenciaba timeouts
