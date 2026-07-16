@@ -1,5 +1,16 @@
 [
   {
+    "version": "7.72.11",
+    "date": "2026-07-16",
+    "type": "patch",
+    "title": "E2E filters-invoices: waitForResponse corto (2s) para no gastar 10s por click en cache-hits",
+    "description": "Bug real en el test: cada iteración del stress loop hacía `waitForResponse` con `TIMEOUTS.medium` (10s) y `.catch(() => null)`. En vueltas 2-5 React Query servía desde cache y no había request, así que cada click acumulaba ~10s ociosos. Con ~15 de 20 clicks sin refetch = ~150s desperdiciados, superando el `test.setTimeout(90s)`. Fix: bajar el timeout del refetch a 2s (suficiente si el hook está sano) y el poll de URL a `short`. La URL sigue siendo source-of-truth.",
+    "category": "bug",
+    "files": [
+      "tests/e2e/filters-invoices.spec.ts"
+    ]
+  },
+  {
     "version": "7.72.10",
     "date": "2026-07-16",
     "type": "patch",

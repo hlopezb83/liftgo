@@ -1,0 +1,16 @@
+{
+  "version": "7.72.11",
+  "date": "2026-07-16",
+  "type": "patch",
+  "title": "E2E filters-invoices: waitForResponse corto (2s) para no gastar 10s por click en cache-hits",
+  "description": "Fix del bug real detrás del `Test timeout of 90000ms exceeded` en CI: en vueltas 2-5 el stress loop no dispara request al backend (React Query cache), y el `waitForResponse` con timeout de 10s + `.catch()` gastaba los 10s completos por click. Solución: reducir el timeout del waitForResponse a 2s y del poll de URL a TIMEOUTS.short (5s).",
+  "category": "bug",
+  "files": [
+    "tests/e2e/filters-invoices.spec.ts"
+  ],
+  "details": {
+    "root_cause": "5 vueltas × 4 tabs = 20 clicks. Sólo la primera vuelta pega al REST endpoint; las 15 restantes son cache-hits. Con `waitForResponse({ timeout: 10_000 }).catch(() => null)` cada cache-hit esperaba los 10s completos antes de resolver a null. 15 × 10s = 150s > 90s de test.setTimeout → timeout inevitable.",
+    "fix": "Timeout del waitForResponse a 2s (si el hook del Proxy vuelve a congelarse, 2s es más que suficiente para observar la ausencia del request; local ejecuta cada iteración en <1s). Poll de URL bajado a TIMEOUTS.short (5s). Cobertura del bug v7.62.2 intacta: la URL sigue siendo la aserción canónica.",
+    "no_app_changes": "Cero cambios en código de app. Sólo endurece la prueba."
+  }
+}

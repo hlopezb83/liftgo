@@ -60,20 +60,23 @@ test.describe("Facturas — filtros StatusTabs", () => {
       for (const { value, label } of STATUS_TABS) {
         const target = page.getByRole("tab", { name: label }).first();
 
-        // Cada click debe disparar un refetch al REST endpoint. Si la
-        // identidad del hook está rota, el request nunca sale y esto
-        // falla con timeout dirigido en lugar de un flake ambiguo.
+        // Cada click PUEDE disparar un refetch al REST endpoint, pero en
+        // vueltas 2-5 React Query sirve desde cache y no vuelve a pegar al
+        // backend. El timeout corto (2s) evita gastar 10s ociosos por click
+        // cuando no hay request — con 20 clicks eso ahorraba hasta ~180s y
+        // era la causa real del `Test timeout of 90000ms exceeded` en CI.
+        // La aserción canónica sigue siendo la URL abajo.
         await Promise.all([
           page
-            .waitForResponse((r) => INVOICES_ENDPOINT.test(r.url()), { timeout: TIMEOUTS.medium })
-            .catch(() => null), // el tab activo actual reusa cache → no siempre hay request
+            .waitForResponse((r) => INVOICES_ENDPOINT.test(r.url()), { timeout: 2_000 })
+            .catch(() => null),
           target.click(),
         ]);
 
         // Source of truth: URL. `all` limpia el param; el resto lo escribe.
         await expect
           .poll(() => new URL(page.url()).searchParams.get("status") ?? "all", {
-            timeout: TIMEOUTS.medium,
+            timeout: TIMEOUTS.short,
           })
           .toBe(value);
       }
