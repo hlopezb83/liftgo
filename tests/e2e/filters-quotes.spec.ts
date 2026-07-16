@@ -32,8 +32,15 @@ test.describe("Cotizaciones — filtros", () => {
   test("búsqueda con match-sorter filtra sin bloquearse", async ({ page }) => {
     await page.goto("/quotes", { waitUntil: "domcontentloaded" });
 
-    const search = page.getByRole("searchbox").or(page.getByPlaceholder(/buscar/i)).first();
-    // El searchbox es contrato — si desaparece, es regresión, no skip.
+    // v7.72.3: selector estable `data-testid="filters-search"` — inmune a
+    // cambios de placeholder/copy. Los fallbacks a role="searchbox" y
+    // placeholder se mantienen como red de seguridad hasta que 100% de las
+    // páginas usen `FiltersToolbar.Search`.
+    const search = page
+      .getByTestId("filters-search")
+      .or(page.getByRole("searchbox"))
+      .or(page.getByPlaceholder(/buscar/i))
+      .first();
     await expect(search, "buscador de cotizaciones ausente").toBeVisible({
       timeout: TIMEOUTS.medium,
     });
