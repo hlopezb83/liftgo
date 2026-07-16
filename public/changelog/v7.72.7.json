@@ -1,0 +1,16 @@
+{
+  "version": "7.72.7",
+  "date": "2026-07-16",
+  "type": "patch",
+  "title": "Calendar: altura constante entre meses (fixedWeeks)",
+  "description": "El popover del date picker brincaba al navegar entre meses porque rdp renderiza 5 o 6 filas según el mes. Con `fixedWeeks` se garantizan 6 filas siempre y la altura queda estable.",
+  "category": "bug",
+  "files": [
+    "src/components/ui/calendar.tsx"
+  ],
+  "details": {
+    "root_cause": "react-day-picker v10 renderiza sólo las semanas necesarias del mes (5 o 6). Sin altura reservada, cada cambio de mes re-mide el `PopoverContent` y el picker salta verticalmente.",
+    "fix": "Prop `fixedWeeks` en `<DayPicker>` dentro de `src/components/ui/calendar.tsx`. Los días extra se pintan con la clase `outside` que ya existía (opacidad 50%), preservando el look actual.",
+    "scope": "Afecta a todos los pickers que consumen el `Calendar` compartido: cotizaciones, facturas, contratos, filtros de reportes, rango de fechas en listados."
+  }
+}
