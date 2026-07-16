@@ -43,22 +43,21 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
     <DayPicker
       locale={esLocale}
       formatters={formatters}
-      animate
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
       classNames={{
-        months: "flex flex-col sm:flex-row gap-y-4 sm:gap-x-4 sm:gap-y-0",
-        month: "space-y-4",
-        month_caption: "flex justify-center pt-1 relative items-center",
+        months: "relative flex flex-col sm:flex-row gap-y-4 sm:gap-x-4 sm:gap-y-0",
+        month: "space-y-4 relative",
+        month_caption: "flex justify-center pt-1 relative items-center h-7",
         caption_label: "text-sm font-medium",
-        nav: "space-x-1 flex items-center",
+        nav: "absolute inset-x-1 top-1 flex justify-between items-center pointer-events-none z-10",
         button_previous: cn(
           buttonVariants({ variant: "outline" }),
-          "absolute left-1 top-1 h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+          "h-7 w-7 bg-transparent p-0 opacity-60 hover:opacity-100 pointer-events-auto",
         ),
         button_next: cn(
           buttonVariants({ variant: "outline" }),
-          "absolute right-1 top-1 h-7 w-7 bg-transparent p-0 opacity-50 hover:opacity-100",
+          "h-7 w-7 bg-transparent p-0 opacity-60 hover:opacity-100 pointer-events-auto",
         ),
         month_grid: "w-full border-collapse space-y-1",
         weekdays: "flex",
