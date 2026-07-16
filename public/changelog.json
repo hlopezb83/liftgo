@@ -1,5 +1,16 @@
 [
   {
+    "version": "7.72.9",
+    "date": "2026-07-16",
+    "type": "patch",
+    "title": "Sanitización de nombres de archivo al subir documentos por entidad",
+    "description": "Error `Invalid key` al subir un XML de proveedor en `/suppliers` (requestId db515cf9-5dc6-42ee-b75d-f39cb53d4727). Supabase Storage rechaza claves con caracteres fuera de `[a-zA-Z0-9!\\-_.*'()/]`, y `useUploadDocument` concatenaba `file.name` sin sanear — cualquier XML/PDF con espacios, acentos o `ñ` (comunes en CFDI mexicanos) tronaba. Se aplica el mismo saneado canónico que ya usan `useUploadSupplierBillXml` y `useUploadSupplierReceipt` (`/[^a-zA-Z0-9._-]/g → \"_\"`, tope 128 chars) sobre el path físico. El `file_name` mostrado al usuario conserva el nombre original.",
+    "category": "bug",
+    "files": [
+      "src/hooks/useDocuments.ts"
+    ]
+  },
+  {
     "version": "7.72.8",
     "date": "2026-07-16",
     "type": "patch",
