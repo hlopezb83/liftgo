@@ -1,5 +1,16 @@
 [
   {
+    "version": "7.72.7",
+    "date": "2026-07-16",
+    "type": "patch",
+    "title": "Calendar: altura constante entre meses (fixedWeeks)",
+    "description": "Al cambiar de mes con las flechas del `Calendar`, el `PopoverContent` cambiaba de alto porque algunos meses ocupan 5 semanas y otros 6, provocando un brinco visual del picker (y arrastre de la UI adyacente). Se activa `fixedWeeks` en `<DayPicker>` para que rdp siempre renderice 6 semanas — los días fuera del mes ya se muestran atenuados vía la clase `outside`, así que el look no cambia. Aplica a todos los date pickers (cotizaciones, facturas, contratos, filtros de reportes).",
+    "category": "bug",
+    "files": [
+      "src/components/ui/calendar.tsx"
+    ]
+  },
+  {
     "version": "7.72.6",
     "date": "2026-07-16",
     "type": "patch",

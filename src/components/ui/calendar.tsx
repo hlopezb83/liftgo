@@ -44,6 +44,7 @@ function Calendar({ className, classNames, showOutsideDays = true, ...props }: C
       locale={esLocale}
       formatters={formatters}
       showOutsideDays={showOutsideDays}
+      fixedWeeks
       className={cn("p-3", className)}
       classNames={{
         months: "relative flex flex-col sm:flex-row gap-y-4 sm:gap-x-4 sm:gap-y-0",
