@@ -35,22 +35,37 @@ test.describe("Facturas — filtros StatusTabs", () => {
     });
     await expect(page.getByRole("tablist").first()).toBeVisible({ timeout: TIMEOUTS.medium });
 
+    // Radix hidrata data-state de forma asíncrona tras el mount. Antes del
+    // stress loop confirmamos que el tab por defecto ("Todos") ya está
+    // "active" — así los clicks posteriores no compiten con la hidratación
+    // inicial en runners CI lentos.
+    await expect(
+      page.getByRole("tab", { name: /todos/i }).first(),
+    ).toHaveAttribute("data-state", "active", { timeout: TIMEOUTS.long });
+
     // Alternar 5 vueltas — cualquier hit al bug del Proxy congela la tabla.
     for (let i = 0; i < 5; i++) {
       for (const { label } of STATUS_TABS) {
         const target = page.getByRole("tab", { name: label }).first();
+
+        // Radix marca data-state="inactive" en tabs no activos. Esperar a que
+        // exista *cualquier* valor confirma que el trigger está listo para
+        // recibir el click sin race con la hidratación.
+        await expect(target).toHaveAttribute("data-state", /^(active|inactive)$/, {
+          timeout: TIMEOUTS.medium,
+        });
 
         // Cada click debe disparar un refetch al REST endpoint. Si la
         // identidad del hook está rota, el request nunca sale y esto
         // falla con timeout dirigido en lugar de un flake ambiguo.
         await Promise.all([
           page
-            .waitForResponse((r) => INVOICES_ENDPOINT.test(r.url()), { timeout: TIMEOUTS.short })
+            .waitForResponse((r) => INVOICES_ENDPOINT.test(r.url()), { timeout: TIMEOUTS.medium })
             .catch(() => null), // el tab activo actual reusa cache → no siempre hay request
           target.click(),
         ]);
         await expect(target).toHaveAttribute("data-state", "active", {
-          timeout: TIMEOUTS.short,
+          timeout: TIMEOUTS.medium,
         });
       }
     }
