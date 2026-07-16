@@ -1,4 +1,5 @@
 import { test, expect, type Page } from "@playwright/test";
+import { signIn } from "./fixtures/helpers";
 
 /**
  * Matriz de roles — valida que cada rol ve/no ve las acciones destructivas
