@@ -1,5 +1,16 @@
 [
   {
+    "version": "7.72.5",
+    "date": "2026-07-16",
+    "type": "patch",
+    "title": "Fix navegación de meses en calendario (react-day-picker v10)",
+    "description": "Los botones de mes anterior/siguiente del `Calendar` no cambiaban de mes en los pickers de fecha (Periodo de Renta en cotizaciones, filtros por rango, DatePickerField). Causa: en rdp v10 el `<nav>` se renderiza como hermano de los meses dentro del contenedor `months`; nuestras clases heredadas de v8/v9 posicionaban los chevrons con `absolute` sin contenedor `relative`, así que caían fuera del layout y quedaban ocultos detrás del botón de cierre del Dialog. Adicionalmente el prop `animate` ghostizaba dos meses superpuestos porque no proveíamos las transiciones CSS. Se ajusta `months` a `relative`, `nav` a `absolute inset-x-1 top-1 … pointer-events-none z-10` con botones `pointer-events-auto`, y se retira `animate`. Validado con Playwright: Julio → Agosto → Junio navega correctamente.",
+    "category": "bug",
+    "files": [
+      "src/components/ui/calendar.tsx"
+    ]
+  },
+  {
     "version": "7.72.4",
     "date": "2026-07-16",
     "type": "patch",
