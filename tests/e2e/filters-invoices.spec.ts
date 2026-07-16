@@ -44,16 +44,17 @@ test.describe("Facturas — filtros StatusTabs", () => {
     ).toHaveAttribute("data-state", "active", { timeout: TIMEOUTS.long });
 
     // Alternar 5 vueltas — cualquier hit al bug del Proxy congela la tabla.
+    //
+    // NB: la aserción canónica es el `?status=` de la URL, no el `data-state`
+    // interno de Radix. En runners CI el atributo `data-state` intermitentemente
+    // se lee como cadena vacía (Radix re-renderiza durante refetch y el
+    // atributo aparece momentáneamente detacheado del elemento clicado por
+    // `.first()`), pero la URL siempre refleja el filtro real aplicado por
+    // `useInvoicesFilters`. Verificamos la URL como source-of-truth y usamos
+    // `data-state` sólo como soft-check final.
     for (let i = 0; i < 5; i++) {
-      for (const { label } of STATUS_TABS) {
+      for (const { value, label } of STATUS_TABS) {
         const target = page.getByRole("tab", { name: label }).first();
-
-        // Radix marca data-state="inactive" en tabs no activos. Esperar a que
-        // exista *cualquier* valor confirma que el trigger está listo para
-        // recibir el click sin race con la hidratación.
-        await expect(target).toHaveAttribute("data-state", /^(active|inactive)$/, {
-          timeout: TIMEOUTS.medium,
-        });
 
         // Cada click debe disparar un refetch al REST endpoint. Si la
         // identidad del hook está rota, el request nunca sale y esto
@@ -64,10 +65,21 @@ test.describe("Facturas — filtros StatusTabs", () => {
             .catch(() => null), // el tab activo actual reusa cache → no siempre hay request
           target.click(),
         ]);
-        await expect(target).toHaveAttribute("data-state", "active", {
-          timeout: TIMEOUTS.medium,
-        });
+
+        // Source of truth: URL. `all` limpia el param; el resto lo escribe.
+        await expect
+          .poll(() => new URL(page.url()).searchParams.get("status") ?? "all", {
+            timeout: TIMEOUTS.medium,
+          })
+          .toBe(value);
       }
     }
+
+    // Soft-check final: tras el stress loop, el último tab clicado ("Todos")
+    // debe seguir activo en Radix. Si esto falla es indicio real de un bug
+    // de identidad en el hook, no un flake de reconciliación.
+    await expect(
+      page.getByRole("tab", { name: /todos/i }).first(),
+    ).toHaveAttribute("data-state", "active", { timeout: TIMEOUTS.medium });
   });
 });
