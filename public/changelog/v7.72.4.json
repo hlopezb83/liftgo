@@ -1,0 +1,11 @@
+{
+  "version": "7.72.4",
+  "date": "2026-07-16",
+  "type": "patch",
+  "title": "Fix crítico timbrado CFDI — sanitizeLegalName sin binding local",
+  "description": "La edge function `stamp-cfdi` fallaba con `ReferenceError: sanitizeLegalName is not defined` al intentar timbrar cualquier factura no-global. Causa: la línea 21 de `handler.ts` sólo re-exportaba el símbolo sin crear un binding local (`export { X } from ...` no introduce X en el scope del módulo), por lo que la referencia dentro de `handleStampCfdi` era undefined en runtime — todos los timbrados de clientes con RFC específico truenaban con 500. Se reemplaza por `import { sanitizeLegalName } from ...` seguido de `export { sanitizeLegalName }`, restableciendo el binding local y manteniendo la compatibilidad con consumidores externos. Validación end-to-end con Playwright: BORRADOR-0022 → FAC-0094 (Serie F · Folio 94, UUID 365ED251-923D-4821-A25D-02F789E16A8A). Se desatoraron adicionalmente facturas que quedaron en `cfdi_status='stamping'` tras el error previo.",
+  "category": "bug",
+  "files": [
+    "supabase/functions/stamp-cfdi/handler.ts"
+  ]
+}
