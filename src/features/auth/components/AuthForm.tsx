@@ -57,7 +57,7 @@ export function AuthForm({
           </div>
         </div>
       )}
-      <Button type="submit" className="w-full" disabled={loading}>
+      <Button type="submit" className="w-full" disabled={loading} data-testid="auth-submit">
         {getAuthSubmitLabel(loading, mode)}
       </Button>
     </form>
