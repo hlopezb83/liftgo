@@ -114,6 +114,23 @@ export function collectPageErrors(page: Page): string[] {
   return errors;
 }
 
+/**
+ * Login E2E vía UI usando selectors estables (id + data-testid). Reemplaza
+ * las tres implementaciones ad-hoc en global.setup.ts, roles-matrix.spec.ts y
+ * portal.spec.ts.
+ *
+ * NO espera redirección — el caller decide qué URL/rol esperar después.
+ */
+export async function signIn(
+  page: Page,
+  email: string,
+  password: string,
+): Promise<void> {
+  await page.locator("#auth-email").fill(email);
+  await page.locator("#auth-password").fill(password);
+  await page.getByTestId("auth-submit").click();
+}
+
 // Re-export para que specs no importen expect desde @playwright/test cuando
 // ya están usando helpers.
 export { expect };
