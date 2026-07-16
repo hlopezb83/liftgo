@@ -24,6 +24,10 @@ const INVOICES_ENDPOINT = /\/rest\/v1\/invoices(\?|$)/;
 
 test.describe("Facturas — filtros StatusTabs", () => {
   test("alterna entre estados sin congelarse (regresión v7.62.2)", async ({ page }) => {
+    // Stress test: 5 vueltas × 4 tabs = 20 clicks; cada uno con waitForResponse
+    // + poll de URL (hasta 10s c/u). Los 30s por defecto son insuficientes en
+    // runners CI lentos — subimos a 90s para dar margen sin ocultar regresiones.
+    test.setTimeout(90_000);
     // Refetch inicial al llegar a /invoices.
     await Promise.all([
       page.waitForResponse((r) => INVOICES_ENDPOINT.test(r.url()), { timeout: TIMEOUTS.long }),
