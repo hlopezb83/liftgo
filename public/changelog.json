@@ -1,5 +1,16 @@
 [
   {
+    "version": "7.72.8",
+    "date": "2026-07-16",
+    "type": "patch",
+    "title": "E2E filters-invoices: aserción por URL en vez de data-state de Radix",
+    "description": "El shard 1/2 seguía fallando con `Received: \"\"` al leer `data-state` del tab `Pagado` después del click. Ni el pre-check de hidratación ni los timeouts `medium` cerraron el flake: en CI Radix re-renderiza durante el refetch y `.first()` intermitentemente resuelve al elemento en un instante donde el atributo se ve vacío. Se cambia la aserción canónica del test a la URL (`?status=paid|sent|overdue` o ausente para `all`) — que es el source of truth real del filtro escrito por `useInvoicesFilters` — y se conserva un soft-check final de `data-state=\"active\"` en el tab `Todos` para seguir cubriendo el bug del Proxy. Sin cambios en código de app.",
+    "category": "bug",
+    "files": [
+      "tests/e2e/filters-invoices.spec.ts"
+    ]
+  },
+  {
     "version": "7.72.7",
     "date": "2026-07-16",
     "type": "patch",

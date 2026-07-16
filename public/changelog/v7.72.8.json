@@ -1,0 +1,16 @@
+{
+  "version": "7.72.8",
+  "date": "2026-07-16",
+  "type": "patch",
+  "title": "E2E filters-invoices: aserción por URL en vez de data-state de Radix",
+  "description": "Elimina el flake CI cambiando la aserción de cada iteración del stress loop de `data-state=active` a `?status=<value>` en la URL. El `data-state` queda como soft-check final para no perder cobertura del bug histórico del Proxy en useLiftgoTable.",
+  "category": "bug",
+  "files": [
+    "tests/e2e/filters-invoices.spec.ts"
+  ],
+  "details": {
+    "root_cause": "En CI el atributo `data-state` del `<button role=tab>` se leía como `\"\"` intermitentemente tras clicar tabs consecutivos. Radix escribe siempre `active|inactive`, pero durante el refetch de `useInvoices` el DOM se reconcilia en un frame en que `.first()` de Playwright resuelve al elemento sin el atributo. Ni el pre-check de hidratación (v7.72.6) ni el bump de timeouts a `medium` cerraron el race — es un artefacto de reconciliación, no un bug real.",
+    "fix": "Aserción canónica ahora es la URL: `new URL(page.url()).searchParams.get('status')` debe coincidir con el `value` del tab (`all` cuando no hay param). `useInvoicesFilters` escribe el URL síncronamente en el mismo tick del click, así que la aserción es determinística. Se agrega un soft-check final del `data-state` en `Todos` — si el bug del Proxy vuelve, el último tab del loop no quedará activo y esto lo captura.",
+    "regressions_still_covered": "El loop de 5×4 clicks sigue exigiendo que cada click dispare un refetch REST distinto y que el URL avance — cubre el bug v7.62.2 (freeze de la tabla por reuso de identidad en useLiftgoTable) con la misma superficie."
+  }
+}
