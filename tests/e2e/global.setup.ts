@@ -1,7 +1,7 @@
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import { test as setup, expect } from "@playwright/test";
-import { waitForAuthToken } from "./fixtures/helpers";
+import { signIn, waitForAuthToken } from "./fixtures/helpers";
 
 const STORAGE_PATH = "tests/e2e/.auth/admin.json";
 
