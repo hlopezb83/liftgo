@@ -22,7 +22,12 @@ export function useUploadDocument() {
       entityType: string;
       entityId: string;
     }) => {
-      const filePath = `${entityType}/${entityId}/${Date.now()}_${file.name}`;
+      // Supabase Storage rechaza claves fuera de [a-zA-Z0-9!\-_.*'()/]. Los XML
+      // CFDI y PDFs de proveedores suelen traer espacios, acentos y ñ, lo que
+      // provocaba "Invalid key". Se conserva el file.name original en la fila
+      // documents; sólo se sanea el path físico.
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 128);
+      const filePath = `${entityType}/${entityId}/${Date.now()}_${safeName}`;
       const { error: uploadError } = await supabase.storage
         .from("documents")
         .upload(filePath, file);

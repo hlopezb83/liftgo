@@ -1,0 +1,18 @@
+{
+  "version": "7.72.9",
+  "date": "2026-07-16",
+  "type": "patch",
+  "title": "Sanitización de nombres de archivo al subir documentos por entidad",
+  "description": "Fix de `Invalid key` en Supabase Storage al subir XML/PDF con acentos, espacios o `ñ` a través de `useUploadDocument` (usado por /suppliers y otras entidades).",
+  "category": "bug",
+  "files": [
+    "src/hooks/useDocuments.ts"
+  ],
+  "details": {
+    "root_cause": "Supabase Storage sólo acepta claves en `[a-zA-Z0-9!\\-_.*'()/]`. `useUploadDocument` construía el path como `${entityType}/${entityId}/${Date.now()}_${file.name}` sin sanear — un XML CFDI típico (`Facturación Enero (Ñoño).xml`) contenía caracteres inválidos y el upload fallaba con `Invalid key`. Los hooks hermanos (`useUploadSupplierBillXml`, `useUploadSupplierReceipt`) ya saneaban con la misma regex; este era el único punto sin cubrir.",
+    "fix": "Saneado del nombre físico con `file.name.replace(/[^a-zA-Z0-9._-]/g, \"_\").slice(0, 128)` antes de construir el path. La fila `documents.file_name` conserva el nombre original para display; sólo el path en Storage se sanea. `openStorageFile` sigue funcionando porque lee el path tal cual quedó guardado.",
+    "reported_request": "db515cf9-5dc6-42ee-b75d-f39cb53d4727",
+    "reported_user": "admin@lopezbenavides.com",
+    "reported_route": "/suppliers"
+  }
+}
