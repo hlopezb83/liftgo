@@ -18,7 +18,8 @@ export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 
 // sanitizeLegalName vive en _shared/ para poder importarse desde otras
 // edge functions sin problemas de bundling cross-función.
-export { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
+import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
+export { sanitizeLegalName };
 
 // Re-export para compatibilidad con consumidores existentes.
 export type { QueryBuilderLike, SupabaseLike };
