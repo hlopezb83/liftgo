@@ -19,6 +19,8 @@ interface SearchBarProps {
    * Default: false.
    */
   captureCtrlK?: boolean;
+  /** `data-testid` opcional para selectors estables en E2E. */
+  "data-testid"?: string;
 }
 
 export function SearchBar({
@@ -28,6 +30,7 @@ export function SearchBar({
   className = "max-w-sm",
   debounceMs = 200,
   captureCtrlK = false,
+  "data-testid": testId,
 }: SearchBarProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [local, setLocal] = useState(value);
@@ -66,6 +69,7 @@ export function SearchBar({
         value={local}
         onChange={(e) => setLocal(e.target.value)}
         className={captureCtrlK ? "pl-9 pr-16" : "pl-9"}
+        data-testid={testId}
       />
       {captureCtrlK && (
         <Badge
