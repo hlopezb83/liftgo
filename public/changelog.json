@@ -1,5 +1,16 @@
 [
   {
+    "version": "7.72.6",
+    "date": "2026-07-16",
+    "type": "patch",
+    "title": "E2E filters-invoices: endurecer contra flake de hidratación en CI",
+    "description": "El shard 1/2 de Playwright fallaba en `filters-invoices.spec.ts:26` con `expect(target).toHaveAttribute('data-state','active')` recibiendo cadena vacía en el primer click a Sin Pagar. Reproducido localmente 25 clicks seguidos sin fallo → confirmado como race entre el click y la hidratación de Radix TabsTrigger en runners CI lentos. Fix del spec: (1) tras cargar la lista, se asegura que el tab 'Todos' ya esté `data-state=active` (Radix hidratado); (2) antes de cada click se espera a que el target tenga `data-state` con valor `active|inactive` (trigger listo); (3) se suben los timeouts de asserción/refetch de `short` (5s) a `medium` (10s) para absorber latencia CI. No hay cambios en código de app: local pasa 5×4 clicks sin problema, el bug del Proxy sigue cubierto.",
+    "category": "bug",
+    "files": [
+      "tests/e2e/filters-invoices.spec.ts"
+    ]
+  },
+  {
     "version": "7.72.5",
     "date": "2026-07-16",
     "type": "patch",
