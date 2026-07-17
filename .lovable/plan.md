@@ -1,60 +1,60 @@
-# Fix: "Invalid key" al subir XML de proveedor en /suppliers
+# Auditoría de Pull Requests — `hlopezb83/liftgo`
 
-## Causa raíz
+**Panorama:** 10 PRs abiertos, todos de `dependabot[bot]`. 6 son bumps de npm (5 con CI en rojo) y 4 son bumps de GitHub Actions (3 verdes). Ningún PR viene de humanos, así que la revisión es puramente de riesgo de dependencia + estado de CI.
 
-En `src/hooks/useDocuments.ts` (línea 25) el path de Storage se construye concatenando `file.name` sin sanitizar:
+## Resumen por PR
 
-```ts
-const filePath = `${entityType}/${entityId}/${Date.now()}_${file.name}`;
+| # | Paquete | Salto | CI | Riesgo | Recomendación |
+|---|---|---|---|---|---|
+| 20 | `typescript` 5.9.3 → **7.0.2** | major x2 | 🔴 8 checks | 🔴 Alto | **Cerrar** |
+| 19 | `react-dropzone` 16 → **17** | major | 🔴 8 checks | 🟡 Medio | **Cerrar por ahora** |
+| 18 | `@types/node` 24 → **26** | major x2 | 🔴 8 checks | 🟡 Medio | **Cerrar** |
+| 17 | `jsdom` 26 → **29** | major x3 | 🔴 8 checks | 🟡 Medio | **Cerrar** |
+| 16 | `postcss` 8.5.17 → 8.5.19 | patch | 🔴 8 checks | 🟢 Bajo | **Investigar y mergear** |
+| 14 | GH Actions minor-patch group (3) | minor/patch | 🟢 | 🟢 Bajo | **Mergear** |
+| 12 | `actions/labeler` 5 → **6** | major | 🟢 | 🟢 Bajo | **Mergear** (validar pin de SHA en `.github/workflows/labeler.yml`) |
+| 11 | `gitleaks/gitleaks-action` 2.3.9 → **3.0.0** | major | 🔴 `Secrets check` | 🟡 Medio | **Investigar** el fallo antes de mergear |
+| 4 | `github/codeql-action` 3 → **4** | major | 🔴 5 checks (E2E/Deno/CodeQL) | 🟡 Medio | **Rebasear** y re-evaluar; los fallos parecen ambientales (junio) |
+| 2 | `actions/cache` 4 → **6** | major x2 | 🟢 | 🟢 Bajo | **Mergear** |
+
+## Detalle y justificación
+
+### 🔴 Cerrar (breaking changes reales)
+
+- **#20 TypeScript 7.0.2** — TS 7 aún no existe estable a la fecha del repo; es un salto ficticio o pre-release. El proyecto está atado a `^5.9.3` y todo el `tsconfig` (strict, `verbatimModuleSyntax`, plugins de Vite) está calibrado para 5.x. Además rompe `tsgo` y el typecheck del CI. **Cerrar.**
+- **#19 react-dropzone 17** — Acabamos de migrar a v16 en el sprint E (v7.56.0 / v7.57.0). Un major inmediato invalida esa auditoría reciente sin ganancia. **Cerrar** y reabrir cuando haya changelog público que amerite.
+- **#18 @types/node 26** — Nuestro runtime objetivo es Node 20/22 (`.nvmrc`). Tipos de Node 26 introducen APIs no disponibles y rompen typecheck. **Cerrar** hasta que `.nvmrc` suba.
+- **#17 jsdom 29** — Vitest 2.x sólo soporta jsdom hasta 26/27. Saltar 3 majors rompe los tests de `useDocuments.rls`, `formDialog`, etc. **Cerrar** hasta que subamos Vitest.
+
+### 🟡 Investigar
+
+- **#16 postcss 8.5.19** — Es sólo un patch, no debería romper nada. El hecho de que 8 checks estén rojos apunta a que la rama está desactualizada contra `main` (Dependabot lleva 4 días sin rebase). Acción: `dependabot rebase` y si sigue rojo, leer el log de `Build (Vite)`.
+- **#11 gitleaks-action 3.0.0** — El único check en rojo es `Secrets check`, que es precisamente el que corre gitleaks. La v3 cambió los inputs (`GITLEAKS_LICENSE`, `GITLEAKS_ENABLE_UPLOAD_ARTIFACT`). Hay que actualizar `.github/workflows/gitleaks.yml` en el mismo PR antes de mergear.
+- **#4 codeql-action v4** — Los fallos son E2E/Deno/CodeQL de mediados de junio (branch vieja). Rebasear con `@dependabot rebase`; los E2E de main ya fueron endurecidos (v7.72.6–v7.72.11) y deberían pasar.
+
+### 🟢 Mergear directo
+
+- **#14** — grupo minor/patch de actions, ya en verde.
+- **#12 actions/labeler v6** — verde. Confirmar sólo que el workflow siga pineado por SHA (nuestro `labeler.yml` usa `@8558fd74…` que corresponde a v5; Dependabot debió actualizar el SHA también).
+- **#2 actions/cache v6** — verde.
+
+## Orden de acción sugerido
+
+```text
+1. Mergear #2, #12, #14                (bajo riesgo, verde)
+2. Investigar y arreglar #11 y #16     (rebase + ajustar inputs)
+3. Rebasear #4 y re-evaluar CI         (si verde, mergear)
+4. Cerrar #17, #18, #19, #20 con nota  ("bloqueado por <razón>")
 ```
 
-Supabase Storage rechaza claves con caracteres fuera del set `[a-zA-Z0-9!\-_.*'()/]` con error `Invalid key`. Los XML CFDI de proveedores mexicanos suelen traer:
+## Notas técnicas
 
-- Espacios en blanco
-- Acentos y `ñ` (ej. `Facturación Enero.xml`)
-- Guiones largos, paréntesis mal cerrados, comas
-- Prefijos con `&` o `#` de sistemas contables
+- Los checks "unknown/None" en `mergeable_state` son porque GitHub no ha calculado merge status en PRs de Dependabot dormidos; se resuelven con un rebase.
+- El repo tiene 16–19 checks configurados; el patrón "6 success + 8 failure + 2 skipped" en los npm bumps sugiere que el fallo raíz está en el bootstrap (probable `bun install` o typecheck) y el resto son fallos en cascada, no 8 problemas distintos.
+- No hay PRs con conflicto de código de la app; todos tocan sólo `package.json` / `.github/workflows/*.yml`.
 
-El error reportado (`supplier/4397e210-.../178…`) corresponde exactamente a este hook — es el único que usa el prefijo `supplier/` (via `entityType="supplier"`) y el único de la app que sube archivos genéricos sin sanitizar. El hook hermano `useUploadSupplierBillXml` ya sanitiza con `.replace(/[^a-zA-Z0-9._-]/g, "_")`.
+## Entregable
 
-## Cambio
-
-Aplicar la misma sanitización canónica que ya usan `useUploadSupplierBillXml` y `useUploadSupplierReceipt`:
-
-- Reemplazar `file.name` en la construcción del path por una variante saneada (`safeName`) que sólo conserve `[a-zA-Z0-9._-]`.
-- Mantener el `file_name` original en la fila `documents` (para mostrarlo tal cual al usuario) — sólo el path físico se sanea.
-- Colapsar guiones bajos consecutivos y recortar longitud a un máximo razonable (128 chars) para evitar paths patológicos.
-
-Archivo:
-
-- `src/hooks/useDocuments.ts` — `useUploadDocument.mutationFn`.
-
-## Verificación
-
-- Playwright: ir a `/suppliers`, abrir un proveedor, subir un XML con nombre `Factura de Prueba Enero (Ñoño).xml` y confirmar que:
-  - No aparece toast "Error al subir el documento".
-  - La fila queda en la tabla con `file_name` original.
-  - El path en `documents.file_url` es `documents/supplier/<id>/<ts>_Factura_de_Prueba_Enero__Nono_.xml` (sin caracteres inválidos).
-- Repetir con un PDF con espacios y acentos para cubrir el caso no-XML.
-
-## Changelog
-
-- `public/changelog.json` + `public/changelog/v7.72.9.json` — patch:
-  - Título: "Sanitización de nombres de archivo al subir documentos por entidad".
-  - Descripción: bug `Invalid key` en Storage cuando el XML/PDF traía acentos, espacios u otros caracteres fuera del set permitido por Supabase Storage; se aplica el mismo saneado canónico ya usado en los hooks de cuentas por pagar.
-
-## Detalle técnico
-
-Regex de saneado idéntica al resto del código (canónica en el repo):
-
-```ts
-const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_").slice(0, 128);
-const filePath = `${entityType}/${entityId}/${Date.now()}_${safeName}`;
-```
-
-No se toca RLS, ni el bucket `documents`, ni la fila insertada (salvo el `file_url` que naturalmente cambia de forma). No se altera el flujo de lectura porque `openStorageFile` ya usa el path tal cual quedó guardado.
-
-## Fuera de alcance
-
-- No se re-migran documentos históricos con paths malformados (si los hubiera, seguirían accesibles; el problema era en `upload`, no en lectura).
-- No se toca la validación de tipo/tamaño de archivo — vive fuera de este hook y no es la causa del error reportado.
+Este plan es **read-only**: sólo lista recomendaciones. Cuando lo apruebes, en build mode puedo:
+- Comentar cada PR en GitHub (requiere linkear el conector de GitHub, hoy no está linkeado).
+- O ejecutar localmente los merges/close vía `gh` si me das un token — pero lo natural es que tú (o quien tenga permisos de merge) aplique las acciones desde GitHub siguiendo esta tabla.
