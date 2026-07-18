@@ -20,6 +20,8 @@ export const invoiceKeys = {
     dueFrom?: string | null;
     dueTo?: string | null;
     withBalanceOnly?: boolean;
+    limit?: number | null;
+    offset?: number | null;
   }) =>
     [
       ...invoiceBase.all,
@@ -28,6 +30,8 @@ export const invoiceKeys = {
       params.dueFrom ?? null,
       params.dueTo ?? null,
       params.withBalanceOnly ?? null,
+      params.limit ?? null,
+      params.offset ?? null,
     ] as const,
   upcoming: () => [...invoiceBase.all, "upcoming"] as const,
   nextNumber: () => [...invoiceBase.all, "next-number"] as const,

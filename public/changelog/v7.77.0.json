@@ -1,0 +1,32 @@
+{
+  "version": "7.77.0",
+  "date": "2026-07-18",
+  "type": "minor",
+  "title": "Sprint 5 code review: paginación y filtros server-side de facturas con saldo + test PERF-003",
+  "summary": "PERF-001 completado y brecha de cobertura de Sprint 4 (PERF-003) cerrada con tests unitarios.",
+  "sections": [
+    {
+      "heading": "PERF-001 — Server-side filtering + pagination",
+      "items": [
+        "`list_invoices_with_balance` reemplazado por versión parametrizada: `p_statuses text[]`, `p_due_from date`, `p_due_to date`, `p_with_balance_only bool`, `p_limit int`, `p_offset int` (todos con defaults).",
+        "Autorización por rol intacta: personal interno ve todo, `customer` sigue restringido a sus propias facturas vía `auth_user_id`.",
+        "ORDER BY movido al RPC: `due_date NULLS LAST, issued_at DESC` — determinismo garantizado en paginación.",
+        "`useInvoicesWithBalance` transmite los filtros como argumentos RPC y elimina el filter/sort en memoria; `useUpcomingInvoices` se beneficia automáticamente."
+      ]
+    },
+    {
+      "heading": "Auditoría Sprint 4 — PERF-003 cobertura de tests",
+      "items": [
+        "Nuevo `useSyncInvoiceBookings.test.ts` con 3 casos: (1) happy-path 2 filas ↔ 2 bookings; (2) mismatch RLS/trigger silencia una fila → error explícito `se esperaban N`; (3) `bookingIds = []` solo ejecuta delete y termina en éxito.",
+        "Verificado que la RLS de `invoice_bookings` permite `SELECT` a admin/administrativo/dispatcher — el `.select('invoice_id')` no dispara falsos negativos."
+      ]
+    },
+    {
+      "heading": "Estado del sprint",
+      "items": [
+        "18/22 hallazgos del reporte de code review cerrados.",
+        "Restan: PERF-004 y hallazgos menores (UI/DX) que se atenderán en el siguiente sprint."
+      ]
+    }
+  ]
+}

@@ -26,6 +26,9 @@ interface Filter {
   dueTo?: string;
   /** Solo facturas con saldo > 0. Default: true. */
   withBalanceOnly?: boolean;
+  /** Paginación (PERF-001): límite de filas y offset. Undefined => sin paginar. */
+  limit?: number;
+  offset?: number;
 }
 
 function buildInvoicesWithBalanceQuery(filter: Filter) {
@@ -34,46 +37,48 @@ function buildInvoicesWithBalanceQuery(filter: Filter) {
     dueFrom,
     dueTo,
     withBalanceOnly = true,
+    limit,
+    offset,
   } = filter;
 
   return queryOptions({
-    queryKey: invoiceKeys.withBalance({ statuses, dueFrom, dueTo, withBalanceOnly }),
+    queryKey: invoiceKeys.withBalance({ statuses, dueFrom, dueTo, withBalanceOnly, limit, offset }),
     staleTime: 60_000,
     queryFn: async (): Promise<InvoiceWithBalance[]> => {
-      // SEC-005: la vista v_invoices_with_balance ya no es legible directamente.
-      // Consumimos el RPC SECURITY DEFINER `list_invoices_with_balance`
-      // que filtra por rol del caller (customers → solo sus facturas).
+      // SEC-005 + PERF-001: RPC parametrizada que filtra y pagina en servidor.
       const { data, error } = await (supabase.rpc as unknown as (
         fn: string,
+        args: Record<string, unknown>,
       ) => Promise<{ data: unknown; error: { message?: string } | null }>)(
         "list_invoices_with_balance",
+        {
+          p_statuses: statuses as string[],
+          p_due_from: dueFrom ?? null,
+          p_due_to: dueTo ?? null,
+          p_with_balance_only: withBalanceOnly,
+          p_limit: limit ?? null,
+          p_offset: offset ?? 0,
+        },
       );
       if (error) throw error;
 
       const rows = (data ?? []) as Record<string, unknown>[];
-      const statusSet = new Set(statuses);
 
-      return rows
-        .filter((r) => statusSet.has(r.status as string))
-        .filter((r) => (dueFrom ? String(r.due_date ?? "") >= dueFrom : true))
-        .filter((r) => (dueTo ? String(r.due_date ?? "") <= dueTo : true))
-        .filter((r) => (withBalanceOnly ? Number(r.balance) > 0 : true))
-        .sort((a, b) => String(a.due_date ?? "").localeCompare(String(b.due_date ?? "")))
-        .map((r) => ({
-          id: r.id as string,
-          invoice_number: r.invoice_number as string,
-          customer_name: (r.customer_name as string | null) ?? null,
-          customer_id: (r.customer_id as string | null) ?? null,
-          status: r.status as string,
-          total: Number(r.total),
-          paid_amount: Number(r.paid_amount),
-          balance: Number(r.balance),
-          due_date: (r.due_date as string | null) ?? null,
-          issued_at: r.issued_at as string,
-          booking_id: (r.booking_id as string | null) ?? null,
-          moneda: (r.moneda as string | null) ?? null,
-          tipo_cambio: r.tipo_cambio == null ? null : Number(r.tipo_cambio),
-        }));
+      return rows.map((r) => ({
+        id: r.id as string,
+        invoice_number: r.invoice_number as string,
+        customer_name: (r.customer_name as string | null) ?? null,
+        customer_id: (r.customer_id as string | null) ?? null,
+        status: r.status as string,
+        total: Number(r.total),
+        paid_amount: Number(r.paid_amount),
+        balance: Number(r.balance),
+        due_date: (r.due_date as string | null) ?? null,
+        issued_at: r.issued_at as string,
+        booking_id: (r.booking_id as string | null) ?? null,
+        moneda: (r.moneda as string | null) ?? null,
+        tipo_cambio: r.tipo_cambio == null ? null : Number(r.tipo_cambio),
+      }));
     },
   });
 }
@@ -81,11 +86,10 @@ function buildInvoicesWithBalanceQuery(filter: Filter) {
 /**
  * Fuente única de verdad para "facturas + saldo".
  *
- * Desde SEC-005: consume el RPC SECURITY DEFINER `list_invoices_with_balance`,
- * que aplica filtros por rol (customers solo ven sus propias facturas).
- * Los filtros por estado / rango / saldo se aplican en cliente sobre el set
- * devuelto para mantener la API previa; la vista subyacente sigue calculando
- * `paid_amount` y `balance = total - paid_amount`.
+ * SEC-005 + PERF-001: consume el RPC SECURITY DEFINER
+ * `list_invoices_with_balance(statuses, due_from, due_to, with_balance_only, limit, offset)`
+ * que aplica filtros por rol (customers solo ven sus propias facturas) y
+ * empuja el resto de filtros + paginación al servidor.
  */
 export function useInvoicesWithBalance(filter: Filter = {}) {
   return useQuery(buildInvoicesWithBalanceQuery(filter));

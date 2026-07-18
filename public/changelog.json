@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.77.0",
+    "date": "2026-07-18",
+    "type": "minor",
+    "title": "Sprint 5 code review: paginación y filtros server-side de facturas con saldo + test PERF-003",
+    "description": "Quinto sprint del reporte de auditoría. PERF-001: `list_invoices_with_balance` ahora acepta `p_statuses`, `p_due_from`, `p_due_to`, `p_with_balance_only`, `p_limit` y `p_offset`; los filtros y el ORDER BY (due_date NULLS LAST, issued_at DESC) se ejecutan en Postgres en lugar del cliente. `useInvoicesWithBalance` propaga los parámetros y ya no filtra/ordena en memoria; el query key incluye limit/offset. Audit Sprint 4: agregado `useSyncInvoiceBookings.test.ts` con 3 casos (happy-path, mismatch de filas insertadas por RLS/trigger silencioso, bookingIds vacío) que cierran la brecha de cobertura de PERF-003.",
+    "category": "performance",
+    "files": [
+      "supabase/migrations/*_perf001_paginated_invoices_rpc.sql",
+      "src/features/invoices/hooks/invoices/useInvoicesWithBalance.ts",
+      "src/features/invoices/lib/queryKeys.ts",
+      "src/features/invoices/hooks/__tests__/useSyncInvoiceBookings.test.ts"
+    ]
+  },
+  {
     "version": "7.76.0",
     "date": "2026-07-18",
     "type": "minor",
