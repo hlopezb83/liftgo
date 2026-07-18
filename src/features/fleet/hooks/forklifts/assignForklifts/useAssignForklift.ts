@@ -43,7 +43,12 @@ export function useAssignForklift() {
         .insert(logs)
         .select("id");
       if (logsError) throw logsError;
-      assertRowsAffected(logRows, "Registrar historial de estatus", logs.length);
+      assertRowsAffected(logRows, "Registrar historial de estatus");
+      if (logRows.length !== logs.length) {
+        throw new Error(
+          `Registrar historial de estatus: se esperaban ${logs.length} registros y se insertaron ${logRows.length}.`,
+        );
+      }
     },
     invalidateKeys: [quoteAssignedForkliftKeys.all, forkliftKeys.all, statusLogKeys.all],
     successMsg: "Equipos asignados correctamente",
