@@ -3,8 +3,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createQueryWrapper } from "@/test/helpers/queryClient";
 import { createSupabaseChainMock } from "@/test/helpers/supabaseChain";
 
-const { notifyErrorMock } = vi.hoisted(() => ({
+const { notifyErrorMock, notifyWarningMock } = vi.hoisted(() => ({
   notifyErrorMock: vi.fn(),
+  notifyWarningMock: vi.fn(),
 }));
 
 vi.mock("sonner", () => ({
@@ -14,7 +15,7 @@ vi.mock("@/lib/ui/appFeedback", () => ({
   notifyError: notifyErrorMock,
   notifySuccess: vi.fn(),
   notifyInfo: vi.fn(),
-  notifyWarning: vi.fn(),
+  notifyWarning: notifyWarningMock,
   notifyValidation: vi.fn(),
   notifyAsync: vi.fn(),
 }));
