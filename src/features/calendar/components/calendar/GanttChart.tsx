@@ -57,7 +57,6 @@ function ChipCloud({ groups }: { groups: Array<{ key: string; count: number }> }
 
 export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd }: GanttChartProps) {
   const { days, getSegments, customerColorMap } = useGanttSegments(bookings, rangeStart, rangeEnd);
-  const [legendOpen, setLegendOpen] = useState(false);
 
   const forkliftsWithActivity = (() => {
     const set = new Set<string>();
