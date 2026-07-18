@@ -81,9 +81,9 @@ function StatusTabs<V extends string>({
     <Tabs
       value={value}
       onValueChange={(v) => onChange(v as V | "all")}
-      className={className}
+      className={cn("w-full sm:w-auto overflow-x-auto", className)}
     >
-      <TabsList>
+      <TabsList className="whitespace-nowrap">
         {options.map((opt) => (
           <TabsTrigger
             key={opt.value}
