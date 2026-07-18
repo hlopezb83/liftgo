@@ -1,0 +1,17 @@
+{
+  "version": "7.74.0",
+  "date": "2026-07-18",
+  "type": "minor",
+  "title": "Sprint 2 code review: race conditions en reservas/pagos + money math en notas de crédito",
+  "description": "Segundo sprint del reporte de auditoría (5 hallazgos cerrados). DI-004: `create_booking` bloquea la fila del montacargas con `SELECT ... FOR UPDATE` antes de validar disponibilidad — elimina la ventana TOCTOU entre check y update. DI-002 + BL-002: nuevo trigger `enforce_payment_balance` en `payments` que (1) toma advisory lock por invoice para serializar pagos concurrentes, (2) rechaza pagos sobre facturas canceladas, (3) impide que la suma de pagos exceda el total — imposible dejar saldos negativos aunque dos usuarios registren pagos al mismo tiempo. BL-001: `useCreditNoteForm` calcula subtotal/IVA/total con `sumMoney`+`roundMoney` (currency.js) en lugar de `.reduce` crudo, evitando drift de IEEE-754 en documentos con muchas partidas.",
+  "category": "security",
+  "files": [
+    "supabase/migrations/*",
+    "src/features/invoices/hooks/creditNotes/useCreditNoteForm.ts"
+  ],
+  "details": {
+    "findings_closed": ["DI-004", "DI-002", "BL-002", "BL-001"],
+    "deferred": ["BL-003 (Math.round en edge functions — funcionalmente correcto, mejora estética)", "BL-009 (generate-recurring-maintenance — pendiente Sprint 3)"],
+    "next_sprint": "v7.75.0 — sync de estatus atómico, soft-delete, auth checks y UX (DI-005, DI-007, AUTH-001/2/3, BL-006/8)"
+  }
+}
