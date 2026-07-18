@@ -1,0 +1,32 @@
+{
+  "version": "7.77.1",
+  "date": "2026-07-18",
+  "type": "patch",
+  "title": "Fix CI: reponer EXECUTE en e2e_seed_scenario",
+  "summary": "Desbloquea el shard 1 de Playwright sin reintroducir SEC-004.",
+  "sections": [
+    {
+      "heading": "Causa",
+      "items": [
+        "Sprint 1 (v7.73.0, SEC-004) revocó `GRANT EXECUTE` sobre `public.e2e_seed_scenario` para cerrar la superficie en producción.",
+        "Efecto colateral: `tests/e2e/fixtures/seed.ts` invoca el RPC como usuario `authenticated` y CI empezó a fallar con `permission denied for function e2e_seed_scenario` en `booking-to-invoice`, `full-flow`, `invoice-payment` y `quote-to-booking`.",
+        "`e2e_teardown` mantenía el GRANT; sólo `e2e_seed_scenario` había quedado inaccesible."
+      ]
+    },
+    {
+      "heading": "Fix",
+      "items": [
+        "Migración `GRANT EXECUTE ON FUNCTION public.e2e_seed_scenario(text) TO authenticated`.",
+        "La función conserva doble guardia interna que ya protegía producción: (1) `IF NOT public.has_role(auth.uid(), 'admin')` → aborta con `Forbidden`; (2) `SELECT allow_e2e_seed FROM company_settings` → aborta si el flag está apagado.",
+        "Reponer el GRANT no reabre SEC-004: sólo cuentas admin en entornos con el flag habilitado (staging/CI) pueden ejecutarla."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "`has_function_privilege('authenticated', 'public.e2e_seed_scenario(text)', 'EXECUTE')` → `t`.",
+        "Resto del CI (RLS 33/33, Vitest, Deno 43/43, Build, Typecheck, ESLint, shard 2) ya estaba verde."
+      ]
+    }
+  ]
+}
