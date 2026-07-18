@@ -64,6 +64,7 @@ describe("useAssignForklift", () => {
     h.state.forkliftsSelect = [{ id: "f-1", status: "available" }];
     h.state.forkliftsUpdateResult = [{ id: "f-1" }];
     h.state.statusLogsInsertError = null;
+    h.state.statusLogsInsertResult = [{ id: "log-1" }];
   });
 
   it("happy path: insert + update + status_logs", async () => {
