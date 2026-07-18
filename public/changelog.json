@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.79.0",
+    "date": "2026-07-18",
+    "type": "patch",
+    "title": "FiltersToolbar: tabs con scroll horizontal y Limpiar siempre a la derecha",
+    "summary": "Cierres del sprint anterior tras auditar el viewport ≤ md: cobertura de pruebas para el fallback mobile del MRR y estabilización del toolbar de filtros."
+  },
+  {
     "version": "7.78.0",
     "date": "2026-07-18",
     "type": "minor",
