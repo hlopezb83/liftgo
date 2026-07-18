@@ -1,67 +1,54 @@
-# Revisión de auditoría externa (draft-diffs-2026-07-18)
+# DIFF 7b — Leyenda semántica del Gantt del Calendario
 
-Revisé los 8 diffs contra el estado actual del repo. Veredicto por diff:
+## Contexto verificado
 
-## ❌ DIFF 1 — Quitar `lovable-tagger` / preconnect `cdn.gpteng.co` — **RECHAZAR**
+Al releer `GanttChart.tsx` + `GanttRow.tsx`, el Gantt ya tiene:
+- Leyenda **por cliente** (colapsable, mapa `customerColorMap`) — ya existe.
+- Codificación visual **no documentada** en pantalla:
+  - Barra sólida = reserva **confirmada** (activa/futura).
+  - Barra atenuada + borde punteado = **completada** o **cancelada**.
+  - Franjas grises verticales = **fin de semana**.
+  - Línea vertical primaria = **hoy**.
 
-Es infraestructura **propia de Lovable**, no un widget de terceros:
-- `lovable-tagger` inyecta `data-lov-*` en dev para que el editor visual de Lovable pueda seleccionar componentes desde el preview.
-- `cdn.gpteng.co` es el CDN del runtime del editor Lovable.
+El auditor externo pedía "leyenda de colores" pero, como ya existe la de clientes, el gap real es la **leyenda semántica de estados y marcadores**, que hoy el usuario tiene que adivinar. Eso es lo que aporta valor y encaja con el patrón del proyecto (auto-explicativo, alta densidad, desktop-first).
 
-Eliminarlos rompe la experiencia de edición visual en el preview/editor. El auditor mismo duda ("esto NO explica el widget en producción"). **No aplicar.**
+Descarto la interpretación literal del auditor (duplicar la leyenda de clientes) porque ya está resuelta.
 
-## ✅ DIFF 2 — Botones Facturas responsive — **APLICAR**
+## Alcance
 
-Toolbar de facturas efectivamente se corta en móvil. `flex-wrap` + icon-only con `aria-label` es correcto y de bajo riesgo.
+Un cambio puntual en `src/features/calendar/components/calendar/GanttChart.tsx`:
 
-## ✅ DIFF 3 — Doble asterisco "Periodo de Renta * *" — **APLICAR**
+1. Agregar una **segunda sección colapsable** (o un bloque hermano) justo antes/después de "Leyenda de clientes", titulada **"Leyenda"**, que documente:
+   - Muestra sólida coloreada → *Confirmada*
+   - Muestra atenuada con borde punteado → *Completada / Cancelada*
+   - Cuadrito gris → *Fin de semana*
+   - Línea vertical primaria → *Hoy*
+2. Reutilizar `Collapsible` (ya importado) y los mismos tokens de tipografía/spacing que la leyenda de clientes para mantener consistencia visual.
+3. Sólo se renderiza si hay `active.length > 0` (si no hay Gantt visible, no aporta).
+4. Cero cambios en `useGanttSegments`, `GanttRow` o `GanttHeader` — la codificación visual ya está implementada, sólo se documenta.
 
-Verificado: `src/features/quotes/pages/QuoteForm.tsx:63` tiene `label="Periodo de Renta *"` **y** `required`, produciendo doble marca. Fix trivial.
+## Detalles técnicos
 
-## ✅ DIFF 4 — Columna Total alineada a la derecha en cotizaciones — **APLICAR**
+- Archivo tocado: `src/features/calendar/components/calendar/GanttChart.tsx` (~+30 LOC, sin superar el límite de 150 LOC del componente: hoy tiene 146, quedaría ~175 → **extraer los dos bloques de leyenda a un subcomponente `GanttLegend.tsx`** para respetar Power of 10).
+- Nuevo archivo: `src/features/calendar/components/calendar/GanttLegend.tsx` que reciba `customerColorMap` y renderice ambas secciones colapsables.
+- Textos en es-MX, sin emojis, tipografía `text-xs`/`text-2xs` como el resto del componente.
+- Sin cambios de estilos globales ni de tokens (`--gantt-*` se mantienen).
 
-Patrón `meta: { align: "right" }` ya soportado por `DataTableV2`. Consistente con Facturas/Reconciliación.
+## Verificación
 
-## ✅ DIFF 5 — `aria-label` en botones icon-only — **APLICAR** (verificar cada archivo)
+- `bunx tsgo --noEmit` limpio.
+- `bun run lint` sin warnings nuevos.
+- Playwright: screenshot de `/calendario` en 1600×900 mostrando ambas leyendas expandidas.
+- Test unitario ligero para `GanttLegend` (render + toggle) si el subcomponente lo justifica.
 
-Mejora de accesibilidad sin riesgo funcional. Antes de aplicar cada bloque, revalido líneas exactas (los números pueden haber corrido).
+## Cierre
 
-## ⚠️ DIFF 6 — Empty states unificados — **APLICAR PARCIAL**
+- Entrada nueva en `public/changelog.json` + `public/changelog/v7.85.0.json` como **patch** (documentación visual, sin cambios funcionales).
 
-Verifiqué: `QuotesPage`, `UserManagementPage`, `PortalQuotes` **ya usan `emptyMessage`** vía `ListPageLayout`/`DataTableV2`. El auditor tiene información desactualizada.
+## Alternativas descartadas
 
-Lo que sí queda pendiente y sí aplico:
-- Reportes (`ProfitabilityChart`, `ProfitabilityByModelReport`, etc.): sustituir `<p>No hay datos…</p>` por `<EmptyState />`.
-- Revisar `CustomersPage` y `SuppliersPage` si aún tienen texto custom (verificar antes de tocar).
+- **Duplicar la leyenda de clientes en otro formato**: ya existe, no aporta.
+- **Rediseñar el color por status en vez de por cliente**: rompería la identificación visual de clientes recurrentes que hoy es útil para el equipo de operaciones. Fuera de alcance.
+- **Mover la codificación a badges/StatusBadge dentro del row**: reduce densidad visual del Gantt (contraviene el core "alta densidad, desktop-first").
 
-Descarto los cambios en archivos que ya migraron.
-
-## ⚠️ DIFF 7 — Calendario: default Lista móvil + leyenda — **APLICAR 7a, DIFERIR 7b**
-
-- **7a (default Lista en móvil):** aplico usando el hook canónico del proyecto `@/hooks/use-mobile` (no el path que sugiere el auditor).
-- **7b (leyenda de colores):** el auditor mismo advierte que necesita "lectura extra". El mapa cliente→color hoy vive dentro del GanttChart y no está expuesto. Requiere refactor de exportación. Lo dejo para un sprint dedicado con su propio plan.
-
-## ✅ DIFF 8 — Dashboard móvil — **APLICAR con ajustes**
-
-- **8a (alertas primero en móvil):** aplico con `order-*` responsive limpio (no la variante con `contents`, más frágil).
-- **8b (tarjeta huérfana Vendidos):** aplico el selector `[&>*:last-child:nth-child(odd)]:col-span-2` en `StatCards`. Zero JS.
-
----
-
-## Plan de ejecución (si apruebas)
-
-Un solo sprint **v7.84.0** con los diffs aprobados:
-
-1. DIFF 3 — label QuoteForm (trivial)
-2. DIFF 4 — alineación columna Total en QuotesPage
-3. DIFF 2 — InvoicesToolbar responsive + `aria-label`
-4. DIFF 5 — barrido `aria-label` en los 13 archivos listados (reverificando líneas)
-5. DIFF 6 (parcial) — solo reportes + páginas que aún tengan texto custom real
-6. DIFF 7a — default Lista en `CalendarPage` móvil
-7. DIFF 8a + 8b — orden responsive del Dashboard y grid StatCards
-
-Se descarta: **DIFF 1** completo, **DIFF 7b**, y las partes de **DIFF 6** que ya están migradas.
-
-Al cierre: `bun run lint`, `bunx vitest run`, screenshots de verificación 1600×900 y 698×572, y entrada nueva en `public/changelog.json` + `public/changelog/v7.84.0.json`.
-
-¿Apruebas este alcance o quieres que ajuste (ej. saltar DIFF 5, incluir 7b con investigación previa, etc.)?
+¿Procedo con este alcance o prefieres otra interpretación de 7b (por ejemplo, sólo documentar sin subcomponente, o incluir también íconos en `GanttHeader`)?
