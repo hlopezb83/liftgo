@@ -17,16 +17,18 @@ export default function OperationsSetupPage() {
     <PageContainer maxWidth="wide">
       <PageHeader title="Configuración" subtitle="Administrar modelos de equipo, operadores, mecánicos, pólizas, plantillas, datos fiscales, logo y aprobaciones" />
       <Tabs defaultValue="equipment" className="mt-6">
-        <TabsList className="flex-wrap h-auto">
-          <TabsTrigger value="equipment" className="gap-2"><SettingsIcon className="h-4 w-4" />Modelos de Equipo</TabsTrigger>
-          <TabsTrigger value="drivers" className="gap-2"><FleetIcon className="h-4 w-4" />Operadores</TabsTrigger>
-          <TabsTrigger value="mechanics" className="gap-2"><MaintenanceIcon className="h-4 w-4" />Mecánicos</TabsTrigger>
-          <TabsTrigger value="policies" className="gap-2"><SecurityIcon className="h-4 w-4" />Pólizas de Mantenimiento</TabsTrigger>
-          <TabsTrigger value="contract-template" className="gap-2"><DocumentIcon className="h-4 w-4" />Plantilla de Contrato</TabsTrigger>
-          <TabsTrigger value="fiscal" className="gap-2"><CompanyIcon className="h-4 w-4" />Datos Fiscales</TabsTrigger>
-          <TabsTrigger value="logo" className="gap-2"><ImageIcon className="h-4 w-4" />Logo</TabsTrigger>
-          <TabsTrigger value="cxp-approval" className="gap-2"><ShieldAlert className="h-4 w-4" />Aprobaciones CxP</TabsTrigger>
-        </TabsList>
+        <div className="-mx-4 sm:mx-0 overflow-x-auto">
+          <TabsList className="flex w-max min-w-full sm:w-full sm:flex-wrap h-auto px-4 sm:px-1">
+            <TabsTrigger value="equipment" className="gap-2 whitespace-nowrap"><SettingsIcon className="h-4 w-4" />Modelos de Equipo</TabsTrigger>
+            <TabsTrigger value="drivers" className="gap-2 whitespace-nowrap"><FleetIcon className="h-4 w-4" />Operadores</TabsTrigger>
+            <TabsTrigger value="mechanics" className="gap-2 whitespace-nowrap"><MaintenanceIcon className="h-4 w-4" />Mecánicos</TabsTrigger>
+            <TabsTrigger value="policies" className="gap-2 whitespace-nowrap"><SecurityIcon className="h-4 w-4" />Pólizas de Mantenimiento</TabsTrigger>
+            <TabsTrigger value="contract-template" className="gap-2 whitespace-nowrap"><DocumentIcon className="h-4 w-4" />Plantilla de Contrato</TabsTrigger>
+            <TabsTrigger value="fiscal" className="gap-2 whitespace-nowrap"><CompanyIcon className="h-4 w-4" />Datos Fiscales</TabsTrigger>
+            <TabsTrigger value="logo" className="gap-2 whitespace-nowrap"><ImageIcon className="h-4 w-4" />Logo</TabsTrigger>
+            <TabsTrigger value="cxp-approval" className="gap-2 whitespace-nowrap"><ShieldAlert className="h-4 w-4" />Aprobaciones CxP</TabsTrigger>
+          </TabsList>
+        </div>
         <TabsContent value="equipment"><EquipmentModelsTab /></TabsContent>
         <TabsContent value="drivers"><DriversTab /></TabsContent>
         <TabsContent value="mechanics"><MechanicsTab /></TabsContent>
