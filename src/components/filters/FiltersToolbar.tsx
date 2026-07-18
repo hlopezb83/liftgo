@@ -167,15 +167,18 @@ function DateRangeControl({ value, onChange, placeholder, className }: DateRange
   const [fromStr, toStr] = value.includes("..") ? value.split("..", 2) : ["", ""];
   // Parsear como fecha local (no UTC) para evitar shift de zona horaria en el
   // round-trip con `toYMD` (America/Monterrey). Ver v7.80.0 changelog.
-  const parseLocalYMD = (s: string): Date | undefined => {
+  // Parsear como mediodía UTC para que `toZonedTime(...,'America/Monterrey')`
+  // — usado por el renderer del rango — devuelva siempre el mismo día
+  // independientemente de la zona horaria del navegador. Round-trip seguro con `toYMD`.
+  const parseYMD = (s: string): Date | undefined => {
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
     if (!m) return undefined;
     const [, y, mo, d] = m;
-    const dt = new Date(Number(y), Number(mo) - 1, Number(d));
+    const dt = new Date(Date.UTC(Number(y), Number(mo) - 1, Number(d), 12, 0, 0));
     return isValid(dt) ? dt : undefined;
   };
-  const from = parseLocalYMD(fromStr);
-  const to = parseLocalYMD(toStr);
+  const from = parseYMD(fromStr);
+  const to = parseYMD(toStr);
   const dateRange: DateRange | undefined = from || to ? { from, to } : undefined;
 
   return (
