@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Tables } from "@/integrations/supabase/types";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { parseLineItems } from "@/lib/domain/lineItems";
+import { roundMoney, sumMoney } from "@/lib/money";
 import { useCreateCreditNote } from "./useCreditNotes";
 
 export type EditableCreditNoteLine = LineItem & { _selected: boolean };
@@ -20,11 +21,15 @@ export function useCreditNoteForm(
   const createMutation = useCreateCreditNote();
 
   const taxRate = Number(invoice.tax_rate) || 0;
-  const subtotal = lines
-    .filter((l) => l._selected)
-    .reduce((s, l) => s + Number(l.quantity || 0) * Number(l.unit_price || 0), 0);
-  const taxAmount = subtotal * (taxRate / 100);
-  const total = subtotal + taxAmount;
+  // BL-001: sumMoney/roundMoney evitan drift IEEE-754 acumulado en el subtotal
+  // y en el redondeo final del IVA (currency.js internamente).
+  const subtotal = sumMoney(
+    lines
+      .filter((l) => l._selected)
+      .map((l) => Number(l.quantity || 0) * Number(l.unit_price || 0)),
+  );
+  const taxAmount = roundMoney(subtotal * (taxRate / 100));
+  const total = roundMoney(subtotal + taxAmount);
   const exceedsMax = total > maxCreditable + 0.01;
   const canSubmit =
     reason.trim().length > 0 && total > 0 && !exceedsMax && !createMutation.isPending;
