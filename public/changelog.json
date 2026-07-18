@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.76.0",
+    "date": "2026-07-18",
+    "type": "minor",
+    "title": "Sprint 4 code review: performance de pagos e integridad de invoice_bookings + test BL-008",
+    "description": "Cuarto sprint del reporte de auditoría. PERF-002: índice compuesto `idx_payments_invoice_date (invoice_id, payment_date DESC)` + `idx_payments_invoice_id` — el trigger `sync_invoice_status_from_payments` (SUM/MAX por invoice_id) y el historial de pagos por factura ahora usan índice en lugar de seq scan. PERF-003: `useSyncInvoiceBookings` observa filas afectadas con `.select('invoice_id')` y valida que el insert coincida con el número de reservas solicitadas (detecta RLS o triggers silenciosos antes de que la UI muestre estado inconsistente). Audit Sprint 3: agregado test para BL-008 (`notifyWarning` con conteo y causa truncada cuando `generate-recurring-invoices` regresa `failed[]`; no dispara cuando `failed` está vacío). PERF-001 (paginación server-side con cursor) queda diferido a un sprint dedicado.",
+    "category": "performance",
+    "files": [
+      "supabase/migrations/*_perf_payments_indexes.sql",
+      "src/features/invoices/hooks/invoices/useInvoiceBookings.ts",
+      "src/features/invoices/hooks/invoices/recurring/__tests__/useGenerateRecurringInvoices.test.ts"
+    ]
+  },
+  {
     "version": "7.75.0",
     "date": "2026-07-18",
     "type": "minor",
