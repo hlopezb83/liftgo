@@ -29,7 +29,7 @@ const h = vi.hoisted(() => {
   };
   const statusLogsResolver = (calls: { method: string; args: unknown[] }[]) => {
     if (calls.some((c) => c.method === "insert")) {
-      return { data: null, error: state.statusLogsInsertError };
+      return { data: state.statusLogsInsertResult, error: state.statusLogsInsertError };
     }
     return { data: [], error: null };
   };
