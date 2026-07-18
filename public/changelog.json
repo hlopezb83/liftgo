@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.75.0",
+    "date": "2026-07-18",
+    "type": "minor",
+    "title": "Sprint 3 code review: sync atómico de facturas, unicidad de invitación, UX en kanban y facturación recurrente",
+    "description": "Tercer sprint del reporte de auditoría (5 hallazgos cerrados). DI-005: nuevo trigger `sync_invoice_status_from_payments` reconcilia `paid`/`partial`/`sent` en cada INSERT/UPDATE/DELETE sobre payments — imposible que un crash del cliente deje la factura desfasada. BL-002 refuerzo: CHECK `amount > 0`. AUTH-001: `invite-user` verifica unicidad de email en `profiles` y devuelve 409 explícito. BL-006: `useMaintenanceKanban` patchea caché en `onSuccess` si un trigger sobreescribió el estado. BL-008: `useGenerateRecurringInvoices` muestra warning con causa y conteo cuando el edge function regresa `failed[]`.",
+    "category": "security",
+    "files": [
+      "supabase/migrations/*",
+      "supabase/functions/invite-user/index.ts",
+      "src/features/maintenance/hooks/maintenance/useMaintenanceKanban.ts",
+      "src/features/invoices/hooks/invoices/recurring/useGenerateRecurringInvoices.ts"
+    ]
+  },
+  {
     "version": "7.74.0",
     "date": "2026-07-18",
     "type": "minor",

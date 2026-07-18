@@ -39,6 +39,17 @@ export function useMaintenanceKanban() {
     updateLog.mutate(
       { id: logId, work_status: newStatus },
       {
+        // BL-006: patch cache con la fila devuelta por el server para no depender
+        // del refetch de background si un trigger sobreescribió work_status.
+        onSuccess: (serverRow) => {
+          if (!serverRow) return;
+          const nextStatus = (serverRow as { work_status?: string }).work_status;
+          if (!nextStatus || nextStatus === newStatus) return;
+          queryClient.setQueryData<MaintenanceLog[]>(
+            maintenanceLogKeys.byFilter({ forkliftId: null }),
+            (old) => old?.map((l) => (l.id === logId ? { ...l, work_status: nextStatus } : l)),
+          );
+        },
         onError: (err) => {
           void queryClient.invalidateQueries({ queryKey: maintenanceLogKeys.all });
           notifyError({ error: err, message: "Error al actualizar estado" });

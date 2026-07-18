@@ -1,0 +1,23 @@
+{
+  "version": "7.75.0",
+  "date": "2026-07-18",
+  "type": "minor",
+  "title": "Sprint 3 code review: sync atómico de facturas, unicidad de invitación, UX en kanban y facturación recurrente",
+  "description": "Tercer sprint del reporte de auditoría (5 hallazgos cerrados). DI-005: nuevo trigger `sync_invoice_status_from_payments` que reconcilia `paid`/`partial`/`sent` en cada INSERT/UPDATE/DELETE sobre `payments` — imposible que un crash del cliente entre insert y sync deje la factura desfasada. BL-002 refuerzo: CHECK `amount > 0` en payments (a nivel base de datos). AUTH-001: `invite-user` verifica unicidad de email contra `profiles` y devuelve 409 explícito; también mapea el error `already exists` de Supabase Auth a 409. BL-006: `useMaintenanceKanban` ahora patchea la caché en `onSuccess` con la fila devuelta por el server para no depender del refetch si un trigger sobreescribe `work_status`. BL-008: `useGenerateRecurringInvoices` muestra warning explícito con la causa y el conteo cuando el edge function regresa `failed[]` en un 200.",
+  "category": "security",
+  "files": [
+    "supabase/migrations/*",
+    "supabase/functions/invite-user/index.ts",
+    "src/features/maintenance/hooks/maintenance/useMaintenanceKanban.ts",
+    "src/features/invoices/hooks/invoices/recurring/useGenerateRecurringInvoices.ts"
+  ],
+  "details": {
+    "findings_closed": ["DI-005", "AUTH-001", "BL-006", "BL-008", "BL-002 (CHECK)"],
+    "deferred": [
+      "DI-007 (soft-delete cascade — Low, requiere rediseño de filtros en varios hooks; se atiende como refactor separado)",
+      "AUTH-002 (refresh-cancellation-status tenant check — Low, app es single-tenant hoy)",
+      "AUTH-003 (AdminRouteGuard vs RPC — Low, la RPC ya impone quote requirement)"
+    ],
+    "next_sprint": "v7.76.0 — PERF-001/002 (paginación de facturas + índice compuesto)"
+  }
+}
