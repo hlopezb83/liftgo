@@ -1,0 +1,28 @@
+{
+  "version": "7.76.0",
+  "date": "2026-07-18",
+  "type": "minor",
+  "title": "Sprint 4 code review: performance de pagos e integridad de invoice_bookings + test BL-008",
+  "category": "performance",
+  "highlights": [
+    "PERF-002: índice compuesto idx_payments_invoice_date (invoice_id, payment_date DESC) + idx_payments_invoice_id acelera el trigger sync_invoice_status_from_payments y el historial de pagos por factura.",
+    "PERF-003: useSyncInvoiceBookings ahora usa .select('invoice_id') en delete/insert y valida que el número de filas insertadas coincida con las reservas solicitadas (detecta RLS o triggers silenciosos antes de que la UI muestre estado inconsistente).",
+    "Audit Sprint 3: nuevo test para BL-008 verifica que notifyWarning se dispare con conteo y causa truncada cuando generate-recurring-invoices regresa failed[], y que no se dispare cuando el array está vacío.",
+    "PERF-001 (paginación server-side con cursor sobre v_invoices_with_balance) queda diferido a un sprint dedicado por su alcance."
+  ],
+  "files": [
+    "supabase/migrations/*_perf_payments_indexes.sql",
+    "src/features/invoices/hooks/invoices/useInvoiceBookings.ts",
+    "src/features/invoices/hooks/invoices/recurring/__tests__/useGenerateRecurringInvoices.test.ts"
+  ],
+  "audit": {
+    "sprint3_findings": [
+      "OK trigger sync_invoice_status_from_payments cubre INSERT/UPDATE/DELETE con FOR UPDATE",
+      "OK CHECK payments.amount > 0",
+      "OK invite-user unicidad case-insensitive vía ilike",
+      "OK useMaintenanceKanban patchea caché con estado autoritativo del servidor",
+      "OK BL-008 notifyWarning (ahora con test)",
+      "Nota: usePayments.ts sigue llamando syncInvoiceStatus tras insert/update — redundante con trigger pero se conserva como safety net para invoices en estado draft (el trigger los omite intencionalmente)."
+    ]
+  }
+}
