@@ -1,0 +1,21 @@
+{
+  "version": "7.83.0",
+  "date": "2026-07-18",
+  "type": "patch",
+  "title": "Auditoría 698×572 — Lote D final: filtros CRM colapsables en mobile",
+  "summary": "Cierre del Lote D de la auditoría móvil: los filtros del pipeline CRM ya no se apilan verticalmente en pantallas estrechas.",
+  "changes": [
+    {
+      "area": "CRM · Toolbar",
+      "detail": "`CRMToolbar` detecta `useIsMobile` y agrupa Creador/Valor/Antigüedad dentro de un `Sheet` disparado por un botón «Filtros» con badge de conteo activo. La búsqueda se mantiene siempre visible y expande al ancho disponible."
+    },
+    {
+      "area": "CRM · KPIs",
+      "detail": "`CRMHeaderKPIs` se oculta en viewport ≤ md para priorizar la superficie del pipeline; sigue visible en tablet/desktop."
+    },
+    {
+      "area": "CRM · Padding",
+      "detail": "El contenedor del toolbar cambia a `px-4 sm:px-6` para respetar el padding móvil estándar del resto de la app."
+    }
+  ]
+}

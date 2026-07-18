@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.83.0",
+    "date": "2026-07-18",
+    "type": "patch",
+    "title": "Auditoría 698×572 — Lote D final: filtros CRM colapsables en mobile",
+    "summary": "El CRMToolbar deja de apilar los selects verticalmente en pantallas estrechas: Creador, Valor y Antigüedad se agrupan en un Sheet «Filtros» con badge de contador; en desktop siguen inline. Se mantiene búsqueda siempre visible y los KPIs se ocultan en mobile para priorizar el pipeline."
+  },
+  {
     "version": "7.82.0",
     "date": "2026-07-18",
     "type": "patch",
