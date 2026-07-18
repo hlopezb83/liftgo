@@ -41,6 +41,18 @@ Deno.serve(async (req) => {
       return jsonError(req, 400, "Password must be at least 8 characters");
     }
 
+    // AUTH-001: verificar unicidad de email antes de crear el usuario para
+    // devolver 409 explícito en vez de un error crudo de Supabase Auth.
+    const emailLc = email.toLowerCase();
+    const { data: existingProfile } = await auth.adminClient
+      .from("profiles")
+      .select("user_id")
+      .ilike("email", emailLc)
+      .maybeSingle();
+    if (existingProfile) {
+      return jsonError(req, 409, "Ya existe un usuario con ese correo");
+    }
+
     const finalPassword = password || generateSecurePassword();
     const { data: newUser, error: createErr } = await auth.adminClient.auth
       .admin.createUser({
@@ -50,7 +62,11 @@ Deno.serve(async (req) => {
         user_metadata: { full_name },
       });
 
-    if (createErr) return jsonError(req, 400, createErr.message);
+    if (createErr) {
+      const msg = createErr.message || "";
+      const status = /already|registered|exists/i.test(msg) ? 409 : 400;
+      return jsonError(req, status, msg || "No se pudo crear el usuario");
+    }
 
     const userId = newUser.user.id;
 
