@@ -1,5 +1,16 @@
 [
   {
+    "version": "7.77.2",
+    "date": "2026-07-18",
+    "type": "patch",
+    "title": "Fix dashboard: reponer SELECT sobre v_invoices_with_balance para authenticated",
+    "description": "Reporte de bug 23e760dc: usuarios `administrativo` recibían `permission denied for view v_invoices_with_balance` (42501) al entrar al dashboard. Aunque la RPC `list_invoices_with_balance` es SECURITY DEFINER y filtra por rol, PostgREST valida los privilegios del rol invocador sobre el tipo de retorno (`SETOF v_invoices_with_balance`) al mapear las filas. Repuesto `GRANT SELECT ... TO authenticated`. No reintroduce SEC-005: la vista mantiene `security_invoker=on`, por lo que la RLS de `invoices` y `payments` aplica automáticamente si alguien la consultara directo — un `customer` solo vería sus propias facturas.",
+    "category": "fix",
+    "files": [
+      "supabase/migrations/*_grant_v_invoices_with_balance_select.sql"
+    ]
+  },
+  {
     "version": "7.77.1",
     "date": "2026-07-18",
     "type": "patch",
