@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.80.0",
+    "date": "2026-07-18",
+    "type": "patch",
+    "title": "FiltersToolbar: fix zona horaria en DateRange y cobertura de tests",
+    "summary": "Auditoría de v7.79.0 sin regresiones; bug encontrado al ampliar la cobertura: la deserialización de `DateRange` en `FiltersToolbar` usaba `parseISO` (UTC), lo que en navegadores con TZ distinta a UTC podía mostrar el día previo en el trigger. Se cambió a parseo a mediodía UTC para que `toZonedTime('America/Monterrey')` devuelva siempre el mismo día del round-trip con `toYMD`. Nuevos tests para `StatusSelect` y `DateRange` (empty, rango completo, rango abierto, valores inválidos)."
+  },
+  {
     "version": "7.79.0",
     "date": "2026-07-18",
     "type": "patch",
