@@ -46,7 +46,7 @@ export const SidebarProvider = ({
   onOpenChange?: (open: boolean) => void;
   ref?: Ref<HTMLDivElement>;
 }) => {
-  const isMobile = useIsMobile();
+  const isMobile = useIsTabletOrBelow();
   const [openMobile, setOpenMobile] = useState(false);
 
   const [_open, _setOpen] = useState(defaultOpen);
