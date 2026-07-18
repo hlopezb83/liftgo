@@ -3516,6 +3516,64 @@ export type Database = {
         }
         Returns: boolean
       }
+      list_invoices_with_balance: {
+        Args: never
+        Returns: {
+          balance: number | null
+          billing_period_end: string | null
+          billing_period_start: string | null
+          booking_id: string | null
+          cancellation_motive: string | null
+          cancellation_reason: string | null
+          cancellation_status: string | null
+          cancelled_at: string | null
+          cfdi_error_message: string | null
+          cfdi_pdf_url: string | null
+          cfdi_status: string | null
+          cfdi_uuid: string | null
+          cfdi_xml: string | null
+          cfdi_xml_url: string | null
+          created_at: string | null
+          customer_id: string | null
+          customer_name: string | null
+          due_date: string | null
+          e2e_scope: string | null
+          facturapi_invoice_id: string | null
+          folio: string | null
+          forma_pago: string | null
+          id: string | null
+          invoice_number: string | null
+          is_e2e: boolean | null
+          issued_at: string | null
+          line_items: Json | null
+          metodo_pago: string | null
+          moneda: string | null
+          notes: string | null
+          paid_amount: number | null
+          paid_at: string | null
+          quote_id: string | null
+          receptor_domicilio_fiscal_cp: string | null
+          receptor_razon_social: string | null
+          receptor_regimen_fiscal: string | null
+          receptor_rfc: string | null
+          serie: string | null
+          status: string | null
+          substitution_uuid: string | null
+          subtotal: number | null
+          tax_amount: number | null
+          tax_rate: number | null
+          tipo_cambio: number | null
+          total: number | null
+          updated_at: string | null
+          uso_cfdi: string | null
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "v_invoices_with_balance"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       mark_supplier_rep_rejected: {
         Args: { p_notes: string; p_payment_id: string }
         Returns: undefined
