@@ -78,7 +78,7 @@ export default function CustomerPortalLayout() {
         </div>
       </nav>
 
-      <main className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">
         <Outlet />
       </main>
       <FeedbackFab />

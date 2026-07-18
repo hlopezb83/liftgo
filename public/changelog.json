@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.86.2",
+    "date": "2026-07-18",
+    "type": "patch",
+    "title": "Portal cliente: paridad de overscroll-contain",
+    "summary": "El <main> de CustomerPortalLayout ahora incluye overscroll-contain y pb-[env(safe-area-inset-bottom)] igual que MainLayout, previniendo el pull-to-refresh nativo del navegador en el portal cliente en móvil. Verificación del resto de la app: no existen otros consumidores de usePullToRefresh ni contenedores de scroll a nivel página sin cubrir."
+  },
+  {
     "version": "7.86.1",
     "date": "2026-07-18",
     "type": "patch",
