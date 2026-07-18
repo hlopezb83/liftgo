@@ -186,7 +186,7 @@ function FiltersSlot({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetTrigger asChild>
-        <Button variant="outline" size="sm" className="touch:h-11 w-full justify-center gap-2">
+        <Button variant="outline" size="sm" className="touch:h-11 w-auto justify-start gap-2">
           <FilterIcon className="h-4 w-4" />
           Filtros
         </Button>
