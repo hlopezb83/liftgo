@@ -1,61 +1,67 @@
-## Auditoría UI/UX @ 698×572 — hallazgos y plan de remediación
+# Revisión de auditoría externa (draft-diffs-2026-07-18)
 
-Se corrieron dos pasadas de Playwright autenticado sobre 30+ rutas al viewport 698×572 (tablet estrecho / móvil landscape). Screenshots en `/tmp/browser/audit698/shots{,2}/`.
+Revisé los 8 diffs contra el estado actual del repo. Veredicto por diff:
 
-### Hallazgos verificados en captura
+## ❌ DIFF 1 — Quitar `lovable-tagger` / preconnect `cdn.gpteng.co` — **RECHAZAR**
 
-| # | Sev | Ruta | Hallazgo |
-|---|-----|------|----------|
-| 1 | P0 | `/customers`, `/bookings` | Sin CTA primaria visible en toolbar y sin FAB. `/quotes` sí tiene FAB (inconsistente). |
-| 2 | P0 | `/expenses` | Redirige a `/cuentas-por-pagar` pero muestra pantalla en blanco (~2 KB PNG) durante la resolución. Falta estado de carga. |
-| 3 | P1 | Global (listas) | Botón "Filtros" ocupa fila completa `w-full` (~48px de alto) — desperdicia >8% del viewport de 572px. |
-| 4 | P1 | `/maintenance` | 4 CTAs + toggle Kanban/Tabla se envuelven en 2–3 filas (~120px) apretando la lista bajo el fold. |
-| 5 | P1 | `/flujo-de-caja` | Tabla desborda: columna "ESTADO" (semáforo) queda pegada al borde derecho sin scroll horizontal visible; encabezados en negrita también se cortan. |
-| 6 | P1 | `/income-statement` | Botones "CSV" y "PDF" quedan bajo el fold (572px); usuario debe scrollear para exportar. Los KPIs consumen ~470px verticales. |
-| 7 | P1 | `/settings/operations` | 7 tabs de configuración saltan a 3 filas verticales — patrón inconsistente con `StatusTabs` (que ya adoptamos con scroll horizontal). |
-| 8 | P2 | `/reports` | Gráfica "Utilización de Flota" con barras aplastadas contra el eje Y; densidad de labels no se ajusta al ancho. |
-| 9 | P2 | `/cuentas-bancarias` | Tabla 6-col comprimida sin `MobileCardList` fallback bajo `md` (patrón ya usado en MRR). |
-| 10 | P2 | `/crm` | 3 selectores de filtro + búsqueda apilados en 4 filas empujan el pipeline bajo el fold — sólo asoman cabeceras de columna. |
-| 11 | P3 | `/help`, `/changelog` | OK — sin issues. |
+Es infraestructura **propia de Lovable**, no un widget de terceros:
+- `lovable-tagger` inyecta `data-lov-*` en dev para que el editor visual de Lovable pueda seleccionar componentes desde el preview.
+- `cdn.gpteng.co` es el CDN del runtime del editor Lovable.
 
-Descartados tras re-verificar (falsos positivos del primer barrido con `wait_until="domcontentloaded"`): dashboard blank, CRM esqueleto, MRR icon overlap.
+Eliminarlos rompe la experiencia de edición visual en el preview/editor. El auditor mismo duda ("esto NO explica el widget en producción"). **No aplicar.**
 
-### Plan de remediación
+## ✅ DIFF 2 — Botones Facturas responsive — **APLICAR**
 
-**Lote A — Toolbar de listas (P0)**  
-- Estandarizar la barra de acciones de `CustomersPage`, `BookingsPage` y `QuotesPage`: CTA primaria visible en el toolbar (no FAB) usando el mismo patrón de `InvoicesPage` / `FleetPage` (`Nuevo Cliente`, `Nueva Reserva`, `Nueva Cotización`).
-- Retirar el FAB flotante duplicado de `/quotes` (queda inline).
-- Convertir el botón "Filtros" en `size="sm"` inline dentro del toolbar (no full-width) — impacta `ListPageLayout` y/o `FiltersToolbar`.
+Toolbar de facturas efectivamente se corta en móvil. `flex-wrap` + icon-only con `aria-label` es correcto y de bajo riesgo.
 
-**Lote B — Estados vacíos / redirects (P0)**  
-- Reemplazar el redirect `loader` de `/expenses` con `<Navigate to="/cuentas-por-pagar" replace />` desde un componente ligero para evitar el flash en blanco durante import lazy.
+## ✅ DIFF 3 — Doble asterisco "Periodo de Renta * *" — **APLICAR**
 
-**Lote C — Densidad y overflow (P1)**  
-- `MaintenancePage`: unificar CTAs bajo un patrón compacto (primario + kebab overflow "Más") en `<md`.
-- `CashFlowPage`: envolver la tabla en `overflow-x-auto` con hint visual y añadir sticky columna "SEM." para lecturas de arriba a abajo.
-- `IncomeStatementPage`: mover botones CSV/PDF al header (junto al selector de rango) para que queden sobre el fold.
-- `OperationsSetupPage`: aplicar `overflow-x-auto` + `whitespace-nowrap` a la lista de tabs (mismo patrón de `StatusTabs`).
+Verificado: `src/features/quotes/pages/QuoteForm.tsx:63` tiene `label="Periodo de Renta *"` **y** `required`, produciendo doble marca. Fix trivial.
 
-**Lote D — Fallbacks móviles y detalle (P2)**  
-- `BankAccountsPage`: agregar `MobileCardList` bajo `md` con nombre / banco / últimos 4 / saldo.
-- `CRMPage`: colapsar los 3 selectores en un botón "Filtros" desplegable bajo `md` para dar aire al pipeline.
-- `ReportsPage`: forzar `min-width` responsivo al `<ResponsiveContainer>` de barras y adelgazar `barCategoryGap` para viewports <700px.
+## ✅ DIFF 4 — Columna Total alineada a la derecha en cotizaciones — **APLICAR**
 
-**Lote E — Verificación**  
-- Re-correr Playwright 698×572 sobre las 10 rutas afectadas y adjuntar `after/` screenshots.
-- Sumar tests unitarios para el toolbar unificado (`CustomersPage`, `BookingsPage`, `QuotesPage`) verificando presencia de la CTA en el DOM.
+Patrón `meta: { align: "right" }` ya soportado por `DataTableV2`. Consistente con Facturas/Reconciliación.
 
-### Detalles técnicos
+## ✅ DIFF 5 — `aria-label` en botones icon-only — **APLICAR** (verificar cada archivo)
 
-- Rutas afectadas confirmadas en `src/routes/routes-config.tsx`.
-- Patrones de referencia ya en uso: `MobileCardList` (v7.78.0 en MRR), `StatusTabs` con scroll horizontal (v7.79.0), `useTableFilters` (v7.62.0).
-- El redirect actual `{ path: "/expenses", loader: () => redirect("/cuentas-por-pagar") }` se resuelve en el data router antes del render — el flash en blanco proviene del código lazy que se carga al inicio; probar migrando a `<Navigate>` en un componente estático mejora percepción de latencia.
-- Nuevo changelog planeado: **v7.81.0** (minor — múltiples ajustes de UX en la app).
+Mejora de accesibilidad sin riesgo funcional. Antes de aplicar cada bloque, revalido líneas exactas (los números pueden haber corrido).
 
-### Fuera de alcance
+## ⚠️ DIFF 6 — Empty states unificados — **APLICAR PARCIAL**
 
-- Regeneración de baselines visuales E2E (Sprint J pendiente).
-- Refactor del sidebar en tablet (colapsable ya funciona).
-- Reescritura del Kanban de CRM/Mantenimiento (dnd-kit v7.60.0 estable).
+Verifiqué: `QuotesPage`, `UserManagementPage`, `PortalQuotes` **ya usan `emptyMessage`** vía `ListPageLayout`/`DataTableV2`. El auditor tiene información desactualizada.
 
-¿Arrancamos con Lote A + Lote B (los P0) en el próximo sprint, o prefieres ejecutar los 4 lotes A–D en una sola pasada v7.81.0?
+Lo que sí queda pendiente y sí aplico:
+- Reportes (`ProfitabilityChart`, `ProfitabilityByModelReport`, etc.): sustituir `<p>No hay datos…</p>` por `<EmptyState />`.
+- Revisar `CustomersPage` y `SuppliersPage` si aún tienen texto custom (verificar antes de tocar).
+
+Descarto los cambios en archivos que ya migraron.
+
+## ⚠️ DIFF 7 — Calendario: default Lista móvil + leyenda — **APLICAR 7a, DIFERIR 7b**
+
+- **7a (default Lista en móvil):** aplico usando el hook canónico del proyecto `@/hooks/use-mobile` (no el path que sugiere el auditor).
+- **7b (leyenda de colores):** el auditor mismo advierte que necesita "lectura extra". El mapa cliente→color hoy vive dentro del GanttChart y no está expuesto. Requiere refactor de exportación. Lo dejo para un sprint dedicado con su propio plan.
+
+## ✅ DIFF 8 — Dashboard móvil — **APLICAR con ajustes**
+
+- **8a (alertas primero en móvil):** aplico con `order-*` responsive limpio (no la variante con `contents`, más frágil).
+- **8b (tarjeta huérfana Vendidos):** aplico el selector `[&>*:last-child:nth-child(odd)]:col-span-2` en `StatCards`. Zero JS.
+
+---
+
+## Plan de ejecución (si apruebas)
+
+Un solo sprint **v7.84.0** con los diffs aprobados:
+
+1. DIFF 3 — label QuoteForm (trivial)
+2. DIFF 4 — alineación columna Total en QuotesPage
+3. DIFF 2 — InvoicesToolbar responsive + `aria-label`
+4. DIFF 5 — barrido `aria-label` en los 13 archivos listados (reverificando líneas)
+5. DIFF 6 (parcial) — solo reportes + páginas que aún tengan texto custom real
+6. DIFF 7a — default Lista en `CalendarPage` móvil
+7. DIFF 8a + 8b — orden responsive del Dashboard y grid StatCards
+
+Se descarta: **DIFF 1** completo, **DIFF 7b**, y las partes de **DIFF 6** que ya están migradas.
+
+Al cierre: `bun run lint`, `bunx vitest run`, screenshots de verificación 1600×900 y 698×572, y entrada nueva en `public/changelog.json` + `public/changelog/v7.84.0.json`.
+
+¿Apruebas este alcance o quieres que ajuste (ej. saltar DIFF 5, incluir 7b con investigación previa, etc.)?
