@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.e2e_seed_scenario(text) TO authenticated;
