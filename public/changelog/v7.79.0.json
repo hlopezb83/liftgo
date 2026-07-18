@@ -1,0 +1,35 @@
+{
+  "version": "7.79.0",
+  "date": "2026-07-18",
+  "type": "patch",
+  "title": "FiltersToolbar: tabs con scroll horizontal y Limpiar siempre a la derecha",
+  "summary": "Cierres del sprint anterior (v7.78.0) tras auditar el viewport intermedio ≤ md: se agregó cobertura de pruebas al fallback mobile del MRR y se estabilizó el toolbar de filtros para que no rompa línea con muchas pestañas.",
+  "sections": [
+    {
+      "title": "Auditoría v7.78.0",
+      "items": [
+        "Revisión de los 3 archivos tocados en el sprint anterior — sin regresiones detectadas.",
+        "Detectada brecha: `MrrDetailPage` no tenía test que cubriera el fallback `MobileCardList` bajo `md`."
+      ]
+    },
+    {
+      "title": "Tests",
+      "items": [
+        "Nuevo `MrrDetailPage.test.tsx`: verifica que en `useIsTabletOrBelow=true` no se renderiza `<table>` y sí se muestra el subtotal 'Total MRR', y que en desktop sí se renderiza la tabla."
+      ]
+    },
+    {
+      "title": "FiltersToolbar — StatusTabs con overflow horizontal",
+      "items": [
+        "En viewports intermedios (sm–md) con ≥4 pestañas (Facturas, Cotizaciones, Reservas), el `TabsList` competía con la Search y saltaba de línea.",
+        "Envolvimos las pestañas en `overflow-x-auto` con `whitespace-nowrap`; ahora hacen scroll horizontal en angosto y siguen igual en desktop."
+      ]
+    },
+    {
+      "title": "FiltersToolbar — Limpiar filtros pegado a la derecha",
+      "items": [
+        "`ClearAll` caía donde el `flex-wrap` lo dejara. Se añadió `ml-auto` para que siempre quede al extremo derecho del row, evitando la percepción de 'botón huérfano' reportada en la auditoría."
+      ]
+    }
+  ]
+}
