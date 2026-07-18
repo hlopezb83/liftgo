@@ -1,0 +1,25 @@
+{
+  "version": "7.77.3",
+  "date": "2026-07-18",
+  "type": "patch",
+  "title": "Fix test: useAssignForklift happy path",
+  "summary": "Corrige el único test fallando en CI Vitest.",
+  "sections": [
+    {
+      "heading": "Causa",
+      "items": [
+        "En `useAssignForklift.test.ts` el resolver del mock de `status_logs` devolvía `data: null` en el insert.",
+        "El hook hace `.insert(logs).select('id')` seguido de `assertRowsAffected` (blindaje SEC-002), así que el happy path terminaba en error y `isSuccess` nunca era `true`.",
+        "Los otros dos casos del suite (unique violation, RLS silenciosa) sí pasaban."
+      ]
+    },
+    {
+      "heading": "Fix",
+      "items": [
+        "Añadido `statusLogsInsertResult` con `[{ id: 'log-1' }]` por defecto al estado hoisted del test.",
+        "Resolver de `status_logs` ahora devuelve ese arreglo salvo que el test lo sobreescriba.",
+        "Solo cambio de test — el hook de producción no se toca."
+      ]
+    }
+  ]
+}

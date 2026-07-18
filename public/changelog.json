@@ -1,5 +1,16 @@
 [
   {
+    "version": "7.77.3",
+    "date": "2026-07-18",
+    "type": "patch",
+    "title": "Fix test: useAssignForklift happy path retornaba null en insert de status_logs",
+    "description": "CI shard Vitest fallaba en `useAssignForklift > happy path`. El mock del resolver de `status_logs` devolvía `data: null` en el insert, y el hook usa `.select('id')` + `assertRowsAffected` (SEC-002), por lo que el happy path terminaba en error. Se añadió `statusLogsInsertResult` con `[{ id: 'log-1' }]` por defecto en el setup del test. Sin cambios de producción.",
+    "category": "fix",
+    "files": [
+      "src/features/fleet/hooks/forklifts/assignForklifts/__tests__/useAssignForklift.test.ts"
+    ]
+  },
+  {
     "version": "7.77.2",
     "date": "2026-07-18",
     "type": "patch",

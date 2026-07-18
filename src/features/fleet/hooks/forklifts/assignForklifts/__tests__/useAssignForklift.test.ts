@@ -13,6 +13,7 @@ const h = vi.hoisted(() => {
       { id: string; status: string }[],
     forkliftsUpdateResult: [{ id: "f-1" }] as { id: string }[] | null,
     statusLogsInsertError: null as { code?: string; message: string } | null,
+    statusLogsInsertResult: [{ id: "log-1" }] as { id: string }[] | null,
   };
   const quoteAssignResolver = (calls: { method: string; args: unknown[] }[]) => {
     if (calls.some((c) => c.method === "insert")) {
@@ -28,7 +29,7 @@ const h = vi.hoisted(() => {
   };
   const statusLogsResolver = (calls: { method: string; args: unknown[] }[]) => {
     if (calls.some((c) => c.method === "insert")) {
-      return { data: null, error: state.statusLogsInsertError };
+      return { data: state.statusLogsInsertResult, error: state.statusLogsInsertError };
     }
     return { data: [], error: null };
   };
@@ -63,6 +64,7 @@ describe("useAssignForklift", () => {
     h.state.forkliftsSelect = [{ id: "f-1", status: "available" }];
     h.state.forkliftsUpdateResult = [{ id: "f-1" }];
     h.state.statusLogsInsertError = null;
+    h.state.statusLogsInsertResult = [{ id: "log-1" }];
   });
 
   it("happy path: insert + update + status_logs", async () => {
