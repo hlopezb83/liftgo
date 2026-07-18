@@ -3517,7 +3517,14 @@ export type Database = {
         Returns: boolean
       }
       list_invoices_with_balance: {
-        Args: never
+        Args: {
+          p_due_from?: string
+          p_due_to?: string
+          p_limit?: number
+          p_offset?: number
+          p_statuses?: string[]
+          p_with_balance_only?: boolean
+        }
         Returns: {
           balance: number | null
           billing_period_end: string | null
