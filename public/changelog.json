@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.73.0",
+    "date": "2026-07-18",
+    "type": "minor",
+    "title": "Sprint 1 code review: SEC-005/002/004, DI-003/001, BL-004",
+    "description": "Primer sprint de remediación del reporte de code review (6 hallazgos cerrados). SEC-005: `v_invoices_with_balance` deja de ser accesible directamente; se consume vía nuevo RPC `list_invoices_with_balance` que filtra por rol (customers → solo suyas). SEC-002: dispatchers/ventas/administrativo pueden insertar en `status_logs`; hooks de asignación validan rowsAffected. SEC-004: `e2e_seed_scenario` solo `service_role`. DI-003: RPCs de asignación de folio timbrado race-safe (exception on unique_violation en lugar de read-then-write). DI-001: UNIQUE parcial `(invoice_id, installment_number)` en payments. BL-004: REP lee `invoice.tax_rate` en lugar de hardcodear IVA 16%.",
+    "category": "security",
+    "files": [
+      "supabase/migrations/*",
+      "src/features/invoices/hooks/invoices/useInvoicesWithBalance.ts",
+      "src/features/fleet/hooks/forklifts/assignForklifts/useAssignForklift.ts",
+      "src/features/fleet/hooks/forklifts/assignForklifts/useUnassignForklift.ts",
+      "supabase/functions/stamp-payment-complement/index.ts"
+    ]
+  },
+  {
     "version": "7.72.11",
     "date": "2026-07-16",
     "type": "patch",
