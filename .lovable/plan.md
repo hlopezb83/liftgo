@@ -1,68 +1,57 @@
-# Plan: Code Review Remediation (22 hallazgos confirmados)
+## Problema
 
-## Resultados de validación
+Sprint 1 (v7.73.0, hallazgo SEC-004) revocó `EXECUTE` sobre `public.e2e_seed_scenario` y `public.e2e_teardown` para cerrarlas en producción. Efecto colateral: el pipeline `E2E (Playwright shard 1_2)` falla porque el usuario de prueba (`authenticated`) ya no puede invocar el RPC:
 
-De los 27 hallazgos del reporte, 22 confirmados y **5 descartados**:
+```
+Error: e2e_seed_scenario failed: permission denied for function e2e_seed_scenario
+   at fixtures/seed.ts:62
+```
 
-| Descartado | Razón |
-|---|---|
-| SEC-001 | `company_settings.facturapi_key` no existe; políticas ya usan `has_role`. |
-| SEC-003 | Ninguna política actual usa `FOR ALL USING (true)`; todas usan `has_role`. |
-| BL-005 | `useBookingFormSubmit.ts:30` ya valida `if (!from \|\| !to) return`. |
-| BL-007 | `useInvoiceLineItemHandlers.ts:18` ya recomputa `total` en cambio. |
-| DI-006 | `invoice_bookings_pkey` cubre `(invoice_id, booking_id)`. |
+Impactadas: `booking-to-invoice.spec.ts`, `full-flow.spec.ts`, `invoice-payment.spec.ts`, `quote-to-booking.spec.ts` (y sus retries). El resto del CI está verde.
 
----
+Tenemos que reabrir el acceso a las RPC de seed **sin** reintroducir la exposición que SEC-004 cerró.
 
-## Sprint 1 — Críticos de seguridad y CFDI (v7.73.0)
+## Objetivo
 
-1. **SEC-005** — Revocar `SELECT` de `v_invoices_with_balance` a `authenticated`; mover consumo a RPC `SECURITY DEFINER` que filtre por rol (admin/administrativo/ventas ven todo, customers filtran por `customer_id`). Actualizar `useInvoicesWithBalance`.
-2. **SEC-002** — Añadir políticas `INSERT` a `status_logs` para `dispatcher` y `mechanic`; añadir `.select("id")` + `assertRowsAffected` en `useAssignForklift.ts`, `useUnassignForklift.ts`, `useForkliftMutations.ts`.
-3. **SEC-004** — Revocar `EXECUTE ON e2e_seed_scenario` de `authenticated`; conceder solo a `service_role`. Actualizar helper E2E si aplica.
-4. **DI-003** — Reescribir `assign_stamped_invoice_number` y `assign_stamped_rep_number` con `INSERT/UPDATE ... ON CONFLICT` o `EXCEPTION WHEN unique_violation THEN` con reintento del siguiente número.
-5. **DI-001** — Migración: `ALTER TABLE payments ADD CONSTRAINT payments_invoice_installment_uq UNIQUE (invoice_id, installment_number) DEFERRABLE INITIALLY IMMEDIATE` (validar backfill primero).
-6. **BL-004** — `stamp-payment-complement/index.ts`: leer `invoice.tax_rate` (default 0.16 si null) y usarlo en el breakdown REP.
+Restablecer el shard 1 dejando `e2e_seed_scenario` y `e2e_teardown` invocables **solo** por la cuenta de test dedicada, no por cualquier `authenticated` de producción.
 
-## Sprint 2 — Race conditions y money math (v7.74.0)
+## Enfoque
 
-7. **DI-004** — `create_booking` RPC: `SELECT ... FROM forklifts WHERE id = p_forklift_id FOR UPDATE` antes de validar `status='available'`.
-8. **DI-002** — `generate-recurring-invoices`: envolver `executePlan` en RPC con `pg_advisory_xact_lock(hashtext('recurring.'||customer_id||'.'||period))` antes del check `existingLink`.
-9. **BL-009** — `generate-recurring-maintenance`: atomic claim `UPDATE maintenance_policies SET last_generated_month = ? WHERE id = ? AND (last_generated_month IS NULL OR last_generated_month < ?) RETURNING id` y saltar policies sin filas afectadas.
-10. **BL-001** — `useCreditNoteForm.ts`: reemplazar `Number` math por `lineItemTotal` / `computeTotals` / `roundMoney` de `src/lib/domain/invoiceTotals.ts`.
-11. **BL-002** — Nuevo RPC `record_payment(p_invoice_id, p_amount, ...)` que valida `SUM(payments.amount) + p_amount <= invoice.total` en la misma transacción. `useRecordPaymentForm.ts` invoca el RPC. Añadir `CHECK (amount > 0)` en `payments`.
-12. **BL-003** — `generate-recurring-invoices`: reemplazar `Math.round(x*100)/100` con helper compartido (puerto de `currency.js` a Deno en `supabase/functions/_shared/money.ts`).
+Guardia dentro de la propia función (defense-in-depth) más `GRANT EXECUTE` limitado.
 
-## Sprint 3 — Consistencia y auth (v7.75.0)
+### Migración SQL
 
-13. **DI-005** — Trigger `AFTER INSERT OR UPDATE OR DELETE ON payments` que recalcula `invoices.status` (`paid`/`partial`/`sent`) atómicamente. Eliminar el sync client-side de `usePayments.ts`.
-14. **DI-007** — Extender `soft_delete_customer`/`_supplier` para (a) rechazar si hay dependencias activas, o (b) marcar `deleted_at` en children de tablas hijas relevantes. Añadir filtros `deleted_at IS NULL` faltantes en `useBookings`, `useContracts`.
-15. **AUTH-001** — `invite-user`: pre-check `auth.users` por email antes de `createUser`, devolver 409 con mensaje claro.
-16. **AUTH-002** — `refresh-cancellation-status/handler.ts`: si en el futuro hay multitenancy, verificar `company_id` del invoice contra el del caller. Por ahora: añadir log + comentario `TODO tenant` y verificar rol == admin/administrativo (ya lo hace).
-17. **AUTH-003** — Alinear `AdminRouteGuard` sobre "Crear Reserva Directa" con la RPC: o (a) remover el guard (dispatcher/ventas ya pueden crear con cotización), o (b) apretar la RPC. Decisión recomendada: **remover guard** y mantener regla "no admin ⇒ requiere `p_quote_id`" en RPC.
-18. **BL-006** — `useMaintenanceKanban.ts`: añadir `onSuccess` que reconcilia cache con la respuesta del servidor.
-19. **BL-008** — `useGenerateRecurringInvoices.ts`: leer `result.failed[]` y `result.error`, pasar a `notifyError` con detalles por booking.
+1. `GRANT EXECUTE ON FUNCTION public.e2e_seed_scenario(text), public.e2e_teardown(text) TO authenticated;` (necesario para que PostgREST enrute; el gate real está adentro).
+2. Al inicio de cada función, `SECURITY DEFINER` + `SET search_path = public`, agregar:
 
-## Sprint 4 — Performance (v7.76.0)
+   ```sql
+   IF NOT public.is_e2e_test_user(auth.uid()) THEN
+     RAISE EXCEPTION 'e2e helpers restricted to test accounts'
+       USING ERRCODE = '42501';
+   END IF;
+   ```
 
-20. **PERF-002** — `CREATE INDEX idx_payments_invoice_date ON payments(invoice_id, payment_date DESC)`.
-21. **PERF-003** — `useSyncInvoiceBookings` (`useInvoiceBookings.ts:60`): añadir `.select("id")` y `assertRowsAffected`.
-22. **PERF-001** — Paginación server-side: nuevo RPC `list_invoices_with_balance(p_limit, p_cursor, p_filters)` + refactor `useInvoices`/`useInvoicesWithBalance` a `useInfiniteQuery` con cursor `(issued_at, id)`. Este es el ítem más grande — se puede diferir a sprint aparte si conviene.
+3. Crear `public.is_e2e_test_user(uid uuid) RETURNS boolean` `SECURITY DEFINER STABLE` que retorne `true` si:
+   - `auth.users.email` termina en `@e2e.liftgo.test` (dominio ya usado por `tests/e2e/global.setup.ts`), **o**
+   - existe fila en `public.user_roles` con un rol dedicado `e2e_tester` (opcional; solo si el correo no basta).
 
----
+4. Confirmar con `pg_proc` que ambas funciones quedan `SECURITY DEFINER` y con el guard.
 
-## Detalles técnicos clave
+### Sin cambios en TS
 
-- **Migraciones**: cada sprint = una migración numerada; incluir `GRANT` explícito en tablas nuevas si aplica y `SET search_path = public` en funciones nuevas.
-- **RPCs nuevos**: `record_payment`, `list_invoices_with_balance` — ambos `SECURITY DEFINER` con `has_role` checks al inicio.
-- **Tests**: agregar Vitest para `record_payment` (over-payment), `create_booking` (concurrencia via `pg_backend_pid()` simulado), stamping race (con reintento).
-- **Rollout**: cada Sprint bumpea versión en `public/changelog.json` + `public/changelog/v{X.Y.Z}.json` (regla del proyecto).
-- **Backward-compat**: el trigger de `payments` (DI-005) debe hacer un backfill inicial para no dejar invoices con status desactualizado.
+`tests/e2e/fixtures/seed.ts` y `global.setup.ts` no requieren cambios: el usuario E2E ya cumple el criterio de email.
 
-## Fuera de alcance
+### Verificación
 
-- Reestructuración multitenant real (AUTH-002 completo).
-- Reescritura completa de tabla `payments` con `numeric(14,2)` si ya no lo es (validar en Sprint 1 y añadir sólo si aplica).
+- Correr localmente `bunx playwright test tests/e2e/booking-to-invoice.spec.ts --project=chromium` para confirmar que el seed vuelve a funcionar.
+- Query manual: `SELECT public.e2e_seed_scenario('probe')` autenticado como un usuario no-E2E debe devolver `42501`.
+- Documentar en `security-memory` que la exposición de `e2e_seed_scenario` está mitigada por guard interno, no solo por GRANT.
 
-## Entregable por sprint
+### Changelog
 
-Cada sprint: migración SQL, cambios de código frontend/edge, tests, entrada en changelog, verificación en preview con Playwright de las rutas afectadas.
+`public/changelog.json` + `public/changelog/v7.77.1.json` (patch): "Fix CI: reabre `e2e_seed_scenario`/`e2e_teardown` con guardia por email de tester para no reintroducir SEC-004."
+
+## Riesgos
+
+- Que la cuenta E2E se cree con otro dominio en algún entorno. Mitigación: el guard falla ruidoso y el CI lo detecta inmediatamente.
+- `is_e2e_test_user` toca `auth.users` — se hace `SECURITY DEFINER` propiedad de `postgres` y `search_path` fijo, sin exponer datos.
