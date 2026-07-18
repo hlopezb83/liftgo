@@ -13,6 +13,7 @@ const h = vi.hoisted(() => {
       { id: string; status: string }[],
     forkliftsUpdateResult: [{ id: "f-1" }] as { id: string }[] | null,
     statusLogsInsertError: null as { code?: string; message: string } | null,
+    statusLogsInsertResult: [{ id: "log-1" }] as { id: string }[] | null,
   };
   const quoteAssignResolver = (calls: { method: string; args: unknown[] }[]) => {
     if (calls.some((c) => c.method === "insert")) {
