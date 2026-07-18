@@ -1,0 +1,41 @@
+{
+  "version": "7.84.0",
+  "date": "2026-07-18",
+  "type": "minor",
+  "title": "Auditoría externa — 7 diffs aprobados (accesibilidad, responsive y consistencia)",
+  "summary": "Cierre del sprint derivado de la auditoría externa (draft-diffs-2026-07-18). Se aplican 7 de 8 diffs; se descarta el diff que proponía eliminar lovable-tagger / preconnect a cdn.gpteng.co porque son infraestructura del editor Lovable, y se difiere la leyenda de colores del Gantt por requerir un refactor separado del GanttChart.",
+  "changes": [
+    {
+      "area": "Cotizaciones · Form",
+      "detail": "`QuoteForm.tsx` elimina el asterisco hardcodeado del label «Periodo de Renta *»; el `required` en `DateRangePickerField` ya renderiza el `RequiredMark`, evitando el doble asterisco."
+    },
+    {
+      "area": "Cotizaciones · Tabla",
+      "detail": "`QuotesPage.tsx` marca la columna Total con `meta: { align: \"right\" }` para alinearla a la derecha de forma consistente con Facturas y Reconciliación."
+    },
+    {
+      "area": "Facturas · Toolbar",
+      "detail": "`InvoicesActionsBar` cambia a `flex-wrap`; los botones «Generar Recurrentes» y «Exportar CSV» quedan icon-only en <sm (con `aria-label`+`title`) para evitar que se corten en móvil, y «Nueva Factura» siempre conserva el texto."
+    },
+    {
+      "area": "Accesibilidad · aria-label",
+      "detail": "Se agregan `aria-label` y `title` a botones icon-only en 13 archivos (~24 botones): UserManagement, EquipmentModels/Mechanics/Drivers/MaintenancePoliciesTab, SaleLineRow, RentalLineRow, InvoiceCreditNotesCard, EditableLineItemsTable, DocumentAttachments, SupplierBankAccountsSection, SupplierContactsSection, ExpiringContractsAlert."
+    },
+    {
+      "area": "Reportes · Empty state",
+      "detail": "`ProfitabilityChart.tsx` reemplaza el `<p>No hay datos…</p>` custom por `<EmptyState />` para consistencia visual. Se verificó que Quotes/UserManagement/Portal/Customers/Suppliers ya usaban `emptyMessage` vía `ListPageLayout`/`DataTableV2`."
+    },
+    {
+      "area": "Calendario · Default móvil",
+      "detail": "`CalendarPage` detecta `useIsMobile` y arranca en vista Lista en móvil, dejando Gantt como default en tablet/desktop."
+    },
+    {
+      "area": "Dashboard · Orden responsive",
+      "detail": "`Dashboard.tsx` envuelve las secciones en un `flex flex-col` con `order-*` responsive: alertas primero en móvil (order-1), StatCards / KPIs / Charts detrás; en `md+` el orden vuelve al original (StatCards → KPIs → Alertas → Charts)."
+    },
+    {
+      "area": "Dashboard · StatCards",
+      "detail": "`StatCards` agrega un selector Tailwind (`[&>*:last-child:nth-child(odd)]:col-span-2`) que fuerza a la 5ª tarjeta huérfana a ocupar las 2 columnas en móvil; en `md+` revierte automáticamente."
+    }
+  ]
+}

@@ -17,7 +17,7 @@ interface StatCardsProps {
 
 export function StatCards({ cards }: StatCardsProps) {
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 [&>*:last-child:nth-child(odd)]:col-span-2 md:[&>*:last-child:nth-child(odd)]:col-span-1">
       {cards.map((card) => (
         <KpiTile
           key={card.label}

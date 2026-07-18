@@ -104,14 +104,14 @@ export function InvoiceCreditNotesCard({ invoice, totalPaid }: Props) {
                       <div className="flex items-center justify-end gap-1">
                         {cn.cfdi_status === "stamped" && (
                           <>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" title="PDF SAT" onClick={() => downloadCreditNote(cn.id, "pdf", cn.credit_note_number)}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" title="PDF SAT" aria-label="Descargar PDF SAT" onClick={() => downloadCreditNote(cn.id, "pdf", cn.credit_note_number)}>
                               <DocumentIcon className="h-3.5 w-3.5" />
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7" title="XML SAT" onClick={() => downloadCreditNote(cn.id, "xml", cn.credit_note_number)}>
+                            <Button variant="ghost" size="icon" className="h-7 w-7" title="XML SAT" aria-label="Descargar XML SAT" onClick={() => downloadCreditNote(cn.id, "xml", cn.credit_note_number)}>
                               <DownloadIcon className="h-3.5 w-3.5" />
                             </Button>
                             {cn.cancellation_status !== "pending" && cn.status !== "cancelled" && (
-                              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" title="Cancelar NC" onClick={() => setCancelTarget(cn)}>
+                              <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" title="Cancelar NC" aria-label="Cancelar nota de crédito" onClick={() => setCancelTarget(cn)}>
                                 <ErrorIcon className="h-3.5 w-3.5" />
                               </Button>
                             )}
@@ -122,7 +122,7 @@ export function InvoiceCreditNotesCard({ invoice, totalPaid }: Props) {
                             <Button variant="outline" size="sm" className="h-7 text-xs" disabled={stampMutation.isPending} onClick={() => stampMutation.mutate(cn.id)}>
                               <StampIcon className="h-3 w-3 mr-1" /> Timbrar
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" title="Eliminar borrador" onClick={async () => {
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" title="Eliminar borrador" aria-label="Eliminar borrador de nota de crédito" onClick={async () => {
                               const ok = await confirm({
                                 title: "Eliminar borrador",
                                 description: "¿Eliminar el borrador de la nota de crédito? Esta acción no se puede deshacer.",

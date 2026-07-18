@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.84.0",
+    "date": "2026-07-18",
+    "type": "minor",
+    "title": "Auditoría externa — 7 diffs aprobados (accesibilidad, responsive y consistencia)",
+    "summary": "Aplicación de la auditoría externa: doble asterisco corregido en «Periodo de Renta», columna Total de cotizaciones alineada a la derecha, InvoicesToolbar responsive con icon-only en mobile, aria-label en 13 archivos con botones icon-only, EmptyState en ProfitabilityChart, calendario default Lista en mobile, Dashboard con alertas primero en mobile y tarjeta huérfana de StatCards ocupando 2 columnas. Rechazados: eliminar lovable-tagger (infraestructura del editor Lovable) y leyenda de colores del Gantt (requiere refactor separado)."
+  },
+  {
     "version": "7.83.0",
     "date": "2026-07-18",
     "type": "patch",

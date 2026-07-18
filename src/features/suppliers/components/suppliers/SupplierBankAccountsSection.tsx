@@ -82,10 +82,10 @@ export function SupplierBankAccountsSection({ supplierId }: { supplierId: string
                   <TableCell className="text-sm">{a.currency}</TableCell>
                   <TableCell className="text-right">
                     <RoleGuard module="Proveedores" minAccess="full">
-                      <Button size="icon" variant="ghost" onClick={() => onEdit(a)}>
+                      <Button size="icon" variant="ghost" aria-label="Editar cuenta bancaria" title="Editar cuenta bancaria" onClick={() => onEdit(a)}>
                         <EditIcon className="h-4 w-4" />
                       </Button>
-                      <Button size="icon" variant="ghost" onClick={() => onDelete(a)}>
+                      <Button size="icon" variant="ghost" aria-label="Eliminar cuenta bancaria" title="Eliminar cuenta bancaria" onClick={() => onDelete(a)}>
                         <DeleteIcon className="h-4 w-4" />
                       </Button>
                     </RoleGuard>

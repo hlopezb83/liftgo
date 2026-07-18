@@ -1,4 +1,5 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell } from "recharts";
+import { EmptyState } from "@/components/feedback/EmptyState";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { ModelRow } from "./profitabilityHelpers";
@@ -7,7 +8,7 @@ const chartConfig = { profit: { label: "Ganancia Neta" } };
 
 export function ProfitabilityChart({ chartRows }: { chartRows: ModelRow[] }) {
   if (chartRows.length === 0) {
-    return <p className="text-muted-foreground text-center py-8">No hay datos para el rango seleccionado.</p>;
+    return <EmptyState title="Sin datos" subtitle="No hay datos para el rango seleccionado." />;
   }
   return (
     <ChartContainer config={chartConfig} className="h-[400px] w-full">

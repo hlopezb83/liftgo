@@ -98,6 +98,8 @@ export function SaleLineRow({ line, index, models, disableRemove, onUpdate, onRe
           variant="ghost"
           size="icon"
           className="h-10 w-10"
+          aria-label="Eliminar línea"
+          title="Eliminar línea"
           onClick={() => onRemove(index)}
           disabled={disableRemove}
         >

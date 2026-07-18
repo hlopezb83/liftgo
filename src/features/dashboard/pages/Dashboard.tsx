@@ -33,26 +33,36 @@ export default function Dashboard() {
     <PageTransition>
       <PageContainer>
         <PageHeader title="Panel" subtitle="Vista general de la flota" />
-        <StatCards cards={statCards} />
-        <FinancialKpiCards
-          mrr={financials.mrr}
-          utilizationPercent={utilizationPercent}
-          dso={financials.dso}
-          overdueTotal={financials.overdueTotal}
-        />
-        <DashboardAlertsSection
-          overdueInvoices={overdueInvoices}
-          maintenanceAlerts={maintenanceAlerts}
-          agingBuckets={agingBuckets}
-          insuranceData={insuranceData}
-          {...alertsProps}
-        />
-        <DashboardChartsSection
-          pieData={pieData}
-          monthlyUtilization={monthlyUtilization}
-          revenuePerUnit={revenuePerUnit}
-          cashFlowData={cashFlowData}
-        />
+        <div className="flex flex-col gap-4">
+          <div className="order-2 md:order-1">
+            <StatCards cards={statCards} />
+          </div>
+          <div className="order-3 md:order-2">
+            <FinancialKpiCards
+              mrr={financials.mrr}
+              utilizationPercent={utilizationPercent}
+              dso={financials.dso}
+              overdueTotal={financials.overdueTotal}
+            />
+          </div>
+          <div className="order-1 md:order-3">
+            <DashboardAlertsSection
+              overdueInvoices={overdueInvoices}
+              maintenanceAlerts={maintenanceAlerts}
+              agingBuckets={agingBuckets}
+              insuranceData={insuranceData}
+              {...alertsProps}
+            />
+          </div>
+          <div className="order-4">
+            <DashboardChartsSection
+              pieData={pieData}
+              monthlyUtilization={monthlyUtilization}
+              revenuePerUnit={revenuePerUnit}
+              cashFlowData={cashFlowData}
+            />
+          </div>
+        </div>
       </PageContainer>
     </PageTransition>
   );
