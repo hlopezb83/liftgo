@@ -4,10 +4,12 @@ import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTa
 import { KpiTile } from "@/components/domain/KpiTile";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { RevenueIcon, FleetIcon, OpenLinkIcon } from "@/components/icons";
+import { MobileCardList } from "@/components/layout/MobileCardList";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TableFooter, TableRow, TableCell } from "@/components/ui/table";
+import { useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { APP_LOCALE } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatMtyDate } from "@/lib/utils";
@@ -19,6 +21,7 @@ const fmt = (d: string | null) => formatMtyDate(d, "dd MMM yyyy", APP_LOCALE);
 
 export default function MrrDetailPage() {
   const { data, isLoading } = useMrrDetail();
+  const isTabletOrBelow = useIsTabletOrBelow();
 
   const columns: ColumnDef<MrrItem>[] = [
       {
@@ -116,6 +119,54 @@ export default function MrrDetailPage() {
           {!isLoading && !data?.items.length ? (
             <div className="py-12">
               <EmptyState icon={FleetIcon} title="Sin montacargas rentados" subtitle="Actualmente no hay equipos con status 'rentado'." />
+            </div>
+          ) : isTabletOrBelow ? (
+            <div className="p-3 space-y-3">
+              <MobileCardList
+                items={data?.items ?? []}
+                keyExtractor={(item) => item.forklift_id}
+                emptyMessage="Sin montacargas rentados"
+                renderCard={(item) => (
+                  <Card className="cursor-pointer">
+                    <CardContent className="p-4 space-y-1.5">
+                      <div className="flex items-center justify-between gap-2">
+                        <Link
+                          to={`/fleet/${item.forklift_id}`}
+                          className="font-medium text-primary hover:underline inline-flex items-center gap-1 truncate"
+                        >
+                          {item.forklift_name}
+                          <OpenLinkIcon className="h-3 w-3 shrink-0" />
+                        </Link>
+                        <span className="text-sm font-semibold font-mono whitespace-nowrap">
+                          {formatCurrency(item.monthly_rate)}
+                        </span>
+                      </div>
+                      <p className="text-xs text-muted-foreground truncate">
+                        {[item.manufacturer, item.model].filter(Boolean).join(" ") || "—"}
+                      </p>
+                      <p className="text-xs">
+                        {item.customer_id ? (
+                          <Link to={`/customers/${item.customer_id}`} className="text-primary hover:underline">
+                            {item.customer_name}
+                          </Link>
+                        ) : (
+                          <span className="text-muted-foreground">Sin cliente</span>
+                        )}
+                        {item.booking_number ? <span className="text-muted-foreground"> · {item.booking_number}</span> : null}
+                      </p>
+                      <p className="text-xs text-muted-foreground whitespace-nowrap">
+                        {fmt(item.start_date)} – {fmt(item.end_date)}
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+              />
+              {data && data.items.length > 0 && (
+                <div className="flex items-center justify-between border-t pt-3 px-1">
+                  <span className="text-sm font-bold">Total MRR</span>
+                  <span className="text-sm font-bold font-mono">{formatCurrency(data.total_mrr)}</span>
+                </div>
+              )}
             </div>
           ) : (
             <DataTableV2

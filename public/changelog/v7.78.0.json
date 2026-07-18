@@ -1,0 +1,30 @@
+{
+  "version": "7.78.0",
+  "date": "2026-07-18",
+  "type": "minor",
+  "title": "Auditoría UI/UX 698×572: densidad y consistencia en listas estrechas",
+  "summary": "Correcciones enfocadas tras la auditoría visual a 698×572 (tablet vertical). Se atienden los hallazgos verificables: MRR se desbordaba y Entregas/Devoluciones no mostraban contador de resultados.",
+  "sections": [
+    {
+      "title": "MRR — fallback a cards en tablet/mobile",
+      "items": [
+        "`MrrDetailPage` usaba `DataTableV2` directo, sin variante mobile. En 698 px la columna 'Periodo' quedaba cortada y la scroll horizontal no era evidente.",
+        "Se agregó fallback `MobileCardList` bajo el breakpoint `md` mostrando equipo (link), tarifa mensual, modelo, cliente/reserva y rango de fechas.",
+        "El renglón de 'Total MRR' se preserva debajo de las cards para no perder el subtotal."
+      ]
+    },
+    {
+      "title": "Entregas y Devoluciones — contador de resultados",
+      "items": [
+        "El resto de las listas de la app muestran 'N resultados' en el subtítulo. `Entregas` y `Devoluciones y Revisión` no lo hacían.",
+        "Se pasa `totalCount` a `ListPageLayout` para homogeneizar el patrón."
+      ]
+    },
+    {
+      "title": "Nota de auditoría",
+      "items": [
+        "La auditoría cubrió 15 rutas autenticadas capturadas con Playwright a 698×572. El plan completo (con hallazgos P0-P3) queda en `.lovable/plan.md`; se abordaron los ítems con evidencia inequívoca en esta versión y se difieren los cambios de layout global (PageHeader compact, ListToolbar unificada, FAB inteligente) para revisión previa del sistema de diseño."
+      ]
+    }
+  ]
+}

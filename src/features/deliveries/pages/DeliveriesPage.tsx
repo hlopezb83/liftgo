@@ -63,6 +63,7 @@ export default function DeliveriesPage() {
     <ListPageLayout
       title="Entregas"
       subtitle="Programa y rastrea el transporte de equipos"
+      totalCount={deliveries?.length}
       actions={<DeliveryFormDialog />}
       isLoading={isLoading}
       table={table}
