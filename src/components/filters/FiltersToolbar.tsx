@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { DateRange } from "react-day-picker";
-import { parseISO, isValid } from "date-fns";
+import { isValid } from "date-fns";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { Button } from "@/components/ui/button";
@@ -165,12 +165,18 @@ interface DateRangeControlProps {
  */
 function DateRangeControl({ value, onChange, placeholder, className }: DateRangeControlProps) {
   const [fromStr, toStr] = value.includes("..") ? value.split("..", 2) : ["", ""];
-  const from = fromStr ? parseISO(fromStr) : undefined;
-  const to = toStr ? parseISO(toStr) : undefined;
-  const dateRange: DateRange | undefined =
-    (from && isValid(from)) || (to && isValid(to))
-      ? { from: from && isValid(from) ? from : undefined, to: to && isValid(to) ? to : undefined }
-      : undefined;
+  // Parsear como fecha local (no UTC) para evitar shift de zona horaria en el
+  // round-trip con `toYMD` (America/Monterrey). Ver v7.80.0 changelog.
+  const parseLocalYMD = (s: string): Date | undefined => {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+    if (!m) return undefined;
+    const [, y, mo, d] = m;
+    const dt = new Date(Number(y), Number(mo) - 1, Number(d));
+    return isValid(dt) ? dt : undefined;
+  };
+  const from = parseLocalYMD(fromStr);
+  const to = parseLocalYMD(toStr);
+  const dateRange: DateRange | undefined = from || to ? { from, to } : undefined;
 
   return (
     <div className={cn("w-full sm:w-64", className)}>
