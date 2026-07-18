@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.85.0",
+    "date": "2026-07-18",
+    "type": "patch",
+    "title": "Gantt del Calendario: leyenda semántica de estados y marcadores",
+    "summary": "Se agrega una leyenda colapsable «Leyenda» en el Gantt del Calendario que documenta la codificación visual existente: barra sólida = Confirmada, barra atenuada con borde punteado = Completada/Cancelada, franja gris = fin de semana y línea vertical = Hoy. Se mantiene la leyenda de clientes intacta. Se extrae el bloque a un subcomponente GanttLegend para respetar los límites de tamaño del componente (Power of 10). Cierra DIFF 7b de la auditoría externa."
+  },
+  {
     "version": "7.84.0",
     "date": "2026-07-18",
     "type": "minor",

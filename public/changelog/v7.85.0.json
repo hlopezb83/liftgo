@@ -1,0 +1,30 @@
+{
+  "version": "7.85.0",
+  "date": "2026-07-18",
+  "type": "patch",
+  "title": "Gantt del Calendario: leyenda semántica de estados y marcadores",
+  "summary": "Se documenta la codificación visual del Gantt con una leyenda colapsable, cerrando DIFF 7b de la auditoría externa.",
+  "sections": [
+    {
+      "heading": "Nuevo",
+      "items": [
+        "Leyenda «Leyenda» colapsable en el Gantt del Calendario con 4 entradas: Confirmada (sólida), Completada/Cancelada (atenuada con borde punteado), Fin de semana (franja gris) y Hoy (línea vertical primaria).",
+        "Nuevo subcomponente `GanttLegend` que agrupa ambas leyendas (semántica + clientes) con el mismo lenguaje visual (Collapsible, text-xs, tokens del sistema)."
+      ]
+    },
+    {
+      "heading": "Mejoras",
+      "items": [
+        "`GanttChart.tsx` se mantiene dentro del límite de 150 LOC de Power of 10 al extraer las leyendas.",
+        "La leyenda de clientes existente conserva su comportamiento (colapsable, sólo aparece cuando hay clientes con reservas en el rango)."
+      ]
+    },
+    {
+      "heading": "Sin cambios",
+      "items": [
+        "Cero cambios en `useGanttSegments`, `GanttRow`, `GanttHeader` ni en los tokens `--gantt-*`.",
+        "No hay migraciones ni cambios de lógica de negocio."
+      ]
+    }
+  ]
+}
