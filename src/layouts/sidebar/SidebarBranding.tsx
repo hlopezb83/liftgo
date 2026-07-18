@@ -1,4 +1,4 @@
-import { XIcon } from "@/components/icons";
+import { CloseIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { SidebarHeader, useSidebar } from "@/components/ui/sidebar";
 
