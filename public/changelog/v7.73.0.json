@@ -1,0 +1,20 @@
+{
+  "version": "7.73.0",
+  "date": "2026-07-18",
+  "type": "minor",
+  "title": "Sprint 1 code review remediation: privacidad de facturas, trazabilidad de flotilla y timbrado sin duplicados",
+  "description": "Primer sprint de la remediación del reporte de auditoría (22 hallazgos confirmados de 27). Cierra 6 hallazgos: SEC-005 (`v_invoices_with_balance` deja de ser pública; se agrega RPC `list_invoices_with_balance` que filtra por rol — customers ven solo sus facturas), SEC-002 (dispatchers/ventas/administrativo ahora pueden escribir en `status_logs`; hooks de asignación validan filas afectadas), SEC-004 (`e2e_seed_scenario` solo `service_role`), DI-003 (RPCs `assign_stamped_invoice_number` / `_rep_number` a prueba de race conditions vía `EXCEPTION WHEN unique_violation`), DI-001 (nuevo UNIQUE parcial `(invoice_id, installment_number)` en `payments`), BL-004 (`stamp-payment-complement` lee `invoice.tax_rate` en vez de hardcodear 16%).",
+  "category": "security",
+  "files": [
+    "supabase/migrations/*",
+    "src/features/invoices/hooks/invoices/useInvoicesWithBalance.ts",
+    "src/features/fleet/hooks/forklifts/assignForklifts/useAssignForklift.ts",
+    "src/features/fleet/hooks/forklifts/assignForklifts/useUnassignForklift.ts",
+    "supabase/functions/stamp-payment-complement/index.ts"
+  ],
+  "details": {
+    "findings_closed": ["SEC-005", "SEC-002", "SEC-004", "DI-003", "DI-001", "BL-004"],
+    "findings_dismissed": ["SEC-001 (facturapi_key no existe)", "SEC-003 (políticas ya usan has_role)", "BL-005 (guard ya existe)", "BL-007 (handler ya recomputa)", "DI-006 (PK cubre uniqueness)"],
+    "next_sprint": "v7.74.0 — race conditions y money math (DI-004, DI-002, BL-009, BL-001, BL-002, BL-003)"
+  }
+}

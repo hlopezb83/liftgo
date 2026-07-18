@@ -1,60 +1,68 @@
-# Auditoría de Pull Requests — `hlopezb83/liftgo`
+# Plan: Code Review Remediation (22 hallazgos confirmados)
 
-**Panorama:** 10 PRs abiertos, todos de `dependabot[bot]`. 6 son bumps de npm (5 con CI en rojo) y 4 son bumps de GitHub Actions (3 verdes). Ningún PR viene de humanos, así que la revisión es puramente de riesgo de dependencia + estado de CI.
+## Resultados de validación
 
-## Resumen por PR
+De los 27 hallazgos del reporte, 22 confirmados y **5 descartados**:
 
-| # | Paquete | Salto | CI | Riesgo | Recomendación |
-|---|---|---|---|---|---|
-| 20 | `typescript` 5.9.3 → **7.0.2** | major x2 | 🔴 8 checks | 🔴 Alto | **Cerrar** |
-| 19 | `react-dropzone` 16 → **17** | major | 🔴 8 checks | 🟡 Medio | **Cerrar por ahora** |
-| 18 | `@types/node` 24 → **26** | major x2 | 🔴 8 checks | 🟡 Medio | **Cerrar** |
-| 17 | `jsdom` 26 → **29** | major x3 | 🔴 8 checks | 🟡 Medio | **Cerrar** |
-| 16 | `postcss` 8.5.17 → 8.5.19 | patch | 🔴 8 checks | 🟢 Bajo | **Investigar y mergear** |
-| 14 | GH Actions minor-patch group (3) | minor/patch | 🟢 | 🟢 Bajo | **Mergear** |
-| 12 | `actions/labeler` 5 → **6** | major | 🟢 | 🟢 Bajo | **Mergear** (validar pin de SHA en `.github/workflows/labeler.yml`) |
-| 11 | `gitleaks/gitleaks-action` 2.3.9 → **3.0.0** | major | 🔴 `Secrets check` | 🟡 Medio | **Investigar** el fallo antes de mergear |
-| 4 | `github/codeql-action` 3 → **4** | major | 🔴 5 checks (E2E/Deno/CodeQL) | 🟡 Medio | **Rebasear** y re-evaluar; los fallos parecen ambientales (junio) |
-| 2 | `actions/cache` 4 → **6** | major x2 | 🟢 | 🟢 Bajo | **Mergear** |
+| Descartado | Razón |
+|---|---|
+| SEC-001 | `company_settings.facturapi_key` no existe; políticas ya usan `has_role`. |
+| SEC-003 | Ninguna política actual usa `FOR ALL USING (true)`; todas usan `has_role`. |
+| BL-005 | `useBookingFormSubmit.ts:30` ya valida `if (!from \|\| !to) return`. |
+| BL-007 | `useInvoiceLineItemHandlers.ts:18` ya recomputa `total` en cambio. |
+| DI-006 | `invoice_bookings_pkey` cubre `(invoice_id, booking_id)`. |
 
-## Detalle y justificación
+---
 
-### 🔴 Cerrar (breaking changes reales)
+## Sprint 1 — Críticos de seguridad y CFDI (v7.73.0)
 
-- **#20 TypeScript 7.0.2** — TS 7 aún no existe estable a la fecha del repo; es un salto ficticio o pre-release. El proyecto está atado a `^5.9.3` y todo el `tsconfig` (strict, `verbatimModuleSyntax`, plugins de Vite) está calibrado para 5.x. Además rompe `tsgo` y el typecheck del CI. **Cerrar.**
-- **#19 react-dropzone 17** — Acabamos de migrar a v16 en el sprint E (v7.56.0 / v7.57.0). Un major inmediato invalida esa auditoría reciente sin ganancia. **Cerrar** y reabrir cuando haya changelog público que amerite.
-- **#18 @types/node 26** — Nuestro runtime objetivo es Node 20/22 (`.nvmrc`). Tipos de Node 26 introducen APIs no disponibles y rompen typecheck. **Cerrar** hasta que `.nvmrc` suba.
-- **#17 jsdom 29** — Vitest 2.x sólo soporta jsdom hasta 26/27. Saltar 3 majors rompe los tests de `useDocuments.rls`, `formDialog`, etc. **Cerrar** hasta que subamos Vitest.
+1. **SEC-005** — Revocar `SELECT` de `v_invoices_with_balance` a `authenticated`; mover consumo a RPC `SECURITY DEFINER` que filtre por rol (admin/administrativo/ventas ven todo, customers filtran por `customer_id`). Actualizar `useInvoicesWithBalance`.
+2. **SEC-002** — Añadir políticas `INSERT` a `status_logs` para `dispatcher` y `mechanic`; añadir `.select("id")` + `assertRowsAffected` en `useAssignForklift.ts`, `useUnassignForklift.ts`, `useForkliftMutations.ts`.
+3. **SEC-004** — Revocar `EXECUTE ON e2e_seed_scenario` de `authenticated`; conceder solo a `service_role`. Actualizar helper E2E si aplica.
+4. **DI-003** — Reescribir `assign_stamped_invoice_number` y `assign_stamped_rep_number` con `INSERT/UPDATE ... ON CONFLICT` o `EXCEPTION WHEN unique_violation THEN` con reintento del siguiente número.
+5. **DI-001** — Migración: `ALTER TABLE payments ADD CONSTRAINT payments_invoice_installment_uq UNIQUE (invoice_id, installment_number) DEFERRABLE INITIALLY IMMEDIATE` (validar backfill primero).
+6. **BL-004** — `stamp-payment-complement/index.ts`: leer `invoice.tax_rate` (default 0.16 si null) y usarlo en el breakdown REP.
 
-### 🟡 Investigar
+## Sprint 2 — Race conditions y money math (v7.74.0)
 
-- **#16 postcss 8.5.19** — Es sólo un patch, no debería romper nada. El hecho de que 8 checks estén rojos apunta a que la rama está desactualizada contra `main` (Dependabot lleva 4 días sin rebase). Acción: `dependabot rebase` y si sigue rojo, leer el log de `Build (Vite)`.
-- **#11 gitleaks-action 3.0.0** — El único check en rojo es `Secrets check`, que es precisamente el que corre gitleaks. La v3 cambió los inputs (`GITLEAKS_LICENSE`, `GITLEAKS_ENABLE_UPLOAD_ARTIFACT`). Hay que actualizar `.github/workflows/gitleaks.yml` en el mismo PR antes de mergear.
-- **#4 codeql-action v4** — Los fallos son E2E/Deno/CodeQL de mediados de junio (branch vieja). Rebasear con `@dependabot rebase`; los E2E de main ya fueron endurecidos (v7.72.6–v7.72.11) y deberían pasar.
+7. **DI-004** — `create_booking` RPC: `SELECT ... FROM forklifts WHERE id = p_forklift_id FOR UPDATE` antes de validar `status='available'`.
+8. **DI-002** — `generate-recurring-invoices`: envolver `executePlan` en RPC con `pg_advisory_xact_lock(hashtext('recurring.'||customer_id||'.'||period))` antes del check `existingLink`.
+9. **BL-009** — `generate-recurring-maintenance`: atomic claim `UPDATE maintenance_policies SET last_generated_month = ? WHERE id = ? AND (last_generated_month IS NULL OR last_generated_month < ?) RETURNING id` y saltar policies sin filas afectadas.
+10. **BL-001** — `useCreditNoteForm.ts`: reemplazar `Number` math por `lineItemTotal` / `computeTotals` / `roundMoney` de `src/lib/domain/invoiceTotals.ts`.
+11. **BL-002** — Nuevo RPC `record_payment(p_invoice_id, p_amount, ...)` que valida `SUM(payments.amount) + p_amount <= invoice.total` en la misma transacción. `useRecordPaymentForm.ts` invoca el RPC. Añadir `CHECK (amount > 0)` en `payments`.
+12. **BL-003** — `generate-recurring-invoices`: reemplazar `Math.round(x*100)/100` con helper compartido (puerto de `currency.js` a Deno en `supabase/functions/_shared/money.ts`).
 
-### 🟢 Mergear directo
+## Sprint 3 — Consistencia y auth (v7.75.0)
 
-- **#14** — grupo minor/patch de actions, ya en verde.
-- **#12 actions/labeler v6** — verde. Confirmar sólo que el workflow siga pineado por SHA (nuestro `labeler.yml` usa `@8558fd74…` que corresponde a v5; Dependabot debió actualizar el SHA también).
-- **#2 actions/cache v6** — verde.
+13. **DI-005** — Trigger `AFTER INSERT OR UPDATE OR DELETE ON payments` que recalcula `invoices.status` (`paid`/`partial`/`sent`) atómicamente. Eliminar el sync client-side de `usePayments.ts`.
+14. **DI-007** — Extender `soft_delete_customer`/`_supplier` para (a) rechazar si hay dependencias activas, o (b) marcar `deleted_at` en children de tablas hijas relevantes. Añadir filtros `deleted_at IS NULL` faltantes en `useBookings`, `useContracts`.
+15. **AUTH-001** — `invite-user`: pre-check `auth.users` por email antes de `createUser`, devolver 409 con mensaje claro.
+16. **AUTH-002** — `refresh-cancellation-status/handler.ts`: si en el futuro hay multitenancy, verificar `company_id` del invoice contra el del caller. Por ahora: añadir log + comentario `TODO tenant` y verificar rol == admin/administrativo (ya lo hace).
+17. **AUTH-003** — Alinear `AdminRouteGuard` sobre "Crear Reserva Directa" con la RPC: o (a) remover el guard (dispatcher/ventas ya pueden crear con cotización), o (b) apretar la RPC. Decisión recomendada: **remover guard** y mantener regla "no admin ⇒ requiere `p_quote_id`" en RPC.
+18. **BL-006** — `useMaintenanceKanban.ts`: añadir `onSuccess` que reconcilia cache con la respuesta del servidor.
+19. **BL-008** — `useGenerateRecurringInvoices.ts`: leer `result.failed[]` y `result.error`, pasar a `notifyError` con detalles por booking.
 
-## Orden de acción sugerido
+## Sprint 4 — Performance (v7.76.0)
 
-```text
-1. Mergear #2, #12, #14                (bajo riesgo, verde)
-2. Investigar y arreglar #11 y #16     (rebase + ajustar inputs)
-3. Rebasear #4 y re-evaluar CI         (si verde, mergear)
-4. Cerrar #17, #18, #19, #20 con nota  ("bloqueado por <razón>")
-```
+20. **PERF-002** — `CREATE INDEX idx_payments_invoice_date ON payments(invoice_id, payment_date DESC)`.
+21. **PERF-003** — `useSyncInvoiceBookings` (`useInvoiceBookings.ts:60`): añadir `.select("id")` y `assertRowsAffected`.
+22. **PERF-001** — Paginación server-side: nuevo RPC `list_invoices_with_balance(p_limit, p_cursor, p_filters)` + refactor `useInvoices`/`useInvoicesWithBalance` a `useInfiniteQuery` con cursor `(issued_at, id)`. Este es el ítem más grande — se puede diferir a sprint aparte si conviene.
 
-## Notas técnicas
+---
 
-- Los checks "unknown/None" en `mergeable_state` son porque GitHub no ha calculado merge status en PRs de Dependabot dormidos; se resuelven con un rebase.
-- El repo tiene 16–19 checks configurados; el patrón "6 success + 8 failure + 2 skipped" en los npm bumps sugiere que el fallo raíz está en el bootstrap (probable `bun install` o typecheck) y el resto son fallos en cascada, no 8 problemas distintos.
-- No hay PRs con conflicto de código de la app; todos tocan sólo `package.json` / `.github/workflows/*.yml`.
+## Detalles técnicos clave
 
-## Entregable
+- **Migraciones**: cada sprint = una migración numerada; incluir `GRANT` explícito en tablas nuevas si aplica y `SET search_path = public` en funciones nuevas.
+- **RPCs nuevos**: `record_payment`, `list_invoices_with_balance` — ambos `SECURITY DEFINER` con `has_role` checks al inicio.
+- **Tests**: agregar Vitest para `record_payment` (over-payment), `create_booking` (concurrencia via `pg_backend_pid()` simulado), stamping race (con reintento).
+- **Rollout**: cada Sprint bumpea versión en `public/changelog.json` + `public/changelog/v{X.Y.Z}.json` (regla del proyecto).
+- **Backward-compat**: el trigger de `payments` (DI-005) debe hacer un backfill inicial para no dejar invoices con status desactualizado.
 
-Este plan es **read-only**: sólo lista recomendaciones. Cuando lo apruebes, en build mode puedo:
-- Comentar cada PR en GitHub (requiere linkear el conector de GitHub, hoy no está linkeado).
-- O ejecutar localmente los merges/close vía `gh` si me das un token — pero lo natural es que tú (o quien tenga permisos de merge) aplique las acciones desde GitHub siguiendo esta tabla.
+## Fuera de alcance
+
+- Reestructuración multitenant real (AUTH-002 completo).
+- Reescritura completa de tabla `payments` con `numeric(14,2)` si ya no lo es (validar en Sprint 1 y añadir sólo si aplica).
+
+## Entregable por sprint
+
+Cada sprint: migración SQL, cambios de código frontend/edge, tests, entrada en changelog, verificación en preview con Playwright de las rutas afectadas.

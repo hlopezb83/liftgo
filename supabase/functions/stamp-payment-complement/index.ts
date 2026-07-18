@@ -11,7 +11,7 @@ import {
 } from "../_shared/facturapi/client.ts";
 
 const BUCKET = "cfdi-files";
-const IVA_RATE = 0.16;
+const DEFAULT_IVA_RATE = 0.16;
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
@@ -61,11 +61,11 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Load invoice
+    // Load invoice (BL-004: incluir tax_rate para no hardcodear IVA)
     const { data: invoice } = await supabase
       .from("invoices")
       .select(
-        "id, customer_id, total, metodo_pago, cfdi_uuid, cfdi_status, receptor_razon_social, receptor_rfc, receptor_regimen_fiscal, receptor_domicilio_fiscal_cp, uso_cfdi, customer_name",
+        "id, customer_id, total, tax_rate, metodo_pago, cfdi_uuid, cfdi_status, receptor_razon_social, receptor_rfc, receptor_regimen_fiscal, receptor_domicilio_fiscal_cp, uso_cfdi, customer_name",
       )
       .eq("id", payment.invoice_id)
       .single();
@@ -116,8 +116,15 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Tax breakdown (IVA 16% único)
-    const base = Number((amount / (1 + IVA_RATE)).toFixed(2));
+    // BL-004: tax rate viene de la factura relacionada (16, 8, 0…).
+    // `invoices.tax_rate` se guarda como porcentaje (ej. 16 = 16%).
+    const invoiceTaxRatePct = invoice.tax_rate == null
+      ? DEFAULT_IVA_RATE * 100
+      : Number(invoice.tax_rate);
+    const ivaRate = Number((invoiceTaxRatePct / 100).toFixed(6));
+    const base = ivaRate > 0
+      ? Number((amount / (1 + ivaRate)).toFixed(2))
+      : Number(amount.toFixed(2));
 
     const { apiKey } = await getFacturapiConfig(
       supabase,
@@ -129,20 +136,22 @@ Deno.serve(async (req) => {
     const currency = (payment.currency as string | null) || "MXN";
     const exchange = Number(payment.exchange_rate || 1);
 
+    const relatedDoc: Record<string, unknown> = {
+      uuid: invoice.cfdi_uuid,
+      amount,
+      installment: installmentNumber,
+      last_balance: priorBalance,
+      currency: "MXN",
+      exchange: 1,
+    };
+    if (ivaRate > 0) {
+      relatedDoc.taxes = [{ base, type: "IVA", rate: ivaRate, factor: "Tasa" }];
+    }
+
     const dataEntry: Record<string, unknown> = {
       payment_form: payment.payment_form_sat,
       date: paymentDateIso,
-      related_documents: [
-        {
-          uuid: invoice.cfdi_uuid,
-          amount,
-          installment: installmentNumber,
-          last_balance: priorBalance,
-          taxes: [{ base, type: "IVA", rate: IVA_RATE, factor: "Tasa" }],
-          currency: "MXN",
-          exchange: 1,
-        },
-      ],
+      related_documents: [relatedDoc],
     };
     if (currency !== "MXN") {
       dataEntry.currency = currency;
