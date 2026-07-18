@@ -142,7 +142,7 @@ function ClearAll({ onClick, visible, label }: ClearAllProps) {
       variant="ghost"
       size="sm"
       onClick={onClick}
-      className="text-muted-foreground hover:text-foreground gap-1.5"
+      className="text-muted-foreground hover:text-foreground gap-1.5 ml-auto"
     >
       <CloseIcon className="h-3.5 w-3.5" />
       {label ?? "Limpiar filtros"}
