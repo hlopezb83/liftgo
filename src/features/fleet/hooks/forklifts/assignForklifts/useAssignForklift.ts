@@ -37,8 +37,13 @@ export function useAssignForklift() {
         to_status: "sold",
         note: "Asignado a cotización de venta",
       }));
-      const { error: logsError } = await supabase.from("status_logs").insert(logs);
+      // SEC-002: .select() para que RLS silenciosa se manifieste como fila 0.
+      const { data: logRows, error: logsError } = await supabase
+        .from("status_logs")
+        .insert(logs)
+        .select("id");
       if (logsError) throw logsError;
+      assertRowsAffected(logRows, "Registrar historial de estatus", logs.length);
     },
     invalidateKeys: [quoteAssignedForkliftKeys.all, forkliftKeys.all, statusLogKeys.all],
     successMsg: "Equipos asignados correctamente",
