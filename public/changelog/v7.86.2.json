@@ -1,0 +1,21 @@
+{
+  "version": "7.86.2",
+  "date": "2026-07-18",
+  "type": "patch",
+  "title": "Portal cliente: paridad de overscroll-contain",
+  "sections": [
+    {
+      "heading": "Fixes",
+      "items": [
+        "CustomerPortalLayout: el <main> ahora usa `overflow-auto overscroll-contain pb-[env(safe-area-inset-bottom)]`, en línea con MainLayout, evitando que el navegador móvil dispare el pull-to-refresh nativo dentro del portal cliente."
+      ]
+    },
+    {
+      "heading": "Auditoría",
+      "items": [
+        "Se verificó el resto de la app: el único consumidor de `usePullToRefresh` es `ListPageLayout` (rutas bajo MainLayout, ya cubierto en v7.86.1).",
+        "Los otros `overflow-auto` del repo (ErrorBoundary `<pre>`, matriz de RolePermissionsPage) son scrolls internos de componente, no superficies principales, y no requieren cambio."
+      ]
+    }
+  ]
+}
