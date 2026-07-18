@@ -35,7 +35,7 @@ export function useGenerateRecurringInvoices() {
         const firstReason = failed[0]?.error?.slice(0, 140) ?? "sin detalle";
         notifyWarning({
           title: `${failed.length} reserva(s) no se facturaron`,
-          message: firstReason,
+          description: firstReason,
         });
       }
       return result;
