@@ -1,0 +1,32 @@
+{
+  "version": "7.77.2",
+  "date": "2026-07-18",
+  "type": "patch",
+  "title": "Fix dashboard: SELECT sobre v_invoices_with_balance para authenticated",
+  "summary": "Corrige `permission denied for view v_invoices_with_balance` sin reintroducir SEC-005.",
+  "sections": [
+    {
+      "heading": "Causa",
+      "items": [
+        "Reporte de bug `23e760dc-3d94-40f3-a288-39f0d2178c6b`: usuario `administrativo` en `/` recibía SQLSTATE `42501` sobre `v_invoices_with_balance`.",
+        "Sprint 1 (SEC-005) revocó `SELECT` sobre la vista y encapsuló el acceso en la RPC `list_invoices_with_balance` (SECURITY DEFINER, filtrada por rol).",
+        "La RPC devuelve `SETOF v_invoices_with_balance`. PostgREST valida los privilegios del rol invocador sobre el tipo de retorno al serializar las filas — la RPC ejecutaba OK pero la respuesta era rechazada."
+      ]
+    },
+    {
+      "heading": "Fix",
+      "items": [
+        "Migración `GRANT SELECT ON public.v_invoices_with_balance TO authenticated`.",
+        "La vista conserva `security_invoker = on`; toda consulta directa aplica la RLS de `invoices` y `payments` según `auth.uid()`. Un `customer` que la consultara directo sólo vería sus propias facturas.",
+        "Ningún hook del cliente hace `from('v_invoices_with_balance')`; verificado con `rg` en `src/`."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "`has_table_privilege('authenticated', 'public.v_invoices_with_balance', 'SELECT')` → `t`.",
+        "Dashboard como `administrativo` deja de disparar el reporte de error."
+      ]
+    }
+  ]
+}
