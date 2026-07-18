@@ -1,0 +1,28 @@
+{
+  "version": "7.80.0",
+  "date": "2026-07-18",
+  "type": "patch",
+  "title": "FiltersToolbar: fix zona horaria en DateRange y cobertura de tests",
+  "sections": [
+    {
+      "heading": "Auditoría v7.79.0",
+      "items": [
+        "Revisados los 3 cambios del sprint anterior (StatusTabs con scroll horizontal, ClearAll con ml-auto, test de MrrDetailPage). Sin regresiones.",
+        "Retirado del backlog UI/UX el hallazgo 'FAB inteligente': el botón Reportar (FeedbackFab) ya es inline en el header, no un FAB flotante."
+      ]
+    },
+    {
+      "heading": "Fix",
+      "items": [
+        "`FiltersToolbar.DateRange`: al deserializar `\"YYYY-MM-DD..YYYY-MM-DD\"` se usaba `parseISO` (medianoche UTC). Combinado con `toZonedTime('America/Monterrey')` del renderer, en navegadores fuera de la TZ Monterrey podía mostrar el día previo en el trigger. Cambiado a parseo YMD explícito a mediodía UTC (`Date.UTC(y, m-1, d, 12)`), garantizando round-trip idempotente con `toYMD` en cualquier zona horaria."
+      ]
+    },
+    {
+      "heading": "Tests",
+      "items": [
+        "Nuevo bloque `StatusSelect`: verifica que el trigger renderiza el label del valor actual.",
+        "Nuevo bloque `DateRange` con 5 casos: valor vacío (placeholder), rango completo (round-trip), rango abierto (only-from), fechas inválidas y valor malformado sin `..`."
+      ]
+    }
+  ]
+}

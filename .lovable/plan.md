@@ -1,33 +1,43 @@
-## Auditoría del Sprint v7.78.0
+## Auditoría del Sprint v7.79.0
 
-Revisé los tres cambios del sprint pasado:
+Revisé los 3 cambios del sprint anterior:
 
-- **MrrDetailPage.tsx** — el fallback a `MobileCardList` bajo `md` está correcto, respeta `useIsTabletOrBelow`, mantiene el link a `/fleet/:id` y el subtotal MRR. Sin bugs.
-- **DeliveriesPage.tsx** — `totalCount={deliveries?.length}` pasa a `ListPageLayout` que renderiza `"N resultado(s)"` con pluralización correcta.
-- **ReturnInspectionPage.tsx** — mismo patrón sobre `filteredInspections?.length` (respeta filtros aplicados, ideal).
+- **`FiltersToolbar.StatusTabs`** — el wrapper `overflow-x-auto` + `whitespace-nowrap` funciona en desktop y en tablet estrecho. Detalle menor: los estilos default (`w-full sm:w-auto overflow-x-auto`) se aplican antes que el `className` externo — por precedencia CSS es consistente con las convenciones del proyecto. Sin regresión.
+- **`FiltersToolbar.ClearAll`** — `ml-auto` alinea correctamente a la derecha tanto en `flex-row` (desktop) como en `flex-col` (mobile). Verificado.
+- **`MrrDetailPage.test.tsx`** — cubre bien las dos ramas (mobile vs desktop). El mock de `useIsTabletOrBelow` es limpio.
 
-**Sin regresiones detectadas.** Cobertura de pruebas: `useMrrDetail` ya tiene test unitario del hook; el fallback visual del MRR quedó sin test — es una brecha menor.
+**Sin bugs detectados.** Cobertura extra descubierta durante la auditoría:
 
-## Sprint v7.79.0 — Cierres del viewport tablet estrecho (≤ md)
+- El `FeedbackFab` reportado en la auditoría UI/UX 698×572 **no es un FAB flotante** — es un botón inline dentro del header (`variant="outline"`, sin `position: fixed`). El hallazgo "FAB inteligente" del backlog original no aplica; se retira del backlog.
 
-Alcance acotado a hallazgos verificables con evidencia visual/código, sin tocar layout global.
+**Brechas de test reales:**
+
+1. `FiltersToolbar.DateRangeControl` — no tiene test. Serializa/deserializa `"YYYY-MM-DD..YYYY-MM-DD"` que consume `useTableFilters.dateRange`; un bug de parseo aquí rompería silenciosamente todos los filtros de fecha (Facturas, Cotizaciones, Gastos, Reportes).
+2. `FiltersToolbar.StatusSelect` — variante para >5 opciones, sin test.
+
+## Sprint v7.80.0 — Cobertura de FiltersToolbar y limpieza del backlog
+
+Alcance acotado a tests + una limpieza documental. No toca UI.
 
 ### Cambios
 
-1. **Test faltante del sprint anterior** — agregar test de render para `MrrDetailPage` que verifique que en `useIsTabletOrBelow=true` se renderiza `MobileCardList` (no `DataTableV2`) y muestra el "Total MRR" en el pie. Cubre la brecha detectada en la auditoría.
+1. **Test `FiltersToolbar.DateRangeControl`** — nuevo bloque en `FiltersToolbar.test.tsx` que verifica:
+   - Deserialización: `"2026-06-01..2026-06-30"` produce un `DateRange` con `from`/`to` válidos.
+   - Serialización: seleccionar un rango emite `onChange("YYYY-MM-DD..YYYY-MM-DD")` usando `toYMD` (respetando `America/Monterrey`).
+   - Estado vacío: `value=""` no rompe el render.
+   - Fechas inválidas: `"foo..bar"` no lanza; produce `undefined`.
 
-2. **FiltersToolbar.StatusTabs con overflow horizontal seguro** — en viewports entre `sm` y `md`, cuando hay ≥4 tabs (Facturas, Cotizaciones, Reservas) el `TabsList` compite por espacio con la Search y provoca wrap. Envolver el `TabsList` en un contenedor con `overflow-x-auto` + `scrollbar-none` y `whitespace-nowrap` para que las pestañas hagan scroll horizontal en lugar de saltar de línea. No afecta desktop.
+2. **Test `FiltersToolbar.StatusSelect`** — nuevo bloque que verifica render de todas las opciones y propagación del `onChange` al seleccionar.
 
-3. **FiltersToolbar.ClearAll siempre alineado a la derecha** — actualmente cae donde el `flex-wrap` lo deje. Añadir `ml-auto` para que en resoluciones intermedias siempre quede al extremo derecho del row, evitando la percepción de "botón huérfano" reportada en la auditoría.
+3. **Retirar hallazgo obsoleto del backlog** — actualizar `.lovable/plan.md` para marcar como resuelto/no-aplica el ítem "FAB inteligente" (el botón Reportar ya está inline en el header).
 
 ### Detalles técnicos
 
-- Archivos: `src/features/dashboard/pages/__tests__/MrrDetailPage.test.tsx` (nuevo), `src/components/filters/FiltersToolbar.tsx` (edits).
-- Test: mock `useMrrDetail` con 2 items y `useIsTabletOrBelow` → `true`; assertar presencia de `Total MRR` y ausencia del rol `table`.
-- StatusTabs: `<div className="w-full sm:w-auto overflow-x-auto"><TabsList className="whitespace-nowrap">…</TabsList></div>`.
-- ClearAll: agregar `ml-auto` al `Button`.
-- Changelog: nueva entrada v7.79.0 (patch) en `public/changelog.json` + `public/changelog/v7.79.0.json`.
+- Archivo: `src/components/filters/__tests__/FiltersToolbar.test.tsx` (edits).
+- Para `DateRangeControl`: renderizar el componente, abrir el popover con `fireEvent.click` sobre el `DateRangePickerField` trigger, y para la parte de serialización usar el estado inicial (deserialización) que es la ruta crítica; la serialización end-to-end via popover queda cubierta por los E2E de Playwright.
+- Nada de mocks pesados; sólo `render` + assertions.
+- Changelog: nueva entrada `v7.80.0` (patch) en `public/changelog.json` + `public/changelog/v7.80.0.json`.
 
 ### Fuera de alcance
 
-Cambios estructurales del prior audit (unificación `ListToolbar`, `PageHeader` compact, FAB inteligente) siguen pendientes de decisión — requieren rediseño global y evidencia adicional, no entran en este sprint.
+- Cambios visuales o de layout — el resto del backlog UI/UX (PageHeader compact, ListToolbar unificada) sigue pendiente de revisión de sistema de diseño y no entra aquí.
