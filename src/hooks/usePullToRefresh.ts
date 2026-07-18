@@ -50,7 +50,7 @@ export function usePullToRefresh({
   const targetRef = useMemo(() => ({ current: target }), [target]);
 
   useDrag(
-    ({ movement: [, my], last, canceled, first, event, cancel }) => {
+    ({ movement: [, my], last, canceled, first, cancel }) => {
       if (!enabled || !target) return;
 
       // Solo interceptamos si el contenedor está en el tope del scroll al iniciar.
@@ -67,10 +67,6 @@ export function usePullToRefresh({
         else setPullDistance(0);
         return;
       }
-
-      // Evitamos que el navegador dispare pull-to-refresh nativo del sistema
-      // mientras el usuario esté arrastrando dentro del área.
-      if (event.cancelable) event.preventDefault();
 
       const eased = Math.min(maxDistance, my * 0.5);
 
@@ -91,7 +87,8 @@ export function usePullToRefresh({
       axis: "y",
       pointer: { touch: true },
       filterTaps: true,
-      eventOptions: { passive: false },
+      threshold: 8,
+      eventOptions: { passive: true },
     },
   );
 
