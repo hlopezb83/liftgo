@@ -1,0 +1,1 @@
+GRANT SELECT ON public.v_invoices_with_balance TO authenticated;
