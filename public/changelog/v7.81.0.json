@@ -1,0 +1,21 @@
+{
+  "version": "7.81.0",
+  "date": "2026-07-18",
+  "type": "patch",
+  "title": "Auditoría 698×572 — Lotes A/C: Filtros compactos, cash flow scrollable y tabs de Configuración",
+  "summary": "Cierre de hallazgos P0/P1 detectados a 698×572.",
+  "changes": [
+    {
+      "area": "UI · ListPageLayout",
+      "detail": "El botón «Filtros» del sheet mobile deja de ser `w-full justify-center` y pasa a `w-auto justify-start`, quedando inline con el resto del toolbar en lugar de ocupar toda la fila."
+    },
+    {
+      "area": "Cash Flow",
+      "detail": "La tarjeta contenedora de `CashFlowTable` añade `overflow-x-auto`, permitiendo scroll horizontal sin desbordar el viewport en pantallas ≤ 768px."
+    },
+    {
+      "area": "Configuración · Operaciones",
+      "detail": "`TabsList` cambia de `flex-wrap` a scroll horizontal (`flex w-max` + wrapper `overflow-x-auto`) con `whitespace-nowrap` en cada tab, eliminando el wrap desordenado a 698px."
+    }
+  ]
+}

@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.81.0",
+    "date": "2026-07-18",
+    "type": "patch",
+    "title": "Auditoría 698×572 — Lotes A/C: Filtros compactos, cash flow scrollable y tabs de Configuración",
+    "summary": "Cierre de hallazgos P0/P1 detectados a 698×572: el botón «Filtros» del sheet mobile ya no ocupa el ancho completo (queda inline junto al toolbar), la tabla de flujo de caja permite scroll horizontal en pantallas estrechas y las pestañas de Configuración cambian a scroll horizontal en móvil evitando el wrap desordenado."
+  },
+  {
     "version": "7.80.0",
     "date": "2026-07-18",
     "type": "patch",

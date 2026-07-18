@@ -45,7 +45,7 @@ export default function CashFlowPage() {
             <>
               <CashFlowSummaryCards buckets={buckets} initialBalance={initialBalance} />
               <Card>
-                <CardContent className="p-0">
+                <CardContent className="p-0 overflow-x-auto">
                   {buckets.every((b) => b.items.length === 0) ? (
                     <div className="py-12 flex flex-col items-center justify-center text-muted-foreground gap-2">
                       <TrendingUpIcon className="h-8 w-8" />
