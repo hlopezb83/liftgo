@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.78.0",
+    "date": "2026-07-18",
+    "type": "minor",
+    "title": "Auditoría UI/UX 698×572: densidad y consistencia en listas estrechas",
+    "description": "Correcciones enfocadas de auditoría a viewport 698×572. (1) MRR: la tabla desktop se desbordaba y cortaba la columna Periodo en tablet estrecho — se agregó fallback `MobileCardList` bajo `md` con equipo, tarifa, cliente y periodo, y renglón de Total MRR debajo. (2) Entregas y Devoluciones: faltaba el contador `N resultados` en el subtítulo (inconsistente con el resto de listas) — se pasa `totalCount` a `ListPageLayout`.",
+    "category": "improvement",
+    "files": [
+      "src/features/dashboard/pages/MrrDetailPage.tsx",
+      "src/features/deliveries/pages/DeliveriesPage.tsx",
+      "src/features/returns/pages/ReturnInspectionPage.tsx"
+    ]
+  },
+  {
     "version": "7.77.3",
     "date": "2026-07-18",
     "type": "patch",
