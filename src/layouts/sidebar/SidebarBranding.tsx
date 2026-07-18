@@ -21,7 +21,7 @@ export function SidebarBranding({ logoUrl, razonSocial }: SidebarBrandingProps) 
           onClick={() => setOpenMobile(false)}
           className="absolute right-2 top-2 h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
         >
-          <XIcon className="h-4 w-4" />
+          <CloseIcon className="h-4 w-4" />
         </Button>
       )}
       <div className="flex flex-col items-center text-center gap-2.5 min-w-0">
