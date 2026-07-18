@@ -1,0 +1,21 @@
+{
+  "version": "7.86.1",
+  "date": "2026-07-18",
+  "type": "patch",
+  "title": "Móvil: fix scroll bloqueado hacia arriba tras llegar al fondo",
+  "sections": [
+    {
+      "title": "Root cause",
+      "items": [
+        "usePullToRefresh registraba useDrag con eventOptions.passive=false sobre el <main> (único contenedor scrollable). Además del preventDefault manual del hook, @use-gesture llama internamente event.preventDefault() en varias ramas de sus handlers no-pasivos (actions-*.esm.js:752, 786, 1169, 1179), así que aunque el hook cancelara el gesto al detectar scrollTop>0, algunos touchmove ya se procesaban como no-pasivos y el navegador congelaba el scroll nativo hacia arriba después de haber llegado al fondo."
+      ]
+    },
+    {
+      "title": "Cambios",
+      "items": [
+        "src/hooks/usePullToRefresh.ts: eventOptions ahora es { passive: true }. Se removió event.preventDefault() del handler y se agregó threshold:8 para ignorar taps y micro-drags.",
+        "src/layouts/MainLayout.tsx: el <main> agrega overscroll-contain para desactivar el pull-to-refresh nativo del navegador sin necesidad de bloquear el scroll con preventDefault."
+      ]
+    }
+  ]
+}
