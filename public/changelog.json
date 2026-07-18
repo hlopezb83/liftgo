@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.86.1",
+    "date": "2026-07-18",
+    "type": "patch",
+    "title": "Móvil: fix scroll bloqueado hacia arriba tras llegar al fondo",
+    "summary": "usePullToRefresh usaba touchmove no-pasivo, y @use-gesture llamaba preventDefault internamente en ramas del handler, congelando el scroll nativo al querer subir con el dedo después de bajar. Se cambia eventOptions a passive:true (removiendo también el preventDefault manual) y se agrega overscroll-contain al <main> para desactivar el pull-to-refresh nativo del navegador sin bloquear el scroll."
+  },
+  {
     "version": "7.86.0",
     "date": "2026-07-18",
     "type": "minor",
