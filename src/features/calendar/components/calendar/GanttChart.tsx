@@ -1,12 +1,10 @@
 import { parseISO, isToday } from "date-fns";
-import { useState } from "react";
-import { ChevronDownIcon, ChevronRightIcon } from "@/components/icons";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import type { BookingWithForklift } from "@/features/bookings";
 import type { Tables } from "@/integrations/supabase/types";
 import { BOOKING_STATUS } from "@/lib/constants";
 import { useGanttSegments } from "../../hooks/calendar/useGanttSegments";
 import { GanttHeader } from "./GanttHeader";
+import { GanttLegend } from "./GanttLegend";
 import { GanttRow } from "./GanttRow";
 
 
