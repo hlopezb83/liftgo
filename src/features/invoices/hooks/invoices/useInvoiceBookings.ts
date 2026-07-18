@@ -46,10 +46,13 @@ export function useAllInvoiceBookings() {
 export function useSyncInvoiceBookings() {
   return useEntityMutation({
     mutationFn: async ({ invoiceId, bookingIds }: { invoiceId: string; bookingIds: string[] }) => {
+      // PERF-003 / robustez: `.select("invoice_id")` para observar filas afectadas.
+      // El delete puede retornar 0 legítimamente (primer sync); no assert aquí.
       const { error: delErr } = await supabase
         .from("invoice_bookings")
         .delete()
-        .eq("invoice_id", invoiceId);
+        .eq("invoice_id", invoiceId)
+        .select("invoice_id");
       if (delErr) throw delErr;
       if (bookingIds.length === 0) return { invoiceId };
       const rows = bookingIds.map((booking_id, line_index) => ({
@@ -57,8 +60,17 @@ export function useSyncInvoiceBookings() {
         booking_id,
         line_index,
       }));
-      const { error: insErr } = await supabase.from("invoice_bookings").insert(rows);
+      const { data: inserted, error: insErr } = await supabase
+        .from("invoice_bookings")
+        .insert(rows)
+        .select("invoice_id");
       if (insErr) throw insErr;
+      // Si RLS o un trigger silenciaron el insert, detectarlo aquí y no en la UI.
+      if (!inserted || inserted.length !== rows.length) {
+        throw new Error(
+          `Sincronizar reservas: se esperaban ${rows.length} filas, se insertaron ${inserted?.length ?? 0}.`,
+        );
+      }
       return { invoiceId };
     },
     invalidateKeys: [invoiceBookingKeys.all, invoiceKeys.all],
