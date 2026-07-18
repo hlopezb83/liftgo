@@ -60,7 +60,7 @@ export default function QuoteForm() {
           <CardHeader><CardTitle className="text-base">Detalles de Cotización</CardTitle></CardHeader>
           <CardContent className="space-y-4">
             {quoteType === "rental" && (
-              <DateRangePickerField label="Periodo de Renta *" dateRange={dateRange} onSelect={setDateRange} required />
+              <DateRangePickerField label="Periodo de Renta" dateRange={dateRange} onSelect={setDateRange} required />
             )}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5">

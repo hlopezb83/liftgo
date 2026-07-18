@@ -57,8 +57,9 @@ export function ExpiringContractsAlert({ contracts }: ExpiringContractsAlertProp
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7 shrink-0"
+                aria-label="Ver contrato"
+                title="Ver contrato"
                 onClick={(e) => { e.stopPropagation(); navigate(`/contracts/${c.id}`); }}
-                title="Ver Contrato"
               >
                 <RefreshIcon className="h-4 w-4 text-warning" />
               </Button>

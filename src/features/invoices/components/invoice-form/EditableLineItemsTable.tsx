@@ -139,7 +139,7 @@ function LineItemRow({ index, onRemove }: RowProps) {
       </TableCell>
       <TableCell className="text-right font-mono">{formatCurrency(total)}</TableCell>
       <TableCell>
-        <Button type="button" variant="ghost" size="icon" className="h-7 w-7" onClick={() => onRemove(index)}>
+        <Button type="button" variant="ghost" size="icon" className="h-7 w-7" aria-label="Eliminar partida" title="Eliminar partida" onClick={() => onRemove(index)}>
           <DeleteIcon className="h-3.5 w-3.5 text-destructive" />
         </Button>
       </TableCell>

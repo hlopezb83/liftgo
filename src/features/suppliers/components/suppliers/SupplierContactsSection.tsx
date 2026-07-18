@@ -77,10 +77,10 @@ export function SupplierContactsSection({ supplierId }: { supplierId: string }) 
                   <TableCell className="text-sm text-muted-foreground">{c.phone || "—"}</TableCell>
                   <TableCell className="text-right">
                     <RoleGuard module="Proveedores" minAccess="full">
-                      <Button size="icon" variant="ghost" onClick={() => onEdit(c)}>
+                      <Button size="icon" variant="ghost" aria-label="Editar contacto" title="Editar contacto" onClick={() => onEdit(c)}>
                         <EditIcon className="h-4 w-4" />
                       </Button>
-                      <Button size="icon" variant="ghost" onClick={() => onDelete(c)}>
+                      <Button size="icon" variant="ghost" aria-label="Eliminar contacto" title="Eliminar contacto" onClick={() => onDelete(c)}>
                         <DeleteIcon className="h-4 w-4" />
                       </Button>
                     </RoleGuard>

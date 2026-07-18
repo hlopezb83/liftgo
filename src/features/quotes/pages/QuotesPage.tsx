@@ -74,6 +74,7 @@ export default function QuotesPage() {
         id: "total",
         header: "Total",
         accessorKey: "total",
+        meta: { align: "right" },
         cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.total)}</span>,
       },
       {

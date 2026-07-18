@@ -97,14 +97,14 @@ export function useUserManagementColumns({
           const isSelf = u.user_id === currentUserId;
           return (
             <div className="flex gap-1" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()} role="presentation">
-              <Button variant="ghost" size="icon" title="Editar nombre" onClick={() => onEdit(u)}>
+              <Button variant="ghost" size="icon" title="Editar nombre" aria-label="Editar nombre" onClick={() => onEdit(u)}>
                 <EditIcon className="h-4 w-4" />
               </Button>
-              <Button variant="ghost" size="icon" title="Asignar contraseña" onClick={() => onSetPassword(u)}>
+              <Button variant="ghost" size="icon" title="Asignar contraseña" aria-label="Asignar contraseña" onClick={() => onSetPassword(u)}>
                 <KeyIcon className="h-4 w-4" />
               </Button>
               {!isSelf && (
-                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" title="Eliminar" onClick={() => onDelete(u)}>
+                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" title="Eliminar usuario" aria-label="Eliminar usuario" onClick={() => onDelete(u)}>
                   <DeleteIcon className="h-4 w-4" />
                 </Button>
               )}

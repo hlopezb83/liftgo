@@ -18,15 +18,23 @@ interface ActionsProps {
 
 export function InvoicesActionsBar({ onOpenPreview, onExport, onNew, previewPending }: ActionsProps) {
   return (
-    <div className="flex gap-2">
+    <div className="flex flex-wrap gap-2">
       <RoleGuard module="Facturas" minAccess="full">
-        <Button variant="outline" size="sm" onClick={onOpenPreview} disabled={previewPending}>
-          <RefreshIcon className={`h-4 w-4 mr-1 ${previewPending ? "animate-spin" : ""}`} />
-          Generar Recurrentes
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onOpenPreview}
+          disabled={previewPending}
+          aria-label="Generar recurrentes"
+          title="Generar recurrentes"
+        >
+          <RefreshIcon className={`h-4 w-4 sm:mr-1 ${previewPending ? "animate-spin" : ""}`} />
+          <span className="hidden sm:inline">Generar Recurrentes</span>
         </Button>
       </RoleGuard>
-      <Button variant="outline" size="sm" onClick={onExport}>
-        <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
+      <Button variant="outline" size="sm" onClick={onExport} aria-label="Exportar CSV" title="Exportar CSV">
+        <DownloadIcon className="h-4 w-4 sm:mr-1" />
+        <span className="hidden sm:inline">Exportar CSV</span>
       </Button>
       <Button size="sm" onClick={onNew}><AddIcon className="h-4 w-4 mr-1" />Nueva Factura</Button>
     </div>

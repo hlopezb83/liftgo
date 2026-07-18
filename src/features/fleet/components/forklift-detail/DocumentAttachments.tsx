@@ -59,7 +59,7 @@ export function DocumentAttachments({ entityType, entityId }: { entityType: stri
                   <span className="truncate">{doc.file_name}</span>
                   <span className="text-xs text-muted-foreground shrink-0">{formatSize(doc.file_size)}</span>
                 </a>
-                <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={() => handleDelete(doc.id)}>
+                <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" aria-label="Eliminar documento" title="Eliminar documento" onClick={() => handleDelete(doc.id)}>
                   <DeleteIcon className="h-3.5 w-3.5 text-destructive" />
                 </Button>
               </div>

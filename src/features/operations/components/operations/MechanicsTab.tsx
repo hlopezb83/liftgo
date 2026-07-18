@@ -105,8 +105,8 @@ function MechanicRowActions({ mechanic, onEdit, onDelete }: { mechanic: Mechanic
   const [open, setOpen] = useState(false);
   return (
     <div className="flex gap-1">
-      <Button variant="ghost" size="icon" onClick={onEdit}><EditIcon className="h-4 w-4" /></Button>
-      <Button variant="ghost" size="icon" onClick={() => setOpen(true)}><DeleteIcon className="h-4 w-4 text-destructive" /></Button>
+      <Button variant="ghost" size="icon" aria-label="Editar mecánico" title="Editar mecánico" onClick={onEdit}><EditIcon className="h-4 w-4" /></Button>
+      <Button variant="ghost" size="icon" aria-label="Eliminar mecánico" title="Eliminar mecánico" onClick={() => setOpen(true)}><DeleteIcon className="h-4 w-4 text-destructive" /></Button>
       <ConfirmDialog
         open={open}
         onOpenChange={setOpen}

@@ -52,7 +52,7 @@ export function RentalLineRow({ line, index, models, disableRemove, startDate, e
           />
         </div>
         <div>
-          <Button type="button" variant="ghost" size="icon" className="h-10 w-10" onClick={() => onRemove(index)} disabled={disableRemove}>
+          <Button type="button" variant="ghost" size="icon" className="h-10 w-10" aria-label="Eliminar línea" title="Eliminar línea" onClick={() => onRemove(index)} disabled={disableRemove}>
             <DeleteIcon className="h-4 w-4 text-destructive" />
           </Button>
         </div>

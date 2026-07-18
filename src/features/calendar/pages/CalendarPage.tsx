@@ -2,6 +2,7 @@ import { parseISO, startOfMonth, endOfMonth, addMonths, subMonths, differenceInD
 import { formatDateMty, formatDayMonthMty } from "@/lib/format/dateFormats";
 import { formatMonthLongEs } from "@/lib/format/formatMonthEs";
 import { useState } from "react";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { ChevronLeftIcon, ChevronRightIcon, WarnIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -31,7 +32,8 @@ export default function CalendarPage() {
   const { data: bookings, isLoading: bLoading } = useBookingsRange(fetchFrom, fetchTo);
   const { forkliftMap, forklifts, isLoading: fLoading } = useForkliftMap();
 
-  const [viewMode, setViewMode] = useState<"gantt" | "list">("gantt");
+  const isMobile = useIsMobile();
+  const [viewMode, setViewMode] = useState<"gantt" | "list">(isMobile ? "list" : "gantt");
   const [ganttRange, setGanttRange] = useState<"month" | "week">("month");
 
   const fns = rangeFns(ganttRange);
