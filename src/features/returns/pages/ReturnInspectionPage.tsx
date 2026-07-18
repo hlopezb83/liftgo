@@ -98,6 +98,7 @@ export default function ReturnInspectionPage() {
       <ListPageLayout
         title="Devoluciones y Revisión"
         subtitle="Inspecciona equipos devueltos y actualiza el estado de la flota"
+        totalCount={filteredInspections?.length}
         filters={
           <div className="flex items-end gap-3">
             <DatePickerField label="Filtrar por fecha" date={filterDate} onSelect={setFilterDate} placeholder="Todas las fechas" />
