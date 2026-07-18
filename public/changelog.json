@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.86.0",
+    "date": "2026-07-18",
+    "type": "minor",
+    "title": "Sidebar: modo Sheet también en tabletas + fixes de tooltip pegado y overflow del footer",
+    "summary": "Auditoría del sidebar en tableta y móvil. En tabletas (<1024px) el sidebar ahora abre como Sheet offcanvas en vez de ocupar 256px fijos. Se soluciona el tooltip «Tema oscuro» que quedaba pegado al abrir el Sheet (auto-focus del primer trigger) omitiendo Radix Tooltip en modo mobile/tablet — la accesibilidad se preserva vía aria-label y title. SidebarBranding recibe un botón X visible en Sheet para cerrar sin depender de swipe/tap-outside. SidebarUserFooter se reestructura: email en su propia fila con truncate y la versión pasa a la fila de acciones alineada a la derecha, sin choques a 390px."
+  },
+  {
     "version": "7.85.0",
     "date": "2026-07-18",
     "type": "patch",

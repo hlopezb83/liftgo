@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { CSSProperties, ComponentProps, Ref } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import {
@@ -46,7 +46,7 @@ export const SidebarProvider = ({
   onOpenChange?: (open: boolean) => void;
   ref?: Ref<HTMLDivElement>;
 }) => {
-  const isMobile = useIsMobile();
+  const isMobile = useIsTabletOrBelow();
   const [openMobile, setOpenMobile] = useState(false);
 
   const [_open, _setOpen] = useState(defaultOpen);

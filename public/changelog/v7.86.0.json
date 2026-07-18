@@ -1,0 +1,33 @@
+{
+  "version": "7.86.0",
+  "date": "2026-07-18",
+  "type": "minor",
+  "title": "Sidebar responsive: Sheet en tabletas + fixes de tooltip y footer",
+  "summary": "Auditoría del sidebar en tableta (900×1000) y móvil (390×800). Cinco correcciones que estandarizan el comportamiento offcanvas y limpian el footer del usuario.",
+  "sections": [
+    {
+      "title": "Root causes",
+      "items": [
+        "context.tsx usaba useIsMobile (<768px), así que en tabletas el sidebar quedaba fijo ocupando ~28% del viewport sin mini-rail intermedio.",
+        "Radix TooltipProvider con delayDuration=0 abría el tooltip de «Tema oscuro» apenas Radix Sheet auto-enfocaba el primer trigger al montarse, dejándolo visualmente pegado sobre el footer.",
+        "El footer del usuario mezclaba email, botones de acción y versión en dos filas, y a 390px la versión competía con las acciones/email."
+      ]
+    },
+    {
+      "title": "Cambios",
+      "items": [
+        "src/components/ui/sidebar/context.tsx: swap useIsMobile → useIsTabletOrBelow. Los viewports <1024px reciben Sheet offcanvas; ≥1024px conservan el sidebar fijo.",
+        "src/layouts/sidebar/ThemeToggle.tsx: omite Radix Tooltip cuando isMobile; deja un botón plano con aria-label y title. Cierra el bug del tooltip pegado.",
+        "src/layouts/sidebar/SidebarUserFooter.tsx: email/rol en su propia fila con truncate + title; acciones (tema, contraseña, salir) alineadas a la izquierda y la versión a la derecha en la misma fila. Tooltips desactivados en modo Sheet por la misma razón.",
+        "src/layouts/sidebar/SidebarBranding.tsx: botón X absoluto visible sólo en Sheet mobile/tablet para cerrar sin depender de swipe/tap-outside."
+      ]
+    },
+    {
+      "title": "Verificación",
+      "items": [
+        "Playwright headless en /calendar a 900×1000 (tableta) y 390×800 (móvil): sidebar cerrado por default, el trigger abre el Sheet correctamente, X del branding funciona, ningún tooltip queda montado sobre el footer, email visible completo con truncate, versión sin overlap.",
+        "Desktop 1440×900 sin cambios de layout: el sidebar sigue fijo a 256px con tooltips activos."
+      ]
+    }
+  ]
+}

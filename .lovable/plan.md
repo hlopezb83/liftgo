@@ -1,54 +1,51 @@
-# DIFF 7b — Leyenda semántica del Gantt del Calendario
+# Plan: Auditoría del Sidebar — Tableta y Móvil
 
-## Contexto verificado
+Hallazgos verificados con Playwright a 900×1000 (tableta) y 390×800 (móvil) en `/calendar`.
 
-Al releer `GanttChart.tsx` + `GanttRow.tsx`, el Gantt ya tiene:
-- Leyenda **por cliente** (colapsable, mapa `customerColorMap`) — ya existe.
-- Codificación visual **no documentada** en pantalla:
-  - Barra sólida = reserva **confirmada** (activa/futura).
-  - Barra atenuada + borde punteado = **completada** o **cancelada**.
-  - Franjas grises verticales = **fin de semana**.
-  - Línea vertical primaria = **hoy**.
+## Cambios
 
-El auditor externo pedía "leyenda de colores" pero, como ya existe la de clientes, el gap real es la **leyenda semántica de estados y marcadores**, que hoy el usuario tiene que adivinar. Eso es lo que aporta valor y encaja con el patrón del proyecto (auto-explicativo, alta densidad, desktop-first).
+### 1. Sidebar en tableta: usar offcanvas (Sheet) igual que móvil
+- Hoy `useIsMobile` (<768) decide entre Sheet vs sidebar fijo. En tableta (768–1023) el sidebar fijo de 256 px come ~28% del ancho y no hay mini-rail.
+- Cambiar `SidebarProvider` para tratar `useIsTabletOrBelow` (<1024) como "mobile mode" → Sheet en tableta y móvil, sidebar fijo sólo en ≥1024 px.
+- Archivo: `src/components/ui/sidebar/SidebarProvider.tsx` (o donde viva la lógica isMobile del componente shadcn).
 
-Descarto la interpretación literal del auditor (duplicar la leyenda de clientes) porque ya está resuelta.
+### 2. Footer del usuario tapa los últimos items del menú
+- `SidebarUserFooter` es sticky/absolute y overlay sobre `SidebarContent`.
+- Ajustar layout del `Sidebar` root a flex-column con `SidebarContent` en `flex-1 min-h-0 overflow-y-auto` y footer como hermano no-absoluto. Esto también arregla el hallazgo 5 (scroll del Sheet en móvil).
+- Archivos: `src/components/ui/sidebar/Sidebar.tsx`, `src/layouts/AppSidebar.tsx`.
 
-## Alcance
+### 3. Tooltip "Tema oscuro" abierto al montar el Sheet en móvil
+- Radix Tooltip se abre por focus. Al abrir el Sheet, el primer control enfocable recibe focus y dispara el tooltip.
+- Solución: en `ThemeToggle` (y hermanos del footer) pasar `delayDuration` y/o envolver con Tooltip que **no** abra por focus en touch — la vía canónica es setear `disableHoverableContent` en el provider o quitar Tooltip en los tres botones del footer cuando `useIsTabletOrBelow` es true (labels visibles no aportan sobre iconos ya con `aria-label`).
+- Archivos: `src/layouts/sidebar/ThemeToggle.tsx`, `src/layouts/sidebar/SidebarUserFooter.tsx`.
 
-Un cambio puntual en `src/features/calendar/components/calendar/GanttChart.tsx`:
+### 4. Email del usuario se corta detrás de los botones en móvil
+- Reestructurar `SidebarUserFooter` a dos filas en anchos angostos: fila 1 email + rol, fila 2 acciones (theme / password / logout).
+- Usar `flex-col gap-2` con `min-w-0` y `truncate` en el email.
+- Archivo: `src/layouts/sidebar/SidebarUserFooter.tsx`.
 
-1. Agregar una **segunda sección colapsable** (o un bloque hermano) justo antes/después de "Leyenda de clientes", titulada **"Leyenda"**, que documente:
-   - Muestra sólida coloreada → *Confirmada*
-   - Muestra atenuada con borde punteado → *Completada / Cancelada*
-   - Cuadrito gris → *Fin de semana*
-   - Línea vertical primaria → *Hoy*
-2. Reutilizar `Collapsible` (ya importado) y los mismos tokens de tipografía/spacing que la leyenda de clientes para mantener consistencia visual.
-3. Sólo se renderiza si hay `active.length > 0` (si no hay Gantt visible, no aporta).
-4. Cero cambios en `useGanttSegments`, `GanttRow` o `GanttHeader` — la codificación visual ya está implementada, sólo se documenta.
+### 5. `SidebarContent` no hace scroll dentro del Sheet
+- Se resuelve con el fix del hallazgo 2 (flex-column + `flex-1 min-h-0 overflow-y-auto` en `SidebarContent`).
+- Sanity check: el `SheetContent` del sidebar mobile debe tener `flex flex-col h-full p-0` sin `overflow` propio para que el scroll viva en el hijo.
 
-## Detalles técnicos
-
-- Archivo tocado: `src/features/calendar/components/calendar/GanttChart.tsx` (~+30 LOC, sin superar el límite de 150 LOC del componente: hoy tiene 146, quedaría ~175 → **extraer los dos bloques de leyenda a un subcomponente `GanttLegend.tsx`** para respetar Power of 10).
-- Nuevo archivo: `src/features/calendar/components/calendar/GanttLegend.tsx` que reciba `customerColorMap` y renderice ambas secciones colapsables.
-- Textos en es-MX, sin emojis, tipografía `text-xs`/`text-2xs` como el resto del componente.
-- Sin cambios de estilos globales ni de tokens (`--gantt-*` se mantienen).
+### 6. Falta botón "cerrar" visible dentro del Sheet
+- Agregar un `SidebarTrigger` (o botón X con icono) en el header interno del Sheet, en la esquina superior derecha del `SidebarBranding`, visible sólo cuando `useIsTabletOrBelow`.
+- Archivo: `src/layouts/sidebar/SidebarBranding.tsx` (recibe prop opcional `onClose` y muestra botón si se pasa).
 
 ## Verificación
+- Playwright a 390×800 y 900×1000 en `/calendar`, `/`, `/invoices`:
+  - Sheet abre y cierra con trigger interno.
+  - Scroll llega hasta grupo "Sistema".
+  - Footer no oculta items.
+  - Sin tooltip pegado al montar.
+  - Email visible completo (o truncado con ellipsis, no tapado).
+- `bun run test` para regresiones de unit tests del sidebar / permisos.
+- Screenshot diff manual antes/después.
 
-- `bunx tsgo --noEmit` limpio.
-- `bun run lint` sin warnings nuevos.
-- Playwright: screenshot de `/calendario` en 1600×900 mostrando ambas leyendas expandidas.
-- Test unitario ligero para `GanttLegend` (render + toggle) si el subcomponente lo justifica.
+## Changelog
+- Nueva entrada `public/changelog/v7.86.0.json` (minor: UX del sidebar en tableta y móvil) + índice `public/changelog.json`.
 
-## Cierre
-
-- Entrada nueva en `public/changelog.json` + `public/changelog/v7.85.0.json` como **patch** (documentación visual, sin cambios funcionales).
-
-## Alternativas descartadas
-
-- **Duplicar la leyenda de clientes en otro formato**: ya existe, no aporta.
-- **Rediseñar el color por status en vez de por cliente**: rompería la identificación visual de clientes recurrentes que hoy es útil para el equipo de operaciones. Fuera de alcance.
-- **Mover la codificación a badges/StatusBadge dentro del row**: reduce densidad visual del Gantt (contraviene el core "alta densidad, desktop-first").
-
-¿Procedo con este alcance o prefieres otra interpretación de 7b (por ejemplo, sólo documentar sin subcomponente, o incluir también íconos en `GanttHeader`)?
+## Fuera de alcance
+- Rediseño del sidebar en escritorio (≥1024 px queda idéntico).
+- Reordenar grupos del menú (`navConfig.ts` sin cambios).
+- Cambios en permisos o `useVisibleNavGroups`.
