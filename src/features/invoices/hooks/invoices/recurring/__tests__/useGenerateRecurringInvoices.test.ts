@@ -80,5 +80,43 @@ describe("useGenerateRecurringInvoices", () => {
     expect(notifyErrorMock).toHaveBeenCalledWith(
       expect.objectContaining({ title: "Error al generar facturas" }),
     );
+    expect(notifyErrorMock).toHaveBeenCalledWith(
+      expect.objectContaining({ title: "Error al generar facturas" }),
+    );
+  });
+
+  it("BL-008: 200 con failed[] → notifyWarning con conteo y motivo truncado", async () => {
+    invokeResp = {
+      data: {
+        invoicesCreated: 1,
+        created: [{ bookingIds: ["b1"], invoiceId: "inv-1", invoiceNumber: "FAC-1" }],
+        failed: [
+          { bookingIds: ["b2"], error: "Cliente sin RFC configurado" },
+          { bookingIds: ["b3"], error: "Sin tarifa activa" },
+        ],
+      },
+      error: null,
+    };
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useGenerateRecurringInvoices(), { wrapper: Wrapper });
+
+    result.current.mutate(undefined);
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(notifyWarningMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "2 reserva(s) no se facturaron",
+        description: "Cliente sin RFC configurado",
+      }),
+    );
+  });
+
+  it("BL-008: sin failed[] → no dispara notifyWarning", async () => {
+    invokeResp = { data: { invoicesCreated: 2, created: [], failed: [] }, error: null };
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useGenerateRecurringInvoices(), { wrapper: Wrapper });
+
+    result.current.mutate(undefined);
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(notifyWarningMock).not.toHaveBeenCalled();
   });
 });
