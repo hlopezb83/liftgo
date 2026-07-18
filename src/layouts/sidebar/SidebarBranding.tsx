@@ -1,4 +1,6 @@
-import { SidebarHeader } from "@/components/ui/sidebar";
+import { XIcon } from "@/components/icons";
+import { Button } from "@/components/ui/button";
+import { SidebarHeader, useSidebar } from "@/components/ui/sidebar";
 
 interface SidebarBrandingProps {
   logoUrl?: string | null;
@@ -6,9 +8,22 @@ interface SidebarBrandingProps {
 }
 
 export function SidebarBranding({ logoUrl, razonSocial }: SidebarBrandingProps) {
+  const { isMobile, setOpenMobile } = useSidebar();
   const name = razonSocial || "Lift Go";
   return (
-    <SidebarHeader className="p-4 border-b border-sidebar-border">
+    <SidebarHeader className="relative p-4 border-b border-sidebar-border">
+      {isMobile && (
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Cerrar menú"
+          title="Cerrar menú"
+          onClick={() => setOpenMobile(false)}
+          className="absolute right-2 top-2 h-8 w-8 text-sidebar-foreground/70 hover:text-sidebar-foreground hover:bg-sidebar-accent"
+        >
+          <XIcon className="h-4 w-4" />
+        </Button>
+      )}
       <div className="flex flex-col items-center text-center gap-2.5 min-w-0">
         {logoUrl ? (
           // intentional: bg-white required to guarantee logo contrast on dark sidebars
