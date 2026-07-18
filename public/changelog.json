@@ -1,5 +1,16 @@
 [
   {
+    "version": "7.77.1",
+    "date": "2026-07-18",
+    "type": "patch",
+    "title": "Fix CI: reponer EXECUTE en `e2e_seed_scenario` para desbloquear shard 1 de Playwright",
+    "description": "El shard 1 de E2E fallaba con `permission denied for function e2e_seed_scenario` porque el Sprint 1 (SEC-004) revocó el GRANT y no lo repuso para la cuenta de test. La función ya tiene doble guardia interna: `has_role(auth.uid(), 'admin')` + flag `allow_e2e_seed` en `company_settings`, así que reabrir el GRANT a `authenticated` no reintroduce la exposición original — sólo cuentas admin en entornos con el flag habilitado pueden ejecutarla. `e2e_teardown` ya conservaba su GRANT.",
+    "category": "fix",
+    "files": [
+      "supabase/migrations/*_grant_e2e_seed_scenario_execute.sql"
+    ]
+  },
+  {
     "version": "7.77.0",
     "date": "2026-07-18",
     "type": "minor",
