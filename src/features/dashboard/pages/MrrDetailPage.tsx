@@ -21,6 +21,7 @@ const fmt = (d: string | null) => formatMtyDate(d, "dd MMM yyyy", APP_LOCALE);
 
 export default function MrrDetailPage() {
   const { data, isLoading } = useMrrDetail();
+  const isTabletOrBelow = useIsTabletOrBelow();
 
   const columns: ColumnDef<MrrItem>[] = [
       {
