@@ -4,10 +4,12 @@ import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTa
 import { KpiTile } from "@/components/domain/KpiTile";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { RevenueIcon, FleetIcon, OpenLinkIcon } from "@/components/icons";
+import { MobileCardList } from "@/components/layout/MobileCardList";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TableFooter, TableRow, TableCell } from "@/components/ui/table";
+import { useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { APP_LOCALE } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatMtyDate } from "@/lib/utils";
