@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.82.0",
+    "date": "2026-07-18",
+    "type": "patch",
+    "title": "Auditoría 698×572 — Lotes B/D: /expenses sin flash y Cuentas bancarias con card list mobile",
+    "summary": "Cierre de los hallazgos restantes de la auditoría móvil: `/expenses` migra de loader `redirect()` a `<Navigate replace />` para eliminar el parpadeo blanco durante la resolución de rutas, y la tabla de Cuentas bancarias gana un fallback `MobileCardList` en viewport ≤ md que agrupa nombre/banco/saldo/estado en tarjetas sin scroll horizontal."
+  },
+  {
     "version": "7.81.0",
     "date": "2026-07-18",
     "type": "patch",

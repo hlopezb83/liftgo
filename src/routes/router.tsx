@@ -1,5 +1,5 @@
 import { type ComponentType, type ReactElement, lazy } from "react";
-import { createBrowserRouter, redirect, type RouteObject } from "react-router";
+import { createBrowserRouter, Navigate, type RouteObject } from "react-router";
 import { AdminRouteGuard } from "@/layouts/AdminRouteGuard";
 import { AuthGuard } from "@/layouts/AuthGuard";
 import MainLayout from "@/layouts/MainLayout";
@@ -45,8 +45,8 @@ const PortalLoginLazy = lazy(() => import("@/features/portal/pages/PortalLogin")
 const NotFoundLazy = lazy(() => import("@/features/system/pages/NotFound"));
 
 const authenticatedChildren: RouteObject[] = [
-  // Redirect legacy sin montar componente.
-  { path: "/expenses", loader: () => redirect("/cuentas-por-pagar") },
+  // Redirect legacy: `<Navigate replace />` evita el flash blanco del loader.
+  { path: "/expenses", element: <Navigate to="/cuentas-por-pagar" replace /> },
   ...appRoutes.map<RouteObject>(({ path, loader, module, adminOnly }) => ({
     path,
     // `lazy` de v7: el router hace code-splitting y muestra `HydrateFallback`

@@ -1,0 +1,17 @@
+{
+  "version": "7.82.0",
+  "date": "2026-07-18",
+  "type": "patch",
+  "title": "Auditoría 698×572 — Lotes B/D: /expenses sin flash y Cuentas bancarias con card list mobile",
+  "summary": "Cierre de los hallazgos restantes de la auditoría móvil 698×572.",
+  "changes": [
+    {
+      "area": "Routing · /expenses",
+      "detail": "Se reemplaza el loader `redirect('/cuentas-por-pagar')` por `<Navigate to='/cuentas-por-pagar' replace />` en `src/routes/router.tsx`. Elimina el flash blanco intermedio al usar rutas anidadas con Suspense."
+    },
+    {
+      "area": "Bank Reconciliation · Cuentas bancarias",
+      "detail": "`BankAccountsPage` detecta `useIsTabletOrBelow` y renderiza `MobileCardList` en ≤ md: tarjeta por cuenta con nombre, banco, moneda, últimos 4 dígitos, saldo inicial formateado, badge de estado y acciones Editar/Eliminar. Desktop conserva la tabla original."
+    }
+  ]
+}
