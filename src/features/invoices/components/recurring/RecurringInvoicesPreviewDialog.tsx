@@ -59,7 +59,7 @@ export function RecurringInvoicesPreviewDialog({
 
   const totalSelected = lines
     .filter((l) => selected.has(l.bookingId))
-    .reduce((acc, l) => acc + applyVat(l.monthlyRate), 0);
+    .reduce((acc, l) => acc + applyVat(l.billedAmount), 0);
 
   const toggle = (id: string) => {
     setSelected((prev) => {
