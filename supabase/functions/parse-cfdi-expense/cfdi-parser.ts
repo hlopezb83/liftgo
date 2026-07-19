@@ -130,6 +130,7 @@ export function parseCfdi(xml: string): ParsedCfdi {
     moneda: attr(comprobante, "Moneda") ?? "MXN",
     tipo_cambio: Number(attr(comprobante, "TipoCambio") ?? "1"),
     payment_method_sat: attr(comprobante, "MetodoPago") ?? "PUE",
+    tipo_comprobante,
     fecha,
     folio: attr(comprobante, "Folio") ?? "",
     serie: attr(comprobante, "Serie") ?? "",
@@ -138,6 +139,17 @@ export function parseCfdi(xml: string): ParsedCfdi {
       nombre: (emisorTag ? attr(emisorTag, "Nombre") : null) ?? "",
       regimen_fiscal: (emisorTag ? attr(emisorTag, "RegimenFiscal") : null) ??
         "",
+    },
+    receptor: {
+      rfc: (receptorTag ? attr(receptorTag, "Rfc") : null) ?? "",
+      nombre: (receptorTag ? attr(receptorTag, "Nombre") : null) ?? "",
+      uso_cfdi: (receptorTag ? attr(receptorTag, "UsoCFDI") : null) ?? "",
+      domicilio_fiscal:
+        (receptorTag ? attr(receptorTag, "DomicilioFiscalReceptor") : null) ??
+          "",
+      regimen_fiscal: (receptorTag
+        ? attr(receptorTag, "RegimenFiscalReceptor")
+        : null) ?? "",
     },
     conceptos: conceptosTags.map((t) => ({
       descripcion: attr(t, "Descripcion") ?? "",
