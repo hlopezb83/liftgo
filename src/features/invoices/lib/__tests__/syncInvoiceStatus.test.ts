@@ -77,4 +77,19 @@ describe("syncInvoiceStatus", () => {
     await syncInvoiceStatus("inv-x", null);
     expect(h.state.capturedUpdate).toBeNull();
   });
+
+  // BL-10: no resucitar facturas canceladas ni tocar borradores.
+  it("no toca facturas canceladas aunque haya pagos", async () => {
+    h.state.payments = [{ amount: 1160, payment_date: "2026-03-01" }];
+    h.state.invoice = { total: 1160, status: "cancelled" };
+    await syncInvoiceStatus("inv-1", null);
+    expect(h.state.capturedUpdate).toBeNull();
+  });
+
+  it("no toca facturas en borrador aunque haya pagos", async () => {
+    h.state.payments = [{ amount: 500, payment_date: "2026-03-01" }];
+    h.state.invoice = { total: 1160, status: "draft" };
+    await syncInvoiceStatus("inv-1", null);
+    expect(h.state.capturedUpdate).toBeNull();
+  });
 });
