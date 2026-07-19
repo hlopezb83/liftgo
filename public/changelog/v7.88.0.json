@@ -1,0 +1,36 @@
+{
+  "version": "7.88.0",
+  "date": "2026-07-19",
+  "type": "minor",
+  "title": "Sprint 2 (parte 1): Notas de Crédito en Estado de Resultados, timezone y cap de rentas",
+  "sections": [
+    {
+      "heading": "BL-09 — Notas de Crédito descontadas de ingresos",
+      "items": [
+        "get_income_statement resta el subtotal de las NCs emitidas al ingreso del mes.",
+        "Cada NC hereda la clasificación (renta o venta) de su factura padre; se ignoran las canceladas y las de proyectos e2e.",
+        "Nuevo campo credit_notes por mes para visibilidad en el reporte."
+      ]
+    },
+    {
+      "heading": "BL-14 — Timezone estable en generación de partidas",
+      "items": [
+        "generateLineItems y generateLineItemsFromModel parsean las fechas YMD anclando al mediodía local (parseRentalDate).",
+        "Corrige el bug donde new Date('2026-01-01') caía en 2025-12-31 en Monterrey (UTC-6) y desfasaba differenceInCalendarMonths, provocando facturar '1 mes + 1 día' en rentas de calendario cerrado."
+      ]
+    },
+    {
+      "heading": "BL-15 — Cap 29-30 días al mes completo",
+      "items": [
+        "calculateRentalCost detecta cuando el remanente (semanas + días) suma entre 28 y 31 días y su costo supera la tarifa mensual; en ese caso lo consolida en un único cargo mensual.",
+        "Los meses ya facturados a tarifa mensual (calendario cerrado) se respetan: el cap sólo actúa sobre el remanente."
+      ]
+    },
+    {
+      "heading": "Tests",
+      "items": [
+        "5 casos nuevos en rentalCalculation.test.ts cubriendo timezone (YMD → 1 mes exacto), cap disparado (30 días > mensual), no-cap (30 días < mensual) y cap con meses cerrados previos."
+      ]
+    }
+  ]
+}
