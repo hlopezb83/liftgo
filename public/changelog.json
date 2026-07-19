@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.103.0",
+    "date": "2026-07-19",
+    "type": "minor",
+    "title": "Idempotencia CFDI + cola de reintentos + regresión BL-45 (BL-43/44/45)",
+    "summary": "Helpers compartidos `_shared/webhookIdempotency.ts` (claim atómico por unique constraint sobre `webhook_events`, con `markProcessed`/`markFailed` no-op para duplicados) y `_shared/cfdiRetryQueue.ts` (detección de errores transitorios 5xx/429/red, backoff exponencial 1→60min, encolado append-only en `cfdi_retry_queue`). `stamp-cfdi/handler.ts` encola reintentos únicamente ante fallas transitorias de Facturapi y responde con `transient:true` para que el cliente lo distinga de errores de negocio. BL-45 verificado: `approve_payment_intent`/`reject_payment_intent` ya reclaman con `WHERE status='pending_review'`, doble clic devuelve `intent_not_pending`. Tests: 8 nuevos Deno (`cfdiRetryQueue_test.ts` + `webhookIdempotency_test.ts`) y 3 Vitest (`useReviewPaymentIntent.idempotency.test.ts`); suite completa 1080/1080 Vitest + Deno verde, `deno fmt --check` limpio. También se corrigen dos seeds obsoletos en `stamp-cfdi/handler_test.ts` (RFC no-global) para desbloquear la suite de handler."
+  },
+  {
     "version": "7.102.0",
     "date": "2026-07-19",
     "type": "minor",
