@@ -1,0 +1,24 @@
+{
+  "version": "7.94.0",
+  "date": "2026-07-19",
+  "type": "minor",
+  "title": "Conversión cotización→reservas atómica + cron para expirar cotizaciones",
+  "sections": [
+    {
+      "heading": "BL-32 · Conversión atómica cotización→reservas",
+      "items": [
+        "Nueva RPC convert_quote_to_bookings(p_quote_id, p_assignments jsonb, p_recurring): crea todas las reservas y aplica tarifas negociadas dentro de una sola transacción; si cualquier paso falla, la transacción se revierte completa en el servidor.",
+        "La cotización se marca como accepted sólo si todas las reservas se crearon; se detecta doble conversión (status accepted) y se rechaza.",
+        "useQuoteBookingCreator ahora llama a la RPC en lugar de iterar createBooking + rollback best-effort desde el cliente. Se eliminan las llamadas sueltas a supabase.from('bookings').delete().",
+        "Ejecución restringida a authenticated + validación de rol admin/administrativo/dispatcher/ventas dentro de la función."
+      ]
+    },
+    {
+      "heading": "BL-27 · Expiración automática de cotizaciones",
+      "items": [
+        "pg_cron programa expire_stale_quotes() todos los días a las 07:00 UTC (01:00 America/Monterrey) con jobname expire-stale-quotes-daily.",
+        "Se re-schedule idempotente: si ya existía el job, se elimina y se vuelve a crear con la misma expresión."
+      ]
+    }
+  ]
+}
