@@ -117,7 +117,7 @@ async function buildPlan(supabase: any): Promise<{
   const { data: bookings, error: bErr } = await supabase
     .from("bookings")
     .select(
-      "id, booking_number, customer_id, customer_name, start_date, end_date, last_billed_date, forklifts(name, monthly_rate, serial_number)",
+      "id, booking_number, customer_id, customer_name, start_date, end_date, last_billed_date, monthly_rate, end_date, forklifts(name, monthly_rate, serial_number)",
     )
     .eq("recurring_billing", true)
     .eq("status", "confirmed");
@@ -129,7 +129,9 @@ async function buildPlan(supabase: any): Promise<{
 
   for (const booking of bookings || []) {
     const forklift = (booking.forklifts as Forklift | null) ?? null;
-    const monthlyRate = forklift?.monthly_rate || 0;
+    // BL-31 (v7.92.0): preferir tarifa pactada en la reserva; fallback a la maestra.
+    const monthlyRate = Number(booking.monthly_rate) || forklift?.monthly_rate || 0;
+
 
     // Derivar last_billed_date desde el historial REAL de facturas vinculadas
     // (source of truth). Ignora bookings.last_billed_date cuando el historial lo

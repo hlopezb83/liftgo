@@ -1,8 +1,9 @@
 import { useCreateBooking } from "@/features/bookings";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
+import { supabase } from "@/integrations/supabase/client";
 import { useUpdateQuote } from "../quotes/useQuotes";
 import {
-  applyRatesToForklifts,
+  applyRatesToBookings,
   buildDeliveryInfos,
   resolveLegacyForkliftIds,
   type Assignment,
@@ -16,10 +17,11 @@ type DataResult = ReturnType<typeof useQuoteDetailData>;
 type StateResult = ReturnType<typeof useQuoteConversionState>;
 
 /**
- * Encapsula la creación atómica de reservas a partir de una cotización:
- * actualiza tarifas, crea bookings en paralelo (ya vinculados a la cotización
- * vía p_quote_id en el RPC create_booking) y prepara la lista de entregas
- * pendientes para el flujo post-conversión.
+ * Encapsula la creación de reservas a partir de una cotización.
+ *
+ * BL-31/32 (v7.92.0): las tarifas negociadas se guardan en la reserva (no en
+ * el montacargas maestro). Si alguna reserva falla, se revierten las creadas
+ * en este mismo intento para no dejar cotizaciones a medio convertir.
  */
 export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
   const updateQuote = useUpdateQuote();
@@ -29,36 +31,45 @@ export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
   const createBookingsFor = async (assignments: Assignment[], recurring: boolean) => {
     if (!quote) return;
     state.setIsConverting(true);
+    const createdIds: string[] = [];
     try {
-      const ratesApplied = await applyRatesToForklifts(assignments);
+      for (const a of assignments) {
+        const id = await createBooking.mutateAsync({
+          forklift_id: a.forkliftId,
+          start_date: quote.start_date ?? "",
+          end_date: quote.end_date ?? "",
+          customer_name: quote.customer_name,
+          customer_id: quote.customer_id,
+          status: "confirmed",
+          recurring_billing: recurring,
+          quote_id: quote.id,
+        });
+        createdIds.push(id as string);
+      }
 
-      const bookingIds: string[] = await Promise.all(
-        assignments.map((a) =>
-          createBooking.mutateAsync({
-            forklift_id: a.forkliftId,
-            start_date: quote.start_date ?? "",
-            end_date: quote.end_date ?? "",
-            customer_name: quote.customer_name,
-            customer_id: quote.customer_id,
-            status: "confirmed",
-            recurring_billing: recurring,
-            quote_id: quote.id,
-          }),
-        ),
+      const ratesApplied = await applyRatesToBookings(
+        assignments.map((a, i) => ({ ...a, bookingId: createdIds[i] })),
       );
 
       updateQuote.mutate({ id: quote.id, status: "accepted" });
-      notifySuccess(`${bookingIds.length} reserva(s) creada(s) desde cotización`);
+      notifySuccess(`${createdIds.length} reserva(s) creada(s) desde cotización`);
       if (ratesApplied > 0) {
-        notifySuccess(`Tarifas actualizadas en ${ratesApplied} equipo(s) según la cotización`);
+        notifySuccess(`Tarifas negociadas aplicadas a ${ratesApplied} reserva(s)`);
       }
       state.setShowAssignmentDialog(false);
       state.setCurrentDeliveryIndex(0);
       state.setPendingDeliveries(
-        buildDeliveryInfos(quote, customers, forklifts, assignments.map((a) => a.forkliftId), bookingIds),
+        buildDeliveryInfos(quote, customers, forklifts, assignments.map((a) => a.forkliftId), createdIds),
       );
     } catch (err: unknown) {
-      notifyError({ error: err, message: `Error al crear reserva: ${err instanceof Error ? err.message : "Error desconocido"}` });
+      // Rollback best-effort: borrar las reservas ya creadas en este intento.
+      if (createdIds.length > 0) {
+        await supabase.from("bookings").delete().in("id", createdIds);
+      }
+      notifyError({
+        error: err,
+        message: `Error al crear reserva: ${err instanceof Error ? err.message : "Error desconocido"}`,
+      });
     } finally {
       state.setIsConverting(false);
     }
@@ -78,3 +89,4 @@ export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
 
   return { createBookingsFor, convertLegacy };
 }
+
