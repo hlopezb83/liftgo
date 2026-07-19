@@ -132,6 +132,8 @@ export async function handleStampCreditNote(
         jsonHeaders,
       );
     }
+    claimed = true;
+
 
     // BL-03: helper para revertir claim atómico si algo falla antes de timbrar.
     const releaseClaim = async (errorMessage?: string) => {
