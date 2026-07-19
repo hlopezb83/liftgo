@@ -12,6 +12,10 @@ import {
   getFacturapiConfig,
   retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
+import {
+  enqueueCfdiRetry,
+  isTransientFacturapiError,
+} from "../_shared/cfdiRetryQueue.ts";
 
 // Mantenido por compatibilidad con consumidores existentes (tests, etc.).
 export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
