@@ -852,6 +852,7 @@ export type Database = {
           customer_id: string
           id: string
           invoice_id: string
+          payment_id: string | null
           proof_url: string | null
           review_notes: string | null
           reviewed_at: string | null
@@ -870,6 +871,7 @@ export type Database = {
           customer_id: string
           id?: string
           invoice_id: string
+          payment_id?: string | null
           proof_url?: string | null
           review_notes?: string | null
           reviewed_at?: string | null
@@ -888,6 +890,7 @@ export type Database = {
           customer_id?: string
           id?: string
           invoice_id?: string
+          payment_id?: string | null
           proof_url?: string | null
           review_notes?: string | null
           reviewed_at?: string | null
@@ -919,6 +922,13 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "v_invoices_with_balance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_payment_intents_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
             referencedColumns: ["id"]
           },
         ]
@@ -3215,6 +3225,14 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      approve_payment_intent: {
+        Args: {
+          p_intent_id: string
+          p_payment_form_sat?: string
+          p_review_notes?: string
+        }
+        Returns: string
+      }
       approve_supplier_bill: {
         Args: { p_bill_id: string; p_notes?: string }
         Returns: undefined
@@ -3619,6 +3637,10 @@ export type Database = {
           p_receipt_url?: string
           p_reference?: string
         }
+        Returns: string
+      }
+      reject_payment_intent: {
+        Args: { p_intent_id: string; p_review_notes?: string }
         Returns: string
       }
       reject_quote_from_portal: {
