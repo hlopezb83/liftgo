@@ -1,0 +1,38 @@
+{
+  "version": "7.101.0",
+  "date": "2026-07-19",
+  "type": "minor",
+  "title": "Parser CFDI valida receptor y tipo de comprobante + guarda del último admin (BL-35/36/37)",
+  "summary": "Cierre de tres hallazgos de la Ronda 3: el parser CFDI ahora consume Receptor completo y TipoDeComprobante, la ingesta de facturas de proveedor rechaza CFDIs mal dirigidos o de tipo no gastable, y la edge function delete-user impide que el sistema se quede sin administradores.",
+  "sections": [
+    {
+      "heading": "BL-35 / BL-36 — Parser CFDI enriquecido",
+      "items": [
+        "`ParsedCfdi` incorpora `receptor` (rfc, nombre, uso_cfdi, domicilio_fiscal, regimen_fiscal) y `tipo_comprobante` (I/E/N/P/T, null si el atributo está ausente o fuera de dominio).",
+        "`parse-cfdi-expense` valida `Receptor.Rfc` contra `company_settings.rfc` (respuesta 400 `CFDI_RECEPTOR_MISMATCH` cuando no coinciden).",
+        "Rechaza con 400 los CFDIs cuyo `TipoDeComprobante` no es `I` (ingreso) ni `E` (egreso / nota de crédito); N, P y T ya no se registran como facturas de proveedor.",
+        "El preview y el insert exponen y persisten `receptor` y `tipo_comprobante`."
+      ]
+    },
+    {
+      "heading": "Base de datos",
+      "items": [
+        "`supplier_bills` gana columnas `receptor_rfc text` y `tipo_comprobante text` (CHECK en I/E/N/P/T).",
+        "Índice `supplier_bills_receptor_rfc_idx` para reporteo por RFC receptor."
+      ]
+    },
+    {
+      "heading": "BL-37 — Bloqueo del último admin",
+      "items": [
+        "`delete-user` consulta `user_roles` antes de eliminar: si el objetivo tiene rol `admin` y sólo queda uno, responde 400 `LAST_ADMIN_CANNOT_BE_DELETED`.",
+        "El sistema queda protegido contra pérdida total de acceso administrativo."
+      ]
+    },
+    {
+      "heading": "Tests",
+      "items": [
+        "6 casos nuevos en `cfdi-parser_test.ts`: receptor completo, TipoDeComprobante `I`, `E`, `P`, ausente y valor inválido. Total 12/12 en verde."
+      ]
+    }
+  ]
+}
