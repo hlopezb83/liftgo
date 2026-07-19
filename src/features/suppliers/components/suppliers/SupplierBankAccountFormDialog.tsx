@@ -124,7 +124,7 @@ export function SupplierBankAccountFormDialog({ open, onOpenChange, supplierId, 
             />
           </FormSection>
           <FormSection title="Datos bancarios">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <TextField
                 control={form.control}
                 name="clabe"

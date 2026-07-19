@@ -56,7 +56,7 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
   return (
     <Form {...form}>
       <FormSection title="Detalles" first>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <SelectField control={form.control} name="type" label="Tipo" required options={TYPE_OPTIONS} />
           <SelectField
             control={form.control}
@@ -76,7 +76,7 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
           placeholder="Opcional"
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <DateField control={form.control} name="scheduledDate" label="Fecha" required />
           <TextField control={form.control} name="scheduledTime" label="Hora" type="time" />
         </div>
@@ -88,7 +88,7 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
           placeholder="Av. Reforma 123, CDMX"
         />
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <SelectField
             control={form.control}
             name="driverName"

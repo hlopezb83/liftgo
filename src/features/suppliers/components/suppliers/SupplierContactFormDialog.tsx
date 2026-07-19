@@ -104,7 +104,7 @@ export function SupplierContactFormDialog({ open, onOpenChange, supplierId, cont
         <form onSubmit={onSubmit} className="space-y-4">
           <FormSection title="Identidad" first>
             <TextField control={form.control} name="name" label="Nombre" required />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <SelectField control={form.control} name="role" label="Rol" options={ROLE_OPTIONS} />
               <TextField control={form.control} name="phone" label="Teléfono" />
             </div>

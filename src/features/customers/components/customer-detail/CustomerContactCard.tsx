@@ -10,7 +10,7 @@ export function CustomerContactCard({ customer }: CustomerContactCardProps) {
   return (
     <Card className="lg:col-span-2">
       <CardHeader><CardTitle className="text-base">Información de Contacto</CardTitle></CardHeader>
-      <CardContent className="grid grid-cols-2 gap-4 text-sm">
+      <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
         {customer.contact_person && (
           <div><p className="text-xs text-muted-foreground">Persona de Contacto</p><p className="font-medium">{customer.contact_person}</p></div>
         )}

@@ -8,14 +8,17 @@ import {
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { MobileCardList } from "@/components/layout/MobileCardList";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePortalContracts } from "@/features/customers";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 type Contract = NonNullable<ReturnType<typeof usePortalContracts>["data"]>[number];
 
 export default function PortalContracts() {
   const { data: contracts, isLoading } = usePortalContracts();
+  const isMobile = useIsMobile();
 
   const columns: ColumnDef<Contract>[] = [
       {
@@ -71,13 +74,42 @@ export default function PortalContracts() {
           <CardTitle className="text-base">Todos los Contratos</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <DataTableV2
-            table={table}
-            emptyMessage="No se encontraron contratos"
-          />
-          <div className="px-4">
-            <DataTablePaginationV2 table={table} />
-          </div>
+          {isMobile ? (
+            <div className="p-3">
+              <MobileCardList
+                items={contracts ?? []}
+                keyExtractor={(c) => c.id}
+                emptyMessage="No se encontraron contratos"
+                renderCard={(c) => (
+                  <Card>
+                    <CardContent className="p-3 space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-medium">{c.contract_number}</span>
+                        <StatusBadge status={c.status} />
+                      </div>
+                      <div className="text-sm text-muted-foreground truncate">
+                        {c.forklifts?.name || "—"}
+                        {c.forklifts?.model ? ` — ${c.forklifts.model}` : ""}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {c.start_date || "—"} → {c.end_date || "—"}
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+              />
+            </div>
+          ) : (
+            <>
+              <DataTableV2
+                table={table}
+                emptyMessage="No se encontraron contratos"
+              />
+              <div className="px-4">
+                <DataTablePaginationV2 table={table} />
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
     </PageContainer>

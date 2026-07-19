@@ -58,7 +58,7 @@ export function RentalLineRow({ line, index, models, disableRemove, startDate, e
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="space-y-1.5">
           <Label className="text-xs">Tarifa Diaria</Label>
           <Input type="number" min="0" step="0.01" placeholder="0.00" value={line.dailyRate || ""} onChange={(e) => onUpdate(index, "dailyRate", parseFloat(e.target.value) || 0)} />

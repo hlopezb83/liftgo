@@ -85,7 +85,7 @@ export function PostBookingPolicyDialog({ open, onOpenChange, forkliftId, forkli
         <Form {...form}>
           <form onSubmit={handleCreate} className="space-y-4">
             <TextField control={form.control} name="providerName" label="Proveedor" required placeholder="Nombre del proveedor" />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <CurrencyField control={form.control} name="monthlyCost" label="Costo Mensual" currency="MXN" />
               <SelectField
                 control={form.control}

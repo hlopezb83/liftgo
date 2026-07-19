@@ -112,7 +112,7 @@ export default function CalendarPage() {
       {viewMode === "gantt" ? (
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-base capitalize">{rangeLabel}</CardTitle>
+            <CardTitle className="text-base">{rangeLabel ? rangeLabel.charAt(0).toUpperCase() + rangeLabel.slice(1) : rangeLabel}</CardTitle>
             <div className="flex gap-1">
               <Tooltip>
                 <TooltipTrigger asChild>

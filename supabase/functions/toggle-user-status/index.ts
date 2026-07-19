@@ -31,6 +31,44 @@ Deno.serve(async (req) => {
       return jsonError(req, 400, "is_active must be a boolean");
     }
 
+    // BL-46: si se está desactivando a un admin, garantizar que quede ≥1 admin activo.
+    if (is_active === false) {
+      const { data: targetAdmin } = await auth.adminClient
+        .from("user_roles")
+        .select("user_id")
+        .eq("user_id", user_id)
+        .eq("role", "admin")
+        .maybeSingle();
+
+      if (targetAdmin) {
+        const { data: otherAdmins } = await auth.adminClient
+          .from("user_roles")
+          .select("user_id")
+          .eq("role", "admin")
+          .neq("user_id", user_id);
+
+        const otherIds = (otherAdmins ?? []).map((a) => a.user_id);
+        let activeOthers = 0;
+        if (otherIds.length > 0) {
+          const { count } = await auth.adminClient
+            .from("profiles")
+            .select("user_id", { count: "exact", head: true })
+            .in("user_id", otherIds)
+            .eq("is_active", true);
+          activeOthers = count ?? 0;
+        }
+
+        if (activeOthers === 0) {
+          return jsonError(
+            req,
+            400,
+            "LAST_ADMIN_CANNOT_BE_DEACTIVATED: no puedes desactivar al último administrador activo.",
+          );
+        }
+      }
+    }
+
+
     const { error: authErr } = await auth.adminClient.auth.admin.updateUserById(
       user_id,
       { ban_duration: is_active ? "none" : "876600h" },

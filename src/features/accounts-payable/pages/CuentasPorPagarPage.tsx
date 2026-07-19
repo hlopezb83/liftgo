@@ -44,19 +44,22 @@ export default function CuentasPorPagarPage() {
         subtitle="Facturas de proveedores y su seguimiento de pago"
         totalCount={f.filtered.length}
         actions={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <Link to="/cuentas-por-pagar/antiguedad">
-              <Button variant="outline">
-                <ChartIcon className="h-4 w-4 mr-1" />Antigüedad
+              <Button variant="outline" aria-label="Antigüedad">
+                <ChartIcon className="h-4 w-4 sm:mr-1" />
+                <span className="hidden sm:inline">Antigüedad</span>
               </Button>
             </Link>
-            <Button variant="outline" onClick={exportDialog.openDialog}>
-              <FileSpreadsheet className="h-4 w-4 mr-1" />Exportar pagos
+            <Button variant="outline" onClick={exportDialog.openDialog} aria-label="Exportar pagos">
+              <FileSpreadsheet className="h-4 w-4 sm:mr-1" />
+              <span className="hidden sm:inline">Exportar pagos</span>
             </Button>
             <Button onClick={createDialog.openDialog}>
               <AddIcon className="h-4 w-4 mr-1" />Nueva Factura
             </Button>
           </div>
+
         }
         filters={<SupplierBillsFilters filters={f} kpis={kpis} suppliers={suppliers} />}
         isLoading={isLoading}

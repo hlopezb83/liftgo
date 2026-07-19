@@ -31,7 +31,7 @@ export function ProspectFormFields({
         <Label htmlFor="contact">Persona de Contacto</Label>
         <Input id="contact" value={fields.contact} onChange={(e) => setters.setContact(e.target.value)} />
       </div>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input id="email" type="email" value={fields.email} onChange={(e) => setters.setEmail(e.target.value)} />

@@ -25,7 +25,7 @@ interface Props {
 export function SupplierBillFormFields({ form, currency, currencyOptions, selectedSupplier, suggestedDueDate }: Props) {
   return (
     <>
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <FormField
           control={form.control}
           name="category"
@@ -69,7 +69,7 @@ export function SupplierBillFormFields({ form, currency, currencyOptions, select
         />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <DateField control={form.control} name="issue_date" label="Fecha emisión" required />
         <div className="space-y-1">
           <DateField control={form.control} name="due_date" label="Vencimiento" />
@@ -81,7 +81,7 @@ export function SupplierBillFormFields({ form, currency, currencyOptions, select
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <FormField
           control={form.control}
           name="currency"
@@ -103,7 +103,7 @@ export function SupplierBillFormFields({ form, currency, currencyOptions, select
         <TextField control={form.control} name="cfdi_uuid" label="UUID fiscal" placeholder="Opcional" />
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <CurrencyField control={form.control} name="subtotal" label="Subtotal" required currency={currency as "MXN" | "USD"} />
         <CurrencyField control={form.control} name="tax_amount" label="IVA" currency={currency as "MXN" | "USD"} />
         <CurrencyField control={form.control} name="retention_iva" label="Retención IVA" currency={currency as "MXN" | "USD"} />

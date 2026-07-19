@@ -21,7 +21,7 @@ export function MaintenancePageActions({
   onCreate,
 }: Props) {
   return (
-    <div className="flex gap-2 items-center">
+    <div className="flex flex-wrap gap-2 items-center">
       <ToggleGroup
         type="single"
         value={viewMode}
@@ -35,13 +35,20 @@ export function MaintenancePageActions({
           <LayoutGrid className="h-4 w-4" />
         </ToggleGroupItem>
       </ToggleGroup>
-      <Button variant="outline" size="sm" onClick={onExport}>
-        <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
+      <Button variant="outline" size="sm" onClick={onExport} aria-label="Exportar CSV">
+        <DownloadIcon className="h-4 w-4 sm:mr-1" />
+        <span className="hidden sm:inline">Exportar CSV</span>
       </Button>
       <RoleGuard module="Mantenimiento" minAccess="full">
-        <Button variant="outline" size="sm" onClick={onGenerateRecurring} disabled={isGenerating}>
-          <RefreshIcon className={`h-4 w-4 mr-1 ${isGenerating ? "animate-spin" : ""}`} />
-          Generar Recurrente
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onGenerateRecurring}
+          disabled={isGenerating}
+          aria-label="Generar recurrente"
+        >
+          <RefreshIcon className={`h-4 w-4 sm:mr-1 ${isGenerating ? "animate-spin" : ""}`} />
+          <span className="hidden sm:inline">Generar Recurrente</span>
         </Button>
       </RoleGuard>
       <Button onClick={onCreate} size="sm">
@@ -50,3 +57,4 @@ export function MaintenancePageActions({
     </div>
   );
 }
+
