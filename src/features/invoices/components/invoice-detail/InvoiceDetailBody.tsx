@@ -126,7 +126,7 @@ export function InvoiceDetailBody({
         creditedAmount={creditedAmount}
       />
       <PaymentIntentsSection invoiceId={id} />
-      <InvoiceCreditNotesCard invoice={invoice} totalPaid={totalPaid} />
+      <InvoiceCreditNotesCard invoice={invoice} />
       <InvoiceHistoryCard invoiceId={id} />
 
       <InvoiceDetailDialogs
