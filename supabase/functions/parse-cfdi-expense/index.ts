@@ -278,6 +278,8 @@ serve(async (req) => {
         currency: cfdi.moneda,
         exchange_rate: cfdi.tipo_cambio || 1,
         payment_method_sat: cfdi.payment_method_sat,
+        receptor_rfc: cfdi.receptor.rfc || null,
+        tipo_comprobante: cfdi.tipo_comprobante,
         category: categoria_sugerida,
         description,
         status: "pending",
