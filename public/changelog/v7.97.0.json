@@ -1,0 +1,32 @@
+{
+  "version": "7.97.0",
+  "date": "2026-07-19",
+  "type": "minor",
+  "title": "BL-38: mano de obra por mecánico en mantenimientos",
+  "sections": [
+    {
+      "heading": "Contexto",
+      "body": "Último hallazgo abierto de la auditoría Ronda 3. `maintenance_logs.performed_by` era un texto libre sin trazabilidad ni horas, y el `cost` del mantenimiento sólo agregaba refacciones — la mano de obra no se contabilizaba en el P&L de fleet."
+    },
+    {
+      "heading": "Base de datos",
+      "body": "Nueva tabla `public.maintenance_labor`:\n- `maintenance_log_id` FK ON DELETE CASCADE.\n- `mechanic_id` FK a `mechanics` ON DELETE RESTRICT.\n- `hours numeric(6,2)` CHECK > 0.\n- `hourly_rate numeric(10,2)` CHECK >= 0.\n- `total_cost numeric(12,2) GENERATED ALWAYS AS (ROUND(hours * hourly_rate, 2)) STORED`.\n- `notes text`, `created_at`, `updated_at` (trigger).\n- Índices: `(maintenance_log_id)`, `(mechanic_id, created_at DESC)`.\n- GRANT SELECT/INSERT/UPDATE/DELETE a `authenticated`; ALL a `service_role`.\n- RLS: admin/administrativo/mecánico full-access; auditor y dispatcher solo SELECT."
+    },
+    {
+      "heading": "Recalculo transaccional",
+      "body": "Función `recalc_maintenance_log_cost()` extendida para sumar refacciones + mano de obra en un mismo UPDATE atómico. Nuevo trigger `trg_maintenance_labor_recalc_cost` (AFTER INSERT/UPDATE/DELETE) reusa la misma función — el costo agregado del mantenimiento queda siempre consistente sin lógica en el cliente."
+    },
+    {
+      "heading": "Frontend",
+      "body": "- `useMaintenanceLabor(logId)` — query con `staleTime: 30s`, incluye `mechanics(id, name)`.\n- `useAddMaintenanceLabor` / `useDeleteMaintenanceLabor` — vía `useEntityMutation`, invalidan `maintenance_labor` y `maintenance_logs`.\n- `MaintenanceLaborSection` — selector de mecánico activo, inputs de horas y tarifa, notas opcionales, tabla compacta con total en `Badge` y borrado por línea.\n- Integrado en `MaintenanceDetailSheet` (lista) y `kanban/MaintenanceDetailSheet` bajo la sección de refacciones."
+    },
+    {
+      "heading": "Tests",
+      "body": "`useMaintenanceLabor.test.ts` (3):\n1. Insert limpio sin escribir en `maintenance_logs` (el trigger lo hace).\n2. `total_cost` GENERATED nunca se envía desde el cliente.\n3. Errores del insert propagados vía `notifyError` con título correcto.\nSuite completa: 1056 verdes."
+    },
+    {
+      "heading": "Deprecación",
+      "body": "`maintenance_logs.performed_by` marcado con `COMMENT ON COLUMN` como DEPRECATED (BL-38): se removerá en v7.98.0 tras verificar que ningún reporte lo consulta."
+    }
+  ]
+}
