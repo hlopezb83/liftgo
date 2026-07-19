@@ -359,12 +359,14 @@ export type Database = {
           customer_contact: string | null
           customer_id: string | null
           customer_name: string | null
+          daily_rate: number | null
           e2e_scope: string | null
           end_date: string
           forklift_id: string
           id: string
           is_e2e: boolean
           last_billed_date: string | null
+          monthly_rate: number | null
           quote_id: string | null
           recurring_billing: boolean
           return_status: string | null
@@ -373,6 +375,7 @@ export type Database = {
           start_date: string
           status: string
           updated_at: string
+          weekly_rate: number | null
         }
         Insert: {
           booking_number: string
@@ -380,12 +383,14 @@ export type Database = {
           customer_contact?: string | null
           customer_id?: string | null
           customer_name?: string | null
+          daily_rate?: number | null
           e2e_scope?: string | null
           end_date: string
           forklift_id: string
           id?: string
           is_e2e?: boolean
           last_billed_date?: string | null
+          monthly_rate?: number | null
           quote_id?: string | null
           recurring_billing?: boolean
           return_status?: string | null
@@ -394,6 +399,7 @@ export type Database = {
           start_date: string
           status?: string
           updated_at?: string
+          weekly_rate?: number | null
         }
         Update: {
           booking_number?: string
@@ -401,12 +407,14 @@ export type Database = {
           customer_contact?: string | null
           customer_id?: string | null
           customer_name?: string | null
+          daily_rate?: number | null
           e2e_scope?: string | null
           end_date?: string
           forklift_id?: string
           id?: string
           is_e2e?: boolean
           last_billed_date?: string | null
+          monthly_rate?: number | null
           quote_id?: string | null
           recurring_billing?: boolean
           return_status?: string | null
@@ -415,6 +423,7 @@ export type Database = {
           start_date?: string
           status?: string
           updated_at?: string
+          weekly_rate?: number | null
         }
         Relationships: [
           {
