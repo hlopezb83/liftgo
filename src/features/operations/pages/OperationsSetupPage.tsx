@@ -17,7 +17,7 @@ export default function OperationsSetupPage() {
     <PageContainer maxWidth="wide">
       <PageHeader title="Configuración" subtitle="Administrar modelos de equipo, operadores, mecánicos, pólizas, plantillas, datos fiscales, logo y aprobaciones" />
       <Tabs defaultValue="equipment" className="mt-6">
-        <div className="-mx-4 sm:mx-0 overflow-x-auto">
+        <div className="-mx-4 sm:mx-0 overflow-x-auto sm:[mask-image:none] [mask-image:linear-gradient(to_right,black_92%,transparent)]">
           <TabsList className="flex w-max min-w-full sm:w-full sm:flex-wrap h-auto px-4 sm:px-1">
             <TabsTrigger value="equipment" className="gap-2 whitespace-nowrap"><SettingsIcon className="h-4 w-4" />Modelos de Equipo</TabsTrigger>
             <TabsTrigger value="drivers" className="gap-2 whitespace-nowrap"><FleetIcon className="h-4 w-4" />Operadores</TabsTrigger>
