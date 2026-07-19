@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.96.0",
+    "date": "2026-07-19",
+    "type": "minor",
+    "title": "Ronda 3 · BL-35/36/37: trazabilidad de documentos, sin huérfanos y purga de notificaciones",
+    "summary": "Abre la ronda 3 de auditoría sobre dominios que quedaron fuera de las rondas 1 y 2. **BL-35**: `documents.uploaded_by` era TEXT y nunca se poblaba en el upload — perdíamos toda trazabilidad del autor. Migrado a UUID con FK a `auth.users(id) ON DELETE SET NULL`, índice parcial `WHERE uploaded_by IS NOT NULL`, y `useUploadDocument` ahora setea el `auth.uid()` actual. Datos existentes (4 filas, todas con NULL) sin impacto. **BL-36**: si el INSERT a `documents` fallaba después de subir el archivo al bucket, el objeto quedaba huérfano ocupando storage sin fila que lo referenciara. `useUploadDocument` ahora hace rollback vía `storage.remove([filePath])` en el `catch` del insert. **BL-37**: la tabla `notifications` (2.129 filas hoy, 36 con >90 días) no tenía política de retención. Nueva función `purge_old_notifications()` SECURITY DEFINER (REVOKE PUBLIC, GRANT service_role) que borra leídas >90 días y no-leídas >180 días, programada diariamente vía `pg_cron` a las 04:00 UTC. Tests nuevos en `useDocuments.upload.test.ts` (3 casos: seteo de `uploaded_by`, rollback en error del insert, no-remove si upload falla). Todos verdes."
+  },
+  {
+
     "version": "7.95.0",
     "date": "2026-07-19",
     "type": "minor",
