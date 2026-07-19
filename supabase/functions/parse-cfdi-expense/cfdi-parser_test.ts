@@ -137,19 +137,28 @@ Deno.test("parseCfdi: TipoDeComprobante ausente => null (no rompe parsing)", () 
 });
 
 Deno.test("parseCfdi: TipoDeComprobante 'E' (Egreso/Nota de crédito) se preserva", () => {
-  const xml = FIXTURE_BASIC.replace('TipoDeComprobante="I"', 'TipoDeComprobante="E"');
+  const xml = FIXTURE_BASIC.replace(
+    'TipoDeComprobante="I"',
+    'TipoDeComprobante="E"',
+  );
   const r = parseCfdi(xml);
   assertEquals(r.tipo_comprobante, "E");
 });
 
 Deno.test("parseCfdi: TipoDeComprobante 'P' (Pago) se preserva", () => {
-  const xml = FIXTURE_BASIC.replace('TipoDeComprobante="I"', 'TipoDeComprobante="P"');
+  const xml = FIXTURE_BASIC.replace(
+    'TipoDeComprobante="I"',
+    'TipoDeComprobante="P"',
+  );
   const r = parseCfdi(xml);
   assertEquals(r.tipo_comprobante, "P");
 });
 
 Deno.test("parseCfdi: TipoDeComprobante inválido => null (no confía en input)", () => {
-  const xml = FIXTURE_BASIC.replace('TipoDeComprobante="I"', 'TipoDeComprobante="Z"');
+  const xml = FIXTURE_BASIC.replace(
+    'TipoDeComprobante="I"',
+    'TipoDeComprobante="Z"',
+  );
   const r = parseCfdi(xml);
   assertEquals(r.tipo_comprobante, null);
 });

@@ -147,9 +147,8 @@ export function parseCfdi(xml: string): ParsedCfdi {
       domicilio_fiscal:
         (receptorTag ? attr(receptorTag, "DomicilioFiscalReceptor") : null) ??
           "",
-      regimen_fiscal: (receptorTag
-        ? attr(receptorTag, "RegimenFiscalReceptor")
-        : null) ?? "",
+      regimen_fiscal:
+        (receptorTag ? attr(receptorTag, "RegimenFiscalReceptor") : null) ?? "",
     },
     conceptos: conceptosTags.map((t) => ({
       descripcion: attr(t, "Descripcion") ?? "",
