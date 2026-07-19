@@ -1,116 +1,77 @@
-## Auditoría de Sprint 4 (v7.102.0)
+## Sprint UX/UI + residuos BL — 9 issues (11 hallazgos)
 
-**Estado: verde.**
+Sigo el orden sugerido por la auditoría. Cada issue = un commit con su changelog patch/minor.
 
-- `generate-recurring-maintenance/index.ts`: claim atómico correcto. Bajo READ COMMITTED, el segundo `UPDATE ... WHERE last_generated_month < currentMonth` reevalúa la fila tras el lock del primero (EvalPlanQual) y devuelve 0 filas → idempotente sin race. Rollback restaura el valor original sólo cuando el claim propio tuvo éxito → seguro.
-- Timezone `America/Monterrey` alineado con `generate-recurring-invoices`. Logs nacen `scheduled` y `get_income_statement` ya filtra `work_status='completed'` (P&L limpio).
-- `PostDeliveryPickupDialog`: Zod refinement con baseline `delivery.hours_reading`; propagación desde `DeliveryDetail` verificada.
-- Tests: `pickupHorometerSchema.test.ts` (4/4 ✅) y smoke Deno de la edge function (2/2 ✅).
+### Fase 1 — Residuos BL (cierra la serie BL)
 
-**Gap detectado (no bloqueante, se aborda como deuda):** no hay test unitario que ejercite el claim atómico con mock de Supabase (dos corridas seguidas → segunda devuelve `skipped`). Se agrega en Sprint 5 junto con la infra de idempotencia general.
+**ISSUE-001 · BL-46 — `toggle-user-status` guarda de último admin**
 
----
+- `supabase/functions/toggle-user-status/index.ts`: antes de `setUserActive`, si `is_active === false` y el objetivo tiene rol `admin`, contar admins activos restantes; si 0 → 400.
+- Reutilizar patrón exacto de `delete-user/index.ts`.
+- Test Deno nuevo cubriendo: 1 admin (rechaza), 2+ admins (permite), desactivar no-admin (permite).
 
-## Sprint 5 — v7.103.0 (Ronda 3: BL-43, BL-44, BL-45 · Idempotencia de webhooks y reintentos)
+**ISSUE-002 · BL-47 — `revert_audit_log` excluye tablas financieras**
 
-Cierra los 3 hallazgos restantes de Ronda 3. Todos tocan integraciones externas asíncronas (Facturapi CFDI + confirmaciones de pago del portal) donde hoy un reintento del proveedor puede duplicar estado.
+- Migración: modificar `revert_audit_log` para `v_allowed_tables := ARRAY['forklifts','customers','contracts','deliveries','maintenance_logs','damage_records','quotes','return_inspections']` (fuera `bookings`, `invoices`, `payments`).
+- Mensaje de error explícito indicando usar flujos de negocio (cancelación SAT, notas de crédito, eliminación con re-sync).
+- Test: agregar caso a `src/test/` o Deno confirmando rechazo en `payments`.
 
-### BL-43 — Idempotencia de webhooks Facturapi (cancelaciones / status CFDI)
+### Fase 2 — Portal cliente (superficie externa)
 
-`refresh-cancellation-status` y los flujos de `cancel-cfdi` / `stamp-cfdi` no registran el `event_id` que envía Facturapi. Si Facturapi reintenta el POST (timeout, 5xx transitorio), reprocesamos y podemos:
-- Marcar dos veces `cancellation_status`.
-- Insertar filas duplicadas en `activity_log`.
-- Disparar notificaciones repetidas al operador.
+**ISSUE-003 · UX-08 — `mobileCardRender` en las 4 páginas del portal**
 
-Cambios:
-1. **Migración `webhook_events`** — bitácora append-only:
-   ```
-   CREATE TABLE public.webhook_events (
-     id uuid PK default gen_random_uuid(),
-     provider text NOT NULL,              -- 'facturapi' | 'portal_payment' | ...
-     event_id text NOT NULL,              -- id externo del evento
-     event_type text NOT NULL,
-     payload jsonb NOT NULL,
-     received_at timestamptz NOT NULL default now(),
-     processed_at timestamptz,
-     status text NOT NULL default 'pending' CHECK (status IN ('pending','processed','failed','duplicate')),
-     error_message text,
-     UNIQUE (provider, event_id)
-   );
-   ```
-   - GRANT sólo a `service_role` (edge functions); RLS con policy admin-read.
-2. **Helper `_shared/webhookIdempotency.ts`** con `claimWebhookEvent(provider, eventId, eventType, payload)` que:
-   - Inserta la fila; si el UNIQUE violó, devuelve `{ duplicate: true }` sin reprocesar.
-   - Si insertó, devuelve `{ duplicate: false, markProcessed(), markFailed(err) }`.
-3. **Aplicar en**:
-   - `refresh-cancellation-status/index.ts` (usa `x-facturapi-event-id` o hash del payload como fallback).
-   - `stamp-cfdi/handler.ts` (respuesta síncrona de Facturapi con `id` propio → deduplicar por `invoice_id + facturapi_id`).
-   - `cancel-cfdi/index.ts` y `cancel-credit-note/index.ts` (mismo patrón).
+- `PortalInvoices.tsx`, `PortalQuotes.tsx`, `PortalRentals.tsx`, `PortalContracts.tsx`: añadir `mobileCardRender` con número + `StatusBadge` + fecha + monto + CTA contextual ("Ver/Descargar", "Revisar y aceptar").
+- Actualizar `tests/e2e/visual-mobile.spec.ts` agregando `/portal/invoices` y `/portal/quotes` (autenticando como cliente).
 
-### BL-44 — Cola de reintento para operaciones fallidas de CFDI
+### Fase 3 — Defectos visibles con captura
 
-Hoy si `stamp-cfdi` falla con error transitorio de Facturapi (red / 502), la UI muestra error y el operador debe reintentar manualmente. No hay reintento automático ni visibilidad de fallas históricas.
+**ISSUE-004 · UX-01/02 — Barras de acciones (Mantenimiento y CxP)**
 
-Cambios:
-1. **Migración `cfdi_retry_queue`**:
-   ```
-   CREATE TABLE public.cfdi_retry_queue (
-     id uuid PK,
-     operation text NOT NULL CHECK (operation IN ('stamp','cancel','cancel_nc','cancel_rep')),
-     invoice_id uuid NOT NULL,
-     payload jsonb NOT NULL,
-     attempts int NOT NULL default 0,
-     max_attempts int NOT NULL default 5,
-     next_retry_at timestamptz NOT NULL default now(),
-     last_error text,
-     status text NOT NULL default 'pending' CHECK (status IN ('pending','processing','succeeded','exhausted')),
-     created_at timestamptz default now(),
-     updated_at timestamptz default now()
-   );
-   ```
-2. **Nueva edge function `process-cfdi-retry-queue`**:
-   - Lock-and-claim `SELECT ... FOR UPDATE SKIP LOCKED LIMIT 20 WHERE status='pending' AND next_retry_at <= now()`.
-   - Ejecuta la operación reutilizando los handlers existentes.
-   - En éxito → `status='succeeded'`. En fallo transitorio → backoff exponencial (`next_retry_at = now() + interval '2^attempts minutes'`). Si `attempts >= max_attempts` → `status='exhausted'` y notifica en `activity_log`.
-3. **Cron `pg_cron`**: `*/5 * * * *` invoca la function con `CRON_SECRET`.
-4. **`stamp-cfdi` / `cancel-cfdi`**: en fallo con código transitorio (network, 5xx, timeout), encolar en lugar de sólo devolver error. Errores de negocio (RFC inválido, timbre rechazado por SAT) NO se encolan.
+- `MaintenancePageActions.tsx` y `CuentasPorPagarPage.tsx` actions: `flex flex-wrap gap-2`; etiquetas secundarias con `hidden sm:inline`, iconos siempre visibles.
 
-### BL-45 — Idempotencia de confirmaciones de pago del portal
+**ISSUE-005 · UX-03 — Sección CFDI apila en móvil**
 
-`approve_portal_payment` / `reject_portal_payment` (RPCs de Sprint v7.92.0) no rechazan una segunda invocación con mismo `payment_intent_id` si el estado ya cambió. Un doble click del admin puede duplicar la fila de `invoice_payments`.
+- `CfdiFieldsCard.tsx:18,63`: `grid-cols-2 sm:grid-cols-3` → `grid-cols-1 sm:grid-cols-3` y `grid-cols-2` → `grid-cols-1 sm:grid-cols-2`.
+- `ReceptorFiscalFields.tsx:13,27`: `grid-cols-2` → `grid-cols-1 sm:grid-cols-2`.
 
-Cambios:
-1. Añadir guard idempotente al inicio de ambas RPCs:
-   ```sql
-   IF EXISTS (SELECT 1 FROM payment_intents WHERE id = _intent_id AND status IN ('approved','rejected')) THEN
-     RAISE EXCEPTION 'PAYMENT_INTENT_ALREADY_PROCESSED' USING ERRCODE = 'P0001';
-   END IF;
-   ```
-2. UI: mapear ese código a mensaje amable "Este pago ya fue procesado" y refrescar cache.
+### Fase 4 — Barrido transversal
 
-### Tests
+**ISSUE-006 · UX-09 — 56 `grid-cols-N` sin breakpoint en diálogos**
 
-- **`webhookIdempotencyHelper_test.ts`** (Deno): insert nuevo → `duplicate:false`; segundo insert mismo `event_id` → `duplicate:true`, sin side effects. (3 casos)
-- **`generateRecurringMaintenanceClaim.test.ts`** (Deno, deuda del sprint anterior): mockea Supabase, simula dos corridas → segunda cuenta como `skipped`, no inserta log. (2 casos)
-- **`cfdiRetryQueue.test.ts`** (Vitest): backoff exponencial correcto, `exhausted` tras 5 intentos, `SKIP LOCKED` no toma filas en processing. (4 casos)
-- **`portalPaymentIdempotency.test.ts`** (Vitest): segunda llamada a `approve_portal_payment` → error `PAYMENT_INTENT_ALREADY_PROCESSED`; no duplica fila en `invoice_payments`. (2 casos)
+- Barrido con `rg "grid-cols-[23]"` en los diálogos de formulario (`*FormDialog.tsx`, secciones dentro de `Card`+`Dialog`).
+- Reemplazar `grid-cols-2` → `grid-cols-1 sm:grid-cols-2` y `grid-cols-3` → `grid-cols-1 sm:grid-cols-3`.
+- Excepciones (mantener): thumbnails (`DamageEvidenceSection`), specs llave-valor (`ForkliftSpecsCard`), filas qty/precio/total (`RentalLineRow`). Documentar en el changelog.
 
-### Entregables
+### Fase 5 — Pulido
 
-- Migraciones: `create_webhook_events.sql`, `create_cfdi_retry_queue.sql`, `harden_portal_payment_idempotency.sql`.
-- `supabase/functions/_shared/webhookIdempotency.ts`.
-- `supabase/functions/process-cfdi-retry-queue/index.ts` (+ smoke test).
-- Modificaciones en: `refresh-cancellation-status`, `stamp-cfdi/handler.ts`, `cancel-cfdi`, `cancel-credit-note`.
-- 4 archivos de test nuevos.
-- `public/changelog.json` + `public/changelog/v7.103.0.json` (minor).
+**ISSUE-007 · UX-04 — Fade lateral en Gantt móvil**
+
+- Contenedor scrollable del calendario/Gantt: `[mask-image:linear-gradient(to_right,black_92%,transparent)]` + hint `text-xs text-muted-foreground sm:hidden` "Desliza →".
+
+**ISSUE-008 · UX-05 — Capitalización "Julio de 2026"**
+
+- `CalendarPage.tsx:115`: quitar clase CSS `capitalize`; capitalizar sólo primera letra vía `label.charAt(0).toUpperCase() + label.slice(1)`.
+
+**ISSUE-009 · UX-06/07 — Configuración: tabs + catálogos móvil**
+
+- Tablist con `overflow-x-auto` + fade (o `<Select>` a `<768px`).
+- Catálogos (Modelos, Operadores, Mecánicos, Pólizas): `mobileCardRender`.
+
+### Changelog
+
+Cada fase genera una entrada en `public/changelog.json` + `public/changelog/v{X.Y.Z}.json`:
+
+- v7.104.0 (fase 1 — BL-46/47, minor por cambio de contrato de RPC)
+- v7.104.1 (fase 2 — portal cards)
+- v7.104.2 (fase 3 — barras + CFDI)
+- v7.104.3 (fase 4 — barrido grids)
+- v7.104.4 (fase 5 — pulido)
 
 ### Verificación
 
-- `cd supabase/functions && deno test --allow-all`
-- `cd supabase/functions && deno fmt --check`
-- `bunx vitest run`
-
-### Fuera de alcance
-
-- Migrar `activity_log` a partición temporal (BL futuro).
-- Reintentos de `generate-recurring-invoices` (ya idempotente por diseño).
+- `tsgo` + `bunx vitest run` tras cada fase.
+- Deno tests para fase 1.
+- Playwright a 390×844 para fases 2-5 en las páginas modificadas (screenshots comparativos).
+- Playwright a 1920×1080 para confirmar cero regresión en escritorio.  
+  
+Corrige todo en una pasada.
