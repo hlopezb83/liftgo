@@ -152,6 +152,9 @@ export async function handleStampCfdi(
         jsonHeaders,
       );
     }
+    claimed = true;
+    invoiceIdRef = invoice_id as string;
+
 
     // Helper para revertir el claim atómico ante cualquier salida temprana
     // posterior al UPDATE→stamping. Sin esto la factura queda atascada en
