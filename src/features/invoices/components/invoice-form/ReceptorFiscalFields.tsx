@@ -25,7 +25,7 @@ export function ReceptorFiscalFields() {
           <FormItem><FormLabel>Razón Social</FormLabel><FormControl><Input placeholder="Nombre legal del receptor" {...field} /></FormControl><FormMessage /></FormItem>
         )} />
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <FormField control={control} name="cfdi.receptorRegimenFiscal" render={({ field }) => (
           <FormItem><FormLabel>Régimen Fiscal Receptor</FormLabel><FormControl><Input placeholder="601" {...field} /></FormControl><FormMessage /></FormItem>
         )} />
