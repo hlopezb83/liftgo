@@ -121,9 +121,11 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd }: GanttC
             />
           </div>
         )}
+        </div>
       </div>
 
       <GanttLegend customerColorMap={customerColorMap} />
     </div>
   );
 }
+
