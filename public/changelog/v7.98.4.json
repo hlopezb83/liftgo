@@ -1,0 +1,22 @@
+{
+  "version": "7.98.4",
+  "date": "2026-07-19",
+  "type": "patch",
+  "title": "CHECK constraint: reserva cancelada nunca puede ser recurrente",
+  "sections": [
+    {
+      "heading": "Blindaje de esquema",
+      "items": [
+        "Nueva restricción `bookings_cancelled_not_recurring` en `public.bookings`: `CHECK (NOT (status='cancelled' AND recurring_billing=true))`.",
+        "Complementa el trigger `trg_bookings_clear_recurring_on_cancel` (v7.98.2) — el trigger limpia; el CHECK impide reintroducir la combinación por bug, migración o import manual."
+      ]
+    },
+    {
+      "heading": "Contexto",
+      "items": [
+        "Cierra el ciclo de blindaje del MRR iniciado en v7.98.1 (RPC `get_financial_kpis` filtra por status) y v7.98.2 (trigger de limpieza).",
+        "Cualquier INSERT/UPDATE que intente el par inválido falla inmediatamente con `23514 check_violation`, garantizando que el card del dashboard y /mrr sigan alineados."
+      ]
+    }
+  ]
+}
