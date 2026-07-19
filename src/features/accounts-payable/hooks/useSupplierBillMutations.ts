@@ -41,26 +41,36 @@ export type SupplierBillUpdateInput = Omit<Update, "id" | "bill_number" | "balan
 export function useUpdateSupplierBill() {
   return useEntityMutation<{ id: string; patch: SupplierBillUpdateInput & { total: number } }, string>({
     mutationFn: async ({ id, patch }) => {
-      // balance se mantiene == total mientras no haya pagos (guardado por UI).
+      // BL-21: el balance lo recalcula el trigger trg_supplier_bill_recalc_on_total
+      // en el servidor a partir de los pagos existentes. No enviar balance desde el cliente.
       const { error } = await supabase
         .from("supplier_bills")
-        .update({ ...patch, balance: patch.total })
+        .update(patch)
         .eq("id", id);
       if (error) throw error;
       return id;
     },
-    // Nota: invalidamos `.all` (que ya incluye la lista y facturas por proveedor);
-    // el detail se refresca por el mismo hash raíz porque supplierBillKeys.detail
-    // se construye como [...all, "detail", id].
     invalidateKeys: [supplierBillKeys.all],
     successMsg: "Factura actualizada",
     errorTitle: "No se pudo actualizar la factura",
   });
 }
 
+async function assertNoCompletedPayments(billId: string): Promise<void> {
+  const { count, error } = await supabase
+    .from("supplier_payments")
+    .select("id", { count: "exact", head: true })
+    .eq("bill_id", billId);
+  if (error) throw error;
+  if ((count ?? 0) > 0) {
+    throw new Error("La factura tiene pagos registrados. Reversa los pagos antes de eliminar o cancelar.");
+  }
+}
+
 export function useDeleteSupplierBill() {
   return useEntityMutation<string, string>({
     mutationFn: async (id) => {
+      await assertNoCompletedPayments(id);
       const { error } = await supabase.from("supplier_bills").delete().eq("id", id);
       if (error) throw error;
       return id;
@@ -74,6 +84,7 @@ export function useDeleteSupplierBill() {
 export function useCancelSupplierBill() {
   return useEntityMutation<{ id: string; reason?: string }, string>({
     mutationFn: async ({ id, reason }) => {
+      await assertNoCompletedPayments(id);
       const { error } = await supabase
         .from("supplier_bills")
         .update({ status: "cancelled", notes: reason ?? null })
@@ -86,3 +97,4 @@ export function useCancelSupplierBill() {
     errorTitle: "No se pudo cancelar la factura",
   });
 }
+
