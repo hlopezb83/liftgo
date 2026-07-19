@@ -1,0 +1,18 @@
+{
+  "version": "7.98.3",
+  "date": "2026-07-19",
+  "type": "patch",
+  "title": "Test de paridad MRR: card del dashboard ↔ /mrr",
+  "sections": [
+    {
+      "heading": "Tests",
+      "items": [
+        "`src/features/dashboard/__tests__/mrrParity.test.ts` (4 casos): modela `get_financial_kpis`, `get_mrr_detail` y `trg_bookings_clear_recurring_on_cancel` en TypeScript sobre un fixture compartido.",
+        "Caso 1: paridad en el estado base con todas las reservas confirmadas ($68,500 = $68,500).",
+        "Caso 2: paridad tras cancelar una reserva; verifica que el trigger apagó `recurring_billing` y ambos totales caen a $38,500.",
+        "Caso 3 (regresión v7.98.0): reproduce el bug simulando la regla vieja sin filtro por status ni trigger — el KPI reporta $68,500 mientras /mrr reporta $38,500 (divergencia esperada del pasado, sirve como guardia).",
+        "Caso 4: documenta la única divergencia esperada (forklift en `maintenance` con booking confirmada activa: /mrr lo excluye, el card no)."
+      ]
+    }
+  ]
+}
