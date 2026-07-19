@@ -3390,6 +3390,13 @@ export type Database = {
         }
         Returns: undefined
       }
+      convert_quote_to_bookings: {
+        Args: { p_assignments: Json; p_quote_id: string; p_recurring?: boolean }
+        Returns: {
+          booking_id: string
+          forklift_id: string
+        }[]
+      }
       create_booking:
         | {
             Args: {

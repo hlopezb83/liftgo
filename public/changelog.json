@@ -1,11 +1,27 @@
 [
   {
+    "version": "7.94.0",
+    "date": "2026-07-19",
+    "type": "minor",
+    "title": "Conversión cotización→reservas atómica + cron para expirar cotizaciones",
+    "summary": "BL-32 (cierre): la conversión de cotización a reservas ahora corre dentro de una sola transacción vía la RPC convert_quote_to_bookings. Si alguna reserva falla (por ejemplo, un montacargas dejó de estar disponible entre asignación y confirmación), toda la operación se revierte en el servidor: ya no queda estado a medias ni se necesita rollback best-effort del cliente. Las tarifas negociadas se aplican en la misma transacción y la cotización se marca como aceptada solo si todas las reservas se crearon. BL-27 (cierre): se programa pg_cron para ejecutar expire_stale_quotes() diariamente a las 07:00 UTC — las cotizaciones cuya valid_until ya pasó se marcan automáticamente como expiradas sin depender de acción manual."
+  },
+  {
+    "version": "7.93.1",
+    "date": "2026-07-19",
+    "type": "patch",
+    "title": "Alineación de tests con triggers server-side de inventario y tarifas",
+    "summary": "Se reescribe useAddMaintenancePart.test.ts para reflejar que los ajustes de stock y el recálculo de costo de mantenimiento ahora los hacen triggers de base de datos (BL-28/29), no el cliente. Se agrega applyRatesToBookings.test.ts para cubrir el mapeo de tarifas negociadas por reserva (BL-31). 1051 tests pasan."
+  },
+  {
     "version": "7.93.0",
     "date": "2026-07-19",
     "type": "minor",
     "title": "Auditoría ronda 2: cuentas por pagar, portal, tarifas en reserva, inventario y contratos",
     "summary": "Sprint v7.91.0-v7.93.0 cierra los hallazgos BL-21 a BL-34 de la segunda ronda de auditoría de lógica de negocio (14 hallazgos en dominios nuevos: CxP, conciliación bancaria, contratos, cotizaciones, portal y cash-flow). Fase 1: se remueven overrides de balance client-side en facturas de proveedor y se bloquean borrado/cancelación si ya hay pagos aplicados (BL-21, BL-22); el portal de clientes se migra a RPCs atómicas approve/reject_payment_intent (BL-25, BL-26). Fase 2: las tarifas negociadas se guardan en la reserva y ya no contaminan el catálogo de montacargas maestro; se agregan columnas daily/weekly/monthly_rate a bookings, se refuerza confirm_bank_match con validaciones y se corrige get_financial_kpis (BL-24, BL-31, BL-34). Fase 3: triggers automáticos ajustan stock de refacciones y recalculan el costo de mantenimiento (BL-28, BL-29); la conversión cotización→reservas hace rollback best-effort ante fallos (BL-32). Fase 4: los contratos firmados quedan bloqueados por trigger, se agrega función expire_stale_quotes y la vista v_overdue_invoices para reportes de cartera (BL-23, BL-27, BL-30)."
   },
+  {
+
 
     "version": "7.90.0",
     "date": "2026-07-19",
