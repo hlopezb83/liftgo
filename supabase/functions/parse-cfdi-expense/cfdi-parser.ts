@@ -87,7 +87,14 @@ export function parseCfdi(xml: string): ParsedCfdi {
   if (!uuid) throw new Error("CFDI sin timbre fiscal (UUID)");
 
   const emisorTag = findTag(xml, "Emisor");
+  const receptorTag = findTag(xml, "Receptor");
   const conceptosTags = findAllTags(xml, "Concepto");
+
+  const tipoRaw = attr(comprobante, "TipoDeComprobante");
+  const tipo_comprobante: TipoComprobante | null =
+    tipoRaw && (TIPO_COMPROBANTE_VALID as readonly string[]).includes(tipoRaw)
+      ? (tipoRaw as TipoComprobante)
+      : null;
 
   const fechaRaw = attr(comprobante, "Fecha") ?? "";
   const fecha = fechaRaw.slice(0, 10);
