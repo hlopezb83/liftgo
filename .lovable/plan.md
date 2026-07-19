@@ -1,63 +1,64 @@
-## Auditoría v7.88.1 (Sprint 2 parte 2)
+## Auditoría v7.89.0 (Sprint 3)
 
-**Tests:** 1034/1034 Vitest + 4/4 Deno para `computeProrate` en verde.
+**Tests:** 1040/1040 Vitest en verde. 6 tests nuevos para `prorateDepreciation` (mes completo, día frontera, febrero 28, costo 0/nulo, días negativos, cap a `daysInMonth`). Guard de rol en `get_income_statement` confirmado vía `permission denied` desde `read_query` anon.
 
-**Revisión de código:**
-- `computeProrate` extraído como helper puro y cubierto con 4 tests (día 1, día 15, último día, febrero 28). Ok.
-- `generate-recurring-invoices/index.ts:170-202`: primera factura arranca en `start_date` real (día ≠ 1) y calcula `billedAmount` correctamente. `subtotal`, `taxAmount` y `lineItems` ya usan `billedAmount` en vez de `monthlyRate`. Ok.
-- Diálogo de preview y total muestran el importe prorrateado con etiqueta ámbar. Ok.
-- Sobrecarga obsoleta de `complete_return_inspection` (8 args) eliminada; único callsite ya usa la firma canónica (9 args). Ok.
-- Migración se aplicó limpio (los WARN del linter son preexistentes, no relacionados con esta ronda).
+**Formato:** `deno fmt --check` limpio en los 72 edge functions después de reformatear `generate-recurring-invoices/index.ts`.
 
-**Observación menor (no bloqueante):** cuando `executePlan` agrupa varias reservas del mismo cliente en una sola factura, usa `first.startStr`/`first.endStr` como `billing_period_start/end`. En la práctica el grouping siempre comparte periodo (misma mensualidad calendario), pero si algún día se permitiera mezclar líneas prorrateadas con no-prorrateadas dentro del mismo grupo, el periodo mostrado en la factura tomaría la del primer elemento. No es un bug hoy; se cubrirá cuando se refactor izquierda del preview multi-cliente. **No lo tocamos en este sprint.**
+### Bug encontrado — BL-17 dejó constraint más débil
 
-**Conclusión:** Sprint 2 (parte 2) cerrado sin deuda técnica. Procedo con Sprint 3.
+Cambié el `daterange` de `no_overlapping_bookings` de `[]` (inclusivo) a `[)` (semi-abierto) para permitir rotación mismo día. **Efecto colateral:** en Postgres, `daterange(d, d, '[)')` es un rango vacío. Cualquier reserva de un solo día (`start_date = end_date`) queda como rango vacío y ya no se solapa con nada — permite doble booking del mismo equipo el mismo día. Verificado en SQL: `isempty(daterange('2026-07-15','2026-07-15','[)')) = true`.
+
+**Estado hoy:** 0 reservas con `start_date = end_date` en la BD, así que no hay corrupción. La constraint sí quedó más débil que la original para ese edge case, y no hay CHECK constraint que exija `end_date > start_date`.
+
+**Decisión:** revertir sólo el rango a `[]` y mantener la parte útil del fix (excluir `completed`). La "rotación mismo día" era una ambición fuera del hallazgo BL-17 original y no compensa el riesgo. En rentas encadenadas normales el usuario ya utiliza `end_date = día de retorno`, `start_date siguiente = día siguiente`.
+
+### Otros hallazgos: nada roto
+
+- `computeProrate` y `prorateDepreciation` son puros y están cubiertos.
+- `get_income_statement`: reescritura mantiene el guard de rol; no toca contratos existentes; los meses ausentes siguen apareciendo con 0 gracias a `all_months`.
+- `expenses_by_month` con `LEFT JOIN supplier_payments`: verificado que en accrual el join no aporta filas (el `WHERE ... p_basis='cash' AND sp.id IS NOT NULL` filtra); en cash sólo agrupa pagos dentro del rango. Sin duplicados.
+- `rented_days_agg` capea al `days_in_month` para evitar sobrecuenta cuando un mismo forklift tiene reservas solapadas en el mismo mes.
+
+### Gaps de tests (no bloqueantes)
+
+- No hay test de integración SQL para `get_income_statement` (limitación estructural del proyecto — no seedeamos escenarios financieros completos). Los helpers puros sí están cubiertos.
+- No hay E2E para la constraint `no_overlapping_bookings`. Se puede agregar en un sprint posterior como parte de la suite Playwright de disponibilidad.
 
 ---
 
-## Sprint 3 — v7.89.0 (BL-17, BL-18, BL-19)
+## Sprint 4 — v7.89.1 (patch)
 
-Los tres hallazgos pendientes atacan integridad operativa (disponibilidad de flotilla) y precisión del reporte financiero estrella (Estado de Resultados).
+### Alcance
 
-### BL-17 — Reservas `completed` siguen bloqueando el equipo
+**Único ítem: revertir el rango `[)` a `[]` en `no_overlapping_bookings`.** Mantener la exclusión de `completed` (parte válida del fix BL-17).
 
-**Problema:** La constraint `no_overlapping_bookings` (GiST exclusion) sólo excluye `status != 'cancelled'`. Una reserva marcada `completed` (equipo devuelto) sigue reservando fechas en el rango original: si el cliente devuelve 10 días antes de `end_date`, esos 10 días están bloqueados para cualquier otra renta. Además el `daterange` es `'[]'` inclusivo: renta A hasta el 15 y renta B desde el 15 chocan, forzando un día de patio entre rentas.
+**Migración:**
 
-**Fix:**
-1. Migración que redefine el GiST: `WHERE (status NOT IN ('cancelled', 'completed'))`. La reserva completada ya cumplió su ciclo, no debe reservar calendario.
-2. Cambiar el rango de `daterange(start_date, end_date, '[]')` a `daterange(start_date, end_date, '[)')` para permitir rotación mismo día (entrega en la mañana, entrega otra reserva en la tarde).
-3. Antes de aplicar, ejecutar query de auditoría para detectar reservas activas que hoy se solapan por el borde inclusivo y flaggearlas.
+```sql
+ALTER TABLE public.bookings DROP CONSTRAINT no_overlapping_bookings;
 
-### BL-18 — Depreciación por mes-frontera cobra doble
-
-**Problema:** En `get_income_statement`, `rented_per_month` marca un mes con cualquier solape de 1 día y carga `acquisition_cost / 48` completo. Renta 31-mar → 2-abr genera 2 meses de depreciación por 3 días de renta. Distorsiona costo unitario en meses frontera e infla `months_rented` en el COGS de venta.
-
-**Fix:** prorratear por días rentados dentro del mes: `depreciation_share = (acquisition_cost/48) × diasRentadosEnMes / diasDelMes`. Aplicar mismo criterio al `months_rented` que alimenta el valor en libros al vender.
-
-### BL-19 — Base de efectivo asimétrica
-
-**Problema:** En `get_income_statement`, `p_basis = 'cash'` filtra facturas por `paid_at` pero gastos de proveedor, mantenimiento y daños siguen usando fecha de emisión/devengo. Un P&L "cash" mezcla ingresos cobrados con gastos devengados — no es ni cash ni accrual.
-
-**Fix:** cuando `p_basis = 'cash'`:
-- `supplier_bills` → filtrar por `paid_at` (o suma de `supplier_payments.paid_at`).
-- `maintenance_logs` → filtrar por fecha de pago si existe, si no por `completed_at`.
-- `operating_expenses` → filtrar por `paid_at` cuando esté disponible; si no, dejar `date` (documentar el fallback).
-
-### Cobertura de tests
-
-- **BL-17:** test SQL que inserta reserva `completed` y verifica que otra reserva puede solapar (`bookings.spec.ts` en `tests/e2e` o test de RPC). Test unitario en TS que verifique el borde `[)` con reserva mismo día.
-- **BL-18:** extraer helper `prorateDepreciation(acqCost, rentedDays, daysInMonth)` puro en `src/lib/finance/depreciation.ts` con 4 tests: mes completo, 1 día del mes frontera, mes con 28 días, `acqCost = 0`.
-- **BL-19:** test de `get_income_statement` con `p_basis='cash'`: crear factura pagada + gasto pagado en meses distintos, verificar que ambos aparecen en el mes de pago.
+ALTER TABLE public.bookings
+  ADD CONSTRAINT no_overlapping_bookings
+  EXCLUDE USING gist (
+    forklift_id WITH =,
+    daterange(start_date, end_date, '[]') WITH &&
+  )
+  WHERE (status NOT IN ('cancelled', 'completed'));
+```
 
 ### Riesgos
 
-- **BL-17** cambia el comportamiento del calendario: reservas actualmente marcadas `completed` liberarán sus fechas. Verificar antes que no haya código dependiente de que `completed` siga ocupando el rango.
-- **BL-18** reduce el costo mensual reportado en meses frontera → el resultado neto sube ligeramente en dichos meses. Documentar en changelog.
-- **BL-19** puede alterar meses históricos si el usuario tiene reportes "cash" archivados. Documentar; el reporte se regenera on-demand así que no hay migración de datos.
+Ninguno: hoy 0 reservas de un día. La constraint queda más estricta que la versión de v7.89.0 (correcto) y ligeramente más permisiva que pre-v7.89.0 en cuanto a liberar fechas de reservas `completed` (comportamiento deseado).
+
+### Tests
+
+No requiere tests nuevos: es reversión de un parámetro y no afecta código de aplicación. Vitest completo se corre para confirmar 1040/1040.
+
+### Cierre de auditoría BL-01..BL-20
+
+Con este patch, la ronda profunda de auditoría de lógica de negocio (20 hallazgos) queda cerrada. Documentar el estado final en `public/changelog/v7.89.1.json` como confirmación explícita.
 
 ### Archivos a modificar
 
-- Nueva migración: redefinir GiST `no_overlapping_bookings` (BL-17).
-- Nueva migración: reescribir `get_income_statement` con prorrateo de depreciación (BL-18) y filtros por fecha de pago para gastos (BL-19).
-- Nuevo `src/lib/finance/depreciation.ts` + tests.
-- `public/changelog.json` + `public/changelog/v7.89.0.json` (minor: cambio de comportamiento de reportes).
+- Migración: `no_overlapping_bookings` revertir a `[]`.
+- `public/changelog.json` + `public/changelog/v7.89.1.json`.
