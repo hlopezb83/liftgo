@@ -3713,6 +3713,7 @@ export type Database = {
       peek_next_draft_invoice_number: { Args: never; Returns: string }
       peek_next_invoice_number: { Args: never; Returns: string }
       purge_e2e_data: { Args: never; Returns: Json }
+      purge_old_notifications: { Args: never; Returns: number }
       recalc_supplier_bill: { Args: { p_bill_id: string }; Returns: undefined }
       register_supplier_payment: {
         Args: {
