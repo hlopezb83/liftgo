@@ -45,11 +45,16 @@ Deno.serve(async (req) => {
     // pasarían al UPDATE → doble timbrado. Solo se puede reclamar desde
     // pending|error|none con uuid null; para re-timbrar tras cancelación,
     // permitimos entrada por rep_cfdi_status='cancelled'.
+    // Blindaje adicional: para estados pending|error|none exigimos
+    // rep_cfdi_uuid IS NULL (data no timbrada). Solo `cancelled` puede tener
+    // uuid presente. Esto cierra la puerta a data corrupta con uuid poblado en
+    // estados no-timbrados que de otra forma pasaría el claim.
     const claimRes = await supabase
       .from("payments")
       .update({ rep_cfdi_status: "stamping" })
       .eq("id", payment_id)
       .in("rep_cfdi_status", ["pending", "error", "none", "cancelled"])
+      .or("rep_cfdi_uuid.is.null,rep_cfdi_status.eq.cancelled")
       .select("id")
       .maybeSingle();
     if (claimRes.error) {
