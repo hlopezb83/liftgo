@@ -1,0 +1,28 @@
+{
+  "version": "7.98.0",
+  "date": "2026-07-19",
+  "type": "minor",
+  "title": "Cierre de auditoría: BL-33 y BL-23",
+  "sections": [
+    {
+      "heading": "Contexto",
+      "body": "Últimos dos hallazgos abiertos de la serie BL. BL-33: `accept_quote_from_portal` y `convert_quote_to_bookings` sólo miraban `status`, no `valid_until` — el cliente podía aceptar (y ventas podía convertir) cotizaciones vencidas antes de que el cron diario `expire-stale-quotes-daily` las cerrara. BL-23: `supplier_bills.status = 'overdue'` sólo se recalculaba dentro de `recalc_supplier_bill`, que corre en eventos de pago; una factura sin movimientos que vencía se quedaba en `pending` indefinidamente y el badge de CxP mentía."
+    },
+    {
+      "heading": "BL-33 · Guardas de vigencia",
+      "body": "Ambas RPCs ahora rechazan cotizaciones vencidas justo después del chequeo de estatus:\n- `accept_quote_from_portal` → `RAISE EXCEPTION 'Cotización vencida'`.\n- `convert_quote_to_bookings` → `RAISE EXCEPTION 'Cotización vencida: actualiza precios y vigencia antes de convertir'`.\nDecisión de negocio: bloqueo simple, sin override — re-cotizar con precios vigentes es más sano para el historial comercial. Caso feliz (`valid_until` futuro o NULL) intacto."
+    },
+    {
+      "heading": "BL-23 · Flip diario de facturas vencidas",
+      "body": "Nueva función `public.mark_overdue_supplier_bills()` (SECURITY DEFINER, `search_path = public`, REVOKE PUBLIC, GRANT service_role):\n- `pending → overdue` cuando `balance > 0` y `due_date < CURRENT_DATE`.\n- Reversa `overdue → pending` si `due_date` quedó NULL o a futuro (útil cuando se extiende vencimiento).\n- **No toca `partial`** a propósito: mantiene el contrato de `recalc_supplier_bill`; una factura con pagos parciales vencida sigue marcada como `partial` (el aging report ya la reporta en su bucket correcto).\nAgendada vía `pg_cron` como `mark-overdue-supplier-bills-daily` (`10 7 * * *` UTC = 01:10 Mty, 10 min después del cron de cotizaciones). Re-schedule idempotente: si el job ya existe, se `unschedule` por `jobname` antes del nuevo `cron.schedule`."
+    },
+    {
+      "heading": "Verificación",
+      "body": "Migraciones aplicadas y verificadas contra la base: ambas RPCs muestran las guardas nuevas en `pg_get_functiondef`; `cron.job` lista `mark-overdue-supplier-bills-daily` junto a `expire-stale-quotes-daily`. Sin cambios de frontend — el error se propaga por `notifyError` a través de los flujos existentes (`useQuoteBookingCreator`, portal de clientes)."
+    },
+    {
+      "heading": "Cierre de serie BL",
+      "body": "Con BL-33 y BL-23 cerrados, la auditoría de lógica de negocio (Rondas 1-3, hallazgos BL-01 a BL-38) queda completa. `maintenance_logs.performed_by` sigue como DEPRECATED en backlog; se removerá cuando se migre a UI unificada de mano de obra."
+    }
+  ]
+}
