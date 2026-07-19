@@ -147,10 +147,23 @@ export async function handleStampCfdi(
       );
     }
 
+    // Helper para revertir el claim atómico ante cualquier salida temprana
+    // posterior al UPDATE→stamping. Sin esto la factura queda atascada en
+    // "stamping" para siempre (BL-03).
+    const releaseClaim = async (errorMessage?: string) => {
+      await supabase.from("invoices")
+        .update({
+          cfdi_status: errorMessage ? "error" : "pending",
+          ...(errorMessage ? { cfdi_error_message: errorMessage.slice(0, 1000) } : {}),
+        })
+        .eq("id", invoice_id);
+    };
+
     const { data: company } = await supabase
       .from("company_settings").select("*").limit(1).maybeSingle();
     if (!company) {
       console.error("[stamp-cfdi] company_settings missing", { invoice_id });
+      await releaseClaim("Company settings not configured");
       return json(
         { error: "Company settings not configured" },
         400,
@@ -163,6 +176,22 @@ export async function handleStampCfdi(
     });
 
     if (!apiKey) {
+      // BL-20: rechazar timbrado stub en modo live sin API key configurada.
+      // Marcar como "stamped" un documento que no existe ante el SAT es
+      // peligroso — puede pasar años sin detectarse.
+      if (mode === "live") {
+        await releaseClaim(
+          "Facturapi API key no configurada para modo live. No se emitió CFDI.",
+        );
+        return json(
+          {
+            error:
+              "Facturapi API key no configurada para modo live. Configura la key antes de timbrar.",
+          },
+          400,
+          jsonHeaders,
+        );
+      }
       const mockUuid = crypto.randomUUID();
       const mockXml = `<?xml version="1.0" encoding="utf-8"?>
 <cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0"
@@ -177,7 +206,7 @@ export async function handleStampCfdi(
           cfdi_uuid: mockUuid,
           cfdi_xml: mockXml,
           cfdi_status: "stamped",
-          facturapi_env: mode === "live" ? "live" : "test",
+          facturapi_env: "test",
           ...(inv.status === "draft" ? { status: "sent" } : {}),
         })
         .eq("id", invoice_id);
@@ -191,7 +220,9 @@ export async function handleStampCfdi(
 
     const client = createFacturapiClient(apiKey);
 
-    const taxRate = typeof inv.tax_rate === "number" ? inv.tax_rate : 16;
+    // BL-01: distinguir tasa cero legítima (0) de "no capturada" (null/undefined).
+    const taxRatePct = typeof inv.tax_rate === "number" ? inv.tax_rate : 16;
+    const taxRateFraction = taxRatePct / 100;
     const items = Array.isArray(inv.line_items)
       ? (inv.line_items as Array<
         {
@@ -199,17 +230,36 @@ export async function handleStampCfdi(
           quantity?: number;
           unit_price?: number;
           product_key?: string;
+          discount?: number;
+          discount_type?: "%" | "$";
         }
-      >).map((li) => ({
-        product: {
-          description: li.description || "Servicio de renta",
-          product_key: li.product_key || "78101803",
-          price: li.unit_price || 0,
-          tax_included: false,
-          taxes: [{ type: "IVA", rate: taxRate > 0 ? taxRate / 100 : 0.16 }],
-        },
-        quantity: li.quantity || 1,
-      }))
+      >).map((li) => {
+        const quantity = li.quantity || 1;
+        const unitPrice = li.unit_price || 0;
+        const item: Record<string, unknown> = {
+          product: {
+            description: li.description || "Servicio de renta",
+            product_key: li.product_key || "78101803",
+            price: unitPrice,
+            tax_included: false,
+            taxes: [{ type: "IVA", rate: taxRateFraction }],
+          },
+          quantity,
+        };
+        // BL-02: propagar descuento al CFDI. Facturapi acepta `discount` como
+        // monto absoluto por línea (antes de impuestos). Convertimos porcentaje
+        // a monto para que el XML timbrado coincida con el total de la app.
+        if (li.discount && li.discount > 0) {
+          const base = unitPrice * quantity;
+          const discountAmount = li.discount_type === "$"
+            ? Math.min(li.discount, base)
+            : (base * li.discount) / 100;
+          if (discountAmount > 0) {
+            item.discount = Math.round(discountAmount * 100) / 100;
+          }
+        }
+        return item;
+      })
       : [];
 
     const receptorRfc = (inv.receptor_rfc || "XAXX010101000").toUpperCase();
@@ -233,6 +283,10 @@ export async function handleStampCfdi(
       if (!inv.global_months) missing.push("meses");
       if (!inv.global_year) missing.push("año");
       if (missing.length > 0) {
+        // BL-03: revertir claim antes de salir para que la factura pueda re-timbrarse.
+        await releaseClaim(
+          `Faltan datos de Información Global: ${missing.join(", ")}`,
+        );
         return json(
           {
             error: `Faltan datos de Información Global (Público en General): ${
@@ -260,7 +314,13 @@ export async function handleStampCfdi(
       currency: inv.moneda || "MXN",
       exchange: inv.tipo_cambio || 1,
       series: inv.serie || undefined,
-      folio_number: inv.folio ? Number(inv.folio) : undefined,
+      // BL-20: validar folio numérico antes de castear (Number("BORRADOR")=NaN
+      // rompía el payload JSON hacia Facturapi).
+      folio_number: (() => {
+        if (!inv.folio) return undefined;
+        const n = Number(inv.folio);
+        return Number.isFinite(n) && n > 0 ? n : undefined;
+      })(),
     };
 
     if (isGlobal) {
@@ -282,9 +342,11 @@ export async function handleStampCfdi(
       const periodicity = PERIODICITY_MAP[raw] ??
         (FACTURAPI_ENUM.has(raw) ? raw : null);
       if (!periodicity) {
-        throw new Error(
-          `Periodicidad global inválida: "${raw}". Debe ser código SAT 01-05.`,
-        );
+        // BL-03: revertir claim antes de propagar error — antes se lanzaba y la
+        // factura quedaba atascada en "stamping".
+        const msg = `Periodicidad global inválida: "${raw}". Debe ser código SAT 01-05.`;
+        await releaseClaim(msg);
+        return json({ error: msg }, 400, jsonHeaders);
       }
       payload.global = {
         periodicity,
