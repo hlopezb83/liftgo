@@ -251,6 +251,8 @@ serve(async (req) => {
         fecha: cfdi.fecha,
         due_date,
         emisor: cfdi.emisor,
+        receptor: cfdi.receptor,
+        tipo_comprobante: cfdi.tipo_comprobante,
         description,
         conceptos_resumen,
         categoria_sugerida,
