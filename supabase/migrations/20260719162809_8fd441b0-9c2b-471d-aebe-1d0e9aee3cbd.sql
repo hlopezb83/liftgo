@@ -1,0 +1,1 @@
+ALTER VIEW public.v_overdue_invoices SET (security_invoker = on);

@@ -1,0 +1,51 @@
+{
+  "version": "7.93.0",
+  "date": "2026-07-19",
+  "type": "minor",
+  "title": "Auditoría ronda 2: cuentas por pagar, portal, tarifas en reserva, inventario y contratos",
+  "sections": [
+    {
+      "heading": "Fase 1 · Integridad financiera (BL-21, 22, 25, 26)",
+      "items": [
+        "Trigger recalc_supplier_bill_balance_on_total_change: al editar el total de una factura de proveedor el balance se recalcula desde los pagos aplicados (ya no se sobrescribe desde el cliente).",
+        "supplier_payments FK ahora es RESTRICT: no se puede borrar/cancelar una factura de proveedor con pagos completados; el UI muestra un mensaje explícito.",
+        "Portal de clientes: aprobar/rechazar intents de pago pasa por approve_payment_intent / reject_payment_intent (SECURITY DEFINER) con reclamo atómico — se elimina la ventana de doble aprobación."
+      ]
+    },
+    {
+      "heading": "Fase 2 · Tarifas y conciliación (BL-24, 31, 34)",
+      "items": [
+        "bookings gana columnas daily_rate, weekly_rate, monthly_rate: la tarifa negociada por reserva ya no contamina el montacargas maestro.",
+        "generate-recurring-invoices y get_financial_kpis leen la tarifa desde la reserva, con fallback al catálogo (BL-31, BL-34).",
+        "confirm_bank_match refuerza validaciones (monto, estatus del pago, exclusividad) y agrega índices únicos en bank_statement_lines.matched_payment_id/matched_supplier_payment_id (BL-24)."
+      ]
+    },
+    {
+      "heading": "Fase 3 · Consistencia operativa (BL-28, 29, 32)",
+      "items": [
+        "trg_maintenance_parts_adjust_stock ajusta parts_inventory.stock_quantity en cada insert/update/delete de refacciones usadas, rechazando si el stock quedaría negativo (BL-28).",
+        "trg_maintenance_parts_recalc_cost recalcula maintenance_logs.cost desde la suma de refacciones, cerrando la condición de carrera entre mecánicos (BL-29).",
+        "useAddMaintenancePart deja de actualizar cost manualmente (ahora es responsabilidad del trigger).",
+        "useQuoteBookingCreator agrega rollback best-effort: si alguna reserva falla se borran las creadas en el mismo intento (mitigación de BL-32; la RPC transaccional queda pendiente)."
+      ]
+    },
+    {
+      "heading": "Fase 4 · Vigencia y bloqueos (BL-23, 27, 30)",
+      "items": [
+        "trg_contracts_signed_lock: contratos con status signed/cancelled no permiten editar campos económicos/fechas; sólo un admin puede cambiar el estatus (BL-23).",
+        "expire_stale_quotes(): función SECURITY DEFINER que marca como expired las cotizaciones sent/draft cuya valid_until ya pasó (BL-27); lista para programarse con pg_cron.",
+        "Vista v_overdue_invoices (security_invoker) con balance, days_overdue y bucket 0-30/31-60/61-90/90+ para reportes de cartera (BL-30)."
+      ]
+    },
+    {
+      "heading": "Cambios en base de datos",
+      "items": [
+        "Nuevas columnas: bookings.daily_rate, weekly_rate, monthly_rate.",
+        "Nuevos triggers: trg_supplier_bills_recalc_balance, trg_maintenance_parts_adjust_stock, trg_maintenance_parts_recalc_cost, trg_contracts_signed_lock.",
+        "Nuevas RPCs: approve_payment_intent, reject_payment_intent, expire_stale_quotes.",
+        "Nueva vista: v_overdue_invoices (security_invoker=on).",
+        "confirm_bank_match reforzada; supplier_payments FK migrada a RESTRICT."
+      ]
+    }
+  ]
+}

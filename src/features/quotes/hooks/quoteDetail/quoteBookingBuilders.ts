@@ -41,9 +41,15 @@ export function buildDeliveryInfos(
 }
 
 /**
- * Aplica tarifas a equipos asignados. Devuelve el conteo de equipos actualizados.
+ * BL-31 (v7.92.0): las tarifas negociadas se guardan en la reserva, no se
+ * escriben al montacargas maestro. Aplica los rates a las bookings recién
+ * creadas (bookingId por assignment).
+ *
+ * Devuelve el número de bookings a las que se les aplicó al menos una tarifa.
  */
-export async function applyRatesToForklifts(assignments: Assignment[]): Promise<number> {
+export async function applyRatesToBookings(
+  assignments: Array<Assignment & { bookingId: string }>,
+): Promise<number> {
   type RatePayload = {
     daily_rate?: number;
     weekly_rate?: number;
@@ -55,19 +61,18 @@ export async function applyRatesToForklifts(assignments: Assignment[]): Promise<
       if (a.dailyRate > 0) u.daily_rate = a.dailyRate;
       if (a.weeklyRate > 0) u.weekly_rate = a.weeklyRate;
       if (a.monthlyRate > 0) u.monthly_rate = a.monthlyRate;
-      return { forkliftId: a.forkliftId, payload: u };
+      return { bookingId: a.bookingId, payload: u };
     })
     .filter((u) => Object.keys(u.payload).length > 0);
 
   const results = await Promise.all(
     updates.map((u) =>
-      supabase.from("forklifts").update(u.payload).eq("id", u.forkliftId).select("id"),
+      supabase.from("bookings").update(u.payload).eq("id", u.bookingId).select("id"),
     ),
   );
-  // Cuenta updates que (a) no fallaron y (b) realmente modificaron una fila.
-  // Si RLS filtra la fila, .select() devuelve [] sin error: no debe contarse.
   return results.filter((r) => !r.error && Array.isArray(r.data) && r.data.length > 0).length;
 }
+
 
 /**
  * Deduce los IDs de montacargas a reservar a partir de los line_items de una cotización legacy.

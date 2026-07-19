@@ -359,12 +359,14 @@ export type Database = {
           customer_contact: string | null
           customer_id: string | null
           customer_name: string | null
+          daily_rate: number | null
           e2e_scope: string | null
           end_date: string
           forklift_id: string
           id: string
           is_e2e: boolean
           last_billed_date: string | null
+          monthly_rate: number | null
           quote_id: string | null
           recurring_billing: boolean
           return_status: string | null
@@ -373,6 +375,7 @@ export type Database = {
           start_date: string
           status: string
           updated_at: string
+          weekly_rate: number | null
         }
         Insert: {
           booking_number: string
@@ -380,12 +383,14 @@ export type Database = {
           customer_contact?: string | null
           customer_id?: string | null
           customer_name?: string | null
+          daily_rate?: number | null
           e2e_scope?: string | null
           end_date: string
           forklift_id: string
           id?: string
           is_e2e?: boolean
           last_billed_date?: string | null
+          monthly_rate?: number | null
           quote_id?: string | null
           recurring_billing?: boolean
           return_status?: string | null
@@ -394,6 +399,7 @@ export type Database = {
           start_date: string
           status?: string
           updated_at?: string
+          weekly_rate?: number | null
         }
         Update: {
           booking_number?: string
@@ -401,12 +407,14 @@ export type Database = {
           customer_contact?: string | null
           customer_id?: string | null
           customer_name?: string | null
+          daily_rate?: number | null
           e2e_scope?: string | null
           end_date?: string
           forklift_id?: string
           id?: string
           is_e2e?: boolean
           last_billed_date?: string | null
+          monthly_rate?: number | null
           quote_id?: string | null
           recurring_billing?: boolean
           return_status?: string | null
@@ -415,6 +423,7 @@ export type Database = {
           start_date?: string
           status?: string
           updated_at?: string
+          weekly_rate?: number | null
         }
         Relationships: [
           {
@@ -480,6 +489,13 @@ export type Database = {
             referencedRelation: "v_invoices_with_balance"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "collection_notes_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_invoices"
+            referencedColumns: ["id"]
+          },
         ]
       }
       collection_reminders_log: {
@@ -523,6 +539,13 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "v_invoices_with_balance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_reminders_log_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -842,6 +865,13 @@ export type Database = {
             referencedRelation: "v_invoices_with_balance"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "credit_notes_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_invoices"
+            referencedColumns: ["id"]
+          },
         ]
       }
       customer_payment_intents: {
@@ -852,6 +882,7 @@ export type Database = {
           customer_id: string
           id: string
           invoice_id: string
+          payment_id: string | null
           proof_url: string | null
           review_notes: string | null
           reviewed_at: string | null
@@ -870,6 +901,7 @@ export type Database = {
           customer_id: string
           id?: string
           invoice_id: string
+          payment_id?: string | null
           proof_url?: string | null
           review_notes?: string | null
           reviewed_at?: string | null
@@ -888,6 +920,7 @@ export type Database = {
           customer_id?: string
           id?: string
           invoice_id?: string
+          payment_id?: string | null
           proof_url?: string | null
           review_notes?: string | null
           reviewed_at?: string | null
@@ -919,6 +952,20 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "v_invoices_with_balance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_payment_intents_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_payment_intents_payment_id_fkey"
+            columns: ["payment_id"]
+            isOneToOne: false
+            referencedRelation: "payments"
             referencedColumns: ["id"]
           },
         ]
@@ -1097,6 +1144,13 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "v_invoices_with_balance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "damage_records_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_invoices"
             referencedColumns: ["id"]
           },
           {
@@ -1536,6 +1590,13 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "v_invoices_with_balance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_bookings_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -2147,6 +2208,13 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "v_invoices_with_balance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -3174,6 +3242,28 @@ export type Database = {
           },
         ]
       }
+      v_overdue_invoices: {
+        Row: {
+          balance: number | null
+          bucket: string | null
+          customer_id: string | null
+          customer_name: string | null
+          days_overdue: number | null
+          due_date: string | null
+          id: string | null
+          invoice_number: string | null
+          total: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       accept_quote_from_portal: {
@@ -3214,6 +3304,14 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      approve_payment_intent: {
+        Args: {
+          p_intent_id: string
+          p_payment_form_sat?: string
+          p_review_notes?: string
+        }
+        Returns: string
       }
       approve_supplier_bill: {
         Args: { p_bill_id: string; p_notes?: string }
@@ -3353,6 +3451,7 @@ export type Database = {
       }
       e2e_seed_scenario: { Args: { p_scope: string }; Returns: Json }
       e2e_teardown: { Args: { p_scope: string }; Returns: Json }
+      expire_stale_quotes: { Args: never; Returns: number }
       generate_feedback_number: { Args: never; Returns: string }
       get_activity_metrics: {
         Args: { p_from: string; p_to: string }
@@ -3619,6 +3718,10 @@ export type Database = {
           p_receipt_url?: string
           p_reference?: string
         }
+        Returns: string
+      }
+      reject_payment_intent: {
+        Args: { p_intent_id: string; p_review_notes?: string }
         Returns: string
       }
       reject_quote_from_portal: {

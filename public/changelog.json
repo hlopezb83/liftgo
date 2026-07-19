@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.93.0",
+    "date": "2026-07-19",
+    "type": "minor",
+    "title": "Auditoría ronda 2: cuentas por pagar, portal, tarifas en reserva, inventario y contratos",
+    "summary": "Sprint v7.91.0-v7.93.0 cierra los hallazgos BL-21 a BL-34 de la segunda ronda de auditoría de lógica de negocio (14 hallazgos en dominios nuevos: CxP, conciliación bancaria, contratos, cotizaciones, portal y cash-flow). Fase 1: se remueven overrides de balance client-side en facturas de proveedor y se bloquean borrado/cancelación si ya hay pagos aplicados (BL-21, BL-22); el portal de clientes se migra a RPCs atómicas approve/reject_payment_intent (BL-25, BL-26). Fase 2: las tarifas negociadas se guardan en la reserva y ya no contaminan el catálogo de montacargas maestro; se agregan columnas daily/weekly/monthly_rate a bookings, se refuerza confirm_bank_match con validaciones y se corrige get_financial_kpis (BL-24, BL-31, BL-34). Fase 3: triggers automáticos ajustan stock de refacciones y recalculan el costo de mantenimiento (BL-28, BL-29); la conversión cotización→reservas hace rollback best-effort ante fallos (BL-32). Fase 4: los contratos firmados quedan bloqueados por trigger, se agrega función expire_stale_quotes y la vista v_overdue_invoices para reportes de cartera (BL-23, BL-27, BL-30)."
+  },
+
     "version": "7.90.0",
     "date": "2026-07-19",
     "type": "minor",

@@ -47,22 +47,13 @@ export function PaymentIntentsSection({ invoiceId }: Props) {
     openStorageFile("payment-proofs", path, { errorMessage: "No se pudo abrir el comprobante" });
 
   const submitReject = form.handleSubmit((values) => {
-    if (!rejectId || !intents) return;
-    const intent = intents.find((x) => x.id === rejectId);
-    if (!intent) return;
+    if (!rejectId) return;
     review.mutate(
-      {
-        intentId: rejectId,
-        action: "reject",
-        notes: values.notes.trim(),
-        invoiceId,
-        amount: Number(intent.amount),
-        transferDate: intent.transfer_date,
-        trackingKey: intent.tracking_key,
-      },
+      { intentId: rejectId, action: "reject", notes: values.notes.trim() },
       { onSuccess: () => setRejectId(null) },
     );
   });
+
 
   const columns: ColumnDef<PaymentIntent>[] = [
     {
@@ -129,18 +120,12 @@ export function PaymentIntentsSection({ invoiceId }: Props) {
                 <Button
                   size="sm"
                   onClick={() =>
-                    review.mutate({
-                      intentId: intent.id,
-                      action: "approve",
-                      invoiceId,
-                      amount: Number(intent.amount),
-                      transferDate: intent.transfer_date,
-                      trackingKey: intent.tracking_key,
-                    })
+                    review.mutate({ intentId: intent.id, action: "approve" })
                   }
                 >
                   Aprobar
                 </Button>
+
                 <Button size="sm" variant="destructive" onClick={() => setRejectId(intent.id)}>
                   Rechazar
                 </Button>
