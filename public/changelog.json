@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.95.0",
+    "date": "2026-07-19",
+    "type": "minor",
+    "title": "Auditoría v7.94.0: limpieza, regresiones y blindaje del portal",
+    "summary": "Cierra la revisión del sprint anterior. Se elimina `applyRatesToBookings` de `quoteBookingBuilders.ts` (dead code: la RPC transaccional `convert_quote_to_bookings` ya aplica tarifas server-side, así que el helper cliente-side no tenía llamadores en producción). Se agrega `useQuoteBookingCreator.test.ts` con dos regresiones sobre BL-32: (1) el payload a la RPC usa snake_case (`p_quote_id`, `p_assignments`, `p_recurring`) y difunde los IDs devueltos a `buildDeliveryInfos`; (2) un error de la RPC no invalida caches, no cierra el diálogo y sí levanta `notifyError`. Fase 1 (portal): se confirma que `customer_payment_intents` ya no tiene policy UPDATE para el rol `customer` — la aprobación/rechazo pasa únicamente por las RPCs SECURITY DEFINER `approve_payment_intent`/`reject_payment_intent`. Se agrega `paymentIntentsRls.test.ts` como regresión: si alguien vuelve a exponer UPDATE al portal, el test truena. Nota de alcance: el card de Cash Flow del dashboard no separa por método de pago hoy (invoiced vs paid); no es un bug del sprint pasado, es un feature no implementado — queda como backlog explícito y no se toca en este parche."
+  },
+  {
+
     "version": "7.94.0",
     "date": "2026-07-19",
     "type": "minor",
