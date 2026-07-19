@@ -42,6 +42,15 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, onO
   const handleSubmit = async () => {
     const amt = roundMoney(Number(amount));
     if (!amt || amt <= 0) { notifyValidation({ message: "Monto inválido" }); return; }
+    // BL-11: rechazar sobrepagos. Antes se permitía registrar un pago mayor al
+    // saldo (creando saldos negativos invisibles). Ahora bloqueamos en submit.
+    const balanceRounded = roundMoney(balance);
+    if (amt - balanceRounded > 0.01) {
+      notifyValidation({
+        message: `El monto excede el saldo pendiente ($${balanceRounded.toFixed(2)}). Ajusta la cantidad.`,
+      });
+      return;
+    }
     let exch = 1;
     if (currency !== "MXN") {
       const parsed = Number(exchangeRate);
