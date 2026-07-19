@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.102.0",
+    "date": "2026-07-19",
+    "type": "minor",
+    "title": "Mantenimiento recurrente idempotente + horómetro validado (BL-40/41/42)",
+    "summary": "`generate-recurring-maintenance` reclama cada póliza atómicamente (UPDATE ... WHERE last_generated_month IS NULL OR < mes actual, RETURNING id) ANTES de insertar el log, así que dos corridas simultáneas generan un solo log por póliza; los logs se crean con `work_status='scheduled'` (no `completed`) y sólo cargan al P&L cuando el mecánico los confirma. El cálculo del mes se hace en `America/Monterrey` para evitar off-by-one en las primeras horas del día 1 (BL-42). `get_income_statement.maint_by_month` filtra ahora `work_status='completed'` para no inflar el costo con provisiones. En el diálogo `PostDeliveryPickupDialog`, la validación Zod exige que el horómetro de recolección sea ≥ al capturado en la entrega (BL-42). Tests: `pickupHorometerSchema.test.ts` con 4 casos (null permitido, menor rechazado, igual/mayor aceptado, sin baseline valida solo no-negativos)."
+  },
+  {
     "version": "7.101.0",
     "date": "2026-07-19",
     "type": "minor",

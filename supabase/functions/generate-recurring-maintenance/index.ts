@@ -50,17 +50,24 @@ Deno.serve(async (req) => {
       }
     }
 
-    const now = new Date();
-    const currentMonth = `${now.getFullYear()}-${
-      String(now.getMonth() + 1).padStart(2, "0")
+    // BL-42: calcular el mes actual en America/Monterrey (evita off-by-one
+    // durante las primeras horas UTC del día 1 en zonas GMT-6).
+    const nowMty = new Date(
+      new Date().toLocaleString("en-US", { timeZone: "America/Monterrey" }),
+    );
+    const currentMonth = `${nowMty.getFullYear()}-${
+      String(nowMty.getMonth() + 1).padStart(2, "0")
     }`;
     const firstOfMonth = `${currentMonth}-01`;
-    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const nextMonth = new Date(
+      nowMty.getFullYear(),
+      nowMty.getMonth() + 1,
+      1,
+    );
     const firstOfNextMonth = `${nextMonth.getFullYear()}-${
       String(nextMonth.getMonth() + 1).padStart(2, "0")
     }-01`;
 
-    // Get active policies where forklift is rented and not yet generated for this month
     const { data: policies, error: pErr } = await supabase
       .from("maintenance_policies")
       .select("*, forklifts!inner(id, status, name)")
@@ -80,50 +87,66 @@ Deno.serve(async (req) => {
       forklifts?: { name?: string | null } | null;
     };
 
-    const toGenerate = ((policies ?? []) as Policy[]).filter(
+    const candidates = ((policies ?? []) as Policy[]).filter(
       (p) => !p.last_generated_month || p.last_generated_month < currentMonth,
     );
 
     let generated = 0;
-    const skipped = (policies?.length ?? 0) - toGenerate.length;
+    let skipped = (policies?.length ?? 0) - candidates.length;
     const details: string[] = [];
 
-    if (toGenerate.length > 0) {
-      const logsToInsert = toGenerate.map((policy) => ({
-        forklift_id: policy.forklift_id,
-        service_type: policy.service_type,
-        description: policy.description ||
-          `Póliza mensual - ${policy.provider_name}`,
-        cost: policy.monthly_cost,
-        performed_by: policy.provider_name,
-        performed_at: firstOfMonth,
-        work_status: "completed",
-        next_service_date: firstOfNextMonth,
-      }));
+    // BL-41: claim atómico por póliza ANTES de insertar el log. Si otra corrida
+    // ya reclamó el mes, el UPDATE devuelve 0 filas y omitimos la póliza
+    // (idempotente ante doble corrida / retry).
+    for (const policy of candidates) {
+      const { data: claimed, error: claimErr } = await supabase
+        .from("maintenance_policies")
+        .update({ last_generated_month: currentMonth })
+        .eq("id", policy.id)
+        .or(
+          `last_generated_month.is.null,last_generated_month.lt.${currentMonth}`,
+        )
+        .select("id");
 
-      const { error: bulkInsertErr } = await supabase
-        .from("maintenance_logs")
-        .insert(logsToInsert);
-
-      if (bulkInsertErr) {
-        details.push(`Error en inserción masiva: ${bulkInsertErr.message}`);
-      } else {
-        const policyIds = toGenerate.map((p) => p.id);
-        const { error: bulkUpdateErr } = await supabase
-          .from("maintenance_policies")
-          .update({ last_generated_month: currentMonth })
-          .in("id", policyIds);
-
-        if (bulkUpdateErr) {
-          details.push(
-            `Logs insertados pero error al marcar pólizas: ${bulkUpdateErr.message}`,
-          );
-        }
-        generated = toGenerate.length;
-        for (const policy of toGenerate) {
-          details.push(`✓ ${policy.forklifts?.name ?? "(sin nombre)"}`);
-        }
+      if (claimErr) {
+        details.push(`Error al reclamar ${policy.id}: ${claimErr.message}`);
+        continue;
       }
+      if (!claimed || claimed.length === 0) {
+        skipped += 1;
+        continue;
+      }
+
+      // BL-40: el log queda 'scheduled'; no carga P&L hasta que el mecánico
+      // lo confirme como 'completed'.
+      const { error: insertErr } = await supabase
+        .from("maintenance_logs")
+        .insert({
+          forklift_id: policy.forklift_id,
+          service_type: policy.service_type,
+          description: policy.description ||
+            `Póliza mensual - ${policy.provider_name}`,
+          cost: policy.monthly_cost,
+          performed_by: policy.provider_name,
+          performed_at: firstOfMonth,
+          work_status: "scheduled",
+          next_service_date: firstOfNextMonth,
+        });
+
+      if (insertErr) {
+        // Rollback del claim para permitir un reintento posterior.
+        await supabase
+          .from("maintenance_policies")
+          .update({ last_generated_month: policy.last_generated_month })
+          .eq("id", policy.id);
+        details.push(
+          `Error al insertar log ${policy.id}: ${insertErr.message}`,
+        );
+        continue;
+      }
+
+      generated += 1;
+      details.push(`✓ ${policy.forklifts?.name ?? "(sin nombre)"}`);
     }
 
     return jsonResponse(req, {

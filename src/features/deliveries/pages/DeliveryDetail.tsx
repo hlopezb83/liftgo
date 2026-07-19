@@ -20,7 +20,7 @@ import { useDelivery, useDeliveries, useUpdateDelivery, useDeleteDelivery } from
 import { buildCompletionPayload, buildDeliverySubtitle, computeHoursUsed } from "../lib/deliveryDetailHelpers";
 
 type PickupPrompt = {
-  delivery: { forklift_id: string; booking_id: string | null; address: string | null; driver_name: string | null; driver_phone: string | null };
+  delivery: { forklift_id: string; booking_id: string | null; address: string | null; driver_name: string | null; driver_phone: string | null; hours_reading: number | null };
   bookingEndDate: string;
   forkliftName: string;
 };
@@ -67,6 +67,7 @@ export default function DeliveryDetail() {
         address: delivery.address,
         driver_name: delivery.driver_name,
         driver_phone: delivery.driver_phone,
+        hours_reading: delivery.hours_reading ?? null,
       },
       bookingEndDate: linkedBooking.end_date,
       forkliftName: forklift.name,

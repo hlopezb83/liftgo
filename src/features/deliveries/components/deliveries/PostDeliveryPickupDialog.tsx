@@ -19,27 +19,37 @@ interface PostDeliveryPickupDialogProps {
     address: string | null;
     driver_name: string | null;
     driver_phone: string | null;
+    hours_reading: number | null;
   };
   bookingEndDate: string;
   forkliftName: string;
 }
 
-const schema = z.object({
+// BL-42 (horómetro): la recolección no puede tener menos horas que la entrega.
+const makeSchema = (minHours: number | null) => z.object({
   address: z.string().default(""),
   driverName: z.string().default(""),
   driverPhone: z.string().default(""),
   scheduledTime: z.string().default(""),
-  hoursReading: z.number().min(0).nullable().default(null),
+  hoursReading: z.number().min(0).nullable().default(null).refine(
+    (v) => v === null || minHours === null || v >= minHours,
+    {
+      message: minHours !== null
+        ? `El horómetro no puede ser menor a ${minHours} hrs (registradas en la entrega).`
+        : "Horómetro inválido",
+    },
+  ),
   notes: z.string().default(""),
 });
-type FormValues = z.infer<typeof schema>;
+type FormValues = z.infer<ReturnType<typeof makeSchema>>;
 
 export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, bookingEndDate, forkliftName }: PostDeliveryPickupDialogProps) {
   const createDelivery = useCreateDelivery();
   const [showForm, setShowForm] = useState(false);
+  const minHours = delivery.hours_reading;
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(makeSchema(minHours)),
     defaultValues: {
       address: delivery.address || "",
       driverName: delivery.driver_name || "",
