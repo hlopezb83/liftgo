@@ -98,7 +98,7 @@ export function PartFormDialog({ open, onOpenChange, part }: PartFormDialogProps
             />
           </FormSection>
           <FormSection title="Inventario y costo">
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <NumberField
                 control={form.control}
                 name="stock_quantity"

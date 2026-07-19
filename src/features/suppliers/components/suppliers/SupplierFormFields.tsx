@@ -36,7 +36,7 @@ export function SupplierFormFields() {
       </FormSection>
 
       <FormSection title="Datos Fiscales (CFDI)">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <TextField
             control={control}
             name="rfc"
@@ -61,7 +61,7 @@ export function SupplierFormFields() {
           label="Persona de Contacto"
           placeholder="Lic. Juan Pérez"
         />
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <TextField
             control={control}
             name="email"
@@ -94,7 +94,7 @@ export function SupplierFormFields() {
       </FormSection>
 
       <FormSection title="Condiciones Comerciales">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <SelectField
             control={control}
             name="category"

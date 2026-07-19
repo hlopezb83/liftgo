@@ -76,7 +76,7 @@ export function MaintenanceFormDialog({
           </FormSection>
 
           <FormSection title="Ejecución y costo">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <CurrencyField control={form.control} name="cost" label="Costo" />
               <SelectField
                 control={form.control}
@@ -86,7 +86,7 @@ export function MaintenanceFormDialog({
                 placeholder="Seleccionar mecánico"
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <DateField control={form.control} name="performedAt" label="Fecha de Servicio" />
               <DateField control={form.control} name="nextServiceDate" label="Próximo Servicio" placeholder="Opcional" />
             </div>

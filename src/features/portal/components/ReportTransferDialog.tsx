@@ -86,7 +86,7 @@ export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId
     <FormDialog open={open} onOpenChange={onOpenChange} title="Reportar transferencia" width="md">
       <Form {...form}>
         <form onSubmit={onSubmit} className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <DateField control={form.control} name="transferDate" label="Fecha" required />
             <CurrencyField control={form.control} name="amount" label="Monto" required currency="MXN" />
           </div>

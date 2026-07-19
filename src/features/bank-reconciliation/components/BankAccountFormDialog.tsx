@@ -101,13 +101,13 @@ export function BankAccountFormDialog({ open, onOpenChange, initial }: Props) {
               required
               placeholder="BBVA Operaciones"
             />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <TextField control={form.control} name="bank" label="Banco" required placeholder="BBVA" />
               <TextField control={form.control} name="last4" label="Últimos 4" />
             </div>
           </FormSection>
           <FormSection title="Condiciones">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <SelectField
                 control={form.control}
                 name="currency"

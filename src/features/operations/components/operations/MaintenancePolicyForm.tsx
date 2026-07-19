@@ -48,7 +48,7 @@ export function MaintenancePolicyForm({
         </div>
       </FormSection>
       <FormSection title="Condiciones">
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div className="space-y-1.5">
             <Label>Costo Mensual ($)</Label>
             <Input type="number" value={form.monthly_cost} onChange={(e) => onChange("monthly_cost", e.target.value)} placeholder="0" />

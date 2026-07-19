@@ -131,11 +131,11 @@ export function RegisterSupplierPaymentDialog({
       </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <CurrencyField control={form.control} name="amount" label="Monto" required />
             <DateField control={form.control} name="payment_date" label="Fecha" required />
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <SelectField
               control={form.control}
               name="payment_method"

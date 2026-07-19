@@ -108,7 +108,7 @@ export function EditReceptorFiscalDialog({ open, onOpenChange, invoice }: Props)
             description="Mayúsculas, sin acentos, sin régimen societario (S.A. de C.V.)."
           />
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <SelectField
               control={form.control}
               name="regimen"

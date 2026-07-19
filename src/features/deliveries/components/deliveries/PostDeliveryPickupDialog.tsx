@@ -111,16 +111,16 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
       ) : (
         <Form {...form}>
           <form onSubmit={handleSchedule} className="space-y-4">
-            <div className="grid grid-cols-2 gap-3 text-sm">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
               <div><p className="text-muted-foreground">Fecha de Recolección</p><p className="font-medium">{bookingEndDate}</p></div>
               <div><p className="text-muted-foreground">Tipo</p><p className="font-medium">Recolección</p></div>
             </div>
             <TextField control={form.control} name="address" label="Dirección de Recolección" placeholder="Ingresa la dirección" />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <TextField control={form.control} name="driverName" label="Nombre del Operador" />
               <TextField control={form.control} name="driverPhone" label="Teléfono del Operador" type="tel" />
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <TextField control={form.control} name="scheduledTime" label="Hora Programada" type="time" />
               <NumberField control={form.control} name="hoursReading" label="Horómetro (hrs)" min={0} step={0.1} placeholder="Ej: 1250" />
             </div>
