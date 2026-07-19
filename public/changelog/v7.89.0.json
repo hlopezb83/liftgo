@@ -1,0 +1,39 @@
+{
+  "version": "7.89.0",
+  "date": "2026-07-19",
+  "type": "minor",
+  "title": "Sprint 3: disponibilidad tras devolución, depreciación prorrateada y expenses cash",
+  "sections": [
+    {
+      "heading": "BL-17 — Reservas completadas ya no bloquean el calendario",
+      "items": [
+        "Constraint `no_overlapping_bookings` redefinida: `WHERE status NOT IN ('cancelled','completed')`. Al marcar una reserva como `completed` (equipo devuelto), sus fechas quedan libres para nuevas rentas incluso si la fecha de devolución fue anterior a la programada.",
+        "Rango cambiado de `[]` (inclusivo) a `[)` (semi-abierto): dos reservas pueden compartir el día de entrega/devolución. Ya no se pierde un día de patio entre rentas consecutivas.",
+        "Auditoría previa: 0 pares de reservas se solapaban por el borde inclusivo y 0 reservas `completed` bloqueaban fechas futuras, por lo que el cambio no requirió migración de datos."
+      ]
+    },
+    {
+      "heading": "BL-18 — Depreciación prorrateada por días",
+      "items": [
+        "`get_income_statement`: la depreciación mensual se calcula como `(acquisition_cost / 48) × díasRentados / díasDelMes` en lugar del mes completo por 1 día de solape. Renta 31-mar → 2-abr ahora carga 1/31 en marzo y 2/30 en abril, no un mes completo en cada uno.",
+        "El mismo criterio se aplica al COGS de venta: `book_value = acquisition_cost × (1 - min(1, díasRentadosTotales / (48×30)))`.",
+        "Nuevo helper puro `src/lib/finance/depreciation.ts::prorateDepreciation(acq, dias, diasMes)` con 6 tests (mes completo, día frontera, febrero 28, costo 0/nulo, días negativos, cap a `daysInMonth`)."
+      ]
+    },
+    {
+      "heading": "BL-19 — Base cash simétrica para gastos de proveedor",
+      "items": [
+        "Cuando `p_basis = 'cash'`, los gastos de `supplier_bills` se agrupan por mes de `supplier_payments.payment_date`, prorrateando el subtotal de la factura por la fracción pagada: `subtotal × (payment_amount / total)`. Antes se usaba `issue_date` incluso en modo cash.",
+        "Mantenimiento (`maintenance_logs.performed_at`) y daños (`damage_records.created_at`) mantienen la fecha del evento como fallback porque no existe una fecha de pago separada — documentado como comentario en la función.",
+        "El reporte accrual no cambia: sigue usando `issue_date` y subtotal completo."
+      ]
+    },
+    {
+      "heading": "Cobertura de tests",
+      "items": [
+        "Vitest: 6 tests nuevos en `src/lib/finance/__tests__/depreciation.test.ts` (1040/1040 en verde).",
+        "Guard de rol validado: `read_query` como anon obtiene `permission denied for function get_income_statement`, confirmando que la protección `has_role(...)` sigue activa después del refactor."
+      ]
+    }
+  ]
+}
