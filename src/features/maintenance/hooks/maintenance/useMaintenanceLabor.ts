@@ -13,7 +13,7 @@ export const maintenanceLaborKeys = createEntityKeys("maintenance_labor");
 
 export function useMaintenanceLabor(maintenanceLogId: string | null | undefined) {
   return useQuery({
-    queryKey: maintenanceLaborKeys.list({ maintenanceLogId }),
+    queryKey: maintenanceLaborKeys.byFilter({ maintenanceLogId }),
     enabled: Boolean(maintenanceLogId),
     staleTime: 30_000,
     queryFn: async (): Promise<MaintenanceLabor[]> => {
