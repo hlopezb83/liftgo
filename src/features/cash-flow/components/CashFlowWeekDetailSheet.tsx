@@ -67,7 +67,7 @@ export function CashFlowWeekDetailSheet({ bucket, open, onOpenChange }: Props) {
         </SheetHeader>
         {bucket && (
           <div className="mt-4 space-y-5">
-            <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-center">
               <div><p className="text-3xs uppercase text-muted-foreground">Neto</p><p className={cn("font-mono font-bold", bucket.net < 0 && "text-destructive")}>{formatCurrency(bucket.net)}</p></div>
               <div><p className="text-3xs uppercase text-muted-foreground">Acumulado</p><p className={cn("font-mono font-bold", bucket.cumulative < 0 && "text-destructive")}>{formatCurrency(bucket.cumulative)}</p></div>
               <div><p className="text-3xs uppercase text-muted-foreground">Movimientos</p><p className="font-mono font-bold">{bucket.items.length}</p></div>

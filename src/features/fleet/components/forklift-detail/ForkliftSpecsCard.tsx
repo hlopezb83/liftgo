@@ -33,7 +33,7 @@ export function ForkliftSpecsCard({ forklift, currentLocation }: ForkliftSpecsCa
         <CardTitle className="text-base flex items-center gap-2"><FleetIcon className="h-4 w-4" /> Especificaciones</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {specs.map((s) => (
             <div key={s.label}>
               <p className="text-xs text-muted-foreground">{s.label}</p>

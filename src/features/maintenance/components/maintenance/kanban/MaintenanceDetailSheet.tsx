@@ -27,7 +27,7 @@ export function MaintenanceDetailSheet({ log, onClose }: Props) {
 
             <Activity mode={log ? "visible" : "hidden"}>
             <div className="mt-6 space-y-6">
-              <div className="grid grid-cols-2 gap-4 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-muted-foreground">Fecha</p>
                   <p className="font-medium">{formatDateDisplay(log.performed_at)}</p>

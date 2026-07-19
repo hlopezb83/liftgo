@@ -26,7 +26,7 @@ export function FeedbackStatusChanger({
   return (
     <div className="space-y-2">
       <h4 className="text-sm font-medium">Cambiar estado</h4>
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
         <Select value={newStatus} onValueChange={(v) => onNewStatusChange(v as FeedbackStatus)}>
           <SelectTrigger><SelectValue placeholder="Nuevo estado" /></SelectTrigger>
           <SelectContent>

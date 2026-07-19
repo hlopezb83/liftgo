@@ -18,7 +18,7 @@ export function FiscalSection() {
   const { control } = useFormContext<CustomerFormData>();
   return (
     <FormSection title="Datos Fiscales (CFDI)">
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <TextField
           control={control}
           name="rfc"
@@ -33,7 +33,7 @@ export function FiscalSection() {
           placeholder="64000"
         />
       </div>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <SelectField
           control={control}
           name="regimen_fiscal"

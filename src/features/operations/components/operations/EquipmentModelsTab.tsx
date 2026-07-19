@@ -78,7 +78,7 @@ export function EquipmentModelsTab() {
           <div className="grid gap-4 py-2">
             <div className="space-y-1.5"><Label>Fabricante *</Label><Input placeholder="ej. Hyster" value={form.manufacturer} onChange={(e) => set("manufacturer", e.target.value)} /></div>
             <div className="space-y-1.5"><Label>Modelo *</Label><Input placeholder="ej. H50" value={form.model} onChange={(e) => set("model", e.target.value)} /></div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5"><Label>Capacidad (kg)</Label><Input type="number" placeholder="2500" value={form.default_capacity_kg} onChange={(e) => set("default_capacity_kg", e.target.value)} /></div>
               <div className="space-y-1.5"><Label>Altura Mástil (m)</Label><Input type="number" placeholder="4.5" value={form.default_mast_height_m} onChange={(e) => set("default_mast_height_m", e.target.value)} /></div>
             </div>
@@ -89,7 +89,7 @@ export function EquipmentModelsTab() {
                 <SelectContent>{FUEL_TYPES.map((f) => <SelectItem key={f} value={f}>{FUEL_TYPE_LABELS[f] || f}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
               <div className="space-y-1.5"><Label>Tarifa Diaria</Label><Input type="number" placeholder="0" value={form.default_daily_rate} onChange={(e) => set("default_daily_rate", e.target.value)} /></div>
               <div className="space-y-1.5"><Label>Tarifa Semanal</Label><Input type="number" placeholder="0" value={form.default_weekly_rate} onChange={(e) => set("default_weekly_rate", e.target.value)} /></div>
               <div className="space-y-1.5"><Label>Tarifa Mensual</Label><Input type="number" placeholder="0" value={form.default_monthly_rate} onChange={(e) => set("default_monthly_rate", e.target.value)} /></div>

@@ -86,7 +86,7 @@ export function CompanyLogoTab() {
                   <InfoAlertIcon className="h-4 w-4" />
                   Cambios sin guardar — vista previa
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">Actual</p>
                     <div className="h-24 rounded-md border border-border bg-muted flex items-center justify-center overflow-hidden">

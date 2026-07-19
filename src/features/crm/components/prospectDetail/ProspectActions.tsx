@@ -40,7 +40,7 @@ export function ProspectActions({ prospect, onEdit, onClose }: Props) {
     <RoleGuard module="CRM / Prospectos" minAccess="full">
       <div className="space-y-2">
         {!isClosed && (
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <Button
               onClick={() => { if (assertCanClose("save")) setWonOpen(true); }}
               className="bg-success hover:bg-success/90 text-success-foreground"
