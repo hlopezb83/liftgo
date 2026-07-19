@@ -117,7 +117,7 @@ async function buildPlan(supabase: any): Promise<{
   const { data: bookings, error: bErr } = await supabase
     .from("bookings")
     .select(
-      "id, booking_number, customer_id, customer_name, start_date, end_date, last_billed_date, monthly_rate, end_date, forklifts(name, monthly_rate, serial_number)",
+      "id, booking_number, customer_id, customer_name, start_date, end_date, last_billed_date, monthly_rate, forklifts(name, monthly_rate, serial_number)",
     )
     .eq("recurring_billing", true)
     .eq("status", "confirmed");
