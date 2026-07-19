@@ -1,0 +1,16 @@
+{
+  "version": "7.90.0",
+  "date": "2026-07-19",
+  "type": "minor",
+  "title": "Fixes A/B/C/D — auditoría de lógica de negocio (ronda profunda)",
+  "category": "fix",
+  "description": "Sprint v7.90.0: se aplican cuatro correcciones derivadas de una auditoría independiente. Cada fix tiene su helper puro y sus tests.",
+  "changes": [
+    "Fix C (NC en facturas pagadas): nuevo helper computeMaxCreditable(invoiceTotal, activeCredits, draftCredits) en src/features/invoices/lib/. Elimina el tope de pagos del cálculo del máximo acreditable en InvoiceCreditNotesCard. Antes: total - totalPaid - activeCredits - draftCredits (una factura pagada al 100% no podía recibir NC). Ahora: total - activeCredits - draftCredits, alineado con la validación server-side de BL-08. Se retira la prop totalPaid del componente (queda solo en la card padre InvoicePaymentSummary). Trade-off documentado: puede generar saldo a favor del cliente; flujo de reembolso queda pendiente.",
+    "Fix A (cobro de daños con costo real): nuevo helper chargeableDamageCost(record) en src/features/damage/lib/. DamageActions.handleCreateInvoice usa actual_cost cuando record.status === 'repaired', cae al estimated_cost si no hay real. La orden de mantenimiento sigue usando estimated_cost (es el presupuesto). El botón 'Cobrar' se deshabilita cuando no hay ningún costo capturado.",
+    "Fix B1 (servidor REP): cancel-payment-complement handler rechaza motivos inválidos o ausentes con 400 'motive must be one of 01,02,03,04'. Antes caía silenciosamente a '02', ocultando errores del cliente.",
+    "Fix B2 (UI REP): nuevo CancelRepDialog.tsx (patrón CancelCfdiDialog + Zod). Sustituye el confirm() con motivo '02' hardcodeado en usePaymentHistoryColumns por un diálogo con SelectField de motivos 02/03/04 (se omite 01 por falta de flujo de REP sustituto). Se ata desde InvoicePaymentSummary vía nuevos estados cancelRepPaymentId / setCancelRepPaymentId.",
+    "Fix D (BL-13 recurring end_date): generate-recurring-invoices añade end_date al select de bookings y lo evalúa como nuevo motivo 'booking_ended' antes del check de period_in_future. Si la reserva ya terminó (end_date < billingStart) queda como no-elegible en el preview. Se extiende PreviewReason en el front y se traduce como 'Reserva terminada — completa la devolución'.",
+    "Tests añadidos: src/features/invoices/lib/__tests__/computeMaxCreditable.test.ts (5 casos), src/features/damage/lib/__tests__/chargeableDamageCost.test.ts (6 casos), supabase/functions/generate-recurring-invoices/bookingEnded_test.ts (4 casos)."
+  ]
+}
