@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.98.4",
+    "date": "2026-07-19",
+    "type": "patch",
+    "title": "CHECK constraint: reserva cancelada nunca puede ser recurrente",
+    "summary": "Nueva restricción `bookings_cancelled_not_recurring` en `public.bookings` que prohíbe por esquema el par inválido `status='cancelled' + recurring_billing=true`. Defensa en profundidad sobre el trigger `trg_bookings_clear_recurring_on_cancel` (v7.98.2): cualquier código futuro que intente esa combinación (bug, migración, import) falla inmediatamente en vez de contaminar KPIs. Cierra el ciclo de blindaje del MRR (v7.98.1 → v7.98.4)."
+  },
+  {
     "version": "7.98.3",
     "date": "2026-07-19",
     "type": "patch",
