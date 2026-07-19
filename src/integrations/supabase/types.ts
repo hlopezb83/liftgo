@@ -1803,6 +1803,57 @@ export type Database = {
           },
         ]
       }
+      maintenance_labor: {
+        Row: {
+          created_at: string
+          hourly_rate: number
+          hours: number
+          id: string
+          maintenance_log_id: string
+          mechanic_id: string
+          notes: string | null
+          total_cost: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          hourly_rate?: number
+          hours: number
+          id?: string
+          maintenance_log_id: string
+          mechanic_id: string
+          notes?: string | null
+          total_cost?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          hourly_rate?: number
+          hours?: number
+          id?: string
+          maintenance_log_id?: string
+          mechanic_id?: string
+          notes?: string | null
+          total_cost?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "maintenance_labor_maintenance_log_id_fkey"
+            columns: ["maintenance_log_id"]
+            isOneToOne: false
+            referencedRelation: "maintenance_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "maintenance_labor_mechanic_id_fkey"
+            columns: ["mechanic_id"]
+            isOneToOne: false
+            referencedRelation: "mechanics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       maintenance_logs: {
         Row: {
           cost: number | null

@@ -1,29 +1,41 @@
-# Estado actual y qué falta
+## Auditoría v7.96.0 — Verde ✅
 
-## Ya cerrado en v7.95.0
+- 153 archivos / 1053 tests en verde.
+- Migración `documents.uploaded_by` (UUID + FK), `purge_old_notifications()` en `pg_cron`, y rollback de storage en `useDocuments.ts` verificados.
+- Tests nuevos (`useDocuments.upload.test.ts`) cubren autoría, rollback y errores.
+- Sin regresiones detectadas.
 
-- Fase 0 · limpieza: `applyRatesToBookings` eliminado + test viejo borrado.
-- Fase 0 · tests que faltaban:
-  - `useQuoteBookingCreator.test.ts` (2 casos: payload snake_case + manejo de error RPC).
-  - `paymentIntentsRls.test.ts` (regresión: portal no puede UPDATE directo).
-- Fase 1 · RLS del portal (BL-25/26): confirmado que `customer_payment_intents` sólo expone SELECT/INSERT a `customer`; aprobar/rechazar pasa por las RPCs SECURITY DEFINER.
-- Changelog v7.95.0 publicado. 9/9 tests verdes.
+## Siguiente fase — Sprint v7.97.0: BL-38 Mano de obra por mecánico
 
-## Lo que queda pendiente del plan original
+Único hallazgo abierto de la ronda. Requiere migración de datos + rediseño de form. Lo abordamos en 3 pasos.
 
-1. **Test pgTAP para `convert_quote_to_bookings**` (Fase 0, punto 3 del plan): atomicidad ante fallo intermedio, rechazo por `status = accepted`, rechazo por arreglo vacío, marcado final a `accepted`. No lo ejecuté porque en Lovable Cloud no hay runner de SQL en CI; hoy la garantía viene sólo del `BEGIN/EXCEPTION` de la RPC + tests cliente.
-2. **Cash Flow por método de pago** (Fase 1, backlog documentado en v7.95.0): desglose efectivo/transferencia/cheque/tarjeta en cobros y pagos a proveedores. Requiere nueva RPC + card en dashboard + test. Es feature, no bug.
-3. **Ronda 2 de auditoría (BL-21..34)**: cerrada la parte transaccional y de reglas. Quedan dominios que la ronda 2 no tocó y podrían abrirse en una ronda 3 si quieres: notificaciones, storage/documentos, mecánicos/costo de mano de obra, colecciones automatizadas.
+### 1. Modelo de datos (migración)
+- Nueva tabla `maintenance_labor` (líneas de mano de obra por mantenimiento):
+  - `id uuid pk`, `maintenance_id fk`, `mechanic_id fk → profiles/user_roles`, `hours numeric(5,2)`, `hourly_rate numeric(10,2)`, `total_cost numeric(12,2) generated`, `notes text`, `created_at`.
+- GRANT + RLS: `authenticated` con `has_role` (admin/administrativo/mecanico) según patrón existente.
+- Índices: `(maintenance_id)`, `(mechanic_id, created_at)`.
+- Trigger `recalc_maintenance_labor_cost`: al insert/update/delete, actualiza `maintenance_logs.labor_cost` (nuevo campo `numeric` default 0) y suma a `total_cost` junto con partes.
+- Backfill: migrar `performed_by` (texto libre) a `notes` de una fila placeholder si existe historial; **no** intentar mapear a `mechanic_id` automáticamente (queda `NULL` para históricos).
+- Mantener `performed_by` como columna legacy read-only durante 1 versión antes de dropear.
 
-## Recomendación
+### 2. Frontend
+- Nuevo sub-form `MaintenanceLaborSection` dentro del modal de mantenimiento (patrón `FormDialog` + field wrappers, ≤150 LOC).
+- Selector de mecánicos: hook `useMechanics` (filtra `user_roles` con rol `mecanico`).
+- Tabla compacta zebra con add/remove de líneas, total en `text-lg` MXN.
+- `MobileCardList` fallback.
+- Domain hook `useMaintenanceLabor(maintenanceId)` con `useEntityMutation` + `createEntityKeys`.
 
-Cortamos aquí el sprint de auditorías (v7.87 → v7.95) y elegimos uno de estos caminos para el siguiente turno:
+### 3. Tests
+- Vitest: builder de payload, cálculo de totales, hook de mutación (invalidación de cache).
+- Deno test para el trigger de recálculo (aritmética de labor + partes).
+- RLS test: mecánico solo ve/edita su propia labor; admin ve todo.
 
-- **A**: Implementar Cash Flow por método de pago (feature con impacto directo en el dashboard).
-- **B**: Escribir el test pgTAP de `convert_quote_to_bookings` y armar infraestructura mínima para correr SQL tests en CI.
-- **C**: Abrir ronda 3 de auditoría de lógica de negocio sobre los dominios no cubiertos.
-- **D**: Pausar auditorías y atender lo próximo que traigas (bug report, feature nueva, etc.).
+### 4. Cierre
+- Entrada nueva en `public/changelog.json` + `public/changelog/v7.97.0.json` (minor: nueva capacidad + migración).
+- Memoria: actualizar `mem://features/maintenance` con el nuevo modelo de labor.
 
-## Pregunta
+### Fuera de scope
+- Reportes de productividad por mecánico (queda backlog para Ronda 3).
+- Drop de `performed_by` (se difiere a v7.98.0).
 
-¿Cuál de A / B / C / D seguimos, o prefieres cerrar el ciclo aquí? Continuamos hasta corregir todos los bugs BL
+¿Ejecuto v7.97.0 así, o prefieres partirlo (solo migración esta fase, UI en la siguiente)?

@@ -5,6 +5,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "
 import { MAINTENANCE_WORK_STATUS_LABELS } from "@/lib/constants";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
+import { MaintenanceLaborSection } from "../MaintenanceLaborSection";
 import { MaintenancePartsSection } from "../MaintenancePartsSection";
 import type { MaintenanceLog } from "../../../hooks/maintenance/useMaintenanceLogs";
 
@@ -60,6 +61,10 @@ export function MaintenanceDetailSheet({ log, onClose }: Props) {
                 maintenanceLogId={log.id}
                 currentCost={log.cost || 0}
               />
+
+              <Separator />
+
+              <MaintenanceLaborSection maintenanceLogId={log.id} />
             </div>
             </Activity>
           </>

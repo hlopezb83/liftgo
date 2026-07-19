@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.97.0",
+    "date": "2026-07-19",
+    "type": "minor",
+    "title": "BL-38: mano de obra por mecánico en mantenimientos",
+    "summary": "Cierra el último hallazgo abierto de la Ronda 3. Antes: `maintenance_logs.performed_by` era un texto libre sin traza de horas ni de quién trabajó, y el costo del mantenimiento sólo sumaba refacciones. Ahora: nueva tabla `maintenance_labor` (mecánico FK, `hours numeric(6,2)`, `hourly_rate numeric(10,2)`, `total_cost` GENERATED) con RLS por rol (admin/administrativo/mecánico full; auditor/dispatcher solo lectura), índices por log y por mecánico, y trigger `trg_maintenance_labor_recalc_cost` que reusa `recalc_maintenance_log_cost` — el `cost` de `maintenance_logs` ahora suma refacciones + mano de obra automáticamente. UI: nuevo `MaintenanceLaborSection` (selector de mecánico activo, horas, tarifa, notas, borrado por línea, total en badge) integrado en ambos `MaintenanceDetailSheet` (lista y kanban). Hook `useMaintenanceLabor` + `useAddMaintenanceLabor` + `useDeleteMaintenanceLabor` con `useEntityMutation` invalidando `maintenance_labor` y `maintenance_logs`. Tests nuevos en `useMaintenanceLabor.test.ts` (3 casos: insert limpio sin escribir en logs, `total_cost` no se envía desde el cliente, propagación de error). `performed_by` queda marcado como DEPRECATED en el comentario de columna — se removerá en v7.98.0. 1056 tests en verde."
+  },
+  {
+
     "version": "7.96.0",
     "date": "2026-07-19",
     "type": "minor",
