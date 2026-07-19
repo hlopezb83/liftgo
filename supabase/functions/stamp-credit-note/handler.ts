@@ -66,6 +66,7 @@ export async function handleStampCreditNote(
     userId = claimsData.claims.sub;
 
     const supabase = deps.createServiceClient();
+    supabaseRef = supabase;
     const rolesRes = await supabase.from("user_roles").select("role").eq(
       "user_id",
       userId,
