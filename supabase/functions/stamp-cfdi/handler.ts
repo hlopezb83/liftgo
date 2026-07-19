@@ -540,6 +540,23 @@ export async function handleStampCfdi(
     );
   } catch (err) {
     console.error("[stamp-cfdi] unhandled exception", err);
+    // BL-03 (cierre): liberar el claim ante excepción no manejada para que la
+    // factura no quede atascada en 'stamping'.
+    if (claimed && supabaseRef && invoiceIdRef) {
+      try {
+        await supabaseRef.from("invoices")
+          .update({
+            cfdi_status: "error",
+            cfdi_error_message: "Internal error during stamping",
+          })
+          .eq("id", invoiceIdRef);
+      } catch (releaseErr) {
+        console.error("[stamp-cfdi] release-on-exception failed", {
+          invoice_id: invoiceIdRef,
+          err: releaseErr instanceof Error ? releaseErr.message : String(releaseErr),
+        });
+      }
+    }
     return json({ error: "Internal server error" }, 500);
   }
 }
