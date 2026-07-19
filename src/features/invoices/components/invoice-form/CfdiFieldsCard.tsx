@@ -15,7 +15,7 @@ import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
 function CfdiCatalogSelects() {
   const { control } = useFormContext<InvoiceFormValues>();
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
       <FormField control={control} name="cfdi.formaPago" render={({ field }) => (
         <FormItem>
           <FormLabel>Forma de Pago</FormLabel>
