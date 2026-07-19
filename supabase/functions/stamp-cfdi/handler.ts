@@ -154,7 +154,9 @@ export async function handleStampCfdi(
       await supabase.from("invoices")
         .update({
           cfdi_status: errorMessage ? "error" : "pending",
-          ...(errorMessage ? { cfdi_error_message: errorMessage.slice(0, 1000) } : {}),
+          ...(errorMessage
+            ? { cfdi_error_message: errorMessage.slice(0, 1000) }
+            : {}),
         })
         .eq("id", invoice_id);
     };
@@ -344,7 +346,8 @@ export async function handleStampCfdi(
       if (!periodicity) {
         // BL-03: revertir claim antes de propagar error — antes se lanzaba y la
         // factura quedaba atascada en "stamping".
-        const msg = `Periodicidad global inválida: "${raw}". Debe ser código SAT 01-05.`;
+        const msg =
+          `Periodicidad global inválida: "${raw}". Debe ser código SAT 01-05.`;
         await releaseClaim(msg);
         return json({ error: msg }, 400, jsonHeaders);
       }
