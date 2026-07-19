@@ -28,6 +28,28 @@ Deno.serve(async (req) => {
       return jsonError(req, 400, "Cannot delete your own account");
     }
 
+    // BL-37: bloquear si el objetivo es admin y es el último admin activo.
+    const { data: targetAdmin } = await auth.adminClient
+      .from("user_roles")
+      .select("user_id")
+      .eq("user_id", user_id)
+      .eq("role", "admin")
+      .maybeSingle();
+
+    if (targetAdmin) {
+      const { count: adminCount } = await auth.adminClient
+        .from("user_roles")
+        .select("user_id", { count: "exact", head: true })
+        .eq("role", "admin");
+      if ((adminCount ?? 0) <= 1) {
+        return jsonError(
+          req,
+          400,
+          "LAST_ADMIN_CANNOT_BE_DELETED: no puedes eliminar al último administrador del sistema.",
+        );
+      }
+    }
+
     await auth.adminClient.from("user_roles").delete().eq("user_id", user_id);
     await auth.adminClient.from("profiles").delete().eq("user_id", user_id);
 
