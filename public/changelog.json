@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.104.0",
+    "date": "2026-07-19",
+    "type": "minor",
+    "title": "Residuos BL + auditoría UX/UI mobile (BL-46/47, UX-01..UX-09)",
+    "summary": "Backend: `toggle-user-status` bloquea la desactivación del último administrador activo (BL-46, `LAST_ADMIN_CANNOT_BE_DEACTIVATED`). `revert_audit_log` excluye tablas financieras (`bookings`, `invoices`, `payments`) redirigiendo al flujo oficial de cancelación/nota de crédito (BL-47). Portal cliente: `PortalInvoices/Quotes/Rentals/Contracts` ahora usan `MobileCardList` en <sm para reemplazar tablas cortadas. UI mobile: barridos sistemáticos convirtiendo `grid-cols-2/3` a `grid-cols-1 sm:grid-cols-N` en dialogs de suppliers, invoices, bookings, deliveries, quotes, contracts, maintenance, inventory, portal, operations y receptor fiscal (~64 archivos). Toolbars con `flex-wrap` + labels `hidden sm:inline` en Facturas de Proveedor y Mantenimiento. Gantt: hint 'Desliza →' + mask fade lateral en <sm; título `capitalize` reemplazado por capitalización JS estable en `es-MX`. Tabs de Configuración con mask fade lateral para pistar el scroll horizontal."
+  },
+
+  {
     "version": "7.103.0",
     "date": "2026-07-19",
     "type": "minor",
