@@ -1,0 +1,29 @@
+{
+  "version": "7.87.0",
+  "date": "2026-07-19",
+  "type": "minor",
+  "title": "Sprint 1 CFDI: correcciones fiscales críticas",
+  "category": "fix",
+  "summary": "Ronda profunda de lógica de negocio. Se corrigen 8 hallazgos críticos en el pipeline de timbrado (facturas, notas de crédito y complementos de pago), más BL-10 y BL-11 (integridad de saldos).",
+  "highlights": [
+    "BL-01 · Timbrado respeta la tasa de IVA capturada, incluida la tasa 0% legítima (antes forzaba 16% al detectar 0).",
+    "BL-02 · Los descuentos por línea (porcentuales o monto fijo) ahora se propagan al CFDI vía Facturapi, evitando descuadres entre app y XML timbrado.",
+    "BL-03 · Facturas y notas de crédito ya no quedan atascadas en 'stamping' ante fallos previos al timbrado. Se revierte el claim atómico a pending/error con mensaje.",
+    "BL-04 · Complemento de pago: se elimina 'stamping' del claim atómico, cerrando la ventana para doble timbrado concurrente.",
+    "BL-05 · REP en facturas USD ya no hardcodea moneda MXN — el documento relacionado usa la moneda y tipo de cambio de la factura origen.",
+    "BL-06 · Cancelar un REP permite re-timbrado: el pago vuelve a ser reclamable y prior_balance/NumParcialidad se recalculan sin usar montos cancelados.",
+    "BL-07 · NumParcialidad ahora es único e incremental por factura (incluye REPs cancelados). Los pagos retroactivos no colisionan con parcialidades ya timbradas.",
+    "BL-08 · Notas de crédito: validación server-side impide que la suma de NCs vigentes exceda el total facturado (anti-sobreacreditación por concurrencia).",
+    "BL-10 · syncInvoiceStatus deja de resucitar facturas canceladas o en borrador al editar/eliminar pagos.",
+    "BL-11 · El formulario de registro de pago rechaza sobrepagos con mensaje claro (ajusta al saldo pendiente).",
+    "BL-16 · NCs propagan payment_method (PUE/PPD) y tipo_cambio reales de la factura origen; antes se hardcodeaba PUE + exchange 1.",
+    "BL-20 · Timbrado stub bloqueado en modo live si falta la API key; folio no-numérico ya no rompe el payload."
+  ],
+  "technical": [
+    "stamp-cfdi/handler.ts: helper releaseClaim, taxRatePct desde inv.tax_rate, discount por línea, validación de folio numérico, modo live sin apiKey rechaza.",
+    "stamp-credit-note/handler.ts: releaseClaim, validación anti-sobreacreditación por invoice_id, tax rate desde ncRow.tax_rate, exchange y payment_method de invoice origen, modo live sin key rechaza.",
+    "stamp-payment-complement/index.ts: claim ya no acepta 'stamping'; ordenamiento reemplazado por conteo de emisiones para installment_number; priorBalance solo cuenta REPs stamped vigentes; related_doc.currency/exchange desde invoice.",
+    "syncInvoiceStatus: early-return para invoice.status ∈ {cancelled, draft}.",
+    "useRecordPaymentForm: validación amt > balance + 0.01 → notifyValidation antes de mutate."
+  ]
+}
