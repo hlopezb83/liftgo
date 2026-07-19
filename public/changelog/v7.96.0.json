@@ -1,0 +1,47 @@
+{
+  "version": "7.96.0",
+  "date": "2026-07-19",
+  "type": "minor",
+  "title": "Ronda 3 · BL-35/36/37: trazabilidad, sin huérfanos y purga",
+  "sections": [
+    {
+      "heading": "BL-35 · Trazabilidad del autor de documentos",
+      "items": [
+        "`documents.uploaded_by` migrada de TEXT → UUID con FK a `auth.users(id) ON DELETE SET NULL`.",
+        "Índice parcial `idx_documents_uploaded_by WHERE uploaded_by IS NOT NULL` para consultas por autor.",
+        "`useUploadDocument` ahora setea `uploaded_by` con el `auth.uid()` actual en el INSERT.",
+        "Migración segura: 4 filas totales, todas con NULL antes del cambio."
+      ]
+    },
+    {
+      "heading": "BL-36 · Rollback de storage en fallo de INSERT",
+      "items": [
+        "Antes: si el archivo subía al bucket pero el INSERT a `documents` fallaba (RLS, unique, red), el objeto quedaba huérfano ocupando espacio.",
+        "Ahora: `useUploadDocument` invoca `storage.from('documents').remove([filePath])` dentro del `catch` del insert antes de re-lanzar el error.",
+        "Solo se limpia si el upload fue exitoso — un upload fallido no dispara remove."
+      ]
+    },
+    {
+      "heading": "BL-37 · Purga automática de notificaciones",
+      "items": [
+        "Nueva función `public.purge_old_notifications()` SECURITY DEFINER (REVOKE PUBLIC, GRANT service_role).",
+        "Regla de retención: borra notificaciones leídas con más de 90 días o no leídas con más de 180 días.",
+        "Programada vía `pg_cron` como job `purge-old-notifications-daily` a las 04:00 UTC (22:00 America/Monterrey).",
+        "Estado actual: 2.129 filas, 36 candidatas inmediatas — evita crecimiento indefinido a mediano plazo."
+      ]
+    },
+    {
+      "heading": "Tests",
+      "items": [
+        "Nuevo `src/hooks/__tests__/useDocuments.upload.test.ts` (3 casos): seteo de `uploaded_by`, rollback en error del insert, no-remove si el upload falla.",
+        "Suite completa de `useDocuments` (upload + rls) verde: 6/6."
+      ]
+    },
+    {
+      "heading": "Backlog explícito (no cubierto en este sprint)",
+      "items": [
+        "BL-38 (mano de obra por mecánico): `maintenance_logs.performed_by` es TEXT libre; no hay FK a `mechanics` ni columnas `labor_hours`/`labor_cost`. Requiere migración de datos + rediseño de UI del form de mantenimiento. Se difiere para sprint dedicado."
+      ]
+    }
+  ]
+}
