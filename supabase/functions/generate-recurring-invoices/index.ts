@@ -342,18 +342,23 @@ async function executePlan(supabase: any, items: PlanItem[]) {
         .eq("id", first.customerId)
         .maybeSingle();
 
-      const lineItems = group.map((i) => ({
-        description: `${i.forkliftName || "Montacargas"} — Renta mensual (${
-          fmtMx(i.billingStart)
-        } al ${fmtMx(i.billingEnd)})${
-          i.forkliftSerial ? ` (Serie: ${i.forkliftSerial})` : ""
-        }`,
-        quantity: 1,
-        unit_price: i.monthlyRate,
-        total: i.monthlyRate,
-      }));
+      const lineItems = group.map((i) => {
+        const proratedLabel = i.isProrated
+          ? ` — prorrateado ${i.proratedDays} días`
+          : "";
+        return {
+          description: `${i.forkliftName || "Montacargas"} — Renta mensual (${
+            fmtMx(i.billingStart)
+          } al ${fmtMx(i.billingEnd)}${proratedLabel})${
+            i.forkliftSerial ? ` (Serie: ${i.forkliftSerial})` : ""
+          }`,
+          quantity: 1,
+          unit_price: i.billedAmount,
+          total: i.billedAmount,
+        };
+      });
 
-      const subtotal = group.reduce((acc, i) => acc + i.monthlyRate, 0);
+      const subtotal = group.reduce((acc, i) => acc + i.billedAmount, 0);
       const taxRate = 16;
       const taxAmount = Math.round(subtotal * (taxRate / 100) * 100) / 100;
       const total = Math.round((subtotal + taxAmount) * 100) / 100;
