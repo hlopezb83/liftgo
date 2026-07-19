@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.complete_return_inspection(uuid, uuid, text, text, numeric, numeric, text, text);

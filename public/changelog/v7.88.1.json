@@ -1,0 +1,32 @@
+{
+  "version": "7.88.1",
+  "date": "2026-07-19",
+  "type": "patch",
+  "title": "Sprint 2 (parte 2): prorrateo del primer ciclo recurrente y limpieza de RPC obsoleta",
+  "sections": [
+    {
+      "title": "BL-12 · Prorrateo del primer mes",
+      "items": [
+        "generate-recurring-invoices ahora detecta reservas que arrancan a mitad de mes y factura sólo los días efectivos del primer periodo.",
+        "billedAmount = round(monthlyRate × díasPeriodo / díasDelMes, 2). Los ciclos siguientes se siguen cobrando como mes completo (día 1 al último).",
+        "Se extrae computeProrate() a supabase/functions/generate-recurring-invoices/prorate.ts como helper puro para permitir pruebas aisladas.",
+        "El diálogo de previsualización muestra el monto real y una etiqueta ámbar 'prorrateado N días' cuando aplica; el total incluye IVA sobre billedAmount."
+      ]
+    },
+    {
+      "title": "BL-13 · Retorno completa reserva",
+      "items": [
+        "Verificado que complete_return_inspection (versión con p_inspected_at) marca la reserva como completed, el montacargas como available y registra el status_log en un mismo bloque transaccional.",
+        "Se elimina la sobrecarga obsoleta de 8 argumentos de complete_return_inspection para eliminar ambigüedad en PostgREST."
+      ]
+    },
+    {
+      "title": "Cobertura de tests",
+      "items": [
+        "4 tests Deno para computeProrate (día 1, día 15, último día del mes, febrero de 28 días).",
+        "2 tests Vitest adicionales para calculateRentalCost cubriendo el borde exacto de 28 días (4 semanas), con y sin activación del cap de BL-15.",
+        "1 test para generateLineItemsFromModel confirmando estabilidad YMD de BL-14."
+      ]
+    }
+  ]
+}

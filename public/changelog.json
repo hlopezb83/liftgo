@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.88.1",
+    "date": "2026-07-19",
+    "type": "patch",
+    "title": "Sprint 2 (parte 2): prorrateo del primer ciclo recurrente y limpieza de RPC obsoleta",
+    "summary": "BL-12: la generación de facturas recurrentes prorratea el primer mes cuando la reserva arranca a mitad de mes: se calcula billedAmount = monthlyRate × díasPeriodo / díasDelMes y el diálogo de previsualización muestra la etiqueta 'prorrateado N días' junto al importe real a facturar. Se extrae computeProrate a un módulo puro con 4 tests Deno cubriendo día 1 (sin prorrateo), día 15, último día del mes y febrero de 28 días. BL-13: verificado que complete_return_inspection (9 args) ya pone la reserva en 'completed' y el montacargas en 'available'. Además se elimina la sobrecarga obsoleta de 8 argumentos para evitar ambigüedad en PostgREST. Cobertura: 2 tests adicionales de calculateRentalCost para el borde exacto de 28 días (4 semanas justas, con y sin cap)."
+  },
+  {
     "version": "7.88.0",
     "date": "2026-07-19",
     "type": "minor",

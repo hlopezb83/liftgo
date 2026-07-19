@@ -1,6 +1,8 @@
 import { handleCors } from "../_shared/cors.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { requireRole } from "../_shared/auth.ts";
+import { computeProrate } from "./prorate.ts";
+
 
 const TZ = "America/Monterrey";
 
@@ -75,6 +77,11 @@ type PreviewLine = {
   periodEnd: string;
   periodLabel: string;
   monthlyRate: number;
+  // BL-12: monto efectivo a facturar. Igual a monthlyRate salvo el primer
+  // ciclo prorrateado (start_date a mitad de mes).
+  billedAmount: number;
+  isProrated: boolean;
+  proratedDays?: number;
   eligible: boolean;
   reason?:
     | "already_invoiced"
@@ -93,6 +100,9 @@ type PlanItem = {
   forkliftName: string | null;
   forkliftSerial: string | null;
   monthlyRate: number;
+  billedAmount: number;
+  isProrated: boolean;
+  proratedDays: number;
   billingStart: Date;
   billingEnd: Date;
   startStr: string;
@@ -158,19 +168,38 @@ async function buildPlan(supabase: any): Promise<{
     }
 
     let billingStart: Date;
+    let isProrated = false;
     if (effectiveLastBilled) {
       const lastBilled = dateOnlyToMty(effectiveLastBilled);
       billingStart = new Date(
         Date.UTC(lastBilled.getUTCFullYear(), lastBilled.getUTCMonth() + 1, 1),
       );
     } else {
+      // BL-12: primera factura de la suscripción. Si la reserva arranca a
+      // mitad de mes, el primer periodo va del día de inicio al fin de mes y
+      // se prorratea. Cobrar mes completo cuando sólo se rentaron 5 días es
+      // injusto para el cliente.
       const startDate = dateOnlyToMty(booking.start_date);
-      billingStart = firstOfMonth(startDate);
+      if (startDate.getUTCDate() === 1) {
+        billingStart = firstOfMonth(startDate);
+      } else {
+        billingStart = startDate;
+        isProrated = true;
+      }
     }
     const billingEnd = lastOfMonth(billingStart);
     const startStr = toIsoDate(billingStart);
     const endStr = toIsoDate(billingEnd);
     const periodLabel = `${fmtMx(billingStart)} al ${fmtMx(billingEnd)}`;
+
+    // BL-12: cálculo del monto prorrateado (helper puro para test).
+    const prorate = computeProrate(
+      isProrated ? billingStart.getUTCDate() : 1,
+      billingEnd.getUTCDate(),
+      monthlyRate,
+    );
+    const proratedDays = prorate.proratedDays;
+    const billedAmount = prorate.billedAmount;
 
     const baseLine: PreviewLine = {
       bookingId: booking.id,
@@ -182,6 +211,9 @@ async function buildPlan(supabase: any): Promise<{
       periodEnd: endStr,
       periodLabel,
       monthlyRate,
+      billedAmount,
+      isProrated,
+      proratedDays: isProrated ? proratedDays : undefined,
       eligible: true,
     };
 
@@ -246,6 +278,9 @@ async function buildPlan(supabase: any): Promise<{
       forkliftName: forklift?.name ?? null,
       forkliftSerial: forklift?.serial_number ?? null,
       monthlyRate,
+      billedAmount,
+      isProrated,
+      proratedDays,
       billingStart,
       billingEnd,
       startStr,
@@ -309,18 +344,23 @@ async function executePlan(supabase: any, items: PlanItem[]) {
         .eq("id", first.customerId)
         .maybeSingle();
 
-      const lineItems = group.map((i) => ({
-        description: `${i.forkliftName || "Montacargas"} — Renta mensual (${
-          fmtMx(i.billingStart)
-        } al ${fmtMx(i.billingEnd)})${
-          i.forkliftSerial ? ` (Serie: ${i.forkliftSerial})` : ""
-        }`,
-        quantity: 1,
-        unit_price: i.monthlyRate,
-        total: i.monthlyRate,
-      }));
+      const lineItems = group.map((i) => {
+        const proratedLabel = i.isProrated
+          ? ` — prorrateado ${i.proratedDays} días`
+          : "";
+        return {
+          description: `${i.forkliftName || "Montacargas"} — Renta mensual (${
+            fmtMx(i.billingStart)
+          } al ${fmtMx(i.billingEnd)}${proratedLabel})${
+            i.forkliftSerial ? ` (Serie: ${i.forkliftSerial})` : ""
+          }`,
+          quantity: 1,
+          unit_price: i.billedAmount,
+          total: i.billedAmount,
+        };
+      });
 
-      const subtotal = group.reduce((acc, i) => acc + i.monthlyRate, 0);
+      const subtotal = group.reduce((acc, i) => acc + i.billedAmount, 0);
       const taxRate = 16;
       const taxAmount = Math.round(subtotal * (taxRate / 100) * 100) / 100;
       const total = Math.round((subtotal + taxAmount) * 100) / 100;
