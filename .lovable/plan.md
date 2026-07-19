@@ -1,48 +1,29 @@
-# Auditoría v7.94.0 y siguiente fase
+# Estado actual y qué falta
 
-## Auditoría de v7.94.0
+## Ya cerrado en v7.95.0
 
-### Verificaciones OK
+- Fase 0 · limpieza: `applyRatesToBookings` eliminado + test viejo borrado.
+- Fase 0 · tests que faltaban:
+  - `useQuoteBookingCreator.test.ts` (2 casos: payload snake_case + manejo de error RPC).
+  - `paymentIntentsRls.test.ts` (regresión: portal no puede UPDATE directo).
+- Fase 1 · RLS del portal (BL-25/26): confirmado que `customer_payment_intents` sólo expone SELECT/INSERT a `customer`; aprobar/rechazar pasa por las RPCs SECURITY DEFINER.
+- Changelog v7.95.0 publicado. 9/9 tests verdes.
 
-- **RPC `convert_quote_to_bookings**` desplegada, con REVOKE PUBLIC + GRANT authenticated y validación de rol interna.
-- **Columnas `daily_rate/weekly_rate/monthly_rate**` en `bookings` confirmadas.
-- **Cron `expire-stale-quotes-daily**` creado (jobid 4 devuelto por la migración; `cron.job` no es consultable desde psql, esperado en Cloud).
-- `**useQuoteBookingCreator**` ya usa la RPC; se eliminó el rollback best-effort y las llamadas sueltas a `supabase.from("bookings").delete()`.
-- **Tests** de `applyRatesToBookings` y `quoteBookingBuilders` pasan (9/9).
+## Lo que queda pendiente del plan original
 
-### Bugs / gaps detectados
+1. **Test pgTAP para `convert_quote_to_bookings**` (Fase 0, punto 3 del plan): atomicidad ante fallo intermedio, rechazo por `status = accepted`, rechazo por arreglo vacío, marcado final a `accepted`. No lo ejecuté porque en Lovable Cloud no hay runner de SQL en CI; hoy la garantía viene sólo del `BEGIN/EXCEPTION` de la RPC + tests cliente.
+2. **Cash Flow por método de pago** (Fase 1, backlog documentado en v7.95.0): desglose efectivo/transferencia/cheque/tarjeta en cobros y pagos a proveedores. Requiere nueva RPC + card en dashboard + test. Es feature, no bug.
+3. **Ronda 2 de auditoría (BL-21..34)**: cerrada la parte transaccional y de reglas. Quedan dominios que la ronda 2 no tocó y podrían abrirse en una ronda 3 si quieres: notificaciones, storage/documentos, mecánicos/costo de mano de obra, colecciones automatizadas.
 
-1. **Dead code**: `applyRatesToBookings` en `quoteBookingBuilders.ts` ya no se usa en producción (sólo lo referencia su propio test). Con el nuevo flujo la RPC aplica las tarifas server-side, así que el helper y su test deben desaparecer para no confundir a futuros lectores.
-2. **Falta test para `useQuoteBookingCreator**` en el nuevo camino RPC: forma del payload (`p_assignments` con snake_case), manejo del `error` de Supabase, invalidaciones de query keys y llamada a `buildDeliveryInfos` con los IDs devueltos por la RPC.
-3. **Falta test Deno/psql para `convert_quote_to_bookings**`: atomicidad ante fallo intermedio (segunda reserva con forklift no disponible ⇒ ninguna reserva persiste), rechazo por `status = accepted`, rechazo por arreglo vacío, marcado final de la cotización a `accepted`.
+## Recomendación
 
-## Fase 0 · Patch v7.94.1 (limpieza + tests que faltan)
+Cortamos aquí el sprint de auditorías (v7.87 → v7.95) y elegimos uno de estos caminos para el siguiente turno:
 
-- Eliminar `applyRatesToBookings` de `quoteBookingBuilders.ts` y borrar `applyRatesToBookings.test.ts`.
-- Crear `useQuoteBookingCreator.test.ts` con mocks del cliente de Supabase (RPC + invalidaciones) cubriendo éxito, error RPC y payload correcto.
-- Crear `supabase/tests/convert_quote_to_bookings.test.sql` (pgTAP-lite con `DO $$ ... $$`) para atomicidad + validaciones.
-- Entrada nueva en `public/changelog.json` + `public/changelog/v7.94.1.json`.
+- **A**: Implementar Cash Flow por método de pago (feature con impacto directo en el dashboard).
+- **B**: Escribir el test pgTAP de `convert_quote_to_bookings` y armar infraestructura mínima para correr SQL tests en CI.
+- **C**: Abrir ronda 3 de auditoría de lógica de negocio sobre los dominios no cubiertos.
+- **D**: Pausar auditorías y atender lo próximo que traigas (bug report, feature nueva, etc.).
 
-## Fase 1 · Sprint v7.95.0 (dominios pendientes del plan previo)
+## Pregunta
 
-### Cash flow por método de pago
-
-- Revisar `get_dashboard_stats` y `get_cash_flow_by_method` (si existen) para confirmar que la agregación separa efectivo, transferencia, tarjeta y cheque tanto en cobros como en pagos a proveedores.
-- Confirmar que `payments.payment_method` y `supplier_payments.payment_method` se leen con el mismo vocabulario (enum vs texto libre).
-- Test Vitest sobre la card del dashboard con mocks para verificar totales por método.
-
-### RLS de `customer_payment_intents` (portal)
-
-- Auditar que tras el switch a `approve_payment_intent` / `reject_payment_intent` (v7.91.0) las políticas RLS ya no permiten UPDATE directo desde el cliente autenticado del portal — sólo SELECT/INSERT.
-- Confirmar que el cliente del portal no puede aprobar intents de otro cliente (`customer_id = auth_customer_id()`).
-- Si falta blindaje, endurecer políticas y agregar test con dos usuarios de portal.
-
-### Deliverables
-
-- Migración con ajustes de RLS si aplica.
-- Tests unitarios y de integración.
-- Changelog v7.95.0 (minor).
-
-## Preguntas para el usuario
-
-¿Ejecuto Fase 0 (limpieza + tests que faltan) y Fase 1 (v7.95.0 completo) en el mismo turno, o dividimos? mismo turno
+¿Cuál de A / B / C / D seguimos, o prefieres cerrar el ciclo aquí? Continuamos hasta corregir todos los bugs BL

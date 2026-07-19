@@ -36,6 +36,9 @@ export function useUploadDocument() {
       // Store the storage path as file_url (relative). Signed URLs are generated on read.
       const storedUrl = `documents/${filePath}`;
 
+      // BL-35: registrar autor del upload (columna migrada a UUID FK a auth.users).
+      const { data: { user } } = await supabase.auth.getUser();
+
       const { data, error } = await supabase
         .from("documents")
         .insert({
@@ -45,16 +48,24 @@ export function useUploadDocument() {
           file_url: storedUrl,
           file_size: file.size,
           mime_type: file.type,
+          uploaded_by: user?.id ?? null,
         })
         .select()
         .single();
-      if (error) throw error;
+      if (error) {
+        // BL-36: rollback del archivo en Storage si la fila no se pudo crear.
+        // Sin esto, quedan objetos huérfanos ocupando espacio sin fila que los
+        // referencie.
+        await supabase.storage.from("documents").remove([filePath]);
+        throw error;
+      }
       return data;
     },
     invalidateKeys: [documentsQueries.keys.all],
     errorTitle: "Error al subir el documento",
   });
 }
+
 
 export function useDeleteDocument() {
   return useEntityMutation({
