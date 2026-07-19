@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { usePaymentHistoryColumns } from "../../hooks/invoices/usePaymentHistoryColumns";
+import { CancelRepDialog } from "./CancelRepDialog";
 import { EditPaymentDialog } from "./EditPaymentDialog";
 
 type Payment = Tables<"payments">;
@@ -68,7 +69,7 @@ function PaymentSummaryCard({
 export function InvoicePaymentSummary({
   totalPaid, balance, payments, ppdStamped = false, allowRepMutations = ppdStamped, creditedAmount = 0,
 }: Props) {
-  const { columns, editingPayment, setEditingPayment } = usePaymentHistoryColumns(ppdStamped, allowRepMutations);
+  const { columns, editingPayment, setEditingPayment, cancelRepPaymentId, setCancelRepPaymentId } = usePaymentHistoryColumns(ppdStamped, allowRepMutations);
 
   const table = useLiftgoTable<Payment>({
     data: payments,
@@ -108,6 +109,12 @@ export function InvoicePaymentSummary({
           payment={editingPayment}
         />
       ) : null}
+
+      <CancelRepDialog
+        open={cancelRepPaymentId !== null}
+        onOpenChange={(open) => { if (!open) setCancelRepPaymentId(null); }}
+        paymentId={cancelRepPaymentId}
+      />
     </>
   );
 }
