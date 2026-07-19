@@ -75,6 +75,11 @@ type PreviewLine = {
   periodEnd: string;
   periodLabel: string;
   monthlyRate: number;
+  // BL-12: monto efectivo a facturar. Igual a monthlyRate salvo el primer
+  // ciclo prorrateado (start_date a mitad de mes).
+  billedAmount: number;
+  isProrated: boolean;
+  proratedDays?: number;
   eligible: boolean;
   reason?:
     | "already_invoiced"
@@ -93,6 +98,9 @@ type PlanItem = {
   forkliftName: string | null;
   forkliftSerial: string | null;
   monthlyRate: number;
+  billedAmount: number;
+  isProrated: boolean;
+  proratedDays: number;
   billingStart: Date;
   billingEnd: Date;
   startStr: string;
