@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.87.0",
+    "date": "2026-07-19",
+    "type": "minor",
+    "title": "Sprint 1 CFDI: correcciones fiscales críticas (BL-01..08, 10, 11, 16, 20)",
+    "summary": "Ronda profunda de lógica de negocio. Timbrado ahora respeta tasa 0% (BL-01), propaga descuentos por línea al CFDI (BL-02) y revierte el claim atómico ante fallos para no atascar en 'stamping' (BL-03). El REP cierra la ventana de doble timbrado concurrente (BL-04), usa moneda/tipo de cambio de la factura origen (BL-05), permite re-timbrado tras cancelación con NumParcialidad único e incremental (BL-06/07), y las NCs validan anti-sobreacreditación server-side (BL-08). syncInvoiceStatus deja de resucitar facturas canceladas (BL-10), el formulario de pagos rechaza sobrepagos (BL-11), las NCs propagan payment_method/tipo_cambio reales (BL-16) y el modo live sin API key ya no emite documentos stub (BL-20)."
+  },
+  {
     "version": "7.86.2",
     "date": "2026-07-18",
     "type": "patch",
