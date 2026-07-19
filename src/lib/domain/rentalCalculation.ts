@@ -73,9 +73,13 @@ export function calculateRentalCost(
   const remainderStart = months > 0 ? addMonths(startDate, months) : startDate;
   let remaining = Math.max(0, differenceInDays(effectiveEnd, remainderStart));
 
+  // Buffer separado para poder aplicar el cap BL-15 sin tocar los meses ya
+  // facturados a tarifa mensual (esos representan calendario cerrado).
+  const remainderItems: LineItem[] = [];
+
   if (w > 0 && remaining >= DAYS_PER_WEEK) {
     const weeks = Math.floor(remaining / DAYS_PER_WEEK);
-    items.push({
+    remainderItems.push({
       description: "Renta semanal",
       quantity: weeks,
       unit_price: w,
@@ -85,7 +89,31 @@ export function calculateRentalCost(
   }
 
   const dailyItem = buildDailyRemainder(remaining, d, w, m);
-  if (dailyItem) items.push(dailyItem);
+  if (dailyItem) remainderItems.push(dailyItem);
+
+  // BL-15: si el remanente (semanal + diario) alcanza ~28-31 días y su costo
+  // excede la tarifa mensual, capear a un mes completo. Sin esto una renta
+  // que por timezone o calendario partido queda como "29-30 días" cobra más
+  // que un mes cerrado — anti-intuitivo y desventajoso para el cliente.
+  if (m > 0 && remainderItems.length > 0) {
+    const remainderTotalDays = remainderItems.reduce(
+      (acc, it) => acc + (it.description === "Renta semanal" ? it.quantity * DAYS_PER_WEEK : it.quantity),
+      0,
+    );
+    const remainderCost = remainderItems.reduce((acc, it) => acc + it.total, 0);
+    if (remainderTotalDays >= 28 && remainderCost > m) {
+      items.push({
+        description: "Renta mensual",
+        quantity: 1,
+        unit_price: m,
+        total: m,
+      });
+    } else {
+      items.push(...remainderItems);
+    }
+  } else {
+    items.push(...remainderItems);
+  }
 
   return items;
 }
