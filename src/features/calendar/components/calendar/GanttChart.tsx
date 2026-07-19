@@ -90,9 +90,12 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd }: GanttC
   const todayLeftPct = todayIdx >= 0 && days.length > 0 ? ((todayIdx + 0.5) / days.length) * 100 : null;
 
   return (
-    <div className="overflow-x-auto">
-      <div className="min-w-[800px] relative">
-        <GanttHeader days={days} />
+    <div>
+      <p className="text-xs text-muted-foreground sm:hidden mb-2">Desliza para ver la semana →</p>
+      <div className="overflow-x-auto sm:[mask-image:none] [mask-image:linear-gradient(to_right,black_92%,transparent)]">
+        <div className="min-w-[800px] relative">
+          <GanttHeader days={days} />
+
 
         {active.length > 0 && <SectionHeader label="Con renta activa o futura" count={active.length} />}
         {active.map((fl) => (
