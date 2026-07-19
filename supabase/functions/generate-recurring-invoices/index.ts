@@ -166,19 +166,38 @@ async function buildPlan(supabase: any): Promise<{
     }
 
     let billingStart: Date;
+    let isProrated = false;
     if (effectiveLastBilled) {
       const lastBilled = dateOnlyToMty(effectiveLastBilled);
       billingStart = new Date(
         Date.UTC(lastBilled.getUTCFullYear(), lastBilled.getUTCMonth() + 1, 1),
       );
     } else {
+      // BL-12: primera factura de la suscripción. Si la reserva arranca a
+      // mitad de mes, el primer periodo va del día de inicio al fin de mes y
+      // se prorratea. Cobrar mes completo cuando sólo se rentaron 5 días es
+      // injusto para el cliente.
       const startDate = dateOnlyToMty(booking.start_date);
-      billingStart = firstOfMonth(startDate);
+      if (startDate.getUTCDate() === 1) {
+        billingStart = firstOfMonth(startDate);
+      } else {
+        billingStart = startDate;
+        isProrated = true;
+      }
     }
     const billingEnd = lastOfMonth(billingStart);
     const startStr = toIsoDate(billingStart);
     const endStr = toIsoDate(billingEnd);
     const periodLabel = `${fmtMx(billingStart)} al ${fmtMx(billingEnd)}`;
+
+    // BL-12: cálculo del monto prorrateado. daysInPeriod / daysInMonth * rate.
+    const daysInMonth = billingEnd.getUTCDate();
+    const proratedDays = isProrated
+      ? daysInMonth - billingStart.getUTCDate() + 1
+      : daysInMonth;
+    const billedAmount = isProrated
+      ? Math.round((monthlyRate * proratedDays / daysInMonth) * 100) / 100
+      : monthlyRate;
 
     const baseLine: PreviewLine = {
       bookingId: booking.id,
@@ -190,6 +209,9 @@ async function buildPlan(supabase: any): Promise<{
       periodEnd: endStr,
       periodLabel,
       monthlyRate,
+      billedAmount,
+      isProrated,
+      proratedDays: isProrated ? proratedDays : undefined,
       eligible: true,
     };
 
