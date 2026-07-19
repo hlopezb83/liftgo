@@ -93,6 +93,9 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
           <MaintenancePartsSection maintenanceLogId={log.id} currentCost={log.cost || 0} />
 
           <Separator />
+          <MaintenanceLaborSection maintenanceLogId={log.id} />
+
+          <Separator />
           <RoleGuard module="Mantenimiento" minAccess="full">
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1" onClick={() => { onEdit(log); onOpenChange(false); }}>
