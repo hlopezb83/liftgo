@@ -42,6 +42,10 @@ export async function handleStampCreditNote(
 
   let credit_note_id: unknown = undefined;
   let userId: string | undefined = undefined;
+  // Referencias externas al try para que el outer-catch pueda liberar el claim
+  // atómico ante excepciones inesperadas y evitar que la NC quede en "stamping".
+  let supabaseRef: SupabaseLike | null = null;
+  let claimed = false;
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
