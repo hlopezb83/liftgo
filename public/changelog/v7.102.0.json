@@ -1,0 +1,37 @@
+{
+  "version": "7.102.0",
+  "date": "2026-07-19",
+  "type": "minor",
+  "title": "Mantenimiento recurrente idempotente + horómetro validado (BL-40/41/42)",
+  "sections": [
+    {
+      "heading": "BL-41 · Idempotencia por póliza (claim atómico)",
+      "items": [
+        "`generate-recurring-maintenance` recorre las pólizas y reclama cada una con `UPDATE maintenance_policies SET last_generated_month = <mes> WHERE id = ? AND (last_generated_month IS NULL OR last_generated_month < <mes>) RETURNING id` ANTES de insertar el log de mantenimiento.",
+        "Si el UPDATE devuelve 0 filas (otra corrida o retry ya reclamó el mes), la póliza se cuenta como `skipped` y no se genera log duplicado.",
+        "Si el INSERT del log falla, se hace rollback del claim reponiendo `last_generated_month` para permitir un reintento manual/cron sin quedar 'atascada'."
+      ]
+    },
+    {
+      "heading": "BL-40 · Logs generados como 'scheduled' y P&L filtrado",
+      "items": [
+        "Los logs recurrentes ahora nacen con `work_status='scheduled'`; el mecánico los transiciona a `completed` desde la UI de mantenimiento al ejecutar el servicio.",
+        "`get_income_statement.maint_by_month` filtra `work_status='completed'` para que las provisiones no confirmadas dejen de cargar el P&L."
+      ]
+    },
+    {
+      "heading": "BL-42 · Timezone y horómetro",
+      "items": [
+        "El generador calcula el mes actual en `America/Monterrey` (consistencia con `generate-recurring-invoices`), eliminando el off-by-one durante las primeras horas UTC del día 1.",
+        "`PostDeliveryPickupDialog` valida en Zod que el horómetro capturado en la recolección sea ≥ al capturado en la entrega (mensaje explícito con la lectura de referencia). Si la entrega no tiene horómetro, sólo se exige no-negativo."
+      ]
+    },
+    {
+      "heading": "Tests",
+      "items": [
+        "Nuevo `pickupHorometerSchema.test.ts` (4 casos) para la regla BL-42.",
+        "Suite completa Vitest en verde."
+      ]
+    }
+  ]
+}
