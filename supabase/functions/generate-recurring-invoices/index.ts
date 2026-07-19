@@ -87,7 +87,8 @@ type PreviewLine = {
     | "no_customer"
     | "no_monthly_rate"
     | "period_in_future"
-    | "period_too_old";
+    | "period_too_old"
+    | "booking_ended";
   existingInvoiceId?: string;
   existingInvoiceNumber?: string;
 };
@@ -116,7 +117,7 @@ async function buildPlan(supabase: any): Promise<{
   const { data: bookings, error: bErr } = await supabase
     .from("bookings")
     .select(
-      "id, booking_number, customer_id, customer_name, start_date, last_billed_date, forklifts(name, monthly_rate, serial_number)",
+      "id, booking_number, customer_id, customer_name, start_date, end_date, last_billed_date, forklifts(name, monthly_rate, serial_number)",
     )
     .eq("recurring_billing", true)
     .eq("status", "confirmed");
