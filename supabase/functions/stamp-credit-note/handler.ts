@@ -134,7 +134,6 @@ export async function handleStampCreditNote(
     }
     claimed = true;
 
-
     // BL-03: helper para revertir claim atómico si algo falla antes de timbrar.
     const releaseClaim = async (errorMessage?: string) => {
       await supabase.from("credit_notes")
@@ -489,7 +488,9 @@ export async function handleStampCreditNote(
       } catch (releaseErr) {
         console.error("[stamp-credit-note] release-on-exception failed", {
           credit_note_id,
-          err: releaseErr instanceof Error ? releaseErr.message : String(releaseErr),
+          err: releaseErr instanceof Error
+            ? releaseErr.message
+            : String(releaseErr),
         });
       }
     }

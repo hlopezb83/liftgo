@@ -155,7 +155,6 @@ export async function handleStampCfdi(
     claimed = true;
     invoiceIdRef = invoice_id as string;
 
-
     // Helper para revertir el claim atómico ante cualquier salida temprana
     // posterior al UPDATE→stamping. Sin esto la factura queda atascada en
     // "stamping" para siempre (BL-03).
@@ -553,7 +552,9 @@ export async function handleStampCfdi(
       } catch (releaseErr) {
         console.error("[stamp-cfdi] release-on-exception failed", {
           invoice_id: invoiceIdRef,
-          err: releaseErr instanceof Error ? releaseErr.message : String(releaseErr),
+          err: releaseErr instanceof Error
+            ? releaseErr.message
+            : String(releaseErr),
         });
       }
     }
