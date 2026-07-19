@@ -18,6 +18,10 @@ export interface RecurringPreviewLine {
   periodEnd: string;
   periodLabel: string;
   monthlyRate: number;
+  // BL-12: monto real a facturar (prorrateado en el primer ciclo si aplica).
+  billedAmount: number;
+  isProrated: boolean;
+  proratedDays?: number;
   eligible: boolean;
   reason?: PreviewReason;
   existingInvoiceId?: string;
