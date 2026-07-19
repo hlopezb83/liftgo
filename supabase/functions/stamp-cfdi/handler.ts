@@ -41,6 +41,11 @@ export async function handleStampCfdi(
     jsonResponse(req, body, { status });
   const jsonHeaders = undefined;
 
+  // Referencias externas al try para que el outer-catch pueda liberar el claim
+  // atómico ante excepciones inesperadas (BL-03 cierre completo).
+  let supabaseRef: SupabaseLike | null = null;
+  let invoiceIdRef: string | null = null;
+  let claimed = false;
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
