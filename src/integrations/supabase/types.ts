@@ -3852,7 +3852,7 @@ export type Database = {
         Args: { p_payment_id: string }
         Returns: undefined
       }
-      revert_audit_log: { Args: { p_audit_log_id: string }; Returns: undefined }
+      revert_audit_log: { Args: { p_audit_log_id: string }; Returns: string }
       soft_delete_customer: {
         Args: { p_customer_id: string }
         Returns: undefined
