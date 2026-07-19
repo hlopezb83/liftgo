@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.99.0",
+    "date": "2026-07-19",
+    "type": "minor",
+    "title": "Cartera, resumen y portal descuentan notas de crédito y ocultan facturas no vivas (BL-43/44/45)",
+    "summary": "La vista `v_invoices_with_balance` ahora expone `credited_amount` y calcula `balance = mayor(total − pagado − NCs vigentes, 0)`. `get_customer_summary` agrega `outstanding_revenue` basado en esa vista (sólo facturas `sent | partial | overdue`). `get_portal_invoices` deja de mostrar borradores y canceladas al cliente y devuelve saldos calculados en el servidor. `PortalStatement` consume `balance` del RPC en lugar de recalcular `total − pagado`. Nuevo suite `portalBalance.test.ts` (7 casos) blindando: NC total → $0, NC cancelada → deuda vuelve, pago + NC parcial, exclusión de draft/cancelled, saldo nunca negativo. Se recrean `v_overdue_invoices` y `list_invoices_with_balance` sin cambios de firma."
+  },
+  {
+
     "version": "7.98.4",
     "date": "2026-07-19",
     "type": "patch",

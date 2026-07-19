@@ -3221,6 +3221,8 @@ export type Database = {
     Views: {
       v_invoices_with_balance: {
         Row: {
+          acuse_pdf_url: string | null
+          acuse_xml_url: string | null
           balance: number | null
           billing_period_end: string | null
           billing_period_start: string | null
@@ -3236,13 +3238,18 @@ export type Database = {
           cfdi_xml: string | null
           cfdi_xml_url: string | null
           created_at: string | null
+          credited_amount: number | null
           customer_id: string | null
           customer_name: string | null
           due_date: string | null
           e2e_scope: string | null
+          facturapi_env: string | null
           facturapi_invoice_id: string | null
           folio: string | null
           forma_pago: string | null
+          global_months: string | null
+          global_periodicity: string | null
+          global_year: number | null
           id: string | null
           invoice_number: string | null
           is_e2e: boolean | null
@@ -3626,10 +3633,12 @@ export type Database = {
       get_portal_invoices: {
         Args: never
         Returns: {
+          balance: number
           billing_period_end: string
           billing_period_start: string
           cfdi_pdf_url: string
           cfdi_uuid: string
+          credited_amount: number
           customer_id: string
           due_date: string
           id: string
@@ -3637,6 +3646,7 @@ export type Database = {
           issued_at: string
           line_items: Json
           moneda: string
+          paid_amount: number
           paid_at: string
           status: string
           subtotal: number
@@ -3669,6 +3679,8 @@ export type Database = {
           p_with_balance_only?: boolean
         }
         Returns: {
+          acuse_pdf_url: string | null
+          acuse_xml_url: string | null
           balance: number | null
           billing_period_end: string | null
           billing_period_start: string | null
@@ -3684,13 +3696,18 @@ export type Database = {
           cfdi_xml: string | null
           cfdi_xml_url: string | null
           created_at: string | null
+          credited_amount: number | null
           customer_id: string | null
           customer_name: string | null
           due_date: string | null
           e2e_scope: string | null
+          facturapi_env: string | null
           facturapi_invoice_id: string | null
           folio: string | null
           forma_pago: string | null
+          global_months: string | null
+          global_periodicity: string | null
+          global_year: number | null
           id: string | null
           invoice_number: string | null
           is_e2e: boolean | null

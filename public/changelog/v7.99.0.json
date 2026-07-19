@@ -1,0 +1,35 @@
+{
+  "version": "7.99.0",
+  "date": "2026-07-19",
+  "type": "minor",
+  "title": "Cartera, resumen y portal descuentan notas de crédito y ocultan facturas no vivas (BL-43/44/45)",
+  "sections": [
+    {
+      "heading": "Contexto",
+      "items": [
+        "Auditoría BL ronda 3 detectó que la vista `v_invoices_with_balance` (fuente única declarada) no restaba NCs, `get_customer_summary` sumaba facturas canceladas y `get_portal_invoices` mostraba borradores como deuda del cliente. Cartera perseguía dinero ya acreditado o inexistente."
+      ]
+    },
+    {
+      "heading": "Fix (una migración)",
+      "items": [
+        "`v_invoices_with_balance`: agrega `credited_amount` (suma de `credit_notes.total` con `cancellation_status <> 'accepted' AND status <> 'cancelled'`) y redefine `balance = GREATEST(total − paid − credited, 0)`. Conserva `security_invoker` y GRANTs.",
+        "`get_customer_summary`: nuevo campo `totals.outstanding_revenue = SUM(balance)` desde la vista, restringido a `status IN ('sent','partial','overdue')`. Se conservan `total_invoiced`/`total_paid` para el PDF del estado de cuenta (excluyendo canceladas del facturado).",
+        "`get_portal_invoices`: filtra `status NOT IN ('draft','cancelled')` y devuelve `paid_amount`, `credited_amount`, `balance` calculados en el servidor.",
+        "Se recrean `v_overdue_invoices` y `list_invoices_with_balance` (mismo comportamiento) para satisfacer las dependencias del DROP VIEW."
+      ]
+    },
+    {
+      "heading": "Frontend",
+      "items": [
+        "`PortalStatement.tsx` usa `inv.balance`, `inv.paid_amount` y `inv.credited_amount` del RPC en vez de recalcular `total − pagado`. El KPI 'Saldo pendiente' ahora refleja el saldo real (con NCs)."
+      ]
+    },
+    {
+      "heading": "Tests",
+      "items": [
+        "`src/features/portal/__tests__/portalBalance.test.ts` (7 casos): modela vista + portal + resumen en TypeScript. Cubre NC total, NC cancelada, factura cancelada/borrador fuera del portal, pago + NC parcial, saldo nunca negativo y `outstanding_revenue` restringido por estatus. 7/7 en verde."
+      ]
+    }
+  ]
+}

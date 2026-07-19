@@ -21,9 +21,11 @@ export default function PortalStatement() {
 
   const rows = (invoices ?? []).map((inv) => {
     const invPayments = (payments ?? []).filter((p: PortalPayment) => p.invoice_id === inv.id);
-    const paid = invPayments.reduce((s, p: PortalPayment) => s + Number(p.amount), 0);
-    const balance = Number(inv.total) - paid;
-    return { inv, payments: invPayments, paid, balance };
+    // Saldos vienen del servidor (BL-43/44/45): total − pagado − NCs vigentes.
+    const paid = Number(inv.paid_amount ?? 0);
+    const credited = Number(inv.credited_amount ?? 0);
+    const balance = Number(inv.balance ?? Math.max(Number(inv.total) - paid - credited, 0));
+    return { inv, payments: invPayments, paid, credited, balance };
   });
 
 
@@ -32,7 +34,9 @@ export default function PortalStatement() {
   const totals = (() => {
     const invoiced = rows.reduce((s, r) => s + Number(r.inv.total), 0);
     const paid = rows.reduce((s, r) => s + r.paid, 0);
-    return { invoiced, paid, balance: invoiced - paid };
+    const credited = rows.reduce((s, r) => s + r.credited, 0);
+    const balance = rows.reduce((s, r) => s + r.balance, 0);
+    return { invoiced, paid, credited, balance };
   })();
 
   const handleDownload = async () => {
