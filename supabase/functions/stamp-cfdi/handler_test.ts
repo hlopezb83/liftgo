@@ -264,6 +264,7 @@ Deno.test("handler: Facturapi 400 returns 502 and marks invoice as error", async
               subtotal: 1000,
               tax_rate: 16,
               line_items: [],
+              receptor_rfc: "AAA010101AAA",
             },
             error: null,
           },
