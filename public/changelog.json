@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.88.0",
+    "date": "2026-07-19",
+    "type": "minor",
+    "title": "Sprint 2 (parte 1): Notas de Crédito en P&L, timezone de rentas y cap 29-30 días",
+    "summary": "BL-09: get_income_statement ahora resta el subtotal de las notas de crédito emitidas al ingreso del mes, clasificándolas como renta o venta según la factura padre. Se agrega el campo credit_notes por mes para trazabilidad. BL-14: generateLineItems parsea las fechas YMD anclando al mediodía local, eliminando el corrimiento de un día que en Monterrey (UTC-6) provocaba facturar '1 mes + 1 día' en rentas de calendario cerrado (1 ene → 31 ene). BL-15: calculateRentalCost capea el remanente semanal+diario a un mes completo cuando el rango es de 28-31 días y el costo supera la tarifa mensual, evitando que 30 días cuesten más que un mes cerrado. Cobertura: 5 tests nuevos en rentalCalculation cubriendo timezone y cap."
+  },
+  {
     "version": "7.87.1",
     "date": "2026-07-19",
     "type": "patch",
