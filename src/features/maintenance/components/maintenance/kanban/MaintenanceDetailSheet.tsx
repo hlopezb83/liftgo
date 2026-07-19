@@ -61,6 +61,10 @@ export function MaintenanceDetailSheet({ log, onClose }: Props) {
                 maintenanceLogId={log.id}
                 currentCost={log.cost || 0}
               />
+
+              <Separator />
+
+              <MaintenanceLaborSection maintenanceLogId={log.id} />
             </div>
             </Activity>
           </>
