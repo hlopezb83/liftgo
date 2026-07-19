@@ -60,7 +60,7 @@ function CurrencyFields() {
   const { control, setValue } = useFormContext<InvoiceFormValues>();
   const moneda = useWatch({ control, name: "cfdi.moneda" });
   return (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <FormField control={control} name="cfdi.moneda" render={({ field }) => (
         <FormItem>
           <FormLabel>Moneda</FormLabel>
