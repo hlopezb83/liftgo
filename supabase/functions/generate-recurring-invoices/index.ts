@@ -217,6 +217,16 @@ async function buildPlan(supabase: any): Promise<{
       eligible: true,
     };
 
+    // Fix D v7.90.0 (BL-13): si la reserva ya terminó (end_date < billingStart),
+    // no facturar automáticamente. Recordatorio visual para que operaciones
+    // complete la inspección de devolución.
+    if (
+      booking.end_date &&
+      dateOnlyToMty(booking.end_date) < billingStart
+    ) {
+      lines.push({ ...baseLine, eligible: false, reason: "booking_ended" });
+      continue;
+    }
     if (nowMty < billingStart) {
       lines.push({ ...baseLine, eligible: false, reason: "period_in_future" });
       continue;
