@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.100.0",
+    "date": "2026-07-19",
+    "type": "minor",
+    "title": "Bitácora inmutable + reverso compensado (BL-39)",
+    "summary": "Se retira la política `Admins full access audit_logs` (que permitía UPDATE/DELETE desde el cliente) y se sustituye por `Admins read audit_logs` (sólo SELECT). Nuevo trigger `trg_audit_logs_immutable` bloquea cualquier UPDATE/DELETE sobre la bitácora salvo cuando `app.audit_maintenance='on'` (bandera reservada a retención server-side). `revert_audit_log` deja de borrar el log original: ejecuta la reversa (INSERT→DELETE, UPDATE→restaurar, DELETE→re-INSERT) y agrega una entrada compensatoria con `action='REVERT'` y `changed_fields.source_audit_log_id`, devolviendo su id. Nuevo suite `auditImmutability.test.ts` (6 casos) modela: original preservado, REVERT trazable, mutación directa rechazada, bandera de mantenimiento, guardia de admin, whitelist de tablas y reverso-del-reverso."
+  },
+  {
+
     "version": "7.99.0",
     "date": "2026-07-19",
     "type": "minor",
