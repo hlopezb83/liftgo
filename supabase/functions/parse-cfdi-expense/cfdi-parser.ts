@@ -22,6 +22,8 @@ export const CATEGORIES: ExpenseCategory[] = [
   "publicidad",
 ];
 
+export type TipoComprobante = "I" | "E" | "N" | "P" | "T";
+
 export interface ParsedCfdi {
   cfdi_uuid: string;
   total: number;
@@ -32,12 +34,28 @@ export interface ParsedCfdi {
   moneda: string;
   tipo_cambio: number;
   payment_method_sat: string;
+  tipo_comprobante: TipoComprobante | null;
   fecha: string;
   folio: string;
   serie: string;
   emisor: { rfc: string; nombre: string; regimen_fiscal: string };
+  receptor: {
+    rfc: string;
+    nombre: string;
+    uso_cfdi: string;
+    domicilio_fiscal: string;
+    regimen_fiscal: string;
+  };
   conceptos: Array<{ descripcion: string; clave_prod_serv: string }>;
 }
+
+const TIPO_COMPROBANTE_VALID: readonly TipoComprobante[] = [
+  "I",
+  "E",
+  "N",
+  "P",
+  "T",
+];
 
 export function attr(tag: string, name: string): string | null {
   // Anclar al inicio del nombre del atributo: (^|whitespace|<) para evitar que
@@ -69,7 +87,14 @@ export function parseCfdi(xml: string): ParsedCfdi {
   if (!uuid) throw new Error("CFDI sin timbre fiscal (UUID)");
 
   const emisorTag = findTag(xml, "Emisor");
+  const receptorTag = findTag(xml, "Receptor");
   const conceptosTags = findAllTags(xml, "Concepto");
+
+  const tipoRaw = attr(comprobante, "TipoDeComprobante");
+  const tipo_comprobante: TipoComprobante | null =
+    tipoRaw && (TIPO_COMPROBANTE_VALID as readonly string[]).includes(tipoRaw)
+      ? (tipoRaw as TipoComprobante)
+      : null;
 
   const fechaRaw = attr(comprobante, "Fecha") ?? "";
   const fecha = fechaRaw.slice(0, 10);
@@ -105,6 +130,7 @@ export function parseCfdi(xml: string): ParsedCfdi {
     moneda: attr(comprobante, "Moneda") ?? "MXN",
     tipo_cambio: Number(attr(comprobante, "TipoCambio") ?? "1"),
     payment_method_sat: attr(comprobante, "MetodoPago") ?? "PUE",
+    tipo_comprobante,
     fecha,
     folio: attr(comprobante, "Folio") ?? "",
     serie: attr(comprobante, "Serie") ?? "",
@@ -113,6 +139,16 @@ export function parseCfdi(xml: string): ParsedCfdi {
       nombre: (emisorTag ? attr(emisorTag, "Nombre") : null) ?? "",
       regimen_fiscal: (emisorTag ? attr(emisorTag, "RegimenFiscal") : null) ??
         "",
+    },
+    receptor: {
+      rfc: (receptorTag ? attr(receptorTag, "Rfc") : null) ?? "",
+      nombre: (receptorTag ? attr(receptorTag, "Nombre") : null) ?? "",
+      uso_cfdi: (receptorTag ? attr(receptorTag, "UsoCFDI") : null) ?? "",
+      domicilio_fiscal:
+        (receptorTag ? attr(receptorTag, "DomicilioFiscalReceptor") : null) ??
+          "",
+      regimen_fiscal:
+        (receptorTag ? attr(receptorTag, "RegimenFiscalReceptor") : null) ?? "",
     },
     conceptos: conceptosTags.map((t) => ({
       descripcion: attr(t, "Descripcion") ?? "",

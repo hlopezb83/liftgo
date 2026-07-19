@@ -2787,6 +2787,7 @@ export type Database = {
           payment_in_progress_at: string | null
           payment_method_sat: string | null
           pdf_url: string | null
+          receptor_rfc: string | null
           retention_isr: number
           retention_iva: number
           serie: string | null
@@ -2794,6 +2795,7 @@ export type Database = {
           subtotal: number
           supplier_id: string | null
           tax_amount: number
+          tipo_comprobante: string | null
           total: number
           updated_at: string
           xml_url: string | null
@@ -2824,6 +2826,7 @@ export type Database = {
           payment_in_progress_at?: string | null
           payment_method_sat?: string | null
           pdf_url?: string | null
+          receptor_rfc?: string | null
           retention_isr?: number
           retention_iva?: number
           serie?: string | null
@@ -2831,6 +2834,7 @@ export type Database = {
           subtotal?: number
           supplier_id?: string | null
           tax_amount?: number
+          tipo_comprobante?: string | null
           total: number
           updated_at?: string
           xml_url?: string | null
@@ -2861,6 +2865,7 @@ export type Database = {
           payment_in_progress_at?: string | null
           payment_method_sat?: string | null
           pdf_url?: string | null
+          receptor_rfc?: string | null
           retention_isr?: number
           retention_iva?: number
           serie?: string | null
@@ -2868,6 +2873,7 @@ export type Database = {
           subtotal?: number
           supplier_id?: string | null
           tax_amount?: number
+          tipo_comprobante?: string | null
           total?: number
           updated_at?: string
           xml_url?: string | null

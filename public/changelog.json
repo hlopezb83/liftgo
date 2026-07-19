@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.101.0",
+    "date": "2026-07-19",
+    "type": "minor",
+    "title": "Parser CFDI valida receptor y tipo de comprobante + guarda del último admin (BL-35/36/37)",
+    "summary": "`parseCfdi` extrae ahora `Receptor` completo (RFC, Nombre, UsoCFDI, DomicilioFiscalReceptor, RegimenFiscalReceptor) y `TipoDeComprobante` (I/E/N/P/T, con fallback null si el atributo es inválido). `parse-cfdi-expense` rechaza CFDIs con TipoDeComprobante distinto de I/E y valida que `Receptor.Rfc` coincida con `company_settings.rfc` (error `CFDI_RECEPTOR_MISMATCH`). `supplier_bills` gana columnas `receptor_rfc` y `tipo_comprobante` (con CHECK en I/E/N/P/T) que se persisten al crear. La edge function `delete-user` ahora bloquea con `LAST_ADMIN_CANNOT_BE_DELETED` si el objetivo es admin y sería el último admin del sistema. Se añaden 6 tests nuevos al parser (12 en total, todos verdes)."
+  },
+  {
     "version": "7.100.0",
     "date": "2026-07-19",
     "type": "minor",

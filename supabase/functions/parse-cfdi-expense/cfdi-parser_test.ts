@@ -10,8 +10,10 @@ const FIXTURE_BASIC = `<?xml version="1.0" encoding="UTF-8"?>
 <cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4"
   Version="4.0" Serie="A" Folio="123" Fecha="2026-03-15T10:30:00"
   SubTotal="1000.00" Total="1160.00" Moneda="MXN" TipoCambio="1"
-  MetodoPago="PUE">
+  MetodoPago="PUE" TipoDeComprobante="I">
   <cfdi:Emisor Rfc="AAA010101AAA" Nombre="PROVEEDOR DEMO SA DE CV" RegimenFiscal="601"/>
+  <cfdi:Receptor Rfc="HEN200317227" Nombre="LIFTGO SA DE CV"
+    UsoCFDI="G03" DomicilioFiscalReceptor="64000" RegimenFiscalReceptor="601"/>
   <cfdi:Conceptos>
     <cfdi:Concepto ClaveProdServ="81111500" Descripcion="Servicio de consultoria"/>
   </cfdi:Conceptos>
@@ -112,4 +114,51 @@ Deno.test("parseCfdi: defaults seguros para campos opcionales", () => {
   assertEquals(r.serie, "");
   assertEquals(r.emisor.rfc, "");
   assertEquals(r.conceptos.length, 0);
+});
+
+Deno.test("parseCfdi: extrae Receptor completo (RFC, Nombre, UsoCFDI, DomicilioFiscal, RegimenFiscal)", () => {
+  const r = parseCfdi(FIXTURE_BASIC);
+  assertEquals(r.receptor.rfc, "HEN200317227");
+  assertEquals(r.receptor.nombre, "LIFTGO SA DE CV");
+  assertEquals(r.receptor.uso_cfdi, "G03");
+  assertEquals(r.receptor.domicilio_fiscal, "64000");
+  assertEquals(r.receptor.regimen_fiscal, "601");
+});
+
+Deno.test("parseCfdi: extrae TipoDeComprobante='I' (Ingreso)", () => {
+  const r = parseCfdi(FIXTURE_BASIC);
+  assertEquals(r.tipo_comprobante, "I");
+});
+
+Deno.test("parseCfdi: TipoDeComprobante ausente => null (no rompe parsing)", () => {
+  const r = parseCfdi(FIXTURE_RETENCIONES);
+  assertEquals(r.tipo_comprobante, null);
+  assertEquals(r.receptor.rfc, "");
+});
+
+Deno.test("parseCfdi: TipoDeComprobante 'E' (Egreso/Nota de crédito) se preserva", () => {
+  const xml = FIXTURE_BASIC.replace(
+    'TipoDeComprobante="I"',
+    'TipoDeComprobante="E"',
+  );
+  const r = parseCfdi(xml);
+  assertEquals(r.tipo_comprobante, "E");
+});
+
+Deno.test("parseCfdi: TipoDeComprobante 'P' (Pago) se preserva", () => {
+  const xml = FIXTURE_BASIC.replace(
+    'TipoDeComprobante="I"',
+    'TipoDeComprobante="P"',
+  );
+  const r = parseCfdi(xml);
+  assertEquals(r.tipo_comprobante, "P");
+});
+
+Deno.test("parseCfdi: TipoDeComprobante inválido => null (no confía en input)", () => {
+  const xml = FIXTURE_BASIC.replace(
+    'TipoDeComprobante="I"',
+    'TipoDeComprobante="Z"',
+  );
+  const r = parseCfdi(xml);
+  assertEquals(r.tipo_comprobante, null);
 });
