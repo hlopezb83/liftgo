@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.98.1",
+    "date": "2026-07-19",
+    "type": "patch",
+    "title": "Fix MRR del dashboard: excluir reservas canceladas",
+    "summary": "El card de 'Ingreso Mensual Recurrente' del dashboard mostraba $426,000 mientras que la página /mrr (fuente de verdad) mostraba $396,000. Causa: `get_financial_kpis` sumaba **todas** las bookings con `recurring_billing = true` cuyas fechas cubrían hoy, sin filtrar por `status`. Reservas canceladas conservaban `recurring_billing = true` y seguían sumando (caso RSV-0013 en HPLTC015A0762/002 inflaba el KPI en $30,000, además de que ese mismo forklift ya estaba contado por RSV-0016 confirmada — doble conteo). Fix: se agrega `AND b.status = 'confirmed'` al cálculo de MRR actual y del mes anterior en `get_financial_kpis`. Verificado contra la base: 16 reservas, $396,000 — alineado con /mrr. Sin cambios de UI ni de otros RPCs."
+  },
+  {
     "version": "7.98.0",
     "date": "2026-07-19",
     "type": "minor",

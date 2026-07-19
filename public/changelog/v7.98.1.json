@@ -1,0 +1,27 @@
+{
+  "version": "7.98.1",
+  "date": "2026-07-19",
+  "type": "patch",
+  "title": "Fix MRR del dashboard: excluir reservas canceladas",
+  "sections": [
+    {
+      "heading": "Bug",
+      "items": [
+        "El card 'Ingreso Mensual Recurrente' del dashboard mostraba $426,000; la página /mrr (fuente de verdad) mostraba $396,000. Delta de $30,000 provenía de RSV-0013 (cancelada) que conservaba `recurring_billing = true` y del doble conteo del forklift HPLTC015A0762/002 (RSV-0013 cancelada + RSV-0016 confirmada)."
+      ]
+    },
+    {
+      "heading": "Fix",
+      "items": [
+        "`public.get_financial_kpis`: se agrega `AND b.status = 'confirmed'` al cálculo del MRR actual y del mes anterior. Migración `CREATE OR REPLACE FUNCTION`.",
+        "Verificación contra la base: 16 reservas, $396,000 — alineado con /mrr."
+      ]
+    },
+    {
+      "heading": "Nota",
+      "items": [
+        "Queda pendiente (BL nuevo) limpiar `recurring_billing` cuando una reserva se cancela, para prevenir que este tipo de datos ensucien KPIs y la facturación recurrente en el futuro."
+      ]
+    }
+  ]
+}
