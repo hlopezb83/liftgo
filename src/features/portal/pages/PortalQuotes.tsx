@@ -3,8 +3,10 @@ import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTa
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { MobileCardList } from "@/components/layout/MobileCardList";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
@@ -15,6 +17,7 @@ type Quote = NonNullable<ReturnType<typeof usePortalQuotes>["data"]>[number];
 export default function PortalQuotes() {
   const { data, isLoading } = usePortalQuotes();
   const navigate = useNavigateTransition();
+  const isMobile = useIsMobile();
 
   const columns: ColumnDef<Quote>[] = [
     { id: "quote_number", header: "Cotización #", accessorKey: "quote_number",
@@ -43,11 +46,45 @@ export default function PortalQuotes() {
       <Card>
         <CardHeader><CardTitle className="text-base">Todas las cotizaciones</CardTitle></CardHeader>
         <CardContent className="p-0">
-          <DataTableV2
-            table={table}
-            emptyMessage="No hay cotizaciones para mostrar"
-            onRowClick={(q) => navigate(`/portal/quotes/${q.id}`)}
-          />
+          {isMobile ? (
+            <div className="p-3">
+              <MobileCardList
+                items={data ?? []}
+                keyExtractor={(q) => q.id}
+                emptyMessage="No hay cotizaciones para mostrar"
+                renderCard={(q) => (
+                  <Card
+                    className="cursor-pointer active:bg-accent/40"
+                    onClick={() => navigate(`/portal/quotes/${q.id}`)}
+                  >
+                    <CardContent className="p-3 space-y-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="font-medium">{q.quote_number}</span>
+                        <StatusBadge status={q.status} />
+                      </div>
+                      <div className="flex items-center justify-between text-sm text-muted-foreground">
+                        <span>{formatDateDisplay(q.created_at)}</span>
+                        <span className="font-mono font-semibold text-foreground">
+                          {formatCurrency(Number(q.total))}
+                        </span>
+                      </div>
+                      {q.valid_until ? (
+                        <div className="text-xs text-muted-foreground">
+                          Válida hasta: {formatDateDisplay(q.valid_until)}
+                        </div>
+                      ) : null}
+                    </CardContent>
+                  </Card>
+                )}
+              />
+            </div>
+          ) : (
+            <DataTableV2
+              table={table}
+              emptyMessage="No hay cotizaciones para mostrar"
+              onRowClick={(q) => navigate(`/portal/quotes/${q.id}`)}
+            />
+          )}
         </CardContent>
       </Card>
     </PageContainer>
