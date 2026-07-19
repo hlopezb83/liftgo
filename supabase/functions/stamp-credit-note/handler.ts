@@ -476,6 +476,23 @@ export async function handleStampCreditNote(
       message: err instanceof Error ? err.message : String(err),
       stack: err instanceof Error ? err.stack : undefined,
     });
+    // BL-03 (cierre): liberar el claim atómico ante excepción no manejada.
+    // Sin esto la NC queda en 'stamping' para siempre.
+    if (claimed && supabaseRef && credit_note_id) {
+      try {
+        await supabaseRef.from("credit_notes")
+          .update({
+            cfdi_status: "error",
+            cfdi_error_message: "Internal error during stamping",
+          })
+          .eq("id", credit_note_id);
+      } catch (releaseErr) {
+        console.error("[stamp-credit-note] release-on-exception failed", {
+          credit_note_id,
+          err: releaseErr instanceof Error ? releaseErr.message : String(releaseErr),
+        });
+      }
+    }
     return json({ error: "Internal server error" }, 500);
   }
 }
