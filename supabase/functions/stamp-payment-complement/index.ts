@@ -45,11 +45,16 @@ Deno.serve(async (req) => {
     // pasarían al UPDATE → doble timbrado. Solo se puede reclamar desde
     // pending|error|none con uuid null; para re-timbrar tras cancelación,
     // permitimos entrada por rep_cfdi_status='cancelled'.
+    // Blindaje adicional: para estados pending|error|none exigimos
+    // rep_cfdi_uuid IS NULL (data no timbrada). Solo `cancelled` puede tener
+    // uuid presente. Esto cierra la puerta a data corrupta con uuid poblado en
+    // estados no-timbrados que de otra forma pasaría el claim.
     const claimRes = await supabase
       .from("payments")
       .update({ rep_cfdi_status: "stamping" })
       .eq("id", payment_id)
       .in("rep_cfdi_status", ["pending", "error", "none", "cancelled"])
+      .or("rep_cfdi_uuid.is.null,rep_cfdi_status.eq.cancelled")
       .select("id")
       .maybeSingle();
     if (claimRes.error) {
@@ -108,9 +113,15 @@ Deno.serve(async (req) => {
       }
     >;
     let priorPaidStamped = 0;
-    let priorEmissions = 0; // stamped + cancelled ya emitidos
+    let priorEmissions = 0; // stamped + cancelled ya emitidos (incluye el pago actual si tuvo emisión previa)
     for (const p of paymentsList) {
-      if (p.id === payment_id) continue;
+      if (p.id === payment_id) {
+        // BL-06/07 (cierre): si el pago actual tiene rep_cfdi_uuid, hubo una
+        // emisión previa ante el SAT (típicamente cancelada). El SAT no permite
+        // reutilizar NumParcialidad aunque el REP anterior esté cancelado.
+        if (p.rep_cfdi_uuid) priorEmissions += 1;
+        continue;
+      }
       if (p.rep_cfdi_status === "stamped") {
         priorPaidStamped += Number(p.amount);
         priorEmissions += 1;

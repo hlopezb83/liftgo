@@ -147,4 +147,26 @@ describe("useRecordPaymentForm", () => {
       exchange_rate: 1,
     });
   });
+
+  // BL-11: rechazar sobrepagos en el borde del cliente. El trigger DB es la
+  // red de seguridad; este test cubre la UX inmediata (mensaje explícito).
+  it("submit con monto mayor al saldo → notifyValidation, no llama createPayment", async () => {
+    const { result } = renderForm({ balance: 500 });
+    act(() => result.current.setAmount("600"));
+    await act(async () => { await result.current.handleSubmit(); });
+    expect(notifyValidationMock).toHaveBeenCalledWith({
+      message: expect.stringContaining("excede el saldo pendiente"),
+    });
+    expect(createPaymentMutate).not.toHaveBeenCalled();
+  });
+
+  it("submit con monto == saldo (tolerancia centavo) sí llama createPayment", async () => {
+    const { result } = renderForm({ balance: 500 });
+    act(() => result.current.setAmount("500.005"));
+    await act(async () => { await result.current.handleSubmit(); });
+    expect(notifyValidationMock).not.toHaveBeenCalledWith(
+      expect.objectContaining({ message: expect.stringContaining("excede") }),
+    );
+    expect(createPaymentMutate).toHaveBeenCalledTimes(1);
+  });
 });

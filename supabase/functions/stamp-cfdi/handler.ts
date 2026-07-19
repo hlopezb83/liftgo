@@ -41,6 +41,11 @@ export async function handleStampCfdi(
     jsonResponse(req, body, { status });
   const jsonHeaders = undefined;
 
+  // Referencias externas al try para que el outer-catch pueda liberar el claim
+  // atómico ante excepciones inesperadas (BL-03 cierre completo).
+  let supabaseRef: SupabaseLike | null = null;
+  let invoiceIdRef: string | null = null;
+  let claimed = false;
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
@@ -57,6 +62,7 @@ export async function handleStampCfdi(
     const userId = claimsData.claims.sub;
 
     const supabase = deps.createServiceClient();
+    supabaseRef = supabase;
     const rolesRes = await supabase.from("user_roles").select("role").eq(
       "user_id",
       userId,
@@ -146,6 +152,8 @@ export async function handleStampCfdi(
         jsonHeaders,
       );
     }
+    claimed = true;
+    invoiceIdRef = invoice_id as string;
 
     // Helper para revertir el claim atómico ante cualquier salida temprana
     // posterior al UPDATE→stamping. Sin esto la factura queda atascada en
@@ -531,6 +539,25 @@ export async function handleStampCfdi(
     );
   } catch (err) {
     console.error("[stamp-cfdi] unhandled exception", err);
+    // BL-03 (cierre): liberar el claim ante excepción no manejada para que la
+    // factura no quede atascada en 'stamping'.
+    if (claimed && supabaseRef && invoiceIdRef) {
+      try {
+        await supabaseRef.from("invoices")
+          .update({
+            cfdi_status: "error",
+            cfdi_error_message: "Internal error during stamping",
+          })
+          .eq("id", invoiceIdRef);
+      } catch (releaseErr) {
+        console.error("[stamp-cfdi] release-on-exception failed", {
+          invoice_id: invoiceIdRef,
+          err: releaseErr instanceof Error
+            ? releaseErr.message
+            : String(releaseErr),
+        });
+      }
+    }
     return json({ error: "Internal server error" }, 500);
   }
 }

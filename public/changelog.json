@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.88.0",
+    "date": "2026-07-19",
+    "type": "minor",
+    "title": "Sprint 2 (parte 1): Notas de Crédito en P&L, timezone de rentas y cap 29-30 días",
+    "summary": "BL-09: get_income_statement ahora resta el subtotal de las notas de crédito emitidas al ingreso del mes, clasificándolas como renta o venta según la factura padre. Se agrega el campo credit_notes por mes para trazabilidad. BL-14: generateLineItems parsea las fechas YMD anclando al mediodía local, eliminando el corrimiento de un día que en Monterrey (UTC-6) provocaba facturar '1 mes + 1 día' en rentas de calendario cerrado (1 ene → 31 ene). BL-15: calculateRentalCost capea el remanente semanal+diario a un mes completo cuando el rango es de 28-31 días y el costo supera la tarifa mensual, evitando que 30 días cuesten más que un mes cerrado. Cobertura: 5 tests nuevos en rentalCalculation cubriendo timezone y cap."
+  },
+  {
+    "version": "7.87.1",
+    "date": "2026-07-19",
+    "type": "patch",
+    "title": "Sprint 1 cierre: outer-catch libera claim, NumParcialidad tras cancelación y trigger anti-sobrepago",
+    "summary": "Auditoría del Sprint 1: se corrigieron 3 bugs residuales. (A) stamp-cfdi y stamp-credit-note ahora liberan el claim atómico incluso ante excepciones no manejadas: se mantienen referencias externas al try para que el outer-catch marque cfdi_status='error' y evite que la factura/NC queden atascadas en 'stamping'. (B) stamp-payment-complement suma la emisión previa del propio pago cuando tenía rep_cfdi_uuid, así el re-timbrado tras cancelación asigna NumParcialidad = N+1 y no colisiona con la parcialidad cancelada ante el SAT. (C) el claim del REP exige rep_cfdi_uuid IS NULL salvo cuando entra desde 'cancelled', bloqueando data corrupta. (D) nuevo trigger BEFORE INSERT/UPDATE en payments que bloquea invoices FOR UPDATE y rechaza sobrepagos por concurrencia (red de seguridad server-side para BL-11, complementa la validación cliente). Tests: cobertura ampliada de syncInvoiceStatus (BL-10: cancelled y draft) y useRecordPaymentForm (BL-11: sobrepago y tolerancia de centavo)."
+  },
+  {
     "version": "7.87.0",
     "date": "2026-07-19",
     "type": "minor",

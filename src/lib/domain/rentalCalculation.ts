@@ -73,9 +73,13 @@ export function calculateRentalCost(
   const remainderStart = months > 0 ? addMonths(startDate, months) : startDate;
   let remaining = Math.max(0, differenceInDays(effectiveEnd, remainderStart));
 
+  // Buffer separado para poder aplicar el cap BL-15 sin tocar los meses ya
+  // facturados a tarifa mensual (esos representan calendario cerrado).
+  const remainderItems: LineItem[] = [];
+
   if (w > 0 && remaining >= DAYS_PER_WEEK) {
     const weeks = Math.floor(remaining / DAYS_PER_WEEK);
-    items.push({
+    remainderItems.push({
       description: "Renta semanal",
       quantity: weeks,
       unit_price: w,
@@ -85,9 +89,50 @@ export function calculateRentalCost(
   }
 
   const dailyItem = buildDailyRemainder(remaining, d, w, m);
-  if (dailyItem) items.push(dailyItem);
+  if (dailyItem) remainderItems.push(dailyItem);
+
+  // BL-15: si el remanente (semanal + diario) alcanza ~28-31 días y su costo
+  // excede la tarifa mensual, capear a un mes completo. Sin esto una renta
+  // que por timezone o calendario partido queda como "29-30 días" cobra más
+  // que un mes cerrado — anti-intuitivo y desventajoso para el cliente.
+  if (m > 0 && remainderItems.length > 0) {
+    const remainderTotalDays = remainderItems.reduce(
+      (acc, it) => acc + (it.description === "Renta semanal" ? it.quantity * DAYS_PER_WEEK : it.quantity),
+      0,
+    );
+    const remainderCost = remainderItems.reduce((acc, it) => acc + it.total, 0);
+    if (remainderTotalDays >= 28 && remainderCost > m) {
+      items.push({
+        description: "Renta mensual",
+        quantity: 1,
+        unit_price: m,
+        total: m,
+      });
+    } else {
+      items.push(...remainderItems);
+    }
+  } else {
+    items.push(...remainderItems);
+  }
 
   return items;
+}
+
+/**
+ * Parsea una fecha en formato YMD (`2026-01-01`) o ISO completa a un `Date`
+ * estable en zona local, anclado al mediodía. Anclar a 12:00 evita el bug de
+ * timezone (BL-14): `new Date("2026-01-01")` parsea como UTC medianoche, que
+ * en America/Monterrey (UTC-6) representa 2025-12-31 18:00 local, corriendo
+ * `differenceInCalendarMonths` un día hacia atrás y facturando "1 mes + 1 día"
+ * en rentas de calendario cerrado.
+ */
+function parseRentalDate(input: string): Date {
+  // Solo YMD: anclar a mediodía local para blindar contra DST y timezone.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(input)) {
+    return new Date(`${input}T12:00:00`);
+  }
+  // ISO completa u otro formato: respetar tal cual.
+  return new Date(input);
 }
 
 export function generateLineItems(
@@ -95,8 +140,8 @@ export function generateLineItems(
   startDate: string,
   endDate: string
 ): LineItem[] {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
+  const start = parseRentalDate(startDate);
+  const end = parseRentalDate(endDate);
   const items = calculateRentalCost(forklift.daily_rate, forklift.weekly_rate, forklift.monthly_rate, start, end);
   const serieSuffix = forklift.serial_number ? ` (Serie: ${forklift.serial_number})` : "";
   return items.map((item) => ({
@@ -114,8 +159,8 @@ export function generateLineItemsFromModel(
   endDate: string,
   quantity: number = 1
 ): LineItem[] {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
+  const start = parseRentalDate(startDate);
+  const end = parseRentalDate(endDate);
   const items = calculateRentalCost(dailyRate, weeklyRate, monthlyRate, start, end);
   return items.map((item) => ({
     ...item,

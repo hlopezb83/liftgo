@@ -1,0 +1,33 @@
+{
+  "version": "7.87.1",
+  "date": "2026-07-19",
+  "type": "patch",
+  "title": "Sprint 1 cierre: outer-catch libera claim, NumParcialidad tras cancelación y trigger anti-sobrepago",
+  "sections": [
+    {
+      "title": "Bugs residuales cerrados",
+      "items": [
+        "stamp-cfdi/handler.ts: `supabaseRef`, `invoiceIdRef` y `claimed` promovidos fuera del try para que el outer-catch marque cfdi_status='error' ante cualquier excepción no manejada (cierre completo de BL-03).",
+        "stamp-credit-note/handler.ts: mismo blindaje — el outer-catch libera el claim atómico de la NC.",
+        "stamp-payment-complement/index.ts: el loop de emisiones ahora incluye la emisión previa del propio pago cuando `rep_cfdi_uuid` no es nulo, garantizando `NumParcialidad = N+1` en re-timbrado tras cancelación (cierre completo de BL-06/07).",
+        "stamp-payment-complement/index.ts: filtro del claim endurecido con `.or('rep_cfdi_uuid.is.null,rep_cfdi_status.eq.cancelled')` para bloquear pagos con uuid poblado en estados no-timbrados."
+      ]
+    },
+    {
+      "title": "Red de seguridad server-side (BL-11)",
+      "items": [
+        "Nueva función `public.enforce_payment_within_invoice_total()` y trigger `trg_enforce_payment_within_invoice_total` BEFORE INSERT/UPDATE en `payments`.",
+        "Bloquea la fila de `invoices` con `SELECT ... FOR UPDATE` durante la validación para serializar escrituras concurrentes.",
+        "Rechaza cualquier operación cuya suma total de pagos exceda `invoices.total + 0.01` con `check_violation` y HINT explícito.",
+        "Complementa la validación client-side existente en `useRecordPaymentForm` (dos pestañas concurrentes ya no pueden sobrepagar)."
+      ]
+    },
+    {
+      "title": "Tests",
+      "items": [
+        "syncInvoiceStatus.test.ts: nuevos casos para BL-10 — no toca facturas `cancelled` ni `draft` aunque haya pagos.",
+        "useRecordPaymentForm.test.ts: nuevos casos para BL-11 — sobrepago dispara `notifyValidation` sin invocar `createPayment`; tolerancia de centavo (500.005 vs 500) permite el pago."
+      ]
+    }
+  ]
+}

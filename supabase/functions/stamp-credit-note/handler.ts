@@ -42,6 +42,10 @@ export async function handleStampCreditNote(
 
   let credit_note_id: unknown = undefined;
   let userId: string | undefined = undefined;
+  // Referencias externas al try para que el outer-catch pueda liberar el claim
+  // atómico ante excepciones inesperadas y evitar que la NC quede en "stamping".
+  let supabaseRef: SupabaseLike | null = null;
+  let claimed = false;
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
@@ -62,6 +66,7 @@ export async function handleStampCreditNote(
     userId = claimsData.claims.sub;
 
     const supabase = deps.createServiceClient();
+    supabaseRef = supabase;
     const rolesRes = await supabase.from("user_roles").select("role").eq(
       "user_id",
       userId,
@@ -127,6 +132,7 @@ export async function handleStampCreditNote(
         jsonHeaders,
       );
     }
+    claimed = true;
 
     // BL-03: helper para revertir claim atómico si algo falla antes de timbrar.
     const releaseClaim = async (errorMessage?: string) => {
@@ -469,6 +475,25 @@ export async function handleStampCreditNote(
       message: err instanceof Error ? err.message : String(err),
       stack: err instanceof Error ? err.stack : undefined,
     });
+    // BL-03 (cierre): liberar el claim atómico ante excepción no manejada.
+    // Sin esto la NC queda en 'stamping' para siempre.
+    if (claimed && supabaseRef && credit_note_id) {
+      try {
+        await supabaseRef.from("credit_notes")
+          .update({
+            cfdi_status: "error",
+            cfdi_error_message: "Internal error during stamping",
+          })
+          .eq("id", credit_note_id);
+      } catch (releaseErr) {
+        console.error("[stamp-credit-note] release-on-exception failed", {
+          credit_note_id,
+          err: releaseErr instanceof Error
+            ? releaseErr.message
+            : String(releaseErr),
+        });
+      }
+    }
     return json({ error: "Internal server error" }, 500);
   }
 }
