@@ -67,6 +67,7 @@ export default function DeliveryDetail() {
         address: delivery.address,
         driver_name: delivery.driver_name,
         driver_phone: delivery.driver_phone,
+        hours_reading: delivery.hours_reading ?? null,
       },
       bookingEndDate: linkedBooking.end_date,
       forkliftName: forklift.name,
