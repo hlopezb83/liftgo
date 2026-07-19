@@ -130,8 +130,8 @@ async function buildPlan(supabase: any): Promise<{
   for (const booking of bookings || []) {
     const forklift = (booking.forklifts as Forklift | null) ?? null;
     // BL-31 (v7.92.0): preferir tarifa pactada en la reserva; fallback a la maestra.
-    const monthlyRate = Number(booking.monthly_rate) || forklift?.monthly_rate || 0;
-
+    const monthlyRate = Number(booking.monthly_rate) ||
+      forklift?.monthly_rate || 0;
 
     // Derivar last_billed_date desde el historial REAL de facturas vinculadas
     // (source of truth). Ignora bookings.last_billed_date cuando el historial lo
