@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.98.0",
+    "date": "2026-07-19",
+    "type": "minor",
+    "title": "Cierre de auditoría: BL-33 (vigencia de cotizaciones) y BL-23 (facturas de proveedor vencidas)",
+    "summary": "Cierra los últimos dos hallazgos abiertos de la serie BL. **BL-33**: `accept_quote_from_portal` y `convert_quote_to_bookings` ahora rechazan cotizaciones cuyo `valid_until` ya pasó — antes dependían del cron diario `expire-stale-quotes-daily`, dejando una ventana de hasta 24 h para que el cliente aceptara desde el portal o ventas convirtiera a reserva una cotización con precios y disponibilidad obsoletos. Mensaje explícito en cada RPC (`'Cotización vencida'` en portal, `'Cotización vencida: actualiza precios y vigencia antes de convertir'` en conversión interna). Bloqueo simple sin override: re-cotizar con vigencia nueva. **BL-23**: nueva función `public.mark_overdue_supplier_bills()` (SECURITY DEFINER, service_role only) programada vía `pg_cron` como `mark-overdue-supplier-bills-daily` a las `10 7 * * *` UTC (01:10 Mty). Marca `pending → overdue` cuando `balance > 0` y `due_date < CURRENT_DATE` sin esperar movimientos de pago, y revierte `overdue → pending` si la fecha se extiende al futuro o se borra. Facturas `partial` no se tocan (mantiene contrato de `recalc_supplier_bill`; el aging report ya las bucketea correctamente). Ambas migraciones verificadas contra la base. Sin cambios de frontend: el error se propaga por `notifyError` a través de flujos existentes. Con esto queda cerrada la auditoría de lógica de negocio BL-01…BL-38."
+  },
+  {
     "version": "7.97.0",
     "date": "2026-07-19",
     "type": "minor",
