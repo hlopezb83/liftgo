@@ -314,7 +314,13 @@ export async function handleStampCfdi(
       currency: inv.moneda || "MXN",
       exchange: inv.tipo_cambio || 1,
       series: inv.serie || undefined,
-      folio_number: inv.folio ? Number(inv.folio) : undefined,
+      // BL-20: validar folio numérico antes de castear (Number("BORRADOR")=NaN
+      // rompía el payload JSON hacia Facturapi).
+      folio_number: (() => {
+        if (!inv.folio) return undefined;
+        const n = Number(inv.folio);
+        return Number.isFinite(n) && n > 0 ? n : undefined;
+      })(),
     };
 
     if (isGlobal) {
@@ -336,9 +342,11 @@ export async function handleStampCfdi(
       const periodicity = PERIODICITY_MAP[raw] ??
         (FACTURAPI_ENUM.has(raw) ? raw : null);
       if (!periodicity) {
-        throw new Error(
-          `Periodicidad global inválida: "${raw}". Debe ser código SAT 01-05.`,
-        );
+        // BL-03: revertir claim antes de propagar error — antes se lanzaba y la
+        // factura quedaba atascada en "stamping".
+        const msg = `Periodicidad global inválida: "${raw}". Debe ser código SAT 01-05.`;
+        await releaseClaim(msg);
+        return json({ error: msg }, 400, jsonHeaders);
       }
       payload.global = {
         periodicity,
