@@ -47,6 +47,10 @@ export async function syncInvoiceStatus(invoiceId: string, paidAtFallback: strin
     .single();
   if (!invoice) return;
 
+  // BL-10: nunca sobrescribir facturas canceladas o en borrador. Antes, editar
+  // o eliminar pagos "resucitaba" una factura cancelada volviéndola sent/partial.
+  if (invoice.status === "cancelled" || invoice.status === "draft") return;
+
   const balance = roundMoney(Number(invoice.total) - totalPaid);
   if (balance <= 0 && invoice.status !== "paid") {
     await applyStatus(invoiceId, { status: "paid", paid_at: latestPaymentDate(rows, paidAtFallback) }, "Marcar factura como pagada");
