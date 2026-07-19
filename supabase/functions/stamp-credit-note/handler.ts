@@ -133,7 +133,9 @@ export async function handleStampCreditNote(
       await supabase.from("credit_notes")
         .update({
           cfdi_status: errorMessage ? "error" : "pending",
-          ...(errorMessage ? { cfdi_error_message: errorMessage.slice(0, 1000) } : {}),
+          ...(errorMessage
+            ? { cfdi_error_message: errorMessage.slice(0, 1000) }
+            : {}),
         })
         .eq("id", credit_note_id);
     };
@@ -182,12 +184,16 @@ export async function handleStampCreditNote(
     const invoiceTotal = Number(inv.total ?? 0);
     if (activeNcTotal - 0.01 > invoiceTotal) {
       await releaseClaim(
-        `Notas de crédito acumuladas (${activeNcTotal.toFixed(2)}) exceden el total facturado (${invoiceTotal.toFixed(2)}).`,
+        `Notas de crédito acumuladas (${
+          activeNcTotal.toFixed(2)
+        }) exceden el total facturado (${invoiceTotal.toFixed(2)}).`,
       );
       return json(
         {
           error:
-            `El monto total de notas de crédito excede el importe de la factura. Suma NCs: ${activeNcTotal.toFixed(2)} > factura ${invoiceTotal.toFixed(2)}.`,
+            `El monto total de notas de crédito excede el importe de la factura. Suma NCs: ${
+              activeNcTotal.toFixed(2)
+            } > factura ${invoiceTotal.toFixed(2)}.`,
         },
         400,
         jsonHeaders,
@@ -198,10 +204,11 @@ export async function handleStampCreditNote(
     // se timbre en el mismo ambiente que la factura origen.
     const { data: company } = await supabase
       .from("company_settings").select("*").limit(1).maybeSingle();
-    const modeOverride = (company as Record<string, unknown> | null)?.facturapi_mode as
-      | string
-      | undefined
-      | null;
+    const modeOverride = (company as Record<string, unknown> | null)
+      ?.facturapi_mode as
+        | string
+        | undefined
+        | null;
     const { apiKey, mode } = await getFacturapiConfig(supabase, deps.env, {
       modeOverride: modeOverride ?? null,
     });
@@ -274,7 +281,9 @@ export async function handleStampCreditNote(
     // relacionable ante el SAT; NC sobre USD ignoraba tipo de cambio.
     const invPaymentMethod = String(inv.metodo_pago || "PUE");
     const invCurrency = String(ncRow.currency || inv.moneda || "MXN");
-    const invExchange = invCurrency === "MXN" ? 1 : Number(inv.tipo_cambio || 1) || 1;
+    const invExchange = invCurrency === "MXN"
+      ? 1
+      : Number(inv.tipo_cambio || 1) || 1;
 
     const payload: Record<string, unknown> = {
       type: "E",
