@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.89.1",
+    "date": "2026-07-19",
+    "type": "patch",
+    "title": "Fix constraint no_overlapping_bookings y cierre de auditoría BL-01..BL-20",
+    "summary": "En v7.89.0 se cambió el daterange de la constraint no_overlapping_bookings de [] a [) para permitir rotación mismo día. Postgres trata daterange(d,d,'[)') como rango vacío, por lo que reservas de un solo día (start_date = end_date) dejaban de solaparse con nada y permitían doble booking. Se revierte a [] manteniendo lo útil del fix BL-17: la exclusión de reservas 'completed'. Hoy no había reservas de un día en la BD, así que no hubo corrupción. Con este patch queda cerrada la ronda profunda de auditoría de lógica de negocio (BL-01 a BL-20, 20/20 hallazgos resueltos entre v7.87.0 y v7.89.1)."
+  },
+  {
     "version": "7.89.0",
     "date": "2026-07-19",
     "type": "minor",
