@@ -28,13 +28,14 @@ vi.mock("@/integrations/supabase/client", () => ({
     from: () => ({
       insert: (row: unknown) => {
         insertMock(row);
+        const results = insertMock.mock.results;
+        const last = results[results.length - 1]?.value;
         return {
-          select: () => ({
-            single: () => insertMock.mock.results.at(-1)?.value,
-          }),
+          select: () => ({ single: () => last }),
         };
       },
     }),
+
   },
 }));
 
