@@ -3,7 +3,6 @@ import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { requireRole } from "../_shared/auth.ts";
 import { computeProrate } from "./prorate.ts";
 
-
 const TZ = "America/Monterrey";
 
 function nowInMonterrey(): Date {
