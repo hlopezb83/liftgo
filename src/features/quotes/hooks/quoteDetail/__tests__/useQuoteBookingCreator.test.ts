@@ -33,7 +33,7 @@ function buildDeps() {
     setShowAssignmentDialog: vi.fn(),
     setCurrentDeliveryIndex: vi.fn(),
     setPendingDeliveries: vi.fn(),
-  } as unknown as ReturnType<typeof buildStateStub>;
+  } as unknown as Parameters<typeof useQuoteBookingCreator>[1];
   const data = {
     quote: {
       id: "q-1",
@@ -50,14 +50,7 @@ function buildDeps() {
   } as unknown as Parameters<typeof useQuoteBookingCreator>[0];
   return { state, data };
 }
-function buildStateStub() {
-  return {
-    setIsConverting: vi.fn(),
-    setShowAssignmentDialog: vi.fn(),
-    setCurrentDeliveryIndex: vi.fn(),
-    setPendingDeliveries: vi.fn(),
-  };
-}
+
 
 describe("useQuoteBookingCreator (BL-32, v7.94.1)", () => {
   beforeEach(() => {
