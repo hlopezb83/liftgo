@@ -128,6 +128,35 @@ serve(async (req) => {
       return jsonError(req, 400, msg);
     }
 
+    // BL-36: TipoDeComprobante debe ser Ingreso (I) o Egreso (E — nota de crédito).
+    // N (nómina), P (pago) y T (traslado) no son facturas de proveedor gastables.
+    if (
+      cfdi.tipo_comprobante && cfdi.tipo_comprobante !== "I" &&
+      cfdi.tipo_comprobante !== "E"
+    ) {
+      return jsonError(
+        req,
+        400,
+        `CFDI TipoDeComprobante='${cfdi.tipo_comprobante}' no es una factura de proveedor (sólo I o E).`,
+      );
+    }
+
+    // BL-35: validar que el receptor coincide con nuestro RFC.
+    const { data: settings } = await auth.adminClient
+      .from("company_settings")
+      .select("rfc")
+      .limit(1)
+      .maybeSingle();
+    const ourRfc = (settings?.rfc ?? "").toUpperCase().trim();
+    const receptorRfc = (cfdi.receptor.rfc ?? "").toUpperCase().trim();
+    if (ourRfc && receptorRfc && receptorRfc !== ourRfc) {
+      return jsonError(
+        req,
+        400,
+        `CFDI_RECEPTOR_MISMATCH: el CFDI está emitido a ${receptorRfc}, no a ${ourRfc}.`,
+      );
+    }
+
     // Duplicate by UUID in supplier_bills
     const { data: existing } = await auth.adminClient
       .from("supplier_bills")
