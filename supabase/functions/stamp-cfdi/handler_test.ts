@@ -202,7 +202,7 @@ Deno.test("handler: happy path calls Facturapi and persists UUID", async () => {
                 quantity: 1,
                 unit_price: 1000,
               }],
-              receptor_rfc: "XAXX010101000",
+              receptor_rfc: "AAA010101AAA",
             },
             error: null,
           },
