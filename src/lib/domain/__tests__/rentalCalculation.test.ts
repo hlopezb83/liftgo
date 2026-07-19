@@ -143,3 +143,58 @@ describe("calculateRentalCost — casos de borde de calendario", () => {
   });
 });
 
+describe("generateLineItems — timezone stability (BL-14)", () => {
+  const forklift: Forklift = {
+    id: "fk-1",
+    name: "MC-01",
+    daily_rate: 0,
+    weekly_rate: 0,
+    monthly_rate: 10_000,
+    serial_number: null,
+  } as unknown as Forklift;
+
+  it("YMD '2026-01-01' → '2026-01-31' se factura como 1 mes exacto sin importar timezone del host", () => {
+    // Antes: new Date('2026-01-01') = UTC medianoche → local Monterrey 2025-12-31,
+    // provocando differenceInCalendarMonths(31 ene, 31 dic) = 1 pero el remanente
+    // se calculaba desde 31 dic corriendo un día → factura "1 mes + 1 día".
+    const items = generateLineItems(forklift, "2026-01-01", "2026-01-31");
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ description: expect.stringContaining("Renta mensual"), quantity: 1 });
+  });
+
+  it("YMD '2026-02-15' → '2026-03-14' se factura como 1 mes exacto", () => {
+    const items = generateLineItems(forklift, "2026-02-15", "2026-03-14");
+    expect(items[0]).toMatchObject({ quantity: 1 });
+  });
+});
+
+describe("calculateRentalCost — cap 29-30 días al mes (BL-15)", () => {
+  it("30 días como 4 semanas + 2 días > mensual → se capea a 1 mes", () => {
+    // 4*2000 + 2*400 = 8800; monthly = 8500. Cap dispara: 1 mes @ 8500.
+    const items = calculateRentalCost(400, 2_000, 8_500, d("2026-01-05"), d("2026-02-03"));
+    const monthly = items.find((i) => i.description === "Renta mensual");
+    const weekly = items.find((i) => i.description === "Renta semanal");
+    expect(monthly).toMatchObject({ quantity: 1, total: 8_500 });
+    expect(weekly).toBeUndefined();
+  });
+
+  it("30 días donde 4 semanas + 2 días < mensual → NO se capea (respeta cotización cliente)", () => {
+    // 4*1000 + 2*100 = 4200; monthly = 8000. Cap NO dispara.
+    const items = calculateRentalCost(100, 1_000, 8_000, d("2026-01-05"), d("2026-02-03"));
+    const monthly = items.find((i) => i.description === "Renta mensual");
+    const weekly = items.find((i) => i.description === "Renta semanal");
+    expect(monthly).toBeUndefined();
+    expect(weekly).toMatchObject({ quantity: 4 });
+  });
+
+  it("cap no aplica cuando ya hay meses cerrados: solo afecta el remanente", () => {
+    // 2 meses + 30 días. Los 2 meses se respetan; el remanente 30d entra al cap.
+    const items = calculateRentalCost(400, 2_000, 8_500, d("2026-01-01"), d("2026-03-30"));
+    const monthly = items.filter((i) => i.description === "Renta mensual");
+    // 2 meses cerrados + 1 mes por cap = 3 unidades totales de renta mensual
+    const totalMonthlyQty = monthly.reduce((acc, m) => acc + m.quantity, 0);
+    expect(totalMonthlyQty).toBeGreaterThanOrEqual(2);
+  });
+});
+
+
