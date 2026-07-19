@@ -12,6 +12,7 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { formatDateDisplay } from "@/lib/utils";
 import { useDeleteMaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
+import { MaintenanceLaborSection } from "./MaintenanceLaborSection";
 import { MaintenancePartsSection } from "./MaintenancePartsSection";
 import type { MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
 
