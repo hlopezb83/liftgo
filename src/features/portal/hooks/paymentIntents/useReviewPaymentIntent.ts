@@ -32,16 +32,17 @@ export function useReviewPaymentIntent() {
         const { error } = await supabase.rpc("approve_payment_intent", {
           p_intent_id: intentId,
           p_payment_form_sat: paymentFormSat ?? "03",
-          p_review_notes: notes ?? null,
+          p_review_notes: notes ?? undefined,
         });
         if (error) throw error;
       } else {
         const { error } = await supabase.rpc("reject_payment_intent", {
           p_intent_id: intentId,
-          p_review_notes: notes ?? null,
+          p_review_notes: notes ?? undefined,
         });
         if (error) throw error;
       }
+
     },
     invalidateKeys: [portalQueries.adminPaymentIntents.keys.all, paymentKeys.all, invoiceKeys.all],
     successMsg: "Intento de pago actualizado",
