@@ -102,10 +102,17 @@ function LineRow({
             <span className="text-muted-foreground truncate">— {line.forkliftName}</span>
           ) : null}
         </div>
-        <div className="text-xs text-muted-foreground">{line.periodLabel}</div>
+        <div className="text-xs text-muted-foreground">
+          {line.periodLabel}
+          {line.isProrated ? (
+            <span className="ml-1 text-amber-600 dark:text-amber-400">
+              · prorrateado {line.proratedDays} días
+            </span>
+          ) : null}
+        </div>
       </div>
       {line.eligible ? (
-        <span className="font-mono text-sm">{formatCurrency(line.monthlyRate)}</span>
+        <span className="font-mono text-sm">{formatCurrency(line.billedAmount)}</span>
       ) : (
         <IneligibleBadge line={line} />
       )}
