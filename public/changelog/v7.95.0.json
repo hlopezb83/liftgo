@@ -1,0 +1,35 @@
+{
+  "version": "7.95.0",
+  "date": "2026-07-19",
+  "type": "minor",
+  "title": "Auditoría v7.94.0: limpieza, regresiones y blindaje del portal",
+  "sections": [
+    {
+      "heading": "Fase 0 · Limpieza de dead code (BL-32 seguimiento)",
+      "items": [
+        "Se elimina `applyRatesToBookings` de `src/features/quotes/hooks/quoteDetail/quoteBookingBuilders.ts`: sus tarifas ahora las aplica la RPC transaccional `convert_quote_to_bookings` server-side (v7.94.0).",
+        "Se borra `applyRatesToBookings.test.ts` (cubría el helper eliminado)."
+      ]
+    },
+    {
+      "heading": "Fase 0 · Tests que faltaban",
+      "items": [
+        "Nuevo `useQuoteBookingCreator.test.ts` (2 casos): payload snake_case correcto para la RPC + difusión de IDs devueltos a `buildDeliveryInfos`; manejo de error de la RPC sin invalidar caches ni cerrar el diálogo.",
+        "Mocks aislados de `@/integrations/supabase/client`, `@tanstack/react-query` y `@/lib/ui/appFeedback` para verificar el contrato del hook sin tocar red."
+      ]
+    },
+    {
+      "heading": "Fase 1 · Regresión RLS del portal (BL-25/26)",
+      "items": [
+        "Se confirma que `customer_payment_intents` no tiene policy UPDATE para `customer` — sólo SELECT/INSERT propios; la aprobación/rechazo pasa por las RPCs SECURITY DEFINER.",
+        "Nuevo `paymentIntentsRls.test.ts`: intenta un UPDATE anónimo y exige 0 filas afectadas o error de permisos. Truena si alguien vuelve a exponer UPDATE al portal."
+      ]
+    },
+    {
+      "heading": "Backlog explícito (fuera de alcance de este parche)",
+      "items": [
+        "Dashboard · Cash Flow: hoy grafica invoiced vs paid. Un desglose por método de pago (efectivo/transferencia/cheque/tarjeta) requiere nueva RPC + card; queda documentado como feature pendiente, no como bug."
+      ]
+    }
+  ]
+}
