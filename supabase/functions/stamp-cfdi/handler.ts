@@ -12,6 +12,10 @@ import {
   getFacturapiConfig,
   retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
+import {
+  enqueueCfdiRetry,
+  isTransientFacturapiError,
+} from "../_shared/cfdiRetryQueue.ts";
 
 // Mantenido por compatibilidad con consumidores existentes (tests, etc.).
 export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
@@ -386,6 +390,16 @@ export async function handleStampCfdi(
           cfdi_error_message: desc.detail.slice(0, 1000),
         })
         .eq("id", invoice_id);
+      // BL-44: encolar reintento solo si el error es transitorio (5xx / red / 429).
+      // Errores de negocio (RFC inválido, XML rechazado por SAT) NO se reencolan.
+      if (isTransientFacturapiError(desc)) {
+        await enqueueCfdiRetry(supabase, {
+          operation: "stamp",
+          invoiceId: invoice_id,
+          payload: { body },
+          errorMessage: `${desc.code ?? ""} ${desc.message}`.trim(),
+        });
+      }
       const errorText = desc.code
         ? `${desc.code}: ${desc.message}`
         : desc.message;
@@ -395,6 +409,7 @@ export async function handleStampCfdi(
           code: desc.code,
           status: desc.status,
           detail: desc.detail,
+          transient: isTransientFacturapiError(desc),
         },
         502,
         jsonHeaders,

@@ -1,0 +1,41 @@
+{
+  "version": "7.103.0",
+  "date": "2026-07-19",
+  "type": "minor",
+  "title": "Idempotencia CFDI + cola de reintentos + regresión BL-45 (BL-43/44/45)",
+  "sections": [
+    {
+      "heading": "BL-43 · Idempotencia de webhooks (helper compartido)",
+      "items": [
+        "Nuevo `supabase/functions/_shared/webhookIdempotency.ts` con `claimWebhookEvent({provider,eventId,eventType,payload})`: inserta en `webhook_events` y aprovecha la violación de UNIQUE `(provider,event_id)` para detectar duplicados sin race conditions.",
+        "El claim expone `markProcessed()` y `markFailed(err)` como no-op cuando `duplicate=true`, de forma que reintentos concurrentes del mismo evento del proveedor sean seguros y no sobrescriban estado ajeno.",
+        "Preparado para consumidores futuros (Facturapi / Stripe): el patrón es claim → work → markProcessed en un solo await."
+      ]
+    },
+    {
+      "heading": "BL-44 · Cola de reintentos CFDI (transient-only)",
+      "items": [
+        "Nuevo `_shared/cfdiRetryQueue.ts` con `isTransientFacturapiError(desc)` (true para 5xx / 429 / status:null; false para 4xx de negocio) y `enqueueCfdiRetry({operation,invoiceId,payload,errorMessage})`.",
+        "Backoff exponencial `nextRetryAt(attempts)` = 2^attempts minutos, cap a 60min.",
+        "`stamp-cfdi/handler.ts` sólo encola cuando el error es transitorio y agrega `transient:true|false` a la respuesta 502 para que el cliente distinga red/rate limit vs RFC inválido."
+      ]
+    },
+    {
+      "heading": "BL-45 · Aprobación/rechazo de intents ya es idempotente",
+      "items": [
+        "Auditoría confirma que `approve_payment_intent` y `reject_payment_intent` reclaman la fila con `UPDATE ... WHERE status='pending_review' RETURNING *` y disparan `RAISE EXCEPTION 'intent_not_pending'` si `NOT FOUND`.",
+        "Doble clic o dos admins concurrentes ya no pueden duplicar pagos ni sobrescribir rechazo/aprobación. Se agrega test de regresión para blindar el contrato."
+      ]
+    },
+    {
+      "heading": "Tests",
+      "items": [
+        "`_shared/cfdiRetryQueue_test.ts`: 5 casos (transient classification, backoff, enqueue happy path y fallo silencioso).",
+        "`_shared/webhookIdempotency_test.ts`: 3 casos (primer evento marcado como procesado, duplicado no-op, markFailed persiste error).",
+        "`useReviewPaymentIntent.idempotency.test.ts`: 3 casos (approve OK, approve segunda vez → `intent_not_pending`, reject sobre intent no-pendiente).",
+        "Fixup: `stamp-cfdi/handler_test.ts` seeds usaban RFC XAXX010101000 (Público en General) sin `global_periodicity/months/year` y devolvían 400 antes del path bajo prueba. Se cambia a RFC no-global.",
+        "Suite completa: 1080 Vitest + 11 Deno de stamp-cfdi + 8 Deno de helpers, todos verdes. `deno fmt --check` sobre 77 archivos limpio."
+      ]
+    }
+  ]
+}

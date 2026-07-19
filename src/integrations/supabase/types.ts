@@ -449,6 +449,48 @@ export type Database = {
           },
         ]
       }
+      cfdi_retry_queue: {
+        Row: {
+          attempts: number
+          created_at: string
+          id: string
+          invoice_id: string
+          last_error: string | null
+          max_attempts: number
+          next_retry_at: string
+          operation: string
+          payload: Json
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          invoice_id: string
+          last_error?: string | null
+          max_attempts?: number
+          next_retry_at?: string
+          operation: string
+          payload?: Json
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          created_at?: string
+          id?: string
+          invoice_id?: string
+          last_error?: string | null
+          max_attempts?: number
+          next_retry_at?: string
+          operation?: string
+          payload?: Json
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       collection_notes: {
         Row: {
           created_at: string | null
@@ -3220,6 +3262,42 @@ export type Database = {
           id?: string
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
+        }
+        Relationships: []
+      }
+      webhook_events: {
+        Row: {
+          error_message: string | null
+          event_id: string
+          event_type: string
+          id: string
+          payload: Json
+          processed_at: string | null
+          provider: string
+          received_at: string
+          status: string
+        }
+        Insert: {
+          error_message?: string | null
+          event_id: string
+          event_type: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          provider: string
+          received_at?: string
+          status?: string
+        }
+        Update: {
+          error_message?: string | null
+          event_id?: string
+          event_type?: string
+          id?: string
+          payload?: Json
+          processed_at?: string | null
+          provider?: string
+          received_at?: string
+          status?: string
         }
         Relationships: []
       }
