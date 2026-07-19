@@ -40,14 +40,16 @@ Deno.serve(async (req) => {
     if (!payment.payment_form_sat) {
       return jsonError(req, 400, "Falta forma de pago SAT en el pago");
     }
-    // Claim atómico: solo una petición concurrente puede transicionar
-    // de pending|error → stamping. Cierra la ventana antes de llamar a Facturapi.
+    // BL-04: claim atómico. NUNCA incluimos "stamping" en el filtro de entrada:
+    // dos peticiones concurrentes leerían el mismo estado "stamping" y ambas
+    // pasarían al UPDATE → doble timbrado. Solo se puede reclamar desde
+    // pending|error|none con uuid null; para re-timbrar tras cancelación,
+    // permitimos entrada por rep_cfdi_status='cancelled'.
     const claimRes = await supabase
       .from("payments")
       .update({ rep_cfdi_status: "stamping" })
       .eq("id", payment_id)
-      .in("rep_cfdi_status", ["pending", "error", "none", "stamping"])
-      .is("rep_cfdi_uuid", null)
+      .in("rep_cfdi_status", ["pending", "error", "none", "cancelled"])
       .select("id")
       .maybeSingle();
     if (claimRes.error) {
@@ -61,11 +63,12 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Load invoice (BL-004: incluir tax_rate para no hardcodear IVA)
+    // Load invoice (BL-004: incluir tax_rate para no hardcodear IVA;
+    // BL-05: incluir moneda/tipo_cambio de la factura para el related doc).
     const { data: invoice } = await supabase
       .from("invoices")
       .select(
-        "id, customer_id, total, tax_rate, metodo_pago, cfdi_uuid, cfdi_status, receptor_razon_social, receptor_rfc, receptor_regimen_fiscal, receptor_domicilio_fiscal_cp, uso_cfdi, customer_name",
+        "id, customer_id, total, tax_rate, metodo_pago, moneda, tipo_cambio, cfdi_uuid, cfdi_status, receptor_razon_social, receptor_rfc, receptor_regimen_fiscal, receptor_domicilio_fiscal_cp, uso_cfdi, customer_name",
       )
       .eq("id", payment.invoice_id)
       .single();
@@ -85,28 +88,39 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Calculate prior_balance: sum of all stamped/none REP payments BEFORE this one
+    // BL-07: NumParcialidad debe ser único e incremental por factura, incluyendo
+    // REPs cancelados (SAT no permite reutilizar el número). Antes se numeraba
+    // por orden cronológico de payment_date, así un pago retroactivo colisionaba
+    // con parcialidades ya timbradas.
+    // BL-06: priorBalance se calcula solo sobre REPs actualmente vigentes
+    // (stamped, no cancelled).
     const { data: allPayments } = await supabase
       .from("payments")
-      .select("id, amount, payment_date, created_at, rep_cfdi_status")
-      .eq("invoice_id", invoice.id)
-      .order("payment_date", { ascending: true })
-      .order("created_at", { ascending: true });
+      .select("id, amount, rep_cfdi_status, rep_cfdi_uuid")
+      .eq("invoice_id", invoice.id);
 
-    const ordered = (allPayments ?? []) as Array<
-      { id: string; amount: number; rep_cfdi_status: string }
+    const paymentsList = (allPayments ?? []) as Array<
+      {
+        id: string;
+        amount: number;
+        rep_cfdi_status: string;
+        rep_cfdi_uuid: string | null;
+      }
     >;
-    let priorPaid = 0;
-    let installmentNumber = 1;
-    for (const p of ordered) {
-      if (p.id === payment_id) break;
-      if (p.rep_cfdi_status !== "cancelled") {
-        priorPaid += Number(p.amount);
-        installmentNumber += 1;
+    let priorPaidStamped = 0;
+    let priorEmissions = 0; // stamped + cancelled ya emitidos
+    for (const p of paymentsList) {
+      if (p.id === payment_id) continue;
+      if (p.rep_cfdi_status === "stamped") {
+        priorPaidStamped += Number(p.amount);
+        priorEmissions += 1;
+      } else if (p.rep_cfdi_status === "cancelled" && p.rep_cfdi_uuid) {
+        priorEmissions += 1;
       }
     }
+    const installmentNumber = priorEmissions + 1;
     const invoiceTotal = Number(invoice.total);
-    const priorBalance = Number((invoiceTotal - priorPaid).toFixed(2));
+    const priorBalance = Number((invoiceTotal - priorPaidStamped).toFixed(2));
     const amount = Number(payment.amount);
     if (amount <= 0 || amount > priorBalance + 0.01) {
       return jsonError(
@@ -133,16 +147,24 @@ Deno.serve(async (req) => {
     if (!apiKey) return jsonError(req, 400, "Facturapi key not configured");
 
     const paymentDateIso = `${payment.payment_date}T12:00:00`;
-    const currency = (payment.currency as string | null) || "MXN";
-    const exchange = Number(payment.exchange_rate || 1);
+    const paymentCurrency = (payment.currency as string | null) || "MXN";
+    const paymentExchange = Number(payment.exchange_rate || 1);
+
+    // BL-05: el related doc debe reflejar la moneda de la FACTURA origen y su
+    // tipo de cambio, no MXN hardcodeado. Cuando pago y factura difieren en
+    // moneda, el REP nivel documento usa la moneda del pago (SAT).
+    const invoiceCurrency = (invoice.moneda as string | null) || "MXN";
+    const invoiceExchange = invoiceCurrency === "MXN"
+      ? 1
+      : Number(invoice.tipo_cambio || 1) || 1;
 
     const relatedDoc: Record<string, unknown> = {
       uuid: invoice.cfdi_uuid,
       amount,
       installment: installmentNumber,
       last_balance: priorBalance,
-      currency: "MXN",
-      exchange: 1,
+      currency: invoiceCurrency,
+      exchange: invoiceExchange,
     };
     if (ivaRate > 0) {
       relatedDoc.taxes = [{ base, type: "IVA", rate: ivaRate, factor: "Tasa" }];
@@ -153,9 +175,9 @@ Deno.serve(async (req) => {
       date: paymentDateIso,
       related_documents: [relatedDoc],
     };
-    if (currency !== "MXN") {
-      dataEntry.currency = currency;
-      dataEntry.exchange = exchange;
+    if (paymentCurrency !== "MXN") {
+      dataEntry.currency = paymentCurrency;
+      dataEntry.exchange = paymentExchange;
     }
 
     const payload = {
