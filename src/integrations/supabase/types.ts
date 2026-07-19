@@ -489,6 +489,13 @@ export type Database = {
             referencedRelation: "v_invoices_with_balance"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "collection_notes_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_invoices"
+            referencedColumns: ["id"]
+          },
         ]
       }
       collection_reminders_log: {
@@ -532,6 +539,13 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "v_invoices_with_balance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "collection_reminders_log_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -851,6 +865,13 @@ export type Database = {
             referencedRelation: "v_invoices_with_balance"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "credit_notes_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_invoices"
+            referencedColumns: ["id"]
+          },
         ]
       }
       customer_payment_intents: {
@@ -931,6 +952,13 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "v_invoices_with_balance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_payment_intents_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_invoices"
             referencedColumns: ["id"]
           },
           {
@@ -1116,6 +1144,13 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "v_invoices_with_balance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "damage_records_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_invoices"
             referencedColumns: ["id"]
           },
           {
@@ -1555,6 +1590,13 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "v_invoices_with_balance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoice_bookings_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -2166,6 +2208,13 @@ export type Database = {
             columns: ["invoice_id"]
             isOneToOne: false
             referencedRelation: "v_invoices_with_balance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_invoices"
             referencedColumns: ["id"]
           },
         ]
@@ -3193,6 +3242,28 @@ export type Database = {
           },
         ]
       }
+      v_overdue_invoices: {
+        Row: {
+          balance: number | null
+          bucket: string | null
+          customer_id: string | null
+          customer_name: string | null
+          days_overdue: number | null
+          due_date: string | null
+          id: string | null
+          invoice_number: string | null
+          total: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       accept_quote_from_portal: {
@@ -3380,6 +3451,7 @@ export type Database = {
       }
       e2e_seed_scenario: { Args: { p_scope: string }; Returns: Json }
       e2e_teardown: { Args: { p_scope: string }; Returns: Json }
+      expire_stale_quotes: { Args: never; Returns: number }
       generate_feedback_number: { Args: never; Returns: string }
       get_activity_metrics: {
         Args: { p_from: string; p_to: string }
