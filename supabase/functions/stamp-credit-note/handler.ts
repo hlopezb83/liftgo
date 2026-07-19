@@ -128,6 +128,16 @@ export async function handleStampCreditNote(
       );
     }
 
+    // BL-03: helper para revertir claim atómico si algo falla antes de timbrar.
+    const releaseClaim = async (errorMessage?: string) => {
+      await supabase.from("credit_notes")
+        .update({
+          cfdi_status: errorMessage ? "error" : "pending",
+          ...(errorMessage ? { cfdi_error_message: errorMessage.slice(0, 1000) } : {}),
+        })
+        .eq("id", credit_note_id);
+    };
+
     const { data: invoice, error: invErr } = await supabase
       .from("invoices").select("*").eq("id", ncRow.invoice_id).single();
     if (invErr || !invoice) {
@@ -135,6 +145,7 @@ export async function handleStampCreditNote(
         credit_note_id,
         invoice_id: ncRow.invoice_id,
       });
+      await releaseClaim("Source invoice not found");
       return json({ error: "Invoice not found" }, 404, jsonHeaders);
     }
     const inv = invoice as Record<string, unknown>;
@@ -146,9 +157,8 @@ export async function handleStampCreditNote(
         credit_note_id,
         invoice_id: ncRow.invoice_id,
         inv_cfdi_status: inv.cfdi_status,
-        has_facturapi_id: !!inv.facturapi_invoice_id,
-        has_cfdi_uuid: !!inv.cfdi_uuid,
       });
+      await releaseClaim("Source invoice must be stamped");
       return json(
         { error: "Source invoice must be stamped" },
         400,
@@ -156,9 +166,61 @@ export async function handleStampCreditNote(
       );
     }
 
-    const { apiKey } = await getFacturapiConfig(supabase, deps.env);
+    // BL-08: validación server-side anti-sobre-acreditación. Sumamos TODAS las NCs
+    // de esta factura que no estén canceladas (stamped + pending + stamping + error).
+    // Como el claim atómico ya movió esta NC a "stamping", queda incluida en la suma.
+    const { data: siblingNcs } = await supabase
+      .from("credit_notes")
+      .select("id, total, cfdi_status, cancellation_status, status")
+      .eq("invoice_id", ncRow.invoice_id);
+    const activeNcTotal = ((siblingNcs ?? []) as Array<Record<string, unknown>>)
+      .filter((n) =>
+        n.cancellation_status !== "accepted" &&
+        n.status !== "cancelled"
+      )
+      .reduce((s, n) => s + Number(n.total ?? 0), 0);
+    const invoiceTotal = Number(inv.total ?? 0);
+    if (activeNcTotal - 0.01 > invoiceTotal) {
+      await releaseClaim(
+        `Notas de crédito acumuladas (${activeNcTotal.toFixed(2)}) exceden el total facturado (${invoiceTotal.toFixed(2)}).`,
+      );
+      return json(
+        {
+          error:
+            `El monto total de notas de crédito excede el importe de la factura. Suma NCs: ${activeNcTotal.toFixed(2)} > factura ${invoiceTotal.toFixed(2)}.`,
+        },
+        400,
+        jsonHeaders,
+      );
+    }
+
+    // BL-16: modo Facturapi debe ser el de la compañía (test/live) para que la NC
+    // se timbre en el mismo ambiente que la factura origen.
+    const { data: company } = await supabase
+      .from("company_settings").select("*").limit(1).maybeSingle();
+    const modeOverride = (company as Record<string, unknown> | null)?.facturapi_mode as
+      | string
+      | undefined
+      | null;
+    const { apiKey, mode } = await getFacturapiConfig(supabase, deps.env, {
+      modeOverride: modeOverride ?? null,
+    });
 
     if (!apiKey) {
+      // BL-20: no marcar como timbrada una NC en modo live sin API key.
+      if (mode === "live") {
+        await releaseClaim(
+          "Facturapi API key no configurada para modo live. No se emitió CFDI de la NC.",
+        );
+        return json(
+          {
+            error:
+              "Facturapi API key no configurada para modo live. Configura la key antes de timbrar la nota de crédito.",
+          },
+          400,
+          jsonHeaders,
+        );
+      }
       const mockUuid = crypto.randomUUID();
       await supabase.from("credit_notes")
         .update({
@@ -176,6 +238,11 @@ export async function handleStampCreditNote(
 
     const client = createFacturapiClient(apiKey);
 
+    // BL-01: distinguir tasa 0 legítima. En NC guardamos tax_rate como porcentaje;
+    // si viene null usamos 16% (default corporativo). Antes: > 0 ? /100 : 0 → NCs
+    // sobre facturas exentas timbraban al 0% pero la factura al 16% (inconsistente).
+    const ncTaxRatePct = ncRow.tax_rate == null ? 16 : Number(ncRow.tax_rate);
+    const ncTaxRateFraction = ncTaxRatePct / 100;
     const items = Array.isArray(ncRow.line_items)
       ? (ncRow.line_items as LineItem[]).map((li) => ({
         product: {
@@ -185,7 +252,7 @@ export async function handleStampCreditNote(
           tax_included: false,
           taxes: [{
             type: "IVA",
-            rate: Number(ncRow.tax_rate) > 0 ? Number(ncRow.tax_rate) / 100 : 0,
+            rate: ncTaxRateFraction,
           }],
         },
         quantity: li.quantity || 1,
@@ -202,6 +269,13 @@ export async function handleStampCreditNote(
     const taxSystem = String(inv.receptor_regimen_fiscal || "616");
     const zip = String(inv.receptor_domicilio_fiscal_cp || "06600");
 
+    // BL-16: propagar payment_method y exchange reales de la factura origen.
+    // Antes se hardcodeaba PUE + exchange 1: NC sobre PPD emitía documento no
+    // relacionable ante el SAT; NC sobre USD ignoraba tipo de cambio.
+    const invPaymentMethod = String(inv.metodo_pago || "PUE");
+    const invCurrency = String(ncRow.currency || inv.moneda || "MXN");
+    const invExchange = invCurrency === "MXN" ? 1 : Number(inv.tipo_cambio || 1) || 1;
+
     const payload: Record<string, unknown> = {
       type: "E",
       use: "G02",
@@ -213,9 +287,9 @@ export async function handleStampCreditNote(
       },
       items,
       payment_form: inv.forma_pago || "99",
-      payment_method: "PUE",
-      currency: ncRow.currency || "MXN",
-      exchange: 1,
+      payment_method: invPaymentMethod,
+      currency: invCurrency,
+      exchange: invExchange,
       related_documents: [
         {
           relationship: "01",
