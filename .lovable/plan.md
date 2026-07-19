@@ -1,41 +1,48 @@
-# Cierre de auditoría — BL-33 y BL-23
 
-Verifiqué contra la base actual: ambos bugs siguen abiertos.
-- `accept_quote_from_portal` y `convert_quote_to_bookings` **no** miran `valid_until`.
-- No existe `mark_overdue_supplier_bills` ni job de pg_cron equivalente; `recalc_supplier_bill` solo corre en eventos de pago.
+## Diagnóstico
 
-## Sprint v7.98.0
+Los dos números vienen de RPCs distintas y usan reglas distintas:
 
-### 1. BL-33 — Guardas de vigencia en cotizaciones
-Migración con `CREATE OR REPLACE FUNCTION` para las dos RPCs, agregando tras los chequeos de estatus:
+- **Card del dashboard ($426,000)** → `get_financial_kpis`: suma **todas** las bookings con `recurring_billing = true` cuyas fechas cubren hoy, **sin filtrar por `status`**.
+- **Página /mrr ($396,000)** → `get_mrr_detail`: suma equipos con `forklifts.status = 'rented'` y booking activa con `status = 'confirmed'` (uno por forklift vía `LATERAL LIMIT 1`).
+
+Ejecuté ambas queries contra la base y el delta de **$30,000** proviene 100% de un único registro:
+
+| booking   | forklift            | booking.status | recurring_billing | monthly_rate |
+|-----------|---------------------|----------------|-------------------|--------------|
+| RSV-0013  | HPLTC015A0762/002   | **cancelled**  | true              | 30,000       |
+
+RSV-0013 fue cancelada pero conservó `recurring_billing = true`, por lo que el KPI la sigue contando. Además, ese mismo forklift ya está rentado hoy por RSV-0016 (confirmada, $30,000), así que el KPI lo cuenta **dos veces**.
+
+## Número correcto
+
+**$396,000** (la página /mrr). Es la fuente de verdad declarada en memoria (`mem://features/mrr-detail-page`) y coincide con los equipos realmente rentados hoy. El card tiene el bug.
+
+## Fix propuesto
+
+Migración que reemplace `get_financial_kpis` para que el cálculo del MRR (actual y previo) agregue `AND b.status = 'confirmed'`. No se toca ninguna otra sección del RPC.
 
 ```sql
-IF v_quote.valid_until IS NOT NULL AND v_quote.valid_until < CURRENT_DATE THEN
-  RAISE EXCEPTION 'Cotización vencida';
-END IF;
+-- MRR actual
+WHERE b.recurring_billing = true
+  AND b.status = 'confirmed'          -- ← nuevo
+  AND b.start_date <= v_today
+  AND (b.end_date IS NULL OR b.end_date >= v_today);
+
+-- MRR mes anterior: mismo filtro adicional
 ```
 
-En `convert_quote_to_bookings` el mensaje será `'Cotización vencida: actualiza precios y vigencia antes de convertir'`. **Bloqueo simple, sin override** (recomendación del documento — re-cotizar es más sano para el historial comercial).
+Con esto:
+- RSV-0013 deja de contar → el card baja a $396,000, alineado con /mrr.
+- Evita el doble conteo del mismo forklift (la exclusión GiST ya garantiza que sólo una booking `confirmed` por forklift solapa una fecha).
 
-### 2. BL-23 — Flip diario de facturas de proveedor vencidas
-Migración con:
-- `public.mark_overdue_supplier_bills()` SECURITY DEFINER, `search_path = public`, `REVOKE ALL FROM PUBLIC`, `GRANT EXECUTE TO service_role`.
-- Marca `pending → overdue` cuando `balance > 0` y `due_date < CURRENT_DATE`.
-- Reversa `overdue → pending` si `due_date` quedó NULL o a futuro.
-- **No toca `partial`** (mantiene contrato de `recalc_supplier_bill`).
-- Job pg_cron `mark-overdue-supplier-bills-daily` a las `10 7 * * *` UTC (01:10 Mty), con re-schedule idempotente (unschedule por `jobname` antes de `cron.schedule`).
+## Alcance
 
-### 3. Tests
-- `supabase/functions/_shared/…` o test Vitest con mocks de RPC:
-  - Aceptar cotización vencida desde portal → error, estatus intacto.
-  - Convertir cotización vencida → excepción, sin reservas creadas.
-  - Caso feliz (`valid_until` futuro o NULL) sigue funcionando.
-  - `mark_overdue_supplier_bills`: pending vencida → overdue; partial vencida → intacta; overdue con fecha futura → pending.
+- 1 migración: `CREATE OR REPLACE FUNCTION public.get_financial_kpis()` con el filtro extra.
+- Sin cambios de UI ni de otros RPCs.
+- Verificación post-migración con `read_query` (esperado: `mrr = 396000`, `count = 16`).
+- Entrada de changelog v7.98.1 (patch).
 
-### 4. Changelog
-Nueva entrada v7.98.0 en `public/changelog.json` + `public/changelog/v7.98.0.json` con las dos líneas sugeridas (BL-33 y BL-23).
+## Nota aparte (fuera del alcance de este fix)
 
-## Detalles técnicos
-- Dos migraciones separadas (una por issue) para trazabilidad.
-- El drop de `maintenance_logs.performed_by` mencionado en v7.97.0 como backlog **no** entra en este sprint (fuera de alcance).
-- Sin cambios de frontend.
+RSV-0013 quedó con `recurring_billing = true` a pesar de estar cancelada; conviene, en un sprint aparte, agregar en el flujo/trigger de cancelación un `UPDATE bookings SET recurring_billing = false` para prevenir que reservas canceladas ensucien futuros KPIs y facturación recurrente. Lo puedo dejar como BL nuevo si quieres.
