@@ -1,0 +1,34 @@
+{
+  "version": "7.89.1",
+  "date": "2026-07-19",
+  "type": "patch",
+  "title": "Fix constraint no_overlapping_bookings y cierre de auditoría BL",
+  "sections": [
+    {
+      "heading": "Bug fix",
+      "items": [
+        "`no_overlapping_bookings`: el `daterange` vuelve a `[]` (inclusivo). En v7.89.0 se había cambiado a `[)` para permitir rotación mismo día, pero eso convertía las reservas de un solo día (`start_date = end_date`) en rango vacío — Postgres no las detectaba como solapadas y aceptaba doble booking del mismo equipo. Ejemplo: `isempty(daterange('2026-07-15','2026-07-15','[)')) = true`.",
+        "Se mantiene la parte válida del fix BL-17: la constraint sigue excluyendo reservas `completed`, para que las fechas se liberen al devolver el equipo antes de la fecha original."
+      ]
+    },
+    {
+      "heading": "Impacto",
+      "items": [
+        "0 reservas afectadas en producción: no había registros con `start_date = end_date` durante el periodo del bug.",
+        "La rotación mismo día (renta A termina y renta B empieza el mismo día) queda deshabilitada nuevamente — comportamiento pre-v7.89.0. Es la convención de negocio actual: `end_date siguiente = day after retorno`."
+      ]
+    },
+    {
+      "heading": "Cierre de auditoría BL-01..BL-20",
+      "items": [
+        "Con este patch queda cerrada la ronda profunda de auditoría de lógica de negocio: 20/20 hallazgos resueltos entre v7.87.0 y v7.89.1.",
+        "Sprint 1 (v7.87.0/v7.87.1): BL-01..BL-08 y BL-11 — detección de impuestos, descuentos, claims de stamping, REP, sobre-crediting, sobre-pagos.",
+        "Sprint 2 parte 1 (v7.88.0): BL-09, BL-14, BL-15 — notas de crédito en P&L, timezone de rentas, cap de 28-31 días.",
+        "Sprint 2 parte 2 (v7.88.1): BL-12, BL-13 — prorrateo del primer ciclo recurrente, limpieza de RPC obsoleta de devolución.",
+        "Sprint 3 (v7.89.0): BL-17, BL-18, BL-19 — disponibilidad tras devolución, depreciación prorrateada, base cash para expenses.",
+        "Sprint 4 (v7.89.1): patch al cambio de rango de BL-17.",
+        "BL-16 y BL-20 fueron marcados como resueltos en sus sprints correspondientes por ser cambios ya implementados u obsolescencias documentadas."
+      ]
+    }
+  ]
+}
