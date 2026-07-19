@@ -1,0 +1,43 @@
+{
+  "version": "7.100.0",
+  "date": "2026-07-19",
+  "type": "minor",
+  "title": "Bitácora inmutable + reverso compensado (BL-39)",
+  "sections": [
+    {
+      "heading": "Contexto",
+      "items": [
+        "Auditoría BL ronda 3 detectó dos regresiones que rompían el carácter append-only de `audit_logs`: la política `Admins full access audit_logs` con `cmd = ALL` permitía a un admin editar o borrar renglones desde el cliente; y `revert_audit_log` terminaba con `DELETE FROM audit_logs WHERE id = p_audit_log_id`, destruyendo el rastro al revertir."
+      ]
+    },
+    {
+      "heading": "Fix DB (una migración)",
+      "items": [
+        "`DROP POLICY \"Admins full access audit_logs\"` y nueva `Admins read audit_logs` (sólo SELECT). Se conservan `Administrativo read` y `Auditor read`.",
+        "Nuevo `enforce_audit_logs_immutable()` + trigger `trg_audit_logs_immutable BEFORE UPDATE OR DELETE`: rechaza cualquier mutación con `insufficient_privilege` salvo `current_setting('app.audit_maintenance', true) = 'on'` (bandera reservada a mantenimiento server-side para retención futura).",
+        "No se crea política de INSERT: `audit_trigger_fn` inserta como `SECURITY DEFINER`; los clientes no pueden insertar directo."
+      ]
+    },
+    {
+      "heading": "Reverso compensado",
+      "items": [
+        "`revert_audit_log(uuid) RETURNS uuid`: ejecuta la reversa como antes (INSERT→DELETE del registro creado, UPDATE→restaurar `old_data`, DELETE→re-INSERT vía `jsonb_populate_record`).",
+        "Ya **no** borra la fila original de `audit_logs`. En su lugar inserta un renglón nuevo con `action = 'REVERT'`, `old_data`/`new_data` invertidos y `changed_fields = jsonb_build_object('source_audit_log_id', p_audit_log_id)`, y devuelve su id.",
+        "Se conservan el whitelist de 11 tablas (`bookings`, `invoices`, `forklifts`, `customers`, `contracts`, `payments`, `deliveries`, `maintenance_logs`, `damage_records`, `quotes`, `return_inspections`) y el guardia `has_role(auth.uid(),'admin')`."
+      ]
+    },
+    {
+      "heading": "Tests",
+      "items": [
+        "`src/features/audit/__tests__/auditImmutability.test.ts` (6 casos): original preservado tras revertir; REVERT con `source_audit_log_id`; UPDATE/DELETE bloqueados por trigger; bandera de mantenimiento permite mantenimiento; no-admin rechazado; whitelist rechaza tablas fuera del set; reverso-del-reverso deja tres renglones en cadena. 6/6 en verde. Consumidor existente `useAuditLogs` (que sólo lee `error`) sigue compatible."
+      ]
+    },
+    {
+      "heading": "Fuera de alcance",
+      "items": [
+        "BL-35/36 (CFDI parser) y BL-37 (last admin lockout): Sprint 3.",
+        "Cron de retención sobre `audit_logs` usando `app.audit_maintenance='on'`: mecanismo listo, política de retención por definir."
+      ]
+    }
+  ]
+}
