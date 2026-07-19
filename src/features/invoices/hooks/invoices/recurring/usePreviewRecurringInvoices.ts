@@ -6,7 +6,8 @@ export type PreviewReason =
   | "no_customer"
   | "no_monthly_rate"
   | "period_in_future"
-  | "period_too_old";
+  | "period_too_old"
+  | "booking_ended";
 
 export interface RecurringPreviewLine {
   bookingId: string;

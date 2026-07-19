@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.90.0",
+    "date": "2026-07-19",
+    "type": "minor",
+    "title": "Fixes A/B/C/D: NC en facturas pagadas, daños con costo real, motivo REP explícito y guarda end_date",
+    "summary": "Fix C: se levanta el tope de pagos en el cálculo de maxCreditable para notas de crédito. Antes, una factura pagada al 100% bloqueaba emitir NC por devolución/bonificación, aunque fiscalmente la NC se relaciona con la factura, no con el saldo pendiente. Ahora coincide con la validación server-side de BL-08 (compara contra invoice.total menos NC ya emitidas/borrador). Nota: puede generar saldo a favor del cliente si hubo pagos previos; el flujo de reembolso queda como feature pendiente. Fix A: el botón 'Cobrar' de un daño ahora usa el costo real (actual_cost) cuando la reparación ya terminó, y cae al estimado solo si no hay real o si el daño está reportado. La orden de trabajo sigue creándose con el estimado (es el presupuesto). El botón se deshabilita si no hay ningún costo capturado. Fix B: el edge function cancel-payment-complement ya no cae silenciosamente a motive '02' cuando el cliente manda un motivo inválido o ausente — devuelve 400. La UI se actualiza para pedir el motivo en un CancelRepDialog con opciones 02/03/04 (se omite 01 porque no existe flujo de REP sustituto). Fix D: el generador de facturas recurrentes descarta reservas cuyo end_date ya pasó (nuevo motivo 'booking_ended' en el preview). Cierra el residuo de BL-13."
+  },
+  {
     "version": "7.89.1",
     "date": "2026-07-19",
     "type": "patch",

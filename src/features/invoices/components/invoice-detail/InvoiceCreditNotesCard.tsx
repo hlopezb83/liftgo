@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { Tables } from "@/integrations/supabase/types";
 import { CREDIT_NOTE_MOTIVE_LABELS as MOTIVE_LABELS } from "@/lib/domain/creditNoteMotives";
+import { computeMaxCreditable } from "../../lib/computeMaxCreditable";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { formatDateDisplay } from "@/lib/utils";
@@ -43,10 +44,9 @@ function CnBadge({ cn }: { cn: CreditNote }) {
 
 interface Props {
   invoice: Tables<"invoices">;
-  totalPaid: number;
 }
 
-export function InvoiceCreditNotesCard({ invoice, totalPaid }: Props) {
+export function InvoiceCreditNotesCard({ invoice }: Props) {
   const { data: creditNotes = [] } = useCreditNotesForInvoice(invoice.id);
   const [createOpen, setCreateOpen] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<CreditNote | null>(null);
@@ -61,7 +61,8 @@ export function InvoiceCreditNotesCard({ invoice, totalPaid }: Props) {
     .filter((cn) => cn.status === "draft")
     .reduce((s, cn) => s + Number(cn.total), 0);
 
-  const maxCreditable = Number(invoice.total) - totalPaid - activeCredits - draftCredits;
+  // BL-08 v7.90.0: los pagos no limitan el crédito (ver computeMaxCreditable).
+  const maxCreditable = computeMaxCreditable(Number(invoice.total), activeCredits, draftCredits);
   const canCreate = invoice.cfdi_status === "stamped" && invoice.status !== "cancelled" && maxCreditable > 0;
 
   if (creditNotes.length === 0 && !canCreate) return null;

@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { type ColumnDef } from "@/components/dataTable/v2";
-import { useConfirm } from "@/components/feedback/useConfirm";
 import { EditIcon, StampIcon, DocumentIcon, FileCode2, ErrorIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { ReconciliationBadge } from "@/features/bank-reconciliation";
@@ -10,7 +9,7 @@ import { notifyError } from "@/lib/ui/appFeedback";
 import { formatDateDisplay } from "@/lib/utils";
 import { RepBadge } from "../../components/invoice-detail/RepBadge";
 import { downloadCfdiBlob, type CfdiFormat } from "../../lib/downloadCfdiBlob";
-import { useStampPaymentComplement, useCancelPaymentComplement } from "./cfdi/usePaymentComplement";
+import { useStampPaymentComplement } from "./cfdi/usePaymentComplement";
 
 type Payment = Tables<"payments">;
 
@@ -28,9 +27,10 @@ async function downloadRep(paymentId: string, format: CfdiFormat) {
  */
 export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations: boolean = ppdStamped) {
   const [editingPayment, setEditingPayment] = useState<Payment | null>(null);
+  // Fix B v7.90.0: el motivo de cancelación de REP ya no se hardcodea a "02";
+  // se elige en un diálogo dedicado (CancelRepDialog).
+  const [cancelRepPaymentId, setCancelRepPaymentId] = useState<string | null>(null);
   const stampRep = useStampPaymentComplement();
-  const cancelRep = useCancelPaymentComplement();
-  const confirm = useConfirm();
 
   const columns: ColumnDef<Payment>[] = (() => {
     const base: ColumnDef<Payment>[] = [
@@ -83,17 +83,8 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
                   {allowRepMutations && (
                     <Button
                       variant="ghost" size="icon" className="h-7 w-7 text-destructive"
-                      title="Cancelar REP" disabled={cancelRep.isPending}
-                      onClick={async () => {
-                        const ok = await confirm({
-                          title: "Cancelar Complemento de Pago",
-                          description: "¿Cancelar el Complemento de Pago (REP) ante el SAT? El motivo enviado será \"02 · Comprobante emitido con errores sin relación\".",
-                          confirmLabel: "Cancelar REP",
-                          cancelLabel: "Volver",
-                          destructive: true,
-                        });
-                        if (ok) cancelRep.mutate({ paymentId: p.id, motive: "02" });
-                      }}
+                      title="Cancelar REP"
+                      onClick={() => setCancelRepPaymentId(p.id)}
                     >
                       <ErrorIcon className="h-3.5 w-3.5" />
                     </Button>
@@ -127,5 +118,5 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
     return base;
   })();
 
-  return { columns, editingPayment, setEditingPayment };
+  return { columns, editingPayment, setEditingPayment, cancelRepPaymentId, setCancelRepPaymentId };
 }

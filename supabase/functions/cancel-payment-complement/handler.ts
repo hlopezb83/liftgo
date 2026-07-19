@@ -57,9 +57,12 @@ export async function handleCancelPaymentComplement(
     if (!isUUID(payment_id)) {
       return jsonError(req, 400, "payment_id must be a valid UUID");
     }
-    const motiveCode = typeof motive === "string" && VALID_MOTIVES.has(motive)
-      ? motive
-      : "02";
+    // Fix B v7.90.0: motivo es OBLIGATORIO y debe ser un código válido del SAT.
+    // Antes se caía silenciosamente a "02", ocultando errores del cliente.
+    if (typeof motive !== "string" || !VALID_MOTIVES.has(motive)) {
+      return jsonError(req, 400, "motive must be one of 01,02,03,04");
+    }
+    const motiveCode = motive;
 
     const { data: payment } = await supabase
       .from("payments").select("rep_facturapi_id, rep_cfdi_status").eq(

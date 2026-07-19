@@ -14,6 +14,7 @@ const REASON_LABEL: Record<NonNullable<RecurringPreviewLine["reason"]>, string> 
   no_monthly_rate: "Sin tarifa mensual",
   period_in_future: "Período futuro",
   period_too_old: "Período atrasado — requiere revisión",
+  booking_ended: "Reserva terminada — completa la devolución",
 };
 
 interface Props {
