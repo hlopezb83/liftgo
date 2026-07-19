@@ -192,14 +192,14 @@ async function buildPlan(supabase: any): Promise<{
     const endStr = toIsoDate(billingEnd);
     const periodLabel = `${fmtMx(billingStart)} al ${fmtMx(billingEnd)}`;
 
-    // BL-12: cálculo del monto prorrateado. daysInPeriod / daysInMonth * rate.
-    const daysInMonth = billingEnd.getUTCDate();
-    const proratedDays = isProrated
-      ? daysInMonth - billingStart.getUTCDate() + 1
-      : daysInMonth;
-    const billedAmount = isProrated
-      ? Math.round((monthlyRate * proratedDays / daysInMonth) * 100) / 100
-      : monthlyRate;
+    // BL-12: cálculo del monto prorrateado (helper puro para test).
+    const prorate = computeProrate(
+      isProrated ? billingStart.getUTCDate() : 1,
+      billingEnd.getUTCDate(),
+      monthlyRate,
+    );
+    const proratedDays = prorate.proratedDays;
+    const billedAmount = prorate.billedAmount;
 
     const baseLine: PreviewLine = {
       bookingId: booking.id,
