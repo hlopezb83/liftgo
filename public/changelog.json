@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.98.3",
+    "date": "2026-07-19",
+    "type": "patch",
+    "title": "Test de paridad MRR: card del dashboard ↔ /mrr",
+    "summary": "Nuevo suite `mrrParity.test.ts` (4 casos) que modela `get_financial_kpis`, `get_mrr_detail` y el trigger `trg_bookings_clear_recurring_on_cancel` en TypeScript y verifica el invariante: el card del dashboard debe coincidir con /mrr en el estado base y tras cancelar reservas. Incluye caso de regresión que reproduce el bug v7.98.0 (KPI inflado por reserva cancelada con `recurring_billing = true`) para prevenir su reintroducción. 4/4 en verde."
+  },
+  {
     "version": "7.98.2",
     "date": "2026-07-19",
     "type": "patch",
