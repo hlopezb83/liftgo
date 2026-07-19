@@ -200,7 +200,23 @@ describe("calculateRentalCost — cap 29-30 días al mes (BL-15)", () => {
     // 2 meses cerrados + 1 mes por cap = 3 unidades totales de renta mensual
     const totalMonthlyQty = monthly.reduce((acc, m) => acc + m.quantity, 0);
     expect(totalMonthlyQty).toBeGreaterThanOrEqual(2);
+
+  it("28 días exactos (4 semanas) con 4w < mensual → NO capea", () => {
+    // Rango de 28 días = 4 semanas justas, sin días residuales. 4*1000 < 8000.
+    const items = calculateRentalCost(100, 1_000, 8_000, d("2026-01-01"), d("2026-01-28"));
+    const monthly = items.find((i) => i.description === "Renta mensual");
+    const weekly = items.find((i) => i.description === "Renta semanal");
+    expect(monthly).toBeUndefined();
+    expect(weekly).toMatchObject({ quantity: 4, total: 4_000 });
+  });
+
+  it("28 días exactos con 4w > mensual → SÍ capea al mes", () => {
+    // 4*2500 = 10000 > monthly 8000. Se capea a 1 mes.
+    const items = calculateRentalCost(0, 2_500, 8_000, d("2026-01-01"), d("2026-01-28"));
+    const monthly = items.find((i) => i.description === "Renta mensual");
+    expect(monthly).toMatchObject({ quantity: 1, total: 8_000 });
   });
 });
+
 
 
