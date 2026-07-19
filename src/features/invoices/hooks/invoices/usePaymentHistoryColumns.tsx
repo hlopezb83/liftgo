@@ -83,17 +83,8 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
                   {allowRepMutations && (
                     <Button
                       variant="ghost" size="icon" className="h-7 w-7 text-destructive"
-                      title="Cancelar REP" disabled={cancelRep.isPending}
-                      onClick={async () => {
-                        const ok = await confirm({
-                          title: "Cancelar Complemento de Pago",
-                          description: "¿Cancelar el Complemento de Pago (REP) ante el SAT? El motivo enviado será \"02 · Comprobante emitido con errores sin relación\".",
-                          confirmLabel: "Cancelar REP",
-                          cancelLabel: "Volver",
-                          destructive: true,
-                        });
-                        if (ok) cancelRep.mutate({ paymentId: p.id, motive: "02" });
-                      }}
+                      title="Cancelar REP"
+                      onClick={() => setCancelRepPaymentId(p.id)}
                     >
                       <ErrorIcon className="h-3.5 w-3.5" />
                     </Button>
@@ -127,5 +118,5 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
     return base;
   })();
 
-  return { columns, editingPayment, setEditingPayment };
+  return { columns, editingPayment, setEditingPayment, cancelRepPaymentId, setCancelRepPaymentId };
 }
