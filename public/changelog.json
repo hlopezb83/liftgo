@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.89.0",
+    "date": "2026-07-19",
+    "type": "minor",
+    "title": "Sprint 3: disponibilidad tras devolución, depreciación prorrateada y expenses cash",
+    "summary": "BL-17: la constraint no_overlapping_bookings ahora excluye también las reservas 'completed' y usa un rango [) en lugar de []. Cuando el cliente devuelve el equipo antes de la fecha original, esas fechas se liberan de inmediato; además dos reservas pueden compartir el día de entrega/devolución (una termina y otra empieza el mismo día). BL-18: get_income_statement prorratea la depreciación por días efectivamente rentados dentro del mes (acquisition_cost/48 × díasRentados / díasDelMes) en lugar de cobrar el mes completo por 1 día de solape. El mismo criterio aplica al COGS de venta: el valor en libros descuenta los días efectivos, no los meses de solape. Se extrae prorateDepreciation a src/lib/finance/depreciation.ts con 6 tests (mes completo, día frontera, febrero 28, costo 0, días negativos, cap a daysInMonth). BL-19: en base cash, los gastos de proveedor se contabilizan por fecha de pago (supplier_payments.payment_date) prorrateando el subtotal de la factura por la fracción pagada; mantenimiento y daños siguen usando la fecha del evento como fallback (no existe fecha de pago separada), documentado en el cuerpo de la función."
+  },
+  {
     "version": "7.88.1",
     "date": "2026-07-19",
     "type": "patch",
