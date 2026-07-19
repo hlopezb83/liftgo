@@ -22,6 +22,8 @@ export const CATEGORIES: ExpenseCategory[] = [
   "publicidad",
 ];
 
+export type TipoComprobante = "I" | "E" | "N" | "P" | "T";
+
 export interface ParsedCfdi {
   cfdi_uuid: string;
   total: number;
@@ -32,12 +34,28 @@ export interface ParsedCfdi {
   moneda: string;
   tipo_cambio: number;
   payment_method_sat: string;
+  tipo_comprobante: TipoComprobante | null;
   fecha: string;
   folio: string;
   serie: string;
   emisor: { rfc: string; nombre: string; regimen_fiscal: string };
+  receptor: {
+    rfc: string;
+    nombre: string;
+    uso_cfdi: string;
+    domicilio_fiscal: string;
+    regimen_fiscal: string;
+  };
   conceptos: Array<{ descripcion: string; clave_prod_serv: string }>;
 }
+
+const TIPO_COMPROBANTE_VALID: readonly TipoComprobante[] = [
+  "I",
+  "E",
+  "N",
+  "P",
+  "T",
+];
 
 export function attr(tag: string, name: string): string | null {
   // Anclar al inicio del nombre del atributo: (^|whitespace|<) para evitar que
