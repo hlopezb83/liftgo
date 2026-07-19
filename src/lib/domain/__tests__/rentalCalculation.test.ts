@@ -165,7 +165,13 @@ describe("generateLineItems — timezone stability (BL-14)", () => {
   it("YMD '2026-02-15' → '2026-03-14' se factura como 1 mes exacto", () => {
     const items = generateLineItems(forklift, "2026-02-15", "2026-03-14");
     expect(items[0]).toMatchObject({ quantity: 1 });
+
+  it("YMD via generateLineItemsFromModel es estable en timezone", () => {
+    const items = generateLineItemsFromModel("Toyota 8FBE", 0, 0, 10_000, "2026-01-01", "2026-01-31", 1);
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ quantity: 1, total: 10_000 });
   });
+});
 });
 
 describe("calculateRentalCost — cap 29-30 días al mes (BL-15)", () => {
