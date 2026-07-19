@@ -10,7 +10,8 @@ export function ReceptorFiscalFields() {
       <p className="text-xs text-muted-foreground">
         Estos datos se heredan del cliente. Edítalos solo si la Constancia de Situación Fiscal del receptor difiere.
       </p>
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
         <FormField control={control} name="cfdi.receptorRfc" render={({ field }) => (
           <FormItem>
             <FormLabel>RFC Receptor</FormLabel>
