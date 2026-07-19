@@ -1,0 +1,44 @@
+{
+  "version": "7.104.0",
+  "date": "2026-07-19",
+  "type": "minor",
+  "title": "Residuos BL + auditoría UX/UI mobile (BL-46/47, UX-01..UX-09)",
+  "sections": [
+    {
+      "heading": "BL-46 · Último admin activo protegido",
+      "items": [
+        "`toggle-user-status` verifica que exista ≥1 admin activo distinto antes de desactivar a un usuario con rol `admin` (código de error `LAST_ADMIN_CANNOT_BE_DEACTIVATED`).",
+        "Complementa el guard existente de `delete-user` para cubrir el atajo de desactivación."
+      ]
+    },
+    {
+      "heading": "BL-47 · Reversos financieros bloqueados",
+      "items": [
+        "`revert_audit_log` rechaza `bookings`, `invoices` y `payments`; recomienda cancelación oficial / nota de crédito para preservar integridad contable y CFDI.",
+        "Auditoría se conserva completa; sólo el botón 'Revertir' queda deshabilitado para esas tablas."
+      ]
+    },
+    {
+      "heading": "Portal cliente responsive",
+      "items": [
+        "`PortalInvoices`, `PortalQuotes`, `PortalRentals` y `PortalContracts` usan `MobileCardList` + `useIsMobile` para presentar tarjetas legibles en <sm en lugar de tablas cortadas."
+      ]
+    },
+    {
+      "heading": "UX-01..UX-09 · Grids y toolbars",
+      "items": [
+        "Barrido masivo: `grid-cols-2/3 gap-*` → `grid-cols-1 sm:grid-cols-N gap-*` en dialogs de facturas, cotizaciones, entregas, reservas, contratos, mantenimiento, inventario, proveedores, portal y configuración operativa (~64 archivos).",
+        "Toolbars de Facturas de Proveedor y Mantenimiento con `flex-wrap` y labels `hidden sm:inline` para evitar botones cortados.",
+        "Datos fiscales del receptor y campos CFDI apilan en 1 columna en mobile."
+      ]
+    },
+    {
+      "heading": "Calendario / Gantt",
+      "items": [
+        "Hint 'Desliza para ver la semana →' visible sólo en <sm y mask-image lateral que se apaga en sm+ para sugerir el scroll horizontal.",
+        "Título del rango dejó de usar `capitalize` (rompía tildes en ciertos navegadores); ahora la capitalización se hace en JS antes de renderizar.",
+        "Pestañas de Configuración con mask-image lateral en <sm."
+      ]
+    }
+  ]
+}
