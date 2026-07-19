@@ -10,8 +10,10 @@ const FIXTURE_BASIC = `<?xml version="1.0" encoding="UTF-8"?>
 <cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4"
   Version="4.0" Serie="A" Folio="123" Fecha="2026-03-15T10:30:00"
   SubTotal="1000.00" Total="1160.00" Moneda="MXN" TipoCambio="1"
-  MetodoPago="PUE">
+  MetodoPago="PUE" TipoDeComprobante="I">
   <cfdi:Emisor Rfc="AAA010101AAA" Nombre="PROVEEDOR DEMO SA DE CV" RegimenFiscal="601"/>
+  <cfdi:Receptor Rfc="HEN200317227" Nombre="LIFTGO SA DE CV"
+    UsoCFDI="G03" DomicilioFiscalReceptor="64000" RegimenFiscalReceptor="601"/>
   <cfdi:Conceptos>
     <cfdi:Concepto ClaveProdServ="81111500" Descripcion="Servicio de consultoria"/>
   </cfdi:Conceptos>
