@@ -45,20 +45,14 @@ export function useDeletePart() {
 export function useAddMaintenancePart() {
   return useEntityMutation({
     mutationFn: async (row: TablesInsert<"maintenance_parts"> & { currentLogCost?: number }) => {
-      const { currentLogCost, ...insertRow } = row;
-
+      // BL-28/29 (v7.93.0): el stock de parts_inventory y el `cost` de
+      // maintenance_logs los recalculan triggers en el servidor
+      // (`trg_maintenance_parts_adjust_stock` y `trg_maintenance_parts_recalc_cost`).
+      // Aquí sólo insertamos la fila.
+      const { currentLogCost: _ignored, ...insertRow } = row;
       const { data, error } = await supabase
         .from("maintenance_parts").insert(insertRow).select().single();
       if (error) throw error;
-
-      const partCost = (insertRow.quantity_used || 1) * (insertRow.cost_at_time || 0);
-      const newTotalCost = (currentLogCost || 0) + partCost;
-
-      const { data: logUpdated, error: updateError } = await supabase
-        .from("maintenance_logs").update({ cost: newTotalCost }).eq("id", insertRow.maintenance_log_id).select("id");
-
-      if (updateError) throw updateError;
-      assertRowsAffected(logUpdated, "Actualizar costo de mantenimiento");
       return data;
     },
     invalidateKeys: [
@@ -69,3 +63,4 @@ export function useAddMaintenancePart() {
     errorTitle: "Error al agregar refacción",
   });
 }
+
