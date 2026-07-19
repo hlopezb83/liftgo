@@ -1,0 +1,22 @@
+{
+  "version": "7.98.2",
+  "date": "2026-07-19",
+  "type": "patch",
+  "title": "Trigger: apagar recurring_billing al cancelar reservas",
+  "sections": [
+    {
+      "heading": "Fix (prevención)",
+      "items": [
+        "Nuevo trigger `trg_bookings_clear_recurring_on_cancel` en `public.bookings` (BEFORE UPDATE OF status). Cuando el estado cambia a `cancelled`, `recurring_billing` se pone en `false` automáticamente.",
+        "Elimina la causa raíz del bug corregido en v7.98.1: reservas canceladas ya no pueden conservar `recurring_billing = true`, protegiendo también a `generate-recurring-invoices` y a cualquier otro consumidor que no filtre por status."
+      ]
+    },
+    {
+      "heading": "Limpieza histórica",
+      "items": [
+        "`UPDATE bookings SET recurring_billing = false WHERE status = 'cancelled' AND recurring_billing = true` → 1 fila (RSV-0013).",
+        "Verificado: `bookings WHERE status='cancelled' AND recurring_billing=true` → 0 filas."
+      ]
+    }
+  ]
+}
