@@ -1,114 +1,53 @@
-# Ronda 3 BL-35…BL-45 · Plan de ejecución por sprints
+## Sprint 2 — BL-39 · Bitácora inmutable + reverso compensado (v7.100.0)
 
-Orden por dependencia (ISSUE-006 requiere ISSUE-002 primero) e impacto visible al cliente.
+### Problema
 
----
+Dos regresiones convierten la bitácora en no confiable:
 
-## Sprint 1 · ISSUE-001 (BL-43/44/45) — Cartera / Portal / Resumen respetan NCs y estatus
-**Versión:** v7.99.0 · **Severidad:** Crítica
+1. **Política `Admins full access audit_logs` con `cmd = ALL`** → un admin puede `UPDATE`/`DELETE` filas de auditoría desde el cliente (rompe append-only).
+2. **`revert_audit_log` termina con `DELETE FROM audit_logs WHERE id = p_audit_log_id`** → al revertir se borra el rastro. Un admin puede alterar datos, revertir y no dejar huella. La operación misma tampoco queda auditada.
 
-**Cambios**
-- Migración única:
-  - `v_invoices_with_balance`: agrega `credited_amount` (suma de `credit_notes.total` con `cancellation_status <> 'accepted' AND status <> 'cancelled'`) y `balance = GREATEST(total − paid − credited, 0)`. Conserva `security_invoker`, COMMENT y GRANTs.
-  - `get_customer_summary`: `outstanding_revenue = SUM(balance)` de la vista con `status IN ('sent','partial','overdue')`.
-  - `get_portal_invoices`: excluye `draft`/`cancelled`, devuelve `credited_amount` y `balance` calculados con la misma regla NC.
-- Front: `PortalStatement.tsx` usa `balance` del RPC en vez de recalcular `total − paid`.
+### Fix (una sola migración)
 
-**Tests**
-- RPC: factura $100k + NC total → balance 0 en los 3 consumidores.
-- RPC: factura cancelada → fuera del portal, no suma en outstanding.
-- RPC: pago parcial → outstanding = remanente.
-- Vitest sobre `PortalStatement` con fixture que incluya NC.
-- Test RLS del portal sigue verde.
+**A. RLS append-only sobre `public.audit_logs`**
 
-**Entregable:** 1 migración + 1 archivo front + 3 tests + `v7.99.0.json`.
+- `DROP POLICY "Admins full access audit_logs"`.
+- Nueva `admin_read_audit_logs` — `FOR SELECT USING (has_role(...,'admin'))`. Se conservan las de `administrativo` y `auditor`.
+- Trigger `trg_audit_logs_immutable BEFORE UPDATE OR DELETE ON audit_logs`:
+  - Permite operación si `current_setting('app.audit_maintenance', true) = 'on'` (bandera que sólo activa `purge_old_notifications`-style de retención).
+  - Si no, `RAISE EXCEPTION 'audit_logs is append-only'`.
+- No se crea política de INSERT: el trigger `audit_trigger_fn` corre `SECURITY DEFINER`, así que sigue insertando; los clientes no pueden insertar directo (sin policy = denegado).
 
----
+**B. `revert_audit_log` compensa en vez de borrar**
 
-## Sprint 2 · ISSUE-002 (BL-39) — Bitácora append-only + revert seguro
-**Versión:** v7.100.0 · **Severidad:** Crítica (compliance)
+- Se ejecuta la reversa como hoy (INSERT→DELETE, UPDATE→restaurar, DELETE→re-INSERT).
+- Ya **no** se hace `DELETE FROM audit_logs`. En su lugar el trigger `audit_trigger_fn` capturará la operación restauradora como un nuevo renglón.
+- Se añade insert explícito de un renglón `action = 'REVERT'` con `changed_fields = jsonb_build_object('source_audit_log_id', p_audit_log_id)` para trazabilidad directa (no depende sólo del disparador implícito).
+- Se conserva el whitelist de 11 tablas y el guardia `has_role(...,'admin')`.
 
-**Cambios**
-- Migración:
-  - `DROP POLICY "Admins full access audit_logs"` + `CREATE POLICY` SELECT-only para admin (INSERT sigue vía `audit_trigger_fn` SECURITY DEFINER).
-  - `revert_audit_log` reescrita: whitelist sin `bookings/invoices/payments`; reemplaza el `DELETE` del asiento original por un INSERT compensatorio (`action='REVERT'`, `changed_by=auth.uid()`).
-- Front:
-  - Elimina `useDeleteAuditLog` y el botón "Eliminar" en `AuditTrailPage`.
-  - `useRevertAuditLog`: mensaje "Se registró la reversa en la bitácora".
+### Tests
 
-**Tests**
-- RLS: DELETE de admin sobre `audit_logs` → denegado.
-- Revert de `customers`: restaura valores, conserva original, aparece asiento REVERT.
-- Revert de `payments` / `invoices` / `bookings`: excepción "tabla no permitida".
+- **`supabase/tests/audit_logs_immutability.sql`** (pgTAP-style con `DO $$ BEGIN ... EXCEPTION ...` — no requiere pgTAP): intenta `UPDATE`/`DELETE` con rol authenticated impersonando admin (via `SET LOCAL request.jwt.claims`), espera excepción `append-only`.
+- **`src/features/audit/__tests__/auditImmutability.test.ts`** (Vitest, sin DB): modela en TypeScript el flujo de `revert_audit_log` — dado un log original + reverso, verifica que el original persiste y el reverso queda como entrada nueva con `source_audit_log_id`.
+- Opcional (si tiempo lo permite): correr `supabase--test_edge_functions` no aplica; se corre `bunx vitest run` completo.
 
-**Entregable:** 1 migración + 2 archivos front + 3 tests + `v7.100.0.json`.
+### Frontend
 
----
+Sin cambios de UI. `AuditTrailDialog` ya consume `audit_logs` en modo lectura. Si el UI mostraba un botón "Eliminar entrada", queda inutilizado por el trigger; se retira el handler únicamente si existe.
 
-## Sprint 3 · ISSUE-003 (BL-35/36) + ISSUE-004 (BL-37) — Fiscal & anti-lockout
-**Versión:** v7.101.0 · **Severidad:** Alta
+### Changelog
 
-**Cambios**
-- `parse-cfdi-expense/cfdi-parser.ts`: extraer `receptor_rfc` (`cfdi:Receptor@Rfc`) y `tipo_comprobante` (`Comprobante@TipoDeComprobante`).
-- `parse-cfdi-expense/index.ts`: rechazar con 400 si `tipo_comprobante <> 'I'` o si `receptor_rfc` ≠ `company_settings.rfc` (case-insensitive) antes de cualquier insert.
-- `delete-user/index.ts` y `toggle-user-status/index.ts`: guarda "último admin activo" (cuenta `user_roles.role='admin'` cruzado con `profiles.is_active=true`, excluyendo al objetivo; si 0 → 400).
+- `public/changelog.json` — nueva entrada `7.100.0` (minor) al inicio.
+- `public/changelog/v7.100.0.json` — detalle por secciones (Contexto, Fix DB, Reverso compensado, Tests).
 
-**Tests Deno**
-- Parser: dos campos nuevos + caso feliz + rechazos por tipo y por RFC.
-- `delete-user` / `toggle-user-status`: 1-admin bloquea, 2-admins permite (ambas funciones).
+### Entregables
 
-**Entregable:** 3 edge functions + 4 archivos de test + `v7.101.0.json`.
+1. Migración SQL única (RLS + trigger + refactor de `revert_audit_log`).
+2. Test SQL de inmutabilidad.
+3. Test Vitest modelando compensación.
+4. Actualización de changelog (índice + detalle).
 
----
+### Fuera de alcance
 
-## Sprint 4 · ISSUE-005 (BL-40/41) — Mantenimiento recurrente idempotente y sin gasto anticipado
-**Versión:** v7.102.0 · **Severidad:** Alta (P&L)
-
-**Cambios**
-- `generate-recurring-maintenance/index.ts`:
-  - Insertar log con `work_status: 'scheduled'` (agregar valor al enum si aplica).
-  - Claim atómico por póliza ANTES del insert:
-    ```
-    UPDATE maintenance_policies
-       SET last_generated_month = $mes
-     WHERE id = $1
-       AND (last_generated_month IS NULL OR last_generated_month < $mes)
-     RETURNING id
-    ```
-    Si no devuelve fila → skip (otra corrida ya la tomó).
-- Migración: verificar que `get_income_statement` (CTE `maint_by_month`) filtre por `work_status='completed'`; ajustar si falta.
-
-**Tests Deno**
-- Doble corrida en el mismo mes → 1 solo log por póliza.
-- Log recién creado como `scheduled` no aparece en P&L; al pasarlo a `completed` sí.
-
-**Entregable:** 1 edge function + (posible) 1 migración + 2 tests + `v7.102.0.json`.
-
----
-
-## Sprint 5 · ISSUE-006 (BL-38) + ISSUE-007 (BL-42 + horómetro) — Cierre
-**Versión:** v7.103.0 · **Severidad:** Media/Baja · **Depende de Sprint 2**
-
-**Cambios**
-- `delete-user/index.ts`: verificar errores de `user_roles.delete` y `profiles.delete` antes de `auth.admin.deleteUser` (400 sin tocar cuenta auth si fallan).
-- Registrar en `audit_logs` (`action='ADMIN_ACTION'`, `table_name='auth.users'`, `new_data={action, target_user}`, `changed_by=auth.userId`) para: `delete-user`, `toggle-user-status`, `reset-user-password`, `invite-user`.
-- `generate-recurring-maintenance`: cálculo de mes en `America/Monterrey` (mismo helper que `generate-recurring-invoices`).
-- `PostDeliveryPickupDialog` / `PostBookingDeliveryDialog`: validación en form `hoursReading >= horas de entrega` con mensaje claro.
-
-**Tests**
-- Deno: fallo simulado en `profiles.delete` → 400, auth user intacto.
-- Deno: cada acción admin genera asiento en bitácora.
-- Deno: `generate-recurring-maintenance` calcula mes MTY correcto en borde de medianoche UTC.
-- Vitest: diálogos rechazan horómetro < entrega.
-
-**Entregable:** 4 edge functions + 2 diálogos + tests + `v7.103.0.json`.
-
----
-
-## Reglas transversales
-- Cada sprint termina con: migraciones aplicadas, `deno fmt --check` limpio, `bunx vitest run` verde, entrada en `public/changelog.json` + `public/changelog/vX.Y.Z.json`.
-- Ronda de auditoría entre sprints (bugs + tests faltantes) antes de arrancar el siguiente, como hicimos en Ronda 2.
-- Si algún sprint destapa un hallazgo colateral no listado, se documenta y se decide antes de tocarlo.
-
-## Total estimado
-5 sprints · ~5 migraciones · ~10 edge functions/front · ~18 tests nuevos · 5 entradas de changelog (v7.99.0 → v7.103.0).
+- BL-35/36 (CFDI parser) y BL-37 (last admin lockout): Sprint 3.
+- Recolección/purga programada de `audit_logs` con la bandera `app.audit_maintenance`: no se agenda cron todavía; el mecanismo queda listo para usarse cuando se defina retención.
