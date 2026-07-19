@@ -90,13 +90,30 @@ export function calculateRentalCost(
   return items;
 }
 
+/**
+ * Parsea una fecha en formato YMD (`2026-01-01`) o ISO completa a un `Date`
+ * estable en zona local, anclado al mediodía. Anclar a 12:00 evita el bug de
+ * timezone (BL-14): `new Date("2026-01-01")` parsea como UTC medianoche, que
+ * en America/Monterrey (UTC-6) representa 2025-12-31 18:00 local, corriendo
+ * `differenceInCalendarMonths` un día hacia atrás y facturando "1 mes + 1 día"
+ * en rentas de calendario cerrado.
+ */
+function parseRentalDate(input: string): Date {
+  // Solo YMD: anclar a mediodía local para blindar contra DST y timezone.
+  if (/^\d{4}-\d{2}-\d{2}$/.test(input)) {
+    return new Date(`${input}T12:00:00`);
+  }
+  // ISO completa u otro formato: respetar tal cual.
+  return new Date(input);
+}
+
 export function generateLineItems(
   forklift: Forklift,
   startDate: string,
   endDate: string
 ): LineItem[] {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
+  const start = parseRentalDate(startDate);
+  const end = parseRentalDate(endDate);
   const items = calculateRentalCost(forklift.daily_rate, forklift.weekly_rate, forklift.monthly_rate, start, end);
   const serieSuffix = forklift.serial_number ? ` (Serie: ${forklift.serial_number})` : "";
   return items.map((item) => ({
@@ -114,8 +131,8 @@ export function generateLineItemsFromModel(
   endDate: string,
   quantity: number = 1
 ): LineItem[] {
-  const start = new Date(startDate);
-  const end = new Date(endDate);
+  const start = parseRentalDate(startDate);
+  const end = parseRentalDate(endDate);
   const items = calculateRentalCost(dailyRate, weeklyRate, monthlyRate, start, end);
   return items.map((item) => ({
     ...item,
