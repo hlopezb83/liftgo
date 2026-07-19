@@ -113,9 +113,15 @@ Deno.serve(async (req) => {
       }
     >;
     let priorPaidStamped = 0;
-    let priorEmissions = 0; // stamped + cancelled ya emitidos
+    let priorEmissions = 0; // stamped + cancelled ya emitidos (incluye el pago actual si tuvo emisión previa)
     for (const p of paymentsList) {
-      if (p.id === payment_id) continue;
+      if (p.id === payment_id) {
+        // BL-06/07 (cierre): si el pago actual tiene rep_cfdi_uuid, hubo una
+        // emisión previa ante el SAT (típicamente cancelada). El SAT no permite
+        // reutilizar NumParcialidad aunque el REP anterior esté cancelado.
+        if (p.rep_cfdi_uuid) priorEmissions += 1;
+        continue;
+      }
       if (p.rep_cfdi_status === "stamped") {
         priorPaidStamped += Number(p.amount);
         priorEmissions += 1;
