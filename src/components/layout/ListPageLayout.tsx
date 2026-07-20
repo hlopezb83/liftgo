@@ -13,6 +13,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { useIsMobile, useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import type { Table as TanstackTable } from "@tanstack/react-table";
+import { cn } from "@/lib/utils";
 
 interface ListPageLayoutProps<T> {
   title: string;
@@ -104,7 +105,7 @@ export function ListPageLayout<T extends { id?: string }>({
 
   return (
     <PageTransition>
-      <div ref={sentinelRef} className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+      <div ref={sentinelRef} className={cn("p-4 sm:p-6 space-y-4 sm:space-y-6", isMobile && mobileFab && "pb-[calc(env(safe-area-inset-bottom)+6rem)]")}>
         <PullToRefreshIndicator
           visible={!!(isMobile && onRefresh && (pullDistance > 0 || isRefreshing))}
           pullDistance={pullDistance}

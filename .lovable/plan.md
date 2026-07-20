@@ -1,39 +1,50 @@
-## Problema
+# Auditoría visual móvil — Sprint v7.106.0
 
-En móvil (390×675), el scroll con el dedo no funciona en la app (dashboard y otras rutas).
+Cobertura: 19 rutas capturadas a 390×844 con sesión autenticada (Playwright, `is_mobile=true`, `has_touch=true`). Cero overflow horizontal — buena base. Los hallazgos son de composición interna y polish.
 
-**Causa raíz confirmada por inspección DOM en Playwright:**
+## Hallazgos (con evidencia)
 
-- `MainLayout` renderiza `<div className="min-h-[100dvh] flex w-full">` con `<main className="flex-1 overflow-auto overscroll-contain">` adentro.
-- Con `min-h-[100dvh]` (no `h-[100dvh]`) el contenedor padre **crece** al tamaño del contenido (medí `parent.height = 3097.5px` con viewport 675px).
-- Como resultado, `main` también crece: `main.scrollHeight === main.clientHeight === 3098px`. **`main` deja de ser un scroll container real** (no tiene overflow que recortar), y el scroll recae en `body`/`html`.
-- En navegadores móviles (especialmente iOS Safari y Chrome Android en modo `is_mobile`), cuando un ancestro cercano tiene `overflow: auto` + `overscroll-behavior: contain`, el hit-test del gesto táctil apunta a ese ancestro. Como no puede scrollear (sh==ch) **y** `overscroll-contain` evita chaining hacia el body, el gesto queda "muerto".
-- Adicionalmente, `useMainScrollRestoration` escribe `main.scrollTop`, asumiendo que `main` es el scroll container. Hoy es un no-op silencioso porque el scroll real está en el `body`, así que también rompe la restauración de scroll al navegar.
+### UX-M-01 · Panel — Card "Facturas Vencidas" mal proporcionada
+**Ruta:** `/` · **Severidad:** Alta
+- Folios largos se parten en dos líneas (`FAC-\n0060`).
+- Monto en rojo (`text-red-600`, weight 700, `text-lg`) tan grande que empuja "Vence:" a línea nueva y el `check` verde queda pegado al borde derecho.
+- El bloque de aging chips (`0-30d / 31-60d / 61-90d`) muestra solo 3 buckets — falta `90+d` visible.
+- **Fix:** en la card de "Facturas Vencidas" (`src/components/dashboard/alerts/OverdueInvoicesCard.tsx` o equivalente): (a) `whitespace-nowrap` en folio, (b) bajar monto a `text-sm font-semibold` en `<sm`, (c) apilar `Vence:` + fecha en el mismo `flex-col` a la derecha del monto, (d) mostrar los 4 buckets de aging con wrap.
 
-El mismo patrón existe en `CustomerPortalLayout` (v7.86.2).
+### UX-M-02 · Panel — Card "Rentas Vencidas" corta ícono derecho
+**Ruta:** `/` · **Severidad:** Media
+- Se ve un fragmento gris del ícono cortado en el borde derecho de cada fila.
+- **Fix:** revisar `pr-*` del contenedor de la fila y quitar `-mr-*` residual.
 
-## Fix
+### UX-M-03 · Calendario — headers de días se pegan
+**Ruta:** `/calendar` · **Severidad:** Media
+- "mié jue vie sábdom lu…" sin separación visible; el header del Gantt sigue calculado con `min-w` desktop.
+- Segmented controls `Gantt / Lista` y `Semana / Mes` quedan en la misma fila con gap desigual.
+- **Fix:** en el header del Gantt móvil (`src/features/calendar/…/GanttHeader.tsx`), forzar `min-w-[36px]` por día y `gap-1`; en la toolbar, envolver ambos segmented en un `flex-wrap gap-2` con `w-full sm:w-auto`.
 
-Fijar la altura del contenedor padre a `h-[100dvh]` para que `main` sea un scroll container acotado y real. Con eso:
+### UX-M-04 · Cotizaciones — FAB tapa contenido de última tarjeta
+**Ruta:** `/quotes` (y todas las listas con FAB móvil) · **Severidad:** Alta
+- El botón flotante `+` cubre el `StatusBadge` "Aceptada" de la card final. Faltan `pb-safe` al scroll container.
+- **Fix:** agregar `pb-24` (o `pb-[env(safe-area-inset-bottom)+5rem]`) al contenedor de `MobileCardList` cuando exista un FAB visible. Centralizar en `MobileCardList` con prop `hasFab`.
 
-1. `main.clientHeight` queda en 675px, `scrollHeight` crece con el contenido → scroll táctil funciona dentro de `main`.
-2. `overscroll-contain` cumple su propósito original (bloquear pull-to-refresh nativo).
-3. `useMainScrollRestoration` vuelve a funcionar (main es el elemento scrollable).
-4. `usePullToRefresh` sigue apuntando al mismo `main` (comportamiento intacto).
+### UX-M-05 · Reportes — gráfica de utilización ilegible en móvil
+**Ruta:** `/reports` (Utilización de Flota) · **Severidad:** Alta
+- 58 barras aplastadas en ~600px; eje X solo muestra 2 etiquetas. La tabla debajo se corta a la derecha ("DÍAS TOTAL…" recortado).
+- **Fix:** (a) en móvil, cambiar chart a `<ScrollArea>` horizontal con `min-w={fleet*24}px`, o mostrar top-N con toggle "Ver todos"; (b) envolver la tabla del reporte en `overflow-x-auto` o migrar a `MobileCardList` (`isMobile ? MobileCardList : DataTableV2`).
 
-### Cambios
+### UX-M-06 · Locale error global en consola
+**Ruta:** todas · **Severidad:** Media (no visible pero flood en telemetría)
+- `Uncaught: Incorrect locale information provided` en cada carga (19/19 rutas).
+- Probable causa: llamada a `Intl.DateTimeFormat`/`NumberFormat` con string inválida (posible `es_MX` vs `es-MX`, o valor undefined pasado como locale).
+- **Fix:** grep `Intl\.` y `toLocaleString\(` bajo `src/lib/format/`, `src/components/ui/calendar.tsx` y `formatMonthEs.ts`; validar que ningún callsite pase `es_MX`, `null`, `""` o `[undefined]`. Añadir guard en helper central (`toLocale('es-MX')`).
 
-- `src/layouts/MainLayout.tsx` (línea 72): `min-h-[100dvh]` → `h-[100dvh]`.
-- `src/layouts/CustomerPortalLayout.tsx`: aplicar el mismo cambio en su contenedor raíz para mantener la paridad establecida en v7.86.2.
+## Fuera de alcance
+- `/operations-setup` y `/supplier-bills` devolvieron 404 en el test — son rutas incorrectas de mi audit, no bugs reales. Se ignoran.
 
-### Verificación
+## Detalles técnicos
+- Toque global: preferir `pb-[calc(env(safe-area-inset-bottom)+96px)]` para respetar notch en iPhone.
+- `MobileCardList` ya usado en Facturas/Reservas/Cotizaciones/Equipos/MRR — patrón consolidado; solo falta el prop `hasFab` y aplicarlo en Reportes.
+- Añadir un test Playwright liviano en `tests/e2e/mobile-visual.spec.ts` que capture `/`, `/calendar`, `/quotes`, `/reports` @ 390×844 y valide (a) `document.scrollWidth === clientWidth`, (b) FAB no intersecta última card (bounding rect check), (c) ausencia de `pageerror` con "Incorrect locale".
 
-- Playwright headless a 390×675 con `is_mobile=true`, `has_touch=true`:
-  - Confirmar `main.clientHeight ≈ 675` y `main.scrollHeight > 675` en `/` y en una ruta con `ListPageLayout` (`/invoices`).
-  - Simular swipe táctil y verificar que `main.scrollTop` avanza.
-  - Regresión de sticky header, FAB con `env(safe-area-inset-bottom)` y pull-to-refresh.
-- Verificar portal `/portal/*` con la misma prueba.
-
-### Changelog
-
-- `public/changelog.json` + `public/changelog/v7.104.2.json`: patch "Mobile: fix scroll táctil bloqueado por `min-h-[100dvh]` en MainLayout y CustomerPortalLayout".
+## Changelog
+Entry `v7.106.0` — minor — "UX móvil: cards del Panel, calendario, FAB, reportes y fix de locale global".

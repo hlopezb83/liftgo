@@ -54,20 +54,22 @@ export function UtilizationReport({ startDate, endDate }: Props) {
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="h-64">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data}>
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis unit="%" />
-                <Tooltip formatter={(val) => `${Number(val)}%`} />
-                <Bar dataKey="utilization" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <div className="overflow-x-auto -mx-2 px-2">
+            <div className="h-64" style={{ minWidth: `${Math.max(data.length * 32, 320)}px` }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={data}>
+                  <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-35} textAnchor="end" height={60} />
+                  <YAxis unit="%" width={40} />
+                  <Tooltip formatter={(val) => `${Number(val)}%`} />
+                  <Bar dataKey="utilization" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </div>
         </CardContent>
       </Card>
       <Card>
-        <CardContent className="p-0">
+        <CardContent className="p-0 overflow-x-auto">
           <DataTableV2 table={table} emptyMessage="Sin datos en el rango" />
         </CardContent>
       </Card>

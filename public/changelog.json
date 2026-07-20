@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.106.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "UX móvil: cards del Panel, calendario, FAB, reportes y fix de locale global",
+    "summary": "Auditoría visual @ 390×844 (6 hallazgos). Panel: card 'Facturas Vencidas' con folios `whitespace-nowrap`, monto responsivo `text-sm sm:text-base`, aging buckets con `flex-wrap` para mostrar los 4 rangos; AlertRow con `min-w-0` + `truncate` para que primary/secondary no empujen el bloque derecho ni corten el ícono de acción en 'Rentas Vencidas'. Calendario: `min-w-[28px]` por día en `GanttHeader` (weekday + número) y toolbar de segmented controls con `flex-wrap gap-2` para no colisionar Gantt/Lista con Semana/Mes en móvil. FAB: `ListPageLayout` agrega `pb-[calc(env(safe-area-inset-bottom)+6rem)]` cuando hay `mobileFab`, evitando que el botón flotante tape la última tarjeta (Cotizaciones y demás listas). Reportes: `UtilizationReport` envuelve gráfica en `overflow-x-auto` con `minWidth` dinámico según flota y etiquetas del eje X rotadas -35°; tabla con scroll horizontal. Global: shim de `Intl.Locale` en `main.tsx` que hace fallback silencioso a `en` cuando react-day-picker v10 pasa un `code` no BCP-47 en `getDefaultLocale`→`isRTL`, eliminando el `RangeError: Incorrect locale information provided` que aparecía en cada page load."
+  },
+  {
     "version": "7.105.0",
     "date": "2026-07-20",
     "type": "minor",

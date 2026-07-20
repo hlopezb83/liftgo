@@ -60,14 +60,14 @@ export function AlertRow({ primary, secondary, rightTop, rightBottom, onClick, a
       tabIndex={0}
       role="button"
     >
-      <div>
-        <span className="font-medium">{primary}</span>
-        {secondary && <span className="text-muted-foreground ml-2">{secondary}</span>}
+      <div className="min-w-0 flex-1 pr-2">
+        <div className="font-medium truncate">{primary}</div>
+        {secondary && <div className="text-muted-foreground text-xs truncate">{secondary}</div>}
       </div>
-      <div className="flex items-center gap-2">
-        <div className="text-right">
+      <div className="flex items-center gap-1.5 shrink-0">
+        <div className="text-right leading-tight">
           {rightTop}
-          {rightBottom && <p className="text-xs text-muted-foreground">{rightBottom}</p>}
+          {rightBottom && <p className="text-2xs text-muted-foreground">{rightBottom}</p>}
         </div>
         {action && ActionIcon && (
           <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" onClick={action.onClick} title={action.title} aria-label={action.title}>

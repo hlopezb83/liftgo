@@ -1,0 +1,45 @@
+{
+  "version": "7.106.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "UX móvil: cards del Panel, calendario, FAB, reportes y fix de locale global",
+  "summary": "Auditoría visual @ 390×844 con 6 fixes.",
+  "changes": [
+    {
+      "id": "UX-M-01",
+      "area": "Dashboard",
+      "type": "fix",
+      "description": "Card 'Facturas Vencidas': folios no se parten (`whitespace-nowrap`), monto responsivo `text-sm sm:text-base`, aging buckets con `flex-wrap` para mostrar los 4 rangos sin cortar."
+    },
+    {
+      "id": "UX-M-02",
+      "area": "Dashboard",
+      "type": "fix",
+      "description": "AlertRow con `min-w-0` + `truncate` en la columna izquierda; la derecha con `shrink-0` para que el ícono de acción de 'Rentas Vencidas' no quede recortado."
+    },
+    {
+      "id": "UX-M-03",
+      "area": "Calendario",
+      "type": "fix",
+      "description": "`GanttHeader` fuerza `min-w-[28px]` por día para separar los weekday labels; toolbar de segmented controls (Gantt/Lista + Semana/Mes) con `flex-wrap gap-2` en móvil."
+    },
+    {
+      "id": "UX-M-04",
+      "area": "Layouts",
+      "type": "fix",
+      "description": "`ListPageLayout` agrega `pb-[calc(env(safe-area-inset-bottom)+6rem)]` cuando existe `mobileFab`, evitando que el FAB tape la última tarjeta en Cotizaciones y demás listas."
+    },
+    {
+      "id": "UX-M-05",
+      "area": "Reportes",
+      "type": "fix",
+      "description": "`UtilizationReport`: gráfica dentro de `overflow-x-auto` con `minWidth` proporcional al tamaño de flota, XAxis con `interval={0}` y `angle={-35}`; tabla de resultados con scroll horizontal para no cortar columnas."
+    },
+    {
+      "id": "UX-M-06",
+      "area": "Global",
+      "type": "fix",
+      "description": "Shim de `Intl.Locale` en `src/main.tsx`: hace fallback silencioso a `en` cuando react-day-picker v10 pasa un `code` no BCP-47 en `getDefaultLocale`→`isRTL`. Elimina el `RangeError: Incorrect locale information provided` que floodeaba la consola en cada page load."
+    }
+  ]
+}

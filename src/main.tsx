@@ -5,6 +5,23 @@ import { ErrorBoundary } from "./layouts/ErrorBoundary";
 import "./lib/forms/zodConfig";
 import "./index.css";
 
+// Shim: react-day-picker v10 llama `new Intl.Locale(defaultLocale.code)` al
+// cargar su chunk (getDefaultLocale → isRTL). El `code` bundleado no es un
+// BCP-47 válido en Chromium estricto y lanza `RangeError: Incorrect locale
+// information provided` en cada page load, aunque nuestro Calendar override
+// pasa `es-MX`. Envolvemos el constructor para fallback silencioso a `en`.
+const OrigLocale = Intl.Locale;
+const LocaleShim = new Proxy(OrigLocale, {
+  construct(target, args: ConstructorParameters<typeof Intl.Locale>) {
+    try {
+      return new target(...args);
+    } catch {
+      return new target("en");
+    }
+  },
+}) as typeof Intl.Locale;
+(Intl as { Locale: typeof Intl.Locale }).Locale = LocaleShim;
+
 const RELOAD_KEY = "vite-preload-reload";
 
 function isStaleChunkError(message: string | undefined): boolean {
