@@ -1,0 +1,49 @@
+{
+  "version": "7.122.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "Sprint 2 · Ola 2.6 — Segregación de roles y edge cases (BL-M1, EC-M2, EC-M3, EC-M5)",
+  "sections": [
+    {
+      "heading": "BL-M1 · Rol dispatcher: lectura únicamente en facturas y pagos",
+      "items": [
+        "DROP de las policies `Dispatchers full access invoices` y `Dispatchers full access payments` (eran `FOR ALL`).",
+        "Nuevas policies `Dispatchers read invoices` y `Dispatchers read payments` (`FOR SELECT`).",
+        "Un despachador ya no puede crear, editar, cancelar ni timbrar facturas ni registrar/borrar pagos. Queda restringido a `admin`/`administrativo`.",
+        "`payments.created_by uuid` con default `auth.uid()` y FK a `auth.users` (ON DELETE SET NULL) para trazabilidad."
+      ]
+    },
+    {
+      "heading": "EC-M2 · useCustomer(id) query directa",
+      "items": [
+        "Nuevo hook `useCustomer(id)` en `useCustomers.ts` que consulta por PK con `.eq('id', id).maybeSingle()`.",
+        "`useCustomerDetailPage` deja de hacer `customers.find(id)` sobre la lista limitada.",
+        "`useCustomers` aplica `.limit(LIST_PAGE_LIMIT)` explícito y emite `console.warn` cuando alcanza el techo.",
+        "Test nuevo: el detalle funciona aun cuando la lista estaría truncada."
+      ]
+    },
+    {
+      "heading": "EC-M3 · useBookingsRange con límite explícito",
+      "items": [
+        "`useBookingsRange` con `.limit(2000)` explícito.",
+        "`console.warn` con el rango consultado cuando se alcanza el límite (calendario/Gantt puede omitir reservas)."
+      ]
+    },
+    {
+      "heading": "EC-M5 · delete-user: orden + guarda anti-último-admin transaccional",
+      "items": [
+        "Nueva RPC `assert_not_last_admin(_target_user_id uuid)` SECURITY DEFINER, con `FOR UPDATE` sobre las filas admin para cerrar la ventana TOCTOU entre dos borrados concurrentes. `EXECUTE` sólo para `service_role`.",
+        "Edge Function `delete-user` reordenada: (1) valida vía RPC, (2) borra en `auth.users`, (3) limpia `user_roles`/`profiles`. Si el paso Auth falla, roles/profile quedan intactos (no queda usuario zombie).",
+        "El mensaje `LAST_ADMIN_CANNOT_BE_DELETED` se propaga desde la RPC al cliente sin cambios."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "Migración Supabase aplicada sin nuevos warnings (171 pre-existentes).",
+        "Vitest completo 1091/1091 verde (2 tests nuevos para `useCustomer`).",
+        "Deno tests para `delete-user` estables (smoke CORS/401)."
+      ]
+    }
+  ]
+}
