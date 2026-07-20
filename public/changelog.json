@@ -1,5 +1,21 @@
 [
   {
+    "version": "7.133.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "Endurecimiento fiscal: NC-1/NC-2, timeout CFDI seguro y stamp_variance",
+    "summary": "Cierre de las urgentes del reporte de verificación: (1) cola de reintentos alineada al CHECK constraint con claim optimista; (2) pg_cron y edge functions comparten CRON_SECRET vía vault, cierre a llamadas anónimas; (3) TIMEOUT en Facturapi ya NO reencola ni resetea a `error` — deja la factura en `stamping` para que reconcile resuelva sin arriesgar doble CFDI ante el SAT; (4) nueva columna `invoices.stamp_variance` registra diferencias local vs Facturapi con tolerancia 0.02 MXN.",
+    "changes": [
+      "`_shared/money.ts`: helpers cent-based (`toCents`, `sumMoney`, `stampVariance`) con tests.",
+      "`process-cfdi-retry-queue`: gating por CRON_SECRET (env o vault RPC), claim optimista `pending→processing`, mapping `cancel_rep→cancel-payment-complement`.",
+      "`reconcile-stamping-invoices`: mismo gating y descarga XML obligatoria antes de marcar `stamped`.",
+      "`stamp-cfdi`: TIMEOUT devuelve 504 sin encolar retry ni resetear estado; usa `roundMoney` para descuentos; calcula y persiste `stamp_variance`.",
+      "Migración: `invoices.stamp_variance` (numeric) + índice parcial de auditoría; RPC `internal_get_cron_secret` restringida a service_role.",
+      "pg_cron reprogramado: envía `x-cron-secret` en vez de anon key."
+    ]
+  },
+
+  {
     "version": "7.132.1",
     "date": "2026-07-20",
     "type": "patch",
