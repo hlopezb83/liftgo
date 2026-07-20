@@ -1,3 +1,4 @@
+import type { DateRange } from "react-day-picker";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
@@ -76,7 +77,7 @@ export default function QuoteForm() {
                       <FormControl>
                         <DateRangePickerField
                           label="Periodo de Renta"
-                          dateRange={field.value}
+                          dateRange={field.value as DateRange | undefined}
                           onSelect={(v) => field.onChange(v)}
                           required
                         />
