@@ -85,6 +85,9 @@ export function useLiftgoTable<T>({
     });
   };
 
+  // `useReactTable` retorna una API imperativa que muta internamente; el Proxy
+  // de la línea 120 restablece identidad para el compiler. Ver comentario abajo.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable<T>({
     autoResetPageIndex: false,
     data: tableData,

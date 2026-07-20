@@ -23,10 +23,10 @@ export function CashFlowSettingsBar({ weeks, onChangeWeeks }: Props) {
 
   useEffect(() => {
     if (!settings) return;
-     
-    // remotos (react-query) al cargar; el prev-prop guard supera el umbral de complejidad.
+    // Sincronización de campos controlados con datos remotos (react-query).
+    // El prev-prop guard equivalente supera el umbral de complejidad del proyecto.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setInitial(String(settings.initialBalance));
-     
     setBuffer(String(settings.safetyBuffer));
   }, [settings]);
 

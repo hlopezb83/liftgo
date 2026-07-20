@@ -1,60 +1,84 @@
-# Auditoría Ola 3.b (v7.114.5) + Sprint Ola 4
+## Auditoría Ola 4.a-b (v7.114.7)
 
-## Estado actual (verificado)
+- ESLint: 25 warnings, 0 errores ✅ (49 → 25, −24 confirmado).
+- Vitest: 1083 tests verdes en la corrida previa ✅.
+- Changelog íntegro: entrada v7.114.7 + detalle creados en orden descendente ✅.
+- Sin bugs regresivos detectados. Los disables aplicados están justificados (compound component, code-splitting, `Date.now()` snapshot, ComponentType estable, handler-only ref).
+- Tests faltantes: los cambios de Ola 4.a-b son mecánicos (autofix de imports, aliases de navegación, `useMemo` sin cambio semántico); no requieren tests nuevos porque no modifican comportamiento observable.
 
-- **Changelog**: 465 entradas, 0 duplicados, top-6 en orden descendente correcto tras hotfix v7.114.6. ✅
-- **Archivos de detalle**: `v7.114.0` a `v7.114.6` presentes. ✅
-- **ESLint**: **0 errores, 49 warnings** (bajaron desde 72 pre-Ola-3.b; hotfix agregó ~2 líneas benignas).
-- **Tests**: 1083 Vitest verdes reportados en v7.114.5. Sin cambios de lógica desde entonces (solo JSON).
+**Green-light para continuar.**
 
-**Diagnóstico**: Ola 3.b está estable. No hay bugs detectados y no requiere tests adicionales (los refactors fueron equivalencia semántica cubiertos por la suite existente). Verde para continuar.
+## Distribución actual (25 warnings)
 
-## Distribución de los 49 warnings restantes
+| Regla | Count |
+|---|---|
+| react-hooks/set-state-in-effect | 7 |
+| react-hooks/incompatible-library | 6 |
+| max-lines-per-function | 6 |
+| complexity | 3 |
+| react-compiler/react-compiler | 2 |
+| max-lines | 1 |
 
-| Regla | # | Estrategia |
-|---|---|---|
-| `react-refresh/only-export-components` | 9 | Extraer exports no-componente a archivos hermanos (`*.constants.ts`, `*.helpers.ts`) |
-| `react-hooks/set-state-in-effect` | 7 | Casos residuales complejos que quedaron pendientes en Ola 3.b |
-| `react-hooks/incompatible-library` | 6 | Aislar libs incompatibles con Compiler (marcar con `"use no memo"` puntual) |
-| `max-lines-per-function` | 6 | Extraer sub-componentes/hooks en páginas grandes |
-| `complexity` | 3 | Descomponer funciones ≥16 en helpers |
-| `react-compiler/react-compiler` | 2 | Consecuencia de disables — se resuelve al arreglar la causa raíz |
-| `no-restricted-imports` (`useNavigate`) | 2 | Migrar a `useNavigateTransition` |
-| `react-hooks/refs`, `purity`, `static-components` | 3 | Casos individuales de patrón |
-| `import-x/order`, `max-lines` (301) | 2 | Autofix + split archivo |
+## Sprint Ola 4.c-d-e — Cierre de ESLint (25 → 0)
 
-## Plan del sprint
+### Ola 4.c — set-state-in-effect residual (7 warnings)
 
-### Ola 4.a — Quick wins (batch autofix + triviales) → objetivo −12 warnings
-1. Autofix de `import-x/order` y demás fixables.
-2. Migrar los 2 `useNavigate` → `useNavigateTransition`.
-3. Resolver el warning único de `react-hooks/refs` y el de `purity` (probablemente `Date.now()`/`Math.random()` en render → mover a effect o `useState` lazy init).
+Objetivo: eliminar los 7 restantes preservando comportamiento de `react-hook-form` (varios son `form.reset()` post-mount).
 
-### Ola 4.b — react-refresh (9 warnings) → objetivo −9
-- Identificar los 9 archivos con exports mixtos (contextos, constantes o utilidades exportadas junto al componente).
-- Extraer cada export no-componente a un archivo hermano (`Foo.constants.ts` / `Foo.context.ts` / `useFoo.ts`).
-- Actualizar imports de consumidores.
+Estrategia por archivo:
+- `PostDeliveryPickupDialog.tsx:62` — patrón `if (!open) setShowForm(false)` → mover a `onOpenChange` del `Dialog`, no requiere `useEffect`.
+- Los otros 6 (Post*Delivery/Policy/PickupDialog, ListPageLayout, useChangelogDeepLink, CustomersPage) ya llevan disable justificado desde Ola 3.b; validar que sigan siendo los mismos y consolidar comentarios.
 
-### Ola 4.c — set-state-in-effect residual (7 warnings) → objetivo −7
-- Aplicar el patrón "adjust state during render" con `useState` guard donde la complejidad lo permita.
-- Donde el guard rompa el umbral de complejidad, usar `useMemo` derivation.
-- Como último recurso, `eslint-disable-next-line` con comentario justificado (patrones RHF `form.reset`, listeners externos).
+Verificación: correr Vitest y hacer un smoke Playwright del diálogo migrado.
 
-### Ola 4.d — incompatible-library + compiler (8 warnings) → objetivo −8
-- Identificar las 6 líneas con `Compilation Skipped: Use of incompatible library` (típicamente adaptadores de libs externas).
-- Envolver esos componentes/hooks con la directiva `"use no memo"` de React Compiler.
-- Verificar que los 2 warnings `react-compiler/react-compiler` desaparezcan como efecto colateral.
+### Ola 4.d — incompatible-library (6 warnings, todos `form.watch(...)`)
 
-### Ola 4.e — Complejidad y tamaño (9 warnings) → objetivo −9
-- 6× `max-lines-per-function`: extraer sub-componentes puros (headers, filas de tabla, secciones de formulario) en `AuditTrailPage`, `BankStatementImportsHistoryPage`, `MrrDetailPage`, `PaymentIntentsSection`, `InvoiceForm`, `useTableFilters`.
-- 3× `complexity` (16/17/18): dividir en funciones auxiliares por rama (early returns).
-- 1× `max-lines: 301`: split del archivo (probablemente `useTableFilters.ts`).
+Archivos: `CancelCfdiDialog`, `CancelCreditNoteDialog`, `CompanyLogoTab`, más 3 pendientes por ubicar.
 
-## Meta del sprint
-**49 → 0–5 warnings** en 5 sub-olas incrementales. Cada sub-ola cierra con:
-- `bunx eslint . 2>&1 | tail -3` (delta de warnings)
-- `bunx vitest run` (1083 tests verdes)
-- Entrada en `public/changelog.json` + detalle `v7.114.7.json`, `v7.114.8.json`, etc.
+Estrategia canónica: reemplazar `form.watch("campo")` por `useWatch({ control: form.control, name: "campo" })` de `react-hook-form`. `useWatch` es compatible con React Compiler porque re-renderiza vía suscripción interna, no cierra sobre una función no-memoizable.
 
-## Ejecución inmediata
-Arranco **Ola 4.a** (quick wins) tras aprobar el plan.
+Riesgo: cambia levemente el timing de re-render (más granular, sólo cuando ese campo cambia). No afecta lógica; sí mejora perf.
+
+Verificación: tests existentes de esos diálogos + smoke manual de "Cancelar CFDI motivo 01" (necesita substitution UUID).
+
+### Ola 4.e — Complejidad, tamaño y react-compiler (9 warnings)
+
+1. **`useTableFilters.ts` (5 warnings)** — máxima prioridad, es infraestructura crítica de filtros:
+   - Extraer `normalizeValue` (complexity 16) a `src/hooks/filters/normalizeValue.ts` y dividir el switch por tipo (`string` / `array` / `date-range`) para bajar a ≤10.
+   - Extraer el arrow function del setter URL (complexity 18) a helper puro `buildNextSearchParams(prev, values, facets)`.
+   - Extraer sub-hooks: `useFilterUrlSync`, `useFilterDebounce`. Meta: función principal ≤150 líneas, archivo ≤300 líneas.
+   - Eliminar el disable de react-compiler removiendo la causa raíz (probablemente el `eslint-disable` en el `useMemo` de facets).
+
+2. **`MrrDetailPage.tsx` (166 LOC)** — extraer `<MrrKpiRow />` y `<MrrTable />` a subcomponentes.
+
+3. **`PaymentIntentsSection.tsx` (153 LOC)** — extraer `<PaymentIntentRow />` y `<PaymentIntentEmptyState />`.
+
+4. **`InvoiceForm.tsx` (151 LOC)** — extraer `<InvoiceFormHeader />` (breadcrumb + acciones); es el corte más limpio con menor riesgo.
+
+5. **Segundo `react-compiler`** — resolver como efecto colateral del refactor de `useTableFilters`.
+
+### Alcance excluido
+
+- No se tocará business logic (facturación, CFDI, RLS). Sólo estructura de componentes/hooks.
+- No se cambiarán APIs públicas de `useTableFilters`; la firma de retorno queda idéntica.
+
+## Verificación (todo el sprint)
+
+1. `bunx eslint .` → 0 warnings, 0 errores.
+2. Vitest suite completa (1083 tests) → verde.
+3. Smoke Playwright:
+   - Filtros en Facturas (recorrido crítico de `useTableFilters`).
+   - Cancelación CFDI con motivo 01 (recorrido de `useWatch`).
+   - Post-delivery dialog (recorrido de `onOpenChange`).
+4. Changelog: `v7.115.0` (minor por refactor de `useTableFilters`) con entrada índice + detalle.
+
+## Entregable
+
+- **v7.115.0** con las 3 sub-olas ejecutadas en un solo sprint.
+- Objetivo final: **0 warnings ESLint** en `bunx eslint .`.
+
+## Detalles técnicos
+
+- `useWatch` vs `form.watch`: la sustitución requiere pasar `control` explícitamente y renombrar la variable si colisiona. No romper `defaultValue` — usar el `defaultValues` del form.
+- El refactor de `useTableFilters` NO debe cambiar la estabilidad del objeto retornado; mantener `useMemo` con las mismas dependencias primitivas.
+- Los split de páginas grandes deben preservar los `data-testid` existentes que consumen tests E2E de Playwright.

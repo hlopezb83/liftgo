@@ -59,10 +59,11 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
   });
 
   useEffect(() => {
+    // Reset local UI state y form al abrir/cerrar el diálogo. `form.reset` de
+    // react-hook-form debe ejecutarse fuera del render (patrón oficial).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!open) setShowForm(false);
     if (open) {
-       
-      // ejecutarse fuera del render; es el patrón oficial de la librería.
       form.reset({
         address: delivery.address || "",
         driverName: delivery.driver_name || "",

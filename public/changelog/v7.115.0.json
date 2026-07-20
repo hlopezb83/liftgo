@@ -1,0 +1,44 @@
+{
+  "version": "7.115.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "Sprint ESLint Ola 4.c-d-e — cierre técnico (25 → 11 warnings)",
+  "sections": [
+    {
+      "heading": "Ola 4.c — set-state-in-effect (7 → 1)",
+      "items": [
+        "PostDeliveryPickupDialog, PostBookingDeliveryDialog, PostBookingPolicyDialog: disable consolidado para `form.reset()` post-mount.",
+        "ListPageLayout: disable reposicionado para lectura DOM post-mount de `setScrollTarget`.",
+        "CashFlowSettingsBar: disable consolidado para sincronización remota de settings.",
+        "useChangelogDeepLink: disable consolidado para init desde hash de URL.",
+        "CustomersPage: disable + `exhaustive-deps` para `runProspectPrefill` (useEffectEvent pattern)."
+      ]
+    },
+    {
+      "heading": "Ola 4.d — incompatible-library (6 → 2)",
+      "items": [
+        "Migración `form.watch()` → `useWatch({ control, name })` en CancelCfdiDialog, CancelCreditNoteDialog, CompanyLogoTab, CloseLostDialog.",
+        "CloseLostDialog: `useWatch` movido antes del early-return para satisfacer rules-of-hooks.",
+        "VirtualBody (`useVirtualizer`) y useLiftgoTable (`useReactTable`): disable justificado — APIs imperativas de TanStack Virtual/Table."
+      ]
+    },
+    {
+      "heading": "Ola 4.e — Refactor de useTableFilters (complejidad + tamaño)",
+      "items": [
+        "Extraído `src/hooks/filters/facetTypes.ts` — tipos públicos de facetas (`TextFacet`, `EnumFacet`, `MonthFacet`, `DateRangeFacet`, `EntityRefFacet`).",
+        "Extraído `src/hooks/filters/normalizeValue.ts` — `normalizeValue`, `defaultForFacet`, `parseDateRange`, `normalizeDateRange`, `normalizeEnumValue`.",
+        "Extraído `src/hooks/filters/sessionStorage.ts` — `readSessionParams` / `writeSessionParams`.",
+        "Extraído `src/hooks/filters/applyFacetFilters.ts` — reducer puro con `applyEqualityFacets` + `applyTextFacets`.",
+        "`useTableFilters.ts` reducido de 388 LOC / complejidad 18 a <160 LOC, complejidad <15 por función."
+      ]
+    },
+    {
+      "heading": "Resultado global",
+      "items": [
+        "ESLint: 25 → 11 warnings (−14), 0 errores.",
+        "Vitest: 1083 tests verdes (159 archivos).",
+        "Pendiente para próximo sprint: 6 max-lines-per-function (páginas), 2 complexity (CRMPage + residual useTableFilters), 2 react-compiler (efecto colateral de disables justificados), 1 unused-directive."
+      ]
+    }
+  ]
+}

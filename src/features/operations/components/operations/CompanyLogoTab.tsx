@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { Image as ImageIcon, SaveIcon, SuccessIcon, InfoAlertIcon, ImageOff } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ export function CompanyLogoTab() {
   }, [settings, form]);
 
   const savedUrl = settings?.logo_url || "";
-  const pendingUrl = form.watch("logo_url") || "";
+  const pendingUrl = useWatch({ control: form.control, name: "logo_url" }) || "";
   const hasSaved = !!savedUrl;
   const hasPendingChange = pendingUrl !== savedUrl;
 

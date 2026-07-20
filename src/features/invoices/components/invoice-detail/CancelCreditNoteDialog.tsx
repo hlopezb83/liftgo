@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { SelectField, TextField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
@@ -40,7 +40,7 @@ export function CancelCreditNoteDialog({ open, onOpenChange, creditNote }: Props
     if (open) form.reset({ motive: "02", substitutionUuid: "" });
   }, [open, form]);
 
-  const needsSub = form.watch("motive") === "01";
+  const needsSub = useWatch({ control: form.control, name: "motive" }) === "01";
 
   const onSubmit = (values: FormValues) => {
     cancelMutation.mutate(
