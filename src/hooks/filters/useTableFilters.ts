@@ -1,6 +1,7 @@
 import { matchSorter, rankings } from "match-sorter";
 import { useCallback, useDeferredValue, useEffect, useMemo } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { useLocation } from "react-router";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
 /**
  * Contrato canónico de filtros de tabla en LiftGo.
@@ -182,7 +183,7 @@ export function useTableFilters<T, F extends Record<string, Facet<T>>>(
   } = options;
 
   const location = useLocation();
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
 
   const prefix = storageKey ? `${storageKey}.` : "";
 

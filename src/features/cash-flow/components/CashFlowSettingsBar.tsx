@@ -23,10 +23,10 @@ export function CashFlowSettingsBar({ weeks, onChangeWeeks }: Props) {
 
   useEffect(() => {
     if (!settings) return;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- sincroniza inputs con datos
+     
     // remotos (react-query) al cargar; el prev-prop guard supera el umbral de complejidad.
     setInitial(String(settings.initialBalance));
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- ver comentario anterior.
+     
     setBuffer(String(settings.safetyBuffer));
   }, [settings]);
 

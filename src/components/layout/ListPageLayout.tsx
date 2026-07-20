@@ -81,7 +81,7 @@ export function ListPageLayout<T extends { id?: string }>({
       setScrollTarget(null);
       return;
     }
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- necesita leer el DOM
+     
     // (sentinelRef.current) después del montaje para localizar el contenedor <main> real.
     setScrollTarget(sentinelRef.current?.closest("main") as HTMLElement | null);
   }, [isMobile, onRefresh]);

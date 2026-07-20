@@ -17,10 +17,10 @@ export function useChangelogDeepLink(changelog: ChangelogIndexEntry[]) {
     const version = hash.slice(1);
     if (!changelog.some((e) => e.version === version)) return;
     handled.current = true;
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- inicialización única desde
+     
     // window.location.hash: es un efecto legítimo porque depende de una API del navegador.
     setExpanded((prev) => new Set(prev).add(version));
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- ver comentario anterior.
+     
     setHighlighted(version);
     const scrollTimer = window.setTimeout(() => {
       document.getElementById(`v${version}`)?.scrollIntoView({ behavior: "smooth", block: "start" });

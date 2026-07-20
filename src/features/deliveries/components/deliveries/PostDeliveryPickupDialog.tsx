@@ -61,7 +61,7 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
   useEffect(() => {
     if (!open) setShowForm(false);
     if (open) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect -- form.reset() de RHF debe
+       
       // ejecutarse fuera del render; es el patrón oficial de la librería.
       form.reset({
         address: delivery.address || "",
