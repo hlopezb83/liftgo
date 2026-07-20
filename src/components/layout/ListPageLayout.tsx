@@ -13,6 +13,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { useIsMobile, useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import type { Table as TanstackTable } from "@tanstack/react-table";
+import { cn } from "@/lib/utils";
 
 interface ListPageLayoutProps<T> {
   title: string;
