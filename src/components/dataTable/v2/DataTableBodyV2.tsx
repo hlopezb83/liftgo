@@ -1,6 +1,7 @@
 import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { flexRender, type Row } from "@tanstack/react-table";
-import { useRef, type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useCallback, useRef, type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from "react";
+
 import { EmptyRow } from "@/components/feedback/EmptyRow";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
