@@ -1,8 +1,14 @@
 // EC-A1 — Consumidor de la cola cfdi_retry_queue.
-// Corre en cron (config.toml → schedule) cada 5 minutos y procesa las filas
-// `status='pending'` cuyo `next_retry_at <= now()` reinvocando `stamp-cfdi`
-// (o `cancel-cfdi` para operaciones de cancelación) con el service_role JWT.
-// Backoff exponencial: 2^attempts minutos (tope 60). max_attempts=5 → 'failed'.
+//
+// Corre por cron (pg_cron cada 5 min). Endpoint protegido con CRON_SECRET.
+//
+// NC-1 fix: estados alineados con el CHECK de `cfdi_retry_queue`:
+//   pending → processing → (succeeded | exhausted | pending para retry)
+// Los updates ahora chequean `error` y loguean si Postgres los rechaza.
+//
+// NC-2 fix: exige header `x-cron-secret` (o Authorization: Bearer <secret>).
+// Sin secret válido responde 401 — antes cualquier anónimo podía disparar
+// la función y consumir cuota Facturapi.
 import { handleCors } from "../_shared/cors.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
@@ -17,11 +23,14 @@ interface QueueRow {
   payload: Record<string, unknown>;
 }
 
+// EC-A1 fix: alineado con OPERATION en cfdi_retry_queue (`stamp | cancel |
+// cancel_nc | cancel_rep`) y con los nombres reales de las edge functions.
+// El mapping anterior apuntaba a `cancel-rep`, función inexistente.
 const OPERATION_TO_FUNCTION: Record<string, string> = {
   stamp: "stamp-cfdi",
   cancel: "cancel-cfdi",
   cancel_nc: "cancel-credit-note",
-  cancel_rep: "cancel-rep",
+  cancel_rep: "cancel-payment-complement",
 };
 
 async function invokeStampFn(
@@ -51,6 +60,31 @@ async function invokeStampFn(
   return { ok: res.ok || res.status === 409, status: res.status, body };
 }
 
+/**
+ * NC-1: helper que chequea el `error` devuelto por Postgres. Sin este check,
+ * un CHECK constraint violation deja la fila en `pending` para siempre y el
+ * consumer no lo sabe (el pipeline se rompe silenciosamente).
+ */
+async function markQueueRow(
+  admin: ReturnType<typeof getAdminClient>,
+  id: string,
+  patch: Record<string, unknown>,
+): Promise<boolean> {
+  const { error } = await admin
+    .from("cfdi_retry_queue")
+    .update({ ...patch, updated_at: new Date().toISOString() })
+    .eq("id", id);
+  if (error) {
+    console.error("[process-cfdi-retry-queue] update failed", {
+      row_id: id,
+      patch,
+      error: (error as { message?: string }).message ?? String(error),
+    });
+    return false;
+  }
+  return true;
+}
+
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
@@ -63,6 +97,23 @@ Deno.serve(async (req) => {
   if (!serviceKey || !projectRef) {
     console.error("[process-cfdi-retry-queue] missing env");
     return json({ error: "Server misconfigured" }, 500);
+  }
+
+  // NC-2: gating de auth. Aceptamos:
+  //  - Header `x-cron-secret: <CRON_SECRET>` (uso recomendado desde pg_cron).
+  //  - `Authorization: Bearer <CRON_SECRET>` (compat con Scheduled Functions).
+  //  - `Authorization: Bearer <service_role>` (llamadas administrativas puntuales).
+  const cronSecret = Deno.env.get("CRON_SECRET") ?? "";
+  const headerSecret = req.headers.get("x-cron-secret") ?? "";
+  const authHeader = req.headers.get("authorization") ?? "";
+  const bearer = authHeader.startsWith("Bearer ")
+    ? authHeader.slice("Bearer ".length).trim()
+    : "";
+  const authorized = (cronSecret.length > 0 &&
+    (headerSecret === cronSecret || bearer === cronSecret)) ||
+    (serviceKey.length > 0 && bearer === serviceKey);
+  if (!authorized) {
+    return json({ error: "Unauthorized" }, 401);
   }
 
   const admin = getAdminClient();
@@ -87,28 +138,31 @@ Deno.serve(async (req) => {
   for (const row of queue) {
     const fnName = OPERATION_TO_FUNCTION[row.operation];
     if (!fnName) {
-      await admin.from("cfdi_retry_queue")
-        .update({
-          status: "failed",
-          last_error: `Unknown operation: ${row.operation}`,
-          updated_at: nowIso,
-        })
-        .eq("id", row.id);
-      results.push({ id: row.id, status: "failed" });
+      // Operación desconocida → terminal.
+      await markQueueRow(admin, row.id, {
+        status: "exhausted",
+        last_error: `Unknown operation: ${row.operation}`,
+      });
+      results.push({ id: row.id, status: "exhausted" });
       continue;
     }
 
-    // Advisory lock por invoice_id — evita procesar la misma factura en paralelo
-    // si dos ejecuciones del cron se solapan.
-    const lockKey = row.invoice_id;
-    const { data: gotLock } =
-      await admin.rpc("pg_try_advisory_xact_lock" as never, {
-        key: lockKey,
-      } as never).maybeSingle?.() ?? { data: null };
-    // La RPC anterior no existe por defecto; fallback: procesar sin lock explícito.
-    // La atomicidad real la garantiza el claim `cfdi_status IN (pending,error) AND cfdi_uuid IS NULL`
-    // dentro de stamp-cfdi.
-    void gotLock;
+    // NC-1: claim optimista → `processing`. Si el update falla o no matchea
+    // (otra corrida ya lo tomó), saltamos la fila para evitar doble consumo.
+    const claim = await admin
+      .from("cfdi_retry_queue")
+      .update({ status: "processing", updated_at: nowIso })
+      .eq("id", row.id)
+      .eq("status", "pending");
+    const claimErr = (claim as { error?: unknown }).error;
+    if (claimErr) {
+      console.error("[process-cfdi-retry-queue] claim failed", {
+        row_id: row.id,
+        err: claimErr,
+      });
+      results.push({ id: row.id, status: "claim_error" });
+      continue;
+    }
 
     const nextAttempts = row.attempts + 1;
     try {
@@ -121,55 +175,46 @@ Deno.serve(async (req) => {
       );
 
       if (invRes.ok) {
-        await admin.from("cfdi_retry_queue")
-          .update({
-            status: "completed",
-            attempts: nextAttempts,
-            last_error: null,
-            updated_at: nowIso,
-          })
-          .eq("id", row.id);
+        await markQueueRow(admin, row.id, {
+          status: "succeeded",
+          attempts: nextAttempts,
+          last_error: null,
+        });
         results.push({
           id: row.id,
-          status: "completed",
+          status: "succeeded",
           http: invRes.status,
         });
       } else {
         const errMsg = (invRes.body as { error?: string } | null)?.error ??
           String(invRes.body);
         const isTerminal = nextAttempts >= row.max_attempts;
-        await admin.from("cfdi_retry_queue")
-          .update({
-            status: isTerminal ? "failed" : "pending",
-            attempts: nextAttempts,
-            last_error: String(errMsg).slice(0, 2000),
-            next_retry_at: isTerminal
-              ? nowIso
-              : nextRetryAt(nextAttempts).toISOString(),
-            updated_at: nowIso,
-          })
-          .eq("id", row.id);
+        await markQueueRow(admin, row.id, {
+          status: isTerminal ? "exhausted" : "pending",
+          attempts: nextAttempts,
+          last_error: String(errMsg).slice(0, 2000),
+          next_retry_at: isTerminal
+            ? nowIso
+            : nextRetryAt(nextAttempts).toISOString(),
+        });
         results.push({
           id: row.id,
-          status: isTerminal ? "failed" : "retry",
+          status: isTerminal ? "exhausted" : "retry",
           http: invRes.status,
         });
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
       const isTerminal = nextAttempts >= row.max_attempts;
-      await admin.from("cfdi_retry_queue")
-        .update({
-          status: isTerminal ? "failed" : "pending",
-          attempts: nextAttempts,
-          last_error: msg.slice(0, 2000),
-          next_retry_at: isTerminal
-            ? nowIso
-            : nextRetryAt(nextAttempts).toISOString(),
-          updated_at: nowIso,
-        })
-        .eq("id", row.id);
-      results.push({ id: row.id, status: isTerminal ? "failed" : "retry" });
+      await markQueueRow(admin, row.id, {
+        status: isTerminal ? "exhausted" : "pending",
+        attempts: nextAttempts,
+        last_error: msg.slice(0, 2000),
+        next_retry_at: isTerminal
+          ? nowIso
+          : nextRetryAt(nextAttempts).toISOString(),
+      });
+      results.push({ id: row.id, status: isTerminal ? "exhausted" : "retry" });
     }
   }
 
