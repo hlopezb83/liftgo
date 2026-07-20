@@ -1,5 +1,27 @@
 [
   {
+    "version": "7.110.2",
+    "date": "2026-07-20",
+    "type": "patch",
+    "title": "PL-08 — Backfill idempotente de objetos DRIFT-01",
+    "summary": "Migración idempotente que asegura la existencia de `collection_reminders_log` (con grants/RLS) para ambientes frescos. En producción es no-op. Limitación: el sistema de migraciones sella con timestamp actual, no se puede insertar antes de las migraciones históricas fallidas; se documenta workaround (restaurar desde snapshot en vez de db reset)."
+  },
+  {
+    "version": "7.110.1",
+    "date": "2026-07-20",
+    "type": "patch",
+    "title": "PL-02 — Estado de Resultados admite meses con ingresos netos negativos",
+    "summary": "Se elimina el clamp `GREATEST(0, ...)` en las 4 líneas de ingreso de `get_income_statement`. Cuando las notas de crédito superan lo facturado en un mes, ahora se refleja el neto negativo real y la suma de meses vuelve a cuadrar exactamente con el total anual. UI: los negativos ya se renderizaban en rojo (`text-destructive`) — sin cambios adicionales."
+  },
+  {
+    "version": "7.110.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "PL-01 — Depreciación por calendario + flota ociosa",
+    "summary": "Nuevas columnas `forklifts.acquisition_date` y `sold_at`. Depreciación mensual ahora se calcula por calendario (`cost/48`) sobre TODA la flota activa, no ponderada por días rentados. `get_income_statement` divide `depreciation_rented` y `depreciation_idle`, la UI muestra dos filas: `(-) Depreciación (Equipos Rentados)` y `(-) Depreciación (Flota Ociosa)`. `Utilidad Neta` resta la depreciación total. COGS de ventas usa el mismo criterio (meses activos calendario). Cambio de criterio contable: los históricos del P&L se moverán respecto a versiones anteriores."
+  },
+
+  {
     "version": "7.109.0",
     "date": "2026-07-20",
     "type": "minor",
