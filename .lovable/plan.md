@@ -1,86 +1,41 @@
+## Auditoría de fase pasada (v7.110.0 – v7.110.2)
 
-# Sprint: Pulido Estado de Resultados + DRIFT residual
+Revisión completa: **47/47 tests verdes** (reports + PDF smoke). Wiring de `depreciation_rented`/`depreciation_idle` correcto en RPC, tipos, aggregate en `useStatementTotals`, filas del statement, filas de comparación y PDF (via `statementRows`). Fixtures actualizadas. Sin bugs detectados. Falta cobertura explícita del split de depreciación pero es opcional — se agrega en esta fase.
 
-Ejecutar los 8 issues del documento (PL-01 → PL-08) en el orden recomendado. Un changelog por issue (v7.110.0 → v7.110.7).
+## Siguiente fase: PL-03 y PL-04 (P1)
 
-## P0 — Precisión del P&L
+### PL-03 — Prorrateo de gastos con cobertura
 
-### PL-01 · Depreciación por calendario + flota ociosa (v7.110.0)
-- Migración: reescribir CTE `depreciation_per_month` en `get_income_statement`. Mensual = `acquisition_cost / 48` por cada mes en que el equipo estuvo activo (no vendido/dado de baja), sin ponderar por días rentados.
-- Split en dos métricas: `depreciation_rented` (proporcional a días rentados) y `depreciation_idle` (resto). `depreciation = rented + idle`.
-- Agregar columnas `forklifts.acquisition_date date` y `forklifts.sold_at date` (NULL = created_at / sigue activo). Backfill NULL.
-- `depreciation_by_forklift`: total por calendario.
-- `cogs_per_sale` usa depreciación acumulada por calendario (consistencia con valor en libros).
-- UI (`IncomeStatementTable` + tipos en `useIncomeStatementData` / `types.ts` / `useMonthlyData` / `useStatementRows`): agregar fila "(-) Depreciación (Flota Ociosa)" tras la de rentados. Utilidad Neta resta depreciación TOTAL.
-- Changelog v7.110.0 documentando cambio de criterio y que cifras históricas cambian.
+**DB (una migración):**
+- `ALTER TABLE public.supplier_bills ADD COLUMN coverage_start date`, `coverage_end date` (NULL).
+- Reescribir CTE `sb_lines` en `get_income_statement`: cuando `coverage_start` y `coverage_end` son válidos (end > start) y estamos en base `accrual`, distribuir `subtotal` linealmente por días entre los meses cubiertos. Base `cash` sin cambios (sigue por pago).
 
-### PL-02 · Quitar clamp `GREATEST(0, ...)` en ingresos (v7.110.1)
-- En CTE `combined` del RPC, permitir ingreso neto negativo por mes en las 4 líneas de revenue.
-- Verificar render de negativos en tabla y PDF (rojo, formato `(5,800.00)`). Ajustar `formatCell`/`StatementTableRow` si es necesario.
-- Changelog v7.110.1.
+**Frontend:**
+- En el formulario de CxP (SupplierBillForm): dos `DateField` "Inicio de cobertura" / "Fin de cobertura", visibles solo si `category ∈ {seguros_equipo, seguros_gastos, servicios_profesionales, honorarios}`.
+- Zod: ambos opcionales, si uno está, requerir el otro; `end > start`.
+- Tests: unit test del helper de prorrateo por días (calcula fracción esperada por mes cubierto).
 
-## P1 — Datos nuevos
+### PL-04 — Daños en P&L + línea "Recuperación de daños"
 
-### PL-03 · Prorrateo de gastos con cobertura (v7.110.2)
-- Migración: `supplier_bills.coverage_start date`, `coverage_end date` (nullable).
-- Formulario CxP: dos date pickers "Inicio/Fin de cobertura", visibles sólo si `category ∈ {seguros_equipo, seguros_gastos, servicios_profesionales}`.
-- RPC: en `sb_lines`, si `coverage_end > coverage_start`, distribuir `subtotal` linealmente por días entre los meses cubiertos. En base cash mantener comportamiento por pago.
-- Changelog v7.110.2.
+**DB:**
+- CTE `damage_by_month`: `COALESCE(actual_cost, estimated_cost, 0)`, fecha `COALESCE(repaired_at::date, created_at::date)`.
+- `ALTER TABLE public.invoices ADD COLUMN invoice_type text DEFAULT 'standard' CHECK (invoice_type IN ('standard','damage_charge'))`.
+- Clasificación de ingresos: facturas `damage_charge` → nueva línea `revenue_damage_recovery` (excluida de rentas/ventas), suma a `revenue`.
 
-### PL-04 · Daños en P&L + línea "Recuperación de daños" (v7.110.3)
-- RPC `damage_by_month`: `COALESCE(actual_cost, estimated_cost, 0)` y fecha `COALESCE(repaired_at::date, created_at::date)`.
-- Migración: `invoices.invoice_type text check IN ('standard','damage_charge') default 'standard'`.
-- UI factura manual: checkbox "Es cargo por daños".
-- Clasificación de ingresos: nueva línea "Ingresos por Recuperación de Daños" tras las 3 actuales, sumando a Total Ingresos (tipos, hooks, tabla, breakdowns, CSV, PDF).
-- Changelog v7.110.3.
+**Frontend:**
+- `MonthData` / `YearTotals` / `RpcMonthRow`: nuevo campo `revenueDamageRecovery`.
+- Nueva fila "  Ingresos por Recuperación de Daños" en `buildStatementRows` y en `useComparisonRows`, después de "Ventas de Equipo", antes de "= Total Ingresos".
+- Formulario de nueva factura manual: checkbox "Es cargo por daños" → setea `invoice_type='damage_charge'`.
+- Actualizar `IncomeStatementTable`, `IncomeStatementDocument` (PDF), `pdfFixtures.ts`, `computeDerivedTotals.test.ts`.
 
-### PL-05 · Drill-down de egresos por categoría (v7.110.4)
-- RPC devuelve `expense_detail` por mes: `{month, category, date, description, amount, source}` con misma dedup que `expense_lines` (incluir folio de bill cuando aplique).
-- UI `IncomeStatementTable`: cada categoría de egreso clickeable → `Dialog` con detalle (fecha, descripción, monto, origen, folio). Respetar RLS/roles.
-- Changelog v7.110.4.
+### Changelogs
+- `public/changelog/v7.110.3.json` (PL-03) y `v7.110.4.json` (PL-04), actualizar `public/changelog.json`.
 
-## P2 — Presentación
+### Criterios de aceptación
+- Factura 58,000 con cobertura 2026-07-01→2027-06-30 aporta ≈4,833.33/mes en accrual.
+- Facturas sin cobertura se comportan igual que antes.
+- Daño con `actual_cost=NULL` y `estimated_cost=4,500` aparece en `damage_cost` del mes reportado.
+- Factura marcada como cargo por daños suma en "Recuperación de Daños", no en "Ventas".
+- Todos los tests siguen verdes.
 
-### PL-06 · Etiquetas y base cash (v7.110.5)
-- Renombrar línea final a "Utilidad Operativa Neta (antes de impuestos)" y margen correspondiente (tabla + PDF).
-- Nota al pie en modo Efectivo explicando qué se reconoce por pago vs devengo.
-- Extender warning `sold_without_cost` para incluir ventas facturadas sin cotización (mostrar factura).
-- Changelog v7.110.5.
-
-### PL-07 · Análisis vertical + gráfica (v7.110.6)
-- Segunda columna % por fila (cada línea como % del Total Ingresos del mes).
-- Gráfica arriba con `recharts` (consistente con `RevenueReport`): barras agrupadas Ingresos vs Egresos + línea Margen Neto %. Tooltips con moneda.
-- Incluir ambas en PDF exportado.
-- Changelog v7.110.6.
-
-## DRIFT
-
-### PL-08 · Backfill de migraciones (v7.110.7)
-- Nueva migración `20260501000000_drift_backfill.sql` (fecha anterior a `20260515044551`) que cree idempotentemente:
-  - `public.collection_reminders_log` (tabla + enable RLS + GRANTs mínimos).
-  - `public.create_notification(uuid,text,text,text,text,text,uuid)` como stub `CREATE OR REPLACE`.
-  - `public.notify_admins(text,text,text,text,text,uuid)` stub.
-  - `public.notify_payment_received()` stub.
-- Dejar intacta `20260720011916` (su `CREATE OR REPLACE` sobreescribe con la versión definitiva).
-- Verificar `supabase db reset` (o secuencia completa) sin errores.
-- Changelog v7.110.7.
-
-## Detalles técnicos
-
-- Todas las migraciones vía `supabase--migration` (una por issue, secuenciales — no en paralelo).
-- Tras cada migración: actualizar hooks/tipos afectados (`useMonthlyData`, `types.ts`, `useStatementTotals`, `useStatementRows`, `IncomeStatementTable`, `ComparisonTable`, PDF export).
-- Tests Vitest: extender `computeDerivedTotals.test.ts` para depreciación idle, ingresos negativos, invoice_type, prorrateo (donde toque lógica cliente); mocks para nuevas ramas de RPC no aplican, pero cubrir helpers.
-- Cada cambio actualiza `public/changelog.json` (índice) + `public/changelog/v7.110.X.json` (detalle).
-- Timezone `America/Monterrey`, formato es-MX, `formatMonthEs` para etiquetas.
-- Respetar Power of 10: componentes ≤150 LOC, hooks ≤80, sin `any/!/as`, early returns.
-
-## Orden de ejecución
-1. PL-01 → PL-02 (ambos tocan `combined`/depreciación)
-2. PL-03 → PL-04 (schema nuevo en bills/invoices)
-3. PL-05 → PL-06 → PL-07 (UI/UX)
-4. PL-08 (independiente, migración anti-drift)
-
-## Fuera de alcance
-- Backfill retroactivo de `damage_records` para devoluciones anteriores a v7.109.0.
-- Sprint de higiene de historial de migraciones más allá de PL-08.
-- Cambios en RLS/permisos de tablas existentes (solo GRANT mínimo en la nueva tabla si se requiere).
+PL-05 (drill-down), PL-06 (etiquetas + base cash) y PL-07 (análisis vertical + gráfica) quedan para la siguiente ronda.

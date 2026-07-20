@@ -16,6 +16,8 @@ export const supplierBillFormSchema = z.object({
   description: z.string().default(""),
   issue_date: z.date({ error: "Fecha de emisión requerida" }),
   due_date: z.date().optional(),
+  coverage_start: z.date().optional(),
+  coverage_end: z.date().optional(),
   currency: z.enum(["MXN", "USD"]),
   exchange_rate: positiveAmountCoerced("Tipo de cambio inválido").default(1),
   subtotal: nonNegativeAmountCoerced("Subtotal inválido"),
@@ -24,6 +26,15 @@ export const supplierBillFormSchema = z.object({
   retention_isr: nonNegativeAmountCoerced("Retención ISR inválida").default(0),
   cfdi_uuid: z.string().default(""),
   payment_method_sat: z.enum(["PUE", "PPD"]).optional(),
+}).superRefine((v, ctx) => {
+  const hasStart = !!v.coverage_start;
+  const hasEnd = !!v.coverage_end;
+  if (hasStart !== hasEnd) {
+    ctx.addIssue({ code: "custom", path: [hasStart ? "coverage_end" : "coverage_start"], message: "Ambas fechas de cobertura son requeridas" });
+  }
+  if (hasStart && hasEnd && v.coverage_end! < v.coverage_start!) {
+    ctx.addIssue({ code: "custom", path: ["coverage_end"], message: "Fin de cobertura debe ser posterior al inicio" });
+  }
 });
 
 export type SupplierBillFormData = z.infer<typeof supplierBillFormSchema>;
@@ -42,6 +53,8 @@ function billToFormDefaults(bill: SupplierBillDetail): SupplierBillFormData {
     description: bill.description ?? "",
     issue_date: parseYMD(bill.issue_date) ?? nowMty(),
     due_date: parseYMD(bill.due_date),
+    coverage_start: parseYMD(bill.coverage_start),
+    coverage_end: parseYMD(bill.coverage_end),
     currency: (bill.currency === "USD" ? "USD" : "MXN"),
     exchange_rate: Number(bill.exchange_rate ?? 1),
     subtotal: Number(bill.subtotal),
@@ -135,6 +148,8 @@ export function useSupplierBillForm(
       description: data.description || null,
       issue_date: toYMD(data.issue_date) ?? "",
       due_date: toYMD(data.due_date) ?? null,
+      coverage_start: toYMD(data.coverage_start) ?? null,
+      coverage_end: toYMD(data.coverage_end) ?? null,
       currency: data.currency,
       exchange_rate: data.exchange_rate,
       subtotal: data.subtotal,

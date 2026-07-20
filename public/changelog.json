@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.111.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "PL-03 y PL-04 — Prorrateo de cobertura + Recuperación de Daños en P&L",
+    "summary": "Facturas de proveedor ganan `coverage_start`/`coverage_end` (opcionales) para prorratear seguros anuales u otros gastos con cobertura por días entre meses. `damage_records` gana `repaired_at` y el P&L usa `COALESCE(actual, estimated)` para reconocer el costo del daño en el mes que se repara (o se reporta). Se agrega `invoice_type` a facturas (`standard | damage_charge`) y una nueva línea de ingreso 'Recuperación de Daños' separada de Rentas y Ventas, con drill-down por cliente."
+  },
+  {
     "version": "7.110.2",
     "date": "2026-07-20",
     "type": "patch",

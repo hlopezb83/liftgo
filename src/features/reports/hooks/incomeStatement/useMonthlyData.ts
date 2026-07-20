@@ -22,6 +22,7 @@ interface RpcMonthRow {
   revenue_rental_booked: number;
   revenue_rental_unbooked: number;
   revenue_sales: number;
+  revenue_damage_recovery: number;
   maintenance_cost: number;
   damage_cost: number;
   depreciation: number;
@@ -32,6 +33,7 @@ interface RpcMonthRow {
   rental_booked_by_customer: Record<string, number>;
   rental_unbooked_by_customer: Record<string, number>;
   sales_by_customer: Record<string, number>;
+  damage_recovery_by_customer: Record<string, number>;
   depreciation_by_forklift: Record<string, number>;
   cogs_by_forklift: Record<string, number>;
 }
@@ -98,6 +100,7 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
       revenueRentalBooked: Number(m.revenue_rental_booked),
       revenueRentalUnbooked: Number(m.revenue_rental_unbooked),
       revenueSales: Number(m.revenue_sales),
+      revenueDamageRecovery: Number(m.revenue_damage_recovery ?? 0),
       maintenanceCost: Number(m.maintenance_cost),
       damageCost: Number(m.damage_cost),
       depreciation: Number(m.depreciation),
@@ -109,6 +112,7 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
       rentalBookedByCustomer: m.rental_booked_by_customer ?? {},
       rentalUnbookedByCustomer: m.rental_unbooked_by_customer ?? {},
       salesByCustomer: m.sales_by_customer ?? {},
+      damageRecoveryByCustomer: m.damage_recovery_by_customer ?? {},
       expenses,
       ...derived,
     };

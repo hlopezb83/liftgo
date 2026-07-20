@@ -19,6 +19,7 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
     filteredData, totals, statementRows, comparisonRows, yearTotals,
     csvRows, depreciationBreakdownRows, cogsBreakdownRows,
     rentalBookedBreakdownRows, rentalUnbookedBreakdownRows, salesBreakdownRows,
+    damageRecoveryBreakdownRows,
     rentedWithoutCost,
     soldWithoutCost,
     availableYears, selectedYear, setSelectedYear, isComparison,
@@ -117,6 +118,8 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
         rentalBookedBreakdownRows={rentalBookedBreakdownRows}
         rentalUnbookedBreakdownRows={rentalUnbookedBreakdownRows}
         salesBreakdownRows={salesBreakdownRows}
+        damageRecoveryBreakdownRows={damageRecoveryBreakdownRows}
+
 
       />
     </>

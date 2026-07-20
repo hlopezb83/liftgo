@@ -16,6 +16,7 @@ function aggregate(rows: MonthData[]) {
         revenueRentalBooked: acc.revenueRentalBooked + r.revenueRentalBooked,
         revenueRentalUnbooked: acc.revenueRentalUnbooked + r.revenueRentalUnbooked,
         revenueSales: acc.revenueSales + r.revenueSales,
+        revenueDamageRecovery: acc.revenueDamageRecovery + r.revenueDamageRecovery,
         maintenanceCost: acc.maintenanceCost + r.maintenanceCost,
         damageCost: acc.damageCost + r.damageCost,
         depreciation: acc.depreciation + r.depreciation,
@@ -27,6 +28,7 @@ function aggregate(rows: MonthData[]) {
     },
     {
       revenue: 0, revenueRentalBooked: 0, revenueRentalUnbooked: 0, revenueSales: 0,
+      revenueDamageRecovery: 0,
       maintenanceCost: 0, damageCost: 0, depreciation: 0,
       depreciationRented: 0, depreciationIdle: 0,
       cogsForkliftSales: 0,
@@ -43,6 +45,7 @@ function aggregate(rows: MonthData[]) {
     revenueRentalBooked: roundMoney(t.revenueRentalBooked),
     revenueRentalUnbooked: roundMoney(t.revenueRentalUnbooked),
     revenueSales: roundMoney(t.revenueSales),
+    revenueDamageRecovery: roundMoney(t.revenueDamageRecovery),
     maintenanceCost: roundMoney(t.maintenanceCost),
     damageCost: roundMoney(t.damageCost),
     depreciation: roundMoney(t.depreciation),
