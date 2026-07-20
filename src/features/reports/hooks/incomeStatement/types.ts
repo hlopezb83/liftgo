@@ -87,6 +87,8 @@ export interface YearTotals {
   maintenanceCost: number;
   damageCost: number;
   depreciation: number;
+  depreciationRented: number;
+  depreciationIdle: number;
   cogsForkliftSales: number;
   expenses: Record<ExpenseCategory, number>;
   grossProfit: number;
