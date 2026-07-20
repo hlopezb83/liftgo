@@ -44,18 +44,20 @@ describe("cellColor", () => {
 describe("getBreakdownFor", () => {
   const dep: Array<{ label: string; values: number[]; total: number }> = [{ label: "d", values: [], total: 0 }];
   const cogs: Array<{ label: string; values: number[]; total: number }> = [{ label: "c", values: [], total: 0 }];
-  const rental: Array<{ label: string; values: number[]; total: number }> = [{ label: "r", values: [], total: 0 }];
+  const rentalBooked: Array<{ label: string; values: number[]; total: number }> = [{ label: "rb", values: [], total: 0 }];
+  const rentalUnbooked: Array<{ label: string; values: number[]; total: number }> = [{ label: "ru", values: [], total: 0 }];
   const sales: Array<{ label: string; values: number[]; total: number }> = [{ label: "s", values: [], total: 0 }];
 
   it("mapea labels conocidos a su breakdown", () => {
-    expect(getBreakdownFor("(-) Depreciación (Equipos Rentados)", dep, cogs, rental, sales)?.key).toBe("dep");
-    expect(getBreakdownFor("(-) Costo de Equipos Vendidos", dep, cogs, rental, sales)?.key).toBe("cogs");
-    expect(getBreakdownFor("  Ingresos por Rentas", dep, cogs, rental, sales)?.key).toBe("rental");
-    expect(getBreakdownFor("  Otros ingresos (sin reserva)", dep, cogs, rental, sales)?.key).toBe("sales");
+    expect(getBreakdownFor("(-) Depreciación (Equipos Rentados)", dep, cogs, rentalBooked, rentalUnbooked, sales)?.key).toBe("dep");
+    expect(getBreakdownFor("(-) Costo de Equipos Vendidos", dep, cogs, rentalBooked, rentalUnbooked, sales)?.key).toBe("cogs");
+    expect(getBreakdownFor("  Ingresos por Rentas (con reserva)", dep, cogs, rentalBooked, rentalUnbooked, sales)?.key).toBe("rentalBooked");
+    expect(getBreakdownFor("  Ingresos por Rentas (sin reserva)", dep, cogs, rentalBooked, rentalUnbooked, sales)?.key).toBe("rentalUnbooked");
+    expect(getBreakdownFor("  Ingresos por Ventas de Equipo", dep, cogs, rentalBooked, rentalUnbooked, sales)?.key).toBe("sales");
   });
 
   it("devuelve null para label sin breakdown", () => {
-    expect(getBreakdownFor("Otro", dep, cogs, rental, sales)).toBeNull();
+    expect(getBreakdownFor("Otro", dep, cogs, rentalBooked, rentalUnbooked, sales)).toBeNull();
   });
 });
 
