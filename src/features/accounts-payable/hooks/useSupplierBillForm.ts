@@ -32,7 +32,7 @@ export const supplierBillFormSchema = z.object({
   if (hasStart !== hasEnd) {
     ctx.addIssue({ code: "custom", path: [hasStart ? "coverage_end" : "coverage_start"], message: "Ambas fechas de cobertura son requeridas" });
   }
-  if (hasStart && hasEnd && v.coverage_end! < v.coverage_start!) {
+  if (hasStart && hasEnd && String(v.coverage_end) < String(v.coverage_start)) {
     ctx.addIssue({ code: "custom", path: ["coverage_end"], message: "Fin de cobertura debe ser posterior al inicio" });
   }
 });
