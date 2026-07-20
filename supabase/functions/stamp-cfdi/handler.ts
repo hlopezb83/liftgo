@@ -417,23 +417,42 @@ export async function handleStampCfdi(
       ]) as { id: string; uuid: string };
     } catch (err) {
       const desc = describeFacturapiError(err);
+      const isTimeout = (desc as { code?: string }).code === "TIMEOUT" ||
+        (err as { code?: string })?.code === "TIMEOUT";
       console.error("[stamp-cfdi] facturapi rejected", {
         invoice_id,
         status: desc.status,
         code: desc.code,
         message: desc.message,
+        timeout: isTimeout,
       });
+      // Verificación §3: en TIMEOUT NO reseteamos la fila a `error` ni
+      // encolamos retry. El request a Facturapi puede haber completado
+      // server-side; un retry ciego crearía un CFDI duplicado ante el SAT.
+      // La dejamos en `stamping` (el claim se preserva) para que
+      // `reconcile-stamping-invoices` la resuelva vía folio/serie o la
+      // revierta a `error` con nota manual si Facturapi no emitió nada.
+      if (isTimeout) {
+        return json(
+          {
+            error: "Facturapi timeout — reconciliación en curso",
+            code: "TIMEOUT",
+            status: 504,
+            detail: desc.detail,
+            transient: true,
+          },
+          504,
+          jsonHeaders,
+        );
+      }
       await supabase.from("invoices")
         .update({
           cfdi_status: "error",
           cfdi_error_message: desc.detail.slice(0, 1000),
         })
         .eq("id", invoice_id);
-      // BL-44: encolar reintento solo si el error es transitorio (5xx / red / 429 / timeout).
-      if (
-        isTransientFacturapiError(desc) ||
-        (desc as { code?: string }).code === "TIMEOUT"
-      ) {
+      // BL-44: encolar reintento solo si el error es transitorio (5xx / red / 429).
+      if (isTransientFacturapiError(desc)) {
         await enqueueCfdiRetry(supabase, {
           operation: "stamp",
           invoiceId: invoice_id,
