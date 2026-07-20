@@ -1,0 +1,53 @@
+{
+  "version": "7.118.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "Sprint 2 · Ola 2.2 — Facturación recurrente atómica (BL-B1, BL-B3, BL-B5)",
+  "sections": [
+    {
+      "heading": "Contexto",
+      "items": [
+        "Auditoría de Ola 2.1 aprobada: 1084/1084 Vitest + 15/15 Deno verdes, sin bugs residuales en `extend_booking`.",
+        "Ola 2.2 blinda `generate-recurring-invoices` contra duplicados por reintentos/corridas paralelas y contra facturas huérfanas por fallas parciales."
+      ]
+    },
+    {
+      "heading": "BL-B5 — RPC atómico `create_recurring_invoice`",
+      "items": [
+        "Nueva función `SECURITY DEFINER` con `SET search_path = public` que agrupa en una sola transacción: insert de invoice + inserts en `invoice_bookings` + update de `bookings.last_billed_date`.",
+        "Toma `pg_advisory_xact_lock` por cada `booking_id` (ordenado para evitar deadlocks) antes de re-verificar idempotencia bajo el lock.",
+        "Si detecta duplicado del período dentro del lock, devuelve la factura existente con `already_existed = true` en lugar de crear otra.",
+        "Reserva el `invoice_number` vía `next_draft_invoice_number()`; fallback a `FAC-AUTO-<epoch>` si la RPC retorna NULL.",
+        "GRANTs restringidos: `EXECUTE` sólo a `service_role` y `authenticated`; REVOKE de `PUBLIC`."
+      ]
+    },
+    {
+      "heading": "BL-B1 — Idempotencia por período",
+      "items": [
+        "El índice único parcial `uniq_invoices_recurring_period` (`booking_id, billing_period_start, billing_period_end`) ya existía.",
+        "La Edge Function ahora atrapa `PostgrestError.code === '23505'` como caso benigno de idempotencia (log `already_billed`) en lugar de tratarlo como error.",
+        "Se eliminó la lógica manual de re-check + insert + delete-on-rollback (~60 LOC), reemplazada por una única llamada RPC transaccional."
+      ]
+    },
+    {
+      "heading": "BL-B3 — Prorrateo: casos borde",
+      "items": [
+        "Nuevo test: `startDay == daysInMonth` (reserva que arranca el último día del mes) → 1 día facturable, no cero.",
+        "Nuevo test: `monthlyRate = 0` no divide por cero y produce `billedAmount = 0`."
+      ]
+    },
+    {
+      "heading": "Fuera de alcance",
+      "items": [
+        "BL-B4 (multi-currency defensivo en recurrentes): la tabla `bookings` no tiene columna `currency` hoy. Se abordará cuando se introduzca (Sprint 3 fiscal)."
+      ]
+    },
+    {
+      "heading": "Notas para la siguiente ola",
+      "items": [
+        "Ola 2.3 — Portal de clientes: revisar RLS de invoices/payments para acceso limitado por customer_id.",
+        "Ola 2.4 — CFDI y complementos de pago idempotentes."
+      ]
+    }
+  ]
+}
