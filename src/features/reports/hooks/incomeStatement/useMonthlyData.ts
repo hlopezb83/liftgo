@@ -25,6 +25,8 @@ interface RpcMonthRow {
   maintenance_cost: number;
   damage_cost: number;
   depreciation: number;
+  depreciation_rented: number;
+  depreciation_idle: number;
   cogs_forklift_sales: number;
   expenses: Partial<Record<ExpenseCategory, number>>;
   rental_booked_by_customer: Record<string, number>;
