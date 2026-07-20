@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.104.2",
+    "date": "2026-07-20",
+    "type": "patch",
+    "title": "Mobile: fix scroll táctil bloqueado en MainLayout y CustomerPortalLayout",
+    "summary": "El contenedor raíz usaba `min-h-[100dvh]`, así que crecía con el contenido y `<main overflow-auto>` dejaba de ser un scroll container real (clientHeight == scrollHeight). Combinado con `overscroll-contain`, en móvil el gesto táctil quedaba muerto porque no había a dónde scrollear ni chaining al body. Cambio a `h-[100dvh]` en `MainLayout` y `CustomerPortalLayout`: main vuelve a ser el scroll container acotado, el scroll con el dedo funciona, `useMainScrollRestoration` vuelve a operar y `overscroll-contain` sigue bloqueando el pull-to-refresh nativo."
+  },
+  {
     "version": "7.104.1",
     "date": "2026-07-20",
     "type": "patch",
