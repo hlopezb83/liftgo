@@ -16,9 +16,7 @@ export function toCents(n: number | string | null | undefined): number {
   // Redondeo half-away-from-zero: Math.round(0.5) = 1, Math.round(-0.5) = 0
   // → usamos sign*floor(abs+0.5) para asegurar simetría con negativos.
   const scaled = v * 100;
-  return scaled >= 0
-    ? Math.floor(scaled + 0.5)
-    : -Math.floor(-scaled + 0.5);
+  return scaled >= 0 ? Math.floor(scaled + 0.5) : -Math.floor(-scaled + 0.5);
 }
 
 export function fromCents(cents: number): number {
