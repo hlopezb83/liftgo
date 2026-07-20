@@ -2,6 +2,7 @@ import { ReactNode, useEffect, useRef, useState } from "react";
 import { DataTablePaginationV2 } from "@/components/dataTable/v2/DataTablePaginationV2";
 import { DataTableV2 } from "@/components/dataTable/v2/DataTableV2";
 import { EmptyState } from "@/components/feedback/EmptyState";
+import { ErrorState } from "@/components/feedback/ErrorState";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { type LucideIcon, SpinnerIcon, RefreshIcon, FilterIcon } from "@/components/icons";
 import { MobileCardList } from "@/components/layout/MobileCardList";
@@ -24,6 +25,10 @@ interface ListPageLayoutProps<T> {
   mobileFab?: ReactNode;
   filters?: ReactNode;
   isLoading: boolean;
+  /** UX-A1: si la query falla, renderizamos ErrorState en vez de EmptyState. */
+  isError?: boolean;
+  /** UX-A1: callback para el botón Reintentar del ErrorState. */
+  onRetry?: () => void;
   emptyMessage?: string;
   emptyIcon?: LucideIcon;
   emptyActionLabel?: string;
@@ -56,6 +61,8 @@ export function ListPageLayout<T extends { id?: string }>({
   mobileFab,
   filters,
   isLoading,
+  isError = false,
+  onRetry,
   emptyMessage = "No se encontraron resultados",
   emptyIcon,
   emptyActionLabel,
@@ -128,6 +135,8 @@ export function ListPageLayout<T extends { id?: string }>({
             <CardContent className="p-0">
               <TableContent
                 isLoading={isLoading}
+                isError={isError}
+                onRetry={onRetry}
                 showEmpty={showEmpty}
                 showMobileCards={showMobileCards}
                 items={effectiveItems}
@@ -142,7 +151,7 @@ export function ListPageLayout<T extends { id?: string }>({
                 mobileKeyExtractor={mobileKeyExtractor}
                 skeletonColumns={skeletonColumns}
               />
-              {hasPagination && <DataTablePaginationV2 table={table} />}
+              {hasPagination && !isError && <DataTablePaginationV2 table={table} />}
             </CardContent>
           </Card>
         )}
@@ -204,6 +213,8 @@ function FiltersSlot({
 
 interface TableContentProps<T> {
   isLoading: boolean;
+  isError: boolean;
+  onRetry?: () => void;
   showEmpty: boolean;
   showMobileCards: boolean;
   items: T[];
@@ -220,10 +231,11 @@ interface TableContentProps<T> {
 }
 
 function TableContent<T extends { id?: string }>({
-  isLoading, showEmpty, showMobileCards, items, table,
+  isLoading, isError, onRetry, showEmpty, showMobileCards, items, table,
   emptyMessage, emptyIcon, emptyActionLabel, onEmptyAction,
   onRowClick, onRowPrefetch, mobileCardRender, mobileKeyExtractor, skeletonColumns,
 }: TableContentProps<T>) {
+  if (isError) return <ErrorState onRetry={onRetry} />;
   if (isLoading) return <TableSkeleton columnCount={skeletonColumns} />;
   if (showEmpty) {
     return (

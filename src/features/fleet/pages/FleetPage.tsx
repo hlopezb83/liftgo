@@ -22,7 +22,7 @@ const STATUS_OPTIONS = [
 ];
 
 export default function FleetPage() {
-  const { data: forklifts, isLoading } = useForklifts();
+  const { data: forklifts, isLoading, isError, refetch } = useForklifts();
   const { data: policies } = useMaintenancePolicies();
   const { data: contracts } = useContracts();
   const { data: deliveries } = useDeliveries();
@@ -122,6 +122,8 @@ export default function FleetPage() {
       actions={actions}
       filters={filters}
       isLoading={isLoading}
+      isError={isError}
+      onRetry={() => { void refetch(); }}
       table={table}
       onRowClick={(f) => navigate(`/fleet/${f.id}`)}
       emptyMessage="No se encontraron montacargas"

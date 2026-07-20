@@ -4,12 +4,11 @@ import { useLiftgoTable } from "@/components/dataTable/v2";
 import { SwipeableCard } from "@/components/feedback/SwipeableCard";
 import { ChevronRightIcon, AddIcon, PhoneIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
-import { MobileCardList } from "@/components/layout/MobileCardList";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { usePageActions } from "@/contexts/pageActions";
 import { useUpdateProspect } from "@/features/crm";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
-import { useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { CustomerFormDialog } from "../components/customers/CustomerFormDialog";
@@ -22,9 +21,8 @@ import type { CustomerFormData } from "../lib/customerFormSchema";
 type Customer = NonNullable<ReturnType<typeof useCustomers>["data"]>[number];
 
 export default function CustomersPage() {
-  const { data: customers, isLoading, refetch } = useCustomers();
+  const { data: customers, isLoading, isError, refetch } = useCustomers();
   const navigate = useNavigateTransition();
-  const isMobile = useIsTabletOrBelow();
   const [searchParams, setSearchParams] = useSearchParams();
   const createCustomer = useCreateCustomer();
   const updateCustomer = useUpdateCustomer();
@@ -74,40 +72,33 @@ export default function CustomersPage() {
     initialSorting: [{ id: "name", desc: false }],
   });
 
-  const paginatedItems = table.getRowModel().rows.map((r) => r.original);
 
-  const mobileContent = isMobile ? (
-    <MobileCardList
-      items={paginatedItems}
-      keyExtractor={(c) => c.id}
-      emptyMessage="No se encontraron clientes"
-      renderCard={(c) => (
-        <SwipeableCard
-          onClick={() => navigate(`/customers/${c.id}`)}
-          rightActions={c.phone ? [{
-            label: "Llamar",
-            icon: PhoneIcon,
-            className: "bg-primary",
-            onAction: () => { window.location.href = `tel:${c.phone}`; },
-          }] : []}
-        >
-          <Card className="active:scale-[0.98] transition-transform">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-semibold text-sm">{c.name}</span>
-                <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
-              </div>
-              {c.rfc && <p className="text-xs font-mono text-muted-foreground">{c.rfc}</p>}
-              <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-                {c.phone && <span>{c.phone}</span>}
-                {c.email && <span>{c.email}</span>}
-              </div>
-            </CardContent>
-          </Card>
-        </SwipeableCard>
-      )}
-    />
-  ) : undefined;
+
+  const renderMobileCard = (c: Customer) => (
+    <SwipeableCard
+      onClick={() => navigate(`/customers/${c.id}`)}
+      rightActions={c.phone ? [{
+        label: "Llamar",
+        icon: PhoneIcon,
+        className: "bg-primary",
+        onAction: () => { window.location.href = `tel:${c.phone}`; },
+      }] : []}
+    >
+      <Card className="active:scale-[0.98] transition-transform">
+        <CardContent className="p-4">
+          <div className="flex items-center justify-between mb-1">
+            <span className="font-semibold text-sm">{c.name}</span>
+            <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
+          </div>
+          {c.rfc && <p className="text-xs font-mono text-muted-foreground">{c.rfc}</p>}
+          <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+            {c.phone && <span>{c.phone}</span>}
+            {c.email && <span>{c.email}</span>}
+          </div>
+        </CardContent>
+      </Card>
+    </SwipeableCard>
+  );
 
   const openCreate = () => { setEditId(null); setInitialData(undefined); setDialogOpen(true); };
 
@@ -152,12 +143,16 @@ export default function CustomersPage() {
         }
         filters={<CustomersFilters search={values.q} onSearchChange={(v) => set("q", v)} hasActive={hasActive} onClear={reset} />}
         isLoading={isLoading}
+        isError={isError}
+        onRetry={() => { void refetch(); }}
         table={table}
         onRowClick={(c) => navigate(`/customers/${c.id}`)}
         emptyMessage="No se encontraron clientes"
-        customContent={mobileContent}
+        mobileCardRender={renderMobileCard}
+        mobileKeyExtractor={(c) => c.id}
         skeletonColumns={6}
       />
+
 
       <CustomerFormDialog
         open={dialogOpen}

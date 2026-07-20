@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { CfdiFieldsCard } from "../components/invoice-form/CfdiFieldsCard";
 import { EditableLineItemsTable } from "../components/invoice-form/EditableLineItemsTable";
@@ -29,6 +30,8 @@ export default function InvoiceForm() {
   const f = useInvoiceFormLogic({ id, fromQuoteId });
   const { data: nextNumber, isLoading: loadingNext } = useNextInvoiceNumber(!f.isEdit);
   const taxRate = useWatch({ control: f.form.control, name: "taxRate" });
+  const isSubmitting = f.createInvoice.isPending || f.updateInvoice.isPending;
+  useUnsavedChangesGuard(f.form.formState.isDirty && !isSubmitting);
 
   const onSubmit = (values: InvoiceFormValues) => {
     const payload = f.onSubmit(values);
