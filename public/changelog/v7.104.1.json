@@ -1,0 +1,12 @@
+{
+  "version": "7.104.1",
+  "date": "2026-07-20",
+  "type": "patch",
+  "title": "Chore: deno fmt en toggle-user-status",
+  "description": "Aplicado `deno fmt` a `supabase/functions/toggle-user-status/index.ts` para pasar el check de CI (`deno fmt --check`). Sólo cambios de whitespace; sin cambios de lógica ni comportamiento.",
+  "category": "infra",
+  "details": [
+    "`deno fmt supabase/functions/toggle-user-status/index.ts` — reformateado.",
+    "Verificado localmente con `deno fmt --check` (77 archivos, 0 errores)."
+  ]
+}

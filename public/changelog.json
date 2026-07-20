@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.104.1",
+    "date": "2026-07-20",
+    "type": "patch",
+    "title": "Chore: deno fmt en toggle-user-status",
+    "summary": "Aplicado `deno fmt` a `supabase/functions/toggle-user-status/index.ts` para desbloquear el job de CI (edge-functions). Sólo whitespace; sin cambios de lógica."
+  },
+  {
     "version": "7.104.0",
     "date": "2026-07-19",
     "type": "minor",
