@@ -13,7 +13,8 @@ function aggregate(rows: MonthData[]) {
       allCats.forEach((c) => { expenses[c] = (expenses[c] || 0) + r.expenses[c]; });
       return {
         revenue: acc.revenue + r.revenue,
-        revenueRental: acc.revenueRental + r.revenueRental,
+        revenueRentalBooked: acc.revenueRentalBooked + r.revenueRentalBooked,
+        revenueRentalUnbooked: acc.revenueRentalUnbooked + r.revenueRentalUnbooked,
         revenueSales: acc.revenueSales + r.revenueSales,
         maintenanceCost: acc.maintenanceCost + r.maintenanceCost,
         damageCost: acc.damageCost + r.damageCost,
@@ -23,7 +24,7 @@ function aggregate(rows: MonthData[]) {
       };
     },
     {
-      revenue: 0, revenueRental: 0, revenueSales: 0,
+      revenue: 0, revenueRentalBooked: 0, revenueRentalUnbooked: 0, revenueSales: 0,
       maintenanceCost: 0, damageCost: 0, depreciation: 0, cogsForkliftSales: 0,
       expenses: {
         renta: 0, nomina: 0, software: 0, depreciacion: 0,
@@ -35,7 +36,8 @@ function aggregate(rows: MonthData[]) {
   allCats.forEach((c) => { expensesRounded[c] = roundMoney(expensesRounded[c]); });
   const rounded = {
     revenue: roundMoney(t.revenue),
-    revenueRental: roundMoney(t.revenueRental),
+    revenueRentalBooked: roundMoney(t.revenueRentalBooked),
+    revenueRentalUnbooked: roundMoney(t.revenueRentalUnbooked),
     revenueSales: roundMoney(t.revenueSales),
     maintenanceCost: roundMoney(t.maintenanceCost),
     damageCost: roundMoney(t.damageCost),
