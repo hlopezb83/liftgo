@@ -81,6 +81,16 @@ export function SupplierBillFormFields({ form, currency, currencyOptions, select
         </div>
       </div>
 
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <DateField control={form.control} name="coverage_start" label="Cobertura desde" />
+        <div className="space-y-1">
+          <DateField control={form.control} name="coverage_end" label="Cobertura hasta" />
+          <p className="text-xs text-muted-foreground">
+            Opcional. Si aplica (p. ej. seguros anuales), el gasto se prorratea por días entre los meses del periodo.
+          </p>
+        </div>
+      </div>
+
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <FormField
           control={form.control}
