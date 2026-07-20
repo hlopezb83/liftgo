@@ -1,5 +1,25 @@
 [
   {
+    "version": "7.127.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "Sprint 3 · Ola 3.5 — UX-M1: QuoteForm migrado a RHF + Zod",
+    "summary": "Migración completa de QuoteForm a React Hook Form + `zodResolver(quoteFormSchema)`. Se retira `useQuoteFormState` (useState múltiple) y `validateQuoteForm` (toasts de sonner) a favor de `<FormField>` + `<FormMessage>` inline. Fix de fundamento: `quoteFormSchema` exigía `monthlyRate > 0` pero el app siempre aceptó cualquier tarifa activa (diaria/semanal/mensual) — se relajó vía `refine` a nivel línea. Se activa `useUnsavedChangesGuard(form.formState.isDirty && !isPending)`, con `form.reset(values)` en `onSuccess` para no bloquear la navegación tras guardar. Prefill unificado en `useQuotePrefill({ form })` con `keepDirty: false` y guard por `existingQuote.id` para no pisar cambios del usuario. `useQuoteFormLogic` usa `useWatch` granular por campo (evita re-renders globales) y `useMemo` para totales. `RentalLineItems`/`SaleLineItems` permanecen controlados (integrados vía `Controller` a nivel form). Verificación: 1097/1097 Vitest verde, typecheck limpio. Neta -15 tests por remoción de `quoteFormValidation.test.ts` y `quoteFormPrefillHelpers.test.ts` (obsoletos), compensados parcialmente por 4 tests nuevos de `useQuotePrefill` + 5 casos nuevos de schema.",
+    "changes": [
+      "QuoteForm.tsx migrado a `<Form>` + `<FormField>` + `Controller` (12 campos)",
+      "Nuevo `useQuoteForm.ts` (useForm + zodResolver, defaults con `validUntil` a 30 días)",
+      "Reescritura de `useQuotePrefill.ts`: `form.reset(buildPrefillValues, { keepDirty: false })` con guard por id",
+      "`useQuoteFormLogic.ts`: `useWatch` granular, `useMemo` para totales, `form.reset(values)` post-mutación",
+      "Fix schema: `rentalLineSchema` acepta cualquier tarifa > 0 (diaria/semanal/mensual) — antes exigía mensual",
+      "Se elimina refine redundante de `nonEmptyId` y se normaliza `dateRangeSchema.partial()`",
+      "Se activa `useUnsavedChangesGuard(isDirty && !isPending)` con guard nativo + confirmación",
+      "Retiro de `useQuoteFormState.ts`, `quoteFormValidation.ts`, `quoteFormPrefillHelpers.ts`",
+      "Tests: schema +5 (dailyRate/weeklyRate válidos, todas-en-0 rechazo, taxRate inválido, logisticsCost sin flag)",
+      "Tests: `useQuotePrefill.test.tsx` (4): mapping de existingQuote, detección de logística, `isDirty=false` post-prefill, no re-hidrata"
+    ]
+  },
+  {
+    "version": "7.126.0",
     "version": "7.126.0",
     "date": "2026-07-20",
     "type": "minor",

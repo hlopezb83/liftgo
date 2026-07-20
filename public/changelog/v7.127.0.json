@@ -1,0 +1,50 @@
+{
+  "version": "7.127.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "Sprint 3 · Ola 3.5 — UX-M1: QuoteForm migrado a RHF + Zod",
+  "sections": [
+    {
+      "heading": "Migración de formulario",
+      "items": [
+        "QuoteForm.tsx envuelto con `<Form>` de shadcn; cada campo escalar usa `<FormField>` + `<FormMessage>` (errores inline, sin toasts de sonner).",
+        "`useQuoteForm.ts` nuevo: `useForm<QuoteFormValues>({ resolver: zodResolver(quoteFormSchema), defaultValues })`. `validUntil` default a hoy+30 días (America/Monterrey).",
+        "`useQuoteFormLogic.ts` reescrito con `useWatch` granular por campo para evitar re-renders globales del form; `useMemo` para `lineItems` derivados.",
+        "`RentalLineItems`/`SaleLineItems` conservan API `lines`/`onChange` — se integran al form vía `Controller` (blast radius mínimo)."
+      ]
+    },
+    {
+      "heading": "Fix de schema (bug detectado en auditoría de Ola 3.4)",
+      "items": [
+        "`rentalLineSchema`: relajado — cada línea acepta cualquier tarifa > 0 (diaria, semanal o mensual). Antes exigía `monthlyRate > 0` estricto, lo cual hubiera roto cotizaciones legítimas de renta diaria/semanal al migrar la UI.",
+        "Se retira el `.refine` redundante en `nonEmptyId` (ya cubierto por `.min(1)`).",
+        "`dateRangeSchema` normalizado a `.partial()` para simplificar la firma."
+      ]
+    },
+    {
+      "heading": "Guard de cambios sin guardar",
+      "items": [
+        "`useUnsavedChangesGuard(form.formState.isDirty && !isPending)` activado — bloquea recarga y navegación interna con confirmación.",
+        "Prefill vía `form.reset(prefillValues, { keepDirty: false })` — abrir una cotización existente NO marca el form como sucio.",
+        "Post-mutación (create/update): `form.reset(values)` para limpiar `isDirty` antes de navegar y evitar el prompt del guard."
+      ]
+    },
+    {
+      "heading": "Retiros",
+      "items": [
+        "`useQuoteFormState.ts` (13 useState + handleTypeChange) → sustituido por `useQuoteForm`.",
+        "`quoteFormValidation.ts` (`validateQuoteForm` con notifyValidation) → la validación es 100% del resolver Zod.",
+        "`quoteFormPrefillHelpers.ts` (applyBaseFields/applyLogistics/applySaleLines/applyRentalLines) → colapsado en `buildPrefillValues` puro dentro de `useQuotePrefill.ts`."
+      ]
+    },
+    {
+      "heading": "Tests",
+      "items": [
+        "`quoteFormSchema.test.ts`: +5 casos (dailyRate/weeklyRate como únicas tarifas válidas, rechazo con todas las tarifas en 0, `taxRate=\"abc\"`, `logisticsCost>0` sin `includeLogistics` no bloquea).",
+        "`useQuotePrefill.test.tsx` (nuevo, 4 casos): mapping de cotización existente, detección de logística, `isDirty=false` post-prefill, no re-hidrata cuando llega el mismo id.",
+        "`quoteFormHelpers.test.ts`: se retira el bloque de `validateQuoteForm` (obsoleto).",
+        "Verificación: 1097/1097 Vitest verde, typecheck limpio (`bunx tsgo --noEmit`)."
+      ]
+    }
+  ]
+}
