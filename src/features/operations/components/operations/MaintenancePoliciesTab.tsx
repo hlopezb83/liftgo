@@ -23,9 +23,6 @@ import { EMPTY_POLICY_FORM, type MaintenancePolicyFormValues } from "./maintenan
 
 export function MaintenancePoliciesTab() {
   const isMobile = useIsMobile();
-
-
-export function MaintenancePoliciesTab() {
   const { data: policies, isLoading } = useMaintenancePolicies();
   const { data: forklifts } = useForklifts();
   const create = useCreateMaintenancePolicy();
