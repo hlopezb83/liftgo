@@ -48,6 +48,7 @@ export interface MonthData {
   revenueRentalBooked: number;
   revenueRentalUnbooked: number;
   revenueSales: number;
+  revenueDamageRecovery: number;
   maintenanceCost: number;
   damageCost: number;
   depreciation: number;
@@ -59,6 +60,7 @@ export interface MonthData {
   rentalBookedByCustomer: Record<string, number>;
   rentalUnbookedByCustomer: Record<string, number>;
   salesByCustomer: Record<string, number>;
+  damageRecoveryByCustomer: Record<string, number>;
   grossProfit: number;
   grossMargin: number;
   expenses: Record<ExpenseCategory, number>;
@@ -84,6 +86,7 @@ export interface YearTotals {
   revenueRentalBooked: number;
   revenueRentalUnbooked: number;
   revenueSales: number;
+  revenueDamageRecovery: number;
   maintenanceCost: number;
   damageCost: number;
   depreciation: number;
