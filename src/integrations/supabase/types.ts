@@ -1721,6 +1721,7 @@ export type Database = {
           receptor_regimen_fiscal: string | null
           receptor_rfc: string | null
           serie: string | null
+          stamp_variance: number | null
           status: string
           substitution_uuid: string | null
           subtotal: number
@@ -1776,6 +1777,7 @@ export type Database = {
           receptor_regimen_fiscal?: string | null
           receptor_rfc?: string | null
           serie?: string | null
+          stamp_variance?: number | null
           status?: string
           substitution_uuid?: string | null
           subtotal?: number
@@ -1831,6 +1833,7 @@ export type Database = {
           receptor_regimen_fiscal?: string | null
           receptor_rfc?: string | null
           serie?: string | null
+          stamp_variance?: number | null
           status?: string
           substitution_uuid?: string | null
           subtotal?: number
