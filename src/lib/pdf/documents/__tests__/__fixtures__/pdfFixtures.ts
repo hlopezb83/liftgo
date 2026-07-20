@@ -91,7 +91,7 @@ export const incomeStatement = {
     {
       year: "2025",
       revenue: 100_000, revenueRentalBooked: 80_000, revenueRentalUnbooked: 0, revenueSales: 20_000,
-      maintenanceCost: 10_000, damageCost: 0, depreciation: 5_000, cogsForkliftSales: 0,
+      maintenanceCost: 10_000, damageCost: 0, depreciation: 5_000, depreciationRented: 4_000, depreciationIdle: 1_000, cogsForkliftSales: 0,
       expenses: { ...emptyExpenses(), nomina: 12_000 },
       grossProfit: 90_000, grossMargin: 90, totalExpenses: 22_000,
       profitBeforeDepreciation: 78_000, marginBeforeDepreciation: 78,
