@@ -1,9 +1,10 @@
 
 import {
   buildStatementRows, buildBreakdownRows, buildCsvRows, buildComparisonValues,
+  buildExpenseDetailBreakdown,
 } from "./statementRowFactories";
 import {
-  type MonthData, type ComparisonRow, type YearTotals,
+  type MonthData, type ComparisonRow, type YearTotals, type ExpenseCategory,
   DIRECT_COST_CATEGORIES, OPERATING_EXPENSE_GROUPS, EXPENSE_CATEGORY_LABELS,
 } from "./types";
 
@@ -20,6 +21,11 @@ interface Totals {
   netProfit: number; margin: number;
 }
 
+const EXPENSE_DETAIL_CATEGORIES: ExpenseCategory[] = [
+  ...DIRECT_COST_CATEGORIES,
+  ...OPERATING_EXPENSE_GROUPS.flatMap((g) => g.categories),
+];
+
 export function useStatementRows(filteredData: MonthData[], totals: Totals) {
   const statementRows = buildStatementRows(filteredData, totals);
   const csvRows = buildCsvRows(statementRows, filteredData);
@@ -30,11 +36,19 @@ export function useStatementRows(filteredData: MonthData[], totals: Totals) {
   const salesBreakdownRows = buildBreakdownRows(filteredData, (m) => m.salesByCustomer);
   const damageRecoveryBreakdownRows = buildBreakdownRows(filteredData, (m) => m.damageRecoveryByCustomer);
 
+  const expenseDetailBreakdownByCategory = EXPENSE_DETAIL_CATEGORIES.reduce<
+    Record<string, ReturnType<typeof buildExpenseDetailBreakdown>>
+  >((acc, cat) => {
+    acc[cat] = buildExpenseDetailBreakdown(filteredData, cat);
+    return acc;
+  }, {});
+
   return {
     statementRows, csvRows,
     depreciationBreakdownRows, cogsBreakdownRows,
     rentalBookedBreakdownRows, rentalUnbookedBreakdownRows, salesBreakdownRows,
     damageRecoveryBreakdownRows,
+    expenseDetailBreakdownByCategory,
   };
 }
 
