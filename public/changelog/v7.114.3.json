@@ -1,0 +1,40 @@
+{
+  "version": "7.114.3",
+  "date": "2026-07-20",
+  "type": "patch",
+  "title": "Sprint ESLint Ola 2 — setState-in-effect → prev-prop guards",
+  "sections": [
+    {
+      "heading": "Refactors aplicados (prev-prop guard)",
+      "items": [
+        "`src/components/forms/DatePickerField.tsx` — sync `localDate` con `date` al abrir el popover.",
+        "`src/components/forms/DateRangePickerField.tsx` — sync `localRange` con `dateRange` al abrir.",
+        "`src/components/forms/SearchBar.tsx` — sync `local` con `value` cuando el padre resetea programáticamente.",
+        "`src/features/accounts-payable/components/RegisterSupplierPaymentDialog.tsx` — reset del formulario y archivo al abrir/cambiar balance.",
+        "`src/features/accounts-payable/components/SupplierBillFormDialog.tsx` — limpiar CFDI + imported values al cerrar.",
+        "`src/features/accounts-payable/hooks/useExportPaymentsForm.ts` — limpiar notas al cerrar.",
+        "`src/features/accounts-payable/hooks/usePaymentSelection.ts` — reinicializar `rowState` al abrir o cambiar bills."
+      ]
+    },
+    {
+      "heading": "Derivación en render (useMemo)",
+      "items": [
+        "`src/features/bank-reconciliation/pages/BankReconciliationPage.tsx` — `accountId` derivado con `useMemo`: default = primera cuenta activa, override manual con `manualAccountId`."
+      ]
+    },
+    {
+      "heading": "Bugs corregidos",
+      "items": [
+        "Se eliminaron 2 llamadas a `useEffectEvent` fuera de `useEffect` que violaban `react-hooks/rules-of-hooks` (los cuerpos ahora corren inline dentro del bloque prev-prop)."
+      ]
+    },
+    {
+      "heading": "Métricas",
+      "items": [
+        "Warnings ESLint: 82 → 72 (−10).",
+        "Errores ESLint: 2 → 0.",
+        "Warnings `react-hooks/set-state-in-effect` restantes: 14."
+      ]
+    }
+  ]
+}
