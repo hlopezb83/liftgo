@@ -67,6 +67,9 @@ function wrapper({ children }: { children: ReactNode }) {
 }
 
 async function submit(result: { current: ReturnType<typeof useQuoteFormLogic> }) {
+  // Subscribirse a formState.errors antes de submit — RHF usa proxy y sin subscripción
+  // el objeto errors se lee como {} aún si la validación falló.
+  void result.current.form.formState.errors;
   await act(async () => {
     await result.current.handleSubmit({
       preventDefault: () => {},
