@@ -74,7 +74,8 @@ export function useComparisonRows(yearTotals: YearTotals[]): ComparisonRow[] {
     { label: "= Total Egresos", ...v((yt) => yt.totalExpenses, { isSubtotal: true, isCost: true }) },
     { label: "= Utilidad antes de Depreciación", ...v((yt) => yt.profitBeforeDepreciation, { isSubtotal: true }) },
     { label: "Margen antes de Depreciación", ...v((yt) => yt.marginBeforeDepreciation, { isPercent: true }) },
-    { label: "(-) Depreciación (Equipos Rentados)", ...v((yt) => yt.depreciation, { isCost: true }) },
+    { label: "(-) Depreciación (Equipos Rentados)", ...v((yt) => yt.depreciationRented, { isCost: true }) },
+    { label: "(-) Depreciación (Flota Ociosa)", ...v((yt) => yt.depreciationIdle, { isCost: true }) },
     { label: "= Utilidad Neta", ...v((yt) => yt.netProfit, { isSubtotal: true }) },
     { label: "Margen Neto", ...v((yt) => yt.margin, { isPercent: true }) },
   ];
