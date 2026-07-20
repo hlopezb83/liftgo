@@ -4,14 +4,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useActiveMechanics } from "../../hooks/maintenance/useMechanics";
+import { formatCurrency } from "@/lib/format/formatCurrency";
+import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import {
   useMaintenanceLabor,
   useAddMaintenanceLabor,
   useDeleteMaintenanceLabor,
 } from "../../hooks/maintenance/useMaintenanceLabor";
-import { formatCurrency } from "@/lib/format/formatCurrency";
-import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
+import { useActiveMechanics } from "../../hooks/maintenance/useMechanics";
 
 interface Props {
   maintenanceLogId: string;

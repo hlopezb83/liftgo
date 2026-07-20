@@ -1,4 +1,3 @@
-import type { MouseEvent as ReactMouseEvent } from "react";
 import { Link as LinkIcon, InfoAlertIcon, ChevronDownIcon, ChevronRightIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { formatMtyDate } from "@/lib/utils";
 import { useChangelogEntry } from "../../hooks/useChangelog";
 import { TYPE_LABELS, TYPE_COLORS, DOT_COLORS, CATEGORY_LABELS } from "../../lib/changelogConstants";
 import type { ChangelogIndexEntry } from "../../lib/changelog";
+import type { MouseEvent as ReactMouseEvent } from "react";
 
 interface Props {
   entry: ChangelogIndexEntry;

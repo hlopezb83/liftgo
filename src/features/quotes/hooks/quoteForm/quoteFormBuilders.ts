@@ -1,5 +1,5 @@
-import { toYMD } from "@/lib/format/dateFormats";
 import { generateLineItemsFromModel, type LineItem } from "@/lib/domain/invoiceHelpers";
+import { toYMD } from "@/lib/format/dateFormats";
 
 export type EquipmentModel = { id: string; manufacturer: string; model: string };
 export type SaleLine = { modelId: string; quantity: number; unitPrice: number; discount?: number; discountType?: "%" | "$" };

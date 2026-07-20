@@ -1,8 +1,5 @@
 import { parseISO, startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
-import { formatDateMty, formatDayMonthMty } from "@/lib/format/dateFormats";
-import { formatMonthLongEs } from "@/lib/format/formatMonthEs";
 import { useState } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
 import { ChevronLeftIcon, ChevronRightIcon, WarnIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -14,6 +11,9 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useBookingsRange } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { formatDateMty, formatDayMonthMty } from "@/lib/format/dateFormats";
+import { formatMonthLongEs } from "@/lib/format/formatMonthEs";
 import { nowMty, formatMtyDate } from "@/lib/utils";
 import { CalendarStatCards } from "../components/calendar/CalendarStatCards";
 import { EquipmentListView } from "../components/calendar/EquipmentListView";

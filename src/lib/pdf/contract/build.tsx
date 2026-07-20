@@ -1,6 +1,6 @@
+import type { ContractData } from "@/lib/pdf/contract/data";
 import { ContractDocument, type PDFMode } from "@/lib/pdf/documents/ContractDocument";
 import { renderAndSave } from "@/lib/pdf/renderAndSave";
-import type { ContractData } from "@/lib/pdf/contract/data";
 
 export async function buildContractPdf(contract: ContractData, mode: PDFMode): Promise<void> {
   const { fetchRelatedData, fetchTemplate, fetchLogoBase64, buildPlaceholderVars } =

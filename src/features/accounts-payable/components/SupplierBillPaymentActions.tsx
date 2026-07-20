@@ -1,8 +1,8 @@
-import type { ReactNode } from "react";
 import { CreditCard, ErrorIcon, EditIcon, DeleteIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { BillPermissions } from "../lib/billPermissions";
+import type { ReactNode } from "react";
 
 interface BillActionsState {
   status: string;

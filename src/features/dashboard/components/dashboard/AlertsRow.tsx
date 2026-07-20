@@ -1,4 +1,3 @@
-import type { MouseEvent as ReactMouseEvent } from "react";
 import { MaintenanceIcon, SuccessIcon, ClipboardList, OverdueIcon } from "@/components/icons";
 import { useUpdateBooking } from "@/features/bookings";
 import { useUpdateInvoice } from "@/features/invoices";
@@ -8,6 +7,7 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { formatDateDisplay, nowMty } from "@/lib/utils";
 import { AlertCard, AlertRow } from "./AlertCard";
+import type { MouseEvent as ReactMouseEvent } from "react";
 
 interface OverdueInvoice {
   id: string;

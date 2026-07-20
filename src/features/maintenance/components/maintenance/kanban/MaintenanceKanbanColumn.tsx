@@ -1,10 +1,10 @@
-import type { ComponentType } from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { cn } from "@/lib/utils";
 import { MaintenanceKanbanCard } from "./MaintenanceKanbanCard";
 import type { MaintenanceLog } from "../../../hooks/maintenance/useMaintenanceLogs";
+import type { ComponentType } from "react";
 
 interface Props {
   id: string;

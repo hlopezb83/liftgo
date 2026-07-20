@@ -1,9 +1,9 @@
-import type { FormEvent as ReactFormEvent } from "react";
 import { ViewIcon, HideIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { getAuthSubmitLabel, type AuthMode } from "../lib/authTypes";
+import type { FormEvent as ReactFormEvent } from "react";
 
 export type { AuthMode };
 

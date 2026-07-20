@@ -5,8 +5,8 @@ import { AuthGuard } from "@/layouts/AuthGuard";
 import MainLayout from "@/layouts/MainLayout";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { RouteErrorElement } from "@/layouts/RouteErrorElement";
-import { PageFallback } from "@/routes/RouteSkeletons";
 import { appRoutes } from "@/routes/routes-config";
+import { PageFallback } from "@/routes/RouteSkeletons";
 
 /**
  * `MainLayout` protegido con el `AuthGuard` — sirve como layout raíz para

@@ -1,6 +1,6 @@
-import type { Ref } from "react";
 import { Inbox } from "@/components/icons";
 import { TableRow, TableCell } from "@/components/ui/table";
+import type { Ref } from "react";
 
 export const EmptyRow = ({ colSpan, message = "Sin resultados", ref }: { colSpan: number; message?: string } & { ref?: Ref<HTMLTableRowElement> }) => {
   return (
