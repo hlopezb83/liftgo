@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.106.1",
+    "date": "2026-07-20",
+    "type": "patch",
+    "title": "BL-48: fix RPC get_customer_profitability (columna inexistente ml.total_cost)",
+    "summary": "Abrir el detalle de un cliente (`/customers/:id`) truena con `column ml.total_cost does not exist (42703)` porque la RPC `get_customer_profitability` sumaba `ml.total_cost` sobre `maintenance_logs`, pero esa columna sólo existe en `maintenance_labor` (v7.97.0). El costo total real de un mantenimiento (refacciones + mano de obra) vive en `maintenance_logs.cost`, que ya se recalcula automáticamente vía el trigger `recalc_maintenance_log_cost`. Migración `CREATE OR REPLACE FUNCTION` que reemplaza `SUM(ml.total_cost)` → `SUM(ml.cost)` conservando guard de rol (admin/administrativo/auditor/ventas), `SECURITY DEFINER`, `SET search_path = public` y shape de respuesta (`revenue`, `maintenance_cost`, `gross_margin`, `margin_percent`). Verificado: la llamada ya no falla con 42703; el guard sigue activo (42501 sin sesión válida)."
+  },
+  {
     "version": "7.106.0",
     "date": "2026-07-20",
     "type": "minor",
