@@ -2,9 +2,9 @@ import { useCallback, useDeferredValue, useEffect, useMemo } from "react";
 import { useLocation } from "react-router";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { applyFacetFilters } from "./applyFacetFilters";
-import type { Facet } from "./facetTypes";
 import { defaultForFacet, normalizeValue } from "./normalizeValue";
 import { readSessionParams, writeSessionParams } from "./sessionStorage";
+import type { Facet } from "./facetTypes";
 
 /**
  * Contrato canónico de filtros de tabla en LiftGo.

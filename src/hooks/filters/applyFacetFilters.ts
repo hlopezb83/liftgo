@@ -2,6 +2,7 @@
 // Extraído de useTableFilters para bajar complejidad ciclomática del hook.
 
 import { matchSorter, rankings } from "match-sorter";
+import { defaultForFacet, parseDateRange } from "./normalizeValue";
 import type {
   DateRangeFacet,
   EntityRefFacet,
@@ -10,7 +11,6 @@ import type {
   MonthFacet,
   TextFacet,
 } from "./facetTypes";
-import { defaultForFacet, parseDateRange } from "./normalizeValue";
 
 function readField<T>(item: T, field: string): string | null | undefined {
   return (item as Record<string, unknown>)[field] as string | null | undefined;
