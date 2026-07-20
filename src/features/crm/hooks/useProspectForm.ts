@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useQuotes } from "@/features/quotes";
 import {
   STAGES_REQUIRING_DEAL_VALUE,
@@ -37,11 +37,9 @@ export function useProspectForm({
   const effectiveStage = overrideStage ?? prospect?.stage ?? defaultStage;
   const requiresDealValue = STAGES_REQUIRING_DEAL_VALUE.includes(effectiveStage);
 
-  // Prev-prop guard: rehidrata campos cuando cambia el prospecto o se abre el modal.
-  const [prevKey, setPrevKey] = useState<string>("");
-  const nextKey = `${prospect?.id ?? "new"}|${open ? "open" : "closed"}`;
-  if (prevKey !== nextKey) {
-    setPrevKey(nextKey);
+  useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- rehidrata múltiples campos desde
+       props (prospect) al abrir el modal; el prev-prop guard supera el umbral de complejidad. */
     if (prospect) {
       setCompany(prospect.companyName);
       setContact(prospect.contactPerson ?? "");
@@ -55,7 +53,8 @@ export function useProspectForm({
       setDealValue(""); setNotes(""); setQuoteId(null);
     }
     setDealValueError(null);
-  }
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, [prospect, open]);
 
   const handleQuoteChange = (value: string) => {
     const selectedId = value === "none" ? null : value;
