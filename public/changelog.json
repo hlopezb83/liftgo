@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.114.7",
+    "date": "2026-07-20",
+    "type": "patch",
+    "title": "Sprint ESLint Ola 4.a-b — quick wins + react-refresh (49 → 25 warnings)",
+    "summary": "Auditoría de Ola 3.b: 0 bugs, 1083 tests verdes, changelog íntegro (465 entradas). Ola 4.a-b combinada: (1) autofix batch de `import-x/order` (−10), (2) migración de `useNavigate` → `useNavigateTransition` en `useInvoicesFilters` y `useTableFilters` (−2), (3) `useCRMFilters` migra IIFE → `useMemo` con disable justificado por `Date.now()`, (4) `RouteSkeletons` envuelve `pickSkeleton` en `useMemo` con disable justificado por `ComponentType` estable, (5) `DataTableBodyV2` disable justificado en `rows.map` (closure de `timerRef` sólo se usa en handlers), (6) file-level disable en `FiltersToolbar` (compound component `Object.assign`) y `router.tsx` (rutas + helpers de code-splitting). Resultado: 49 → 25 warnings (−24), 0 errores, 1083 tests. Continúan Olas 4.c-e."
+  },
+  {
     "version": "7.114.6",
     "date": "2026-07-20",
     "type": "patch",
