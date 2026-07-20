@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.119.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "Sprint 2 · Ola 2.3 — Resiliencia CFDI (EC-A1, EC-A2)",
+    "summary": "Timbrado CFDI resiliente ante fallas de red/timeout con Facturapi. (1) EC-A1 — Nueva Edge Function `process-cfdi-retry-queue` (cron cada 5 min) que drena `cfdi_retry_queue` con backoff exponencial (1→2→4→8→16→32→60 min tope) e invoca la función correspondiente vía `service_role`. (2) EC-A2 — Nueva Edge Function `reconcile-stamping-invoices` (cron cada 15 min) + RPC `reconcile_stamping_invoice(invoice_id)` que rescata facturas atascadas en estado `stamping` >10 min: si tienen `cfdi_uuid + facturapi_invoice_id` se marcan como `stamped`; en caso contrario se revierten a `error`. (3) Hardening en `stamp-cfdi/handler.ts`: (a) bypass a `service_role` para retries automáticos, (b) `FACTURAPI_TIMEOUT_MS = 30_000` vía `Promise.race`, (c) persistencia temprana de `facturapi_invoice_id + cfdi_uuid` inmediatamente después del create (flag `cfdiPersisted`), (d) catch externo preserva estado `stamping` si el CFDI ya se emitió en Facturapi para delegar recuperación al cron reconciliador — evita cargos duplicados por reintentos ciegos. Cron jobs registrados en `pg_cron` (jobs #7 y #8). `supabase/functions/deno.json` habilita `nodeModulesDir: auto` para que Deno resuelva `npm:facturapi`. Verificado: 1084/1084 Vitest + 22/22 Deno (prorate, bookingEnded, generate-recurring smoke, process-cfdi-retry-queue unit, reconcile-stamping-invoices unit)."
+  },
+  {
     "version": "7.118.0",
     "date": "2026-07-20",
     "type": "minor",
