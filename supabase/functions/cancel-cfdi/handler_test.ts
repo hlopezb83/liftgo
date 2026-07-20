@@ -353,3 +353,67 @@ Deno.test("cancel-cfdi: C-2 live sin facturapi_invoice_id rechaza stub", async (
   const upd = serviceState.updates.find((u) => u.table === "invoices");
   assertEquals(upd, undefined);
 });
+
+// BL-A4: bloquear cancelación cuando la factura tiene pagos aplicados.
+Deno.test("cancel-cfdi: BL-A4 rechaza 409 si hay pagos aplicados", async () => {
+  const { deps, serviceState } = makeDeps({
+    env: {},
+    service: {
+      selects: {
+        user_roles: { data: [{ role: "admin" }], error: null },
+        invoices: {
+          data: { cfdi_status: "stamped", facturapi_invoice_id: null },
+          error: null,
+        },
+        company_settings: { data: { facturapi_mode: "test" }, error: null },
+        billing_secrets: { data: null, error: null },
+      },
+      updates: { invoices: { data: null, error: null } },
+      rpcs: {
+        assert_invoice_cancellable: {
+          data: "La factura tiene 2 pago(s) aplicado(s) por $10,000.00. Elimina o reversa los pagos antes de cancelar el CFDI.",
+          error: null,
+        },
+      },
+    },
+  });
+  const res = await handleCancelCfdi(
+    makeRequest({ invoice_id: INVOICE_ID, motive: "02" }),
+    deps,
+  );
+  const body = await res.json();
+  assertEquals(res.status, 409);
+  assert(String(body.error).includes("pago"));
+  // Ningún update: la factura sigue timbrada.
+  const upd = serviceState.updates.find((u) => u.table === "invoices");
+  assertEquals(upd, undefined);
+});
+
+// BL-A4: cuando el RPC devuelve null (sin pagos) la cancelación procede.
+Deno.test("cancel-cfdi: BL-A4 sin pagos, RPC null, procede la cancelación stub en test", async () => {
+  const { deps, serviceState } = makeDeps({
+    env: {},
+    service: {
+      selects: {
+        user_roles: { data: [{ role: "admin" }], error: null },
+        invoices: {
+          data: { cfdi_status: "stamped", facturapi_invoice_id: null },
+          error: null,
+        },
+        company_settings: { data: { facturapi_mode: "test" }, error: null },
+        billing_secrets: { data: null, error: null },
+      },
+      updates: { invoices: { data: null, error: null } },
+      rpcs: {
+        assert_invoice_cancellable: { data: null, error: null },
+      },
+    },
+  });
+  const res = await handleCancelCfdi(
+    makeRequest({ invoice_id: INVOICE_ID, motive: "02" }),
+    deps,
+  );
+  assertEquals(res.status, 200);
+  const upd = serviceState.updates.find((u) => u.table === "invoices");
+  assert(upd, "expected invoice update");
+});
