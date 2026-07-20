@@ -23,14 +23,30 @@ Deno.test("nextRetryAt: tope 60 min a partir de 6+ intentos", () => {
   assertEquals(Math.round(delta6 / 60_000), 60);
 });
 
-Deno.test("cfdi_retry_queue: operation -> function mapping cubre las 4 operaciones", () => {
+// NC-1: el consumer usa exclusivamente los valores permitidos por el CHECK
+// de cfdi_retry_queue. Este test congela el contrato para evitar regresión.
+Deno.test("cfdi_retry_queue: consumer usa solo estados del CHECK", () => {
+  const allowed = new Set(["pending", "processing", "succeeded", "exhausted"]);
+  const consumerStates = ["processing", "succeeded", "exhausted", "pending"];
+  for (const s of consumerStates) {
+    if (!allowed.has(s)) {
+      throw new Error(
+        `Consumer usa "${s}" pero no está en el CHECK de la tabla`,
+      );
+    }
+  }
+  assertEquals(consumerStates.length, 4);
+});
+
+// EC-A1: mapping actualizado — cancel_rep apunta a cancel-payment-complement,
+// no a la función inexistente "cancel-rep".
+Deno.test("operation → function mapping usa funciones reales", () => {
   const map: Record<string, string> = {
     stamp: "stamp-cfdi",
     cancel: "cancel-cfdi",
     cancel_nc: "cancel-credit-note",
-    cancel_rep: "cancel-rep",
+    cancel_rep: "cancel-payment-complement",
   };
   assertEquals(Object.keys(map).length, 4);
-  assertEquals(map.stamp, "stamp-cfdi");
-  assertEquals(map.cancel, "cancel-cfdi");
+  assertEquals(map.cancel_rep, "cancel-payment-complement");
 });

@@ -7,10 +7,13 @@
 // Este cron busca esas filas > 10 min de antigüedad y:
 //   1. Descarga XML y PDF desde Facturapi (por facturapi_invoice_id).
 //   2. Sube ambos a Supabase Storage.
-//   3. Llama a `reconcile_stamping_invoice` (idempotente) para marcar 'stamped'.
+//   3. SI ambos existen, llama a `reconcile_stamping_invoice` (idempotente)
+//      para marcar 'stamped'.
+//   4. Si alguna descarga falla, deja la fila en 'stamping' para reintentar
+//      en el próximo ciclo — nunca marcamos 'stamped' sin XML (verificación
+//      post-verificación §4).
 //
-// Si la factura no tiene facturapi_invoice_id (imposible con el nuevo flujo,
-// pero puede haber legado), la revierte a 'error' con nota manual.
+// NC-2: exige `x-cron-secret` o `Authorization: Bearer <CRON_SECRET>`.
 import { handleCors } from "../_shared/cors.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
@@ -37,7 +40,28 @@ Deno.serve(async (req) => {
   if (corsRes) return corsRes;
   const json = (b: unknown, status: number) => jsonResponse(req, b, { status });
 
+  // NC-2: gating de auth. Fuente del secreto: Deno.env → fallback a vault vía
+  // RPC `internal_get_cron_secret()` para mantener paridad con pg_cron.
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
   const admin = getAdminClient();
+  let cronSecret = Deno.env.get("CRON_SECRET") ?? "";
+  if (!cronSecret) {
+    const { data: vaultSecret } = await admin.rpc("internal_get_cron_secret");
+    cronSecret = typeof vaultSecret === "string" ? vaultSecret : "";
+  }
+  const headerSecret = req.headers.get("x-cron-secret") ?? "";
+  const authHeader = req.headers.get("authorization") ?? "";
+  const bearer = authHeader.startsWith("Bearer ")
+    ? authHeader.slice("Bearer ".length).trim()
+    : "";
+  const authorized = (cronSecret.length > 0 &&
+    (headerSecret === cronSecret || bearer === cronSecret)) ||
+    (serviceKey.length > 0 && bearer === serviceKey);
+  if (!authorized) {
+    return json({ error: "Unauthorized" }, 401);
+  }
+
+
   const STALE_THRESHOLD_MIN = 10;
   const cutoff = new Date(Date.now() - STALE_THRESHOLD_MIN * 60_000)
     .toISOString();
@@ -99,6 +123,8 @@ Deno.serve(async (req) => {
       let cfdiXml: string | null = null;
       let xmlPath: string | null = null;
       let pdfPath: string | null = null;
+      let xmlError: string | null = null;
+      let pdfError: string | null = null;
 
       try {
         cfdiXml = await binaryToText(
@@ -112,11 +138,16 @@ Deno.serve(async (req) => {
           new Blob([cfdiXml], { type: "application/xml" }),
           { contentType: "application/xml", upsert: true },
         );
-        if (!upErr) xmlPath = path;
+        if (upErr) {
+          xmlError = (upErr as { message?: string }).message ?? String(upErr);
+        } else {
+          xmlPath = path;
+        }
       } catch (err) {
+        xmlError = describeFacturapiError(err).message;
         console.error("[reconcile-stamping] xml download failed", {
           invoice_id: row.id,
-          err: describeFacturapiError(err),
+          err: xmlError,
         });
       }
 
@@ -132,12 +163,36 @@ Deno.serve(async (req) => {
           pdfBytes,
           { contentType: "application/pdf", upsert: true },
         );
-        if (!upErr) pdfPath = path;
+        if (upErr) {
+          pdfError = (upErr as { message?: string }).message ?? String(upErr);
+        } else {
+          pdfPath = path;
+        }
       } catch (err) {
+        pdfError = describeFacturapiError(err).message;
         console.error("[reconcile-stamping] pdf download failed", {
           invoice_id: row.id,
-          err: describeFacturapiError(err),
+          err: pdfError,
         });
+      }
+
+      // Verificación §4: NUNCA marcar `stamped` sin XML. Sin XML la factura
+      // queda fiscalmente incompleta (obligatorio para SAT). Dejamos en
+      // 'stamping' + bump de updated_at para reintentar en el próximo ciclo.
+      if (!cfdiXml || !xmlPath) {
+        await admin.from("invoices")
+          .update({
+            cfdi_error_message: `Reconcile: descarga de XML falló (${
+              xmlError ?? "sin detalle"
+            }). Se reintentará automáticamente.`,
+          })
+          .eq("id", row.id);
+        results.push({
+          invoice_id: row.id,
+          status: "xml_pending",
+          error: xmlError ?? undefined,
+        });
+        continue;
       }
 
       const { error: rpcErr } = await admin.rpc(
@@ -162,7 +217,11 @@ Deno.serve(async (req) => {
           error: (rpcErr as { message?: string }).message ?? String(rpcErr),
         });
       } else {
-        results.push({ invoice_id: row.id, status: "reconciled" });
+        results.push({
+          invoice_id: row.id,
+          status: "reconciled",
+          error: pdfError ?? undefined,
+        });
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);

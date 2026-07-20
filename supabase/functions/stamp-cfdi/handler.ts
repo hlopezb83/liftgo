@@ -16,6 +16,11 @@ import {
   enqueueCfdiRetry,
   isTransientFacturapiError,
 } from "../_shared/cfdiRetryQueue.ts";
+import {
+  roundMoney,
+  STAMP_VARIANCE_TOLERANCE_MXN,
+  stampVariance,
+} from "../_shared/money.ts";
 
 // Mantenido por compatibilidad con consumidores existentes (tests, etc.).
 export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
@@ -286,7 +291,9 @@ export async function handleStampCfdi(
             ? Math.min(li.discount, base)
             : (base * li.discount) / 100;
           if (discountAmount > 0) {
-            item.discount = Math.round(discountAmount * 100) / 100;
+            // BL-A5: `roundMoney` (2 decimales, centavos enteros) reemplaza el
+            // `Math.round(*100)/100` histórico para eliminar drift IEEE-754.
+            item.discount = roundMoney(discountAmount);
           }
         }
         return item;
@@ -410,23 +417,42 @@ export async function handleStampCfdi(
       ]) as { id: string; uuid: string };
     } catch (err) {
       const desc = describeFacturapiError(err);
+      const isTimeout = (desc as { code?: string }).code === "TIMEOUT" ||
+        (err as { code?: string })?.code === "TIMEOUT";
       console.error("[stamp-cfdi] facturapi rejected", {
         invoice_id,
         status: desc.status,
         code: desc.code,
         message: desc.message,
+        timeout: isTimeout,
       });
+      // Verificación §3: en TIMEOUT NO reseteamos la fila a `error` ni
+      // encolamos retry. El request a Facturapi puede haber completado
+      // server-side; un retry ciego crearía un CFDI duplicado ante el SAT.
+      // La dejamos en `stamping` (el claim se preserva) para que
+      // `reconcile-stamping-invoices` la resuelva vía folio/serie o la
+      // revierta a `error` con nota manual si Facturapi no emitió nada.
+      if (isTimeout) {
+        return json(
+          {
+            error: "Facturapi timeout — reconciliación en curso",
+            code: "TIMEOUT",
+            status: 504,
+            detail: desc.detail,
+            transient: true,
+          },
+          504,
+          jsonHeaders,
+        );
+      }
       await supabase.from("invoices")
         .update({
           cfdi_status: "error",
           cfdi_error_message: desc.detail.slice(0, 1000),
         })
         .eq("id", invoice_id);
-      // BL-44: encolar reintento solo si el error es transitorio (5xx / red / 429 / timeout).
-      if (
-        isTransientFacturapiError(desc) ||
-        (desc as { code?: string }).code === "TIMEOUT"
-      ) {
+      // BL-44: encolar reintento solo si el error es transitorio (5xx / red / 429).
+      if (isTransientFacturapiError(desc)) {
         await enqueueCfdiRetry(supabase, {
           operation: "stamp",
           invoiceId: invoice_id,
@@ -527,6 +553,29 @@ export async function handleStampCfdi(
       });
     }
 
+    // BL-A5: varianza local vs Facturapi. Si difiere > 0.02 MXN queda
+    // registrada en `invoices.stamp_variance` para auditoría fiscal + log de
+    // alerta. No aborta el flujo — la factura ya está timbrada ante el SAT.
+    const remoteTotalRaw =
+      (facturApiInvoice as { total?: number | string | null }).total ?? null;
+    const remoteTotal = typeof remoteTotalRaw === "number"
+      ? remoteTotalRaw
+      : Number(remoteTotalRaw);
+    const localTotal = typeof inv.total === "number"
+      ? inv.total
+      : Number(inv.total ?? 0);
+    const variance = Number.isFinite(remoteTotal)
+      ? stampVariance(localTotal, remoteTotal)
+      : 0;
+    if (variance > STAMP_VARIANCE_TOLERANCE_MXN) {
+      console.error("[stamp-cfdi] stamp_variance excede tolerancia", {
+        invoice_id,
+        local_total: localTotal,
+        remote_total: remoteTotal,
+        variance_mxn: variance,
+      });
+    }
+
     const updRes = await supabase.from("invoices").update({
       cfdi_uuid: cfdiUuid,
       cfdi_xml: cfdiXml,
@@ -536,6 +585,7 @@ export async function handleStampCfdi(
       cfdi_error_message: null,
       facturapi_invoice_id: facturApiId,
       facturapi_env: mode === "live" ? "live" : "test",
+      stamp_variance: variance,
       ...(facturApiSeries ? { serie: facturApiSeries } : {}),
       ...(facturApiFolio ? { folio: facturApiFolio } : {}),
       ...(inv.status === "draft" ? { status: "sent" } : {}),
