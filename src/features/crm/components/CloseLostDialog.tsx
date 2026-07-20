@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { SelectField, TextareaField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
@@ -43,7 +43,7 @@ export function CloseLostDialog({ prospect, open, onOpenChange, onConfirm, isPen
 
   if (!prospect) return null;
 
-  const reason = form.watch("reason");
+  const reason = useWatch({ control: form.control, name: "reason" });
   const requiresNote = reason === "otro";
 
   const handleSubmit = form.handleSubmit((values) => {

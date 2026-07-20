@@ -49,10 +49,11 @@ export function PostBookingDeliveryDialog({
   });
 
   useEffect(() => {
+    // Reset local UI y form al abrir/cerrar el diálogo. `form.reset` de
+    // react-hook-form debe ejecutarse fuera del render.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!open) { setShowForm(false); }
     if (open) {
-       
-      // ejecutarse fuera del render (mutate refs internas); es el patrón oficial de la librería.
       form.reset({
         address: customerAddress || "", driverName: "", driverPhone: "",
         scheduledTime: "", hoursReading: null, notes: "",

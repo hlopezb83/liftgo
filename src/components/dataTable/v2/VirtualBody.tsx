@@ -47,6 +47,9 @@ export function VirtualBody<T>({
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = undefined;
   };
+  // `useVirtualizer` retorna una API imperativa que muta internamente y no puede
+  // memoizarse por el React Compiler. Es un patrón oficial de TanStack Virtual.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const virtualizer = useVirtualizer({
     count: rows.length,
     getScrollElement: () => parentRef.current,

@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { SelectField, TextField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
@@ -44,7 +44,7 @@ export function CancelCfdiDialog({
     if (open) form.reset({ motive: "02", substitutionUuid: "" });
   }, [open, form]);
 
-  const motive = form.watch("motive");
+  const motive = useWatch({ control: form.control, name: "motive" });
   const needsSubstitution = motive === "01";
 
   const onSubmit = (values: FormValues) => {

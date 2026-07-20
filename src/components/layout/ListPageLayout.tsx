@@ -77,12 +77,13 @@ export function ListPageLayout<T extends { id?: string }>({
   const [scrollTarget, setScrollTarget] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
+    // Localizar el contenedor <main> real después del montaje para pull-to-refresh.
+    // Es una lectura post-mount del DOM, no una sincronización de estado.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!isMobile || !onRefresh) {
       setScrollTarget(null);
       return;
     }
-     
-    // (sentinelRef.current) después del montaje para localizar el contenedor <main> real.
     setScrollTarget(sentinelRef.current?.closest("main") as HTMLElement | null);
   }, [isMobile, onRefresh]);
 

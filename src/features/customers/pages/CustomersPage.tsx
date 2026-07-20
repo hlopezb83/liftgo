@@ -52,10 +52,10 @@ export default function CustomersPage() {
     setSearchParams({}, { replace: true });
   });
   useEffect(() => {
-     
-    // desde URL search params al montar (useEffectEvent aisla los setters del efecto).
+    // Prefill mount-only desde URL search params. `useEffectEvent` aisla los setters.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     runProspectPrefill();
-     
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
 

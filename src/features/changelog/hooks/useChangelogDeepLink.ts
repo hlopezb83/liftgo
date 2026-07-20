@@ -17,10 +17,9 @@ export function useChangelogDeepLink(changelog: ChangelogIndexEntry[]) {
     const version = hash.slice(1);
     if (!changelog.some((e) => e.version === version)) return;
     handled.current = true;
-     
-    // window.location.hash: es un efecto legítimo porque depende de una API del navegador.
+    // Efecto legítimo: depende de window.location.hash (API del navegador).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setExpanded((prev) => new Set(prev).add(version));
-     
     setHighlighted(version);
     const scrollTimer = window.setTimeout(() => {
       document.getElementById(`v${version}`)?.scrollIntoView({ behavior: "smooth", block: "start" });

@@ -41,8 +41,8 @@ export function PostBookingPolicyDialog({ open, onOpenChange, forkliftId, forkli
   const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: DEFAULTS });
 
   useEffect(() => {
-     
-    // ejecutarse fuera del render; es el patrón oficial para resincronizar el form al cerrar.
+    // Reset local UI y form al cerrar. `form.reset` debe ejecutarse fuera del render.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!open) { setShowForm(false); form.reset(DEFAULTS); }
   }, [open, form]);
 
