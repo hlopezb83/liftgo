@@ -1,0 +1,30 @@
+{
+  "version": "7.108.3",
+  "date": "2026-07-20",
+  "type": "patch",
+  "title": "Estado de Resultados: verificación de fuente única de gastos",
+  "sections": [
+    {
+      "heading": "Contexto",
+      "items": [
+        "El usuario pidió confirmar que supplier_bills sea la fuente única de gastos en el Estado de Resultados y que operating_expenses se excluya cuando exista el mismo movimiento.",
+        "La lógica ya había sido implementada en v7.108.2 dentro del CTE expense_lines de get_income_statement, pero sólo se había verificado en la categoría 'Otro'."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "Auditoría YTD 2026 sobre todas las categorías detecta duplicados: otro (48 · $786,781.96), renta (6 · $272,592.00), nomina (21 · $153,095.12), publicidad (14 · $95,983.20) y caja_chica (1 · $10,706.90).",
+        "Total descartado del P&L por deduplicación: $1,319,159.18 MXN.",
+        "supplier_bills queda como fuente prioritaria; operating_expenses se conserva sólo cuando no existe una factura de proveedor con la misma fecha + monto (2 decimales) + descripción normalizada."
+      ]
+    },
+    {
+      "heading": "Sin cambios de código",
+      "items": [
+        "La lógica de v7.108.2 ya cubría todas las categorías. No se generó nueva migración.",
+        "Para eliminar el problema en la captura (evitar que se creen operating_expenses duplicando una supplier_bill) se requiere un sprint aparte con validación de UI/triggers."
+      ]
+    }
+  ]
+}
