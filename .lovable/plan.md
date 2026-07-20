@@ -1,63 +1,68 @@
-## Contexto
 
-Auditoría integral (61 hallazgos). Arrancamos por los 2 CRÍTICOS. Verificado en BD: hoy **100% de facturas y pagos están en MXN** (52 pagos / 87 facturas, todos MXN). El flujo USD está latente en el schema y en la UI pero no se usa en producción → C-1 se resuelve con un **fix defensivo** (rechazar el problema, no migrar histórico).
+## Auditoría de la fase pasada (Sprint 1a · v7.113.0)
 
----
+**Estado: verde.** Sin bugs pendientes, con tests, y el bloqueo de CI (deno fmt de `cancel-cfdi/handler.ts` + `handler_test.ts`) ya está resuelto en la última acción.
 
-## C-2. Cancelación CFDI sin llamar al SAT
-
-**Archivo**: `supabase/functions/cancel-cfdi/handler.ts` (líneas 107-152)
-
-Hoy, si falta `apiKey` **o** `facturapi_invoice_id`, la función marca la factura como `cancelled` sin tocar el SAT (`satStatus = "accepted"` por default). `stamp-cfdi` sí tiene la guarda BL-20 en modo live; `cancel-cfdi` no.
-
-### Cambios
-
-1. **Leer también `mode` desde `getFacturapiConfig`** (ya existe el helper, se usa igual que en stamp-cfdi:188).
-2. **Guarda modo live sin API key**: si `mode === "live"` y `!apiKey` → `400` con mensaje "Facturapi API key no configurada para modo live. No se canceló ante el SAT." — NO se actualiza la factura.
-3. **Guarda live con UUID pero sin `facturapi_invoice_id`**: si `mode === "live"` y hay `cfdi_uuid` pero falta `facturApiId` → `409` con "CFDI emitido fuera de Facturapi; cancelar manualmente en el portal del PAC/SAT y usar acción administrativa para reconciliar" — NO se actualiza.
-4. **Modo test/stub explícito**: solo si `mode !== "live"` se permite la ruta stub, y la respuesta devuelve `stub: true` (paralelo a stamp-cfdi:229) para que la UI lo pinte.
-5. **UI**: `InvoiceCancellationDialog` (o equivalente) muestra un badge "Cancelación simulada (modo prueba)" cuando la respuesta trae `stub: true`. Localizar el componente durante implementación (`rg -l "cancel-cfdi"` en `src/`).
-
-### Tests
-
-- `supabase/functions/cancel-cfdi/index_test.ts` (ya existe): agregar casos
-  - live + sin apiKey → 400, factura intacta
-  - live + apiKey + sin facturapi_invoice_id → 409, factura intacta
-  - test + sin apiKey → 200 `stub: true`, factura `cancelled`
-  - live + apiKey + facturapi_invoice_id + Facturapi acepta → 200, factura `cancelled` (regresión del happy path)
+- **C-2 (cancel-cfdi anti-stub en live):** handler rechaza con 400 cuando `mode='live'` y falta `apiKey` o `facturapi_invoice_id`. Nunca se marca `cancelled` en ese path (verificado en tests: `updates` queda vacío).
+- **C-1 (bloqueo de divisa en pagos):** trigger `enforce_payment_matches_invoice_currency` + `useRecordPaymentForm.lockedCurrency` + UI con `<Select disabled>` mostrando la moneda de la factura. Sin `!`/`as`.
+- **Tests:** 1083/1083 Vitest + 13 Deno (incluye los 2 nuevos C-2 y el nuevo test de Vitest para lock de moneda).
+- **Deuda del sprint:** ninguna. La medida C-1 es explícitamente temporal ("hasta implementar soporte formal multi-moneda") — se retomará como parte del Sprint 2 planificado.
 
 ---
 
-## C-1. Multi-moneda defensivo
+## Sprint 1b — Fiscal y dinero (continuación)
 
-**Contexto real**: 0 pagos y 0 facturas en divisa distinta a MXN. No hay valor en normalizar histórico. El riesgo es que la UI ya permite elegir divisa y en cuanto alguien emita una factura USD, el trigger de saldo la marca pagada con un pago MXN.
+Cubre los 6 hallazgos restantes del Sprint 1 del roadmap del auditor. Todos son de riesgo fiscal/financiero, así que este bloque cierra la deuda regulatoria antes de saltar a flota (Sprint 2).
 
-### Cambios
+### 1. BL-A4 — `cancel-cfdi` debe revertir pagos y liberar la reserva
+- Antes de cancelar, si hay pagos aplicados a la factura: bloquear con error accionable ("Reversa los pagos antes de cancelar") **o** marcar `payments.status='void'` + revertir asignaciones (`payment_allocations`) dentro de una transacción. Decisión por defecto: **bloquear** (más seguro; el usuario decide qué hacer con el dinero).
+- Al aceptar cancelación (`cfdi_status='cancelled'`): resetear en el booking asociado los flags de facturación (`is_invoiced=false`, `invoice_id=null` o equivalente) para permitir re-facturar limpio.
+- Para motivo `01`, validar que `substitution_uuid` corresponda a una factura **timbrada y vigente** del mismo cliente antes de cancelar.
+- Tests Deno: (a) cancelación bloqueada con pagos, (b) reset de booking, (c) motivo 01 con sustituta inválida rechazada.
 
-1. **Migración**: nuevo trigger `BEFORE INSERT OR UPDATE ON public.payments` que valida:
-   ```
-   IF NEW.currency IS DISTINCT FROM (SELECT moneda FROM invoices WHERE id = NEW.invoice_id)
-     THEN RAISE EXCEPTION 'Pago en % no coincide con la divisa de la factura (%). Conversión multi-moneda aún no soportada.'
-   ```
-   Trata `NULL` como `'MXN'` en ambos lados (compatibilidad con filas históricas sin `moneda`).
-2. **Frontend** (`src/features/invoices/hooks/invoices/useRecordPaymentForm.ts` y su form): forzar el `currency` del pago al `moneda` de la factura seleccionada; deshabilitar el selector de divisa con tooltip "Se aplica en la divisa de la factura. Multi-moneda próximamente." No se remueve la columna (retro-compatibilidad).
-3. **Test unitario**: agregar a `src/test/` (o al hook) un caso que valide que `useRecordPaymentForm` inicializa `currency` con el `moneda` de la factura y no permite cambiarlo.
-4. **Changelog** explícito: documentar que multi-moneda queda bloqueada intencionalmente hasta implementar la ruta formal (`amount_doc` normalizado + reconciliación de triggers).
+### 2. BL-A5 — Reconciliar total timbrado contra `invoices.total`
+- Tras timbrar (`stamp-cfdi/handler.ts`), leer `total` del CFDI devuelto por Facturapi y comparar contra `invoices.total` con tolerancia ±0.01. Si difiere: registrar en `invoices.stamp_variance` (nueva columna numérica) y en logs; NO fallar el timbrado (el CFDI ya existe ante el SAT), pero disparar alerta y bloquear cobros PPD hasta reconciliar.
+- Unificar el cálculo de descuento en `_shared/money.ts` (una sola ruta, `currency.js`), reemplazando el `Math.round` de las líneas 250-277/316-338.
+- Test Deno con fixture que fuerza divergencia de 1 centavo.
 
-### Lo que NO se toca en este sprint
+### 3. EC-A1 — Consumidor real de `cfdi_retry_queue`
+- Nueva edge function `process-cfdi-retry-queue`: reclama filas atómicamente (`FOR UPDATE SKIP LOCKED`, `status='pending'` con backoff exponencial vía `next_attempt_at`), reintenta el timbrado, mueve a `success` o `dead` según resultado, cap de intentos configurable (default 5).
+- Programar en `pg_cron` cada 5 min.
+- `cancel-cfdi` deja de aparentar que encola (limpiar el comentario) hasta que exista una cola separada de cancelaciones (fuera de scope del sprint).
+- Tests: reclamación atómica con concurrencia simulada + transición a `dead` tras N intentos.
 
-- No se agrega `amount_doc`, no se migra el trigger de saldo, no se toca `v_invoices_with_balance`. Todo eso queda para cuando el negocio realmente necesite facturar USD (Sprint fiscal futuro).
-- REPs multi-moneda (BL-M5) fuera de alcance.
+### 4. EC-A2 — Reparar `stamping` huérfanos + timeouts en Facturapi SDK
+- Envolver todas las llamadas del cliente Facturapi (`_shared/facturapi/client.ts`) con `AbortController` (default 25 s) para que un isolate colgado no deje CFDI emitidos sin registrar.
+- Cambiar el orden en `stamp-cfdi` y `stamp-payment-complement`: al recibir respuesta OK de Facturapi, primero **persistir el UUID/facturapi_invoice_id en una tabla `cfdi_stamp_log`** (idempotente por request_id) y sólo entonces actualizar la fila principal. Si el UPDATE final falla, la información no se pierde.
+- Nueva edge function `reconcile-cfdi-stamping` (cron diario): busca `cfdi_status='stamping'` con antigüedad >10 min, consulta Facturapi por `request_id`/UUID y corrige el estado.
+- Tests Deno: happy path escribe log antes de UPDATE; simulación de UPDATE fallido y reparación.
+
+### 5. BL-M5 — Orden secuencial correcto de REP (`ImpSaldoAnt`)
+- En `stamp-payment-complement/index.ts` (líneas 126-178) sólo consumir pagos y REPs previos con `cfdi_status='stamped'` **ordenados por `payment_date, created_at`**, ignorando parcialidades en `error`/`draft`.
+- Calcular `ImpSaldoAnt` como `total - sum(pagos_previos_timbrados)` en vez de sumar montos crudos.
+- Test: escenario con 3 parcialidades donde la segunda falló timbrado → `ImpSaldoAnt` de la tercera debe reflejar sólo la primera.
+
+### 6. EC-M6 — Validación de signos en montos/cantidades
+- Guardas server-side (edge functions + triggers) que rechacen `quantity <= 0` y `unit_price < 0` en:
+  - `stamp-cfdi/handler.ts` (líneas 251-252).
+  - `generate-recurring-invoices/index.ts` (línea 133).
+  - Trigger `enforce_positive_line_amounts` en `invoice_line_items` y `quote_line_items`.
+- Tests: RPC y edge functions rechazan payloads inválidos.
 
 ---
 
-## Changelog
+### Detalles técnicos
 
-Nueva entrada `v7.113.0` (minor por la guarda de seguridad y el trigger de BD):
+- **Migraciones:** ~5 (columnas + triggers + tabla `cfdi_stamp_log` + índice único de `cfdi_retry_queue` claim + pg_cron entries).
+- **Edge functions nuevas:** `process-cfdi-retry-queue`, `reconcile-cfdi-stamping`.
+- **Módulo nuevo:** `supabase/functions/_shared/money.ts` (ruta única de redondeo con `currency.js` vía import npm).
+- **Frontend impact:** mínimo — banner en `InvoiceDetailBody` cuando `stamp_variance > 0`.
+- **Testing target:** +12 tests Deno, +3 Vitest. Meta CI final: 1086+ Vitest / 25+ Deno, todos verdes.
+- **Changelog:** v7.114.0 (minor — nuevas funciones + triggers), un JSON de detalle con 6 secciones (una por hallazgo).
+- **Fuera de scope:** soporte formal multi-moneda (Sprint 2), soft-delete de unidades (Sprint 2).
 
-- **Fix crítico** — cancel-cfdi: guarda anti-stub en modo live (C-2).
-- **Fix crítico** — pagos: rechazar pagos en divisa distinta a la factura hasta soportar conversión formal (C-1 defensivo). UI fuerza la divisa de la factura.
-
-## Fuera de alcance
-
-- Resto de la auditoría (14 altos, 23 medios, 22 bajos). Se abordan en sprints posteriores según el roadmap del reporte.
+### Verificación
+1. `bun run test` → 1086+/1086+ verde.
+2. `deno fmt --check supabase/functions/` + `supabase--test_edge_functions` → verde.
+3. Playwright smoke sobre `invoice-payment.spec.ts` para confirmar que el flujo de pago sigue funcionando con el trigger de sanity checks.
+4. Verificación funcional en preview: cancelar una factura FAC de test con pago aplicado → debe bloquear.

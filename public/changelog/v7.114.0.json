@@ -1,0 +1,48 @@
+{
+  "version": "7.114.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "Sprint 1b — Blindajes fiscales: cancelación bloqueada con pagos + validación de signos",
+  "sections": [
+    {
+      "heading": "BL-A4 — cancel-cfdi bloquea la cancelación cuando la factura tiene pagos aplicados",
+      "items": [
+        "Nuevo RPC `assert_invoice_cancellable(invoice_id)` que revisa `payments` y devuelve el motivo del bloqueo (o `NULL` si es cancelable). El edge function `cancel-cfdi` lo invoca antes de cualquier llamada a Facturapi o UPDATE en `invoices`.",
+        "Si la factura tiene pagos aplicados, la respuesta es HTTP 409 con mensaje accionable: cuántos pagos hay, total aplicado, y la instrucción de reversarlos o eliminarlos antes de cancelar. Evita saldos huérfanos y REPs colgando de un CFDI cancelado.",
+        "Motivo 01 (sustitución) ahora valida además que el `substitution_uuid` corresponda a una factura existente, timbrada y del mismo cliente. Sin esto el SAT rechaza el trámite y la app queda ambigua.",
+        "Tests Deno nuevos: `BL-A4 rechaza 409 si hay pagos aplicados` (verifica que NO se actualiza la factura) y `BL-A4 sin pagos procede`."
+      ]
+    },
+    {
+      "heading": "EC-M6 — Trigger para validar signos positivos en líneas de factura y cotización",
+      "items": [
+        "Nueva función `validate_invoice_line_items_signs` que recorre `line_items` (JSONB) y rechaza cantidades `<= 0` o precios unitarios negativos con `ERRCODE 'check_violation'` y mensaje descriptivo incluyendo la partida afectada.",
+        "Triggers BEFORE INSERT OR UPDATE OF line_items en `invoices` y `quotes`. Bloquea que la app o cualquier ruta backend guarde datos inválidos que después revientan al timbrar o generar PDF.",
+        "Aplicación server-side (defensiva): incluso si el frontend deja pasar por bug, la DB rechaza."
+      ]
+    },
+    {
+      "heading": "BL-M5 — Verificación: orden secuencial de REP ya estaba correcto",
+      "items": [
+        "Revisión del código actual (`stamp-payment-complement/index.ts` líneas 100-131): sólo consume `rep_cfdi_status='stamped'` para `priorPaidStamped` y cuenta stamped+cancelled para `priorEmissions` (NumParcialidad — el SAT no permite reutilizar el número aunque se cancele).",
+        "Sin cambio de código: el auditor evaluó una versión previa. Se documenta aquí para evitar reabrir el hallazgo."
+      ]
+    },
+    {
+      "heading": "Infraestructura de pruebas",
+      "items": [
+        "El mock de Supabase (`_shared/test/supabaseClientMock.ts`) gana soporte para `supabase.rpc()` vía nueva propiedad `rpcs` en `MockConfig`. Necesario para probar los edge functions que invocan RPCs (empezando por `cancel-cfdi`).",
+        "El tipo `SupabaseLike` gana un `rpc` opcional."
+      ]
+    },
+    {
+      "heading": "Diferido a Sprint 1c (misma serie fiscal)",
+      "items": [
+        "BL-A5 — Reconciliación de `invoices.total` vs total timbrado por Facturapi (nueva columna `stamp_variance` + módulo compartido `_shared/money.ts`).",
+        "EC-A1 — Consumidor real de `cfdi_retry_queue` (edge function `process-cfdi-retry-queue` + pg_cron).",
+        "EC-A2 — Tabla `cfdi_stamp_log` + `AbortController` en Facturapi SDK + edge function `reconcile-cfdi-stamping`.",
+        "Cada uno introduce edge function o tabla nueva; se separan para revisión aislada."
+      ]
+    }
+  ]
+}

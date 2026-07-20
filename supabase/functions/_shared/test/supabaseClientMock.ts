@@ -22,6 +22,8 @@ export interface MockConfig {
   updates?: Record<string, TableResponse>;
   // storage upload result, keyed by bucket
   storage?: Record<string, { error: unknown }>;
+  // keyed by rpc function name: response for supabase.rpc(...)
+  rpcs?: Record<string, TableResponse>;
 }
 
 export interface MockState {
@@ -83,6 +85,7 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
     return builder;
   }
 
+  const rpcs = cfg.rpcs ?? {};
   state.client = {
     auth: {
       getClaims: () =>
@@ -94,6 +97,8 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
         }),
     },
     from: (table: string) => makeBuilder(table, "select"),
+    rpc: (fn: string) =>
+      Promise.resolve(rpcs[fn] ?? { data: null, error: null }),
     storage: {
       from: (bucket: string) => ({
         upload: (path: string) => {

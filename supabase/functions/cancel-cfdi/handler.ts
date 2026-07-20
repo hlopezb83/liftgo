@@ -92,7 +92,7 @@ export async function handleCancelCfdi(
 
     const { data: invoice, error: invErr } = await supabase
       .from("invoices")
-      .select("cfdi_status, total, facturapi_invoice_id, is_e2e")
+      .select("cfdi_status, total, facturapi_invoice_id, is_e2e, customer_id")
       .eq("id", invoice_id as string)
       .single();
     if (invErr || !invoice) return json({ error: "Invoice not found" }, 404);
@@ -102,6 +102,65 @@ export async function handleCancelCfdi(
     }
     if (inv.cfdi_status !== "stamped") {
       return json({ error: "Only stamped invoices can be cancelled" }, 400);
+    }
+
+    // BL-A4: no permitir cancelar si hay pagos aplicados. El admin debe
+    // revertir/eliminar los pagos primero para evitar saldos huérfanos y
+    // complementos REP colgando de una factura cancelada.
+    if (typeof supabase.rpc === "function") {
+      const cancellableRes = await supabase.rpc("assert_invoice_cancellable", {
+        p_invoice_id: invoice_id as string,
+      });
+      const rpcData = (cancellableRes as { data: unknown }).data;
+      const rpcErr = (cancellableRes as { error: unknown }).error;
+      if (rpcErr) {
+        return json(
+          { error: "No se pudo validar cancelabilidad de la factura" },
+          500,
+        );
+      }
+      if (typeof rpcData === "string" && rpcData.length > 0) {
+        return json({ error: rpcData }, 409);
+      }
+    }
+
+    // BL-A4: para motivo 01 ("Comprobante emitido con errores con relación"),
+    // el UUID sustituto debe corresponder a una factura timbrada vigente del
+    // mismo cliente. Sin esta validación el SAT rechaza el trámite y la app
+    // queda en un estado ambiguo.
+    if (motive === "01" && substitution_uuid) {
+      const subRes = await supabase
+        .from("invoices")
+        .select("id, cfdi_status, customer_id, cfdi_uuid")
+        .eq("cfdi_uuid", substitution_uuid as string)
+        .maybeSingle();
+      const sub = (subRes as { data: unknown }).data as
+        | { cfdi_status: string; customer_id: string | null; cfdi_uuid: string }
+        | null;
+      if (!sub) {
+        return json(
+          {
+            error:
+              "No se encontró una factura con el UUID sustituto proporcionado.",
+          },
+          400,
+        );
+      }
+      if (sub.cfdi_status !== "stamped") {
+        return json(
+          { error: "La factura sustituta debe estar timbrada y vigente." },
+          400,
+        );
+      }
+      if (
+        inv.customer_id != null && sub.customer_id != null &&
+        inv.customer_id !== sub.customer_id
+      ) {
+        return json(
+          { error: "La factura sustituta debe pertenecer al mismo cliente." },
+          400,
+        );
+      }
     }
 
     const { apiKey, mode } = await getFacturapiConfig(supabase, deps.env);
