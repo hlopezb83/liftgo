@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.112.1",
+    "date": "2026-07-20",
+    "type": "patch",
+    "title": "Fix — Restaurar RPC list_invoices_with_balance",
+    "summary": "Se crea el RPC `public.list_invoices_with_balance` que consumen el Dashboard, Pronóstico de Cobranza y Aging. Faltaba en la base de datos y provocaba `PGRST202` al cargar el Dashboard. La función es `SECURITY DEFINER`, filtra por rol (admin, administrativo, dispatcher, auditor) y empuja estados, rango de vencimiento, saldo>0 y paginación al servidor."
+  },
+  {
     "version": "7.112.0",
     "date": "2026-07-20",
     "type": "minor",
