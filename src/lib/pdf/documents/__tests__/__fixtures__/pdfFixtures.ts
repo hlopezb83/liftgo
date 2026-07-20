@@ -61,7 +61,8 @@ const month: MonthData = {
   cogsForkliftSales: 0,
   cogsByForklift: {},
   depreciationByForklift: {},
-  rentalByCustomer: {},
+  rentalBookedByCustomer: {},
+  rentalUnbookedByCustomer: {},
   salesByCustomer: {},
 
   grossProfit: 9_000,
