@@ -82,12 +82,15 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label>Moneda</Label>
-              <Select value={currency} onValueChange={setCurrency}>
+              <Select value={currency} onValueChange={setCurrency} disabled>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {MONEDA.map((m) => <SelectItem key={m.code} value={m.code}>{m.label}</SelectItem>)}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Bloqueada a la moneda de la factura ({lockedCurrency}).
+              </p>
             </div>
             <div>
               <Label>Tipo de cambio</Label>
@@ -100,6 +103,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
               />
             </div>
           </div>
+
           <div>
             <Label>Referencia</Label>
             <Input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Número de referencia bancaria" />
