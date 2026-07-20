@@ -55,8 +55,7 @@ export default function CustomersPage() {
     // Prefill mount-only desde URL search params. `useEffectEvent` aisla los setters.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     runProspectPrefill();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [runProspectPrefill]);
 
 
   const { values, set, reset, hasActive, filtered } = useTableFilters<Customer, {

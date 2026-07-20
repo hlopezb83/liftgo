@@ -41,10 +41,11 @@ export function CloseLostDialog({ prospect, open, onOpenChange, onConfirm, isPen
     if (open) form.reset({ reason: "", extraNote: "" });
   }, [open, form]);
 
-  if (!prospect) return null;
-
   const reason = useWatch({ control: form.control, name: "reason" });
   const requiresNote = reason === "otro";
+
+  if (!prospect) return null;
+
 
   const handleSubmit = form.handleSubmit((values) => {
     const today = todayKeyMty();
