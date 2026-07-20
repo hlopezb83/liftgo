@@ -22,6 +22,8 @@ export interface MockConfig {
   updates?: Record<string, TableResponse>;
   // storage upload result, keyed by bucket
   storage?: Record<string, { error: unknown }>;
+  // keyed by rpc function name: response for supabase.rpc(...)
+  rpcs?: Record<string, TableResponse>;
 }
 
 export interface MockState {
