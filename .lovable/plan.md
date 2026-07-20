@@ -1,79 +1,86 @@
-## Plan de remediación — Auditoría ronda 4 (BL-53 a BL-57 + DRIFT-01)
 
-Ejecutar en un solo sprint con foco en integridad de datos e inventario. Todo vía migraciones Supabase (más ajustes menores de frontend cuando aplique). Cada fix con changelog patch/minor incremental y tests en Vitest/Deno según corresponda.
+# Sprint: Pulido Estado de Resultados + DRIFT residual
 
-### P0 — BL-53: Doble descuento de stock (HIGH)
+Ejecutar los 8 issues del documento (PL-01 → PL-08) en el orden recomendado. Un changelog por issue (v7.110.0 → v7.110.7).
 
-Migración:
+## P0 — Precisión del P&L
 
-- `DROP TRIGGER trg_decrement_stock ON maintenance_parts` + `DROP FUNCTION handle_part_usage()` (redundante con `adjust_part_stock_on_maintenance_part` que sí valida INSERT/UPDATE/DELETE + stock).
-- Script de reconciliación **una sola vez**: recalcular `parts_inventory.stock` para las refacciones tocadas desde `2026-07-19` sumando el consumo histórico real de `maintenance_parts` y ajustando la diferencia (log a `audit_logs`).
+### PL-01 · Depreciación por calendario + flota ociosa (v7.110.0)
+- Migración: reescribir CTE `depreciation_per_month` en `get_income_statement`. Mensual = `acquisition_cost / 48` por cada mes en que el equipo estuvo activo (no vendido/dado de baja), sin ponderar por días rentados.
+- Split en dos métricas: `depreciation_rented` (proporcional a días rentados) y `depreciation_idle` (resto). `depreciation = rented + idle`.
+- Agregar columnas `forklifts.acquisition_date date` y `forklifts.sold_at date` (NULL = created_at / sigue activo). Backfill NULL.
+- `depreciation_by_forklift`: total por calendario.
+- `cogs_per_sale` usa depreciación acumulada por calendario (consistencia con valor en libros).
+- UI (`IncomeStatementTable` + tipos en `useIncomeStatementData` / `types.ts` / `useMonthlyData` / `useStatementRows`): agregar fila "(-) Depreciación (Flota Ociosa)" tras la de rentados. Utilidad Neta resta depreciación TOTAL.
+- Changelog v7.110.0 documentando cambio de criterio y que cifras históricas cambian.
 
-Test: Vitest de RPC que inserta `maintenance_parts` y verifica descuento exacto (no doble).
+### PL-02 · Quitar clamp `GREATEST(0, ...)` en ingresos (v7.110.1)
+- En CTE `combined` del RPC, permitir ingreso neto negativo por mes en las 4 líneas de revenue.
+- Verificar render de negativos en tabla y PDF (rojo, formato `(5,800.00)`). Ajustar `formatCell`/`StatementTableRow` si es necesario.
+- Changelog v7.110.1.
 
-### P0 — BL-55: Daños en devolución no se registran (HIGH)
+## P1 — Datos nuevos
 
-Migración a `complete_return_inspection`:
+### PL-03 · Prorrateo de gastos con cobertura (v7.110.2)
+- Migración: `supplier_bills.coverage_start date`, `coverage_end date` (nullable).
+- Formulario CxP: dos date pickers "Inicio/Fin de cobertura", visibles sólo si `category ∈ {seguros_equipo, seguros_gastos, servicios_profesionales}`.
+- RPC: en `sb_lines`, si `coverage_end > coverage_start`, distribuir `subtotal` linealmente por días entre los meses cubiertos. En base cash mantener comportamiento por pago.
+- Changelog v7.110.2.
 
-- Cuando `p_condition IN ('damaged','needs_repair')` y `p_damage_cost > 0`:
-  - `INSERT INTO damage_records(inspection_id, forklift_id, booking_id, customer_id, description, estimated_cost, status='pending')`.
-  - `UPDATE forklifts SET status = 'maintenance'` (no `available`).
-- Rama `else`: `status = 'available'` como hoy.
+### PL-04 · Daños en P&L + línea "Recuperación de daños" (v7.110.3)
+- RPC `damage_by_month`: `COALESCE(actual_cost, estimated_cost, 0)` y fecha `COALESCE(repaired_at::date, created_at::date)`.
+- Migración: `invoices.invoice_type text check IN ('standard','damage_charge') default 'standard'`.
+- UI factura manual: checkbox "Es cargo por daños".
+- Clasificación de ingresos: nueva línea "Ingresos por Recuperación de Daños" tras las 3 actuales, sumando a Total Ingresos (tipos, hooks, tabla, breakdowns, CSV, PDF).
+- Changelog v7.110.3.
 
-Test: Deno test del RPC — condition=damaged crea 1 damage_record y deja forklift en maintenance.
+### PL-05 · Drill-down de egresos por categoría (v7.110.4)
+- RPC devuelve `expense_detail` por mes: `{month, category, date, description, amount, source}` con misma dedup que `expense_lines` (incluir folio de bill cuando aplique).
+- UI `IncomeStatementTable`: cada categoría de egreso clickeable → `Dialog` con detalle (fecha, descripción, monto, origen, folio). Respetar RLS/roles.
+- Changelog v7.110.4.
 
-### P1 — BL-54: `cost_at_time` snapshot + recálculo destructivo (MEDIUM)
+## P2 — Presentación
 
-Dos cambios:
+### PL-06 · Etiquetas y base cash (v7.110.5)
+- Renombrar línea final a "Utilidad Operativa Neta (antes de impuestos)" y margen correspondiente (tabla + PDF).
+- Nota al pie en modo Efectivo explicando qué se reconoce por pago vs devengo.
+- Extender warning `sold_without_cost` para incluir ventas facturadas sin cotización (mostrar factura).
+- Changelog v7.110.5.
 
-1. Trigger `BEFORE INSERT` `snapshot_part_cost()` en `maintenance_parts`: si `cost_at_time` es null/0, hidrata desde `parts_inventory.unit_cost`.
-2. `recalc_maintenance_log_cost`: preservar el costo manual. Agregar columna `maintenance_logs.manual_cost numeric` (nueva) y calcular `cost = COALESCE(manual_cost, 0) + Σ(parts) + Σ(labor)`. Migración de datos: si el log tiene cost > 0 y no hay parts/labor, copiar a `manual_cost`.
+### PL-07 · Análisis vertical + gráfica (v7.110.6)
+- Segunda columna % por fila (cada línea como % del Total Ingresos del mes).
+- Gráfica arriba con `recharts` (consistente con `RevenueReport`): barras agrupadas Ingresos vs Egresos + línea Margen Neto %. Tooltips con moneda.
+- Incluir ambas en PDF exportado.
+- Changelog v7.110.6.
 
-Frontend: `MaintenancePartsSection` ya envía cost_at_time — se mantiene; formulario de log muestra "Costo manual adicional" apuntando a `manual_cost`.
+## DRIFT
 
-Tests: Vitest sobre recalc con combinaciones (solo manual, solo partes, mezcla).
+### PL-08 · Backfill de migraciones (v7.110.7)
+- Nueva migración `20260501000000_drift_backfill.sql` (fecha anterior a `20260515044551`) que cree idempotentemente:
+  - `public.collection_reminders_log` (tabla + enable RLS + GRANTs mínimos).
+  - `public.create_notification(uuid,text,text,text,text,text,uuid)` como stub `CREATE OR REPLACE`.
+  - `public.notify_admins(text,text,text,text,text,uuid)` stub.
+  - `public.notify_payment_received()` stub.
+- Dejar intacta `20260720011916` (su `CREATE OR REPLACE` sobreescribe con la versión definitiva).
+- Verificar `supabase db reset` (o secuencia completa) sin errores.
+- Changelog v7.110.7.
 
-### P1 — BL-56: KPI "por cobrar" incluye borradores (MEDIUM)
+## Detalles técnicos
 
-Migración a `get_dashboard_stats`:
+- Todas las migraciones vía `supabase--migration` (una por issue, secuenciales — no en paralelo).
+- Tras cada migración: actualizar hooks/tipos afectados (`useMonthlyData`, `types.ts`, `useStatementTotals`, `useStatementRows`, `IncomeStatementTable`, `ComparisonTable`, PDF export).
+- Tests Vitest: extender `computeDerivedTotals.test.ts` para depreciación idle, ingresos negativos, invoice_type, prorrateo (donde toque lógica cliente); mocks para nuevas ramas de RPC no aplican, pero cubrir helpers.
+- Cada cambio actualiza `public/changelog.json` (índice) + `public/changelog/v7.110.X.json` (detalle).
+- Timezone `America/Monterrey`, formato es-MX, `formatMonthEs` para etiquetas.
+- Respetar Power of 10: componentes ≤150 LOC, hooks ≤80, sin `any/!/as`, early returns.
 
-```sql
-WHERE v.status IN ('sent','partial','overdue')
-  AND COALESCE(v.cancellation_status,'') <> 'accepted'
-```
+## Orden de ejecución
+1. PL-01 → PL-02 (ambos tocan `combined`/depreciación)
+2. PL-03 → PL-04 (schema nuevo en bills/invoices)
+3. PL-05 → PL-06 → PL-07 (UI/UX)
+4. PL-08 (independiente, migración anti-drift)
 
-Test: Vitest que inserta 1 draft + 1 sent y verifica que outstanding solo cuenta el sent.
-
-### P2 — BL-57: Mezcla de monedas en agregados (MEDIUM-HIGH)
-
-Migración:
-
-- Recrear `v_invoices_with_balance` agregando `balance_mxn = ROUND(balance * COALESCE(NULLIF(tipo_cambio,0), 1), 2)` y `total_mxn` análogo.
-- Actualizar `get_dashboard_stats`, `v_overdue_invoices`, `get_customer_summary` y aging para sumar `balance_mxn`.
-- Sin cambios de UI: los cards ya muestran MXN — solo cambia la fuente.
-
-Test: Vitest inserta factura USD (tipo_cambio 18.5) y verifica que outstanding se convierte a MXN.
-
-### P2 — DRIFT-01 residual: orden de migraciones en frío (MEDIUM)
-
-Envolver los REVOKE/policy conflictivos en guardas `DO $$ IF EXISTS (…) THEN … END IF $$` mediante una migración nueva (`20260720170000_drift_backfill_guards.sql`) que:
-
-- Recrea la policy sobre `collection_reminders_log` con `IF EXISTS` sobre pg_class.
-- Recrea los REVOKE con `IF EXISTS` sobre pg_proc.
-
-No se re-timestampan migraciones existentes (romperíamos historial). Verificar rebuild en frío con `supabase db reset` local si hay CLI disponible; si no, dejar documentado en el changelog.
-
-### Changelog
-
-Una entrada por cada BL en `public/changelog/v7.109.0.json` (minor por magnitud + cambios estructurales), más índice en `public/changelog.json`. Documentar el script de reconciliación de stock de BL-53 explícitamente.
-
-### Fuera de alcance
-
-- Backfill masivo histórico de `damage_records` para devoluciones ya cerradas antes del fix (solo aplica desde v7.109.0).
-- Migración retroactiva de logs de mantenimiento con cost sobreescrito a 0: se listan en el changelog para revisión manual.
-- Cambios de UI en el módulo de daños/mantenimiento más allá de exponer `manual_cost`.
-
-### Preguntas antes de ejecutar
-
-1. Reconciliación de stock (BL-53): ¿aplico el ajuste automático desde `2026-07-19` o solo genero un reporte en `/mnt/documents/` para que revises antes? aplica el ajuste
-2. Logs de mantenimiento con `cost=0` por BL-54: ¿los intento recuperar copiando `cost` histórico desde `audit_logs`, o los dejo para revisión manual con lista adjunta? revision manual
+## Fuera de alcance
+- Backfill retroactivo de `damage_records` para devoluciones anteriores a v7.109.0.
+- Sprint de higiene de historial de migraciones más allá de PL-08.
+- Cambios en RLS/permisos de tablas existentes (solo GRANT mínimo en la nueva tabla si se requiere).
