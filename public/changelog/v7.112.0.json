@@ -1,0 +1,29 @@
+{
+  "version": "7.112.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "PL-05 y PL-06 — Drill-down de egresos por categoría + Base contable visible",
+  "sections": [
+    {
+      "heading": "PL-05 · Drill-down por categoría de egreso",
+      "items": [
+        "El RPC `get_income_statement` ahora devuelve `expenses_detail_by_category`: por cada mes y cada categoría se listan las partidas individuales (proveedor, descripción, monto y fecha), ordenadas por fecha desc y monto desc.",
+        "La tabla del Estado de Resultados vuelve expandible cada renglón de egreso (costos directos y grupos operativos). Al hacer clic se muestra el detalle agregado por `Proveedor · Descripción` a lo largo de los meses visibles.",
+        "Se preserva la lógica de deduplicación entre `supplier_bills` y `operating_expenses` (llave `fecha + monto + descripción normalizada`), por lo que el detalle refleja exactamente el mismo universo que el total agregado."
+      ]
+    },
+    {
+      "heading": "PL-06 · Base contable visible + Depreciación excluida en Efectivo",
+      "items": [
+        "Se agrega la insignia `Base contable: Devengado | Efectivo` al inicio del reporte, para no confundir cifras entre modos.",
+        "En base `Efectivo` la depreciación se excluye del resultado (no aplica en flujo de caja): las líneas 'Depreciación (Equipos Rentados)', 'Depreciación (Flota Ociosa)' y su desglose devuelven `0`, y la Utilidad Neta coincide con la Utilidad antes de Depreciación."
+      ]
+    },
+    {
+      "heading": "Tests",
+      "items": [
+        "Se agregan casos en `incomeStatementHelpers.test.ts` para el resolver de categorías de egreso (`(-) Nómina → exp:nomina`) y para el fallback cuando una categoría no tiene detalle."
+      ]
+    }
+  ]
+}
