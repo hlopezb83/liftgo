@@ -41,7 +41,7 @@ export function GanttHeader({ days }: { days: Date[] }) {
             return (
               <div
                 key={day.toISOString()}
-                className={`flex-1 text-center text-3xs ${getDayNumberClass(today, isWeekend)} ${weekStart ? "border-l border-border" : ""}`}
+                className={`flex-1 min-w-[28px] text-center text-3xs ${getDayNumberClass(today, isWeekend)} ${weekStart ? "border-l border-border" : ""}`}
               >
                 {today ? (
                   <span
