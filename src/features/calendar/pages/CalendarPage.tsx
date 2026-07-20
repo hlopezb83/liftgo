@@ -92,7 +92,7 @@ export default function CalendarPage() {
       <CalendarStatCards forklifts={forklifts} bookings={bookings} />
 
       {/* View mode selector */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center flex-wrap gap-2">
         <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "gantt" | "list")}>
           <TabsList className="h-8">
             <TabsTrigger value="gantt" className="text-xs px-3 h-6">Gantt</TabsTrigger>
