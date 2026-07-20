@@ -16,6 +16,11 @@ import {
   enqueueCfdiRetry,
   isTransientFacturapiError,
 } from "../_shared/cfdiRetryQueue.ts";
+import {
+  roundMoney,
+  STAMP_VARIANCE_TOLERANCE_MXN,
+  stampVariance,
+} from "../_shared/money.ts";
 
 // Mantenido por compatibilidad con consumidores existentes (tests, etc.).
 export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
@@ -286,7 +291,9 @@ export async function handleStampCfdi(
             ? Math.min(li.discount, base)
             : (base * li.discount) / 100;
           if (discountAmount > 0) {
-            item.discount = Math.round(discountAmount * 100) / 100;
+            // BL-A5: `roundMoney` (2 decimales, centavos enteros) reemplaza el
+            // `Math.round(*100)/100` histórico para eliminar drift IEEE-754.
+            item.discount = roundMoney(discountAmount);
           }
         }
         return item;
