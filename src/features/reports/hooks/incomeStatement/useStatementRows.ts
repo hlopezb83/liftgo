@@ -8,7 +8,7 @@ import {
 } from "./types";
 
 interface Totals {
-  revenue: number; revenueRental: number; revenueSales: number;
+  revenue: number; revenueRentalBooked: number; revenueRentalUnbooked: number; revenueSales: number;
   maintenanceCost: number; damageCost: number; depreciation: number;
   cogsForkliftSales: number;
   expenses: MonthData["expenses"];
@@ -19,17 +19,19 @@ interface Totals {
 }
 
 export function useStatementRows(filteredData: MonthData[], totals: Totals) {
-  // `statementRows` alimenta a `csvRows`; conservamos su memoización manual
-  // como identidad estable garantizada. El resto son derivaciones puras que
-  // React Compiler memoiza automáticamente.
   const statementRows = buildStatementRows(filteredData, totals);
   const csvRows = buildCsvRows(statementRows, filteredData);
   const depreciationBreakdownRows = buildBreakdownRows(filteredData, (m) => m.depreciationByForklift, true);
   const cogsBreakdownRows = buildBreakdownRows(filteredData, (m) => m.cogsByForklift, true);
-  const rentalBreakdownRows = buildBreakdownRows(filteredData, (m) => m.rentalByCustomer);
+  const rentalBookedBreakdownRows = buildBreakdownRows(filteredData, (m) => m.rentalBookedByCustomer);
+  const rentalUnbookedBreakdownRows = buildBreakdownRows(filteredData, (m) => m.rentalUnbookedByCustomer);
   const salesBreakdownRows = buildBreakdownRows(filteredData, (m) => m.salesByCustomer);
 
-  return { statementRows, csvRows, depreciationBreakdownRows, cogsBreakdownRows, rentalBreakdownRows, salesBreakdownRows };
+  return {
+    statementRows, csvRows,
+    depreciationBreakdownRows, cogsBreakdownRows,
+    rentalBookedBreakdownRows, rentalUnbookedBreakdownRows, salesBreakdownRows,
+  };
 }
 
 export function useComparisonRows(yearTotals: YearTotals[]): ComparisonRow[] {
