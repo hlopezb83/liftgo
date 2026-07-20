@@ -20,6 +20,7 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
     csvRows, depreciationBreakdownRows, cogsBreakdownRows,
     rentalBookedBreakdownRows, rentalUnbookedBreakdownRows, salesBreakdownRows,
     damageRecoveryBreakdownRows,
+    expenseDetailBreakdownByCategory,
     rentedWithoutCost,
     soldWithoutCost,
     availableYears, selectedYear, setSelectedYear, isComparison,
