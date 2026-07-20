@@ -1,0 +1,44 @@
+{
+  "version": "7.108.4",
+  "date": "2026-07-20",
+  "type": "patch",
+  "title": "Auditoría P&L: doble conteo por categoría YTD 2026",
+  "sections": [
+    {
+      "heading": "Metodología",
+      "items": [
+        "Universo: supplier_bills (status ≠ cancelled) y operating_expenses con fecha ≥ 2026-01-01.",
+        "Match de duplicado: misma fecha + mismo monto (redondeado a 2 decimales) + descripción normalizada (trim, colapso de espacios, lowercase).",
+        "Prioridad en el RPC get_income_statement: supplier_bills desplaza a operating_expenses cuando hay match."
+      ]
+    },
+    {
+      "heading": "Categorías con doble conteo (descartado del P&L)",
+      "items": [
+        "otro — 48 partidas · $786,781.96 descartados · neto P&L $891,873.87",
+        "renta — 6 partidas · $272,592.00 descartados · neto P&L $325,293.12",
+        "nomina — 21 partidas · $153,095.12 descartados · neto P&L $181,482.10",
+        "publicidad — 14 partidas · $95,983.20 descartados · neto P&L $119,748.84",
+        "caja_chica — 1 partida · $10,706.90 descartados · neto P&L $10,706.90",
+        "Total descartado por deduplicación: $1,319,159.18 MXN."
+      ]
+    },
+    {
+      "heading": "Categorías sin doble conteo",
+      "items": [
+        "Sólo supplier_bills: mantenimiento ($28,188), transporte_logistica ($73,592), intereses ($187,739.35), honorarios ($4,000), comisiones_bancarias ($1,461.50), refacciones ($3,201.60), servicios_publicos ($5,000).",
+        "Sólo operating_expenses: costo_venta ($363,040 · 1 partida). Sin riesgo de doble conteo pero conviene evaluar si debería migrarse a supplier_bills."
+      ]
+    },
+    {
+      "heading": "Residuales de nómina — revisión manual",
+      "items": [
+        "operating_expenses.nomina expone 23 partidas por $170,410.06; el matcher deduplica 21 ($153,095.12) contra supplier_bills.nomina y 1 más ($4,465, F-16926 CAJA CHICA EUGENIO del 29-abr) matchea contra un supplier_bills de otra categoría.",
+        "Quedan 2 partidas del 15-abr-2026 que no matchean con ningún supplier_bills y siguen sumando al P&L:",
+        "  • id 559a0f9f-3771-4c80-81ff-f4c2cd3653a8 — $9,899.09 — 'F-6093 Q7 ASMILIADO VENTAS'",
+        "  • id b552b2f1-1aee-48c6-ad12-47bcf6e1a339 — $7,415.85 — 'F-6092 Q7 FISCAL VENTAS'",
+        "Total residual: $17,314.94. Posibles causas: gasto legítimo sin factura de proveedor, descripción divergente vs la factura equivalente, o monto neto vs bruto. Requiere revisión humana."
+      ]
+    }
+  ]
+}
