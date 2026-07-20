@@ -33,6 +33,11 @@ interface ListPageLayoutProps<T> {
   emptyIcon?: LucideIcon;
   emptyActionLabel?: string;
   onEmptyAction?: () => void;
+  /** UX-M6: si hay filtros activos y la lista está vacía, se muestra copy alterno + "Limpiar filtros". */
+  hasActiveFilters?: boolean;
+  /** UX-M6: callback para limpiar filtros desde el EmptyState. */
+  onClearFilters?: () => void;
+
   /**
    * Instancia de tabla TanStack (usar `useLiftgoTable`).
    * Se renderiza con `DataTableV2` y `DataTablePaginationV2`.
