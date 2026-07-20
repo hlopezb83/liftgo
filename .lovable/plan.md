@@ -1,51 +1,52 @@
-## Auditoría Ola 3.6 — Verde ✅
+## Auditoría Ola 3.7 (v7.129.0) — SupplierBillForm
 
-- **Schema fix validado**: `superRefine` sólo valida bloque activo, bases laxas para partidas inactivas.
-- **Tests**: 1104/1104 Vitest, 7 nuevos en `useQuoteFormLogic.test.tsx`.
-- **Sin bugs residuales**, sin gaps de cobertura críticos.
+**Estado: verde ✅**
 
----
+- 63/63 tests de `accounts-payable` pasan (Vitest).
+- Schema Zod + `useUnsavedChangesGuard` correctamente integrados.
+- Fix del bug de comparación de fechas (`String(Date)` → `Date.getTime()`) verificado en `useSupplierBillForm.ts`.
+- Cobertura nueva: 10 tests de schema + 7 tests de hook (creación, update, totales, due date sugerido).
+- No detecté bugs ni regresiones. Nada bloqueante.
 
-## Ola 3.7 — UX-M2: SupplierBillFormDialog a RHF + Zod
+## Ola 3.8 — Cerrar EC-A3 (crítico) + UX-M6 (quick win)
 
-Continuar la migración schema-first de formularios operativos. `SupplierBillFormDialog` (112 LOC, form crítico de cuentas por pagar) es el siguiente candidato natural: hoy usa `useState` disperso + validación imperativa, sin guard de cambios sin guardar.
+Con Ola 3.7 estable, quedan 5 hallazgos de la auditoría integral: `EC-A3`, `UX-M3`, `UX-M4`, `UX-M5`, `UX-M6`. Priorizo el único ALTO restante (`EC-A3`) y un UX de bajo esfuerzo del mismo dominio (empty state en filtros).
 
-### Alcance
+### 1. EC-A3 — Facturación recurrente: cerrar race check-then-insert
 
-1. **Schema Zod** (`src/features/accounts-payable/lib/supplierBillFormSchema.ts`):
-   - `supplierId` requerido, `folio` requerido, `issueDate`/`dueDate` (dueDate ≥ issueDate), `subtotal ≥ 0`, `taxRate` ∈ {0, 8, 11, 16}, `total > 0`, `notes` opcional.
-   - Inference de `SupplierBillFormValues`.
+**Estado actual:** Ola 2.2 mitigó el race con `pg_advisory_xact_lock(booking_id)` dentro de `create_recurring_invoice`, pero la auditoría exigía además un **índice único** como red de seguridad última. Hoy no existe: dos ejecuciones desde nodos distintos con locks no cooperativos, o un bypass del RPC, seguirían pudiendo duplicar.
 
-2. **Hook `useSupplierBillForm`** (`src/features/accounts-payable/hooks/useSupplierBillForm.ts`):
-   - `useForm({ resolver: zodResolver(...), defaultValues })`.
-   - Prefill vía `form.reset` cuando `existingBill` cambia (guard por id).
-   - `handleSubmit` que invoca create/update mutation existente y hace `form.reset(values)` en `onSuccess`.
+**Cambios (migration nueva):**
+- Crear `UNIQUE INDEX CONCURRENTLY invoices_booking_period_uniq ON public.invoice_bookings (booking_id, invoices.billing_period_start)` — implementado como índice único sobre una tabla puente materializada o, más simple, sobre `invoices (booking_id_principal, billing_period_start, billing_period_end) WHERE status <> 'cancelled' AND billing_period_start IS NOT NULL`. Se preserva `NULLS NOT DISTINCT` opcional; se filtra `cancelled` para permitir re-emisión legítima tras cancelación.
+- Como `invoices` no tiene FK directa a booking (es N:M vía `invoice_bookings`), añadir columna generada / desnormalizada `primary_booking_id` (o usar la más antigua) sólo si es necesario. Alternativa preferida: índice único parcial sobre `invoice_bookings (booking_id, invoice_period_start_denorm)` con columna denormalizada mantenida por trigger.
+- Antes de crear el índice, ejecutar limpieza defensiva: query que detecte duplicados existentes y aborte la migración si hay drift (fail-fast).
+- Ajustar `create_recurring_invoice` para capturar `unique_violation` (SQLSTATE 23505) y devolver el `invoice_id` existente en lugar de fallar — semántica idempotente end-to-end.
+- Ajustar `generate-recurring-invoices/index.ts` (línea ~384) para tratar 23505 como éxito silencioso, no como error.
 
-3. **Componente `SupplierBillFormDialog.tsx`**:
-   - Migrar a `<Form>` + `<FormField>` + `<FormMessage>` inline (retirar toasts de validación).
-   - Activar `useUnsavedChangesGuard(form.formState.isDirty && !isPending)`.
-   - Remover `useState` locales para campos del form; mantener sólo state UI (dropzone open, etc).
+**Tests:**
+- Deno: nuevo caso en `generate-recurring-invoices/handler.test.ts` simulando 23505 y verificando que se marca como skipped, no error.
+- Vitest: no aplica (lógica server-side pura).
+- SQL: script de verificación de índice en `supabase/migrations/tests/` (opcional, si existe convención).
 
-4. **Tests**:
-   - `supplierBillFormSchema.test.ts`: happy path, rechazo por dueDate < issueDate, total ≤ 0, taxRate fuera de catálogo, folio vacío.
-   - `useSupplierBillForm.test.tsx` (integración): submit create, submit update, rechazo validación, cleanup isDirty post-submit, prefill de existingBill.
+### 2. UX-M6 — EmptyState honesto cuando hay filtros activos
 
-5. **Verificación**:
-   - `bunx vitest run` — 1104 + ~10 nuevos.
-   - `tsgo --noEmit` limpio.
-   - Playwright: sin cambios visuales; smoke manual del flujo Crear/Editar bill.
+**Archivo:** `src/components/layout/ListPageLayout.tsx` líneas ~228-237.
 
-6. **Changelog** v7.129.0 (minor).
+**Problema:** Muestra "Aún no se han registrado registros aquí" incluso cuando el usuario aplicó filtros que no matchean nada.
 
-### Fuera de alcance
+**Cambios:**
+- Añadir prop `hasActiveFilters?: boolean` a `ListPageLayout`.
+- Cuando `hasActiveFilters && itemCount === 0`, mostrar copy alterno: "No hay resultados con los filtros actuales" + botón "Limpiar filtros" que dispare `onClearFilters?: () => void`.
+- Propagar desde las páginas ya migradas a `useTableFilters` (Facturas, Cotizaciones, Reservas, Facturas de Proveedor, Gastos) leyendo `filters.hasActive` del hook.
+- Fallback: si no se pasan props, comportamiento actual intacto (retro-compatible).
 
-- `ExpenseForm` (a la Ola 3.8 si aplica).
-- `SupplierFormDialog`, `CustomerFormDialog`, `FeedbackFormDialog` (olas posteriores).
-- Cambios de business logic en cuentas por pagar (sólo migración de forma).
+**Tests:**
+- Vitest: `ListPageLayout.test.tsx` con 3 casos — sin filtros vacío, con filtros vacío, con filtros y resultados.
 
-### Detalles técnicos
+### Verificación final
+- `bunx vitest run` (target: 1121 → ~1125 tests, todo verde).
+- `cd supabase/functions && deno test` (todo verde).
+- Changelog v7.130.0 (MINOR: nuevo índice + prop UX).
 
-- Reutilizar `useUnsavedChangesGuard` (ya probado en QuoteForm/ContractForm/InvoiceForm).
-- Reutilizar patrón `useWatch` granular donde haya cálculos derivados (subtotal + tax → total).
-- Seguir `mem://design/form-dialogs` (sticky header/footer, `Nuevo/Editar`, RequiredMark).
-- Retirar cualquier `useEntityMutation` boilerplate no usado; mantener hooks canónicos.
+### Fuera de alcance (para olas siguientes)
+- `UX-M3` (sr-only en inglés), `UX-M4` (dead-ends en /404 detalle), `UX-M5` (overflow portal móvil) — se agruparán en Ola 3.9 (pulido UX del portal + a11y).
