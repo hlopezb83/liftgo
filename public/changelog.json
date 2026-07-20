@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.118.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "Sprint 2 · Ola 2.2 — Facturación recurrente atómica (BL-B1, BL-B3, BL-B5)",
+    "summary": "Auditoría de Ola 2.1 verde (1084/1084 Vitest + 15/15 Deno). Ola 2.2 blinda `generate-recurring-invoices` contra duplicados y estados inconsistentes: (1) BL-B5 — Nueva RPC `create_recurring_invoice(...)` `SECURITY DEFINER` que agrupa insert de invoice + `invoice_bookings` + `bookings.last_billed_date` en una sola transacción, tomando advisory lock por reserva (`pg_advisory_xact_lock`) para serializar corridas paralelas. Si detecta duplicado bajo el lock, devuelve la factura existente en lugar de crear otra (`already_existed = true`). (2) BL-B1 — Edge Function ahora atrapa `23505` (unique_violation contra `uniq_invoices_recurring_period`) como caso benigno de idempotencia, no como error. Se eliminó la lógica manual de re-check + insert + delete-on-error (~60 LOC menos), reemplazada por una sola llamada RPC. (3) BL-B3 — Nuevos tests de prorrateo cubren `startDay == daysInMonth` (1 día facturable) y `monthlyRate = 0` (sin división por cero). GRANTs restringidos a `service_role` y `authenticated` (revocados de `public`). BL-B4 (multi-currency defensivo) fuera de alcance: la tabla `bookings` no tiene columna `currency`, se cubrirá cuando se introduzca. Resultado esperado: 1084/1084 Vitest verdes, Deno ≥ 17/17 verdes."
+  },
+  {
     "version": "7.117.0",
     "date": "2026-07-20",
     "type": "minor",
