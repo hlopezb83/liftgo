@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.115.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "Sprint ESLint Ola 4.c-d-e — cierre técnico (25 → 11 warnings)",
+    "summary": "Auditoría de Ola 4.a-b: 0 bugs, 1083 tests verdes. Ola 4.c (set-state-in-effect): 7 → 1 con disables justificados y comentarios in-line en PostDelivery/Booking dialogs, ListPageLayout, CashFlowSettingsBar, useChangelogDeepLink y CustomersPage. Ola 4.d (incompatible-library): 6 → 2 migrando `form.watch()` a `useWatch({control, name})` en CancelCfdiDialog, CancelCreditNoteDialog, CompanyLogoTab y CloseLostDialog; los 2 restantes (`useVirtualizer`, `useReactTable`) son APIs imperativas de TanStack con disable + rationale. Ola 4.e (tamaño/complejidad): refactor de `useTableFilters.ts` (388 LOC, complejidad 18) partido en 4 módulos — `facetTypes.ts`, `normalizeValue.ts` (con `parseDateRange`, `defaultForFacet`, `normalizeDateRange`), `sessionStorage.ts` y `applyFacetFilters.ts` (con `applyEqualityFacets` + `applyTextFacets`). Hook principal baja a <160 LOC y <300 LOC de archivo. Resultado global: 25 → 11 warnings (−14), 0 errores, 1083 tests verdes. Warnings restantes: 6 max-lines-per-function (páginas grandes: Audit/Bank/MRR/PaymentIntents/InvoiceForm), 2 complexity (CRMPage + useTableFilters residual), 2 react-compiler (efecto colateral de los disables justificados), 1 unused-directive residual — se planean en un sprint futuro con splits de página."
+  },
+  {
     "version": "7.114.7",
     "date": "2026-07-20",
     "type": "patch",
