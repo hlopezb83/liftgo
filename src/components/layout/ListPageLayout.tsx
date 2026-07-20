@@ -72,6 +72,8 @@ export function ListPageLayout<T extends { id?: string }>({
   emptyIcon,
   emptyActionLabel,
   onEmptyAction,
+  hasActiveFilters = false,
+  onClearFilters,
   table,
   onRowClick,
   onRowPrefetch,
@@ -81,6 +83,7 @@ export function ListPageLayout<T extends { id?: string }>({
   skeletonColumns,
   onRefresh,
 }: ListPageLayoutProps<T>) {
+
   const isMobile = useIsMobile();
   const isTabletOrBelow = useIsTabletOrBelow();
   const showMobileCards = isTabletOrBelow && !!mobileCardRender;
