@@ -7,6 +7,7 @@ import {
 interface RowTotals {
   revenue: number; revenueRentalBooked: number; revenueRentalUnbooked: number; revenueSales: number;
   maintenanceCost: number; damageCost: number; depreciation: number;
+  depreciationRented: number; depreciationIdle: number;
   cogsForkliftSales: number;
   expenses: MonthData["expenses"];
   grossProfit: number; grossMargin: number;
