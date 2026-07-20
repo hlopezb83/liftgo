@@ -80,6 +80,7 @@ export default function PortalInvoicePayment() {
         <Card>
           <CardHeader><CardTitle className="text-base">Reportes anteriores</CardTitle></CardHeader>
           <CardContent className="p-0">
+            <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead className="text-xs text-muted-foreground bg-muted/40">
                 <tr>
@@ -100,6 +101,7 @@ export default function PortalInvoicePayment() {
                 ))}
               </tbody>
             </table>
+            </div>
           </CardContent>
         </Card>
       )}

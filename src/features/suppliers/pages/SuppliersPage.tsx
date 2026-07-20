@@ -131,6 +131,8 @@ export default function SuppliersPage() {
         isLoading={isLoading}
         table={table}
         onRowClick={(s) => navigate(`/suppliers/${s.id}`)}
+        hasActiveFilters={hasActive}
+        onClearFilters={reset}
         emptyMessage="No se encontraron proveedores"
         mobileCardRender={(s) => (
           <Card className="cursor-pointer" onClick={() => navigate(`/suppliers/${s.id}`)}>

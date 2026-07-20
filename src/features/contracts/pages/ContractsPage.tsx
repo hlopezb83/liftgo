@@ -113,6 +113,8 @@ export default function ContractsPage() {
       table={table}
       onRowClick={(c) => navigate(`/contracts/${c.id}`)}
       onRowPrefetch={(c) => contractQueries.detail(c.id)}
+      hasActiveFilters={hasActive}
+      onClearFilters={reset}
       emptyMessage="No se encontraron contratos"
       skeletonColumns={7}
       mobileCardRender={(c) => (

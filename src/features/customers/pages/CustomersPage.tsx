@@ -147,6 +147,8 @@ export default function CustomersPage() {
         onRetry={() => { void refetch(); }}
         table={table}
         onRowClick={(c) => navigate(`/customers/${c.id}`)}
+        hasActiveFilters={hasActive}
+        onClearFilters={reset}
         emptyMessage="No se encontraron clientes"
         mobileCardRender={renderMobileCard}
         mobileKeyExtractor={(c) => c.id}

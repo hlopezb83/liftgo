@@ -126,6 +126,8 @@ export default function FleetPage() {
       onRetry={() => { void refetch(); }}
       table={table}
       onRowClick={(f) => navigate(`/fleet/${f.id}`)}
+      hasActiveFilters={hasActive}
+      onClearFilters={reset}
       emptyMessage="No se encontraron montacargas"
       emptyIcon={ForkliftIcon}
       emptyActionLabel="Agregar Montacargas"

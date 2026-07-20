@@ -133,6 +133,8 @@ export default function DamageTrackingPage() {
         isLoading={isLoading}
         table={table}
         onRowClick={(r) => detail.open(r as DamageRecordWithJoins)}
+        hasActiveFilters={hasActive}
+        onClearFilters={reset}
         emptyMessage="No se encontraron registros de daños"
         mobileCardRender={(r) => (
           <Card className="cursor-pointer" onClick={() => detail.open(r as DamageRecordWithJoins)}>

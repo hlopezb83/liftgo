@@ -1,52 +1,46 @@
-## Auditoría Ola 3.7 (v7.129.0) — SupplierBillForm
+# Sprint 3 · Ola 3.9 — Cierre UX-M3, UX-M4, UX-M5 y propagación UX-M6
 
-**Estado: verde ✅**
+## Auditoría Ola 3.8 (v7.130.0)
+- Vitest **1124/1124 verde** (+3).
+- Índice `invoices_booking_period_uniq` verificado en producción; pre-check 0 duplicados.
+- `create_recurring_invoice` idempotente ante `unique_violation`.
+- Sin bugs pendientes. Verde para avanzar.
 
-- 63/63 tests de `accounts-payable` pasan (Vitest).
-- Schema Zod + `useUnsavedChangesGuard` correctamente integrados.
-- Fix del bug de comparación de fechas (`String(Date)` → `Date.getTime()`) verificado en `useSupplierBillForm.ts`.
-- Cobertura nueva: 10 tests de schema + 7 tests de hook (creación, update, totales, due date sugerido).
-- No detecté bugs ni regresiones. Nada bloqueante.
+## Alcance
+Cerrar los 4 UX pendientes de la auditoría integral (30/34 → **34/34**).
 
-## Ola 3.8 — Cerrar EC-A3 (crítico) + UX-M6 (quick win)
+### 1. UX-M3 · sr-only en español en Dialog/Sheet
+- `src/components/ui/dialog.tsx` línea 44 y `src/components/ui/sheet.tsx` línea 60: cambiar `"Close"` → `"Cerrar"` en el `<span className="sr-only">` del botón de cierre. Localización obligatoria (proyecto es-MX).
+- Test: snapshot mínimo en Testing Library verificando `getByText("Cerrar")` accesible.
 
-Con Ola 3.7 estable, quedan 5 hallazgos de la auditoría integral: `EC-A3`, `UX-M3`, `UX-M4`, `UX-M5`, `UX-M6`. Priorizo el único ALTO restante (`EC-A3`) y un UX de bajo esfuerzo del mismo dominio (empty state en filtros).
+### 2. UX-M6 (propagación) · EmptyState honesto en páginas migradas
+Wire de `filters.hasActive` + `filters.clear` a `ListPageLayout` en las 12 páginas ya migradas a `useTableFilters`:
+`InvoicesPage`, `QuotesPage`, `BookingsPage`, `CuentasPorPagarPage`, `CustomersPage`, `SuppliersPage`, `FleetPage`, `MaintenancePage`, `ContractsPage`, `DamageTrackingPage`, `AuditTrailPage`, `ChangelogPage`.
+- Confirmar que `useTableFilters` ya expone `hasActive` y `clear`; si no, extender el hook (una sola vez) y actualizar su test.
+- Cambio mecánico por página (2 props); sin lógica nueva.
 
-### 1. EC-A3 — Facturación recurrente: cerrar race check-then-insert
+### 3. UX-M4 · Dead-ends en 6 páginas de detalle
+Auditar las 6 vistas de detalle señaladas por la auditoría y garantizar botón "Volver" consistente + breadcrumb. Identificar primero (rg sobre `pages` sin `<BackButton|useNavigateTransition`) y luego aplicar `DetailPageHeader` con `backTo`. Alcance máximo 6 archivos.
 
-**Estado actual:** Ola 2.2 mitigó el race con `pg_advisory_xact_lock(booking_id)` dentro de `create_recurring_invoice`, pero la auditoría exigía además un **índice único** como red de seguridad última. Hoy no existe: dos ejecuciones desde nodos distintos con locks no cooperativos, o un bypass del RPC, seguirían pudiendo duplicar.
+### 4. UX-M5 · Overflow-x en portal móvil
+Auditar las 10 páginas de `src/features/portal/pages/` a viewport 375px con Playwright. Para las que tengan scroll horizontal indeseado, envolver tablas en `<div className="overflow-x-auto -mx-4 px-4">` o migrar a `MobileCardList` según el patrón del proyecto. Cero cambios de lógica.
 
-**Cambios (migration nueva):**
-- Crear `UNIQUE INDEX CONCURRENTLY invoices_booking_period_uniq ON public.invoice_bookings (booking_id, invoices.billing_period_start)` — implementado como índice único sobre una tabla puente materializada o, más simple, sobre `invoices (booking_id_principal, billing_period_start, billing_period_end) WHERE status <> 'cancelled' AND billing_period_start IS NOT NULL`. Se preserva `NULLS NOT DISTINCT` opcional; se filtra `cancelled` para permitir re-emisión legítima tras cancelación.
-- Como `invoices` no tiene FK directa a booking (es N:M vía `invoice_bookings`), añadir columna generada / desnormalizada `primary_booking_id` (o usar la más antigua) sólo si es necesario. Alternativa preferida: índice único parcial sobre `invoice_bookings (booking_id, invoice_period_start_denorm)` con columna denormalizada mantenida por trigger.
-- Antes de crear el índice, ejecutar limpieza defensiva: query que detecte duplicados existentes y aborte la migración si hay drift (fail-fast).
-- Ajustar `create_recurring_invoice` para capturar `unique_violation` (SQLSTATE 23505) y devolver el `invoice_id` existente en lugar de fallar — semántica idempotente end-to-end.
-- Ajustar `generate-recurring-invoices/index.ts` (línea ~384) para tratar 23505 como éxito silencioso, no como error.
+## Detalles técnicos
 
-**Tests:**
-- Deno: nuevo caso en `generate-recurring-invoices/handler.test.ts` simulando 23505 y verificando que se marca como skipped, no error.
-- Vitest: no aplica (lógica server-side pura).
-- SQL: script de verificación de índice en `supabase/migrations/tests/` (opcional, si existe convención).
+**Migraciones DB**: ninguna.
+**Edge Functions**: ninguna.
+**Nuevos tests (esperados)**:
+- `dialog.test.tsx` / `sheet.test.tsx`: 1 test cada uno para `sr-only "Cerrar"`.
+- `useTableFilters.test.tsx`: extender si se añade `hasActive`/`clear`.
+- Playwright visual del portal móvil (opcional; sólo si detectamos overflow).
 
-### 2. UX-M6 — EmptyState honesto cuando hay filtros activos
+**Riesgos**: bajos. Todos los cambios son presentational o strings. La única extensión no trivial es asegurar que `useTableFilters` exponga `hasActive`/`clear` — si ya lo hace, el sprint es 100% wiring.
 
-**Archivo:** `src/components/layout/ListPageLayout.tsx` líneas ~228-237.
+**Verificación**:
+1. `bunx vitest run` → 1124+ verde.
+2. Playwright smoke opcional del portal a 375px.
+3. Publicar **v7.131.0** con desglose por hallazgo cerrado.
 
-**Problema:** Muestra "Aún no se han registrado registros aquí" incluso cuando el usuario aplicó filtros que no matchean nada.
-
-**Cambios:**
-- Añadir prop `hasActiveFilters?: boolean` a `ListPageLayout`.
-- Cuando `hasActiveFilters && itemCount === 0`, mostrar copy alterno: "No hay resultados con los filtros actuales" + botón "Limpiar filtros" que dispare `onClearFilters?: () => void`.
-- Propagar desde las páginas ya migradas a `useTableFilters` (Facturas, Cotizaciones, Reservas, Facturas de Proveedor, Gastos) leyendo `filters.hasActive` del hook.
-- Fallback: si no se pasan props, comportamiento actual intacto (retro-compatible).
-
-**Tests:**
-- Vitest: `ListPageLayout.test.tsx` con 3 casos — sin filtros vacío, con filtros vacío, con filtros y resultados.
-
-### Verificación final
-- `bunx vitest run` (target: 1121 → ~1125 tests, todo verde).
-- `cd supabase/functions && deno test` (todo verde).
-- Changelog v7.130.0 (MINOR: nuevo índice + prop UX).
-
-### Fuera de alcance (para olas siguientes)
-- `UX-M3` (sr-only en inglés), `UX-M4` (dead-ends en /404 detalle), `UX-M5` (overflow portal móvil) — se agruparán en Ola 3.9 (pulido UX del portal + a11y).
+## Salida esperada
+- Auditoría integral: **34/34 hallazgos cerrados** (100%).
+- Sin cambios de dominio/negocio; puro pulido UX + a11y + localización.

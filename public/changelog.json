@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.131.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "Sprint 3 · Ola 3.9 — Cierre UX-M3/M4/M5 y propagación UX-M6 (auditoría integral 34/34)",
+    "summary": "Auditoría Ola 3.8 verde (1124/1124). Cerramos los 4 hallazgos UX restantes de la auditoría integral. **UX-M3**: `sr-only \"Close\"` → `\"Cerrar\"` en Dialog y Sheet (localización es-MX). **UX-M6 (propagación)**: 11 páginas (Facturas, Cotizaciones, Reservas, Cuentas por Pagar, Clientes, Proveedores, Flota, Mantenimiento, Contratos, Daños, Bitácora) ahora pasan `hasActiveFilters`/`onClearFilters` a `ListPageLayout` — EmptyState honesto extremo a extremo. **UX-M4**: auditadas 10 páginas de detalle; todas ya usan `DetailPageHeader` con `backTo` o `PageHeader` con `backHref`. Sin dead-ends. **UX-M5**: envueltas 2 tablas del portal cliente (`PortalQuoteDetail`, `PortalInvoicePayment`) en `<div className=\"overflow-x-auto\">` para evitar scroll horizontal indeseado en móvil. Suite: 1126/1126 verde (+2). Auditoría integral: **34/34 hallazgos cerrados (100%)**.",
+    "changes": [
+      "UX-M3: `Dialog.tsx` y `Sheet.tsx` — `sr-only` botón cierre en español (`Cerrar`)",
+      "UX-M6: 11 páginas cablean `hasActiveFilters`/`onClearFilters` a `ListPageLayout` (Facturas, Cotizaciones, Reservas, Cuentas por Pagar, Clientes, Proveedores, Flota, Mantenimiento, Contratos, Daños, Bitácora)",
+      "UX-M4: auditoría de 10 páginas de detalle — todas con back nav; sin cambios necesarios",
+      "UX-M5: `PortalQuoteDetail.tsx` y `PortalInvoicePayment.tsx` envuelven tablas en `overflow-x-auto`",
+      "Nuevo `dialog-sheet-a11y.test.tsx` (2 tests)",
+      "Total: +2 tests (1124 → 1126)"
+    ]
+  },
+  {
     "version": "7.130.0",
     "date": "2026-07-20",
     "type": "minor",
