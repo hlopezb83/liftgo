@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.119.1",
+    "date": "2026-07-20",
+    "type": "patch",
+    "title": "CI · Silenciar falso positivo de gitleaks en migración de limpieza",
+    "summary": "El workflow `Detectar secretos` (gitleaks 8.24.3) fallaba con 1 leak en `supabase/migrations/20260718065420_51b1d80a-c8ac-4599-90d6-bd332b10228d.sql:2` — la regla `generic-api-key` detectaba por entropía el UUID de `auth.users` usado en `DELETE FROM auth.users WHERE id = '...'` (limpieza de usuario huérfano). No es un secreto: un UUID de usuario no otorga acceso. Se agregó el fingerprint específico `515c288f6bf1f63c72375fbb3a60c0db303c4411:...:generic-api-key:2` a `.gitleaksignore` (mecanismo oficial de gitleaks para falsos positivos puntuales). El fingerprint está atado al commit SHA + archivo + regla + línea, por lo que cualquier secreto nuevo u otro UUID en cualquier otra migración sigue siendo detectado normalmente."
+  },
+  {
     "version": "7.119.0",
     "date": "2026-07-20",
     "type": "minor",

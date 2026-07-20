@@ -1,0 +1,37 @@
+{
+  "version": "7.119.1",
+  "date": "2026-07-20",
+  "type": "patch",
+  "title": "CI · Silenciar falso positivo de gitleaks en migración de limpieza",
+  "sections": [
+    {
+      "heading": "Contexto",
+      "items": [
+        "Workflow `Detectar secretos` (gitleaks 8.24.3) fallaba con `leaks found: 1` bloqueando CI.",
+        "Regla disparada: `generic-api-key` (entropía 3.66) sobre el UUID `3e2d6f9d-aa74-4a70-b1d2-0c11a1cd1019`.",
+        "Ubicación: `supabase/migrations/20260718065420_51b1d80a-c8ac-4599-90d6-bd332b10228d.sql` línea 2, dentro de `DELETE FROM auth.users WHERE id = '...'` (limpieza de usuario huérfano)."
+      ]
+    },
+    {
+      "heading": "Análisis",
+      "items": [
+        "Un UUID de `auth.users` no es un secreto: no otorga acceso, no autentica, no es una API key.",
+        "La migración ya está aplicada en Cloud y presente en el historial de git (commit `515c288`); reescribirla no eliminaría el hallazgo (gitleaks escanea `--all`)."
+      ]
+    },
+    {
+      "heading": "Fix",
+      "items": [
+        "Añadido fingerprint específico a `.gitleaksignore`: `515c288f6bf1f63c72375fbb3a60c0db303c4411:supabase/migrations/20260718065420_51b1d80a-c8ac-4599-90d6-bd332b10228d.sql:generic-api-key:2`.",
+        "El fingerprint está atado a commit + archivo + regla + línea — cualquier secreto nuevo u otro UUID en otra migración sigue siendo detectado.",
+        "Descartado ampliar `.gitleaks.toml` con allowlist genérico de UUIDs (demasiado permisivo)."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "Próximo run del workflow `Detectar secretos` debe reportar `leaks found: 0` con exit code 0."
+      ]
+    }
+  ]
+}
