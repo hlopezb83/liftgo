@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@/components/dataTable/v2";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { cn } from "@/lib/utils";
-import type { ModelRow } from "./profitabilityHelpers";
+import type { ModelRow } from "../../../hooks/useProfitByModelReport";
 
 export const profitabilityColumns: ColumnDef<ModelRow>[] = [
   { id: "model", header: "Modelo", accessorKey: "model", cell: ({ row }) => <span className="font-medium">{row.original.model}</span> },

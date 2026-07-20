@@ -2,7 +2,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell } from "recharts";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import type { ModelRow } from "./profitabilityHelpers";
+import type { ModelRow } from "../../../hooks/useProfitByModelReport";
 
 const chartConfig = { profit: { label: "Ganancia Neta" } };
 

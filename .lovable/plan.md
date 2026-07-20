@@ -1,70 +1,61 @@
-## Auditoría Ola 3.2
+## Auditoría Ola 3.3
 
-**Estado verde:** typecheck limpio, 1095/1095 Vitest pasan (incluye los 19 tests directamente afectados por EC-M1 y por la migración de ContractForm a RHF).
+**Estado verde:** 1097/1097 Vitest, typecheck limpio, RPC `report_profit_by_model` aplicado y activo.
 
-**Sin bugs detectados en lo entregado**, pero hay huecos de cobertura y follow-ups explícitos del changelog v7.124.0 que conviene cerrar antes de avanzar a temas nuevos:
+**Hallazgos menores a corregir antes de avanzar:**
 
-- `useUnsavedChangesGuard` se wireó en `InvoiceForm` (Ola 3.1) y `ContractForm` (Ola 3.2) sin tests unitarios.
-- La nueva validación Zod de `ContractForm` (cliente/equipo requeridos, tarifas ≥ 0, `end_date >= start_date`) no tiene test que verifique que los errores se muestran inline y bloquean el submit.
-- El prefill de contrato (booking/equipo/template) usa `shouldDirty:false` — sin test que garantice que el guard **no** dispare en autofills.
-- **EC-A4** (Profitability por modelo hoy en client-side sujeto a límites PostgREST) sigue pendiente.
-- **UX-M1 QuoteForm** queda diferido — es el que más superficie tiene y va en su propio sprint.
+1. **Violación de core rule (lucide-react directo)** en `ProfitabilityByModelReport.tsx`:
+   ```ts
+   import { AlertTriangle } from "lucide-react";
+   ```
+   La memoria core prohíbe importar `lucide-react` directamente — debe usar el Icon registry (`@/components/icons`).
+2. **`as ModelRow[]`** en el mismo archivo — viola la core rule "sin `!`/`as`". `ProfitByModelRow` y `ModelRow` son estructuralmente idénticos: hay que unificar el tipo, no castear.
+3. **Código muerto tras EC-A4**: `profitabilityHelpers.ts` (funciones `buildRevenueMap`, `aggregateRows`, `buildCostMap`, `buildModelUnitsMap`, `inRange`) y su test `__tests__/profitabilityHelpers.test.ts` ya no tienen consumidores — sólo se importaba `ModelRow` (que moveremos al hook).
+4. **Falta test del hook** `useProfitByModelReport` — sin cobertura del mapping numérico (`Number(...)` sobre strings de Postgres) ni del error path.
+5. **`chartRows = rows` redundante** en el reporte (variable espejo sin transformación).
+
+**Follow-up mayor pendiente del audit maestro:** UX-M1 QuoteForm a RHF+Zod (diferido explícitamente desde Ola 3.2 por tamaño — line-items, descuentos, multi-moneda, `rental_meta`).
 
 ---
 
-## Plan Ola 3.3 — Cobertura de Ola 3.2 + EC-A4 (server-side)
+## Plan Ola 3.4 — Pulido EC-A4 + fundamento QuoteForm (schema-first)
 
-### Alcance
+### A) Pulido EC-A4 (cierre limpio de Ola 3.3)
 
-**A) Tests de la migración de Ola 3.2**
+1. `useProfitByModelReport.ts`: promover `ProfitByModelRow` como **tipo canónico** (renombrar interno a `ModelRow` para mantener nombre corto ya usado por chart/columnas).
+2. `ProfitabilityByModelReport.tsx`:
+   - Reemplazar `import { AlertTriangle } from "lucide-react"` por el alias correspondiente del Icon registry (`AlertTriangleIcon` o el que exista; si no existe, agregar alias siguiendo el patrón del registry).
+   - Eliminar `as ModelRow[]` (el hook ya devolverá el tipo compartido).
+   - Eliminar variable espejo `chartRows`.
+3. `profitabilityColumns.tsx` y `ProfitabilityChart.tsx`: cambiar el import de `ModelRow` para tomarlo desde el hook (`useProfitByModelReport`).
+4. Eliminar archivo `profitabilityHelpers.ts` y su test `profitabilityHelpers.test.ts` (ya sin consumidores tras 1-3).
+5. **Nuevo test** `useProfitByModelReport.test.ts`:
+   - Mock de `supabase.rpc` que devuelve filas con `revenue`/`profit` como strings numéricos (comportamiento real de Postgres numeric) → verifica que el hook los convierte a `number`.
+   - Caso `error` → el hook debe rechazar la promesa (y `useQuery` marcar `isError`).
+   - Verifica `queryKey` estable dado el mismo rango (dos renders con la misma fecha reusan cache).
 
-1. `src/hooks/__tests__/useUnsavedChangesGuard.test.tsx` (nuevo)
-   - Renderiza el hook con `isDirty=true`/`false` dentro de un `MemoryRouter`.
-   - Verifica que `beforeunload` sólo bloquea navegación cuando `isDirty=true`.
-   - Verifica que un `false → true → false` deja de bloquear correctamente (cleanup).
+### B) Fundamento QuoteForm (preparación de UX-M1 sin migrar UI)
 
-2. `src/features/contracts/pages/__tests__/ContractForm.test.tsx` (nuevo)
-   - Renderiza el form con providers mínimos (QueryClient + Router).
-   - Submit sin cliente/equipo → aparecen `FormMessage` "Cliente requerido" / "Equipo requerido" y `createContract` NO se llama.
-   - `end_date < start_date` → aparece el error del refine y bloquea submit.
-   - Éxito: submit con datos válidos llama a `createContract.mutate` con el payload esperado y navega a `/contracts/:id`.
+Migrar la UI completa de QuoteForm en un solo sprint es riesgoso (line-items dinámicos, descuentos, multi-moneda, `rental_meta`, autofills desde template/cotización). Esta ola sólo entrega la base validada y testeada; la migración de UI queda para Ola 3.5.
 
-3. `src/features/contracts/hooks/contractForm/__tests__/useContractFormPrefill.test.tsx` (nuevo)
-   - Monta el hook con un booking mock y confirma que `form.formState.isDirty === false` después del autofill (blindaje del guard).
+6. `src/features/quotes/lib/quoteFormSchema.ts` (nuevo):
+   - `z.object` con los campos hoy manejados por `useQuoteFormState` (cliente, moneda, tasa IVA, fechas, notas, `line_items` como array).
+   - `line_items` como `z.array(z.object({ ... }))` con `min(1, "Agrega al menos una partida")` y validación por tipo (renta requiere `forklift_id` + tarifa mensual; venta/servicio requieren descripción + precio > 0).
+   - Refines cross-field: si hay línea de renta, `rental_meta.start_date` / `end_date` requeridos y `end_date >= start_date`.
+7. `src/features/quotes/lib/__tests__/quoteFormSchema.test.ts` (nuevo):
+   - Payload válido de una cotización sólo-renta.
+   - Payload válido mixto renta + venta.
+   - Rechazo: sin `customer_id`.
+   - Rechazo: array de partidas vacío.
+   - Rechazo: partida renta sin `forklift_id`.
+   - Rechazo: `end_date < start_date` cuando hay renta.
+   - Rechazo: partida venta con `unit_price ≤ 0`.
 
-**B) EC-A4 — RPC server-side para Profitability por Modelo**
+**Fuera de alcance en 3.4:** cambios en `QuoteForm.tsx` UI, en `useQuoteFormState`, o en las mutaciones — se abordarán en Ola 3.5 usando el schema como contrato.
 
-4. Nueva migración `supabase/migrations/[ts]_report_profit_by_model.sql`
-   - `CREATE FUNCTION public.report_profit_by_model(_start date, _end date) RETURNS TABLE(model text, units int, revenue numeric, maintenance numeric, damages numeric, profit numeric, margin numeric)`.
-   - `SECURITY DEFINER`, `SET search_path = public`, `GRANT EXECUTE ... TO authenticated`.
-   - Agrega en SQL sobre `forklifts` + `bookings` + `invoices` + `maintenance_logs` + `damage_records` con la misma semántica que `profitabilityHelpers` (facturas `paid` con `paid_at` en rango, costos por `performed_at`/`created_at` en rango, agrupado por `manufacturer||' '||model`).
-
-5. Nuevo `src/features/reports/hooks/useProfitByModelReport.ts`
-   - `useQuery` que llama `supabase.rpc('report_profit_by_model', { _start, _end })`.
-   - Query key `["report", "profit-by-model", start, end]`.
-
-6. Refactor `src/features/reports/components/reports/ProfitabilityByModelReport.tsx`
-   - Elimina los 5 `useX()` que cargaban toda la app y pasa a consumir el hook nuevo.
-   - `chartRows` / tabla / CSV se alimentan directamente de las filas del RPC.
-   - Estado de error se propaga a `ListPageLayout` / mensaje inline.
-   - Se conservan `profitabilityHelpers` y sus tests (siguen usados por consumidores puros / documentación); si nadie más los importa, se marcan para retirar en Ola 3.4.
-
-### Detalles técnicos
-
-- El RPC devuelve `numeric` para todas las métricas; el frontend formatea con `formatCurrency` / `.toFixed(1)` como hoy.
-- Rango se pasa como `date` (no `timestamptz`) para evitar el mismo problema de zona horaria que EC-M1 arregló en cliente.
-- `margin` se calcula en SQL con `CASE WHEN revenue > 0 THEN profit/revenue*100 ELSE 0 END`.
-- El hook nuevo respeta el patrón `LIST_PAGE_LIMIT` — el RPC ya agrega, no necesita `.limit()`.
-- Test de integración con Supabase mockeado (siguiendo el patrón de `useContracts.rls.test.ts`).
-
-### Fuera de alcance (queda para Ola 3.4)
-
-- Migración de `QuoteForm` a RHF+Zod (line-items subforms — es sprint completo).
-- Retiro de `profitabilityHelpers` si tras EC-A4 nadie más los consume.
-
-### Verificación al cierre
+### Verificación
 
 - `bunx tsgo --noEmit` limpio.
-- `bunx vitest run` — se agregan ~5 tests nuevos, esperado ≥1100 pasando.
-- Migración aplicada y RPC probado desde el UI.
-- Entrada nueva en `public/changelog.json` + `public/changelog/v7.125.0.json`.
+- `bunx vitest run` — `1097 → ~1105` (aprox +8: 3 del hook, ~7 del schema, −2 de helpers eliminados).
+- Reporte de rentabilidad visible en preview sin regresiones (mismo chart + tabla).
+- Nueva entrada `public/changelog.json` + `public/changelog/v7.126.0.json`.

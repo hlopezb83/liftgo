@@ -1,0 +1,52 @@
+{
+  "version": "7.126.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "Sprint 3 · Ola 3.4 — Pulido EC-A4 + fundamento QuoteForm (schema-first)",
+  "sections": [
+    {
+      "heading": "Pulido EC-A4 (cierre de Ola 3.3)",
+      "items": [
+        "`useProfitByModelReport` exporta `ModelRow` como tipo canónico consumido por chart, columnas y el reporte.",
+        "`ProfitabilityByModelReport.tsx`: elimina `as ModelRow[]` (viola core rule sin `!`/`as`), elimina variable espejo `chartRows`.",
+        "Reemplaza `import { AlertTriangle } from \"lucide-react\"` por `WarnIcon` del Icon Registry (`@/components/icons`).",
+        "Elimina archivo muerto `profitabilityHelpers.ts` — sin consumidores tras la migración al RPC en Ola 3.3.",
+        "Chart y columnas ahora importan `ModelRow` desde el hook."
+      ]
+    },
+    {
+      "heading": "Tests nuevos: hook de rentabilidad",
+      "items": [
+        "Convierte strings `numeric` de Postgres (`\"150000.00\"`) a `number` en el mapping.",
+        "Propaga error del RPC como `isError` en `useQuery`.",
+        "Envía `_start`/`_end` en formato YMD (America/Monterrey) al RPC."
+      ]
+    },
+    {
+      "heading": "Fundamento QuoteForm (preparación UX-M1 sin migrar UI)",
+      "items": [
+        "Nuevo `src/features/quotes/lib/quoteFormSchema.ts` — schema Zod alineado al shape actual de `useQuoteFormState` (`quoteType`, `rentalLines[]`, `saleLines[]`, `dateRange`, `taxRate`, `currency`, logística).",
+        "Sub-schemas `rentalLineSchema` y `saleLineSchema` con validaciones por partida (modelId, cantidad > 0, tarifas ≥ 0, `monthlyRate`/`unitPrice` > 0).",
+        "`superRefine` cross-field: renta requiere partidas + `dateRange` válido (`to >= from`); logística marcada requiere `logisticsCost > 0`.",
+        "Tipos exportados (`QuoteFormValues`, `RentalLineValues`, `SaleLineValues`) como contrato para la migración de UI a RHF en Ola 3.5.",
+        "Fuera de alcance esta ola: `QuoteForm.tsx`, `useQuoteFormState`, mutaciones y autofills — se abordan en 3.5 usando este schema."
+      ]
+    },
+    {
+      "heading": "Tests nuevos: quoteFormSchema (12 casos)",
+      "items": [
+        "Válidos: cotización de renta y de venta.",
+        "Rechazos individuales: sin `customerId`, sin partidas (según tipo), partida sin modelo, `monthlyRate`/`unitPrice` = 0.",
+        "Cross-field: `end_date < start_date` en renta, renta sin `dateRange`, logística marcada sin costo, logística marcada con costo válido."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "`bunx tsgo --noEmit` limpio.",
+        "`bunx vitest run`: 1112/1112 (+15 sobre 1097 de Ola 3.3).",
+        "Reporte de rentabilidad renderiza sin regresiones en preview."
+      ]
+    }
+  ]
+}
