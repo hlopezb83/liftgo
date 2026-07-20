@@ -12,7 +12,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({ fromResolver: () => resp }),
 }));
 
-import { useCustomers } from "../useCustomers";
+import { useCustomer, useCustomers } from "../useCustomers";
 
 describe("useCustomers — RLS contract", () => {
   beforeEach(() => {
@@ -34,5 +34,29 @@ describe("useCustomers — RLS contract", () => {
     const { result } = renderHook(() => useCustomers(), { wrapper: Wrapper });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data).toEqual([]);
+  });
+});
+
+describe("useCustomer — detalle por id", () => {
+  beforeEach(() => {
+    resp = { data: null, error: null };
+  });
+
+  it("no ejecuta la query cuando id es undefined", () => {
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useCustomer(undefined), { wrapper: Wrapper });
+    expect(result.current.fetchStatus).toBe("idle");
+  });
+
+  it("devuelve el cliente aun cuando useCustomers estaría truncada", async () => {
+    // Simula: 500 clientes en la lista, pero pedimos uno por id → debe llegar directo.
+    resp = {
+      data: { id: "cust-999", name: "Cliente 999", deleted_at: null },
+      error: null,
+    };
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useCustomer("cust-999"), { wrapper: Wrapper });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(result.current.data).toMatchObject({ id: "cust-999" });
   });
 });
