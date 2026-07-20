@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.120.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "Sprint 2 · Ola 2.4 — Disponibilidad de flota y tarifas confiables (BL-A1, BL-A3, BL-M2)",
+    "summary": "Auditoría de Ola 2.3 verde (1084 Vitest + 22 Deno). Ola 2.4 cierra tres findings de negocio: (1) BL-A1 — `useExtendBookingPreview` calculaba el 'Nuevo total estimado' con IVA 21% hardcodeado (~4.3% de más). Migrado a `DEFAULT_VAT_RATE` (16%, `lib/money`). Test de regresión valida taxAmount=160 sobre subtotal 1000. (2) BL-A3 — `create_booking` ya no exige `forklift.status='available'` ni marca la unidad como `rented` cuando la reserva es futura; solo bloquea `maintenance`/`out_of_service`. La exclusion constraint `no_overlapping_bookings` (migración `20260719055254`) sigue garantizando no doble-booking por fechas. El flip a `rented` ocurre únicamente si `p_start_date <= CURRENT_DATE`, respetando la memoria `forklift-status-persistence`. Resuelve la contradicción con `get_available_forklifts` y habilita reservas escalonadas de una misma unidad. (3) BL-M2 — `convert_quote_to_bookings` deja de confiar en las tarifas del payload cliente: resuelve `daily/weekly/monthly_rate` desde `quotes.rental_meta` matcheando por `equipment_model_id` del forklift. Fallback al payload solo para cotizaciones legacy sin `rental_meta`. Validaciones adicionales de fechas (`end < start` rechazado). BL-A2 verificado ya resuelto en migración previa (`EXCLUDE USING gist` con WHERE `status NOT IN cancelled/completed`). Verificado: nuevo test `useExtendBookingPreview.test.ts` verde + suite completa sin regresiones."
+  },
+  {
     "version": "7.119.1",
     "date": "2026-07-20",
     "type": "patch",
