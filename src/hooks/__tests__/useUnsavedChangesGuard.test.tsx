@@ -31,8 +31,9 @@ describe("useUnsavedChangesGuard", () => {
   });
 
   function countBeforeunload(spy: ReturnType<typeof vi.spyOn>) {
-    return spy.mock.calls.filter((c) => c[0] === "beforeunload").length;
+    return (spy.mock.calls as unknown[][]).filter((c) => c[0] === "beforeunload").length;
   }
+
 
   it("no registra beforeunload cuando isDirty=false", () => {
     renderWithProviders(<Harness isDirty={false} />);
@@ -48,9 +49,10 @@ describe("useUnsavedChangesGuard", () => {
 
   it("previene el evento y setea returnValue cuando hay cambios sin guardar", () => {
     renderWithProviders(<Harness isDirty={true} />);
-    const handler = addSpy.mock.calls.find((c) => c[0] === "beforeunload")?.[1] as
+    const handler = (addSpy.mock.calls as unknown[][]).find((c) => c[0] === "beforeunload")?.[1] as
       | ((e: BeforeUnloadEvent) => void)
       | undefined;
+
     expect(handler).toBeDefined();
     const evt = {
       preventDefault: vi.fn(),
