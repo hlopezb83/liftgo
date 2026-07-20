@@ -1,24 +1,40 @@
+## Auditoría YTD 2026 — doble conteo por categoría del Estado de Resultados
 
-## Estado actual
+Query ejecutado contra `supplier_bills` (status ≠ cancelled) y `operating_expenses`, ambos con fecha ≥ 2026-01-01. Match de duplicado = misma fecha + mismo monto (2 decimales) + descripción normalizada (trim, colapso de espacios, lowercase). La regla actual del RPC prioriza `supplier_bills`.
 
-Esto ya quedó implementado en la migración anterior (**v7.108.2**). El CTE `expense_lines` de `get_income_statement` hoy funciona así:
+### Categorías con doble conteo detectado
 
-1. `sb_lines` — todas las partidas de `supplier_bills` no canceladas (fuente formal).
-2. `oe_lines` — todas las partidas de `operating_expenses`.
-3. `dup_keys` — deriva `(date_key, amount_key, desc_key)` desde `sb_lines`.
-4. `oe_dedup` — `oe_lines LEFT JOIN dup_keys ... WHERE dup_keys.date_key IS NULL` → excluye cualquier `operating_expenses` que coincida con un `supplier_bills`.
-5. `expense_lines = sb_lines UNION ALL oe_dedup`.
 
-Verificado: "Otro" YTD 2026 pasó de $1,665,627 → $878,845 y los 48 `operating_expenses` de esa categoría fueron descartados por matchear 1-a-1 con su factura de proveedor.
+| Categoría  | SB partidas | SB total   | OE partidas | OE total   | Duplicadas | Descartado del P&L | Neto P&L   |
+| ---------- | ----------- | ---------- | ----------- | ---------- | ---------- | ------------------ | ---------- |
+| otro       | 52          | 891,873.87 | 48          | 786,781.96 | 48         | **786,781.96**     | 891,873.87 |
+| renta      | 7           | 325,293.12 | 6           | 272,592.00 | 6          | **272,592.00**     | 325,293.12 |
+| nomina     | 22          | 164,167.16 | 23          | 170,410.06 | 21         | **153,095.12**     | 181,482.10 |
+| publicidad | 17          | 119,748.84 | 14          | 95,983.20  | 14         | **95,983.20**      | 119,748.84 |
+| caja_chica | 1           | 10,706.90  | 1           | 10,706.90  | 1          | **10,706.90**      | 10,706.90  |
 
-## Opciones
 
-Puedo:
+**Total descartado por deduplicación: $1,319,159.18 MXN.**
 
-- **A. Cerrar el pedido.** El comportamiento pedido ya está activo. Confirmo con una consulta más (todas las categorías, no sólo "Otro") y no toco código.
-- **B. Endurecer la regla.** Hoy el match exige fecha + monto + descripción idénticos. Si quieres que sea aún más agresivo (por ejemplo: mismo proveedor + mismo mes + mismo monto, ignorando descripción), lo cambio — pero puede colapsar partidas legítimamente distintas. Necesito confirmación antes.
-- **C. Migración a fuente única en captura.** Impedir que se sigan creando `operating_expenses` que dupliquen una `supplier_bills` — esto sí es cambio nuevo (validación en frontend/trigger). Es un sprint aparte.
+### Categorías sin doble conteo (una sola fuente)
 
-## Pregunta
+- Solo `supplier_bills`: mantenimiento ($28,188), transporte_logistica ($73,592), intereses ($187,739.35), honorarios ($4,000), comisiones_bancarias ($1,461.50), refacciones ($3,201.60), servicios_publicos ($5,000).
+- Solo `operating_expenses`: **costo_venta ($363,040 · 1 partida)** — captura únicamente en OE, no expone riesgo de doble conteo pero conviene evaluar si debería registrarse como factura de proveedor.
 
-¿Cuál de las tres quieres? Mi recomendación es **A** (verificar y cerrar) porque la migración anterior ya cubre el caso que describiste; **C** vale la pena si quieres eliminar el problema de raíz en la captura, pero implica cambios de UI y validación.
+### Hallazgo pendiente en `nomina`
+
+`operating_expenses.nomina` tiene 23 partidas por $170,410.06 pero el matcher sólo captura 21 ($153,095.12). Quedan **2 partidas por $17,314.94** que no matchean con ninguna `supplier_bills` de la misma categoría. Posibles causas: descripción distinta (typos, mayúsculas con acentos, "Nómina 1a quincena" vs "Nomina primera quincena"), monto redondeado distinto por retenciones, o fechas desfasadas 1 día. Podrían ser gastos legítimos únicos o duplicados no detectados.
+
+## Entregable propuesto
+
+Registrar el reporte como changelog **v7.108.4** (patch, sin cambios de código) con:
+
+- Tabla de impacto por categoría (arriba).
+- Total descartado.
+- Flag explícito sobre las 2 partidas residuales de `nomina` para revisión manual.
+- Nota sobre `costo_venta` capturado sólo en OE.
+
+## Preguntas
+
+1. ¿Quieres que en el mismo turno investigue las 2 partidas residuales de `nomina` (listar id, fecha, monto, descripción para que decidas si son duplicados no detectados o legítimos)? Si
+2. ¿Quieres que el reporte se guarde también como archivo Markdown en `/mnt/documents/` para compartir fuera de la app, o solo como changelog?

@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.108.4",
+    "date": "2026-07-20",
+    "type": "patch",
+    "title": "Auditoría P&L: doble conteo por categoría YTD 2026 y residuales de nómina",
+    "summary": "Se audita el impacto de la deduplicación sb↔oe por categoría. Total descartado YTD 2026: $1,319,159.18 MXN. Categorías con doble conteo: otro ($786,781.96 · 48 partidas), renta ($272,592 · 6), nomina ($153,095.12 · 21), publicidad ($95,983.20 · 14), caja_chica ($10,706.90 · 1). Sin doble conteo: mantenimiento, transporte_logistica, intereses, honorarios, comisiones_bancarias, refacciones, servicios_publicos (todos sólo en supplier_bills) y costo_venta (sólo en operating_expenses, $363,040 · 1). Hallazgo: 2 partidas de operating_expenses.nomina del 15-abr-2026 (F-6093 $9,899.09 y F-6092 $7,415.85, total $17,314.94) no matchean con ninguna supplier_bills y suman al P&L — pendientes de revisión manual para confirmar si son legítimas o duplicados con descripción distinta."
+  },
+  {
     "version": "7.108.3",
     "date": "2026-07-20",
     "type": "patch",
