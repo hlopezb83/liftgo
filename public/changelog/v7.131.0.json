@@ -1,0 +1,49 @@
+{
+  "version": "7.131.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "Sprint 3 · Ola 3.9 — Cierre UX-M3/M4/M5 y propagación UX-M6 (auditoría integral 34/34)",
+  "summary": "Auditoría integral cerrada al 100%: los 34 hallazgos originales están atendidos. Esta ola cierra los 4 UX pendientes y propaga UX-M6 al resto de las páginas migradas a `useTableFilters`.",
+  "sections": [
+    {
+      "heading": "UX-M3 · Localización sr-only en Dialog/Sheet",
+      "bullets": [
+        "`src/components/ui/dialog.tsx`: `sr-only \"Close\"` → `\"Cerrar\"` en el botón de cierre.",
+        "`src/components/ui/sheet.tsx`: mismo cambio en el `SheetPrimitive.Close`.",
+        "Test nuevo: `src/components/ui/__tests__/dialog-sheet-a11y.test.tsx` (2 tests)."
+      ]
+    },
+    {
+      "heading": "UX-M6 · Propagación EmptyState honesto",
+      "bullets": [
+        "11 páginas cablean `hasActiveFilters`/`onClearFilters` a `ListPageLayout`.",
+        "Alcance: `InvoicesPage`, `QuotesPage`, `BookingsPage`, `CuentasPorPagarPage`, `CustomersPage`, `SuppliersPage`, `FleetPage`, `MaintenancePage`, `ContractsPage`, `DamageTrackingPage`, `AuditTrailPage`.",
+        "Cero cambios de lógica — sólo wiring de props del hook al layout."
+      ]
+    },
+    {
+      "heading": "UX-M4 · Dead-ends en páginas de detalle (verificación)",
+      "bullets": [
+        "Auditoría de 10 páginas de detalle: todas usan `DetailPageHeader backTo=...` o `PageHeader backHref=...`.",
+        "`MrrDetailPage` usa `PageHeader backHref=\"/\"` — sin cambios necesarios.",
+        "El hallazgo se marca como ya cubierto por olas previas."
+      ]
+    },
+    {
+      "heading": "UX-M5 · Overflow horizontal en portal móvil",
+      "bullets": [
+        "`PortalQuoteDetail.tsx`: tabla de partidas envuelta en `overflow-x-auto`.",
+        "`PortalInvoicePayment.tsx`: tabla de reportes anteriores envuelta en `overflow-x-auto`.",
+        "Resto de páginas del portal ya usan `MobileCardList` o carecen de tablas."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "bullets": [
+        "Vitest: 1126/1126 verde (+2).",
+        "Sin nuevos warnings ESLint.",
+        "Auditoría integral: 34/34 hallazgos cerrados (100%)."
+      ]
+    }
+  ]
+}
