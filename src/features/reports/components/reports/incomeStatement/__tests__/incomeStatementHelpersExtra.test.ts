@@ -55,7 +55,7 @@ describe("getBreakdownFor", () => {
       .toEqual({ rows: cogs, key: "cogs" });
     expect(getBreakdownFor("  Ingresos por Rentas", dep, cogs, rental, sales))
       .toEqual({ rows: rental, key: "rental" });
-    expect(getBreakdownFor("  Ingresos por Ventas", dep, cogs, rental, sales))
+    expect(getBreakdownFor("  Otros ingresos (sin reserva)", dep, cogs, rental, sales))
       .toEqual({ rows: sales, key: "sales" });
   });
   it("retorna null para etiquetas no mapeadas", () => {

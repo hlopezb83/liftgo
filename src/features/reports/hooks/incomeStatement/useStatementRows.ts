@@ -54,7 +54,7 @@ export function useComparisonRows(yearTotals: YearTotals[]): ComparisonRow[] {
   }
   return [
     { label: "  Ingresos por Rentas", ...v((yt) => yt.revenueRental) },
-    { label: "  Ingresos por Ventas", ...v((yt) => yt.revenueSales) },
+    { label: "  Otros ingresos (sin reserva)", ...v((yt) => yt.revenueSales) },
     { label: "= Total Ingresos", ...v((yt) => yt.revenue, { isSubtotal: true }) },
     { label: "(-) Mantenimiento", ...v((yt) => yt.maintenanceCost, { isCost: true }) },
     { label: "(-) Daños", ...v((yt) => yt.damageCost, { isCost: true }) },
