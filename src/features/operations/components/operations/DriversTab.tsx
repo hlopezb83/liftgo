@@ -3,15 +3,19 @@ import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTa
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
+import { MobileCardList } from "@/components/layout/MobileCardList";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useDrivers, useCreateDriver, useUpdateDriver, useDeleteDriver, Driver } from "@/features/fleet";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
 export function DriversTab() {
+  const isMobile = useIsMobile();
   const { data: drivers, isLoading } = useDrivers();
   const create = useCreateDriver();
   const update = useUpdateDriver();
@@ -81,7 +85,38 @@ export function DriversTab() {
       <div className="flex justify-end mb-4">
         <Button onClick={openNew} size="sm"><AddIcon className="h-4 w-4 mr-2" />Agregar Operador</Button>
       </div>
-      <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay operadores registrados" />
+      {isMobile ? (
+        <MobileCardList
+          items={drivers ?? []}
+          keyExtractor={(d) => d.id}
+          emptyMessage="No hay operadores registrados"
+          renderCard={(d) => (
+            <Card>
+              <CardContent className="p-3 space-y-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium">{d.name}</span>
+                  <div className="flex items-center gap-2">
+                    <StatusBadge status={d.is_active ? "active" : "inactive"} />
+                    <DriverRowActions
+                      driver={d}
+                      onEdit={() => openEdit(d)}
+                      onDelete={() => del.mutate(d.id, { onSuccess: () => notifySuccess("Eliminado") })}
+                    />
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground truncate">
+                  {d.phone || "—"} · {d.email || "—"}
+                </div>
+                {d.license_number ? (
+                  <div className="text-xs text-muted-foreground">Lic. {d.license_number}</div>
+                ) : null}
+              </CardContent>
+            </Card>
+          )}
+        />
+      ) : (
+        <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay operadores registrados" />
+      )}
       <FormDialog open={open} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} Operador`} description="Administrar datos del operador para programación de entregas.">
           <div className="grid gap-4 py-2">
             <div className="space-y-1.5"><Label>Nombre *</Label><Input placeholder="Nombre completo" value={form.name} onChange={(e) => set("name", e.target.value)} /></div>

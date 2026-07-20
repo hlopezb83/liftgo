@@ -2,16 +2,20 @@ import { useState } from "react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
+import { MobileCardList } from "@/components/layout/MobileCardList";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEquipmentModels, useCreateEquipmentModel, useUpdateEquipmentModel, useDeleteEquipmentModel, EquipmentModel } from "@/features/fleet";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { FUEL_TYPES, FUEL_TYPE_LABELS } from "@/lib/constants";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
 export function EquipmentModelsTab() {
+  const isMobile = useIsMobile();
   const { data: models, isLoading } = useEquipmentModels();
   const create = useCreateEquipmentModel();
   const update = useUpdateEquipmentModel();
@@ -73,7 +77,34 @@ export function EquipmentModelsTab() {
       <div className="flex justify-end mb-4">
         <Button onClick={openNew} size="sm"><AddIcon className="h-4 w-4 mr-2" />Agregar Modelo</Button>
       </div>
-      <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay modelos de equipo configurados" />
+      {isMobile ? (
+        <MobileCardList
+          items={models ?? []}
+          keyExtractor={(m) => m.id}
+          emptyMessage="No hay modelos de equipo configurados"
+          renderCard={(m) => (
+            <Card>
+              <CardContent className="p-3 space-y-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium">{m.manufacturer} {m.model}</span>
+                  <EquipmentModelRowActions
+                    model={m}
+                    onEdit={() => openEdit(m)}
+                    onDelete={() => del.mutate(m.id, { onSuccess: () => notifySuccess("Eliminado") })}
+                  />
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {FUEL_TYPE_LABELS[m.default_fuel_type] || m.default_fuel_type}
+                  {m.default_capacity_kg ? ` · ${m.default_capacity_kg} kg` : ""}
+                  {m.default_mast_height_m ? ` · ${m.default_mast_height_m} m` : ""}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        />
+      ) : (
+        <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay modelos de equipo configurados" />
+      )}
       <FormDialog open={open} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} Modelo de Equipo`} description="Define una combinación de fabricante/modelo con especificaciones predeterminadas.">
           <div className="grid gap-4 py-2">
             <div className="space-y-1.5"><Label>Fabricante *</Label><Input placeholder="ej. Hyster" value={form.manufacturer} onChange={(e) => set("manufacturer", e.target.value)} /></div>

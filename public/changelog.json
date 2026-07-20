@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.105.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "UX-07: MobileCardList en catálogos de OperationsSetupPage",
+    "summary": "Los cuatro tabs de catálogos (EquipmentModelsTab, DriversTab, MechanicsTab, MaintenancePoliciesTab) ahora renderizan `MobileCardList` cuando `useIsMobile()` es true, con tarjetas compactas (nombre + estado/acciones + metadatos secundarios) siguiendo el patrón del portal de clientes. En escritorio se conserva `DataTableV2` sin cambios."
+  },
+  {
     "version": "7.104.2",
     "date": "2026-07-20",
     "type": "patch",

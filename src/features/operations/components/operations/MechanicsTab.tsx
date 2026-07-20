@@ -3,15 +3,19 @@ import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTa
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
+import { MobileCardList } from "@/components/layout/MobileCardList";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useMechanics, useCreateMechanic, useUpdateMechanic, useDeleteMechanic, Mechanic } from "@/features/maintenance";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
 export function MechanicsTab() {
+  const isMobile = useIsMobile();
   const { data: mechanics, isLoading } = useMechanics();
   const create = useCreateMechanic();
   const update = useUpdateMechanic();
@@ -77,7 +81,38 @@ export function MechanicsTab() {
       <div className="flex justify-end mb-4">
         <Button onClick={openNew} size="sm"><AddIcon className="h-4 w-4 mr-2" />Agregar Mecánico</Button>
       </div>
-      <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay mecánicos registrados" />
+      {isMobile ? (
+        <MobileCardList
+          items={mechanics ?? []}
+          keyExtractor={(m) => m.id}
+          emptyMessage="No hay mecánicos registrados"
+          renderCard={(m) => (
+            <Card>
+              <CardContent className="p-3 space-y-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium">{m.name}</span>
+                  <div className="flex items-center gap-2">
+                    <StatusBadge status={m.is_active ? "active" : "inactive"} />
+                    <MechanicRowActions
+                      mechanic={m}
+                      onEdit={() => openEdit(m)}
+                      onDelete={() => del.mutate(m.id, { onSuccess: () => notifySuccess("Eliminado") })}
+                    />
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground truncate">
+                  {m.phone || "—"} · {m.email || "—"}
+                </div>
+                {m.specialization ? (
+                  <div className="text-xs text-muted-foreground">{m.specialization}</div>
+                ) : null}
+              </CardContent>
+            </Card>
+          )}
+        />
+      ) : (
+        <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay mecánicos registrados" />
+      )}
       <FormDialog open={open} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} Mecánico`} description="Administrar datos del mecánico para asignación de mantenimientos.">
           <div className="grid gap-4 py-2">
             <div className="space-y-1.5"><Label>Nombre *</Label><Input placeholder="Nombre completo" value={form.name} onChange={(e) => set("name", e.target.value)} /></div>
