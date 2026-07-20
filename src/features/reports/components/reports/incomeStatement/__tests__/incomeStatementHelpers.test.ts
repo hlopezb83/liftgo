@@ -51,7 +51,7 @@ describe("getBreakdownFor", () => {
     expect(getBreakdownFor("(-) Depreciación (Equipos Rentados)", dep, cogs, rental, sales)?.key).toBe("dep");
     expect(getBreakdownFor("(-) Costo de Equipos Vendidos", dep, cogs, rental, sales)?.key).toBe("cogs");
     expect(getBreakdownFor("  Ingresos por Rentas", dep, cogs, rental, sales)?.key).toBe("rental");
-    expect(getBreakdownFor("  Ingresos por Ventas", dep, cogs, rental, sales)?.key).toBe("sales");
+    expect(getBreakdownFor("  Otros ingresos (sin reserva)", dep, cogs, rental, sales)?.key).toBe("sales");
   });
 
   it("devuelve null para label sin breakdown", () => {

@@ -21,7 +21,7 @@ export function getBreakdownFor(label: string, depRows: BreakdownRow[], cogsRows
   if (label === "(-) Depreciación (Equipos Rentados)") return { rows: depRows, key: "dep" as const };
   if (label === "(-) Costo de Equipos Vendidos") return { rows: cogsRows, key: "cogs" as const };
   if (label === "  Ingresos por Rentas") return { rows: rentalRows, key: "rental" as const };
-  if (label === "  Ingresos por Ventas") return { rows: salesRows, key: "sales" as const };
+  if (label === "  Otros ingresos (sin reserva)") return { rows: salesRows, key: "sales" as const };
   return null;
 }
 
