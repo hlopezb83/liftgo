@@ -1,0 +1,16 @@
+{
+  "version": "7.114.1",
+  "date": "2026-07-20",
+  "type": "patch",
+  "title": "Fix CI — eliminar non-null assertions en useSupplierBillForm",
+  "sections": [
+    {
+      "heading": "Desbloqueo de CI",
+      "items": [
+        "El job de ESLint fallaba con 2 errores `@typescript-eslint/no-non-null-assertion` en `src/features/accounts-payable/hooks/useSupplierBillForm.ts:35`, provocando `exit 1` en el pipeline aunque el resto (Vitest 1083/1083, Deno smoke 43/43, Playwright, Build, Typecheck, RLS, Knip, Actionlint) estaban en verde.",
+        "Se sustituyen los `!` por `String(v.coverage_end) < String(v.coverage_start)`, manteniendo la semántica (la comparación sólo corre cuando `hasStart && hasEnd` ya validaron que ambos tienen valor) y respetando la regla de la Power of 10.",
+        "Los 177 warnings restantes (setState-in-effect de React Compiler e import-x/order) quedan pendientes para un sprint dedicado; no bloquean CI."
+      ]
+    }
+  ]
+}

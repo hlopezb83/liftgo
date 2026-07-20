@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.114.1",
+    "date": "2026-07-20",
+    "type": "patch",
+    "title": "Fix CI — eliminar non-null assertions en useSupplierBillForm",
+    "summary": "El job de ESLint fallaba con 2 errores `@typescript-eslint/no-non-null-assertion` en `useSupplierBillForm.ts:35`, tumbando el pipeline aunque el resto (Vitest, Deno smoke, Playwright, Build, Typecheck, RLS, Knip, Actionlint) estaban en verde. Se sustituyen los `!` por `String(...)` manteniendo la semántica (la comparación sólo corre cuando `hasStart && hasEnd` ya validaron ambos valores)."
+  },
+  {
     "version": "7.114.0",
     "date": "2026-07-20",
     "type": "minor",
