@@ -1,5 +1,6 @@
 import { sumMoney } from "@/lib/money";
 import {
+  type ExpenseCategory,
   type MonthData, type StatementRow, type YearTotals,
   EXPENSE_CATEGORY_LABELS, DIRECT_COST_CATEGORIES, OPERATING_EXPENSE_GROUPS,
 } from "./types";
