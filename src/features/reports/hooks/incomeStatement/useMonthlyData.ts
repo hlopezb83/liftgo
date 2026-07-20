@@ -115,6 +115,7 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
       salesByCustomer: m.sales_by_customer ?? {},
       damageRecoveryByCustomer: m.damage_recovery_by_customer ?? {},
       expenses,
+      expensesDetailByCategory: m.expenses_detail_by_category ?? {},
       ...derived,
     };
   });
