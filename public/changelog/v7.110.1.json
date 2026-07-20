@@ -1,0 +1,23 @@
+{
+  "version": "7.110.1",
+  "date": "2026-07-20",
+  "type": "patch",
+  "title": "PL-02 — Ingresos netos negativos por mes",
+  "sections": [
+    {
+      "heading": "Cambio",
+      "items": [
+        "Se elimina el clamp `GREATEST(0, ...)` en las 4 líneas de ingreso del CTE `combined` de `get_income_statement` (revenue, rental_booked, rental_unbooked, sales).",
+        "Cuando las notas de crédito de un mes superan lo facturado, el mes ahora refleja el neto real (negativo) en lugar de mostrar 0.",
+        "La suma de meses vuelve a cuadrar exactamente con el total anual — antes se perdía silenciosamente la diferencia por el clamp."
+      ]
+    },
+    {
+      "heading": "UI",
+      "items": [
+        "Los valores negativos ya se renderizaban en rojo (`text-destructive`) en tabla y comparativo — sin cambios adicionales requeridos.",
+        "Formato es-MX estándar `-$5,800.00` (signo menos). Se optó por no cambiar el formatter global a paréntesis contable para no alterar el resto de la app."
+      ]
+    }
+  ]
+}
