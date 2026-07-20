@@ -21,6 +21,7 @@ interface Props {
   rentalUnbookedBreakdownRows: BreakdownRow[];
   salesBreakdownRows: BreakdownRow[];
   damageRecoveryBreakdownRows: BreakdownRow[];
+  expenseDetailBreakdownByCategory: Record<string, BreakdownRow[]>;
 }
 
 export function IncomeStatementTable({
@@ -28,10 +29,9 @@ export function IncomeStatementTable({
   depreciationBreakdownRows, cogsBreakdownRows,
   rentalBookedBreakdownRows, rentalUnbookedBreakdownRows, salesBreakdownRows,
   damageRecoveryBreakdownRows,
+  expenseDetailBreakdownByCategory,
 }: Props) {
-  const [open, setOpen] = useState<Record<string, boolean>>({
-    dep: false, cogs: false, rentalBooked: false, rentalUnbooked: false, sales: false, damageRecovery: false,
-  });
+  const [open, setOpen] = useState<Record<string, boolean>>({});
 
   if (isComparison && comparisonRows.length > 0) {
     return <ComparisonTable comparisonRows={comparisonRows} yearTotals={yearTotals} />;
@@ -53,7 +53,13 @@ export function IncomeStatementTable({
           </TableHeader>
           <TableBody>
             {statementRows.map((row) => {
-              const breakdown = getBreakdownFor(row.label, depreciationBreakdownRows, cogsBreakdownRows, rentalBookedBreakdownRows, rentalUnbookedBreakdownRows, salesBreakdownRows, damageRecoveryBreakdownRows);
+              const breakdown = getBreakdownFor(
+                row.label,
+                depreciationBreakdownRows, cogsBreakdownRows,
+                rentalBookedBreakdownRows, rentalUnbookedBreakdownRows, salesBreakdownRows,
+                damageRecoveryBreakdownRows,
+                expenseDetailBreakdownByCategory,
+              );
               const isExpandable = breakdown !== null;
               const isOpen = isExpandable && !!open[breakdown.key];
               const toggle = () => breakdown && setOpen((prev) => ({ ...prev, [breakdown.key]: !prev[breakdown.key] }));
