@@ -129,6 +129,8 @@ export default function QuotesPage() {
       table={table}
       onRowClick={(q) => navigate(`/quotes/${q.id}`)}
       onRowPrefetch={(q) => quoteQueries.detail(q.id)}
+      hasActiveFilters={hasActive}
+      onClearFilters={reset}
       emptyMessage="No hay cotizaciones aún"
       skeletonColumns={7}
       mobileCardRender={(q) => (

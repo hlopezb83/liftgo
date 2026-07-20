@@ -135,6 +135,8 @@ export default function MaintenancePage() {
         isLoading={isLoading}
         table={isBoard ? undefined : table}
         onRowClick={(log) => detail.open(log)}
+        hasActiveFilters={hasActive}
+        onClearFilters={reset}
         emptyMessage="No se encontraron registros de mantenimiento"
         customContent={kanbanContent}
         mobileCardRender={(log) => (

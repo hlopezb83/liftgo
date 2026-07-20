@@ -81,6 +81,8 @@ export default function AuditTrailPage() {
         isLoading={isLoading}
         table={table}
         onRowClick={(log) => setSelectedLog(log)}
+        hasActiveFilters={hasActive}
+        onClearFilters={reset}
         emptyMessage="No se encontraron registros"
         mobileCardRender={(log) => (
           <AuditLogMobileCard

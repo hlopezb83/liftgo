@@ -65,6 +65,8 @@ export default function CuentasPorPagarPage() {
         isLoading={isLoading}
         table={table}
         onRowClick={(b) => setSelectedId(b.id)}
+        hasActiveFilters={f.hasActive}
+        onClearFilters={f.reset}
         emptyMessage="Sin cuentas por pagar registradas"
         emptyIcon={FileClock}
         emptyActionLabel="Nueva Cuenta"
