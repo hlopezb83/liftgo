@@ -108,7 +108,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
               primary={ob.forklift_name}
               secondary={ob.customer_name}
               onClick={() => navigate(`/returns?booking_id=${ob.booking_id}`)}
-              rightTop={<span className="font-mono font-semibold text-warning">{ob.days_overdue} días</span>}
+              rightTop={<span className="font-mono font-semibold text-warning whitespace-nowrap">{ob.days_overdue} días</span>}
               rightBottom={`Venció: ${formatDateDisplay(ob.end_date)}`}
               action={{
                 icon: ClipboardList,
