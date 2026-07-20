@@ -16,8 +16,6 @@ import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedba
 
 export function DriversTab() {
   const isMobile = useIsMobile();
-
-export function DriversTab() {
   const { data: drivers, isLoading } = useDrivers();
   const create = useCreateDriver();
   const update = useUpdateDriver();
