@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { exportToCsv } from "@/lib/exportCsv";
-import { useProfitByModelReport, type ProfitByModelRow } from "../../hooks/useProfitByModelReport";
+import { useProfitByModelReport } from "../../hooks/useProfitByModelReport";
 import { ProfitabilityChart } from "./profitabilityByModel/ProfitabilityChart";
 import { profitabilityColumns } from "./profitabilityByModel/profitabilityColumns";
+import type { ModelRow } from "./profitabilityByModel/profitabilityHelpers";
+
 
 interface Props {
   startDate: Date;
@@ -26,8 +28,9 @@ export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
 
   const chartRows = rows;
 
-  const table = useLiftgoTable<ProfitByModelRow>({
-    data: rows,
+  const table = useLiftgoTable<ModelRow>({
+    data: rows as ModelRow[],
+
     columns: profitabilityColumns,
     getRowId: (r) => r.model,
     initialSorting: [{ id: "profit", desc: true }],
