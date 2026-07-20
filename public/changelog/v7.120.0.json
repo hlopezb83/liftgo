@@ -1,0 +1,49 @@
+{
+  "version": "7.120.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "Sprint 2 · Ola 2.4 — Disponibilidad de flota y tarifas confiables (BL-A1, BL-A3, BL-M2)",
+  "sections": [
+    {
+      "heading": "BL-A1 · IVA correcto en preview de extensión de reserva",
+      "items": [
+        "`src/features/bookings/hooks/bookingActions/useExtendBookingPreview.ts` calculaba totales con `computeTotals(items, 21)` — literal heredado de una plantilla foránea que aplicaba ~4.3% de IVA de más al 'Nuevo total estimado'.",
+        "Migrado a `DEFAULT_VAT_RATE` de `@/lib/money` (0.16 × 100 = 16%). `computeTotals` recibe porcentaje entero.",
+        "Test de regresión (`useExtendBookingPreview.test.ts`): mock de forklift + generateLineItems con subtotal 1000 → verifica `taxAmount = 160` y `total = 1160`."
+      ]
+    },
+    {
+      "heading": "BL-A3 · Reservas futuras permitidas; status derivado por fechas",
+      "items": [
+        "RPC `create_booking` ya no exige `forklift.status='available'` como precondición. Ahora rechaza solo `maintenance` y `out_of_service` (estados operativos incompatibles); permite crear una reserva futura para una unidad que hoy está `rented`.",
+        "La exclusion constraint `no_overlapping_bookings` (`EXCLUDE USING gist (forklift_id WITH =, daterange(start_date,end_date,'[]') WITH &&) WHERE status NOT IN cancelled/completed`) — migración `20260719055254` — sigue garantizando no doble-booking por fechas. Cualquier intento de traslape dispara `exclusion_violation` (23P01).",
+        "Flip a `forklifts.status = 'rented'` + `status_logs` ahora ocurre solo cuando `p_start_date <= CURRENT_DATE`. Las reservas futuras no bloquean la unidad hasta que se materialicen — respeta la memoria `forklift-status-persistence` (status solo cambia por eventos reales).",
+        "Validaciones nuevas: `p_start_date`/`p_end_date` requeridas y `p_end_date >= p_start_date`.",
+        "Resuelve la contradicción reportada entre `get_available_forklifts` (que ya asumía reservas escalonadas) y `create_booking` (que las bloqueaba)."
+      ]
+    },
+    {
+      "heading": "BL-M2 · Tarifas server-side al convertir cotización",
+      "items": [
+        "RPC `convert_quote_to_bookings` deja de confiar en las tarifas del payload cliente (`p_assignments[].daily_rate/weekly_rate/monthly_rate`).",
+        "Resuelve tarifas server-side desde `quotes.rental_meta` (JSONB de `RentalLineMeta[]`) matcheando por `forklifts.equipment_model_id → rental_meta[].modelId`.",
+        "Si el meta no está disponible (cotizaciones legacy previas a la migración de `rental_meta`), cae al payload como fallback compatible.",
+        "Elimina la superficie de manipulación de precios desde el cliente: aunque el usuario altere el payload, la reserva se crea con la tarifa persistida en la cotización aceptada."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "Auditoría previa (Ola 2.3): sin bugs pendientes, `.gitleaksignore` limpio en v7.119.1.",
+        "BL-A2 verificado como ya resuelto — no requirió trabajo adicional.",
+        "Nuevo test unitario `useExtendBookingPreview.test.ts` verde. Suite completa sin regresiones esperadas."
+      ]
+    },
+    {
+      "heading": "Fuera de alcance (Ola 2.5)",
+      "items": [
+        "BL-M3 (trigger anti sobre-crédito NC), BL-M4 (soft-delete flota), BL-M6 (daño sin costo), EC-M4 (optimistic locking en bookings/invoices/quotes/customers)."
+      ]
+    }
+  ]
+}
