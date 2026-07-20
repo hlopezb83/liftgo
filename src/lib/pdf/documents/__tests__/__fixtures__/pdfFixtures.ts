@@ -58,6 +58,8 @@ const month: MonthData = {
   maintenanceCost: 1_000,
   damageCost: 0,
   depreciation: 500,
+  depreciationRented: 400,
+  depreciationIdle: 100,
   cogsForkliftSales: 0,
   cogsByForklift: {},
   depreciationByForklift: {},
