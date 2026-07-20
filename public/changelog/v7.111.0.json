@@ -1,0 +1,31 @@
+{
+  "version": "7.111.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "PL-03 y PL-04 — Prorrateo de cobertura + Recuperación de Daños en P&L",
+  "sections": [
+    {
+      "heading": "PL-03 · Prorrateo de gastos con cobertura",
+      "items": [
+        "`supplier_bills` gana `coverage_start` y `coverage_end` (opcionales, con CHECK que exige ambas y `end >= start`).",
+        "En modo acumulado (`accrual`), `get_income_statement` prorratea el subtotal linealmente por días entre los meses que abarca la cobertura. Facturas sin cobertura conservan el comportamiento anterior (un solo mes = mes de emisión).",
+        "SupplierBillForm añade dos date pickers 'Cobertura desde/hasta' con validación Zod (ambas requeridas juntas, fin >= inicio) y microcopy explicativo."
+      ]
+    },
+    {
+      "heading": "PL-04 · Daños en P&L + línea 'Recuperación de Daños'",
+      "items": [
+        "`damage_records` gana `repaired_at`; el P&L usa `COALESCE(repaired_at, created_at)` para asignar el daño al mes correcto y `COALESCE(actual_cost, estimated_cost, 0)` para que estimados no queden en $0.",
+        "`invoices` gana `invoice_type` (`standard | damage_charge`, default `standard`, con CHECK). Facturas marcadas como `damage_charge` se clasifican en una línea de ingreso propia — 'Recuperación de Daños' — que ya no infla ventas ni rentas.",
+        "El Estado de Resultados muestra 'Recuperación de Daños' con drill-down por cliente y la nueva línea participa en la vista comparativa entre años."
+      ]
+    },
+    {
+      "heading": "Notas",
+      "items": [
+        "Backfill: se pobla `damage_records.repaired_at = updated_at` para los daños en estado 'repaired'.",
+        "UI para marcar una factura como `damage_charge` desde `InvoiceForm` queda pendiente para un siguiente sprint; hoy el flag se establece por API/backend."
+      ]
+    }
+  ]
+}
