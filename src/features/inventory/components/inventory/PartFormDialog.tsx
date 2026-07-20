@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
   TextField,
@@ -11,6 +10,8 @@ import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormSection } from "@/components/forms/FormSection";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
+import { usePrefillEffect } from "@/hooks/usePrefillEffect";
+import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { useCreatePart, useUpdatePart, type PartInventory } from "../../hooks/usePartsInventory";
 import { partFormSchema, type PartFormData } from "../../lib/partFormSchema";
@@ -38,7 +39,7 @@ export function PartFormDialog({ open, onOpenChange, part }: PartFormDialogProps
     defaultValues: empty,
   });
 
-  useEffect(() => {
+  usePrefillEffect(() => {
     if (!open) return;
     form.reset(
       part
@@ -52,7 +53,7 @@ export function PartFormDialog({ open, onOpenChange, part }: PartFormDialogProps
           }
         : empty,
     );
-  }, [open, part, form]);
+  }, [open, part]);
 
   const onSubmit = form.handleSubmit((data) => {
     const payload = {
@@ -71,6 +72,7 @@ export function PartFormDialog({ open, onOpenChange, part }: PartFormDialogProps
   });
 
   const isPending = createPart.isPending || updatePart.isPending;
+  useUnsavedChangesGuard(open && form.formState.isDirty && !isPending);
 
   return (
     <FormDialog

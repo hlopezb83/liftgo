@@ -7,9 +7,14 @@ import { EditIcon, DocumentIcon } from "@/components/icons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUploadDocument } from "@/hooks/useDocuments";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
+import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { useCreateSupplier, useUpdateSupplier } from "../../hooks/useSuppliers";
+import {
+  buildSupplierPayload,
+  supplierToFormData,
+} from "../../lib/supplierFormPayload";
 import {
   supplierFormSchema,
   emptySupplierFormData,
@@ -22,44 +27,6 @@ interface SupplierFormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   supplier: Supplier | null;
-}
-
-function supplierToFormData(supplier: Supplier): SupplierFormData {
-  return {
-    name: supplier.name,
-    contact_person: supplier.contact_person || "",
-    email: supplier.email || "",
-    phone: supplier.phone || "",
-    website: supplier.website || "",
-    address: supplier.address || "",
-    rfc: supplier.rfc || "",
-    regimen_fiscal: supplier.regimen_fiscal || "",
-    category: supplier.category || "",
-    notes: supplier.notes || "",
-    default_payment_terms_days: supplier.default_payment_terms_days != null
-      ? String(supplier.default_payment_terms_days)
-      : "",
-  };
-}
-
-function nullable(v: string): string | null { return v.trim() ? v.trim() : null; }
-
-function buildPayload(data: SupplierFormData) {
-  const termsRaw = data.default_payment_terms_days.trim();
-  const terms = termsRaw === "" ? null : Number(termsRaw);
-  return {
-    name: data.name.trim(),
-    contact_person: nullable(data.contact_person),
-    email: nullable(data.email),
-    phone: nullable(data.phone),
-    website: nullable(data.website),
-    address: nullable(data.address),
-    rfc: data.rfc.trim() ? data.rfc.trim().toUpperCase() : null,
-    regimen_fiscal: nullable(data.regimen_fiscal),
-    category: nullable(data.category),
-    notes: nullable(data.notes),
-    default_payment_terms_days: terms,
-  };
 }
 
 export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFormDialogProps) {
@@ -102,7 +69,7 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
   };
 
   const onSubmit = (data: SupplierFormData) => {
-    const payload = buildPayload(data);
+    const payload = buildSupplierPayload(data);
     if (supplier) {
       updateSupplier.mutate({ id: supplier.id, ...payload }, {
         onSuccess: async () => { await uploadCsfIfAny(supplier.id); onOpenChange(false); },
@@ -115,6 +82,7 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
   };
 
   const isPending = createSupplier.isPending || updateSupplier.isPending;
+  useUnsavedChangesGuard(open && form.formState.isDirty && !isPending);
 
   return (
     <FormDialog

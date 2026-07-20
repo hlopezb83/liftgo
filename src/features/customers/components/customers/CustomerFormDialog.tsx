@@ -6,6 +6,7 @@ import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { EditIcon, DocumentIcon } from "@/components/icons";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
+import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { sanitizeCsfName } from "../../lib/csfSanitize";
 import { customerFormSchema, type CustomerFormData } from "../../lib/customerFormSchema";
@@ -48,7 +49,9 @@ export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, is
       form.reset(emptyCustomer);
       setTab("manual");
     }
-  }, [open]);
+  }, [open, initialData]);
+
+  useUnsavedChangesGuard(open && form.formState.isDirty && !(isPending ?? false));
 
   const handleCsfParsed = (patch: Partial<CustomerFormData>) => {
     const current = form.getValues();

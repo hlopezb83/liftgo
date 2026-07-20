@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.132.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "Ola 3.10 — Blindaje schema-first de SupplierFormDialog, CustomerFormDialog y PartFormDialog",
+    "summary": "Se extiende el patrón `useUnsavedChangesGuard` + cobertura de schema/payload a los tres diálogos de alta frecuencia que aún carecían del guard. Todos ya usaban RHF+Zod; ahora también previenen pérdida accidental de datos y cuentan con tests aislados de validación y payload.",
+    "changes": [
+      "SupplierFormDialog: agregado `useUnsavedChangesGuard(open && isDirty && !isPending)`; extraídos `buildSupplierPayload` y `supplierToFormData` a `src/features/suppliers/lib/supplierFormPayload.ts`.",
+      "CustomerFormDialog: agregado `useUnsavedChangesGuard`; corregido `usePrefillEffect` para incluir `initialData` en deps (evita prefill rancio al reabrir con otro cliente).",
+      "PartFormDialog: agregado `useUnsavedChangesGuard`; migrado `useEffect` manual a `usePrefillEffect` para consistencia.",
+      "13 tests nuevos: `supplierFormSchema` (7), `supplierFormPayload` (6), `customerFormSchema` (5), `partFormSchema` (8).",
+      "Verificado: 1126 → 1139 vitest verde, sin warnings ESLint nuevos."
+    ]
+  },
+
+  {
     "version": "7.131.1",
     "date": "2026-07-20",
     "type": "patch",
