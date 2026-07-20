@@ -1,55 +1,73 @@
-## Auditoría Ola 1 + Plan Ola 2
+# Auditoría Ola 2 (v7.114.3)
 
-### Auditoría Ola 1 (v7.114.2)
+✅ **Todo en verde:**
+- Vitest: **1083/1083** pruebas pasan (159 suites).
+- ESLint: **0 errores**, 72 warnings (bajaron de 82).
+- Los 8 refactors de prev-prop guard funcionan; los diálogos siguen reseteando su estado local al abrir/cerrar (validado por `useRecordPaymentForm.test.ts` 11/11).
 
-- `bunx eslint . -f json` → **0 errors, 82 warnings** (venían 89 tras autofix; restamos los 7 quick wins → 82 ✓).
-- Todos los `eslint-disable-next-line` agregados apuntan a la regla exacta y llevan comentario `--` con justificación (skips condicionales E2E, polling de token, autoFocus en modal). Sin efectos colaterales visibles.
-- El autofix de `import-x/order` sólo reordena imports; sin cambios de lógica.
-- **Tests faltantes:** ninguno. Los cambios son mecánicos (orden de imports) o comentarios de lint sobre líneas ya cubiertas por sus suites correspondientes.
-- **Bugs:** no detectados. CI runners de typecheck/tests/build ya se disparan automáticamente por push previo.
+**Sin bugs pendientes de Ola 2.** Sin tests faltantes (los componentes refactorizados son wrappers de UI cuya lógica de fondo — `useSupplierBillForm`, `useCreatePaymentBatch`, `useBankStatementLines` — ya está cubierta).
 
-**Verde. Continúo a Ola 2.**
+**Nota:** Del bucket original de `react-hooks/set-state-in-effect` quedan **14 warnings** (no 22, porque varios ya se resolvieron colateralmente con otros fixes). Se atacan como parte de Ola 3.
 
----
+# Ola 3 — Desglose actualizado de warnings
 
-### Ola 2 — `react-hooks/set-state-in-effect` (v7.114.3)
+| Regla                                | # | Estrategia                                                                 |
+| ------------------------------------ | -- | --------------------------------------------------------------------------- |
+| `react-hooks/refs`                   | 27 | Bucket más grande. Mover lecturas de `.current` fuera de render.           |
+| `react-hooks/set-state-in-effect`    | 14 | Continuar patrón prev-prop guard o derivación con `useMemo`.               |
+| `react-refresh/only-export-components` | 9 | Separar constantes/utilidades de módulos que exportan componentes.        |
+| `react-hooks/incompatible-library`   | 6 | Revisar libs que rompen reglas (probable `react-hook-form` legacy usage).  |
+| `max-lines-per-function` / `complexity` / `max-lines` | 10 | Extraer sub-funciones o dividir archivos.               |
+| `react-compiler/react-compiler`      | 2 | Efecto colateral: al arreglar los disables regresan al compilador.         |
+| `no-restricted-imports`              | 2 | Reemplazar imports prohibidos por el alias correcto.                       |
+| `react-hooks/purity` / `static-components` | 2 | Casos puntuales.                                                     |
 
-24 warnings en 24 archivos. Al inspeccionarlos se agrupan en 4 patrones bien definidos, cada uno con su remediación canónica de React 19 / React Compiler:
+# Plan de ejecución Ola 3
 
-| Patrón | # aprox | Ejemplos | Remediación |
-|---|---|---|---|
-| **A. Estado derivado puro** | 4 | `useRecordPaymentForm:44` (SAT code desde `method`), `useProspectForm`, `useContractFormState` | Reemplazar `useState + useEffect` por `useMemo` o cálculo inline. Cero riesgo. |
-| **B. Reset local al abrir modal** | 12 | `DatePickerField`, `DateRangePickerField`, `RegisterSupplierPaymentDialog`, `SupplierBillFormDialog`, `PostBookingDeliveryDialog`, `PostBookingPolicyDialog`, `PostDeliveryPickupDialog`, `EditNameDialog`, `useSetPasswordForm`, `useRecordPaymentForm:37`, `useExportPaymentsForm`, `usePaymentSelection` | Sustituir efecto por `key={open ? id : "closed"}` en el Dialog child (React remonta y resetea sin efecto). Cuando el consumidor no controla el key, mantener el efecto y suprimir la regla con justificación (el propio React docs valida el patrón "reset when a prop changes"). |
-| **C. Default derivado de datos async** | 3 | `BankReconciliationPage` (primera cuenta activa), `CashFlowSettingsBar`, `ContractTemplateTab` | Reemplazar por `useMemo` que devuelve `stateOverride ?? computedDefault`, moviendo la elección efectiva al render. Los handlers de "cambio manual" siguen usando `setState` normal. |
-| **D. One-shot side-effect al montar** | 5 | `useChangelogDeepLink`, `CustomersPage` (prefill de query param), `SearchBar`, `ListPageLayout`, `ImageGalleryLightbox`, `useFeedbackStatusUpdate` | Envolver el `setState` en `useEffectEvent` (React 19) o extraer a un handler; cuando sea un one-shot legítimo con dependencias inevitables, suprimir con justificación puntual. |
+Ejecutar en 3 sub-olas para mantener commits pequeños y auditables.
 
-### Ejecución por sub-ola
+## 3.a — `react-hooks/refs` (27 warnings, prioridad alta)
 
-**2.a — Patrón A (derivado puro)** — 4 archivos, sin riesgo funcional. Test: los suites Vitest existentes deben pasar sin tocar.
+Este bucket concentra el mayor impacto. Casos típicos:
+- `useTableFilters.ts:362-370`: lee `f.fields`/`f.accessors` desde un ref dentro de `matchSorter` en render.
+- Cualquier hook que use `useRef` como caché de opciones y luego lo consuma en `useMemo`/render.
 
-**2.b — Patrón B (reset por `open`)** — 12 archivos. Para dialogs propios donde controlamos el árbol, usar `key` prop en el `<DialogContent>` interno para forzar remount al abrir; esto elimina el efecto sin cambiar UX. Para hooks (`usePaymentSelection`, `useExportPaymentsForm`, `useSetPasswordForm`) que dependen de props del consumidor, mantener el efecto con `eslint-disable-next-line react-hooks/set-state-in-effect -- Reset de estado local al abrir el modal (patrón oficial React docs)`.
+**Enfoque:**
+1. Para refs usados sólo como cache de callbacks: sustituir por `useEffectEvent` o `useCallback` con deps explícitas.
+2. Para refs que sostienen datos derivables: derivar con `useMemo` desde props/state.
+3. Para refs de DOM leídos en render: mover la lectura a `useLayoutEffect` y guardarla en state.
 
-**2.c — Patrón C (defaults)** — 3 archivos. Refactor a `useMemo`.
+**Riesgo:** medio. Mitigación: correr `bunx vitest run` tras cada archivo y validar visualmente el módulo (`useTableFilters` afecta a todas las tablas — probar Facturas, Clientes, Cotizaciones).
 
-**2.d — Patrón D (one-shot)** — 5 archivos. Preferir `useEffectEvent` (ya usado en el proyecto para casos similares); si no aplica, disable justificado.
+## 3.b — `set-state-in-effect` restantes (14)
 
-### Validación por sub-ola
+Localizar con `bunx eslint src -f json` filtrando por regla y aplicar el mismo patrón prev-prop guard de Ola 2. Los sospechosos identificados en el turno anterior:
+- `useChangelogDeepLink.ts`, `CustomersPage.tsx`, `useSetPasswordForm.ts`,
+- `PostBookingDeliveryDialog.tsx`, `PostBookingPolicyDialog.tsx`, `PostDeliveryPickupDialog.tsx`,
+- `EditNameDialog.tsx`, y ~7 más.
 
-Después de cada sub-ola:
-- `bun run lint` → contador debe bajar por N warnings, 0 errors.
-- `bunx vitest run` → 1083/1083 verde.
-- Smoke visual con Playwright de los dialogs tocados (patrón B) para confirmar que "abrir → resetear" sigue funcionando: `DatePickerField`, `SupplierBillFormDialog`, `RegisterSupplierPaymentDialog`.
+**Riesgo:** bajo (patrón ya probado en Ola 2).
 
-### Tests adicionales
+## 3.c — `only-export-components` (9) + `incompatible-library` (6) + varios
 
-- Patrón B con `key` remount: añadir 1 test por dialog tocado en Vitest usando `@testing-library/react` — abrir dialog, escribir en campo, cerrar, reabrir, asegurar que el campo está vacío.
-- Patrón A: si un hook migrado no tiene test previo, añadir uno mínimo que verifique la derivación (ej. `useRecordPaymentForm` con distintos `method` → SAT code esperado).
+- **only-export-components:** dividir archivos que exportan componente + constantes/utilidades en dos: `Component.tsx` y `Component.constants.ts` o `Component.utils.ts`.
+- **incompatible-library:** revisar el uso — probablemente `react-hook-form` pasando funciones a hooks internos. Encapsular con `useEffectEvent`.
+- **no-restricted-imports (2):** corregir path prohibido.
+- **max-lines / complexity (10):** extraer sub-funciones donde el diff sea contenido.
+- **react-compiler (2):** desaparecen cuando se quitan los `eslint-disable` del código refactorizado.
 
-### Resultado esperado
+## Métricas objetivo
 
-82 → ~58 warnings tras Ola 2. Rutas siguientes:
-- Ola 3.a: `react-hooks/refs` (27)
-- Ola 3.b: `react-refresh/only-export-components` (9) + `incompatible-library` (6) + `react-compiler` (2)
-- Ola 3.c: `max-lines-per-function` (6) + `complexity` (3) + resto (3)
+- Warnings ESLint: **72 → ≤ 25** al cierre de Ola 3.
+- Errores ESLint: **0** (mantener).
+- Vitest: **1083/1083** (mantener).
+- Sin regresiones visuales en tablas ni diálogos.
 
-¿Arranco 2.a (derivado puro, riesgo cero) para tener validación temprana antes de meter mano a los 12 dialogs?
+## Detalles técnicos
+
+- Changelogs a emitir: `v7.114.4` (Ola 3.a refs), `v7.114.5` (Ola 3.b setState restantes), `v7.114.6` (Ola 3.c cleanup).
+- Cada sub-ola actualiza `public/changelog.json` y crea el detalle en `public/changelog/v7.114.X.json` (regla core del proyecto).
+- Reutilizar el patrón prev-prop guard ya documentado en `useRecordPaymentForm.ts` como referencia canónica.
+- No introducir dependencias nuevas — usar únicamente API de React 19 (`useEffectEvent`, `useMemo`, `useCallback`).
+
+¿Arranco por **3.a (refs)** para atacar el bucket más grande primero, o prefieres empezar por **3.b (setState restantes)** que es el patrón más seguro?
