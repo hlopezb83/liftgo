@@ -68,7 +68,6 @@ Deno.serve(async (req) => {
       }
     }
 
-
     const { error: authErr } = await auth.adminClient.auth.admin.updateUserById(
       user_id,
       { ban_duration: is_active ? "none" : "876600h" },
