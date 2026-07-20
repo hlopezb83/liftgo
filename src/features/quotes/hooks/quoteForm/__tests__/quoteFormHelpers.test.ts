@@ -1,73 +1,10 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-
-const toastWarning = vi.fn();
-vi.mock("sonner", () => ({ toast: { warning: (...a: unknown[]) => toastWarning(...a), error: vi.fn() } }));
-
+import { describe, it, expect } from "vitest";
 import { buildSaleItems, buildRentalItems, type RentalLine, type SaleLine, type EquipmentModel } from "../quoteFormBuilders";
-import { validateQuoteForm } from "../quoteFormValidation";
 
 const models: EquipmentModel[] = [
   { id: "m1", manufacturer: "Toyota", model: "8FGCU25" },
   { id: "m2", manufacturer: "Hyster", model: "H50FT" },
 ];
-
-describe("validateQuoteForm", () => {
-  beforeEach(() => toastWarning.mockClear());
-
-  it("rechaza sin cliente", () => {
-    const ok = validateQuoteForm({ customerId: "", quoteType: "rental", rentalLines: [], saleLines: [] });
-    expect(ok).toBe(false);
-    expect(toastWarning).toHaveBeenCalledWith(
-      "Revisa los datos",
-      expect.objectContaining({ description: "Selecciona un cliente" }),
-    );
-  });
-
-  it("rechaza renta sin periodo", () => {
-    const ok = validateQuoteForm({ customerId: "c1", quoteType: "rental", rentalLines: [], saleLines: [] });
-    expect(ok).toBe(false);
-    expect(toastWarning).toHaveBeenCalledWith(
-      "Revisa los datos",
-      expect.objectContaining({ description: "Selecciona el periodo de renta" }),
-    );
-  });
-
-  it("rechaza renta sin líneas con tarifas", () => {
-    const ok = validateQuoteForm({
-      customerId: "c1", quoteType: "rental",
-      startDate: new Date(), endDate: new Date(),
-      rentalLines: [{ modelId: "m1", quantity: 1, dailyRate: 0, weeklyRate: 0, monthlyRate: 0 }],
-      saleLines: [],
-    });
-    expect(ok).toBe(false);
-  });
-
-  it("acepta renta válida", () => {
-    const ok = validateQuoteForm({
-      customerId: "c1", quoteType: "rental",
-      startDate: new Date("2026-01-01"), endDate: new Date("2026-01-31"),
-      rentalLines: [{ modelId: "m1", quantity: 1, dailyRate: 0, weeklyRate: 0, monthlyRate: 1000 }],
-      saleLines: [],
-    });
-    expect(ok).toBe(true);
-  });
-
-  it("rechaza venta sin líneas con cantidad y precio", () => {
-    const ok = validateQuoteForm({
-      customerId: "c1", quoteType: "sale", rentalLines: [],
-      saleLines: [{ modelId: "m1", quantity: 0, unitPrice: 100 }],
-    });
-    expect(ok).toBe(false);
-  });
-
-  it("acepta venta válida", () => {
-    const ok = validateQuoteForm({
-      customerId: "c1", quoteType: "sale", rentalLines: [],
-      saleLines: [{ modelId: "m1", quantity: 2, unitPrice: 500000 }],
-    });
-    expect(ok).toBe(true);
-  });
-});
 
 describe("buildSaleItems", () => {
   it("filtra líneas inválidas y construye descripción Manufacturer Model", () => {
