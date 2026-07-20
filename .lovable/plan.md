@@ -1,68 +1,36 @@
-# Auditoría de Ola 2.2 (v7.118.0)
+## Contexto
 
-- Vitest 1084/1084 ✅  
-- Deno `generate-recurring-invoices`: 13/13 ✅ (bookingEnded 4, index 3, prorate 6)
-- RPC `create_recurring_invoice` registrada con firma correcta (15 args) y `SECURITY DEFINER`.
-- Manejo de `23505` como idempotencia benigna presente en la Edge Function.
-- Advisory locks por `booking_id` previenen doble facturación concurrente.
+El workflow de CI **Detectar secretos** (gitleaks 8.24.3) está fallando con **1 leak detectado**. El hallazgo es un **falso positivo**:
 
-**Sin bugs detectados.** Gap menor (aceptable): no hay integration test end-to-end contra la RPC real (requeriría seeding con service-role). Los unit tests de prorrateo + smoke tests de auth cubren el contrato crítico.
+- **Regla:** `generic-api-key` (entropía 3.66)
+- **Archivo:** `supabase/migrations/20260718065420_51b1d80a-c8ac-4599-90d6-bd332b10228d.sql`, línea 2
+- **Contenido real:** un **UUID de usuario** (`3e2d6f9d-aa74-4a70-b1d2-0c11a1cd1019`) usado en un `DELETE FROM auth.users WHERE id = '...'` para limpiar un usuario huérfano.
 
-Todo verde → procedo a la siguiente ola.
+Un UUID de `auth.users` no es un secreto: no otorga acceso, no es una API key y ya está en el historial de git (commit `515c288`). Bloquear el pipeline por esto es ruido.
 
-# Ola 2.3 — Resiliencia CFDI (EC-A1 + EC-A2)
+## Cambios propuestos
 
-Del reporte de auditoría integral, dos hallazgos 🟠 alto quedan en la capa fiscal después de Sprint 1:
+**Archivo único:** `.gitleaksignore`
 
-## EC-A1 — Consumidor de `cfdi_retry_queue`
+Agregar el fingerprint exacto reportado por gitleaks al final del archivo, con un comentario que explique por qué se ignora:
 
-Hoy los errores transitorios de Facturapi se encolan en `cfdi_retry_queue` pero **nadie los procesa**. Las facturas quedan huérfanas hasta intervención manual.
+```
+# UUID de auth.users en migración de limpieza — no es una API key.
+515c288f6bf1f63c72375fbb3a60c0db303c4411:supabase/migrations/20260718065420_51b1d80a-c8ac-4599-90d6-bd332b10228d.sql:generic-api-key:2
+```
 
-**Solución:**
-1. Nueva Edge Function `process-cfdi-retry-queue` (cron-friendly):
-   - Selecciona filas `status='pending'` con `next_retry_at <= now()` y `attempts < max_attempts` (5).
-   - Advisory lock por `invoice_id` para evitar procesamiento paralelo.
-   - Reintenta llamando a `stamp-cfdi` internamente.
-   - Éxito → `status='completed'`. Fallo → `attempts++`, backoff exponencial (2^n min, tope 60min), `status='failed'` si excede.
-2. Registrar el cron en `supabase/config.toml` (cada 5 min).
-3. Tests Deno: éxito, backoff, límite de intentos, idempotencia con `23505`.
+El fingerprint incluye el commit SHA, por lo que sólo silencia **esa línea en ese commit** — cualquier secreto nuevo o cualquier otro UUID en otra migración seguirá siendo detectado.
 
-## EC-A2 — `stamping` huérfanos + timeout SDK
+## Por qué esta opción y no otras
 
-Si `stamp-cfdi` falla después de que Facturapi emitió el CFDI pero antes del UPDATE local, la factura queda en `status='stamping'` con el UUID ya facturado en el SAT → duplicado al reintentar.
+- **No modificar la migración:** ya está aplicada en Cloud e inmutable en historia; reescribirla no eliminaría el hallazgo (gitleaks escanea `--all`).
+- **No ampliar `.gitleaks.toml` con un allowlist genérico de UUIDs:** demasiado permisivo, podría enmascarar futuras fugas.
+- **`.gitleaksignore` con fingerprint específico** es el mecanismo oficial recomendado por gitleaks para falsos positivos puntuales.
 
-**Solución:**
-1. RPC `reconcile_stamping_invoice(p_invoice_id, p_facturapi_id, p_uuid, p_xml_url, p_pdf_url)` (`SECURITY DEFINER`):
-   - Verifica que la factura sigue en `stamping`.
-   - Setea `status='stamped'` + datos CFDI.
-   - Idempotente: si ya está `stamped` con el mismo UUID, retorna éxito silencioso; si UUID distinto, lanza excepción (conflicto real).
-2. En `stamp-cfdi/index.ts`:
-   - Envolver la llamada a Facturapi con `AbortController` (timeout 30s).
-   - Tras respuesta exitosa del SDK, usar la nueva RPC en lugar del UPDATE directo → recuperable.
-3. Nueva Edge Function `reconcile-stamping-invoices` (cron cada 15 min):
-   - Busca facturas `status='stamping'` con `updated_at < now() - interval '10 min'`.
-   - Consulta Facturapi por `folio_number` o `series+folio` para saber si el CFDI existe.
-   - Si existe → llama a `reconcile_stamping_invoice`. Si no → revierte a `draft`.
-4. Tests Deno: timeout, conciliación exitosa, conflicto de UUID, reversión a draft.
+## Verificación
 
-## Alcance técnico
+Después del merge, el próximo run del workflow `Detectar secretos` debe salir con `leaks found: 0` y exit code 0.
 
-### Archivos nuevos
-- `supabase/migrations/<ts>_cfdi_resilience.sql` — RPC `reconcile_stamping_invoice`.
-- `supabase/functions/process-cfdi-retry-queue/index.ts` + `_test.ts`.
-- `supabase/functions/reconcile-stamping-invoices/index.ts` + `_test.ts`.
+## Changelog
 
-### Archivos modificados
-- `supabase/functions/stamp-cfdi/index.ts` — AbortController + RPC reconcile.
-- `supabase/config.toml` — dos nuevos schedules.
-- `public/changelog.json` + `public/changelog/v7.119.0.json`.
-
-### Fuera de alcance
-- BL-B (facturación recurrente) — completo en 2.2.
-- UI del portal / reportes — Sprint 3.
-
-## Criterios de aceptación
-- Vitest 1084/1084 verde.
-- Deno tests nuevos + existentes verdes.
-- Linter Supabase sin nuevas advertencias.
-- Manual: forzar `INSERT INTO cfdi_retry_queue (...)` y verificar que el cron procesa la fila.
+Nueva entrada patch **v7.119.1** en `public/changelog.json` + detalle en `public/changelog/v7.119.1.json` documentando el silenciado del falso positivo.
