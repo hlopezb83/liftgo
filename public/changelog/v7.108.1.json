@@ -1,0 +1,15 @@
+{
+  "version": "7.108.1",
+  "date": "2026-07-20",
+  "type": "patch",
+  "title": "Fix: 'relation inv_classified does not exist' en Estado de Resultados",
+  "description": "El reporte fallaba al calcular la lista de equipos vendidos sin costo porque el CTE `inv_classified` solo estaba disponible en la primera consulta del RPC. Se reemplaza la referencia por una subconsulta autocontenida.",
+  "changes": [
+    {
+      "area": "RPC get_income_statement",
+      "items": [
+        "Sub-consulta v_sold_without_cost usa invoices directamente y replica los criterios de clasificación 'sales' (sin booking_id, sin invoice_bookings, sin billing_period_start, quote no rental)."
+      ]
+    }
+  ]
+}
