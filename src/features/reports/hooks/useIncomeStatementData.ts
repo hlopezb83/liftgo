@@ -29,6 +29,7 @@ export function useIncomeStatementData({
     depreciationBreakdownRows, cogsBreakdownRows,
     rentalBookedBreakdownRows, rentalUnbookedBreakdownRows, salesBreakdownRows,
     damageRecoveryBreakdownRows,
+    expenseDetailBreakdownByCategory,
   } = useStatementRows(filteredData, totals);
   const comparisonRows = useComparisonRows(yearTotals);
 
@@ -38,6 +39,7 @@ export function useIncomeStatementData({
     depreciationBreakdownRows, cogsBreakdownRows,
     rentalBookedBreakdownRows, rentalUnbookedBreakdownRows, salesBreakdownRows,
     damageRecoveryBreakdownRows,
+    expenseDetailBreakdownByCategory,
     rentedWithoutCost,
     soldWithoutCost,
     availableYears, selectedYear, setSelectedYear, isComparison,
