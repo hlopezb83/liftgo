@@ -2,6 +2,7 @@ import { useEffect, useEffectEvent } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { useSuppliers } from "@/features/suppliers";
+import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { toYMD } from "@/lib/date/toYMD";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { nonNegativeAmountCoerced, positiveAmountCoerced } from "@/lib/schemas";
