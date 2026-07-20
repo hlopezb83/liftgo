@@ -411,7 +411,6 @@ async function executePlan(supabase: any, items: PlanItem[]) {
   return { created, failed };
 }
 
-
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;

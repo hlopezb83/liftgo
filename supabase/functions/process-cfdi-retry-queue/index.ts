@@ -101,9 +101,10 @@ Deno.serve(async (req) => {
     // Advisory lock por invoice_id — evita procesar la misma factura en paralelo
     // si dos ejecuciones del cron se solapan.
     const lockKey = row.invoice_id;
-    const { data: gotLock } = await admin.rpc("pg_try_advisory_xact_lock" as never, {
-      key: lockKey,
-    } as never).maybeSingle?.() ?? { data: null };
+    const { data: gotLock } =
+      await admin.rpc("pg_try_advisory_xact_lock" as never, {
+        key: lockKey,
+      } as never).maybeSingle?.() ?? { data: null };
     // La RPC anterior no existe por defecto; fallback: procesar sin lock explícito.
     // La atomicidad real la garantiza el claim `cfdi_status IN (pending,error) AND cfdi_uuid IS NULL`
     // dentro de stamp-cfdi.
@@ -134,8 +135,8 @@ Deno.serve(async (req) => {
           http: invRes.status,
         });
       } else {
-        const errMsg =
-          (invRes.body as { error?: string } | null)?.error ?? String(invRes.body);
+        const errMsg = (invRes.body as { error?: string } | null)?.error ??
+          String(invRes.body);
         const isTerminal = nextAttempts >= row.max_attempts;
         await admin.from("cfdi_retry_queue")
           .update({

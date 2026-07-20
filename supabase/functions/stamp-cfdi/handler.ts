@@ -104,7 +104,6 @@ export async function handleStampCfdi(
       }
     }
 
-
     const body = await req.json().catch(() => ({}));
     const { invoice_id } = body as { invoice_id?: unknown };
 
@@ -474,8 +473,6 @@ export async function handleStampCfdi(
     }).eq("id", invoice_id);
     cfdiPersisted = true;
 
-
-
     let cfdiXml: string | null = null;
     let xmlStoragePath: string | null = null;
     let pdfStoragePath: string | null = null;
@@ -627,4 +624,3 @@ export async function handleStampCfdi(
     return json({ error: "Internal server error" }, 500);
   }
 }
-
