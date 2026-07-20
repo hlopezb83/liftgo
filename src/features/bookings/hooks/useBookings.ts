@@ -70,14 +70,21 @@ export function useBookingsRange(from: string | Date, to: string | Date) {
     queryKey: [...bookingKeys.all, "range", fromStr, toStr] as const,
     staleTime: 60_000,
     queryFn: async () => {
+      const RANGE_LIMIT = 2000;
       const { data, error } = await supabase
         .from("bookings")
         .select("*, forklifts(name, model)")
         .or(EXCLUDE_E2E_FILTER)
         .gte("end_date", fromStr)
         .lte("start_date", toStr)
-        .order("start_date", { ascending: true });
+        .order("start_date", { ascending: true })
+        .limit(RANGE_LIMIT);
       if (error) throw error;
+      if ((data?.length ?? 0) >= RANGE_LIMIT) {
+        console.warn(
+          `[useBookingsRange] Alcanzó el límite de ${RANGE_LIMIT} reservas en el rango ${fromStr}..${toStr}. Migrar a paginación por semanas.`,
+        );
+      }
       return data;
     },
   });
