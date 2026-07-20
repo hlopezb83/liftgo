@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.112.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "PL-05 y PL-06 — Drill-down de egresos por categoría + Base contable visible",
+    "summary": "El RPC `get_income_statement` ahora incluye `expenses_detail_by_category` con el desglose línea por línea (proveedor, descripción, fecha y monto) de cada categoría, y el Estado de Resultados permite hacer *drill-down* directo sobre cualquier fila de egreso. Se agrega la insignia 'Base contable: Devengado/Efectivo' en el reporte, y en base efectivo la depreciación se excluye del resultado (no aplica en flujo de caja)."
+  },
+  {
     "version": "7.111.0",
     "date": "2026-07-20",
     "type": "minor",
