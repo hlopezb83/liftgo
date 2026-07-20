@@ -41,6 +41,8 @@ export function PostBookingPolicyDialog({ open, onOpenChange, forkliftId, forkli
   const form = useForm<FormValues>({ resolver: zodResolver(schema), defaultValues: DEFAULTS });
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- form.reset() de RHF debe
+    // ejecutarse fuera del render; es el patrón oficial para resincronizar el form al cerrar.
     if (!open) { setShowForm(false); form.reset(DEFAULTS); }
   }, [open, form]);
 
