@@ -119,11 +119,11 @@ export const PageFallback = () => {
     return () => window.clearTimeout(t);
   }, []);
 
-  // eslint-disable-next-line react-hooks/static-components -- pickSkeleton devuelve un ComponentType estable ya definido a nivel módulo.
   const Skeleton = useMemo(() => pickSkeleton(location.pathname), [location.pathname]);
 
   return (
     <div className="relative">
+      {/* eslint-disable-next-line react-hooks/static-components -- pickSkeleton devuelve un ComponentType estable definido a nivel módulo. */}
       <Skeleton />
 
       {stalled && (
