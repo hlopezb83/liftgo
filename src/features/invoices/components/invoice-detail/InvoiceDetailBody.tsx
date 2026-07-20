@@ -133,6 +133,7 @@ export function InvoiceDetailBody({
         invoiceId={id}
         invoiceNumber={invoice.invoice_number}
         invoiceTotal={total}
+        invoiceCurrency={invoice.moneda}
         balance={balance}
         notes={invoice.notes}
         showCollectionNotes={showCollectionNotes}
@@ -146,6 +147,7 @@ export function InvoiceDetailBody({
         onDelete={actions.handleDelete}
         ppdStamped={ppdStamped}
       />
+
       <StampErrorDialog
         open={!!actions.stampError}
         onOpenChange={(o) => { if (!o) actions.clearStampError(); }}
