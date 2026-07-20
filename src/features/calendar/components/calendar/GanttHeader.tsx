@@ -21,7 +21,7 @@ export function GanttHeader({ days }: { days: Date[] }) {
             return (
               <div
                 key={`wd-${day.toISOString()}`}
-                className={`flex-1 text-center text-3xs font-medium ${isWeekend ? "text-destructive/60" : "text-muted-foreground/60"} ${weekStart ? "border-l border-border" : ""}`}
+                className={`flex-1 min-w-[28px] text-center text-3xs font-medium ${isWeekend ? "text-destructive/60" : "text-muted-foreground/60"} ${weekStart ? "border-l border-border" : ""}`}
               >
                 {format(day, "EEE", { locale: APP_LOCALE })}
               </div>
