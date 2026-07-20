@@ -9,6 +9,7 @@ import {
 
 interface Totals {
   revenue: number; revenueRentalBooked: number; revenueRentalUnbooked: number; revenueSales: number;
+  revenueDamageRecovery: number;
   maintenanceCost: number; damageCost: number; depreciation: number;
   depreciationRented: number; depreciationIdle: number;
   cogsForkliftSales: number;
@@ -27,11 +28,13 @@ export function useStatementRows(filteredData: MonthData[], totals: Totals) {
   const rentalBookedBreakdownRows = buildBreakdownRows(filteredData, (m) => m.rentalBookedByCustomer);
   const rentalUnbookedBreakdownRows = buildBreakdownRows(filteredData, (m) => m.rentalUnbookedByCustomer);
   const salesBreakdownRows = buildBreakdownRows(filteredData, (m) => m.salesByCustomer);
+  const damageRecoveryBreakdownRows = buildBreakdownRows(filteredData, (m) => m.damageRecoveryByCustomer);
 
   return {
     statementRows, csvRows,
     depreciationBreakdownRows, cogsBreakdownRows,
     rentalBookedBreakdownRows, rentalUnbookedBreakdownRows, salesBreakdownRows,
+    damageRecoveryBreakdownRows,
   };
 }
 
