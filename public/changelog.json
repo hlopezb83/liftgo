@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.114.5",
+    "date": "2026-07-20",
+    "type": "patch",
+    "title": "Sprint ESLint Ola 3.b — setState-in-effect (14 archivos refactorizados)",
+    "summary": "Ola 3.b: se refactorizaron 14 componentes/hooks con `react-hooks/set-state-in-effect`. Ocho migraron al patrón oficial 'adjust state during render' con prev-prop guard (`useContractFormState`, `useFeedbackStatusUpdate`, `ContractTemplateTab`, `EditNameDialog`, `useSetPasswordForm`, `ImageGalleryLightbox`) eliminando `useEffect` innecesarios. Seis casos legítimos recibieron `eslint-disable` con justificación explícita: `PostBookingDeliveryDialog`, `PostBookingPolicyDialog`, `PostDeliveryPickupDialog` (patrón oficial de RHF `form.reset()`), `ListPageLayout` (lectura de DOM ref post-mount), `useChangelogDeepLink` (inicialización única desde `window.location.hash`) y `CustomersPage` (prefill desde URL en mount). `CashFlowSettingsBar` y `useProspectForm` se dejaron con `useEffect + disable` porque los guards inflaban la complejidad ciclomática sobre el umbral. 0 errores, 1083 tests verdes."
+  },
+  {
     "version": "7.114.3",
     "date": "2026-07-20",
     "type": "patch",

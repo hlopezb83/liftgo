@@ -1,0 +1,35 @@
+{
+  "version": "7.114.5",
+  "date": "2026-07-20",
+  "type": "patch",
+  "title": "Sprint ESLint Ola 3.b — setState-in-effect",
+  "sections": [
+    {
+      "heading": "Migrados a prev-prop guard (patrón oficial React 19)",
+      "items": [
+        "src/features/contracts/hooks/contractForm/useContractFormState.ts",
+        "src/features/feedback/hooks/useFeedbackStatusUpdate.ts",
+        "src/features/operations/components/operations/ContractTemplateTab.tsx",
+        "src/features/users/components/users/EditNameDialog.tsx",
+        "src/features/users/hooks/useSetPasswordForm.ts",
+        "src/features/damage/components/damage/ImageGalleryLightbox.tsx"
+      ]
+    },
+    {
+      "heading": "Disables justificados (efectos legítimos)",
+      "items": [
+        "PostBookingDeliveryDialog / PostBookingPolicyDialog / PostDeliveryPickupDialog: `form.reset()` de react-hook-form es el patrón oficial de la librería.",
+        "ListPageLayout: `sentinelRef.current?.closest('main')` requiere el DOM montado.",
+        "useChangelogDeepLink: inicialización única desde `window.location.hash`.",
+        "CustomersPage: prefill desde URL search params al montar."
+      ]
+    },
+    {
+      "heading": "Sin cambios de comportamiento",
+      "items": [
+        "0 errores de lint, 1083 tests Vitest verdes.",
+        "CashFlowSettingsBar y useProspectForm quedaron con `useEffect + disable` porque el guard inflaba complejidad ciclomática > 15."
+      ]
+    }
+  ]
+}
