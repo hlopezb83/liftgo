@@ -1,4 +1,4 @@
-import { isWithinInterval } from "date-fns";
+import { toYMD } from "@/lib/date/toYMD";
 
 export interface ModelRow {
   model: string;
@@ -16,14 +16,22 @@ export interface Invoice { status: string; paid_at: string | null; booking_id: s
 export interface MaintLog { forklift_id: string; performed_at: string | null; cost: number | string | null }
 export interface DamageRec { forklift_id: string; created_at: string | null; actual_cost: number | string | null }
 
+/**
+ * EC-M1: comparación día-a-día basada en strings YMD (no en Date/UTC) para evitar
+ * off-by-one cuando columnas `date` de Postgres (que llegan como "YYYY-MM-DD") se
+ * parsean como UTC medianoche y se comparan contra rangos locales (America/Monterrey).
+ *
+ * Extraemos los primeros 10 chars — funciona para `date` puros ("2026-03-15") y para
+ * `timestamptz` ISO ("2026-03-15T18:00:00Z") ya que sólo comparamos el día calendario.
+ */
 function inRange(dateStr: string | null | undefined, start: Date, end: Date) {
   if (!dateStr) return false;
-  try {
-    return isWithinInterval(new Date(dateStr), { start, end });
-  } catch {
-    return false;
-  }
+  const startYMD = toYMD(start);
+  const endYMD = toYMD(end);
+  const dayYMD = dateStr.length >= 10 ? dateStr.slice(0, 10) : dateStr;
+  return dayYMD >= startYMD && dayYMD <= endYMD;
 }
+
 
 export function buildModelUnitsMap(forklifts: Forklift[]) {
   const forkliftModel = new Map<string, string>();
