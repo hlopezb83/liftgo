@@ -326,28 +326,6 @@ async function executePlan(supabase: any, items: PlanItem[]) {
     const bookingIds = group.map((i) => i.bookingId);
 
     try {
-      // Re-check idempotencia (por si otro run corrió en paralelo)
-      const { data: existingLink } = await supabase
-        .from("invoice_bookings")
-        .select(
-          "invoice_id, invoices!inner(id, invoice_number, billing_period_start, billing_period_end, status, cfdi_status)",
-        )
-        .in("booking_id", bookingIds)
-        .eq("invoices.billing_period_start", first.startStr)
-        .eq("invoices.billing_period_end", first.endStr)
-        .neq("invoices.status", "cancelled")
-        .neq("invoices.cfdi_status", "cancelled")
-        .limit(1)
-        .maybeSingle();
-
-      if (existingLink) {
-        await supabase
-          .from("bookings")
-          .update({ last_billed_date: first.endStr })
-          .in("id", bookingIds);
-        continue;
-      }
-
       const { data: customer } = await supabase
         .from("customers")
         .select(
@@ -377,63 +355,52 @@ async function executePlan(supabase: any, items: PlanItem[]) {
       const taxAmount = Math.round(subtotal * (taxRate / 100) * 100) / 100;
       const total = Math.round((subtotal + taxAmount) * 100) / 100;
 
-      const { data: invNum } = await supabase.rpc("next_draft_invoice_number");
-      const isSingle = group.length === 1;
-
-      const { data: insertedInvoice, error: invErr } = await supabase
-        .from("invoices")
-        .insert({
-          invoice_number: invNum || `FAC-AUTO-${Date.now()}`,
-          booking_id: isSingle ? first.bookingId : null,
-          customer_id: first.customerId,
-          customer_name: first.customerName,
-          line_items: lineItems,
-          subtotal,
-          tax_rate: taxRate,
-          tax_amount: taxAmount,
-          total,
-          status: "draft",
-          due_date: first.endStr,
-          billing_period_start: first.startStr,
-          billing_period_end: first.endStr,
-          receptor_rfc: customer?.rfc ?? null,
-          receptor_razon_social: customer?.razon_social || customer?.name ||
+      // BL-B5 (Ola 2.2): RPC atómico — invoice + pivot + last_billed_date
+      // en una sola transacción con advisory lock por reserva. Evita facturas
+      // huérfanas si falla el pivot y previene duplicados en corridas paralelas.
+      const { data: rpcResult, error: rpcErr } = await supabase.rpc(
+        "create_recurring_invoice",
+        {
+          p_booking_ids: bookingIds,
+          p_customer_id: first.customerId,
+          p_customer_name: first.customerName,
+          p_line_items: lineItems,
+          p_subtotal: subtotal,
+          p_tax_rate: taxRate,
+          p_tax_amount: taxAmount,
+          p_total: total,
+          p_billing_period_start: first.startStr,
+          p_billing_period_end: first.endStr,
+          p_receptor_rfc: customer?.rfc ?? null,
+          p_receptor_razon_social: customer?.razon_social || customer?.name ||
             null,
-          receptor_regimen_fiscal: customer?.regimen_fiscal ?? null,
-          receptor_domicilio_fiscal_cp: customer?.domicilio_fiscal_cp ?? null,
-          uso_cfdi: customer?.uso_cfdi ?? "G03",
-          forma_pago: "99",
-          metodo_pago: "PPD",
-          moneda: "MXN",
-          tipo_cambio: 1,
-        })
-        .select("id, invoice_number")
-        .single();
+          p_receptor_regimen_fiscal: customer?.regimen_fiscal ?? null,
+          p_receptor_domicilio_fiscal_cp: customer?.domicilio_fiscal_cp ?? null,
+          p_uso_cfdi: customer?.uso_cfdi ?? "G03",
+        },
+      );
 
-      if (invErr) throw invErr;
-
-      const invoiceId = insertedInvoice?.id as string;
-
-      const { error: pivotErr } = await supabase
-        .from("invoice_bookings")
-        .insert(
-          bookingIds.map((bId) => ({ invoice_id: invoiceId, booking_id: bId })),
-        );
-
-      if (pivotErr) {
-        await supabase.from("invoices").delete().eq("id", invoiceId);
-        throw pivotErr;
+      if (rpcErr) {
+        // 23505 = unique_violation → duplicado del índice único parcial.
+        // Otra corrida en paralelo ya facturó este período; no es error.
+        if (rpcErr.code === "23505") {
+          console.log(
+            `[generate-recurring-invoices] already_billed bookings=${
+              bookingIds.join(",")
+            } period=${first.startStr}..${first.endStr}`,
+          );
+          continue;
+        }
+        throw rpcErr;
       }
 
-      await supabase
-        .from("bookings")
-        .update({ last_billed_date: first.endStr })
-        .in("id", bookingIds);
+      const row = Array.isArray(rpcResult) ? rpcResult[0] : rpcResult;
+      if (!row?.invoice_id) throw new Error("RPC returned no invoice_id");
 
       created.push({
         bookingIds,
-        invoiceId,
-        invoiceNumber: insertedInvoice?.invoice_number ?? null,
+        invoiceId: row.invoice_id as string,
+        invoiceNumber: (row.invoice_number as string) ?? null,
       });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
@@ -443,6 +410,7 @@ async function executePlan(supabase: any, items: PlanItem[]) {
 
   return { created, failed };
 }
+
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
