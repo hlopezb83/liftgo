@@ -30,7 +30,7 @@ const getDuration = (start: string, end: string) => {
 };
 
 export default function BookingsPage() {
-  const { data: bookings, isLoading, refetch } = useBookings();
+  const { data: bookings, isLoading, isError, refetch } = useBookings();
   const navigate = useNavigateTransition();
   const { data: role } = useUserRole();
   const isAdmin = role === "admin";
@@ -144,6 +144,8 @@ export default function BookingsPage() {
         </div>
       }
       isLoading={isLoading}
+      isError={isError}
+      onRetry={() => { void refetch(); }}
       table={table}
       onRowClick={(b) => navigate(`/bookings/${b.id}`)}
       onRowPrefetch={(b) => bookingQueries.detail(b.id)}

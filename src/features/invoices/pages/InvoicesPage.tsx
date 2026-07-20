@@ -106,7 +106,7 @@ export default function InvoicesPage() {
     queryFilters, filterKey, hasActive, clearAll,
   } = useInvoicesFilters();
 
-  const { data: invoices, isLoading } = useInvoices(queryFilters);
+  const { data: invoices, isLoading, isError, refetch } = useInvoices(queryFilters);
   const navigate = useNavigateTransition();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [resultOpen, setResultOpen] = useState(false);
@@ -159,6 +159,8 @@ export default function InvoicesPage() {
         }
 
         isLoading={isLoading}
+        isError={isError}
+        onRetry={() => { void refetch(); }}
         table={table}
         onRowClick={(inv) => navigate(`/invoices/${inv.id}`)}
         onRowPrefetch={(inv) => invoiceQueries.detail(inv.id)}

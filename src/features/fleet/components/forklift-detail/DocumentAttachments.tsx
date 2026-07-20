@@ -1,4 +1,5 @@
 import { useRef, type ChangeEvent as ReactChangeEvent } from "react";
+import { useConfirm } from "@/components/feedback/useConfirm";
 import { Paperclip, DeleteIcon, UploadIcon, DocumentIcon, Image, File } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +16,7 @@ export function DocumentAttachments({ entityType, entityId }: { entityType: stri
   const { data: documents, isLoading } = useDocuments(entityType, entityId);
   const uploadDoc = useUploadDocument();
   const deleteDoc = useDeleteDocument();
+  const confirm = useConfirm();
   const fileRef = useRef<HTMLInputElement>(null);
 
   const handleUpload = async (e: ReactChangeEvent<HTMLInputElement>) => {
@@ -25,7 +27,14 @@ export function DocumentAttachments({ entityType, entityId }: { entityType: stri
     if (fileRef.current) fileRef.current.value = "";
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string, fileName: string) => {
+    const ok = await confirm({
+      title: "¿Eliminar adjunto?",
+      description: `Se eliminará "${fileName}" permanentemente. Esta acción no se puede deshacer.`,
+      confirmLabel: "Eliminar",
+      destructive: true,
+    });
+    if (!ok) return;
     deleteDoc.mutate(id, { onSuccess: () => notifySuccess("Archivo eliminado") });
   };
 
@@ -59,7 +68,7 @@ export function DocumentAttachments({ entityType, entityId }: { entityType: stri
                   <span className="truncate">{doc.file_name}</span>
                   <span className="text-xs text-muted-foreground shrink-0">{formatSize(doc.file_size)}</span>
                 </a>
-                <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" aria-label="Eliminar documento" title="Eliminar documento" onClick={() => handleDelete(doc.id)}>
+                <Button variant="ghost" size="icon" className="h-7 w-7 shrink-0" aria-label="Eliminar documento" title="Eliminar documento" onClick={() => handleDelete(doc.id, doc.file_name)}>
                   <DeleteIcon className="h-3.5 w-3.5 text-destructive" />
                 </Button>
               </div>

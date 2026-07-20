@@ -1,84 +1,68 @@
-## Auditoría Ola 2.5 — Verde
+# Revisión Ola 2.6 y siguiente fase
 
-- 1089/1089 Vitest + 22/22 Deno.
-- Triggers correctos y retro-compatibles; EC-M4 en modo opt-in intencional.
-- Sin bugs. Falta menor de tests SQL directos aceptado.
+## Estado Ola 2.6 (v7.122.0) — verde
 
----
+- BL-M1: RLS `dispatcher` a `SELECT` + `payments.created_by` con FK. ✅
+- EC-M2: `useCustomer(id)` con PK + `.limit(LIST_PAGE_LIMIT)` y warn. ✅
+- EC-M3: `useBookingsRange` con `.limit(2000)` y warn. ✅
+- EC-M5: RPC `assert_not_last_admin` (FOR UPDATE) + reorden de `delete-user` (auth primero). ✅
+- Tests: 1091/1091 Vitest, Deno estable. Sin regresiones detectadas.
 
-## Sprint 2 · Ola 2.6 — Segregación de roles y edge cases de queries
-
-Objetivo: cerrar hallazgos que hoy dependen del cliente para no romperse a escala o permiten operaciones que deberían requerir un rol superior.
-
-### 1. BL-M1 · Segregación del rol `dispatcher` en payments e invoices
-
-**Problema** (migración `20260215213107:76-79`): `dispatcher` tiene RLS `FOR ALL` en `payments` e `invoices`. Un despachador puede timbrar, cancelar, editar o borrar facturas y registrar/borrar pagos — funciones que corresponden a `administrativo`/`admin`. Además `payments` no persiste `created_by`, lo que rompe trazabilidad.
-
-**Fix**:
-- Migración que reemplaza las policies de `dispatcher` en `payments` e `invoices`:
-  - `SELECT`: mantener acceso.
-  - `INSERT`/`UPDATE`/`DELETE`: revocar (queda restringido a `admin` + `administrativo`, que ya tienen policy propia).
-- `payments`: agregar columna `created_by uuid` con default `auth.uid()` (nullable para registros históricos) + backfill NULL. Se muestra en el detalle del pago.
-- Auditar `useCreatePayment`/`useDeletePayment` para confirmar que un despachador ya no puede llamarlos (los hooks siguen usando `.from()`, la RLS los frena).
-
-**Tests**: Vitest de contrato RLS existente para `payments` (extender el patrón `useForklifts.rls.test.ts`).
-
-### 2. EC-M2 · `useCustomers` sin `.limit()` + detalle por `find`
-
-**Problema**: `useCustomers.ts:13-21` trae la lista completa sin `.limit()` — con >1000 clientes falla la paginación implícita y el hook de detalle no encuentra al cliente porque hace `list.find(id)` sobre una lista truncada.
-
-**Fix**:
-- `useCustomer(id)` deja de derivarse de `useCustomers()` y hace `select().eq("id", id).single()` directo.
-- `useCustomers` agrega `.limit(1000)` explícito con orden estable + un warning si `data.length === 1000` (más adelante paginación real).
-
-**Tests**: Vitest existente de `useCustomers`; agregar caso donde el mock devuelve exactamente 1000 y el detalle sigue funcionando.
-
-### 3. EC-M3 · `useBookingsRange` sin `.limit()`
-
-**Problema**: Calendar/Gantt puede omitir reservas silenciosamente cuando la ventana traiga >1000 rows (default Supabase).
-
-**Fix**: `.limit(2000)` explícito + log warning si `data.length === 2000` para detectar cuándo migrar a paginación por semanas.
-
-**Tests**: extender test existente del calendario.
-
-### 4. EC-M5 · `delete-user` Edge Function: orden de borrado + TOCTOU
-
-**Problema**:
-- Borra `user_roles`/`profiles` antes que `auth.users`. Si el segundo falla queda usuario zombie sin roles.
-- Guarda de "último admin" con `count()` antes del delete: dos requests concurrentes ambos ven >1 admin, ambos borran → 0 admins.
-
-**Fix**:
-- Reordenar: primero `auth.admin.deleteUser`; si tiene éxito, cascade borra el resto (o disparar limpieza).
-- Guarda anti-último-admin: mover a RPC `SECURITY DEFINER` con `LOCK TABLE user_roles IN SHARE ROW EXCLUSIVE MODE` (o `SELECT ... FOR UPDATE` de los roles admin) para cerrar la ventana TOCTOU.
-
-**Tests**: Deno test para la Edge Function que simule falla en el paso Auth y verifique que roles/profile no se tocaron.
+Nada pendiente de la Ola 2.6.
 
 ---
 
-### Detalles técnicos
+# Sprint 3 · Ola 3.1 — UX operativa (UX-A1..A4)
 
-```text
-Migración única (v7.122.0):
-  1. DROP + CREATE POLICY dispatcher en payments (SELECT only)          → BL-M1
-  2. DROP + CREATE POLICY dispatcher en invoices (SELECT only)          → BL-M1
-  3. ALTER TABLE payments ADD COLUMN created_by uuid DEFAULT auth.uid() → BL-M1
-  4. CREATE FUNCTION delete_user_safely(target_user_id uuid)            → EC-M5
-```
+Del roadmap del auditor, Sprint 3 arranca con los cuatro hallazgos UX-Altos. Los abordo juntos porque comparten componentes de layout y patrones de confirmación.
 
-Frontend/edge en el mismo release:
-- `src/features/customers/hooks/useCustomers.ts`: split `useCustomer` + `.limit(1000)`.
-- `src/features/bookings/hooks/useBookings.ts`: `useBookingsRange` con `.limit(2000)` + warning.
-- `supabase/functions/delete-user/index.ts`: reordenar y delegar guarda a RPC.
-- Changelog: `public/changelog.json` + `public/changelog/v7.122.0.json` (minor).
+## Alcance
 
-### Verificación
+### UX-A1 · Estado de error en listados
+Hoy si una query falla, `ListPageLayout` muestra "No se encontraron registros" y esconde el error real.
 
-- Vitest completo (esperado 1089+ verdes).
-- Deno tests actualizados para `delete-user`.
-- Smoke manual: intentar como despachador crear pago (debe fallar), timbrar factura (debe fallar), abrir cliente por id directo (debe funcionar).
+- Extender `ListPageLayout` con `isError?: boolean` y `onRetry?: () => void`.
+- Nuevo componente `src/components/feedback/ErrorState.tsx` (mismo lenguaje visual que `EmptyState`, con `Icon name="alert"` y botón "Reintentar").
+- Cuando `isError` es true → renderizar `ErrorState` en vez de `EmptyState`.
+- Propagar `isError`/`refetch` en las 4 páginas prioritarias:
+  `InvoicesPage`, `FleetPage`, `CustomersPage`, `BookingsPage`.
+- Test: `ErrorState.test.tsx` (render + click reintento dispara callback).
 
-### Fuera de alcance
+### UX-A2 · Paginación móvil en Clientes
+`CustomersPage.tsx` usa `customContent` para mobile y pierde `DataTablePaginationV2`.
 
-- **BL-M5** (REP ImpSaldoAnt) — ola dedicada de CFDI-REP con casos de parcialidades fallidas.
-- **EC-M1** (off-by-one UTC en reportes) — próxima ola de reportes.
-- **Bloque UX-M*** — ola de UI/accesibilidad.
+- Migrar a `mobileCardRender` (patrón del resto de las 14 páginas) para que la paginación cliente-side de 25 aplique en móvil.
+- Verificar visualmente con Playwright a 375×812 que aparecen los controles y navegan páginas.
+
+### UX-A3 · Confirmación en borrados destructivos
+Dos puntos identificados:
+
+- `MaintenanceLaborSection.tsx` (mano de obra con costo, líneas 59-61 y 117-120).
+- `DocumentAttachments.tsx` (pólizas/verificaciones, líneas 28-30 y 62-64).
+
+Envolver el handler de borrado con `useConfirm({ destructive: true, title, description })` siguiendo el copy del resto de la app ("¿Eliminar…?" / "Esta acción no se puede deshacer").
+
+### UX-A4 · Guarda de cambios sin guardar
+Nuevo hook reutilizable `src/hooks/useUnsavedChangesGuard.ts`:
+
+- Recibe `isDirty: boolean` de RHF.
+- Registra `beforeunload` (mensaje del navegador) y `useBlocker` de React Router (mensaje custom con `useConfirm`).
+- Aplicarlo en `ContractForm`, `QuoteForm`, `InvoiceForm`.
+- Test unitario del hook con `renderHook` (setea/limpia listeners, respeta `!isDirty`).
+
+## Fuera de alcance (para próxima ola)
+
+- UX-M1 (RHF+zod en Contract/QuoteForm) — es un refactor más grande y se irá en Ola 3.2 junto con EC-A4/EC-M1 y confirmaciones móviles (Sprint 3 restante del roadmap del auditor).
+
+## Cambios técnicos
+
+- **Archivos nuevos**: `src/components/feedback/ErrorState.tsx`, `src/hooks/useUnsavedChangesGuard.ts`, `src/components/feedback/__tests__/ErrorState.test.tsx`, `src/hooks/__tests__/useUnsavedChangesGuard.test.ts`.
+- **Archivos modificados**: `ListPageLayout`, 4 páginas de listado, `MaintenanceLaborSection`, `DocumentAttachments`, `ContractForm`, `QuoteForm`, `InvoiceForm`, `CustomersPage`.
+- **DB / Edge**: sin cambios.
+- **Changelog**: `public/changelog.json` → v7.123.0 (`minor`) + `public/changelog/v7.123.0.json` con secciones por hallazgo.
+
+## Verificación
+
+1. `bunx vitest run` (esperado: 1091 + 2 nuevos = 1093 verde).
+2. `tsgo --noEmit`.
+3. Playwright headless: viewport 375×812 sobre `/customers` verificando paginación; viewport 1280×1800 sobre `/invoices` forzando error de red y capturando el `ErrorState`.

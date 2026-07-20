@@ -1,0 +1,51 @@
+{
+  "version": "7.123.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "Sprint 3 · Ola 3.1 — UX operativa (UX-A1..A4)",
+  "sections": [
+    {
+      "heading": "UX-A1 · Estados de error en listados",
+      "items": [
+        "Nuevo `ErrorState` con acción Reintentar (icono AlertTriangle, copy en es-MX).",
+        "`ListPageLayout` acepta `isError` y `onRetry`; renderiza `ErrorState` en lugar del `EmptyState` genérico.",
+        "Facturas, Reservas, Flota y Clientes propagan `{ isError, refetch }` de sus queries."
+      ]
+    },
+    {
+      "heading": "UX-A2 · Paginación móvil en Clientes",
+      "items": [
+        "`CustomersPage` deja de renderizar `MobileCardList` como `customContent`.",
+        "Ahora usa `mobileCardRender`/`mobileKeyExtractor` del layout — hereda paginación cliente (25/página) y pull-to-refresh estándar."
+      ]
+    },
+    {
+      "heading": "UX-A3 · Confirmación en borrados destructivos",
+      "items": [
+        "`MaintenanceLaborSection`: `useConfirm({ destructive: true })` antes de eliminar mano de obra.",
+        "`DocumentAttachments` (flota): confirmación con nombre del archivo antes de borrar el adjunto."
+      ]
+    },
+    {
+      "heading": "UX-A4 · Guardia de cambios sin guardar",
+      "items": [
+        "Nuevo `useUnsavedChangesGuard(isDirty)` — combina `beforeunload` nativo con `useBlocker` de React Router y `useConfirm` async.",
+        "Wired en `InvoiceForm` vía `f.form.formState.isDirty` (excluye estado submitting).",
+        "ContractForm/QuoteForm requieren migración previa a RHF para adoptarlo — follow-up."
+      ]
+    },
+    {
+      "heading": "Fix colateral",
+      "items": [
+        "`public/changelog.json` estaba roto (faltaba `{` de apertura en la entrada v7.121.0) — corregido."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "Typecheck limpio.",
+        "Vitest 1094/1094 verde."
+      ]
+    }
+  ]
+}

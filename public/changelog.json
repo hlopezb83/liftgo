@@ -1,11 +1,13 @@
 [
   {
-    "version": "7.122.0",
+    "version": "7.123.0",
     "date": "2026-07-20",
     "type": "minor",
-    "title": "Sprint 2 · Ola 2.6 — Segregación de roles y edge cases (BL-M1, EC-M2, EC-M3, EC-M5)",
-    "summary": "Auditoría de Ola 2.5 verde (1089 Vitest + 22 Deno). Ola 2.6 cierra 4 hallazgos: (1) BL-M1 — Rol `dispatcher` reducido a solo lectura en `invoices` y `payments` (drop de policies `FOR ALL` y creación de `FOR SELECT`). La gestión queda reservada a `admin`/`administrativo`. Además `payments.created_by uuid` (DEFAULT `auth.uid()`, FK a `auth.users` ON DELETE SET NULL) para trazabilidad. (2) EC-M2 — `useCustomer(id)` deja de derivarse de `useCustomers()` (`list.find`) y hace query directa por PK (`.eq('id', id).maybeSingle()`). `useCustomers` ahora aplica `.limit(LIST_PAGE_LIMIT)` explícito con warning cuando alcanza el techo. Test nuevo valida que el detalle funciona incluso cuando la lista estaría truncada. (3) EC-M3 — `useBookingsRange` con `.limit(2000)` explícito + warning para detectar cuándo migrar a paginación por semanas en Calendar/Gantt. (4) EC-M5 — Nueva RPC `assert_not_last_admin` (SECURITY DEFINER, `FOR UPDATE` sobre `user_roles.role='admin'`) que cierra la ventana TOCTOU. Edge Function `delete-user` reordenada: valida invariante con la RPC, borra `auth.users` primero (si falla, `user_roles`/`profiles` quedan intactos — no queda usuario zombie) y luego limpia tablas de aplicación. Suite completa 1091/1091 verde."
+    "title": "Sprint 3 · Ola 3.1 — UX operativa (UX-A1..A4)",
+    "summary": "Ola 3.1 cierra los 4 hallazgos de UX operativa. UX-A1: nuevo `ErrorState` con acción Reintentar; `ListPageLayout` acepta `isError`/`onRetry` y las páginas de Facturas, Reservas, Flota y Clientes propagan el error de su query (antes se veía el EmptyState genérico ante un fallo de red). UX-A2: `CustomersPage` deja de usar `customContent` con `MobileCardList` propio y adopta `mobileCardRender`/`mobileKeyExtractor` del layout — así hereda la paginación cliente estándar (25 por página) y el pull-to-refresh de las demás listas móviles. UX-A3: los borrados de mano de obra en mantenimiento y de adjuntos en flota ahora pasan por `useConfirm({ destructive: true })` (antes eran clicks sin confirmación). UX-A4: nuevo `useUnsavedChangesGuard(isDirty)` combinando `beforeunload` nativo + `useBlocker` de React Router con confirmación async; wired en `InvoiceForm` vía `f.form.formState.isDirty` (excluye estado submitting). ContractForm/QuoteForm requieren migración previa a RHF para adoptarlo — queda como follow-up. Verificación: typecheck limpio, 1094/1094 Vitest verde."
   },
+  {
+
 
     "version": "7.121.0",
     "date": "2026-07-20",

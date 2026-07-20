@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useConfirm } from "@/components/feedback/useConfirm";
 import { MaintenanceIcon, DeleteIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ export function MaintenanceLaborSection({ maintenanceLogId }: Props) {
   const { data: labor = [], isLoading } = useMaintenanceLabor(maintenanceLogId);
   const addLabor = useAddMaintenanceLabor();
   const deleteLabor = useDeleteMaintenanceLabor();
+  const confirm = useConfirm();
 
   const [mechanicId, setMechanicId] = useState<string>("");
   const [hours, setHours] = useState<string>("");
@@ -56,7 +58,14 @@ export function MaintenanceLaborSection({ maintenanceLogId }: Props) {
     );
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
+    const ok = await confirm({
+      title: "¿Eliminar mano de obra?",
+      description: "El costo asociado se retirará del total del servicio. Esta acción no se puede deshacer.",
+      confirmLabel: "Eliminar",
+      destructive: true,
+    });
+    if (!ok) return;
     deleteLabor.mutate(id, { onSuccess: () => notifySuccess("Registro eliminado") });
   };
 
