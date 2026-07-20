@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.113.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "Sprint 1a — Blindajes críticos: cancelación stub en live y divisa de pagos",
+    "summary": "C-2: `cancel-cfdi` ya no marca 'aceptada' una cancelación stub cuando la empresa opera en modo live (sin API key o sin `facturapi_invoice_id`); devuelve 400 con mensaje claro para impedir divergencia entre BD y SAT. C-1 defensivo: se bloquea la divisa del pago a la moneda de la factura (UI y trigger BEFORE INSERT/UPDATE en `payments`) hasta que exista soporte formal multi-moneda; hoy 100% de facturas y pagos son MXN, pero la interfaz permitía elegir divisa distinta y eso corrompería el saldo pendiente."
+  },
+  {
+
     "version": "7.112.1",
     "date": "2026-07-20",
     "type": "patch",
