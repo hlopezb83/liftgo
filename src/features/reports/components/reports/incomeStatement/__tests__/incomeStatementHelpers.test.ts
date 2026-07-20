@@ -59,5 +59,25 @@ describe("getBreakdownFor", () => {
   it("devuelve null para label sin breakdown", () => {
     expect(getBreakdownFor("Otro", dep, cogs, rentalBooked, rentalUnbooked, sales)).toBeNull();
   });
+
+  it("PL-05: resuelve categorías de egreso desde el mapa de detalle", () => {
+    const nomLines = [{ label: "prov", values: [10], total: 10 }];
+    const res = getBreakdownFor(
+      "  (-) Nómina",
+      dep, cogs, rentalBooked, rentalUnbooked, sales, [],
+      { nomina: nomLines },
+    );
+    expect(res?.key).toBe("exp:nomina");
+    expect(res?.rows).toBe(nomLines);
+  });
+
+  it("PL-05: retorna null cuando la categoría no tiene detalle", () => {
+    const res = getBreakdownFor(
+      "(-) Combustible",
+      dep, cogs, rentalBooked, rentalUnbooked, sales, [],
+      {},
+    );
+    expect(res).toBeNull();
+  });
 });
 
