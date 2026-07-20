@@ -1,0 +1,25 @@
+{
+  "version": "7.105.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "UX-07: MobileCardList en catálogos de OperationsSetupPage",
+  "sections": [
+    {
+      "heading": "Contexto",
+      "items": [
+        "En móvil los cuatro tabs de catálogos (Modelos de Equipo, Operadores, Mecánicos, Pólizas de Mantenimiento) renderizaban `DataTableV2` con scroll horizontal y acciones invisibles fuera del viewport.",
+        "El resto de la app (portal de clientes, listas principales) ya usa `MobileCardList` como estándar en móvil."
+      ]
+    },
+    {
+      "heading": "Cambios",
+      "items": [
+        "src/features/operations/components/operations/EquipmentModelsTab.tsx: `MobileCardList` con fabricante+modelo, combustible, capacidad y altura de mástil; acciones editar/eliminar inline.",
+        "src/features/operations/components/operations/DriversTab.tsx: tarjetas con nombre, StatusBadge activo/inactivo, teléfono/correo y licencia.",
+        "src/features/operations/components/operations/MechanicsTab.tsx: tarjetas con nombre, StatusBadge, contacto y especialización.",
+        "src/features/operations/components/operations/MaintenancePoliciesTab.tsx: tarjetas con montacargas, Switch para activar, proveedor, tipo de servicio, costo mensual y último mes generado.",
+        "En escritorio (isMobile=false) se conserva `DataTableV2` sin cambios."
+      ]
+    }
+  ]
+}
