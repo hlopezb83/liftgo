@@ -40,7 +40,20 @@ describe("buildRevenueMap", () => {
     );
     expect(map.get("f1")).toBe(5000);
   });
+
+  it("EC-M1: incluye el primer y último día del rango (columnas date puras)", () => {
+    const map = buildRevenueMap(
+      [
+        { status: "paid", paid_at: "2026-01-01", booking_id: "b1", total: 111 },
+        { status: "paid", paid_at: "2026-12-31", booking_id: "b1", total: 222 },
+      ],
+      [{ id: "b1", forklift_id: "f1" }],
+      start, end,
+    );
+    expect(map.get("f1")).toBe(333);
+  });
 });
+
 
 describe("buildCostMap", () => {
   it("acumula costos por forklift dentro del rango", () => {
