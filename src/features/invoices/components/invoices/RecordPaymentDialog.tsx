@@ -16,18 +16,22 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   invoiceId: string;
   balance: number;
+  /** C-1: moneda de la factura. El pago se bloquea a este valor. */
+  invoiceCurrency?: string | null;
   /** If true, invoice is PPD + stamped => offer REP stamping */
   ppdStamped?: boolean;
 }
 
-export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, ppdStamped = false }: Props) {
+export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, invoiceCurrency, ppdStamped = false }: Props) {
   const {
     amount, setAmount, date, setDate, method, setMethod,
     paymentFormSat, setPaymentFormSat, currency, setCurrency,
+    lockedCurrency,
     exchangeRate, setExchangeRate, reference, setReference,
     notes, setNotes, stampRep, setStampRep,
     createPayment, stampComplement, handleSubmit,
-  } = useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, onOpenChange });
+  } = useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, invoiceCurrency, onOpenChange });
+
 
   return (
     <FormDialog
