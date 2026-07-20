@@ -3838,6 +3838,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      internal_get_cron_secret: { Args: never; Returns: string }
       list_invoices_with_balance: {
         Args: {
           p_due_from?: string
