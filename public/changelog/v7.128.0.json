@@ -1,0 +1,49 @@
+{
+  "version": "7.128.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "Sprint 3 · Ola 3.6 — Cobertura QuoteForm + fix schema (partidas inactivas)",
+  "summary": "Auditoría de Ola 3.5 verde en general, pero se detecta un bug real y de alto impacto en `quoteFormSchema`: el schema validaba estrictamente los items de `saleLines` cuando `quoteType='rental'` (y viceversa). Como `defaultQuoteFormValues` inicializa ambos arrays con `[{ ...EMPTY_LINE }]` (modelId='', unitPrice=0, tarifas=0), cualquier submit de cotización nueva fallaba en validación sin mensaje visible al usuario (el error caía en el array inactivo, sin `<FormField>` que lo renderizara). Se refactoriza el schema con base laxa + estricto conditional en `superRefine` para sólo validar el bloque activo. Se agrega la suite de integración prometida en el plan original de Ola 3.5 (paso 9 nunca ejecutado). Micro-fixes cosméticos identificados en la auditoría.",
+  "sections": [
+    {
+      "title": "Fix crítico de schema",
+      "items": [
+        "`quoteFormSchema.ts`: introducidas `rentalLineBase` y `saleLineBase` (schemas laxos: sólo tipos, sin refines). El array-level valida contra las bases; `superRefine` corre `rentalLineSchema.safeParse(line)` / `saleLineSchema.safeParse(line)` sólo para el bloque activo y re-emite issues con `path=['rentalLines', i, ...]`.",
+        "Impacto: en producción, cualquier cotización nueva era rechazada por Zod (`modelId` vacío en la partida inactiva). Ola 3.5 pasó CI porque los tests unitarios no ejercitaban el submit end-to-end del hook."
+      ]
+    },
+    {
+      "title": "Nueva cobertura useQuoteFormLogic",
+      "items": [
+        "Nuevo `src/features/quotes/hooks/__tests__/useQuoteFormLogic.test.tsx` (7 tests) con mocks de `useCustomers`, `useEquipmentModels`, `useQuote`, `useNextQuoteNumber`, `useCreateQuote`, `useUpdateQuote`, `useUnsavedChangesGuard` y `useParams`.",
+        "Test: rechaza submit sin cliente → `createMutate` no invocado, error en `customerId`.",
+        "Test: rechaza renta sin `dateRange` → error en `dateRange`.",
+        "Test: rechaza partida de renta con todas las tarifas en 0 → error en `rentalLines`.",
+        "Test: submit renta válida → `createMutate` recibe payload con `quote_type='rental'`, `rental_meta` poblado, subtotal/total > 0.",
+        "Test: submit venta válida → payload con `quote_type='sale'` y `rental_meta=null`.",
+        "Test: post-submit exitoso deja `formState.isDirty === false` (blindaje del guard — previene race con `navigate`).",
+        "Test: `handleTypeChange('sale')` resetea `dateRange=undefined`, `rentalLines=[EMPTY]`, `saleLines=[EMPTY]`, `includeLogistics=false`, `logisticsCost=0`."
+      ]
+    },
+    {
+      "title": "Micro-fixes",
+      "items": [
+        "`QuoteForm.tsx:53-55`: se elimina `form.setValue('customerId', id, { shouldDirty: true, shouldValidate: true })` redundante — `field.onChange(id)` ya escribe al form. Ahora `onCustomerIdChange={field.onChange}`.",
+        "`useQuotePrefill.ts:129`: se retira `export { defaultQuoteFormValues }` sin consumidores; el import correcto es directo desde `./useQuoteForm`."
+      ]
+    }
+  ],
+  "verification": {
+    "vitest": "1104/1104 (baseline 1097; +7 nuevos en useQuoteFormLogic.test.tsx)",
+    "typecheck": "tsgo --noEmit limpio",
+    "playwright": "sin cambios visuales, no requiere regenerar baselines"
+  },
+  "files_changed": [
+    "src/features/quotes/lib/quoteFormSchema.ts",
+    "src/features/quotes/hooks/__tests__/useQuoteFormLogic.test.tsx",
+    "src/features/quotes/pages/QuoteForm.tsx",
+    "src/features/quotes/hooks/quoteForm/useQuotePrefill.ts",
+    "public/changelog.json",
+    "public/changelog/v7.128.0.json"
+  ]
+}

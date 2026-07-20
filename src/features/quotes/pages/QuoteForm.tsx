@@ -50,10 +50,7 @@ export default function QuoteForm() {
                     customers={f.customers}
                     customerId={field.value}
                     customerName={form.getValues("customerName")}
-                    onCustomerIdChange={(id) => {
-                      field.onChange(id);
-                      form.setValue("customerId", id, { shouldDirty: true, shouldValidate: true });
-                    }}
+                    onCustomerIdChange={field.onChange}
                     onCustomerNameChange={(name) => form.setValue("customerName", name, { shouldDirty: true })}
                     required
                     hideManualName

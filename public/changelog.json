@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.128.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "Sprint 3 · Ola 3.6 — Cobertura QuoteForm + fix schema (partidas inactivas)",
+    "summary": "Auditoría de Ola 3.5 detecta bug real en `quoteFormSchema`: el schema validaba estrictamente los items de `saleLines` cuando `quoteType='rental'` (y viceversa), rechazando el `EMPTY_LINE` que por default habita la partida inactiva. Cualquier submit de cotización nueva habría fallado silenciosamente en producción. Se refactorizó el schema con `rentalLineBase`/`saleLineBase` (laxos a nivel array) + `rentalLineSchema`/`saleLineSchema` estrictos aplicados vía `superRefine` sólo al bloque activo. Nueva suite `useQuoteFormLogic.test.tsx` (7 tests) cubre rechazo por cliente/rango/tarifas, submit válido de renta y venta, cleanup de `isDirty` post-mutación (blindaje del guard) y `handleTypeChange` (reset de líneas y logística). Micro-fixes: se retira `form.setValue(customerId)` duplicado en `QuoteForm.tsx` y re-export muerto de `defaultQuoteFormValues` en `useQuotePrefill.ts`. 1104/1104 Vitest verde, typecheck limpio.",
+    "changes": [
+      "Fix crítico `quoteFormSchema.ts`: partidas inactivas ya no fallan validación en submit",
+      "Nuevo `useQuoteFormLogic.test.tsx` (7 tests): rechazo, submit rental/sale, guard cleanup, handleTypeChange",
+      "`QuoteForm.tsx`: elimina `form.setValue('customerId', ...)` duplicado tras `field.onChange`",
+      "`useQuotePrefill.ts`: retira `export { defaultQuoteFormValues }` sin consumidores",
+      "Total: +7 tests (1097 → 1104)"
+    ]
+  },
+  {
     "version": "7.127.0",
     "date": "2026-07-20",
     "type": "minor",
