@@ -1108,6 +1108,7 @@ export type Database = {
           inspection_id: string | null
           invoice_id: string | null
           maintenance_log_id: string | null
+          repaired_at: string | null
           status: string
           updated_at: string
         }
@@ -1125,6 +1126,7 @@ export type Database = {
           inspection_id?: string | null
           invoice_id?: string | null
           maintenance_log_id?: string | null
+          repaired_at?: string | null
           status?: string
           updated_at?: string
         }
@@ -1142,6 +1144,7 @@ export type Database = {
           inspection_id?: string | null
           invoice_id?: string | null
           maintenance_log_id?: string | null
+          repaired_at?: string | null
           status?: string
           updated_at?: string
         }
@@ -1698,6 +1701,7 @@ export type Database = {
           global_year: number | null
           id: string
           invoice_number: string
+          invoice_type: string
           is_e2e: boolean
           issued_at: string
           line_items: Json
@@ -1751,6 +1755,7 @@ export type Database = {
           global_year?: number | null
           id?: string
           invoice_number: string
+          invoice_type?: string
           is_e2e?: boolean
           issued_at?: string
           line_items?: Json
@@ -1804,6 +1809,7 @@ export type Database = {
           global_year?: number | null
           id?: string
           invoice_number?: string
+          invoice_type?: string
           is_e2e?: boolean
           issued_at?: string
           line_items?: Json
@@ -2823,6 +2829,8 @@ export type Database = {
           cfdi_use: string | null
           cfdi_uuid: string | null
           cfdi_xml_url: string | null
+          coverage_end: string | null
+          coverage_start: string | null
           created_at: string
           created_by: string | null
           currency: string
@@ -2862,6 +2870,8 @@ export type Database = {
           cfdi_use?: string | null
           cfdi_uuid?: string | null
           cfdi_xml_url?: string | null
+          coverage_end?: string | null
+          coverage_start?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -2901,6 +2911,8 @@ export type Database = {
           cfdi_use?: string | null
           cfdi_uuid?: string | null
           cfdi_xml_url?: string | null
+          coverage_end?: string | null
+          coverage_start?: string | null
           created_at?: string
           created_by?: string | null
           currency?: string
