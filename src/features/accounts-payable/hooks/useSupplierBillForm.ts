@@ -176,10 +176,14 @@ export function useSupplierBillForm(
     }
   };
 
+  const isPending = create.isPending || update.isPending;
+  // UX-M2: bloquea navegación / recarga si hay cambios sin guardar y no está enviando.
+  useUnsavedChangesGuard(open && form.formState.isDirty && !isPending);
+
   return {
     form, selectedSupplier, suggestedDueDate, total,
     isEdit,
-    isPending: create.isPending || update.isPending,
+    isPending,
     onSubmit: form.handleSubmit(onSubmit),
   };
 }
