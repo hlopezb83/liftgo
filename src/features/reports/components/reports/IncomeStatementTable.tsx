@@ -20,6 +20,7 @@ interface Props {
   rentalBookedBreakdownRows: BreakdownRow[];
   rentalUnbookedBreakdownRows: BreakdownRow[];
   salesBreakdownRows: BreakdownRow[];
+  damageRecoveryBreakdownRows: BreakdownRow[];
 }
 
 export function IncomeStatementTable({
