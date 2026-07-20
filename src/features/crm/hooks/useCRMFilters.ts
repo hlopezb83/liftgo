@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import type { Prospect } from "./useProspects";
 
 export type ValueRange = "all" | "lt100k" | "100k-500k" | "gt500k";
