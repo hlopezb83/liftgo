@@ -1,0 +1,39 @@
+{
+  "version": "7.110.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "PL-01 — Depreciación por calendario + flota ociosa",
+  "sections": [
+    {
+      "heading": "Nuevos campos en `forklifts`",
+      "items": [
+        "`acquisition_date date` (opcional): fecha real de adquisición. NULL = usa `created_at::date` (comportamiento previo).",
+        "`sold_at date` (opcional): fecha de baja/venta. NULL = sigue en flota. Un equipo con `sold_at` deja de depreciar desde ese mes."
+      ]
+    },
+    {
+      "heading": "Depreciación mensual por calendario",
+      "items": [
+        "Cada equipo activo en el mes deprecia `acquisition_cost / 48` — ya no se pondera por días rentados. Un equipo sin renta también deprecia.",
+        "Se dividen dos métricas por mes: `depreciation_rented` (proporcional a días rentados) y `depreciation_idle` (resto). La suma es la depreciación total por calendario.",
+        "Nueva fila en el Estado de Resultados: `(-) Depreciación (Flota Ociosa)` después de `(-) Depreciación (Equipos Rentados)`.",
+        "La `Utilidad Neta` ahora resta la depreciación TOTAL (rentados + ociosos)."
+      ]
+    },
+    {
+      "heading": "COGS de equipos vendidos alineado al calendario",
+      "items": [
+        "El valor en libros al vender un equipo se calcula por meses activos calendario (`acquisition_cost * (1 − meses_activos/48)`), no por días rentados históricos.",
+        "Alineado con el criterio de depreciación mensual para consistencia con el balance del equipo."
+      ]
+    },
+    {
+      "heading": "Impacto esperado",
+      "items": [
+        "Las cifras históricas del P&L cambiarán respecto a versiones anteriores. Es un cambio de criterio contable (depreciación por calendario, práctica estándar), no un bug.",
+        "Meses con baja ocupación reflejan ahora una utilidad neta menor porque la flota ociosa sí consume depreciación.",
+        "El COGS de ventas puede subir/bajar según los meses reales de uso vs los días rentados históricos."
+      ]
+    }
+  ]
+}
