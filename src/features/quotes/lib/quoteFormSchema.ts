@@ -18,27 +18,45 @@ const positiveInt = z.number().int().positive("Debe ser mayor a 0");
 const nonNegative = z.number().min(0, "No puede ser negativo");
 const positive = z.number().positive("Debe ser mayor a 0");
 
-export const rentalLineSchema = z
-  .object({
-    modelId: nonEmptyId,
-    quantity: positiveInt,
-    dailyRate: nonNegative,
-    weeklyRate: nonNegative,
-    monthlyRate: nonNegative,
-    discount: nonNegative,
-    discountType: z.enum(["%", "$"]),
-  })
-  .refine(
-    (l) => l.dailyRate > 0 || l.weeklyRate > 0 || l.monthlyRate > 0,
-    { message: "Ingresa al menos una tarifa (diaria, semanal o mensual)", path: ["monthlyRate"] },
-  );
+// Base laxo — permite que la partida inactiva (rental cuando quoteType='sale', y viceversa)
+// conserve valores neutros sin fallar la validación. La validación estricta se hace en
+// `superRefine` sólo para el bloque activo.
+const rentalLineBase = z.object({
+  modelId: z.string(),
+  quantity: z.number(),
+  dailyRate: z.number(),
+  weeklyRate: z.number(),
+  monthlyRate: z.number(),
+  discount: z.number(),
+  discountType: z.enum(["%", "$"]),
+});
 
-export const saleLineSchema = z.object({
+const saleLineBase = z.object({
+  modelId: z.string(),
+  quantity: z.number(),
+  unitPrice: z.number(),
+  discount: z.number(),
+  discountType: z.enum(["%", "$"]),
+});
+
+// Estrictos — se usan sólo en superRefine para el bloque activo.
+export const rentalLineSchema = rentalLineBase.extend({
+  modelId: nonEmptyId,
+  quantity: positiveInt,
+  dailyRate: nonNegative,
+  weeklyRate: nonNegative,
+  monthlyRate: nonNegative,
+  discount: nonNegative,
+}).refine(
+  (l) => l.dailyRate > 0 || l.weeklyRate > 0 || l.monthlyRate > 0,
+  { message: "Ingresa al menos una tarifa (diaria, semanal o mensual)", path: ["monthlyRate"] },
+);
+
+export const saleLineSchema = saleLineBase.extend({
   modelId: nonEmptyId,
   quantity: positiveInt,
   unitPrice: positive,
   discount: nonNegative,
-  discountType: z.enum(["%", "$"]),
 });
 
 const dateRangeSchema = z.object({
@@ -55,8 +73,8 @@ export const quoteFormSchema = z.object({
   notes: z.string().default(""),
   validUntil: z.date().optional(),
   dateRange: dateRangeSchema.optional(),
-  rentalLines: z.array(rentalLineSchema).default([]),
-  saleLines: z.array(saleLineSchema).default([]),
+  rentalLines: z.array(rentalLineBase).default([]),
+  saleLines: z.array(saleLineBase).default([]),
   includeLogistics: z.boolean().default(false),
   logisticsCost: nonNegative.default(0),
 }).superRefine((val, ctx) => {
@@ -64,6 +82,14 @@ export const quoteFormSchema = z.object({
     if (val.rentalLines.length === 0) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["rentalLines"], message: "Agrega al menos una partida" });
     }
+    val.rentalLines.forEach((line, i) => {
+      const r = rentalLineSchema.safeParse(line);
+      if (!r.success) {
+        for (const issue of r.error.issues) {
+          ctx.addIssue({ ...issue, path: ["rentalLines", i, ...issue.path] });
+        }
+      }
+    });
     if (!val.dateRange?.from || !val.dateRange?.to) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["dateRange"], message: "Selecciona el rango de renta" });
     } else if (val.dateRange.to < val.dateRange.from) {
@@ -73,6 +99,14 @@ export const quoteFormSchema = z.object({
     if (val.saleLines.length === 0) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["saleLines"], message: "Agrega al menos una partida" });
     }
+    val.saleLines.forEach((line, i) => {
+      const r = saleLineSchema.safeParse(line);
+      if (!r.success) {
+        for (const issue of r.error.issues) {
+          ctx.addIssue({ ...issue, path: ["saleLines", i, ...issue.path] });
+        }
+      }
+    });
   }
 
   if (val.includeLogistics && val.logisticsCost <= 0) {
