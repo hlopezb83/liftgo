@@ -1,0 +1,22 @@
+{
+  "version": "7.110.2",
+  "date": "2026-07-20",
+  "type": "patch",
+  "title": "PL-08 — Backfill idempotente DRIFT-01",
+  "sections": [
+    {
+      "heading": "Backfill defensivo",
+      "items": [
+        "Se aplica una migración idempotente (`IF NOT EXISTS` / `CREATE OR REPLACE`) para `collection_reminders_log` y sus grants/RLS. En producción es un no-op — el objeto ya existe con la misma forma.",
+        "Asegura consistencia si un ambiente frío se reconstruye a partir de un snapshot de producción y luego se le aplican migraciones nuevas encima."
+      ]
+    },
+    {
+      "heading": "Limitación conocida",
+      "items": [
+        "El sistema de migraciones de Lovable Cloud sella cada archivo con timestamp actual, así que NO se puede insertar un backfill 'antes' de las migraciones `20260515044551` / `20260608142930` como pedía el issue original.",
+        "Recomendación para ambientes nuevos: restaurar desde snapshot de producción en vez de correr `db reset` desde cero. El drift de orden histórico se atenderá en un sprint dedicado de higiene de migraciones."
+      ]
+    }
+  ]
+}
