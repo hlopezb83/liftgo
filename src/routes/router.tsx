@@ -1,3 +1,6 @@
+/* eslint-disable react-refresh/only-export-components --
+   Router raíz: exporta rutas + layout + helpers para code-splitting con `lazy`.
+   No es un módulo de componentes puros — HMR de rutas requiere reload completo. */
 import { type ComponentType, type ReactElement, lazy } from "react";
 import { createBrowserRouter, Navigate, type RouteObject } from "react-router";
 import { AdminRouteGuard } from "@/layouts/AdminRouteGuard";
