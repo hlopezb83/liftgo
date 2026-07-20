@@ -1,0 +1,25 @@
+{
+  "version": "7.108.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "Estado de Resultados: ingresos separados en tres categorías",
+  "description": "Los ingresos del P&L ahora se dividen en Rentas con reserva, Rentas sin reserva y Ventas de equipo, con desglose por cliente para cada categoría.",
+  "changes": [
+    {
+      "area": "RPC get_income_statement",
+      "items": [
+        "Clasificación por factura vía CASE: rental_booked (booking_id / invoice_bookings / quote_id / billing_period_*), rental_unbooked (partidas is_rental sin booking) y sales (equipo vendido y otros).",
+        "Nuevos campos por mes: revenue_rental_booked, revenue_rental_unbooked, rental_booked_by_customer, rental_unbooked_by_customer.",
+        "Aplica retroactivo a modo devengado (accrual) y flujo (cash)."
+      ]
+    },
+    {
+      "area": "Frontend (Reports)",
+      "items": [
+        "useIncomeStatementData expone rentalBookedBreakdownRows y rentalUnbookedBreakdownRows.",
+        "Nueva presentación de tres filas de ingreso, cada una expandible con desglose por cliente.",
+        "IncomeStatementTable, helpers y tests actualizados; CSV/PDF heredan la nueva estructura."
+      ]
+    }
+  ]
+}
