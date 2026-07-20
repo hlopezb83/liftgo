@@ -6,6 +6,7 @@ import {
 
 interface RowTotals {
   revenue: number; revenueRentalBooked: number; revenueRentalUnbooked: number; revenueSales: number;
+  revenueDamageRecovery: number;
   maintenanceCost: number; damageCost: number; depreciation: number;
   depreciationRented: number; depreciationIdle: number;
   cogsForkliftSales: number;
