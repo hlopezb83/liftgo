@@ -38,6 +38,8 @@ export function useProspectForm({
   const requiresDealValue = STAGES_REQUIRING_DEAL_VALUE.includes(effectiveStage);
 
   useEffect(() => {
+    /* eslint-disable react-hooks/set-state-in-effect -- rehidrata múltiples campos desde
+       props (prospect) al abrir el modal; el prev-prop guard supera el umbral de complejidad. */
     if (prospect) {
       setCompany(prospect.companyName);
       setContact(prospect.contactPerson ?? "");
@@ -51,6 +53,7 @@ export function useProspectForm({
       setDealValue(""); setNotes(""); setQuoteId(null);
     }
     setDealValueError(null);
+    /* eslint-enable react-hooks/set-state-in-effect */
   }, [prospect, open]);
 
   const handleQuoteChange = (value: string) => {

@@ -52,6 +52,8 @@ export default function CustomersPage() {
     setSearchParams({}, { replace: true });
   });
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- inicialización única
+    // desde URL search params al montar (useEffectEvent aisla los setters del efecto).
     runProspectPrefill();
      
   }, []);

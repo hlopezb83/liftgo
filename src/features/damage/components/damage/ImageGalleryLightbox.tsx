@@ -16,9 +16,13 @@ export function ImageGalleryLightbox({ images, initialIndex = 0, open, onOpenCha
   const [zoomed, setZoomed] = useState(false);
   const [touchStart, setTouchStart] = useState<number | null>(null);
 
-  useEffect(() => {
+  // Prev-prop guard: resetea el índice/zoom cuando abre el lightbox.
+  const [prevOpenKey, setPrevOpenKey] = useState<string>("closed");
+  const nextOpenKey = open ? `open-${initialIndex}` : "closed";
+  if (prevOpenKey !== nextOpenKey) {
+    setPrevOpenKey(nextOpenKey);
     if (open) { setCurrent(initialIndex); setZoomed(false); }
-  }, [open, initialIndex]);
+  }
 
   const prev = useCallback(() => { setCurrent((c) => (c > 0 ? c - 1 : images.length - 1)); setZoomed(false); }, [images.length]);
   const next = useCallback(() => { setCurrent((c) => (c < images.length - 1 ? c + 1 : 0)); setZoomed(false); }, [images.length]);
