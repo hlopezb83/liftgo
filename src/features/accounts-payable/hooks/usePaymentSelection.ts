@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { ExportablePayable } from "./useExportablePayables";
 
 interface RowState {
@@ -15,17 +15,22 @@ export type SupplierBillRow = ExportablePayable;
 export function usePaymentSelection(open: boolean, bills: SupplierBillRow[] | undefined) {
   const [rowState, setRowState] = useState<Record<string, RowState>>({});
 
-  useEffect(() => {
-    if (!open) return;
-    const init: Record<string, RowState> = {};
-    for (const b of bills ?? []) {
-      init[b.id] = {
-        selected: b.has_valid_clabe && !b.payment_in_progress_at,
-        amount: b.balance,
-      };
+  const [prevOpen, setPrevOpen] = useState(open);
+  const [prevBills, setPrevBills] = useState(bills);
+  if (open !== prevOpen || bills !== prevBills) {
+    setPrevOpen(open);
+    setPrevBills(bills);
+    if (open) {
+      const init: Record<string, RowState> = {};
+      for (const b of bills ?? []) {
+        init[b.id] = {
+          selected: b.has_valid_clabe && !b.payment_in_progress_at,
+          amount: b.balance,
+        };
+      }
+      setRowState(init);
     }
-    setRowState(init);
-  }, [open, bills]);
+  }
 
   const selected: SupplierBillRow[] = (bills ?? []).filter((b) => rowState[b.id]?.selected);
   const total = selected.reduce((acc, b) => acc + (rowState[b.id]?.amount ?? 0), 0);

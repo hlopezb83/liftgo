@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { downloadPaymentsXlsx, type PaymentExportRow } from "../lib/buildPaymentsXlsx";
 import { useCreatePaymentBatch } from "./useCreatePaymentBatch";
@@ -20,9 +20,11 @@ export function useExportPaymentsForm(open: boolean, onClose: () => void) {
   const [notes, setNotes] = useState("");
 
   // Limpia las notas cuando el diálogo se cierra desde el caller.
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (!open) setNotes("");
-  }, [open]);
+  }
 
 
   const canExport = selection.selected.length > 0 && !selection.hasInvalid && !createBatch.isPending;

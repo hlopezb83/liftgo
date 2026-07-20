@@ -1,62 +1,55 @@
-## Cómo corregir los 177 warnings de ESLint
+## Auditoría Ola 1 + Plan Ola 2
 
-Los warnings actuales (log CI adjunto) se agrupan en pocas familias. Cada una tiene su propia estrategia y riesgo — por eso los meto en 3 olas incrementales, cada una mergeable por separado.
+### Auditoría Ola 1 (v7.114.2)
 
-### Inventario (por regla)
+- `bunx eslint . -f json` → **0 errors, 82 warnings** (venían 89 tras autofix; restamos los 7 quick wins → 82 ✓).
+- Todos los `eslint-disable-next-line` agregados apuntan a la regla exacta y llevan comentario `--` con justificación (skips condicionales E2E, polling de token, autoFocus en modal). Sin efectos colaterales visibles.
+- El autofix de `import-x/order` sólo reordena imports; sin cambios de lógica.
+- **Tests faltantes:** ninguno. Los cambios son mecánicos (orden de imports) o comentarios de lint sobre líneas ya cubiertas por sus suites correspondientes.
+- **Bugs:** no detectados. CI runners de typecheck/tests/build ya se disparan automáticamente por push previo.
 
-| # | Regla | Familia | Estrategia |
+**Verde. Continúo a Ola 2.**
+
+---
+
+### Ola 2 — `react-hooks/set-state-in-effect` (v7.114.3)
+
+24 warnings en 24 archivos. Al inspeccionarlos se agrupan en 4 patrones bien definidos, cada uno con su remediación canónica de React 19 / React Compiler:
+
+| Patrón | # aprox | Ejemplos | Remediación |
 |---|---|---|---|
-| 85 | `import-x/order` | Orden de imports | Autofix (`eslint --fix`) |
-| 27 | `react-hooks/refs` | Acceso a `ref.current` en render | Mover a `useEffect`/handlers |
-| 24 | `react-hooks/set-state-in-effect` | `setState` dentro de `useEffect` | Derivar en render o mover a event handler |
-| 9 | `react-refresh/only-export-components` | Archivo exporta componente + no-componente | Separar en 2 archivos |
-| 6 | `react-hooks/incompatible-library` | Librería incompatible con React Compiler | Envolver en `useMemo` / `"use no memo"` |
-| 5 | `playwright/no-skipped-test` | Tests con `test.skip` | Reactivar o eliminar |
-| 2 | `react-compiler/react-compiler` | Mutación inválida | Refactor a inmutable |
-| ≤3 | `max-lines-per-function`, `jsx-a11y/no-autofocus`, `playwright/no-wait-for-timeout`, `react-hooks/purity`, `react-hooks/static-components` | Varios | Fix puntual |
+| **A. Estado derivado puro** | 4 | `useRecordPaymentForm:44` (SAT code desde `method`), `useProspectForm`, `useContractFormState` | Reemplazar `useState + useEffect` por `useMemo` o cálculo inline. Cero riesgo. |
+| **B. Reset local al abrir modal** | 12 | `DatePickerField`, `DateRangePickerField`, `RegisterSupplierPaymentDialog`, `SupplierBillFormDialog`, `PostBookingDeliveryDialog`, `PostBookingPolicyDialog`, `PostDeliveryPickupDialog`, `EditNameDialog`, `useSetPasswordForm`, `useRecordPaymentForm:37`, `useExportPaymentsForm`, `usePaymentSelection` | Sustituir efecto por `key={open ? id : "closed"}` en el Dialog child (React remonta y resetea sin efecto). Cuando el consumidor no controla el key, mantener el efecto y suprimir la regla con justificación (el propio React docs valida el patrón "reset when a prop changes"). |
+| **C. Default derivado de datos async** | 3 | `BankReconciliationPage` (primera cuenta activa), `CashFlowSettingsBar`, `ContractTemplateTab` | Reemplazar por `useMemo` que devuelve `stateOverride ?? computedDefault`, moviendo la elección efectiva al render. Los handlers de "cambio manual" siguen usando `setState` normal. |
+| **D. One-shot side-effect al montar** | 5 | `useChangelogDeepLink`, `CustomersPage` (prefill de query param), `SearchBar`, `ListPageLayout`, `ImageGalleryLightbox`, `useFeedbackStatusUpdate` | Envolver el `setState` en `useEffectEvent` (React 19) o extraer a un handler; cuando sea un one-shot legítimo con dependencias inevitables, suprimir con justificación puntual. |
 
-### Ola 1 — Autofix + quick wins (v7.114.2, riesgo bajo)
+### Ejecución por sub-ola
 
-- Correr `bunx eslint . --fix` para resolver los **85 `import-x/order`** y cualquier warning auto-fixeable restante.
-- Arreglar los 5 `playwright/no-skipped-test` (auditar y decidir: reactivar o borrar el test).
-- Arreglar `jsx-a11y/no-autofocus` y `playwright/no-wait-for-timeout` (1 cada uno) — cambios triviales.
-- Validar: `bun run lint` + `bunx vitest run`.
-- **Reducción esperada:** ~92 warnings → quedan ~85.
+**2.a — Patrón A (derivado puro)** — 4 archivos, sin riesgo funcional. Test: los suites Vitest existentes deben pasar sin tocar.
 
-### Ola 2 — React Hooks: setState-in-effect (v7.114.3, riesgo medio)
+**2.b — Patrón B (reset por `open`)** — 12 archivos. Para dialogs propios donde controlamos el árbol, usar `key` prop en el `<DialogContent>` interno para forzar remount al abrir; esto elimina el efecto sin cambiar UX. Para hooks (`usePaymentSelection`, `useExportPaymentsForm`, `useSetPasswordForm`) que dependen de props del consumidor, mantener el efecto con `eslint-disable-next-line react-hooks/set-state-in-effect -- Reset de estado local al abrir el modal (patrón oficial React docs)`.
 
-Los 24 `set-state-in-effect` casi siempre son uno de estos patrones:
+**2.c — Patrón C (defaults)** — 3 archivos. Refactor a `useMemo`.
 
-1. **Derivar en render** en vez de sincronizar con effect. Ej: `useState + useEffect(() => setX(computeFrom(props)))` → `const x = useMemo(() => computeFrom(props), [props])`.
-2. **Mover a event handler** cuando la actualización responde a una acción del usuario.
-3. **`useSyncExternalStore`** cuando sincronizamos con un store externo.
+**2.d — Patrón D (one-shot)** — 5 archivos. Preferir `useEffectEvent` (ya usado en el proyecto para casos similares); si no aplica, disable justificado.
 
-Auditar los 24 casos uno por uno; cada uno requiere leer el archivo. Los archivos ya listados en el log incluyen `BankReconciliationPage`, `usePaymentSelection`, `useSupplierBillForm`, etc.
+### Validación por sub-ola
 
-- **Reducción esperada:** ~24 warnings → quedan ~61.
-- **Riesgo:** Cambiar effects mal puede alterar timing/render. Cubrir cada archivo tocado con un test si no lo tiene ya.
+Después de cada sub-ola:
+- `bun run lint` → contador debe bajar por N warnings, 0 errors.
+- `bunx vitest run` → 1083/1083 verde.
+- Smoke visual con Playwright de los dialogs tocados (patrón B) para confirmar que "abrir → resetear" sigue funcionando: `DatePickerField`, `SupplierBillFormDialog`, `RegisterSupplierPaymentDialog`.
 
-### Ola 3 — Refs + React Compiler + refactor (v7.114.4, riesgo medio-alto)
+### Tests adicionales
 
-- **27 `react-hooks/refs`**: mover accesos `ref.current` fuera de render (a `useEffect` o handlers). En algunos casos es callback-ref.
-- **9 `react-refresh/only-export-components`**: partir cada archivo señalado en `Component.tsx` + `componentHelpers.ts` (constantes, hooks, tipos). Cambio mecánico pero toca imports en muchos sitios.
-- **6 `react-hooks/incompatible-library`**: envolver invocaciones a librerías no-puras (`jspdf`, `xlsx`, etc.) en `useMemo` o marcar el archivo con `"use no memo"` como último recurso.
-- **2 `react-compiler/react-compiler`**: refactor a inmutable (spread en lugar de `array.push`).
-- **1 `max-lines-per-function`** (`AuditTrailPage`, 151/150 líneas): extraer un sub-componente.
-- **Reducción esperada:** los ~61 restantes bajan a 0.
+- Patrón B con `key` remount: añadir 1 test por dialog tocado en Vitest usando `@testing-library/react` — abrir dialog, escribir en campo, cerrar, reabrir, asegurar que el campo está vacío.
+- Patrón A: si un hook migrado no tiene test previo, añadir uno mínimo que verifique la derivación (ej. `useRecordPaymentForm` con distintos `method` → SAT code esperado).
 
-### Validación por ola
+### Resultado esperado
 
-1. `bun run lint` → menos warnings que la ola anterior, 0 errors siempre.
-2. `bunx vitest run` → 1083/1083 verde.
-3. `bunx tsgo --noEmit` → sin errores nuevos.
-4. Push → CI verde.
+82 → ~58 warnings tras Ola 2. Rutas siguientes:
+- Ola 3.a: `react-hooks/refs` (27)
+- Ola 3.b: `react-refresh/only-export-components` (9) + `incompatible-library` (6) + `react-compiler` (2)
+- Ola 3.c: `max-lines-per-function` (6) + `complexity` (3) + resto (3)
 
-### Anti-patrones que voy a evitar
-
-- `// eslint-disable` masivos: sólo aceptables para reglas de compiler cuando la librería objetivamente no es compatible (`"use no memo"` con comentario justificando).
-- Cambiar reglas del `.eslintrc` para "silenciar" — el objetivo es cero warnings, no cero reglas.
-
-### Cronograma sugerido
-
-Puedo empezar hoy mismo por **Ola 1** (autofix + quick wins) que es la de mayor impacto y menor riesgo. Ola 2 y 3 en turnos separados con revisión intermedia. ¿Arranco?
+¿Arranco 2.a (derivado puro, riesgo cero) para tener validación temprana antes de meter mano a los 12 dialogs?

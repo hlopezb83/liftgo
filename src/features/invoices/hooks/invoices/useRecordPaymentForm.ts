@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { toYMD } from "@/lib/format/dateFormats";
 import { roundMoney } from "@/lib/money";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
@@ -32,17 +32,36 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
   const createPayment = useCreatePayment();
   const stampComplement = useStampPaymentComplement();
 
-  useEffect(() => {
+  // Reset local state when the dialog opens or when invoice-derived props change.
+  // Patrón oficial React "adjust state when a prop changes": setState durante render
+  // guardado por comparación con el valor previo — evita el efecto de sincronización.
+  const [prevOpen, setPrevOpen] = useState(open);
+  const [prevBalance, setPrevBalance] = useState(balance);
+  const [prevPpdStamped, setPrevPpdStamped] = useState(ppdStamped);
+  const [prevLockedCurrency, setPrevLockedCurrency] = useState(lockedCurrency);
+  if (
+    open !== prevOpen ||
+    balance !== prevBalance ||
+    ppdStamped !== prevPpdStamped ||
+    lockedCurrency !== prevLockedCurrency
+  ) {
+    setPrevOpen(open);
+    setPrevBalance(balance);
+    setPrevPpdStamped(ppdStamped);
+    setPrevLockedCurrency(lockedCurrency);
     if (open) {
       setAmount(balance.toFixed(2));
       setStampRep(ppdStamped);
       setCurrencyState(lockedCurrency);
     }
-  }, [open, balance, ppdStamped, lockedCurrency]);
+  }
 
-  useEffect(() => {
+  // Sincroniza el código SAT sugerido cuando cambia el método (usuario puede override en UI).
+  const [prevMethod, setPrevMethod] = useState(method);
+  if (method !== prevMethod) {
+    setPrevMethod(method);
     setPaymentFormSat(satCodeForMethod(method));
-  }, [method]);
+  }
 
   // C-1: exponer un setter no-op para el select de UI; siempre revierte al
   // valor bloqueado de la factura.
