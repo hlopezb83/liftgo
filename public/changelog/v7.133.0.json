@@ -1,0 +1,16 @@
+{
+  "version": "7.133.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "Endurecimiento fiscal: NC-1/NC-2, timeout CFDI seguro y stamp_variance",
+  "summary": "Se cierran las urgentes del reporte de verificación: retry queue alineada al CHECK constraint, autenticación real de pg_cron vía CRON_SECRET en vault, TIMEOUT en Facturapi que ya no arriesga doble timbrado, y una nueva columna `invoices.stamp_variance` que registra discrepancias local vs Facturapi con tolerancia de 0.02 MXN.",
+  "changes": [
+    "**NC-1 (retry queue)**: `process-cfdi-retry-queue` ahora usa los estados válidos del CHECK (`processing`/`succeeded`/`exhausted`), hace claim optimista `pending→processing` para evitar doble consumo entre corridas, y chequea el `error` de cada update. Fix del mapping `cancel_rep` (antes apuntaba a función inexistente `cancel-rep`, ahora a `cancel-payment-complement`).",
+    "**NC-2 (auth cron)**: nuevo `CRON_SECRET` guardado en vault. RPC `internal_get_cron_secret()` (SECURITY DEFINER, solo service_role) lo expone a las edge functions. `process-cfdi-retry-queue` y `reconcile-stamping-invoices` exigen `x-cron-secret` o `Authorization: Bearer <CRON_SECRET|service_role>`; sin match responden 401. pg_cron reprogramado para enviar el header desde vault en vez de la llave pública anon.",
+    "**Timeout CFDI (BL-A4-b)**: en `stamp-cfdi`, si Facturapi responde `TIMEOUT` YA no se resetea la factura a `error` ni se encola retry. Se responde 504 y la factura queda en `stamping` para que `reconcile-stamping-invoices` la resuelva vía folio/serie. Motivo: un retry ciego podría emitir un segundo CFDI ante el SAT si Facturapi sí completó server-side.",
+    "**Reconcile hardening**: `reconcile-stamping-invoices` ahora requiere descarga exitosa del XML antes de marcar `stamped`; si la descarga falla se deja en `stamping` con log de alerta.",
+    "**BL-A5 (stamp_variance)**: nueva columna `invoices.stamp_variance NUMERIC(12,4)` + índice parcial `invoices_stamp_variance_alert_idx` donde `stamp_variance > 0.02`. `stamp-cfdi` calcula `abs(local_total - facturapi_total)` con centavos enteros (`_shared/money.ts`) y persiste el valor. Discrepancias > 0.02 MXN se loguean como error para auditoría fiscal.",
+    "**Money helpers compartidos**: nuevo `supabase/functions/_shared/money.ts` con `toCents`, `sumMoney`, `roundMoney`, `stampVariance` y tolerancia `STAMP_VARIANCE_TOLERANCE_MXN=0.02`. Tests unitarios en `money_test.ts`.",
+    "**Rounding**: `stamp-cfdi` reemplaza `Math.round(x*100)/100` por `roundMoney` en descuentos por línea para eliminar drift IEEE-754."
+  ]
+}
