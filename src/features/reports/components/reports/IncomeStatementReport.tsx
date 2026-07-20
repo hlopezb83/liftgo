@@ -114,7 +114,8 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
         statementRows={statementRows}
         depreciationBreakdownRows={depreciationBreakdownRows}
         cogsBreakdownRows={cogsBreakdownRows}
-        rentalBreakdownRows={rentalBreakdownRows}
+        rentalBookedBreakdownRows={rentalBookedBreakdownRows}
+        rentalUnbookedBreakdownRows={rentalUnbookedBreakdownRows}
         salesBreakdownRows={salesBreakdownRows}
 
       />
