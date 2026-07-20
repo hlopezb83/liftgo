@@ -375,6 +375,7 @@ export type Database = {
           start_date: string
           status: string
           updated_at: string
+          version: number
           weekly_rate: number | null
         }
         Insert: {
@@ -399,6 +400,7 @@ export type Database = {
           start_date: string
           status?: string
           updated_at?: string
+          version?: number
           weekly_rate?: number | null
         }
         Update: {
@@ -423,6 +425,7 @@ export type Database = {
           start_date?: string
           status?: string
           updated_at?: string
+          version?: number
           weekly_rate?: number | null
         }
         Relationships: [
@@ -1037,6 +1040,7 @@ export type Database = {
           updated_at: string
           user_id: string | null
           uso_cfdi: string | null
+          version: number
           website: string | null
         }
         Insert: {
@@ -1063,6 +1067,7 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           uso_cfdi?: string | null
+          version?: number
           website?: string | null
         }
         Update: {
@@ -1089,6 +1094,7 @@ export type Database = {
           updated_at?: string
           user_id?: string | null
           uso_cfdi?: string | null
+          version?: number
           website?: string | null
         }
         Relationships: []
@@ -1724,6 +1730,7 @@ export type Database = {
           total: number
           updated_at: string
           uso_cfdi: string | null
+          version: number
         }
         Insert: {
           acuse_pdf_url?: string | null
@@ -1778,6 +1785,7 @@ export type Database = {
           total?: number
           updated_at?: string
           uso_cfdi?: string | null
+          version?: number
         }
         Update: {
           acuse_pdf_url?: string | null
@@ -1832,6 +1840,7 @@ export type Database = {
           total?: number
           updated_at?: string
           uso_cfdi?: string | null
+          version?: number
         }
         Relationships: [
           {
@@ -2504,6 +2513,7 @@ export type Database = {
           total: number
           updated_at: string
           valid_until: string | null
+          version: number
         }
         Insert: {
           accepted_at?: string | null
@@ -2534,6 +2544,7 @@ export type Database = {
           total?: number
           updated_at?: string
           valid_until?: string | null
+          version?: number
         }
         Update: {
           accepted_at?: string | null
@@ -2564,6 +2575,7 @@ export type Database = {
           total?: number
           updated_at?: string
           valid_until?: string | null
+          version?: number
         }
         Relationships: [
           {
@@ -3463,6 +3475,7 @@ export type Database = {
           total: number
           updated_at: string
           valid_until: string | null
+          version: number
         }
         SetofOptions: {
           from: "*"
@@ -3994,6 +4007,7 @@ export type Database = {
           total: number
           updated_at: string
           valid_until: string | null
+          version: number
         }
         SetofOptions: {
           from: "*"
@@ -4014,6 +4028,7 @@ export type Database = {
         Args: { p_payment_id: string }
         Returns: undefined
       }
+      restore_forklift: { Args: { p_forklift_id: string }; Returns: undefined }
       revert_audit_log: { Args: { p_audit_log_id: string }; Returns: string }
       soft_delete_customer: {
         Args: { p_customer_id: string }
