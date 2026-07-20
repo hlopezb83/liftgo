@@ -1,0 +1,58 @@
+{
+  "version": "7.117.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "Sprint 2 · Ola 2.1 — Extensión de reservas atómica con buffer de mantenimiento (BL-A5 / BL-A6)",
+  "sections": [
+    {
+      "heading": "Contexto",
+      "items": [
+        "Auditoría de Ola 5 aprobada: 1083 tests verdes, 2 warnings residuales `react-compiler` justificados.",
+        "Sprint 2 aborda findings de alto impacto operativo del reporte de auditoría integral. Ola 2.1 cubre BL-A5 (race en creación/extensión) y BL-A6 (buffer de 3 días de mantenimiento) en el flujo de reservas."
+      ]
+    },
+    {
+      "heading": "BL-A5 — Extensión atómica (nueva RPC `extend_booking`)",
+      "items": [
+        "El flujo anterior hacía dos operaciones separadas: UPDATE `bookings.end_date` y luego INSERT en `booking_extensions`. Si la segunda fallaba, la reserva quedaba extendida sin bitácora.",
+        "Nueva función `SECURITY DEFINER` con `SET search_path = public` que envuelve todo en una única transacción.",
+        "Bloqueo `SELECT ... FOR UPDATE` sobre la reserva para cerrar la ventana entre validación y actualización.",
+        "Validación de rol (admin, administrativo, dispatcher, ventas) igual que `create_booking`.",
+        "Rechazo explícito si la nueva fecha final es anterior o igual a la actual, o si la reserva está `cancelled`/`completed`.",
+        "Verificación adicional de traslape contra otras reservas activas del mismo montacargas usando `daterange && daterange` (defensa en profundidad sobre la exclusión GiST `no_overlapping_bookings`).",
+        "GRANT explícito solo a `authenticated` y `service_role`, REVOKE de PUBLIC."
+      ]
+    },
+    {
+      "heading": "BL-A6 — Buffer de 3 días de mantenimiento",
+      "items": [
+        "La regla de 3 días ya existía en `get_available_forklifts` (creación), pero no en el flujo de extensión.",
+        "`extend_booking` ahora lee `maintenance_logs.next_service_date` más reciente del montacargas y rechaza la extensión si `next_service_date <= nueva_fecha_final + 3 días`.",
+        "Mensaje de error específico: 'La extensión invade la ventana de mantenimiento programado el DD/MM/YYYY (buffer 3 días).'"
+      ]
+    },
+    {
+      "heading": "Cliente / hooks",
+      "items": [
+        "`useCreateBookingExtension` migrado a una única llamada `supabase.rpc('extend_booking', ...)`. Se eliminó el uso de `assertRowsAffected` en este flujo (la RPC lanza excepción explícita cuando no encuentra la reserva).",
+        "Firma pública del hook sin cambios: mismo payload `{ booking_id, original_end_date, new_end_date, reason? }`.",
+        "Invalidación de query keys sin cambios (`bookingKeys.extensions(booking_id)` + `bookingKeys.all`)."
+      ]
+    },
+    {
+      "heading": "Tests",
+      "items": [
+        "`useBookingExtensions.test.ts` reescrito con 4 casos: happy path con args correctos, omisión de `p_reason` cuando no se provee, propagación de error por buffer de mantenimiento y propagación de error por rol (Forbidden).",
+        "Total: 1084/1084 Vitest verdes (+1 caso nuevo)."
+      ]
+    },
+    {
+      "heading": "Notas para la siguiente ola",
+      "items": [
+        "Ola 2.2 — Facturación recurrente: tests de regresión para alineación de ciclos calendario y `monthly_rate` vigente.",
+        "Ola 2.3 — Portal de clientes y RLS.",
+        "Ola 2.4 — CFDI y complemento de pago idempotentes."
+      ]
+    }
+  ]
+}

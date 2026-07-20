@@ -3629,6 +3629,14 @@ export type Database = {
       e2e_seed_scenario: { Args: { p_scope: string }; Returns: Json }
       e2e_teardown: { Args: { p_scope: string }; Returns: Json }
       expire_stale_quotes: { Args: never; Returns: number }
+      extend_booking: {
+        Args: {
+          p_booking_id: string
+          p_new_end_date: string
+          p_reason?: string
+        }
+        Returns: string
+      }
       generate_feedback_number: { Args: never; Returns: string }
       get_activity_metrics: {
         Args: { p_from: string; p_to: string }
