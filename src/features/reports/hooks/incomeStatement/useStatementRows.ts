@@ -55,8 +55,9 @@ export function useComparisonRows(yearTotals: YearTotals[]): ComparisonRow[] {
     });
   }
   return [
-    { label: "  Ingresos por Rentas", ...v((yt) => yt.revenueRental) },
-    { label: "  Otros ingresos (sin reserva)", ...v((yt) => yt.revenueSales) },
+    { label: "  Ingresos por Rentas (con reserva)", ...v((yt) => yt.revenueRentalBooked) },
+    { label: "  Ingresos por Rentas (sin reserva)", ...v((yt) => yt.revenueRentalUnbooked) },
+    { label: "  Ingresos por Ventas de Equipo", ...v((yt) => yt.revenueSales) },
     { label: "= Total Ingresos", ...v((yt) => yt.revenue, { isSubtotal: true }) },
     { label: "(-) Mantenimiento", ...v((yt) => yt.maintenanceCost, { isCost: true }) },
     { label: "(-) Daños", ...v((yt) => yt.damageCost, { isCost: true }) },
