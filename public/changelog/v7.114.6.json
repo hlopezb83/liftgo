@@ -1,0 +1,22 @@
+{
+  "version": "7.114.6",
+  "date": "2026-07-20",
+  "type": "patch",
+  "title": "Fix changelog — versión faltante rompía la app entera",
+  "sections": [
+    {
+      "heading": "Bug",
+      "items": [
+        "La entrada de v7.114.2 en public/changelog.json había quedado sin el campo version.",
+        "parseIndexEntry lanzaba 'Entrada #N: versión inválida' al montar el hook de changelog, tumbando múltiples vistas."
+      ]
+    },
+    {
+      "heading": "Fix",
+      "items": [
+        "Se restaura version: '7.114.2' en la entrada correspondiente.",
+        "Se reordenan las últimas entradas en orden descendente: 7.114.6 → 7.114.5 → 7.114.4 → 7.114.3 → 7.114.2 → 7.114.1."
+      ]
+    }
+  ]
+}

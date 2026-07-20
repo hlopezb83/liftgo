@@ -1,0 +1,20 @@
+{
+  "version": "7.114.4",
+  "date": "2026-07-20",
+  "type": "patch",
+  "title": "Sprint ESLint Ola 3.a — refs-in-render",
+  "sections": [
+    {
+      "heading": "Refactor",
+      "items": [
+        "useTableFilters: values y facets se leen directamente en el closure del useMemo (filterKey primitivo garantiza refresco).",
+        "ChangelogPage y RecurringInvoicesPreviewDialog: prev-prop guard migrado de useRef a useState (patrón React 19).",
+        "DataTableBodyV2: armPrefetch/disarmPrefetch envueltos en useCallback."
+      ]
+    },
+    {
+      "heading": "Resultado",
+      "items": ["0 errores, 1083 tests verdes, warnings 72 → 47 (-25)."]
+    }
+  ]
+}

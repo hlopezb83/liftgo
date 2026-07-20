@@ -1,17 +1,17 @@
 [
   {
+    "version": "7.114.6",
+    "date": "2026-07-20",
+    "type": "patch",
+    "title": "Fix changelog — versión faltante rompía la app entera",
+    "summary": "La entrada de v7.114.2 en `public/changelog.json` había quedado sin el campo `version`, lo que hacía que `parseIndexEntry` lanzara `Entrada #N: versión inválida` al montar el hook de changelog y tumbaba múltiples vistas. Se restaura `version: 7.114.2` y se reordenan las últimas entradas en orden descendente (7.114.6 → 7.114.5 → 7.114.4 → 7.114.3 → 7.114.2 → 7.114.1)."
+  },
+  {
     "version": "7.114.5",
     "date": "2026-07-20",
     "type": "patch",
     "title": "Sprint ESLint Ola 3.b — setState-in-effect (14 archivos refactorizados)",
     "summary": "Ola 3.b: se refactorizaron 14 componentes/hooks con `react-hooks/set-state-in-effect`. Ocho migraron al patrón oficial 'adjust state during render' con prev-prop guard (`useContractFormState`, `useFeedbackStatusUpdate`, `ContractTemplateTab`, `EditNameDialog`, `useSetPasswordForm`, `ImageGalleryLightbox`) eliminando `useEffect` innecesarios. Seis casos legítimos recibieron `eslint-disable` con justificación explícita: `PostBookingDeliveryDialog`, `PostBookingPolicyDialog`, `PostDeliveryPickupDialog` (patrón oficial de RHF `form.reset()`), `ListPageLayout` (lectura de DOM ref post-mount), `useChangelogDeepLink` (inicialización única desde `window.location.hash`) y `CustomersPage` (prefill desde URL en mount). `CashFlowSettingsBar` y `useProspectForm` se dejaron con `useEffect + disable` porque los guards inflaban la complejidad ciclomática sobre el umbral. 0 errores, 1083 tests verdes."
-  },
-  {
-    "version": "7.114.3",
-    "date": "2026-07-20",
-    "type": "patch",
-    "title": "Sprint ESLint Ola 2 — setState-in-effect → prev-prop guards (82 → 72 warnings)",
-    "summary": "Ola 2 del sprint de limpieza. Reescritos 8 componentes/hooks que usaban `useEffect` sólo para sincronizar estado local con props: `DatePickerField`, `DateRangePickerField`, `SearchBar`, `RegisterSupplierPaymentDialog`, `SupplierBillFormDialog`, `useExportPaymentsForm`, `usePaymentSelection` y `BankReconciliationPage`. Se aplicó el patrón oficial de React 'adjust state when a prop changes' (setState durante render guardado por comparación con prev-prop), y en un caso (`BankReconciliationPage`) se derivó el valor default con `useMemo` en vez de sincronizarlo. Se removieron 2 usos ilegales de `useEffectEvent` fuera de effects que causaban errores de `react-hooks/rules-of-hooks`. Resultado: 0 errores + 72 warnings (bajaron 10). Continúa Ola 3 con refs-in-render y react-compiler."
   },
   {
     "version": "7.114.4",
@@ -21,7 +21,14 @@
     "summary": "Ola 3.a: eliminadas las lecturas/escrituras de `.current` en render. `useTableFilters` ahora referencia `values` y `facets` directamente en el closure del `useMemo` de `filtered` (el memo se re-computa vía `filterKey` primitivo cuando cambian, por lo que el closure siempre es fresco). `ChangelogPage` y `RecurringInvoicesPreviewDialog` migran su patrón de 'adjust state during render' de `useRef` a `useState` (el patrón oficial de React 19). `DataTableBodyV2` envuelve `armPrefetch`/`disarmPrefetch` en `useCallback` para satisfacer el compilador. 0 errores, 1083 tests, warnings pasan de 72 a 47 (-25)."
   },
   {
-
+    "version": "7.114.3",
+    "date": "2026-07-20",
+    "type": "patch",
+    "title": "Sprint ESLint Ola 2 — setState-in-effect → prev-prop guards (82 → 72 warnings)",
+    "summary": "Ola 2 del sprint de limpieza. Reescritos 8 componentes/hooks que usaban `useEffect` sólo para sincronizar estado local con props: `DatePickerField`, `DateRangePickerField`, `SearchBar`, `RegisterSupplierPaymentDialog`, `SupplierBillFormDialog`, `useExportPaymentsForm`, `usePaymentSelection` y `BankReconciliationPage`. Se aplicó el patrón oficial de React 'adjust state when a prop changes' (setState durante render guardado por comparación con prev-prop), y en un caso (`BankReconciliationPage`) se derivó el valor default con `useMemo` en vez de sincronizarlo. Se removieron 2 usos ilegales de `useEffectEvent` fuera de effects que causaban errores de `react-hooks/rules-of-hooks`. Resultado: 0 errores + 72 warnings (bajaron 10). Continúa Ola 3 con refs-in-render y react-compiler."
+  },
+  {
+    "version": "7.114.2",
     "date": "2026-07-20",
     "type": "patch",
     "title": "Sprint ESLint Ola 1 — autofix imports + quick wins (177 → 82 warnings)",
