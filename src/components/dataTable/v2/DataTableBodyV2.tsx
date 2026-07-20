@@ -88,6 +88,7 @@ export function DataTableBodyV2<T>({
 
   return (
     <TableBody>
+      {/* eslint-disable-next-line react-hooks/refs -- closure sobre timerRef sólo se invoca en handlers, no en render */}
       {rows.map((row) => {
         const item = row.original;
         const isSelected = row.getIsSelected();
