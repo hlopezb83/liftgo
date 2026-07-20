@@ -1,0 +1,26 @@
+{
+  "version": "7.113.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "Sprint 1a — Blindajes críticos: cancelación stub en live y divisa de pagos",
+  "sections": [
+    {
+      "heading": "C-2 — Cancelación stub bloqueada en modo live",
+      "items": [
+        "`cancel-cfdi` ahora consulta `mode` desde `getFacturapiConfig`. Si el modo es `live` y falta la API key o la factura no tiene `facturapi_invoice_id`, devuelve 400 con un mensaje explícito en lugar de marcar la cancelación como 'aceptada' sin llamar al SAT.",
+        "Evita un escenario silencioso donde el ERP daba por cancelada una factura que sigue vigente ante la autoridad.",
+        "Tests Deno nuevos: `C-2 live sin apiKey rechaza cancelación stub` y `C-2 live sin facturapi_invoice_id rechaza stub`. Verifican que la factura NO se actualiza en esos casos."
+      ]
+    },
+    {
+      "heading": "C-1 (defensivo) — Pagos bloqueados a la divisa de la factura",
+      "items": [
+        "Nuevo trigger `enforce_payment_matches_invoice_currency` (BEFORE INSERT OR UPDATE en `payments`) que rechaza cualquier pago cuya moneda difiera de la factura. Trata `NULL` como `MXN` en ambos lados.",
+        "`useRecordPaymentForm` ahora recibe `invoiceCurrency` y expone `lockedCurrency`; el estado interno de moneda siempre revierte al valor bloqueado.",
+        "`RecordPaymentDialog` deshabilita el selector de moneda y muestra 'Bloqueada a la moneda de la factura (XXX)'. `InvoiceDetailBody` pasa `invoice.moneda` hacia abajo.",
+        "Es una medida temporal hasta implementar soporte formal multi-moneda (conversión + REP con equivalencia). Hoy 100% de facturas y pagos son MXN, así que el efecto de usuario es cero.",
+        "Test Vitest: `C-1 currency bloqueada a la moneda de la factura; setCurrency es no-op`."
+      ]
+    }
+  ]
+}

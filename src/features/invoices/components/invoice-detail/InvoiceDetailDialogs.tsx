@@ -8,6 +8,7 @@ type Props = {
   invoiceId: string;
   invoiceNumber: string;
   invoiceTotal: number;
+  invoiceCurrency?: string | null;
   balance: number;
   notes: string | null;
   showCollectionNotes: boolean;
@@ -26,6 +27,7 @@ export function InvoiceDetailDialogs({
   invoiceId,
   invoiceNumber,
   invoiceTotal,
+  invoiceCurrency,
   balance,
   notes,
   showCollectionNotes,
@@ -43,7 +45,8 @@ export function InvoiceDetailDialogs({
     <>
       {notes && <NotesCard value={notes} readOnly />}
       {showCollectionNotes && <CollectionNotesCard invoiceId={invoiceId} />}
-      <RecordPaymentDialog open={paymentOpen} onOpenChange={setPaymentOpen} invoiceId={invoiceId} balance={balance} ppdStamped={ppdStamped} />
+      <RecordPaymentDialog open={paymentOpen} onOpenChange={setPaymentOpen} invoiceId={invoiceId} balance={balance} invoiceCurrency={invoiceCurrency} ppdStamped={ppdStamped} />
+
 
       <CancelCfdiDialog open={cancelOpen} onOpenChange={setCancelOpen} invoiceId={invoiceId} invoiceTotal={invoiceTotal} onSuccess={onCancelSuccess} />
       <ConfirmDialog

@@ -104,11 +104,26 @@ export async function handleCancelCfdi(
       return json({ error: "Only stamped invoices can be cancelled" }, 400);
     }
 
-    const { apiKey } = await getFacturapiConfig(supabase, deps.env);
+    const { apiKey, mode } = await getFacturapiConfig(supabase, deps.env);
     const facturApiId = inv.facturapi_invoice_id as string | null | undefined;
 
     let satStatus = "accepted";
     const isStub = !apiKey || !facturApiId;
+
+    if (isStub && mode === "live") {
+      // C-2: en modo live NUNCA marcamos "aceptada" una cancelación stub.
+      // Un stub en live significa (a) API key faltante o (b) factura sin
+      // facturapi_invoice_id (probablemente timbrada como stub en test y
+      // migrada a live). Cancelarla fake dejaría el SAT y la BD divergentes.
+      return json(
+        {
+          error: !apiKey
+            ? "Facturapi API key no configurada para modo live. No se puede cancelar sin llamar al SAT."
+            : "La factura no tiene facturapi_invoice_id (no fue timbrada realmente). No se puede cancelar en modo live.",
+        },
+        400,
+      );
+    }
 
     if (apiKey && facturApiId) {
       const client = createFacturapiClient(apiKey);
@@ -137,6 +152,7 @@ export async function handleCancelCfdi(
         );
       }
     }
+
 
     const isAccepted = satStatus === "accepted";
     const update: Record<string, unknown> = {

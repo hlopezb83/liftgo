@@ -98,9 +98,9 @@ describe("useRecordPaymentForm", () => {
   });
 
   it("submit con USD usa el exchangeRate provisto en el payload", async () => {
-    const { result } = renderForm();
+    const { result } = renderForm({ invoiceCurrency: "USD" });
+    expect(result.current.currency).toBe("USD");
     act(() => {
-      result.current.setCurrency("USD");
       result.current.setExchangeRate("17.5");
     });
     await act(async () => { await result.current.handleSubmit(); });
@@ -111,9 +111,8 @@ describe("useRecordPaymentForm", () => {
   });
 
   it("submit con USD y exchangeRate '0' → notifyError, no llama createPayment", async () => {
-    const { result } = renderForm();
+    const { result } = renderForm({ invoiceCurrency: "USD" });
     act(() => {
-      result.current.setCurrency("USD");
       result.current.setExchangeRate("0");
     });
     await act(async () => { await result.current.handleSubmit(); });
@@ -122,15 +121,28 @@ describe("useRecordPaymentForm", () => {
   });
 
   it("submit con USD y exchangeRate vacío → notifyError", async () => {
-    const { result } = renderForm();
+    const { result } = renderForm({ invoiceCurrency: "USD" });
     act(() => {
-      result.current.setCurrency("USD");
       result.current.setExchangeRate("");
     });
     await act(async () => { await result.current.handleSubmit(); });
     expect(notifyValidationMock).toHaveBeenCalledWith({ message: "Tipo de cambio inválido" });
     expect(createPaymentMutate).not.toHaveBeenCalled();
   });
+
+  // C-1: divisa bloqueada. setCurrency debe ser no-op y payload debe respetar la factura.
+  it("C-1 currency bloqueada a la moneda de la factura; setCurrency es no-op", async () => {
+    const { result } = renderForm({ invoiceCurrency: "MXN" });
+    expect(result.current.currency).toBe("MXN");
+    expect(result.current.lockedCurrency).toBe("MXN");
+    act(() => result.current.setCurrency("USD"));
+    expect(result.current.currency).toBe("MXN");
+    await act(async () => { await result.current.handleSubmit(); });
+    const [payload] = createPaymentMutate.mock.calls[0];
+    expect(payload.currency).toBe("MXN");
+    expect(payload.exchange_rate).toBe(1);
+  });
+
 
 
   it("submit válido llama createPayment con payload correcto", async () => {

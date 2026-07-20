@@ -16,18 +16,22 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   invoiceId: string;
   balance: number;
+  /** C-1: moneda de la factura. El pago se bloquea a este valor. */
+  invoiceCurrency?: string | null;
   /** If true, invoice is PPD + stamped => offer REP stamping */
   ppdStamped?: boolean;
 }
 
-export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, ppdStamped = false }: Props) {
+export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, invoiceCurrency, ppdStamped = false }: Props) {
   const {
     amount, setAmount, date, setDate, method, setMethod,
     paymentFormSat, setPaymentFormSat, currency, setCurrency,
+    lockedCurrency,
     exchangeRate, setExchangeRate, reference, setReference,
     notes, setNotes, stampRep, setStampRep,
     createPayment, stampComplement, handleSubmit,
-  } = useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, onOpenChange });
+  } = useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, invoiceCurrency, onOpenChange });
+
 
   return (
     <FormDialog
@@ -78,12 +82,15 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, pp
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label>Moneda</Label>
-              <Select value={currency} onValueChange={setCurrency}>
+              <Select value={currency} onValueChange={setCurrency} disabled>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {MONEDA.map((m) => <SelectItem key={m.code} value={m.code}>{m.label}</SelectItem>)}
                 </SelectContent>
               </Select>
+              <p className="text-xs text-muted-foreground mt-1">
+                Bloqueada a la moneda de la factura ({lockedCurrency}).
+              </p>
             </div>
             <div>
               <Label>Tipo de cambio</Label>
@@ -96,6 +103,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, pp
               />
             </div>
           </div>
+
           <div>
             <Label>Referencia</Label>
             <Input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Número de referencia bancaria" />
