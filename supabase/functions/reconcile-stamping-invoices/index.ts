@@ -40,9 +40,15 @@ Deno.serve(async (req) => {
   if (corsRes) return corsRes;
   const json = (b: unknown, status: number) => jsonResponse(req, b, { status });
 
-  // NC-2: gating de auth.
+  // NC-2: gating de auth. Fuente del secreto: Deno.env → fallback a vault vía
+  // RPC `internal_get_cron_secret()` para mantener paridad con pg_cron.
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
-  const cronSecret = Deno.env.get("CRON_SECRET") ?? "";
+  const admin = getAdminClient();
+  let cronSecret = Deno.env.get("CRON_SECRET") ?? "";
+  if (!cronSecret) {
+    const { data: vaultSecret } = await admin.rpc("internal_get_cron_secret");
+    cronSecret = typeof vaultSecret === "string" ? vaultSecret : "";
+  }
   const headerSecret = req.headers.get("x-cron-secret") ?? "";
   const authHeader = req.headers.get("authorization") ?? "";
   const bearer = authHeader.startsWith("Bearer ")
@@ -55,7 +61,7 @@ Deno.serve(async (req) => {
     return json({ error: "Unauthorized" }, 401);
   }
 
-  const admin = getAdminClient();
+
   const STALE_THRESHOLD_MIN = 10;
   const cutoff = new Date(Date.now() - STALE_THRESHOLD_MIN * 60_000)
     .toISOString();
