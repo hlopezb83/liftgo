@@ -70,25 +70,31 @@ export default function CRMPage() {
     dialogs.setDialogOpen(true);
   };
 
-  const onDragEnd = (event: DragEndEvent) => {
+  const resolveDropTarget = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (!over) return;
-
-    const draggableId = String(active.id);
+    if (!over) return null;
     const sourceStage = (active.data.current?.stage as string | undefined) ?? null;
-
-    // El "over" puede ser una columna (droppable) o una card (sortable). Resolvemos el stage destino.
     const overType = over.data.current?.type as "column" | "card" | undefined;
     const newStage =
       overType === "column"
         ? String(over.id)
         : (over.data.current?.stage as string | undefined) ?? String(over.id);
+    if (!newStage || !sourceStage) return null;
+    return {
+      draggableId: String(active.id),
+      sourceStage,
+      newStage,
+      newIndex: (over.data.current?.sortable?.index as number | undefined) ?? 0,
+    };
+  };
 
-    if (!newStage || !sourceStage) return;
+  const onDragEnd = (event: DragEndEvent) => {
+    const target = resolveDropTarget(event);
+    if (!target) return;
+    const { draggableId, sourceStage, newStage, newIndex } = target;
     if (newStage === "cerrado_ganado" && !assertCanClose("move")) return;
 
     if (sourceStage === newStage) {
-      const newIndex = (over.data.current?.sortable?.index as number | undefined) ?? 0;
       updateProspect.mutate({ id: draggableId, stage_order: newIndex });
       return;
     }
@@ -100,6 +106,7 @@ export default function CRMPage() {
       dialogs.setDialogOpen(true);
     }
   };
+
 
   return (
     <TooltipProvider delayDuration={300}>
