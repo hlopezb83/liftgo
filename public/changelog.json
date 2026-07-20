@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.129.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "Sprint 3 · Ola 3.7 — UX-M2: SupplierBillForm blindado (guard + tests + fix Date)",
+    "summary": "Auditoría de Ola 3.6 en verde (1104/1104). Continúa la migración schema-first en cuentas por pagar. `useSupplierBillForm` ya usaba RHF + Zod, pero le faltaba `useUnsavedChangesGuard` y tenía un bug latente en el `superRefine` del rango de cobertura: comparaba `Date` vía `String(v.coverage_end) < String(v.coverage_start)`, lo que produce un orden lexicográfico basado en el nombre del día (`Sat` vs `Thu`) y podía rechazar rangos válidos (p. ej. 01/01 → 31/01). Se cambió a `Date.getTime()` puro. Se agregó `useUnsavedChangesGuard(open && isDirty && !isPending)` para avisar al recargar/salir con cambios. Nuevas suites: `supplierBillFormSchema.test.ts` (10 tests: happy path, supplier/category vacíos, subtotal negativo, exchange_rate ≤ 0, USD, cobertura parcial/inversa/válida, PUE/PPD) y `useSupplierBillForm.test.tsx` (7 tests: rechazo por validación, submit crea con total calculado y fechas YMD, due_date sugerido según proveedor, edición preserva due_date, updateMutate recibe id correcto, guard sincronizado con isDirty, guard silenciado con dialog cerrado). 1121/1121 Vitest verde (+17).",
+    "changes": [
+      "Fix latente `useSupplierBillForm.ts`: comparación de fechas de cobertura ahora usa `getTime()` (antes `String()` lexicográfico)",
+      "`useSupplierBillForm.ts`: integra `useUnsavedChangesGuard(open && isDirty && !isPending)`",
+      "Nuevo `supplierBillFormSchema.test.ts` (10 tests) — validación de campos, monedas y cobertura",
+      "Nuevo `useSupplierBillForm.test.tsx` (7 tests) — submit, prefill, due_date sugerido, guard",
+      "Total: +17 tests (1104 → 1121)"
+    ]
+  },
+
     "version": "7.128.0",
     "date": "2026-07-20",
     "type": "minor",

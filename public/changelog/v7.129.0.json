@@ -1,0 +1,37 @@
+{
+  "version": "7.129.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "Sprint 3 · Ola 3.7 — UX-M2: SupplierBillForm blindado (guard + tests + fix Date)",
+  "sections": [
+    {
+      "heading": "Contexto",
+      "body": "La Ola 3.6 quedó verde (1104/1104) y sin bugs residuales. La Ola 3.7 continúa la migración schema-first en cuentas por pagar. `useSupplierBillForm` ya estaba en RHF + Zod, pero tenía dos huecos: (1) no bloqueaba navegación/recarga con cambios sin guardar, y (2) el `superRefine` del rango de cobertura comparaba `Date` vía `String()`, lo cual usa el formato `Sat Jan 31 2026 …` y produce orden lexicográfico por nombre de día (`Sat` < `Thu` porque `S` < `T`). En la práctica podía rechazar rangos válidos como 01/01 → 31/01 y aceptar rangos inválidos según el par de días."
+    },
+    {
+      "heading": "Fixes y hardening",
+      "items": [
+        "`useSupplierBillForm.ts` — comparación de cobertura ahora usa `v.coverage_end.getTime() < v.coverage_start.getTime()`; determinístico e independiente de locale.",
+        "`useSupplierBillForm.ts` — nuevo `useUnsavedChangesGuard(open && form.formState.isDirty && !isPending)`; alinea el patrón con `QuoteForm`, `ContractForm` e `InvoiceForm`. Silenciado cuando el diálogo está cerrado o hay mutación en curso."
+      ]
+    },
+    {
+      "heading": "Cobertura de tests",
+      "items": [
+        "`supplierBillFormSchema.test.ts` (10 tests): payload mínimo, supplier vacío, category vacía, subtotal negativo, exchange_rate ≤ 0, USD con TC>1, cobertura parcial (solo start), cobertura end<start, cobertura válida, payment_method_sat PUE/PPD vs valor arbitrario.",
+        "`useSupplierBillForm.test.tsx` (7 tests): rechazo por falta de proveedor/categoría, submit crea con `issue_date` en YMD y `total = subtotal + tax − retenciones`, `due_date` sugerido según `default_payment_terms_days`, edición preserva `due_date` aunque cambie el proveedor, `updateMutate` recibe `{ id, patch }` correcto, guard sincronizado con `isDirty`, guard silenciado con dialog cerrado."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "body": "Suite Vitest: 1121/1121 verde (+17 tests desde la baseline 1104). Typecheck limpio. Sin cambios visuales en el diálogo (`SupplierBillFormDialog.tsx` sin modificar)."
+    },
+    {
+      "heading": "Fuera de alcance",
+      "items": [
+        "`ExpenseForm`, `SupplierFormDialog`, `CustomerFormDialog`, `FeedbackFormDialog` (candidatos de olas posteriores).",
+        "Cambios de business logic en cuentas por pagar."
+      ]
+    }
+  ]
+}

@@ -1,68 +1,51 @@
-# Auditoría Ola 3.5 — UX-M1 QuoteForm a RHF + Zod
+## Auditoría Ola 3.6 — Verde ✅
 
-## Verificación de la fase anterior
-
-**Estado: verde con un gap de cobertura.**
-
-Revisé schema (`quoteFormSchema.ts`), hook (`useQuoteForm.ts`, `useQuoteFormLogic.ts`), prefill (`useQuotePrefill.ts`), UI (`QuoteForm.tsx`), payload (`quoteFormPayload.ts`) y guard (`useUnsavedChangesGuard.ts`). Contra el plan original de Ola 3.5:
-
-- **Schema fix aplicado correctamente**: `rentalLineSchema` acepta cualquier tarifa > 0 (fix del bug detectado en 3.4). Tests cubren dailyRate/weeklyRate/monthlyRate y rechazo con todas en 0.
-- **RHF + Zod cableado**: `useForm({ resolver: zodResolver, mode: "onSubmit" })`, `useWatch` granular para totales, `useFieldArray` implícito vía `field.value/onChange` en los sub-componentes.
-- **Guard activo y blindado**: `useUnsavedChangesGuard(isDirty && !isPending)` + `form.reset(prefillValues, { keepDirty: false })` en prefill + `form.reset(values)` post-mutación.
-- **Prefill correcto**: guard por `hydratedId` evita pisar cambios del usuario si `existingQuote` cambia de referencia.
-
-**Sin bugs de comportamiento.** Tres hallazgos menores y un gap:
-
-1. **Gap real (paso 9 del plan de 3.5 no ejecutado)**: no existe `QuoteForm.test.tsx` de integración. No hay test que valide submit → mutate → `form.reset(values)` (guard cleanup), ni que `handleTypeChange` limpia líneas y rango.
-2. **Cosmético `QuoteForm.tsx:53-55`**: `field.onChange(id)` seguido de `form.setValue("customerId", id, ...)` es duplicado — `field.onChange` ya escribe al form.
-3. **Cosmético `useQuotePrefill.ts:129`**: re-export `defaultQuoteFormValues` sin consumidores.
-
-Nada bloquea avanzar; el gap se cierra en 3.6.
+- **Schema fix validado**: `superRefine` sólo valida bloque activo, bases laxas para partidas inactivas.
+- **Tests**: 1104/1104 Vitest, 7 nuevos en `useQuoteFormLogic.test.tsx`.
+- **Sin bugs residuales**, sin gaps de cobertura críticos.
 
 ---
 
-## Plan Ola 3.6 — Cobertura QuoteForm + siguiente hito de auditoría
+## Ola 3.7 — UX-M2: SupplierBillFormDialog a RHF + Zod
 
-### Parte A — Cerrar gap de cobertura Ola 3.5
+Continuar la migración schema-first de formularios operativos. `SupplierBillFormDialog` (112 LOC, form crítico de cuentas por pagar) es el siguiente candidato natural: hoy usa `useState` disperso + validación imperativa, sin guard de cambios sin guardar.
 
-1. **`useQuoteFormLogic.test.tsx` (nuevo)** — `renderHook` con `MemoryRouter` + `QueryClientProvider` y mocks de `useCustomers`/`useEquipmentModels`/`useQuote`/`useNextQuoteNumber`/`useCreateQuote`/`useUpdateQuote`:
-   - Submit sin cliente → `createQuote.mutate` no se llama; `form.formState.errors.customerId` presente.
-   - Submit renta sin dateRange → mutate no se llama; error en `dateRange`.
-   - Submit renta con partida sin ninguna tarifa > 0 → error en `rentalLines.0.monthlyRate`.
-   - Submit renta válida → `createQuote.mutate` recibe payload con `line_items`, `subtotal/tax/total` correctos, `rental_meta` poblado, `quote_type='rental'`.
-   - Submit venta válida → `rental_meta=null`, `quote_type='sale'`.
-   - **Post-mutación**: tras `onSuccess`, `form.formState.isDirty === false` (blindaje del guard, evita race con `navigate`).
-   - **`handleTypeChange`**: cambiar de `rental` a `sale` deja `dateRange=undefined`, `rentalLines=[EMPTY]`, `saleLines=[EMPTY]`, `includeLogistics=false`, `logisticsCost=0`.
+### Alcance
 
-2. **`QuoteForm.tsx` micro-fixes**:
-   - Eliminar `form.setValue("customerId", ...)` redundante tras `field.onChange(id)`.
-   - Mantener `form.setValue("customerName", ...)` en `onCustomerNameChange` (no viene del mismo `field`).
+1. **Schema Zod** (`src/features/accounts-payable/lib/supplierBillFormSchema.ts`):
+   - `supplierId` requerido, `folio` requerido, `issueDate`/`dueDate` (dueDate ≥ issueDate), `subtotal ≥ 0`, `taxRate` ∈ {0, 8, 11, 16}, `total > 0`, `notes` opcional.
+   - Inference de `SupplierBillFormValues`.
 
-3. **`useQuotePrefill.ts`**: retirar `export { defaultQuoteFormValues }` sin consumidores (import directo desde `useQuoteForm.ts`).
+2. **Hook `useSupplierBillForm`** (`src/features/accounts-payable/hooks/useSupplierBillForm.ts`):
+   - `useForm({ resolver: zodResolver(...), defaultValues })`.
+   - Prefill vía `form.reset` cuando `existingBill` cambia (guard por id).
+   - `handleSubmit` que invoca create/update mutation existente y hace `form.reset(values)` en `onSuccess`.
 
-### Parte B — Siguiente hito de la auditoría integral
+3. **Componente `SupplierBillFormDialog.tsx`**:
+   - Migrar a `<Form>` + `<FormField>` + `<FormMessage>` inline (retirar toasts de validación).
+   - Activar `useUnsavedChangesGuard(form.formState.isDirty && !isPending)`.
+   - Remover `useState` locales para campos del form; mantener sólo state UI (dropzone open, etc).
 
-Continuar con el siguiente ticket **UX-M** o **EC-A** del backlog `liftgo-auditoria-integral.md`. Los formularios grandes ya migrados a RHF+Zod+Guard son: `InvoiceForm`, `ContractForm`, `QuoteForm`. El siguiente candidato natural del backlog UX-M es **`ExpenseForm` / `SupplierInvoiceForm`** (formularios de captura que hoy usan `useState` múltiple y `notifyValidation`).
+4. **Tests**:
+   - `supplierBillFormSchema.test.ts`: happy path, rechazo por dueDate < issueDate, total ≤ 0, taxRate fuera de catálogo, folio vacío.
+   - `useSupplierBillForm.test.tsx` (integración): submit create, submit update, rechazo validación, cleanup isDirty post-submit, prefill de existingBill.
 
-Pregunta al usuario al llegar aquí para no invadir alcance: ¿migrar `ExpenseForm` (más pequeño, ~120 LOC) o `SupplierInvoiceForm` (más impacto, gestiona XML+PDF+RLS)?
+5. **Verificación**:
+   - `bunx vitest run` — 1104 + ~10 nuevos.
+   - `tsgo --noEmit` limpio.
+   - Playwright: sin cambios visuales; smoke manual del flujo Crear/Editar bill.
 
-### Verificación
-
-- `bunx tsgo --noEmit` limpio.
-- `bunx vitest run` — nueva cobertura debe sumar ≥ 7 tests a `useQuoteFormLogic`. Meta: 1104+/1104+ verde.
-- Playwright: sin cambios visuales, no requiere regenerar baselines.
+6. **Changelog** v7.129.0 (minor).
 
 ### Fuera de alcance
 
-- Rediseño visual, cambios en `RentalLineItems`/`SaleLineItems`, o refactor de `EquipmentAssignmentDialog` (no tocados por 3.5).
-- Cambios en `useUnsavedChangesGuard` (funciona correctamente).
+- `ExpenseForm` (a la Ola 3.8 si aplica).
+- `SupplierFormDialog`, `CustomerFormDialog`, `FeedbackFormDialog` (olas posteriores).
+- Cambios de business logic en cuentas por pagar (sólo migración de forma).
 
 ### Detalles técnicos
 
-- Mocks: `vi.mock("../hooks/quotes/useQuotes")`, `vi.mock("@/features/customers")`, `vi.mock("@/features/fleet")`. `useCreateQuote` retorna `{ mutate: vi.fn((_, opts) => opts?.onSuccess?.()), isPending: false }` para simular ciclo completo.
-- Assertion de `isDirty=false` post-submit se hace tras `await waitFor(() => expect(createQuote.mutate).toHaveBeenCalled())` y verificando `result.current.form.formState.isDirty`.
-- El test de `handleTypeChange` corre `act(() => result.current.handleTypeChange("sale"))` y valida `form.getValues()`.
-
-### Changelog
-
-- `public/changelog.json` + `public/changelog/v7.128.0.json` (patch → minor por nueva cobertura de test crítica del guard).
+- Reutilizar `useUnsavedChangesGuard` (ya probado en QuoteForm/ContractForm/InvoiceForm).
+- Reutilizar patrón `useWatch` granular donde haya cálculos derivados (subtotal + tax → total).
+- Seguir `mem://design/form-dialogs` (sticky header/footer, `Nuevo/Editar`, RequiredMark).
+- Retirar cualquier `useEntityMutation` boilerplate no usado; mantener hooks canónicos.

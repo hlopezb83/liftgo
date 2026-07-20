@@ -2,6 +2,7 @@ import { useEffect, useEffectEvent } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { useSuppliers } from "@/features/suppliers";
+import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { toYMD } from "@/lib/date/toYMD";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { nonNegativeAmountCoerced, positiveAmountCoerced } from "@/lib/schemas";
@@ -32,7 +33,7 @@ export const supplierBillFormSchema = z.object({
   if (hasStart !== hasEnd) {
     ctx.addIssue({ code: "custom", path: [hasStart ? "coverage_end" : "coverage_start"], message: "Ambas fechas de cobertura son requeridas" });
   }
-  if (hasStart && hasEnd && String(v.coverage_end) < String(v.coverage_start)) {
+  if (v.coverage_start && v.coverage_end && v.coverage_end.getTime() < v.coverage_start.getTime()) {
     ctx.addIssue({ code: "custom", path: ["coverage_end"], message: "Fin de cobertura debe ser posterior al inicio" });
   }
 });
@@ -175,10 +176,14 @@ export function useSupplierBillForm(
     }
   };
 
+  const isPending = create.isPending || update.isPending;
+  // UX-M2: bloquea navegación / recarga si hay cambios sin guardar y no está enviando.
+  useUnsavedChangesGuard(open && form.formState.isDirty && !isPending);
+
   return {
     form, selectedSupplier, suggestedDueDate, total,
     isEdit,
-    isPending: create.isPending || update.isPending,
+    isPending,
     onSubmit: form.handleSubmit(onSubmit),
   };
 }
