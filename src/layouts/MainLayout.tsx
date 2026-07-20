@@ -69,7 +69,7 @@ export default function MainLayout() {
   return (
     <SidebarProvider>
       <PageActionsProvider>
-        <div className="min-h-[100dvh] flex w-full">
+        <div className="h-[100dvh] flex w-full">
           <a
             href="#main-content"
             className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:top-2 focus:left-2 focus:px-4 focus:py-2 focus:rounded-md focus:bg-primary focus:text-primary-foreground focus:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
