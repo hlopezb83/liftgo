@@ -4,7 +4,7 @@ import type { MonthData, StatementRow, YearTotals } from "../types";
 
 const monthsBase: MonthData[] = [
   {
-    month: "Ene", revenue: 100, revenueRental: 80, revenueSales: 20,
+    month: "Ene", revenue: 100, revenueRentalBooked: 80, revenueRentalUnbooked: 0, revenueSales: 20,
     maintenanceCost: 10, damageCost: 5, depreciation: 8,
     expenses: {} as MonthData["expenses"],
     grossProfit: 0, grossMargin: 0, totalExpenses: 0,
@@ -12,7 +12,7 @@ const monthsBase: MonthData[] = [
     netProfit: 0, margin: 0,
   } as unknown as MonthData,
   {
-    month: "Feb", revenue: 200, revenueRental: 150, revenueSales: 50,
+    month: "Feb", revenue: 200, revenueRentalBooked: 150, revenueRentalUnbooked: 0, revenueSales: 50,
     maintenanceCost: 20, damageCost: 0, depreciation: 8,
     expenses: {} as MonthData["expenses"],
     grossProfit: 0, grossMargin: 0, totalExpenses: 0,
