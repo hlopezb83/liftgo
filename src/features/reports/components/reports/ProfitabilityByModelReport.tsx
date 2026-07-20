@@ -1,16 +1,13 @@
-import { AlertTriangle } from "lucide-react";
 import { DataTableV2, useLiftgoTable } from "@/components/dataTable/v2";
-import { DownloadIcon } from "@/components/icons";
+import { DownloadIcon, WarnIcon } from "@/components/icons";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { exportToCsv } from "@/lib/exportCsv";
-import { useProfitByModelReport } from "../../hooks/useProfitByModelReport";
+import { useProfitByModelReport, type ModelRow } from "../../hooks/useProfitByModelReport";
 import { ProfitabilityChart } from "./profitabilityByModel/ProfitabilityChart";
 import { profitabilityColumns } from "./profitabilityByModel/profitabilityColumns";
-import type { ModelRow } from "./profitabilityByModel/profitabilityHelpers";
-
 
 interface Props {
   startDate: Date;
@@ -26,11 +23,8 @@ interface Props {
 export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
   const { data: rows = [], isLoading, isError, refetch } = useProfitByModelReport(startDate, endDate);
 
-  const chartRows = rows;
-
   const table = useLiftgoTable<ModelRow>({
-    data: rows as ModelRow[],
-
+    data: rows,
     columns: profitabilityColumns,
     getRowId: (r) => r.model,
     initialSorting: [{ id: "profit", desc: true }],
@@ -38,7 +32,7 @@ export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
   });
 
   const handleExport = () => {
-    exportToCsv("rentabilidad_por_modelo.csv", chartRows.map((r) => ({
+    exportToCsv("rentabilidad_por_modelo.csv", rows.map((r) => ({
       Modelo: r.model,
       Unidades: r.units,
       Ingresos: r.revenue.toFixed(2),
@@ -52,7 +46,7 @@ export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
   if (isError) {
     return (
       <Alert variant="destructive">
-        <AlertTriangle className="h-4 w-4" />
+        <WarnIcon className="h-4 w-4" />
         <AlertTitle>No se pudo cargar el reporte</AlertTitle>
         <AlertDescription className="flex items-center justify-between gap-4">
           <span>Ocurrió un error al calcular la rentabilidad por modelo.</span>
@@ -67,12 +61,12 @@ export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Ganancia Neta por Modelo</CardTitle>
-          <Button variant="outline" size="sm" onClick={handleExport} disabled={isLoading || chartRows.length === 0}>
+          <Button variant="outline" size="sm" onClick={handleExport} disabled={isLoading || rows.length === 0}>
             <DownloadIcon className="h-4 w-4 mr-2" /> Exportar CSV
           </Button>
         </CardHeader>
         <CardContent>
-          {isLoading ? <Skeleton className="h-64 w-full" /> : <ProfitabilityChart chartRows={chartRows} />}
+          {isLoading ? <Skeleton className="h-64 w-full" /> : <ProfitabilityChart chartRows={rows} />}
         </CardContent>
       </Card>
 
