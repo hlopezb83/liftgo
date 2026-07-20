@@ -15,6 +15,7 @@ import { FUEL_TYPES, FUEL_TYPE_LABELS } from "@/lib/constants";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
 export function EquipmentModelsTab() {
+  const isMobile = useIsMobile();
   const { data: models, isLoading } = useEquipmentModels();
   const create = useCreateEquipmentModel();
   const update = useUpdateEquipmentModel();
