@@ -48,11 +48,12 @@ export default function ChangelogPage() {
   const { page, setPage, totalPages, paginatedItems } = useListPage(filtered);
 
   // Reset a página 1 cuando cambian los filtros — patrón "adjust state during render".
-  const prevFiltersKey = useRef(filterKey);
-  if (prevFiltersKey.current !== filterKey) {
-    prevFiltersKey.current = filterKey;
+  const [prevFiltersKey, setPrevFiltersKey] = useState(filterKey);
+  if (prevFiltersKey !== filterKey) {
+    setPrevFiltersKey(filterKey);
     if (page !== 1) setPage(1);
   }
+
 
   if (isLoading) {
     return (
