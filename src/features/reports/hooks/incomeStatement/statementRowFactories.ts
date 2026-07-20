@@ -94,6 +94,33 @@ export function buildBreakdownRows(
   }));
 }
 
+// PL-05: build per-supplier·description breakdown for a given expense category.
+export function buildExpenseDetailBreakdown(
+  filteredData: MonthData[],
+  category: ExpenseCategory,
+): StatementRow[] {
+  const keyOf = (l: { supplier: string; description: string }) =>
+    `${l.supplier} · ${l.description || "Sin descripción"}`;
+  const monthlyMaps: Record<string, number>[] = filteredData.map((m) => {
+    const lines = m.expensesDetailByCategory?.[category] ?? [];
+    return lines.reduce<Record<string, number>>((acc, l) => {
+      const k = keyOf(l);
+      acc[k] = (acc[k] ?? 0) + Number(l.amount ?? 0);
+      return acc;
+    }, {});
+  });
+  const allKeys = new Set<string>();
+  monthlyMaps.forEach((m) => Object.keys(m).forEach((k) => allKeys.add(k)));
+  return [...allKeys]
+    .sort()
+    .map((name) => ({
+      label: `      ${name}`,
+      values: monthlyMaps.map((m) => m[name] ?? 0),
+      total: sumMoney(monthlyMaps.map((m) => m[name] ?? 0)),
+      isCost: true,
+    }));
+}
+
 export function buildCsvRows(statementRows: StatementRow[], filteredData: MonthData[]): Record<string, string>[] {
   return statementRows.map((row) => {
     const obj: Record<string, string> = { Concepto: row.label };
