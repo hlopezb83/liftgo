@@ -38,7 +38,7 @@ export function PaymentIntentsSection({ invoiceId }: Props) {
   });
 
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+     
     if (rejectId) form.reset({ notes: "" });
   }, [rejectId, form]);
 

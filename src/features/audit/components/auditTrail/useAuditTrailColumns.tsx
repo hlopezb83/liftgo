@@ -3,7 +3,6 @@ import type { ColumnDef } from "@/components/dataTable/v2";
 import { DeleteIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { AuditLog } from "../../hooks/useAuditLogs";
 import {
   actionBadgeVariant,
   actionIcon,
@@ -13,6 +12,7 @@ import {
   translateField,
   translateTable,
 } from "./auditTrailConstants";
+import type { AuditLog } from "../../hooks/useAuditLogs";
 
 export function useAuditTrailColumns(
   isAdmin: boolean,
