@@ -276,13 +276,8 @@ export function useTableFilters<T, F extends Record<string, Facet<T>>>(
 
   // React 19 + React Compiler: dependemos SOLO de primitivos (`filterKey`,
   // `itemsVersion`) para invalidar el memo. `values` y `facets` se leen desde
-  // refs para no forzar identidad de objeto en las deps — el mismo patrón
-  // que resolvió la regresión de v7.61.10 en `useInvoices`.
-  const valuesRef = useRef(values);
-  valuesRef.current = values;
-  const facetsRef = useRef(facets);
-  facetsRef.current = facets;
-
+  // el closure del render — cuando `filterKey` cambia (derivado de values), el
+  // memo se recomputa con las referencias frescas del render actual.
   const deferredKey = useDeferredValue(filterKey);
   const isStale = deferredKey !== filterKey;
 
@@ -299,8 +294,9 @@ export function useTableFilters<T, F extends Record<string, Facet<T>>>(
     if (mode !== "client") return [];
     const source = items ?? [];
     if (!source.length) return [];
-    const currentValues = valuesRef.current as Record<string, string>;
-    const currentFacets = facetsRef.current as Record<string, Facet<T>>;
+    const currentValues = values as Record<string, string>;
+    const currentFacets = facets as unknown as Record<string, Facet<T>>;
+
 
     // Fase 1: facetas de igualdad + mes + rango.
     let base = source;
