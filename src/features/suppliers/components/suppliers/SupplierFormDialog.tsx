@@ -69,7 +69,7 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
   };
 
   const onSubmit = (data: SupplierFormData) => {
-    const payload = buildPayload(data);
+    const payload = buildSupplierPayload(data);
     if (supplier) {
       updateSupplier.mutate({ id: supplier.id, ...payload }, {
         onSuccess: async () => { await uploadCsfIfAny(supplier.id); onOpenChange(false); },
@@ -82,6 +82,7 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
   };
 
   const isPending = createSupplier.isPending || updateSupplier.isPending;
+  useUnsavedChangesGuard(open && form.formState.isDirty && !isPending);
 
   return (
     <FormDialog
