@@ -1,6 +1,6 @@
 import { render, act } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { MemoryRouter } from "react-router";
+import { createMemoryRouter, RouterProvider } from "react-router";
 import { useUnsavedChangesGuard } from "../useUnsavedChangesGuard";
 import { ConfirmProvider } from "@/components/feedback/ConfirmProvider";
 
@@ -9,13 +9,14 @@ function Harness({ isDirty }: { isDirty: boolean }) {
   return null;
 }
 
-function renderWithProviders(ui: React.ReactElement) {
-  return render(
-    <MemoryRouter>
-      <ConfirmProvider>{ui}</ConfirmProvider>
-    </MemoryRouter>,
+function renderWithProviders(isDirty: boolean) {
+  const router = createMemoryRouter(
+    [{ path: "/", element: <ConfirmProvider><Harness isDirty={isDirty} /></ConfirmProvider> }],
+    { initialEntries: ["/"] },
   );
+  return render(<RouterProvider router={router} />);
 }
+
 
 describe("useUnsavedChangesGuard", () => {
   let addSpy: ReturnType<typeof vi.spyOn>;
