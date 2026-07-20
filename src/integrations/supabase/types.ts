@@ -2237,6 +2237,7 @@ export type Database = {
         Row: {
           amount: number
           created_at: string
+          created_by: string | null
           currency: string
           e2e_scope: string | null
           exchange_rate: number
@@ -2263,6 +2264,7 @@ export type Database = {
         Insert: {
           amount: number
           created_at?: string
+          created_by?: string | null
           currency?: string
           e2e_scope?: string | null
           exchange_rate?: number
@@ -2289,6 +2291,7 @@ export type Database = {
         Update: {
           amount?: number
           created_at?: string
+          created_by?: string | null
           currency?: string
           e2e_scope?: string | null
           exchange_rate?: number
@@ -3499,6 +3502,10 @@ export type Database = {
       assert_invoice_cancellable: {
         Args: { p_invoice_id: string }
         Returns: string
+      }
+      assert_not_last_admin: {
+        Args: { _target_user_id: string }
+        Returns: undefined
       }
       assign_stamped_credit_note_number: {
         Args: { p_credit_note_id: string; p_folio: string }

@@ -28,37 +28,37 @@ Deno.serve(async (req) => {
       return jsonError(req, 400, "Cannot delete your own account");
     }
 
-    // BL-37: bloquear si el objetivo es admin y es el último admin activo.
-    const { data: targetAdmin } = await auth.adminClient
-      .from("user_roles")
-      .select("user_id")
-      .eq("user_id", user_id)
-      .eq("role", "admin")
-      .maybeSingle();
-
-    if (targetAdmin) {
-      const { count: adminCount } = await auth.adminClient
-        .from("user_roles")
-        .select("user_id", { count: "exact", head: true })
-        .eq("role", "admin");
-      if ((adminCount ?? 0) <= 1) {
+    // BL-37 / EC-M5: guarda anti-último-admin vía RPC con lock (cierra TOCTOU).
+    const { error: assertErr } = await auth.adminClient.rpc(
+      "assert_not_last_admin",
+      { _target_user_id: user_id },
+    );
+    if (assertErr) {
+      const msg = assertErr.message ?? "";
+      if (msg.includes("LAST_ADMIN_CANNOT_BE_DELETED")) {
         return jsonError(
           req,
           400,
           "LAST_ADMIN_CANNOT_BE_DELETED: no puedes eliminar al último administrador del sistema.",
         );
       }
+      console.error("assert_not_last_admin failed:", assertErr);
+      return jsonError(req, 500, "Failed to validate admin invariant");
     }
 
-    await auth.adminClient.from("user_roles").delete().eq("user_id", user_id);
-    await auth.adminClient.from("profiles").delete().eq("user_id", user_id);
-
+    // Orden correcto: primero borrar en auth.users; el resto cae en cascade / cleanup posterior.
+    // Si esta llamada falla, los roles/profile permanecen intactos (no queda usuario zombie).
     const { error: deleteErr } = await auth.adminClient.auth.admin.deleteUser(
       user_id,
     );
     if (deleteErr) {
+      console.error("auth.admin.deleteUser failed:", deleteErr);
       return jsonError(req, 400, "Failed to delete user");
     }
+
+    // Limpieza best-effort de tablas de aplicación (por si no hay cascade a auth.users).
+    await auth.adminClient.from("user_roles").delete().eq("user_id", user_id);
+    await auth.adminClient.from("profiles").delete().eq("user_id", user_id);
 
     return jsonResponse(req, { success: true });
   } catch (_err) {

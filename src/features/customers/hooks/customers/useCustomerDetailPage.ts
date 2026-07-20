@@ -2,8 +2,8 @@ import { useUserRole } from "@/features/users";
 import type { Tables } from "@/integrations/supabase/types";
 import { useCustomerDetailActions } from "../customerDetail/useCustomerDetailActions";
 import { useCustomerDetailDialogs } from "../customerDetail/useCustomerDetailDialogs";
+import { useCustomer } from "./useCustomers";
 import { useCustomerProfitability } from "./useCustomerProfitability";
-import { useCustomers } from "./useCustomers";
 import { useCustomerSummary } from "./useCustomerSummary";
 
 type Customer = Tables<"customers">;
@@ -15,7 +15,7 @@ const EDIT_FIELDS = [
 
 type EditField = (typeof EDIT_FIELDS)[number];
 
-function buildEditInitialData(customer: Customer | undefined): Record<EditField, string> | undefined {
+function buildEditInitialData(customer: Customer | undefined | null): Record<EditField, string> | undefined {
   if (!customer) return undefined;
   const result = {} as Record<EditField, string>;
   for (const k of EDIT_FIELDS) {
@@ -26,7 +26,7 @@ function buildEditInitialData(customer: Customer | undefined): Record<EditField,
 }
 
 export function useCustomerDetailPage(id: string | undefined) {
-  const { data: customers, isLoading } = useCustomers();
+  const { data: customer, isLoading } = useCustomer(id);
   const { data: summary } = useCustomerSummary(id);
   const { data: profitability } = useCustomerProfitability(id);
   const { data: role } = useUserRole();
@@ -38,7 +38,6 @@ export function useCustomerDetailPage(id: string | undefined) {
     setEditOpen: dialogs.setEditOpen,
   });
 
-  const customer = customers?.find((c) => c.id === id);
   const bookings = summary?.bookings ?? [];
   const invoices = summary?.invoices ?? [];
 
@@ -49,7 +48,7 @@ export function useCustomerDetailPage(id: string | undefined) {
   const hasDependencies = bookings.length > 0 || invoices.length > 0;
 
   return {
-    isLoading, customer, summary, profitability, role,
+    isLoading, customer: customer ?? undefined, summary, profitability, role,
     bookings, invoices,
     totalInvoiced, totalPaid, outstanding,
     hasPortalAccess, hasDependencies,
