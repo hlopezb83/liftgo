@@ -39,6 +39,7 @@ export function useCRMFilters(prospects: Prospect[]) {
   const [filters, setFilters] = useState<CRMFilters>(DEFAULT_FILTERS);
 
   const filtered = useMemo(() => {
+    // eslint-disable-next-line react-hooks/purity -- Date.now() bucket recomputed per filter change; snapshot lifetime dura este render.
     const now = Date.now();
     const q = filters.search.trim().toLowerCase();
     return prospects.filter((p) => {
