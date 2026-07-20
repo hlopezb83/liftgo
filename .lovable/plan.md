@@ -1,48 +1,69 @@
-## Auditoría de Ola 5 — resultado
+# Ola 2.2 — Facturación recurrente (Sprint 2)
 
-- **ESLint:** 11 → 2 warnings. Los 2 residuales (`react-compiler` en `useLiftgoTable.ts:122` y `useTableFilters.ts:155`) son consecuencia de disables intencionales sobre APIs imperativas de TanStack Table. Costo aceptado, documentado en el changelog v7.116.0.
-- **Tests:** 1083/1083 Vitest verdes (159 archivos), 15 Deno verdes.
-- **Tamaños:** todos los archivos tocados quedaron entre 47 y 168 LOC. Sin regresiones detectadas.
-- **Regresión previa** en `CustomersPage` (disable mal ubicado) corregida.
+## Auditoría de Ola 2.1 (previa)
 
-Todo en verde. Propongo cerrar el sprint técnico de ESLint y retomar el plan de la **auditoría integral** (`liftgo-auditoria-integral.md`), avanzando a Sprint 2.
+- `extend_booking` RPC: `SECURITY DEFINER`, `SET search_path`, `FOR UPDATE`, buffer de 3 días y validación de overlap. ✔
+- `useCreateBookingExtension` migrado al RPC atómico. ✔
+- 4 casos nuevos en `useBookingExtensions.test.ts` (rol, buffer, overlap, éxito). ✔
+- Vitest 1084/1084 + Deno 15/15 verde. ✔
 
-## Siguiente fase — Sprint 2: Alto impacto operativo
+Sin bugs ni tests faltantes detectados. Avanzamos.
 
-Findings HIGH que quedaron pendientes tras Sprint 1a/1b (fiscal/dinero). Propuesta de olas cortas, cada una con tests y verificación antes de continuar:
+## Alcance Ola 2.2
 
-### Ola 2.1 — Reservas y disponibilidad
+Objetivo: blindar `generate-recurring-invoices` (Edge Function, 494 LOC) para que sea idempotente, transaccional y consistente con reglas de negocio LiftGo.
 
-- **BL-A5 (Race en exclusión GiST):** revisar `create_booking` / extensiones y asegurar que la exclusión GiST se evalúe dentro de una transacción con `SET LOCAL lock_timeout` y reintento controlado en el cliente.
-- **BL-A6 (Buffer de 3 días de mantenimiento):** validar que el buffer se aplique en `check_forklift_availability` y en extensiones, no solo en creación.
-- Tests Vitest para el hook `useCreateBooking` + tests SQL (`supabase/tests`) para el RPC.
+### Findings a resolver
 
-### Ola 2.2 — Facturación recurrente
+1. **BL-B1 — Idempotencia por período**
+   Prevenir doble facturación si la Edge Function se reintenta o corre concurrentemente. Hoy sólo confía en `last_billed_date` sin lock.
+   → Agregar índice único parcial `invoices(booking_id, billing_period_start)` para invoices recurrentes + advisory lock por `booking_id` durante generación.
 
-- **BL-A7 (Alineación de ciclos):** verificar que `generate_recurring_invoices` respete meses calendario exactos y `monthly_rate` vigente al momento de la generación (ya documentado en `mem://logic/recurring-billing-pricing`, falta test de regresión).
-- **BL-A8 (Propagación de partidas no-renta):** asegurar el copiado idempotente por `quote_id` (ya en `mem://logic/quote-logistics-propagation`, falta test).
+2. **BL-B2 — Precio congelado al momento de facturar**
+   Confirmar y documentar en tests que `monthly_rate` se toma de la reserva primero y del forklift como fallback en el instante de generación (memoria `recurring-billing-pricing`). Añadir test que cambie `monthly_rate` entre ciclos.
 
-### Ola 2.3 — Portal de clientes y roles
+3. **BL-B3 — Prorrateo en cierre de reserva (bookingEnded)**
+   Revisar `bookingEnded_test.ts`: cuando `end_date` cae a mitad de mes, prorratear el último ciclo con `computeProrate(1, end_day)`. Añadir caso "reserva termina el mismo día que inicia el ciclo" (0 días facturables).
 
-- **SEC-R3 (Portal read-only):** auditar RLS de `customer_portal_users` y verificar que ninguna mutación esté expuesta.
-- **SEC-R4 (Escalación de roles):** confirmar que `has_role` se usa consistentemente y que ninguna policy referencia `profiles.role` directamente.
+4. **BL-B4 — Multi-currency defensivo (continuación de C-1)**
+   Bloquear generación si `booking.currency` ≠ `forklift.currency` o si falta `exchange_rate` cuando aplique. Marcar línea como `eligible=false` con razón `currency_mismatch`.
 
-### Ola 2.4 — CFDI y pagos
+5. **BL-B5 — Atomicidad multi-línea**
+   Envolver la creación de invoice + líneas + actualización de `last_billed_date` en un RPC `create_recurring_invoice(booking_id, period_start, period_end, lines jsonb)` `SECURITY DEFINER` para evitar invoices huérfanas si falla la inserción de líneas.
 
-- **BL-A9 (Timbrado idempotente):** garantizar que `stamp-cfdi` no genere doble timbre si se reintenta (idempotency key por `invoice_id + version`).
-- **BL-A10 (Complemento de pago):** revisar generación de complementos en pagos parciales multi-factura.
+### Cambios técnicos
 
-## Detalle técnico
+- **Migración SQL**
+  - `CREATE UNIQUE INDEX CONCURRENTLY invoices_booking_period_uniq ON invoices(booking_id, billing_period_start) WHERE booking_id IS NOT NULL AND billing_period_start IS NOT NULL;`
+  - Nuevo RPC `create_recurring_invoice(...)` con `pg_advisory_xact_lock(hashtext(booking_id::text))`, insert de invoice + líneas + update `last_billed_date` en una transacción, retorna invoice id.
+  - Añadir columnas `billing_period_start`, `billing_period_end` a `invoices` si no existen (verificar antes).
+  - GRANTs a `authenticated` + `service_role`.
 
-Cada ola sigue el mismo ciclo:
+- **Edge Function** (`generate-recurring-invoices/index.ts`)
+  - Reemplazar `supabase.from("invoices").insert(...)` por RPC.
+  - Añadir chequeo `currency_mismatch` antes de push a `lines`.
+  - Manejo de error `unique_violation` (23505) → log "already_billed" y continuar.
 
-1. Leer el finding en `liftgo-auditoria-integral.md` y el código actual.
-2. Escribir test que reproduzca el problema (Vitest o Deno según capa).
-3. Implementar fix mínimo.
-4. Correr `bunx eslint .`, `bunx vitest run`, `deno test` según aplique.
-5. Actualizar `public/changelog.json` + `public/changelog/v{X.Y.Z}.json`.
-6. Pausar para auditoría antes de la siguiente ola.
+- **Tests Deno**
+  - `index_test.ts`: caso concurrencia (dos runs seguidos → 1 invoice), caso `currency_mismatch`, caso `monthly_rate` cambiado.
+  - `bookingEnded_test.ts`: caso 0 días facturables.
 
-## Pregunta al usuario
+- **Tests Vitest**
+  - `useRecurringInvoices` (si existe hook) o `MrrDetailPage` para confirmar que los cambios no rompen KPIs.
 
-¿Confirmas seguir con **Sprint 2 → Ola 2.1 (Reservas y disponibilidad)**, o prefieres priorizar otra ola (recurrente, portal, CFDI) primero?vamos con sprint 2
+### Criterio de aceptación
+
+- Deno tests ≥ 18/18 verde (15 actuales + 3 nuevos mínimos).
+- Vitest 1084/1084 sigue verde.
+- Correr la función dos veces seguidas sobre la misma reserva no duplica invoices.
+- Cambio de `monthly_rate` entre ciclos se refleja en el siguiente invoice.
+
+### Changelog
+
+- `public/changelog.json` + `public/changelog/v7.118.0.json` (minor: nueva RPC + índice + lógica reforzada).
+
+## Fuera de alcance
+
+- Portal de clientes (Ola 2.3).
+- CFDI edge cases (Sprint 3).
+- Refactor visual de `MrrDetailPage`.
