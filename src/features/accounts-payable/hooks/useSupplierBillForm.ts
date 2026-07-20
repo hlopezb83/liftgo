@@ -16,6 +16,8 @@ export const supplierBillFormSchema = z.object({
   description: z.string().default(""),
   issue_date: z.date({ error: "Fecha de emisión requerida" }),
   due_date: z.date().optional(),
+  coverage_start: z.date().optional(),
+  coverage_end: z.date().optional(),
   currency: z.enum(["MXN", "USD"]),
   exchange_rate: positiveAmountCoerced("Tipo de cambio inválido").default(1),
   subtotal: nonNegativeAmountCoerced("Subtotal inválido"),
@@ -24,6 +26,15 @@ export const supplierBillFormSchema = z.object({
   retention_isr: nonNegativeAmountCoerced("Retención ISR inválida").default(0),
   cfdi_uuid: z.string().default(""),
   payment_method_sat: z.enum(["PUE", "PPD"]).optional(),
+}).superRefine((v, ctx) => {
+  const hasStart = !!v.coverage_start;
+  const hasEnd = !!v.coverage_end;
+  if (hasStart !== hasEnd) {
+    ctx.addIssue({ code: "custom", path: [hasStart ? "coverage_end" : "coverage_start"], message: "Ambas fechas de cobertura son requeridas" });
+  }
+  if (hasStart && hasEnd && v.coverage_end! < v.coverage_start!) {
+    ctx.addIssue({ code: "custom", path: ["coverage_end"], message: "Fin de cobertura debe ser posterior al inicio" });
+  }
 });
 
 export type SupplierBillFormData = z.infer<typeof supplierBillFormSchema>;
