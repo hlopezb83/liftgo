@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.114.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "Sprint 1b — Blindajes fiscales: cancelación bloqueada con pagos + validación de signos",
+    "summary": "BL-A4: `cancel-cfdi` ahora consulta el RPC `assert_invoice_cancellable` antes de cualquier acción; si la factura tiene pagos aplicados responde 409 con mensaje accionable (cuántos, total, cómo revertir), evitando saldos huérfanos y REPs colgando de un CFDI cancelado. Motivo 01 valida además que el UUID sustituto sea de una factura timbrada del mismo cliente. EC-M6: nuevos triggers `validate_invoice_line_items_signs` en `invoices` y `quotes` que rechazan cantidades ≤ 0 o precios negativos en JSONB antes de guardar. BL-M5 documentado como ya cumplido tras revisar el código. Se difieren a Sprint 1c los pendientes que requieren tabla/edge function nueva (BL-A5, EC-A1, EC-A2)."
+  },
+  {
     "version": "7.113.0",
     "date": "2026-07-20",
     "type": "minor",
