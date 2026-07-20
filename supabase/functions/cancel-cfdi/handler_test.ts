@@ -353,4 +353,3 @@ Deno.test("cancel-cfdi: C-2 live sin facturapi_invoice_id rechaza stub", async (
   const upd = serviceState.updates.find((u) => u.table === "invoices");
   assertEquals(upd, undefined);
 });
-

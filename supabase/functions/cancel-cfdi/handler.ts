@@ -153,7 +153,6 @@ export async function handleCancelCfdi(
       }
     }
 
-
     const isAccepted = satStatus === "accepted";
     const update: Record<string, unknown> = {
       cancellation_status: satStatus,
