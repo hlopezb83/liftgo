@@ -296,3 +296,61 @@ Deno.test("cancel-cfdi: Facturapi 500 devuelve 502", async () => {
     mock.restore();
   }
 });
+
+// C-2: en modo live, cancelaciones stub deben ser rechazadas (no marcar
+// "aceptada" sin llamar al SAT).
+Deno.test("cancel-cfdi: C-2 live sin apiKey rechaza cancelación stub", async () => {
+  const { deps, serviceState } = makeDeps({
+    env: {},
+    service: {
+      selects: {
+        user_roles: { data: [{ role: "admin" }], error: null },
+        invoices: {
+          data: { cfdi_status: "stamped", facturapi_invoice_id: "fapi_z" },
+          error: null,
+        },
+        company_settings: { data: { facturapi_mode: "live" }, error: null },
+        billing_secrets: { data: null, error: null },
+      },
+      updates: { invoices: { data: null, error: null } },
+    },
+  });
+  const res = await handleCancelCfdi(
+    makeRequest({ invoice_id: INVOICE_ID, motive: "02" }),
+    deps,
+  );
+  const body = await res.json();
+  assertEquals(res.status, 400);
+  assert(String(body.error).includes("API key no configurada"));
+  // Y nunca actualizamos la factura.
+  const upd = serviceState.updates.find((u) => u.table === "invoices");
+  assertEquals(upd, undefined);
+});
+
+Deno.test("cancel-cfdi: C-2 live sin facturapi_invoice_id rechaza stub", async () => {
+  const { deps, serviceState } = makeDeps({
+    env: { FACTURAPI_LIVE_KEY: "sk_live" },
+    service: {
+      selects: {
+        user_roles: { data: [{ role: "admin" }], error: null },
+        invoices: {
+          data: { cfdi_status: "stamped", facturapi_invoice_id: null },
+          error: null,
+        },
+        company_settings: { data: { facturapi_mode: "live" }, error: null },
+        billing_secrets: { data: null, error: null },
+      },
+      updates: { invoices: { data: null, error: null } },
+    },
+  });
+  const res = await handleCancelCfdi(
+    makeRequest({ invoice_id: INVOICE_ID, motive: "02" }),
+    deps,
+  );
+  const body = await res.json();
+  assertEquals(res.status, 400);
+  assert(String(body.error).includes("facturapi_invoice_id"));
+  const upd = serviceState.updates.find((u) => u.table === "invoices");
+  assertEquals(upd, undefined);
+});
+
