@@ -1,0 +1,42 @@
+{
+  "version": "7.132.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "Ola 3.10 — Blindaje schema-first de SupplierFormDialog, CustomerFormDialog y PartFormDialog",
+  "summary": "Se extiende el patrón `useUnsavedChangesGuard` + cobertura de schema/payload a los tres diálogos de alta frecuencia que aún carecían del guard. Todos ya usaban RHF+Zod; ahora también previenen pérdida accidental de datos y cuentan con tests aislados de validación y payload.",
+  "sections": [
+    {
+      "title": "SupplierFormDialog",
+      "items": [
+        "Agregado `useUnsavedChangesGuard(open && form.formState.isDirty && !isPending)` — bloquea navegación interna y `beforeunload` cuando hay cambios sin guardar.",
+        "Extraídos helpers puros `buildSupplierPayload` y `supplierToFormData` a `src/features/suppliers/lib/supplierFormPayload.ts` para permitir cobertura de tests aislada del dialog.",
+        "Tests: `supplierFormSchema.test.ts` (7 tests: nombre requerido, email opcional, RFC MX, rango 0-365 en `default_payment_terms_days`).",
+        "Tests: `supplierFormPayload.test.ts` (6 tests: trim, nullable, RFC uppercase, serialización de terms)."
+      ]
+    },
+    {
+      "title": "CustomerFormDialog",
+      "items": [
+        "Agregado `useUnsavedChangesGuard(open && form.formState.isDirty && !(isPending ?? false))`.",
+        "Fix: `usePrefillEffect` ahora incluye `initialData` en su dep array; antes sólo reaccionaba a `open`, causando datos rancios al reabrir el dialog con otro cliente.",
+        "Tests: `customerFormSchema.test.ts` (5 tests: nombre requerido, email/RFC opcionales)."
+      ]
+    },
+    {
+      "title": "PartFormDialog",
+      "items": [
+        "Agregado `useUnsavedChangesGuard(open && form.formState.isDirty && !isPending)`.",
+        "Migrado `useEffect` manual a `usePrefillEffect` para consistencia con el resto de dialogs del proyecto.",
+        "Tests: `partFormSchema.test.ts` (8 tests: name/category requeridos, stock/min ≥ 0 enteros, unit_cost ≥ 0, coerción de strings numéricos)."
+      ]
+    },
+    {
+      "title": "Verificación",
+      "items": [
+        "Vitest: 1126 → 1139 tests verdes (+13).",
+        "Knip: exit 0 (sin archivos huérfanos).",
+        "Sin nuevos warnings ESLint."
+      ]
+    }
+  ]
+}
