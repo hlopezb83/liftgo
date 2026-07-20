@@ -42,6 +42,10 @@ vi.mock("@/lib/ui/appFeedback", () => ({
   notifyValidation: vi.fn(),
 }));
 
+vi.mock("@/hooks/useUnsavedChangesGuard", () => ({
+  useUnsavedChangesGuard: () => {},
+}));
+
 vi.mock("react-router", async () => {
   const actual = await vi.importActual<typeof import("react-router")>("react-router");
   return {
