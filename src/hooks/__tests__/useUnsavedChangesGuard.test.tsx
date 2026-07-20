@@ -37,19 +37,19 @@ describe("useUnsavedChangesGuard", () => {
 
 
   it("no registra beforeunload cuando isDirty=false", () => {
-    renderWithProviders(<Harness isDirty={false} />);
+    renderWithProviders(false);
     expect(countBeforeunload(addSpy)).toBe(0);
   });
 
   it("registra beforeunload cuando isDirty=true y lo remueve al desmontar", () => {
-    const { unmount } = renderWithProviders(<Harness isDirty={true} />);
+    const { unmount } = renderWithProviders(true);
     expect(countBeforeunload(addSpy)).toBe(1);
     unmount();
     expect(countBeforeunload(removeSpy)).toBeGreaterThanOrEqual(1);
   });
 
   it("previene el evento y setea returnValue cuando hay cambios sin guardar", () => {
-    renderWithProviders(<Harness isDirty={true} />);
+    renderWithProviders(true);
     const handler = (addSpy.mock.calls as unknown[][]).find((c) => c[0] === "beforeunload")?.[1] as
       | ((e: BeforeUnloadEvent) => void)
       | undefined;
