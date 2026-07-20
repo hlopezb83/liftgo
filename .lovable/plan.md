@@ -1,66 +1,113 @@
 
-# Sprint v7.107.0 — Auditoría con datos reales + concurrencia
+## Objetivo
 
-BL-49 ya se cerró en v7.106.1. El resto se aborda en orden de prioridad del reporte.
+Hoy el Estado de Resultados clasifica los ingresos en solo dos cubetas:
 
-## Alcance
+- **Ingresos por Rentas** — cualquier factura con señal de renta (booking, `invoice_bookings`, `quote_type='rental'` o `billing_period_*` presente).
+- **Otros ingresos (sin reserva)** — el resto (incluye ventas de equipo y facturas manuales sin señal de renta).
 
-### P0 — BL-48 · `get_income_statement` ignora `operating_expenses`
-Reemplazar la función vía migración:
-- Agregar CTE `opex_by_month` agrupado por `expense_date` y `category` (excluyendo categorías ya excluidas del P&L por memoria `mem://features/operating-expenses`: software y depreciación — mantener consistencia con `mem://features/reporting`).
-- Merge con `expenses_by_month` (UNION ALL) sin sobrescribir categorías existentes.
-- Conservar shape actual (`revenue_*`, `expenses_by_category`, `gross_margin`, `net_income`, etc.) para no romper `IncomeStatementReport.tsx`.
-- Test Vitest de regresión: seed con supplier_bill + operating_expense → net_income = revenue − (bills + opex).
+Esto oculta dos cosas importantes: (1) las rentas facturadas manualmente sin `booking_id` se mezclan con las rentas con reserva (aunque no tienen contrato/booking detrás), y (2) las ventas reales de equipo se agrupan con "otros" (facturas manuales misceláneas). El usuario pide tres cubetas explícitas.
 
-### P1 — BL-50 · `get_mrr_detail` incoherente con KPI
-Reescribir vía migración replicando la lógica de `get_financial_kpis`:
-- `COALESCE(b.monthly_rate, f.monthly_rate)` como fuente de tarifa (pactada > maestra).
-- Filtrar `b.recurring_billing = true`.
-- Filtrar vigencia a hoy (`start_date <= today AND (end_date IS NULL OR end_date >= today)`) y excluir `status IN ('cancelled','completed')` como hace el KPI.
-- Excluir filas sin `customer_id`.
-- Exponer `rate_source` ('booking' | 'forklift') por fila para trazabilidad en la UI.
-- Ajustar tipo de retorno si aplica y regenerar consumo en `/mrr` sólo si cambia el shape.
+## Nueva clasificación de ingresos
 
-### P1 — DRIFT-01 · versionar objetos huérfanos
-Migración de saneamiento idempotente (`CREATE IF NOT EXISTS`, `CREATE OR REPLACE`):
-- `public.collection_reminders_log` (columnas existentes en prod: consultar vía `supabase--read_query` antes de escribir DDL).
-- Funciones `create_notification`, `notify_admins`, `notify_payment_received` (leer definiciones actuales desde `pg_proc`).
-- Policy sobre `realtime.messages`: documentar que vive fuera del repo por diseño de Supabase y omitir del saneamiento (no se puede versionar en el schema `realtime`).
+Cada factura no borrador/cancelada se etiqueta con una y solo una categoría:
 
-### P2 — BL-52 · secuencias para folios RSV/COT/ENT/DEV
-Migración:
-1. `CREATE SEQUENCE booking_number_seq/quote_number_seq/delivery_number_seq/inspection_number_seq` con `START WITH (SELECT COALESCE(MAX(n), 0) + 1 FROM ...)` por cada prefijo.
-2. `setval(...)` a partir del máximo actual excluyendo filas `is_e2e = true`.
-3. Reescribir `next_booking_number`, `next_quote_number`, `next_delivery_number`, `next_inspection_number` siguiendo el patrón de `next_invoice_number` (usar `nextval` + formato `PREFIX-####`).
-4. Mantener el sufijo `_e2e` intacto (usa su propio espacio).
+```text
+1. Rentas con reserva
+   invoice.booking_id IS NOT NULL
+   OR EXISTS invoice_bookings(invoice_id = i.id)
 
-### P2 — BL-51 · `get_customer_summary.total_paid`
-Migración: cambiar `SUM(total) FILTER (WHERE status='paid')` por subquery contra `payments` unida a `invoices` filtrando `status <> 'cancelled'`. Test Vitest de regresión con factura parcial.
+2. Rentas sin reserva
+   (no cae en 1) AND (
+     quotes.quote_type = 'rental' (via quote_id)
+     OR (billing_period_start IS NOT NULL AND billing_period_end IS NOT NULL)
+   )
 
-### P3 — OBS-1 · etiqueta P&L
-Renombrar en UI `IncomeStatementReport.tsx` la etiqueta actual "Ventas" (o equivalente) a **"Otros ingresos / sin reserva"**. Sin cambios de datos.
+3. Ventas de equipo / otros
+   Todo lo demás. Se sub-etiqueta:
+     - "venta" si quotes.quote_type = 'sale'
+       o si hay quote_assigned_forklifts (ya se usa para CGV)
+     - "otro" en cualquier otro caso (facturas manuales sueltas)
+```
 
-### P3 — OBS-2 · hardening índice único de folios
-Documentar en `mem://logic/document-numbering` que los folios `is_e2e = true` viven en espacio propio y que `allow_e2e_seed` es la única barrera para prod. No requiere código.
+Las **notas de crédito** heredan la clasificación de su factura origen (misma lógica que hoy) y se restan de la cubeta correspondiente.
+
+Auditoría rápida de datos actuales (últimos 3 meses):
+
+- 46 facturas con reserva por $1,364,100 → cubeta 1
+- 1 factura tipo `sale` por $496,602 → cubeta 3 (venta)
+- 1 factura manual por $10,500 → cubeta 3 (otro)
+
+Hoy no se detectan rentas sin reserva reales; la nueva estructura queda lista para cuando aparezcan (ya pasó con FAC-0089 antes de v7.71.1).
+
+## Cambios
+
+### 1. RPC `get_income_statement` (migración SQL)
+
+Reemplazar `is_rental` boolean por un CASE con tres valores:
+
+```sql
+CASE
+  WHEN i.booking_id IS NOT NULL
+       OR EXISTS (SELECT 1 FROM invoice_bookings ib WHERE ib.invoice_id = i.id)
+    THEN 'rental_booked'
+  WHEN (i.quote_id IN (SELECT id FROM rental_quotes))
+       OR (i.billing_period_start IS NOT NULL AND i.billing_period_end IS NOT NULL)
+    THEN 'rental_unbooked'
+  ELSE 'sales'
+END AS revenue_kind
+```
+
+Del agregado mensual salen cinco campos numéricos (además de `revenue`):
+
+- `revenue_rental_booked`
+- `revenue_rental_unbooked`
+- `revenue_sales`
+- Notas de crédito equivalentes: `credit_rental_booked`, `credit_rental_unbooked`, `credit_sales`
+
+Y tres breakdowns por cliente:
+
+- `rental_booked_by_customer`
+- `rental_unbooked_by_customer`
+- `sales_by_customer`
+
+`revenue` sigue siendo la suma de los tres (netos de notas de crédito).
+
+### 2. Tipos y hooks (`src/features/reports/hooks/incomeStatement/`)
+
+- `types.ts` — agregar `revenueRentalBooked` y `revenueRentalUnbooked` a `MonthData` y `YearTotals`; renombrar interno `revenueRental` → `revenueRentalBooked`. Añadir `rentalUnbookedByCustomer` a `MonthData`.
+- `useMonthlyData.ts` — mapear los nuevos campos del RPC y el nuevo breakdown.
+- `useStatementTotals.ts` — sumar los tres campos en `aggregate`.
+- `useStatementRows.ts` / `statementRowFactories.ts` — reemplazar las dos filas de ingresos por tres, y exponer `rentalUnbookedBreakdownRows`.
+
+### 3. Presentación
+
+- `IncomeStatementTable.tsx` — recibir el nuevo breakdown y pasarlo al helper.
+- `incomeStatementHelpers.ts` — mapear las tres etiquetas expandibles:
+  - `"  Ingresos por Rentas (con reserva)"` → breakdown por cliente
+  - `"  Ingresos por Rentas (sin reserva)"` → breakdown por cliente
+  - `"  Ingresos por Ventas de Equipo"` → breakdown por cliente
+- Ajustar `getBreakdownFor` con las tres claves (`rentalBooked`, `rentalUnbooked`, `sales`).
+
+### 4. Chart apilado
+
+- Revisar `IncomeStatementChart` (si existe) para apilar tres series en vez de dos, con colores consistentes (usar tokens semánticos, no colores hardcodeados). Si no existe chart apilado, omitir este paso.
+
+### 5. Tests y changelog
+
+- Actualizar `statementRowFactories.test.ts` y `incomeStatementHelpers.test.ts` para las tres etiquetas.
+- Actualizar fixture `pdfFixtures.ts` con los tres campos.
+- Nueva entrada `public/changelog/v7.108.0.json` (minor: nuevo desglose contable) y bump en `public/changelog.json`.
+
+## Compatibilidad y riesgos
+
+- El PDF/CSV consumen `statementRows` genéricamente → funcionan automáticamente con la nueva fila.
+- `Utilidad Bruta`, `Total Ingresos`, `Margen`, `Depreciación` y `COGS` no cambian: `revenue` sigue siendo la suma de los tres.
+- El COGS automático (`cogs_forklift_sales`) sigue calculándose solo para facturas de venta (`NOT is_rental` en la lógica actual → equivalente a `revenue_kind = 'sales'` con `quote_assigned_forklifts`). Se mantiene la condición.
+- Migración es un `CREATE OR REPLACE FUNCTION`, sin cambios de schema.
 
 ## Fuera de alcance
-- Migrar RLS del schema `realtime` (no versionable).
-- Cambios visuales en el módulo de MRR más allá de mostrar `rate_source` si conviene.
 
-## Detalles técnicos
-
-- Todas las funciones se recrean con `SECURITY DEFINER` + `SET search_path = public`, conservando el guard actual (`admin/administrativo/auditor/ventas` donde corresponda) — leer definiciones vigentes antes de escribir para no perder guards.
-- Cada migración: una sola invocación `supabase--migration` con SQL completo (sin combinar con edits en la misma respuesta).
-- Cerrar sprint agregando `public/changelog/v7.107.0.json` + entrada en `public/changelog.json` describiendo cada hallazgo con su etiqueta BL/DRIFT/OBS.
-- Verificación: correr `supabase--read_query` post-migración para validar (income statement con opex, mrr_detail vs financial_kpis, folio secuencial). Vitest opcional para BL-48 y BL-51.
-
-## Orden de ejecución
-
-1. Lectura previa: `supabase--read_query` para definiciones actuales de `get_income_statement`, `get_mrr_detail`, `get_customer_summary`, y de las 4 funciones `next_*_number`; y para el schema de `collection_reminders_log` y las funciones `notify_*` en prod.
-2. Migración BL-48.
-3. Migración BL-50.
-4. Migración BL-52 (secuencias).
-5. Migración BL-51.
-6. Migración DRIFT-01 (saneamiento).
-7. Cambio UI OBS-1.
-8. Tests + changelog v7.107.0.
+- No se re-clasifican facturas históricas manualmente (la nueva lógica se aplica retroactivamente vía RPC).
+- No se toca el KPI de MRR del dashboard (usa RPC distinta).
+- No se agregan filtros de UI por sub-cubeta (solo el desglose expandible existente).

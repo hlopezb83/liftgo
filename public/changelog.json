@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.108.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "Estado de Resultados: ingresos separados en Rentas con reserva, Rentas sin reserva y Ventas de equipo",
+    "summary": "Nueva clasificación de ingresos en el Estado de Resultados. La RPC `get_income_statement` ahora clasifica cada factura como `rental_booked` (facturas ligadas a un booking vía `invoice_bookings`, `booking_id`, `quote_id` o `billing_period_*`), `rental_unbooked` (facturas con partidas explícitamente marcadas como renta pero sin booking asociado) o `sales` (equipo vendido y otros). El P&L presenta tres filas de ingreso con desglose por cliente (breakdown expandible) y el CSV/PDF heredan la nueva estructura. Los hooks `useIncomeStatementData` y `useStatementTotals` exponen `revenueRentalBooked` y `revenueRentalUnbooked` en lugar del genérico `revenueRental`."
+  },
+  {
     "version": "7.107.0",
     "date": "2026-07-20",
     "type": "minor",

@@ -19,14 +19,16 @@ interface RpcMonthRow {
   month_key: string;
   month_label: string;
   revenue: number;
-  revenue_rental: number;
+  revenue_rental_booked: number;
+  revenue_rental_unbooked: number;
   revenue_sales: number;
   maintenance_cost: number;
   damage_cost: number;
   depreciation: number;
   cogs_forklift_sales: number;
   expenses: Partial<Record<ExpenseCategory, number>>;
-  rental_by_customer: Record<string, number>;
+  rental_booked_by_customer: Record<string, number>;
+  rental_unbooked_by_customer: Record<string, number>;
   sales_by_customer: Record<string, number>;
   depreciation_by_forklift: Record<string, number>;
   cogs_by_forklift: Record<string, number>;
@@ -91,7 +93,8 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
       monthKey: m.month_key,
       month: label,
       revenue: Number(m.revenue),
-      revenueRental: Number(m.revenue_rental),
+      revenueRentalBooked: Number(m.revenue_rental_booked),
+      revenueRentalUnbooked: Number(m.revenue_rental_unbooked),
       revenueSales: Number(m.revenue_sales),
       maintenanceCost: Number(m.maintenance_cost),
       damageCost: Number(m.damage_cost),
@@ -99,7 +102,8 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
       cogsForkliftSales,
       cogsByForklift,
       depreciationByForklift: m.depreciation_by_forklift ?? {},
-      rentalByCustomer: m.rental_by_customer ?? {},
+      rentalBookedByCustomer: m.rental_booked_by_customer ?? {},
+      rentalUnbookedByCustomer: m.rental_unbooked_by_customer ?? {},
       salesByCustomer: m.sales_by_customer ?? {},
       expenses,
       ...derived,

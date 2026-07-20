@@ -17,11 +17,19 @@ export const cellColor = (row: StatementRow | ComparisonRow, value: number) => {
   return "";
 };
 
-export function getBreakdownFor(label: string, depRows: BreakdownRow[], cogsRows: BreakdownRow[], rentalRows: BreakdownRow[], salesRows: BreakdownRow[]) {
+export function getBreakdownFor(
+  label: string,
+  depRows: BreakdownRow[],
+  cogsRows: BreakdownRow[],
+  rentalBookedRows: BreakdownRow[],
+  rentalUnbookedRows: BreakdownRow[],
+  salesRows: BreakdownRow[],
+) {
   if (label === "(-) Depreciación (Equipos Rentados)") return { rows: depRows, key: "dep" as const };
   if (label === "(-) Costo de Equipos Vendidos") return { rows: cogsRows, key: "cogs" as const };
-  if (label === "  Ingresos por Rentas") return { rows: rentalRows, key: "rental" as const };
-  if (label === "  Otros ingresos (sin reserva)") return { rows: salesRows, key: "sales" as const };
+  if (label === "  Ingresos por Rentas (con reserva)") return { rows: rentalBookedRows, key: "rentalBooked" as const };
+  if (label === "  Ingresos por Rentas (sin reserva)") return { rows: rentalUnbookedRows, key: "rentalUnbooked" as const };
+  if (label === "  Ingresos por Ventas de Equipo") return { rows: salesRows, key: "sales" as const };
   return null;
 }
 

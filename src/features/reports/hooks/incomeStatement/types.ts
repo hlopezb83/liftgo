@@ -45,7 +45,8 @@ export interface MonthData {
   monthKey: string;
   month: string;
   revenue: number;
-  revenueRental: number;
+  revenueRentalBooked: number;
+  revenueRentalUnbooked: number;
   revenueSales: number;
   maintenanceCost: number;
   damageCost: number;
@@ -53,7 +54,8 @@ export interface MonthData {
   cogsForkliftSales: number;
   cogsByForklift: Record<string, number>;
   depreciationByForklift: Record<string, number>;
-  rentalByCustomer: Record<string, number>;
+  rentalBookedByCustomer: Record<string, number>;
+  rentalUnbookedByCustomer: Record<string, number>;
   salesByCustomer: Record<string, number>;
   grossProfit: number;
   grossMargin: number;
@@ -77,7 +79,8 @@ export interface StatementRow {
 export interface YearTotals {
   year: string;
   revenue: number;
-  revenueRental: number;
+  revenueRentalBooked: number;
+  revenueRentalUnbooked: number;
   revenueSales: number;
   maintenanceCost: number;
   damageCost: number;

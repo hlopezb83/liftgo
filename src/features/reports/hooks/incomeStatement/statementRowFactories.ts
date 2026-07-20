@@ -5,7 +5,7 @@ import {
 } from "./types";
 
 interface RowTotals {
-  revenue: number; revenueRental: number; revenueSales: number;
+  revenue: number; revenueRentalBooked: number; revenueRentalUnbooked: number; revenueSales: number;
   maintenanceCost: number; damageCost: number; depreciation: number;
   cogsForkliftSales: number;
   expenses: MonthData["expenses"];
@@ -52,8 +52,9 @@ const operatingExpenseGroupRows = (filteredData: MonthData[], totals: RowTotals)
 
 export function buildStatementRows(filteredData: MonthData[], totals: RowTotals): StatementRow[] {
   return [
-    { label: "  Ingresos por Rentas", values: filteredData.map((r) => r.revenueRental), total: totals.revenueRental },
-    { label: "  Otros ingresos (sin reserva)", values: filteredData.map((r) => r.revenueSales), total: totals.revenueSales },
+    { label: "  Ingresos por Rentas (con reserva)", values: filteredData.map((r) => r.revenueRentalBooked), total: totals.revenueRentalBooked },
+    { label: "  Ingresos por Rentas (sin reserva)", values: filteredData.map((r) => r.revenueRentalUnbooked), total: totals.revenueRentalUnbooked },
+    { label: "  Ingresos por Ventas de Equipo", values: filteredData.map((r) => r.revenueSales), total: totals.revenueSales },
     { label: "= Total Ingresos", values: filteredData.map((r) => r.revenue), total: totals.revenue, isSubtotal: true },
     { label: "(-) Mantenimiento", values: filteredData.map((r) => r.maintenanceCost), total: totals.maintenanceCost, isCost: true },
     { label: "(-) Daños", values: filteredData.map((r) => r.damageCost), total: totals.damageCost, isCost: true },

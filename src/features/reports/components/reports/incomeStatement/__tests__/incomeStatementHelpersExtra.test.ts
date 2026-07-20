@@ -45,21 +45,24 @@ describe("cellColor", () => {
 describe("getBreakdownFor", () => {
   const dep: BreakdownRow[] = [{ label: "A", values: [1], total: 1 }];
   const cogs: BreakdownRow[] = [{ label: "C", values: [1], total: 1 }];
-  const rental: BreakdownRow[] = [{ label: "R", values: [1], total: 1 }];
+  const rentalBooked: BreakdownRow[] = [{ label: "RB", values: [1], total: 1 }];
+  const rentalUnbooked: BreakdownRow[] = [{ label: "RU", values: [1], total: 1 }];
   const sales: BreakdownRow[] = [{ label: "S", values: [1], total: 1 }];
 
   it("mapea etiquetas exactas", () => {
-    expect(getBreakdownFor("(-) Depreciación (Equipos Rentados)", dep, cogs, rental, sales))
+    expect(getBreakdownFor("(-) Depreciación (Equipos Rentados)", dep, cogs, rentalBooked, rentalUnbooked, sales))
       .toEqual({ rows: dep, key: "dep" });
-    expect(getBreakdownFor("(-) Costo de Equipos Vendidos", dep, cogs, rental, sales))
+    expect(getBreakdownFor("(-) Costo de Equipos Vendidos", dep, cogs, rentalBooked, rentalUnbooked, sales))
       .toEqual({ rows: cogs, key: "cogs" });
-    expect(getBreakdownFor("  Ingresos por Rentas", dep, cogs, rental, sales))
-      .toEqual({ rows: rental, key: "rental" });
-    expect(getBreakdownFor("  Otros ingresos (sin reserva)", dep, cogs, rental, sales))
+    expect(getBreakdownFor("  Ingresos por Rentas (con reserva)", dep, cogs, rentalBooked, rentalUnbooked, sales))
+      .toEqual({ rows: rentalBooked, key: "rentalBooked" });
+    expect(getBreakdownFor("  Ingresos por Rentas (sin reserva)", dep, cogs, rentalBooked, rentalUnbooked, sales))
+      .toEqual({ rows: rentalUnbooked, key: "rentalUnbooked" });
+    expect(getBreakdownFor("  Ingresos por Ventas de Equipo", dep, cogs, rentalBooked, rentalUnbooked, sales))
       .toEqual({ rows: sales, key: "sales" });
   });
   it("retorna null para etiquetas no mapeadas", () => {
-    expect(getBreakdownFor("Otra cosa", dep, cogs, rental, sales)).toBeNull();
+    expect(getBreakdownFor("Otra cosa", dep, cogs, rentalBooked, rentalUnbooked, sales)).toBeNull();
   });
 });
 
