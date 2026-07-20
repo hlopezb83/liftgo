@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.108.3",
+    "date": "2026-07-20",
+    "type": "patch",
+    "title": "Estado de Resultados: verificación de fuente única de gastos (supplier_bills prioritario)",
+    "summary": "Auditoría YTD 2026 confirma que la deduplicación introducida en v7.108.2 cubre todas las categorías, no sólo 'Otro'. Se descartan operating_expenses duplicados por: otro (48 partidas, $786,781.96), renta (6, $272,592), nomina (21, $153,095.12), publicidad (14, $95,983.20) y caja_chica (1, $10,706.90). Total eliminado del doble conteo: $1,319,159.18. supplier_bills queda como fuente única cuando la misma partida existe en ambos orígenes (match por fecha + monto redondeado + descripción normalizada)."
+  },
+  {
     "version": "7.108.2",
     "date": "2026-07-20",
     "type": "patch",
