@@ -1,0 +1,20 @@
+{
+  "version": "7.106.1",
+  "date": "2026-07-20",
+  "type": "patch",
+  "title": "BL-48: fix RPC get_customer_profitability (columna inexistente ml.total_cost)",
+  "sections": [
+    {
+      "heading": "Bug",
+      "body": "Al abrir `/customers/:id` (ej. `7b0c307a-4017-4390-ba58-5231403ebe42`) la RPC `get_customer_profitability` tronaba con:\n\n```\ncolumn ml.total_cost does not exist (42703)\n```\n\nLa RPC (introducida en la migración `20260713173740_...sql`) hacía `SUM(ml.total_cost)` sobre `maintenance_logs`, pero esa tabla nunca tuvo esa columna — `total_cost` sólo existe en `maintenance_labor` (v7.97.0). El costo total del mantenimiento (refacciones + mano de obra) vive en `maintenance_logs.cost`, que el trigger `recalc_maintenance_log_cost` recalcula automáticamente."
+    },
+    {
+      "heading": "Fix",
+      "body": "Migración `CREATE OR REPLACE FUNCTION public.get_customer_profitability(uuid)` que sustituye `SUM(ml.total_cost)` → `SUM(ml.cost)`. Conserva sin cambios:\n- Guard de rol: `admin`, `administrativo`, `auditor`, `ventas`.\n- `SECURITY DEFINER` + `SET search_path = public`.\n- Shape de respuesta: `revenue`, `maintenance_cost`, `gross_margin`, `margin_percent`.\n- Scope: costos de mantenimiento de forklifts con bookings del cliente."
+    },
+    {
+      "heading": "Verificación",
+      "body": "Llamada directa a la RPC devuelve 42501 (guard activo) en lugar de 42703 (columna inexistente): la corrección de columna quedó aplicada y la seguridad se mantiene."
+    }
+  ]
+}
