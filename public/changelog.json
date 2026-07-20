@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.108.1",
+    "date": "2026-07-20",
+    "type": "patch",
+    "title": "Fix Estado de Resultados: 'relation inv_classified does not exist'",
+    "summary": "El cálculo de equipos vendidos sin costo referenciaba el CTE `inv_classified` fuera de su alcance (solo existía en la primera consulta). Se reemplaza por una subconsulta autocontenida contra `invoices` que aplica los mismos criterios de clasificación de venta."
+  },
+  {
     "version": "7.108.0",
     "date": "2026-07-20",
     "type": "minor",
