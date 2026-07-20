@@ -3483,6 +3483,10 @@ export type Database = {
         Args: { p_bill_id: string; p_notes?: string }
         Returns: undefined
       }
+      assert_invoice_cancellable: {
+        Args: { p_invoice_id: string }
+        Returns: string
+      }
       assign_stamped_credit_note_number: {
         Args: { p_credit_note_id: string; p_folio: string }
         Returns: string
