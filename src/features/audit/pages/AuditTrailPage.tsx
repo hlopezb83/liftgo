@@ -41,7 +41,7 @@ export default function AuditTrailPage() {
   const displayed = !search
     ? (logs ?? [])
     : (logs ?? []).filter((log) =>
-        [log.table_name, log.action, log.user_email ?? "", (log as AuditLog).id]
+        [log.table_name, log.action, log.user_email ?? "", getRecordLabel(log)]
           .join(" ")
           .toLowerCase()
           .includes(search),
