@@ -148,6 +148,8 @@ export function useSupplierBillForm(
       description: data.description || null,
       issue_date: toYMD(data.issue_date) ?? "",
       due_date: toYMD(data.due_date) ?? null,
+      coverage_start: toYMD(data.coverage_start) ?? null,
+      coverage_end: toYMD(data.coverage_end) ?? null,
       currency: data.currency,
       exchange_rate: data.exchange_rate,
       subtotal: data.subtotal,
