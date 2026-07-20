@@ -3605,6 +3605,30 @@ export type Database = {
         }
         Returns: string
       }
+      create_recurring_invoice: {
+        Args: {
+          p_billing_period_end: string
+          p_billing_period_start: string
+          p_booking_ids: string[]
+          p_customer_id: string
+          p_customer_name: string
+          p_line_items: Json
+          p_receptor_domicilio_fiscal_cp: string
+          p_receptor_razon_social: string
+          p_receptor_regimen_fiscal: string
+          p_receptor_rfc: string
+          p_subtotal: number
+          p_tax_amount: number
+          p_tax_rate: number
+          p_total: number
+          p_uso_cfdi: string
+        }
+        Returns: {
+          already_existed: boolean
+          invoice_id: string
+          invoice_number: string
+        }[]
+      }
       create_supplier_payment_batch:
         | {
             Args: {
