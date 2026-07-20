@@ -3,11 +3,8 @@ import { useParams, useSearchParams } from "react-router";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { FormActions } from "@/components/forms/FormActions";
-import { WarnIcon } from "@/components/icons";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
@@ -18,6 +15,7 @@ import { notifySuccess } from "@/lib/ui/appFeedback";
 import { CfdiFieldsCard } from "../components/invoice-form/CfdiFieldsCard";
 import { EditableLineItemsTable } from "../components/invoice-form/EditableLineItemsTable";
 import { MultiBookingSelector } from "../components/invoice-form/MultiBookingSelector";
+import { SaleAssignmentBlocked } from "../components/invoice-form/SaleAssignmentBlocked";
 import { useNextInvoiceNumber } from "../hooks/invoices/useNextInvoiceNumber";
 import { useInvoiceFormLogic } from "../hooks/useInvoiceFormLogic";
 import type { InvoiceFormValues } from "../lib/invoiceFormSchema";
@@ -59,31 +57,16 @@ export default function InvoiceForm() {
   if (f.saleAssignmentGuard.shouldBlock) {
     const { totalAssigned, totalRequired, missingByLine } = f.saleAssignmentGuard;
     return (
-      <PageContainer maxWidth="wide">
-        <FormPageHeader title="Nueva Factura" />
-        <Alert variant="destructive" className="mt-6">
-          <WarnIcon className="h-5 w-5" />
-          <AlertTitle>
-            Asigna los equipos del inventario antes de facturar ({totalAssigned}/{totalRequired})
-          </AlertTitle>
-          <AlertDescription className="mt-2 space-y-2">
-            <p>Las siguientes partidas de venta tienen equipos pendientes de asignación:</p>
-            <ul className="list-disc pl-5">
-              {missingByLine.map((line) => (
-                <li key={line.index}>
-                  {line.description}: {line.assigned}/{line.required}
-                </li>
-              ))}
-            </ul>
-          </AlertDescription>
-        </Alert>
-        <div className="flex gap-3 mt-4">
-          <Button onClick={() => navigate(`/quotes/${f.fromQuoteId}`)}>Ir a la cotización</Button>
-          <Button variant="outline" onClick={() => navigate(-1)}>Volver</Button>
-        </div>
-      </PageContainer>
+      <SaleAssignmentBlocked
+        totalAssigned={totalAssigned}
+        totalRequired={totalRequired}
+        missingByLine={missingByLine}
+        onGoToQuote={() => navigate(`/quotes/${f.fromQuoteId}`)}
+        onBack={() => navigate(-1)}
+      />
     );
   }
+
 
   return (
     <PageContainer maxWidth="wide">

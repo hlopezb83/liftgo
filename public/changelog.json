@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.116.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "Sprint ESLint Ola 5 — splits de páginas grandes (11 → 2 warnings)",
+    "summary": "Auditoría de Ola 4.c-d-e: 1083 tests verdes; se detectó regresión menor en CustomersPage (disable de `set-state-in-effect` mal ubicado tras la limpieza previa) y se corrigió intercambiando disables. Ola 5 aplica splits presentacionales para eliminar los 6 `max-lines-per-function` y el `complexity` residual, sin tocar lógica de negocio: (1) AuditTrailPage extrae `useAuditTrailColumns` (hook de columnas memoizado). (2) BankStatementImportsHistoryPage extrae `useBankImportsColumns`. (3) MrrDetailPage extrae `useMrrColumns` + `MrrMobileList`. (4) PaymentIntentsSection extrae `usePaymentIntentsColumns` con handlers memoizados vía `useCallback`. (5) InvoiceForm extrae `SaleAssignmentBlocked` para el estado de guardia de asignación de ventas. (6) CRMPage divide `onDragEnd` en `resolveDropTarget` + handler principal, bajando complejidad de 17 a <15. Resultado: 11 → 2 warnings (−9), 0 errores, 1083 tests verdes. Los 2 residuales son `react-compiler/react-compiler` en `useLiftgoTable` y `useTableFilters` (costo aceptado por usar APIs imperativas de TanStack Table)."
+  },
+  {
     "version": "7.115.0",
     "date": "2026-07-20",
     "type": "minor",

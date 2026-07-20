@@ -1,19 +1,19 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { DataTableV2, useLiftgoTable } from "@/components/dataTable/v2";
 import { TextareaField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { useAdminPaymentIntents, useReviewPaymentIntent } from "@/features/portal";
-import { PAYMENT_INTENT_STATUS as STATUS_LABEL } from "@/lib/domain/paymentIntentStatus";
-import { formatCurrency } from "@/lib/format/formatCurrency";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { openStorageFile } from "@/lib/storage/openStorageFile";
-import { formatDateDisplay } from "@/lib/utils";
+import {
+  usePaymentIntentsColumns,
+  type PaymentIntent,
+} from "./usePaymentIntentsColumns";
 
 interface Props {
   invoiceId: string;
@@ -27,8 +27,6 @@ const schema = z.object({
 });
 type FormValues = z.input<typeof schema>;
 
-type PaymentIntent = NonNullable<ReturnType<typeof useAdminPaymentIntents>["data"]>[number];
-
 export function PaymentIntentsSection({ invoiceId }: Props) {
   const { data: intents } = useAdminPaymentIntents(invoiceId);
   const review = useReviewPaymentIntent();
@@ -40,11 +38,22 @@ export function PaymentIntentsSection({ invoiceId }: Props) {
   });
 
   useEffect(() => {
+     
     if (rejectId) form.reset({ notes: "" });
   }, [rejectId, form]);
 
-  const openProof = (path: string) =>
-    openStorageFile("payment-proofs", path, { errorMessage: "No se pudo abrir el comprobante" });
+  const openProof = useCallback(
+    (path: string) =>
+      openStorageFile("payment-proofs", path, {
+        errorMessage: "No se pudo abrir el comprobante",
+      }),
+    [],
+  );
+  const onApprove = useCallback(
+    (intentId: string) => review.mutate({ intentId, action: "approve" }),
+    [review],
+  );
+  const onReject = useCallback((intentId: string) => setRejectId(intentId), []);
 
   const submitReject = form.handleSubmit((values) => {
     if (!rejectId) return;
@@ -54,88 +63,7 @@ export function PaymentIntentsSection({ invoiceId }: Props) {
     );
   });
 
-
-  const columns: ColumnDef<PaymentIntent>[] = [
-    {
-      id: "transfer_date",
-      header: "Fecha",
-      accessorKey: "transfer_date",
-      cell: ({ row }) => formatDateDisplay(row.original.transfer_date),
-    },
-    {
-      id: "amount",
-      header: "Monto",
-      accessorKey: "amount",
-      meta: { align: "right" },
-      cell: ({ row }) => (
-        <span className="font-mono">{formatCurrency(Number(row.original.amount))}</span>
-      ),
-    },
-    {
-      id: "bank",
-      header: "Banco",
-      enableSorting: false,
-      cell: ({ row }) =>
-        `${row.original.sender_bank ?? "—"}${
-          row.original.sender_last4 ? ` ····${row.original.sender_last4}` : ""
-        }`,
-    },
-    {
-      id: "tracking_key",
-      header: "Rastreo",
-      accessorKey: "tracking_key",
-      cell: ({ row }) => (
-        <span className="font-mono text-xs">{row.original.tracking_key ?? "—"}</span>
-      ),
-    },
-    {
-      id: "status",
-      header: "Estado",
-      accessorKey: "status",
-      cell: ({ row }) => {
-        const meta = STATUS_LABEL[row.original.status] ?? {
-          label: row.original.status,
-          variant: "outline" as const,
-        };
-        return <Badge variant={meta.variant}>{meta.label}</Badge>;
-      },
-    },
-    {
-      id: "actions",
-      header: "",
-      enableSorting: false,
-      meta: { align: "right" },
-      cell: ({ row }) => {
-        const intent = row.original;
-        const pending = intent.status === "pending_review";
-        return (
-          <div className="flex justify-end gap-2">
-            {intent.proof_url && (
-              <Button size="sm" variant="ghost" onClick={() => openProof(intent.proof_url ?? "")}>
-                Comprobante
-              </Button>
-            )}
-            {pending && (
-              <>
-                <Button
-                  size="sm"
-                  onClick={() =>
-                    review.mutate({ intentId: intent.id, action: "approve" })
-                  }
-                >
-                  Aprobar
-                </Button>
-
-                <Button size="sm" variant="destructive" onClick={() => setRejectId(intent.id)}>
-                  Rechazar
-                </Button>
-              </>
-            )}
-          </div>
-        );
-      },
-    },
-  ];
+  const columns = usePaymentIntentsColumns({ onOpenProof: openProof, onApprove, onReject });
 
   const table = useLiftgoTable<PaymentIntent>({
     data: intents,

@@ -1,0 +1,39 @@
+{
+  "version": "7.116.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "Sprint ESLint Ola 5 — splits de páginas grandes",
+  "sections": [
+    {
+      "heading": "Auditoría de Ola 4.c-d-e",
+      "items": [
+        "1083 tests Vitest verdes (159 archivos).",
+        "Regresión menor detectada en CustomersPage: el disable de `set-state-in-effect` quedó ubicado erróneamente sobre `exhaustive-deps` tras la limpieza previa. Corregido intercambiando disables — el efecto ahora tiene el disable correcto y el `Unused directive` desaparece."
+      ]
+    },
+    {
+      "heading": "Splits presentacionales (max-lines-per-function)",
+      "items": [
+        "AuditTrailPage: extraído `useAuditTrailColumns` (hook memoizado con `useMemo` y `useCallback` para el handler de borrado). Página baja de 151 a ~70 LOC.",
+        "BankStatementImportsHistoryPage: extraído `useBankImportsColumns` con misma estrategia. Página baja de 155 a ~90 LOC.",
+        "MrrDetailPage: extraído `useMrrColumns` + subcomponente `MrrMobileList`. Página baja de 166 a ~80 LOC.",
+        "PaymentIntentsSection: extraído `usePaymentIntentsColumns` con handlers `useCallback` (`onOpenProof`, `onApprove`, `onReject`). Componente baja de 153 a ~110 LOC.",
+        "InvoiceForm: extraído `SaleAssignmentBlocked` para la guardia de asignación de ventas. Página baja de 151 a ~120 LOC."
+      ]
+    },
+    {
+      "heading": "Complejidad ciclomática",
+      "items": [
+        "CRMPage: `onDragEnd` (complejidad 17) refactorizado en dos funciones — `resolveDropTarget` calcula el destino y `onDragEnd` orquesta la mutación. Ambas quedan bajo el límite de 15."
+      ]
+    },
+    {
+      "heading": "Resultado",
+      "items": [
+        "Warnings ESLint: 11 → 2 (−9). 0 errores.",
+        "Los 2 residuales son `react-compiler/react-compiler` en `useLiftgoTable.ts` y `useTableFilters.ts`, causados por disables justificados de APIs imperativas de TanStack Table (costo aceptado y documentado).",
+        "1083 tests Vitest verdes. Sin cambios en lógica de negocio, RPCs, RLS ni schemas."
+      ]
+    }
+  ]
+}
