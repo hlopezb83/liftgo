@@ -120,8 +120,7 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
         rentalUnbookedBreakdownRows={rentalUnbookedBreakdownRows}
         salesBreakdownRows={salesBreakdownRows}
         damageRecoveryBreakdownRows={damageRecoveryBreakdownRows}
-
-
+        expenseDetailBreakdownByCategory={expenseDetailBreakdownByCategory}
       />
     </>
   );
