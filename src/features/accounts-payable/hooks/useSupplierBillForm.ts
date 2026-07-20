@@ -53,6 +53,8 @@ function billToFormDefaults(bill: SupplierBillDetail): SupplierBillFormData {
     description: bill.description ?? "",
     issue_date: parseYMD(bill.issue_date) ?? nowMty(),
     due_date: parseYMD(bill.due_date),
+    coverage_start: parseYMD(bill.coverage_start),
+    coverage_end: parseYMD(bill.coverage_end),
     currency: (bill.currency === "USD" ? "USD" : "MXN"),
     exchange_rate: Number(bill.exchange_rate ?? 1),
     subtotal: Number(bill.subtotal),
