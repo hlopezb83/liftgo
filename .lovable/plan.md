@@ -1,68 +1,52 @@
-# Revisión Ola 2.6 y siguiente fase
+## Auditoría Ola 3.1
 
-## Estado Ola 2.6 (v7.122.0) — verde
+Revisado. Sin bugs funcionales; guarda `ErrorState` limpio, `useUnsavedChangesGuard` correcto (blocker + beforeunload + confirm async). Suite 1094/1094 verde.
 
-- BL-M1: RLS `dispatcher` a `SELECT` + `payments.created_by` con FK. ✅
-- EC-M2: `useCustomer(id)` con PK + `.limit(LIST_PAGE_LIMIT)` y warn. ✅
-- EC-M3: `useBookingsRange` con `.limit(2000)` y warn. ✅
-- EC-M5: RPC `assert_not_last_admin` (FOR UPDATE) + reorden de `delete-user` (auth primero). ✅
-- Tests: 1091/1091 Vitest, Deno estable. Sin regresiones detectadas.
-
-Nada pendiente de la Ola 2.6.
+**Gaps menores detectados** (arrastramos a esta ola):
+- `useUnsavedChangesGuard` no tiene test unitario propio.
+- `ListPageLayout` no tiene test que valide la ruta `isError` → `ErrorState`.
 
 ---
 
-# Sprint 3 · Ola 3.1 — UX operativa (UX-A1..A4)
+## Siguiente fase — Sprint 3 · Ola 3.2 — UX operativa (cierre)
 
-Del roadmap del auditor, Sprint 3 arranca con los cuatro hallazgos UX-Altos. Los abordo juntos porque comparten componentes de layout y patrones de confirmación.
+Cerramos los 3 hallazgos que quedaron abiertos del Sprint 3 del audit (UX-M1, EC-A4, EC-M1) y las dos coberturas pendientes de Ola 3.1.
 
-## Alcance
+### UX-M1 · RHF + Zod en ContractForm y QuoteForm
+- Migrar `ContractForm` (`useState`+toasts → `useForm` + `zodResolver`) con `contractFormSchema` que valide `customer_id`/`forklift_id` requeridos, `monthly_rate ≥ 0`, `start_date ≤ end_date`.
+- Migrar `QuoteForm` con `quoteFormSchema` (montos ≥ 0, fechas coherentes, al menos 1 partida).
+- Errores inline via `<FormMessage>` (no toasts) — patrón del resto de la app.
+- Wire `useUnsavedChangesGuard(form.formState.isDirty)` en ambos → cierra el follow-up de Ola 3.1.
 
-### UX-A1 · Estado de error en listados
-Hoy si una query falla, `ListPageLayout` muestra "No se encontraron registros" y esconde el error real.
+### EC-A4 · Reporte "Ganancia Neta por Modelo" con filtro server-side
+- `ProfitabilityByModelReport` filtra en cliente sobre 500 filas más recientes → reporta menos de lo real en periodos viejos.
+- Fix: cambiar los `useInvoices`/`useBookings`/`useMaintenanceLogs`/`useDamageRecords` de la vista por queries con `.gte/.lte` server-side sobre el rango del reporte, o (preferible) mover la agregación a una RPC `report_profit_by_model(_from date, _to date)` que devuelva el resumen ya calculado.
+- Decisión de implementación: RPC (más limpio, evita 4 queries paralelas y trunca menos).
 
-- Extender `ListPageLayout` con `isError?: boolean` y `onRetry?: () => void`.
-- Nuevo componente `src/components/feedback/ErrorState.tsx` (mismo lenguaje visual que `EmptyState`, con `Icon name="alert"` y botón "Reintentar").
-- Cuando `isError` es true → renderizar `ErrorState` en vez de `EmptyState`.
-- Propagar `isError`/`refetch` en las 4 páginas prioritarias:
-  `InvoicesPage`, `FleetPage`, `CustomersPage`, `BookingsPage`.
-- Test: `ErrorState.test.tsx` (render + click reintento dispara callback).
+### EC-M1 · Off-by-one de día en reportes
+- Columnas `DATE` parseadas como UTC midnight se comparan contra rangos locales (`America/Monterrey`) → se pierde el primer día del periodo.
+- Fix en `profitabilityHelpers.ts` y utilidades similares: usar `toYMD` para comparar día-a-día (string YYYY-MM-DD), no `new Date(dateStr)`.
+- Barrido de otros helpers de reportes que hagan el mismo error (`aging`, `cash-flow` ya lo hace bien vía RPC — verificar).
 
-### UX-A2 · Paginación móvil en Clientes
-`CustomersPage.tsx` usa `customContent` para mobile y pierde `DataTablePaginationV2`.
+### Coberturas pendientes de Ola 3.1
+- Test unitario `useUnsavedChangesGuard.test.tsx` con `MemoryRouter` verificando: (a) no bloquea si `isDirty=false`; (b) llama `blocker.reset` si el confirm devuelve false; (c) llama `blocker.proceed` si devuelve true; (d) registra/limpia `beforeunload` según flag.
+- Test integración `ListPageLayout.test.tsx` con `isError=true` renderiza `ErrorState` y clic en Reintentar dispara `onRetry`.
 
-- Migrar a `mobileCardRender` (patrón del resto de las 14 páginas) para que la paginación cliente-side de 25 aplique en móvil.
-- Verificar visualmente con Playwright a 375×812 que aparecen los controles y navegan páginas.
+### Verificación
+- Typecheck limpio.
+- Vitest completo verde (esperado 1094 + 2 nuevos + los de schemas de contract/quote).
+- Smoke visual: `/contracts/new`, `/quotes/new` con errores inline; `/reports/profitability` sobre un rango que antes truncaba.
 
-### UX-A3 · Confirmación en borrados destructivos
-Dos puntos identificados:
+### Detalles técnicos
+- Nuevo `src/features/contracts/lib/contractFormSchema.ts` y refactor de `useContractFormLogic` para retornar `form` de RHF (romperá `updateField` — reemplazar por `form.setValue`/`register`).
+- Nuevo `src/features/quotes/lib/quoteFormSchema.ts` — Quote ya tiene subformularios complejos (line items), envolver los existentes como `Controller`.
+- Migración RPC EC-A4: `create or replace function public.report_profit_by_model(_from date, _to date)` con `security definer` + `has_role` guard.
 
-- `MaintenanceLaborSection.tsx` (mano de obra con costo, líneas 59-61 y 117-120).
-- `DocumentAttachments.tsx` (pólizas/verificaciones, líneas 28-30 y 62-64).
+### Changelog
+- `public/changelog.json` + `public/changelog/v7.124.0.json` como minor.
 
-Envolver el handler de borrado con `useConfirm({ destructive: true, title, description })` siguiendo el copy del resto de la app ("¿Eliminar…?" / "Esta acción no se puede deshacer").
+---
 
-### UX-A4 · Guarda de cambios sin guardar
-Nuevo hook reutilizable `src/hooks/useUnsavedChangesGuard.ts`:
-
-- Recibe `isDirty: boolean` de RHF.
-- Registra `beforeunload` (mensaje del navegador) y `useBlocker` de React Router (mensaje custom con `useConfirm`).
-- Aplicarlo en `ContractForm`, `QuoteForm`, `InvoiceForm`.
-- Test unitario del hook con `renderHook` (setea/limpia listeners, respeta `!isDirty`).
-
-## Fuera de alcance (para próxima ola)
-
-- UX-M1 (RHF+zod en Contract/QuoteForm) — es un refactor más grande y se irá en Ola 3.2 junto con EC-A4/EC-M1 y confirmaciones móviles (Sprint 3 restante del roadmap del auditor).
-
-## Cambios técnicos
-
-- **Archivos nuevos**: `src/components/feedback/ErrorState.tsx`, `src/hooks/useUnsavedChangesGuard.ts`, `src/components/feedback/__tests__/ErrorState.test.tsx`, `src/hooks/__tests__/useUnsavedChangesGuard.test.ts`.
-- **Archivos modificados**: `ListPageLayout`, 4 páginas de listado, `MaintenanceLaborSection`, `DocumentAttachments`, `ContractForm`, `QuoteForm`, `InvoiceForm`, `CustomersPage`.
-- **DB / Edge**: sin cambios.
-- **Changelog**: `public/changelog.json` → v7.123.0 (`minor`) + `public/changelog/v7.123.0.json` con secciones por hallazgo.
-
-## Verificación
-
-1. `bunx vitest run` (esperado: 1091 + 2 nuevos = 1093 verde).
-2. `tsgo --noEmit`.
-3. Playwright headless: viewport 375×812 sobre `/customers` verificando paginación; viewport 1280×1800 sobre `/invoices` forzando error de red y capturando el `ErrorState`.
+**No incluido a propósito** (siguiente ola):
+- EC-A1 (procesador cfdi_retry_queue) y EC-A2 (stamping huérfano) — pertenecen a Sprint 2 Ola 2.3 residual; mejor agruparlos con MP-A1 en una ola de "resiliencia CFDI ronda 2".
+- UX-M2..UX-M6, MP-*, y BAJOS — olas posteriores.
