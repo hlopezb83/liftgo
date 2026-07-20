@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useState } from "react";
+import { useState } from "react";
 import { TextareaField, type SelectOption } from "@/components/forms/fields";
 import { SupplierField } from "@/components/forms/fields";
 import { FormActions } from "@/components/forms/FormActions";
@@ -37,13 +37,14 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
   const cfdi = useImportSupplierBillCfdi();
   const [importedValues, setImportedValues] = useState<SupplierBillFormOverrides | undefined>(undefined);
 
-  const resetOnClose = useEffectEvent(() => {
-    cfdi.reset();
-    setImportedValues(undefined);
-  });
-  useEffect(() => {
-    if (!open) resetOnClose();
-  }, [open]);
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (!open) {
+      cfdi.reset();
+      setImportedValues(undefined);
+    }
+  }
 
 
   const activeOverrides = overrides ?? importedValues;

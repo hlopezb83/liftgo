@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { SettingsIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -25,7 +25,15 @@ const SECTIONS: { key: BankLineStatus; title: string }[] = [
 
 export default function BankReconciliationPage() {
   const { data: accounts } = useBankAccounts();
-  const [accountId, setAccountId] = useState<string | null>(null);
+  const [manualAccountId, setManualAccountId] = useState<string | null>(null);
+  // Default derivado en render: la primera cuenta activa (o la primera). El usuario puede
+  // sobrescribir con el <Select>. Al elegir manualmente, `manualAccountId` toma precedencia.
+  const accountId = useMemo(() => {
+    if (manualAccountId) return manualAccountId;
+    if (!accounts || accounts.length === 0) return null;
+    return (accounts.find((a) => a.is_active) ?? accounts[0]).id;
+  }, [manualAccountId, accounts]);
+  const setAccountId = setManualAccountId;
   const [selected, setSelected] = useState<BankStatementLine | null>(null);
   const { data: lines, isLoading } = useBankStatementLines(accountId);
 
@@ -36,12 +44,6 @@ export default function BankReconciliationPage() {
     for (const l of lines ?? []) g[l.status].push(l);
     return g;
   })();
-
-  useEffect(() => {
-    if (accountId || !accounts || accounts.length === 0) return;
-    const first = accounts.find((a) => a.is_active) ?? accounts[0];
-    setAccountId(first.id);
-  }, [accountId, accounts]);
 
   return (
     <RoleGuard module="Facturas de Proveedor" minAccess="read">

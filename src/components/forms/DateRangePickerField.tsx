@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CalendarIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -80,9 +80,11 @@ export function DateRangePickerField({
   const [open, setOpen] = useState(false);
   const [localRange, setLocalRange] = useState<DateRange | undefined>(dateRange);
 
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) setLocalRange(dateRange);
-  }, [open, dateRange]);
+  }
 
   const triggerLabel = formatRangeLabel(dateRange, placeholder, "…");
   const liveLabel = localRange?.from

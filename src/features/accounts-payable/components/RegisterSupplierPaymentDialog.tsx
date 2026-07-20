@@ -1,4 +1,4 @@
-import { useEffect, useEffectEvent, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import {
   CurrencyField, DateField, SelectField, TextField, TextareaField, type SelectOption,
@@ -91,13 +91,16 @@ export function RegisterSupplierPaymentDialog({
     defaultValues: buildDefaults(balance),
   });
 
-  const resetForOpen = useEffectEvent(() => {
-    setReceiptFile(null);
-    form.reset(buildDefaults(balance));
-  });
-  useEffect(() => {
-    if (open) resetForOpen();
-  }, [open, balance]);
+  const [prevOpen, setPrevOpen] = useState(open);
+  const [prevBalance, setPrevBalance] = useState(balance);
+  if (open !== prevOpen || balance !== prevBalance) {
+    setPrevOpen(open);
+    setPrevBalance(balance);
+    if (open) {
+      setReceiptFile(null);
+      form.reset(buildDefaults(balance));
+    }
+  }
 
 
   const onSubmit = async (data: SupplierPaymentFormData) => {

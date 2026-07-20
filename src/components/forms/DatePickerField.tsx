@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { CalendarIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -46,9 +46,12 @@ export function DatePickerField({
   const [open, setOpen] = useState(false);
   const [localDate, setLocalDate] = useState<Date | undefined>(date);
 
-  useEffect(() => {
+  // React-blessed pattern: sync local state con la prop cuando abre el modal.
+  const [prevOpen, setPrevOpen] = useState(open);
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) setLocalDate(date);
-  }, [open, date]);
+  }
 
   const triggerLabel = date ? formatDateMty(date) : placeholder;
   const liveLabel = localDate ? formatDateMty(localDate) : "Selecciona una fecha";

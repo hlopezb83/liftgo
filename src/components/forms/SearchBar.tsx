@@ -37,9 +37,11 @@ export function SearchBar({
   const debounced = useDebouncedValue(local, debounceMs);
 
   // Sincroniza valor externo (reset, limpieza programática) con estado local.
-  useEffect(() => {
+  const [prevValue, setPrevValue] = useState(value);
+  if (value !== prevValue) {
+    setPrevValue(value);
     setLocal(value);
-  }, [value]);
+  }
 
   // Emite cambios debounced hacia el padre. `emit` es useEffectEvent →
   // captura siempre el `onChange` y `value` frescos sin refrescar el efecto.
