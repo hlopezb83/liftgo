@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.124.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "Sprint 3 · Ola 3.2 — EC-M1 + UX-M1 (ContractForm a RHF+Zod)",
+    "summary": "Ola 3.2 (parcial). EC-M1 (Off-by-one en reportes): `profitabilityHelpers.inRange` deja de usar `new Date(dateStr)` + `isWithinInterval` (que shifteaba columnas Postgres `date` a UTC medianoche y perdía el primer/último día del rango en America/Monterrey) y ahora compara YMD-as-string contra `toYMD(start/end)`. Cubre tanto columnas `date` puras como `timestamptz` ISO. Nuevo test verifica que 2026-01-01 y 2026-12-31 se incluyen en un rango [2026-01-01, 2026-12-31]. UX-M1 (ContractForm): migrado completo a React Hook Form + Zod. Nuevo `contractFormSchema` con validación inline (cliente/equipo requeridos, tarifas ≥ 0, `end_date >= start_date`); `useContractFormState` ahora retorna `UseFormReturn`; `useContractFormPrefill` usa `form.setValue` con `shouldDirty:false` para no disparar el guard en autofills desde booking/equipo/template; `useContractFormLogic` wired con `useUnsavedChangesGuard(form.formState.isDirty && !isPending)` y `form.reset(values)` post-success para limpiar dirty. `ContractForm.tsx` reescrita con `<Form>`/`<FormField>` + `Controller` para DatePicker y Select. Follow-ups: EC-A4 (RPC server-side para ProfitabilityByModel — hoy usa client-side sujeto a límites PostgREST) y QuoteForm a RHF (line-items subforms requieren refactor mayor). Typecheck limpio; 19/19 tests afectados verde."
+  },
+  {
+
     "version": "7.123.0",
     "date": "2026-07-20",
     "type": "minor",

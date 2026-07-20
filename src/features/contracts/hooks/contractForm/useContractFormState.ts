@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 import type { Database } from "@/integrations/supabase/types";
 import { toStr, toNumStr } from "@/lib/coerce";
-import { defaultContractForm, type ContractFormShape } from "./contractFormDefaults";
+import { zodResolver } from "@/lib/forms/zodResolver";
+import { contractFormSchema, type ContractFormValues } from "../../lib/contractFormSchema";
+import { defaultContractForm } from "./contractFormDefaults";
 
 type ContractRow = Database["public"]["Tables"]["contracts"]["Row"];
 
-function mapContractToForm(c: ContractRow): ContractFormShape {
+function mapContractToForm(c: ContractRow): ContractFormValues {
   return {
     customer_id: toStr(c.customer_id),
     forklift_id: toStr(c.forklift_id),
@@ -29,21 +32,28 @@ function mapContractToForm(c: ContractRow): ContractFormShape {
   };
 }
 
+/**
+ * UX-M1: RHF + Zod. Retorna la instancia `form` para wiring con `<FormField>` y
+ * `useUnsavedChangesGuard(formState.isDirty)`.
+ */
 export function useContractFormState(existing: ContractRow | null | undefined, isEdit: boolean) {
-  const [form, setForm] = useState<ContractFormShape>(defaultContractForm);
+  const form = useForm<ContractFormValues>({
+    resolver: zodResolver(contractFormSchema),
+    defaultValues: defaultContractForm,
+    mode: "onBlur",
+  });
   const [templateApplied, setTemplateApplied] = useState(false);
 
-  // Prev-prop guard: hidrata el form cuando cambia el contrato existente en modo edición.
+  // Hidrata el form cuando llega el contrato existente (edición).
   const [prevExistingId, setPrevExistingId] = useState<string | null>(null);
   const nextExistingId = existing?.id ?? null;
-  if (existing && isEdit && prevExistingId !== nextExistingId) {
-    setPrevExistingId(nextExistingId);
-    setForm(mapContractToForm(existing));
-    setTemplateApplied(true);
-  }
+  useEffect(() => {
+    if (existing && isEdit && prevExistingId !== nextExistingId) {
+      setPrevExistingId(nextExistingId);
+      form.reset(mapContractToForm(existing));
+      setTemplateApplied(true);
+    }
+  }, [existing, isEdit, prevExistingId, nextExistingId, form]);
 
-  const updateField = (field: string, value: string) =>
-    setForm((prev) => ({ ...prev, [field]: value }));
-
-  return { form, setForm, updateField, templateApplied, setTemplateApplied };
+  return { form, templateApplied, setTemplateApplied };
 }

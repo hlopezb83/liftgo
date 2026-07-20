@@ -1,0 +1,40 @@
+{
+  "version": "7.124.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "Sprint 3 · Ola 3.2 — EC-M1 + UX-M1 (ContractForm a RHF+Zod)",
+  "sections": [
+    {
+      "heading": "EC-M1 · Off-by-one en reportes",
+      "items": [
+        "`profitabilityHelpers.inRange` reemplaza `new Date(dateStr) + isWithinInterval` por comparación YMD-as-string (`toYMD(start/end)`).",
+        "El bug shifteaba columnas `date` de Postgres a UTC medianoche y descartaba el primer/último día del rango en América/Monterrey.",
+        "Nuevo test cubre 2026-01-01 y 2026-12-31 dentro del rango completo del año."
+      ]
+    },
+    {
+      "heading": "UX-M1 · ContractForm migrado a RHF + Zod",
+      "items": [
+        "Nuevo `contractFormSchema` (cliente/equipo requeridos, tarifas ≥ 0, `end_date >= start_date`).",
+        "`useContractFormState` retorna la instancia `UseFormReturn` con `zodResolver` y `mode:'onBlur'`.",
+        "`useContractFormPrefill` migrado a `form.setValue` con `shouldDirty:false` para no marcar dirty en autofills desde booking, tarifas del equipo o el template.",
+        "`useContractFormLogic` wired con `useUnsavedChangesGuard(isDirty && !isPending)`; hace `form.reset(values)` post-success para limpiar dirty antes de navegar.",
+        "`ContractForm.tsx` reescrita con `<Form>`/`<FormField>` + `Controller` para DatePicker y Select nativos."
+      ]
+    },
+    {
+      "heading": "Follow-ups (pendientes)",
+      "items": [
+        "EC-A4 — Report Profitability sigue usando queries client-side; requiere RPC server-side para dejar de depender de límites PostgREST.",
+        "UX-M1 (QuoteForm) — line-items subforms requieren refactor mayor; se aborda en su propio sprint."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "Typecheck limpio.",
+        "19/19 tests afectados (contracts + profitability) en verde."
+      ]
+    }
+  ]
+}

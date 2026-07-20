@@ -2,12 +2,13 @@ import { useParams, useSearchParams } from "react-router";
 import { useCustomers } from "@/features/customers";
 import { useForklifts } from "@/features/fleet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
+import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
+import { notifySuccess } from "@/lib/ui/appFeedback";
+import type { ContractFormValues } from "../lib/contractFormSchema";
 import { buildContractPayload } from "../lib/contractPayload";
 import { useContractFormPrefill } from "./contractForm/useContractFormPrefill";
 import { useContractFormState } from "./contractForm/useContractFormState";
 import { useContract, useCreateContract, useUpdateContract } from "./useContracts";
-import type { FormEvent as ReactFormEvent } from "react";
 
 export function useContractFormLogic() {
   const { id } = useParams();
@@ -21,40 +22,39 @@ export function useContractFormLogic() {
   const createContract = useCreateContract();
   const updateContract = useUpdateContract();
 
-  const { form, setForm, updateField, templateApplied, setTemplateApplied } =
-    useContractFormState(existing, isEdit);
+  const { form, templateApplied, setTemplateApplied } = useContractFormState(existing, isEdit);
 
   useContractFormPrefill({
-    isEdit, bookingId, form, setForm, customers, forklifts,
+    isEdit, bookingId, form, customers, forklifts,
     templateApplied, setTemplateApplied,
   });
 
   const isPending = createContract.isPending || updateContract.isPending;
 
-  const handleSubmit = (e: ReactFormEvent) => {
-    e.preventDefault();
-    if (!form.customer_id || !form.forklift_id) {
-      notifyValidation({ message: "Cliente y equipo son requeridos" });
-      return;
-    }
-    const payload = buildContractPayload(form, bookingId);
+  useUnsavedChangesGuard(form.formState.isDirty && !isPending);
 
-    if (isEdit) {
+  const onSubmit = (values: ContractFormValues) => {
+    const payload = buildContractPayload(values, bookingId);
+    if (isEdit && id) {
       updateContract.mutate({ id, ...payload }, {
-        onSuccess: () => { notifySuccess("Contrato actualizado"); navigate(`/contracts/${id}`); },
+        onSuccess: () => {
+          notifySuccess("Contrato actualizado");
+          form.reset(values); // clears isDirty for the guard
+          navigate(`/contracts/${id}`);
+        },
       });
     } else {
       createContract.mutate(payload, {
         onSuccess: (data) => {
           notifySuccess("Contrato creado");
+          form.reset(values);
           navigate(`/contracts/${data.id}`);
         },
       });
     }
   };
 
-  return {
-    id, isEdit, form, customers, forklifts, isPending,
-    handleSubmit, updateField, navigate,
-  };
+  const handleSubmit = form.handleSubmit(onSubmit);
+
+  return { id, isEdit, form, customers, forklifts, isPending, handleSubmit, navigate };
 }
