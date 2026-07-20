@@ -1,5 +1,6 @@
 import { sumMoney } from "@/lib/money";
 import {
+  type ExpenseCategory,
   type MonthData, type StatementRow, type YearTotals,
   EXPENSE_CATEGORY_LABELS, DIRECT_COST_CATEGORIES, OPERATING_EXPENSE_GROUPS,
 } from "./types";
@@ -91,6 +92,33 @@ export function buildBreakdownRows(
     total: sumMoney(filteredData.map((r) => selector(r)[name] ?? 0)),
     isCost: isCost || undefined,
   }));
+}
+
+// PL-05: build per-supplier·description breakdown for a given expense category.
+export function buildExpenseDetailBreakdown(
+  filteredData: MonthData[],
+  category: ExpenseCategory,
+): StatementRow[] {
+  const keyOf = (l: { supplier: string; description: string }) =>
+    `${l.supplier} · ${l.description || "Sin descripción"}`;
+  const monthlyMaps: Record<string, number>[] = filteredData.map((m) => {
+    const lines = m.expensesDetailByCategory?.[category] ?? [];
+    return lines.reduce<Record<string, number>>((acc, l) => {
+      const k = keyOf(l);
+      acc[k] = (acc[k] ?? 0) + Number(l.amount ?? 0);
+      return acc;
+    }, {});
+  });
+  const allKeys = new Set<string>();
+  monthlyMaps.forEach((m) => Object.keys(m).forEach((k) => allKeys.add(k)));
+  return [...allKeys]
+    .sort()
+    .map((name) => ({
+      label: `      ${name}`,
+      values: monthlyMaps.map((m) => m[name] ?? 0),
+      total: sumMoney(monthlyMaps.map((m) => m[name] ?? 0)),
+      isCost: true,
+    }));
 }
 
 export function buildCsvRows(statementRows: StatementRow[], filteredData: MonthData[]): Record<string, string>[] {

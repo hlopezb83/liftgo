@@ -72,6 +72,7 @@ const month: MonthData = {
   grossProfit: 9_000,
   grossMargin: 90,
   expenses: { ...emptyExpenses(), nomina: 1_000 },
+  expensesDetailByCategory: {},
   totalExpenses: 2_000,
   profitBeforeDepreciation: 8_000,
   marginBeforeDepreciation: 80,

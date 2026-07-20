@@ -30,6 +30,7 @@ interface RpcMonthRow {
   depreciation_idle: number;
   cogs_forklift_sales: number;
   expenses: Partial<Record<ExpenseCategory, number>>;
+  expenses_detail_by_category: Partial<Record<ExpenseCategory, Array<{ supplier: string; description: string; amount: number; date: string }>>>;
   rental_booked_by_customer: Record<string, number>;
   rental_unbooked_by_customer: Record<string, number>;
   sales_by_customer: Record<string, number>;
@@ -114,6 +115,7 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
       salesByCustomer: m.sales_by_customer ?? {},
       damageRecoveryByCustomer: m.damage_recovery_by_customer ?? {},
       expenses,
+      expensesDetailByCategory: m.expenses_detail_by_category ?? {},
       ...derived,
     };
   });

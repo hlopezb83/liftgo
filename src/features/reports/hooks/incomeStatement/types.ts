@@ -41,6 +41,13 @@ export const DIRECT_COST_CATEGORIES: ExpenseCategory[] = [
 export { EXPENSE_CATEGORY_LABELS };
 export type { ExpenseCategory };
 
+export interface ExpenseDetailLine {
+  supplier: string;
+  description: string;
+  amount: number;
+  date: string;
+}
+
 export interface MonthData {
   monthKey: string;
   month: string;
@@ -64,6 +71,7 @@ export interface MonthData {
   grossProfit: number;
   grossMargin: number;
   expenses: Record<ExpenseCategory, number>;
+  expensesDetailByCategory: Partial<Record<ExpenseCategory, ExpenseDetailLine[]>>;
   totalExpenses: number;
   profitBeforeDepreciation: number;
   marginBeforeDepreciation: number;
