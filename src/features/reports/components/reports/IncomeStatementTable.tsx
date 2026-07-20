@@ -27,9 +27,10 @@ export function IncomeStatementTable({
   isComparison, filteredData, yearTotals, comparisonRows, statementRows,
   depreciationBreakdownRows, cogsBreakdownRows,
   rentalBookedBreakdownRows, rentalUnbookedBreakdownRows, salesBreakdownRows,
+  damageRecoveryBreakdownRows,
 }: Props) {
   const [open, setOpen] = useState<Record<string, boolean>>({
-    dep: false, cogs: false, rentalBooked: false, rentalUnbooked: false, sales: false,
+    dep: false, cogs: false, rentalBooked: false, rentalUnbooked: false, sales: false, damageRecovery: false,
   });
 
   if (isComparison && comparisonRows.length > 0) {
