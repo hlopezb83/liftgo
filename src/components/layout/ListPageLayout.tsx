@@ -235,6 +235,8 @@ interface TableContentProps<T> {
   emptyIcon?: LucideIcon;
   emptyActionLabel?: string;
   onEmptyAction?: () => void;
+  hasActiveFilters: boolean;
+  onClearFilters?: () => void;
   onRowClick?: (item: T) => void;
   onRowPrefetch?: (item: T) => unknown;
   mobileCardRender?: (item: T) => ReactNode;
@@ -245,11 +247,25 @@ interface TableContentProps<T> {
 function TableContent<T extends { id?: string }>({
   isLoading, isError, onRetry, showEmpty, showMobileCards, items, table,
   emptyMessage, emptyIcon, emptyActionLabel, onEmptyAction,
+  hasActiveFilters, onClearFilters,
   onRowClick, onRowPrefetch, mobileCardRender, mobileKeyExtractor, skeletonColumns,
 }: TableContentProps<T>) {
   if (isError) return <ErrorState onRetry={onRetry} />;
   if (isLoading) return <TableSkeleton columnCount={skeletonColumns} />;
   if (showEmpty) {
+    // UX-M6: EmptyState honesto — si hay filtros aplicados no fingimos que no
+    // existen registros; ofrecemos limpiar filtros como acción primaria.
+    if (hasActiveFilters) {
+      return (
+        <EmptyState
+          icon={emptyIcon ?? FilterIcon}
+          title="No hay resultados con los filtros actuales"
+          subtitle="Ajusta o limpia los filtros para ver más resultados."
+          actionLabel={onClearFilters ? "Limpiar filtros" : undefined}
+          onAction={onClearFilters}
+        />
+      );
+    }
     return (
       <EmptyState
         icon={emptyIcon}
@@ -260,6 +276,7 @@ function TableContent<T extends { id?: string }>({
       />
     );
   }
+
   if (showMobileCards) {
     return (
       <div className="p-4">
