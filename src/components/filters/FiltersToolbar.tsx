@@ -1,3 +1,6 @@
+/* eslint-disable react-refresh/only-export-components --
+   Compound component pattern: `FiltersToolbar` es un `Object.assign` de sub-componentes.
+   El linter no detecta que todos los exports son componentes; el trade-off es aceptable. */
 import { isValid } from "date-fns";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { SearchBar } from "@/components/forms/SearchBar";
