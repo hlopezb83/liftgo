@@ -27,6 +27,10 @@ export interface SupabaseLike {
     >;
   };
   from: (table: string) => QueryBuilderLike;
+  rpc?: (
+    fn: string,
+    args?: Record<string, unknown>,
+  ) => Promise<{ data: unknown; error: unknown }>;
   storage: {
     from: (bucket: string) => {
       upload: (
