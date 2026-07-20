@@ -1,50 +1,22 @@
-# Auditoría Ola 3.a (v7.114.4)
+## Problema
 
-**Estado: verde ✅**
-- 0 errores de ESLint, 1083/1083 tests pasando
-- Warnings: 72 → 47 (−25)
-- Cambios revisados: `useTableFilters` (deja de usar refs y lee `values`/`facets` desde el closure invalidado por `filterKey`), `ChangelogPage` + `RecurringInvoicesPreviewDialog` migran prev-prop guard de `useRef` a `useState`, `DataTableBodyV2` memoiza `armPrefetch`/`disarmPrefetch` con `useCallback`.
-- Riesgo controlado: el patrón `values`/`facets` en closure ya es la forma canónica de React 19 + Compiler (el memo se recomputa cuando cambia el primitivo derivado). No hay regresión en filtros de tablas — la suite de filtros pasa.
-- Cobertura de tests: los 3 archivos tocados no tenían tests unitarios dedicados (son componentes de UI con lógica declarativa mínima). El comportamiento observable está cubierto indirectamente por los E2E de filtros/tablas y el suite de smoke. No amerita nuevos tests unitarios.
+`public/changelog.json` tiene una entrada sin `version` (índice 3, la de "Sprint ESLint Ola 1"), lo que rompe la validación en `src/features/changelog/lib/changelog.ts` y lanza `"Entrada #N: versión inválida"` en toda la app al montar el hook de changelog. También quedaron desordenadas las últimas versiones (7.114.5, 7.114.3, 7.114.4 en vez de descendente).
 
-# Distribución de los 47 warnings restantes
+## Cambios
 
-| Regla                                 | Warnings |
-|--------------------------------------|---------:|
-| `react-hooks/set-state-in-effect`    | 14       |
-| `react-refresh/only-export-components` | 9      |
-| `react-hooks/incompatible-library`   | 6        |
-| `max-lines-per-function`             | 6        |
-| `complexity`                          | 6        |
-| `react-compiler/react-compiler`      | 2        |
-| `no-restricted-imports`               | 2        |
-| resto (refs, purity, static-components, max-lines, import-x/order) | 6 |
+1. **`public/changelog.json`** — agregar `version: "7.114.2"` a la entrada del índice 3 (Ola 1 de ESLint), que es la versión correcta según la secuencia (7.114.1 → 7.114.2 → 7.114.3 → 7.114.4 → 7.114.5). Reordenar las 3 entradas superiores para dejar el orden descendente correcto: 7.114.5 → 7.114.4 → 7.114.3 → 7.114.2 → 7.114.1.
 
-# Fase propuesta — Ola 3.b: `set-state-in-effect` restantes (14)
+2. **`public/changelog/v7.114.2.json`** — crear el detalle correspondiente (si no existe) con el resumen que ya vive en la entrada del índice.
 
-Bucket con mejor relación impacto/riesgo. El patrón ya está validado en Ola 2 (prev-prop guard con `useState` o derivación con `useMemo`).
+3. **`public/changelog.json`** + **`public/changelog/v7.114.6.json`** — agregar entrada v7.114.6 (patch) documentando el fix.
 
-## Alcance
-1. Localizar los 14 sitios (`bun run lint | rg set-state-in-effect`).
-2. Clasificar cada uno:
-   - **Sincronizar estado con prop cambiante** → prev-prop guard con `useState`.
-   - **Valor derivable** → `useMemo` en render.
-   - **Reset al abrir modal** → guard sobre `open` con `useState` prev.
-   - **Casos legítimos** (subscripciones async, timers) → mantener con justificación puntual + `eslint-disable-next-line` con comentario.
-3. Aplicar el refactor archivo por archivo, corriendo `bun run lint` incremental para confirmar bajada de warnings.
-4. Correr `bunx vitest run` al cierre para asegurar 1083/1083.
-5. Documentar en `public/changelog.json` como `v7.114.5` (patch).
+## Detalles técnicos
 
-## Criterio de éxito
-- 0 errores, 47 → ≤ 33 warnings.
-- 1083 tests siguen en verde.
-- Sin cambios de comportamiento en UI (prev-prop guard es semánticamente equivalente al `useEffect`+`setState` original).
+- Validador: `parseIndexEntry` en `src/features/changelog/lib/changelog.ts:29` exige `typeof version === "string"` que pase `/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/`.
+- El `#N` en el error es 0-indexed y varía entre bundle publicado y bundle preview porque el archivo se sirve estático desde `public/`.
+- No hay cambios de código de la app: sólo datos en `public/`.
 
-## Fuera de alcance (para olas posteriores)
-- Ola 3.c: `only-export-components` (9) — mover constantes/utils fuera de archivos de componentes.
-- Ola 3.d: `incompatible-library` (6), `complexity`/`max-lines-per-function` (12), y colas finales.
+## Verificación
 
-# Notas técnicas
-- `useState` como prev-prop guard es el patrón oficial documentado en https://react.dev/reference/react/useState#storing-information-from-previous-renders — más seguro que `useRef` porque no dispara la regla `react-hooks/refs`.
-- En dialogs con múltiples resets, un solo guard sobre `open` basta; no encadenar múltiples `useState` prev.
-- Cuando el estado deriva de una prop sin necesidad de historia, priorizar `useMemo` antes que el guard (elimina la variable prev completamente).
+- `python3 -c "import json; [ ...validar cada entry... ]"` para confirmar que todas tienen `version` válido tras el fix.
+- Cargar la ruta `/changelog` en el preview y verificar que ya no aparece el error.
