@@ -1,0 +1,50 @@
+{
+  "version": "7.119.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "Sprint 2 · Ola 2.3 — Resiliencia CFDI (EC-A1, EC-A2)",
+  "sections": [
+    {
+      "heading": "EC-A1 — Consumer de cola de reintentos CFDI",
+      "items": [
+        "Nueva Edge Function `process-cfdi-retry-queue` corriendo vía `pg_cron` cada 5 minutos.",
+        "Drena `cfdi_retry_queue` (filas `pending` con `next_retry_at <= now()`) e invoca `stamp-cfdi`, `cancel-cfdi`, `cancel-credit-note` o `cancel-rep` según `operation`.",
+        "Backoff exponencial: 1 → 2 → 4 → 8 → 16 → 32 minutos, tope 60 min a partir del 6º intento (`nextRetryAt` en `_shared/cfdiRetryQueue.ts`).",
+        "Usa `service_role` para bypasear guardas de rol y permitir retries no interactivos."
+      ]
+    },
+    {
+      "heading": "EC-A2 — Reconciliación de facturas atascadas en `stamping`",
+      "items": [
+        "Nueva RPC `reconcile_stamping_invoice(p_invoice_id uuid)` `SECURITY DEFINER` (grant a `service_role`) que decide entre marcar como `stamped` (si ya hay `cfdi_uuid + facturapi_invoice_id`) o revertir a `error` (si nunca se emitió).",
+        "Nueva Edge Function `reconcile-stamping-invoices` corriendo cada 15 minutos que busca facturas en estado `stamping` con `updated_at < now() - interval '10 minutes'` y llama la RPC por cada una.",
+        "Umbral configurable vía constante `STALE_THRESHOLD_MIN = 10`."
+      ]
+    },
+    {
+      "heading": "Hardening de `stamp-cfdi`",
+      "items": [
+        "Bypass a `service_role`: cuando el JWT es del service_role (retries del cron) se saltan las validaciones de rol de usuario final.",
+        "`FACTURAPI_TIMEOUT_MS = 30_000` aplicado vía `Promise.race` sobre `facturapi.invoices.create` y descargas de XML/PDF.",
+        "Persistencia temprana: `facturapi_invoice_id` y `cfdi_uuid` se guardan en la fila `invoices` inmediatamente después del create de Facturapi (antes de descargar XML/PDF). Bandera local `cfdiPersisted = true`.",
+        "Catch externo endurecido: si `cfdiPersisted === true` la fila permanece en `stamping` (no se revierte a `error`) para que el cron reconciliador la rescate — evita doble emisión ante reintentos ciegos del cliente."
+      ]
+    },
+    {
+      "heading": "Infra Deno / Config",
+      "items": [
+        "`supabase/functions/deno.json` habilita `nodeModulesDir: \"auto\"` para que Deno resuelva `npm:facturapi@4.18.0` sin requerir `deno install` manual.",
+        "`supabase/config.toml` deshabilita `verify_jwt` en `process-cfdi-retry-queue` y `reconcile-stamping-invoices` (funciones internas de cron, validación en código).",
+        "`pg_cron`: jobs #7 (`process-cfdi-retry-queue-every-5min`) y #8 (`reconcile-stamping-invoices-every-15min`) registrados con `apikey` del proyecto."
+      ]
+    },
+    {
+      "heading": "Cobertura de tests",
+      "items": [
+        "22/22 Deno tests verdes: prorate (6), bookingEnded (4), generate-recurring smoke (3), `process-cfdi-retry-queue` unit (5), `reconcile-stamping-invoices` unit (4).",
+        "1084/1084 Vitest verdes.",
+        "Nota: los tests de `stamp-cfdi/handler_test.ts` requieren el resolver npm de Deno; se ejecutan en CI con `nodeModulesDir: auto` habilitado."
+      ]
+    }
+  ]
+}

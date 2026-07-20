@@ -50,6 +50,12 @@ export async function handleStampCfdi(
   let supabaseRef: SupabaseLike | null = null;
   let invoiceIdRef: string | null = null;
   let claimed = false;
+  // EC-A2: si Facturapi ya emitió el CFDI, no queremos que el outer-catch
+  // resetee la factura a 'error' — quedaría en un estado imposible (UUID +
+  // error). Mejor dejar en 'stamping' para que `reconcile-stamping-invoices`
+  // la recupere.
+  let cfdiPersisted = false;
+
   try {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) {
@@ -60,32 +66,44 @@ export async function handleStampCfdi(
     const callerClient = deps.createCallerClient(authHeader);
     const { data: claimsData, error: claimsErr } = await callerClient.auth
       .getClaims(token);
-    if (claimsErr || !claimsData?.claims?.sub) {
+    if (claimsErr || !claimsData?.claims) {
       return json({ error: "Unauthorized" }, 401, jsonHeaders);
     }
-    const userId = claimsData.claims.sub;
+    const claims = claimsData.claims as Record<string, unknown>;
+    // EC-A1: bypass de user-role para el consumidor interno de la cola de
+    // reintentos. Solo service_role JWT (backend) puede saltar la verificación
+    // de rol de usuario; cualquier otro token cae al flujo normal.
+    const isServiceRole = claims.role === "service_role";
+    const userId = (claims.sub as string | undefined) ?? "";
 
     const supabase = deps.createServiceClient();
     supabaseRef = supabase;
-    const rolesRes = await supabase.from("user_roles").select("role").eq(
-      "user_id",
-      userId,
-    );
-    const roles = (rolesRes as { data: unknown; error: unknown }).data as
-      | Array<{ role: string }>
-      | null;
-    const rolesErr = (rolesRes as { data: unknown; error: unknown }).error;
-    if (rolesErr) {
-      console.error("[stamp-cfdi] roles lookup failed", { userId });
-      return json({ error: "Authorization check failed" }, 500, jsonHeaders);
+
+    if (!isServiceRole) {
+      if (!userId) {
+        return json({ error: "Unauthorized" }, 401, jsonHeaders);
+      }
+      const rolesRes = await supabase.from("user_roles").select("role").eq(
+        "user_id",
+        userId,
+      );
+      const roles = (rolesRes as { data: unknown; error: unknown }).data as
+        | Array<{ role: string }>
+        | null;
+      const rolesErr = (rolesRes as { data: unknown; error: unknown }).error;
+      if (rolesErr) {
+        console.error("[stamp-cfdi] roles lookup failed", { userId });
+        return json({ error: "Authorization check failed" }, 500, jsonHeaders);
+      }
+      const allowed = (roles ?? []).some((r) =>
+        r.role === "admin" || r.role === "administrativo"
+      );
+      if (!allowed) {
+        console.error("[stamp-cfdi] forbidden", { userId });
+        return json({ error: "Forbidden" }, 403, jsonHeaders);
+      }
     }
-    const allowed = (roles ?? []).some((r) =>
-      r.role === "admin" || r.role === "administrativo"
-    );
-    if (!allowed) {
-      console.error("[stamp-cfdi] forbidden", { userId });
-      return json({ error: "Forbidden" }, 403, jsonHeaders);
-    }
+
 
     const body = await req.json().catch(() => ({}));
     const { invoice_id } = body as { invoice_id?: unknown };
@@ -371,11 +389,26 @@ export async function handleStampCfdi(
     }
 
     let facturApiInvoice: { id: string; uuid: string };
+    // EC-A2: timeout hard-cap para no dejar el request colgado indefinidamente
+    // si Facturapi tarda demasiado. La respuesta puede llegar después; el cron
+    // `reconcile-stamping-invoices` recuperará la factura consultando por folio.
+    const FACTURAPI_TIMEOUT_MS = 30_000;
     try {
-      facturApiInvoice = await client.invoices.create(payload) as {
-        id: string;
-        uuid: string;
-      };
+      facturApiInvoice = await Promise.race([
+        client.invoices.create(payload),
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () =>
+              reject(
+                Object.assign(new Error("Facturapi request timed out"), {
+                  status: 504,
+                  code: "TIMEOUT",
+                }),
+              ),
+            FACTURAPI_TIMEOUT_MS,
+          )
+        ),
+      ]) as { id: string; uuid: string };
     } catch (err) {
       const desc = describeFacturapiError(err);
       console.error("[stamp-cfdi] facturapi rejected", {
@@ -390,9 +423,11 @@ export async function handleStampCfdi(
           cfdi_error_message: desc.detail.slice(0, 1000),
         })
         .eq("id", invoice_id);
-      // BL-44: encolar reintento solo si el error es transitorio (5xx / red / 429).
-      // Errores de negocio (RFC inválido, XML rechazado por SAT) NO se reencolan.
-      if (isTransientFacturapiError(desc)) {
+      // BL-44: encolar reintento solo si el error es transitorio (5xx / red / 429 / timeout).
+      if (
+        isTransientFacturapiError(desc) ||
+        (desc as { code?: string }).code === "TIMEOUT"
+      ) {
         await enqueueCfdiRetry(supabase, {
           operation: "stamp",
           invoiceId: invoice_id,
@@ -427,6 +462,19 @@ export async function handleStampCfdi(
         facturApiFolioRaw !== undefined
       ? String(facturApiFolioRaw)
       : null;
+
+    // EC-A2: persistir de inmediato facturapi_invoice_id + cfdi_uuid.
+    // A partir de aquí, si algo falla (descarga XML/PDF, storage, UPDATE final),
+    // la factura queda recuperable por `reconcile-stamping-invoices` sin
+    // riesgo de emitir un CFDI duplicado en Facturapi.
+    await supabase.from("invoices").update({
+      facturapi_invoice_id: facturApiId,
+      cfdi_uuid: cfdiUuid,
+      facturapi_env: mode === "live" ? "live" : "test",
+    }).eq("id", invoice_id);
+    cfdiPersisted = true;
+
+
 
     let cfdiXml: string | null = null;
     let xmlStoragePath: string | null = null;
@@ -556,7 +604,10 @@ export async function handleStampCfdi(
     console.error("[stamp-cfdi] unhandled exception", err);
     // BL-03 (cierre): liberar el claim ante excepción no manejada para que la
     // factura no quede atascada en 'stamping'.
-    if (claimed && supabaseRef && invoiceIdRef) {
+    // EC-A2: pero solo si NO alcanzamos a persistir el CFDI — en ese caso
+    // dejamos 'stamping' para que el cron reconcile-stamping-invoices la
+    // recupere sin re-timbrar.
+    if (claimed && !cfdiPersisted && supabaseRef && invoiceIdRef) {
       try {
         await supabaseRef.from("invoices")
           .update({
@@ -576,3 +627,4 @@ export async function handleStampCfdi(
     return json({ error: "Internal server error" }, 500);
   }
 }
+
