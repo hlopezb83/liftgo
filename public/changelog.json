@@ -1,5 +1,16 @@
 [
   {
+    "version": "7.131.1",
+    "date": "2026-07-20",
+    "type": "patch",
+    "title": "Chore — limpieza de archivo huérfano detectado por knip",
+    "summary": "`bunx knip` detectó `src/features/quotes/hooks/quoteForm/quoteFormHelpers.ts` como archivo no referenciado (residual de la migración de QuoteForm a RHF+Zod en Ola 3.5). Se elimina para dejar knip verde en CI.",
+    "changes": [
+      "Eliminado `src/features/quotes/hooks/quoteForm/quoteFormHelpers.ts` (0 imports)",
+      "`bunx knip --include files,dependencies,binaries` ahora exit 0"
+    ]
+  },
+  {
     "version": "7.131.0",
     "date": "2026-07-20",
     "type": "minor",
