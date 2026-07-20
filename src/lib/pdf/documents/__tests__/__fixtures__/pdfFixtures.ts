@@ -53,7 +53,7 @@ const month: MonthData = {
   monthKey: "2026-01",
   month: "ene",
   revenue: 10_000,
-  revenueRental: 8_000,
+  revenueRentalBooked: 8_000, revenueRentalUnbooked: 0,
   revenueSales: 2_000,
   maintenanceCost: 1_000,
   damageCost: 0,
@@ -87,7 +87,7 @@ export const incomeStatement = {
   yearTotals: [
     {
       year: "2025",
-      revenue: 100_000, revenueRental: 80_000, revenueSales: 20_000,
+      revenue: 100_000, revenueRentalBooked: 80_000, revenueRentalUnbooked: 0, revenueSales: 20_000,
       maintenanceCost: 10_000, damageCost: 0, depreciation: 5_000, cogsForkliftSales: 0,
       expenses: { ...emptyExpenses(), nomina: 12_000 },
       grossProfit: 90_000, grossMargin: 90, totalExpenses: 22_000,
