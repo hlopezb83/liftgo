@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useState } from "react";
 import { TablePagination } from "@/components/feedback/TablePagination";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { SearchBar } from "@/components/forms/SearchBar";
