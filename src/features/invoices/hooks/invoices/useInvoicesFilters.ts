@@ -1,6 +1,7 @@
 import { isValid, parseISO } from "date-fns";
 import { useCallback, useMemo } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { useLocation } from "react-router";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { toYMD } from "@/lib/date/toYMD";
 import {
   createInvoiceListFilters,
@@ -19,7 +20,7 @@ import {
  */
 export function useInvoicesFilters() {
   const location = useLocation();
-  const navigate = useNavigate();
+  const navigate = useNavigateTransition();
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const search = normalizeInvoiceSearch(searchParams.get("q"));
   const statusFilter = normalizeInvoiceStatusFilter(searchParams.get("status"));

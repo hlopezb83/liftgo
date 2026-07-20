@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router";
 
 // ---------------------------------------------------------------------------
@@ -119,11 +119,13 @@ export const PageFallback = () => {
     return () => window.clearTimeout(t);
   }, []);
 
-  const Skeleton = pickSkeleton(location.pathname);
+  const Skeleton = useMemo(() => pickSkeleton(location.pathname), [location.pathname]);
 
   return (
     <div className="relative">
+      {/* eslint-disable-next-line react-hooks/static-components -- pickSkeleton devuelve un ComponentType estable definido a nivel módulo. */}
       <Skeleton />
+
       {stalled && (
         <div className="fixed inset-x-0 bottom-6 flex justify-center pointer-events-none">
           <button

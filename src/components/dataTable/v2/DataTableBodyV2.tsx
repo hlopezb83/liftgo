@@ -1,7 +1,6 @@
 import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { flexRender, type Row } from "@tanstack/react-table";
 import { useCallback, useRef, type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from "react";
-
 import { EmptyRow } from "@/components/feedback/EmptyRow";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
@@ -89,6 +88,7 @@ export function DataTableBodyV2<T>({
 
   return (
     <TableBody>
+      {/* eslint-disable-next-line react-hooks/refs -- closure sobre timerRef sólo se invoca en handlers, no en render */}
       {rows.map((row) => {
         const item = row.original;
         const isSelected = row.getIsSelected();

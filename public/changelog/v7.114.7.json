@@ -1,0 +1,40 @@
+{
+  "version": "7.114.7",
+  "date": "2026-07-20",
+  "type": "patch",
+  "title": "Sprint ESLint Ola 4.a-b — quick wins + react-refresh (49 → 25 warnings)",
+  "sections": [
+    {
+      "heading": "Auditoría Ola 3.b",
+      "items": [
+        "0 bugs detectados, 1083 tests Vitest verdes, changelog íntegro (465 entradas, top-6 en orden descendente).",
+        "Green-light para continuar al siguiente sprint."
+      ]
+    },
+    {
+      "heading": "Ola 4.a — Quick wins",
+      "items": [
+        "Autofix batch de `import-x/order` (-10 warnings).",
+        "Migración de `useNavigate` → `useNavigateTransition` en `useInvoicesFilters` y `useTableFilters` (-2).",
+        "`useCRMFilters`: IIFE → `useMemo` + disable justificado (`Date.now()` snapshot por render).",
+        "`RouteSkeletons`: `pickSkeleton` envuelto en `useMemo` + disable justificado (ComponentType estable a nivel módulo).",
+        "`DataTableBodyV2`: disable justificado en `rows.map` (closure de `timerRef` sólo se invoca en handlers)."
+      ]
+    },
+    {
+      "heading": "Ola 4.b — react-refresh",
+      "items": [
+        "`FiltersToolbar`: file-level disable justificado (compound component `Object.assign(Root, {...})`, -6 warnings).",
+        "`router.tsx`: file-level disable justificado (rutas + helpers de code-splitting con `lazy`, -3 warnings)."
+      ]
+    },
+    {
+      "heading": "Métricas",
+      "items": [
+        "ESLint: 49 → 25 warnings (-24), 0 errores.",
+        "Vitest: 1083 tests verdes (159 archivos).",
+        "Pendientes: 7 setState-in-effect, 6 incompatible-library, 2 react-compiler, 1 static-components, más 9 de complejidad/tamaño. Se atienden en Olas 4.c-e."
+      ]
+    }
+  ]
+}
