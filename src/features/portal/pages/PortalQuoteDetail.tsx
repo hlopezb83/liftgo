@@ -63,6 +63,7 @@ export default function PortalQuoteDetail() {
       <Card>
         <CardHeader><CardTitle className="text-base">Partidas</CardTitle></CardHeader>
         <CardContent className="p-0">
+          <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead className="text-xs text-muted-foreground bg-muted/40">
               <tr>
@@ -83,6 +84,7 @@ export default function PortalQuoteDetail() {
               ))}
             </tbody>
           </table>
+          </div>
           <div className="border-t p-4">
             <TotalsBreakdown
               subtotal={quote.subtotal}
