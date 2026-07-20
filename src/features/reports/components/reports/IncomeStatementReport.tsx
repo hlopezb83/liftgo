@@ -82,6 +82,19 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
         </Alert>
       )}
 
+      <div className="flex items-center gap-2">
+        <span className="text-xs text-muted-foreground uppercase tracking-wide">Base contable:</span>
+        <Badge variant={accountingBasis === "cash" ? "secondary" : "default"}>
+          {accountingBasis === "cash" ? "Efectivo" : "Devengado"}
+        </Badge>
+        {accountingBasis === "cash" ? (
+          <span className="text-xs text-muted-foreground">
+            (Depreciación excluida en base efectivo)
+          </span>
+        ) : null}
+      </div>
+
+
       {!isComparison && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {kpis.map((kpi) => (
