@@ -51,6 +51,8 @@ export interface MonthData {
   maintenanceCost: number;
   damageCost: number;
   depreciation: number;
+  depreciationRented: number;
+  depreciationIdle: number;
   cogsForkliftSales: number;
   cogsByForklift: Record<string, number>;
   depreciationByForklift: Record<string, number>;
