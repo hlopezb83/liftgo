@@ -124,7 +124,6 @@ Deno.serve(async (req) => {
     return json({ error: "Unauthorized" }, 401);
   }
 
-
   const nowIso = new Date().toISOString();
 
   const { data: rows, error } = await admin

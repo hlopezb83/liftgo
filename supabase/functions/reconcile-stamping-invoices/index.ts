@@ -61,7 +61,6 @@ Deno.serve(async (req) => {
     return json({ error: "Unauthorized" }, 401);
   }
 
-
   const STALE_THRESHOLD_MIN = 10;
   const cutoff = new Date(Date.now() - STALE_THRESHOLD_MIN * 60_000)
     .toISOString();
