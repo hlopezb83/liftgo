@@ -3,27 +3,60 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 import { customerKeys } from "../../lib/queryKeys";
 
 export type Customer = Tables<"customers">;
 
-export const customerQueries = defineEntityQueries<"customers", Customer[], never>("customers", {
-  list: () => async () => {
-    const { data, error } = await supabase
-      .from("customers")
-      .select("*")
-      .is("deleted_at", null)
-      .or("is_e2e.is.null,is_e2e.eq.false")
-      .not("name", "ilike", "E2E%")
-      .or("email.is.null,email.neq.e2e-ui@test.local")
-      .order("name");
-    if (error) throw error;
-    return data;
+export const customerQueries = defineEntityQueries<"customers", Customer[], Customer | null>(
+  "customers",
+  {
+    list: () => async () => {
+      const { data, error } = await supabase
+        .from("customers")
+        .select("*")
+        .is("deleted_at", null)
+        .or("is_e2e.is.null,is_e2e.eq.false")
+        .not("name", "ilike", "E2E%")
+        .or("email.is.null,email.neq.e2e-ui@test.local")
+        .order("name")
+        .limit(LIST_PAGE_LIMIT);
+      if (error) throw error;
+      if (hasReachedListLimit(data)) {
+        console.warn(
+          `[useCustomers] Alcanzó LIST_PAGE_LIMIT (${LIST_PAGE_LIMIT}). Migrar a paginación server-side.`,
+        );
+      }
+      return data;
+    },
+    detail: (id) => async () => {
+      if (!id) return null;
+      const { data, error } = await supabase
+        .from("customers")
+        .select("*")
+        .eq("id", id)
+        .is("deleted_at", null)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
   },
-});
+);
 
 export function useCustomers() {
   return useQuery(customerQueries.list());
+}
+
+/**
+ * Detalle por id — consulta directa por PK.
+ * Evita depender de `useCustomers()` (que está limitado y podría no incluir al cliente buscado).
+ */
+export function useCustomer(id: string | undefined) {
+  return useQuery({
+    ...customerQueries.detail(id ?? ""),
+    enabled: !!id,
+    staleTime: 60_000,
+  });
 }
 
 export function useCreateCustomer() {
