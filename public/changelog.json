@@ -6,8 +6,15 @@
     "title": "Sprint ESLint Ola 2 — setState-in-effect → prev-prop guards (82 → 72 warnings)",
     "summary": "Ola 2 del sprint de limpieza. Reescritos 8 componentes/hooks que usaban `useEffect` sólo para sincronizar estado local con props: `DatePickerField`, `DateRangePickerField`, `SearchBar`, `RegisterSupplierPaymentDialog`, `SupplierBillFormDialog`, `useExportPaymentsForm`, `usePaymentSelection` y `BankReconciliationPage`. Se aplicó el patrón oficial de React 'adjust state when a prop changes' (setState durante render guardado por comparación con prev-prop), y en un caso (`BankReconciliationPage`) se derivó el valor default con `useMemo` en vez de sincronizarlo. Se removieron 2 usos ilegales de `useEffectEvent` fuera de effects que causaban errores de `react-hooks/rules-of-hooks`. Resultado: 0 errores + 72 warnings (bajaron 10). Continúa Ola 3 con refs-in-render y react-compiler."
   },
+  {
+    "version": "7.114.4",
+    "date": "2026-07-20",
+    "type": "patch",
+    "title": "Sprint ESLint Ola 3.a — refs-in-render (72 → 47 warnings)",
+    "summary": "Ola 3.a: eliminadas las lecturas/escrituras de `.current` en render. `useTableFilters` ahora referencia `values` y `facets` directamente en el closure del `useMemo` de `filtered` (el memo se re-computa vía `filterKey` primitivo cuando cambian, por lo que el closure siempre es fresco). `ChangelogPage` y `RecurringInvoicesPreviewDialog` migran su patrón de 'adjust state during render' de `useRef` a `useState` (el patrón oficial de React 19). `DataTableBodyV2` envuelve `armPrefetch`/`disarmPrefetch` en `useCallback` para satisfacer el compilador. 0 errores, 1083 tests, warnings pasan de 72 a 47 (-25)."
+  },
+  {
 
-    "version": "7.114.2",
     "date": "2026-07-20",
     "type": "patch",
     "title": "Sprint ESLint Ola 1 — autofix imports + quick wins (177 → 82 warnings)",

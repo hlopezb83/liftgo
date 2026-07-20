@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useState } from "react";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -41,11 +41,12 @@ export function RecurringInvoicesPreviewDialog({
   // Rehidratar la selección cuando cambia el conjunto de elegibles — patrón
   // React "adjust state during render" en vez de un useEffect que agregaría
   // una render extra. https://react.dev/learn/you-might-not-need-an-effect
-  const prevEligibleKeyRef = useRef(eligibleKey);
-  if (prevEligibleKeyRef.current !== eligibleKey) {
-    prevEligibleKeyRef.current = eligibleKey;
+  const [prevEligibleKey, setPrevEligibleKey] = useState(eligibleKey);
+  if (prevEligibleKey !== eligibleKey) {
+    setPrevEligibleKey(eligibleKey);
     setSelected(new Set(eligibleIds));
   }
+
 
   // Derivaciones puras: React Compiler las memoiza.
   const groupMap = new Map<string, RecurringPreviewLine[]>();

@@ -1,6 +1,7 @@
 import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { flexRender, type Row } from "@tanstack/react-table";
-import { useRef, type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useCallback, useRef, type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from "react";
+
 import { EmptyRow } from "@/components/feedback/EmptyRow";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
@@ -65,17 +66,18 @@ export function DataTableBodyV2<T>({
 }: Props<T>): ReactNode {
   const queryClient = useQueryClient();
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const armPrefetch = (item: T) => {
+  const armPrefetch = useCallback((item: T) => {
     if (!onRowPrefetch) return;
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = setTimeout(() => {
       void queryClient.prefetchQuery(onRowPrefetch(item) as Parameters<QueryClient["prefetchQuery"]>[0]);
     }, PREFETCH_DELAY_MS);
-  };
-  const disarmPrefetch = () => {
+  }, [onRowPrefetch, queryClient]);
+  const disarmPrefetch = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = undefined;
-  };
+  }, []);
+
 
   if (rows.length === 0) {
     return (
