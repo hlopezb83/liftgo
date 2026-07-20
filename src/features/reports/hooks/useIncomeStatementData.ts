@@ -26,13 +26,16 @@ export function useIncomeStatementData({
   } = useStatementTotals(data);
   const {
     statementRows, csvRows,
-    depreciationBreakdownRows, cogsBreakdownRows, rentalBreakdownRows, salesBreakdownRows,
+    depreciationBreakdownRows, cogsBreakdownRows,
+    rentalBookedBreakdownRows, rentalUnbookedBreakdownRows, salesBreakdownRows,
   } = useStatementRows(filteredData, totals);
   const comparisonRows = useComparisonRows(yearTotals);
 
   return {
     data, filteredData, totals, statementRows, comparisonRows, yearTotals,
-    csvRows, depreciationBreakdownRows, cogsBreakdownRows, rentalBreakdownRows, salesBreakdownRows,
+    csvRows,
+    depreciationBreakdownRows, cogsBreakdownRows,
+    rentalBookedBreakdownRows, rentalUnbookedBreakdownRows, salesBreakdownRows,
     rentedWithoutCost,
     soldWithoutCost,
     availableYears, selectedYear, setSelectedYear, isComparison,
