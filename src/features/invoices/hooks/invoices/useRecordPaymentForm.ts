@@ -12,15 +12,19 @@ interface Args {
   balance: number;
   ppdStamped: boolean;
   invoiceId: string;
+  /** C-1: divisa de la factura. El pago se fuerza a coincidir. Default "MXN". */
+  invoiceCurrency?: string | null;
   onOpenChange: (open: boolean) => void;
 }
 
-export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, onOpenChange }: Args) {
+export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, invoiceCurrency, onOpenChange }: Args) {
+  const lockedCurrency = (invoiceCurrency ?? "MXN").toUpperCase();
   const [amount, setAmount] = useState(balance.toFixed(2));
   const [date, setDate] = useState<Date>(nowMty());
   const [method, setMethod] = useState("transfer");
   const [paymentFormSat, setPaymentFormSat] = useState("03");
-  const [currency, setCurrency] = useState("MXN");
+  // C-1: divisa bloqueada a la factura hasta que exista soporte multi-moneda.
+  const [currency, setCurrencyState] = useState(lockedCurrency);
   const [exchangeRate, setExchangeRate] = useState("1");
   const [reference, setReference] = useState("");
   const [notes, setNotes] = useState("");
@@ -32,12 +36,18 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, onO
     if (open) {
       setAmount(balance.toFixed(2));
       setStampRep(ppdStamped);
+      setCurrencyState(lockedCurrency);
     }
-  }, [open, balance, ppdStamped]);
+  }, [open, balance, ppdStamped, lockedCurrency]);
 
   useEffect(() => {
     setPaymentFormSat(satCodeForMethod(method));
   }, [method]);
+
+  // C-1: exponer un setter no-op para el select de UI; siempre revierte al
+  // valor bloqueado de la factura.
+  const setCurrency = (_next: string) => setCurrencyState(lockedCurrency);
+
 
   const handleSubmit = async () => {
     const amt = roundMoney(Number(amount));
