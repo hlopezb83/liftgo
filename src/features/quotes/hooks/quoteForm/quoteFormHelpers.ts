@@ -1,6 +1,5 @@
-// Barrel re-export to mantener compatibilidad con imports existentes.
-// Las implementaciones viven ahora en archivos por responsabilidad.
+// Barrel de helpers puros de QuoteForm.
+// La validación vive en `../../lib/quoteFormSchema` (fuente de verdad).
 export { buildSaleItems, buildRentalItems } from "./quoteFormBuilders";
 export type { EquipmentModel, SaleLine, RentalLine } from "./quoteFormBuilders";
-export { validateQuoteForm } from "./quoteFormValidation";
 export { buildQuotePayload, type BuildQuotePayloadArgs } from "./quoteFormPayload";
