@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.108.2",
+    "date": "2026-07-20",
+    "type": "patch",
+    "title": "Estado de Resultados: deduplicación de gastos entre facturas de proveedor y gastos operativos",
+    "summary": "La RPC `get_income_statement` ahora deduplica partidas que aparecen tanto en `supplier_bills` como en `operating_expenses`. El match se hace por fecha + monto (redondeado a 2 decimales) + descripción normalizada (trim, colapso de espacios, lowercase), dando prioridad a la factura de proveedor. Elimina el doble conteo detectado en la categoría 'Otro' y en cualquier otra donde se capture la misma partida en ambos orígenes. Impacto verificado: 'Otro' YTD 2026 pasa de $1,665,627 a $878,845 (48 duplicados descartados)."
+  },
+  {
     "version": "7.108.1",
     "date": "2026-07-20",
     "type": "patch",
