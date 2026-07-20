@@ -1,5 +1,16 @@
 [
   {
+    "version": "7.132.1",
+    "date": "2026-07-20",
+    "type": "patch",
+    "title": "Fix: changelog.json corrupto rompía la app en `/`",
+    "summary": "El entry 7.128.0 había perdido su llave de apertura `{`, dejando `public/changelog.json` inválido. El fetch del changelog reventaba con `SyntaxError: Expected ',' or ']' after array element in JSON at position 6017` y tumbaba la ruta raíz. Se restaura la llave.",
+    "changes": [
+      "`public/changelog.json`: restaurado `{` de apertura del entry 7.128.0.",
+      "Verificado con `json.load` — 485 entradas parseables."
+    ]
+  },
+  {
     "version": "7.132.0",
     "date": "2026-07-20",
     "type": "minor",
