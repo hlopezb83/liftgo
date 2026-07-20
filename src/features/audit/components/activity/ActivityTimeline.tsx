@@ -1,4 +1,3 @@
-import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import { X } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,6 +12,7 @@ import { formatDateTimeShortMty } from "@/lib/format/dateFormats";
 import { ENTITY_LABELS, ENTITY_ROUTES, EVENT_LABELS, EVENT_TYPES } from "../../lib/activityConstants";
 import { ActorAvatar } from "./ActorAvatar";
 import type { MemberStat } from "../../hooks/useActivityMetrics";
+import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 
 interface Props {
   filters: ActivityFilters;

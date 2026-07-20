@@ -1,4 +1,3 @@
-import type { DragEndEvent } from "@dnd-kit/core";
 import { useState } from "react";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,6 +13,7 @@ import { useCRMPageDialogs } from "../hooks/useCRMPageDialogs";
 import { useProspectGuard } from "../hooks/useProspectGuard";
 import { useProspects, useCreateProspect, useUpdateProspect, useDeleteProspect, type Prospect } from "../hooks/useProspects";
 import { ACTIVE_STAGES } from "../lib/constants";
+import type { DragEndEvent } from "@dnd-kit/core";
 
 export default function CRMPage() {
   const { data: prospects = [], isLoading } = useProspects();

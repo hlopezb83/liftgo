@@ -1,4 +1,3 @@
-import type { FormEvent as ReactFormEvent } from "react";
 import { useParams, useSearchParams } from "react-router";
 import { useCustomers } from "@/features/customers";
 import { useForklifts } from "@/features/fleet";
@@ -8,6 +7,7 @@ import { buildContractPayload } from "../lib/contractPayload";
 import { useContractFormPrefill } from "./contractForm/useContractFormPrefill";
 import { useContractFormState } from "./contractForm/useContractFormState";
 import { useContract, useCreateContract, useUpdateContract } from "./useContracts";
+import type { FormEvent as ReactFormEvent } from "react";
 
 export function useContractFormLogic() {
   const { id } = useParams();

@@ -41,6 +41,7 @@ export async function waitForAuthToken(
   while (Date.now() - start < timeoutMs) {
     const token = await getAuthToken(page);
     if (token) return token;
+    // eslint-disable-next-line playwright/no-wait-for-timeout -- Polling controlado con timeout global; no hay evento observable para el token de Supabase en localStorage.
     await page.waitForTimeout(100);
   }
   throw new Error(

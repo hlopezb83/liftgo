@@ -1,8 +1,8 @@
-import type { MouseEvent as ReactMouseEvent, ReactNode } from "react";
 import { type LucideIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
+import type { MouseEvent as ReactMouseEvent, ReactNode } from "react";
 
 interface AlertCardProps {
   icon: LucideIcon;

@@ -14,10 +14,10 @@ import { ChangelogEntryCard } from "../components/changelog/ChangelogEntryCard";
 import { useChangelog } from "../hooks/useChangelog";
 import { useChangelogDeepLink } from "../hooks/useChangelogDeepLink";
 import { getCurrentVersion } from "../lib/changelog";
-import type { ChangelogIndexEntry } from "../lib/changelog";
 import {
   TYPE_FILTERS, CATEGORY_FILTERS, type FilterType, type FilterCategory,
 } from "../lib/changelogConstants";
+import type { ChangelogIndexEntry } from "../lib/changelog";
 
 const TYPE_OPTIONS = TYPE_FILTERS.filter((t) => t.value !== "all").map((t) => t.value) as string[];
 const CATEGORY_OPTIONS = CATEGORY_FILTERS.filter((c) => c.value !== "all").map((c) => c.value) as string[];

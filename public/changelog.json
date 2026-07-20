@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.114.2",
+    "date": "2026-07-20",
+    "type": "patch",
+    "title": "Sprint ESLint Ola 1 — autofix imports + quick wins (177 → 82 warnings)",
+    "summary": "Ola 1 del sprint de limpieza de warnings de ESLint. Se corrió `eslint --fix` que resolvió los 85 warnings de `import-x/order` (orden canónico de imports en ~85 archivos). Además se disparan 7 quick wins con `eslint-disable-next-line` justificado: 5 usos legítimos de `test.skip()` (skips condicionales por credenciales E2E ausentes o feature flag `E2E_VISUAL`), 1 `page.waitForTimeout(100)` dentro de un polling controlado (`waitForAuthToken`) que no tiene evento observable alternativo, y 1 `autoFocus` en el Calendar dentro de un Dialog modal (mejora UX de teclado). Total de warnings pasó de 177 a 82. Siguientes olas: setState-in-effect (Ola 2, 24 warnings) y refs + only-export-components + compiler (Ola 3, 46 warnings)."
+  },
+  {
     "version": "7.114.1",
     "date": "2026-07-20",
     "type": "patch",

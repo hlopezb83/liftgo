@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Separator } from "@/components/ui/separator";
@@ -16,6 +15,7 @@ import { SupplierBillFormDialog } from "./SupplierBillFormDialog";
 import { SupplierBillPaymentActions } from "./SupplierBillPaymentActions";
 import { SupplierPaymentRow } from "./SupplierPaymentRow";
 import type { BillPermissions } from "../lib/billPermissions";
+import type { ReactNode } from "react";
 
 function Row({ label, value }: { label: string; value: ReactNode }) {
   return (

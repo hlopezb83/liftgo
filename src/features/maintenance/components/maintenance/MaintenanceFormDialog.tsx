@@ -1,4 +1,3 @@
-import type { FormEvent as ReactFormEvent } from "react";
 import {
   TextareaField,
   SelectField,
@@ -12,6 +11,7 @@ import { FormSection } from "@/components/forms/FormSection";
 import { Form } from "@/components/ui/form";
 import { SERVICE_TYPES } from "@/lib/constants";
 import type { MaintenanceFormValues } from "../../hooks/maintenance/useMaintenanceForm";
+import type { FormEvent as ReactFormEvent } from "react";
 import type { UseFormReturn } from "react-hook-form";
 
 interface ForkliftOption { id: string; name: string; model: string }

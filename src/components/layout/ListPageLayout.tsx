@@ -12,8 +12,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { useIsMobile, useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
-import type { Table as TanstackTable } from "@tanstack/react-table";
 import { cn } from "@/lib/utils";
+import type { Table as TanstackTable } from "@tanstack/react-table";
 
 interface ListPageLayoutProps<T> {
   title: string;

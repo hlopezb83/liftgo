@@ -1,4 +1,3 @@
-import type { FormEvent as ReactFormEvent } from "react";
 import { FormDialog } from "@/components/forms/FormDialog";
 import { useProspectForm, type ProspectFormPayload } from "../hooks/useProspectForm";
 import { ProspectCloseDealActions } from "./prospect-form/ProspectCloseDealActions";
@@ -13,6 +12,7 @@ import {
 } from "./prospect-form/ProspectDialogParts";
 import { ProspectFormFields } from "./prospect-form/ProspectFormFields";
 import type { Prospect } from "../hooks/useProspects";
+import type { FormEvent as ReactFormEvent } from "react";
 
 interface Props {
   open: boolean;

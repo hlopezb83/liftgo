@@ -1,4 +1,3 @@
-import type { ReactNode } from "react";
 import { Document, Page, Text, View, Image } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import { AccentBar } from "@/lib/pdf/components/AccentBar";
@@ -9,6 +8,7 @@ import { nowMty } from "@/lib/utils";
 import { ChecklistAnnex } from "./contract/ChecklistAnnex";
 import { ContractBody } from "./contract/ContractBody";
 import { PagareAnnex } from "./contract/PagareAnnex";
+import type { ReactNode } from "react";
 
 export type PDFMode = "full" | "contract" | "checklist" | "pagare";
 

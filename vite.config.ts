@@ -1,6 +1,6 @@
 import path from "path";
-import { sentryVitePlugin } from "@sentry/vite-plugin";
 import babel from "@rolldown/plugin-babel";
+import { sentryVitePlugin } from "@sentry/vite-plugin";
 import react, { reactCompilerPreset } from "@vitejs/plugin-react";
 import { componentTagger } from "lovable-tagger";
 import { visualizer } from "rollup-plugin-visualizer";

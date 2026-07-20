@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
-import type { SupplierBillListItem } from "./useSupplierBills";
 import {
   SUPPLIER_BILL_STATUSES,
   APPROVAL_STATUSES,
@@ -9,6 +8,7 @@ import {
   type SupplierBillApprovalStatus,
   type ExpenseCategory,
 } from "../lib/supplierBillConstants";
+import type { SupplierBillListItem } from "./useSupplierBills";
 import type { SupplierRepStatus } from "../lib/supplierRepConstants";
 
 /**

@@ -45,6 +45,6 @@ export default async function globalTeardown(): Promise<void> {
     return;
   }
 
-  // eslint-disable-next-line no-console
+   
   console.log("[e2e] globalTeardown: purge_e2e_data OK", data);
 }

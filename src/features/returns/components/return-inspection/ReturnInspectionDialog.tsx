@@ -1,4 +1,4 @@
-import type { FormEvent as ReactFormEvent } from "react";
+import { useWatch, type UseFormReturn } from "react-hook-form";
 import { DragDropImageUploader } from "@/components/forms/DragDropImageUploader";
 import {
   SelectField,
@@ -16,7 +16,7 @@ import type { Forklift } from "@/features/fleet";
 import { INSPECTION_CONDITIONS, FUEL_LEVELS, STATUS_LABELS, FUEL_LEVEL_LABELS } from "@/lib/constants";
 import { formatDateRange } from "@/lib/utils";
 import type { ReturnInspectionFormValues } from "../../hooks/returnInspection/useReturnInspectionDialog";
-import { useWatch, type UseFormReturn } from "react-hook-form";
+import type { FormEvent as ReactFormEvent } from "react";
 
 interface Props {
   open: boolean;

@@ -3,9 +3,8 @@ import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { usePageActions } from "@/contexts/pageActions";
 import { MarkAvailableDialog, useForkliftMap } from "@/features/fleet";
-import { useDialogState } from "@/hooks/useDialogState";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
-
+import { useDialogState } from "@/hooks/useDialogState";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";

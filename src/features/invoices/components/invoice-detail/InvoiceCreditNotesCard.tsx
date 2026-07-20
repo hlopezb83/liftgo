@@ -7,7 +7,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import type { Tables } from "@/integrations/supabase/types";
 import { CREDIT_NOTE_MOTIVE_LABELS as MOTIVE_LABELS } from "@/lib/domain/creditNoteMotives";
-import { computeMaxCreditable } from "../../lib/computeMaxCreditable";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { formatDateDisplay } from "@/lib/utils";
@@ -17,6 +16,7 @@ import {
   useDeleteCreditNote,
   type CreditNote,
 } from "../../hooks/creditNotes/useCreditNotes";
+import { computeMaxCreditable } from "../../lib/computeMaxCreditable";
 import { downloadCfdiBlob, type CfdiFormat } from "../../lib/downloadCfdiBlob";
 import { CancelCreditNoteDialog } from "./CancelCreditNoteDialog";
 import { CreateCreditNoteDialog } from "./CreateCreditNoteDialog";

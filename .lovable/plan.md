@@ -1,50 +1,62 @@
-## CI en rojo — 2 errores de ESLint bloquean el pipeline
+## Cómo corregir los 177 warnings de ESLint
 
-**Diagnóstico** (basado en los logs adjuntos):
-- Todos los jobs pasaron excepto **ESLint** (`9_ESLint.txt` → `✖ 179 problems (2 errors, 177 warnings)` → exit 1).
-- Los 2 errores son idénticos y están en el mismo archivo/línea:
-  - `src/features/accounts-payable/hooks/useSupplierBillForm.ts:35:29` y `:35:47`
-  - Regla: `@typescript-eslint/no-non-null-assertion`
-  - Código actual: `if (hasStart && hasEnd && v.coverage_end! < v.coverage_start!)`
-- Los otros ~177 son warnings preexistentes (setState-in-effect, import-x/order, etc.) — no bloquean CI.
+Los warnings actuales (log CI adjunto) se agrupan en pocas familias. Cada una tiene su propia estrategia y riesgo — por eso los meto en 3 olas incrementales, cada una mergeable por separado.
 
-**Nota adicional del log**: el smoke test de Deno pasó 43/43, pero **no ejecuta** los `handler_test.ts` nuevos (Sprint 1b: BL-A4) — el workflow filtra sólo `index_test.ts`. Eso NO rompió CI ahora, pero significa que las 2 pruebas BL-A4 nuevas viven fuera de CI. Lo dejo como observación; no lo incluyo en este parche para mantener el fix mínimo y desbloquear el rojo primero.
+### Inventario (por regla)
 
-### Cambio propuesto (una sola edición)
+| # | Regla | Familia | Estrategia |
+|---|---|---|---|
+| 85 | `import-x/order` | Orden de imports | Autofix (`eslint --fix`) |
+| 27 | `react-hooks/refs` | Acceso a `ref.current` en render | Mover a `useEffect`/handlers |
+| 24 | `react-hooks/set-state-in-effect` | `setState` dentro de `useEffect` | Derivar en render o mover a event handler |
+| 9 | `react-refresh/only-export-components` | Archivo exporta componente + no-componente | Separar en 2 archivos |
+| 6 | `react-hooks/incompatible-library` | Librería incompatible con React Compiler | Envolver en `useMemo` / `"use no memo"` |
+| 5 | `playwright/no-skipped-test` | Tests con `test.skip` | Reactivar o eliminar |
+| 2 | `react-compiler/react-compiler` | Mutación inválida | Refactor a inmutable |
+| ≤3 | `max-lines-per-function`, `jsx-a11y/no-autofocus`, `playwright/no-wait-for-timeout`, `react-hooks/purity`, `react-hooks/static-components` | Varios | Fix puntual |
 
-Reemplazar los `!` por narrowing explícito extrayendo a variables locales dentro del bloque guardado:
+### Ola 1 — Autofix + quick wins (v7.114.2, riesgo bajo)
 
-```ts
-if (hasStart && hasEnd) {
-  const start = v.coverage_start as string;
-  const end = v.coverage_end as string;
-  if (end < start) {
-    ctx.addIssue({ code: "custom", path: ["coverage_end"], message: "Fin de cobertura debe ser posterior al inicio" });
-  }
-}
-```
+- Correr `bunx eslint . --fix` para resolver los **85 `import-x/order`** y cualquier warning auto-fixeable restante.
+- Arreglar los 5 `playwright/no-skipped-test` (auditar y decidir: reactivar o borrar el test).
+- Arreglar `jsx-a11y/no-autofocus` y `playwright/no-wait-for-timeout` (1 cada uno) — cambios triviales.
+- Validar: `bun run lint` + `bunx vitest run`.
+- **Reducción esperada:** ~92 warnings → quedan ~85.
 
-Alternativa más limpia (preferida si TS lo permite sin cast) — usar early guard con `typeof`:
+### Ola 2 — React Hooks: setState-in-effect (v7.114.3, riesgo medio)
 
-```ts
-if (typeof v.coverage_start === "string" && typeof v.coverage_end === "string" && v.coverage_end < v.coverage_start) {
-  ctx.addIssue({ code: "custom", path: ["coverage_end"], message: "Fin de cobertura debe ser posterior al inicio" });
-}
-```
+Los 24 `set-state-in-effect` casi siempre son uno de estos patrones:
 
-Se elimina también el `hasStart/hasEnd !==` sólo si esa rama sigue viva; la rama de "ambas fechas requeridas" (línea 32-34) se conserva sin cambios.
+1. **Derivar en render** en vez de sincronizar con effect. Ej: `useState + useEffect(() => setX(computeFrom(props)))` → `const x = useMemo(() => computeFrom(props), [props])`.
+2. **Mover a event handler** cuando la actualización responde a una acción del usuario.
+3. **`useSyncExternalStore`** cuando sincronizamos con un store externo.
 
-### Validación
+Auditar los 24 casos uno por uno; cada uno requiere leer el archivo. Los archivos ya listados en el log incluyen `BankReconciliationPage`, `usePaymentSelection`, `useSupplierBillForm`, etc.
 
-1. `bun run lint` → 0 errors (los 177 warnings quedan; no bloquean).
-2. `bunx vitest run` → 1083/1083 verde (no debería tocar tests).
-3. Push → CI verde.
+- **Reducción esperada:** ~24 warnings → quedan ~61.
+- **Riesgo:** Cambiar effects mal puede alterar timing/render. Cubrir cada archivo tocado con un test si no lo tiene ya.
 
-### Changelog
+### Ola 3 — Refs + React Compiler + refactor (v7.114.4, riesgo medio-alto)
 
-`v7.114.1` (patch) — "Fix CI — eliminar non-null assertions en useSupplierBillForm".
+- **27 `react-hooks/refs`**: mover accesos `ref.current` fuera de render (a `useEffect` o handlers). En algunos casos es callback-ref.
+- **9 `react-refresh/only-export-components`**: partir cada archivo señalado en `Component.tsx` + `componentHelpers.ts` (constantes, hooks, tipos). Cambio mecánico pero toca imports en muchos sitios.
+- **6 `react-hooks/incompatible-library`**: envolver invocaciones a librerías no-puras (`jspdf`, `xlsx`, etc.) en `useMemo` o marcar el archivo con `"use no memo"` como último recurso.
+- **2 `react-compiler/react-compiler`**: refactor a inmutable (spread en lugar de `array.push`).
+- **1 `max-lines-per-function`** (`AuditTrailPage`, 151/150 líneas): extraer un sub-componente.
+- **Reducción esperada:** los ~61 restantes bajan a 0.
 
-### Fuera de alcance
+### Validación por ola
 
-- No corrijo los 177 warnings de React Compiler (`react-hooks/set-state-in-effect`, `import-x/order`, etc.) — es otro sprint dedicado.
-- No agrego los `handler_test.ts` al workflow de smoke Deno — requiere decisión (¿queremos que los tests unitarios de handler vivan en un job separado más lento?). Lo puedo tomar como sprint aparte.
+1. `bun run lint` → menos warnings que la ola anterior, 0 errors siempre.
+2. `bunx vitest run` → 1083/1083 verde.
+3. `bunx tsgo --noEmit` → sin errores nuevos.
+4. Push → CI verde.
+
+### Anti-patrones que voy a evitar
+
+- `// eslint-disable` masivos: sólo aceptables para reglas de compiler cuando la librería objetivamente no es compatible (`"use no memo"` con comentario justificando).
+- Cambiar reglas del `.eslintrc` para "silenciar" — el objetivo es cero warnings, no cero reglas.
+
+### Cronograma sugerido
+
+Puedo empezar hoy mismo por **Ola 1** (autofix + quick wins) que es la de mayor impacto y menor riesgo. Ola 2 y 3 en turnos separados con revisión intermedia. ¿Arranco?

@@ -1,7 +1,7 @@
-import type { ReactNode } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { usePageActionsContext } from "@/contexts/pageActions";
 import { GLOBAL_SHORTCUTS, NAV_SHORTCUTS, PAGE_SHORTCUTS } from "@/lib/shortcuts/registry";
+import type { ReactNode } from "react";
 
 interface Props {
   open: boolean;

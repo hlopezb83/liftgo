@@ -1,6 +1,6 @@
-import type { ReactNode } from "react";
 import { useUserRole } from "@/features/users";
 import { NoAccess } from "@/layouts/NoAccess";
+import type { ReactNode } from "react";
 
 interface AdminRouteGuardProps {
   module?: string;

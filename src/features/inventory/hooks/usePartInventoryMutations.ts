@@ -1,7 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-
 import { partInventoryKeys } from "../lib/queryKeys";
 import type { PartInventory } from "./usePartsInventory";
 

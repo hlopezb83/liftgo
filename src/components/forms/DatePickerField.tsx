@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { formatDateMty } from "@/lib/format/dateFormats";
 import { CalendarIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -12,6 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { cn } from "@/lib/utils";
 import type { Matcher } from "react-day-picker";
 
@@ -92,6 +92,7 @@ export function DatePickerField({
               captionLayout={captionLayout}
               startMonth={startMonth}
               endMonth={endMonth}
+              // eslint-disable-next-line jsx-a11y/no-autofocus -- El calendario vive dentro de un Dialog modal; auto-focus dirige al teclado al control principal al abrir.
               autoFocus
               className="pointer-events-auto"
             />

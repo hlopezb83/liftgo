@@ -1,0 +1,28 @@
+{
+  "version": "7.114.2",
+  "date": "2026-07-20",
+  "type": "patch",
+  "title": "Sprint ESLint Ola 1 — autofix imports + quick wins",
+  "sections": [
+    {
+      "heading": "Contexto",
+      "body": "Tras el push de v7.114.1 quedaron 177 warnings de ESLint pendientes (0 errors). Se acordó atacarlos en 3 olas incrementales por familia de regla y nivel de riesgo. Esta es la Ola 1: cambios mecánicos (autofix) y quick wins con `eslint-disable-next-line` justificado sólo cuando el uso es legítimo."
+    },
+    {
+      "heading": "Autofix — import-x/order (85 warnings)",
+      "body": "Se ejecutó `bunx eslint . --fix` que reordena imports respetando el patrón canónico (built-in → externos → alias `@/` → relativos). Se tocaron ~85 archivos, todos con cambios puramente de orden — sin ninguna modificación de lógica."
+    },
+    {
+      "heading": "Quick wins (7 warnings)",
+      "body": "**`jsx-a11y/no-autofocus`** en `src/components/forms/DatePickerField.tsx:95`: el `<Calendar autoFocus>` vive dentro de un Dialog modal, donde `autoFocus` es la práctica recomendada para dirigir el teclado al control principal al abrir. Se agrega `eslint-disable-next-line` con justificación. **`playwright/no-wait-for-timeout`** en `tests/e2e/fixtures/helpers.ts:44`: `waitForAuthToken` implementa un polling con timeout global (30s) sobre `localStorage`, y no existe evento observable para el momento en que Supabase persiste el token. Se documenta. **`playwright/no-skipped-test`** (5 casos): todos son skips condicionales legítimos — 2 en `portalSeed.ts` (sin credenciales E2E del portal), 1 en `roles-matrix.spec.ts` (por rol sin credenciales), 2 en `visual-desktop.spec.ts` / `visual-mobile.spec.ts` (gate opt-in `E2E_VISUAL=1` porque los baselines dependen del runner). En los 5 se agrega `eslint-disable-next-line` con la razón."
+    },
+    {
+      "heading": "Resultado",
+      "body": "177 → 82 warnings (-95, -54%). 0 errors. Sin cambios de lógica de negocio ni de UI. Los archivos tocados por el reordenamiento de imports pueden generar diffs grandes en CR, pero cada hunk sólo mueve líneas."
+    },
+    {
+      "heading": "Siguientes olas",
+      "body": "**Ola 2 (v7.114.3):** los 24 `react-hooks/set-state-in-effect` — patrón por patrón, derivando en render o moviendo a event handler. **Ola 3 (v7.114.4):** los 27 `react-hooks/refs`, 9 `react-refresh/only-export-components`, 6 `react-hooks/incompatible-library`, 2 `react-compiler/react-compiler` y los pocos `max-lines-per-function` / `complexity`."
+    }
+  ]
+}

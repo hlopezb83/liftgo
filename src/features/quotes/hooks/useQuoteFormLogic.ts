@@ -1,4 +1,3 @@
-import type { FormEvent as ReactFormEvent } from "react";
 
 import { useParams } from "react-router";
 import { useCustomers } from "@/features/customers";
@@ -10,6 +9,7 @@ import { buildSaleItems, buildRentalItems, validateQuoteForm, buildQuotePayload 
 import { useQuoteFormState } from "./quoteForm/useQuoteFormState";
 import { useQuotePrefill } from "./quoteForm/useQuotePrefill";
 import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "./quotes/useQuotes";
+import type { FormEvent as ReactFormEvent } from "react";
 
 export function useQuoteFormLogic() {
   const { id } = useParams();

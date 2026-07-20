@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/rules-of-hooks -- Playwright fixtures receive a `use` callback that the rule mistakes for a React Hook. */
+ 
 import { test as base, type Page, type TestInfo } from "@playwright/test";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { getAuthToken } from "./helpers";

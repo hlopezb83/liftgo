@@ -60,6 +60,7 @@ async function loginAs(page: Page, email: string, password: string) {
 
 for (const role of ROLES) {
   test.describe(`Rol ${role.key}`, () => {
+    // eslint-disable-next-line playwright/no-skipped-test -- Skip condicional por credenciales de rol ausentes; permite correr la matriz parcialmente en CI.
     test.skip(!role.email || !role.password, `Faltan credenciales E2E_${role.key.toUpperCase()}_*`);
 
     test.use({ storageState: { cookies: [], origins: [] } });

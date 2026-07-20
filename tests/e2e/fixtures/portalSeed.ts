@@ -1,4 +1,4 @@
-/* eslint-disable react-hooks/rules-of-hooks -- Playwright fixtures usan `use` que el lint confunde con un hook. */
+ 
 import { test as base, type TestInfo } from "@playwright/test";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
@@ -76,6 +76,7 @@ export const test = base.extend<PortalFixtures>({
     void _page;
     const cfg = loadConfig();
     if (!cfg) {
+      // eslint-disable-next-line playwright/no-skipped-test -- Skip condicional: sin credenciales E2E del portal la suite se omite en runners locales.
       test.skip(true, MISSING_ENV_MSG);
       return;
     }
@@ -85,6 +86,7 @@ export const test = base.extend<PortalFixtures>({
     void _page;
     const cfg = loadConfig();
     if (!cfg) {
+      // eslint-disable-next-line playwright/no-skipped-test -- Skip condicional: sin credenciales E2E del portal la suite se omite en runners locales.
       test.skip(true, MISSING_ENV_MSG);
       return;
     }

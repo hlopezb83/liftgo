@@ -1,9 +1,9 @@
-import { IncomeStatementDocument } from "@/lib/pdf/documents/IncomeStatementDocument";
-import { renderAndSave } from "@/lib/pdf/renderAndSave";
-import { fetchCompanyDataAndLogo } from "@/lib/pdf/shared";
 import type {
   StatementRow, ComparisonRow, YearTotals, MonthData,
 } from "@/features/reports/hooks/useIncomeStatementData";
+import { IncomeStatementDocument } from "@/lib/pdf/documents/IncomeStatementDocument";
+import { renderAndSave } from "@/lib/pdf/renderAndSave";
+import { fetchCompanyDataAndLogo } from "@/lib/pdf/shared";
 
 interface ExportPdfParams {
   filteredData: MonthData[];

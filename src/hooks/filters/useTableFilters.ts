@@ -1,6 +1,6 @@
+import { matchSorter, rankings } from "match-sorter";
 import { useCallback, useDeferredValue, useEffect, useMemo, useRef } from "react";
 import { useLocation, useNavigate } from "react-router";
-import { matchSorter, rankings } from "match-sorter";
 
 /**
  * Contrato canónico de filtros de tabla en LiftGo.
