@@ -75,7 +75,18 @@ export function useEntityMutation<TVar, TData>(
       if (onSuccess) await onSuccess(data, vars);
     },
     onError: (error: Error) => {
-      notifyError({ title: errorTitle, error, severity: errorSeverity });
+      // EC-M4: traducimos stale_write a un toast tipo warning con copy claro.
+      const translated = translateDbError(error, errorTitle);
+      if (translated.matched) {
+        notifyError({
+          title: translated.title,
+          error,
+          description: translated.message,
+          severity: translated.severity,
+        });
+      } else {
+        notifyError({ title: errorTitle, error, severity: errorSeverity });
+      }
     },
   });
 }
