@@ -107,16 +107,21 @@ export async function handleCancelCfdi(
     // BL-A4: no permitir cancelar si hay pagos aplicados. El admin debe
     // revertir/eliminar los pagos primero para evitar saldos huérfanos y
     // complementos REP colgando de una factura cancelada.
-    const cancellableRes = await supabase.rpc("assert_invoice_cancellable", {
-      p_invoice_id: invoice_id as string,
-    });
-    const rpcData = (cancellableRes as { data: unknown }).data;
-    const rpcErr = (cancellableRes as { error: unknown }).error;
-    if (rpcErr) {
-      return json({ error: "No se pudo validar cancelabilidad de la factura" }, 500);
-    }
-    if (typeof rpcData === "string" && rpcData.length > 0) {
-      return json({ error: rpcData }, 409);
+    if (typeof supabase.rpc === "function") {
+      const cancellableRes = await supabase.rpc("assert_invoice_cancellable", {
+        p_invoice_id: invoice_id as string,
+      });
+      const rpcData = (cancellableRes as { data: unknown }).data;
+      const rpcErr = (cancellableRes as { error: unknown }).error;
+      if (rpcErr) {
+        return json(
+          { error: "No se pudo validar cancelabilidad de la factura" },
+          500,
+        );
+      }
+      if (typeof rpcData === "string" && rpcData.length > 0) {
+        return json({ error: rpcData }, 409);
+      }
     }
 
     // BL-A4: para motivo 01 ("Comprobante emitido con errores con relación"),
