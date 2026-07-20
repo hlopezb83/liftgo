@@ -1,5 +1,5 @@
 import { matchSorter, rankings } from "match-sorter";
-import { useCallback, useDeferredValue, useEffect, useMemo, useRef } from "react";
+import { useCallback, useDeferredValue, useEffect, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router";
 
 /**
