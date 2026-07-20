@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
+import { MobileCardList } from "@/components/layout/MobileCardList";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Switch } from "@/components/ui/switch";
 import { useForklifts } from "@/features/fleet";
@@ -12,10 +14,15 @@ import {
   useDeleteMaintenancePolicy,
   MaintenancePolicy,
 } from "@/features/maintenance";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifyValidation } from "@/lib/ui/appFeedback";
 import { MaintenancePolicyForm } from "./MaintenancePolicyForm";
 import { EMPTY_POLICY_FORM, type MaintenancePolicyFormValues } from "./maintenancePolicyFormTypes";
+
+
+export function MaintenancePoliciesTab() {
+  const isMobile = useIsMobile();
 
 
 export function MaintenancePoliciesTab() {
