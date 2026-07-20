@@ -6,7 +6,7 @@ import { useUserRole } from "@/features/users";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { AuditLogDetailDialog } from "../components/auditTrail/AuditLogDetailDialog";
 import { AuditLogMobileCard } from "../components/auditTrail/AuditLogMobileCard";
-import { TABLES } from "../components/auditTrail/auditTrailConstants";
+import { TABLES, getRecordLabel } from "../components/auditTrail/auditTrailConstants";
 import { DeleteAuditLogDialog } from "../components/auditTrail/DeleteAuditLogDialog";
 import { useAuditTrailColumns } from "../components/auditTrail/useAuditTrailColumns";
 import { useAuditLogs, useDeleteAuditLog, useRevertAuditLog } from "../hooks/useAuditLogs";
