@@ -117,9 +117,41 @@ export function MaintenancePoliciesTab() {
         <Button size="sm" onClick={openNew}><AddIcon className="h-4 w-4 mr-1" />Nueva Póliza</Button>
       </div>
 
-      <div className="border rounded-lg">
-        <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay pólizas de mantenimiento configuradas" />
-      </div>
+      {isMobile ? (
+        <MobileCardList
+          items={policies ?? []}
+          keyExtractor={(p) => p.id}
+          emptyMessage="No hay pólizas de mantenimiento configuradas"
+          renderCard={(p) => (
+            <Card>
+              <CardContent className="p-3 space-y-1">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium">{p.forklift_name}</span>
+                  <div className="flex items-center gap-2">
+                    <Switch checked={p.is_active} onCheckedChange={() => toggleActive(p)} />
+                    <MaintenancePolicyRowActions
+                      policy={p}
+                      onEdit={() => openEdit(p)}
+                      onDelete={() => del.mutate(p.id)}
+                    />
+                  </div>
+                </div>
+                <div className="text-xs text-muted-foreground truncate">
+                  {p.provider_name} · {p.service_type}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  <span className="font-mono">{formatCurrency(p.monthly_cost)}</span>
+                  {p.last_generated_month ? ` · Último: ${p.last_generated_month}` : ""}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        />
+      ) : (
+        <div className="border rounded-lg">
+          <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay pólizas de mantenimiento configuradas" />
+        </div>
+      )}
 
       <MaintenancePolicyForm
         open={open}
