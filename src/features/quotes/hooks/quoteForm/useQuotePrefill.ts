@@ -126,4 +126,3 @@ export function useQuotePrefill({ existingQuote, equipmentModels, form }: Props)
   }, [existingQuote, equipmentModels, form, hydratedId]);
 }
 
-export { defaultQuoteFormValues };
