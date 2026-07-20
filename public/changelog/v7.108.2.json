@@ -1,0 +1,37 @@
+{
+  "version": "7.108.2",
+  "date": "2026-07-20",
+  "type": "patch",
+  "title": "Estado de Resultados: deduplicación entre facturas de proveedor y gastos operativos",
+  "sections": [
+    {
+      "heading": "Contexto",
+      "items": [
+        "Auditoría de la categoría 'Otro' en /income-statement detectó que 48 de 100 partidas YTD 2026 estaban duplicadas: la misma fecha, monto y descripción capturadas tanto en `supplier_bills` como en `operating_expenses`. El RPC `get_income_statement` sumaba ambas fuentes con `UNION ALL` sin deduplicar, inflando la línea 'Otro' (y potencialmente otras categorías).",
+        "Impacto medido en 'Otro' YTD 2026: reportaba $1,665,627 cuando el real es $878,845 — casi 2×."
+      ]
+    },
+    {
+      "heading": "Fix (una migración)",
+      "items": [
+        "`get_income_statement`: se reemplaza el CTE `expense_lines` por tres CTEs (`sb_lines`, `oe_lines`, `oe_dedup`).",
+        "Llave de match: `date_key` + `ROUND(amount, 2)` + `desc_key` (descripción `lower(regexp_replace(trim(...), '\\s+', ' ', 'g'))`). `date_key` respeta la base contable: `sb.issue_date` / `oe.expense_date` en `accrual`, `sp.payment_date` / `oe.expense_date` en `cash`.",
+        "Prioridad a `supplier_bills` (fuente formal con proveedor y timbrado). Si un `operating_expenses` coincide, se descarta.",
+        "No se colapsan partidas de fechas distintas ni de descripciones distintas — el match exige coincidencia exacta en las tres llaves."
+      ]
+    },
+    {
+      "heading": "Fuera de alcance",
+      "items": [
+        "No se borran registros duplicados en `operating_expenses` — sólo se ignoran en el reporte. Limpieza permanente queda para un sprint aparte con confirmación por partida.",
+        "No cambia el flujo de captura (frontend) ni se toca `get_dashboard_stats` — se atenderá si se detecta el mismo síntoma."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "Consulta directa post-migración: 'Otro' YTD 2026 = $878,845.07 (52 partidas), consistente con el total real de `supplier_bills`. Los 48 `operating_expenses` de la categoría matchearon 1-a-1 con su factura de proveedor."
+      ]
+    }
+  ]
+}
