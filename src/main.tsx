@@ -11,7 +11,7 @@ import "./index.css";
 // information provided` en cada page load, aunque nuestro Calendar override
 // pasa `es-MX`. Envolvemos el constructor para fallback silencioso a `en`.
 const OrigLocale = Intl.Locale;
-Intl.Locale = new Proxy(OrigLocale, {
+const LocaleShim = new Proxy(OrigLocale, {
   construct(target, args: ConstructorParameters<typeof Intl.Locale>) {
     try {
       return new target(...args);
@@ -20,6 +20,7 @@ Intl.Locale = new Proxy(OrigLocale, {
     }
   },
 }) as typeof Intl.Locale;
+(Intl as { Locale: typeof Intl.Locale }).Locale = LocaleShim;
 
 const RELOAD_KEY = "vite-preload-reload";
 
