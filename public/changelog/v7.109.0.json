@@ -1,0 +1,55 @@
+{
+  "version": "7.109.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "Ronda 4 — BL-53 a BL-57",
+  "sections": [
+    {
+      "heading": "BL-53 (P0) — Doble descuento de stock por refacción",
+      "items": [
+        "Se elimina el trigger legacy `trg_decrement_stock` y su función `handle_part_usage()`. Queda `trg_maintenance_parts_adjust_stock` (fix de BL-28) que maneja INSERT/UPDATE/DELETE y valida stock insuficiente.",
+        "Reconciliación de stock: verificado en producción — 0 filas de `maintenance_parts` desde 2026-07-19, no requiere ajuste."
+      ]
+    },
+    {
+      "heading": "BL-54 (P1) — Costo manual preservado + snapshot de costo de refacción",
+      "items": [
+        "Nueva columna `maintenance_logs.manual_cost NUMERIC NOT NULL DEFAULT 0`. Backfill: logs con `cost > 0` y sin partes ni mano de obra migran su `cost` a `manual_cost`.",
+        "Nuevo trigger `snapshot_part_cost` (BEFORE INSERT en `maintenance_parts`) hidrata `cost_at_time` desde `parts_inventory.unit_cost` cuando el input es 0 o NULL — cubre imports/edge/SQL además del formulario.",
+        "`recalc_maintenance_log_cost` ahora calcula `cost = manual_cost + partes + mano_de_obra` en vez de sobrescribir a `partes + mano_de_obra`.",
+        "Nuevo trigger `trg_recalc_log_from_manual` recalcula `cost` cuando cambia `manual_cost` en el log.",
+        "Nota: los logs históricos que ya perdieron su costo por el bug se dejan para revisión manual (los backfilleados sin partes/labor se recuperan automáticamente)."
+      ]
+    },
+    {
+      "heading": "BL-55 (P0) — Devolución dañada crea `damage_record` y bloquea la unidad",
+      "items": [
+        "`complete_return_inspection` ahora: si `condition IN ('damaged','needs_repair')` y `damage_cost > 0` → INSERT en `damage_records` (status `reported`) ligando `inspection_id`, `booking_id`, `customer_id`, `estimated_cost` y descripción (fallback 'Daño reportado en devolución').",
+        "El equipo se mueve a `maintenance` en la rama de daño (no `available`), evitando que una unidad averiada se re-rente.",
+        "`status_logs` refleja la transición real (`from_status → maintenance | available`)."
+      ]
+    },
+    {
+      "heading": "BL-56 (P1) — 'Por cobrar' del dashboard excluye borradores",
+      "items": [
+        "`get_dashboard_stats.invoice_stats.outstanding_revenue` filtra `status IN ('sent','partial','overdue')` y descarta facturas con `cancellation_status='accepted'`."
+      ]
+    },
+    {
+      "heading": "BL-57 (P2) — Normalización a MXN en cartera y KPIs",
+      "items": [
+        "`v_invoices_with_balance` expone `total_mxn` y `balance_mxn = ROUND(balance * COALESCE(NULLIF(tipo_cambio,0),1), 2)`.",
+        "`v_overdue_invoices` incluye `balance_mxn`.",
+        "`get_dashboard_stats.outstanding_revenue` y `get_customer_summary.outstanding_revenue` suman `balance_mxn` (MXN). `get_customer_summary.total_invoiced` y `total_paid` también se convierten por `tipo_cambio`.",
+        "Sin cambios de UI: los cards seguían mostrando MXN — solo cambia el origen del agregado."
+      ]
+    },
+    {
+      "heading": "Fuera de alcance",
+      "items": [
+        "Backfill de damage_records para devoluciones cerradas antes del fix (aplica prospectivamente desde v7.109.0).",
+        "Reordenar migraciones DRIFT-01 residual: los objetos ya existen en producción; se documenta y se atenderá en un sprint de higiene de migraciones dedicado."
+      ]
+    }
+  ]
+}

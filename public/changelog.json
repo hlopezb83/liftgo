@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.109.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "Ronda 4 — Integridad de inventario, devoluciones dañadas, KPIs y multi-moneda",
+    "summary": "BL-53: se elimina el trigger duplicado `trg_decrement_stock` que descontaba el stock DOS VECES al usar refacciones desde el 19-jul (queda `trg_maintenance_parts_adjust_stock` que valida stock insuficiente). BL-54: nueva columna `maintenance_logs.manual_cost`; el recálculo ya no sobreescribe el costo capturado a mano y un nuevo trigger `snapshot_part_cost` hidrata `cost_at_time` desde `parts_inventory.unit_cost` cuando llega en 0/null (evita perder el costo si se inserta desde import/edge/SQL). BL-55: `complete_return_inspection` ahora crea automáticamente el `damage_record` cuando la devolución es damaged/needs_repair con costo > 0, y deja el equipo en `maintenance` en vez de `available`. BL-56: el KPI 'Por cobrar' del dashboard ya no incluye borradores (`draft`) ni facturas con `cancellation_status='accepted'`. BL-57: la vista `v_invoices_with_balance` expone `balance_mxn` y `total_mxn` normalizados por `tipo_cambio`; `get_dashboard_stats`, `get_customer_summary` y `v_overdue_invoices` suman en MXN, eliminando la mezcla silenciosa de USD/MXN en cartera y aging."
+  },
+  {
     "version": "7.108.4",
     "date": "2026-07-20",
     "type": "patch",

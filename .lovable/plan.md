@@ -1,40 +1,79 @@
-## Auditoría YTD 2026 — doble conteo por categoría del Estado de Resultados
+## Plan de remediación — Auditoría ronda 4 (BL-53 a BL-57 + DRIFT-01)
 
-Query ejecutado contra `supplier_bills` (status ≠ cancelled) y `operating_expenses`, ambos con fecha ≥ 2026-01-01. Match de duplicado = misma fecha + mismo monto (2 decimales) + descripción normalizada (trim, colapso de espacios, lowercase). La regla actual del RPC prioriza `supplier_bills`.
+Ejecutar en un solo sprint con foco en integridad de datos e inventario. Todo vía migraciones Supabase (más ajustes menores de frontend cuando aplique). Cada fix con changelog patch/minor incremental y tests en Vitest/Deno según corresponda.
 
-### Categorías con doble conteo detectado
+### P0 — BL-53: Doble descuento de stock (HIGH)
 
+Migración:
 
-| Categoría  | SB partidas | SB total   | OE partidas | OE total   | Duplicadas | Descartado del P&L | Neto P&L   |
-| ---------- | ----------- | ---------- | ----------- | ---------- | ---------- | ------------------ | ---------- |
-| otro       | 52          | 891,873.87 | 48          | 786,781.96 | 48         | **786,781.96**     | 891,873.87 |
-| renta      | 7           | 325,293.12 | 6           | 272,592.00 | 6          | **272,592.00**     | 325,293.12 |
-| nomina     | 22          | 164,167.16 | 23          | 170,410.06 | 21         | **153,095.12**     | 181,482.10 |
-| publicidad | 17          | 119,748.84 | 14          | 95,983.20  | 14         | **95,983.20**      | 119,748.84 |
-| caja_chica | 1           | 10,706.90  | 1           | 10,706.90  | 1          | **10,706.90**      | 10,706.90  |
+- `DROP TRIGGER trg_decrement_stock ON maintenance_parts` + `DROP FUNCTION handle_part_usage()` (redundante con `adjust_part_stock_on_maintenance_part` que sí valida INSERT/UPDATE/DELETE + stock).
+- Script de reconciliación **una sola vez**: recalcular `parts_inventory.stock` para las refacciones tocadas desde `2026-07-19` sumando el consumo histórico real de `maintenance_parts` y ajustando la diferencia (log a `audit_logs`).
 
+Test: Vitest de RPC que inserta `maintenance_parts` y verifica descuento exacto (no doble).
 
-**Total descartado por deduplicación: $1,319,159.18 MXN.**
+### P0 — BL-55: Daños en devolución no se registran (HIGH)
 
-### Categorías sin doble conteo (una sola fuente)
+Migración a `complete_return_inspection`:
 
-- Solo `supplier_bills`: mantenimiento ($28,188), transporte_logistica ($73,592), intereses ($187,739.35), honorarios ($4,000), comisiones_bancarias ($1,461.50), refacciones ($3,201.60), servicios_publicos ($5,000).
-- Solo `operating_expenses`: **costo_venta ($363,040 · 1 partida)** — captura únicamente en OE, no expone riesgo de doble conteo pero conviene evaluar si debería registrarse como factura de proveedor.
+- Cuando `p_condition IN ('damaged','needs_repair')` y `p_damage_cost > 0`:
+  - `INSERT INTO damage_records(inspection_id, forklift_id, booking_id, customer_id, description, estimated_cost, status='pending')`.
+  - `UPDATE forklifts SET status = 'maintenance'` (no `available`).
+- Rama `else`: `status = 'available'` como hoy.
 
-### Hallazgo pendiente en `nomina`
+Test: Deno test del RPC — condition=damaged crea 1 damage_record y deja forklift en maintenance.
 
-`operating_expenses.nomina` tiene 23 partidas por $170,410.06 pero el matcher sólo captura 21 ($153,095.12). Quedan **2 partidas por $17,314.94** que no matchean con ninguna `supplier_bills` de la misma categoría. Posibles causas: descripción distinta (typos, mayúsculas con acentos, "Nómina 1a quincena" vs "Nomina primera quincena"), monto redondeado distinto por retenciones, o fechas desfasadas 1 día. Podrían ser gastos legítimos únicos o duplicados no detectados.
+### P1 — BL-54: `cost_at_time` snapshot + recálculo destructivo (MEDIUM)
 
-## Entregable propuesto
+Dos cambios:
 
-Registrar el reporte como changelog **v7.108.4** (patch, sin cambios de código) con:
+1. Trigger `BEFORE INSERT` `snapshot_part_cost()` en `maintenance_parts`: si `cost_at_time` es null/0, hidrata desde `parts_inventory.unit_cost`.
+2. `recalc_maintenance_log_cost`: preservar el costo manual. Agregar columna `maintenance_logs.manual_cost numeric` (nueva) y calcular `cost = COALESCE(manual_cost, 0) + Σ(parts) + Σ(labor)`. Migración de datos: si el log tiene cost > 0 y no hay parts/labor, copiar a `manual_cost`.
 
-- Tabla de impacto por categoría (arriba).
-- Total descartado.
-- Flag explícito sobre las 2 partidas residuales de `nomina` para revisión manual.
-- Nota sobre `costo_venta` capturado sólo en OE.
+Frontend: `MaintenancePartsSection` ya envía cost_at_time — se mantiene; formulario de log muestra "Costo manual adicional" apuntando a `manual_cost`.
 
-## Preguntas
+Tests: Vitest sobre recalc con combinaciones (solo manual, solo partes, mezcla).
 
-1. ¿Quieres que en el mismo turno investigue las 2 partidas residuales de `nomina` (listar id, fecha, monto, descripción para que decidas si son duplicados no detectados o legítimos)? Si
-2. ¿Quieres que el reporte se guarde también como archivo Markdown en `/mnt/documents/` para compartir fuera de la app, o solo como changelog?
+### P1 — BL-56: KPI "por cobrar" incluye borradores (MEDIUM)
+
+Migración a `get_dashboard_stats`:
+
+```sql
+WHERE v.status IN ('sent','partial','overdue')
+  AND COALESCE(v.cancellation_status,'') <> 'accepted'
+```
+
+Test: Vitest que inserta 1 draft + 1 sent y verifica que outstanding solo cuenta el sent.
+
+### P2 — BL-57: Mezcla de monedas en agregados (MEDIUM-HIGH)
+
+Migración:
+
+- Recrear `v_invoices_with_balance` agregando `balance_mxn = ROUND(balance * COALESCE(NULLIF(tipo_cambio,0), 1), 2)` y `total_mxn` análogo.
+- Actualizar `get_dashboard_stats`, `v_overdue_invoices`, `get_customer_summary` y aging para sumar `balance_mxn`.
+- Sin cambios de UI: los cards ya muestran MXN — solo cambia la fuente.
+
+Test: Vitest inserta factura USD (tipo_cambio 18.5) y verifica que outstanding se convierte a MXN.
+
+### P2 — DRIFT-01 residual: orden de migraciones en frío (MEDIUM)
+
+Envolver los REVOKE/policy conflictivos en guardas `DO $$ IF EXISTS (…) THEN … END IF $$` mediante una migración nueva (`20260720170000_drift_backfill_guards.sql`) que:
+
+- Recrea la policy sobre `collection_reminders_log` con `IF EXISTS` sobre pg_class.
+- Recrea los REVOKE con `IF EXISTS` sobre pg_proc.
+
+No se re-timestampan migraciones existentes (romperíamos historial). Verificar rebuild en frío con `supabase db reset` local si hay CLI disponible; si no, dejar documentado en el changelog.
+
+### Changelog
+
+Una entrada por cada BL en `public/changelog/v7.109.0.json` (minor por magnitud + cambios estructurales), más índice en `public/changelog.json`. Documentar el script de reconciliación de stock de BL-53 explícitamente.
+
+### Fuera de alcance
+
+- Backfill masivo histórico de `damage_records` para devoluciones ya cerradas antes del fix (solo aplica desde v7.109.0).
+- Migración retroactiva de logs de mantenimiento con cost sobreescrito a 0: se listan en el changelog para revisión manual.
+- Cambios de UI en el módulo de daños/mantenimiento más allá de exponer `manual_cost`.
+
+### Preguntas antes de ejecutar
+
+1. Reconciliación de stock (BL-53): ¿aplico el ajuste automático desde `2026-07-19` o solo genero un reporte en `/mnt/documents/` para que revises antes? aplica el ajuste
+2. Logs de mantenimiento con `cost=0` por BL-54: ¿los intento recuperar copiando `cost` histórico desde `audit_logs`, o los dejo para revisión manual con lista adjunta? revision manual
