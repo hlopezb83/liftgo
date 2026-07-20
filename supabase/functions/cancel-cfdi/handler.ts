@@ -139,7 +139,10 @@ export async function handleCancelCfdi(
         | null;
       if (!sub) {
         return json(
-          { error: "No se encontró una factura con el UUID sustituto proporcionado." },
+          {
+            error:
+              "No se encontró una factura con el UUID sustituto proporcionado.",
+          },
           400,
         );
       }

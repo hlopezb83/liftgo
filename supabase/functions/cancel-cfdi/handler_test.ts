@@ -371,7 +371,8 @@ Deno.test("cancel-cfdi: BL-A4 rechaza 409 si hay pagos aplicados", async () => {
       updates: { invoices: { data: null, error: null } },
       rpcs: {
         assert_invoice_cancellable: {
-          data: "La factura tiene 2 pago(s) aplicado(s) por $10,000.00. Elimina o reversa los pagos antes de cancelar el CFDI.",
+          data:
+            "La factura tiene 2 pago(s) aplicado(s) por $10,000.00. Elimina o reversa los pagos antes de cancelar el CFDI.",
           error: null,
         },
       },
