@@ -55,6 +55,7 @@ const month: MonthData = {
   revenue: 10_000,
   revenueRentalBooked: 8_000, revenueRentalUnbooked: 0,
   revenueSales: 2_000,
+  revenueDamageRecovery: 0,
   maintenanceCost: 1_000,
   damageCost: 0,
   depreciation: 500,
@@ -66,6 +67,7 @@ const month: MonthData = {
   rentalBookedByCustomer: {},
   rentalUnbookedByCustomer: {},
   salesByCustomer: {},
+  damageRecoveryByCustomer: {},
 
   grossProfit: 9_000,
   grossMargin: 90,
