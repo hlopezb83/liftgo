@@ -1,69 +1,68 @@
-# Ola 2.2 — Facturación recurrente (Sprint 2)
+# Auditoría de Ola 2.2 (v7.118.0)
 
-## Auditoría de Ola 2.1 (previa)
+- Vitest 1084/1084 ✅  
+- Deno `generate-recurring-invoices`: 13/13 ✅ (bookingEnded 4, index 3, prorate 6)
+- RPC `create_recurring_invoice` registrada con firma correcta (15 args) y `SECURITY DEFINER`.
+- Manejo de `23505` como idempotencia benigna presente en la Edge Function.
+- Advisory locks por `booking_id` previenen doble facturación concurrente.
 
-- `extend_booking` RPC: `SECURITY DEFINER`, `SET search_path`, `FOR UPDATE`, buffer de 3 días y validación de overlap. ✔
-- `useCreateBookingExtension` migrado al RPC atómico. ✔
-- 4 casos nuevos en `useBookingExtensions.test.ts` (rol, buffer, overlap, éxito). ✔
-- Vitest 1084/1084 + Deno 15/15 verde. ✔
+**Sin bugs detectados.** Gap menor (aceptable): no hay integration test end-to-end contra la RPC real (requeriría seeding con service-role). Los unit tests de prorrateo + smoke tests de auth cubren el contrato crítico.
 
-Sin bugs ni tests faltantes detectados. Avanzamos.
+Todo verde → procedo a la siguiente ola.
 
-## Alcance Ola 2.2
+# Ola 2.3 — Resiliencia CFDI (EC-A1 + EC-A2)
 
-Objetivo: blindar `generate-recurring-invoices` (Edge Function, 494 LOC) para que sea idempotente, transaccional y consistente con reglas de negocio LiftGo.
+Del reporte de auditoría integral, dos hallazgos 🟠 alto quedan en la capa fiscal después de Sprint 1:
 
-### Findings a resolver
+## EC-A1 — Consumidor de `cfdi_retry_queue`
 
-1. **BL-B1 — Idempotencia por período**
-   Prevenir doble facturación si la Edge Function se reintenta o corre concurrentemente. Hoy sólo confía en `last_billed_date` sin lock.
-   → Agregar índice único parcial `invoices(booking_id, billing_period_start)` para invoices recurrentes + advisory lock por `booking_id` durante generación.
+Hoy los errores transitorios de Facturapi se encolan en `cfdi_retry_queue` pero **nadie los procesa**. Las facturas quedan huérfanas hasta intervención manual.
 
-2. **BL-B2 — Precio congelado al momento de facturar**
-   Confirmar y documentar en tests que `monthly_rate` se toma de la reserva primero y del forklift como fallback en el instante de generación (memoria `recurring-billing-pricing`). Añadir test que cambie `monthly_rate` entre ciclos.
+**Solución:**
+1. Nueva Edge Function `process-cfdi-retry-queue` (cron-friendly):
+   - Selecciona filas `status='pending'` con `next_retry_at <= now()` y `attempts < max_attempts` (5).
+   - Advisory lock por `invoice_id` para evitar procesamiento paralelo.
+   - Reintenta llamando a `stamp-cfdi` internamente.
+   - Éxito → `status='completed'`. Fallo → `attempts++`, backoff exponencial (2^n min, tope 60min), `status='failed'` si excede.
+2. Registrar el cron en `supabase/config.toml` (cada 5 min).
+3. Tests Deno: éxito, backoff, límite de intentos, idempotencia con `23505`.
 
-3. **BL-B3 — Prorrateo en cierre de reserva (bookingEnded)**
-   Revisar `bookingEnded_test.ts`: cuando `end_date` cae a mitad de mes, prorratear el último ciclo con `computeProrate(1, end_day)`. Añadir caso "reserva termina el mismo día que inicia el ciclo" (0 días facturables).
+## EC-A2 — `stamping` huérfanos + timeout SDK
 
-4. **BL-B4 — Multi-currency defensivo (continuación de C-1)**
-   Bloquear generación si `booking.currency` ≠ `forklift.currency` o si falta `exchange_rate` cuando aplique. Marcar línea como `eligible=false` con razón `currency_mismatch`.
+Si `stamp-cfdi` falla después de que Facturapi emitió el CFDI pero antes del UPDATE local, la factura queda en `status='stamping'` con el UUID ya facturado en el SAT → duplicado al reintentar.
 
-5. **BL-B5 — Atomicidad multi-línea**
-   Envolver la creación de invoice + líneas + actualización de `last_billed_date` en un RPC `create_recurring_invoice(booking_id, period_start, period_end, lines jsonb)` `SECURITY DEFINER` para evitar invoices huérfanas si falla la inserción de líneas.
+**Solución:**
+1. RPC `reconcile_stamping_invoice(p_invoice_id, p_facturapi_id, p_uuid, p_xml_url, p_pdf_url)` (`SECURITY DEFINER`):
+   - Verifica que la factura sigue en `stamping`.
+   - Setea `status='stamped'` + datos CFDI.
+   - Idempotente: si ya está `stamped` con el mismo UUID, retorna éxito silencioso; si UUID distinto, lanza excepción (conflicto real).
+2. En `stamp-cfdi/index.ts`:
+   - Envolver la llamada a Facturapi con `AbortController` (timeout 30s).
+   - Tras respuesta exitosa del SDK, usar la nueva RPC en lugar del UPDATE directo → recuperable.
+3. Nueva Edge Function `reconcile-stamping-invoices` (cron cada 15 min):
+   - Busca facturas `status='stamping'` con `updated_at < now() - interval '10 min'`.
+   - Consulta Facturapi por `folio_number` o `series+folio` para saber si el CFDI existe.
+   - Si existe → llama a `reconcile_stamping_invoice`. Si no → revierte a `draft`.
+4. Tests Deno: timeout, conciliación exitosa, conflicto de UUID, reversión a draft.
 
-### Cambios técnicos
+## Alcance técnico
 
-- **Migración SQL**
-  - `CREATE UNIQUE INDEX CONCURRENTLY invoices_booking_period_uniq ON invoices(booking_id, billing_period_start) WHERE booking_id IS NOT NULL AND billing_period_start IS NOT NULL;`
-  - Nuevo RPC `create_recurring_invoice(...)` con `pg_advisory_xact_lock(hashtext(booking_id::text))`, insert de invoice + líneas + update `last_billed_date` en una transacción, retorna invoice id.
-  - Añadir columnas `billing_period_start`, `billing_period_end` a `invoices` si no existen (verificar antes).
-  - GRANTs a `authenticated` + `service_role`.
+### Archivos nuevos
+- `supabase/migrations/<ts>_cfdi_resilience.sql` — RPC `reconcile_stamping_invoice`.
+- `supabase/functions/process-cfdi-retry-queue/index.ts` + `_test.ts`.
+- `supabase/functions/reconcile-stamping-invoices/index.ts` + `_test.ts`.
 
-- **Edge Function** (`generate-recurring-invoices/index.ts`)
-  - Reemplazar `supabase.from("invoices").insert(...)` por RPC.
-  - Añadir chequeo `currency_mismatch` antes de push a `lines`.
-  - Manejo de error `unique_violation` (23505) → log "already_billed" y continuar.
+### Archivos modificados
+- `supabase/functions/stamp-cfdi/index.ts` — AbortController + RPC reconcile.
+- `supabase/config.toml` — dos nuevos schedules.
+- `public/changelog.json` + `public/changelog/v7.119.0.json`.
 
-- **Tests Deno**
-  - `index_test.ts`: caso concurrencia (dos runs seguidos → 1 invoice), caso `currency_mismatch`, caso `monthly_rate` cambiado.
-  - `bookingEnded_test.ts`: caso 0 días facturables.
+### Fuera de alcance
+- BL-B (facturación recurrente) — completo en 2.2.
+- UI del portal / reportes — Sprint 3.
 
-- **Tests Vitest**
-  - `useRecurringInvoices` (si existe hook) o `MrrDetailPage` para confirmar que los cambios no rompen KPIs.
-
-### Criterio de aceptación
-
-- Deno tests ≥ 18/18 verde (15 actuales + 3 nuevos mínimos).
-- Vitest 1084/1084 sigue verde.
-- Correr la función dos veces seguidas sobre la misma reserva no duplica invoices.
-- Cambio de `monthly_rate` entre ciclos se refleja en el siguiente invoice.
-
-### Changelog
-
-- `public/changelog.json` + `public/changelog/v7.118.0.json` (minor: nueva RPC + índice + lógica reforzada).
-
-## Fuera de alcance
-
-- Portal de clientes (Ola 2.3).
-- CFDI edge cases (Sprint 3).
-- Refactor visual de `MrrDetailPage`.
+## Criterios de aceptación
+- Vitest 1084/1084 verde.
+- Deno tests nuevos + existentes verdes.
+- Linter Supabase sin nuevas advertencias.
+- Manual: forzar `INSERT INTO cfdi_retry_queue (...)` y verificar que el cron procesa la fila.

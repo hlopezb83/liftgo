@@ -3932,6 +3932,20 @@ export type Database = {
       purge_e2e_data: { Args: never; Returns: Json }
       purge_old_notifications: { Args: never; Returns: number }
       recalc_supplier_bill: { Args: { p_bill_id: string }; Returns: undefined }
+      reconcile_stamping_invoice: {
+        Args: {
+          p_cfdi_uuid: string
+          p_cfdi_xml?: string
+          p_facturapi_env?: string
+          p_facturapi_invoice_id: string
+          p_folio?: string
+          p_invoice_id: string
+          p_pdf_storage_path?: string
+          p_serie?: string
+          p_xml_storage_path?: string
+        }
+        Returns: Json
+      }
       register_supplier_payment: {
         Args: {
           p_amount: number
