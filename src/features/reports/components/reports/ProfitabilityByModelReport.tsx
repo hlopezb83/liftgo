@@ -1,45 +1,36 @@
-
+import { AlertTriangle } from "lucide-react";
 import { DataTableV2, useLiftgoTable } from "@/components/dataTable/v2";
 import { DownloadIcon } from "@/components/icons";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useBookings } from "@/features/bookings";
-import { useDamageRecords } from "@/features/damage";
-import { useForklifts } from "@/features/fleet";
-import { useInvoices } from "@/features/invoices";
-import { useMaintenanceLogs } from "@/features/maintenance";
+import { Skeleton } from "@/components/ui/skeleton";
 import { exportToCsv } from "@/lib/exportCsv";
+import { useProfitByModelReport } from "../../hooks/useProfitByModelReport";
 import { ProfitabilityChart } from "./profitabilityByModel/ProfitabilityChart";
 import { profitabilityColumns } from "./profitabilityByModel/profitabilityColumns";
-import {
-  aggregateRows, buildCostMap, buildModelUnitsMap, buildRevenueMap,
-  type Booking, type DamageRec, type Forklift, type Invoice, type MaintLog, type ModelRow,
-} from "./profitabilityByModel/profitabilityHelpers";
+import type { ModelRow } from "./profitabilityByModel/profitabilityHelpers";
+
 
 interface Props {
   startDate: Date;
   endDate: Date;
 }
 
+/**
+ * EC-A4: se dejó de cargar toda la app (`useForklifts`, `useBookings`,
+ * `useInvoices`, `useMaintenanceLogs`, `useDamageRecords`) y de agregar en
+ * cliente — esa lectura se truncaba por los límites de PostgREST. Ahora la
+ * agregación completa la hace el RPC `report_profit_by_model`.
+ */
 export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
-  const { data: forklifts = [] } = useForklifts();
-  const { data: bookings = [] } = useBookings();
-  const { data: invoices = [] } = useInvoices();
-  const { data: maintenanceLogs = [] } = useMaintenanceLogs();
-  const { data: damageRecords = [] } = useDamageRecords();
+  const { data: rows = [], isLoading, isError, refetch } = useProfitByModelReport(startDate, endDate);
 
-  const rows: ModelRow[] = (() => {
-    const { modelUnits } = buildModelUnitsMap(forklifts as Forklift[]);
-    const revenueByForklift = buildRevenueMap(invoices as Invoice[], bookings as Booking[], startDate, endDate);
-    const maintByForklift = buildCostMap(maintenanceLogs as MaintLog[], (l) => l.performed_at, (l) => Number(l.cost || 0), startDate, endDate);
-    const dmgByForklift = buildCostMap(damageRecords as DamageRec[], (d) => d.created_at, (d) => Number(d.actual_cost || 0), startDate, endDate);
-    return aggregateRows(modelUnits, revenueByForklift, maintByForklift, dmgByForklift);
-  })();
-
-  const chartRows = [...rows].sort((a, b) => b.profit - a.profit);
+  const chartRows = rows;
 
   const table = useLiftgoTable<ModelRow>({
-    data: rows,
+    data: rows as ModelRow[],
+
     columns: profitabilityColumns,
     getRowId: (r) => r.model,
     initialSorting: [{ id: "profit", desc: true }],
@@ -58,24 +49,39 @@ export function ProfitabilityByModelReport({ startDate, endDate }: Props) {
     })));
   };
 
+  if (isError) {
+    return (
+      <Alert variant="destructive">
+        <AlertTriangle className="h-4 w-4" />
+        <AlertTitle>No se pudo cargar el reporte</AlertTitle>
+        <AlertDescription className="flex items-center justify-between gap-4">
+          <span>Ocurrió un error al calcular la rentabilidad por modelo.</span>
+          <Button variant="outline" size="sm" onClick={() => refetch()}>Reintentar</Button>
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Ganancia Neta por Modelo</CardTitle>
-          <Button variant="outline" size="sm" onClick={handleExport}>
+          <Button variant="outline" size="sm" onClick={handleExport} disabled={isLoading || chartRows.length === 0}>
             <DownloadIcon className="h-4 w-4 mr-2" /> Exportar CSV
           </Button>
         </CardHeader>
         <CardContent>
-          <ProfitabilityChart chartRows={chartRows} />
+          {isLoading ? <Skeleton className="h-64 w-full" /> : <ProfitabilityChart chartRows={chartRows} />}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader><CardTitle>Detalle por Modelo</CardTitle></CardHeader>
         <CardContent>
-          <DataTableV2 table={table} emptyMessage="No hay datos para el rango seleccionado." />
+          {isLoading
+            ? <Skeleton className="h-40 w-full" />
+            : <DataTableV2 table={table} emptyMessage="No hay datos para el rango seleccionado." />}
         </CardContent>
       </Card>
     </div>

@@ -1,0 +1,34 @@
+{
+  "version": "7.125.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "Sprint 3 · Ola 3.3 — EC-A4 (Rentabilidad server-side) + cobertura Ola 3.2",
+  "summary": "Ola 3.3 (EC-A4 + cobertura 3.2). Rentabilidad por modelo ahora se calcula en Postgres vía RPC; nuevos tests para `contractFormSchema` y `useUnsavedChangesGuard`.",
+  "sections": [
+    {
+      "title": "EC-A4 · Rentabilidad por modelo server-side",
+      "items": [
+        "Nuevo RPC `report_profit_by_model(_start date, _end date)` — `SECURITY DEFINER`, `search_path=public`, `execute` sólo `authenticated`",
+        "Agrega en el servidor: unidades por modelo, ingresos (facturas pagadas por `paid_at::date`), mantenimiento (`performed_at::date`), daños (`created_at::date`), profit y margin",
+        "Reemplaza la implementación cliente que cargaba `useForklifts`, `useBookings`, `useInvoices`, `useMaintenanceLogs`, `useDamageRecords` completos y quedaba truncada por los límites de PostgREST",
+        "Nuevo hook `useProfitByModelReport(startDate, endDate)` con `queryKey` estable por YMD del rango",
+        "`ProfitabilityByModelReport.tsx` reescrito: consume el RPC, mantiene chart + tabla existentes, añade `ErrorState` con Reintentar y skeletons durante carga"
+      ]
+    },
+    {
+      "title": "Cobertura Ola 3.2",
+      "items": [
+        "`contractFormSchema.test.ts` — 6 casos: payload válido, cliente/equipo requeridos, tarifas negativas rechazadas, `end_date < start_date` rechazado, rango vacío aceptado",
+        "`useUnsavedChangesGuard.test.tsx` — 3 casos: no registra `beforeunload` con `isDirty=false`, sí lo registra y lo remueve al desmontar con `isDirty=true`, y llama `preventDefault()` + setea `returnValue=''` al disparar el evento"
+      ]
+    },
+    {
+      "title": "Verificación",
+      "items": [
+        "1097/1097 tests Vitest en verde (+3 nuevos)",
+        "Typecheck limpio",
+        "Linter Supabase sin nuevos ERRORs introducidos por la migración"
+      ]
+    }
+  ]
+}

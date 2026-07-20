@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.125.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "Sprint 3 · Ola 3.3 — EC-A4 (Rentabilidad server-side) + cobertura Ola 3.2",
+    "summary": "Ola 3.3 cierra los follow-ups de la 3.2 con dos entregas. EC-A4 (Rentabilidad por modelo server-side): nuevo RPC `report_profit_by_model(_start, _end)` (SECURITY DEFINER, `search_path=public`, execute solo `authenticated`) que agrega en Postgres unidades, ingresos (facturas pagadas), costos de mantenimiento, daños, ganancia y margen — reemplaza el cálculo cliente que cargaba 5 datasets completos (`useForklifts`, `useBookings`, `useInvoices`, `useMaintenanceLogs`, `useDamageRecords`) y quedaba truncado por los límites de PostgREST. Nuevo hook `useProfitByModelReport(start, end)` con `queryKey` estable por rango YMD. `ProfitabilityByModelReport` reescrito para consumir el RPC + `ErrorState` con retry. Cobertura: nuevos tests para `contractFormSchema` (6 casos: cliente/equipo requeridos, tarifas ≥ 0, `end_date < start_date`, rango vacío) y para `useUnsavedChangesGuard` (registro/desmontaje de `beforeunload` según `isDirty`, `preventDefault` + `returnValue=''` cuando hay cambios sin guardar). Verificación: 1097/1097 Vitest verde, typecheck limpio.",
+    "changes": [
+      "EC-A4: RPC `report_profit_by_model` server-side (Postgres) reemplaza agregación cliente",
+      "Nuevo hook `useProfitByModelReport` con caché por rango",
+      "`ProfitabilityByModelReport` deja de cargar 5 datasets completos; añade estado de error con retry",
+      "Tests nuevos: `contractFormSchema` (6) + `useUnsavedChangesGuard` (3)"
+    ]
+  },
+  {
+
     "version": "7.124.0",
     "date": "2026-07-20",
     "type": "minor",
