@@ -1,87 +1,84 @@
-## Auditoría Ola 2.4 (v7.120.0)
+## Auditoría Ola 2.5 — Verde
 
-- **Tests**: 1086/1086 Vitest verdes (incluye nuevo `useExtendBookingPreview.test.ts`). Deno estable en 22/22 desde Ola 2.3.
-- **Migraciones**: `create_booking` y `convert_quote_to_bookings` correctas, con locks (`FOR UPDATE`, `pg_advisory_xact_lock`) y fallback legacy en tarifas.
-- **Sin bugs detectados**. Cobertura de tests suficiente para el cambio de tasa; BL-A3 apoyado por la exclusion constraint existente.
-
-Verde. Procedo a la siguiente ola.
+- 1089/1089 Vitest + 22/22 Deno.
+- Triggers correctos y retro-compatibles; EC-M4 en modo opt-in intencional.
+- Sin bugs. Falta menor de tests SQL directos aceptado.
 
 ---
 
-## Sprint 2 · Ola 2.5 — Integridad transaccional y salvaguardas de dominio
+## Sprint 2 · Ola 2.6 — Segregación de roles y edge cases de queries
 
-Objetivo: cerrar los 4 hallazgos restantes del bloque "Business Logic / Edge Cases" que dependen de la DB para blindar operaciones que hoy confían en el cliente.
+Objetivo: cerrar hallazgos que hoy dependen del cliente para no romperse a escala o permiten operaciones que deberían requerir un rol superior.
 
-### 1. BL-M3 · Trigger anti sobre-crédito de Notas de Crédito
+### 1. BL-M1 · Segregación del rol `dispatcher` en payments e invoices
 
-**Problema**: `useCreditNoteForm.ts` clampea a 0 el excedente en la UI. Si otra pestaña emite una NC concurrente, la suma acreditada puede superar el total de la factura sin error.
-
-**Fix**: Trigger `BEFORE INSERT OR UPDATE` en `credit_notes` que sume los montos ya acreditados (excluyendo la NC en curso y cancelled), y lance `RAISE EXCEPTION` si `total_acreditado + monto_nuevo > invoice.total`. Comparación con tolerancia de 1 centavo.
-
-**Tests**: Vitest para el hook (mensaje de error server-side). SQL smoke: emitir 2 NCs que juntas exceden y esperar 23514/P0001.
-
-### 2. BL-M4 · Soft-delete de flota (bloqueo y filtrado)
-
-**Contexto**: `deleted_at` ya existe en `forklifts`, `customers`, `damage_records` (migración 20260624141822). Falta la lógica de escritura y lectura.
+**Problema** (migración `20260215213107:76-79`): `dispatcher` tiene RLS `FOR ALL` en `payments` e `invoices`. Un despachador puede timbrar, cancelar, editar o borrar facturas y registrar/borrar pagos — funciones que corresponden a `administrativo`/`admin`. Además `payments` no persiste `created_by`, lo que rompe trazabilidad.
 
 **Fix**:
-- Nueva RPC `soft_delete_forklift(p_id)`: valida que no haya `bookings` activas (`confirmed/in_progress/scheduled` con `end_date >= today`) ni `invoices` abiertas; setea `deleted_at = now(), deleted_by = auth.uid()`. Reemplaza el `delete_forklift` destructivo en `useForklifts`.
-- Nueva RPC `restore_forklift(p_id)` (solo admin).
-- Filtrar `deleted_at IS NULL` en `useForklifts` (lista principal) y variantes (`useForklift`, selectores). Modo `?includeDeleted=1` solo para vista admin de auditoría (fuera de alcance).
+- Migración que reemplaza las policies de `dispatcher` en `payments` e `invoices`:
+  - `SELECT`: mantener acceso.
+  - `INSERT`/`UPDATE`/`DELETE`: revocar (queda restringido a `admin` + `administrativo`, que ya tienen policy propia).
+- `payments`: agregar columna `created_by uuid` con default `auth.uid()` (nullable para registros históricos) + backfill NULL. Se muestra en el detalle del pago.
+- Auditar `useCreatePayment`/`useDeletePayment` para confirmar que un despachador ya no puede llamarlos (los hooks siguen usando `.from()`, la RLS los frena).
 
-**Tests**: Vitest de `useForklifts` (mock filtra deleted). Test de la RPC (bookings activas → error controlado).
+**Tests**: Vitest de contrato RLS existente para `payments` (extender el patrón `useForklifts.rls.test.ts`).
 
-### 3. BL-M6 · Devolución dañada exige `damage_record`
+### 2. EC-M2 · `useCustomers` sin `.limit()` + detalle por `find`
 
-**Problema**: `process_return` (migración 20260720023115) permite `condition='damaged'` con `damage_cost=0` sin crear registro de daño.
-
-**Fix**: Ajustar la RPC para que cuando `p_condition='damaged'`:
-- Requiera `p_damage_cost > 0` **o** un `p_damage_notes` no vacío que se persista como `damage_records` (severity `minor`, cost 0 pero documentado).
-- Si no cumple, `RAISE EXCEPTION 'Devolución marcada como dañada requiere costo o descripción del daño'`.
-- Además marca el forklift a `maintenance` (no `available`) hasta que se cierre el `damage_record`.
-
-**Tests**: Deno test o Vitest via RPC mock; caso feliz + caso rechazado.
-
-### 4. EC-M4 · Optimistic locking sistémico
-
-**Alcance controlado (no todo a la vez)**: `bookings`, `invoices`, `quotes`, `customers`.
+**Problema**: `useCustomers.ts:13-21` trae la lista completa sin `.limit()` — con >1000 clientes falla la paginación implícita y el hook de detalle no encuentra al cliente porque hace `list.find(id)` sobre una lista truncada.
 
 **Fix**:
-- Migración: `ALTER TABLE ... ADD COLUMN version integer NOT NULL DEFAULT 1` en las 4 tablas.
-- Trigger `BEFORE UPDATE` genérico `bump_version()`: si el `NEW.version` recibido ≠ `OLD.version`, `RAISE EXCEPTION 'stale_write'` (SQLSTATE P0001); si es igual, incrementa a `OLD.version + 1`.
-- Hooks de mutación (`useBookingMutations`, `useInvoiceMutations`, `useQuoteMutations`, `useCustomerMutations`) envían `version` en el update y traducen `stale_write` a un toast: *"Este registro fue modificado en otra pestaña. Recarga para ver los cambios."*
-- Regenerar `types.ts` post-migración; ajustar los mutation payloads.
+- `useCustomer(id)` deja de derivarse de `useCustomers()` y hace `select().eq("id", id).single()` directo.
+- `useCustomers` agrega `.limit(1000)` explícito con orden estable + un warning si `data.length === 1000` (más adelante paginación real).
 
-**Tests**: Vitest por cada hook simulando update con `version` obsoleto (expect toast). Test SQL directo del trigger.
+**Tests**: Vitest existente de `useCustomers`; agregar caso donde el mock devuelve exactamente 1000 y el detalle sigue funcionando.
+
+### 3. EC-M3 · `useBookingsRange` sin `.limit()`
+
+**Problema**: Calendar/Gantt puede omitir reservas silenciosamente cuando la ventana traiga >1000 rows (default Supabase).
+
+**Fix**: `.limit(2000)` explícito + log warning si `data.length === 2000` para detectar cuándo migrar a paginación por semanas.
+
+**Tests**: extender test existente del calendario.
+
+### 4. EC-M5 · `delete-user` Edge Function: orden de borrado + TOCTOU
+
+**Problema**:
+- Borra `user_roles`/`profiles` antes que `auth.users`. Si el segundo falla queda usuario zombie sin roles.
+- Guarda de "último admin" con `count()` antes del delete: dos requests concurrentes ambos ven >1 admin, ambos borran → 0 admins.
+
+**Fix**:
+- Reordenar: primero `auth.admin.deleteUser`; si tiene éxito, cascade borra el resto (o disparar limpieza).
+- Guarda anti-último-admin: mover a RPC `SECURITY DEFINER` con `LOCK TABLE user_roles IN SHARE ROW EXCLUSIVE MODE` (o `SELECT ... FOR UPDATE` de los roles admin) para cerrar la ventana TOCTOU.
+
+**Tests**: Deno test para la Edge Function que simule falla en el paso Auth y verifique que roles/profile no se tocaron.
 
 ---
 
 ### Detalles técnicos
 
 ```text
-Migración única (v7.121.0):
-  1. CREATE TRIGGER credit_notes_max_check  → BL-M3
-  2. CREATE FUNCTION soft_delete_forklift  → BL-M4
-  3. CREATE FUNCTION restore_forklift      → BL-M4
-  4. ALTER FUNCTION process_return         → BL-M6
-  5. ALTER TABLE bookings/invoices/quotes/customers ADD version + trigger bump_version → EC-M4
-  6. GRANTs (authenticated + service_role) sobre las nuevas RPCs
+Migración única (v7.122.0):
+  1. DROP + CREATE POLICY dispatcher en payments (SELECT only)          → BL-M1
+  2. DROP + CREATE POLICY dispatcher en invoices (SELECT only)          → BL-M1
+  3. ALTER TABLE payments ADD COLUMN created_by uuid DEFAULT auth.uid() → BL-M1
+  4. CREATE FUNCTION delete_user_safely(target_user_id uuid)            → EC-M5
 ```
 
-Frontend en el mismo release:
-- `useCreditNoteForm.ts`: quitar clamp silencioso, propagar error de trigger.
-- `useForklifts.ts`, `ForkliftDetail`: `soft_delete_forklift` + filtrar `deleted_at`.
-- `useBookingMutations.ts`, `useInvoiceMutations.ts`, `useQuoteMutations.ts`, `useCustomerMutations.ts`: enviar `version`, atrapar `stale_write`.
-- Changelog: `public/changelog.json` + `public/changelog/v7.121.0.json` (minor).
+Frontend/edge en el mismo release:
+- `src/features/customers/hooks/useCustomers.ts`: split `useCustomer` + `.limit(1000)`.
+- `src/features/bookings/hooks/useBookings.ts`: `useBookingsRange` con `.limit(2000)` + warning.
+- `supabase/functions/delete-user/index.ts`: reordenar y delegar guarda a RPC.
+- Changelog: `public/changelog.json` + `public/changelog/v7.122.0.json` (minor).
 
 ### Verificación
 
-- Vitest completo (esperado 1086+ verdes con ~6 tests nuevos).
-- Deno para RPCs afectadas donde aplique.
-- Smoke manual: emitir NC excedida, borrar unidad con reserva activa, devolver dañado sin costo, editar reserva en dos pestañas.
+- Vitest completo (esperado 1089+ verdes).
+- Deno tests actualizados para `delete-user`.
+- Smoke manual: intentar como despachador crear pago (debe fallar), timbrar factura (debe fallar), abrir cliente por id directo (debe funcionar).
 
 ### Fuera de alcance
 
-- BL-M1 (segregación de rol dispatcher en payments/invoices).
-- BL-M5 (REP ImpSaldoAnt) — requiere ola dedicada de CFDI-REP.
-- EC-M1..M3, EC-M5 y bloque UX-M* — olas posteriores.
+- **BL-M5** (REP ImpSaldoAnt) — ola dedicada de CFDI-REP con casos de parcialidades fallidas.
+- **EC-M1** (off-by-one UTC en reportes) — próxima ola de reportes.
+- **Bloque UX-M*** — ola de UI/accesibilidad.
