@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.126.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "Sprint 3 · Ola 3.4 — Pulido EC-A4 + fundamento QuoteForm (schema-first)",
+    "summary": "Cierre limpio de Ola 3.3 y fundamento para la migración de QuoteForm a RHF+Zod (Ola 3.5). Pulido EC-A4: se promovió `ModelRow` como tipo canónico exportado por `useProfitByModelReport` (elimina el `as ModelRow[]` que violaba la core rule sin `!`/`as`), se reemplazó el import directo de `lucide-react` (`AlertTriangle`) por `WarnIcon` del Icon Registry, se eliminaron los helpers muertos (`profitabilityHelpers.ts`) tras la migración al RPC, y se removió la variable espejo `chartRows`. Nuevos tests del hook `useProfitByModelReport` (3): mapping de `numeric` → number, propagación de errores del RPC como `isError`, y payload YMD (America/Monterrey). Fundamento QuoteForm: nuevo `quoteFormSchema` con validación por tipo (renta vs venta), refines cross-field (`end_date >= start_date`, logística marcada requiere costo > 0) y 12 tests unitarios que congelan el contrato para la migración de UI de Ola 3.5. Verificación: 1112/1112 Vitest verde (+15), typecheck limpio.",
+    "changes": [
+      "Pulido EC-A4: `ModelRow` canónico en el hook, elimina `as`, migra a Icon Registry (`WarnIcon`)",
+      "Elimina código muerto `profitabilityHelpers.ts` (sin consumidores tras EC-A4)",
+      "Tests nuevos: `useProfitByModelReport` (3 casos: mapping numeric, error path, YMD)",
+      "Nuevo `quoteFormSchema` (Zod) — contrato para migración de QuoteForm a RHF en Ola 3.5",
+      "Tests nuevos: `quoteFormSchema` (12 casos: válidos renta/venta, rechazos por campo, cross-field)"
+    ]
+  },
+  {
     "version": "7.125.0",
     "date": "2026-07-20",
     "type": "minor",
