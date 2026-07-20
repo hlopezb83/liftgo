@@ -1,0 +1,52 @@
+{
+  "version": "7.130.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "Sprint 3 · Ola 3.8 — EC-A3 (hard lock facturación recurrente) + UX-M6 (EmptyState honesto con filtros)",
+  "sections": [
+    {
+      "heading": "Contexto",
+      "body": "La Ola 3.7 quedó verde (1121/1121; 63/63 tests en cuentas por pagar). Con Ola 3.7 estable, quedan 5 hallazgos de la auditoría integral: EC-A3 (único ALTO restante), UX-M3, UX-M4, UX-M5 y UX-M6. Esta ola cierra el crítico y un quick-win de UX del mismo dominio operativo (empty state con filtros activos)."
+    },
+    {
+      "heading": "EC-A3 — Facturación recurrente: hard lock (índice único parcial)",
+      "body": "La Ola 2.2 ya había blindado `create_recurring_invoice` con `pg_advisory_xact_lock(booking_id)`, pero la auditoría exigía además una red de seguridad última a nivel storage. Se agrega un índice único parcial que ningún camino (RPC, jobs manuales, ejecuciones desde nodos distintos que no compartan snapshot de locks cooperativos) puede burlar.",
+      "items": [
+        "Migración nueva: `CREATE UNIQUE INDEX invoices_booking_period_uniq ON public.invoices (booking_id, billing_period_start, billing_period_end) WHERE booking_id IS NOT NULL AND billing_period_start IS NOT NULL AND billing_period_end IS NOT NULL AND status <> 'cancelled'`.",
+        "Fail-fast defensivo: la migración aborta si detecta filas duplicadas previas (pre-verificado con `psql` — 0 grupos duplicados en producción).",
+        "`create_recurring_invoice` reforzado: el `INSERT` en `invoices` + `invoice_bookings` se envuelve en `BEGIN..EXCEPTION WHEN unique_violation`; si otra transacción gana la carrera, recupera la factura ganadora (join a `invoice_bookings`, con fallback a `booking_id`), actualiza `last_billed_date` en `bookings` y devuelve `already_existed=true`. La semántica pública es idempotente end-to-end.",
+        "El Edge Function `generate-recurring-invoices/index.ts` ya trataba SQLSTATE 23505 como skipped desde Ola 2.2 (línea 384); ahora el escenario prácticamente no llega al catch — el RPC absorbe el race y devuelve `already_existed=true`."
+      ]
+    },
+    {
+      "heading": "UX-M6 — EmptyState honesto cuando hay filtros activos",
+      "body": "`ListPageLayout.tsx` mostraba 'Aún no se han registrado registros aquí' incluso cuando el usuario acababa de aplicar filtros que no devolvían filas — copy falso que confunde y no ofrece salida.",
+      "items": [
+        "Nuevas props opcionales: `hasActiveFilters?: boolean` y `onClearFilters?: () => void` (retro-compatibles: sin ellas, comportamiento actual intacto).",
+        "Cuando `hasActiveFilters && lista vacía`: título → 'No hay resultados con los filtros actuales'; subtítulo → 'Ajusta o limpia los filtros para ver más resultados'; icono default → `FilterIcon`; botón 'Limpiar filtros' que dispara `onClearFilters` (solo si el callback existe — evita dead-ends mudos).",
+        "Migración incremental: las páginas que ya usan `useTableFilters` pueden empezar a leer `filters.hasActive` y pasarlo como prop; la propagación por página se hará en olas posteriores para no ampliar el blast radius de esta migración."
+      ]
+    },
+    {
+      "heading": "Cobertura de tests",
+      "items": [
+        "`ListPageLayout.test.tsx` (3 tests): sin filtros → copy default y sin botón 'Limpiar filtros'; con filtros activos + callback → copy alterno y click limpia; con filtros pero sin callback → copy alterno sin botón (no dead-end)."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "body": "Suite Vitest: 1124/1124 verde (+3 vs baseline 1121). Índice verificado vía `psql`: `CREATE UNIQUE INDEX invoices_booking_period_uniq ON public.invoices USING btree (booking_id, billing_period_start, billing_period_end) WHERE ((booking_id IS NOT NULL) AND (billing_period_start IS NOT NULL) AND (billing_period_end IS NOT NULL) AND (status <> 'cancelled'::text))`. Pre-check de duplicados en producción: 0 filas."
+    },
+    {
+      "heading": "Progreso auditoría integral",
+      "body": "Cerrados: 30/34. EC-A3 pasa a resuelto. Pendientes (4, todos UX medios): UX-M3 (sr-only en inglés en dialog/sheet), UX-M4 (dead-ends en 6 páginas de detalle), UX-M5 (overflow-x del portal en móvil), UX-M6 (propagar props a páginas ya migradas a `useTableFilters`)."
+    },
+    {
+      "heading": "Fuera de alcance",
+      "items": [
+        "Propagación de `hasActiveFilters` a Facturas, Cotizaciones, Reservas, Facturas de Proveedor y Gastos (Ola 3.9).",
+        "UX-M3/M4/M5 (Ola 3.9 pulido UX + a11y del portal)."
+      ]
+    }
+  ]
+}
