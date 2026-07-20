@@ -153,6 +153,8 @@ export function ListPageLayout<T extends { id?: string }>({
                 emptyIcon={emptyIcon}
                 emptyActionLabel={emptyActionLabel}
                 onEmptyAction={onEmptyAction}
+                hasActiveFilters={hasActiveFilters}
+                onClearFilters={onClearFilters}
                 onRowClick={onRowClick}
                 onRowPrefetch={onRowPrefetch}
                 mobileCardRender={mobileCardRender}
@@ -163,6 +165,8 @@ export function ListPageLayout<T extends { id?: string }>({
             </CardContent>
           </Card>
         )}
+
+
 
       </div>
       {isMobile && mobileFab && (
