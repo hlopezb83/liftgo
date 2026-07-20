@@ -102,8 +102,10 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
   return {
     amount, setAmount, date, setDate, method, setMethod,
     paymentFormSat, setPaymentFormSat, currency, setCurrency,
+    lockedCurrency,
     exchangeRate, setExchangeRate, reference, setReference,
     notes, setNotes, stampRep, setStampRep,
     createPayment, stampComplement, handleSubmit,
   };
 }
+
