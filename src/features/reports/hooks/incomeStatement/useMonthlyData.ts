@@ -25,6 +25,8 @@ interface RpcMonthRow {
   maintenance_cost: number;
   damage_cost: number;
   depreciation: number;
+  depreciation_rented: number;
+  depreciation_idle: number;
   cogs_forklift_sales: number;
   expenses: Partial<Record<ExpenseCategory, number>>;
   rental_booked_by_customer: Record<string, number>;
@@ -99,6 +101,8 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
       maintenanceCost: Number(m.maintenance_cost),
       damageCost: Number(m.damage_cost),
       depreciation: Number(m.depreciation),
+      depreciationRented: Number(m.depreciation_rented ?? 0),
+      depreciationIdle: Number(m.depreciation_idle ?? 0),
       cogsForkliftSales,
       cogsByForklift,
       depreciationByForklift: m.depreciation_by_forklift ?? {},

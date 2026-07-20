@@ -7,6 +7,7 @@ import {
 interface RowTotals {
   revenue: number; revenueRentalBooked: number; revenueRentalUnbooked: number; revenueSales: number;
   maintenanceCost: number; damageCost: number; depreciation: number;
+  depreciationRented: number; depreciationIdle: number;
   cogsForkliftSales: number;
   expenses: MonthData["expenses"];
   grossProfit: number; grossMargin: number;
@@ -67,7 +68,8 @@ export function buildStatementRows(filteredData: MonthData[], totals: RowTotals)
     { label: "= Total Egresos", values: filteredData.map((r) => r.totalExpenses), total: totals.totalExpenses, isSubtotal: true, isCost: true },
     { label: "= Utilidad antes de Depreciación", values: filteredData.map((r) => r.profitBeforeDepreciation), total: totals.profitBeforeDepreciation, isSubtotal: true },
     { label: "Margen antes de Depreciación", values: filteredData.map((r) => r.marginBeforeDepreciation), total: totals.marginBeforeDepreciation, isPercent: true },
-    { label: "(-) Depreciación (Equipos Rentados)", values: filteredData.map((r) => r.depreciation), total: totals.depreciation, isCost: true },
+    { label: "(-) Depreciación (Equipos Rentados)", values: filteredData.map((r) => r.depreciationRented), total: totals.depreciationRented, isCost: true },
+    { label: "(-) Depreciación (Flota Ociosa)", values: filteredData.map((r) => r.depreciationIdle), total: totals.depreciationIdle, isCost: true },
     { label: "= Utilidad Neta", values: filteredData.map((r) => r.netProfit), total: totals.netProfit, isSubtotal: true },
     { label: "Margen Neto", values: filteredData.map((r) => r.margin), total: totals.margin, isPercent: true },
   ];

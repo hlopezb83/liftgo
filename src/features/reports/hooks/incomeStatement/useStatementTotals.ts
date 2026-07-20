@@ -19,13 +19,17 @@ function aggregate(rows: MonthData[]) {
         maintenanceCost: acc.maintenanceCost + r.maintenanceCost,
         damageCost: acc.damageCost + r.damageCost,
         depreciation: acc.depreciation + r.depreciation,
+        depreciationRented: acc.depreciationRented + r.depreciationRented,
+        depreciationIdle: acc.depreciationIdle + r.depreciationIdle,
         cogsForkliftSales: acc.cogsForkliftSales + r.cogsForkliftSales,
         expenses,
       };
     },
     {
       revenue: 0, revenueRentalBooked: 0, revenueRentalUnbooked: 0, revenueSales: 0,
-      maintenanceCost: 0, damageCost: 0, depreciation: 0, cogsForkliftSales: 0,
+      maintenanceCost: 0, damageCost: 0, depreciation: 0,
+      depreciationRented: 0, depreciationIdle: 0,
+      cogsForkliftSales: 0,
       expenses: {
         renta: 0, nomina: 0, software: 0, depreciacion: 0,
         caja_chica: 0, publicidad: 0, otro: 0, costo_venta: 0,
@@ -42,6 +46,8 @@ function aggregate(rows: MonthData[]) {
     maintenanceCost: roundMoney(t.maintenanceCost),
     damageCost: roundMoney(t.damageCost),
     depreciation: roundMoney(t.depreciation),
+    depreciationRented: roundMoney(t.depreciationRented),
+    depreciationIdle: roundMoney(t.depreciationIdle),
     cogsForkliftSales: roundMoney(t.cogsForkliftSales),
     expenses: expensesRounded,
   };
