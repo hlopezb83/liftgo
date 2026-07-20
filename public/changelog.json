@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.107.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "Auditoría con datos reales + concurrencia: BL-48/50/51/52 + DRIFT-01 + OBS-1",
+    "summary": "6 hallazgos de la ronda 'datos reales + concurrencia' resueltos. **BL-48**: `get_income_statement` ahora incluye `operating_expenses` (nómina, renta, servicios) — antes se ignoraban y el P&L sobrestimaba la utilidad; se agregan al mismo CTE de gastos por (mes, categoría) excluyendo `software` y `depreciacion`. **BL-50**: `get_mrr_detail` alineado con el KPI: usa `COALESCE(b.monthly_rate, f.monthly_rate)`, `recurring_billing = true`, vigencia a hoy y excluye reservas sin cliente; expone `rate_source` por fila. **BL-51**: `get_customer_summary.total_paid` suma pagos reales de `payments` (excluyendo facturas canceladas) en lugar de filtrar solo facturas 100% liquidadas — antes un pago parcial de $10k contra $29k reportaba 0. **BL-52**: 4 secuencias dedicadas (`booking_number_seq`, `quote_number_seq`, `delivery_number_seq`, `inspection_number_seq`) inicializadas al MAX actual y las funciones `next_*_number` reescritas con `nextval(...)`, mismo patrón que `FAC-`. **DRIFT-01**: se versionan `collection_reminders_log` (tabla, índices, RLS, GRANTs) y las funciones `create_notification`, `notify_admins`, `notify_payment_received` — antes vivían solo en prod y un despliegue en frío fallaba. **OBS-1**: la etiqueta 'Ingresos por Ventas' del P&L se renombra a 'Otros ingresos (sin reserva)' porque incluye rentas facturadas manualmente. BL-49 y OBS-2 ya estaban resueltos/documentados."
+  },
+  {
     "version": "7.106.1",
     "date": "2026-07-20",
     "type": "patch",
