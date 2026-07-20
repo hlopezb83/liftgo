@@ -103,7 +103,15 @@ Deno.serve(async (req) => {
   //  - Header `x-cron-secret: <CRON_SECRET>` (uso recomendado desde pg_cron).
   //  - `Authorization: Bearer <CRON_SECRET>` (compat con Scheduled Functions).
   //  - `Authorization: Bearer <service_role>` (llamadas administrativas puntuales).
-  const cronSecret = Deno.env.get("CRON_SECRET") ?? "";
+  // El secreto se resuelve desde Deno.env o, si está vacío, desde vault vía
+  // RPC `internal_get_cron_secret()` — así pg_cron y edge functions comparten
+  // la misma fuente de verdad sin duplicar el valor.
+  const admin = getAdminClient();
+  let cronSecret = Deno.env.get("CRON_SECRET") ?? "";
+  if (!cronSecret) {
+    const { data: vaultSecret } = await admin.rpc("internal_get_cron_secret");
+    cronSecret = typeof vaultSecret === "string" ? vaultSecret : "";
+  }
   const headerSecret = req.headers.get("x-cron-secret") ?? "";
   const authHeader = req.headers.get("authorization") ?? "";
   const bearer = authHeader.startsWith("Bearer ")
@@ -116,7 +124,7 @@ Deno.serve(async (req) => {
     return json({ error: "Unauthorized" }, 401);
   }
 
-  const admin = getAdminClient();
+
   const nowIso = new Date().toISOString();
 
   const { data: rows, error } = await admin
