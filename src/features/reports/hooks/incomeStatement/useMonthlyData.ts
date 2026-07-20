@@ -22,6 +22,7 @@ interface RpcMonthRow {
   revenue_rental_booked: number;
   revenue_rental_unbooked: number;
   revenue_sales: number;
+  revenue_damage_recovery: number;
   maintenance_cost: number;
   damage_cost: number;
   depreciation: number;
@@ -32,6 +33,7 @@ interface RpcMonthRow {
   rental_booked_by_customer: Record<string, number>;
   rental_unbooked_by_customer: Record<string, number>;
   sales_by_customer: Record<string, number>;
+  damage_recovery_by_customer: Record<string, number>;
   depreciation_by_forklift: Record<string, number>;
   cogs_by_forklift: Record<string, number>;
 }
