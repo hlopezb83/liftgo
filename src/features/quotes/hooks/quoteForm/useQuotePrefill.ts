@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { nowMty, parseDateLocal } from "@/lib/utils";
 import type { QuoteFormValues, RentalLineValues, SaleLineValues } from "../../lib/quoteFormSchema";
-import { defaultQuoteFormValues, EMPTY_RENTAL_LINE, EMPTY_SALE_LINE, type QuoteFormReturn } from "./useQuoteForm";
+import { EMPTY_RENTAL_LINE, EMPTY_SALE_LINE, type QuoteFormReturn } from "./useQuoteForm";
 
 export type EquipmentModel = {
   id: string; manufacturer: string; model: string;
