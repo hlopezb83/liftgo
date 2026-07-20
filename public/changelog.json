@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.117.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "Sprint 2 · Ola 2.1 — Extensión de reservas atómica con buffer de mantenimiento (BL-A5 / BL-A6)",
+    "summary": "Auditoría de Ola 5 aprobada (1083 tests verdes, 2 warnings react-compiler justificados). Se abre Sprint 2 con findings de alto impacto operativo. Ola 2.1 blindó el flujo de extensión de reservas: (1) Nueva RPC `extend_booking(p_booking_id, p_new_end_date, p_reason)` `SECURITY DEFINER` que bloquea la fila con `FOR UPDATE`, valida rol (admin/administrativo/dispatcher/ventas), rechaza fecha final regresiva, verifica el buffer de 3 días contra `maintenance_logs.next_service_date` y detecta traslapes con otras reservas activas del mismo montacargas — todo en una sola transacción. (2) `useCreateBookingExtension` migrado de dos operaciones separadas (UPDATE + INSERT propensas a inconsistencia si la segunda falla) a una única llamada RPC atómica; se eliminó el uso de `assertRowsAffected` obsoleto en este flujo. (3) Tests actualizados: 4 casos cubren happy path, argumentos correctos, omisión de `p_reason`, rechazo por buffer de mantenimiento y rechazo por rol. Resultado: 1084/1084 Vitest verdes, sin regresiones."
+  },
+  {
     "version": "7.116.0",
     "date": "2026-07-20",
     "type": "minor",

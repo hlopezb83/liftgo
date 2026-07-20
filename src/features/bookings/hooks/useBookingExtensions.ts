@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { bookingKeys } from "../lib/queryKeys";
 
 export function useBookingExtensions(bookingId?: string) {
@@ -21,24 +20,26 @@ export function useBookingExtensions(bookingId?: string) {
   });
 }
 
+/**
+ * Extiende una reserva vía RPC atómica `extend_booking`.
+ * Valida rol, buffer de mantenimiento de 3 días y colisión de ventanas
+ * en una sola transacción. Ver Sprint 2 · Ola 2.1 (BL-A5 / BL-A6).
+ */
 export function useCreateBookingExtension() {
   return useEntityMutation({
-    mutationFn: async (ext: { booking_id: string; original_end_date: string; new_end_date: string; reason?: string }) => {
-      const { data: updated, error: bookingError } = await supabase
-        .from("bookings")
-        .update({ end_date: ext.new_end_date })
-        .eq("id", ext.booking_id)
-        .select("id");
-      if (bookingError) throw bookingError;
-      assertRowsAffected(updated, "Extender reserva");
-
-      const { data, error } = await supabase
-        .from("booking_extensions")
-        .insert(ext)
-        .select()
-        .single();
+    mutationFn: async (ext: {
+      booking_id: string;
+      original_end_date: string;
+      new_end_date: string;
+      reason?: string;
+    }) => {
+      const { data, error } = await supabase.rpc("extend_booking", {
+        p_booking_id: ext.booking_id,
+        p_new_end_date: ext.new_end_date,
+        ...(ext.reason ? { p_reason: ext.reason } : {}),
+      });
       if (error) throw error;
-      return data;
+      return { id: data ?? undefined, booking_id: ext.booking_id };
     },
     invalidateKeysFn: (_d, vars) => [bookingKeys.extensions(vars.booking_id), bookingKeys.all],
     successMsg: "Reserva extendida exitosamente",
