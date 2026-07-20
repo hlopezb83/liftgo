@@ -1,0 +1,22 @@
+{
+  "version": "7.112.1",
+  "date": "2026-07-20",
+  "type": "patch",
+  "title": "Fix — Restaurar RPC list_invoices_with_balance",
+  "sections": [
+    {
+      "heading": "Bug",
+      "items": [
+        "El hook `useInvoicesWithBalance` (fuente única de verdad para facturas + saldo, usada por Dashboard, Pronóstico de Cobranza, Aging y MRR) llamaba al RPC `public.list_invoices_with_balance`, pero la función no existía en la base de datos. PostgREST devolvía `PGRST202 – Could not find the function` y el Dashboard reventaba al cargar."
+      ]
+    },
+    {
+      "heading": "Fix",
+      "items": [
+        "Nueva función `public.list_invoices_with_balance(p_statuses, p_due_from, p_due_to, p_with_balance_only, p_limit, p_offset)` que consulta `v_invoices_with_balance` y aplica los filtros + paginación en servidor.",
+        "`SECURITY DEFINER` con `search_path = public` y filtrado por rol equivalente a las policies de `invoices` (admin, administrativo, dispatcher, auditor).",
+        "`EXECUTE` revocado de `PUBLIC` y otorgado a `authenticated` y `service_role`."
+      ]
+    }
+  ]
+}
