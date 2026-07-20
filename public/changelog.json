@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.121.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "Sprint 2 · Ola 2.5 — Integridad transaccional (BL-M3, BL-M4, BL-M6, EC-M4)",
+    "summary": "Auditoría de Ola 2.4 verde (1086 Vitest + 22 Deno). Ola 2.5 cierra los 4 findings restantes del bloque Business Logic / Edge Cases: (1) BL-M3 — Nuevo trigger `enforce_credit_note_max` (BEFORE INSERT/UPDATE en `credit_notes`) que suma las NC no canceladas de la misma factura (excluyendo la propia por id) y lanza `P0001` si el total supera el de la factura (tolerancia 1¢). Cierra la ventana de sobre-crédito concurrente que la UI clampeaba silenciosamente. (2) BL-M4 — `delete_forklift` ahora también bloquea el archivado cuando existen facturas con `balance>0` ligadas a bookings de la unidad (via `v_invoices_with_balance`). Nueva RPC `restore_forklift` (solo admin) para revertir soft-deletes. (3) BL-M6 — `complete_return_inspection` exige que si la condición es `damaged`/`needs_repair`, exista costo>0 O notas no vacías; en cualquier caso se crea `damage_records` (severity minor, cost=0 si sólo hay notas) y la unidad pasa a `maintenance` para forzar cierre del expediente. (4) EC-M4 — Columna `version` (int NOT NULL DEFAULT 1) agregada a `bookings`, `invoices`, `quotes`, `customers` + trigger `bump_version_optimistic` que auto-incrementa en cada UPDATE y detecta lecturas obsoletas (NEW.version < OLD.version → `stale_write` P0001). Nuevo helper `src/lib/errors/dbErrors.ts` traduce el error a un toast tipo warning en español (\"Este registro fue modificado en otra pestaña...\") integrado en `useEntityMutation` para que TODOS los mutations existentes muestren copy amigable sin cambios adicionales. 3 tests de traductor + suite completa 1089/1089 verde."
+  },
+  {
     "version": "7.120.0",
     "date": "2026-07-20",
     "type": "minor",
