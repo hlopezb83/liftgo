@@ -5,7 +5,7 @@ import {
 } from "./types";
 
 interface RowTotals {
-  revenue: number; revenueRental: number; revenueSales: number;
+  revenue: number; revenueRentalBooked: number; revenueRentalUnbooked: number; revenueSales: number;
   maintenanceCost: number; damageCost: number; depreciation: number;
   cogsForkliftSales: number;
   expenses: MonthData["expenses"];
