@@ -1509,6 +1509,7 @@ export type Database = {
       forklifts: {
         Row: {
           acquisition_cost: number | null
+          acquisition_date: string | null
           capacity_kg: number | null
           created_at: string
           daily_rate: number | null
@@ -1530,6 +1531,7 @@ export type Database = {
           name: string
           notes: string | null
           serial_number: string | null
+          sold_at: string | null
           status: string
           updated_at: string
           weekly_rate: number | null
@@ -1537,6 +1539,7 @@ export type Database = {
         }
         Insert: {
           acquisition_cost?: number | null
+          acquisition_date?: string | null
           capacity_kg?: number | null
           created_at?: string
           daily_rate?: number | null
@@ -1558,6 +1561,7 @@ export type Database = {
           name: string
           notes?: string | null
           serial_number?: string | null
+          sold_at?: string | null
           status?: string
           updated_at?: string
           weekly_rate?: number | null
@@ -1565,6 +1569,7 @@ export type Database = {
         }
         Update: {
           acquisition_cost?: number | null
+          acquisition_date?: string | null
           capacity_kg?: number | null
           created_at?: string
           daily_rate?: number | null
@@ -1586,6 +1591,7 @@ export type Database = {
           name?: string
           notes?: string | null
           serial_number?: string | null
+          sold_at?: string | null
           status?: string
           updated_at?: string
           weekly_rate?: number | null
@@ -3616,6 +3622,7 @@ export type Database = {
         Args: { p_end_date: string; p_start_date: string }
         Returns: {
           acquisition_cost: number | null
+          acquisition_date: string | null
           capacity_kg: number | null
           created_at: string
           daily_rate: number | null
@@ -3637,6 +3644,7 @@ export type Database = {
           name: string
           notes: string | null
           serial_number: string | null
+          sold_at: string | null
           status: string
           updated_at: string
           weekly_rate: number | null
