@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useOptimisticStatus } from "@/hooks/useOptimisticStatus";
 import { useUpdateFeedbackStatus, type FeedbackReport } from "./useFeedbackReports";
 import type { FeedbackStatus } from "../lib/constants";
@@ -13,11 +13,14 @@ export function useFeedbackStatusUpdate(report: FeedbackReport | null) {
   const [comment, setComment] = useState("");
   const update = useUpdateFeedbackStatus();
 
-  // Reset cuando cambia el reporte activo.
-  useEffect(() => {
+  // Prev-prop guard: resetea inputs cuando cambia el reporte activo.
+  const [prevReportId, setPrevReportId] = useState<string | null>(null);
+  const nextReportId = report?.id ?? null;
+  if (prevReportId !== nextReportId) {
+    setPrevReportId(nextReportId);
     setNewStatus("");
     setComment("");
-  }, [report?.id]);
+  }
 
   const [optimisticStatus, setOptimisticStatus] = useOptimisticStatus<string>(
     report?.status ?? "",

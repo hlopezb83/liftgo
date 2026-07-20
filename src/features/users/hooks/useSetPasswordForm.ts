@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent as ReactFormEvent } from "react";
+import { useState, type FormEvent as ReactFormEvent } from "react";
 import { useResetPassword, type UserRow } from "./useUserManagement";
 
 function generatePassword(length = 16): string {
@@ -22,13 +22,16 @@ export function useSetPasswordForm(user: UserRow | null, onClose: () => void) {
   const [show, setShow] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!user) return;
+  // Prev-prop guard: limpia el formulario cuando cambia el usuario objetivo.
+  const [prevUserId, setPrevUserId] = useState<string | null>(null);
+  const nextUserId = user?.user_id ?? null;
+  if (user && prevUserId !== nextUserId) {
+    setPrevUserId(nextUserId);
     setPassword("");
     setConfirm("");
     setShow(false);
     setErrorMsg(null);
-  }, [user]);
+  }
 
   const onPasswordChange = (v: string) => { setPassword(v); setErrorMsg(null); };
   const onConfirmChange = (v: string) => { setConfirm(v); setErrorMsg(null); };

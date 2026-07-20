@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Database } from "@/integrations/supabase/types";
 import { toStr, toNumStr } from "@/lib/coerce";
 import { defaultContractForm, type ContractFormShape } from "./contractFormDefaults";
@@ -33,12 +33,14 @@ export function useContractFormState(existing: ContractRow | null | undefined, i
   const [form, setForm] = useState<ContractFormShape>(defaultContractForm);
   const [templateApplied, setTemplateApplied] = useState(false);
 
-  useEffect(() => {
-    if (existing && isEdit) {
-      setForm(mapContractToForm(existing));
-      setTemplateApplied(true);
-    }
-  }, [existing, isEdit]);
+  // Prev-prop guard: hidrata el form cuando cambia el contrato existente en modo edición.
+  const [prevExistingId, setPrevExistingId] = useState<string | null>(null);
+  const nextExistingId = existing?.id ?? null;
+  if (existing && isEdit && prevExistingId !== nextExistingId) {
+    setPrevExistingId(nextExistingId);
+    setForm(mapContractToForm(existing));
+    setTemplateApplied(true);
+  }
 
   const updateField = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));

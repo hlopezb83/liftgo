@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { SaveIcon, InfoIcon } from "@/components/icons";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -25,16 +25,18 @@ export function ContractTemplateTab() {
   const [checklistSections, setChecklistSections] = useState<ChecklistSection[]>([]);
   const [pagareText, setPagareText] = useState("");
 
-  useEffect(() => {
-    if (template) {
-      setIntroText(template.intro_text || "");
-      setDeclLandlord(template.declarations_landlord || []);
-      setDeclTenant(template.declarations_tenant || []);
-      setClauses(template.clauses || []);
-      setChecklistSections(template.checklist_sections || []);
-      setPagareText(template.pagare_text || "");
-    }
-  }, [template]);
+  // Prev-prop guard: hidrata el editor cuando cambia la plantilla cargada.
+  const [prevTemplateId, setPrevTemplateId] = useState<string | null>(null);
+  const nextTemplateId = template?.id ?? null;
+  if (template && prevTemplateId !== nextTemplateId) {
+    setPrevTemplateId(nextTemplateId);
+    setIntroText(template.intro_text || "");
+    setDeclLandlord(template.declarations_landlord || []);
+    setDeclTenant(template.declarations_tenant || []);
+    setClauses(template.clauses || []);
+    setChecklistSections(template.checklist_sections || []);
+    setPagareText(template.pagare_text || "");
+  }
 
   if (isLoading) return <TableSkeleton />;
   if (!template) return <p className="text-muted-foreground p-4">No se encontró plantilla por defecto. Crea una desde la base de datos.</p>;

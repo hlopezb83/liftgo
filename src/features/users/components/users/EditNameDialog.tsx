@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,9 +14,13 @@ export function EditNameDialog({ user, onClose }: EditNameDialogProps) {
   const [name, setName] = useState("");
   const updateName = useUpdateName();
 
-  useEffect(() => {
+  // Prev-prop guard: sincroniza el input cuando abre el diálogo con otro usuario.
+  const [prevUserId, setPrevUserId] = useState<string | null>(null);
+  const nextUserId = user?.user_id ?? null;
+  if (prevUserId !== nextUserId) {
+    setPrevUserId(nextUserId);
     if (user) setName(user.full_name ?? "");
-  }, [user]);
+  }
 
   const handleSave = async () => {
     if (!user || !name.trim()) return;

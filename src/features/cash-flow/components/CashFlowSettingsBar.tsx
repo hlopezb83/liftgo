@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { SaveIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,14 +18,16 @@ export function CashFlowSettingsBar({ weeks, onChangeWeeks }: Props) {
   const canEdit = role === "admin" || role === "administrativo";
   const update = useUpdateCashFlowSettings();
 
+  // Prev-prop guard: sincroniza inputs cuando `settings` cargue/cambie.
+  const [prevSettingsId, setPrevSettingsId] = useState<string | null>(null);
   const [initial, setInitial] = useState("");
   const [buffer, setBuffer] = useState("");
-
-  useEffect(() => {
-    if (!settings) return;
+  const currentSettingsId = settings?.id ?? null;
+  if (settings && prevSettingsId !== currentSettingsId) {
+    setPrevSettingsId(currentSettingsId);
     setInitial(String(settings.initialBalance));
     setBuffer(String(settings.safetyBuffer));
-  }, [settings]);
+  }
 
   const initialNum = Number(initial);
   const bufferNum = Number(buffer);
