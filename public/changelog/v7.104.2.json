@@ -1,0 +1,30 @@
+{
+  "version": "7.104.2",
+  "date": "2026-07-20",
+  "type": "patch",
+  "title": "Mobile: fix scroll táctil bloqueado en MainLayout y CustomerPortalLayout",
+  "sections": [
+    {
+      "heading": "Root cause",
+      "items": [
+        "MainLayout y CustomerPortalLayout usaban `min-h-[100dvh]` en el contenedor raíz. Con contenido largo, el div crecía a la altura total (~3097px medidos en Playwright a 390×675), y el `<main flex-1 overflow-auto>` de adentro también crecía hasta `scrollHeight === clientHeight`.",
+        "Sin overflow real que recortar, main dejaba de ser un scroll container efectivo. En móvil el hit-test del gesto táctil lo seguía identificando como scroll container por `overflow: auto`, y `overscroll-contain` bloqueaba el chaining hacia el body → el swipe con el dedo quedaba sin efecto.",
+        "Además `useMainScrollRestoration` escribe `main.scrollTop`, así que la restauración de scroll al navegar era un no-op silencioso."
+      ]
+    },
+    {
+      "heading": "Cambios",
+      "items": [
+        "src/layouts/MainLayout.tsx: `min-h-[100dvh]` → `h-[100dvh]` en el contenedor raíz.",
+        "src/layouts/CustomerPortalLayout.tsx: `min-h-screen` → `h-[100dvh]` en el contenedor raíz para mantener paridad con MainLayout (v7.86.2)."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "Playwright a 390×675 con is_mobile/has_touch: en `/invoices` main queda con `clientHeight=675` y `scrollHeight=3811`; `main.scrollTop=300` responde.",
+        "Sticky header, FAB con safe-area y pull-to-refresh conservan comportamiento."
+      ]
+    }
+  ]
+}
