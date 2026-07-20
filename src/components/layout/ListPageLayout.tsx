@@ -81,7 +81,6 @@ export function ListPageLayout<T extends { id?: string }>({
     // Es una lectura post-mount del DOM, no una sincronización de estado.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     if (!isMobile || !onRefresh) { setScrollTarget(null); return; }
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     setScrollTarget(sentinelRef.current?.closest("main") as HTMLElement | null);
   }, [isMobile, onRefresh]);
 

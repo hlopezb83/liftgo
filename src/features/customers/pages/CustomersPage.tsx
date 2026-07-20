@@ -53,7 +53,7 @@ export default function CustomersPage() {
   });
   useEffect(() => {
     // Prefill mount-only. `runProspectPrefill` es useEffectEvent (identidad estable).
-    // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     runProspectPrefill();
   }, []);
 
