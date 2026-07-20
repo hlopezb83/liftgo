@@ -1,0 +1,49 @@
+{
+  "version": "7.121.0",
+  "date": "2026-07-20",
+  "type": "minor",
+  "title": "Sprint 2 · Ola 2.5 — Integridad transaccional (BL-M3, BL-M4, BL-M6, EC-M4)",
+  "sections": [
+    {
+      "heading": "BL-M3 · Trigger anti sobre-crédito de Notas de Crédito",
+      "items": [
+        "Nueva función `enforce_credit_note_max` + trigger BEFORE INSERT/UPDATE en `credit_notes` (columnas total, status, cancellation_status, invoice_id).",
+        "Suma las NC no canceladas y no aceptadas-como-canceladas de la misma factura, excluyendo la propia por id.",
+        "Si `credited_previo + NEW.total > invoice.total + 0.01` lanza P0001 con detalle de montos, cerrando la ventana concurrente que la UI clampeaba silenciosamente."
+      ]
+    },
+    {
+      "heading": "BL-M4 · Soft-delete de flota reforzado",
+      "items": [
+        "`delete_forklift` ahora también bloquea si existen facturas con `balance>0` (via `v_invoices_with_balance`) ligadas a bookings de la unidad.",
+        "Nueva RPC `restore_forklift(p_forklift_id)` (solo admin) para revertir archivados accidentales.",
+        "GRANT EXECUTE a `authenticated` y `service_role`."
+      ]
+    },
+    {
+      "heading": "BL-M6 · Devolución dañada exige registro",
+      "items": [
+        "`complete_return_inspection` exige que si la condición es `damaged` o `needs_repair`, exista `damage_cost > 0` **o** `damage_notes` no vacía; si no, P0001 con mensaje accionable.",
+        "En ambos casos se crea `damage_records` (severity `reported`, `estimated_cost=0` cuando sólo hay notas) y la unidad pasa a `maintenance` para forzar cierre del expediente antes de re-rentarse."
+      ]
+    },
+    {
+      "heading": "EC-M4 · Optimistic locking (opt-in) en 4 tablas críticas",
+      "items": [
+        "Nueva columna `version integer NOT NULL DEFAULT 1` en `bookings`, `invoices`, `quotes`, `customers`.",
+        "Función `bump_version_optimistic` + triggers BEFORE UPDATE: auto-incrementa en cada UPDATE y detecta `NEW.version < OLD.version` como `stale_write` (P0001).",
+        "Retro-compatible: los mutations existentes que no envían `version` siguen funcionando (siempre bumpea). El opt-in se activa cuando el cliente envía la versión leída.",
+        "Nuevo helper `src/lib/errors/dbErrors.ts` (`translateDbError`) detecta `stale_write` y devuelve título/severity/mensaje traducidos.",
+        "`useEntityMutation` integra `translateDbError` en `onError`: cualquier mutation que use el hook muestra automáticamente un toast tipo warning con copy claro cuando hay conflicto de edición concurrente."
+      ]
+    },
+    {
+      "heading": "Tests",
+      "items": [
+        "Nuevos: `src/lib/errors/__tests__/dbErrors.test.ts` — 3 tests para el traductor (matching stale_write, fallback, tipos de entrada).",
+        "Suite completa: 1089/1089 Vitest verdes.",
+        "Deno: 22/22 estable desde Ola 2.3."
+      ]
+    }
+  ]
+}
