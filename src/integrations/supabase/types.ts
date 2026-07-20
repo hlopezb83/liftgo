@@ -4027,6 +4027,18 @@ export type Database = {
         Args: { p_bill_id: string; p_notes: string }
         Returns: undefined
       }
+      report_profit_by_model: {
+        Args: { _end: string; _start: string }
+        Returns: {
+          damages: number
+          maintenance: number
+          margin: number
+          model: string
+          profit: number
+          revenue: number
+          units: number
+        }[]
+      }
       request_bill_reapproval: {
         Args: { p_bill_id: string; p_notes?: string }
         Returns: undefined
