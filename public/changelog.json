@@ -1,6 +1,21 @@
 [
   {
+    "version": "7.130.0",
+    "date": "2026-07-20",
+    "type": "minor",
+    "title": "Sprint 3 · Ola 3.8 — EC-A3 (hard lock facturación recurrente) + UX-M6 (EmptyState honesto con filtros)",
+    "summary": "Auditoría Ola 3.7 verde (1121/1121, 63/63 en accounts-payable). EC-A3 estaba mitigado por `pg_advisory_xact_lock` en `create_recurring_invoice`, pero faltaba la red de seguridad última que exigía la auditoría integral: un **índice único parcial** a nivel storage. Se agrega `invoices_booking_period_uniq ON invoices (booking_id, billing_period_start, billing_period_end) WHERE booking_id IS NOT NULL AND billing_period_start IS NOT NULL AND billing_period_end IS NOT NULL AND status <> 'cancelled'`. La migración incluye un fail-fast que aborta si hubiera duplicados previos (pre-verificado: 0 filas). El RPC ahora envuelve el `INSERT` en un `BEGIN..EXCEPTION WHEN unique_violation` que recupera la factura ganadora del race y devuelve `already_existed=true` — semántica idempotente end-to-end. UX-M6: `ListPageLayout` deja de mostrar 'Aún no se han registrado registros aquí' cuando el usuario tiene filtros activos; ahora muestra 'No hay resultados con los filtros actuales' + botón 'Limpiar filtros' (retro-compatible via `hasActiveFilters`/`onClearFilters`). Suite: 1124/1124 verde (+3).",
+    "changes": [
+      "Nueva migración: índice único parcial `invoices_booking_period_uniq` — impide 2 facturas no-canceladas por (booking, periodo)",
+      "`create_recurring_invoice`: nuevo bloque `EXCEPTION WHEN unique_violation` — devuelve factura ganadora del race con `already_existed=true`",
+      "`ListPageLayout.tsx`: nuevas props `hasActiveFilters` y `onClearFilters` — EmptyState honesto cuando la lista vacía es por filtros",
+      "Nuevo `ListPageLayout.test.tsx` (3 tests): copy default sin filtros, copy alterno con filtros + click limpiar, sin callback no renderiza botón",
+      "Total: +3 tests (1121 → 1124)"
+    ]
+  },
+  {
     "version": "7.129.0",
+
     "date": "2026-07-20",
     "type": "minor",
     "title": "Sprint 3 · Ola 3.7 — UX-M2: SupplierBillForm blindado (guard + tests + fix Date)",
