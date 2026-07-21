@@ -25,6 +25,8 @@ export interface PortalInvoiceRow {
   payments: PortalPayment[];
   paid: number;
   balance: number;
+  /** R6-B2: moneda del documento para mostrar badge USD/MXN. */
+  moneda?: string;
 }
 
 interface Props {

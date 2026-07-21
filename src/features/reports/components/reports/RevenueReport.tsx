@@ -9,6 +9,7 @@ import { useInvoices } from "@/features/invoices";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatMonthShortEsFromDate } from "@/lib/format/formatMonthEs";
+import { toMxn } from "@/lib/money";
 
 interface Props {
   startDate: Date;
@@ -26,12 +27,19 @@ export function RevenueReport({ startDate, endDate }: Props) {
       const key = format(startOfMonth(parseISO(inv.issued_at)), "yyyy-MM");
       const label = formatMonthShortEsFromDate(startOfMonth(parseISO(inv.issued_at)));
       if (!months[key]) months[key] = { month: label, invoiced: 0, paid: 0, count: 0 };
-      months[key].invoiced += Number(inv.total);
+      // R6-B2: normalizar a MXN cuando la factura está en USD.
+      const totalMxn = toMxn(
+        Number(inv.total),
+        (inv as { moneda?: string | null }).moneda ?? "MXN",
+        (inv as { tipo_cambio?: number | string | null }).tipo_cambio,
+      );
+      months[key].invoiced += totalMxn;
       months[key].count++;
-      if (inv.status === "paid") months[key].paid += Number(inv.total);
+      if (inv.status === "paid") months[key].paid += totalMxn;
     });
     return Object.entries(months).sort(([a], [b]) => a.localeCompare(b)).map(([, d]) => d);
   })();
+
 
   const columns: ColumnDef<Row>[] = [
     { id: "month", header: "Mes", accessorKey: "month", cell: ({ row }) => <span className="font-medium">{row.original.month}</span> },
