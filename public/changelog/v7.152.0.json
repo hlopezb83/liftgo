@@ -1,0 +1,14 @@
+{
+  "version": "7.152.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "Bloques 2 y 3 (R5) — Espaciado estandarizado y StatusBadge suave",
+  "category": "ui",
+  "description": "Unifica ritmo vertical del Dashboard, homogeneiza espaciado en tarjetas KPI de Cuentas por Pagar, normaliza el porcentaje de IVA en TotalsSummary (acepta fracción o entero) y refactoriza StatusBadge a tonos suaves (bg tintado /10) para mejor contraste y legibilidad en tablas densas.",
+  "changes": [
+    "Dashboard: `flex flex-col gap-4` → `gap-6` para separar secciones (alertas, KPIs, gráficas) con ritmo consistente.",
+    "AccountsPayableKpiCards: `gap-3` → `gap-4` para alinearse con la grilla estándar del resto de la app.",
+    "TotalsSummary: `displayRate` deriva de `taxRate` normalizando fracción (0.16) o porcentaje (16) a entero para evitar mostrar `IVA (0.16%)`.",
+    "StatusBadge: tonos semánticos suaves con `bg-{color}/10 text-{color}` en lugar de fondos sólidos saturados; mantiene compatibilidad con todos los estados existentes."
+  ]
+}
