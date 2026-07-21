@@ -1,5 +1,21 @@
 [
   {
+    "version": "7.134.0",
+    "date": "2026-07-21",
+    "type": "minor",
+    "title": "Timbrado: AbortController real, cancel_rep mapea payment_id, reconcile con cap y cron 10 min",
+    "summary": "Aplicación auditada del patch integral. Se toman 19 fixes reales y se ajustan los 5 riesgos: (A) reconcile cada 10 min (compromiso 5↔15); (B) se descarta la sobrecarga de 7 args de `create_booking` porque el frontend siempre manda `p_quote_id`; (C) se elimina duplicación en la varianza de timbrado (una sola fuente); (D) TIMEOUT ahora aborta el fetch de Facturapi de verdad vía AbortController; (E) `process-cfdi-retry-queue` mapea `cancel_rep` a `payment_id`, recupera filas `processing` huérfanas > 15 min y `reconcile-stamping-invoices` frena a los 10 intentos.",
+    "changes": [
+      "`stamp-cfdi`: `createInvoiceWithSignal` + AbortController real — el timeout aborta el fetch, ya no queda colgado consumiendo cuota.",
+      "`stamp-cfdi`: eliminada la doble escritura de `stamp_variance` y la varianza duplicada (dos cálculos, dos writes) — ahora una sola escritura desde `computeStampVariance`.",
+      "`process-cfdi-retry-queue`: `cancel_rep` envía `payment_id` (no `invoice_id`) a `cancel-payment-complement`; antes fallaba con 400.",
+      "`process-cfdi-retry-queue`: recupera hasta 10 filas `processing` con `updated_at` > 15 min (isolate muerto/redeploy) y las reclama atómicamente.",
+      "`reconcile-stamping-invoices`: contador `stamping_attempts` con cap `MAX = 10`; superado el cap se marca `error` con nota manual para evitar loops eternos.",
+      "Migración: `invoices.stamping_attempts` (int NOT NULL DEFAULT 0), `stamp_variance_checked_at` (timestamptz), `stamp_variance` a `numeric(12,4)`.",
+      "Cron: `reconcile-stamping-invoices` reagendado de `*/15` a `*/10` con secreto desde vault; job anterior liberado."
+    ]
+  },
+
     "version": "7.133.0",
     "date": "2026-07-20",
     "type": "minor",
