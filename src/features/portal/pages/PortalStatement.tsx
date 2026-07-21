@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { DownloadIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCustomerSummary, usePortalCustomer, usePortalInvoices, usePortalPayments } from "@/features/customers";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -18,6 +20,7 @@ export default function PortalStatement() {
   const { data: summary } = useCustomerSummary(customer?.id);
   const [onlyBalance, setOnlyBalance] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
+  const onlyBalanceId = useId();
 
   const rows = (invoices ?? []).map((inv) => {
     const invPayments = (payments ?? []).filter((p: PortalPayment) => p.invoice_id === inv.id);
@@ -88,10 +91,14 @@ export default function PortalStatement() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Facturas</CardTitle>
-          <label className="text-sm flex items-center gap-2">
-            <input type="checkbox" checked={onlyBalance} onChange={(e) => setOnlyBalance(e.target.checked)} />
-            Solo con saldo
-          </label>
+          <div className="flex items-center gap-2">
+            <Checkbox
+              id={onlyBalanceId}
+              checked={onlyBalance}
+              onCheckedChange={(v) => setOnlyBalance(v === true)}
+            />
+            <Label htmlFor={onlyBalanceId} className="text-sm cursor-pointer">Solo con saldo</Label>
+          </div>
         </CardHeader>
         <CardContent className="p-0">
           <PortalInvoicesTable

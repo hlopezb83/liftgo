@@ -118,14 +118,16 @@ function CfdiXmlActions({
         <AcuseDownloadButtons invoiceId={invoice.id} invoiceNumber={invoice.invoice_number} />
       ) : null}
       {flags.canCancelCfdi ? (
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={onCancelCfdi}
-          className="text-destructive hover:text-destructive"
-        >
-          <ErrorIcon className="h-4 w-4 mr-1" /> Cancelar CFDI
-        </Button>
+        <RoleGuard module="Facturas" minAccess="full">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={onCancelCfdi}
+            className="text-destructive hover:text-destructive"
+          >
+            <ErrorIcon className="h-4 w-4 mr-1" /> Cancelar CFDI
+          </Button>
+        </RoleGuard>
       ) : null}
     </>
   );
