@@ -10,8 +10,11 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Parse a "YYYY-MM-DD" (o "YYYY-MM") string as local date (not UTC) to avoid off-by-one errors.
- * Endurecido para no lanzar ante `null`/`undefined`/valores vacíos: devuelve `null`.
+ * Endurecido para no lanzar ante `null`/`undefined`/valores vacíos: devuelve `null`
+ * (callers con `string` conocido siguen recibiendo `Date`).
  */
+export function parseDateLocal(dateStr: string): Date;
+export function parseDateLocal(dateStr: string | null | undefined): Date | null;
 export function parseDateLocal(
   dateStr: string | null | undefined,
 ): Date | null {
