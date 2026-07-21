@@ -118,6 +118,19 @@ export default function PortalQuoteDetail() {
         </Card>
       )}
 
+      {isExpired && !wasAccepted && (
+        <Card className="border-muted bg-muted/30">
+          <CardContent className="pt-4 text-sm">
+            <p className="font-semibold">Cotización vencida</p>
+            <p className="text-muted-foreground">
+              Esta cotización perdió vigencia el {formatDateDisplay(quote.valid_until)}. Solicita una actualización a tu ejecutivo para poder aceptarla.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+
+
       {canAct && (
         <Card>
           <CardHeader><CardTitle className="text-base">Aceptar cotización</CardTitle></CardHeader>
