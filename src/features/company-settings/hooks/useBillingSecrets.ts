@@ -31,12 +31,15 @@ export function useUpsertBillingSecrets() {
       if (input.facturapi_live_key && input.facturapi_live_key.length > 0) {
         payload.facturapi_live_key = input.facturapi_live_key;
       }
+      // Bloque 6.1: la columna SELECT sólo está permitida para (id, created_at, updated_at).
+      // Por eso el .select() explícito evita pedir columnas sensibles (facturapi_*_key).
+      const returning = "id, updated_at";
       if (input.id) {
         const { data, error } = await supabase
           .from("billing_secrets")
           .update(payload)
           .eq("id", input.id)
-          .select()
+          .select(returning)
           .single();
         if (error) throw error;
         return data;
@@ -44,7 +47,7 @@ export function useUpsertBillingSecrets() {
       const { data, error } = await supabase
         .from("billing_secrets")
         .insert(payload)
-        .select()
+        .select(returning)
         .single();
       if (error) throw error;
       return data;

@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.150.0",
+    "date": "2026-07-21",
+    "type": "minor",
+    "title": "Bloque 6 (R4) — Endurecimiento de permisos, REP claim leak y limpieza",
+    "category": "security"
+  },
+  {
     "version": "7.149.0",
     "date": "2026-07-21",
     "type": "minor",

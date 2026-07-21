@@ -1,46 +1,48 @@
-# Revisión Fase 3 (v7.148.0) y siguiente fase — Bloque 5 (R4)
+# Bloque 6 (R4) — Deuda técnica y seguridad de código
 
-## Revisión de v7.148.0 (Bloque 4 parcial)
+Objetivo: cerrar los hallazgos de código del reporte R4 con foco en **seguridad de datos** (RLS/write-only) y **race conditions** ya identificadas en auditorías previas.
 
-- **Bugs**: ninguno. Verifiqué `GanttRow.tsx` (button + Radix `TooltipTrigger asChild` es válido, `useNavigateTransition` = alias de `useNavigate`), `useCustomersColumns.tsx` (truncate + title) y `FormDialog.tsx` (`pb-16` compensa footer sticky de ~4rem). Typecheck y 1169 tests en verde.
-- **Tests faltantes**: los 3 cambios son de presentación pura (className/onClick), sin lógica testeable adicional. No agregamos tests nuevos.
-- **Pendientes de Bloque 4** (se abordan al final del R4, no ahora): 4.1 mensajes de validación (necesita repro con browser), 4.4 guarda anti-cierre en ESC (requiere hook nuevo `useDialogUnsavedGuard`).
+## Alcance
 
-## Alcance — Bloque 5 (Bajos)
+### 6.1 `billing_secrets` write-only (CRITICAL)
+- Migración: revocar `SELECT` de `authenticated` sobre `public.billing_secrets`. Mantener `SELECT` sólo para `service_role`.
+- Refactor cualquier `.from("billing_secrets").select(...)` del cliente: mover a Edge Function con `service_role`.
+- Verificar que la UI de Facturapi (`/settings/company/billing`) siga funcionando via RPC/Edge Function que no expone la API key.
 
-Cinco fixes cortos y verificables extraídos de `liftgo-instrucciones-lovable-r4.md`.
+### 6.2 RLS `payment_intents` (HIGH)
+- Confirmar policies actuales; añadir política de `SELECT/INSERT/UPDATE` por `has_role('admin'|'administrativo')`.
+- GRANT explícito a `authenticated` y `service_role`.
 
-### 5.1 ⌘K indexa entidades, no solo páginas
-`src/layouts/GlobalSearch.tsx` hoy filtra rutas estáticas. Agregar consultas paralelas (`invoices`, `customers`, `bookings`) por número/folio/nombre, límite 5 por entidad, con navegación al detalle. Los resultados de entidades aparecen como sección separada bajo las páginas.
+### 6.3 REP claim leak (HIGH)
+- Auditar `prepare_payment_complement` + `stamp-cfdi` para asegurar que el `claim_token` se libera en `finally` incluso en abort/timeout.
+- Test de reproducción: simular timeout de Facturapi y validar que el segundo intento no bloquee.
 
-### 5.2 Rol "Sin rol" en vez de fallback a `dispatcher`
-`src/features/users/lib/queryKeys.ts:42` (o donde esté el fallback real; confirmar antes de tocar). Cambiar el default silencioso por `null` en el hook y renderizar un `Badge variant="destructive"` con texto "Sin rol" en la tabla de usuarios. No inventar rol.
+### 6.4 Cobertura adicional
+- Test unitario para `searchEntities` en `GlobalSearch` (invoices/customers/bookings, ≥2 chars, límite 5).
+- Guardas null en `invoice_number`/`booking_number` (fallback `"—"`).
 
-### 5.3 `$NaN` en cash-flow
-Dos capas:
-1. `formatCurrency` en `src/lib/money.ts` — si `Number.isNaN(value)` devolver `"—"`.
-2. `billToItem` (helper de cash-flow) — coalescer `null/undefined → 0` antes de sumar.
+### 6.5 Cleanup
+- `knip` sobre `src/` y `supabase/functions/` para detectar dead code residual (post-Bloque 5).
+- Reportar sin borrar automáticamente si el impacto es >20 archivos; borrar los evidentes.
 
-### 5.4 invite-user borra rol residual
-`supabase/functions/invite-user/index.ts` — tras el `upsert` del nuevo rol, ejecutar `DELETE FROM user_roles WHERE user_id = $1 AND role <> $2` para evitar acumulación (`customer` + rol interno).
+## Detalle técnico
 
-### 5.5 `version.json` verificado en build
-Añadir chequeo en el script `scripts/sync-version.mjs` (o crearlo) que compare `public/version.json` contra `public/changelog.json[0].version` y falle el build si difieren. Alternativa más simple: convertir `version.json` en un archivo generado y añadirlo a `.gitignore`.
+```text
+supabase/migrations/
+  YYYYMMDD_billing_secrets_write_only.sql   ← revoke SELECT authenticated
+  YYYYMMDD_payment_intents_rls.sql          ← policies + grants
+src/features/settings/company/billing/      ← eliminar reads directos
+supabase/functions/get-billing-config/      ← nueva EF (o extender existente)
+src/layouts/__tests__/globalSearchEntities.test.ts   ← nuevo
+```
 
-## Testing
+## Salida
+- Cambios agrupados en **v7.150.0** (minor: seguridad + refactor).
+- Changelog `public/changelog/v7.150.0.json` con detalle por hallazgo.
+- `bunx tsgo` + `bunx vitest run` en verde + `supabase--linter` sin nuevos warnings.
 
-- Unit test para `formatCurrency(NaN)` y `formatCurrency(null)`.
-- Unit test para `billToItem` con inputs nulos.
-- Test Deno para la limpieza de roles en `invite-user` (mock supabase).
-- 5.1 y 5.2: verificación manual documentada en changelog.
+## Riesgo
+- El refactor de `billing_secrets` puede romper la pantalla de Facturapi si algún componente aún hace `.select()`. Mitigación: grep exhaustivo previo a la migración y validación con Playwright del flujo de timbrado.
 
-## Detalles técnicos
-
-- Migración no requerida (Bloque 5 es puramente aplicación).
-- Sin cambios de RLS ni schema.
-- Changelog: `v7.149.0` (minor — múltiples fixes con nuevas capacidades en ⌘K).
-- Al final: `bunx tsgo --noEmit`, `bunx vitest run`, `cd supabase/functions && deno fmt --check && deno test --allow-net --allow-env`.
-
-## Diferido para Bloque 6
-
-REP claim leak, trigger CRM cierre, RLS `customer_payment_intents`, `billing_secrets` write-only, regen types, `stage_order` MAX+1, `useLiftgoTable` Proxy globalFilter, `VirtualBody` cleanup. Se atacan tras aprobar Bloque 5.
+## Fuera de alcance
+- Nuevas features UX; sólo se cierran hallazgos de código del reporte R4.

@@ -173,7 +173,11 @@ Deno.serve(async (req) => {
       supabase,
       (k) => Deno.env.get(k),
     );
-    if (!apiKey) return jsonError(req, 400, "Facturapi key not configured");
+    if (!apiKey) {
+      // Bloque 6.3: sin apiKey el claim quedaba huérfano en 'in_progress'.
+      await releaseClaim("Facturapi key no configurada");
+      return jsonError(req, 400, "Facturapi key not configured");
+    }
 
     const paymentDateIso = `${payment.payment_date}T12:00:00`;
     const paymentCurrency = (payment.currency as string | null) || "MXN";

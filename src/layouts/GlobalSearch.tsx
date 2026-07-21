@@ -79,24 +79,26 @@ async function searchEntities(query: string): Promise<EntityResults> {
   return {
     invoices: (invRes.data ?? []).map((i) => ({
       id: i.id,
-      label: i.invoice_number,
+      label: i.invoice_number ?? "—",
       sub: i.customer_name ?? undefined,
       url: `/invoices/${i.id}`,
     })),
     customers: (custRes.data ?? []).map((c) => ({
       id: c.id,
-      label: c.name,
+      label: c.name ?? "—",
       sub: c.rfc ?? undefined,
       url: `/customers/${c.id}`,
     })),
     bookings: (bookRes.data ?? []).map((b) => ({
       id: b.id,
-      label: b.booking_number,
+      label: b.booking_number ?? "—",
       sub: b.customer_name ?? undefined,
       url: `/bookings/${b.id}`,
     })),
   };
 }
+
+export { searchEntities };
 
 export function GlobalSearch() {
   const [open, setOpen] = useState(false);
