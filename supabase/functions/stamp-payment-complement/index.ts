@@ -68,8 +68,62 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Load invoice (BL-004: incluir tax_rate para no hardcodear IVA;
-    // BL-05: incluir moneda/tipo_cambio de la factura para el related doc).
+    // Helper: liberar el claim ante un early-return no-fatal. Deja el pago en
+    // 'pending' para que el operador o el retry queue puedan re-intentar.
+    const releaseClaim = async (msg?: string) => {
+      await supabase
+        .from("payments")
+        .update({
+          rep_cfdi_status: "pending",
+          rep_error_message: msg ?? null,
+        })
+        .eq("id", payment_id);
+    };
+
+    // BLOQUE 2.2: un solo RPC transaccional bloquea la factura, calcula
+    // NumParcialidad + ImpSaldoAnt y RESERVA installment_number/prior_balance
+    // en payments antes de retornar. Serialización real: dos llamadas
+    // concurrentes se ordenan por el FOR UPDATE sobre invoices; cuando la
+    // primera commitea con la reserva, la segunda ya la ve y computa N+1.
+    const prepRes = await (supabase as unknown as {
+      rpc: (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => Promise<
+        {
+          data: Record<string, unknown> | null;
+          error: { message?: string } | null;
+        }
+      >;
+    }).rpc("prepare_payment_complement", { p_payment_id: payment_id });
+
+    if (prepRes.error || !prepRes.data) {
+      const errMsg = prepRes.error?.message ??
+        "No se pudo preparar el complemento";
+      console.error("[stamp-payment-complement] prepare_payment_complement failed", {
+        payment_id,
+        err: errMsg,
+      });
+      // Falla del RPC → dejar en 'error' (no re-intentable automático) con
+      // mensaje descriptivo. Cubre validación de monto inválido y estados
+      // inconsistentes.
+      await supabase
+        .from("payments")
+        .update({
+          rep_cfdi_status: "error",
+          rep_error_message: errMsg.slice(0, 1000),
+        })
+        .eq("id", payment_id);
+      return jsonError(req, 500, `No se pudo preparar el complemento: ${errMsg}`);
+    }
+
+    const prep = prepRes.data;
+    const installmentNumber = Number(prep.installment_number);
+    const priorBalance = Number(prep.prior_balance);
+    const amount = Number(payment.amount);
+
+    // Cargar los campos de invoice que el RPC no devuelve pero el payload de
+    // Facturapi necesita (razón social, RFC, régimen, domicilio, uso CFDI).
     const { data: invoice } = await supabase
       .from("invoices")
       .select(
@@ -77,8 +131,12 @@ Deno.serve(async (req) => {
       )
       .eq("id", payment.invoice_id)
       .single();
-    if (!invoice) return jsonError(req, 404, "Invoice not found");
+    if (!invoice) {
+      await releaseClaim("Factura no encontrada");
+      return jsonError(req, 404, "Invoice not found");
+    }
     if (invoice.metodo_pago !== "PPD") {
+      await releaseClaim("Solo facturas PPD requieren REP");
       return jsonError(
         req,
         400,
@@ -86,91 +144,11 @@ Deno.serve(async (req) => {
       );
     }
     if (invoice.cfdi_status !== "stamped" || !invoice.cfdi_uuid) {
+      await releaseClaim("Factura aún no timbrada");
       return jsonError(
         req,
         400,
         "La factura debe estar timbrada para generar REP",
-      );
-    }
-
-    // BL: serializar la emisión de REPs por factura. El claim atómico es por
-    // fila de payments, así dos peticiones concurrentes (distinto pago, misma
-    // factura) podían leer el mismo estado y calcular la MISMA NumParcialidad
-    // / ImpSaldoAnt antes de timbrar. El RPC toma un SELECT ... FOR UPDATE
-    // sobre la fila de invoices: las emisiones concurrentes se ordenan al
-    // adquirir el lock antes de calcular.
-    const lockRes = await (supabase as unknown as {
-      rpc: (
-        fn: string,
-        args: Record<string, unknown>,
-      ) => Promise<{ data: unknown; error: { message?: string } | null }>;
-    }).rpc("lock_invoice_for_rep", { p_invoice_id: invoice.id });
-    if (lockRes.error) {
-      console.error("[stamp-payment-complement] invoice lock failed", {
-        invoice_id: invoice.id,
-        err: lockRes.error.message,
-      });
-      // Liberar el claim para que el pago no quede atascado en 'stamping'
-      // (mismo patrón que el manejo de error de Facturapi más abajo).
-      await supabase
-        .from("payments")
-        .update({
-          rep_cfdi_status: "error",
-          rep_error_message: "No se pudo serializar la emisión del REP",
-        })
-        .eq("id", payment_id);
-      return jsonError(
-        req,
-        500,
-        "No se pudo serializar la emisión del REP; reintenta",
-      );
-    }
-
-    // BL-07: NumParcialidad debe ser único e incremental por factura, incluyendo
-    // REPs cancelados (SAT no permite reutilizar el número). Antes se numeraba
-    // por orden cronológico de payment_date, así un pago retroactivo colisionaba
-    // con parcialidades ya timbradas.
-    // BL-06: priorBalance se calcula solo sobre REPs actualmente vigentes
-    // (stamped, no cancelled).
-    const { data: allPayments } = await supabase
-      .from("payments")
-      .select("id, amount, rep_cfdi_status, rep_cfdi_uuid")
-      .eq("invoice_id", invoice.id);
-
-    const paymentsList = (allPayments ?? []) as Array<
-      {
-        id: string;
-        amount: number;
-        rep_cfdi_status: string;
-        rep_cfdi_uuid: string | null;
-      }
-    >;
-    let priorPaidStamped = 0;
-    let priorEmissions = 0; // stamped + cancelled ya emitidos (incluye el pago actual si tuvo emisión previa)
-    for (const p of paymentsList) {
-      if (p.id === payment_id) {
-        // BL-06/07 (cierre): si el pago actual tiene rep_cfdi_uuid, hubo una
-        // emisión previa ante el SAT (típicamente cancelada). El SAT no permite
-        // reutilizar NumParcialidad aunque el REP anterior esté cancelado.
-        if (p.rep_cfdi_uuid) priorEmissions += 1;
-        continue;
-      }
-      if (p.rep_cfdi_status === "stamped") {
-        priorPaidStamped += Number(p.amount);
-        priorEmissions += 1;
-      } else if (p.rep_cfdi_status === "cancelled" && p.rep_cfdi_uuid) {
-        priorEmissions += 1;
-      }
-    }
-    const installmentNumber = priorEmissions + 1;
-    const invoiceTotal = Number(invoice.total);
-    const priorBalance = Number((invoiceTotal - priorPaidStamped).toFixed(2));
-    const amount = Number(payment.amount);
-    if (amount <= 0 || amount > priorBalance + 0.01) {
-      return jsonError(
-        req,
-        400,
-        `Monto inválido. Saldo previo: ${priorBalance}`,
       );
     }
 

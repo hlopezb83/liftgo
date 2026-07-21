@@ -1,0 +1,20 @@
+{
+  "version": "7.136.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "BLOQUE 2 auditoría: REP con serialización real, reconcile resetea intentos, varianza unificada",
+  "summary": "Bloque 2 (medias) del reporte de verificación post v7.134.0.",
+  "highlights": [
+    "prepare_payment_complement: FOR UPDATE en invoices + reserva de installment_number/prior_balance en la misma tx. Serialización real de REPs concurrentes.",
+    "lock_invoice_for_rep eliminado.",
+    "reconcile_stamping_invoice: stamping_attempts = 0 al conciliar con éxito.",
+    "Early returns de stamp-payment-complement liberan el claim a 'pending' (antes quedaba atascado en 'stamping').",
+    "Varianza de timbrado unificada en _shared/money.ts con STAMP_VARIANCE_WARNING/ALERT.",
+    "process-cfdi-retry-queue: claim con .select().maybeSingle() + continue si no matchea."
+  ],
+  "internal_notes": [
+    "Bloque 3 (edge cases: invite-user, RecurringBillingBadge, generate-recurring-invoices, XML escaping, cancel_nc mapping) — próxima iteración.",
+    "Bloque 4 (UX), Bloque 5 (pulido MP), Bloque 6 (optimistic locking) — próximas iteraciones."
+  ],
+  "category": "improvement"
+}

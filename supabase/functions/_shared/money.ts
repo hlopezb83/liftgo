@@ -43,8 +43,7 @@ export function sumMoney(
 
 /**
  * Diferencia absoluta en pesos (2 decimales) entre el total local y el total
- * timbrado por Facturapi. Si difieren en más de `toleranceMxn` MXN, el caller
- * debe alertar (variance fiscal potencial).
+ * timbrado por Facturapi.
  */
 export function stampVariance(
   localTotal: number | null | undefined,
@@ -54,4 +53,33 @@ export function stampVariance(
   return fromCents(Math.abs(diffCents));
 }
 
-export const STAMP_VARIANCE_TOLERANCE_MXN = 0.02;
+// BLOQUE 2.3: umbrales canónicos de varianza de timbrado (una sola fuente).
+// - WARNING: varianzas ≤ 0.01 MXN son ruido por redondeo por línea (Facturapi
+//   vs cálculo local) y no rompen 'stamped'.
+// - ALERT: varianzas > 0.02 MXN merecen aviso al operador porque suelen
+//   indicar diferencia de tasa o descuento mal aplicado.
+export const STAMP_VARIANCE_WARNING = 0.01;
+export const STAMP_VARIANCE_ALERT = 0.02;
+/** Alias legacy; usar STAMP_VARIANCE_ALERT en código nuevo. */
+export const STAMP_VARIANCE_TOLERANCE_MXN = STAMP_VARIANCE_ALERT;
+
+/**
+ * BL-A5 (canónico): comparación pura entre invoices.total y el total devuelto
+ * por Facturapi tras timbrar. Devuelve null cuando alguno de los dos no es
+ * un número finito. `withinTolerance` usa el umbral WARNING (1 centavo).
+ */
+export function computeStampVariance(
+  invoiceTotal: unknown,
+  stampedTotal: unknown,
+): { variance: number; withinTolerance: boolean } | null {
+  if (invoiceTotal == null || stampedTotal == null) return null;
+  const expected = Number(invoiceTotal);
+  const stamped = Number(stampedTotal);
+  if (!Number.isFinite(expected) || !Number.isFinite(stamped)) return null;
+  const variance = Math.round((stamped - expected) * 10000) / 10000;
+  return {
+    variance,
+    withinTolerance: Math.abs(variance) <= STAMP_VARIANCE_WARNING,
+  };
+}
+
