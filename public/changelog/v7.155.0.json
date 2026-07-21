@@ -1,0 +1,13 @@
+{
+  "version": "7.155.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "Bloque 5 (R6) — Pulido nivel 2",
+  "category": "ui",
+  "summary": "Cierra el Bloque 5 del lote R6: header sticky de tablas con `bg-card/95 backdrop-blur-sm`, footer de diálogo unificado (`gap-2`, padding vía DialogContent) y fade sutil en el borde derecho de tablas en móvil para insinuar scroll horizontal.",
+  "changes": [
+    "ui/Table: `TableHeader` usa `bg-card/95 backdrop-blur-sm` (con fallback `supports-[backdrop-filter]:bg-card/80`) para que el header sticky no compita con el contenido al hacer scroll.",
+    "ui/Table: contenedor con `mask-image` en móvil que produce un fade de 16px en el borde derecho; se desactiva en `md:` para no afectar el layout de desktop.",
+    "ui/Dialog: `DialogFooter` unifica el patrón a `gap-2` (elimina `sm:space-x-2`) alineado a la derecha; el padding horizontal lo aporta `DialogContent` (`p-6`), consistente con `FormDialogFooter` y `Sheet`."
+  ]
+}
