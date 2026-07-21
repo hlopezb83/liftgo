@@ -44,9 +44,11 @@ export function DragDropImageUploader({ entityType, entityId, maxFiles = 10, cla
     if (previews.length === 0) return;
     setUploading(true);
     try {
-      for (const { file } of previews) {
-        await uploadDoc.mutateAsync({ file, entityType, entityId });
-      }
+      // R7 · Deuda: uploads en paralelo (antes serial) para reducir latencia
+      // percibida al subir varias evidencias a la vez.
+      await Promise.all(
+        previews.map(({ file }) => uploadDoc.mutateAsync({ file, entityType, entityId })),
+      );
       notifySuccess(`${previews.length} foto(s) subida(s)`);
       previews.forEach((p) => URL.revokeObjectURL(p.url));
       setPreviews([]);
