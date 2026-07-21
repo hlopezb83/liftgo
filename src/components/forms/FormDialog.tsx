@@ -64,11 +64,15 @@ export function FormDialog({
           <DialogTitle>{title}</DialogTitle>
           {description ? <DialogDescription>{description}</DialogDescription> : null}
         </DialogHeader>
-        <div className="pt-2">{children}</div>
+        <div className="pt-2 pb-16">{children}</div>
       </DialogContent>
     </Dialog>
   );
 }
+
+// Bloque 4.3 (R4): el footer sticky se superponía al último input del form.
+// Compensamos con `pb-16` en el cuerpo scrollable para dejar espacio libre
+// equivalente al alto del footer (py-3 + line-height ≈ 4rem).
 
 /**
  * Footer sticky para usar al final del `<form>` dentro de `<FormDialog>`.
