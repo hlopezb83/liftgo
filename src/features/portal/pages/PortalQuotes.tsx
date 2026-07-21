@@ -30,7 +30,7 @@ export default function PortalQuotes() {
     { id: "total", header: "Total", accessorFn: (q) => Number(q.total), meta: { align: "right" },
       cell: ({ row }) => <span className="font-mono">{formatCurrency(Number(row.original.total))}</span> },
     { id: "status", header: "Estado", accessorKey: "status",
-      cell: ({ row }) => <StatusBadge status={row.original.status} /> },
+      cell: ({ row }) => <StatusBadge status={row.original.status} label={quoteStatusLabel(row.original.status)} /> },
   ];
 
   const table = useLiftgoTable<Quote>({
@@ -61,7 +61,7 @@ export default function PortalQuotes() {
                     <CardContent className="p-3 space-y-1">
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-medium">{q.quote_number}</span>
-                        <StatusBadge status={q.status} />
+                        <StatusBadge status={q.status} label={quoteStatusLabel(q.status)} />
                       </div>
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <span>{formatDateDisplay(q.created_at)}</span>

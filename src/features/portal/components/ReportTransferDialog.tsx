@@ -20,9 +20,15 @@ interface Props {
   balance: number;
 }
 
-const schema = z.object({
+// Bloque 3.4 (R4): el monto debe ser > 0 y ≤ saldo pendiente. Antes se podía
+// reportar una transferencia mayor al saldo, lo que confundía al admin al
+// revisar el intent.
+const makeSchema = (balance: number) => z.object({
   transferDate: z.date({ error: "La fecha es obligatoria" }),
-  amount: positiveAmount(),
+  amount: positiveAmount().refine(
+    (v) => Number(v) <= Number(balance.toFixed(2)) + 0.005,
+    { message: "El monto no puede superar el saldo pendiente" },
+  ),
   senderBank: z.string().default(""),
   senderLast4: z
     .string()
@@ -34,13 +40,13 @@ const schema = z.object({
     .nullable()
     .default(null),
 });
-type FormValues = z.input<typeof schema>;
+type FormValues = z.input<ReturnType<typeof makeSchema>>;
 
 export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId, balance }: Props) {
   const { mutate, isPending } = useCreatePaymentIntent();
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(makeSchema(balance)),
     defaultValues: {
       transferDate: nowMty(),
       amount: Number(balance.toFixed(2)),
