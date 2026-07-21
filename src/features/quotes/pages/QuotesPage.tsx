@@ -25,7 +25,7 @@ const QUOTE_STATUS_OPTIONS = [
 type Quote = NonNullable<ReturnType<typeof useQuotes>["data"]>[number];
 
 export default function QuotesPage() {
-  const { data: quotes, isLoading, refetch } = useQuotes();
+  const { data: quotes, isLoading, isError, refetch } = useQuotes();
   const navigate = useNavigateTransition();
   usePageActions({ onNew: () => navigate("/quotes/new"), onRefresh: refetch, newLabel: "Nueva cotización" });
 
@@ -126,6 +126,8 @@ export default function QuotesPage() {
       }
 
       isLoading={isLoading}
+      isError={isError}
+      onRetry={() => { void refetch(); }}
       table={table}
       onRowClick={(q) => navigate(`/quotes/${q.id}`)}
       onRowPrefetch={(q) => quoteQueries.detail(q.id)}

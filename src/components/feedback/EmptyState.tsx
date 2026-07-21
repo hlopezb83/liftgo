@@ -12,7 +12,7 @@ interface EmptyStateProps {
 export function EmptyState({
   icon: Icon = PackageOpen,
   title = "No hay datos",
-  subtitle = "Aún no se han registrado registros aquí.",
+  subtitle = "Aún no hay registros aquí.",
   actionLabel,
   onAction,
 }: EmptyStateProps) {

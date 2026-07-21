@@ -16,7 +16,7 @@ import { useInventoryFilters } from "../hooks/inventory/useInventoryFilters";
 import { usePartsInventory, type PartInventory } from "../hooks/usePartsInventory";
 
 export default function InventoryPage() {
-  const { data: parts, isLoading } = usePartsInventory();
+  const { data: parts, isLoading, isError, refetch } = usePartsInventory();
 
   const formDialog = useToggleDialog();
   const [editing, setEditing] = useState<PartInventory | null>(null);
@@ -131,6 +131,8 @@ export default function InventoryPage() {
           </div>
         }
         isLoading={isLoading}
+        isError={isError}
+        onRetry={() => { void refetch(); }}
         table={table}
         onRowClick={(p) => detail.open(p)}
         emptyMessage="Sin refacciones registradas"

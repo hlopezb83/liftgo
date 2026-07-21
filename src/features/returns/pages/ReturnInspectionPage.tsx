@@ -22,7 +22,7 @@ export default function ReturnInspectionPage() {
   const navigate = useNavigateTransition();
   const { data: bookings } = useBookings();
   const { forkliftMap } = useForkliftMap();
-  const { data: inspections, isLoading } = useReturnInspections();
+  const { data: inspections, isLoading, isError, refetch } = useReturnInspections();
 
   const [filterDate, setFilterDate] = useState<Date | undefined>();
 
@@ -115,6 +115,8 @@ export default function ReturnInspectionPage() {
           </Button>
         }
         isLoading={isLoading}
+        isError={isError}
+        onRetry={() => { void refetch(); }}
         table={table}
         onRowClick={(ins) => navigate(`/returns/${ins.id}`)}
         emptyMessage="No hay inspecciones de devolución"

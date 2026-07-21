@@ -38,6 +38,7 @@ function PaymentDetailTable({ payments }: { payments: PortalPayment[] }) {
     return <p className="text-xs text-muted-foreground">Sin pagos aplicados.</p>;
   }
   return (
+    <div className="overflow-x-auto">
     <table className="w-full text-xs">
       <thead>
         <tr className="text-muted-foreground">
@@ -58,6 +59,7 @@ function PaymentDetailTable({ payments }: { payments: PortalPayment[] }) {
         ))}
       </tbody>
     </table>
+    </div>
   );
 }
 
@@ -101,6 +103,7 @@ function InvoiceRow({ row, idx, isOpen, onToggle }: { row: PortalInvoiceRow; idx
 
 export function PortalInvoicesTable({ rows, expanded, onToggle }: Props) {
   return (
+    <div className="overflow-x-auto">
     <table className="w-full text-sm">
       <thead className="text-xs text-muted-foreground bg-muted/40">
         <tr>
@@ -130,5 +133,6 @@ export function PortalInvoicesTable({ rows, expanded, onToggle }: Props) {
         ))}
       </tbody>
     </table>
+    </div>
   );
 }

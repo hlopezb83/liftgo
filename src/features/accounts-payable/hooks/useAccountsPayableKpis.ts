@@ -37,7 +37,7 @@ function accumulateBill(acc: AccountsPayableKpis, b: SupplierBillListItem, ctx: 
 }
 
 export function useAccountsPayableKpis() {
-  const { data, isLoading } = useSupplierBills();
+  const { data, isLoading, isError, refetch } = useSupplierBills();
 
   const kpis: AccountsPayableKpis = useMemo(() => {
     const today = nowMty();
@@ -54,5 +54,5 @@ export function useAccountsPayableKpis() {
     return acc;
   }, [data]);
 
-  return { kpis, isLoading, bills: data ?? [] };
+  return { kpis, isLoading, isError, refetch, bills: data ?? [] };
 }

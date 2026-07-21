@@ -93,6 +93,39 @@ Deno.serve(async (req) => {
       );
     }
 
+    // BL: serializar la emisión de REPs por factura. El claim atómico es por
+    // fila de payments, así dos peticiones concurrentes (distinto pago, misma
+    // factura) podían leer el mismo estado y calcular la MISMA NumParcialidad
+    // / ImpSaldoAnt antes de timbrar. El RPC toma un SELECT ... FOR UPDATE
+    // sobre la fila de invoices: las emisiones concurrentes se ordenan al
+    // adquirir el lock antes de calcular.
+    const lockRes = await (supabase as unknown as {
+      rpc: (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => Promise<{ data: unknown; error: { message?: string } | null }>;
+    }).rpc("lock_invoice_for_rep", { p_invoice_id: invoice.id });
+    if (lockRes.error) {
+      console.error("[stamp-payment-complement] invoice lock failed", {
+        invoice_id: invoice.id,
+        err: lockRes.error.message,
+      });
+      // Liberar el claim para que el pago no quede atascado en 'stamping'
+      // (mismo patrón que el manejo de error de Facturapi más abajo).
+      await supabase
+        .from("payments")
+        .update({
+          rep_cfdi_status: "error",
+          rep_error_message: "No se pudo serializar la emisión del REP",
+        })
+        .eq("id", payment_id);
+      return jsonError(
+        req,
+        500,
+        "No se pudo serializar la emisión del REP; reintenta",
+      );
+    }
+
     // BL-07: NumParcialidad debe ser único e incremental por factura, incluyendo
     // REPs cancelados (SAT no permite reutilizar el número). Antes se numeraba
     // por orden cronológico de payment_date, así un pago retroactivo colisionaba

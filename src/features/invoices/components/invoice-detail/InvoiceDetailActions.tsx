@@ -141,15 +141,21 @@ export function InvoiceDetailActions({
     <>
       <CancellationBlock flags={flags} invoiceId={invoice.id} />
       {flags.canEdit ? (
-        <Button size="sm" variant="outline" onClick={onEdit}>
-          <EditIcon className="h-4 w-4 mr-1" /> Editar
-        </Button>
+        <RoleGuard module="Facturas" minAccess="full">
+          <Button size="sm" variant="outline" onClick={onEdit}>
+            <EditIcon className="h-4 w-4 mr-1" /> Editar
+          </Button>
+        </RoleGuard>
       ) : null}
-      <StampButtons flags={flags} isStamping={isStamping} onStamp={onStamp} />
+      <RoleGuard module="Facturas" minAccess="full">
+        <StampButtons flags={flags} isStamping={isStamping} onStamp={onStamp} />
+      </RoleGuard>
       {flags.showPaymentBtn ? (
-        <Button size="sm" onClick={onOpenPayment}>
-          <PaymentIcon className="h-4 w-4 mr-1" />Registrar Pago
-        </Button>
+        <RoleGuard module="Facturas" minAccess="full">
+          <Button size="sm" onClick={onOpenPayment}>
+            <PaymentIcon className="h-4 w-4 mr-1" />Registrar Pago
+          </Button>
+        </RoleGuard>
       ) : null}
       {pdfMode !== "hidden" ? (
         <InvoicePDFButton

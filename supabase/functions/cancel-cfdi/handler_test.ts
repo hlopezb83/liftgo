@@ -37,8 +37,12 @@ function makeDeps(opts: {
   service?: MockConfig;
   env?: Record<string, string>;
   fetchImpl?: typeof fetch;
+  callerClaims?: ({ sub?: string } & Record<string, unknown>) | null;
 }) {
-  const caller = buildSupabaseMock({ claims: { sub: USER_ID } });
+  const caller = buildSupabaseMock({
+    claims: opts.callerClaims === undefined ? { sub: USER_ID } : opts
+      .callerClaims,
+  });
   const service = buildSupabaseMock(opts.service ?? {});
   const env = opts.env ?? {};
   const deps: CancelCfdiDeps = {
@@ -388,6 +392,124 @@ Deno.test("cancel-cfdi: BL-A4 rechaza 409 si hay pagos aplicados", async () => {
   // Ningún update: la factura sigue timbrada.
   const upd = serviceState.updates.find((u) => u.table === "invoices");
   assertEquals(upd, undefined);
+});
+
+// EC-A1: bypass service_role para el consumer de cfdi_retry_queue.
+Deno.test("cancel-cfdi: EC-A1 service_role JWT salta la verificación de rol", async () => {
+  const { deps, serviceState } = makeDeps({
+    callerClaims: { role: "service_role" },
+    env: {},
+    service: {
+      // Sin entrada user_roles: si el bypass no funcionara, el lookup
+      // devolvería null y la función respondería 403.
+      selects: {
+        invoices: {
+          data: { cfdi_status: "stamped", facturapi_invoice_id: null },
+          error: null,
+        },
+        company_settings: { data: { facturapi_mode: "test" }, error: null },
+        billing_secrets: { data: null, error: null },
+      },
+      updates: { invoices: { data: null, error: null } },
+    },
+  });
+  const res = await handleCancelCfdi(
+    makeRequest({ invoice_id: INVOICE_ID, motive: "02" }),
+    deps,
+  );
+  const body = await res.json();
+  assertEquals(res.status, 200);
+  assertEquals(body.stub, true);
+  const upd = serviceState.updates.find((u) => u.table === "invoices");
+  assert(upd, "expected an invoice update via service_role bypass");
+  assertEquals(upd!.patch.cfdi_status, "cancelled");
+});
+
+// BL-44: errores transitorios (5xx/red/429) encolan reintento en cfdi_retry_queue.
+Deno.test("cancel-cfdi: BL-44 Facturapi 500 encola reintento con payload plano", async () => {
+  const mock = installFacturapiMock({
+    "/invoices/fapi_500": () => new Response("oops", { status: 500 }),
+  });
+  try {
+    const { deps, serviceState } = makeDeps({
+      env: { FACTURAPI_TEST_KEY: "sk_test" },
+      fetchImpl: globalThis.fetch,
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          invoices: {
+            data: { cfdi_status: "stamped", facturapi_invoice_id: "fapi_500" },
+            error: null,
+          },
+          company_settings: { data: { facturapi_mode: "test" }, error: null },
+          billing_secrets: { data: null, error: null },
+          cfdi_retry_queue: { data: { id: "q-1" }, error: null },
+        },
+      },
+    });
+    const res = await handleCancelCfdi(
+      makeRequest({ invoice_id: INVOICE_ID, motive: "02" }),
+      deps,
+    );
+    const body = await res.json();
+    assertEquals(res.status, 502);
+    assertEquals(body.transient, true);
+    // La cancelación quedó encolada para el consumer.
+    const enq = serviceState.inserts.find((i) => i.table === "cfdi_retry_queue");
+    assert(enq, "expected an insert into cfdi_retry_queue");
+    const row = enq!.row as Record<string, unknown>;
+    assertEquals(row.operation, "cancel");
+    assertEquals(row.invoice_id, INVOICE_ID);
+    assertEquals(row.status, "pending");
+    assertEquals(row.attempts, 0);
+    // Payload plano: el consumer lo esparce tal cual al reinvocar cancel-cfdi.
+    const payload = row.payload as Record<string, unknown>;
+    assertEquals(payload.motive, "02");
+    assertEquals(payload.substitution_uuid, undefined);
+    // Y la factura NO se tocó (la cancelación no llegó al SAT).
+    const upd = serviceState.updates.find((u) => u.table === "invoices");
+    assertEquals(upd, undefined);
+  } finally {
+    mock.restore();
+  }
+});
+
+Deno.test("cancel-cfdi: BL-44 Facturapi 400 (negocio) NO encola reintento", async () => {
+  const mock = installFacturapiMock({
+    "/invoices/fapi_400": () =>
+      new Response(JSON.stringify({ message: "Invalid RFC" }), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      }),
+  });
+  try {
+    const { deps, serviceState } = makeDeps({
+      env: { FACTURAPI_TEST_KEY: "sk_test" },
+      fetchImpl: globalThis.fetch,
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          invoices: {
+            data: { cfdi_status: "stamped", facturapi_invoice_id: "fapi_400" },
+            error: null,
+          },
+          company_settings: { data: { facturapi_mode: "test" }, error: null },
+          billing_secrets: { data: null, error: null },
+        },
+      },
+    });
+    const res = await handleCancelCfdi(
+      makeRequest({ invoice_id: INVOICE_ID, motive: "02" }),
+      deps,
+    );
+    const body = await res.json();
+    assertEquals(res.status, 502);
+    assertEquals(body.transient, false);
+    const enq = serviceState.inserts.find((i) => i.table === "cfdi_retry_queue");
+    assertEquals(enq, undefined);
+  } finally {
+    mock.restore();
+  }
 });
 
 // BL-A4: cuando el RPC devuelve null (sin pagos) la cancelación procede.

@@ -13,7 +13,8 @@ interface CardListSkeletonProps {
  */
 export function CardListSkeleton({ count = 4, rows = 3 }: CardListSkeletonProps) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" role="status">
+      <span className="sr-only">Cargando…</span>
       {Array.from({ length: count }, (_, i) => (
         <div key={i} className="rounded-lg border bg-card p-4 space-y-3">
           <div className="flex items-center justify-between">

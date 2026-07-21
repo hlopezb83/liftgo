@@ -33,7 +33,7 @@ export default function AuditTrailPage() {
     },
   });
 
-  const { data: logs, isLoading } = useAuditLogs(
+  const { data: logs, isLoading, isError, refetch } = useAuditLogs(
     values.table_name !== "all" ? { table_name: values.table_name } : undefined,
   );
 
@@ -79,6 +79,8 @@ export default function AuditTrailPage() {
           </FiltersToolbar>
         }
         isLoading={isLoading}
+        isError={isError}
+        onRetry={() => { void refetch(); }}
         table={table}
         onRowClick={(log) => setSelectedLog(log)}
         hasActiveFilters={hasActive}

@@ -16,7 +16,7 @@ import { useSuppliers, SUPPLIER_CATEGORIES } from "../hooks/useSuppliers";
 import type { Supplier } from "../hooks/useSuppliers";
 
 export default function SuppliersPage() {
-  const { data: suppliers, isLoading } = useSuppliers();
+  const { data: suppliers, isLoading, isError, refetch } = useSuppliers();
   const navigate = useNavigateTransition();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Supplier | null>(null);
@@ -129,6 +129,8 @@ export default function SuppliersPage() {
           </FiltersToolbar>
         }
         isLoading={isLoading}
+        isError={isError}
+        onRetry={() => { void refetch(); }}
         table={table}
         onRowClick={(s) => navigate(`/suppliers/${s.id}`)}
         hasActiveFilters={hasActive}

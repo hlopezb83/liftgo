@@ -1,8 +1,10 @@
+import { EmptyState } from "@/components/feedback/EmptyState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { ContractConditionsCard } from "../components/contracts/ContractConditionsCard";
 import { ContractDetailActions } from "../components/contracts/ContractDetailActions";
 import { ContractDetailsCard, ContractTextCard } from "../components/contracts/ContractDetailCards";
@@ -14,6 +16,7 @@ function contractDates(contract: { start_date: string | null; end_date: string |
 }
 
 export default function ContractDetail() {
+  const navigate = useNavigateTransition();
   const { id, contract, isLoading, setStatus } = useContractDetailLogic();
 
   if (isLoading) {
@@ -24,7 +27,17 @@ export default function ContractDetail() {
       </PageContainer>
     );
   }
-  if (!contract || !id) return <PageContainer><p className="text-muted-foreground">Contrato no encontrado</p></PageContainer>;
+  if (!contract || !id) {
+    return (
+      <PageContainer>
+        <EmptyState
+          title="Contrato no encontrado"
+          actionLabel="Volver"
+          onAction={() => navigate("/contracts")}
+        />
+      </PageContainer>
+    );
+  }
 
   const { start, end } = contractDates(contract);
   const showFinancials = Boolean(contract.booking_id && start && end);

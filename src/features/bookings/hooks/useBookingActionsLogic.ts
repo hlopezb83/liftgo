@@ -44,6 +44,6 @@ export function useBookingActionsLogic(booking: BookingWithForklift) {
     handleStatusChange: () =>
       actions.handleStatusChange(dialogs.newStatus, () => dialogs.setStatusDialogOpen(false)),
     handleExtend: (onDone: () => void) => actions.handleExtend(dialogs.newEndDate, onDone),
-    updateBookingPending: actions.updateBookingPending,
+    extendBookingPending: actions.extendBookingPending,
   };
 }

@@ -1,6 +1,7 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { toYMD } from "@/lib/format/dateFormats";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { useCreateBookingExtension } from "../useBookingExtensions";
 import {
   useUpdateBooking,
   useDeleteBooking,
@@ -23,6 +24,7 @@ export function useBookingActions(booking: BookingWithForklift) {
   const updateBooking = useUpdateBooking();
   const deleteBooking = useDeleteBooking();
   const cancelBooking = useCancelBooking();
+  const extendBooking = useCreateBookingExtension();
 
   const handleDelete = () => {
     deleteBooking.mutate(booking.id, {
@@ -56,17 +58,26 @@ export function useBookingActions(booking: BookingWithForklift) {
     }
   };
 
+  // BL-A2: la extensión va por la RPC atómica `extend_booking` (FOR UPDATE +
+  // buffer de mantenimiento + registro en booking_extensions). El UPDATE
+  // directo de end_date bypasseaba todas las validaciones server-side y dejaba
+  // el camino de la RPC como código muerto. El toast de éxito/error lo maneja
+  // el propio hook de la mutación (useEntityMutation + translateDbError).
   const handleExtend = (newEndDate: Date | undefined, onDone: () => void) => {
     if (!newEndDate) return;
-    updateBooking.mutate(
-      { id: booking.id, end_date: toYMD(newEndDate) },
-      { onSuccess: () => { notifySuccess("Reserva extendida"); onDone(); } }
+    extendBooking.mutate(
+      {
+        booking_id: booking.id,
+        original_end_date: booking.end_date,
+        new_end_date: toYMD(newEndDate),
+      },
+      { onSuccess: () => { onDone(); } }
     );
   };
 
   return {
     navigate,
     handleDelete, handleCancel, handleStatusChange, handleExtend,
-    updateBookingPending: updateBooking.isPending,
+    extendBookingPending: extendBooking.isPending,
   };
 }

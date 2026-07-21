@@ -39,7 +39,7 @@ describe("ListPageLayout — UX-M6 EmptyState honesto", () => {
     renderLayout({ emptyMessage: "No se encontraron resultados" });
     expect(screen.getByText("No se encontraron resultados")).toBeInTheDocument();
     expect(
-      screen.getByText(/Aún no se han registrado registros aquí/i),
+      screen.getByText(/Aún no hay registros aquí/i),
     ).toBeInTheDocument();
     // No se ofrece "Limpiar filtros" cuando no hay filtros activos.
     expect(screen.queryByRole("button", { name: /limpiar filtros/i })).toBeNull();

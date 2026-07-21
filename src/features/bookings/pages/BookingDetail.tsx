@@ -1,10 +1,11 @@
-import { useState } from "react";
 import { useParams } from "react-router";
+import { EmptyState } from "@/components/feedback/EmptyState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDeliveries } from "@/features/deliveries";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { BookingBillingCard } from "../components/booking-detail/BookingBillingCard";
 import { BookingCustomerCard } from "../components/booking-detail/BookingCustomerCard";
 import { BookingEquipmentCard } from "../components/booking-detail/BookingEquipmentCard";
@@ -13,17 +14,16 @@ import { BookingHourometerCard } from "../components/booking-detail/BookingHouro
 import { BookingPeriodCard } from "../components/booking-detail/BookingPeriodCard";
 import { BookingActions } from "../components/bookings/BookingActions";
 import { BookingStatusHistory } from "../components/bookings/BookingStatusHistory";
-import { ExtendBookingDialog } from "../components/bookings/ExtendBookingDialog";
 import { useBookingHourometer } from "../hooks/bookingDetail/useBookingHourometer";
 import { useBookingExtensions } from "../hooks/useBookingExtensions";
 import { useBooking } from "../hooks/useBookings";
 
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
+  const navigate = useNavigateTransition();
   const { data: booking, isLoading } = useBooking(id);
   const { data: deliveries } = useDeliveries(id);
   const { data: extensions } = useBookingExtensions(id);
-  const [extendOpen, setExtendOpen] = useState(false);
 
   const hourometer = useBookingHourometer(deliveries);
 
@@ -42,9 +42,11 @@ export default function BookingDetail() {
   if (!booking) {
     return (
       <PageContainer maxWidth="wide">
-        <div className="flex flex-col items-center justify-center h-[60vh] gap-4">
-          <p className="text-muted-foreground">Reserva no encontrada</p>
-        </div>
+        <EmptyState
+          title="Reserva no encontrada"
+          actionLabel="Volver"
+          onAction={() => navigate("/bookings")}
+        />
       </PageContainer>
     );
   }
@@ -83,15 +85,6 @@ export default function BookingDetail() {
       <BookingExtensionsCard extensions={extensionsList} />
 
       <BookingStatusHistory bookingId={booking.id} />
-
-      {extendOpen && (
-        <ExtendBookingDialog
-          open={extendOpen}
-          onOpenChange={setExtendOpen}
-          bookingId={booking.id}
-          currentEndDate={booking.end_date}
-        />
-      )}
     </PageContainer>
   );
 }

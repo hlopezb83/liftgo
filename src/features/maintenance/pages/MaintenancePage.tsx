@@ -22,7 +22,7 @@ import { enrichLogs, maintenanceCsvRows, sumCost, type EnrichedMaintenanceLog } 
 
 export default function MaintenancePage() {
   const { forkliftMap, forklifts } = useForkliftMap();
-  const { data: logs, isLoading } = useMaintenanceLogs();
+  const { data: logs, isLoading, isError, refetch } = useMaintenanceLogs();
   const { data: activeMechanics } = useActiveMechanics();
   const generateRecurring = useGenerateRecurringMaintenance();
   const detail = useDialogState<MaintenanceLog>();
@@ -133,6 +133,8 @@ export default function MaintenancePage() {
         }
 
         isLoading={isLoading}
+        isError={isError}
+        onRetry={() => { void refetch(); }}
         table={isBoard ? undefined : table}
         onRowClick={(log) => detail.open(log)}
         hasActiveFilters={hasActive}

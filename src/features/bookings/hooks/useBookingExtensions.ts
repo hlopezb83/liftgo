@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { forkliftKeys } from "@/features/fleet";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { bookingKeys } from "../lib/queryKeys";
@@ -41,7 +42,13 @@ export function useCreateBookingExtension() {
       if (error) throw error;
       return { id: data ?? undefined, booking_id: ext.booking_id };
     },
-    invalidateKeysFn: (_d, vars) => [bookingKeys.extensions(vars.booking_id), bookingKeys.all],
+    // BL-A2: se invalidan bookings + booking_extensions + fleet — la RPC puede
+    // cambiar el estado operativo derivado de la unidad al extender el rango.
+    invalidateKeysFn: (_d, vars) => [
+      bookingKeys.extensions(vars.booking_id),
+      bookingKeys.all,
+      forkliftKeys.all,
+    ],
     successMsg: "Reserva extendida exitosamente",
     errorTitle: "Error al extender reserva",
   });

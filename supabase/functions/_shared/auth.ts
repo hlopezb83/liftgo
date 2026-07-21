@@ -75,6 +75,58 @@ export function requireAdmin(req: Request): Promise<AuthResult> {
 }
 
 /**
+ * EC-A1: igual que requireRole pero con bypass para el consumidor interno de
+ * la cola de reintentos CFDI (mismo patrón que stamp-cfdi/handler.ts): un
+ * service_role JWT del backend no necesita rol en user_roles. Cualquier otro
+ * token sigue el flujo normal (JWT válido + rol requerido).
+ */
+export async function requireServiceOrRole(
+  req: Request,
+  roles: string[],
+): Promise<AuthResult> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    return { ok: false, response: jsonError(req, 401, "Unauthorized") };
+  }
+
+  const callerClient = getCallerClient(req);
+  const token = authHeader.replace("Bearer ", "");
+  const { data, error } = await callerClient.auth.getClaims(token);
+  if (error || !data?.claims) {
+    return { ok: false, response: jsonError(req, 401, "Unauthorized") };
+  }
+
+  const adminClient = getAdminClient();
+  const claims = data.claims as Record<string, unknown>;
+  const userId = (claims.sub as string | undefined) ?? "";
+  const email = (claims.email as string | undefined) ?? null;
+
+  // Bypass service_role (backend interno: process-cfdi-retry-queue).
+  if (claims.role === "service_role") {
+    return { ok: true, userId, email, role: "service_role", adminClient };
+  }
+  if (!userId) {
+    return { ok: false, response: jsonError(req, 401, "Unauthorized") };
+  }
+
+  const { data: roleData } = await adminClient
+    .from("user_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .in("role", roles)
+    .maybeSingle();
+
+  if (!roleData) {
+    return {
+      ok: false,
+      response: jsonError(req, 403, "Forbidden: insufficient role"),
+    };
+  }
+
+  return { ok: true, userId, email, role: roleData.role as string, adminClient };
+}
+
+/**
  * Genera una contraseña segura usando rejection sampling para evitar el bias
  * que introduce `% charset.length` cuando 256 no es múltiplo del tamaño del charset.
  */

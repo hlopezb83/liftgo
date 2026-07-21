@@ -1722,6 +1722,8 @@ export type Database = {
           receptor_rfc: string | null
           serie: string | null
           stamp_variance: number | null
+          stamp_variance_checked_at: string | null
+          stamping_attempts: number
           status: string
           substitution_uuid: string | null
           subtotal: number
@@ -1778,6 +1780,8 @@ export type Database = {
           receptor_rfc?: string | null
           serie?: string | null
           stamp_variance?: number | null
+          stamp_variance_checked_at?: string | null
+          stamping_attempts?: number
           status?: string
           substitution_uuid?: string | null
           subtotal?: number
@@ -1834,6 +1838,8 @@ export type Database = {
           receptor_rfc?: string | null
           serie?: string | null
           stamp_variance?: number | null
+          stamp_variance_checked_at?: string | null
+          stamping_attempts?: number
           status?: string
           substitution_uuid?: string | null
           subtotal?: number

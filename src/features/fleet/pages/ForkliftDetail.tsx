@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams } from "react-router";
 import { NotesCard } from "@/components/domain/NotesCard";
+import { EmptyState } from "@/components/feedback/EmptyState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Edit, DeleteIcon } from "@/components/icons";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
@@ -39,7 +40,17 @@ export default function ForkliftDetail() {
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   if (isLoading) return <PageContainer><Skeleton className="h-96" /></PageContainer>;
-  if (!forklift) return <PageContainer><p className="text-muted-foreground">Montacargas no encontrado</p></PageContainer>;
+  if (!forklift) {
+    return (
+      <PageContainer>
+        <EmptyState
+          title="Montacargas no encontrado"
+          actionLabel="Volver"
+          onAction={() => navigate("/fleet")}
+        />
+      </PageContainer>
+    );
+  }
 
   const handleDelete = () => {
     deleteForklift.mutate(forklift.id, {

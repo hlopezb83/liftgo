@@ -1,4 +1,6 @@
 // EC-A2 — Cron: recupera facturas atascadas en cfdi_status='stamping'.
+// Lo invoca pg_cron cada 5 minutos vía net.http_post (migración
+// 20260721000000_retry_queue_cron.sql) con `Authorization: Bearer $CRON_SECRET`.
 //
 // Escenario: stamp-cfdi persistió facturapi_invoice_id + cfdi_uuid pero antes
 // del UPDATE final (descarga XML/PDF + set stamped) el proceso murió/timeout.
@@ -33,7 +35,13 @@ interface StuckRow {
   serie: string | null;
   folio: string | null;
   updated_at: string;
+  stamping_attempts: number | null;
 }
+
+// Máximo de ciclos que reconcile intentará antes de revertir a 'error' con nota
+// manual — evita loops eternos si Facturapi nunca produce el XML.
+const MAX_STAMPING_ATTEMPTS = 10;
+
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
@@ -68,7 +76,7 @@ Deno.serve(async (req) => {
   const { data: rows, error } = await admin
     .from("invoices")
     .select(
-      "id, cfdi_uuid, facturapi_invoice_id, serie, folio, updated_at",
+      "id, cfdi_uuid, facturapi_invoice_id, serie, folio, updated_at, stamping_attempts",
     )
     .eq("cfdi_status", "stamping")
     .lt("updated_at", cutoff)
@@ -176,24 +184,41 @@ Deno.serve(async (req) => {
       }
 
       // Verificación §4: NUNCA marcar `stamped` sin XML. Sin XML la factura
-      // queda fiscalmente incompleta (obligatorio para SAT). Dejamos en
-      // 'stamping' + bump de updated_at para reintentar en el próximo ciclo.
+      // queda fiscalmente incompleta (obligatorio para SAT). Bump del
+      // contador; si superamos MAX_STAMPING_ATTEMPTS revertimos a 'error'
+      // para forzar revisión manual.
       if (!cfdiXml || !xmlPath) {
+        const attempts = (row.stamping_attempts ?? 0) + 1;
+        const exhausted = attempts >= MAX_STAMPING_ATTEMPTS;
         await admin.from("invoices")
           .update({
-            cfdi_error_message: `Reconcile: descarga de XML falló (${
-              xmlError ?? "sin detalle"
-            }). Se reintentará automáticamente.`,
+            ...(exhausted
+              ? {
+                cfdi_status: "error",
+                cfdi_error_message:
+                  `Reconcile: descarga de XML falló tras ${attempts} intentos (${
+                    xmlError ?? "sin detalle"
+                  }). Revisar en el portal de Facturapi antes de retimbrar.`,
+              }
+              : {
+                cfdi_error_message:
+                  `Reconcile: descarga de XML falló (intento ${attempts}/${MAX_STAMPING_ATTEMPTS}): ${
+                    xmlError ?? "sin detalle"
+                  }. Se reintentará automáticamente.`,
+              }),
+            stamping_attempts: attempts,
           })
           .eq("id", row.id);
         results.push({
           invoice_id: row.id,
-          status: "xml_pending",
+          status: exhausted ? "reverted_to_error_exhausted" : "xml_pending",
           error: xmlError ?? undefined,
         });
         continue;
       }
 
+
+      // 4. RPC idempotente — solo con el XML ya descargado.
       const { error: rpcErr } = await admin.rpc(
         "reconcile_stamping_invoice",
         {

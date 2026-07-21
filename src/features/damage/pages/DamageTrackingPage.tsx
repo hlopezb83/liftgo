@@ -24,7 +24,7 @@ const DAMAGE_STATUS_OPTIONS = [
 ];
 
 export default function DamageTrackingPage() {
-  const { data: records, isLoading } = useDamageRecords();
+  const { data: records, isLoading, isError, refetch } = useDamageRecords();
   const { data: photoCounts } = useDamagePhotoCounts();
   const detail = useDialogState<DamageRecordWithJoins>();
 
@@ -131,6 +131,8 @@ export default function DamageTrackingPage() {
         }
 
         isLoading={isLoading}
+        isError={isError}
+        onRetry={() => { void refetch(); }}
         table={table}
         onRowClick={(r) => detail.open(r as DamageRecordWithJoins)}
         hasActiveFilters={hasActive}

@@ -41,11 +41,15 @@ function makeDeps(opts: {
   service?: MockConfig;
   env?: Record<string, string>;
   fetchImpl?: typeof fetch;
+  callerClaims?: ({ sub?: string } & Record<string, unknown>) | null;
 }): {
   deps: CancelRepDeps;
   serviceState: ReturnType<typeof buildSupabaseMock>;
 } {
-  const caller = buildSupabaseMock({ claims: { sub: USER_ID } });
+  const caller = buildSupabaseMock({
+    claims: opts.callerClaims === undefined ? { sub: USER_ID } : opts
+      .callerClaims,
+  });
   const service = buildSupabaseMock(opts.service ?? {});
   const env = opts.env ?? {};
   return {
@@ -79,6 +83,49 @@ Deno.test("handler: 403 si no admin/administrativo", async () => {
     deps,
   );
   assertEquals(res.status, 403);
+});
+
+// EC-A1: bypass service_role para el consumer de cfdi_retry_queue.
+Deno.test("handler: EC-A1 service_role JWT salta la verificación de rol", async () => {
+  const mock = installFacturapiMock({
+    "/invoices/fapi_xx": () =>
+      new Response(JSON.stringify({ ok: true }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
+  });
+  try {
+    const { deps, serviceState } = makeDeps({
+      callerClaims: { role: "service_role" },
+      env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
+      service: {
+        // Sin entrada user_roles: si el bypass no funcionara, el lookup
+        // devolvería null y la función respondería 403.
+        selects: {
+          payments: {
+            data: { rep_cfdi_status: "stamped", rep_facturapi_id: "fapi_xx" },
+            error: null,
+          },
+          company_settings: { data: { facturapi_mode: "test" }, error: null },
+          billing_secrets: { data: null, error: null },
+        },
+        updates: { payments: { data: null, error: null } },
+      },
+    });
+    const res = await handleCancelPaymentComplement(
+      makeRequest({ payment_id: PAYMENT_ID, motive: "02" }),
+      deps,
+    );
+    const body = await res.json();
+    assertEquals(res.status, 200);
+    assertEquals(body.success, true);
+    const upd = serviceState.updates.find((u) =>
+      u.table === "payments" && u.patch.rep_cfdi_status === "cancelled"
+    );
+    assert(upd, "expected cancelled update via service_role bypass");
+  } finally {
+    mock.restore();
+  }
 });
 
 Deno.test("handler: 400 si payment_id no es UUID", async () => {
