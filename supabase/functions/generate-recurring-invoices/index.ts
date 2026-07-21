@@ -87,11 +87,15 @@ type PreviewLine = {
     | "no_customer"
     | "no_monthly_rate"
     | "period_in_future"
-    | "period_too_old"
     | "booking_ended";
   existingInvoiceId?: string;
   existingInvoiceNumber?: string;
 };
+
+// Tope duro del loop de catch-up: 24 iteraciones = 2 años. Blindaje contra
+// bugs de datos (last_billed corrompido, end_date muy lejano) que podrían
+// intentar generar cientos de facturas en una sola corrida.
+const MAX_CATCHUP_ITERATIONS = 24;
 
 type PlanItem = {
   bookingId: string;
