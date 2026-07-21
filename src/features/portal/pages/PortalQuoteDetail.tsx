@@ -11,7 +11,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { canActOnPortalQuote, isQuoteAccepted } from "@/lib/rules/quotes";
-import { formatDateDisplay } from "@/lib/utils";
+import { formatDateDisplay, parseDateLocal } from "@/lib/utils";
+import { quoteStatusLabel } from "../lib/quoteStatus";
 import { TotalsBreakdown } from "../components/TotalsBreakdown";
 import {
   usePortalQuote,
