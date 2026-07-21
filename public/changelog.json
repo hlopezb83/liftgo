@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.143.0",
+    "date": "2026-07-21",
+    "type": "minor",
+    "title": "Sentry: masking de PII verificado (ErrorBoundary + Session Replay) con scrubber testeado",
+    "summary": "Se añade src/lib/observability/scrubPII.ts (redacta email, RFC, CURP, JWT, Bearer, teléfono MX y valores de query keys sensibles) y se conecta a Sentry.init como beforeSend/beforeBreadcrumb, garantizando que exception.value, message, request.url, cookies, headers Authorization y breadcrumbs URL viajen ya redactados. AuthSnapshotSync deja de enviar email a Sentry.setUser (sólo id + tag role). Replay refuerza defaults: maskAllText/maskAllInputs/blockAllMedia + networkDetailAllowUrls: [] + networkCaptureBodies: false, además de selectores mask/block ([data-sentry-mask], [data-sentry-block]) para zonas visualmente sensibles. sendDefaultPii: false explícito. Cobertura con 8 tests en scrubPII.test.ts.",
+    "changes": [
+      { "type": "added", "description": "src/lib/observability/scrubPII.ts: redactPII/scrubUrl/scrubEvent puros y testeables." },
+      { "type": "added", "description": "src/lib/observability/scrubPII.test.ts: 8 casos (email, RFC, CURP, JWT, path/query PII, user block, breadcrumbs, headers)." },
+      { "type": "changed", "description": "src/lib/observability/sentry.ts: sendDefaultPii=false, beforeSend=scrubEvent, beforeBreadcrumb redacta URL/mensajes, descarta ui.input; Replay con networkDetailAllowUrls: [] y selectores mask/block." },
+      { "type": "changed", "description": "AuthSnapshotSync ya no envía email a Sentry.setUser — sólo id (+ tag role)." },
+      { "type": "chore", "description": "Convenciones nuevas: agregar data-sentry-mask a nodos con montos/folios sensibles y data-sentry-block a media que no deba grabarse." }
+    ]
+  },
+  {
     "version": "7.142.0",
     "date": "2026-07-21",
     "type": "minor",
