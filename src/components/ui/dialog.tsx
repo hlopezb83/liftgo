@@ -54,8 +54,10 @@ const DialogHeader = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) =
 );
 DialogHeader.displayName = "DialogHeader";
 
+// R6-B5.2: footer unificado — acciones a la derecha con `gap-2`; el padding
+// horizontal (24px) lo aporta el DialogContent (`p-6`).
 const DialogFooter = ({ className, ...props }: HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("flex flex-col-reverse sm:flex-row sm:justify-end sm:space-x-2", className)} {...props} />
+  <div className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-2 sm:space-x-0", className)} {...props} />
 );
 DialogFooter.displayName = "DialogFooter";
 
