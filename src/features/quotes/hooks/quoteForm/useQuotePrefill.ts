@@ -97,7 +97,7 @@ export function buildPrefillValues(q: ExistingQuote, models: EquipmentModel[]): 
   };
 }
 
-export function defaultValidUntil() {
+function defaultValidUntil() {
   return addDays(nowMty(), 30);
 }
 

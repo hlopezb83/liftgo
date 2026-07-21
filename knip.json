@@ -25,8 +25,6 @@
     "src/components/layout/ListToolbar.tsx"
   ],
   "ignoreDependencies": [
-    "@sentry/react",
-    "@sentry/vite-plugin",
     "tailwindcss",
     "@tailwindcss/typography",
     "tw-animate-css"
