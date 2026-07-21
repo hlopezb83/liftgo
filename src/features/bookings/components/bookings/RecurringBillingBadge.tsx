@@ -34,7 +34,7 @@ export function RecurringBillingBadge({ booking }: RecurringBillingBadgeProps) {
         </p>
         <p>
           <span className="text-muted-foreground">Próx. factura:</span>{" "}
-          {formatDateMty(nextBilling)}
+          {nextBilling ? formatDateMty(nextBilling) : "—"}
         </p>
       </TooltipContent>
     </Tooltip>
