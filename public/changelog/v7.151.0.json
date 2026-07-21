@@ -1,0 +1,15 @@
+{
+  "version": "7.151.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "Bloque 1 (R5) — Pronóstico de cobranza multi-moneda y permisos de facturación",
+  "category": "bugfix",
+  "description": "Corrige el widget de Pronóstico de Cobranza para no sumar USD como si fueran MXN, restringe la creación/edición de facturas a roles con acceso 'full' y alinea la próxima fecha de facturación recurrente al inicio de mes calendario.",
+  "changes": [
+    "CollectionForecast + aging suman `balance_mxn` (vía `v_invoices_with_balance`) en lugar de `balance` crudo; se agrega helper `amountInMxn` con fallback a `toMxn(balance, moneda, tipo_cambio)`.",
+    "useUpcomingInvoices e InvoiceWithBalance exponen `balance_mxn` para consumidores multi-moneda.",
+    "Rutas `/invoices/new` y `/invoices/:id/edit` requieren `minAccess: 'full'`; InvoicesToolbar y InvoiceDetailActions envuelven acciones destructivas/mutantes en `RoleGuard fallback={null}` para no romper el layout.",
+    "RecurringBillingBadge muestra `startOfMonth(addMonths(anchor, 1))`, alineado con la generación real de la edge function.",
+    "DatePickerField limpia import no usado tras la revisión de -1 día (formatDateMty ya maneja Date nativa correctamente)."
+  ]
+}
