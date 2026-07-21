@@ -10,6 +10,12 @@ const env = import.meta.env.MODE;
 // para que los sourcemaps subidos hagan match con los eventos en runtime.
 const appVersion = (import.meta.env.VITE_APP_VERSION as string | undefined) ?? "unknown";
 const release = `liftgo@${appVersion}`;
+
+if (dsn && env !== "test") {
+  Sentry.init({
+    dsn,
+    environment: env, // "development" | "production"
+    release,
     // Traces sólo en producción y a baja tasa; el ERP es interno.
     tracesSampleRate: env === "production" ? 0.1 : 0,
     // Session Replay sólo si hay error, para no consumir cuota.
