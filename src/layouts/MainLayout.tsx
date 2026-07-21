@@ -12,6 +12,7 @@ import { ErrorBoundary } from "@/layouts/ErrorBoundary";
 import { GlobalSearch } from "@/layouts/GlobalSearch";
 import { useMainScrollRestoration } from "@/layouts/hooks/useMainScrollRestoration";
 import { TopbarBreadcrumbs } from "@/layouts/TopbarBreadcrumbs";
+import { SentryNavigationSync } from "@/lib/observability/SentryNavigationSync";
 import { NAV_SHORTCUTS } from "@/lib/shortcuts/registry";
 
 function focusSearchInput() {
@@ -69,6 +70,7 @@ export default function MainLayout() {
   return (
     <SidebarProvider>
       <PageActionsProvider>
+        <SentryNavigationSync />
         <div className="h-[100dvh] flex w-full">
           <a
             href="#main-content"

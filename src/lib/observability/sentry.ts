@@ -76,6 +76,11 @@ if (dsn && env !== "test") {
       return scrubEvent(event);
     },
   });
+
+  // LiftGo es single-tenant hoy — el tag queda listo para que, cuando
+  // introduzcamos multi-tenant, sólo cambie el valor sin tocar consumidores.
+  Sentry.setTag("tenant", "liftgo");
+  Sentry.setTag("app", "liftgo-erp");
 }
 
 export { Sentry };

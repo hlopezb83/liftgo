@@ -1,0 +1,19 @@
+{
+  "version": "7.144.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "Sentry: breadcrumbs de navegación + request context (tenant, usuario, rol, flow) en cada error",
+  "summary": "Cada evento de Sentry (ErrorBoundary, unhandled rejection, captureException manual) llega ya con el camino de navegación completo y el contexto operativo del ERP. En cada cambio de ruta se emite un breadcrumb category=navigation con {from, to} sanitizados y se actualizan los tags flow (módulo) y route (path sin IDs). Se fijan tags globales tenant=liftgo y app=liftgo-erp; user.id + tag role siguen viajando desde AuthSnapshotSync. La sanitización previene fugas de folios de cliente en tags o mensajes.",
+  "changes": [
+    { "type": "added", "description": "src/lib/observability/routeContext.ts: sanitizeRoute (UUID/\\d+/FOLIO-XXXX → :id/:folio) y deriveFlow (primer segmento del pathname, colapsando IDs a 'root')." },
+    { "type": "added", "description": "src/lib/observability/SentryNavigationSync.tsx: se monta una vez dentro del RouterProvider; en cada cambio de ruta emite Sentry.addBreadcrumb({category:'navigation'}) y actualiza Sentry.setTag('flow'|'route') + Sentry.setContext('route')." },
+    { "type": "added", "description": "src/lib/observability/routeContext.test.ts: 8 tests unitarios (root, UUID, numérico, folios de negocio, preservación de keywords del ERP, IDs no expuestos como flow)." },
+    { "type": "changed", "description": "src/layouts/MainLayout.tsx: monta SentryNavigationSync junto al Sidebar/PageActions (dentro del RouterProvider)." },
+    { "type": "changed", "description": "src/lib/observability/sentry.ts: tras Sentry.init, se fijan tags globales tenant=liftgo y app=liftgo-erp para que multi-tenant sólo requiera cambiar el valor cuando se introduzca." }
+  ],
+  "notes": [
+    "Cardinalidad controlada: tags flow/route usan versiones sanitizadas (:id, :folio) para que Sentry pueda agrupar/alertar por módulo sin explotar el índice de tags.",
+    "PII: sanitizeRoute reemplaza folios (FAC-0094, RSV-0022, COT-0001, BORRADOR-0022, ENT-/DEV-/CTR-…) antes de que lleguen a Sentry como tag o breadcrumb.message.",
+    "Verificación local: bunx vitest run src/lib/observability/routeContext.test.ts → 8/8 verde."
+  ]
+}
