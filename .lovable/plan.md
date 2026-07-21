@@ -1,29 +1,62 @@
-## Bloque 4 — Bajos de UX
+## Bloque 5 — Mejoras / Pulido
 
-Aplico los 5 puntos del bloque priorizando visibilidad para el usuario final. Cambios acotados a frontend/presentación.
+Divido el bloque en dos fases porque tiene 7 sub-items con impactos y decisiones muy distintas. Ejecuto ahora la **Fase 5A** (todo lo seguro y sin decisiones bloqueantes). La **Fase 5B** requiere input tuyo antes de tocar código.
 
-### 4.1 Flash móvil (impacto visual alto)
-`src/hooks/use-mobile.tsx`: cambiar `initializeWithValue: false` → `true` en ambos hooks. Elimina el "flash" de layout mobile ↔ desktop en la primera pintura (sidebar, tablas vs MobileCardList, viewport-conditional UI).
+---
 
-### 4.2 Touch targets ≥44px (accesibilidad táctil)
-`src/components/ui/button.tsx`: variantes `icon` y `iconSm` añaden `touch:h-11 touch:w-11` para cumplir 44×44 en dispositivos táctiles, alineado con `MainLayout.tsx:82`. Sin cambios en desktop.
+### Fase 5A — Ejecución inmediata
 
-### 4.3 SwipeableCard accesible por teclado
-`src/components/feedback/SwipeableCard.tsx`: añadir botón "Acciones" que aparece en `focus-within` del card (u `onKeyDown` con Enter/Space) para revelar/ocultar `rightActions`. Permite operar el swipe sin gesto táctil (teclado, lectores de pantalla).
+**MP-M3 · Arranque más ligero (impacto alto, riesgo bajo)**
+`AuthSnapshotSync.tsx` hoy hace `fetch("/changelog.json", { cache: "no-store" })` (~380 KB) solo para leer `data[0].version`. Además `errorReport.ts` también lo lee.
+- Generar `public/version.json` en el build (script Node en `scripts/gen-version.mjs` que lee `public/changelog.json[0].version` y escribe `{"version": "x.y.z"}`).
+- Wire en `package.json`: `"prebuild": "node scripts/gen-version.mjs"` y también correr en dev vía `predev` (o al arrancar Vite con un plugin ligero).
+- `AuthSnapshotSync.tsx` y `errorReport.ts` cambian a `fetch("/version.json", { cache: "no-store" })`.
+- Fallback: si `version.json` falta (dev sin prebuild), degradar silenciosamente a `"dev"`.
 
-### 4.4 Micro-copy y Portal
-- Unificar spinner label a `"Guardando…"` (elipsis Unicode `…`, no `...`) en los 12 archivos detectados: `ChangePasswordDialog`, `SetPasswordDialog`, `ContractTemplateTab`, `CompanyLogoTab`, `PacConfigForm`, `CompanyFiscalForm`, `PartFormDialog`, `RecordPaymentDialog` (mantener "Timbrando REP…"), `EditPaymentDialog`, `CxpApprovalTab` (dejar "Guardar umbral"), etc.
-- `src/features/portal/pages/PortalStatement.tsx:92`: reemplazar `<input type="checkbox">` nativo por `<Checkbox>` de `@/components/ui/checkbox` + `<Label htmlFor>` asociado.
+**MP-M5 · Logout determinista**
+En `AuthContext.signOut()` (o el hook equivalente):
+- Después de `supabase.auth.signOut()`, ejecutar `localStorage.removeItem("liftgo:rq-cache:v1")` y llamar `persister.removeClient()` si está expuesto.
+- Sacar `customers` y `suppliers` de la allowlist del `persister` (privacidad de datos de cliente entre sesiones en dispositivos compartidos).
 
-### 4.5 "Cancelar CFDI" bajo RoleGuard
-`src/features/invoices/components/invoice-detail/InvoiceDetailActions.tsx`: envolver el botón "Cancelar CFDI" (línea 127) en `<RoleGuard module="Facturas" minAccess="full">`, consistente con las demás acciones destructivas del componente.
+**MP-A1 · Abstracción del gateway de IA**
+- Nuevo `supabase/functions/_shared/ai.ts` con:
+  - `AI_ENDPOINT` y `AI_API_KEY` desde `Deno.env` (default a Lovable AI Gateway).
+  - `chatCompletion(messages, { model, response_format? })` que retorna JSON parseado o texto.
+  - Manejo estándar de 429/5xx (retry exponencial 3 intentos).
+- Migrar `parse-csf`, `parse-cfdi-expense`, `classify-feedback-report`, `generate-manual` a usar el helper (elimina 4 duplicados de fetch + headers + parsing).
+- **Sin cambio funcional** — comparar respuestas ANTES/DESPUÉS con curl para 1 request de cada función.
+- Documentar en el aviso de privacidad (`src/pages/Privacy` si existe, o helpers de textos legales) que los documentos fiscales se procesan con IA externa.
 
-### Verificación
-- `tsc --noEmit` (tsgo) y `bun run lint`.
-- Playwright rápido: portal statement (checkbox), invoice detail (botón oculto sin permisos full), sidebar sin flash en viewport móvil.
+**Bajos**
+- `documentsQueryKeys.ts` / hook de documentos: reemplazar loop de `createSignedUrl` por `createSignedUrls([...paths], expiresIn)` (una llamada, hasta 100 paths).
+- `DragDropImageUploader` y `DocumentAttachments`: cambiar `for..await upload` por `Promise.allSettled(files.map(upload))` — reporta errores parciales sin abortar el batch.
+- Eliminar scripts `audit_*.mjs` / `visual_audit*.mjs` de la raíz (verifico antes con `ls` que ninguno sea referenciado por `package.json`/CI).
+- Reescribir `README.md`: stack real (React 18 + Vite 5 + Tailwind v3 + Lovable Cloud), scripts (`bun dev`, `bun test`, `deno test supabase/functions`), dominio CFDI (Facturapi live/test, roles, timbrado), enlaces a `/help` y `/changelog`.
+- Mover `src/features/customer-portal/*.test.ts` (test huérfano) a `src/features/portal/`.
+- Consolidar los formatters de fecha dispersos en `lib/format/dates.ts` (single source; ya existe `formatMonthEs.ts`, agregar `formatDateShort`, `formatDateTime`, `formatRelative`).
+- `lovable-tagger` / `componentTagger`: verificar si aparece en el árbol de imports; si nadie lo importa, quitarlo de `package.json` y `vite.config.ts`.
 
-### Changelog
-Nueva entrada **v7.139.0** (minor: mejoras UX visibles) en `public/changelog.json` + `public/changelog/v7.139.0.json`.
+**Verificación 5A**
+- `tsgo --noEmit`, `bun run lint`, `bun run test` verdes.
+- `deno test supabase/functions/_shared` para el nuevo helper.
+- Curl smoke: `parse-csf` con un CSF de prueba (ya hay uno en /mnt/user-uploads).
+- Playwright smoke: login → logout → verificar `localStorage` limpio (sin `liftgo:rq-cache:v1`).
 
-### Fuera de alcance
-Bloque 5 (Sentry, .env, version.json, tests, logout) y Bloque 6 (optimistic locking) — se abordan en sprints siguientes.
+**Changelog**: `v7.140.0` (minor, `improvement` + `perf`).
+
+---
+
+### Fase 5B — Requiere tu decisión (te la planteo aquí, la ejecuto en el siguiente sprint)
+
+**MP-M1 · `.env` fuera del repo**
+En este proyecto `.env` es autogenerado por Lovable Cloud (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PROJECT_ID`, `VITE_SUPABASE_PUBLISHABLE_KEY`) y tengo prohibido tocarlo. Todos los valores son públicos por diseño. Recomendación: **descartar como falso positivo** y documentar en `README` que `.env` es managed.
+
+**MP-M2 · Sentry**
+Está el plugin de Vite subiendo sourcemaps pero nunca hay `Sentry.init()`. Dos caminos:
+- **A) Activar**: necesito el DSN de Sentry para `main.tsx`, `ErrorBoundary` y `RouteErrorElement`; reemplazo `lib/telemetry.ts`.
+- **B) Eliminar**: `bun remove @sentry/react @sentry/vite-plugin`, limpiar `vite.config.ts` y `lib/telemetry.ts`.
+
+**MP-M4 · Coverage**
+Subir thresholds de `vitest.config.ts` un escalón (ej. lines 20→30) requiere agregar tests reales en `auth`, `users` (`useSetPasswordForm`) y `returns` (`return_inspections`). Es un mini-sprint de ~1–2 h por módulo.
+
+¿Ejecuto Fase 5A ahora y B queda para cuando decidas DSN/coverage?
