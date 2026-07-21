@@ -184,23 +184,39 @@ Deno.serve(async (req) => {
       }
 
       // Verificación §4: NUNCA marcar `stamped` sin XML. Sin XML la factura
-      // queda fiscalmente incompleta (obligatorio para SAT). Dejamos en
-      // 'stamping' + bump de updated_at para reintentar en el próximo ciclo.
+      // queda fiscalmente incompleta (obligatorio para SAT). Bump del
+      // contador; si superamos MAX_STAMPING_ATTEMPTS revertimos a 'error'
+      // para forzar revisión manual.
       if (!cfdiXml || !xmlPath) {
+        const attempts = (row.stamping_attempts ?? 0) + 1;
+        const exhausted = attempts >= MAX_STAMPING_ATTEMPTS;
         await admin.from("invoices")
           .update({
-            cfdi_error_message: `Reconcile: descarga de XML falló (${
-              xmlError ?? "sin detalle"
-            }). Se reintentará automáticamente.`,
+            ...(exhausted
+              ? {
+                cfdi_status: "error",
+                cfdi_error_message:
+                  `Reconcile: descarga de XML falló tras ${attempts} intentos (${
+                    xmlError ?? "sin detalle"
+                  }). Revisar en el portal de Facturapi antes de retimbrar.`,
+              }
+              : {
+                cfdi_error_message:
+                  `Reconcile: descarga de XML falló (intento ${attempts}/${MAX_STAMPING_ATTEMPTS}): ${
+                    xmlError ?? "sin detalle"
+                  }. Se reintentará automáticamente.`,
+              }),
+            stamping_attempts: attempts,
           })
           .eq("id", row.id);
         results.push({
           invoice_id: row.id,
-          status: "xml_pending",
+          status: exhausted ? "reverted_to_error_exhausted" : "xml_pending",
           error: xmlError ?? undefined,
         });
         continue;
       }
+
 
       // 4. RPC idempotente — solo con el XML ya descargado.
       const { error: rpcErr } = await admin.rpc(
