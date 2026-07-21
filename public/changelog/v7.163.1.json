@@ -1,0 +1,17 @@
+{
+  "version": "7.163.1",
+  "date": "2026-07-21",
+  "type": "patch",
+  "title": "Fix · Auto-fill fiscal de clientes en formularios y portal robusto a sesiones expiradas",
+  "category": "bugfix",
+  "changes": [
+    {
+      "type": "fix",
+      "description": "useCustomers list ahora incluye razón social, régimen fiscal, uso CFDI, CP fiscal, dirección y representante legal. Corrige que al seleccionar cliente en Factura/Cotización/Contrato se borraran los datos fiscales o quedara la plantilla del contrato sin domicilio ni representante."
+    },
+    {
+      "type": "fix",
+      "description": "fetchPaymentIntents (portal) verifica la sesión antes de consultar customer_payment_intents. Con sesiones expiradas o anónimas devuelve [] en vez de disparar 'permission denied' de PostgREST tras el hardening de v7.150.0."
+    }
+  ]
+}
