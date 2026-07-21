@@ -3,6 +3,12 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { bookingKeys } from "../../lib/queryKeys";
 
+const sel = (s: string): string => s;
+
+const AUDIT_LOG_COLUMNS = sel(
+  "id, table_name, record_id, action, old_data, new_data, changed_fields, user_id, created_at"
+);
+
 export interface BookingHistoryLog {
   id: string;
   table_name: string;
