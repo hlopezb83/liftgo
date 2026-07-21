@@ -420,25 +420,32 @@ export async function handleStampCfdi(
     }
 
     let facturApiInvoice: { id: string; uuid: string };
-    // EC-A2: timeout hard-cap para no dejar el request colgado indefinidamente
-    // si Facturapi tarda demasiado. La respuesta puede llegar después; el cron
-    // `reconcile-stamping-invoices` recuperará la factura consultando por folio.
+    // EC-A2: timeout hard-cap con AbortController (abort real del fetch en
+    // vuelo). Sin abort, Promise.race resolvía TIMEOUT pero la petición seguía
+    // consumiendo cuota; si Facturapi alcanzaba a emitir el CFDI, un reintento
+    // ciego duplicaba el timbre. Con el abort la petición muere aquí; si aun
+    // así el CFDI se emitió (respuesta en tránsito), la factura queda en
+    // `stamping` (NO 'error', SIN retry) y `reconcile-stamping-invoices` la
+    // resuelve vía folio/serie.
     const FACTURAPI_TIMEOUT_MS = 30_000;
+    const stampAbort = new AbortController();
+    let rejectOnTimeout!: (err: unknown) => void;
+    const timeoutPromise = new Promise<never>((_, reject) => {
+      rejectOnTimeout = reject;
+    });
+    const stampTimeoutId = setTimeout(() => {
+      stampAbort.abort(new Error("Facturapi request timed out"));
+      rejectOnTimeout(
+        Object.assign(new Error("Facturapi request timed out"), {
+          status: 504,
+          code: "TIMEOUT",
+        }),
+      );
+    }, FACTURAPI_TIMEOUT_MS);
     try {
       facturApiInvoice = await Promise.race([
-        client.invoices.create(payload),
-        new Promise<never>((_, reject) =>
-          setTimeout(
-            () =>
-              reject(
-                Object.assign(new Error("Facturapi request timed out"), {
-                  status: 504,
-                  code: "TIMEOUT",
-                }),
-              ),
-            FACTURAPI_TIMEOUT_MS,
-          )
-        ),
+        createInvoiceWithSignal(client, payload, { signal: stampAbort.signal }),
+        timeoutPromise,
       ]) as { id: string; uuid: string };
     } catch (err) {
       const desc = describeFacturapiError(err);
