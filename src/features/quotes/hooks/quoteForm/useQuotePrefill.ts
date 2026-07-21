@@ -97,9 +97,6 @@ export function buildPrefillValues(q: ExistingQuote, models: EquipmentModel[]): 
   };
 }
 
-function defaultValidUntil() {
-  return addDays(nowMty(), 30);
-}
 
 interface Props {
   existingQuote: ExistingQuote | null | undefined;
