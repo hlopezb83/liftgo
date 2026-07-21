@@ -35,7 +35,13 @@ interface StuckRow {
   serie: string | null;
   folio: string | null;
   updated_at: string;
+  stamping_attempts: number | null;
 }
+
+// Máximo de ciclos que reconcile intentará antes de revertir a 'error' con nota
+// manual — evita loops eternos si Facturapi nunca produce el XML.
+const MAX_STAMPING_ATTEMPTS = 10;
+
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
