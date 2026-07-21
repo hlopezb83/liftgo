@@ -22,7 +22,10 @@ export function DocumentAttachments({ entityType, entityId }: { entityType: stri
   const handleUpload = async (e: ReactChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
-    for (const file of Array.from(files)) { await uploadDoc.mutateAsync({ file, entityType, entityId }); }
+    // R7 · Deuda: subida en paralelo en vez de secuencial.
+    await Promise.all(
+      Array.from(files).map((file) => uploadDoc.mutateAsync({ file, entityType, entityId })),
+    );
     notifySuccess(`${files.length} archivo(s) subido(s)`);
     if (fileRef.current) fileRef.current.value = "";
   };
