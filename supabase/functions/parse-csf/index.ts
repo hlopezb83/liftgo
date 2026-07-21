@@ -43,6 +43,19 @@ serve(async (req) => {
       );
     }
 
+    const systemPrompt =
+      `Eres un extractor de datos fiscales mexicanos. El usuario te enviará el contenido de una Constancia de Situación Fiscal (CSF) del SAT en formato PDF (como imagen base64).
+
+Extrae los siguientes campos del documento y devuélvelos usando la función extract_csf_data:
+- rfc: El RFC del contribuyente (13 caracteres para personas morales, 12 para personas físicas). En MAYÚSCULAS.
+- name: La denominación o razón social SIN el sufijo de régimen societario. Omite "S.A. de C.V.", "S. de R.L. de C.V.", "SAPI de C.V.", "S.A.B. de C.V.", "S.C.", "A.C.", "SOCIEDAD ANÓNIMA DE CAPITAL VARIABLE", "SOCIEDAD DE RESPONSABILIDAD LIMITADA", y variantes equivalentes. Devuelve en MAYÚSCULAS y sin acentos.
+- domicilio_fiscal_cp: El código postal del domicilio fiscal (5 dígitos)
+- address: La dirección completa del domicilio fiscal (calle, número, colonia, municipio, estado)
+- regimen_fiscal: El código numérico del régimen fiscal (601, 603, 605, 606, 608, 610, 612, 614, 616, 620, 621, 622, 623, 624, 625, 626).
+- representante_legal: El nombre del representante legal si aparece en el documento
+
+Si un campo no se encuentra, devuelve una cadena vacía.`;
+
     try {
       const { toolArguments } = await aiChatCompletion({
         model: "google/gemini-2.5-flash",
