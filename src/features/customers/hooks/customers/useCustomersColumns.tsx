@@ -10,7 +10,16 @@ export function useCustomersColumns(): ColumnDef<Customer>[] {
         id: "name",
         header: "Nombre",
         accessorKey: "name",
-        cell: ({ row }) => <span className="font-medium">{row.original.name}</span>,
+        // Bloque 4.2 (R4): nombres largos (razón social + ubicación) rompían
+        // el ancho de la tabla. Truncamos a 280px con tooltip nativo.
+        cell: ({ row }) => (
+          <span
+            className="font-medium block max-w-[280px] truncate"
+            title={row.original.name}
+          >
+            {row.original.name}
+          </span>
+        ),
       },
       {
         id: "rfc",
