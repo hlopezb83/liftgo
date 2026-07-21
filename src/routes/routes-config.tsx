@@ -10,12 +10,16 @@ export { PageFallback } from "@/routes/RouteSkeletons";
 // -----------------------------------------------------------------------------
 
 type Loader = () => Promise<{ default: ComponentType }>;
+/** Nivel mínimo de permiso para acceder a la ruta. Default: "read". */
+export type RouteAccess = "read" | "full";
 
 interface RawRoute {
   path: string;
   loader: Loader;
   module?: string;
   adminOnly?: boolean;
+  /** Sube el mínimo requerido por RoleGuard (default: "read"). */
+  minAccess?: RouteAccess;
 }
 
 const rawRoutes: RawRoute[] = [
@@ -32,10 +36,10 @@ const rawRoutes: RawRoute[] = [
   { path: "/customers/:id", loader: () => import("@/features/customers/pages/CustomerDetailPage"), module: "Clientes" },
   { path: "/maintenance", loader: () => import("@/features/maintenance/pages/MaintenancePage"), module: "Mantenimiento" },
   { path: "/invoices", loader: () => import("@/features/invoices/pages/InvoicesPage"), module: "Facturas" },
-  { path: "/invoices/new", loader: () => import("@/features/invoices/pages/InvoiceForm"), module: "Facturas" },
+  { path: "/invoices/new", loader: () => import("@/features/invoices/pages/InvoiceForm"), module: "Facturas", minAccess: "full" },
   { path: "/invoices/reconciliation", loader: () => import("@/features/invoices/pages/InvoicesReconciliation"), module: "Facturas" },
   { path: "/invoices/:id", loader: () => import("@/features/invoices/pages/InvoiceDetail"), module: "Facturas" },
-  { path: "/invoices/:id/edit", loader: () => import("@/features/invoices/pages/InvoiceForm"), module: "Facturas" },
+  { path: "/invoices/:id/edit", loader: () => import("@/features/invoices/pages/InvoiceForm"), module: "Facturas", minAccess: "full" },
   { path: "/returns", loader: () => import("@/features/returns/pages/ReturnInspectionPage"), module: "Entregas" },
   { path: "/returns/:id", loader: () => import("@/features/returns/pages/ReturnInspectionDetail"), module: "Entregas" },
   { path: "/deliveries", loader: () => import("@/features/deliveries/pages/DeliveriesPage"), module: "Entregas" },
@@ -84,6 +88,7 @@ export interface RouteConfig {
   loader: Loader;
   module?: string;
   adminOnly?: boolean;
+  minAccess?: RouteAccess;
 }
 
 export const appRoutes: RouteConfig[] = rawRoutes.map((r) => ({

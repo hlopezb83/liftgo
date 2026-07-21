@@ -118,7 +118,7 @@ function CfdiXmlActions({
         <AcuseDownloadButtons invoiceId={invoice.id} invoiceNumber={invoice.invoice_number} />
       ) : null}
       {flags.canCancelCfdi ? (
-        <RoleGuard module="Facturas" minAccess="full">
+        <RoleGuard module="Facturas" minAccess="full" fallback={null}>
           <Button
             size="sm"
             variant="outline"
@@ -143,17 +143,17 @@ export function InvoiceDetailActions({
     <>
       <CancellationBlock flags={flags} invoiceId={invoice.id} />
       {flags.canEdit ? (
-        <RoleGuard module="Facturas" minAccess="full">
+        <RoleGuard module="Facturas" minAccess="full" fallback={null}>
           <Button size="sm" variant="outline" onClick={onEdit}>
             <EditIcon className="h-4 w-4 mr-1" /> Editar
           </Button>
         </RoleGuard>
       ) : null}
-      <RoleGuard module="Facturas" minAccess="full">
+      <RoleGuard module="Facturas" minAccess="full" fallback={null}>
         <StampButtons flags={flags} isStamping={isStamping} onStamp={onStamp} />
       </RoleGuard>
       {flags.showPaymentBtn ? (
-        <RoleGuard module="Facturas" minAccess="full">
+        <RoleGuard module="Facturas" minAccess="full" fallback={null}>
           <Button size="sm" onClick={onOpenPayment}>
             <PaymentIcon className="h-4 w-4 mr-1" />Registrar Pago
           </Button>
@@ -174,7 +174,7 @@ export function InvoiceDetailActions({
         onCancelCfdi={onCancelCfdi}
       />
       {flags.canDelete ? (
-        <RoleGuard module="Facturas" minAccess="full">
+        <RoleGuard module="Facturas" minAccess="full" fallback={null}>
           <Button
             size="sm"
             variant="outline"

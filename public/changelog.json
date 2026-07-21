@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.151.0",
+    "date": "2026-07-21",
+    "type": "minor",
+    "title": "Bloque 1 (R5) — Pronóstico de cobranza multi-moneda y permisos de facturación",
+    "category": "bugfix"
+  },
+  {
     "version": "7.150.0",
     "date": "2026-07-21",
     "type": "minor",

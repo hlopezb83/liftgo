@@ -11,6 +11,8 @@ export interface InvoiceWithBalance {
   total: number;
   paid_amount: number;
   balance: number;
+  /** Saldo convertido a MXN vía tipo_cambio de la factura (view v_invoices_with_balance). */
+  balance_mxn: number;
   due_date: string | null;
   issued_at: string;
   booking_id: string | null;
@@ -78,6 +80,7 @@ function buildInvoicesWithBalanceQuery(filter: Filter) {
         booking_id: (r.booking_id as string | null) ?? null,
         moneda: (r.moneda as string | null) ?? null,
         tipo_cambio: r.tipo_cambio == null ? null : Number(r.tipo_cambio),
+        balance_mxn: r.balance_mxn == null ? Number(r.balance) : Number(r.balance_mxn),
       }));
     },
   });

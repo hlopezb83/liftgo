@@ -101,6 +101,10 @@ export interface DashboardStats {
     invoice_number: string;
     customer_name: string | null;
     total: number;
+    /** Saldo pendiente en moneda del documento. */
+    balance: number | null;
+    /** Saldo pendiente ya convertido a MXN (usa tipo_cambio de la factura). */
+    balance_mxn: number | null;
     due_date: string;
     status: string;
     booking_id: string | null;

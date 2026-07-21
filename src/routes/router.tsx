@@ -26,17 +26,18 @@ function AuthLayout() {
 
 /**
  * Envuelve el componente de una ruta con los guards declarados (`module`,
- * `adminOnly`). Se aplica dentro de `lazy` para que el bundle del guard
- * y del componente sólo entre al árbol al visitar la ruta.
+ * `adminOnly`, `minAccess`). Se aplica dentro de `lazy` para que el bundle
+ * del guard y del componente sólo entre al árbol al visitar la ruta.
  */
 function wrapWithGuards(
   Component: ComponentType,
   module: string | undefined,
   adminOnly: boolean | undefined,
+  minAccess: "read" | "full" | undefined,
 ): ComponentType {
   const Wrapped = () => {
     let element: ReactElement = <Component />;
-    if (module) element = <RoleGuard module={module}>{element}</RoleGuard>;
+    if (module) element = <RoleGuard module={module} minAccess={minAccess ?? "read"}>{element}</RoleGuard>;
     if (adminOnly) element = <AdminRouteGuard module={module}>{element}</AdminRouteGuard>;
     return element;
   };
@@ -50,13 +51,13 @@ const NotFoundLazy = lazy(() => import("@/features/system/pages/NotFound"));
 const authenticatedChildren: RouteObject[] = [
   // Redirect legacy: `<Navigate replace />` evita el flash blanco del loader.
   { path: "/expenses", element: <Navigate to="/cuentas-por-pagar" replace /> },
-  ...appRoutes.map<RouteObject>(({ path, loader, module, adminOnly }) => ({
+  ...appRoutes.map<RouteObject>(({ path, loader, module, adminOnly, minAccess }) => ({
     path,
     // `lazy` de v7: el router hace code-splitting y muestra `HydrateFallback`
     // durante la carga inicial y mantiene la ruta previa durante navegaciones.
     lazy: async () => {
       const mod = await loader();
-      return { Component: wrapWithGuards(mod.default, module, adminOnly) };
+      return { Component: wrapWithGuards(mod.default, module, adminOnly, minAccess) };
     },
     HydrateFallback: PageFallback,
   })),

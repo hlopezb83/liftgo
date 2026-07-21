@@ -27,12 +27,25 @@ function bucketFor(days: number): "0-30" | "31-60" | "61-90" | "90+" {
 }
 
 function computeAgingBuckets(
-  overdueInvoices: Array<{ due_date: string; total: number | string; balance?: number | string | null }>,
+  overdueInvoices: Array<{
+    due_date: string;
+    total: number | string;
+    balance?: number | string | null;
+    balance_mxn?: number | string | null;
+    moneda?: string | null;
+    tipo_cambio?: number | string | null;
+  }>,
 ) {
   const buckets = { "0-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
   for (const inv of overdueInvoices) {
     const days = differenceInDays(nowMty(), parseISO(inv.due_date));
-    const amount = inv.balance != null ? Number(inv.balance) : Number(inv.total);
+    // BL-1.1 R5: usar balance_mxn calculado en `v_invoices_with_balance`
+    // para no sumar USD como si fueran MXN.
+    const amount = inv.balance_mxn != null
+      ? Number(inv.balance_mxn)
+      : inv.balance != null
+        ? Number(inv.balance)
+        : Number(inv.total);
     buckets[bucketFor(days)] += amount;
   }
   return Object.entries(buckets).map(([range, total]) => ({ range, total })).filter((b) => b.total > 0);
