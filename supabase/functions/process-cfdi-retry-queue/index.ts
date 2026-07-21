@@ -43,9 +43,19 @@ async function invokeStampFn(
   payload: Record<string, unknown>,
 ): Promise<{ ok: boolean; status: number; body: unknown }> {
   const url = `https://${projectRef}.supabase.co/functions/v1/${fnName}`;
-  // cancel_rep opera sobre payments: la cola guarda el id en `invoice_id`
-  // (única columna uuid disponible) pero la edge function espera `payment_id`.
-  const idKey = operation === "cancel_rep" ? "payment_id" : "invoice_id";
+  // La cola guarda el id del recurso en `cfdi_retry_queue.invoice_id` (única
+  // columna uuid disponible), pero cada edge function espera un nombre
+  // distinto en el body:
+  //  - stamp / cancel     → invoice_id      (facturas)
+  //  - cancel_nc          → credit_note_id  (notas de crédito)
+  //  - cancel_rep         → payment_id      (complementos de pago)
+  // BLOQUE 3.1: antes de este fix `cancel_nc` mandaba `invoice_id` y la
+  // función respondía 400 "credit_note_id must be UUID" en cada retry.
+  const idKey = operation === "cancel_rep"
+    ? "payment_id"
+    : operation === "cancel_nc"
+    ? "credit_note_id"
+    : "invoice_id";
   const bodyToSend = { ...(payload ?? {}), [idKey]: invoiceId };
   const res = await fetch(url, {
     method: "POST",
