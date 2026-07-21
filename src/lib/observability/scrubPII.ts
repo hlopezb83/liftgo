@@ -89,8 +89,9 @@ export function scrubUrl(rawUrl: string | undefined | null): string {
   }
 }
 
-// Estructura mínima compatible con Sentry.Event; evitamos import type para
-// mantener este módulo sin dependencia dura de la SDK (facilita el test).
+// Estructura mínima compatible con Sentry.Event; usamos `unknown` en `user.id`
+// porque Sentry lo tipa como `string | number`. Mantener este módulo sin
+// import type desde @sentry/* facilita el test unitario.
 interface ScrubbableEvent {
   message?: string;
   request?: { url?: string; query_string?: unknown; cookies?: unknown; headers?: Record<string, unknown> };
@@ -98,7 +99,7 @@ interface ScrubbableEvent {
   breadcrumbs?: Array<{ message?: string; data?: Record<string, unknown> }>;
   contexts?: Record<string, Record<string, unknown> | undefined>;
   extra?: Record<string, unknown>;
-  user?: { id?: string; email?: string; username?: string; ip_address?: string };
+  user?: { id?: unknown; email?: string; username?: string; ip_address?: string } | null;
 }
 
 export function scrubEvent<T extends ScrubbableEvent>(event: T): T {
