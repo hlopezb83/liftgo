@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.135.0",
+    "date": "2026-07-21",
+    "type": "patch",
+    "title": "BLOQUE 1 auditoría: overload viejo de create_booking eliminado y secreto de cron unificado",
+    "summary": "Cierre del bloque bloqueante del reporte de verificación: se elimina la sobrecarga de 7 args de create_booking (podía saltarse los fixes de reservas) y se unifica el nombre del secreto de cron en Vault entre internal_get_cron_secret() y el agendado de los jobs CFDI.",
+    "changes": [
+      "DROP FUNCTION public.create_booking(uuid, uuid, text, text, date, date, boolean) — asserción de una única firma restante (8 args, con p_quote_id).",
+      "internal_get_cron_secret() ahora tolera 'CRON_SECRET' (canónico) y el alias legacy 'cron_secret' con ORDER BY para priorizar el nombre correcto.",
+      "Reagendado de process-cfdi-retry-queue-5min y reconcile-stamping-invoices-5min usando internal_get_cron_secret() como única fuente del secreto.",
+      "Limpieza de cron jobs residuales antiguos."
+    ],
+    "category": "improvement"
+  },
+  {
     "version": "7.134.0",
     "date": "2026-07-21",
     "type": "minor",

@@ -1,0 +1,16 @@
+{
+  "version": "7.135.0",
+  "date": "2026-07-21",
+  "type": "patch",
+  "title": "BLOQUE 1 auditoría: overload viejo de create_booking eliminado y secreto de cron unificado",
+  "summary": "Cierre del bloque bloqueante del reporte de verificación externa post v7.134.0.",
+  "highlights": [
+    "create_booking: única firma restante (8 args con p_quote_id). El overload de 7 args de 20260623220909 permitía saltarse los fixes de deleted_at/FOR UPDATE/quote_id.",
+    "internal_get_cron_secret(): case-insensitive contra ambos nombres en Vault, canónico CRON_SECRET.",
+    "Cron CFDI reagendado usando la función como única fuente; se limpian jobs residuales antiguos."
+  ],
+  "internal_notes": [
+    "Bloques 2-6 pendientes de aprobación: prepare_payment_complement, regen types, unificación stamp_variance, edge cases y optimistic locking."
+  ],
+  "category": "improvement"
+}
