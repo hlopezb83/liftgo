@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.163.0",
+    "date": "2026-07-21",
+    "type": "minor",
+    "title": "R7 · Deuda acumulada — Flota, asignaciones de cotización y feedback con columnas explícitas",
+    "category": "security"
+  },
+  {
     "version": "7.162.0",
     "date": "2026-07-21",
     "type": "minor",
