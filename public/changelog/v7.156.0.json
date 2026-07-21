@@ -1,0 +1,25 @@
+{
+  "version": "7.156.0",
+  "date": "2026-07-21",
+  "type": "patch",
+  "title": "R7 · Deuda acumulada — Consolidación de formatters de fecha",
+  "category": "refactor",
+  "description": "Primer ítem de la deuda acumulada de R6: colapsamos formatDateDisplay (~151 callsites) a un alias delgado sobre formatMtyDate('dd/MM/yyyy'), eliminando la lógica duplicada de parseo/format y dejando una única fuente de verdad en src/lib/utils.ts. Se marcó como @deprecated para orientar migraciones futuras a formatDateMty de @/lib/format/dateFormats sin romper llamadas existentes.",
+  "changes": [
+    {
+      "type": "refactor",
+      "scope": "lib/utils",
+      "description": "formatDateDisplay ahora delega en formatMtyDate; mismo output (dd/MM/yyyy, '—' para nulos) sin duplicar parseDateLocal + format."
+    },
+    {
+      "type": "docs",
+      "scope": "lib/utils",
+      "description": "JSDoc @deprecated apuntando a formatDateMty (@/lib/format/dateFormats) como sustituto canónico."
+    }
+  ],
+  "validation": {
+    "tests": "1187/1187 vitest",
+    "typecheck": "tsgo OK",
+    "regressions": "ninguna detectada"
+  }
+}

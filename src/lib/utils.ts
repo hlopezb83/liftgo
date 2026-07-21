@@ -32,15 +32,13 @@ export function parseDateLocal(
   return Number.isNaN(d.getTime()) ? null : d;
 }
 
+/**
+ * @deprecated Usa `formatDateMty` de `@/lib/format/dateFormats`.
+ * Se mantiene como alias delgado sobre `formatMtyDate("dd/MM/yyyy")` para no
+ * romper los ~150 callsites existentes; consolidar en R7 (deuda acumulada).
+ */
 export function formatDateDisplay(dateStr: string | null | undefined): string {
-  if (!dateStr) return "—";
-  const d = parseDateLocal(dateStr);
-  if (!d) return "—";
-  try {
-    return format(d, "dd/MM/yyyy");
-  } catch {
-    return dateStr;
-  }
+  return formatMtyDate(dateStr, "dd/MM/yyyy");
 }
 
 /**
