@@ -8,7 +8,13 @@ import { customerKeys } from "../../lib/queryKeys";
 
 const sel = (s: string): string => s;
 
-const CUSTOMER_LIST_COLUMNS = sel("id, name, company, rfc, email, phone, contact_person");
+// Nota: el listado se usa como fuente para prellenar formularios de factura,
+// cotización y contrato. Debe incluir los campos fiscales (razón social, RFC,
+// régimen, uso CFDI, CP fiscal), dirección y representante legal para que el
+// auto-fill no borre datos previamente cargados. Ver hallazgos QA v7.163.x.
+const CUSTOMER_LIST_COLUMNS = sel(
+  "id, name, company, rfc, email, phone, contact_person, address, razon_social, regimen_fiscal, uso_cfdi, domicilio_fiscal_cp, representante_legal"
+);
 
 const CUSTOMER_DETAIL_COLUMNS = sel(
   "id, name, company, email, phone, address, notes, website, contact_person, rfc, regimen_fiscal, uso_cfdi, domicilio_fiscal_cp, representante_legal, tax_id, user_id, created_at, updated_at"

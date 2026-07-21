@@ -132,11 +132,19 @@ async function fetchPaymentIntents(
   invoiceId: string | undefined,
   admin: boolean,
 ): Promise<PortalPaymentIntentRow[] | AdminPaymentIntentRow[]> {
+  if (!invoiceId) return [];
+  // v7.150.0 revocó `anon` sobre customer_payment_intents. Si la sesión
+  // expiró o el usuario no está autenticado, PostgREST responde
+  // "permission denied" en vez de un set vacío por RLS. Evitamos el
+  // request cuando no hay sesión y devolvemos [] para que la UI del
+  // portal siga rindiendo el resto de la página.
+  const { data: sessionData } = await supabase.auth.getSession();
+  if (!sessionData.session) return [];
   const columns = admin ? PAYMENT_INTENT_ADMIN_COLUMNS : PAYMENT_INTENT_PORTAL_COLUMNS;
   const { data, error } = await supabase
     .from("customer_payment_intents")
     .select(columns)
-    .eq("invoice_id", invoiceId ?? "")
+    .eq("invoice_id", invoiceId)
     .order("created_at", { ascending: false })
     .returns<PortalPaymentIntentRow[]>();
   if (error) throw error;

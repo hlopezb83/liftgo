@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.163.1",
+    "date": "2026-07-21",
+    "type": "patch",
+    "title": "Fix · Auto-fill fiscal de clientes en formularios y portal robusto a sesiones expiradas",
+    "category": "bugfix"
+  },
+  {
     "version": "7.163.0",
     "date": "2026-07-21",
     "type": "minor",
