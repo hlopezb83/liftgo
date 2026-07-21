@@ -10,6 +10,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
+import { quoteStatusLabel } from "../lib/quoteStatus";
 import { usePortalQuotes } from "../hooks/usePortalExtras";
 
 type Quote = NonNullable<ReturnType<typeof usePortalQuotes>["data"]>[number];
