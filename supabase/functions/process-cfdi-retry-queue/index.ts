@@ -35,13 +35,17 @@ const OPERATION_TO_FUNCTION: Record<string, string> = {
 
 async function invokeStampFn(
   fnName: string,
+  operation: string,
   invoiceId: string,
   serviceKey: string,
   projectRef: string,
   payload: Record<string, unknown>,
 ): Promise<{ ok: boolean; status: number; body: unknown }> {
   const url = `https://${projectRef}.supabase.co/functions/v1/${fnName}`;
-  const bodyToSend = { ...(payload ?? {}), invoice_id: invoiceId };
+  // cancel_rep opera sobre payments: la cola guarda el id en `invoice_id`
+  // (única columna uuid disponible) pero la edge function espera `payment_id`.
+  const idKey = operation === "cancel_rep" ? "payment_id" : "invoice_id";
+  const bodyToSend = { ...(payload ?? {}), [idKey]: invoiceId };
   const res = await fetch(url, {
     method: "POST",
     headers: {
