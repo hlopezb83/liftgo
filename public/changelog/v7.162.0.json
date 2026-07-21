@@ -1,0 +1,30 @@
+{
+  "version": "7.162.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "R7 · Deuda acumulada — Cotizaciones, extensiones de reserva y auditoría de reservas con columnas explícitas",
+  "category": "security",
+  "description": "Quinto dominio del barrido select('*'): cotizaciones (listado y detalle), extensiones de reserva e historial de auditoría de reservas ahora usan columnas explícitas. Se elimina la exposición accidental de metadatos internos y se reduce el payload JSONB en listas.",
+  "changes": [
+    {
+      "type": "security",
+      "scope": "features/quotes/hooks/quotes/useQuotes",
+      "description": "select('*') reemplazado por columnas explícitas en listado (15 columnas) y detalle (28 columnas)."
+    },
+    {
+      "type": "security",
+      "scope": "features/bookings/hooks/useBookingExtensions",
+      "description": "select('*') reemplazado por 6 columnas explícitas."
+    },
+    {
+      "type": "security",
+      "scope": "features/bookings/hooks/bookingDetail/useBookingStatusHistory",
+      "description": "select('*') reemplazado por 9 columnas explícitas."
+    }
+  ],
+  "validation": {
+    "tests": "1187/1187 vitest",
+    "typecheck": "tsgo OK",
+    "regressions": "ninguna detectada"
+  }
+}
