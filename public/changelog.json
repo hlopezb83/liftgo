@@ -1,5 +1,22 @@
 [
   {
+    "version": "7.136.0",
+    "date": "2026-07-21",
+    "type": "minor",
+    "title": "BLOQUE 2 auditoría: REP con serialización real, reconcile resetea intentos, varianza unificada",
+    "summary": "Cierre del bloque de correcciones medias del reporte de verificación post v7.134.0. Se reemplaza `lock_invoice_for_rep` por `prepare_payment_complement`, un RPC transaccional que bloquea la factura, calcula NumParcialidad e ImpSaldoAnt y reserva esos valores en `payments` en la misma transacción (dos REPs concurrentes de la misma factura ya no pueden compartir parcialidad). Se unifica la varianza de timbrado en `_shared/money.ts` con dos umbrales nombrados, se limpian comentarios duplicados y se refuerza el claim del retry queue.",
+    "changes": [
+      "SQL: DROP FUNCTION lock_invoice_for_rep(uuid) — su row-lock moría al retornar y los cálculos quedaban desprotegidos.",
+      "SQL: nueva `prepare_payment_complement(payment_id)` con FOR UPDATE sobre invoices + reserva de installment_number/prior_balance dentro de la misma tx. GRANT solo a service_role.",
+      "SQL: `reconcile_stamping_invoice` ahora hace `stamping_attempts = 0` en el UPDATE de éxito (evita loops de reintentos post-conciliación).",
+      "stamp-payment-complement: reemplaza el lock + cálculo inline por la llamada a `prepare_payment_complement`. Early returns (metodo_pago != PPD, factura no timbrada, factura no encontrada) liberan el claim a `pending` (antes lo dejaban en `stamping`).",
+      "stamp-cfdi/handler: elimina el bloque de comentario BL-A5 duplicado (líneas 592-596). `computeStampVariance` y `STAMP_VARIANCE_TOLERANCE` ahora se importan de `_shared/money.ts` y se re-exportan para preservar la API pública.",
+      "_shared/money.ts: única fuente de la varianza. Constantes canónicas `STAMP_VARIANCE_WARNING = 0.01` y `STAMP_VARIANCE_ALERT = 0.02`; `computeStampVariance` centralizado.",
+      "process-cfdi-retry-queue: el claim atómico agrega `.select('id').maybeSingle()` y `continue` si no devuelve fila — evita procesar filas que otra corrida ya reclamó."
+    ],
+    "category": "improvement"
+  },
+  {
     "version": "7.135.0",
     "date": "2026-07-21",
     "type": "patch",
