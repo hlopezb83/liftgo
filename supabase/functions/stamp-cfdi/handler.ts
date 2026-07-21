@@ -19,9 +19,8 @@ import {
 } from "../_shared/cfdiRetryQueue.ts";
 import {
   roundMoney,
-  STAMP_VARIANCE_TOLERANCE_MXN,
-  stampVariance,
 } from "../_shared/money.ts";
+
 
 // Mantenido por compatibilidad con consumidores existentes (tests, etc.).
 export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
