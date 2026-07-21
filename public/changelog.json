@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.155.0",
+    "date": "2026-07-21",
+    "type": "minor",
+    "title": "Bloque 5 (R6) — Header sticky con blur, footer de diálogo unificado y fade de scroll en tablas móviles",
+    "category": "ui"
+  },
+  {
     "version": "7.154.0",
     "date": "2026-07-21",
     "type": "minor",
