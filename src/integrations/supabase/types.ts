@@ -3946,6 +3946,10 @@ export type Database = {
       peek_next_draft_credit_note_number: { Args: never; Returns: string }
       peek_next_draft_invoice_number: { Args: never; Returns: string }
       peek_next_invoice_number: { Args: never; Returns: string }
+      prepare_payment_complement: {
+        Args: { p_payment_id: string }
+        Returns: Json
+      }
       purge_e2e_data: { Args: never; Returns: Json }
       purge_old_notifications: { Args: never; Returns: number }
       recalc_supplier_bill: { Args: { p_bill_id: string }; Returns: undefined }
