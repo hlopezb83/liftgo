@@ -1,0 +1,25 @@
+{
+  "version": "7.157.0",
+  "date": "2026-07-21",
+  "type": "patch",
+  "title": "R7 · Deuda acumulada — Uploads paralelos de documentos",
+  "category": "performance",
+  "description": "Segundo ítem de deuda R6: los dos únicos loops de subida secuencial (DragDropImageUploader al subir varias evidencias y DocumentAttachments al adjuntar múltiples archivos a un montacargas) ahora ejecutan las subidas en paralelo con Promise.all, aprovechando que useUploadDocument ya es atómico por archivo (rollback en Storage si falla la fila).",
+  "changes": [
+    {
+      "type": "performance",
+      "scope": "components/forms/DragDropImageUploader",
+      "description": "handleUploadAll: for-await reemplazado por Promise.all sobre previews."
+    },
+    {
+      "type": "performance",
+      "scope": "features/fleet/DocumentAttachments",
+      "description": "handleUpload: for-await reemplazado por Promise.all sobre files."
+    }
+  ],
+  "validation": {
+    "tests": "1187/1187 vitest",
+    "typecheck": "tsgo OK",
+    "regressions": "ninguna detectada"
+  }
+}
