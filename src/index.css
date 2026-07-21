@@ -116,7 +116,9 @@
     --accent: 220 20% 18%;
     --accent-foreground: 220 10% 90%;
 
-    --destructive: 0 62% 30%;
+    /* R6-B3: rojo oscuro (0 62% 30%) daba ~1.8:1 contra bg dark. */
+    /* 0 84% 65% da ~5.1:1 y mantiene el hue destructive. */
+    --destructive: 0 84% 65%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 220 20% 18%;
