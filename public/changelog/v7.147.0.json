@@ -1,0 +1,14 @@
+{
+  "version": "7.147.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "Bloque 3 (R4) — Portal del cliente: IVA, badges de cotización, vigencia y monto de transferencia",
+  "category": "fix",
+  "changes": [
+    "3.1 TotalsBreakdown: normaliza tax_rate al mostrar. Si el valor es ≤ 1 se trata como fracción (0.16) y se multiplica ×100. Antes el portal mostraba 'IVA (0.16%)' en facturas y cotizaciones.",
+    "3.2 Nuevo helper src/features/portal/lib/quoteStatus.ts con QUOTE_STATUS_LABELS (draft/sent/accepted/rejected/expired/cancelled) y fallback '—' para estados desconocidos. Se usa como label override en <StatusBadge> desde PortalQuotes y PortalQuoteDetail, así 'sent' ya no aparece como 'Sin Pagar' (label de facturas) sino como 'Enviada'.",
+    "3.3 PortalQuoteDetail: si valid_until < hoy (comparación en zona local vía parseDateLocal), se oculta la sección 'Aceptar cotización' y se muestra un aviso 'Cotización vencida — solicita una actualización'. Aplica aun cuando el status siga en 'sent'.",
+    "3.4 ReportTransferDialog: schema Zod recibe el balance en tiempo real; el monto debe ser > 0 y ≤ saldo pendiente (tolerancia 0.005 por redondeos). Antes se aceptaba una transferencia mayor al saldo.",
+    "Pendientes de Bloque 3 (no incluidos en este release): 3.5 input file i18n, 3.6 label 'rejected' en /quotes admin, 3.7 SERVICE_TYPE_LABELS para mantenimiento — se abordan en 7.148.x."
+  ]
+}
