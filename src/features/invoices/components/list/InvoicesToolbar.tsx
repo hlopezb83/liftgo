@@ -36,7 +36,9 @@ export function InvoicesActionsBar({ onOpenPreview, onExport, onNew, previewPend
         <DownloadIcon className="h-4 w-4 sm:mr-1" />
         <span className="hidden sm:inline">Exportar CSV</span>
       </Button>
-      <Button size="sm" onClick={onNew}><AddIcon className="h-4 w-4 mr-1" />Nueva Factura</Button>
+      <RoleGuard module="Facturas" minAccess="full" fallback={null}>
+        <Button size="sm" onClick={onNew}><AddIcon className="h-4 w-4 mr-1" />Nueva Factura</Button>
+      </RoleGuard>
     </div>
   );
 }

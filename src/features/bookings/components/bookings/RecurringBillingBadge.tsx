@@ -1,4 +1,4 @@
-import { addMonths, parseISO } from "date-fns";
+import { addMonths, parseISO, startOfMonth } from "date-fns";
 import { Repeat } from "@/components/icons";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { formatDateMty } from "@/lib/format/dateFormats";
@@ -12,11 +12,12 @@ export function RecurringBillingBadge({ booking }: RecurringBillingBadgeProps) {
   if (!booking.recurring_billing) return null;
 
   const lastBilled = booking.last_billed_date ? parseISO(booking.last_billed_date) : null;
-  // BLOQUE 3.3: el ciclo real es por mes calendario (ver
-  // mem://logic/recurring-billing-cycle). El +30 días desalineaba la próxima
-  // fecha mostrada respecto a la generación real (podía adelantarse o
-  // atrasarse ~1 día por mes acumulado).
-  const nextBilling = addMonths(lastBilled ?? parseISO(booking.start_date), 1);
+  // BL-1.5 R5: la generación real (edge fn `generate-recurring-invoices`)
+  // alinea el siguiente cargo al inicio del mes calendario siguiente al
+  // último periodo facturado. Mostrar `addMonths(lastBilled, 1)` mentía
+  // el día — usamos `startOfMonth(addMonths(anchor, 1))`.
+  const anchor = lastBilled ?? parseISO(booking.start_date);
+  const nextBilling = startOfMonth(addMonths(anchor, 1));
 
   return (
     <Tooltip>
