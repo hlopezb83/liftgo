@@ -21,7 +21,9 @@ interface QueueRow {
   attempts: number;
   max_attempts: number;
   payload: Record<string, unknown>;
+  status: string;
 }
+
 
 // EC-A1 fix: alineado con OPERATION en cfdi_retry_queue (`stamp | cancel |
 // cancel_nc | cancel_rep`) y con los nombres reales de las edge functions.
