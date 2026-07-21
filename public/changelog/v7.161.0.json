@@ -1,0 +1,30 @@
+{
+  "version": "7.161.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "R7 · Deuda acumulada — Proveedores, contactos y cuentas bancarias con columnas explícitas",
+  "category": "security",
+  "description": "Cuarto dominio del barrido select('*'): proveedores, contactos de proveedor y cuentas bancarias de proveedor ahora usan columnas explícitas. Se elimina la exposición de metadatos internos (version, deleted_at, deleted_by, etc.) en las vistas de lista y detalle.",
+  "changes": [
+    {
+      "type": "security",
+      "scope": "features/suppliers/hooks/useSuppliers",
+      "description": "select('*') reemplazado por 13 columnas explícitas; se mantiene la interfaz Supplier."
+    },
+    {
+      "type": "security",
+      "scope": "features/suppliers/hooks/useSupplierContacts",
+      "description": "select('*') reemplazado por 9 columnas explícitas; conserva el tipo SupplierContact."
+    },
+    {
+      "type": "security",
+      "scope": "features/suppliers/hooks/useSupplierBankAccounts",
+      "description": "select('*') reemplazado por 8 columnas explícitas; conserva el tipo SupplierBankAccount."
+    }
+  ],
+  "validation": {
+    "tests": "1187/1187 vitest",
+    "typecheck": "tsgo OK",
+    "regressions": "ninguna detectada"
+  }
+}

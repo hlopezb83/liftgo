@@ -6,6 +6,12 @@ import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { CLABE_REGEX, isValidClabe } from "@/lib/schemas";
 import { supplierBankAccountKeys } from "../lib/queryKeys";
 
+const sel = (s: string): string => s;
+
+const SUPPLIER_BANK_ACCOUNT_COLUMNS = sel(
+  "id, supplier_id, bank_name, account_number, clabe, is_primary, created_at, updated_at"
+);
+
 export type SupplierBankAccount = Database["public"]["Tables"]["supplier_bank_accounts"]["Row"];
 type Insert = Database["public"]["Tables"]["supplier_bank_accounts"]["Insert"];
 type Update = Database["public"]["Tables"]["supplier_bank_accounts"]["Update"];
@@ -31,12 +37,13 @@ export const supplierBankAccountQueries = defineEntityQueries<
     if (!supplierId) return [];
     const { data, error } = await supabase
       .from("supplier_bank_accounts")
-      .select("*")
+      .select(SUPPLIER_BANK_ACCOUNT_COLUMNS)
       .eq("supplier_id", supplierId)
       .order("is_primary", { ascending: false })
-      .order("bank_name");
+      .order("bank_name")
+      .returns<SupplierBankAccount[]>();
     if (error) throw error;
-    return data as SupplierBankAccount[];
+    return data ?? [];
   },
 });
 

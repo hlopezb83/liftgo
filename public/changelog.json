@@ -1,5 +1,33 @@
 [
   {
+    "version": "7.161.0",
+    "date": "2026-07-21",
+    "type": "minor",
+    "title": "R7 · Deuda acumulada — Proveedores, contactos y cuentas bancarias con columnas explícitas",
+    "category": "security"
+  },
+  {
+    "version": "7.160.0",
+    "date": "2026-07-21",
+    "type": "minor",
+    "title": "R7 · Deuda acumulada — Clientes y reservas del portal con columnas explícitas",
+    "category": "security"
+  },
+  {
+    "version": "7.159.0",
+    "date": "2026-07-21",
+    "type": "minor",
+    "title": "R7 · Deuda acumulada — Catálogos internos con columnas explícitas",
+    "category": "refactor"
+  },
+  {
+    "version": "7.158.0",
+    "date": "2026-07-21",
+    "type": "minor",
+    "title": "R7 · Deuda acumulada — Queries del portal con columnas explícitas",
+    "category": "security"
+  },
+  {
     "version": "7.157.0",
     "date": "2026-07-21",
     "type": "patch",

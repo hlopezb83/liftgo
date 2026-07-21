@@ -5,6 +5,9 @@ import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { driverKeys } from "../lib/queryKeys";
 
+const sel = (s: string): string => s;
+
+const DRIVER_COLUMNS = sel("id, name, phone, email, license_number, is_active, notes, created_at, updated_at");
 
 export type Driver = Tables<"drivers">;
 
@@ -20,9 +23,9 @@ type DriverInput = {
 export const driverQueries = defineEntityQueries<"drivers", Driver[], never>("drivers", {
   staleTime: 5 * 60_000,
   list: (filter) => async () => {
-    let q = supabase.from("drivers").select("*").order("name");
-    if (filter?.active === true) q = q.eq("is_active", true);
-    const { data, error } = await q;
+    const base = supabase.from("drivers").select(DRIVER_COLUMNS);
+    const filtered = filter?.active === true ? base.eq("is_active", true) : base;
+    const { data, error } = await filtered.order("name").returns<Driver[]>();
     if (error) throw error;
     return data;
   },

@@ -6,6 +6,14 @@ import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 import { customerKeys } from "../../lib/queryKeys";
 
+const sel = (s: string): string => s;
+
+const CUSTOMER_LIST_COLUMNS = sel("id, name, company, rfc, email, phone, contact_person");
+
+const CUSTOMER_DETAIL_COLUMNS = sel(
+  "id, name, company, email, phone, address, notes, website, contact_person, rfc, regimen_fiscal, uso_cfdi, domicilio_fiscal_cp, representante_legal, tax_id, user_id, created_at, updated_at"
+);
+
 export type Customer = Tables<"customers">;
 
 export const customerQueries = defineEntityQueries<"customers", Customer[], Customer | null>(
@@ -14,29 +22,31 @@ export const customerQueries = defineEntityQueries<"customers", Customer[], Cust
     list: () => async () => {
       const { data, error } = await supabase
         .from("customers")
-        .select("*")
+        .select(CUSTOMER_LIST_COLUMNS)
         .is("deleted_at", null)
         .or("is_e2e.is.null,is_e2e.eq.false")
         .not("name", "ilike", "E2E%")
         .or("email.is.null,email.neq.e2e-ui@test.local")
         .order("name")
-        .limit(LIST_PAGE_LIMIT);
+        .limit(LIST_PAGE_LIMIT)
+        .returns<Customer[]>();
       if (error) throw error;
       if (hasReachedListLimit(data)) {
         console.warn(
           `[useCustomers] Alcanzó LIST_PAGE_LIMIT (${LIST_PAGE_LIMIT}). Migrar a paginación server-side.`,
         );
       }
-      return data;
+      return data ?? [];
     },
     detail: (id) => async () => {
       if (!id) return null;
       const { data, error } = await supabase
         .from("customers")
-        .select("*")
+        .select(CUSTOMER_DETAIL_COLUMNS)
         .eq("id", id)
         .is("deleted_at", null)
-        .maybeSingle();
+        .maybeSingle()
+        .returns<Customer>();
       if (error) throw error;
       return data;
     },

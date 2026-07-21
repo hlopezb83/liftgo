@@ -5,6 +5,11 @@ import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { equipmentModelKeys } from "../lib/queryKeys";
 
+const sel = (s: string): string => s;
+
+const EQUIPMENT_MODEL_COLUMNS = sel(
+  "id, manufacturer, model, default_capacity_kg, default_mast_height_m, default_fuel_type, created_at, updated_at, default_daily_rate, default_weekly_rate, default_monthly_rate, is_e2e, e2e_scope"
+);
 
 export type EquipmentModel = Tables<"equipment_models">;
 
@@ -26,10 +31,11 @@ export const equipmentModelQueries = defineEntityQueries<"equipment_models", Equ
     list: () => async () => {
       const { data, error } = await supabase
         .from("equipment_models")
-        .select("*")
+        .select(EQUIPMENT_MODEL_COLUMNS)
         .or("is_e2e.is.null,is_e2e.eq.false")
         .order("manufacturer")
-        .order("model");
+        .order("model")
+        .returns<EquipmentModel[]>();
       if (error) throw error;
       return data;
     },

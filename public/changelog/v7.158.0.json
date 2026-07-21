@@ -1,0 +1,30 @@
+{
+  "version": "7.158.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "R7 · Deuda acumulada — Queries del portal con columnas explícitas",
+  "category": "security",
+  "description": "Refactor del dominio portal para reemplazar select('*') por listas explícitas de columnas. Se definen interfaces tipadas (PortalQuoteListRow, PortalQuoteDetailRow, PortalPaymentIntentRow, AdminPaymentIntentRow), se usa el helper sel() para evitar parseo tipo-string en supabase-js y se ajustan los consumers sin cambios visuales.",
+  "changes": [
+    {
+      "type": "security",
+      "scope": "features/portal/lib/queryKeys",
+      "description": "select('*') reemplazado por columnas explícitas en quotes y customer_payment_intents, evitando exponer campos internos (rental_meta, accepted_ip, created_by, etc.) al cliente."
+    },
+    {
+      "type": "performance",
+      "scope": "features/portal/lib/queryKeys",
+      "description": "Las vistas de listado ya no descargan JSONB pesados como line_items ni rental_meta."
+    },
+    {
+      "type": "refactor",
+      "scope": "features/portal/lib/queryKeys",
+      "description": "Se añaden interfaces explícitas y se tipa status de payment_intents como PaymentIntentStatus, eliminando el any implícito en usePaymentIntentsColumns."
+    }
+  ],
+  "validation": {
+    "tests": "1187/1187 vitest",
+    "typecheck": "tsgo OK",
+    "regressions": "ninguna detectada"
+  }
+}

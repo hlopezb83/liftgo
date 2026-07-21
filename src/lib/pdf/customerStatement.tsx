@@ -1,13 +1,19 @@
 import { format } from "date-fns";
-import type { Tables } from "@/integrations/supabase/types";
 import type { CustomerSummary } from "@/lib/domain/customerTypes";
 import { CustomerStatementDocument } from "@/lib/pdf/documents/CustomerStatementDocument";
 import { renderAndSave } from "@/lib/pdf/renderAndSave";
 import { fetchCompanyDataAndLogo } from "@/lib/pdf/shared";
 import { nowMty } from "@/lib/utils";
 
+interface ExportStatementCustomer {
+  id: string;
+  name: string;
+  rfc: string | null;
+  domicilio_fiscal_cp: string | null;
+}
+
 interface ExportStatementParams {
-  customer: Tables<"customers">;
+  customer: ExportStatementCustomer;
   summary: CustomerSummary;
 }
 
