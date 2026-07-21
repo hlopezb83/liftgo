@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { handleCors } from "../_shared/cors.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { enforceRateLimit, requireRole } from "../_shared/auth.ts";
+import { aiChatCompletion } from "../_shared/ai.ts";
 import {
   CATEGORIES,
   type ExpenseCategory,
@@ -13,7 +14,7 @@ const MAX_XML_BYTES = 1024 * 1024; // 1 MB
 
 async function classifyCategory(
   cfdi: ParsedCfdi,
-  apiKey: string,
+  _apiKey: string,
 ): Promise<ExpenseCategory> {
   const conceptosText = cfdi.conceptos
     .slice(0, 10)
@@ -25,64 +26,45 @@ async function classifyCategory(
 Conceptos:
 ${conceptosText}`;
 
-  const resp = await fetch(
-    "https://ai.gateway.lovable.dev/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-3-flash-preview",
-        messages: [
-          {
-            role: "system",
-            content:
-              "Clasificas gastos operativos de una empresa mexicana de renta de montacargas en exactamente una categoría: " +
-              "renta, nomina, software, depreciacion (no aplica para CFDI), " +
-              "costo_venta (refacciones, partes, reparaciones), caja_chica, publicidad, otro. " +
-              "Usa la herramienta classify_expense.",
-          },
-          { role: "user", content: userMsg },
-        ],
-        tools: [{
-          type: "function",
-          function: {
-            name: "classify_expense",
-            description: "Devuelve la categoría sugerida.",
-            parameters: {
-              type: "object",
-              properties: { category: { type: "string", enum: CATEGORIES } },
-              required: ["category"],
-              additionalProperties: false,
-            },
-          },
-        }],
-        tool_choice: {
-          type: "function",
-          function: { name: "classify_expense" },
-        },
-      }),
-    },
-  );
-
-  if (!resp.ok) {
-    console.error(
-      "AI gateway error",
-      resp.status,
-      await resp.text().catch(() => ""),
-    );
-    return "otro";
-  }
-  const data = await resp.json();
-  const args = data?.choices?.[0]?.message?.tool_calls?.[0]?.function
-    ?.arguments;
-  if (!args) return "otro";
   try {
-    const parsed = JSON.parse(args);
-    if (CATEGORIES.includes(parsed.category)) return parsed.category;
-  } catch { /* ignore */ }
+    const { toolArguments } = await aiChatCompletion({
+      model: "google/gemini-3-flash-preview",
+      messages: [
+        {
+          role: "system",
+          content:
+            "Clasificas gastos operativos de una empresa mexicana de renta de montacargas en exactamente una categoría: " +
+            "renta, nomina, software, depreciacion (no aplica para CFDI), " +
+            "costo_venta (refacciones, partes, reparaciones), caja_chica, publicidad, otro. " +
+            "Usa la herramienta classify_expense.",
+        },
+        { role: "user", content: userMsg },
+      ],
+      tools: [{
+        type: "function",
+        function: {
+          name: "classify_expense",
+          description: "Devuelve la categoría sugerida.",
+          parameters: {
+            type: "object",
+            properties: { category: { type: "string", enum: CATEGORIES } },
+            required: ["category"],
+            additionalProperties: false,
+          },
+        },
+      }],
+      toolChoice: {
+        type: "function",
+        function: { name: "classify_expense" },
+      },
+    });
+    const cat = toolArguments?.category;
+    if (typeof cat === "string" && (CATEGORIES as readonly string[]).includes(cat)) {
+      return cat as ExpenseCategory;
+    }
+  } catch (e) {
+    console.error("[parse-cfdi-expense] AI classify fallback:", e);
+  }
   return "otro";
 }
 
