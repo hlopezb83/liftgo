@@ -1,0 +1,19 @@
+{
+  "version": "7.142.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "Sentry: sourcemaps subidos y release fijado para stack traces legibles en producción",
+  "summary": "vite.config.ts genera build con sourcemap 'hidden' (los .js no referencian el .map en el cliente) y @sentry/vite-plugin sube los .map a elogistix/liftgo con release liftgo@<version>, luego los borra del dist. Sentry.init lee la misma versión vía VITE_APP_VERSION (inyectada por define desde public/version.json) para que cada evento se asocie al mismo release. Project slug corregido a 'liftgo' y org a 'elogistix'.",
+  "changes": [
+    { "type": "changed", "description": "vite.config.ts: sentryVitePlugin ahora fija release.name = liftgo@<version>, sube sourcemaps y los elimina del bundle con filesToDeleteAfterUpload." },
+    { "type": "changed", "description": "vite.config.ts: build.sourcemap = 'hidden' evita exponer //# sourceMappingURL al cliente." },
+    { "type": "changed", "description": "vite.config.ts: define VITE_APP_VERSION leyendo public/version.json en build para sincronizar release entre plugin y runtime." },
+    { "type": "changed", "description": "src/lib/observability/sentry.ts: release derivado de VITE_APP_VERSION coincide con el subido por CI." },
+    { "type": "chore", "description": "scripts/gen-version.mjs imprime 'version=<X.Y.Z>' en stdout para consumo por CI." },
+    { "type": "chore", "description": "Secret SENTRY_AUTH_TOKEN registrado; ausencia = no-op silencioso en builds locales." }
+  ],
+  "notes": [
+    "En el hosting/CI: exporta SENTRY_AUTH_TOKEN (org: elogistix, project: liftgo, scope: project:releases). Opcional: SENTRY_RELEASE_COMMIT para 'suspect commits'.",
+    "Los .map no llegan al cliente: sourcemap: 'hidden' + filesToDeleteAfterUpload='./dist/**/*.map' en el plugin."
+  ]
+}
