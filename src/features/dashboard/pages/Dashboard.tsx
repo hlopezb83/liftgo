@@ -33,7 +33,7 @@ export default function Dashboard() {
     <PageTransition>
       <PageContainer>
         <PageHeader title="Panel" subtitle="Vista general de la flota" />
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-6">
           <div className="order-2 md:order-1">
             <StatCards cards={statCards} />
           </div>

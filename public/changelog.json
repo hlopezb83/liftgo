@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.152.0",
+    "date": "2026-07-21",
+    "type": "minor",
+    "title": "Bloques 2 y 3 (R5) — Espaciado estandarizado y StatusBadge suave",
+    "category": "ui"
+  },
+  {
     "version": "7.151.0",
     "date": "2026-07-21",
     "type": "minor",

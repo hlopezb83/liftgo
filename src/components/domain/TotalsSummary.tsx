@@ -14,6 +14,9 @@ interface TotalsSummaryProps {
 
 export function TotalsSummary({ subtotal, taxRate, taxAmount, total, onTaxRateChange, currency }: TotalsSummaryProps) {
   const fmt = currency ? (a: number) => formatCurrencyWithCode(a, currency) : formatCurrency;
+  // Bloque 3 (R5): normaliza taxRate a porcentaje entero para display.
+  // Acepta fracción (0.16) o porcentaje (16) sin duplicar la magnitud.
+  const displayRate = taxRate > 0 && taxRate < 1 ? Math.round(taxRate * 100) : Math.round(taxRate);
   return (
     <Card>
       <CardContent className="pt-6">
@@ -40,7 +43,7 @@ export function TotalsSummary({ subtotal, taxRate, taxAmount, total, onTaxRateCh
                 </Select>
               </>
             ) : (
-              <span className="text-muted-foreground">IVA ({taxRate}%)</span>
+              <span className="text-muted-foreground">IVA ({displayRate}%)</span>
             )}
             <span className="font-mono w-28 text-right">{fmt(taxAmount)}</span>
           </div>
