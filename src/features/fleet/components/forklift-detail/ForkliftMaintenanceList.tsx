@@ -1,9 +1,9 @@
-import { format } from "date-fns";
 import { MaintenanceIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { parseDateLocal } from "@/lib/utils";
+import { formatDateDisplay } from "@/lib/utils";
+
 
 interface ForkliftMaintenanceListProps {
   logs: Tables<"maintenance_logs">[];
