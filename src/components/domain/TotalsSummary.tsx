@@ -43,7 +43,7 @@ export function TotalsSummary({ subtotal, taxRate, taxAmount, total, onTaxRateCh
                 </Select>
               </>
             ) : (
-              <span className="text-muted-foreground">IVA ({taxRate}%)</span>
+              <span className="text-muted-foreground">IVA ({displayRate}%)</span>
             )}
             <span className="font-mono w-28 text-right">{fmt(taxAmount)}</span>
           </div>
