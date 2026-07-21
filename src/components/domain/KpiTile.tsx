@@ -95,7 +95,7 @@ export function KpiTile({
           className,
         )}
       >
-        <CardContent className="p-3 sm:p-4 flex items-center gap-2 sm:gap-3 overflow-hidden">
+        <CardContent className="p-4 flex items-center gap-2 sm:gap-3 overflow-hidden">
           {Icon ? (
             <div className={cn("p-2 sm:p-2.5 rounded-xl shrink-0", bg)}>
               <Icon className={cn("h-4 w-4 sm:h-5 sm:w-5", iconColor)} />

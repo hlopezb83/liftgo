@@ -75,7 +75,7 @@ export default function PortalInvoiceDetail() {
           ) : undefined
         }
       />
-      <div className="-mt-2 flex items-center gap-2 text-sm text-muted-foreground">
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <StatusBadge status={invoice.status} />
         <span>Emitida: {formatDateDisplay(invoice.issued_at)}</span>
       </div>
