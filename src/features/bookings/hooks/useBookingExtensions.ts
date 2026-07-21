@@ -1,8 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
+import type { Tables } from "@/integrations/supabase/types";
 import { forkliftKeys } from "@/features/fleet";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { bookingKeys } from "../lib/queryKeys";
+
+const sel = (s: string): string => s;
+
+const BOOKING_EXTENSION_COLUMNS = sel("id, booking_id, original_end_date, new_end_date, reason, created_at");
 
 export function useBookingExtensions(bookingId?: string) {
   return useQuery({
@@ -12,11 +17,12 @@ export function useBookingExtensions(bookingId?: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("booking_extensions")
-        .select("*")
+        .select(BOOKING_EXTENSION_COLUMNS)
         .eq("booking_id", bookingId ?? "")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .returns<Tables<"booking_extensions">[]>();
       if (error) throw error;
-      return data;
+      return data ?? [];
     },
   });
 }
@@ -53,4 +59,3 @@ export function useCreateBookingExtension() {
     errorTitle: "Error al extender reserva",
   });
 }
-

@@ -4,6 +4,10 @@ import type { Tables } from "@/integrations/supabase/types";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { quoteAssignedForkliftKeys } from "../../../lib/queryKeys";
 
+const sel = (s: string): string => s;
+
+const QUOTE_ASSIGNED_FORKLIFT_COLUMNS = sel("id, quote_id, forklift_id, line_index, created_at");
+
 type QuoteAssignedForklift = Tables<"quote_assigned_forklifts">;
 
 export const quoteAssignmentsQueries = defineEntityQueries<
@@ -15,11 +19,12 @@ export const quoteAssignmentsQueries = defineEntityQueries<
     const quoteId = filter?.quoteId as string | undefined;
     const { data, error } = await supabase
       .from("quote_assigned_forklifts")
-      .select("*")
+      .select(QUOTE_ASSIGNED_FORKLIFT_COLUMNS)
       .eq("quote_id", quoteId ?? "")
-      .order("line_index");
+      .order("line_index")
+      .returns<QuoteAssignedForklift[]>();
     if (error) throw error;
-    return data;
+    return data ?? [];
   },
 });
 

@@ -1,0 +1,35 @@
+{
+  "version": "7.160.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "R7 · Deuda acumulada — Clientes y reservas del portal con columnas explícitas",
+  "category": "security",
+  "description": "Tercer dominio del barrido select('*'): customer admin, customer portal y bookings portal ahora usan columnas explícitas. Se reduce la exposición de datos fiscales y operativos innecesarios en el portal y se tipan las filas del portal (PortalCustomerRow, PortalBookingRow).",
+  "changes": [
+    {
+      "type": "security",
+      "scope": "features/customers/hooks/useCustomerPortal",
+      "description": "usePortalCustomer: select('*') reemplazado por id, name, rfc, domicilio_fiscal_cp."
+    },
+    {
+      "type": "security",
+      "scope": "features/customers/hooks/useCustomerPortal",
+      "description": "usePortalBookings: select('*') reemplazado por id, forklift_id, start_date, end_date, status."
+    },
+    {
+      "type": "refactor",
+      "scope": "features/customers/hooks/useCustomers",
+      "description": "useCustomers list y detail: select('*') reemplazado por columnas explícitas según consumidores; tipos compatibles con Tables<customers>."
+    },
+    {
+      "type": "refactor",
+      "scope": "lib/pdf/customerStatement",
+      "description": "exportCustomerStatementPdf acepta un tipo mínimo (id, name, rfc, domicilio_fiscal_cp) en lugar de Tables<customers>."
+    }
+  ],
+  "validation": {
+    "tests": "1187/1187 vitest",
+    "typecheck": "tsgo OK",
+    "regressions": "ninguna detectada"
+  }
+}

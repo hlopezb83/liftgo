@@ -3,22 +3,16 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { portalKeys } from "../../lib/queryKeys";
 
-export function usePortalCustomer() {
-  const { user } = useAuth();
-  return useQuery({
-    queryKey: portalKeys.customer(user?.id),
-    enabled: !!user,
-    staleTime: 60_000,
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("customers")
-        .select("*")
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-  });
+const sel = (s: string): string => s;
+
+const PORTAL_CUSTOMER_COLUMNS = sel("id, name, rfc, domicilio_fiscal_cp");
+const PORTAL_BOOKING_COLUMNS = sel("id, forklift_id, start_date, end_date, status");
+
+export interface PortalCustomerRow {
+  id: string;
+  name: string;
+  rfc: string | null;
+  domicilio_fiscal_cp: string | null;
 }
 
 type ForkliftBrief = { id: string; name: string | null; model: string | null; manufacturer: string | null };
@@ -31,6 +25,34 @@ async function fetchForkliftsBriefMap(): Promise<Map<string, ForkliftBrief>> {
   return map;
 }
 
+export function usePortalCustomer() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: portalKeys.customer(user?.id),
+    enabled: !!user,
+    staleTime: 60_000,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("customers")
+        .select(PORTAL_CUSTOMER_COLUMNS)
+        .limit(1)
+        .maybeSingle()
+        .returns<PortalCustomerRow>();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export interface PortalBookingRow {
+  id: string;
+  forklift_id: string;
+  start_date: string;
+  end_date: string;
+  status: string;
+  forklifts: ForkliftBrief | null;
+}
+
 export function usePortalBookings() {
   const { user } = useAuth();
   return useQuery({
@@ -41,8 +63,9 @@ export function usePortalBookings() {
       const [{ data, error }, forkliftMap] = await Promise.all([
         supabase
           .from("bookings")
-          .select("*")
-          .order("start_date", { ascending: false }),
+          .select(PORTAL_BOOKING_COLUMNS)
+          .order("start_date", { ascending: false })
+          .returns<Pick<PortalBookingRow, "id" | "forklift_id" | "start_date" | "end_date" | "status">[]>(),
         fetchForkliftsBriefMap(),
       ]);
       if (error) throw error;

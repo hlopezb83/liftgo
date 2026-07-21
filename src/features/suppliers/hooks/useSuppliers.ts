@@ -3,6 +3,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 
+const sel = (s: string): string => s;
+
+const SUPPLIER_COLUMNS = sel(
+  "id, name, contact_person, email, phone, website, address, rfc, regimen_fiscal, category, notes, default_payment_terms_days, created_at, updated_at"
+);
 
 export interface Supplier {
   id: string;
@@ -34,11 +39,12 @@ export const suppliersQueries = defineEntityQueries<"suppliers", Supplier[], nev
   list: () => async () => {
     const { data, error } = await supabase
       .from("suppliers")
-      .select("*")
+      .select(SUPPLIER_COLUMNS)
       .is("deleted_at", null)
-      .order("name");
+      .order("name")
+      .returns<Supplier[]>();
     if (error) throw error;
-    return data as Supplier[];
+    return data ?? [];
   },
 });
 
@@ -48,7 +54,6 @@ export function useSuppliers() {
 
 // Nota: `useDeleteSupplier` se retiró por estar sin uso. La eliminación se
 // invoca directamente desde la página de proveedores vía el RPC soft delete.
-
 
 function translateSupplierError(err: Error): string {
   const msg = err.message || "";

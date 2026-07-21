@@ -5,6 +5,12 @@ import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { supplierContactKeys } from "../lib/queryKeys";
 
+const sel = (s: string): string => s;
+
+const SUPPLIER_CONTACT_COLUMNS = sel(
+  "id, supplier_id, name, email, phone, role, is_primary, notes, created_at, updated_at"
+);
+
 export type SupplierContact = Database["public"]["Tables"]["supplier_contacts"]["Row"];
 type Insert = Database["public"]["Tables"]["supplier_contacts"]["Insert"];
 type Update = Database["public"]["Tables"]["supplier_contacts"]["Update"];
@@ -29,12 +35,13 @@ export const supplierContactQueries = defineEntityQueries<
     if (!supplierId) return [];
     const { data, error } = await supabase
       .from("supplier_contacts")
-      .select("*")
+      .select(SUPPLIER_CONTACT_COLUMNS)
       .eq("supplier_id", supplierId)
       .order("is_primary", { ascending: false })
-      .order("name");
+      .order("name")
+      .returns<SupplierContact[]>();
     if (error) throw error;
-    return data as SupplierContact[];
+    return data ?? [];
   },
 });
 

@@ -1,0 +1,40 @@
+{
+  "version": "7.159.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "R7 · Deuda acumulada — Catálogos internos con columnas explícitas",
+  "category": "refactor",
+  "description": "Continuación del barrido de select('*') en dominios de catálogo de bajo riesgo: company_settings, mechanics, drivers, equipment_models y parts_inventory ahora solicitan columnas explícitas y usan .returns<T>() para mantener tipado. Se reduce la superficie de exposición de columnas futuras y se mejora la trazabilidad de datos requeridos por cada vista.",
+  "changes": [
+    {
+      "type": "refactor",
+      "scope": "features/company-settings/lib/queryKeys",
+      "description": "companySettingsQueries: select('*') reemplazado por columnas fiscales y operativas explícitas."
+    },
+    {
+      "type": "refactor",
+      "scope": "features/maintenance/hooks/useMechanics",
+      "description": "mechanicQueries: select('*') reemplazado por columnas explícitas; filtro active preservado con builder base/conditional."
+    },
+    {
+      "type": "refactor",
+      "scope": "features/fleet/hooks/useDrivers",
+      "description": "driverQueries: select('*') reemplazado por columnas explícitas; filtro active preservado."
+    },
+    {
+      "type": "refactor",
+      "scope": "features/fleet/hooks/useEquipmentModels",
+      "description": "equipmentModelQueries: select('*') reemplazado por columnas explícitas incluyendo flags e2e."
+    },
+    {
+      "type": "refactor",
+      "scope": "features/inventory/hooks/usePartsInventory",
+      "description": "partsInventoryQueries: select('*') reemplazado por columnas de inventario explícitas."
+    }
+  ],
+  "validation": {
+    "tests": "1187/1187 vitest",
+    "typecheck": "tsgo OK",
+    "regressions": "ninguna detectada"
+  }
+}

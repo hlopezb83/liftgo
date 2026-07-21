@@ -1,6 +1,13 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 import { bookingKeys } from "../../lib/queryKeys";
+
+const sel = (s: string): string => s;
+
+const AUDIT_LOG_COLUMNS = sel(
+  "id, table_name, record_id, action, old_data, new_data, changed_fields, user_id, created_at"
+);
 
 export interface BookingHistoryLog {
   id: string;
@@ -22,10 +29,11 @@ export function useBookingStatusHistory(bookingId: string) {
     queryFn: async (): Promise<BookingHistoryLog[]> => {
       const { data, error } = await supabase
         .from("audit_logs")
-        .select("*")
+        .select(AUDIT_LOG_COLUMNS)
         .eq("table_name", "bookings")
         .eq("record_id", bookingId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .returns<Tables<"audit_logs">[]>();
       if (error) throw error;
 
       const logs = (data ?? []) as unknown as BookingHistoryLog[];

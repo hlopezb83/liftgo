@@ -5,6 +5,9 @@ import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { mechanicKeys } from "../../lib/queryKeys";
 
+const sel = (s: string): string => s;
+
+const MECHANIC_COLUMNS = sel("id, name, phone, email, specialization, is_active, notes, created_at, updated_at");
 
 export type Mechanic = Tables<"mechanics">;
 
@@ -20,9 +23,9 @@ type MechanicInput = {
 export const mechanicQueries = defineEntityQueries<"mechanics", Mechanic[], never>("mechanics", {
   staleTime: 5 * 60_000,
   list: (filter) => async () => {
-    let q = supabase.from("mechanics").select("*").order("name");
-    if (filter?.active === true) q = q.eq("is_active", true);
-    const { data, error } = await q;
+    const base = supabase.from("mechanics").select(MECHANIC_COLUMNS);
+    const filtered = filter?.active === true ? base.eq("is_active", true) : base;
+    const { data, error } = await filtered.order("name").returns<Mechanic[]>();
     if (error) throw error;
     return data;
   },

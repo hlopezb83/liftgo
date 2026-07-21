@@ -1,20 +1,31 @@
 import { supabase } from "@/integrations/supabase/client";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { callRpc } from "@/lib/rpc";
+import type { Tables } from "@/integrations/supabase/types";
+
+const sel = (s: string): string => s;
+
+const COMPANY_SETTINGS_COLUMNS = sel(
+  "id, rfc, razon_social, regimen_fiscal, lugar_expedicion, logo_url, created_at, updated_at, facturapi_mode, cxp_approval_threshold_mxn, cash_initial_balance, cash_safety_buffer, allow_e2e_seed"
+);
 
 /** Fila cruda de company_settings (datos fiscales completos). */
-export const companySettingsQueries = defineEntityQueries("company_settings", {
-  list: () => async () => {
-    const { data, error } = await supabase
-      .from("company_settings")
-      .select("*")
-      .limit(1)
-      .maybeSingle();
-    if (error) throw error;
-    return data;
+export const companySettingsQueries = defineEntityQueries(
+  "company_settings",
+  {
+    list: () => async () => {
+      const { data, error } = await supabase
+        .from("company_settings")
+        .select(COMPANY_SETTINGS_COLUMNS)
+        .limit(1)
+        .maybeSingle()
+        .returns<Tables<"company_settings">>();
+      if (error) throw error;
+      return data;
+    },
+    staleTime: 5 * 60_000,
   },
-  staleTime: 5 * 60_000,
-});
+);
 
 export interface CxpApprovalThreshold {
   id: string | null;

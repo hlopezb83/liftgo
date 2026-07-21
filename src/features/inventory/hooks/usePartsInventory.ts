@@ -3,6 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 
+const sel = (s: string): string => s;
+
+const PART_COLUMNS = sel("id, name, sku, category, stock_quantity, min_stock_level, unit_cost, location, created_at, updated_at");
+
 export type PartInventory = Tables<"parts_inventory">;
 
 export const partsInventoryQueries = defineEntityQueries<"parts_inventory", PartInventory[], never>(
@@ -10,7 +14,10 @@ export const partsInventoryQueries = defineEntityQueries<"parts_inventory", Part
   {
     list: () => async () => {
       const { data, error } = await supabase
-        .from("parts_inventory").select("*").order("name");
+        .from("parts_inventory")
+        .select(PART_COLUMNS)
+        .order("name")
+        .returns<PartInventory[]>();
       if (error) throw error;
       return data;
     },
