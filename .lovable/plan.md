@@ -1,57 +1,105 @@
 
-# Lote R5 — Business Logic + Spacing System
+# Lote R6 — Plan verificado contra el código
 
-Ejecuto los 3 bloques del reporte R5 en orden. Sin tocar los fixes previos (timezone, `isPending`, trigger divisa, claim CFDI, RoleGuards de página, soft-delete).
-
----
-
-## Bloque 1 — Business Logic (5 fixes con tests)
-
-**1.1 CollectionForecast suma USD como MXN**
-Archivo real: `src/features/dashboard/components/dashboard/CollectionForecast.tsx`. La `interface OverdueInvoice` sólo recibe `balance` crudo. Verificar quién lo alimenta (dashboard hooks) y propagar `balance_mxn` desde `list_invoices_with_balance` (ya expuesto). Ajustar la interfaz para aceptar `balance_mxn` y usarlo con fallback a `convertToMxn(balance, currency, exchange_rate)` en `src/lib/money`. Test unitario con mezcla MXN/USD.
-
-**1.2 "Nueva Factura" visible para read-only**
-`src/features/invoices/components/list/InvoicesToolbar.tsx` (ruta real): envolver el botón en `<RoleGuard module="Facturas" minAccess="full" fallback={null}>`. En `src/routes/routes.ts`/`routes-config`, aplicar `minAccess="full"` a `/invoices/new` como ya lo tiene `/invoices/:id/edit`.
-
-**1.3 RoleGuard apilando `<NoAccess/>`**
-`src/layouts/RoleGuard.tsx` ya acepta prop `fallback` — falta usarla. Pasar `fallback={null}` en los usos a nivel botón/sección: `InvoiceDetailActions.tsx` (Editar/Timbrar/Registrar Pago/Cancelar/Eliminar) y auditar otros consumidores de sección (QuoteDetailActions, DeliveryActions, ProspectActions, BookingActionDialogs, CollectionNotesCard, RecordPaymentDialog, etc.) para añadir `fallback={null}` donde no sean rutas completas.
-
-**1.4 DatePickerField −1 día en display**
-`src/components/forms/DatePickerField.tsx` y `src/components/forms/fields/DateField.tsx`. El prop es `Date` pero consumidores pasan `new Date("YYYY-MM-DD")` (UTC). Aceptar también `string` date-only y parsear con `parseDateLocal` de `src/lib/utils.ts` antes de formatear. Test TZ Monterrey vs UTC.
-
-**1.5 RecurringBillingBadge**
-`src/features/bookings/components/bookings/RecurringBillingBadge.tsx`: cambiar `addMonths(lastBilled, 1)` a `startOfMonth(addMonths(lastBilled, 1))`. Si `generate-recurring-invoices` exporta una regla equivalente, reutilizarla. Caso sin historial: fin del mes de arranque → día 1 del siguiente. Test unitario.
+Verifiqué cada hallazgo del documento leyendo los archivos citados. Marco lo que es **bug real**, lo que **ya está corregido** y lo que es **mejora sin bug**.
 
 ---
 
-## Bloque 2 — Quick wins de espaciado
+## Bloque 1 — RoleGuard `fallback={null}` ✅ BUG REAL
 
-1. `Dashboard.tsx` grid principal `gap-4` → `gap-6`.
-2. `ListPageLayout.tsx` `space-y-4 sm:space-y-6` → `space-y-6`.
-3. `AccountsPayableKpiCards.tsx`: `gap-3` → `gap-4`; grid `sm:grid-cols-2` → `sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6`.
-4. `TotalsSummary` (detalle de factura): normalizar `tax_rate` — si `<=1` multiplicar por 100 (o usar helper compartido). Ubicar la ruta real (`src/components/domain/TotalsSummary.tsx` o feature-specific).
-5. `PortalInvoiceDetail.tsx`: eliminar `-mt-2` del back-link.
+`src/layouts/RoleGuard.tsx:29-31` usa `fallback ?? node`. Con `fallback={null}` (nullish) devuelve `node` (el `NoAccess` grande). El fix propuesto en R6 es correcto.
 
----
+**Cambio:** `renderFallback` distingue `undefined` (usa `node`) vs `null`/`ReactNode` (usa fallback tal cual).
 
-## Bloque 3 — Sistema de tokens de espaciado
-
-1. **Unificar KPI cards en `KpiTile`** (`src/components/domain/KpiTile.tsx`): añadir soporte icono, variantes intent, layout móvil horizontal. Migrar `AccountsPayableKpiCards` y `PortalStatCard` a usarlo.
-2. **Purgar overrides ad-hoc**: `gap-3`, `pb-2/3`, `pt-4`, `py-4`, `p-3`, `-mt-2` en Card*. Añadir prop `density="compact"` documentada en `card.tsx` para casos legítimos.
-3. `line-clamp-2` en labels de `KpiTile`.
-4. **StatusBadge soft**: `src/components/feedback/StatusBadge.tsx` — pasar de fondo sólido a fondo tinte 12% + texto oscurecido + borde 1px. Verificar contraste WCAG AA (≥4.5:1) en light/dark.
-5. **Pregunta de producto** (documentar en changelog, no código): confirmar si en móvil las alertas deben ir antes de los KPIs de flota.
+**Test:** render con `fallback={null}` no pinta nada; sin fallback pinta `NoAccess`.
 
 ---
 
-## Detalles técnicos
+## Bloque 2 — Multi-moneda en reportes/portal ✅ BUG REAL
 
-- Cada bloque = commit + entrada en `public/changelog.json` + `public/changelog/v{X.Y.Z}.json`. Versiones tentativas: **v7.151.0** (Bloque 1), **v7.151.1** (Bloque 2), **v7.152.0** (Bloque 3, cambios estructurales de UI).
-- Tests: `bunx vitest run` para 1.1/1.4/1.5 + StatusBadge contrast (visual manual). Ejecutar `tsgo --noEmit`, `deno fmt --check` en supabase/functions, `bunx knip`.
-- Verificación visual con Playwright en 1600x900 para spacing (Dashboard, ListPage, AccountsPayable, PortalInvoiceDetail) y para StatusBadge (Invoices, Bookings, Quotes).
-- No modificar RPCs ni migraciones. Todo frontend.
+Confirmado leyendo el código:
 
-## Fuera de alcance
+- `AgingReport.tsx:40` suma `i.balance` crudo. `useInvoicesWithBalance` ya expone `balance_mxn` (v7.151.0) → migrar buckets, total y export a `balance_mxn` (fallback `toMxn(balance, moneda, tipo_cambio)`).
+- `RevenueReport.tsx:29-31` suma `Number(inv.total)` sin TC → normalizar con `toMxn(inv.total, inv.moneda, inv.tipo_cambio)` en `invoiced` y `paid`.
+- `PortalStatement.tsx:30,38,41` suma `total`/`balance` crudos y el RPC `get_portal_invoices` (mig `20260719182428`) **no devuelve `tipo_cambio`** (solo `moneda`).
+  - Migración nueva idempotente que recrea `get_portal_invoices` agregando `tipo_cambio numeric` a la firma.
+  - Regenerar types (auto).
+  - `PortalStatement.tsx`: normalizar totales con `toMxn` y añadir badge `USD/MXN` por fila (tabla y detalle si aplica).
 
-- Refactor global de todos los overrides de padding en cada Card (sólo los listados). Auditoría exhaustiva → sprint aparte si aparecen muchos.
-- Decisión de reordenar dashboard móvil (queda como pregunta pendiente, no cambio).
+**Tests:** unit tests de normalización en los tres reportes (factura USD $1000 TC 20 → $20 000 MXN en bucket/total).
+
+**Comentario/ADR** breve en `src/lib/money/index.ts` (o `docs/`) con la regla: “todo agregado de facturas pasa por `toMxn`”.
+
+---
+
+## Bloque 3 — Dark mode: `text-destructive` ilegible ✅ BUG REAL
+
+`src/index.css:119` define en `.dark` `--destructive: 0 62% 30%` (rojo oscuro sobre fondo oscuro). El texto queda ~1.8:1.
+
+**Cambio:** ajustar tokens `.dark` a `--destructive: 0 84% 65%` (mismo hue, más claro) y revisar `--warning`/`--success` para asegurar ≥4.5:1 contra `--background` dark. Sin tocar variantes light.
+
+**Verificación:** cálculo de contraste WCAG en test o snapshot manual documentado en changelog.
+
+---
+
+## Bloque 4 — Spacing (parcialmente ya aplicado)
+
+Estado real tras leer los archivos:
+
+| Item | Estado | Acción |
+|---|---|---|
+| 4.1 Dashboard `gap-4`→`gap-6` | Real: línea 25 (KPI grid) sigue en `gap-4` (la 36 ya es `gap-6`) | Cambiar `gap-4` → `gap-6` en la grid principal |
+| 4.2 `ListPageLayout` `space-y-4 sm:space-y-6` → `space-y-6` | Real (línea 123) | Unificar a `space-y-6` |
+| 4.3 `AccountsPayableKpiCards` gap-3→gap-4 | **Ya en gap-4** ✅ | Mantener; ajustar sólo si labels truncan (añadir `lg:grid-cols-3 xl:grid-cols-6` para respirar a 1440px) |
+| 4.4 `TotalsSummary` "IVA (0.16%)" | **Ya normalizado** en v7.152.0 (`displayRate`) ✅ | Ninguna |
+| 4.5 `PortalInvoiceDetail` `-mt-2` | Verificar y quitar si existe | Chequeo + remoción |
+| 4.6 `KpiTile` `px-3`→`px-4` + `line-clamp-2` | Real | Aplicar |
+| 4.7 Unificar 3 cards KPI en 1 | Refactor grande | **Diferir** a Lote R7 (mencionado como deuda) |
+
+---
+
+## Bloque 5 — Pulido nivel 2
+
+Aplicables ahora (bajo riesgo):
+
+1. Header sticky con `bg-card/95 backdrop-blur-sm` en `DataTableV2` (thead `sticky`).
+5. Constante `CONTROL_HEIGHT` en `src/lib/ui/tokens.ts` reemplazando `h-[38px]` en filtros.
+7. `RecurringBillingBadge.tsx:14,19` cambia `parseISO` por `parseDateLocal` (helper existente para date-only en MTY). Bug real aunque menor en MTY.
+
+Diferir (requieren definir sistema, mejor en Lote R7):
+
+2. Footers de diálogo unificados.
+3. Escala de anchos de diálogo.
+4. FAB móvil vs fila de total (medir primero).
+6. Fade de scroll horizontal en tablas móviles.
+
+---
+
+## Descartado (no bug)
+
+- 4.4 `TotalsSummary` — ya se corrigió en v7.152.0.
+- 4.3 gap — ya en `gap-4`.
+
+---
+
+## Sprints propuestos
+
+**Sprint R6.1 (v7.153.0)** — Bloque 1 + Bloque 3
+RoleGuard fix + tokens dark destructive. Tests de guard y contraste. Rápido y de mucho impacto visual.
+
+**Sprint R6.2 (v7.154.0)** — Bloque 2 completo
+Migración `get_portal_invoices` con `tipo_cambio` + normalización `toMxn` en AgingReport, RevenueReport, PortalStatement + badges de moneda + tests unitarios + ADR de la regla.
+
+**Sprint R6.3 (v7.155.0)** — Bloque 4 aplicable + Bloque 5 aplicable
+Dashboard/ListPageLayout gaps, KpiTile padding+clamp, `PortalInvoiceDetail -mt-2`, header sticky, `CONTROL_HEIGHT`, `RecurringBillingBadge` timezone.
+
+**Diferido a R7:** unificar 3 KPI cards, footers/anchos de diálogo, FAB móvil, fade de scroll, deuda acumulada (optimistic locking, `mark_started_bookings_rented` en types, `.env`, N+1 signed URLs, formatters duplicados, CSP/PKCE).
+
+## Verificación final
+
+`bunx tsgo`, `bunx vitest run`, `deno test supabase/functions`, `deno fmt --check`. Changelog por sprint en `public/changelog.json` + `public/changelog/vX.Y.Z.json`.
+
+## Reglas respetadas
+
+- No tocar: trigger de divisa, `assert_invoice_cancellable`, claim atómico REP, `prepare_payment_complement`, soft-delete, guardas de formularios.
+- Migraciones con timestamps nuevos, idempotentes, SECURITY DEFINER + `SET search_path = public` + GRANTs mínimos.
