@@ -100,10 +100,13 @@ Deno.serve(async (req) => {
     if (prepRes.error || !prepRes.data) {
       const errMsg = prepRes.error?.message ??
         "No se pudo preparar el complemento";
-      console.error("[stamp-payment-complement] prepare_payment_complement failed", {
-        payment_id,
-        err: errMsg,
-      });
+      console.error(
+        "[stamp-payment-complement] prepare_payment_complement failed",
+        {
+          payment_id,
+          err: errMsg,
+        },
+      );
       // Falla del RPC → dejar en 'error' (no re-intentable automático) con
       // mensaje descriptivo. Cubre validación de monto inválido y estados
       // inconsistentes.
@@ -114,7 +117,11 @@ Deno.serve(async (req) => {
           rep_error_message: errMsg.slice(0, 1000),
         })
         .eq("id", payment_id);
-      return jsonError(req, 500, `No se pudo preparar el complemento: ${errMsg}`);
+      return jsonError(
+        req,
+        500,
+        `No se pudo preparar el complemento: ${errMsg}`,
+      );
     }
 
     const prep = prepRes.data;

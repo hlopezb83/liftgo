@@ -82,4 +82,3 @@ export function computeStampVariance(
     withinTolerance: Math.abs(variance) <= STAMP_VARIANCE_WARNING,
   };
 }
-

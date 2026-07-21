@@ -38,9 +38,7 @@ function planPeriods(
       );
     } else {
       const sd = dateOnlyToMty(startDate);
-      billingStart = sd.getUTCDate() === 1
-        ? sd
-        : sd;
+      billingStart = sd.getUTCDate() === 1 ? sd : sd;
     }
     const billingEnd = lastOfMonth(billingStart);
 
