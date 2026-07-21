@@ -631,7 +631,7 @@ export async function handleStampCfdi(
         : {}),
       facturapi_invoice_id: facturApiId,
       facturapi_env: mode === "live" ? "live" : "test",
-      stamp_variance: variance,
+
       ...(facturApiSeries ? { serie: facturApiSeries } : {}),
       ...(facturApiFolio ? { folio: facturApiFolio } : {}),
       ...(inv.status === "draft" ? { status: "sent" } : {}),
