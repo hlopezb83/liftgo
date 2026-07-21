@@ -1,0 +1,41 @@
+{
+  "version": "7.141.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "Observabilidad: Sentry conectado",
+  "summary": "Integración de @sentry/react apuntando a elogistix/liftgo. Reporte de errores con contexto (usuario, rol, ruta, componentStack), Session Replay on-error con masking, traces 10% en producción y filtros de ruido.",
+  "sections": [
+    {
+      "title": "Configuración",
+      "items": [
+        "Proyecto Sentry: elogistix/liftgo (org: elogistix, region: us).",
+        "DSN público hardcoded como fallback + override vía VITE_SENTRY_DSN.",
+        "environment = import.meta.env.MODE (production/development); release = liftgo@<VITE_APP_VERSION>.",
+        "En development NO envía a Sentry salvo VITE_SENTRY_FORCE=1 (evita consumir cuota en preview)."
+      ]
+    },
+    {
+      "title": "Sampling",
+      "items": [
+        "tracesSampleRate: 10% en producción, 0 en dev.",
+        "replaysSessionSampleRate: 0 (nunca de fondo).",
+        "replaysOnErrorSampleRate: 100% en producción — captura los 30-60s previos al error.",
+        "Session Replay usa maskAllText y blockAllMedia para no filtrar PII de clientes."
+      ]
+    },
+    {
+      "title": "Contexto correlacionado",
+      "items": [
+        "ErrorBoundary: Sentry.captureException con tags scope (app/route), routeLabel y contexto react.componentStack.",
+        "AuthSnapshotSync: Sentry.setUser({id,email}) + setTag('role', ...) al cambiar sesión; setUser(null) en logout.",
+        "Errores de módulos (chunk stale) NO se reportan — los maneja main.tsx con auto-reload."
+      ]
+    },
+    {
+      "title": "Filtros de ruido",
+      "items": [
+        "ignoreErrors: 'ResizeObserver loop limit exceeded', 'ResizeObserver loop completed with undelivered notifications', 'Failed to fetch dynamically imported module', 'Importing a module script failed'."
+      ]
+    }
+  ]
+}
