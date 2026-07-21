@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.154.0",
+    "date": "2026-07-21",
+    "type": "minor",
+    "title": "Bloque 4 (R6) — Spacing unificado y RecurringBillingBadge TZ",
+    "category": "ui"
+  },
+  {
     "version": "7.153.0",
     "date": "2026-07-21",
     "type": "minor",
