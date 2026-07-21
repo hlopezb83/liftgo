@@ -85,12 +85,27 @@ export function createSupabaseChainMock(opts: {
     (body: unknown) => FunctionsInvokeResponse | Promise<FunctionsInvokeResponse>
   >;
   storageSignedUrl?: () => Promise<{ data: { signedUrl: string } | null }>;
+  /**
+   * Resolver batch para `storage.from(...).createSignedUrls(paths, ttl)`. Si no
+   * se provee, se deriva de `storageSignedUrl` (o del default) para que un mismo
+   * mock cubra las dos APIs sin duplicar configuración.
+   */
+  storageSignedUrls?: (
+    paths: string[],
+  ) => Promise<{ data: { path: string; signedUrl: string }[] | null; error?: null }>;
 }) {
   const fromR = opts.fromResolver ?? (() => ({ data: [], error: null }));
   const rpcR = opts.rpcResolver ?? (() => ({ data: null, error: null }));
   const tableResolvers = opts.tableResolvers ?? {};
   const rpcResolvers = opts.rpcResolvers ?? {};
   const functionsResolvers = opts.functionsResolvers ?? {};
+  const singleSigner = opts.storageSignedUrl ??
+    (async () => ({ data: { signedUrl: "https://signed/url" } }));
+  const batchSigner = opts.storageSignedUrls ?? (async (paths: string[]) => {
+    const { data } = await singleSigner();
+    const signedUrl = data?.signedUrl ?? "https://signed/url";
+    return { data: paths.map((p) => ({ path: p, signedUrl })), error: null };
+  });
   return {
     from: vi.fn((table?: string) => {
       const t = table ?? "";
@@ -116,9 +131,8 @@ export function createSupabaseChainMock(opts: {
     },
     storage: {
       from: vi.fn(() => ({
-        createSignedUrl:
-          opts.storageSignedUrl ??
-          vi.fn(async () => ({ data: { signedUrl: "https://signed/url" } })),
+        createSignedUrl: singleSigner,
+        createSignedUrls: batchSigner,
       })),
     },
   };
