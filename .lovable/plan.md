@@ -1,62 +1,86 @@
-## Bloque 5 — Mejoras / Pulido
 
-Divido el bloque en dos fases porque tiene 7 sub-items con impactos y decisiones muy distintas. Ejecuto ahora la **Fase 5A** (todo lo seguro y sin decisiones bloqueantes). La **Fase 5B** requiere input tuyo antes de tocar código.
+# Lote R4 — Bugs de uso (E2E) + pendientes de código
 
----
-
-### Fase 5A — Ejecución inmediata
-
-**MP-M3 · Arranque más ligero (impacto alto, riesgo bajo)**
-`AuthSnapshotSync.tsx` hoy hace `fetch("/changelog.json", { cache: "no-store" })` (~380 KB) solo para leer `data[0].version`. Además `errorReport.ts` también lo lee.
-- Generar `public/version.json` en el build (script Node en `scripts/gen-version.mjs` que lee `public/changelog.json[0].version` y escribe `{"version": "x.y.z"}`).
-- Wire en `package.json`: `"prebuild": "node scripts/gen-version.mjs"` y también correr en dev vía `predev` (o al arrancar Vite con un plugin ligero).
-- `AuthSnapshotSync.tsx` y `errorReport.ts` cambian a `fetch("/version.json", { cache: "no-store" })`.
-- Fallback: si `version.json` falta (dev sin prebuild), degradar silenciosamente a `"dev"`.
-
-**MP-M5 · Logout determinista**
-En `AuthContext.signOut()` (o el hook equivalente):
-- Después de `supabase.auth.signOut()`, ejecutar `localStorage.removeItem("liftgo:rq-cache:v1")` y llamar `persister.removeClient()` si está expuesto.
-- Sacar `customers` y `suppliers` de la allowlist del `persister` (privacidad de datos de cliente entre sesiones en dispositivos compartidos).
-
-**MP-A1 · Abstracción del gateway de IA**
-- Nuevo `supabase/functions/_shared/ai.ts` con:
-  - `AI_ENDPOINT` y `AI_API_KEY` desde `Deno.env` (default a Lovable AI Gateway).
-  - `chatCompletion(messages, { model, response_format? })` que retorna JSON parseado o texto.
-  - Manejo estándar de 429/5xx (retry exponencial 3 intentos).
-- Migrar `parse-csf`, `parse-cfdi-expense`, `classify-feedback-report`, `generate-manual` a usar el helper (elimina 4 duplicados de fetch + headers + parsing).
-- **Sin cambio funcional** — comparar respuestas ANTES/DESPUÉS con curl para 1 request de cada función.
-- Documentar en el aviso de privacidad (`src/pages/Privacy` si existe, o helpers de textos legales) que los documentos fiscales se procesan con IA externa.
-
-**Bajos**
-- `documentsQueryKeys.ts` / hook de documentos: reemplazar loop de `createSignedUrl` por `createSignedUrls([...paths], expiresIn)` (una llamada, hasta 100 paths).
-- `DragDropImageUploader` y `DocumentAttachments`: cambiar `for..await upload` por `Promise.allSettled(files.map(upload))` — reporta errores parciales sin abortar el batch.
-- Eliminar scripts `audit_*.mjs` / `visual_audit*.mjs` de la raíz (verifico antes con `ls` que ninguno sea referenciado por `package.json`/CI).
-- Reescribir `README.md`: stack real (React 18 + Vite 5 + Tailwind v3 + Lovable Cloud), scripts (`bun dev`, `bun test`, `deno test supabase/functions`), dominio CFDI (Facturapi live/test, roles, timbrado), enlaces a `/help` y `/changelog`.
-- Mover `src/features/customer-portal/*.test.ts` (test huérfano) a `src/features/portal/`.
-- Consolidar los formatters de fecha dispersos en `lib/format/dates.ts` (single source; ya existe `formatMonthEs.ts`, agregar `formatDateShort`, `formatDateTime`, `formatRelative`).
-- `lovable-tagger` / `componentTagger`: verificar si aparece en el árbol de imports; si nadie lo importa, quitarlo de `package.json` y `vite.config.ts`.
-
-**Verificación 5A**
-- `tsgo --noEmit`, `bun run lint`, `bun run test` verdes.
-- `deno test supabase/functions/_shared` para el nuevo helper.
-- Curl smoke: `parse-csf` con un CSF de prueba (ya hay uno en /mnt/user-uploads).
-- Playwright smoke: login → logout → verificar `localStorage` limpio (sin `liftgo:rq-cache:v1`).
-
-**Changelog**: `v7.140.0` (minor, `improvement` + `perf`).
+Base: `main @ v7.144.0`. Trabajo en orden por bloque. Cada bloque cierra con changelog (patch o minor) y verificaciones (`bun run test`, `deno test supabase/functions`, `tsc --noEmit`).
 
 ---
 
-### Fase 5B — Requiere tu decisión (te la planteo aquí, la ejecuto en el siguiente sprint)
+## 🔴 Bloque 1 — Timezone (un fix, tres síntomas) → v7.145.0
 
-**MP-M1 · `.env` fuera del repo**
-En este proyecto `.env` es autogenerado por Lovable Cloud (`VITE_SUPABASE_URL`, `VITE_SUPABASE_PROJECT_ID`, `VITE_SUPABASE_PUBLISHABLE_KEY`) y tengo prohibido tocarlo. Todos los valores son públicos por diseño. Recomendación: **descartar como falso positivo** y documentar en `README` que `.env` es managed.
+**Root cause**: `formatMtyDate` usa `new Date("YYYY-MM-DD")` que se interpreta como UTC medianoche; al mostrar en `America/Monterrey` sale el día anterior. Afecta tooltip Gantt y Estado de Resultados (columnas etiquetadas MAR–JUN cuando se piden ABR–JUL).
 
-**MP-M2 · Sentry**
-Está el plugin de Vite subiendo sourcemaps pero nunca hay `Sentry.init()`. Dos caminos:
-- **A) Activar**: necesito el DSN de Sentry para `main.tsx`, `ErrorBoundary` y `RouteErrorElement`; reemplazo `lib/telemetry.ts`.
-- **B) Eliminar**: `bun remove @sentry/react @sentry/vite-plugin`, limpiar `vite.config.ts` y `lib/telemetry.ts`.
+- **1.1** `src/lib/utils.ts` y `src/lib/format/dateFormats.ts`: dentro de `formatMtyDate` (y `formatDateTimeMty` cuando el input sea `YYYY-MM-DD`) usar `parseDateLocal` en lugar de `new Date(str)`. Para `month_key "2026-04"` construir `parseDateLocal(`${monthKey}-01`)`.
+- Unificar: `formatDateDisplay` (correcto) y `formatMtyDate` (roto) comparten parseo seguro.
+- **Tests**: `formatMtyDate("2026-06-06") === "06/06/2026"` con TZ del proceso en `America/Monterrey` **y** en `UTC`.
 
-**MP-M4 · Coverage**
-Subir thresholds de `vitest.config.ts` un escalón (ej. lines 20→30) requiere agregar tests reales en `auth`, `users` (`useSetPasswordForm`) y `returns` (`return_inspections`). Es un mini-sprint de ~1–2 h por módulo.
+---
 
-¿Ejecuto Fase 5A ahora y B queda para cuando decidas DSN/coverage?
+## 🔴 Bloque 2 — Altos de uso → v7.146.0
+
+- **2.1** `CustomerFormDialog.tsx` footer: `disabled={isPending}` en submit. Grep de otros diálogos con botón de submit propio que reciban `isPending` sin usarlo. Verificación: doble click → 1 registro.
+- **2.2** `ForkliftMaintenanceList.tsx:112`: null-guard antes de `parseDateLocal` (fallback `"—"`) y endurecer `parseDateLocal` (`src/lib/utils.ts:11`) para devolver `null` ante input null/undefined en lugar de lanzar. Test unitario de `parseDateLocal(null)`.
+- **2.3** Layout del portal (`CustomerPortalLayout`): tabs con `overflow-x-auto` + `shrink-0`; raíz con `max-w-full overflow-x-clip`. Verificar en 390px: sin scroll horizontal del documento, todas las tabs alcanzables.
+
+---
+
+## 🟡 Bloque 3 — Portal del cliente → v7.147.0
+
+1. `PortalQuoteDetail`: "IVA (0.16%)" → multiplicar tasa × 100 al formatear.
+2. Badge de cotización `sent` mostrando "Sin Pagar": mapa propio de estados de cotización (`Enviada / Aceptada / Rechazada / Vencida`), no reusar el de facturas.
+3. Cotización vencida (`valid_until < hoy`): ocultar/deshabilitar "Aceptar cotización" con aviso; añadir validación server-side en el RPC de aceptación si falta.
+4. `ReportTransferDialog`: validar `amount <= balance` con mensaje claro.
+5. Input file nativo: label en español ("Elegir archivo / Ningún archivo").
+6. `/quotes`: mapa incluye `declined` pero el status real es `rejected`; añadir clave correcta + fallback `"—"` para estados desconocidos.
+7. Tipos de servicio de mantenimiento: crear `SERVICE_TYPE_LABELS` es-MX y usarlo en lista y kanban.
+
+---
+
+## 🟡 Bloque 4 — Formularios y tablas admin → v7.148.0
+
+1. `CustomerFormDialog`: verificar integración de `src/lib/forms/zodResolver.ts` con `FormMessage`/`TextField` para que los errores se pinten bajo el campo.
+2. `useCustomersColumns.tsx`: celda nombre con `max-w-[280px] truncate` + tooltip completo.
+3. `src/components/forms/FormDialog.tsx:80`: `pb-*` al cuerpo scrollable para que footer sticky no tape inputs.
+4. `useUnsavedChangesGuard`: interceptar `onOpenChange` del diálogo (ESC/overlay) cuando `isDirty`.
+5. `GanttRow.tsx:51`: barra de reserva con `cursor-pointer` + navegación al detalle.
+
+---
+
+## 🔵 Bloque 5 — Bajos → v7.149.0
+
+1. ⌘K: indexar facturas/clientes/reservas (número/folio/nombre), no solo páginas.
+2. `src/features/users/lib/queryKeys.ts:42`: eliminar fallback silencioso a `"dispatcher"`; mostrar "Sin rol" con estilo advertencia.
+3. `$NaN` en cash-flow: sanitizar `billToItem` (null → 0 o "—") y `formatCurrency` (NaN → "—").
+4. `invite-user/index.ts:77-79`: tras upsert de rol, `DELETE FROM user_roles WHERE user_id = $1 AND role <> $2` para no acumular `customer` + rol interno.
+5. `version.json`: gitignore o check de build que falle si difiere de `changelog.json[0]`.
+
+---
+
+## 🟣 Bloque 6 — Hallazgos de código R4 → v7.150.0 (minor: DB + Edge)
+
+1. `stamp-payment-complement/index.ts:176`: el early return `if (!apiKey)` debe llamar `releaseClaim("Facturapi key no configurada")`.
+2. Trigger `BEFORE UPDATE` en `prospects`: rechazar `stage='cerrado_ganado'` y cambios de `final_amount`/`closed_at` si el actor no es admin/administrativo (`has_role`).
+3. `customer_payment_intents`:
+   - (a) Policy INSERT: `AND EXISTS (SELECT 1 FROM invoices i WHERE i.id = invoice_id AND i.customer_id = get_customer_id_for_user(auth.uid()))`.
+   - (b) `approve_payment_intent`: validar lo mismo con `RAISE EXCEPTION` antes de insertar el pago.
+4. `billing_secrets` write-only:
+   - Eliminar policy SELECT admin (migración `20260515235356`).
+   - RPC `set_billing_secrets(p_test_key, p_live_key)` SECURITY DEFINER con check admin.
+   - `useUpsertBillingSecrets` usa el RPC.
+5. `types.ts`: regenerar para incluir `mark_started_bookings_rented`.
+6. Kanban CRM `stage_order = MAX+1`: índice único `(stage, stage_order)` o RPC con advisory lock por stage.
+7. `useLiftgoTable.ts:118-123`: incluir `globalFilter` en la clave del `useMemo` o eliminar la opción.
+8. `VirtualBody.tsx:38-49`: `useEffect(() => () => clearTimeout(timerRef.current), [])`.
+
+---
+
+## Reglas generales
+
+- Migraciones: timestamps consecutivos nuevos, idempotentes, `SECURITY DEFINER` con `SET search_path = public`, GRANTs mínimos. No debilitar RLS ni fixes previos (claim atómico, guarda anti-stub, trigger de divisa, optimistic locking).
+- Tests unitarios obligatorios: Bloque 1.1 (fechas) y 2.2 (`parseDateLocal(null)`). El resto: verificación manual documentada en el changelog.
+- Al terminar cada bloque: `bun run test`, `deno test supabase/functions`, `tsgo --noEmit` en verde y entrada en `public/changelog.json` + `public/changelog/v{X.Y.Z}.json`.
+
+## Detalles técnicos
+
+- **Numeración**: cada bloque = una versión. Bloques 1–5 patch/minor según impacto; bloque 6 minor (DB + Edge + policies).
+- **Riesgo**: bloque 6.4 rompe cualquier consumidor actual de `.from('billing_secrets').select(...)` — refactor obligatorio en el mismo bloque.
+- **Verificación no-regresión**: al terminar bloque 6, correr Playwright del portal y del flujo cotización→reserva→factura→pago.
