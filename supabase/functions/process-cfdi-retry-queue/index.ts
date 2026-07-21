@@ -129,10 +129,15 @@ Deno.serve(async (req) => {
   }
 
   const nowIso = new Date().toISOString();
+  // Filas 'processing' que quedaron huérfanas porque la ejecución anterior
+  // murió (wall-clock del isolate, redeploy). Pasado este tiempo se reclaman.
+  const STALE_PROCESSING_MIN = 15;
+  const staleCutoff = new Date(Date.now() - STALE_PROCESSING_MIN * 60_000)
+    .toISOString();
 
-  const { data: rows, error } = await admin
+  const { data: pendingRows, error } = await admin
     .from("cfdi_retry_queue")
-    .select("id, operation, invoice_id, attempts, max_attempts, payload")
+    .select("id, operation, invoice_id, attempts, max_attempts, payload, status")
     .eq("status", "pending")
     .lte("next_retry_at", nowIso)
     .order("next_retry_at", { ascending: true })
@@ -143,7 +148,26 @@ Deno.serve(async (req) => {
     return json({ error: "Queue fetch failed" }, 500);
   }
 
-  const queue = (rows ?? []) as QueueRow[];
+  const { data: staleRows, error: staleErr } = await admin
+    .from("cfdi_retry_queue")
+    .select("id, operation, invoice_id, attempts, max_attempts, payload, status")
+    .eq("status", "processing")
+    .lt("updated_at", staleCutoff)
+    .order("updated_at", { ascending: true })
+    .limit(10);
+
+  if (staleErr) {
+    console.error(
+      "[process-cfdi-retry-queue] stale processing fetch failed",
+      staleErr,
+    );
+    // No fatal: seguimos con las pendientes.
+  }
+
+  const queue = [
+    ...((pendingRows ?? []) as QueueRow[]),
+    ...((staleRows ?? []) as QueueRow[]),
+  ].slice(0, 25);
   const results: Array<{ id: string; status: string; http?: number }> = [];
 
   for (const row of queue) {
@@ -160,11 +184,13 @@ Deno.serve(async (req) => {
 
     // NC-1: claim optimista → `processing`. Si el update falla o no matchea
     // (otra corrida ya lo tomó), saltamos la fila para evitar doble consumo.
+    // Filtramos por el status que observamos al leer la fila (pending o
+    // processing huérfano) para reclamar de forma atómica.
     const claim = await admin
       .from("cfdi_retry_queue")
       .update({ status: "processing", updated_at: nowIso })
       .eq("id", row.id)
-      .eq("status", "pending");
+      .eq("status", row.status);
     const claimErr = (claim as { error?: unknown }).error;
     if (claimErr) {
       console.error("[process-cfdi-retry-queue] claim failed", {
@@ -179,6 +205,7 @@ Deno.serve(async (req) => {
     try {
       const invRes = await invokeStampFn(
         fnName,
+        row.operation,
         row.invoice_id,
         serviceKey,
         projectRef,
