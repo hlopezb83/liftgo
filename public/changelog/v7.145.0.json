@@ -1,0 +1,14 @@
+{
+  "version": "7.145.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "Bloque 1 (R4) — Fix de timezone en fechas date-only",
+  "category": "fix",
+  "description": "Un solo fix cura tres síntomas reportados: tooltip del Gantt mostrando el día anterior, columnas del Estado de Resultados etiquetadas MAR–JUN cuando se pedían ABR–JUL, y en general cualquier fecha 'YYYY-MM-DD' que salía off-by-one al mostrarse en America/Monterrey. La causa era `new Date('2026-06-06')` que JS interpreta como UTC medianoche.",
+  "changes": [
+    "src/lib/utils.ts: formatMtyDate detecta strings date-only ('YYYY-MM-DD' y 'YYYY-MM') y los parsea con parseDateLocal en vez de new Date(str), evitando el shift UTC→MTY. Para date-only ya no se aplica toZonedTime (rompería el día).",
+    "src/lib/utils.ts: parseDateLocal ahora soporta 'YYYY-MM' (month_key) usando día 1 explícito, y devuelve null en lugar de lanzar ante null/undefined/'' (con overload que preserva Date para callers de string conocido).",
+    "src/lib/utils.ts: formatDateDisplay ahora usa parseDateLocal null-safe.",
+    "src/lib/__tests__/utils.date.test.ts: +6 tests nuevos (date-only sin off-by-one, month_key con MMM, null-safety de parseDateLocal)."
+  ]
+}
