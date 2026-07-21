@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import path from "path";
 import babel from "@rolldown/plugin-babel";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
@@ -6,15 +7,36 @@ import { componentTagger } from "lovable-tagger";
 import { visualizer } from "rollup-plugin-visualizer";
 import { defineConfig } from "vite";
 
+// Versión resuelta desde public/version.json (generado por scripts/gen-version.mjs
+// en el prebuild). Se usa para (a) inyectar VITE_APP_VERSION al bundle y así
+// etiquetar el `release` en Sentry.init, y (b) nombrar el release al subir
+// sourcemaps con @sentry/vite-plugin. Fallback "unknown" en builds locales sin
+// el prebuild ejecutado.
+const APP_VERSION = (() => {
+  try {
+    const raw = readFileSync(path.resolve(__dirname, "public/version.json"), "utf8");
+    return String(JSON.parse(raw)?.version ?? "unknown");
+  } catch {
+    return "unknown";
+  }
+})();
+const SENTRY_RELEASE = `liftgo@${APP_VERSION}`;
+
 // https://vitejs.dev/config/
 // ANALYZE=1 bun run build → /tmp/bundle-stats.html para auditorías de bundle.
-// SENTRY_AUTH_TOKEN presente en CI → sube sourcemaps a Sentry (stack traces
-// legibles en producción). Ausencia del token = no-op silencioso, útil para
-// builds locales sin secretos.
+// SENTRY_AUTH_TOKEN presente en CI → sube sourcemaps a Sentry y los elimina del
+// bundle final (stack traces legibles en producción sin exponer el código
+// fuente al cliente). Ausencia del token = no-op silencioso, útil para builds
+// locales sin secretos.
 // React Compiler (babel-plugin-react-compiler) auto-memoiza componentes/hooks
 // que cumplen las Reglas de React; los que las violan quedan intactos (bail-out
 // silencioso). El linter `react-compiler/react-compiler` marca esos bail-outs.
 export default defineConfig(({ mode }) => ({
+  define: {
+    // Expuesto como `import.meta.env.VITE_APP_VERSION` en el bundle. Sentry.init
+    // lo lee para etiquetar cada evento con el mismo release que se subió.
+    "import.meta.env.VITE_APP_VERSION": JSON.stringify(APP_VERSION),
+  },
   server: {
     host: "::",
     port: 8080,
