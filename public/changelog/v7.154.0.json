@@ -1,0 +1,15 @@
+{
+  "version": "7.154.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "Bloque 4 (R6) — Spacing unificado y RecurringBillingBadge TZ",
+  "category": "ui",
+  "summary": "Cierra el pendiente de spacing del lote R5/R6: gaps y padding consistentes en Cuentas por Pagar, ListPageLayout, portal y KpiTile; corrige el desfase de un día en `RecurringBillingBadge` fuera de la zona horaria de Monterrey.",
+  "changes": [
+    "ListPageLayout: `space-y-4 sm:space-y-6` → `space-y-6` (gap uniforme entre secciones).",
+    "AccountsPayableKpiCards: grid `lg:grid-cols-3 xl:grid-cols-6` para evitar labels truncados a 1440px.",
+    "KpiTile: padding interno unificado a `p-4` (antes `p-3 sm:p-4`).",
+    "PortalInvoiceDetail: se elimina `-mt-2` en el back-link para respetar el gap del layout.",
+    "RecurringBillingBadge: usa `parseDateLocal` en lugar de `parseISO` para fechas date-only, evitando el desfase de un día en zonas horarias negativas."
+  ]
+}
