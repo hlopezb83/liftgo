@@ -23,10 +23,11 @@ export function useBookingStatusHistory(bookingId: string) {
     queryFn: async (): Promise<BookingHistoryLog[]> => {
       const { data, error } = await supabase
         .from("audit_logs")
-        .select("*")
+        .select(AUDIT_LOG_COLUMNS)
         .eq("table_name", "bookings")
         .eq("record_id", bookingId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .returns<Tables<"audit_logs">[]>();
       if (error) throw error;
 
       const logs = (data ?? []) as unknown as BookingHistoryLog[];
