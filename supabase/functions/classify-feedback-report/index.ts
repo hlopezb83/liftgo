@@ -2,6 +2,7 @@ import { z } from "https://esm.sh/zod@4.4.3";
 import { handleCors } from "../_shared/cors.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { requireRole } from "../_shared/auth.ts";
+import { aiChatCompletion, AiGatewayError } from "../_shared/ai.ts";
 
 const SEVERITIES = ["critical", "high", "medium", "low"] as const;
 const MODULES = [
@@ -49,10 +50,7 @@ Deno.serve(async (req) => {
   if (cors) return cors;
 
   try {
-    const lovableKey = Deno.env.get("LOVABLE_API_KEY");
-    if (!lovableKey) {
-      return jsonError(req, 500, "LOVABLE_API_KEY no configurada");
-    }
+    // LOVABLE_API_KEY se valida dentro de aiChatCompletion; no duplicar aquí.
 
     const auth = await requireRole(req, ["admin", "administrativo"]);
     if (!auth.ok) return auth.response;
