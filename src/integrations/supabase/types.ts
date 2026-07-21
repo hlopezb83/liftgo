@@ -3596,32 +3596,19 @@ export type Database = {
           forklift_id: string
         }[]
       }
-      create_booking:
-        | {
-            Args: {
-              p_customer_contact?: string
-              p_customer_id?: string
-              p_customer_name?: string
-              p_end_date?: string
-              p_forklift_id: string
-              p_recurring_billing?: boolean
-              p_start_date?: string
-            }
-            Returns: string
-          }
-        | {
-            Args: {
-              p_customer_contact?: string
-              p_customer_id?: string
-              p_customer_name?: string
-              p_end_date?: string
-              p_forklift_id: string
-              p_quote_id?: string
-              p_recurring_billing?: boolean
-              p_start_date?: string
-            }
-            Returns: string
-          }
+      create_booking: {
+        Args: {
+          p_customer_contact?: string
+          p_customer_id?: string
+          p_customer_name?: string
+          p_end_date?: string
+          p_forklift_id: string
+          p_quote_id?: string
+          p_recurring_billing?: boolean
+          p_start_date?: string
+        }
+        Returns: string
+      }
       create_notification: {
         Args: {
           p_entity_id?: string
