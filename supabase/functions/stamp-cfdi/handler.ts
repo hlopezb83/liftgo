@@ -22,9 +22,15 @@ import {
   roundMoney,
   STAMP_VARIANCE_WARNING as STAMP_VARIANCE_TOLERANCE,
 } from "../_shared/money.ts";
+import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 
-// Re-export para preservar la API pública (tests, otros consumidores).
-export { computeStampVariance, STAMP_VARIANCE_TOLERANCE };
+// Re-exports públicos preservados (tests + consumidores).
+export { computeStampVariance, sanitizeLegalName, STAMP_VARIANCE_TOLERANCE };
+export type { QueryBuilderLike, SupabaseLike };
+
+// Mantenido por compatibilidad con consumidores existentes.
+export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
+
 
 
 export interface StampCfdiDeps {
