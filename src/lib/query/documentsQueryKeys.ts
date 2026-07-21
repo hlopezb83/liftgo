@@ -13,16 +13,26 @@ function extractStoragePath(fileUrl: string): string | null {
 export { extractStoragePath };
 
 async function attachSignedUrls<T extends { file_url: string }>(rows: T[]): Promise<T[]> {
-  return Promise.all(
-    rows.map(async (row) => {
-      const path = extractStoragePath(row.file_url);
-      if (!path) return row;
-      const { data } = await supabase.storage
-        .from("documents")
-        .createSignedUrl(path, SIGNED_URL_TTL_SECONDS);
-      return data?.signedUrl ? { ...row, file_url: data.signedUrl } : row;
-    }),
-  );
+  if (rows.length === 0) return rows;
+  // Bulk: una sola llamada a Storage por hasta 100 paths, en vez de N round-trips.
+  const paths: (string | null)[] = rows.map((r) => extractStoragePath(r.file_url));
+  const validPaths = paths.filter((p): p is string => p !== null);
+  if (validPaths.length === 0) return rows;
+
+  const { data, error } = await supabase.storage
+    .from("documents")
+    .createSignedUrls(validPaths, SIGNED_URL_TTL_SECONDS);
+  if (error || !data) return rows;
+
+  const byPath = new Map<string, string>();
+  for (const entry of data) {
+    if (entry.path && entry.signedUrl) byPath.set(entry.path, entry.signedUrl);
+  }
+  return rows.map((row, i) => {
+    const p = paths[i];
+    const signed = p ? byPath.get(p) : undefined;
+    return signed ? { ...row, file_url: signed } : row;
+  });
 }
 
 export interface DocumentsFilter extends Record<string, unknown> {

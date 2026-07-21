@@ -60,6 +60,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     await supabase.auth.signOut();
+    // MP-M5: logout determinista — limpiar la cache persistida de TanStack Query.
+    // Evita que datos residuales de un usuario aparezcan al iniciar sesión otro.
+    try {
+      if (typeof window !== "undefined") {
+        window.localStorage.removeItem("liftgo:rq-cache:v1");
+      }
+    } catch { /* storage puede estar bloqueado; no romper logout */ }
   }, []);
 
   const resetPassword = useCallback(async (email: string) => {

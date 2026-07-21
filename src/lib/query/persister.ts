@@ -22,13 +22,13 @@ const PERSIST_ALLOWLIST: readonly string[] = [
   "equipment_models",
   "drivers",
   "mechanics",
-  "suppliers",
-  "customers",
   "forklifts",
   "inventory",
   "contract-templates",
   "cash-flow-settings",
 ];
+// NOTA: `customers` y `suppliers` fueron removidos del allowlist (MP-M5) — son PII
+// que no debe sobrevivir a un logout en dispositivos compartidos.
 
 /** Prefijos EXPLÍCITAMENTE bloqueados (defensa en profundidad). */
 const PERSIST_BLOCKLIST: readonly string[] = [
