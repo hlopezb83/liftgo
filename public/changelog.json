@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.141.0",
+    "date": "2026-07-21",
+    "type": "minor",
+    "title": "Observabilidad: Sentry conectado (elogistix/liftgo) con Session Replay on-error y contexto de usuario",
+    "summary": "Se integra @sentry/react. Reporta a proyecto elogistix/liftgo con environment (production/development), release liftgo@<version>, tracesSampleRate 10% en prod y Session Replay 100% solo cuando hay error (masking activo). ErrorBoundary hace captureException con tags scope/routeLabel/componentStack. AuthSnapshotSync setea Sentry.setUser + tag role para correlacionar errores por usuario. Sin envío en dev salvo VITE_SENTRY_FORCE=1.",
+    "changes": [
+      { "type": "added", "description": "src/lib/observability/sentry.ts inicializa @sentry/react con DSN público, browserTracing y replayIntegration (maskAllText, blockAllMedia)." },
+      { "type": "changed", "description": "ErrorBoundary reporta a Sentry con tags scope/routeLabel y contexto componentStack." },
+      { "type": "changed", "description": "AuthSnapshotSync propaga user.id/email + role a Sentry.setUser/setTag; limpia en logout." },
+      { "type": "chore", "description": "Filtros de ruido: ResizeObserver loops y errores de import dinámico (los maneja main.tsx con reload)." }
+    ]
+  },
+  {
     "version": "7.140.0",
     "date": "2026-07-21",
     "type": "minor",

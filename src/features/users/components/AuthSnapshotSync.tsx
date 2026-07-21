@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { setAuthSnapshot } from "@/lib/ui/authSnapshot";
 import { setAppVersion } from "@/lib/ui/errorReport";
+import { Sentry } from "@/lib/observability/sentry";
 import { useUserRole } from "../hooks/useUserRole";
 
 /**
@@ -18,6 +19,13 @@ export function AuthSnapshotSync(): null {
       organization: null, // LiftGo es single-tenant hoy
       role: role ?? null,
     });
+    // Sentry: correlaciona errores con el usuario/rol activo.
+    if (user) {
+      Sentry.setUser({ id: user.id, email: user.email ?? undefined });
+      Sentry.setTag("role", role ?? "unknown");
+    } else {
+      Sentry.setUser(null);
+    }
   }, [user, role]);
 
   // Lee la versión actual desde /version.json (~50 bytes vs ~380KB del changelog).

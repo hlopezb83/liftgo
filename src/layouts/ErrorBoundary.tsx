@@ -1,6 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { WarnIcon, RefreshIcon, HomeIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { Sentry } from "@/lib/observability/sentry";
 
 interface Props {
   children: ReactNode;
@@ -46,6 +47,13 @@ export class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: ErrorInfo): void {
     console.error("[ErrorBoundary]", error, info.componentStack);
+    // Reporta a Sentry con contexto de scope y ruta.
+    Sentry.withScope((scope) => {
+      scope.setTag("scope", this.props.scope ?? "app");
+      if (this.props.routeLabel) scope.setTag("routeLabel", this.props.routeLabel);
+      scope.setContext("react", { componentStack: info.componentStack });
+      Sentry.captureException(error);
+    });
     if (
       isStaleChunkMessage(error?.message ?? "") &&
       sessionStorage.getItem(RELOAD_KEY) !== "1"
