@@ -589,11 +589,6 @@ export async function handleStampCfdi(
     // stamp_variance*) sin romper el flujo 'stamped' — solo warning en
     // cfdi_error_message + console.error para auditoría fiscal.
 
-    // BL-A5: reconciliación del total timbrado. Facturapi redondea
-    // descuentos/impuestos por línea de forma distinta a la app; si el total
-    // timbrado difiere de invoices.total se REGISTRA la varianza (columnas
-    // stamp_variance*) sin romper el flujo 'stamped' — solo warning en
-    // cfdi_error_message + console.error para auditoría fiscal.
     const stampedTotal = (facturApiInvoice as { total?: unknown }).total;
     const varianceCheck = computeStampVariance(inv.total, stampedTotal);
     if (varianceCheck && !varianceCheck.withinTolerance) {

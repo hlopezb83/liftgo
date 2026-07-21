@@ -195,7 +195,9 @@ Deno.serve(async (req) => {
       .from("cfdi_retry_queue")
       .update({ status: "processing", updated_at: nowIso })
       .eq("id", row.id)
-      .eq("status", row.status);
+      .eq("status", row.status)
+      .select("id")
+      .maybeSingle();
     const claimErr = (claim as { error?: unknown }).error;
     if (claimErr) {
       console.error("[process-cfdi-retry-queue] claim failed", {
@@ -203,6 +205,12 @@ Deno.serve(async (req) => {
         err: claimErr,
       });
       results.push({ id: row.id, status: "claim_error" });
+      continue;
+    }
+    // BLOQUE 2.3: sin fila reclamada (otro corredor la ganó, o el status
+    // cambió entre lectura y update) → saltamos para evitar doble consumo.
+    if (!(claim as { data?: unknown }).data) {
+      results.push({ id: row.id, status: "claim_skipped" });
       continue;
     }
 
