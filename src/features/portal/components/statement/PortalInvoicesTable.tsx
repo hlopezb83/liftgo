@@ -75,7 +75,16 @@ function InvoiceRow({ row, idx, isOpen, onToggle }: { row: PortalInvoiceRow; idx
             {isOpen ? <ChevronDownIcon className="h-4 w-4" /> : <ChevronRightIcon className="h-4 w-4" />}
           </button>
         </td>
-        <td className="px-3 py-2 font-medium">{r.inv.invoice_number}</td>
+        <td className="px-3 py-2 font-medium">
+          <span className="inline-flex items-center gap-2">
+            {r.inv.invoice_number}
+            {r.moneda && r.moneda !== "MXN" && (
+              <span className="rounded border px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
+                {r.moneda}
+              </span>
+            )}
+          </span>
+        </td>
         <td className="px-3 py-2">{formatDateDisplay(r.inv.issued_at)}</td>
         <td className="px-3 py-2">{r.inv.due_date ? formatDateDisplay(r.inv.due_date) : "—"}</td>
         <td className="px-3 py-2 text-right font-mono">{formatCurrency(Number(r.inv.total))}</td>
