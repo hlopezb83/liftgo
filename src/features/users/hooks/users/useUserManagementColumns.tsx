@@ -59,7 +59,7 @@ export function useUserManagementColumns({
         header: "Rol",
         accessorKey: "role",
         cell: ({ row }) => (
-          <Select defaultValue={row.original.role} onValueChange={(val) => onRoleChange(row.original, val as AppRole)}>
+          <Select defaultValue={row.original.role ?? undefined} onValueChange={(val) => onRoleChange(row.original, val as AppRole)}>
             <SelectTrigger className="w-[160px]" onClick={(e) => e.stopPropagation()}><SelectValue /></SelectTrigger>
             <SelectContent>
               {STAFF_ROLES.map((r) => (

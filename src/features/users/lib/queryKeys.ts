@@ -8,7 +8,10 @@ export interface UserRow {
   full_name: string | null;
   email: string | null;
   created_at: string;
-  role: AppRole;
+  /** Bloque 5.2 (R4): puede ser null cuando el trigger de user_roles no
+   *  disparó o la fila fue removida. La UI muestra "Sin rol" con badge de
+   *  advertencia — no inventamos `dispatcher` como antes. */
+  role: AppRole | null;
   is_active: boolean;
 }
 
@@ -39,7 +42,8 @@ async function fetchUsers(filter?: Readonly<UsersFilter>): Promise<UserRow[]> {
     full_name: p.full_name,
     email: p.email ?? null,
     created_at: p.created_at,
-    role: roleMap.get(p.user_id) ?? ("dispatcher" as AppRole),
+    // Bloque 5.2 (R4): null explícito en vez de fallback a "dispatcher".
+    role: roleMap.get(p.user_id) ?? null,
     is_active: p.is_active ?? true,
   }));
 
