@@ -1,0 +1,44 @@
+{
+  "version": "7.140.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "Fase 5A: version.json ligero, helper AI compartido, logout limpio, signed URLs en bulk",
+  "summary": "Cinco cambios de higiene aplicables sin regresiones. Arranque más ligero (version.json en vez de changelog.json), 4 Edge Functions AI unificadas bajo _shared/ai.ts, cache de TanStack Query limpia al hacer signOut (customers/suppliers fuera del allowlist), createSignedUrls en batch para documentos y limpieza de scripts de auditoría del root.",
+  "sections": [
+    {
+      "title": "Rendimiento de arranque",
+      "items": [
+        "Nuevo script scripts/gen-version.mjs corre en predev y prebuild; genera public/version.json con la versión actual (~50 bytes).",
+        "AuthSnapshotSync.tsx y errorReport.ts hacen fetch a /version.json en vez de /changelog.json (~380 KB). Menos payload y menos parseo JSON en el primer render."
+      ]
+    },
+    {
+      "title": "Edge Functions AI compartidas",
+      "items": [
+        "Nuevo supabase/functions/_shared/ai.ts con aiChatCompletion(options) y AiGatewayError. Centraliza URL del gateway, header de autorización, manejo de 402/429/5xx y extracción de tool_calls.",
+        "parse-csf, parse-cfdi-expense, classify-feedback-report y generate-manual eliminan su fetch manual y su chequeo de LOVABLE_API_KEY. Cambiar de proveedor/modelo o revocar la key ahora se hace en un solo archivo."
+      ]
+    },
+    {
+      "title": "Higiene de sesión (PII)",
+      "items": [
+        "AuthContext.signOut() limpia window.localStorage.removeItem('liftgo:rq-cache:v1'). Antes, la cache persistida sobrevivía al cambio de usuario en dispositivos compartidos.",
+        "src/lib/query/persister.ts retira customers y suppliers del PERSIST_ALLOWLIST. Los catálogos con PII (razones sociales, direcciones, RFCs) no se escriben más al disco."
+      ]
+    },
+    {
+      "title": "Storage: signed URLs en batch",
+      "items": [
+        "src/lib/query/documentsQueryKeys.ts::attachSignedUrls usa supabase.storage.from('documents').createSignedUrls(paths, TTL) en vez de N llamadas createSignedUrl. Para páginas con 25 documentos: 1 request en lugar de 25."
+      ]
+    },
+    {
+      "title": "Limpieza",
+      "items": [
+        "Eliminados audit_screenshots.ts, audit_screenshots_remaining.ts, audit_visual.ts, visual_audit.mjs, visual_audit_v2.mjs del root — sin referencias en package.json ni CI.",
+        "README.md reescrito con contenido real del stack, timezone, moneda y convenciones (era el template genérico de Lovable).",
+        "src/features/customer-portal/__tests__/paymentIntentsRls.test.ts → src/features/portal/__tests__/paymentIntentsRls.test.ts (feature real). Carpeta customer-portal removida."
+      ]
+    }
+  ]
+}
