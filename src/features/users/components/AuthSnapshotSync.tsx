@@ -20,19 +20,19 @@ export function AuthSnapshotSync(): null {
     });
   }, [user, role]);
 
-  // Lee la versión actual del changelog (best-effort, sin bloquear).
+  // Lee la versión actual desde /version.json (~50 bytes vs ~380KB del changelog).
   useEffect(() => {
     let cancelled = false;
-    fetch("/changelog.json", { cache: "no-store" })
+    fetch("/version.json", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((data: unknown) => {
         if (cancelled) return;
-        if (Array.isArray(data) && data.length > 0) {
-          const first = data[0] as { version?: string };
-          if (first?.version) setAppVersion(first.version);
+        if (data && typeof data === "object" && "version" in data) {
+          const v = (data as { version?: unknown }).version;
+          if (typeof v === "string" && v.length > 0) setAppVersion(v);
         }
       })
-      .catch(() => { /* silencioso */ });
+      .catch(() => { /* silencioso: dev sin prebuild queda en "unknown" */ });
     return () => { cancelled = true; };
   }, []);
 

@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.140.0",
+    "date": "2026-07-21",
+    "type": "minor",
+    "title": "Fase 5A: version.json ligero, helper AI compartido, logout limpio, signed URLs en bulk",
+    "summary": "Cinco cambios de higiene sin bugs: (1) la app arranca leyendo public/version.json (~50 B) en vez de descargar todo el changelog (~380 KB); (2) las 4 Edge Functions que llaman a Lovable AI Gateway comparten supabase/functions/_shared/ai.ts, centralizando URL, headers y manejo de 402/429; (3) signOut limpia la cache persistida y quita customers/suppliers del allowlist para no filtrar PII entre sesiones; (4) documentsQueryKeys usa createSignedUrls en bulk (una llamada por tabla en vez de N); (5) limpieza: scripts de auditoría fuera del root, README funcional y test huérfano en su feature real.",
+    "changes": [
+      { "type": "changed", "description": "public/version.json generado por scripts/gen-version.mjs (prebuild/predev). AuthSnapshotSync y errorReport dejan de bajar changelog.json para leer la versión." },
+      { "type": "added", "description": "supabase/functions/_shared/ai.ts: helper aiChatCompletion + AiGatewayError. parse-csf, parse-cfdi-expense, classify-feedback-report y generate-manual migradas." },
+      { "type": "security", "description": "signOut limpia liftgo:rq-cache:v1; customers/suppliers ya no se persisten en el allowlist de TanStack Query (PII fuera del disco tras logout)." },
+      { "type": "performance", "description": "attachSignedUrls usa Storage.createSignedUrls en batch: 1 llamada por página vs N round-trips (mejora percepción en listas de documentos)." },
+      { "type": "chore", "description": "Eliminados audit_screenshots*.ts, audit_visual.ts, visual_audit*.mjs del root. README reescrito. Test huérfano movido a src/features/portal/__tests__/." }
+    ]
+  },
+  {
     "version": "7.139.0",
     "date": "2026-07-21",
     "type": "minor",

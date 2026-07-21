@@ -1,73 +1,51 @@
-# Welcome to your Lovable project
+# LiftGo ERP
 
-## Project info
+ERP interno para gestión de flotas de montacargas, CRM, reservas, facturación
+CFDI 4.0, mantenimiento y portal de clientes. Localizado en español mexicano
+(`es-MX`), timezone `America/Monterrey`, moneda predeterminada MXN.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Stack
 
-## How can I edit this code?
+- **Frontend:** React 18 + Vite 5 + TypeScript + Tailwind CSS + shadcn/ui.
+- **Backend:** Lovable Cloud (Supabase gestionado) — Postgres con RLS, Edge
+  Functions Deno, Storage, Auth y Vault.
+- **Estado remoto:** TanStack Query v5 (persister en `localStorage`).
+- **Testing:** Vitest para unit/integration; Playwright para E2E.
+- **PDF:** jsPDF (lazy-loaded) — ver `mem://tech/security/vulnerabilities`.
 
-There are several ways of editing your application.
+## Cómo trabajar en este proyecto
 
-**Use Lovable**
+Este repositorio se edita principalmente desde
+[Lovable](https://lovable.dev). Los cambios hechos en Lovable se commitean
+automáticamente y quedan disponibles en el editor local.
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
+Para desarrollo local:
 
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```bash
+bun install
+bun run dev            # levanta Vite en http://localhost:8080
+bun run test           # unit tests (Vitest)
+bun run test:e2e       # Playwright
 ```
 
-**Edit a file directly in GitHub**
+El script `scripts/gen-version.mjs` corre automáticamente antes de `dev` y
+`build`, generando `public/version.json` a partir del changelog para que la
+UI muestre la versión sin descargar el changelog completo.
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+## Directorios clave
 
-**Use GitHub Codespaces**
+- `src/features/*` — módulos de negocio (bookings, invoices, crm, etc.).
+- `src/components/*` — componentes UI reutilizables.
+- `supabase/functions/*` — Edge Functions Deno.
+- `supabase/migrations/*` — schema + RLS.
+- `tests/e2e/*` — specs Playwright.
+- `.lovable/plan.md` — plan activo (si aplica).
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Convenciones
 
-## What technologies are used for this project?
-
-This project is built with:
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and click on Share -> Publish.
-
-## Can I connect a custom domain to my Lovable project?
-
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+- Fechas: `DD/MM/YYYY`, timezone `America/Monterrey` (usar `nowMty()`).
+- Moneda: MXN por defecto (`formatCurrency` / `toMxn`).
+- Cada cambio publicado agrega una entrada a `public/changelog.json` +
+  `public/changelog/v{X.Y.Z}.json`.
+- Consultar `mem://index.md` antes de introducir patrones nuevos —
+  hay helpers canónicos (mutations, form dialogs, edge function shared).

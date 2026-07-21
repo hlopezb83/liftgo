@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { handleCors } from "../_shared/cors.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { enforceRateLimit, requireRole } from "../_shared/auth.ts";
+import { aiChatCompletion, AiGatewayError } from "../_shared/ai.ts";
 
 const MAX_PDF_BYTES = 5 * 1024 * 1024; // 5 MB
 
@@ -42,135 +43,90 @@ serve(async (req) => {
       );
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      return jsonError(req, 500, "LOVABLE_API_KEY no configurada");
-    }
-
     const systemPrompt =
       `Eres un extractor de datos fiscales mexicanos. El usuario te enviará el contenido de una Constancia de Situación Fiscal (CSF) del SAT en formato PDF (como imagen base64).
 
 Extrae los siguientes campos del documento y devuélvelos usando la función extract_csf_data:
 - rfc: El RFC del contribuyente (13 caracteres para personas morales, 12 para personas físicas). En MAYÚSCULAS.
-- name: La denominación o razón social SIN el sufijo de régimen societario. Omite "S.A. de C.V.", "S. de R.L. de C.V.", "SAPI de C.V.", "S.A.B. de C.V.", "S.C.", "A.C.", "SOCIEDAD ANÓNIMA DE CAPITAL VARIABLE", "SOCIEDAD DE RESPONSABILIDAD LIMITADA", y variantes equivalentes. Devuelve en MAYÚSCULAS y sin acentos. Ejemplo: si la CSF dice "LOGISTORAGE SOCIEDAD ANÓNIMA DE CAPITAL VARIABLE", devuelve "LOGISTORAGE".
+- name: La denominación o razón social SIN el sufijo de régimen societario. Omite "S.A. de C.V.", "S. de R.L. de C.V.", "SAPI de C.V.", "S.A.B. de C.V.", "S.C.", "A.C.", "SOCIEDAD ANÓNIMA DE CAPITAL VARIABLE", "SOCIEDAD DE RESPONSABILIDAD LIMITADA", y variantes equivalentes. Devuelve en MAYÚSCULAS y sin acentos.
 - domicilio_fiscal_cp: El código postal del domicilio fiscal (5 dígitos)
 - address: La dirección completa del domicilio fiscal (calle, número, colonia, municipio, estado)
-- regimen_fiscal: El código numérico del régimen fiscal. Mapea el texto del régimen al código correspondiente:
-  601 = General de Ley Personas Morales
-  603 = Personas Morales con Fines no Lucrativos
-  605 = Sueldos y Salarios
-  606 = Arrendamiento
-  608 = Demás ingresos
-  610 = Residentes en el Extranjero
-  612 = Personas Físicas con Actividades Empresariales y Profesionales
-  614 = Ingresos por Intereses
-  616 = Sin obligaciones fiscales
-  620 = Sociedades Cooperativas de Producción
-  621 = Incorporación Fiscal
-  622 = Actividades Agrícolas, Ganaderas, Silvícolas y Pesqueras
-  623 = Opcional para Grupos de Sociedades
-  624 = Coordinados
-  625 = Régimen de las Actividades Empresariales con ingresos a través de Plataformas Tecnológicas
-  626 = Régimen Simplificado de Confianza
+- regimen_fiscal: El código numérico del régimen fiscal (601, 603, 605, 606, 608, 610, 612, 614, 616, 620, 621, 622, 623, 624, 625, 626).
 - representante_legal: El nombre del representante legal si aparece en el documento
 
 Si un campo no se encuentra, devuelve una cadena vacía.`;
 
-    const response = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            { role: "system", content: systemPrompt },
-            {
-              role: "user",
-              content: [
-                {
-                  type: "image_url",
-                  image_url: {
-                    url: `data:application/pdf;base64,${pdf_base64}`,
-                  },
-                },
-                {
-                  type: "text",
-                  text:
-                    "Extrae los datos fiscales de esta Constancia de Situación Fiscal.",
-                },
-              ],
-            },
-          ],
-          tools: [
-            {
-              type: "function",
-              function: {
-                name: "extract_csf_data",
-                description: "Devuelve los datos fiscales extraídos de la CSF",
-                parameters: {
-                  type: "object",
-                  properties: {
-                    rfc: { type: "string" },
-                    name: { type: "string" },
-                    domicilio_fiscal_cp: { type: "string" },
-                    address: { type: "string" },
-                    regimen_fiscal: { type: "string" },
-                    representante_legal: { type: "string" },
-                  },
-                  required: [
-                    "rfc",
-                    "name",
-                    "domicilio_fiscal_cp",
-                    "address",
-                    "regimen_fiscal",
-                    "representante_legal",
-                  ],
-                  additionalProperties: false,
+    try {
+      const { toolArguments } = await aiChatCompletion({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: systemPrompt },
+          {
+            role: "user",
+            content: [
+              {
+                type: "image_url",
+                image_url: {
+                  url: `data:application/pdf;base64,${pdf_base64}`,
                 },
               },
-            },
-          ],
-          tool_choice: {
-            type: "function",
-            function: { name: "extract_csf_data" },
+              {
+                type: "text",
+                text:
+                  "Extrae los datos fiscales de esta Constancia de Situación Fiscal.",
+              },
+            ],
           },
-        }),
-      },
-    );
+        ],
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "extract_csf_data",
+              description: "Devuelve los datos fiscales extraídos de la CSF",
+              parameters: {
+                type: "object",
+                properties: {
+                  rfc: { type: "string" },
+                  name: { type: "string" },
+                  domicilio_fiscal_cp: { type: "string" },
+                  address: { type: "string" },
+                  regimen_fiscal: { type: "string" },
+                  representante_legal: { type: "string" },
+                },
+                required: [
+                  "rfc",
+                  "name",
+                  "domicilio_fiscal_cp",
+                  "address",
+                  "regimen_fiscal",
+                  "representante_legal",
+                ],
+                additionalProperties: false,
+              },
+            },
+          },
+        ],
+        toolChoice: {
+          type: "function",
+          function: { name: "extract_csf_data" },
+        },
+      });
 
-    if (!response.ok) {
-      const errText = await response.text();
-      console.error("AI gateway error:", response.status, errText);
-      if (response.status === 429) {
+      if (!toolArguments) {
         return jsonError(
           req,
-          429,
-          "Demasiadas solicitudes, intenta de nuevo en un momento.",
+          422,
+          "No se pudieron extraer datos del documento",
         );
       }
-      if (response.status === 402) {
-        return jsonError(
-          req,
-          402,
-          "Créditos insuficientes para el servicio de IA.",
-        );
+      return jsonResponse(req, toolArguments);
+    } catch (aiErr) {
+      if (aiErr instanceof AiGatewayError) {
+        return jsonError(req, aiErr.status, aiErr.message);
       }
-      return jsonError(req, 500, "Error al procesar el documento con IA");
+      throw aiErr;
     }
-
-    const aiResult = await response.json();
-    const toolCall = aiResult.choices?.[0]?.message?.tool_calls?.[0];
-    if (!toolCall?.function?.arguments) {
-      return jsonError(req, 422, "No se pudieron extraer datos del documento");
-    }
-
-    const extracted = JSON.parse(toolCall.function.arguments);
-
-    return jsonResponse(req, extracted);
   } catch (e) {
     console.error("[parse-csf] error:", e);
     return jsonError(req, 500, "Error interno del servidor");

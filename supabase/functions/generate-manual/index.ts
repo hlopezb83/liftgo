@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { requireAdmin } from "../_shared/auth.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { handleCors } from "../_shared/cors.ts";
+import { aiChatCompletion, AiGatewayError } from "../_shared/ai.ts";
 
 const SYSTEM_PROMPT =
   `Eres un redactor técnico experto en sistemas ERP y software de gestión. Tu tarea es generar un manual de usuario completo, detallado y profesional para la aplicación "Lift Go" — un sistema de gestión de renta de montacargas.
@@ -72,103 +73,72 @@ serve(async (req) => {
     if (!auth.ok) return auth.response;
     const supabase = auth.adminClient;
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      return jsonError(req, 500, "LOVABLE_API_KEY no configurada");
-    }
+    // LOVABLE_API_KEY se valida dentro de aiChatCompletion.
 
     // Call Lovable AI with tool calling to get structured JSON
-    const aiResponse = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${LOVABLE_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            { role: "user", content: USER_PROMPT },
-          ],
-          tools: [
-            {
-              type: "function",
-              function: {
-                name: "save_manual",
-                description:
-                  "Guarda las secciones del manual de usuario generado",
-                parameters: {
-                  type: "object",
-                  properties: {
-                    sections: {
-                      type: "array",
-                      items: {
-                        type: "object",
-                        properties: {
-                          title: {
-                            type: "string",
-                            description: "Título de la sección",
-                          },
-                          icon: {
-                            type: "string",
-                            description:
-                              "Nombre del icono lucide-react sugerido (ej: LayoutDashboard, Truck, Users)",
-                          },
-                          content: {
-                            type: "string",
-                            description:
-                              "Contenido completo de la sección en formato Markdown con al menos 400 palabras",
-                          },
+    let parsedArgs: Record<string, unknown> | null = null;
+    try {
+      const { toolArguments } = await aiChatCompletion({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          { role: "system", content: SYSTEM_PROMPT },
+          { role: "user", content: USER_PROMPT },
+        ],
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "save_manual",
+              description:
+                "Guarda las secciones del manual de usuario generado",
+              parameters: {
+                type: "object",
+                properties: {
+                  sections: {
+                    type: "array",
+                    items: {
+                      type: "object",
+                      properties: {
+                        title: {
+                          type: "string",
+                          description: "Título de la sección",
                         },
-                        required: ["title", "icon", "content"],
-                        additionalProperties: false,
+                        icon: {
+                          type: "string",
+                          description:
+                            "Nombre del icono lucide-react sugerido (ej: LayoutDashboard, Truck, Users)",
+                        },
+                        content: {
+                          type: "string",
+                          description:
+                            "Contenido completo de la sección en formato Markdown con al menos 400 palabras",
+                        },
                       },
+                      required: ["title", "icon", "content"],
+                      additionalProperties: false,
                     },
                   },
-                  required: ["sections"],
-                  additionalProperties: false,
                 },
+                required: ["sections"],
+                additionalProperties: false,
               },
             },
-          ],
-          tool_choice: { type: "function", function: { name: "save_manual" } },
-        }),
-      },
-    );
-
-    if (!aiResponse.ok) {
-      const errText = await aiResponse.text();
-      console.error("AI gateway error:", aiResponse.status, errText);
-
-      if (aiResponse.status === 429) {
-        return jsonError(
-          req,
-          429,
-          "Límite de solicitudes excedido, intenta más tarde.",
-        );
+          },
+        ],
+        toolChoice: { type: "function", function: { name: "save_manual" } },
+      });
+      parsedArgs = toolArguments;
+    } catch (aiErr) {
+      if (aiErr instanceof AiGatewayError) {
+        return jsonError(req, aiErr.status, aiErr.message);
       }
-      if (aiResponse.status === 402) {
-        return jsonError(
-          req,
-          402,
-          "Se requieren créditos adicionales para generar el manual.",
-        );
-      }
-      return jsonError(req, 500, "Error al generar el manual con IA");
+      throw aiErr;
     }
 
-    const aiData = await aiResponse.json();
-    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
-
-    if (!toolCall?.function?.arguments) {
-      console.error("No tool call in AI response:", JSON.stringify(aiData));
+    if (!parsedArgs) {
       return jsonError(req, 500, "La IA no retornó el formato esperado");
     }
-
-    const parsedArgs = JSON.parse(toolCall.function.arguments);
-    const sections = parsedArgs.sections;
+    const sections = (parsedArgs as { sections?: unknown }).sections;
 
     if (!Array.isArray(sections) || sections.length === 0) {
       return jsonError(req, 500, "No se generaron secciones");
