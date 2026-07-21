@@ -587,28 +587,12 @@ export async function handleStampCfdi(
       });
     }
 
-    // BL-A5: varianza local vs Facturapi. Si difiere > 0.02 MXN queda
-    // registrada en `invoices.stamp_variance` para auditoría fiscal + log de
-    // alerta. No aborta el flujo — la factura ya está timbrada ante el SAT.
-    const remoteTotalRaw =
-      (facturApiInvoice as { total?: number | string | null }).total ?? null;
-    const remoteTotal = typeof remoteTotalRaw === "number"
-      ? remoteTotalRaw
-      : Number(remoteTotalRaw);
-    const localTotal = typeof inv.total === "number"
-      ? inv.total
-      : Number(inv.total ?? 0);
-    const variance = Number.isFinite(remoteTotal)
-      ? stampVariance(localTotal, remoteTotal)
-      : 0;
-    if (variance > STAMP_VARIANCE_TOLERANCE_MXN) {
-      console.error("[stamp-cfdi] stamp_variance excede tolerancia", {
-        invoice_id,
-        local_total: localTotal,
-        remote_total: remoteTotal,
-        variance_mxn: variance,
-      });
-    }
+    // BL-A5: reconciliación del total timbrado. Facturapi redondea
+    // descuentos/impuestos por línea de forma distinta a la app; si el total
+    // timbrado difiere de invoices.total se REGISTRA la varianza (columnas
+    // stamp_variance*) sin romper el flujo 'stamped' — solo warning en
+    // cfdi_error_message + console.error para auditoría fiscal.
+
 
     // BL-A5: reconciliación del total timbrado. Facturapi redondea
     // descuentos/impuestos por línea de forma distinta a la app; si el total
