@@ -3814,6 +3814,7 @@ export type Database = {
           subtotal: number
           tax_amount: number
           tax_rate: number
+          tipo_cambio: number
           total: number
         }[]
       }

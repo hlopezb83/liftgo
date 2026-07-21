@@ -26,8 +26,10 @@ function resolveGuardReason(args: {
   return "ok";
 }
 
-function renderFallback(fallback: ReactNode, node: ReactNode) {
-  return <>{fallback ?? node}</>;
+function renderFallback(fallback: ReactNode | undefined, node: ReactNode) {
+  // R6-B1: distinguir explícitamente `undefined` (usar NoAccess por defecto)
+  // vs `null` u otro ReactNode (usar el fallback tal cual, incluido null → nada).
+  return <>{fallback === undefined ? node : fallback}</>;
 }
 
 export function RoleGuard({ module, minAccess = "read", children, fallback }: RoleGuardProps) {

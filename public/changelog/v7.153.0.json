@@ -1,0 +1,16 @@
+{
+  "version": "7.153.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "Bloques 1 y 2 (R6) — RoleGuard fallback, contraste dark y normalización a MXN",
+  "category": "bugfix",
+  "summary": "Corrige la regresión de RoleGuard cuando `fallback={null}` (ahora distingue explícitamente entre `undefined` y `null`), sube el contraste del token destructive en tema oscuro (~5.1:1) y normaliza a MXN los totales del Reporte de Antigüedad, Reporte de Ingresos y Estado de Cuenta del portal cuando las facturas están en USD.",
+  "changes": [
+    "RoleGuard: `fallback={null}` renderiza nada; `undefined` usa el aviso `NoAccess` por defecto.",
+    "Dark mode: token `--destructive` reajustado (0 84% 65%) para pasar WCAG AA sobre el fondo oscuro.",
+    "Reporte de Antigüedad: usa `balance_mxn` de la vista y expone Moneda + Tipo de Cambio en el CSV.",
+    "Reporte de Ingresos: convierte cada factura a MXN vía `toMxn(total, moneda, tipo_cambio)` antes de acumular.",
+    "Portal — Estado de Cuenta: totales facturados/pagados/saldo en MXN y badge de moneda por factura en USD.",
+    "RPC `get_portal_invoices` ahora incluye `tipo_cambio` para habilitar la conversión en cliente."
+  ]
+}

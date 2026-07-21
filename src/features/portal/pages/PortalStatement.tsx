@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCustomerSummary, usePortalCustomer, usePortalInvoices, usePortalPayments } from "@/features/customers";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { toMxn } from "@/lib/money";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { PortalInvoicesTable, type PortalPayment } from "../components/statement/PortalInvoicesTable";
 
@@ -28,19 +29,27 @@ export default function PortalStatement() {
     const paid = Number(inv.paid_amount ?? 0);
     const credited = Number(inv.credited_amount ?? 0);
     const balance = Number(inv.balance ?? Math.max(Number(inv.total) - paid - credited, 0));
-    return { inv, payments: invPayments, paid, credited, balance };
+    // R6-B2: totales del estado de cuenta en MXN.
+    const moneda = (inv as { moneda?: string | null }).moneda ?? "MXN";
+    const tipoCambio = (inv as { tipo_cambio?: number | string | null }).tipo_cambio;
+    const totalMxn = toMxn(Number(inv.total), moneda, tipoCambio);
+    const paidMxn = toMxn(paid, moneda, tipoCambio);
+    const creditedMxn = toMxn(credited, moneda, tipoCambio);
+    const balanceMxn = toMxn(balance, moneda, tipoCambio);
+    return { inv, payments: invPayments, paid, credited, balance, moneda, tipoCambio, totalMxn, paidMxn, creditedMxn, balanceMxn };
   });
 
 
   const filtered = onlyBalance ? rows.filter((r) => r.balance > 0.009) : rows;
 
   const totals = (() => {
-    const invoiced = rows.reduce((s, r) => s + Number(r.inv.total), 0);
-    const paid = rows.reduce((s, r) => s + r.paid, 0);
-    const credited = rows.reduce((s, r) => s + r.credited, 0);
-    const balance = rows.reduce((s, r) => s + r.balance, 0);
+    const invoiced = rows.reduce((s, r) => s + r.totalMxn, 0);
+    const paid = rows.reduce((s, r) => s + r.paidMxn, 0);
+    const credited = rows.reduce((s, r) => s + r.creditedMxn, 0);
+    const balance = rows.reduce((s, r) => s + r.balanceMxn, 0);
     return { invoiced, paid, credited, balance };
   })();
+
 
   const handleDownload = async () => {
     if (!customer || !summary) return;
