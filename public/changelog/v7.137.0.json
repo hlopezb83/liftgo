@@ -1,0 +1,18 @@
+{
+  "version": "7.137.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "BLOQUE 3 auditoría: cancel_nc mapping, invite-user upsert, badge recurrente por mes calendario",
+  "summary": "Bloque 3 (edge cases) del reporte de verificación.",
+  "highlights": [
+    "CRITICAL: process-cfdi-retry-queue mapeaba cancel_nc con invoice_id; ahora manda credit_note_id.",
+    "invite-user usa UPSERT en user_roles (no depende del trigger default).",
+    "RecurringBillingBadge alineado al ciclo de mes calendario (addMonths(1))."
+  ],
+  "internal_notes": [
+    "XML escaping descartado: no construimos XML, mandamos JSON a Facturapi.",
+    "generate-recurring-invoices: postpuesto hasta tener hallazgo reproducible.",
+    "Bloque 4 (UX), Bloque 5 (pulido), Bloque 6 (optimistic locking) — próximas iteraciones."
+  ],
+  "category": "improvement"
+}
