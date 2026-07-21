@@ -59,7 +59,9 @@ ${conceptosText}`;
       },
     });
     const cat = toolArguments?.category;
-    if (typeof cat === "string" && (CATEGORIES as readonly string[]).includes(cat)) {
+    if (
+      typeof cat === "string" && (CATEGORIES as readonly string[]).includes(cat)
+    ) {
       return cat as ExpenseCategory;
     }
   } catch (e) {

@@ -72,7 +72,8 @@ Si un campo no se encuentra, devuelve una cadena vacía.`;
               },
               {
                 type: "text",
-                text: "Extrae los datos fiscales de esta Constancia de Situación Fiscal.",
+                text:
+                  "Extrae los datos fiscales de esta Constancia de Situación Fiscal.",
               },
             ],
           },
@@ -113,7 +114,11 @@ Si un campo no se encuentra, devuelve una cadena vacía.`;
       });
 
       if (!toolArguments) {
-        return jsonError(req, 422, "No se pudieron extraer datos del documento");
+        return jsonError(
+          req,
+          422,
+          "No se pudieron extraer datos del documento",
+        );
       }
       return jsonResponse(req, toolArguments);
     } catch (aiErr) {

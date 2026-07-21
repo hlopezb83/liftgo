@@ -50,7 +50,9 @@ export class AiGatewayError extends Error {
  * Llama al gateway de IA. Retorna texto y (si aplica) argumentos del tool_call.
  * Lanza AiGatewayError con `status` mapeable a la respuesta HTTP de la Edge Function.
  */
-export async function aiChatCompletion(opts: AiChatOptions): Promise<AiChatResult> {
+export async function aiChatCompletion(
+  opts: AiChatOptions,
+): Promise<AiChatResult> {
   const apiKey = Deno.env.get("LOVABLE_API_KEY");
   if (!apiKey) {
     throw new AiGatewayError(500, "LOVABLE_API_KEY no configurada");
@@ -78,23 +80,39 @@ export async function aiChatCompletion(opts: AiChatOptions): Promise<AiChatResul
   if (!resp.ok) {
     const errText = await resp.text().catch(() => "");
     if (resp.status === 429) {
-      throw new AiGatewayError(429, "Demasiadas solicitudes, intenta de nuevo en un momento.", errText);
+      throw new AiGatewayError(
+        429,
+        "Demasiadas solicitudes, intenta de nuevo en un momento.",
+        errText,
+      );
     }
     if (resp.status === 402) {
-      throw new AiGatewayError(402, "Créditos insuficientes para el servicio de IA.", errText);
+      throw new AiGatewayError(
+        402,
+        "Créditos insuficientes para el servicio de IA.",
+        errText,
+      );
     }
-    throw new AiGatewayError(500, "Error al procesar la solicitud con IA", errText);
+    throw new AiGatewayError(
+      500,
+      "Error al procesar la solicitud con IA",
+      errText,
+    );
   }
 
   const data = await resp.json();
   const message = data?.choices?.[0]?.message ?? {};
-  const text: string | null = typeof message.content === "string" ? message.content : null;
+  const text: string | null = typeof message.content === "string"
+    ? message.content
+    : null;
   const toolCall = message.tool_calls?.[0];
   let toolArguments: Record<string, unknown> | null = null;
   if (toolCall?.function?.arguments) {
     try {
       const parsed = JSON.parse(toolCall.function.arguments);
-      if (parsed && typeof parsed === "object") toolArguments = parsed as Record<string, unknown>;
+      if (parsed && typeof parsed === "object") {
+        toolArguments = parsed as Record<string, unknown>;
+      }
     } catch {
       toolArguments = null;
     }
