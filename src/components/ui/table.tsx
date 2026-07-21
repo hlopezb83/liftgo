@@ -3,7 +3,11 @@ import { cn } from "@/lib/utils";
 
 const Table = ({ className, ref, ...props }: HTMLAttributes<HTMLTableElement> & { ref?: Ref<HTMLTableElement> }) => {
   return (
-    <div className="relative w-full overflow-auto">
+    // R6-B5.6: `md:[mask-image:...]` desactiva el fade en desktop; en móvil un
+    // gradiente sutil en el borde derecho insinúa scroll horizontal disponible.
+    <div
+      className="relative w-full overflow-auto [mask-image:linear-gradient(to_right,black_calc(100%-16px),transparent)] md:[mask-image:none]"
+    >
       <table ref={ref} className={cn("w-full caption-bottom text-sm", className)} {...props} />
     </div>
   );
@@ -12,7 +16,15 @@ Table.displayName = "Table";
 
 const TableHeader = ({ className, ref, ...props }: HTMLAttributes<HTMLTableSectionElement> & { ref?: Ref<HTMLTableSectionElement> }) => {
   return (
-    <thead ref={ref} className={cn("sticky top-0 z-10 bg-card [&_tr]:border-b-2 [&_tr]:border-border", className)} {...props} />
+    // R6-B5.1: header sticky con backdrop-blur + borde inferior visible al hacer scroll.
+    <thead
+      ref={ref}
+      className={cn(
+        "sticky top-0 z-10 bg-card/95 backdrop-blur-sm supports-[backdrop-filter]:bg-card/80 [&_tr]:border-b-2 [&_tr]:border-border",
+        className,
+      )}
+      {...props}
+    />
   );
 };
 TableHeader.displayName = "TableHeader";
