@@ -1722,6 +1722,8 @@ export type Database = {
           receptor_rfc: string | null
           serie: string | null
           stamp_variance: number | null
+          stamp_variance_checked_at: string | null
+          stamping_attempts: number
           status: string
           substitution_uuid: string | null
           subtotal: number
@@ -1778,6 +1780,8 @@ export type Database = {
           receptor_rfc?: string | null
           serie?: string | null
           stamp_variance?: number | null
+          stamp_variance_checked_at?: string | null
+          stamping_attempts?: number
           status?: string
           substitution_uuid?: string | null
           subtotal?: number
@@ -1834,6 +1838,8 @@ export type Database = {
           receptor_rfc?: string | null
           serie?: string | null
           stamp_variance?: number | null
+          stamp_variance_checked_at?: string | null
+          stamping_attempts?: number
           status?: string
           substitution_uuid?: string | null
           subtotal?: number
@@ -3913,12 +3919,7 @@ export type Database = {
           isSetofReturn: true
         }
       }
-      lock_invoice_for_rep: {
-        Args: { p_invoice_id: string }
-        Returns: undefined
-      }
       mark_overdue_supplier_bills: { Args: never; Returns: number }
-      mark_started_bookings_rented: { Args: never; Returns: number }
       mark_supplier_rep_rejected: {
         Args: { p_notes: string; p_payment_id: string }
         Returns: undefined
