@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.137.0",
+    "date": "2026-07-21",
+    "type": "minor",
+    "title": "BLOQUE 3 auditoría: cancel_nc mapping, invite-user upsert, badge recurrente por mes calendario",
+    "summary": "Bloque 3 (edge cases) del reporte de verificación. Se corrige el mapping crítico de cancel_nc en la retry queue (toda cancelación de nota de crédito automática fallaba con 400), invite-user pasa a UPSERT de rol para no depender del trigger default, y el badge de facturación recurrente se alinea al ciclo de mes calendario que realmente usa el generador. XML escaping se descarta como falso positivo (mandamos JSON a Facturapi, no XML directo); generate-recurring-invoices se posterga sin hallazgo concreto reproducible.",
+    "changes": [
+      "process-cfdi-retry-queue: idKey ahora resuelve `credit_note_id` para operation='cancel_nc' (antes mandaba `invoice_id` y la función respondía 400).",
+      "invite-user: `user_roles` se resuelve con upsert `{user_id, role}` en vez de update-only; deja de depender de que el trigger de default rol haya corrido antes.",
+      "RecurringBillingBadge: `addMonths(1)` en vez de `addDays(30)` — la próxima fecha mostrada coincide con la que realmente generará el cron.",
+      "XML escaping (finding descartado): la app manda JSON a Facturapi; el escape a XML ocurre del lado del PAC. `sanitizeLegalName` sigue cubriendo la normalización SAT.",
+      "generate-recurring-invoices: sin cambios este sprint; requiere hallazgo específico para no aplicar refactor sin bug reproducible."
+    ],
+    "category": "improvement"
+  },
+  {
     "version": "7.136.0",
     "date": "2026-07-21",
     "type": "minor",
