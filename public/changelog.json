@@ -16,7 +16,9 @@
     ]
   },
 
+  {
     "version": "7.133.0",
+
     "date": "2026-07-20",
     "type": "minor",
     "title": "Endurecimiento fiscal: NC-1/NC-2, timeout CFDI seguro y stamp_variance",
