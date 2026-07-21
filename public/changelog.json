@@ -19,6 +19,7 @@
     "type": "minor",
     "title": "Bloque 3 (R4) — Portal del cliente: IVA, badges de cotización, vigencia y monto de transferencia",
     "category": "fix"
+  },
   {
     "version": "7.146.0",
     "date": "2026-07-21",
