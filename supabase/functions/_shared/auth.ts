@@ -123,7 +123,13 @@ export async function requireServiceOrRole(
     };
   }
 
-  return { ok: true, userId, email, role: roleData.role as string, adminClient };
+  return {
+    ok: true,
+    userId,
+    email,
+    role: roleData.role as string,
+    adminClient,
+  };
 }
 
 /**

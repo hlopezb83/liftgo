@@ -44,9 +44,12 @@ Deno.test("requireServiceOrRole: sin Authorization → 401", async () => {
 });
 
 Deno.test("requireServiceOrRole: Authorization sin 'Bearer ' → 401", async () => {
-  const res = await requireServiceOrRole(makeReq({ Authorization: "Basic abc" }), [
-    "admin",
-  ]);
+  const res = await requireServiceOrRole(
+    makeReq({ Authorization: "Basic abc" }),
+    [
+      "admin",
+    ],
+  );
   assertEquals(res.ok, false);
   if (!res.ok) assertEquals(res.response.status, 401);
 });
