@@ -19,9 +19,10 @@ export function AuthSnapshotSync(): null {
       organization: null, // LiftGo es single-tenant hoy
       role: role ?? null,
     });
-    // Sentry: correlaciona errores con el usuario/rol activo.
+    // Sentry: correlaciona errores con el usuario/rol activo. Sólo id — el
+    // email es PII y además `scrubEvent` lo tumba en beforeSend por defecto.
     if (user) {
-      Sentry.setUser({ id: user.id, email: user.email ?? undefined });
+      Sentry.setUser({ id: user.id });
       Sentry.setTag("role", role ?? "unknown");
     } else {
       Sentry.setUser(null);
