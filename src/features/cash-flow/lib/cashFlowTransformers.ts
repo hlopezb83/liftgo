@@ -78,8 +78,12 @@ function supplierName(s: BillRow["suppliers"]): string {
 /** Transforma una cuenta por pagar en `CashFlowItem` (salida), o null. */
 export function billToItem(b: BillRow): CashFlowItem | null {
   if (!b.due_date) return null;
-  const balanceMxn = toMxn(Number(b.balance), b.currency, b.exchange_rate);
-  if (balanceMxn <= 0.01) return null;
+  // Bloque 5.3 (R4): balance null/NaN generaba "$NaN" en la tabla. Coalescemos
+  // a 0 antes de convertir a MXN — si queda ≤ 0.01 se descarta con el guard.
+  const rawBalance = Number(b.balance);
+  const safeBalance = Number.isFinite(rawBalance) ? rawBalance : 0;
+  const balanceMxn = toMxn(safeBalance, b.currency, b.exchange_rate);
+  if (!Number.isFinite(balanceMxn) || balanceMxn <= 0.01) return null;
   return {
     id: b.id,
     number: b.bill_number,

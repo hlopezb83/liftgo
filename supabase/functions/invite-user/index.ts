@@ -85,6 +85,22 @@ Deno.serve(async (req) => {
       });
     }
 
+    // Bloque 5.4 (R4): tras el upsert, purgar cualquier rol residual (p.ej.
+    // 'customer' auto-creado o un rol previo si el trigger disparó antes).
+    // Sin esto, el usuario acumulaba roles y ganaba permisos incorrectos.
+    const { error: pruneErr } = await auth.adminClient
+      .from("user_roles")
+      .delete()
+      .eq("user_id", userId)
+      .neq("role", role);
+    if (pruneErr) {
+      console.error("[invite-user] no se pudieron purgar roles residuales", {
+        userId,
+        role,
+        err: pruneErr,
+      });
+    }
+
     await auth.adminClient
       .from("profiles")
       .update({ full_name, email })

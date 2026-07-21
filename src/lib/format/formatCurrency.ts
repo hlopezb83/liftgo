@@ -24,7 +24,14 @@ function getFormatter(currency: string): Intl.NumberFormat {
   return f;
 }
 
-export function formatCurrency(amount: number): string {
+// Bloque 5.3 (R4): un `NaN`/`null`/`undefined` en cash-flow disparaba "$NaN"
+// en la UI. Centralizamos el guard aquí para cubrir todos los callsites.
+function isRenderable(n: unknown): n is number {
+  return typeof n === "number" && Number.isFinite(n);
+}
+
+export function formatCurrency(amount: number | null | undefined): string {
+  if (!isRenderable(amount)) return "—";
   return getFormatter(APP_CONFIG.CURRENCY).format(amount);
 }
 
@@ -32,6 +39,10 @@ export function formatCurrency(amount: number): string {
  * Format a number as currency using a dynamic currency code.
  * Example: formatCurrencyWithCode(1234.5, "USD") → "$1,234.50"
  */
-export function formatCurrencyWithCode(amount: number, currencyCode: string = "MXN"): string {
+export function formatCurrencyWithCode(
+  amount: number | null | undefined,
+  currencyCode: string = "MXN",
+): string {
+  if (!isRenderable(amount)) return "—";
   return getFormatter(currencyCode).format(amount);
 }
