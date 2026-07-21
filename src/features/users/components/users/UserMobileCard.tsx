@@ -48,7 +48,7 @@ export function UserMobileCard({ u, actions }: { u: UserRow; actions: UserRowAct
         </div>
         <p className="text-xs text-muted-foreground mb-1">{u.email ?? "—"}</p>
         <p className="text-xs text-muted-foreground mb-2">{formatDateMty(u.created_at)}</p>
-        <Select defaultValue={u.role} onValueChange={(val) => actions.onRoleChange(u, val as AppRole)}>
+        <Select defaultValue={u.role ?? undefined} onValueChange={(val) => actions.onRoleChange(u, val as AppRole)}>
           <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
           <SelectContent>
             {STAFF_ROLES.map((r) => (
