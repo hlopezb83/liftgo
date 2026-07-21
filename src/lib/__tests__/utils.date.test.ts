@@ -102,4 +102,22 @@ describe("formatMtyDate", () => {
     expect(formatMtyDate("2026-04", "MMM yyyy").toLowerCase()).toContain("apr");
   });
 });
+
+describe("nowMty", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("devuelve un Date", () => {
+    expect(nowMty()).toBeInstanceOf(Date);
+  });
+
+  it("refleja zona America/Monterrey, no UTC", () => {
+    vi.useFakeTimers();
+    // 03:00 UTC = 21:00 día anterior en Monterrey (CST UTC-6)
+    vi.setSystemTime(new Date("2024-01-15T03:00:00Z"));
+    const mty = nowMty();
+    expect(mty.getDate()).toBe(14);
+    expect(mty.getHours()).toBe(21);
+  });
 });
