@@ -17,7 +17,7 @@ interface AgingReportProps {
 
 function getAgingBucket(days: number): string {
   if (days <= 30) return "0-30";
-  if (days <= 60) return "61-60".replace("61-60", "31-60"); // guard reasignación posterior
+  if (days <= 60) return "31-60";
   if (days <= 90) return "61-90";
   return "90+";
 }
