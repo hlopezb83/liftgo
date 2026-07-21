@@ -1,0 +1,40 @@
+{
+  "version": "7.163.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "R7 · Deuda acumulada — Flota, asignaciones de cotización y feedback con columnas explícitas",
+  "category": "security",
+  "description": "Sexto dominio del barrido select('*'): montacargas (listado y detalle), logs de estatus de montacargas, asignaciones de equipos a cotizaciones, reportes de feedback e historial de estatus de feedback ahora usan columnas explícitas.",
+  "changes": [
+    {
+      "type": "security",
+      "scope": "features/fleet/hooks/forklifts/useForklifts",
+      "description": "useForklifts y useForklift: select('*') reemplazado por 28 columnas explícitas."
+    },
+    {
+      "type": "security",
+      "scope": "features/fleet/hooks/forklifts/useForklifts",
+      "description": "useStatusLogs: select('*') reemplazado por 6 columnas explícitas."
+    },
+    {
+      "type": "security",
+      "scope": "features/fleet/hooks/forklifts/assignForklifts/useQuoteAssignments",
+      "description": "select('*') reemplazado por 5 columnas explícitas."
+    },
+    {
+      "type": "security",
+      "scope": "features/feedback/hooks/useFeedbackReports",
+      "description": "useAllFeedbackReports y useMyFeedbackReports: select('*') reemplazado por 18 columnas explícitas."
+    },
+    {
+      "type": "security",
+      "scope": "features/feedback/hooks/useFeedbackReports",
+      "description": "useFeedbackHistory: select('*') reemplazado por 7 columnas explícitas."
+    }
+  ],
+  "validation": {
+    "tests": "1187/1187 vitest",
+    "typecheck": "tsgo OK",
+    "regressions": "ninguna detectada"
+  }
+}
