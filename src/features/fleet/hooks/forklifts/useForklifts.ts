@@ -8,7 +8,9 @@ const FORKLIFT_COLUMNS = sel(
   "id, name, model, manufacturer, year, capacity_kg, mast_height_m, fuel_type, serial_number, status, daily_rate, weekly_rate, monthly_rate, image_url, notes, created_at, updated_at, acquisition_cost, insurance_provider, insurance_policy_number, insurance_expiry, insurance_cost, is_e2e, e2e_scope, deleted_at, deleted_by, acquisition_date, sold_at"
 );
 
-export type { Forklift } from "@/types/rental";
+import type { Forklift } from "@/types/rental";
+
+export type { Forklift };
 
 export function useForklifts() {
   return useQuery({
