@@ -1,0 +1,14 @@
+{
+  "version": "7.150.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "Bloque 6 (R4) — Endurecimiento de permisos, REP claim leak y limpieza",
+  "category": "security",
+  "changes": [
+    "6.1 billing_secrets write-only: REVOKE ALL a anon, REVOKE SELECT a authenticated y GRANT SELECT column-level sólo a (id, created_at, updated_at). Las llaves de Facturapi (facturapi_test_key / facturapi_live_key) dejan de ser legibles desde el cliente aun para admins; sólo Edge Functions con service_role las leen. useBillingSecrets ahora hace .select('id, updated_at') para no romper el returning tras el revoke.",
+    "6.2 customer_payment_intents: REVOKE ALL a anon (defensa en profundidad). RLS y grants a authenticated/service_role intactos.",
+    "6.3 stamp-payment-complement: fix de claim leak cuando falta la Facturapi key. Antes, si getFacturapiConfig() devolvía apiKey vacío después de reservar el installment, la fila quedaba huérfana en rep_cfdi_status='in_progress'. Ahora se llama releaseClaim('Facturapi key no configurada') antes del jsonError(400).",
+    "6.4 GlobalSearch: guards para invoice_number/booking_number/name nulos (fallback '—'). Nuevo test src/layouts/__tests__/globalSearchEntities.test.ts (2 tests) que valida el mapeo y el guard de query < 2 chars.",
+    "6.5 Cleanup: eliminado defaultValidUntil() muerto en useQuotePrefill.ts (junto con sus imports addDays/nowMty). Removidos @sentry/react y @sentry/vite-plugin de knip.json ignoreDependencies (ya se detectan en el árbol real)."
+  ]
+}
