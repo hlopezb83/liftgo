@@ -1,0 +1,15 @@
+{
+  "version": "7.149.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "Bloque 5 (R4) — ⌘K entidades, rol nulo, guards NaN, roles residuales y check-version",
+  "category": "fix",
+  "changes": [
+    "5.1 GlobalSearch (⌘K): además de páginas, ahora indexa Facturas (invoice_number/customer_name), Clientes (name/rfc) y Reservas (booking_number/customer_name). Búsqueda server-side con debounce 200ms, 5 resultados por entidad, se activa desde 2 caracteres. Resultados aparecen en secciones dedicadas arriba de las páginas.",
+    "5.2 Rol 'Sin rol' explícito: UserRow.role ahora es AppRole | null. Cuando el trigger de user_roles no dispara o la fila fue removida, la tabla muestra un badge destructive 'Sin rol' con tooltip explicativo, en vez de inventar 'dispatcher' silenciosamente. UserMobileCard y useUserManagementColumns aceptan `undefined` en el <Select> para permitir asignación posterior.",
+    "5.3 Guards NaN/null en formato de moneda: formatCurrency/formatCurrencyWithCode aceptan `number | null | undefined` y devuelven '—' para NaN/Infinity/null/undefined. billToItem coalesce balances no finitos a 0 y descarta la fila (ya no filtra '$NaN' a la tabla de cash-flow). +9 tests nuevos.",
+    "5.4 invite-user purga roles residuales: tras el upsert del rol invitado, borra cualquier fila `user_roles` restante para ese `user_id` (typicamente el rol 'customer' auto-creado por trigger o roles previos). Elimina acumulación indebida de permisos.",
+    "5.5 scripts/check-version.mjs: valida en build que public/version.json === public/changelog.json[0].version. Corre `node scripts/gen-version.mjs && node scripts/check-version.mjs` para detectar drift antes del deploy.",
+    "Bonus: reparada corrupción JSON heredada en public/changelog.json (entradas 7.146 y 7.147 sin `{` de apertura tras edits previos)."
+  ]
+}
