@@ -79,7 +79,7 @@ export function CompanyFiscalForm({ isPending }: Props) {
         <div className="pt-2">
           <Button type="submit" disabled={isPending}>
             <SaveIcon className="h-4 w-4 mr-1" />
-            {isPending ? "Guardando..." : "Guardar"}
+            {isPending ? "Guardando…" : "Guardar"}
           </Button>
         </div>
       </CardContent>

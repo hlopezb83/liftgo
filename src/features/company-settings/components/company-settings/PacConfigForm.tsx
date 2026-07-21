@@ -131,7 +131,7 @@ export function PacConfigForm({ isPending, hasTestKey, hasLiveKey }: Props) {
         <div className="pt-2">
           <Button type="submit" disabled={isPending}>
             <SaveIcon className="h-4 w-4 mr-1" />
-            {isPending ? "Guardando..." : "Guardar Configuración"}
+            {isPending ? "Guardando…" : "Guardar Configuración"}
           </Button>
         </div>
       </CardContent>

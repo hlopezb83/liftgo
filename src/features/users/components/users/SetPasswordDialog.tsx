@@ -86,7 +86,7 @@ export function SetPasswordDialog({ user, onClose }: Props) {
           <FormDialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? "Guardando..." : "Guardar"}
+              {isPending ? "Guardando…" : "Guardar"}
             </Button>
           </FormDialogFooter>
         </form>

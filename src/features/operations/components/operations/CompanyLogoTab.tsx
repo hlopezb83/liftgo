@@ -117,7 +117,7 @@ export function CompanyLogoTab() {
             <div className="pt-2">
               <Button type="submit" disabled={upsert.isPending || !hasPendingChange}>
                 <SaveIcon className="h-4 w-4 mr-1" />
-                {upsert.isPending ? "Guardando..." : "Guardar Logo"}
+                {upsert.isPending ? "Guardando…" : "Guardar Logo"}
               </Button>
             </div>
           </CardContent>

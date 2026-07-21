@@ -81,8 +81,19 @@ export function SwipeableCard({ children, rightActions = [], threshold = 60, dis
     onClick?.();
   };
 
+  const toggleReveal = () => {
+    if (!isInteractive) return;
+    if (revealed) {
+      setRevealed(false);
+      setTranslateX(0);
+    } else {
+      setRevealed(true);
+      setTranslateX(-actionsWidth);
+    }
+  };
+
   return (
-    <div className="relative overflow-hidden rounded-lg">
+    <div className="group relative overflow-hidden rounded-lg focus-within:ring-2 focus-within:ring-ring">
       {rightActions.length > 0 && (
         <div className="absolute inset-y-0 right-0 flex">
           {rightActions.map((a, i) => {
@@ -120,14 +131,39 @@ export function SwipeableCard({ children, rightActions = [], threshold = 60, dis
         onTouchEnd={handleTouchEnd}
         onClick={handleClick}
         onKeyDown={(e) => {
+          if (isInteractive && (e.key === "ArrowLeft" || e.key === "ArrowRight")) {
+            e.preventDefault();
+            toggleReveal();
+            return;
+          }
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
             onClick?.();
+          }
+          if (e.key === "Escape" && revealed) {
+            e.preventDefault();
+            setRevealed(false);
+            setTranslateX(0);
           }
         }}
       >
         {children}
       </div>
+      {isInteractive ? (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleReveal();
+          }}
+          aria-label={revealed ? "Ocultar acciones" : "Mostrar acciones"}
+          aria-expanded={revealed}
+          className="absolute top-1/2 right-2 -translate-y-1/2 h-8 w-8 rounded-full bg-background/90 border shadow-sm items-center justify-center text-muted-foreground hover:text-foreground opacity-0 group-focus-within:opacity-100 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring hidden md:flex"
+          tabIndex={-1}
+        >
+          <span aria-hidden="true">⋯</span>
+        </button>
+      ) : null}
     </div>
   );
 }

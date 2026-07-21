@@ -76,7 +76,7 @@ export function ChangePasswordDialog({ open, onOpenChange }: Props) {
           <FormDialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Guardando..." : "Guardar"}
+              {loading ? "Guardando…" : "Guardar"}
             </Button>
           </FormDialogFooter>
         </form>

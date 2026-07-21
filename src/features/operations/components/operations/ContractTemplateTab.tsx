@@ -133,7 +133,7 @@ export function ContractTemplateTab() {
 
       <Button onClick={handleSave} disabled={updateMutation.isPending} className="gap-2">
         <SaveIcon className="h-4 w-4" />
-        {updateMutation.isPending ? "Guardando..." : "Guardar Plantilla"}
+        {updateMutation.isPending ? "Guardando…" : "Guardar Plantilla"}
       </Button>
     </div>
   );
