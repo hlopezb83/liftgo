@@ -17,42 +17,15 @@ import {
   enqueueCfdiRetry,
   isTransientFacturapiError,
 } from "../_shared/cfdiRetryQueue.ts";
-import { roundMoney } from "../_shared/money.ts";
+import {
+  computeStampVariance,
+  roundMoney,
+  STAMP_VARIANCE_WARNING as STAMP_VARIANCE_TOLERANCE,
+} from "../_shared/money.ts";
 
-// Mantenido por compatibilidad con consumidores existentes (tests, etc.).
-export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
+// Re-export para preservar la API pública (tests, otros consumidores).
+export { computeStampVariance, STAMP_VARIANCE_TOLERANCE };
 
-// sanitizeLegalName vive en _shared/ para poder importarse desde otras
-// edge functions sin problemas de bundling cross-función.
-import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
-export { sanitizeLegalName };
-
-// Re-export para compatibilidad con consumidores existentes.
-export type { QueryBuilderLike, SupabaseLike };
-
-// BL-A5: tolerancia de comparación entre el total local y el total timbrado
-// (1 centavo, por redondeos de centavos que el PAC aplica por línea).
-export const STAMP_VARIANCE_TOLERANCE = 0.01;
-
-// BL-A5 (v7.114.0 prometido, ahora real): comparación pura y testeable entre
-// invoices.total y el total devuelto por Facturapi tras timbrar. Devuelve
-// null cuando alguno de los dos no es un número finito (p. ej. mocks o
-// respuestas sin `total`): en ese caso no hay nada que reconciliar y el
-// flujo continúa sin registrar varianza.
-export function computeStampVariance(
-  invoiceTotal: unknown,
-  stampedTotal: unknown,
-): { variance: number; withinTolerance: boolean } | null {
-  if (invoiceTotal == null || stampedTotal == null) return null;
-  const expected = Number(invoiceTotal);
-  const stamped = Number(stampedTotal);
-  if (!Number.isFinite(expected) || !Number.isFinite(stamped)) return null;
-  const variance = Math.round((stamped - expected) * 10000) / 10000;
-  return {
-    variance,
-    withinTolerance: Math.abs(variance) <= STAMP_VARIANCE_TOLERANCE,
-  };
-}
 
 export interface StampCfdiDeps {
   createCallerClient: (authHeader: string) => SupabaseLike;
