@@ -7,6 +7,16 @@ import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { feedbackHistoryKeys, feedbackLeaderboardKeys, feedbackReportKeys } from "../lib/queryKeys";
 import type { FeedbackStatus } from "../lib/constants";
 
+const sel = (s: string): string => s;
+
+const FEEDBACK_REPORT_COLUMNS = sel(
+  "id, folio, reporter_id, reporter_type, reporter_name, type, module, severity, title, description, screenshot_url, context_json, status, points_awarded, admin_notes, resolved_at, created_at, updated_at"
+);
+
+const FEEDBACK_STATUS_HISTORY_COLUMNS = sel(
+  "id, report_id, from_status, to_status, changed_by, comment, changed_at"
+);
+
 export type FeedbackReport = Tables<"feedback_reports">;
 
 const MY_KEY = [...feedbackReportKeys.all, "mine"] as const;
@@ -19,11 +29,12 @@ export const feedbackReportQueries = defineEntityQueries<
   list: () => async () => {
     const { data, error } = await supabase
       .from("feedback_reports")
-      .select("*")
+      .select(FEEDBACK_REPORT_COLUMNS)
       .order("created_at", { ascending: false })
-      .limit(500);
+      .limit(500)
+      .returns<FeedbackReport[]>();
     if (error) throw error;
-    return data;
+    return data ?? [];
   },
   staleTime: 30_000,
 });
@@ -43,12 +54,13 @@ export function useMyFeedbackReports() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("feedback_reports")
-        .select("*")
+        .select(FEEDBACK_REPORT_COLUMNS)
         .eq("reporter_id", user?.id ?? "")
         .order("created_at", { ascending: false })
-        .limit(500);
+        .limit(500)
+        .returns<FeedbackReport[]>();
       if (error) throw error;
-      return data;
+      return data ?? [];
     },
   });
 }
@@ -60,11 +72,12 @@ export function useFeedbackHistory(reportId: string | null) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("feedback_status_history")
-        .select("*")
+        .select(FEEDBACK_STATUS_HISTORY_COLUMNS)
         .eq("report_id", reportId ?? "")
-        .order("changed_at", { ascending: true });
+        .order("changed_at", { ascending: true })
+        .returns<Tables<"feedback_status_history">[]>();
       if (error) throw error;
-      return data;
+      return data ?? [];
     },
   });
 }
