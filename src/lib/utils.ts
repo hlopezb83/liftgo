@@ -8,16 +8,36 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-/** Parse a "YYYY-MM-DD" string as local date (not UTC) to avoid off-by-one errors. */
-export function parseDateLocal(dateStr: string): Date {
-  const parts = dateStr.split("T")[0].split("-");
-  return new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+/**
+ * Parse a "YYYY-MM-DD" (o "YYYY-MM") string as local date (not UTC) to avoid off-by-one errors.
+ * Endurecido para no lanzar ante `null`/`undefined`/valores vacíos: devuelve `null`
+ * (callers con `string` conocido siguen recibiendo `Date`).
+ */
+export function parseDateLocal(dateStr: string): Date;
+export function parseDateLocal(dateStr: string | null | undefined): Date | null;
+export function parseDateLocal(
+  dateStr: string | null | undefined,
+): Date | null {
+  if (!dateStr || typeof dateStr !== "string") return null;
+  const raw = dateStr.split("T")[0];
+  const parts = raw.split("-");
+  if (parts.length < 2) return null;
+  const year = Number(parts[0]);
+  const month = Number(parts[1]);
+  const day = parts.length >= 3 ? Number(parts[2]) : 1;
+  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+    return null;
+  }
+  const d = new Date(year, month - 1, day);
+  return Number.isNaN(d.getTime()) ? null : d;
 }
 
 export function formatDateDisplay(dateStr: string | null | undefined): string {
   if (!dateStr) return "—";
+  const d = parseDateLocal(dateStr);
+  if (!d) return "—";
   try {
-    return format(parseDateLocal(dateStr), "dd/MM/yyyy");
+    return format(d, "dd/MM/yyyy");
   } catch {
     return dateStr;
   }
@@ -38,9 +58,17 @@ export function formatDateRange(
   return `${formatDateDisplay(start)} – ${formatDateDisplay(end)}`;
 }
 
+/** Detecta strings date-only (YYYY-MM-DD o YYYY-MM) sin componente horario. */
+const DATE_ONLY_RE = /^\d{4}-\d{2}(-\d{2})?$/;
+
 /**
  * Format a Date or ISO string in Monterrey timezone using a date-fns pattern.
  * Centralized helper to avoid scattered `format(parseISO(...), 'dd/MM/yyyy')`.
+ *
+ * Fix v7.145.0: strings date-only (`YYYY-MM-DD`, `YYYY-MM`) se parsean como fecha
+ * LOCAL con `parseDateLocal` para evitar el off-by-one de UTC-medianoche →
+ * Monterrey (síntomas: tooltip Gantt un día atrás, Estado de Resultados etiquetado
+ * MAR–JUN cuando se pedían ABR–JUL).
  */
 export function formatMtyDate(
   value: Date | string | null | undefined,
@@ -49,8 +77,19 @@ export function formatMtyDate(
 ): string {
   if (!value) return "—";
   try {
-    const date = typeof value === "string" ? new Date(value) : value;
-    return format(toZonedTime(date, APP_CONFIG.TIMEZONE), pattern, locale ? { locale } : undefined);
+    const isDateOnly = typeof value === "string" && DATE_ONLY_RE.test(value);
+    let date: Date | null;
+    if (typeof value === "string") {
+      date = isDateOnly ? parseDateLocal(value) : new Date(value);
+    } else {
+      date = value;
+    }
+    if (!date || Number.isNaN(date.getTime())) {
+      return typeof value === "string" ? value : "—";
+    }
+    // Para date-only ya está en zona local; no aplicar toZonedTime (rompería el día).
+    const zoned = isDateOnly ? date : toZonedTime(date, APP_CONFIG.TIMEZONE);
+    return format(zoned, pattern, locale ? { locale } : undefined);
   } catch {
     return typeof value === "string" ? value : "—";
   }

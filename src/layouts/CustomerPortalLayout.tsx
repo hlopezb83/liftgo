@@ -30,19 +30,19 @@ export default function CustomerPortalLayout() {
   };
 
   return (
-    <div className="h-[100dvh] bg-background flex flex-col">
-      <header className="h-14 border-b bg-card flex items-center justify-between px-6">
-        <div className="flex items-center gap-3">
+    <div className="h-[100dvh] max-w-full overflow-x-clip bg-background flex flex-col">
+      <header className="h-14 border-b bg-card flex items-center justify-between gap-3 px-4 sm:px-6">
+        <div className="flex items-center gap-3 min-w-0">
           {company?.logo_url ? (
-            <img src={company.logo_url} alt="Logo" className="h-8 w-8 rounded object-contain" />
+            <img src={company.logo_url} alt="Logo" className="h-8 w-8 rounded object-contain shrink-0" />
           ) : (
-            <div className="h-8 w-8 rounded bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm">
+            <div className="h-8 w-8 rounded bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm shrink-0">
               {company?.razon_social?.charAt(0) || "LG"}
             </div>
           )}
-          <span className="font-semibold text-foreground">Lift Go - Portal</span>
+          <span className="font-semibold text-foreground truncate">Lift Go - Portal</span>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 shrink-0">
           <span className="text-sm text-muted-foreground hidden sm:inline">
             {user?.email}
           </span>
@@ -52,8 +52,13 @@ export default function CustomerPortalLayout() {
         </div>
       </header>
 
-      <nav className="border-b bg-card px-6">
-        <div className="flex gap-1">
+      {/*
+       * Bloque 2.3 (v7.146.0): la barra de tabs debe scrollear dentro de sí
+       * misma en móvil (overflow-x-auto + shrink-0 en cada tab) para no
+       * empujar el ancho del documento y romper el viewport a 390px.
+       */}
+      <nav className="border-b bg-card">
+        <div className="flex gap-1 overflow-x-auto px-4 sm:px-6 [-webkit-overflow-scrolling:touch]">
           {tabs.map((tab) => {
             const isActive =
               tab.path === "/portal"
@@ -64,7 +69,7 @@ export default function CustomerPortalLayout() {
                 key={tab.path}
                 to={tab.path}
                 className={cn(
-                  "flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors",
+                  "shrink-0 flex items-center gap-1.5 px-4 py-2.5 text-sm font-medium border-b-2 transition-colors whitespace-nowrap",
                   isActive
                     ? "border-primary text-primary"
                     : "border-transparent text-muted-foreground hover:text-foreground"

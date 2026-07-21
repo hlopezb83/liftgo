@@ -1,9 +1,9 @@
-import { format } from "date-fns";
 import { MaintenanceIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { parseDateLocal } from "@/lib/utils";
+import { formatDateDisplay } from "@/lib/utils";
+
 
 interface ForkliftMaintenanceListProps {
   logs: Tables<"maintenance_logs">[];
@@ -24,7 +24,7 @@ export function ForkliftMaintenanceList({ logs }: ForkliftMaintenanceListProps) 
                   {m.description && <p className="text-xs text-muted-foreground mt-0.5">{m.description}</p>}
                 </div>
                 <div className="text-right shrink-0">
-                  <span className="text-xs text-muted-foreground">{format(parseDateLocal(m.performed_at), "dd/MM/yyyy")}</span>
+                  <span className="text-xs text-muted-foreground">{formatDateDisplay(m.performed_at)}</span>
                   {m.cost ? <p className="text-xs font-medium">{formatCurrency(m.cost)}</p> : null}
                 </div>
               </div>

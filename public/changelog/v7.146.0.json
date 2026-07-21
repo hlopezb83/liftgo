@@ -1,0 +1,13 @@
+{
+  "version": "7.146.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "Bloque 2 (R4) — Doble submit, crash mantenimiento sin fecha, overflow del portal móvil",
+  "category": "fix",
+  "changes": [
+    "2.1 FormActions: además de la prop `isPending`, ahora consume `formState.isSubmitting` de react-hook-form para bloquear el submit mientras se resuelve la validación async de Zod. Cierra el doble submit reproducido en 'Agregar cliente' (doble click rápido → 1 solo registro).",
+    "2.2 parseDateLocal (src/lib/utils.ts): endurecido — no lanza ante null/undefined/'', devuelve null. Test unitario nuevo.",
+    "2.2 ForkliftMaintenanceList: usa formatDateDisplay (null-safe) en vez de format(parseDateLocal(...)); logs con `performed_at: null` ahora renderizan '—' en vez de tirar ErrorBoundary.",
+    "2.3 CustomerPortalLayout: contenedor raíz `max-w-full overflow-x-clip`; barra de tabs con `overflow-x-auto` propio y tabs con `shrink-0 whitespace-nowrap`; header con `min-w-0` y `shrink-0` en ítems fijos. A 390px el documento ya no genera scroll horizontal y todas las tabs son alcanzables."
+  ]
+}

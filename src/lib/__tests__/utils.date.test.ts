@@ -8,23 +8,37 @@ import {
 
 describe("parseDateLocal", () => {
   it("parsea 'YYYY-MM-DD' como fecha LOCAL (sin off-by-one)", () => {
-    const d = parseDateLocal("2024-01-15");
+    const d = parseDateLocal("2024-01-15")!;
     expect(d.getFullYear()).toBe(2024);
     expect(d.getMonth()).toBe(0);
     expect(d.getDate()).toBe(15);
   });
 
   it("ignora la parte de tiempo cuando viene con sufijo T", () => {
-    const d = parseDateLocal("2024-03-10T00:00:00Z");
+    const d = parseDateLocal("2024-03-10T00:00:00Z")!;
     expect(d.getFullYear()).toBe(2024);
     expect(d.getMonth()).toBe(2);
     expect(d.getDate()).toBe(10);
   });
 
   it("último día del año sin off-by-one", () => {
-    const d = parseDateLocal("2024-12-31");
+    const d = parseDateLocal("2024-12-31")!;
     expect(d.getDate()).toBe(31);
     expect(d.getMonth()).toBe(11);
+  });
+
+  it("null/undefined/'' devuelve null en lugar de lanzar (Bloque 2.2)", () => {
+    expect(parseDateLocal(null)).toBeNull();
+    expect(parseDateLocal(undefined)).toBeNull();
+    expect(parseDateLocal("")).toBeNull();
+    expect(parseDateLocal("not-a-date")).toBeNull();
+  });
+
+  it("acepta 'YYYY-MM' (month_key) usando día 1", () => {
+    const d = parseDateLocal("2026-04")!;
+    expect(d.getFullYear()).toBe(2026);
+    expect(d.getMonth()).toBe(3);
+    expect(d.getDate()).toBe(1);
   });
 });
 
@@ -77,6 +91,15 @@ describe("formatMtyDate", () => {
 
   it("acepta patrón personalizado", () => {
     expect(formatMtyDate("2024-06-01T18:00:00Z", "yyyy/MM/dd")).toBe("2024/06/01");
+  });
+
+  it("Bloque 1.1: string date-only 'YYYY-MM-DD' no sufre off-by-one por UTC→MTY", () => {
+    // '2026-06-06' es date-only — debe salir 06/06/2026 en cualquier TZ del proceso.
+    expect(formatMtyDate("2026-06-06")).toBe("06/06/2026");
+  });
+
+  it("Bloque 1.1: month_key 'YYYY-MM' etiqueta el mes correcto (día 1)", () => {
+    expect(formatMtyDate("2026-04", "MMM yyyy").toLowerCase()).toContain("apr");
   });
 });
 

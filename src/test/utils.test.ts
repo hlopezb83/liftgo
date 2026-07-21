@@ -18,14 +18,14 @@ describe("cn", () => {
 
 describe("parseDateLocal", () => {
   it("parsea YYYY-MM-DD como fecha local (evita off-by-one)", () => {
-    const d = parseDateLocal("2026-05-26");
+    const d = parseDateLocal("2026-05-26")!;
     expect(d.getFullYear()).toBe(2026);
     expect(d.getMonth()).toBe(4); // mayo = 4
     expect(d.getDate()).toBe(26);
   });
 
   it("tolera strings ISO con tiempo", () => {
-    const d = parseDateLocal("2026-01-15T10:30:00Z");
+    const d = parseDateLocal("2026-01-15T10:30:00Z")!;
     expect(d.getDate()).toBe(15);
     expect(d.getMonth()).toBe(0);
   });

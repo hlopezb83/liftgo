@@ -11,7 +11,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { canActOnPortalQuote, isQuoteAccepted } from "@/lib/rules/quotes";
-import { formatDateDisplay } from "@/lib/utils";
+import { formatDateDisplay, parseDateLocal } from "@/lib/utils";
+import { quoteStatusLabel } from "../lib/quoteStatus";
 import { TotalsBreakdown } from "../components/TotalsBreakdown";
 import {
   usePortalQuote,
@@ -40,12 +41,17 @@ export default function PortalQuoteDetail() {
   if (!quote) return <p className="text-muted-foreground">Cotización no encontrada</p>;
 
   const items: LineItem[] = Array.isArray(quote.line_items) ? (quote.line_items as LineItem[]) : [];
-  const canAct = canActOnPortalQuote(quote);
+  // Bloque 3.3 (R4): si valid_until pasó, no permitimos aceptar aunque el
+  // status siga en 'sent'. El server-side (RPC accept_portal_quote) también
+  // valida vigencia; esto es la guarda visual para no engañar al cliente.
+  const validUntilDate = quote.valid_until ? parseDateLocal(quote.valid_until) : null;
+  const isExpired = validUntilDate ? validUntilDate.getTime() < new Date().setHours(0, 0, 0, 0) : false;
+  const canAct = canActOnPortalQuote(quote) && !isExpired;
   const wasAccepted = isQuoteAccepted(quote);
 
   const subtitle = (
     <span className="inline-flex items-center gap-2">
-      <StatusBadge status={quote.status} />
+      <StatusBadge status={quote.status} label={quoteStatusLabel(quote.status)} />
       <span>Emitida {formatDateDisplay(quote.created_at)}</span>
       {quote.valid_until && <span>· Válida hasta {formatDateDisplay(quote.valid_until)}</span>}
     </span>
@@ -111,6 +117,19 @@ export default function PortalQuoteDetail() {
           </CardContent>
         </Card>
       )}
+
+      {isExpired && !wasAccepted && (
+        <Card className="border-muted bg-muted/30">
+          <CardContent className="pt-4 text-sm">
+            <p className="font-semibold">Cotización vencida</p>
+            <p className="text-muted-foreground">
+              Esta cotización perdió vigencia el {formatDateDisplay(quote.valid_until)}. Solicita una actualización a tu ejecutivo para poder aceptarla.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
+
 
       {canAct && (
         <Card>
