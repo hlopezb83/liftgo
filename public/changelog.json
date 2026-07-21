@@ -1,5 +1,21 @@
 [
   {
+    "version": "7.139.0",
+    "date": "2026-07-21",
+    "type": "minor",
+    "title": "BLOQUE 4 UX: sin flash móvil, touch targets 44px, SwipeableCard accesible, micro-copy unificado",
+    "summary": "Bloque 4 (Bajos de UX) del reporte. Se elimina el flash de layout mobile↔desktop en la primera pintura, los botones ícono cumplen 44×44 en táctil, SwipeableCard se puede operar por teclado, se unifica 'Guardando…' con elipsis Unicode en 12 diálogos, el Portal usa <Checkbox>+<Label> semánticos y 'Cancelar CFDI' queda protegido por RoleGuard 'Facturas/full'.",
+    "changes": [
+      "use-mobile: initializeWithValue: true elimina el flash de layout en el primer render.",
+      "Button icon/iconSm: touch:h-11 touch:w-11 (44×44 en táctil).",
+      "SwipeableCard: botón overflow al focus-within (md+), ArrowLeft/Right/Escape por teclado, aria-expanded.",
+      "PortalStatement: <input type=checkbox> nativo → <Checkbox> shadcn + <Label htmlFor>.",
+      "InvoiceDetailActions: 'Cancelar CFDI' envuelto en RoleGuard 'Facturas/full'.",
+      "Micro-copy: 'Guardando…' y 'Timbrando REP…' con elipsis Unicode en 12+ diálogos."
+    ],
+    "category": "improvement"
+  },
+  {
     "version": "7.138.0",
     "date": "2026-07-21",
     "type": "minor",

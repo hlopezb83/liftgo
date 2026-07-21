@@ -1,0 +1,16 @@
+{
+  "version": "7.139.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "BLOQUE 4 UX: sin flash móvil, touch targets 44px, SwipeableCard accesible, micro-copy unificado",
+  "summary": "Bloque 4 (Bajos de UX) del reporte de instrucciones. Cambios visibles priorizados: se elimina el flash de layout mobile↔desktop en la primera pintura, los botones ícono cumplen 44×44 en táctil, SwipeableCard se puede operar por teclado (ArrowLeft/Right, Escape, botón visible al foco), se unifica 'Guardando…' con elipsis Unicode en 12 diálogos, el Portal usa <Checkbox>+<Label> semánticos y 'Cancelar CFDI' queda protegido por RoleGuard 'Facturas/full'.",
+  "changes": [
+    "src/hooks/use-mobile.tsx: useIsMobile y useIsTabletOrBelow con `initializeWithValue: true` → sin flash de layout en el primer render (sidebar, tablas ↔ MobileCardList, cualquier UI condicional por viewport).",
+    "src/components/ui/button.tsx: variantes `icon` e `iconSm` añaden `touch:h-11 touch:w-11` (44×44 en dispositivos táctiles, sin cambios en desktop). Se alinea con el patrón ya usado en MainLayout SidebarTrigger.",
+    "src/components/feedback/SwipeableCard.tsx: nuevo botón overflow visible al focus-within (md+), soporte de teclado ArrowLeft/Right para revelar/ocultar acciones, Escape para cerrar, `aria-expanded`, y anillo de foco en el contenedor. Los usuarios ahora pueden acceder a las acciones sin gesto táctil.",
+    "src/features/portal/pages/PortalStatement.tsx: <input type=checkbox> nativo reemplazado por <Checkbox> shadcn + <Label htmlFor> con useId → contraste, click-through en el label y accesibilidad WAI-ARIA correcta.",
+    "src/features/invoices/components/invoice-detail/InvoiceDetailActions.tsx: botón 'Cancelar CFDI' envuelto en <RoleGuard module='Facturas' minAccess='full'> — cierra el hueco de permisos detectado en la auditoría (usuarios sin acceso full ya no ven la acción).",
+    "Micro-copy: se unifica 'Guardando…' con elipsis Unicode (U+2026) en 12 diálogos y también 'Timbrando REP…' en RecordPaymentDialog para consistencia tipográfica."
+  ],
+  "category": "improvement"
+}

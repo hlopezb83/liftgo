@@ -114,7 +114,7 @@ export function EditPaymentDialog({ open, onOpenChange, payment }: Props) {
               Cancelar
             </Button>
             <Button type="submit" disabled={updatePayment.isPending}>
-              {updatePayment.isPending ? "Guardando..." : "Guardar Cambios"}
+              {updatePayment.isPending ? "Guardando…" : "Guardar Cambios"}
             </Button>
           </FormDialogFooter>
         </form>
