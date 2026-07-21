@@ -1,5 +1,11 @@
 [
   {
+    "version": "7.148.0",
+    "date": "2026-07-21",
+    "type": "minor",
+    "title": "Bloque 4 (R4) — Tabla clientes, footer sticky y navegación desde Gantt",
+    "category": "fix"
+  },
     "version": "7.147.0",
     "date": "2026-07-21",
     "type": "minor",
