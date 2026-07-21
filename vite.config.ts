@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import path from "path";
 import babel from "@rolldown/plugin-babel";
 import { sentryVitePlugin } from "@sentry/vite-plugin";
@@ -6,15 +7,36 @@ import { componentTagger } from "lovable-tagger";
 import { visualizer } from "rollup-plugin-visualizer";
 import { defineConfig } from "vite";
 
+// Versión resuelta desde public/version.json (generado por scripts/gen-version.mjs
+// en el prebuild). Se usa para (a) inyectar VITE_APP_VERSION al bundle y así
+// etiquetar el `release` en Sentry.init, y (b) nombrar el release al subir
+// sourcemaps con @sentry/vite-plugin. Fallback "unknown" en builds locales sin
+// el prebuild ejecutado.
+const APP_VERSION = (() => {
+  try {
+    const raw = readFileSync(path.resolve(__dirname, "public/version.json"), "utf8");
+    return String(JSON.parse(raw)?.version ?? "unknown");
+  } catch {
+    return "unknown";
+  }
+})();
+const SENTRY_RELEASE = `liftgo@${APP_VERSION}`;
+
 // https://vitejs.dev/config/
 // ANALYZE=1 bun run build → /tmp/bundle-stats.html para auditorías de bundle.
-// SENTRY_AUTH_TOKEN presente en CI → sube sourcemaps a Sentry (stack traces
-// legibles en producción). Ausencia del token = no-op silencioso, útil para
-// builds locales sin secretos.
+// SENTRY_AUTH_TOKEN presente en CI → sube sourcemaps a Sentry y los elimina del
+// bundle final (stack traces legibles en producción sin exponer el código
+// fuente al cliente). Ausencia del token = no-op silencioso, útil para builds
+// locales sin secretos.
 // React Compiler (babel-plugin-react-compiler) auto-memoiza componentes/hooks
 // que cumplen las Reglas de React; los que las violan quedan intactos (bail-out
 // silencioso). El linter `react-compiler/react-compiler` marca esos bail-outs.
 export default defineConfig(({ mode }) => ({
+  define: {
+    // Expuesto como `import.meta.env.VITE_APP_VERSION` en el bundle. Sentry.init
+    // lo lee para etiquetar cada evento con el mismo release que se subió.
+    "import.meta.env.VITE_APP_VERSION": JSON.stringify(APP_VERSION),
+  },
   server: {
     host: "::",
     port: 8080,
@@ -55,14 +77,30 @@ export default defineConfig(({ mode }) => ({
         gzipSize: true,
         brotliSize: false,
       }),
-    // Sourcemaps para Sentry: sólo cuando el token está presente (CI).
+    // Sourcemaps para Sentry: sólo cuando el token está presente (CI/hosting).
     // Debe ir al final para procesar los assets ya emitidos por Rollup.
+    // - `release.name` fija el mismo identificador que Sentry.init reporta en
+    //   runtime, para que los eventos se asocien a los sourcemaps subidos.
+    // - `sourcemaps.filesToDeleteAfterUpload` borra los .map del bundle final
+    //   una vez subidos: los stack traces se resuelven en Sentry sin exponer
+    //   el código fuente al cliente.
     process.env.SENTRY_AUTH_TOKEN &&
       sentryVitePlugin({
-        org: process.env.SENTRY_ORG ?? "liftgo",
-        project: process.env.SENTRY_PROJECT ?? "liftgo-web",
+        org: process.env.SENTRY_ORG ?? "elogistix",
+        project: process.env.SENTRY_PROJECT ?? "liftgo",
         authToken: process.env.SENTRY_AUTH_TOKEN,
-        sourcemaps: { assets: "./dist/**" },
+        release: {
+          name: process.env.SENTRY_RELEASE ?? SENTRY_RELEASE,
+          // Sube el commit asociado al release cuando CI expone SENTRY_RELEASE_COMMIT
+          // (opcional). Sentry usa esto para el link "Suspect commits".
+          setCommits: process.env.SENTRY_RELEASE_COMMIT
+            ? { repo: "elogistix/liftgo", commit: process.env.SENTRY_RELEASE_COMMIT, auto: false }
+            : { auto: true, ignoreMissing: true, ignoreEmpty: true },
+        },
+        sourcemaps: {
+          assets: "./dist/**",
+          filesToDeleteAfterUpload: "./dist/**/*.map",
+        },
         telemetry: false,
       }),
   ].filter(Boolean) as import("vite").PluginOption[],
@@ -102,9 +140,11 @@ export default defineConfig(({ mode }) => ({
     // Safari 16.4+, Chrome 111+, Firefox 128+ (equivalente al default
     // `baseline-widely-available` de Vite 7 y suficiente para el ERP interno).
     target: "es2022",
-    // Requerido por sentryVitePlugin para mapear stack traces en producción.
-    // El costo de tamaño lo absorbe gzip/brotli del hosting.
-    sourcemap: true,
+    // `hidden`: emite los .map pero SIN la línea `//# sourceMappingURL=...` en
+    // los .js. Sentry los consume localmente durante el build; los clientes
+    // nunca reciben la URL. Combinado con `filesToDeleteAfterUpload` en el
+    // plugin de Sentry, los .map no llegan al hosting.
+    sourcemap: "hidden",
     // Lightning CSS: ~15% mejor compresión que esbuild sobre Tailwind v4
     // (Vite 8 lo trae bundleado, no requiere dep extra).
     cssMinify: "lightningcss",
