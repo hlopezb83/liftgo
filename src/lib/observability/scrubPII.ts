@@ -99,10 +99,10 @@ interface ScrubbableEvent {
   breadcrumbs?: Array<{ message?: string; data?: Record<string, unknown> }>;
   contexts?: Record<string, Record<string, unknown> | undefined>;
   extra?: Record<string, unknown>;
-  user?: { id?: unknown; email?: string; username?: string; ip_address?: string } | null;
+  user?: { id?: unknown; email?: string | null; username?: string | null; ip_address?: string | null } | null;
 }
 
-export function scrubEvent<T extends ScrubbableEvent>(event: T): T {
+export function scrubEvent<T extends Partial<ScrubbableEvent>>(event: T): T {
   if (event.message) event.message = redactPII(event.message);
 
   if (event.request) {
