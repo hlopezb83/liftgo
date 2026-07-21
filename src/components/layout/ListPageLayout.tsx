@@ -120,7 +120,7 @@ export function ListPageLayout<T extends { id?: string }>({
 
   return (
     <PageTransition>
-      <div ref={sentinelRef} className={cn("p-4 sm:p-6 space-y-4 sm:space-y-6", isMobile && mobileFab && "pb-[calc(env(safe-area-inset-bottom)+6rem)]")}>
+      <div ref={sentinelRef} className={cn("p-4 sm:p-6 space-y-6", isMobile && mobileFab && "pb-[calc(env(safe-area-inset-bottom)+6rem)]")}>
         <PullToRefreshIndicator
           visible={!!(isMobile && onRefresh && (pullDistance > 0 || isRefreshing))}
           pullDistance={pullDistance}
