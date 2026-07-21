@@ -31,8 +31,6 @@ export type { QueryBuilderLike, SupabaseLike };
 // Mantenido por compatibilidad con consumidores existentes.
 export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 
-
-
 export interface StampCfdiDeps {
   createCallerClient: (authHeader: string) => SupabaseLike;
   createServiceClient: () => SupabaseLike;
