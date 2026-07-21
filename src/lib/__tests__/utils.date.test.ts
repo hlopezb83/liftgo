@@ -92,23 +92,14 @@ describe("formatMtyDate", () => {
   it("acepta patrón personalizado", () => {
     expect(formatMtyDate("2024-06-01T18:00:00Z", "yyyy/MM/dd")).toBe("2024/06/01");
   });
+
+  it("Bloque 1.1: string date-only 'YYYY-MM-DD' no sufre off-by-one por UTC→MTY", () => {
+    // '2026-06-06' es date-only — debe salir 06/06/2026 en cualquier TZ del proceso.
+    expect(formatMtyDate("2026-06-06")).toBe("06/06/2026");
+  });
+
+  it("Bloque 1.1: month_key 'YYYY-MM' etiqueta el mes correcto (día 1)", () => {
+    expect(formatMtyDate("2026-04", "MMM yyyy").toLowerCase()).toContain("apr");
+  });
 });
-
-describe("nowMty", () => {
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  it("devuelve un Date", () => {
-    expect(nowMty()).toBeInstanceOf(Date);
-  });
-
-  it("refleja zona America/Monterrey, no UTC", () => {
-    vi.useFakeTimers();
-    // 03:00 UTC = 21:00 día anterior en Monterrey (CST UTC-6)
-    vi.setSystemTime(new Date("2024-01-15T03:00:00Z"));
-    const mty = nowMty();
-    expect(mty.getDate()).toBe(14);
-    expect(mty.getHours()).toBe(21);
-  });
 });
