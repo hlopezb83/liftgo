@@ -19,7 +19,8 @@ export function useBookingExtensions(bookingId?: string) {
         .from("booking_extensions")
         .select(BOOKING_EXTENSION_COLUMNS)
         .eq("booking_id", bookingId ?? "")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .returns<Tables<"booking_extensions">[]>();
       if (error) throw error;
       return data ?? [];
     },
