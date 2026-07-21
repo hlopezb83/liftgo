@@ -21,6 +21,7 @@ interface Props {
 }
 
 export function GanttRow({ forklift, segments, days }: Props) {
+  const navigate = useNavigateTransition();
   return (
     <div className="flex items-center border-b py-1.5 hover:bg-muted/30">
       <div className="w-48 shrink-0 pr-2">
@@ -48,8 +49,14 @@ export function GanttRow({ forklift, segments, days }: Props) {
           return (
             <Tooltip key={seg.booking.id}>
               <TooltipTrigger asChild>
-                <div
-                  className={`absolute top-0.5 h-5 rounded-sm flex items-center overflow-hidden cursor-default ${!isConfirmed ? "opacity-30 border border-dashed border-foreground/30" : ""}`}
+                {/* Bloque 4.5 (R4): la barra abre el detalle de la reserva.
+                    Se usa <button> para conservar accesibilidad (Enter/Space
+                    + focus ring) sin sacrificar el layout absoluto. */}
+                <button
+                  type="button"
+                  aria-label={`Abrir reserva ${seg.label}`}
+                  onClick={() => navigate(`/bookings/${seg.booking.id}`)}
+                  className={`absolute top-0.5 h-5 rounded-sm flex items-center overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-ring transition-opacity hover:opacity-90 ${!isConfirmed ? "opacity-30 border border-dashed border-foreground/30" : ""}`}
                   style={{
                     left: `${seg.leftPercent}%`,
                     width: `${seg.widthPercent}%`,
@@ -61,7 +68,7 @@ export function GanttRow({ forklift, segments, days }: Props) {
                       {seg.label}
                     </span>
                   )}
-                </div>
+                </button>
               </TooltipTrigger>
               <TooltipContent side="top" className="text-xs space-y-1">
                 <p className="font-semibold">{seg.label}</p>
