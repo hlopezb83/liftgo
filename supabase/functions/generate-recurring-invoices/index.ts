@@ -87,11 +87,15 @@ type PreviewLine = {
     | "no_customer"
     | "no_monthly_rate"
     | "period_in_future"
-    | "period_too_old"
     | "booking_ended";
   existingInvoiceId?: string;
   existingInvoiceNumber?: string;
 };
+
+// Tope duro del loop de catch-up: 24 iteraciones = 2 años. Blindaje contra
+// bugs de datos (last_billed corrompido, end_date muy lejano) que podrían
+// intentar generar cientos de facturas en una sola corrida.
+const MAX_CATCHUP_ITERATIONS = 24;
 
 type PlanItem = {
   bookingId: string;
@@ -136,13 +140,6 @@ async function buildPlan(supabase: any): Promise<{
     // Derivar last_billed_date desde el historial REAL de facturas vinculadas
     // (source of truth). Ignora bookings.last_billed_date cuando el historial lo
     // contradice — es la columna que se desincroniza (v6.110.0).
-    //
-    // Reglas:
-    //  - Si existe al menos una factura no-cancelada con billing_period_end no
-    //    nulo → usar MAX(billing_period_end).
-    //  - Si sólo hay facturas legacy (billing_period_end = null) → conservar
-    //    bookings.last_billed_date sin resetear (evita re-facturar meses viejos).
-    //  - Si no hay facturas vinculadas → null (reserva nueva).
     let effectiveLastBilled: string | null = booking.last_billed_date ?? null;
     {
       const { data: linked } = await supabase
@@ -169,139 +166,154 @@ async function buildPlan(supabase: any): Promise<{
       }
     }
 
-    let billingStart: Date;
-    let isProrated = false;
-    if (effectiveLastBilled) {
-      const lastBilled = dateOnlyToMty(effectiveLastBilled);
-      billingStart = new Date(
-        Date.UTC(lastBilled.getUTCFullYear(), lastBilled.getUTCMonth() + 1, 1),
-      );
-    } else {
-      // BL-12: primera factura de la suscripción. Si la reserva arranca a
-      // mitad de mes, el primer periodo va del día de inicio al fin de mes y
-      // se prorratea. Cobrar mes completo cuando sólo se rentaron 5 días es
-      // injusto para el cliente.
-      const startDate = dateOnlyToMty(booking.start_date);
-      if (startDate.getUTCDate() === 1) {
-        billingStart = firstOfMonth(startDate);
+    // Catch-up loop (v7.138.0): iterar mes por mes desde el siguiente periodo
+    // no facturado hasta alcanzar el mes actual. Antes sólo se generaba el
+    // primer periodo faltante y, si quedaba >1 mes atrasado, la guarda
+    // period_too_old lo silenciaba para siempre. Ahora recuperamos meses
+    // omitidos (cron caído, reserva pausada, migración) hasta MAX iteraciones.
+    let virtualLastBilled: string | null = effectiveLastBilled;
+    let firstIteration = true;
+
+    for (let iter = 0; iter < MAX_CATCHUP_ITERATIONS; iter++) {
+      let billingStart: Date;
+      let isProrated = false;
+      if (virtualLastBilled) {
+        const lastBilled = dateOnlyToMty(virtualLastBilled);
+        billingStart = new Date(
+          Date.UTC(
+            lastBilled.getUTCFullYear(),
+            lastBilled.getUTCMonth() + 1,
+            1,
+          ),
+        );
       } else {
-        billingStart = startDate;
-        isProrated = true;
+        // BL-12: primera factura de la suscripción. Si arranca a mitad de mes,
+        // se prorratea. Sólo aplica en la primera iteración (no hay historial).
+        const startDate = dateOnlyToMty(booking.start_date);
+        if (startDate.getUTCDate() === 1) {
+          billingStart = firstOfMonth(startDate);
+        } else {
+          billingStart = startDate;
+          isProrated = true;
+        }
       }
-    }
-    const billingEnd = lastOfMonth(billingStart);
-    const startStr = toIsoDate(billingStart);
-    const endStr = toIsoDate(billingEnd);
-    const periodLabel = `${fmtMx(billingStart)} al ${fmtMx(billingEnd)}`;
+      const billingEnd = lastOfMonth(billingStart);
+      const startStr = toIsoDate(billingStart);
+      const endStr = toIsoDate(billingEnd);
+      const periodLabel = `${fmtMx(billingStart)} al ${fmtMx(billingEnd)}`;
 
-    // BL-12: cálculo del monto prorrateado (helper puro para test).
-    const prorate = computeProrate(
-      isProrated ? billingStart.getUTCDate() : 1,
-      billingEnd.getUTCDate(),
-      monthlyRate,
-    );
-    const proratedDays = prorate.proratedDays;
-    const billedAmount = prorate.billedAmount;
+      const prorate = computeProrate(
+        isProrated ? billingStart.getUTCDate() : 1,
+        billingEnd.getUTCDate(),
+        monthlyRate,
+      );
+      const proratedDays = prorate.proratedDays;
+      const billedAmount = prorate.billedAmount;
 
-    const baseLine: PreviewLine = {
-      bookingId: booking.id,
-      bookingCode: booking.booking_number ?? null,
-      customerId: booking.customer_id ?? null,
-      customerName: booking.customer_name ?? null,
-      forkliftName: forklift?.name ?? null,
-      periodStart: startStr,
-      periodEnd: endStr,
-      periodLabel,
-      monthlyRate,
-      billedAmount,
-      isProrated,
-      proratedDays: isProrated ? proratedDays : undefined,
-      eligible: true,
-    };
+      const baseLine: PreviewLine = {
+        bookingId: booking.id,
+        bookingCode: booking.booking_number ?? null,
+        customerId: booking.customer_id ?? null,
+        customerName: booking.customer_name ?? null,
+        forkliftName: forklift?.name ?? null,
+        periodStart: startStr,
+        periodEnd: endStr,
+        periodLabel,
+        monthlyRate,
+        billedAmount,
+        isProrated,
+        proratedDays: isProrated ? proratedDays : undefined,
+        eligible: true,
+      };
 
-    // Fix D v7.90.0 (BL-13): si la reserva ya terminó (end_date < billingStart),
-    // no facturar automáticamente. Recordatorio visual para que operaciones
-    // complete la inspección de devolución.
-    if (
-      booking.end_date &&
-      dateOnlyToMty(booking.end_date) < billingStart
-    ) {
-      lines.push({ ...baseLine, eligible: false, reason: "booking_ended" });
-      continue;
-    }
-    if (nowMty < billingStart) {
-      lines.push({ ...baseLine, eligible: false, reason: "period_in_future" });
-      continue;
-    }
-    // Guarda de seguridad: si el periodo termina >1 mes antes del mes actual,
-    // no facturar automáticamente — requiere revisión manual (v6.110.0).
-    const currentMonthStart = firstOfMonth(nowMty);
-    const oneMonthAgoEnd = new Date(
-      Date.UTC(
-        currentMonthStart.getUTCFullYear(),
-        currentMonthStart.getUTCMonth(),
-        0,
-      ),
-    );
-    if (billingEnd < oneMonthAgoEnd) {
-      lines.push({ ...baseLine, eligible: false, reason: "period_too_old" });
-      continue;
-    }
-    if (!booking.customer_id) {
-      lines.push({ ...baseLine, eligible: false, reason: "no_customer" });
-      continue;
-    }
-    if (monthlyRate === 0) {
-      lines.push({ ...baseLine, eligible: false, reason: "no_monthly_rate" });
-      continue;
-    }
+      // Guarda booking_ended (BL-13): reserva devuelta antes del periodo.
+      if (
+        booking.end_date &&
+        dateOnlyToMty(booking.end_date) < billingStart
+      ) {
+        // Sólo reportamos booking_ended en la primera iteración; en catch-up,
+        // llegar al fin del contrato es la terminación natural del loop.
+        if (firstIteration) {
+          lines.push({ ...baseLine, eligible: false, reason: "booking_ended" });
+        }
+        break;
+      }
+      // Periodo aún no llega → detener catch-up. Sólo reportamos la línea si
+      // es la primera iteración (para que el operador vea la reserva en el
+      // preview y sepa cuándo tocará facturar).
+      if (nowMty < billingStart) {
+        if (firstIteration) {
+          lines.push({
+            ...baseLine,
+            eligible: false,
+            reason: "period_in_future",
+          });
+        }
+        break;
+      }
+      if (!booking.customer_id) {
+        lines.push({ ...baseLine, eligible: false, reason: "no_customer" });
+        break;
+      }
+      if (monthlyRate === 0) {
+        lines.push({ ...baseLine, eligible: false, reason: "no_monthly_rate" });
+        break;
+      }
 
-    // Already invoiced check
-    const { data: existing } = await supabase
-      .from("invoice_bookings")
-      .select(
-        "invoice_id, invoices!inner(id, invoice_number, billing_period_start, billing_period_end, status, cfdi_status)",
-      )
-      .eq("booking_id", booking.id)
-      .eq("invoices.billing_period_start", startStr)
-      .eq("invoices.billing_period_end", endStr)
-      .neq("invoices.status", "cancelled")
-      .neq("invoices.cfdi_status", "cancelled")
-      .limit(1)
-      .maybeSingle();
+      // Ya facturado en BD → registrar línea informativa y avanzar el cursor
+      // virtual para intentar el siguiente periodo en la próxima iteración.
+      const { data: existing } = await supabase
+        .from("invoice_bookings")
+        .select(
+          "invoice_id, invoices!inner(id, invoice_number, billing_period_start, billing_period_end, status, cfdi_status)",
+        )
+        .eq("booking_id", booking.id)
+        .eq("invoices.billing_period_start", startStr)
+        .eq("invoices.billing_period_end", endStr)
+        .neq("invoices.status", "cancelled")
+        .neq("invoices.cfdi_status", "cancelled")
+        .limit(1)
+        .maybeSingle();
 
-    if (existing) {
-      const inv = existing.invoices as { id: string; invoice_number: string };
-      lines.push({
-        ...baseLine,
-        eligible: false,
-        reason: "already_invoiced",
-        existingInvoiceId: inv.id,
-        existingInvoiceNumber: inv.invoice_number,
+      if (existing) {
+        const inv = existing.invoices as { id: string; invoice_number: string };
+        lines.push({
+          ...baseLine,
+          eligible: false,
+          reason: "already_invoiced",
+          existingInvoiceId: inv.id,
+          existingInvoiceNumber: inv.invoice_number,
+        });
+        virtualLastBilled = endStr;
+        firstIteration = false;
+        continue;
+      }
+
+      lines.push(baseLine);
+      items.push({
+        bookingId: booking.id,
+        customerId: booking.customer_id as string,
+        customerName: booking.customer_name ?? null,
+        forkliftName: forklift?.name ?? null,
+        forkliftSerial: forklift?.serial_number ?? null,
+        monthlyRate,
+        billedAmount,
+        isProrated,
+        proratedDays,
+        billingStart,
+        billingEnd,
+        startStr,
+        endStr,
       });
-      continue;
+      virtualLastBilled = endStr;
+      firstIteration = false;
     }
-
-    lines.push(baseLine);
-    items.push({
-      bookingId: booking.id,
-      customerId: booking.customer_id as string,
-      customerName: booking.customer_name ?? null,
-      forkliftName: forklift?.name ?? null,
-      forkliftSerial: forklift?.serial_number ?? null,
-      monthlyRate,
-      billedAmount,
-      isProrated,
-      proratedDays,
-      billingStart,
-      billingEnd,
-      startStr,
-      endStr,
-    });
   }
 
   return { lines, items };
 }
+
+
 
 // deno-lint-ignore no-explicit-any
 async function executePlan(supabase: any, items: PlanItem[]) {

@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.138.0",
+    "date": "2026-07-21",
+    "type": "minor",
+    "title": "generate-recurring-invoices: loop de catch-up para reservas atrasadas",
+    "summary": "Se corrige el bug 'catch-up' pendiente del BLOQUE 3: cuando una reserva quedaba ≥ 2 meses sin facturar (cron caído, reserva pausada), la guarda `period_too_old` la marcaba como no elegible en cada corrida y jamás avanzaba `last_billed_date` — la facturación se perdía silenciosamente. Ahora el generador itera mes por mes desde el último periodo facturado hasta el mes actual, respetando `end_date` y `booking_ended`, con tope duro de 24 iteraciones (2 años) como blindaje.",
+    "changes": [
+      "buildPlan itera hasta MAX_CATCHUP_ITERATIONS=24 periodos consecutivos por reserva; cada mes elegible produce una factura independiente agrupada por (cliente, periodo).",
+      "Se elimina la razón `period_too_old` (guarda que atrapaba las reservas). booking_ended y period_in_future ahora terminan el loop de forma limpia; sólo se reporta la línea informativa en la primera iteración.",
+      "already_invoiced en un periodo intermedio ya no bloquea el resto: se registra la línea, se avanza el cursor virtual y se intenta el siguiente mes.",
+      "Nuevo `catchup_test.ts` con 6 escenarios (al día, 2 meses atrás, reserva terminada, pausa de 6 meses, tope 24).",
+      "Reporte de repro previo: con last_billed=2026-04-30 y hoy 2026-07-21, antes se generaban 0 facturas; ahora se generan 3 (may/jun/jul)."
+    ],
+    "category": "bugfix"
+  },
+  {
     "version": "7.137.0",
     "date": "2026-07-21",
     "type": "minor",

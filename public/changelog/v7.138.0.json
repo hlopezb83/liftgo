@@ -1,0 +1,40 @@
+{
+  "version": "7.138.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "generate-recurring-invoices: loop de catch-up para reservas atrasadas",
+  "summary": "Bug 'catch-up' pendiente del BLOQUE 3 cerrado: reservas con ≥ 2 meses sin facturar (cron caído, reserva pausada) quedaban atrapadas por la guarda `period_too_old` y jamás recuperaban los meses omitidos. Ahora el generador itera mes por mes desde el último periodo facturado hasta el mes actual.",
+  "sections": [
+    {
+      "title": "Bug reproducido y corregido",
+      "items": [
+        "Escenario: last_billed_date=2026-04-30, hoy=2026-07-21. Antes: 0 facturas (billingEnd 2026-05-31 < oneMonthAgoEnd 2026-06-30 → period_too_old → loop infinito en cada corrida). Después: 3 facturas (may/jun/jul).",
+        "Impacto silencioso: pérdida de facturación recurrente sin alerta; requería intervención manual (reset de last_billed_date) para desatorar."
+      ]
+    },
+    {
+      "title": "Cambios técnicos",
+      "items": [
+        "supabase/functions/generate-recurring-invoices/index.ts: buildPlan ahora itera hasta MAX_CATCHUP_ITERATIONS=24 periodos por reserva. Cada mes elegible produce una PlanItem independiente; executePlan las agrupa por (cliente, periodo) y emite facturas separadas por mes.",
+        "Eliminada la razón `period_too_old` de PreviewReason (frontend y backend). Se removió también la constante `oneMonthAgoEnd` que la sustentaba.",
+        "already_invoiced en periodo intermedio: se registra la línea informativa, se avanza `virtualLastBilled` y el loop continúa buscando el siguiente mes faltante en vez de abortar.",
+        "booking_ended / period_in_future terminan el loop de forma limpia; sólo se reporta línea en la primera iteración para no llenar el preview de ruido en catch-ups largos.",
+        "Blindaje: tope duro de 24 iteraciones (2 años) evita runaway ante `last_billed_date` corrompido o `end_date` muy lejano."
+      ]
+    },
+    {
+      "title": "Tests",
+      "items": [
+        "Nuevo `catchup_test.ts` (6 escenarios): al día, 2 meses atrasado, reserva terminada durante el catch-up, pausa de 6 meses, tope 24 iteraciones, mes actual único.",
+        "Reproducción previa del bug (`/tmp/repro_stuck_booking.ts`) confirmó el comportamiento roto antes del fix."
+      ]
+    },
+    {
+      "title": "Compatibilidad",
+      "items": [
+        "src/features/invoices/hooks/invoices/recurring/usePreviewRecurringInvoices.ts y RecurringPreviewBody.tsx: `period_too_old` removido del union type y de REASON_LABEL. Ningún consumidor externo dependía de esa razón.",
+        "RPC `create_recurring_invoice` sin cambios: el índice único parcial por (booking_id, periodo) sigue protegiendo contra duplicados en corridas paralelas."
+      ]
+    }
+  ]
+}
