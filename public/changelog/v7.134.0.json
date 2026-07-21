@@ -1,0 +1,51 @@
+{
+  "version": "7.134.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "Timbrado: AbortController real, cancel_rep mapea payment_id, reconcile con cap y cron 10 min",
+  "summary": "Aplicación auditada del patch integral 00-TODO-EN-UNO. Se toman los 19 fixes reales y se ajustan los 5 riesgos: (A) reconcile cada 10 min (compromiso entre 5 min = más carga a Facturapi y 15 min = ventana amplia); (B) se descarta la sobrecarga de 7 args de `create_booking` porque el frontend siempre manda `p_quote_id`; (C) se elimina la duplicación de la varianza de timbrado (dos cálculos y dos writes de `stamp_variance` en el mismo UPDATE); (D) TIMEOUT ahora aborta el fetch de Facturapi de verdad vía AbortController — antes Promise.race resolvía TIMEOUT pero la petición seguía viva consumiendo cuota; (E) `process-cfdi-retry-queue` mapea `cancel_rep` a `payment_id`, recupera filas `processing` huérfanas > 15 min y `reconcile-stamping-invoices` frena a los 10 intentos.",
+  "sections": [
+    {
+      "title": "Ajuste D — AbortController real en stamp-cfdi",
+      "changes": [
+        "`_shared/facturapi/client.ts`: nuevo helper `createInvoiceWithSignal(client, payload, { signal })` que reenvía el `AbortSignal` al fetch interno de Facturapi.",
+        "`stamp-cfdi/handler.ts`: reemplazo del `Promise.race([client.invoices.create(payload), setTimeout→reject])` por `createInvoiceWithSignal` + `AbortController.abort()`. Cuando dispara el timeout de 30s el fetch muere de verdad; la factura sigue en `stamping` (NO 'error', SIN retry) y `reconcile-stamping-invoices` la resuelve vía folio/serie."
+      ]
+    },
+    {
+      "title": "Ajuste C — dedup del cálculo de varianza",
+      "changes": [
+        "`stamp-cfdi/handler.ts`: eliminado el segundo cálculo de `variance` (basado en `stampVariance` de `_shared/money.ts`) y la segunda escritura `stamp_variance: variance` en el mismo objeto UPDATE. Queda un único camino: `computeStampVariance(inv.total, stampedTotal)` → `stamp_variance` + `stamp_variance_checked_at`.",
+        "Se remueven los imports muertos (`stampVariance`, `STAMP_VARIANCE_TOLERANCE_MXN`) tras la dedup."
+      ]
+    },
+    {
+      "title": "Ajuste E — retry queue: cancel_rep y recuperación de huérfanos",
+      "changes": [
+        "`process-cfdi-retry-queue/index.ts`: `invokeStampFn` ahora recibe `operation` y determina la clave de body — `payment_id` para `cancel_rep`, `invoice_id` para `stamp | cancel`. Antes `cancel-payment-complement` recibía `invoice_id` y respondía 400.",
+        "Recuperación de filas `processing` con `updated_at` > 15 min (isolate muerto o redeploy en pleno vuelo): se listan hasta 10, se reclaman atómicamente con `.eq('status', row.status)` filtrando por el status leído (pending o processing) y se procesan igual que las pendientes.",
+        "`QueueRow.status` añadido al tipo y al `select` para permitir el claim atómico por estado observado."
+      ]
+    },
+    {
+      "title": "Reconcile con cap — protege contra loops",
+      "changes": [
+        "`reconcile-stamping-invoices/index.ts`: nuevo `MAX_STAMPING_ATTEMPTS = 10`. Cada ciclo sin XML incrementa `invoices.stamping_attempts`; superado el cap la factura se revierte a `cfdi_status='error'` con nota manual (Facturapi nunca entregó XML → revisar en portal antes de retimbrar).",
+        "Mensaje de `cfdi_error_message` ahora incluye el contador `intento N/10` para diagnosticar cuánto lleva la fila esperando."
+      ]
+    },
+    {
+      "title": "Base de datos — auditoría de timbrado",
+      "changes": [
+        "Migración: `invoices.stamping_attempts` (`integer NOT NULL DEFAULT 0`), `invoices.stamp_variance_checked_at` (`timestamptz`), `invoices.stamp_variance` afinada a `numeric(12,4)` para diagnosticar centavos exactos.",
+        "Cron: `reconcile-stamping-invoices-every-15min` liberado; se agenda `reconcile-stamping-invoices-every-10min` usando `CRON_SECRET` desde vault (paridad con `x-cron-secret` de la edge function)."
+      ]
+    },
+    {
+      "title": "Riesgos B — descarte confirmado",
+      "changes": [
+        "Auditoría de `src/features/bookings/hooks/useBookingMutations.ts`: el frontend siempre invoca `create_booking` con `p_quote_id` (aunque sea `null`). No hay call sites de la sobrecarga de 7 args → la eliminación queda registrada como plan pero se difiere a una migración dedicada para evitar romper edge functions externas si las hubiera."
+      ]
+    }
+  ]
+}
