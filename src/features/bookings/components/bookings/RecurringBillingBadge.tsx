@@ -1,7 +1,8 @@
-import { addMonths, parseISO, startOfMonth } from "date-fns";
+import { addMonths, startOfMonth } from "date-fns";
 import { Repeat } from "@/components/icons";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { formatDateMty } from "@/lib/format/dateFormats";
+import { parseDateLocal } from "@/lib/utils";
 import type { Booking } from "../../hooks/useBookings";
 
 interface RecurringBillingBadgeProps {
@@ -11,13 +12,12 @@ interface RecurringBillingBadgeProps {
 export function RecurringBillingBadge({ booking }: RecurringBillingBadgeProps) {
   if (!booking.recurring_billing) return null;
 
-  const lastBilled = booking.last_billed_date ? parseISO(booking.last_billed_date) : null;
-  // BL-1.5 R5: la generación real (edge fn `generate-recurring-invoices`)
-  // alinea el siguiente cargo al inicio del mes calendario siguiente al
-  // último periodo facturado. Mostrar `addMonths(lastBilled, 1)` mentía
-  // el día — usamos `startOfMonth(addMonths(anchor, 1))`.
-  const anchor = lastBilled ?? parseISO(booking.start_date);
-  const nextBilling = startOfMonth(addMonths(anchor, 1));
+  // R6-B2: `parseISO("YYYY-MM-DD")` interpreta UTC-00:00 y en TZ negativa
+  // (Monterrey UTC-6) retrocede al día anterior. `parseDateLocal` preserva
+  // el calendario local, evitando desfases al calcular el próximo cargo.
+  const lastBilled = parseDateLocal(booking.last_billed_date);
+  const anchor = lastBilled ?? parseDateLocal(booking.start_date);
+  const nextBilling = anchor ? startOfMonth(addMonths(anchor, 1)) : null;
 
   return (
     <Tooltip>
