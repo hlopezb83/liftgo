@@ -1,0 +1,13 @@
+{
+  "version": "7.148.0",
+  "date": "2026-07-21",
+  "type": "minor",
+  "title": "Bloque 4 (R4) — Tabla clientes, footer sticky y navegación desde Gantt",
+  "category": "fix",
+  "changes": [
+    "4.2 useCustomersColumns: la celda Nombre ahora usa `max-w-[280px] truncate` con tooltip nativo (title=nombre completo). Nombres largos (razón social + ubicación) ya no rompen el ancho de la tabla.",
+    "4.3 FormDialog: el cuerpo scrollable ahora agrega `pb-16` para que el footer sticky (py-3 + botones ≈ 4rem) no se superponga al último input de formularios largos.",
+    "4.5 GanttRow: la barra de reserva es ahora un <button> navegable a /bookings/:id con Enter/Space, focus ring y cursor-pointer. Antes era un <div cursor-default> sin acción.",
+    "Pendientes de Bloque 4 (requieren reproducción específica): 4.1 mensajes de validación sin renderizar en CustomerFormDialog (no reproducido aún — FormMessage está correctamente wired), 4.4 guarda de cambios sin guardar en ESC/overlay (necesita hook nuevo useDialogUnsavedGuard)."
+  ]
+}
