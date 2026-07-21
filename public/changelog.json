@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.144.0",
+    "date": "2026-07-21",
+    "type": "minor",
+    "title": "Sentry: breadcrumbs de navegación + request context (tenant, usuario, rol, flow) en cada error",
+    "summary": "SentryNavigationSync se monta en MainLayout y, en cada cambio de ruta, emite un breadcrumb navigation y actualiza los tags flow (módulo del ERP) y route (path sanitizado). sanitizeRoute reemplaza UUIDs, IDs numéricos y folios (FAC-0094, RSV-0022, COT-0001…) por :id/:folio para mantener cardinalidad baja y no filtrar identificadores de negocio. Se agregan los tags globales tenant=liftgo y app=liftgo-erp en Sentry.init; user.id + tag role siguen viajando desde AuthSnapshotSync. Resultado: cualquier error en Sentry incluye el camino de navegación (breadcrumbs) más el contexto (tenant, usuario, rol, flow, route) que lo causó.",
+    "changes": [
+      { "type": "added", "description": "src/lib/observability/routeContext.ts: sanitizeRoute + deriveFlow puros (UUID → :id, /\\d+/ → :id, FOLIO-XXXX → :folio)." },
+      { "type": "added", "description": "src/lib/observability/SentryNavigationSync.tsx: hook de navegación que setea tags flow/route, contexto route y emite breadcrumb navigation con {from, to}." },
+      { "type": "added", "description": "src/lib/observability/routeContext.test.ts: 8 tests unitarios (root, UUID, numérico, folios, keywords, IDs como flow)." },
+      { "type": "changed", "description": "src/layouts/MainLayout.tsx: monta SentryNavigationSync dentro del RouterProvider." },
+      { "type": "changed", "description": "src/lib/observability/sentry.ts: tags globales tenant=liftgo y app=liftgo-erp fijados tras Sentry.init." }
+    ]
+  },
+  {
     "version": "7.143.0",
     "date": "2026-07-21",
     "type": "minor",
