@@ -1,11 +1,14 @@
 import { useEffect, useState, useMemo, useTransition, type ElementType } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { CalendarDays, FleetIcon, UsersIcon, DocumentIcon, BookOpen, ScrollText, DeliveryIcon, ClipboardCheck, InvoiceIcon, MaintenanceIcon, WarnIcon, InventoryIcon, SupplierIcon, ExpenseIcon, ChartIcon, ActivityIcon, HistoryIcon, SettingsIcon, CompanyIcon, SecurityIcon, HelpIcon, TargetIcon, DashboardIcon, SearchIcon, SpinnerIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command";
+import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { supabase } from "@/integrations/supabase/client";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { routeLoaders } from "@/routes/routes-config";
 
@@ -39,8 +42,66 @@ const ITEMS: Item[] = [
   { title: "Ayuda", url: "/help", icon: HelpIcon, group: "Administración" },
 ];
 
+// Bloque 5.1 (R4): resultados de entidades (facturas / clientes / reservas).
+// Se dispara con debounce de 200ms para input ≥ 2 chars, 5 por entidad.
+interface EntityHit {
+  id: string;
+  label: string;
+  sub?: string;
+  url: string;
+}
+type EntityResults = { invoices: EntityHit[]; customers: EntityHit[]; bookings: EntityHit[] };
+
+async function searchEntities(query: string): Promise<EntityResults> {
+  const q = query.trim();
+  if (q.length < 2) return { invoices: [], customers: [], bookings: [] };
+  const like = `%${q}%`;
+  const [invRes, custRes, bookRes] = await Promise.all([
+    supabase
+      .from("invoices")
+      .select("id, invoice_number, customer_name, total")
+      .or(`invoice_number.ilike.${like},customer_name.ilike.${like}`)
+      .order("created_at", { ascending: false })
+      .limit(5),
+    supabase
+      .from("customers")
+      .select("id, name, rfc")
+      .or(`name.ilike.${like},rfc.ilike.${like}`)
+      .order("name")
+      .limit(5),
+    supabase
+      .from("bookings")
+      .select("id, booking_number, customer_name")
+      .or(`booking_number.ilike.${like},customer_name.ilike.${like}`)
+      .order("created_at", { ascending: false })
+      .limit(5),
+  ]);
+  return {
+    invoices: (invRes.data ?? []).map((i) => ({
+      id: i.id,
+      label: i.invoice_number,
+      sub: i.customer_name ?? undefined,
+      url: `/invoices/${i.id}`,
+    })),
+    customers: (custRes.data ?? []).map((c) => ({
+      id: c.id,
+      label: c.name,
+      sub: c.rfc ?? undefined,
+      url: `/customers/${c.id}`,
+    })),
+    bookings: (bookRes.data ?? []).map((b) => ({
+      id: b.id,
+      label: b.booking_number,
+      sub: b.customer_name ?? undefined,
+      url: `/bookings/${b.id}`,
+    })),
+  };
+}
+
 export function GlobalSearch() {
   const [open, setOpen] = useState(false);
+  const [input, setInput] = useState("");
+  const debouncedInput = useDebouncedValue(input, 200);
   const navigate = useNavigateTransition();
   const [isPending, startTransition] = useTransition();
 
@@ -49,7 +110,7 @@ export function GlobalSearch() {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
         const tag = (document.activeElement?.tagName || "").toLowerCase();
         const isInput = tag === "input" || tag === "textarea" || (document.activeElement as HTMLElement)?.isContentEditable;
-        if (isInput) return; // dejar a SearchBar de la página
+        if (isInput) return;
         e.preventDefault();
         setOpen((o) => !o);
       }
@@ -57,6 +118,10 @@ export function GlobalSearch() {
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
   }, []);
+
+  useEffect(() => {
+    if (!open) setInput("");
+  }, [open]);
 
   const groups = useMemo(() => {
     const map = new Map<string, Item[]>();
@@ -67,6 +132,15 @@ export function GlobalSearch() {
     });
     return [...map.entries()];
   }, []);
+
+  const entityQuery = useQuery({
+    queryKey: ["global-search", debouncedInput],
+    queryFn: () => searchEntities(debouncedInput),
+    enabled: open && debouncedInput.trim().length >= 2,
+    staleTime: 30_000,
+  });
+  const entities = entityQuery.data;
+  const hasEntities = !!entities && (entities.invoices.length + entities.customers.length + entities.bookings.length > 0);
 
   const go = (url: string) => {
     setOpen(false);
@@ -97,7 +171,13 @@ export function GlobalSearch() {
       </Button>
 
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Buscar módulo o ir a…" />
+        {/* shouldFilter=false: entidades se filtran server-side; para páginas
+            usamos el `value` que incluye keywords y cmdk filtra localmente. */}
+        <CommandInput
+          placeholder="Buscar módulo, factura, cliente o reserva…"
+          value={input}
+          onValueChange={setInput}
+        />
         <CommandList>
           <CommandEmpty>
             <div className="flex flex-col items-center gap-1 py-4 text-xs text-muted-foreground">
@@ -105,6 +185,41 @@ export function GlobalSearch() {
               <span className="opacity-70">Prueba con otro término o revisa la ortografía.</span>
             </div>
           </CommandEmpty>
+
+          {hasEntities && entities.invoices.length > 0 && (
+            <CommandGroup heading="Facturas">
+              {entities.invoices.map((e) => (
+                <CommandItem key={e.id} value={`fac ${e.label} ${e.sub ?? ""}`} onSelect={() => go(e.url)} disabled={isPending}>
+                  <InvoiceIcon className="mr-2 h-4 w-4" />
+                  <span className="font-mono text-xs">{e.label}</span>
+                  {e.sub ? <span className="ml-2 text-muted-foreground text-xs truncate">{e.sub}</span> : null}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+          {hasEntities && entities.customers.length > 0 && (
+            <CommandGroup heading="Clientes">
+              {entities.customers.map((e) => (
+                <CommandItem key={e.id} value={`cli ${e.label} ${e.sub ?? ""}`} onSelect={() => go(e.url)} disabled={isPending}>
+                  <UsersIcon className="mr-2 h-4 w-4" />
+                  <span>{e.label}</span>
+                  {e.sub ? <span className="ml-2 text-muted-foreground text-xs font-mono">{e.sub}</span> : null}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+          {hasEntities && entities.bookings.length > 0 && (
+            <CommandGroup heading="Reservas">
+              {entities.bookings.map((e) => (
+                <CommandItem key={e.id} value={`rsv ${e.label} ${e.sub ?? ""}`} onSelect={() => go(e.url)} disabled={isPending}>
+                  <BookOpen className="mr-2 h-4 w-4" />
+                  <span className="font-mono text-xs">{e.label}</span>
+                  {e.sub ? <span className="ml-2 text-muted-foreground text-xs truncate">{e.sub}</span> : null}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          )}
+
           {groups.map(([group, items]) => (
             <CommandGroup key={group} heading={group}>
               {items.map((item) => (
@@ -128,10 +243,10 @@ export function GlobalSearch() {
             <span><kbd className="rounded border bg-muted px-1 font-mono">Enter</kbd> abrir</span>
             <span><kbd className="rounded border bg-muted px-1 font-mono">Esc</kbd> cerrar</span>
           </div>
-          {isPending ? (
+          {isPending || entityQuery.isFetching ? (
             <span className="flex items-center gap-1 text-primary">
               <SpinnerIcon className="h-3 w-3 animate-spin" />
-              Cargando…
+              {entityQuery.isFetching ? "Buscando…" : "Cargando…"}
             </span>
           ) : null}
         </div>
@@ -139,4 +254,3 @@ export function GlobalSearch() {
     </>
   );
 }
-
