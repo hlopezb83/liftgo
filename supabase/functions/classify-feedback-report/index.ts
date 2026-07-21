@@ -112,46 +112,28 @@ Elige el módulo más probable basándote en la URL y la descripción. Si nada e
 
 Responde estrictamente con JSON: {"severity": "...", "module": "...", "reasoning": "1-2 frases en español"}`;
 
-    const aiResp = await fetch(
-      "https://ai.gateway.lovable.dev/v1/chat/completions",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${lovableKey}`,
-        },
-        body: JSON.stringify({
-          model: "google/gemini-2.5-flash",
-          messages: [
-            {
-              role: "system",
-              content:
-                "Devuelve únicamente JSON válido. Sin markdown, sin explicación adicional.",
-            },
-            { role: "user", content: prompt },
-          ],
-          response_format: { type: "json_object" },
-        }),
-      },
-    );
-
-    if (!aiResp.ok) {
-      const errText = await aiResp.text();
-      if (aiResp.status === 429) {
-        return jsonError(
-          req,
-          429,
-          "Rate limit excedido, intenta de nuevo en unos segundos",
-        );
+    let rawContent = "";
+    try {
+      const { text } = await aiChatCompletion({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "system",
+            content:
+              "Devuelve únicamente JSON válido. Sin markdown, sin explicación adicional.",
+          },
+          { role: "user", content: prompt },
+        ],
+        responseFormat: { type: "json_object" },
+      });
+      rawContent = text ?? "";
+    } catch (aiErr) {
+      if (aiErr instanceof AiGatewayError) {
+        return jsonError(req, aiErr.status, aiErr.message);
       }
-      if (aiResp.status === 402) {
-        return jsonError(req, 402, "Créditos de AI agotados");
-      }
-      return jsonError(req, 500, `AI gateway error: ${errText.slice(0, 200)}`);
+      throw aiErr;
     }
 
-    const aiJson = await aiResp.json();
-    const rawContent = aiJson?.choices?.[0]?.message?.content ?? "";
     let classification: z.infer<typeof ClassificationSchema>;
     try {
       const parsedAi = JSON.parse(rawContent);
