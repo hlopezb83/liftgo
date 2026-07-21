@@ -1,6 +1,6 @@
 import { handleCors } from "../_shared/cors.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
-import { requireRole } from "../_shared/auth.ts";
+import { requireServiceOrRole } from "../_shared/auth.ts";
 import { isNonEmptyString, isUUID } from "../_shared/validate.ts";
 import {
   createFacturapiClient,
@@ -15,7 +15,9 @@ Deno.serve(async (req) => {
   if (corsRes) return corsRes;
 
   try {
-    const auth = await requireRole(req, ["admin", "administrativo"]);
+    // EC-A1: requireServiceOrRole = requireRole + bypass service_role JWT para
+    // el consumer de cfdi_retry_queue (mismo patrón que stamp-cfdi).
+    const auth = await requireServiceOrRole(req, ["admin", "administrativo"]);
     if (!auth.ok) return auth.response;
     const supabase = auth.adminClient;
 

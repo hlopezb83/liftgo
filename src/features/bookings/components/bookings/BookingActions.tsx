@@ -19,7 +19,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
     newEndDate, setNewEndDate,
     extendPreview,
     handleDelete, handleCancel, handleStatusChange, handleExtend,
-    updateBookingPending,
+    extendBookingPending,
   } = useBookingActionsLogic(booking);
 
   const [deleteOpen, setDeleteOpen] = useState(false);
@@ -111,7 +111,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
         newEndDate={newEndDate}
         setNewEndDate={setNewEndDate}
         extendPreview={extendPreview}
-        isPending={updateBookingPending}
+        isPending={extendBookingPending}
         onExtend={() => handleExtend(() => setExtendOpen(false))}
       />
 

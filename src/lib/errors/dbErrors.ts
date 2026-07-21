@@ -10,6 +10,9 @@
 const STALE_WRITE_MESSAGE =
   "Este registro fue modificado en otra pestaña o por otro usuario. Recarga los datos para ver los cambios más recientes.";
 
+const OVERLAP_MESSAGE =
+  "Las fechas se traslapan con otra reserva o con mantenimiento programado.";
+
 export interface TranslatedDbError {
   title: string;
   message: string;
@@ -44,6 +47,23 @@ export function translateDbError(
     return {
       title: "Cambios no guardados",
       message: STALE_WRITE_MESSAGE,
+      severity: "warning",
+      matched: true,
+    };
+  }
+
+  // BL-A2: la exclusion constraint `no_overlapping_bookings` (SQLSTATE 23P01)
+  // es la red de seguridad de extend_booking/create_booking ante carreras.
+  // El mensaje crudo de Postgres ("conflicting key value violates exclusion
+  // constraint") no es accionable; se traduce a copy de negocio.
+  if (
+    raw.includes("no_overlapping_bookings") ||
+    raw.includes("23P01") ||
+    raw.toLowerCase().includes("exclusion constraint")
+  ) {
+    return {
+      title: fallbackTitle,
+      message: OVERLAP_MESSAGE,
       severity: "warning",
       matched: true,
     };

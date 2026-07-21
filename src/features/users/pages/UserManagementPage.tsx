@@ -27,7 +27,7 @@ type UserItem = UserRow & { id?: string };
 export default function UserManagementPage() {
   const navigate = useNavigateTransition();
   const { user: currentUser } = useAuth();
-  const { data: users, isLoading } = useUsersWithRoles();
+  const { data: users, isLoading, isError, refetch } = useUsersWithRoles();
   const toggleStatus = useToggleStatus();
 
   const dialogs = useUserManagementDialogs();
@@ -88,6 +88,8 @@ export default function UserManagementPage() {
           </div>
         }
         isLoading={isLoading}
+        isError={isError}
+        onRetry={() => { void refetch(); }}
         table={table}
         emptyMessage="No hay usuarios"
         emptyIcon={UsersIcon}

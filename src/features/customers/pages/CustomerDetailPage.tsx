@@ -1,10 +1,12 @@
 import { useParams } from "react-router";
 import { NotesCard } from "@/components/domain/NotesCard";
+import { EmptyState } from "@/components/feedback/EmptyState";
 import { UserPlus, EditIcon, DeleteIcon, FileDown } from "@/components/icons";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { CustomerBookingsHistory } from "../components/customer-detail/CustomerBookingsHistory";
 import { CustomerContactCard } from "../components/customer-detail/CustomerContactCard";
@@ -18,6 +20,7 @@ import { useCustomerDetailPage } from "../hooks/customers/useCustomerDetailPage"
 
 export default function CustomerDetailPage() {
   const { id } = useParams();
+  const navigate = useNavigateTransition();
   const s = useCustomerDetailPage(id);
 
   const handleExportStatement = async () => {
@@ -32,7 +35,17 @@ export default function CustomerDetailPage() {
   };
 
   if (s.isLoading) return <PageContainer><Skeleton className="h-96" /></PageContainer>;
-  if (!s.customer) return <PageContainer><p className="text-muted-foreground">Cliente no encontrado</p></PageContainer>;
+  if (!s.customer) {
+    return (
+      <PageContainer>
+        <EmptyState
+          title="Cliente no encontrado"
+          actionLabel="Volver"
+          onAction={() => navigate("/customers")}
+        />
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer maxWidth="wide">

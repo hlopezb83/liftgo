@@ -4,7 +4,12 @@
 // requieren mockear el SDK. La rama con token válido se cubre indirectamente
 // via los tests smoke de cada edge function que usa el helper.
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { generateSecurePassword, requireAuth, requireRole } from "./auth.ts";
+import {
+  generateSecurePassword,
+  requireAuth,
+  requireRole,
+  requireServiceOrRole,
+} from "./auth.ts";
 
 function makeReq(headers: Record<string, string> = {}) {
   return new Request("http://localhost/test", { method: "POST", headers });
@@ -28,6 +33,20 @@ Deno.test("requireAuth: Authorization sin 'Bearer ' → 401", async () => {
 
 Deno.test("requireRole: propaga 401 de requireAuth sin llamar a la DB", async () => {
   const res = await requireRole(makeReq(), ["admin"]);
+  assertEquals(res.ok, false);
+  if (!res.ok) assertEquals(res.response.status, 401);
+});
+
+Deno.test("requireServiceOrRole: sin Authorization → 401", async () => {
+  const res = await requireServiceOrRole(makeReq(), ["admin"]);
+  assertEquals(res.ok, false);
+  if (!res.ok) assertEquals(res.response.status, 401);
+});
+
+Deno.test("requireServiceOrRole: Authorization sin 'Bearer ' → 401", async () => {
+  const res = await requireServiceOrRole(makeReq({ Authorization: "Basic abc" }), [
+    "admin",
+  ]);
   assertEquals(res.ok, false);
   if (!res.ok) assertEquals(res.response.status, 401);
 });

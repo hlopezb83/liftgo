@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useParams } from "react-router";
 import { NotesCard } from "@/components/domain/NotesCard";
+import { EmptyState } from "@/components/feedback/EmptyState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -49,7 +50,15 @@ export default function DeliveryDetail() {
   }
 
   if (!delivery) {
-    return <div className="flex flex-col items-center justify-center h-[60vh]"><p className="text-muted-foreground">Entrega no encontrada</p></div>;
+    return (
+      <PageContainer>
+        <EmptyState
+          title="Entrega no encontrada"
+          actionLabel="Volver"
+          onAction={() => navigate("/deliveries")}
+        />
+      </PageContainer>
+    );
   }
 
   const forklift = forkliftMap.get(delivery.forklift_id);

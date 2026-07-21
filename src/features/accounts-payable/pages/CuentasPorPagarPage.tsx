@@ -20,7 +20,7 @@ import { useAccountsPayableKpis } from "../hooks/useAccountsPayableKpis";
 import type { SupplierBillListItem } from "../hooks/useSupplierBills";
 
 export default function CuentasPorPagarPage() {
-  const { bills, kpis, isLoading } = useAccountsPayableKpis();
+  const { bills, kpis, isLoading, isError, refetch } = useAccountsPayableKpis();
   const { data: suppliers } = useSuppliers();
   const f = useAccountsPayableFilters(bills);
   const createDialog = useToggleDialog();
@@ -63,6 +63,8 @@ export default function CuentasPorPagarPage() {
         }
         filters={<SupplierBillsFilters filters={f} kpis={kpis} suppliers={suppliers} />}
         isLoading={isLoading}
+        isError={isError}
+        onRetry={() => { void refetch(); }}
         table={table}
         onRowClick={(b) => setSelectedId(b.id)}
         hasActiveFilters={f.hasActive}

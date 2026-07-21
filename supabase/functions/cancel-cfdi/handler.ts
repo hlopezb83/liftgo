@@ -8,6 +8,10 @@ import {
   describeFacturapiError,
   getFacturapiConfig,
 } from "../_shared/facturapi/client.ts";
+import {
+  enqueueCfdiRetry,
+  isTransientFacturapiError,
+} from "../_shared/cfdiRetryQueue.ts";
 
 export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 const VALID_MOTIVES = new Set(["01", "02", "03", "04"]);
@@ -46,23 +50,35 @@ export async function handleCancelCfdi(
     const callerClient = deps.createCallerClient(authHeader);
     const { data: claimsData, error: claimsErr } = await callerClient.auth
       .getClaims(token);
-    if (claimsErr || !claimsData?.claims?.sub) {
+    if (claimsErr || !claimsData?.claims) {
       return json({ error: "Unauthorized" }, 401);
     }
-    const userId = claimsData.claims.sub;
+    const claims = claimsData.claims as Record<string, unknown>;
+    // EC-A1: bypass de user-role para el consumidor interno de la cola de
+    // reintentos (mismo patrón que stamp-cfdi/handler.ts). Solo el
+    // service_role JWT del backend puede saltar la verificación de rol de
+    // usuario; cualquier otro token cae al flujo normal. Sin este bypass el
+    // consumer de cfdi_retry_queue recibiría 401 al reintentar cancelaciones.
+    const isServiceRole = claims.role === "service_role";
+    const userId = (claims.sub as string | undefined) ?? "";
 
     const supabase = deps.createServiceClient();
-    const rolesRes = await supabase.from("user_roles").select("role").eq(
-      "user_id",
-      userId,
-    );
-    const roles = (rolesRes as { data: unknown }).data as
-      | Array<{ role: string }>
-      | null;
-    const allowed = (roles ?? []).some((r) =>
-      r.role === "admin" || r.role === "administrativo"
-    );
-    if (!allowed) return json({ error: "Forbidden" }, 403);
+    if (!isServiceRole) {
+      if (!userId) {
+        return json({ error: "Unauthorized" }, 401);
+      }
+      const rolesRes = await supabase.from("user_roles").select("role").eq(
+        "user_id",
+        userId,
+      );
+      const roles = (rolesRes as { data: unknown }).data as
+        | Array<{ role: string }>
+        | null;
+      const allowed = (roles ?? []).some((r) =>
+        r.role === "admin" || r.role === "administrativo"
+      );
+      if (!allowed) return json({ error: "Forbidden" }, 403);
+    }
 
     const body = await req.json().catch(() => ({}));
     const { invoice_id, motive, substitution_uuid, cancellation_reason } =
@@ -202,10 +218,30 @@ export async function handleCancelCfdi(
           : "pending";
       } catch (err) {
         const desc = describeFacturapiError(err);
+        // BL-44: encolar reintento solo si el error es transitorio (5xx / red /
+        // 429) — la cancelación NO llegó al SAT, así que reintentar es seguro.
+        // El payload va plano: el consumer de la cola lo esparce tal cual al
+        // reinvocar esta función (junto con invoice_id) y `motive` es
+        // obligatorio en cada llamada.
+        if (isTransientFacturapiError(desc)) {
+          await enqueueCfdiRetry(supabase, {
+            operation: "cancel",
+            invoiceId: invoice_id as string,
+            payload: {
+              motive,
+              ...(motive === "01" && substitution_uuid
+                ? { substitution_uuid }
+                : {}),
+              ...(cancellation_reason ? { cancellation_reason } : {}),
+            },
+            errorMessage: `${desc.code ?? ""} ${desc.message}`.trim(),
+          });
+        }
         return json(
           {
             error: `Facturapi cancel error: ${desc.status}`,
             detail: desc.detail,
+            transient: isTransientFacturapiError(desc),
           },
           502,
         );

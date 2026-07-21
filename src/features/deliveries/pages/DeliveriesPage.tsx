@@ -13,7 +13,7 @@ type Delivery = NonNullable<ReturnType<typeof useDeliveries>["data"]>[number];
 export default function DeliveriesPage() {
   const navigate = useNavigateTransition();
   const { forkliftMap } = useForkliftMap();
-  const { data: deliveries, isLoading } = useDeliveries();
+  const { data: deliveries, isLoading, isError, refetch } = useDeliveries();
 
   const columns: ColumnDef<Delivery>[] = [
       {
@@ -66,6 +66,8 @@ export default function DeliveriesPage() {
       totalCount={deliveries?.length}
       actions={<DeliveryFormDialog />}
       isLoading={isLoading}
+      isError={isError}
+      onRetry={() => { void refetch(); }}
       table={table}
       onRowClick={(d) => navigate(`/deliveries/${d.id}`)}
       onRowPrefetch={(d) => deliveryQueries.detail(d.id)}

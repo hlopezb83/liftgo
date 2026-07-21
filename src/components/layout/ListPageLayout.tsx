@@ -270,7 +270,7 @@ function TableContent<T extends { id?: string }>({
       <EmptyState
         icon={emptyIcon}
         title={emptyMessage}
-        subtitle="Aún no se han registrado registros aquí."
+        subtitle="Aún no hay registros aquí."
         actionLabel={emptyActionLabel}
         onAction={onEmptyAction}
       />

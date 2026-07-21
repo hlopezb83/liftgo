@@ -1,4 +1,6 @@
 // EC-A2 — Cron: recupera facturas atascadas en cfdi_status='stamping'.
+// Lo invoca pg_cron cada 5 minutos vía net.http_post (migración
+// 20260721000000_retry_queue_cron.sql) con `Authorization: Bearer $CRON_SECRET`.
 //
 // Escenario: stamp-cfdi persistió facturapi_invoice_id + cfdi_uuid pero antes
 // del UPDATE final (descarga XML/PDF + set stamped) el proceso murió/timeout.
@@ -68,7 +70,7 @@ Deno.serve(async (req) => {
   const { data: rows, error } = await admin
     .from("invoices")
     .select(
-      "id, cfdi_uuid, facturapi_invoice_id, serie, folio, updated_at",
+      "id, cfdi_uuid, facturapi_invoice_id, serie, folio, updated_at, stamping_attempts",
     )
     .eq("cfdi_status", "stamping")
     .lt("updated_at", cutoff)
@@ -194,6 +196,7 @@ Deno.serve(async (req) => {
         continue;
       }
 
+      // 4. RPC idempotente — solo con el XML ya descargado.
       const { error: rpcErr } = await admin.rpc(
         "reconcile_stamping_invoice",
         {

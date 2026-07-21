@@ -8,6 +8,7 @@ import {
   binaryToBytes,
   binaryToText,
   createFacturapiClient,
+  createInvoiceWithSignal,
   describeFacturapiError,
   getFacturapiConfig,
   retryOnFacturapi5xx,
@@ -32,6 +33,30 @@ export { sanitizeLegalName };
 
 // Re-export para compatibilidad con consumidores existentes.
 export type { QueryBuilderLike, SupabaseLike };
+
+// BL-A5: tolerancia de comparación entre el total local y el total timbrado
+// (1 centavo, por redondeos de centavos que el PAC aplica por línea).
+export const STAMP_VARIANCE_TOLERANCE = 0.01;
+
+// BL-A5 (v7.114.0 prometido, ahora real): comparación pura y testeable entre
+// invoices.total y el total devuelto por Facturapi tras timbrar. Devuelve
+// null cuando alguno de los dos no es un número finito (p. ej. mocks o
+// respuestas sin `total`): en ese caso no hay nada que reconciliar y el
+// flujo continúa sin registrar varianza.
+export function computeStampVariance(
+  invoiceTotal: unknown,
+  stampedTotal: unknown,
+): { variance: number; withinTolerance: boolean } | null {
+  if (invoiceTotal == null || stampedTotal == null) return null;
+  const expected = Number(invoiceTotal);
+  const stamped = Number(stampedTotal);
+  if (!Number.isFinite(expected) || !Number.isFinite(stamped)) return null;
+  const variance = Math.round((stamped - expected) * 10000) / 10000;
+  return {
+    variance,
+    withinTolerance: Math.abs(variance) <= STAMP_VARIANCE_TOLERANCE,
+  };
+}
 
 export interface StampCfdiDeps {
   createCallerClient: (authHeader: string) => SupabaseLike;
@@ -474,6 +499,8 @@ export async function handleStampCfdi(
         502,
         jsonHeaders,
       );
+    } finally {
+      clearTimeout(stampTimeoutId);
     }
 
     const facturApiId = facturApiInvoice.id;
@@ -576,13 +603,41 @@ export async function handleStampCfdi(
       });
     }
 
+    // BL-A5: reconciliación del total timbrado. Facturapi redondea
+    // descuentos/impuestos por línea de forma distinta a la app; si el total
+    // timbrado difiere de invoices.total se REGISTRA la varianza (columnas
+    // stamp_variance*) sin romper el flujo 'stamped' — solo warning en
+    // cfdi_error_message + console.error para auditoría fiscal.
+    const stampedTotal = (facturApiInvoice as { total?: unknown }).total;
+    const varianceCheck = computeStampVariance(inv.total, stampedTotal);
+    if (varianceCheck && !varianceCheck.withinTolerance) {
+      console.error("[stamp-cfdi] BL-A5 stamp variance detectada", {
+        invoice_id,
+        invoice_total: inv.total,
+        stamped_total: stampedTotal,
+        variance: varianceCheck.variance,
+      });
+    }
+
     const updRes = await supabase.from("invoices").update({
       cfdi_uuid: cfdiUuid,
       cfdi_xml: cfdiXml,
       cfdi_xml_url: xmlStoragePath,
       cfdi_pdf_url: pdfStoragePath,
       cfdi_status: "stamped",
-      cfdi_error_message: null,
+      cfdi_error_message: varianceCheck && !varianceCheck.withinTolerance
+        ? `Advertencia BL-A5: el total timbrado (${
+          Number(stampedTotal).toFixed(2)
+        }) difiere del total de la factura (${
+          Number(inv.total).toFixed(2)
+        }); varianza ${varianceCheck.variance.toFixed(2)}.`
+        : null,
+      ...(varianceCheck
+        ? {
+          stamp_variance: varianceCheck.variance,
+          stamp_variance_checked_at: new Date().toISOString(),
+        }
+        : {}),
       facturapi_invoice_id: facturApiId,
       facturapi_env: mode === "live" ? "live" : "test",
       stamp_variance: variance,

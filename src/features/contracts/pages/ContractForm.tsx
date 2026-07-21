@@ -102,14 +102,12 @@ export default function ContractForm() {
                   <Label>Ubicación de Uso del Equipo</Label>
                   <Input {...register("usage_location")} placeholder="Dirección donde operará el montacargas" />
                 </div>
-                <div>
-                  <Label>Horas Máximas por Mes</Label>
-                  <Input type="number" {...register("max_hours_per_month")} placeholder="Ej. 200" />
-                </div>
-                <div>
-                  <Label>Tarifa por Hora Extra ($)</Label>
-                  <Input type="number" step="0.01" {...register("extra_hour_rate")} placeholder="Ej. 150.00" />
-                </div>
+                <FormField control={control} name="max_hours_per_month" render={({ field }) => (
+                  <FormItem><FormLabel>Horas Máximas por Mes</FormLabel><FormControl><Input type="number" placeholder="Ej. 200" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
+                <FormField control={control} name="extra_hour_rate" render={({ field }) => (
+                  <FormItem><FormLabel>Tarifa por Hora Extra ($)</FormLabel><FormControl><Input type="number" step="0.01" placeholder="Ej. 150.00" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
                 <FormField control={control} name="payment_frequency" render={({ field }) => (
                   <FormItem>
                     <FormLabel>Frecuencia de Pago</FormLabel>
@@ -123,10 +121,9 @@ export default function ContractForm() {
                     <FormMessage />
                   </FormItem>
                 )} />
-                <div>
-                  <Label>Interés Moratorio (%)</Label>
-                  <Input type="number" step="0.1" {...register("late_interest_rate")} placeholder="Ej. 5" />
-                </div>
+                <FormField control={control} name="late_interest_rate" render={({ field }) => (
+                  <FormItem><FormLabel>Interés Moratorio (%)</FormLabel><FormControl><Input type="number" step="0.1" placeholder="Ej. 5" {...field} /></FormControl><FormMessage /></FormItem>
+                )} />
                 <div>
                   <Label>Ciudad del Contrato</Label>
                   <Input {...register("contract_city")} />

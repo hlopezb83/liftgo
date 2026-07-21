@@ -13,7 +13,8 @@ interface FormSkeletonProps {
  */
 export function FormSkeleton({ fields = 6, showActions = true }: FormSkeletonProps) {
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" role="status">
+      <span className="sr-only">Cargando…</span>
       {Array.from({ length: fields }, (_, i) => (
         <div key={i} className="space-y-1.5">
           <Skeleton className="h-3.5 w-24" />

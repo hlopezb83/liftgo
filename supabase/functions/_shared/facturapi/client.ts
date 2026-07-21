@@ -96,6 +96,38 @@ export function createFacturapiClient(apiKey: string): FacturapiClient {
 }
 
 /**
+ * EC-A2: timbra una factura soportando AbortSignal (timeout con abort real).
+ *
+ * `invoices.create()` del SDK no acepta `signal`, pero el wrapper HTTP interno
+ * (campo público `client` del recurso, tipado como WrapperClient en el paquete)
+ * esparce las opciones extra en el RequestInit del fetch subyacente — verificado
+ * en facturapi@4.18.0 (`request()` hace `{...rest, headers, body}`). Llamamos al
+ * wrapper directamente y así el AbortController sí cancela el socket en vuelo.
+ *
+ * Si el cliente no expone el wrapper (p. ej. un mock distinto en tests), cae al
+ * método estándar del SDK sin signal.
+ */
+export async function createInvoiceWithSignal(
+  client: FacturapiClient,
+  payload: Record<string, unknown>,
+  opts: { signal?: AbortSignal } = {},
+): Promise<{ id: string; uuid: string }> {
+  const wrapper = client?.invoices?.client;
+  if (wrapper && typeof wrapper.post === "function") {
+    const init: Record<string, unknown> = { body: payload };
+    if (opts.signal) init.signal = opts.signal;
+    return (await wrapper.post("/invoices", init)) as {
+      id: string;
+      uuid: string;
+    };
+  }
+  return (await client.invoices.create(payload)) as {
+    id: string;
+    uuid: string;
+  };
+}
+
+/**
  * Normaliza errores del SDK a la forma `{ message, code, status, detail }`
  * que las funciones devuelven al cliente.
  */

@@ -3,7 +3,11 @@ import {
   assert,
   assertEquals,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { handleStampCfdi, type StampCfdiDeps } from "./handler.ts";
+import {
+  computeStampVariance,
+  handleStampCfdi,
+  type StampCfdiDeps,
+} from "./handler.ts";
 import {
   buildSupabaseMock,
   type MockConfig,
@@ -291,6 +295,164 @@ Deno.test("handler: Facturapi 400 returns 502 and marks invoice as error", async
       !serviceState.updates.some((u) => u.patch.cfdi_status === "stamped"),
       "must not mark invoice as stamped on PAC failure",
     );
+  } finally {
+    mock.restore();
+  }
+});
+
+Deno.test("computeStampVariance: null cuando falta algún total", () => {
+  assertEquals(computeStampVariance(null, 1160), null);
+  assertEquals(computeStampVariance(1160, undefined), null);
+  assertEquals(computeStampVariance(1160, "abc"), null);
+  assertEquals(computeStampVariance(1160, Number.NaN), null);
+});
+
+Deno.test("computeStampVariance: tolerancia de 1 centavo", () => {
+  const ok = computeStampVariance(1160, 1160);
+  assertEquals(ok, { variance: 0, withinTolerance: true });
+
+  const within = computeStampVariance(1160, 1160.01);
+  assertEquals(within, { variance: 0.01, withinTolerance: true });
+
+  const beyond = computeStampVariance(1160, 1160.02);
+  assertEquals(beyond, { variance: 0.02, withinTolerance: false });
+
+  const negative = computeStampVariance(1160, 1159.5);
+  assertEquals(negative, { variance: -0.5, withinTolerance: false });
+});
+
+Deno.test("handler: BL-A5 registra varianza sin romper el flujo stamped", async () => {
+  const mock = installFacturapiMock({
+    "/invoices": (req) => {
+      if (req.method === "POST") {
+        // Facturapi timbró con un total distinto al local (redondeo de descuentos).
+        return facturapiOk({
+          id: "fapi_var",
+          uuid: "CFDI-UUID-VAR",
+          total: 1160.49,
+        });
+      }
+      return new Response("not found", { status: 404 });
+    },
+    "/invoices/fapi_var/xml": () => xmlResponse("<xml/>"),
+    "/invoices/fapi_var/pdf": () =>
+      pdfResponse(new Uint8Array([0x25, 0x50, 0x44, 0x46])),
+  });
+
+  try {
+    const { deps, serviceState } = makeDeps({
+      env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
+      fetchImpl: globalThis.fetch,
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          invoices: {
+            data: {
+              id: INVOICE_ID,
+              total: 1160,
+              subtotal: 1000,
+              tax_rate: 16,
+              line_items: [{
+                description: "Renta",
+                quantity: 1,
+                unit_price: 1000,
+              }],
+              receptor_rfc: "AAA010101AAA",
+            },
+            error: null,
+          },
+          company_settings: { data: { facturapi_mode: "test" }, error: null },
+          billing_secrets: { data: null, error: null },
+        },
+        updates: { invoices: { data: null, error: null } },
+      },
+    });
+
+    const res = await handleStampCfdi(
+      makeRequest({ invoice_id: INVOICE_ID }),
+      deps,
+    );
+    const body = await res.json();
+    // El flujo stamped NO se rompe por la varianza.
+    assertEquals(res.status, 200);
+    assertEquals(body.success, true);
+    assertEquals(body.cfdi_uuid, "CFDI-UUID-VAR");
+
+    const stampUpdate = serviceState.updates.find((u) =>
+      u.table === "invoices" && u.patch.cfdi_status === "stamped"
+    );
+    assert(stampUpdate, "expected a stamped update on invoices");
+    // La varianza queda registrada y el warning va en cfdi_error_message.
+    assertEquals(stampUpdate!.patch.stamp_variance, 0.49);
+    assert(
+      typeof stampUpdate!.patch.stamp_variance_checked_at === "string",
+      "expected stamp_variance_checked_at to be populated",
+    );
+    assert(
+      String(stampUpdate!.patch.cfdi_error_message).includes("BL-A5"),
+      "expected a BL-A5 warning in cfdi_error_message",
+    );
+  } finally {
+    mock.restore();
+  }
+});
+
+Deno.test("handler: BL-A5 totales iguales registran varianza cero sin warning", async () => {
+  const mock = installFacturapiMock({
+    "/invoices": (req) => {
+      if (req.method === "POST") {
+        return facturapiOk({ id: "fapi_ok2", uuid: "CFDI-UUID-OK2", total: 1160 });
+      }
+      return new Response("not found", { status: 404 });
+    },
+    "/invoices/fapi_ok2/xml": () => xmlResponse("<xml/>"),
+    "/invoices/fapi_ok2/pdf": () =>
+      pdfResponse(new Uint8Array([0x25, 0x50, 0x44, 0x46])),
+  });
+
+  try {
+    const { deps, serviceState } = makeDeps({
+      env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
+      fetchImpl: globalThis.fetch,
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          invoices: {
+            data: {
+              id: INVOICE_ID,
+              total: 1160,
+              subtotal: 1000,
+              tax_rate: 16,
+              line_items: [{
+                description: "Renta",
+                quantity: 1,
+                unit_price: 1000,
+              }],
+              receptor_rfc: "AAA010101AAA",
+            },
+            error: null,
+          },
+          company_settings: { data: { facturapi_mode: "test" }, error: null },
+          billing_secrets: { data: null, error: null },
+        },
+        updates: { invoices: { data: null, error: null } },
+      },
+    });
+
+    const res = await handleStampCfdi(
+      makeRequest({ invoice_id: INVOICE_ID }),
+      deps,
+    );
+    const body = await res.json();
+    assertEquals(res.status, 200);
+    assertEquals(body.success, true);
+
+    const stampUpdate = serviceState.updates.find((u) =>
+      u.table === "invoices" && u.patch.cfdi_status === "stamped"
+    );
+    assert(stampUpdate, "expected a stamped update on invoices");
+    assertEquals(stampUpdate!.patch.stamp_variance, 0);
+    assertEquals(stampUpdate!.patch.cfdi_error_message, null);
   } finally {
     mock.restore();
   }

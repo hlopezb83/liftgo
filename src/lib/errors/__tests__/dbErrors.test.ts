@@ -26,4 +26,26 @@ describe("translateDbError", () => {
     expect(translateDbError({ message: "stale_write: bar" }, "X").matched).toBe(true);
     expect(translateDbError(null, "X").matched).toBe(false);
   });
+
+  it("BL-A2: traduce la exclusion constraint no_overlapping_bookings (23P01)", () => {
+    const err = new Error(
+      'conflicting key value violates exclusion constraint "no_overlapping_bookings"',
+    );
+    const result = translateDbError(err, "Error al extender reserva");
+    expect(result.matched).toBe(true);
+    expect(result.severity).toBe("warning");
+    expect(result.title).toBe("Error al extender reserva");
+    expect(result.message).toBe(
+      "Las fechas se traslapan con otra reserva o con mantenimiento programado.",
+    );
+  });
+
+  it("BL-A2: traduce cualquier exclusion violation aunque no nombre la constraint", () => {
+    const result = translateDbError(
+      { message: "conflicting key value violates exclusion constraint" },
+      "Error al extender reserva",
+    );
+    expect(result.matched).toBe(true);
+    expect(result.message).toMatch(/traslapan/);
+  });
 });

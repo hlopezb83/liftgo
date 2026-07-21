@@ -13,8 +13,14 @@ export interface MockUpdate {
   filters: Array<{ col: string; val: unknown }>;
 }
 
+export interface MockInsert {
+  table: string;
+  row: unknown;
+}
+
 export interface MockConfig {
-  claims?: { sub?: string } | null;
+  // claims crudos del JWT (sub, role, email...). null = token inválido.
+  claims?: ({ sub?: string } & Record<string, unknown>) | null;
   claimsError?: unknown;
   // keyed by table name: response for select-chains (single/maybeSingle/await)
   selects?: Record<string, TableResponse>;
@@ -29,6 +35,7 @@ export interface MockConfig {
 export interface MockState {
   client: SupabaseLike;
   updates: MockUpdate[];
+  inserts: MockInsert[];
   uploads: Array<{ bucket: string; path: string }>;
 }
 
@@ -36,6 +43,7 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
   const state: MockState = {
     client: undefined as unknown as SupabaseLike,
     updates: [],
+    inserts: [],
     uploads: [],
   };
 
@@ -60,7 +68,10 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
 
     const builder: QueryBuilderLike = {
       select: () => builder,
-      insert: () => builder,
+      insert: (rows) => {
+        state.inserts.push({ table, row: rows });
+        return builder;
+      },
       update: (p) => makeBuilder(table, "update", p),
       eq: (col, val) => {
         filters.push({ col, val });

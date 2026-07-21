@@ -1,10 +1,12 @@
 import { useParams } from "react-router";
+import { EmptyState } from "@/components/feedback/EmptyState";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { BookingWithForklift } from "@/features/bookings";
 import { useCompanySettings } from "@/features/company-settings";
 import { useQuote } from "@/features/quotes";
 import { useUserRole } from "@/features/users";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { parseLineItems } from "@/lib/domain/lineItems";
 import { InvoiceDetailBody } from "../components/invoice-detail/InvoiceDetailBody";
@@ -49,6 +51,7 @@ function deriveInvoiceData(
 
 export default function InvoiceDetail() {
   const { id } = useParams();
+  const navigate = useNavigateTransition();
   const { data: invoice, isLoading, refetch } = useInvoice(id);
   const { data: payments } = usePayments(id);
   const { data: creditNotes = [] } = useCreditNotesForInvoice(id);
@@ -71,7 +74,15 @@ export default function InvoiceDetail() {
     );
   }
   if (!invoice || !id) {
-    return <PageContainer><p className="text-muted-foreground">Factura no encontrada</p></PageContainer>;
+    return (
+      <PageContainer>
+        <EmptyState
+          title="Factura no encontrada"
+          actionLabel="Volver"
+          onAction={() => navigate("/invoices")}
+        />
+      </PageContainer>
+    );
   }
 
   const derived = deriveInvoiceData(invoice, payments, creditNotes, company);

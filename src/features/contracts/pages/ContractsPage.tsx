@@ -21,7 +21,7 @@ const CONTRACT_STATUS_OPTIONS = [
 type Contract = NonNullable<ReturnType<typeof useContracts>["data"]>[number];
 
 export default function ContractsPage() {
-  const { data: contracts, isLoading } = useContracts();
+  const { data: contracts, isLoading, isError, refetch } = useContracts();
   const navigate = useNavigateTransition();
 
   const { values, set, reset, hasActive, filtered } = useTableFilters<Contract, {
@@ -110,6 +110,8 @@ export default function ContractsPage() {
       }
 
       isLoading={isLoading}
+      isError={isError}
+      onRetry={() => { void refetch(); }}
       table={table}
       onRowClick={(c) => navigate(`/contracts/${c.id}`)}
       onRowPrefetch={(c) => contractQueries.detail(c.id)}
