@@ -42,7 +42,6 @@ interface StuckRow {
 // manual — evita loops eternos si Facturapi nunca produce el XML.
 const MAX_STAMPING_ATTEMPTS = 10;
 
-
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
@@ -216,7 +215,6 @@ Deno.serve(async (req) => {
         });
         continue;
       }
-
 
       // 4. RPC idempotente — solo con el XML ya descargado.
       const { error: rpcErr } = await admin.rpc(

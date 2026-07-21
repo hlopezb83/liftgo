@@ -24,7 +24,6 @@ interface QueueRow {
   status: string;
 }
 
-
 // EC-A1 fix: alineado con OPERATION en cfdi_retry_queue (`stamp | cancel |
 // cancel_nc | cancel_rep`) y con los nombres reales de las edge functions.
 // El mapping anterior apuntaba a `cancel-rep`, función inexistente.
@@ -139,7 +138,9 @@ Deno.serve(async (req) => {
 
   const { data: pendingRows, error } = await admin
     .from("cfdi_retry_queue")
-    .select("id, operation, invoice_id, attempts, max_attempts, payload, status")
+    .select(
+      "id, operation, invoice_id, attempts, max_attempts, payload, status",
+    )
     .eq("status", "pending")
     .lte("next_retry_at", nowIso)
     .order("next_retry_at", { ascending: true })
@@ -152,7 +153,9 @@ Deno.serve(async (req) => {
 
   const { data: staleRows, error: staleErr } = await admin
     .from("cfdi_retry_queue")
-    .select("id, operation, invoice_id, attempts, max_attempts, payload, status")
+    .select(
+      "id, operation, invoice_id, attempts, max_attempts, payload, status",
+    )
     .eq("status", "processing")
     .lt("updated_at", staleCutoff)
     .order("updated_at", { ascending: true })

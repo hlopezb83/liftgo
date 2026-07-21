@@ -455,7 +455,9 @@ Deno.test("cancel-cfdi: BL-44 Facturapi 500 encola reintento con payload plano",
     assertEquals(res.status, 502);
     assertEquals(body.transient, true);
     // La cancelación quedó encolada para el consumer.
-    const enq = serviceState.inserts.find((i) => i.table === "cfdi_retry_queue");
+    const enq = serviceState.inserts.find((i) =>
+      i.table === "cfdi_retry_queue"
+    );
     assert(enq, "expected an insert into cfdi_retry_queue");
     const row = enq!.row as Record<string, unknown>;
     assertEquals(row.operation, "cancel");
@@ -505,7 +507,9 @@ Deno.test("cancel-cfdi: BL-44 Facturapi 400 (negocio) NO encola reintento", asyn
     const body = await res.json();
     assertEquals(res.status, 502);
     assertEquals(body.transient, false);
-    const enq = serviceState.inserts.find((i) => i.table === "cfdi_retry_queue");
+    const enq = serviceState.inserts.find((i) =>
+      i.table === "cfdi_retry_queue"
+    );
     assertEquals(enq, undefined);
   } finally {
     mock.restore();

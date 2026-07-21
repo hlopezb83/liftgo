@@ -17,10 +17,7 @@ import {
   enqueueCfdiRetry,
   isTransientFacturapiError,
 } from "../_shared/cfdiRetryQueue.ts";
-import {
-  roundMoney,
-} from "../_shared/money.ts";
-
+import { roundMoney } from "../_shared/money.ts";
 
 // Mantenido por compatibilidad con consumidores existentes (tests, etc.).
 export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
@@ -591,7 +588,6 @@ export async function handleStampCfdi(
     // timbrado difiere de invoices.total se REGISTRA la varianza (columnas
     // stamp_variance*) sin romper el flujo 'stamped' — solo warning en
     // cfdi_error_message + console.error para auditoría fiscal.
-
 
     // BL-A5: reconciliación del total timbrado. Facturapi redondea
     // descuentos/impuestos por línea de forma distinta a la app; si el total

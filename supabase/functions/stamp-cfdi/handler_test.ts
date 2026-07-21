@@ -401,7 +401,11 @@ Deno.test("handler: BL-A5 totales iguales registran varianza cero sin warning", 
   const mock = installFacturapiMock({
     "/invoices": (req) => {
       if (req.method === "POST") {
-        return facturapiOk({ id: "fapi_ok2", uuid: "CFDI-UUID-OK2", total: 1160 });
+        return facturapiOk({
+          id: "fapi_ok2",
+          uuid: "CFDI-UUID-OK2",
+          total: 1160,
+        });
       }
       return new Response("not found", { status: 404 });
     },
