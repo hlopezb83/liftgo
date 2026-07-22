@@ -46,7 +46,7 @@ export default function BankReconciliationPage() {
   })();
 
   return (
-    <RoleGuard module="Facturas de Proveedor" minAccess="read">
+    <RoleGuard module="Conciliación Bancaria" minAccess="read">
       <PageTransition>
         <PageContainer>
           <PageHeader
