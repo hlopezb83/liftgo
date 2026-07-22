@@ -46,7 +46,7 @@ export function FinancialKpiCards({ mrr, utilizationPercent, dso, overdueTotal }
   ];
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
       {kpis.map((kpi) => (
         <KpiTile
           key={kpi.label}
