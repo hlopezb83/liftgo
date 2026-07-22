@@ -1,0 +1,22 @@
+{
+  "version": "7.169.0",
+  "date": "2026-07-22",
+  "title": "R7 Bloque 13 · Estado de cuenta muestra moneda por factura y totales en MXN",
+  "type": "minor",
+  "category": "feature",
+  "sections": [
+    {
+      "title": "Estado de cuenta PDF",
+      "items": [
+        "RPC `get_customer_summary` ahora expone `currency` y `tipo_cambio` por factura.",
+        "PDF del estado de cuenta agrega columna `Mon.` y formatea el total con el código de moneda real (MXN/USD)."
+      ]
+    },
+    {
+      "title": "Claridad en totales",
+      "items": [
+        "Etiquetas de resumen aclaran que los agregados (facturado, pagado, saldo) están normalizados a MXN usando el tipo de cambio de cada factura."
+      ]
+    }
+  ]
+}
