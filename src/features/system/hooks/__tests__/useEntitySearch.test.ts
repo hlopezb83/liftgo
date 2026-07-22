@@ -24,7 +24,7 @@ vi.mock("@/integrations/supabase/client", () => {
   };
 });
 
-const { searchEntities } = await import("@/layouts/GlobalSearch");
+const { searchEntities } = await import("@/features/system/hooks/useEntitySearch");
 
 describe("searchEntities", () => {
   beforeEach(() => vi.clearAllMocks());
