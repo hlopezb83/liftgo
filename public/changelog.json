@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.190.0",
+    "date": "2026-07-22",
+    "type": "minor",
+    "title": "Auditoría R8 · cierre Bloque 6 (moneda, duplicados, archivado seguro)",
+    "category": "improvement"
+  },
+  {
     "version": "7.189.0",
     "date": "2026-07-22",
     "type": "minor",

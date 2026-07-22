@@ -1,0 +1,15 @@
+{
+  "version": "7.190.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "Auditoría R8 · cierre Bloque 6 (moneda, duplicados, archivado seguro)",
+  "category": "improvement",
+  "changes": [
+    "Historial de pagos (R8·B6·#1): la columna Monto ahora muestra un badge con el código de moneda cuando el pago no es MXN, en paridad con el listado de facturas.",
+    "Listado de facturas (R8·B6·#3): la tarjeta móvil también muestra el badge de moneda junto al total (antes sólo aparecía en la vista de tabla).",
+    "Clientes (R8·B6·#6b): índice único parcial sobre RFC de `customers` (excluye vacíos, el genérico XAXX010101000 y archivados). Se archivó una fila duplicada histórica de 'TECNOLOGIAS EN EXTRUSION' sin dependencias para permitir la creación del índice.",
+    "Errores (R8·B6·#12): los toasts de duplicado ahora identifican el constraint específico ('Ya existe un operador con ese nombre', '...número de serie', '...fabricante y modelo', '...cliente con ese RFC') antes de caer al mensaje genérico.",
+    "Clientes (R8·B6·#16): al intentar archivar un cliente con rentas activas, ahora aparece un aviso ('El cliente tiene N renta(s) activa(s). Cancélalas o complétalas antes de archivar.') antes de llamar al RPC — se evita el error genérico posterior.",
+    "Dashboard (R8·B6·#8): el skeleton usa `gap-6` para alinearse con la grilla renderizada."
+  ]
+}

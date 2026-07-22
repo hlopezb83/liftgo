@@ -120,7 +120,7 @@ export default function CustomerDetailPage() {
         outstanding={s.outstanding}
         activeBookingsCount={s.activeBookingsCount}
         isPending={s.deleteCustomer.isPending}
-        onDelete={s.handleDelete}
+        onDelete={() => s.handleDelete(s.activeBookingsCount)}
       />
 
       <CustomerInviteDialog
