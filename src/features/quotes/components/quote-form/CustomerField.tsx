@@ -1,12 +1,12 @@
 import type { UseFormReturn } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { CustomerSelector, type Customer } from "@/features/customers";
+import type { QuoteFormValues } from "../../lib/quoteFormSchema";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- form es genérico QuoteFormValues
-type AnyForm = UseFormReturn<any>;
+type QuoteForm = UseFormReturn<QuoteFormValues>;
 
 interface Props {
-  form: AnyForm;
+  form: QuoteForm;
   customers: Customer[];
 }
 

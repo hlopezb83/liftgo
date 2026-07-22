@@ -4,12 +4,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import type { QuoteFormValues } from "../../lib/quoteFormSchema";
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- form es genérico QuoteFormValues
-type AnyForm = UseFormReturn<any>;
+type QuoteForm = UseFormReturn<QuoteFormValues>;
 
 interface Props {
-  form: AnyForm;
+  form: QuoteForm;
   includeLogistics: boolean;
 }
 
