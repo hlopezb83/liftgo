@@ -14,7 +14,11 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { FUEL_TYPES, FUEL_TYPE_LABELS } from "@/lib/constants";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
-const norm = (s: string) => s.trim().toLowerCase();
+import {
+  countUnitsForModel,
+  isDuplicateModel,
+  validateNonNegative,
+} from "@/features/operations/lib/equipmentModelValidation";
 
 export function EquipmentModelsTab() {
   const isMobile = useIsMobile();
