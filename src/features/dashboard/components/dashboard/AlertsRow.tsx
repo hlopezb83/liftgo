@@ -77,16 +77,40 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
           tone="destructive"
           footer={
             <div className="space-y-2 pt-2 border-t">
-              {agingBuckets.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {agingBuckets.map((b) => (
-                    <div key={b.range} className="text-2xs bg-background rounded px-2 py-1">
-                      <span className="text-muted-foreground">{b.range}d:</span>{" "}
-                      <span className="font-mono font-medium">{formatCurrency(b.total)}</span>
+              {agingBuckets.length > 0 && (() => {
+                const total = agingBuckets.reduce((s, b) => s + b.total, 0);
+                const palette = ["bg-warning/60", "bg-warning", "bg-destructive/70", "bg-destructive"];
+                return (
+                  <div className="space-y-1.5">
+                    <div className="flex h-2 w-full overflow-hidden rounded-full bg-muted" role="img" aria-label="Distribución de aging">
+                      {agingBuckets.map((b, i) => {
+                        const pct = total > 0 ? (b.total / total) * 100 : 0;
+                        if (pct === 0) return null;
+                        return (
+                          <button
+                            key={b.range}
+                            type="button"
+                            onClick={() => navigate(`/invoices?status=overdue&aging=${b.range}`)}
+                            className={`${palette[i] ?? "bg-destructive"} transition-opacity hover:opacity-80`}
+                            style={{ width: `${pct}%` }}
+                            title={`${b.range}d: ${formatCurrency(b.total)}`}
+                            aria-label={`Aging ${b.range} días: ${formatCurrency(b.total)}`}
+                          />
+                        );
+                      })}
                     </div>
-                  ))}
-                </div>
-              )}
+                    <div className="flex flex-wrap gap-x-3 gap-y-1 text-2xs">
+                      {agingBuckets.map((b, i) => (
+                        <div key={b.range} className="flex items-center gap-1">
+                          <span className={`inline-block h-2 w-2 rounded-sm ${palette[i] ?? "bg-destructive"}`} />
+                          <span className="text-muted-foreground">{b.range}d:</span>
+                          <span className="font-mono font-medium">{formatCurrency(b.total)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
               {overdueInvoices.length > 3 && (
                 <button
                   type="button"

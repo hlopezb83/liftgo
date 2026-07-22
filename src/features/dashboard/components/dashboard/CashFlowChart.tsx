@@ -54,6 +54,7 @@ function CashFlowTooltip({ active, payload }: { active?: boolean; payload?: Tool
 }
 
 export function CashFlowChart({ data }: CashFlowChartProps) {
+  const hasData = data.length > 0;
   return (
     <ReportChartCard
       title="Flujo de Efectivo"
@@ -61,13 +62,15 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
       iconColor="text-status-rented"
       iconBg="bg-status-rented/10"
       footer={
-        <div className="flex justify-center gap-6">
-          <div className="flex items-center gap-1.5 text-xs"><div className="w-2.5 h-2.5 rounded-full bg-status-rented" />Facturado</div>
-          <div className="flex items-center gap-1.5 text-xs"><div className="w-2.5 h-2.5 rounded-full bg-status-available" />Pagado</div>
-        </div>
+        hasData ? (
+          <div className="flex justify-center gap-6">
+            <div className="flex items-center gap-1.5 text-xs"><div className="w-2.5 h-2.5 rounded-full bg-status-rented" />Facturado</div>
+            <div className="flex items-center gap-1.5 text-xs"><div className="w-2.5 h-2.5 rounded-full bg-status-available" />Pagado</div>
+          </div>
+        ) : undefined
       }
     >
-      {data.length > 0 ? (
+      {hasData ? (
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={data} barGap={4} margin={{ top: 5, right: 12, left: 12, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" className="stroke-border" />

@@ -1,0 +1,43 @@
+{
+  "version": "7.186.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "Auditoría UI/UX Dashboard · Lote B: contenido y microtipografía",
+  "category": "improvement",
+  "summary": "Segundo lote de la auditoría visual del Panel. Refuerza jerarquía en Pronóstico de Cobranza, convierte aging en mini-barra apilada interactiva y estandariza los estados vacíos de las gráficas.",
+  "sections": [
+    {
+      "title": "H6 · EmptyState estándar en Utilización de Flota",
+      "items": [
+        "Reemplaza el texto plano 'Sin datos aún' por el componente EmptyState con icono, título y hint explicativo.",
+        "Alinea la card con el patrón usado en el resto del ERP."
+      ]
+    },
+    {
+      "title": "H7 · Leyenda del Flujo de Efectivo condicional",
+      "items": [
+        "La leyenda Facturado/Pagado sólo se renderiza cuando existen datos, evitando el chip huérfano bajo el mensaje vacío."
+      ]
+    },
+    {
+      "title": "H8 · Jerarquía en Pronóstico de Cobranza",
+      "items": [
+        "El monto 'Vencido hoy' ahora es 2xl, con fondo destructive/5 y borde suave para ganar prominencia.",
+        "El subtítulo '{n} facturas vencidas' se convierte en link directo a /invoices?status=overdue.",
+        "Los otros dos plazos (7d/30d) bajan a peso semibold para reforzar la secundariedad."
+      ]
+    },
+    {
+      "title": "H9 · Aging como mini-barra apilada",
+      "items": [
+        "En Facturas Vencidas, los buckets 0-30/31-60/61-90d se renderizan como barra horizontal apilada proporcional al monto.",
+        "Cada segmento es clickeable y navega a /invoices?status=overdue&aging=<rango> con aria-label y tooltip.",
+        "Se conserva la lista textual como leyenda con swatch de color."
+      ]
+    }
+  ],
+  "next": [
+    "H5 (deltas MoM en KPIs) queda diferido: requiere ampliar los RPC get_financial_kpis / get_dashboard_stats con datos del mes previo.",
+    "Lote C (v7.187.0): a11y, tokens semánticos en dona y ajustes de header móvil."
+  ]
+}
