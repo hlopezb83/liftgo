@@ -78,7 +78,7 @@ export function useUpdateStatus() {
       const { error } = await supabase.rpc("change_forklift_status", {
         p_forklift_id: forkliftId,
         p_new_status: toStatus,
-        p_reason: note ?? null,
+        p_reason: note ?? undefined,
       });
       if (error) throw error;
     },
