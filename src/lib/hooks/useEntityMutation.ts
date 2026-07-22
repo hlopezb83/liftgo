@@ -64,8 +64,10 @@ export function useEntityMutation<TVar, TData>(
     invalidateKeys = [],
     invalidateKeysFn,
     errorTitle,
+    errorMessage,
     successMsg,
     onSuccess,
+    onError,
     errorSeverity,
   } = options;
 
@@ -80,8 +82,10 @@ export function useEntityMutation<TVar, TData>(
       if (successMsg) notifySuccess(successMsg);
       if (onSuccess) await onSuccess(data, vars);
     },
-    onError: (error: Error) => {
-      // EC-M4: traducimos stale_write a un toast tipo warning con copy claro.
+    onError: (error: Error, vars) => {
+      // R7 Bloque 12: callback custom puede suprimir el toast estándar
+      // devolviendo `true` (p.ej. reclasificar 409 "ya en proceso" como info).
+      if (onError && onError(error, vars) === true) return;
       const translated = translateDbError(error, errorTitle);
       if (translated.matched) {
         notifyError({
@@ -91,7 +95,15 @@ export function useEntityMutation<TVar, TData>(
           severity: translated.severity,
         });
       } else {
-        notifyError({ title: errorTitle, error, severity: errorSeverity });
+        const description = typeof errorMessage === "function"
+          ? errorMessage(error)
+          : errorMessage;
+        notifyError({
+          title: errorTitle,
+          error,
+          description: description || undefined,
+          severity: errorSeverity,
+        });
       }
     },
   });
