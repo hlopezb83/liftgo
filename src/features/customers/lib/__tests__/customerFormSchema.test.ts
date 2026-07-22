@@ -37,4 +37,28 @@ describe("customerFormSchema", () => {
       customerFormSchema.safeParse({ ...empty, name: "X", rfc: "XAXX010101000" }).success,
     ).toBe(true);
   });
+
+  // R7 Bloque 21.4
+  it("aplica trim al nombre y respeta límite de 200 caracteres", () => {
+    const r = customerFormSchema.safeParse({ ...empty, name: "  Cliente  " });
+    expect(r.success).toBe(true);
+    if (r.success) expect(r.data.name).toBe("Cliente");
+    const long = customerFormSchema.safeParse({ ...empty, name: "x".repeat(201) });
+    expect(long.success).toBe(false);
+  });
+
+  it("valida CP fiscal a 5 dígitos y acepta vacío", () => {
+    expect(
+      customerFormSchema.safeParse({ ...empty, name: "X", domicilio_fiscal_cp: "" }).success,
+    ).toBe(true);
+    expect(
+      customerFormSchema.safeParse({ ...empty, name: "X", domicilio_fiscal_cp: "64000" }).success,
+    ).toBe(true);
+    expect(
+      customerFormSchema.safeParse({ ...empty, name: "X", domicilio_fiscal_cp: "640" }).success,
+    ).toBe(false);
+    expect(
+      customerFormSchema.safeParse({ ...empty, name: "X", domicilio_fiscal_cp: "abcde" }).success,
+    ).toBe(false);
+  });
 });
