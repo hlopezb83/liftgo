@@ -148,29 +148,38 @@ export default function QuotesPage() {
       onClearFilters={reset}
       emptyMessage="No hay cotizaciones aún"
       skeletonColumns={7}
-      mobileCardRender={(q) => (
-        <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/quotes/${q.id}`)}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-1">
-              <div className="flex items-center gap-1.5">
-                <span className="font-mono font-semibold text-sm">{q.quote_number}</span>
-                <Badge variant={q.quote_type === "sale" ? "default" : "secondary"} className="text-3xs px-1.5 py-0">
-                  {STATUS_LABELS[q.quote_type || "rental"] || "Renta"}
-                </Badge>
+      mobileCardRender={(q) => {
+        // R7 Bloque 19b: reutilizamos el cálculo de vencida en la vista móvil.
+        const validUntil = q.valid_until ? parseDateLocal(q.valid_until) : null;
+        const today = parseDateLocal(toYMD(new Date()));
+        const isExpired = q.status === "sent" && !!validUntil && !!today && validUntil.getTime() < today.getTime();
+        return (
+          <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/quotes/${q.id}`)}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-1">
+                <div className="flex items-center gap-1.5">
+                  <span className="font-mono font-semibold text-sm">{q.quote_number}</span>
+                  <Badge variant={q.quote_type === "sale" ? "default" : "secondary"} className="text-3xs px-1.5 py-0">
+                    {STATUS_LABELS[q.quote_type || "rental"] || "Renta"}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <StatusBadge status={q.status} label={quoteLabel(q.status)} />
+                  {isExpired && <Badge variant="destructive" className="text-3xs px-1.5 py-0">Vencida</Badge>}
+                </div>
               </div>
-              <StatusBadge status={q.status} label={quoteLabel(q.status)} />
-            </div>
-            <p className="text-sm text-muted-foreground">{q.customer_name || "Sin cliente"}</p>
-            <div className="flex items-center justify-between mt-3 pt-3 border-t">
-              <span className="text-xs text-muted-foreground">{formatDateRange(q.start_date, q.end_date)}</span>
-              <div className="flex items-center gap-1">
-                <span className="text-sm font-semibold font-mono">{formatCurrency(q.total)}</span>
-                <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">{q.customer_name || "Sin cliente"}</p>
+              <div className="flex items-center justify-between mt-3 pt-3 border-t">
+                <span className="text-xs text-muted-foreground">{formatDateRange(q.start_date, q.end_date)}</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-sm font-semibold font-mono">{formatCurrency(q.total)}</span>
+                  <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            </CardContent>
+          </Card>
+        );
+      }}
     />
   );
 }
