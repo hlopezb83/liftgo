@@ -36,6 +36,8 @@ export const customerSummary: CustomerSummary = {
       due_date: "2026-01-31",
       total: 1_000,
       status: "sent",
+      currency: "MXN",
+      tipo_cambio: 1,
     },
     {
       id: "i-2",
@@ -44,9 +46,11 @@ export const customerSummary: CustomerSummary = {
       due_date: "2026-02-28",
       total: 500,
       status: "paid",
+      currency: "USD",
+      tipo_cambio: 18,
     },
   ],
-  totals: { total_invoiced: 1_500, total_paid: 500 },
+  totals: { total_invoiced: 10_000, total_paid: 9_000 },
 };
 
 const month: MonthData = {
