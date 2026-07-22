@@ -1,7 +1,7 @@
 import { Document, Page, Text, View } from "@react-pdf/renderer";
 import { differenceInDays, parseISO } from "date-fns";
 import type { CustomerSummary } from "@/lib/domain/customerTypes";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrency, formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { roundMoney } from "@/lib/money";
 import { AccentBar } from "@/lib/pdf/components/AccentBar";
 import { Footer } from "@/lib/pdf/components/Footer";
