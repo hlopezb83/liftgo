@@ -1,71 +1,58 @@
+## Validación v7.167.0
 
-# R7 · Validación y corrección por bloques
+Se corrieron 39 tests focalizados (fleet + CFDI) tras la Fase 5 y pasaron todos, y `tsgo --noEmit` está limpio. Sin embargo, **tres de los cinco bloques nuevos no tienen cobertura de test**:
 
-Revisé el reporte contra el código real. Confirmo que la mayoría son bugs reales, con algunos matices. Propongo ejecutar en 4 fases, cada una con su bump de changelog y verificación (`tsgo`, `vitest`, build).
+- Bloque 10a (`forkliftFormSchema` superRefine) — no hay assertions para año/capacidad/altura/tarifas fuera de rango.
+- Bloque 14 (`useRecordPaymentForm` prellenado TC) — el test file existente no cubre el nuevo prop `invoiceExchangeRate`.
+- Bloque 20 (`cancel_booking` guard) — sin test que reproduzca la cancelación de una reserva ya cancelada/completada.
 
-## Validación previa (spot-checks realizados)
+Los bloques 16 (contraste CSS) y 18a (filtro contratos) son visuales/derivados; validables sólo por revisión manual y typecheck.
 
-| Bloque | Estado | Notas |
-|---|---|---|
-| 1a form.tsx | ✅ Bug real | `useFormField` lee `formState` en render sin suscripción reactiva. Con React Compiler activo se memoiza y los errores no re-renderizan. |
-| 1b EquipmentDetailsSection | ✅ Bug real | Línea 21 usa `watch("manufacturer")` en render. |
-| 2 FeedbackFormDialog | ✅ Bug real | Falta `<Form {...form}>`; `TextField/TextareaField` internos usan `FormField` shadcn que llama `useFormContext()` → crash. |
-| 3 FormActions doble submit | ⚠️ Parcial | Ya bloquea con `isSubmitting`; falta capa `onPointerDown` + guarda reentrada en `useEntityMutation`. |
-| 4 RoleGuard treasury | ✅ Bug real | Confirmado copy-paste de `module="Facturas de Proveedor"` en 3 páginas. |
-| 5–20 (altos/medios) | Pendiente validar en su fase | Se validan al inicio de cada fase antes de aplicar. |
+## Fase 6 — Cerrar cobertura y avanzar bloques restantes
 
-## Fase 1 — Críticos (Bloques 1-4)
+### 6.1 Retro-tests de la Fase 5 (blindaje)
+1. Ampliar `src/features/fleet/lib/__tests__/forkliftFormSchema.test.ts` con casos:
+   - Año 1979 y `CURRENT_YEAR + 2` → falla; año `2020` → pasa.
+   - `capacity_kg` = "0", "-5", "150000" → falla; "5000" → pasa.
+   - `mast_height_m` = "25" → falla; "6" → pasa.
+   - `daily_rate` negativo → falla; `monthly_rate` > máximo → falla.
+2. Ampliar `src/features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts`:
+   - Con `invoiceCurrency="USD"` + `invoiceExchangeRate=17.25` → `exchangeRate` inicial = `"17.25"`.
+   - Con `invoiceCurrency="MXN"` → `exchangeRate` = `"1"` sin importar prop.
+   - Con `invoiceExchangeRate=null` en USD → cae a `"1"`.
 
-**Objetivo:** desbloquear formularios, feedback, doble submit y tesorería.
+### 6.2 Bloque 11 — Badge visual del ciclo de timbrado
+Archivo: `src/features/invoices/components/invoice-detail/InvoiceDetailBadges.tsx`.
+- Añadir badges para `stamping` (amarillo animado, "Timbrando…") y `error` (rojo, "Falló timbrado — reintentar") cuando `stamp_state` cambia.
+- Nuevo test que renderice cada estado y verifique el texto visible.
 
-- **1a** `src/components/ui/form.tsx`: en `FormMessage`, `FormLabel`, `FormControl` sustituir el `error` derivado de `useFormField()` por una suscripción reactiva con `useFormState({ control, name })` (accediendo al error por path `name.split(".")`). Mantener API pública.
-- **1b** `EquipmentDetailsSection.tsx:21`: `watch("manufacturer")` → `useWatch({ control, name: "manufacturer" })`.
-- **1c** Barrido `rg "= watch\(" src/` y migrar cada ocurrencia en render a `useWatch`.
-- **2** `FeedbackFormDialog.tsx`: envolver el `<form>` en `<Form {...form}>`. Añadir test que monte el diálogo.
-- **3** `FormActions`: añadir `onPointerDown` que bloquea si `busy`. En `src/lib/hooks/useEntityMutation.ts` añadir guarda de reentrada (`if (mutation.isPending) return`).
-- **4a** Corregir `module="..."` en `CashFlowPage`, `BankAccountsPage`, `BankReconciliationPage` al string real de la matriz (revisar `role_permissions` seed vigente y `ROUTE_TO_MODULE`).
-- **4b** Migración SQL: seed en `role_permissions` para `Facturas de Proveedor` (clonando niveles del módulo original si existe; explícito por rol si no).
+### 6.3 Bloque 13 — Moneda visible en Estado de Cuenta PDF
+Archivo: `src/lib/pdf/documents/CustomerStatementDocument.tsx`.
+- Anteponer código ISO (`MXN` / `USD`) a cada monto de factura y a los totales, agrupando por divisa cuando existan ambas.
+- Verificar rendering vía snapshot o test unitario del builder de filas.
 
-Bump: v7.164.0.
+### 6.4 Bloque 17b — Portal: eliminar "flash 404" en refresh autenticado
+Archivo: `src/layouts/AuthGuard.tsx`.
+- Usar `useIsRestoring()` de TanStack Query para bloquear el fallback a `NoAccess` mientras la sesión persistida se restaura.
+- Test con `QueryClient` en modo restoring que confirme que se mantiene el spinner en lugar de mostrar el `<NoAccess />`.
 
-## Fase 2 — Altos (Bloques 5-10)
+### 6.5 Bloque 20 — Test de la RPC cancel_booking
+Archivo nuevo: `src/features/bookings/hooks/__tests__/cancelBooking.rpc.test.ts` con mocks de `supabase.rpc`:
+- Éxito en reserva `confirmed`.
+- Error propagado cuando la RPC devuelve `"No se puede cancelar una reserva en estado cancelled"`.
+- Verifica que el hook consumidor traduce el error a `notifyError` con el mensaje del backend.
 
-- **5** `RevenueReport`: filtrar `status !== 'draft' && status !== 'cancelled'` antes de agregar; aplicar a CSV.
-- **6** `useAccountsPayableKpis` + `useAgingReport`: normalizar a MXN con `balance * exchange_rate` (o `balance_mxn` si existe), en KPIs y buckets. Etiquetar totales "(MXN)".
-- **7** Cotización vencida: deshabilitar botón Aceptar en `QuoteDetailActions` si `parseDateLocal(valid_until) < hoy`; migración con trigger o mover a RPC con guarda; setear `accepted_at`/`accepted_by`.
-- **8** Botones Editar/Nuevo/Eliminar/Invitar en Clientes → envolver con `RoleGuard` (write/full). Hardening RLS mínimo (policies separadas por operación).
-- **9** `customerFormToUpdate`: añadir `razon_social: values.name` sincronizado con `name`.
-- **10a** Zod en `forkliftFormSchema` (`coerce.number` + rangos) + migración `CHECK` en `forklifts`.
-- **10b** RPC `change_forklift_status(forklift_id, new_status, reason)` con reglas de transición y `status_logs`.
+### 6.6 Bloques diferidos (fuera de esta iteración)
+Bloques 15 (TZ inspecciones — ya cerrado en Fase 3), 18b (ciclo de vida contratos), 19a/c/d y el batch 21 de pulido visual se mantienen para Fase 7 tras validar Fase 6.
 
-Bump: v7.165.0.
-
-## Fase 3 — Medios (Bloques 11-20)
-
-- **11** Badges `stamping` y `error` en `InvoiceDetailBadges` + nota en detalle.
-- **12** Timbrar: guarda reentrada + 409 como no-error.
-- **13** Etiquetas MXN/USD en PDF estado de cuenta, historial de pagos, preview extensión, detalle cliente y listado de facturas.
-- **14** Prellenar TC del pago con el de la factura en `useRecordPaymentForm` y persistir.
-- **15** Devoluciones: `new Date(inspected_at)` para timestamps; `parseDateLocal(end_date)` para comparación diaria. Test TZ Monterrey.
-- **16** Ajustar tokens `--destructive` a `0 72% 45%` (light) / `0 72% 50%` (dark).
-- **17a** Botones descargar PDF/XML en `PortalInvoiceDetail`. **17b** `AuthGuard` + `AppProviders`: esperar `useIsRestoring()` y rol resuelto antes de renderizar `*`.
-- **18** `ContractForm`: filtrar a `status='available'` (más el actual si edita). Badges vencido/por vencer.
-- **19** Cotizaciones/Modelos: mensaje de error real en partidas, badge "Vencida", validación duplicado fabricante+modelo, `accept`+límite en adjuntos.
-- **20** Migración: guarda en `cancel_booking` para estados terminales.
-
-Bump: v7.166.0.
-
-## Fase 4 — Bajos (Bloque 21, 17 items)
-
-Batch de pulido: `RoleGuard fallback={null}`, `ROUTE_TO_MODULE`, unique parcial en `customers.rfc`, aviso pre-eliminar cliente, tope 100% descuento, filtro CFDI en listado facturas, diálogo error SAT, motivo 01 UUID validation, mensajes duplicado específicos, dashboard skeleton, RevenueReport eje Y, ChangelogEntryCard `<button>` anidado, mapeo `SERVICE_TYPES`, `CHECK` en `maintenance_parts`, decisión back-to-back mismo día (proponer `'[)'`).
-
-Bump: v7.167.0.
+### 6.7 Cierre
+- `bunx tsgo --noEmit` limpio.
+- `bunx vitest run` de los directorios tocados en verde.
+- Nueva entrada v7.168.0 en `public/changelog.json` + detalle en `public/changelog/v7.168.0.json`.
 
 ## Detalles técnicos
 
-- Verificación por fase: `bunx tsgo`, `bunx vitest run`, build, y test manual del criterio de aceptación del bloque.
-- Cada migración pasa `supabase--linter`.
-- Cada fase agrega entrada en `public/changelog.json` + `public/changelog/v7.X.Y.json` con SOLO lo aplicado.
-- No re-introducir patrones prohibidos del checklist (watch en render, `<FormField>` sin `<Form>`, `formatCurrency` sin moneda, `parseDateLocal` sobre timestamps, `new Date(dateOnly)` para comparaciones).
-
-Confírmame si arranco por Fase 1 o si prefieres otro orden/subconjunto.
+- Los tests de `useRecordPaymentForm` usan `renderHook` + wrappers ya existentes en `src/test/helpers/queryClient.tsx`; reutilizar patrón.
+- Para `AuthGuard`, `useIsRestoring` requiere `PersistQueryClientProvider`; simular con mock del hook para evitar acoplar el test al persister real.
+- El test de RPC de cancel_booking se hace a nivel hook (unit), no integración; la lógica SQL ya fue verificada por el linter de Supabase al aplicar la migración.
+- `InvoiceDetailBadges` recibe el `stamp_state` desde `useInvoice`; no requiere cambios en hooks.
