@@ -6,10 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDocuments, useUploadDocument, useDeleteDocument } from "@/hooks/useDocuments";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
-// R7 Bloque 19d: reglas de aceptación para adjuntos de flota.
-const ACCEPT = "application/pdf,image/*";
-const MAX_BYTES = 5 * 1024 * 1024; // 5MB
-const isAllowed = (file: File) => file.type === "application/pdf" || file.type.startsWith("image/");
+import { DOC_ACCEPT, DOC_MAX_BYTES, partitionFiles } from "@/features/fleet/lib/documentAttachmentRules";
 
 function FileIcon({ mime }: { mime?: string | null }) {
   if (mime?.startsWith("image/")) return <Image className="h-4 w-4 text-status-rented" />;

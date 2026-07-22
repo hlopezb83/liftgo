@@ -36,17 +36,8 @@ export function EquipmentModelsTab() {
   // R7 Bloque 19c: contar montacargas activos por modelo (match manufacturer+model,
   // case-insensitive). El schema no tiene FK equipment_model_id en forklifts, así que
   // se resuelve por composición del par visible al usuario.
-  const usageByModel = useMemo(() => {
-    const map = new Map<string, number>();
-    for (const f of forklifts ?? []) {
-      const key = `${norm(f.manufacturer ?? "")}||${norm(f.model ?? "")}`;
-      map.set(key, (map.get(key) ?? 0) + 1);
-    }
-    return map;
-  }, [forklifts]);
-
-  const countUnits = (m: EquipmentModel) =>
-    usageByModel.get(`${norm(m.manufacturer)}||${norm(m.model)}`) ?? 0;
+  const forkliftList = useMemo(() => forklifts ?? [], [forklifts]);
+  const countUnits = (m: EquipmentModel) => countUnitsForModel(forkliftList, m.manufacturer, m.model);
 
   const openNew = () => { setEditId(null); setForm(emptyForm); setOpen(true); };
   const openEdit = (m: EquipmentModel) => {
@@ -64,10 +55,7 @@ export function EquipmentModelsTab() {
     }
     // R7 Bloque 19c: duplicado (fabricante+modelo) case-insensitive; el índice
     // parcial de la DB (`WHERE deleted_at IS NULL`) es la defensa final.
-    const isDuplicate = (models ?? []).some(
-      (m) => m.id !== editId && norm(m.manufacturer) === norm(manufacturer) && norm(m.model) === norm(model),
-    );
-    if (isDuplicate) {
+    if (isDuplicateModel(models ?? [], manufacturer, model, editId)) {
       notifyValidation({ message: `Ya existe el modelo ${manufacturer} ${model}` });
       return;
     }
@@ -80,11 +68,9 @@ export function EquipmentModelsTab() {
       ["default_mast_height_m", "Altura de mástil"],
     ];
     for (const [field, label] of numericFields) {
-      const raw = form[field];
-      if (!raw) continue;
-      const value = parseFloat(raw);
-      if (Number.isNaN(value) || value < 0) {
-        notifyValidation({ message: `${label} debe ser mayor o igual a 0` });
+      const err = validateNonNegative(form[field], label);
+      if (err) {
+        notifyValidation({ message: err });
         return;
       }
     }
