@@ -55,6 +55,14 @@ interface ListPageLayoutProps<T> {
   skeletonColumns?: number;
   /** Callback para pull-to-refresh en móvil. Debe devolver una promesa. */
   onRefresh?: () => Promise<unknown> | void;
+  /** Slot opcional para paginación por cursor (botón "Cargar más"). */
+  loadMore?: {
+    hasMore: boolean;
+    isLoading: boolean;
+    onClick: () => void;
+    /** Total de registros ya visibles, sólo para el label ("Mostrando N"). */
+    loaded?: number;
+  };
 }
 
 // eslint-disable-next-line complexity -- componente de layout con múltiples slots opcionales
@@ -82,6 +90,7 @@ export function ListPageLayout<T extends { id?: string }>({
   customContent,
   skeletonColumns,
   onRefresh,
+  loadMore,
 }: ListPageLayoutProps<T>) {
 
   const isMobile = useIsMobile();
@@ -162,6 +171,29 @@ export function ListPageLayout<T extends { id?: string }>({
                 skeletonColumns={skeletonColumns}
               />
               {hasPagination && !isError && <DataTablePaginationV2 table={table} />}
+              {loadMore && !isError && !isLoading && effectiveItems.length > 0 && (
+                <div className="flex items-center justify-center gap-3 border-t px-4 py-3 text-sm text-muted-foreground">
+                  {typeof loadMore.loaded === "number" && (
+                    <span>Mostrando {loadMore.loaded} registro{loadMore.loaded === 1 ? "" : "s"}</span>
+                  )}
+                  {loadMore.hasMore ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={loadMore.onClick}
+                      disabled={loadMore.isLoading}
+                    >
+                      {loadMore.isLoading ? (
+                        <><SpinnerIcon className="mr-2 h-4 w-4 animate-spin" />Cargando…</>
+                      ) : (
+                        "Cargar más"
+                      )}
+                    </Button>
+                  ) : (
+                    <span>No hay más resultados.</span>
+                  )}
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
