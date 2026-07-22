@@ -1,7 +1,7 @@
 import { DataTableV2, useLiftgoTable } from "@/components/dataTable/v2";
 import { KpiTile } from "@/components/domain/KpiTile";
 import { EmptyState } from "@/components/feedback/EmptyState";
-import { RevenueIcon, FleetIcon, ChartIcon, User } from "@/components/icons";
+import { RevenueIcon, FleetIcon, ChartIcon, UserIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -70,7 +70,7 @@ export default function MrrDetailPage() {
         <KpiTile
           label="ARPU"
           value={isLoading ? "…" : formatCurrency(arpu)}
-          icon={User}
+          icon={UserIcon}
           iconColor="text-warning"
           iconBg="bg-warning/10"
         />

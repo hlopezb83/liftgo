@@ -38,19 +38,34 @@ export default function IncomeStatementPage() {
   return (
     <PageTransition>
       <PageContainer>
-        <PageHeader title="Estado de Resultados" subtitle="Análisis financiero detallado con depreciación de equipos" />
-
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center gap-3 mb-4">
-              <Label htmlFor="accounting-basis" className={accountingBasis === "accrual" ? "font-semibold text-foreground" : "text-muted-foreground"}>Devengado</Label>
+        <PageHeader
+          title="Estado de Resultados"
+          subtitle="Análisis financiero detallado con depreciación de equipos"
+          actions={
+            <div className="flex items-center gap-2 rounded-md border border-border/60 bg-muted/30 px-3 py-1.5">
+              <Label
+                htmlFor="accounting-basis"
+                className={accountingBasis === "accrual" ? "text-xs font-semibold text-foreground" : "text-xs text-muted-foreground"}
+              >
+                Devengado
+              </Label>
               <Switch
                 id="accounting-basis"
                 checked={accountingBasis === "cash"}
                 onCheckedChange={(checked) => setAccountingBasis(checked ? "cash" : "accrual")}
               />
-              <Label htmlFor="accounting-basis-cash" className={accountingBasis === "cash" ? "font-semibold text-foreground" : "text-muted-foreground"}>Flujo de efectivo</Label>
+              <Label
+                htmlFor="accounting-basis"
+                className={accountingBasis === "cash" ? "text-xs font-semibold text-foreground" : "text-xs text-muted-foreground"}
+              >
+                Flujo de efectivo
+              </Label>
             </div>
+          }
+        />
+
+        <Card>
+          <CardContent className="pt-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label>Desde</Label>
