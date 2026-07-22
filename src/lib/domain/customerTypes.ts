@@ -18,6 +18,8 @@ export interface CustomerSummaryInvoice {
   due_date: string | null;
   total: number;
   status: string;
+  currency?: string | null;
+  tipo_cambio?: number | null;
 }
 
 export interface CustomerSummary {
