@@ -102,4 +102,17 @@ describe("useAccountsPayableKpis", () => {
     const { result } = renderHook(() => useAccountsPayableKpis(), { wrapper: Wrapper });
     expect(result.current.kpis.pagadoMesActual).toBe(1_000);
   });
+
+  it("R7 Bloque 6 · normaliza balance USD a MXN en totalPendiente/Vencido", () => {
+    useSupplierBillsMock.mockReturnValue({
+      data: [
+        bill({ due_date: "2026-05-01", balance: 800, total: 800, currency: "USD", exchange_rate: 20 }),
+      ],
+      isLoading: false,
+    });
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useAccountsPayableKpis(), { wrapper: Wrapper });
+    expect(result.current.kpis.totalVencido).toBe(16_000);
+    expect(result.current.kpis.totalPendiente).toBe(16_000);
+  });
 });
