@@ -59,18 +59,23 @@ export default function CustomerDetailPage() {
             <Button variant="outline" size="sm" disabled={!s.summary} onClick={handleExportStatement}>
               <FileDown className="h-4 w-4 mr-2" /> Estado de Cuenta
             </Button>
-            <Button variant="outline" size="sm" onClick={() => s.setEditOpen(true)}>
-              <EditIcon className="h-4 w-4 mr-2" /> Editar
-            </Button>
-            {s.role === "admin" && (
+            {/* R7 Bloque 8: matriz de permisos en lugar de role hardcoded. */}
+            <RoleGuard module="Clientes" minAccess="write" fallback={null}>
+              <Button variant="outline" size="sm" onClick={() => s.setEditOpen(true)}>
+                <EditIcon className="h-4 w-4 mr-2" /> Editar
+              </Button>
+            </RoleGuard>
+            <RoleGuard module="Clientes" minAccess="full" fallback={null}>
               <Button variant="destructive" size="sm" onClick={() => s.setDeleteOpen(true)}>
                 <DeleteIcon className="h-4 w-4 mr-2" /> Eliminar
               </Button>
-            )}
-            {s.role === "admin" && !s.hasPortalAccess && (
-              <Button variant="outline" onClick={() => s.setInviteOpen(true)}>
-                <UserPlus className="h-4 w-4 mr-2" /> Invitar al Portal
-              </Button>
+            </RoleGuard>
+            {!s.hasPortalAccess && (
+              <RoleGuard module="Clientes" minAccess="full" fallback={null}>
+                <Button variant="outline" onClick={() => s.setInviteOpen(true)}>
+                  <UserPlus className="h-4 w-4 mr-2" /> Invitar al Portal
+                </Button>
+              </RoleGuard>
             )}
             {s.hasPortalAccess && (
               <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">Acceso al portal activo</span>
