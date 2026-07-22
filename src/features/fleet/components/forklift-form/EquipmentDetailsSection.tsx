@@ -17,8 +17,8 @@ interface Props {
 export function EquipmentDetailsSection({
   isEdit, manufacturers, filteredModels, onManufacturerChange, onModelChange,
 }: Props) {
-  const { control, watch } = useFormContext<ForkliftFormData>();
-  const manufacturer = watch("manufacturer");
+  const { control } = useFormContext<ForkliftFormData>();
+  const manufacturer = useWatch({ control, name: "manufacturer" });
 
   return (
     <Card>
