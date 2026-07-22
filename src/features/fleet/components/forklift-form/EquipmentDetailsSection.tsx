@@ -1,4 +1,4 @@
-import { useFormContext } from "react-hook-form";
+import { useFormContext, useWatch } from "react-hook-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -17,8 +17,8 @@ interface Props {
 export function EquipmentDetailsSection({
   isEdit, manufacturers, filteredModels, onManufacturerChange, onModelChange,
 }: Props) {
-  const { control, watch } = useFormContext<ForkliftFormData>();
-  const manufacturer = watch("manufacturer");
+  const { control } = useFormContext<ForkliftFormData>();
+  const manufacturer = useWatch({ control, name: "manufacturer" });
 
   return (
     <Card>

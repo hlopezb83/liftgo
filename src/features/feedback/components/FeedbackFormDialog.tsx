@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useLocation } from "react-router";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { Form } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/features/users";
@@ -104,25 +105,27 @@ export function FeedbackFormDialog({ open, onOpenChange }: Props) {
         onOpenChange={(o) => { if (!o) { resetAll(); onOpenChange(false); } }}
         title="Reportar bug o sugerir mejora"
       >
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <FeedbackFormFields
-            form={form}
-            route={location.pathname + location.search}
-            selectedElement={selectedElement}
-            screenshotPreview={screenshotPreview}
-            isCapturing={isCapturing}
-            onStartPicker={handleStartPicker}
-            onClearElement={handleClearElement}
-          />
-          <FormDialogFooter>
-            <Button type="button" variant="ghost" onClick={() => { resetAll(); onOpenChange(false); }}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={create.isPending || isCapturing}>
-              {create.isPending ? "Enviando…" : isCapturing ? "Capturando…" : "Enviar reporte"}
-            </Button>
-          </FormDialogFooter>
-        </form>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FeedbackFormFields
+              form={form}
+              route={location.pathname + location.search}
+              selectedElement={selectedElement}
+              screenshotPreview={screenshotPreview}
+              isCapturing={isCapturing}
+              onStartPicker={handleStartPicker}
+              onClearElement={handleClearElement}
+            />
+            <FormDialogFooter>
+              <Button type="button" variant="ghost" onClick={() => { resetAll(); onOpenChange(false); }}>
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={create.isPending || isCapturing}>
+                {create.isPending ? "Enviando…" : isCapturing ? "Capturando…" : "Enviar reporte"}
+              </Button>
+            </FormDialogFooter>
+          </form>
+        </Form>
       </FormDialog>
 
       {picking && (

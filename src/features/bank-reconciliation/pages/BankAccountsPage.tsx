@@ -37,7 +37,7 @@ export default function BankAccountsPage() {
   const rows = accounts ?? [];
 
   return (
-    <RoleGuard module="Facturas de Proveedor" minAccess="read">
+    <RoleGuard module="Cuentas Bancarias" minAccess="read">
       <PageTransition>
         <PageContainer>
           <PageHeader

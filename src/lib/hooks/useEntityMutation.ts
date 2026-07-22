@@ -63,7 +63,7 @@ export function useEntityMutation<TVar, TData>(
     errorSeverity,
   } = options;
 
-  return useMutation<TData, Error, TVar>({
+  const result = useMutation<TData, Error, TVar>({
     mutationFn,
     onSuccess: async (data, vars) => {
       const dynamicKeys = invalidateKeysFn ? invalidateKeysFn(data, vars) : [];
@@ -87,6 +87,29 @@ export function useEntityMutation<TVar, TData>(
       } else {
         notifyError({ title: errorTitle, error, severity: errorSeverity });
       }
+    },
+  });
+
+  // R7 Bloque 3 (capa 2): guarda de reentrada. Si un doble-click esquiva el
+  // `disabled` del botón, el segundo `mutate`/`mutateAsync` se ignora mientras
+  // la primera ejecución sigue pendiente. Envuelve el objeto sin cambiar la API.
+  const originalMutate = result.mutate;
+  const originalMutateAsync = result.mutateAsync;
+  return new Proxy(result, {
+    get(target, prop, receiver) {
+      if (prop === "mutate") {
+        return ((...args: Parameters<typeof originalMutate>) => {
+          if (target.isPending) return;
+          return originalMutate(...args);
+        }) as typeof originalMutate;
+      }
+      if (prop === "mutateAsync") {
+        return ((...args: Parameters<typeof originalMutateAsync>) => {
+          if (target.isPending) return Promise.resolve(undefined as unknown as TData);
+          return originalMutateAsync(...args);
+        }) as typeof originalMutateAsync;
+      }
+      return Reflect.get(target, prop, receiver);
     },
   });
 }

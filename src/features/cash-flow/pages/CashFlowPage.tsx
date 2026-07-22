@@ -28,7 +28,7 @@ export default function CashFlowPage() {
   });
 
   return (
-    <RoleGuard module="Facturas de Proveedor" minAccess="read">
+    <RoleGuard module="Flujo de Caja" minAccess="read">
       <PageTransition>
         <PageContainer>
           <PageHeader

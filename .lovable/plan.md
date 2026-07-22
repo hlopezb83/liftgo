@@ -1,75 +1,71 @@
-## Recomendación: Sí, ejecutar el refactor
 
-El refactor de `select("*")` a columnas explícitas en el dominio **portal** es recomendable porque es un cambio de bajo riesgo con retorno claro en seguridad y mantenimiento. No es urgente si el portal no tiene tráfico, pero es deuda técnica que conviene pagar ahora antes de que el esquema crezca.
+# R7 · Validación y corrección por bloques
 
----
+Revisé el reporte contra el código real. Confirmo que la mayoría son bugs reales, con algunos matices. Propongo ejecutar en 4 fases, cada una con su bump de changelog y verificación (`tsgo`, `vitest`, build).
 
-## Objetivo — ¿qué ganamos?
+## Validación previa (spot-checks realizados)
 
-### 1. Superficie de datos expuesta al cliente
-`quotes.*` regresa **todas las columnas**, incluyendo campos internos (`rental_meta`, `assigned_by`, notas administrativas, márgenes, `line_items` completos con costos, `created_by`, etc.) que el **portal de clientes NO debería recibir aunque RLS lo permita**. Reducir el select a columnas necesarias es defensa en profundidad: aunque la RLS falle, la superficie de fuga es menor. Igual para `customer_payment_intents` (evitamos exponer `metadata`, `admin_notes`, `internal_reference`).
+| Bloque | Estado | Notas |
+|---|---|---|
+| 1a form.tsx | ✅ Bug real | `useFormField` lee `formState` en render sin suscripción reactiva. Con React Compiler activo se memoiza y los errores no re-renderizan. |
+| 1b EquipmentDetailsSection | ✅ Bug real | Línea 21 usa `watch("manufacturer")` en render. |
+| 2 FeedbackFormDialog | ✅ Bug real | Falta `<Form {...form}>`; `TextField/TextareaField` internos usan `FormField` shadcn que llama `useFormContext()` → crash. |
+| 3 FormActions doble submit | ⚠️ Parcial | Ya bloquea con `isSubmitting`; falta capa `onPointerDown` + guarda reentrada en `useEntityMutation`. |
+| 4 RoleGuard treasury | ✅ Bug real | Confirmado copy-paste de `module="Facturas de Proveedor"` en 3 páginas. |
+| 5–20 (altos/medios) | Pendiente validar en su fase | Se validan al inicio de cada fase antes de aplicar. |
 
-### 2. Payload de red y coste de render
-`quotes` trae `line_items` (JSONB potencialmente grande) y `rental_meta`. En listados donde solo mostramos folio/estatus/total, ese JSONB viaja innecesariamente. Menos bytes → primer paint más rápido en móvil y menos memoria en cache de TanStack Query.
+## Fase 1 — Críticos (Bloques 1-4)
 
-### 3. Type-safety real
-Hoy `PortalQuote = Tables<"quotes">` promete 29 propiedades tipadas, pero los componentes solo usan ~8. Con columnas explícitas + `.returns<PortalQuoteRow>()`, TypeScript nos avisa si un componente intenta leer un campo que **decidimos no traer**, en vez de fallar silenciosamente en runtime cuando el backend cambie.
+**Objetivo:** desbloquear formularios, feedback, doble submit y tesorería.
 
-### 4. Estabilidad frente a cambios de esquema
-Si mañana agregamos una columna sensible o un JSONB pesado a `quotes`, `select("*")` la trae automáticamente al portal. Con lista explícita, agregar columnas es opt-in.
+- **1a** `src/components/ui/form.tsx`: en `FormMessage`, `FormLabel`, `FormControl` sustituir el `error` derivado de `useFormField()` por una suscripción reactiva con `useFormState({ control, name })` (accediendo al error por path `name.split(".")`). Mantener API pública.
+- **1b** `EquipmentDetailsSection.tsx:21`: `watch("manufacturer")` → `useWatch({ control, name: "manufacturer" })`.
+- **1c** Barrido `rg "= watch\(" src/` y migrar cada ocurrencia en render a `useWatch`.
+- **2** `FeedbackFormDialog.tsx`: envolver el `<form>` en `<Form {...form}>`. Añadir test que monte el diálogo.
+- **3** `FormActions`: añadir `onPointerDown` que bloquea si `busy`. En `src/lib/hooks/useEntityMutation.ts` añadir guarda de reentrada (`if (mutation.isPending) return`).
+- **4a** Corregir `module="..."` en `CashFlowPage`, `BankAccountsPage`, `BankReconciliationPage` al string real de la matriz (revisar `role_permissions` seed vigente y `ROUTE_TO_MODULE`).
+- **4b** Migración SQL: seed en `role_permissions` para `Facturas de Proveedor` (clonando niveles del módulo original si existe; explícito por rol si no).
 
----
+Bump: v7.164.0.
 
-## Alcance del refactor (rama única, sin tocar backend)
+## Fase 2 — Altos (Bloques 5-10)
 
-### Archivos a modificar
-- `src/features/portal/lib/queryKeys.ts` — 3 selects (`quotes` list, `quotes` detail, `customer_payment_intents`).
-- Consumers del portal que leen los tipos derivados:
-  - `src/features/portal/pages/*` (PortalQuotes, PortalQuoteDetail, PortalInvoices, PortalInvoiceDetail, PortalStatement).
-  - `src/features/portal/components/**` (tablas y drill-downs).
-  - `src/features/portal/hooks/paymentIntents/**`.
+- **5** `RevenueReport`: filtrar `status !== 'draft' && status !== 'cancelled'` antes de agregar; aplicar a CSV.
+- **6** `useAccountsPayableKpis` + `useAgingReport`: normalizar a MXN con `balance * exchange_rate` (o `balance_mxn` si existe), en KPIs y buckets. Etiquetar totales "(MXN)".
+- **7** Cotización vencida: deshabilitar botón Aceptar en `QuoteDetailActions` si `parseDateLocal(valid_until) < hoy`; migración con trigger o mover a RPC con guarda; setear `accepted_at`/`accepted_by`.
+- **8** Botones Editar/Nuevo/Eliminar/Invitar en Clientes → envolver con `RoleGuard` (write/full). Hardening RLS mínimo (policies separadas por operación).
+- **9** `customerFormToUpdate`: añadir `razon_social: values.name` sincronizado con `name`.
+- **10a** Zod en `forkliftFormSchema` (`coerce.number` + rangos) + migración `CHECK` en `forklifts`.
+- **10b** RPC `change_forklift_status(forklift_id, new_status, reason)` con reglas de transición y `status_logs`.
 
-### Estrategia
-1. **Definir tipos "vista" explícitos** en `queryKeys.ts` (no `Tables<"quotes">`):
-   ```ts
-   export interface PortalQuoteRow {
-     id: string; quote_number: string; status: string;
-     valid_until: string | null; total: number; currency: string;
-     tipo_cambio: number | null; customer_id: string; created_at: string;
-     // + solo lo que el portal muestra
-   }
-   ```
-2. **Reemplazar `select("*")`** por la lista literal correspondiente + `.returns<PortalQuoteRow[]>()` para preservar tipado sin explotar `tsgo` (según la nota de query-builder-type-performance).
-3. **Auditar consumers** con `tsgo` y ajustar cualquier acceso a campos que ya no viajan (deberían ser cero si eliminamos solo lo interno).
-4. **Detail vs list**: `detail(id)` puede traer más columnas que `list()` (p. ej. `notes` públicas, términos). Diferenciar ambos selects.
+Bump: v7.165.0.
 
-### Fuera de alcance (deuda separada)
-- `select("*")` en dominios admin (`suppliers`, `customers`, `bookings`, `dashboard`, etc.) — 42 callsites restantes → otro sprint.
-- Cambios en RLS o RPCs del portal.
-- Nuevos endpoints o migraciones.
+## Fase 3 — Medios (Bloques 11-20)
 
----
+- **11** Badges `stamping` y `error` en `InvoiceDetailBadges` + nota en detalle.
+- **12** Timbrar: guarda reentrada + 409 como no-error.
+- **13** Etiquetas MXN/USD en PDF estado de cuenta, historial de pagos, preview extensión, detalle cliente y listado de facturas.
+- **14** Prellenar TC del pago con el de la factura en `useRecordPaymentForm` y persistir.
+- **15** Devoluciones: `new Date(inspected_at)` para timestamps; `parseDateLocal(end_date)` para comparación diaria. Test TZ Monterrey.
+- **16** Ajustar tokens `--destructive` a `0 72% 45%` (light) / `0 72% 50%` (dark).
+- **17a** Botones descargar PDF/XML en `PortalInvoiceDetail`. **17b** `AuthGuard` + `AppProviders`: esperar `useIsRestoring()` y rol resuelto antes de renderizar `*`.
+- **18** `ContractForm`: filtrar a `status='available'` (más el actual si edita). Badges vencido/por vencer.
+- **19** Cotizaciones/Modelos: mensaje de error real en partidas, badge "Vencida", validación duplicado fabricante+modelo, `accept`+límite en adjuntos.
+- **20** Migración: guarda en `cancel_booking` para estados terminales.
 
-## Validación
+Bump: v7.166.0.
 
-```text
-1. tsgo --noEmit         → cero errores
-2. vitest run             → 1187/1187
-3. Playwright portal spec → login → cotizaciones → detalle → pagar
-4. Diff manual del payload en Network devtools (antes vs después)
-```
+## Fase 4 — Bajos (Bloque 21, 17 items)
 
-## Entregable
+Batch de pulido: `RoleGuard fallback={null}`, `ROUTE_TO_MODULE`, unique parcial en `customers.rfc`, aviso pre-eliminar cliente, tope 100% descuento, filtro CFDI en listado facturas, diálogo error SAT, motivo 01 UUID validation, mensajes duplicado específicos, dashboard skeleton, RevenueReport eje Y, ChangelogEntryCard `<button>` anidado, mapeo `SERVICE_TYPES`, `CHECK` en `maintenance_parts`, decisión back-to-back mismo día (proponer `'[)'`).
 
-Changelog **v7.158.0** (patch, categoría `security`/`performance`) documentando:
-- Columnas expuestas antes vs después
-- Reducción de payload observada (bytes)
-- Tipo `PortalQuoteRow` como contrato explícito del portal
+Bump: v7.167.0.
 
----
+## Detalles técnicos
 
-## Notas técnicas
+- Verificación por fase: `bunx tsgo`, `bunx vitest run`, build, y test manual del criterio de aceptación del bloque.
+- Cada migración pasa `supabase--linter`.
+- Cada fase agrega entrada en `public/changelog.json` + `public/changelog/v7.X.Y.json` con SOLO lo aplicado.
+- No re-introducir patrones prohibidos del checklist (watch en render, `<FormField>` sin `<Form>`, `formatCurrency` sin moneda, `parseDateLocal` sobre timestamps, `new Date(dateOnly)` para comparaciones).
 
-- Usar el patrón `.select(sel("col1, col2, ..."))` + `.returns<T>()` de la guía "query-builder-type-performance" para no aumentar tiempos de typecheck.
-- **No** tocar `defineEntityQueries` — el refactor vive dentro de cada `queryFn`.
-- Mantener `PortalQuote`/`PortalPaymentIntent` como export por compatibilidad; agregar `PortalQuoteRow`/`PortalPaymentIntentRow` como los tipos que realmente devuelven las queries.
+Confírmame si arranco por Fase 1 o si prefieres otro orden/subconjunto.

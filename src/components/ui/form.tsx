@@ -2,7 +2,16 @@ import { createContext, useContext, useId } from "react";
 import type { ComponentPropsWithoutRef, ElementRef, HTMLAttributes, Ref } from "react";
 import * as LabelPrimitive from "@radix-ui/react-label";
 import { Slot } from "@radix-ui/react-slot";
-import { Controller, ControllerProps, FieldPath, FieldValues, FormProvider, useFormContext } from "react-hook-form";
+import {
+  Controller,
+  ControllerProps,
+  FieldPath,
+  FieldValues,
+  FormProvider,
+  useFormContext,
+  useFormState,
+  type FieldError,
+} from "react-hook-form";
 
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
@@ -34,15 +43,22 @@ const FormField = <
 const useFormField = () => {
   const fieldContext = useContext(FormFieldContext);
   const itemContext = useContext(FormItemContext);
-  const { getFieldState, formState } = useFormContext();
-
-  const fieldState = getFieldState(fieldContext.name, formState);
+  const { control } = useFormContext();
+  // Suscripción reactiva real al slice de errores del campo (R7 Bloque 1a).
+  // `useFormState({ control, name })` sí re-renderiza cuando cambia el error,
+  // incluso bajo React Compiler; leer `formState` en render lo memoiza.
+  const { errors } = useFormState({ control, name: fieldContext.name });
 
   if (!fieldContext) {
     throw new Error("useFormField should be used within <FormField>");
   }
 
   const { id } = itemContext;
+  const error = fieldContext.name
+    .split(".")
+    .reduce<unknown>((acc, key) => (acc && typeof acc === "object" ? (acc as Record<string, unknown>)[key] : undefined), errors) as
+    | FieldError
+    | undefined;
 
   return {
     id,
@@ -50,7 +66,7 @@ const useFormField = () => {
     formItemId: `${id}-form-item`,
     formDescriptionId: `${id}-form-item-description`,
     formMessageId: `${id}-form-item-message`,
-    ...fieldState,
+    error,
   };
 };
 
