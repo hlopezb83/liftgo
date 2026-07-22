@@ -18,10 +18,11 @@ import { RecurringInvoicesPreviewDialog } from "../components/recurring/Recurrin
 import { RecurringInvoicesResultDialog } from "../components/recurring/RecurringInvoicesResultDialog";
 import { useGenerateRecurringInvoices } from "../hooks/invoices/recurring/useGenerateRecurringInvoices";
 import { usePreviewRecurringInvoices } from "../hooks/invoices/recurring/usePreviewRecurringInvoices";
+import type { Tables } from "@/integrations/supabase/types";
 import { invoiceQueries, useInvoicesInfinite } from "../hooks/invoices/useInvoices";
 import { useInvoicesFilters } from "../hooks/invoices/useInvoicesFilters";
 
-type Invoice = NonNullable<Awaited<ReturnType<typeof invoiceQueries.detail>["queryFn"]>>;
+type Invoice = Tables<"invoices">;
 
 function useRecurringHandlers(setPreviewOpen: (o: boolean) => void, setResultOpen: (o: boolean) => void) {
   const generateRecurring = useGenerateRecurringInvoices();
