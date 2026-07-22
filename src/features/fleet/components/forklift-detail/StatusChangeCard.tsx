@@ -12,16 +12,28 @@ interface StatusChangeCardProps {
   currentStatus: string;
 }
 
+// R8 Bloque 3: 'rented' se deriva del sistema (rentas activas) y no se ofrece como
+// destino manual; y para maintenance/sold/retired la razón es obligatoria.
+const REASON_REQUIRED = new Set(["maintenance", "sold", "retired"]);
+const MANUAL_TARGETS = FORKLIFT_STATUSES.filter((s) => s !== "rented");
+
 export function StatusChangeCard({ forkliftId, currentStatus }: StatusChangeCardProps) {
   const updateStatus = useUpdateStatus();
   const [newStatus, setNewStatus] = useState("");
   const [statusNote, setStatusNote] = useState("");
 
+  const reasonRequired = REASON_REQUIRED.has(newStatus);
+  const canSubmit =
+    !!newStatus &&
+    newStatus !== currentStatus &&
+    (!reasonRequired || statusNote.trim().length > 0) &&
+    !updateStatus.isPending;
+
   const handleStatusChange = () => {
-    if (!newStatus || newStatus === currentStatus) return;
+    if (!canSubmit) return;
     updateStatus.mutate(
       { forkliftId, fromStatus: currentStatus, toStatus: newStatus, note: statusNote || undefined },
-      { onSuccess: () => { notifySuccess("Estado actualizado"); setNewStatus(""); setStatusNote(""); } }
+      { onSuccess: () => { notifySuccess("Estado actualizado"); setNewStatus(""); setStatusNote(""); } },
     );
   };
 
@@ -32,13 +44,19 @@ export function StatusChangeCard({ forkliftId, currentStatus }: StatusChangeCard
         <Select value={newStatus} onValueChange={setNewStatus}>
           <SelectTrigger className="flex-1 max-w-xs"><SelectValue placeholder="Seleccionar nuevo estado" /></SelectTrigger>
           <SelectContent>
-            {FORKLIFT_STATUSES.filter((s) => s !== currentStatus).map((s) => (
+            {MANUAL_TARGETS.filter((s) => s !== currentStatus).map((s) => (
               <SelectItem key={s} value={s}>{STATUS_LABELS[s] || s}</SelectItem>
             ))}
           </SelectContent>
         </Select>
-        <Input placeholder="Razón del cambio (opcional)" value={statusNote} onChange={(e) => setStatusNote(e.target.value)} className="flex-1 max-w-xs" />
-        <Button onClick={handleStatusChange} disabled={!newStatus || updateStatus.isPending} size="sm">Actualizar Estado</Button>
+        <Input
+          placeholder={reasonRequired ? "Razón del cambio (obligatoria)" : "Razón del cambio (opcional)"}
+          value={statusNote}
+          onChange={(e) => setStatusNote(e.target.value)}
+          className="flex-1 max-w-xs"
+          aria-required={reasonRequired}
+        />
+        <Button onClick={handleStatusChange} disabled={!canSubmit} size="sm">Actualizar Estado</Button>
       </CardContent>
     </Card>
   );
