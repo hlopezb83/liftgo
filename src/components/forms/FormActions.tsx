@@ -20,9 +20,18 @@ export function FormActions({ submitLabel, isPending, onCancel }: FormActionsPro
   const ctx = useFormContext();
   const isSubmitting = ctx?.formState?.isSubmitting ?? false;
   const busy = isPending || isSubmitting;
+  // R7 Bloque 3: bloqueamos también en `onPointerDown` porque un doble-click
+  // nativo dispara dos submits antes de que React flushee `disabled`. La guarda
+  // de reentrada en `useEntityMutation` es la segunda capa.
+  const blockIfBusy = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (busy) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
   return (
     <div className="flex gap-3 pt-2">
-      <Button type="submit" disabled={busy}>
+      <Button type="submit" disabled={busy} onPointerDown={blockIfBusy}>
         {busy && <SpinnerIcon className="h-4 w-4 mr-2 animate-spin" />}
         {busy ? "Guardando…" : submitLabel}
       </Button>
