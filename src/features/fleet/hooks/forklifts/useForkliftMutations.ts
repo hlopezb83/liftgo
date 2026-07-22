@@ -68,24 +68,20 @@ export function useDeleteForklift() {
 }
 
 export function useUpdateStatus() {
+  // R8 Bloque 3: la transición se delega al RPC `change_forklift_status`, que valida
+  // renta activa, exige razón para maintenance/sold/retired e inserta el status_log
+  // de forma atómica. `fromStatus` se mantiene en la firma por compatibilidad con los
+  // consumidores existentes pero el RPC lo re-lee con FOR UPDATE.
   return useEntityMutation({
     mutationFn: async ({
-      forkliftId, fromStatus, toStatus, note,
-    }: { forkliftId: string; fromStatus: string; toStatus: string; note?: string }) => {
-      const { data: updated, error: upErr } = await supabase
-        .from("forklifts")
-        .update({ status: toStatus })
-        .eq("id", forkliftId)
-        .select("id");
-      if (upErr) throw upErr;
-      assertRowsAffected(updated, "Actualizar estado de montacargas");
-      await supabase.from("status_logs").insert({
-        forklift_id: forkliftId, from_status: fromStatus, to_status: toStatus, note,
+      forkliftId, toStatus, note,
+    }: { forkliftId: string; fromStatus?: string; toStatus: string; note?: string }) => {
+      const { error } = await supabase.rpc("change_forklift_status", {
+        p_forklift_id: forkliftId,
+        p_new_status: toStatus,
+        p_reason: note ?? null,
       });
-      // Nota: el COGS de equipos vendidos se calcula automáticamente en el RPC
-      // del Estado de Resultados a partir del valor en libros (acquisition_cost
-      // menos depreciación acumulada). NO insertamos una factura `costo_venta`
-      // para evitar doble conteo del COGS en el P&L (v6.92.0).
+      if (error) throw error;
     },
     invalidateKeys: [forkliftKeys.all, statusLogKeys.all],
     errorTitle: "Error al actualizar estado de montacargas",
