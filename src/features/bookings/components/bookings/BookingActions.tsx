@@ -3,8 +3,8 @@ import { CalendarPlus, UndoIcon, ErrorIcon, DocumentIcon, DeleteIcon, RefreshIco
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatDateRange } from "@/lib/utils";
-import { useBookingActionsLogic } from "../../hooks/useBookingActionsLogic";
-import { type BookingWithForklift } from "../../hooks/useBookings";
+import { useBookingActionsLogic } from "../../hooks/bookingActions/useBookingActionsLogic";
+import { type BookingWithForklift } from "../../hooks/bookings/useBookings";
 import { BookingStatusChangeDialog, BookingExtendDialog } from "./BookingActionDialogs";
 
 interface BookingActionsProps { booking: BookingWithForklift; }

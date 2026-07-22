@@ -15,7 +15,7 @@ import { BOOKING_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 import { formatMtyDate } from "@/lib/utils";
 import { RecurringBillingBadge } from "../components/bookings/RecurringBillingBadge";
-import { useBookings, bookingQueries } from "../hooks/useBookings";
+import { useBookings, bookingQueries } from "../hooks/bookings/useBookings";
 
 const STATUSES = ["all", ...BOOKING_STATUSES] as const;
 type BookingStatus = (typeof STATUSES)[number];

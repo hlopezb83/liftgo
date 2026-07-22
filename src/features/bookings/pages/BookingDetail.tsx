@@ -15,8 +15,8 @@ import { BookingPeriodCard } from "../components/booking-detail/BookingPeriodCar
 import { BookingActions } from "../components/bookings/BookingActions";
 import { BookingStatusHistory } from "../components/bookings/BookingStatusHistory";
 import { useBookingHourometer } from "../hooks/bookingDetail/useBookingHourometer";
-import { useBookingExtensions } from "../hooks/useBookingExtensions";
-import { useBooking } from "../hooks/useBookings";
+import { useBookingExtensions } from "../hooks/bookingActions/useBookingExtensions";
+import { useBooking } from "../hooks/bookings/useBookings";
 
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
