@@ -114,4 +114,18 @@ describe("useBookingMutations", () => {
     result.current.mutate("b-1");
     await waitFor(() => expect(result.current.isError).toBe(true));
   });
+
+  // R7 Bloque 20: guard SQL rechaza reservas ya canceladas/completadas.
+  it("cancel: propaga mensaje del guard SQL (estado cancelled/completed)", async () => {
+    h.state.cancelError = {
+      code: "P0001",
+      message: "No se puede cancelar una reserva en estado cancelled",
+    };
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useCancelBooking(), { wrapper: Wrapper });
+    result.current.mutate("b-1");
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect((result.current.error as Error).message).toContain("estado cancelled");
+  });
 });
+
