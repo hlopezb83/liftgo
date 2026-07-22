@@ -45,6 +45,12 @@ export interface UseEntityMutationOptions<TVar, TData> {
   successMsg?: string;
   /** Callback custom tras éxito, se ejecuta DESPUÉS de invalidar y del toast. */
   onSuccess?: (data: TData, vars: TVar) => void | Promise<void>;
+  /**
+   * Callback custom tras error. Se ejecuta ANTES del toast estándar. Si devuelve
+   * `true`, se suprime el toast por defecto (útil para reclasificar 409 benignos
+   * como info en vez de error — R7 Bloque 12).
+   */
+  onError?: (error: Error, vars: TVar) => boolean | void;
   /** Severidad del toast de error. Default `critical` (persistente). */
   errorSeverity?: "critical" | "warning";
 }
