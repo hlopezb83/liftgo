@@ -44,6 +44,12 @@ describe("applyDiscountToBase", () => {
     expect(applyDiscountToBase(100, 200, "%")).toBe(0);
   });
 
+  it("R7 21.6 · descuento porcentual >100% se limita a 100% (base → 0)", () => {
+    expect(applyDiscountToBase(1_000, 150, "%")).toBe(0);
+    expect(applyDiscountToBase(1_000, 100, "%")).toBe(0);
+    expect(applyDiscountToBase(1_000, 99.5, "%")).toBeCloseTo(5, 2);
+  });
+
   it("descuento 0, null o undefined deja la base intacta", () => {
     expect(applyDiscountToBase(500, 0, "%")).toBe(500);
     expect(applyDiscountToBase(500, undefined, "$")).toBe(500);

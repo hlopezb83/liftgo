@@ -7,6 +7,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import type { Tables } from "@/integrations/supabase/types";
 import { RoleGuard } from "@/layouts/RoleGuard";
+import { parseDateLocal } from "@/lib/utils";
+import { toYMD } from "@/lib/date/toYMD";
 import { isQuoteEditable, canConvertQuote } from "@/lib/rules/quotes";
 import { QuotePDFButton } from "./QuotePDFButton";
 
@@ -126,16 +128,37 @@ export function QuoteDetailActions({
         quote={quote} isSale={isSale} alreadyInvoiced={alreadyInvoiced}
         canInvoice={canInvoice} invoiceBlockedReason={invoiceBlockedReason}
       />
-      {quote.status === "sent" && (
-        <>
-          <Button size="sm" variant="default" onClick={() => onSetStatus("accepted")}>
-            <SuccessIcon className="h-4 w-4 mr-1" />Aceptar
-          </Button>
-          <Button size="sm" variant="destructive" onClick={() => onSetStatus("declined")}>
-            <ErrorIcon className="h-4 w-4 mr-1" />Rechazar
-          </Button>
-        </>
-      )}
+      {quote.status === "sent" && (() => {
+        // R7 Bloque 7: bloquear "Aceptar" si la cotización ya venció.
+        const validUntil = quote.valid_until ? parseDateLocal(quote.valid_until) : null;
+        const today = parseDateLocal(toYMD(new Date()));
+        const isExpired = !!validUntil && !!today && validUntil.getTime() < today.getTime();
+        return (
+          <>
+            {isExpired ? (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span>
+                      <Button size="sm" variant="default" disabled>
+                        <SuccessIcon className="h-4 w-4 mr-1" />Aceptar
+                      </Button>
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent>Cotización vencida. Actualiza la vigencia para aceptarla.</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : (
+              <Button size="sm" variant="default" onClick={() => onSetStatus("accepted")}>
+                <SuccessIcon className="h-4 w-4 mr-1" />Aceptar
+              </Button>
+            )}
+            <Button size="sm" variant="destructive" onClick={() => onSetStatus("declined")}>
+              <ErrorIcon className="h-4 w-4 mr-1" />Rechazar
+            </Button>
+          </>
+        );
+      })()}
       <DeleteDialog quoteNumber={quote.quote_number} onDelete={onDelete} />
     </>
   );

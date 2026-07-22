@@ -11,7 +11,8 @@ import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { STATUS_LABELS } from "@/lib/constants";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { formatDateDisplay, formatDateRange } from "@/lib/utils";
+import { formatDateDisplay, formatDateRange, parseDateLocal } from "@/lib/utils";
+import { toYMD } from "@/lib/date/toYMD";
 import { QUOTE_STATUS_LABELS, quoteStatusLabel as quoteLabel } from "../constants";
 import { useQuotes, quoteQueries } from "../hooks/quotes/useQuotes";
 
@@ -81,7 +82,19 @@ export default function QuotesPage() {
         id: "status",
         header: "Estado",
         accessorKey: "status",
-        cell: ({ row }) => <StatusBadge status={row.original.status} label={quoteLabel(row.original.status)} />,
+        cell: ({ row }) => {
+          const q = row.original;
+          // R7 Bloque 19b: badge "Vencida" para cotizaciones enviadas cuya vigencia pasó.
+          const validUntil = q.valid_until ? parseDateLocal(q.valid_until) : null;
+          const today = parseDateLocal(toYMD(new Date()));
+          const isExpired = q.status === "sent" && !!validUntil && !!today && validUntil.getTime() < today.getTime();
+          return (
+            <div className="flex items-center gap-1.5">
+              <StatusBadge status={q.status} label={quoteLabel(q.status)} />
+              {isExpired && <Badge variant="destructive" className="text-3xs px-1.5 py-0">Vencida</Badge>}
+            </div>
+          );
+        },
       },
       {
         id: "valid_until",
