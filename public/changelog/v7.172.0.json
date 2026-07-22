@@ -1,0 +1,30 @@
+{
+  "version": "7.172.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "R7 Bloque 21 (parcial) · Validaciones de clientes, tope de descuento y cobertura de pruebas",
+  "category": "feature",
+  "description": "Cierre parcial del batch de pulido R7 Bloque 21 con validaciones que previenen datos basura, un tope explícito al descuento porcentual y extracción de helpers puros que ahora tienen pruebas propias.",
+  "changes": [
+    {
+      "type": "feature",
+      "title": "21.4 · Schema de clientes con trim, longitudes y CP fiscal 5 dígitos",
+      "detail": "customerFormSchema recorta espacios en name/website/contact_person/representante_legal, impone longitudes máximas razonables y valida domicilio_fiscal_cp con regex ^\\d{5}$. Además CustomersPage incluye rfc en la búsqueda de texto libre."
+    },
+    {
+      "type": "fix",
+      "title": "21.6 · Descuento porcentual con tope explícito de 100%",
+      "detail": "quoteFormSchema (rental y sale) rechaza discount>100 cuando discountType='%'. El clamp en invoiceTotals se mantiene como defensa en profundidad pero ya no enmascara errores de captura silenciosamente."
+    },
+    {
+      "type": "chore",
+      "title": "Refactor · Helpers puros para modelos de equipo y adjuntos",
+      "detail": "Se extrajeron isDuplicateModel/validateNonNegative/countUnitsForModel y isAllowedDocument/partitionFiles a lib/*, ambos con pruebas unitarias (6 casos). EquipmentModelsTab y DocumentAttachments consumen los helpers."
+    },
+    {
+      "type": "chore",
+      "title": "Tests · +12 casos nuevos (customers, quotes, equipment models, adjuntos)",
+      "detail": "Cobertura del schema de clientes (trim/max/CP), del schema de cotizaciones (descuento %/$), y de los helpers 19c/19d. 61/61 en verde en los suites afectados."
+    }
+  ]
+}
