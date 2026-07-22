@@ -27,6 +27,10 @@ async function fetchInvoiceList(filters?: InvoiceListFilters) {
     query = query.eq("status", normalized.status);
   }
 
+  if (normalized.cfdi !== "all") {
+    query = query.eq("cfdi_status", normalized.cfdi);
+  }
+
   if (normalized.from) query = query.gte("issued_at", normalized.from);
   if (normalized.to) query = query.lte("issued_at", normalized.to);
 

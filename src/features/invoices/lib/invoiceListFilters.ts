@@ -9,9 +9,28 @@ export const INVOICE_STATUS_FILTERS: readonly InvoiceStatusFilter[] = [
   "overdue",
 ];
 
+export type InvoiceCfdiFilter = "all" | "pending" | "stamped" | "error" | "cancelled";
+
+export const INVOICE_CFDI_FILTERS: readonly InvoiceCfdiFilter[] = [
+  "all",
+  "pending",
+  "stamped",
+  "error",
+  "cancelled",
+];
+
+export const INVOICE_CFDI_LABELS: Record<InvoiceCfdiFilter, string> = {
+  all: "Todos",
+  pending: "Sin timbrar",
+  stamped: "Timbrada",
+  error: "Error de timbrado",
+  cancelled: "Cancelada",
+};
+
 export interface InvoiceListFilters extends Record<string, unknown> {
   search: string;
   status: InvoiceStatusFilter;
+  cfdi: InvoiceCfdiFilter;
   from?: string;
   to?: string;
 }
@@ -35,6 +54,21 @@ export function normalizeInvoiceStatusFilter(value: string | null | undefined): 
   }
 }
 
+export function normalizeInvoiceCfdiFilter(value: string | null | undefined): InvoiceCfdiFilter {
+  switch (value) {
+    case "pending":
+      return "pending";
+    case "stamped":
+      return "stamped";
+    case "error":
+      return "error";
+    case "cancelled":
+      return "cancelled";
+    default:
+      return "all";
+  }
+}
+
 export function normalizeInvoiceSearch(value: string | null | undefined): string {
   return (value ?? "").trim();
 }
@@ -48,6 +82,7 @@ export function createInvoiceListFilters(input?: Partial<InvoiceListFilters>): I
   const filters: InvoiceListFilters = {
     search: normalizeInvoiceSearch(input?.search),
     status: normalizeInvoiceStatusFilter(input?.status),
+    cfdi: normalizeInvoiceCfdiFilter(input?.cfdi),
   };
 
   const from = normalizeInvoiceDateParam(input?.from);
@@ -61,12 +96,21 @@ export function createInvoiceListFilters(input?: Partial<InvoiceListFilters>): I
 
 export function createInvoiceListFilterKey(input?: Partial<InvoiceListFilters>): string {
   const filters = createInvoiceListFilters(input);
-  return [filters.status, filters.search, filters.from ?? "", filters.to ?? ""].join("|");
+  return [filters.status, filters.cfdi, filters.search, filters.from ?? "", filters.to ?? ""].join("|");
 }
 
 export function createInvoiceListQueryKey(input?: Partial<InvoiceListFilters>): unknown[] {
   const filters = createInvoiceListFilters(input);
-  return ["invoices", "list", "filters", filters.status, filters.search, filters.from ?? null, filters.to ?? null];
+  return [
+    "invoices",
+    "list",
+    "filters",
+    filters.status,
+    filters.cfdi,
+    filters.search,
+    filters.from ?? null,
+    filters.to ?? null,
+  ];
 }
 
 export function sanitizeInvoiceSearchForQuery(value: string): string {
