@@ -43,6 +43,10 @@ vi.mock("@/integrations/supabase/client", () => ({
         rpcCalls.push({ name: "delete_forklift", args });
         return rpcResp;
       },
+      change_forklift_status: (args) => {
+        rpcCalls.push({ name: "change_forklift_status", args });
+        return rpcResp;
+      },
     },
     tableResolvers: {
       forklifts: (calls) => {
@@ -138,7 +142,7 @@ describe("useDeleteForklift", () => {
 });
 
 describe("useUpdateStatus", () => {
-  it("update status + insert status_log con from/to/note", async () => {
+  it("llama al RPC change_forklift_status con reason", async () => {
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useUpdateStatus(), { wrapper: Wrapper });
 
@@ -146,32 +150,28 @@ describe("useUpdateStatus", () => {
       await result.current.mutateAsync({
         forkliftId: "f-1",
         fromStatus: "available",
-        toStatus: "rented",
-        note: "Inicio renta RSV-0001",
+        toStatus: "maintenance",
+        note: "Servicio programado",
       });
     });
 
-    expect(forkliftUpdates[0]).toEqual({ status: "rented" });
-    expect(statusLogInserts[0]).toMatchObject({
-      forklift_id: "f-1",
-      from_status: "available",
-      to_status: "rented",
-      note: "Inicio renta RSV-0001",
-    });
+    expect(rpcCalls).toEqual([{
+      name: "change_forklift_status",
+      args: { p_forklift_id: "f-1", p_new_status: "maintenance", p_reason: "Servicio programado" },
+    }]);
   });
 
-  it("falla si el update afecta cero filas (assertRowsAffected)", async () => {
-    updateResp = { data: [], error: null };
+  it("propaga error del RPC (renta activa, razón faltante, etc.)", async () => {
+    rpcResp = { data: null, error: { message: "El montacargas tiene una renta activa" } };
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useUpdateStatus(), { wrapper: Wrapper });
 
     await act(async () => {
       await result.current
-        .mutateAsync({ forkliftId: "x", fromStatus: "a", toStatus: "b" })
+        .mutateAsync({ forkliftId: "x", fromStatus: "rented", toStatus: "maintenance", note: "x" })
         .catch(() => {});
     });
 
     await waitFor(() => expect(result.current.isError).toBe(true));
-    expect(statusLogInserts).toHaveLength(0);
   });
 });
