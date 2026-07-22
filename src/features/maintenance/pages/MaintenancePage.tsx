@@ -140,6 +140,9 @@ export default function MaintenancePage() {
         hasActiveFilters={hasActive}
         onClearFilters={reset}
         emptyMessage="No se encontraron registros de mantenimiento"
+        emptyIcon={MaintenanceIcon}
+        emptyActionLabel="Nuevo servicio"
+        onEmptyAction={formCtl.openCreate}
         customContent={kanbanContent}
         mobileCardRender={(log) => (
           <MaintenanceMobileCard log={log} forkliftMap={forkliftMap} onClick={() => detail.open(log)} />
