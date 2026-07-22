@@ -16,11 +16,8 @@ const INVOICE_STALE_MS = 60_000;
 /** Tamaño de página para paginación por cursor en el listado de facturas. */
 export const INVOICE_PAGE_SIZE = 100;
 
-function applyInvoiceListFilters<Q extends { or: (f: string) => Q; in: (c: string, v: string[]) => Q; lt: (c: string, v: string) => Q; eq: (c: string, v: string) => Q; gte: (c: string, v: string) => Q; lte: (c: string, v: string) => Q }>(
-  query: Q,
-  normalized: InvoiceListFilters,
-): Q {
-  let q = query;
+function baseInvoiceQuery(normalized: InvoiceListFilters) {
+  let q = supabase.from("invoices").select("*").or(EXCLUDE_E2E_FILTER);
   if (normalized.status === "overdue") {
     q = q.in("status", ["sent", "partial"]).lt("due_date", todayKeyMty());
   } else if (normalized.status !== "all") {
@@ -39,34 +36,24 @@ function applyInvoiceListFilters<Q extends { or: (f: string) => Q; in: (c: strin
 
 async function fetchInvoiceList(filters?: InvoiceListFilters) {
   const normalized = createInvoiceListFilters(filters);
-  let query = supabase
-    .from("invoices")
-    .select("*")
-    .or(EXCLUDE_E2E_FILTER);
-
-  if (normalized.status === "overdue") {
-    query = query.in("status", ["sent", "partial"]).lt("due_date", todayKeyMty());
-  } else if (normalized.status !== "all") {
-    query = query.eq("status", normalized.status);
-  }
-
-  if (normalized.cfdi !== "all") {
-    query = query.eq("cfdi_status", normalized.cfdi);
-  }
-
-  if (normalized.from) query = query.gte("issued_at", normalized.from);
-  if (normalized.to) query = query.lte("issued_at", normalized.to);
-
-  const search = sanitizeInvoiceSearchForQuery(normalized.search);
-  if (search) {
-    const pattern = `%${search}%`;
-    query = query.or(`invoice_number.ilike.${pattern},customer_name.ilike.${pattern}`);
-  }
-
-  const { data, error } = await query.order("created_at", { ascending: false }).limit(LIST_PAGE_LIMIT);
+  const { data, error } = await baseInvoiceQuery(normalized)
+    .order("created_at", { ascending: false })
+    .limit(LIST_PAGE_LIMIT);
   if (error) throw error;
   return data ?? [];
 }
+
+async function fetchInvoicePage(filters: InvoiceListFilters, pageIndex: number) {
+  const from = pageIndex * INVOICE_PAGE_SIZE;
+  const to = from + INVOICE_PAGE_SIZE - 1;
+  const { data, error } = await baseInvoiceQuery(filters)
+    .order("created_at", { ascending: false })
+    .range(from, to);
+  if (error) throw error;
+  const rows = data ?? [];
+  return { rows, nextPage: rows.length === INVOICE_PAGE_SIZE ? pageIndex + 1 : undefined };
+}
+
 
 async function fetchInvoiceDetail(id: string) {
   const { data, error } = await supabase.from("invoices").select("*").eq("id", id).maybeSingle();
