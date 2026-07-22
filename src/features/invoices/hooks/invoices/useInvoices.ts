@@ -118,6 +118,23 @@ export function useCreateInvoice() {
   });
 }
 
+/**
+ * Paginación por cursor (range) para el listado de facturas.
+ * Devuelve páginas de INVOICE_PAGE_SIZE con `fetchNextPage()` y `hasNextPage`.
+ * Los filtros participan en la queryKey, de modo que cambiar filtros reinicia
+ * la paginación automáticamente.
+ */
+export function useInvoicesInfinite(filters?: InvoiceListFilters) {
+  const normalized = createInvoiceListFilters(filters);
+  return useInfiniteQuery({
+    queryKey: [...createInvoiceListQueryKey(normalized), "infinite"],
+    queryFn: ({ pageParam }) => fetchInvoicePage(normalized, pageParam as number),
+    initialPageParam: 0,
+    getNextPageParam: (last) => last.nextPage,
+    staleTime: INVOICE_STALE_MS,
+  });
+}
+
 export function useUpdateInvoice() {
   return useEntityMutation({
     mutationFn: async ({ id, ...updates }: TablesUpdate<"invoices"> & { id: string }) => {
