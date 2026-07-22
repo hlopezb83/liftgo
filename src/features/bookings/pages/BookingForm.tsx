@@ -46,7 +46,7 @@ export default function BookingForm() {
   return (
     <PageContainer maxWidth="form">
       <FormPageHeader title="Nueva Reserva" />
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit((data) => onSubmit(data, forkliftName))} className="space-y-6">
         <Card>
           <CardHeader><CardTitle className="text-base">Detalles de la Reserva</CardTitle></CardHeader>
           <CardContent className="space-y-4">
