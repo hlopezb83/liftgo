@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.187.0",
+    "date": "2026-07-22",
+    "type": "minor",
+    "title": "Auditoría UI/UX Dashboard · Lote C: a11y y consistencia",
+    "category": "improvement"
+  },
+  {
     "version": "7.186.0",
     "date": "2026-07-22",
     "type": "minor",
