@@ -1,58 +1,95 @@
-## Validación v7.167.0
+# Auditoría arquitectónica — LiftGo
 
-Se corrieron 39 tests focalizados (fleet + CFDI) tras la Fase 5 y pasaron todos, y `tsgo --noEmit` está limpio. Sin embargo, **tres de los cinco bloques nuevos no tienen cobertura de test**:
+**Alcance:** análisis read-only de `src/` (~1,124 archivos TS/TSX, excluyendo `supabase/functions`). No se modifica código.
 
-- Bloque 10a (`forkliftFormSchema` superRefine) — no hay assertions para año/capacidad/altura/tarifas fuera de rango.
-- Bloque 14 (`useRecordPaymentForm` prellenado TC) — el test file existente no cubre el nuevo prop `invoiceExchangeRate`.
-- Bloque 20 (`cancel_booking` guard) — sin test que reproduzca la cancelación de una reserva ya cancelada/completada.
+## Veredicto general
 
-Los bloques 16 (contraste CSS) y 18a (filtro contratos) son visuales/derivados; validables sólo por revisión manual y typecheck.
+La arquitectura está **madura y bien organizada**. La migración a `src/features/<dominio>/{components,hooks,pages,lib}` (v5.79 → v6.0) se completó, no queda deuda de shims, y las convenciones core se respetan:
 
-## Fase 6 — Cerrar cobertura y avanzar bloques restantes
+- **0 componentes/páginas** importan `@/integrations/supabase/client` directamente (verificado con `rg` sobre `features/*/components` y `features/*/pages`).
+- **0 componentes** contienen `useQuery`/`useMutation` inline (data fetching vive en `hooks/`).
+- **0 usos** de `as any`, **0** non-null assertions (`x!.y`), sólo 5 `TODO/FIXME` en todo `src/`.
+- Convención `features/<x>/{hooks,lib}` seguida por 27/29 dominios.
 
-### 6.1 Retro-tests de la Fase 5 (blindaje)
-1. Ampliar `src/features/fleet/lib/__tests__/forkliftFormSchema.test.ts` con casos:
-   - Año 1979 y `CURRENT_YEAR + 2` → falla; año `2020` → pasa.
-   - `capacity_kg` = "0", "-5", "150000" → falla; "5000" → pasa.
-   - `mast_height_m` = "25" → falla; "6" → pasa.
-   - `daily_rate` negativo → falla; `monthly_rate` > máximo → falla.
-2. Ampliar `src/features/invoices/hooks/invoices/__tests__/useRecordPaymentForm.test.ts`:
-   - Con `invoiceCurrency="USD"` + `invoiceExchangeRate=17.25` → `exchangeRate` inicial = `"17.25"`.
-   - Con `invoiceCurrency="MXN"` → `exchangeRate` = `"1"` sin importar prop.
-   - Con `invoiceExchangeRate=null` en USD → cae a `"1"`.
+Los hallazgos siguientes son **puntos de pulido**, no problemas estructurales.
 
-### 6.2 Bloque 11 — Badge visual del ciclo de timbrado
-Archivo: `src/features/invoices/components/invoice-detail/InvoiceDetailBadges.tsx`.
-- Añadir badges para `stamping` (amarillo animado, "Timbrando…") y `error` (rojo, "Falló timbrado — reintentar") cuando `stamp_state` cambia.
-- Nuevo test que renderice cada estado y verifique el texto visible.
+---
 
-### 6.3 Bloque 13 — Moneda visible en Estado de Cuenta PDF
-Archivo: `src/lib/pdf/documents/CustomerStatementDocument.tsx`.
-- Anteponer código ISO (`MXN` / `USD`) a cada monto de factura y a los totales, agrupando por divisa cuando existan ambas.
-- Verificar rendering vía snapshot o test unitario del builder de filas.
+## Hallazgos priorizados
 
-### 6.4 Bloque 17b — Portal: eliminar "flash 404" en refresh autenticado
-Archivo: `src/layouts/AuthGuard.tsx`.
-- Usar `useIsRestoring()` de TanStack Query para bloquear el fallback a `NoAccess` mientras la sesión persistida se restaura.
-- Test con `QueryClient` en modo restoring que confirme que se mantiene el spinner en lugar de mostrar el `<NoAccess />`.
+### 🟠 P1 — Críticos para mantenibilidad
 
-### 6.5 Bloque 20 — Test de la RPC cancel_booking
-Archivo nuevo: `src/features/bookings/hooks/__tests__/cancelBooking.rpc.test.ts` con mocks de `supabase.rpc`:
-- Éxito en reserva `confirmed`.
-- Error propagado cuando la RPC devuelve `"No se puede cancelar una reserva en estado cancelled"`.
-- Verifica que el hook consumidor traduce el error a `notifyError` con el mensaje del backend.
+**1. `src/layouts/GlobalSearch.tsx` (258 LOC) importa Supabase directamente y define query keys de negocio.**
+- Ubicación equivocada: la búsqueda global consulta 6+ dominios (bookings, invoices, customers, quotes, contracts, forklifts) desde el layout.
+- Rompe la regla "UI shell no habla con la base de datos"; también hay `src/layouts/lib/queryKeys.ts` con claves que pertenecen a los features.
+- **Recomendación:** extraer `useGlobalSearch()` a `src/features/system/` (o crear `features/search/`) y dejar en `layouts/` sólo el componente presentacional.
 
-### 6.6 Bloques diferidos (fuera de esta iteración)
-Bloques 15 (TZ inspecciones — ya cerrado en Fase 3), 18b (ciclo de vida contratos), 19a/c/d y el batch 21 de pulido visual se mantienen para Fase 7 tras validar Fase 6.
+**2. Dos features sin convención completa: `calendar` (sin `lib/`), `operations` (sin `hooks/`), `system` y `__tests__` vacíos de estructura.**
+- Riesgo: cuando alguien agregue lógica a `operations`, no sabrá dónde va y terminará en el componente.
+- **Recomendación:** crear los directorios canónicos aunque estén vacíos con un `README.md` explicando el patrón, o eliminar `system`/`__tests__` si son huérfanos.
 
-### 6.7 Cierre
-- `bunx tsgo --noEmit` limpio.
-- `bunx vitest run` de los directorios tocados en verde.
-- Nueva entrada v7.168.0 en `public/changelog.json` + detalle en `public/changelog/v7.168.0.json`.
+**3. `src/hooks/` mezcla utilidades genuinamente cross-cutting con hooks que ya deberían vivir en un feature.**
+- Cross-cutting legítimos: `useDebouncedValue`, `useDialogState`, `useIsMounted`, `useUnsavedChangesGuard`, `use-mobile`, `useNavigateTransition`, `usePullToRefresh`, `useListPage`, `usePrefillEffect`, `useOptimisticStatus`, `filters/*`.
+- **Ambiguo:** `useDocuments.ts` (documentos es un dominio con sus propias RLS/tests). Evaluar mover a `features/documents/` o dejar documentado por qué es global.
+
+---
+
+### 🟡 P2 — Alto valor, bajo riesgo
+
+**4. Dependencias cruzadas entre features (3 archivos importan ≥4 features distintos).**
+- `src/features/quotes/hooks/quoteDetail/useQuoteDetailData.ts` importa `bookings`, `customers`, `fleet`, `invoices`.
+- `src/features/invoices/pages/InvoiceDetail.tsx` y `useInvoiceFormLogic.ts` similar.
+- No es un bug (los detalles compuestos son inherentemente cross-domain), pero conviene documentar la dirección permitida (p.ej. "features de transacciones pueden leer de features de catálogo, nunca al revés") para prevenir ciclos futuros.
+- **Recomendación:** añadir regla ESLint `boundaries` o `no-restricted-imports` con matriz explícita.
+
+**5. Inconsistencia `api/` layer.**
+- Sólo `features/invoices/` tiene subdirectorio `api/`. El resto pone las llamadas dentro de `hooks/`.
+- **Recomendación:** decidir un patrón único (mi voto: mantener todo en `hooks/` porque ya está estandarizado con `useEntityMutation`/`defineEntityQueries`) y migrar o justificar el caso de `invoices/api/`.
+
+**6. Archivos grandes que rozan el límite de 300 LOC del skill de calidad.**
+- `src/components/layout/ListPageLayout.tsx` (330 LOC): centro neurálgico del listado; considerar extraer `ListPageFilters`, `ListPageFooter` (loadMore + paginación) y `ListPageMobileCards` para bajar de 200 LOC.
+- `src/features/quotes/pages/QuoteForm.tsx` (259 LOC): la lógica ya está en `useQuoteFormLogic`, pero el JSX podría partirse en secciones (`<QuoteHeaderSection/>`, `<QuoteRentalSection/>`, `<QuoteTotalsSection/>`).
+- `src/layouts/GlobalSearch.tsx` (ver P1).
+- `src/features/dashboard/lib/queryKeys.ts` (231 LOC): probable oportunidad de generar keys con helper en vez de listar 1×1.
+
+---
+
+### 🟢 P3 — Mejoras opcionales / cosméticas
+
+**7. `src/components/` está limpio, pero `src/components/domain/` mezcla wrappers reutilizables (`DetailRow`, `TotalsSummary`) con `ReadOnlyLineItemsTable` que sólo se usa en facturas/cotizaciones.**
+- Si `ReadOnlyLineItemsTable` sólo lo usan `invoices` y `quotes`, moverlo a uno de ellos o a un nuevo `features/billing-shared/` que ambos consuman.
+- Auditar los otros componentes de `domain/` con el mismo criterio.
+
+**8. Barril `src/lib/domain/` está creciendo (13 archivos: `contractTypes`, `customerTypes`, `creditNoteMotives`, `paymentIntentStatus`, `feedbackMessages`, etc.).**
+- Muchos son *constantes de dominio* que pertenecerían mejor a `features/<x>/lib/constants.ts`. Solo `invoiceHelpers`/`invoiceTotals`/`rentalCalculation` son puramente reutilizables.
+- **Recomendación:** mover cada `*Types.ts`/`*Motives.ts` al feature dueño; dejar en `src/lib/domain/` sólo lo genuinamente cross-domain.
+
+**9. `src/features/invoices/hooks/` tiene 4 sub-carpetas (`invoiceDetail`, `invoiceForm`, `invoices`, `creditNotes`, `reconciliation`) — el patrón funciona bien; propagarlo a `bookings/hooks/` y `quotes/hooks/` que también son features grandes reduciría la mezcla actual.**
+
+**10. Tests co-ubicados vs `src/test/`.**
+- `src/test/` retiene 18 archivos legacy (`coerce.test.ts`, `formatCurrency.test.ts`, `templateUtils.test.ts`, etc.) que ya tienen equivalente co-ubicado bajo `__tests__/`. Verificar duplicación y consolidar.
+
+---
+
+## Plan de acción sugerido (orden ejecutable)
+
+1. **P1-1** Mover `GlobalSearch` a `features/system/` (o `features/search/`) — 1 sesión.
+2. **P1-2** Normalizar directorios de `calendar`, `operations`, `system` (+ README explicativo) — 15 min.
+3. **P1-3** Decidir destino de `useDocuments` (mover o documentar) — 30 min.
+4. **P2-4** Añadir regla ESLint de límites entre features + matriz permitida — 1 sesión.
+5. **P2-5** Consolidar patrón: eliminar `features/invoices/api/` moviendo su contenido a `hooks/` — 1 sesión.
+6. **P2-6** Partir los 3 archivos > 250 LOC (`ListPageLayout`, `QuoteForm`, `GlobalSearch`) — 1-2 sesiones.
+7. **P3-7** Reubicar `ReadOnlyLineItemsTable` y auditar `components/domain/` — 30 min.
+8. **P3-8** Mover constantes de dominio de `src/lib/domain/` a sus features — 1 sesión.
+9. **P3-9** Sub-organizar `bookings/hooks` y `quotes/hooks` por caso de uso — 1 sesión.
+10. **P3-10** Deduplicar `src/test/` vs `__tests__/` co-ubicados — 1 sesión.
+
+**Riesgo:** todos los cambios son movimientos de archivos + ajustes de imports. Cero cambios de lógica, cero cambios de UI, cero cambios de datos. Cobertura de tests actual (~157 en invoices, cientos totales) hace la validación rápida.
 
 ## Detalles técnicos
 
-- Los tests de `useRecordPaymentForm` usan `renderHook` + wrappers ya existentes en `src/test/helpers/queryClient.tsx`; reutilizar patrón.
-- Para `AuthGuard`, `useIsRestoring` requiere `PersistQueryClientProvider`; simular con mock del hook para evitar acoplar el test al persister real.
-- El test de RPC de cancel_booking se hace a nivel hook (unit), no integración; la lógica SQL ya fue verificada por el linter de Supabase al aplicar la migración.
-- `InvoiceDetailBadges` recibe el `stamp_state` desde `useInvoice`; no requiere cambios en hooks.
+- Verificación de "0 supabase en UI" hecha con `rg -l "@/integrations/supabase/client" src/features/*/components src/features/*/pages` → sin resultados.
+- Verificación de "0 fetching en UI": `rg -l "useQuery\(|useMutation\(" src/features/*/components` → sin resultados.
+- Métricas anti-patrones: 0 `as any`, 0 `!.`, 5 `TODO/FIXME`.
+- Archivos > 300 LOC (excluyendo tests y `supabase/types.ts` autogenerado): sólo `ListPageLayout.tsx` (330) y `chart.tsx` de shadcn (312, intocable).
+- El único acoplamiento real de UI a Supabase vive en `src/layouts/GlobalSearch.tsx` y su `queryKeys.ts` acompañante.
