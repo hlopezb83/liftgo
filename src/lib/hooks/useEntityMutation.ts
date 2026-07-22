@@ -108,11 +108,17 @@ export function useEntityMutation<TVar, TData>(
     },
   });
 
-  // R7 Bloque 3 (capa 2): guarda de reentrada. Si un doble-click esquiva el
-  // `disabled` del botón, el segundo `mutate`/`mutateAsync` se ignora mientras
-  // la primera ejecución sigue pendiente. Envuelve el objeto sin cambiar la API.
+  // R7 Bloque 3 (capa 2): guarda de reentrada para `mutate` (fire-and-forget).
+  // Si un doble-click esquiva el `disabled` del botón, el segundo `mutate` se
+  // ignora mientras la primera ejecución sigue pendiente.
+  //
+  // IMPORTANTE: NO envolvemos `mutateAsync`. Resolver `undefined` rompía el
+  // contrato — múltiples callers hacen `const x = await m.mutateAsync(...); x.id`
+  // y crasheaban silenciosamente en el segundo click. Los formularios que usan
+  // `mutateAsync` ya bloquean el botón con `isPending`; si un evento se cuela,
+  // preferimos que TanStack Query encole/ejecute la segunda llamada antes que
+  // devolver un valor falso.
   const originalMutate = result.mutate;
-  const originalMutateAsync = result.mutateAsync;
   return new Proxy(result, {
     get(target, prop, receiver) {
       if (prop === "mutate") {
@@ -120,12 +126,6 @@ export function useEntityMutation<TVar, TData>(
           if (target.isPending) return;
           return originalMutate(...args);
         }) as typeof originalMutate;
-      }
-      if (prop === "mutateAsync") {
-        return ((...args: Parameters<typeof originalMutateAsync>) => {
-          if (target.isPending) return Promise.resolve(undefined as unknown as TData);
-          return originalMutateAsync(...args);
-        }) as typeof originalMutateAsync;
       }
       return Reflect.get(target, prop, receiver);
     },
