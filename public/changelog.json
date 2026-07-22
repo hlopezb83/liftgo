@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.168.0",
+    "date": "2026-07-22",
+    "type": "minor",
+    "title": "R7 Fase 6 · Cobertura retro (schema flota, TC pago, guard cancel_booking), badge timbrado y AuthGuard sin flash",
+    "category": "bugfix"
+  },
+  {
     "version": "7.167.0",
     "date": "2026-07-22",
     "type": "minor",

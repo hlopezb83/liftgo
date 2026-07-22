@@ -1,0 +1,34 @@
+{
+  "version": "7.168.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "R7 Fase 6 · Cobertura retro y AuthGuard sin flash",
+  "category": "bugfix",
+  "changes": [
+    {
+      "type": "test",
+      "title": "Retro-tests Bloque 10a — rangos de flota",
+      "description": "Nuevos casos en forkliftFormSchema.test.ts cubren año fuera de 1980–actual+1, capacidad ≤0 o >100k, mástil >20 m y tarifas negativas o sobre-máximo."
+    },
+    {
+      "type": "test",
+      "title": "Retro-tests Bloque 14 — prellenado de tipo de cambio",
+      "description": "useRecordPaymentForm.test.ts verifica que USD toma el TC de la factura, MXN fuerza 1 y USD sin TC cae a 1."
+    },
+    {
+      "type": "test",
+      "title": "Retro-test Bloque 20 — guard cancel_booking",
+      "description": "useBookingMutations.test.ts añade un caso que propaga el mensaje 'No se puede cancelar una reserva en estado cancelled' desde la RPC."
+    },
+    {
+      "type": "test",
+      "title": "Bloque 11 — badges del ciclo de timbrado",
+      "description": "InvoiceDetailBadges.test.tsx cubre los estados 'Timbrando…', 'Error de timbrado', 'Timbrada' y la precedencia de 'Borrador'."
+    },
+    {
+      "type": "bugfix",
+      "title": "Bloque 17b — AuthGuard espera restauración del caché persistido",
+      "description": "AuthGuard consulta useIsRestoring() de TanStack Query para mantener el loader mientras el persister hidrata sesión/rol, eliminando el flash de portal o NoAccess al recargar."
+    }
+  ]
+}
