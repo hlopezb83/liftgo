@@ -69,6 +69,7 @@ function InvoiceTable({ title, rows, showDue, emptyMsg }: {
             {showDue && <Text style={[sharedStyles.tableHeaderText, { width: 70 }]}>Vencimiento</Text>}
             {showDue && <Text style={[sharedStyles.tableHeaderText, { width: 50, textAlign: "center" }]}>Días</Text>}
             <Text style={[sharedStyles.tableHeaderText, { width: 60 }]}>Estado</Text>
+            <Text style={[sharedStyles.tableHeaderText, { width: 40, textAlign: "center" }]}>Mon.</Text>
             <Text style={[sharedStyles.tableHeaderText, { width: 80, textAlign: "right" }]}>Total</Text>
           </View>
           {rows.map((inv, i) => {
@@ -76,6 +77,7 @@ function InvoiceTable({ title, rows, showDue, emptyMsg }: {
             const dayLabel = inv.due_date
               ? days > 0 ? `${days} venc.` : `${Math.abs(days)} rest.`
               : "—";
+            const currency = (inv.currency ?? "MXN").toUpperCase();
             const rowStyles = i % 2 === 0
               ? [sharedStyles.tableRow, sharedStyles.tableRowAlt]
               : sharedStyles.tableRow;
@@ -86,7 +88,10 @@ function InvoiceTable({ title, rows, showDue, emptyMsg }: {
                 {showDue && <Text style={[sharedStyles.cellText, { width: 70 }]}>{fmtDate(inv.due_date)}</Text>}
                 {showDue && <Text style={[sharedStyles.cellText, { width: 50, textAlign: "center" }]}>{dayLabel}</Text>}
                 <Text style={[sharedStyles.cellText, { width: 60 }]}>{STATUS_LABELS[inv.status] ?? inv.status}</Text>
-                <Text style={[sharedStyles.cellTotal, { width: 80 }]}>{formatCurrency(Number(inv.total))}</Text>
+                <Text style={[sharedStyles.cellText, { width: 40, textAlign: "center" }]}>{currency}</Text>
+                <Text style={[sharedStyles.cellTotal, { width: 80 }]}>
+                  {formatCurrencyWithCode(Number(inv.total), currency)}
+                </Text>
               </View>
             );
           })}
