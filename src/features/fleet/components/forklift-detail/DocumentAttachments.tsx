@@ -4,7 +4,12 @@ import { Paperclip, DeleteIcon, UploadIcon, DocumentIcon, Image, File } from "@/
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDocuments, useUploadDocument, useDeleteDocument } from "@/hooks/useDocuments";
-import { notifySuccess } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
+
+// R7 Bloque 19d: reglas de aceptación para adjuntos de flota.
+const ACCEPT = "application/pdf,image/*";
+const MAX_BYTES = 5 * 1024 * 1024; // 5MB
+const isAllowed = (file: File) => file.type === "application/pdf" || file.type.startsWith("image/");
 
 function FileIcon({ mime }: { mime?: string | null }) {
   if (mime?.startsWith("image/")) return <Image className="h-4 w-4 text-status-rented" />;
@@ -21,13 +26,32 @@ export function DocumentAttachments({ entityType, entityId }: { entityType: stri
 
   const handleUpload = async (e: ReactChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
-    if (!files) return;
-    // R7 · Deuda: subida en paralelo en vez de secuencial.
-    await Promise.all(
-      Array.from(files).map((file) => uploadDoc.mutateAsync({ file, entityType, entityId })),
-    );
-    notifySuccess(`${files.length} archivo(s) subido(s)`);
-    if (fileRef.current) fileRef.current.value = "";
+    if (!files || files.length === 0) return;
+    const all = Array.from(files);
+    // R7 Bloque 19d: rechazamos formatos y tamaños fuera de rango con toast claro
+    // en vez de fallar en silencio o dejar que Storage devuelva un 4xx opaco.
+    const rejected = all.filter((f) => !isAllowed(f) || f.size > MAX_BYTES);
+    const accepted = all.filter((f) => isAllowed(f) && f.size <= MAX_BYTES);
+    if (rejected.length > 0) {
+      const names = rejected.map((f) => f.name).join(", ");
+      notifyValidation({ message: `Rechazado: ${names}. Solo PDF o imágenes ≤ 5 MB.` });
+    }
+    if (accepted.length === 0) {
+      if (fileRef.current) fileRef.current.value = "";
+      return;
+    }
+    try {
+      await Promise.all(
+        accepted.map((file) => uploadDoc.mutateAsync({ file, entityType, entityId })),
+      );
+      notifySuccess(`${accepted.length} archivo(s) subido(s)`);
+    } catch (err) {
+      // Cada mutación ya notifica su error individual; este catch evita la
+      // unhandled rejection que rompe el ErrorBoundary si Storage devuelve 4xx.
+      notifyError(err, "Algunos archivos no se pudieron subir");
+    } finally {
+      if (fileRef.current) fileRef.current.value = "";
+    }
   };
 
   const handleDelete = async (id: string, fileName: string) => {

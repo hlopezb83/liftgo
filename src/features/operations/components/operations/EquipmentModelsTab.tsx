@@ -105,6 +105,7 @@ export function EquipmentModelsTab() {
       cell: ({ row }) => (
         <EquipmentModelRowActions
           model={row.original}
+          unitsInUse={countUnits(row.original)}
           onEdit={() => openEdit(row.original)}
           onDelete={() => del.mutate(row.original.id, { onSuccess: () => notifySuccess("Eliminado") })}
         />
@@ -138,6 +139,7 @@ export function EquipmentModelsTab() {
                   <span className="font-medium">{m.manufacturer} {m.model}</span>
                   <EquipmentModelRowActions
                     model={m}
+                    unitsInUse={countUnits(m)}
                     onEdit={() => openEdit(m)}
                     onDelete={() => del.mutate(m.id, { onSuccess: () => notifySuccess("Eliminado") })}
                   />
@@ -184,8 +186,12 @@ export function EquipmentModelsTab() {
   );
 }
 
-function EquipmentModelRowActions({ model, onEdit, onDelete }: { model: EquipmentModel; onEdit: () => void; onDelete: () => void }) {
+function EquipmentModelRowActions({ model, unitsInUse, onEdit, onDelete }: { model: EquipmentModel; unitsInUse: number; onEdit: () => void; onDelete: () => void }) {
   const [open, setOpen] = useState(false);
+  // R7 Bloque 19c: informar cuántas unidades activas dependen de este modelo.
+  const usageMsg = unitsInUse > 0
+    ? `Hay ${unitsInUse} montacargas activo${unitsInUse === 1 ? "" : "s"} con este fabricante/modelo. La eliminación no afectará esas unidades pero perderán sus tarifas y specs predeterminadas.`
+    : "Ningún montacargas activo usa este modelo.";
   return (
     <div className="flex gap-1">
       <Button variant="ghost" size="icon" aria-label="Editar modelo" title="Editar modelo" onClick={onEdit}><EditIcon className="h-4 w-4" /></Button>
@@ -194,7 +200,7 @@ function EquipmentModelRowActions({ model, onEdit, onDelete }: { model: Equipmen
         open={open}
         onOpenChange={setOpen}
         title={`¿Eliminar ${model.manufacturer} ${model.model}?`}
-        description="Esto no afectará los montacargas existentes."
+        description={usageMsg}
         confirmLabel="Eliminar"
         destructive
         onConfirm={onDelete}
