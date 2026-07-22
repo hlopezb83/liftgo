@@ -8,7 +8,7 @@ import type { InvoicePdfPayload } from "../../api/fetchInvoicePdfData";
  * Renderiza y descarga el PDF de una factura a partir de un payload ya
  * resuelto (factura + datos fiscales del cliente).
  *
- * La obtención de datos vive en `features/invoices/api/fetchInvoicePdfData.ts`
+ * La obtención de datos vive en `features/invoices/hooks/invoices/pdf/fetchInvoicePdfData.ts`
  * para mantener este módulo como pura capa de presentación / renderizado.
  */
 export async function buildInvoicePdf(payload: InvoicePdfPayload): Promise<void> {
