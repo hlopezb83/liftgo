@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.178.0",
+    "date": "2026-07-22",
+    "type": "minor",
+    "title": "Guardrails de arquitectura · arch:check + docs vinculantes",
+    "category": "infra"
+  },
+  {
     "version": "7.177.0",
     "date": "2026-07-22",
     "type": "minor",
