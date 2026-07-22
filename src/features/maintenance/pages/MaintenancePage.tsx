@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { MaintenanceIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { usePageActions } from "@/contexts/pageActions";
 import { MarkAvailableDialog, useForkliftMap } from "@/features/fleet";
