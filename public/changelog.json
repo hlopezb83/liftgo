@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.187.1",
+    "date": "2026-07-22",
+    "type": "patch",
+    "title": "Fix · Panel: restauradas tarjetas de Utilización de Flota y Flujo de Efectivo",
+    "category": "bugfix"
+  },
+  {
     "version": "7.187.0",
     "date": "2026-07-22",
     "type": "minor",
