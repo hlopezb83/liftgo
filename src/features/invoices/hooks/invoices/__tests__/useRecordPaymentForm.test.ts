@@ -144,6 +144,22 @@ describe("useRecordPaymentForm", () => {
   });
 
 
+  // R7 Bloque 14: TC de la factura se usa como valor inicial del pago.
+  it("USD con invoiceExchangeRate=17.25 prellena exchangeRate", () => {
+    const { result } = renderForm({ invoiceCurrency: "USD", invoiceExchangeRate: 17.25 });
+    expect(result.current.exchangeRate).toBe("17.25");
+  });
+
+  it("MXN ignora invoiceExchangeRate y usa '1'", () => {
+    const { result } = renderForm({ invoiceCurrency: "MXN", invoiceExchangeRate: 99 });
+    expect(result.current.exchangeRate).toBe("1");
+  });
+
+  it("USD sin invoiceExchangeRate cae a '1'", () => {
+    const { result } = renderForm({ invoiceCurrency: "USD", invoiceExchangeRate: null });
+    expect(result.current.exchangeRate).toBe("1");
+  });
+
 
   it("submit válido llama createPayment con payload correcto", async () => {
     const { result } = renderForm({ balance: 500 });
