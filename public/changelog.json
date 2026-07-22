@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.172.0",
+    "date": "2026-07-22",
+    "type": "minor",
+    "title": "R7 Bloque 21 (parcial) · Validaciones de clientes, tope de descuento y cobertura de pruebas",
+    "category": "feature"
+  },
+  {
     "version": "7.171.0",
     "date": "2026-07-22",
     "type": "minor",

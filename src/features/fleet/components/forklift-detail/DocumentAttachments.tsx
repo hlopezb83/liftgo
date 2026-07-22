@@ -6,10 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useDocuments, useUploadDocument, useDeleteDocument } from "@/hooks/useDocuments";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
-// R7 Bloque 19d: reglas de aceptación para adjuntos de flota.
-const ACCEPT = "application/pdf,image/*";
-const MAX_BYTES = 5 * 1024 * 1024; // 5MB
-const isAllowed = (file: File) => file.type === "application/pdf" || file.type.startsWith("image/");
+import { DOC_ACCEPT, DOC_MAX_BYTES, partitionFiles } from "@/features/fleet/lib/documentAttachmentRules";
 
 function FileIcon({ mime }: { mime?: string | null }) {
   if (mime?.startsWith("image/")) return <Image className="h-4 w-4 text-status-rented" />;
@@ -30,11 +27,10 @@ export function DocumentAttachments({ entityType, entityId }: { entityType: stri
     const all = Array.from(files);
     // R7 Bloque 19d: rechazamos formatos y tamaños fuera de rango con toast claro
     // en vez de fallar en silencio o dejar que Storage devuelva un 4xx opaco.
-    const rejected = all.filter((f) => !isAllowed(f) || f.size > MAX_BYTES);
-    const accepted = all.filter((f) => isAllowed(f) && f.size <= MAX_BYTES);
+    const { accepted, rejected } = partitionFiles(all);
     if (rejected.length > 0) {
       const names = rejected.map((f) => f.name).join(", ");
-      notifyValidation({ message: `Rechazado: ${names}. Solo PDF o imágenes ≤ 5 MB.` });
+      notifyValidation({ message: `Rechazado: ${names}. Solo PDF o imágenes ≤ ${DOC_MAX_BYTES / 1024 / 1024} MB.` });
     }
     if (accepted.length === 0) {
       if (fileRef.current) fileRef.current.value = "";
@@ -80,7 +76,7 @@ export function DocumentAttachments({ entityType, entityId }: { entityType: stri
           <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploadDoc.isPending}>
             <UploadIcon className="h-3.5 w-3.5 mr-1" />{uploadDoc.isPending ? "Subiendo..." : "Subir"}
           </Button>
-          <input ref={fileRef} type="file" multiple accept={ACCEPT} className="hidden" onChange={handleUpload} />
+          <input ref={fileRef} type="file" multiple accept={DOC_ACCEPT} className="hidden" onChange={handleUpload} />
         </div>
       </CardHeader>
       <CardContent>

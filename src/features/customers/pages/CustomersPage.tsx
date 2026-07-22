@@ -59,7 +59,7 @@ export default function CustomersPage() {
     q: { type: "text"; fields: (keyof Customer)[] };
   }>({
     items: customers ?? [],
-    facets: { q: { type: "text", fields: ["name", "company", "email"] as (keyof Customer)[] } },
+    facets: { q: { type: "text", fields: ["name", "company", "email", "rfc"] as (keyof Customer)[] } },
   });
 
 

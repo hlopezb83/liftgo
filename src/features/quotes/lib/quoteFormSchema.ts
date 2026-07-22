@@ -50,6 +50,11 @@ export const rentalLineSchema = rentalLineBase.extend({
 }).refine(
   (l) => l.dailyRate > 0 || l.weeklyRate > 0 || l.monthlyRate > 0,
   { message: "Ingresa al menos una tarifa (diaria, semanal o mensual)", path: ["monthlyRate"] },
+).refine(
+  // R7 Bloque 21.6: descuento porcentual > 100% no es un valor válido de negocio;
+  // antes se clampeaba silenciosamente en invoiceTotals.ts (podía enmascarar errores).
+  (l) => l.discountType !== "%" || l.discount <= 100,
+  { message: "El descuento no puede superar 100%", path: ["discount"] },
 );
 
 export const saleLineSchema = saleLineBase.extend({
@@ -57,7 +62,10 @@ export const saleLineSchema = saleLineBase.extend({
   quantity: positiveInt,
   unitPrice: positive,
   discount: nonNegative,
-});
+}).refine(
+  (l) => l.discountType !== "%" || l.discount <= 100,
+  { message: "El descuento no puede superar 100%", path: ["discount"] },
+);
 
 const dateRangeSchema = z.object({
   from: z.date().optional(),
