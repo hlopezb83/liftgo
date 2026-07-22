@@ -137,8 +137,8 @@ describe("PDF Documents — smoke", () => {
     
   });
 
-  it("CustomerStatementDocument con saldo pendiente", () => {
-    snap(
+  it("CustomerStatementDocument con saldo pendiente y facturas multi-moneda", () => {
+    const html = snap(
       <CustomerStatementDocument
         company={company}
         logoBase64={null}
@@ -149,7 +149,10 @@ describe("PDF Documents — smoke", () => {
         summary={customerSummary}
       />,
     );
-    
+    // Bloque 13 (R7): cada renglón debe mostrar el código de moneda real.
+    expect(html).toContain("MXN");
+    expect(html).toContain("USD");
+    expect(html).toContain("TOTAL FACTURADO (MXN)");
   });
 
   it("IncomeStatementDocument: vista anual normal", () => {

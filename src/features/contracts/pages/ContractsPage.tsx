@@ -3,12 +3,14 @@ import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { AddIcon, ViewIcon, ChevronRightIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { STATUS_LABELS } from "@/lib/constants";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
+import { getContractExpiryLabel, getContractExpiryState } from "../lib/contractExpiry";
 import { useContracts, contractQueries } from "../hooks/useContracts";
 
 const CONTRACT_STATUSES = ["draft", "sent", "signed", "cancelled"] as const;
@@ -65,7 +67,23 @@ export default function ContractsPage() {
         id: "end_date",
         header: "Fin",
         accessorFn: (c) => c.end_date || "",
-        cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateDisplay(row.original.end_date)}</span>,
+        cell: ({ row }) => {
+          const expiry = getContractExpiryState(row.original.end_date, row.original.status);
+          const label = getContractExpiryLabel(expiry);
+          return (
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">{formatDateDisplay(row.original.end_date)}</span>
+              {label && (
+                <Badge
+                  variant={expiry === "expired" ? "destructive" : "outline"}
+                  className={expiry === "expiring_soon" ? "border-amber-500 text-amber-700 dark:text-amber-400" : ""}
+                >
+                  {label}
+                </Badge>
+              )}
+            </div>
+          );
+        },
       },
       {
         id: "status",
@@ -119,24 +137,38 @@ export default function ContractsPage() {
       onClearFilters={reset}
       emptyMessage="No se encontraron contratos"
       skeletonColumns={7}
-      mobileCardRender={(c) => (
-        <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/contracts/${c.id}`)}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-1">
-              <span className="font-mono font-semibold text-sm">{c.contract_number}</span>
-              <StatusBadge status={c.status} />
-            </div>
-            <p className="text-sm text-muted-foreground">{c.customer_name || "Sin cliente"}</p>
-            {c.forklift_name && <p className="text-xs text-muted-foreground mt-1">Equipo: {c.forklift_name}</p>}
-            <div className="flex items-center justify-between mt-3 pt-3 border-t">
-              <span className="text-xs text-muted-foreground">
-                {formatDateRange(c.start_date, c.end_date)}
-              </span>
-              <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      mobileCardRender={(c) => {
+        const expiry = getContractExpiryState(c.end_date, c.status);
+        const expiryLabel = getContractExpiryLabel(expiry);
+        return (
+          <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/contracts/${c.id}`)}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-1">
+                <span className="font-mono font-semibold text-sm">{c.contract_number}</span>
+                <div className="flex items-center gap-1.5">
+                  {expiryLabel && (
+                    <Badge
+                      variant={expiry === "expired" ? "destructive" : "outline"}
+                      className={expiry === "expiring_soon" ? "border-amber-500 text-amber-700 dark:text-amber-400" : ""}
+                    >
+                      {expiryLabel}
+                    </Badge>
+                  )}
+                  <StatusBadge status={c.status} />
+                </div>
+              </div>
+              <p className="text-sm text-muted-foreground">{c.customer_name || "Sin cliente"}</p>
+              {c.forklift_name && <p className="text-xs text-muted-foreground mt-1">Equipo: {c.forklift_name}</p>}
+              <div className="flex items-center justify-between mt-3 pt-3 border-t">
+                <span className="text-xs text-muted-foreground">
+                  {formatDateRange(c.start_date, c.end_date)}
+                </span>
+                <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </CardContent>
+          </Card>
+        );
+      }}
     />
   );
 }

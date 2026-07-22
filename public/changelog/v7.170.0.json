@@ -1,0 +1,21 @@
+{
+  "version": "7.170.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "R7 Bloques 18b & 19a · Badges de vencimiento en contratos y FormMessage sin 'undefined'",
+  "category": "feature",
+  "changes": [
+    {
+      "area": "Contratos",
+      "description": "Se agregaron badges 'Por vencer' (≤30 días) y 'Vencido' en la columna Fin de la lista y en las tarjetas mobile, calculados con parseDateLocal + nowMty() para evitar off-by-one UTC → America/Monterrey. Sólo aplica a contratos 'signed' o 'sent'."
+    },
+    {
+      "area": "Formularios",
+      "description": "FormMessage ya no imprime literal 'undefined' cuando el error viene como estructura anidada (por ejemplo rentalLines[i].campo). Se busca recursivamente el primer .message disponible y se preserva el fallback a children cuando no hay error."
+    },
+    {
+      "area": "Tests",
+      "description": "Nuevos specs: form.test.tsx cubre errores anidados de arrays y errores raíz; contractExpiry.test.ts cubre estados expired / expiring_soon / null y etiquetas es-MX."
+    }
+  ]
+}
