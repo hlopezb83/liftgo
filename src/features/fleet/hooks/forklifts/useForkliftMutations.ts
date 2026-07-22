@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { notifyError } from "@/lib/ui/appFeedback";
 import type { Forklift } from "@/types/rental";
 import { forkliftKeys, insuranceAlertsKeys, statusLogKeys } from "../../lib/queryKeys";
