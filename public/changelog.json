@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.170.0",
+    "date": "2026-07-22",
+    "type": "minor",
+    "title": "R7 Bloques 18b & 19a · Badges de vencimiento en contratos y FormMessage sin 'undefined'",
+    "category": "feature"
+  },
+  {
     "version": "7.169.0",
     "date": "2026-07-22",
     "type": "minor",
