@@ -1,0 +1,30 @@
+{
+  "version": "7.177.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "Auditoría arquitectura · Fase 2/3 (P2-P3) cerrada",
+  "category": "refactor",
+  "summary": "Cierre de hallazgos P2 y P3 del audit arquitectónico. Se consolida la capa api/ en hooks/, se documentan las convenciones de components/domain/, hooks por sub-carpeta y lib/domain/, y se elimina 1 test duplicado.",
+  "changes": [
+    "P2-5 (api/hooks consistency): Movido src/features/invoices/api/fetchInvoicePdfData.ts a src/features/invoices/hooks/invoices/pdf/fetchInvoicePdfData.ts. Eliminada carpeta api/ suelta. Actualizados 2 consumidores (useInvoicePdfDownload, lib/pdf/build).",
+    "P2-4 (ESLint boundaries): Guardrails existentes verificados — no-restricted-imports cruzados features (warn), Supabase en components (error), lucide-react/sonner (error), date-fns crudo (warn), useNavigate crudo (warn), paleta Tailwind cruda (warn). Documentado como matriz vigente.",
+    "P2-6 (splits): ListPageLayout (~330 LOC) y QuoteForm splits diferidos a sprint dedicado por superficie de riesgo (>40 consumidores). Documentado como deuda técnica priorizada.",
+    "P3-7 (ReadOnlyLineItemsTable): Creado README en src/components/domain/ documentando qué componentes son legítimamente cross-feature (ReadOnlyLineItemsTable, TotalsSummary, DetailRow, NotesCard) y cuándo mover al feature dueño.",
+    "P3-8 (domain constants): Creado README en src/lib/domain/ separando lo cross-domain genuino (invoiceHelpers, roles, satCatalogs) de candidatos a mover (contractTypes → contracts, creditNoteMotives → invoices, etc.). Migración diferida — cada archivo tiene 5-20 consumidores.",
+    "P3-9 (hooks sub-org): READMEs en bookings/hooks/ y quotes/hooks/ documentando la convención bookings|Detail|Form. Nuevos hooks deben respetarla.",
+    "P3-10 (test dedup): Eliminado duplicado src/test/formatCurrency.test.ts (versión colocalizada en src/lib/format/formatCurrency.test.ts es más completa: cubre también formatCurrencyWithCode). Resto de src/test/ verificado — son tests únicos, no duplicados."
+  ],
+  "files_changed": [
+    "src/features/invoices/hooks/invoices/pdf/fetchInvoicePdfData.ts (movido desde api/)",
+    "src/features/invoices/hooks/invoices/pdf/useInvoicePdfDownload.ts (import actualizado)",
+    "src/features/invoices/lib/pdf/build.tsx (import + doc actualizados)",
+    "src/features/invoices/api/ (eliminada)",
+    "src/test/formatCurrency.test.ts (eliminado, duplicado)",
+    "src/components/domain/README.md (nuevo)",
+    "src/features/bookings/hooks/README.md (nuevo)",
+    "src/features/quotes/hooks/README.md (nuevo)",
+    "src/lib/domain/README.md (nuevo)",
+    "public/changelog.json",
+    "public/changelog/v7.177.0.json (nuevo)"
+  ]
+}

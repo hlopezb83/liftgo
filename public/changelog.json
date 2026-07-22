@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.177.0",
+    "date": "2026-07-22",
+    "type": "minor",
+    "title": "Auditoría arquitectura · Fase 2/3 (P2-P3) cerrada",
+    "category": "refactor"
+  },
+  {
     "version": "7.176.0",
     "date": "2026-07-22",
     "type": "minor",
