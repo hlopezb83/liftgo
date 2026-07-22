@@ -2,7 +2,7 @@ import { parseLineItems } from "@/lib/domain/lineItems";
 import { InvoiceDocument } from "@/lib/pdf/documents/InvoiceDocument";
 import { renderAndSave } from "@/lib/pdf/renderAndSave";
 import { fetchCompanyDataAndLogo, type PdfLineItem } from "@/lib/pdf/shared";
-import type { InvoicePdfPayload } from "../../api/fetchInvoicePdfData";
+import type { InvoicePdfPayload } from "@/features/invoices/hooks/invoices/pdf/fetchInvoicePdfData";
 
 /**
  * Renderiza y descarga el PDF de una factura a partir de un payload ya

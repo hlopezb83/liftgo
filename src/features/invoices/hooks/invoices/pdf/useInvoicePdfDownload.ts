@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
-import { fetchInvoicePdfData } from "../../../api/fetchInvoicePdfData";
+import { fetchInvoicePdfData } from "./fetchInvoicePdfData";
 
 export function useInvoicePdfDownload() {
   const [loading, setLoading] = useState(false);
