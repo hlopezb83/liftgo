@@ -48,7 +48,7 @@ export function DocumentAttachments({ entityType, entityId }: { entityType: stri
     } catch (err) {
       // Cada mutación ya notifica su error individual; este catch evita la
       // unhandled rejection que rompe el ErrorBoundary si Storage devuelve 4xx.
-      notifyError(err, "Algunos archivos no se pudieron subir");
+      notifyError({ error: err, message: "Algunos archivos no se pudieron subir" });
     } finally {
       if (fileRef.current) fileRef.current.value = "";
     }
@@ -80,7 +80,7 @@ export function DocumentAttachments({ entityType, entityId }: { entityType: stri
           <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploadDoc.isPending}>
             <UploadIcon className="h-3.5 w-3.5 mr-1" />{uploadDoc.isPending ? "Subiendo..." : "Subir"}
           </Button>
-          <input ref={fileRef} type="file" multiple className="hidden" onChange={handleUpload} />
+          <input ref={fileRef} type="file" multiple accept={ACCEPT} className="hidden" onChange={handleUpload} />
         </div>
       </CardHeader>
       <CardContent>
