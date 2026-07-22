@@ -14,9 +14,12 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { FUEL_TYPES, FUEL_TYPE_LABELS } from "@/lib/constants";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 
+const norm = (s: string) => s.trim().toLowerCase();
+
 export function EquipmentModelsTab() {
   const isMobile = useIsMobile();
   const { data: models, isLoading } = useEquipmentModels();
+  const { data: forklifts } = useForklifts();
   const create = useCreateEquipmentModel();
   const update = useUpdateEquipmentModel();
   const del = useDeleteEquipmentModel();
@@ -26,6 +29,21 @@ export function EquipmentModelsTab() {
   const [form, setForm] = useState(emptyForm);
   const set = (key: string, value: string) => setForm((p) => ({ ...p, [key]: value }));
 
+  // R7 Bloque 19c: contar montacargas activos por modelo (match manufacturer+model,
+  // case-insensitive). El schema no tiene FK equipment_model_id en forklifts, así que
+  // se resuelve por composición del par visible al usuario.
+  const usageByModel = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const f of forklifts ?? []) {
+      const key = `${norm(f.manufacturer ?? "")}||${norm(f.model ?? "")}`;
+      map.set(key, (map.get(key) ?? 0) + 1);
+    }
+    return map;
+  }, [forklifts]);
+
+  const countUnits = (m: EquipmentModel) =>
+    usageByModel.get(`${norm(m.manufacturer)}||${norm(m.model)}`) ?? 0;
+
   const openNew = () => { setEditId(null); setForm(emptyForm); setOpen(true); };
   const openEdit = (m: EquipmentModel) => {
     setEditId(m.id);
@@ -34,8 +52,39 @@ export function EquipmentModelsTab() {
   };
 
   const handleSubmit = () => {
-    if (!form.manufacturer || !form.model) { notifyValidation({ message: "Fabricante y modelo son requeridos" }); return; }
-    const payload = { manufacturer: form.manufacturer, model: form.model, default_capacity_kg: form.default_capacity_kg ? parseFloat(form.default_capacity_kg) : null, default_mast_height_m: form.default_mast_height_m ? parseFloat(form.default_mast_height_m) : null, default_fuel_type: form.default_fuel_type, default_daily_rate: form.default_daily_rate ? parseFloat(form.default_daily_rate) : 0, default_weekly_rate: form.default_weekly_rate ? parseFloat(form.default_weekly_rate) : 0, default_monthly_rate: form.default_monthly_rate ? parseFloat(form.default_monthly_rate) : 0 };
+    const manufacturer = form.manufacturer.trim();
+    const model = form.model.trim();
+    if (!manufacturer || !model) {
+      notifyValidation({ message: "Fabricante y modelo son requeridos" });
+      return;
+    }
+    // R7 Bloque 19c: duplicado (fabricante+modelo) case-insensitive; el índice
+    // parcial de la DB (`WHERE deleted_at IS NULL`) es la defensa final.
+    const isDuplicate = (models ?? []).some(
+      (m) => m.id !== editId && norm(m.manufacturer) === norm(manufacturer) && norm(m.model) === norm(model),
+    );
+    if (isDuplicate) {
+      notifyValidation({ message: `Ya existe el modelo ${manufacturer} ${model}` });
+      return;
+    }
+    // R7 Bloque 19c: rangos ≥ 0 para tarifas y specs numéricas.
+    const numericFields: Array<[keyof typeof form, string]> = [
+      ["default_daily_rate", "Tarifa diaria"],
+      ["default_weekly_rate", "Tarifa semanal"],
+      ["default_monthly_rate", "Tarifa mensual"],
+      ["default_capacity_kg", "Capacidad"],
+      ["default_mast_height_m", "Altura de mástil"],
+    ];
+    for (const [field, label] of numericFields) {
+      const raw = form[field];
+      if (!raw) continue;
+      const value = parseFloat(raw);
+      if (Number.isNaN(value) || value < 0) {
+        notifyValidation({ message: `${label} debe ser mayor o igual a 0` });
+        return;
+      }
+    }
+    const payload = { manufacturer, model, default_capacity_kg: form.default_capacity_kg ? parseFloat(form.default_capacity_kg) : null, default_mast_height_m: form.default_mast_height_m ? parseFloat(form.default_mast_height_m) : null, default_fuel_type: form.default_fuel_type, default_daily_rate: form.default_daily_rate ? parseFloat(form.default_daily_rate) : 0, default_weekly_rate: form.default_weekly_rate ? parseFloat(form.default_weekly_rate) : 0, default_monthly_rate: form.default_monthly_rate ? parseFloat(form.default_monthly_rate) : 0 };
     if (editId) {
       update.mutate({ id: editId, ...payload }, { onSuccess: () => { notifySuccess("Actualizado"); setOpen(false); } });
     } else {
