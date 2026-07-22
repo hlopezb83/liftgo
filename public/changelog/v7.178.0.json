@@ -1,0 +1,23 @@
+{
+  "version": "7.178.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "Guardrails de arquitectura · arch:check + docs vinculantes",
+  "category": "infra",
+  "summary": "Guardrails estáticos que bloquean regresiones arquitectónicas antes de futuras refactorizaciones. Script rg-based (<1s) + doc vinculante + job dedicado en CI.",
+  "changes": [
+    "scripts/arch-check.sh (nuevo): 5 checks G1–G5 — G1 prohibe re-introducir src/features/*/api/ (consolidado en v7.177.0), G2 congela src/lib/domain/ con allowlist, G3 prohibe src/api/ raíz, G4 prohibe supabase en pages|components (excepto AuthPage), G5 métrica de cross-feature deep imports con umbral 20 (baseline 12).",
+    "docs/architecture-guardrails.md (nuevo): documento vinculante con capas permitidas, matriz completa de reglas ESLint activas y protocolo para evolucionar guardrails.",
+    "package.json: nuevo script `bun run arch:check`.",
+    "CI: nuevo job `arch-check` en .github/workflows/ci.yml paralelo a lint/typecheck/knip; incluido en required checks del gate final.",
+    "Baseline v7.178.0 registrado: 7 cross-feature deep imports (dentro de baseline 12); todos los checks G1–G5 en verde."
+  ],
+  "files_changed": [
+    "scripts/arch-check.sh (nuevo)",
+    "docs/architecture-guardrails.md (nuevo)",
+    "package.json",
+    ".github/workflows/ci.yml",
+    "public/changelog.json",
+    "public/changelog/v7.178.0.json (nuevo)"
+  ]
+}
