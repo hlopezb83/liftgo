@@ -1,0 +1,35 @@
+{
+  "version": "7.182.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "Auditoría visual · Lote B: densidad y jerarquía",
+  "category": "improvement",
+  "summary": "Refactor de composición en MRR, Estado de Resultados y Cotizaciones basado en los hallazgos B3-B5 del audit visual v7.181.",
+  "sections": [
+    {
+      "title": "MRR · cluster de KPIs (B3)",
+      "items": [
+        "MrrDetailPage reemplaza la card solitaria 'MRR Total' por un grid de 4 tiles: MRR, ARR (MRR×12), Rentas activas y ARPU (MRR / clientes únicos).",
+        "Mismo dataset ya cacheado — sin queries adicionales, solo derivación en el cliente."
+      ]
+    },
+    {
+      "title": "Estado de Resultados · toggle en header (B4)",
+      "items": [
+        "Toggle 'Devengado / Flujo de efectivo' migrado al slot actions del PageHeader como control top-level.",
+        "La card de rango de fechas queda dedicada solo a Desde/Hasta, sin el subheader mixto que confundía la jerarquía."
+      ]
+    },
+    {
+      "title": "Cotizaciones · desaturar 'Público en General' (B5)",
+      "items": [
+        "QuotesPage: cuando el cliente es genérico ('Público en General'), el nombre se renderiza con text-muted-foreground italic tanto en tabla como en mobile card.",
+        "Reduce ruido visual cuando >70% de filas son CFDI genéricos."
+      ]
+    }
+  ],
+  "validated": [
+    "B1 (jerarquía de KPIs en Panel) ya se cubrió en v7.181.0 (Lote A).",
+    "B2 (columna dedicada para badge Recurrente en /bookings) descartado: el badge solo aparece en el detalle, no en el listado — hallazgo no reproducible."
+  ]
+}

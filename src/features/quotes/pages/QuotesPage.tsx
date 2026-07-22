@@ -14,6 +14,7 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay, formatDateRange, parseDateLocal } from "@/lib/utils";
 import { toYMD } from "@/lib/date/toYMD";
 import { QUOTE_STATUS_LABELS, quoteStatusLabel as quoteLabel } from "../constants";
+import { isPublicoGeneral } from "../hooks/quoteDetail/useQuoteDetailData";
 import { useQuotes, quoteQueries } from "../hooks/quotes/useQuotes";
 
 const QUOTE_STATUSES = ["draft", "sent", "accepted", "declined", "expired"] as const;
@@ -63,7 +64,16 @@ export default function QuotesPage() {
         id: "customer_name",
         header: "Cliente",
         accessorFn: (q) => q.customer_name || "",
-        cell: ({ row }) => row.original.customer_name || "—",
+        // v7.182: "Público en General" desaturado para reducir ruido cuando
+        // domina la lista (patrón repetido en CFDI genéricos).
+        cell: ({ row }) => {
+          const name = row.original.customer_name;
+          if (!name) return "—";
+          if (isPublicoGeneral(name)) {
+            return <span className="text-muted-foreground italic">{name}</span>;
+          }
+          return name;
+        },
       },
       {
         id: "dates",
@@ -168,7 +178,7 @@ export default function QuotesPage() {
                   {isExpired && <Badge variant="destructive" className="text-3xs px-1.5 py-0">Vencida</Badge>}
                 </div>
               </div>
-              <p className="text-sm text-muted-foreground">{q.customer_name || "Sin cliente"}</p>
+              <p className={`text-sm ${q.customer_name && isPublicoGeneral(q.customer_name) ? "text-muted-foreground italic" : "text-muted-foreground"}`}>{q.customer_name || "Sin cliente"}</p>
               <div className="flex items-center justify-between mt-3 pt-3 border-t">
                 <span className="text-xs text-muted-foreground">{formatDateRange(q.start_date, q.end_date)}</span>
                 <div className="flex items-center gap-1">

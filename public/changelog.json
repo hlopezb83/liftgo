@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.182.0",
+    "date": "2026-07-22",
+    "type": "minor",
+    "title": "Auditoría visual · Lote B: densidad y jerarquía",
+    "category": "improvement"
+  },
+  {
     "version": "7.181.0",
     "date": "2026-07-22",
     "type": "minor",
