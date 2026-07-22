@@ -59,8 +59,8 @@ export default function CustomerDetailPage() {
             <Button variant="outline" size="sm" disabled={!s.summary} onClick={handleExportStatement}>
               <FileDown className="h-4 w-4 mr-2" /> Estado de Cuenta
             </Button>
-            {/* R7 Bloque 8: matriz de permisos en lugar de role hardcoded. */}
-            <RoleGuard module="Clientes" minAccess="write" fallback={null}>
+            {/* R7 Bloque 8: matriz (read/full). Editar/Eliminar/Invitar exigen full. */}
+            <RoleGuard module="Clientes" minAccess="full" fallback={null}>
               <Button variant="outline" size="sm" onClick={() => s.setEditOpen(true)}>
                 <EditIcon className="h-4 w-4 mr-2" /> Editar
               </Button>
