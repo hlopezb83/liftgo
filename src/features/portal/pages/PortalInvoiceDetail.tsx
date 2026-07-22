@@ -67,6 +67,21 @@ export default function PortalInvoiceDetail() {
   const totalPaid = invoicePayments.reduce((sum, p) => sum + Number(p.amount), 0);
   const balance = Number(invoice.total) - totalPaid;
 
+  const [downloading, setDownloading] = useState<"pdf" | "xml" | null>(null);
+  const hasCfdi = Boolean(invoice.cfdi_uuid);
+
+  const download = async (fmt: "pdf" | "xml") => {
+    if (!invoice.cfdi_uuid) return;
+    setDownloading(fmt);
+    try {
+      await downloadCfdiBlob({ invoice_id: invoice.id }, fmt, `${invoice.invoice_number}.${fmt}`);
+    } catch (err: unknown) {
+      notifyError({ error: err, message: `No se pudo descargar el ${fmt.toUpperCase()} SAT` });
+    } finally {
+      setDownloading(null);
+    }
+  };
+
   return (
     <PageContainer maxWidth="wide">
       <PageHeader
@@ -74,9 +89,23 @@ export default function PortalInvoiceDetail() {
         backHref="/portal/invoices"
         backLabel="Facturas"
         actions={
-          balance > 0 && invoice.status !== "cancelled" ? (
-            <Button onClick={() => navigate(`/portal/invoices/${invoice.id}/pago`)}>Pagar factura</Button>
-          ) : undefined
+          <div className="flex flex-wrap items-center gap-2">
+            {hasCfdi && (
+              <>
+                <Button size="sm" variant="outline" onClick={() => download("pdf")} disabled={downloading !== null}>
+                  <DocumentIcon className="h-4 w-4 mr-1" />
+                  {downloading === "pdf" ? "Descargando…" : "PDF SAT"}
+                </Button>
+                <Button size="sm" variant="outline" onClick={() => download("xml")} disabled={downloading !== null}>
+                  <DocumentIcon className="h-4 w-4 mr-1" />
+                  {downloading === "xml" ? "Descargando…" : "XML SAT"}
+                </Button>
+              </>
+            )}
+            {balance > 0 && invoice.status !== "cancelled" ? (
+              <Button size="sm" onClick={() => navigate(`/portal/invoices/${invoice.id}/pago`)}>Pagar factura</Button>
+            ) : null}
+          </div>
         }
       />
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
