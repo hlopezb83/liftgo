@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.179.0",
+    "date": "2026-07-22",
+    "type": "minor",
+    "title": "Arquitectura · P3-8 constantes al feature dueño + P3-9 hooks reorganizados",
+    "category": "infra"
+  },
+  {
     "version": "7.178.0",
     "date": "2026-07-22",
     "type": "minor",

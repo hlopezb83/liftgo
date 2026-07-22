@@ -1,0 +1,16 @@
+{
+  "version": "7.179.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "Arquitectura · P3-8 constantes al feature dueño + P3-9 hooks reorganizados",
+  "category": "infra",
+  "description": "Codemod que cierra los hallazgos P3-8 y P3-9 de la auditoría arquitectónica sin romper consumidores.",
+  "changes": [
+    "P3-8: 5 constantes movidas de src/lib/domain/ al feature dueño — contractTypes→features/contracts/lib, customerTypes→features/customers/lib, creditNoteMotives y paymentIntentStatus→features/invoices/lib, feedbackMessages→features/feedback/lib. 13 imports @/lib/domain/* actualizados.",
+    "P3-9 bookings: useBookings + useBookingMutations reubicados a hooks/bookings/, useBookingExtensions + useBookingActionsLogic a hooks/bookingActions/. Barrel index.ts y imports relativos (siblings, tests, pages, components) reescritos.",
+    "P3-9 quotes: useQuoteDetailLogic reubicado a hooks/quoteDetail/, useQuoteFormLogic a hooks/quoteForm/. Consumidores en pages/components/tests actualizados.",
+    "scripts/arch-check.sh: allowlist G2 depurada — los 5 archivos migrados ya no pueden re-crearse en src/lib/domain/ sin fallar el CI.",
+    "src/lib/domain/README.md actualizado para reflejar los archivos que efectivamente ya viven en su feature.",
+    "Verificación: typecheck limpio, 1231/1231 tests, arch:check OK (10 cross-feature imports vs baseline 12)."
+  ]
+}
