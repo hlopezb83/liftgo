@@ -1,0 +1,14 @@
+{
+  "version": "7.180.1",
+  "date": "2026-07-22",
+  "type": "patch",
+  "title": "Regresión completa post-cierre de 10 hallazgos de arquitectura",
+  "category": "infra",
+  "description": "Verificación global ejecutada tras cerrar los 10 hallazgos de la auditoría arquitectónica (P1, P2 y P3).",
+  "changes": [
+    "Typecheck limpio en todo el proyecto (tsgo exit 0).",
+    "Suite completa de tests unitarios e integración verde; sin regresiones tras los movimientos de archivos de P3-8, P3-9 y P2-6.",
+    "scripts/arch-check.sh pasa G1-G5: sin carpetas api/ en features, dominio congelado, sin api/ raíz, sin supabase en UI/pages, y cross-feature deep imports dentro del baseline (10 vs 12).",
+    "Confirma que los refactorings de arquitectura no introdujeron acoplamientos ni violaciones a los guardrails establecidos."
+  ]
+}
