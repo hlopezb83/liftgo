@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.189.0",
+    "date": "2026-07-22",
+    "type": "minor",
+    "title": "Auditoría R8 · guard cotizaciones vencidas, RPC de estado de flota, unique fabricante+modelo",
+    "category": "improvement"
+  },
+  {
     "version": "7.188.0",
     "date": "2026-07-22",
     "type": "minor",

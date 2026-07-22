@@ -22,9 +22,21 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
   const { createBookingsFor, convertLegacy } = useQuoteBookingCreator(data, state);
   const { quote, isModelBasedQuote, durationDays } = data;
 
-  const setStatus = (status: string) => {
+  const setStatus = async (status: string) => {
     if (!id) return;
-    updateQuote.mutate({ id, status }, { onSuccess: () => notifySuccess(`Cotización marcada como ${quoteStatusLabel(status)}`) });
+    // R8 Bloque 2: al aceptar internamente (sin pasar por RPC del portal), poblar
+    // auditoría (`accepted_at` / `accepted_by_user_id`) para trazabilidad. El trigger
+    // `guard_quote_acceptance` rechaza aceptar cotizaciones vencidas incluso por PATCH directo.
+    const extra: Record<string, string | null> = {};
+    if (status === "accepted") {
+      const { data: userData } = await import("@/integrations/supabase/client").then((m) => m.supabase.auth.getUser());
+      extra.accepted_at = new Date().toISOString();
+      extra.accepted_by_user_id = userData.user?.id ?? null;
+    }
+    updateQuote.mutate(
+      { id, status, ...extra },
+      { onSuccess: () => notifySuccess(`Cotización marcada como ${quoteStatusLabel(status)}`) },
+    );
   };
 
   const handleDelete = () => {

@@ -1,0 +1,13 @@
+{
+  "version": "7.189.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "Auditoría R8 · reglas de negocio en cotizaciones, flota y modelos",
+  "category": "improvement",
+  "changes": [
+    "Cotizaciones (R8·B2): trigger `guard_quote_acceptance` bloquea a nivel BD aceptar una cotización cuya `valid_until` ya venció, incluso vía PATCH directo por API. En el flujo interno de aceptación (`useQuoteConversionActions.setStatus`) ahora se poblan `accepted_at` y `accepted_by_user_id`, cerrando la brecha de auditoría que sólo cubría el RPC del portal.",
+    "Flota (R8·B3): nueva RPC `change_forklift_status(p_forklift_id, p_new_status, p_reason)` que valida las transiciones — rechaza marcar 'rentado' sin renta activa, prohíbe salir de 'rentado' con una renta abierta y exige razón para 'maintenance' / 'sold' / 'retired'. La actualización de `forklifts.status` y la inserción en `status_logs` son ahora atómicas. `useUpdateStatus` delega en la RPC y `StatusChangeCard` oculta 'rentado' como destino manual y marca la razón como obligatoria cuando corresponde.",
+    "Operaciones (R8·B5): índice único `equipment_models_mfr_model_unique` sobre `lower(manufacturer), lower(model)` como defensa final contra modelos duplicados; complementa la validación ya existente en cliente (R7 Bloque 19c).",
+    "Tests: `useForkliftMutations.test.ts` actualizado para validar la llamada al RPC y la propagación de errores del validador."
+  ]
+}
