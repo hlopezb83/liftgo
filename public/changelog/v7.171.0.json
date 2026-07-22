@@ -1,0 +1,25 @@
+{
+  "version": "7.171.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "R7 Bloques 19b/c/d · Cotizaciones vencidas, validaciones de modelos y adjuntos seguros",
+  "category": "feature",
+  "description": "Cierre del sweep R7 en experiencia diaria: badge 'Vencida' consistente en cotizaciones (escritorio y móvil), validaciones de modelos de equipo y adjuntos de flota con reglas explícitas.",
+  "changes": [
+    {
+      "type": "feature",
+      "title": "Bloque 19b · Badge 'Vencida' en tarjeta móvil de cotizaciones",
+      "detail": "Se reutiliza el cálculo de vencimiento (status=sent y valid_until < hoy en zona Monterrey) en el card móvil de /quotes para que el operador vea el estado sin abrir el detalle."
+    },
+    {
+      "type": "feature",
+      "title": "Bloque 19c · Modelos de equipo con validaciones y contexto de eliminación",
+      "detail": "EquipmentModelsTab detecta duplicados fabricante+modelo case-insensitive, exige tarifas y specs numéricas ≥ 0, y el diálogo de eliminación muestra cuántos montacargas activos comparten fabricante/modelo (match sobre forklifts, ya que el schema no lleva FK)."
+    },
+    {
+      "type": "fix",
+      "title": "Bloque 19d · Adjuntos de flota con accept, límite 5MB y try/catch",
+      "detail": "DocumentAttachments limita la selección a PDF/imágenes (accept en el input), rechaza archivos >5MB con toast claro y envuelve el Promise.all de subidas en try/catch para evitar unhandled rejections cuando Storage devuelve 4xx."
+    }
+  ]
+}

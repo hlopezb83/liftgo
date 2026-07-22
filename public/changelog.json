@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.171.0",
+    "date": "2026-07-22",
+    "type": "minor",
+    "title": "R7 Bloques 19b/c/d · Cotizaciones vencidas, validaciones de modelos y adjuntos seguros",
+    "category": "feature"
+  },
+  {
     "version": "7.170.0",
     "date": "2026-07-22",
     "type": "minor",
