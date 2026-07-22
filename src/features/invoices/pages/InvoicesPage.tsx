@@ -102,7 +102,18 @@ function InvoiceCard({ inv, onClick }: { inv: Invoice; onClick: () => void }) {
             {inv.due_date && <span> → {formatDateDisplay(inv.due_date)}</span>}
           </div>
           <div className="flex items-center gap-1">
-            <span className="text-sm font-semibold font-mono">{formatCurrency(Number(inv.total))}</span>
+            {(() => {
+              // R8 Bloque 6·#3: badge de moneda en la tarjeta móvil (paridad con el listado desktop).
+              const moneda = (inv as Invoice & { moneda?: string | null }).moneda ?? "MXN";
+              return (
+                <>
+                  <span className="text-sm font-semibold font-mono">{formatCurrency(Number(inv.total))}</span>
+                  {moneda !== "MXN" && (
+                    <span className="text-[10px] font-medium text-muted-foreground bg-muted px-1 rounded">{moneda}</span>
+                  )}
+                </>
+              );
+            })()}
             <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
           </div>
         </div>

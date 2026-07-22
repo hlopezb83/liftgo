@@ -1,5 +1,5 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { notifySuccess } from "@/lib/ui/appFeedback";
+import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { useUpdateCustomer, useDeleteCustomer } from "../customers/useCustomers";
 import { useInviteCustomer } from "../customers/useInviteCustomer";
 import type { CustomerFormData } from "../../lib/customerFormSchema";
@@ -52,8 +52,17 @@ export function useCustomerDetailActions({ id, setInviteOpen, setEditOpen }: Par
     });
   };
 
-  const handleDelete = () => {
+  // R8 Bloque 6·#16: pre-verificación en cliente. Si el cliente tiene rentas
+  // activas (confirmed/active), no invocamos el RPC — el mensaje coincide con
+  // el que devolvería la BD pero evita el round-trip y un toast de error genérico.
+  const handleDelete = (activeBookingsCount = 0) => {
     if (!id) return;
+    if (activeBookingsCount > 0) {
+      notifyValidation({
+        message: `El cliente tiene ${activeBookingsCount} renta(s) activa(s). Cancélalas o complétalas antes de archivar.`,
+      });
+      return;
+    }
     deleteCustomer.mutate(id, {
       onSuccess: () => { notifySuccess("Cliente archivado"); navigate("/customers"); },
     });
