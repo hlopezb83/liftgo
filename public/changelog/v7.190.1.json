@@ -1,0 +1,11 @@
+{
+  "version": "7.190.1",
+  "date": "2026-07-22",
+  "type": "patch",
+  "title": "Fix: mutateAsync ya no devuelve undefined en doble-click",
+  "category": "bugfix",
+  "changes": [
+    "useEntityMutation: se removió el short-circuit de mutateAsync que resolvía undefined durante reentrada. Callers como subida de CFDI XML, pago a proveedor y reporte de daños ya no crashean al leer propiedades del resultado tras un segundo click.",
+    "Se conserva el guard para mutate (fire-and-forget) que sigue previniendo doble-submit desde botones."
+  ]
+}

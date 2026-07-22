@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.190.1",
+    "date": "2026-07-22",
+    "type": "patch",
+    "title": "Fix: mutateAsync ya no devuelve undefined en doble-click",
+    "category": "bugfix"
+  },
+  {
     "version": "7.190.0",
     "date": "2026-07-22",
     "type": "minor",
