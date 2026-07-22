@@ -9,10 +9,13 @@ import { Form, FormField, FormItem, FormMessage } from "@/components/ui/form";
 
 type Values = { items: { name: string }[] };
 
+import { useEffect } from "react";
+
 function Harness({ error }: { error: unknown }) {
   const form = useForm<Values>({ defaultValues: { items: [{ name: "" }] } });
-  // Inyectamos error manualmente para simular Zod arrays con issues por índice.
-  form.setError("items", error as Parameters<typeof form.setError>[1]);
+  useEffect(() => {
+    form.setError("items", error as Parameters<typeof form.setError>[1]);
+  }, [form, error]);
   return (
     <Form {...form}>
       <FormField
