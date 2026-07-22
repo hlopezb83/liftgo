@@ -1,7 +1,8 @@
 
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { EmptyState } from "@/components/feedback/EmptyState";
 import { ReportChartCard } from "@/components/domain/ReportChartCard";
-import { TrendingUpIcon, TrendingDownIcon, RemoveIcon } from "@/components/icons";
+import { TrendingUpIcon, TrendingDownIcon, RemoveIcon, ChartIcon } from "@/components/icons";
 
 interface MonthlyUtilizationItem {
   month_label: string;
