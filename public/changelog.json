@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.183.0",
+    "date": "2026-07-22",
+    "type": "minor",
+    "title": "Auditoría visual · Lote C: sistemas transversales",
+    "category": "improvement"
+  },
+  {
     "version": "7.182.0",
     "date": "2026-07-22",
     "type": "minor",

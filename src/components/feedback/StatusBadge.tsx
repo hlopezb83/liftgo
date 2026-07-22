@@ -10,6 +10,9 @@ const WARNING = "bg-warning/10 text-warning border-warning/20";
 const DANGER = "bg-destructive/15 text-destructive border border-destructive/30";
 const NEUTRAL_DARK = "bg-status-completed/15 text-foreground border-transparent";
 const NEUTRAL_LIGHT = "bg-muted text-muted-foreground border-transparent";
+// v7.183 (Lote C): tono sólido apagado para estados terminales (Vendido,
+// Cancelado, Retirado) — cierra visualmente el registro sin gritar en la tabla.
+const NEUTRAL_SOLID = "bg-muted-foreground/80 text-background border-transparent";
 
 const statusStyles: Record<string, string> = {
   // success
@@ -37,17 +40,18 @@ const statusStyles: Record<string, string> = {
   pickup: WARNING,
   // danger (rojo)
   overdue: DANGER,
-  cancelled: DANGER,
   declined: DANGER,
   major_damage: DANGER,
   needs_repair: DANGER,
-  // neutral
+  // terminal (neutral sólido apagado)
+  cancelled: NEUTRAL_SOLID,
+  sold: NEUTRAL_SOLID,
+  retired: NEUTRAL_SOLID,
+  // neutral suave (borradores / inactivos temporales)
   draft: NEUTRAL_LIGHT,
-  retired: NEUTRAL_LIGHT,
   expired: NEUTRAL_LIGHT,
   inactive: NEUTRAL_LIGHT,
   completed: NEUTRAL_DARK,
-  sold: NEUTRAL_DARK,
 };
 
 export function StatusBadge({ status, label: labelOverride }: { status: string; label?: string }) {

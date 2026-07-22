@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { MaintenanceIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { usePageActions } from "@/contexts/pageActions";
 import { MarkAvailableDialog, useForkliftMap } from "@/features/fleet";
@@ -140,6 +141,9 @@ export default function MaintenancePage() {
         hasActiveFilters={hasActive}
         onClearFilters={reset}
         emptyMessage="No se encontraron registros de mantenimiento"
+        emptyIcon={MaintenanceIcon}
+        emptyActionLabel="Nuevo servicio"
+        onEmptyAction={formCtl.openCreate}
         customContent={kanbanContent}
         mobileCardRender={(log) => (
           <MaintenanceMobileCard log={log} forkliftMap={forkliftMap} onClick={() => detail.open(log)} />
