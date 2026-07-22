@@ -4,18 +4,6 @@ import { z } from "zod";
 // Regla: si el campo no está vacío, debe parsear a número finito dentro del rango.
 const CURRENT_YEAR = new Date().getFullYear();
 
-function nonNegative(field: string, max = 9_999_999) {
-  return (val: string, ctx: z.RefinementCtx) => {
-    if (!val) return;
-    const n = Number(val);
-    if (!Number.isFinite(n)) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: `${field}: número inválido`, path: [] });
-      return;
-    }
-    if (n < 0) ctx.addIssue({ code: z.ZodIssueCode.custom, message: `${field}: no puede ser negativo`, path: [] });
-    if (n > max) ctx.addIssue({ code: z.ZodIssueCode.custom, message: `${field}: excede el máximo permitido`, path: [] });
-  };
-}
 
 export const forkliftFormSchema = z
   .object({
@@ -68,8 +56,13 @@ export const forkliftFormSchema = z
     ).forEach(([field, max]) => {
       const val = data[field];
       if (!val) return;
-      const inner = { addIssue: (i: z.ZodIssueBase) => ctx.addIssue({ ...i, path: [field] }) } as z.RefinementCtx;
-      nonNegative(field, max)(val, inner);
+      const n = Number(val);
+      if (!Number.isFinite(n)) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: [field], message: `${field}: número inválido` });
+        return;
+      }
+      if (n < 0) ctx.addIssue({ code: z.ZodIssueCode.custom, path: [field], message: "No puede ser negativo" });
+      if (n > max) ctx.addIssue({ code: z.ZodIssueCode.custom, path: [field], message: "Excede el máximo permitido" });
     });
   });
 
