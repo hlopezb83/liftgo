@@ -1,0 +1,13 @@
+{
+  "version": "7.188.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "Auditoría R7 · cierre de pendientes",
+  "category": "improvement",
+  "changes": [
+    "BD (B10a): CHECK constraints NOT VALID en public.forklifts para año (1980–actual+1), capacidad (0–100 000 kg), altura del mástil (0–20 m) y tarifas/costos no negativos. Los datos legacy quedan intactos; sólo aplica a filas nuevas o editadas.",
+    "Facturas (B12): botón 'Timbrar CFDI' con guarda onPointerDown además de disabled, para bloquear el doble-timbrado por doble-click rápido antes de que React propague el estado.",
+    "Portal de cliente (B17a): en el detalle de factura ahora aparecen los botones 'PDF SAT' y 'XML SAT' cuando la factura ya está timbrada (cfdi_uuid presente).",
+    "Facturas (B13e): la columna Total del listado muestra un badge con el código de moneda cuando la factura no es MXN."
+  ]
+}
