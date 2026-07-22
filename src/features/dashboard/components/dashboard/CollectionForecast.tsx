@@ -110,21 +110,25 @@ export function CollectionForecast({
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div>
+        <div className="grid grid-cols-1 sm:grid-cols-[1.4fr_1fr_1fr] gap-4 items-start">
+          <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-3">
             <p className="text-xs text-muted-foreground mb-1">Vencido hoy</p>
-            <p className="text-lg font-bold font-mono text-destructive">
+            <p className="text-2xl font-bold font-mono text-destructive leading-tight">
               {formatCurrency(forecast.overdueTotal)}
             </p>
-            <p className="text-3xs text-muted-foreground mt-0.5">
-              {forecast.overdueCount} factura{forecast.overdueCount === 1 ? "" : "s"}
-            </p>
+            <Link
+              to="/invoices?status=overdue"
+              className="text-2xs text-destructive hover:underline mt-1 inline-flex items-center gap-1"
+            >
+              {forecast.overdueCount} factura{forecast.overdueCount === 1 ? "" : "s"} vencida{forecast.overdueCount === 1 ? "" : "s"}
+              <ArrowRight className="h-3 w-3" />
+            </Link>
           </div>
           <div>
             <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
               <CalendarIcon className="h-3 w-3" /> Próximos 7 días
             </p>
-            <p className="text-lg font-bold font-mono">{formatCurrency(forecast.expected7)}</p>
+            <p className="text-base font-semibold font-mono text-foreground/80">{formatCurrency(forecast.expected7)}</p>
             <p className="text-3xs text-muted-foreground mt-0.5">
               Vencidas + {forecast.upcoming7Count} por vencer
             </p>
@@ -133,7 +137,7 @@ export function CollectionForecast({
             <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
               <CalendarIcon className="h-3 w-3" /> Próximos 30 días
             </p>
-            <p className="text-lg font-bold font-mono text-success">
+            <p className="text-base font-semibold font-mono text-foreground/80">
               {formatCurrency(forecast.expected30)}
             </p>
             <p className="text-3xs text-muted-foreground mt-0.5">Cobranza esperada total</p>
