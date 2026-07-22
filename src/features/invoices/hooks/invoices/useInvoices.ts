@@ -1,4 +1,4 @@
-import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { todayKeyMty } from "@/lib/format/dateFormats";
@@ -13,37 +13,47 @@ import {
 import { invoiceKeys } from "../../lib/queryKeys";
 
 const INVOICE_STALE_MS = 60_000;
+/** Tamaño de página para paginación por cursor en el listado de facturas. */
+export const INVOICE_PAGE_SIZE = 100;
 
-async function fetchInvoiceList(filters?: InvoiceListFilters) {
-  const normalized = createInvoiceListFilters(filters);
-  let query = supabase
-    .from("invoices")
-    .select("*")
-    .or(EXCLUDE_E2E_FILTER);
-
+function baseInvoiceQuery(normalized: InvoiceListFilters) {
+  let q = supabase.from("invoices").select("*").or(EXCLUDE_E2E_FILTER);
   if (normalized.status === "overdue") {
-    query = query.in("status", ["sent", "partial"]).lt("due_date", todayKeyMty());
+    q = q.in("status", ["sent", "partial"]).lt("due_date", todayKeyMty());
   } else if (normalized.status !== "all") {
-    query = query.eq("status", normalized.status);
+    q = q.eq("status", normalized.status);
   }
-
-  if (normalized.cfdi !== "all") {
-    query = query.eq("cfdi_status", normalized.cfdi);
-  }
-
-  if (normalized.from) query = query.gte("issued_at", normalized.from);
-  if (normalized.to) query = query.lte("issued_at", normalized.to);
-
+  if (normalized.cfdi !== "all") q = q.eq("cfdi_status", normalized.cfdi);
+  if (normalized.from) q = q.gte("issued_at", normalized.from);
+  if (normalized.to) q = q.lte("issued_at", normalized.to);
   const search = sanitizeInvoiceSearchForQuery(normalized.search);
   if (search) {
     const pattern = `%${search}%`;
-    query = query.or(`invoice_number.ilike.${pattern},customer_name.ilike.${pattern}`);
+    q = q.or(`invoice_number.ilike.${pattern},customer_name.ilike.${pattern}`);
   }
+  return q;
+}
 
-  const { data, error } = await query.order("created_at", { ascending: false }).limit(LIST_PAGE_LIMIT);
+async function fetchInvoiceList(filters?: InvoiceListFilters) {
+  const normalized = createInvoiceListFilters(filters);
+  const { data, error } = await baseInvoiceQuery(normalized)
+    .order("created_at", { ascending: false })
+    .limit(LIST_PAGE_LIMIT);
   if (error) throw error;
   return data ?? [];
 }
+
+async function fetchInvoicePage(filters: InvoiceListFilters, pageIndex: number) {
+  const from = pageIndex * INVOICE_PAGE_SIZE;
+  const to = from + INVOICE_PAGE_SIZE - 1;
+  const { data, error } = await baseInvoiceQuery(filters)
+    .order("created_at", { ascending: false })
+    .range(from, to);
+  if (error) throw error;
+  const rows = data ?? [];
+  return { rows, nextPage: rows.length === INVOICE_PAGE_SIZE ? pageIndex + 1 : undefined };
+}
+
 
 async function fetchInvoiceDetail(id: string) {
   const { data, error } = await supabase.from("invoices").select("*").eq("id", id).maybeSingle();
@@ -105,6 +115,23 @@ export function useCreateInvoice() {
     },
     invalidateKeys: [invoiceKeys.all],
     errorTitle: "Error al crear factura",
+  });
+}
+
+/**
+ * Paginación por cursor (range) para el listado de facturas.
+ * Devuelve páginas de INVOICE_PAGE_SIZE con `fetchNextPage()` y `hasNextPage`.
+ * Los filtros participan en la queryKey, de modo que cambiar filtros reinicia
+ * la paginación automáticamente.
+ */
+export function useInvoicesInfinite(filters?: InvoiceListFilters) {
+  const normalized = createInvoiceListFilters(filters);
+  return useInfiniteQuery({
+    queryKey: [...createInvoiceListQueryKey(normalized), "infinite"],
+    queryFn: ({ pageParam }) => fetchInvoicePage(normalized, pageParam as number),
+    initialPageParam: 0,
+    getNextPageParam: (last) => last.nextPage,
+    staleTime: INVOICE_STALE_MS,
   });
 }
 

@@ -1,12 +1,10 @@
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
-import { AddIcon, DownloadIcon, RefreshIcon, X, WarnIcon } from "@/components/icons";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AddIcon, DownloadIcon, RefreshIcon, X } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { STATUS_LABELS } from "@/lib/constants";
-import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import { INVOICE_CFDI_FILTERS, INVOICE_CFDI_LABELS, INVOICE_STATUS_FILTERS } from "../../lib/invoiceListFilters";
 import type { DateRange } from "react-day-picker";
 
@@ -45,7 +43,6 @@ export function InvoicesActionsBar({ onOpenPreview, onExport, onNew, previewPend
 }
 
 interface FiltersProps {
-  reachedLimit: boolean;
   statusFilter: string;
   setStatusFilter: (v: string) => void;
   cfdiFilter: string;
@@ -64,7 +61,6 @@ const STATUS_OPTIONS = INVOICE_STATUS_FILTERS.map((s) => ({
 }));
 
 export function InvoicesFiltersBar({
-  reachedLimit,
   statusFilter,
   setStatusFilter,
   cfdiFilter,
@@ -78,14 +74,6 @@ export function InvoicesFiltersBar({
 }: FiltersProps) {
   return (
     <div className="space-y-3">
-      {reachedLimit && (
-        <Alert>
-          <WarnIcon className="h-4 w-4" />
-          <AlertDescription>
-            Mostrando los primeros {LIST_PAGE_LIMIT} registros. Refina los filtros para ver más.
-          </AlertDescription>
-        </Alert>
-      )}
       <FiltersToolbar>
         <FiltersToolbar.Search
           value={search}

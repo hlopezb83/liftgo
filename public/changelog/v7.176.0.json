@@ -1,0 +1,30 @@
+{
+  "version": "7.176.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "R7 Bloque 21.7 (cierre) · Paginación real por cursor en facturas",
+  "category": "feature",
+  "description": "Se reemplaza el techo de 500 filas por paginación real: useInvoicesInfinite trae 100 facturas por página vía range(), y un nuevo slot loadMore en ListPageLayout muestra 'Cargar más' con el total acumulado.",
+  "changes": [
+    {
+      "type": "feature",
+      "title": "useInvoicesInfinite (useInfiniteQuery + range())",
+      "detail": "Nuevo hook que consume páginas de INVOICE_PAGE_SIZE=100 con .range(). Los filtros participan en la queryKey, así que cambiar filtros reinicia la paginación automáticamente y no arrastra páginas obsoletas."
+    },
+    {
+      "type": "feature",
+      "title": "Slot loadMore en ListPageLayout",
+      "detail": "Nueva prop { hasMore, isLoading, onClick, loaded } que renderiza 'Mostrando N registros' + botón 'Cargar más' bajo la tabla. Muestra 'No hay más resultados' cuando termina la paginación."
+    },
+    {
+      "type": "chore",
+      "title": "InvoicesPage migrada + Alert de límite eliminada",
+      "detail": "InvoicesPage consume useInvoicesInfinite, arma invoiceRows con flatMap sobre data.pages y quita el Alert 'Mostrando los primeros 500 registros'. La barra de filtros ya no necesita reachedLimit."
+    },
+    {
+      "type": "chore",
+      "title": "Suite de pruebas actualizada",
+      "detail": "InvoicesPage.test.tsx pasa a mockear useInvoicesInfinite (5/5, incluye caso 'Cargar más' visible con hasNextPage). Suite completa de facturas 157/157 en verde, typecheck limpio."
+    }
+  ]
+}

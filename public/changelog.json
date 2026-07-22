@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.176.0",
+    "date": "2026-07-22",
+    "type": "minor",
+    "title": "R7 Bloque 21.7 (cierre) · Paginación real por cursor en facturas",
+    "category": "feature"
+  },
+  {
     "version": "7.175.0",
     "date": "2026-07-22",
     "type": "minor",
