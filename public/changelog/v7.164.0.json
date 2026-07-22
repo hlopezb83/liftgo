@@ -1,0 +1,35 @@
+{
+  "version": "7.164.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "R7 Fase 1 · Fixes críticos",
+  "category": "bugfix",
+  "description": "Corrección de los 4 bloques críticos del reporte R7: mensajes de validación que no re-renderizaban bajo React Compiler, crash del diálogo Reportar, doble submit en formularios y páginas de tesorería inaccesibles por copy-paste de RoleGuard.",
+  "changes": [
+    {
+      "type": "fix",
+      "title": "Validación de formularios reactiva bajo React Compiler",
+      "description": "src/components/ui/form.tsx: useFormField ahora se suscribe con useFormState({ control, name }) en lugar de leer formState en render. Sin esto, con reactCompilerPreset activo, ningún <FormMessage> se re-renderizaba al fallar la validación (40+ formularios afectados)."
+    },
+    {
+      "type": "fix",
+      "title": "Select de Modelo del formulario de montacargas se habilita al elegir fabricante",
+      "description": "EquipmentDetailsSection.tsx: watch('manufacturer') en render nunca gatillaba re-render bajo React Compiler → el select quedaba disabled para siempre. Migrado a useWatch({ control, name })."
+    },
+    {
+      "type": "fix",
+      "title": "Diálogo Reportar (feedback) ya no crashea",
+      "description": "FeedbackFormDialog envolvía el <form> sin <Form {...form}>. Los FormField internos llamaban useFormContext() = null → TypeError → ErrorBoundary a pantalla completa. Añadido el provider."
+    },
+    {
+      "type": "fix",
+      "title": "Doble submit deja de duplicar registros",
+      "description": "FormActions: además de disabled, bloquea onPointerDown si busy. useEntityMutation: guarda de reentrada — si la mutación ya está isPending, ignora el segundo mutate(). Doble capa que previene 2 POSTs por doble-click nativo."
+    },
+    {
+      "type": "fix",
+      "title": "Tesorería accesible (Flujo de caja, Cuentas bancarias, Conciliación)",
+      "description": "Las 3 páginas envolvían con RoleGuard module='Facturas de Proveedor' (copy-paste). Corregidas a los módulos reales sembrados en role_permissions: 'Flujo de Caja', 'Cuentas Bancarias', 'Conciliación Bancaria'."
+    }
+  ]
+}
