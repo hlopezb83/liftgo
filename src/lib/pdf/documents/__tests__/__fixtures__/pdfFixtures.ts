@@ -7,7 +7,7 @@ import { emptyExpenses } from "@/features/reports/hooks/incomeStatement/types";
 import type {
   StatementRow, ComparisonRow, YearTotals, MonthData,
 } from "@/features/reports/hooks/useIncomeStatementData";
-import type { CustomerSummary } from "@/lib/domain/customerTypes";
+import type { CustomerSummary } from "@/features/customers/lib/customerTypes";
 import type { ContractData, TemplateData } from "@/lib/pdf/contract/data";
 import type { CompanyData, PdfLineItem } from "@/lib/pdf/shared";
 

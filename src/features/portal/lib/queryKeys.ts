@@ -10,7 +10,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { callRpc } from "@/lib/rpc";
-import type { PaymentIntentStatus } from "@/lib/domain/paymentIntentStatus";
+import type { PaymentIntentStatus } from "@/features/invoices/lib/paymentIntentStatus";
 
 /**
  * Evita que supabase-js parse el string de `.select(...)` a nivel de tipos.

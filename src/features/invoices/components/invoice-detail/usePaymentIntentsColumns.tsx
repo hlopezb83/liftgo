@@ -3,7 +3,7 @@ import type { ColumnDef } from "@/components/dataTable/v2";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { useAdminPaymentIntents } from "@/features/portal";
-import { PAYMENT_INTENT_STATUS as STATUS_LABEL } from "@/lib/domain/paymentIntentStatus";
+import { PAYMENT_INTENT_STATUS as STATUS_LABEL } from "@/features/invoices/lib/paymentIntentStatus";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 
