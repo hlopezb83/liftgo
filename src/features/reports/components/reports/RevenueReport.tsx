@@ -73,7 +73,7 @@ export function RevenueReport({ startDate, endDate }: Props) {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data}>
                 <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                <YAxis />
+                <YAxis width={80} tickFormatter={(v) => formatCurrency(Number(v), { compact: true })} tick={{ fontSize: 11 }} />
                 <Tooltip formatter={(val) => formatCurrency(Number(val))} />
                 <Bar dataKey="invoiced" fill="hsl(var(--chart-3))" name="Facturado" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="paid" fill="hsl(var(--chart-2))" name="Pagado" radius={[4, 4, 0, 0]} />
