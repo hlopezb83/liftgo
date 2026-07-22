@@ -63,7 +63,7 @@ export default function ReturnInspectionPage() {
       id: "inspected_at",
       header: "Fecha",
       accessorKey: "inspected_at",
-      cell: ({ row }) => <span className="font-mono text-sm">{format(parseDateLocal(row.original.inspected_at), "dd/MM/yyyy")}</span>,
+      cell: ({ row }) => <span className="font-mono text-sm">{format(new Date(row.original.inspected_at), "dd/MM/yyyy")}</span>,
     },
     {
       id: "forklift_name",
@@ -136,7 +136,7 @@ export default function ReturnInspectionPage() {
               </div>
               <p className="text-sm text-muted-foreground">{ins.bookings?.customer_name || "—"}</p>
               <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                <span className="font-mono">{format(parseDateLocal(ins.inspected_at), "dd/MM/yyyy")}</span>
+                <span className="font-mono">{format(new Date(ins.inspected_at), "dd/MM/yyyy")}</span>
                 {ins.damage_cost ? (
                   <span className="font-mono font-medium text-foreground">{formatCurrency(ins.damage_cost)}</span>
                 ) : null}

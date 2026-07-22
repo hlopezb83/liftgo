@@ -22,8 +22,7 @@ export default function Dashboard() {
     return (
       <PageContainer>
         <PageHeader title="Panel" />
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">{/* R7 21.12: match layout final para evitar jump */}
         </div>
       </PageContainer>
     );
