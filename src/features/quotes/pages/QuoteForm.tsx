@@ -24,7 +24,7 @@ export default function QuoteForm() {
         <form onSubmit={f.handleSubmit} className="space-y-6">
           <QuoteTypeCard value={f.quoteType} onChange={f.handleTypeChange} />
 
-          <CustomerField form={form} customers={f.customers} />
+          <CustomerField form={form} customers={f.customers ?? []} />
 
           <QuoteDetailsCard form={form} isRental={isRental} />
 
