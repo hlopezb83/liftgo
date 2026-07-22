@@ -1,0 +1,19 @@
+{
+  "version": "7.165.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "R7 Fases 2-4 · Reportes multi-moneda, RoleGuard clientes, badges timbrado, TZ inspecciones y descuento >100%",
+  "category": "bugfix",
+  "description": "Cierre de bloques 5-15 y 21 del reporte R7: exactitud fiscal, seguridad y UX.",
+  "changes": [
+    "Reporte de Ingresos: excluye borradores y canceladas; YAxis formateado con `compactMoneyMxn` para evitar recortes.",
+    "Cuentas por Pagar: KPIs y aging report normalizan `balance`/`total` a MXN via `toMxn` (antes mezclaban MXN y USD).",
+    "Detalle de Cliente: acciones Editar/Eliminar/Invitar migradas a `RoleGuard` (matriz de permisos) en vez de comparación hardcoded contra 'admin'.",
+    "Listado Clientes: botón `Nuevo Cliente` también dentro de `RoleGuard` (Clientes/full).",
+    "Update de cliente ahora sincroniza `razon_social` con `name` (evita CFDI 4.0 con razón social desactualizada tras rename).",
+    "Badges de factura: nuevos estados intermedios `Timbrando…` (warning) y `Error de timbrado` (destructive).",
+    "Inspecciones de devolución: filtro de reservas activas usa `parseDateLocal` para evitar shift UTC-a-Monterrey en `end_date` (date-only); listados de `inspected_at` (timestamptz) siguen usando `new Date`.",
+    "`applyDiscountToBase`: descuento porcentual limitado explícitamente a 100% (antes se aceptaba silenciosamente >100% clamping a 0).",
+    "Dashboard skeleton: `gap-6` alineado al layout final para evitar salto visual entre loading y render."
+  ]
+}

@@ -5,6 +5,7 @@ import { UserPlus, EditIcon, DeleteIcon, FileDown } from "@/components/icons";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
@@ -58,18 +59,23 @@ export default function CustomerDetailPage() {
             <Button variant="outline" size="sm" disabled={!s.summary} onClick={handleExportStatement}>
               <FileDown className="h-4 w-4 mr-2" /> Estado de Cuenta
             </Button>
-            <Button variant="outline" size="sm" onClick={() => s.setEditOpen(true)}>
-              <EditIcon className="h-4 w-4 mr-2" /> Editar
-            </Button>
-            {s.role === "admin" && (
+            {/* R7 Bloque 8: matriz (read/full). Editar/Eliminar/Invitar exigen full. */}
+            <RoleGuard module="Clientes" minAccess="full" fallback={null}>
+              <Button variant="outline" size="sm" onClick={() => s.setEditOpen(true)}>
+                <EditIcon className="h-4 w-4 mr-2" /> Editar
+              </Button>
+            </RoleGuard>
+            <RoleGuard module="Clientes" minAccess="full" fallback={null}>
               <Button variant="destructive" size="sm" onClick={() => s.setDeleteOpen(true)}>
                 <DeleteIcon className="h-4 w-4 mr-2" /> Eliminar
               </Button>
-            )}
-            {s.role === "admin" && !s.hasPortalAccess && (
-              <Button variant="outline" onClick={() => s.setInviteOpen(true)}>
-                <UserPlus className="h-4 w-4 mr-2" /> Invitar al Portal
-              </Button>
+            </RoleGuard>
+            {!s.hasPortalAccess && (
+              <RoleGuard module="Clientes" minAccess="full" fallback={null}>
+                <Button variant="outline" onClick={() => s.setInviteOpen(true)}>
+                  <UserPlus className="h-4 w-4 mr-2" /> Invitar al Portal
+                </Button>
+              </RoleGuard>
             )}
             {s.hasPortalAccess && (
               <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">Acceso al portal activo</span>

@@ -18,10 +18,22 @@ interface Props {
 
 type Row = { month: string; invoiced: number; paid: number; count: number };
 
+// R7 Bloque 21.13: eje Y con formato compacto MXN ("$1.2M") para no recortar dígitos.
+const COMPACT_MXN = new Intl.NumberFormat("es-MX", {
+  style: "currency", currency: "MXN", notation: "compact", maximumFractionDigits: 1,
+});
+function compactMoneyMxn(n: number): string {
+  return Number.isFinite(n) ? COMPACT_MXN.format(n) : "";
+}
+
 export function RevenueReport({ startDate, endDate }: Props) {
   const { data: invoices = [] } = useInvoices();
   const data: Row[] = (() => {
-    const filtered = invoices.filter((inv) => isWithinInterval(parseISO(inv.issued_at), { start: startDate, end: endDate }));
+    // R7 Bloque 5: excluir borradores y canceladas — no son ingreso reconocido.
+    const revenueInvoices = invoices.filter(
+      (inv) => inv.status !== "draft" && inv.status !== "cancelled",
+    );
+    const filtered = revenueInvoices.filter((inv) => isWithinInterval(parseISO(inv.issued_at), { start: startDate, end: endDate }));
     const months: Record<string, Row> = {};
     filtered.forEach((inv) => {
       const key = format(startOfMonth(parseISO(inv.issued_at)), "yyyy-MM");
@@ -69,7 +81,7 @@ export function RevenueReport({ startDate, endDate }: Props) {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data}>
                 <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                <YAxis />
+                <YAxis width={80} tickFormatter={(v) => compactMoneyMxn(Number(v))} tick={{ fontSize: 11 }} />
                 <Tooltip formatter={(val) => formatCurrency(Number(val))} />
                 <Bar dataKey="invoiced" fill="hsl(var(--chart-3))" name="Facturado" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="paid" fill="hsl(var(--chart-2))" name="Pagado" radius={[4, 4, 0, 0]} />

@@ -1,6 +1,7 @@
 
 import { useMemo } from "react";
 import { toYMD } from "@/lib/date/toYMD";
+import { toMxn } from "@/lib/money";
 import { nowMty } from "@/lib/utils";
 import { useSupplierBills, type SupplierBillListItem } from "./useSupplierBills";
 
@@ -16,22 +17,30 @@ export interface AccountsPayableKpis {
 
 interface KpiCtx { todayYmd: string; in7Ymd: string; monthPrefix: string }
 
+// R7 Bloque 6: normalizar montos crudos de supplier_bills a MXN. El campo
+// balance/total viene en moneda original; sin conversión los KPIs y aging
+// mezclaban pesos con dólares causando totales incoherentes con Flujo de Caja.
+function balanceMxn(b: SupplierBillListItem): number {
+  return toMxn(Number(b.balance), b.currency, b.exchange_rate);
+}
+function totalMxn(b: SupplierBillListItem): number {
+  return toMxn(Number(b.total), b.currency, b.exchange_rate);
+}
+
 function accumulateBill(acc: AccountsPayableKpis, b: SupplierBillListItem, ctx: KpiCtx) {
   if (b.status === "cancelled") return;
-  if (b.balance > 0) {
-    acc.totalPendiente += Number(b.balance);
-    if (b.due_date && b.due_date < ctx.todayYmd) acc.totalVencido += Number(b.balance);
-    else if (b.due_date && b.due_date <= ctx.in7Ymd) acc.totalPorVencer += Number(b.balance);
+  const balMxn = balanceMxn(b);
+  if (balMxn > 0) {
+    acc.totalPendiente += balMxn;
+    if (b.due_date && b.due_date < ctx.todayYmd) acc.totalVencido += balMxn;
+    else if (b.due_date && b.due_date <= ctx.in7Ymd) acc.totalPorVencer += balMxn;
   }
   if (b.status === "paid" && b.issue_date.startsWith(ctx.monthPrefix)) {
-    acc.pagadoMesActual += Number(b.total);
+    acc.pagadoMesActual += totalMxn(b);
   }
   if (b.approval_status === "pending") {
     acc.countPorAprobar += 1;
-    const mxn = b.currency === "MXN"
-      ? Number(b.total)
-      : Number(b.total) * Number(b.exchange_rate ?? 1);
-    acc.totalPorAprobar += mxn;
+    acc.totalPorAprobar += totalMxn(b);
   }
   acc.repPendientes += b.rep_summary.pending;
 }

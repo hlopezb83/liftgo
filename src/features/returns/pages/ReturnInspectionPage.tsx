@@ -26,10 +26,13 @@ export default function ReturnInspectionPage() {
 
   const [filterDate, setFilterDate] = useState<Date | undefined>();
 
+  // R7 Bloque 15: `end_date` es date-only (YYYY-MM-DD). `new Date(...)` lo
+  // parsea como UTC-medianoche → en TZ negativas suma un día. `parseDateLocal`
+  // lo interpreta en la zona del usuario para que "termina mañana" no salga hoy.
   const today = new Date();
   today.setHours(23, 59, 59, 999);
   const activeBookings = bookings?.filter(
-    (b) => b.status === "confirmed" && !b.return_status && new Date(b.end_date) <= today,
+    (b) => b.status === "confirmed" && !b.return_status && parseDateLocal(b.end_date) <= today,
   );
 
   const { dialogOpen, setDialogOpen, form, openNew, handleSubmit, isPending } =
@@ -40,7 +43,8 @@ export default function ReturnInspectionPage() {
     : !filterDate
       ? inspections
       : inspections.filter((i) => {
-          const d = parseDateLocal(i.inspected_at);
+          // `inspected_at` es timestamptz; `new Date` respeta la TZ del navegador.
+          const d = new Date(i.inspected_at);
           return (
             d.getFullYear() === filterDate.getFullYear() &&
             d.getMonth() === filterDate.getMonth() &&
@@ -59,7 +63,7 @@ export default function ReturnInspectionPage() {
       id: "inspected_at",
       header: "Fecha",
       accessorKey: "inspected_at",
-      cell: ({ row }) => <span className="font-mono text-sm">{format(parseDateLocal(row.original.inspected_at), "dd/MM/yyyy")}</span>,
+      cell: ({ row }) => <span className="font-mono text-sm">{format(new Date(row.original.inspected_at), "dd/MM/yyyy")}</span>,
     },
     {
       id: "forklift_name",
@@ -132,7 +136,7 @@ export default function ReturnInspectionPage() {
               </div>
               <p className="text-sm text-muted-foreground">{ins.bookings?.customer_name || "—"}</p>
               <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                <span className="font-mono">{format(parseDateLocal(ins.inspected_at), "dd/MM/yyyy")}</span>
+                <span className="font-mono">{format(new Date(ins.inspected_at), "dd/MM/yyyy")}</span>
                 {ins.damage_cost ? (
                   <span className="font-mono font-medium text-foreground">{formatCurrency(ins.damage_cost)}</span>
                 ) : null}

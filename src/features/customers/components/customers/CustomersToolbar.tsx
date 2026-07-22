@@ -1,6 +1,7 @@
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { PlusCircle, DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import { exportToCsv } from "@/lib/exportCsv";
 import type { Customer } from "../../hooks/customers/useCustomers";
 
@@ -34,7 +35,10 @@ export function CustomersActions({ filtered, onCreate }: Pick<Props, "filtered" 
       >
         <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
       </Button>
-      <Button onClick={onCreate} size="sm" aria-label="Agregar cliente"><PlusCircle className="h-4 w-4 mr-1" /> Nuevo Cliente</Button>
+      {/* R7 Bloque 8: Nuevo cliente exige `full` según matriz de permisos. */}
+      <RoleGuard module="Clientes" minAccess="full" fallback={null}>
+        <Button onClick={onCreate} size="sm" aria-label="Agregar cliente"><PlusCircle className="h-4 w-4 mr-1" /> Nuevo Cliente</Button>
+      </RoleGuard>
     </div>
   );
 }

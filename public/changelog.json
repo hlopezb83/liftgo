@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.165.0",
+    "date": "2026-07-22",
+    "type": "minor",
+    "title": "R7 Fases 2-4 · Reportes multi-moneda, RoleGuard clientes, badges timbrado, TZ inspecciones y descuento >100%",
+    "category": "bugfix"
+  },
+  {
     "version": "7.164.0",
     "date": "2026-07-22",
     "type": "minor",

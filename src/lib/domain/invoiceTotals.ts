@@ -38,7 +38,9 @@ export function applyDiscountToBase(
     const result = money(safeBase).subtract(discount).value;
     return Math.max(0, result);
   }
-  const discountAmount = money(safeBase).multiply(discount).divide(100).value;
+  // R7 Bloque 21.6: descuento porcentual limitado a 100% (antes clampeaba en silencio a 0).
+  const pct = Math.min(discount, 100);
+  const discountAmount = money(safeBase).multiply(pct).divide(100).value;
   const result = money(safeBase).subtract(discountAmount).value;
   return Math.max(0, result);
 }

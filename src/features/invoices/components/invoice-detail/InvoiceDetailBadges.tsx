@@ -29,6 +29,9 @@ function resolveFiscalBadge(
   if (cancellationStatus === "pending") {
     return { label: "Cancelación en proceso", tone: "warning" };
   }
+  // R7 Bloque 11: exponer estados intermedios del ciclo de timbrado.
+  if (cfdiStatus === "stamping") return { label: "Timbrando…", tone: "warning" };
+  if (cfdiStatus === "error") return { label: "Error de timbrado", tone: "destructive" };
   if (cfdiStatus === "stamped") {
     if (invoiceStatus === "paid") return { label: "Pagada", tone: "success" };
     if (invoiceStatus === "partial") return { label: "Parcial", tone: "warning" };
