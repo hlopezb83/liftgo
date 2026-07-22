@@ -46,7 +46,8 @@ export function useAgingReport() {
     const byId = new Map<string, AgingRow>();
 
     for (const b of data ?? []) {
-      const balance = Number(b.balance);
+      // R7 Bloque 6: normalizamos a MXN para no mezclar monedas en buckets/totales.
+      const balance = toMxn(Number(b.balance), b.currency, b.exchange_rate);
       if (b.status === "cancelled" || balance <= 0) continue;
       const supplierId = b.supplier_id ?? "sin-proveedor";
       const supplierName = b.suppliers?.name ?? "Sin proveedor";
