@@ -10,15 +10,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useEquipmentModels, useCreateEquipmentModel, useUpdateEquipmentModel, useDeleteEquipmentModel, useForklifts, EquipmentModel } from "@/features/fleet";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { FUEL_TYPES, FUEL_TYPE_LABELS } from "@/lib/constants";
-import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
-
 import {
   countUnitsForModel,
   isDuplicateModel,
   validateNonNegative,
 } from "@/features/operations/lib/equipmentModelValidation";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { FUEL_TYPES, FUEL_TYPE_LABELS } from "@/lib/constants";
+import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
+
 
 export function EquipmentModelsTab() {
   const isMobile = useIsMobile();

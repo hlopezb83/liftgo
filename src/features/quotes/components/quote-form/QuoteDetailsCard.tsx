@@ -1,5 +1,3 @@
-import type { UseFormReturn } from "react-hook-form";
-import type { DateRange } from "react-day-picker";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { APP_CONFIG } from "@/lib/config";
 import type { QuoteFormValues } from "../../lib/quoteFormSchema";
+import type { DateRange } from "react-day-picker";
+import type { UseFormReturn } from "react-hook-form";
 
 type QuoteForm = UseFormReturn<QuoteFormValues>;
 

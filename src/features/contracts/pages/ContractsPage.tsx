@@ -10,8 +10,8 @@ import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { STATUS_LABELS } from "@/lib/constants";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
-import { getContractExpiryLabel, getContractExpiryState } from "../lib/contractExpiry";
 import { useContracts, contractQueries } from "../hooks/useContracts";
+import { getContractExpiryLabel, getContractExpiryState } from "../lib/contractExpiry";
 
 const CONTRACT_STATUSES = ["draft", "sent", "signed", "cancelled"] as const;
 type ContractStatus = (typeof CONTRACT_STATUSES)[number];

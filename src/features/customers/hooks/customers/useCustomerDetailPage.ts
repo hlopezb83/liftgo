@@ -2,8 +2,8 @@ import { useUserRole } from "@/features/users";
 import type { Tables } from "@/integrations/supabase/types";
 import { useCustomerDetailActions } from "../customerDetail/useCustomerDetailActions";
 import { useCustomerDetailDialogs } from "../customerDetail/useCustomerDetailDialogs";
-import { useCustomer } from "./useCustomers";
 import { useCustomerProfitability } from "./useCustomerProfitability";
+import { useCustomer } from "./useCustomers";
 import { useCustomerSummary } from "./useCustomerSummary";
 
 type Customer = Tables<"customers">;

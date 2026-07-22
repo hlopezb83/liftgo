@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
-import type { Tables } from "@/integrations/supabase/types";
 import { forkliftKeys } from "@/features/fleet";
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { bookingKeys } from "../../lib/queryKeys";
 

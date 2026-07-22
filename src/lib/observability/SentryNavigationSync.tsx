@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "react";
 import { useLocation } from "react-router";
-import { Sentry } from "@/lib/observability/sentry";
 import { deriveFlow, sanitizeRoute } from "@/lib/observability/routeContext";
+import { Sentry } from "@/lib/observability/sentry";
 
 /**
  * Emite un breadcrumb `navigation` y actualiza los tags `flow`/`route` en

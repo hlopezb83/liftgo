@@ -7,12 +7,12 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
 import { notifySuccess } from "@/lib/ui/appFeedback";
-import type { QuoteFormValues } from "../../lib/quoteFormSchema";
+import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "../quotes/useQuotes";
 import { buildSaleItems, buildRentalItems } from "./quoteFormBuilders";
 import { buildQuotePayload } from "./quoteFormPayload";
 import { EMPTY_RENTAL_LINE, EMPTY_SALE_LINE, useQuoteForm } from "./useQuoteForm";
 import { useQuotePrefill } from "./useQuotePrefill";
-import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "../quotes/useQuotes";
+import type { QuoteFormValues } from "../../lib/quoteFormSchema";
 
 export function useQuoteFormLogic() {
   const { id } = useParams();

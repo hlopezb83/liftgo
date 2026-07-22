@@ -3,13 +3,13 @@ import { FormActions } from "@/components/forms/FormActions";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
-import { CostSummaryCard } from "../components/quotes/CostSummaryCard";
-import { RentalLineItems } from "../components/quotes/RentalLineItems";
-import { SaleLineItems } from "../components/quotes/SaleLineItems";
 import { CustomerField } from "../components/quote-form/CustomerField";
 import { LogisticsCard } from "../components/quote-form/LogisticsCard";
 import { QuoteDetailsCard } from "../components/quote-form/QuoteDetailsCard";
 import { QuoteTypeCard } from "../components/quote-form/QuoteTypeCard";
+import { CostSummaryCard } from "../components/quotes/CostSummaryCard";
+import { RentalLineItems } from "../components/quotes/RentalLineItems";
+import { SaleLineItems } from "../components/quotes/SaleLineItems";
 import { useQuoteFormLogic } from "../hooks/quoteForm/useQuoteFormLogic";
 
 export default function QuoteForm() {

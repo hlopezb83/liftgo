@@ -11,8 +11,8 @@ import { QuoteCustomerCard } from "../components/quotes/QuoteCustomerCard";
 import { QuoteDatesCard } from "../components/quotes/QuoteDatesCard";
 import { QuoteDetailActions } from "../components/quotes/QuoteDetailActions";
 import { QuoteHeaderBadges } from "../components/quotes/QuoteHeaderBadges";
-import { useQuoteSaleAssignmentStatus } from "../hooks/quoteDetail/useQuoteSaleAssignmentStatus";
 import { useQuoteDetailLogic } from "../hooks/quoteDetail/useQuoteDetailLogic";
+import { useQuoteSaleAssignmentStatus } from "../hooks/quoteDetail/useQuoteSaleAssignmentStatus";
 
 export default function QuoteDetail() {
   const { id } = useParams();

@@ -1,7 +1,7 @@
 
 import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { EmptyState } from "@/components/feedback/EmptyState";
 import { ReportChartCard } from "@/components/domain/ReportChartCard";
+import { EmptyState } from "@/components/feedback/EmptyState";
 import { TrendingUpIcon, TrendingDownIcon, RemoveIcon, ChartIcon } from "@/components/icons";
 
 interface MonthlyUtilizationItem {

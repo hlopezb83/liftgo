@@ -60,14 +60,13 @@ export default function PortalInvoiceDetail() {
     initialSorting: [{ id: "payment_date", desc: true }],
     paginated: false,
   });
+  const [downloading, setDownloading] = useState<"pdf" | "xml" | null>(null);
 
   if (isLoading) return <Skeleton className="h-96" />;
   if (!invoice) return <p className="text-muted-foreground">Factura no encontrada</p>;
 
   const totalPaid = invoicePayments.reduce((sum, p) => sum + Number(p.amount), 0);
   const balance = Number(invoice.total) - totalPaid;
-
-  const [downloading, setDownloading] = useState<"pdf" | "xml" | null>(null);
   const hasCfdi = Boolean(invoice.cfdi_uuid);
 
   const download = async (fmt: "pdf" | "xml") => {
