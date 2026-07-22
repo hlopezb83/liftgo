@@ -14,18 +14,26 @@ interface Args {
   invoiceId: string;
   /** C-1: divisa de la factura. El pago se fuerza a coincidir. Default "MXN". */
   invoiceCurrency?: string | null;
+  /** R7 Bloque 14: tipo de cambio de la factura para prellenar el TC del pago. */
+  invoiceExchangeRate?: number | null;
   onOpenChange: (open: boolean) => void;
 }
 
-export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, invoiceCurrency, onOpenChange }: Args) {
+export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, invoiceCurrency, invoiceExchangeRate, onOpenChange }: Args) {
   const lockedCurrency = (invoiceCurrency ?? "MXN").toUpperCase();
+  // R7 Bloque 14: TC inicial del pago = TC de la factura (o 1 para MXN).
+  const initialRate = lockedCurrency === "MXN"
+    ? "1"
+    : invoiceExchangeRate && invoiceExchangeRate > 0
+      ? String(invoiceExchangeRate)
+      : "1";
   const [amount, setAmount] = useState(balance.toFixed(2));
   const [date, setDate] = useState<Date>(nowMty());
   const [method, setMethod] = useState("transfer");
   const [paymentFormSat, setPaymentFormSat] = useState("03");
   // C-1: divisa bloqueada a la factura hasta que exista soporte multi-moneda.
   const [currency, setCurrencyState] = useState(lockedCurrency);
-  const [exchangeRate, setExchangeRate] = useState("1");
+  const [exchangeRate, setExchangeRate] = useState(initialRate);
   const [reference, setReference] = useState("");
   const [notes, setNotes] = useState("");
   const [stampRep, setStampRep] = useState(true);
@@ -39,22 +47,27 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
   const [prevBalance, setPrevBalance] = useState(balance);
   const [prevPpdStamped, setPrevPpdStamped] = useState(ppdStamped);
   const [prevLockedCurrency, setPrevLockedCurrency] = useState(lockedCurrency);
+  const [prevInitialRate, setPrevInitialRate] = useState(initialRate);
   if (
     open !== prevOpen ||
     balance !== prevBalance ||
     ppdStamped !== prevPpdStamped ||
-    lockedCurrency !== prevLockedCurrency
+    lockedCurrency !== prevLockedCurrency ||
+    initialRate !== prevInitialRate
   ) {
     setPrevOpen(open);
     setPrevBalance(balance);
     setPrevPpdStamped(ppdStamped);
     setPrevLockedCurrency(lockedCurrency);
+    setPrevInitialRate(initialRate);
     if (open) {
       setAmount(balance.toFixed(2));
       setStampRep(ppdStamped);
       setCurrencyState(lockedCurrency);
+      setExchangeRate(initialRate);
     }
   }
+
 
   // Sincroniza el código SAT sugerido cuando cambia el método (usuario puede override en UI).
   const [prevMethod, setPrevMethod] = useState(method);
