@@ -132,6 +132,7 @@ describe("quoteFormSchema", () => {
     const r = quoteFormSchema.safeParse({ ...baseRental, includeLogistics: false, logisticsCost: 999 });
     expect(r.success).toBe(true);
   });
+});
 
 describe("quoteFormSchema · descuentos %", () => {
   // R7 Bloque 21.6
