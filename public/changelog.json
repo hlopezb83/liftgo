@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.164.0",
+    "date": "2026-07-22",
+    "type": "minor",
+    "title": "R7 Fase 1 · Fixes críticos: form validation reactivo, feedback dialog, doble submit y RoleGuard tesorería",
+    "category": "bugfix"
+  },
+  {
     "version": "7.163.1",
     "date": "2026-07-21",
     "type": "patch",
