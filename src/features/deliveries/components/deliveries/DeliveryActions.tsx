@@ -19,7 +19,7 @@ export function DeliveryActions({ status, onComplete, onDelete }: DeliveryAction
           <SuccessIcon className="h-4 w-4 mr-1" /> Completar
         </Button>
       )}
-      <RoleGuard module="Entregas" minAccess="full">
+      <RoleGuard module="Entregas" minAccess="full" fallback={null}>
         <Button variant="outline" size="sm" className="text-destructive" onClick={() => setOpen(true)}>
           <DeleteIcon className="h-4 w-4 mr-1" /> Eliminar
         </Button>

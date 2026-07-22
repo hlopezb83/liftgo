@@ -37,7 +37,7 @@ export function SupplierContactsSection({ supplierId }: { supplierId: string }) 
           <UsersIcon className="h-4 w-4" />
           Contactos <span className="text-muted-foreground font-normal">({contacts.length})</span>
         </CardTitle>
-        <RoleGuard module="Proveedores" minAccess="full">
+        <RoleGuard module="Proveedores" minAccess="full" fallback={null}>
           <Button size="sm" variant="outline" onClick={onAdd}>
             <AddIcon className="h-4 w-4 mr-1" />Agregar
           </Button>
@@ -76,7 +76,7 @@ export function SupplierContactsSection({ supplierId }: { supplierId: string }) 
                   <TableCell className="text-sm text-muted-foreground">{c.email || "—"}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{c.phone || "—"}</TableCell>
                   <TableCell className="text-right">
-                    <RoleGuard module="Proveedores" minAccess="full">
+                    <RoleGuard module="Proveedores" minAccess="full" fallback={null}>
                       <Button size="icon" variant="ghost" aria-label="Editar contacto" title="Editar contacto" onClick={() => onEdit(c)}>
                         <EditIcon className="h-4 w-4" />
                       </Button>

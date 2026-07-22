@@ -28,6 +28,7 @@ export const ROUTE_TO_MODULE: Record<string, string> = {
   "/calendar": "Calendario",
   "/deliveries": "Entregas",
   "/invoices": "Facturas",
+  "/invoices/reconciliation": "Facturas",
   "/contracts": "Contratos",
   "/quotes": "Cotizaciones",
   "/customers": "Clientes",

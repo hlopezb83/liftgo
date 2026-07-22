@@ -39,7 +39,7 @@ export function MaintenancePageActions({
         <DownloadIcon className="h-4 w-4 sm:mr-1" />
         <span className="hidden sm:inline">Exportar CSV</span>
       </Button>
-      <RoleGuard module="Mantenimiento" minAccess="full">
+      <RoleGuard module="Mantenimiento" minAccess="full" fallback={null}>
         <Button
           variant="outline"
           size="sm"

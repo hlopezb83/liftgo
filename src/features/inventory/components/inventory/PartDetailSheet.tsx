@@ -92,7 +92,7 @@ export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
           </div>
 
           <Separator />
-          <RoleGuard module="Refacciones" minAccess="full">
+          <RoleGuard module="Refacciones" minAccess="full" fallback={null}>
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1" onClick={() => { onEdit(part); onOpenChange(false); }}>
                 <EditIcon className="h-4 w-4 mr-1" /> Editar

@@ -42,7 +42,7 @@ export function SupplierBankAccountsSection({ supplierId }: { supplierId: string
           <BankIcon className="h-4 w-4" />
           Cuentas Bancarias <span className="text-muted-foreground font-normal">({accounts.length})</span>
         </CardTitle>
-        <RoleGuard module="Proveedores" minAccess="full">
+        <RoleGuard module="Proveedores" minAccess="full" fallback={null}>
           <Button size="sm" variant="outline" onClick={onAdd}>
             <AddIcon className="h-4 w-4 mr-1" />Agregar
           </Button>
@@ -81,7 +81,7 @@ export function SupplierBankAccountsSection({ supplierId }: { supplierId: string
                   <TableCell className="font-mono text-sm">{maskClabe(a.clabe)}</TableCell>
                   <TableCell className="text-sm">{a.currency}</TableCell>
                   <TableCell className="text-right">
-                    <RoleGuard module="Proveedores" minAccess="full">
+                    <RoleGuard module="Proveedores" minAccess="full" fallback={null}>
                       <Button size="icon" variant="ghost" aria-label="Editar cuenta bancaria" title="Editar cuenta bancaria" onClick={() => onEdit(a)}>
                         <EditIcon className="h-4 w-4" />
                       </Button>

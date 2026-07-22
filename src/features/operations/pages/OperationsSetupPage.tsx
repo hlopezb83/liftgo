@@ -33,27 +33,27 @@ export default function OperationsSetupPage() {
         <TabsContent value="drivers"><DriversTab /></TabsContent>
         <TabsContent value="mechanics"><MechanicsTab /></TabsContent>
         <TabsContent value="policies">
-          <RoleGuard module="Configuración" minAccess="full">
+          <RoleGuard module="Configuración" minAccess="full" fallback={null}>
             <MaintenancePoliciesTab />
           </RoleGuard>
         </TabsContent>
         <TabsContent value="contract-template">
-          <RoleGuard module="Configuración" minAccess="full">
+          <RoleGuard module="Configuración" minAccess="full" fallback={null}>
             <ContractTemplateTab />
           </RoleGuard>
         </TabsContent>
         <TabsContent value="fiscal">
-          <RoleGuard module="Configuración" minAccess="full">
+          <RoleGuard module="Configuración" minAccess="full" fallback={null}>
             <FiscalDataTab />
           </RoleGuard>
         </TabsContent>
         <TabsContent value="logo">
-          <RoleGuard module="Configuración" minAccess="full">
+          <RoleGuard module="Configuración" minAccess="full" fallback={null}>
             <CompanyLogoTab />
           </RoleGuard>
         </TabsContent>
         <TabsContent value="cxp-approval">
-          <RoleGuard module="Configuración" minAccess="full">
+          <RoleGuard module="Configuración" minAccess="full" fallback={null}>
             <CxpApprovalTab />
           </RoleGuard>
         </TabsContent>

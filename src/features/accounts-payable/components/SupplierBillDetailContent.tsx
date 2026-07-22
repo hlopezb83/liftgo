@@ -167,7 +167,7 @@ export function SupplierBillDetailContent({ bill, perms, isAdmin, dialogs, onClo
       />
 
       <Separator />
-      <RoleGuard module="Facturas de Proveedor" minAccess="full">
+      <RoleGuard module="Facturas de Proveedor" minAccess="full" fallback={null}>
         <SupplierBillPaymentActions
           bill={bill}
           isAdmin={isAdmin}
