@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ViewIcon, ChevronRightIcon, InvoiceIcon } from "@/components/icons";
@@ -10,7 +10,7 @@ import { usePageActions } from "@/contexts/pageActions";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { hasReachedListLimit } from "@/lib/supabase/constants";
+// hasReachedListLimit ya no es necesario: paginación real vía useInvoicesInfinite.
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { formatDateDisplay } from "@/lib/utils";
 import { InvoicesActionsBar, InvoicesFiltersBar } from "../components/list/InvoicesToolbar";
@@ -18,10 +18,10 @@ import { RecurringInvoicesPreviewDialog } from "../components/recurring/Recurrin
 import { RecurringInvoicesResultDialog } from "../components/recurring/RecurringInvoicesResultDialog";
 import { useGenerateRecurringInvoices } from "../hooks/invoices/recurring/useGenerateRecurringInvoices";
 import { usePreviewRecurringInvoices } from "../hooks/invoices/recurring/usePreviewRecurringInvoices";
-import { useInvoices, invoiceQueries } from "../hooks/invoices/useInvoices";
+import { invoiceQueries, useInvoicesInfinite } from "../hooks/invoices/useInvoices";
 import { useInvoicesFilters } from "../hooks/invoices/useInvoicesFilters";
 
-type Invoice = NonNullable<ReturnType<typeof useInvoices>["data"]>[number];
+type Invoice = NonNullable<Awaited<ReturnType<typeof invoiceQueries.detail>["queryFn"]>>;
 
 function useRecurringHandlers(setPreviewOpen: (o: boolean) => void, setResultOpen: (o: boolean) => void) {
   const generateRecurring = useGenerateRecurringInvoices();
