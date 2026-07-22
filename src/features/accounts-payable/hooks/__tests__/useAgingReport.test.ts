@@ -103,4 +103,20 @@ describe("useAgingReport", () => {
     expect(result.current.rows[0].supplierId).toBe("sin-proveedor");
     expect(result.current.rows[0].supplierName).toBe("Sin proveedor");
   });
+
+  it("R7 Bloque 6 · normaliza USD → MXN en buckets y totales", () => {
+    useSupplierBillsMock.mockReturnValue({
+      data: [
+        // 2 bills USD 525 @ 20 = 21,000 MXN + 1 MXN 5,000 = 26,000
+        bill({ supplier_id: "a", balance: 525, currency: "USD", exchange_rate: 20, due_date: "2026-07-01", suppliers: { id: "a", name: "A" } }),
+        bill({ supplier_id: "a", balance: 525, currency: "USD", exchange_rate: 20, due_date: "2026-07-01", suppliers: { id: "a", name: "A" } }),
+        bill({ supplier_id: "a", balance: 5_000, currency: "MXN", exchange_rate: 1, due_date: "2026-07-01", suppliers: { id: "a", name: "A" } }),
+      ],
+      isLoading: false,
+    });
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useAgingReport(), { wrapper: Wrapper });
+    expect(result.current.totals.total).toBe(26_000);
+    expect(result.current.totals.current).toBe(26_000);
+  });
 });
