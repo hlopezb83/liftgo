@@ -1,0 +1,15 @@
+{
+  "version": "7.166.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "R7 Cierre Fase 4 · onError extensible, 409 timbrado benigno, aceptar vencidas, badge Vencida y nested button changelog",
+  "category": "bugfix",
+  "description": "Cierra los pendientes de las fases 2-4 del R7: hook de mutación con onError extensible, reclasificación de 409 de timbrado como info, bloqueo de aceptar cotizaciones vencidas, badge visual de vencida en el listado y eliminación de <button> anidado en el changelog.",
+  "changes": [
+    "useEntityMutation: nuevo callback opcional onError(error, vars) que puede suprimir el toast estándar (return true) y errorMessage ahora se aplica al toast por defecto",
+    "useStampCfdi: patrones benignos (already stamped, timbrado en proceso, ya timbrada) se muestran como notifyInfo en vez de error, invalidando el detalle igual",
+    "QuoteDetailActions: botón Aceptar se deshabilita con tooltip cuando valid_until < hoy (R7 Bloque 7)",
+    "QuotesPage: nuevo badge destructivo Vencida junto al StatusBadge cuando la cotización enviada superó valid_until (R7 Bloque 19b)",
+    "ChangelogEntryCard: se saca el <Button> de copiar fuera del <button> toggle para eliminar el nested-button warning de A11y (R7 Bloque 21.14)"
+  ]
+}
