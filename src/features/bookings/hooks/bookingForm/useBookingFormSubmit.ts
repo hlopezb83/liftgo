@@ -1,7 +1,6 @@
 
 import { useState } from "react";
 import { useCustomers } from "@/features/customers";
-import { useAvailableForklifts } from "@/features/fleet";
 import { useMaintenancePolicies } from "@/features/maintenance";
 import { useIsMounted } from "@/hooks/useIsMounted";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
@@ -27,7 +26,7 @@ export function useBookingFormSubmit() {
   const [postBooking, setPostBooking] = useState<PostBookingState | null>(null);
   const [showPolicyDialog, setShowPolicyDialog] = useState(false);
 
-  const onSubmit = (data: BookingFormData) => {
+  const onSubmit = (data: BookingFormData, forkliftName: string) => {
     const { from, to } = data.date_range;
     if (!from || !to) return;
     const selectedCustomer = customers?.find((c) => c.id === data.customer_id);
@@ -48,9 +47,12 @@ export function useBookingFormSubmit() {
           // sobre un componente desmontado (warning de React).
           if (!isMounted()) return;
           const cust = customers?.find((c) => c.id === data.customer_id);
+          // R7-21.1: capturamos el nombre ANTES de invalidar caches para que
+          // el diálogo post-reserva no muestre "programar la entrega de ".
           setPostBooking({
             bookingId,
             forkliftId: data.forklift_id,
+            forkliftName,
             startDate: toYMD(from),
             customerAddress: cust?.address || null,
           });
