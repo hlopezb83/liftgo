@@ -132,9 +132,9 @@ export function CustomerStatementDocument(props: CustomerStatementDocumentProps)
         </View>
 
         <View style={{ flexDirection: "row", gap: 8 }}>
-          <SummaryCard label="TOTAL FACTURADO" value={formatCurrency(totalInvoiced)} />
-          <SummaryCard label="TOTAL PAGADO" value={formatCurrency(totalPaid)} />
-          <SummaryCard label="SALDO PENDIENTE" value={formatCurrency(balance)} danger={balance > 0} />
+          <SummaryCard label="TOTAL FACTURADO (MXN)" value={formatCurrency(totalInvoiced)} />
+          <SummaryCard label="TOTAL PAGADO (MXN)" value={formatCurrency(totalPaid)} />
+          <SummaryCard label="SALDO PENDIENTE (MXN)" value={formatCurrency(balance)} danger={balance > 0} />
         </View>
 
         <InvoiceTable title="FACTURAS PENDIENTES" rows={openInvoices} showDue emptyMsg="Sin facturas pendientes." />
