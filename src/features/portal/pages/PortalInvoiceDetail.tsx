@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useParams } from "react-router";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { DocumentIcon, FileCode2Icon } from "@/components/icons";
+import { DocumentIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
