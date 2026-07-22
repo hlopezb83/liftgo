@@ -10,7 +10,14 @@ const OPTIONAL_NULL_FIELDS = [
 ] as const;
 
 function customerFormToUpdate(form: CustomerFormData) {
-  const base: Record<string, string | null> = { name: form.name, company: form.name };
+  // R7 Bloque 9: `razon_social` alimenta CFDI 4.0 y PDFs; sincronizamos con
+  // `name`/`company` (misma regla que `buildCustomerPayload` en create) para
+  // que un rename desde detalle no deje la razón social obsoleta.
+  const base: Record<string, string | null> = {
+    name: form.name,
+    company: form.name,
+    razon_social: form.name,
+  };
   for (const k of OPTIONAL_NULL_FIELDS) {
     const v = form[k as keyof CustomerFormData];
     base[k] = (typeof v === "string" ? v : "") || null;
