@@ -74,16 +74,17 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
               <RepBadge status={status} />
               {status === "stamped" && (
                 <>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" title="REP PDF" onClick={() => downloadRep(p.id, "pdf")}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" title="REP PDF" aria-label="Descargar REP PDF" onClick={() => downloadRep(p.id, "pdf")}>
                     <DocumentIcon className="h-3.5 w-3.5" />
                   </Button>
-                  <Button variant="ghost" size="icon" className="h-7 w-7" title="REP XML" onClick={() => downloadRep(p.id, "xml")}>
+                  <Button variant="ghost" size="icon" className="h-7 w-7" title="REP XML" aria-label="Descargar REP XML" onClick={() => downloadRep(p.id, "xml")}>
                     <FileCode2 className="h-3.5 w-3.5" />
                   </Button>
                   {allowRepMutations && (
                     <Button
                       variant="ghost" size="icon" className="h-7 w-7 text-destructive"
                       title="Cancelar REP"
+                      aria-label="Cancelar REP"
                       onClick={() => setCancelRepPaymentId(p.id)}
                     >
                       <ErrorIcon className="h-3.5 w-3.5" />

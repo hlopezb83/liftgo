@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 const SUCCESS = "bg-success/10 text-success border-success/20";
 const INFO = "bg-info/10 text-info border-info/20";
 const WARNING = "bg-warning/10 text-warning border-warning/20";
-const DANGER = "bg-destructive/10 text-destructive border-destructive/20";
+const DANGER = "bg-destructive/15 text-destructive border border-destructive/30";
 const NEUTRAL_DARK = "bg-status-completed/15 text-foreground border-transparent";
 const NEUTRAL_LIGHT = "bg-muted text-muted-foreground border-transparent";
 

@@ -8,6 +8,14 @@ import { FinancialKpiCards } from "../components/dashboard/FinancialKpiCards";
 import { StatCards } from "../components/dashboard/StatCards";
 import { useDashboardSections } from "../hooks/dashboard/useDashboardSections";
 
+function DashboardSectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-2">
+      {children}
+    </p>
+  );
+}
+
 export default function Dashboard() {
   const {
     isLoading, insuranceData,
@@ -22,7 +30,7 @@ export default function Dashboard() {
     return (
       <PageContainer>
         <PageHeader title="Panel" />
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">{/* R7 21.12: gap-6 match layout final */}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
           {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
         </div>
       </PageContainer>
@@ -34,17 +42,20 @@ export default function Dashboard() {
       <PageContainer>
         <PageHeader title="Panel" subtitle="Vista general de la flota" />
         <div className="flex flex-col gap-6">
-          <div className="order-2 md:order-1">
+          {/* v7.181: agrupar KPIs por área (Operación vs Finanzas) para dar jerarquía. */}
+          <section className="order-2 md:order-1">
+            <DashboardSectionLabel>Operación</DashboardSectionLabel>
             <StatCards cards={statCards} />
-          </div>
-          <div className="order-3 md:order-2">
+          </section>
+          <section className="order-3 md:order-2 border-t border-border/60 pt-5">
+            <DashboardSectionLabel>Finanzas</DashboardSectionLabel>
             <FinancialKpiCards
               mrr={financials.mrr}
               utilizationPercent={utilizationPercent}
               dso={financials.dso}
               overdueTotal={financials.overdueTotal}
             />
-          </div>
+          </section>
           <div className="order-1 md:order-3">
             <DashboardAlertsSection
               overdueInvoices={overdueInvoices}

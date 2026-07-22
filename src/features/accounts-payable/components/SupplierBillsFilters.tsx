@@ -34,7 +34,7 @@ export function SupplierBillsFilters({ filters: f, kpis, suppliers }: Props) {
           className="sm:max-w-xs"
         />
         <Select value={f.status} onValueChange={(v) => f.set("status", v as typeof f.status)}>
-          <SelectTrigger className="w-full sm:w-[160px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-[180px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos los estatus</SelectItem>
             {SUPPLIER_BILL_STATUSES.map((s) => (
@@ -43,7 +43,7 @@ export function SupplierBillsFilters({ filters: f, kpis, suppliers }: Props) {
           </SelectContent>
         </Select>
         <Select value={f.supplierId} onValueChange={(v) => f.set("supplierId", v)}>
-          <SelectTrigger className="w-full sm:w-[200px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-[210px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos los proveedores</SelectItem>
             {(suppliers ?? []).map((s) => (
@@ -52,7 +52,7 @@ export function SupplierBillsFilters({ filters: f, kpis, suppliers }: Props) {
           </SelectContent>
         </Select>
         <Select value={f.month} onValueChange={(v) => f.set("month", v)}>
-          <SelectTrigger className="w-full sm:w-[160px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-[180px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todos los meses</SelectItem>
             {f.availableMonths.map((m) => (
@@ -63,7 +63,7 @@ export function SupplierBillsFilters({ filters: f, kpis, suppliers }: Props) {
           </SelectContent>
         </Select>
         <Select value={f.category} onValueChange={(v) => f.set("category", v as typeof f.category)}>
-          <SelectTrigger className="w-full sm:w-[170px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-[190px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas las categorías</SelectItem>
             {EXPENSE_CATEGORY_GROUPS.map((g) => (
@@ -77,7 +77,7 @@ export function SupplierBillsFilters({ filters: f, kpis, suppliers }: Props) {
           </SelectContent>
         </Select>
         <Select value={f.approval} onValueChange={(v) => f.set("approval", v as typeof f.approval)}>
-          <SelectTrigger className="w-full sm:w-[170px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-[190px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Todas aprobaciones</SelectItem>
             {APPROVAL_STATUSES.map((s) => (
@@ -86,7 +86,7 @@ export function SupplierBillsFilters({ filters: f, kpis, suppliers }: Props) {
           </SelectContent>
         </Select>
         <Select value={f.rep} onValueChange={(v) => f.set("rep", v as typeof f.rep)}>
-          <SelectTrigger className="w-full sm:w-[160px]"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full sm:w-[180px]"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">REP: Todos</SelectItem>
             {SUPPLIER_REP_STATUSES.map((s) => (
