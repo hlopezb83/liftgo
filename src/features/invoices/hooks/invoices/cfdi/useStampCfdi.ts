@@ -42,16 +42,13 @@ export function useStampCfdi() {
     errorTitle: "Error al timbrar CFDI",
     errorMessage: (error) => {
       const raw = error instanceof Error ? error.message : String(error);
-      if (isBenignStampError(raw)) {
-        // Devolvemos string vacío; onError abajo intercepta y muestra info en su lugar.
-        return "";
-      }
       return translateFacturapiError(raw);
     },
     onError: (error) => {
       const raw = error instanceof Error ? error.message : String(error);
       if (isBenignStampError(raw)) {
         notifyInfo("El timbrado ya está en proceso; actualizando estado…");
+        return true; // suprime toast de error estándar
       }
     },
     onSuccess: (data) => {
