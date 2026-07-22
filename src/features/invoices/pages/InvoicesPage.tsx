@@ -107,7 +107,8 @@ export default function InvoicesPage() {
     dateRange, setDateRange, queryFilters, filterKey, hasActive, clearAll,
   } = useInvoicesFilters();
 
-  const { data: invoices, isLoading, isError, refetch } = useInvoices(queryFilters);
+  const invoicesQuery = useInvoicesInfinite(queryFilters);
+  const { data, isLoading, isError, refetch, fetchNextPage, hasNextPage, isFetchingNextPage } = invoicesQuery;
   const navigate = useNavigateTransition();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [resultOpen, setResultOpen] = useState(false);
@@ -115,7 +116,7 @@ export default function InvoicesPage() {
 
   const { generateRecurring, previewRecurring, openPreview, handleConfirm, handleRetry } =
     useRecurringHandlers(setPreviewOpen, setResultOpen);
-  const invoiceRows = invoices ?? [];
+  const invoiceRows = useMemo(() => data?.pages.flatMap((p) => p.rows) ?? [], [data]);
 
   const columns = useInvoiceColumns();
   const table = useLiftgoTable<Invoice>({
@@ -147,7 +148,6 @@ export default function InvoicesPage() {
         }
         filters={
           <InvoicesFiltersBar
-            reachedLimit={hasReachedListLimit(invoices)}
             statusFilter={statusFilter}
             setStatusFilter={setStatusFilter}
             cfdiFilter={cfdiFilter}
@@ -175,6 +175,12 @@ export default function InvoicesPage() {
         onEmptyAction={() => navigate("/invoices/new")}
         skeletonColumns={7}
         mobileCardRender={(inv) => <InvoiceCard inv={inv} onClick={() => navigate(`/invoices/${inv.id}`)} />}
+        loadMore={{
+          hasMore: !!hasNextPage,
+          isLoading: isFetchingNextPage,
+          onClick: () => { void fetchNextPage(); },
+          loaded: invoiceRows.length,
+        }}
       />
       <RecurringInvoicesPreviewDialog
         open={previewOpen}
