@@ -1,0 +1,27 @@
+{
+  "version": "7.183.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "Auditoría visual · Lote C: sistemas transversales",
+  "category": "improvement",
+  "summary": "Cierra los hallazgos C2 y C3 del audit visual v7.181: EmptyState con CTA en Mantenimiento y nueva variante neutral-solid para estados terminales.",
+  "sections": [
+    {
+      "title": "Mantenimiento · EmptyState con CTA (C2)",
+      "items": [
+        "MaintenancePage ahora pasa emptyIcon (MaintenanceIcon), emptyActionLabel ('Nuevo servicio') y onEmptyAction al ListPageLayout, alineándose con Inventario y Cuentas por Pagar."
+      ]
+    },
+    {
+      "title": "StatusBadge · variante neutral-solid (C3)",
+      "items": [
+        "Nuevo tono NEUTRAL_SOLID (bg-muted-foreground/80 sobre text-background) aplicado a estados terminales: cancelled, sold, retired.",
+        "Cierra visualmente el registro sin competir con acciones activas en la tabla; el resto de neutrales (draft/expired/inactive) mantiene el tono suave."
+      ]
+    }
+  ],
+  "descartados": [
+    "C1 (Tabs con overflow en Configuración) — ya cubierto en v7.181.0 A3 con la migración a sidebar vertical.",
+    "C4 y C5 (auditoría CTA en headers y header móvil) — quedan como meta-audit para un siguiente sprint dedicado; requieren recorrido rutas por rutas sin cambio de código inmediato."
+  ]
+}
