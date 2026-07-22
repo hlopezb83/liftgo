@@ -3,10 +3,11 @@ import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { AddIcon, DownloadIcon, RefreshIcon, X, WarnIcon } from "@/components/icons";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { STATUS_LABELS } from "@/lib/constants";
 import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
-import { INVOICE_STATUS_FILTERS } from "../../lib/invoiceListFilters";
+import { INVOICE_CFDI_FILTERS, INVOICE_CFDI_LABELS, INVOICE_STATUS_FILTERS } from "../../lib/invoiceListFilters";
 import type { DateRange } from "react-day-picker";
 
 interface ActionsProps {
@@ -47,6 +48,8 @@ interface FiltersProps {
   reachedLimit: boolean;
   statusFilter: string;
   setStatusFilter: (v: string) => void;
+  cfdiFilter: string;
+  setCfdiFilter: (v: string) => void;
   dateRange: DateRange | undefined;
   setDateRange: (r: DateRange | undefined) => void;
   search: string;
@@ -64,6 +67,8 @@ export function InvoicesFiltersBar({
   reachedLimit,
   statusFilter,
   setStatusFilter,
+  cfdiFilter,
+  setCfdiFilter,
   dateRange,
   setDateRange,
   search,
@@ -92,6 +97,20 @@ export function InvoicesFiltersBar({
           onChange={setStatusFilter}
           options={STATUS_OPTIONS}
         />
+        <div className="w-full sm:w-48">
+          <Select value={cfdiFilter} onValueChange={setCfdiFilter}>
+            <SelectTrigger aria-label="Filtrar por estado CFDI">
+              <SelectValue placeholder="Estado CFDI" />
+            </SelectTrigger>
+            <SelectContent>
+              {INVOICE_CFDI_FILTERS.map((v) => (
+                <SelectItem key={v} value={v}>
+                  CFDI: {INVOICE_CFDI_LABELS[v]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <div className="flex items-center gap-1">
           <div className="w-full sm:w-64">
             <DateRangePickerField
