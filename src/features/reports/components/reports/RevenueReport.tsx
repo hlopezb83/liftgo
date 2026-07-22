@@ -21,7 +21,11 @@ type Row = { month: string; invoiced: number; paid: number; count: number };
 export function RevenueReport({ startDate, endDate }: Props) {
   const { data: invoices = [] } = useInvoices();
   const data: Row[] = (() => {
-    const filtered = invoices.filter((inv) => isWithinInterval(parseISO(inv.issued_at), { start: startDate, end: endDate }));
+    // R7 Bloque 5: excluir borradores y canceladas — no son ingreso reconocido.
+    const revenueInvoices = invoices.filter(
+      (inv) => inv.status !== "draft" && inv.status !== "cancelled",
+    );
+    const filtered = revenueInvoices.filter((inv) => isWithinInterval(parseISO(inv.issued_at), { start: startDate, end: endDate }));
     const months: Record<string, Row> = {};
     filtered.forEach((inv) => {
       const key = format(startOfMonth(parseISO(inv.issued_at)), "yyyy-MM");
