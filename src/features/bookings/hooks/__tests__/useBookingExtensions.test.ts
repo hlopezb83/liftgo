@@ -37,7 +37,7 @@ vi.mock("@/lib/ui/appFeedback", () => ({
   notifyAsync: vi.fn(),
 }));
 
-import { useCreateBookingExtension } from "../useBookingExtensions";
+import { useCreateBookingExtension } from "../bookingActions/useBookingExtensions";
 
 describe("useCreateBookingExtension (RPC extend_booking)", () => {
   beforeEach(() => {

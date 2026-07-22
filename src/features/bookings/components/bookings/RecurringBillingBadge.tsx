@@ -3,7 +3,7 @@ import { Repeat } from "@/components/icons";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { parseDateLocal } from "@/lib/utils";
-import type { Booking } from "../../hooks/useBookings";
+import type { Booking } from "../../hooks/bookings/useBookings";
 
 interface RecurringBillingBadgeProps {
   booking: Pick<Booking, "recurring_billing" | "last_billed_date" | "start_date">;

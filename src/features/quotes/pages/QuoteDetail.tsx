@@ -12,7 +12,7 @@ import { QuoteDatesCard } from "../components/quotes/QuoteDatesCard";
 import { QuoteDetailActions } from "../components/quotes/QuoteDetailActions";
 import { QuoteHeaderBadges } from "../components/quotes/QuoteHeaderBadges";
 import { useQuoteSaleAssignmentStatus } from "../hooks/quoteDetail/useQuoteSaleAssignmentStatus";
-import { useQuoteDetailLogic } from "../hooks/useQuoteDetailLogic";
+import { useQuoteDetailLogic } from "../hooks/quoteDetail/useQuoteDetailLogic";
 
 export default function QuoteDetail() {
   const { id } = useParams();

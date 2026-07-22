@@ -3,7 +3,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { forkliftKeys } from "@/features/fleet";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { bookingKeys } from "../lib/queryKeys";
+import { bookingKeys } from "../../lib/queryKeys";
 
 const sel = (s: string): string => s;
 

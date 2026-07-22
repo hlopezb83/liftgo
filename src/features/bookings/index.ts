@@ -3,6 +3,6 @@
 // Generado automáticamente; ampliar manualmente si hace falta.
 export * from "./components/bookings/PostBookingDeliveryDialog";
 export * from "./components/bookings/RecurringBillingBadge";
-export * from "./hooks/useBookingActionsLogic";
-export * from "./hooks/useBookingMutations";
-export * from "./hooks/useBookings";
+export * from "./hooks/bookingActions/useBookingActionsLogic";
+export * from "./hooks/bookings/useBookingMutations";
+export * from "./hooks/bookings/useBookings";

@@ -2,7 +2,7 @@ import { useForklifts } from "@/features/fleet";
 import { generateLineItems, computeTotals } from "@/lib/domain/invoiceHelpers";
 import { toYMD } from "@/lib/format/dateFormats";
 import { DEFAULT_VAT_RATE } from "@/lib/money";
-import type { BookingWithForklift } from "../useBookings";
+import type { BookingWithForklift } from "../bookings/useBookings";
 
 /**
  * Cálculo derivado del preview de extensión de reserva.

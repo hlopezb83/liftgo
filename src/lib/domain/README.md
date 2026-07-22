@@ -10,13 +10,12 @@ Auditado en v6 (P3-8). Estado actual:
 - `roles`, `templateUtils`, `activityTranslations` — utilidades compartidas
 - `errorCatalog`, `satCatalogs` — catálogos globales
 
-**Candidatos futuros a mover al feature dueño (deuda técnica documentada):**
-- `contractTypes` → `features/contracts/lib/`
-- `customerTypes` → `features/customers/lib/`
-- `creditNoteMotives` → `features/invoices/lib/`
-- `paymentIntentStatus` → `features/invoices/lib/`
-- `feedbackMessages` → `features/feedback/lib/`
+**Migrados al feature dueño en v7.179.0 (P3-8):**
+- `contractTypes` → `@/features/contracts/lib/contractTypes`
+- `customerTypes` → `@/features/customers/lib/customerTypes`
+- `creditNoteMotives` → `@/features/invoices/lib/creditNoteMotives`
+- `paymentIntentStatus` → `@/features/invoices/lib/paymentIntentStatus`
+- `feedbackMessages` → `@/features/feedback/lib/feedbackMessages`
 
-Migración deferida: cada archivo tiene 5-20 consumidores; el movimiento debe
-hacerse por sprint dedicado con actualización de imports + regla ESLint que
-prohíba re-crearlos en `lib/domain/`.
+La allowlist de `scripts/arch-check.sh` (G2) ya no incluye estos nombres; recrearlos
+en `src/lib/domain/` hará fallar el CI.

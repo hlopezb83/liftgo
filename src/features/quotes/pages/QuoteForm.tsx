@@ -17,7 +17,7 @@ import { APP_CONFIG } from "@/lib/config";
 import { CostSummaryCard } from "../components/quotes/CostSummaryCard";
 import { RentalLineItems } from "../components/quotes/RentalLineItems";
 import { SaleLineItems } from "../components/quotes/SaleLineItems";
-import { useQuoteFormLogic } from "../hooks/useQuoteFormLogic";
+import { useQuoteFormLogic } from "../hooks/quoteForm/useQuoteFormLogic";
 
 export default function QuoteForm() {
   const f = useQuoteFormLogic();

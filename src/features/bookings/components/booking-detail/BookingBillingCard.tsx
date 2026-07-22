@@ -4,7 +4,7 @@ import { ClockIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatMtyDate } from "@/lib/utils";
 import { RecurringBillingBadge } from "../bookings/RecurringBillingBadge";
-import type { BookingWithForklift } from "../../hooks/useBookings";
+import type { BookingWithForklift } from "../../hooks/bookings/useBookings";
 
 export function BookingBillingCard({ booking }: { booking: BookingWithForklift }) {
   const fmt = (d: string) => formatMtyDate(d);

@@ -35,7 +35,7 @@ vi.mock("@/lib/domain/invoiceHelpers", async () => {
 });
 
 import { useExtendBookingPreview } from "../bookingActions/useExtendBookingPreview";
-import type { BookingWithForklift } from "../useBookings";
+import type { BookingWithForklift } from "../bookings/useBookings";
 
 const booking = {
   id: "bk-1",

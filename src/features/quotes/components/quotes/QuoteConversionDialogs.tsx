@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { PostBookingDeliveryDialog } from "@/features/bookings";
 import { CustomerSelector } from "@/features/customers";
 import { EquipmentAssignmentDialog } from "./EquipmentAssignmentDialog";
-import type { useQuoteDetailLogic } from "../../hooks/useQuoteDetailLogic";
+import type { useQuoteDetailLogic } from "../../hooks/quoteDetail/useQuoteDetailLogic";
 
 type Logic = ReturnType<typeof useQuoteDetailLogic>;
 

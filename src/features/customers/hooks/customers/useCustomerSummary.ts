@@ -3,12 +3,12 @@ import type {
   CustomerSummary,
   CustomerSummaryBooking,
   CustomerSummaryInvoice,
-} from "@/lib/domain/customerTypes";
+} from "@/features/customers/lib/customerTypes";
 import { callRpc } from "@/lib/rpc";
 import { customerKeys } from "../../lib/queryKeys";
 
 // Re-export para compatibilidad con consumidores existentes. La fuente de
-// verdad de estos tipos vive en `@/lib/domain/customerTypes`.
+// verdad de estos tipos vive en `@/features/customers/lib/customerTypes`.
 export type { CustomerSummary, CustomerSummaryBooking, CustomerSummaryInvoice };
 
 

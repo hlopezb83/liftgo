@@ -55,15 +55,10 @@ allowed=$(cat <<'EOF'
 README.md
 __tests__
 activityTranslations.ts
-contractTypes.ts
-creditNoteMotives.ts
-customerTypes.ts
 errorCatalog.ts
-feedbackMessages.ts
 invoiceHelpers.ts
 invoiceTotals.ts
 lineItems.ts
-paymentIntentStatus.ts
 rentalCalculation.ts
 roles.ts
 satCatalogs.ts
