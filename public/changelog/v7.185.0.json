@@ -1,0 +1,40 @@
+{
+  "version": "7.185.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "Auditoría UI/UX Dashboard · Lote A: jerarquía y densidad",
+  "category": "improvement",
+  "summary": "Primer lote de la auditoría visual del Panel. Aumenta densidad horizontal, reduce scroll y refuerza jerarquía visual sin cambios de datos.",
+  "sections": [
+    {
+      "title": "H1 · Retícula financiera alineada (FinancialKpiCards)",
+      "items": [
+        "Grid actualizada a md:grid-cols-4 para que los 4 KPIs financieros ocupen una sola fila desde tablet, igualando la densidad de Operación."
+      ]
+    },
+    {
+      "title": "H2 · Facturas Vencidas más compacta (AlertsRow)",
+      "items": [
+        "Muestra 3 filas en lugar de 5 con enlace 'Ver las N facturas vencidas →' hacia /invoices?status=overdue.",
+        "Reduce ~180 px de scroll inicial y evita que la card domine el above-the-fold."
+      ]
+    },
+    {
+      "title": "H3 · Gráficas en grid de 3 columnas (DashboardChartsSection)",
+      "items": [
+        "En xl+ Estado de la Flota ocupa 1 col, Utilización 2 cols y Flujo de Efectivo el ancho completo.",
+        "Reduce el scroll de la sección de charts a la mitad en 1600×900."
+      ]
+    },
+    {
+      "title": "H4 · Dona con total al centro y leyenda lateral (FleetStatusChart)",
+      "items": [
+        "Total de equipos y etiqueta 'EQUIPOS' renderizados al centro del donut.",
+        "Leyenda migrada a lista vertical con % por segmento en md+; en mobile mantiene layout horizontal."
+      ]
+    }
+  ],
+  "next": [
+    "Lote B (v7.186.0): tendencias MoM en KPIs, EmptyState en Utilización/Flujo, jerarquía en Pronóstico, aging como mini-barra."
+  ]
+}

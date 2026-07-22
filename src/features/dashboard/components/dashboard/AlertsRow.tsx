@@ -75,18 +75,31 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
           title="Facturas Vencidas"
           count={overdueInvoices.length}
           tone="destructive"
-          footer={agingBuckets.length > 0 ? (
-            <div className="flex flex-wrap gap-2 pt-2 border-t">
-              {agingBuckets.map((b) => (
-                <div key={b.range} className="text-2xs bg-background rounded px-2 py-1">
-                  <span className="text-muted-foreground">{b.range}d:</span>{" "}
-                  <span className="font-mono font-medium">{formatCurrency(b.total)}</span>
+          footer={
+            <div className="space-y-2 pt-2 border-t">
+              {agingBuckets.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {agingBuckets.map((b) => (
+                    <div key={b.range} className="text-2xs bg-background rounded px-2 py-1">
+                      <span className="text-muted-foreground">{b.range}d:</span>{" "}
+                      <span className="font-mono font-medium">{formatCurrency(b.total)}</span>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              )}
+              {overdueInvoices.length > 3 && (
+                <button
+                  type="button"
+                  onClick={() => navigate("/invoices?status=overdue")}
+                  className="text-xs text-destructive hover:underline font-medium"
+                >
+                  Ver las {overdueInvoices.length} facturas vencidas →
+                </button>
+              )}
             </div>
-          ) : null}
+          }
         >
-          {overdueInvoices.slice(0, 5).map((inv) => (
+          {overdueInvoices.slice(0, 3).map((inv) => (
             <AlertRow
               key={inv.id}
               primary={inv.invoice_number}
@@ -99,6 +112,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
           ))}
         </AlertCard>
       )}
+
 
       {overdueBookings.length > 0 && (
         <AlertCard icon={OverdueIcon} title="Rentas Vencidas" count={overdueBookings.length} tone="warning">
