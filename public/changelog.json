@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.180.0",
+    "date": "2026-07-22",
+    "type": "minor",
+    "title": "Arquitectura · P2-6 split de ListPageLayout y QuoteForm",
+    "category": "infra"
+  },
+  {
     "version": "7.179.0",
     "date": "2026-07-22",
     "type": "minor",

@@ -1,0 +1,14 @@
+{
+  "version": "7.180.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "Arquitectura · P2-6 split de ListPageLayout y QuoteForm",
+  "category": "infra",
+  "description": "Sprint dedicado para cerrar P2-6: dividir los dos archivos >250 LOC identificados en la auditoría, sin cambios de API pública ni de comportamiento.",
+  "changes": [
+    "ListPageLayout (330 → 176 LOC): extraídos 4 sub-componentes internos a src/components/layout/listPage/ — PullToRefreshIndicator, FiltersSlot, TableContent, LoadMoreFooter. Eliminada la excepción eslint-disable complexity.",
+    "QuoteForm (259 → 100 LOC): JSX seccionado en src/features/quotes/components/quote-form/ — QuoteTypeCard, CustomerField, QuoteDetailsCard, LogisticsCard. Los sub-componentes tipan form como UseFormReturn<QuoteFormValues>.",
+    "La API de ambos componentes públicos no cambió; los 15 consumidores de ListPageLayout y las rutas /cotizaciones/* siguen funcionando sin ajustes.",
+    "Verificación: typecheck limpio, 1231/1231 tests, arch:check OK (10 cross-feature imports vs baseline 12)."
+  ]
+}
