@@ -1,8 +1,8 @@
 import { useEffect } from "react";
 import { useAuth } from "@/contexts/AuthContext";
+import { Sentry } from "@/lib/observability/sentry";
 import { setAuthSnapshot } from "@/lib/ui/authSnapshot";
 import { setAppVersion } from "@/lib/ui/errorReport";
-import { Sentry } from "@/lib/observability/sentry";
 import { useUserRole } from "../hooks/useUserRole";
 
 /**

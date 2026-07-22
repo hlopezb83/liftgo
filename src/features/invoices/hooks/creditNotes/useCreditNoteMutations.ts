@@ -1,6 +1,6 @@
+import { satStatusLabel } from "@/features/feedback/lib/feedbackMessages";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert } from "@/integrations/supabase/types";
-import { satStatusLabel } from "@/features/feedback/lib/feedbackMessages";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 import { notifyInfo, notifySuccess } from "@/lib/ui/appFeedback";

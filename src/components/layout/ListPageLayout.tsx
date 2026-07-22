@@ -1,12 +1,12 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
 import { DataTablePaginationV2 } from "@/components/dataTable/v2/DataTablePaginationV2";
 import { type LucideIcon } from "@/components/icons";
-import { PageHeader } from "@/components/layout/PageHeader";
-import { PageTransition } from "@/components/layout/PageTransition";
 import { FiltersSlot } from "@/components/layout/listPage/FiltersSlot";
 import { LoadMoreFooter, type LoadMoreProps } from "@/components/layout/listPage/LoadMoreFooter";
 import { PullToRefreshIndicator } from "@/components/layout/listPage/PullToRefreshIndicator";
 import { TableContent } from "@/components/layout/listPage/TableContent";
+import { PageHeader } from "@/components/layout/PageHeader";
+import { PageTransition } from "@/components/layout/PageTransition";
 import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile, useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";

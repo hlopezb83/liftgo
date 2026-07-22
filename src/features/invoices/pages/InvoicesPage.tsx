@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Untranslated } from "@/components/ui/Untranslated";
 import { usePageActions } from "@/contexts/pageActions";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import type { Tables } from "@/integrations/supabase/types";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 // hasReachedListLimit ya no es necesario: paginación real vía useInvoicesInfinite.
@@ -18,7 +19,6 @@ import { RecurringInvoicesPreviewDialog } from "../components/recurring/Recurrin
 import { RecurringInvoicesResultDialog } from "../components/recurring/RecurringInvoicesResultDialog";
 import { useGenerateRecurringInvoices } from "../hooks/invoices/recurring/useGenerateRecurringInvoices";
 import { usePreviewRecurringInvoices } from "../hooks/invoices/recurring/usePreviewRecurringInvoices";
-import type { Tables } from "@/integrations/supabase/types";
 import { invoiceQueries, useInvoicesInfinite } from "../hooks/invoices/useInvoices";
 import { useInvoicesFilters } from "../hooks/invoices/useInvoicesFilters";
 

@@ -1,12 +1,12 @@
 import { useEffect } from "react";
-import type { UseFormReturn } from "react-hook-form";
 import { useBookings } from "@/features/bookings";
 import { useCompanySettings } from "@/features/company-settings";
 import type { Database } from "@/integrations/supabase/types";
 import { replacePlaceholders } from "@/lib/domain/templateUtils";
-import type { ContractFormValues } from "../../lib/contractFormSchema";
 import { useDefaultContractTemplate } from "../useContractTemplates";
 import { buildTemplateReplacements } from "./contractTemplateReplacements";
+import type { ContractFormValues } from "../../lib/contractFormSchema";
+import type { UseFormReturn } from "react-hook-form";
 
 type Customer = Database["public"]["Tables"]["customers"]["Row"];
 type Forklift = Database["public"]["Tables"]["forklifts"]["Row"];

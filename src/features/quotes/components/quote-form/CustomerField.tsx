@@ -1,7 +1,7 @@
-import type { UseFormReturn } from "react-hook-form";
 import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { CustomerSelector, type Customer } from "@/features/customers";
 import type { QuoteFormValues } from "../../lib/quoteFormSchema";
+import type { UseFormReturn } from "react-hook-form";
 
 type QuoteForm = UseFormReturn<QuoteFormValues>;
 

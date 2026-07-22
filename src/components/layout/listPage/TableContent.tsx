@@ -1,11 +1,11 @@
-import type { ReactNode } from "react";
-import type { Table as TanstackTable } from "@tanstack/react-table";
 import { DataTableV2 } from "@/components/dataTable/v2/DataTableV2";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { ErrorState } from "@/components/feedback/ErrorState";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { FilterIcon, type LucideIcon } from "@/components/icons";
 import { MobileCardList } from "@/components/layout/MobileCardList";
+import type { Table as TanstackTable } from "@tanstack/react-table";
+import type { ReactNode } from "react";
 
 export interface TableContentProps<T> {
   isLoading: boolean;

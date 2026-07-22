@@ -4,11 +4,11 @@ import { useForklifts } from "@/features/fleet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { notifySuccess } from "@/lib/ui/appFeedback";
-import type { ContractFormValues } from "../lib/contractFormSchema";
 import { buildContractPayload } from "../lib/contractPayload";
 import { useContractFormPrefill } from "./contractForm/useContractFormPrefill";
 import { useContractFormState } from "./contractForm/useContractFormState";
 import { useContract, useCreateContract, useUpdateContract } from "./useContracts";
+import type { ContractFormValues } from "../lib/contractFormSchema";
 
 export function useContractFormLogic() {
   const { id } = useParams();

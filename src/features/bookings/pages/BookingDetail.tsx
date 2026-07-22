@@ -14,8 +14,8 @@ import { BookingHourometerCard } from "../components/booking-detail/BookingHouro
 import { BookingPeriodCard } from "../components/booking-detail/BookingPeriodCard";
 import { BookingActions } from "../components/bookings/BookingActions";
 import { BookingStatusHistory } from "../components/bookings/BookingStatusHistory";
-import { useBookingHourometer } from "../hooks/bookingDetail/useBookingHourometer";
 import { useBookingExtensions } from "../hooks/bookingActions/useBookingExtensions";
+import { useBookingHourometer } from "../hooks/bookingDetail/useBookingHourometer";
 import { useBooking } from "../hooks/bookings/useBookings";
 
 export default function BookingDetail() {

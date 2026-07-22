@@ -7,10 +7,10 @@
  * `defineEntityQueries`, evitando invalidaciones rotas por typos o segmentos
  * faltantes.
  */
+import type { PaymentIntentStatus } from "@/features/invoices/lib/paymentIntentStatus";
 import { supabase } from "@/integrations/supabase/client";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { callRpc } from "@/lib/rpc";
-import type { PaymentIntentStatus } from "@/features/invoices/lib/paymentIntentStatus";
 
 /**
  * Evita que supabase-js parse el string de `.select(...)` a nivel de tipos.

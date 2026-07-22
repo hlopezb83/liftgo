@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
+import type { ContractClause, ChecklistSection } from "@/features/contracts/lib/contractTypes";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesUpdate } from "@/integrations/supabase/types";
-import type { ContractClause, ChecklistSection } from "@/features/contracts/lib/contractTypes";
 import { parseJsonbArray } from "@/lib/domain/lineItems";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";

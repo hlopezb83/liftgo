@@ -1,7 +1,7 @@
-import type { ReactNode } from "react";
 import { FilterIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import type { ReactNode } from "react";
 
 interface Props {
   filters: ReactNode;

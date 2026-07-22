@@ -4,7 +4,6 @@ import { useLiftgoTable } from "@/components/dataTable/v2";
 import { SwipeableCard } from "@/components/feedback/SwipeableCard";
 import { ChevronRightIcon, AddIcon, PhoneIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
-
 import { Card, CardContent } from "@/components/ui/card";
 import { usePageActions } from "@/contexts/pageActions";
 import { useUpdateProspect } from "@/features/crm";
