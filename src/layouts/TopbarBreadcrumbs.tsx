@@ -83,23 +83,38 @@ export function TopbarBreadcrumbs() {
     return { label, path, isLast };
   });
 
+  // v7.184 (Lote C · C5): en móvil colapsamos crumbs intermedios para dejar
+  // sólo Home > … > último, evitando pelea con FeedbackFab + GlobalSearch en
+  // el header sticky (h-12).
+  const lastIndex = crumbs.length - 1;
+  const hasIntermediate = crumbs.length > 1;
   return (
     <nav aria-label="Ruta" className="flex items-center gap-1 text-sm text-muted-foreground min-w-0 overflow-hidden">
-      <Link to="/" className="hover:text-foreground transition-colors flex items-center" aria-label="Inicio">
+      <Link to="/" className="hover:text-foreground transition-colors flex items-center shrink-0" aria-label="Inicio">
         <HomeIcon className="h-3.5 w-3.5" />
       </Link>
-      {crumbs.map((c) => (
-        <span key={c.path} className="flex items-center gap-1 min-w-0">
-          <ChevronRightIcon className="h-3.5 w-3.5 shrink-0 opacity-50" />
-          {c.isLast ? (
-            <span className="font-medium text-foreground truncate">{c.label}</span>
-          ) : (
-            <Link to={c.path} className="hover:text-foreground transition-colors truncate">
-              {c.label}
-            </Link>
-          )}
+      {hasIntermediate && (
+        <span className="flex items-center gap-1 sm:hidden shrink-0" aria-hidden="true">
+          <ChevronRightIcon className="h-3.5 w-3.5 opacity-50" />
+          <span className="opacity-60">…</span>
         </span>
-      ))}
+      )}
+      {crumbs.map((c, i) => {
+        const isLast = i === lastIndex;
+        const hideOnMobile = !isLast && hasIntermediate;
+        return (
+          <span key={c.path} className={`items-center gap-1 min-w-0 ${hideOnMobile ? "hidden sm:flex" : "flex"}`}>
+            <ChevronRightIcon className="h-3.5 w-3.5 shrink-0 opacity-50" />
+            {isLast ? (
+              <span className="font-medium text-foreground truncate">{c.label}</span>
+            ) : (
+              <Link to={c.path} className="hover:text-foreground transition-colors truncate">
+                {c.label}
+              </Link>
+            )}
+          </span>
+        );
+      })}
     </nav>
   );
 }

@@ -1,0 +1,22 @@
+{
+  "version": "7.184.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "Auditoría visual · Lote C: header móvil (C5)",
+  "category": "improvement",
+  "summary": "Cierra el último hallazgo transversal del audit visual v7.181: separar breadcrumb de acciones en el header móvil.",
+  "sections": [
+    {
+      "title": "TopbarBreadcrumbs · colapso en móvil",
+      "items": [
+        "Debajo de sm (<640px) el breadcrumb muestra sólo Home › … › segmento actual, en lugar de la ruta completa.",
+        "Elimina la competencia por espacio con FeedbackFab + GlobalSearch dentro del header sticky h-12.",
+        "En desktop el comportamiento no cambia — se sigue mostrando la ruta completa con truncado por segmento."
+      ]
+    }
+  ],
+  "cerrado": [
+    "Lote C completo (C1 en A3, C2/C3 en v7.183, C4 verificado sin cambios, C5 aquí).",
+    "Los 5 lotes del audit visual v7.181 quedan cerrados: A (v7.181), B (v7.182), C (v7.183 + v7.184)."
+  ]
+}
