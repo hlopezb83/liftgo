@@ -116,9 +116,24 @@ const FormDescription = ({ className, ref, ...props }: HTMLAttributes<HTMLParagr
   };
 FormDescription.displayName = "FormDescription";
 
+// Bloque 19a (R7): errores de arrays (`rentalLines[]`) llegan como objeto sin
+// `.message` en la raíz y `String(undefined)` renderizaba literal "undefined".
+// Buscamos recursivamente el primer `message` disponible en la sub-estructura.
+function extractFirstMessage(err: unknown): string | undefined {
+  if (!err || typeof err !== "object") return undefined;
+  const e = err as { message?: unknown; types?: Record<string, unknown> };
+  if (typeof e.message === "string" && e.message.length > 0) return e.message;
+  for (const key of Object.keys(err)) {
+    if (key === "ref" || key === "type" || key === "types") continue;
+    const found = extractFirstMessage((err as Record<string, unknown>)[key]);
+    if (found) return found;
+  }
+  return undefined;
+}
+
 const FormMessage = ({ className, children, ref, ...props }: HTMLAttributes<HTMLParagraphElement> & { ref?: Ref<HTMLParagraphElement> }) => {
     const { error, formMessageId } = useFormField();
-    const body = error ? String(error?.message) : children;
+    const body = error ? extractFirstMessage(error) : children;
 
     if (!body) {
       return null;
