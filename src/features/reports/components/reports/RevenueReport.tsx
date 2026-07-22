@@ -18,6 +18,14 @@ interface Props {
 
 type Row = { month: string; invoiced: number; paid: number; count: number };
 
+// R7 Bloque 21.13: eje Y con formato compacto MXN ("$1.2M") para no recortar dígitos.
+const COMPACT_MXN = new Intl.NumberFormat("es-MX", {
+  style: "currency", currency: "MXN", notation: "compact", maximumFractionDigits: 1,
+});
+function compactMoneyMxn(n: number): string {
+  return Number.isFinite(n) ? COMPACT_MXN.format(n) : "";
+}
+
 export function RevenueReport({ startDate, endDate }: Props) {
   const { data: invoices = [] } = useInvoices();
   const data: Row[] = (() => {
