@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.169.0",
+    "date": "2026-07-22",
+    "type": "minor",
+    "title": "R7 Bloque 13 · Estado de cuenta con moneda por factura",
+    "category": "feature"
+  },
+  {
     "version": "7.168.0",
     "date": "2026-07-22",
     "type": "minor",
