@@ -1,67 +1,43 @@
+## Bloque 6 · Lote de cierre (v7.190.0)
 
-## Validación de los 5 bloques principales
+Aplico los 4 pendientes reales + el nit cosmético.
 
-| Bloque | Diagnóstico | Estado real |
-|---|---|---|
-| **B1** — Seed `role_permissions` para "Facturas de Proveedor" | ❌ **No es bug.** La DB ya tiene las 6 filas correctas (admin/administrativo=full, auditor=read, resto=none). La migración `20260624000723` renombra `'Cuentas por Pagar' → 'Facturas de Proveedor'` y el seed original (`20260313001007`) sí insertó `'Cuentas por Pagar'`. Verificado con `select` a la DB. Admin sí entra a CxP hoy. | **Skip** |
-| **B2** — Guard cotizaciones vencidas + auditoría de aceptación | ✅ **Bug real.** No existe trigger `guard_quote_acceptance`. En `useQuoteConversionActions.setStatus` (línea 27) se hace `updateQuote.mutate({ id, status: 'accepted' })` sin poblar `accepted_at`/`accepted_by_user_id` (columnas ya existen; sólo el RPC del portal los llena). | **Fix** |
-| **B3** — Reglas de transición de estado de flota | ✅ **Bug real.** `useUpdateStatus` hace UPDATE directo sin validar rentas activas. No existe RPC `change_forklift_status`. | **Fix** |
-| **B4** — Selector de equipos en contratos | ❌ **Ya hecho** (R7 Bloque 18a en `useContractFormLogic.ts:22-27`). | **Skip** |
-| **B5** — Unique fabricante+modelo en `equipment_models` | ✅ **Bug real.** `pg_indexes` sólo muestra PK y el índice de `e2e_scope`. No hay UNIQUE. | **Fix** |
+### 1. Badge de moneda en historial de pagos (#1)
+`src/features/invoices/hooks/invoices/usePaymentHistoryColumns.tsx` — en la celda `amount`, si `payment.currency && currency !== "MXN"` mostrar badge junto al monto (mismo estilo que el listado de facturas: `text-[10px] bg-muted px-1 rounded`).
 
-**B6** (17 verify-items bajos) queda fuera de este plan; lo abordo en una siguiente ronda para no mezclar cambios masivos con los fixes críticos.
+### 2. Badge de moneda en tarjeta móvil de factura (#3)
+`src/features/invoices/pages/InvoicesPage.tsx` `InvoiceCard` (~línea 105) — añadir badge condicional junto a `formatCurrency(inv.total)` cuando `inv.moneda !== "MXN"`, replicando el patrón del column def desktop.
 
----
+### 3. Índice único parcial de RFC en customers (#6b)
+Migración Supabase:
+```sql
+CREATE UNIQUE INDEX customers_rfc_unique
+  ON public.customers (upper(rfc))
+  WHERE rfc IS NOT NULL
+    AND rfc <> ''
+    AND upper(rfc) <> 'XAXX010101000'
+    AND deleted_at IS NULL;
+```
+Excluye vacíos, el RFC genérico "Público en General" y clientes archivados. Antes de aplicar: `SELECT upper(rfc), count(*) FROM customers WHERE rfc IS NOT NULL AND rfc <> '' AND upper(rfc) <> 'XAXX010101000' AND deleted_at IS NULL GROUP BY 1 HAVING count(*) > 1;` para confirmar que no hay duplicados que rompan la creación.
 
-## Cambios a implementar
+### 4. Mensajes de duplicado específicos (#12)
+`src/lib/errors/index.ts` — extender la tabla de patrones con entradas específicas **antes** del catch-all genérico:
+- `drivers_name_unique` → "Ya existe un operador con ese nombre."
+- `forklifts_serial_number_unique` → "Ya existe un montacargas con ese número de serie."
+- `equipment_models_mfr_model_unique` → "Ya existe un modelo con ese fabricante y modelo."
+- `customers_rfc_unique` → "Ya existe un cliente con ese RFC."
 
-### 1. B2 — Guard de cotizaciones vencidas + auditoría interna
+### 5. Diálogo pre-verificación al archivar cliente (#16)
+`src/features/customers/hooks/customerDetail/useCustomerDetailActions.ts` + consumers en el detalle del cliente — pasar `activeBookingsCount` al `handleDelete`. Si `> 0`, mostrar `notifyValidation({ message: "El cliente tiene N renta(s) activa(s). Cancélalas o complétalas antes de archivar." })` y **no** invocar el RPC. Cuenta ya se calcula en `useCustomerDetailPage` (`ACTIVE_BOOKING_STATUSES`).
 
-**Migración** (nuevo archivo `supabase/migrations/…_guard_quote_acceptance.sql`):
-- Función `public.guard_quote_acceptance()` (SECURITY INVOKER, `SET search_path = public`) que en `BEFORE UPDATE` bloquea `NEW.status='accepted'` si `valid_until < current_date` y la transición viene de otro estado.
-- Trigger `quotes_guard_acceptance BEFORE UPDATE ON public.quotes`.
+### 6. Dashboard skeleton `gap-4 → gap-6` (#8)
+`src/features/dashboard/pages/Dashboard.tsx:33` — un solo cambio de token de espaciado en el skeleton.
 
-**Código** (`src/features/quotes/hooks/quoteDetail/useQuoteConversionActions.ts`):
-- En `setStatus`, cuando `status === 'accepted'`, obtener `auth.getUser()` y agregar `accepted_at: new Date().toISOString()` y `accepted_by_user_id` al `mutate`.
-- Manejar error del trigger con `notifyError` legible ("La cotización ya venció").
+### Cierre
+- Actualizar `public/changelog.json` (entrada v7.190.0) + `public/changelog/v7.190.0.json` + `public/version.json`.
+- `bun run vitest run` para validar que nada se rompe (especialmente tests de invoices y customers).
 
-### 2. B3 — RPC validador `change_forklift_status`
-
-**Migración**:
-- Función SECURITY DEFINER que:
-  - `SELECT … FOR UPDATE` del forklift.
-  - Cuenta bookings activas (`confirmed`, `active` — usar los estados reales del código: revisar `bookingStateMachine`).
-  - Rechaza `→ rented` sin renta activa.
-  - Rechaza salir de `rented` con renta activa.
-  - Exige `p_reason` para `maintenance` / `sold` / `baja` (usar valores del enum real).
-  - Actualiza `forklifts.status` e inserta `status_logs(from_status, to_status, note)`.
-- `GRANT EXECUTE … TO authenticated`.
-
-**Código** (`src/features/fleet/hooks/forklifts/useForkliftMutations.ts`):
-- Reescribir `useUpdateStatus` para llamar `supabase.rpc('change_forklift_status', { p_forklift_id, p_new_status, p_reason })`. Quitar el `insert` a `status_logs` (lo hace la RPC).
-- Firma del hook pasa a aceptar `reason` opcional.
-
-**UI** (`StatusChangeCard.tsx` — localizar y ajustar):
-- Deshabilitar opciones inválidas usando la misma matriz que la RPC (helper `isForkliftStatusTransitionAllowed(current, target, hasActiveBooking)`).
-- Cuando `target ∈ { maintenance, sold, baja }`, exigir campo "Razón" antes de habilitar el botón "Guardar".
-- Mostrar tooltip explicando por qué está deshabilitada la opción.
-
-### 3. B5 — Unique fabricante+modelo en `equipment_models`
-
-**Migración**:
-- Detectar y consolidar duplicados existentes (mantener el más antiguo por `created_at`, actualizar referencias en `forklifts` si aplica — verificar FKs primero con `information_schema`).
-- `CREATE UNIQUE INDEX IF NOT EXISTS equipment_models_mfr_model_unique ON public.equipment_models (lower(manufacturer), lower(model));` (sin `WHERE deleted_at` porque la tabla no tiene soft-delete — a confirmar).
-
-**Código** (`EquipmentModelsTab.tsx`):
-- Validar duplicado en cliente antes de guardar (misma UX que `validateForkliftUniqueness`), mostrando "Ya existe ese modelo para este fabricante".
-- En el diálogo de eliminación, hacer `select count(*) from forklifts where equipment_model_id = …` (o combinación mfr+model si no hay FK) y mostrar "N montacargas usan este modelo".
-
-### 4. Cierre
-- Ejecutar `bun run lint` y `vitest run` (tests afectados: `useForkliftMutations.test.ts`, quotes hooks tests).
-- Bump `public/version.json` y `public/changelog.json` a **v7.189.0** (minor: nuevas RPC + constraint + guardas).
-- Entrada de changelog: describir sólo B2, B3, B5.
-
-## Fuera de alcance de este plan
-- B1 (no es bug — documentar en respuesta al usuario).
-- B4 (ya implementado).
-- B6 (17 bajos) — plan aparte tras aprobar éste.
+### Fuera de scope (para ronda siguiente)
+- #2 (preview extensión USD) — requiere leer `BookingExtendDialog` y confirmar impacto real.
+- #10 (diálogo error SAT sin toast redundante) — requiere auditar `useStampCfdi`.
+- #13 (drivers email a Zod) — refactor opcional, prioridad baja.
