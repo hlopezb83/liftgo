@@ -1,0 +1,20 @@
+{
+  "version": "7.173.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "R7 Bloque 21 (fase A) · Cierre de validaciones y UX en formulario de operadores",
+  "category": "feature",
+  "description": "Cierre de la fase A del Bloque 21 tras verificar que 21.8 (StampErrorDialog), 21.9 (motivo 01 con UUID) y 21.10 (mapeo de errores únicos de flota) ya estaban implementados y con pruebas. Se completa 21.11 en el formulario de operadores.",
+  "changes": [
+    {
+      "type": "fix",
+      "title": "21.11 · DriversTab soporta Enter para guardar y valida correo",
+      "detail": "El diálogo de operadores ahora envuelve los campos en <form onSubmit>, con botón type='submit', guard de doble-submit, trim() en nombre y validación de formato de correo antes de enviar al backend."
+    },
+    {
+      "type": "chore",
+      "title": "Verificación · 21.8, 21.9, 21.10 y 21.15 confirmados sin cambio",
+      "detail": "StampErrorDialog cubre errores del SAT con pruebas; CancelCfdiDialog exige UUID válido cuando motivo=01; mapForkliftMutationError y drivers_name_unique preservan detalle de duplicado; SERVICE_TYPES ya está en español (los valores 'preventive' en migraciones solo aplican a seeds E2E)."
+    }
+  ]
+}

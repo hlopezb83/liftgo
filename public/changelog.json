@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.173.0",
+    "date": "2026-07-22",
+    "type": "minor",
+    "title": "R7 Bloque 21 (fase A) · Cierre de validaciones y UX en formulario de operadores",
+    "category": "feature"
+  },
+  {
     "version": "7.172.0",
     "date": "2026-07-22",
     "type": "minor",
