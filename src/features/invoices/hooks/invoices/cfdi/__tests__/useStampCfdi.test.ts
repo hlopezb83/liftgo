@@ -77,4 +77,26 @@ describe("useStampCfdi", () => {
     await waitFor(() => expect(result.current.isError).toBe(true));
     expect((result.current.error as Error).message).toBe("Invoice already stamped");
   });
+
+  it("R7 Bloque 12: 409 benigno se muestra como info y suprime notifyError", async () => {
+    const appFeedback = await import("@/lib/ui/appFeedback");
+    const notifyError = vi.mocked(appFeedback.notifyError);
+    const notifyInfo = vi.mocked(appFeedback.notifyInfo);
+    notifyError.mockClear();
+    notifyInfo.mockClear();
+
+    const ctx = new Response(JSON.stringify({ error: "Invoice already stamped" }), {
+      status: 409,
+    });
+    const err = Object.assign(new Error("Edge Function returned a non-2xx status code"), {
+      context: ctx,
+    });
+    stampResp = { data: null, error: err as unknown as { message: string } };
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useStampCfdi(), { wrapper: Wrapper });
+    result.current.mutate(INVOICE_ID);
+    await waitFor(() => expect(result.current.isError).toBe(true));
+    expect(notifyInfo).toHaveBeenCalledTimes(1);
+    expect(notifyError).not.toHaveBeenCalled();
+  });
 });
