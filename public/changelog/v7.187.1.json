@@ -1,0 +1,17 @@
+{
+  "version": "7.187.1",
+  "date": "2026-07-22",
+  "type": "patch",
+  "title": "Fix · Panel: restauradas tarjetas de Utilización de Flota y Flujo de Efectivo",
+  "category": "bugfix",
+  "summary": "Regresión introducida en la migración BL-56/BL-57: el RPC get_dashboard_stats se redefinió sin las secciones monthly_utilization, utilization, cash_flow ni maintenance_alerts, dejando esas tarjetas del Panel vacías. Se restaura la lógica original preservando los fixes de balance_mxn y exclusión de cancelaciones aceptadas.",
+  "sections": [
+    {
+      "title": "Backend",
+      "items": [
+        "Restauradas las secciones monthly_utilization, utilization, cash_flow y maintenance_alerts en get_dashboard_stats.",
+        "Se conservan las mejoras previas: outstanding_revenue con SUM(balance_mxn) y exclusión de facturas con cancellation_status='accepted'."
+      ]
+    }
+  ]
+}
