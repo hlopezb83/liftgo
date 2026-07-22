@@ -1,7 +1,19 @@
+/**
+ * Hook cross-cutting de documentos adjuntos.
+ *
+ * Vive en `src/hooks/` (no en `features/documents/`) porque no existe un
+ * dominio "documentos" con UI propia: es un servicio de attachments
+ * consumido por múltiples features — damage, suppliers, fleet
+ * (DocumentAttachments), forms (DragDropImageUploader). Migrarlo a un
+ * feature implicaría dependencias cruzadas que la matriz ESLint prohíbe.
+ *
+ * Auditado en v6 (P1-3): confirmado como cross-cutting genuino.
+ */
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { documentsQueries, extractStoragePath, type DocumentsFilter } from "@/lib/query/documentsQueryKeys";
+
 
 export function useDocuments(entityType: string, entityId: string | undefined) {
   const filter: DocumentsFilter = { entityType, entityId };
