@@ -27,12 +27,34 @@ const mockInvoices = [
   },
 ];
 
+function buildInfiniteReturn(rows: typeof mockInvoices) {
+  return {
+    data: { pages: [{ rows, nextPage: undefined }], pageParams: [0] },
+    isLoading: false,
+    isError: false,
+    refetch: vi.fn(),
+    fetchNextPage: vi.fn(),
+    hasNextPage: false,
+    isFetchingNextPage: false,
+  } as unknown as ReturnType<typeof hooks.useInvoicesInfinite>;
+}
+
 vi.mock("../../hooks/invoices/useInvoices", () => ({
-  useInvoices: vi.fn(() => ({ data: mockInvoices, isLoading: false })),
+  useInvoicesInfinite: vi.fn(),
+  invoiceQueries: {
+    keys: { all: ["invoices"], detail: (id: string) => ["invoices", "detail", id] },
+    detail: (id: string) => ({ queryKey: ["invoices", "detail", id], queryFn: vi.fn() }),
+    list: () => ({ queryKey: ["invoices", "list"], queryFn: vi.fn() }),
+  },
+  INVOICE_PAGE_SIZE: 100,
 }));
 
 vi.mock("../../hooks/invoices/recurring/useGenerateRecurringInvoices", () => ({
   useGenerateRecurringInvoices: () => ({ mutate: vi.fn(), isPending: false }),
+}));
+
+vi.mock("../../hooks/invoices/recurring/usePreviewRecurringInvoices", () => ({
+  usePreviewRecurringInvoices: () => ({ mutate: vi.fn(), isPending: false, data: undefined }),
 }));
 
 vi.mock("@/layouts/RoleGuard", () => ({
@@ -53,7 +75,7 @@ function renderPage() {
 
 describe("InvoicesPage smoke tests", () => {
   beforeEach(() => {
-    vi.mocked(hooks.useInvoices).mockReturnValue({ data: mockInvoices, isLoading: false } as ReturnType<typeof hooks.useInvoices>);
+    vi.mocked(hooks.useInvoicesInfinite).mockReturnValue(buildInfiniteReturn(mockInvoices));
   });
 
   it("renders all invoices with correct statuses", () => {
@@ -80,8 +102,18 @@ describe("InvoicesPage smoke tests", () => {
   });
 
   it("shows empty state when no invoices match", () => {
-    vi.mocked(hooks.useInvoices).mockReturnValue({ data: [], isLoading: false } as unknown as ReturnType<typeof hooks.useInvoices>);
+    vi.mocked(hooks.useInvoicesInfinite).mockReturnValue(buildInfiniteReturn([]));
     const container = renderPage();
     expect(container.textContent).toContain("No se encontraron facturas");
+  });
+
+  it("renders 'Cargar más' button when hasNextPage", () => {
+    vi.mocked(hooks.useInvoicesInfinite).mockReturnValue({
+      ...buildInfiniteReturn(mockInvoices),
+      hasNextPage: true,
+    } as unknown as ReturnType<typeof hooks.useInvoicesInfinite>);
+    const container = renderPage();
+    expect(container.textContent).toContain("Cargar más");
+    expect(container.textContent).toMatch(/Mostrando 2 registros/);
   });
 });
