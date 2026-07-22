@@ -21,11 +21,12 @@ const TONE: Record<AlertCardProps["tone"], { card: string; title: string }> = {
 
 export function AlertCard({ icon: Icon, title, count, tone, children, footer }: AlertCardProps) {
   const t = TONE[tone];
+  const titleId = `alert-${title.replace(/\s+/g, "-").toLowerCase()}`;
   return (
-    <Card className={t.card}>
+    <Card className={t.card} role="region" aria-labelledby={titleId}>
       <CardHeader className="pb-2">
-        <CardTitle className={cn("text-base flex items-center gap-2", t.title)}>
-          <Icon className="h-4 w-4" /> {title} ({count})
+        <CardTitle id={titleId} className={cn("text-base flex items-center gap-2", t.title)}>
+          <Icon className="h-4 w-4" aria-hidden="true" /> {title} ({count})
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">

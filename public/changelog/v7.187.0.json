@@ -1,0 +1,35 @@
+{
+  "version": "7.187.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "Auditoría UI/UX Dashboard · Lote C: a11y y consistencia",
+  "category": "improvement",
+  "summary": "Tercer y último lote de la auditoría visual del Panel. Refuerza accesibilidad de las tarjetas de alerta y limpia el header en móvil.",
+  "sections": [
+    {
+      "title": "H10 · Subtítulo del header oculto en móvil (PageHeader)",
+      "items": [
+        "El subtítulo del PageHeader se oculta en <sm para evitar duplicación con el breadcrumb sticky del TopbarBreadcrumbs.",
+        "Libera ~24 px de scroll inicial en el Panel y en el resto de páginas que usan subtítulo."
+      ]
+    },
+    {
+      "title": "H11 · Landmarks ARIA en tarjetas de alerta (AlertCard)",
+      "items": [
+        "Cada AlertCard ahora se declara como role='region' con aria-labelledby apuntando al CardTitle.",
+        "Facturas Vencidas, Rentas Vencidas y Servicio Pendiente son navegables por lectores de pantalla como secciones diferenciadas.",
+        "El icono decorativo del título se marca aria-hidden."
+      ]
+    },
+    {
+      "title": "H12 · Tokens semánticos en gráficas",
+      "items": [
+        "Verificado: FleetStatusChart ya consume STATUS_COLORS (--status-available/--status-rented/--status-maintenance/--status-sold) desde dashboardSectionHelpers.",
+        "No hay hex literales pendientes; los colores respetan modo oscuro y el design system."
+      ]
+    }
+  ],
+  "next": [
+    "H5 (deltas MoM en KPIs) queda diferido: requiere ampliar los RPC get_financial_kpis / get_dashboard_stats con datos del mes previo."
+  ]
+}
