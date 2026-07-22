@@ -33,9 +33,14 @@ export function DriversTab() {
     setOpen(true);
   };
 
-  const handleSubmit = () => {
-    if (!form.name) { notifyValidation({ message: "El nombre es requerido" }); return; }
-    const payload = { name: form.name, phone: form.phone || null, email: form.email || null, license_number: form.license_number || null, is_active: form.is_active, notes: form.notes || null };
+  const handleSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (create.isPending || update.isPending) return; // guard doble-submit
+    if (!form.name.trim()) { notifyValidation({ message: "El nombre es requerido" }); return; }
+    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      notifyValidation({ message: "Correo inválido" }); return;
+    }
+    const payload = { name: form.name.trim(), phone: form.phone || null, email: form.email || null, license_number: form.license_number || null, is_active: form.is_active, notes: form.notes || null };
     const onError = (err: Error) => {
       if (err.message?.includes("drivers_name_unique")) notifyError({ error: err, message: "Ya existe un operador con este nombre", severity: "warning" });
       else notifyError({ error: err, message: "Error al guardar operador" });
@@ -118,23 +123,25 @@ export function DriversTab() {
         <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay operadores registrados" />
       )}
       <FormDialog open={open} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} Operador`} description="Administrar datos del operador para programación de entregas.">
-          <div className="grid gap-4 py-2">
-            <div className="space-y-1.5"><Label>Nombre *</Label><Input placeholder="Nombre completo" value={form.name} onChange={(e) => set("name", e.target.value)} /></div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="space-y-1.5"><Label>Teléfono</Label><Input placeholder="+52 55 1234 5678" value={form.phone} onChange={(e) => set("phone", e.target.value)} /></div>
-              <div className="space-y-1.5"><Label>Correo</Label><Input type="email" placeholder="operador@correo.com" value={form.email} onChange={(e) => set("email", e.target.value)} /></div>
+          <form onSubmit={handleSubmit}>
+            <div className="grid gap-4 py-2">
+              <div className="space-y-1.5"><Label>Nombre *</Label><Input placeholder="Nombre completo" value={form.name} onChange={(e) => set("name", e.target.value)} required /></div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5"><Label>Teléfono</Label><Input placeholder="+52 55 1234 5678" value={form.phone} onChange={(e) => set("phone", e.target.value)} /></div>
+                <div className="space-y-1.5"><Label>Correo</Label><Input type="email" placeholder="operador@correo.com" value={form.email} onChange={(e) => set("email", e.target.value)} /></div>
+              </div>
+              <div className="space-y-1.5"><Label>Número de Licencia</Label><Input placeholder="LIC-12345" value={form.license_number} onChange={(e) => set("license_number", e.target.value)} /></div>
+              <div className="flex items-center gap-2">
+                <Switch checked={form.is_active} onCheckedChange={(v) => set("is_active", v)} />
+                <Label>Activo</Label>
+              </div>
+              <div className="space-y-1.5"><Label>Notas</Label><Input placeholder="Notas opcionales" value={form.notes} onChange={(e) => set("notes", e.target.value)} /></div>
             </div>
-            <div className="space-y-1.5"><Label>Número de Licencia</Label><Input placeholder="LIC-12345" value={form.license_number} onChange={(e) => set("license_number", e.target.value)} /></div>
-            <div className="flex items-center gap-2">
-              <Switch checked={form.is_active} onCheckedChange={(v) => set("is_active", v)} />
-              <Label>Activo</Label>
-            </div>
-            <div className="space-y-1.5"><Label>Notas</Label><Input placeholder="Notas opcionales" value={form.notes} onChange={(e) => set("notes", e.target.value)} /></div>
-          </div>
-          <FormDialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-            <Button onClick={handleSubmit} disabled={create.isPending || update.isPending}>{editId ? "Guardar" : "Agregar"}</Button>
-          </FormDialogFooter>
+            <FormDialogFooter>
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+              <Button type="submit" disabled={create.isPending || update.isPending}>{editId ? "Guardar" : "Agregar"}</Button>
+            </FormDialogFooter>
+          </form>
         </FormDialog>
     </div>
   );

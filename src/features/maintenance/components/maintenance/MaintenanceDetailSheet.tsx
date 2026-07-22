@@ -96,7 +96,7 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
           <MaintenanceLaborSection maintenanceLogId={log.id} />
 
           <Separator />
-          <RoleGuard module="Mantenimiento" minAccess="full">
+          <RoleGuard module="Mantenimiento" minAccess="full" fallback={null}>
             <div className="flex gap-2">
               <Button variant="outline" className="flex-1" onClick={() => { onEdit(log); onOpenChange(false); }}>
                 <EditIcon className="h-4 w-4 mr-1" /> Editar

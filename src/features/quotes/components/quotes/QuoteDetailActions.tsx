@@ -83,7 +83,7 @@ function InvoiceButton({ quote, isSale, alreadyInvoiced, canInvoice, invoiceBloc
 function DeleteDialog({ quoteNumber, onDelete }: { quoteNumber: string; onDelete: () => void }) {
   const [open, setOpen] = useState(false);
   return (
-    <RoleGuard module="Cotizaciones" minAccess="full">
+    <RoleGuard module="Cotizaciones" minAccess="full" fallback={null}>
       <Button size="sm" variant="destructive" onClick={() => setOpen(true)}>
         <DeleteIcon className="h-4 w-4 mr-1" />Eliminar
       </Button>

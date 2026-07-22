@@ -37,7 +37,7 @@ export function ProspectActions({ prospect, onEdit, onClose }: Props) {
   };
 
   return (
-    <RoleGuard module="CRM / Prospectos" minAccess="full">
+    <RoleGuard module="CRM / Prospectos" minAccess="full" fallback={null}>
       <div className="space-y-2">
         {!isClosed && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">

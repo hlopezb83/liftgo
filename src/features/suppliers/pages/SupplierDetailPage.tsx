@@ -98,7 +98,7 @@ export default function SupplierDetailPage() {
         backTo="/suppliers"
         badges={supplier.category ? <Badge variant="outline">{SUPPLIER_CATEGORIES[supplier.category] || supplier.category}</Badge> : undefined}
         actions={
-          <RoleGuard module="Proveedores" minAccess="full">
+          <RoleGuard module="Proveedores" minAccess="full" fallback={null}>
             <Button variant="outline" size="sm" onClick={() => setEditOpen(true)}>
               <EditIcon className="h-4 w-4 mr-2" /> Editar
             </Button>

@@ -19,7 +19,7 @@ interface ActionsProps {
 export function InvoicesActionsBar({ onOpenPreview, onExport, onNew, previewPending }: ActionsProps) {
   return (
     <div className="flex flex-wrap gap-2">
-      <RoleGuard module="Facturas" minAccess="full">
+      <RoleGuard module="Facturas" minAccess="full" fallback={null}>
         <Button
           variant="outline"
           size="sm"

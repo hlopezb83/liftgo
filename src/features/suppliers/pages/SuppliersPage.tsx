@@ -111,7 +111,7 @@ export default function SuppliersPage() {
             <Button variant="outline" size="sm" onClick={handleExport}>
               <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
             </Button>
-            <RoleGuard module="Proveedores" minAccess="full">
+            <RoleGuard module="Proveedores" minAccess="full" fallback={null}>
               <Button onClick={openCreate} size="sm">
                 <PlusCircle className="h-4 w-4 mr-1" />Nuevo Proveedor
               </Button>

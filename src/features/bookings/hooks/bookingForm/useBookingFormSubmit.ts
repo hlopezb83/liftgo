@@ -12,6 +12,7 @@ import type { BookingFormData } from "../../lib/bookingFormSchema";
 interface PostBookingState {
   bookingId: string;
   forkliftId: string;
+  forkliftName: string;
   startDate: string;
   customerAddress: string | null;
 }
@@ -25,7 +26,7 @@ export function useBookingFormSubmit() {
   const [postBooking, setPostBooking] = useState<PostBookingState | null>(null);
   const [showPolicyDialog, setShowPolicyDialog] = useState(false);
 
-  const onSubmit = (data: BookingFormData) => {
+  const onSubmit = (data: BookingFormData, forkliftName: string) => {
     const { from, to } = data.date_range;
     if (!from || !to) return;
     const selectedCustomer = customers?.find((c) => c.id === data.customer_id);
@@ -46,9 +47,12 @@ export function useBookingFormSubmit() {
           // sobre un componente desmontado (warning de React).
           if (!isMounted()) return;
           const cust = customers?.find((c) => c.id === data.customer_id);
+          // R7-21.1: capturamos el nombre ANTES de invalidar caches para que
+          // el diálogo post-reserva no muestre "programar la entrega de ".
           setPostBooking({
             bookingId,
             forkliftId: data.forklift_id,
+            forkliftName,
             startDate: toYMD(from),
             customerAddress: cust?.address || null,
           });
