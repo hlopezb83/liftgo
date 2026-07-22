@@ -8,23 +8,39 @@ interface Props {
   bookingsCount: number;
   invoicesCount: number;
   outstanding: number;
+  /** Reservas activas (confirmed/active). Bloquean el archivado. R7-21.5. */
+  activeBookingsCount: number;
   isPending: boolean;
   onDelete: () => void;
 }
 
 export function CustomerDeleteDialog({
-  open, onOpenChange, customerName, bookingsCount, invoicesCount, outstanding, isPending, onDelete,
+  open, onOpenChange, customerName, bookingsCount, invoicesCount,
+  outstanding, activeBookingsCount, isPending, onDelete,
 }: Props) {
-  const hasActiveDeps = outstanding > 0;
+  const hasOutstanding = outstanding > 0;
+  const hasActiveBookings = activeBookingsCount > 0;
+  const blocked = hasOutstanding || hasActiveBookings;
 
-  const descriptionNode = hasActiveDeps ? (
+  const descriptionNode = blocked ? (
     <div className="space-y-2">
       <p className="font-medium text-destructive">No se puede archivar a {customerName}.</p>
       <p>Este cliente tiene:</p>
       <ul className="list-disc list-inside text-sm space-y-1 ml-2">
-        <li className="text-destructive font-medium">Saldo pendiente: {formatCurrency(outstanding)}</li>
+        {hasOutstanding && (
+          <li className="text-destructive font-medium">
+            Saldo pendiente: {formatCurrency(outstanding)}
+          </li>
+        )}
+        {hasActiveBookings && (
+          <li className="text-destructive font-medium">
+            {activeBookingsCount} reserva{activeBookingsCount === 1 ? "" : "s"} activa{activeBookingsCount === 1 ? "" : "s"}
+          </li>
+        )}
       </ul>
-      <p className="text-xs text-muted-foreground pt-2">Liquida o cancela el saldo antes de archivar.</p>
+      <p className="text-xs text-muted-foreground pt-2">
+        Liquida el saldo{hasActiveBookings ? " y cierra las reservas activas" : ""} antes de archivar.
+      </p>
     </div>
   ) : (
     <div className="space-y-2">
@@ -46,7 +62,7 @@ export function CustomerDeleteDialog({
       confirmLabel="Archivar"
       destructive
       loading={isPending}
-      hideConfirm={hasActiveDeps}
+      hideConfirm={blocked}
       onConfirm={onDelete}
     />
   );
