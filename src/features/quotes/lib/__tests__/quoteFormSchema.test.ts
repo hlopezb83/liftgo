@@ -132,4 +132,30 @@ describe("quoteFormSchema", () => {
     const r = quoteFormSchema.safeParse({ ...baseRental, includeLogistics: false, logisticsCost: 999 });
     expect(r.success).toBe(true);
   });
+
+describe("quoteFormSchema · descuentos %", () => {
+  // R7 Bloque 21.6
+  it("rechaza descuento % > 100 en renta", () => {
+    const r = quoteFormSchema.safeParse({
+      ...baseRental,
+      rentalLines: [{ ...baseRental.rentalLines[0], discount: 150, discountType: "%" as const }],
+    });
+    expect(r.success).toBe(false);
+  });
+
+  it("acepta descuento $ > 100 (importe absoluto) en renta", () => {
+    const r = quoteFormSchema.safeParse({
+      ...baseRental,
+      rentalLines: [{ ...baseRental.rentalLines[0], discount: 500, discountType: "$" as const }],
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it("rechaza descuento % > 100 en venta", () => {
+    const r = quoteFormSchema.safeParse({
+      ...baseSale,
+      saleLines: [{ ...baseSale.saleLines[0], discount: 101, discountType: "%" as const }],
+    });
+    expect(r.success).toBe(false);
+  });
 });
