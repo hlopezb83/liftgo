@@ -102,8 +102,8 @@ function InvoiceCard({ inv, onClick }: { inv: Invoice; onClick: () => void }) {
 
 export default function InvoicesPage() {
   const {
-    search, setSearch, statusFilter, setStatusFilter, dateRange, setDateRange,
-    queryFilters, filterKey, hasActive, clearAll,
+    search, setSearch, statusFilter, setStatusFilter, cfdiFilter, setCfdiFilter,
+    dateRange, setDateRange, queryFilters, filterKey, hasActive, clearAll,
   } = useInvoicesFilters();
 
   const { data: invoices, isLoading, isError, refetch } = useInvoices(queryFilters);
@@ -149,6 +149,8 @@ export default function InvoicesPage() {
             reachedLimit={hasReachedListLimit(invoices)}
             statusFilter={statusFilter}
             setStatusFilter={setStatusFilter}
+            cfdiFilter={cfdiFilter}
+            setCfdiFilter={setCfdiFilter}
             dateRange={dateRange}
             setDateRange={setDateRange}
             search={search}

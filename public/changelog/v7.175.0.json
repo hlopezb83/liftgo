@@ -1,0 +1,30 @@
+{
+  "version": "7.175.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "R7 Bloque 21.7 · Filtro por estado CFDI en facturas",
+  "category": "feature",
+  "description": "Facturas ahora se puede filtrar server-side por estado CFDI (Sin timbrar / Timbrada / Error / Cancelada), persistido en el query param ?cfdi= y con cache segregada por valor.",
+  "changes": [
+    {
+      "type": "feature",
+      "title": "Selector 'Estado CFDI' en la barra de filtros",
+      "detail": "Nuevo <Select> con opciones Todos/Sin timbrar/Timbrada/Error/Cancelada. Se aplica como .eq('cfdi_status', ...) antes del limit(), evitando falsos negativos por truncado. Se refleja en la URL como ?cfdi= y participa en 'Limpiar filtros'."
+    },
+    {
+      "type": "chore",
+      "title": "Cache keys y filtros normalizados",
+      "detail": "createInvoiceListFilters, createInvoiceListFilterKey y createInvoiceListQueryKey incorporan el eje cfdi. useInvoicesFilters expone cfdiFilter/setCfdiFilter y lo añade al cálculo de hasActive."
+    },
+    {
+      "type": "chore",
+      "title": "Pruebas unitarias del filtro CFDI",
+      "detail": "Nueva suite invoiceListFilters.test.ts cubre normalización, defaults y segregación de cache. Se validó la suite completa de facturas (151/151 en verde)."
+    },
+    {
+      "type": "chore",
+      "title": "Nota sobre paginación real",
+      "detail": "La paginación por cursor (segunda parte de R7 21.7) queda como sprint dedicado: requiere refactorizar ListPageLayout/DataTableV2 para consumir useInfiniteQuery y se coordinará con el resto de listados. Por ahora el aviso 'Refina los filtros' + los filtros nuevos evitan el truncado silencioso."
+    }
+  ]
+}

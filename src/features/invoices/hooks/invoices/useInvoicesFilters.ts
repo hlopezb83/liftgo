@@ -6,6 +6,7 @@ import { toYMD } from "@/lib/date/toYMD";
 import {
   createInvoiceListFilters,
   createInvoiceListFilterKey,
+  normalizeInvoiceCfdiFilter,
   normalizeInvoiceDateParam,
   normalizeInvoiceSearch,
   normalizeInvoiceStatusFilter,
@@ -24,6 +25,7 @@ export function useInvoicesFilters() {
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const search = normalizeInvoiceSearch(searchParams.get("q"));
   const statusFilter = normalizeInvoiceStatusFilter(searchParams.get("status"));
+  const cfdiFilter = normalizeInvoiceCfdiFilter(searchParams.get("cfdi"));
   const fromParam = normalizeInvoiceDateParam(searchParams.get("from"));
   const toParam = normalizeInvoiceDateParam(searchParams.get("to"));
 
@@ -62,6 +64,17 @@ export function useInvoicesFilters() {
     [replaceParams],
   );
 
+  const setCfdiFilter = useCallback(
+    (value: string) => {
+      replaceParams((next) => {
+        const normalized = normalizeInvoiceCfdiFilter(value);
+        if (normalized === "all") next.delete("cfdi");
+        else next.set("cfdi", normalized);
+      });
+    },
+    [replaceParams],
+  );
+
   const dateRange = useMemo(
     () => {
       if (!fromParam && !toParam) return undefined;
@@ -90,8 +103,8 @@ export function useInvoicesFilters() {
   );
 
   const queryFilters = useMemo(
-    () => createInvoiceListFilters({ search, status: statusFilter, from: fromParam, to: toParam }),
-    [search, statusFilter, fromParam, toParam],
+    () => createInvoiceListFilters({ search, status: statusFilter, cfdi: cfdiFilter, from: fromParam, to: toParam }),
+    [search, statusFilter, cfdiFilter, fromParam, toParam],
   );
 
   const filterKey = useMemo(
@@ -100,12 +113,13 @@ export function useInvoicesFilters() {
   );
 
   const hasActive =
-    !!search || statusFilter !== "all" || !!fromParam || !!toParam;
+    !!search || statusFilter !== "all" || cfdiFilter !== "all" || !!fromParam || !!toParam;
 
   const clearAll = useCallback(() => {
     replaceParams((next) => {
       next.delete("q");
       next.delete("status");
+      next.delete("cfdi");
       next.delete("from");
       next.delete("to");
     });
@@ -116,6 +130,8 @@ export function useInvoicesFilters() {
     setSearch,
     statusFilter,
     setStatusFilter,
+    cfdiFilter,
+    setCfdiFilter,
     dateRange,
     setDateRange,
     queryFilters,
