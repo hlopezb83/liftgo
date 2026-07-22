@@ -6,6 +6,7 @@ import { toYMD } from "@/lib/date/toYMD";
 import {
   createInvoiceListFilters,
   createInvoiceListFilterKey,
+  normalizeInvoiceCfdiFilter,
   normalizeInvoiceDateParam,
   normalizeInvoiceSearch,
   normalizeInvoiceStatusFilter,
@@ -24,6 +25,7 @@ export function useInvoicesFilters() {
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const search = normalizeInvoiceSearch(searchParams.get("q"));
   const statusFilter = normalizeInvoiceStatusFilter(searchParams.get("status"));
+  const cfdiFilter = normalizeInvoiceCfdiFilter(searchParams.get("cfdi"));
   const fromParam = normalizeInvoiceDateParam(searchParams.get("from"));
   const toParam = normalizeInvoiceDateParam(searchParams.get("to"));
 
