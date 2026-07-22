@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.188.0",
+    "date": "2026-07-22",
+    "type": "minor",
+    "title": "Auditoría R7 · pendientes: constraints BD montacargas, doble-timbrado, descargas CFDI en Portal, badge de moneda",
+    "category": "improvement"
+  },
+  {
     "version": "7.187.1",
     "date": "2026-07-22",
     "type": "patch",

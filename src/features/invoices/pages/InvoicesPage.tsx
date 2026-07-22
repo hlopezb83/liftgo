@@ -63,7 +63,17 @@ function useInvoiceColumns(): ColumnDef<Invoice>[] {
       { id: "customer_name", header: "Cliente", accessorFn: (i) => i.customer_name || "",
         cell: ({ row }) => row.original.customer_name ? <Untranslated>{row.original.customer_name}</Untranslated> : "—" },
       { id: "total", header: "Total", accessorFn: (i) => Number(i.total), meta: { align: "right" },
-        cell: ({ row }) => <span className="font-mono">{formatCurrency(Number(row.original.total))}</span> },
+        cell: ({ row }) => {
+          const moneda = (row.original as Invoice & { moneda?: string | null }).moneda ?? "MXN";
+          return (
+            <span className="font-mono inline-flex items-center gap-1 justify-end">
+              {formatCurrency(Number(row.original.total))}
+              {moneda !== "MXN" && (
+                <span className="text-[10px] font-medium text-muted-foreground bg-muted px-1 rounded">{moneda}</span>
+              )}
+            </span>
+          );
+        } },
       { id: "status", header: "Estado", accessorKey: "status",
         cell: ({ row }) => <StatusBadge status={row.original.status} /> },
       { id: "issued_at", header: "Emitida", accessorKey: "issued_at",

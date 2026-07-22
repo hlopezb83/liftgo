@@ -87,8 +87,24 @@ function StampButtons({ flags, isStamping, onStamp }: { flags: Flags; isStamping
   if (!flags.canStamp) return null;
   const label = isStamping ? "Timbrando..." : "Timbrar CFDI";
   const variant = flags.isDraft ? undefined : "outline";
+  // B12: guard local + onPointerDown para evitar doble timbrado por doble-click
+  // rápido antes de que `isStamping` propague. useStampCfdi también trata el
+  // 409 "already stamped" como benigno (notifyInfo).
+  const busy = isStamping;
+  const blockIfBusy = (e: React.PointerEvent<HTMLButtonElement>) => {
+    if (busy) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  };
   return (
-    <Button size="sm" variant={variant} onClick={onStamp} disabled={isStamping}>
+    <Button
+      size="sm"
+      variant={variant}
+      onClick={onStamp}
+      onPointerDown={blockIfBusy}
+      disabled={busy}
+    >
       <StampIcon className="h-4 w-4 mr-1" /> {label}
     </Button>
   );
