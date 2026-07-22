@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.174.0",
+    "date": "2026-07-22",
+    "type": "minor",
+    "title": "R7 Bloque 21 (fases B/D) · Índice único en refacciones y aviso de rentas consecutivas",
+    "category": "feature"
+  },
+  {
     "version": "7.173.0",
     "date": "2026-07-22",
     "type": "minor",

@@ -1,0 +1,25 @@
+{
+  "version": "7.174.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "R7 Bloque 21 (fases B/D) · Índice único en refacciones y aviso de rentas consecutivas",
+  "category": "feature",
+  "description": "Se cierran los ítems 21.11 (con helper puro + 4 pruebas), 21.16 (índice único en maintenance_parts previa consolidación de duplicados) y 21.17 (mensaje bajo el selector de fechas explicando que la fecha fin es inclusiva).",
+  "changes": [
+    {
+      "type": "chore",
+      "title": "21.11 · Extracción de validateDriverForm con pruebas unitarias",
+      "detail": "DriversTab delega la validación (nombre requerido, correo con formato) a src/features/operations/lib/driverFormValidation.ts. 4 pruebas cubren nombre vacío, correo vacío/válido/mal formado."
+    },
+    {
+      "type": "feature",
+      "title": "21.16 · Índice único (maintenance_log_id, part_id) en maintenance_parts",
+      "detail": "Migración consolida duplicados previos sumando quantity_used y luego crea maintenance_parts_log_part_unique. Impide que el mismo refaccionario se registre dos veces en la misma orden de trabajo desde cualquier ruta (UI, RPC, seed E2E)."
+    },
+    {
+      "type": "feature",
+      "title": "21.17 · DateRangePickerField acepta helperText y BookingForm lo usa",
+      "detail": "Nueva prop helperText renderiza un texto de ayuda debajo del selector cuando no hay error. El formulario de reservas explica que la fecha fin es inclusiva y sugiere iniciar al día siguiente para rentas consecutivas mismo día."
+    }
+  ]
+}

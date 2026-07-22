@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { useDrivers, useCreateDriver, useUpdateDriver, useDeleteDriver, Driver } from "@/features/fleet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
+import { validateDriverForm } from "../../lib/driverFormValidation";
 
 export function DriversTab() {
   const isMobile = useIsMobile();
@@ -36,10 +37,8 @@ export function DriversTab() {
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault();
     if (create.isPending || update.isPending) return; // guard doble-submit
-    if (!form.name.trim()) { notifyValidation({ message: "El nombre es requerido" }); return; }
-    if (form.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
-      notifyValidation({ message: "Correo inválido" }); return;
-    }
+    const err = validateDriverForm({ name: form.name, email: form.email });
+    if (err) { notifyValidation({ message: err.message }); return; }
     const payload = { name: form.name.trim(), phone: form.phone || null, email: form.email || null, license_number: form.license_number || null, is_active: form.is_active, notes: form.notes || null };
     const onError = (err: Error) => {
       if (err.message?.includes("drivers_name_unique")) notifyError({ error: err, message: "Ya existe un operador con este nombre", severity: "warning" });
