@@ -9,7 +9,7 @@ import { FeedbackFab } from "@/features/feedback";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { AppSidebar } from "@/layouts/AppSidebar";
 import { ErrorBoundary } from "@/layouts/ErrorBoundary";
-import { GlobalSearch } from "@/layouts/GlobalSearch";
+import { GlobalSearch } from "@/features/system/components/GlobalSearch";
 import { useMainScrollRestoration } from "@/layouts/hooks/useMainScrollRestoration";
 import { TopbarBreadcrumbs } from "@/layouts/TopbarBreadcrumbs";
 import { SentryNavigationSync } from "@/lib/observability/SentryNavigationSync";

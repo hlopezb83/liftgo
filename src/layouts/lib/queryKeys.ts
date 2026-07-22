@@ -1,3 +1,11 @@
+/**
+ * Query keys para resolución de labels de breadcrumbs.
+ *
+ * Vive en `layouts/lib/` (no en un feature) porque los breadcrumbs son un
+ * artefacto del shell de navegación: consultan múltiples tablas para pintar
+ * un label legible según la ruta activa. No pertenece a ningún dominio
+ * particular.
+ */
 import { supabase } from "@/integrations/supabase/client";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 

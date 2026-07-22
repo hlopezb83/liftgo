@@ -1,14 +1,13 @@
 import { useEffect, useState, useMemo, useTransition, type ElementType } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { CalendarDays, FleetIcon, UsersIcon, DocumentIcon, BookOpen, ScrollText, DeliveryIcon, ClipboardCheck, InvoiceIcon, MaintenanceIcon, WarnIcon, InventoryIcon, SupplierIcon, ExpenseIcon, ChartIcon, ActivityIcon, HistoryIcon, SettingsIcon, CompanyIcon, SecurityIcon, HelpIcon, TargetIcon, DashboardIcon, SearchIcon, SpinnerIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList,
 } from "@/components/ui/command";
+import { useEntitySearch } from "@/features/system/hooks/useEntitySearch";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { supabase } from "@/integrations/supabase/client";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { routeLoaders } from "@/routes/routes-config";
 
@@ -41,64 +40,6 @@ const ITEMS: Item[] = [
   { title: "Changelog", url: "/changelog", icon: ScrollText, group: "Administración" },
   { title: "Ayuda", url: "/help", icon: HelpIcon, group: "Administración" },
 ];
-
-// Bloque 5.1 (R4): resultados de entidades (facturas / clientes / reservas).
-// Se dispara con debounce de 200ms para input ≥ 2 chars, 5 por entidad.
-interface EntityHit {
-  id: string;
-  label: string;
-  sub?: string;
-  url: string;
-}
-type EntityResults = { invoices: EntityHit[]; customers: EntityHit[]; bookings: EntityHit[] };
-
-async function searchEntities(query: string): Promise<EntityResults> {
-  const q = query.trim();
-  if (q.length < 2) return { invoices: [], customers: [], bookings: [] };
-  const like = `%${q}%`;
-  const [invRes, custRes, bookRes] = await Promise.all([
-    supabase
-      .from("invoices")
-      .select("id, invoice_number, customer_name, total")
-      .or(`invoice_number.ilike.${like},customer_name.ilike.${like}`)
-      .order("created_at", { ascending: false })
-      .limit(5),
-    supabase
-      .from("customers")
-      .select("id, name, rfc")
-      .or(`name.ilike.${like},rfc.ilike.${like}`)
-      .order("name")
-      .limit(5),
-    supabase
-      .from("bookings")
-      .select("id, booking_number, customer_name")
-      .or(`booking_number.ilike.${like},customer_name.ilike.${like}`)
-      .order("created_at", { ascending: false })
-      .limit(5),
-  ]);
-  return {
-    invoices: (invRes.data ?? []).map((i) => ({
-      id: i.id,
-      label: i.invoice_number ?? "—",
-      sub: i.customer_name ?? undefined,
-      url: `/invoices/${i.id}`,
-    })),
-    customers: (custRes.data ?? []).map((c) => ({
-      id: c.id,
-      label: c.name ?? "—",
-      sub: c.rfc ?? undefined,
-      url: `/customers/${c.id}`,
-    })),
-    bookings: (bookRes.data ?? []).map((b) => ({
-      id: b.id,
-      label: b.booking_number ?? "—",
-      sub: b.customer_name ?? undefined,
-      url: `/bookings/${b.id}`,
-    })),
-  };
-}
-
-export { searchEntities };
 
 export function GlobalSearch() {
   const [open, setOpen] = useState(false);
@@ -135,12 +76,7 @@ export function GlobalSearch() {
     return [...map.entries()];
   }, []);
 
-  const entityQuery = useQuery({
-    queryKey: ["global-search", debouncedInput],
-    queryFn: () => searchEntities(debouncedInput),
-    enabled: open && debouncedInput.trim().length >= 2,
-    staleTime: 30_000,
-  });
+  const entityQuery = useEntitySearch(debouncedInput, open);
   const entities = entityQuery.data;
   const hasEntities = !!entities && (entities.invoices.length + entities.customers.length + entities.bookings.length > 0);
 
