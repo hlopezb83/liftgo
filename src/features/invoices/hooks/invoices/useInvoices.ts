@@ -1,4 +1,4 @@
-import { queryOptions, useQuery, useQueryClient } from "@tanstack/react-query";
+import { queryOptions, useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { todayKeyMty } from "@/lib/format/dateFormats";
@@ -13,6 +13,29 @@ import {
 import { invoiceKeys } from "../../lib/queryKeys";
 
 const INVOICE_STALE_MS = 60_000;
+/** Tamaño de página para paginación por cursor en el listado de facturas. */
+export const INVOICE_PAGE_SIZE = 100;
+
+function applyInvoiceListFilters<Q extends { or: (f: string) => Q; in: (c: string, v: string[]) => Q; lt: (c: string, v: string) => Q; eq: (c: string, v: string) => Q; gte: (c: string, v: string) => Q; lte: (c: string, v: string) => Q }>(
+  query: Q,
+  normalized: InvoiceListFilters,
+): Q {
+  let q = query;
+  if (normalized.status === "overdue") {
+    q = q.in("status", ["sent", "partial"]).lt("due_date", todayKeyMty());
+  } else if (normalized.status !== "all") {
+    q = q.eq("status", normalized.status);
+  }
+  if (normalized.cfdi !== "all") q = q.eq("cfdi_status", normalized.cfdi);
+  if (normalized.from) q = q.gte("issued_at", normalized.from);
+  if (normalized.to) q = q.lte("issued_at", normalized.to);
+  const search = sanitizeInvoiceSearchForQuery(normalized.search);
+  if (search) {
+    const pattern = `%${search}%`;
+    q = q.or(`invoice_number.ilike.${pattern},customer_name.ilike.${pattern}`);
+  }
+  return q;
+}
 
 async function fetchInvoiceList(filters?: InvoiceListFilters) {
   const normalized = createInvoiceListFilters(filters);
