@@ -3558,6 +3558,10 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      change_forklift_status: {
+        Args: { p_forklift_id: string; p_new_status: string; p_reason?: string }
+        Returns: undefined
+      }
       check_and_record_rate_limit: {
         Args: {
           _bucket: string
