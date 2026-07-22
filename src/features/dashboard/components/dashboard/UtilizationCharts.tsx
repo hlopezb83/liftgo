@@ -82,7 +82,11 @@ export function UtilizationCharts({ monthlyUtilization }: UtilizationChartsProps
           </ComposedChart>
         </ResponsiveContainer>
       ) : (
-        <p className="text-muted-foreground text-sm text-center py-10">Sin datos aún</p>
+        <EmptyState
+          icon={ChartIcon}
+          title="Sin datos de utilización"
+          subtitle="Se poblará automáticamente al confirmar reservas en los próximos meses."
+        />
       )}
     </ReportChartCard>
   );
