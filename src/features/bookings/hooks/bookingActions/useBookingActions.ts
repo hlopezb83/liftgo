@@ -1,13 +1,13 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { toYMD } from "@/lib/format/dateFormats";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
-import { useCreateBookingExtension } from "../useBookingExtensions";
+import { useCreateBookingExtension } from "./useBookingExtensions";
 import {
   useUpdateBooking,
   useDeleteBooking,
   useCancelBooking,
   type BookingWithForklift,
-} from "../useBookings";
+} from "../bookings/useBookings";
 
 export const BOOKING_STATUS_LABELS: Record<string, string> = {
   confirmed: "Confirmada",

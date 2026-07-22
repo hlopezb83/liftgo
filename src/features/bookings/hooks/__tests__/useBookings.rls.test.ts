@@ -19,7 +19,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   }),
 }));
 
-import { useBookings } from "../useBookings";
+import { useBookings } from "../bookings/useBookings";
 
 describe("useBookings — RLS contract", () => {
   beforeEach(() => {

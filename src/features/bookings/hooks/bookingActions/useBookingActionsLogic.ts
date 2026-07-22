@@ -1,13 +1,13 @@
 import { useUserRole } from "@/features/users";
-import { useBookingActions } from "./bookingActions/useBookingActions";
-import { useBookingDialogsState } from "./bookingActions/useBookingDialogsState";
-import { useExtendBookingPreview } from "./bookingActions/useExtendBookingPreview";
-import type { BookingWithForklift } from "./useBookings";
+import { useBookingActions } from "./useBookingActions";
+import { useBookingDialogsState } from "./useBookingDialogsState";
+import { useExtendBookingPreview } from "./useExtendBookingPreview";
+import type { BookingWithForklift } from "../bookings/useBookings";
 
 // Re-export para preservar imports existentes. La fuente canónica vive en
 // `bookingActions/useBookingActions`. Se eliminó el alias `STATUS_LABELS`
 // (duplicaba el nombre canónico y creaba ambigüedad).
-export { BOOKING_STATUS_LABELS } from "./bookingActions/useBookingActions";
+export { BOOKING_STATUS_LABELS } from "./useBookingActions";
 
 export function getValidTransitions(current: string): string[] {
   switch (current) {

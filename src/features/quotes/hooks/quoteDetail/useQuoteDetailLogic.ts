@@ -1,8 +1,8 @@
-import { useQuoteConversionActions } from "./quoteDetail/useQuoteConversionActions";
-import { useQuoteConversionState } from "./quoteDetail/useQuoteConversionState";
-import { useQuoteDetailData, isPublicoGeneral } from "./quoteDetail/useQuoteDetailData";
+import { useQuoteConversionActions } from "./useQuoteConversionActions";
+import { useQuoteConversionState } from "./useQuoteConversionState";
+import { useQuoteDetailData, isPublicoGeneral } from "./useQuoteDetailData";
 
-export type { DeliveryInfo } from "./quoteDetail/useQuoteConversionState";
+export type { DeliveryInfo } from "./useQuoteConversionState";
 
 /** Orchestrator hook for the Quote Detail page. Composes data + state + actions. */
 export function useQuoteDetailLogic(id: string | undefined) {

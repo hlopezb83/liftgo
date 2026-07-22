@@ -55,7 +55,7 @@ import {
   useUpdateBooking,
   useDeleteBooking,
   useCancelBooking,
-} from "../useBookingMutations";
+} from "../bookings/useBookingMutations";
 
 describe("useBookingMutations", () => {
   beforeEach(() => {

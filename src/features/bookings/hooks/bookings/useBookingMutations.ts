@@ -2,7 +2,7 @@ import { forkliftKeys } from "@/features/fleet";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { bookingKeys } from "../lib/queryKeys";
+import { bookingKeys } from "../../lib/queryKeys";
 
 export function useCreateBooking() {
   return useEntityMutation({

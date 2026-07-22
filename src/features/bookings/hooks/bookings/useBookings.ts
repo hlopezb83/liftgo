@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toYMD } from "@/lib/date/toYMD";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { EXCLUDE_E2E_FILTER, LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
-import { bookingKeys } from "../lib/queryKeys";
+import { bookingKeys } from "../../lib/queryKeys";
 export type { Booking, BookingWithForklift } from "@/types/rental";
 
 type BookingListRow = Awaited<ReturnType<typeof fetchBookingList>>[number];

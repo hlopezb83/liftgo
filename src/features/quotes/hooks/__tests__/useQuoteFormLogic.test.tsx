@@ -55,7 +55,7 @@ vi.mock("react-router", async () => {
 });
 
 // Import DESPUÉS de los mocks.
-import { useQuoteFormLogic } from "../useQuoteFormLogic";
+import { useQuoteFormLogic } from "../quoteForm/useQuoteFormLogic";
 
 function wrapper({ children }: { children: ReactNode }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
