@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.167.0",
+    "date": "2026-07-22",
+    "type": "minor",
+    "title": "R7 Fase 5 · Validaciones flota (rangos), TC pago prellenado, contraste destructive, contratos filtra disponibles y guarda cancel_booking",
+    "category": "bugfix"
+  },
+  {
     "version": "7.166.0",
     "date": "2026-07-22",
     "type": "minor",

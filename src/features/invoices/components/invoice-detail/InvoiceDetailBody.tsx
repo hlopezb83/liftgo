@@ -134,6 +134,7 @@ export function InvoiceDetailBody({
         invoiceNumber={invoice.invoice_number}
         invoiceTotal={total}
         invoiceCurrency={invoice.moneda}
+        invoiceExchangeRate={invoice.tipo_cambio == null ? null : Number(invoice.tipo_cambio)}
         balance={balance}
         notes={invoice.notes}
         showCollectionNotes={showCollectionNotes}

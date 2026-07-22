@@ -18,7 +18,13 @@ export function useContractFormLogic() {
   const bookingId = searchParams.get("booking_id");
   const { data: existing } = useContract(isEdit ? id : undefined);
   const { data: customers } = useCustomers();
-  const { data: forklifts } = useForklifts();
+  const { data: allForklifts } = useForklifts();
+  // R7 Bloque 18a: sólo mostrar montacargas disponibles; si estamos editando y
+  // el contrato ya está ligado a uno no disponible, lo incluimos igualmente.
+  const currentId = existing?.forklift_id ?? null;
+  const forklifts = (allForklifts ?? []).filter(
+    (f) => f.status === "available" || f.id === currentId,
+  );
   const createContract = useCreateContract();
   const updateContract = useUpdateContract();
 

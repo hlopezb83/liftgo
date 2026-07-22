@@ -34,7 +34,7 @@
     --accent: 220 15% 92%;
     --accent-foreground: 220 30% 15%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 72% 45%; /* R7 Bloque 16: contraste ≥4.5:1 con texto blanco */
     --destructive-foreground: 0 0% 100%;
 
     --success: 142 71% 38%;
@@ -118,7 +118,7 @@
 
     /* R6-B3: rojo oscuro (0 62% 30%) daba ~1.8:1 contra bg dark. */
     /* 0 84% 65% da ~5.1:1 y mantiene el hue destructive. */
-    --destructive: 0 84% 65%;
+    --destructive: 0 72% 50%; /* R7 Bloque 16: contraste ≥4.5:1 en dark */
     --destructive-foreground: 0 0% 100%;
 
     --border: 220 20% 18%;
