@@ -56,6 +56,7 @@ export default function BookingForm() {
               onSelect={(range) => form.setValue("date_range", { from: range?.from, to: range?.to }, { shouldValidate: true })}
               required
               error={dateRangeError}
+              helperText="La fecha fin es inclusiva; el equipo queda ocupado ese día. Para una renta consecutiva el mismo día que otra termina, inicia al día siguiente."
             />
             <ForkliftSelector
               value={forkliftId}

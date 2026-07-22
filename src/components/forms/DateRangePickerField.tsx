@@ -23,6 +23,7 @@ interface DateRangePickerFieldProps {
   placeholder?: string;
   required?: boolean;
   error?: string;
+  helperText?: string;
 }
 
 const normalize = (d?: Date) =>
@@ -75,6 +76,7 @@ export function DateRangePickerField({
   placeholder = "Seleccionar fechas",
   required,
   error,
+  helperText,
 }: DateRangePickerFieldProps) {
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
@@ -127,7 +129,7 @@ export function DateRangePickerField({
           onApply={handleApply}
         />
       </Dialog>
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {error ? <p className="text-sm text-destructive">{error}</p> : helperText ? <p className="text-xs text-muted-foreground">{helperText}</p> : null}
     </div>
   );
 }
