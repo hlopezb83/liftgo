@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.166.0",
+    "date": "2026-07-22",
+    "type": "minor",
+    "title": "R7 Cierre Fase 4 · onError extensible, 409 timbrado benigno, aceptar vencidas, badge Vencida y nested button changelog",
+    "category": "bugfix"
+  },
+  {
     "version": "7.165.0",
     "date": "2026-07-22",
     "type": "minor",
