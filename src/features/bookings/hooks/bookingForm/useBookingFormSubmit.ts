@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { useCustomers } from "@/features/customers";
+import { useAvailableForklifts } from "@/features/fleet";
 import { useMaintenancePolicies } from "@/features/maintenance";
 import { useIsMounted } from "@/hooks/useIsMounted";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
