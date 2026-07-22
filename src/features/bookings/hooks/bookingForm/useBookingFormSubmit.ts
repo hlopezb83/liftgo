@@ -12,6 +12,7 @@ import type { BookingFormData } from "../../lib/bookingFormSchema";
 interface PostBookingState {
   bookingId: string;
   forkliftId: string;
+  forkliftName: string;
   startDate: string;
   customerAddress: string | null;
 }
