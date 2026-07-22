@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.180.1",
+    "date": "2026-07-22",
+    "type": "patch",
+    "title": "Regresión completa post-cierre de 10 hallazgos de arquitectura",
+    "category": "infra"
+  },
+  {
     "version": "7.180.0",
     "date": "2026-07-22",
     "type": "minor",
