@@ -1,3 +1,4 @@
+import { useIsRestoring } from "@tanstack/react-query";
 import { Suspense, lazy, type ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/features/users";
@@ -25,10 +26,15 @@ function AppLoader() {
 export function AuthGuard({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
   const { data: role, isLoading: roleLoading } = useUserRole();
+  // R7 Bloque 17b: durante la restauración del caché persistido, muchas queries
+  // reportan `isLoading=false` con `data=undefined`, lo que provocaba un flash
+  // del portal o del `NoAccess` antes de que TanStack hidratara el rol.
+  const isRestoring = useIsRestoring();
 
-  if (isLoading || (user && roleLoading)) {
+  if (isRestoring || isLoading || (user && roleLoading)) {
     return <AppLoader />;
   }
+
 
   if (!user) {
     return (
