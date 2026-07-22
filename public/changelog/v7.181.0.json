@@ -1,0 +1,43 @@
+{
+  "version": "7.181.0",
+  "date": "2026-07-22",
+  "type": "minor",
+  "title": "Auditoría visual · Lote A: jerarquía, densidad y accesibilidad",
+  "category": "improvement",
+  "summary": "Cinco hallazgos críticos del audit visual v7.181 resueltos: agrupación semántica de KPIs en el Panel, filtros de CxP sin truncar, Configuración con sidebar de tabs en desktop, contraste AA en badges destructivos y aria-labels en botones icon-only del historial de pagos.",
+  "sections": [
+    {
+      "title": "Panel · jerarquía de KPIs (A1)",
+      "items": [
+        "Dashboard agrupa los KPIs en dos secciones etiquetadas: 'Operación' (flota) y 'Finanzas' (MRR, DSO, utilización, vencidos), separadas por border-t sutil.",
+        "Skeleton reducido de gap-6 a gap-4 para alinear con el layout final."
+      ]
+    },
+    {
+      "title": "Cuentas por Pagar · filtros (A2)",
+      "items": [
+        "SelectTriggers ampliados (160/170→180/190px, 200→210px) para que las labels largas ('Todas aprobaciones', 'Todos los proveedores') no se corten en 1600×900.",
+        "KPI 'Por vencer (7 días)' renombrado a 'Por vencer 7d' para que quepa sin truncar en la card."
+      ]
+    },
+    {
+      "title": "Configuración · tabs verticales en desktop (A3)",
+      "items": [
+        "OperationsSetupPage: en lg+ los 8 tabs se muestran como sidebar vertical (220px) en lugar de envolverse a dos filas horizontales.",
+        "Mobile/tablet mantienen el scroll horizontal existente."
+      ]
+    },
+    {
+      "title": "Contraste badges destructivos (A5)",
+      "items": [
+        "StatusBadge tono DANGER (vencida, cancelada, dañada, rechazada) sube de bg/10 a bg/15 con border/30 para cumplir AA sobre filas zebra."
+      ]
+    },
+    {
+      "title": "Accesibilidad · icon-only sin aria-label (A4)",
+      "items": [
+        "usePaymentHistoryColumns: 3 botones REP (descargar PDF, descargar XML, cancelar) reciben aria-label descriptivo en español."
+      ]
+    }
+  ]
+}

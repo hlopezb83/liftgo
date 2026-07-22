@@ -20,7 +20,7 @@ interface KpiItem {
 const ITEMS: readonly KpiItem[] = [
   { key: "totalPendiente", label: "Pendiente total", icon: ClockIcon, tone: "text-foreground" },
   { key: "totalVencido", label: "Vencido", icon: WarnIcon, tone: "text-destructive" },
-  { key: "totalPorVencer", label: "Por vencer (7 días)", icon: CalendarClock, tone: "text-warning" },
+  { key: "totalPorVencer", label: "Por vencer 7d", icon: CalendarClock, tone: "text-warning" },
   { key: "totalPorAprobar", label: "Por aprobar", icon: ShieldAlert, tone: "text-warning" },
   { key: "repPendientes", label: "REP pendientes", icon: FileWarning, tone: "text-warning", asCount: true },
   { key: "pagadoMesActual", label: "Pagado este mes", icon: SuccessIcon, tone: "text-success" },

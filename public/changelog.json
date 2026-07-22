@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.181.0",
+    "date": "2026-07-22",
+    "type": "minor",
+    "title": "Auditoría visual · Lote A: jerarquía, densidad y accesibilidad",
+    "category": "improvement"
+  },
+  {
     "version": "7.180.1",
     "date": "2026-07-22",
     "type": "patch",
