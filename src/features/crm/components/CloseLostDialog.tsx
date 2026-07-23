@@ -62,6 +62,7 @@ export function CloseLostDialog({ prospect, open, onOpenChange, onConfirm, isPen
 
   return (
     <FormDialog
+      isPending={isPending}
       open={open}
       onOpenChange={onOpenChange}
       width="md"

@@ -52,6 +52,7 @@ export function ReturnInspectionDialog({
 
   return (
     <FormDialog
+      isPending={isPending}
       open={open}
       onOpenChange={onOpenChange}
       title="Inspección de Devolución"

@@ -86,6 +86,7 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
 
   return (
     <FormDialog
+      isPending={createSupplier.isPending || updateSupplier.isPending}
       open={open}
       onOpenChange={onOpenChange}
       title={supplier ? "Editar Proveedor" : "Nuevo Proveedor"}

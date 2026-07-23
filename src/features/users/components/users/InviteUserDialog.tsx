@@ -43,6 +43,7 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
         <Button><UserPlus className="mr-2 h-4 w-4" />Crear Usuario</Button>
       </DialogTrigger>
       <FormDialog
+      isPending={inviteUser.isPending}
         open={open}
         onOpenChange={setOpen}
         title="Crear Nuevo Usuario"

@@ -129,7 +129,8 @@ export function RegisterSupplierPaymentDialog({
   const isPending = register.isPending || uploader.isPending;
 
   return (
-    <FormDialog open={open} onOpenChange={onOpenChange} title={`Registrar pago — ${billNumber}`}>
+    <FormDialog
+      isPending={register.isPending || uploader.isPending} open={open} onOpenChange={onOpenChange} title={`Registrar pago — ${billNumber}`}>
       <div className="rounded-md bg-muted/50 p-3 mb-2 flex items-center justify-between text-sm">
         <span className="text-muted-foreground">Saldo actual</span>
         <span className="font-mono font-bold">{formatCurrency(balance)}</span>

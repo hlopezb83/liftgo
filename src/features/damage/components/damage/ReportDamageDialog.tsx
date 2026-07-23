@@ -43,7 +43,8 @@ export function ReportDamageDialog() {
           Reportar Daño
         </Button>
       </DialogTrigger>
-      <FormDialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); }} width="md" title="Reportar Daño Manual">
+      <FormDialog
+      isPending={isProcessing} open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); }} width="md" title="Reportar Daño Manual">
         <Form {...form}>
           <form onSubmit={handleSubmit} className="space-y-4">
             <SelectField

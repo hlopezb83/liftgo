@@ -19,6 +19,7 @@ export function RecurringInvoicesResultDialog({ open, onOpenChange, result, onRe
 
   return (
     <FormDialog
+      isPending={isRetrying}
       open={open}
       onOpenChange={onOpenChange}
       width="xl"

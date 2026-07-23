@@ -68,6 +68,7 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
 
   return (
     <FormDialog
+      isPending={isPending}
       open={open}
       onOpenChange={onOpenChange}
       width="2xl"

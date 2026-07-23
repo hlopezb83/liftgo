@@ -42,6 +42,7 @@ export function QuoteConversionDialogs({ logic }: Props) {
       )}
 
       <FormDialog
+      isPending={isConverting}
         open={showRecurringDialog}
         onOpenChange={setShowRecurringDialog}
         title="Facturación Recurrente"
@@ -57,6 +58,7 @@ export function QuoteConversionDialogs({ logic }: Props) {
       </FormDialog>
 
       <FormDialog
+      isPending={isConverting}
         open={showCustomerReassignDialog}
         onOpenChange={setShowCustomerReassignDialog}
         title="Asignar Cliente"

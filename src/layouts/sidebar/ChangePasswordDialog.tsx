@@ -42,6 +42,7 @@ export function ChangePasswordDialog({ open, onOpenChange }: Props) {
 
   return (
     <FormDialog
+      isPending={loading}
       open={open}
       onOpenChange={onOpenChange}
       title="Cambiar Contraseña"

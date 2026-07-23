@@ -81,6 +81,7 @@ export function PostBookingDeliveryDialog({
 
   return (
     <FormDialog
+      isPending={createDelivery.isPending}
       open={open}
       onOpenChange={(o) => { if (!o) onSkip(); onOpenChange(o); }}
       width="md"

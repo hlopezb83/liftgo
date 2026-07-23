@@ -78,6 +78,7 @@ export function EditReceptorFiscalDialog({ open, onOpenChange, invoice }: Props)
 
   return (
     <FormDialog
+      isPending={update.isPending}
       open={open}
       onOpenChange={onOpenChange}
       title="Editar datos fiscales del receptor"

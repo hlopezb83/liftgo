@@ -51,6 +51,7 @@ export function CancelRepDialog({ open, onOpenChange, paymentId, onSuccess }: Ca
 
   return (
     <FormDialog
+      isPending={cancelRep.isPending}
       open={open}
       onOpenChange={onOpenChange}
       title="Cancelar Complemento de Pago"

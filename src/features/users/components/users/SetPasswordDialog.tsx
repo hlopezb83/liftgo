@@ -27,6 +27,7 @@ export function SetPasswordDialog({ user, onClose }: Props) {
 
   return (
     <FormDialog
+      isPending={isPending}
       open={!!user}
       onOpenChange={(v) => !v && onClose()}
       title="Asignar nueva contraseña"

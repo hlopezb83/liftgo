@@ -65,6 +65,7 @@ export function BookingExtendDialog({
 }: ExtendDialogProps) {
   return (
     <FormDialog
+      isPending={isPending}
       open={open}
       onOpenChange={onOpenChange}
       title="Extender Reserva"

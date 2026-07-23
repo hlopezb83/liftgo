@@ -15,6 +15,7 @@ export function ExportPaymentsDialog({ open, onOpenChange }: Props) {
 
   return (
     <FormDialog
+      isPending={form.isSubmitting}
       open={open}
       onOpenChange={onOpenChange}
       title="Exportar pagos a Excel"

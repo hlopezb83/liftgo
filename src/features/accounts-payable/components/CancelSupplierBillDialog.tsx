@@ -48,6 +48,7 @@ export function CancelSupplierBillDialog({
 
   return (
     <FormDialog
+      isPending={cancel.isPending}
       open={open}
       onOpenChange={onOpenChange}
       title={`Cancelar factura ${billNumber}`}

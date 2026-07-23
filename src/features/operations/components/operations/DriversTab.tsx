@@ -121,7 +121,8 @@ export function DriversTab() {
       ) : (
         <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay operadores registrados" />
       )}
-      <FormDialog open={open} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} Operador`} description="Administrar datos del operador para programación de entregas.">
+      <FormDialog
+      isPending={create.isPending || update.isPending} open={open} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} Operador`} description="Administrar datos del operador para programación de entregas.">
           <form onSubmit={handleSubmit}>
             <div className="grid gap-4 py-2">
               <div className="space-y-1.5"><Label>Nombre *</Label><Input placeholder="Nombre completo" value={form.name} onChange={(e) => set("name", e.target.value)} required /></div>

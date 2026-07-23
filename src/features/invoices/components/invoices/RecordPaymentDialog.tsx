@@ -37,6 +37,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
 
   return (
     <FormDialog
+      isPending={createPayment.isPending || stampComplement.isPending}
       open={open}
       onOpenChange={onOpenChange}
       title="Registrar Pago"

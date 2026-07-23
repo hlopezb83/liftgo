@@ -86,6 +86,7 @@ export function RecurringInvoicesPreviewDialog({
 
   return (
     <FormDialog
+      isPending={isGenerating}
       open={open}
       onOpenChange={onOpenChange}
       width="2xl"

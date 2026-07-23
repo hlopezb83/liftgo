@@ -55,6 +55,7 @@ export function CancelCreditNoteDialog({ open, onOpenChange, creditNote }: Props
 
   return (
     <FormDialog
+      isPending={cancelMutation.isPending}
       open={open}
       onOpenChange={onOpenChange}
       title={`Cancelar Nota de Crédito ${creditNote.credit_note_number}`}

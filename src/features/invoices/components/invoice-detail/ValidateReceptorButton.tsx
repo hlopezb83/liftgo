@@ -50,6 +50,7 @@ export function ValidateReceptorButton({ invoice }: Props) {
       </Button>
 
       <FormDialog
+      isPending={validate.isPending}
         open={open}
         onOpenChange={setOpen}
         width="lg"
