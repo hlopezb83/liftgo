@@ -57,7 +57,7 @@ export default function PendingReturnsPage() {
       header: "Fin de renta",
       accessorKey: "end_date",
       cell: ({ row }) => (
-        <span className="font-mono text-sm">{formatDate(row.original.end_date)}</span>
+        <span className="font-mono text-sm">{formatDateMty(row.original.end_date)}</span>
       ),
     },
     {
@@ -122,7 +122,7 @@ export default function PendingReturnsPage() {
               <p className="text-sm font-semibold">{b.forklifts?.name ?? "—"}</p>
               <p className="text-sm text-muted-foreground">{b.customer_name}</p>
               <p className="text-xs font-mono text-muted-foreground">
-                Fin: {formatDate(b.end_date)}
+                Fin: {formatDateMty(b.end_date)}
               </p>
               <Button
                 size="sm"
