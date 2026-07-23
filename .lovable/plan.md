@@ -1,44 +1,40 @@
+# Estado de `liftgo-diffs-lovable-arquitectura-2.md`
 
-# Validación de diffs de arquitectura pendientes (v7.205.0 → v7.206.0)
+## Cerrados
+- **DIFF 1** cron declarado (v7.204.0)
+- **DIFF 2** eliminación de reconciliación client-side (v7.204.0)
+- **DIFF 3** timeout 30s Facturapi (v7.204.0)
+- **DIFF 4** `billing_secrets` sin lectura directa (v7.204.0)
+- **DIFF 5** persister de cache reparado (v7.204.0)
 
-Ya aplicado en versiones previas: **Lote A** (DIFFs 1-5, v7.204.0) y **Lote B parcial** (DIFF 8 handlers CFDI, DIFF 9a invalidaciones muertas, DIFF 10c/d ya cerrados en v7.198.2/v7.203.0 — verificado en `CollectionForecast.tsx`, en v7.205.0).
+## Parciales
+- **DIFF 8** — Auth compartida en edge functions: `authenticateWithDeps` cubre 6 stamping/cancel functions (v7.205.0). Falta `_shared/cronAuth.ts` con comparación timing-safe para `process-cfdi-retry-queue`, `reconcile-stamping-invoices`, `generate-recurring-maintenance`.
+- **DIFF 9** — Capa de datos:
+  - 9a invalidaciones muertas ✅ (v7.205.0)
+  - 9b `useUpdateForklift`/`useDeleteForklift` a `useEntityMutation` ✅ (v7.206.0)
+  - 9c ❌ ~10 `queryKey: ["..."]` ad-hoc pendientes de migrar a factories
+  - 9d ⚠️ v7.207.0 sólo unificó invalidación; falta consolidar los 5 lectores/3 namespaces de `company_settings` en un único `defineEntityQueries`
+- **DIFF 11** — Triggers de auditoría en `supplier_bills`/`bank_accounts`/`bank_statement_lines` ✅ (v7.206.0). Faltan RPCs `delete_booking`/`update_booking` y soft-delete auditado para invoices draft, credit_notes draft, supplier_payments.
+- **DIFF 13** — `select("*")` en `src/lib/pdf/shared.ts` y `contract/fetchers.ts` ✅ (v7.206.0). Quedan ~32 `select("*")` restantes, bulk signed URLs en `useFeedbackScreenshotUrl`, embed en `fetchInvoicePdfData`, y colapso de invalidaciones N→1 en uploads multi-archivo.
 
-## Auditoría uno a uno
+## Pendientes completos
+- **DIFF 6** Romper ciclos `invoices ↔ portal` y `quotes ↔ invoices` (barrel de portal, mover `paymentIntents/*`, `paymentIntentStatus`, `downloadCfdiBlob`, `extractNonRentalLines`).
+- **DIFF 7** `src/lib` deja de importar features (mover `rules/invoices.ts`, `rules/quotes.ts`; DTOs propios en `src/lib/pdf/types.ts` para contract/customerStatement/incomeStatement).
+- **DIFF 10** Reglas de negocio fuera de UI: balance en `InvoiceDetailActions` desde `v_invoices_with_balance`, helper `rentalDaysInclusive`, `computeTotals` en `RentalFinancialSummary`, `toMxn` en `CollectionForecast`.
+- **DIFF 12** Migraciones canónicas para `get_dashboard_stats` (×22), `get_income_statement` (×21), `create_booking` (×11) + regla en CONTRIBUTING.
+- **DIFF 14** ESLint `no-restricted-imports` y `complexity`/`max-lines` a `error` con allowlist; job de coverage mínimo en CI.
+- **DIFF 15** Tests de `users` (28 archivos, 0 tests), `AuthContext`, `returns`, `calendar`.
+- **DIFF 16** Migrar `useProspectForm`, `InviteUserDialog`, tabs de operations a RHF+Zod+`FormField`.
+- **DIFF 17** Hook `useBookingsRealtime` para calendario/Gantt y kanban de mantenimiento.
+- **DIFF 18** Limpieza cosmética (9 sub-tareas: knip, `formatDateDisplay` → `formatDateMty`, `StatusBadge` central, mover `CustomerPortalRoutes`, README, `set_prospect_created_by` search_path, `useCustomerPortal` al feature portal, `createCrudHooks()`, data-testid E2E).
 
-| Diff | Estado real (verificado) | Acción |
-|---|---|---|
-| **9b** `useUpdateForklift` / `useDeleteForklift` | Bug real: usan `useMutation` crudo. `useDeleteForklift.onError` sólo hace rollback y **no** dispara toast → error silencioso al usuario. | **Migrar** a `useEntityMutation` (patrón R9). |
-| **11.3** Triggers de auditoría faltantes | Real: `supplier_bills`, `bank_accounts`, `bank_statement_lines` no aparecen en ningún `CREATE TRIGGER ... audit`. | **Adjuntar** trigger de auditoría (patrón `20260215213953`). |
-| **13** `select("*")` en PDF | Real (bajo impacto): 4 sitios — `src/lib/pdf/contract/fetchers.ts` (3) y `src/lib/pdf/shared.ts` (1). `quote/build.tsx` es en detalle único y acotado. | **Reducir** a columnas explícitas en `shared.ts` (company_settings) y `contract/fetchers.ts` (company_settings, customers, forklifts). |
-| **10a** `InvoiceDetailActions` recomputa balance | **Falso positivo**: el archivo no contiene ningún cálculo `total - paid_amount`; delega en `computeInvoiceFlags`. | No aplica. |
-| **10b** `rentalDays + 1` en 5 archivos | **Falso positivo**: `rg` en `src/features/bookings/` no encuentra ocurrencias. | No aplica. |
-| **10c** `RentalFinancialSummary.tsx` | **Falso positivo**: el archivo no existe. | No aplica. |
-| **18.6** `set_prospect_created_by` sin `search_path` | **Falso positivo**: ya fue corregido en `20260408004410`. | No aplica. |
-| **6 / 7** Ciclos y `lib → features` | Real pero requiere mover barrels, tipos y renderers de PDF (>40 archivos). | **Documentar** en `.lovable/plan.md` como Lote C (fase propia). |
-| **11.1 / 11.2** `delete_booking` RPC y soft-delete financiero | Decisión de negocio (hard vs. soft delete, efectos sobre facturación) — no es sólo refactor. | **Diferir** hasta acuerdo con negocio. |
-| **9c / 9d** keys ad-hoc y unificación `company_settings` | Real, magnitud media (5 keys, 5 lectores). | **Diferir** a Lote C. |
-| **12** consolidación de migraciones históricas | Riesgoso reescribir historia; sólo aporta la regla para futuras. | **Documentar** regla en CLAUDE, sin tocar histórico. |
-| **14-18** Guardrails ESLint error, tests, RHF+zod, realtime, cosmética | Mejoras, no bugs. | **Diferir**. |
+## Recomendación de siguiente lote (Lote C, v7.208.0)
+Cerrar los parciales antes de abrir DIFFs nuevos:
+1. **DIFF 8 resto** — `_shared/cronAuth.ts` timing-safe aplicado a las 3 cron functions.
+2. **DIFF 9c** — migrar las ~10 `queryKey` inline a factories (`bookingKeys.all`, `forkliftKeys.all`, `quoteKeys.nextNumber`, etc.).
+3. **DIFF 9d** — `companySettingsQueries.ts` con `defineEntityQueries`; los 5 lectores + 3 namespaces pasan a una sola query.
+4. **DIFF 10** completo (4 sub-fixes) — bajo riesgo, alto impacto en corrección multi-moneda / NCs.
 
-## Alcance de este entregable (v7.206.0)
+Después Lote D con DIFF 11 (RPCs transaccionales) y Lote E con DIFFs 6-7 (ciclos), que son los refactors más invasivos.
 
-Sólo lo confirmado como bug real y de alcance atómico:
-
-1. **Migrar `useUpdateForklift` y `useDeleteForklift`** a `useEntityMutation` para no silenciar errores. Mantener el rollback optimista actual usando el hook (soporta `onMutate`/`onError` internos).
-2. **Adjuntar triggers de auditoría** (`audit_row_trigger`) a `supplier_bills`, `bank_accounts`, `bank_statement_lines`. Migración idempotente con `DROP TRIGGER IF EXISTS`.
-3. **Reducir `select("*")`** en `src/lib/pdf/shared.ts` (company_settings) y `src/lib/pdf/contract/fetchers.ts` (3 fetchers). Tipar con `.returns<T>()` donde ya haya `Tables<>`.
-4. **Documentar** en `.lovable/plan.md` los DIFFs 6/7, 9c/d, 11.1/2 como Lote C con criterios de arranque.
-5. Bump a **v7.206.0** y entradas de changelog.
-
-## Detalles técnicos
-
-- Verificar tras (2): consultar `audit_logs` tras un `UPDATE` sobre cada tabla para confirmar que el trigger emite el diff row-level.
-- (3) debe mantener los campos que consumen los renderers (`getInvoicePdfData`, `contract` renderer). Auditar el consumidor antes de recortar columnas para no romper el PDF.
-- No tocar `quote/build.tsx` — su `select("*")` alimenta un tipado dinámico posterior; recortarlo aquí es alto riesgo y bajo beneficio.
-- (1) preserva la firma pública de los hooks; sólo cambia la implementación interna. Todos los `mutate(...)` existentes siguen funcionando.
-
-## Fuera de alcance
-
-- Ruptura de ciclos (DIFF 6/7): próxima fase.
-- Soft-delete financiero y `delete_booking` RPC: requieren decisión de negocio.
-- ESLint `error` mode y coverage gate: fase de guardrails.
+¿Aplico el Lote C propuesto (DIFF 8 resto + 9c + 9d + 10) como v7.208.0, o priorizas otro subconjunto?
