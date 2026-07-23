@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.192.0",
+    "date": "2026-07-23",
+    "type": "minor",
+    "title": "Auditoría R10 · fase 1 (Form* huérfano, costo mantenimiento, duración inclusiva)",
+    "category": "bugfix"
+  },
+  {
     "version": "7.191.0",
     "date": "2026-07-23",
     "type": "patch",
