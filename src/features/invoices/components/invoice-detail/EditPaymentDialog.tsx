@@ -28,11 +28,15 @@ const METHODS = [
 
 const schema = z.object({
   amount: positiveAmount("Monto inválido"),
-  date: z.date(),
+  // R10 Bloque 8.1: fecha de pago no puede ser futura.
+  date: z.date().refine((d) => d.getTime() <= Date.now() + 24 * 60 * 60 * 1000, {
+    message: "La fecha del pago no puede ser futura.",
+  }),
   method: z.string().min(1),
   reference: z.string().default(""),
   notes: z.string().default(""),
 });
+
 
 type FormValues = z.infer<typeof schema>;
 
