@@ -23,6 +23,7 @@ import {
   STAMP_VARIANCE_WARNING as STAMP_VARIANCE_TOLERANCE,
 } from "../_shared/money.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
+import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 
 // Re-exports públicos preservados (tests + consumidores).
 export { computeStampVariance, sanitizeLegalName, STAMP_VARIANCE_TOLERANCE };
