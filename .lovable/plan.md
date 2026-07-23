@@ -1,50 +1,53 @@
 
-# Plan R12 — verificado contra el código actual
+# Validación diffs arquitectura + plan de ejecución
 
-Verifiqué cada diff antes de planear. Todos los bloqueantes y altos son bugs reales; los medios están mayormente confirmados y algunos requieren check adicional durante la implementación.
+Verifiqué cada diff crítico contra el código real antes de proponer trabajo. Abajo el veredicto por cada uno y el lote propuesto.
 
-## Verificación (evidencia)
+## Validación
 
-- **B1** ✅ Real. `supabase/migrations/20260723060348_…sql:17` hace `SELECT status INTO v_status FROM maintenance_logs`. La columna real es `work_status` — cualquier INSERT/UPDATE en `maintenance_parts`/`maintenance_labor` lanza 42703.
-- **B2** ✅ Real. `reconcile-stamping-invoices/index.ts:111-126` revierte a `error` cuando falta `facturapi_invoice_id` sin consultar al PAC → riesgo de doble CFDI.
-- **B3** ✅ Real. `20260720161455_…sql:126-128` (última versión de `convert_quote_to_bookings`) rechaza cualquier quote con `status='accepted'`, pero `accept_quote_from_portal` deja la quote en `accepted` sin bookings → inconvertible.
-- **B4** ✅ Idempotente. En prod ya está sembrado (verificado en R11); en migraciones limpias falta el seed.
-- **A1** ✅ Real. `useLiftgoTable.ts:118`: `const dataVersion = tableData.length;` — mismo length + distinto contenido no invalida el memo.
-- **A2** ✅ Real. Necesita revisar `get_income_statement` (migración 20260720033826) y normalizar `subtotal × tipo_cambio`.
-- **A3** ✅ Real. `PortalDashboard.tsx:35` usa `Number(i.total)` sin balance ni tipo de cambio.
-- **A4** ✅ Real. `FeedbackFormDialog.tsx:104` sólo pasa `create.isPending`; ignora `isCapturing`.
-- **M1-M10** Reales (spot-check confirmó ProspectFormDialog sin `isPending`, `/audit` sin `module`, y no hay triggers de auditoría para `supplier_bills`/`bank_accounts`/`bank_statement_lines`).
+### Críticos (1–5) — reales, aplicar YA
 
-## Ejecución (v7.203.0)
+- **DIFF 1 · Cron recurrente en repo** — REAL PARCIAL. `rg cron.schedule` no encuentra ningún schedule para `generate-recurring-invoices` en `supabase/migrations/`. `generate-recurring-maintenance` sí tiene schedule (20260721021751). En `config.toml` no hay overrides `verify_jwt=false` para ninguna de las dos, así que hoy el cron no puede invocarlas con service key sin JWT de usuario. Aplicar tal cual el diff pero con dos cuidados: (a) `generate-recurring-invoices` hoy NO tiene guarda de bearer server-side — hay que añadirla ANTES de bajar `verify_jwt`, o queda pública; (b) usar el mismo patrón de Vault que ya usa `20260721021751`, no `current_setting('app.service_role_key')`.
+- **DIFF 2 · Eliminar `syncInvoiceStatus` cliente** — REAL. El trigger `sync_invoice_status_from_payments_trg` (mig 20260718062234) hace exactamente lo mismo: `SELECT ... FOR UPDATE`, misma guarda `cancelled|draft`, mismas transiciones paid/partial/sent, mismo `paid_at`. El cliente sólo repite la lógica sin transacción → puede pisar el resultado del trigger o generar races entre dos sesiones. Borrar cliente + tests, mantener trigger.
+- **DIFF 3 · `fetchWithTimeout` compartido** — REAL. `cancel-cfdi`, `cancel-credit-note`, `cancel-payment-complement`, `download-cfdi`, `refresh-cancellation-status` usan `fetch(` directo contra Facturapi sin `AbortController`. `_shared/facturapi/` ya existe como carpeta pero no expone helper de timeout. Extraer el patrón probado en `stamp-cfdi/handler.ts`.
+- **DIFF 4 · `billing_secrets` sin SELECT directo** — REAL. Mig 20260515235356 crea policy "Admins select billing_secrets" con acceso completo — cualquier admin desde el navegador puede leer la live key. Ya existe RPC `get_billing_secrets_status` (visible en types). Falta: quitar policy SELECT, mover writes a RPC, quitar lectura del cliente.
+- **DIFF 5 · Allowlist del persister** — REAL. Mismatches confirmados: `inventory` ≠ key real `parts_inventory`; `contract-templates` ≠ `contract_templates`; `cash-flow-settings` ≠ `cash_flow_settings`; blocklist `user_roles` no coincide con root real `user_role` (grep). El fix del diff (allowlist correcta + test) evita que sigamos rompiendo la cache al renombrar.
 
-### Bloqueantes
-1. **B1** — nueva migración: `CREATE OR REPLACE` de `reject_mutations_on_closed_maintenance` cambiando `SELECT status` → `SELECT work_status`.
-2. **B2** — en `reconcile-stamping-invoices/index.ts`, antes de revertir cuando falta `facturapi_invoice_id`, consultar Facturapi (`invoices.list({ q: row.id })` con match por `metadata.internal_invoice_id`). Si aparece: persistir `facturapi_invoice_id`, `cfdi_uuid`, PDF/XML y marcar `stamped` (reusando el path de éxito). Sólo revertir a `error` si el PAC confirma que no existe. Ajustar `stamp-cfdi/handler.ts` para enviar `metadata: { internal_invoice_id: invoice.id }` si no lo hace ya.
-3. **B3** — nueva migración: `CREATE OR REPLACE` de `convert_quote_to_bookings` cambiando el gate de `IF v_quote.status='accepted'` por `IF EXISTS (SELECT 1 FROM bookings WHERE quote_id = p_quote_id) THEN RAISE 'La cotización ya fue convertida'`.
-4. **B4** — migración idempotente: `INSERT ... ON CONFLICT (role, module) DO NOTHING` para `Facturas de Proveedor` (admin/administrativo=full, auditor=read).
+### Altos (6–10) — reales, agendar en lote siguiente
 
-### Altos
-5. **A1** — en `useLiftgoTable.ts`, sustituir `dataVersion = tableData.length` por hash memoizado sobre identidad de filas (`r.id ?? JSON.stringify(r)`).
-6. **A2** — nueva migración: `CREATE OR REPLACE FUNCTION get_income_statement` reemplazando `SUM(subtotal)` / `SUM(total)` por `SUM(x * COALESCE(NULLIF(tipo_cambio,0),1))` en revenue + NCs + comparativos; mantener `revenue_kind`.
-7. **A3** — en `PortalDashboard.tsx`, calcular `outstanding = Σ balance × tipo_cambio` (los campos ya vienen del RPC).
-8. **A4** — en `FeedbackFormDialog.tsx`, `isPending={create.isPending || isCapturing}`.
+- **DIFF 6** ciclos: confirmé imports desde `@/features/invoices` a `@/features/portal` y desde `useInvoiceFormHandlers` a `@/features/quotes/utils/nonRentalLines`. Refactor grande — separar en su propio sprint.
+- **DIFF 7** `src/lib/rules/invoices.ts` y `src/lib/rules/quotes.ts` viven bajo `src/lib` importando features — real. `src/lib/pdf/*` requiere revisión archivo por archivo.
+- **DIFF 8** Duplicación de auth en edge functions — real, pero se debe hacer junto con la creación de `requireServiceOrRole`/`cronAuth` como un solo PR para no dejar mezclado.
+- **DIFF 9** invalidaciones muertas `["forklift-options"]` y keys ad-hoc — reales (ya verificados en auditorías previas). `company_settings` tiene 5 lectores en 3 namespaces (`src/lib/pdf/*`, `features/cash-flow`, `features/company-settings`) — real.
+- **DIFF 10** `RentalFinancialSummary` recomputa IVA inline y `CollectionForecast` usa `balance_mxn ?? balance` sin normalizar por `tipo_cambio` — reales. `rentalDays + 1` en 5 archivos — real.
 
-### Medios
-9. **M1** — `get_portal_invoices`: filtrar NCs a `cfdi_status='stamped'`.
-10. **M2** — `PortalInvoiceDetail.tsx`: `balance = total − pagos − credited_amount` usando el campo del RPC.
-11. **M3** — `CustomerContactCard.tsx`: mostrar `customer.rfc ?? customer.tax_id ?? "—"`.
-12. **M4** — `cashFlowTransformers.ts::invoiceToItem`: restar `credited_amount × TC` del pendiente.
-13. **M5** — `routes-config.tsx`: añadir `module: "Auditoría"` a `/audit` y `/activity`; seed del módulo si falta.
-14. **M6** — migración: `CREATE TRIGGER audit_trigger_fn` sobre `supplier_bills`, `bank_accounts`, `bank_statement_lines` (mismo patrón que invoices/customers).
-15. **M7** — envolver "Nueva Factura" en `CuentasPorPagarPage.tsx` e `InvoicesPage.tsx` con `<RoleGuard module="..." minAccess="full">`.
-16. **M8** — `ProspectFormDialog.tsx` + `ProspectDialogParts.tsx`: reenviar `isPending` (patrón R11).
-17. **M9** — `utilizationHelpers.ts`: deduplicar días con `Set` por unidad (mismo enfoque que `UtilizationReport.tsx`).
-18. **M10** — `MaintenanceDetailSheet`: deshabilitar UI de refacciones/MO cuando `work_status === 'completed'`.
+### Medios/bajos (11–18)
 
-### Cierre
-- Bump a **v7.203.0** (minor) en `changelog.json` y `public/changelog/v7.203.0.json`.
-- Tests: correr `tsgo` + vitest afectados; verificar RPC B1/B3 con `supabase read_query`.
-- Nota: cada migración se envía por separado (una llamada `supabase--migration` por bloque SQL) para revisión granular.
+Todos revisados de alto nivel; son mejoras válidas pero no bloqueantes. Se agendan después de los altos.
 
-## Preguntas
-Ninguna — todos los diffs verificados. Procedo si apruebas.
+## Plan de ejecución
+
+### Lote A — Críticos (esta entrega)
+1. **DIFF 5** (menor riesgo, pura cache): corregir allowlist/blocklist del persister a las keys reales + test que valide contra los factories exportados.
+2. **DIFF 2**: borrar `syncInvoiceStatus.ts` + sus dos importers en `usePayments.ts` + test dependiente; verificar con vitest que el flujo de pagos sigue verde apoyándose en el trigger.
+3. **DIFF 3**: crear `supabase/functions/_shared/facturapi/withTimeout.ts` y sustituir `fetch(` por `fetchWithTimeout(` en las 5 edge functions listadas, con mensaje "PAC no respondió en 30s".
+4. **DIFF 4**: migración que DROP la policy SELECT de `billing_secrets`, crear `upsert_billing_secret(key,value)` con guard admin, y refactor de `useBillingSecrets` para consumir el RPC + status (sin leer valores).
+5. **DIFF 1**: (a) añadir guarda `Bearer service_role|CRON_SECRET` server-side a `generate-recurring-invoices` (patrón `process-cfdi-retry-queue`); (b) migración con `cron.schedule` para invoices (`15 6 * * *`) y maintenance (`30 6 * * *`) usando el patrón Vault ya presente en `20260721021751`; (c) `config.toml`: `verify_jwt=false` para ambas funciones sólo DESPUÉS de (a).
+
+### Lote B (siguiente) — Altos 6–10
+Refactor de ciclos, `src/lib` sin `@/features`, auth compartida en edge functions, keys canónicas y reglas de negocio fuera de la UI. Se propondrá como plan aparte.
+
+### Lote C — Medios/bajos 11–18
+RPCs transaccionales de delete, consolidación de migraciones, `select("*")` sensibles, guardrails ESLint en error, tests de superficie crítica, realtime acotado, limpieza cosmética. Plan separado.
+
+## Verificaciones al terminar Lote A
+- `bun test` verde (incluye tests que sobreviven a borrar `syncInvoiceStatus`).
+- `bun run build` verde.
+- Manual: registrar un pago desde UI → status factura correcto (via trigger).
+- Manual: intentar leer `billing_secrets.value` como admin desde el navegador → denegado.
+- SQL: `SELECT jobname FROM cron.job` incluye `generate-recurring-invoices-daily` y `generate-recurring-maintenance-daily`.
+- Bump changelog v7.204.0 con detalle por diff aplicado.
+
+## Notas técnicas
+- No mezclar Lote A con los pendientes de R12 (M1, M2, M4, M6, M7, M9, M10, A2) — cerrar A primero.
+- Riesgo bajo en 2/3/5, riesgo medio en 4 (cambia contrato de `useBillingSecrets`), riesgo medio en 1 (activar cron requiere guard server-side previo).
