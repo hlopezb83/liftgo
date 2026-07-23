@@ -48,8 +48,12 @@ export const quoteQueries = defineEntityQueries<"quotes", QuoteListRow[], QuoteR
   },
 );
 
-// Alias retro-compat para consumidores existentes.
-export const quoteKeys = quoteQueries.keys;
+// Alias retro-compat + extensiones.
+export const quoteKeys = {
+  ...quoteQueries.keys,
+  /** Lote C · DIFF 9c: query key para el siguiente folio de cotización. */
+  nextNumber: () => [...quoteQueries.keys.all, "next-number"] as const,
+} as const;
 
 export function useQuotes() {
   return useQuery(quoteQueries.list());
