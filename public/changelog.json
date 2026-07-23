@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.205.0",
+    "date": "2026-07-23",
+    "type": "minor",
+    "title": "Arquitectura Lote B: dedupe auth en edge functions e invalidations muertas",
+    "category": "refactor"
+  },
+  {
     "version": "7.204.0",
     "date": "2026-07-23",
     "type": "minor",
