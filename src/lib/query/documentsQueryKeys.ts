@@ -43,9 +43,10 @@ export interface DocumentsFilter extends Record<string, unknown> {
 export const documentsQueries = defineEntityQueries("documents", {
   list: (filter?: Readonly<Record<string, unknown>>) => async () => {
     const { entityType, entityId } = (filter ?? {}) as DocumentsFilter;
+    // v7.216.0 (C6): columnas explícitas.
     const { data, error } = await supabase
       .from("documents")
-      .select("*")
+      .select("id, entity_type, entity_id, file_name, file_url, file_size, mime_type, uploaded_by, created_at")
       .eq("entity_type", entityType)
       .eq("entity_id", entityId ?? "")
       .order("created_at", { ascending: false });

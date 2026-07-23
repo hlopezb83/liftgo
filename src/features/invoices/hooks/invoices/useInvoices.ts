@@ -1,6 +1,8 @@
 import { queryOptions, useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+
+type InvoiceRow = Tables<"invoices">;
 import { todayKeyMty } from "@/lib/format/dateFormats";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { EXCLUDE_E2E_FILTER, LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
@@ -16,8 +18,24 @@ const INVOICE_STALE_MS = 60_000;
 /** Tamaño de página para paginación por cursor en el listado de facturas. */
 export const INVOICE_PAGE_SIZE = 100;
 
+// v7.216.0 (C6): columnas explícitas para reducir payload y evitar re-parseo
+// costoso de tipos por `supabase-js` cuando el builder se reasigna.
+const sel = (s: string): string => s;
+const INVOICE_COLUMNS = sel(
+  "id, invoice_number, folio, serie, customer_id, customer_name, booking_id, quote_id, " +
+  "status, cfdi_status, cfdi_uuid, cfdi_pdf_url, cfdi_xml_url, cfdi_xml, cfdi_error_message, " +
+  "cancellation_status, cancellation_motive, cancellation_reason, cancelled_at, substitution_uuid, " +
+  "acuse_pdf_url, acuse_xml_url, facturapi_invoice_id, facturapi_env, stamping_attempts, " +
+  "stamp_variance, stamp_variance_checked_at, invoice_type, forma_pago, metodo_pago, uso_cfdi, " +
+  "moneda, tipo_cambio, global_months, global_periodicity, global_year, " +
+  "receptor_rfc, receptor_razon_social, receptor_regimen_fiscal, receptor_domicilio_fiscal_cp, " +
+  "line_items, subtotal, tax_rate, tax_amount, total, notes, version, " +
+  "billing_period_start, billing_period_end, issued_at, due_date, paid_at, " +
+  "e2e_scope, is_e2e, created_at, updated_at",
+);
+
 function baseInvoiceQuery(normalized: InvoiceListFilters) {
-  let q = supabase.from("invoices").select("*").or(EXCLUDE_E2E_FILTER);
+  let q = supabase.from("invoices").select(INVOICE_COLUMNS).or(EXCLUDE_E2E_FILTER);
   if (normalized.status === "overdue") {
     q = q.in("status", ["sent", "partial"]).lt("due_date", todayKeyMty());
   } else if (normalized.status !== "all") {
@@ -38,7 +56,8 @@ async function fetchInvoiceList(filters?: InvoiceListFilters) {
   const normalized = createInvoiceListFilters(filters);
   const { data, error } = await baseInvoiceQuery(normalized)
     .order("created_at", { ascending: false })
-    .limit(LIST_PAGE_LIMIT);
+    .limit(LIST_PAGE_LIMIT)
+    .returns<InvoiceRow[]>();
   if (error) throw error;
   return data ?? [];
 }
@@ -48,7 +67,8 @@ async function fetchInvoicePage(filters: InvoiceListFilters, pageIndex: number) 
   const to = from + INVOICE_PAGE_SIZE - 1;
   const { data, error } = await baseInvoiceQuery(filters)
     .order("created_at", { ascending: false })
-    .range(from, to);
+    .range(from, to)
+    .returns<InvoiceRow[]>();
   if (error) throw error;
   const rows = data ?? [];
   return { rows, nextPage: rows.length === INVOICE_PAGE_SIZE ? pageIndex + 1 : undefined };
@@ -56,7 +76,12 @@ async function fetchInvoicePage(filters: InvoiceListFilters, pageIndex: number) 
 
 
 async function fetchInvoiceDetail(id: string) {
-  const { data, error } = await supabase.from("invoices").select("*").eq("id", id).maybeSingle();
+  const { data, error } = await supabase
+    .from("invoices")
+    .select(INVOICE_COLUMNS)
+    .eq("id", id)
+    .maybeSingle()
+    .returns<InvoiceRow | null>();
   if (error) throw error;
   return data;
 }

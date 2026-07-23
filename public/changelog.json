@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.216.0",
+    "date": "2026-07-23",
+    "type": "patch",
+    "title": "Arquitectura C6 cierre: cero select('*') en el repo",
+    "category": "refactor"
+  },
+  {
     "version": "7.215.0",
     "date": "2026-07-23",
     "type": "patch",

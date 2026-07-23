@@ -7,15 +7,24 @@ import { invoiceKeys, paymentKeys } from "../lib/queryKeys";
 
 export type Payment = Tables<"payments">;
 
+// v7.216.0 (C6): columnas explícitas.
+const sel = (s: string): string => s;
+const PAYMENT_COLUMNS = sel(
+  "id, invoice_id, amount, currency, exchange_rate, payment_date, payment_method, payment_form_sat, " +
+  "reference_number, installment_number, prior_balance, notes, created_by, created_at, " +
+  "rep_number, rep_folio, rep_facturapi_id, rep_cfdi_uuid, rep_cfdi_status, rep_pdf_url, rep_xml_url, " +
+  "rep_error_message, rep_cancelled_at, e2e_scope, is_e2e",
+);
+
 export const paymentQueries = defineEntityQueries<"payments", Payment[], never>("payments", {
   list: (filter) => async () => {
     const invoiceId = filter?.invoiceId as string | undefined;
     let q = supabase
       .from("payments")
-      .select("*")
+      .select(PAYMENT_COLUMNS)
       .order("payment_date", { ascending: false });
     if (invoiceId) q = q.eq("invoice_id", invoiceId);
-    const { data, error } = await q;
+    const { data, error } = await q.returns<Payment[]>();
     if (error) throw error;
     return data;
   },

@@ -67,9 +67,11 @@ export const auditLogsQueries = defineEntityQueries<"audit-logs", AuditLog[], ne
     list: (filter) => async () => {
       const filters = readAuditLogFilters(filter);
 
+      // v7.216.0 (C6): columnas explícitas.
+      const sel = (s: string): string => s;
       let query = supabase
         .from("audit_logs")
-        .select("*")
+        .select(sel("id, table_name, record_id, action, old_data, new_data, changed_fields, user_id, created_at"))
         .order("created_at", { ascending: false })
         .limit(200);
 
@@ -80,7 +82,17 @@ export const auditLogsQueries = defineEntityQueries<"audit-logs", AuditLog[], ne
       // Un filtro client-side sobre old_data->>is_e2e en PostgREST descarta también los NULL,
       // lo cual vaciaba la bitácora. Se confía en el trigger.
 
-      const { data, error } = await query;
+      const { data, error } = await query.returns<Array<{
+        id: string;
+        table_name: string;
+        record_id: string;
+        action: string;
+        old_data: unknown;
+        new_data: unknown;
+        changed_fields: string[] | null;
+        user_id: string | null;
+        created_at: string;
+      }>>();
       if (error) throw error;
 
       const logs: AuditLog[] = (data ?? []).map((row) => ({

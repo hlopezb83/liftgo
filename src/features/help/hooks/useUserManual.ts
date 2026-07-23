@@ -43,9 +43,11 @@ export const userManualQueries = defineEntityQueries<
 >("user-manual", {
   list: (filter) => async () => {
     const selectedVersion = (filter?.selectedVersion as string | null | undefined) ?? null;
+    // v7.216.0 (C6): columnas explícitas.
+    const sel = (s: string): string => s;
     let q = supabase
       .from("user_manual")
-      .select("*");
+      .select(sel("id, version, content, generated_at, updated_at"));
 
     if (selectedVersion) {
       q = q.eq("id", selectedVersion);
@@ -56,9 +58,10 @@ export const userManualQueries = defineEntityQueries<
     const { data, error } = await q.maybeSingle();
     if (error) throw error;
     if (!data) return null;
+    const row = data as unknown as { id: string; version: string; content: unknown; generated_at: string; updated_at: string };
     return {
-      ...data,
-      content: parseJsonbArray<ManualSection>(data.content),
+      ...row,
+      content: parseJsonbArray<ManualSection>(row.content as never),
     } as UserManual;
   },
 });

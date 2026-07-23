@@ -7,6 +7,14 @@ import { maintenanceLogKeys } from "../../lib/queryKeys";
 
 export type MaintenanceLog = Tables<"maintenance_logs">;
 
+// v7.216.0 (C6): columnas explícitas.
+const sel = (s: string): string => s;
+const MAINTENANCE_LOG_COLUMNS = sel(
+  "id, forklift_id, supplier_id, service_type, description, cost, manual_cost, " +
+  "performed_at, performed_by, next_service_date, work_status, " +
+  "deleted_at, deleted_by, created_at, updated_at",
+);
+
 export const maintenanceLogQueries = defineEntityQueries<"maintenance_logs", MaintenanceLog[], never>(
   "maintenance_logs",
   {
@@ -14,12 +22,12 @@ export const maintenanceLogQueries = defineEntityQueries<"maintenance_logs", Mai
       const forkliftId = filter?.forkliftId as string | undefined;
       let q = supabase
         .from("maintenance_logs")
-        .select("*")
+        .select(MAINTENANCE_LOG_COLUMNS)
         .is("deleted_at", null)
         .order("performed_at", { ascending: false })
         .limit(500);
       if (forkliftId) q = q.eq("forklift_id", forkliftId);
-      const { data, error } = await q;
+      const { data, error } = await q.returns<MaintenanceLog[]>();
       if (error) throw error;
       return data;
     },
