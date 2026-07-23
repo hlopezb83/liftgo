@@ -19,11 +19,11 @@ export function useUpsertBillingSecrets() {
       // R-arq DIFF 4: única vía admin para escribir. La RPC valida rol,
       // ignora strings vacíos (COALESCE + NULLIF) y no devuelve valores
       // sensibles. Eliminado el UPDATE/INSERT directo contra billing_secrets.
-      const { data, error } = await supabase.rpc("upsert_billing_secret", {
-        p_id: input.id ?? null,
-        p_test_key: input.facturapi_test_key ?? null,
-        p_live_key: input.facturapi_live_key ?? null,
-      });
+      const args: { p_id?: string; p_test_key?: string; p_live_key?: string } = {};
+      if (input.id) args.p_id = input.id;
+      if (input.facturapi_test_key) args.p_test_key = input.facturapi_test_key;
+      if (input.facturapi_live_key) args.p_live_key = input.facturapi_live_key;
+      const { data, error } = await supabase.rpc("upsert_billing_secret", args);
       if (error) throw error;
       return { id: data as string };
     },
