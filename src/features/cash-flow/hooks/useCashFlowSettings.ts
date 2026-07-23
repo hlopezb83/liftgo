@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { COMPANY_SETTINGS_INVALIDATION_KEYS } from "@/features/company-settings/lib/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { cashFlowSettingsQueries, type CashFlowSettings } from "../lib/queryKeys";
@@ -29,7 +30,7 @@ export function useUpdateCashFlowSettings() {
         .eq("id", input.id);
       if (error) throw error;
     },
-    invalidateKeys: [cashFlowSettingsQueries.keys.all, ["company_settings"]],
+    invalidateKeys: COMPANY_SETTINGS_INVALIDATION_KEYS,
     successMsg: "Preferencias de flujo de caja actualizadas",
     errorTitle: "No se pudieron actualizar las preferencias de flujo de caja",
   });
