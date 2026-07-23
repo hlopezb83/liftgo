@@ -12,7 +12,7 @@ export interface ApprovalHistoryItem extends Row {
 async function fetchApprovals(billId: string): Promise<ApprovalHistoryItem[]> {
   const { data, error } = await supabase
     .from("supplier_bill_approvals")
-    .select("*")
+    .select("id, bill_id, action, actor_id, notes, created_at")
     .eq("bill_id", billId)
     .order("created_at", { ascending: false });
   if (error) throw error;
