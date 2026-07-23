@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuotes } from "@/features/quotes";
 import {
   STAGES_REQUIRING_DEAL_VALUE,
+  prospectPayloadSchema,
   sortQuotesByCompanyMatch,
   validateDealValue,
   type ProspectFormPayload,
