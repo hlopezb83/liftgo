@@ -131,7 +131,7 @@ export function useDeleteQuote() {
 
 export function useNextQuoteNumber() {
   return useQuery({
-    queryKey: ["next_quote_number"],
+    queryKey: quoteKeys.nextNumber(),
     queryFn: async () => {
       const { data, error } = await supabase.rpc("next_quote_number");
       if (error) throw error;
