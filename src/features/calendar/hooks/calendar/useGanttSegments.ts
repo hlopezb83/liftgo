@@ -60,7 +60,7 @@ export function useGanttSegments(
         widthPercent: (span / totalDays) * 100,
         color: hashColor(b.customer_name || "Sin cliente"),
         label: b.customer_name || "Sin cliente",
-        durationDays: differenceInDays(bEnd, bStart) + 1,
+        durationDays: rentalDaysInclusive(bStart, bEnd),
       });
     }
     return segments;
