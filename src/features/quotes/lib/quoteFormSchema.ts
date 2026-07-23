@@ -120,6 +120,22 @@ export const quoteFormSchema = z.object({
   if (val.includeLogistics && val.logisticsCost <= 0) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["logisticsCost"], message: "Ingresa el costo logístico" });
   }
+
+  // R10 Bloque 11.2: `validUntil` no puede quedar en el pasado.
+  // Comparación por día calendario (Monterrey) para no rechazar "hoy".
+  if (val.validUntil) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const vu = new Date(val.validUntil);
+    vu.setHours(0, 0, 0, 0);
+    if (vu.getTime() < today.getTime()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["validUntil"],
+        message: "La fecha de vigencia no puede estar en el pasado",
+      });
+    }
+  }
 });
 
 export type QuoteFormValues = z.infer<typeof quoteFormSchema>;
