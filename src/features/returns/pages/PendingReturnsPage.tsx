@@ -20,15 +20,18 @@ export default function PendingReturnsPage() {
   const navigate = useNavigateTransition();
   const { data: bookings, isLoading, isError, refetch } = useBookings();
 
+  // Alineado con get_dashboard_stats(): return_status IS DISTINCT FROM 'returned'
+  // y end_date < CURRENT_DATE (America/Monterrey), sin incluir el día actual.
   const today = nowMty();
-  today.setHours(23, 59, 59, 999);
+  today.setHours(0, 0, 0, 0);
 
   const pending = (bookings ?? []).filter(
     (b) =>
       b.status === "confirmed" &&
-      !b.return_status &&
-      parseDateLocal(b.end_date) <= today,
+      b.return_status !== "returned" &&
+      parseDateLocal(b.end_date) < today,
   );
+
 
   const columns: ColumnDef<BookingWithForklift>[] = [
     {
