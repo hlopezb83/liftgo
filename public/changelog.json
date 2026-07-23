@@ -1,5 +1,14 @@
 [
   {
+    "version": "7.201.0",
+    "date": "2026-07-23",
+    "type": "patch",
+    "title": "Pronóstico de Cobranza: se restauran facturas vencidas",
+    "category": "bugfix"
+  },
+
+  {
+
     "version": "7.200.0",
     "date": "2026-07-23",
     "type": "minor",
