@@ -8,6 +8,7 @@ import { isUUID } from "../_shared/validate.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 import { getFacturapiConfig } from "../_shared/facturapi/client.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
+import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 
 export type { SupabaseLike };
 
@@ -39,33 +40,19 @@ export async function handleValidateReceptor(
   if (corsRes) return corsRes;
   const json = (body: unknown, status: number, _headers?: unknown) =>
     jsonResponse(req, body, { status });
+  const jsonHeaders = undefined;
+
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return json({ error: "Unauthorized" }, 401, jsonHeaders);
-    }
-    const token = authHeader.replace("Bearer ", "");
-    const caller = deps.createCallerClient(authHeader);
-    const { data: claimsData, error: claimsErr } = await caller.auth
-      .getClaims(token);
-    if (claimsErr || !claimsData?.claims?.sub) {
-      return json({ error: "Unauthorized" }, 401, jsonHeaders);
-    }
-    const userId = claimsData.claims.sub;
-
-    const supabase = deps.createServiceClient();
-    const rolesRes = await supabase.from("user_roles").select("role").eq(
-      "user_id",
-      userId,
-    );
-    const roles = (rolesRes as { data: unknown }).data as
-      | Array<{ role: string }>
-      | null;
-    const allowed = (roles ?? []).some((r) =>
-      r.role === "admin" || r.role === "administrativo"
-    );
-    if (!allowed) return json({ error: "Forbidden" }, 403, jsonHeaders);
+    const auth = await authenticateWithDeps({
+      req,
+      createCallerClient: (h) => deps.createCallerClient(h),
+      createServiceClient: () => deps.createServiceClient(),
+      allowedRoles: ["admin", "administrativo"],
+      logTag: "[validate-receptor-tax-info]",
+    });
+    if (!auth.ok) return json({ error: auth.message }, auth.status, jsonHeaders);
+    const supabase = auth.supabase;
 
     const body = await req.json().catch(() => null);
     const invoice_id = body?.invoice_id;

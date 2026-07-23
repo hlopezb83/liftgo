@@ -3,6 +3,7 @@ import { handleCors } from "../_shared/cors.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import type { StampCfdiDeps, SupabaseLike } from "../stamp-cfdi/handler.ts";
+import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import {
   createFacturapiClient,
   describeFacturapiError,
@@ -23,43 +24,15 @@ export async function handleCancelPaymentComplement(
   if (corsRes) return corsRes;
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return jsonError(req, 401, "Unauthorized");
-    }
-    const token = authHeader.replace("Bearer ", "");
-    const callerClient = deps.createCallerClient(authHeader);
-    const { data: claimsData, error: claimsErr } = await callerClient.auth
-      .getClaims(token);
-    if (claimsErr || !claimsData?.claims) {
-      return jsonError(req, 401, "Unauthorized");
-    }
-    const claims = claimsData.claims as Record<string, unknown>;
-    // EC-A1: bypass de user-role para el consumidor interno de la cola de
-    // reintentos (mismo patrón que stamp-cfdi/handler.ts). Solo el
-    // service_role JWT del backend puede saltar la verificación de rol;
-    // cualquier otro token cae al flujo normal. Sin este bypass el consumer
-    // de cfdi_retry_queue recibiría 401 al reintentar cancelaciones de REP.
-    const isServiceRole = claims.role === "service_role";
-    const userId = (claims.sub as string | undefined) ?? "";
-
-    const supabase = deps.createServiceClient();
-    if (!isServiceRole) {
-      if (!userId) {
-        return jsonError(req, 401, "Unauthorized");
-      }
-      const rolesRes = await supabase.from("user_roles").select("role").eq(
-        "user_id",
-        userId,
-      );
-      const roles = (rolesRes as { data: unknown }).data as
-        | Array<{ role: string }>
-        | null;
-      const allowed = (roles ?? []).some((r) =>
-        r.role === "admin" || r.role === "administrativo"
-      );
-      if (!allowed) return jsonError(req, 403, "Forbidden");
-    }
+    const auth = await authenticateWithDeps({
+      req,
+      createCallerClient: (h) => deps.createCallerClient(h),
+      createServiceClient: () => deps.createServiceClient(),
+      allowedRoles: ["admin", "administrativo"],
+      logTag: "[cancel-payment-complement]",
+    });
+    if (!auth.ok) return jsonError(req, auth.status, auth.message);
+    const supabase = auth.supabase;
 
     const body = await req.json().catch(() => ({}));
     const { payment_id, motive } = body as {

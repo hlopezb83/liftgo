@@ -112,7 +112,6 @@ export function useDeleteQuote() {
     invalidateKeys: [
       quoteKeys.all,
       ["forklifts"],
-      ["forklift-options"],
       ["quote_assigned_forklifts"],
       ["status_logs"],
     ],

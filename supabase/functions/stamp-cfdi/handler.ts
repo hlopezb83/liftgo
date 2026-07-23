@@ -23,6 +23,7 @@ import {
   STAMP_VARIANCE_WARNING as STAMP_VARIANCE_TOLERANCE,
 } from "../_shared/money.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
+import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 
 // Re-exports públicos preservados (tests + consumidores).
 export { computeStampVariance, sanitizeLegalName, STAMP_VARIANCE_TOLERANCE };
@@ -60,52 +61,18 @@ export async function handleStampCfdi(
   let cfdiPersisted = false;
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return json({ error: "Unauthorized" }, 401, jsonHeaders);
+    const auth = await authenticateWithDeps({
+      req,
+      createCallerClient: (h) => deps.createCallerClient(h),
+      createServiceClient: () => deps.createServiceClient(),
+      allowedRoles: ["admin", "administrativo"],
+      logTag: "[stamp-cfdi]",
+    });
+    if (!auth.ok) {
+      return json({ error: auth.message }, auth.status, jsonHeaders);
     }
-    const token = authHeader.replace("Bearer ", "");
-
-    const callerClient = deps.createCallerClient(authHeader);
-    const { data: claimsData, error: claimsErr } = await callerClient.auth
-      .getClaims(token);
-    if (claimsErr || !claimsData?.claims) {
-      return json({ error: "Unauthorized" }, 401, jsonHeaders);
-    }
-    const claims = claimsData.claims as Record<string, unknown>;
-    // EC-A1: bypass de user-role para el consumidor interno de la cola de
-    // reintentos. Solo service_role JWT (backend) puede saltar la verificación
-    // de rol de usuario; cualquier otro token cae al flujo normal.
-    const isServiceRole = claims.role === "service_role";
-    const userId = (claims.sub as string | undefined) ?? "";
-
-    const supabase = deps.createServiceClient();
+    const supabase = auth.supabase;
     supabaseRef = supabase;
-
-    if (!isServiceRole) {
-      if (!userId) {
-        return json({ error: "Unauthorized" }, 401, jsonHeaders);
-      }
-      const rolesRes = await supabase.from("user_roles").select("role").eq(
-        "user_id",
-        userId,
-      );
-      const roles = (rolesRes as { data: unknown; error: unknown }).data as
-        | Array<{ role: string }>
-        | null;
-      const rolesErr = (rolesRes as { data: unknown; error: unknown }).error;
-      if (rolesErr) {
-        console.error("[stamp-cfdi] roles lookup failed", { userId });
-        return json({ error: "Authorization check failed" }, 500, jsonHeaders);
-      }
-      const allowed = (roles ?? []).some((r) =>
-        r.role === "admin" || r.role === "administrativo"
-      );
-      if (!allowed) {
-        console.error("[stamp-cfdi] forbidden", { userId });
-        return json({ error: "Forbidden" }, 403, jsonHeaders);
-      }
-    }
 
     const body = await req.json().catch(() => ({}));
     const { invoice_id } = body as { invoice_id?: unknown };
