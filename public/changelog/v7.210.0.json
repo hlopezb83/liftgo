@@ -1,0 +1,36 @@
+{
+  "version": "7.210.0",
+  "date": "2026-07-23",
+  "type": "minor",
+  "title": "Grupo B UX: permisos, isPending CRM, dedupe utilización y OT completadas",
+  "summary": "Refuerza permisos en acciones de topbar/empty state, propaga isPending en el CRM, unifica días únicos en utilización por modelo y bloquea captura en OT completadas.",
+  "sections": [
+    {
+      "heading": "Permisos (B1)",
+      "items": [
+        "Nuevo hook `useHasModuleAccess` para gatear acciones fuera del árbol de `RoleGuard` (topbar/context).",
+        "`InvoicesPage` y `CuentasPorPagarPage`: acciones \"Nueva factura\" en topbar y empty state ahora dependen de acceso `full`.",
+        "Botón inline \"Nueva Factura\" en cuentas por pagar envuelto en `RoleGuard`."
+      ]
+    },
+    {
+      "heading": "CRM (B2)",
+      "items": [
+        "`ProspectFormDialog` acepta `isPending`; el submit se bloquea, `FormDialog` desactiva Esc/click-outside y el botón muestra \"Guardando…\".",
+        "`CRMPage` reenvía `create/update.isPending` a través de `CRMPageDialogs`."
+      ]
+    },
+    {
+      "heading": "Reportes (B3)",
+      "items": [
+        "`buildUtilizationRows` ahora cuenta días únicos por unidad con Set, consistente con `UtilizationReport` — reservas traslapadas cuentan una sola vez."
+      ]
+    },
+    {
+      "heading": "Mantenimiento (B4)",
+      "items": [
+        "`MaintenancePartsSection` y `MaintenanceLaborSection` aceptan `readOnly`; en OT `completed` se oculta la captura y se deshabilita borrado. La defensa dura sigue en los triggers de DB."
+      ]
+    }
+  ]
+}
