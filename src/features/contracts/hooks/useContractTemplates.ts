@@ -42,7 +42,8 @@ export function useDefaultContractTemplate() {
         .select(CONTRACT_TEMPLATE_COLUMNS)
         .eq("is_default", true)
         .limit(1)
-        .maybeSingle();
+        .maybeSingle()
+        .returns<Tables<"contract_templates"> | null>();
       if (error) throw error;
       if (!data) return null;
       return {
