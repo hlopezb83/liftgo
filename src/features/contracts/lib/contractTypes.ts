@@ -1,14 +1,5 @@
 /**
- * Tipos compartidos del dominio de contratos (cláusulas y checklist).
- * Centralizados en `lib/domain` para que `lib/pdf/contract` y los editores
- * en `features/operations` los consuman sin acoplarse al hook de features.
+ * Re-export shim — los DTOs canónicos viven en `@/lib/domain/contractTypes`
+ * para evitar que `lib/pdf/contract` importe desde `features/*`.
  */
-export interface ContractClause {
-  title: string;
-  body: string;
-}
-
-export interface ChecklistSection {
-  title: string;
-  items: string[];
-}
+export type { ContractClause, ChecklistSection } from "@/lib/domain/contractTypes";

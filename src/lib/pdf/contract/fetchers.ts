@@ -1,4 +1,4 @@
-import type { ContractClause, ChecklistSection } from "@/features/contracts/lib/contractTypes";
+import type { ContractClause, ChecklistSection } from "@/lib/domain/contractTypes";
 import { supabase } from "@/integrations/supabase/client";
 import { parseJsonbArray } from "@/lib/domain/lineItems";
 import { loadCompanyLogo } from "@/lib/pdf/assets/logo";

@@ -1,6 +1,9 @@
 import type {
-  StatementRow, ComparisonRow, YearTotals, MonthData,
-} from "@/features/reports/hooks/useIncomeStatementData";
+  PdfStatementRow as StatementRow,
+  PdfComparisonRow as ComparisonRow,
+  PdfYearTotals as YearTotals,
+  PdfMonthData as MonthData,
+} from "@/lib/pdf/types/incomeStatement";
 import { IncomeStatementDocument } from "@/lib/pdf/documents/IncomeStatementDocument";
 import { renderAndSave } from "@/lib/pdf/renderAndSave";
 import { fetchCompanyDataAndLogo } from "@/lib/pdf/shared";
