@@ -48,26 +48,10 @@ Deno.serve(async (req) => {
   if (corsRes) return corsRes;
   const json = (b: unknown, status: number) => jsonResponse(req, b, { status });
 
-  // NC-2: gating de auth. Fuente del secreto: Deno.env → fallback a vault vía
-  // RPC `internal_get_cron_secret()` para mantener paridad con pg_cron.
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+  // Lote C · DIFF 8 rest: auth timing-safe centralizada en _shared/cronAuth.ts.
   const admin = getAdminClient();
-  let cronSecret = Deno.env.get("CRON_SECRET") ?? "";
-  if (!cronSecret) {
-    const { data: vaultSecret } = await admin.rpc("internal_get_cron_secret");
-    cronSecret = typeof vaultSecret === "string" ? vaultSecret : "";
-  }
-  const headerSecret = req.headers.get("x-cron-secret") ?? "";
-  const authHeader = req.headers.get("authorization") ?? "";
-  const bearer = authHeader.startsWith("Bearer ")
-    ? authHeader.slice("Bearer ".length).trim()
-    : "";
-  const authorized = (cronSecret.length > 0 &&
-    (headerSecret === cronSecret || bearer === cronSecret)) ||
-    (serviceKey.length > 0 && bearer === serviceKey);
-  if (!authorized) {
-    return json({ error: "Unauthorized" }, 401);
-  }
+  const auth = await authenticateCronRequest(req);
+  if (!auth.ok) return json({ error: auth.error }, auth.status);
 
   const STALE_THRESHOLD_MIN = 10;
   const cutoff = new Date(Date.now() - STALE_THRESHOLD_MIN * 60_000)
