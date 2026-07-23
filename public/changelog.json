@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.199.0",
+    "date": "2026-07-23",
+    "type": "minor",
+    "title": "Nueva página /returns/pending con retornos pendientes",
+    "category": "feature"
+  },
+
+  {
     "version": "7.198.2",
     "date": "2026-07-23",
     "type": "patch",
