@@ -357,6 +357,10 @@ export async function handleStampCfdi(
         const n = Number(inv.folio);
         return Number.isFinite(n) && n > 0 ? n : undefined;
       })(),
+      // R12 B2: external_id permite que `reconcile-stamping-invoices` recupere
+      // el CFDI vía `invoices.list({ q })` cuando el timeout impidió persistir
+      // facturapi_invoice_id — evita re-timbrar y por ende un CFDI duplicado.
+      external_id: invoice_id as string,
     };
 
     if (isGlobal) {
