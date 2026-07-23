@@ -38,7 +38,7 @@ function isRentalOrSaleLine(description: string | undefined): boolean {
  * Al facturar desde reserva, estas partidas se anexan a la factura para que
  * el costo pactado en la cotización no se pierda en el limbo.
  */
-export function extractNonRentalLines(quoteLineItems: unknown): LineItemValues[] {
+export function extractNonRentalLines(quoteLineItems: unknown): NonRentalLineDto[] {
   if (!Array.isArray(quoteLineItems)) return [];
   const items = quoteLineItems as LineItem[];
   return items
