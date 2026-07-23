@@ -8,9 +8,10 @@ import type { SupabaseLike } from "./types.ts";
 
 export interface CallerLike {
   auth: {
-    getClaims: (token: string) => Promise<
-      { data: { claims: Record<string, unknown> } | null; error: unknown }
-    >;
+    getClaims: (token: string) => Promise<{
+      data: { claims?: Record<string, unknown> | { sub?: string } } | null;
+      error: unknown;
+    }>;
   };
 }
 
