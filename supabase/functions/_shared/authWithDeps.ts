@@ -7,7 +7,9 @@
 import type { SupabaseLike } from "./types.ts";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export type CallerLike = { auth: { getClaims: (token: string) => Promise<any> } };
+export type CallerLike = {
+  auth: { getClaims: (token: string) => Promise<any> };
+};
 
 export interface AuthWithDepsOk {
   ok: true;

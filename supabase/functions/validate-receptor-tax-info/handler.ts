@@ -42,7 +42,6 @@ export async function handleValidateReceptor(
     jsonResponse(req, body, { status });
   const jsonHeaders = undefined;
 
-
   try {
     const auth = await authenticateWithDeps({
       req,
@@ -51,7 +50,9 @@ export async function handleValidateReceptor(
       allowedRoles: ["admin", "administrativo"],
       logTag: "[validate-receptor-tax-info]",
     });
-    if (!auth.ok) return json({ error: auth.message }, auth.status, jsonHeaders);
+    if (!auth.ok) {
+      return json({ error: auth.message }, auth.status, jsonHeaders);
+    }
     const supabase = auth.supabase;
 
     const body = await req.json().catch(() => null);
