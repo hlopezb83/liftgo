@@ -1,9 +1,6 @@
 import { handleCors } from "../_shared/cors.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
-import {
-  getAdminClient,
-  getCallerClient,
-} from "../_shared/supabaseClients.ts";
+import { getAdminClient, getCallerClient } from "../_shared/supabaseClients.ts";
 import { authenticateCronRequest } from "../_shared/cronAuth.ts";
 
 Deno.serve(async (req) => {
@@ -46,7 +43,6 @@ Deno.serve(async (req) => {
         );
       }
     }
-
 
     // BL-42: calcular el mes actual en America/Monterrey (evita off-by-one
     // durante las primeras horas UTC del día 1 en zonas GMT-6).
