@@ -29,8 +29,8 @@ export function CustomerContactCard({ customer }: CustomerContactCardProps) {
         {customer.address && (
           <div className="flex items-center gap-2"><LocationIcon className="h-3.5 w-3.5 text-muted-foreground" /><span>{customer.address}</span></div>
         )}
-        {customer.tax_id && (
-          <div><p className="text-xs text-muted-foreground">RFC</p><p className="font-medium">{customer.tax_id}</p></div>
+        {(customer.rfc ?? customer.tax_id) && (
+          <div><p className="text-xs text-muted-foreground">RFC</p><p className="font-medium">{customer.rfc ?? customer.tax_id}</p></div>
         )}
       </CardContent>
     </Card>

@@ -109,7 +109,60 @@ Deno.serve(async (req) => {
 
   for (const row of stuck) {
     if (!row.facturapi_invoice_id || !row.cfdi_uuid) {
-      // Sin datos de Facturapi → no podemos reconciliar. Revertir a error.
+      // R12 B2: antes de revertir a `error`, consultar Facturapi por external_id
+      // (nuestro invoice.id, seteado en stamp-cfdi). El timbre pudo emitirse
+      // tras nuestro timeout — si existe, adoptarlo evita re-timbrar y por
+      // ende un CFDI duplicado en el SAT.
+      let recovered: {
+        id?: string;
+        uuid?: string;
+      } | null = null;
+      try {
+        const listFn = (client.invoices as unknown as {
+          list?: (q: Record<string, unknown>) => Promise<unknown>;
+        }).list;
+        if (typeof listFn === "function") {
+          const res = await retryOnFacturapi5xx(() =>
+            listFn.call(client.invoices, { q: row.id, limit: 5 }) as Promise<
+              unknown
+            >
+          );
+          const data = ((res as { data?: unknown }).data ?? []) as Array<
+            Record<string, unknown>
+          >;
+          // Match estricto: external_id === row.id.
+          const hit = data.find((d) =>
+            String((d as { external_id?: unknown }).external_id ?? "") ===
+              row.id
+          );
+          if (hit && typeof hit.id === "string" && typeof hit.uuid === "string") {
+            recovered = { id: hit.id, uuid: hit.uuid };
+          }
+        }
+      } catch (err) {
+        console.error("[reconcile-stamping] lookup by external_id failed", {
+          invoice_id: row.id,
+          err: describeFacturapiError(err).message,
+        });
+      }
+
+      if (recovered?.id && recovered?.uuid) {
+        // Persistir los ids recuperados y dejar que el siguiente ciclo
+        // baje el XML/PDF y ejecute reconcile_stamping_invoice.
+        await admin.from("invoices")
+          .update({
+            facturapi_invoice_id: recovered.id,
+            cfdi_uuid: recovered.uuid,
+          })
+          .eq("id", row.id);
+        results.push({
+          invoice_id: row.id,
+          status: "recovered_from_pac",
+        });
+        continue;
+      }
+
+      // Sin datos de Facturapi y el PAC no tiene el timbre → revertir.
       await admin.from("invoices")
         .update({
           cfdi_status: "error",

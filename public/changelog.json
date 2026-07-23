@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.203.0",
+    "date": "2026-07-23",
+    "type": "minor",
+    "title": "R12 go-live: 3 bloqueantes + 3 altos + medios",
+    "category": "bugfix"
+  },
+
+  {
     "version": "7.202.0",
     "date": "2026-07-23",
     "type": "minor",
