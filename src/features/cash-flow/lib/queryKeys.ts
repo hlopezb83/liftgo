@@ -49,7 +49,7 @@ export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projecti
     const { weeks, initialBalance, safetyBuffer } = (filter ?? {}) as CashFlowProjectionFilter;
     const [invRes, billRes, payRes] = await Promise.all([
       supabase.from("invoices")
-        .select("id, invoice_number, total, due_date, customer_name, moneda, tipo_cambio")
+        .select("id, invoice_number, total, due_date, customer_name, moneda, tipo_cambio, credited_amount")
         .in("status", ACTIVE_INVOICE_STATUSES)
         .not("due_date", "is", null)
         .returns<InvoiceRow[]>(),
