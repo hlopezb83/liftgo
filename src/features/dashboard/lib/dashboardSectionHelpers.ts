@@ -79,7 +79,7 @@ export function mapRevenuePerUnit(stats?: StatsLike) {
 
 export function mapCashFlow(stats?: StatsLike) {
   return (stats?.cash_flow ?? []).map((cf) => ({
-    month: cf.month_key ? formatMonthShortEs(cf.month_key) : cf.month,
+    month: cf.month_key ? formatMonthShortEs(cf.month_key) : (cf.month ?? cf.month_label ?? ""),
     invoiced: cf.invoiced,
     paid: cf.paid,
   }));
