@@ -23,6 +23,10 @@ export function useExtendBookingPreview(
     const endYMD = toYMD(newEndDate);
     if (!endYMD) return null;
     const items = generateLineItems(forklift, booking.start_date, endYMD);
-    return computeTotals(items, DEFAULT_VAT_RATE * 100);
+    const totals = computeTotals(items, DEFAULT_VAT_RATE * 100);
+    // R9 Bloque 3: propagamos la moneda del booking para que el preview
+    // formatee "US$29,000.00" en rentas USD (antes se mostraba con símbolo
+    // MXN sin código, engañando al usuario).
+    return { ...totals, currency: booking.currency ?? "MXN" };
   })();
 }
