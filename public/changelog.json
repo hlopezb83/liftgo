@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.215.0",
+    "date": "2026-07-23",
+    "type": "patch",
+    "title": "Arquitectura Lote F: columnas explícitas en list queries",
+    "category": "refactor"
+  },
+  {
     "version": "7.214.0",
     "date": "2026-07-23",
     "type": "patch",

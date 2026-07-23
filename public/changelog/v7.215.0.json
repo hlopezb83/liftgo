@@ -1,0 +1,13 @@
+{
+  "version": "7.215.0",
+  "date": "2026-07-23",
+  "type": "patch",
+  "title": "Arquitectura Lote F: columnas explícitas en list queries",
+  "category": "refactor",
+  "description": "Reemplaza select('*') por listas explícitas de columnas en 3 hot-path list queries. Reduce payload de red y bloquea columnas sensibles que puedan añadirse a la tabla en el futuro. Los date formatters ya estaban centralizados en src/lib/format/dateFormats.ts; el único uso restante de Intl.DateTimeFormat vive en el componente base ui/calendar.tsx (intencional).",
+  "changes": [
+    "useProspects: PROSPECT_COLUMNS explícitas alineadas con mapProspectRow",
+    "useCollectionNotes: columnas explícitas (id, invoice_id, note, next_followup_date, created_at, created_by)",
+    "useBillApprovalHistory: columnas explícitas (id, bill_id, action, actor_id, notes, created_at)"
+  ]
+}
