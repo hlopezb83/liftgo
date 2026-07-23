@@ -1,10 +1,11 @@
 
-import { parseISO, differenceInDays, isWithinInterval } from "date-fns";
+import { parseISO, isWithinInterval } from "date-fns";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ChevronRightIcon } from "@/components/icons";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import type { BookingWithForklift } from "@/features/bookings";
 import { RecurringBillingBadge } from "@/features/bookings";
+import { rentalDaysInclusive } from "@/features/bookings/lib/rentalDays";
 import type { Tables } from "@/integrations/supabase/types";
 import { BOOKING_STATUS } from "@/lib/constants";
 import { nowMty, formatMtyDate } from "@/lib/utils";
