@@ -3,6 +3,7 @@ import { handleCors } from "../_shared/cors.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import type { StampCfdiDeps, SupabaseLike } from "../stamp-cfdi/handler.ts";
+import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import {
   createFacturapiClient,
   describeFacturapiError,
