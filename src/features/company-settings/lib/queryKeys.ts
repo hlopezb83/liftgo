@@ -49,6 +49,20 @@ export const cxpApprovalThresholdQueries = defineEntityQueries("cxp_approval_thr
   staleTime: 5 * 60_000,
 });
 
+/**
+ * v7.207.0 (DIFF 9c/d): la fila de `company_settings` alimenta tres caches
+ * paralelas (companySettings, cxpApprovalThreshold, cashFlowSettings).
+ * Cualquier mutación sobre esa fila debe invalidar las tres. El prefijo
+ * `["company_settings"]` sirve como catch-all para lecturas ad-hoc que aún
+ * no han sido migradas al factory.
+ */
+export const COMPANY_SETTINGS_INVALIDATION_KEYS = [
+  companySettingsQueries.keys.all,
+  cxpApprovalThresholdQueries.keys.all,
+  ["cash_flow_settings"] as const,
+  ["company_settings"] as const,
+] as const;
+
 type PublicBrandingRow = { logo_url: string | null; razon_social: string | null };
 
 export const publicBrandingQueries = defineEntityQueries("public_branding", {
