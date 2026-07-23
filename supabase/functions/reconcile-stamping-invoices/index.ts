@@ -135,7 +135,9 @@ Deno.serve(async (req) => {
             String((d as { external_id?: unknown }).external_id ?? "") ===
               row.id
           );
-          if (hit && typeof hit.id === "string" && typeof hit.uuid === "string") {
+          if (
+            hit && typeof hit.id === "string" && typeof hit.uuid === "string"
+          ) {
             recovered = { id: hit.id, uuid: hit.uuid };
           }
         }

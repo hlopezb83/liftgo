@@ -47,7 +47,10 @@ async function fetchFacturapiBinary(
     return { ok: true, bytes };
   } catch (err) {
     if (err instanceof FacturapiTimeoutError) {
-      console.error("[download-cfdi] Facturapi timeout", { path, timeoutMs: err.timeoutMs });
+      console.error("[download-cfdi] Facturapi timeout", {
+        path,
+        timeoutMs: err.timeoutMs,
+      });
       return { ok: false, status: 504, detail: err.message };
     }
     const e = err as { status?: number; detail?: string; message?: string };
