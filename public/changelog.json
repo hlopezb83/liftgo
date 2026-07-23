@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.202.0",
+    "date": "2026-07-23",
+    "type": "minor",
+    "title": "Modales de formulario a prueba de cierres accidentales durante submit",
+    "category": "bugfix"
+  },
+
+  {
     "version": "7.201.1",
     "date": "2026-07-23",
     "type": "patch",
