@@ -1,0 +1,10 @@
+{
+  "version": "7.198.2",
+  "date": "2026-07-23",
+  "type": "patch",
+  "title": "Fix dashboard: barras de Flujo de Efectivo",
+  "category": "bugfix",
+  "changes": [
+    "mapCashFlow ahora reconoce el campo month_label devuelto por get_dashboard_stats, no solo month/month_key. Restaura la visualización de las 6 barras mensuales (Facturado/Pagado) que aparecían vacías."
+  ]
+}
