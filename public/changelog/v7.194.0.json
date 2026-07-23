@@ -1,0 +1,33 @@
+{
+  "version": "7.194.0",
+  "date": "2026-07-23",
+  "type": "minor",
+  "title": "Auditoría R10 · fase 3",
+  "category": "bugfix",
+  "changes": [
+    {
+      "area": "Devoluciones",
+      "detail": "Bloque 7: el botón 'Devolución Anticipada' de una reserva vigente ahora abre el diálogo aunque la reserva aún no termine. Se activa vía ?early=1 y el filtro incluye rentas confirmadas con fin futuro."
+    },
+    {
+      "area": "Facturación · Pagos",
+      "detail": "Bloque 8.1: la fecha del pago no puede ser futura. Se valida en el formulario nuevo y en la edición, y el calendario deshabilita días posteriores a hoy."
+    },
+    {
+      "area": "Flota · Alertas de seguros",
+      "detail": "Bloque 10.3: get_insurance_alerts deja de considerar montacargas archivados. Ya no aparecen unidades eliminadas en el listado."
+    },
+    {
+      "area": "Flota · Detalle",
+      "detail": "Bloque 10.4: al abrir el detalle de un montacargas archivado, la consulta filtra por deleted_at y muestra el empty state estándar en lugar de exponer el registro eliminado."
+    },
+    {
+      "area": "Reservas",
+      "detail": "Bloque 9.2: al cancelar una reserva, cancelar sus entregas pending/scheduled en la misma transacción."
+    },
+    {
+      "area": "Reservas",
+      "detail": "Bloque 12.9: create_booking rechaza clientes archivados server-side."
+    }
+  ]
+}
