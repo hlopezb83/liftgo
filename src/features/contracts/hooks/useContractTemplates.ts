@@ -27,6 +27,11 @@ export interface ContractTemplate {
   updated_at: string | null;
 }
 
+// v7.216.0 (C6): columnas explícitas.
+const CONTRACT_TEMPLATE_COLUMNS =
+  "id, name, body_text, is_default, intro_text, declarations_landlord, declarations_tenant, " +
+  "clauses, checklist_sections, pagare_text, updated_at, created_at";
+
 export function useDefaultContractTemplate() {
   return useQuery({
     queryKey: contractTemplateKeys.default(),
@@ -34,7 +39,7 @@ export function useDefaultContractTemplate() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("contract_templates")
-        .select("*")
+        .select(CONTRACT_TEMPLATE_COLUMNS)
         .eq("is_default", true)
         .limit(1)
         .maybeSingle();
