@@ -1,0 +1,14 @@
+{
+  "version": "7.191.0",
+  "date": "2026-07-23",
+  "type": "patch",
+  "title": "Auditoría R9 · cierre (ref síncrono anti-doble-submit + moneda en extensión)",
+  "category": "bugfix",
+  "changes": [
+    "FormActions: tercera capa anti-doble-submit vía useRef síncrono. Bloquea la ventana <25ms donde `disabled` aún no reflejó el primer click. Se libera automáticamente cuando la mutación termina.",
+    "useEntityMutation: mismo patrón de useRef en el Proxy de `mutate`, con liberación en `onSettled` para cubrir todos los formularios del ERP (customers, forklifts, suppliers, quotes, etc.).",
+    "useStampInvoiceFlow: ref síncrono alrededor del `await backfillStampSnapshot()` + `stampCfdi.mutate`. Evita doble timbrado y toast info duplicado por doble-click en 'Timbrar CFDI'.",
+    "Preview de extensión de renta: BookingActionDialogs usa formatCurrencyWithCode con la moneda propagada por useExtendBookingPreview (fallback 'MXN'). Deja preparado el multi-moneda futuro sin cambiar la UI actual.",
+    "Nota: el módulo 'Facturas de Proveedor' en role_permissions ya estaba sembrado en BD (verificado con read_query), no requirió migración."
+  ]
+}

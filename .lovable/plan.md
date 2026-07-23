@@ -1,43 +1,50 @@
-## Bloque 6 · Lote de cierre (v7.190.0)
 
-Aplico los 4 pendientes reales + el nit cosmético.
+# R9 · Lote final de cierre (v7.191.0)
 
-### 1. Badge de moneda en historial de pagos (#1)
-`src/features/invoices/hooks/invoices/usePaymentHistoryColumns.tsx` — en la celda `amount`, si `payment.currency && currency !== "MXN"` mostrar badge junto al monto (mismo estilo que el listado de facturas: `text-[10px] bg-muted px-1 rounded`).
+Tres pendientes verificados en el reporte R9. Cierra el programa R7→R9.
 
-### 2. Badge de moneda en tarjeta móvil de factura (#3)
-`src/features/invoices/pages/InvoicesPage.tsx` `InvoiceCard` (~línea 105) — añadir badge condicional junto a `formatCurrency(inv.total)` cuando `inv.moneda !== "MXN"`, replicando el patrón del column def desktop.
+## Bloque 1 — Seed `role_permissions` para "Facturas de Proveedor"
 
-### 3. Índice único parcial de RFC en customers (#6b)
-Migración Supabase:
+Nueva migración que inserta el módulo faltante. La columna real es `access_level` (no `access`), y la migración vieja `20260624000723` fue no-op porque el módulo `Cuentas por Pagar` nunca existió.
+
 ```sql
-CREATE UNIQUE INDEX customers_rfc_unique
-  ON public.customers (upper(rfc))
-  WHERE rfc IS NOT NULL
-    AND rfc <> ''
-    AND upper(rfc) <> 'XAXX010101000'
-    AND deleted_at IS NULL;
+INSERT INTO public.role_permissions (role, module, access_level) VALUES
+  ('admin',          'Facturas de Proveedor', 'full'),
+  ('administrativo', 'Facturas de Proveedor', 'full'),
+  ('auditor',        'Facturas de Proveedor', 'read')
+ON CONFLICT (role, module) DO NOTHING;
 ```
-Excluye vacíos, el RFC genérico "Público en General" y clientes archivados. Antes de aplicar: `SELECT upper(rfc), count(*) FROM customers WHERE rfc IS NOT NULL AND rfc <> '' AND upper(rfc) <> 'XAXX010101000' AND deleted_at IS NULL GROUP BY 1 HAVING count(*) > 1;` para confirmar que no hay duplicados que rompan la creación.
 
-### 4. Mensajes de duplicado específicos (#12)
-`src/lib/errors/index.ts` — extender la tabla de patrones con entradas específicas **antes** del catch-all genérico:
-- `drivers_name_unique` → "Ya existe un operador con ese nombre."
-- `forklifts_serial_number_unique` → "Ya existe un montacargas con ese número de serie."
-- `equipment_models_mfr_model_unique` → "Ya existe un modelo con ese fabricante y modelo."
-- `customers_rfc_unique` → "Ya existe un cliente con ese RFC."
+Verificar antes: revisar valores válidos del enum de roles y del check de `access_level` en `20260313001007` para copiar sintaxis exacta.
 
-### 5. Diálogo pre-verificación al archivar cliente (#16)
-`src/features/customers/hooks/customerDetail/useCustomerDetailActions.ts` + consumers en el detalle del cliente — pasar `activeBookingsCount` al `handleDelete`. Si `> 0`, mostrar `notifyValidation({ message: "El cliente tiene N renta(s) activa(s). Cancélalas o complétalas antes de archivar." })` y **no** invocar el RPC. Cuenta ya se calcula en `useCustomerDetailPage` (`ACTIVE_BOOKING_STATUSES`).
+**Aceptación:** admin entra a `/cuentas-por-pagar` y `/cuentas-por-pagar/antiguedad`; mechanic ve NoAccess; desaparece el warning de consola.
 
-### 6. Dashboard skeleton `gap-4 → gap-6` (#8)
-`src/features/dashboard/pages/Dashboard.tsx:33` — un solo cambio de token de espaciado en el skeleton.
+## Bloque 2 — Ref síncrono anti-doble-submit (<25ms)
 
-### Cierre
-- Actualizar `public/changelog.json` (entrada v7.190.0) + `public/changelog/v7.190.0.json` + `public/version.json`.
-- `bun run vitest run` para validar que nada se rompe (especialmente tests de invoices y customers).
+Añadir tercera capa (además de `onPointerDown` y el Proxy de `mutate`) usando un `useRef` síncrono inmune al ciclo de render.
 
-### Fuera de scope (para ronda siguiente)
-- #2 (preview extensión USD) — requiere leer `BookingExtendDialog` y confirmar impacto real.
-- #10 (diálogo error SAT sin toast redundante) — requiere auditar `useStampCfdi`.
-- #13 (drivers email a Zod) — refactor opcional, prioridad baja.
+- **`src/components/forms/FormActions.tsx`**: `inFlightRef` que se activa en `onPointerDown` del submit y se libera cuando `busy` vuelve a `false` (vía `useEffect` sobre `busy`). Si el ref está activo, el pointerDown hace `preventDefault`. Complementa (no reemplaza) el bloqueo por `busy`.
+- **`src/lib/hooks/useEntityMutation.ts`**: en el Proxy de `mutate`, además de `target.isPending`, chequear un `inFlightRef` local del hook que se setea antes de invocar `originalMutate` y se limpia en `onSettled`. Cubre la ventana entre el disparo y el flush de `isPending=true`.
+- **`src/features/invoices/hooks/invoiceDetail/useStampInvoiceFlow.ts`**: `inFlightRef` alrededor de `await backfillStampSnapshot()` + `mutate`, liberado en `finally`. Evita el doble timbrado y el toast info duplicado.
+
+**Aceptación:** test vitest — dos invocaciones síncronas de submit → 1 sola llamada a `mutate`. Doble click en Timbrar → 1 sola invocación a la edge function.
+
+## Bloque 3 — Moneda en preview de extensión de renta
+
+- **`src/features/bookings/hooks/bookingActions/useExtendBookingPreview.ts`**: retornar `{ ...totals, currency: booking.currency ?? "MXN" }`.
+- **`src/features/bookings/components/bookings/BookingActionDialogs.tsx:77`**: usar `formatCurrencyWithCode(extendPreview.total, extendPreview.currency)` (helper ya existe en `src/lib/format/formatCurrency.ts`).
+
+**Aceptación:** renta USD → diálogo muestra "US$29,000.00"; renta MXN sin cambios visuales.
+
+## Verificación y cierre
+
+- `bun run lint` limpio en archivos tocados.
+- Vitest: nuevo test de doble-invocación sobre `useEntityMutation` (o `FormActions`) + tests existentes verdes.
+- Smoke manual: CxP con admin, dblclick en "Agregar cliente" → 1 fila, extensión de renta USD con moneda visible.
+- Bump a **v7.191.0** (patch: 3 fixes puntuales) + entrada en `public/changelog.json` y `public/changelog/v7.191.0.json`.
+
+## Notas técnicas
+
+- El Proxy actual solo intercepta `mutate` (no `mutateAsync`) — se mantiene ese contrato; la nueva guarda ref refuerza `mutate` únicamente.
+- `formatCurrencyWithCode` ya soporta `USD`/`MXN` vía `Intl.NumberFormat`, no requiere wrapper nuevo.
+- La migración de Bloque 1 es idempotente (`ON CONFLICT DO NOTHING`), segura de re-ejecutar.

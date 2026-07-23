@@ -22,6 +22,7 @@
  *     errorTitle: "Error al crear contrato",
  *   });
  */
+import { useRef } from "react";
 import { useMutation, useQueryClient, type QueryKey, type UseMutationResult } from "@tanstack/react-query";
 import { translateDbError } from "@/lib/errors/dbErrors";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
@@ -109,8 +110,10 @@ export function useEntityMutation<TVar, TData>(
   });
 
   // R7 Bloque 3 (capa 2): guarda de reentrada para `mutate` (fire-and-forget).
-  // Si un doble-click esquiva el `disabled` del botón, el segundo `mutate` se
-  // ignora mientras la primera ejecución sigue pendiente.
+  // R9 Bloque 2 (capa 3): además de `target.isPending` (que sólo se ve tras el
+  // flush de React), un `useRef` síncrono bloquea invocaciones que llegan en la
+  // misma ventana de eventos (<25ms). El ref se libera dentro de la promesa de
+  // mutación via `.then(finally)` — no dependemos de que corra el render.
   //
   // IMPORTANTE: NO envolvemos `mutateAsync`. Resolver `undefined` rompía el
   // contrato — múltiples callers hacen `const x = await m.mutateAsync(...); x.id`
@@ -118,13 +121,22 @@ export function useEntityMutation<TVar, TData>(
   // `mutateAsync` ya bloquean el botón con `isPending`; si un evento se cuela,
   // preferimos que TanStack Query encole/ejecute la segunda llamada antes que
   // devolver un valor falso.
+  const inFlightRef = useRef(false);
   const originalMutate = result.mutate;
   return new Proxy(result, {
     get(target, prop, receiver) {
       if (prop === "mutate") {
         return ((...args: Parameters<typeof originalMutate>) => {
-          if (target.isPending) return;
-          return originalMutate(...args);
+          if (inFlightRef.current || target.isPending) return;
+          inFlightRef.current = true;
+          const [vars, opts] = args as [TVar, Parameters<typeof originalMutate>[1]?];
+          return originalMutate(vars, {
+            ...(opts ?? {}),
+            onSettled: (data, error, v, ctx, mctx) => {
+              inFlightRef.current = false;
+              opts?.onSettled?.(data, error, v, ctx, mctx);
+            },
+          });
         }) as typeof originalMutate;
       }
       return Reflect.get(target, prop, receiver);

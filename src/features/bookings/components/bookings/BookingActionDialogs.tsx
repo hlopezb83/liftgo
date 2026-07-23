@@ -3,7 +3,7 @@ import { DatePickerField } from "@/components/forms/DatePickerField";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { BOOKING_STATUS_LABELS, getValidTransitions } from "../../hooks/bookingActions/useBookingActionsLogic";
 
@@ -55,7 +55,7 @@ interface ExtendDialogProps {
   currentEndDate: string;
   newEndDate: Date | undefined;
   setNewEndDate: (d: Date | undefined) => void;
-  extendPreview: { total: number } | null;
+  extendPreview: { total: number; currency: string } | null;
   isPending: boolean;
   onExtend: () => void;
 }
@@ -74,7 +74,7 @@ export function BookingExtendDialog({
         <DatePickerField label="Nueva Fecha de Fin" date={newEndDate} onSelect={setNewEndDate} />
         {extendPreview && (
           <div className="p-3 rounded-lg bg-muted text-sm">
-            <p>Nuevo total estimado: <span className="font-bold">{formatCurrency(extendPreview.total)}</span></p>
+            <p>Nuevo total estimado: <span className="font-bold">{formatCurrencyWithCode(extendPreview.total, extendPreview.currency)}</span></p>
           </div>
         )}
 

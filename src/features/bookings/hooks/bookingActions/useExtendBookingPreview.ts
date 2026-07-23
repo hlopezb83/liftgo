@@ -23,6 +23,13 @@ export function useExtendBookingPreview(
     const endYMD = toYMD(newEndDate);
     if (!endYMD) return null;
     const items = generateLineItems(forklift, booking.start_date, endYMD);
-    return computeTotals(items, DEFAULT_VAT_RATE * 100);
+    const totals = computeTotals(items, DEFAULT_VAT_RATE * 100);
+    // R9 Bloque 3: propagamos el código de moneda para que el preview lo
+    // formatee explícitamente. Hoy `bookings` no persiste moneda propia
+    // (todas las rentas se facturan en MXN); fallback a "MXN" preserva la UI
+    // actual y deja la puerta abierta a rentas multi-moneda futuras.
+    const currency =
+      (booking as { currency?: string | null }).currency ?? "MXN";
+    return { ...totals, currency };
   })();
 }
