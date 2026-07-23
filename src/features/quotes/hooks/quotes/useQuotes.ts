@@ -116,9 +116,9 @@ export function useDeleteQuote() {
     },
     invalidateKeys: [
       quoteKeys.all,
-      ["forklifts"],
-      ["quote_assigned_forklifts"],
-      ["status_logs"],
+      forkliftKeys.all,
+      quoteAssignedForkliftKeys.all,
+      statusLogKeys.all,
     ],
     errorTitle: "Error al eliminar cotización",
     onSuccess: (deletedId) => {
