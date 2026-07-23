@@ -152,6 +152,7 @@ export default function CRMPage() {
           onCreate={(data) => createProspect.mutate(data)}
           onUpdate={(id, data) => updateProspect.mutate({ id, ...data })}
           onDelete={(id) => deleteProspect.mutate(id)}
+          isPending={createProspect.isPending || updateProspect.isPending}
         />
       </PageTransition>
     </TooltipProvider>

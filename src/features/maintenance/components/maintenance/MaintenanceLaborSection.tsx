@@ -16,9 +16,12 @@ import { useActiveMechanics } from "../../hooks/maintenance/useMechanics";
 
 interface Props {
   maintenanceLogId: string;
+  /** R12-M10: cuando el OT está `completed`, esconder el formulario de captura
+   *  y deshabilitar borrado. La defensa dura sigue viva en los triggers. */
+  readOnly?: boolean;
 }
 
-export function MaintenanceLaborSection({ maintenanceLogId }: Props) {
+export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false }: Props) {
   const { data: mechanics = [] } = useActiveMechanics();
   const { data: labor = [], isLoading } = useMaintenanceLabor(maintenanceLogId);
   const addLabor = useAddMaintenanceLabor();
@@ -79,33 +82,37 @@ export function MaintenanceLaborSection({ maintenanceLogId }: Props) {
         )}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
-        <Select value={mechanicId} onValueChange={setMechanicId}>
-          <SelectTrigger className="sm:col-span-2">
-            <SelectValue placeholder="Mecánico" />
-          </SelectTrigger>
-          <SelectContent>
-            {mechanics.map((m) => (
-              <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Input
-          type="number" min="0" step="0.25" placeholder="Horas"
-          value={hours} onChange={(e) => setHours(e.target.value)}
-        />
-        <Input
-          type="number" min="0" step="0.01" placeholder="Tarifa/hr"
-          value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)}
-        />
-      </div>
-      <div className="flex gap-2">
-        <Input
-          placeholder="Notas (opcional)"
-          value={notes} onChange={(e) => setNotes(e.target.value)}
-        />
-        <Button onClick={handleAdd} disabled={addLabor.isPending} size="sm">Agregar</Button>
-      </div>
+      {!readOnly && (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
+            <Select value={mechanicId} onValueChange={setMechanicId}>
+              <SelectTrigger className="sm:col-span-2">
+                <SelectValue placeholder="Mecánico" />
+              </SelectTrigger>
+              <SelectContent>
+                {mechanics.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Input
+              type="number" min="0" step="0.25" placeholder="Horas"
+              value={hours} onChange={(e) => setHours(e.target.value)}
+            />
+            <Input
+              type="number" min="0" step="0.01" placeholder="Tarifa/hr"
+              value={hourlyRate} onChange={(e) => setHourlyRate(e.target.value)}
+            />
+          </div>
+          <div className="flex gap-2">
+            <Input
+              placeholder="Notas (opcional)"
+              value={notes} onChange={(e) => setNotes(e.target.value)}
+            />
+            <Button onClick={handleAdd} disabled={addLabor.isPending} size="sm">Agregar</Button>
+          </div>
+        </>
+      )}
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Cargando...</p>
@@ -122,14 +129,16 @@ export function MaintenanceLaborSection({ maintenanceLogId }: Props) {
               <div className="flex items-center gap-3 text-muted-foreground shrink-0">
                 <span>{Number(l.hours)}h × {formatCurrency(Number(l.hourly_rate))}</span>
                 <span className="font-mono text-foreground">{formatCurrency(Number(l.total_cost ?? 0))}</span>
-                <Button
-                  variant="ghost" size="icon"
-                  aria-label="Eliminar"
-                  onClick={() => handleDelete(l.id)}
-                  disabled={deleteLabor.isPending}
-                >
-                  <DeleteIcon className="h-4 w-4" />
-                </Button>
+                {!readOnly && (
+                  <Button
+                    variant="ghost" size="icon"
+                    aria-label="Eliminar"
+                    onClick={() => handleDelete(l.id)}
+                    disabled={deleteLabor.isPending}
+                  >
+                    <DeleteIcon className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             </div>
           ))}

@@ -23,18 +23,21 @@ interface Props {
   canCloseDeal?: boolean;
   onSave: (data: ProspectFormPayload) => void;
   onDelete?: () => void;
+  /** R12-M8: reenviado a FormDialog para bloquear Esc/click-outside y deshabilitar submit. */
+  isPending?: boolean;
 }
 
 export function ProspectFormDialog({
   open, onOpenChange, prospect,
   defaultStage = "nuevo_prospecto", overrideStage,
-  canCloseDeal = true, onSave, onDelete,
+  canCloseDeal = true, onSave, onDelete, isPending = false,
 }: Props) {
   const { fields, setters, matchingQuotes, selectedQuote, effectiveStage, requiresDealValue, buildPayload } =
     useProspectForm({ prospect, open, defaultStage, overrideStage });
 
   const handleSubmit = (e: ReactFormEvent) => {
     e.preventDefault();
+    if (isPending) return;
     const payload = buildPayload();
     if (!payload) return;
     onSave(payload);
@@ -52,6 +55,7 @@ export function ProspectFormDialog({
       width="md"
       title={prospectDialogTitle(prospect)}
       description={prospectDialogDescription(prospect, overrideStage)}
+      isPending={isPending}
     >
       <ProspectStageBadgeBlock prospect={prospect} overrideStage={overrideStage} />
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -75,6 +79,7 @@ export function ProspectFormDialog({
           isClosingWonBlocked={isClosingWonBlocked}
           onCancel={handleCancel}
           onDelete={prospect && onDelete ? onDelete : undefined}
+          isPending={isPending}
         />
       </form>
     </FormDialog>
