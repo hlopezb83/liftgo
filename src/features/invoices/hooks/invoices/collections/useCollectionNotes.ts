@@ -11,7 +11,7 @@ function buildCollectionNotesQuery(invoiceId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("collection_notes")
-        .select("*")
+        .select("id, invoice_id, note, next_followup_date, created_at, created_by")
         .eq("invoice_id", invoiceId ?? "")
         .order("created_at", { ascending: false });
       if (error) throw error;
