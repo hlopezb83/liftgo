@@ -1,0 +1,25 @@
+{
+  "version": "7.211.0",
+  "date": "2026-07-23",
+  "type": "minor",
+  "title": "Arquitectura Lote C-α: se rompe el ciclo invoices↔portal",
+  "summary": "Los hooks y query keys de intents de pago migran a la feature `invoices` (donde se consumen). El barrel de `portal` queda hooks-only para evitar bundlear páginas al importar utilidades.",
+  "sections": [
+    {
+      "heading": "Ciclo invoices↔portal (C1)",
+      "items": [
+        "Nuevo módulo `src/features/invoices/lib/paymentIntentsQueryKeys.ts` con `paymentIntentsQueries` y `adminPaymentIntentsQueries` + tipos de fila (portal/admin).",
+        "Hooks `usePortalPaymentIntents`, `useAdminPaymentIntents`, `useCreatePaymentIntent`, `useReviewPaymentIntent` (y su test de idempotencia) movidos a `src/features/invoices/hooks/paymentIntents/`.",
+        "`InvoicesDetail` (`PaymentIntentsSection`, `usePaymentIntentsColumns`) ya no importa desde `@/features/portal`; la sección de admin vive en el mismo feature que la consume.",
+        "`src/features/portal/hooks/usePaymentIntents.ts` queda como shim retro-compatible que re-exporta desde `invoices`.",
+        "`portalQueries` deja de exponer `paymentIntents`/`adminPaymentIntents` (ambos live en `invoices`)."
+      ]
+    },
+    {
+      "heading": "Barrel de portal",
+      "items": [
+        "`src/features/portal/index.ts` sólo re-exporta hooks (`usePortalExtras`); las páginas ya se importan con lazy chunks desde `CustomerPortalRoutes` y `router.tsx`, así se evita bundlear todo el portal al importar cualquier utilidad."
+      ]
+    }
+  ]
+}
