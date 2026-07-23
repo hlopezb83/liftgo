@@ -8,7 +8,7 @@ import { PlusCircle } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { useBookings, type BookingWithForklift } from "@/features/bookings";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { formatDate } from "@/lib/format/dateFormats";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { nowMty, parseDateLocal } from "@/lib/utils";
 
 /**
