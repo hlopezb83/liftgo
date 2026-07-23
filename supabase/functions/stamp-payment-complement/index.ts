@@ -183,11 +183,12 @@ Deno.serve(async (req) => {
     const paymentCurrency = (payment.currency as string | null) || "MXN";
     const paymentExchange = Number(payment.exchange_rate || 1);
 
-    // BL-05: el related doc debe reflejar la moneda de la FACTURA origen y su
-    // tipo de cambio, no MXN hardcodeado. Cuando pago y factura difieren en
-    // moneda, el REP nivel documento usa la moneda del pago (SAT).
+    // BL-05 + R10 Bloque 8.2: el related doc refleja la moneda de la FACTURA
+    // origen. Anexo 20 exige EquivalenciaDR=1 cuando MonedaDR == MonedaP (misma
+    // moneda del pago), aunque la factura tenga tipo_cambio guardado. Sólo
+    // usamos el TC de la factura si difiere de la moneda del pago.
     const invoiceCurrency = (invoice.moneda as string | null) || "MXN";
-    const invoiceExchange = invoiceCurrency === "MXN"
+    const invoiceExchange = invoiceCurrency === paymentCurrency
       ? 1
       : Number(invoice.tipo_cambio || 1) || 1;
 
@@ -199,6 +200,7 @@ Deno.serve(async (req) => {
       currency: invoiceCurrency,
       exchange: invoiceExchange,
     };
+
     if (ivaRate > 0) {
       relatedDoc.taxes = [{ base, type: "IVA", rate: ivaRate, factor: "Tasa" }];
     }
