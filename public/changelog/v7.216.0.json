@@ -1,0 +1,19 @@
+{
+  "version": "7.216.0",
+  "date": "2026-07-23",
+  "type": "patch",
+  "title": "Arquitectura C6 cierre: cero select('*') en el repo",
+  "category": "refactor",
+  "description": "Elimina los últimos select('*') en hot-paths de facturas, pagos, notas de crédito, PDFs, mantenimiento, contratos, manual, documentos, activity feed y auditoría. Se usa el patrón `const COLS = sel('...')` + `.returns<T>()` para no penalizar el tiempo de typecheck de supabase-js y mantener tipado estricto en el consumidor.",
+  "changes": [
+    "useInvoices: INVOICE_COLUMNS + returns<InvoiceRow>()",
+    "usePayments: PAYMENT_COLUMNS + returns<Payment[]>()",
+    "useCreditNotesQueries: CREDIT_NOTE_COLUMNS + returns<CreditNote[]>()",
+    "fetchInvoicePdfData / fetchQuotePdfData: columnas explícitas + returns<Tables<>>()",
+    "useMaintenanceLogs: MAINTENANCE_LOG_COLUMNS",
+    "useContractTemplates: CONTRACT_TEMPLATE_COLUMNS",
+    "useUserManual: columnas explícitas",
+    "documentsQueries: columnas explícitas",
+    "activityFeedQueries y auditLogsQueries: columnas explícitas + returns<>()"
+  ]
+}
