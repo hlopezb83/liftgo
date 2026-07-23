@@ -78,9 +78,10 @@ export function BookingActions({ booking }: BookingActionsProps) {
       <Button variant="outline" size="sm" onClick={() => { setNewEndDate(undefined); setExtendOpen(true); }}>
         <CalendarPlus className="h-4 w-4 mr-1" />Extender
       </Button>
-      <Button variant="outline" size="sm" onClick={() => navigate(`/returns?booking_id=${booking.id}`)}>
+      <Button variant="outline" size="sm" onClick={() => navigate(`/returns?booking_id=${booking.id}&early=1`)}>
         <UndoIcon className="h-4 w-4 mr-1" />Devolución Anticipada
       </Button>
+
 
       {isAdmin && (
         <>
