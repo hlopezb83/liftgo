@@ -81,7 +81,7 @@ export function useReturnInspectionDialog(bookings: Booking[] | undefined, activ
 
   return {
     dialogOpen,
-    setDialogOpen,
+    setDialogOpen: handleDialogOpenChange,
     form,
     openNew,
     handleSubmit: form.handleSubmit(onSubmit),
