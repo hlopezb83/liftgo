@@ -19,6 +19,7 @@
 import { handleCors } from "../_shared/cors.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
+import { authenticateCronRequest } from "../_shared/cronAuth.ts";
 import {
   binaryToBytes,
   binaryToText,
