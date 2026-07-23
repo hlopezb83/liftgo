@@ -1,0 +1,21 @@
+{
+  "version": "7.198.0",
+  "date": "2026-07-23",
+  "type": "minor",
+  "title": "Auditoría R10 · fase 7 (utilización sin doble conteo + sync OT ↔ montacargas)",
+  "category": "bugfix",
+  "changes": [
+    {
+      "type": "fixed",
+      "description": "Dashboard: los KPI de utilización de flota (30 días) y la gráfica mensual ya no duplican días cuando dos reservas de una misma unidad se traslapan. Ahora se calculan con unión de rangos vía generate_series e incluyen reservas 'confirmed' y 'completed'."
+    },
+    {
+      "type": "added",
+      "description": "Sincronización automática de estado montacargas ↔ orden de trabajo: al pasar la OT a 'En progreso' el montacargas pasa a 'Mantenimiento'; al completarla o cancelarla vuelve a 'Disponible' siempre que no tenga renta activa. Implementado por trigger transaccional."
+    },
+    {
+      "type": "closed",
+      "description": "Cierre del backlog R10: los pendientes de Bloque 11.4 (invalidaciones), 11.6 (get_available_forklifts overlap), 12.4 (CHECK stock ≥ 0), 12.7 (deleted_at en useCustomers), 12.9 (create_booking deleted_at), 12.10 (parseCfdiXml date-only), 12.11 (STATUS_LABELS issued) y 12.13 (prellenar Año en Factura Global) ya estaban aplicados en fases previas."
+    }
+  ]
+}
