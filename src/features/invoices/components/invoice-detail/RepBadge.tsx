@@ -1,10 +1,11 @@
-import { Badge } from "@/components/ui/badge";
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 
+/**
+ * v7.217.0 (C11.6): wrapper delgado sobre StatusBadge central para no
+ * duplicar mapeos de estilo. Los tokens `stamped`, `cancelled`, `error`,
+ * `pending` y `rep_none` ya viven en `statusStyles`/`STATUS_LABELS`.
+ */
 export function RepBadge({ status }: { status: string | null }) {
-  const s = status ?? "none";
-  if (s === "stamped") return <Badge className="bg-success text-success-foreground hover:bg-success/90">Timbrado</Badge>;
-  if (s === "cancelled") return <Badge variant="destructive">Cancelado</Badge>;
-  if (s === "error") return <Badge variant="destructive">Error</Badge>;
-  if (s === "pending") return <Badge variant="secondary">Pendiente</Badge>;
-  return <Badge variant="outline">Sin REP</Badge>;
+  const key = status && status !== "none" ? status : "rep_none";
+  return <StatusBadge status={key} />;
 }
