@@ -36,7 +36,6 @@ export function useUpdateForklift() {
         old ? old.map((f) => (f.id === data.id ? { ...f, ...data } : f)) : old
       );
       queryClient.setQueryData(forkliftKeys.detail(data.id), data);
-      queryClient.invalidateQueries({ queryKey: ["forklift-options"] });
       queryClient.invalidateQueries({ queryKey: ["supplier_bills"] });
       queryClient.invalidateQueries({ queryKey: insuranceAlertsKeys.all });
     },
