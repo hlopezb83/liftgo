@@ -1,4 +1,6 @@
+import { useEffect } from "react";
 import { useFormContext } from "react-hook-form";
+
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -25,8 +27,16 @@ const MONTH_OPTIONS = [
 ];
 
 export function GlobalInvoiceFields() {
-  const { control } = useFormContext<InvoiceFormValues>();
+  const { control, setValue, getValues } = useFormContext<InvoiceFormValues>();
+  const currentYear = new Date().getFullYear();
+  // R10 Bloque 12.13: prellena Año con el actual si viene vacío.
+  useEffect(() => {
+    if (getValues("cfdi.globalYear") == null) {
+      setValue("cfdi.globalYear", currentYear, { shouldDirty: false });
+    }
+  }, [getValues, setValue, currentYear]);
   return (
+
     <div className="rounded-md border border-warning/40 bg-warning/10 p-4 space-y-3">
       <div className="flex flex-col">
         <span className="text-xs font-semibold uppercase text-warning-foreground/90 tracking-wider">

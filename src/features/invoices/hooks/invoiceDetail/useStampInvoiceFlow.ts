@@ -6,6 +6,19 @@ import { getMissingStampFields } from "../../lib/cfdiPrechecks";
 import { classifyFacturapiError, type FacturapiErrorKind } from "../../lib/facturapiErrors";
 import { useStampCfdi } from "../invoices/cfdi/useStampCfdi";
 
+// R10 Bloque 8.4: errores benignos ("already stamped", "in progress") ya se
+// muestran como toast info desde useStampCfdi.onError; NO debemos abrir el
+// StampErrorDialog aquí porque la 2ª pestaña vería un modal de error espurio.
+const BENIGN_STAMP_PATTERNS = [
+  /already stamped/i,
+  /already in progress/i,
+  /timbrado en proceso/i,
+  /ya (est[aá]|se encuentra) timbrada/i,
+];
+const isBenignStampError = (raw: string) => BENIGN_STAMP_PATTERNS.some((r) => r.test(raw));
+
+
+
 export interface StampErrorState {
   message: string;
   kind: FacturapiErrorKind;
@@ -47,6 +60,7 @@ export function useStampInvoiceFlow(refetch: () => void) {
         onSuccess: () => refetch(),
         onError: (err) => {
           const raw = err instanceof Error ? err.message : String(err);
+          if (isBenignStampError(raw)) return; // toast info ya cubierto
           const classified = classifyFacturapiError(raw);
           setStampError({
             message: classified.message,
@@ -62,6 +76,7 @@ export function useStampInvoiceFlow(refetch: () => void) {
         },
         onSettled: () => { inFlightRef.current = false; },
       });
+
     } catch (err) {
       inFlightRef.current = false;
       throw err;

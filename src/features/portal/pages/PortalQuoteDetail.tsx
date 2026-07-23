@@ -80,14 +80,25 @@ export default function PortalQuoteDetail() {
               </tr>
             </thead>
             <tbody>
-              {items.map((it, idx) => (
+              {items.map((it, idx) => {
+                // R10 Bloque 11.3: el campo real de line_items es `total`;
+                // `amount` no existe → mostraba $0.00. Fallback conservador.
+                const lineTotal = Number(
+                  (it as { total?: number | null; amount?: number | null; unit_price?: number | null; quantity?: number | null })
+                    .total
+                  ?? (it as { amount?: number | null }).amount
+                  ?? (Number(it.unit_price ?? 0) * Number(it.quantity ?? 1)),
+                );
+                return (
                 <tr key={idx} className={idx % 2 ? "bg-muted/20" : ""}>
                   <td className="px-3 py-2">{it.description ?? "—"}</td>
                   <td className="px-3 py-2 text-right font-mono">{it.quantity ?? 1}</td>
                   <td className="px-3 py-2 text-right font-mono">{formatCurrency(Number(it.unit_price ?? 0))}</td>
-                  <td className="px-3 py-2 text-right font-mono">{formatCurrency(Number(it.amount ?? 0))}</td>
+                  <td className="px-3 py-2 text-right font-mono">{formatCurrency(lineTotal)}</td>
                 </tr>
-              ))}
+                );
+              })}
+
             </tbody>
           </table>
           </div>

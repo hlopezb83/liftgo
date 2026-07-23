@@ -41,8 +41,11 @@ export function useBookingActions(booking: BookingWithForklift) {
   const handleStatusChange = async (newStatus: string, onSuccess: () => void) => {
     if (!newStatus || newStatus === booking.status) return;
     try {
+      // R10 Bloque 9.1: usar mutateAsync para que el toast de éxito sólo
+      // aparezca tras éxito real de la RPC/UPDATE (antes se disparaba en
+      // paralelo aunque cancelBooking fallara).
       if (newStatus === "cancelled") {
-        cancelBooking.mutate(booking.id);
+        await cancelBooking.mutateAsync(booking.id);
       } else {
         await new Promise<void>((resolve, reject) => {
           updateBooking.mutate(
@@ -57,6 +60,7 @@ export function useBookingActions(booking: BookingWithForklift) {
       notifyError({ title: "Error al cambiar estatus: " + (err instanceof Error ? err.message : "Error desconocido") });
     }
   };
+
 
   // BL-A2: la extensión va por la RPC atómica `extend_booking` (FOR UPDATE +
   // buffer de mantenimiento + registro en booking_extensions). El UPDATE
