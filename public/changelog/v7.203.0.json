@@ -1,0 +1,30 @@
+{
+  "version": "7.203.0",
+  "date": "2026-07-23",
+  "type": "minor",
+  "title": "R12 go-live: 3 bloqueantes + 3 altos + medios",
+  "category": "bugfix",
+  "description": "Sprint R12 aplicado tras verificar cada diff contra el código real. Se corrigen 3 bloqueantes (trigger de mantenimiento apuntaba a columna inexistente, conversión de cotizaciones aceptadas desde el portal, seed idempotente de permisos de Facturas de Proveedor), se refuerza el reconciliador de CFDI para evitar timbres duplicados tras un timeout, y se aplican fixes altos y medios de UX/datos. A2 (income statement multi-moneda) y M1/M2/M4/M6/M7/M9/M10 quedan agendados para R12.1.",
+  "changes": [
+    "B1: reject_mutations_on_closed_maintenance ahora lee work_status (columna real) — las OT abiertas ya aceptan cambios en refacciones/MO y las cerradas siguen rechazando con P0001",
+    "B2: stamp-cfdi envía external_id (nuestro invoice.id) a Facturapi y reconcile-stamping-invoices lo usa para recuperar timbres emitidos durante timeouts, evitando doble CFDI ante el SAT",
+    "B3: convert_quote_to_bookings deja de rechazar por status='accepted' y sólo rechaza si ya hay bookings ligados — habilita convertir cotizaciones aceptadas desde el portal",
+    "B4: seed idempotente del módulo 'Facturas de Proveedor' en role_permissions (no-op en producción, cierra drift en entornos nuevos)",
+    "A1: useLiftgoTable versiona por identidad de filas (hash de ids), no por longitud — arregla tablas que mostraban filas viejas al filtrar cuando el conteo coincidía",
+    "A3: PortalDashboard muestra el saldo pendiente como Σ balance × tipo_cambio (antes sumaba total en la moneda del documento)",
+    "A4: FeedbackFormDialog bloquea Esc/click-fuera también durante la captura de screenshot, no sólo durante el submit",
+    "M3: CustomerContactCard muestra customer.rfc con fallback a tax_id (antes ignoraba rfc para clientes con dato migrado)",
+    "M5: /audit y /activity ahora requieren el módulo 'Auditoría' en RoleGuard; se siembra admin/administrativo=full, auditor=read"
+  ],
+  "pending": [
+    "A2: normalizar SUM(subtotal × tipo_cambio) en get_income_statement (multi-moneda)",
+    "M1: get_portal_invoices filtrar NCs a cfdi_status='stamped'",
+    "M2: PortalInvoiceDetail balance = total − pagos − credited_amount",
+    "M4: cashFlowTransformers restar credited_amount en pendiente proyectado",
+    "M6: triggers audit_trigger_fn en supplier_bills/bank_accounts/bank_statement_lines",
+    "M7: RoleGuard en botones 'Nueva Factura' de CxP y Facturas",
+    "M8: reenviar isPending real en ProspectFormDialog (requiere plumbing)",
+    "M9: deduplicar días con Set en utilizationHelpers",
+    "M10: deshabilitar UI de refacciones/MO en MaintenanceDetailSheet cuando work_status='completed'"
+  ]
+}
