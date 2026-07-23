@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.207.0",
+    "date": "2026-07-23",
+    "type": "patch",
+    "title": "Arquitectura Lote C (inicio): invalidación unificada de company_settings",
+    "category": "refactor"
+  },
+  {
     "version": "7.206.0",
     "date": "2026-07-23",
     "type": "minor",

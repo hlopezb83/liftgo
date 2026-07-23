@@ -1,0 +1,13 @@
+{
+  "version": "7.207.0",
+  "date": "2026-07-23",
+  "type": "patch",
+  "title": "Arquitectura Lote C (inicio): invalidación unificada de company_settings",
+  "category": "refactor",
+  "description": "DIFF 9c/d del audit R-arq. La fila de company_settings alimenta tres caches paralelas (datos fiscales, umbral CxP y flujo de caja). Antes cada mutación invalidaba sólo un subconjunto, dejando la UI con datos rancios tras cambiar Datos Fiscales o el umbral. Ahora las tres mutaciones comparten una lista canónica de keys a invalidar.",
+  "changes": [
+    "Nuevo export COMPANY_SETTINGS_INVALIDATION_KEYS en src/features/company-settings/lib/queryKeys.ts como fuente única de invalidación",
+    "useUpsertCompanySettings, useUpdateCxpApprovalThreshold y useUpdateCashFlowSettings ahora invalidan el conjunto completo (fiscal + cxp + cash-flow + prefijo catch-all)",
+    "Cross-feature import controlado: cash-flow consume la lista desde company-settings (dueño del dato)"
+  ]
+}

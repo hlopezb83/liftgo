@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { cxpApprovalThresholdQueries, companySettingsQueries } from "../lib/queryKeys";
+import { COMPANY_SETTINGS_INVALIDATION_KEYS, cxpApprovalThresholdQueries } from "../lib/queryKeys";
 
 export function useCxpApprovalThreshold() {
   return useQuery(cxpApprovalThresholdQueries.list());
@@ -21,7 +21,7 @@ export function useUpdateCxpApprovalThreshold() {
         .eq("id", id);
       if (error) throw error;
     },
-    invalidateKeys: [cxpApprovalThresholdQueries.keys.all, companySettingsQueries.keys.all],
+    invalidateKeys: COMPANY_SETTINGS_INVALIDATION_KEYS,
     successMsg: "Umbral de aprobación actualizado",
     errorTitle: "No se pudo actualizar el umbral",
   });
