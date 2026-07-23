@@ -40,6 +40,8 @@ export async function handleValidateReceptor(
   if (corsRes) return corsRes;
   const json = (body: unknown, status: number, _headers?: unknown) =>
     jsonResponse(req, body, { status });
+  const jsonHeaders = undefined;
+
 
   try {
     const auth = await authenticateWithDeps({
