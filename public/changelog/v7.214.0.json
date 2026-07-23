@@ -1,0 +1,12 @@
+{
+  "version": "7.214.0",
+  "date": "2026-07-23",
+  "type": "patch",
+  "title": "Arquitectura Lote E: auth unificada en cron de mantenimiento",
+  "category": "refactor",
+  "description": "generate-recurring-maintenance ahora usa el mismo patrón que generate-recurring-invoices: authenticateCronRequest (timing-safe) con fallback a requireServiceOrRole(['admin','administrativo']). Elimina la validación inline duplicada de JWT/getClaims/user_roles. Company settings queryKeys ya estaban centralizados desde v7.207.0.",
+  "changes": [
+    "supabase/functions/generate-recurring-maintenance/index.ts: reemplaza bloque inline (getCallerClient + getClaims + user_roles lookup) por requireServiceOrRole compartido",
+    "Auth timing-safe consistente entre ambos crons recurrentes"
+  ]
+}

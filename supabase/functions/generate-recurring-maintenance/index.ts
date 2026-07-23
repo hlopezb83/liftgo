@@ -1,6 +1,7 @@
 import { handleCors } from "../_shared/cors.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
-import { getAdminClient, getCallerClient } from "../_shared/supabaseClients.ts";
+import { requireServiceOrRole } from "../_shared/auth.ts";
+import { getAdminClient } from "../_shared/supabaseClients.ts";
 import { authenticateCronRequest } from "../_shared/cronAuth.ts";
 
 Deno.serve(async (req) => {
@@ -8,40 +9,19 @@ Deno.serve(async (req) => {
   if (corsResponse) return corsResponse;
 
   try {
-    const supabase = getAdminClient();
-
-    // Always require Authorization header. Either:
-    //  - CRON_SECRET dedicado (cron / scheduled invocations), o
-    //  - service_role token (compat), o
-    //  - JWT de admin/administrativo
-    // Lote C · DIFF 8 rest: la parte cron/service se centraliza con
-    // comparación timing-safe en _shared/cronAuth.ts.
+    // Lote E · unificación: mismo patrón que generate-recurring-invoices
+    // (cron timing-safe → fallback JWT admin/administrativo).
     const cronAuth = await authenticateCronRequest(req);
-    if (!cronAuth.ok) {
-      const authHeader = req.headers.get("authorization") ?? "";
-      if (!authHeader.startsWith("Bearer ")) {
-        return jsonError(req, 401, "No autorizado");
-      }
-      const bearer = authHeader.slice("Bearer ".length).trim();
-      const callerClient = getCallerClient(req);
-      const { data: claimsData, error: claimsError } = await callerClient.auth
-        .getClaims(bearer);
-      if (claimsError || !claimsData?.claims) {
-        return jsonError(req, 401, "No autorizado");
-      }
-      const callerId = claimsData.claims.sub as string;
-      const { data: roleData } = await supabase
-        .from("user_roles")
-        .select("role")
-        .eq("user_id", callerId);
-      const roles = (roleData ?? []).map((r: { role: string }) => r.role);
-      if (!roles.includes("admin") && !roles.includes("administrativo")) {
-        return jsonError(
-          req,
-          403,
-          "Solo admin/administrativo puede ejecutar esta función",
-        );
-      }
+    let supabase;
+    if (cronAuth.ok) {
+      supabase = getAdminClient();
+    } else {
+      const auth = await requireServiceOrRole(req, [
+        "admin",
+        "administrativo",
+      ]);
+      if (!auth.ok) return auth.response;
+      supabase = auth.adminClient;
     }
 
     // BL-42: calcular el mes actual en America/Monterrey (evita off-by-one
