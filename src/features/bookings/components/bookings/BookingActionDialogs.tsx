@@ -74,7 +74,7 @@ export function BookingExtendDialog({
         <DatePickerField label="Nueva Fecha de Fin" date={newEndDate} onSelect={setNewEndDate} />
         {extendPreview && (
           <div className="p-3 rounded-lg bg-muted text-sm">
-            <p>Nuevo total estimado: <span className="font-bold">{formatCurrency(extendPreview.total)}</span></p>
+            <p>Nuevo total estimado: <span className="font-bold">{formatCurrencyWithCode(extendPreview.total, extendPreview.currency)}</span></p>
           </div>
         )}
 
