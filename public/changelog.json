@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.211.0",
+    "date": "2026-07-23",
+    "type": "minor",
+    "title": "Arquitectura Lote C-α: se rompe el ciclo invoices↔portal",
+    "category": "refactor"
+  },
+  {
     "version": "7.210.2",
     "date": "2026-07-23",
     "type": "patch",
