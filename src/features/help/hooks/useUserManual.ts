@@ -58,9 +58,10 @@ export const userManualQueries = defineEntityQueries<
     const { data, error } = await q.maybeSingle();
     if (error) throw error;
     if (!data) return null;
+    const row = data as { id: string; version: string; content: unknown; generated_at: string; updated_at: string };
     return {
-      ...(data as { id: string; version: string; content: unknown; generated_at: string; updated_at: string }),
-      content: parseJsonbArray<ManualSection>((data as { content: unknown }).content),
+      ...row,
+      content: parseJsonbArray<ManualSection>(row.content as never),
     } as UserManual;
   },
 });
