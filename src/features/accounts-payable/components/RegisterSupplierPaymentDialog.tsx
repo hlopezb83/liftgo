@@ -7,7 +7,9 @@ import { FormActions } from "@/components/forms/FormActions";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { UploadIcon, X } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { Form, FormItem, FormLabel, FormControl } from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
+
 import { toYMD } from "@/lib/date/toYMD";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { zodResolver } from "@/lib/forms/zodResolver";
@@ -158,12 +160,11 @@ export function RegisterSupplierPaymentDialog({
             label="Referencia"
             placeholder="Folio de transferencia, cheque…"
           />
-          <FormItem>
-            <FormLabel>Comprobante (PDF/JPG/PNG, máx 5 MB)</FormLabel>
-            <FormControl>
-              <ReceiptField file={receiptFile} onChange={setReceiptFile} disabled={isPending} />
-            </FormControl>
-          </FormItem>
+          <div className="space-y-1.5">
+            <Label>Comprobante (PDF/JPG/PNG, máx 5 MB)</Label>
+            <ReceiptField file={receiptFile} onChange={setReceiptFile} disabled={isPending} />
+          </div>
+
           <TextareaField control={form.control} name="notes" label="Notas" rows={2} />
           <FormDialogFooter>
             <FormActions

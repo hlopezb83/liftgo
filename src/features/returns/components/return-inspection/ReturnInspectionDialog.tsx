@@ -10,7 +10,9 @@ import {
 import { FormActions } from "@/components/forms/FormActions";
 import { FormDialog } from "@/components/forms/FormDialog";
 import { ClipboardCheck } from "@/components/icons";
-import { Form, FormLabel } from "@/components/ui/form";
+import { Form } from "@/components/ui/form";
+import { Label } from "@/components/ui/label";
+
 import type { Booking } from "@/features/bookings";
 import type { Forklift } from "@/features/fleet";
 import { INSPECTION_CONDITIONS, FUEL_LEVELS, STATUS_LABELS, FUEL_LEVEL_LABELS } from "@/lib/constants";
@@ -96,7 +98,7 @@ export function ReturnInspectionDialog({
 
           {selectedBooking && (
             <div className="space-y-1.5">
-              <FormLabel>Fotos de Inspección</FormLabel>
+              <Label>Fotos de Inspección</Label>
               <DragDropImageUploader
                 entityType="return_inspection"
                 entityId={selectedBooking.forklift_id}

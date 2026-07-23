@@ -1,0 +1,29 @@
+{
+  "version": "7.192.0",
+  "date": "2026-07-23",
+  "type": "minor",
+  "title": "Auditoría R10 · fase 1",
+  "category": "bugfix",
+  "changes": [
+    {
+      "type": "fix",
+      "title": "Bloque 1 · useFormField degrada sin crashear",
+      "description": "useFormField ya no lanza cuando un Form* se renderiza fuera de <Form>. Reemplazados los FormLabel/FormControl huérfanos en ReturnInspectionDialog (fotos) y RegisterSupplierPaymentDialog (comprobante) por <Label> estándar."
+    },
+    {
+      "type": "fix",
+      "title": "Bloque 2/5 · costo de mantenimiento numérico y en manual_cost",
+      "description": "El schema de la OT ahora acepta number|null (era string y rompía submit con CurrencyField). Al editar, el costo se prellena desde manual_cost (no desde cost calculado por trigger) y al guardar se escribe también en manual_cost para que el trigger recompute cost = manual + refacciones + MO."
+    },
+    {
+      "type": "fix",
+      "title": "Bloque 12.1 · duración inclusiva en lista de reservas",
+      "description": "Una reserva del mismo día ahora se muestra como '1 día' (antes '0 días')."
+    },
+    {
+      "type": "chore",
+      "title": "Bloque 3 · marcado como stale",
+      "description": "routes-config.tsx ya usa module='Facturas de Proveedor' que coincide con role_permissions. El NoAccess reportado no es reproducible con la config actual."
+    }
+  ]
+}
