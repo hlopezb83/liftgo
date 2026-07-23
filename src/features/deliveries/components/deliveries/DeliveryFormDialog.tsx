@@ -59,7 +59,8 @@ export function DeliveryFormDialog() {
         <PlusCircle className="h-4 w-4 mr-1" /> Programar
       </Button>
 
-      <FormDialog open={open} onOpenChange={setOpen} title="Programar Transporte">
+      <FormDialog
+      isPending={createDelivery.isPending} open={open} onOpenChange={setOpen} title="Programar Transporte">
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <DeliveryFormFields form={form} forklifts={forklifts} bookings={bookings} activeDrivers={activeDrivers} />
           <FormDialogFooter>

@@ -95,6 +95,7 @@ export function SupplierContactFormDialog({ open, onOpenChange, supplierId, cont
 
   return (
     <FormDialog
+      isPending={create.isPending || update.isPending}
       open={open}
       onOpenChange={onOpenChange}
       title={contact ? "Editar contacto" : "Nuevo contacto"}

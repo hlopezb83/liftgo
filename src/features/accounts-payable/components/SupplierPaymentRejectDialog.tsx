@@ -38,6 +38,7 @@ export function SupplierPaymentRejectDialog({ open, onOpenChange, onConfirm, pen
 
   return (
     <FormDialog
+      isPending={pending}
       open={open}
       onOpenChange={onOpenChange}
       title="Rechazar REP"

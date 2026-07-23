@@ -101,6 +101,7 @@ export function SupplierBankAccountFormDialog({ open, onOpenChange, supplierId, 
 
   return (
     <FormDialog
+      isPending={create.isPending || update.isPending}
       open={open}
       onOpenChange={onOpenChange}
       title={account ? "Editar cuenta bancaria" : "Nueva cuenta bancaria"}

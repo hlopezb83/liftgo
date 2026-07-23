@@ -124,6 +124,7 @@ export function EquipmentAssignmentDialog({
 
   return (
     <FormDialog
+      isPending={isLoading}
       open={open}
       onOpenChange={onOpenChange}
       title="Asignar Equipos"

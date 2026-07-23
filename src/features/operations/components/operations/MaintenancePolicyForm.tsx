@@ -25,6 +25,7 @@ export function MaintenancePolicyForm({
 }: Props) {
   return (
     <FormDialog
+      isPending={isPending}
       open={open}
       onOpenChange={onOpenChange}
       title={`${isEdit ? "Editar" : "Nueva"} Póliza de Mantenimiento`}

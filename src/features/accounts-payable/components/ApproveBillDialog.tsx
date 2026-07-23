@@ -40,6 +40,7 @@ export function ApproveBillDialog({ open, onOpenChange, billId, billNumber }: Pr
 
   return (
     <FormDialog
+      isPending={approve.isPending}
       open={open}
       onOpenChange={onOpenChange}
       title={`Aprobar factura ${billNumber}`}

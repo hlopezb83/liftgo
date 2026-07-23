@@ -93,6 +93,7 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
 
   return (
     <FormDialog
+      isPending={createDelivery.isPending}
       open={open}
       onOpenChange={onOpenChange}
       width="md"

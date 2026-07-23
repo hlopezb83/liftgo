@@ -63,6 +63,7 @@ export function UploadSupplierRepDialog({
 
   return (
     <FormDialog
+      isPending={upload.isPending}
       open={open}
       onOpenChange={handleOpenChange}
       title="Cargar Complemento de Pago"

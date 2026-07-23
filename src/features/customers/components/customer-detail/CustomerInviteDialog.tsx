@@ -33,6 +33,7 @@ export function CustomerInviteDialog({ open, onOpenChange, customerName, isPendi
 
   return (
     <FormDialog
+      isPending={isPending}
       open={open}
       onOpenChange={onOpenChange}
       title="Invitar al Portal de Clientes"

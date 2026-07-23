@@ -113,7 +113,8 @@ export function MechanicsTab() {
       ) : (
         <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay mecánicos registrados" />
       )}
-      <FormDialog open={open} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} Mecánico`} description="Administrar datos del mecánico para asignación de mantenimientos.">
+      <FormDialog
+      isPending={create.isPending || update.isPending} open={open} onOpenChange={setOpen} title={`${editId ? "Editar" : "Nuevo"} Mecánico`} description="Administrar datos del mecánico para asignación de mantenimientos.">
           <div className="grid gap-4 py-2">
             <div className="space-y-1.5"><Label>Nombre *</Label><Input placeholder="Nombre completo" value={form.name} onChange={(e) => set("name", e.target.value)} /></div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

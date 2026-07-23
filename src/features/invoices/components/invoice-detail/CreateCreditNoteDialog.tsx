@@ -21,6 +21,7 @@ export function CreateCreditNoteDialog({ open, onOpenChange, invoice, maxCredita
 
   return (
     <FormDialog
+      isPending={f.isPending}
       open={open}
       onOpenChange={(o) => { if (!o) f.reset(); onOpenChange(o); }}
       title="Nueva Nota de Crédito"

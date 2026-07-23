@@ -65,6 +65,7 @@ export function CancelCfdiDialog({
 
   return (
     <FormDialog
+      isPending={cancelCfdi.isPending}
       open={open}
       onOpenChange={onOpenChange}
       title="Cancelar CFDI"

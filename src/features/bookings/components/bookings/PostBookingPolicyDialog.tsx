@@ -63,6 +63,7 @@ export function PostBookingPolicyDialog({ open, onOpenChange, forkliftId, forkli
 
   return (
     <FormDialog
+      isPending={createPolicy.isPending}
       open={open}
       onOpenChange={(o) => { if (!o) onSkip(); onOpenChange(o); }}
       width="md"

@@ -93,7 +93,8 @@ export function EditPaymentDialog({ open, onOpenChange, payment }: Props) {
   };
 
   return (
-    <FormDialog open={open} onOpenChange={onOpenChange} title="Editar Pago" width="md">
+    <FormDialog
+      isPending={updatePayment.isPending} open={open} onOpenChange={onOpenChange} title="Editar Pago" width="md">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <CurrencyField control={form.control} name="amount" label="Monto" required />

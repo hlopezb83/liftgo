@@ -76,6 +76,7 @@ export function PartFormDialog({ open, onOpenChange, part }: PartFormDialogProps
 
   return (
     <FormDialog
+      isPending={createPart.isPending || updatePart.isPending}
       open={open}
       onOpenChange={onOpenChange}
       title={part ? "Editar Refacción" : "Nueva Refacción"}

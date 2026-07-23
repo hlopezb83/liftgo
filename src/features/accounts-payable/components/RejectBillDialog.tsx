@@ -44,6 +44,7 @@ export function RejectBillDialog({ open, onOpenChange, billId, billNumber }: Pro
 
   return (
     <FormDialog
+      isPending={reject.isPending}
       open={open}
       onOpenChange={onOpenChange}
       title={`Rechazar factura ${billNumber}`}

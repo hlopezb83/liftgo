@@ -43,6 +43,7 @@ export function MaintenanceFormDialog({
 
   return (
     <FormDialog
+      isPending={isPending}
       open={open}
       onOpenChange={onOpenChange}
       title={isEdit ? "Editar Mantenimiento" : "Registrar Mantenimiento"}

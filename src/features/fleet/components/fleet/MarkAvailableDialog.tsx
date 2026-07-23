@@ -28,6 +28,7 @@ export function MarkAvailableDialog({ open, onOpenChange, forkliftId, forkliftNa
 
   return (
     <FormDialog
+      isPending={updateStatus.isPending}
       open={open}
       onOpenChange={onOpenChange}
       width="sm"

@@ -20,7 +20,8 @@ export function BookingStatusChangeDialog({
   open, onOpenChange, currentStatus, newStatus, setNewStatus, onConfirm,
 }: StatusChangeDialogProps) {
   return (
-    <FormDialog open={open} onOpenChange={onOpenChange} title="Cambiar Estatus de Reserva">
+    <FormDialog
+      isPending={isPending} open={open} onOpenChange={onOpenChange} title="Cambiar Estatus de Reserva">
       <div className="space-y-4">
         <div>
           <p className="text-sm text-muted-foreground mb-1">Estatus actual</p>
@@ -65,6 +66,7 @@ export function BookingExtendDialog({
 }: ExtendDialogProps) {
   return (
     <FormDialog
+      isPending={isPending}
       open={open}
       onOpenChange={onOpenChange}
       title="Extender Reserva"

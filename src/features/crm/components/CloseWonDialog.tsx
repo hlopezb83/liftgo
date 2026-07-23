@@ -60,6 +60,7 @@ export function CloseWonDialog({ prospect, open, onOpenChange, onConfirm, isPend
 
   return (
     <FormDialog
+      isPending={isPending}
       open={open}
       onOpenChange={onOpenChange}
       width="md"

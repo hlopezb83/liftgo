@@ -87,6 +87,7 @@ export function PaymentIntentsSection({ invoiceId }: Props) {
       </CardContent>
 
       <FormDialog
+      isPending={review.isPending}
         open={!!rejectId}
         onOpenChange={(o) => !o && setRejectId(null)}
         title="Rechazar reporte de pago"
