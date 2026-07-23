@@ -22,9 +22,10 @@ export const creditNoteQueries = defineEntityQueries<"credit_notes", CreditNote[
         .from("credit_notes")
         .select(CREDIT_NOTE_COLUMNS)
         .eq("invoice_id", invoiceId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .returns<CreditNote[]>();
       if (error) throw error;
-      return (data ?? []) as CreditNote[];
+      return data ?? [];
     },
   },
 );
