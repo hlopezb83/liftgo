@@ -1,5 +1,5 @@
 
-import { differenceInDays, parseISO, isWithinInterval } from "date-fns";
+import { differenceInCalendarDays, parseISO } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { DownloadIcon } from "@/components/icons";
@@ -16,18 +16,49 @@ interface Props {
 
 type Row = { name: string; bookedDays: number; totalDays: number; utilization: number };
 
+/**
+ * R10 Bloque 10.1: dedupe de días reservados por unidad.
+ * Recorta cada reserva al rango [startDate, endDate] y usa unión de rangos
+ * (Set de días calendario) para que reservas traslapadas no sumen doble.
+ */
+function countUniqueBookedDays(
+  bookings: { start_date: string; end_date: string }[],
+  rangeStart: Date,
+  rangeEnd: Date,
+): number {
+  const days = new Set<number>();
+  const startMs = new Date(rangeStart.getFullYear(), rangeStart.getMonth(), rangeStart.getDate()).getTime();
+  const endMs = new Date(rangeEnd.getFullYear(), rangeEnd.getMonth(), rangeEnd.getDate()).getTime();
+  for (const b of bookings) {
+    const bs = parseISO(b.start_date);
+    const be = parseISO(b.end_date);
+    const s = Math.max(new Date(bs.getFullYear(), bs.getMonth(), bs.getDate()).getTime(), startMs);
+    const e = Math.min(new Date(be.getFullYear(), be.getMonth(), be.getDate()).getTime(), endMs);
+    if (e < s) continue;
+    for (let t = s; t <= e; t += 86_400_000) days.add(t);
+  }
+  return days.size;
+}
+
 export function UtilizationReport({ startDate, endDate }: Props) {
   const { data: forklifts = [] } = useForklifts();
   const { data: bookings = [] } = useBookings();
 
-  const totalDaysRange = Math.max(differenceInDays(endDate, startDate), 1);
+  // Días inclusivos consistente con el resto del reporte (fin inclusivo).
+  const totalDaysRange = Math.max(differenceInCalendarDays(endDate, startDate) + 1, 1);
   const data: Row[] = forklifts.map((fl) => {
-    const flBookings = bookings.filter((b) => b.forklift_id === fl.id &&
-      isWithinInterval(parseISO(b.start_date), { start: startDate, end: endDate }));
-    const bookedDays = flBookings.reduce((sum, b) => sum + differenceInDays(parseISO(b.end_date), parseISO(b.start_date)) + 1, 0);
+    const flBookings = bookings.filter(
+      (b) => b.forklift_id === fl.id
+        && b.status !== "cancelled"
+        // solapamiento con el rango del reporte
+        && parseISO(b.start_date) <= endDate
+        && parseISO(b.end_date) >= startDate,
+    );
+    const bookedDays = countUniqueBookedDays(flBookings, startDate, endDate);
     const utilization = Math.min(Math.round((bookedDays / totalDaysRange) * 100), 100);
     return { name: fl.name, bookedDays, totalDays: totalDaysRange, utilization };
   });
+
 
   const columns: ColumnDef<Row>[] = [
     { id: "name", header: "Montacargas", accessorKey: "name", cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },

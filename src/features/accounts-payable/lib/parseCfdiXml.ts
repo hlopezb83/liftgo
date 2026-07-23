@@ -39,9 +39,29 @@ function num(value: string | null | undefined): number {
 
 function parseIsoDate(value: string | null): Date | null {
   if (!value) return null;
-  const d = new Date(value);
+  // R10 Bloque 12.10: el CFDI trae Fecha en formato local sin zona
+  // (YYYY-MM-DDTHH:mm:ss). `new Date(str)` interpreta ese string como hora
+  // local del navegador, lo que corre la fecha fiscal si el usuario está en
+  // otra zona horaria. Forzamos zona local México (o UTC como fallback)
+  // preservando la fecha calendario que emitió el emisor.
+  const trimmed = value.trim();
+  // Solo fecha (date-only): YYYY-MM-DD
+  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.exec(trimmed);
+  if (dateOnly) {
+    const [y, m, d] = trimmed.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  }
+  // Fecha y hora local (sin zona): YYYY-MM-DDTHH:mm:ss(.sss)?
+  const local = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})/.exec(trimmed);
+  if (local) {
+    const [, y, mo, d, h, mi, s] = local;
+    const dt = new Date(Number(y), Number(mo) - 1, Number(d), Number(h), Number(mi), Number(s));
+    return Number.isNaN(dt.getTime()) ? null : dt;
+  }
+  const d = new Date(trimmed);
   return Number.isNaN(d.getTime()) ? null : d;
 }
+
 
 function findChildByLocalName(parent: Element, localName: string): Element | null {
   for (const child of Array.from(parent.children)) {
