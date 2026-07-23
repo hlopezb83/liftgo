@@ -66,7 +66,9 @@ export default function PortalInvoiceDetail() {
   if (!invoice) return <p className="text-muted-foreground">Factura no encontrada</p>;
 
   const totalPaid = invoicePayments.reduce((sum, p) => sum + Number(p.amount), 0);
-  const balance = Number(invoice.total) - totalPaid;
+  // v7.209.0 A3: restar credited_amount (NCs timbradas) para alinear el saldo
+  // del detalle con el estado de cuenta del portal y con la vista interna.
+  const balance = Number(invoice.total) - totalPaid - Number(invoice.credited_amount ?? 0);
   const hasCfdi = Boolean(invoice.cfdi_uuid);
 
   const download = async (fmt: "pdf" | "xml") => {

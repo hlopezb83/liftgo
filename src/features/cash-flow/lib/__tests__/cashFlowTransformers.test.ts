@@ -44,6 +44,7 @@ describe("cashFlowTransformers", () => {
       customer_name: "Acme",
       moneda: "MXN",
       tipo_cambio: null,
+      credited_amount: null,
     };
     it("devuelve null si no hay fecha de vencimiento", () => {
       expect(invoiceToItem({ ...base, due_date: null }, new Map())).toBeNull();
@@ -55,6 +56,29 @@ describe("cashFlowTransformers", () => {
       const item = invoiceToItem(base, new Map([["i1", 200]]));
       expect(item?.amountMxn).toBe(800);
       expect(item?.kind).toBe("in");
+    });
+    // v7.209.0 A4: forecast descuenta NCs timbradas
+    it("descuenta credited_amount (NC timbrada) en MXN", () => {
+      const item = invoiceToItem(
+        { ...base, total: 10000, credited_amount: 6000 },
+        new Map(),
+      );
+      expect(item?.amountMxn).toBe(4000);
+    });
+    it("descuenta credited_amount convertido por tipo_cambio en USD", () => {
+      const item = invoiceToItem(
+        { ...base, total: 1000, moneda: "USD", tipo_cambio: 20, credited_amount: 100 },
+        new Map(),
+      );
+      // (1000 - 100) * 20 = 18000
+      expect(item?.amountMxn).toBe(18000);
+    });
+    it("null si NC deja el saldo en cero", () => {
+      const item = invoiceToItem(
+        { ...base, total: 1000, credited_amount: 1000 },
+        new Map(),
+      );
+      expect(item).toBeNull();
     });
   });
 
