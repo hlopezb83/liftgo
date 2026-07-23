@@ -41,6 +41,7 @@ const rawRoutes: RawRoute[] = [
   { path: "/invoices/:id", loader: () => import("@/features/invoices/pages/InvoiceDetail"), module: "Facturas" },
   { path: "/invoices/:id/edit", loader: () => import("@/features/invoices/pages/InvoiceForm"), module: "Facturas", minAccess: "full" },
   { path: "/returns", loader: () => import("@/features/returns/pages/ReturnInspectionPage"), module: "Entregas" },
+  { path: "/returns/pending", loader: () => import("@/features/returns/pages/PendingReturnsPage"), module: "Entregas" },
   { path: "/returns/:id", loader: () => import("@/features/returns/pages/ReturnInspectionDetail"), module: "Entregas" },
   { path: "/deliveries", loader: () => import("@/features/deliveries/pages/DeliveriesPage"), module: "Entregas" },
   { path: "/deliveries/:id", loader: () => import("@/features/deliveries/pages/DeliveryDetail"), module: "Entregas" },
