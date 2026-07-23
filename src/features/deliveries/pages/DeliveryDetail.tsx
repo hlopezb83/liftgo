@@ -171,7 +171,11 @@ export default function DeliveryDetail() {
         onComplete={markComplete}
         pickupPrompt={pickupPrompt}
         onPickupClose={() => setPickupPrompt(null)}
+        minHours={delivery.type === "pickup"
+          ? siblingDeliveries?.find((d) => d.type === "delivery")?.hours_reading ?? null
+          : null}
       />
+
     </>
   );
 }
