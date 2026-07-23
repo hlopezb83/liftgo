@@ -55,7 +55,7 @@ export function buildUtilizationRows(
     for (const b of relevantBookings) {
       const bStart = max([parseISO(b.start_date), startDate]);
       const bEnd = min([parseISO(b.end_date), endDate]);
-      const overlap = differenceInDays(bEnd, bStart) + 1;
+      const overlap = rentalDaysInclusive(bStart, bEnd);
       if (overlap > 0) bookedDays += overlap;
     }
     const totalDays = units.length * rangeDays;
