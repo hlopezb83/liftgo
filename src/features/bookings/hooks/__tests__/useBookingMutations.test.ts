@@ -25,9 +25,6 @@ const h = vi.hoisted(() => {
     if (calls.some((c) => c.method === "update")) {
       return { data: state.updateResp.data, error: state.updateResp.error };
     }
-    if (calls.some((c) => c.method === "delete")) {
-      return { data: null, error: state.deleteError };
-    }
     return { data: [], error: null };
   };
   return { state, bookingsResolver };
@@ -39,6 +36,8 @@ vi.mock("@/integrations/supabase/client", () => ({
     rpcResolvers: {
       create_booking: () => h.state.createResp,
       cancel_booking: () => ({ data: null, error: h.state.cancelError }),
+      // v7.217.0 (C5a): borrado ahora vía RPC transaccional.
+      delete_booking: () => ({ data: null, error: h.state.deleteError }),
     },
   }),
 }));
