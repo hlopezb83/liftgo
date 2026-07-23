@@ -1,0 +1,12 @@
+{
+  "version": "7.201.1",
+  "date": "2026-07-23",
+  "type": "patch",
+  "title": "Retornos Pendientes alineado con dashboard",
+  "category": "bugfix",
+  "description": "La página /returns/pending usaba `!b.return_status` y `end_date <= hoy 23:59`, lo que producía conteos distintos a la alerta 'Rentas Vencidas' del dashboard. Ahora filtra con `return_status !== 'returned'` y `end_date < hoy (00:00 MTY)`, idéntico a get_dashboard_stats.",
+  "changes": [
+    "PendingReturnsPage: filtro alineado con RPC del dashboard",
+    "Ya no aparecen reservas que vencen hoy ni las que tienen return_status en progreso pero no cerradas como 'returned' distintas al criterio del dashboard"
+  ]
+}
