@@ -1,10 +1,10 @@
-// Barrel re-exports. Implementations live in ./paymentIntents/* to keep each hook small.
+// Shim retro-compatible. Los hooks reales viven en `@/features/invoices/hooks/paymentIntents`
+// para romper el ciclo `invoices → portal`. Este archivo se mantiene mientras
+// `usePortalExtras.ts` siga re-exportando esta ruta para compatibilidad interna.
 export {
-  usePortalPaymentIntents,
-  useAdminPaymentIntents,
-} from "./paymentIntents/usePaymentIntentQueries";
-export {
-  useCreatePaymentIntent,
   type PaymentIntentInput,
-} from "./paymentIntents/useCreatePaymentIntent";
-export { useReviewPaymentIntent } from "./paymentIntents/useReviewPaymentIntent";
+  useAdminPaymentIntents,
+  useCreatePaymentIntent,
+  usePortalPaymentIntents,
+  useReviewPaymentIntent,
+} from "@/features/invoices/hooks/paymentIntents";

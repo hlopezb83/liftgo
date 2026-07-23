@@ -1,7 +1,7 @@
+import { adminPaymentIntentsQueries } from "@/features/invoices/lib/paymentIntentsQueryKeys";
 import { invoiceKeys, paymentKeys } from "@/features/invoices/lib/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { portalQueries } from "../../lib/queryKeys";
 
 interface ReviewParams {
   intentId: string;
@@ -42,9 +42,12 @@ export function useReviewPaymentIntent() {
         });
         if (error) throw error;
       }
-
     },
-    invalidateKeys: [portalQueries.adminPaymentIntents.keys.all, paymentKeys.all, invoiceKeys.all],
+    invalidateKeys: [
+      adminPaymentIntentsQueries.keys.all,
+      paymentKeys.all,
+      invoiceKeys.all,
+    ],
     successMsg: "Intento de pago actualizado",
     errorTitle: "Error al actualizar intento de pago",
   });

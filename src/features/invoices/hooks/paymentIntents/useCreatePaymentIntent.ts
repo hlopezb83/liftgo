@@ -1,6 +1,6 @@
+import { paymentIntentsQueries } from "@/features/invoices/lib/paymentIntentsQueryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { portalQueries } from "../../lib/queryKeys";
 
 export interface PaymentIntentInput {
   invoice_id: string;
@@ -40,7 +40,7 @@ export function useCreatePaymentIntent() {
       });
       if (error) throw error;
     },
-    invalidateKeys: [portalQueries.paymentIntents.keys.all],
+    invalidateKeys: [paymentIntentsQueries.keys.all],
     successMsg: "Reporte de pago enviado. Lo revisaremos a la brevedad.",
     errorTitle: "Error al enviar reporte de pago",
   });
