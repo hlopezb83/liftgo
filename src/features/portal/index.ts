@@ -1,13 +1,6 @@
-// Barrel público de la feature "portal".
-// Re-exporta la API consumida por otras features.
-// Generado automáticamente; ampliar manualmente si hace falta.
+// Barrel público de la feature `portal`.
+// Sólo expone hooks/utilidades consumidos por otras features.
+// Las páginas se importan por ruta explícita desde `src/layouts/CustomerPortalRoutes.tsx`
+// y `src/routes/router.tsx` (lazy chunks). Cuídalo — re-exportar páginas aquí
+// obliga a bundlear todo el portal al importar cualquier hook.
 export * from "./hooks/usePortalExtras";
-export * from "./pages/PortalContracts";
-export * from "./pages/PortalDashboard";
-export * from "./pages/PortalInvoiceDetail";
-export * from "./pages/PortalInvoicePayment";
-export * from "./pages/PortalInvoices";
-export * from "./pages/PortalQuoteDetail";
-export * from "./pages/PortalQuotes";
-export * from "./pages/PortalRentals";
-export * from "./pages/PortalStatement";
