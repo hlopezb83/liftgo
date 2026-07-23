@@ -132,9 +132,9 @@ export function useEntityMutation<TVar, TData>(
           const [vars, opts] = args as [TVar, Parameters<typeof originalMutate>[1]?];
           return originalMutate(vars, {
             ...(opts ?? {}),
-            onSettled: (data, error, v, ctx) => {
+            onSettled: (data, error, v, ctx, mctx) => {
               inFlightRef.current = false;
-              opts?.onSettled?.(data, error, v, ctx);
+              opts?.onSettled?.(data, error, v, ctx, mctx);
             },
           });
         }) as typeof originalMutate;
