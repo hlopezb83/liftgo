@@ -4,7 +4,7 @@ import { jsonError, jsonResponse } from "../_shared/http.ts";
 // para que pg_cron pueda invocar sin JWT de usuario (patrón de
 // generate-recurring-maintenance).
 import { requireServiceOrRole } from "../_shared/auth.ts";
-import { getSupabaseEnv } from "../_shared/supabaseClients.ts";
+import { getAdminClient } from "../_shared/supabaseClients.ts";
 import { computeProrate } from "./prorate.ts";
 
 const TZ = "America/Monterrey";
@@ -440,9 +440,6 @@ Deno.serve(async (req) => {
 
     let supabase;
     if (isCronCall) {
-      const { getAdminClient } = await import("../_shared/supabaseClients.ts");
-      // Consumir env para no dejar imports muertos si supabaseClients cambia.
-      void getSupabaseEnv();
       supabase = getAdminClient();
     } else {
       const auth = await requireServiceOrRole(req, ["admin", "administrativo"]);
