@@ -1,0 +1,17 @@
+{
+  "version": "7.205.0",
+  "date": "2026-07-23",
+  "type": "minor",
+  "title": "Arquitectura Lote B: dedupe auth en edge functions e invalidations muertas",
+  "category": "refactor",
+  "description": "Lote B de la auditoría R-arq: se consolida el bloque de ~25 LOC de autenticación (getClaims + lookup de rol + bypass service_role) en un único helper `_shared/authWithDeps.ts` reutilizado por los 5 handlers CFDI con dependency-injection. También se retiran dos `invalidateQueries(['forklift-options'])` muertas que no correspondían a ningún query factory real.",
+  "changes": [
+    "DIFF 8: nuevo _shared/authWithDeps.ts (authenticateWithDeps) — un solo lugar valida JWT, aplica bypass para service_role JWT (consumer de cfdi_retry_queue) y verifica user_roles",
+    "DIFF 8: stamp-cfdi, stamp-credit-note, cancel-cfdi, cancel-payment-complement, refresh-cancellation-status y validate-receptor-tax-info migrados al helper — se eliminan ~120 LOC duplicadas manteniendo el mismo contrato",
+    "DIFF 9: eliminada invalidación muerta ['forklift-options'] en useQuotes (delete_quote) y useForkliftMutations (update); ningún query factory expone ese key"
+  ],
+  "pending": [
+    "DIFF 6/7 (ciclos + lib→features): requieren mover tipos compartidos (customerTypes, contractTypes, useIncomeStatementData types) a src/types o src/lib/domain — refactor amplio pendiente",
+    "DIFF 10 (reglas de negocio duplicadas): auditar rentalDays helper y NC-aware balance en más consumidores"
+  ]
+}
