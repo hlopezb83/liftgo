@@ -1,0 +1,16 @@
+{
+  "version": "7.217.0",
+  "date": "2026-07-23",
+  "type": "minor",
+  "title": "C5a + C9 + C11.6: RPC delete_booking, validación Zod en prospectos y unificación de badges",
+  "category": "refactor",
+  "description": "Cierra el backlog fiscal/UX pendiente del reporte v212-2: (1) `useDeleteBooking` ahora invoca la RPC transaccional `delete_booking` que valida el estado permitido, resetea el estatus del equipo a `available` y registra en `status_logs` en una sola transacción; (2) `useProspectForm` valida el payload en la frontera con Zod (`prospectPayloadSchema`), detectando email inválido, longitudes fuera de rango y quote_id mal formado antes del mutation; (3) `RepBadge` y `FeedbackStatusBadge` pasan a ser wrappers delgados sobre `StatusBadge` central — se agregan los tokens `new/triage/in_progress/resolved/closed/rejected/duplicate/stamped/error/rep_none` al mapa unificado de estilos y labels. También se corrigen los metadatos del proyecto (`package.json`: name=liftgo, version=7.217.0).",
+  "changes": [
+    "useDeleteBooking: switch a RPC transaccional delete_booking (invalida bookings + forklifts + status_logs)",
+    "prospectPayloadSchema: validación Zod al buildPayload (email real, longitudes, quote_id UUID)",
+    "StatusBadge: mapa unificado incluye tokens de feedback y REP",
+    "RepBadge y FeedbackStatusBadge: wrappers sobre StatusBadge, cero mapeos duplicados",
+    "package.json: name=liftgo, version=7.217.0",
+    "Test useBookingMutations: rpcResolver delete_booking en lugar de tableResolver delete"
+  ]
+}

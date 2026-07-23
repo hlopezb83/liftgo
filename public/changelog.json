@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.217.0",
+    "date": "2026-07-23",
+    "type": "minor",
+    "title": "C5a + C9 + C11.6: RPC delete_booking, validación Zod en prospectos y unificación de badges",
+    "category": "refactor"
+  },
+  {
     "version": "7.216.0",
     "date": "2026-07-23",
     "type": "patch",
