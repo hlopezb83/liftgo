@@ -8,6 +8,7 @@ import { isUUID } from "../_shared/validate.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 import { getFacturapiConfig } from "../_shared/facturapi/client.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
+import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 
 export type { SupabaseLike };
 
