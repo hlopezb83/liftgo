@@ -27,9 +27,11 @@ export async function fetchCompanyDataAndLogo(): Promise<{
   company: CompanyData | null;
   logoBase64: string | null;
 }> {
+  // R-arq 13: columnas explícitas — evita cachear `company_settings` completa
+  // (incluye umbrales financieros irrelevantes al PDF y expande la row en cache).
   const { data: company } = await supabase
     .from("company_settings")
-    .select("*")
+    .select("razon_social, rfc, regimen_fiscal, lugar_expedicion, logo_url")
     .limit(1)
     .maybeSingle();
 

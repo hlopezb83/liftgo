@@ -1,0 +1,25 @@
+{
+  "version": "7.206.0",
+  "date": "2026-07-23",
+  "type": "minor",
+  "title": "Arquitectura Lote B (cierre): auditoría bancaria, errores no silenciosos y PDFs con columnas explícitas",
+  "category": "refactor",
+  "description": "Cierre de los pendientes del audit R-arq que quedaron validados como bugs reales de alcance atómico. Añadimos trazabilidad row-level a facturas de proveedor y movimientos bancarios, dejamos de silenciar errores al eliminar montacargas y reducimos el payload de las queries de PDF a las columnas que realmente consumen los renderers.",
+  "changes": [
+    "DIFF 11.3: triggers de auditoría (`audit_trigger_fn`) sobre supplier_bills, bank_accounts y bank_statement_lines — cada INSERT/UPDATE/DELETE aparece en /auditoría con diff row-level y usuario",
+    "DIFF 9b: useUpdateForklift migrado a useEntityMutation (hereda translateDbError + toasts consistentes) preservando el setQueryData optimista",
+    "DIFF 9b: useDeleteForklift ahora dispara notifyError en onError — antes silenciaba fallos del RPC delete_forklift (renta activa, integridad referencial); se mantiene el rollback optimista",
+    "DIFF 13: src/lib/pdf/shared.ts y src/lib/pdf/contract/fetchers.ts pasan de `select('*')` a columnas explícitas por renderer (evita cachear umbrales financieros y campos internos irrelevantes al PDF)"
+  ],
+  "validated_false_positives": [
+    "DIFF 10a: InvoiceDetailActions no recomputa balance inline — delega en computeInvoiceFlags",
+    "DIFF 10b: no hay `rentalDays + 1` inline en src/features/bookings/",
+    "DIFF 10c: RentalFinancialSummary.tsx no existe en el repo",
+    "DIFF 18.6: set_prospect_created_by ya tiene SET search_path = public desde la migración 20260408004410"
+  ],
+  "deferred": [
+    "DIFF 6/7 (ciclos y lib→features): >40 archivos, próxima fase Lote C",
+    "DIFF 11.1/11.2 (delete_booking RPC y soft-delete financiero): requiere decisión de negocio",
+    "DIFF 9c/9d, 12, 14-18: mejoras y guardrails para fases posteriores"
+  ]
+}
