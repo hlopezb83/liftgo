@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useBookings } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { notifySuccess } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { nowMty } from "@/lib/utils";
 import { DeliveryActions } from "../components/deliveries/DeliveryActions";
 import { DeliveryDetailDialogs } from "../components/deliveries/DeliveryDetailDialogs";
