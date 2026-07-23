@@ -1,0 +1,34 @@
+{
+  "version": "7.209.0",
+  "date": "2026-07-23",
+  "type": "minor",
+  "title": "Fiscal Grupo A: multi-moneda en P&L, NCs solo timbradas en portal y forecast",
+  "category": "fix",
+  "description": "Cierre del Grupo A de la auditoría v208. Cuatro correcciones fiscales de alto impacto: reportes en MXN reales, saldos del portal alineados con administración y forecast de cobranza consciente de notas de crédito.",
+  "changes": [
+    {
+      "kind": "fix",
+      "area": "Reportes",
+      "detail": "get_income_statement multiplica subtotales de facturas y notas de crédito por tipo_cambio antes de agregar. Ejemplo: factura USD 431.03 @ TC 20 ahora reporta 8,620.60 MXN (antes reportaba 431.03)."
+    },
+    {
+      "kind": "fix",
+      "area": "Portal cliente",
+      "detail": "get_portal_invoices ahora resta solo NCs con cfdi_status='stamped'. Borradores y NCs con error de timbrado dejan de descontar saldo, eliminando la divergencia entre portal y administración."
+    },
+    {
+      "kind": "fix",
+      "area": "Portal cliente",
+      "detail": "PortalInvoiceDetail resta credited_amount al calcular el balance visible, alineándolo con el estado de cuenta del portal."
+    },
+    {
+      "kind": "fix",
+      "area": "Flujo de efectivo",
+      "detail": "invoiceToItem descuenta credited_amount (convertido a MXN con el TC del documento) al proyectar cobranza. Una NC timbrada de 6,000 ahora reduce el forecast en 6,000."
+    }
+  ],
+  "migrations": [
+    "get_income_statement: multi-currency normalization con COALESCE(NULLIF(tipo_cambio,0),1)",
+    "get_portal_invoices: subconsulta de NCs usa cfdi_status='stamped'"
+  ]
+}
