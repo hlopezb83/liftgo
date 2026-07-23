@@ -27,3 +27,7 @@ verify_jwt = false
 [functions.reconcile-stamping-invoices]
 verify_jwt = false
 
+[functions.generate-recurring-invoices]
+verify_jwt = false
+
+

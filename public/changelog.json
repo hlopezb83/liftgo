@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.204.0",
+    "date": "2026-07-23",
+    "type": "minor",
+    "title": "Arquitectura Lote A: cron declarativo, billing_secrets sin lectura directa, timeouts a Facturapi",
+    "category": "refactor"
+  },
+  {
     "version": "7.203.0",
     "date": "2026-07-23",
     "type": "minor",

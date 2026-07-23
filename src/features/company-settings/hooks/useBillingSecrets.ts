@@ -16,41 +16,16 @@ export function useUpsertBillingSecrets() {
       facturapi_test_key?: string | null;
       facturapi_live_key?: string | null;
     }) => {
-      // Solo se incluyen las llaves que el usuario realmente capturó (no vacías),
-      // para no sobrescribir el valor existente con null cuando solo se rota una.
-      const payload: {
-        updated_at: string;
-        facturapi_test_key?: string;
-        facturapi_live_key?: string;
-      } = {
-        updated_at: new Date().toISOString(),
-      };
-      if (input.facturapi_test_key && input.facturapi_test_key.length > 0) {
-        payload.facturapi_test_key = input.facturapi_test_key;
-      }
-      if (input.facturapi_live_key && input.facturapi_live_key.length > 0) {
-        payload.facturapi_live_key = input.facturapi_live_key;
-      }
-      // Bloque 6.1: la columna SELECT sólo está permitida para (id, created_at, updated_at).
-      // Por eso el .select() explícito evita pedir columnas sensibles (facturapi_*_key).
-      const returning = "id, updated_at";
-      if (input.id) {
-        const { data, error } = await supabase
-          .from("billing_secrets")
-          .update(payload)
-          .eq("id", input.id)
-          .select(returning)
-          .single();
-        if (error) throw error;
-        return data;
-      }
-      const { data, error } = await supabase
-        .from("billing_secrets")
-        .insert(payload)
-        .select(returning)
-        .single();
+      // R-arq DIFF 4: única vía admin para escribir. La RPC valida rol,
+      // ignora strings vacíos (COALESCE + NULLIF) y no devuelve valores
+      // sensibles. Eliminado el UPDATE/INSERT directo contra billing_secrets.
+      const args: { p_id?: string; p_test_key?: string; p_live_key?: string } = {};
+      if (input.id) args.p_id = input.id;
+      if (input.facturapi_test_key) args.p_test_key = input.facturapi_test_key;
+      if (input.facturapi_live_key) args.p_live_key = input.facturapi_live_key;
+      const { data, error } = await supabase.rpc("upsert_billing_secret", args);
       if (error) throw error;
-      return data;
+      return { id: data as string };
     },
     invalidateKeys: [billingSecretsQueries.keys.all],
     errorTitle: "Error al guardar las llaves de facturación",

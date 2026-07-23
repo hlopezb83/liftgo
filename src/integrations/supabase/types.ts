@@ -4080,6 +4080,10 @@ export type Database = {
         }[]
       }
       unmatch_bank_line: { Args: { p_line_id: string }; Returns: undefined }
+      upsert_billing_secret: {
+        Args: { p_id?: string; p_live_key?: string; p_test_key?: string }
+        Returns: string
+      }
     }
     Enums: {
       app_role:
