@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.198.0",
+    "date": "2026-07-23",
+    "type": "minor",
+    "title": "Auditoría R10 · fase 7 (utilización sin doble conteo + sync OT ↔ montacargas)",
+    "category": "bugfix"
+  },
+
+  {
     "version": "7.197.0",
     "date": "2026-07-23",
     "type": "minor",
