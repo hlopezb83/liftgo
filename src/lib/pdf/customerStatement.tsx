@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import type { CustomerSummary } from "@/features/customers/lib/customerTypes";
+import type { CustomerSummary } from "@/lib/domain/customerTypes";
 import { CustomerStatementDocument } from "@/lib/pdf/documents/CustomerStatementDocument";
 import { renderAndSave } from "@/lib/pdf/renderAndSave";
 import { fetchCompanyDataAndLogo } from "@/lib/pdf/shared";

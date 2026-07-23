@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.213.0",
+    "date": "2026-07-23",
+    "type": "minor",
+    "title": "Arquitectura Lote D: src/lib deja de importar features",
+    "category": "refactor"
+  },
+  {
     "version": "7.212.0",
     "date": "2026-07-23",
     "type": "minor",

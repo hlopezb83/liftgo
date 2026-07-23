@@ -11,11 +11,14 @@ Auditado en v6 (P3-8). Estado actual:
 - `errorCatalog`, `satCatalogs` — catálogos globales
 
 **Migrados al feature dueño en v7.179.0 (P3-8):**
-- `contractTypes` → `@/features/contracts/lib/contractTypes`
-- `customerTypes` → `@/features/customers/lib/customerTypes`
 - `creditNoteMotives` → `@/features/invoices/lib/creditNoteMotives`
 - `paymentIntentStatus` → `@/features/invoices/lib/paymentIntentStatus`
 - `feedbackMessages` → `@/features/feedback/lib/feedbackMessages`
 
-La allowlist de `scripts/arch-check.sh` (G2) ya no incluye estos nombres; recrearlos
-en `src/lib/domain/` hará fallar el CI.
+**Devueltos a `lib/domain` en v7.213.0 (Lote D) para romper `lib → features`:**
+- `contractTypes` — consumido por `lib/pdf/contract` (renderers PDF).
+- `customerTypes` — consumido por `lib/pdf/documents/CustomerStatementDocument`.
+
+Los archivos originales en `features/*/lib` sobreviven como re-export shims
+para no forzar migración de todos los consumers en un solo lote.
+

@@ -1,4 +1,4 @@
-import { computeInvoiceVisibility, type InvoiceVisibility } from "@/features/invoices/lib/invoiceVisibility";
+import { computeInvoiceVisibility, type InvoiceVisibility } from "./invoiceVisibility";
 import type { Tables } from "@/integrations/supabase/types";
 
 /**

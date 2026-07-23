@@ -1,7 +1,10 @@
 import { Document, Page, Text, View } from "@react-pdf/renderer";
 import type {
-  StatementRow, ComparisonRow, YearTotals, MonthData,
-} from "@/features/reports/hooks/useIncomeStatementData";
+  PdfStatementRow as StatementRow,
+  PdfComparisonRow as ComparisonRow,
+  PdfYearTotals as YearTotals,
+  PdfMonthData as MonthData,
+} from "@/lib/pdf/types/incomeStatement";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { AccentBar } from "@/lib/pdf/components/AccentBar";
