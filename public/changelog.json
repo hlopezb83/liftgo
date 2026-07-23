@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.208.0",
+    "date": "2026-07-23",
+    "type": "minor",
+    "title": "Arquitectura Lote C (cierre): cron timing-safe, factories y helper de días de renta",
+    "category": "refactor"
+  },
+  {
     "version": "7.207.0",
     "date": "2026-07-23",
     "type": "patch",

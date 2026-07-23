@@ -1,4 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { forkliftKeys, quoteAssignedForkliftKeys, statusLogKeys } from "@/features/fleet/lib/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
@@ -48,8 +49,12 @@ export const quoteQueries = defineEntityQueries<"quotes", QuoteListRow[], QuoteR
   },
 );
 
-// Alias retro-compat para consumidores existentes.
-export const quoteKeys = quoteQueries.keys;
+// Alias retro-compat + extensiones.
+export const quoteKeys = {
+  ...quoteQueries.keys,
+  /** Lote C · DIFF 9c: query key para el siguiente folio de cotización. */
+  nextNumber: () => [...quoteQueries.keys.all, "next-number"] as const,
+} as const;
 
 export function useQuotes() {
   return useQuery(quoteQueries.list());
@@ -111,9 +116,9 @@ export function useDeleteQuote() {
     },
     invalidateKeys: [
       quoteKeys.all,
-      ["forklifts"],
-      ["quote_assigned_forklifts"],
-      ["status_logs"],
+      forkliftKeys.all,
+      quoteAssignedForkliftKeys.all,
+      statusLogKeys.all,
     ],
     errorTitle: "Error al eliminar cotización",
     onSuccess: (deletedId) => {
@@ -127,7 +132,7 @@ export function useDeleteQuote() {
 
 export function useNextQuoteNumber() {
   return useQuery({
-    queryKey: ["next_quote_number"],
+    queryKey: quoteKeys.nextNumber(),
     queryFn: async () => {
       const { data, error } = await supabase.rpc("next_quote_number");
       if (error) throw error;

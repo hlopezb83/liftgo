@@ -1,9 +1,7 @@
-import { handleCors } from "../_shared/cors.ts";
-import { jsonError, jsonResponse } from "../_shared/http.ts";
-// R-arq DIFF 1: acepta service_role, CRON_SECRET o rol admin/administrativo
-// para que pg_cron pueda invocar sin JWT de usuario (patrón de
-// generate-recurring-maintenance).
 import { requireServiceOrRole } from "../_shared/auth.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { authenticateCronRequest } from "../_shared/cronAuth.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 import { computeProrate } from "./prorate.ts";
 
@@ -430,16 +428,10 @@ Deno.serve(async (req) => {
   if (corsRes) return corsRes;
 
   try {
-    // R-arq DIFF 1: aceptar CRON_SECRET (bearer) además de service_role/admin.
-    const authHeader = req.headers.get("authorization") ?? "";
-    const bearer = authHeader.startsWith("Bearer ")
-      ? authHeader.slice("Bearer ".length).trim()
-      : "";
-    const cronSecret = Deno.env.get("CRON_SECRET") ?? "";
-    const isCronCall = cronSecret.length > 0 && bearer === cronSecret;
-
+    // Lote C · DIFF 8 rest: auth timing-safe compartida para cron/service.
+    const cronAuth = await authenticateCronRequest(req);
     let supabase;
-    if (isCronCall) {
+    if (cronAuth.ok) {
       supabase = getAdminClient();
     } else {
       const auth = await requireServiceOrRole(req, ["admin", "administrativo"]);
@@ -449,10 +441,6 @@ Deno.serve(async (req) => {
 
     // Parse body (may be empty for legacy callers)
     let body: { preview?: boolean; bookingIds?: string[] } = {};
-    try {
-      const text = await req.text();
-      if (text) body = JSON.parse(text);
-    } catch { /* legacy no-body call */ }
     try {
       const text = await req.text();
       if (text) body = JSON.parse(text);

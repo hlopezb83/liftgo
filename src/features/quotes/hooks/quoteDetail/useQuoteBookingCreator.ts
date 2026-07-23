@@ -1,6 +1,9 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { bookingKeys } from "@/features/bookings/lib/queryKeys";
+import { forkliftKeys } from "@/features/fleet/lib/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
+import { quoteKeys } from "../quotes/useQuotes";
 import {
   buildDeliveryInfos,
   resolveLegacyForkliftIds,
@@ -46,9 +49,9 @@ export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
       const forkliftIds = (rows ?? []).map((r) => r.forklift_id as string);
 
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["bookings"] }),
-        queryClient.invalidateQueries({ queryKey: ["forklifts"] }),
-        queryClient.invalidateQueries({ queryKey: ["quotes"] }),
+        queryClient.invalidateQueries({ queryKey: bookingKeys.all }),
+        queryClient.invalidateQueries({ queryKey: forkliftKeys.all }),
+        queryClient.invalidateQueries({ queryKey: quoteKeys.all }),
       ]);
 
       notifySuccess(`${createdIds.length} reserva(s) creada(s) desde cotización`);

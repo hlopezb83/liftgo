@@ -3,8 +3,8 @@ import { jsonError, jsonResponse } from "../_shared/http.ts";
 import {
   getAdminClient,
   getCallerClient,
-  getSupabaseEnv,
 } from "../_shared/supabaseClients.ts";
+import { authenticateCronRequest } from "../_shared/cronAuth.ts";
 
 Deno.serve(async (req) => {
   const corsResponse = handleCors(req);
@@ -12,23 +12,20 @@ Deno.serve(async (req) => {
 
   try {
     const supabase = getAdminClient();
-    const { serviceKey } = getSupabaseEnv();
 
     // Always require Authorization header. Either:
     //  - CRON_SECRET dedicado (cron / scheduled invocations), o
     //  - service_role token (compat), o
     //  - JWT de admin/administrativo
-    const authHeader = req.headers.get("authorization") ?? "";
-    if (!authHeader.startsWith("Bearer ")) {
-      return jsonError(req, 401, "No autorizado");
-    }
-    const bearer = authHeader.slice("Bearer ".length).trim();
-    const cronSecret = Deno.env.get("CRON_SECRET") ?? "";
-    // Comparación estricta — `includes` previo aceptaba cualquier string que
-    // contuviera la service key como substring (riesgo de bypass).
-    const isServiceCall = (cronSecret.length > 0 && bearer === cronSecret) ||
-      bearer === serviceKey;
-    if (!isServiceCall) {
+    // Lote C · DIFF 8 rest: la parte cron/service se centraliza con
+    // comparación timing-safe en _shared/cronAuth.ts.
+    const cronAuth = await authenticateCronRequest(req);
+    if (!cronAuth.ok) {
+      const authHeader = req.headers.get("authorization") ?? "";
+      if (!authHeader.startsWith("Bearer ")) {
+        return jsonError(req, 401, "No autorizado");
+      }
+      const bearer = authHeader.slice("Bearer ".length).trim();
       const callerClient = getCallerClient(req);
       const { data: claimsData, error: claimsError } = await callerClient.auth
         .getClaims(bearer);
@@ -49,6 +46,7 @@ Deno.serve(async (req) => {
         );
       }
     }
+
 
     // BL-42: calcular el mes actual en America/Monterrey (evita off-by-one
     // durante las primeras horas UTC del día 1 en zonas GMT-6).

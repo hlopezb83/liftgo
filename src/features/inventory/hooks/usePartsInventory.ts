@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { maintenancePartKeys } from "../lib/queryKeys";
 
 const sel = (s: string): string => s;
 
@@ -30,7 +31,7 @@ export function usePartsInventory() {
 
 export function useMaintenanceParts(maintenanceLogId?: string) {
   return useQuery({
-    queryKey: ["maintenance_parts", maintenanceLogId],
+    queryKey: maintenancePartKeys.byLog(maintenanceLogId ?? ""),
     enabled: !!maintenanceLogId,
     queryFn: async () => {
       const { data, error } = await supabase

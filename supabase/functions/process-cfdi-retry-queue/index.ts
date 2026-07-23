@@ -13,6 +13,7 @@ import { handleCors } from "../_shared/cors.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 import { nextRetryAt } from "../_shared/cfdiRetryQueue.ts";
+import { authenticateCronRequest } from "../_shared/cronAuth.ts";
 
 interface QueueRow {
   id: string;
@@ -114,30 +115,10 @@ Deno.serve(async (req) => {
     return json({ error: "Server misconfigured" }, 500);
   }
 
-  // NC-2: gating de auth. Aceptamos:
-  //  - Header `x-cron-secret: <CRON_SECRET>` (uso recomendado desde pg_cron).
-  //  - `Authorization: Bearer <CRON_SECRET>` (compat con Scheduled Functions).
-  //  - `Authorization: Bearer <service_role>` (llamadas administrativas puntuales).
-  // El secreto se resuelve desde Deno.env o, si está vacío, desde vault vía
-  // RPC `internal_get_cron_secret()` — así pg_cron y edge functions comparten
-  // la misma fuente de verdad sin duplicar el valor.
+  // Lote C · DIFF 8 rest: auth timing-safe centralizada en _shared/cronAuth.ts.
   const admin = getAdminClient();
-  let cronSecret = Deno.env.get("CRON_SECRET") ?? "";
-  if (!cronSecret) {
-    const { data: vaultSecret } = await admin.rpc("internal_get_cron_secret");
-    cronSecret = typeof vaultSecret === "string" ? vaultSecret : "";
-  }
-  const headerSecret = req.headers.get("x-cron-secret") ?? "";
-  const authHeader = req.headers.get("authorization") ?? "";
-  const bearer = authHeader.startsWith("Bearer ")
-    ? authHeader.slice("Bearer ".length).trim()
-    : "";
-  const authorized = (cronSecret.length > 0 &&
-    (headerSecret === cronSecret || bearer === cronSecret)) ||
-    (serviceKey.length > 0 && bearer === serviceKey);
-  if (!authorized) {
-    return json({ error: "Unauthorized" }, 401);
-  }
+  const auth = await authenticateCronRequest(req);
+  if (!auth.ok) return json({ error: auth.error }, auth.status);
 
   const nowIso = new Date().toISOString();
   // Filas 'processing' que quedaron huérfanas porque la ejecución anterior

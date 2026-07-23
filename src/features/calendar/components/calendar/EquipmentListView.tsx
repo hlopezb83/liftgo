@@ -1,10 +1,11 @@
 
-import { parseISO, differenceInDays, isWithinInterval } from "date-fns";
+import { parseISO, isWithinInterval } from "date-fns";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ChevronRightIcon } from "@/components/icons";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import type { BookingWithForklift } from "@/features/bookings";
 import { RecurringBillingBadge } from "@/features/bookings";
+import { rentalDaysInclusive } from "@/features/bookings/lib/rentalDays";
 import type { Tables } from "@/integrations/supabase/types";
 import { BOOKING_STATUS } from "@/lib/constants";
 import { nowMty, formatMtyDate } from "@/lib/utils";
@@ -79,7 +80,7 @@ export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProp
 }
 
 function BookingRow({ booking, label }: { booking: BookingWithForklift; label: string }) {
-  const duration = differenceInDays(parseISO(booking.end_date), parseISO(booking.start_date)) + 1;
+  const duration = rentalDaysInclusive(parseISO(booking.start_date), parseISO(booking.end_date));
   return (
     <div className="flex items-center justify-between p-2 rounded bg-background border text-sm">
       <div className="flex items-center gap-2">
