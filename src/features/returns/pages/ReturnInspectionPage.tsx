@@ -1,5 +1,7 @@
 import { format } from "date-fns";
 import { useState } from "react";
+import { useSearchParams } from "react-router";
+
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DatePickerField } from "@/components/forms/DatePickerField";
@@ -20,23 +22,27 @@ type Inspection = NonNullable<ReturnType<typeof useReturnInspections>["data"]>[n
 
 export default function ReturnInspectionPage() {
   const navigate = useNavigateTransition();
+  const [searchParams] = useSearchParams();
   const { data: bookings } = useBookings();
   const { forkliftMap } = useForkliftMap();
   const { data: inspections, isLoading, isError, refetch } = useReturnInspections();
 
   const [filterDate, setFilterDate] = useState<Date | undefined>();
 
-  // R7 Bloque 15: `end_date` es date-only (YYYY-MM-DD). `new Date(...)` lo
-  // parsea como UTC-medianoche → en TZ negativas suma un día. `parseDateLocal`
-  // lo interpreta en la zona del usuario para que "termina mañana" no salga hoy.
+  // R10 Bloque 7: en modo `?early=1`, incluir rentas vigentes con fin futuro
+  // para permitir devolución anticipada. En modo normal, exigir end_date <= hoy.
+  const isEarlyReturn = searchParams.get("early") === "1";
   const today = new Date();
   today.setHours(23, 59, 59, 999);
   const activeBookings = bookings?.filter(
-    (b) => b.status === "confirmed" && !b.return_status && parseDateLocal(b.end_date) <= today,
+    (b) => b.status === "confirmed"
+      && !b.return_status
+      && (isEarlyReturn || parseDateLocal(b.end_date) <= today),
   );
 
   const { dialogOpen, setDialogOpen, form, openNew, handleSubmit, isPending } =
     useReturnInspectionDialog(bookings, activeBookings);
+
 
   const filteredInspections = !inspections
     ? []

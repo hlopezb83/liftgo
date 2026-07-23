@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.194.0",
+    "date": "2026-07-23",
+    "type": "minor",
+    "title": "Auditoría R10 · fase 3 (devolución anticipada, fecha pago futura, seguros/reservas/cancelación)",
+    "category": "bugfix"
+  },
+
+  {
     "version": "7.193.0",
     "date": "2026-07-23",
     "type": "minor",

@@ -84,6 +84,14 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
   const handleSubmit = async () => {
     const amt = roundMoney(Number(amount));
     if (!amt || amt <= 0) { notifyValidation({ message: "Monto inválido" }); return; }
+    // R10 Bloque 8.1: la fecha de pago no puede ser futura (SAT rechaza REP con
+    // fecha posterior a la del timbrado y contabilidad se rompe).
+    const endOfToday = nowMty();
+    endOfToday.setHours(23, 59, 59, 999);
+    if (date > endOfToday) {
+      notifyValidation({ message: "La fecha del pago no puede ser futura." });
+      return;
+    }
     // BL-11: rechazar sobrepagos. Antes se permitía registrar un pago mayor al
     // saldo (creando saldos negativos invisibles). Ahora bloqueamos en submit.
     const balanceRounded = roundMoney(balance);
@@ -93,6 +101,7 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
       });
       return;
     }
+
     let exch = 1;
     if (currency !== "MXN") {
       const parsed = Number(exchangeRate);
