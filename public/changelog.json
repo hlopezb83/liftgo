@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.206.0",
+    "date": "2026-07-23",
+    "type": "minor",
+    "title": "Arquitectura Lote B (cierre): auditoría bancaria, errores no silenciosos y PDFs con columnas explícitas",
+    "category": "refactor"
+  },
+  {
     "version": "7.205.0",
     "date": "2026-07-23",
     "type": "minor",
