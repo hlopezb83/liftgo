@@ -61,6 +61,10 @@ vi.mock("@/layouts/RoleGuard", () => ({
   RoleGuard: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
+vi.mock("@/features/users", () => ({
+  useHasModuleAccess: () => true,
+}));
+
 function renderPage() {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   const { container } = render(
