@@ -7,7 +7,7 @@ import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
-import { useAdminPaymentIntents, useReviewPaymentIntent } from "@/features/portal";
+import { useAdminPaymentIntents, useReviewPaymentIntent } from "@/features/invoices/hooks/paymentIntents";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { openStorageFile } from "@/lib/storage/openStorageFile";
 import {
