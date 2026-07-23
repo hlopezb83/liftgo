@@ -6,14 +6,8 @@
 // usuarios finales.
 import type { SupabaseLike } from "./types.ts";
 
-export interface CallerLike {
-  auth: {
-    getClaims: (token: string) => Promise<{
-      data: { claims?: Record<string, unknown> | { sub?: string } } | null;
-      error: unknown;
-    }>;
-  };
-}
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type CallerLike = { auth: { getClaims: (token: string) => Promise<any> } };
 
 export interface AuthWithDepsOk {
   ok: true;
