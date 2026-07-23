@@ -1,3 +1,6 @@
+import { z } from "zod";
+import { optionalEmail } from "@/lib/schemas/common";
+
 export const STAGE_LABELS: Record<string, string> = {
   nuevo_prospecto: "Nuevo Prospecto",
   contactado: "Contactado",
@@ -14,16 +17,20 @@ export const STAGES_REQUIRING_DEAL_VALUE = [
   "cerrado_perdido",
 ];
 
-export interface ProspectFormPayload {
-  company_name: string;
-  contact_person: string;
-  email: string;
-  phone: string;
-  deal_value: number;
-  notes: string;
-  stage: string;
-  quote_id: string | null;
-}
+// v7.217.0 (C9): Zod schema en la frontera del formulario. Valida email real,
+// longitudes y forma del payload antes de llegar al mutation.
+export const prospectPayloadSchema = z.object({
+  company_name: z.string().trim().min(1, "El nombre de la empresa es requerido").max(200),
+  contact_person: z.string().trim().max(150).default(""),
+  email: optionalEmail(),
+  phone: z.string().trim().max(30).default(""),
+  deal_value: z.number().min(0, "El valor del trato debe ser positivo"),
+  notes: z.string().max(2000).default(""),
+  stage: z.string().min(1),
+  quote_id: z.string().uuid().nullable(),
+});
+
+export type ProspectFormPayload = z.infer<typeof prospectPayloadSchema>;
 
 interface QuoteLike {
   id: string;
@@ -52,3 +59,4 @@ export function validateDealValue(
   }
   return { value: parsedValue, error: null };
 }
+

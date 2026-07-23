@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuotes } from "@/features/quotes";
 import {
   STAGES_REQUIRING_DEAL_VALUE,
+  prospectPayloadSchema,
   sortQuotesByCompanyMatch,
   validateDealValue,
   type ProspectFormPayload,
@@ -74,15 +75,28 @@ export function useProspectForm({
       setDealValueError(error);
       return null;
     }
-    return {
+    // v7.217.0 (C9): validación Zod en la frontera. Detecta email inválido,
+    // longitudes fuera de rango y quote_id mal formado antes del mutation.
+    const parsed = prospectPayloadSchema.safeParse({
       company_name: company,
       contact_person: contact,
-      email, phone,
+      email,
+      phone,
       deal_value: value,
       notes,
       stage: effectiveStage,
       quote_id: quoteId,
-    };
+    });
+    if (!parsed.success) {
+      const emailIssue = parsed.error.issues.find((i) => i.path[0] === "email");
+      if (emailIssue) setDealValueError(null);
+      // Reutilizamos dealValueError como canal de mensaje ligero; el resto
+      // se reporta vía notifyValidation para no acoplar el hook a la UI.
+      const first = parsed.error.issues[0];
+      setDealValueError(first?.message ?? "Datos inválidos");
+      return null;
+    }
+    return parsed.data;
   };
 
   const selectedQuote = quoteId ? allQuotes.find((q) => q.id === quoteId) : null;

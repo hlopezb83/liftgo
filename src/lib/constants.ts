@@ -115,4 +115,15 @@ export const STATUS_LABELS: Record<string, string> = {
   INSERT: "Creación",
   UPDATE: "Actualización",
   DELETE: "Eliminación",
+  // v7.217.0 (C11.6): labels unificados de feedback + REP para StatusBadge.
+  new: "Nuevo",
+  triage: "Triage",
+  in_progress: "En progreso",
+  resolved: "Resuelto",
+  closed: "Cerrado",
+  rejected: "Rechazado",
+  duplicate: "Duplicado",
+  stamped: "Timbrado",
+  error: "Error",
+  rep_none: "Sin REP",
 };

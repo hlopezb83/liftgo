@@ -38,12 +38,15 @@ export function useUpdateBooking() {
 }
 
 export function useDeleteBooking() {
+  // v7.217.0 (C5a): RPC transaccional. Elimina la reserva y regresa el
+  // equipo a `available` + registra en `status_logs` en una sola transacción.
+  // El guard SQL sólo permite borrar reservas cancelled/completed.
   return useEntityMutation({
     mutationFn: async (bookingId: string) => {
-      const { error } = await supabase.from("bookings").delete().eq("id", bookingId);
+      const { error } = await supabase.rpc("delete_booking", { p_booking_id: bookingId });
       if (error) throw error;
     },
-    invalidateKeys: [bookingKeys.all, forkliftKeys.all],
+    invalidateKeys: [bookingKeys.all, forkliftKeys.all, ["status_logs"] as const],
     errorTitle: "Error al eliminar reserva",
   });
 }

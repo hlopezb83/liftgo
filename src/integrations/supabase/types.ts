@@ -3660,6 +3660,7 @@ export type Database = {
             Returns: string
           }
         | { Args: { p_items: Json; p_notes?: string }; Returns: string }
+      delete_booking: { Args: { p_booking_id: string }; Returns: undefined }
       delete_forklift: { Args: { p_forklift_id: string }; Returns: undefined }
       delete_quote_with_unassign: {
         Args: { p_quote_id: string }
