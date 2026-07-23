@@ -1,0 +1,16 @@
+{
+  "version": "7.208.0",
+  "date": "2026-07-23",
+  "type": "minor",
+  "title": "Arquitectura Lote C (cierre): cron timing-safe, factories y helper de días de renta",
+  "category": "refactor",
+  "description": "Cierra los DIFFs 8/9c/10b del audit R-arq. Migra generate-recurring-invoices al helper compartido authenticateCronRequest (comparación timing-safe con CRON_SECRET y service_role, misma auth ya usada por los otros tres crons). Elimina las cinco duplicaciones del cálculo differenceInDays(end,start)+1 centralizándolas en rentalDaysInclusive. Reemplaza los últimos queryKey inline por factories (quoteKeys.nextNumber, bookingKeys.all, forkliftKeys.all, quoteAssignedForkliftKeys.all, statusLogKeys.all, maintenancePartKeys.byLog).",
+  "changes": [
+    "generate-recurring-invoices ahora usa authenticateCronRequest (elimina comparación de string no timing-safe y bug de doble req.text() que rompía body en llamadas legacy)",
+    "Nuevo helper rentalDaysInclusive en src/features/bookings/lib/rentalDays.ts, aplicado en BookingsPage, EquipmentListView, useGanttSegments, RentalFinancialSummary y utilizationHelpers",
+    "quoteKeys.nextNumber() reemplaza [\"next_quote_number\"] en useNextQuoteNumber",
+    "useDeleteQuote invalida vía forkliftKeys.all / quoteAssignedForkliftKeys.all / statusLogKeys.all",
+    "useQuoteBookingCreator invalida vía bookingKeys.all / forkliftKeys.all / quoteKeys.all",
+    "maintenancePartKeys.byLog(id) reemplaza [\"maintenance_parts\", id] en useMaintenanceParts"
+  ]
+}
