@@ -49,9 +49,9 @@ export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
       const forkliftIds = (rows ?? []).map((r) => r.forklift_id as string);
 
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["bookings"] }),
-        queryClient.invalidateQueries({ queryKey: ["forklifts"] }),
-        queryClient.invalidateQueries({ queryKey: ["quotes"] }),
+        queryClient.invalidateQueries({ queryKey: bookingKeys.all }),
+        queryClient.invalidateQueries({ queryKey: forkliftKeys.all }),
+        queryClient.invalidateQueries({ queryKey: quoteKeys.all }),
       ]);
 
       notifySuccess(`${createdIds.length} reserva(s) creada(s) desde cotización`);
