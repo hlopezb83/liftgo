@@ -19,6 +19,8 @@ export interface InvoiceRow {
   customer_name: string | null;
   moneda: string | null;
   tipo_cambio: number | string | null;
+  /** v7.209.0 A4: NCs timbradas restadas por la vista `v_invoices_with_balance`. */
+  credited_amount?: number | string | null;
 }
 
 export interface BillRow {
@@ -56,7 +58,14 @@ export function invoiceToItem(
 ): CashFlowItem | null {
   if (!inv.due_date) return null;
   const totalMxn = toMxn(Number(inv.total), inv.moneda ?? "MXN", inv.tipo_cambio);
-  const balance = totalMxn - (paidByInvoice.get(inv.id) ?? 0);
+  // v7.209.0 A4: descontar NCs timbradas (mismo doc → mismo TC) para no
+  // proyectar cobro sobre montos ya acreditados al cliente.
+  const creditedMxn = toMxn(
+    Number(inv.credited_amount ?? 0),
+    inv.moneda ?? "MXN",
+    inv.tipo_cambio,
+  );
+  const balance = totalMxn - (paidByInvoice.get(inv.id) ?? 0) - creditedMxn;
   if (balance <= 0.01) return null;
   return {
     id: inv.id,
