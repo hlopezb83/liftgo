@@ -3,6 +3,7 @@ import { handleCors } from "../_shared/cors.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { isNonEmptyString, isUUID } from "../_shared/validate.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
+import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import {
   createFacturapiClient,
   describeFacturapiError,
