@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.201.1",
+    "date": "2026-07-23",
+    "type": "patch",
+    "title": "Retornos Pendientes alineado con dashboard",
+    "category": "bugfix"
+  },
+
+  {
     "version": "7.201.0",
     "date": "2026-07-23",
     "type": "patch",
