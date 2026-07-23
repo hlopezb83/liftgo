@@ -1,6 +1,7 @@
 
-import { eachDayOfInterval, parseISO, differenceInDays } from "date-fns";
+import { eachDayOfInterval, parseISO } from "date-fns";
 import type { BookingWithForklift } from "@/features/bookings";
+import { rentalDaysInclusive } from "@/features/bookings/lib/rentalDays";
 
 const BOOKING_COLORS = [
   "hsl(var(--gantt-1))", "hsl(var(--gantt-2))", "hsl(var(--gantt-3))", "hsl(var(--gantt-4))",
