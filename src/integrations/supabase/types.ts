@@ -4071,6 +4071,14 @@ export type Database = {
         Args: { p_supplier_id: string }
         Returns: undefined
       }
+      sync_forklift_rental_status: {
+        Args: never
+        Returns: {
+          forklift_id: string
+          new_status: string
+          previous_status: string
+        }[]
+      }
       unmatch_bank_line: { Args: { p_line_id: string }; Returns: undefined }
     }
     Enums: {
