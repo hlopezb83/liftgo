@@ -1,0 +1,28 @@
+{
+  "version": "7.196.0",
+  "date": "2026-07-23",
+  "type": "minor",
+  "title": "Auditoría R10 · fase 5",
+  "category": "bugfix",
+  "sections": [
+    {
+      "heading": "Cotizaciones",
+      "items": [
+        "La fecha de vigencia (validUntil) ya no puede quedar en el pasado al crear o editar una cotización (R10 Bloque 11.2)."
+      ]
+    },
+    {
+      "heading": "Mantenimiento",
+      "items": [
+        "Órdenes de trabajo cerradas (completadas o canceladas) ahora bloquean agregar, editar o eliminar refacciones y mano de obra a nivel base de datos (R10 Bloque 12.3)."
+      ]
+    },
+    {
+      "heading": "Devoluciones",
+      "items": [
+        "La inspección de devolución es idempotente: si ya existe una para la reserva, se reutiliza en lugar de duplicarla (R10 Bloque 9.3).",
+        "Se valida el rango temporal: la fecha de inspección no puede ser anterior al inicio de la reserva ni más de 30 días en el futuro."
+      ]
+    }
+  ]
+}
