@@ -430,16 +430,10 @@ Deno.serve(async (req) => {
   if (corsRes) return corsRes;
 
   try {
-    // R-arq DIFF 1: aceptar CRON_SECRET (bearer) además de service_role/admin.
-    const authHeader = req.headers.get("authorization") ?? "";
-    const bearer = authHeader.startsWith("Bearer ")
-      ? authHeader.slice("Bearer ".length).trim()
-      : "";
-    const cronSecret = Deno.env.get("CRON_SECRET") ?? "";
-    const isCronCall = cronSecret.length > 0 && bearer === cronSecret;
-
+    // Lote C · DIFF 8 rest: auth timing-safe compartida para cron/service.
+    const cronAuth = await authenticateCronRequest(req);
     let supabase;
-    if (isCronCall) {
+    if (cronAuth.ok) {
       supabase = getAdminClient();
     } else {
       const auth = await requireServiceOrRole(req, ["admin", "administrativo"]);
@@ -449,10 +443,6 @@ Deno.serve(async (req) => {
 
     // Parse body (may be empty for legacy callers)
     let body: { preview?: boolean; bookingIds?: string[] } = {};
-    try {
-      const text = await req.text();
-      if (text) body = JSON.parse(text);
-    } catch { /* legacy no-body call */ }
     try {
       const text = await req.text();
       if (text) body = JSON.parse(text);
