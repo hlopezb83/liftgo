@@ -42,44 +42,15 @@ export async function handleCancelCfdi(
     jsonError(req, status, message);
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return json({ error: "Unauthorized" }, 401);
-    }
-    const token = authHeader.replace("Bearer ", "");
-
-    const callerClient = deps.createCallerClient(authHeader);
-    const { data: claimsData, error: claimsErr } = await callerClient.auth
-      .getClaims(token);
-    if (claimsErr || !claimsData?.claims) {
-      return json({ error: "Unauthorized" }, 401);
-    }
-    const claims = claimsData.claims as Record<string, unknown>;
-    // EC-A1: bypass de user-role para el consumidor interno de la cola de
-    // reintentos (mismo patrón que stamp-cfdi/handler.ts). Solo el
-    // service_role JWT del backend puede saltar la verificación de rol de
-    // usuario; cualquier otro token cae al flujo normal. Sin este bypass el
-    // consumer de cfdi_retry_queue recibiría 401 al reintentar cancelaciones.
-    const isServiceRole = claims.role === "service_role";
-    const userId = (claims.sub as string | undefined) ?? "";
-
-    const supabase = deps.createServiceClient();
-    if (!isServiceRole) {
-      if (!userId) {
-        return json({ error: "Unauthorized" }, 401);
-      }
-      const rolesRes = await supabase.from("user_roles").select("role").eq(
-        "user_id",
-        userId,
-      );
-      const roles = (rolesRes as { data: unknown }).data as
-        | Array<{ role: string }>
-        | null;
-      const allowed = (roles ?? []).some((r) =>
-        r.role === "admin" || r.role === "administrativo"
-      );
-      if (!allowed) return json({ error: "Forbidden" }, 403);
-    }
+    const auth = await authenticateWithDeps({
+      req,
+      createCallerClient: (h) => deps.createCallerClient(h),
+      createServiceClient: () => deps.createServiceClient(),
+      allowedRoles: ["admin", "administrativo"],
+      logTag: "[cancel-cfdi]",
+    });
+    if (!auth.ok) return json({ error: auth.message }, auth.status);
+    const supabase = auth.supabase;
 
     const body = await req.json().catch(() => ({}));
     const { invoice_id, motive, substitution_uuid, cancellation_reason } =
