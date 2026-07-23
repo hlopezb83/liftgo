@@ -31,7 +31,7 @@ export function usePartsInventory() {
 
 export function useMaintenanceParts(maintenanceLogId?: string) {
   return useQuery({
-    queryKey: ["maintenance_parts", maintenanceLogId],
+    queryKey: maintenancePartKeys.byLog(maintenanceLogId ?? ""),
     enabled: !!maintenanceLogId,
     queryFn: async () => {
       const { data, error } = await supabase
