@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.193.0",
+    "date": "2026-07-23",
+    "type": "minor",
+    "title": "Auditoría R10 · fase 2 (horómetro, REP timbrado protegido, EquivalenciaDR, stock ≥ 0)",
+    "category": "bugfix"
+  },
+
+  {
     "version": "7.192.0",
     "date": "2026-07-23",
     "type": "minor",

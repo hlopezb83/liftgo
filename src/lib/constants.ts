@@ -83,6 +83,7 @@ export const STATUS_LABELS: Record<string, string> = {
   retired: "Retirado",
   draft: "Borrador",
   sent: "Sin Pagar",
+  issued: "Emitida", // R10 Bloque 12.11
   paid: "Pagado",
   overdue: "Vencido",
   confirmed: "Confirmado",
@@ -94,6 +95,7 @@ export const STATUS_LABELS: Record<string, string> = {
   in_repair: "En Reparación",
   repaired: "Reparado",
   invoiced: "Facturado",
+
   good: "Bueno",
   minor_damage: "Daño Menor",
   major_damage: "Daño Mayor",

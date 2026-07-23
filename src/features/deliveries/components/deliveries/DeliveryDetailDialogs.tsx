@@ -15,11 +15,13 @@ interface Props {
   onComplete: (signature?: string) => void;
   pickupPrompt: PickupPrompt | null;
   onPickupClose: () => void;
+  /** R10 Bloque 4: horómetro de entrega si el detalle actual es pickup. */
+  minHours?: number | null;
 }
 
 export function DeliveryDetailDialogs({
   signatureOpen, setSignatureOpen, hoursReading, setHoursReading, onComplete,
-  pickupPrompt, onPickupClose,
+  pickupPrompt, onPickupClose, minHours,
 }: Props) {
   return (
     <>
@@ -29,7 +31,9 @@ export function DeliveryDetailDialogs({
         hoursReading={hoursReading}
         onHoursReadingChange={setHoursReading}
         onComplete={onComplete}
+        minHours={minHours}
       />
+
       {pickupPrompt && (
         <PostDeliveryPickupDialog
           open

@@ -18,8 +18,16 @@ export const buildCompletionPayload = (
   completedAtIso: string,
   signature?: string,
   hoursReading?: string,
+  /** R10 Bloque 4: horómetro de la entrega para validar que la recolección no
+   *  sea menor (produciría "Horas Usadas" negativo). */
+  minHours?: number | null,
 ) => {
   const hrs = hoursReading ? parseFloat(hoursReading) : undefined;
+  if (hrs !== undefined && Number.isFinite(hrs) && minHours != null && hrs < minHours) {
+    throw new Error(
+      `El horómetro no puede ser menor a ${minHours} hrs (registradas en la entrega).`,
+    );
+  }
   return {
     id,
     status: "completed" as const,
@@ -28,6 +36,7 @@ export const buildCompletionPayload = (
     ...(hrs !== undefined ? { hours_reading: hrs } : {}),
   };
 };
+
 
 export const buildDeliverySubtitle = (
   forkliftName: string | null | undefined,

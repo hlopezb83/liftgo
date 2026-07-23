@@ -36,6 +36,9 @@ interface FormDialogProps {
   testId?: string;
   /** Clases extra para DialogContent. */
   className?: string;
+  /** R10 Bloque 11.1: cuando el submit está en curso, bloquea Esc y click
+   *  fuera para evitar cerrar el diálogo con una mutación viva. */
+  isPending?: boolean;
 }
 
 /**
@@ -53,12 +56,15 @@ export function FormDialog({
   width = "lg",
   testId,
   className,
+  isPending = false,
 }: FormDialogProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={(v) => { if (!v && isPending) return; onOpenChange(v); }}>
       <DialogContent
         className={cn(WIDTH_CLASS[width], "max-h-[85vh] overflow-y-auto", className)}
         data-testid={testId}
+        onEscapeKeyDown={(e) => { if (isPending) e.preventDefault(); }}
+        onInteractOutside={(e) => { if (isPending) e.preventDefault(); }}
       >
         <DialogHeader className="sticky top-0 bg-background z-10 -mx-6 px-6 pb-3 border-b">
           <DialogTitle>{title}</DialogTitle>
@@ -69,6 +75,7 @@ export function FormDialog({
     </Dialog>
   );
 }
+
 
 // Bloque 4.3 (R4): el footer sticky se superponía al último input del form.
 // Compensamos con `pb-16` en el cuerpo scrollable para dejar espacio libre

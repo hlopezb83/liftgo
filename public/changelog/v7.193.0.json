@@ -1,0 +1,33 @@
+{
+  "version": "7.193.0",
+  "date": "2026-07-23",
+  "type": "minor",
+  "title": "Auditoría R10 · fase 2",
+  "category": "bugfix",
+  "changes": [
+    {
+      "area": "Logística",
+      "detail": "Bloque 4: la recolección valida que el horómetro sea ≥ al registrado en la entrega. Se muestra el mínimo y se bloquea firmar/omitir cuando el valor es menor."
+    },
+    {
+      "area": "Facturación · Pagos",
+      "detail": "Bloque 6: los pagos con REP timbrado ya no pueden editarse ni eliminarse desde la UI ni desde la base de datos. Se muestra tooltip explicativo y trigger de respaldo."
+    },
+    {
+      "area": "Facturación · REP",
+      "detail": "Bloque 8.2: se corrige EquivalenciaDR en el complemento de pago. Cuando la moneda del pago coincide con la de la factura, se envía 1 en lugar del tipo de cambio histórico."
+    },
+    {
+      "area": "Facturación · Notas de crédito",
+      "detail": "Bloque 8.3: la vista v_invoices_with_balance solo descuenta notas de crédito timbradas. Los borradores dejan de reducir artificialmente el saldo por cobrar."
+    },
+    {
+      "area": "Formularios",
+      "detail": "Bloque 11.1: FormDialog bloquea Esc y click fuera mientras hay una mutación en curso, evitando cierres accidentales."
+    },
+    {
+      "area": "Inventario",
+      "detail": "Bloque 12.4: se agrega CHECK constraint stock_quantity ≥ 0 en parts_inventory a nivel base de datos."
+    }
+  ]
+}

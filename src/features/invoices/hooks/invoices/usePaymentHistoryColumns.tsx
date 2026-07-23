@@ -116,12 +116,28 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
 
     base.push({
       id: "actions", header: "", enableSorting: false,
-      cell: ({ row }) => (
-        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setEditingPayment(row.original)} aria-label="Editar pago" title="Editar pago">
-          <EditIcon className="h-3.5 w-3.5" />
-        </Button>
-      ),
+      cell: ({ row }) => {
+        const p = row.original;
+        // R10 Bloque 6: si el pago tiene REP timbrado, editar montos/fecha
+        // rompería el complemento CFDI. Bloqueamos el botón con tooltip.
+        const repLocked = (p.rep_cfdi_status as string | null) === "stamped";
+        const title = repLocked
+          ? "El pago tiene un complemento (REP) timbrado; cancélalo primero para modificarlo."
+          : "Editar pago";
+        return (
+          <Button
+            variant="ghost" size="icon" className="h-7 w-7"
+            onClick={() => !repLocked && setEditingPayment(p)}
+            aria-label="Editar pago"
+            title={title}
+            disabled={repLocked}
+          >
+            <EditIcon className="h-3.5 w-3.5" />
+          </Button>
+        );
+      },
     });
+
 
     return base;
   })();

@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useBookings } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { notifySuccess } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { nowMty } from "@/lib/utils";
 import { DeliveryActions } from "../components/deliveries/DeliveryActions";
 import { DeliveryDetailDialogs } from "../components/deliveries/DeliveryDetailDialogs";
@@ -84,17 +84,26 @@ export default function DeliveryDetail() {
   };
 
   const markComplete = (signature?: string) => {
-    updateDelivery.mutate(
-      buildCompletionPayload(delivery.id, nowMty().toISOString(), signature, hoursReading),
-      {
+    // R10 Bloque 4: si es pickup, valida horómetro contra la entrega previa.
+    const minHours = delivery.type === "pickup"
+      ? siblingDeliveries?.find((d) => d.type === "delivery")?.hours_reading ?? null
+      : null;
+    try {
+      const payload = buildCompletionPayload(
+        delivery.id, nowMty().toISOString(), signature, hoursReading, minHours,
+      );
+      updateDelivery.mutate(payload, {
         onSuccess: () => {
           notifySuccess("Marcado como completado");
           setSignatureOpen(false);
           promptPickupIfNeeded();
         },
-      },
-    );
+      });
+    } catch (err) {
+      notifyError({ title: "Horómetro inválido", error: err });
+    }
   };
+
 
   const handleDelete = () => {
     deleteDelivery.mutate(delivery.id, {
@@ -162,7 +171,11 @@ export default function DeliveryDetail() {
         onComplete={markComplete}
         pickupPrompt={pickupPrompt}
         onPickupClose={() => setPickupPrompt(null)}
+        minHours={delivery.type === "pickup"
+          ? siblingDeliveries?.find((d) => d.type === "delivery")?.hours_reading ?? null
+          : null}
       />
+
     </>
   );
 }
