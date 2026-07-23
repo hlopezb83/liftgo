@@ -1,4 +1,4 @@
-import { parseISO, max, min } from "date-fns";
+import { differenceInDays, parseISO, max, min } from "date-fns";
 import { rentalDaysInclusive } from "@/features/bookings/lib/rentalDays";
 import type { Tables } from "@/integrations/supabase/types";
 
