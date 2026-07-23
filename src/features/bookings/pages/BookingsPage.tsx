@@ -1,4 +1,4 @@
-import { differenceInDays, parseISO } from "date-fns";
+import { parseISO } from "date-fns";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
@@ -16,6 +16,7 @@ import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 import { formatMtyDate } from "@/lib/utils";
 import { RecurringBillingBadge } from "../components/bookings/RecurringBillingBadge";
 import { useBookings, bookingQueries } from "../hooks/bookings/useBookings";
+import { rentalDaysInclusive } from "../lib/rentalDays";
 
 const STATUSES = ["all", ...BOOKING_STATUSES] as const;
 type BookingStatus = (typeof STATUSES)[number];
@@ -25,11 +26,11 @@ type Booking = NonNullable<ReturnType<typeof useBookings>["data"]>[number];
 
 const formatDate = (d: string) => formatMtyDate(d);
 const getDuration = (start: string, end: string) => {
-  // R10 Bloque 12.1: mostrar días inclusivos (end - start + 1) para que una
-  // reserva "hoy → hoy" cuente como 1 día en la lista.
-  const days = differenceInDays(parseISO(end), parseISO(start)) + 1;
+  // Lote C · DIFF 10b: fuente única `rentalDaysInclusive`.
+  const days = rentalDaysInclusive(parseISO(start), parseISO(end));
   return `${days} día${days !== 1 ? "s" : ""}`;
 };
+
 
 
 export default function BookingsPage() {
