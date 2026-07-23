@@ -1,0 +1,13 @@
+{
+  "version": "7.200.0",
+  "date": "2026-07-23",
+  "type": "minor",
+  "title": "Utilización de flota consistente en el dashboard",
+  "category": "bugfix",
+  "changes": [
+    "get_dashboard_stats: 'rented' ahora se calcula desde bookings (reservas confirmadas activas hoy) en vez de mezclar forklifts.status con EXISTS booking. Elimina la discrepancia visible entre la tarjeta KPI de utilización y el pie de estado de flota cuando el status de un montacargas queda desalineado con sus reservas.",
+    "get_dashboard_stats.monthly_utilization: el denominador ahora excluye montacargas con status IN ('retired','sold'), coincidiendo con el criterio de flota activa que usa la tarjeta KPI.",
+    "get_dashboard_stats.monthly_utilization: el mes en curso ahora se acota a CURRENT_DATE (LEAST(month_end, CURRENT_DATE)) tanto en numerador como denominador. La barra del mes vigente ya no se ve artificialmente baja por dividir entre el mes completo.",
+    "Nueva RPC sync_forklift_rental_status (solo admin): reconcilia forklifts.status contra la realidad de bookings — sube 'available' a 'rented' cuando hay reserva confirmada hoy y baja 'rented' a 'available' cuando ya no la hay. No toca maintenance/sold/retired."
+  ]
+}
