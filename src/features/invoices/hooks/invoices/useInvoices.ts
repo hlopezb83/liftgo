@@ -1,6 +1,8 @@
 import { queryOptions, useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
+
+type InvoiceRow = Tables<"invoices">;
 import { todayKeyMty } from "@/lib/format/dateFormats";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { EXCLUDE_E2E_FILTER, LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
