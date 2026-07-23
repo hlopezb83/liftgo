@@ -56,7 +56,8 @@ async function fetchInvoiceList(filters?: InvoiceListFilters) {
   const normalized = createInvoiceListFilters(filters);
   const { data, error } = await baseInvoiceQuery(normalized)
     .order("created_at", { ascending: false })
-    .limit(LIST_PAGE_LIMIT);
+    .limit(LIST_PAGE_LIMIT)
+    .returns<InvoiceRow[]>();
   if (error) throw error;
   return data ?? [];
 }
@@ -66,7 +67,8 @@ async function fetchInvoicePage(filters: InvoiceListFilters, pageIndex: number) 
   const to = from + INVOICE_PAGE_SIZE - 1;
   const { data, error } = await baseInvoiceQuery(filters)
     .order("created_at", { ascending: false })
-    .range(from, to);
+    .range(from, to)
+    .returns<InvoiceRow[]>();
   if (error) throw error;
   const rows = data ?? [];
   return { rows, nextPage: rows.length === INVOICE_PAGE_SIZE ? pageIndex + 1 : undefined };
@@ -74,7 +76,12 @@ async function fetchInvoicePage(filters: InvoiceListFilters, pageIndex: number) 
 
 
 async function fetchInvoiceDetail(id: string) {
-  const { data, error } = await supabase.from("invoices").select("*").eq("id", id).maybeSingle();
+  const { data, error } = await supabase
+    .from("invoices")
+    .select(INVOICE_COLUMNS)
+    .eq("id", id)
+    .maybeSingle()
+    .returns<InvoiceRow | null>();
   if (error) throw error;
   return data;
 }
