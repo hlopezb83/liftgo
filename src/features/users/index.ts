@@ -4,3 +4,4 @@
 export * from "./components/AuthSnapshotSync";
 export * from "./hooks/useRolePermissions";
 export * from "./hooks/useUserRole";
+export * from "./hooks/useHasModuleAccess";

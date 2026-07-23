@@ -7,6 +7,7 @@ import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Untranslated } from "@/components/ui/Untranslated";
 import { usePageActions } from "@/contexts/pageActions";
+import { useHasModuleAccess } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import type { Tables } from "@/integrations/supabase/types";
 import { exportToCsv } from "@/lib/exportCsv";
@@ -133,7 +134,8 @@ export default function InvoicesPage() {
   const navigate = useNavigateTransition();
   const [previewOpen, setPreviewOpen] = useState(false);
   const [resultOpen, setResultOpen] = useState(false);
-  usePageActions({ onNew: () => navigate("/invoices/new"), newLabel: "Nueva factura" });
+  const canCreate = useHasModuleAccess("Facturas", "full");
+  usePageActions({ onNew: canCreate ? () => navigate("/invoices/new") : undefined, newLabel: "Nueva factura" });
 
   const { generateRecurring, previewRecurring, openPreview, handleConfirm, handleRetry } =
     useRecurringHandlers(setPreviewOpen, setResultOpen);
@@ -192,8 +194,8 @@ export default function InvoicesPage() {
         onClearFilters={clearAll}
         emptyMessage="No se encontraron facturas"
         emptyIcon={InvoiceIcon}
-        emptyActionLabel="Nueva Factura"
-        onEmptyAction={() => navigate("/invoices/new")}
+        emptyActionLabel={canCreate ? "Nueva Factura" : undefined}
+        onEmptyAction={canCreate ? () => navigate("/invoices/new") : undefined}
         skeletonColumns={7}
         mobileCardRender={(inv) => <InvoiceCard inv={inv} onClick={() => navigate(`/invoices/${inv.id}`)} />}
         loadMore={{

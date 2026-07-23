@@ -25,19 +25,22 @@ interface FooterProps {
   isClosingWonBlocked: boolean;
   onCancel: () => void;
   onDelete?: () => void;
+  isPending?: boolean;
 }
 
-export function ProspectDialogFooter({ isClosingWonBlocked, onCancel, onDelete }: FooterProps) {
+export function ProspectDialogFooter({ isClosingWonBlocked, onCancel, onDelete, isPending = false }: FooterProps) {
   return (
     <FormDialogFooter className="flex justify-between sm:justify-between">
       {onDelete && (
-        <Button type="button" variant="destructive" size="sm" onClick={() => { onDelete(); onCancel(); }}>
+        <Button type="button" variant="destructive" size="sm" disabled={isPending} onClick={() => { onDelete(); onCancel(); }}>
           Eliminar
         </Button>
       )}
       <div className="flex gap-2 ml-auto">
-        <Button type="button" variant="outline" onClick={onCancel}>Cancelar</Button>
-        <Button type="submit" disabled={isClosingWonBlocked}>Guardar</Button>
+        <Button type="button" variant="outline" onClick={onCancel} disabled={isPending}>Cancelar</Button>
+        <Button type="submit" disabled={isClosingWonBlocked || isPending}>
+          {isPending ? "Guardando…" : "Guardar"}
+        </Button>
       </div>
     </FormDialogFooter>
   );

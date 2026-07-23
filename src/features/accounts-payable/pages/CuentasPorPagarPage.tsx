@@ -6,7 +6,9 @@ import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Button } from "@/components/ui/button";
 import { usePageActions } from "@/contexts/pageActions";
 import { useSuppliers } from "@/features/suppliers";
+import { useHasModuleAccess } from "@/features/users";
 import { useToggleDialog } from "@/hooks/useDialogState";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import { ExportPaymentsDialog } from "../components/ExportPaymentsDialog";
 import {
   useSupplierBillColumns,
@@ -27,7 +29,8 @@ export default function CuentasPorPagarPage() {
   const exportDialog = useToggleDialog();
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
-  usePageActions({ onNew: createDialog.openDialog, newLabel: "Nueva factura de proveedor" });
+  const canCreate = useHasModuleAccess("Facturas de Proveedor", "full");
+  usePageActions({ onNew: canCreate ? createDialog.openDialog : undefined, newLabel: "Nueva factura de proveedor" });
 
   const columns = useSupplierBillColumns();
   const table = useLiftgoTable<SupplierBillListItem>({
@@ -55,9 +58,11 @@ export default function CuentasPorPagarPage() {
               <FileSpreadsheet className="h-4 w-4 sm:mr-1" />
               <span className="hidden sm:inline">Exportar pagos</span>
             </Button>
-            <Button onClick={createDialog.openDialog}>
-              <AddIcon className="h-4 w-4 mr-1" />Nueva Factura
-            </Button>
+            <RoleGuard module="Facturas de Proveedor" minAccess="full" fallback={null}>
+              <Button onClick={createDialog.openDialog}>
+                <AddIcon className="h-4 w-4 mr-1" />Nueva Factura
+              </Button>
+            </RoleGuard>
           </div>
 
         }
@@ -71,8 +76,8 @@ export default function CuentasPorPagarPage() {
         onClearFilters={f.reset}
         emptyMessage="Sin cuentas por pagar registradas"
         emptyIcon={FileClock}
-        emptyActionLabel="Nueva Cuenta"
-        onEmptyAction={createDialog.openDialog}
+        emptyActionLabel={canCreate ? "Nueva Cuenta" : undefined}
+        onEmptyAction={canCreate ? createDialog.openDialog : undefined}
         skeletonColumns={8}
         mobileCardRender={(b) => renderSupplierBillMobileCard(b, setSelectedId)}
       />

@@ -14,9 +14,12 @@ import { AddMaintenancePartForm } from "./AddMaintenancePartForm";
 interface Props {
   maintenanceLogId: string;
   currentCost: number;
+  /** R12-M10: cuando el OT está `completed`, la UI oculta el formulario de
+   * captura. La defensa dura vive en los triggers de DB. */
+  readOnly?: boolean;
 }
 
-export function MaintenancePartsSection({ maintenanceLogId, currentCost }: Props) {
+export function MaintenancePartsSection({ maintenanceLogId, currentCost, readOnly = false }: Props) {
   const [open, setOpen] = useState(false);
   const [selectedPart, setSelectedPart] = useState<PartInventory | null>(null);
   const [quantity, setQuantity] = useState(1);
@@ -65,15 +68,17 @@ export function MaintenancePartsSection({ maintenanceLogId, currentCost }: Props
         )}
       </div>
 
-      <AddMaintenancePartForm
-        open={open} setOpen={setOpen}
-        availableParts={availableParts}
-        selectedPart={selectedPart} setSelectedPart={setSelectedPart}
-        quantity={quantity} setQuantity={setQuantity}
-        loadingParts={loadingParts}
-        onAdd={handleAddPart}
-        isAdding={addPart.isPending}
-      />
+      {!readOnly && (
+        <AddMaintenancePartForm
+          open={open} setOpen={setOpen}
+          availableParts={availableParts}
+          selectedPart={selectedPart} setSelectedPart={setSelectedPart}
+          quantity={quantity} setQuantity={setQuantity}
+          loadingParts={loadingParts}
+          onAdd={handleAddPart}
+          isAdding={addPart.isPending}
+        />
+      )}
 
       {loadingUsed ? (
         <p className="text-sm text-muted-foreground">Cargando...</p>

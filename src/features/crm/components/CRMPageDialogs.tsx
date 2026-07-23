@@ -13,10 +13,11 @@ interface Props {
   onCreate: (data: ProspectFormPayload) => void;
   onUpdate: (id: string, data: ProspectFormPayload) => void;
   onDelete: (id: string) => void;
+  isPending?: boolean;
 }
 
 export function CRMPageDialogs({
-  dialogs, quoteMap, canCloseDeal, assertCanClose, openEdit, onCreate, onUpdate, onDelete,
+  dialogs, quoteMap, canCloseDeal, assertCanClose, openEdit, onCreate, onUpdate, onDelete, isPending,
 }: Props) {
   return (
     <>
@@ -32,6 +33,7 @@ export function CRMPageDialogs({
       />
 
       <ProspectFormDialog
+        isPending={isPending}
         open={dialogs.dialogOpen}
         onOpenChange={(open) => {
           dialogs.setDialogOpen(open);

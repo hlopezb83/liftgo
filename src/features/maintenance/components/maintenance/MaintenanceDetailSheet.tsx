@@ -90,10 +90,17 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
           )}
 
           <Separator />
-          <MaintenancePartsSection maintenanceLogId={log.id} currentCost={log.cost || 0} />
+          <MaintenancePartsSection
+            maintenanceLogId={log.id}
+            currentCost={log.cost || 0}
+            readOnly={log.work_status === "completed"}
+          />
 
           <Separator />
-          <MaintenanceLaborSection maintenanceLogId={log.id} />
+          <MaintenanceLaborSection
+            maintenanceLogId={log.id}
+            readOnly={log.work_status === "completed"}
+          />
 
           <Separator />
           <RoleGuard module="Mantenimiento" minAccess="full" fallback={null}>
