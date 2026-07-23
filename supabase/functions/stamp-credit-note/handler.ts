@@ -48,45 +48,19 @@ export async function handleStampCreditNote(
   let supabaseRef: SupabaseLike | null = null;
   let claimed = false;
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      console.error("[stamp-credit-note] missing bearer token");
-      return json({ error: "Unauthorized" }, 401, jsonHeaders);
+    const auth = await authenticateWithDeps({
+      req,
+      createCallerClient: (h) => deps.createCallerClient(h),
+      createServiceClient: () => deps.createServiceClient(),
+      allowedRoles: ["admin", "administrativo"],
+      logTag: "[stamp-credit-note]",
+    });
+    if (!auth.ok) {
+      return json({ error: auth.message }, auth.status, jsonHeaders);
     }
-    const token = authHeader.replace("Bearer ", "");
-
-    const callerClient = deps.createCallerClient(authHeader);
-    const { data: claimsData, error: claimsErr } = await callerClient.auth
-      .getClaims(token);
-    if (claimsErr || !claimsData?.claims?.sub) {
-      console.error("[stamp-credit-note] getClaims failed", {
-        err: claimsErr instanceof Error ? claimsErr.message : String(claimsErr),
-      });
-      return json({ error: "Unauthorized" }, 401, jsonHeaders);
-    }
-    userId = claimsData.claims.sub;
-
-    const supabase = deps.createServiceClient();
+    userId = auth.userId;
+    const supabase = auth.supabase;
     supabaseRef = supabase;
-    const rolesRes = await supabase.from("user_roles").select("role").eq(
-      "user_id",
-      userId,
-    );
-    const roles = (rolesRes as { data: unknown; error: unknown }).data as
-      | Array<{ role: string }>
-      | null;
-    const rolesErr = (rolesRes as { data: unknown; error: unknown }).error;
-    if (rolesErr) {
-      console.error("[stamp-credit-note] roles lookup failed", { userId });
-      return json({ error: "Authorization check failed" }, 500, jsonHeaders);
-    }
-    const allowed = (roles ?? []).some((r) =>
-      r.role === "admin" || r.role === "administrativo"
-    );
-    if (!allowed) {
-      console.error("[stamp-credit-note] forbidden", { userId });
-      return json({ error: "Forbidden" }, 403, jsonHeaders);
-    }
 
     const body = await req.json().catch(() => null);
     credit_note_id = body?.credit_note_id;
