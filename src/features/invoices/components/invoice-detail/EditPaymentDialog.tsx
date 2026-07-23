@@ -97,7 +97,7 @@ export function EditPaymentDialog({ open, onOpenChange, payment }: Props) {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <CurrencyField control={form.control} name="amount" label="Monto" required />
-          <DateField control={form.control} name="date" label="Fecha" required />
+          <DateField control={form.control} name="date" label="Fecha" required disabledMatcher={{ after: new Date() }} />
           <SelectField
             control={form.control}
             name="method"
