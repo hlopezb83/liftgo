@@ -3,7 +3,7 @@ import { DatePickerField } from "@/components/forms/DatePickerField";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { BOOKING_STATUS_LABELS, getValidTransitions } from "../../hooks/bookingActions/useBookingActionsLogic";
 
