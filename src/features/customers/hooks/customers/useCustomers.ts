@@ -90,7 +90,9 @@ export function useCreateCustomer() {
 export function useUpdateCustomer() {
   return useEntityMutation({
     mutationFn: async ({ id, ...updates }: TablesUpdate<"customers"> & { id: string }) => {
-      const { data, error } = await supabase.from("customers").update(updates).eq("id", id).select().single();
+      // R10 Bloque 12.7: no actualizar clientes archivados.
+      const { data, error } = await supabase.from("customers").update(updates).eq("id", id).is("deleted_at", null).select().single();
+
       if (error) throw error;
       return data;
     },
