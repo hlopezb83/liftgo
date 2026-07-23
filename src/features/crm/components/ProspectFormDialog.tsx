@@ -30,7 +30,7 @@ export function ProspectFormDialog({
   defaultStage = "nuevo_prospecto", overrideStage,
   canCloseDeal = true, onSave, onDelete,
 }: Props) {
-  const { fields, setters, matchingQuotes, selectedQuote, effectiveStage, requiresDealValue, buildPayload } =
+  const { fields, setters, matchingQuotes, selectedQuote, effectiveStage, requiresDealValue, buildPayload, isPending } =
     useProspectForm({ prospect, open, defaultStage, overrideStage });
 
   const handleSubmit = (e: ReactFormEvent) => {
@@ -47,6 +47,7 @@ export function ProspectFormDialog({
 
   return (
     <FormDialog
+      isPending={isPending}
       open={open}
       onOpenChange={onOpenChange}
       width="md"
