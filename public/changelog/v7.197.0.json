@@ -1,0 +1,17 @@
+{
+  "version": "7.197.0",
+  "date": "2026-07-23",
+  "type": "minor",
+  "title": "Auditoría R10 · fase 6",
+  "category": "bugfix",
+  "sections": [
+    {
+      "heading": "Rentabilidad por unidad",
+      "items": [
+        "El cálculo de días rentados por montacargas ahora usa unión de rangos: dos reservas traslapadas de la misma unidad ya no cuentan doble (R10 Bloque 10.2).",
+        "El horizonte de antigüedad se ancla en la fecha de adquisición cuando está capturada; de lo contrario cae a la fecha de alta del equipo.",
+        "La duración de cada reserva es inclusiva (día de inicio y día de fin cuentan)."
+      ]
+    }
+  ]
+}
