@@ -1,9 +1,7 @@
-import { handleCors } from "../_shared/cors.ts";
-import { jsonError, jsonResponse } from "../_shared/http.ts";
-// R-arq DIFF 1: acepta service_role, CRON_SECRET o rol admin/administrativo
-// para que pg_cron pueda invocar sin JWT de usuario (patrón de
-// generate-recurring-maintenance).
 import { requireServiceOrRole } from "../_shared/auth.ts";
+import { handleCors } from "../_shared/cors.ts";
+import { authenticateCronRequest } from "../_shared/cronAuth.ts";
+import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 import { computeProrate } from "./prorate.ts";
 
