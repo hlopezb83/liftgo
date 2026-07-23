@@ -1,9 +1,10 @@
 import { handleCors } from "../_shared/cors.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
-// R-arq DIFF 1: requireServiceOrRole permite que el cron invoque con
-// service_role (o CRON_SECRET vía guardia futura) sin JWT de usuario; los
-// admins siguen pudiendo dispararla desde la UI.
+// R-arq DIFF 1: acepta service_role, CRON_SECRET o rol admin/administrativo
+// para que pg_cron pueda invocar sin JWT de usuario (patrón de
+// generate-recurring-maintenance).
 import { requireServiceOrRole } from "../_shared/auth.ts";
+import { getSupabaseEnv } from "../_shared/supabaseClients.ts";
 import { computeProrate } from "./prorate.ts";
 
 const TZ = "America/Monterrey";
@@ -429,12 +430,32 @@ Deno.serve(async (req) => {
   if (corsRes) return corsRes;
 
   try {
-    const auth = await requireServiceOrRole(req, ["admin", "administrativo"]);
-    if (!auth.ok) return auth.response;
-    const supabase = auth.adminClient;
+    // R-arq DIFF 1: aceptar CRON_SECRET (bearer) además de service_role/admin.
+    const authHeader = req.headers.get("authorization") ?? "";
+    const bearer = authHeader.startsWith("Bearer ")
+      ? authHeader.slice("Bearer ".length).trim()
+      : "";
+    const cronSecret = Deno.env.get("CRON_SECRET") ?? "";
+    const isCronCall = cronSecret.length > 0 && bearer === cronSecret;
+
+    let supabase;
+    if (isCronCall) {
+      const { getAdminClient } = await import("../_shared/supabaseClients.ts");
+      // Consumir env para no dejar imports muertos si supabaseClients cambia.
+      void getSupabaseEnv();
+      supabase = getAdminClient();
+    } else {
+      const auth = await requireServiceOrRole(req, ["admin", "administrativo"]);
+      if (!auth.ok) return auth.response;
+      supabase = auth.adminClient;
+    }
 
     // Parse body (may be empty for legacy callers)
     let body: { preview?: boolean; bookingIds?: string[] } = {};
+    try {
+      const text = await req.text();
+      if (text) body = JSON.parse(text);
+    } catch { /* legacy no-body call */ }
     try {
       const text = await req.text();
       if (text) body = JSON.parse(text);
