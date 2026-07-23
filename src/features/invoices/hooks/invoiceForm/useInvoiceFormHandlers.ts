@@ -1,6 +1,6 @@
 
 import type { Forklift } from "@/features/fleet";
-import { extractNonRentalLines } from "@/features/quotes/utils/nonRentalLines";
+import { extractNonRentalLines } from "@/lib/domain/nonRentalLines";
 import { generateLineItems } from "@/lib/domain/invoiceHelpers";
 import { cfdiFromCustomer, type Customer } from "./invoiceFormBuilders";
 import type { InvoiceFormValues, LineItemValues } from "../../lib/invoiceFormSchema";

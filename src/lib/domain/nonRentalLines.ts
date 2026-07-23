@@ -1,5 +1,20 @@
-import type { LineItemValues } from "@/features/invoices/lib/invoiceFormSchema";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
+
+/**
+ * DTO plano equivalente a `LineItemValues` de invoiceFormSchema.
+ * Duplicado local para evitar dependencia inversa lib/domain → features/invoices.
+ */
+export interface NonRentalLineDto {
+  description: string;
+  quantity: number;
+  unit_price: number;
+  total: number;
+  discount?: number;
+  discount_type?: "%" | "$";
+  clave_prod_serv?: string;
+  clave_unidad?: string;
+  objeto_imp?: string;
+}
 
 const RENTAL_KEYWORDS = ["Renta mensual", "Renta semanal", "Renta diaria"];
 const SALE_SUFFIX = /Venta de equipo/i;
@@ -23,7 +38,7 @@ function isRentalOrSaleLine(description: string | undefined): boolean {
  * Al facturar desde reserva, estas partidas se anexan a la factura para que
  * el costo pactado en la cotización no se pierda en el limbo.
  */
-export function extractNonRentalLines(quoteLineItems: unknown): LineItemValues[] {
+export function extractNonRentalLines(quoteLineItems: unknown): NonRentalLineDto[] {
   if (!Array.isArray(quoteLineItems)) return [];
   const items = quoteLineItems as LineItem[];
   return items
