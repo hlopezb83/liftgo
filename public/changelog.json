@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.200.0",
+    "date": "2026-07-23",
+    "type": "minor",
+    "title": "Utilización de flota consistente en el dashboard",
+    "category": "bugfix"
+  },
+
+  {
     "version": "7.199.0",
     "date": "2026-07-23",
     "type": "minor",
