@@ -16,14 +16,18 @@ export type ProspectInsert = Omit<
 };
 export type ProspectUpdate = Partial<ProspectInsert> & { id: string };
 
+// Lote F · columnas explícitas: solo lo que consume mapProspectRow.
+const PROSPECT_COLUMNS =
+  "id, company_name, contact_person, email, phone, deal_value, stage, stage_order, notes, quote_id, customer_id, created_by, created_at, updated_at, closed_at, lost_reason, final_amount" as const;
+
 export const prospectQueries = defineEntityQueries<"prospects", Prospect[], never>("prospects", {
   list: () => async () => {
     const { data, error } = await supabase
       .from("prospects")
-      .select("*")
+      .select(PROSPECT_COLUMNS)
       .order("stage_order", { ascending: true });
     if (error) throw error;
-    const rows: ProspectRow[] = data ?? [];
+    const rows: ProspectRow[] = (data ?? []) as ProspectRow[];
 
     const creatorIds = rows.map((r) => r.created_by).filter((id): id is string => Boolean(id));
     const uniqueCreatorIds = [...new Set(creatorIds)];
