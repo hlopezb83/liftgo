@@ -139,7 +139,21 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
 
 
       {overdueBookings.length > 0 && (
-        <AlertCard icon={OverdueIcon} title="Rentas Vencidas" count={overdueBookings.length} tone="warning">
+        <AlertCard
+          icon={OverdueIcon}
+          title="Rentas Vencidas"
+          count={overdueBookings.length}
+          tone="warning"
+          footer={
+            <button
+              type="button"
+              onClick={() => navigate("/returns/pending")}
+              className="w-full text-xs font-medium text-warning hover:underline text-center pt-1"
+            >
+              Ver todos los retornos pendientes →
+            </button>
+          }
+        >
           {overdueBookings.slice(0, 5).map((ob) => (
             <AlertRow
               key={ob.booking_id}
