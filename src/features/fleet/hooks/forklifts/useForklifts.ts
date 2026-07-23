@@ -38,14 +38,18 @@ export function useForklift(id: string | undefined) {
     enabled: !!id,
     queryFn: async () => {
       if (!id) throw new Error("Forklift ID is required");
+      // R10 Bloque 10.4: excluir montacargas archivados del detalle (los que
+      // tienen `deleted_at`). El caller muestra el empty state estándar.
       const { data, error } = await supabase
         .from("forklifts")
         .select(FORKLIFT_COLUMNS)
         .eq("id", id)
-        .single()
+        .is("deleted_at", null)
+        .maybeSingle()
         .returns<Forklift>();
       if (error) throw error;
       return data;
+
     },
   });
 }
