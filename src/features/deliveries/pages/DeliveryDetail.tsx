@@ -84,17 +84,26 @@ export default function DeliveryDetail() {
   };
 
   const markComplete = (signature?: string) => {
-    updateDelivery.mutate(
-      buildCompletionPayload(delivery.id, nowMty().toISOString(), signature, hoursReading),
-      {
+    // R10 Bloque 4: si es pickup, valida horómetro contra la entrega previa.
+    const minHours = delivery.type === "pickup"
+      ? siblingDeliveries?.find((d) => d.type === "delivery")?.hours_reading ?? null
+      : null;
+    try {
+      const payload = buildCompletionPayload(
+        delivery.id, nowMty().toISOString(), signature, hoursReading, minHours,
+      );
+      updateDelivery.mutate(payload, {
         onSuccess: () => {
           notifySuccess("Marcado como completado");
           setSignatureOpen(false);
           promptPickupIfNeeded();
         },
-      },
-    );
+      });
+    } catch (err) {
+      notifyError({ title: "Horómetro inválido", error: err });
+    }
   };
+
 
   const handleDelete = () => {
     deleteDelivery.mutate(delivery.id, {
