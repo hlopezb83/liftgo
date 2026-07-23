@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.210.1",
+    "date": "2026-07-23",
+    "type": "patch",
+    "title": "CI: mock de useHasModuleAccess en tests de InvoicesPage",
+    "category": "fix"
+  },
+  {
     "version": "7.210.0",
     "date": "2026-07-23",
     "type": "minor",
