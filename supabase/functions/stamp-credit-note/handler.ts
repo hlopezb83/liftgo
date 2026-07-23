@@ -3,6 +3,7 @@ import { handleCors } from "../_shared/cors.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
+import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 import {
   binaryToBytes,
