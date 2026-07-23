@@ -1,0 +1,10 @@
+{
+  "version": "7.198.1",
+  "date": "2026-07-23",
+  "type": "patch",
+  "title": "Fix dashboard: columna issued_at en flujo de efectivo",
+  "category": "bugfix",
+  "changes": [
+    "get_dashboard_stats: corregido i.issue_date / cn.issue_date → issued_at (columna real en invoices y credit_notes). Restaura el widget de Flujo de Efectivo que crasheaba con 42703."
+  ]
+}
