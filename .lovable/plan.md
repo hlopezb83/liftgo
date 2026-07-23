@@ -1,38 +1,64 @@
+## Estado verificado de cada DIFF
 
-# v7.216.0 — Cierre de C6 (columnas explícitas)
+| DIFF | Estado | Acción |
+|---|---|---|
+| **C4a** literal query keys | ✅ 0 hallazgos en `src/features` (grep vacío) | Skip — ya cerrado en lotes previos |
+| **C4b** consolidar `company_settings` | 🟡 Existe `useCompanySettings`, pero `src/lib/pdf/shared.ts`, `pdf/contract/fetchers.ts`, `cash-flow/useCashFlowSettings.ts` y `company-settings/useCxpApprovalThreshold.ts` lo leen por su cuenta (namespaces de cache distintos) | **Aplicar** |
+| **C4c** `computeInvoiceFlags` NC-aware | ✅ `isPayable = status ∈ {sent, overdue}`. No hace `total-paid` inline; los status vienen de triggers sobre `v_invoices_with_balance` | Skip — no hay bug |
+| **C5a** `delete_booking` RPC | 🔴 `useDeleteBooking` hace `DELETE` crudo sin actualizar `forklift.status` ni `status_logs` | **Aplicar** |
+| **C5b** soft-delete financiero | ⚪ Opcional; borradores ya no aparecen en reportes; audit trigger cubre trazabilidad | Skip con justificación |
+| **C6** `select("*")` restantes | ✅ 0 hallazgos (`v7.216.0`) | Skip — cerrado |
+| **C8** tests users/auth/returns/calendar | ⚪ ~8-10 archivos de test nuevos | Skip — sprint dedicado |
+| **C9** `useProspectForm` RHF+zod | 🔴 Sigue con `useState` + `validateDealValue` manual, email sin `z.email()` real | **Aplicar** |
+| **C10** realtime | ⚪ Marcado opcional explícito; costo de conexiones sin caso de uso confirmado | Skip |
+| **C11.1** deprecar `formatDateDisplay` (55 files) | ⚪ Migración masiva | Skip — sprint aparte |
+| **C11.2** borrar muertos (knip) | ⚪ Ya ejecutado en lotes previos | Skip |
+| **C11.3** README + `name` en `package.json` | 🟡 Trivial | **Aplicar** |
+| **C11.4** `set_prospect_created_by` `search_path` | 🔴 Falta hardening | **Aplicar** |
+| **C11.5** reubicar `useCustomerPortal`/`CustomerPortalRoutes` | ⚪ Refactor amplio de rutas | Skip |
+| **C11.6** unificar `FeedbackStatusBadge`/`RepBadge` a `StatusBadge` | 🟡 Cosmético | **Aplicar** |
 
-Del backlog `liftgo-diffs-lovable-v212.md`, la verificación previa confirmó que **C4b, C4c, C7 y C11.4 ya están cerrados** en versiones anteriores (v7.207.0 / v7.209.0 / v7.213.0 / migración `20260408004410`). El único bloque mecánico con impacto real hoy es **C6**: 12 `select("*")` en hot-path que inflan payload y bloquean el guardrail arquitectural.
+## Alcance a implementar — v7.217.0
 
-## Alcance
+### 1. C4b — Consolidación de `company_settings`
+- Ampliar `src/features/company-settings/lib/queryKeys.ts` con `defineEntityQueries` (fetchOne singleton).
+- Migrar consumidores externos a `useCompanySettings()` con `select` derivado:
+  - `src/lib/pdf/shared.ts` (`fetchCompanyDataAndLogo`) → helper que llama al mismo cache
+  - `src/lib/pdf/contract/fetchers.ts`
+  - `src/features/cash-flow/hooks/useCashFlowSettings.ts` — mantiene su columna propia pero comparte cache-key
+  - `src/features/company-settings/hooks/useCxpApprovalThreshold.ts` → `useCompanySettings({ select })`
+- Colapsar los 3 namespaces de cache en uno solo (`companySettingsKeys.detail("singleton")`).
 
-Reemplazar `select("*")` por columnas explícitas (`<ENTITY>_COLUMNS` colocado junto al hook o en `lib/queryKeys.ts` del feature) + `.returns<T>()` cuando el tipo lo permita. Sin cambios de comportamiento.
+### 2. C5a — RPC `delete_booking`
+- Migración `SECURITY DEFINER` + `SET search_path=public` siguiendo la plantilla del diff, adaptada a nuestro modelo (`status ∈ draft|cancelled`, log en `status_logs`, reset de forklift a `available` si no hay otras reservas activas).
+- `useDeleteBooking` pasa a `supabase.rpc("delete_booking", { p_booking_id })`.
+- Test unitario del hook con el mock de `rpc`.
 
-## Archivos a tocar
+### 3. C9 — `useProspectForm` a RHF + zod
+- Crear `prospectFormSchema` en `src/features/crm/lib/` (nombre, email real vía `z.string().email()`, phone con `phoneSchema` común, `dealValue` numérico > 0 en stages que lo requieran).
+- Reescribir `useProspectForm` como wrapper de `useForm<Prospect>` con `zodResolver`.
+- Ajustar `ProspectFormFields` para consumir `FormField` de shadcn.
+- Eliminar `validateDealValue` manual + regex de email.
 
-| Archivo | Tabla |
-|---|---|
-| `src/features/invoices/hooks/invoices/useInvoices.ts` (2 ocurrencias) | invoices |
-| `src/features/invoices/hooks/usePayments.ts` | payments |
-| `src/features/invoices/hooks/creditNotes/useCreditNotesQueries.ts` | credit_notes |
-| `src/features/invoices/hooks/invoices/pdf/fetchInvoicePdfData.ts` | invoices (con embed) |
-| `src/features/maintenance/hooks/maintenance/useMaintenanceLogs.ts` | maintenance_logs |
-| `src/features/contracts/hooks/useContractTemplates.ts` | contract_templates |
-| `src/features/help/hooks/useUserManual.ts` | user_manual |
-| `src/lib/query/documentsQueryKeys.ts` | documents |
-| `src/lib/pdf/quote/build.tsx` | quotes |
-| `src/features/dashboard/lib/queryKeys.ts:205` | (a verificar tabla) |
-| `src/features/audit/lib/queryKeys.ts:72` | audit_log |
+### 4. C11.4 — Hardening `set_prospect_created_by`
+- Migración que reemplaza la función con `SET search_path = public`.
 
-## Fuera de alcance
+### 5. C11.6 — StatusBadge unificado
+- Añadir mapeos `feedback` y `rep` al `StatusBadge` central.
+- Reemplazar callsites (`FeedbackStatusBadge`, `RepBadge`) por `StatusBadge` con el `domain` apropiado.
+- Borrar los dos componentes duplicados.
 
-- **C5** (RPC `delete_booking` y soft-delete financiero): requiere migración + rediseño UX; se pospone hasta tener caso de uso de recuperación real.
-- **C4a** (3 llaves literales restantes): 2 son singletons únicos válidos; se puede cerrar en un lote cosmético posterior.
-- **C8/C9/C10/C11.1–3,5–6**: tests adicionales, RHF+zod en `useProspectForm`, realtime opcional, deprecación de `formatDateDisplay`. Todos son mejoras, no bugs.
+### 6. C11.3 — Metadatos
+- `package.json`: `"name": "liftgo"`.
+- README con stack real (React 19 + Vite 8 + @react-pdf/renderer + Lovable Cloud/Supabase).
 
-## Aceptación
-
-- `rg 'select\("\*"\)' src/` → 0 (o allowlist documentada con comentario).
+### 7. Cierre
 - `bash scripts/arch-check.sh` verde.
-- `bun run test` sin regresiones (los hooks tocados tienen tests en `invoices`, `maintenance`, `contracts`).
-- Snapshot manual del preview: listados de facturas, pagos, NC, mantenimiento, plantillas de contrato y manual de usuario cargan igual.
-- Bump `v7.216.0` + entrada en `public/changelog.json` + `public/changelog/v7.216.0.json`.
+- `bunx tsgo --noEmit` verde.
+- `bun test` verde (nuevos tests de C5/C9 incluidos).
+- Bump `v7.217.0` + entrada en `public/changelog.json` y `public/changelog/v7.217.0.json`.
+
+## Justificación de skips clave
+- **C5b (soft-delete financiero)**: introduce deuda (nueva columna + filtros en cada vista + RPCs de recuperación) sin caso de uso operativo. Los borradores hoy ya se excluyen de reportes vía `status='draft'` y el audit trigger conserva el registro post-DELETE.
+- **C4c**: el diff pide *verificar*, no cambiar. Verificado: `isPayable` deriva del `status` que a su vez es actualizado por triggers server-side sobre `v_invoices_with_balance`. NC-aware por transitividad.
+- **C8 / C10 / C11.1 / C11.5**: alcance de sprint independiente; mezclarlos con este lote convierte el release en no-verificable.
