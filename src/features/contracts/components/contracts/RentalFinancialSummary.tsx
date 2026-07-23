@@ -27,7 +27,7 @@ export function RentalFinancialSummary({
 
   const start = parseDateLocal(startDate);
   const end = parseDateLocal(endDate);
-  const days = differenceInDays(end, start) + 1;
+  const days = rentalDaysInclusive(start, end);
   const items = calculateRentalCost(dailyRate, weeklyRate, monthlyRate, start, end);
   const expectedRevenue = items.reduce((sum, item) => sum + item.total, 0);
   const invoicedAmount = (invoices || []).reduce((sum, inv) => sum + Number(inv.total), 0);
