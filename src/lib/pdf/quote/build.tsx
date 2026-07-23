@@ -13,7 +13,7 @@ export async function fetchQuotePdfData(quoteId: string): Promise<QuoteDocumentP
     "subtotal, tax_rate, tax_amount, total, notes, version, accepted_at, accepted_by_user_id, " +
     "accepted_ip, rejected_at, rejection_reason, e2e_scope, is_e2e, created_at, updated_at";
   const { data: quote, error } = await supabase
-    .from("quotes").select(QUOTE_PDF_COLUMNS).eq("id", quoteId).single();
+    .from("quotes").select(QUOTE_PDF_COLUMNS).eq("id", quoteId).single().returns<Tables<"quotes">>();
   if (error || !quote) throw new Error("Cotización no encontrada");
 
   const { company, logoBase64 } = await fetchCompanyDataAndLogo();
