@@ -1,0 +1,11 @@
+{
+  "version": "7.199.0",
+  "date": "2026-07-23",
+  "type": "minor",
+  "title": "Nueva página /returns/pending con retornos pendientes",
+  "category": "feature",
+  "changes": [
+    "Nueva ruta /returns/pending: lista los montacargas cuya reserva ya terminó y siguen sin regresar al almacén (misma lógica que la alerta 'Rentas Vencidas' del dashboard). Muestra reserva, montacargas, cliente, fecha fin, días vencido y acción rápida para levantar la inspección de devolución.",
+    "La alerta 'Rentas Vencidas' del dashboard ahora incluye un footer 'Ver todos los retornos pendientes →' que lleva a la nueva página."
+  ]
+}
