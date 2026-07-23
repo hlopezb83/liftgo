@@ -24,9 +24,12 @@ export function useExtendBookingPreview(
     if (!endYMD) return null;
     const items = generateLineItems(forklift, booking.start_date, endYMD);
     const totals = computeTotals(items, DEFAULT_VAT_RATE * 100);
-    // R9 Bloque 3: propagamos la moneda del booking para que el preview
-    // formatee "US$29,000.00" en rentas USD (antes se mostraba con símbolo
-    // MXN sin código, engañando al usuario).
-    return { ...totals, currency: booking.currency ?? "MXN" };
+    // R9 Bloque 3: propagamos el código de moneda para que el preview lo
+    // formatee explícitamente. Hoy `bookings` no persiste moneda propia
+    // (todas las rentas se facturan en MXN); fallback a "MXN" preserva la UI
+    // actual y deja la puerta abierta a rentas multi-moneda futuras.
+    const currency =
+      (booking as { currency?: string | null }).currency ?? "MXN";
+    return { ...totals, currency };
   })();
 }
