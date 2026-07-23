@@ -1,0 +1,16 @@
+{
+  "version": "7.213.0",
+  "date": "2026-07-23",
+  "type": "minor",
+  "title": "Arquitectura Lote D: src/lib deja de importar features",
+  "category": "refactor",
+  "changes": [
+    "Movidos los DTOs canónicos a src/lib/domain: customerTypes.ts y contractTypes.ts. Los archivos previos en features/*/lib se reducen a re-export shims para no romper consumidores.",
+    "Nueva capa src/lib/rules/invoiceVisibility.ts con computeInvoiceVisibility + InvoiceVisibility. src/features/invoices/lib/invoiceVisibility.ts queda como shim.",
+    "src/lib/rules/invoices.ts importa la matriz de visibilidad desde ./invoiceVisibility (sin @/features/*).",
+    "Nuevos DTOs mínimos en src/lib/pdf/types/incomeStatement.ts (PdfMonthData, PdfStatementRow, PdfComparisonRow, PdfYearTotals). incomeStatement.tsx e IncomeStatementDocument.tsx los consumen; los tipos ricos del hook siguen viviendo en features/reports/hooks/incomeStatement y son estructuralmente compatibles.",
+    "Los 6 archivos PDF en src/lib/pdf (customerStatement, documents/CustomerStatementDocument, documents/IncomeStatementDocument, incomeStatement, contract/fetchers, contract/data-templates) importan sólo desde @/lib/domain o @/lib/pdf/types.",
+    "Actualizado src/lib/domain/README.md para reflejar la nueva ubicación de customerTypes y contractTypes.",
+    "Aceptación: rg \"@/features\" src/lib --glob='!**/__tests__/**' -l → 0 archivos de código. tsgo --noEmit limpio."
+  ]
+}
