@@ -25,9 +25,12 @@ type Booking = NonNullable<ReturnType<typeof useBookings>["data"]>[number];
 
 const formatDate = (d: string) => formatMtyDate(d);
 const getDuration = (start: string, end: string) => {
-  const days = differenceInDays(parseISO(end), parseISO(start));
+  // R10 Bloque 12.1: mostrar días inclusivos (end - start + 1) para que una
+  // reserva "hoy → hoy" cuente como 1 día en la lista.
+  const days = differenceInDays(parseISO(end), parseISO(start)) + 1;
   return `${days} día${days !== 1 ? "s" : ""}`;
 };
+
 
 export default function BookingsPage() {
   const { data: bookings, isLoading, isError, refetch } = useBookings();
