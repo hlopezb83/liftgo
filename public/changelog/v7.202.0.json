@@ -1,0 +1,13 @@
+{
+  "version": "7.202.0",
+  "date": "2026-07-23",
+  "type": "minor",
+  "title": "Modales de formulario a prueba de cierres accidentales durante submit",
+  "category": "bugfix",
+  "description": "R11 DIFF 2/3: se cablea la prop `isPending` en los 51 callers de FormDialog en todo el ERP para que Escape/click-fuera no cierren el diálogo mientras hay una mutación en curso. Además, la devolución anticipada (`/returns?booking_id=X&early=1`) ya no vacía el select 'Reserva a Devolver': los parámetros se conservan hasta que el diálogo se cierra. DIFF 1 verificado como falso positivo — el módulo 'Facturas de Proveedor' ya está seedeado.",
+  "changes": [
+    "FormDialog: 51 diálogos ahora bloquean Esc y click-fuera durante el submit",
+    "useReturnInspectionDialog: mantiene booking_id y early=1 en la URL hasta el cierre del diálogo",
+    "Verificado: role_permissions ya contiene 'Facturas de Proveedor' con permisos correctos"
+  ]
+}
