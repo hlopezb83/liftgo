@@ -60,7 +60,13 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
             </div>
             <p className="text-xs text-muted-foreground mt-1">Saldo pendiente: {formatCurrency(balance)}</p>
           </div>
-          <DatePickerField label="Fecha" date={date} onSelect={(d) => { if (d) setDate(d); }} />
+          <DatePickerField
+            label="Fecha"
+            date={date}
+            onSelect={(d) => { if (d) setDate(d); }}
+            disabled={{ after: new Date() }}
+          />
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <Label>Método</Label>
