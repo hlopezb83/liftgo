@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.210.2",
+    "date": "2026-07-23",
+    "type": "patch",
+    "title": "Mantenimiento: recalcular cost al insertar (evita servicios con $0)",
+    "category": "fix"
+  },
+  {
     "version": "7.210.1",
     "date": "2026-07-23",
     "type": "patch",
