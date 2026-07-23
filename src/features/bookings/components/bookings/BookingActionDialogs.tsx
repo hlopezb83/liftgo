@@ -55,7 +55,7 @@ interface ExtendDialogProps {
   currentEndDate: string;
   newEndDate: Date | undefined;
   setNewEndDate: (d: Date | undefined) => void;
-  extendPreview: { total: number } | null;
+  extendPreview: { total: number; currency: string } | null;
   isPending: boolean;
   onExtend: () => void;
 }
