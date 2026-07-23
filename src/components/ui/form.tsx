@@ -40,20 +40,33 @@ const FormField = <
   );
 };
 
+const ORPHAN_NAME = "__orphan__";
+
 const useFormField = () => {
   const fieldContext = useContext(FormFieldContext);
   const itemContext = useContext(FormItemContext);
-  const { control } = useFormContext();
-  // Suscripción reactiva real al slice de errores del campo (R7 Bloque 1a).
-  // `useFormState({ control, name })` sí re-renderiza cuando cambia el error,
-  // incluso bajo React Compiler; leer `formState` en render lo memoiza.
-  const { errors } = useFormState({ control, name: fieldContext.name });
+  // R10 Bloque 1a: `useFormContext()` puede devolver null si un `Form*` se
+  // renderiza fuera de <Form>. Degradamos sin crashear.
+  const ctx = useFormContext();
+  const control = ctx?.control;
+  // Hooks siempre llamados, incluso sin fieldContext, con un nombre inofensivo
+  // que no toca ningún slice real del form.
+  const name = fieldContext?.name ?? ORPHAN_NAME;
+  const { errors } = useFormState({ control, name });
 
-  if (!fieldContext) {
-    throw new Error("useFormField should be used within <FormField>");
+  const id = itemContext?.id ?? "";
+  const baseIds = {
+    id,
+    formItemId: id ? `${id}-form-item` : "",
+    formDescriptionId: id ? `${id}-form-item-description` : "",
+    formMessageId: id ? `${id}-form-item-message` : "",
+  };
+
+  if (!fieldContext || !control) {
+    // Degradación segura: componente huérfano se renderiza sin wiring de error.
+    return { name: "", error: undefined as FieldError | undefined, ...baseIds };
   }
 
-  const { id } = itemContext;
   const error = fieldContext.name
     .split(".")
     .reduce<unknown>((acc, key) => (acc && typeof acc === "object" ? (acc as Record<string, unknown>)[key] : undefined), errors) as
@@ -61,14 +74,12 @@ const useFormField = () => {
     | undefined;
 
   return {
-    id,
     name: fieldContext.name,
-    formItemId: `${id}-form-item`,
-    formDescriptionId: `${id}-form-item-description`,
-    formMessageId: `${id}-form-item-message`,
     error,
+    ...baseIds,
   };
 };
+
 
 type FormItemContextValue = {
   id: string;
