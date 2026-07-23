@@ -200,9 +200,14 @@ export const activityFeedQueries = defineEntityQueries<"dashboard-activity-feed"
     list: (filter) => async () => {
       const { limit, filters } = readActivityFeedFilter(filter);
 
+      // v7.216.0 (C6): columnas explícitas.
+      const sel = (s: string): string => s;
+      const ACTIVITY_COLUMNS = sel(
+        "id, actor_id, actor_name, actor_role, entity_type, entity_id, event_type, title, description, created_at, is_e2e",
+      );
       let query = supabase
         .from("activity_feed")
-        .select("*")
+        .select(ACTIVITY_COLUMNS)
         .order("created_at", { ascending: false })
         .limit(limit)
         .or("is_e2e.is.null,is_e2e.eq.false");
@@ -218,7 +223,7 @@ export const activityFeedQueries = defineEntityQueries<"dashboard-activity-feed"
       if (filters.eventType) query = query.eq("event_type", filters.eventType);
       if (filters.search) query = query.ilike("description", `%${filters.search}%`);
 
-      const { data, error } = await query;
+      const { data, error } = await query.returns<ActivityFeedRow[]>();
       if (error) throw error;
       return data ?? [];
     },
