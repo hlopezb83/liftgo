@@ -24,15 +24,26 @@ export function useReturnInspectionDialog(bookings: Booking[] | undefined, activ
   const createInspection = useCreateReturnInspection();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Deep link via ?booking_id=...
+  // R11 DIFF 3: no limpiamos los params al abrir para que `early=1` siga
+  // vigente y la reserva prellenada permanezca en `activeBookings` (que se
+  // recalcula en el padre según `early`). Se limpian al cerrar el diálogo.
   usePrefillEffect(() => {
     const bookingId = searchParams.get("booking_id");
     if (bookingId && activeBookings?.some((b) => b.id === bookingId)) {
       form.reset({ ...initialReturnInspectionForm, bookingId });
       setDialogOpen(true);
-      setSearchParams({}, { replace: true });
     }
   }, [searchParams, activeBookings]);
+
+  const handleDialogOpenChange = (open: boolean) => {
+    setDialogOpen(open);
+    if (!open && (searchParams.has("booking_id") || searchParams.has("early"))) {
+      const next = new URLSearchParams(searchParams);
+      next.delete("booking_id");
+      next.delete("early");
+      setSearchParams(next, { replace: true });
+    }
+  };
 
   const openNew = () => {
     form.reset(initialReturnInspectionForm);
