@@ -25,27 +25,29 @@ export function useCreateForklift() {
 
 export function useUpdateForklift() {
   const queryClient = useQueryClient();
-  return useMutation({
+  // R-arq 9b: migrado a `useEntityMutation` para heredar toast/translateDbError
+  // consistentes. El `setQueryData` optimista se conserva vía `onSuccess` custom.
+  return useEntityMutation({
     mutationFn: async ({ id, ...updates }: TablesUpdate<"forklifts"> & { id: string }) => {
       const { data, error } = await supabase.from("forklifts").update(updates).eq("id", id).select().single();
       if (error) throw error;
       return data;
     },
+    invalidateKeys: [insuranceAlertsKeys.all],
+    errorTitle: "Error al actualizar montacargas",
     onSuccess: (data) => {
       queryClient.setQueryData<Forklift[]>(forkliftKeys.lists(), (old) =>
         old ? old.map((f) => (f.id === data.id ? { ...f, ...data } : f)) : old
       );
       queryClient.setQueryData(forkliftKeys.detail(data.id), data);
-      queryClient.invalidateQueries({ queryKey: ["supplier_bills"] });
-      queryClient.invalidateQueries({ queryKey: insuranceAlertsKeys.all });
-    },
-    onError: (err: Error) => {
-      notifyError({ title: "Error al actualizar montacargas", error: err });
     },
   });
 }
 
 export function useDeleteForklift() {
+  // R-arq 9b: mantenemos el patrón optimista (requiere `onMutate` que
+  // `useEntityMutation` no expone), pero añadimos `notifyError` para no
+  // silenciar fallos del RPC (renta activa, integridad referencial).
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (id: string) => {
@@ -58,12 +60,14 @@ export function useDeleteForklift() {
       queryClient.setQueryData<Forklift[]>(forkliftKeys.lists(), (old) => old?.filter((f) => f.id !== id));
       return { previous };
     },
-    onError: (_err, _id, context) => {
+    onError: (err: Error, _id, context) => {
       if (context?.previous) queryClient.setQueryData(forkliftKeys.lists(), context.previous);
+      notifyError({ title: "Error al eliminar montacargas", error: err });
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: forkliftKeys.all }),
   });
 }
+
 
 export function useUpdateStatus() {
   // R8 Bloque 3: la transición se delega al RPC `change_forklift_status`, que valida
