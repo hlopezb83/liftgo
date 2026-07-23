@@ -1,0 +1,14 @@
+{
+  "version": "7.212.0",
+  "date": "2026-07-23",
+  "type": "minor",
+  "title": "Arquitectura Lote C-β: nonRentalLines migrado a lib/domain",
+  "category": "refactor",
+  "changes": [
+    "Movido src/features/quotes/utils/nonRentalLines.ts → src/lib/domain/nonRentalLines.ts para romper el ciclo invoices → quotes → invoices.",
+    "Añadido DTO local NonRentalLineDto en lib/domain para eliminar la dependencia inversa hacia @/features/invoices/lib/invoiceFormSchema.",
+    "Actualizado el consumer useInvoiceFormHandlers.ts para importar desde @/lib/domain/nonRentalLines.",
+    "Test suite movido a src/lib/domain/__tests__/nonRentalLines.test.ts (import relativo se conserva).",
+    "C3 (auth compartida en Edge Functions) ya estaba cerrado en lotes previos: no quedan handlers con getClaims inline."
+  ]
+}
