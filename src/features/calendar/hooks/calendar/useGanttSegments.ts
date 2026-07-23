@@ -1,5 +1,5 @@
 
-import { eachDayOfInterval, parseISO } from "date-fns";
+import { eachDayOfInterval, parseISO, differenceInDays } from "date-fns";
 import type { BookingWithForklift } from "@/features/bookings";
 import { rentalDaysInclusive } from "@/features/bookings/lib/rentalDays";
 
