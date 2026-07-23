@@ -88,7 +88,7 @@ export function useProspectForm({
       quote_id: quoteId,
     });
     if (!parsed.success) {
-      const emailIssue = parsed.error.issues.find((i: { path: (string | number)[] }) => i.path[0] === "email");
+      const emailIssue = parsed.error.issues.find((i) => i.path[0] === "email");
       if (emailIssue) setDealValueError(null);
       // Reutilizamos dealValueError como canal de mensaje ligero; el resto
       // se reporta vía notifyValidation para no acoplar el hook a la UI.
