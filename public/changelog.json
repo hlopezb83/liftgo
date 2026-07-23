@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.197.0",
+    "date": "2026-07-23",
+    "type": "minor",
+    "title": "Auditoría R10 · fase 6 (rentabilidad por unidad: unión de rangos)",
+    "category": "bugfix"
+  },
+
+  {
     "version": "7.196.0",
     "date": "2026-07-23",
     "type": "minor",
