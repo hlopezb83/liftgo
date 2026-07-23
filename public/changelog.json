@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.195.0",
+    "date": "2026-07-23",
+    "type": "minor",
+    "title": "Auditoría R10 · fase 4 (utilización, disponibilidad de equipos, CFDI y clientes)",
+    "category": "bugfix"
+  },
+
+  {
     "version": "7.194.0",
     "date": "2026-07-23",
     "type": "minor",

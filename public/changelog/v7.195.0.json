@@ -1,0 +1,29 @@
+{
+  "version": "7.195.0",
+  "date": "2026-07-23",
+  "type": "minor",
+  "title": "Auditoría R10 · fase 4",
+  "category": "bugfix",
+  "changes": [
+    {
+      "area": "Reportes · Utilización",
+      "detail": "Bloque 10.1: los días reservados por unidad se recortan al rango del reporte y se deduplican con unión de rangos; las reservas traslapadas ya no suman doble ni superan los días del período."
+    },
+    {
+      "area": "Reservas · Disponibilidad",
+      "detail": "Bloque 11.6: el buffer de mantenimiento se compara contra la ventana solicitada (start ↔ end + 3 días) y ya no bloquea equipos cuyo servicio programado está fuera del rango."
+    },
+    {
+      "area": "Reservas · Disponibilidad",
+      "detail": "Bloque 11.5: los montacargas con orden de trabajo en `en proceso` se excluyen del picker de reservas."
+    },
+    {
+      "area": "Facturas de Proveedor",
+      "detail": "Bloque 12.10: la Fecha del CFDI se interpreta como fecha calendario del emisor (sin desplazarse por zona horaria del navegador)."
+    },
+    {
+      "area": "Clientes",
+      "detail": "Bloque 12.7: las actualizaciones de cliente ignoran registros archivados (filtro `deleted_at IS NULL`)."
+    }
+  ]
+}
