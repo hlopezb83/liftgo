@@ -1,6 +1,9 @@
 import { handleCors } from "../_shared/cors.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
-import { requireRole } from "../_shared/auth.ts";
+// R-arq DIFF 1: requireServiceOrRole permite que el cron invoque con
+// service_role (o CRON_SECRET vía guardia futura) sin JWT de usuario; los
+// admins siguen pudiendo dispararla desde la UI.
+import { requireServiceOrRole } from "../_shared/auth.ts";
 import { computeProrate } from "./prorate.ts";
 
 const TZ = "America/Monterrey";
@@ -426,7 +429,7 @@ Deno.serve(async (req) => {
   if (corsRes) return corsRes;
 
   try {
-    const auth = await requireRole(req, ["admin", "administrativo"]);
+    const auth = await requireServiceOrRole(req, ["admin", "administrativo"]);
     if (!auth.ok) return auth.response;
     const supabase = auth.adminClient;
 

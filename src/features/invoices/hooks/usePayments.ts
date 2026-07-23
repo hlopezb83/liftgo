@@ -4,7 +4,6 @@ import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { invoiceKeys, paymentKeys } from "../lib/queryKeys";
-import { syncInvoiceStatus } from "../lib/syncInvoiceStatus";
 
 export type Payment = Tables<"payments">;
 
@@ -29,6 +28,11 @@ export function usePayments(invoiceId: string | undefined) {
   });
 }
 
+// R-arq DIFF 2: el status de la factura lo recalcula el trigger
+// `sync_invoice_status_from_payments_trg` en la misma transacción del
+// INSERT/UPDATE/DELETE de `payments` (con SELECT ... FOR UPDATE y misma
+// guarda cancelled/draft). Eliminado el SELECT→UPDATE cliente que
+// generaba una race entre dos sesiones y podía pisar el resultado del trigger.
 export function useCreatePayment() {
   return useEntityMutation({
     mutationFn: async (payment: TablesInsert<"payments">) => {
@@ -38,10 +42,8 @@ export function useCreatePayment() {
         .select()
         .single();
       if (error) throw error;
-      await syncInvoiceStatus(payment.invoice_id, payment.payment_date ?? null);
       return data;
     },
-    // Invalidamos por factura y todo el árbol de invoices (status se recalcula).
     invalidateKeys: [paymentKeys.all, invoiceKeys.all],
     errorTitle: "Error al registrar pago",
   });
@@ -49,7 +51,7 @@ export function useCreatePayment() {
 
 export function useUpdatePayment() {
   return useEntityMutation({
-    mutationFn: async ({ id, invoice_id, ...fields }: { id: string; invoice_id: string } & Partial<Omit<Payment, "id" | "created_at" | "invoice_id">>) => {
+    mutationFn: async ({ id, ...fields }: { id: string; invoice_id: string } & Partial<Omit<Payment, "id" | "created_at" | "invoice_id">>) => {
       const { data, error } = await supabase
         .from("payments")
         .update(fields)
@@ -57,7 +59,6 @@ export function useUpdatePayment() {
         .select()
         .single();
       if (error) throw error;
-      await syncInvoiceStatus(invoice_id, null);
       return data;
     },
     invalidateKeys: [paymentKeys.all, invoiceKeys.all],

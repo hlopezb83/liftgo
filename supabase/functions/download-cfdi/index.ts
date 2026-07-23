@@ -7,6 +7,10 @@ import {
   getFacturapiConfig,
   retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
+import {
+  FacturapiTimeoutError,
+  fetchWithTimeout,
+} from "../_shared/facturapi/withTimeout.ts";
 
 const BUCKET = "cfdi-files";
 const FACTURAPI_BASE = "https://www.facturapi.io/v2";
@@ -23,7 +27,9 @@ async function fetchFacturapiBinary(
 ): Promise<FacturapiFetch> {
   try {
     const bytes = await retryOnFacturapi5xx(async () => {
-      const r = await fetch(`${FACTURAPI_BASE}${path}`, {
+      // R-arq DIFF 3: fetchWithTimeout (30s) reemplaza `fetch(` crudo para
+      // evitar isolates colgados si el PAC no responde.
+      const r = await fetchWithTimeout(`${FACTURAPI_BASE}${path}`, {
         headers: { Authorization: `Bearer ${apiKey}` },
       });
       if (!r.ok) {
@@ -40,6 +46,10 @@ async function fetchFacturapiBinary(
     });
     return { ok: true, bytes };
   } catch (err) {
+    if (err instanceof FacturapiTimeoutError) {
+      console.error("[download-cfdi] Facturapi timeout", { path, timeoutMs: err.timeoutMs });
+      return { ok: false, status: 504, detail: err.message };
+    }
     const e = err as { status?: number; detail?: string; message?: string };
     console.error("[download-cfdi] Facturapi failed", {
       path,
