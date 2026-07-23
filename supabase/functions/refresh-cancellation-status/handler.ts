@@ -36,32 +36,15 @@ export async function handleRefreshCancellation(
     jsonResponse(req, body, { status });
 
   try {
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return json({ error: "Unauthorized" }, 401);
-    }
-    const token = authHeader.replace("Bearer ", "");
-
-    const callerClient = deps.createCallerClient(authHeader);
-    const { data: claimsData, error: claimsErr } = await callerClient.auth
-      .getClaims(token);
-    if (claimsErr || !claimsData?.claims?.sub) {
-      return json({ error: "Unauthorized" }, 401);
-    }
-    const userId = claimsData.claims.sub;
-
-    const supabase = deps.createServiceClient();
-    const rolesRes = await supabase.from("user_roles").select("role").eq(
-      "user_id",
-      userId,
-    );
-    const roles = (rolesRes as { data: unknown }).data as
-      | Array<{ role: string }>
-      | null;
-    const allowed = (roles ?? []).some((r) =>
-      r.role === "admin" || r.role === "administrativo"
-    );
-    if (!allowed) return json({ error: "Forbidden" }, 403);
+    const auth = await authenticateWithDeps({
+      req,
+      createCallerClient: (h) => deps.createCallerClient(h),
+      createServiceClient: () => deps.createServiceClient(),
+      allowedRoles: ["admin", "administrativo"],
+      logTag: "[refresh-cancellation-status]",
+    });
+    if (!auth.ok) return json({ error: auth.message }, auth.status);
+    const supabase = auth.supabase;
 
     const { invoice_id } = (await req.json().catch(() => ({}))) as {
       invoice_id?: unknown;
