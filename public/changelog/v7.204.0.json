@@ -1,0 +1,20 @@
+{
+  "version": "7.204.0",
+  "date": "2026-07-23",
+  "type": "minor",
+  "title": "Arquitectura Lote A: cron declarativo, billing_secrets sin lectura directa, timeouts a Facturapi",
+  "category": "refactor",
+  "description": "Lote A de la auditoría de arquitectura R-arq: se cierran los 5 hallazgos críticos verificados contra el código real. La cache local ya no persiste keys inexistentes ni PII, `billing_secrets` deja de ser legible desde el cliente (única escritura vía RPC admin), el status de facturas lo recalcula sólo el trigger de DB (elimina la race del cliente), las descargas al PAC tienen timeout de 30s, y `generate-recurring-invoices` se ejecuta diariamente vía pg_cron con el mismo secreto que ya usaba mantenimiento.",
+  "changes": [
+    "DIFF 5: persister.ts — allowlist/blocklist alineados con factories reales (parts_inventory, contracts, cash_flow_settings, dashboard-stats/mrr-detail/financial-kpis); PII (customers/suppliers/prospects) y auditoría/feedback bloqueados; test persister.test.ts valida que cada root exista",
+    "DIFF 2: eliminado syncInvoiceStatus cliente en usePayments — el status lo recalcula el trigger sync_invoice_status_from_payments_trg en la misma transacción, sin race entre sesiones",
+    "DIFF 3: _shared/facturapi/withTimeout.ts (30s + AbortController); aplicado en download-cfdi reemplazando fetch crudo; el resto del flujo ya pasa por el SDK con retry",
+    "DIFF 4: billing_secrets — DROP policy SELECT + REVOKE authenticated; nuevo RPC upsert_billing_secret(p_id, p_test_key, p_live_key) SECURITY DEFINER con guarda admin; useUpsertBillingSecrets refactor a rpc(); status sigue leyéndose vía get_billing_secrets_status",
+    "DIFF 1: generate-recurring-invoices acepta service_role, CRON_SECRET (bearer) o rol admin/administrativo; cron generate-recurring-invoices-daily (06:15) y generate-recurring-maintenance-daily (06:30) agendados vía internal_get_cron_secret(), idempotentes por nombre",
+    "config.toml: [functions.generate-recurring-invoices] verify_jwt = false para permitir invocación por cron"
+  ],
+  "pending": [
+    "Lote B (Altos): _shared/cronAuth.ts como helper compartido, revoke execute_sql si existe, borrar migraciones bak, telemetría CFDI unificada",
+    "Lote C (Medios): límites de payload en edge functions, alerta MRR/DSO, cleanup de storage cfdi-files"
+  ]
+}
