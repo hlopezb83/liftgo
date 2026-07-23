@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Tables } from "@/integrations/supabase/types";
 import { parseLineItems } from "@/lib/domain/lineItems";
 import { QuoteDocument, type QuoteDocumentProps } from "@/lib/pdf/documents/QuoteDocument";
 import { renderAndSave } from "@/lib/pdf/renderAndSave";
