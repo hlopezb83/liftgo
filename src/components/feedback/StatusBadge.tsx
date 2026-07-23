@@ -24,12 +24,15 @@ const statusStyles: Record<string, string> = {
   good: SUCCESS,
   active: SUCCESS,
   signed: SUCCESS,
+  resolved: SUCCESS,
+  stamped: SUCCESS,
   // info (azul)
   rented: INFO,
   sent: INFO,
   scheduled: INFO,
   delivery: INFO,
   invoiced: INFO,
+  new: INFO,
   // warning (ámbar)
   maintenance: WARNING,
   partial: WARNING,
@@ -37,20 +40,27 @@ const statusStyles: Record<string, string> = {
   minor_damage: WARNING,
   reported: WARNING,
   in_repair: WARNING,
+  in_progress: WARNING,
+  triage: WARNING,
   pickup: WARNING,
   // danger (rojo)
   overdue: DANGER,
   declined: DANGER,
   major_damage: DANGER,
   needs_repair: DANGER,
+  rejected: DANGER,
+  error: DANGER,
   // terminal (neutral sólido apagado)
   cancelled: NEUTRAL_SOLID,
   sold: NEUTRAL_SOLID,
   retired: NEUTRAL_SOLID,
+  closed: NEUTRAL_SOLID,
   // neutral suave (borradores / inactivos temporales)
   draft: NEUTRAL_LIGHT,
   expired: NEUTRAL_LIGHT,
   inactive: NEUTRAL_LIGHT,
+  duplicate: NEUTRAL_LIGHT,
+  rep_none: NEUTRAL_LIGHT,
   completed: NEUTRAL_DARK,
 };
 
