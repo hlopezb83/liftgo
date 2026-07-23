@@ -42,7 +42,19 @@ describe("buildCompletionPayload", () => {
     const p = buildCompletionPayload("d1", "2026-05-26T10:00:00Z", undefined, "1234.5");
     expect(p.hours_reading).toBe(1234.5);
   });
+
+  it("R10 Bloque 4: rechaza pickup horómetro menor al de entrega", () => {
+    expect(() =>
+      buildCompletionPayload("d1", "2026-05-26T10:00:00Z", undefined, "1000", 1250.5)
+    ).toThrow(/1250\.5/);
+  });
+
+  it("R10 Bloque 4: acepta pickup horómetro >= entrega", () => {
+    const p = buildCompletionPayload("d1", "2026-05-26T10:00:00Z", undefined, "1300", 1250.5);
+    expect(p.hours_reading).toBe(1300);
+  });
 });
+
 
 describe("buildDeliverySubtitle", () => {
   it("compone 'Equipo · Entrega/Recolección'", () => {
