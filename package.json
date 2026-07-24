@@ -76,7 +76,7 @@
     "react": "^19",
     "react-day-picker": "^10.0.1",
     "react-dom": "^19",
-    "react-dropzone": "^16.0.0",
+    "react-dropzone": "^19.1.1",
     "react-hook-form": "^7.81.0",
     "react-hotkeys-hook": "^5.3.3",
     "react-router": "^8.2.0",
