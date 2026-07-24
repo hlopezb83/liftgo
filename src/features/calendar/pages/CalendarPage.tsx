@@ -38,6 +38,7 @@ export default function CalendarPage() {
   const isMobile = useIsMobile();
   const [viewMode, setViewMode] = useState<"gantt" | "list">(isMobile ? "list" : "gantt");
   const [ganttRange, setGanttRange] = useState<"month" | "week">("month");
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const fns = rangeFns(ganttRange);
   const rangeStart = fns.start(currentDate);
