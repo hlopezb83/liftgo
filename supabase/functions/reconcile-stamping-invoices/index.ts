@@ -29,19 +29,18 @@ import {
   retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
 
-interface StuckRow {
-  id: string;
-  cfdi_uuid: string | null;
-  facturapi_invoice_id: string | null;
+import {
+  decideRowAction,
+  MAX_STAMPING_ATTEMPTS,
+  type PacLookup,
+  type StuckRow as PureStuckRow,
+} from "./decisions.ts";
+
+interface StuckRow extends PureStuckRow {
   serie: string | null;
   folio: string | null;
   updated_at: string;
-  stamping_attempts: number | null;
 }
-
-// Máximo de ciclos que reconcile intentará antes de revertir a 'error' con nota
-// manual — evita loops eternos si Facturapi nunca produce el XML.
-const MAX_STAMPING_ATTEMPTS = 10;
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
@@ -94,14 +93,10 @@ Deno.serve(async (req) => {
 
   for (const row of stuck) {
     if (!row.facturapi_invoice_id || !row.cfdi_uuid) {
-      // R12 B2: antes de revertir a `error`, consultar Facturapi por external_id
-      // (nuestro invoice.id, seteado en stamp-cfdi). El timbre pudo emitirse
-      // tras nuestro timeout — si existe, adoptarlo evita re-timbrar y por
-      // ende un CFDI duplicado en el SAT.
-      let recovered: {
-        id?: string;
-        uuid?: string;
-      } | null = null;
+      // R12-B2 / TESTS-ARQ2 DIFF 2: la decisión (recover vs retry vs revert)
+      // vive en `decisions.ts`; aquí solo materializamos la consulta al PAC y
+      // aplicamos la acción resuelta.
+      let pac: PacLookup = { kind: "miss" };
       try {
         const listFn = (client.invoices as unknown as {
           list?: (q: Record<string, unknown>) => Promise<unknown>;
@@ -123,7 +118,7 @@ Deno.serve(async (req) => {
           if (
             hit && typeof hit.id === "string" && typeof hit.uuid === "string"
           ) {
-            recovered = { id: hit.id, uuid: hit.uuid };
+            pac = { kind: "hit", facturapi_id: hit.id, uuid: hit.uuid };
           }
         }
       } catch (err) {
@@ -131,25 +126,28 @@ Deno.serve(async (req) => {
           invoice_id: row.id,
           err: describeFacturapiError(err).message,
         });
+        pac = { kind: "lookup_failed" };
       }
 
-      if (recovered?.id && recovered?.uuid) {
+      const action = decideRowAction(row, pac);
+      if (action.kind === "recover") {
         // Persistir los ids recuperados y dejar que el siguiente ciclo
         // baje el XML/PDF y ejecute reconcile_stamping_invoice.
         await admin.from("invoices")
           .update({
-            facturapi_invoice_id: recovered.id,
-            cfdi_uuid: recovered.uuid,
+            facturapi_invoice_id: action.facturapi_id,
+            cfdi_uuid: action.uuid,
           })
           .eq("id", row.id);
-        results.push({
-          invoice_id: row.id,
-          status: "recovered_from_pac",
-        });
+        results.push({ invoice_id: row.id, status: "recovered_from_pac" });
         continue;
       }
-
-      // Sin datos de Facturapi y el PAC no tiene el timbre → revertir.
+      if (action.kind === "retry_lookup") {
+        // PAC no respondió: dejar la fila en 'stamping' y reintentar.
+        results.push({ invoice_id: row.id, status: "pac_lookup_deferred" });
+        continue;
+      }
+      // revert_error: PAC confirmó que no existe.
       await admin.from("invoices")
         .update({
           cfdi_status: "error",

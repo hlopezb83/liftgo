@@ -22,7 +22,11 @@ const ROUTES = [
   "/inventory",
   "/mrr",
   "/income-statement",
-  "/expenses",
+  "/expenses", // redirect → /cuentas-por-pagar
+  // TESTS-ARQ2 (v7.220.0 DIFF 13): módulos financieros ausentes en smoke.
+  "/cuentas-por-pagar",
+  "/cuentas-por-pagar/antiguedad",
+  "/flujo-de-caja",
   "/damage",
   "/returns",
   "/deliveries",

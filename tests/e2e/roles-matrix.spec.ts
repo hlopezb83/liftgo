@@ -7,8 +7,11 @@ import { signIn } from "./fixtures/helpers";
  *
  * Requiere env vars por rol (opcional; se saltan si no están definidos):
  *   E2E_VENTAS_EMAIL / E2E_VENTAS_PASSWORD
- *   E2E_ADMIN_EMAIL_ADMINISTRATIVO / E2E_ADMINISTRATIVO_PASSWORD
+ *   E2E_ADMINISTRATIVO_EMAIL / E2E_ADMINISTRATIVO_PASSWORD
  *   E2E_MECANICO_EMAIL / E2E_MECANICO_PASSWORD
+ *
+ * TESTS-ARQ2 (v7.220.0 DIFF 15): centinela abajo garantiza que si TODAS las
+ * credenciales faltan el archivo NO queda como "0 tests" verdes silenciosos.
  */
 type RoleFixture = {
   key: string;
@@ -81,3 +84,12 @@ for (const role of ROLES) {
     });
   });
 }
+
+// TESTS-ARQ2 (v7.220.0 DIFF 15): centinela — si NINGÚN rol tiene credenciales
+// exponemos el hecho como test que se skipea con motivo explícito (visible en
+// el report), en vez de un archivo con 0 tests que pasa en silencio.
+test("centinela: al menos un rol con credenciales configuradas", () => {
+  const any = ROLES.some((r) => r.email && r.password);
+  test.skip(!any, "Ningún E2E_<ROL>_EMAIL/PASSWORD configurado — matriz de roles se saltó completa.");
+  expect(any).toBe(true);
+});

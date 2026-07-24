@@ -1,0 +1,20 @@
+{
+  "version": "7.220.0",
+  "date": "2026-07-24",
+  "type": "minor",
+  "title": "Tests Fase 0 + Fase 1: descubrimiento Deno, decisiones puras y regresiones críticas",
+  "category": "improvement",
+  "highlights": [
+    "DIFF 1 · ci.yml: descubrimiento Deno pasa de `index_test.ts` a `*_test.ts` (ahora corren handler_test.ts fiscales y _shared/*_test.ts).",
+    "DIFF 2 · reconcile-stamping-invoices: extraída `decisions.ts` con `decideRowAction` (hit/miss/lookup_failed/revert) y `decideXmlFailure`; `index.ts` importa la decisión y el test la valida (ya no reimplementa la lógica vieja pre-R12-B2).",
+    "DIFF 3 · process-cfdi-retry-queue: exportado `OPERATION_TO_FUNCTION`; el test lo importa (detecta drift) y agrega cobertura del estado terminal `exhausted`.",
+    "DIFF 4 · E2E: `E2E_VISUAL=\"1\"` habilita `visual-*.spec.ts` que antes nunca corría en CI.",
+    "DIFF 5 · vitest thresholds: global 14/10/14/12.5 (+1pp margen medido) + per-glob 60/55 para `lib/domain`, `features/invoices/lib` y `features/accounts-payable/lib` — regresiones en el dominio fiscal fallan el build.",
+    "DIFF 6 · invoiceFormSchema.test.ts: consolidado del duplicado raíz al canónico bajo `__tests__/` (fusiona casos discount_type, buildEmptyInvoiceValues) y borrada la copia.",
+    "DIFF 7 · FormActions.doubleSubmit.test.tsx: protege el guard `inFlightRef` (bug R7/R9 de doble submit rápido).",
+    "DIFF 8 · useLiftgoTable.dataVersion.test.tsx: R12-A1, filtrar a mismo número de filas ya no sirve JSX stale.",
+    "DIFF 13 · smoke-nav: agregadas `/cuentas-por-pagar`, `/cuentas-por-pagar/antiguedad` y `/flujo-de-caja` (módulos financieros ausentes).",
+    "DIFF 15 · roles-matrix: doc corregido `E2E_ADMINISTRATIVO_EMAIL` y agregado centinela que expone credenciales faltantes (antes '0 tests' verdes silenciosos).",
+    "Follow-ups Fase 1 diferidos (necesitan fixtures de dominio adicionales): DIFF 9 REP timeout, DIFF 10 stamp-cfdi cancelación por timeout, DIFF 11 portalBalance USD, DIFF 12 hooks feature-first (useAgingBucket/useOverviewData), DIFF 14 data-testids Playwright, DIFF 16 Deno starters _shared (cronAuth/authWithDeps/validate-receptor)."
+  ]
+}

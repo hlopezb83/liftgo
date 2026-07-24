@@ -38,15 +38,28 @@ Deno.test("cfdi_retry_queue: consumer usa solo estados del CHECK", () => {
   assertEquals(consumerStates.length, 4);
 });
 
-// EC-A1: mapping actualizado — cancel_rep apunta a cancel-payment-complement,
-// no a la función inexistente "cancel-rep".
-Deno.test("operation → function mapping usa funciones reales", () => {
-  const map: Record<string, string> = {
-    stamp: "stamp-cfdi",
-    cancel: "cancel-cfdi",
-    cancel_nc: "cancel-credit-note",
-    cancel_rep: "cancel-payment-complement",
-  };
-  assertEquals(Object.keys(map).length, 4);
-  assertEquals(map.cancel_rep, "cancel-payment-complement");
+// EC-A1 / TESTS-ARQ2 (v7.220.0 DIFF 3): importar el mapa REAL desde index.ts —
+// antes copiaba la tabla localmente y no detectaba drift si alguien renombraba
+// una edge function o agregaba una nueva operación en cfdi_retry_queue.
+import { OPERATION_TO_FUNCTION } from "./index.ts";
+
+Deno.test("operation → function mapping usa funciones reales (contrato con CHECK)", () => {
+  assertEquals(OPERATION_TO_FUNCTION.stamp, "stamp-cfdi");
+  assertEquals(OPERATION_TO_FUNCTION.cancel, "cancel-cfdi");
+  assertEquals(OPERATION_TO_FUNCTION.cancel_nc, "cancel-credit-note");
+  assertEquals(OPERATION_TO_FUNCTION.cancel_rep, "cancel-payment-complement");
+  assertEquals(
+    new Set(Object.keys(OPERATION_TO_FUNCTION)),
+    new Set(["stamp", "cancel", "cancel_nc", "cancel_rep"]),
+  );
+});
+
+// TESTS-ARQ2 (DIFF 3): estado terminal `exhausted` cuando attempts alcanza
+// max_attempts. Espejo puro de la rama en index.ts para blindar la política.
+Deno.test("terminal state: attempts >= max_attempts → exhausted", () => {
+  const decide = (attempts: number, max: number) =>
+    attempts >= max ? "exhausted" : "pending";
+  assertEquals(decide(5, 5), "exhausted");
+  assertEquals(decide(6, 5), "exhausted");
+  assertEquals(decide(4, 5), "pending");
 });

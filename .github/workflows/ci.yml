@@ -270,7 +270,10 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p reports
-          mapfile -d '' TEST_FILES < <(find supabase/functions -name 'index_test.ts' -print0)
+          # TESTS-ARQ2 (v7.220.0 DIFF 1): descubrir TODOS los tests Deno
+          # (handler_test.ts de lógica fiscal y _shared/*_test.ts también corren
+          # aquí — antes quedaban dormidos con el patrón `index_test.ts`).
+          mapfile -d '' TEST_FILES < <(find supabase/functions -name '*_test.ts' -print0)
           if [[ ${#TEST_FILES[@]} -eq 0 ]]; then
             echo "::error::No se encontraron archivos index_test.ts en supabase/functions"
             exit 1
@@ -351,6 +354,9 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+          # TESTS-ARQ2 (v7.220.0 DIFF 4): encender visual specs — antes gate
+          # nunca satisfecho y el spec `visual-*.spec.ts` no corría en CI.
+          E2E_VISUAL: "1"
         run: bunx playwright test --shard=${{ matrix.shard }}/${{ matrix.total }}
 
       - name: Upload Playwright HTML report

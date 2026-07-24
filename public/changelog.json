@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.220.0",
+    "date": "2026-07-24",
+    "type": "minor",
+    "title": "Tests Fase 0 + Fase 1: descubrimiento Deno, decisiones puras, guard doble-submit y dataVersion",
+    "category": "improvement"
+  },
+  {
     "version": "7.219.0",
     "date": "2026-07-24",
     "type": "minor",
