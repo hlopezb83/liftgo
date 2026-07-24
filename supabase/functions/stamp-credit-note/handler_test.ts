@@ -252,6 +252,15 @@ Deno.test("handler: Facturapi 400 returns 502 and marks credit note as error", a
           company_settings: { data: { facturapi_mode: "test" }, error: null },
           billing_secrets: { data: null, error: null },
         },
+        selectsSeq: {
+          credit_notes: [
+            {
+              data: { id: NC_ID, invoice_id: INVOICE_ID, line_items: [] },
+              error: null,
+            },
+            { data: [], error: null },
+          ],
+        },
         updates: { credit_notes: { data: null, error: null } },
       },
     });
