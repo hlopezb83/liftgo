@@ -268,7 +268,7 @@ Deno.test("handler: 502 si Facturapi falla y NO marca cancelled", async () => {
       },
     });
     const res = await handleCancelPaymentComplement(
-      makeRequest({ payment_id: PAYMENT_ID }),
+      makeRequest({ payment_id: PAYMENT_ID, motive: "02" }),
       deps,
     );
     await res.json();
