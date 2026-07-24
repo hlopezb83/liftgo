@@ -99,15 +99,40 @@ export function BookingActions({ booking }: BookingActionsProps) {
       <Button variant="destructive" size="sm" onClick={() => setCancelOpen(true)}>
         <ErrorIcon className="h-4 w-4 mr-1" />Cancelar
       </Button>
-      <ConfirmDialog
+      <Dialog
         open={cancelOpen}
-        onOpenChange={setCancelOpen}
-        title="¿Cancelar esta reserva?"
-        description={`Se cancelará la reserva de ${booking.customer_name || "este cliente"} (${formatDateRange(booking.start_date, booking.end_date)}). Esta acción no se puede deshacer.`}
-        confirmLabel="Cancelar Reserva"
-        destructive
-        onConfirm={handleCancel}
-      />
+        onOpenChange={(o) => { setCancelOpen(o); if (!o) setCancelReason(""); }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>¿Cancelar esta reserva?</DialogTitle>
+            <DialogDescription>
+              Se cancelará la reserva de {booking.customer_name || "este cliente"} ({formatDateRange(booking.start_date, booking.end_date)}). Esta acción no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2">
+            <Label htmlFor="cancel-reason">Motivo (opcional)</Label>
+            <Textarea
+              id="cancel-reason"
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+              placeholder="Ej. cliente reprogramó, cambio de equipo, error de captura…"
+              rows={3}
+              maxLength={500}
+            />
+            <p className="text-xs text-muted-foreground">Se registrará en la bitácora del equipo.</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelOpen(false)}>Volver</Button>
+            <Button
+              variant="destructive"
+              onClick={() => { handleCancel(cancelReason.trim() || undefined); setCancelOpen(false); setCancelReason(""); }}
+            >
+              Cancelar Reserva
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <BookingExtendDialog
         open={extendOpen}
