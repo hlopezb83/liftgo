@@ -53,8 +53,16 @@ export function useDeleteBooking() {
 
 export function useCancelBooking() {
   return useEntityMutation({
-    mutationFn: async (bookingId: string) => {
-      const { error } = await supabase.rpc("cancel_booking", { p_booking_id: bookingId });
+    // v7.222.0 · E2E-N11: aceptamos un `reason` opcional que el RPC persiste
+    // en `status_logs` para trazabilidad. Retrocompatible con callers que
+    // pasan sólo el bookingId (string).
+    mutationFn: async (input: string | { bookingId: string; reason?: string | null }) => {
+      const bookingId = typeof input === "string" ? input : input.bookingId;
+      const reason = typeof input === "string" ? null : (input.reason ?? null);
+      const { error } = await supabase.rpc("cancel_booking", {
+        p_booking_id: bookingId,
+        p_reason: reason,
+      });
       if (error) throw error;
     },
     invalidateKeys: [bookingKeys.all, forkliftKeys.all, ["status_logs"] as const],
