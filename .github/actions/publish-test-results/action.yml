@@ -1,0 +1,31 @@
+name: Publish test results
+description: Wrapper sobre mikepenz/action-junit-report para unificar versión, check_name y flags.
+
+inputs:
+  report_paths:
+    description: Glob a los archivos JUnit XML a publicar.
+    required: true
+  check_name:
+    description: Nombre visible del check en la PR.
+    required: true
+  fail_on_failure:
+    description: Marcar el step como fallido si algún test falla.
+    required: false
+    default: "true"
+  require_tests:
+    description: Fallar si el reporte no contiene tests.
+    required: false
+    default: "true"
+
+runs:
+  using: composite
+  steps:
+    - name: Publish JUnit results
+      # v7.219.0 (M6): pin único de la action de reporte; antes cada job la
+      # invocaba directo con su propio SHA y `with:` — divergencias silenciosas.
+      uses: mikepenz/action-junit-report@3a81627bfac62268172037048872e8ebd4207e6d # v6.4.1
+      with:
+        report_paths: ${{ inputs.report_paths }}
+        check_name: ${{ inputs.check_name }}
+        fail_on_failure: ${{ inputs.fail_on_failure }}
+        require_tests: ${{ inputs.require_tests }}

@@ -21,10 +21,8 @@ updates:
         dependency-type: "production"
         update-types:
           - "patch"
-    ignore:
-      # jsPDF locked en 4.0.0 (incompatibilidades conocidas en versiones superiores).
-      - dependency-name: "jspdf"
-      - dependency-name: "jspdf-autotable"
+    # v7.219.0 (M3): removidos ignores de jspdf/jspdf-autotable — la app ya
+    # no depende de ellos (migrada a @react-pdf en Ola anterior).
 
   # GitHub Actions: mantener actions/* y setup-* actualizados
   - package-ecosystem: "github-actions"
