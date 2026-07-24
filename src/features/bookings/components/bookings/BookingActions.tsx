@@ -27,6 +27,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
 
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [cancelOpen, setCancelOpen] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
 
   const statusChangeDialog = (
     <BookingStatusChangeDialog
