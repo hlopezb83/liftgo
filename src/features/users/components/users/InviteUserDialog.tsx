@@ -67,7 +67,18 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="inv-email">Correo Electrónico</Label>
-            <Input id="inv-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="juan@empresa.com" />
+            <Input
+              id="inv-email"
+              type="email"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (emailError) setEmailError(null);
+              }}
+              placeholder="juan@empresa.com"
+              aria-invalid={emailError ? true : undefined}
+            />
+            {emailError ? <p className="text-sm text-destructive">{emailError}</p> : null}
           </div>
           <div className="space-y-2">
             <Label htmlFor="inv-role">Rol</Label>
