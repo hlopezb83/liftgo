@@ -46,7 +46,7 @@ export function useBookingActions(booking: BookingWithForklift) {
       // aparezca tras éxito real de la RPC/UPDATE (antes se disparaba en
       // paralelo aunque cancelBooking fallara).
       if (newStatus === "cancelled") {
-        await cancelBooking.mutateAsync(booking.id);
+        await cancelBooking.mutateAsync({ bookingId: booking.id, reason: null });
       } else {
         await new Promise<void>((resolve, reject) => {
           updateBooking.mutate(
