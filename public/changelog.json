@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.224.4",
+    "date": "2026-07-24",
+    "type": "patch",
+    "title": "Fix E2E portal: waitForURL acepta '/' además de '/portal' tras login",
+    "category": "fix"
+  },
+  {
     "version": "7.224.3",
     "date": "2026-07-24",
     "type": "patch",
