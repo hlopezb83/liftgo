@@ -1,5 +1,5 @@
-import { computeInvoiceVisibility, type InvoiceVisibility } from "./invoiceVisibility";
 import type { Tables } from "@/integrations/supabase/types";
+import { computeInvoiceVisibility, type InvoiceVisibility } from "./invoiceVisibility";
 
 /**
  * Reglas de dominio para facturas. Combina banderas de acciones (edit/stamp/delete/pago)

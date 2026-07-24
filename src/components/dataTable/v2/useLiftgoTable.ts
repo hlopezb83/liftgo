@@ -128,6 +128,7 @@ export function useLiftgoTable<T>({
   const sortKey = sorting.map((s) => `${s.id}:${s.desc ? "d" : "a"}`).join(",");
   const selKey = Object.keys(rowSelection).length;
   const pagKey = paginated ? `${pagination.pageIndex}:${pagination.pageSize}` : "";
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+  // v7.226.1 · deps completas: `table` es la referencia mutable de TanStack,
+  // el resto son primitivas derivadas del estado que Sí invalidan la memo.
   return useMemo(() => new Proxy(table, {}), [table, dataVersion, sortKey, selKey, pagKey]);
 }

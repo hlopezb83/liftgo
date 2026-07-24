@@ -2,8 +2,8 @@ import { parseISO, addDays } from "date-fns";
 import { Link } from "react-router";
 import { TrendingUpIcon, ArrowRight, CalendarIcon } from "@/components/icons";
 import { Card, CardContent } from "@/components/ui/card";
+import { amountInMxn } from "@/features/dashboard/lib/collectionForecast";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { toMxn } from "@/lib/money";
 import { nowMty } from "@/lib/utils";
 
 interface OverdueInvoice {
@@ -28,20 +28,6 @@ interface CollectionForecastProps {
   overdueInvoices: OverdueInvoice[];
   /** Facturas con vencimiento próximo (no pagadas, due_date futuro) — opcional */
   upcomingInvoices?: UpcomingInvoiceLike[];
-}
-
-/**
- * Devuelve el saldo en MXN. Prioriza `balance_mxn` (calculado en la vista
- * `v_invoices_with_balance`). Si no está, convierte `balance` con
- * `tipo_cambio` y cae al `total` como último recurso. BL-1.1 R5: evita sumar
- * USD como si fueran MXN.
- */
-export function amountInMxn(
-  inv: Pick<OverdueInvoice, "balance" | "balance_mxn" | "moneda" | "tipo_cambio" | "total">,
-): number {
-  if (inv.balance_mxn != null) return Number(inv.balance_mxn);
-  const base = inv.balance != null ? Number(inv.balance) : Number(inv.total);
-  return toMxn(base, inv.moneda ?? null, inv.tipo_cambio ?? null);
 }
 
 /**

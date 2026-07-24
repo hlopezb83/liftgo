@@ -2,8 +2,8 @@ import { useMemo } from "react";
 import type { ColumnDef } from "@/components/dataTable/v2";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { PAYMENT_INTENT_STATUS as STATUS_LABEL } from "@/features/invoices/lib/paymentIntentStatus";
 import type { useAdminPaymentIntents } from "@/features/invoices/hooks/paymentIntents";
+import { PAYMENT_INTENT_STATUS as STATUS_LABEL } from "@/features/invoices/lib/paymentIntentStatus";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 

@@ -1,7 +1,6 @@
-
 import type { Forklift } from "@/features/fleet";
-import { extractNonRentalLines } from "@/lib/domain/nonRentalLines";
 import { generateLineItems } from "@/lib/domain/invoiceHelpers";
+import { extractNonRentalLines } from "@/lib/domain/nonRentalLines";
 import { cfdiFromCustomer, type Customer } from "./invoiceFormBuilders";
 import type { InvoiceFormValues, LineItemValues } from "../../lib/invoiceFormSchema";
 import type { UseFormReturn } from "react-hook-form";

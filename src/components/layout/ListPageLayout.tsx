@@ -1,13 +1,11 @@
 import { ReactNode, useEffect, useRef, useState } from "react";
-import { DataTablePaginationV2 } from "@/components/dataTable/v2/DataTablePaginationV2";
 import { type LucideIcon } from "@/components/icons";
 import { FiltersSlot } from "@/components/layout/listPage/FiltersSlot";
-import { LoadMoreFooter, type LoadMoreProps } from "@/components/layout/listPage/LoadMoreFooter";
+import { ListPageBody } from "@/components/layout/listPage/ListPageBody";
+import { type LoadMoreProps } from "@/components/layout/listPage/LoadMoreFooter";
 import { PullToRefreshIndicator } from "@/components/layout/listPage/PullToRefreshIndicator";
-import { TableContent } from "@/components/layout/listPage/TableContent";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
-import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile, useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { cn } from "@/lib/utils";
@@ -108,69 +106,68 @@ export function ListPageLayout<T extends { id?: string }>({
 
   const effectiveItems: T[] = table ? table.getRowModel().rows.map((r) => r.original) : [];
   const showEmpty = !isLoading && effectiveItems.length === 0;
-  const hasPagination = effectiveItems.length > 0 && !!table;
 
-  const subtitleText =
-    totalCount !== undefined
-      ? `${subtitle || ""}${subtitle ? " — " : ""}${totalCount} resultado${totalCount !== 1 ? "s" : ""}`
-      : subtitle;
+  const subtitleText = buildSubtitle(subtitle, totalCount);
+  const headerAction = isMobile && mobileFab ? undefined : actions;
+  const containerClass = cn(
+    "p-4 sm:p-6 space-y-6",
+    isMobile && mobileFab && "pb-[calc(env(safe-area-inset-bottom)+6rem)]",
+  );
+  const pullVisible = !!(isMobile && onRefresh && (pullDistance > 0 || isRefreshing));
 
   return (
     <PageTransition>
-      <div ref={sentinelRef} className={cn("p-4 sm:p-6 space-y-6", isMobile && mobileFab && "pb-[calc(env(safe-area-inset-bottom)+6rem)]")}>
+      <div ref={sentinelRef} className={containerClass}>
         <PullToRefreshIndicator
-          visible={!!(isMobile && onRefresh && (pullDistance > 0 || isRefreshing))}
+          visible={pullVisible}
           pullDistance={pullDistance}
           isRefreshing={isRefreshing}
           ready={ready}
         />
-        <PageHeader
-          title={title}
-          subtitle={subtitleText}
-          action={isMobile && mobileFab ? undefined : actions}
-        />
+        <PageHeader title={title} subtitle={subtitleText} action={headerAction} />
         <FiltersSlot
           filters={filters}
           inSheet={showFiltersInSheet}
           open={filtersOpen}
           onOpenChange={setFiltersOpen}
         />
-        {customContent || (
-          <Card>
-            <CardContent className="p-0">
-              <TableContent
-                isLoading={isLoading}
-                isError={isError}
-                onRetry={onRetry}
-                showEmpty={showEmpty}
-                showMobileCards={showMobileCards}
-                items={effectiveItems}
-                table={table}
-                emptyMessage={emptyMessage}
-                emptyIcon={emptyIcon}
-                emptyActionLabel={emptyActionLabel}
-                onEmptyAction={onEmptyAction}
-                hasActiveFilters={hasActiveFilters}
-                onClearFilters={onClearFilters}
-                onRowClick={onRowClick}
-                onRowPrefetch={onRowPrefetch}
-                mobileCardRender={mobileCardRender}
-                mobileKeyExtractor={mobileKeyExtractor}
-                skeletonColumns={skeletonColumns}
-              />
-              {hasPagination && !isError && <DataTablePaginationV2 table={table} />}
-              {loadMore && !isError && !isLoading && effectiveItems.length > 0 && (
-                <LoadMoreFooter {...loadMore} />
-              )}
-            </CardContent>
-          </Card>
-        )}
+        <ListPageBody
+          customContent={customContent}
+          isLoading={isLoading}
+          isError={isError}
+          onRetry={onRetry}
+          showEmpty={showEmpty}
+          showMobileCards={showMobileCards}
+          items={effectiveItems}
+          table={table}
+          emptyMessage={emptyMessage}
+          emptyIcon={emptyIcon}
+          emptyActionLabel={emptyActionLabel}
+          onEmptyAction={onEmptyAction}
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={onClearFilters}
+          onRowClick={onRowClick}
+          onRowPrefetch={onRowPrefetch}
+          mobileCardRender={mobileCardRender}
+          mobileKeyExtractor={mobileKeyExtractor}
+          skeletonColumns={skeletonColumns}
+          loadMore={loadMore}
+        />
       </div>
       {isMobile && mobileFab && (
-        <div className="fixed right-4 z-40 pointer-events-none" style={{ bottom: "calc(1rem + env(safe-area-inset-bottom))" }}>
+        <div
+          className="fixed right-4 z-40 pointer-events-none"
+          style={{ bottom: "calc(1rem + env(safe-area-inset-bottom))" }}
+        >
           <div className="pointer-events-auto">{mobileFab}</div>
         </div>
       )}
     </PageTransition>
   );
+}
+
+function buildSubtitle(subtitle: string | undefined, totalCount: number | undefined): string | undefined {
+  if (totalCount === undefined) return subtitle;
+  const suffix = `${totalCount} resultado${totalCount !== 1 ? "s" : ""}`;
+  return subtitle ? `${subtitle} — ${suffix}` : suffix;
 }
