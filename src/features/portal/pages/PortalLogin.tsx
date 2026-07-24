@@ -70,16 +70,16 @@ export default function PortalLogin() {
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <Label>Correo Electrónico</Label>
-              <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@empresa.com" required />
+              <Label htmlFor="auth-email">Correo Electrónico</Label>
+              <Input id="auth-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@empresa.com" required />
             </div>
             {mode === "sign-in" && (
               <div className="space-y-1.5">
-                <Label>Contraseña</Label>
-                <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
+                <Label htmlFor="auth-password">Contraseña</Label>
+                <Input id="auth-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
               </div>
             )}
-            <Button type="submit" className="w-full" disabled={loading}>
+            <Button type="submit" className="w-full" disabled={loading} data-testid="auth-submit">
               {getPortalSubmitLabel(loading, mode)}
             </Button>
           </form>
