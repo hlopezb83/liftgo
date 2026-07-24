@@ -1,0 +1,20 @@
+{
+  "version": "7.219.0",
+  "date": "2026-07-24",
+  "type": "minor",
+  "title": "CI hardening: GitHub Actions audit remediation (H1-H4, M1-M6, B2/B6)",
+  "category": "improvement",
+  "highlights": [
+    "H1 · supabase-lint: removido `|| true` para que `supabase db lint` falle el job cuando encuentra errores; CLI pineado a 2.34.0.",
+    "H2 · nota: en Lovable Cloud las migraciones se aplican automáticamente; no se crea workflow separado de db-deploy porque las credenciales de DB no son accesibles.",
+    "H3 · nuevo job `version-sync` en changelog-check.yml: bloquea PRs donde package.json / public/version.json / changelog[0].version no coinciden o falta el JSON de detalle.",
+    "M1 · nuevo job `dependency-review` en CI (fail-on-severity high) con allowlist explícita de licencias.",
+    "M2 · nuevo workflow `pr-title.yml` (Conventional Commits) y `autolabeler` en release-drafter para clasificar cambios por prefijo del título.",
+    "M3 · dependabot: removidos ignores de jspdf/jspdf-autotable (ya no en package.json). Chunk `jspdf` removido de vite.config.",
+    "M4 · bundle-size: warning a 5%, hard-fail a 10% (antes solo warning aunque el bundle creciera 50%).",
+    "M5 · CI corre en schedule semanal (lunes 05:00 America/Monterrey) para detectar rot silencioso.",
+    "M6 · nueva composite action `.github/actions/publish-test-results` que envuelve mikepenz/action-junit-report y centraliza pin + flags; usada por vitest, RLS y Playwright.",
+    "B2 · nuevo `prod-smoke.yml` cada 30 min: HEAD / y GET /version.json contra producción, abre issue en fallos consecutivos.",
+    "B6 · nuevo `stale.yml`: issues 60/14d, PRs 30/10d con labels exentas (pinned, security, roadmap)."
+  ]
+}
