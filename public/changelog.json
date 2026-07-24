@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.224.0",
+    "date": "2026-07-24",
+    "type": "patch",
+    "title": "CI verde: Deno tests corren desde supabase/functions (auto-install facturapi) y visual specs pausados hasta baselines",
+    "category": "fix"
+  },
+  {
     "version": "7.223.0",
     "date": "2026-07-24",
     "type": "minor",
