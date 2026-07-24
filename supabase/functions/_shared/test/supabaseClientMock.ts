@@ -24,6 +24,10 @@ export interface MockConfig {
   claimsError?: unknown;
   // keyed by table name: response for select-chains (single/maybeSingle/await)
   selects?: Record<string, TableResponse>;
+  // Respuestas secuenciadas por tabla para selects — 1ª llamada consume seq[0],
+  // 2ª seq[1], etc. Al agotarse cae en `selects[table]`. Útil cuando el handler
+  // hace dos selects distintos a la misma tabla (ej. NC + sibling NCs).
+  selectsSeq?: Record<string, TableResponse[]>;
   // keyed by table name: response for update-chains
   updates?: Record<string, TableResponse>;
   // v7.222.0 (Auditoría Tests T6#6): respuestas secuenciadas por tabla para
