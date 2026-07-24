@@ -88,7 +88,7 @@ Deno.test("moneda ausente en pago o factura → default MXN", () => {
 });
 
 // TESTS-ARQ2 v3 · DIFF 9 residual: parcialidades REP (NumParcialidad / ImpSaldoAnt / ImpSaldoInsoluto).
-import { assertEquals, assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { computeInstallmentMeta } from "./decisions.ts";
 
 Deno.test("primera parcialidad: sin pagos previos → N=1, saldoAnt=total", () => {
