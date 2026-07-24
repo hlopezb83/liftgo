@@ -32,10 +32,11 @@ export function useBookingActions(booking: BookingWithForklift) {
     });
   };
 
-  const handleCancel = () => {
-    cancelBooking.mutate(booking.id, {
-      onSuccess: () => notifySuccess("Reserva cancelada"),
-    });
+  const handleCancel = (reason?: string) => {
+    cancelBooking.mutate(
+      { bookingId: booking.id, reason: reason ?? null },
+      { onSuccess: () => notifySuccess("Reserva cancelada") },
+    );
   };
 
   const handleStatusChange = async (newStatus: string, onSuccess: () => void) => {
