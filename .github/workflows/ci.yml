@@ -249,7 +249,7 @@ jobs:
           deno-version: v2.x
 
       - name: Cache Deno dependencies
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/deno
           key: ${{ runner.os }}-deno-${{ hashFiles('supabase/functions/**/*.ts') }}
@@ -328,7 +328,7 @@ jobs:
 
       - name: Cache Playwright browsers
         id: playwright-cache
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/ms-playwright
           key: ${{ runner.os }}-playwright-${{ steps.pw-version.outputs.version }}
