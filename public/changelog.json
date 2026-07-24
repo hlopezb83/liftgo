@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.224.1",
+    "date": "2026-07-24",
+    "type": "patch",
+    "title": "Fix CI Deno typecheck: narrow FacturapiError, cast inv fields en stamp-cfdi y CallerLike en validate-receptor",
+    "category": "fix"
+  },
+  {
     "version": "7.224.0",
     "date": "2026-07-24",
     "type": "patch",
