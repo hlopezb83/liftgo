@@ -17,6 +17,8 @@ export const MODULES = [
   "CRM / Prospectos", "Mantenimiento", "Daños", "Refacciones",
   "Gastos", "Proveedores", "Reportes", "MRR", "Configuración", "Gestión de Usuarios",
   "Feedback",
+  // v7.226.0 · E2E-N10: Auditoría deja de ser always-visible; se gestiona por rol.
+  "Auditoría",
   "Facturas de Proveedor", "Flujo de Caja", "Cuentas Bancarias", "Conciliación Bancaria",
 ] as const;
 
