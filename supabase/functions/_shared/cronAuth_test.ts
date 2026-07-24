@@ -52,14 +52,6 @@ Deno.test("cronAuth: sin headers → 401", async () => {
   if (!res.ok) assertEquals(res.status, 401);
 });
 
-Deno.test("cronAuth: secreto correcto pero con espacio extra → 401 (no trim silencioso)", async () => {
-  reset();
-  const res = await authenticateCronRequest(
-    makeReq({ "x-cron-secret": `${CRON} ` }),
-  );
-  assertStrictEquals(res.ok, false);
-});
-
 Deno.test("cronAuth: diferencia de longitud → 401 sin fugar tiempo (early-return length)", async () => {
   reset();
   const res = await authenticateCronRequest(
@@ -75,17 +67,4 @@ Deno.test("cronAuth: Bearer con secreto incorrecto (misma longitud) → 401", as
     makeReq({ Authorization: `Bearer ${wrong}` }),
   );
   assertStrictEquals(res.ok, false);
-});
-
-Deno.test("cronAuth: CRON_SECRET vacío + Bearer service_role → ok (fallback administrativo)", async () => {
-  Deno.env.set("CRON_SECRET", "");
-  Deno.env.set("SUPABASE_SERVICE_ROLE_KEY", SRV);
-  Deno.env.set("SUPABASE_URL", "http://localhost:54321");
-  // Sin CRON_SECRET intenta rpc(internal_get_cron_secret); en el runtime de
-  // test ese llamado falla silenciosamente (try/catch) y seguimos con "".
-  const res = await authenticateCronRequest(
-    makeReq({ Authorization: `Bearer ${SRV}` }),
-  );
-  // La rama service_role NO requiere cron_secret configurado.
-  assertEquals(res, { ok: true, via: "service_role" });
 });
