@@ -151,7 +151,7 @@ Deno.test("handler: 404 si payment no existe", async () => {
     },
   });
   const res = await handleCancelPaymentComplement(
-    makeRequest({ payment_id: PAYMENT_ID }),
+    makeRequest({ payment_id: PAYMENT_ID, motive: "02" }),
     deps,
   );
   assertEquals(res.status, 404);
