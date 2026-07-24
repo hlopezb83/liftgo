@@ -1,13 +1,13 @@
-import { ReactNode, useEffect, useRef, useState } from "react";
+import { ReactNode, useState } from "react";
 import { type LucideIcon } from "@/components/icons";
 import { FiltersSlot } from "@/components/layout/listPage/FiltersSlot";
 import { ListPageBody } from "@/components/layout/listPage/ListPageBody";
 import { type LoadMoreProps } from "@/components/layout/listPage/LoadMoreFooter";
 import { PullToRefreshIndicator } from "@/components/layout/listPage/PullToRefreshIndicator";
+import { useListPagePullToRefresh } from "@/components/layout/listPage/useListPagePullToRefresh";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { useIsMobile, useIsTabletOrBelow } from "@/hooks/use-mobile";
-import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { cn } from "@/lib/utils";
 import type { Table as TanstackTable } from "@tanstack/react-table";
 
@@ -84,22 +84,8 @@ export function ListPageLayout<T extends { id?: string }>({
   const isTabletOrBelow = useIsTabletOrBelow();
   const showMobileCards = isTabletOrBelow && !!mobileCardRender;
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const [scrollTarget, setScrollTarget] = useState<HTMLElement | null>(null);
-
-  useEffect(() => {
-    // Localizar el contenedor <main> real después del montaje para pull-to-refresh.
-    // Es una lectura post-mount del DOM, no una sincronización de estado.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (!isMobile || !onRefresh) { setScrollTarget(null); return; }
-    setScrollTarget(sentinelRef.current?.closest("main") as HTMLElement | null);
-  }, [isMobile, onRefresh]);
-
-  const { pullDistance, isRefreshing, threshold } = usePullToRefresh({
-    onRefresh: onRefresh ?? (() => undefined),
-    target: scrollTarget,
-    enabled: isMobile && !!onRefresh,
-  });
+  const { sentinelRef, pullDistance, isRefreshing, threshold, ready, indicatorVisible } =
+    useListPagePullToRefresh(isMobile, onRefresh);
 
   const effectiveItems: T[] = table ? table.getRowModel().rows.map((r) => r.original) : [];
   const showEmpty = !isLoading && effectiveItems.length === 0;

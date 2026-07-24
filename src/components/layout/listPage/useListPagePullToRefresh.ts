@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, type RefObject } from "react";
 import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 
 interface Result {
-  sentinelRef: RefObject<HTMLDivElement>;
+  sentinelRef: RefObject<HTMLDivElement | null>;
   pullDistance: number;
   isRefreshing: boolean;
   threshold: number;
