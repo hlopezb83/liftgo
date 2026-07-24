@@ -535,7 +535,12 @@ Deno.test("handler: claim atómico — 2ª petición concurrente NO invoca al PA
             error: null,
           },
         },
-        // El claim UPDATE devuelve null → concurrent stamp in progress.
+        // El claim UPDATE devuelve null (via updatesSeq FIFO) → concurrent
+        // stamp in progress. Simula que otro worker ya movió cfdi_status a
+        // 'stamping' entre nuestro SELECT inicial y el UPDATE atómico.
+        updatesSeq: {
+          invoices: [{ data: null, error: null }],
+        },
         updates: { invoices: { data: null, error: null } },
       },
     });
