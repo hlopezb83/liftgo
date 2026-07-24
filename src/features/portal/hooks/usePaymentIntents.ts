@@ -1,4 +1,4 @@
-// Shim retro-compatible. Los hooks reales viven en `@/features/invoices/hooks/paymentIntents`
+// Shim retro-compatible. Los hooks reales viven en `@/features/invoices`
 // para romper el ciclo `invoices → portal`. Este archivo se mantiene mientras
 // `usePortalExtras.ts` siga re-exportando esta ruta para compatibilidad interna.
 export {
@@ -7,4 +7,4 @@ export {
   useCreatePaymentIntent,
   usePortalPaymentIntents,
   useReviewPaymentIntent,
-} from "@/features/invoices/hooks/paymentIntents";
+} from "@/features/invoices";
