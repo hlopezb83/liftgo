@@ -27,6 +27,7 @@ function rangeFns(mode: "month" | "week") {
 }
 
 export default function CalendarPage() {
+  const qc = useQueryClient();
   const [currentDate, setCurrentDate] = useState(nowMty());
   const fetchFrom = subMonths(currentDate, 1);
   const fetchTo = addMonths(currentDate, 1);
