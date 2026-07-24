@@ -558,9 +558,12 @@ Deno.test("handler: timeout PAC deja factura en 'stamping' (top-10 #8 / EC-A2)",
   // handler devuelve 504 y el cron `reconcile-stamping-invoices` la resuelve.
   const mock = installFacturapiMock({
     "/invoices": () => {
-      const err = new Error("The signal has been aborted");
-      err.name = "AbortError";
-      throw err;
+      // Simula timeout del wrapper: el err lleva `code:"TIMEOUT"` que
+      // describeFacturapiError propaga en la 2ª rama del isTimeout check.
+      throw Object.assign(new Error("Facturapi request timed out"), {
+        status: 504,
+        code: "TIMEOUT",
+      });
     },
   });
 
