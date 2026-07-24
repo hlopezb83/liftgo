@@ -270,17 +270,18 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p reports
-          # TESTS-ARQ2 (v7.220.0 DIFF 1): descubrir TODOS los tests Deno
-          # (handler_test.ts de lógica fiscal y _shared/*_test.ts también corren
-          # aquí — antes quedaban dormidos con el patrón `index_test.ts`).
-          mapfile -d '' TEST_FILES < <(find supabase/functions -name '*_test.ts' -print0)
+          # TESTS-ARQ2 (v7.220.0 DIFF 1): descubrir TODOS los tests Deno.
+          # v7.224.0: correr desde supabase/functions para que Deno lea
+          # `deno.json` (nodeModulesDir=auto) y auto-instale `npm:facturapi`.
+          cd supabase/functions
+          mapfile -d '' TEST_FILES < <(find . -name '*_test.ts' -print0)
           if [[ ${#TEST_FILES[@]} -eq 0 ]]; then
-            echo "::error::No se encontraron archivos index_test.ts en supabase/functions"
+            echo "::error::No se encontraron archivos *_test.ts en supabase/functions"
             exit 1
           fi
           echo "Ejecutando ${#TEST_FILES[@]} archivos de test Deno"
-          deno test --allow-net --allow-env --allow-read \
-            --junit-path reports/deno-junit.xml \
+          deno test --allow-net --allow-env --allow-read --allow-write --allow-run --node-modules-dir=auto \
+            --junit-path ../../reports/deno-junit.xml \
             "${TEST_FILES[@]}"
 
       - name: Upload Deno reports
