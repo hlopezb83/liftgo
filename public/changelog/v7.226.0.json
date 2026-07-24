@@ -1,0 +1,53 @@
+{
+  "version": "7.226.0",
+  "date": "2026-07-25",
+  "type": "minor",
+  "title": "E2E R11 (bloque 2): contratos desde reserva, branding público, invitaciones validadas y calendario con refresco",
+  "category": "fix",
+  "sections": [
+    {
+      "heading": "N4 · Contrato desde reserva auto-genera cláusulas",
+      "items": [
+        "`useContractFormLogic` incluye el forklift de la reserva (`rented`) en la lista visible para que el prefill encuentre el equipo y aplique el template con placeholders."
+      ]
+    },
+    {
+      "heading": "N5 · Branding público se invalida al guardar datos fiscales",
+      "items": [
+        "`COMPANY_SETTINGS_INVALIDATION_KEYS` ahora invalida `public_branding` (cache 10 min + persister 24 h) para que portal y pantallas de login reflejen el nuevo logo/razón social sin esperar."
+      ]
+    },
+    {
+      "heading": "N6 · 'Registrar Pago' respeta el saldo real",
+      "items": [
+        "`computeInvoiceFlags` acepta `balance` opcional y oculta el botón cuando el saldo ya es 0 (NC total o pagos que cubren la factura).",
+        "`InvoiceDetailActions` recibe el saldo NC-aware ya calculado en el detalle."
+      ]
+    },
+    {
+      "heading": "N7 · Email validado en Crear Usuario",
+      "items": [
+        "`InviteUserDialog` valida el correo con Zod antes de invocar la edge function; muestra el error inline y limpia al corregir."
+      ]
+    },
+    {
+      "heading": "N8 + N10 · Módulo Auditoría gestionable por rol",
+      "items": [
+        "`/activity` y `/audit` dejan de ser always-visible; el sidebar los resuelve contra el módulo 'Auditoría'.",
+        "`MODULES` y `ROUTE_TO_MODULE` incorporan 'Auditoría'; seed a admin/administrativo con acceso completo."
+      ]
+    },
+    {
+      "heading": "N9 · Botón 'Actualizar' en Calendario",
+      "items": [
+        "Nuevo control junto al selector de vista que invalida `bookingKeys.all` para refrescar el rango visible sin recargar la página."
+      ]
+    },
+    {
+      "heading": "N13 · Persister ignora queries en vuelo",
+      "items": [
+        "`shouldPersistQuery` descarta queries en estado `pending`, evitando el error 'promise.then is not a function' al rehidratar la cache."
+      ]
+    }
+  ]
+}
