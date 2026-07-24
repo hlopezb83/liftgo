@@ -15,6 +15,10 @@ on:
       - "public/changelog.json"
       - "**/*.md"
       - ".lovable/**"
+  # v7.219.0 (M5): corrida semanal para detectar rot silencioso (cachés vencidos,
+  # tests flaky que dependen de fechas relativas, deps con CVEs recién publicados).
+  schedule:
+    - cron: "0 11 * * 1" # Lunes 11:00 UTC (05:00 America/Monterrey)
   workflow_dispatch:
 
 permissions:
