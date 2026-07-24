@@ -101,10 +101,10 @@ export function ListPageLayout<T extends { id?: string }>({
         )}
       >
         <PullToRefreshIndicator
-          visible={!!(isMobile && onRefresh && (pullDistance > 0 || isRefreshing))}
+          visible={indicatorVisible}
           pullDistance={pullDistance}
           isRefreshing={isRefreshing}
-          ready={pullDistance >= threshold}
+          ready={ready}
         />
         <PageHeader
           title={title}
