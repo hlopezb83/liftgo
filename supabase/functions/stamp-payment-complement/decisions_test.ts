@@ -93,7 +93,11 @@ import { computeInstallmentMeta } from "./decisions.ts";
 
 Deno.test("primera parcialidad: sin pagos previos → N=1, saldoAnt=total", () => {
   assertEquals(
-    computeInstallmentMeta({ previousPayments: [], invoiceTotal: 1160, thisAmount: 500 }),
+    computeInstallmentMeta({
+      previousPayments: [],
+      invoiceTotal: 1160,
+      thisAmount: 500,
+    }),
     { numParcialidad: 1, impSaldoAnt: 1160, impSaldoInsoluto: 660 },
   );
 });
@@ -136,7 +140,9 @@ Deno.test("pago con diferencia ≤ 1 centavo (redondeo Anexo 20) → OK", () => 
 Deno.test("pagos previos con montos inválidos (NaN, negativos) se ignoran", () => {
   assertEquals(
     computeInstallmentMeta({
-      previousPayments: [{ amount: Number.NaN }, { amount: -50 }, { amount: 500 }],
+      previousPayments: [{ amount: Number.NaN }, { amount: -50 }, {
+        amount: 500,
+      }],
       invoiceTotal: 1160,
       thisAmount: 100,
     }),
@@ -146,7 +152,12 @@ Deno.test("pagos previos con montos inválidos (NaN, negativos) se ignoran", () 
 
 Deno.test("invoice_total inválido → invoice_total_invalid", () => {
   assertThrows(
-    () => computeInstallmentMeta({ previousPayments: [], invoiceTotal: 0, thisAmount: 100 }),
+    () =>
+      computeInstallmentMeta({
+        previousPayments: [],
+        invoiceTotal: 0,
+        thisAmount: 100,
+      }),
     Error,
     "invoice_total_invalid",
   );
@@ -154,7 +165,12 @@ Deno.test("invoice_total inválido → invoice_total_invalid", () => {
 
 Deno.test("thisAmount ≤ 0 → payment_amount_invalid", () => {
   assertThrows(
-    () => computeInstallmentMeta({ previousPayments: [], invoiceTotal: 1000, thisAmount: 0 }),
+    () =>
+      computeInstallmentMeta({
+        previousPayments: [],
+        invoiceTotal: 1000,
+        thisAmount: 0,
+      }),
     Error,
     "payment_amount_invalid",
   );

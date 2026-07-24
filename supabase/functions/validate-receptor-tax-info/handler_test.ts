@@ -11,7 +11,10 @@ import { buildSupabaseMock } from "../_shared/test/supabaseClientMock.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 import type { CallerLike } from "../_shared/authWithDeps.ts";
 
-const AUTH_HDR = { Authorization: "Bearer t", "Content-Type": "application/json" };
+const AUTH_HDR = {
+  Authorization: "Bearer t",
+  "Content-Type": "application/json",
+};
 
 function makeCaller(claims: Record<string, unknown> | null = {
   role: "authenticated",
@@ -32,7 +35,10 @@ function makeService(invoice: Record<string, unknown> | null): SupabaseLike {
   return buildSupabaseMock({
     selects: {
       user_roles: { data: [{ role: "admin" }], error: null },
-      invoices: { data: invoice, error: invoice ? null : { message: "not found" } },
+      invoices: {
+        data: invoice,
+        error: invoice ? null : { message: "not found" },
+      },
       company_settings: { data: { facturapi_mode: "test" }, error: null },
       billing_secrets: {
         data: { facturapi_test_key: "sk_test_x", facturapi_live_key: null },
@@ -42,7 +48,10 @@ function makeService(invoice: Record<string, unknown> | null): SupabaseLike {
   }).client;
 }
 
-function baseDeps(invoice: Record<string, unknown> | null, fetchImpl: typeof fetch) {
+function baseDeps(
+  invoice: Record<string, unknown> | null,
+  fetchImpl: typeof fetch,
+) {
   return {
     createCallerClient: () => makeCaller(),
     createServiceClient: () => makeService(invoice),
@@ -60,7 +69,9 @@ function req(body: unknown) {
 }
 
 Deno.test("validate-receptor: sin auth → 401", async () => {
-  const noAuthReq = new Request("http://localhost/validate", { method: "POST" });
+  const noAuthReq = new Request("http://localhost/validate", {
+    method: "POST",
+  });
   const res = await handleValidateReceptor(noAuthReq, {
     createCallerClient: () => makeCaller(),
     createServiceClient: () => makeService(null),
@@ -149,7 +160,9 @@ Deno.test("validate-receptor: PAC responde 200 is_valid=true → 200 con errors=
 
 Deno.test("validate-receptor: PAC 5xx → 502 con detail (nunca 200 accidental)", async () => {
   const fetchImpl = ((..._args: unknown[]) =>
-    Promise.resolve(new Response("service down", { status: 503 }))) as unknown as typeof fetch;
+    Promise.resolve(
+      new Response("service down", { status: 503 }),
+    )) as unknown as typeof fetch;
 
   const invoice = {
     receptor_rfc: "MEBM250101ABC",

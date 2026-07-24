@@ -5,10 +5,7 @@ import {
   assertEquals,
   assertStrictEquals,
 } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import {
-  authenticateWithDeps,
-  type CallerLike,
-} from "./authWithDeps.ts";
+import { authenticateWithDeps, type CallerLike } from "./authWithDeps.ts";
 import { buildSupabaseMock } from "./test/supabaseClientMock.ts";
 import type { SupabaseLike } from "./types.ts";
 
@@ -27,7 +24,10 @@ function makeDeps(opts: {
 } {
   const service = buildSupabaseMock({
     selects: {
-      user_roles: { data: opts.rolesData ?? [], error: opts.rolesError ?? null },
+      user_roles: {
+        data: opts.rolesData ?? [],
+        error: opts.rolesError ?? null,
+      },
     },
   }).client;
   const caller: CallerLike = {

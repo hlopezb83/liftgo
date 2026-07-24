@@ -551,7 +551,11 @@ Deno.test("handler: claim atómico — 2ª petición concurrente NO invoca al PA
     );
     await res.json();
     assertEquals(res.status, 409, "claim fallido debe retornar 409");
-    assertEquals(facturapiCalled, 0, "PAC NUNCA debe invocarse si el claim falla");
+    assertEquals(
+      facturapiCalled,
+      0,
+      "PAC NUNCA debe invocarse si el claim falla",
+    );
   } finally {
     mock.restore();
   }
