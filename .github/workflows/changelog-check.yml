@@ -47,7 +47,7 @@ jobs:
           echo "package.json      : $PKG"
           echo "public/version.json: $VER"
           echo "changelog[0]      : $TOP"
-          if [[ "$PKG" != "$VER" || "$PKG" != "$TOP" ]]; then
+          if ! [[ "$PKG" == "$VER" && "$PKG" == "$TOP" ]]; then
             echo "::error::Versiones desincronizadas. Ejecuta \`node scripts/gen-version.mjs\` y verifica que la entrada superior del changelog coincida con package.json."
             exit 1
           fi
