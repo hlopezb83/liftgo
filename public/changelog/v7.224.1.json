@@ -1,0 +1,13 @@
+{
+  "version": "7.224.1",
+  "date": "2026-07-24",
+  "type": "patch",
+  "title": "Fix CI Deno typecheck: narrow FacturapiError, cast inv fields en stamp-cfdi y CallerLike en validate-receptor",
+  "category": "fix",
+  "changes": [
+    "`_shared/facturapi/client.ts`: `describeFacturapiError` narrowa `err` (unknown) a shape tipada tras `instanceof FacturapiError` — evita 7×TS18046 que salían porque `FacturapiError` se resuelve dinámicamente del SDK y TS lo veía como `{}`.",
+    "`stamp-cfdi/handler.ts`: `receptor_rfc` y `receptor_razon_social`/`customer_name` ahora pasan por `String(... ?? default)` — corrige TS2339 `Property 'toUpperCase' does not exist on type '{}'` y TS2345 al llamar `sanitizeLegalName`.",
+    "`validate-receptor-tax-info/handler.ts`: `ValidateReceptorDeps.createCallerClient` ahora retorna `CallerLike` (lo que realmente consume `authenticateWithDeps`) en vez de `SupabaseLike` — desbloquea los 5×TS2345 en `handler_test.ts` sin degradar el contrato del test.",
+    "Portal-statement E2E sigue flaky cuando `E2E_PORTAL_EMAIL/PASSWORD` apuntan a un usuario cuya sesión no navega a `/portal`; queda fuera de scope de este patch."
+  ]
+}
