@@ -144,3 +144,56 @@ describe("BL-43/44/45 — saldo con NCs y estatus (paridad vista/portal/resumen)
     expect(outstandingRevenue(CID, invs, [], [])).toBe(8_000);
   });
 });
+
+/**
+ * TESTS-ARQ2 v2 · DIFF 11: paridad multi-moneda.
+ * `v_invoices_with_balance` expone `balance` en la moneda original; el portal y
+ * los KPIs de cobranza deben convertir a MXN usando `tipo_cambio` de la factura
+ * antes de sumar (helper `toMxn`). Los tests siguientes protegen esa conversión.
+ */
+import { toMxn } from "@/lib/money";
+
+type FxInvoice = Invoice & { currency: "MXN" | "USD"; fx: number | null };
+
+function outstandingRevenueMxn(customerId: string, invs: FxInvoice[]): number {
+  return invs
+    .filter((i) => i.customer_id === customerId)
+    .filter((i) => ["sent", "partial", "overdue"].includes(i.status))
+    .reduce((s, i) => s + toMxn(i.total, i.currency, i.fx), 0);
+}
+
+describe("BL-43/44/45 — conversión a MXN para KPIs de cobranza", () => {
+  const CID = "cust-usd";
+
+  it("USD con tipo_cambio 18.5 → suma en MXN", () => {
+    const invs: FxInvoice[] = [
+      { id: "u1", customer_id: CID, status: "sent", total: 1_000, currency: "USD", fx: 18.5 },
+    ];
+    expect(outstandingRevenueMxn(CID, invs)).toBe(18_500);
+  });
+
+  it("USD sin tipo_cambio (null) → fallback preserva el monto (nunca 0 silencioso)", () => {
+    const invs: FxInvoice[] = [
+      { id: "u2", customer_id: CID, status: "overdue", total: 500, currency: "USD", fx: null },
+    ];
+    // toMxn con fx inválido devuelve el amount tal cual (no lo multiplica por 0).
+    expect(outstandingRevenueMxn(CID, invs)).toBe(500);
+  });
+
+  it("mezcla MXN + USD → cada una se convierte solo si aplica", () => {
+    const invs: FxInvoice[] = [
+      { id: "m1", customer_id: CID, status: "sent", total: 10_000, currency: "MXN", fx: null },
+      { id: "u3", customer_id: CID, status: "partial", total: 200, currency: "USD", fx: 20 },
+    ];
+    expect(outstandingRevenueMxn(CID, invs)).toBe(10_000 + 4_000);
+  });
+
+  it("tipo_cambio negativo o cero → fallback (no invierte el signo)", () => {
+    const invs: FxInvoice[] = [
+      { id: "u4", customer_id: CID, status: "sent", total: 100, currency: "USD", fx: -5 },
+      { id: "u5", customer_id: CID, status: "sent", total: 100, currency: "USD", fx: 0 },
+    ];
+    expect(outstandingRevenueMxn(CID, invs)).toBe(200);
+  });
+});
+

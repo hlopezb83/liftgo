@@ -1,0 +1,16 @@
+{
+  "version": "7.221.0",
+  "date": "2026-07-24",
+  "type": "minor",
+  "title": "Tests Fase 1 (diferidos): DIFF 9/11/12/16 — REP Anexo 20, portal USD, Gantt starter y auth shared",
+  "category": "improvement",
+  "highlights": [
+    "DIFF 16 · _shared/cronAuth_test.ts: cubre las 3 fuentes (x-cron-secret, Bearer cron_secret, Bearer service_role), diferencia de longitud → 401 sin fuga timing, secreto vacío + service_role sí pasa. Antes 0% cobertura del helper de auth cron.",
+    "DIFF 16 · _shared/authWithDeps_test.ts: valida bypass service_role, roles permitidos, 403 sin rol, 500 en fallo de lookup, sub vacío → 401. Blindaje del helper usado por 6 edge functions fiscales.",
+    "DIFF 16 · validate-receptor-tax-info/handler_test.ts: RFC XAXX010101000 (Público General) NUNCA llega al PAC (bypass verificado con contador), datos incompletos → 400 sin fetch, PAC 5xx → 502 con detail.",
+    "DIFF 9 · stamp-payment-complement/decisions.ts: extraído `computeRepExchange` (Anexo 20: `EquivalenciaDR=1` cuando MonedaDR == MonedaP aun si la factura tiene tipo_cambio guardado). index.ts importa la decisión; el test blinda el fix R10-8.2 contra regresión.",
+    "DIFF 11 · portalBalance.test.ts: agregada suite de conversión a MXN vía `toMxn` (USD con fx, USD sin fx = fallback, mezcla MXN+USD, fx negativo/cero = fallback). Antes la suite era 100% MXN.",
+    "DIFF 12 · useGanttSegments.test.tsx: starter para el hook del Gantt de calendario. Verifica clamp al viewport, exclusión de status no rentable y color estable por cliente (hash).",
+    "Deferidos a Fase 2 (requieren fixtures adicionales): DIFF 10 timeouts stamp-cfdi con AbortController mockeado, DIFF 12 restantes (useReturnInspection/useMaintenanceKanban/useRoleChange), DIFF 14 data-testid + refactor de specs Playwright."
+  ]
+}
