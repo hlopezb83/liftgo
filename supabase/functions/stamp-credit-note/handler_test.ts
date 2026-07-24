@@ -65,6 +65,7 @@ const STAMPED_INVOICE = {
   id: INVOICE_ID,
   cfdi_status: "stamped",
   facturapi_invoice_id: "fapi_source",
+  cfdi_uuid: "aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa",
   receptor_rfc: "XAXX010101000",
 };
 
