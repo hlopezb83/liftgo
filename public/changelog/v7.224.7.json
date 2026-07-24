@@ -1,0 +1,14 @@
+{
+  "version": "7.224.7",
+  "date": "2026-07-24",
+  "type": "patch",
+  "title": "CI: actualizar actions/cache a v6 (runtime Node 24)",
+  "category": "chore",
+  "summary": "Elimina el warning de deprecación de Node 20 en GitHub Actions al actualizar actions/cache a la primera versión que declara runs.using: node24.",
+  "changes": [
+    "Bump actions/cache@v4 → @v6 en .github/actions/setup-bun-project/action.yml",
+    "Bump actions/cache@v4 → @v6 en .github/workflows/ci.yml (2 usos)",
+    "Bump actions/cache@v4 → @v6 en .github/workflows/bundle-size.yml"
+  ],
+  "notes": "actions/cache v6.1.0 (26-jun-2026) es la primera línea que declara node24 en action.yml; se pierde el warning 'Node.js 20 is deprecated' que aparecía aun con Node 24 forzado."
+}
