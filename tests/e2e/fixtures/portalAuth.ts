@@ -23,5 +23,8 @@ export async function loginPortal(page: Page, email: string, password: string): 
     .toBeVisible({ timeout: 15_000 });
   await signIn(page, email, password);
   await waitForAuthToken(page);
-  await page.waitForURL(/\/portal(\/|$)/, { timeout: 20_000 });
+  // PortalLogin redirige a "/" tras auth; el router de cliente resuelve luego
+  // a /portal. Aceptamos ambos para no depender del timing exacto del segundo
+  // redirect (v7.224.4).
+  await page.waitForURL(/\/(portal(\/|$)|$)/, { timeout: 20_000 });
 }
