@@ -109,6 +109,16 @@ export default function CalendarPage() {
             </TabsList>
           </Tabs>
         )}
+        {/* v7.226.0 · E2E-N9: refetch manual del rango visible. */}
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 ml-auto"
+          onClick={() => qc.invalidateQueries({ queryKey: bookingKeys.all })}
+          aria-label="Actualizar calendario"
+        >
+          <RefreshIcon className="h-4 w-4 mr-1" /> Actualizar
+        </Button>
       </div>
 
       {viewMode === "gantt" ? (
