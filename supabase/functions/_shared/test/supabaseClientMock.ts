@@ -98,8 +98,18 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
         return builder;
       },
       limit: () => builder,
-      single: () => mode === "update" ? resolveUpdate() : resolveSelect(),
-      maybeSingle: () => mode === "update" ? resolveUpdate() : resolveSelect(),
+      // Legacy: single/maybeSingle en cadena update devuelven `selects[table]`
+      // (varios tests confían en esto para simular update-returning). Opt-in
+      // v7.222.0: si `updatesSeq[table]` está definido, se consume aquí para
+      // simular claim atómico concurrente.
+      single: () =>
+        mode === "update" && updatesSeq[table]?.length
+          ? resolveUpdate()
+          : resolveSelect(),
+      maybeSingle: () =>
+        mode === "update" && updatesSeq[table]?.length
+          ? resolveUpdate()
+          : resolveSelect(),
       then: <T>(onfulfilled: (v: TableResponse) => T) => {
         const p = mode === "update" ? resolveUpdate() : resolveSelect();
         return p.then(onfulfilled);
