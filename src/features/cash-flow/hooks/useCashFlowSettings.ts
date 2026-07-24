@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { COMPANY_SETTINGS_INVALIDATION_KEYS } from "@/features/company-settings/lib/queryKeys";
+import { COMPANY_SETTINGS_INVALIDATION_KEYS } from "@/features/company-settings";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { cashFlowSettingsQueries, type CashFlowSettings } from "../lib/queryKeys";

@@ -1,4 +1,4 @@
-import { satStatusLabel } from "@/features/feedback/lib/feedbackMessages";
+import { satStatusLabel } from "@/features/feedback";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
