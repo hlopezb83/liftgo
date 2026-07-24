@@ -26,7 +26,9 @@ test("cadena completa: cotización → reserva → factura → pago", async ({ p
   await expect(page.getByText(seed.invoice_number).first()).toBeVisible({ timeout: 15_000 });
 
   // 4. Registra el pago total y valida transición a pagada.
-  const payButton = page.getByRole("button", { name: /registrar pago|nuevo pago/i }).first();
+  // v7.223.0: usar data-testid en lugar de regex de copy para evitar
+  // fragilidad ante cambios de i18n.
+  const payButton = page.getByTestId("invoice-register-payment").first();
   await expect(payButton).toBeVisible({ timeout: 10_000 });
   await payButton.click();
 

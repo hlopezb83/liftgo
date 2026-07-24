@@ -16,7 +16,8 @@ test("can register a full payment on a seeded invoice", async ({ page, seed }) =
   await page.goto(`/invoices/${seed.invoice_id}`, { waitUntil: "domcontentloaded" });
   await expect(page.getByText(seed.invoice_number).first()).toBeVisible({ timeout: 15_000 });
 
-  const payButton = page.getByRole("button", { name: /registrar pago|nuevo pago/i }).first();
+  // v7.223.0: usar data-testid en lugar de regex de copy.
+  const payButton = page.getByTestId("invoice-register-payment").first();
   await expect(payButton).toBeVisible({ timeout: 10_000 });
   await payButton.click();
 
