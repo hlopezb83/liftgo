@@ -58,12 +58,17 @@ function computeCfdiFlags(invoice: InvoiceLike, cfdiStatus: string) {
 function computeActionFlags(invoice: InvoiceLike, cfdiStatus: string): InvoiceActionFlags {
   const status = invoice.status;
   const isDraft = status === "draft";
-  const isPayable = status === "sent" || status === "overdue";
+  // v7.226.0 · E2E-N6: si el saldo es conocido y ya es <= 0 (NC total o pagos
+  // que cubren el remanente), no debe verse "Registrar Pago" aunque el
+  // estatus siga como sent/overdue/partial.
+  const balanceKnown = typeof invoice.balance === "number";
+  const hasBalance = !balanceKnown || (invoice.balance ?? 0) > 0;
+  const isPayable = (status === "sent" || status === "overdue") && hasBalance;
   const cfdi = computeCfdiFlags(invoice, cfdiStatus);
   return {
     isDraft,
     isPayable,
-    showPaymentBtn: isPayable || status === "partial",
+    showPaymentBtn: (isPayable || status === "partial") && hasBalance,
     canEdit: isDraft && !cfdi.isStamped && !cfdi.isCancelled,
     canDelete: isDraft && !cfdi.isStamped && !cfdi.isCancelled,
     ...cfdi,
