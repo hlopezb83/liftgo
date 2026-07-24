@@ -98,8 +98,8 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
         return builder;
       },
       limit: () => builder,
-      single: () => resolveSelect(),
-      maybeSingle: () => resolveSelect(),
+      single: () => mode === "update" ? resolveUpdate() : resolveSelect(),
+      maybeSingle: () => mode === "update" ? resolveUpdate() : resolveSelect(),
       then: <T>(onfulfilled: (v: TableResponse) => T) => {
         const p = mode === "update" ? resolveUpdate() : resolveSelect();
         return p.then(onfulfilled);
