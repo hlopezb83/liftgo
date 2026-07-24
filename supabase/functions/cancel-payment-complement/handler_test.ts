@@ -151,7 +151,7 @@ Deno.test("handler: 404 si payment no existe", async () => {
     },
   });
   const res = await handleCancelPaymentComplement(
-    makeRequest({ payment_id: PAYMENT_ID }),
+    makeRequest({ payment_id: PAYMENT_ID, motive: "02" }),
     deps,
   );
   assertEquals(res.status, 404);
@@ -268,7 +268,7 @@ Deno.test("handler: 502 si Facturapi falla y NO marca cancelled", async () => {
       },
     });
     const res = await handleCancelPaymentComplement(
-      makeRequest({ payment_id: PAYMENT_ID }),
+      makeRequest({ payment_id: PAYMENT_ID, motive: "02" }),
       deps,
     );
     await res.json();
@@ -283,35 +283,22 @@ Deno.test("handler: 502 si Facturapi falla y NO marca cancelled", async () => {
   }
 });
 
-Deno.test("handler: motivo inválido cae a default '02'", async () => {
-  const mock = installFacturapiMock({
-    "/invoices/fapi_xx": () =>
-      new Response(JSON.stringify({ ok: true }), { status: 200 }),
-  });
-  try {
-    const { deps } = makeDeps({
-      env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
-      service: {
-        selects: {
-          user_roles: { data: [{ role: "admin" }], error: null },
-          payments: {
-            data: { rep_cfdi_status: "stamped", rep_facturapi_id: "fapi_xx" },
-            error: null,
-          },
-          company_settings: { data: { facturapi_mode: "test" }, error: null },
-          billing_secrets: { data: null, error: null },
-        },
-        updates: { payments: { data: null, error: null } },
+// Fix B v7.90.0: motivo inválido ahora se rechaza en cliente (400) en vez de
+// caer silenciosamente a "02" y ocultar bugs del caller.
+Deno.test("handler: motivo inválido responde 400 (SAT: motive obligatorio)", async () => {
+  const { deps } = makeDeps({
+    env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
+    service: {
+      selects: {
+        user_roles: { data: [{ role: "admin" }], error: null },
       },
-    });
-    const res = await handleCancelPaymentComplement(
-      makeRequest({ payment_id: PAYMENT_ID, motive: "99" }),
-      deps,
-    );
-    await res.json();
-    assertEquals(res.status, 200);
-    assert(mock.calls.some((c) => c.url.includes("motive=02")));
-  } finally {
-    mock.restore();
-  }
+    },
+  });
+  const res = await handleCancelPaymentComplement(
+    makeRequest({ payment_id: PAYMENT_ID, motive: "99" }),
+    deps,
+  );
+  const body = await res.json();
+  assertEquals(res.status, 400);
+  assertEquals(body.error, "motive must be one of 01,02,03,04");
 });

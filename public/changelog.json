@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.224.2",
+    "date": "2026-07-24",
+    "type": "patch",
+    "title": "Fix CI Deno tests: toCents precisión IEEE-754, selectsSeq en mock, motive obligatorio en cancel-REP",
+    "category": "fix"
+  },
+  {
     "version": "7.224.1",
     "date": "2026-07-24",
     "type": "patch",

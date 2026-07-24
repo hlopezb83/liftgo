@@ -65,6 +65,7 @@ const STAMPED_INVOICE = {
   id: INVOICE_ID,
   cfdi_status: "stamped",
   facturapi_invoice_id: "fapi_source",
+  cfdi_uuid: "aaaaaaaa-1111-4111-8111-aaaaaaaaaaaa",
   receptor_rfc: "XAXX010101000",
 };
 
@@ -191,6 +192,30 @@ Deno.test("handler: happy path calls Facturapi and persists UUID", async () => {
           company_settings: { data: { facturapi_mode: "test" }, error: null },
           billing_secrets: { data: null, error: null },
         },
+        selectsSeq: {
+          // 1er select: NC principal (.single). 2do: siblings BL-08 (array).
+          credit_notes: [
+            {
+              data: {
+                id: NC_ID,
+                invoice_id: INVOICE_ID,
+                tax_rate: 16,
+                currency: "MXN",
+                line_items: [{
+                  description: "NC",
+                  quantity: 1,
+                  unit_price: 100,
+                }],
+              },
+              error: null,
+            },
+            { data: [], error: null },
+          ],
+        },
+        updatesSeq: {
+          // Claim atómico exitoso (línea 96-103 del handler).
+          credit_notes: [{ data: { id: NC_ID }, error: null }],
+        },
         updates: { credit_notes: { data: null, error: null } },
       },
     });
@@ -231,6 +256,18 @@ Deno.test("handler: Facturapi 400 returns 502 and marks credit note as error", a
           company_settings: { data: { facturapi_mode: "test" }, error: null },
           billing_secrets: { data: null, error: null },
         },
+        selectsSeq: {
+          credit_notes: [
+            {
+              data: { id: NC_ID, invoice_id: INVOICE_ID, line_items: [] },
+              error: null,
+            },
+            { data: [], error: null },
+          ],
+        },
+        updatesSeq: {
+          credit_notes: [{ data: { id: NC_ID }, error: null }],
+        },
         updates: { credit_notes: { data: null, error: null } },
       },
     });
@@ -262,6 +299,15 @@ Deno.test("handler: stub mode (no API key) returns stub:true UUID", async () => 
         invoices: { data: STAMPED_INVOICE, error: null },
         company_settings: { data: { facturapi_mode: "test" }, error: null },
         billing_secrets: { data: null, error: null },
+      },
+      selectsSeq: {
+        credit_notes: [
+          { data: { id: NC_ID, invoice_id: INVOICE_ID }, error: null },
+          { data: [], error: null },
+        ],
+      },
+      updatesSeq: {
+        credit_notes: [{ data: { id: NC_ID }, error: null }],
       },
       updates: { credit_notes: { data: null, error: null } },
     },

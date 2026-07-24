@@ -13,10 +13,12 @@
 export function toCents(n: number | string | null | undefined): number {
   const v = typeof n === "string" ? Number(n) : n;
   if (typeof v !== "number" || !Number.isFinite(v)) return 0;
-  // Redondeo half-away-from-zero: Math.round(0.5) = 1, Math.round(-0.5) = 0
-  // → usamos sign*floor(abs+0.5) para asegurar simetría con negativos.
-  const scaled = v * 100;
-  return scaled >= 0 ? Math.floor(scaled + 0.5) : -Math.floor(-scaled + 0.5);
+  // Redondeo half-away-from-zero robusto a IEEE-754: 1.005 * 100 == 100.4999...
+  // toFixed(8) neutraliza el drift antes de Math.round, y el signo se aplica
+  // manualmente para simetría con negativos (Math.round(-100.5) === -100 en JS).
+  const sign = v < 0 ? -1 : 1;
+  const cents = Math.round(Number((Math.abs(v) * 100).toFixed(8)));
+  return sign * cents;
 }
 
 export function fromCents(cents: number): number {

@@ -1,0 +1,14 @@
+{
+  "version": "7.224.2",
+  "date": "2026-07-24",
+  "type": "patch",
+  "title": "Fix CI Deno tests: toCents precisión IEEE-754, selectsSeq en mock, motive obligatorio en cancel-REP",
+  "category": "fix",
+  "changes": [
+    "money.ts: toCents ahora usa toFixed(8) + signo manual para neutralizar drift IEEE-754 (1.005*100 = 100.4999...) y half-away-from-zero simétrico en negativos.",
+    "money_test.ts: corregido typo (sumMoneyCents([1.005, 2.005]) == 302, no 201).",
+    "supabaseClientMock: agregado selectsSeq (paralelo a updatesSeq) para permitir respuestas secuenciadas cuando el handler hace múltiples selects a la misma tabla (ej. NC principal + siblings BL-08).",
+    "stamp-credit-note/handler_test: STAMPED_INVOICE ahora incluye cfdi_uuid (requerido por validación de source invoice), y los 3 tests principales usan selectsSeq/updatesSeq para el claim atómico + sibling NCs.",
+    "cancel-payment-complement/handler_test: agregado motive:'02' a requests válidos y reescrito el test de motivo inválido para esperar 400 (Fix B v7.90.0 rechaza motivos fuera de 01-04)."
+  ]
+}

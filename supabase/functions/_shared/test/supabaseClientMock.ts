@@ -24,6 +24,10 @@ export interface MockConfig {
   claimsError?: unknown;
   // keyed by table name: response for select-chains (single/maybeSingle/await)
   selects?: Record<string, TableResponse>;
+  // Respuestas secuenciadas por tabla para selects — 1ª llamada consume seq[0],
+  // 2ª seq[1], etc. Al agotarse cae en `selects[table]`. Útil cuando el handler
+  // hace dos selects distintos a la misma tabla (ej. NC + sibling NCs).
+  selectsSeq?: Record<string, TableResponse[]>;
   // keyed by table name: response for update-chains
   updates?: Record<string, TableResponse>;
   // v7.222.0 (Auditoría Tests T6#6): respuestas secuenciadas por tabla para
@@ -52,6 +56,10 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
   };
 
   const selects = cfg.selects ?? {};
+  const selectsSeq: Record<string, TableResponse[]> = {};
+  for (const [k, v] of Object.entries(cfg.selectsSeq ?? {})) {
+    selectsSeq[k] = [...v];
+  }
   const updates = cfg.updates ?? {};
   const updatesSeq: Record<string, TableResponse[]> = {};
   for (const [k, v] of Object.entries(cfg.updatesSeq ?? {})) {
@@ -66,8 +74,13 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
   ): QueryBuilderLike {
     const filters: Array<{ col: string; val: unknown }> = [];
 
-    const resolveSelect = (): Promise<TableResponse> =>
-      Promise.resolve(selects[table] ?? { data: null, error: null });
+    const resolveSelect = (): Promise<TableResponse> => {
+      const seq = selectsSeq[table];
+      if (seq && seq.length > 0) {
+        return Promise.resolve(seq.shift() as TableResponse);
+      }
+      return Promise.resolve(selects[table] ?? { data: null, error: null });
+    };
 
     const resolveUpdate = (): Promise<TableResponse> => {
       state.updates.push({ table, patch: patch ?? {}, filters: [...filters] });
