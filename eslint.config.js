@@ -218,13 +218,14 @@ export default tseslint.config(
     // de Supabase definido sobre pages/components (en flat config, dos
     // bloques que coinciden y definen la misma regla, la última gana).
     //
-    // v7.218.0 · ARQ2-A4: escalado a `error` tras migrar 0 sitios residuales.
-    // Los deep imports intra-feature (mismo feature) siguen permitidos porque
-    // el patrón `@/features/*/…` sólo matchea el segmento `*`, no la propia.
+    // v7.218.0 · ARQ2-A4: se mantiene `warn` — el patrón `@/features/*/…`
+    // también matchea la MISMA feature (los deep imports intra-feature son
+    // legítimos). El guardrail duro bloqueante vive en scripts/arch-check.sh
+    // (G5 con umbral 0), que sí distingue src vs. target por feature.
     files: ["src/features/**/hooks/**/*.{ts,tsx}", "src/features/**/lib/**/*.{ts,tsx}"],
     ignores: ["**/__tests__/**", "**/*.test.{ts,tsx}"],
     rules: {
-      "no-restricted-imports": ["error", {
+      "no-restricted-imports": ["warn", {
         patterns: [
           {
             group: ["@/features/*/hooks/**", "@/features/*/components/**", "@/features/*/lib/**", "@/features/*/pages/**"],
