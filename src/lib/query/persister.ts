@@ -74,7 +74,7 @@ export const PERSIST_BLOCKLIST: readonly string[] = [
 export function shouldPersistQuery(query: Query): boolean {
   // v7.226.0 · E2E-N13: queries en vuelo no deben persistirse — al rehidratar
   // llegan sin data y provocan errores del tipo "promise.then is not a function".
-  if (query.state.status === "pending") return false;
+  if (query.state?.status === "pending") return false;
   const root = query.queryKey[0];
   if (typeof root !== "string") return false;
   if (PERSIST_BLOCKLIST.includes(root)) return false;
