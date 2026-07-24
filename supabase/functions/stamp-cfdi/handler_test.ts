@@ -499,3 +499,133 @@ Deno.test("handler: stub mode (no API key) returns stub:true UUID", async () => 
   );
   assert(stampUpdate, "stub mode still stamps the invoice in DB");
 });
+
+// ────────────────────────────────────────────────────────────────────────────
+// v7.222.0 — Auditoría de Tests Top-10 #6 + #8
+// ────────────────────────────────────────────────────────────────────────────
+
+Deno.test("handler: claim atómico — 2ª petición concurrente NO invoca al PAC (top-10 #6)", async () => {
+  // Simulamos que el UPDATE ... WHERE cfdi_status IN ('pending','error') no
+  // encontró filas (fila ya está en 'stamping' por la 1ª llamada). El handler
+  // debe retornar 409 sin llamar a Facturapi.
+  let facturapiCalled = 0;
+  const mock = installFacturapiMock({
+    "/invoices": () => {
+      facturapiCalled++;
+      return facturapiOk({ id: "should_not_happen", uuid: "SHOULD-NOT" });
+    },
+  });
+
+  try {
+    const { deps } = makeDeps({
+      env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
+      fetchImpl: globalThis.fetch,
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          invoices: {
+            data: {
+              id: INVOICE_ID,
+              total: 1160,
+              subtotal: 1000,
+              tax_rate: 16,
+              line_items: [],
+              receptor_rfc: "AAA010101AAA",
+            },
+            error: null,
+          },
+        },
+        // El claim UPDATE devuelve null (via updatesSeq FIFO) → concurrent
+        // stamp in progress. Simula que otro worker ya movió cfdi_status a
+        // 'stamping' entre nuestro SELECT inicial y el UPDATE atómico.
+        updatesSeq: {
+          invoices: [{ data: null, error: null }],
+        },
+        updates: { invoices: { data: null, error: null } },
+      },
+    });
+
+    const res = await handleStampCfdi(
+      makeRequest({ invoice_id: INVOICE_ID }),
+      deps,
+    );
+    await res.json();
+    assertEquals(res.status, 409, "claim fallido debe retornar 409");
+    assertEquals(facturapiCalled, 0, "PAC NUNCA debe invocarse si el claim falla");
+  } finally {
+    mock.restore();
+  }
+});
+
+Deno.test("handler: timeout PAC deja factura en 'stamping' (top-10 #8 / EC-A2)", async () => {
+  // Facturapi excede el timeout — fetch rechaza con AbortError. La factura
+  // NO debe caer a 'error' (el CFDI puede haberse emitido server-side); el
+  // handler devuelve 504 y el cron `reconcile-stamping-invoices` la resuelve.
+  const mock = installFacturapiMock({
+    "/invoices": () => {
+      // Simula timeout del wrapper: el err lleva `code:"TIMEOUT"` que
+      // describeFacturapiError propaga en la 2ª rama del isTimeout check.
+      throw Object.assign(new Error("Facturapi request timed out"), {
+        status: 504,
+        code: "TIMEOUT",
+      });
+    },
+  });
+
+  try {
+    const { deps, serviceState } = makeDeps({
+      env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
+      fetchImpl: globalThis.fetch,
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          invoices: {
+            data: {
+              id: INVOICE_ID,
+              total: 1160,
+              subtotal: 1000,
+              tax_rate: 16,
+              line_items: [],
+              receptor_rfc: "AAA010101AAA",
+            },
+            error: null,
+          },
+          company_settings: { data: { facturapi_mode: "test" }, error: null },
+          billing_secrets: { data: null, error: null },
+        },
+        // 1º update: claim atómico → devuelve id (claim exitoso).
+        // 2º+ updates fallback: no importa; el handler debe salir por la rama
+        //   timeout ANTES de tocar cfdi_status='error'.
+        updatesSeq: {
+          invoices: [{ data: { id: INVOICE_ID }, error: null }],
+        },
+        updates: { invoices: { data: null, error: null } },
+      },
+    });
+
+    const res = await handleStampCfdi(
+      makeRequest({ invoice_id: INVOICE_ID }),
+      deps,
+    );
+    const body = await res.json();
+    assertEquals(res.status, 504, "timeout debe devolver 504");
+    assertEquals(body.code, "TIMEOUT");
+    assertEquals(body.transient, true);
+
+    // Verificación clave EC-A2: NO debe existir un update con cfdi_status='error'
+    const errorUpdate = serviceState.updates.find((u) =>
+      u.table === "invoices" && u.patch.cfdi_status === "error"
+    );
+    assert(
+      !errorUpdate,
+      "EC-A2 BREACH: la factura fue marcada 'error' en timeout — reconcile no la recuperará",
+    );
+    // Tampoco stamped
+    const stampedUpdate = serviceState.updates.find((u) =>
+      u.table === "invoices" && u.patch.cfdi_status === "stamped"
+    );
+    assert(!stampedUpdate, "no debe marcarse stamped en timeout");
+  } finally {
+    mock.restore();
+  }
+});

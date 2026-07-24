@@ -1,0 +1,20 @@
+{
+  "version": "7.222.0",
+  "date": "2026-07-24",
+  "type": "minor",
+  "title": "Tests Fase 1 completa: top-10 restante + RLS SQL reales + E2E fiscales",
+  "category": "improvement",
+  "highlights": [
+    "Top-10 #6 (claim atómico) — supabaseClientMock.ts gana `updatesSeq` (FIFO por tabla) para simular concurrencia. Nuevo test en stamp-cfdi/handler_test.ts prueba que la 2ª petición concurrente NO invoca al PAC cuando el UPDATE ... WHERE cfdi_status IN ('pending','error') no matchea.",
+    "Top-10 #8 (EC-A2 timeout) — test agrega AbortError de Facturapi via installFacturapiMock; verifica 504+code=TIMEOUT+transient=true y que serviceState.updates NO contiene cfdi_status='error' (garantiza que reconcile-stamping-invoices puede recuperarla).",
+    "Top-10 #9 (cancel motivo 01) — schema Zod extraído a src/features/invoices/lib/cancelCfdiSchema.ts (sin `z` colgando en el .tsx); cancelCfdiSchema.test.ts prueba 6 casos: motivos válidos, UUID inválido en 6 variantes, trim de espacios, motive vacío.",
+    "Top-10 #2 (work_status) — src/features/maintenance/hooks/__tests__/workStatusRegression.test.ts blinda la transición close → done + work_status='closed' y la idempotencia del trigger (re-mover a done no revierte).",
+    "Top-10 #10 (revocación de rol) — src/features/users/__tests__/roleRevocation.test.ts prueba invalidación de user_roles + role_permissions tras updateUserRole y la matriz de permisos (dispatcher/mecánico/ventas sin can_write en invoices).",
+    "T4 (RLS reales) — nuevo directorio supabase/tests/rls/ con 7 archivos SQL versionados: customer_payment_intents_portal, quotes_portal, supplier_payments, user_roles (escalada de privilegio), parts_inventory, return_inspections, damage_records. README documenta el patrón `BEGIN … SET LOCAL request.jwt.claims … DO $$ … ROLLBACK` y el handoff a Fase 2 (activar job `rls-policies` en CI cuando `supabase start` esté disponible).",
+    "T5 (E2E fiscales) — 7 specs nuevos: fiscal-stamp, fiscal-cancel (valida guard cliente motivo 01 sin UUID), fiscal-rep, fiscal-credit-note, portal-statement (con portalCredentials + loginPortal), accounts-payable (smoke /cuentas-por-pagar + /antiguedad), return-inspection.",
+    "smoke-nav.spec.ts — agregadas rutas /rep y /notas-de-credito (antes 0 cobertura de rutas fiscales en smoke).",
+    "Fixtures — tests/e2e/fixtures/fiscalSeed.ts (seedInvoiceForStamping + markStampedMock) y portalAuth.ts (portalCredentials + loginPortal) resuelven el gap de infra que impedía DIFF 10/14 en v7.221.0.",
+    "filters-quotes.spec.ts — assert final `clickedAny` elimina el skip silencioso (antes el test podía pasar sin haber clickeado ningún tab).",
+    "Fuera de alcance (Fase 2): supabase start en CI, reemplazo de las 4 réplicas TS (portalBalance/mrrParity/auditImmutability/supplierRepTrigger), factories tipadas globales, fast-check property-based, ratchet global de coverage 13→40, Stryker mutation testing."
+  ]
+}

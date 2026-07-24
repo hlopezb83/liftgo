@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.222.0",
+    "date": "2026-07-24",
+    "type": "minor",
+    "title": "Tests Fase 1 completa: top-10 restante + RLS SQL reales + E2E fiscales",
+    "category": "improvement"
+  },
+  {
     "version": "7.221.0",
     "date": "2026-07-24",
     "type": "minor",
