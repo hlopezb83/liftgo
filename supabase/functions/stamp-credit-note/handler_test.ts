@@ -265,6 +265,9 @@ Deno.test("handler: Facturapi 400 returns 502 and marks credit note as error", a
             { data: [], error: null },
           ],
         },
+        updatesSeq: {
+          credit_notes: [{ data: { id: NC_ID }, error: null }],
+        },
         updates: { credit_notes: { data: null, error: null } },
       },
     });
