@@ -126,11 +126,17 @@ export default function QuotesPage() {
       onRefresh={refetch}
       title="Cotizaciones"
       subtitle="Crea y administra cotizaciones para clientes"
-      actions={<Button onClick={() => navigate("/quotes/new")} size="sm"><AddIcon className="h-4 w-4 mr-1" />Nueva Cotización</Button>}
+      actions={
+        <RoleGuard module="Cotizaciones" minAccess="full" fallback={null}>
+          <Button onClick={() => navigate("/quotes/new")} size="sm"><AddIcon className="h-4 w-4 mr-1" />Nueva Cotización</Button>
+        </RoleGuard>
+      }
       mobileFab={
-        <Button onClick={() => navigate("/quotes/new")} size="icon" className="h-14 w-14 rounded-full shadow-lg" aria-label="Nueva cotización">
-          <PlusCircle className="h-6 w-6" />
-        </Button>
+        <RoleGuard module="Cotizaciones" minAccess="full" fallback={null}>
+          <Button onClick={() => navigate("/quotes/new")} size="icon" className="h-14 w-14 rounded-full shadow-lg" aria-label="Nueva cotización">
+            <PlusCircle className="h-6 w-6" />
+          </Button>
+        </RoleGuard>
       }
       filters={
         <FiltersToolbar>
