@@ -17,6 +17,8 @@ interface Props {
   userRole: string | undefined;
   visibility: InvoiceVisibility;
   isStamping: boolean;
+  /** v7.226.0 · E2E-N6: saldo NC-aware calculado en el detalle. */
+  balance?: number | null;
   onOpenPayment: () => void;
   onEdit: () => void;
   onStamp: () => void;
@@ -151,10 +153,11 @@ function CfdiXmlActions({
 }
 
 export function InvoiceDetailActions({
-  invoice, cfdiStatus, userRole: _userRole, visibility,
+  invoice, cfdiStatus, userRole: _userRole, visibility, balance,
   isStamping, onOpenPayment, onEdit, onStamp, onDownloadXml, onCancelCfdi, onDelete,
 }: Props) {
-  const flags = computeInvoiceFlags(invoice, cfdiStatus, null);
+  // v7.226.0 · E2E-N6: pasar balance para ocultar "Registrar Pago" si NC/pagos cubren la factura.
+  const flags = computeInvoiceFlags({ ...invoice, balance: balance ?? null }, cfdiStatus, null);
   const pdfMode = resolvePdfMode(visibility);
   return (
     <>

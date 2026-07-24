@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.226.0",
+    "date": "2026-07-25",
+    "type": "minor",
+    "title": "E2E R11 (bloque 2): contratos desde reserva, branding público, invitaciones validadas y calendario con refresco",
+    "category": "fix",
+    "description": "N4: contrato creado desde reserva confirmada auto-genera terms_text (el forklift `rented` ya no queda fuera del filtro). N5: guardar datos fiscales invalida `public_branding` (portal/login refrescan logo/razón social). N6: 'Registrar Pago' se oculta cuando el saldo real (con NCs) es 0. N7: Crear Usuario valida el correo con Zod antes de invocar la edge function. N8+N10: Auditoría deja de ser always-visible y se gestiona por rol (`/activity`, `/audit` → módulo 'Auditoría', seed admin/administrativo). N9: nuevo botón 'Actualizar' en el calendario que invalida `bookingKeys.all`. N13: el persister descarta queries `pending` para evitar el error de rehidratación."
+  },
+  {
     "version": "7.225.0",
     "date": "2026-07-24",
     "type": "minor",

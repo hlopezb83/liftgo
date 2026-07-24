@@ -1,6 +1,7 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { parseISO, startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
 import { useState } from "react";
-import { ChevronLeftIcon, ChevronRightIcon, WarnIcon } from "@/components/icons";
+import { ChevronLeftIcon, ChevronRightIcon, RefreshIcon, WarnIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
@@ -9,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
-import { useBookingsRange } from "@/features/bookings";
+import { useBookingsRange, bookingKeys } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatDateMty, formatDayMonthMty } from "@/lib/format/dateFormats";
@@ -26,6 +27,7 @@ function rangeFns(mode: "month" | "week") {
 }
 
 export default function CalendarPage() {
+  const qc = useQueryClient();
   const [currentDate, setCurrentDate] = useState(nowMty());
   const fetchFrom = subMonths(currentDate, 1);
   const fetchTo = addMonths(currentDate, 1);
@@ -107,6 +109,16 @@ export default function CalendarPage() {
             </TabsList>
           </Tabs>
         )}
+        {/* v7.226.0 · E2E-N9: refetch manual del rango visible. */}
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 ml-auto"
+          onClick={() => qc.invalidateQueries({ queryKey: bookingKeys.all })}
+          aria-label="Actualizar calendario"
+        >
+          <RefreshIcon className="h-4 w-4 mr-1" /> Actualizar
+        </Button>
       </div>
 
       {viewMode === "gantt" ? (

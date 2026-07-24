@@ -1,4 +1,5 @@
 import { useParams, useSearchParams } from "react-router";
+import { useBookings } from "@/features/bookings";
 import { useCustomers } from "@/features/customers";
 import { useForklifts } from "@/features/fleet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
@@ -19,11 +20,18 @@ export function useContractFormLogic() {
   const { data: existing } = useContract(isEdit ? id : undefined);
   const { data: customers } = useCustomers();
   const { data: allForklifts } = useForklifts();
+  // v7.226.0 · E2E-N4: al crear un contrato desde una reserva confirmada, el
+  // montacargas de esa reserva está en estado `rented` — si lo filtramos, el
+  // prefill nunca encuentra el forklift y `terms_text` queda vacío.
+  const { data: bookings } = useBookings();
+  const bookingForkliftId = bookingId
+    ? bookings?.find((b) => b.id === bookingId)?.forklift_id ?? null
+    : null;
   // R7 Bloque 18a: sólo mostrar montacargas disponibles; si estamos editando y
   // el contrato ya está ligado a uno no disponible, lo incluimos igualmente.
   const currentId = existing?.forklift_id ?? null;
   const forklifts = (allForklifts ?? []).filter(
-    (f) => f.status === "available" || f.id === currentId,
+    (f) => f.status === "available" || f.id === currentId || f.id === bookingForkliftId,
   );
   const createContract = useCreateContract();
   const updateContract = useUpdateContract();

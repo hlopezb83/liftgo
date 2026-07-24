@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { z } from "zod";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { UserPlus } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,9 @@ import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
 import { useInviteUser } from "../../hooks/useUserManagement";
 import type { AppRole } from "../../hooks/useUserRole";
 
+// v7.226.0 · E2E-N7: validar email antes de invocar la edge function.
+const inviteEmailSchema = z.string().trim().email("Ingresa un correo válido");
+
 interface InviteUserDialogProps {
   onCreated: () => void;
 }
@@ -18,6 +22,7 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
   const [open, setOpen] = useState(false);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [role, setRole] = useState<string>("dispatcher");
   const inviteUser = useInviteUser();
 
@@ -28,8 +33,14 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
   );
 
   const handleInvite = async () => {
-    if (!fullName.trim() || !email.trim()) return;
-    await inviteUser.mutateAsync({ email: email.trim(), full_name: fullName.trim(), role });
+    if (!fullName.trim()) return;
+    const parsed = inviteEmailSchema.safeParse(email);
+    if (!parsed.success) {
+      setEmailError(parsed.error.issues[0]?.message ?? "Ingresa un correo válido");
+      return;
+    }
+    setEmailError(null);
+    await inviteUser.mutateAsync({ email: parsed.data, full_name: fullName.trim(), role });
     setOpen(false);
     setFullName("");
     setEmail("");
@@ -56,7 +67,18 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="inv-email">Correo Electrónico</Label>
-            <Input id="inv-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="juan@empresa.com" />
+            <Input
+              id="inv-email"
+              type="email"
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (emailError) setEmailError(null);
+              }}
+              placeholder="juan@empresa.com"
+              aria-invalid={emailError ? true : undefined}
+            />
+            {emailError ? <p className="text-sm text-destructive">{emailError}</p> : null}
           </div>
           <div className="space-y-2">
             <Label htmlFor="inv-role">Rol</Label>
