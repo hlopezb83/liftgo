@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.224.7",
+    "date": "2026-07-24",
+    "type": "patch",
+    "title": "CI: actualizar actions/cache a v6 (runtime Node 24)",
+    "category": "chore",
+    "description": "Bump de actions/cache@v4 → @v6 en setup-bun-project, ci.yml y bundle-size.yml. La v6 declara runs.using: node24, eliminando el warning de deprecación de Node 20 en los runners de GitHub Actions."
+  },
+  {
     "version": "7.224.6",
     "date": "2026-07-24",
     "type": "patch",

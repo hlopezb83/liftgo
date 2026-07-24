@@ -1,29 +1,22 @@
+## Problema
+
+El warning viene de `actions/cache@v4`, que declara `runs.using: node20` en su `action.yml`. GitHub lo fuerza a Node 24 (por nuestro override), pero sigue emitiendo el deprecation notice hasta que la acción publique una versión que declare `node24`.
+
+Tenemos 4 usos:
+- `.github/actions/setup-bun-project/action.yml:29`
+- `.github/workflows/bundle-size.yml:49`
+- `.github/workflows/ci.yml:252`
+- `.github/workflows/ci.yml:332`
+
 ## Plan
 
-### Problem
-`.github/workflows/changelog-check.yml` line 50 triggers shellcheck **SC2055** because the condition uses `||` to compare the same variable (`$PKG`) against two different values with `!=`:
+1. Verificar el último release de `actions/cache` que ya declara `node24` (esperado: `v5` o un `v4.x` reciente). Ejecutar `curl -s https://api.github.com/repos/actions/cache/releases | jq '.[0:5].[].tag_name'` y leer el `action.yml` del tag más nuevo para confirmar `runs.using: node24`.
+2. Si existe un tag con `node24`, actualizar los 4 usos de `actions/cache@v4` a esa versión (major flotante, ej. `@v5`, siguiendo la convención existente del repo).
+3. Si **no** existe todavía una versión con `node24`, no cambiar nada y documentar en el reply que el warning es informativo y desaparecerá cuando `actions/cache` publique soporte oficial de Node 24 (no lo podemos arreglar nosotros).
+4. Bump changelog a **v7.224.7** con la nota del upgrade (o registrar la investigación si no hay versión disponible).
 
-```bash
-if [[ "$PKG" != "$VER" || "$PKG" != "$TOP" ]]; then
-```
+## Detalles técnicos
 
-Shellcheck warns this is suspicious/always-true in some cases and suggests `&&`.
-
-### Fix
-Rewrite the condition using equality checks with `&&` inside `[[ ]]`, preserving the exact intent (fail if any version diverges):
-
-```bash
-if ! [[ "$PKG" == "$VER" && "$PKG" == "$TOP" ]]; then
-  echo "::error::Versiones desincronizadas. Ejecuta \`node scripts/gen-version.mjs\` y verifica que la entrada superior del changelog coincida con package.json."
-  exit 1
-fi
-```
-
-This is logically equivalent to the original but avoids the SC2055 pattern.
-
-### Verification
-- Confirm the workflow still blocks PRs when versions are out of sync.
-- Optionally run `actionlint` or `shellcheck` on the updated file to confirm the warning disappears.
-
-### Files to modify
-- `.github/workflows/changelog-check.yml`
+- No tocar la lógica de cache keys ni paths.
+- Mantener el pin del composite action `setup-bun-project` como fuente única de la versión Node.
+- No requiere cambios en Bun ni en el lockfile.
