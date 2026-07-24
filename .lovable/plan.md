@@ -1,53 +1,57 @@
+## Alcance
 
-## Verificación previa (contra HEAD)
+Cerrar los DIFFs diferidos de la Auditoría de Tests v2 (los 1-8, 13, 15 ya se aplicaron en v7.220.0). Todo el trabajo son **tests nuevos o refactor de tests** — sin cambios de lógica de negocio, sin migraciones. Versión sugerida: **v7.221.0** (minor).
 
-- **DIFF 1** (cash-flow → `v_invoices_with_balance`): **ya aplicado en v7.217.1**. Se omite.
-- **DIFF 4** (search_path en `set_prospect_created_by`, `set_delivery_number`, `set_inspection_number`, `bump_version_optimistic`): **ya aplicado** en `20260408004410` y `20260721151311`. Se omite.
-- **DIFF 2** (`delete_booking`): existe la RPC (`20260723233144`) pero sin guardas de FK ni protección del `status_logs` — pendiente real.
-- **DIFF 3** (timeouts Facturapi): 5 handlers (stamp-credit-note, stamp-payment-complement, cancel-cfdi, cancel-payment-complement, cancel-credit-note, refresh-cancellation-status, validate-receptor-tax-info) sin timeout — pendiente real.
-- **DIFF 12** (triggers activity duplicados): confirmado, `log_activity_*` y `activity_*` disparan el mismo `log_activity()` sobre las mismas tablas — pendiente.
-- **DIFF 8** (invalidar `public_branding`): confirmado que existe la query y no se incluye en `COMPANY_SETTINGS_INVALIDATION_KEYS`.
-- Barrels (`invoices`, `bookings`, `feedback`) no exportan sus `lib/queryKeys` / `rentalDays` / `feedbackMessages` → pendiente.
+## DIFFs a ejecutar
 
-## Plan — v7.218.0 (dos olas)
+### DIFF 9 · REP EquivalenciaDR + parcialidades + claim
+Archivo: `supabase/functions/stamp-payment-complement/index_test.ts` (hoy solo cubre CORS/401).
+- Refactor: usar patrón DI de `stamp-cfdi/handler_test.ts` con `facturapiMock` + `supabaseClientMock` compartidos.
+- Casos: (a) pago en misma moneda que la factura ⇒ `related_documents[0].exchange === 1` aunque `invoice.tipo_cambio` tenga valor; (b) pago en moneda distinta ⇒ `exchange === invoice.tipo_cambio`; (c) parcialidad 2 con pago previo de 400 sobre 1000 ⇒ `installment=2`, `last_balance=600`; (d) segunda invocación concurrente con `rep_status='in_progress'` ⇒ 409 benigno, sin llamada al PAC.
 
-### Ola 1 — Blockers y Altos (Bloques 1+2 del reporte)
+Prerrequisito: si `index.ts` no expone un handler DI-able, extraer un `handler.ts` puro (mismo patrón que `stamp-cfdi/handler.ts` + `handler_test.ts`). Sin cambiar lógica.
 
-1. **DIFF 2 · `delete_booking` con guardas de FK y `status_logs` atómico**
-   - Migración nueva que reescribe la función: pre-valida existencia de rows en `invoice_bookings`, `invoices`, `contracts`, `deliveries`, `return_inspections`, `damage_records` y aborta con `P0001` claro antes que 23503.
-   - `INSERT` a `status_logs` sólo cuando `GET DIAGNOSTICS ROW_COUNT > 0` del UPDATE a `forklifts`.
-   - Mantener grants existentes.
+### DIFF 10 · stamp-cfdi timeout ≠ error
+Archivo: `supabase/functions/stamp-cfdi/handler_test.ts` (añadir 2 casos).
+- Timeout del PAC ⇒ ningún update lleva `status='error'`; al menos uno mantiene `status='stamping'` para que reconcile lo recoja.
+- Claim atómico perdido (update condicional devuelve 0 filas) ⇒ `facturapiMock.invoices.create` no invocado, respuesta 409, sin `notifyError`.
 
-2. **DIFF 3 · Timeouts en las 7 llamadas Facturapi**
-   - `_shared/facturapi/client.ts`: añadir `cancelInvoiceWithSignal` y `retrieveInvoiceWithSignal`.
-   - `_shared/facturapi/withTimeout.ts`: añadir `sdkCallWithTimeout` (race genérico con `AbortController` + `FacturapiTimeoutError`).
-   - Envolver las 7 llamadas (stamp-credit-note, stamp-payment-complement, cancel-cfdi, cancel-payment-complement, cancel-credit-note, refresh-cancellation-status, validate-receptor-tax-info) siguiendo la política ya usada en `stamp-cfdi`: en timeout devolver 504 `{ code: "TIMEOUT", transient: true }` y **no** revertir estado local a `error`.
+Si el mock actual no evalúa filtros `eq/in` en el claim, extraer la decisión de claim a función pura y testearla directo (mismo patrón que DIFF 2 · `decisions.ts`).
 
-3. **DIFF 5 · `scripts/arch-check.sh` sin verde falso**
-   - `command -v rg` obligatorio (exit 1 con mensaje).
-   - Quitar `|| true` que enmascara ausencia de `rg` en G4 y G5.
-   - Borrar excepción muerta de `AuthPage` en G4.
+### DIFF 11 · Portal saldo USD → MXN
+Archivo: `src/features/portal/__tests__/portalBalance.test.ts` (hoy es réplica TS de la vista, sin caso USD).
+- Reemplazar por test del hook real (`usePortalExtras` o el que agrega saldo) con `createSupabaseChainMock`.
+- Casos: factura USD balance 1000 + `tipo_cambio=17.5` ⇒ total mostrado `$17,500.00 MXN`; `tipo_cambio=null` ⇒ fallback documentado por `toMxn` (assert el valor real, no colapsa a 0).
+- No modificar el e2e portal.spec en este PR (deferir a cuando el seed tenga factura USD).
 
-4. **DIFF 6 · Barrels públicos + guards ESLint**
-   - Añadir a los barrels: `invoices/lib/queryKeys`, `bookings/lib/queryKeys`, `bookings/lib/rentalDays`, `feedback/lib/feedbackMessages`.
-   - Migrar deep-imports listados al barrel (quotes, portal, accounts-payable, calendar, forms/fields).
-   - `eslint.config.js`: fusionar patrón cross-feature en el bloque supabase, subir cross-feature a `error`, marcar `formatDateDisplay`/`formatDateRange` como `error` en el bloque de íconos (congela 151 callsites — migración post-release), borrar excepción muerta de `AuthPage`.
+### DIFF 12 · Starters de features en 0
+Nuevos hooks tests con harness `usePayments.rls.test.ts` (queryClient wrapper + `createSupabaseChainMock`):
+- `src/features/users/hooks/__tests__/useRoleChange.test.tsx` — cambio de rol invalida cache de permisos; guard último-admin.
+- `src/features/returns/hooks/__tests__/useReturnInspection.test.tsx` — inspección completada actualiza booking/forklift/genera cargo; segundo submit idempotente; horómetro entrada < salida ⇒ error.
+- `src/features/maintenance/hooks/__tests__/useMaintenanceKanban.test.tsx` — cerrar OT persiste `work_status='closed'`; recurrente dispara `generate_recurring_maintenance`.
+- `src/features/calendar/lib/__tests__/ganttSegments.test.ts` — bookings consecutivas mismo día no solapan segmentos.
 
-### Ola 2 — Medios y quick-wins seleccionados
+Si algún hook no existe con la forma esperada, crear el test contra el hook público real (`useUserManagement`, `useReturnInspections`, etc.) y ajustar el nombre del archivo.
 
-5. **DIFF 7 · `isPayable` NC-aware** en `src/lib/rules/invoices.ts` + tests (`InvoiceLike.balance`).
-6. **DIFF 8 · Invalidar `publicBrandingQueries.keys.all`** en `COMPANY_SETTINGS_INVALIDATION_KEYS`.
-7. **DIFF 11 · Índices** `idx_bookings_forklift_status`, `idx_invoices_status_due`.
-8. **DIFF 12 · Deduplicar triggers** `log_activity_{bookings,invoices,maintenance_logs}` (conservar `activity_*`).
-9. **DIFF 17 · RLS `supplier_bank_accounts`**: `SELECT` sólo `admin`/`administrativo` (rol `contador` no existe en este proyecto — se omite).
-10. **DIFF 14 · Query-keys literales** `useUserRole`, `useProfitByModelReport` → factories.
-11. **DIFF 15 · Fields compartidos al barrel** (CustomerField, SupplierField, CsfDropzone).
-12. **Quick wins L3/L4/L7**: borrar grupo `jspdf` de `CHUNK_GROUPS`, `loading="lazy" decoding="async"` en galerías, dejar de re-exportar páginas en `feedback/index.ts`.
+### DIFF 14 · data-testid en flujos de dinero
+5 puntos: `invoice-register-payment`, `invoice-stamp-cfdi`, `payment-submit`, `status-tab-{value}`, `quote-download-pdf`.
+- Añadir el atributo `data-testid` en los 5 componentes correspondientes (cambio mínimo de markup).
+- Migrar los selectores en `tests/e2e/full-flow.spec.ts:29`, `invoice-payment.spec.ts:19`, `quote-pdf.spec.ts:23`, `filters-invoices.spec.ts:17-20` a `getByTestId`. El resto de selectores por copy queda.
 
-**Fuera de este PR** (justificados):
-- DIFF 4 (ya aplicado), DIFF 1 (ya aplicado en v7.217.1).
-- DIFF 9 (xlsx lazy), DIFF 10 (botón "Actualizar" calendario), DIFF 13/16 (tests adicionales), L1/L2/L5/L6/L8 → post-release (roadmap del reporte).
+### DIFF 16 · Cobertura Deno crítica
+- `supabase/functions/validate-receptor-tax-info/handler_test.ts` (nuevo) — RFC válido, RFC inválido, PAC caído ⇒ 502 sin cachear, timeout con `withTimeout`.
+- `supabase/functions/_shared/cronAuth_test.ts` (nuevo) — token válido, inválido, ausente; smoke de comparación timing-safe (mismos tiempos ± ruido para tokens de igual longitud).
+- `supabase/functions/_shared/authWithDeps_test.ts` (nuevo) — 401 sin JWT, 403 con rol insuficiente, happy path con DI.
 
-### Cierre
-- Bump a **v7.218.0**, entrada en `public/changelog.json` + `public/changelog/v7.218.0.json`, `public/version.json`.
-- Validación: `bun run lint` + `bun run test` + `bash scripts/arch-check.sh` verdes; probar manualmente `/flujo-de-caja`, eliminar reserva con factura (P0001) vs cancelada limpia.
+## Verificación
+
+1. `bun run test` — thresholds actuales de v7.220.0 deben seguir verdes (14/10/14/12.5 global + 60/55 dominio fiscal).
+2. `supabase--test_edge_functions` para los 3 nuevos suites Deno + REP + stamp-cfdi.
+3. `bunx playwright test --project=chromium` acotado a los 4 specs modificados.
+4. Log del job `edge-functions` en CI muestra los `handler_test.ts` corriendo (ya habilitado en DIFF 1).
+
+## Cierre
+
+- Nueva entrada `public/changelog/v7.221.0.json` + índice.
+- Bump `package.json` + `public/version.json` a `7.221.0`.
+- Sin migraciones, sin cambios de UI de producción (solo `data-testid` invisibles).
