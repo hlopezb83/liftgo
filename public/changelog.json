@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.217.2",
+    "date": "2026-07-24",
+    "type": "patch",
+    "title": "Ocultar spinners en inputs numéricos del componente Input",
+    "category": "fix"
+  },
+  {
     "version": "7.217.1",
     "date": "2026-07-24",
     "type": "patch",
