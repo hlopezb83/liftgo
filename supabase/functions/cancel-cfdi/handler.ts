@@ -5,10 +5,15 @@ import { isNonEmptyString, isUUID } from "../_shared/validate.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import {
+  cancelInvoiceWithSignal,
   createFacturapiClient,
   describeFacturapiError,
   getFacturapiConfig,
 } from "../_shared/facturapi/client.ts";
+import {
+  isFacturapiTimeout,
+  sdkCallWithTimeout,
+} from "../_shared/facturapi/withTimeout.ts";
 import {
   enqueueCfdiRetry,
   isTransientFacturapiError,
