@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.225.0",
+    "date": "2026-07-24",
+    "type": "minor",
+    "title": "E2E R11: inspecciones de daño menor/mayor, saldo portal con NCs, cancelación con motivo y gating de creación",
+    "category": "fix",
+    "description": "N1: complete_return_inspection ahora reconoce 'Daño menor' y 'Daño mayor' — registra el cargo y (para daño mayor / necesita reparación) manda el equipo a mantenimiento. N2: la pantalla de pago del portal descuenta las notas de crédito timbradas para no cobrar de más. N3: los CTAs 'Agregar Montacargas', 'Nueva Cotización', 'Nuevo Contrato' y el FAB móvil de Clientes quedan gateados por RoleGuard (minAccess: full). N11: cancelar una reserva pide un motivo opcional que queda en la bitácora del equipo (status_logs) para auditoría."
+  },
+  {
     "version": "7.224.7",
     "date": "2026-07-24",
     "type": "patch",
