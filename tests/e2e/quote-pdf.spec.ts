@@ -20,7 +20,8 @@ test("download PDF from seeded quote produces a COT-*.pdf file", async ({ page, 
   await page.evaluate(() => document.fonts?.ready).catch(() => {});
   await expect(page.getByText(seed.quote_number).first()).toBeVisible({ timeout: 15_000 });
 
-  const pdfButton = page.getByRole("button", { name: /descargar pdf|pdf/i }).first();
+  // v7.223.0: usar data-testid en lugar de regex de copy.
+  const pdfButton = page.getByTestId("quote-download-pdf").first();
   await expect(pdfButton).toBeEnabled({ timeout: 15_000 });
 
   // Capturar el evento download en paralelo con el click para evitar race.

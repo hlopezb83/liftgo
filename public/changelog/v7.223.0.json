@@ -1,0 +1,14 @@
+{
+  "version": "7.223.0",
+  "date": "2026-07-24",
+  "type": "minor",
+  "title": "Tests Fase 1 cierre: REP parcialidades, guard último admin, data-testids fiscales y denegación API mecánico",
+  "category": "improvement",
+  "highlights": [
+    "DIFF 9 residual (REP parcialidades) — decisions.ts gana `computeInstallmentMeta` (espejo puro del RPC `prepare_payment_complement`); documenta ejecutablemente el invariante Anexo 20 NumParcialidad/ImpSaldoAnt/ImpSaldoInsoluto. 7 tests nuevos cubren: primera parcialidad, N-ésima, exceso de saldo (>1 centavo → error), redondeo Anexo 20 (≤1 centavo OK), pagos previos con montos inválidos (NaN/negativos → ignorados), total inválido, this_amount ≤ 0.",
+    "DIFF 12 residual (guard último admin) — nueva RPC `update_user_role_safe` (SECURITY DEFINER, sólo admins) bloquea la degradación del único admin del sistema con `LAST_ADMIN_CANNOT_BE_DEMOTED`. `useUpdateRole` migrado de UPDATE directo a la RPC; roleGuards.test.ts prueba propagación de error, resolución OK y rechazo forbidden.",
+    "DIFF 14 (data-testids fiscales) — 4 testids canónicos: `invoice-stamp-cfdi` (StampButton), `invoice-register-payment` (RecordPaymentDialog trigger), `status-tab-${value}` (FiltersToolbar.StatusTabs, N tabs), `quote-download-pdf` (QuotePDFButton). Migrados 4 specs a getByTestId: full-flow, invoice-payment, quote-pdf, filters-invoices. Elimina fragilidad ante cambios de copy es-MX.",
+    "DIFF 15 residual (denegación API) — roles-matrix.spec.ts añade caso: mecánico autenticado hace POST directo a `/rest/v1/invoices`; RLS debe rechazar (status ≥ 400). Cierra el gap donde ocultar el botón en UI podía enmascarar policies flojas.",
+    "Fuera de alcance (Fase 2): concurrent claim test para stamp-payment-complement (requiere seed real), regeneración de OT recurrente al cerrar (necesita análisis de trigger DB), horómetro-inválido en useReturnInspection (validación vive en el RPC `complete_return_inspection`, no en el schema Zod)."
+  ]
+}

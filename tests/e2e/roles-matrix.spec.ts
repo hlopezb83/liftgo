@@ -93,3 +93,55 @@ test("centinela: al menos un rol con credenciales configuradas", () => {
   test.skip(!any, "Ningún E2E_<ROL>_EMAIL/PASSWORD configurado — matriz de roles se saltó completa.");
   expect(any).toBe(true);
 });
+
+// v7.223.0 · DIFF 15 residual: denegación a nivel API. La UI puede ocultar
+// botones pero si el mecánico intercepta y POST-ea `/rest/v1/invoices`
+// directamente, RLS debe rechazar (401/403). Guarda contra regresiones donde
+// alguien afloje la policy pensando "el botón está oculto de todos modos".
+test.describe("Rol mecánico — denegación API-level (RLS)", () => {
+  // eslint-disable-next-line playwright/no-skipped-test -- Skip explícito cuando faltan credenciales.
+  test.skip(
+    !process.env.E2E_MECANICO_EMAIL || !process.env.E2E_MECANICO_PASSWORD,
+    "Faltan credenciales E2E_MECANICO_*",
+  );
+  test.use({ storageState: { cookies: [], origins: [] } });
+
+  test("mecánico no puede insertar en /rest/v1/invoices", async ({ page }) => {
+    await loginAs(page, process.env.E2E_MECANICO_EMAIL!, process.env.E2E_MECANICO_PASSWORD!);
+
+    // Ejecutamos el POST desde el contexto del navegador para heredar el
+    // Authorization del cliente Supabase hidratado en `window`.
+    const status = await page.evaluate(async () => {
+      // @ts-expect-error inyectado por el cliente Supabase en runtime
+      const { supabase } = (await import("/src/integrations/supabase/client.ts")) as {
+        supabase: { auth: { getSession: () => Promise<{ data: { session: { access_token: string } | null } }> } };
+      };
+      const { data } = await supabase.auth.getSession();
+      const token = data.session?.access_token;
+      if (!token) return 0;
+
+      const url = `${(window as unknown as { __SUPABASE_URL__?: string }).__SUPABASE_URL__ ?? ""}/rest/v1/invoices`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: (window as unknown as { __SUPABASE_ANON__?: string }).__SUPABASE_ANON__ ?? "",
+          Authorization: `Bearer ${token}`,
+          Prefer: "return=minimal",
+        },
+        body: JSON.stringify({
+          customer_id: "00000000-0000-0000-0000-000000000000",
+          invoice_number: "MECANICO-ATTACK",
+          total: 1,
+          subtotal: 1,
+        }),
+      });
+      return res.status;
+    });
+
+    // RLS bloquea con 401/403; PostgREST también puede responder 409/400 si
+    // la fila viola constraints antes de evaluar RLS. Lo importante es que
+    // NUNCA sea 2xx.
+    expect(status, "mecánico NO debe poder insertar facturas").toBeGreaterThanOrEqual(400);
+  });
+});

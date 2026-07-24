@@ -10,7 +10,13 @@ export function QuotePDFButton({ quoteId }: QuotePDFButtonProps) {
   const { download, loading } = useQuotePdfDownload();
 
   return (
-    <Button variant="outline" size="sm" onClick={() => download(quoteId)} disabled={loading}>
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => download(quoteId)}
+      disabled={loading}
+      data-testid="quote-download-pdf"
+    >
       <FileDown className="h-4 w-4 mr-1" />
       {loading ? "Generando..." : "Descargar PDF"}
     </Button>

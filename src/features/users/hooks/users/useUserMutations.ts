@@ -7,13 +7,17 @@ import type { AppRole } from "../useUserRole";
 export function useUpdateRole() {
   return useEntityMutation({
     mutationFn: async ({ userId, role }: { userId: string; role: AppRole }) => {
-      const { data, error } = await supabase
-        .from("user_roles")
-        .update({ role })
-        .eq("user_id", userId)
-        .select("user_id");
+      // v7.223.0 · DIFF 12 residual: la RPC blinda el invariante "no degradar
+      // al último admin". Si la RPC lanza LAST_ADMIN_CANNOT_BE_DEMOTED
+      // el error se propaga tal cual y notifyError lo muestra al usuario.
+      const { error } = await supabase.rpc("update_user_role_safe", {
+        _target_user_id: userId,
+        _new_role: role,
+      });
       if (error) throw error;
-      assertRowsAffected(data, "Actualizar rol");
+      // La RPC hace UPDATE ... IF NOT FOUND RAISE, así que si no hubo error
+      // sabemos que exactamente 1 fila fue afectada. `assertRowsAffected`
+      // ya no aplica porque no tenemos el resultset de la mutación.
     },
     invalidateKeys: [userKeys.all],
     successMsg: "Rol actualizado",

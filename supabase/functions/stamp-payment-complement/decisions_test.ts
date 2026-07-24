@@ -86,3 +86,76 @@ Deno.test("moneda ausente en pago o factura → default MXN", () => {
     { invoiceCurrency: "MXN", invoiceExchange: 1 },
   );
 });
+
+// TESTS-ARQ2 v3 · DIFF 9 residual: parcialidades REP (NumParcialidad / ImpSaldoAnt / ImpSaldoInsoluto).
+import { assertThrows } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { computeInstallmentMeta } from "./decisions.ts";
+
+Deno.test("primera parcialidad: sin pagos previos → N=1, saldoAnt=total", () => {
+  assertEquals(
+    computeInstallmentMeta({ previousPayments: [], invoiceTotal: 1160, thisAmount: 500 }),
+    { numParcialidad: 1, impSaldoAnt: 1160, impSaldoInsoluto: 660 },
+  );
+});
+
+Deno.test("N-ésima parcialidad: suma pagos previos y descuenta del total", () => {
+  assertEquals(
+    computeInstallmentMeta({
+      previousPayments: [{ amount: 500 }, { amount: 300 }],
+      invoiceTotal: 1160,
+      thisAmount: 360,
+    }),
+    { numParcialidad: 3, impSaldoAnt: 360, impSaldoInsoluto: 0 },
+  );
+});
+
+Deno.test("pago que excede saldo (> 1 centavo) → payment_exceeds_balance", () => {
+  assertThrows(
+    () =>
+      computeInstallmentMeta({
+        previousPayments: [{ amount: 1000 }],
+        invoiceTotal: 1160,
+        thisAmount: 200,
+      }),
+    Error,
+    "payment_exceeds_balance",
+  );
+});
+
+Deno.test("pago con diferencia ≤ 1 centavo (redondeo Anexo 20) → OK", () => {
+  const r = computeInstallmentMeta({
+    previousPayments: [{ amount: 1159.995 }],
+    invoiceTotal: 1160,
+    thisAmount: 0.01,
+  });
+  assertEquals(r.numParcialidad, 2);
+  // Tolerancia de redondeo aceptada.
+  assertEquals(r.impSaldoInsoluto <= 0.01, true);
+});
+
+Deno.test("pagos previos con montos inválidos (NaN, negativos) se ignoran", () => {
+  assertEquals(
+    computeInstallmentMeta({
+      previousPayments: [{ amount: Number.NaN }, { amount: -50 }, { amount: 500 }],
+      invoiceTotal: 1160,
+      thisAmount: 100,
+    }),
+    { numParcialidad: 4, impSaldoAnt: 660, impSaldoInsoluto: 560 },
+  );
+});
+
+Deno.test("invoice_total inválido → invoice_total_invalid", () => {
+  assertThrows(
+    () => computeInstallmentMeta({ previousPayments: [], invoiceTotal: 0, thisAmount: 100 }),
+    Error,
+    "invoice_total_invalid",
+  );
+});
+
+Deno.test("thisAmount ≤ 0 → payment_amount_invalid", () => {
+  assertThrows(
+    () => computeInstallmentMeta({ previousPayments: [], invoiceTotal: 1000, thisAmount: 0 }),
+    Error,
+    "payment_amount_invalid",
+  );
+});
