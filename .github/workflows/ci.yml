@@ -355,9 +355,10 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
-          # TESTS-ARQ2 (v7.220.0 DIFF 4): encender visual specs — antes gate
-          # nunca satisfecho y el spec `visual-*.spec.ts` no corría en CI.
-          E2E_VISUAL: "1"
+          # v7.224.0: visual specs desactivados en CI hasta commitear baselines
+          # deterministas del runner Linux. Regenera con:
+          #   E2E_VISUAL=1 bun run test:e2e:update-snapshots -- --grep visual
+          # y comitea `tests/e2e/*.spec.ts-snapshots/*-chromium-linux.png`.
         run: bunx playwright test --shard=${{ matrix.shard }}/${{ matrix.total }}
 
       - name: Upload Playwright HTML report
