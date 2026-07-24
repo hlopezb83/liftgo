@@ -6,9 +6,14 @@ import {
   binaryToBytes,
   binaryToText,
   createFacturapiClient,
+  createInvoiceWithSignal,
   describeFacturapiError,
   getFacturapiConfig,
 } from "../_shared/facturapi/client.ts";
+import {
+  isFacturapiTimeout,
+  sdkCallWithTimeout,
+} from "../_shared/facturapi/withTimeout.ts";
 
 const BUCKET = "cfdi-files";
 const DEFAULT_IVA_RATE = 0.16;
@@ -234,12 +239,23 @@ Deno.serve(async (req) => {
       folio_number?: number | string | null;
     };
     try {
-      repInvoice = await client.invoices.create(payload) as {
+      repInvoice = await sdkCallWithTimeout((signal) =>
+        createInvoiceWithSignal(client, payload, { signal })
+      ) as {
         id: string;
         uuid: string;
         folio_number?: number | string | null;
       };
     } catch (err) {
+      // ARQ2-A1: timeout → NO revertir estado local (reconcile-stamping-invoices lo resuelve).
+      if (isFacturapiTimeout(err)) {
+        console.warn("[stamp-payment-complement] facturapi timeout", { payment_id });
+        return jsonResponse(req, {
+          error: "PAC no respondió a tiempo, reintenta",
+          code: "TIMEOUT",
+          transient: true,
+        }, { status: 504 });
+      }
       const desc = describeFacturapiError(err);
       console.error("Facturapi REP create error:", desc.detail);
       await supabase
