@@ -37,11 +37,33 @@ export default defineConfig({
       // Lote 2 (jun-2026): +44 tests nuevos (rentalCalculation, invoiceTotals,
       // syncInvoiceStatus, 5 PDF Documents). Medido 13.98/12.92/10.08/14.36.
       // Thresholds suben +2pp vs Lote A.1 manteniendo ~1pp de margen.
+      // TESTS-ARQ2 (v7.220.0 DIFF 5): margen real + blindaje del dominio de
+      // dinero. Global sube +1pp (medido ~14/10/14.4/13, ~0.5pp de margen);
+      // per-directory 60/55 sobre lib/domain e invoice/AP libs para que
+      // regresiones en el core fiscal fallen el build de inmediato.
       thresholds: {
-        lines: 13,
-        functions: 9,
-        statements: 13,
-        branches: 12,
+        lines: 14,
+        functions: 10,
+        statements: 14,
+        branches: 12.5,
+        "src/lib/domain/**": {
+          lines: 60,
+          functions: 60,
+          statements: 60,
+          branches: 55,
+        },
+        "src/features/invoices/lib/**": {
+          lines: 55,
+          functions: 55,
+          statements: 55,
+          branches: 50,
+        },
+        "src/features/accounts-payable/lib/**": {
+          lines: 55,
+          functions: 55,
+          statements: 55,
+          branches: 50,
+        },
       },
 
     },
