@@ -131,14 +131,16 @@ export default function CustomersPage() {
         subtitle={`${customers?.length || 0} clientes`}
         actions={<CustomersActions filtered={filtered} onCreate={openCreate} />}
         mobileFab={
-          <button
-            type="button"
-            onClick={openCreate}
-            aria-label="Agregar cliente"
-            className="h-14 w-14 rounded-full shadow-lg bg-primary text-primary-foreground flex items-center justify-center"
-          >
-            <AddIcon className="h-6 w-6" />
-          </button>
+          <RoleGuard module="Clientes" minAccess="full" fallback={null}>
+            <button
+              type="button"
+              onClick={openCreate}
+              aria-label="Agregar cliente"
+              className="h-14 w-14 rounded-full shadow-lg bg-primary text-primary-foreground flex items-center justify-center"
+            >
+              <AddIcon className="h-6 w-6" />
+            </button>
+          </RoleGuard>
         }
         filters={<CustomersFilters search={values.q} onSearchChange={(v) => set("q", v)} hasActive={hasActive} onClear={reset} />}
         isLoading={isLoading}
