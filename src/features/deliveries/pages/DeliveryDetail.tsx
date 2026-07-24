@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { useParams } from "react-router";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { EmptyState } from "@/components/feedback/EmptyState";
@@ -9,22 +8,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useBookings } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
-import { nowMty } from "@/lib/utils";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 import { DeliveryActions } from "../components/deliveries/DeliveryActions";
 import { DeliveryDetailDialogs } from "../components/deliveries/DeliveryDetailDialogs";
 import {
   DeliveryStatusCard, DeliveryEquipmentCard, DeliveryLogisticsCard, DeliveryBookingCard,
 } from "../components/deliveries/DeliveryInfoCards";
 import { DeliverySignatureCard } from "../components/deliveries/DeliverySignatureCard";
-import { useDelivery, useDeliveries, useUpdateDelivery, useDeleteDelivery } from "../hooks/useDeliveries";
-import { buildCompletionPayload, buildDeliverySubtitle, computeHoursUsed } from "../lib/deliveryDetailHelpers";
-
-type PickupPrompt = {
-  delivery: { forklift_id: string; booking_id: string | null; address: string | null; driver_name: string | null; driver_phone: string | null; hours_reading: number | null };
-  bookingEndDate: string;
-  forkliftName: string;
-};
+import { useDeliveries, useDelivery, useDeleteDelivery } from "../hooks/useDeliveries";
+import { useDeliveryCompletion } from "../hooks/useDeliveryCompletion";
+import { buildDeliverySubtitle, computeHoursUsed } from "../lib/deliveryDetailHelpers";
 
 export default function DeliveryDetail() {
   const { id } = useParams<{ id: string }>();
@@ -33,12 +26,14 @@ export default function DeliveryDetail() {
   const { data: siblingDeliveries } = useDeliveries(delivery?.booking_id ?? undefined);
   const { data: bookings } = useBookings();
   const { forkliftMap } = useForkliftMap();
-  const updateDelivery = useUpdateDelivery();
   const deleteDelivery = useDeleteDelivery();
 
-  const [signatureOpen, setSignatureOpen] = useState(false);
-  const [hoursReading, setHoursReading] = useState("");
-  const [pickupPrompt, setPickupPrompt] = useState<PickupPrompt | null>(null);
+  const forklift = delivery ? forkliftMap.get(delivery.forklift_id) : undefined;
+  const linkedBooking = delivery?.booking_id
+    ? bookings?.find((b) => b.id === delivery.booking_id) ?? null
+    : null;
+
+  const completion = useDeliveryCompletion(delivery, siblingDeliveries, linkedBooking, forklift);
 
   if (isLoading) {
     return (
@@ -61,49 +56,8 @@ export default function DeliveryDetail() {
     );
   }
 
-  const forklift = forkliftMap.get(delivery.forklift_id);
-  const linkedBooking = delivery.booking_id ? bookings?.find((b) => b.id === delivery.booking_id) : null;
   const hoursUsed = computeHoursUsed(delivery.booking_id, siblingDeliveries);
   const subtitle = buildDeliverySubtitle(forklift?.name, delivery.type);
-
-  const promptPickupIfNeeded = () => {
-    const bookingId = delivery.booking_id;
-    if (delivery.type !== "delivery" || !bookingId || !linkedBooking || !forklift) return;
-    setPickupPrompt({
-      delivery: {
-        forklift_id: delivery.forklift_id,
-        booking_id: bookingId,
-        address: delivery.address,
-        driver_name: delivery.driver_name,
-        driver_phone: delivery.driver_phone,
-        hours_reading: delivery.hours_reading ?? null,
-      },
-      bookingEndDate: linkedBooking.end_date,
-      forkliftName: forklift.name,
-    });
-  };
-
-  const markComplete = (signature?: string) => {
-    // R10 Bloque 4: si es pickup, valida horómetro contra la entrega previa.
-    const minHours = delivery.type === "pickup"
-      ? siblingDeliveries?.find((d) => d.type === "delivery")?.hours_reading ?? null
-      : null;
-    try {
-      const payload = buildCompletionPayload(
-        delivery.id, nowMty().toISOString(), signature, hoursReading, minHours,
-      );
-      updateDelivery.mutate(payload, {
-        onSuccess: () => {
-          notifySuccess("Marcado como completado");
-          setSignatureOpen(false);
-          promptPickupIfNeeded();
-        },
-      });
-    } catch (err) {
-      notifyError({ title: "Horómetro inválido", error: err });
-    }
-  };
-
 
   const handleDelete = () => {
     deleteDelivery.mutate(delivery.id, {
@@ -122,7 +76,7 @@ export default function DeliveryDetail() {
           actions={
             <DeliveryActions
               status={delivery.status}
-              onComplete={() => setSignatureOpen(true)}
+              onComplete={() => completion.setSignatureOpen(true)}
               onDelete={handleDelete}
             />
           }
@@ -164,18 +118,15 @@ export default function DeliveryDetail() {
       </PageContainer>
 
       <DeliveryDetailDialogs
-        signatureOpen={signatureOpen}
-        setSignatureOpen={setSignatureOpen}
-        hoursReading={hoursReading}
-        setHoursReading={setHoursReading}
-        onComplete={markComplete}
-        pickupPrompt={pickupPrompt}
-        onPickupClose={() => setPickupPrompt(null)}
-        minHours={delivery.type === "pickup"
-          ? siblingDeliveries?.find((d) => d.type === "delivery")?.hours_reading ?? null
-          : null}
+        signatureOpen={completion.signatureOpen}
+        setSignatureOpen={completion.setSignatureOpen}
+        hoursReading={completion.hoursReading}
+        setHoursReading={completion.setHoursReading}
+        onComplete={completion.markComplete}
+        pickupPrompt={completion.pickupPrompt}
+        onPickupClose={() => completion.setPickupPrompt(null)}
+        minHours={completion.minHours}
       />
-
     </>
   );
 }

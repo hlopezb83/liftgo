@@ -12,7 +12,6 @@ import { FormDialog } from "@/components/forms/FormDialog";
 import { ClipboardCheck } from "@/components/icons";
 import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
-
 import type { Booking } from "@/features/bookings";
 import type { Forklift } from "@/features/fleet";
 import { INSPECTION_CONDITIONS, FUEL_LEVELS, STATUS_LABELS, FUEL_LEVEL_LABELS } from "@/lib/constants";

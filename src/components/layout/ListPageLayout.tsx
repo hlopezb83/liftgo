@@ -1,15 +1,13 @@
-import { ReactNode, useEffect, useRef, useState } from "react";
-import { DataTablePaginationV2 } from "@/components/dataTable/v2/DataTablePaginationV2";
+import { ReactNode, useState } from "react";
 import { type LucideIcon } from "@/components/icons";
 import { FiltersSlot } from "@/components/layout/listPage/FiltersSlot";
-import { LoadMoreFooter, type LoadMoreProps } from "@/components/layout/listPage/LoadMoreFooter";
+import { ListPageBody } from "@/components/layout/listPage/ListPageBody";
+import { type LoadMoreProps } from "@/components/layout/listPage/LoadMoreFooter";
 import { PullToRefreshIndicator } from "@/components/layout/listPage/PullToRefreshIndicator";
-import { TableContent } from "@/components/layout/listPage/TableContent";
+import { useListPagePullToRefresh } from "@/components/layout/listPage/useListPagePullToRefresh";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
-import { Card, CardContent } from "@/components/ui/card";
 import { useIsMobile, useIsTabletOrBelow } from "@/hooks/use-mobile";
-import { usePullToRefresh } from "@/hooks/usePullToRefresh";
 import { cn } from "@/lib/utils";
 import type { Table as TanstackTable } from "@tanstack/react-table";
 
@@ -86,91 +84,80 @@ export function ListPageLayout<T extends { id?: string }>({
   const isTabletOrBelow = useIsTabletOrBelow();
   const showMobileCards = isTabletOrBelow && !!mobileCardRender;
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const sentinelRef = useRef<HTMLDivElement | null>(null);
-  const [scrollTarget, setScrollTarget] = useState<HTMLElement | null>(null);
-
-  useEffect(() => {
-    // Localizar el contenedor <main> real después del montaje para pull-to-refresh.
-    // Es una lectura post-mount del DOM, no una sincronización de estado.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (!isMobile || !onRefresh) { setScrollTarget(null); return; }
-    setScrollTarget(sentinelRef.current?.closest("main") as HTMLElement | null);
-  }, [isMobile, onRefresh]);
-
-  const { pullDistance, isRefreshing, threshold } = usePullToRefresh({
-    onRefresh: onRefresh ?? (() => undefined),
-    target: scrollTarget,
-    enabled: isMobile && !!onRefresh,
-  });
-
-  const showFiltersInSheet = isMobile && !!filters;
-  const ready = pullDistance >= threshold;
+  const { sentinelRef, pullDistance, isRefreshing, ready, indicatorVisible } =
+    useListPagePullToRefresh(isMobile, onRefresh);
 
   const effectiveItems: T[] = table ? table.getRowModel().rows.map((r) => r.original) : [];
   const showEmpty = !isLoading && effectiveItems.length === 0;
-  const hasPagination = effectiveItems.length > 0 && !!table;
-
-  const subtitleText =
-    totalCount !== undefined
-      ? `${subtitle || ""}${subtitle ? " — " : ""}${totalCount} resultado${totalCount !== 1 ? "s" : ""}`
-      : subtitle;
+  const hasMobileFab = !!(isMobile && mobileFab);
 
   return (
     <PageTransition>
-      <div ref={sentinelRef} className={cn("p-4 sm:p-6 space-y-6", isMobile && mobileFab && "pb-[calc(env(safe-area-inset-bottom)+6rem)]")}>
+      <div
+        ref={sentinelRef}
+        className={cn(
+          "p-4 sm:p-6 space-y-6",
+          hasMobileFab && "pb-[calc(env(safe-area-inset-bottom)+6rem)]",
+        )}
+      >
         <PullToRefreshIndicator
-          visible={!!(isMobile && onRefresh && (pullDistance > 0 || isRefreshing))}
+          visible={indicatorVisible}
           pullDistance={pullDistance}
           isRefreshing={isRefreshing}
           ready={ready}
         />
         <PageHeader
           title={title}
-          subtitle={subtitleText}
-          action={isMobile && mobileFab ? undefined : actions}
+          subtitle={buildSubtitle(subtitle, totalCount)}
+          action={hasMobileFab ? undefined : actions}
         />
         <FiltersSlot
           filters={filters}
-          inSheet={showFiltersInSheet}
+          inSheet={isMobile && !!filters}
           open={filtersOpen}
           onOpenChange={setFiltersOpen}
         />
-        {customContent || (
-          <Card>
-            <CardContent className="p-0">
-              <TableContent
-                isLoading={isLoading}
-                isError={isError}
-                onRetry={onRetry}
-                showEmpty={showEmpty}
-                showMobileCards={showMobileCards}
-                items={effectiveItems}
-                table={table}
-                emptyMessage={emptyMessage}
-                emptyIcon={emptyIcon}
-                emptyActionLabel={emptyActionLabel}
-                onEmptyAction={onEmptyAction}
-                hasActiveFilters={hasActiveFilters}
-                onClearFilters={onClearFilters}
-                onRowClick={onRowClick}
-                onRowPrefetch={onRowPrefetch}
-                mobileCardRender={mobileCardRender}
-                mobileKeyExtractor={mobileKeyExtractor}
-                skeletonColumns={skeletonColumns}
-              />
-              {hasPagination && !isError && <DataTablePaginationV2 table={table} />}
-              {loadMore && !isError && !isLoading && effectiveItems.length > 0 && (
-                <LoadMoreFooter {...loadMore} />
-              )}
-            </CardContent>
-          </Card>
-        )}
+        <ListPageBody
+          customContent={customContent}
+          isLoading={isLoading}
+          isError={isError}
+          onRetry={onRetry}
+          showEmpty={showEmpty}
+          showMobileCards={showMobileCards}
+          items={effectiveItems}
+          table={table}
+          emptyMessage={emptyMessage}
+          emptyIcon={emptyIcon}
+          emptyActionLabel={emptyActionLabel}
+          onEmptyAction={onEmptyAction}
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={onClearFilters}
+          onRowClick={onRowClick}
+          onRowPrefetch={onRowPrefetch}
+          mobileCardRender={mobileCardRender}
+          mobileKeyExtractor={mobileKeyExtractor}
+          skeletonColumns={skeletonColumns}
+          loadMore={loadMore}
+        />
       </div>
-      {isMobile && mobileFab && (
-        <div className="fixed right-4 z-40 pointer-events-none" style={{ bottom: "calc(1rem + env(safe-area-inset-bottom))" }}>
-          <div className="pointer-events-auto">{mobileFab}</div>
-        </div>
-      )}
+      {hasMobileFab && <MobileFabOverlay>{mobileFab}</MobileFabOverlay>}
     </PageTransition>
   );
+}
+
+function MobileFabOverlay({ children }: { children: ReactNode }) {
+  return (
+    <div
+      className="fixed right-4 z-40 pointer-events-none"
+      style={{ bottom: "calc(1rem + env(safe-area-inset-bottom))" }}
+    >
+      <div className="pointer-events-auto">{children}</div>
+    </div>
+  );
+}
+
+function buildSubtitle(subtitle: string | undefined, totalCount: number | undefined): string | undefined {
+  if (totalCount === undefined) return subtitle;
+  const suffix = `${totalCount} resultado${totalCount !== 1 ? "s" : ""}`;
+  return subtitle ? `${subtitle} — ${suffix}` : suffix;
 }

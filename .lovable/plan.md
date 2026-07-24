@@ -1,45 +1,61 @@
+# v7.226.1 — Limpieza de warnings de CI
 
-# Plan v7.226.0 — Auditoría E2E: diffs pendientes N4–N13
+Los 46/36 tests E2E siguen verdes; esto es puramente higiene de warnings que ruidan cada corrida.
 
-## Contexto
-En v7.225.0 ya se cerraron N1 (RPC `complete_return_inspection` con las 4 condiciones + minor/major), N2 (saldo del portal NC-aware en `PortalInvoicePayment`), N3 (`RoleGuard` en CTAs de Fleet/Quotes/Contracts/Customers) y N11 (motivo de cancelación en `cancel_booking` + diálogo). Antes de tocar cada uno, releeré esos archivos para confirmar que la implementación actual cumple los criterios de aceptación del documento; si algo falta, lo completo bajo la misma versión.
+## 1. Node 20 deprecation (7 jobs afectados)
 
-N12 es "no es bug" — solo test aclaratorio opcional (lo incluyo).
+`actions/setup-node@v4` ya corre internamente en Node 20, deprecado desde sept-2025. Se está forzando a Node 24 por el runner pero el warning se emite igual.
 
-## Alcance de código (por diff)
+- **`.github/actions/setup-bun-project/action.yml`** → subir a `actions/setup-node@v5` (runtime Node 24 nativo). Sin cambios de comportamiento.
 
-**N4 · Contrato desde reserva auto-genera terms_text**
-- `src/features/contracts/hooks/useContractFormLogic.ts`: incluir `bookingForkliftId` (obtenido del booking cargado por `bookingId`) en el filtro de forklifts junto a `available` y `currentId`.
-- Verificar que `useContractFormPrefill` se dispara una vez la lista incluye ese forklift; ajustar dependencias si hace falta.
+## 2. Import order / grupos vacíos (4 archivos)
 
-**N5 · Invalidar branding público al guardar company_settings**
-- `src/features/company-settings/lib/queryKeys.ts`: reordenar para declarar `publicBrandingQueries` antes de `COMPANY_SETTINGS_INVALIDATION_KEYS` y añadirlo al arreglo.
+Reordenar imports y quitar líneas en blanco entre grupos según regla `import/order`:
 
-**N6 · Ocultar "Registrar Pago" en factura saldada por NC**
-- `src/lib/rules/invoices.ts`: introducir `balance` opcional en `InvoiceLike`, calcular `hasBalance`, aplicar a `isPayable` y `showPaymentBtn`.
-- Call site del detalle de factura: pasar `balance` (ya calculado NC-aware) a `computeInvoiceFlags`.
+- `src/features/invoices/hooks/invoices/useInvoices.ts:3` — quitar línea vacía entre grupos.
+- `src/features/invoices/hooks/invoiceForm/useInvoiceFormHandlers.ts:4` — mover `@/lib/domain/invoiceHelpers` antes de `@/lib/domain/nonRentalLines`.
+- `src/features/invoices/components/invoice-form/GlobalInvoiceFields.tsx:2` — quitar línea vacía.
+- `src/features/invoices/components/invoice-detail/usePaymentIntentsColumns.tsx:6` — mover el type-import antes del import de valor.
+- `src/features/accounts-payable/components/RegisterSupplierPaymentDialog.tsx:11` — quitar línea vacía.
 
-**N7 · Validar email en InviteUserDialog**
-- `src/features/users/components/users/InviteUserDialog.tsx`: schema Zod inline, estado `emailError`, mensaje inline bajo el input, bloquear submit si inválido.
+Riesgo: nulo, sólo orden de imports.
 
-**N8 + N10 · Sidebar Auditoría gestionable**
-- `src/layouts/sidebar/navConfig.ts`: quitar `/audit` y `/activity` de `ALWAYS_VISIBLE_ROUTES`, mapearlas en `ROUTE_TO_MODULE` al módulo "Auditoría".
-- `src/features/users/hooks/useRolePermissions.ts`: agregar "Auditoría" al catálogo de módulos gestionables.
-- Migración: seed `role_permissions` (admin, administrativo → full) con `ON CONFLICT DO NOTHING`.
+## 3. Complejidad ciclomática > 15
 
-**N9 · Botón Actualizar en Calendario/Gantt**
-- `src/features/calendar/pages/CalendarPage.tsx`: botón que invalida `bookingKeys.all` con ícono y `aria-label`.
+Tres funciones exceden el máximo de 15. Extraer subcomponentes / helpers puros; sin cambios de UX ni de datos.
 
-**N12 · Test aclaratorio (opcional)**
-- Añadir caso "1 jul → 31 jul = 1 mes exacto" en `rentalCalculation.test.ts`.
+- **`src/components/layout/ListPageLayout.tsx:59`** (complejidad 31) — es el layout de listado más usado. Plan: extraer los bloques condicionales de header (título/subtítulo/acciones), toolbar y estado empty/loading en subcomponentes internos (`<ListPageHeader/>`, `<ListPageToolbar/>`, `<ListPageStates/>`). API pública del componente no cambia.
+- **`src/features/dashboard/pages/MrrDetailPage.tsx:15`** (complejidad 21) — extraer los `useMemo` de agregaciones a un hook `useMrrBreakdown()` y aislar los filtros a `useMrrFilters()`.
+- **`src/features/deliveries/pages/DeliveryDetail.tsx:29`** (complejidad 16) — extraer un helper puro `resolveDeliveryActions(delivery, role)` que devuelva la matriz de botones, y colapsar los ternarios de estado a un `<DeliveryStatusBadge/>` local.
 
-**N13 · Persister no persiste queries pending**
-- `src/lib/query/persister.ts`: en `shouldPersistQuery`, `return false` si `query.state.status === "pending"`.
+Riesgo: refactor interno, se cubre con los E2E de `deliveries` y `dashboard` ya existentes.
+
+## 4. Fast refresh en `CollectionForecast.tsx`
+
+El archivo exporta la constante-helper `amountInMxn` junto al componente, rompiendo HMR.
+
+- Mover `amountInMxn` (y su tipo `OverdueInvoice` si aplica) a `src/features/dashboard/lib/collectionForecast.ts` y re-importar desde el componente. Cualquier otro consumidor sigue funcionando por el nuevo path.
+
+## 5. React Compiler skip en `useLiftgoTable.ts:131`
+
+El `// eslint-disable-next-line react-hooks/exhaustive-deps` sobre el `useMemo(Proxy)` hace que el compilador salte el archivo entero.
+
+- Reemplazar el `useMemo` con deps derivadas por un `useMemo` con deps completas (`[table, dataVersion, sortKey, selKey, pagKey]` ya son primitivas + referencia estable de `table`). El comentario existe porque `table` cambia cada render pero el Proxy sólo debe recrearse si cambia una de las claves; se puede envolver en `useRef` + comparador manual y devolver un objeto memoizado sin necesidad de deshabilitar la regla. Alternativa segura: mover el Proxy fuera del hook y aplicarlo en el consumidor, dejando el hook devuelva `table` puro (los tests actuales cubren identidad estable).
+
+Riesgo: medio — `useLiftgoTable` alimenta todas las tablas v2. Validar con Playwright `filters-*.spec.ts` + smoke de dashboard.
+
+## 6. Changelog + versión
+
+Bump a **v7.226.1** (patch), entrada en `public/changelog.json` y `public/changelog/v7.226.1.json` describiendo "Limpieza de warnings de CI (Node 20, import order, complejidad, Fast Refresh, React Compiler)".
 
 ## Verificación
-- Re-lectura de N1/N2/N3/N11 para confirmar cumplimiento vs. el nuevo documento.
-- `bunx tsgo` sobre archivos tocados y `bunx vitest run` de suites afectadas (invoices/lib, rentalCalculation, portal si aplica).
-- Sin cambios visuales fuera del botón Actualizar del calendario y el mensaje inline del InviteUserDialog.
 
-## Entregables finales
-- Bump a **v7.226.0** en `package.json`, `version.json`, `src/lib/changelog.ts`, `public/changelog.json` y nuevo `public/changelog/v7.226.0.json` con las entradas N4–N10, N12, N13.
+1. `bunx tsgo --noEmit`
+2. `bun run lint` — 0 warnings nuevos.
+3. `bunx vitest run` afectados (`dashboard`, `deliveries`, `dataTable`).
+4. `bunx playwright test --shard=1/2` para validar tablas v2.
+
+## Notas técnicas
+
+- No se toca lógica de negocio: sólo estructura de imports, extracción de subcomponentes/helpers y actualización de una action de CI.
+- El upgrade a `setup-node@v5` requiere Node ≥20 en el runner, que ya cumplimos (forzamos 24).

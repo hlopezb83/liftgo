@@ -128,6 +128,14 @@ export function useLiftgoTable<T>({
   const sortKey = sorting.map((s) => `${s.id}:${s.desc ? "d" : "a"}`).join(",");
   const selKey = Object.keys(rowSelection).length;
   const pagKey = paginated ? `${pagination.pageIndex}:${pagination.pageSize}` : "";
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  return useMemo(() => new Proxy(table, {}), [table, dataVersion, sortKey, selKey, pagKey]);
+  // v7.226.1 · `table` es la referencia mutable de TanStack; las claves derivadas
+  // se consumen dentro del memo (vía `void`) para satisfacer exhaustive-deps sin
+  // desactivar la regla y sin bloquear al React Compiler.
+  return useMemo(() => {
+    void dataVersion;
+    void sortKey;
+    void selKey;
+    void pagKey;
+    return new Proxy(table, {});
+  }, [table, dataVersion, sortKey, selKey, pagKey]);
 }

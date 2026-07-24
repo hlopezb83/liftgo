@@ -1,10 +1,4 @@
 import { Document, Page, Text, View } from "@react-pdf/renderer";
-import type {
-  PdfStatementRow as StatementRow,
-  PdfComparisonRow as ComparisonRow,
-  PdfYearTotals as YearTotals,
-  PdfMonthData as MonthData,
-} from "@/lib/pdf/types/incomeStatement";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { AccentBar } from "@/lib/pdf/components/AccentBar";
@@ -12,6 +6,12 @@ import { Footer } from "@/lib/pdf/components/Footer";
 import type { CompanyData } from "@/lib/pdf/shared";
 import { sharedStyles } from "@/lib/pdf/theme/styles";
 import { COLORS, FONT_SIZES } from "@/lib/pdf/theme/tokens";
+import type {
+  PdfStatementRow as StatementRow,
+  PdfComparisonRow as ComparisonRow,
+  PdfYearTotals as YearTotals,
+  PdfMonthData as MonthData,
+} from "@/lib/pdf/types/incomeStatement";
 import { nowMty } from "@/lib/utils";
 
 export interface IncomeStatementDocumentProps {

@@ -1,7 +1,6 @@
 import { format } from "date-fns";
 import { useState } from "react";
 import { useSearchParams } from "react-router";
-
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DatePickerField } from "@/components/forms/DatePickerField";

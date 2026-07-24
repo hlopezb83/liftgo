@@ -15,7 +15,8 @@ runs:
   using: composite
   steps:
     - name: Setup Node.js
-      uses: actions/setup-node@v4
+      # v7.226.1 · setup-node@v5 corre en Node 24 nativo (v4 = Node 20 deprecado sept-2025).
+      uses: actions/setup-node@v5
       with:
         node-version: ${{ inputs.node-version }}
 
