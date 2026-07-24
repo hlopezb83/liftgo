@@ -4081,6 +4081,13 @@ export type Database = {
         }[]
       }
       unmatch_bank_line: { Args: { p_line_id: string }; Returns: undefined }
+      update_user_role_safe: {
+        Args: {
+          _new_role: Database["public"]["Enums"]["app_role"]
+          _target_user_id: string
+        }
+        Returns: undefined
+      }
       upsert_billing_secret: {
         Args: { p_id?: string; p_live_key?: string; p_test_key?: string }
         Returns: string
