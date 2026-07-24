@@ -28,7 +28,9 @@ interface QueueRow {
 // EC-A1 fix: alineado con OPERATION en cfdi_retry_queue (`stamp | cancel |
 // cancel_nc | cancel_rep`) y con los nombres reales de las edge functions.
 // El mapping anterior apuntaba a `cancel-rep`, función inexistente.
-const OPERATION_TO_FUNCTION: Record<string, string> = {
+// TESTS-ARQ2 (v7.220.0 DIFF 3): exportado para que el test consuma el mapa
+// real (antes copiaba la tabla y no detectaba drift).
+export const OPERATION_TO_FUNCTION: Record<string, string> = {
   stamp: "stamp-cfdi",
   cancel: "cancel-cfdi",
   cancel_nc: "cancel-credit-note",

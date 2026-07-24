@@ -1,56 +1,67 @@
+// TESTS-ARQ2 (v7.220.0 DIFF 2): tests importan la decisión REAL desde
+// `decisions.ts` (antes reimplementaban la lógica y congelaban la semántica
+// vieja pre-R12-B2 que duplicaba CFDIs en el SAT).
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { decideRowAction, decideXmlFailure } from "./decisions.ts";
 
-// Unit tests puros para la lógica de detección de facturas atascadas.
-// El handler HTTP se prueba en integración manual (ver README de la función).
+const NOW = new Date().toISOString();
+const _ = NOW; // solo para documentar que las filas siempre traen updated_at real
 
-interface StuckRow {
-  id: string;
-  cfdi_uuid: string | null;
-  facturapi_invoice_id: string | null;
-  updated_at: string;
-}
-
-function needsReconcile(row: StuckRow): boolean {
-  return Boolean(row.cfdi_uuid && row.facturapi_invoice_id);
-}
-
-function needsRevert(row: StuckRow): boolean {
-  return !row.cfdi_uuid || !row.facturapi_invoice_id;
-}
-
-Deno.test("needsReconcile: fila con uuid + facturapi_id se puede reconciliar", () => {
+Deno.test("con facturapi_id + uuid → reconcile directo", () => {
   assertEquals(
-    needsReconcile({
-      id: "a",
-      cfdi_uuid: "uuid-1",
-      facturapi_invoice_id: "fa-1",
-      updated_at: new Date().toISOString(),
-    }),
-    true,
+    decideRowAction(
+      {
+        id: "a",
+        cfdi_uuid: "u",
+        facturapi_invoice_id: "f",
+        stamping_attempts: 0,
+      },
+      null,
+    ),
+    { kind: "reconcile" },
   );
 });
 
-Deno.test("needsRevert: fila sin facturapi_invoice_id se revierte a error", () => {
-  assertEquals(
-    needsRevert({
+Deno.test("R12-B2: sin ids pero el PAC lo tiene (external_id) → recover, NO revert", () => {
+  const a = decideRowAction(
+    {
       id: "a",
       cfdi_uuid: null,
       facturapi_invoice_id: null,
-      updated_at: new Date().toISOString(),
-    }),
-    true,
+      stamping_attempts: 0,
+    },
+    { kind: "hit", facturapi_id: "f1", uuid: "u1" },
+  );
+  assertEquals(a, { kind: "recover", facturapi_id: "f1", uuid: "u1" });
+});
+
+Deno.test("R12-B2: PAC lookup falló → retry en próximo cron (no revert)", () => {
+  assertEquals(
+    decideRowAction(
+      {
+        id: "a",
+        cfdi_uuid: null,
+        facturapi_invoice_id: null,
+        stamping_attempts: 0,
+      },
+      { kind: "lookup_failed" },
+    ),
+    { kind: "retry_lookup" },
   );
 });
 
-Deno.test("needsRevert: fila con uuid pero sin facturapi_invoice_id también se revierte", () => {
+Deno.test("PAC confirma que no existe → revert_error", () => {
   assertEquals(
-    needsRevert({
-      id: "a",
-      cfdi_uuid: "uuid-1",
-      facturapi_invoice_id: null,
-      updated_at: new Date().toISOString(),
-    }),
-    true,
+    decideRowAction(
+      {
+        id: "a",
+        cfdi_uuid: null,
+        facturapi_invoice_id: null,
+        stamping_attempts: 0,
+      },
+      { kind: "miss" },
+    ),
+    { kind: "revert_error" },
   );
 });
 
@@ -62,17 +73,6 @@ Deno.test("umbral de stale: 10 min", () => {
   assertEquals(stale < cutoff, true);
   assertEquals(fresh < cutoff, false);
 });
-
-// Política de reintentos de descarga de XML (espejo de la lógica en index.ts):
-// si la descarga falla NO se llama al RPC — la fila sigue en 'stamping' y solo
-// pasa a 'error' cuando el intento actual alcanza MAX_RECONCILE_ATTEMPTS.
-function decideXmlFailure(
-  stampingAttempts: number | null,
-): "defer" | "mark_error" {
-  const MAX_RECONCILE_ATTEMPTS = 10;
-  const attempts = (stampingAttempts ?? 0) + 1;
-  return attempts >= MAX_RECONCILE_ATTEMPTS ? "mark_error" : "defer";
-}
 
 Deno.test("xml retry: intentos 1-9 se difieren (fila sigue en stamping)", () => {
   assertEquals(decideXmlFailure(null), "defer");
