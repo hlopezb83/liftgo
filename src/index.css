@@ -1,6 +1,6 @@
 @import "tailwindcss";
-@plugin "@tailwindcss/typography";
 @import "tw-animate-css";
+@plugin "@tailwindcss/typography";
 
 /* Dark mode via `.dark` class (declared on <html> when toggle exists). */
 @custom-variant dark (&:where(.dark, .dark *));
