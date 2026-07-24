@@ -270,7 +270,10 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p reports
-          mapfile -d '' TEST_FILES < <(find supabase/functions -name 'index_test.ts' -print0)
+          # TESTS-ARQ2 (v7.220.0 DIFF 1): descubrir TODOS los tests Deno
+          # (handler_test.ts de lógica fiscal y _shared/*_test.ts también corren
+          # aquí — antes quedaban dormidos con el patrón `index_test.ts`).
+          mapfile -d '' TEST_FILES < <(find supabase/functions -name '*_test.ts' -print0)
           if [[ ${#TEST_FILES[@]} -eq 0 ]]; then
             echo "::error::No se encontraron archivos index_test.ts en supabase/functions"
             exit 1
