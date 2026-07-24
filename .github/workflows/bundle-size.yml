@@ -132,10 +132,16 @@ jobs:
           if [[ -n "${PR_NUMBER:-}" ]]; then
             printf "%b" "$BODY" | gh pr comment "$PR_NUMBER" --repo "$REPO" --body-file -
           fi
-          # Warning (no bloqueante) si el bundle crece más de 5%.
-          THRESHOLD_PCT=5
-          IS_REGRESSION=$(awk "BEGIN {print ($PCT > $THRESHOLD_PCT) ? 1 : 0}")
-          if [[ "$IS_REGRESSION" == "1" ]]; then
-            echo "::warning::Bundle creció ${PCT}% (> ${THRESHOLD_PCT}%). Revisar imports y code-splitting."
+          # v7.219.0 (M4): warning a 5%, hard-fail a 10%. Antes: solo warning aunque el bundle creciera 50%.
+          THRESHOLD_WARN=5
+          THRESHOLD_FAIL=10
+          IS_WARN=$(awk "BEGIN {print ($PCT > $THRESHOLD_WARN) ? 1 : 0}")
+          IS_FAIL=$(awk "BEGIN {print ($PCT > $THRESHOLD_FAIL) ? 1 : 0}")
+          if [[ "$IS_FAIL" == "1" ]]; then
+            echo "::error::Bundle creció ${PCT}% (> ${THRESHOLD_FAIL}%). Revisar imports y code-splitting antes de mergear."
+            exit 1
+          fi
+          if [[ "$IS_WARN" == "1" ]]; then
+            echo "::warning::Bundle creció ${PCT}% (> ${THRESHOLD_WARN}%). Revisar imports y code-splitting."
           fi
 
