@@ -57,15 +57,12 @@ test.describe("Facturas — filtros StatusTabs", () => {
     // `useInvoicesFilters`. Verificamos la URL como source-of-truth y usamos
     // `data-state` sólo como soft-check final.
     for (let i = 0; i < 5; i++) {
-      for (const { value, label } of STATUS_TABS) {
-        const target = page.getByRole("tab", { name: label }).first();
+      for (const { value } of STATUS_TABS) {
+        // v7.223.0: usar data-testid canónico. El label /todos/i seguía siendo
+        // necesario para el soft-check final porque prueba el atributo
+        // Radix, no la selección.
+        const target = page.getByTestId(`status-tab-${value}`).first();
 
-        // Cada click PUEDE disparar un refetch al REST endpoint, pero en
-        // vueltas 2-5 React Query sirve desde cache y no vuelve a pegar al
-        // backend. El timeout corto (2s) evita gastar 10s ociosos por click
-        // cuando no hay request — con 20 clicks eso ahorraba hasta ~180s y
-        // era la causa real del `Test timeout of 90000ms exceeded` en CI.
-        // La aserción canónica sigue siendo la URL abajo.
         await Promise.all([
           page
             .waitForResponse((r) => INVOICES_ENDPOINT.test(r.url()), { timeout: 2_000 })
@@ -73,7 +70,6 @@ test.describe("Facturas — filtros StatusTabs", () => {
           target.click(),
         ]);
 
-        // Source of truth: URL. `all` limpia el param; el resto lo escribe.
         await expect
           .poll(() => new URL(page.url()).searchParams.get("status") ?? "all", {
             timeout: TIMEOUTS.short,
