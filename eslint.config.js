@@ -218,12 +218,13 @@ export default tseslint.config(
     // de Supabase definido sobre pages/components (en flat config, dos
     // bloques que coinciden y definen la misma regla, la última gana).
     //
-    // Hoy lo dejamos como `warn` para no romper la build; los nuevos
-    // archivos deben respetarlo y la migración es incremental.
+    // v7.218.0 · ARQ2-A4: escalado a `error` tras migrar 0 sitios residuales.
+    // Los deep imports intra-feature (mismo feature) siguen permitidos porque
+    // el patrón `@/features/*/…` sólo matchea el segmento `*`, no la propia.
     files: ["src/features/**/hooks/**/*.{ts,tsx}", "src/features/**/lib/**/*.{ts,tsx}"],
     ignores: ["**/__tests__/**", "**/*.test.{ts,tsx}"],
     rules: {
-      "no-restricted-imports": ["warn", {
+      "no-restricted-imports": ["error", {
         patterns: [
           {
             group: ["@/features/*/hooks/**", "@/features/*/components/**", "@/features/*/lib/**", "@/features/*/pages/**"],
