@@ -1,15 +1,24 @@
 name: Setup Bun project
-description: Checkout, instalar Bun, restaurar cache e instalar deps con frozen lockfile.
+description: Checkout, instalar Node, Bun, restaurar cache e instalar deps con frozen lockfile.
 
 inputs:
   bun-version:
     description: Versión exacta de Bun (pineada para reproducibilidad; dependabot actualiza vía github-actions).
     required: false
     default: "1.2.23"
+  node-version:
+    description: Versión de Node.js a instalar en el runner.
+    required: false
+    default: "24"
 
 runs:
   using: composite
   steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+
     - name: Setup Bun
       # Pin a commit SHA por seguridad (action de terceros). Equivale a v2.2.0.
       uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
@@ -20,9 +29,9 @@ runs:
       uses: actions/cache@v4
       with:
         path: ~/.bun/install/cache
-        key: ${{ runner.os }}-bun-${{ inputs.bun-version }}-${{ hashFiles('**/bun.lock', '**/package.json') }}
+        key: ${{ runner.os }}-node-${{ inputs.node-version }}-bun-${{ inputs.bun-version }}-${{ hashFiles('**/bun.lock', '**/package.json') }}
         restore-keys: |
-          ${{ runner.os }}-bun-${{ inputs.bun-version }}-
+          ${{ runner.os }}-node-${{ inputs.node-version }}-bun-${{ inputs.bun-version }}-
 
     - name: Install dependencies
       shell: bash

@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.224.5",
+    "date": "2026-07-24",
+    "type": "patch",
+    "title": "CI: forzar Node.js 24 en workflows vía setup-bun-project",
+    "category": "chore"
+  },
+  {
     "version": "7.224.4",
     "date": "2026-07-24",
     "type": "patch",
