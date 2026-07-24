@@ -212,6 +212,10 @@ Deno.test("handler: happy path calls Facturapi and persists UUID", async () => {
             { data: [], error: null },
           ],
         },
+        updatesSeq: {
+          // Claim atómico exitoso (línea 96-103 del handler).
+          credit_notes: [{ data: { id: NC_ID }, error: null }],
+        },
         updates: { credit_notes: { data: null, error: null } },
       },
     });
