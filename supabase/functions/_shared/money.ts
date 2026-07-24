@@ -21,7 +21,6 @@ export function toCents(n: number | string | null | undefined): number {
   return sign * cents;
 }
 
-
 export function fromCents(cents: number): number {
   return Math.round(cents) / 100;
 }
