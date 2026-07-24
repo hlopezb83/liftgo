@@ -192,6 +192,26 @@ Deno.test("handler: happy path calls Facturapi and persists UUID", async () => {
           company_settings: { data: { facturapi_mode: "test" }, error: null },
           billing_secrets: { data: null, error: null },
         },
+        selectsSeq: {
+          // 1er select: NC principal (.single). 2do: siblings BL-08 (array).
+          credit_notes: [
+            {
+              data: {
+                id: NC_ID,
+                invoice_id: INVOICE_ID,
+                tax_rate: 16,
+                currency: "MXN",
+                line_items: [{
+                  description: "NC",
+                  quantity: 1,
+                  unit_price: 100,
+                }],
+              },
+              error: null,
+            },
+            { data: [], error: null },
+          ],
+        },
         updates: { credit_notes: { data: null, error: null } },
       },
     });
