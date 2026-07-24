@@ -104,6 +104,7 @@ function StampButtons({ flags, isStamping, onStamp }: { flags: Flags; isStamping
       onClick={onStamp}
       onPointerDown={blockIfBusy}
       disabled={busy}
+      data-testid="invoice-stamp-cfdi"
     >
       <StampIcon className="h-4 w-4 mr-1" /> {label}
     </Button>
@@ -170,7 +171,7 @@ export function InvoiceDetailActions({
       </RoleGuard>
       {flags.showPaymentBtn ? (
         <RoleGuard module="Facturas" minAccess="full" fallback={null}>
-          <Button size="sm" onClick={onOpenPayment}>
+          <Button size="sm" onClick={onOpenPayment} data-testid="invoice-register-payment">
             <PaymentIcon className="h-4 w-4 mr-1" />Registrar Pago
           </Button>
         </RoleGuard>

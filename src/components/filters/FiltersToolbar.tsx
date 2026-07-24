@@ -91,6 +91,7 @@ function StatusTabs<V extends string>({
           <TabsTrigger
             key={opt.value}
             value={opt.value}
+            data-testid={`status-tab-${opt.value}`}
             className="data-[state=active]:font-semibold data-[state=active]:text-foreground data-[state=active]:ring-1 data-[state=active]:ring-border"
           >
             {opt.label}
