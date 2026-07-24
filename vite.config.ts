@@ -180,7 +180,7 @@ const CHUNK_GROUPS: ReadonlyArray<{ name: string; match: readonly string[] }> = 
   { name: "recharts", match: ["recharts", "d3-"] },
   { name: "radix", match: ["@radix-ui"] },
   { name: "react-pdf", match: ["@react-pdf"] },
-  { name: "jspdf", match: ["jspdf", "html2canvas", "canvg"] },
+  // v7.219.0 (M3): removido chunk jspdf — dependencias ya no presentes.
   { name: "xlsx", match: ["xlsx"] },
   { name: "date-fns", match: ["date-fns"] },
   { name: "icons", match: ["lucide-react"] },

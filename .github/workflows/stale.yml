@@ -1,0 +1,38 @@
+name: Stale issues & PRs
+
+on:
+  schedule:
+    # Diario 09:00 UTC (03:00 America/Monterrey).
+    - cron: "0 9 * * *"
+  workflow_dispatch:
+
+permissions:
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: stale-${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  stale:
+    name: Marcar y cerrar
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      # v7.219.0 (B6): mantiene issues/PRs limpios sin intervención manual.
+      - uses: actions/stale@5bef64f19d7facfb25b37b414482c7164d639639 # v9.1.0
+        with:
+          days-before-issue-stale: 60
+          days-before-issue-close: 14
+          days-before-pr-stale: 30
+          days-before-pr-close: 10
+          stale-issue-message: "Issue sin actividad por 60 días. Se cerrará en 14 días si no hay nuevos comentarios."
+          stale-pr-message: "PR sin actividad por 30 días. Se cerrará en 10 días si no hay nuevos commits."
+          close-issue-message: "Cerrado por inactividad. Reabrir si sigue vigente."
+          close-pr-message: "Cerrado por inactividad. Reabrir cuando esté listo para review."
+          stale-issue-label: "stale"
+          stale-pr-label: "stale"
+          exempt-issue-labels: "pinned,security,roadmap"
+          exempt-pr-labels: "pinned,security,in-progress"
+          operations-per-run: 60

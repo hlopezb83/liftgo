@@ -1,0 +1,72 @@
+name: Prod smoke
+
+on:
+  schedule:
+    # Cada 30 min.
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: prod-smoke-${{ github.workflow }}
+  cancel-in-progress: true
+
+jobs:
+  ping:
+    name: Ping app y version.json
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      # v7.219.0 (B2): detecta caídas o rollbacks silenciosos entre releases.
+      - name: HEAD /
+        run: |
+          set -euo pipefail
+          curl --retry 3 --retry-delay 5 --fail-with-body --silent --show-error \
+            --max-time 15 -I https://liftgo.lovable.app/ | head -1
+
+      - name: GET /version.json
+        id: version
+        run: |
+          set -euo pipefail
+          BODY=$(curl --retry 3 --retry-delay 5 --fail-with-body --silent --show-error \
+            --max-time 15 https://liftgo.lovable.app/version.json)
+          echo "$BODY"
+          echo "$BODY" | grep -q '"version"' || {
+            echo "::error::version.json no contiene el campo 'version'"
+            exit 1
+          }
+
+      - name: Abrir issue en fallos consecutivos
+        if: failure()
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        env:
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        with:
+          script: |
+            const title = "🚨 Prod smoke fallando";
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: "open",
+              labels: "prod-smoke",
+            });
+            const body = `El smoke test de producción falló.\n\nRun: ${process.env.RUN_URL}`;
+            if (issues.length === 0) {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ["prod-smoke", "incident"],
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issues[0].number,
+                body,
+              });
+            }

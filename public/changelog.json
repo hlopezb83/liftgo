@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.219.0",
+    "date": "2026-07-24",
+    "type": "minor",
+    "title": "CI hardening: GitHub Actions audit remediation (H1-H4, M1-M6, B2/B6)",
+    "category": "improvement"
+  },
+  {
     "version": "7.218.0",
     "date": "2026-07-24",
     "type": "minor",
