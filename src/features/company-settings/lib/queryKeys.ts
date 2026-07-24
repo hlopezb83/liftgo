@@ -49,20 +49,6 @@ export const cxpApprovalThresholdQueries = defineEntityQueries("cxp_approval_thr
   staleTime: 5 * 60_000,
 });
 
-/**
- * v7.207.0 (DIFF 9c/d): la fila de `company_settings` alimenta tres caches
- * paralelas (companySettings, cxpApprovalThreshold, cashFlowSettings).
- * Cualquier mutación sobre esa fila debe invalidar las tres. El prefijo
- * `["company_settings"]` sirve como catch-all para lecturas ad-hoc que aún
- * no han sido migradas al factory.
- */
-export const COMPANY_SETTINGS_INVALIDATION_KEYS = [
-  companySettingsQueries.keys.all,
-  cxpApprovalThresholdQueries.keys.all,
-  ["cash_flow_settings"] as const,
-  ["company_settings"] as const,
-] as const;
-
 type PublicBrandingRow = { logo_url: string | null; razon_social: string | null };
 
 export const publicBrandingQueries = defineEntityQueries("public_branding", {
@@ -72,6 +58,25 @@ export const publicBrandingQueries = defineEntityQueries("public_branding", {
   },
   staleTime: 10 * 60_000,
 });
+
+/**
+ * v7.207.0 (DIFF 9c/d): la fila de `company_settings` alimenta tres caches
+ * paralelas (companySettings, cxpApprovalThreshold, cashFlowSettings).
+ * Cualquier mutación sobre esa fila debe invalidar las tres. El prefijo
+ * `["company_settings"]` sirve como catch-all para lecturas ad-hoc que aún
+ * no han sido migradas al factory.
+ *
+ * v7.226.0 · E2E-N5: `public_branding` cachea 10 min y se persiste en
+ * localStorage (24h) — al guardar logo/razón social hay que invalidarlo o el
+ * portal público y las pantallas de login siguen mostrando el branding viejo.
+ */
+export const COMPANY_SETTINGS_INVALIDATION_KEYS = [
+  companySettingsQueries.keys.all,
+  cxpApprovalThresholdQueries.keys.all,
+  ["cash_flow_settings"] as const,
+  ["company_settings"] as const,
+  publicBrandingQueries.keys.all,
+] as const;
 
 export interface BillingSecretsStatus {
   id: string | null;
