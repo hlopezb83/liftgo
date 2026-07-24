@@ -10,6 +10,11 @@ import type { Tables } from "@/integrations/supabase/types";
 type InvoiceLike = Tables<"invoices"> & {
   cancellation_status?: string | null;
   cancellation_motive?: string | null;
+  /**
+   * v7.226.0 · E2E-N6: saldo real (total − pagos − NCs timbradas). Opcional
+   * para retrocompatibilidad; si viene, `showPaymentBtn` respeta el saldo.
+   */
+  balance?: number | null;
 };
 
 type CompanyLike = { facturapi_mode?: string | null } | null | undefined;
