@@ -306,6 +306,9 @@ Deno.test("handler: stub mode (no API key) returns stub:true UUID", async () => 
           { data: [], error: null },
         ],
       },
+      updatesSeq: {
+        credit_notes: [{ data: { id: NC_ID }, error: null }],
+      },
       updates: { credit_notes: { data: null, error: null } },
     },
   });
