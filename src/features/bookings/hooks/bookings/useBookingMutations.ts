@@ -58,7 +58,7 @@ export function useCancelBooking() {
     // pasan sólo el bookingId (string).
     mutationFn: async (input: string | { bookingId: string; reason?: string | null }) => {
       const bookingId = typeof input === "string" ? input : input.bookingId;
-      const reason = typeof input === "string" ? null : (input.reason ?? null);
+      const reason = typeof input === "string" ? undefined : (input.reason?.trim() || undefined);
       const { error } = await supabase.rpc("cancel_booking", {
         p_booking_id: bookingId,
         p_reason: reason,
