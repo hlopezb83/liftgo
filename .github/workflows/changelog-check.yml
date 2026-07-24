@@ -6,7 +6,10 @@ on:
     paths:
       - "public/changelog.json"
       - "public/changelog/**"
+      - "public/version.json"
+      - "package.json"
       - "scripts/validate-changelog.ts"
+      - "scripts/check-version.mjs"
       - ".github/workflows/changelog-check.yml"
   workflow_dispatch:
 
@@ -26,3 +29,30 @@ jobs:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-bun-project
       - run: bun scripts/validate-changelog.ts
+
+  version-sync:
+    name: Sincronía package.json ↔ version.json ↔ changelog
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      # v7.219.0 (H3): bloquea PRs donde package.json/version.json/changelog no coinciden.
+      - uses: actions/checkout@v6
+      - name: Compare versions
+        shell: bash
+        run: |
+          set -euo pipefail
+          PKG=$(node -p "require('./package.json').version")
+          VER=$(node -p "require('./public/version.json').version")
+          TOP=$(node -p "require('./public/changelog.json')[0].version")
+          echo "package.json      : $PKG"
+          echo "public/version.json: $VER"
+          echo "changelog[0]      : $TOP"
+          if [[ "$PKG" != "$VER" || "$PKG" != "$TOP" ]]; then
+            echo "::error::Versiones desincronizadas. Ejecuta \`node scripts/gen-version.mjs\` y verifica que la entrada superior del changelog coincida con package.json."
+            exit 1
+          fi
+          test -f "public/changelog/v${PKG}.json" || {
+            echo "::error::Falta public/changelog/v${PKG}.json (detalle de la versión)."
+            exit 1
+          }
+          echo "OK — todas las versiones coinciden."
