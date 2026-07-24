@@ -3,10 +3,15 @@ import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { requireServiceOrRole } from "../_shared/auth.ts";
 import { isNonEmptyString, isUUID } from "../_shared/validate.ts";
 import {
+  cancelInvoiceWithSignal,
   createFacturapiClient,
   describeFacturapiError,
   getFacturapiConfig,
 } from "../_shared/facturapi/client.ts";
+import {
+  isFacturapiTimeout,
+  sdkCallWithTimeout,
+} from "../_shared/facturapi/withTimeout.ts";
 
 const VALID_MOTIVES = new Set(["01", "02", "03", "04"]);
 
@@ -63,9 +68,13 @@ Deno.serve(async (req) => {
         params.substitution = substitution_uuid;
       }
       try {
-        const cancelJson = await client.invoices.cancel(
-          nc.facturapi_invoice_id as string,
-          params,
+        const cancelJson = await sdkCallWithTimeout((signal) =>
+          cancelInvoiceWithSignal(
+            client,
+            nc.facturapi_invoice_id as string,
+            params,
+            { signal },
+          )
         );
         const raw = ((cancelJson as { cancellation_status?: string })
           ?.cancellation_status) ?? "accepted";
@@ -74,6 +83,16 @@ Deno.serve(async (req) => {
             ? raw
             : "pending";
       } catch (err) {
+        if (isFacturapiTimeout(err)) {
+          console.warn("[cancel-credit-note] facturapi timeout", {
+            credit_note_id,
+          });
+          return jsonResponse(req, {
+            error: "PAC no respondió a tiempo, reintenta",
+            code: "TIMEOUT",
+            transient: true,
+          }, { status: 504 });
+        }
         const desc = describeFacturapiError(err);
         return jsonError(req, 502, `Facturapi cancel error: ${desc.status}`, {
           detail: desc.detail,

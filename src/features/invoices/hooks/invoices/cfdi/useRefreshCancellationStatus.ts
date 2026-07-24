@@ -1,4 +1,4 @@
-import { satStatusLabel } from "@/features/feedback/lib/feedbackMessages";
+import { satStatusLabel } from "@/features/feedback";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 import { notifyInfo, notifySuccess, notifyWarning } from "@/lib/ui/appFeedback";

@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { differenceInDays } from "date-fns";
-import { bookingKeys } from "@/features/bookings/lib/queryKeys";
+import { bookingKeys } from "@/features/bookings";
 import { useCustomers } from "@/features/customers";
 import { useEquipmentModels, useForklifts } from "@/features/fleet";
-import { invoiceKeys } from "@/features/invoices/lib/queryKeys";
+import { invoiceKeys } from "@/features/invoices";
 import { supabase } from "@/integrations/supabase/client";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { parseLineItems, parseRentalMeta } from "@/lib/domain/lineItems";

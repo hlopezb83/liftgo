@@ -5,7 +5,7 @@ import { ChevronRightIcon } from "@/components/icons";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import type { BookingWithForklift } from "@/features/bookings";
 import { RecurringBillingBadge } from "@/features/bookings";
-import { rentalDaysInclusive } from "@/features/bookings/lib/rentalDays";
+import { rentalDaysInclusive } from "@/features/bookings";
 import type { Tables } from "@/integrations/supabase/types";
 import { BOOKING_STATUS } from "@/lib/constants";
 import { nowMty, formatMtyDate } from "@/lib/utils";

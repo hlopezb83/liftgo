@@ -1,7 +1,7 @@
 import { Activity, useState } from "react";
 import { DocumentIcon, SpinnerIcon } from "@/components/icons";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { useUserRole } from "@/features/users/hooks/useUserRole";
+import { useUserRole } from "@/features/users";
 import { useSupplierBill } from "../hooks/useSupplierBill";
 import { useDeleteSupplierBill } from "../hooks/useSupplierBillMutations";
 import { computeBillPermissions } from "../lib/billPermissions";

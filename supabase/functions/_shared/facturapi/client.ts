@@ -127,6 +127,58 @@ export async function createInvoiceWithSignal(
   };
 }
 
+/** ARQ2-A1: cancela un CFDI soportando AbortSignal (mismo patrón que createInvoiceWithSignal). */
+export async function cancelInvoiceWithSignal(
+  client: FacturapiClient,
+  invoiceId: string,
+  params: Record<string, unknown>,
+  opts: { signal?: AbortSignal } = {},
+): Promise<unknown> {
+  const wrapper = client?.invoices?.client;
+  if (wrapper && typeof wrapper.del === "function") {
+    const init: Record<string, unknown> = { params };
+    if (opts.signal) init.signal = opts.signal;
+    return await wrapper.del(`/invoices/${invoiceId}`, init);
+  }
+  return await client.invoices.cancel(invoiceId, params);
+}
+
+/** ARQ2-A1: consulta un CFDI soportando AbortSignal. */
+export async function retrieveInvoiceWithSignal(
+  client: FacturapiClient,
+  invoiceId: string,
+  opts: { signal?: AbortSignal } = {},
+): Promise<unknown> {
+  const wrapper = client?.invoices?.client;
+  if (wrapper && typeof wrapper.get === "function") {
+    const init: Record<string, unknown> = {};
+    if (opts.signal) init.signal = opts.signal;
+    return await wrapper.get(`/invoices/${invoiceId}`, init);
+  }
+  return await client.invoices.retrieve(invoiceId);
+}
+
+/** ARQ2-A1: fuerza el refresh de estado en SAT soportando AbortSignal. */
+export async function updateInvoiceStatusWithSignal(
+  client: FacturapiClient,
+  invoiceId: string,
+  opts: { signal?: AbortSignal } = {},
+): Promise<unknown> {
+  const wrapper = client?.invoices?.client;
+  if (wrapper && typeof wrapper.get === "function") {
+    const init: Record<string, unknown> = {};
+    if (opts.signal) init.signal = opts.signal;
+    return await wrapper.get(`/invoices/${invoiceId}/status`, init);
+  }
+  // Fallback al método del SDK si el wrapper no está disponible.
+  // deno-lint-ignore no-explicit-any
+  const inv = client.invoices as any;
+  if (typeof inv.updateStatus === "function") {
+    return await inv.updateStatus(invoiceId);
+  }
+  return await client.invoices.retrieve(invoiceId);
+}
+
 /**
  * Normaliza errores del SDK a la forma `{ message, code, status, detail }`
  * que las funciones devuelven al cliente.

@@ -5,10 +5,15 @@ import { isUUID } from "../_shared/validate.ts";
 import type { StampCfdiDeps, SupabaseLike } from "../stamp-cfdi/handler.ts";
 import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import {
+  cancelInvoiceWithSignal,
   createFacturapiClient,
   describeFacturapiError,
   getFacturapiConfig,
 } from "../_shared/facturapi/client.ts";
+import {
+  isFacturapiTimeout,
+  sdkCallWithTimeout,
+} from "../_shared/facturapi/withTimeout.ts";
 
 export type { SupabaseLike };
 export type CancelRepDeps = StampCfdiDeps;
@@ -65,11 +70,25 @@ export async function handleCancelPaymentComplement(
 
     const client = createFacturapiClient(apiKey);
     try {
-      await client.invoices.cancel(
-        pay.rep_facturapi_id as string,
-        { motive: motiveCode },
+      await sdkCallWithTimeout((signal) =>
+        cancelInvoiceWithSignal(
+          client,
+          pay.rep_facturapi_id as string,
+          { motive: motiveCode },
+          { signal },
+        )
       );
     } catch (err) {
+      if (isFacturapiTimeout(err)) {
+        console.warn("[cancel-payment-complement] facturapi timeout", {
+          payment_id,
+        });
+        return jsonResponse(req, {
+          error: "PAC no respondió a tiempo, reintenta",
+          code: "TIMEOUT",
+          transient: true,
+        }, { status: 504 });
+      }
       const desc = describeFacturapiError(err);
       return jsonError(req, 502, `Facturapi cancel error: ${desc.status}`, {
         detail: desc.detail,

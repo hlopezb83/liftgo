@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { invoiceKeys } from "@/features/invoices/lib/queryKeys";
+import { invoiceKeys } from "@/features/invoices";
 import { supabase } from "@/integrations/supabase/client";
 
 export function useContractFinancialSummary(bookingId: string) {

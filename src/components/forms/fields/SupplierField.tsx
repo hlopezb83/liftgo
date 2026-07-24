@@ -2,7 +2,7 @@ import { type FieldPath, type FieldValues, type Control } from "react-hook-form"
 import { RequiredMark } from "@/components/forms/RequiredMark";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useSuppliers } from "@/features/suppliers/hooks/useSuppliers";
+import { useSuppliers } from "@/features/suppliers";
 
 interface SupplierFieldProps<TFieldValues extends FieldValues> {
   control: Control<TFieldValues>;

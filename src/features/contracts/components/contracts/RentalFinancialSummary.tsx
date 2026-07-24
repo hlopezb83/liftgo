@@ -1,6 +1,6 @@
 import { MoneyIcon, DocumentIcon, TrendingUpIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { rentalDaysInclusive } from "@/features/bookings/lib/rentalDays";
+import { rentalDaysInclusive } from "@/features/bookings";
 import { calculateRentalCost } from "@/lib/domain/invoiceHelpers";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { parseDateLocal } from "@/lib/utils";

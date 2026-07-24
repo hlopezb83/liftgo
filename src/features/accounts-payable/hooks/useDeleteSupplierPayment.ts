@@ -1,5 +1,5 @@
-import { reconciliationStatusKey } from "@/features/bank-reconciliation/hooks/useReconciliationStatus";
-import { bankLineKeys } from "@/features/bank-reconciliation/lib/queryKeys";
+import { reconciliationStatusKey } from "@/features/bank-reconciliation";
+import { bankLineKeys } from "@/features/bank-reconciliation";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { supplierBillKeys } from "./useSupplierBills";

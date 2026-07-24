@@ -1,7 +1,7 @@
 import { useCallback, useState } from "react";
 import { ErrorCode, useDropzone, type FileRejection } from "react-dropzone";
 import { UploadIcon, DocumentIcon, SpinnerIcon, SuccessIcon } from "@/components/icons";
-import { useParseCsf, type ParsedCsfData } from "@/features/customers/hooks/useParseCsf";
+import { useParseCsf, type ParsedCsfData } from "@/features/customers";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { cn } from "@/lib/utils";
 

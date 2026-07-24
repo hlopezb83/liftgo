@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
-import { bookingKeys } from "@/features/bookings/lib/queryKeys";
-import { forkliftKeys } from "@/features/fleet/lib/queryKeys";
+import { bookingKeys } from "@/features/bookings";
+import { forkliftKeys } from "@/features/fleet";
 import { supabase } from "@/integrations/supabase/client";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { quoteKeys } from "../quotes/useQuotes";
