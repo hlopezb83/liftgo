@@ -56,6 +56,10 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
   };
 
   const selects = cfg.selects ?? {};
+  const selectsSeq: Record<string, TableResponse[]> = {};
+  for (const [k, v] of Object.entries(cfg.selectsSeq ?? {})) {
+    selectsSeq[k] = [...v];
+  }
   const updates = cfg.updates ?? {};
   const updatesSeq: Record<string, TableResponse[]> = {};
   for (const [k, v] of Object.entries(cfg.updatesSeq ?? {})) {
@@ -70,8 +74,13 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
   ): QueryBuilderLike {
     const filters: Array<{ col: string; val: unknown }> = [];
 
-    const resolveSelect = (): Promise<TableResponse> =>
-      Promise.resolve(selects[table] ?? { data: null, error: null });
+    const resolveSelect = (): Promise<TableResponse> => {
+      const seq = selectsSeq[table];
+      if (seq && seq.length > 0) {
+        return Promise.resolve(seq.shift() as TableResponse);
+      }
+      return Promise.resolve(selects[table] ?? { data: null, error: null });
+    };
 
     const resolveUpdate = (): Promise<TableResponse> => {
       state.updates.push({ table, patch: patch ?? {}, filters: [...filters] });
