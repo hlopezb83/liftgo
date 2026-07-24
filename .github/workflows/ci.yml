@@ -178,12 +178,10 @@ jobs:
 
       - name: Publish Vitest results to PR summary
         if: always()
-        uses: mikepenz/action-junit-report@3a81627bfac62268172037048872e8ebd4207e6d # v6.4.1
+        uses: ./.github/actions/publish-test-results
         with:
           report_paths: reports/vitest-junit.xml
           check_name: Vitest results
-          fail_on_failure: true
-          require_tests: true
 
   build:
     name: Build (Vite)
