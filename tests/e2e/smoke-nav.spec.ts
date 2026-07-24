@@ -30,9 +30,9 @@ const ROUTES = [
   "/damage",
   "/returns",
   "/deliveries",
-  // v7.222.0 — Auditoría de Tests T5: rutas fiscales pendientes en smoke.
-  "/rep",
-  "/notas-de-credito",
+  // Nota: /rep y /notas-de-credito quedan fuera del smoke hasta contar con
+  // rutas dedicadas en el router; hoy se acceden desde el detalle de factura.
+
   "/activity",
   "/audit",
   "/crm/cerrados",
