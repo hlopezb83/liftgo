@@ -1,0 +1,13 @@
+{
+  "version": "7.224.6",
+  "date": "2026-07-24",
+  "type": "patch",
+  "title": "CI: corregir advertencia shellcheck SC2055 en changelog-check.yml",
+  "category": "fix",
+  "description": "Reescribe la comparación de versiones en .github/workflows/changelog-check.yml usando igualdades con && dentro de [[ ]], eliminando el patrón sospechoso que actionlint/shellcheck marcaba como siempre verdadero.",
+  "changes": [
+    "Cambio la condición `[[ \"$PKG\" != \"$VER\" || \"$PKG\" != \"$TOP\" ]]` por `if ! [[ \"$PKG\" == \"$VER\" && \"$PKG\" == \"$TOP\" ]]`",
+    "Preserva la lógica original: falla si cualquiera de las tres versiones (package.json, public/version.json, changelog[0]) difiere",
+    "Verificación con shellcheck sobre el script extraído del workflow: sin advertencias"
+  ]
+}
