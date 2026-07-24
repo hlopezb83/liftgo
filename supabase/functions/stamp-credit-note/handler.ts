@@ -9,9 +9,14 @@ import {
   binaryToBytes,
   binaryToText,
   createFacturapiClient,
+  createInvoiceWithSignal,
   describeFacturapiError,
   getFacturapiConfig,
 } from "../_shared/facturapi/client.ts";
+import {
+  isFacturapiTimeout,
+  sdkCallWithTimeout,
+} from "../_shared/facturapi/withTimeout.ts";
 
 export type { SupabaseLike };
 export interface StampCreditNoteDeps {
@@ -294,12 +299,23 @@ export async function handleStampCreditNote(
       folio_number?: number | string | null;
     };
     try {
-      fa = await client.invoices.create(payload) as {
+      fa = await sdkCallWithTimeout((signal) =>
+        createInvoiceWithSignal(client, payload, { signal })
+      ) as {
         id: string;
         uuid: string;
         folio_number?: number | string | null;
       };
     } catch (err) {
+      // ARQ2-A1: timeout → NO revertir estado local (dejar en `stamping` para reconcile).
+      if (isFacturapiTimeout(err)) {
+        console.warn("[stamp-credit-note] facturapi timeout", { credit_note_id });
+        return jsonResponse(req, {
+          error: "PAC no respondió a tiempo, reintenta",
+          code: "TIMEOUT",
+          transient: true,
+        }, { status: 504 });
+      }
       const desc = describeFacturapiError(err);
       console.error("[stamp-credit-note] facturapi rejected", {
         credit_note_id,
