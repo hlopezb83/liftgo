@@ -142,6 +142,6 @@ test.describe("Rol mecánico — denegación API-level (RLS)", () => {
     // RLS bloquea con 401/403; PostgREST también puede responder 409/400 si
     // la fila viola constraints antes de evaluar RLS. Lo importante es que
     // NUNCA sea 2xx.
-    expect(status, "mecánico NO debe poder insertar facturas").toBeLessThan(200);
+    expect(status, "mecánico NO debe poder insertar facturas").toBeGreaterThanOrEqual(400);
   });
 });
