@@ -22,6 +22,7 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
   const [open, setOpen] = useState(false);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState<string | null>(null);
   const [role, setRole] = useState<string>("dispatcher");
   const inviteUser = useInviteUser();
 
@@ -32,8 +33,14 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
   );
 
   const handleInvite = async () => {
-    if (!fullName.trim() || !email.trim()) return;
-    await inviteUser.mutateAsync({ email: email.trim(), full_name: fullName.trim(), role });
+    if (!fullName.trim()) return;
+    const parsed = inviteEmailSchema.safeParse(email);
+    if (!parsed.success) {
+      setEmailError(parsed.error.issues[0]?.message ?? "Ingresa un correo válido");
+      return;
+    }
+    setEmailError(null);
+    await inviteUser.mutateAsync({ email: parsed.data, full_name: fullName.trim(), role });
     setOpen(false);
     setFullName("");
     setEmail("");
