@@ -354,6 +354,9 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+          # TESTS-ARQ2 (v7.220.0 DIFF 4): encender visual specs — antes gate
+          # nunca satisfecho y el spec `visual-*.spec.ts` no corría en CI.
+          E2E_VISUAL: "1"
         run: bunx playwright test --shard=${{ matrix.shard }}/${{ matrix.total }}
 
       - name: Upload Playwright HTML report
