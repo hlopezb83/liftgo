@@ -1,0 +1,8 @@
+{
+  "version": "7.226.1",
+  "date": "2026-07-25",
+  "type": "patch",
+  "title": "CI cleanup: Node 24 nativo, imports ordenados, complejidad ciclomática y React Compiler desbloqueado",
+  "category": "chore",
+  "description": "GH Actions: setup-node@v5 elimina el force-run sobre Node 20. Lint: import-x/order y empty lines auto-fixed en useInvoices, useInvoiceFormHandlers, GlobalInvoiceFields, usePaymentIntentsColumns y RegisterSupplierPaymentDialog. Fast Refresh: amountInMxn extraído a src/features/dashboard/lib/collectionForecast.ts. React Compiler: useLiftgoTable ya no desactiva exhaustive-deps (deps consumidas vía void). Complejidad: DeliveryDetail (16→<15) usando nuevo useDeliveryCompletion; MrrDetailPage (21→<15) con MrrKpiCluster + MrrTableSection; ListPageLayout (31→<15) con ListPageBody + useListPagePullToRefresh + MobileFabOverlay."
+}
