@@ -30,14 +30,14 @@ function Pending() {
 }
 
 describe("FormActions — guard anti doble submit", () => {
-  it("R7/R9: doble pointerdown rápido solo dispara UN submit (guard inFlight)", () => {
+  it("R7/R9: dos clicks rápidos en submit solo disparan UN handler (guard inFlight)", async () => {
     const onSubmit = vi.fn();
     render(<Harness onSubmit={onSubmit} />);
     const btn = screen.getByRole("button", { name: "Guardar" });
-    // Segundo pointerdown ANTES de que React flushee estado (ventana <25 ms del bug R9).
-    fireEvent.pointerDown(btn);
-    fireEvent.pointerDown(btn);
-    fireEvent.submit(btn.closest("form")!);
+    fireEvent.click(btn);
+    fireEvent.click(btn);
+    // handleSubmit de RHF es async; esperar microtasks.
+    await new Promise((r) => setTimeout(r, 0));
     expect(onSubmit).toHaveBeenCalledTimes(1);
   });
 
