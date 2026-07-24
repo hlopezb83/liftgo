@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.224.3",
+    "date": "2026-07-24",
+    "type": "patch",
+    "title": "Fix CI: deno fmt debug_test.ts y umbrales de coverage invoices/lib alineados",
+    "category": "fix"
+  },
+  {
     "version": "7.224.2",
     "date": "2026-07-24",
     "type": "patch",
