@@ -159,6 +159,17 @@ export function ListPageLayout<T extends { id?: string }>({
   );
 }
 
+function MobileFabOverlay({ children }: { children: ReactNode }) {
+  return (
+    <div
+      className="fixed right-4 z-40 pointer-events-none"
+      style={{ bottom: "calc(1rem + env(safe-area-inset-bottom))" }}
+    >
+      <div className="pointer-events-auto">{children}</div>
+    </div>
+  );
+}
+
 function buildSubtitle(subtitle: string | undefined, totalCount: number | undefined): string | undefined {
   if (totalCount === undefined) return subtitle;
   const suffix = `${totalCount} resultado${totalCount !== 1 ? "s" : ""}`;
