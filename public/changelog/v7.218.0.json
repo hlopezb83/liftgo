@@ -1,0 +1,14 @@
+{
+  "version": "7.218.0",
+  "date": "2026-07-24",
+  "type": "minor",
+  "title": "Arquitectura Ola 1: timeouts PAC, barrels públicos y arch-check bloqueante",
+  "category": "improvement",
+  "highlights": [
+    "PAC (Facturapi) con timeout de 30s en todos los sitios de emisión, cancelación, complementos, refresh de cancelación y validación de RFC. Los timeouts responden 504 transient sin colgar la función.",
+    "Nuevo helper `sdkCallWithTimeout` que corre las llamadas del SDK contra un Promise.race y `updateInvoiceStatusWithSignal`/`retrieveInvoiceWithSignal`/`cancelInvoiceWithSignal` con soporte de AbortSignal.",
+    "Barrels públicos ampliados (invoices, bookings, feedback, company-settings, bank-reconciliation) y migración de todos los deep imports cross-feature al barrel.",
+    "`scripts/arch-check.sh` endurecido: G4 usa `--iglob` (elimina falso verde por globs sin expandir) y G5 pasa a bloqueante con umbral 0 tras la migración.",
+    "`delete_booking` blinda dependencias antes de eliminar (facturas, contratos, entregas, extensiones, inspecciones) y registra `status_logs` sólo cuando el estado cambia realmente."
+  ]
+}
