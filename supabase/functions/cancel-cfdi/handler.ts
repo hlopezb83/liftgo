@@ -184,9 +184,8 @@ export async function handleCancelCfdi(
         params.substitution = substitution_uuid as string;
       }
       try {
-        const cancelJson = await client.invoices.cancel(
-          facturApiId,
-          params,
+        const cancelJson = await sdkCallWithTimeout((signal) =>
+          cancelInvoiceWithSignal(client, facturApiId, params, { signal })
         );
         const rawStatus = ((cancelJson as { cancellation_status?: string })
           ?.cancellation_status) ?? "accepted";
@@ -194,6 +193,15 @@ export async function handleCancelCfdi(
           ? rawStatus
           : "pending";
       } catch (err) {
+        // ARQ2-A1: timeout PAC → no cambiar estado local, 504 transient.
+        if (isFacturapiTimeout(err)) {
+          console.warn("[cancel-cfdi] facturapi timeout", { invoice_id });
+          return jsonResponse(req, {
+            error: "PAC no respondió a tiempo, reintenta",
+            code: "TIMEOUT",
+            transient: true,
+          }, { status: 504 });
+        }
         const desc = describeFacturapiError(err);
         // BL-44: encolar reintento solo si el error es transitorio (5xx / red /
         // 429) — la cancelación NO llegó al SAT, así que reintentar es seguro.

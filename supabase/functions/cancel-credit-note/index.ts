@@ -3,10 +3,15 @@ import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { requireServiceOrRole } from "../_shared/auth.ts";
 import { isNonEmptyString, isUUID } from "../_shared/validate.ts";
 import {
+  cancelInvoiceWithSignal,
   createFacturapiClient,
   describeFacturapiError,
   getFacturapiConfig,
 } from "../_shared/facturapi/client.ts";
+import {
+  isFacturapiTimeout,
+  sdkCallWithTimeout,
+} from "../_shared/facturapi/withTimeout.ts";
 
 const VALID_MOTIVES = new Set(["01", "02", "03", "04"]);
 
