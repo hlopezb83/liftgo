@@ -109,9 +109,11 @@ export default function FleetPage() {
         <DownloadIcon className="h-4 w-4 mr-1" />
         Exportar CSV
       </Button>
-      <Button onClick={() => navigate("/fleet/new")} size="sm">
-        <AddIcon className="h-4 w-4 mr-1" /> Agregar Montacargas
-      </Button>
+      <RoleGuard module="Flota" minAccess="full" fallback={null}>
+        <Button onClick={() => navigate("/fleet/new")} size="sm">
+          <AddIcon className="h-4 w-4 mr-1" /> Agregar Montacargas
+        </Button>
+      </RoleGuard>
     </div>
   );
 
