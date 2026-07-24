@@ -293,6 +293,12 @@ Deno.test("handler: stub mode (no API key) returns stub:true UUID", async () => 
         company_settings: { data: { facturapi_mode: "test" }, error: null },
         billing_secrets: { data: null, error: null },
       },
+      selectsSeq: {
+        credit_notes: [
+          { data: { id: NC_ID, invoice_id: INVOICE_ID }, error: null },
+          { data: [], error: null },
+        ],
+      },
       updates: { credit_notes: { data: null, error: null } },
     },
   });
