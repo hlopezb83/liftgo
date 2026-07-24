@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.221.0",
+    "date": "2026-07-24",
+    "type": "minor",
+    "title": "Tests Fase 1 (diferidos): DIFF 9/11/12/16 — REP Anexo 20, portal USD, Gantt starter y auth shared",
+    "category": "improvement"
+  },
+  {
     "version": "7.220.0",
     "date": "2026-07-24",
     "type": "minor",
