@@ -17,6 +17,8 @@ interface Props {
   userRole: string | undefined;
   visibility: InvoiceVisibility;
   isStamping: boolean;
+  /** v7.226.0 · E2E-N6: saldo NC-aware calculado en el detalle. */
+  balance?: number | null;
   onOpenPayment: () => void;
   onEdit: () => void;
   onStamp: () => void;
