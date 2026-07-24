@@ -54,6 +54,9 @@ export const ROUTE_TO_MODULE: Record<string, string> = {
   "/cuentas-bancarias": "Cuentas Bancarias",
   "/conciliacion-bancaria": "Conciliación Bancaria",
   "/conciliacion-bancaria/historial": "Conciliación Bancaria",
+  // v7.226.0 · E2E-N8/N10: Auditoría gestionable por rol.
+  "/audit": "Auditoría",
+  "/activity": "Auditoría",
 };
 
 
