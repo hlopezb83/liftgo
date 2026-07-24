@@ -48,7 +48,7 @@ export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projecti
   list: (filter?: Readonly<Record<string, unknown>>) => async (): Promise<CashFlowBucket[]> => {
     const { weeks, initialBalance, safetyBuffer } = (filter ?? {}) as CashFlowProjectionFilter;
     const [invRes, billRes, payRes] = await Promise.all([
-      supabase.from("invoices")
+      supabase.from("v_invoices_with_balance")
         .select("id, invoice_number, total, due_date, customer_name, moneda, tipo_cambio, credited_amount")
         .in("status", ACTIVE_INVOICE_STATUSES)
         .not("due_date", "is", null)

@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.217.1",
+    "date": "2026-07-24",
+    "type": "patch",
+    "title": "Fix /flujo-de-caja: leer credited_amount desde v_invoices_with_balance",
+    "category": "bugfix"
+  },
+  {
     "version": "7.217.0",
     "date": "2026-07-23",
     "type": "minor",

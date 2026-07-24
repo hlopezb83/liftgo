@@ -1,0 +1,11 @@
+{
+  "version": "7.217.1",
+  "date": "2026-07-24",
+  "type": "patch",
+  "title": "Fix /flujo-de-caja: leer credited_amount desde v_invoices_with_balance",
+  "category": "bugfix",
+  "description": "La proyección de flujo de caja consultaba `invoices.credited_amount`, columna que sólo existe en la vista `v_invoices_with_balance` (donde se calcula restando las NCs timbradas). El error 42703 rompía la pantalla completa. Se apunta la query a la vista, conservando filtros por status (sent/partial/overdue) y due_date. Sin cambios en la lógica de transformación ni en los tests.",
+  "changes": [
+    "src/features/cash-flow/lib/queryKeys.ts: from('invoices') → from('v_invoices_with_balance')"
+  ]
+}
