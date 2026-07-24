@@ -189,15 +189,22 @@ export function describeFacturapiError(err: unknown): {
   detail: string;
 } {
   if (err instanceof FacturapiError) {
+    const e = err as {
+      message?: string;
+      code?: string | null;
+      status?: number;
+      errors?: unknown;
+      logId?: unknown;
+    };
     return {
-      message: err.message ?? "Facturapi error",
-      code: err.code ?? null,
-      status: err.status ?? 502,
+      message: e.message ?? "Facturapi error",
+      code: e.code ?? null,
+      status: e.status ?? 502,
       detail: JSON.stringify({
-        code: err.code,
-        message: err.message,
-        errors: err.errors,
-        logId: err.logId,
+        code: e.code,
+        message: e.message,
+        errors: e.errors,
+        logId: e.logId,
       }),
     };
   }
