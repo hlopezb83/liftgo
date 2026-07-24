@@ -265,7 +265,8 @@ export async function handleStampCfdi(
       })
       : [];
 
-    const receptorRfc = String(inv.receptor_rfc ?? "XAXX010101000").toUpperCase();
+    const receptorRfc = String(inv.receptor_rfc ?? "XAXX010101000")
+      .toUpperCase();
     const isGlobal = receptorRfc === "XAXX010101000";
 
     // Overrides fiscales obligatorios para Público en General (CFDI 4.0)
@@ -276,7 +277,9 @@ export async function handleStampCfdi(
       : (paymentMethod === "PPD" ? "99" : (inv.forma_pago || "99"));
     const usoCfdi = isGlobal ? "S01" : (inv.uso_cfdi || "G03");
     const legalName = isGlobal ? "PUBLICO EN GENERAL" : sanitizeLegalName(
-      String(inv.receptor_razon_social ?? inv.customer_name ?? "Público General"),
+      String(
+        inv.receptor_razon_social ?? inv.customer_name ?? "Público General",
+      ),
     );
     const taxSystem = isGlobal ? "616" : (inv.receptor_regimen_fiscal || "616");
 
