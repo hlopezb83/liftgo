@@ -80,7 +80,9 @@ export async function handleCancelPaymentComplement(
       );
     } catch (err) {
       if (isFacturapiTimeout(err)) {
-        console.warn("[cancel-payment-complement] facturapi timeout", { payment_id });
+        console.warn("[cancel-payment-complement] facturapi timeout", {
+          payment_id,
+        });
         return jsonResponse(req, {
           error: "PAC no respondió a tiempo, reintenta",
           code: "TIMEOUT",

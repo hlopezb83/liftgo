@@ -8,8 +8,8 @@ import { isUUID } from "../_shared/validate.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 import { getFacturapiConfig } from "../_shared/facturapi/client.ts";
 import {
-  fetchWithTimeout,
   FacturapiTimeoutError,
+  fetchWithTimeout,
 } from "../_shared/facturapi/withTimeout.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
@@ -139,11 +139,15 @@ export async function handleValidateReceptor(
       );
     } catch (err) {
       if (err instanceof FacturapiTimeoutError) {
-        return json({
-          error: "PAC no respondió a tiempo, reintenta",
-          code: "TIMEOUT",
-          transient: true,
-        }, 504, jsonHeaders);
+        return json(
+          {
+            error: "PAC no respondió a tiempo, reintenta",
+            code: "TIMEOUT",
+            transient: true,
+          },
+          504,
+          jsonHeaders,
+        );
       }
       throw err;
     }

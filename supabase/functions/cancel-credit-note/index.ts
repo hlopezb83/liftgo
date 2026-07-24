@@ -84,7 +84,9 @@ Deno.serve(async (req) => {
             : "pending";
       } catch (err) {
         if (isFacturapiTimeout(err)) {
-          console.warn("[cancel-credit-note] facturapi timeout", { credit_note_id });
+          console.warn("[cancel-credit-note] facturapi timeout", {
+            credit_note_id,
+          });
           return jsonResponse(req, {
             error: "PAC no respondió a tiempo, reintenta",
             code: "TIMEOUT",

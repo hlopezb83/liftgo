@@ -249,7 +249,9 @@ Deno.serve(async (req) => {
     } catch (err) {
       // ARQ2-A1: timeout → NO revertir estado local (reconcile-stamping-invoices lo resuelve).
       if (isFacturapiTimeout(err)) {
-        console.warn("[stamp-payment-complement] facturapi timeout", { payment_id });
+        console.warn("[stamp-payment-complement] facturapi timeout", {
+          payment_id,
+        });
         return jsonResponse(req, {
           error: "PAC no respondió a tiempo, reintenta",
           code: "TIMEOUT",

@@ -87,7 +87,9 @@ export async function handleRefreshCancellation(
       } catch (e) {
         // Si updateStatus falla (404 SAT, timeout, etc.) seguimos con retrieve.
         if (isFacturapiTimeout(e)) {
-          console.warn("[refresh-cancellation-status] updateStatus timeout", { fid });
+          console.warn("[refresh-cancellation-status] updateStatus timeout", {
+            fid,
+          });
         }
       }
       if (!facturApiInv.cancellation_status) {
@@ -98,7 +100,9 @@ export async function handleRefreshCancellation(
     } catch (err) {
       // ARQ2-A1: timeout → conservar cancellation_status actual, responder 504 transient.
       if (isFacturapiTimeout(err)) {
-        console.warn("[refresh-cancellation-status] facturapi timeout", { fid });
+        console.warn("[refresh-cancellation-status] facturapi timeout", {
+          fid,
+        });
         return json({
           error: "PAC no respondió a tiempo, reintenta",
           code: "TIMEOUT",

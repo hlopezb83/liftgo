@@ -309,7 +309,9 @@ export async function handleStampCreditNote(
     } catch (err) {
       // ARQ2-A1: timeout → NO revertir estado local (dejar en `stamping` para reconcile).
       if (isFacturapiTimeout(err)) {
-        console.warn("[stamp-credit-note] facturapi timeout", { credit_note_id });
+        console.warn("[stamp-credit-note] facturapi timeout", {
+          credit_note_id,
+        });
         return jsonResponse(req, {
           error: "PAC no respondió a tiempo, reintenta",
           code: "TIMEOUT",

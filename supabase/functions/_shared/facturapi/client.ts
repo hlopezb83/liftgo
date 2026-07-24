@@ -173,7 +173,9 @@ export async function updateInvoiceStatusWithSignal(
   // Fallback al método del SDK si el wrapper no está disponible.
   // deno-lint-ignore no-explicit-any
   const inv = client.invoices as any;
-  if (typeof inv.updateStatus === "function") return await inv.updateStatus(invoiceId);
+  if (typeof inv.updateStatus === "function") {
+    return await inv.updateStatus(invoiceId);
+  }
   return await client.invoices.retrieve(invoiceId);
 }
 
