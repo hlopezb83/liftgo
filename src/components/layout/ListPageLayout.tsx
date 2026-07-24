@@ -84,7 +84,7 @@ export function ListPageLayout<T extends { id?: string }>({
   const isTabletOrBelow = useIsTabletOrBelow();
   const showMobileCards = isTabletOrBelow && !!mobileCardRender;
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const { sentinelRef, pullDistance, isRefreshing, threshold, ready, indicatorVisible } =
+  const { sentinelRef, pullDistance, isRefreshing, ready, indicatorVisible } =
     useListPagePullToRefresh(isMobile, onRefresh);
 
   const effectiveItems: T[] = table ? table.getRowModel().rows.map((r) => r.original) : [];
