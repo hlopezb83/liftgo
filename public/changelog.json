@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.226.2",
+    "date": "2026-07-25",
+    "type": "patch",
+    "title": "Calendario · botón Actualizar con feedback visible",
+    "category": "fix",
+    "description": "El botón 'Actualizar' del calendario ahora espera el refetch de bookingKeys.all (queries activas), muestra toast de sonner (loading/success/error) y anima el ícono con spin mientras corre. Se deshabilita durante la operación para evitar doble click."
+  },
+  {
     "version": "7.226.1",
     "date": "2026-07-25",
     "type": "patch",
