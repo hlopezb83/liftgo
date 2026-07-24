@@ -1,0 +1,8 @@
+{
+  "version": "7.224.5",
+  "date": "2026-07-24",
+  "type": "patch",
+  "title": "CI: forzar Node.js 24 en workflows vía setup-bun-project",
+  "category": "chore",
+  "description": "La composite action .github/actions/setup-bun-project ahora instala Node.js 24 con actions/setup-node@v4 antes de configurar Bun, por lo que todos los workflows que la usan (ci, bundle-size, changelog-check, supabase-lint, etc.) corren sobre Node 24. Se añadió un input node-version (default '24') y la key del cache de Bun incluye la versión de Node para invalidar caches previos."
+}
