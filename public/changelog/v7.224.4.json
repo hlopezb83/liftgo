@@ -1,0 +1,10 @@
+{
+  "version": "7.224.4",
+  "date": "2026-07-24",
+  "type": "patch",
+  "title": "Fix E2E portal: waitForURL acepta '/' además de '/portal' tras login",
+  "category": "fix",
+  "changes": [
+    "tests/e2e/fixtures/portalAuth.ts: PortalLogin redirige a '/' y el router del cliente resuelve luego a /portal. El regex previo solo aceptaba /portal y provocaba TimeoutError intermitente en CI (portal-statement.spec.ts). Ahora aceptamos ambas rutas para no depender del segundo redirect."
+  ]
+}
