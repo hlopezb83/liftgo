@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { STATUS_LABELS } from "@/lib/constants";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
