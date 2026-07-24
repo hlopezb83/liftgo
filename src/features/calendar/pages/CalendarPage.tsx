@@ -110,17 +110,33 @@ export default function CalendarPage() {
             </TabsList>
           </Tabs>
         )}
-        {/* v7.226.0 · E2E-N9: refetch manual del rango visible. */}
+        {/* v7.226.2 · feedback visible: toast + spinner mientras se refetchea. */}
         <Button
           variant="outline"
           size="sm"
           className="h-8 ml-auto"
-          onClick={() => qc.invalidateQueries({ queryKey: bookingKeys.all })}
+          disabled={isRefreshing}
+          onClick={async () => {
+            setIsRefreshing(true);
+            try {
+              await toast.promise(
+                qc.refetchQueries({ queryKey: bookingKeys.all, type: "active" }),
+                {
+                  loading: "Actualizando calendario…",
+                  success: "Calendario actualizado",
+                  error: "No se pudo actualizar el calendario",
+                },
+              );
+            } finally {
+              setIsRefreshing(false);
+            }
+          }}
           aria-label="Actualizar calendario"
         >
-          <RefreshIcon className="h-4 w-4 mr-1" /> Actualizar
+          <RefreshIcon className={`h-4 w-4 mr-1 ${isRefreshing ? "animate-spin" : ""}`} /> Actualizar
         </Button>
       </div>
+
 
       {viewMode === "gantt" ? (
         <Card>
