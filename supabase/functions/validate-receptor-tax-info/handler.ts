@@ -7,6 +7,10 @@ import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 import { getFacturapiConfig } from "../_shared/facturapi/client.ts";
+import {
+  fetchWithTimeout,
+  FacturapiTimeoutError,
+} from "../_shared/facturapi/withTimeout.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 
@@ -118,16 +122,31 @@ export async function handleValidateReceptor(
       zip: sent.zip,
     }).toString();
 
-    const res = await deps.fetchImpl(
-      `${FACTURAPI_BASE}/tools/tax_id_validation?${qs}`,
-      {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
+    let res: Response;
+    try {
+      // ARQ2-A1: timeout duro al PAC (30s por defecto).
+      res = await fetchWithTimeout(
+        `${FACTURAPI_BASE}/tools/tax_id_validation?${qs}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+          },
         },
-      },
-    );
+        undefined,
+        deps.fetchImpl,
+      );
+    } catch (err) {
+      if (err instanceof FacturapiTimeoutError) {
+        return json({
+          error: "PAC no respondió a tiempo, reintenta",
+          code: "TIMEOUT",
+          transient: true,
+        }, 504, jsonHeaders);
+      }
+      throw err;
+    }
 
     const rawText = await res.text();
     let parsed: unknown = null;

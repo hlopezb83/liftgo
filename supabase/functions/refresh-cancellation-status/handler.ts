@@ -76,28 +76,35 @@ export async function handleRefreshCancellation(
     const client = createFacturapiClient(apiKey);
     let facturApiInv: Record<string, unknown> = {};
     try {
-      // updateStatus pide a Facturapi que refresque el estatus en el SAT.
-      // La respuesta puede ser vacía, así que después hacemos retrieve para
-      // obtener la factura con el `cancellation_status` actualizado.
-      // deno-lint-ignore no-explicit-any
-      const invClient = client.invoices as any;
-      if (typeof invClient.updateStatus === "function") {
-        try {
-          const updated = await invClient.updateStatus(fid);
-          if (updated && typeof updated === "object") {
-            facturApiInv = updated as Record<string, unknown>;
-          }
-        } catch (_e) {
-          // Si updateStatus falla (404 SAT, etc.) seguimos con retrieve.
+      // ARQ2-A1: ambas llamadas al PAC con timeout (SDK sin signal → race).
+      try {
+        const updated = await sdkCallWithTimeout((signal) =>
+          updateInvoiceStatusWithSignal(client, fid, { signal })
+        );
+        if (updated && typeof updated === "object") {
+          facturApiInv = updated as Record<string, unknown>;
+        }
+      } catch (e) {
+        // Si updateStatus falla (404 SAT, timeout, etc.) seguimos con retrieve.
+        if (isFacturapiTimeout(e)) {
+          console.warn("[refresh-cancellation-status] updateStatus timeout", { fid });
         }
       }
       if (!facturApiInv.cancellation_status) {
-        facturApiInv = await invClient.retrieve(fid) as Record<
-          string,
-          unknown
-        >;
+        facturApiInv = await sdkCallWithTimeout((signal) =>
+          retrieveInvoiceWithSignal(client, fid, { signal })
+        ) as Record<string, unknown>;
       }
     } catch (err) {
+      // ARQ2-A1: timeout → conservar cancellation_status actual, responder 504 transient.
+      if (isFacturapiTimeout(err)) {
+        console.warn("[refresh-cancellation-status] facturapi timeout", { fid });
+        return json({
+          error: "PAC no respondió a tiempo, reintenta",
+          code: "TIMEOUT",
+          transient: true,
+        }, 504);
+      }
       const desc = describeFacturapiError(err);
       return json(
         {
