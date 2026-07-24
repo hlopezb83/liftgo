@@ -101,33 +101,33 @@ export function ListPageLayout<T extends { id?: string }>({
     enabled: isMobile && !!onRefresh,
   });
 
-  const showFiltersInSheet = isMobile && !!filters;
-  const ready = pullDistance >= threshold;
-
   const effectiveItems: T[] = table ? table.getRowModel().rows.map((r) => r.original) : [];
   const showEmpty = !isLoading && effectiveItems.length === 0;
-
-  const subtitleText = buildSubtitle(subtitle, totalCount);
-  const headerAction = isMobile && mobileFab ? undefined : actions;
-  const containerClass = cn(
-    "p-4 sm:p-6 space-y-6",
-    isMobile && mobileFab && "pb-[calc(env(safe-area-inset-bottom)+6rem)]",
-  );
-  const pullVisible = !!(isMobile && onRefresh && (pullDistance > 0 || isRefreshing));
+  const hasMobileFab = !!(isMobile && mobileFab);
 
   return (
     <PageTransition>
-      <div ref={sentinelRef} className={containerClass}>
+      <div
+        ref={sentinelRef}
+        className={cn(
+          "p-4 sm:p-6 space-y-6",
+          hasMobileFab && "pb-[calc(env(safe-area-inset-bottom)+6rem)]",
+        )}
+      >
         <PullToRefreshIndicator
-          visible={pullVisible}
+          visible={!!(isMobile && onRefresh && (pullDistance > 0 || isRefreshing))}
           pullDistance={pullDistance}
           isRefreshing={isRefreshing}
-          ready={ready}
+          ready={pullDistance >= threshold}
         />
-        <PageHeader title={title} subtitle={subtitleText} action={headerAction} />
+        <PageHeader
+          title={title}
+          subtitle={buildSubtitle(subtitle, totalCount)}
+          action={hasMobileFab ? undefined : actions}
+        />
         <FiltersSlot
           filters={filters}
-          inSheet={showFiltersInSheet}
+          inSheet={isMobile && !!filters}
           open={filtersOpen}
           onOpenChange={setFiltersOpen}
         />
@@ -154,14 +154,7 @@ export function ListPageLayout<T extends { id?: string }>({
           loadMore={loadMore}
         />
       </div>
-      {isMobile && mobileFab && (
-        <div
-          className="fixed right-4 z-40 pointer-events-none"
-          style={{ bottom: "calc(1rem + env(safe-area-inset-bottom))" }}
-        >
-          <div className="pointer-events-auto">{mobileFab}</div>
-        </div>
-      )}
+      {hasMobileFab && <MobileFabOverlay>{mobileFab}</MobileFabOverlay>}
     </PageTransition>
   );
 }
