@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { z } from "zod";
 import { SelectField, TextField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
@@ -8,20 +7,9 @@ import { Form } from "@/components/ui/form";
 import { CANCELLATION_REASONS } from "@/lib/domain/satCatalogs";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { useCancelCfdi } from "../../hooks/invoices/cfdi/useCancelCfdi";
+import { cancelCfdiSchema, type CancelCfdiFormValues } from "../../lib/cancelCfdiSchema";
 
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-const schema = z
-  .object({
-    motive: z.string().min(1),
-    substitutionUuid: z.string().default(""),
-  })
-  .refine((v) => v.motive !== "01" || UUID_RE.test(v.substitutionUuid.trim()), {
-    path: ["substitutionUuid"],
-    message: "UUID inválido",
-  });
-
-type FormValues = z.infer<typeof schema>;
+type FormValues = CancelCfdiFormValues;
 
 interface CancelCfdiDialogProps {
   open: boolean;
@@ -36,7 +24,7 @@ export function CancelCfdiDialog({
 }: CancelCfdiDialogProps) {
   const cancelCfdi = useCancelCfdi();
   const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
+    resolver: zodResolver(cancelCfdiSchema),
     defaultValues: { motive: "02", substitutionUuid: "" },
   });
 

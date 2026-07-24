@@ -26,6 +26,10 @@ export interface MockConfig {
   selects?: Record<string, TableResponse>;
   // keyed by table name: response for update-chains
   updates?: Record<string, TableResponse>;
+  // v7.222.0 (Auditoría Tests T6#6): respuestas secuenciadas por tabla para
+  // simular claims atómicos concurrentes — 1ª llamada devuelve data, 2ª null.
+  // Consumidas FIFO; al agotarse cae en `updates[table]`.
+  updatesSeq?: Record<string, TableResponse[]>;
   // storage upload result, keyed by bucket
   storage?: Record<string, { error: unknown }>;
   // keyed by rpc function name: response for supabase.rpc(...)
@@ -49,6 +53,10 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
 
   const selects = cfg.selects ?? {};
   const updates = cfg.updates ?? {};
+  const updatesSeq: Record<string, TableResponse[]> = {};
+  for (const [k, v] of Object.entries(cfg.updatesSeq ?? {})) {
+    updatesSeq[k] = [...v];
+  }
   const storage = cfg.storage ?? {};
 
   function makeBuilder(
@@ -63,6 +71,10 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
 
     const resolveUpdate = (): Promise<TableResponse> => {
       state.updates.push({ table, patch: patch ?? {}, filters: [...filters] });
+      const seq = updatesSeq[table];
+      if (seq && seq.length > 0) {
+        return Promise.resolve(seq.shift() as TableResponse);
+      }
       return Promise.resolve(updates[table] ?? { data: null, error: null });
     };
 

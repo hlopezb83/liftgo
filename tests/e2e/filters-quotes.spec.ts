@@ -17,16 +17,22 @@ test.describe("Cotizaciones — filtros", () => {
 
     const labels = [/borrador/i, /enviad/i, /aceptad/i, /todas/i];
 
+    // v7.222.0 — Auditoría de Tests: al menos un tab del catálogo debe estar
+    // presente; si no, es regresión de UI (antes el `if (count === 0) continue`
+    // permitía que el test pasara con 0 clicks).
+    let clickedAny = false;
     for (let i = 0; i < 3; i++) {
       for (const rx of labels) {
         const tab = page.getByRole("tab", { name: rx }).first();
         if ((await tab.count()) === 0) continue;
         await tab.click();
+        clickedAny = true;
         await expect(tab).toHaveAttribute("aria-selected", "true", {
           timeout: TIMEOUTS.short,
         });
       }
     }
+    expect(clickedAny, "StatusTabs no encontró ningún tab del catálogo").toBe(true);
   });
 
   test("búsqueda con match-sorter filtra sin bloquearse", async ({ page }) => {
