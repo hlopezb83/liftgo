@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { z } from "zod";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { UserPlus } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { STAFF_ROLES, ROLE_LABELS, ROLE_COLORS } from "@/lib/constants";
 import { useInviteUser } from "../../hooks/useUserManagement";
 import type { AppRole } from "../../hooks/useUserRole";
+
+// v7.226.0 · E2E-N7: validar email antes de invocar la edge function.
+const inviteEmailSchema = z.string().trim().email("Ingresa un correo válido");
 
 interface InviteUserDialogProps {
   onCreated: () => void;
