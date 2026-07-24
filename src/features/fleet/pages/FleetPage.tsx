@@ -4,6 +4,7 @@ import { AddIcon, DownloadIcon, Forklift as ForkliftIcon } from "@/components/ic
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Button } from "@/components/ui/button";
 import { usePageActions } from "@/contexts/pageActions";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import { useContracts } from "@/features/contracts";
 import { useDeliveries } from "@/features/deliveries";
 import { useMaintenancePolicies } from "@/features/maintenance";
@@ -109,9 +110,11 @@ export default function FleetPage() {
         <DownloadIcon className="h-4 w-4 mr-1" />
         Exportar CSV
       </Button>
-      <Button onClick={() => navigate("/fleet/new")} size="sm">
-        <AddIcon className="h-4 w-4 mr-1" /> Agregar Montacargas
-      </Button>
+      <RoleGuard module="Flota" minAccess="full" fallback={null}>
+        <Button onClick={() => navigate("/fleet/new")} size="sm">
+          <AddIcon className="h-4 w-4 mr-1" /> Agregar Montacargas
+        </Button>
+      </RoleGuard>
     </div>
   );
 

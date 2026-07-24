@@ -1,7 +1,7 @@
 {
   "name": "liftgo",
   "private": true,
-  "version": "7.224.7",
+  "version": "7.225.0",
   "type": "module",
   "scripts": {
     "dev": "vite",

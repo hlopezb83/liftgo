@@ -32,10 +32,11 @@ export function useBookingActions(booking: BookingWithForklift) {
     });
   };
 
-  const handleCancel = () => {
-    cancelBooking.mutate(booking.id, {
-      onSuccess: () => notifySuccess("Reserva cancelada"),
-    });
+  const handleCancel = (reason?: string) => {
+    cancelBooking.mutate(
+      { bookingId: booking.id, reason: reason ?? null },
+      { onSuccess: () => notifySuccess("Reserva cancelada") },
+    );
   };
 
   const handleStatusChange = async (newStatus: string, onSuccess: () => void) => {
@@ -45,7 +46,7 @@ export function useBookingActions(booking: BookingWithForklift) {
       // aparezca tras éxito real de la RPC/UPDATE (antes se disparaba en
       // paralelo aunque cancelBooking fallara).
       if (newStatus === "cancelled") {
-        await cancelBooking.mutateAsync(booking.id);
+        await cancelBooking.mutateAsync({ bookingId: booking.id, reason: null });
       } else {
         await new Promise<void>((resolve, reject) => {
           updateBooking.mutate(

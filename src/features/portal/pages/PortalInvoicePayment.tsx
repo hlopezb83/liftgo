@@ -35,7 +35,12 @@ export default function PortalInvoicePayment() {
   const pendingReported = (intents ?? [])
     .filter((i) => i.status === "pending_review")
     .reduce((s, i) => s + Number(i.amount), 0);
-  const balance = Number(invoice.total) - totalPaid;
+  // v7.222.0 · E2E-N2: el RPC portal ya expone `balance` (total − pagos − NCs
+  // timbradas). Preferimos ese valor y sólo caemos al cálculo local si no viene,
+  // restando también `credited_amount` para no cobrar de más al cliente.
+  const balance = invoice.balance != null
+    ? Number(invoice.balance)
+    : Math.max(0, Number(invoice.total) - totalPaid - Number(invoice.credited_amount ?? 0));
   const concept = `${invoice.invoice_number}`;
 
   const statusLabel = (s: string) =>

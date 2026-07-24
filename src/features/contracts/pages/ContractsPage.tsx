@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { STATUS_LABELS } from "@/lib/constants";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
@@ -110,7 +111,11 @@ export default function ContractsPage() {
     <ListPageLayout
       title="Contratos"
       subtitle="Administrar contratos de renta"
-      actions={<Button size="sm" onClick={() => navigate("/contracts/new")}><AddIcon className="h-4 w-4 mr-1" />Nuevo Contrato</Button>}
+      actions={
+        <RoleGuard module="Contratos" minAccess="full" fallback={null}>
+          <Button size="sm" onClick={() => navigate("/contracts/new")}><AddIcon className="h-4 w-4 mr-1" />Nuevo Contrato</Button>
+        </RoleGuard>
+      }
       filters={
         <FiltersToolbar>
           <FiltersToolbar.Search

@@ -3528,7 +3528,10 @@ export type Database = {
         Args: { p_folio: string; p_payment_id: string }
         Returns: string
       }
-      cancel_booking: { Args: { p_booking_id: string }; Returns: undefined }
+      cancel_booking: {
+        Args: { p_booking_id: string; p_reason?: string }
+        Returns: undefined
+      }
       change_feedback_status: {
         Args: { _comment?: string; _new_status: string; _report_id: string }
         Returns: {

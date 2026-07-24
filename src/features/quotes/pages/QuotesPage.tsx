@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { usePageActions } from "@/contexts/pageActions";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { STATUS_LABELS } from "@/lib/constants";
@@ -125,11 +126,17 @@ export default function QuotesPage() {
       onRefresh={refetch}
       title="Cotizaciones"
       subtitle="Crea y administra cotizaciones para clientes"
-      actions={<Button onClick={() => navigate("/quotes/new")} size="sm"><AddIcon className="h-4 w-4 mr-1" />Nueva Cotización</Button>}
+      actions={
+        <RoleGuard module="Cotizaciones" minAccess="full" fallback={null}>
+          <Button onClick={() => navigate("/quotes/new")} size="sm"><AddIcon className="h-4 w-4 mr-1" />Nueva Cotización</Button>
+        </RoleGuard>
+      }
       mobileFab={
-        <Button onClick={() => navigate("/quotes/new")} size="icon" className="h-14 w-14 rounded-full shadow-lg" aria-label="Nueva cotización">
-          <PlusCircle className="h-6 w-6" />
-        </Button>
+        <RoleGuard module="Cotizaciones" minAccess="full" fallback={null}>
+          <Button onClick={() => navigate("/quotes/new")} size="icon" className="h-14 w-14 rounded-full shadow-lg" aria-label="Nueva cotización">
+            <PlusCircle className="h-6 w-6" />
+          </Button>
+        </RoleGuard>
       }
       filters={
         <FiltersToolbar>

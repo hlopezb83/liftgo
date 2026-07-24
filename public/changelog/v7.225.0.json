@@ -1,0 +1,41 @@
+{
+  "version": "7.225.0",
+  "date": "2026-07-24",
+  "type": "minor",
+  "title": "E2E R11: inspecciones de daño menor/mayor, saldo portal con NCs, cancelación con motivo y gating de creación",
+  "category": "fix",
+  "sections": [
+    {
+      "heading": "N1 · Inspección de devoluciones alineada con la UI",
+      "items": [
+        "El RPC `complete_return_inspection` ahora reconoce las condiciones que ya enviaba la UI (`minor_damage`, `major_damage`).",
+        "Daño menor: se registra el `damage_record` y cargo, pero el equipo queda `available` inmediatamente.",
+        "Daño mayor / necesita reparación: se registra el cargo y el equipo pasa a `maintenance`.",
+        "Se conserva la idempotencia y las validaciones temporales previas."
+      ]
+    },
+    {
+      "heading": "N2 · Portal: saldo con notas de crédito",
+      "items": [
+        "`PortalInvoicePayment` toma el `balance` que ya calcula el RPC (`total − pagos − NCs timbradas`).",
+        "Fallback local: si el RPC no devolviera `balance`, se resta explícitamente `credited_amount` para no cobrar de más al cliente."
+      ]
+    },
+    {
+      "heading": "N3 · Gating de acciones creación",
+      "items": [
+        "`Flota`, `Cotizaciones` y `Contratos` envuelven el botón 'Nuevo…' en `<RoleGuard minAccess=\"full\">`.",
+        "El FAB móvil de `Clientes` también queda gateado (ya estaba el CTA de escritorio).",
+        "`Proveedores` ya estaba gateado — se mantiene sin cambios."
+      ]
+    },
+    {
+      "heading": "N11 · Cancelación de reserva con motivo",
+      "items": [
+        "`cancel_booking(uuid, text DEFAULT NULL)`: motivo opcional que persiste en `status_logs.note` junto con `changed_by`.",
+        "Nuevo diálogo de cancelación en `BookingActions` con textarea (máx. 500 chars).",
+        "`useCancelBooking` acepta tanto `string` como `{ bookingId, reason }` — retrocompatible con callers existentes."
+      ]
+    }
+  ]
+}
