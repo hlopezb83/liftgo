@@ -41,7 +41,7 @@ Deno.test("roundMoney = fromCents(toCents(n))", () => {
 Deno.test("sumMoney suma con precisión exacta (sin drift)", () => {
   assertEquals(sumMoney([1.005, 2.005, 3.005]), 6.03);
   assertEquals(sumMoney([0.1, 0.2, 0.3]), 0.6);
-  assertEquals(sumMoneyCents([1.005, 2.005]), 201);
+  assertEquals(sumMoneyCents([1.005, 2.005]), 302); // 101 + 201 cents
 });
 
 Deno.test("stampVariance devuelve diff absoluta en pesos", () => {
