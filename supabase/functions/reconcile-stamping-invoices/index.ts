@@ -29,19 +29,18 @@ import {
   retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
 
-interface StuckRow {
-  id: string;
-  cfdi_uuid: string | null;
-  facturapi_invoice_id: string | null;
+import {
+  decideRowAction,
+  MAX_STAMPING_ATTEMPTS,
+  type PacLookup,
+  type StuckRow as PureStuckRow,
+} from "./decisions.ts";
+
+interface StuckRow extends PureStuckRow {
   serie: string | null;
   folio: string | null;
   updated_at: string;
-  stamping_attempts: number | null;
 }
-
-// Máximo de ciclos que reconcile intentará antes de revertir a 'error' con nota
-// manual — evita loops eternos si Facturapi nunca produce el XML.
-const MAX_STAMPING_ATTEMPTS = 10;
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
