@@ -9,6 +9,7 @@ import { usePageActions } from "@/contexts/pageActions";
 import { useUpdateProspect } from "@/features/crm";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { CustomerFormDialog } from "../components/customers/CustomerFormDialog";
 import { CustomersActions, CustomersFilters } from "../components/customers/CustomersToolbar";
