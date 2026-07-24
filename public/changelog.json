@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.224.6",
+    "date": "2026-07-24",
+    "type": "patch",
+    "title": "CI: corregir advertencia shellcheck SC2055 en changelog-check.yml",
+    "category": "fix",
+    "description": "Reescribe la comparación de versiones usando igualdades con && dentro de [[ ]], eliminando el patrón sospechoso que actionlint/shellcheck marcaba como siempre verdadero."
+  },
+  {
     "version": "7.224.5",
     "date": "2026-07-24",
     "type": "patch",
