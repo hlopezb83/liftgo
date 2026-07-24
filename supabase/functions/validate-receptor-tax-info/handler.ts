@@ -12,14 +12,17 @@ import {
   fetchWithTimeout,
 } from "../_shared/facturapi/withTimeout.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
-import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
+import {
+  authenticateWithDeps,
+  type CallerLike,
+} from "../_shared/authWithDeps.ts";
 
 export type { SupabaseLike };
 
 const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 
 export interface ValidateReceptorDeps {
-  createCallerClient: (authHeader: string) => SupabaseLike;
+  createCallerClient: (authHeader: string) => CallerLike;
   createServiceClient: () => SupabaseLike;
   fetchImpl: typeof fetch;
   env: (k: string) => string | undefined;
