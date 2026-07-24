@@ -8,7 +8,13 @@ import {
   createFacturapiClient,
   describeFacturapiError,
   getFacturapiConfig,
+  retrieveInvoiceWithSignal,
+  updateInvoiceStatusWithSignal,
 } from "../_shared/facturapi/client.ts";
+import {
+  isFacturapiTimeout,
+  sdkCallWithTimeout,
+} from "../_shared/facturapi/withTimeout.ts";
 
 export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 const VALID_SAT_STATUSES = [
