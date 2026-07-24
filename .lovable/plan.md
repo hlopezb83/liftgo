@@ -1,67 +1,45 @@
-## Validación
 
-Verifiqué los hallazgos críticos en el código real:
+# Plan v7.226.0 — Auditoría E2E: diffs pendientes N4–N13
 
-- **N1** ✅ `INSPECTION_CONDITIONS = ["good","minor_damage","major_damage","needs_repair"]` en `src/lib/constants.ts:52`; la última versión del RPC `complete_return_inspection` es la migración `20260723060348`. Confirmado el mismatch.
-- **N2** ✅ `PortalInvoicePayment.tsx:38` calcula `balance = total − paid` sin restar `credited_amount`. Bug real.
-- **N3** ✅ `/fleet/new`, `/quotes/new`, `/contracts/new`, `/fleet/:id/edit`, etc. no tienen `minAccess`. Solo `/invoices/*` lo declaran.
-- **N6** ✅ Confirmado en `src/lib/rules/invoices.ts` (ya identificado en arq2).
-- **N13** ✅ `shouldPersistQuery` no filtra por `status === "pending"`.
-- **N8/N10** ✅ `ALWAYS_VISIBLE_ROUTES` incluye `/audit` y `/activity`; "Auditoría" no está en `useRolePermissions.MANAGEABLE_MODULES`.
-- **N12** ❌ NO es bug, según el propio reporte. Solo añadir test aclaratorio (opcional — lo incluyo).
+## Contexto
+En v7.225.0 ya se cerraron N1 (RPC `complete_return_inspection` con las 4 condiciones + minor/major), N2 (saldo del portal NC-aware en `PortalInvoicePayment`), N3 (`RoleGuard` en CTAs de Fleet/Quotes/Contracts/Customers) y N11 (motivo de cancelación en `cancel_booking` + diálogo). Antes de tocar cada uno, releeré esos archivos para confirmar que la implementación actual cumple los criterios de aceptación del documento; si algo falta, lo completo bajo la misma versión.
 
-Todo listo para ejecutar como **v7.222.0**.
+N12 es "no es bug" — solo test aclaratorio opcional (lo incluyo).
 
-## Plan (v7.222.0)
+## Alcance de código (por diff)
 
-### Bloque 1 — Bloqueantes
+**N4 · Contrato desde reserva auto-genera terms_text**
+- `src/features/contracts/hooks/useContractFormLogic.ts`: incluir `bookingForkliftId` (obtenido del booking cargado por `bookingId`) en el filtro de forklifts junto a `available` y `currentId`.
+- Verificar que `useContractFormPrefill` se dispara una vez la lista incluye ese forklift; ajustar dependencias si hace falta.
 
-1. **N1 — RPC de inspección alineado con la UI**
-   - Nueva migración `20260725120000_inspection_damage_conditions.sql` que reemplaza `complete_return_inspection` preservando el cuerpo actual (idempotencia, rango temporal, guards de rol) y solo cambia:
-     - `v_is_damaged_condition := p_condition IN ('damaged','minor_damage','major_damage','needs_repair')`
-     - `v_new_status := CASE WHEN p_condition IN ('damaged','major_damage','needs_repair') THEN 'maintenance' ELSE 'available' END`
-   - Test unitario Deno + verificación con `supabase--linter`.
+**N5 · Invalidar branding público al guardar company_settings**
+- `src/features/company-settings/lib/queryKeys.ts`: reordenar para declarar `publicBrandingQueries` antes de `COMPANY_SETTINGS_INVALIDATION_KEYS` y añadirlo al arreglo.
 
-2. **N2 — Saldo portal NC-aware**
-   - `src/features/portal/pages/PortalInvoicePayment.tsx`: `balance = total − paid − (credited_amount ?? 0)`.
+**N6 · Ocultar "Registrar Pago" en factura saldada por NC**
+- `src/lib/rules/invoices.ts`: introducir `balance` opcional en `InvoiceLike`, calcular `hasBalance`, aplicar a `isPayable` y `showPaymentBtn`.
+- Call site del detalle de factura: pasar `balance` (ya calculado NC-aware) a `computeInvoiceFlags`.
 
-3. **N3 — `minAccess:"full"` en rutas de mutación + gate de botones**
-   - `src/routes/routes-config.tsx`: añadir `minAccess:"full"` a `/fleet/new`, `/fleet/:id/edit`, `/quotes/new`, `/quotes/:id/edit`, `/contracts/new`, `/contracts/:id/edit`. Mantener `/bookings/new` con `adminOnly: true` (decisión de producto vigente).
-   - Gate con `useHasModuleAccess("<Módulo>").can("full")` en los botones de acción primaria de: `FleetPage`, `QuotesPage`, `ContractsPage`, `CustomersPage`, `SuppliersPage`.
+**N7 · Validar email en InviteUserDialog**
+- `src/features/users/components/users/InviteUserDialog.tsx`: schema Zod inline, estado `emailError`, mensaje inline bajo el input, bloquear submit si inválido.
 
-### Bloque 2 — Medios
+**N8 + N10 · Sidebar Auditoría gestionable**
+- `src/layouts/sidebar/navConfig.ts`: quitar `/audit` y `/activity` de `ALWAYS_VISIBLE_ROUTES`, mapearlas en `ROUTE_TO_MODULE` al módulo "Auditoría".
+- `src/features/users/hooks/useRolePermissions.ts`: agregar "Auditoría" al catálogo de módulos gestionables.
+- Migración: seed `role_permissions` (admin, administrativo → full) con `ON CONFLICT DO NOTHING`.
 
-4. **N4 — Contrato desde reserva** — en `useContractFormLogic.ts`, obtener `booking.forklift_id` cuando hay `bookingId` y añadirlo a la lista permitida junto a `available` y `currentId`.
+**N9 · Botón Actualizar en Calendario/Gantt**
+- `src/features/calendar/pages/CalendarPage.tsx`: botón que invalida `bookingKeys.all` con ícono y `aria-label`.
 
-5. **N5 — Invalidar branding público** — en `src/features/company-settings/lib/queryKeys.ts`, reordenar declaraciones y añadir `publicBrandingQueries.keys.all` a `COMPANY_SETTINGS_INVALIDATION_KEYS`.
+**N12 · Test aclaratorio (opcional)**
+- Añadir caso "1 jul → 31 jul = 1 mes exacto" en `rentalCalculation.test.ts`.
 
-6. **N6 — Botón Registrar Pago balance-aware** — `src/lib/rules/invoices.ts`: extender `InvoiceLike` con `balance?: number|null`; ocultar botón si `balance <= 0`. Pasar `balance` desde el detalle.
+**N13 · Persister no persiste queries pending**
+- `src/lib/query/persister.ts`: en `shouldPersistQuery`, `return false` si `query.state.status === "pending"`.
 
-7. **N7 — Validación de email en invitación** — `InviteUserDialog.tsx`: Zod inline (`z.string().trim().email()`), error inline, sin llegar al edge function.
+## Verificación
+- Re-lectura de N1/N2/N3/N11 para confirmar cumplimiento vs. el nuevo documento.
+- `bunx tsgo` sobre archivos tocados y `bunx vitest run` de suites afectadas (invoices/lib, rentalCalculation, portal si aplica).
+- Sin cambios visuales fuera del botón Actualizar del calendario y el mensaje inline del InviteUserDialog.
 
-8. **N8+N10 — Sidebar Auditoría gestionable**
-   - Quitar `/audit` y `/activity` de `ALWAYS_VISIBLE_ROUTES`.
-   - Añadir `"Auditoría"` a `MANAGEABLE_MODULES` en `useRolePermissions.ts`.
-   - Añadir a `ROUTE_TO_MODULE`: `"/audit"` y `"/activity"` → `"Auditoría"`.
-   - Migración seed: `INSERT ... role_permissions ('admin'|'administrativo','Auditoría','full') ON CONFLICT DO NOTHING` (verificar shape real de la tabla antes).
-
-9. **N9 — Botón Actualizar en Calendario** — en `CalendarPage.tsx`, botón "Actualizar" que invalida `bookingKeys.all`.
-
-10. **N11 — Motivo de cancelación**
-    - Migración que actualiza `cancel_booking(p_booking_id, p_reason text DEFAULT NULL)`; append en `status_logs` con motivo.
-    - Diálogo de cancelación pide textarea requerido cuando la nueva status es `cancelled`.
-
-11. **N12 — Test aclaratorio (opcional pero incluido)** — 1 test en `rentalCalculation.test.ts`.
-
-12. **N13 — Persister sin pending queries** — en `src/lib/query/persister.ts` `shouldPersistQuery`: early return si `query.state.status === "pending"`.
-
-### Cierre
-
-- `bun run lint` + `bun run test` + `bash scripts/arch-check.sh` + `deno fmt --check` en `supabase/functions`.
-- Bump a **v7.222.0** en `package.json`, `public/version.json`, `public/changelog.json`, `public/changelog/v7.222.0.json`.
-
-## Notas técnicas
-
-- N1: preservo idempotencia, rango temporal y valida negocio actual. Si el negocio quiere que `minor_damage` también vaya a mantenimiento, se ajusta en un follow-up.
-- N3: `adminOnly` de `/bookings/new` se documenta pero no se toca (evita regresión de producto).
-- N8/N10: antes de escribir el seed, valido el shape de `role_permissions` con `supabase--read_query`.
+## Entregables finales
+- Bump a **v7.226.0** en `package.json`, `version.json`, `src/lib/changelog.ts`, `public/changelog.json` y nuevo `public/changelog/v7.226.0.json` con las entradas N4–N10, N12, N13.
