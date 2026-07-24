@@ -111,7 +111,11 @@ export default function ContractsPage() {
     <ListPageLayout
       title="Contratos"
       subtitle="Administrar contratos de renta"
-      actions={<Button size="sm" onClick={() => navigate("/contracts/new")}><AddIcon className="h-4 w-4 mr-1" />Nuevo Contrato</Button>}
+      actions={
+        <RoleGuard module="Contratos" minAccess="full" fallback={null}>
+          <Button size="sm" onClick={() => navigate("/contracts/new")}><AddIcon className="h-4 w-4 mr-1" />Nuevo Contrato</Button>
+        </RoleGuard>
+      }
       filters={
         <FiltersToolbar>
           <FiltersToolbar.Search
