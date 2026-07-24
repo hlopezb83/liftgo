@@ -1,0 +1,11 @@
+{
+  "version": "7.217.2",
+  "date": "2026-07-24",
+  "type": "patch",
+  "title": "Ocultar spinners en inputs numéricos del componente Input",
+  "category": "fix",
+  "description": "Los inputs type='number' del componente base Input ahora ocultan los spinners nativos del navegador (Chrome, Edge, Safari, Firefox). Esto elimina las flechas verticales en campos de cantidad, tarifas, descuentos y otros inputs numéricos de toda la aplicación sin afectar validación ni comportamiento.",
+  "changes": [
+    "src/components/ui/input.tsx: agregar clases [appearance:textfield], [-moz-appearance:textfield] y pseudo-elementos webkit ocultos cuando type='number'"
+  ]
+}
