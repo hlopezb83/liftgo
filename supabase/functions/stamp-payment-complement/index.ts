@@ -192,10 +192,13 @@ Deno.serve(async (req) => {
     // origen. Anexo 20 exige EquivalenciaDR=1 cuando MonedaDR == MonedaP (misma
     // moneda del pago), aunque la factura tenga tipo_cambio guardado. Sólo
     // usamos el TC de la factura si difiere de la moneda del pago.
-    const invoiceCurrency = (invoice.moneda as string | null) || "MXN";
-    const invoiceExchange = invoiceCurrency === paymentCurrency
-      ? 1
-      : Number(invoice.tipo_cambio || 1) || 1;
+    // TESTS-ARQ2 v2 · DIFF 9: extraído a decisions.ts para test unitario del
+    // invariante Anexo 20 EquivalenciaDR=1 (MonedaDR == MonedaP).
+    const { invoiceCurrency, invoiceExchange } = computeRepExchange({
+      paymentCurrency,
+      invoiceCurrency: invoice.moneda as string | null,
+      invoiceTipoCambio: invoice.tipo_cambio as number | string | null,
+    });
 
     const relatedDoc: Record<string, unknown> = {
       uuid: invoice.cfdi_uuid,
