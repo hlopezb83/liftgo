@@ -1,42 +1,42 @@
+## Diagnóstico
 
-## Objetivo
-Eliminar los 10 warnings de ESLint reportados por CI y estabilizar el test flaky de `full-flow.spec.ts`. Sin cambios funcionales de producto.
+En el Panel existe la tarjeta **"Rentas Vencidas"** (`AlertsRow.tsx`) que muestra reservas confirmadas cuyo `end_date` ya pasó y siguen sin devolverse. Se alimenta de `stats.overdue_bookings` desde la RPC `get_dashboard_stats`.
 
-## Cambios por archivo
+Al inspeccionar la RPC actual en BD, la clave `overdue_bookings` **ya no se emite** en el JSON de respuesta (se perdió en algún refactor reciente del RPC). Por eso el frontend recibe `[]`, la card se oculta y "desaparece" del Panel.
 
-### Tests E2E (fiscales)
-- **`tests/e2e/fiscal-stamp.spec.ts`**: reemplazar el `if (visible) { ... await expect(...) }` por una espera declarativa que no llama `expect` condicionalmente. Patrón: si el botón no está visible, salir con `test.skip()` (usando `test.info().annotations`) — el skip declarativo no dispara la regla.
-- **`tests/e2e/fiscal-rep.spec.ts`, `fiscal-credit-note.spec.ts`, `fiscal-cancel.spec.ts`**: reemplazar `test.skip(true, "...")` (imperativo, bloqueado por regla `no-skipped-test`) por `test.fixme(condition, reason)` o mover la condición a un `test.beforeEach` que use `test.skip({ condition })`. Alternativa: convertir esos tests en dos: uno positivo (asume precondición vía seed reforzado) y descartar la rama skip.
+Verificado en datos: hay 3 reservas confirmadas con `end_date < hoy` y forklift en `rented` — deberían mostrarse:
+- MCLTC035A048/009 (vence 24/06/2026)
+- MCGSC030A048/015 (vence 06/07/2026)
+- MCGSC030A048/016 (vence 08/07/2026)
 
-### `src/lib/observability/scrubPII.ts` (complejidad 22)
-- Extraer 4 helpers puros: `scrubRequest(req)`, `scrubExceptions(exc)`, `scrubBreadcrumbs(bc)`, `scrubUser(u)`.
-- `scrubEvent` queda como orquestador (~6 ramas). Comportamiento idéntico, cubierto por tests existentes.
+## Plan (v7.227.2)
 
-### `src/hooks/filters/useTableFilters.ts` (React Compiler skip)
-- Eliminar el `// eslint-disable-next-line react-hooks/exhaustive-deps` en el `useMemo` de `filtered`.
-- Consumir `values`/`items` reales en el array de deps y usar `void filterKey; void itemsVersion;` dentro del cuerpo para mantener la huella primitiva sin desactivar la regla (mismo patrón usado en `useLiftgoTable.ts`).
+1. **Migración SQL**: reescribir `public.get_dashboard_stats()` para incluir de vuelta la sección `overdue_bookings` en el JSON:
+   ```sql
+   'overdue_bookings', COALESCE((
+     SELECT jsonb_agg(row_to_json(x) ORDER BY x.end_date)
+     FROM (
+       SELECT b.id AS booking_id,
+              f.name AS forklift_name,
+              f.id   AS forklift_id,
+              c.name AS customer_name,
+              b.end_date,
+              (CURRENT_DATE - b.end_date)::int AS days_overdue
+       FROM public.bookings b
+       JOIN public.forklifts f ON f.id = b.forklift_id
+       LEFT JOIN public.customers c ON c.id = b.customer_id
+       WHERE b.status = 'confirmed'
+         AND b.end_date < CURRENT_DATE
+     ) x
+   ), '[]'::jsonb)
+   ```
+   Mantener `SECURITY DEFINER` + `SET search_path = public` y el resto del payload intacto.
 
-### `src/features/invoices/hooks/invoices/useInvoices.ts` (import-groups)
-- Insertar línea en blanco entre el grupo externo y el grupo interno (`@/...` + relativo) según convención de `eslint-plugin-import`.
+2. **Sin cambios de frontend**: `AlertsRow` y `dashboardSectionHelpers.ts` ya consumen `overdue_bookings` con el shape correcto — solo faltaba que el backend lo emitiera.
 
-### `src/features/quotes/pages/QuotesPage.tsx` (162 → ≤150 LOC)
-- Extraer el bloque JSX de header (título + acciones + tabs) a `QuotesPageHeader.tsx` en el mismo folder o subcarpeta `components/`.
+3. **Changelog**: `public/changelog.json` + `public/changelog/v7.227.2.json` describiendo la restauración de la alerta "Rentas Vencidas" (patch).
 
-### `src/features/portal/pages/PortalQuoteDetail.tsx` (complejidad 16)
-- Extraer bloques condicionales de render (loading / error / not-found / body) a subcomponentes o early-returns tempranos. Extraer `usePortalQuoteView(id)` que agrupe fetching y derivaciones para dejar el componente como shell.
+4. **Validación**: tras aplicar la migración, verificar en `/` que la card "Rentas Vencidas" aparezca con las 3 reservas identificadas.
 
-### `src/features/portal/pages/PortalInvoiceDetail.tsx` (complejidad 17)
-- Mismo patrón: extraer `usePortalInvoiceView(id)` + subcomponentes para estados alternos, dejando el componente principal con ≤15 ramas.
-
-### Test flaky: `tests/e2e/full-flow.spec.ts`
-- Auditar el paso concreto que falla (según Playwright report en artefactos). Reforzar con `waitFor` explícito antes del click/expect problemático, o reemplazar `waitUntil: "domcontentloaded"` por espera de un `data-testid` estable del contenido.
-- Si la causa es carrera de invalidación (post-mutación), añadir `await expect(page.getByTestId('...')).toBeVisible()` como sync-point.
-
-## Verificación
-1. `bun lint` → sin warnings de los 10 reportados.
-2. `bunx tsgo` → sin errores.
-3. `bunx vitest run` → 1249/1249 verde.
-4. `bunx playwright test tests/e2e/full-flow.spec.ts --repeat-each=3` para confirmar no-flaky.
-
-## Changelog
-Bump a **v7.226.3** (patch) con entrada en `public/changelog.json` + `public/changelog/v7.226.3.json` resumiendo: "Limpieza de warnings ESLint (complejidad, import-groups, React Compiler) y estabilización de `full-flow` E2E."
+## Fuera de alcance
+No se toca el KPI de "Rentados" del calendario (v7.227.1) ni la lógica de status de forklifts.

@@ -1,0 +1,17 @@
+{
+  "version": "7.227.2",
+  "date": "2026-07-25",
+  "type": "patch",
+  "title": "Panel · Restaurada alerta 'Rentas Vencidas'",
+  "category": "fix",
+  "changes": [
+    {
+      "area": "Panel · Alertas",
+      "detail": "get_dashboard_stats vuelve a emitir la clave overdue_bookings con las reservas confirmadas cuyo end_date ya pasó (booking_id, forklift_name, forklift_id, customer_name, end_date, days_overdue), ordenadas ascendente por fecha de vencimiento. Se había perdido en un refactor anterior de la RPC, causando que la tarjeta 'Rentas Vencidas' se ocultara aunque hubiera reservas vencidas sin devolución."
+    },
+    {
+      "area": "Panel · Alertas",
+      "detail": "Sin cambios en frontend: AlertsRow.tsx y dashboardSectionHelpers.ts ya consumían el shape correcto."
+    }
+  ]
+}
