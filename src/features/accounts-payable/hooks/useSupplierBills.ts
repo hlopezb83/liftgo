@@ -56,7 +56,8 @@ function accumulatePayment(summaryMap: Map<string, BillRepSummary>, p: PaymentRe
 
 // Tanda 2 P2-7: columnas explícitas (evita `select("*")` sin cota) y límite.
 const BILL_LIST_COLUMNS =
-  "id, bill_number, supplier_id, issue_date, due_date, subtotal, tax, total, balance, currency, exchange_rate, status, approval_status, uuid, folio, serie, notes, created_at, updated_at, xml_url, pdf_url, cfdi_use, payment_method, payment_form, suppliers(id, name)";
+  "id, bill_number, supplier_id, cfdi_uuid, folio, serie, issue_date, due_date, subtotal, tax_amount, retention_isr, retention_iva, total, currency, exchange_rate, payment_method_sat, payment_form_sat, cfdi_use, category, description, status, balance, xml_url, pdf_url, cfdi_xml_url, receptor_rfc, tipo_comprobante, coverage_start, coverage_end, notes, created_by, created_at, updated_at, approval_status, approved_by, approved_at, approval_notes, payment_in_progress_at, suppliers(id, name)";
+
 
 async function fetchList(): Promise<SupplierBillListItem[]> {
   const [billsRes, paymentsRes] = await Promise.all([
