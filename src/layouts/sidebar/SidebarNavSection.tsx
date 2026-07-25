@@ -1,14 +1,16 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router";
 import { ChevronRightIcon } from "@/components/icons";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
-  SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar,
+  SidebarMenu, SidebarMenuBadge, SidebarMenuButton, SidebarMenuItem, useSidebar,
 } from "@/components/ui/sidebar";
+import { useCurrentVersion } from "@/features/changelog";
 import { NavLink } from "@/layouts/NavLink";
 import { routeLoaders } from "@/routes/routes-config";
 import type { NavGroup, NavItem } from "./navConfig";
+import { useSidebarBadgeCounts } from "./useSidebarBadgeCounts";
 
 // Debounce igual al de tablas: dispara el `import()` sólo si el hover
 // sostiene 120ms. Evita cargar chunks al pasar el cursor sin intención.
@@ -17,6 +19,7 @@ const PREFETCH_DELAY_MS = 120;
 // Persistencia del estado colapsado por grupo. Keyed por label del grupo
 // (estable tras la reorganización; renombrar un grupo solo resetea SU estado).
 const NAV_GROUPS_STORAGE_KEY = "liftgo:sidebar:nav-groups-v1";
+const LAST_SEEN_VERSION_KEY = "liftgo:lastSeenVersion";
 
 function readNavGroupState(): Record<string, boolean> {
   try {
@@ -36,9 +39,36 @@ function writeNavGroupState(label: string, open: boolean) {
   }
 }
 
+function readLastSeenVersion(): string | null {
+  try {
+    return window.localStorage.getItem(LAST_SEEN_VERSION_KEY);
+  } catch {
+    return null;
+  }
+}
+
 function NavMenuItem({ item }: { item: NavItem }) {
   const timerRef = useRef<number | null>(null);
+  const itemRef = useRef<HTMLLIElement>(null);
   const loader = routeLoaders[item.url];
+  const { pathname } = useLocation();
+  const isActive = item.url === "/" ? pathname === "/" : pathname.startsWith(item.url);
+
+  const { data: counts } = useSidebarBadgeCounts();
+  const currentVersion = useCurrentVersion();
+  const numericCount =
+    item.badgeKey && item.badgeKey !== "changelog_new" ? counts?.[item.badgeKey] ?? 0 : 0;
+  const isChangelogNew =
+    item.badgeKey === "changelog_new" &&
+    !!currentVersion &&
+    readLastSeenVersion() !== currentVersion;
+
+  // Auto-scroll (a11y): en sidebars largos (10 grupos) el ítem activo puede
+  // quedar fuera del viewport al entrar directo a una URL profunda.
+  useEffect(() => {
+    if (isActive) itemRef.current?.scrollIntoView({ block: "nearest" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const schedulePrefetch = () => {
     if (!loader || timerRef.current !== null) return;
@@ -55,7 +85,7 @@ function NavMenuItem({ item }: { item: NavItem }) {
   };
 
   return (
-    <SidebarMenuItem>
+    <SidebarMenuItem ref={itemRef}>
       <SidebarMenuButton asChild>
         <NavLink
           to={item.url}
@@ -71,6 +101,22 @@ function NavMenuItem({ item }: { item: NavItem }) {
           <span>{item.title}</span>
         </NavLink>
       </SidebarMenuButton>
+      {numericCount > 0 && (
+        <SidebarMenuBadge
+          aria-label={`${numericCount} pendientes`}
+          className="bg-sidebar-primary/15 text-sidebar-primary"
+        >
+          {numericCount}
+        </SidebarMenuBadge>
+      )}
+      {isChangelogNew && (
+        <SidebarMenuBadge
+          aria-label="Hay novedades"
+          className="bg-amber-500/20 text-amber-600"
+        >
+          •
+        </SidebarMenuBadge>
+      )}
     </SidebarMenuItem>
   );
 }

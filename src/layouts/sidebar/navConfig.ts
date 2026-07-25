@@ -1,7 +1,13 @@
 import { DashboardIcon, FleetIcon, CalendarDays, BookOpen, UsersIcon, MaintenanceIcon, InvoiceIcon, SettingsIcon, ClipboardCheck, DeliveryIcon, DocumentIcon, ActivityIcon, ChartIcon, WarnIcon, SecurityIcon, ScrollText, HistoryIcon, HelpIcon, InventoryIcon, TargetIcon, SupplierIcon, MessageSquare, TrophyIcon, Megaphone, FileClock, TrendingUpIcon, BankIcon, ArrowLeftRight, GitCompareArrows } from "@/components/icons";
 import type { ElementType } from "react";
 
-export type NavItem = { title: string; url: string; icon: ElementType };
+export type SidebarBadgeKey =
+  | "maintenance_open"
+  | "deliveries_today"
+  | "returns_today"
+  | "intents_pending"
+  | "changelog_new";
+export type NavItem = { title: string; url: string; icon: ElementType; badgeKey?: SidebarBadgeKey };
 export type NavGroup = { label: string; items: NavItem[]; collapsible?: boolean; defaultOpen?: boolean };
 
 export const NAV_GROUPS: NavGroup[] = [
@@ -18,8 +24,8 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Operación diaria",
     items: [
       { title: "Reservas", url: "/bookings", icon: BookOpen },
-      { title: "Entregas", url: "/deliveries", icon: DeliveryIcon },
-      { title: "Devoluciones", url: "/returns", icon: ClipboardCheck },
+      { title: "Entregas", url: "/deliveries", icon: DeliveryIcon, badgeKey: "deliveries_today" },
+      { title: "Devoluciones", url: "/returns", icon: ClipboardCheck, badgeKey: "returns_today" },
     ],
   },
   {
@@ -37,7 +43,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Flota",
     items: [
       { title: "Equipos", url: "/fleet", icon: FleetIcon },
-      { title: "Mantenimiento", url: "/maintenance", icon: MaintenanceIcon },
+      { title: "Mantenimiento", url: "/maintenance", icon: MaintenanceIcon, badgeKey: "maintenance_open" },
       { title: "Daños", url: "/damage", icon: WarnIcon },
       { title: "Refacciones", url: "/inventory", icon: InventoryIcon },
     ],
@@ -47,7 +53,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Dinero",
     collapsible: true,
     items: [
-      { title: "Facturas", url: "/invoices", icon: InvoiceIcon },
+      { title: "Facturas", url: "/invoices", icon: InvoiceIcon, badgeKey: "intents_pending" },
       // Renombrado de "Conciliación": había DOS "Conciliación" en el mismo
       // grupo (pagos vs bancaria). Ahora son inequívocas.
       { title: "Conciliación de Pagos", url: "/invoices/reconciliation", icon: GitCompareArrows },
@@ -97,7 +103,7 @@ export const NAV_GROUPS: NavGroup[] = [
     defaultOpen: false,
     items: [
       { title: "Ayuda", url: "/help", icon: HelpIcon },
-      { title: "Changelog", url: "/changelog", icon: ScrollText },
+      { title: "Changelog", url: "/changelog", icon: ScrollText, badgeKey: "changelog_new" },
       { title: "Mis Reportes", url: "/mis-reportes", icon: MessageSquare },
       { title: "Tabla de Honor", url: "/leaderboard", icon: TrophyIcon },
       { title: "Gestión de Feedback", url: "/feedback", icon: Megaphone },

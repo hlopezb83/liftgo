@@ -49,9 +49,20 @@ export default function CustomersPage() {
     setDialogOpen(true);
     setSearchParams({}, { replace: true });
   });
+  // Oleada 1 sidebar: `+ Nuevo` navega a /customers?new=1 y aquí lo consumimos.
+  const runQuickCreatePrefill = useEffectEvent(() => {
+    if (searchParams.get("new") !== "1") return;
+    setEditId(null);
+    setInitialData(undefined);
+    setDialogOpen(true);
+    searchParams.delete("new");
+    setSearchParams(searchParams, { replace: true });
+  });
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     runProspectPrefill();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    runQuickCreatePrefill();
   }, []);
 
 

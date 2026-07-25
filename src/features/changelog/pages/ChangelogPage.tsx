@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TablePagination } from "@/components/feedback/TablePagination";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { SearchBar } from "@/components/forms/SearchBar";
@@ -25,6 +25,18 @@ const CATEGORY_OPTIONS = CATEGORY_FILTERS.filter((c) => c.value !== "all").map((
 export default function ChangelogPage() {
   const { data: changelog = [], isLoading, error } = useChangelog();
   const { expanded, highlighted, toggle } = useChangelogDeepLink(changelog);
+
+  // Oleada 1 sidebar: al visitar el changelog marcamos la versión como vista
+  // → el punto ámbar del ítem "Changelog" desaparece hasta el próximo bump.
+  useEffect(() => {
+    if (changelog.length === 0) return;
+    try {
+      window.localStorage.setItem("liftgo:lastSeenVersion", getCurrentVersion(changelog) ?? "");
+    } catch {
+      // storage bloqueado (modo privado): sin persistencia, el punto reaparecerá.
+    }
+  }, [changelog]);
+
 
   const { values, set, reset, hasActive, filtered, filterKey } = useTableFilters<
     ChangelogIndexEntry,

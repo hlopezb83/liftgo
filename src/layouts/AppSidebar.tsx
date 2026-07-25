@@ -6,6 +6,7 @@ import { useUserRole } from "@/features/users";
 import { useVisibleNavGroups } from "@/layouts/hooks/useVisibleNavGroups";
 import { SidebarBranding } from "@/layouts/sidebar/SidebarBranding";
 import { SidebarNavSection } from "@/layouts/sidebar/SidebarNavSection";
+import { SidebarQuickCreate } from "@/layouts/sidebar/SidebarQuickCreate";
 import { SidebarUserFooter } from "@/layouts/sidebar/SidebarUserFooter";
 
 export function AppSidebar() {
@@ -18,6 +19,7 @@ export function AppSidebar() {
   return (
     <Sidebar>
       <SidebarBranding logoUrl={company?.logo_url} razonSocial={company?.razon_social} />
+      <SidebarQuickCreate />
       <SidebarContent>
         {visibleNavGroups.map((group) => (
           <SidebarNavSection key={group.label} group={group} />

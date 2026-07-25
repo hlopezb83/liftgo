@@ -1,0 +1,49 @@
+{
+  "version": "7.235.0",
+  "date": "2026-07-25",
+  "type": "minor",
+  "title": "Sidebar Oleada 1 · badges + Nuevo + novedad + auto-scroll",
+  "category": "ui",
+  "summary": "Cuatro mejoras de 'de un vistazo' sobre el sidebar reorganizado: badges de conteo con un solo RPC, botón '+ Nuevo' con gating por rol, punto ámbar de novedad en Changelog y auto-scroll al ítem activo.",
+  "sections": [
+    {
+      "title": "Badges de conteo",
+      "items": [
+        "Nueva RPC `get_sidebar_badge_counts()` (SECURITY DEFINER, STABLE, revoke a anon/public, execute solo a authenticated).",
+        "Hook `useSidebarBadgeCounts` con `staleTime: 60_000` — un solo request compartido entre los 4 ítems, sin polling ni refetchInterval.",
+        "Entregas de hoy, Devoluciones de hoy, Mantenimientos abiertos y Intents por revisar aparecen como badges numéricos solo cuando el conteo es > 0."
+      ]
+    },
+    {
+      "title": "Botón + Nuevo",
+      "items": [
+        "Nuevo `SidebarQuickCreate` arriba del nav con DropdownMenu: Nueva Reserva, Nueva Cotización, Nueva Factura, Nuevo Cliente.",
+        "Gating alineado con routes-config: Reserva=adminOnly, Factura=`minAccess: full`, Cotización/Cliente=cualquier acceso al módulo.",
+        "En modo icono el menú abre hacia la derecha; expandido, hacia abajo. Si el usuario no tiene ninguna acción permitida, el botón no se renderiza.",
+        "`/customers?new=1` abre el diálogo de alta al montar la página y limpia el query param."
+      ]
+    },
+    {
+      "title": "Punto de novedad en Changelog",
+      "items": [
+        "El ítem 'Changelog' muestra un punto ámbar cuando la versión actual difiere de la última guardada en `localStorage['liftgo:lastSeenVersion']`.",
+        "Al visitar `/changelog` se guarda la versión actual → el punto desaparece hasta el próximo bump.",
+        "Try/catch en lectura/escritura para modo privado."
+      ]
+    },
+    {
+      "title": "Auto-scroll al ítem activo",
+      "items": [
+        "En `NavMenuItem`, al montar, si el ítem coincide con la ruta actual hace `scrollIntoView({ block: 'nearest' })`.",
+        "Sirve para URLs profundas (`/audit`, `/leaderboard`) que caen en grupos del final del sidebar."
+      ]
+    },
+    {
+      "title": "Sin cambios",
+      "items": [
+        "Rutas, `ROUTE_TO_MODULE`, matriz de permisos, `ALWAYS_VISIBLE_ROUTES`, `useVisibleNavGroups`.",
+        "Estructura de los 10 grupos del sidebar (v7.234.0)."
+      ]
+    }
+  ]
+}
