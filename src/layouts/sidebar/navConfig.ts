@@ -53,7 +53,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Dinero",
     collapsible: true,
     items: [
-      { title: "Facturas", url: "/invoices", icon: InvoiceIcon },
+      { title: "Facturas", url: "/invoices", icon: InvoiceIcon, badgeKey: "intents_pending" },
       // Renombrado de "Conciliación": había DOS "Conciliación" en el mismo
       // grupo (pagos vs bancaria). Ahora son inequívocas.
       { title: "Conciliación de Pagos", url: "/invoices/reconciliation", icon: GitCompareArrows },
