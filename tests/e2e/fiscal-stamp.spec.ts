@@ -30,6 +30,7 @@ test.describe("Fiscal — timbrado de factura", () => {
     // desactivar expects condicionales.
     const btnCount = await stampBtn.count();
     const btnVisible = btnCount > 0 && (await stampBtn.isVisible());
+    // eslint-disable-next-line playwright/no-skipped-test -- guard runtime: precondición seed opcional
     test.skip(!btnVisible, "Botón timbrar no disponible en la factura seed");
 
     await stampBtn.click();

@@ -21,6 +21,7 @@ test.describe("Fiscal — cancelación CFDI", () => {
 
     const btnCount = await cancelBtn.count();
     const btnVisible = btnCount > 0 && (await cancelBtn.isVisible());
+    // eslint-disable-next-line playwright/no-skipped-test -- guard runtime: precondición seed opcional
     test.skip(!btnVisible, "Factura seed no está timbrada — botón cancelar no aplica");
 
     await cancelBtn.click();
