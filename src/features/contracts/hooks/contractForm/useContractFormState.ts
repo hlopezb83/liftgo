@@ -49,8 +49,10 @@ export function useContractFormState(existing: ContractRow | null | undefined, i
   const nextExistingId = existing?.id ?? null;
   useEffect(() => {
     if (existing && isEdit && prevExistingId !== nextExistingId) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- hidratación one-shot RHF cuando llega el contrato async
       setPrevExistingId(nextExistingId);
       form.reset(mapContractToForm(existing));
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- mismo one-shot: marcar template aplicado tras reset
       setTemplateApplied(true);
     }
   }, [existing, isEdit, prevExistingId, nextExistingId, form]);
