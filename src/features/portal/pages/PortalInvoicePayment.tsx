@@ -117,37 +117,23 @@ export default function PortalInvoicePayment() {
   if (il || pl) return <Skeleton className="h-96" />;
   if (!invoice) return <p className="text-muted-foreground">Factura no encontrada</p>;
 
-  const totalPaid = invoicePayments.reduce((s, p) => s + Number(p.amount), 0);
-  const pendingReported = (intents ?? [])
-    .filter((i) => i.status === "pending_review")
-    .reduce((s, i) => s + Number(i.amount), 0);
-  const balance = invoice.balance != null
-    ? Number(invoice.balance)
-    : Math.max(0, Number(invoice.total) - totalPaid - Number(invoice.credited_amount ?? 0));
+  const { balance, pendingReported, moneda, isMxn, balanceLabel } = computeInvoiceTotals(
+    invoice,
+    invoicePayments,
+    intents ?? [],
+  );
   const concept = `${invoice.invoice_number}`;
-  // R14-E: la página ignoraba la moneda. SPEI (CLABE MXN) sólo aplica a
-  // facturas en pesos — para USD el trigger trg_payments_currency_matches_invoice
-  // rechazaría el pago en MXN.
-  const moneda = (invoice as { moneda?: string | null }).moneda ?? "MXN";
-  const isMxn = moneda === "MXN";
-  const balanceLabel = formatCurrencyWithCode(balance, moneda);
 
-  let paymentSection;
-  if (balance <= 0) {
-    paymentSection = <PaidCard />;
-  } else if (isMxn) {
-    paymentSection = (
-      <MxnPaymentSection
-        balance={balance}
-        concept={concept}
-        pendingReported={pendingReported}
-        canReport={!!customer}
-        onReport={() => setDlgOpen(true)}
-      />
-    );
-  } else {
-    paymentSection = <ForeignCurrencyNotice moneda={moneda} balanceLabel={balanceLabel} />;
-  }
+  const paymentSection = renderPaymentSection({
+    balance,
+    concept,
+    pendingReported,
+    moneda,
+    isMxn,
+    balanceLabel,
+    canReport: !!customer,
+    onReport: () => setDlgOpen(true),
+  });
 
   return (
     <PageContainer maxWidth="wide">
