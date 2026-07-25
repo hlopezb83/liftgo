@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.234.0",
+    "date": "2026-07-26",
+    "type": "minor",
+    "title": "Reorganización del sidebar · grupos por frecuencia + persistencia de colapso",
+    "category": "ui",
+    "description": "Sidebar reorganizado en 10 grupos por frecuencia de uso: nuevo grupo top 'Operación diaria' (Reservas/Entregas/Devoluciones) sin colapsar; 'Ventas' abierto por defecto; 'Facturación y Finanzas' renombrado a 'Dinero' con 'Conciliación' aclarada a 'Conciliación de Pagos'; nuevo grupo 'Auditoría' (Actividad + Bitácora) alineado con la matriz de permisos; 'Sistema' → 'Administración' (solo Usuarios + Configuración); nuevo grupo 'Soporte' colapsado por defecto (Ayuda, Changelog, Mis Reportes, Tabla de Honor, Feedback). El estado colapsado ahora persiste en localStorage por grupo. Sin cambios en URLs, permisos ni tests."
+  },
+  {
     "version": "7.233.0",
     "date": "2026-07-26",
     "type": "minor",
