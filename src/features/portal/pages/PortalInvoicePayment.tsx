@@ -103,6 +103,54 @@ function PaidCard() {
   );
 }
 
+type InvoiceLike = { balance?: number | string | null; total: number | string; credited_amount?: number | string | null; moneda?: string | null };
+
+function computeInvoiceTotals(
+  invoice: InvoiceLike,
+  invoicePayments: { amount: number | string }[],
+  intents: { amount: number | string; status: string }[],
+) {
+  const totalPaid = invoicePayments.reduce((s, p) => s + Number(p.amount), 0);
+  const pendingReported = intents
+    .filter((i) => i.status === "pending_review")
+    .reduce((s, i) => s + Number(i.amount), 0);
+  const balance = invoice.balance != null
+    ? Number(invoice.balance)
+    : Math.max(0, Number(invoice.total) - totalPaid - Number(invoice.credited_amount ?? 0));
+  // R14-E: SPEI (CLABE MXN) sólo aplica a facturas en pesos.
+  const moneda = invoice.moneda ?? "MXN";
+  const isMxn = moneda === "MXN";
+  const balanceLabel = formatCurrencyWithCode(balance, moneda);
+  return { balance, pendingReported, moneda, isMxn, balanceLabel };
+}
+
+interface PaymentSectionArgs {
+  balance: number;
+  concept: string;
+  pendingReported: number;
+  moneda: string;
+  isMxn: boolean;
+  balanceLabel: string;
+  canReport: boolean;
+  onReport: () => void;
+}
+
+function renderPaymentSection(args: PaymentSectionArgs) {
+  if (args.balance <= 0) return <PaidCard />;
+  if (args.isMxn) {
+    return (
+      <MxnPaymentSection
+        balance={args.balance}
+        concept={args.concept}
+        pendingReported={args.pendingReported}
+        canReport={args.canReport}
+        onReport={args.onReport}
+      />
+    );
+  }
+  return <ForeignCurrencyNotice moneda={args.moneda} balanceLabel={args.balanceLabel} />;
+}
+
 export default function PortalInvoicePayment() {
   const { id } = useParams();
   const { data: invoices, isLoading: il } = usePortalInvoices();
