@@ -136,6 +136,7 @@ export default function MaintenancePage() {
         isLoading={isLoading}
         isError={isError}
         onRetry={() => { void refetch(); }}
+        onRefresh={refetch}
         table={isBoard ? undefined : table}
         onRowClick={(log) => detail.open(log)}
         hasActiveFilters={hasActive}
