@@ -109,7 +109,7 @@ export function GlobalSearch() {
         </Badge>
       </Button>
 
-      <CommandDialog open={open} onOpenChange={setOpen}>
+      <CommandDialog open={open} onOpenChange={handleOpenChange}>
         {/* shouldFilter=false: entidades se filtran server-side; para páginas
             usamos el `value` que incluye keywords y cmdk filtra localmente. */}
         <CommandInput
