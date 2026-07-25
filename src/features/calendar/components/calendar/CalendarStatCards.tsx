@@ -32,15 +32,21 @@ export function CalendarStatCards({ forklifts, bookings }: CalendarStatCardsProp
       }
     });
 
+    // v7.227.1: "Rentados" y "Disponibles" se derivan EXCLUSIVAMENTE de reservas
+    // confirmadas activas hoy. Antes se sumaba también forklifts.status='rented',
+    // lo que inflaba el KPI cuando quedaban equipos con status desincronizado
+    // (reservas terminadas sin devolución registrada).
+    const rented = activeBookingForkliftIds.size;
     const available = forklifts.filter(
-      (f) => f.status === FORKLIFT_STATUS.available && !activeBookingForkliftIds.has(f.id)
-    ).length;
-    const rented = forklifts.filter(
-      (f) => f.status === FORKLIFT_STATUS.rented || activeBookingForkliftIds.has(f.id)
+      (f) => f.status !== FORKLIFT_STATUS.retired
+        && f.status !== FORKLIFT_STATUS.sold
+        && f.status !== FORKLIFT_STATUS.maintenance
+        && !activeBookingForkliftIds.has(f.id),
     ).length;
     const maintenance = forklifts.filter((f) => f.status === FORKLIFT_STATUS.maintenance).length;
     const totalActive = forklifts.filter((f) => f.status !== FORKLIFT_STATUS.retired && f.status !== FORKLIFT_STATUS.sold).length;
     const utilization = totalActive > 0 ? Math.round((rented / totalActive) * 100) : 0;
+
 
     return { available, rented, maintenance, utilization: `${utilization}%` };
   })();
