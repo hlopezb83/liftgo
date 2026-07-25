@@ -29,12 +29,13 @@ export default function ChangelogPage() {
   // Oleada 1 sidebar: al visitar el changelog marcamos la versión como vista
   // → el punto ámbar del ítem "Changelog" desaparece hasta el próximo bump.
   useEffect(() => {
+    if (changelog.length === 0) return;
     try {
       window.localStorage.setItem("liftgo:lastSeenVersion", getCurrentVersion(changelog) ?? "");
     } catch {
       // storage bloqueado (modo privado): sin persistencia, el punto reaparecerá.
     }
-  }, []);
+  }, [changelog]);
 
 
   const { values, set, reset, hasActive, filtered, filterKey } = useTableFilters<
