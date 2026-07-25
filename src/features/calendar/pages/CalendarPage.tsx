@@ -53,13 +53,21 @@ export default function CalendarPage() {
     ? formatMonthLongEs(currentDate)
     : `${formatDayMonthMty(rangeStart)} – ${formatDateMty(rangeEnd)}`;
 
-  const endingSoon = bookings
-    ? bookings.filter((b) => {
-        const endDate = parseISO(b.end_date);
-        const daysLeft = differenceInDays(endDate, nowMty());
-        return b.status === "confirmed" && daysLeft >= 0 && daysLeft <= 3;
-      })
-    : [];
+  // Tanda 3 P1-6: precomputamos endingSoon en useMemo. Antes se calculaba
+  // `parseISO` en cada render sobre hasta ~2000 bookings; ahora sólo cuando
+  // cambia el dataset o el día actual.
+  const todayTs = nowMty().getTime();
+  const endingSoon = useMemo(() => {
+    if (!bookings) return [];
+    return bookings.filter((b) => {
+      if (b.status !== "confirmed") return false;
+      const endTs = Date.parse(b.end_date);
+      if (!Number.isFinite(endTs)) return false;
+      const daysLeft = differenceInDays(endTs, todayTs);
+      return daysLeft >= 0 && daysLeft <= 3;
+    });
+  }, [bookings, todayTs]);
+
 
 
   if (bLoading || fLoading) {
