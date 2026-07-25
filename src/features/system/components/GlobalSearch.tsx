@@ -62,9 +62,10 @@ export function GlobalSearch() {
     return () => document.removeEventListener("keydown", handler);
   }, []);
 
-  useEffect(() => {
-    if (!open) setInput("");
-  }, [open]);
+  const handleOpenChange = useCallback((next: boolean) => {
+    setOpen(next);
+    if (!next) setInput("");
+  }, []);
 
   const groups = useMemo(() => {
     const map = new Map<string, Item[]>();
