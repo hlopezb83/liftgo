@@ -73,7 +73,8 @@ export function EquipmentDetailsSection({
         <FormField control={control} name="fuel_type" render={({ field }) => (
           <FormItem>
             <FormLabel>Tipo de Combustible</FormLabel>
-            <Select value={field.value} onValueChange={field.onChange}>
+            {/* R14-C: ignorar onValueChange("") espurio para no borrar fuel_type en silencio */}
+            <Select value={field.value} onValueChange={(v) => v && field.onChange(v)}>
               <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
               <SelectContent>
                 {FUEL_TYPES.map((f) => <SelectItem key={f} value={f}>{FUEL_TYPE_LABELS[f] || f}</SelectItem>)}

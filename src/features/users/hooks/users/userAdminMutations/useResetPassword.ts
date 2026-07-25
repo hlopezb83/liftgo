@@ -1,5 +1,6 @@
 import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { extractEdgeErrorMessage } from "@/lib/supabase/invokeEdgeFunction";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { PasswordValidationError } from "../../../lib/PasswordValidationError";
 
@@ -14,7 +15,8 @@ export function useResetPassword() {
       const { data, error } = await supabase.functions.invoke("reset-user-password", {
         body: { user_id: userId, new_password: newPassword },
       });
-      if (error) throw error;
+      // R14-K: extraer body real preservando el flujo especial de PasswordValidationError.
+      if (error) throw new Error(await extractEdgeErrorMessage(error));
       if (data?.success === false && typeof data.error === "string") {
         const code = data.code === "pwned" ? "pwned" : "weak_password";
         const raw = typeof data.raw === "string" ? data.raw : undefined;

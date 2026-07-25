@@ -1,15 +1,13 @@
 import { FormDialog } from "@/components/forms/FormDialog";
-import { DeleteIcon, WarnIcon, UndoIcon } from "@/components/icons";
+import { WarnIcon, UndoIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { translateAction, translateTable, formatTimestamp, getRecordLabel } from "./auditTrailConstants";
 import type { AuditLog } from "../../hooks/useAuditLogs";
 
 interface Props {
   log: AuditLog | null;
-  isDeleting: boolean;
   isReverting: boolean;
   onClose: () => void;
-  onDelete: (log: AuditLog) => void;
   onRevert: (log: AuditLog) => void;
 }
 
@@ -26,15 +24,18 @@ function revertHint(log: AuditLog): string {
   return "No se puede revertir: no hay datos anteriores disponibles.";
 }
 
-export function DeleteAuditLogDialog({ log, isDeleting, isReverting, onClose, onDelete, onRevert }: Props) {
-  const isPending = isDeleting || isReverting;
+// R14-G: la bitácora es append-only (policies SELECT-only + trigger). Ofrecer
+// "Eliminar" era un falso éxito (DELETE no-op por RLS con toast de éxito).
+// El diálogo queda sólo para revertir la acción original.
+export function DeleteAuditLogDialog({ log, isReverting, onClose, onRevert }: Props) {
+  const isPending = isReverting;
 
   return (
     <FormDialog
       open={!!log}
       onOpenChange={(open) => !open && !isPending && onClose()}
       width="md"
-      title="Eliminar registro de bitácora"
+      title="Acciones del registro"
     >
       {log && (
         <div className="space-y-4">
@@ -46,16 +47,6 @@ export function DeleteAuditLogDialog({ log, isDeleting, isReverting, onClose, on
           </div>
 
           <div className="border rounded-lg p-3 space-y-3">
-            <Button
-              variant="outline"
-              className="w-full justify-start"
-              disabled={isPending}
-              onClick={() => onDelete(log)}
-            >
-              <DeleteIcon className="h-4 w-4 mr-2" />
-              {isDeleting ? "Eliminando…" : "Solo borrar de bitácora"}
-            </Button>
-
             <div className="relative">
               <Button
                 variant="destructive"

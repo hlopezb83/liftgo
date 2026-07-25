@@ -26,15 +26,20 @@ export function useForkliftFormLogic() {
 
   const { equipmentModels, hasModels, manufacturers, filteredModels } =
     useForkliftFormState(form, existing);
-  useForkliftPrefill(existing, form);
+  // R14-C: equipmentModels undefined = catálogos aún cargando; no resetear.
+  useForkliftPrefill(existing, form, equipmentModels !== undefined);
   const { onSubmit, navigate, isPending } = useForkliftFormSubmit({ id, isEdit });
 
   const handleManufacturerChange = (value: string) => {
+    // R14-C: value vacío = evento espurio de Radix (colección sin items al
+    // momento del prefill). Ignorar para no borrar en cascada datos existentes.
+    if (!value) return;
     form.setValue("manufacturer", value, { shouldDirty: true });
     form.setValue("model", "", { shouldDirty: true });
   };
 
   const handleModelChange = (value: string) => {
+    if (!value) return; // R14-C: mismo guard anti-borrado espurio.
     const manufacturer = form.getValues("manufacturer");
     const match = equipmentModels?.find((m) => m.manufacturer === manufacturer && m.model === value);
     form.setValue("model", value, { shouldDirty: true });

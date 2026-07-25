@@ -11,7 +11,7 @@ import {
   usePortalPayments,
   usePortalCustomer,
 } from "@/features/customers";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrency, formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { ReportTransferDialog } from "../components/ReportTransferDialog";
 import { StpTransferCard } from "../components/StpTransferCard";
@@ -35,13 +35,16 @@ export default function PortalInvoicePayment() {
   const pendingReported = (intents ?? [])
     .filter((i) => i.status === "pending_review")
     .reduce((s, i) => s + Number(i.amount), 0);
-  // v7.222.0 · E2E-N2: el RPC portal ya expone `balance` (total − pagos − NCs
-  // timbradas). Preferimos ese valor y sólo caemos al cálculo local si no viene,
-  // restando también `credited_amount` para no cobrar de más al cliente.
   const balance = invoice.balance != null
     ? Number(invoice.balance)
     : Math.max(0, Number(invoice.total) - totalPaid - Number(invoice.credited_amount ?? 0));
   const concept = `${invoice.invoice_number}`;
+  // R14-E: la página ignoraba la moneda. SPEI (CLABE MXN) sólo aplica a
+  // facturas en pesos — para USD el trigger trg_payments_currency_matches_invoice
+  // rechazaría el pago en MXN.
+  const moneda = (invoice as { moneda?: string | null }).moneda ?? "MXN";
+  const isMxn = moneda === "MXN";
+  const balanceLabel = formatCurrencyWithCode(balance, moneda);
 
   const statusLabel = (s: string) =>
     s === "pending_review" ? "En revisión" : s === "approved" ? "Aprobado" : "Rechazado";
@@ -55,7 +58,7 @@ export default function PortalInvoicePayment() {
       />
       <div className="-mt-2 flex items-center gap-2 text-sm text-muted-foreground">
         <StatusBadge status={invoice.status} />
-        <span>Saldo: <span className="font-mono">{formatCurrency(balance)}</span></span>
+        <span>Saldo: <span className="font-mono">{balanceLabel}</span></span>
       </div>
 
       {balance <= 0 ? (
@@ -64,7 +67,7 @@ export default function PortalInvoicePayment() {
             <p className="text-sm">Esta factura ya está pagada. ¡Gracias!</p>
           </CardContent>
         </Card>
-      ) : (
+      ) : isMxn ? (
         <>
           <StpTransferCard amount={balance} concept={concept} />
 
@@ -79,6 +82,17 @@ export default function PortalInvoicePayment() {
             )}
           </div>
         </>
+      ) : (
+        <Card>
+          <CardContent className="pt-6 space-y-1">
+            <p className="text-sm font-medium">Esta factura es en {moneda}.</p>
+            <p className="text-sm text-muted-foreground">
+              El saldo es {balanceLabel}. Por ahora los pagos en {moneda} se
+              coordinan con tu ejecutivo de cuenta; la transferencia SPEI en
+              pesos no aplica para esta factura.
+            </p>
+          </CardContent>
+        </Card>
       )}
 
       {!!intents?.length && (
@@ -111,7 +125,7 @@ export default function PortalInvoicePayment() {
         </Card>
       )}
 
-      {customer && (
+      {customer && isMxn && (
         <ReportTransferDialog
           open={dlgOpen}
           onOpenChange={setDlgOpen}

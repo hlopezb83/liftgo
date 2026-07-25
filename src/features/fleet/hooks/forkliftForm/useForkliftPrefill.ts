@@ -32,9 +32,13 @@ function mapForkliftToForm(f: Tables<"forklifts">): ForkliftFormData {
 export function useForkliftPrefill(
   existing: ExistingForklift,
   form: UseFormReturn<ForkliftFormData>,
+  catalogsReady: boolean,
 ) {
   usePrefillEffect(() => {
-    if (!existing) return;
+    // R14-C: NO resetear hasta que equipmentModels resolvió. Si el reset llega
+    // antes, los Select quedan con value sin items registrados y Radix emite
+    // onValueChange("") que vacía fabricante/modelo/combustible.
+    if (!existing || !catalogsReady) return;
     form.reset(mapForkliftToForm(existing));
-  }, [existing]);
+  }, [existing, catalogsReady]);
 }

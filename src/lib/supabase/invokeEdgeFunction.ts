@@ -27,7 +27,7 @@ export async function invokeEdgeFunction<T = unknown>(
   const { data, error } = await supabase.functions.invoke(name, options);
 
   if (error) {
-    const message = await extractErrorMessage(error);
+    const message = await extractEdgeErrorMessage(error);
     const wrapped = new Error(message);
     (wrapped as Error & { cause?: unknown }).cause = error;
     throw wrapped;
@@ -62,7 +62,7 @@ function pickErrorField(parsed: Record<string, unknown>): string | null {
   return null;
 }
 
-async function extractErrorMessage(error: unknown): Promise<string> {
+export async function extractEdgeErrorMessage(error: unknown): Promise<string> {
   const fallback = getFallbackMessage(error);
   const ctx = (error as { context?: unknown }).context;
   if (!ctx || typeof (ctx as Response).clone !== "function") return fallback;
