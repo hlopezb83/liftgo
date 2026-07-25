@@ -47,7 +47,8 @@ export function useDeleteBooking() {
       const { error } = await supabase.rpc("delete_booking", { p_booking_id: bookingId });
       if (error) throw error;
     },
-    invalidateKeys: [bookingKeys.all, forkliftKeys.all, ["status_logs"] as const],
+    invalidateKeys: [bookingKeys.lists(), forkliftKeys.lists(), ["status_logs"] as const],
+
     errorTitle: "Error al eliminar reserva",
   });
 }
