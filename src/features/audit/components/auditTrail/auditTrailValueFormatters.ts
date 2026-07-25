@@ -67,6 +67,10 @@ export function formatAuditValue(field: string, value: unknown): string {
 }
 
 export function getRecordLabel(log: AuditLog): string {
+  // v7.233.0 (P1-4b): la lista trae `label` pre-computado en el fetcher.
+  // El detalle también lo recibe (lo hereda de la fila de lista); si no está,
+  // recae al comportamiento previo usando old/new_data (detalle completo).
+  if (log.label) return log.label;
   const data = (log.new_data || log.old_data) as Record<string, unknown> | null;
   if (!data) return log.record_id.slice(0, 8);
   const pick = (k: string) => (typeof data[k] === "string" ? (data[k] as string) : undefined);

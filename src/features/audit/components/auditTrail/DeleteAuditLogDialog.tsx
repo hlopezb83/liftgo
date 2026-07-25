@@ -1,7 +1,10 @@
+import { useQuery } from "@tanstack/react-query";
 import { FormDialog } from "@/components/forms/FormDialog";
 import { WarnIcon, UndoIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { translateAction, translateTable, formatTimestamp, getRecordLabel } from "./auditTrailConstants";
+import { auditLogDetailQueries } from "../../lib/queryKeys";
 import type { AuditLog } from "../../hooks/useAuditLogs";
 
 interface Props {
@@ -27,8 +30,18 @@ function revertHint(log: AuditLog): string {
 // R14-G: la bitácora es append-only (policies SELECT-only + trigger). Ofrecer
 // "Eliminar" era un falso éxito (DELETE no-op por RLS con toast de éxito).
 // El diálogo queda sólo para revertir la acción original.
+//
+// v7.233.0 (P1-4b): la lista no trae old_data; refetch por id aquí para
+// habilitar/deshabilitar el botón según haya datos anteriores.
 export function DeleteAuditLogDialog({ log, isReverting, onClose, onRevert }: Props) {
+  const { data: full, isLoading } = useQuery({
+    ...auditLogDetailQueries.list({ id: log?.id ?? "" }),
+    enabled: !!log,
+  });
+
+  const merged: AuditLog | null = log && full ? { ...log, ...full } : log;
   const isPending = isReverting;
+  const waitingDetail = !!log && isLoading && !full;
 
   return (
     <FormDialog
@@ -37,13 +50,13 @@ export function DeleteAuditLogDialog({ log, isReverting, onClose, onRevert }: Pr
       width="md"
       title="Acciones del registro"
     >
-      {log && (
+      {merged && (
         <div className="space-y-4">
           <div className="text-sm space-y-1">
-            <p><span className="text-muted-foreground">Tabla:</span> {translateTable(log.table_name)}</p>
-            <p><span className="text-muted-foreground">Acción:</span> {translateAction(log.action)}</p>
-            <p><span className="text-muted-foreground">Fecha:</span> {formatTimestamp(log.created_at)}</p>
-            <p><span className="text-muted-foreground">Registro:</span> {getRecordLabel(log)}</p>
+            <p><span className="text-muted-foreground">Tabla:</span> {translateTable(merged.table_name)}</p>
+            <p><span className="text-muted-foreground">Acción:</span> {translateAction(merged.action)}</p>
+            <p><span className="text-muted-foreground">Fecha:</span> {formatTimestamp(merged.created_at)}</p>
+            <p><span className="text-muted-foreground">Registro:</span> {getRecordLabel(merged)}</p>
           </div>
 
           <div className="border rounded-lg p-3 space-y-3">
@@ -51,16 +64,20 @@ export function DeleteAuditLogDialog({ log, isReverting, onClose, onRevert }: Pr
               <Button
                 variant="destructive"
                 className="w-full justify-start"
-                disabled={isPending || isRevertDisabled(log)}
-                onClick={() => onRevert(log)}
+                disabled={isPending || waitingDetail || isRevertDisabled(merged)}
+                onClick={() => onRevert(merged)}
               >
                 <UndoIcon className="h-4 w-4 mr-2" />
                 {isReverting ? "Revirtiendo…" : "Revertir acción original"}
               </Button>
-              <p className="text-xs text-muted-foreground mt-1.5 flex items-start gap-1">
-                <WarnIcon className="h-3 w-3 mt-0.5 shrink-0 text-warning" />
-                {revertHint(log)}
-              </p>
+              {waitingDetail ? (
+                <Skeleton className="h-3 w-2/3 mt-1.5" />
+              ) : (
+                <p className="text-xs text-muted-foreground mt-1.5 flex items-start gap-1">
+                  <WarnIcon className="h-3 w-3 mt-0.5 shrink-0 text-warning" />
+                  {revertHint(merged)}
+                </p>
+              )}
             </div>
           </div>
 
