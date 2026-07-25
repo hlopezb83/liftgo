@@ -12,6 +12,7 @@ test.describe("Portal cliente — estado de cuenta", () => {
 
   test("login portal + statement renderiza balance", async ({ page }) => {
     const creds = portalCredentials();
+    // eslint-disable-next-line playwright/no-skipped-test -- runtime skip cuando faltan E2E_PORTAL_EMAIL/PASSWORD
     test.skip(!creds, "E2E_PORTAL_EMAIL/PASSWORD no configurados");
     if (!creds) return;
 
