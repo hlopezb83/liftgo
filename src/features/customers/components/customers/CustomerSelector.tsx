@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { CheckIcon, ChevronDownIcon, XIcon } from "@/components/icons";
+import { CloseIcon as XIcon, ChevronDownIcon, SuccessIcon as CheckIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
