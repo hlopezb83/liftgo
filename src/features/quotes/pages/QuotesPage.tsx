@@ -14,7 +14,6 @@ import { STATUS_LABELS } from "@/lib/constants";
 import { toYMD } from "@/lib/date/toYMD";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateRange, parseDateLocal } from "@/lib/utils";
-
 import { QUOTE_STATUS_LABELS, quoteStatusLabel as quoteLabel } from "../constants";
 import { isPublicoGeneral } from "../hooks/quoteDetail/useQuoteDetailData";
 import { useQuotes, quoteQueries } from "../hooks/quotes/useQuotes";

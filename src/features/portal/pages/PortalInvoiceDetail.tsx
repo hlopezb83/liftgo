@@ -11,7 +11,6 @@ import { usePortalInvoices, usePortalPayments } from "@/features/customers";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
-
 import { TotalsBreakdown } from "../components/TotalsBreakdown";
 import { useCfdiDownload } from "../hooks/useCfdiDownload";
 

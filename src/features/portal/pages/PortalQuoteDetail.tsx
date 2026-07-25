@@ -8,7 +8,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { canActOnPortalQuote, isQuoteAccepted } from "@/lib/rules/quotes";
 import { formatDateDisplay, parseDateLocal } from "@/lib/utils";
-
 import { PortalQuoteActionCard } from "../components/PortalQuoteActionCard";
 import { TotalsBreakdown } from "../components/TotalsBreakdown";
 import {
