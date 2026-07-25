@@ -58,7 +58,7 @@ export function useCreatePayment() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [paymentKeys.all, invoiceKeys.all],
+    invalidateKeys: [paymentKeys.all, invoiceKeys.all, DASHBOARD_FINANCIAL_KPIS_KEY],
     errorTitle: "Error al registrar pago",
   });
 }
@@ -75,7 +75,7 @@ export function useUpdatePayment() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [paymentKeys.all, invoiceKeys.all],
+    invalidateKeys: [paymentKeys.all, invoiceKeys.all, DASHBOARD_FINANCIAL_KPIS_KEY],
     errorTitle: "Error al actualizar pago",
   });
 }
