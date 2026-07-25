@@ -1,5 +1,14 @@
 [
   {
+    "version": "7.232.0",
+    "date": "2026-07-26",
+    "type": "minor",
+    "title": "R-Perf Tanda 3 · vista de ubicación, prefetch aislado, combobox de clientes, invalidaciones quirúrgicas",
+    "category": "performance",
+    "description": "P1-5: nueva vista `public.forklift_current_location` + `useFleetLocations` reemplazan tres descargas pesadas en /fleet (contracts + deliveries + maintenance_policies). P1-6: `useRowPrefetchArm` aísla refs/timers de DataTableBodyV2 para que React Compiler ya no haga bail-out global. P2-7: cash-flow acota `payments` a los invoice_id activos (deja de traer toda la tabla). P2-9: CustomerSelector migrado a combobox `cmdk` (soporta 500+ clientes sin jank). P3-10.1: `useCxpApprovalThreshold` y `useCashFlowSettings` se derivan de `useCompanySettings` (una sola cache singleton). P3-10.2: mutaciones de bookings/quotes invalidan `.lists()` en vez de `.all` catch-all. P1-6 extra: CalendarPage memoiza `endingSoon` con timestamps precomputados."
+  },
+
+  {
     "version": "7.231.0",
     "date": "2026-07-26",
     "type": "minor",
