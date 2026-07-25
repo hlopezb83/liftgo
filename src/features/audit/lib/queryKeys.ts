@@ -5,6 +5,10 @@
  * (usado por las mutaciones de `useAuditLogs`). `auditLogsQueries` y
  * `activityMetricsQueries` encapsulan cada fetcher porque tienen formas
  * de dato distintas.
+ *
+ * v7.233.0 (P1-4b): la lista NO trae `old_data`/`new_data` — proyecta sólo
+ * los campos necesarios para el label (name/booking/contract/invoice/quote/
+ * description). El detalle re-descarga la fila completa por id.
  */
 import { supabase } from "@/integrations/supabase/client";
 import { createEntityKeys } from "@/lib/query/createEntityKeys";
@@ -29,13 +33,17 @@ export interface AuditLog {
   table_name: string;
   record_id: string;
   action: string;
-  old_data: Record<string, unknown> | null;
-  new_data: Record<string, unknown> | null;
+  /** Solo presente cuando se descarga el detalle por id. */
+  old_data?: Record<string, unknown> | null;
+  /** Solo presente cuando se descarga el detalle por id. */
+  new_data?: Record<string, unknown> | null;
   changed_fields: string[] | null;
   user_id: string | null;
   created_at: string;
   // joined
   user_email?: string;
+  /** Etiqueta pre-computada para la lista (P1-4b). */
+  label?: string;
 }
 
 export interface AuditLogFilters {
@@ -61,34 +69,58 @@ function normalizeJson(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : null;
 }
 
+// P1-4b: proyecciones ligeras para armar el label sin traer old_data/new_data.
+// PostgREST devuelve `null` si el campo no existe en el jsonb, así que basta
+// escoger el primero definido entre new_* y luego old_*.
+type LabelProjectionRow = {
+  new_name: string | null; new_booking: string | null; new_contract: string | null;
+  new_invoice: string | null; new_quote: string | null; new_desc: string | null;
+  old_name: string | null; old_booking: string | null; old_contract: string | null;
+  old_invoice: string | null; old_quote: string | null; old_desc: string | null;
+};
+
+function buildLabel(row: LabelProjectionRow, recordId: string): string {
+  const first = (
+    row.new_name ?? row.new_booking ?? row.new_contract ?? row.new_invoice ?? row.new_quote
+    ?? row.old_name ?? row.old_booking ?? row.old_contract ?? row.old_invoice ?? row.old_quote
+    ?? row.new_desc ?? row.old_desc
+  );
+  if (!first) return recordId.slice(0, 8);
+  return first.length > 30 ? first.slice(0, 30) : first;
+}
+
+const LIST_SELECT =
+  "id, table_name, record_id, action, changed_fields, user_id, created_at, " +
+  "new_name:new_data->>name, new_booking:new_data->>booking_number, " +
+  "new_contract:new_data->>contract_number, new_invoice:new_data->>invoice_number, " +
+  "new_quote:new_data->>quote_number, new_desc:new_data->>description, " +
+  "old_name:old_data->>name, old_booking:old_data->>booking_number, " +
+  "old_contract:old_data->>contract_number, old_invoice:old_data->>invoice_number, " +
+  "old_quote:old_data->>quote_number, old_desc:old_data->>description";
+
+const DETAIL_SELECT =
+  "id, table_name, record_id, action, old_data, new_data, changed_fields, user_id, created_at";
+
 export const auditLogsQueries = defineEntityQueries<"audit-logs", AuditLog[], never, AuditLogFilters>(
   "audit-logs",
   {
     list: (filter) => async () => {
       const filters = readAuditLogFilters(filter);
 
-      // v7.216.0 (C6): columnas explícitas.
-      const sel = (s: string): string => s;
       let query = supabase
         .from("audit_logs")
-        .select(sel("id, table_name, record_id, action, old_data, new_data, changed_fields, user_id, created_at"))
+        .select(LIST_SELECT)
         .order("created_at", { ascending: false })
         .limit(200);
 
       if (filters.table_name) query = query.eq("table_name", filters.table_name);
       if (filters.record_id) query = query.eq("record_id", filters.record_id);
 
-      // Nota: el trigger de auditoría ya descarta filas con is_e2e=true desde 2026-06-10.
-      // Un filtro client-side sobre old_data->>is_e2e en PostgREST descarta también los NULL,
-      // lo cual vaciaba la bitácora. Se confía en el trigger.
-
-      const { data, error } = await query.returns<Array<{
+      const { data, error } = await query.returns<Array<LabelProjectionRow & {
         id: string;
         table_name: string;
         record_id: string;
         action: string;
-        old_data: unknown;
-        new_data: unknown;
         changed_fields: string[] | null;
         user_id: string | null;
         created_at: string;
@@ -96,9 +128,14 @@ export const auditLogsQueries = defineEntityQueries<"audit-logs", AuditLog[], ne
       if (error) throw error;
 
       const logs: AuditLog[] = (data ?? []).map((row) => ({
-        ...row,
-        old_data: normalizeJson(row.old_data),
-        new_data: normalizeJson(row.new_data),
+        id: row.id,
+        table_name: row.table_name,
+        record_id: row.record_id,
+        action: row.action,
+        changed_fields: row.changed_fields,
+        user_id: row.user_id,
+        created_at: row.created_at,
+        label: buildLabel(row, row.record_id),
       }));
       const userIds = [...new Set(logs.map((l) => l.user_id).filter((id): id is string => id !== null))];
 
@@ -115,6 +152,43 @@ export const auditLogsQueries = defineEntityQueries<"audit-logs", AuditLog[], ne
       }
 
       return logs;
+    },
+    staleTime: 60_000,
+  },
+);
+
+/**
+ * P1-4b: fetcher del detalle por id — trae old_data/new_data completos.
+ * Sólo se llama al abrir un diálogo (detalle o revertir).
+ */
+export const auditLogDetailQueries = defineEntityQueries<"audit-log-detail", AuditLog | null, never, { id: string }>(
+  "audit-log-detail",
+  {
+    list: (filter) => async () => {
+      const id = typeof filter?.id === "string" ? filter.id : null;
+      if (!id) return null;
+      const { data, error } = await supabase
+        .from("audit_logs")
+        .select(DETAIL_SELECT)
+        .eq("id", id)
+        .maybeSingle<{
+          id: string;
+          table_name: string;
+          record_id: string;
+          action: string;
+          old_data: unknown;
+          new_data: unknown;
+          changed_fields: string[] | null;
+          user_id: string | null;
+          created_at: string;
+        }>();
+      if (error) throw error;
+      if (!data) return null;
+      return {
+        ...data,
+        old_data: normalizeJson(data.old_data),
+        new_data: normalizeJson(data.new_data),
+      };
     },
     staleTime: 60_000,
   },

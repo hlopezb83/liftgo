@@ -5,6 +5,11 @@ import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { invoiceKeys, paymentKeys } from "../lib/queryKeys";
 
+// P3-10.3: los KPIs financieros del dashboard (overdue_total, DSO) dependen
+// directamente de los pagos. Invalidarlos al crear/editar pago evita valores
+// stale por hasta 30 s.
+const DASHBOARD_FINANCIAL_KPIS_KEY: readonly unknown[] = ["dashboard-financial-kpis"];
+
 export type Payment = Tables<"payments">;
 
 // v7.216.0 (C6): columnas explícitas.
@@ -53,7 +58,7 @@ export function useCreatePayment() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [paymentKeys.all, invoiceKeys.all],
+    invalidateKeys: [paymentKeys.all, invoiceKeys.all, DASHBOARD_FINANCIAL_KPIS_KEY],
     errorTitle: "Error al registrar pago",
   });
 }
@@ -70,7 +75,7 @@ export function useUpdatePayment() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [paymentKeys.all, invoiceKeys.all],
+    invalidateKeys: [paymentKeys.all, invoiceKeys.all, DASHBOARD_FINANCIAL_KPIS_KEY],
     errorTitle: "Error al actualizar pago",
   });
 }

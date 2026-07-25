@@ -1,0 +1,45 @@
+{
+  "version": "7.233.0",
+  "date": "2026-07-26",
+  "type": "minor",
+  "title": "R-Perf Tanda 4 · lista de auditoría ligera, invalidación KPI tras pagos, FeedbackFab perezoso",
+  "category": "performance",
+  "summary": "Cierra la Tanda 4 del análisis de rendimiento: /audit deja de traer snapshots completos en la lista, el dashboard financiero se refresca al instante tras registrar pagos y el diálogo Reportar sale del bundle inicial.",
+  "changes": [
+    {
+      "area": "Auditoría (P1-4b)",
+      "items": [
+        "`auditLogsQueries.list` ya NO selecciona `old_data`/`new_data`; en su lugar proyecta 12 campos texto (`new_data->>name`, `->>booking_number`, `->>contract_number`, `->>invoice_number`, `->>quote_number`, `->>description` y los equivalentes de `old_data`) para armar un `label` pre-computado en el fetcher.",
+        "Nuevo `auditLogDetailQueries` re-descarga la fila completa por id — se dispara sólo cuando se abre `AuditLogDetailDialog` o `DeleteAuditLogDialog`.",
+        "`AuditLogDetailDialog` y `DeleteAuditLogDialog` fusionan la fila ligera con el detalle (`useQuery` + `Skeleton` fallback).",
+        "`getRecordLabel` prefiere `log.label` (ruta lista) y recae a la lógica previa cuando se le pasa un log-detalle."
+      ]
+    },
+    {
+      "area": "Pagos → Dashboard (P3-10.3)",
+      "items": [
+        "`useCreatePayment` y `useUpdatePayment` añaden `['dashboard-financial-kpis']` a `invalidateKeys` — los KPIs `overdue_total` y DSO dejan de quedar stale hasta 30 s tras un registro de pago."
+      ]
+    },
+    {
+      "area": "Bundle inicial (P3-11)",
+      "items": [
+        "`FeedbackFab` monta `FeedbackFormDialog` vía `React.lazy` + `Suspense` — el chunk con react-day-picker + RHF + zod sale del primer paint.",
+        "`onMouseEnter` en el botón prefetch el chunk para que el primer click no perciba latencia."
+      ]
+    }
+  ],
+  "impact": [
+    "Lista de /audit varias veces más liviana en red y ~10× más rápida en render (el `dataVersion` P0-1 escala con el tamaño de fila).",
+    "KPIs financieros del dashboard reflejan pagos al instante.",
+    "Primer paint sin el peso de FeedbackFormDialog."
+  ],
+  "tests": [
+    "tsgo: 0 errores.",
+    "vitest src/features/audit + src/features/invoices/hooks: 100 tests verdes (21 archivos)."
+  ],
+  "notes": [
+    "El trigger de auditoría (v7.231.0) ya no persiste `cfdi_xml`; la exclusión en la lista es aditiva y estructural.",
+    "`isRevertDisabled` en el diálogo de revertir depende de `old_data`, así que espera al detalle antes de habilitar el botón (indicador Skeleton mientras carga)."
+  ]
+}

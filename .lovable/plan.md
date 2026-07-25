@@ -1,51 +1,47 @@
-# Tanda 3 (v7.232.0) — cerrar los pendientes de rendimiento
+## Estado actual
 
-Ya aplicados (v7.230.0 + v7.231.0): P0-1, P0-2, P0-3.1, P0-3.2, P0-3.3, P1-4, P1-6 parcial (EquipmentListView), P2-7 parcial (forklifts + supplier_bills), P2-8, P3-10.4, P3-11.
+Ya cerramos las 3 tandas gruesas del análisis (v7.230 → v7.232). Quedan **4 pendientes menores** + la verificación final.
 
-Faltan de la Tanda 2 original + Tanda 3:
+## Analogía
 
-## 1. P1-5 · Vista `forklift_current_location` para /fleet
+Ya arreglamos el motor, la transmisión y las llantas. Falta cambiar el aceite, apretar dos tornillos y darle una vuelta de prueba.
 
-**Estado actual:** `FleetPage.tsx` monta `useContracts` (trae `content` completo de contratos), `useDeliveries` y `useMaintenancePolicies`, sin `.limit()`, solo para derivar `activePolicyForkliftIds` y `locationMap`.
+## Pendientes
 
-**Cambio:** migración que cree la vista `public.forklift_current_location` (una fila por montacargas con `forklift_id`, `usage_location`, `has_active_policy`, `active_customer_name`). La lógica ya vive en `useForkliftLocation.ts:13-38`; se traslada a SQL con `security_invoker=true`. Nuevo hook `useForkliftLocations()` que consulta la vista. `FleetPage` deja de llamar los 3 hooks pesados.
+### 1. P1-4 (b) · Lista de /audit sin `old_data`/`new_data`
+El trigger ya no guarda XML (v7.231.0), pero la **lista** de auditoría sigue trayendo los snapshots completos aunque solo se muestran en el detalle.
+- Crear `AUDIT_LIST_COLUMNS` (sin `old_data`/`new_data`).
+- El detalle re-descarga por id (patrón ya usado en facturas).
 
-## 2. P1-6 restante · Bail-outs del React Compiler
+### 2. P3-10.3 · Dashboard no se invalida tras registrar pagos
+Los KPIs (`overdue_total`, DSO) quedan desactualizados hasta 30s tras un pago.
+- Añadir `["dashboard-financial-kpis"]` a `invalidateKeys` de `useCreatePayment` y `useUpdatePayment`.
 
-- **`src/components/dataTable/v2/DataTableBodyV2.tsx:57-135`**: extraer los `useRef`+timers a un hook `useRowLongPress()` para eliminar el bail-out por refs en render (afecta las 25 filas × N celdas de TODAS las tablas).
-- **`src/features/calendar/pages/CalendarPage.tsx:30`**: reemplazar el try/catch en render por precomputación memoizada (mismo patrón ya aplicado a EquipmentListView).
+### 3. P3-11 · Diálogos pesados aún en el shell
+`FeedbackFormDialog` (cerrado por defecto) arrastra `react-day-picker` + `RHF+zod` al bundle inicial.
+- Convertirlo a `lazy()` con `<Suspense fallback={null}>`.
+- Verificar otros diálogos globales que sigan el mismo patrón (ej. GlobalSearch ya está OK).
 
-## 3. P2-7 restante · Ventana temporal en cash-flow
+### 4. Verificación final del análisis
+- Rebuild con `ANALYZE=1` → confirmar que `recharts` salió del inicial y primer paint < 500 KB gz.
+- Playwright: mount de `/fleet` debe hacer ≤ 3 requests (antes 6).
+- Micro-bench: `dataVersion` < 1 ms/interacción con 500 filas.
 
-**`src/features/cash-flow/lib/queryKeys.ts:62-64`**: `payments` se descarga sin rango. Acotar a últimos 12 meses + próximos 12 meses (`issue_date >= now() - interval '12 months'` y `<= now() + interval '12 months'`), que es la ventana que la proyección muestra.
+## Fuera de alcance (documentado, no crítico)
 
-## 4. P2-9 · `CustomerSelector` → combobox `cmdk`
+- **P3-11 self-host Inter**: la app es ERP interno; Google Fonts con display=swap ya no es bloqueante.
+- **P2-7 paginación server-side** para bookings/customers/quotes/maintenance/feedback: hoy topados a 500, "OK hoy" según el análisis.
+- **P1-4 rewriting audit history**: intencionalmente no se re-escriben filas viejas (auditoría inmutable).
 
-`src/features/customers/components/customers/CustomerSelector.tsx` usa Radix `<Select>` con hasta 500 `<SelectItem>` (jank visible al abrir). Migrar al patrón combobox de `GlobalSearch` (Popover + `cmdk` con `CommandInput` para búsqueda incremental). Mantener API pública (`value`, `onChange`, `placeholder`) para no tocar los 6+ formularios que lo consumen.
+## Detalle técnico (para revisión)
 
-## 5. P3-10.1 · Consolidar `company_settings`
+| Item | Archivos afectados | Esfuerzo |
+|---|---|---|
+| P1-4 (b) | `src/features/audit/hooks/*`, agregar columnas explícitas | ~20 líneas |
+| P3-10.3 | `src/features/payments/hooks/usePaymentMutations.ts` | 2 líneas |
+| P3-11 | `src/layouts/*` o donde monte `FeedbackFormDialog` | ~5 líneas |
+| Verificación | Playwright + `bun run build -- --mode analyze` | 1 script |
 
-Hoy 4 queries distintas (`company_settings`, `cxp_approval_threshold`, `cash_flow_settings`, `public_branding`) traen la misma fila singleton. Crear `useCompanySettings()` como fuente única; los 3 hooks derivados (excepto `public_branding`, que es pre-login) hacen `select` sobre la data cacheada vía `useQuery` con la misma key raíz.
+## Bump de versión sugerido
 
-## 6. P3-10.2 · Invalidaciones quirúrgicas de bookings/quotes
-
-Reemplazar `queryClient.invalidateQueries({ queryKey: bookingKeys.all })` en `useCreateBooking`, `useCancelBooking`, `useDeleteBooking` por `setQueryData` en `detail(id)` + `invalidateQueries({ queryKey: bookingKeys.lists() })`. Mismo patrón para quotes. Modelo: `useUpdateForklift`.
-
-## Verificación
-
-- `/fleet`: 3 requests en mount (antes 6).
-- Calendario: sin bail-out del compiler en CalendarPage/DataTableBodyV2.
-- CustomerSelector: apertura instantánea con 500 clientes.
-- `bunx tsgo --noEmit` limpio, `bunx vitest run` verde (191 archivos / 1251 tests hoy).
-- Nueva entrada en `public/changelog.json` + `public/changelog/v7.232.0.json`, `public/version.json` a `7.232.0`.
-
-## Detalles técnicos
-
-- La vista `forklift_current_location` va con `WITH (security_invoker = true)` y `GRANT SELECT ... TO authenticated` (patrón ya usado en el proyecto).
-- El combobox `cmdk` requiere `Popover`+`Command` de shadcn (ya instalados). Se hará un componente compartido `EntityCombobox` reutilizable para clientes / proveedores / equipos en una siguiente tanda si funciona bien.
-- Las invalidaciones quirúrgicas se validan con los tests existentes de `bookings.mutations.test.ts` (si no existen, se añaden).
-
-## Fuera de alcance
-
-- P3-10.3 (invalidar dashboard tras pagos) — trade-off documentado en el reporte, requiere decisión de producto.
-- Auto-hosting de fuentes, lazy de RHF/zod — impacto marginal, no lo pide el reporte como prioritario.
+`v7.233.0` (minor) — última tanda de performance + verificación. Se actualiza `public/changelog.json`, `public/changelog/v7.233.0.json` y `package.json`.
