@@ -70,7 +70,7 @@ describe("useCreateBooking — hook real", () => {
       // Tanda 3 P3-10.2: invalidaciones quirúrgicas apuntan a .lists() en vez de .all
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["bookings", "list"] });
       expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["forklifts", "list"] });
-      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["status_logs", "list"] });
+      expect(invalidateSpy).toHaveBeenCalledWith({ queryKey: ["status_logs"] });
     });
 
     expect(notifyErrorMock).not.toHaveBeenCalled();
