@@ -23,7 +23,7 @@ export default function Dashboard() {
     pieData, agingBuckets, maintenanceAlerts,
     monthlyUtilization, revenuePerUnit, cashFlowData,
     overdueInvoices,
-    financials, alertsProps,
+    financials, alertsProps, canSeeFinancials,
   } = useDashboardSections();
 
   if (isLoading) {
@@ -47,15 +47,17 @@ export default function Dashboard() {
             <DashboardSectionLabel>Operación</DashboardSectionLabel>
             <StatCards cards={statCards} />
           </section>
-          <section className="order-3 md:order-2 border-t border-border/60 pt-5">
-            <DashboardSectionLabel>Finanzas</DashboardSectionLabel>
-            <FinancialKpiCards
-              mrr={financials.mrr}
-              utilizationPercent={utilizationPercent}
-              dso={financials.dso}
-              overdueTotal={financials.overdueTotal}
-            />
-          </section>
+          {canSeeFinancials && (
+            <section className="order-3 md:order-2 border-t border-border/60 pt-5">
+              <DashboardSectionLabel>Finanzas</DashboardSectionLabel>
+              <FinancialKpiCards
+                mrr={financials.mrr}
+                utilizationPercent={utilizationPercent}
+                dso={financials.dso}
+                overdueTotal={financials.overdueTotal}
+              />
+            </section>
+          )}
           <div className="order-1 md:order-3">
             <DashboardAlertsSection
               overdueInvoices={overdueInvoices}

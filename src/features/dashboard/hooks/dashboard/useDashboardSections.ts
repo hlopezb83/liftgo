@@ -79,6 +79,7 @@ export function useDashboardSections() {
     insuranceData,
     utilizationPercent,
     overdueInvoices,
+    canSeeFinancials,
     outstandingRevenue: stats?.invoice_stats?.outstanding_revenue ?? 0,
     statCards: buildStatCards(counts, activeFleet),
     pieData: buildPieData(counts),

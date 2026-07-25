@@ -36,7 +36,7 @@ export const invoiceFormSchema = z
     bookingId: z.string(),
     bookingIds: z.array(z.string()).default([]),
     customerId: z.string().nullable(),
-    customerName: z.string(),
+    customerName: z.string().min(1, "El cliente es requerido"),
     lineItems: z.array(lineItemSchema).min(1, "Agrega al menos una partida"),
     taxRate: z.number().min(0),
     issueDate: z.date(),
@@ -56,6 +56,18 @@ export const invoiceFormSchema = z
       if (!values.cfdi.globalYear) {
         ctx.addIssue({ code: "custom", path: ["cfdi", "globalYear"], message: "Requerido para Público en General" });
       }
+    }
+    // M2: una factura con todas las partidas en $0 no debe poder crearse.
+    const invoiceTotal = values.lineItems.reduce(
+      (sum, l) => sum + (l.quantity || 0) * (l.unit_price || 0),
+      0,
+    );
+    if (invoiceTotal <= 0) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["lineItems"],
+        message: "El total de la factura debe ser mayor a $0",
+      });
     }
   });
 

@@ -10,6 +10,8 @@ const FRIENDLY_ERROR_MESSAGES: Array<{ pattern: RegExp; message: string }> = [
   { pattern: /forklifts_serial_number_unique/i, message: "Ya existe un montacargas con ese número de serie." },
   { pattern: /equipment_models_mfr_model_unique/i, message: "Ya existe un modelo con ese fabricante y modelo." },
   { pattern: /customers_rfc_unique/i, message: "Ya existe un cliente con ese RFC." },
+  { pattern: /LAST_ADMIN_CANNOT_BE_DEMOTED/i, message: "No puedes cambiar el rol del último administrador. Promueve a otro usuario primero." },
+  { pattern: /LAST_ADMIN_CANNOT_BE_DELETED/i, message: "No puedes eliminar al último administrador del sistema." },
   { pattern: /duplicate key|already exists|23505/i, message: "Ya existe un registro con esos datos." },
   { pattern: /violates row-level security|permission denied|42501/i, message: "No tienes permisos para esta acción." },
   { pattern: /foreign key|23503/i, message: "No se puede completar: hay registros relacionados." },
