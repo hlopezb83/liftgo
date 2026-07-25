@@ -1,0 +1,33 @@
+{
+  "version": "7.226.3",
+  "date": "2026-07-25",
+  "type": "patch",
+  "title": "Cleanup ESLint: complejidad, import-groups, React Compiler y estabilización de full-flow E2E",
+  "category": "chore",
+  "changes": [
+    {
+      "area": "Observabilidad",
+      "detail": "scrubPII.ts: extraídos scrubRequest, scrubExceptions y scrubBreadcrumbs como helpers puros. scrubEvent baja de complejidad ciclomática 22 a 6 sin cambiar comportamiento."
+    },
+    {
+      "area": "React Compiler",
+      "detail": "useTableFilters: eliminado el eslint-disable de react-hooks/exhaustive-deps en el useMemo de filtered. facets y values quedan en deps, filterKey/itemsVersion se consumen vía `void` (patrón de useLiftgoTable)."
+    },
+    {
+      "area": "Lint imports",
+      "detail": "useInvoices.ts: reordenado el bloque de imports (externo vs @/*) con línea en blanco separadora."
+    },
+    {
+      "area": "Complejidad ciclomática",
+      "detail": "QuotesPage: buildQuotesColumns extraído a quotesColumns.tsx. PortalQuoteDetail: PortalQuoteActionCard extraído. PortalInvoiceDetail: useCfdiDownload y componente InvoiceHeaderActions extraídos; columnas movidas a constantes de módulo."
+    },
+    {
+      "area": "Tests E2E fiscales",
+      "detail": "fiscal-stamp / fiscal-rep / fiscal-credit-note / fiscal-cancel: reemplazado `test.skip(true, reason)` por `test.skip(<bool dinámico>, reason)` calculado en runtime. Elimina también no-conditional-expect al mover la asserción después del skip."
+    },
+    {
+      "area": "E2E full-flow",
+      "detail": "tests/e2e/full-flow.spec.ts: agregada espera explícita al cierre del diálogo de registro de pago antes de verificar el badge 'pagada' del header."
+    }
+  ]
+}
