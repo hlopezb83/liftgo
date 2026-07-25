@@ -1,7 +1,13 @@
 import { DashboardIcon, FleetIcon, CalendarDays, BookOpen, UsersIcon, MaintenanceIcon, InvoiceIcon, SettingsIcon, ClipboardCheck, DeliveryIcon, DocumentIcon, ActivityIcon, ChartIcon, WarnIcon, SecurityIcon, ScrollText, HistoryIcon, HelpIcon, InventoryIcon, TargetIcon, SupplierIcon, MessageSquare, TrophyIcon, Megaphone, FileClock, TrendingUpIcon, BankIcon, ArrowLeftRight, GitCompareArrows } from "@/components/icons";
 import type { ElementType } from "react";
 
-export type NavItem = { title: string; url: string; icon: ElementType };
+export type SidebarBadgeKey =
+  | "maintenance_open"
+  | "deliveries_today"
+  | "returns_today"
+  | "intents_pending"
+  | "changelog_new";
+export type NavItem = { title: string; url: string; icon: ElementType; badgeKey?: SidebarBadgeKey };
 export type NavGroup = { label: string; items: NavItem[]; collapsible?: boolean; defaultOpen?: boolean };
 
 export const NAV_GROUPS: NavGroup[] = [
