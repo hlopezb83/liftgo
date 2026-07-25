@@ -70,6 +70,31 @@ if (dsn && env !== "test") {
   // introduzcamos multi-tenant, sólo cambie el valor sin tocar consumidores.
   Sentry.setTag("tenant", "liftgo");
   Sentry.setTag("app", "liftgo-erp");
+
+  // Lazy-load de Replay: sólo capturamos onError, así que no hay razón
+  // para bloquear el primer paint. Se difiere a idle o 2s como fallback.
+  if (env === "production") {
+    const win = typeof window !== "undefined" ? window : undefined;
+    const schedule = win?.requestIdleCallback
+      ? (cb: () => void) => win.requestIdleCallback(cb, { timeout: 3000 })
+      : (cb: () => void) => setTimeout(cb, 2000);
+    schedule(() => {
+      void import("@sentry/react").then(({ replayIntegration, addIntegration }) => {
+        addIntegration(
+          replayIntegration({
+            maskAllText: true,
+            maskAllInputs: true,
+            blockAllMedia: true,
+            networkDetailAllowUrls: [],
+            networkCaptureBodies: false,
+            mask: ["[data-sentry-mask]"],
+            block: ["[data-sentry-block]"],
+          }),
+        );
+      });
+    });
+  }
 }
 
 export { Sentry };
+
