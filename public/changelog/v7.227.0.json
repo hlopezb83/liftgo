@@ -1,0 +1,21 @@
+{
+  "version": "7.227.0",
+  "date": "2026-07-25",
+  "type": "minor",
+  "title": "Auditoría R13 · Tablas stale tras edición + KPI Cartera Vencida en MXN",
+  "category": "fix",
+  "changes": [
+    {
+      "area": "Tablas (crítico R13-1)",
+      "detail": "useLiftgoTable: dataVersion ahora hashea el contenido completo de cada fila (JSON.stringify) en vez de solo el id. Antes, editar un registro in-place (mismo id, distintos campos) no invalidaba la identidad del Proxy y la tabla mostraba datos viejos hasta reload. Alcance: TODAS las tablas de la app (mantenimiento, facturas, cotizaciones, flota, etc.)."
+    },
+    {
+      "area": "Tests",
+      "detail": "useLiftgoTable.dataVersion.test: agregado caso R13-1 'mismo id + campo editado → nueva identidad'."
+    },
+    {
+      "area": "Dashboard (R13-2)",
+      "detail": "get_financial_kpis: SUM(v.balance) → SUM(v.balance_mxn) para overdue_total y overdue_total_prev. Elimina mezcla USD/MXN en el KPI Cartera Vencida y lo alinea con CollectionForecast y aging del dashboard."
+    }
+  ]
+}

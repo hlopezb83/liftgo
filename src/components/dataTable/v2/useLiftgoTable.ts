@@ -115,16 +115,13 @@ export function useLiftgoTable<T>({
   // memoiza el JSX aguas abajo y las tablas no se actualizan al filtrar/sortear.
   // Envolvemos con Proxy transparente cuya identidad cambia con `data`, estado
   // de sort/paginación y selección para invalidar la memoización de forma segura.
-  // R12 A1: versionar por identidad de filas (no por longitud). Con misma
-  // longitud + distinto contenido, `.length` no cambia y el memo aguas abajo
-  // servía JSX viejo (visible al filtrar por texto que devolvía el mismo #
-  // de filas). Ahora el hash cambia al cambiar el contenido.
-  const dataVersion = tableData
-    .map((r: unknown) => {
-      const rec = r as { id?: string | number } | null | undefined;
-      return rec?.id ?? JSON.stringify(r);
-    })
-    .join("|");
+  // R12 A1 + R13-1: versionar por CONTENIDO completo, no por identidad.
+  // El fix anterior solo hasheaba `id`, así que ediciones in-place (mismo id,
+  // distintos campos) no invalidaban el memo y la tabla mostraba datos viejos
+  // hasta un reload. Con `JSON.stringify(r)` completo, cualquier cambio de
+  // contenido genera nueva huella. Costo despreciable con page-size 25.
+  const dataVersion = tableData.map((r) => JSON.stringify(r)).join("|");
+
   const sortKey = sorting.map((s) => `${s.id}:${s.desc ? "d" : "a"}`).join(",");
   const selKey = Object.keys(rowSelection).length;
   const pagKey = paginated ? `${pagination.pageIndex}:${pagination.pageSize}` : "";
