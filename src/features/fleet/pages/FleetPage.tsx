@@ -4,9 +4,6 @@ import { AddIcon, DownloadIcon, Forklift as ForkliftIcon } from "@/components/ic
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Button } from "@/components/ui/button";
 import { usePageActions } from "@/contexts/pageActions";
-import { useContracts } from "@/features/contracts";
-import { useDeliveries } from "@/features/deliveries";
-import { useMaintenancePolicies } from "@/features/maintenance";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
@@ -14,6 +11,7 @@ import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { exportToCsv } from "@/lib/exportCsv";
 import { FleetMobileCard } from "../components/fleet/FleetRowAndCard";
 import { useFleetColumns } from "../hooks/fleet/useFleetColumns";
+import { useFleetLocations } from "../hooks/forklifts/useFleetLocations";
 import { useForklifts } from "../hooks/forklifts/useForklifts";
 import type { Forklift } from "../hooks/forklifts/useForklifts";
 
@@ -22,33 +20,22 @@ const STATUS_OPTIONS = [
   ...FORKLIFT_STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] || s })),
 ];
 
+const EMPTY_MAP: Map<string, string> = new Map();
+const EMPTY_SET: Set<string> = new Set();
+
 export default function FleetPage() {
   const { data: forklifts, isLoading, isError, refetch } = useForklifts();
-  const { data: policies } = useMaintenancePolicies();
-  const { data: contracts } = useContracts();
-  const { data: deliveries } = useDeliveries();
-
-  const activePolicyForkliftIds = new Set(policies?.filter((p) => p.is_active).map((p) => p.forklift_id) ?? []);
-
-  const locationMap = (() => {
-    const map = new Map<string, string>();
-    contracts?.forEach((c) => {
-      if (c.forklift_id && c.status === "active" && c.usage_location) {
-        map.set(c.forklift_id, c.usage_location);
-      }
-    });
-    deliveries?.forEach((d) => {
-      if (d.address && !map.has(d.forklift_id)) {
-        map.set(d.forklift_id, d.address);
-      }
-    });
-    return map;
-  })();
+  // Tanda 3 P1-5: 1 request a la vista `forklift_current_location`
+  // reemplaza useContracts + useDeliveries + useMaintenancePolicies.
+  const { data: fleetLocations } = useFleetLocations();
+  const locationMap = fleetLocations?.locationMap ?? EMPTY_MAP;
+  const activePolicyForkliftIds = fleetLocations?.activePolicyForkliftIds ?? EMPTY_SET;
 
   const navigate = useNavigateTransition();
   usePageActions({ onNew: () => navigate("/fleet/new"), newLabel: "Nuevo equipo" });
 
   const columns = useFleetColumns(activePolicyForkliftIds, locationMap);
+
 
   const { values, set, filtered, filterKey, hasActive, reset } = useTableFilters<
     Forklift,
