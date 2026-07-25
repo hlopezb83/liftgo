@@ -29,7 +29,6 @@ export function useListPagePullToRefresh(
       setScrollTarget(null);
       return;
     }
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- sync DOM ref → state one-shot en mount
     setScrollTarget(sentinelRef.current?.closest("main") as HTMLElement | null);
   }, [isMobile, onRefresh]);
 
