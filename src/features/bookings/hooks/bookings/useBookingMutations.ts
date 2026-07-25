@@ -33,7 +33,7 @@ export function useUpdateBooking() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [bookingKeys.all],
+    invalidateKeys: [bookingKeys.lists()],
     errorTitle: "Error al actualizar reserva",
   });
 }
