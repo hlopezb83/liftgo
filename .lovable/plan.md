@@ -1,47 +1,45 @@
-## Estado actual
+## Reorganización del sidebar
 
-Ya cerramos las 3 tandas gruesas del análisis (v7.230 → v7.232). Quedan **4 pendientes menores** + la verificación final.
+Aplico las instrucciones tal cual (2 archivos, 0 rutas/permisos/tests tocados).
 
-## Analogía
+### Analogía
 
-Ya arreglamos el motor, la transmisión y las llantas. Falta cambiar el aceite, apretar dos tornillos y darle una vuelta de prueba.
+Estamos re-acomodando el menú del restaurante: los platos más pedidos al frente y sin puertas, los de temporada agrupados con nombre claro, y que la cocina recuerde qué gavetas dejaste abiertas ayer.
 
-## Pendientes
+## Cambios
 
-### 1. P1-4 (b) · Lista de /audit sin `old_data`/`new_data`
-El trigger ya no guarda XML (v7.231.0), pero la **lista** de auditoría sigue trayendo los snapshots completos aunque solo se muestran en el detalle.
-- Crear `AUDIT_LIST_COLUMNS` (sin `old_data`/`new_data`).
-- El detalle re-descarga por id (patrón ya usado en facturas).
+### 1. `src/layouts/sidebar/navConfig.ts`
+- Agregar `defaultOpen?: boolean` al tipo `NavGroup`.
+- Reemplazar `NAV_GROUPS` con la estructura de 10 grupos en el nuevo orden:
+  1. **General** (Panel, Calendario)
+  2. **Operación diaria** — nuevo, sin colapsar (Reservas, Entregas, Devoluciones)
+  3. **Ventas** (colapsable, `defaultOpen: true`)
+  4. **Flota**
+  5. **Dinero** (renombrado de "Facturación y Finanzas"; "Conciliación" → "Conciliación de Pagos")
+  6. **Compras**
+  7. **Análisis**
+  8. **Auditoría** — nuevo grupo (Actividad, Bitácora)
+  9. **Administración** (renombrado de "Sistema"; sólo Usuarios + Configuración)
+  10. **Soporte** (colapsable, `defaultOpen: false`; consolida Ayuda, Changelog, Mis Reportes, Tabla de Honor, Gestión de Feedback)
+- `ALWAYS_VISIBLE_ROUTES` **sin cambios**.
 
-### 2. P3-10.3 · Dashboard no se invalida tras registrar pagos
-Los KPIs (`overdue_total`, DSO) quedan desactualizados hasta 30s tras un pago.
-- Añadir `["dashboard-financial-kpis"]` a `invalidateKeys` de `useCreatePayment` y `useUpdatePayment`.
+### 2. `src/layouts/sidebar/SidebarNavSection.tsx`
+- Añadir `NAV_GROUPS_STORAGE_KEY` + helpers `readNavGroupState` / `writeNavGroupState` con try/catch (modo privado, storage lleno).
+- Cambiar el estado inicial: `persisted ?? group.defaultOpen ?? hasActive`.
+- Nuevo `handleOpenChange` persiste en localStorage y se conecta al `Collapsible`.
+- Comportamiento `open || hasActive` intacto (navegar a `/invoices` abre "Dinero" aunque el usuario lo tuviera colapsado).
 
-### 3. P3-11 · Diálogos pesados aún en el shell
-`FeedbackFormDialog` (cerrado por defecto) arrastra `react-day-picker` + `RHF+zod` al bundle inicial.
-- Convertirlo a `lazy()` con `<Suspense fallback={null}>`.
-- Verificar otros diálogos globales que sigan el mismo patrón (ej. GlobalSearch ya está OK).
+### 3. Changelog + versión
+- `v7.234.0` (minor): reorganización de navegación, no cambios de comportamiento.
+- Entrada en `public/changelog.json` + detalle en `public/changelog/v7.234.0.json`.
+- Bump `package.json`.
 
-### 4. Verificación final del análisis
-- Rebuild con `ANALYZE=1` → confirmar que `recharts` salió del inicial y primer paint < 500 KB gz.
-- Playwright: mount de `/fleet` debe hacer ≤ 3 requests (antes 6).
-- Micro-bench: `dataVersion` < 1 ms/interacción con 500 filas.
+## Verificación
 
-## Fuera de alcance (documentado, no crítico)
+- `tsgo --noEmit` verde (el campo opcional no rompe otros usos).
+- Verificación manual: recargar tras colapsar "Ventas" → sigue colapsado; navegar a `/invoices` → "Dinero" se auto-abre.
+- Los tests actuales no referencian labels de nav; matriz de roles (`roleMatrix.test.ts`) usa módulos de permisos, no cambia.
 
-- **P3-11 self-host Inter**: la app es ERP interno; Google Fonts con display=swap ya no es bloqueante.
-- **P2-7 paginación server-side** para bookings/customers/quotes/maintenance/feedback: hoy topados a 500, "OK hoy" según el análisis.
-- **P1-4 rewriting audit history**: intencionalmente no se re-escriben filas viejas (auditoría inmutable).
+## Fuera de alcance (para después, si se aprueba)
 
-## Detalle técnico (para revisión)
-
-| Item | Archivos afectados | Esfuerzo |
-|---|---|---|
-| P1-4 (b) | `src/features/audit/hooks/*`, agregar columnas explícitas | ~20 líneas |
-| P3-10.3 | `src/features/payments/hooks/usePaymentMutations.ts` | 2 líneas |
-| P3-11 | `src/layouts/*` o donde monte `FeedbackFormDialog` | ~5 líneas |
-| Verificación | Playwright + `bun run build -- --mode analyze` | 1 script |
-
-## Bump de versión sugerido
-
-`v7.233.0` (minor) — última tanda de performance + verificación. Se actualiza `public/changelog.json`, `public/changelog/v7.233.0.json` y `package.json`.
+- Fase 2 opcional: badges de conteo (OTs pendientes, intents por revisar, entregas de hoy) y botón "+ Nuevo" arriba del nav.
