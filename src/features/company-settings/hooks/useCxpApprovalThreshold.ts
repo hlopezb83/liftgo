@@ -1,7 +1,5 @@
 import { useMemo } from "react";
-import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { supabase } from "@/integrations/supabase/client";
-import { COMPANY_SETTINGS_INVALIDATION_KEYS } from "../lib/queryKeys";
+import { COMPANY_SETTINGS_INVALIDATION_KEYS, type CxpApprovalThreshold } from "../lib/queryKeys";
 import { useCompanySettings } from "./useCompanySettings";
 
 /**
@@ -11,10 +9,7 @@ import { useCompanySettings } from "./useCompanySettings";
  * `useCompanySettings()`. Sin cambios en la API pública: mismo shape,
  * mismo loading/error, mismo objeto memoizado.
  */
-export interface CxpApprovalThreshold {
-  id: string | null;
-  threshold: number;
-}
+
 
 const DEFAULT_THRESHOLD = 10_000;
 
