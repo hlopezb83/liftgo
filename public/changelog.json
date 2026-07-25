@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.227.2",
+    "date": "2026-07-25",
+    "type": "patch",
+    "title": "Panel · Restaurada alerta 'Rentas Vencidas'",
+    "category": "fix",
+    "description": "La RPC get_dashboard_stats había dejado de emitir la clave overdue_bookings tras un refactor previo, por lo que la tarjeta 'Rentas Vencidas' del Panel dejó de aparecer aunque existieran reservas confirmadas con end_date vencido. Se restaura la sección en el JSON con booking_id, forklift, cliente, end_date y days_overdue, ordenada por fecha de vencimiento."
+  },
+  {
     "version": "7.227.1",
     "date": "2026-07-25",
     "type": "patch",
