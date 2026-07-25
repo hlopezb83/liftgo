@@ -116,7 +116,7 @@ describe("invoiceFormSchema", () => {
     });
     expect(res.success).toBe(false);
     if (!res.success) {
-      expect(res.error.issues.some((i) => i.message === "Selecciona un cliente")).toBe(true);
+      expect(res.error.issues.some((i) => i.message === "El cliente es requerido")).toBe(true);
     }
   });
 
