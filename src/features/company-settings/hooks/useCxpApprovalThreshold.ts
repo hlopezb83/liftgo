@@ -1,10 +1,33 @@
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
+import { useMemo } from "react";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { COMPANY_SETTINGS_INVALIDATION_KEYS, cxpApprovalThresholdQueries } from "../lib/queryKeys";
+import { supabase } from "@/integrations/supabase/client";
+import { COMPANY_SETTINGS_INVALIDATION_KEYS } from "../lib/queryKeys";
+import { useCompanySettings } from "./useCompanySettings";
+
+/**
+ * Tanda 3 P3-10.1: la fila de `company_settings` es un singleton. En vez de
+ * mantener 3 queries paralelas (companySettings + cxpApprovalThreshold +
+ * cashFlowSettings) que descargan la misma fila, derivamos aquí desde
+ * `useCompanySettings()`. Sin cambios en la API pública: mismo shape,
+ * mismo loading/error, mismo objeto memoizado.
+ */
+export interface CxpApprovalThreshold {
+  id: string | null;
+  threshold: number;
+}
+
+const DEFAULT_THRESHOLD = 10_000;
 
 export function useCxpApprovalThreshold() {
-  return useQuery(cxpApprovalThresholdQueries.list());
+  const q = useCompanySettings();
+  const data: CxpApprovalThreshold | undefined = useMemo(() => {
+    if (!q.data) return q.isSuccess ? { id: null, threshold: DEFAULT_THRESHOLD } : undefined;
+    return {
+      id: q.data.id ?? null,
+      threshold: Number(q.data.cxp_approval_threshold_mxn ?? DEFAULT_THRESHOLD),
+    };
+  }, [q.data, q.isSuccess]);
+  return { ...q, data } as typeof q & { data: CxpApprovalThreshold | undefined };
 }
 
 export function useUpdateCxpApprovalThreshold() {
