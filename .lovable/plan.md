@@ -1,42 +1,31 @@
-## Diagnóstico
 
-En el Panel existe la tarjeta **"Rentas Vencidas"** (`AlertsRow.tsx`) que muestra reservas confirmadas cuyo `end_date` ya pasó y siguen sin devolverse. Se alimenta de `stats.overdue_bookings` desde la RPC `get_dashboard_stats`.
+# Re-verificación R14 (v7.228.0)
 
-Al inspeccionar la RPC actual en BD, la clave `overdue_bookings` **ya no se emite** en el JSON de respuesta (se perdió en algún refactor reciente del RPC). Por eso el frontend recibe `[]`, la card se oculta y "desaparece" del Panel.
+Objetivo: comprobar en el código actual que cada fix del doc `liftgo-diffs-lovable-r14_1.md` quedó exactamente como se pidió. Sin modificar código; sólo reporte.
 
-Verificado en datos: hay 3 reservas confirmadas con `end_date < hoy` y forklift en `rented` — deberían mostrarse:
-- MCLTC035A048/009 (vence 24/06/2026)
-- MCGSC030A048/015 (vence 06/07/2026)
-- MCGSC030A048/016 (vence 08/07/2026)
+## Alcance por hallazgo
 
-## Plan (v7.227.2)
+Para cada uno: abrir el archivo/función objetivo, cotejar contra el diff esperado, marcar OK / DESVIACIÓN (con evidencia línea).
 
-1. **Migración SQL**: reescribir `public.get_dashboard_stats()` para incluir de vuelta la sección `overdue_bookings` en el JSON:
-   ```sql
-   'overdue_bookings', COALESCE((
-     SELECT jsonb_agg(row_to_json(x) ORDER BY x.end_date)
-     FROM (
-       SELECT b.id AS booking_id,
-              f.name AS forklift_name,
-              f.id   AS forklift_id,
-              c.name AS customer_name,
-              b.end_date,
-              (CURRENT_DATE - b.end_date)::int AS days_overdue
-       FROM public.bookings b
-       JOIN public.forklifts f ON f.id = b.forklift_id
-       LEFT JOIN public.customers c ON c.id = b.customer_id
-       WHERE b.status = 'confirmed'
-         AND b.end_date < CURRENT_DATE
-     ) x
-   ), '[]'::jsonb)
-   ```
-   Mantener `SECURITY DEFINER` + `SET search_path = public` y el resto del payload intacto.
+| # | Verificar | Fuente |
+|---|-----------|--------|
+| R14-A | `useMemo(getRange, [rangeKey])` en `ActivityPage.tsx` | archivo |
+| R14-B | `cancel_booking(p_reason)` libera montacargas + no inserta status_log falso | `supabase--read_query` a `pg_proc` |
+| R14-C | `catalogsReady` gate en `useForkliftPrefill.ts` + guard en `useForkliftFormLogic.ts` | archivos |
+| R14-D | RLS `customer_payment_intents` scoped a customer | `pg_policies` |
+| R14-E | `PortalInvoicePayment.tsx`: SPEI oculto no-MXN, moneda mostrada; `approve_payment_intent` usa currency de la factura | archivo + RPC |
+| R14-F | `revert_audit_log` usa `old_data`/`new_data` | RPC |
+| R14-G | `DeleteAuditLogDialog` sin acción Delete | archivo |
+| R14-I | `RecurringInvoicesPreviewDialog`: conteo real + checkboxes informativos | archivo |
+| R14-J | `create_booking` rechaza overlap confirmado (daterange) | RPC |
+| R14-K | `useInviteUser`/`useDeleteUser`/`useResetPassword` con `invokeEdgeFunction`+`extractEdgeErrorMessage` | archivos |
+| R14-L | `useDashboardSections` y `Dashboard` gatean KPIs financieros por rol | archivos |
+| M1/M2/M3/M5/M6 | Validaciones `InvoiceForm`, pull-to-refresh Fleet/Maintenance, selector page size 10–100 | archivos |
 
-2. **Sin cambios de frontend**: `AlertsRow` y `dashboardSectionHelpers.ts` ya consumen `overdue_bookings` con el shape correcto — solo faltaba que el backend lo emitiera.
+## Método
 
-3. **Changelog**: `public/changelog.json` + `public/changelog/v7.227.2.json` describiendo la restauración de la alerta "Rentas Vencidas" (patch).
+Lecturas paralelas de archivos + `supabase--read_query` a `pg_proc.prosrc` y `pg_policies` para las 5 piezas de BD. Sin edits.
 
-4. **Validación**: tras aplicar la migración, verificar en `/` que la card "Rentas Vencidas" aparezca con las 3 reservas identificadas.
+## Entregable
 
-## Fuera de alcance
-No se toca el KPI de "Rentados" del calendario (v7.227.1) ni la lógica de status de forklifts.
+Tabla `# | estado | evidencia (archivo:línea o fragmento SQL) | nota`. Si aparece desviación, propongo diff puntual en el próximo turno (no lo aplico aquí).
