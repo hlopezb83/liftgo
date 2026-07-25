@@ -1,5 +1,6 @@
 
-import { parseISO, isWithinInterval } from "date-fns";
+import { parseISO } from "date-fns";
+import { useMemo } from "react";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ChevronRightIcon } from "@/components/icons";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
@@ -17,32 +18,45 @@ interface EquipmentListViewProps {
   bookings: BookingWithForklift[] | undefined;
 }
 
-export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProps) {
-  const bookingsByForklift = (() => {
-    const map = new Map<string, BookingWithForklift[]>();
-    bookings?.forEach((b) => {
-      if (b.status !== BOOKING_STATUS.confirmed && b.status !== BOOKING_STATUS.completed) return;
-      const list = map.get(b.forklift_id);
-      if (list) list.push(b);
-      else map.set(b.forklift_id, [b]);
-    });
-    return map;
-  })();
+interface EnrichedBooking {
+  booking: BookingWithForklift;
+  startTs: number;
+  endTs: number;
+}
 
-  const today = nowMty();
+// Tanda 2 P1-6: parseISO fuera del render + del comparador de sort.
+// Se precalculan una vez y se reusan en filter/sort → sin try/catch en render.
+function enrichBookings(bookings: BookingWithForklift[] | undefined): Map<string, EnrichedBooking[]> {
+  const map = new Map<string, EnrichedBooking[]>();
+  if (!bookings) return map;
+  for (const b of bookings) {
+    if (b.status !== BOOKING_STATUS.confirmed && b.status !== BOOKING_STATUS.completed) continue;
+    const startTs = Date.parse(b.start_date);
+    const endTs = Date.parse(b.end_date);
+    if (!Number.isFinite(startTs) || !Number.isFinite(endTs)) continue;
+    const entry: EnrichedBooking = { booking: b, startTs, endTs };
+    const list = map.get(b.forklift_id);
+    if (list) list.push(entry);
+    else map.set(b.forklift_id, [entry]);
+  }
+  return map;
+}
+
+export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProps) {
+  const bookingsByForklift = useMemo(() => enrichBookings(bookings), [bookings]);
+  const todayTs = useMemo(() => nowMty().getTime(), []);
 
   return (
     <div className="space-y-1">
       {forklifts?.map((fl) => {
-        const flBookings = bookingsByForklift.get(fl.id) || [];
-        const activeBooking = flBookings.find((b) => {
-          try {
-            return b.status === BOOKING_STATUS.confirmed && isWithinInterval(today, { start: parseISO(b.start_date), end: parseISO(b.end_date) });
-          } catch { return false; }
-        });
+        const flBookings = bookingsByForklift.get(fl.id) ?? [];
+        const activeBooking = flBookings.find(
+          (e) => e.booking.status === BOOKING_STATUS.confirmed && e.startTs <= todayTs && e.endTs >= todayTs,
+        )?.booking;
         const upcoming = flBookings
-          .filter((b) => parseISO(b.start_date) > today && b.status === BOOKING_STATUS.confirmed)
-          .sort((a, b) => parseISO(a.start_date).getTime() - parseISO(b.start_date).getTime());
+          .filter((e) => e.startTs > todayTs && e.booking.status === BOOKING_STATUS.confirmed)
+          .sort((a, b) => a.startTs - b.startTs)
+          .map((e) => e.booking);
 
         return (
           <Collapsible key={fl.id}>
@@ -78,6 +92,7 @@ export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProp
     </div>
   );
 }
+
 
 function BookingRow({ booking, label }: { booking: BookingWithForklift; label: string }) {
   const duration = rentalDaysInclusive(parseISO(booking.start_date), parseISO(booking.end_date));

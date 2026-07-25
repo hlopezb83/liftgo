@@ -19,15 +19,19 @@ export function useForklifts() {
     queryKey: forkliftKeys.lists(),
     staleTime: 60_000,
     queryFn: async () => {
+      // Tanda 2 P2-7: límite defensivo. LiftGo hoy tiene <200 equipos; 500 deja
+      // holgura y previene descargas ilimitadas si la flota crece.
       const { data, error } = await supabase
         .from("forklifts")
         .select(FORKLIFT_COLUMNS)
         .is("deleted_at", null)
         .or("is_e2e.is.null,is_e2e.eq.false")
         .order("name")
+        .limit(500)
         .returns<Forklift[]>();
       if (error) throw error;
       return data ?? [];
+
     },
   });
 }

@@ -1,5 +1,14 @@
 [
   {
+    "version": "7.231.0",
+    "date": "2026-07-26",
+    "type": "minor",
+    "title": "R-Perf Tanda 2 · trigger de auditoría sin XML, Sentry Replay lazy, límites de queries",
+    "category": "performance",
+    "description": "P1-4: `audit_trigger_fn` excluye `cfdi_xml`/`content`/`xml_content`/`line_items` antes de guardar en audit_logs (nuevas filas 10-20× más ligeras). P0-3.2: Sentry Replay se difiere a idle via `addIntegration` fuera del chunk inicial (~30-35 KB gz). P2-7: `useForklifts` y `useSupplierBills` con `.limit(500)` + columnas explícitas. P1-6 parcial: EquipmentListView precomputa timestamps (elimina try/catch en render y `parseISO` en cada comparador de sort)."
+  },
+  {
+
     "version": "7.230.0",
     "date": "2026-07-26",
     "type": "minor",

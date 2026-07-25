@@ -1,51 +1,57 @@
 
-# Plan · Rendimiento R-Perf — Tanda 1 (quick wins)
+# Tanda 2 — Optimizaciones estructurales de rendimiento (v7.231.0)
 
-Objetivo: eliminar el jank perceptible en tablas, aligerar la lista de facturas y recortar ~140 KB gz del primer paint. Cambios de bajo riesgo, verificados con `tsgo` + Vitest.
+Tanda 1 ya fue aplicada (v7.230.0). Ahora ejecutamos los ítems estructurales del reporte `liftgo-analisis-rendimiento.md`.
 
-## Alcance (Tanda 1 únicamente)
+## Alcance
 
-Los ítems estructurales de Tanda 2 (audit trigger, RPC forklift_current_location, bail-outs React Compiler, CustomerSelector→combobox, Sentry Replay lazy, invalidaciones quirúrgicas) quedan fuera; los planteo aparte tras validar Tanda 1.
+### 1. P1-4 · Audit trigger sin XML + old/new solo en detalle
+- **Migración:** modificar el trigger de auditoría (`20260215213953`) para excluir `cfdi_xml` (y columnas grandes equivalentes como `content` de contratos, `line_items` cuando aplique) de `old_data`/`new_data` usando `to_jsonb(OLD) - 'cfdi_xml' - 'content'`.
+- **UI:** `ActivityPage` / lista de auditoría consulta columnas explícitas SIN `old_data`/`new_data`. El detalle (drill-down) hace fetch por id con esas columnas.
 
-## Cambios
+### 2. P1-5 · `/fleet` — vista `forklift_current_location`
+- Crear vista SQL `forklift_current_location` (o RPC) que devuelve `forklift_id, current_location, has_active_policy` derivado de contracts/deliveries/policies activos.
+- Refactor `FleetPage.tsx` para usar la vista en lugar de descargar `useContracts`/`useDeliveries`/`useMaintenancePolicies` completos.
+- GRANT SELECT a `authenticated`.
 
-### 1. P0-1 · Memoizar `dataVersion` (crítico, 1 línea)
-- `src/components/dataTable/v2/useLiftgoTable.ts`: envolver el `tableData.map(JSON.stringify).join("|")` en `useMemo(..., [tableData])`.
-- Impacto: elimina ~95% del costo por render en TODAS las tablas (a 500 filas de facturas: 21 ms → <1 ms).
-- Riesgo: nulo — TanStack Query siempre devuelve nueva referencia ante cambio de contenido; el bug R13-1 (in-place edits) ya no aplica porque los `setQueryData` del repo usan updaters inmutables.
-- Verificación: `bunx vitest run src/components/dataTable/v2/__tests__/useLiftgoTable.dataVersion.test.tsx`.
+### 3. P1-6 · Bail-outs del React Compiler
+- **`DataTableBodyV2.tsx:57`** — eliminar refs-en-render, mover a `useRef` + `useEffect`.
+- **`EquipmentListView.tsx:20`** — reescribir try/catch fuera del render (memoizar resultado).
+- **`CalendarPage.tsx:30`** — mover `parseISO` fuera del comparador de sort (pre-computar timestamps).
+- Objetivo: 0 warnings de `react-compiler/react-compiler` en estos 3 archivos.
 
-### 2. P0-2 · Separar `INVOICE_LIST_COLUMNS` (sin `cfdi_xml` ni `line_items`)
-- `src/features/invoices/hooks/useInvoices.ts`: nuevo array `INVOICE_LIST_COLUMNS` para `fetchInvoicePage` / lista infinita; el detalle sigue usando `INVOICE_COLUMNS` completo.
-- Detalle (`useInvoice(id)`) ya re-descarga por id; `download-cfdi` sirve XML desde storage — sin regresión funcional.
-- Impacto: payload lista 6-10× menor + reduce el costo residual del P0-1.
+### 4. P2-7 · Límites en queries sin paginar
+- `useForklifts` — añadir `.limit(500)` + patrón "cargar más" si aplica.
+- `useSupplierBills` — columnas explícitas + `.limit(500)`.
+- `cash_flow_projection` — ventana temporal (últimos 12 meses) en pagos.
 
-### 3. P0-3.1 · Fix chunking `recharts` (3 líneas de config)
-- `vite.config.ts`: en `manualChunks`, insertar grupo `ui-utils` (`clsx`, `tailwind-merge`, `class-variance-authority`) ANTES del grupo `recharts` para que `clsx` no arrastre recharts al chunk inicial.
-- Ahorro: ~109 KB gz en primer paint.
+### 5. P2-9 · `CustomerSelector` → combobox cmdk
+- Migrar de Radix Select a combobox cmdk con búsqueda (patrón de `GlobalSearch`).
+- Mantener API pública del componente (props idénticas) para no romper llamadores.
 
-### 4. P0-3.3 · Badge de versión desde `version.json` (sin descargar changelog completo)
-- `src/layouts/sidebar/SidebarBranding.tsx` (o donde consuma `useCurrentVersion`): leer versión desde `VITE_APP_VERSION` / `/version.json` (72 B) en vez de `useChangelog` (424 KB).
-- `useChangelog` queda restringido a la ruta `/changelog`.
-- Ahorro: 132 KB gz + 1 request de arranque.
+### 6. P0-3.2 · Sentry Replay lazy
+- En `main.tsx` (o donde se inicializa Sentry), reemplazar el import estático de `replayIntegration` por `Sentry.lazyLoadIntegration("replayIntegration")` invocado sólo en `beforeSend` cuando hay error.
 
-### 5. P3-10.4 · `placeholderData: keepPreviousData` en `useInvoicesInfinite`
-- 1 línea. Evita el parpadeo/vacío por keystroke.
+### 7. P3-10.1 · Consolidar `company_settings`
+- Un solo query `useCompanySettings()` que devuelve la fila completa; hooks derivados (`useCxpApprovalThreshold`, `useCashFlowSettings`) usan `select` sobre esa query.
+- `public_branding` queda aparte (pública pre-login).
 
-### 6. P2-8 · `xlsx` dinámico en CxP
-- `src/features/accounts-payable/...` (`downloadPaymentsXlsx`, `downloadReconciliationXlsx`): reemplazar `import` estático por `await import("@e965/xlsx")` dentro de la función.
-- Ahorro: 106 KB gz fuera del chunk de la ruta.
+### 8. P3-10.2 · Invalidaciones quirúrgicas de bookings/quotes
+- Cambiar invalidaciones "root" por `setQueryData` (patrón `useUpdateForklift`) o `invalidateQueries({ queryKey: detail(id) })` + `lists()` en `useCreateBooking`/`useCancelBooking`/`useDeleteBooking` y equivalentes de quotes.
 
-### 7. P3-11 · Higiene assets
-- `public/favicon.png`: reemplazar por versión ≤10 KB (o SVG si hay disponible).
-- `index.html`: eliminar `<link rel="preconnect" href="https://cdn.gpteng.co">` (no se usa).
+## Fuera de alcance
+- Recomendaciones ya aplicadas en Tanda 1.
+- P3-11 (favicon/fonts) más allá de lo hecho.
+- Cambios que impliquen rediseño UX.
 
-## Detalles técnicos
+## Verificación
+- `tsgo` limpio.
+- Vitest suite completa passing.
+- Re-medir React Compiler: 0 bail-outs en los 3 archivos objetivo.
+- Manual smoke test: /fleet (menos requests), /audit (payloads menores), /invoices form (CustomerSelector responsive), calendario sin jank.
+- Changelog: entrada `v7.231.0` (minor — cambios estructurales pero backward-compatible).
 
-- Todo el trabajo es frontend / config Vite / assets. No hay migraciones ni cambios en RPCs ni RLS.
-- Verificación por paso: `bunx tsgo`, `bunx vitest run` en archivos tocados, y `bun run build` para confirmar que `dist/assets` ya no contiene recharts en el chunk inicial (comparar `stats.html` si se genera con `ANALYZE=1`).
-- Changelog: entrada `v7.230.0` (minor, agrupa perf) en `public/changelog.json` + detalle en `public/changelog/v7.230.0.json`, siguiendo la convención del proyecto.
-
-## Fuera de alcance (Tanda 2 — pediré confirmación después)
-
-Audit trigger sin XML (P1-4), `forklift_current_location` (P1-5), bail-outs React Compiler (P1-6), límites forklifts/supplier_bills/cash-flow (P2-7), CustomerSelector combobox (P2-9), Sentry Replay lazy (P0-3.2), consolidación company_settings + invalidaciones bookings (P3-10.1-2), lazy de diálogos (P3-11).
+## Notas técnicas
+- El trigger de auditoría requiere `SET search_path = public` y respetar el patrón `SECURITY DEFINER`.
+- La vista `forklift_current_location` debe declararse `security_invoker=true` para respetar RLS del caller.
+- El combobox `cmdk` debe soportar `disabled`, `placeholder` y estado controlado como el Select actual.

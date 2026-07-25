@@ -27,21 +27,10 @@ if (dsn && env !== "test") {
     replaysOnErrorSampleRate: env === "production" ? 1.0 : 0,
     integrations: [
       Sentry.browserTracingIntegration(),
-      // Defaults ya seguros (maskAllText/maskAllInputs = true, blockAllMedia).
-      // Los dejamos explícitos + `networkDetailAllowUrls: []` para que Replay
-      // NO capture request/response bodies bajo ninguna URL, y añadimos
-      // `mask: ['[data-sentry-mask]']` para que componentes ad-hoc puedan
-      // reforzar el masking de zonas visualmente sensibles (montos, folios).
-      Sentry.replayIntegration({
-        maskAllText: true,
-        maskAllInputs: true,
-        blockAllMedia: true,
-        networkDetailAllowUrls: [],
-        networkCaptureBodies: false,
-        mask: ["[data-sentry-mask]"],
-        block: ["[data-sentry-block]"],
-      }),
+      // Replay se carga perezosamente después del primer paint para no
+      // inflar el chunk inicial (~30-35 KB gz). Ver bloque `schedule` abajo.
     ],
+
     // Filtra ruido conocido para no gastar cuota en errores no accionables.
     ignoreErrors: [
       "ResizeObserver loop limit exceeded",
@@ -81,6 +70,31 @@ if (dsn && env !== "test") {
   // introduzcamos multi-tenant, sólo cambie el valor sin tocar consumidores.
   Sentry.setTag("tenant", "liftgo");
   Sentry.setTag("app", "liftgo-erp");
+
+  // Lazy-load de Replay: sólo capturamos onError, así que no hay razón
+  // para bloquear el primer paint. Se difiere a idle o 2s como fallback.
+  if (env === "production") {
+    const win = typeof window !== "undefined" ? window : undefined;
+    const schedule = win?.requestIdleCallback
+      ? (cb: () => void) => win.requestIdleCallback(cb, { timeout: 3000 })
+      : (cb: () => void) => setTimeout(cb, 2000);
+    schedule(() => {
+      void import("@sentry/react").then(({ replayIntegration, addIntegration }) => {
+        addIntegration(
+          replayIntegration({
+            maskAllText: true,
+            maskAllInputs: true,
+            blockAllMedia: true,
+            networkDetailAllowUrls: [],
+            networkCaptureBodies: false,
+            mask: ["[data-sentry-mask]"],
+            block: ["[data-sentry-block]"],
+          }),
+        );
+      });
+    });
+  }
 }
 
 export { Sentry };
+
