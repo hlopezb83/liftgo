@@ -2,7 +2,7 @@ import { DashboardIcon, FleetIcon, CalendarDays, BookOpen, UsersIcon, Maintenanc
 import type { ElementType } from "react";
 
 export type NavItem = { title: string; url: string; icon: ElementType };
-export type NavGroup = { label: string; items: NavItem[]; collapsible?: boolean };
+export type NavGroup = { label: string; items: NavItem[]; collapsible?: boolean; defaultOpen?: boolean };
 
 export const NAV_GROUPS: NavGroup[] = [
   {
@@ -13,18 +13,9 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: "Ventas",
-    collapsible: true,
-    items: [
-      { title: "CRM", url: "/crm", icon: TargetIcon },
-      { title: "Clientes", url: "/customers", icon: UsersIcon },
-      { title: "Cotizaciones", url: "/quotes", icon: DocumentIcon },
-      { title: "Contratos", url: "/contracts", icon: ScrollText },
-    ],
-  },
-  {
-    label: "Operaciones",
-    collapsible: true,
+    // Flujo del día a día de una rentadora: lo usa el 80% de los roles.
+    // Sin colapsar y arriba — antes estaba escondido en un grupo colapsado.
+    label: "Operación diaria",
     items: [
       { title: "Reservas", url: "/bookings", icon: BookOpen },
       { title: "Entregas", url: "/deliveries", icon: DeliveryIcon },
@@ -32,23 +23,14 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: "Compras",
+    label: "Ventas",
     collapsible: true,
+    defaultOpen: true, // pipeline comercial: uso frecuente
     items: [
-      { title: "Proveedores", url: "/suppliers", icon: SupplierIcon },
-      { title: "Facturas de Proveedor", url: "/cuentas-por-pagar", icon: FileClock },
-    ],
-  },
-  {
-    label: "Facturación y Finanzas",
-    collapsible: true,
-    items: [
-      { title: "Facturas", url: "/invoices", icon: InvoiceIcon },
-      { title: "Conciliación", url: "/invoices/reconciliation", icon: GitCompareArrows },
-      { title: "Flujo de Caja", url: "/flujo-de-caja", icon: TrendingUpIcon },
-      { title: "Cuentas Bancarias", url: "/cuentas-bancarias", icon: BankIcon },
-      { title: "Conciliación Bancaria", url: "/conciliacion-bancaria", icon: ArrowLeftRight },
-      { title: "Estado de Resultados", url: "/income-statement", icon: ChartIcon },
+      { title: "CRM", url: "/crm", icon: TargetIcon },
+      { title: "Clientes", url: "/customers", icon: UsersIcon },
+      { title: "Cotizaciones", url: "/quotes", icon: DocumentIcon },
+      { title: "Contratos", url: "/contracts", icon: ScrollText },
     ],
   },
   {
@@ -61,6 +43,29 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
+    // Renombrado de "Facturación y Finanzas": más corto y directo.
+    label: "Dinero",
+    collapsible: true,
+    items: [
+      { title: "Facturas", url: "/invoices", icon: InvoiceIcon },
+      // Renombrado de "Conciliación": había DOS "Conciliación" en el mismo
+      // grupo (pagos vs bancaria). Ahora son inequívocas.
+      { title: "Conciliación de Pagos", url: "/invoices/reconciliation", icon: GitCompareArrows },
+      { title: "Flujo de Caja", url: "/flujo-de-caja", icon: TrendingUpIcon },
+      { title: "Cuentas Bancarias", url: "/cuentas-bancarias", icon: BankIcon },
+      { title: "Conciliación Bancaria", url: "/conciliacion-bancaria", icon: ArrowLeftRight },
+      { title: "Estado de Resultados", url: "/income-statement", icon: ChartIcon },
+    ],
+  },
+  {
+    label: "Compras",
+    collapsible: true,
+    items: [
+      { title: "Proveedores", url: "/suppliers", icon: SupplierIcon },
+      { title: "Facturas de Proveedor", url: "/cuentas-por-pagar", icon: FileClock },
+    ],
+  },
+  {
     label: "Análisis",
     items: [
       { title: "Reportes", url: "/reports", icon: ChartIcon },
@@ -68,22 +73,34 @@ export const NAV_GROUPS: NavGroup[] = [
     ],
   },
   {
-    label: "Comunidad",
+    // Nuevo grupo: habla el mismo idioma que la pantalla de permisos,
+    // donde el módulo se llama literalmente "Auditoría" (ROUTE_TO_MODULE).
+    label: "Auditoría",
     items: [
-      { title: "Mis Reportes", url: "/mis-reportes", icon: MessageSquare },
-      { title: "Tabla de Honor", url: "/leaderboard", icon: TrophyIcon },
-      { title: "Gestión de Feedback", url: "/feedback", icon: Megaphone },
+      { title: "Actividad", url: "/activity", icon: ActivityIcon },
+      { title: "Bitácora", url: "/audit", icon: HistoryIcon },
     ],
   },
   {
-    label: "Sistema",
+    // Renombrado de "Sistema": solo administración (antes mezclaba
+    // auditoría y ayuda).
+    label: "Administración",
     items: [
       { title: "Usuarios", url: "/users", icon: SecurityIcon },
       { title: "Configuración", url: "/settings/operations", icon: SettingsIcon },
-      { title: "Actividad", url: "/activity", icon: ActivityIcon },
-      { title: "Bitácora", url: "/audit", icon: HistoryIcon },
-      { title: "Changelog", url: "/changelog", icon: ScrollText },
+    ],
+  },
+  {
+    // Ayuda + comunidad: baja frecuencia → colapsado por defecto.
+    label: "Soporte",
+    collapsible: true,
+    defaultOpen: false,
+    items: [
       { title: "Ayuda", url: "/help", icon: HelpIcon },
+      { title: "Changelog", url: "/changelog", icon: ScrollText },
+      { title: "Mis Reportes", url: "/mis-reportes", icon: MessageSquare },
+      { title: "Tabla de Honor", url: "/leaderboard", icon: TrophyIcon },
+      { title: "Gestión de Feedback", url: "/feedback", icon: Megaphone },
     ],
   },
 ];

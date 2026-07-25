@@ -1,0 +1,39 @@
+{
+  "version": "7.234.0",
+  "date": "2026-07-26",
+  "type": "minor",
+  "title": "Reorganización del sidebar · grupos por frecuencia + persistencia de colapso",
+  "category": "ui",
+  "summary": "Sidebar reorganizado por frecuencia de uso, renombres para desambiguar, y estado colapsado persistente entre sesiones.",
+  "sections": [
+    {
+      "title": "Reorganización de grupos",
+      "items": [
+        "Nuevo grupo top 'Operación diaria' (Reservas, Entregas, Devoluciones) — sin colapsar, visible para el 80% de los roles.",
+        "'Ventas' ahora abierto por defecto (defaultOpen: true).",
+        "'Facturación y Finanzas' renombrado a 'Dinero'.",
+        "Ítem 'Conciliación' renombrado a 'Conciliación de Pagos' para diferenciarlo de 'Conciliación Bancaria'.",
+        "Nuevo grupo 'Auditoría' (Actividad + Bitácora), alineado con el nombre del módulo en la matriz de permisos.",
+        "'Sistema' renombrado a 'Administración' — solo Usuarios + Configuración.",
+        "Nuevo grupo 'Soporte' colapsado por defecto: Ayuda, Changelog, Mis Reportes, Tabla de Honor, Gestión de Feedback."
+      ]
+    },
+    {
+      "title": "Persistencia de estado",
+      "items": [
+        "El estado abierto/cerrado de cada grupo colapsable se guarda en localStorage (`liftgo:sidebar:nav-groups-v1`).",
+        "Prioridad al reabrir la app: valor persistido > defaultOpen del grupo > si contiene la ruta activa.",
+        "Navegar a una ruta cuyo grupo esté colapsado sigue auto-abriendo el grupo (`open || hasActive` intacto).",
+        "Try/catch en lectura/escritura para modo privado o storage bloqueado."
+      ]
+    },
+    {
+      "title": "Sin cambios",
+      "items": [
+        "URLs, `ROUTE_TO_MODULE` y matriz de permisos por rol.",
+        "`ALWAYS_VISIBLE_ROUTES` y `useVisibleNavGroups`.",
+        "Tests existentes (roleMatrix, etc.) — no dependen de labels del nav."
+      ]
+    }
+  ]
+}

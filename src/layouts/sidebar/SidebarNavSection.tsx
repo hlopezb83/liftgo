@@ -14,6 +14,28 @@ import type { NavGroup, NavItem } from "./navConfig";
 // sostiene 120ms. Evita cargar chunks al pasar el cursor sin intención.
 const PREFETCH_DELAY_MS = 120;
 
+// Persistencia del estado colapsado por grupo. Keyed por label del grupo
+// (estable tras la reorganización; renombrar un grupo solo resetea SU estado).
+const NAV_GROUPS_STORAGE_KEY = "liftgo:sidebar:nav-groups-v1";
+
+function readNavGroupState(): Record<string, boolean> {
+  try {
+    return JSON.parse(window.localStorage.getItem(NAV_GROUPS_STORAGE_KEY) ?? "{}");
+  } catch {
+    return {}; // storage lleno/corrupto/bloqueado → defaults
+  }
+}
+
+function writeNavGroupState(label: string, open: boolean) {
+  try {
+    const state = readNavGroupState();
+    state[label] = open;
+    window.localStorage.setItem(NAV_GROUPS_STORAGE_KEY, JSON.stringify(state));
+  } catch {
+    // modo privado / sin storage → la sesión simplemente no persiste
+  }
+}
+
 function NavMenuItem({ item }: { item: NavItem }) {
   const timerRef = useRef<number | null>(null);
   const loader = routeLoaders[item.url];
@@ -60,7 +82,16 @@ export function SidebarNavSection({ group }: { group: NavGroup }) {
   const hasActive = group.items.some(
     (i) => i.url === "/" ? pathname === "/" : pathname.startsWith(i.url),
   );
-  const [open, setOpen] = useState(hasActive);
+  // Prioridad: lo que el usuario dejó guardado > defaultOpen del grupo > activo.
+  const [open, setOpen] = useState(() => {
+    const persisted = readNavGroupState()[group.label];
+    return persisted ?? group.defaultOpen ?? hasActive;
+  });
+
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    writeNavGroupState(group.label, next);
+  };
 
   // En modo icon o cuando el grupo no es colapsable, render plano.
   if (!group.collapsible || collapsedSidebar) {
@@ -78,7 +109,7 @@ export function SidebarNavSection({ group }: { group: NavGroup }) {
 
   return (
     <SidebarGroup>
-      <Collapsible open={open || hasActive} onOpenChange={setOpen}>
+      <Collapsible open={open || hasActive} onOpenChange={handleOpenChange}>
         <CollapsibleTrigger asChild>
           <SidebarGroupLabel
             className="cursor-pointer flex items-center justify-between hover:text-sidebar-foreground"
