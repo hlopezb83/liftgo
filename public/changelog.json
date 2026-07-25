@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.229.0",
+    "date": "2026-07-25",
+    "type": "minor",
+    "title": "R15 · Guard de factura, superficies de error, alias de métricas y semántica de bitácora",
+    "category": "fix",
+    "description": "F-03 (crítico): guard de cambios sin guardar en Factura ya no dispara tras guardar (bypass por ref, gana la carrera al navigate síncrono). F-01: 'Cliente requerido' se mueve a customerId → el error se pinta bajo el selector. F-02: error de partidas se lee desde errors.lineItems.root.message (RHF 7.x). AUTH-1: get_activity_metrics restaura alias \"entityType\" → tarjeta 'Acciones por módulo' vuelve a mostrar etiquetas y KPI 'Módulo más usado'. R15-1: key duplicada en preview recurrente resuelta por bookingId+periodStart. AUTH-2: diálogos de usuarios envuelven mutateAsync en try/catch (sin unhandled rejection). AUTH-3: ícono de basura destructive reemplazado por UndoIcon en bitácora."
+  },
+  {
     "version": "7.228.1",
     "date": "2026-07-25",
     "type": "patch",

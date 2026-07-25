@@ -1,0 +1,55 @@
+{
+  "version": "7.229.0",
+  "date": "2026-07-25",
+  "type": "minor",
+  "title": "R15 · Guard de factura, superficies de error, alias de métricas y semántica de bitácora",
+  "category": "fix",
+  "sections": [
+    {
+      "heading": "F-03 · Crítico — Guard de cambios sin guardar en Factura",
+      "items": [
+        "InvoiceForm ahora usa justSavedRef (useRef) para bypass del guard tras onSuccess. useBlocker cierra sobre el isDirty del render previo; reset() + navigate() en el mismo tick no le gana la carrera. La ref se lee en el momento del bloqueo sin depender de re-render de RHF.",
+        "Aplica a create y a edit; el diálogo '¿Descartar cambios?' ya no aparece al guardar."
+      ]
+    },
+    {
+      "heading": "F-01 · Cliente requerido sin superficie de error",
+      "items": [
+        "invoiceFormSchema: el .min(1, 'El cliente es requerido') se mueve de customerName a customerId.",
+        "customerName vuelve a z.string() (sin min).",
+        "Default customerId pasa de null a '' para alinearse con el nuevo tipo. Handlers y builders (invoiceFormBuilders, useInvoiceFormHandlers) normalizan a '' y useInvoiceFormSubmit convierte '' → null antes de persistir."
+      ]
+    },
+    {
+      "heading": "F-02 · Error de líneas en .root no se renderiza",
+      "items": [
+        "EditableLineItemsTable lee errors.lineItems.root.message con fallback a .message. Zod superRefine con path:['lineItems'] ahora sí pinta 'El total de la factura debe ser mayor a $0'."
+      ]
+    },
+    {
+      "heading": "AUTH-1 · Alias roto en get_activity_metrics",
+      "items": [
+        "Migración: SELECT entity_type AS \"entityType\" restaurado en el agregado por módulo.",
+        "Reactiva la tarjeta 'Acciones por módulo', el KPI 'Módulo más usado' y el filtro por módulo en /activity."
+      ]
+    },
+    {
+      "heading": "R15-1 · Duplicate React key en preview recurrente",
+      "items": [
+        "RecurringPreviewBody: key={`${line.bookingId}:${line.periodStart}`} para tolerar múltiples períodos catch-up por reserva."
+      ]
+    },
+    {
+      "heading": "AUTH-2 · Unhandled promise rejections en diálogos de usuarios",
+      "items": [
+        "InviteUserDialog, DeleteUserDialog y RoleChangeDialog envuelven mutateAsync en try/catch (silencioso; el toast lo maneja useEntityMutation)."
+      ]
+    },
+    {
+      "heading": "AUTH-3 · Ícono de basura abre 'Revertir'",
+      "items": [
+        "useAuditTrailColumns y AuditLogMobileCard reemplazan DeleteIcon (bote destructive) por UndoIcon (muted-foreground), con aria/title 'Revertir acción'."
+      ]
+    }
+  ]
+}
