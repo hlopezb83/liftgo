@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { useWatch } from "react-hook-form";
 import { useParams, useSearchParams } from "react-router";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
@@ -31,7 +32,13 @@ export default function InvoiceForm() {
   const { data: nextNumber, isLoading: loadingNext } = useNextInvoiceNumber(!f.isEdit);
   const taxRate = useWatch({ control: f.form.control, name: "taxRate" });
   const isSubmitting = f.createInvoice.isPending || f.updateInvoice.isPending;
-  useUnsavedChangesGuard(f.form.formState.isDirty && !isSubmitting);
+  // R15 F-03: bypass del guard vía ref. useBlocker cierra sobre el isDirty del
+  // render previo; reset() + navigate() en el mismo tick no le gana la carrera.
+  // La ref se lee en el momento del bloqueo sin depender de re-render.
+  const justSavedRef = useRef(false);
+  useUnsavedChangesGuard(
+    f.form.formState.isDirty && !isSubmitting && !justSavedRef.current,
+  );
 
   const onSubmit = (values: InvoiceFormValues) => {
     const payload = f.onSubmit(values);
@@ -41,8 +48,7 @@ export default function InvoiceForm() {
       f.updateInvoice.mutate({ id: invoiceId, ...payload }, {
         onSuccess: async () => {
           await f.syncInvoiceBookings.mutateAsync({ invoiceId, bookingIds });
-          // M5: marcar valores guardados como nuevo default → isDirty=false y el
-          // guard de cambios sin guardar no dispara al navegar.
+          justSavedRef.current = true;
           f.form.reset(values);
           notifySuccess("Factura actualizada");
           navigate(`/invoices/${invoiceId}`);
@@ -52,7 +58,8 @@ export default function InvoiceForm() {
       f.createInvoice.mutate(payload, {
         onSuccess: async (data) => {
           await f.syncInvoiceBookings.mutateAsync({ invoiceId: data.id, bookingIds });
-          f.form.reset(values); // M5
+          justSavedRef.current = true;
+          f.form.reset(values);
           notifySuccess(`Factura ${data.invoice_number} creada`);
           if (f.fromQuoteId) f.updateQuote.mutate({ id: f.fromQuoteId, status: "accepted" });
           navigate(`/invoices/${data.id}`);

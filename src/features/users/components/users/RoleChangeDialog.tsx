@@ -19,7 +19,12 @@ export function RoleChangeDialog({ target, onClose }: RoleChangeDialogProps) {
 
   const handleConfirm = async () => {
     if (!target) return;
-    await updateRole.mutateAsync({ userId: target.user.user_id, role: target.newRole });
+    // R15 AUTH-2: swallow rejection (toast lo maneja useEntityMutation).
+    try {
+      await updateRole.mutateAsync({ userId: target.user.user_id, role: target.newRole });
+    } catch {
+      return;
+    }
     onClose();
   };
 

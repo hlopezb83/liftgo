@@ -40,7 +40,13 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
       return;
     }
     setEmailError(null);
-    await inviteUser.mutateAsync({ email: parsed.data, full_name: fullName.trim(), role });
+    // R15 AUTH-2: el toast de error lo maneja useEntityMutation; capturamos
+    // aquí para evitar unhandled rejection en la consola / Sentry.
+    try {
+      await inviteUser.mutateAsync({ email: parsed.data, full_name: fullName.trim(), role });
+    } catch {
+      return;
+    }
     setOpen(false);
     setFullName("");
     setEmail("");

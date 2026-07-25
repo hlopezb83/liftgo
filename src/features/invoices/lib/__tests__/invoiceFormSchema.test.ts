@@ -124,7 +124,7 @@ describe("buildEmptyInvoiceValues", () => {
     expect(v.cfdi.moneda).toBe("MXN");
     expect(v.cfdi.tipoCambio).toBe(1);
     expect(v.lineItems).toEqual([]);
-    expect(v.customerId).toBeNull();
+    expect(v.customerId).toBe("");
     expect(v.issueDate).toBeInstanceOf(Date);
   });
 

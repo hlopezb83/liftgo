@@ -15,7 +15,11 @@ import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
 export function EditableLineItemsTable() {
   const form = useFormContext<InvoiceFormValues>();
   const { fields, addLineItem, removeLineItem } = useInvoiceLineItemHandlers(form);
-  const rootError = form.formState.errors.lineItems?.message;
+  // R15 F-02: Zod superRefine con path: ["lineItems"] emite en .root.message
+  // (RHF 7.x). Preferimos root, con fallback a .message por compatibilidad.
+  const rootError =
+    form.formState.errors.lineItems?.root?.message ??
+    form.formState.errors.lineItems?.message;
 
   return (
     <Card>

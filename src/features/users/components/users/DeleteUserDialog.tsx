@@ -11,7 +11,12 @@ export function DeleteUserDialog({ user, onClose }: DeleteUserDialogProps) {
 
   const handleDelete = async () => {
     if (!user) return;
-    await deleteUser.mutateAsync(user.user_id);
+    // R15 AUTH-2: swallow rejection (toast lo maneja useEntityMutation).
+    try {
+      await deleteUser.mutateAsync(user.user_id);
+    } catch {
+      return;
+    }
     onClose();
   };
 
