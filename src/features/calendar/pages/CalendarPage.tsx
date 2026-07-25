@@ -73,70 +73,33 @@ export default function CalendarPage() {
         title="Calendario de Disponibilidad"
         subtitle="Ver reservas de toda la flota"
       />
-
-      {endingSoon.length > 0 && (
-        <Card className="border-status-maintenance/30 bg-status-maintenance/5">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2 mb-2">
-              <WarnIcon className="h-4 w-4 text-status-maintenance" />
-              <span className="font-medium text-sm">Reservas por vencer ({endingSoon.length})</span>
-            </div>
-            <div className="space-y-1">
-              {endingSoon.map((b) => (
-                <div key={b.id} className="flex items-center justify-between text-sm p-2 rounded bg-background/80">
-                  <span>{forkliftMap.get(b.forklift_id)?.name} — {b.customer_name}</span>
-                  <span className="text-xs text-muted-foreground">Termina: {formatMtyDate(b.end_date)}</span>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <EndingSoonAlert items={endingSoon} forkliftMap={forkliftMap} />
 
       <CalendarStatCards forklifts={forklifts} bookings={bookings} />
 
-      {/* View mode selector */}
-      <div className="flex items-center flex-wrap gap-2">
-        <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "gantt" | "list")}>
-          <TabsList className="h-8">
-            <TabsTrigger value="gantt" className="text-xs px-3 h-6">Gantt</TabsTrigger>
-            <TabsTrigger value="list" className="text-xs px-3 h-6">Lista</TabsTrigger>
-          </TabsList>
-        </Tabs>
-        {viewMode === "gantt" && (
-          <Tabs value={ganttRange} onValueChange={(v) => setGanttRange(v as "month" | "week")}>
-            <TabsList className="h-8">
-              <TabsTrigger value="week" className="text-xs px-3 h-6">Semana</TabsTrigger>
-              <TabsTrigger value="month" className="text-xs px-3 h-6">Mes</TabsTrigger>
-            </TabsList>
-          </Tabs>
-        )}
-        {/* v7.226.2 · feedback visible: toast + spinner mientras se refetchea. */}
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8 ml-auto"
-          disabled={isRefreshing}
-          onClick={async () => {
-            setIsRefreshing(true);
-            try {
-              await toast.promise(
-                qc.refetchQueries({ queryKey: bookingKeys.all, type: "active" }),
-                {
-                  loading: "Actualizando calendario…",
-                  success: "Calendario actualizado",
-                  error: "No se pudo actualizar el calendario",
-                },
-              );
-            } finally {
-              setIsRefreshing(false);
-            }
-          }}
-          aria-label="Actualizar calendario"
-        >
-          <RefreshIcon className={`h-4 w-4 mr-1 ${isRefreshing ? "animate-spin" : ""}`} /> Actualizar
-        </Button>
-      </div>
+      <CalendarToolbar
+        viewMode={viewMode}
+        setViewMode={setViewMode}
+        ganttRange={ganttRange}
+        setGanttRange={setGanttRange}
+        isRefreshing={isRefreshing}
+        onRefresh={async () => {
+          setIsRefreshing(true);
+          try {
+            await toast.promise(
+              qc.refetchQueries({ queryKey: bookingKeys.all, type: "active" }),
+              {
+                loading: "Actualizando calendario…",
+                success: "Calendario actualizado",
+                error: "No se pudo actualizar el calendario",
+              },
+            );
+          } finally {
+            setIsRefreshing(false);
+          }
+        }}
+      />
+
 
 
       {viewMode === "gantt" ? (
@@ -198,5 +161,70 @@ export default function CalendarPage() {
     </PageContainer>
     </TooltipProvider>
     </PageTransition>
+  );
+}
+
+type ForkliftLike = { id: string; name: string };
+type BookingLike = { id: string; forklift_id: string; customer_name: string | null; end_date: string };
+
+function EndingSoonAlert({ items, forkliftMap }: { items: BookingLike[]; forkliftMap: Map<string, ForkliftLike> }) {
+  if (items.length === 0) return null;
+  return (
+    <Card className="border-status-maintenance/30 bg-status-maintenance/5">
+      <CardContent className="p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <WarnIcon className="h-4 w-4 text-status-maintenance" />
+          <span className="font-medium text-sm">Reservas por vencer ({items.length})</span>
+        </div>
+        <div className="space-y-1">
+          {items.map((b) => (
+            <div key={b.id} className="flex items-center justify-between text-sm p-2 rounded bg-background/80">
+              <span>{forkliftMap.get(b.forklift_id)?.name} — {b.customer_name}</span>
+              <span className="text-xs text-muted-foreground">Termina: {formatMtyDate(b.end_date)}</span>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface CalendarToolbarProps {
+  viewMode: "gantt" | "list";
+  setViewMode: (v: "gantt" | "list") => void;
+  ganttRange: "month" | "week";
+  setGanttRange: (v: "month" | "week") => void;
+  isRefreshing: boolean;
+  onRefresh: () => void;
+}
+
+function CalendarToolbar({ viewMode, setViewMode, ganttRange, setGanttRange, isRefreshing, onRefresh }: CalendarToolbarProps) {
+  return (
+    <div className="flex items-center flex-wrap gap-2">
+      <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "gantt" | "list")}>
+        <TabsList className="h-8">
+          <TabsTrigger value="gantt" className="text-xs px-3 h-6">Gantt</TabsTrigger>
+          <TabsTrigger value="list" className="text-xs px-3 h-6">Lista</TabsTrigger>
+        </TabsList>
+      </Tabs>
+      {viewMode === "gantt" && (
+        <Tabs value={ganttRange} onValueChange={(v) => setGanttRange(v as "month" | "week")}>
+          <TabsList className="h-8">
+            <TabsTrigger value="week" className="text-xs px-3 h-6">Semana</TabsTrigger>
+            <TabsTrigger value="month" className="text-xs px-3 h-6">Mes</TabsTrigger>
+          </TabsList>
+        </Tabs>
+      )}
+      <Button
+        variant="outline"
+        size="sm"
+        className="h-8 ml-auto"
+        disabled={isRefreshing}
+        onClick={onRefresh}
+        aria-label="Actualizar calendario"
+      >
+        <RefreshIcon className={`h-4 w-4 mr-1 ${isRefreshing ? "animate-spin" : ""}`} /> Actualizar
+      </Button>
+    </div>
   );
 }

@@ -90,6 +90,7 @@ for (const role of ROLES) {
 // el report), en vez de un archivo con 0 tests que pasa en silencio.
 test("centinela: al menos un rol con credenciales configuradas", () => {
   const any = ROLES.some((r) => r.email && r.password);
+  // eslint-disable-next-line playwright/no-skipped-test -- centinela: skip explícito visible en el report cuando ningún rol tiene credenciales
   test.skip(!any, "Ningún E2E_<ROL>_EMAIL/PASSWORD configurado — matriz de roles se saltó completa.");
   expect(any).toBe(true);
 });

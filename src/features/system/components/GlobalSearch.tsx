@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useTransition, type ElementType } from "react";
+import { useCallback, useEffect, useState, useMemo, useTransition, type ElementType } from "react";
 import { CalendarDays, FleetIcon, UsersIcon, DocumentIcon, BookOpen, ScrollText, DeliveryIcon, ClipboardCheck, InvoiceIcon, MaintenanceIcon, WarnIcon, InventoryIcon, SupplierIcon, ExpenseIcon, ChartIcon, ActivityIcon, HistoryIcon, SettingsIcon, CompanyIcon, SecurityIcon, HelpIcon, TargetIcon, DashboardIcon, SearchIcon, SpinnerIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -62,9 +62,10 @@ export function GlobalSearch() {
     return () => document.removeEventListener("keydown", handler);
   }, []);
 
-  useEffect(() => {
-    if (!open) setInput("");
-  }, [open]);
+  const handleOpenChange = useCallback((next: boolean) => {
+    setOpen(next);
+    if (!next) setInput("");
+  }, []);
 
   const groups = useMemo(() => {
     const map = new Map<string, Item[]>();
@@ -108,7 +109,7 @@ export function GlobalSearch() {
         </Badge>
       </Button>
 
-      <CommandDialog open={open} onOpenChange={setOpen}>
+      <CommandDialog open={open} onOpenChange={handleOpenChange}>
         {/* shouldFilter=false: entidades se filtran server-side; para páginas
             usamos el `value` que incluye keywords y cmdk filtra localmente. */}
         <CommandInput

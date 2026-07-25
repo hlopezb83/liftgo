@@ -1,0 +1,22 @@
+{
+  "version": "7.228.1",
+  "date": "2026-07-25",
+  "type": "patch",
+  "title": "Higiene · Lint 0 warnings",
+  "category": "chore",
+  "sections": [
+    {
+      "heading": "Complejidad",
+      "items": [
+        "PortalInvoicePayment: extraídos computeInvoiceTotals, renderPaymentSection, PaidCard, MxnPaymentSection, ForeignCurrencyNotice y PortalIntentsTable. Complejidad 18 → <15."
+      ]
+    },
+    {
+      "heading": "Limpieza",
+      "items": [
+        "Removidas dos directivas eslint-disable 'react-hooks/set-state-in-effect' inservibles en useListPagePullToRefresh y useContractFormState.",
+        "bunx eslint . termina con 0 errores / 0 warnings."
+      ]
+    }
+  ]
+}

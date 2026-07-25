@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.228.1",
+    "date": "2026-07-25",
+    "type": "patch",
+    "title": "Higiene · Lint 0 warnings (complejidad + directivas ESLint sin usar)",
+    "category": "chore",
+    "description": "Refactor de PortalInvoicePayment extrayendo computeInvoiceTotals y renderPaymentSection (complejidad 18 → <15) y limpieza de dos directivas eslint-disable inservibles en useListPagePullToRefresh y useContractFormState. Lint queda en 0 warnings."
+  },
+  {
     "version": "7.228.0",
     "date": "2026-07-25",
     "type": "minor",

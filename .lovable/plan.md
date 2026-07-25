@@ -1,31 +1,45 @@
 
-# Re-verificación R14 (v7.228.0)
+# Fix de lint warnings (9 → 0)
 
-Objetivo: comprobar en el código actual que cada fix del doc `liftgo-diffs-lovable-r14_1.md` quedó exactamente como se pidió. Sin modificar código; sólo reporte.
+Objetivo: eliminar los 9 warnings sin cambiar comportamiento. Combinación de refactor real donde aporta y `eslint-disable-next-line` con justificación cuando el patrón es intencional.
 
-## Alcance por hallazgo
+## Cambios
 
-Para cada uno: abrir el archivo/función objetivo, cotejar contra el diff esperado, marcar OK / DESVIACIÓN (con evidencia línea).
+### 1. `react-hooks/set-state-in-effect` (5 casos)
 
-| # | Verificar | Fuente |
-|---|-----------|--------|
-| R14-A | `useMemo(getRange, [rangeKey])` en `ActivityPage.tsx` | archivo |
-| R14-B | `cancel_booking(p_reason)` libera montacargas + no inserta status_log falso | `supabase--read_query` a `pg_proc` |
-| R14-C | `catalogsReady` gate en `useForkliftPrefill.ts` + guard en `useForkliftFormLogic.ts` | archivos |
-| R14-D | RLS `customer_payment_intents` scoped a customer | `pg_policies` |
-| R14-E | `PortalInvoicePayment.tsx`: SPEI oculto no-MXN, moneda mostrada; `approve_payment_intent` usa currency de la factura | archivo + RPC |
-| R14-F | `revert_audit_log` usa `old_data`/`new_data` | RPC |
-| R14-G | `DeleteAuditLogDialog` sin acción Delete | archivo |
-| R14-I | `RecurringInvoicesPreviewDialog`: conteo real + checkboxes informativos | archivo |
-| R14-J | `create_booking` rechaza overlap confirmado (daterange) | RPC |
-| R14-K | `useInviteUser`/`useDeleteUser`/`useResetPassword` con `invokeEdgeFunction`+`extractEdgeErrorMessage` | archivos |
-| R14-L | `useDashboardSections` y `Dashboard` gatean KPIs financieros por rol | archivos |
-| M1/M2/M3/M5/M6 | Validaciones `InvoiceForm`, pull-to-refresh Fleet/Maintenance, selector page size 10–100 | archivos |
+- **`src/features/system/components/GlobalSearch.tsx`** — eliminar el effect que resetea `input`; mover el reset a un wrapper `handleOpenChange` que se pasa como `onOpenChange`. Sin effect = sin warning.
+- **`src/components/layout/listPage/useListPagePullToRefresh.ts`** — intencional (necesita DOM ref post-mount para sincronizar el target de `usePullToRefresh`); añadir `// eslint-disable-next-line react-hooks/set-state-in-effect` con razón inline.
+- **`src/features/contracts/hooks/contractForm/useContractFormState.ts`** — intencional (hidratación one-shot RHF desde prop async); disable con razón.
+- **`src/features/quotes/hooks/quoteForm/useQuotePrefill.ts`** — mismo patrón hidratación; disable con razón.
 
-## Método
+### 2. `max-lines-per-function` — `CalendarPage.tsx` (159 → <150)
 
-Lecturas paralelas de archivos + `supabase--read_query` a `pg_proc.prosrc` y `pg_policies` para las 5 piezas de BD. Sin edits.
+Extraer dos componentes pequeños en el mismo archivo:
+- `EndingSoonAlert({ items, forkliftMap })`
+- `CalendarToolbar({ viewMode, setViewMode, ganttRange, setGanttRange, onRefresh, isRefreshing })`
 
-## Entregable
+Baja el tamaño de la función principal manteniendo la vista idéntica.
 
-Tabla `# | estado | evidencia (archivo:línea o fragmento SQL) | nota`. Si aparece desviación, propongo diff puntual en el próximo turno (no lo aplico aquí).
+### 3. `complexity` — `PortalInvoicePayment.tsx` (18 → <15)
+
+Extraer:
+- `<PortalIntentsTable intents={intents} />` (tabla histórica)
+- `<ForeignCurrencyNotice moneda balanceLabel />` (card USD)
+- Helper `statusLabel` a módulo local fuera del componente.
+
+Reduce ramas del render principal por debajo del umbral.
+
+### 4. Warnings de Playwright e2e (3 casos, intencionales)
+
+Añadir `// eslint-disable-next-line <rule> -- <razón>` sobre cada línea:
+- `tests/e2e/portal-statement.spec.ts:15` (`playwright/no-skipped-test`) — skip runtime cuando faltan credenciales.
+- `tests/e2e/return-inspection.spec.ts:30` (`playwright/no-conditional-expect`) — assert opcional cuando el botón existe (seed puede no tener reserva devolvible).
+- `tests/e2e/roles-matrix.spec.ts:93` (`playwright/no-skipped-test`) — centinela cuando ningún rol tiene credenciales.
+
+## Verificación
+
+`bunx eslint .` → 0 warnings; `bunx tsgo --noEmit` limpio; smoke a `/calendar` y `/portal/invoices/:id/pay` sin cambios visuales.
+
+## Changelog
+
+`v7.228.1` (patch): lint hygiene — 9 warnings resueltos sin cambio funcional. Entradas en `public/changelog.json` + `public/changelog/v7.228.1.json`.

@@ -22,7 +22,10 @@ export function useListPagePullToRefresh(
   const [scrollTarget, setScrollTarget] = useState<HTMLElement | null>(null);
 
   useEffect(() => {
+    // Intencional: necesitamos localizar el <main> scrollable post-mount para
+    // pasárselo a usePullToRefresh; el setState sincroniza el ref con el hook.
     if (!isMobile || !onRefresh) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect -- sync DOM ref → state, sin cascada real (mismo valor null)
       setScrollTarget(null);
       return;
     }

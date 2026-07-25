@@ -27,6 +27,7 @@ test.describe("Devoluciones — inspección", () => {
       .first();
     // No forzamos click — la reserva seed puede no estar en estado devolvible.
     if (await inspectBtn.count() > 0) {
+      // eslint-disable-next-line playwright/no-conditional-expect -- assert opcional: seed puede no tener reserva devolvible
       await expect(inspectBtn).toBeVisible();
     }
   });
