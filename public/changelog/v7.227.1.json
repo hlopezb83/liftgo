@@ -1,0 +1,17 @@
+{
+  "version": "7.227.1",
+  "date": "2026-07-25",
+  "type": "patch",
+  "title": "Calendario · KPI Rentados/Disponibles basado sólo en reservas activas",
+  "category": "fix",
+  "changes": [
+    {
+      "area": "Calendario · KPIs",
+      "detail": "CalendarStatCards.tsx: 'Rentados' se calcula exclusivamente como el número de forklifts con reserva confirmada cuyo rango cubre hoy. Se elimina el OR con forklifts.status='rented' que inflaba el conteo cuando equipos quedaban con status desincronizado (reservas terminadas sin devolución registrada)."
+    },
+    {
+      "area": "Calendario · KPIs",
+      "detail": "'Disponibles' ahora = flota activa (excluye retired/sold/maintenance) sin reserva activa hoy, en lugar de exigir status='available'. Utilización se recalcula sobre la misma base para mantener consistencia."
+    }
+  ]
+}
