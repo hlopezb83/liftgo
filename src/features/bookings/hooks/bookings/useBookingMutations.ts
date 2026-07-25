@@ -20,7 +20,8 @@ export function useCreateBooking() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [bookingKeys.all, forkliftKeys.all, ["status_logs"] as const],
+    invalidateKeys: [bookingKeys.lists(), forkliftKeys.lists(), ["status_logs"] as const],
+
     errorTitle: "Error al crear reserva",
   });
 }
@@ -32,7 +33,7 @@ export function useUpdateBooking() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [bookingKeys.all],
+    invalidateKeys: [bookingKeys.lists()],
     errorTitle: "Error al actualizar reserva",
   });
 }
@@ -46,7 +47,8 @@ export function useDeleteBooking() {
       const { error } = await supabase.rpc("delete_booking", { p_booking_id: bookingId });
       if (error) throw error;
     },
-    invalidateKeys: [bookingKeys.all, forkliftKeys.all, ["status_logs"] as const],
+    invalidateKeys: [bookingKeys.lists(), forkliftKeys.lists(), ["status_logs"] as const],
+
     errorTitle: "Error al eliminar reserva",
   });
 }
@@ -65,7 +67,7 @@ export function useCancelBooking() {
       });
       if (error) throw error;
     },
-    invalidateKeys: [bookingKeys.all, forkliftKeys.all, ["status_logs"] as const],
+    invalidateKeys: [bookingKeys.lists(), forkliftKeys.lists(), ["status_logs"] as const],
     errorTitle: "Error al cancelar reserva",
   });
 }

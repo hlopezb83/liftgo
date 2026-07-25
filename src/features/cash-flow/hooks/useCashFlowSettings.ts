@@ -1,14 +1,28 @@
-import { useQuery } from "@tanstack/react-query";
-import { COMPANY_SETTINGS_INVALIDATION_KEYS } from "@/features/company-settings";
+import { useMemo } from "react";
+import { COMPANY_SETTINGS_INVALIDATION_KEYS, useCompanySettings } from "@/features/company-settings";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { cashFlowSettingsQueries, type CashFlowSettings } from "../lib/queryKeys";
+import type { CashFlowSettings } from "../lib/queryKeys";
 
 export type { CashFlowSettings };
 
+/**
+ * Tanda 3 P3-10.1: derivamos de `useCompanySettings()` en vez de mantener
+ * una query paralela contra la misma fila singleton de `company_settings`.
+ */
 export function useCashFlowSettings() {
-  return useQuery(cashFlowSettingsQueries.list());
+  const q = useCompanySettings();
+  const data: CashFlowSettings | undefined = useMemo(() => {
+    if (!q.data) return q.isSuccess ? { id: null, initialBalance: 0, safetyBuffer: 0 } : undefined;
+    return {
+      id: q.data.id ?? null,
+      initialBalance: Number(q.data.cash_initial_balance ?? 0),
+      safetyBuffer: Number(q.data.cash_safety_buffer ?? 0),
+    };
+  }, [q.data, q.isSuccess]);
+  return { ...q, data } as typeof q & { data: CashFlowSettings | undefined };
 }
+
 
 export function useUpdateCashFlowSettings() {
   return useEntityMutation<

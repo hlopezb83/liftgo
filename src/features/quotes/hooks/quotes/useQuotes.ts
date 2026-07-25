@@ -90,7 +90,8 @@ export function useCreateQuote() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [quoteKeys.all],
+    invalidateKeys: [quoteKeys.lists()],
+
     errorTitle: "Error al crear cotización",
   });
 }
@@ -102,7 +103,7 @@ export function useUpdateQuote() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [quoteKeys.all],
+    invalidateKeys: [quoteKeys.lists()],
     errorTitle: "Error al actualizar cotización",
   });
 }
@@ -115,11 +116,12 @@ export function useDeleteQuote() {
       return id;
     },
     invalidateKeys: [
-      quoteKeys.all,
-      forkliftKeys.all,
-      quoteAssignedForkliftKeys.all,
-      statusLogKeys.all,
+      quoteKeys.lists(),
+      forkliftKeys.lists(),
+      quoteAssignedForkliftKeys.lists(),
+      statusLogKeys.lists(),
     ],
+
     errorTitle: "Error al eliminar cotización",
     onSuccess: (deletedId) => {
       queryClient.setQueryData<Quote[]>(quoteKeys.lists(), (old) =>

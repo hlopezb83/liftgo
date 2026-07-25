@@ -47,7 +47,12 @@ export interface CashFlowProjectionFilter extends Record<string, unknown> {
 export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projection", {
   list: (filter?: Readonly<Record<string, unknown>>) => async (): Promise<CashFlowBucket[]> => {
     const { weeks, initialBalance, safetyBuffer } = (filter ?? {}) as CashFlowProjectionFilter;
-    const [invRes, billRes, payRes] = await Promise.all([
+    // Tanda 3 P2-7: se acota `payments` a los invoice_id vigentes.
+    // Antes se descargaba TODA la tabla `payments` (sin límite ni rango) solo
+    // para construir `paidByInvoice` sobre las facturas activas listadas más
+    // abajo. Ahora primero traemos las facturas/bills activas y filtramos los
+    // pagos por su `invoice_id` → payload proporcional a lo que se proyecta.
+    const [invRes, billRes] = await Promise.all([
       supabase.from("v_invoices_with_balance")
         .select("id, invoice_number, total, due_date, customer_name, moneda, tipo_cambio, credited_amount")
         .in("status", ACTIVE_INVOICE_STATUSES)
@@ -59,15 +64,22 @@ export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projecti
         .in("approval_status", ["not_required", "approved"])
         .not("due_date", "is", null)
         .returns<BillRow[]>(),
-      supabase.from("payments")
-        .select("invoice_id, amount, currency, exchange_rate")
-        .returns<PaymentRow[]>(),
     ]);
     if (invRes.error) throw invRes.error;
     if (billRes.error) throw billRes.error;
-    if (payRes.error) throw payRes.error;
 
-    const paidByInvoice = buildPaidByInvoice(payRes.data ?? []);
+    const activeInvoiceIds = (invRes.data ?? []).map((i) => i.id).filter(Boolean);
+    let payments: PaymentRow[] = [];
+    if (activeInvoiceIds.length > 0) {
+      const payRes = await supabase.from("payments")
+        .select("invoice_id, amount, currency, exchange_rate")
+        .in("invoice_id", activeInvoiceIds)
+        .returns<PaymentRow[]>();
+      if (payRes.error) throw payRes.error;
+      payments = payRes.data ?? [];
+    }
+
+    const paidByInvoice = buildPaidByInvoice(payments);
     const items: CashFlowItem[] = [];
     for (const inv of invRes.data ?? []) {
       const item = invoiceToItem(inv, paidByInvoice);
@@ -81,3 +93,4 @@ export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projecti
   },
   staleTime: 60_000,
 });
+

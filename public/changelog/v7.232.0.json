@@ -1,0 +1,61 @@
+{
+  "version": "7.232.0",
+  "date": "2026-07-26",
+  "type": "minor",
+  "title": "R-Perf Tanda 3 · vista de ubicación, prefetch aislado, combobox de clientes, invalidaciones quirúrgicas",
+  "category": "performance",
+  "sections": [
+    {
+      "heading": "Fleet — vista consolidada de ubicación (P1-5)",
+      "items": [
+        "Nueva vista `public.forklift_current_location` (security_invoker=true) que combina contratos activos + entregas completadas + póliza vigente para exponer `current_location`, `contract_number`, `active_maintenance_policy` por montacargas.",
+        "`src/features/fleet/hooks/forklifts/useFleetLocations.ts` consulta la vista y expone un `Map<forklift_id, location>`.",
+        "`FleetPage.tsx` deja de hacer 3 descargas paralelas (`useContracts` + `useDeliveries` + `useMaintenancePolicies`). Payload y JS de la ruta bajan proporcionalmente."
+      ]
+    },
+    {
+      "heading": "DataTable — prefetch aislado en hook (P1-6)",
+      "items": [
+        "`DataTableBodyV2` extrae `useRef` + timers a `useRowPrefetchArm(onRowPrefetch)`. Antes el `useRef` inline hacía que React Compiler dejara de optimizar el componente completo.",
+        "Cleanup en unmount del timeout para no ejecutar prefetches fantasma."
+      ]
+    },
+    {
+      "heading": "Cash-flow — payments acotados (P2-7)",
+      "items": [
+        "`cashFlowProjectionQueries.list` primero trae facturas/bills activos y luego `payments.in('invoice_id', activeIds)` en vez de descargar toda la tabla.",
+        "Elimina query global sobre `payments` (que crecerá indefinidamente) y reduce la ventana a los pagos que realmente afectan la proyección."
+      ]
+    },
+    {
+      "heading": "CustomerSelector — combobox cmdk (P2-9)",
+      "items": [
+        "Reemplaza `<Select>` Radix por `<Popover>` + `<Command>`. API pública intacta.",
+        "Búsqueda incremental case-insensitive, tick de selección, botón limpiar (cuando `required=false`). Ancho del popover atado al trigger via `--radix-popover-trigger-width`.",
+        "Con 500+ clientes ya no hay jank al abrir el dropdown."
+      ]
+    },
+    {
+      "heading": "Consolidación de company_settings (P3-10.1)",
+      "items": [
+        "`useCxpApprovalThreshold` y `useCashFlowSettings` ahora se derivan (via `useMemo`) del objeto ya cacheado por `useCompanySettings()`. La fila singleton deja de descargarse 3 veces.",
+        "`companySettingsQueries` sigue siendo la fuente única. Las mutaciones siguen invalidando `COMPANY_SETTINGS_INVALIDATION_KEYS` (compatibilidad de invalidación conservada)."
+      ]
+    },
+    {
+      "heading": "Invalidaciones quirúrgicas (P3-10.2)",
+      "items": [
+        "`useBookingMutations` (create/update/delete/cancel) invalida `bookingKeys.lists()` + `forkliftKeys.lists()` en vez de `.all`.",
+        "`useCreateQuote`/`useUpdateQuote`/`useDeleteQuote` invalidan `.lists()` de quotes/forklifts/assigned/statusLogs.",
+        "Los detalles cacheados no se re-fetchean sin necesidad tras cada mutación de lista."
+      ]
+    },
+    {
+      "heading": "CalendarPage — endingSoon memoizado (P1-6 extra)",
+      "items": [
+        "`endingSoon` en `useMemo([bookings, todayTs])` con `Date.parse` en vez de `parseISO` en cada render.",
+        "Sobre ~2000 bookings elimina un pase de parsing por render del calendario."
+      ]
+    }
+  ]
+}

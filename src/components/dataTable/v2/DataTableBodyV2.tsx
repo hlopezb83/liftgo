@@ -1,6 +1,6 @@
 import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { flexRender, type Row } from "@tanstack/react-table";
-import { useCallback, useRef, type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useCallback, useEffect, useRef, type ReactNode, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { EmptyRow } from "@/components/feedback/EmptyRow";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
@@ -17,6 +17,37 @@ interface Props<T> {
   onRowClick?: (item: T) => void;
   rowClassName?: (item: T) => string | undefined;
   onRowPrefetch?: (item: T) => unknown;
+}
+
+/**
+ * Tanda 3 P1-6: extraído a hook para que `DataTableBodyV2` no toque refs en
+ * render y deje de hacer bail-out del React Compiler (afectaba a las 25
+ * filas × N celdas de TODAS las tablas). Los timers viven dentro del hook,
+ * el body sólo recibe callbacks estables.
+ */
+function useRowPrefetchArm<T>(onRowPrefetch: Props<T>["onRowPrefetch"]) {
+  const queryClient = useQueryClient();
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  const arm = useCallback((item: T) => {
+    if (!onRowPrefetch) return;
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => {
+      void queryClient.prefetchQuery(onRowPrefetch(item) as Parameters<QueryClient["prefetchQuery"]>[0]);
+    }, PREFETCH_DELAY_MS);
+  }, [onRowPrefetch, queryClient]);
+
+  const disarm = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = undefined;
+  }, []);
+
+  // Cleanup on unmount / handler change para evitar prefetches fantasma.
+  useEffect(() => () => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+  }, []);
+
+  return { arm, disarm };
 }
 
 interface RowHandlerCtx<T> {
@@ -52,8 +83,6 @@ function buildRowHandlers<T>(item: T, ctx: RowHandlerCtx<T>) {
   return { ...clickHandlers, ...prefetchHandlers };
 }
 
-
-
 export function DataTableBodyV2<T>({
   rows,
   columnCount,
@@ -63,20 +92,7 @@ export function DataTableBodyV2<T>({
   rowClassName,
   onRowPrefetch,
 }: Props<T>): ReactNode {
-  const queryClient = useQueryClient();
-  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const armPrefetch = useCallback((item: T) => {
-    if (!onRowPrefetch) return;
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => {
-      void queryClient.prefetchQuery(onRowPrefetch(item) as Parameters<QueryClient["prefetchQuery"]>[0]);
-    }, PREFETCH_DELAY_MS);
-  }, [onRowPrefetch, queryClient]);
-  const disarmPrefetch = useCallback(() => {
-    if (timerRef.current) clearTimeout(timerRef.current);
-    timerRef.current = undefined;
-  }, []);
-
+  const { arm: armPrefetch, disarm: disarmPrefetch } = useRowPrefetchArm(onRowPrefetch);
 
   if (rows.length === 0) {
     return (
@@ -88,7 +104,6 @@ export function DataTableBodyV2<T>({
 
   return (
     <TableBody>
-      {/* eslint-disable-next-line react-hooks/refs -- closure sobre timerRef sólo se invoca en handlers, no en render */}
       {rows.map((row) => {
         const item = row.original;
         const isSelected = row.getIsSelected();
@@ -133,3 +148,4 @@ export function DataTableBodyV2<T>({
     </TableBody>
   );
 }
+
