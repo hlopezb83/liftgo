@@ -440,6 +440,13 @@ export type Database = {
             foreignKeyName: "bookings_forklift_id_fkey"
             columns: ["forklift_id"]
             isOneToOne: false
+            referencedRelation: "forklift_current_location"
+            referencedColumns: ["forklift_id"]
+          },
+          {
+            foreignKeyName: "bookings_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: false
             referencedRelation: "forklifts"
             referencedColumns: ["id"]
           },
@@ -787,6 +794,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "customers"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: false
+            referencedRelation: "forklift_current_location"
+            referencedColumns: ["forklift_id"]
           },
           {
             foreignKeyName: "contracts_forklift_id_fkey"
@@ -1173,6 +1187,13 @@ export type Database = {
             foreignKeyName: "damage_records_forklift_id_fkey"
             columns: ["forklift_id"]
             isOneToOne: false
+            referencedRelation: "forklift_current_location"
+            referencedColumns: ["forklift_id"]
+          },
+          {
+            foreignKeyName: "damage_records_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: false
             referencedRelation: "forklifts"
             referencedColumns: ["id"]
           },
@@ -1284,6 +1305,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "bookings"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: false
+            referencedRelation: "forklift_current_location"
+            referencedColumns: ["forklift_id"]
           },
           {
             foreignKeyName: "deliveries_forklift_id_fkey"
@@ -1983,6 +2011,13 @@ export type Database = {
             foreignKeyName: "maintenance_logs_forklift_id_fkey"
             columns: ["forklift_id"]
             isOneToOne: false
+            referencedRelation: "forklift_current_location"
+            referencedColumns: ["forklift_id"]
+          },
+          {
+            foreignKeyName: "maintenance_logs_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: false
             referencedRelation: "forklifts"
             referencedColumns: ["id"]
           },
@@ -2075,6 +2110,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "maintenance_policies_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: true
+            referencedRelation: "forklift_current_location"
+            referencedColumns: ["forklift_id"]
+          },
           {
             foreignKeyName: "maintenance_policies_forklift_id_fkey"
             columns: ["forklift_id"]
@@ -2483,6 +2525,13 @@ export type Database = {
             foreignKeyName: "quote_assigned_forklifts_forklift_id_fkey"
             columns: ["forklift_id"]
             isOneToOne: true
+            referencedRelation: "forklift_current_location"
+            referencedColumns: ["forklift_id"]
+          },
+          {
+            foreignKeyName: "quote_assigned_forklifts_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: true
             referencedRelation: "forklifts"
             referencedColumns: ["id"]
           },
@@ -2608,6 +2657,13 @@ export type Database = {
             foreignKeyName: "quotes_forklift_id_fkey"
             columns: ["forklift_id"]
             isOneToOne: false
+            referencedRelation: "forklift_current_location"
+            referencedColumns: ["forklift_id"]
+          },
+          {
+            foreignKeyName: "quotes_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: false
             referencedRelation: "forklifts"
             referencedColumns: ["id"]
           },
@@ -2689,6 +2745,13 @@ export type Database = {
             foreignKeyName: "return_inspections_forklift_id_fkey"
             columns: ["forklift_id"]
             isOneToOne: false
+            referencedRelation: "forklift_current_location"
+            referencedColumns: ["forklift_id"]
+          },
+          {
+            foreignKeyName: "return_inspections_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: false
             referencedRelation: "forklifts"
             referencedColumns: ["id"]
           },
@@ -2747,6 +2810,13 @@ export type Database = {
           to_status?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "status_logs_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: false
+            referencedRelation: "forklift_current_location"
+            referencedColumns: ["forklift_id"]
+          },
           {
             foreignKeyName: "status_logs_forklift_id_fkey"
             columns: ["forklift_id"]
@@ -3348,6 +3418,14 @@ export type Database = {
       }
     }
     Views: {
+      forklift_current_location: {
+        Row: {
+          forklift_id: string | null
+          has_active_policy: boolean | null
+          location: string | null
+        }
+        Relationships: []
+      }
       v_invoices_with_balance: {
         Row: {
           acuse_pdf_url: string | null
