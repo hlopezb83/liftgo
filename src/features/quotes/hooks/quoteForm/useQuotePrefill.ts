@@ -118,6 +118,7 @@ export function useQuotePrefill({ existingQuote, equipmentModels, form }: Props)
     const nextId = existingQuote.id ?? "existing";
     if (hydratedId === nextId) return;
     form.reset(buildPrefillValues(existingQuote, equipmentModels), { keepDirty: false });
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- hidratación one-shot: marcar id ya hidratado tras reset del form
     setHydratedId(nextId);
   }, [existingQuote, equipmentModels, form, hydratedId]);
 }
