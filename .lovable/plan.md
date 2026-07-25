@@ -1,25 +1,30 @@
 ## Contexto
 
-CI falló únicamente en el step **Knip (archivos y dependencias sin uso)** con:
+CI en rojo por un solo test unitario (los demás jobs verdes; el E2E de shard 1 mostró un fallo transitorio en `invoice-payment.spec.ts` que pasó en el retry #1 y el shard reporta 0 failed).
 
-```
-Unused exports (1)
-src/features/audit/hooks/useAuditLogs.ts: useDeleteAuditLog
-```
+## Causa raíz
 
-Los demás steps (E2E shard 1: 35 passed / 9 skipped / 0 failed; shard 2, Vitest, RLS, Typecheck, Build, ESLint, Actionlint, Arch, Secrets, Edge smoke) pasaron. El wrapper "CI success" solo reporta rojo porque Knip salió con exit 1.
+En **v7.229.0 (R15 F-01)** movimos la validación `.min(1, "Selecciona un cliente")` de `customerName` a `customerId` en `invoiceFormSchema`. `buildEmptyInvoiceValues()` devuelve `customerId: ""`, por lo que ahora cualquier payload que parta de él sin sobrescribir `customerId` falla.
 
-## Causa
+El test `src/features/invoices/lib/__tests__/invoiceFormSchema.test.ts:100` — *"acepta payload con al menos una partida válida"* — arma el payload como `{ ...buildEmptyInvoiceValues(), lineItems: [...] }` sin `customerId`, y ahora ese caso legítimamente falla con "Selecciona un cliente".
 
-En R14-G removimos la acción **Eliminar** de la bitácora (append-only). El hook `useDeleteAuditLog` quedó exportado sin consumidores — Knip lo detecta como export muerto.
+## Fix (v7.229.2, patch)
 
-## Fix (v7.229.1 · patch)
+1. **`src/features/invoices/lib/__tests__/invoiceFormSchema.test.ts`**
+   - En el test *"acepta payload con al menos una partida válida"* (línea 100-107), pasar un `customerId` no vacío (ej: `customerId: "cust-1"`) en el spread para que refleje el contrato post-R15.
+   - Opcionalmente añadir un test explícito nuevo *"rechaza payload sin customerId"* que documente la invariante F-01 (el test de `buildEmptyInvoiceValues` ya la cubre indirectamente, así que este es opcional).
 
-1. `src/features/audit/hooks/useAuditLogs.ts`: eliminar la función `useDeleteAuditLog` (10 líneas). Nadie la importa (`rg` confirma cero usos fuera de la declaración).
-2. Bump `package.json` a `7.229.1`.
-3. Agregar entrada en `public/changelog.json` (index) y `public/changelog/v7.229.1.json` (detalle): "Elimina export muerto `useDeleteAuditLog` que rompía `knip` en CI".
+2. **Changelog**
+   - Nueva entrada `public/changelog/v7.229.2.json` (type: `patch`, category: `fix`) explicando el ajuste del test al nuevo contrato de `customerId` de R15 F-01.
+   - Bump en `public/changelog.json` y `package.json` a `7.229.2`.
 
-## Validación
+## Fuera de alcance (no bloquean CI)
 
-- `bunx knip --include exports,types --reporter compact` → 0 unused exports.
-- `bunx tsgo --noEmit` → sin errores (el hook no se referencia en ningún archivo).
+- **ESLint "Cannot access refs during render"**: 4 warnings en `InvoiceForm.tsx` por el `justSavedRef.current` de R15 F-03 leído durante el render del `<Prompt>`. Son warnings, no rompen CI. Si se quiere limpiar en un lote posterior, se lee el ref dentro de un handler o se convierte a `useState` — pero cambia el timing del guard y hay riesgo de regresar F-03.
+- **E2E `invoice-payment.spec.ts`**: flake que pasó en retry (shard 1 reporta 0 failed, no bloqueó el job).
+- **Cache saves fallidos**: colisiones benignas de `actions/cache` entre shards concurrentes, no rompen los jobs.
+
+## Verificación
+
+- `bunx vitest run src/features/invoices/lib/__tests__/invoiceFormSchema.test.ts` → 14/14.
+- Suite completa `bunx vitest run` → 1250/1250.

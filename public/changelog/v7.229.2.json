@@ -1,0 +1,17 @@
+{
+  "version": "7.229.2",
+  "date": "2026-07-25",
+  "type": "patch",
+  "title": "Vitest · alinea test de invoiceFormSchema al contrato customerId de R15 F-01",
+  "category": "fix",
+  "sections": [
+    {
+      "heading": "CI desbloqueado",
+      "items": [
+        "R15 F-01 movió `.min(1, 'Selecciona un cliente')` de `customerName` a `customerId`. El test 'acepta payload con al menos una partida válida' construía el payload con `{ ...buildEmptyInvoiceValues(), lineItems: [...] }` sin sobrescribir `customerId` (que ahora es `\"\"` por default), y empezó a fallar legítimamente con 'Selecciona un cliente'.",
+        "src/features/invoices/lib/__tests__/invoiceFormSchema.test.ts: el test ahora pasa `customerId: 'cust-1'`; se añade además un test explícito de regresión 'rechaza payload sin customerId (R15 F-01)' que documenta la nueva invariante.",
+        "Vitest vuelve a 1250/1250 y el job 'CI success' pasa a verde."
+      ]
+    }
+  ]
+}
