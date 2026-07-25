@@ -1,5 +1,14 @@
 [
   {
+    "version": "7.227.0",
+    "date": "2026-07-25",
+    "type": "minor",
+    "title": "Auditoría R13 · Tablas ya no muestran datos viejos tras editar + KPI Cartera Vencida en MXN",
+    "category": "fix",
+    "description": "R13-1 (crítico): useLiftgoTable ahora versiona por contenido completo (JSON.stringify) en lugar de solo hashear id. Ediciones in-place (mismo id, distintos campos) invalidan correctamente el memo y la tabla refleja el dato nuevo sin reload. Cubre TODAS las tablas migradas a DataTableV2. Test de regresión agregado. R13-2 (medio-alto): get_financial_kpis usa balance_mxn de v_invoices_with_balance para el KPI Cartera Vencida, evitando mezcla USD/MXN. Alineado con CollectionForecast y aging del dashboard."
+  },
+  {
+
     "version": "7.226.3",
     "date": "2026-07-25",
     "type": "patch",
