@@ -102,45 +102,45 @@ interface ScrubbableEvent {
   user?: { id?: unknown; email?: string | null; username?: string | null; ip_address?: string | null } | null;
 }
 
+function scrubRequest(req: NonNullable<ScrubbableEvent["request"]>): void {
+  if (req.url) req.url = scrubUrl(req.url);
+  // Cookies y query_string siempre van al basurero: son PII/tokens por definición.
+  if (req.query_string) req.query_string = REDACTED;
+  if (req.cookies) req.cookies = REDACTED;
+  if (req.headers) {
+    const headers = req.headers as Record<string, unknown>;
+    for (const k of Object.keys(headers)) {
+      if (/^(authorization|cookie|x-api-key)$/i.test(k)) headers[k] = REDACTED;
+    }
+  }
+}
+
+function scrubExceptions(exc: NonNullable<ScrubbableEvent["exception"]>): void {
+  if (!exc.values) return;
+  for (const v of exc.values) {
+    if (v.value) v.value = redactPII(v.value);
+  }
+}
+
+function scrubBreadcrumbs(bc: NonNullable<ScrubbableEvent["breadcrumbs"]>): void {
+  for (const b of bc) {
+    if (b.message) b.message = redactPII(b.message);
+    if (b.data && typeof b.data === "object") {
+      const data = b.data as Record<string, unknown>;
+      if (typeof data.url === "string") data.url = scrubUrl(data.url);
+      if (typeof data.to === "string") data.to = scrubUrl(data.to);
+      if (typeof data.from === "string") data.from = scrubUrl(data.from);
+    }
+  }
+}
+
 export function scrubEvent<T extends Partial<ScrubbableEvent>>(event: T): T {
   if (event.message) event.message = redactPII(event.message);
-
-  if (event.request) {
-    if (event.request.url) event.request.url = scrubUrl(event.request.url);
-    // Cookies y query_string siempre van al basurero: son PII/tokens por definición.
-    if (event.request.query_string) event.request.query_string = REDACTED;
-    if (event.request.cookies) event.request.cookies = REDACTED;
-    if (event.request.headers) {
-      const headers = event.request.headers as Record<string, unknown>;
-      for (const k of Object.keys(headers)) {
-        if (/^(authorization|cookie|x-api-key)$/i.test(k)) headers[k] = REDACTED;
-      }
-    }
-  }
-
-  if (event.exception?.values) {
-    for (const v of event.exception.values) {
-      if (v.value) v.value = redactPII(v.value);
-    }
-  }
-
-  if (event.breadcrumbs) {
-    for (const b of event.breadcrumbs) {
-      if (b.message) b.message = redactPII(b.message);
-      if (b.data && typeof b.data === "object") {
-        const data = b.data as Record<string, unknown>;
-        if (typeof data.url === "string") data.url = scrubUrl(data.url);
-        if (typeof data.to === "string") data.to = scrubUrl(data.to);
-        if (typeof data.from === "string") data.from = scrubUrl(data.from);
-      }
-    }
-  }
-
+  if (event.request) scrubRequest(event.request);
+  if (event.exception) scrubExceptions(event.exception);
+  if (event.breadcrumbs) scrubBreadcrumbs(event.breadcrumbs);
   // Nunca mandar email/username/ip aunque un caller haya seteado setUser con
   // esos campos. Sólo el id sobrevive para correlacionar.
-  if (event.user) {
-    event.user = { id: event.user.id };
-  }
-
+  if (event.user) event.user = { id: event.user.id };
   return event;
 }
