@@ -1,17 +1,15 @@
-import { useState } from "react";
 import { useParams } from "react-router";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { SuccessIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { canActOnPortalQuote, isQuoteAccepted } from "@/lib/rules/quotes";
 import { formatDateDisplay, parseDateLocal } from "@/lib/utils";
+
+import { PortalQuoteActionCard } from "../components/PortalQuoteActionCard";
 import { TotalsBreakdown } from "../components/TotalsBreakdown";
 import {
   usePortalQuote,
@@ -26,6 +24,13 @@ interface LineItem {
   quantity?: number;
   unit_price?: number;
   amount?: number;
+  total?: number | null;
+}
+
+function computeLineTotal(it: LineItem): number {
+  const t = it.total ?? it.amount;
+  if (t != null) return Number(t);
+  return Number(it.unit_price ?? 0) * Number(it.quantity ?? 1);
 }
 
 export default function PortalQuoteDetail() {
@@ -33,9 +38,6 @@ export default function PortalQuoteDetail() {
   const { data: quote, isLoading } = usePortalQuote(id);
   const accept = useAcceptPortalQuote();
   const reject = useRejectPortalQuote();
-  const [agreed, setAgreed] = useState(false);
-  const [rejectingMode, setRejectingMode] = useState(false);
-  const [reason, setReason] = useState("");
 
   if (isLoading) return <Skeleton className="h-96" />;
   if (!quote) return <p className="text-muted-foreground">Cotización no encontrada</p>;
@@ -49,14 +51,6 @@ export default function PortalQuoteDetail() {
   const canAct = canActOnPortalQuote(quote) && !isExpired;
   const wasAccepted = isQuoteAccepted(quote);
 
-  const subtitle = (
-    <span className="inline-flex items-center gap-2">
-      <StatusBadge status={quote.status} label={quoteStatusLabel(quote.status)} />
-      <span>Emitida {formatDateDisplay(quote.created_at)}</span>
-      {quote.valid_until && <span>· Válida hasta {formatDateDisplay(quote.valid_until)}</span>}
-    </span>
-  );
-
   return (
     <PageContainer maxWidth="wide">
       <PageHeader
@@ -64,7 +58,13 @@ export default function PortalQuoteDetail() {
         backHref="/portal/quotes"
         backLabel="Cotizaciones"
       />
-      <div className="text-sm text-muted-foreground -mt-2">{subtitle}</div>
+      <div className="text-sm text-muted-foreground -mt-2">
+        <span className="inline-flex items-center gap-2">
+          <StatusBadge status={quote.status} label={quoteStatusLabel(quote.status)} />
+          <span>Emitida {formatDateDisplay(quote.created_at)}</span>
+          {quote.valid_until && <span>· Válida hasta {formatDateDisplay(quote.valid_until)}</span>}
+        </span>
+      </div>
 
       <Card>
         <CardHeader><CardTitle className="text-base">Partidas</CardTitle></CardHeader>
@@ -80,25 +80,14 @@ export default function PortalQuoteDetail() {
               </tr>
             </thead>
             <tbody>
-              {items.map((it, idx) => {
-                // R10 Bloque 11.3: el campo real de line_items es `total`;
-                // `amount` no existe → mostraba $0.00. Fallback conservador.
-                const lineTotal = Number(
-                  (it as { total?: number | null; amount?: number | null; unit_price?: number | null; quantity?: number | null })
-                    .total
-                  ?? (it as { amount?: number | null }).amount
-                  ?? (Number(it.unit_price ?? 0) * Number(it.quantity ?? 1)),
-                );
-                return (
+              {items.map((it, idx) => (
                 <tr key={idx} className={idx % 2 ? "bg-muted/20" : ""}>
                   <td className="px-3 py-2">{it.description ?? "—"}</td>
                   <td className="px-3 py-2 text-right font-mono">{it.quantity ?? 1}</td>
                   <td className="px-3 py-2 text-right font-mono">{formatCurrency(Number(it.unit_price ?? 0))}</td>
-                  <td className="px-3 py-2 text-right font-mono">{formatCurrency(lineTotal)}</td>
+                  <td className="px-3 py-2 text-right font-mono">{formatCurrency(computeLineTotal(it))}</td>
                 </tr>
-                );
-              })}
-
+              ))}
             </tbody>
           </table>
           </div>
@@ -140,52 +129,16 @@ export default function PortalQuoteDetail() {
         </Card>
       )}
 
-
-
       {canAct && (
-        <Card>
-          <CardHeader><CardTitle className="text-base">Aceptar cotización</CardTitle></CardHeader>
-          <CardContent className="space-y-4">
-            {!rejectingMode ? (
-              <>
-                <label htmlFor="portal-quote-terms" className="flex items-start gap-2 text-sm">
-                  <Checkbox id="portal-quote-terms" checked={agreed} onCheckedChange={(v) => setAgreed(v === true)} />
-                  <span>He leído y acepto los términos comerciales y condiciones de renta.</span>
-                </label>
-                <div className="flex gap-2">
-                  <Button
-                    disabled={!agreed || accept.isPending}
-                    onClick={() => accept.mutate(quote.id)}
-                  >
-                    Aceptar cotización
-                  </Button>
-                  <Button variant="outline" onClick={() => setRejectingMode(true)}>
-                    Rechazar
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <>
-                <Textarea
-                  value={reason}
-                  onChange={(e) => setReason(e.target.value)}
-                  placeholder="Motivo del rechazo"
-                />
-                <div className="flex gap-2">
-                  <Button
-                    variant="destructive"
-                    disabled={!reason.trim() || reject.isPending}
-                    onClick={() => reject.mutate({ quoteId: quote.id, reason: reason.trim() })}
-                  >
-                    Confirmar rechazo
-                  </Button>
-                  <Button variant="outline" onClick={() => setRejectingMode(false)}>Cancelar</Button>
-                </div>
-              </>
-            )}
-          </CardContent>
-        </Card>
+        <PortalQuoteActionCard
+          quoteId={quote.id}
+          onAccept={(qid) => accept.mutate(qid)}
+          onReject={(payload) => reject.mutate(payload)}
+          acceptPending={accept.isPending}
+          rejectPending={reject.isPending}
+        />
       )}
     </PageContainer>
   );
 }
+
