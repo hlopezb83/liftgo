@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.228.0",
+    "date": "2026-07-25",
+    "type": "minor",
+    "title": "R14 · Bugs críticos E2E: activity, cancel_booking, portal, bitácora, formularios",
+    "category": "fix",
+    "description": "Corrige 12 hallazgos R14: loop infinito en /activity, cancel_booking vuelve a liberar el montacargas, prefill de equipos ya no borra combustible, pagos del portal respetan la moneda de la factura, revert_audit_log funciona, se retira 'Eliminar' de bitácora (append-only), preview recurrente cuenta facturas reales, create_booking rechaza traslapes, errores de edge functions muestran el body real, Panel de Finanzas se gatea por rol, y varias mejoras UX (validaciones de factura, PTR en /fleet-/maintenance, selector filas por página)."
+  },
+  {
     "version": "7.227.2",
     "date": "2026-07-25",
     "type": "patch",
