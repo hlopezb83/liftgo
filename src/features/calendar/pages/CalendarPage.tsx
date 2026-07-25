@@ -165,7 +165,7 @@ export default function CalendarPage() {
 }
 
 type ForkliftLike = { id: string; name: string };
-type BookingLike = { id: string; forklift_id: string; customer_name: string; end_date: string };
+type BookingLike = { id: string; forklift_id: string; customer_name: string | null; end_date: string };
 
 function EndingSoonAlert({ items, forkliftMap }: { items: BookingLike[]; forkliftMap: Map<string, ForkliftLike> }) {
   if (items.length === 0) return null;
