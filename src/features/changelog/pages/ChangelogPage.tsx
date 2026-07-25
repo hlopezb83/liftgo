@@ -30,7 +30,7 @@ export default function ChangelogPage() {
   // → el punto ámbar del ítem "Changelog" desaparece hasta el próximo bump.
   useEffect(() => {
     try {
-      window.localStorage.setItem("liftgo:lastSeenVersion", getCurrentVersion() ?? "");
+      window.localStorage.setItem("liftgo:lastSeenVersion", getCurrentVersion(changelog) ?? "");
     } catch {
       // storage bloqueado (modo privado): sin persistencia, el punto reaparecerá.
     }
