@@ -43,7 +43,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Flota",
     items: [
       { title: "Equipos", url: "/fleet", icon: FleetIcon },
-      { title: "Mantenimiento", url: "/maintenance", icon: MaintenanceIcon },
+      { title: "Mantenimiento", url: "/maintenance", icon: MaintenanceIcon, badgeKey: "maintenance_open" },
       { title: "Daños", url: "/damage", icon: WarnIcon },
       { title: "Refacciones", url: "/inventory", icon: InventoryIcon },
     ],
