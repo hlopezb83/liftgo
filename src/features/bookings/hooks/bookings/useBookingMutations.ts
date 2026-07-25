@@ -67,7 +67,7 @@ export function useCancelBooking() {
       });
       if (error) throw error;
     },
-    invalidateKeys: [bookingKeys.all, forkliftKeys.all, ["status_logs"] as const],
+    invalidateKeys: [bookingKeys.lists(), forkliftKeys.lists(), ["status_logs"] as const],
     errorTitle: "Error al cancelar reserva",
   });
 }
