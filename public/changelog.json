@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.235.0",
+    "date": "2026-07-25",
+    "type": "minor",
+    "title": "Sidebar Oleada 1 · badges, +Nuevo, punto de novedad y auto-scroll",
+    "category": "ui",
+    "description": "Badges de conteo en Entregas/Devoluciones/Mantenimiento/Facturas usando un solo RPC (get_sidebar_badge_counts, staleTime 60s, sin polling). Botón '+ Nuevo' arriba del nav con gating por rol (Reserva=admin, Factura=full, Cotización/Cliente=read+). Punto ámbar en Changelog cuando hay una versión nueva (se marca como vista al visitar /changelog, persistido en localStorage). Auto-scroll al ítem activo al montar para no perder el foco cuando el sidebar es largo."
+  },
+  {
     "version": "7.234.0",
     "date": "2026-07-26",
     "type": "minor",
