@@ -24,8 +24,8 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Operación diaria",
     items: [
       { title: "Reservas", url: "/bookings", icon: BookOpen },
-      { title: "Entregas", url: "/deliveries", icon: DeliveryIcon },
-      { title: "Devoluciones", url: "/returns", icon: ClipboardCheck },
+      { title: "Entregas", url: "/deliveries", icon: DeliveryIcon, badgeKey: "deliveries_today" },
+      { title: "Devoluciones", url: "/returns", icon: ClipboardCheck, badgeKey: "returns_today" },
     ],
   },
   {
