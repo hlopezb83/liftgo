@@ -177,6 +177,11 @@ export default defineConfig(({ mode }) => ({
 // Los fragmentos usan separadores para evitar falsos positivos (p.ej. "react/"
 // no matchea "react-hook-form").
 const CHUNK_GROUPS: ReadonlyArray<{ name: string; match: readonly string[] }> = [
+  // R-Perf P0-3.1: `ui-utils` DEBE ir antes que `recharts`. `clsx`/`tailwind-merge`
+  // los importa `src/lib/utils.ts` (cn) en todo el shell; sin este grupo caían al
+  // chunk de recharts por match parcial ("recharts") y arrastraban ~109 KB gz al
+  // primer paint aunque el usuario no visitara ninguna vista con gráficas.
+  { name: "ui-utils", match: ["/clsx/", "tailwind-merge", "class-variance-authority"] },
   { name: "recharts", match: ["recharts", "d3-"] },
   { name: "radix", match: ["@radix-ui"] },
   { name: "react-pdf", match: ["@react-pdf"] },

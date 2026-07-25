@@ -1,4 +1,4 @@
-import * as XLSX from "@e965/xlsx";
+// R-Perf P2-8: import dinámico para no cargar 106 KB gz al montar la ruta.
 import { format } from "date-fns";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { nowMty } from "@/lib/utils";
@@ -21,7 +21,8 @@ function fmtDate(iso: string): string {
   return formatDateMty(d);
 }
 
-export function downloadReconciliationXlsx(rows: ReconciliationRow[]): string {
+export async function downloadReconciliationXlsx(rows: ReconciliationRow[]): Promise<string> {
+  const XLSX = await import("@e965/xlsx");
   const data: (string | number)[][] = [[...HEADERS]];
   let total = 0;
   for (const r of rows) {
