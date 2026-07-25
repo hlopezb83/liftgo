@@ -20,7 +20,8 @@ export function useCreateBooking() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [bookingKeys.all, forkliftKeys.all, ["status_logs"] as const],
+    invalidateKeys: [bookingKeys.lists(), forkliftKeys.lists(), ["status_logs"] as const],
+
     errorTitle: "Error al crear reserva",
   });
 }
