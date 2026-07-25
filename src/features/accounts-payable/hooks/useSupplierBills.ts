@@ -54,16 +54,22 @@ function accumulatePayment(summaryMap: Map<string, BillRepSummary>, p: PaymentRe
   summaryMap.set(p.bill_id, cur);
 }
 
+// Tanda 2 P2-7: columnas explícitas (evita `select("*")` sin cota) y límite.
+const BILL_LIST_COLUMNS =
+  "id, bill_number, supplier_id, issue_date, due_date, subtotal, tax, total, balance, currency, exchange_rate, status, approval_status, uuid, folio, serie, notes, created_at, updated_at, xml_url, pdf_url, cfdi_use, payment_method, payment_form, suppliers(id, name)";
+
 async function fetchList(): Promise<SupplierBillListItem[]> {
   const [billsRes, paymentsRes] = await Promise.all([
     supabase
       .from("supplier_bills")
-      .select("*, suppliers(id, name)")
-      .order("issue_date", { ascending: false }),
+      .select(BILL_LIST_COLUMNS)
+      .order("issue_date", { ascending: false })
+      .limit(500),
     supabase
       .from("supplier_payments")
       .select("bill_id, rep_required, rep_status"),
   ]);
+
   if (billsRes.error) throw billsRes.error;
   if (paymentsRes.error) throw paymentsRes.error;
 
