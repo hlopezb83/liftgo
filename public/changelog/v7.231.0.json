@@ -1,0 +1,38 @@
+{
+  "version": "7.231.0",
+  "date": "2026-07-26",
+  "type": "minor",
+  "title": "R-Perf Tanda 2 · trigger de auditoría sin XML, Sentry Replay lazy, límites de queries",
+  "category": "performance",
+  "sections": [
+    {
+      "heading": "Auditoría — trigger sin XML/CFDI (P1-4)",
+      "items": [
+        "public.audit_trigger_fn: v_old/v_new ahora excluyen columnas grandes vía `- 'cfdi_xml' - 'content' - 'xml_content' - 'line_items' - 'cfdi_xml_url'` antes de insertarse en audit_logs.old_data/new_data.",
+        "Cada UPDATE/DELETE sobre `invoices` timbrada ya no duplica ~10 KB de XML en el log. Las filas nuevas de /audit bajan ~20-23 KB → ~1-2 KB. Efecto compuesto con P0-1: menos costo de stringify por render en ActivityPage.",
+        "Las filas históricas quedan intactas (no se re-escribe la bitácora)."
+      ]
+    },
+    {
+      "heading": "Sentry — Replay lazy (P0-3.2)",
+      "items": [
+        "src/lib/observability/sentry.ts: `replayIntegration` se elimina del array `integrations` del init y se añade vía `Sentry.addIntegration()` dentro de `requestIdleCallback` (fallback 2s) SOLO en `production`.",
+        "Como `replaysSessionSampleRate: 0` (solo onError), diferir la carga no cambia la funcionalidad. Ahorro esperado: ~30-35 KB gz fuera del chunk inicial de Sentry."
+      ]
+    },
+    {
+      "heading": "Cotas defensivas de queries (P2-7)",
+      "items": [
+        "src/features/fleet/hooks/forklifts/useForklifts.ts: `.limit(500)` en `useForklifts` (LiftGo <200 hoy; deja holgura sin crecer sin tope).",
+        "src/features/accounts-payable/hooks/useSupplierBills.ts: reemplaza `select('*, suppliers(id,name)')` por `BILL_LIST_COLUMNS` explícitas (37 columnas) + `.limit(500)`."
+      ]
+    },
+    {
+      "heading": "Calendario — parseISO fuera del render (P1-6 parcial)",
+      "items": [
+        "src/features/calendar/components/calendar/EquipmentListView.tsx: nuevo `enrichBookings()` precalcula `startTs`/`endTs` una vez (memoizado por `bookings`). Elimina try/catch en render + `parseISO` repetido en filter y en el comparador de sort (hasta 2,000 bookings × O(log n) comparaciones).",
+        "Compatible con React Compiler (sin try/catch en render → deja de bail-out el componente)."
+      ]
+    }
+  ]
+}
