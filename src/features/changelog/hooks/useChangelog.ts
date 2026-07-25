@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
-import { getCurrentVersion } from "../lib/changelog";
 import { changelogQueries } from "../lib/queryKeys";
 
 export function useChangelog() {
@@ -38,7 +37,3 @@ export function useCurrentVersion(): string | null {
   return null;
 }
 
-/** Referencia mantenida para compat: usa `getCurrentVersion` sobre el índice cargado. */
-export function _getCurrentVersionFromChangelog(entries: Parameters<typeof getCurrentVersion>[0]) {
-  return getCurrentVersion(entries);
-}

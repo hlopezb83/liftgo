@@ -35,7 +35,7 @@ const rows: PaymentExportRow[] = [
 
 describe("buildPaymentsWorkbook", () => {
   it("genera hoja Pagos con encabezados, filas y fila TOTAL", () => {
-    const wb = buildPaymentsWorkbook(rows);
+    const wb = buildPaymentsWorkbook(XLSX, rows);
     expect(wb.SheetNames).toContain("Pagos");
     const ws = wb.Sheets["Pagos"];
     const data = XLSX.utils.sheet_to_json<string[]>(ws, { header: 1 });
@@ -51,7 +51,7 @@ describe("buildPaymentsWorkbook", () => {
   });
 
   it("CLABE se preserva como cadena de 18 dígitos", () => {
-    const wb = buildPaymentsWorkbook(rows);
+    const wb = buildPaymentsWorkbook(XLSX, rows);
     const ws = wb.Sheets["Pagos"];
     const data = XLSX.utils.sheet_to_json<string[]>(ws, { header: 1 });
     expect(String(data[1][3])).toBe("012345678901234567");
