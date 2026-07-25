@@ -25,10 +25,10 @@ test.describe("Fiscal — Complementos de Pago (REP)", () => {
       .or(page.getByRole("button", { name: /registrar pago/i }))
       .first();
 
-    if (await registerBtn.count() === 0) {
-      test.skip(true, "Sin botón registrar pago (factura no PPD o ya pagada)");
-      return;
-    }
+    const hasBtn = (await registerBtn.count()) > 0;
+    // eslint-disable-next-line playwright/no-skipped-test -- guard runtime: precondición seed opcional
+    test.skip(!hasBtn, "Sin botón registrar pago (factura no PPD o ya pagada)");
+
     // Solo verificamos que abre el flow
     await registerBtn.click();
     await expect(page.getByRole("dialog").first()).toBeVisible({ timeout: TIMEOUTS.medium });

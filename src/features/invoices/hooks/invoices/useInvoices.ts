@@ -2,8 +2,6 @@ import { queryOptions, useInfiniteQuery, useQuery, useQueryClient } from "@tanst
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { todayKeyMty } from "@/lib/format/dateFormats";
-
-type InvoiceRow = Tables<"invoices">;
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { EXCLUDE_E2E_FILTER, LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import {
@@ -13,6 +11,8 @@ import {
   type InvoiceListFilters,
 } from "../../lib/invoiceListFilters";
 import { invoiceKeys } from "../../lib/queryKeys";
+
+type InvoiceRow = Tables<"invoices">;
 
 const INVOICE_STALE_MS = 60_000;
 /** Tamaño de página para paginación por cursor en el listado de facturas. */

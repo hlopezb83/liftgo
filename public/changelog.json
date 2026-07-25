@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.226.3",
+    "date": "2026-07-25",
+    "type": "patch",
+    "title": "Cleanup ESLint: complejidad, import-groups, React Compiler y estabilización de full-flow E2E",
+    "category": "chore",
+    "description": "scrubPII: extraídos scrubRequest/scrubExceptions/scrubBreadcrumbs para bajar complejidad de scrubEvent (22→<15). useTableFilters: eliminado eslint-disable de exhaustive-deps (facets/values ahora en deps + void filterKey/itemsVersion). useInvoices: import-groups separados con línea en blanco. QuotesPage: columnas extraídas a quotesColumns.tsx (162→<150 LOC). PortalQuoteDetail: PortalQuoteActionCard extraído (complexity 16→<15). PortalInvoiceDetail: useCfdiDownload + InvoiceHeaderActions extraídos (17→<15). Tests fiscales: test.skip dinámico en lugar de literal true. full-flow: espera cierre de diálogo antes del badge 'pagada'."
+  },
+  {
     "version": "7.226.2",
     "date": "2026-07-25",
     "type": "patch",

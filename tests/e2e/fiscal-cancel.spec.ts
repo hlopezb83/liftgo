@@ -19,10 +19,10 @@ test.describe("Fiscal — cancelación CFDI", () => {
       .or(page.getByRole("button", { name: /cancelar cfdi/i }))
       .first();
 
-    if (await cancelBtn.count() === 0 || !(await cancelBtn.isVisible())) {
-      test.skip(true, "Factura seed no está timbrada — botón cancelar no aplica");
-      return;
-    }
+    const btnCount = await cancelBtn.count();
+    const btnVisible = btnCount > 0 && (await cancelBtn.isVisible());
+    // eslint-disable-next-line playwright/no-skipped-test -- guard runtime: precondición seed opcional
+    test.skip(!btnVisible, "Factura seed no está timbrada — botón cancelar no aplica");
 
     await cancelBtn.click();
     const dialog = page.getByRole("dialog");
@@ -30,7 +30,8 @@ test.describe("Fiscal — cancelación CFDI", () => {
 
     // Seleccionar motivo 01
     const motivo = dialog.getByRole("combobox").first();
-    if (await motivo.count() > 0) {
+    const motivoCount = await motivo.count();
+    if (motivoCount > 0) {
       await motivo.click();
       await page.getByRole("option", { name: /01|errores con relaci/i }).first().click();
     }

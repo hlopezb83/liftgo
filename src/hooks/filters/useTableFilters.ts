@@ -145,15 +145,17 @@ export function useTableFilters<T, F extends Record<string, Facet<T>>>(
   }, [items]);
 
   const filtered = useMemo<T[]>(() => {
+    // filterKey/itemsVersion son huellas primitivas de values/items; se consumen
+    // vía `void` para satisfacer exhaustive-deps sin desactivar la regla.
+    void filterKey;
+    void itemsVersion;
     if (mode !== "client") return [];
     return applyFacetFilters(
       items ?? [],
       facets as unknown as Record<string, Facet<T>>,
       values as Record<string, string>,
     );
-    // filterKey/itemsVersion son huellas primitivas de values/items; suficientes.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mode, items, itemsVersion, filterKey]);
+  }, [mode, items, facets, values, filterKey, itemsVersion]);
 
   return {
     values,
