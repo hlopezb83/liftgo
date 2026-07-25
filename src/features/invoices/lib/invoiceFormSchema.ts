@@ -35,8 +35,8 @@ export const invoiceFormSchema = z
   .object({
     bookingId: z.string(),
     bookingIds: z.array(z.string()).default([]),
-    customerId: z.string().nullable(),
-    customerName: z.string().min(1, "El cliente es requerido"),
+    customerId: z.string().min(1, "El cliente es requerido"),
+    customerName: z.string(),
     lineItems: z.array(lineItemSchema).min(1, "Agrega al menos una partida"),
     taxRate: z.number().min(0),
     issueDate: z.date(),
@@ -90,7 +90,7 @@ export const EMPTY_LINE: LineItemValues = {
 export const buildEmptyInvoiceValues = (): InvoiceFormValues => ({
   bookingId: "",
   bookingIds: [],
-  customerId: null,
+  customerId: "",
   customerName: "",
   lineItems: [],
   taxRate: 16,

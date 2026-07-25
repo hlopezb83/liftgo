@@ -155,7 +155,12 @@ function CustomerGroup({
       </div>
       <div className="divide-y">
         {groupLines.map((line) => (
-          <LineRow key={line.bookingId} line={line} selected={selected} onToggle={onToggle} />
+          <LineRow
+            key={`${line.bookingId}:${line.periodStart}`}
+            line={line}
+            selected={selected}
+            onToggle={onToggle}
+          />
         ))}
       </div>
     </div>

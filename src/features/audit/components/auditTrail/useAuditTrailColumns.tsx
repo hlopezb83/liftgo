@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { ColumnDef } from "@/components/dataTable/v2";
-import { DeleteIcon } from "@/components/icons";
+import { UndoIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -83,7 +83,9 @@ export function useAuditTrailColumns(
     ];
     if (isAdmin) {
       base.push({
-        id: "delete",
+        // R15 AUTH-3: la acción abre "Revertir", no eliminar. Ícono Undo,
+        // sin destructive coloring.
+        id: "revert",
         header: "",
         enableSorting: false,
         meta: { cellClassName: "w-10" },
@@ -91,13 +93,15 @@ export function useAuditTrailColumns(
           <Button
             variant="ghost"
             size="iconSm"
-            className="text-destructive hover:text-destructive"
+            className="text-muted-foreground hover:text-foreground"
+            aria-label="Revertir acción"
+            title="Revertir acción"
             onClick={(e) => {
               e.stopPropagation();
               onDeleteRequest(row.original);
             }}
           >
-            <DeleteIcon />
+            <UndoIcon />
           </Button>
         ),
       });
