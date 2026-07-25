@@ -57,7 +57,7 @@ export function useExportPaymentsForm(open: boolean, onClose: () => void) {
           currency: b.currency,
         };
       });
-      const filename = downloadPaymentsXlsx(rows);
+      const filename = await downloadPaymentsXlsx(rows);
       notifySuccess(`Excel descargado: ${filename}`);
       setNotes("");
       onClose();

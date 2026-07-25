@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.230.0",
+    "date": "2026-07-26",
+    "type": "minor",
+    "title": "R-Perf Tanda 1 · quick wins de rendimiento (tablas, facturas, primer paint)",
+    "category": "performance",
+    "description": "P0-1 memoiza `dataVersion` en useLiftgoTable (21ms → <1ms a 500 filas por interacción). P0-2 separa INVOICE_LIST_COLUMNS sin `cfdi_xml`/`line_items` (lista de facturas 6-10× más ligera). P0-3.1 nuevo chunk `ui-utils` en vite (recharts fuera del primer paint, ~109 KB gz). P0-3.3 badge de versión desde `VITE_APP_VERSION` (evita descargar /changelog.json 132 KB gz en el arranque). P2-8 `@e965/xlsx` con dynamic import. P3-10.4 `placeholderData` en useInvoicesInfinite. P3-11 favicon 67 KB → 2.2 KB, elimina preconnect a cdn.gpteng.co."
+  },
+  {
     "version": "7.229.2",
     "date": "2026-07-25",
     "type": "patch",

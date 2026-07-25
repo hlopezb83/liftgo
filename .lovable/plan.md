@@ -1,30 +1,51 @@
-## Contexto
 
-CI en rojo por un solo test unitario (los demás jobs verdes; el E2E de shard 1 mostró un fallo transitorio en `invoice-payment.spec.ts` que pasó en el retry #1 y el shard reporta 0 failed).
+# Plan · Rendimiento R-Perf — Tanda 1 (quick wins)
 
-## Causa raíz
+Objetivo: eliminar el jank perceptible en tablas, aligerar la lista de facturas y recortar ~140 KB gz del primer paint. Cambios de bajo riesgo, verificados con `tsgo` + Vitest.
 
-En **v7.229.0 (R15 F-01)** movimos la validación `.min(1, "Selecciona un cliente")` de `customerName` a `customerId` en `invoiceFormSchema`. `buildEmptyInvoiceValues()` devuelve `customerId: ""`, por lo que ahora cualquier payload que parta de él sin sobrescribir `customerId` falla.
+## Alcance (Tanda 1 únicamente)
 
-El test `src/features/invoices/lib/__tests__/invoiceFormSchema.test.ts:100` — *"acepta payload con al menos una partida válida"* — arma el payload como `{ ...buildEmptyInvoiceValues(), lineItems: [...] }` sin `customerId`, y ahora ese caso legítimamente falla con "Selecciona un cliente".
+Los ítems estructurales de Tanda 2 (audit trigger, RPC forklift_current_location, bail-outs React Compiler, CustomerSelector→combobox, Sentry Replay lazy, invalidaciones quirúrgicas) quedan fuera; los planteo aparte tras validar Tanda 1.
 
-## Fix (v7.229.2, patch)
+## Cambios
 
-1. **`src/features/invoices/lib/__tests__/invoiceFormSchema.test.ts`**
-   - En el test *"acepta payload con al menos una partida válida"* (línea 100-107), pasar un `customerId` no vacío (ej: `customerId: "cust-1"`) en el spread para que refleje el contrato post-R15.
-   - Opcionalmente añadir un test explícito nuevo *"rechaza payload sin customerId"* que documente la invariante F-01 (el test de `buildEmptyInvoiceValues` ya la cubre indirectamente, así que este es opcional).
+### 1. P0-1 · Memoizar `dataVersion` (crítico, 1 línea)
+- `src/components/dataTable/v2/useLiftgoTable.ts`: envolver el `tableData.map(JSON.stringify).join("|")` en `useMemo(..., [tableData])`.
+- Impacto: elimina ~95% del costo por render en TODAS las tablas (a 500 filas de facturas: 21 ms → <1 ms).
+- Riesgo: nulo — TanStack Query siempre devuelve nueva referencia ante cambio de contenido; el bug R13-1 (in-place edits) ya no aplica porque los `setQueryData` del repo usan updaters inmutables.
+- Verificación: `bunx vitest run src/components/dataTable/v2/__tests__/useLiftgoTable.dataVersion.test.tsx`.
 
-2. **Changelog**
-   - Nueva entrada `public/changelog/v7.229.2.json` (type: `patch`, category: `fix`) explicando el ajuste del test al nuevo contrato de `customerId` de R15 F-01.
-   - Bump en `public/changelog.json` y `package.json` a `7.229.2`.
+### 2. P0-2 · Separar `INVOICE_LIST_COLUMNS` (sin `cfdi_xml` ni `line_items`)
+- `src/features/invoices/hooks/useInvoices.ts`: nuevo array `INVOICE_LIST_COLUMNS` para `fetchInvoicePage` / lista infinita; el detalle sigue usando `INVOICE_COLUMNS` completo.
+- Detalle (`useInvoice(id)`) ya re-descarga por id; `download-cfdi` sirve XML desde storage — sin regresión funcional.
+- Impacto: payload lista 6-10× menor + reduce el costo residual del P0-1.
 
-## Fuera de alcance (no bloquean CI)
+### 3. P0-3.1 · Fix chunking `recharts` (3 líneas de config)
+- `vite.config.ts`: en `manualChunks`, insertar grupo `ui-utils` (`clsx`, `tailwind-merge`, `class-variance-authority`) ANTES del grupo `recharts` para que `clsx` no arrastre recharts al chunk inicial.
+- Ahorro: ~109 KB gz en primer paint.
 
-- **ESLint "Cannot access refs during render"**: 4 warnings en `InvoiceForm.tsx` por el `justSavedRef.current` de R15 F-03 leído durante el render del `<Prompt>`. Son warnings, no rompen CI. Si se quiere limpiar en un lote posterior, se lee el ref dentro de un handler o se convierte a `useState` — pero cambia el timing del guard y hay riesgo de regresar F-03.
-- **E2E `invoice-payment.spec.ts`**: flake que pasó en retry (shard 1 reporta 0 failed, no bloqueó el job).
-- **Cache saves fallidos**: colisiones benignas de `actions/cache` entre shards concurrentes, no rompen los jobs.
+### 4. P0-3.3 · Badge de versión desde `version.json` (sin descargar changelog completo)
+- `src/layouts/sidebar/SidebarBranding.tsx` (o donde consuma `useCurrentVersion`): leer versión desde `VITE_APP_VERSION` / `/version.json` (72 B) en vez de `useChangelog` (424 KB).
+- `useChangelog` queda restringido a la ruta `/changelog`.
+- Ahorro: 132 KB gz + 1 request de arranque.
 
-## Verificación
+### 5. P3-10.4 · `placeholderData: keepPreviousData` en `useInvoicesInfinite`
+- 1 línea. Evita el parpadeo/vacío por keystroke.
 
-- `bunx vitest run src/features/invoices/lib/__tests__/invoiceFormSchema.test.ts` → 14/14.
-- Suite completa `bunx vitest run` → 1250/1250.
+### 6. P2-8 · `xlsx` dinámico en CxP
+- `src/features/accounts-payable/...` (`downloadPaymentsXlsx`, `downloadReconciliationXlsx`): reemplazar `import` estático por `await import("@e965/xlsx")` dentro de la función.
+- Ahorro: 106 KB gz fuera del chunk de la ruta.
+
+### 7. P3-11 · Higiene assets
+- `public/favicon.png`: reemplazar por versión ≤10 KB (o SVG si hay disponible).
+- `index.html`: eliminar `<link rel="preconnect" href="https://cdn.gpteng.co">` (no se usa).
+
+## Detalles técnicos
+
+- Todo el trabajo es frontend / config Vite / assets. No hay migraciones ni cambios en RPCs ni RLS.
+- Verificación por paso: `bunx tsgo`, `bunx vitest run` en archivos tocados, y `bun run build` para confirmar que `dist/assets` ya no contiene recharts en el chunk inicial (comparar `stats.html` si se genera con `ANALYZE=1`).
+- Changelog: entrada `v7.230.0` (minor, agrupa perf) en `public/changelog.json` + detalle en `public/changelog/v7.230.0.json`, siguiendo la convención del proyecto.
+
+## Fuera de alcance (Tanda 2 — pediré confirmación después)
+
+Audit trigger sin XML (P1-4), `forklift_current_location` (P1-5), bail-outs React Compiler (P1-6), límites forklifts/supplier_bills/cash-flow (P2-7), CustomerSelector combobox (P2-9), Sentry Replay lazy (P0-3.2), consolidación company_settings + invalidaciones bookings (P3-10.1-2), lazy de diálogos (P3-11).

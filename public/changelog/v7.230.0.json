@@ -1,0 +1,58 @@
+{
+  "version": "7.230.0",
+  "date": "2026-07-26",
+  "type": "minor",
+  "title": "R-Perf Tanda 1 · quick wins de rendimiento",
+  "category": "performance",
+  "sections": [
+    {
+      "heading": "Tablas — dataVersion memoizado (P0-1)",
+      "items": [
+        "src/components/dataTable/v2/useLiftgoTable.ts: envolver `tableData.map(JSON.stringify).join('|')` en `useMemo(..., [tableData])`. TanStack Query devuelve nueva referencia ante cualquier cambio de contenido, así que el hash solo se recomputa cuando la data realmente cambia (no en cada render por sort/paginación/selección/apertura de diálogo).",
+        "Impacto medido: 21 ms → <1 ms por interacción a 500 filas de facturas. En móvil (3× más lento) elimina jank perceptible en TODAS las tablas de la app."
+      ]
+    },
+    {
+      "heading": "Facturas — INVOICE_LIST_COLUMNS sin cfdi_xml/line_items (P0-2)",
+      "items": [
+        "src/features/invoices/hooks/invoices/useInvoices.ts: nuevo `INVOICE_LIST_COLUMNS` (sin `cfdi_xml` ~8-12KB/fila ni `line_items` JSONB) usado por `baseInvoiceQuery` (lista `useInvoices` + `useInvoicesInfinite`). El detalle (`useInvoice(id)` + `fetchInvoiceDetail`) sigue con `INVOICE_COLUMNS` completo.",
+        "Payload de red de la lista 6-10× más ligero; efecto secundario: reduce el costo residual del P0-1 (11.6 KB/fila → ~1.9 KB/fila para el stringify)."
+      ]
+    },
+    {
+      "heading": "Bundle — chunk ui-utils antes de recharts (P0-3.1)",
+      "items": [
+        "vite.config.ts CHUNK_GROUPS: nuevo grupo `ui-utils` (`clsx`, `tailwind-merge`, `class-variance-authority`) INSERTADO antes de `recharts`. Sin este grupo, el match parcial 'recharts' capturaba también `clsx` (que `src/lib/utils.ts::cn` importa en todo el shell), arrastrando ~109 KB gz de recharts al chunk inicial via moduleprecarga aunque el usuario no visitara ninguna vista con gráficas."
+      ]
+    },
+    {
+      "heading": "Startup — versión desde VITE_APP_VERSION (P0-3.3)",
+      "items": [
+        "src/features/changelog/hooks/useChangelog.ts::useCurrentVersion ahora lee `import.meta.env.VITE_APP_VERSION` (inyectado en build desde public/version.json, 72B) en vez de llamar `useChangelog()` (que descargaba /changelog.json completo, 132 KB gz).",
+        "src/features/feedback/hooks/useFeedbackContext.ts: `app_version` idem — evita descargar el changelog solo para adjuntar el string al reporte.",
+        "`useChangelog()` queda restringido a la ruta /changelog (donde ya se lazy-carga)."
+      ]
+    },
+    {
+      "heading": "CxP + Conciliación — @e965/xlsx dinámico (P2-8)",
+      "items": [
+        "src/features/accounts-payable/lib/buildPaymentsXlsx.ts: `downloadPaymentsXlsx` ahora `async`, hace `await import('@e965/xlsx')` al click. `buildPaymentsWorkbook(xlsx, rows)` recibe el módulo como parámetro para mantener testeabilidad síncrona.",
+        "src/features/invoices/lib/reconciliationExport.ts: `downloadReconciliationXlsx` async con import dinámico.",
+        "Callers actualizados con `await`/`void`. Ahorro: 106 KB gz fuera del chunk de la ruta CxP."
+      ]
+    },
+    {
+      "heading": "UX — placeholderData en useInvoicesInfinite (P3-10.4)",
+      "items": [
+        "Evita el parpadeo/vacío por keystroke al buscar/filtrar en la lista de facturas."
+      ]
+    },
+    {
+      "heading": "Assets — favicon + preconnect huérfano (P3-11)",
+      "items": [
+        "public/favicon.png: 512×512 (67 KB) → 64×64 optimizado (2.2 KB).",
+        "index.html: eliminado `<link rel='preconnect' href='https://cdn.gpteng.co'>` (sin scripts del CDN en la app)."
+      ]
+    }
+  ]
+}

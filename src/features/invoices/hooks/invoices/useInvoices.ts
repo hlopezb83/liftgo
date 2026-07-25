@@ -21,6 +21,9 @@ export const INVOICE_PAGE_SIZE = 100;
 // v7.216.0 (C6): columnas explícitas para reducir payload y evitar re-parseo
 // costoso de tipos por `supabase-js` cuando el builder se reasigna.
 const sel = (s: string): string => s;
+// R-Perf P0-2: el detalle carga columnas completas (incluye `cfdi_xml` ~8-12KB
+// y `line_items` JSONB pesado); la lista NUNCA los renderiza y arrastraba 6-10x
+// el payload de red + inflaba el costo de `dataVersion` en la tabla.
 const INVOICE_COLUMNS = sel(
   "id, invoice_number, folio, serie, customer_id, customer_name, booking_id, quote_id, " +
   "status, cfdi_status, cfdi_uuid, cfdi_pdf_url, cfdi_xml_url, cfdi_xml, cfdi_error_message, " +
@@ -33,9 +36,23 @@ const INVOICE_COLUMNS = sel(
   "billing_period_start, billing_period_end, issued_at, due_date, paid_at, " +
   "e2e_scope, is_e2e, created_at, updated_at",
 );
+// Sin `cfdi_xml` ni `line_items`. Suficiente para render de listas + filtros.
+// Consumidores que necesiten esos campos deben cargar el detalle por id.
+const INVOICE_LIST_COLUMNS = sel(
+  "id, invoice_number, folio, serie, customer_id, customer_name, booking_id, quote_id, " +
+  "status, cfdi_status, cfdi_uuid, cfdi_pdf_url, cfdi_xml_url, cfdi_error_message, " +
+  "cancellation_status, cancellation_motive, cancellation_reason, cancelled_at, substitution_uuid, " +
+  "acuse_pdf_url, acuse_xml_url, facturapi_invoice_id, facturapi_env, stamping_attempts, " +
+  "stamp_variance, stamp_variance_checked_at, invoice_type, forma_pago, metodo_pago, uso_cfdi, " +
+  "moneda, tipo_cambio, global_months, global_periodicity, global_year, " +
+  "receptor_rfc, receptor_razon_social, receptor_regimen_fiscal, receptor_domicilio_fiscal_cp, " +
+  "subtotal, tax_rate, tax_amount, total, notes, version, " +
+  "billing_period_start, billing_period_end, issued_at, due_date, paid_at, " +
+  "e2e_scope, is_e2e, created_at, updated_at",
+);
 
 function baseInvoiceQuery(normalized: InvoiceListFilters) {
-  let q = supabase.from("invoices").select(INVOICE_COLUMNS).or(EXCLUDE_E2E_FILTER);
+  let q = supabase.from("invoices").select(INVOICE_LIST_COLUMNS).or(EXCLUDE_E2E_FILTER);
   if (normalized.status === "overdue") {
     q = q.in("status", ["sent", "partial"]).lt("due_date", todayKeyMty());
   } else if (normalized.status !== "all") {
@@ -157,6 +174,8 @@ export function useInvoicesInfinite(filters?: InvoiceListFilters) {
     initialPageParam: 0,
     getNextPageParam: (last) => last.nextPage,
     staleTime: INVOICE_STALE_MS,
+    // R-Perf P3-10.4: evita parpadeo/vacío en la tabla al cambiar filtros o búsqueda.
+    placeholderData: (prev) => prev,
   });
 }
 

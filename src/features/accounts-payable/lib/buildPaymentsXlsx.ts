@@ -1,4 +1,8 @@
-import * as XLSX from "@e965/xlsx";
+// R-Perf P2-8: `@e965/xlsx` (~106 KB gz) se importa dinámicamente dentro de
+// `downloadPaymentsXlsx` para no cargarlo al montar la ruta CxP. `buildPaymentsWorkbook`
+// sigue siendo síncrono porque solo lo consume `downloadPaymentsXlsx` (y el test
+// que lo importa vía top-level dynamic import).
+import type * as XLSX from "@e965/xlsx";
 import { format } from "date-fns";
 import { nowMty } from "@/lib/utils";
 
@@ -39,7 +43,7 @@ function fmtDueDate(d: string | null): string {
   return `${day}/${m}/${y}`;
 }
 
-export function buildPaymentsWorkbook(rows: PaymentExportRow[]): XLSX.WorkBook {
+export function buildPaymentsWorkbook(xlsx: typeof XLSX, rows: PaymentExportRow[]): XLSX.WorkBook {
   const data: (string | number)[][] = [[...HEADERS]];
   let total = 0;
   for (const r of rows) {
@@ -61,21 +65,22 @@ export function buildPaymentsWorkbook(rows: PaymentExportRow[]): XLSX.WorkBook {
   }
   data.push(["", "", "", "", "", "", "", "", "", "TOTAL", Number(total.toFixed(2)), rows[0]?.currency ?? "MXN"]);
 
-  const ws = XLSX.utils.aoa_to_sheet(data);
+  const ws = xlsx.utils.aoa_to_sheet(data);
   ws["!cols"] = [
     { wch: 32 }, { wch: 14 }, { wch: 16 }, { wch: 22 }, { wch: 14 },
     { wch: 28 }, { wch: 22 }, { wch: 32 }, { wch: 14 }, { wch: 14 },
     { wch: 14 }, { wch: 8 },
   ];
 
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, "Pagos");
+  const wb = xlsx.utils.book_new();
+  xlsx.utils.book_append_sheet(wb, ws, "Pagos");
   return wb;
 }
 
-export function downloadPaymentsXlsx(rows: PaymentExportRow[]): string {
-  const wb = buildPaymentsWorkbook(rows);
+export async function downloadPaymentsXlsx(rows: PaymentExportRow[]): Promise<string> {
+  const xlsx = await import("@e965/xlsx");
+  const wb = buildPaymentsWorkbook(xlsx, rows);
   const filename = `pagos-proveedores-${format(nowMty(), "ddMMyyyy-HHmm")}.xlsx`;
-  XLSX.writeFile(wb, filename);
+  xlsx.writeFile(wb, filename);
   return filename;
 }
