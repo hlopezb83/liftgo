@@ -27,21 +27,10 @@ if (dsn && env !== "test") {
     replaysOnErrorSampleRate: env === "production" ? 1.0 : 0,
     integrations: [
       Sentry.browserTracingIntegration(),
-      // Defaults ya seguros (maskAllText/maskAllInputs = true, blockAllMedia).
-      // Los dejamos explícitos + `networkDetailAllowUrls: []` para que Replay
-      // NO capture request/response bodies bajo ninguna URL, y añadimos
-      // `mask: ['[data-sentry-mask]']` para que componentes ad-hoc puedan
-      // reforzar el masking de zonas visualmente sensibles (montos, folios).
-      Sentry.replayIntegration({
-        maskAllText: true,
-        maskAllInputs: true,
-        blockAllMedia: true,
-        networkDetailAllowUrls: [],
-        networkCaptureBodies: false,
-        mask: ["[data-sentry-mask]"],
-        block: ["[data-sentry-block]"],
-      }),
+      // Replay se carga perezosamente después del primer paint para no
+      // inflar el chunk inicial (~30-35 KB gz). Ver bloque `schedule` abajo.
     ],
+
     // Filtra ruido conocido para no gastar cuota en errores no accionables.
     ignoreErrors: [
       "ResizeObserver loop limit exceeded",
