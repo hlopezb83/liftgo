@@ -101,9 +101,23 @@ describe("invoiceFormSchema", () => {
     const v = buildEmptyInvoiceValues();
     const res = invoiceFormSchema.safeParse({
       ...v,
+      // R15 F-01: customerId es requerido (superficie de error visible).
+      customerId: "cust-1",
       lineItems: [{ ...EMPTY_LINE, description: "Renta", quantity: 1, unit_price: 1000, total: 1000 }],
     });
     expect(res.success).toBe(true);
+  });
+
+  it("rechaza payload sin customerId (R15 F-01)", () => {
+    const v = buildEmptyInvoiceValues();
+    const res = invoiceFormSchema.safeParse({
+      ...v,
+      lineItems: [{ ...EMPTY_LINE, description: "Renta", quantity: 1, unit_price: 1000, total: 1000 }],
+    });
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      expect(res.error.issues.some((i) => i.message === "Selecciona un cliente")).toBe(true);
+    }
   });
 
   it("rechaza taxRate negativo", () => {
