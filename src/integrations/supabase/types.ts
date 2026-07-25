@@ -3911,6 +3911,7 @@ export type Database = {
           razon_social: string
         }[]
       }
+      get_sidebar_badge_counts: { Args: never; Returns: Json }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
