@@ -56,7 +56,7 @@ export default function InvoicesReconciliation() {
         actions={
           <Button
             variant="outline"
-            onClick={() => downloadReconciliationXlsx(rows)}
+            onClick={() => { void downloadReconciliationXlsx(rows); }}
             disabled={rows.length === 0}
           >
             <DownloadIcon className="h-4 w-4 mr-2" /> Exportar XLSX
