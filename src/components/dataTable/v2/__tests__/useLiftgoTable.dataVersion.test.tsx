@@ -35,4 +35,17 @@ describe("useLiftgoTable — versión por identidad de contenido", () => {
     rerender({ data: rowsA });
     expect(result.current).toBe(first);
   });
+
+  it("R13-1: mismo id + campo editado → nueva identidad (edición in-place no queda stale)", () => {
+    const original: Row[] = [{ id: "1", name: "Ada" }, { id: "2", name: "Bob" }];
+    const edited: Row[] = [{ id: "1", name: "Ada Lovelace" }, { id: "2", name: "Bob" }];
+    const { result, rerender } = renderHook(
+      ({ data }) => useLiftgoTable<Row>({ data, columns: cols, getRowId: (r) => r.id }),
+      { initialProps: { data: original } },
+    );
+    const first = result.current;
+    rerender({ data: edited });
+    expect(result.current).not.toBe(first);
+  });
 });
+
