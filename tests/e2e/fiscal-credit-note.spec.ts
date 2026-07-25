@@ -19,10 +19,8 @@ test.describe("Fiscal — Notas de crédito", () => {
       .getByTestId("create-credit-note-btn")
       .or(page.getByRole("button", { name: /nota de cr[eé]dito|crear nc/i }))
       .first();
-    if (await btn.count() === 0) {
-      test.skip(true, "Factura seed no timbrada — botón NC no aplica");
-      return;
-    }
+    const hasBtn = (await btn.count()) > 0;
+    test.skip(!hasBtn, "Factura seed no timbrada — botón NC no aplica");
     await expect(btn).toBeVisible({ timeout: TIMEOUTS.short });
   });
 });

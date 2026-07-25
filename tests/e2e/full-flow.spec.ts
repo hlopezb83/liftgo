@@ -46,6 +46,10 @@ test("cadena completa: cotización → reserva → factura → pago", async ({ p
   expect(paymentResponse.status()).toBeGreaterThanOrEqual(200);
   expect(paymentResponse.status()).toBeLessThan(300);
 
+  // v7.226.3: esperar cierre del diálogo antes de verificar el badge de pagada
+  // — evitaba flakiness cuando la invalidación de cache llegaba antes del
+  // re-render del status en el header.
+  await expect(dialog).toBeHidden({ timeout: 15_000 });
   await expect(page.getByText(/pagad[ao]/i).first()).toBeVisible({ timeout: 15_000 });
   await expectNoToastError(page);
 });
