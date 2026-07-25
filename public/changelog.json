@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.233.0",
+    "date": "2026-07-26",
+    "type": "minor",
+    "title": "R-Perf Tanda 4 · lista de auditoría ligera, invalidación KPI tras pagos, FeedbackFab perezoso",
+    "category": "performance",
+    "description": "P1-4b: la lista de /audit ya no descarga `old_data`/`new_data`; proyecta sólo los campos necesarios para el label y el detalle se re-descarga por id al abrir el diálogo. P3-10.3: `useCreatePayment`/`useUpdatePayment` invalidan también `dashboard-financial-kpis` para que `overdue_total` y DSO se actualicen inmediatamente tras registrar/editar pagos. P3-11: `FeedbackFormDialog` (react-day-picker + RHF + zod) se carga con `lazy()` — sale del bundle inicial del shell."
+  },
+  {
     "version": "7.232.0",
     "date": "2026-07-26",
     "type": "minor",
