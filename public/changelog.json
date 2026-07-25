@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.229.2",
+    "date": "2026-07-25",
+    "type": "patch",
+    "title": "Vitest · alinea test de invoiceFormSchema al contrato customerId de R15 F-01",
+    "category": "fix",
+    "description": "R15 F-01 movió la validación 'Selecciona un cliente' de `customerName` a `customerId`; el test 'acepta payload con al menos una partida válida' no sobrescribía `customerId` (default `\"\"`) y empezó a fallar legítimamente. Se ajusta el payload y se añade regresión explícita 'rechaza payload sin customerId'. Vitest vuelve a 1250/1250."
+  },
+  {
     "version": "7.229.1",
     "date": "2026-07-25",
     "type": "patch",
