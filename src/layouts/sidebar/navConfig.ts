@@ -103,7 +103,7 @@ export const NAV_GROUPS: NavGroup[] = [
     defaultOpen: false,
     items: [
       { title: "Ayuda", url: "/help", icon: HelpIcon },
-      { title: "Changelog", url: "/changelog", icon: ScrollText },
+      { title: "Changelog", url: "/changelog", icon: ScrollText, badgeKey: "changelog_new" },
       { title: "Mis Reportes", url: "/mis-reportes", icon: MessageSquare },
       { title: "Tabla de Honor", url: "/leaderboard", icon: TrophyIcon },
       { title: "Gestión de Feedback", url: "/feedback", icon: Megaphone },
