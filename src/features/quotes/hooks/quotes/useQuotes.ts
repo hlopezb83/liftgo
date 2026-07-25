@@ -90,7 +90,8 @@ export function useCreateQuote() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [quoteKeys.all],
+    invalidateKeys: [quoteKeys.lists()],
+
     errorTitle: "Error al crear cotización",
   });
 }
