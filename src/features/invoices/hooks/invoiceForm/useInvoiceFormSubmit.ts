@@ -67,7 +67,7 @@ export function useInvoiceFormSubmit() {
     const primaryBookingId = bookingIds[0] || values.bookingId || (isEdit ? orEmpty(existingBookingId, null) : null) || null;
     return {
       booking_id: primaryBookingId,
-      customer_id: customerId,
+      customer_id: customerId || null,
       customer_name: nn(customerName),
       quote_id: fromQuoteId || (isEdit ? orEmpty(existingQuoteId, null) : null) || null,
       line_items: toJsonArray(items),
