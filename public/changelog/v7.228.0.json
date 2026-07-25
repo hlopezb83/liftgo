@@ -1,0 +1,61 @@
+{
+  "version": "7.228.0",
+  "date": "2026-07-25",
+  "type": "minor",
+  "title": "R14 · Bugs críticos E2E: activity, cancel_booking, portal, bitácora, formularios",
+  "category": "fix",
+  "changes": [
+    {
+      "area": "Auditoría · /activity",
+      "detail": "R14-A: memoizar getRange(rangeKey) con useMemo. Sin esto, cada render creaba `new Date()` fresco → queryKeys distintas en useActivityMetrics/useActivityFeed → 841 requests en 12s y KPIs congelados en 0."
+    },
+    {
+      "area": "Reservas · cancel_booking",
+      "detail": "R14-B: la firma con p_reason (20260724230856) había perdido el bloque que devolvía el montacargas a 'available' al cancelar y aún así insertaba status_log rented→available. Se restaura la liberación real (validando que no haya otra renta activa), status_log condicional a ROW_COUNT>0, y saneamiento retroactivo de equipos zombie tolerante a datos históricos inválidos."
+    },
+    {
+      "area": "Flota · Editar equipo",
+      "detail": "R14-C: el prefill hacía form.reset antes de que equipmentModels resolviera → Radix emitía onValueChange(\"\") vaciando fabricante/modelo/combustible. Fix en 3 capas: (1) useForkliftPrefill gateado con catalogsReady, (2) handleManufacturer/Model/fuelType ignoran value vacío espurio, (3) fuel_type ahora min(1) en el schema."
+    },
+    {
+      "area": "Portal · Pagos",
+      "detail": "R14-D + R14-E: policy customer_payment_intents INSERT ahora exige que invoice_id pertenezca al cliente (bloquea intents cruzados). approve_payment_intent valida propiedad y toma moneda explícita de la factura (fix silencioso del trigger de divisa en facturas USD). PortalInvoicePayment.tsx muestra saldo con moneda real y oculta SPEI para facturas no-MXN."
+    },
+    {
+      "area": "Bitácora · Revertir",
+      "detail": "R14-F: revert_audit_log referenciaba v_log.old_values/new_values (columnas inexistentes; las reales son old_data/new_data). Se corrigen los 5 usos, restaurando la reversión de INSERT/UPDATE en tablas no financieras."
+    },
+    {
+      "area": "Bitácora · UI",
+      "detail": "R14-G: se retira la acción 'Eliminar' del diálogo — las policies de audit_logs son SELECT-only (append-only por diseño), el DELETE matcheaba 0 filas y toasteaba éxito falso. Queda solo 'Revertir acción original', que tras R14-F funciona."
+    },
+    {
+      "area": "Facturación recurrente · Preview",
+      "detail": "R14-I: el conteo del botón y el checkbox de línea reflejan la realidad — el edge factura todos los períodos pendientes por reserva. Botón dice 'Generar N facturas' donde N cuenta líneas elegibles seleccionadas; checkbox de línea es informativo (grupo controlado por reserva)."
+    },
+    {
+      "area": "Reservas · create_booking",
+      "detail": "R14-J: el RPC no validaba traslape con reservas existentes del mismo equipo (la UI sí filtraba, pero convert_quote_to_bookings y llamadas directas no). Se agrega guard con daterange && daterange → 'El montacargas ya está reservado en ese rango de fechas' (traducción amigable ya registrada)."
+    },
+    {
+      "area": "Usuarios · Errores de edge",
+      "detail": "R14-K: useInviteUser/useDeleteUser migran a invokeEdgeFunction (extrae body de errores non-2xx). useResetPassword usa extractEdgeErrorMessage exportado del wrapper, preservando el flujo especial de PasswordValidationError."
+    },
+    {
+      "area": "Panel · Finanzas",
+      "detail": "R14-L: useFinancialKpis acepta `enabled`; useDashboardSections lo gatea por rol (admin/administrativo/auditor). Ventas/dispatcher/mechanic ya no reciben toast 'Forbidden' ni KPIs en $0 — la sección Finanzas se oculta."
+    },
+    {
+      "area": "Facturas · Formulario",
+      "detail": "M1/M2/M5/M6: customerName requerido, total > $0 en superRefine, form.reset(values) tras guardar (elimina 'Descartar cambios?' post-éxito), y mensajes amigables para LAST_ADMIN_CANNOT_BE_DEMOTED/DELETED."
+    },
+    {
+      "area": "Listas · Pull-to-refresh",
+      "detail": "M3: /fleet y /maintenance pasan `onRefresh={refetch}` a ListPageLayout — PTR móvil ahora cablea el refetch."
+    },
+    {
+      "area": "Tablas · Paginación",
+      "detail": "R13-3: DataTablePaginationV2 agrega selector 10/25/50/100 filas por página."
+    }
+  ]
+}

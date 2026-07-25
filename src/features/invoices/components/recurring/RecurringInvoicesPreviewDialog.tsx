@@ -82,7 +82,9 @@ export function RecurringInvoicesPreviewDialog({
     });
   };
 
-  const selectedCount = selected.size;
+  // R14-I: el edge genera UNA factura por línea (período pendiente). Contar
+  // facturas reales para que el botón no mienta ("Generar 1" cuando serán 3).
+  const selectedCount = lines.filter((l) => l.eligible && selected.has(l.bookingId)).length;
 
   return (
     <FormDialog

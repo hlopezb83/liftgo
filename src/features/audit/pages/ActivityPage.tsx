@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
@@ -14,7 +14,9 @@ import type { ActivityMetrics } from "../hooks/activityMetricsTypes";
 
 export default function ActivityPage() {
   const [rangeKey, setRangeKey] = useState<RangeKey>("7d");
-  const range = getRange(rangeKey);
+  // R14-A: memoizar; sin esto getRange() crea `new Date()` en cada render y
+  // las fechas (con ms) viajan a las queryKeys → refetch infinito.
+  const range = useMemo(() => getRange(rangeKey), [rangeKey]);
   const [filters, setFilters] = useState<ActivityFilters>({});
 
   const { data: metrics } = useActivityMetrics({ from: range.from, to: range.to });

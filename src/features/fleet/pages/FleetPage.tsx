@@ -127,6 +127,7 @@ export default function FleetPage() {
       isLoading={isLoading}
       isError={isError}
       onRetry={() => { void refetch(); }}
+      onRefresh={refetch}
       table={table}
       onRowClick={(f) => navigate(`/fleet/${f.id}`)}
       hasActiveFilters={hasActive}

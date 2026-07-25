@@ -41,6 +41,9 @@ export default function InvoiceForm() {
       f.updateInvoice.mutate({ id: invoiceId, ...payload }, {
         onSuccess: async () => {
           await f.syncInvoiceBookings.mutateAsync({ invoiceId, bookingIds });
+          // M5: marcar valores guardados como nuevo default → isDirty=false y el
+          // guard de cambios sin guardar no dispara al navegar.
+          f.form.reset(values);
           notifySuccess("Factura actualizada");
           navigate(`/invoices/${invoiceId}`);
         },
@@ -49,6 +52,7 @@ export default function InvoiceForm() {
       f.createInvoice.mutate(payload, {
         onSuccess: async (data) => {
           await f.syncInvoiceBookings.mutateAsync({ invoiceId: data.id, bookingIds });
+          f.form.reset(values); // M5
           notifySuccess(`Factura ${data.invoice_number} creada`);
           if (f.fromQuoteId) f.updateQuote.mutate({ id: f.fromQuoteId, status: "accepted" });
           navigate(`/invoices/${data.id}`);

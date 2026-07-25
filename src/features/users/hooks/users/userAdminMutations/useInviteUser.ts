@@ -1,14 +1,16 @@
-import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 import { userKeys } from "../../../lib/queryKeys";
 
 export function useInviteUser() {
   return useEntityMutation({
     mutationFn: async (payload: { email: string; full_name: string; role: string; password?: string }) => {
-      const { data, error } = await supabase.functions.invoke("invite-user", { body: payload });
-      if (error) throw error;
-      if (data?.error) throw new Error(data.error);
-      return data as { success: boolean; user_id: string; email: string };
+      // R14-K: invokeEdgeFunction extrae el body real de errores no-2xx
+      // (ej. 409 "Ya existe un usuario con ese correo").
+      return await invokeEdgeFunction<{ success: boolean; user_id: string; email: string }>(
+        "invite-user",
+        { body: payload },
+      );
     },
     invalidateKeys: [userKeys.all],
     successMsg: "Usuario creado exitosamente",

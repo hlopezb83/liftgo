@@ -13,7 +13,7 @@ export const forkliftFormSchema = z
     year: z.string().default(""),
     capacity_kg: z.string().default(""),
     mast_height_m: z.string().default(""),
-    fuel_type: z.string().default("Diesel"),
+    fuel_type: z.string().min(1, "Tipo de combustible es requerido").default("Diesel"),
     serial_number: z.string().default(""),
     status: z.string().default("available"),
     daily_rate: z.string().default(""),

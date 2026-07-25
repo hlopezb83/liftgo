@@ -9,7 +9,7 @@ import { AuditLogMobileCard } from "../components/auditTrail/AuditLogMobileCard"
 import { TABLES, getRecordLabel } from "../components/auditTrail/auditTrailConstants";
 import { DeleteAuditLogDialog } from "../components/auditTrail/DeleteAuditLogDialog";
 import { useAuditTrailColumns } from "../components/auditTrail/useAuditTrailColumns";
-import { useAuditLogs, useDeleteAuditLog, useRevertAuditLog } from "../hooks/useAuditLogs";
+import { useAuditLogs, useRevertAuditLog } from "../hooks/useAuditLogs";
 import type { AuditLog } from "../hooks/useAuditLogs";
 
 export default function AuditTrailPage() {
@@ -18,7 +18,6 @@ export default function AuditTrailPage() {
 
   const { data: role } = useUserRole();
   const isAdmin = role === "admin";
-  const { mutate: deleteAuditLog, isPending: isDeleting } = useDeleteAuditLog();
   const { mutate: revertAuditLog, isPending: isReverting } = useRevertAuditLog();
 
   const tableOptions = TABLES.map((t) => t.value).filter((v) => v !== "all") as string[];
@@ -100,10 +99,8 @@ export default function AuditTrailPage() {
 
       <DeleteAuditLogDialog
         log={logToDelete}
-        isDeleting={isDeleting}
         isReverting={isReverting}
         onClose={() => setLogToDelete(null)}
-        onDelete={(log) => deleteAuditLog(log.id, { onSettled: () => setLogToDelete(null) })}
         onRevert={(log) => revertAuditLog(
           { id: log.id, tableName: log.table_name },
           { onSettled: () => setLogToDelete(null) },

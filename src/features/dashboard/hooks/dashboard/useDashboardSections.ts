@@ -2,6 +2,7 @@
 import { differenceInDays, parseISO } from "date-fns";
 import { useInsuranceAlerts } from "@/features/fleet";
 import { useUpcomingInvoices } from "@/features/invoices";
+import { useUserRole } from "@/features/users";
 import { nowMty } from "@/lib/utils";
 import {
   EMPTY_COUNTS,
@@ -57,7 +58,10 @@ function computeAgingBuckets(
  */
 export function useDashboardSections() {
   const { data: stats, isLoading } = useDashboardStats();
-  const { data: kpis } = useFinancialKpis();
+  // R14-L: mismos roles que admite get_financial_kpis (20260725050634).
+  const { data: role } = useUserRole();
+  const canSeeFinancials = role === "admin" || role === "administrativo" || role === "auditor";
+  const { data: kpis } = useFinancialKpis(canSeeFinancials);
   const { data: insuranceData } = useInsuranceAlerts();
   const { data: upcomingInvoices } = useUpcomingInvoices();
 
@@ -75,6 +79,7 @@ export function useDashboardSections() {
     insuranceData,
     utilizationPercent,
     overdueInvoices,
+    canSeeFinancials,
     outstandingRevenue: stats?.invoice_stats?.outstanding_revenue ?? 0,
     statCards: buildStatCards(counts, activeFleet),
     pieData: buildPieData(counts),
