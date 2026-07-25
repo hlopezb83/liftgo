@@ -49,7 +49,7 @@ function applyPrimaryCustomer(
   customers: Customer[] | undefined,
 ) {
   form.setValue("customerName", first.customer_name || "", { shouldDirty: true });
-  form.setValue("customerId", first.customer_id || null, { shouldDirty: true });
+  form.setValue("customerId", first.customer_id || "", { shouldDirty: true });
   if (!first.customer_id || !customers) return;
   const customer = customers.find((c) => c.id === first.customer_id);
   if (customer) applyCfdiPatch(form, customer);

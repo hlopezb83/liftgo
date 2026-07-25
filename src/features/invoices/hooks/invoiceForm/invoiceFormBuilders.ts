@@ -96,7 +96,7 @@ export function buildFromInvoice(inv: ExistingInvoice, customers: Customer[] | u
   return {
     bookingId: toStr(inv.booking_id),
     bookingIds: inv.booking_id ? [inv.booking_id] : [],
-    customerId: inv.customer_id,
+    customerId: inv.customer_id ?? "",
     customerName: toStr(inv.customer_name),
     lineItems: (inv.line_items as LineItemValues[]) || [],
     taxRate: Number(inv.tax_rate) || 0,
@@ -125,7 +125,7 @@ export function buildFromQuote({ q, assignments, forklifts, customers }: FromQuo
   return {
     bookingId: "",
     bookingIds: [],
-    customerId: q.customer_id,
+    customerId: q.customer_id ?? "",
     customerName: toStr(q.customer_name),
     lineItems: items.map((item, i) => enrichLineItem(item, i, isSaleWithAssignments, assignments, forklifts)),
     taxRate: Number(q.tax_rate) || 16,
