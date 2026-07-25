@@ -9,17 +9,6 @@ export function useAuditLogs(filters?: AuditLogFilters) {
   return useQuery(auditLogsQueries.list(filters ?? {}));
 }
 
-export function useDeleteAuditLog() {
-  return useEntityMutation<string, void>({
-    mutationFn: async (id) => {
-      const { error } = await supabase.from("audit_logs").delete().eq("id", id);
-      if (error) throw error;
-    },
-    invalidateKeys: [auditKeys.all],
-    successMsg: "Registro eliminado correctamente",
-    errorTitle: "Error al eliminar el registro",
-  });
-}
 
 export function useRevertAuditLog() {
   return useEntityMutation<{ id: string; tableName: string }, string>({
