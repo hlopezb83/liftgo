@@ -5,7 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatMtyDate } from "@/lib/utils";
 
 export function BookingPeriodCard({ startDate, endDate }: { startDate: string; endDate: string }) {
-  const duration = differenceInDays(parseISO(endDate), parseISO(startDate));
+  // R17-L: los rangos de renta son inclusivos (start/end cuentan como un día
+  // cada uno). Antes marcábamos 0 días para una renta 01-01→01-01.
+  const duration = Math.max(1, differenceInDays(parseISO(endDate), parseISO(startDate)) + 1);
   return (
     <Card>
       <CardHeader className="pb-3">
