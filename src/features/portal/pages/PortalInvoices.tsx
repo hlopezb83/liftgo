@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { usePortalInvoices } from "@/features/customers";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 
 type Invoice = NonNullable<ReturnType<typeof usePortalInvoices>["data"]>[number];
@@ -42,7 +42,7 @@ export default function PortalInvoices() {
         header: "Total",
         accessorFn: (i) => Number(i.total),
         meta: { align: "right" },
-        cell: ({ row }) => <span className="font-mono">{formatCurrency(Number(row.original.total))}</span>,
+        cell: ({ row }) => <span className="font-mono">{formatCurrencyWithCode(Number(row.original.total), row.original.moneda ?? "MXN")}</span>,
       },
       {
         id: "status",
@@ -87,7 +87,7 @@ export default function PortalInvoices() {
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <span>{formatDateDisplay(inv.issued_at)}</span>
                         <span className="font-mono font-semibold text-foreground">
-                          {formatCurrency(Number(inv.total))}
+                          {formatCurrencyWithCode(Number(inv.total), inv.moneda ?? "MXN")}
                         </span>
                       </div>
                       <div className="text-xs text-muted-foreground">
