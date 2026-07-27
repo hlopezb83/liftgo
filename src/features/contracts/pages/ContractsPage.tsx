@@ -11,8 +11,8 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 import { useContracts, contractQueries } from "../hooks/useContracts";
-import { CONTRACT_STATUS_LABELS } from "../lib/contractStatusLabels";
 import { getContractExpiryLabel, getContractExpiryState } from "../lib/contractExpiry";
+import { CONTRACT_STATUS_LABELS } from "../lib/contractStatusLabels";
 
 const CONTRACT_STATUSES = ["draft", "sent", "signed", "cancelled"] as const;
 type ContractStatus = (typeof CONTRACT_STATUSES)[number];
