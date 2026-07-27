@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import { forkliftKeys } from "../../lib/queryKeys";
 
 /**
  * Tanda 3 P1-5 · Consulta consolidada de ubicación + póliza activa por equipo.
@@ -46,7 +45,7 @@ export function useFleetLocations() {
   return useQuery(fleetLocationsQueries.list());
 }
 
-/** Exportamos también la key para poder invalidarla desde contratos / entregas / pólizas. */
-export const fleetLocationsKey = fleetLocationsQueries.keys.all;
-// Silencia el import no usado si alguien deshabilita la key.
-void forkliftKeys;
+// Nota: `fleetLocationsKey` se removió en v7.236.5 (Knip: sin consumidores).
+// Los módulos que necesiten invalidar esta cache deben usar
+// `fleetLocationsQueries.keys.all` directamente.
+

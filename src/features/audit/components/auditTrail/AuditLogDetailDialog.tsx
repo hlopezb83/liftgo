@@ -1,9 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { FormDialog } from "@/components/forms/FormDialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { auditLogDetailQueries } from "../../lib/queryKeys";
 import { AuditLogDetailBody } from "./AuditLogDetailBody";
 import { translateAction, translateTable } from "./auditTrailConstants";
-import { auditLogDetailQueries } from "../../lib/queryKeys";
 import type { AuditLog } from "../../hooks/useAuditLogs";
 
 interface Props {

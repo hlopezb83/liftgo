@@ -3,8 +3,8 @@ import { FormDialog } from "@/components/forms/FormDialog";
 import { WarnIcon, UndoIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { translateAction, translateTable, formatTimestamp, getRecordLabel } from "./auditTrailConstants";
 import { auditLogDetailQueries } from "../../lib/queryKeys";
+import { translateAction, translateTable, formatTimestamp, getRecordLabel } from "./auditTrailConstants";
 import type { AuditLog } from "../../hooks/useAuditLogs";
 
 interface Props {

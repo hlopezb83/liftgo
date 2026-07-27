@@ -1,54 +1,35 @@
-## Estado actual
+Corrige los avisos del CI (1 error Knip + 8 warnings ESLint) sin cambiar comportamiento de la app. Bump a v7.236.5.
 
-Nuestra app **ya corre en Node 24** en todos los puntos donde nosotros controlamos la versión:
+## 1. Knip (error — bloquea el job)
 
-- `package.json` → `"engines": { "node": ">=24.0.0" }` ✅
-- `.github/actions/setup-bun-project/action.yml` → default `node-version: "24"` con `actions/setup-node@v5` (runtime Node 24) ✅
-- Los **10 jobs** de CI que instalan Node vía `setup-bun-project` (`ci.yml`, `bundle-size.yml`, `changelog-check.yml`, `supabase-lint.yml`) heredan Node 24 ✅
-- Edge Functions corren en Deno v2.x — no dependen de Node ✅
+- **`tests/e2e/roles-matrix.spec.ts:117`** — `import("/src/integrations/supabase/client.ts")` dentro de `page.evaluate` es una ruta runtime del navegador, no un import de bundler. Añadir esa ruta a `ignoreDependencies`/`ignore` de Knip (o marcar el import con un comentario `knip-ignore`) para que deje de reportarse como unresolved. No se toca el test.
+- **`src/features/cash-flow/lib/queryKeys.ts:20`** — `cashFlowSettingsQueries` no se usa: eliminar el export (o hacerlo interno) tras confirmar `rg` que nadie lo consume.
+- **`src/features/fleet/hooks/forklifts/useFleetLocations.ts:50`** — `fleetLocationsKey` sin consumidores: mismo tratamiento.
 
-La advertencia `Node 20 deprecated` que vimos en el log de `gitleaks` **no viene de nuestro código** sino del *runtime interno* de acciones de terceros que aún declaran `runs.using: "node20"` en su `action.yml`. Nuestras workflows no pueden forzar su runtime — hay que actualizar cada acción a la versión que ya migró a `node24`.
+## 2. ESLint (8 warnings, cero cambio funcional)
 
-Analogía: nuestro coche (la app) ya usa gasolina Premium (Node 24). Pero contratamos servicios externos (acciones de terceros) y algunos siguen llegando en un camión viejo (Node 20). Sólo podemos cambiarlos por su versión nueva cuando esté disponible.
+- **`SidebarNavSection.tsx:87`** — Reemplazar el `// eslint-disable-next-line react-hooks/exhaustive-deps` en el `useEffect` de auto-scroll por una dependencia real (`[isActive]`) para no desactivar la regla y no romper React Compiler.
+- **`SidebarNavSection.tsx:13`** — Reordenar imports: `./useSidebarBadgeCounts` antes del `type` import de `./navConfig`.
+- **`CustomerSelector.tsx:105`** — El "botón limpiar" es un `<span role="button">` con `onClick`. Convertirlo en `<button type="button">` real (mismo styling) para satisfacer a11y sin cambiar UX.
+- **`CustomerSelector.tsx:41`** — Complejidad 16. Extraer 2 helpers pequeños (`buildTriggerLabel(selected, required)` y `handleSelect`/`handleClear` a un hook `useCustomerSelection`) para bajar de 15 sin tocar el render.
+- **`CalendarPage.tsx:3`** — Quitar la línea en blanco entre grupos de import.
+- **`DeleteAuditLogDialog.tsx:7`** y **`AuditLogDetailDialog.tsx:6`** — Reordenar: `../../lib/queryKeys` antes de los imports relativos hermanos.
+- **`buildPaymentsXlsx.ts:5`** — Mover el `type import` de `@e965/xlsx` después del import de `@/lib/utils`.
 
-## Acciones de terceros a auditar/actualizar
+## 3. Verificación
 
-Hay que verificar en el marketplace de cada una si ya publicaron una versión sobre Node 24 y, si existe, subir el pin (mantener SHA + comentario de versión). Candidatas detectadas:
+- `bunx knip` → 0 unresolved / 0 unused.
+- `bunx eslint <archivos tocados>` → 0 warnings en cada uno.
+- `bunx vitest run` para asegurar que los renombres/limpieza no rompan tests.
+- E2E ya venía en verde (29 + 35 passed); no se tocan specs.
 
-| Acción actual | Archivo | Estado esperado |
-|---|---|---|
-| `gitleaks/gitleaks-action@v2.3.9` | `gitleaks.yml` | Node 20 — revisar si hay v2.4+/v3 en Node 24 |
-| `actions/labeler@v5.0.0` | `labeler.yml` | Node 20 — revisar v6 |
-| `actions/stale@v9.1.0` | `stale.yml` | Node 20 — revisar v10 |
-| `amannn/action-semantic-pull-request@v5.5.3` | `pr-title.yml` | Node 20 — revisar v6 |
-| `release-drafter/release-drafter@v7.3.1` | `release-drafter.yml` | Node 20 — revisar v8 |
-| `treosh/lighthouse-ci-action@v12.6.2` | `lighthouse.yml` | Node 20 — revisar v13 |
-| `github/codeql-action@v3` (init/analyze) | `codeql.yml` | Node 20 — revisar v4 |
-| `actions/github-script@v7.0.1` | `lighthouse.yml`, `prod-smoke.yml` | Node 20 — revisar v8 |
-| `actions/dependency-review-action@v4.7.1` | `ci.yml` | Node 20 — revisar v5 |
-| `supabase/setup-cli@v2.1.1` | `supabase-lint.yml` | Node 20 — revisar v3 |
-| `denoland/setup-deno@v2.0.4` | `ci.yml` | Node 20 — revisar update |
-| `oven-sh/setup-bun@v2.2.0` | `setup-bun-project` | verificar runtime |
+## 4. Registro
 
-## Plan de ejecución
+- Bump `package.json` + `public/version.json` a **7.236.5**.
+- Nueva entrada en `public/changelog.json` (patch, category `chore`): "CI · limpieza de warnings ESLint y unused exports (Knip)".
 
-### Fase 1 — Verificación (read-only, sin cambios)
-Para cada acción de la tabla, consultar el `action.yml` publicado en la última release estable (marketplace / GitHub) y anotar:
-- Su `runs.using` actual (`node20` vs `node24`).
-- Si existe major posterior sobre Node 24 disponible hoy.
+## Notas técnicas
 
-Salida: mini-reporte en el chat con dos listas — **actualizables ya** y **aún sin versión Node 24**.
-
-### Fase 2 — Actualización (sólo las que tengan versión estable Node 24)
-Por cada acción actualizable:
-- Editar el `.github/workflows/*.yml` correspondiente.
-- Mantener el patrón "pin a SHA + comentario `# vX.Y.Z`" que ya usamos.
-- Verificar breaking changes en release notes (parámetros renombrados, defaults distintos). Si hay breaking, ajustar el step.
-
-### Fase 3 — Documentación
-- Nueva entrada en `public/changelog.json` + `public/changelog/v7.236.3.json` (patch) listando qué acciones se movieron a Node 24 y cuáles quedan pendientes (con nombre + razón: "sin release Node 24 al día de hoy").
-
-## Verificación
-
-- Los workflows actualizados siguen pasando localmente en syntax (`yamllint` implícito por GitHub) — no hay forma de correrlos aquí, se validan en el próximo PR.
-- No debe haber cambios en `src/`, `supabase/`, ni en la app en runtime.
+- Ninguna migración de BD, ningún cambio de dependencias.
+- Todos los cambios son a nivel de imports / a11y / extracción menor de helpers → no cambian rutas, contratos ni datos.
+- Riesgo bajo: si el `<button>` real en `CustomerSelector` heredara padding distinto, mantendría las mismas clases Tailwind (`rounded-sm p-0.5 opacity-60 hover:bg-muted hover:opacity-100`) para conservar el look.

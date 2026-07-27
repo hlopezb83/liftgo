@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.236.5",
+    "date": "2026-07-27",
+    "type": "patch",
+    "title": "CI · limpieza de warnings ESLint y unused exports (Knip)",
+    "category": "chore",
+    "description": "Corrige el error de Knip (import runtime en tests/e2e/roles-matrix.spec.ts vía alias /src/*) y los 8 warnings de ESLint: reordena imports en SidebarNavSection, CalendarPage, AuditLog dialogs y buildPaymentsXlsx; sustituye el disable de exhaustive-deps por [isActive] en el auto-scroll del sidebar; convierte el 'limpiar cliente' de <span role=button> a <button> real (a11y) y reduce complejidad de CustomerSelector extrayendo buildTriggerLabel. Remueve cashFlowSettingsQueries y fleetLocationsKey (sin consumidores)."
+  },
+  {
     "version": "7.236.4",
     "date": "2026-07-27",
     "type": "patch",

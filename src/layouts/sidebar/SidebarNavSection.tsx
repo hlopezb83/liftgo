@@ -9,8 +9,8 @@ import {
 import { useCurrentVersion } from "@/features/changelog";
 import { NavLink } from "@/layouts/NavLink";
 import { routeLoaders } from "@/routes/routes-config";
-import type { NavGroup, NavItem } from "./navConfig";
 import { useSidebarBadgeCounts } from "./useSidebarBadgeCounts";
+import type { NavGroup, NavItem } from "./navConfig";
 
 // Debounce igual al de tablas: dispara el `import()` sólo si el hover
 // sostiene 120ms. Evita cargar chunks al pasar el cursor sin intención.
@@ -84,8 +84,7 @@ function NavMenuItem({ item }: { item: NavItem }) {
   // quedar fuera del viewport al entrar directo a una URL profunda.
   useEffect(() => {
     if (isActive) itemRef.current?.scrollIntoView({ block: "nearest" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isActive]);
 
   const schedulePrefetch = () => {
     if (!loader || timerRef.current !== null) return;

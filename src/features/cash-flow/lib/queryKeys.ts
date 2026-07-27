@@ -17,23 +17,13 @@ export interface CashFlowSettings {
   safetyBuffer: number;
 }
 
-export const cashFlowSettingsQueries = defineEntityQueries("cash_flow_settings", {
-  list: () => async (): Promise<CashFlowSettings> => {
-    const { data, error } = await supabase
-      .from("company_settings")
-      .select("id, cash_initial_balance, cash_safety_buffer")
-      .order("created_at", { ascending: true })
-      .limit(1)
-      .maybeSingle();
-    if (error) throw error;
-    return {
-      id: data?.id ?? null,
-      initialBalance: Number(data?.cash_initial_balance ?? 0),
-      safetyBuffer: Number(data?.cash_safety_buffer ?? 0),
-    };
-  },
-  staleTime: 5 * 60_000,
-});
+// Nota: `cashFlowSettingsQueries` se removió en v7.236.5 tras no tener
+// consumidores (Knip). La proyección lee `initialBalance`/`safetyBuffer`
+// directamente desde `CashFlowProjectionFilter`.
+
+
+
+
 
 const ACTIVE_INVOICE_STATUSES = ["sent", "partial", "overdue"] as const;
 const ACTIVE_BILL_STATUSES = ["pending", "partial", "overdue"] as const;
