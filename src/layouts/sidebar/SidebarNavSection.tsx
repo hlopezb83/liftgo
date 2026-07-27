@@ -74,10 +74,11 @@ function NavMenuItem({ item }: { item: NavItem }) {
   const currentVersion = useCurrentVersion();
   const numericCount =
     item.badgeKey && item.badgeKey !== "changelog_new" ? counts?.[item.badgeKey] ?? 0 : 0;
+  const lastSeenVersion = useLastSeenVersion();
   const isChangelogNew =
     item.badgeKey === "changelog_new" &&
     !!currentVersion &&
-    readLastSeenVersion() !== currentVersion;
+    lastSeenVersion !== currentVersion;
 
   // Auto-scroll (a11y): en sidebars largos (10 grupos) el ítem activo puede
   // quedar fuera del viewport al entrar directo a una URL profunda.
