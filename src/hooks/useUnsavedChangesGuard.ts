@@ -18,9 +18,12 @@ export function useUnsavedChangesGuard(isDirty: boolean | (() => boolean)) {
     getterRef.current = getter;
   });
 
-  // Aviso nativo del navegador al recargar o cerrar. Siempre suscrito;
-  // el handler consulta el getter en el momento del evento.
+  // Aviso nativo del navegador al recargar o cerrar. Solo se suscribe cuando
+  // el flag booleano indica cambios sin guardar; si se pasa un getter dinámico,
+  // se suscribe siempre y consulta el getter en el momento del evento.
+  const shouldSubscribe = typeof isDirty === "function" ? true : isDirty;
   useEffect(() => {
+    if (!shouldSubscribe) return;
     const handler = (e: BeforeUnloadEvent) => {
       if (!getterRef.current()) return;
       e.preventDefault();
@@ -28,7 +31,7 @@ export function useUnsavedChangesGuard(isDirty: boolean | (() => boolean)) {
     };
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
-  }, []);
+  }, [shouldSubscribe]);
 
   // Navegación interna: bloquea y pide confirmación async.
   const blocker = useBlocker(

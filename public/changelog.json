@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.236.4",
+    "date": "2026-07-27",
+    "type": "patch",
+    "title": "Guard · beforeunload solo se registra cuando hay cambios sin guardar",
+    "category": "fix",
+    "description": "useUnsavedChangesGuard ya no suscribe el listener global 'beforeunload' cuando isDirty=false. Se conserva el comportamiento dinámico si se pasa un getter (función). Corrige el test 'no registra beforeunload cuando isDirty=false' que estaba tumbando el CI."
+  },
+  {
     "version": "7.236.3",
     "date": "2026-07-27",
     "type": "patch",
