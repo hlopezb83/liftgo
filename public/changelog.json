@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.237.3",
+    "date": "2026-07-27",
+    "type": "patch",
+    "title": "CI · activar auditoría visual de Playwright en CI",
+    "category": "chore",
+    "description": "Crea el workflow e2e-visual-baselines.yml (workflow_dispatch) para regenerar y commitear los snapshots de referencia en el runner Linux de CI. Agrega soporte para E2E_UPDATE_SNAPSHOTS en playwright.config.ts. Activa E2E_VISUAL=1 en el job e2e de ci.yml. Refuerza las máscaras de visual-desktop.spec.ts y visual-mobile.spec.ts contra elementos dinámicos (data-dynamic, timestamps, spinners)."
+  },
+  {
     "version": "7.237.2",
     "date": "2026-07-27",
     "type": "patch",

@@ -42,6 +42,9 @@ export default defineConfig({
   fullyParallel: true,
   workers: process.env.CI ? 2 : 4,
   retries: process.env.CI ? 1 : 0,
+  // v7.237.3: permite regenerar baselines visuales en CI vía E2E_UPDATE_SNAPSHOTS=1
+  // sin tener que editar el comando de Playwright.
+  updateSnapshots: process.env.E2E_UPDATE_SNAPSHOTS ? "all" : undefined,
   reporter: process.env.CI
     ? [
         ["list"],

@@ -1,0 +1,34 @@
+{
+  "version": "7.237.3",
+  "date": "2026-07-27",
+  "type": "patch",
+  "title": "CI · activar auditoría visual de Playwright en CI",
+  "category": "chore",
+  "description": "Infraestructura para ejecutar las pruebas visuales de Playwright en CI y mantener sus snapshots de referencia actualizados.",
+  "changes": [
+    {
+      "scope": "ci",
+      "type": "add",
+      "summary": "Nuevo workflow e2e-visual-baselines.yml",
+      "detail": "Crea .github/workflows/e2e-visual-baselines.yml para regenerar los baselines visuales bajo demanda (workflow_dispatch). Instala Chromium, corre las specs visuales con E2E_VISUAL=1 y E2E_UPDATE_SNAPSHOTS=1, y commitea los snapshots resultantes en la rama indicada."
+    },
+    {
+      "scope": "ci",
+      "type": "change",
+      "summary": "Activar E2E_VISUAL=1 en el job e2e de ci.yml",
+      "detail": "El job e2e ahora exporta E2E_VISUAL=1, por lo que las specs visual-desktop.spec.ts y visual-mobile.spec.ts dejan de saltarse y comparan contra los baselines commiteados."
+    },
+    {
+      "scope": "test",
+      "type": "change",
+      "summary": "Soporte para E2E_UPDATE_SNAPSHOTS en playwright.config.ts",
+      "detail": "Agrega updateSnapshots: 'all' cuando E2E_UPDATE_SNAPSHOTS está presente, permitiendo regenerar baselines en CI sin modificar el comando de Playwright."
+    },
+    {
+      "scope": "test",
+      "type": "change",
+      "summary": "Máscaras más amplias en specs visuales",
+      "detail": "visual-desktop.spec.ts y visual-mobile.spec.ts ahora enmascaran cualquier elemento [data-dynamic], timestamps en vivo, indicadores de carga (.animate-pulse) y monedas dinámicas para reducir diffs falsos entre corridas."
+    }
+  ]
+}

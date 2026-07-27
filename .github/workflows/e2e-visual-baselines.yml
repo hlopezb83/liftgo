@@ -1,0 +1,81 @@
+name: E2E Visual Baselines
+
+on:
+  workflow_dispatch:
+    inputs:
+      branch:
+        description: "Branch sobre el que generar y commitear los baselines"
+        required: true
+        default: "main"
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: e2e-visual-baselines
+  cancel-in-progress: true
+
+jobs:
+  generate-baselines:
+    name: Generar baselines visuales
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.branch }}
+          # Necesitamos token con push; GITHUB_TOKEN tiene permisos write por permissions.contents.
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: ./.github/actions/setup-bun-project
+
+      - name: Get Playwright version
+        id: pw-version
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./node_modules/@playwright/test/package.json').version")
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "Playwright resuelto: ${VERSION}"
+
+      - name: Cache Playwright browsers
+        id: playwright-cache
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ steps.pw-version.outputs.version }}
+
+      - name: Install Playwright browsers
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: bunx playwright install --with-deps chromium
+
+      - name: Install Playwright system deps (cache hit)
+        if: steps.playwright-cache.outputs.cache-hit == 'true'
+        run: bunx playwright install-deps chromium
+
+      - name: Run visual specs with --update-snapshots
+        env:
+          E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
+          E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
+          E2E_PORTAL_EMAIL: ${{ secrets.E2E_PORTAL_EMAIL }}
+          E2E_PORTAL_PASSWORD: ${{ secrets.E2E_PORTAL_PASSWORD }}
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
+          E2E_VISUAL: 1
+          E2E_UPDATE_SNAPSHOTS: 1
+        run: bunx playwright test --grep visual
+
+      - name: Commit baselines
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add tests/e2e/*.spec.ts-snapshots/
+          if git diff --cached --quiet; then
+            echo "No hay cambios en baselines — ya están actualizados."
+            exit 0
+          fi
+          git commit -m "chore(e2e): actualizar baselines visuales [skip ci]"
+          git push origin ${{ inputs.branch }}
