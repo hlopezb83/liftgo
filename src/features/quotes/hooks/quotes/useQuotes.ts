@@ -90,8 +90,8 @@ export function useCreateQuote() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [quoteKeys.lists()],
-
+    // R17-D: invalidar `nextNumber` para que el siguiente folio se recalcule.
+    invalidateKeys: [quoteKeys.lists(), quoteKeys.nextNumber()],
     errorTitle: "Error al crear cotización",
   });
 }

@@ -33,31 +33,29 @@ export function useUpdateBooking() {
       if (error) throw error;
       return data;
     },
+    // R17-E: refrescar también el detalle para que la vista de reserva vea
+    // cambios (status, fechas, contactos) sin necesidad de F5.
     invalidateKeys: [bookingKeys.lists()],
+    invalidateKeysFn: (_d, vars) => [bookingKeys.detail(vars.id)],
     errorTitle: "Error al actualizar reserva",
   });
 }
 
 export function useDeleteBooking() {
-  // v7.217.0 (C5a): RPC transaccional. Elimina la reserva y regresa el
-  // equipo a `available` + registra en `status_logs` en una sola transacción.
-  // El guard SQL sólo permite borrar reservas cancelled/completed.
   return useEntityMutation({
     mutationFn: async (bookingId: string) => {
       const { error } = await supabase.rpc("delete_booking", { p_booking_id: bookingId });
       if (error) throw error;
+      return bookingId;
     },
     invalidateKeys: [bookingKeys.lists(), forkliftKeys.lists(), ["status_logs"] as const],
-
+    invalidateKeysFn: (id) => [bookingKeys.detail(id)],
     errorTitle: "Error al eliminar reserva",
   });
 }
 
 export function useCancelBooking() {
   return useEntityMutation({
-    // v7.222.0 · E2E-N11: aceptamos un `reason` opcional que el RPC persiste
-    // en `status_logs` para trazabilidad. Retrocompatible con callers que
-    // pasan sólo el bookingId (string).
     mutationFn: async (input: string | { bookingId: string; reason?: string | null }) => {
       const bookingId = typeof input === "string" ? input : input.bookingId;
       const reason = typeof input === "string" ? undefined : (input.reason?.trim() || undefined);
@@ -66,8 +64,10 @@ export function useCancelBooking() {
         p_reason: reason,
       });
       if (error) throw error;
+      return bookingId;
     },
     invalidateKeys: [bookingKeys.lists(), forkliftKeys.lists(), ["status_logs"] as const],
+    invalidateKeysFn: (id) => [bookingKeys.detail(id)],
     errorTitle: "Error al cancelar reserva",
   });
 }

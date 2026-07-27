@@ -41,7 +41,7 @@ export function useDeliveryCompletion(
   const minHours =
     delivery?.type === "pickup" ? priorDelivery?.hours_reading ?? null : null;
 
-  const promptPickupIfNeeded = () => {
+  const promptPickupIfNeeded = (freshHoursReading: number | null) => {
     if (!delivery) return;
     const bookingId = delivery.booking_id;
     if (delivery.type !== "delivery" || !bookingId || !linkedBooking || !forklift) return;
@@ -52,7 +52,9 @@ export function useDeliveryCompletion(
         address: delivery.address,
         driver_name: delivery.driver_name,
         driver_phone: delivery.driver_phone,
-        hours_reading: delivery.hours_reading ?? null,
+        // R17-H: usar el horómetro que acabamos de escribir (viene del payload),
+        // no `delivery.hours_reading` que aún es el valor previo en el cache.
+        hours_reading: freshHoursReading,
       },
       bookingEndDate: linkedBooking.end_date,
       forkliftName: forklift.name,
@@ -69,7 +71,9 @@ export function useDeliveryCompletion(
         onSuccess: () => {
           notifySuccess("Marcado como completado");
           setSignatureOpen(false);
-          promptPickupIfNeeded();
+          // R17-H: `payload.hours_reading` es el valor recién persistido.
+          const fresh = typeof payload.hours_reading === "number" ? payload.hours_reading : delivery.hours_reading ?? null;
+          promptPickupIfNeeded(fresh);
         },
       });
     } catch (err) {

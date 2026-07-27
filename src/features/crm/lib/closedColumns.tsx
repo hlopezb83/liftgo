@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@/components/dataTable/v2";
-import { ResetIcon } from "@/components/icons";
+import { ResetIcon, UserIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -10,11 +10,13 @@ export type ClosedKind = "won" | "lost";
 
 /**
  * Definición de columnas de la tabla de deals cerrados (ganados/perdidos).
- * Extraído de `CRMClosedPage.tsx` para mantener la página como orquestador puro.
+ * R17-I: en `won`, si el prospecto todavía no fue convertido a cliente,
+ * exponemos un CTA "Convertir a cliente" directo desde la fila.
  */
 export function buildClosedColumns(
   kind: ClosedKind,
   onReopen: (p: Prospect) => void,
+  onConvert?: (p: Prospect) => void,
 ): ColumnDef<Prospect>[] {
   const base: ColumnDef<Prospect>[] = [
     {
@@ -81,12 +83,23 @@ export function buildClosedColumns(
     id: "actions",
     header: "",
     enableSorting: false,
-    meta: { headClassName: "w-[120px]" },
-    cell: ({ row }) => (
-      <Button size="sm" variant="ghost" onClick={() => onReopen(row.original)}>
-        <ResetIcon className="h-3.5 w-3.5 mr-1" /> Reabrir
-      </Button>
-    ),
+    meta: { headClassName: "w-[220px]" },
+    cell: ({ row }) => {
+      const p = row.original;
+      const showConvert = kind === "won" && !p.customerId && onConvert;
+      return (
+        <div className="flex items-center gap-1">
+          {showConvert && (
+            <Button size="sm" variant="ghost" onClick={() => onConvert!(p)}>
+              <UserIcon className="h-3.5 w-3.5 mr-1" /> Convertir
+            </Button>
+          )}
+          <Button size="sm" variant="ghost" onClick={() => onReopen(p)}>
+            <ResetIcon className="h-3.5 w-3.5 mr-1" /> Reabrir
+          </Button>
+        </div>
+      );
+    },
   });
 
   return base;

@@ -9,6 +9,10 @@ const numOrNull = (v: string | null | undefined, fallback: number | null = null)
 };
 
 export function buildContractPayload(form: ContractFormShape, bookingId: string | null) {
+  // R17-C: NO forzamos `status` ni `signed_at` desde el form. En creación el
+  // default de la tabla es `draft`; en edición preservamos lo que ya está
+  // (los cambios de estatus van por `useContractDetailLogic.setStatus`, que
+  // limpia `signed_at` explícitamente cuando corresponde).
   return {
     customer_id: form.customer_id,
     forklift_id: form.forklift_id,
@@ -22,8 +26,6 @@ export function buildContractPayload(form: ContractFormShape, bookingId: string 
     signed_by: nn(form.signed_by),
     notes: nn(form.notes),
     booking_id: bookingId || null,
-    status: "draft",
-    signed_at: null as string | null,
     usage_location: nn(form.usage_location),
     max_hours_per_month: numOrNull(form.max_hours_per_month),
     extra_hour_rate: numOrNull(form.extra_hour_rate),

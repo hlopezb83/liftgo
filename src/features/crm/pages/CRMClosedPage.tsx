@@ -39,7 +39,7 @@ export default function CRMClosedPage() {
             <TabsTrigger value="lost">Perdidos ({s.metrics.lost.length})</TabsTrigger>
           </TabsList>
           <TabsContent value="won" className="mt-4">
-            <ClosedTable rows={s.wonRows} kind="won" isLoading={s.isLoading} onReopen={s.handleReopen} />
+            <ClosedTable rows={s.wonRows} kind="won" isLoading={s.isLoading} onReopen={s.handleReopen} onConvert={s.handleConvert} />
           </TabsContent>
           <TabsContent value="lost" className="mt-4">
             <ClosedTable rows={s.lostRows} kind="lost" isLoading={s.isLoading} onReopen={s.handleReopen} />

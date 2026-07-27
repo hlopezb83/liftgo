@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useCRMMetrics } from "./useCRMMetrics";
 import { useUpdateProspect, type Prospect } from "./useProspects";
 
@@ -6,13 +7,13 @@ import { useUpdateProspect, type Prospect } from "./useProspects";
  * Orquesta el estado de la página `CRMClosedPage`: búsqueda local,
  * filtrado por término, métricas y diálogo de reapertura.
  *
- * Extraído de la página para mantenerla como container puro.
- * Todas las derivaciones puras (filterRows, wonRows, lostRows y los
- * handlers) las memoiza React Compiler automáticamente.
+ * R17-I: expone `handleConvert` que navega al alta de cliente con datos
+ * pre-cargados del prospecto ganado.
  */
 export function useClosedProspects() {
   const { data: metrics, isLoading } = useCRMMetrics();
   const updateProspect = useUpdateProspect();
+  const navigate = useNavigateTransition();
   const [search, setSearch] = useState("");
   const [reopenTarget, setReopenTarget] = useState<Prospect | null>(null);
 
@@ -37,6 +38,17 @@ export function useClosedProspects() {
     setReopenTarget(null);
   };
 
+  const handleConvert = (p: Prospect) => {
+    const params = new URLSearchParams({
+      name: p.companyName,
+      contact: p.contactPerson ?? "",
+      email: p.email ?? "",
+      phone: p.phone ?? "",
+      prospect_id: p.id,
+    });
+    navigate(`/customers/new?${params.toString()}`);
+  };
+
   return {
     metrics,
     isLoading,
@@ -48,5 +60,6 @@ export function useClosedProspects() {
     setReopenTarget,
     handleReopen,
     confirmReopen,
+    handleConvert,
   };
 }

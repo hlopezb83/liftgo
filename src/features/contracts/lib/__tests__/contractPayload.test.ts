@@ -9,8 +9,10 @@ describe("buildContractPayload", () => {
 
     expect(payload.customer_id).toBe("c1");
     expect(payload.forklift_id).toBe("f1");
-    expect(payload.status).toBe("draft");
-    expect(payload.signed_at).toBeNull();
+    // R17-C: `status` y `signed_at` ya no se envían desde el form; el default
+    // de la tabla es 'draft' y las transiciones van por setStatus.
+    expect("status" in payload).toBe(false);
+    expect("signed_at" in payload).toBe(false);
     expect(payload.booking_id).toBeNull();
     expect(payload.start_date).toBeNull();
     expect(payload.end_date).toBeNull();

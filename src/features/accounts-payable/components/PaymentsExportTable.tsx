@@ -45,7 +45,7 @@ export function PaymentsExportTable({
       cell: ({ row }) => (
         <Checkbox
           checked={rowState[row.original.id]?.selected ?? false}
-          disabled={!row.original.has_valid_clabe}
+          disabled={!row.original.has_valid_clabe || !!row.original.payment_in_progress_at}
           onCheckedChange={(v) => onToggleRow(row.original.id, Boolean(v), row.original.balance)}
         />
       ),
@@ -118,13 +118,14 @@ export function PaymentsExportTable({
       meta: { align: "right" },
       cell: ({ row }) => {
         const st = rowState[row.original.id];
+        const inProgress = !!row.original.payment_in_progress_at;
         return (
           <Input
             type="number"
             step="0.01"
             min={0.01}
             max={row.original.balance}
-            disabled={!row.original.has_valid_clabe || !st?.selected}
+            disabled={!row.original.has_valid_clabe || !st?.selected || inProgress}
             value={st?.amount ?? row.original.balance}
             onChange={(e) => onChangeAmount(row.original.id, Number(e.target.value))}
             className="h-7 w-28 ml-auto text-right font-mono text-xs"
@@ -146,7 +147,7 @@ export function PaymentsExportTable({
       table={table}
       isLoading={isLoading}
       emptyMessage="No hay facturas aprobadas pendientes de pago."
-      rowClassName={(b) => cn(!b.has_valid_clabe && "opacity-80")}
+      rowClassName={(b) => cn((!b.has_valid_clabe || b.payment_in_progress_at) && "opacity-60")}
     />
   );
 }
