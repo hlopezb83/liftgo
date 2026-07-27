@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.236.3",
+    "date": "2026-07-27",
+    "type": "patch",
+    "title": "CI · GitHub Actions ahora todas corren en Node 24",
+    "category": "chore",
+    "description": "Actualizadas 10 acciones de terceros que aún declaraban runtime node20 a sus versiones más recientes sobre Node 24 (pin a SHA): gitleaks-action v3.0.0, actions/labeler v7.0.0, actions/stale v10.4.0, actions/github-script v9.0.0, actions/dependency-review-action v5.0.0, amannn/action-semantic-pull-request v6.1.1, release-drafter v7.6.0, supabase/setup-cli v3.0.0, denoland/setup-deno v2.0.5 y github/codeql-action v4. Elimina las advertencias 'Node 20 deprecated' del runner. La app, edge functions y setup-bun-project ya estaban en Node 24."
+  },
+  {
     "version": "7.236.2",
     "date": "2026-07-27",
     "type": "patch",

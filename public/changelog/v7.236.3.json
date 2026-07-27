@@ -1,0 +1,33 @@
+{
+  "version": "7.236.3",
+  "date": "2026-07-27",
+  "type": "patch",
+  "title": "CI · GitHub Actions ahora todas corren en Node 24",
+  "category": "chore",
+  "summary": "GitHub deprecó el runtime Node 20 en runners de Actions. La app, nuestro composite setup-bun-project y edge functions ya estaban en Node 24 (o Deno); faltaba subir las acciones de terceros que aún declaraban runs.using: 'node20'.",
+  "changes": [
+    {
+      "area": "CI / GitHub Actions",
+      "items": [
+        "gitleaks/gitleaks-action: v2.3.9 → v3.0.0 (SHA e0c47f4).",
+        "actions/labeler: v5.0.0 → v7.0.0 (SHA bf12e9b). Inputs compatibles.",
+        "actions/stale: v9.1.0 → v10.4.0 (SHA 1e223db). Inputs compatibles.",
+        "actions/github-script: v7.0.1 → v9.0.0 (SHA d746ffe) en lighthouse.yml y prod-smoke.yml.",
+        "actions/dependency-review-action: v4.7.1 → v5.0.0 (SHA a1d282b). Inputs allow-licenses/fail-on-severity/comment-summary-in-pr sin cambios.",
+        "amannn/action-semantic-pull-request: v5.5.3 → v6.1.1 (SHA 48f2562).",
+        "release-drafter/release-drafter: v7.3.1 → v7.6.0 (SHA 5a60cd8).",
+        "supabase/setup-cli: v2.1.1 → v3.0.0 (SHA 46f7f98). El input `version: 2.34.0` se conserva.",
+        "denoland/setup-deno: v2.0.4 → v2.0.5 (SHA 22d081f).",
+        "github/codeql-action: init/analyze v3 → v4 (rolling tag mantenido, misma política que antes)."
+      ]
+    },
+    {
+      "area": "Meta",
+      "items": [
+        "package.json bump a 7.236.3 (venía desfasado en 7.236.0 vs changelog 7.236.2).",
+        "public/version.json regenerado a 7.236.3 para que changelog-check pase."
+      ]
+    }
+  ],
+  "notes": "treosh/lighthouse-ci-action v12.6.2 ya declara node24 en su action.yml, así que no requiere upgrade. Nuestro composite .github/actions/setup-bun-project sigue con actions/setup-node@v5 y default node-version: '24', que ya cubre los 10 jobs internos de CI."
+}
