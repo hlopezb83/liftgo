@@ -1,0 +1,8 @@
+{
+  "version": "7.237.2",
+  "date": "2026-07-27",
+  "type": "patch",
+  "title": "R17 · cierre de pendientes Q, U, V, X#1",
+  "category": "fix",
+  "description": "R17-Q: contratos en estado 'sent' ahora muestran etiqueta 'Enviado' en vez de 'Sin Pagar' (label global de facturas). R17-U: portal cliente muestra el código de moneda (USD/MXN) en lista y detalle de facturas. R17-V: detalle de equipo oculta Editar, Archivar y Cambiar Estado a roles sin acceso 'full' al módulo Flota. R17-X#1: proyección de flujo de efectivo ya no descarta saldos de $0.01 (umbral ajustado a < $0.005)."
+}

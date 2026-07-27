@@ -66,7 +66,7 @@ export function invoiceToItem(
     inv.tipo_cambio,
   );
   const balance = totalMxn - (paidByInvoice.get(inv.id) ?? 0) - creditedMxn;
-  if (balance <= 0.01) return null;
+  if (balance < 0.005) return null;
   return {
     id: inv.id,
     number: inv.invoice_number,
@@ -92,7 +92,7 @@ export function billToItem(b: BillRow): CashFlowItem | null {
   const rawBalance = Number(b.balance);
   const safeBalance = Number.isFinite(rawBalance) ? rawBalance : 0;
   const balanceMxn = toMxn(safeBalance, b.currency, b.exchange_rate);
-  if (!Number.isFinite(balanceMxn) || balanceMxn <= 0.01) return null;
+  if (!Number.isFinite(balanceMxn) || balanceMxn < 0.005) return null;
   return {
     id: b.id,
     number: b.bill_number,

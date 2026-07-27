@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useParams } from "react-router";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
@@ -9,7 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePortalInvoices, usePortalPayments } from "@/features/customers";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { TotalsBreakdown } from "../components/TotalsBreakdown";
 import { useCfdiDownload } from "../hooks/useCfdiDownload";
@@ -18,19 +19,23 @@ import { useCfdiDownload } from "../hooks/useCfdiDownload";
 type LineItem = { description?: string; quantity?: number; unit_price?: number; amount?: number };
 type Payment = { id: string; payment_date: string; payment_method: string | null; reference_number: string | null; amount: number | string };
 
-const LINE_COLUMNS: ColumnDef<LineItem>[] = [
-  { id: "description", header: "Descripción", accessorKey: "description", enableSorting: false, cell: ({ row }) => row.original.description || "—" },
-  { id: "quantity", header: "Cant.", accessorKey: "quantity", enableSorting: false, meta: { align: "right" }, cell: ({ row }) => row.original.quantity || 1 },
-  { id: "unit_price", header: "Precio Unit.", accessorKey: "unit_price", enableSorting: false, meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(Number(row.original.unit_price || 0))}</span> },
-  { id: "amount", header: "Importe", accessorKey: "amount", enableSorting: false, meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(Number(row.original.amount || 0))}</span> },
-];
+function buildLineColumns(currency: string): ColumnDef<LineItem>[] {
+  return [
+    { id: "description", header: "Descripción", accessorKey: "description", enableSorting: false, cell: ({ row }) => row.original.description || "—" },
+    { id: "quantity", header: "Cant.", accessorKey: "quantity", enableSorting: false, meta: { align: "right" }, cell: ({ row }) => row.original.quantity || 1 },
+    { id: "unit_price", header: "Precio Unit.", accessorKey: "unit_price", enableSorting: false, meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrencyWithCode(Number(row.original.unit_price || 0), currency)}</span> },
+    { id: "amount", header: "Importe", accessorKey: "amount", enableSorting: false, meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrencyWithCode(Number(row.original.amount || 0), currency)}</span> },
+  ];
+}
 
-const PAYMENT_COLUMNS: ColumnDef<Payment>[] = [
-  { id: "payment_date", header: "Fecha", accessorKey: "payment_date", cell: ({ row }) => formatDateDisplay(row.original.payment_date) },
-  { id: "payment_method", header: "Método", accessorKey: "payment_method", enableSorting: false, cell: ({ row }) => row.original.payment_method || "—" },
-  { id: "reference_number", header: "Referencia", accessorKey: "reference_number", enableSorting: false, cell: ({ row }) => row.original.reference_number || "—" },
-  { id: "amount", header: "Monto", accessorFn: (p) => Number(p.amount), meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(Number(row.original.amount))}</span> },
-];
+function buildPaymentColumns(currency: string): ColumnDef<Payment>[] {
+  return [
+    { id: "payment_date", header: "Fecha", accessorKey: "payment_date", cell: ({ row }) => formatDateDisplay(row.original.payment_date) },
+    { id: "payment_method", header: "Método", accessorKey: "payment_method", enableSorting: false, cell: ({ row }) => row.original.payment_method || "—" },
+    { id: "reference_number", header: "Referencia", accessorKey: "reference_number", enableSorting: false, cell: ({ row }) => row.original.reference_number || "—" },
+    { id: "amount", header: "Monto", accessorFn: (p) => Number(p.amount), meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrencyWithCode(Number(row.original.amount), currency)}</span> },
+  ];
+}
 
 interface InvoiceHeaderActionsProps {
   hasCfdi: boolean;
@@ -71,17 +76,21 @@ export default function PortalInvoiceDetail() {
   const invoice = invoices?.find((i) => i.id === id);
   const invoicePayments: Payment[] = (payments?.filter((p) => p.invoice_id === id) || []) as Payment[];
   const lineItems: LineItem[] = Array.isArray(invoice?.line_items) ? (invoice?.line_items as LineItem[]) : [];
+  const currency = invoice?.moneda ?? "MXN";
+
+  const lineColumns = useMemo(() => buildLineColumns(currency), [currency]);
+  const paymentColumns = useMemo(() => buildPaymentColumns(currency), [currency]);
 
   const lineTable = useLiftgoTable<LineItem>({
     data: lineItems,
-    columns: LINE_COLUMNS,
+    columns: lineColumns,
     getRowId: (_, idx) => String(idx),
     paginated: false,
   });
 
   const paymentsTable = useLiftgoTable<Payment>({
     data: invoicePayments,
-    columns: PAYMENT_COLUMNS,
+    columns: paymentColumns,
     getRowId: (p) => p.id,
     initialSorting: [{ id: "payment_date", desc: true }],
     paginated: false,
@@ -125,20 +134,20 @@ export default function PortalInvoiceDetail() {
         <Card>
           <CardContent className="pt-4">
             <p className="text-xs text-muted-foreground">Total</p>
-            <p className="text-xl font-bold font-mono">{formatCurrency(Number(invoice.total))}</p>
+            <p className="text-xl font-bold font-mono">{formatCurrencyWithCode(Number(invoice.total), currency)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
             <p className="text-xs text-muted-foreground">Pagado</p>
-            <p className="text-xl font-bold font-mono text-status-available">{formatCurrency(totalPaid)}</p>
+            <p className="text-xl font-bold font-mono text-status-available">{formatCurrencyWithCode(totalPaid, currency)}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-4">
             <p className="text-xs text-muted-foreground">Saldo</p>
             <p className={`text-xl font-bold font-mono ${balanceCls}`}>
-              {formatCurrency(balance)}
+              {formatCurrencyWithCode(balance, currency)}
             </p>
           </CardContent>
         </Card>
@@ -173,4 +182,3 @@ export default function PortalInvoiceDetail() {
     </PageContainer>
   );
 }
-

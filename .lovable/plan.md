@@ -1,35 +1,72 @@
-Corrige los avisos del CI (1 error Knip + 8 warnings ESLint) sin cambiar comportamiento de la app. Bump a v7.236.5.
+# Plan: Cierre de pendientes R17 (Q, U, V, X#1)
 
-## 1. Knip (error — bloquea el job)
+## Objetivo
+Aplicar los 4 hallazgos de R17 que quedaron fuera del sprint anterior, verificar visualmente y actualizar changelog.
 
-- **`tests/e2e/roles-matrix.spec.ts:117`** — `import("/src/integrations/supabase/client.ts")` dentro de `page.evaluate` es una ruta runtime del navegador, no un import de bundler. Añadir esa ruta a `ignoreDependencies`/`ignore` de Knip (o marcar el import con un comentario `knip-ignore`) para que deje de reportarse como unresolved. No se toca el test.
-- **`src/features/cash-flow/lib/queryKeys.ts:20`** — `cashFlowSettingsQueries` no se usa: eliminar el export (o hacerlo interno) tras confirmar `rg` que nadie lo consume.
-- **`src/features/fleet/hooks/forklifts/useFleetLocations.ts:50`** — `fleetLocationsKey` sin consumidores: mismo tratamiento.
+---
 
-## 2. ESLint (8 warnings, cero cambio funcional)
+## 1. R17-Q · Etiqueta correcta para contrato `sent`
 
-- **`SidebarNavSection.tsx:87`** — Reemplazar el `// eslint-disable-next-line react-hooks/exhaustive-deps` en el `useEffect` de auto-scroll por una dependencia real (`[isActive]`) para no desactivar la regla y no romper React Compiler.
-- **`SidebarNavSection.tsx:13`** — Reordenar imports: `./useSidebarBadgeCounts` antes del `type` import de `./navConfig`.
-- **`CustomerSelector.tsx:105`** — El "botón limpiar" es un `<span role="button">` con `onClick`. Convertirlo en `<button type="button">` real (mismo styling) para satisfacer a11y sin cambiar UX.
-- **`CustomerSelector.tsx:41`** — Complejidad 16. Extraer 2 helpers pequeños (`buildTriggerLabel(selected, required)` y `handleSelect`/`handleClear` a un hook `useCustomerSelection`) para bajar de 15 sin tocar el render.
-- **`CalendarPage.tsx:3`** — Quitar la línea en blanco entre grupos de import.
-- **`DeleteAuditLogDialog.tsx:7`** y **`AuditLogDetailDialog.tsx:6`** — Reordenar: `../../lib/queryKeys` antes de los imports relativos hermanos.
-- **`buildPaymentsXlsx.ts:5`** — Mover el `type import` de `@e965/xlsx` después del import de `@/lib/utils`.
+**Problema:** `STATUS_LABELS.sent = "Sin Pagar"` es global y se usa para facturas; en contratos `sent` debería ser "Enviado".
 
-## 3. Verificación
+**Cambios:**
+- Crear `src/features/contracts/lib/contractStatusLabels.ts` que extienda `STATUS_LABELS` y sobreescriba `sent → "Enviado"` y `signed → "Firmado"`.
+- Reemplazar el uso de `STATUS_LABELS` por `CONTRACT_STATUS_LABELS` en:
+  - `src/features/contracts/hooks/contractDetail/useContractDetailLogic.ts` (toast de cambio de estado).
+  - `src/features/contracts/pages/ContractsPage.tsx` (tabs de filtro y `StatusBadge` ya recibe el status raw, no necesita cambio).
 
-- `bunx knip` → 0 unresolved / 0 unused.
-- `bunx eslint <archivos tocados>` → 0 warnings en cada uno.
-- `bunx vitest run` para asegurar que los renombres/limpieza no rompan tests.
-- E2E ya venía en verde (29 + 35 passed); no se tocan specs.
+**Verificación:** Marcar un contrato como enviado → toast y badge muestran "Enviado".
 
-## 4. Registro
+---
 
-- Bump `package.json` + `public/version.json` a **7.236.5**.
-- Nueva entrada en `public/changelog.json` (patch, category `chore`): "CI · limpieza de warnings ESLint y unused exports (Knip)".
+## 2. R17-U · Indicador de moneda en el portal
 
-## Notas técnicas
+**Problema:** El portal cliente muestra todos los montos como MXN, aunque la factura sea USD.
 
-- Ninguna migración de BD, ningún cambio de dependencias.
-- Todos los cambios son a nivel de imports / a11y / extracción menor de helpers → no cambian rutas, contratos ni datos.
-- Riesgo bajo: si el `<button>` real en `CustomerSelector` heredara padding distinto, mantendría las mismas clases Tailwind (`rounded-sm p-0.5 opacity-60 hover:bg-muted hover:opacity-100`) para conservar el look.
+**Cambios:**
+- En `src/features/portal/pages/PortalInvoices.tsx` reemplazar `formatCurrency` por `formatCurrencyWithCode(..., inv.moneda ?? "MXN")` en tabla y mobile card.
+- En `src/features/portal/pages/PortalInvoiceDetail.tsx` reemplazar `formatCurrency` por `formatCurrencyWithCode(..., invoice.moneda ?? "MXN")` en cards de Total/Pagado/Saldo, partidas y pagos.
+- Actualizar imports para incluir `formatCurrencyWithCode`.
+
+**Verificación:** Factura USD en portal lista y detalle muestra "USD" junto al monto.
+
+---
+
+## 3. R17-V · Gate de roles en detalle de equipo
+
+**Problema:** `ForkliftDetail` expone Editar/Archivar a cualquier rol; solo debe verlos quien tenga acceso "full" al módulo Flota.
+
+**Cambios:**
+- En `src/features/fleet/pages/ForkliftDetail.tsx` envolver los botones "Editar" y "Archivar" con `<RoleGuard module="Flota" minAccess="full" fallback={null}>`.
+- Aplicar el mismo gate a `<StatusChangeCard>` si el rol no tiene permiso de escritura en Flota (mismo patrón que `FleetPage.tsx`).
+- Importar `RoleGuard` desde `@/layouts/RoleGuard`.
+
+**Verificación:** Usuario con rol Mecánico/Despachador en detalle de equipo → no ve Editar/Archivar ni Cambiar Estado. Admin/Adminstrativo sí los ve.
+
+---
+
+## 4. R17-X#1 · Proyección de flujo con saldo de $0.01
+
+**Problema:** `cashFlowTransformers.ts` descarta balances `<= 0.01`, por lo que un saldo de 1 centavo no se proyecta.
+
+**Cambios:**
+- En `src/features/cash-flow/lib/cashFlowTransformers.ts` cambiar:
+  - Línea 69: `if (balance <= 0.01) return null;` → `if (balance < 0.005) return null;`
+  - Línea 95: `balanceMxn <= 0.01` → `balanceMxn < 0.005`
+
+**Verificación:** Factura o bill con saldo de `$0.01` aparece en la proyección de flujo de efectivo.
+
+---
+
+## 5. Versionado y changelog
+
+- Bump a `v7.237.2` (patch por correcciones focalizadas).
+- Agregar entrada en `public/changelog.json` y detalle en `public/changelog/v7.237.2.json`.
+
+---
+
+## Verificación final
+
+- `bun run lint` sin errores.
+- `bunx vitest run` pasa.
+- Revisión visual rápida de: detalle de contrato, portal facturas, detalle de equipo y proyección de flujo.

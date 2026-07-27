@@ -13,6 +13,7 @@ import { useBookings } from "@/features/bookings";
 import { DamagePhotosSection } from "@/features/damage";
 import { useMaintenanceLogs } from "@/features/maintenance";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { RoleGuard } from "@/layouts/RoleGuard";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { DocumentAttachments } from "../components/forklift-detail/DocumentAttachments";
 import { ForkliftBookingsList } from "../components/forklift-detail/ForkliftBookingsList";
@@ -68,21 +69,23 @@ export default function ForkliftDetail() {
         badges={<StatusBadge status={forklift.status} />}
         actions={
           <>
-            <Button variant="outline" size="sm" onClick={() => navigate(`/fleet/${id}/edit`)}>
-              <Edit className="h-4 w-4 mr-1" /> Editar
-            </Button>
-            <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
-              <DeleteIcon className="h-4 w-4 mr-1" /> Archivar
-            </Button>
-            <ConfirmDialog
-              open={deleteOpen}
-              onOpenChange={setDeleteOpen}
-              title={`¿Archivar ${forklift.name}?`}
-              description="El montacargas se ocultará de los listados activos pero se conservará el historial completo (bookings, mantenimientos, daños) para reportes y auditoría. No se puede archivar si tiene reservas activas."
-              confirmLabel="Archivar"
-              destructive
-              onConfirm={handleDelete}
-            />
+            <RoleGuard module="Flota" minAccess="full" fallback={null}>
+              <Button variant="outline" size="sm" onClick={() => navigate(`/fleet/${id}/edit`)}>
+                <Edit className="h-4 w-4 mr-1" /> Editar
+              </Button>
+              <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
+                <DeleteIcon className="h-4 w-4 mr-1" /> Archivar
+              </Button>
+              <ConfirmDialog
+                open={deleteOpen}
+                onOpenChange={setDeleteOpen}
+                title={`¿Archivar ${forklift.name}?`}
+                description="El montacargas se ocultará de los listados activos pero se conservará el historial completo (bookings, mantenimientos, daños) para reportes y auditoría. No se puede archivar si tiene reservas activas."
+                confirmLabel="Archivar"
+                destructive
+                onConfirm={handleDelete}
+              />
+            </RoleGuard>
           </>
         }
       />
@@ -98,7 +101,9 @@ export default function ForkliftDetail() {
       )}
 
       <ForkliftFinancialCard financials={financials} isLoading={loadingFinancials} />
-      <StatusChangeCard forkliftId={forklift.id} currentStatus={forklift.status} />
+      <RoleGuard module="Flota" minAccess="full" fallback={null}>
+        <StatusChangeCard forkliftId={forklift.id} currentStatus={forklift.status} />
+      </RoleGuard>
       <ForkliftBookingsList bookings={bookings || []} />
       <ForkliftMaintenanceList logs={maintenanceLogs || []} />
       {financials && <ForkliftHourometerHistory history={financials.hourometer_history} />}
