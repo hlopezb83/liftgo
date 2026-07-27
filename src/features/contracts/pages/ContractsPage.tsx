@@ -9,16 +9,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { STATUS_LABELS } from "@/lib/constants";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 import { useContracts, contractQueries } from "../hooks/useContracts";
+import { CONTRACT_STATUS_LABELS } from "../lib/contractStatusLabels";
 import { getContractExpiryLabel, getContractExpiryState } from "../lib/contractExpiry";
 
 const CONTRACT_STATUSES = ["draft", "sent", "signed", "cancelled"] as const;
 type ContractStatus = (typeof CONTRACT_STATUSES)[number];
 const CONTRACT_STATUS_OPTIONS = [
-  { value: "all" as const, label: STATUS_LABELS.all ?? "Todos" },
-  ...CONTRACT_STATUSES.map((s) => ({ value: s, label: STATUS_LABELS[s] ?? s })),
+  { value: "all" as const, label: CONTRACT_STATUS_LABELS.all ?? "Todos" },
+  ...CONTRACT_STATUSES.map((s) => ({ value: s, label: CONTRACT_STATUS_LABELS[s] ?? s })),
 ];
 
 type Contract = NonNullable<ReturnType<typeof useContracts>["data"]>[number];

@@ -1,6 +1,6 @@
 import { useParams } from "react-router";
-import { STATUS_LABELS } from "@/lib/constants";
 import { notifySuccess } from "@/lib/ui/appFeedback";
+import { CONTRACT_STATUS_LABELS } from "../../lib/contractStatusLabels";
 import { useContract, useUpdateContract } from "../useContracts";
 
 /**
@@ -16,7 +16,7 @@ export function useContractDetailLogic() {
     if (!id) return;
     updateContract.mutate(
       { id, status, ...extra },
-      { onSuccess: () => notifySuccess(`Contrato marcado como ${STATUS_LABELS[status] ?? status}`) }
+      { onSuccess: () => notifySuccess(`Contrato marcado como ${CONTRACT_STATUS_LABELS[status] ?? status}`) }
     );
   };
 
