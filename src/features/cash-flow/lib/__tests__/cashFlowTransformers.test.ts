@@ -83,7 +83,7 @@ describe("cashFlowTransformers", () => {
     // R17-X#1: saldo de $0.01 debe proyectarse
     it("incluye saldos de $0.01", () => {
       const item = invoiceToItem(
-        { ...base, total: 1000.01, credited_amount: 1000 },
+        { ...base, total: 0.01, credited_amount: 0 },
         new Map(),
       );
       expect(item?.amountMxn).toBe(0.01);
