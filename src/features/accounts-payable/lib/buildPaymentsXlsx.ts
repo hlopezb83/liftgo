@@ -2,9 +2,9 @@
 // `downloadPaymentsXlsx` para no cargarlo al montar la ruta CxP. `buildPaymentsWorkbook`
 // sigue siendo síncrono porque solo lo consume `downloadPaymentsXlsx` (y el test
 // que lo importa vía top-level dynamic import).
-import type * as XLSX from "@e965/xlsx";
 import { format } from "date-fns";
 import { nowMty } from "@/lib/utils";
+import type * as XLSX from "@e965/xlsx";
 
 export interface PaymentExportRow {
   supplier_name: string;
