@@ -111,15 +111,18 @@ export function CustomerSelector({
                   <span className="truncate text-left">{triggerLabel}</span>
                   <span className="ml-2 flex shrink-0 items-center gap-1">
                     {selected && !required && (
-                      <button
-                        type="button"
+                      // R17-X: usar <span role="button"> para evitar anidar
+                      // dos <button> (el trigger del Popover y este clear).
+                      <span
+                        role="button"
                         tabIndex={-1}
                         aria-label="Limpiar cliente"
                         onClick={handleClear}
-                        className="rounded-sm p-0.5 opacity-60 hover:bg-muted hover:opacity-100"
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleClear(e as unknown as React.MouseEvent); }}
+                        className="rounded-sm p-0.5 opacity-60 hover:bg-muted hover:opacity-100 cursor-pointer"
                       >
                         <XIcon className="h-3.5 w-3.5" />
-                      </button>
+                      </span>
                     )}
                     <ChevronDownIcon className="h-4 w-4 opacity-50" />
                   </span>
