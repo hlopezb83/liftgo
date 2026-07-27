@@ -17,7 +17,7 @@ export function AppSidebar() {
   const visibleNavGroups = useVisibleNavGroups();
 
   return (
-    <Sidebar>
+    <Sidebar collapsible="icon">
       <SidebarBranding logoUrl={company?.logo_url} razonSocial={company?.razon_social} />
       <SidebarQuickCreate />
       <SidebarContent>

@@ -1,0 +1,45 @@
+{
+  "version": "7.236.0",
+  "date": "2026-07-27",
+  "type": "minor",
+  "title": "R16 · Fix crash BookingForm + guard de cambios + medios de sidebar",
+  "category": "fix",
+  "summary": "Cierra los 2 bloqueantes de R16 (crash en /bookings/new con rangos ≥30 días y diálogo '¿Descartar cambios?' tras guardar factura) más 3 medios del sidebar/changelog.",
+  "sections": [
+    {
+      "title": "R16-A · Crash en /bookings/new con rangos ≥30 días",
+      "items": [
+        "`BookingForm.tsx` ahora envuelve el <form> con <Form {...form}> (FormProvider).",
+        "`SwitchField` (facturación recurrente) ya no truena con `Cannot read properties of null (reading '_formState')`.",
+        "Sin cambios de lógica ni de esquema; el resto de fields ya funcionaban."
+      ]
+    },
+    {
+      "title": "F-03 · Guard '¿Descartar cambios?' reaparecía tras guardar",
+      "items": [
+        "`useUnsavedChangesGuard` ahora acepta `boolean | (() => boolean)` (backward compatible).",
+        "El getter se evalúa DENTRO del callback de `useBlocker` y `beforeunload` vía ref, ganándole la carrera a `reset() + navigate()`.",
+        "`InvoiceForm.tsx` pasa getter: `() => isDirty && !isSubmitting && !justSavedRef.current`.",
+        "Otros callers (dialogs de customers/inventory/suppliers) siguen pasando boolean sin cambios."
+      ]
+    },
+    {
+      "title": "H-1 · 'Ventas' no abría por defecto",
+      "items": [
+        "`useVisibleNavGroups` ahora propaga `defaultOpen` al mapear los grupos filtrados."
+      ]
+    },
+    {
+      "title": "H-3 · Colapsar sidebar ocultaba TODO",
+      "items": [
+        "`AppSidebar` usa `collapsible=\"icon\"` para exponer modo icono con badges y QuickCreate accesibles."
+      ]
+    },
+    {
+      "title": "H-2 · Punto de novedad de Changelog reaparecía tras recargar",
+      "items": [
+        "Fecha de v7.235.0 corregida a 2026-07-27 (era anterior a v7.234.0) para que `getCurrentVersion()` ordene bien."
+      ]
+    }
+  ]
+}

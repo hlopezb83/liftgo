@@ -32,12 +32,11 @@ export default function InvoiceForm() {
   const { data: nextNumber, isLoading: loadingNext } = useNextInvoiceNumber(!f.isEdit);
   const taxRate = useWatch({ control: f.form.control, name: "taxRate" });
   const isSubmitting = f.createInvoice.isPending || f.updateInvoice.isPending;
-  // R15 F-03: bypass del guard vía ref. useBlocker cierra sobre el isDirty del
-  // render previo; reset() + navigate() en el mismo tick no le gana la carrera.
-  // La ref se lee en el momento del bloqueo sin depender de re-render.
+  // R16 F-03: el guard acepta getter y lo evalúa DENTRO del callback del blocker,
+  // así ve `justSavedRef.current=true` justo después de reset()+navigate().
   const justSavedRef = useRef(false);
   useUnsavedChangesGuard(
-    f.form.formState.isDirty && !isSubmitting && !justSavedRef.current,
+    () => f.form.formState.isDirty && !isSubmitting && !justSavedRef.current,
   );
 
   const onSubmit = (values: InvoiceFormValues) => {

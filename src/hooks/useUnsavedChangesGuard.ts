@@ -1,32 +1,39 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useBlocker } from "react-router";
 import { useConfirm } from "@/components/feedback/useConfirm";
 
 /**
- * UX-A4: bloquea la navegación cuando el formulario tiene cambios sin guardar.
+ * UX-A4 + R16 F-03: bloquea la navegación cuando el formulario tiene cambios sin guardar.
  *
- * - Muestra el diálogo nativo del navegador al recargar / cerrar pestaña (beforeunload).
- * - Intercepta navegaciones internas de React Router con `useBlocker` y pide confirmación.
+ * Acepta `boolean` (legacy) o `() => boolean` (recomendado). El getter se evalúa
+ * DENTRO del callback del blocker → lee refs/formState al momento de bloquear,
+ * lo que resuelve la carrera `justSavedRef=true → reset() → navigate()` en el mismo tick.
  */
-export function useUnsavedChangesGuard(isDirty: boolean) {
+export function useUnsavedChangesGuard(isDirty: boolean | (() => boolean)) {
   const confirm = useConfirm();
 
-  // Aviso nativo del navegador al recargar o cerrar.
+  const getter = typeof isDirty === "function" ? isDirty : () => isDirty;
+  const getterRef = useRef(getter);
   useEffect(() => {
-    if (!isDirty) return;
+    getterRef.current = getter;
+  });
+
+  // Aviso nativo del navegador al recargar o cerrar. Siempre suscrito;
+  // el handler consulta el getter en el momento del evento.
+  useEffect(() => {
     const handler = (e: BeforeUnloadEvent) => {
+      if (!getterRef.current()) return;
       e.preventDefault();
-      // Chrome/Firefox exigen returnValue para mostrar el prompt.
       e.returnValue = "";
     };
     window.addEventListener("beforeunload", handler);
     return () => window.removeEventListener("beforeunload", handler);
-  }, [isDirty]);
+  }, []);
 
   // Navegación interna: bloquea y pide confirmación async.
   const blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
-      isDirty && currentLocation.pathname !== nextLocation.pathname,
+      getterRef.current() && currentLocation.pathname !== nextLocation.pathname,
   );
 
   useEffect(() => {
