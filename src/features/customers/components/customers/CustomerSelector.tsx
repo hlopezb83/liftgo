@@ -38,6 +38,19 @@ interface CustomerSelectorProps {
  * consumen. `cmdk` virtualiza y filtra en memoria sin re-renderear la
  * pantalla que abre el popover.
  */
+function buildTriggerLabel(
+  selected: Customer | undefined,
+  required: boolean | undefined,
+): string {
+  if (selected) {
+    const suffix = selected.company && selected.company !== selected.name
+      ? ` — ${selected.company}`
+      : "";
+    return `${selected.name}${suffix}`;
+  }
+  return required ? "Seleccionar cliente *" : "Seleccionar cliente (opcional)";
+}
+
 export function CustomerSelector({
   customers,
   customerId,
@@ -59,11 +72,7 @@ export function CustomerSelector({
     [items, customerId],
   );
 
-  const triggerLabel = selected
-    ? `${selected.name}${selected.company && selected.company !== selected.name ? ` — ${selected.company}` : ""}`
-    : required
-      ? "Seleccionar cliente *"
-      : "Seleccionar cliente (opcional)";
+  const triggerLabel = buildTriggerLabel(selected, required);
 
   const handleSelect = (id: string) => {
     onCustomerIdChange(id);
@@ -102,15 +111,15 @@ export function CustomerSelector({
                   <span className="truncate text-left">{triggerLabel}</span>
                   <span className="ml-2 flex shrink-0 items-center gap-1">
                     {selected && !required && (
-                      <span
-                        role="button"
+                      <button
+                        type="button"
                         tabIndex={-1}
                         aria-label="Limpiar cliente"
                         onClick={handleClear}
                         className="rounded-sm p-0.5 opacity-60 hover:bg-muted hover:opacity-100"
                       >
                         <XIcon className="h-3.5 w-3.5" />
-                      </span>
+                      </button>
                     )}
                     <ChevronDownIcon className="h-4 w-4 opacity-50" />
                   </span>
