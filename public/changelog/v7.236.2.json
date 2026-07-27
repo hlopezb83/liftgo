@@ -1,0 +1,18 @@
+{
+  "version": "7.236.2",
+  "date": "2026-07-27",
+  "type": "patch",
+  "title": "CI · gitleaks deja de reportar falso positivo en scrubPII.test",
+  "category": "fix",
+  "summary": "El workflow programado de gitleaks fallaba porque el JWT de ejemplo usado en el test de redactPII coincidía con la regla genérica 'jwt', aunque no es un secreto real.",
+  "changes": [
+    {
+      "area": "CI / Seguridad",
+      "items": [
+        "src/lib/observability/scrubPII.test.ts: el JWT de ejemplo (jwt.io, payload {sub:1234567890}) se construye por concatenación de sus tres segmentos en runtime, de modo que el string literal completo no exista en el repositorio y la regex 'eyJ[...].eyJ[...].[...]' de gitleaks no dispare.",
+        "El test conserva la misma aserción (out no debe contener 'eyJhbGciOi'); en runtime el mensaje redactado es idéntico al anterior."
+      ]
+    }
+  ],
+  "notes": "Se prefirió partir el literal antes que agregar un fingerprint a .gitleaksignore, porque el fingerprint se invalida con cualquier reescritura del archivo."
+}
