@@ -29,7 +29,7 @@ jobs:
 
       - name: Run Lighthouse CI
         id: lhci
-        # Pin a SHA (action de terceros). v12.6.2.
+        # Pin a SHA (action de terceros). v12.6.2 (Node 24).
         uses: treosh/lighthouse-ci-action@3e7e23fb74242897f95c0ba9cabad3d0227b9b18 # v12.6.2
         with:
           urls: ${{ github.event.inputs.target_url || 'https://liftgo.lovable.app' }}
@@ -41,8 +41,8 @@ jobs:
       # (el job corre en cron y no tiene PR asociado). Solo un issue abierto a la vez.
       - name: Abrir issue de regresión (on failure)
         if: failure()
-        # Pin a SHA (action de terceros). v7.0.1.
-        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea # v7.0.1
+        # Pin a SHA (action de terceros). v9.0.0 (Node 24).
+        uses: actions/github-script@d746ffe35508b1917358783b479e04febd2b8f71 # v9.0.0
         env:
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           TARGET_URL: ${{ github.event.inputs.target_url || 'https://liftgo.lovable.app' }}
