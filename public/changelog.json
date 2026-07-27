@@ -1,5 +1,14 @@
 [
   {
+    "version": "7.237.0",
+    "date": "2026-07-27",
+    "type": "minor",
+    "title": "R17 · sprint de correcciones (DB + UX)",
+    "category": "fix",
+    "description": "Migración DB: índice único en quotes.quote_number (excluye e2e), guard en create_supplier_payment_batch contra facturas ya en un lote activo, hardening de approve_payment_intent (validación de balance y persistencia de exchange_rate), rechazo de damage_cost negativo en complete_return_inspection y bloqueo de create_booking sobre equipos retired/sold. UX: PaymentsExportTable deshabilita filas con payment_in_progress_at; contractPayload deja de forzar status/signed_at (preserva estado en edición); useUpdateBooking/useDeleteBooking/useCancelBooking invalidan también el detalle; useCreateQuote invalida nextNumber; returnInspectionSchema rechaza costos/horas negativos; DamageActions expone 'Marcar reparado' sin factura; useDeliveryCompletion usa el horómetro recién persistido; ClosedTable (won) agrega CTA 'Convertir a cliente' con prefill; BookingPeriodCard cuenta rango inclusivo (mínimo 1 día); toast de devolución dinámico según condición; CustomerSelector usa span[role=button] para evitar botones anidados.",
+    "category": "fix"
+  },
+  {
     "version": "7.236.5",
     "date": "2026-07-27",
     "type": "patch",
