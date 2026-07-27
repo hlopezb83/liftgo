@@ -1,0 +1,28 @@
+{
+  "version": "7.237.1",
+  "date": "2026-07-27",
+  "type": "patch",
+  "title": "CI · lint cleanup (non-null assertion + unused directive + refs)",
+  "category": "chore",
+  "summary": "Limpieza de 1 error + 2 warnings reportados por bun run lint.",
+  "sections": [
+    {
+      "title": "closedColumns.tsx",
+      "items": [
+        "Elimina el `onConvert!(p)` (non-null assertion) usando una variable narrow `convertHandler` que ya garantiza la existencia del callback."
+      ]
+    },
+    {
+      "title": "CustomersPage",
+      "items": [
+        "Quita el `// eslint-disable-next-line react-hooks/set-state-in-effect` redundante sobre `runQuickCreatePrefill` (no dispara setState) y conserva solo el de `runProspectPrefill`."
+      ]
+    },
+    {
+      "title": "InvoiceForm",
+      "items": [
+        "Silencia `react-hooks/refs` en el `<form>`: `onSubmit` solo escribe `justSavedRef.current` dentro de callbacks async (`onSuccess`), nunca durante render."
+      ]
+    }
+  ]
+}
