@@ -1,0 +1,8 @@
+{
+  "version": "7.238.1",
+  "date": "2026-07-27",
+  "type": "patch",
+  "title": "CI · desactivar visual E2E hasta commitear baselines",
+  "category": "chore",
+  "description": "Regresa E2E_VISUAL a '0' en .github/workflows/ci.yml porque la corrida previa falló con 15 errores 'A snapshot doesn't exist' (specs visual-desktop y visual-mobile). Los tests visuales quedan disponibles vía el workflow manual e2e-visual-baselines.yml; cuando se generen y commiteen los snapshots *-chromium-linux.png se re-activa el flag."
+}
