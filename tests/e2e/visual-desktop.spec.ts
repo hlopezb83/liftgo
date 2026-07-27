@@ -43,9 +43,12 @@ for (const route of ROUTES) {
     await page.evaluate(() => document.fonts?.ready);
 
     // Máscaras para elementos dinámicos que rompen snapshots deterministas.
+    // v7.237.3: ampliamos a cualquier atributo data-dynamic, timestamps y
+    // contenido con animación de carga que pueda variar entre corridas.
     const masks = [
-      page.locator("time, [data-dynamic='date'], [data-testid='live-timestamp']"),
+      page.locator("time, [data-dynamic], [data-testid='live-timestamp']"),
       page.locator("[data-nowrap-currency='live']"),
+      page.locator(".animate-pulse, [data-loading='true']"),
     ];
 
     await expect(page).toHaveScreenshot(`desktop${route.replace(/\//g, "-") || "-home"}.png`, {
