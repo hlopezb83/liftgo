@@ -22,8 +22,8 @@ jobs:
       contents: write
     steps:
       - name: Release drafter
-        # Pin a SHA (action de terceros). v7.3.1.
-        uses: release-drafter/release-drafter@693d20e7c1ce1a81d3a41962f85914253b518449 # v7.3.1
+        # Pin a SHA (action de terceros). v7.6.0 (Node 24).
+        uses: release-drafter/release-drafter@5a60cd8ddda6dc14fce77159675b8fd2cdca4007 # v7.6.0
         with:
           config-name: release-drafter.yml
         env:
