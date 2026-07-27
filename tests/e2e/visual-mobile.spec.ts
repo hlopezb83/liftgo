@@ -27,10 +27,18 @@ for (const route of ROUTES) {
     const clientWidth = await page.evaluate(() => document.documentElement.clientWidth);
     expect(scrollWidth, `overflow horizontal en ${route}`).toBeLessThanOrEqual(clientWidth + 1);
 
+    // v7.237.3: máscaras para elementos dinámicos, igual que en desktop.
+    const masks = [
+      page.locator("time, [data-dynamic], [data-testid='live-timestamp']"),
+      page.locator("[data-nowrap-currency='live']"),
+      page.locator(".animate-pulse, [data-loading='true']"),
+    ];
+
     await expect(page).toHaveScreenshot(`mobile${route.replace(/\//g, "-") || "-home"}.png`, {
       fullPage: false,
       animations: "disabled",
       maxDiffPixelRatio: 0.03,
+      mask: masks,
     });
   });
 }
