@@ -32,6 +32,9 @@ export default function ChangelogPage() {
     if (changelog.length === 0) return;
     try {
       window.localStorage.setItem("liftgo:lastSeenVersion", getCurrentVersion(changelog) ?? "");
+      // El `storage` nativo no dispara in-tab; el sidebar escucha este custom
+      // event para apagar el punto ámbar sin esperar a recargar.
+      window.dispatchEvent(new Event("liftgo:lastSeenVersion"));
     } catch {
       // storage bloqueado (modo privado): sin persistencia, el punto reaparecerá.
     }

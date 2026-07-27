@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.236.1",
+    "date": "2026-07-27",
+    "type": "patch",
+    "title": "Sidebar · punto ámbar de Changelog ahora reacciona in-tab",
+    "category": "fix",
+    "description": "El indicador de novedades leía localStorage sólo en render y no se actualizaba tras marcar la versión como vista en /changelog. Ahora el sidebar se suscribe vía useSyncExternalStore a un custom event ('liftgo:lastSeenVersion') que ChangelogPage dispara al persistir la versión, de modo que el punto se apaga al instante sin recargar."
+  },
+  {
     "version": "7.236.0",
     "date": "2026-07-27",
     "type": "minor",

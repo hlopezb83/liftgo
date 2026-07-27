@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { useLocation } from "react-router";
 import { ChevronRightIcon } from "@/components/icons";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -20,6 +20,9 @@ const PREFETCH_DELAY_MS = 120;
 // (estable tras la reorganización; renombrar un grupo solo resetea SU estado).
 const NAV_GROUPS_STORAGE_KEY = "liftgo:sidebar:nav-groups-v1";
 const LAST_SEEN_VERSION_KEY = "liftgo:lastSeenVersion";
+// Evento in-tab: el `storage` nativo sólo dispara entre pestañas distintas,
+// así que emitimos uno propio cuando ChangelogPage escribe la versión vista.
+const LAST_SEEN_EVENT = "liftgo:lastSeenVersion";
 
 function readNavGroupState(): Record<string, boolean> {
   try {
@@ -39,12 +42,25 @@ function writeNavGroupState(label: string, open: boolean) {
   }
 }
 
-function readLastSeenVersion(): string | null {
+function subscribeLastSeen(cb: () => void) {
+  window.addEventListener(LAST_SEEN_EVENT, cb);
+  window.addEventListener("storage", cb);
+  return () => {
+    window.removeEventListener(LAST_SEEN_EVENT, cb);
+    window.removeEventListener("storage", cb);
+  };
+}
+
+function getLastSeenSnapshot(): string | null {
   try {
     return window.localStorage.getItem(LAST_SEEN_VERSION_KEY);
   } catch {
     return null;
   }
+}
+
+function useLastSeenVersion(): string | null {
+  return useSyncExternalStore(subscribeLastSeen, getLastSeenSnapshot, () => null);
 }
 
 function NavMenuItem({ item }: { item: NavItem }) {
@@ -58,10 +74,11 @@ function NavMenuItem({ item }: { item: NavItem }) {
   const currentVersion = useCurrentVersion();
   const numericCount =
     item.badgeKey && item.badgeKey !== "changelog_new" ? counts?.[item.badgeKey] ?? 0 : 0;
+  const lastSeenVersion = useLastSeenVersion();
   const isChangelogNew =
     item.badgeKey === "changelog_new" &&
     !!currentVersion &&
-    readLastSeenVersion() !== currentVersion;
+    lastSeenVersion !== currentVersion;
 
   // Auto-scroll (a11y): en sidebars largos (10 grupos) el ítem activo puede
   // quedar fuera del viewport al entrar directo a una URL profunda.
