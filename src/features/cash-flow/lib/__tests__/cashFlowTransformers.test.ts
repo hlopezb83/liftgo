@@ -80,6 +80,21 @@ describe("cashFlowTransformers", () => {
       );
       expect(item).toBeNull();
     });
+    // R17-X#1: saldo de $0.01 debe proyectarse
+    it("incluye saldos de $0.01", () => {
+      const item = invoiceToItem(
+        { ...base, total: 1000.01, credited_amount: 1000 },
+        new Map(),
+      );
+      expect(item?.amountMxn).toBe(0.01);
+    });
+    it("descarta saldos menores a $0.005", () => {
+      const item = invoiceToItem(
+        { ...base, total: 1000.004, credited_amount: 1000 },
+        new Map(),
+      );
+      expect(item).toBeNull();
+    });
   });
 
   describe("billToItem", () => {
@@ -95,6 +110,21 @@ describe("cashFlowTransformers", () => {
         currency: "MXN", exchange_rate: null, suppliers: [{ name: "Prov2" }],
       });
       expect(asArray?.partyName).toBe("Prov2");
+    });
+    // R17-X#1: saldo de $0.01 en bills también debe proyectarse
+    it("incluye saldos de $0.01", () => {
+      const item = billToItem({
+        id: "b3", bill_number: "B-3", balance: 0.01, due_date: "2026-07-01",
+        currency: "MXN", exchange_rate: null, suppliers: { name: "Prov3" },
+      });
+      expect(item?.amountMxn).toBe(0.01);
+    });
+    it("descarta saldos menores a $0.005", () => {
+      const item = billToItem({
+        id: "b4", bill_number: "B-4", balance: 0.004, due_date: "2026-07-01",
+        currency: "MXN", exchange_rate: null, suppliers: { name: "Prov4" },
+      });
+      expect(item).toBeNull();
     });
   });
 });
