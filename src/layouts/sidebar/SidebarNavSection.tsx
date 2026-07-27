@@ -84,8 +84,7 @@ function NavMenuItem({ item }: { item: NavItem }) {
   // quedar fuera del viewport al entrar directo a una URL profunda.
   useEffect(() => {
     if (isActive) itemRef.current?.scrollIntoView({ block: "nearest" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [isActive]);
 
   const schedulePrefetch = () => {
     if (!loader || timerRef.current !== null) return;
