@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.237.1",
+    "date": "2026-07-27",
+    "type": "patch",
+    "title": "CI · lint cleanup (non-null assertion + unused directive + refs)",
+    "category": "chore",
+    "description": "closedColumns.tsx: elimina non-null assertion usando variable narrow (convertHandler). CustomersPage: mantiene solo el disable necesario para runProspectPrefill (setState en effect) y quita el redundante. InvoiceForm: silencia react-hooks/refs en el <form> ya que onSubmit solo escribe justSavedRef dentro de callbacks async, no durante render."
+  },
+  {
     "version": "7.237.0",
     "date": "2026-07-27",
     "type": "minor",
