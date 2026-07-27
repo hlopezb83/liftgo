@@ -1,7 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import { forkliftKeys } from "../../lib/queryKeys";
 
 /**
  * Tanda 3 P1-5 · Consulta consolidada de ubicación + póliza activa por equipo.
