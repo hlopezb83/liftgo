@@ -1,7 +1,15 @@
 [
   {
+    "version": "7.236.0",
+    "date": "2026-07-27",
+    "type": "minor",
+    "title": "R16 · Fix BookingForm crash + guard de cambios + medios de sidebar",
+    "category": "fix",
+    "description": "Corrige crash crítico en /bookings/new con rangos ≥30 días (SwitchField sin FormProvider), diálogo '¿Descartar cambios?' que reaparecía tras guardar facturas (guard ahora acepta getter evaluado in-callback), y 3 medios de sidebar: 'Ventas' abierto por defecto (defaultOpen preservado), modo icono habilitado (collapsible=icon) y fecha de v7.235.0 corregida para que el punto de novedad no reaparezca tras recargar."
+  },
+  {
     "version": "7.235.0",
-    "date": "2026-07-25",
+    "date": "2026-07-27",
     "type": "minor",
     "title": "Sidebar Oleada 1 · badges, +Nuevo, punto de novedad y auto-scroll",
     "category": "ui",
