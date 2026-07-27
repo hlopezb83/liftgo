@@ -1,68 +1,53 @@
-## Objetivo
-Cerrar los 2 bloqueantes de R16 + 3 medios de bajo costo del sidebar/changelog para habilitar el GO de release. Bump a v7.236.0.
+# Verificación visual — Sidebar Oleada 1 (v7.235.0 / v7.236.0)
 
-**Analogía:** el sistema es un restaurante — hoy la comanda de "renta larga" hace estallar la cocina cuando marcas el switch de recurrencia (falta el mostrador `<Form>`), y el aviso "¿tirar el pedido?" sigue apareciendo después de haber servido el plato porque el mesero mira una foto vieja de la mesa en lugar de asomarse en el momento.
+**Analogía:** El menú del restaurante ya tiene el botón "+ Nuevo" y la carta se abre en el plato correcto, pero al mesero se le olvidan tres detalles: no ofrece "Nueva Reserva" ni a los admins, el foquito ámbar de "novedades" no se apaga después de leer el changelog, y no logré ver las etiquetas de "quedan N" (puede ser que hoy no haya pendientes o que estén rotas).
 
-## Cambios
+## Resumen de lo verificado (Playwright, viewport 1600x900, user admin)
 
-### 1. 🔴 R16-A — `BookingForm.tsx` crashea con SwitchField sin FormProvider
-- **Archivo:** `src/features/bookings/pages/BookingForm.tsx` (línea 49).
-- Envolver el `<form>` existente con `<Form {...form}>` importado desde `@/components/ui/form`.
-- Sin cambios de lógica. Los demás fields (`DateRangePickerField`) siguen funcionando.
+| # | Componente | Estado | Evidencia |
+|---|---|---|---|
+| 1 | Badges de conteo (RPC único) | ⚠️ Sin evidencia visual | 3 llamadas a `get_sidebar_badge_counts` (una por navegación, staleTime OK), pero **ningún badge visible** en Entregas/Devoluciones/Mantenimiento/Facturas |
+| 2 | Botón "+ Nuevo" | 🐞 Bug parcial | Se muestra y abre menú, pero **falta "Nueva Reserva"** para admin (solo se ven Cotización/Factura/Cliente) |
+| 3 | Punto ámbar en Changelog | 🐞 Bug | El punto **sigue visible después de visitar `/changelog`** |
+| 4 | Auto-scroll al ítem activo | ✅ OK | Al entrar directo a `/audit`, "Bitácora" queda visible al fondo |
+| — | Consola | ✅ 0 errores | — |
+| — | Versión visible en sidebar | ℹ️ `v7.235.0` | Puede ser cache de `version.json`; se esperaba `v7.236.0` |
 
-### 2. 🔴 F-03 — Guard de cambios sin guardar tras `reset()+navigate()`
-- **Archivo:** `src/hooks/useUnsavedChangesGuard.ts`.
-- Extender firma para aceptar `boolean | (() => boolean)` (backward compatible).
-- Normalizar a getter y evaluar **dentro** del callback de `useBlocker` y del `beforeunload` (via ref del getter para no re-suscribir).
-- **Archivo:** `src/features/invoices/pages/InvoiceForm.tsx` (líneas 38-42).
-- Pasar getter: `() => f.form.formState.isDirty && !isSubmitting && !justSavedRef.current`.
-- Los otros callers (customers / inventory / suppliers dialogs) siguen pasando boolean sin cambios.
+## Fase 1 — Diagnóstico (sin cambios de código)
 
-### 3. 🟡 H-1 — `useVisibleNavGroups` descarta `defaultOpen`
-- **Archivo:** `src/layouts/hooks/useVisibleNavGroups.ts` (línea ~24).
-- Incluir `defaultOpen: group.defaultOpen` en el map. Restaura "Ventas" abierto por defecto.
+Antes de corregir, confirmar cada causa raíz:
 
-### 4. 🟡 H-3 — Sidebar colapsado desaparece completo
-- **Archivo:** `src/layouts/AppSidebar.tsx` (línea 20).
-- `<Sidebar collapsible="icon">` para exponer modo icono con badges + QuickCreate accesibles.
+1. **Badges invisibles.** Consultar los conteos reales en la BD:
+   - `maintenance_logs` con `work_status NOT IN ('completed','cancelled')`
+   - `deliveries` con `scheduled_date = CURRENT_DATE` y `status IN ('pending','scheduled')`
+   - `bookings` con `status='confirmed'` y `end_date=CURRENT_DATE`
+   - `customer_payment_intents` con `status='pending_review'`
+   
+   Si todos dan 0 → los badges están bien (no hay nada que mostrar). Si alguno > 0 → hay bug de render en `SidebarNavSection.tsx` (probable: `badgeKey` no matchea, o el `useQuery` no está resolviendo).
 
-### 5. 🟡 H-2 — Punto de novedad Changelog reaparece tras recargar
-- **Archivo:** `public/changelog.json` — corregir la fecha de `v7.235.0` de `2026-07-25` → `2026-07-27` para que `getCurrentVersion()` (ordena por fecha) regrese la versión real más nueva.
-- **Archivo:** `public/changelog/v7.235.0.json` — misma fecha.
-- (No tocar el algoritmo — el fix de datos basta y es reversible; ordenar por semver sería otra tanda.)
+2. **Falta "Nueva Reserva" en +Nuevo.** Leer `SidebarQuickCreate.tsx` y `useUserRole`/`useRolePermissions` para ver por qué el filtro `adminOnly` excluye a un usuario con rol `admin` (screenshot muestra "ADMINISTRATIVO" como label — puede que el rol real sea `administrativo`, no `admin`).
 
-### 6. Changelog + versión
-- Bump `package.json` y `public/changelog.json` a **v7.236.0** (patch → minor por el fix crítico R16-A que reactiva un flujo bloqueado).
-- Nuevo `public/changelog/v7.236.0.json` con las 5 correcciones.
-- `public/version.json` se regenera vía `scripts/gen-version.mjs` en el build.
+3. **Punto ámbar persiste.** Leer `ChangelogPage.tsx` y `NavMenuItem` — verificar si `currentVersion` en el efecto de "marcar visto" coincide con el que compara el sidebar (posible mismatch entre `import.meta.env.VITE_APP_VERSION` y el que aparece en `public/changelog.json`).
 
-## Fuera de alcance
-- H-4 (revert visual de select de rol tras rechazo), R16-1 (combobox para el Select interno de InvoiceForm), R16-B (ya sincronizado en el build actual). Van en tanda posterior por baja severidad.
+## Fase 2 — Correcciones (una vez confirmadas causas)
 
-## Detalles técnicos
+- **Bug 2 — "Nueva Reserva" para admin:** ajustar `SidebarQuickCreate.tsx` para tratar tanto `admin` como `administrativo` (o el rol correcto según `AppRole`) en `adminOnly`.
+- **Bug 3 — Punto ámbar:** unificar la fuente de `currentVersion` (usar el mismo helper `useCurrentVersion()` en ambos lados) y guardar la versión al montar `ChangelogPage`, no en un efecto dependiente.
+- **Bug 1 (si aplica):** solo si el diagnóstico confirma `count > 0` sin badge → arreglar el render.
 
-**Firma nueva del guard** (evaluación in-callback resuelve la carrera):
-```ts
-export function useUnsavedChangesGuard(isDirty: boolean | (() => boolean)) {
-  const getter = typeof isDirty === "function" ? isDirty : () => isDirty;
-  const getterRef = useRef(getter);
-  useEffect(() => { getterRef.current = getter; });
-  // beforeunload: chequea getterRef.current() en el handler
-  // useBlocker: (a,b) => getterRef.current() && a.pathname !== b.pathname
-}
-```
-`justSavedRef.current = true` + `form.reset(values)` + `navigate(...)` en el mismo tick ya son visibles cuando el blocker evalúa post-commit.
+## Fase 3 — Re-verificación con Playwright
 
-**BookingForm wrap:**
-```tsx
-<Form {...form}>
-  <form onSubmit={form.handleSubmit(...)} className="space-y-6"> ... </form>
-</Form>
-```
+Repetir el flujo: dashboard → +Nuevo (esperar 4 opciones) → /audit (scroll) → /changelog (punto desaparece) → recarga (punto sigue apagado). Adjuntar screenshots.
 
-## Verificación
-- `tsgo` verde tras cambios.
-- Manual: `/bookings/new` con rango ≥30 días → aparece SwitchField sin crash.
-- Manual: editar factura, guardar, navegar → sin diálogo "¿Descartar cambios?".
-- Manual: colapsar sidebar → íconos + badges visibles; grupo "Ventas" abierto en primer load.
-- Recargar `/changelog` → punto ámbar no reaparece.
+## Fase 4 — Changelog + versión
+
+- Nueva entrada patch en `public/changelog.json` + detalle (`v7.236.1` o `v7.236.2`).
+- Confirmar que el sidebar muestre la versión nueva (revisar cache de `version.json`).
+
+## Notas técnicas
+
+- Auth de test: sesión inyectada (`LOVABLE_BROWSER_AUTH_STATUS=injected`), usuario `admin@lopezbenavides.com`.
+- No se detectaron regresiones en el layout ni errores en consola.
+- El RPC `get_sidebar_badge_counts` responde (network 200) — falta confirmar el payload.
+
+¿Apruebas ejecutar Fase 1 (diagnóstico read-only en BD + lectura de 3 archivos) y luego avanzar a las correcciones?
