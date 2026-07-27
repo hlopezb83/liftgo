@@ -86,6 +86,7 @@ export default function InvoiceForm() {
       <FormPageHeader title={f.isEdit ? "Editar Factura" : "Nueva Factura"} />
 
       <Form {...f.form}>
+        {/* eslint-disable-next-line react-hooks/refs -- onSubmit only writes justSavedRef inside async callbacks */}
         <form onSubmit={f.form.handleSubmit(onSubmit)} className="space-y-6">
           <Card>
             <CardHeader><CardTitle className="text-base">Detalles de Factura</CardTitle></CardHeader>

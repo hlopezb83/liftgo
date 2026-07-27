@@ -59,9 +59,7 @@ export default function CustomersPage() {
     setSearchParams(searchParams, { replace: true });
   });
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     runProspectPrefill();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     runQuickCreatePrefill();
   }, []);
 

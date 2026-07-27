@@ -86,11 +86,11 @@ export function buildClosedColumns(
     meta: { headClassName: "w-[220px]" },
     cell: ({ row }) => {
       const p = row.original;
-      const showConvert = kind === "won" && !p.customerId && onConvert;
+      const convertHandler = kind === "won" && !p.customerId ? onConvert : undefined;
       return (
         <div className="flex items-center gap-1">
-          {showConvert && (
-            <Button size="sm" variant="ghost" onClick={() => onConvert!(p)}>
+          {convertHandler && (
+            <Button size="sm" variant="ghost" onClick={() => convertHandler(p)}>
               <UserIcon className="h-3.5 w-3.5 mr-1" /> Convertir
             </Button>
           )}
