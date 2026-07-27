@@ -3,8 +3,15 @@ import { redactPII, scrubEvent, scrubUrl } from "./scrubPII";
 
 describe("redactPII", () => {
   it("redacta email, RFC, CURP y JWT en un solo mensaje", () => {
+    // JWT de ejemplo (jwt.io) partido para no disparar escaneos de secretos.
+    const jwt =
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9" +
+      "." +
+      "eyJzdWIiOiIxMjM0NTY3ODkwIn0" +
+      "." +
+      "SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
     const raw =
-      "Falla al facturar juan.perez@acme.mx (RFC XAXX010101000, CURP HEGG560427MVZRRL04) token eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c";
+      `Falla al facturar juan.perez@acme.mx (RFC XAXX010101000, CURP HEGG560427MVZRRL04) token ${jwt}`;
     const out = redactPII(raw);
     expect(out).not.toMatch(/juan\.perez/);
     expect(out).not.toMatch(/XAXX010101000/);
