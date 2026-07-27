@@ -9,8 +9,8 @@ import {
 import { useCurrentVersion } from "@/features/changelog";
 import { NavLink } from "@/layouts/NavLink";
 import { routeLoaders } from "@/routes/routes-config";
-import type { NavGroup, NavItem } from "./navConfig";
 import { useSidebarBadgeCounts } from "./useSidebarBadgeCounts";
+import type { NavGroup, NavItem } from "./navConfig";
 
 // Debounce igual al de tablas: dispara el `import()` sólo si el hover
 // sostiene 120ms. Evita cargar chunks al pasar el cursor sin intención.
