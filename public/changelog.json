@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.238.0",
+    "date": "2026-07-27",
+    "type": "minor",
+    "title": "Deps · actualización Tier 1 + Tier 2",
+    "category": "chore",
+    "description": "Actualiza dependencias seguras y minors compatibles: 17 paquetes de Radix UI a su última patch (1.x), @supabase/supabase-js 2.110.9, TanStack Query 5.101.4 stack (react-query, devtools, persist-client, sync-storage-persister) y react-virtual 3.14.8, Vite 8.1.5, @vitejs/plugin-react 6.0.4, postcss 8.5.23, marked 18.0.7. Minors: zod 4.4.3, react-hook-form 7.83, @hookform/resolvers 5.5.7, react-router 8.3, date-fns 4.4, recharts 3.10.1, @sentry/react 10.68, lucide-react 1.27, @playwright/test 1.62, typescript-eslint 8.65, happy-dom 20.11.1, knip 6.29, eslint-plugin-playwright 2.11. Validado con typecheck, lint y 1255 tests unitarios en verde."
+  },
+  {
     "version": "7.237.3",
     "date": "2026-07-27",
     "type": "patch",
