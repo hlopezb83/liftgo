@@ -17,7 +17,7 @@ export interface CashFlowSettings {
   safetyBuffer: number;
 }
 
-export const cashFlowSettingsQueries = defineEntityQueries("cash_flow_settings", {
+const cashFlowSettingsQueries = defineEntityQueries("cash_flow_settings", {
   list: () => async (): Promise<CashFlowSettings> => {
     const { data, error } = await supabase
       .from("company_settings")
@@ -34,6 +34,7 @@ export const cashFlowSettingsQueries = defineEntityQueries("cash_flow_settings",
   },
   staleTime: 5 * 60_000,
 });
+void cashFlowSettingsQueries;
 
 const ACTIVE_INVOICE_STATUSES = ["sent", "partial", "overdue"] as const;
 const ACTIVE_BILL_STATUSES = ["pending", "partial", "overdue"] as const;
