@@ -71,7 +71,14 @@ export function useReturnInspectionDialog(bookings: Booking[] | undefined, activ
       },
       {
         onSuccess: () => {
-          notifySuccess("Inspección de devolución registrada — montacargas marcado como disponible");
+          // R17-W: el mensaje debe reflejar el estado real al que va el equipo.
+          // `damaged` → mantenimiento; el resto → disponible.
+          const goesToMaintenance = values.condition === "damaged" || damageCost > 0;
+          notifySuccess(
+            goesToMaintenance
+              ? "Inspección registrada — montacargas enviado a mantenimiento"
+              : "Inspección de devolución registrada — montacargas marcado como disponible",
+          );
           setDialogOpen(false);
           form.reset(initialReturnInspectionForm);
         },
