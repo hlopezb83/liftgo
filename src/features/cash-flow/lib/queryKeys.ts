@@ -11,9 +11,17 @@ import {
 } from "./cashFlowTransformers";
 import { bucketByWeek, type CashFlowBucket, type CashFlowItem } from "./cashFlowUtils";
 
+export interface CashFlowSettings {
+  id: string | null;
+  initialBalance: number;
+  safetyBuffer: number;
+}
+
 // Nota: `cashFlowSettingsQueries` se removió en v7.236.5 tras no tener
 // consumidores (Knip). La proyección lee `initialBalance`/`safetyBuffer`
 // directamente desde `CashFlowProjectionFilter`.
+
+
 
 
 
