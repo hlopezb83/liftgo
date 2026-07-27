@@ -1,53 +1,68 @@
-## Sidebar — Oleada 1 (v7.235.0)
+## Objetivo
+Cerrar los 2 bloqueantes de R16 + 3 medios de bajo costo del sidebar/changelog para habilitar el GO de release. Bump a v7.236.0.
 
-**Analogía:** al menú del restaurante le agregamos etiquetas "quedan 3", un botón "+ Nuevo" que sugiere los platos que puedes pedir según tu rol, un puntito ámbar cuando cambia la carta, y hacemos que la carta se abra justo en la sección donde estás parado.
+**Analogía:** el sistema es un restaurante — hoy la comanda de "renta larga" hace estallar la cocina cuando marcas el switch de recurrencia (falta el mostrador `<Form>`), y el aviso "¿tirar el pedido?" sigue apareciendo después de haber servido el plato porque el mesero mira una foto vieja de la mesa en lugar de asomarse en el momento.
 
----
+## Cambios
 
-### 1. Badges de conteo (1 solo RPC, sin polling)
+### 1. 🔴 R16-A — `BookingForm.tsx` crashea con SwitchField sin FormProvider
+- **Archivo:** `src/features/bookings/pages/BookingForm.tsx` (línea 49).
+- Envolver el `<form>` existente con `<Form {...form}>` importado desde `@/components/ui/form`.
+- Sin cambios de lógica. Los demás fields (`DateRangePickerField`) siguen funcionando.
 
-- **Migración nueva** `get_sidebar_badge_counts()` (`SECURITY DEFINER`, `STABLE`, `SET search_path = public`): un `json_build_object` con 4 counts globales — `maintenance_open`, `deliveries_today`, `returns_today`, `intents_pending`. `REVOKE ALL` a `PUBLIC`/`anon` + `GRANT EXECUTE` a `authenticated`.
-  - Antes de escribir el SQL: `supabase--read_query` para confirmar los valores reales de `deliveries.status` (el brief pide `'pending','scheduled'` — verificar) y que existen `maintenance_logs.work_status`, `bookings.end_date`, `customer_payment_intents.status='pending_review'`. Ajustar la SQL a lo que exista.
-- **Hook nuevo** `src/layouts/sidebar/useSidebarBadgeCounts.ts`: `useQuery` con key `["sidebar-badge-counts"]`, `staleTime: 60_000`, sin `refetchInterval`.
-- **navConfig**: extender `NavItem` con `badgeKey?: SidebarBadgeKey`. Marcar Entregas/Devoluciones/Mantenimiento/Facturas.
-- **SidebarNavSection**: en `NavMenuItem` renderizar `SidebarMenuBadge` sólo cuando `count > 0`, con `aria-label`. Importar `SidebarMenuBadge` (verificar el archivo real bajo `src/components/ui/sidebar/`; si no existe, usar un `<span>` estilizado tipo badge).
+### 2. 🔴 F-03 — Guard de cambios sin guardar tras `reset()+navigate()`
+- **Archivo:** `src/hooks/useUnsavedChangesGuard.ts`.
+- Extender firma para aceptar `boolean | (() => boolean)` (backward compatible).
+- Normalizar a getter y evaluar **dentro** del callback de `useBlocker` y del `beforeunload` (via ref del getter para no re-suscribir).
+- **Archivo:** `src/features/invoices/pages/InvoiceForm.tsx` (líneas 38-42).
+- Pasar getter: `() => f.form.formState.isDirty && !isSubmitting && !justSavedRef.current`.
+- Los otros callers (customers / inventory / suppliers dialogs) siguen pasando boolean sin cambios.
 
-### 2. Botón "+ Nuevo"
+### 3. 🟡 H-1 — `useVisibleNavGroups` descarta `defaultOpen`
+- **Archivo:** `src/layouts/hooks/useVisibleNavGroups.ts` (línea ~24).
+- Incluir `defaultOpen: group.defaultOpen` en el map. Restaura "Ventas" abierto por defecto.
 
-- **Nuevo** `src/layouts/sidebar/SidebarQuickCreate.tsx` con `DropdownMenu`. 4 acciones:
-  - Nueva Reserva → `/bookings/new` (adminOnly, coincide con `routes-config.tsx`).
-  - Nueva Cotización → `/quotes/new` (módulo "Cotizaciones", cualquier acceso).
-  - Nueva Factura → `/invoices/new` (módulo "Facturas", `requiresFull`).
-  - Nuevo Cliente → `/customers?new=1`.
-  - Gating usando `useUserRole` + `useRolePermissions` (mismo criterio que `RoleGuard`/`AdminRouteGuard`). Si el usuario no tiene ninguna acción permitida, no renderiza el botón.
-  - Colapsado (icon mode): botón cuadrado con menú `side="right"`; expandido: botón `w-full` con menú `side="bottom"`.
-- Montarlo en `AppSidebar.tsx` entre `SidebarBranding` y `SidebarContent`.
-- **CustomersPage**: al montar, si `searchParams.get("new") === "1"`, abrir el diálogo existente (`CustomerFormDialog`) y limpiar el param con `setSearchParams(..., { replace: true })`.
+### 4. 🟡 H-3 — Sidebar colapsado desaparece completo
+- **Archivo:** `src/layouts/AppSidebar.tsx` (línea 20).
+- `<Sidebar collapsible="icon">` para exponer modo icono con badges + QuickCreate accesibles.
 
-### 3. Punto de novedad en Changelog
+### 5. 🟡 H-2 — Punto de novedad Changelog reaparece tras recargar
+- **Archivo:** `public/changelog.json` — corregir la fecha de `v7.235.0` de `2026-07-25` → `2026-07-27` para que `getCurrentVersion()` (ordena por fecha) regrese la versión real más nueva.
+- **Archivo:** `public/changelog/v7.235.0.json` — misma fecha.
+- (No tocar el algoritmo — el fix de datos basta y es reversible; ordenar por semver sería otra tanda.)
 
-- Extender `SidebarBadgeKey` con `"changelog_new"`; marcar el ítem "Changelog" en navConfig.
-- En `NavMenuItem`, para `badgeKey === "changelog_new"`: leer `localStorage["liftgo:lastSeenVersion"]` (try/catch) vs `useCurrentVersion()`; si difiere, renderizar `SidebarMenuBadge` ámbar con `•`.
-- En `ChangelogPage.tsx`: `useEffect` que guarda `currentVersion` en `localStorage` al visitar.
+### 6. Changelog + versión
+- Bump `package.json` y `public/changelog.json` a **v7.236.0** (patch → minor por el fix crítico R16-A que reactiva un flujo bloqueado).
+- Nuevo `public/changelog/v7.236.0.json` con las 5 correcciones.
+- `public/version.json` se regenera vía `scripts/gen-version.mjs` en el build.
 
-### 4. Auto-scroll al ítem activo
-
-- En `NavMenuItem`, `useRef<HTMLLIElement>`. `useEffect(() => { if (isActive) ref.current?.scrollIntoView({ block: "nearest" }); }, [])` (una sola vez al montar). Cálculo de `isActive` local (`pathname` de `useLocation`, `startsWith` salvo `/` exacto). `aria-current` ya lo pone `NavLink`.
-
-### 5. Changelog + versión
-
-- `v7.235.0` (minor). `package.json` bump, entrada en `public/changelog.json` (arriba del array) y detalle en `public/changelog/v7.235.0.json` con las 4 mejoras.
-
----
+## Fuera de alcance
+- H-4 (revert visual de select de rol tras rechazo), R16-1 (combobox para el Select interno de InvoiceForm), R16-B (ya sincronizado en el build actual). Van en tanda posterior por baja severidad.
 
 ## Detalles técnicos
 
-- Todos los nuevos badges reusan la **misma** query key (`["sidebar-badge-counts"]`) → 1 solo request compartido entre 4 ítems, sin re-fetch por hover.
-- `SidebarMenuBadge`: si no existe en el shadcn local, uso un `<span>` con `data-slot="sidebar-menu-badge"` compatible.
-- Cero cambios a: rutas, `ROUTE_TO_MODULE`, matriz de permisos, `ALWAYS_VISIBLE_ROUTES`, `useVisibleNavGroups`.
-- Verificación: `tsgo`, revisión visual del sidebar en `/` y en `/audit` (auto-scroll), y confirmación en Network que sólo se llama `rpc/get_sidebar_badge_counts` una vez.
+**Firma nueva del guard** (evaluación in-callback resuelve la carrera):
+```ts
+export function useUnsavedChangesGuard(isDirty: boolean | (() => boolean)) {
+  const getter = typeof isDirty === "function" ? isDirty : () => isDirty;
+  const getterRef = useRef(getter);
+  useEffect(() => { getterRef.current = getter; });
+  // beforeunload: chequea getterRef.current() en el handler
+  // useBlocker: (a,b) => getterRef.current() && a.pathname !== b.pathname
+}
+```
+`justSavedRef.current = true` + `form.reset(values)` + `navigate(...)` en el mismo tick ya son visibles cuando el blocker evalúa post-commit.
 
-## Fuera de alcance
+**BookingForm wrap:**
+```tsx
+<Form {...form}>
+  <form onSubmit={form.handleSubmit(...)} className="space-y-6"> ... </form>
+</Form>
+```
 
-- Oleadas siguientes (favoritos, atajos, telemetría de clicks).
-- Polling en tiempo real de los badges (fuera por la restricción de perf).
+## Verificación
+- `tsgo` verde tras cambios.
+- Manual: `/bookings/new` con rango ≥30 días → aparece SwitchField sin crash.
+- Manual: editar factura, guardar, navegar → sin diálogo "¿Descartar cambios?".
+- Manual: colapsar sidebar → íconos + badges visibles; grupo "Ventas" abierto en primer load.
+- Recargar `/changelog` → punto ámbar no reaparece.
