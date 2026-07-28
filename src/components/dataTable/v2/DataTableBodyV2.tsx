@@ -6,6 +6,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { alignClass } from "./sorting";
+import { resolveColumnKind } from "./columnKind";
 
 const PREFETCH_DELAY_MS = 120;
 
@@ -131,11 +132,13 @@ export function DataTableBodyV2<T>({
             )}
             {row.getVisibleCells().map((cell) => {
               const meta = cell.column.columnDef.meta;
+              const { align, kindClassName } = resolveColumnKind(meta);
               return (
                 <TableCell
                   key={cell.id}
                   className={cn(
-                    alignClass[meta?.align ?? "left"],
+                    alignClass[align],
+                    kindClassName,
                     meta?.hideOnMobile && "hidden md:table-cell",
                     meta?.cellClassName,
                   )}

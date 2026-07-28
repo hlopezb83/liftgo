@@ -1,0 +1,19 @@
+{
+  "version": "7.243.0",
+  "date": "2026-07-28",
+  "type": "minor",
+  "title": "Oleada 3 UI/UX · columnas tipadas, KPIs sin truncar y vista de impresión",
+  "category": "feature",
+  "summary": "Infra visual para tablas (kind), helpers para KPIs compactos, tooltip del sidebar en modo icono, BrandMark, motion respetuoso con prefers-reduced-motion y CSS de impresión.",
+  "highlights": [
+    "C-1: `ColumnMeta.kind` + `resolveColumnKind` en DataTableV2 (`text|number|money|date|badge`) aplican alineación y `font-mono tabular-nums` automáticamente en header y body.",
+    "C-3: `formatCompactCurrency` (es-MX, sufijos M/K) y `kpiSizeClass(formatted)` en `src/lib/format/formatCurrency.ts` para KPIs que ya no truncan con `…`.",
+    "C-4: `SidebarNavSection` pasa `tooltip={item.title}` a `SidebarMenuButton` — al colapsar el sidebar aparece el nombre del módulo. Nuevo `src/components/BrandMark.tsx` (logo del tenant con fallback a iniciales sobre `bg-primary`).",
+    "C-5: Sheets bajan de 300/500ms a 200/250ms. Bloque global `@media (prefers-reduced-motion: reduce)` en `index.css` desactiva animaciones para usuarios sensibles.",
+    "C-8: Nuevo bloque `@media print` en `index.css` oculta `[data-sidebar]`, `[data-app-header]` y `.no-print`; tablas con bordes visibles, `thead` repetido en cada página y `tr { break-inside: avoid }`."
+  ],
+  "notes": [
+    "C-2 (facelift del Portal), C-6 (Gantt ya usa tokens `--gantt-*`, sin cambio) y C-7 (gráficas de reportes) quedan como oleada siguiente por scope. `BrandMark` ya está disponible para adoptarlo en PortalLogin en la próxima tanda.",
+    "La migración masiva de columnas a `kind` es opt-in: las columnas existentes siguen funcionando con `align`; las nuevas deben declarar `kind`."
+  ]
+}

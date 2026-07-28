@@ -1,5 +1,14 @@
 [
   {
+    "version": "7.243.0",
+    "date": "2026-07-28",
+    "type": "minor",
+    "title": "Oleada 3 UI/UX · columnas tipadas, KPIs sin truncar y vista de impresión",
+    "category": "feature",
+    "description": "C-1 introduce `ColumnMeta.kind` (text/number/money/date/badge) en DataTableV2: alineación y `font-mono tabular-nums` se aplican solos vía `resolveColumnKind`. C-3 agrega `formatCompactCurrency` ($1.23 M / $845 K) y `kpiSizeClass` para escalar KPIs largos sin ellipsis. C-4 activa tooltip del sidebar en modo icono (`tooltip={item.title}`) y crea `BrandMark` (logo del tenant con fallback a iniciales). C-5 acorta la entrada de Sheets a 250ms y respeta `prefers-reduced-motion` globalmente. C-8 añade `@media print` en index.css: oculta sidebar/header/.no-print, tablas con bordes y `thead` repetido por página."
+  },
+  {
+
     "version": "7.242.0",
     "date": "2026-07-28",
     "type": "minor",

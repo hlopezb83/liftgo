@@ -102,7 +102,7 @@ function NavMenuItem({ item }: { item: NavItem }) {
 
   return (
     <SidebarMenuItem ref={itemRef}>
-      <SidebarMenuButton asChild>
+      <SidebarMenuButton asChild tooltip={item.title}>
         <NavLink
           to={item.url}
           end={item.url === "/"}

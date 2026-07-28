@@ -4,6 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { alignClass } from "./sorting";
+import { resolveColumnKind } from "./columnKind";
 import type { ReactNode } from "react";
 
 interface Props<T> {
@@ -18,11 +19,13 @@ function SortIcon({ dir }: { dir: false | "asc" | "desc" }): ReactNode {
 }
 
 function buildHeaderClass(
-  meta: { align?: "left" | "right" | "center"; hideOnMobile?: boolean; headClassName?: string } | undefined,
+  meta: { align?: "left" | "right" | "center"; kind?: "text" | "number" | "money" | "date" | "badge"; hideOnMobile?: boolean; headClassName?: string } | undefined,
   sorted: false | "asc" | "desc",
 ): string {
+  const { align, kindClassName } = resolveColumnKind(meta);
   return cn(
-    alignClass[meta?.align ?? "left"],
+    alignClass[align],
+    kindClassName,
     meta?.hideOnMobile && "hidden md:table-cell",
     meta?.headClassName,
     sorted && "text-foreground",
@@ -31,14 +34,15 @@ function buildHeaderClass(
 
 function HeaderCell<T>({ header }: { header: Header<T, unknown> }): ReactNode {
   const meta = header.column.columnDef.meta;
+  const { align: resolvedAlign } = resolveColumnKind(meta);
   const canSort = header.column.getCanSort();
   const sortDir = header.column.getIsSorted();
   const className = buildHeaderClass(meta, sortDir);
   if (header.isPlaceholder) return <TableHead key={header.id} className={className} />;
   const innerClass = cn(
     "flex items-center gap-1 w-full uppercase tracking-wider",
-    meta?.align === "right" && "justify-end",
-    meta?.align === "center" && "justify-center",
+    resolvedAlign === "right" && "justify-end",
+    resolvedAlign === "center" && "justify-center",
   );
   const content = (
     <>
