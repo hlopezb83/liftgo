@@ -103,11 +103,23 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
                 <Button
                   variant="outline" size="sm" className="h-7 text-xs"
                   disabled={stampRep.isPending}
-                  onClick={() => stampRep.mutate(p.id)}
+                  title={
+                    stampRep.isPending
+                      ? "Hay un timbrado de REP en curso"
+                      : "Timbrar complemento de pago"
+                  }
+                  onClick={() => {
+                    if (stampRep.isPending) return;
+                    stampRep.mutate(p.id);
+                  }}
                 >
-                  <StampIcon className="h-3 w-3 mr-1" /> Timbrar REP
+                  <StampIcon className="h-3 w-3 mr-1" />
+                  {stampRep.isPending && stampRep.variables === p.id
+                    ? "Timbrando…"
+                    : "Timbrar REP"}
                 </Button>
               )}
+
             </div>
           );
         },
