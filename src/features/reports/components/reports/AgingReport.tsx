@@ -1,5 +1,6 @@
 import { differenceInDays, parseISO } from "date-fns";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
