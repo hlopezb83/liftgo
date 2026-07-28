@@ -70,7 +70,7 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd }: GanttC
   })();
 
   const { active, available, sold } = (() => {
-    const sorted = [...(forklifts ?? [])].sort((a, b) => a.name.localeCompare(b.name));
+    const sorted = [...(forklifts ?? [])].sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
     const activeList: Forklift[] = [];
     const availableList: Forklift[] = [];
     const soldList: Forklift[] = [];
