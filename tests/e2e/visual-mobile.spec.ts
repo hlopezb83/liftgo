@@ -11,7 +11,7 @@ const ROUTES = ["/", "/invoices", "/bookings", "/customers", "/fleet"] as const;
 // v7.72.1: ver nota en visual-desktop.spec.ts. Gate opt-in.
 test.beforeEach(() => {
   // eslint-disable-next-line playwright/no-skipped-test -- Gate por E2E_VISUAL=1 (baselines dependen del runner).
-  test.skip(!process.env.E2E_VISUAL, "Auditoría visual desactivada (activa con E2E_VISUAL=1)");
+  test.skip(process.env.E2E_VISUAL !== "1", "Auditoría visual desactivada (activa con E2E_VISUAL=1)");
 });
 
 test.use({ viewport: { width: 390, height: 800 } });

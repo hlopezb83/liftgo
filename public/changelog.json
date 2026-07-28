@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.239.1",
+    "date": "2026-07-28",
+    "type": "patch",
+    "title": "CI · gate visual E2E respeta E2E_VISUAL='0'",
+    "category": "fix",
+    "description": "Las specs visuales usaban `!process.env.E2E_VISUAL` como gate, pero la cadena '0' es truthy en JS, así que corrían en CI sin baselines y reportaban 15 fallos. Ahora se ejecutan sólo con `E2E_VISUAL === '1'`."
+  },
+  {
     "version": "7.239.0",
     "date": "2026-07-28",
     "type": "minor",
