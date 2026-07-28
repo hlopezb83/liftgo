@@ -24,7 +24,7 @@ export function ProspectFormFields({
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor="company">Empresa *</Label>
+        <Label htmlFor="company">Empresa <RequiredMark /></Label>
         <Input id="company" value={fields.company} onChange={(e) => setters.setCompany(e.target.value)} required />
       </div>
       <div className="space-y-2">
