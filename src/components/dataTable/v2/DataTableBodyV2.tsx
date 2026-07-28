@@ -132,11 +132,13 @@ export function DataTableBodyV2<T>({
             )}
             {row.getVisibleCells().map((cell) => {
               const meta = cell.column.columnDef.meta;
+              const { align, kindClassName } = resolveColumnKind(meta);
               return (
                 <TableCell
                   key={cell.id}
                   className={cn(
-                    alignClass[meta?.align ?? "left"],
+                    alignClass[align],
+                    kindClassName,
                     meta?.hideOnMobile && "hidden md:table-cell",
                     meta?.cellClassName,
                   )}
