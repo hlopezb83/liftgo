@@ -4,6 +4,7 @@ import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { AddIcon, ViewIcon, ChevronRightIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
