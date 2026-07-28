@@ -19,6 +19,27 @@ interface UseProspectFormParams {
   overrideStage?: string;
 }
 
+interface ProspectFormSnapshot {
+  company: string; contact: string; email: string; phone: string;
+  dealValue: string; notes: string; quoteId: string | null;
+}
+
+/** R22-A: compara el estado actual del formulario contra los valores iniciales. */
+function isProspectFormDirty(
+  prospect: Prospect | null | undefined,
+  s: ProspectFormSnapshot,
+): boolean {
+  return (
+    s.company !== (prospect?.companyName ?? "") ||
+    s.contact !== (prospect?.contactPerson ?? "") ||
+    s.email !== (prospect?.email ?? "") ||
+    s.phone !== (prospect?.phone ?? "") ||
+    s.dealValue !== (prospect ? String(prospect.dealValue ?? 0) : "") ||
+    s.notes !== (prospect?.notes ?? "") ||
+    s.quoteId !== (prospect?.quoteId ?? null)
+  );
+}
+
 export function useProspectForm({
   prospect, open, defaultStage, overrideStage,
 }: UseProspectFormParams) {
