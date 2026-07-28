@@ -149,7 +149,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
             data-testid="record-payment-submit"
             disabled={createPayment.isPending || stampComplement.isPending}
           >
-            {createPayment.isPending ? "Guardando…" : (stampComplement.isPending ? "Timbrando REP…" : "Registrar Pago")}
+            {createPayment.isPending ? "Guardando…" : (stampComplement.isPending ? "Timbrando REP…" : "Registrar pago")}
           </Button>
         </FormDialogFooter>
       </form>

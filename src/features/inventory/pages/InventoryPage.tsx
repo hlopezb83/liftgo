@@ -104,7 +104,7 @@ export default function InventoryPage() {
         title="Control de Refacciones"
         subtitle="Gestiona el inventario de partes y refacciones"
         totalCount={filtered.length}
-        actions={<Button onClick={openCreate}><AddIcon className="h-4 w-4 mr-1" />Nueva Refacción</Button>}
+        actions={<Button onClick={openCreate}><AddIcon className="h-4 w-4 mr-1" />Nueva refacción</Button>}
         filters={
           <div className="space-y-3">
             {lowStockCount > 0 && (
@@ -137,7 +137,7 @@ export default function InventoryPage() {
         onRowClick={(p) => detail.open(p)}
         emptyMessage="Sin refacciones registradas"
         emptyIcon={InventoryIcon}
-        emptyActionLabel="Nueva Refacción"
+        emptyActionLabel="Nueva refacción"
         onEmptyAction={openCreate}
         skeletonColumns={5}
         mobileCardRender={mobileCard}

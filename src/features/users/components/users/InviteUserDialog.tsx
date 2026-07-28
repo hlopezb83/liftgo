@@ -104,7 +104,7 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
         <FormDialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
           <Button onClick={handleInvite} disabled={inviteUser.isPending || !fullName.trim() || !email.trim()}>
-            {inviteUser.isPending ? "Creando…" : "Crear Usuario"}
+            {inviteUser.isPending ? "Creando…" : "Crear usuario"}
           </Button>
         </FormDialogFooter>
       </FormDialog>

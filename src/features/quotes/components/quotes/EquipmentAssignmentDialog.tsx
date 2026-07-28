@@ -127,7 +127,7 @@ export function EquipmentAssignmentDialog({
       isPending={isLoading}
       open={open}
       onOpenChange={onOpenChange}
-      title="Asignar Equipos"
+      title="Asignar equipos"
       description="Selecciona el montacargas específico para cada unidad cotizada. Las tarifas pactadas en la cotización se aplicarán al equipo asignado."
     >
       <Form {...form}>
@@ -176,7 +176,7 @@ export function EquipmentAssignmentDialog({
           <FormDialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <Button type="submit" disabled={!form.formState.isValid || isLoading}>
-              {isLoading ? "Creando reservas..." : "Confirmar y Crear Reservas"}
+              {isLoading ? "Creando reservas..." : "Confirmar y Crear reservas"}
             </Button>
           </FormDialogFooter>
         </form>

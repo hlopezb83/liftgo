@@ -80,7 +80,7 @@ export function PartFormDialog({ open, onOpenChange, part }: PartFormDialogProps
       isDirty={form.formState.isDirty}
       open={open}
       onOpenChange={onOpenChange}
-      title={part ? "Editar Refacción" : "Nueva Refacción"}
+      title={part ? "Editar refacción" : "Nueva refacción"}
     >
       <Form {...form}>
         <form onSubmit={onSubmit} className="space-y-4">

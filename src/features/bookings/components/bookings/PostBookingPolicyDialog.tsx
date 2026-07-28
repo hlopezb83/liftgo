@@ -78,7 +78,7 @@ export function PostBookingPolicyDialog({ open, onOpenChange, forkliftId, forkli
       {!showForm ? (
         <FormDialogFooter className="flex-col gap-2 sm:flex-col">
           <Button className="w-full" onClick={() => setShowForm(true)}>
-            <SecurityIcon className="h-4 w-4 mr-2" /> Crear Póliza
+            <SecurityIcon className="h-4 w-4 mr-2" /> Crear póliza
           </Button>
           <Button variant="outline" className="w-full" onClick={onSkip}>
             Omitir por Ahora
@@ -108,7 +108,7 @@ export function PostBookingPolicyDialog({ open, onOpenChange, forkliftId, forkli
             <FormDialogFooter className="flex-col gap-2 sm:flex-row">
               <Button type="button" variant="outline" onClick={onSkip}>Omitir</Button>
               <Button type="submit" disabled={createPolicy.isPending}>
-                {createPolicy.isPending ? "Creando..." : "Crear Póliza"}
+                {createPolicy.isPending ? "Creando..." : "Crear póliza"}
               </Button>
             </FormDialogFooter>
           </form>

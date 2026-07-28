@@ -44,7 +44,7 @@ export function LogoUploader({ logoUrl, onChange }: Props) {
           />
           <Button type="button" variant="outline" size="sm" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
             <UploadIcon className="h-4 w-4 mr-1" />
-            {uploading ? "Subiendo..." : "Subir Logo"}
+            {uploading ? "Subiendo..." : "Subir logo"}
           </Button>
           {logoUrl && (
             <Button type="button" variant="ghost" size="sm" onClick={() => onChange("")} className="text-destructive hover:text-destructive">

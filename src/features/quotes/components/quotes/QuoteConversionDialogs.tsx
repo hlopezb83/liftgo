@@ -61,7 +61,7 @@ export function QuoteConversionDialogs({ logic }: Props) {
       isPending={isConverting}
         open={showCustomerReassignDialog}
         onOpenChange={setShowCustomerReassignDialog}
-        title="Asignar Cliente"
+        title="Asignar cliente"
         description='Esta cotización está asignada a "Público en General". Selecciona el cliente final antes de convertir a reserva.'
       >
         <div className="space-y-4">

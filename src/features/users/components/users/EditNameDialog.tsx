@@ -30,7 +30,7 @@ export function EditNameDialog({ user, onClose }: EditNameDialogProps) {
 
   return (
     <FormDialog
-      isPending={updateName.isPending} open={!!user} onOpenChange={(v) => { if (!v) onClose(); }} title="Editar Nombre">
+      isPending={updateName.isPending} open={!!user} onOpenChange={(v) => { if (!v) onClose(); }} title="Editar nombre">
         <div className="space-y-2 py-2">
           <Label htmlFor="edit-name">Nombre Completo</Label>
           <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} />

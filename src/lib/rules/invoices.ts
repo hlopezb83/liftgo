@@ -67,7 +67,7 @@ function computeActionFlags(invoice: InvoiceLike, cfdiStatus: string): InvoiceAc
   const status = invoice.status;
   const isDraft = status === "draft";
   // v7.226.0 · E2E-N6: si el saldo es conocido y ya es <= 0 (NC total o pagos
-  // que cubren el remanente), no debe verse "Registrar Pago" aunque el
+  // que cubren el remanente), no debe verse "Registrar pago" aunque el
   // estatus siga como sent/overdue/partial.
   const balanceKnown = typeof invoice.balance === "number";
   const hasBalance = !balanceKnown || (invoice.balance ?? 0) > 0;

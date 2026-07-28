@@ -194,7 +194,7 @@ export default function InvoicesPage() {
         onClearFilters={clearAll}
         emptyMessage="No se encontraron facturas"
         emptyIcon={InvoiceIcon}
-        emptyActionLabel={canCreate ? "Nueva Factura" : undefined}
+        emptyActionLabel={canCreate ? "Nueva factura" : undefined}
         onEmptyAction={canCreate ? () => navigate("/invoices/new") : undefined}
         skeletonColumns={7}
         mobileCardRender={(inv) => <InvoiceCard inv={inv} onClick={() => navigate(`/invoices/${inv.id}`)} />}

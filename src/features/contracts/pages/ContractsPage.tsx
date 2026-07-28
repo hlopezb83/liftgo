@@ -126,7 +126,7 @@ export default function ContractsPage() {
       subtitle="Administrar contratos de renta"
       actions={
         <RoleGuard module="Contratos" minAccess="full" fallback={null}>
-          <Button size="sm" onClick={() => navigate("/contracts/new")}><AddIcon className="h-4 w-4 mr-1" />Nuevo Contrato</Button>
+          <Button size="sm" onClick={() => navigate("/contracts/new")}><AddIcon className="h-4 w-4 mr-1" />Nuevo contrato</Button>
         </RoleGuard>
       }
       filters={

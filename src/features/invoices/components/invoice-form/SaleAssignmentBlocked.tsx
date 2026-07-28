@@ -21,7 +21,7 @@ export function SaleAssignmentBlocked({
 }: Props) {
   return (
     <PageContainer maxWidth="wide">
-      <FormPageHeader title="Nueva Factura" />
+      <FormPageHeader title="Nueva factura" />
       <Alert variant="destructive" className="mt-6">
         <WarnIcon className="h-5 w-5" />
         <AlertTitle>

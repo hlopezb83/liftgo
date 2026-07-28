@@ -77,7 +77,7 @@ export function BookingActions({ booking }: BookingActionsProps) {
   return (
     <div className="flex gap-2">
       <Button size="sm" onClick={() => navigate(`/contracts/new?booking_id=${booking.id}`)}>
-        <DocumentIcon className="h-4 w-4 mr-1" />Crear Contrato
+        <DocumentIcon className="h-4 w-4 mr-1" />Crear contrato
       </Button>
       <Button variant="outline" size="sm" onClick={() => { setNewEndDate(undefined); setExtendOpen(true); }}>
         <CalendarPlus className="h-4 w-4 mr-1" />Extender

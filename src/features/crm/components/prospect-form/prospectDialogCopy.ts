@@ -1,7 +1,7 @@
 import type { Prospect } from "../../hooks/useProspects";
 
 export function prospectDialogTitle(prospect?: Prospect | null): string {
-  return prospect ? "Editar Prospecto" : "Nuevo Prospecto";
+  return prospect ? "Editar prospecto" : "Nuevo prospecto";
 }
 
 export function prospectDialogDescription(prospect?: Prospect | null, overrideStage?: string): string {

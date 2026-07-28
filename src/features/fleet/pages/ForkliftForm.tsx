@@ -22,7 +22,7 @@ export default function ForkliftForm() {
   if (!isEdit && !hasModels) {
     return (
       <PageContainer maxWidth="form">
-        <FormPageHeader title="Agregar Montacargas" />
+        <FormPageHeader title="Agregar montacargas" />
         <Alert className="mt-6">
           <WarnIcon className="h-5 w-5" />
           <AlertTitle>Configura modelos de equipo primero</AlertTitle>
@@ -40,7 +40,7 @@ export default function ForkliftForm() {
 
   return (
     <PageContainer maxWidth="form">
-      <FormPageHeader title={isEdit ? "Editar Montacargas" : "Agregar Montacargas"} />
+      <FormPageHeader title={isEdit ? "Editar montacargas" : "Agregar montacargas"} />
 
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -71,7 +71,7 @@ export default function ForkliftForm() {
           </Card>
 
           <FormActions
-            submitLabel={isEdit ? "Guardar Cambios" : "Agregar Montacargas"}
+            submitLabel={isEdit ? "Guardar cambios" : "Agregar montacargas"}
             isPending={isPending}
             onCancel={() => navigate(-1)}
           />

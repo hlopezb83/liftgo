@@ -12,7 +12,7 @@ import { useAuthPasswordRecoveryListener } from "../hooks/useAuthPasswordRecover
 const TITLES: Record<AuthMode, { title: string; desc: string }> = {
   "sign-in": { title: "Iniciar Sesión", desc: "Ingresa a Lift Go" },
   forgot: { title: "Restablecer Contraseña", desc: "Ingresa tu correo para recibir un enlace" },
-  reset: { title: "Nueva Contraseña", desc: "Ingresa tu nueva contraseña" },
+  reset: { title: "Nueva contraseña", desc: "Ingresa tu nueva contraseña" },
 };
 
 export default function AuthPage() {

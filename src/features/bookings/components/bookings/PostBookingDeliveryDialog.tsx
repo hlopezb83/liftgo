@@ -96,7 +96,7 @@ export function PostBookingDeliveryDialog({
       {!showForm ? (
         <FormDialogFooter className="flex-col gap-2 sm:flex-col">
           <Button className="w-full" onClick={() => setShowForm(true)}>
-            <FleetIcon className="h-4 w-4 mr-2" /> Programar Entrega
+            <FleetIcon className="h-4 w-4 mr-2" /> Programar entrega
           </Button>
           <Button variant="outline" className="w-full" onClick={onSkip}>Omitir por Ahora</Button>
         </FormDialogFooter>
@@ -121,7 +121,7 @@ export function PostBookingDeliveryDialog({
             <FormDialogFooter className="flex-col gap-2 sm:flex-row">
               <Button type="button" variant="outline" onClick={onSkip}>Omitir</Button>
               <Button type="submit" disabled={createDelivery.isPending}>
-                {createDelivery.isPending ? "Programando..." : "Programar Entrega"}
+                {createDelivery.isPending ? "Programando..." : "Programar entrega"}
               </Button>
             </FormDialogFooter>
           </form>

@@ -37,7 +37,7 @@ export function CustomersActions({ filtered, onCreate }: Pick<Props, "filtered" 
       </Button>
       {/* R7 Bloque 8: Nuevo cliente exige `full` según matriz de permisos. */}
       <RoleGuard module="Clientes" minAccess="full" fallback={null}>
-        <Button onClick={onCreate} size="sm" aria-label="Agregar cliente"><PlusCircle className="h-4 w-4 mr-1" /> Nuevo Cliente</Button>
+        <Button onClick={onCreate} size="sm" aria-label="Agregar cliente"><PlusCircle className="h-4 w-4 mr-1" /> Nuevo cliente</Button>
       </RoleGuard>
     </div>
   );

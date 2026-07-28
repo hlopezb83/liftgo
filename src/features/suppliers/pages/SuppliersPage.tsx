@@ -113,7 +113,7 @@ export default function SuppliersPage() {
             </Button>
             <RoleGuard module="Proveedores" minAccess="full" fallback={null}>
               <Button onClick={openCreate} size="sm">
-                <PlusCircle className="h-4 w-4 mr-1" />Nuevo Proveedor
+                <PlusCircle className="h-4 w-4 mr-1" />Nuevo proveedor
               </Button>
             </RoleGuard>
           </div>

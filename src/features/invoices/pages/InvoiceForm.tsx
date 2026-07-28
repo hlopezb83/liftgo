@@ -96,7 +96,7 @@ export default function InvoiceForm() {
 
   return (
     <PageContainer maxWidth="wide">
-      <FormPageHeader title={f.isEdit ? "Editar Factura" : "Nueva Factura"} />
+      <FormPageHeader title={f.isEdit ? "Editar Factura" : "Nueva factura"} />
 
       <Form {...f.form}>
         {/* eslint-disable-next-line react-hooks/refs -- onSubmit only writes justSavedRef inside async callbacks */}
@@ -136,7 +136,7 @@ export default function InvoiceForm() {
             </CardContent>
           </Card>
 
-          <FormActions submitLabel={f.isEdit ? "Actualizar Factura" : "Crear Factura"} isPending={f.isPending} onCancel={() => navigate(-1)} />
+          <FormActions submitLabel={f.isEdit ? "Actualizar factura" : "Crear factura"} isPending={f.isPending} onCancel={() => navigate(-1)} />
         </form>
       </Form>
     </PageContainer>

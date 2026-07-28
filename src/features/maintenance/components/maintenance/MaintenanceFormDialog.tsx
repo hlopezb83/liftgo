@@ -97,7 +97,7 @@ export function MaintenanceFormDialog({
 
           <FormDialogFooter>
             <FormActions
-              submitLabel={isEdit ? "Guardar Cambios" : "Agregar Registro"}
+              submitLabel={isEdit ? "Guardar cambios" : "Agregar registro"}
               isPending={isPending}
               onCancel={() => onOpenChange(false)}
             />
