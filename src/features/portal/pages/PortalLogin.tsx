@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePublicBranding } from "@/features/company-settings";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { getAuthErrorMessage } from "@/lib/auth/authErrorMessages";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
 type Mode = "sign-in" | "forgot";
@@ -36,11 +37,11 @@ export default function PortalLogin() {
 
     if (mode === "forgot") {
       const { error } = await resetPassword(email);
-      if (error) notifyError({ error, fallback: getAuthErrorMessage(error) });
+      if (error) notifyError({ error, title: getAuthErrorMessage(error) });
       else notifySuccess("Revisa tu correo para el enlace de restablecimiento");
     } else {
       const { error } = await signIn(email, password);
-      if (error) notifyError({ error, fallback: getAuthErrorMessage(error) });
+      if (error) notifyError({ error, title: getAuthErrorMessage(error) });
     }
     setLoading(false);
   };
