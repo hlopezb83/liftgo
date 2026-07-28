@@ -101,28 +101,15 @@ Deno.serve(async (req) => {
         .select("rep_cfdi_status, rep_cfdi_uuid")
         .eq("id", payment_id)
         .maybeSingle();
-      const st = current?.rep_cfdi_status ?? "desconocido";
+      const st = current?.rep_cfdi_status ?? null;
       console.warn("[stamp-payment-complement] claim rejected", {
         payment_id,
         rep_cfdi_status: st,
         has_uuid: Boolean(current?.rep_cfdi_uuid),
       });
-      if (st === "stamped") {
-        return jsonError(req, 409, "Este pago ya tiene un REP timbrado");
-      }
-      if (st === "stamping") {
-        return jsonError(
-          req,
-          409,
-          "El timbrado de este REP está en proceso. Espera unos segundos y actualiza.",
-        );
-      }
-      return jsonError(
-        req,
-        409,
-        `No se puede timbrar el REP en el estado actual del pago (${st}).`,
-      );
+      return jsonError(req, 409, claimRejectionMessage(st));
     }
+
 
     // Helper: liberar el claim ante un early-return no-fatal. Deja el pago en
     // 'pending' para que el operador o el retry queue puedan re-intentar.
