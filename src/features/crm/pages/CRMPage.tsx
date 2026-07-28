@@ -16,7 +16,7 @@ import { ACTIVE_STAGES } from "../lib/constants";
 import type { DragEndEvent } from "@dnd-kit/core";
 
 export default function CRMPage() {
-  const { data: prospects = [], isLoading } = useProspects();
+  const { data: prospects = [], isLoading, isError, isFetching, refetch } = useProspects();
   const { data: quotes = [] } = useQuotes();
   const { canCloseDeal, assertCanClose } = useProspectGuard();
   const createProspect = useCreateProspect();
