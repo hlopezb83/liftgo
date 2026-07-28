@@ -139,7 +139,7 @@ export default function CustomersPage() {
       <ListPageLayout
         onRefresh={refetch}
         title="Clientes"
-        subtitle={`${customers?.length || 0} clientes`}
+        subtitle={customers ? `${customers.length} clientes` : undefined}
         actions={<CustomersActions filtered={filtered} onCreate={openCreate} />}
         mobileFab={
           <RoleGuard module="Clientes" minAccess="full" fallback={null}>
