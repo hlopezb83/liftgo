@@ -376,9 +376,11 @@ Deno.serve(async (req) => {
         rep_facturapi_id: repId,
         rep_cfdi_uuid: repUuid,
         rep_cfdi_status: "stamped",
+        rep_stamping_started_at: null,
         rep_xml_url: xmlPath,
         rep_pdf_url: pdfPath,
         rep_error_message: null,
+
       })
       .eq("id", payment_id);
 
