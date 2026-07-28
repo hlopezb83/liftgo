@@ -48,17 +48,15 @@ export function useBookingActions(booking: BookingWithForklift) {
       if (newStatus === "cancelled") {
         await cancelBooking.mutateAsync({ bookingId: booking.id, reason: null });
       } else {
-        await new Promise<void>((resolve, reject) => {
-          updateBooking.mutate(
-            { id: booking.id, status: newStatus },
-            { onSuccess: () => resolve(), onError: (err) => reject(err) }
-          );
-        });
+        await updateBooking.mutateAsync({ id: booking.id, status: newStatus });
       }
       notifySuccess(`Estatus cambiado a ${BOOKING_STATUS_LABELS[newStatus] || newStatus}`);
       onSuccess();
-    } catch (err: unknown) {
-      notifyError({ title: "Error al cambiar estatus: " + (err instanceof Error ? err.message : "Error desconocido") });
+    } catch {
+      // R-M6: el toast de error ya lo emite `useEntityMutation` con el mensaje
+      // SQL traducido (`translateDbError`). Emitir uno propio aquí producía
+      // un segundo toast "Error desconocido" que pisaba la razón real
+      // ("Las fechas se traslapan…"). Silenciamos el catch para no duplicar.
     }
   };
 
