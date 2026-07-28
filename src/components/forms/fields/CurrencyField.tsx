@@ -57,6 +57,12 @@ export function CurrencyField<TFieldValues extends FieldValues>({
                   inputMode="decimal"
                   step="0.01"
                   min={min}
+                  onInvalid={(e) =>
+                    e.currentTarget.setCustomValidity(
+                      min !== undefined ? `Introduce un valor mayor o igual a ${min}` : "Introduce un valor válido",
+                    )
+                  }
+                  onInput={(e) => e.currentTarget.setCustomValidity("")}
                   value={displayValue}
                   onChange={(e) => {
                     const raw = e.target.value;
