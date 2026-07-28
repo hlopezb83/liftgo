@@ -1,7 +1,7 @@
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
-import { AddIcon, PlusCircle, ChevronRightIcon } from "@/components/icons";
+import { AddIcon, PlusCircle, ChevronRightIcon, DocumentIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -92,6 +92,7 @@ export default function QuotesPage() {
       onRowPrefetch={(q) => quoteQueries.detail(q.id)}
       hasActiveFilters={hasActive}
       onClearFilters={reset}
+      emptyIcon={DocumentIcon}
       emptyMessage="No hay cotizaciones aún"
       emptyActionLabel="Nueva cotización"
       onEmptyAction={() => navigate("/quotes/new")}

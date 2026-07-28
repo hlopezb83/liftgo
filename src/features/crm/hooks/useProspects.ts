@@ -54,4 +54,5 @@ export {
   useCreateProspect,
   useUpdateProspect,
   useDeleteProspect,
+  useMoveProspectStage,
 } from "./useProspectMutations";

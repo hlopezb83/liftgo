@@ -1,0 +1,22 @@
+{
+  "version": "7.253.0",
+  "date": "2026-07-28",
+  "type": "minor",
+  "title": "Kanban de CRM instantáneo y listas vacías con acciones claras",
+  "category": "improvement",
+  "description": "Mover tarjetas entre etapas del CRM ahora se refleja al instante, y las listas sin registros muestran un ícono y un botón para crear el primer registro o limpiar los filtros.",
+  "changes": [
+    {
+      "type": "improvement",
+      "description": "CRM: al arrastrar un prospecto a otra etapa la tarjeta se mueve de inmediato y se guarda en segundo plano; si algo falla, vuelve a su lugar y se avisa con un mensaje. Cerrado ganado sigue pidiendo los datos de cierre."
+    },
+    {
+      "type": "improvement",
+      "description": "Clientes, Cotizaciones, Proveedores y Contratos: los estados vacíos ahora muestran un ícono acorde al módulo, con acción para crear el primer registro o limpiar los filtros aplicados."
+    },
+    {
+      "type": "improvement",
+      "description": "Nueva lógica compartida de reordenamiento del Kanban cubierta con pruebas automáticas."
+    }
+  ]
+}

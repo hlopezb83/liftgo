@@ -14,7 +14,7 @@ import { useCRMFilters } from "../hooks/useCRMFilters";
 import { useCRMMetrics } from "../hooks/useCRMMetrics";
 import { useCRMPageDialogs } from "../hooks/useCRMPageDialogs";
 import { useProspectGuard } from "../hooks/useProspectGuard";
-import { useProspects, useCreateProspect, useUpdateProspect, useDeleteProspect, type Prospect } from "../hooks/useProspects";
+import { useProspects, useCreateProspect, useUpdateProspect, useDeleteProspect, useMoveProspectStage, type Prospect } from "../hooks/useProspects";
 import { ACTIVE_STAGES } from "../lib/constants";
 import type { DragEndEvent } from "@dnd-kit/core";
 
@@ -24,6 +24,7 @@ export default function CRMPage() {
   const { canCloseDeal, assertCanClose } = useProspectGuard();
   const createProspect = useCreateProspect();
   const updateProspect = useUpdateProspect();
+  const moveProspectStage = useMoveProspectStage();
   const deleteProspect = useDeleteProspect();
   const { data: metrics } = useCRMMetrics();
   const dialogs = useCRMPageDialogs();
@@ -95,19 +96,24 @@ export default function CRMPage() {
     const target = resolveDropTarget(event);
     if (!target) return;
     const { draggableId, sourceStage, newStage, newIndex } = target;
-    if (newStage === "cerrado_ganado" && !assertCanClose("move")) return;
+    if (newStage === "cerrado_ganado") {
+      // Cerrar ganado exige datos adicionales y permiso: sigue pasando por el diálogo.
+      if (!assertCanClose("move")) return;
+      const prospect = prospects.find((p) => p.id === draggableId);
+      if (!prospect) return;
+      dialogs.setEditingProspect(prospect);
+      dialogs.setOverrideStage(newStage);
+      dialogs.setDialogOpen(true);
+      return;
+    }
 
     if (sourceStage === newStage) {
       updateProspect.mutate({ id: draggableId, stage_order: newIndex });
       return;
     }
 
-    const prospect = prospects.find((p) => p.id === draggableId);
-    if (prospect) {
-      dialogs.setEditingProspect(prospect);
-      dialogs.setOverrideStage(newStage);
-      dialogs.setDialogOpen(true);
-    }
+    // B-11: movimiento entre columnas directo y optimista al soltar.
+    moveProspectStage.mutate({ id: draggableId, newStage, newIndex });
   };
   if (isError) {
     return (
