@@ -44,6 +44,17 @@ export function UtilizationByModelReport({ startDate, endDate }: Props) {
     })));
   };
 
+  // R22-B: error state antes de mostrar utilización 0% por falla de red.
+  if (fError || bError) {
+    return (
+      <QueryErrorState
+        entity="el reporte de utilización por modelo"
+        onRetry={() => { void fRefetch(); void bRefetch(); }}
+        isRetrying={fFetching}
+      />
+    );
+  }
+
   return (
     <>
       <Card>
