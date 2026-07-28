@@ -3655,6 +3655,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      claim_maintenance_policy_month: {
+        Args: { p_month: string; p_policy_id: string }
+        Returns: boolean
+      }
+      claim_payment_rep_stamping: {
+        Args: { p_payment_id: string; p_stale_minutes?: number }
+        Returns: string
+      }
       complete_return_inspection: {
         Args: {
           p_booking_id: string
