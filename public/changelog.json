@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.242.0",
+    "date": "2026-07-28",
+    "type": "minor",
+    "title": "Oleada 2 UI/UX · confianza en datos y confirmación al descartar",
+    "category": "fix",
+    "description": "B-1 introduce QueryErrorState y lo cablea en Panel, Flujo de caja, CRM y Calendario para evitar que un fallo de red muestre $0.00 como si fueran datos válidos. B-2 agrega `isDirty` a FormDialog para pedir confirmación al descartar cambios (Esc/click fuera). B-6 envuelve RecordPaymentDialog en <form> para enviar con Enter. B-10 blindaje null en el sort del Gantt. B-12 sube contraste de overlays (Dialog/Sheet/AlertDialog) usando bg-foreground/30."
+  },
+  {
     "version": "7.241.0",
     "date": "2026-07-28",
     "type": "minor",
