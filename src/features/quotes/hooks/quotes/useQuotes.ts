@@ -103,7 +103,7 @@ export function useUpdateQuote() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [quoteKeys.lists()],
+    invalidateKeys: (vars: TablesUpdate<"quotes"> & { id: string }) => [quoteKeys.lists(), quoteKeys.detail(vars.id)],
     errorTitle: "Error al actualizar cotización",
   });
 }
