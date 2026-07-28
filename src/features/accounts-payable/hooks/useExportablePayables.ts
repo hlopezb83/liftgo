@@ -41,7 +41,8 @@ export const exportablePayableQueries = defineEntityQueries<
       supabase
         .from("supplier_bills")
         .select("id, bill_number, supplier_id, due_date, balance, currency, description, payment_in_progress_at, suppliers(name, rfc)")
-        .eq("approval_status", "approved")
+        // R-M4: incluir también facturas que no requieren aprobación explícita.
+        .in("approval_status", ["approved", "not_required"])
         .gt("balance", 0)
         .order("due_date", { ascending: true, nullsFirst: false }),
       supabase
