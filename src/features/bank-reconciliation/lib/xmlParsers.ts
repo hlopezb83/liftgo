@@ -82,38 +82,72 @@ function detectMapping(fields: string[]): XmlFieldMapping {
   return mapping;
 }
 
-function signedFor(f: Record<string, string>, map: XmlFieldMapping): number | null {
-  if (map.charge || map.credit) {
-    const charge = map.charge ? parseAmount(f[map.charge] ?? "") : null;
-    const credit = map.credit ? parseAmount(f[map.credit] ?? "") : null;
-    if (charge !== null || credit !== null) return signedFromChargeCredit(charge, credit);
-  }
-  if (!map.amount) return null;
-  const amount = parseAmount(f[map.amount] ?? "");
-  if (amount === null) return null;
-  const kind = map.type ? normalizeKey(f[map.type] ?? "") : "";
-  if (kind.startsWith("cargo") || kind.startsWith("retiro") || kind.startsWith("debito")) return -Math.abs(amount);
-  if (kind.startsWith("abono") || kind.startsWith("deposito") || kind.startsWith("credito")) return Math.abs(amount);
+const NEGATIVE_KINDS = ["cargo", "retiro", "debito"];
+const POSITIVE_KINDS = ["abono", "deposito", "credito"];
+
+function applyKindSign(amount: number, kind: string): number {
+  if (NEGATIVE_KINDS.some((k) => kind.startsWith(k))) return -Math.abs(amount);
+  if (POSITIVE_KINDS.some((k) => kind.startsWith(k))) return Math.abs(amount);
   return amount;
 }
 
-export function parseBankXml(content: string, override: XmlFieldMapping = {}): XmlParseResult {
-  const empty: XmlParseResult = {
-    lines: [], errors: [], periodStart: null, periodEnd: null, detectedMapping: {}, availableFields: [],
-  };
+function fieldAmount(f: Record<string, string>, key: string | undefined): number | null {
+  return key ? parseAmount(f[key] ?? "") : null;
+}
+
+function signedFor(f: Record<string, string>, map: XmlFieldMapping): number | null {
+  const charge = fieldAmount(f, map.charge);
+  const credit = fieldAmount(f, map.credit);
+  if (charge !== null || credit !== null) return signedFromChargeCredit(charge, credit);
+  const amount = fieldAmount(f, map.amount);
+  if (amount === null) return null;
+  return applyKindSign(amount, map.type ? normalizeKey(f[map.type] ?? "") : "");
+}
+
+function mappingErrors(map: XmlFieldMapping): string[] {
+  const errors: string[] = [];
+  if (!map.date) errors.push("No se identificó el campo de fecha. Asigna el mapeo manualmente.");
+  if (!map.amount && !map.charge && !map.credit) {
+    errors.push("No se identificó el campo de importe. Asigna el mapeo manualmente.");
+  }
+  return errors;
+}
+
+function mapNodeToLine(f: Record<string, string>, map: XmlFieldMapping, index: number) {
+  const rawDate = f[map.date ?? ""] ?? "";
+  const postedDate = parseDateFlexible(rawDate);
+  if (!postedDate) return `Movimiento ${index + 1}: fecha inválida ("${rawDate}")`;
+  const signed = signedFor(f, map);
+  if (signed === null || signed === 0) return `Movimiento ${index + 1}: importe inválido o cero`;
+  const description = (map.description ? f[map.description] ?? "" : "").trim() || "Movimiento bancario";
+  const reference = map.reference ? (f[map.reference] ?? "").trim() || null : null;
+  return buildLine({ postedDate, description, signedAmount: signed, reference });
+}
+
+const EMPTY_RESULT: XmlParseResult = {
+  lines: [], errors: [], periodStart: null, periodEnd: null, detectedMapping: {}, availableFields: [],
+};
+
+function readDocument(content: string): Document | string {
   let doc: Document;
   try {
     doc = new DOMParser().parseFromString(content, "application/xml");
   } catch {
-    return { ...empty, errors: ["El archivo XML no se pudo leer."] };
+    return "El archivo XML no se pudo leer.";
   }
   if (doc.getElementsByTagName("parsererror").length > 0 || !doc.documentElement) {
-    return { ...empty, errors: ["El archivo XML está mal formado."] };
+    return "El archivo XML está mal formado.";
   }
+  return doc;
+}
+
+export function parseBankXml(content: string, override: XmlFieldMapping = {}): XmlParseResult {
+  const doc = readDocument(content);
+  if (typeof doc === "string") return { ...EMPTY_RESULT, errors: [doc] };
 
   const nodes = detectMovementNodes(doc);
   if (nodes.length === 0) {
-    return { ...empty, errors: ["No se encontraron movimientos repetidos en el XML."] };
+    return { ...EMPTY_RESULT, errors: ["No se encontraron movimientos repetidos en el XML."] };
   }
 
   const parsedNodes = nodes.map(nodeFields);
@@ -121,23 +155,17 @@ export function parseBankXml(content: string, override: XmlFieldMapping = {}): X
   const detectedMapping = detectMapping(availableFields);
   const mapping: XmlFieldMapping = { ...detectedMapping, ...override };
 
-  const errors: string[] = [];
-  if (!mapping.date) errors.push("No se identificó el campo de fecha. Asigna el mapeo manualmente.");
-  if (!mapping.amount && !mapping.charge && !mapping.credit) {
-    errors.push("No se identificó el campo de importe. Asigna el mapeo manualmente.");
+  const setupErrors = mappingErrors(mapping);
+  if (setupErrors.length > 0) {
+    return { ...EMPTY_RESULT, errors: setupErrors, detectedMapping, availableFields };
   }
-  if (errors.length > 0) return { ...empty, errors, detectedMapping, availableFields };
 
+  const errors: string[] = [];
   const lines = [];
   for (let i = 0; i < parsedNodes.length; i++) {
-    const f = parsedNodes[i];
-    const postedDate = parseDateFlexible(f[mapping.date ?? ""] ?? "");
-    if (!postedDate) { errors.push(`Movimiento ${i + 1}: fecha inválida ("${f[mapping.date ?? ""] ?? ""}")`); continue; }
-    const signed = signedFor(f, mapping);
-    if (signed === null || signed === 0) { errors.push(`Movimiento ${i + 1}: importe inválido o cero`); continue; }
-    const description = (mapping.description ? f[mapping.description] ?? "" : "").trim() || "Movimiento bancario";
-    const reference = mapping.reference ? (f[mapping.reference] ?? "").trim() || null : null;
-    lines.push(buildLine({ postedDate, description, signedAmount: signed, reference }));
+    const result = mapNodeToLine(parsedNodes[i], mapping, i);
+    if (typeof result === "string") { errors.push(result); continue; }
+    lines.push(result);
   }
 
   return { lines, errors, ...computePeriod(lines), detectedMapping, availableFields };
