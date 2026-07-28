@@ -58,28 +58,26 @@ Deno.serve(async (req) => {
     // Claims vencidos: si un proceso murió tras reclamar, el pago quedaría
     // atorado en 'stamping' para siempre. Permitimos re-reclamar cuando el
     // claim tiene más de STALE_CLAIM_MINUTES.
+    //
+    // R-REP-42703: el claim NO puede armarse con `.update().or(...)`.
+    // PostgREST rechaza cualquier filtro `or=` sobre una mutación con
+    // `42703 column <tabla>.<col> does not exist`, así que el UPDATE nunca
+    // corría y todo caía en el 409 genérico. La condición OR vive ahora en
+    // el RPC atómico `claim_payment_rep_stamping`.
     const STALE_CLAIM_MINUTES = 5;
-    const staleBefore = new Date(
-      Date.now() - STALE_CLAIM_MINUTES * 60_000,
-    ).toISOString();
-    const claimRes = await supabase
-      .from("payments")
-      .update({
-        rep_cfdi_status: "stamping",
-        rep_stamping_started_at: new Date().toISOString(),
-      })
-      .eq("id", payment_id)
-      .or(
-        [
-          "and(rep_cfdi_status.in.(pending,error,none),rep_cfdi_uuid.is.null)",
-          "rep_cfdi_status.eq.cancelled",
-          `and(rep_cfdi_status.eq.stamping,rep_cfdi_uuid.is.null,rep_stamping_started_at.lt.${staleBefore})`,
-        ].join(","),
-      )
-      .select("id")
-      .maybeSingle();
+    const claimRes = await (supabase as unknown as {
+      rpc: (
+        fn: string,
+        args: Record<string, unknown>,
+      ) => Promise<
+        { data: string | null; error: { message?: string } | null }
+      >;
+    }).rpc("claim_payment_rep_stamping", {
+      p_payment_id: payment_id,
+      p_stale_minutes: STALE_CLAIM_MINUTES,
+    });
     if (claimRes.error) {
-      // Un fallo del UPDATE (lock/timeout/trigger) NO significa que el REP ya
+      // Un fallo del claim (lock/timeout/trigger) NO significa que el REP ya
       // esté en proceso: se reporta como error transitorio con la causa real.
       console.error("[stamp-payment-complement] claim failed", {
         payment_id,
@@ -93,19 +91,11 @@ Deno.serve(async (req) => {
         }`,
       );
     }
-    if (!claimRes.data) {
-      // Releer el estado real para dar un mensaje accionable en vez de un
-      // genérico "ya está siendo timbrado".
-      const { data: current } = await supabase
-        .from("payments")
-        .select("rep_cfdi_status, rep_cfdi_uuid")
-        .eq("id", payment_id)
-        .maybeSingle();
-      const st = current?.rep_cfdi_status ?? null;
+    if (claimRes.data !== "claimed") {
+      const st = claimRes.data;
       console.warn("[stamp-payment-complement] claim rejected", {
         payment_id,
         rep_cfdi_status: st,
-        has_uuid: Boolean(current?.rep_cfdi_uuid),
       });
       return jsonError(req, 409, claimRejectionMessage(st));
     }

@@ -70,23 +70,30 @@ Deno.serve(async (req) => {
     const details: string[] = [];
 
     // BL-41: claim atómico por póliza ANTES de insertar el log. Si otra corrida
-    // ya reclamó el mes, el UPDATE devuelve 0 filas y omitimos la póliza
+    // ya reclamó el mes, el claim devuelve false y omitimos la póliza
     // (idempotente ante doble corrida / retry).
+    //
+    // R-REP-42703: no usar `.update().or(...)`: PostgREST rechaza filtros `or=`
+    // en mutaciones con `42703 column ... does not exist`. La condición vive en
+    // el RPC atómico `claim_maintenance_policy_month`.
     for (const policy of candidates) {
-      const { data: claimed, error: claimErr } = await supabase
-        .from("maintenance_policies")
-        .update({ last_generated_month: currentMonth })
-        .eq("id", policy.id)
-        .or(
-          `last_generated_month.is.null,last_generated_month.lt.${currentMonth}`,
-        )
-        .select("id");
+      const { data: claimed, error: claimErr } = await (supabase as unknown as {
+        rpc: (
+          fn: string,
+          args: Record<string, unknown>,
+        ) => Promise<
+          { data: boolean | null; error: { message?: string } | null }
+        >;
+      }).rpc("claim_maintenance_policy_month", {
+        p_policy_id: policy.id,
+        p_month: currentMonth,
+      });
 
       if (claimErr) {
         details.push(`Error al reclamar ${policy.id}: ${claimErr.message}`);
         continue;
       }
-      if (!claimed || claimed.length === 0) {
+      if (claimed !== true) {
         skipped += 1;
         continue;
       }
