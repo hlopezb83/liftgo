@@ -1,6 +1,6 @@
 
 import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
