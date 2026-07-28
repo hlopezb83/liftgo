@@ -78,6 +78,17 @@ export function UtilizationReport({ startDate, endDate }: Props) {
     paginated: false,
   });
 
+  // R22-B: nunca mostrar "sin datos" (ni exportar CSV vacío) cuando la carga falló.
+  if (hasError) {
+    return (
+      <QueryErrorState
+        entity="el reporte de utilización"
+        onRetry={() => { void fRefetch(); void bRefetch(); }}
+        isRetrying={fFetching}
+      />
+    );
+  }
+
   return (
     <>
       <Card>
