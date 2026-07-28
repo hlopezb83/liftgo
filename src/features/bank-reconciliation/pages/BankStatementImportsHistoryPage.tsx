@@ -53,28 +53,20 @@ export default function BankStatementImportsHistoryPage() {
         </CardContent>
       </Card>
 
-      <AlertDialog open={!!confirmId} onOpenChange={(o) => !o && setConfirmId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar import bancario?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Se eliminarán las líneas asociadas y sus conciliaciones. Esta acción no se puede deshacer.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={del.isPending}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={del.isPending}
-              onClick={() => {
-                if (!confirmId) return;
-                del.mutate(confirmId, { onSettled: () => setConfirmId(null) });
-              }}
-            >
-              Confirmar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={!!confirmId}
+        onOpenChange={(o) => { if (!o) setConfirmId(null); }}
+        title="¿Eliminar import bancario?"
+        description="Se eliminarán las líneas asociadas y sus conciliaciones. Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        destructive
+        loading={del.isPending}
+        onConfirm={() => {
+          if (!confirmId) return;
+          del.mutate(confirmId, { onSettled: () => setConfirmId(null) });
+        }}
+      />
+
     </PageContainer>
   );
 }
