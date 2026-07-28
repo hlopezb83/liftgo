@@ -2,7 +2,7 @@ import { useEffect, useEffectEvent, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { SwipeableCard } from "@/components/feedback/SwipeableCard";
-import { ChevronRightIcon, AddIcon, PhoneIcon } from "@/components/icons";
+import { ChevronRightIcon, AddIcon, PhoneIcon, UsersIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { usePageActions } from "@/contexts/pageActions";
@@ -161,6 +161,7 @@ export default function CustomersPage() {
         onRowClick={(c) => navigate(`/customers/${c.id}`)}
         hasActiveFilters={hasActive}
         onClearFilters={reset}
+        emptyIcon={UsersIcon}
         emptyMessage="No se encontraron clientes"
         emptyActionLabel="Nuevo cliente"
         onEmptyAction={openCreate}

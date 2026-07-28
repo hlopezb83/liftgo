@@ -1,7 +1,7 @@
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
-import { AddIcon, ViewIcon } from "@/components/icons";
+import { AddIcon, ViewIcon, DocumentIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -153,6 +153,7 @@ export default function ContractsPage() {
       onRowPrefetch={(c) => contractQueries.detail(c.id)}
       hasActiveFilters={hasActive}
       onClearFilters={reset}
+      emptyIcon={DocumentIcon}
       emptyMessage="No se encontraron contratos"
       emptyActionLabel="Nuevo contrato"
       onEmptyAction={() => navigate("/contracts/new")}

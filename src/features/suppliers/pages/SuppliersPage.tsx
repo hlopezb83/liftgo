@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
-import { PlusCircle, DownloadIcon, ChevronRightIcon } from "@/components/icons";
+import { PlusCircle, DownloadIcon, ChevronRightIcon, SupplierIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -135,6 +135,7 @@ export default function SuppliersPage() {
         onRowClick={(s) => navigate(`/suppliers/${s.id}`)}
         hasActiveFilters={hasActive}
         onClearFilters={reset}
+        emptyIcon={SupplierIcon}
         emptyMessage="No se encontraron proveedores"
         emptyActionLabel="Nuevo proveedor"
         onEmptyAction={openCreate}

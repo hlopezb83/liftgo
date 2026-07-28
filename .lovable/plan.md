@@ -1,39 +1,37 @@
-## Objetivo
+## Estado verificado del R22
 
-Que al hacer clic en una fila de los reportes **Antigüedad de Cartera**, **Utilización de Flota** e **Ingresos** se pueda ver el detalle que compone ese total, siguiendo el patrón de panel lateral (drill-down) que ya usa el resto del ERP (Daños, Refacciones, Mantenimiento, Flujo de Efectivo).
+Revisé el documento contra el código actual. La mayoría ya está aplicada en rondas previas (v7.249.0–v7.252.0):
 
-## Comportamiento propuesto
+- ALTOS A/B, MEDIOS C→N y BAJOS O→W: aplicados.
+- Pendiente C-1 (migración a `meta.kind`): hecho en v7.251.0 (55+ columnas).
+- Pendiente C-2 (portal): `BrandMark` ya se usa en `CustomerPortalLayout`, el dashboard del portal usa `formatCompactCurrency` + `kpiSizeClass`, y la tabla del estado de cuenta ya usa el `Table` del sistema.
+- Pendiente B-8 (conciliación): hecho en v7.246.0 con el workspace de 2 columnas y stat cards.
 
-**1. Antigüedad de Cartera (Aging)**
-- Cada fila ya es una factura individual: clic en la fila navega directo a `/invoices/:id`.
-- Además, las 4 tarjetas de bucket (0-30, 31-60, 61-90, 90+) se vuelven clicables y filtran la tabla de abajo a ese bucket, con un chip "Mostrando 31-60 días · Quitar filtro".
+Quedan **2 pendientes reales**:
 
-**2. Utilización de Flota**
-- Cada fila es un montacargas. Clic abre un panel lateral con:
-  - Resumen: días reservados / días del rango / % utilización.
-  - Lista de reservas que se traslapan con el rango (folio, cliente, fechas recortadas al rango, días contados en el cálculo, estatus).
-  - Clic en una reserva navega a `/bookings/:id`.
-- Se muestra una nota cuando hay traslape entre reservas (los días se cuentan una sola vez), para que la suma del panel cuadre con el total.
+## 1. B-3 — Estados vacíos con acción (CTA)
 
-**3. Ingresos (Revenue)**
-- Cada fila es un mes. Clic abre un panel lateral con:
-  - Resumen del mes: facturado, pagado, número de facturas.
-  - Lista de las facturas de ese mes (folio, cliente, fecha, moneda original, total en MXN, estatus), ordenada por monto descendente.
-  - Clic en una factura navega a `/invoices/:id`.
-  - Botón "Exportar CSV" del detalle del mes.
+Hoy `DataTableV2` solo acepta `emptyMessage` como texto plano ("No se encontraron clientes"), sin ícono ni botón. `EmptyState` (con `actionLabel`/`onAction`) existe pero solo se usa en páginas de detalle.
 
-En los tres casos: filas con cursor pointer, foco por teclado y `Enter` para abrir (ya soportado por `DataTableV2` vía `onRowClick`).
+Qué haré:
+- Permitir en `DataTableV2` un `emptyState?: ReactNode` opcional (además del `emptyMessage` actual, que queda igual para no tocar las demás tablas), renderizado dentro de la fila vacía con `colSpan` completo.
+- Cablear el `EmptyState` con CTA en Clientes, Cotizaciones, Proveedores y Contratos, siguiendo el patrón de Flota:
+  - Sin registros: ícono + "Aún no hay clientes" + botón "Nuevo cliente" que abre el mismo diálogo del toolbar.
+  - Con filtros activos y 0 resultados: mensaje distinto ("Ningún resultado con estos filtros") + botón "Limpiar filtros".
+
+## 2. B-11 — Kanban de CRM optimista al soltar
+
+Hoy, al arrastrar una tarjeta a otra columna, `CRMPage.onDragEnd` abre el diálogo de edición en vez de mover. Se siente lento y rompe el gesto.
+
+Qué haré:
+- Mover directo al soltar con `useUpdateProspect`, agregando actualización optimista: `onMutate` toma un snapshot de la caché de prospectos, aplica el nuevo `stage` y `stage_order` con `setQueriesData`, y en `onError` revierte y muestra el toast de error.
+- Conservar las reglas de negocio: si el destino es "Cerrado ganado" sigue pasando por `assertCanClose` (permiso admin) y por el diálogo, porque ese paso exige datos obligatorios; el resto de columnas se mueven directo.
+- Reordenar dentro de la misma columna también optimista (hoy ya llama a la mutación, pero espera al servidor).
 
 ## Detalles técnicos
 
-- `DataTableV2` ya expone `onRowClick`; no requiere cambios en el data table.
-- Nuevos componentes en `src/features/reports/components/reports/drilldown/`:
-  - `UtilizationDetailSheet.tsx`
-  - `RevenueMonthDetailSheet.tsx`
-  - `AgingBucketFilterChips.tsx` (tarjetas clicables + chip de filtro)
-- Nuevo helper `src/features/reports/lib/drilldown.ts` con las funciones puras de composición (`bookingsForForkliftInRange`, `invoicesForMonth`, recorte de fechas al rango) para poder testearlas sin render.
-- Los paneles reutilizan datos ya cargados en cada reporte (`useInvoices`, `useBookings`, `useForklifts`); **no se agregan consultas nuevas** ni cambios de base de datos.
-- Para mostrar cliente/folio en el panel de Utilización se usan los campos que ya trae `useBookings`; si falta el nombre del cliente en el listado, se muestra el folio y se deja "—".
-- Estructura: cada archivo ≤150 LOC, lógica en helpers, textos en español mexicano, moneda con `formatCurrency`, fechas con `formatDateDisplay`.
-- Tests unitarios (Vitest) para los helpers de `drilldown.ts`: recorte al rango, exclusión de canceladas, agrupación mensual y normalización a MXN.
-- Como último paso: nueva entrada en `public/changelog.json` + `public/changelog/v7.252.0.json` (minor).
+- `src/components/dataTable/v2/DataTableV2.tsx`, `DataTableBodyV2.tsx`, `VirtualBody.tsx`, `EmptyRow`: nueva prop opcional `emptyState`.
+- Páginas: `CustomersPage.tsx`, `QuotesPage.tsx`, `SuppliersPage.tsx`, `ContractsPage.tsx` (usan `useListFilters`, así que el "hay filtros activos" sale del estado existente).
+- CRM: `src/features/crm/pages/CRMPage.tsx` y `src/features/crm/hooks/useProspectMutations.ts` (`onMutate`/`onError`/`onSettled` sobre `prospectKeys`).
+- Pruebas: unitarias para el reductor optimista del movimiento de etapa (mover, revertir en error) y para la lógica de "vacío por filtros" vs "vacío real".
+- Cierre: `bun run lint`, vitest, y entrada de changelog v7.253.0 (`public/changelog.json` + `public/changelog/v7.253.0.json`).

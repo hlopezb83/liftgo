@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.253.0",
+    "date": "2026-07-28",
+    "type": "minor",
+    "title": "Kanban de CRM instantáneo y listas vacías con acciones claras",
+    "category": "improvement",
+    "description": "Mover tarjetas entre etapas del CRM ahora se refleja al instante, y las listas sin registros muestran un ícono y un botón para crear el primer registro o limpiar los filtros."
+  },
+  {
     "version": "7.252.0",
     "date": "2026-07-28",
     "type": "minor",
@@ -8,7 +16,6 @@
     "description": "Ahora puedes hacer clic en cualquier fila de los reportes de Antigüedad de saldos, Utilización de flota e Ingresos para ver el detalle que compone ese total, sin salir del reporte."
   },
   {
-
     "version": "7.251.0",
     "date": "2026-07-28",
     "type": "minor",
@@ -65,7 +72,6 @@
     "description": "Al timbrar un complemento de pago (REP) la app mostraba siempre 'REP ya está siendo timbrado o ya fue timbrado', incluso cuando el pago sí era timbrable. Ahora el mensaje dice la causa real, el botón evita disparos duplicados y los intentos atorados se liberan solos después de 5 minutos."
   },
   {
-
     "version": "7.248.0",
     "date": "2026-07-28",
     "type": "minor",
