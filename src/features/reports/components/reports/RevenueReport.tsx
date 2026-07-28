@@ -28,7 +28,7 @@ function compactMoneyMxn(n: number): string {
 }
 
 export function RevenueReport({ startDate, endDate }: Props) {
-  const { data: invoices = [] } = useInvoices();
+  const { data: invoices = [], isError, isFetching, refetch } = useInvoices();
   const data: Row[] = (() => {
     // R7 Bloque 5: excluir borradores y canceladas — no son ingreso reconocido.
     const revenueInvoices = invoices.filter(
