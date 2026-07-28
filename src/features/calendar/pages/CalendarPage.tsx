@@ -73,11 +73,16 @@ export default function CalendarPage() {
 
 
 
-  if (bError) {
+  // R22-C: el calendario necesita reservas Y equipos; reintentar ambos.
+  if (bError || fError) {
     return (
       <PageContainer>
         <PageHeader title="Calendario de Disponibilidad" />
-        <QueryErrorState entity="el calendario" onRetry={() => bRefetch()} isRetrying={bFetching} />
+        <QueryErrorState
+          entity="el calendario"
+          onRetry={() => { void bRefetch(); void fRefetch(); }}
+          isRetrying={bFetching || fFetching}
+        />
       </PageContainer>
     );
   }
