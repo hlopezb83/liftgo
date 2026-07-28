@@ -49,7 +49,7 @@ export default function InvoiceForm() {
         { shouldDirty: true },
       );
     }
-  }, [damageId, damageCustomerId, damageAmount, f.isEdit, f.handleCustomerSelect, f.form]);
+  }, [damageId, damageCustomerId, damageAmount, f]);
   const { data: nextNumber, isLoading: loadingNext } = useNextInvoiceNumber(!f.isEdit);
   const taxRate = useWatch({ control: f.form.control, name: "taxRate" });
   const isSubmitting = f.createInvoice.isPending || f.updateInvoice.isPending;

@@ -15,10 +15,10 @@ import { RoleBadge } from "../components/users/RoleBadge";
 import { RoleChangeDialog } from "../components/users/RoleChangeDialog";
 import { SetPasswordDialog } from "../components/users/SetPasswordDialog";
 import { UserMobileCard } from "../components/users/UserMobileCard";
+import { useHasModuleAccess } from "../hooks/useHasModuleAccess";
 import { useUserManagementColumns } from "../hooks/users/useUserManagementColumns";
 import { useUserManagementDialogs } from "../hooks/users/useUserManagementDialogs";
 import { useUserManagementFilters } from "../hooks/users/useUserManagementFilters";
-import { useHasModuleAccess } from "../hooks/useHasModuleAccess";
 import { useUsersWithRoles, useToggleStatus, type UserRow } from "../hooks/useUserManagement";
 import type { AppRole } from "../hooks/useUserRole";
 

@@ -165,7 +165,7 @@ export default function DamageTrackingPage() {
         // R18-A2: re-derivar el record actual desde la cache para que el sheet
         // muestre estatus/costos actualizados tras mutaciones (facturar,
         // reparar, cancelar), en vez de la snapshot capturada al abrir.
-        record={detail.selected ? (records?.find((r) => r.id === detail.selected!.id) ?? detail.selected) : null}
+        record={detail.selected ? (records?.find((r) => r.id === detail.selected?.id) ?? detail.selected) : null}
         open={detail.isOpen}
         onOpenChange={detail.onOpenChange}
       />
