@@ -1,57 +1,29 @@
-## Auditoría R19 — Validación previa
 
-Verifiqué cada finding contra el código actual. **Todos siguen vigentes** (algunas rutas cambiaron por refactors previos, pero el bug persiste).
+# Oleada 1 UI/UX — 13 quick wins
 
-| ID | Estado | Nota |
-|---|---|---|
-| R19-A (contracts) | Vigente | `form.watch()` en render en `useContractFormPrefill.ts:35-36` |
-| R19-A (bill CxP) | Vigente | `form.watch("currency")` en `SupplierBillFormDialog.tsx:53` |
-| R19-B | Vigente | `isPayable` no considera `cfdi.isCancelled` (`invoices.ts:74`) |
-| R19-C | Vigente | RPC exige `= 'approved'` estricto (migr. `20260727213612`, línea 41) |
-| R19-D | Vigente | `useDamagePrefill` no espera al catálogo `customers` |
-| A-3b | Vigente | Nada actualiza `damage_records.status='invoiced'` tras crear factura |
-| C-5 | Vigente | RPC no valida `p_hours_used < 0` |
-| R19-3 | Vigente | `closedColumns.tsx` no muestra "Cliente creado" para won convertidos |
-| Portal USD | Vigente | `PortalSections.tsx:57` usa `formatCurrency` sin código |
-| R19-2 | Opcional | Sin índice único en `contracts.contract_number` |
+Aplicar el spec `liftgo-instrucciones-uix-ola1.md` tal cual, en el orden numerado A-1 → A-13. Antes de cada edit, leer el archivo real para verificar líneas y evitar duplicados (varios diffs advierten sobre esto).
 
-## Plan de implementación (v7.240.2)
+## Cambios (uno por punto)
 
-### Bloqueantes (ALTOS)
+1. **A-1 · STATUS_LABELS** — Agregar `out_of_service, preventive, corrective, inspection, in_transit, damaged, maintenance_required` en `src/lib/constants.ts`. Auditar PDFs bajo `src/lib/pdf/` que armen status a mano y cambiarlos por `STATUS_LABELS[status] ?? status`.
+2. **A-2 · Auditoría labels** — En `auditTrailLabels.ts` agregar tablas (`supplier_bills`, `parts_inventory`, `user_roles`, `suppliers`, `prospects`, `supplier_payment_batches`) y campos (`cfdi_status`, `stock_quantity`, `exchange_rate`, `payment_in_progress_at`, `cancellation_status`, `signed_at`, `work_order_number`, `service_type`, `hours_reading`, `company_name`). Revisar duplicados.
+3. **A-3 · CxP approval → pill** — En `supplierBillColumns.tsx` reemplazar `<div>` por `<StatusBadge tone={approvalTone(st)}>` con mapa approved→success, pending_approval→warning, rejected→error, not_required→neutral.
+4. **A-4 · "Timbrada" verde en detalle** — `InvoiceDetailBadges.tsx`: `tone="info"` → `tone="success"`.
+5. **A-5 · PDF IVA** — `TotalsBox.tsx`: normalizar `taxRate < 1 ? taxRate*100 : taxRate`.
+6. **A-6 · Badges en una línea** — `StatusBadge.tsx`: agregar `whitespace-nowrap`.
+7. **A-7 · Truncar nombres largos** — Aplicar patrón `truncate + Tooltip` a la columna principal en `forkliftColumns`, `contractColumns`, `damageColumns`.
+8. **A-8 · Zebra uniforme central** — `DataTableBodyV2.tsx`: agregar `rowIndex % 2 === 1 && "bg-muted/40"`. Buscar y remover zebra ad-hoc por página para no duplicar.
+9. **A-9 · Copys toasts** — Buscar con grep en `contracts`/`invoices` los "correctamente." / "Exitosamente" y normalizar a patrón acción+entidad sin punto.
+10. **A-10 · Contador "0 clientes"** — `CustomersPage.tsx`: `customers ? ... : undefined`. Replicar en quotes/fleet/suppliers/invoices.
+11. **A-11 · Toast global humano** — `AppProviders.tsx`: `notifyError` con `title: "No se pudo cargar la información"`.
+12. **A-12 · TableSkeleton rows prop** — Añadir prop `rows` (default 5), pasar el pageSize real en páginas paginadas de 25.
+13. **A-13 · Input file en español** — `BankStatementUploader.tsx`: input oculto + Button "Elegir archivo…" con nombre seleccionado.
 
-1. **R19-A · Fix RHF 7.83 + React 19 (`watch` → `useWatch`)**
-   - `src/features/contracts/hooks/contractForm/useContractFormPrefill.ts`: reemplazar `form.watch("customer_id"/"forklift_id")` por `useWatch({ control, name })`.
-   - `src/features/accounts-payable/components/SupplierBillFormDialog.tsx`: mismo patrón para `currency`.
+## Cierre
 
-2. **R19-B · Bloquear "Registrar Pago" en CFDI cancelado**
-   - `src/lib/rules/invoices.ts`: mover cálculo de `cfdi` arriba de `isPayable`; agregar `&& !cfdi.isCancelled`.
+- Actualizar `public/changelog.json` + `public/changelog/v7.241.0.json` como último paso (minor, 13 mejoras UI/UX).
+- Verificar con `bun run lint` y `tsgo` al final.
 
-3. **R19-C · Aceptar `not_required` en lote de pagos**
-   - Nueva migración que recrea `create_supplier_payment_batch` (copiada íntegra de `20260727213612`) cambiando la línea 41 a `NOT IN ('approved', 'not_required')`.
+## Fuera de alcance
 
-4. **R19-D + A-3b · Damage prefill y cierre de ciclo**
-   - `src/features/invoices/hooks/useDamagePrefill.ts`: aceptar `customers` como parámetro; retornar temprano si `!customers?.length` o `damageCustomerId === "null"`.
-   - `src/features/invoices/pages/InvoiceForm.tsx`: pasar `f.customers` al hook; en `onSuccess` de `createInvoice` (rama `!isEdit`), tras `syncInvoiceBookings`, actualizar `damage_records.status='invoiced'` si venimos con `damage_id` válido.
-   - `src/features/damage/components/damage/DamageActions.tsx`: `handleCreateInvoice` chequea `record.status==='invoiced'` y `record.customer_id` antes de navegar (con `notifyError`).
-
-### Bajos (mismo release)
-
-5. **C-5 · Guard de horas negativas**
-   - En la misma migración de R19-C, recrear `complete_return_inspection` (copiada de `20260727213612`) agregando `IF p_hours_used < 0 THEN RAISE ...`.
-
-6. **R19-3 · Indicador "Cliente creado" en /crm/cerrados**
-   - `src/features/crm/lib/closedColumns.tsx`: al lado del botón Convertir, si `kind==='won' && p.customerId`, mostrar `<span>Cliente creado</span>`.
-
-7. **Portal USD · Mostrar moneda**
-   - `src/features/portal/components/PortalSections.tsx`: usar `formatCurrencyWithCode(total, moneda ?? 'MXN')`. Ampliar tipo `Invoice` con `moneda?: string | null`.
-
-### Opcional
-
-8. **R19-2 · Índice único en `contracts.contract_number`** (sólo si quieres blindaje contra doble-click ~100ms). Recomiendo incluirlo — es baratísimo y coherente con quotes (R17-D).
-
-### Cierre
-
-- Actualizar `public/changelog.json` (entrada v7.240.2) y crear `public/changelog/v7.240.2.json`.
-- Correr `bun run lint` para validar.
-
-**¿Confirmas todo (incluye R19-2 opcional) o excluyo el índice de contratos?**
+No refactor de lógica de negocio. Solo presentación y copys. Si algún archivo divergió del path del spec, ajustar al path real y notar en el changelog.
