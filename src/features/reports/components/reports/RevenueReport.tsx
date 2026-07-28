@@ -1,6 +1,6 @@
 
 import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -80,12 +80,14 @@ export function RevenueReport({ startDate, endDate }: Props) {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
                 <XAxis dataKey="month" tick={{ fontSize: 11 }} />
                 <YAxis width={80} tickFormatter={(v) => compactMoneyMxn(Number(v))} tick={{ fontSize: 11 }} />
                 <Tooltip formatter={(val) => formatCurrency(Number(val))} />
                 <Bar dataKey="invoiced" fill="hsl(var(--chart-3))" name="Facturado" radius={[4, 4, 0, 0]} />
                 <Bar dataKey="paid" fill="hsl(var(--chart-2))" name="Pagado" radius={[4, 4, 0, 0]} />
               </BarChart>
+
             </ResponsiveContainer>
           </div>
         </CardContent>

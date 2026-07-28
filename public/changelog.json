@@ -1,5 +1,14 @@
 [
   {
+    "version": "7.244.0",
+    "date": "2026-07-28",
+    "type": "minor",
+    "title": "Oleadas 2 y 3 UI/UX · cierre de pendientes (Kanban, portal, gráficas, confirmaciones)",
+    "category": "feature",
+    "description": "B-9 · migra el último `AlertDialog` directo (historial de imports bancarios) a `ConfirmDialog` con variante destructiva. B-11 · empty state por columna del Kanban de CRM con CTA \"Sin prospectos · Clic para agregar\" que mantiene el droppable activo. C-2 · facelift del login del portal: gradiente radial doble desde tokens, fallback de iniciales del tenant, microcopy es-MX y footer \"Powered by LiftGo\". C-7 · nuevo `src/lib/charts/chartTheme.ts` (paleta desde tokens, `formatCompactMxn`, `chartGridProps`) y `<CartesianGrid strokeDasharray=\"3 3\">` agregado en Ingresos y Costos de Mantenimiento. B-8 (conciliación bancaria dos-columnas) queda diferido por scope."
+  },
+  {
+
     "version": "7.243.0",
     "date": "2026-07-28",
     "type": "minor",

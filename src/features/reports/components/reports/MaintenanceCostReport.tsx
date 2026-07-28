@@ -1,6 +1,6 @@
 
 import { parseISO, isWithinInterval } from "date-fns";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -63,11 +63,13 @@ export function MaintenanceCostReport({ startDate, endDate }: Props) {
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
                 <XAxis dataKey="name" tick={{ fontSize: 11 }} />
-                <YAxis />
+                <YAxis tick={{ fontSize: 11 }} />
                 <Tooltip formatter={(val) => formatCurrency(Number(val))} />
                 <Bar dataKey="totalCost" fill="hsl(var(--chart-4))" name="Costo" radius={[4, 4, 0, 0]} />
               </BarChart>
+
             </ResponsiveContainer>
           </div>
         </CardContent>

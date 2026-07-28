@@ -68,16 +68,30 @@ export function KanbanColumn({
           className={`p-2 min-h-[200px] transition-colors ${isOver ? "bg-accent/30" : ""}`}
         >
           <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
-            {items.map((prospect) => (
-              <ProspectCard
-                key={prospect.id}
-                prospect={prospect}
-                density={density}
-                quoteNumber={prospect.quoteId ? quoteMap.get(prospect.quoteId) : undefined}
-                onClick={() => onCardClick(prospect)}
-              />
-            ))}
+            {items.length === 0 ? (
+              // Oleada 2 (B-11): empty state por columna con CTA — mantiene el
+              // droppable activo (setNodeRef está arriba) para poder soltar cards aquí.
+              <button
+                type="button"
+                onClick={onAdd}
+                className="w-full text-xs text-muted-foreground/70 hover:text-foreground border border-dashed border-border rounded-lg py-6 px-3 transition-colors hover:bg-accent/20"
+              >
+                Sin prospectos<br />
+                <span className="text-xs opacity-70">Clic para agregar</span>
+              </button>
+            ) : (
+              items.map((prospect) => (
+                <ProspectCard
+                  key={prospect.id}
+                  prospect={prospect}
+                  density={density}
+                  quoteNumber={prospect.quoteId ? quoteMap.get(prospect.quoteId) : undefined}
+                  onClick={() => onCardClick(prospect)}
+                />
+              ))
+            )}
           </SortableContext>
+
         </div>
       </ScrollArea>
 

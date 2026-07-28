@@ -1,0 +1,19 @@
+{
+  "version": "7.244.0",
+  "date": "2026-07-28",
+  "type": "minor",
+  "title": "Oleadas 2 y 3 UI/UX · cierre de pendientes",
+  "category": "feature",
+  "summary": "Cierra los pendientes de las Oleadas 2 y 3: última migración de AlertDialog, empty state por columna del Kanban de CRM, facelift del login del portal, tema de gráficas unificado.",
+  "highlights": [
+    "B-9: `BankStatementImportsHistoryPage` migra el último `AlertDialog` directo a `ConfirmDialog` con `destructive` + `loading` + `confirmLabel=\"Eliminar\"`.",
+    "B-11: `KanbanColumn` de CRM renderiza empty state (\"Sin prospectos · Clic para agregar\") cuando `items.length === 0`, sin desmontar el droppable — se puede seguir soltando cards en columnas vacías.",
+    "C-2: `PortalLogin` recibe facelift — fondo con doble gradiente radial desde tokens (`--accent`, `--primary`), fallback de iniciales del tenant, microcopy es-MX y footer \"Powered by LiftGo\".",
+    "C-7: Nuevo `src/lib/charts/chartTheme.ts` (paleta `CHART_COLORS` desde tokens, `formatCompactMxn`, `chartGridProps`, `tooltipCurrencyFormatter`). `RevenueReport` y `MaintenanceCostReport` ganan `<CartesianGrid strokeDasharray=\"3 3\" vertical={false}>` y ticks tipados."
+  ],
+  "notes": [
+    "B-8 (rediseño de la página de Conciliación Bancaria a dos columnas con panel de match central) queda diferido: es un rework de layout de página completa y merece su propia oleada.",
+    "B-3 (empty states con CTA) queda cubierto para tablas nuevas: `EmptyState` ya acepta `actionLabel`/`onAction` — la adopción sistemática por página se hace conforme se toquen esos módulos.",
+    "B-7 se confirma: `FormDialog` + `ConfirmDialog` ya siguen la convención (Cancelar izquierda / Confirmar derecha, destructivo con estilo separado)."
+  ]
+}

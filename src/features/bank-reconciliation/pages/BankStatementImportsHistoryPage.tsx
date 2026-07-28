@@ -3,16 +3,8 @@ import { DataTableV2, useLiftgoTable } from "@/components/dataTable/v2";
 import { BackIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useUserRole } from "@/features/users";
@@ -61,28 +53,20 @@ export default function BankStatementImportsHistoryPage() {
         </CardContent>
       </Card>
 
-      <AlertDialog open={!!confirmId} onOpenChange={(o) => !o && setConfirmId(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>¿Eliminar import bancario?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Se eliminarán las líneas asociadas y sus conciliaciones. Esta acción no se puede deshacer.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={del.isPending}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={del.isPending}
-              onClick={() => {
-                if (!confirmId) return;
-                del.mutate(confirmId, { onSettled: () => setConfirmId(null) });
-              }}
-            >
-              Confirmar
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmDialog
+        open={!!confirmId}
+        onOpenChange={(o) => { if (!o) setConfirmId(null); }}
+        title="¿Eliminar import bancario?"
+        description="Se eliminarán las líneas asociadas y sus conciliaciones. Esta acción no se puede deshacer."
+        confirmLabel="Eliminar"
+        destructive
+        loading={del.isPending}
+        onConfirm={() => {
+          if (!confirmId) return;
+          del.mutate(confirmId, { onSettled: () => setConfirmId(null) });
+        }}
+      />
+
     </PageContainer>
   );
 }

@@ -46,8 +46,9 @@ export default function PortalLogin() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-muted/40 p-4">
-      <Card className="w-full max-w-md">
+    // Oleada 3 (C-2): facelift con gradiente radial suave + footer "Powered by".
+    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[radial-gradient(ellipse_at_top,hsl(var(--accent)/0.12),transparent_60%),radial-gradient(ellipse_at_bottom,hsl(var(--primary)/0.08),transparent_55%)]">
+      <Card className="w-full max-w-md shadow-lg border-border/60">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             {company?.logo_url ? (
@@ -57,20 +58,22 @@ export default function PortalLogin() {
                 className="h-14 w-auto max-w-[200px] object-contain"
               />
             ) : (
-              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent text-accent-foreground font-bold text-lg">CP</div>
+              <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-accent text-accent-foreground font-bold text-lg">
+                {(company?.razon_social ?? "LG").slice(0, 2).toUpperCase()}
+              </div>
             )}
           </div>
-          <CardTitle>{mode === "forgot" ? "Restablecer Contraseña" : "Portal de Clientes"}</CardTitle>
+          <CardTitle>{mode === "forgot" ? "Restablecer contraseña" : "Portal de clientes"}</CardTitle>
           <CardDescription>
             {mode === "forgot"
-              ? "Ingresa tu correo para recibir un enlace de restablecimiento"
-              : "Inicia sesión para acceder a tus rentas, facturas y contratos"}
+              ? "Ingresa tu correo para recibir un enlace de restablecimiento."
+              : "Inicia sesión para consultar tus rentas, facturas y contratos."}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
-              <Label htmlFor="auth-email">Correo Electrónico</Label>
+              <Label htmlFor="auth-email">Correo electrónico</Label>
               <Input id="auth-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@empresa.com" required />
             </div>
             {mode === "sign-in" && (
@@ -87,7 +90,7 @@ export default function PortalLogin() {
             {mode === "sign-in" ? (
               <Button variant="link" size="sm" onClick={() => setMode("forgot")}>¿Olvidaste tu contraseña?</Button>
             ) : (
-              <Button variant="link" size="sm" onClick={() => setMode("sign-in")}>Volver a Iniciar Sesión</Button>
+              <Button variant="link" size="sm" onClick={() => setMode("sign-in")}>Volver a iniciar sesión</Button>
             )}
           </div>
           <div className="relative my-4">
@@ -95,10 +98,13 @@ export default function PortalLogin() {
             <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">o</span></div>
           </div>
           <Button variant="outline" className="w-full" onClick={() => window.location.href = "/"}>
-            <CompanyIcon className="mr-2 h-4 w-4" /> Acceso Empleados
+            <CompanyIcon className="mr-2 h-4 w-4" /> Acceso empleados
           </Button>
         </CardContent>
       </Card>
+      <p className="mt-6 text-xs text-muted-foreground">
+        Powered by <span className="font-semibold text-foreground">LiftGo</span>
+      </p>
     </div>
   );
 }
