@@ -26,7 +26,7 @@ function getInitials(name: string | null | undefined): string {
 export function BrandMark({ size = "md", className }: BrandMarkProps) {
   const { data } = usePublicBranding();
   const logoUrl = data?.logo_url ?? null;
-  const name = data?.company_name ?? "LiftGo";
+  const name = data?.razon_social ?? "LiftGo";
   const initials = getInitials(name);
 
   if (logoUrl) {
