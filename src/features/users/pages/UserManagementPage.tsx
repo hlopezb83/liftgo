@@ -30,6 +30,10 @@ export default function UserManagementPage() {
   const { user: currentUser } = useAuth();
   const { data: users, isLoading, isError, refetch } = useUsersWithRoles();
   const toggleStatus = useToggleStatus();
+  // R-M13: gestión completa (crear usuarios, cambiar rol, activar/desactivar,
+  // resetear contraseña, borrar) sólo con acceso "full" al módulo. Auditor
+  // veía los controles y recibía 403 al enviarlos.
+  const canManage = useHasModuleAccess("Gestión de Usuarios", "full");
 
   const dialogs = useUserManagementDialogs();
   const { search, setSearch, filterRole, setFilterRole, filtered } = useUserManagementFilters(users);
@@ -46,6 +50,7 @@ export default function UserManagementPage() {
   const columns = useUserManagementColumns({
     currentUserId: currentUser?.id,
     isToggling: toggleStatus.isPending,
+    canManage,
     onRoleChange,
     onToggleStatus,
     onEdit,
@@ -71,7 +76,7 @@ export default function UserManagementPage() {
             <Button variant="outline" onClick={() => navigate("/users/permissions")}>
               <SecurityIcon className="mr-2 h-4 w-4" />Ver permisos
             </Button>
-            <InviteUserDialog onCreated={() => {}} />
+            {canManage && <InviteUserDialog onCreated={() => {}} />}
           </div>
         }
         filters={
