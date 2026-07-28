@@ -1,5 +1,5 @@
 import { parseISO } from "date-fns";
-import { Controller, type Control } from "react-hook-form";
+import { Controller } from "react-hook-form";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -10,7 +10,7 @@ import { toYMD } from "@/lib/format/dateFormats";
 
 type Option = { id: string; name: string };
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type Ctrl = Control<any>;
+type Ctrl = any;
 
 export function GeneralInfoCard({ control, customers, forklifts }: { control: Ctrl; customers: Option[]; forklifts: Option[] }) {
   return (
