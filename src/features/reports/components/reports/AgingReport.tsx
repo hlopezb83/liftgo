@@ -26,7 +26,7 @@ function getAgingBucket(days: number): string {
 export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingReportProps) {
   const todayYmd = todayKeyMty();
   // Vista unificada: ya viene con balance > 0 y status filtrado.
-  const { data: rawOverdue } = useInvoicesWithBalance({
+  const { data: rawOverdue, isError, isFetching, refetch } = useInvoicesWithBalance({
     statuses: ["sent", "partial", "overdue"],
     dueTo: todayYmd,
   });
