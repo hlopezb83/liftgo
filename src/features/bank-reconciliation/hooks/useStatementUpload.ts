@@ -1,10 +1,10 @@
 import { useCallback, useState } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
-import type { ParseResult } from "../lib/bankParseUtils";
 import { type StatementProfile, XML_PROFILES } from "../lib/bankReconciliationConstants";
 import { parseBankCsv } from "../lib/csvParsers";
 import { parseBankXml, type XmlFieldMapping } from "../lib/xmlParsers";
 import { useImportBankStatement } from "./useBankReconciliationMutations";
+import type { ParseResult } from "../lib/bankParseUtils";
 
 const mappingKey = (bankAccountId: string) => `liftgo:bank-xml-mapping:${bankAccountId}`;
 
