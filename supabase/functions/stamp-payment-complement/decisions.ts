@@ -79,7 +79,8 @@ export function computeInstallmentMeta(
 // R-REP-409: el claim atómico puede no devolver fila por razones muy
 // distintas. Antes todas caían en "REP ya está siendo timbrado o ya fue
 // timbrado", lo que ocultaba la causa real. Este helper traduce el estado
-// leído tras el rechazo en un mensaje accionable para el operador.
+// devuelto por el RPC `claim_payment_rep_stamping` tras el rechazo en un
+// mensaje accionable para el operador.
 export function claimRejectionMessage(
   status: string | null | undefined,
 ): string {
@@ -88,6 +89,8 @@ export function claimRejectionMessage(
       return "Este pago ya tiene un REP timbrado";
     case "stamping":
       return "El timbrado de este REP está en proceso. Espera unos segundos y actualiza.";
+    case "not_found":
+      return "El pago ya no existe.";
     case null:
     case undefined:
       return "No se puede timbrar el REP en el estado actual del pago (desconocido).";
