@@ -54,7 +54,7 @@ export function ProspectFormFields({
 
       <div className="space-y-2">
         <Label htmlFor="deal">
-          Valor del Trato (MXN) {requiresDealValue && <span className="text-destructive">*</span>}
+          Valor del Trato (MXN) {requiresDealValue && <RequiredMark />}
         </Label>
         <Input
           id="deal"
