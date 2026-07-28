@@ -82,7 +82,10 @@ export default function CustomerPortalLayout() {
       </nav>
 
       <main className="flex-1 overflow-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">
-        <Outlet />
+        {/* Oleada 3 (C-2): ancho de lectura consistente en todas las páginas del portal. */}
+        <div className="mx-auto w-full max-w-5xl">
+          <Outlet />
+        </div>
       </main>
       <FeedbackFab />
     </div>
