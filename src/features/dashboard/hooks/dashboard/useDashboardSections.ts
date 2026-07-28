@@ -76,6 +76,9 @@ export function useDashboardSections() {
   // sus identidades alimentan cascadas y queremos garantía manual.
   return {
     isLoading,
+    isError,
+    isFetching,
+    refetch,
     insuranceData,
     utilizationPercent,
     overdueInvoices,
