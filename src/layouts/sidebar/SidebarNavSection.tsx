@@ -9,6 +9,7 @@ import {
 import { useCurrentVersion } from "@/features/changelog";
 import { NavLink } from "@/layouts/NavLink";
 import { routeLoaders } from "@/routes/routes-config";
+import { isNavItemActive } from "./isNavItemActive";
 import { useSidebarBadgeCounts } from "./useSidebarBadgeCounts";
 import type { NavGroup, NavItem } from "./navConfig";
 
@@ -68,7 +69,7 @@ function NavMenuItem({ item }: { item: NavItem }) {
   const itemRef = useRef<HTMLLIElement>(null);
   const loader = routeLoaders[item.url];
   const { pathname } = useLocation();
-  const isActive = item.url === "/" ? pathname === "/" : pathname.startsWith(item.url);
+  const isActive = isNavItemActive(pathname, item.url);
 
   const { data: counts } = useSidebarBadgeCounts();
   const currentVersion = useCurrentVersion();
@@ -105,7 +106,7 @@ function NavMenuItem({ item }: { item: NavItem }) {
       <SidebarMenuButton asChild tooltip={item.title}>
         <NavLink
           to={item.url}
-          end={item.url === "/"}
+          end={item.url === "/" || !isActive}
           className="flex items-center gap-3 px-3 py-2 rounded-md text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
           activeClassName="bg-sidebar-accent text-sidebar-primary font-semibold"
           onMouseEnter={schedulePrefetch}
@@ -141,9 +142,7 @@ export function SidebarNavSection({ group }: { group: NavGroup }) {
   const { state } = useSidebar();
   const collapsedSidebar = state === "collapsed";
   const { pathname } = useLocation();
-  const hasActive = group.items.some(
-    (i) => i.url === "/" ? pathname === "/" : pathname.startsWith(i.url),
-  );
+  const hasActive = group.items.some((i) => isNavItemActive(pathname, i.url));
   // Prioridad: lo que el usuario dejó guardado > defaultOpen del grupo > activo.
   const [open, setOpen] = useState(() => {
     const persisted = readNavGroupState()[group.label];

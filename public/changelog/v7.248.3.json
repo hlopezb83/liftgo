@@ -1,0 +1,18 @@
+{
+  "version": "7.248.3",
+  "date": "2026-07-28",
+  "type": "patch",
+  "title": "Menú lateral: ya no se marcan dos módulos a la vez",
+  "category": "fix",
+  "description": "Al entrar a Conciliación de Pagos, el menú lateral resaltaba también Facturas, porque ambas comparten el inicio de la dirección. Ahora se resalta únicamente el módulo más específico en el que estás.",
+  "changes": [
+    {
+      "type": "fix",
+      "description": "En Conciliación de Pagos solo se resalta ese módulo; en Facturas y en el detalle de una factura solo se resalta Facturas."
+    },
+    {
+      "type": "improvement",
+      "description": "La misma regla se aplica al grupo del menú que se expande automáticamente, para que el comportamiento sea consistente."
+    }
+  ]
+}
