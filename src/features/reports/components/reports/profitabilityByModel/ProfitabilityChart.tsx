@@ -1,6 +1,7 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Cell } from "recharts";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import { chartGridProps, chartTick, formatCompactMxn } from "@/lib/charts/chartTheme";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { ModelRow } from "../../../hooks/useProfitByModelReport";
 
@@ -13,9 +14,9 @@ export function ProfitabilityChart({ chartRows }: { chartRows: ModelRow[] }) {
   return (
     <ChartContainer config={chartConfig} className="h-[400px] w-full">
       <BarChart data={chartRows} layout="vertical" margin={{ left: 20, right: 20 }}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis type="number" tickFormatter={(v: number) => formatCurrency(v)} />
-        <YAxis type="category" dataKey="model" width={160} tick={{ fontSize: 12 }} />
+        <CartesianGrid {...chartGridProps} />
+        <XAxis type="number" tick={chartTick} tickFormatter={(v: number) => formatCompactMxn(v)} />
+        <YAxis type="category" dataKey="model" width={160} tick={chartTick} />
         <ChartTooltip content={<ChartTooltipContent />} formatter={(value) => formatCurrency(Number(value))} />
         <Bar dataKey="profit" name="Ganancia Neta" radius={[0, 4, 4, 0]}>
           {chartRows.map((r, i) => (

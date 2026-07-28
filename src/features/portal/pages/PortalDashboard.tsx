@@ -1,11 +1,12 @@
+import { KpiTile } from "@/components/domain/KpiTile";
 import { CalendarDays, InvoiceIcon, ExpenseIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePortalCustomer, usePortalBookings, usePortalInvoices } from "@/features/customers";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCompactCurrency, kpiSizeClass } from "@/lib/format/formatCurrency";
 import { PortalBookingsCard, PortalRecentInvoicesCard } from "../components/PortalSections";
-import { PortalStatCard } from "../components/PortalStatCard";
+import { PortalUpcomingDues } from "../components/PortalUpcomingDues";
 
 function PortalDashboardSkeleton() {
   return (
@@ -41,31 +42,36 @@ export default function PortalDashboard() {
   );
   const recentInvoices = invoiceList.slice(0, 5);
   const welcome = customer?.name ? `Bienvenido, ${customer.name}` : "Bienvenido";
-  const balanceClass = `font-mono ${outstanding > 0 ? "text-destructive" : ""}`;
+  // Oleada 3 (C-3/C-2): formato compacto + escala tipográfica para no truncar el saldo.
+  const outstandingLabel = formatCompactCurrency(outstanding);
+  const balanceClass = `font-mono ${kpiSizeClass(outstandingLabel)} ${outstanding > 0 ? "text-destructive" : ""}`;
 
   return (
     <PageContainer maxWidth="wide">
       <PageHeader title={welcome} />
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <PortalStatCard
-          title="Rentas Activas"
+        <KpiTile
+          label="Rentas Activas"
           value={activeBookings.length}
-          icon={<CalendarDays className="h-4 w-4 text-muted-foreground" />}
+          icon={CalendarDays}
+          iconColor="text-primary"
         />
-        <PortalStatCard
-          title="Saldo Pendiente"
-          value={formatCurrency(outstanding)}
-          icon={<ExpenseIcon className="h-4 w-4 text-muted-foreground" />}
-          valueClassName={balanceClass}
+        <KpiTile
+          label="Saldo Pendiente"
+          value={<span className={balanceClass} title={outstandingLabel}>{outstandingLabel}</span>}
+          icon={ExpenseIcon}
+          iconColor={outstanding > 0 ? "text-destructive" : "text-success"}
         />
-        <PortalStatCard
-          title="Total de Facturas"
+        <KpiTile
+          label="Total de Facturas"
           value={invoiceList.length}
-          icon={<InvoiceIcon className="h-4 w-4 text-muted-foreground" />}
+          icon={InvoiceIcon}
+          iconColor="text-info"
         />
       </div>
 
+      <PortalUpcomingDues invoices={unpaidInvoices} />
       {activeBookings.length > 0 && <PortalBookingsCard bookings={activeBookings} />}
       {recentInvoices.length > 0 && <PortalRecentInvoicesCard invoices={recentInvoices} />}
     </PageContainer>

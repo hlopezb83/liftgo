@@ -136,6 +136,8 @@ export default function SuppliersPage() {
         hasActiveFilters={hasActive}
         onClearFilters={reset}
         emptyMessage="No se encontraron proveedores"
+        emptyActionLabel="Nuevo proveedor"
+        onEmptyAction={openCreate}
         mobileCardRender={(s) => (
           <Card className="cursor-pointer" onClick={() => navigate(`/suppliers/${s.id}`)}>
             <CardContent className="p-4">

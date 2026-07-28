@@ -3,10 +3,9 @@ import { DataTableV2, useLiftgoTable } from "@/components/dataTable/v2";
 import { BackIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useUserRole } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useBankImportsColumns, type ImportRow } from "../hooks/useBankImportsColumns";

@@ -1,4 +1,5 @@
 import { Link, Outlet, useLocation } from "react-router";
+import { BrandMark } from "@/components/BrandMark";
 import { LogOut, DashboardIcon, CalendarDays, InvoiceIcon, DocumentIcon, MessageSquare, TrophyIcon, VerifiedDocIcon, ExpenseIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
@@ -31,16 +32,13 @@ export default function CustomerPortalLayout() {
 
   return (
     <div className="h-[100dvh] max-w-full overflow-x-clip bg-background flex flex-col">
-      <header className="h-14 border-b bg-card flex items-center justify-between gap-3 px-4 sm:px-6">
+      {/* Oleada 3 (C-2): header sticky con la marca del tenant vía BrandMark. */}
+      <header className="sticky top-0 z-30 h-14 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 flex items-center justify-between gap-3 px-4 sm:px-6">
         <div className="flex items-center gap-3 min-w-0">
-          {company?.logo_url ? (
-            <img src={company.logo_url} alt="Logo" className="h-8 w-8 rounded object-contain shrink-0" />
-          ) : (
-            <div className="h-8 w-8 rounded bg-primary flex items-center justify-center text-primary-foreground font-bold text-sm shrink-0">
-              {company?.razon_social?.charAt(0) || "LG"}
-            </div>
-          )}
-          <span className="font-semibold text-foreground truncate">Lift Go - Portal</span>
+          <BrandMark size="sm" />
+          <span className="font-semibold text-foreground truncate">
+            {company?.razon_social ? `${company.razon_social} · Portal` : "LiftGo · Portal"}
+          </span>
         </div>
         <div className="flex items-center gap-4 shrink-0">
           <span className="text-sm text-muted-foreground hidden sm:inline">
@@ -84,7 +82,10 @@ export default function CustomerPortalLayout() {
       </nav>
 
       <main className="flex-1 overflow-auto overscroll-contain pb-[env(safe-area-inset-bottom)]">
-        <Outlet />
+        {/* Oleada 3 (C-2): ancho de lectura consistente en todas las páginas del portal. */}
+        <div className="mx-auto w-full max-w-5xl">
+          <Outlet />
+        </div>
       </main>
       <FeedbackFab />
     </div>

@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils";
 import { usePublicBranding } from "@/features/company-settings";
+import { cn } from "@/lib/utils";
 
 /**
  * R21 C-4: marca compacta usada en sidebar, portal login y vista de impresión.

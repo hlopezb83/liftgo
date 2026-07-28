@@ -5,8 +5,8 @@ import { EmptyRow } from "@/components/feedback/EmptyRow";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { alignClass } from "./sorting";
 import { resolveColumnKind } from "./columnKind";
+import { alignClass } from "./sorting";
 
 const PREFETCH_DELAY_MS = 120;
 

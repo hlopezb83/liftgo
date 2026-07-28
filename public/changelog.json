@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.245.0",
+    "date": "2026-07-28",
+    "type": "minor",
+    "title": "Oleadas 2 y 3 UI/UX · empty states con CTA, footers y facelift del portal",
+    "category": "feature",
+    "description": "B-3 · listas vacías de Clientes, Cotizaciones, Contratos y Proveedores muestran `EmptyState` con CTA \"Nuevo X\" (o \"Limpiar filtros\" si hay filtros activos). B-7 · `FormActions` estandariza el footer: Cancelar a la izquierda, acción primaria a la derecha. C-2 · facelift del portal de clientes: header sticky con `BrandMark`, contenedor `max-w-5xl`, KPIs con `KpiTile` + `formatCompactCurrency`, nueva tarjeta \"Próximos vencimientos\" y columnas tipadas en Rentas/Cotizaciones/Facturas. C-7 · `chartTheme` aplicado a Flujo de Efectivo, Utilización, Estado de Flota y Rentabilidad por Modelo, con `EmptyState` en lugar de textos sueltos."
+  },
+  {
     "version": "7.244.0",
     "date": "2026-07-28",
     "type": "minor",
@@ -8,7 +16,6 @@
     "description": "B-9 · migra el último `AlertDialog` directo (historial de imports bancarios) a `ConfirmDialog` con variante destructiva. B-11 · empty state por columna del Kanban de CRM con CTA \"Sin prospectos · Clic para agregar\" que mantiene el droppable activo. C-2 · facelift del login del portal: gradiente radial doble desde tokens, fallback de iniciales del tenant, microcopy es-MX y footer \"Powered by LiftGo\". C-7 · nuevo `src/lib/charts/chartTheme.ts` (paleta desde tokens, `formatCompactMxn`, `chartGridProps`) y `<CartesianGrid strokeDasharray=\"3 3\">` agregado en Ingresos y Costos de Mantenimiento. B-8 (conciliación bancaria dos-columnas) queda diferido por scope."
   },
   {
-
     "version": "7.243.0",
     "date": "2026-07-28",
     "type": "minor",
@@ -17,7 +24,6 @@
     "description": "C-1 introduce `ColumnMeta.kind` (text/number/money/date/badge) en DataTableV2: alineación y `font-mono tabular-nums` se aplican solos vía `resolveColumnKind`. C-3 agrega `formatCompactCurrency` ($1.23 M / $845 K) y `kpiSizeClass` para escalar KPIs largos sin ellipsis. C-4 activa tooltip del sidebar en modo icono (`tooltip={item.title}`) y crea `BrandMark` (logo del tenant con fallback a iniciales). C-5 acorta la entrada de Sheets a 250ms y respeta `prefers-reduced-motion` globalmente. C-8 añade `@media print` en index.css: oculta sidebar/header/.no-print, tablas con bordes y `thead` repetido por página."
   },
   {
-
     "version": "7.242.0",
     "date": "2026-07-28",
     "type": "minor",
@@ -225,7 +231,6 @@
     "category": "performance",
     "description": "P1-5: nueva vista `public.forklift_current_location` + `useFleetLocations` reemplazan tres descargas pesadas en /fleet (contracts + deliveries + maintenance_policies). P1-6: `useRowPrefetchArm` aísla refs/timers de DataTableBodyV2 para que React Compiler ya no haga bail-out global. P2-7: cash-flow acota `payments` a los invoice_id activos (deja de traer toda la tabla). P2-9: CustomerSelector migrado a combobox `cmdk` (soporta 500+ clientes sin jank). P3-10.1: `useCxpApprovalThreshold` y `useCashFlowSettings` se derivan de `useCompanySettings` (una sola cache singleton). P3-10.2: mutaciones de bookings/quotes invalidan `.lists()` en vez de `.all` catch-all. P1-6 extra: CalendarPage memoiza `endingSoon` con timestamps precomputados."
   },
-
   {
     "version": "7.231.0",
     "date": "2026-07-26",
@@ -235,7 +240,6 @@
     "description": "P1-4: `audit_trigger_fn` excluye `cfdi_xml`/`content`/`xml_content`/`line_items` antes de guardar en audit_logs (nuevas filas 10-20× más ligeras). P0-3.2: Sentry Replay se difiere a idle via `addIntegration` fuera del chunk inicial (~30-35 KB gz). P2-7: `useForklifts` y `useSupplierBills` con `.limit(500)` + columnas explícitas. P1-6 parcial: EquipmentListView precomputa timestamps (elimina try/catch en render y `parseISO` en cada comparador de sort)."
   },
   {
-
     "version": "7.230.0",
     "date": "2026-07-26",
     "type": "minor",
@@ -300,7 +304,6 @@
     "description": "CalendarStatCards ya no suma forklifts.status='rented' al KPI. Antes, equipos con status desincronizado (reservas terminadas sin devolución registrada) inflaban 'Rentados'. Ahora Rentados = # de forklifts con reserva confirmada activa hoy; Disponibles = flota activa (no retirada/vendida/en mantenimiento) sin reserva activa. Utilización recalculada sobre la misma base."
   },
   {
-
     "version": "7.227.0",
     "date": "2026-07-25",
     "type": "minor",
@@ -309,7 +312,6 @@
     "description": "R13-1 (crítico): useLiftgoTable ahora versiona por contenido completo (JSON.stringify) en lugar de solo hashear id. Ediciones in-place (mismo id, distintos campos) invalidan correctamente el memo y la tabla refleja el dato nuevo sin reload. Cubre TODAS las tablas migradas a DataTableV2. Test de regresión agregado. R13-2 (medio-alto): get_financial_kpis usa balance_mxn de v_invoices_with_balance para el KPI Cartera Vencida, evitando mezcla USD/MXN. Alineado con CollectionForecast y aging del dashboard."
   },
   {
-
     "version": "7.226.3",
     "date": "2026-07-25",
     "type": "patch",

@@ -1,14 +1,10 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { ReportChartCard } from "@/components/domain/ReportChartCard";
-import { ExpenseIcon } from "@/components/icons";
+import { EmptyState } from "@/components/feedback/EmptyState";
+import { ExpenseIcon, ChartIcon } from "@/components/icons";
+// Oleada 3 (C-7): formato y grid unificados desde el tema de gráficas.
+import { chartGridProps, chartTick, formatCompactMxn } from "@/lib/charts/chartTheme";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-
-function formatCompactMxn(v: number): string {
-  const abs = Math.abs(v);
-  if (abs >= 1_000_000) return `$${(v / 1_000_000).toFixed(1)}M`;
-  if (abs >= 1_000) return `$${Math.round(v / 1_000)}k`;
-  return `$${v}`;
-}
 
 interface CashFlowItem {
   month: string;
@@ -73,16 +69,20 @@ export function CashFlowChart({ data }: CashFlowChartProps) {
       {hasData ? (
         <ResponsiveContainer width="100%" height={280}>
           <BarChart data={data} barGap={4} margin={{ top: 5, right: 12, left: 12, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-            <XAxis dataKey="month" tick={{ fontSize: 12 }} />
-            <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => formatCompactMxn(Number(v))} width={64} />
+            <CartesianGrid {...chartGridProps} />
+            <XAxis dataKey="month" tick={chartTick} />
+            <YAxis tick={chartTick} tickFormatter={(v) => formatCompactMxn(Number(v))} width={64} />
             <Tooltip content={<CashFlowTooltip />} />
             <Bar dataKey="invoiced" name="Facturado" fill="hsl(var(--status-rented))" radius={[4, 4, 0, 0]} />
             <Bar dataKey="paid" name="Pagado" fill="hsl(var(--status-available))" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       ) : (
-        <p className="text-muted-foreground text-sm text-center py-10">Sin datos de facturación aún</p>
+        <EmptyState
+          icon={ChartIcon}
+          title="Sin datos de facturación aún"
+          subtitle="Las barras aparecerán cuando registres facturas y pagos."
+        />
       )}
     </ReportChartCard>
   );

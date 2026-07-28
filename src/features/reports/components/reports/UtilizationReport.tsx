@@ -1,12 +1,13 @@
 
 import { differenceInCalendarDays, parseISO } from "date-fns";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useBookings } from "@/features/bookings";
 import { useForklifts } from "@/features/fleet";
+import { chartGridProps, chartTick } from "@/lib/charts/chartTheme";
 import { exportToCsv } from "@/lib/exportCsv";
 
 interface Props {
@@ -89,8 +90,9 @@ export function UtilizationReport({ startDate, endDate }: Props) {
             <div className="h-64" style={{ minWidth: `${Math.max(data.length * 32, 320)}px` }}>
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={data}>
-                  <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-35} textAnchor="end" height={60} />
-                  <YAxis unit="%" width={40} />
+                  <CartesianGrid {...chartGridProps} />
+                  <XAxis dataKey="name" tick={chartTick} interval={0} angle={-35} textAnchor="end" height={60} />
+                  <YAxis unit="%" width={40} tick={chartTick} />
                   <Tooltip formatter={(val) => `${Number(val)}%`} />
                   <Bar dataKey="utilization" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                 </BarChart>
