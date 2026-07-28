@@ -63,7 +63,19 @@ export default function DamageTrackingPage() {
         id: "customer_name",
         header: "Cliente",
         accessorFn: (r) => r.customers?.name || "",
-        cell: ({ row }) => row.original.customers?.name || "—",
+        // Oleada 1 (A-7): nombres largos truncan con tooltip completo
+        meta: { cellClassName: "max-w-[240px]" },
+        cell: ({ row }) => {
+          const name = row.original.customers?.name || "—";
+          return (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="block truncate">{name}</span>
+              </TooltipTrigger>
+              <TooltipContent>{name}</TooltipContent>
+            </Tooltip>
+          );
+        },
       },
       {
         id: "description",
