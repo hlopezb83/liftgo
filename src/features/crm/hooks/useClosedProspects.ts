@@ -39,14 +39,18 @@ export function useClosedProspects() {
   };
 
   const handleConvert = (p: Prospect) => {
+    // R18-C1: /customers/new no existe (cae en `/customers/:id` con id="new").
+    // La ruta correcta es /customers?from_prospect=true&prospect_id=… (ver
+    // CustomersPage: consume estos query params para abrir el form de alta).
     const params = new URLSearchParams({
+      from_prospect: "true",
+      prospect_id: p.id,
       name: p.companyName,
       contact: p.contactPerson ?? "",
       email: p.email ?? "",
       phone: p.phone ?? "",
-      prospect_id: p.id,
     });
-    navigate(`/customers/new?${params.toString()}`);
+    navigate(`/customers?${params.toString()}`);
   };
 
   return {
