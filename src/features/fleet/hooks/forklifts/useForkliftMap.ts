@@ -6,9 +6,9 @@ import { useForklifts } from "./useForklifts";
  * React Compiler memoiza automáticamente.
  */
 export function useForkliftMap() {
-  const { data: forklifts, isLoading } = useForklifts();
+  const { data: forklifts, isLoading, isError, isFetching, refetch } = useForklifts();
   const forkliftMap = new Map<string, Tables<"forklifts">>(
     forklifts?.map((f) => [f.id, f]) || [],
   );
-  return { forkliftMap, forklifts, isLoading };
+  return { forkliftMap, forklifts, isLoading, isError, isFetching, refetch };
 }

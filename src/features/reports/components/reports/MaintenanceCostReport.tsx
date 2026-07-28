@@ -2,6 +2,7 @@
 import { parseISO, isWithinInterval } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,8 +19,8 @@ interface Props {
 type Row = { name: string; totalCost: number; count: number };
 
 export function MaintenanceCostReport({ startDate, endDate }: Props) {
-  const { data: forklifts = [] } = useForklifts();
-  const { data: maintenanceLogs = [] } = useMaintenanceLogs();
+  const { data: forklifts = [], isError: fError, isFetching: fFetching, refetch: fRefetch } = useForklifts();
+  const { data: maintenanceLogs = [], isError: mError, refetch: mRefetch } = useMaintenanceLogs();
   const forkliftMap = new Map(forklifts.map((f) => [f.id, f.name]));
 
   const data: Row[] = (() => {
@@ -49,6 +50,17 @@ export function MaintenanceCostReport({ startDate, endDate }: Props) {
     initialSorting: [{ id: "totalCost", desc: true }],
     paginated: false,
   });
+
+  // R22-B: error state en lugar de "sin mantenimientos" cuando falla la carga.
+  if (fError || mError) {
+    return (
+      <QueryErrorState
+        entity="el reporte de costos de mantenimiento"
+        onRetry={() => { void fRefetch(); void mRefetch(); }}
+        isRetrying={fFetching}
+      />
+    );
+  }
 
   return (
     <>

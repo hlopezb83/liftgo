@@ -19,6 +19,29 @@ interface UseProspectFormParams {
   overrideStage?: string;
 }
 
+interface ProspectFormSnapshot {
+  company: string; contact: string; email: string; phone: string;
+  dealValue: string; notes: string; quoteId: string | null;
+}
+
+/** R22-A: compara el estado actual del formulario contra los valores iniciales. */
+function isProspectFormDirty(
+  prospect: Prospect | null | undefined,
+  s: ProspectFormSnapshot,
+): boolean {
+  const initial: ProspectFormSnapshot = {
+    company: prospect?.companyName ?? "",
+    contact: prospect?.contactPerson ?? "",
+    email: prospect?.email ?? "",
+    phone: prospect?.phone ?? "",
+    dealValue: prospect ? String(prospect.dealValue ?? 0) : "",
+    notes: prospect?.notes ?? "",
+    quoteId: prospect?.quoteId ?? null,
+  };
+  const keys = Object.keys(initial) as Array<keyof ProspectFormSnapshot>;
+  return keys.some((k) => s[k] !== initial[k]);
+}
+
 export function useProspectForm({
   prospect, open, defaultStage, overrideStage,
 }: UseProspectFormParams) {
@@ -101,7 +124,13 @@ export function useProspectForm({
 
   const selectedQuote = quoteId ? allQuotes.find((q) => q.id === quoteId) : null;
 
+  // R22-A: sin RHF, derivamos isDirty comparando contra los valores iniciales.
+  const isDirty = isProspectFormDirty(prospect, {
+    company, contact, email, phone, dealValue, notes, quoteId,
+  });
+
   return {
+    isDirty,
     fields: { company, contact, email, phone, dealValue, notes, quoteId, dealValueError },
     setters: {
       setCompany, setContact, setEmail, setPhone,

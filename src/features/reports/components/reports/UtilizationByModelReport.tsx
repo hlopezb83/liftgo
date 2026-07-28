@@ -1,5 +1,6 @@
 
 import { DataTableV2, useLiftgoTable } from "@/components/dataTable/v2";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,8 +17,8 @@ interface Props {
 }
 
 export function UtilizationByModelReport({ startDate, endDate }: Props) {
-  const { data: forklifts = [] } = useForklifts();
-  const { data: bookings = [] } = useBookings();
+  const { data: forklifts = [], isError: fError, isFetching: fFetching, refetch: fRefetch } = useForklifts();
+  const { data: bookings = [], isError: bError, refetch: bRefetch } = useBookings();
 
   const data: ModelRow[] = buildUtilizationRows(forklifts, bookings, startDate, endDate);
 
@@ -42,6 +43,17 @@ export function UtilizationByModelReport({ startDate, endDate }: Props) {
       "Utilización %": r.utilization,
     })));
   };
+
+  // R22-B: error state antes de mostrar utilización 0% por falla de red.
+  if (fError || bError) {
+    return (
+      <QueryErrorState
+        entity="el reporte de utilización por modelo"
+        onRetry={() => { void fRefetch(); void bRefetch(); }}
+        isRetrying={fFetching}
+      />
+    );
+  }
 
   return (
     <>

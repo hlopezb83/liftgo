@@ -2,6 +2,7 @@
 import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,7 +28,7 @@ function compactMoneyMxn(n: number): string {
 }
 
 export function RevenueReport({ startDate, endDate }: Props) {
-  const { data: invoices = [] } = useInvoices();
+  const { data: invoices = [], isError, isFetching, refetch } = useInvoices();
   const data: Row[] = (() => {
     // R7 Bloque 5: excluir borradores y canceladas — no son ingreso reconocido.
     const revenueInvoices = invoices.filter(
@@ -66,6 +67,17 @@ export function RevenueReport({ startDate, endDate }: Props) {
     getRowId: (r) => r.month,
     paginated: false,
   });
+
+  // R22-B: si la consulta falló, no mostramos ceros ni permitimos exportar.
+  if (isError) {
+    return (
+      <QueryErrorState
+        entity="el reporte de ingresos"
+        onRetry={() => { void refetch(); }}
+        isRetrying={isFetching}
+      />
+    );
+  }
 
   return (
     <>

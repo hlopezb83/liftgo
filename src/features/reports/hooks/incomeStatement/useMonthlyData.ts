@@ -67,7 +67,7 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
   const startStr = toYMD(startDate);
   const endStr = toYMD(endDate);
 
-  const { data: rpc } = useQuery(
+  const { data: rpc, isError, isFetching, refetch } = useQuery(
     incomeStatementQueries.list({ startStr, endStr, accountingBasis }),
   );
 
@@ -124,5 +124,5 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
   const rentedWithoutCost = rpc?.rented_without_cost ?? [];
   const soldWithoutCost = rpc?.sold_without_cost ?? [];
 
-  return { data, rentedWithoutCost, soldWithoutCost };
+  return { data, rentedWithoutCost, soldWithoutCost, isError, isFetching, refetch };
 }

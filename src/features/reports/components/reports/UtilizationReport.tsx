@@ -2,6 +2,7 @@
 import { differenceInCalendarDays, parseISO } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -42,8 +43,10 @@ function countUniqueBookedDays(
 }
 
 export function UtilizationReport({ startDate, endDate }: Props) {
-  const { data: forklifts = [] } = useForklifts();
-  const { data: bookings = [] } = useBookings();
+  const { data: forklifts = [], isError: fError, isFetching: fFetching, refetch: fRefetch } = useForklifts();
+  const { data: bookings = [], isError: bError, refetch: bRefetch } = useBookings();
+  const hasError = fError || bError;
+
 
   // Días inclusivos consistente con el resto del reporte (fin inclusivo).
   const totalDaysRange = Math.max(differenceInCalendarDays(endDate, startDate) + 1, 1);
@@ -75,6 +78,17 @@ export function UtilizationReport({ startDate, endDate }: Props) {
     initialSorting: [{ id: "utilization", desc: true }],
     paginated: false,
   });
+
+  // R22-B: nunca mostrar "sin datos" (ni exportar CSV vacío) cuando la carga falló.
+  if (hasError) {
+    return (
+      <QueryErrorState
+        entity="el reporte de utilización"
+        onRetry={() => { void fRefetch(); void bRefetch(); }}
+        isRetrying={fFetching}
+      />
+    );
+  }
 
   return (
     <>

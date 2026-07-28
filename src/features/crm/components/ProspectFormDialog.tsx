@@ -32,7 +32,7 @@ export function ProspectFormDialog({
   defaultStage = "nuevo_prospecto", overrideStage,
   canCloseDeal = true, onSave, onDelete, isPending = false,
 }: Props) {
-  const { fields, setters, matchingQuotes, selectedQuote, effectiveStage, requiresDealValue, buildPayload } =
+  const { fields, setters, matchingQuotes, selectedQuote, effectiveStage, requiresDealValue, buildPayload, isDirty } =
     useProspectForm({ prospect, open, defaultStage, overrideStage });
 
   const handleSubmit = (e: ReactFormEvent) => {
@@ -56,6 +56,7 @@ export function ProspectFormDialog({
       title={prospectDialogTitle(prospect)}
       description={prospectDialogDescription(prospect, overrideStage)}
       isPending={isPending}
+      isDirty={isDirty}
     >
       <ProspectStageBadgeBlock prospect={prospect} overrideStage={overrideStage} />
       <form onSubmit={handleSubmit} className="space-y-4">

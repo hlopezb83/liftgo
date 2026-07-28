@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { TrendingUpIcon, TrendingDownIcon, RevenueIcon, Percent, WarnIcon } from "@/components/icons";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -25,6 +26,7 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
     rentedWithoutCost,
     soldWithoutCost,
     availableYears, selectedYear, setSelectedYear, isComparison,
+    isError, isFetching, refetch,
   } = useIncomeStatementData({ startDate, endDate, accountingBasis });
 
 
@@ -55,6 +57,17 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
       setPdfLoading(false);
     }
   };
+
+  // R22-B: un estado de resultados en ceros por falla de red induce a error.
+  if (isError) {
+    return (
+      <QueryErrorState
+        entity="el estado de resultados"
+        onRetry={() => { void refetch(); }}
+        isRetrying={isFetching}
+      />
+    );
+  }
 
   return (
     <>

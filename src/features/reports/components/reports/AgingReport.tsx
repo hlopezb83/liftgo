@@ -1,5 +1,6 @@
 import { differenceInDays, parseISO } from "date-fns";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,7 +26,7 @@ function getAgingBucket(days: number): string {
 export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingReportProps) {
   const todayYmd = todayKeyMty();
   // Vista unificada: ya viene con balance > 0 y status filtrado.
-  const { data: rawOverdue } = useInvoicesWithBalance({
+  const { data: rawOverdue, isError, isFetching, refetch } = useInvoicesWithBalance({
     statuses: ["sent", "partial", "overdue"],
     dueTo: todayYmd,
   });
@@ -80,6 +81,17 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
     })));
   };
 
+
+  // R22-B: cartera vencida en cero por falla de red es un dato peligroso.
+  if (isError) {
+    return (
+      <QueryErrorState
+        entity="el reporte de antigüedad de saldos"
+        onRetry={() => { void refetch(); }}
+        isRetrying={isFetching}
+      />
+    );
+  }
 
   return (
     <div className="space-y-4">

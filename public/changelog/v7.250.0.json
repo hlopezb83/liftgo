@@ -1,0 +1,26 @@
+{
+  "version": "7.250.0",
+  "date": "2026-07-28",
+  "type": "minor",
+  "title": "R22-2: reportes con estado de error, aviso de cambios sin guardar y errores de acceso en español",
+  "category": "improvement",
+  "description": "Se cableó la infraestructura ya existente: reportes que ahora distinguen 'sin datos' de 'falló la carga', modales que avisan antes de perder cambios y mensajes de acceso al portal en español.",
+  "changes": [
+    {
+      "type": "fix",
+      "description": "Reportes (Estado de resultados, Ingresos, Utilización, Utilización por modelo, Costos de mantenimiento y Antigüedad de saldos): si falla la carga se muestra un aviso con botón de reintentar, en lugar de mostrar ceros o 'sin datos'."
+    },
+    {
+      "type": "fix",
+      "description": "Calendario: el reintento ahora recarga tanto las reservas como los equipos, y muestra el error si falla cualquiera de los dos."
+    },
+    {
+      "type": "improvement",
+      "description": "Modales de Cliente, Proveedor, Contacto de proveedor, Cuenta bancaria de proveedor, Cuenta bancaria y Prospecto: ahora avisan antes de cerrarse con cambios sin guardar (Esc o clic fuera)."
+    },
+    {
+      "type": "improvement",
+      "description": "Portal de clientes: los errores de inicio de sesión y de restablecimiento de contraseña se muestran en español mexicano y con instrucciones claras."
+    }
+  ]
+}

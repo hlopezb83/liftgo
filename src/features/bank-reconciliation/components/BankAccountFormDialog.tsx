@@ -88,6 +88,7 @@ export function BankAccountFormDialog({ open, onOpenChange, initial }: Props) {
   return (
     <FormDialog
       isPending={upsert.isPending}
+      isDirty={form.formState.isDirty}
       open={open}
       onOpenChange={onOpenChange}
       title={initial ? "Editar cuenta bancaria" : "Nueva cuenta bancaria"}
