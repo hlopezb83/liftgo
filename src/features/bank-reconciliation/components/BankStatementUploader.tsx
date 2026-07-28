@@ -9,6 +9,26 @@ import { useImportBankStatement } from "../hooks/useBankReconciliationMutations"
 import { CSV_PROFILES, CSV_PROFILE_LABELS, type CsvProfile } from "../lib/bankReconciliationConstants";
 import { parseBankCsv } from "../lib/csvParsers";
 
+// Oleada 1 (A-13): file picker on-brand para reemplazar el input nativo en inglés.
+function BankFilePicker({ file, onChange }: { file: File | null; onChange: (f: File | null) => void }) {
+  const ref = useRef<HTMLInputElement>(null);
+  return (
+    <>
+      <input
+        ref={ref}
+        type="file"
+        accept=".csv,text/csv"
+        className="hidden"
+        onChange={(e) => onChange(e.target.files?.[0] ?? null)}
+      />
+      <Button type="button" variant="outline" onClick={() => ref.current?.click()} className="justify-start">
+        <UploadIcon className="h-4 w-4 mr-2" />
+        <span className="truncate">{file?.name ?? "Elegir archivo…"}</span>
+      </Button>
+    </>
+  );
+}
+
 interface Props {
   bankAccountId: string;
 }
