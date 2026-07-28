@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.248.4",
+    "date": "2026-07-28",
+    "type": "patch",
+    "title": "Menú lateral: el módulo ahora se llama Conciliación CFDI",
+    "category": "improvement",
+    "description": "En el menú lateral el módulo aparecía como 'Conciliación de Pagos', pero la página se titula 'Conciliación de facturas' y se confundía con la Conciliación Bancaria. Ahora se llama 'Conciliación CFDI'."
+  },
+  {
     "version": "7.248.3",
     "date": "2026-07-28",
     "type": "patch",
