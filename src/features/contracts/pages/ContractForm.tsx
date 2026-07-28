@@ -141,28 +141,43 @@ export default function ContractForm() {
           <Card>
             <CardHeader><CardTitle className="text-base">Términos y Firmas</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <div>
-                <Label>Términos y Condiciones</Label>
-                <Textarea rows={10} {...register("terms_text")} placeholder="Se cargará automáticamente al seleccionar cliente y equipo..." />
-              </div>
+              <FormField control={control} name="terms_text" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Términos y Condiciones</FormLabel>
+                  <FormControl><Textarea rows={10} placeholder="Se cargará automáticamente al seleccionar cliente y equipo..." {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <Label>Firmado por</Label>
-                  <Input {...register("signed_by")} placeholder="Nombre del firmante" />
-                </div>
-                <div>
-                  <Label>Testigo 1</Label>
-                  <Input {...register("witness_1")} placeholder="Nombre del testigo" />
-                </div>
-                <div>
-                  <Label>Testigo 2</Label>
-                  <Input {...register("witness_2")} placeholder="Nombre del testigo" />
-                </div>
+                <FormField control={control} name="signed_by" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Firmado por</FormLabel>
+                    <FormControl><Input placeholder="Nombre del firmante" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={control} name="witness_1" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Testigo 1</FormLabel>
+                    <FormControl><Input placeholder="Nombre del testigo" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
+                <FormField control={control} name="witness_2" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Testigo 2</FormLabel>
+                    <FormControl><Input placeholder="Nombre del testigo" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
               </div>
-              <div>
-                <Label>Notas</Label>
-                <Textarea rows={2} {...register("notes")} />
-              </div>
+              <FormField control={control} name="notes" render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Notas</FormLabel>
+                  <FormControl><Textarea rows={2} {...field} /></FormControl>
+                  <FormMessage />
+                </FormItem>
+              )} />
             </CardContent>
           </Card>
 
