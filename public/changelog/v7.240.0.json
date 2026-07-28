@@ -1,0 +1,60 @@
+{
+  "version": "7.240.0",
+  "date": "2026-07-28",
+  "type": "minor",
+  "title": "Auditoría R · invalidaciones AP, contratos y coherencia de entregas",
+  "category": "fix",
+  "sections": [
+    {
+      "title": "Cuentas por Pagar",
+      "items": [
+        "M-2: aprobar/rechazar facturas invalida exportablePayableQueries para refrescar 'Exportar pagos'.",
+        "M-3: registrar pago de proveedor invalida cash flow projection + exportables + KPIs.",
+        "M-4: 'Por pagar' incluye facturas con approval_status = not_required (antes sólo approved)."
+      ]
+    },
+    {
+      "title": "Reservas",
+      "items": [
+        "M-6: handleStatusChange usa mutateAsync y ya no dispara toast de éxito si la RPC falla; se elimina el toast duplicado que pisaba el mensaje real."
+      ]
+    },
+    {
+      "title": "Contratos",
+      "items": [
+        "M-9: form.reset con keepDirtyValues para no borrar ediciones cuando el contrato async llega tarde.",
+        "M-10b: StatusBadge en lista y detalle usa CONTRACT_STATUS_LABELS (Enviado/Firmado) en lugar del fallback global."
+      ]
+    },
+    {
+      "title": "Cotizaciones",
+      "items": [
+        "M-11: useQuotePrefill normaliza rental_meta legacy aplicando defaults a discount/discountType para no romper el resolver de zod al editar."
+      ]
+    },
+    {
+      "title": "Facturación",
+      "items": [
+        "M-12: cancellation_status='accepted' cuenta como Cancelada — el badge muestra 'Cancelada' y se oculta 'Cancelar CFDI' aunque cfdi_status no se haya sincronizado."
+      ]
+    },
+    {
+      "title": "Devoluciones",
+      "items": [
+        "C-3: el mensaje post-inspección se alinea al RPC: sólo major_damage y needs_repair envían a mantenimiento (minor_damage lo deja disponible)."
+      ]
+    },
+    {
+      "title": "Gestión de Usuarios",
+      "items": [
+        "M-13: sin acceso 'full', el auditor ya no ve InviteUserDialog, cambio de rol, switch de estado ni columna Acciones (evita 403 al enviar)."
+      ]
+    },
+    {
+      "title": "Entregas",
+      "items": [
+        "C-6: al elegir reserva se auto-asigna su montacargas; al cambiar el montacargas se limpia la reserva si ya no coincide; el selector de reservas filtra por el equipo elegido."
+      ]
+    }
+  ]
+}
