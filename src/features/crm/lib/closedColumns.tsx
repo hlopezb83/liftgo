@@ -97,7 +97,7 @@ export function buildClosedColumns(
           )}
           {/* R19-3: si el deal won ya se convirtió a cliente, indicarlo. */}
           {kind === "won" && p.customerId && (
-            <Button size="sm" variant="ghost" onClick={() => onViewCustomer?.(p.customerId!)}>
+            <Button size="sm" variant="ghost" onClick={() => p.customerId && onViewCustomer?.(p.customerId)}>
               Cliente creado — Ver cliente
             </Button>
           )}
