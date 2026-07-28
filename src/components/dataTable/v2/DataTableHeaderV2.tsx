@@ -19,11 +19,13 @@ function SortIcon({ dir }: { dir: false | "asc" | "desc" }): ReactNode {
 }
 
 function buildHeaderClass(
-  meta: { align?: "left" | "right" | "center"; hideOnMobile?: boolean; headClassName?: string } | undefined,
+  meta: { align?: "left" | "right" | "center"; kind?: "text" | "number" | "money" | "date" | "badge"; hideOnMobile?: boolean; headClassName?: string } | undefined,
   sorted: false | "asc" | "desc",
 ): string {
+  const { align, kindClassName } = resolveColumnKind(meta);
   return cn(
-    alignClass[meta?.align ?? "left"],
+    alignClass[align],
+    kindClassName,
     meta?.hideOnMobile && "hidden md:table-cell",
     meta?.headClassName,
     sorted && "text-foreground",
