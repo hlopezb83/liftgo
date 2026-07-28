@@ -31,16 +31,17 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
     lockedCurrency,
     exchangeRate, setExchangeRate, reference, setReference,
     notes, setNotes, stampRep, setStampRep,
-    createPayment, stampComplement, handleSubmit,
+    createPayment, stampComplement, handleSubmit, isDirty,
   } = useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, invoiceCurrency, invoiceExchangeRate, onOpenChange });
 
 
   return (
     <FormDialog
       isPending={createPayment.isPending || stampComplement.isPending}
+      isDirty={isDirty}
       open={open}
       onOpenChange={onOpenChange}
-      title="Registrar Pago"
+      title="Registrar pago"
       width="md"
       testId="record-payment-dialog"
     >
@@ -148,7 +149,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
             data-testid="record-payment-submit"
             disabled={createPayment.isPending || stampComplement.isPending}
           >
-            {createPayment.isPending ? "Guardando…" : (stampComplement.isPending ? "Timbrando REP…" : "Registrar Pago")}
+            {createPayment.isPending ? "Guardando…" : (stampComplement.isPending ? "Timbrando REP…" : "Registrar pago")}
           </Button>
         </FormDialogFooter>
       </form>

@@ -33,7 +33,7 @@ export function AuthForm({
       )}
       {(mode === "sign-in" || mode === "reset") && (
         <div className="space-y-1.5">
-          <Label htmlFor="auth-password">{mode === "reset" ? "Nueva Contraseña" : "Contraseña"}</Label>
+          <Label htmlFor="auth-password">{mode === "reset" ? "Nueva contraseña" : "Contraseña"}</Label>
           <div className="relative">
             <Input
               id="auth-password"

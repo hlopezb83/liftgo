@@ -131,7 +131,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
               onClick={() => navigate(`/invoices/${inv.id}`)}
               rightTop={<span className="font-mono font-semibold text-destructive text-sm sm:text-base whitespace-nowrap">{formatCurrency(Number(inv.total))}</span>}
               rightBottom={`Vence: ${formatDateDisplay(inv.due_date)}`}
-              action={{ icon: SuccessIcon, title: "Marcar Pagada", onClick: (e) => handleMarkPaid(inv, e), className: "text-status-available" }}
+              action={{ icon: SuccessIcon, title: "Marcar pagada", onClick: (e) => handleMarkPaid(inv, e), className: "text-status-available" }}
             />
           ))}
         </AlertCard>
@@ -164,7 +164,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
               rightBottom={`Venció: ${formatDateDisplay(ob.end_date)}`}
               action={{
                 icon: ClipboardList,
-                title: "Registrar Devolución",
+                title: "Registrar devolución",
                 onClick: (e) => { e.stopPropagation(); navigate(`/returns?booking_id=${ob.booking_id}`); },
                 className: "text-warning",
               }}
@@ -183,7 +183,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
               rightTop={<span className="text-xs text-muted-foreground">Vence: {a.nextDate}</span>}
               action={{
                 icon: ClipboardList,
-                title: "Registrar Servicio",
+                title: "Registrar servicio",
                 onClick: (e) => { e.stopPropagation(); navigate("/maintenance"); },
                 className: "text-status-maintenance",
               }}

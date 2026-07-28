@@ -1,0 +1,26 @@
+{
+  "version": "7.251.0",
+  "date": "2026-07-28",
+  "type": "minor",
+  "title": "R22 cierre: aviso de cambios sin guardar en todos los modales, textos unificados y tablas consistentes",
+  "category": "improvement",
+  "description": "Se cerraron los pendientes de la auditoría R22: todos los modales de formulario avisan antes de perder cambios, los botones y títulos usan una sola convención de escritura, y las columnas de dinero y cantidades comparten alineación y tipografía en toda la app.",
+  "changes": [
+    {
+      "type": "improvement",
+      "description": "Modales de Registrar pago, Editar pago, Reportar daño, Factura de proveedor, Mantenimiento, Programar transporte, Datos fiscales del receptor, Refacción, Crear usuario, Reportar bug y Reportar transferencia: ahora piden confirmación antes de cerrarse con cambios sin guardar."
+    },
+    {
+      "type": "improvement",
+      "description": "Botones y títulos de diálogo unificados a una sola convención de escritura (por ejemplo, 'Nuevo cliente', 'Nueva factura', 'Registrar pago') en Clientes, Facturas, Cotizaciones, Contratos, Proveedores, Flota, Inventario, Reservas y Cuentas por pagar."
+    },
+    {
+      "type": "improvement",
+      "description": "Portal de clientes: la tabla del estado de cuenta usa el componente de tabla del sistema, con el mismo rayado, densidad y desplazamiento horizontal que el resto de la app."
+    },
+    {
+      "type": "improvement",
+      "description": "Más de 50 columnas de dinero y cantidades (Facturas, Cuentas por pagar, Cotizaciones, Inventario, Prospectos, Conciliación, Reportes y Portal) ahora se declaran por tipo, con alineación a la derecha y dígitos de ancho fijo automáticos."
+    }
+  ]
+}

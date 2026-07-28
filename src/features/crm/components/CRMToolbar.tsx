@@ -103,7 +103,7 @@ export function CRMToolbar({
               </ToggleGroupItem>
             </ToggleGroup>
             <Button onClick={onCreate} size="sm" className="h-9">
-              <AddIcon className="h-4 w-4 mr-1" /> Nuevo Prospecto
+              <AddIcon className="h-4 w-4 mr-1" /> Nuevo prospecto
             </Button>
           </>
         }

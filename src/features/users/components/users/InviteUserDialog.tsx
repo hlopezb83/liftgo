@@ -57,13 +57,14 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button><UserPlus className="mr-2 h-4 w-4" />Crear Usuario</Button>
+        <Button><UserPlus className="mr-2 h-4 w-4" />Crear usuario</Button>
       </DialogTrigger>
       <FormDialog
       isPending={inviteUser.isPending}
+        isDirty={fullName.trim() !== "" || email.trim() !== ""}
         open={open}
         onOpenChange={setOpen}
-        title="Crear Nuevo Usuario"
+        title="Crear nuevo usuario"
         description="Crea una nueva cuenta de personal. El usuario recibirá instrucciones de acceso por correo electrónico."
       >
         <div className="space-y-4 py-2">
@@ -103,7 +104,7 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
         <FormDialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
           <Button onClick={handleInvite} disabled={inviteUser.isPending || !fullName.trim() || !email.trim()}>
-            {inviteUser.isPending ? "Creando…" : "Crear Usuario"}
+            {inviteUser.isPending ? "Creando…" : "Crear usuario"}
           </Button>
         </FormDialogFooter>
       </FormDialog>

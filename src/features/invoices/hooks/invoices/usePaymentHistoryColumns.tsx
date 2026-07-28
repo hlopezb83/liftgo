@@ -49,7 +49,7 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
         ),
       },
       {
-        id: "amount", header: "Monto", accessorFn: (p) => Number(p.amount), meta: { align: "right" },
+        id: "amount", header: "Monto", accessorFn: (p) => Number(p.amount), meta: { kind: "number" },
         cell: ({ row }) => {
           // R8 Bloque 6·#1: badge de moneda cuando no es MXN, consistente con el listado de facturas.
           const currency = (row.original as Payment & { currency?: string | null }).currency ?? "MXN";

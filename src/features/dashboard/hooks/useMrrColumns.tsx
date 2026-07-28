@@ -72,7 +72,7 @@ export function useMrrColumns(): ColumnDef<MrrItem>[] {
         id: "monthly_rate",
         header: "Tarifa Mensual",
         accessorKey: "monthly_rate",
-        meta: { align: "right" },
+        meta: { kind: "money" },
         cell: ({ row }) => (
           <span className="font-medium font-mono">
             {formatCurrency(row.original.monthly_rate)}

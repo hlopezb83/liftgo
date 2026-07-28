@@ -16,7 +16,7 @@ export default function ContractForm() {
 
   return (
     <PageContainer maxWidth="form">
-      <FormPageHeader title={isEdit ? "Editar Contrato" : "Nuevo Contrato"} onBack={() => navigate("/contracts")} />
+      <FormPageHeader title={isEdit ? "Editar contrato" : "Nuevo contrato"} onBack={() => navigate("/contracts")} />
 
       <Form {...form}>
         <form onSubmit={handleSubmit} className="space-y-6" noValidate>
@@ -24,7 +24,7 @@ export default function ContractForm() {
           <RatesCard control={control} />
           <UsageConditionsCard control={control} />
           <TermsAndSignaturesCard control={control} />
-          <FormActions submitLabel={isEdit ? "Guardar Cambios" : "Crear Contrato"} isPending={isPending} onCancel={() => navigate("/contracts")} />
+          <FormActions submitLabel={isEdit ? "Guardar cambios" : "Crear contrato"} isPending={isPending} onCancel={() => navigate("/contracts")} />
         </form>
       </Form>
     </PageContainer>

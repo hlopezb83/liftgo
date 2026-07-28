@@ -60,7 +60,7 @@ export default function CuentasPorPagarPage() {
             </Button>
             <RoleGuard module="Facturas de Proveedor" minAccess="full" fallback={null}>
               <Button onClick={createDialog.openDialog}>
-                <AddIcon className="h-4 w-4 mr-1" />Nueva Factura
+                <AddIcon className="h-4 w-4 mr-1" />Nueva factura
               </Button>
             </RoleGuard>
           </div>
@@ -76,7 +76,7 @@ export default function CuentasPorPagarPage() {
         onClearFilters={f.reset}
         emptyMessage="Sin cuentas por pagar registradas"
         emptyIcon={FileClock}
-        emptyActionLabel={canCreate ? "Nueva Cuenta" : undefined}
+        emptyActionLabel={canCreate ? "Nueva cuenta" : undefined}
         onEmptyAction={canCreate ? createDialog.openDialog : undefined}
         skeletonColumns={8}
         mobileCardRender={(b) => renderSupplierBillMobileCard(b, setSelectedId)}

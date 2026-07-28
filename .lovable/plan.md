@@ -1,47 +1,35 @@
-## Estado verificado
+Revisé el documento R22 contra el código actual. La mayoría ya se aplicó en v7.249.0 y v7.250.0 (QueryErrorState en los 6 reportes, retry del calendario, zebra única, meta money en Daños/OTs, FormActions con Cancelar a la izquierda, KpiTile sin truncate con `kpiSizeClass`, eje Y compacto en costos de mantenimiento, errores de login en es-MX, sidebar colapsado, DetailRow, BrandMark en el portal, empty states con CTA, `sortUndefined`, print headers).
 
-De la lista R22, en la ronda anterior ya quedaron aplicados: D (zebra), E/F (columnas de dinero), G (orden de botones en `FormActions` — ya está Cancelar → primaria), I (invalidar detalle de cotización), K parcial (KpiTile sin truncar), L (eje Y compacto), O, P, Q, R, T, V y W (nulos al final al ordenar).
+Quedan 4 bloques sin cablear. Propongo cerrarlos en este orden.
 
-Confirmé con búsquedas que **siguen abiertos**:
+## 1. R22-A — Terminar el cableado de `isDirty` en modales
+Ya lo tienen Cliente, Proveedor, Contacto y Cuenta bancaria de proveedor, Prospecto y Cuenta bancaria. Falta pasar `isDirty` (y protección contra pérdida de datos al cerrar con Esc / clic fuera) en:
+- `RecordPaymentDialog`, `EditPaymentDialog`
+- `ReportDamageDialog`
+- `SupplierBillFormDialog`
+- `MaintenanceFormDialog`
+- `DeliveryFormDialog`
+- `EditReceptorFiscalDialog`
+- `FeedbackFormDialog`
+- `InviteUserDialog`
+- `ReportTransferDialog` (portal)
+- `PartFormDialog` (ya calcula `isDirty` para el guard, sólo falta pasar la prop)
 
-- `isDirty=` no aparece en ningún consumidor de `FormDialog` (0 usos reales) → R22-A vigente.
-- Ningún archivo de `src/features/reports` importa `QueryErrorState` → R22-B vigente.
-- `CalendarPage` sólo usa `bError`/`bRefetch`; no toca `useForklifts` → R22-C vigente.
-- `PortalLogin` sigue mostrando el error crudo del backend (inglés) → R22-M vigente.
+Para los que no usan React Hook Form, se deriva el flag comparando el estado actual contra los valores iniciales (mismo helper que ya se usó en Prospecto).
 
-## Qué haré
+## 2. R22-N — Copy de botones y títulos a sentence case
+Cambiar sólo texto visible en: toolbar de Clientes, Facturas, Cotizaciones, Contratos, Proveedores, Flota, Cuentas por pagar, atajos de creación rápida del menú, y títulos de diálogo (Nuevo cliente, Editar cliente, Nueva factura de proveedor, Reportar daño, Agregar montacargas, Editar cotización, etc.). No se tocan las etiquetas de etapas del CRM (son nombres de estado, no acciones).
 
-### 1. Protección contra pérdida de datos en modales (R22-A)
-Pasar `isDirty` a los `FormDialog` de formularios reales (no a los de confirmación ni de un solo campo):
-Cliente, Proveedor, Contacto/Cuenta bancaria de proveedor, Refacción, Prospecto, Registrar pago, Editar pago, Reportar daño, Factura de proveedor, Registrar pago a proveedor, Orden de mantenimiento, Entrega, Modelos de equipo, Mecánicos, Choferes, Feedback.
-- Donde hay React Hook Form: `form.formState.isDirty`.
-- Donde el estado es manual (Prospecto, Registrar pago): derivar un `isDirty` comparando los campos contra su estado inicial.
+## 3. R22-U — Tabla del portal con el componente del sistema
+`PortalInvoicesTable.tsx` usa dos `<table>` crudas. Migrarlas a `Table/TableHeader/TableRow/TableCell` de `@/components/ui/table` para heredar zebra, densidad y el fade de scroll en móvil.
 
-### 2. Error states en los reportes (R22-B)
-Agregar `QueryErrorState` con reintento a: Utilización, Utilización por modelo, Ingresos, Costos de mantenimiento, Antigüedad de saldos, Estado de resultados y Rentabilidad por modelo. Así, si falla la red ya no se ve "Sin datos" ni se exporta CSV vacío.
+## 4. C-1 — Migración de columnas a `meta: { kind }`
+Reemplazar el combo manual `align + font-mono` inline por `meta: { kind: "money" | "number" | "date" | "badge" }` en las tablas principales: Facturas (Total, Saldo), Cuentas por pagar (Total/Saldo), Cotizaciones (Total), Inventario (Costo, Existencias), Prospectos (Valor), Contratos, Devoluciones y las tablas de reportes. Es puramente de presentación: alineación y tipografía tabular consistentes.
 
-### 3. Calendario: reintento completo (R22-C)
-Entrar al estado de error también cuando falla la carga de montacargas, y que "Reintentar" recargue ambas consultas.
+## Fuera de alcance (queda re-agendado)
+- **B-11 kanban optimista**: mover tarjetas cross-columna directo al soltar con rollback. Es cambio de lógica de mutación en CRM/Mantenimiento y merece su propia ronda con pruebas.
 
-### 4. Prospecto: validación en español (R22-H)
-Quitar el `required` nativo, agregar `noValidate` al formulario y mostrar el mensaje del esquema debajo del campo "Empresa", igual que el error de valor del trato.
-
-### 5. Login del portal en español (R22-M)
-"Invalid login credentials" → "Correo o contraseña incorrectos"; cualquier otro fallo → "No se pudo iniciar sesión. Inténtalo de nuevo."
-
-### 6. KPIs con montos grandes (R22-K, cierre)
-En Dashboard (MRR, cartera), KPIs de Cuentas por pagar y resumen de flujo de efectivo: mostrar el monto compacto ("$1.23 M") con el valor exacto al pasar el cursor.
-
-### 7. Detalles de impresión y copy (R22-J, N, S, U)
-- `no-print` en barras de acciones y paginadores de Clientes, Facturas, Contratos y del portal.
-- Botones y títulos a mayúscula inicial simple: "Nuevo cliente", "Nueva factura", "Nueva cotización", "Nuevo contrato", "Nuevo proveedor", "Agregar montacargas", "Reportar daño".
-- Leyenda del Gantt: swatch "Confirmada" consistente con el color real de las barras.
-- Tabla de facturas del portal migrada al componente `Table` del sistema.
-
-## No incluido
-Los "PENDIENTES" del documento (migración masiva de `meta.kind`, facelift del portal, kanban optimista, empty states con CTA) quedan fuera de esta ronda; son sprints propios.
-
-## Detalles técnicos
-- Archivos principales: ~16 diálogos en `src/features/**`, 7 reportes en `src/features/reports/components/reports/`, `CalendarPage.tsx`, `PortalLogin.tsx`, `ProspectFormFields.tsx` + `ProspectFormDialog.tsx`, toolbars de listas.
-- Verificación: `bun run lint`, `bunx vitest run`, y revisión visual en preview de un modal con cambios sin guardar + un reporte en modo offline.
-- Changelog: nueva entrada v7.250.0 en `public/changelog.json` + `public/changelog/v7.250.0.json`.
+## Notas técnicas
+- Sin migraciones ni cambios de base de datos; todo es frontend/presentación.
+- Verificación: `bun run lint`, tests unitarios, y revisión visual en el preview de los modales tocados y del portal.
+- Al final se agrega la entrada v7.251.0 en `public/changelog.json` y `public/changelog/v7.251.0.json`.

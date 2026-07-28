@@ -38,7 +38,7 @@ export function buildClosedColumns(
       id: "value",
       header: "Valor",
       accessorFn: (p) => p.finalAmount ?? p.dealValue ?? 0,
-      meta: { align: "right" },
+      meta: { kind: "money" },
       cell: ({ row }) => (
         <span className="tabular-nums font-mono">
           {formatCurrency(row.original.finalAmount ?? row.original.dealValue ?? 0)}

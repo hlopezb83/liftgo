@@ -45,7 +45,7 @@ export function MarkAvailableDialog({ open, onOpenChange, forkliftId, forkliftNa
           Todavía No
         </Button>
         <Button onClick={handleConfirm} disabled={updateStatus.isPending}>
-          {updateStatus.isPending ? "Actualizando..." : "Marcar Disponible"}
+          {updateStatus.isPending ? "Actualizando..." : "Marcar disponible"}
         </Button>
       </FormDialogFooter>
     </FormDialog>

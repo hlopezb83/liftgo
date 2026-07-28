@@ -63,7 +63,7 @@ function useInvoiceColumns(): ColumnDef<Invoice>[] {
         cell: ({ row }) => <Untranslated className="font-medium">{row.original.invoice_number}</Untranslated> },
       { id: "customer_name", header: "Cliente", accessorFn: (i) => i.customer_name || "",
         cell: ({ row }) => row.original.customer_name ? <Untranslated>{row.original.customer_name}</Untranslated> : "—" },
-      { id: "total", header: "Total", accessorFn: (i) => Number(i.total), meta: { align: "right" },
+      { id: "total", header: "Total", accessorFn: (i) => Number(i.total), meta: { kind: "money" },
         cell: ({ row }) => {
           const moneda = (row.original as Invoice & { moneda?: string | null }).moneda ?? "MXN";
           return (
@@ -194,7 +194,7 @@ export default function InvoicesPage() {
         onClearFilters={clearAll}
         emptyMessage="No se encontraron facturas"
         emptyIcon={InvoiceIcon}
-        emptyActionLabel={canCreate ? "Nueva Factura" : undefined}
+        emptyActionLabel={canCreate ? "Nueva factura" : undefined}
         onEmptyAction={canCreate ? () => navigate("/invoices/new") : undefined}
         skeletonColumns={7}
         mobileCardRender={(inv) => <InvoiceCard inv={inv} onClick={() => navigate(`/invoices/${inv.id}`)} />}

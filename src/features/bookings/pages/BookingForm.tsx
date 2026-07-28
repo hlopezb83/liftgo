@@ -46,7 +46,7 @@ export default function BookingForm() {
 
   return (
     <PageContainer maxWidth="form">
-      <FormPageHeader title="Nueva Reserva" />
+      <FormPageHeader title="Nueva reserva" />
       <Form {...form}>
         <form onSubmit={form.handleSubmit((data) => onSubmit(data, forkliftName))} className="space-y-6">
           <Card>
@@ -87,7 +87,7 @@ export default function BookingForm() {
             customerContact={customerContact}
             onCustomerContactChange={(v) => form.setValue("customer_contact", v)}
           />
-          <FormActions submitLabel="Crear Reserva" isPending={createBooking.isPending} onCancel={() => navigate(-1)} />
+          <FormActions submitLabel="Crear reserva" isPending={createBooking.isPending} onCancel={() => navigate(-1)} />
         </form>
       </Form>
       <BookingPostDialogs

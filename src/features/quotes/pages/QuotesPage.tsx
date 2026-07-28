@@ -57,7 +57,7 @@ export default function QuotesPage() {
       subtitle="Crea y administra cotizaciones para clientes"
       actions={
         <RoleGuard module="Cotizaciones" minAccess="full" fallback={null}>
-          <Button onClick={() => navigate("/quotes/new")} size="sm"><AddIcon className="h-4 w-4 mr-1" />Nueva Cotización</Button>
+          <Button onClick={() => navigate("/quotes/new")} size="sm"><AddIcon className="h-4 w-4 mr-1" />Nueva cotización</Button>
         </RoleGuard>
       }
       mobileFab={

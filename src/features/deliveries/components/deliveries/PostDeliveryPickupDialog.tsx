@@ -97,7 +97,7 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
       open={open}
       onOpenChange={onOpenChange}
       width="md"
-      title="¿Programar Recolección?"
+      title="¿Programar recolección?"
       description={
         <span className="flex items-start gap-2">
           <FleetIcon className="h-4 w-4 text-primary mt-0.5 shrink-0" />
@@ -108,7 +108,7 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
       {!showForm ? (
         <FormDialogFooter className="flex-col gap-2 sm:flex-col">
           <Button className="w-full" onClick={() => setShowForm(true)}>
-            <FleetIcon className="h-4 w-4 mr-2" /> Programar Recolección
+            <FleetIcon className="h-4 w-4 mr-2" /> Programar recolección
           </Button>
           <Button variant="outline" className="w-full" onClick={() => onOpenChange(false)}>Omitir por Ahora</Button>
         </FormDialogFooter>
@@ -133,7 +133,7 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
             <FormDialogFooter className="flex-col gap-2 sm:flex-row">
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Omitir</Button>
               <Button type="submit" disabled={createDelivery.isPending}>
-                {createDelivery.isPending ? "Programando..." : "Programar Recolección"}
+                {createDelivery.isPending ? "Programando..." : "Programar recolección"}
               </Button>
             </FormDialogFooter>
           </form>

@@ -114,7 +114,7 @@ export default function BookingsPage() {
       title="Reservas"
       subtitle="Administrar reservas de equipos"
       totalCount={filtered.length}
-      actions={isAdmin ? <Button size="sm" onClick={() => navigate("/bookings/new")}><AddIcon className="h-4 w-4 mr-1" />Nueva Reserva</Button> : undefined}
+      actions={isAdmin ? <Button size="sm" onClick={() => navigate("/bookings/new")}><AddIcon className="h-4 w-4 mr-1" />Nueva reserva</Button> : undefined}
       mobileFab={
         isAdmin ? (
           <Button size="icon" className="h-14 w-14 rounded-full shadow-lg" onClick={() => navigate("/bookings/new")} aria-label="Nueva reserva">
@@ -157,7 +157,7 @@ export default function BookingsPage() {
       onClearFilters={reset}
       emptyMessage={isAdmin ? "No se encontraron reservas" : "No se encontraron reservas. Las reservas se crean convirtiendo una cotización aceptada."}
       emptyIcon={CalendarDays}
-      emptyActionLabel={isAdmin ? "Nueva Reserva" : undefined}
+      emptyActionLabel={isAdmin ? "Nueva reserva" : undefined}
       onEmptyAction={isAdmin ? () => navigate("/bookings/new") : undefined}
       skeletonColumns={7}
       mobileCardRender={(b) => (

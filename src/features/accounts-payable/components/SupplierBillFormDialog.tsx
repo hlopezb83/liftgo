@@ -71,10 +71,11 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
   return (
     <FormDialog
       isPending={isPending}
+      isDirty={form.formState.isDirty}
       open={open}
       onOpenChange={onOpenChange}
       width="2xl"
-      title={titleOverride ?? (isEdit && bill ? `Editar factura ${bill.bill_number}` : "Nueva Factura de Proveedor")}
+      title={titleOverride ?? (isEdit && bill ? `Editar factura ${bill.bill_number}` : "Nueva factura de proveedor")}
     >
       <Form {...form}>
         <form onSubmit={onSubmit} className="space-y-3">

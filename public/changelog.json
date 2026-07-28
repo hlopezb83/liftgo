@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.251.0",
+    "date": "2026-07-28",
+    "type": "minor",
+    "title": "R22 cierre: aviso de cambios sin guardar en todos los modales, textos unificados y tablas consistentes",
+    "category": "improvement",
+    "description": "Todos los modales de formulario avisan antes de perder cambios, los botones y títulos usan una sola convención de escritura, y las columnas de dinero y cantidades comparten alineación y tipografía en toda la app."
+  },
+  {
     "version": "7.250.0",
     "date": "2026-07-28",
     "type": "minor",

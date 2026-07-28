@@ -19,7 +19,7 @@ export default function QuoteForm() {
 
   return (
     <PageContainer maxWidth="form">
-      <FormPageHeader title={f.id ? "Editar Cotización" : "Nueva Cotización"} />
+      <FormPageHeader title={f.id ? "Editar cotización" : "Nueva cotización"} />
       <Form {...form}>
         <form onSubmit={f.handleSubmit} className="space-y-6">
           <QuoteTypeCard value={f.quoteType} onChange={f.handleTypeChange} />
@@ -89,7 +89,7 @@ export default function QuoteForm() {
           />
 
           <FormActions
-            submitLabel={f.id ? "Actualizar Cotización" : "Crear Cotización"}
+            submitLabel={f.id ? "Actualizar cotización" : "Crear cotización"}
             isPending={f.isPending}
             onCancel={() => f.navigate(-1)}
           />

@@ -52,7 +52,7 @@ export function MaintenancePageActions({
         </Button>
       </RoleGuard>
       <Button onClick={onCreate} size="sm">
-        <AddIcon className="h-4 w-4 mr-1" /> Registrar Servicio
+        <AddIcon className="h-4 w-4 mr-1" /> Registrar servicio
       </Button>
     </div>
   );

@@ -64,7 +64,7 @@ export function buildQuotesColumns<Q extends {
       id: "total",
       header: "Total",
       accessorKey: "total",
-      meta: { align: "right" },
+      meta: { kind: "money" },
       cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.total)}</span>,
     },
     {

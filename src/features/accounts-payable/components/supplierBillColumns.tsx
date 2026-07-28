@@ -28,11 +28,11 @@ export function useSupplierBillColumns(): ColumnDef<SupplierBillListItem>[] {
       cell: ({ row }) => formatDateDisplay(row.original.due_date),
     },
     {
-      id: "total", header: "Total", accessorKey: "total", meta: { align: "right" },
+      id: "total", header: "Total", accessorKey: "total", meta: { kind: "money" },
       cell: ({ row }) => <span className="font-mono">{formatCurrencyWithCode(Number(row.original.total), row.original.currency)}</span>,
     },
     {
-      id: "balance", header: "Saldo", accessorKey: "balance", meta: { align: "right" },
+      id: "balance", header: "Saldo", accessorKey: "balance", meta: { kind: "money" },
       cell: ({ row }) => (
         <span className={`font-mono font-semibold ${Number(row.original.balance) > 0 ? "text-foreground" : "text-muted-foreground"}`}>
           {formatCurrencyWithCode(Number(row.original.balance), row.original.currency)}

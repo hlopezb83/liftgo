@@ -23,7 +23,7 @@ const WIDTH_CLASS: Record<Width, string> = {
 interface FormDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Título visible: "Nuevo Cliente", "Editar Refacción", etc. */
+  /** Título visible: "Nuevo cliente", "Editar refacción", etc. */
   title: string;
   /** Descripción opcional debajo del título. */
   description?: ReactNode;

@@ -85,7 +85,7 @@ export function AssignForkliftsCard({ quoteId, lineItems }: Props) {
       <CardHeader>
         <CardTitle className="text-base flex items-center gap-2">
           <PackageCheck className="h-5 w-5" />
-          Asignar Equipos del Inventario
+          Asignar equipos del Inventario
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">

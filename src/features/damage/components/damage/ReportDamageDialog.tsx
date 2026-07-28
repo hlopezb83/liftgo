@@ -40,11 +40,13 @@ export function ReportDamageDialog() {
       <DialogTrigger asChild>
         <Button>
           <WarnIcon className="h-4 w-4 mr-2" />
-          Reportar Daño
+          Reportar daño
         </Button>
       </DialogTrigger>
       <FormDialog
-      isPending={isProcessing} open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); }} width="md" title="Reportar Daño Manual">
+      isPending={isProcessing}
+      isDirty={form.formState.isDirty || previews.length > 0}
+      open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); }} width="md" title="Reportar daño manual">
         <Form {...form}>
           <form onSubmit={handleSubmit} className="space-y-4">
             <SelectField

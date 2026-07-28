@@ -60,7 +60,10 @@ export function DeliveryFormDialog() {
       </Button>
 
       <FormDialog
-      isPending={createDelivery.isPending} open={open} onOpenChange={setOpen} title="Programar Transporte">
+      isPending={createDelivery.isPending}
+      isDirty={form.formState.isDirty}
+      open={open} onOpenChange={setOpen} title="Programar transporte">
+
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <DeliveryFormFields form={form} forklifts={forklifts} bookings={bookings} activeDrivers={activeDrivers} />
           <FormDialogFooter>

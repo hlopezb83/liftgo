@@ -90,7 +90,9 @@ export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId
 
   return (
     <FormDialog
-      isPending={isPending} open={open} onOpenChange={onOpenChange} title="Reportar transferencia" width="md">
+      isPending={isPending}
+      isDirty={form.formState.isDirty}
+      open={open} onOpenChange={onOpenChange} title="Reportar transferencia" width="md">
       <Form {...form}>
         <form onSubmit={onSubmit} className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

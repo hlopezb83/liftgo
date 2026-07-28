@@ -90,7 +90,7 @@ export function SupplierFormDialog({ open, onOpenChange, supplier }: SupplierFor
       isDirty={form.formState.isDirty}
       open={open}
       onOpenChange={onOpenChange}
-      title={supplier ? "Editar Proveedor" : "Nuevo Proveedor"}
+      title={supplier ? "Editar proveedor" : "Nuevo proveedor"}
       width="lg"
       testId="supplier-form-dialog"
     >

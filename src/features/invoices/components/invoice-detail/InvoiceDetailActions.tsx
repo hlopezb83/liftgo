@@ -156,7 +156,7 @@ export function InvoiceDetailActions({
   invoice, cfdiStatus, userRole: _userRole, visibility, balance,
   isStamping, onOpenPayment, onEdit, onStamp, onDownloadXml, onCancelCfdi, onDelete,
 }: Props) {
-  // v7.226.0 · E2E-N6: pasar balance para ocultar "Registrar Pago" si NC/pagos cubren la factura.
+  // v7.226.0 · E2E-N6: pasar balance para ocultar "Registrar pago" si NC/pagos cubren la factura.
   const flags = computeInvoiceFlags({ ...invoice, balance: balance ?? null }, cfdiStatus, null);
   const pdfMode = resolvePdfMode(visibility);
   return (
@@ -175,7 +175,7 @@ export function InvoiceDetailActions({
       {flags.showPaymentBtn ? (
         <RoleGuard module="Facturas" minAccess="full" fallback={null}>
           <Button size="sm" onClick={onOpenPayment} data-testid="invoice-register-payment">
-            <PaymentIcon className="h-4 w-4 mr-1" />Registrar Pago
+            <PaymentIcon className="h-4 w-4 mr-1" />Registrar pago
           </Button>
         </RoleGuard>
       ) : null}

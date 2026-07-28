@@ -106,7 +106,7 @@ export function PaymentsExportTable({
       id: "balance",
       header: "Saldo",
       accessorKey: "balance",
-      meta: { align: "right" },
+      meta: { kind: "money" },
       cell: ({ row }) => (
         <span className="font-mono">{formatCurrency(row.original.balance)}</span>
       ),
@@ -115,7 +115,7 @@ export function PaymentsExportTable({
       id: "amount",
       header: "A pagar",
       enableSorting: false,
-      meta: { align: "right" },
+      meta: { kind: "number" },
       cell: ({ row }) => {
         const st = rowState[row.original.id];
         const inProgress = !!row.original.payment_in_progress_at;

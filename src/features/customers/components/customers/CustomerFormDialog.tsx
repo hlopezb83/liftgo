@@ -69,7 +69,7 @@ export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, is
       isDirty={form.formState.isDirty}
       open={open}
       onOpenChange={onOpenChange}
-      title={isEdit ? "Editar Cliente" : "Nuevo Cliente"}
+      title={isEdit ? "Editar cliente" : "Nuevo cliente"}
       width="lg"
       testId="customer-form-dialog"
     >

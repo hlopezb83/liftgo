@@ -42,28 +42,28 @@ function LeaderboardTable({ period }: { period: LeaderboardPeriod }) {
         id: "total_reports",
         header: "Reportes",
         accessorKey: "total_reports",
-        meta: { align: "right" },
+        meta: { kind: "number" },
         cell: ({ row }) => <span className="tabular-nums">{row.original.total_reports}</span>,
       },
       {
         id: "accepted_reports",
         header: "Aceptados",
         accessorKey: "accepted_reports",
-        meta: { align: "right" },
+        meta: { kind: "number" },
         cell: ({ row }) => <span className="tabular-nums">{row.original.accepted_reports}</span>,
       },
       {
         id: "resolved_reports",
         header: "Resueltos",
         accessorKey: "resolved_reports",
-        meta: { align: "right" },
+        meta: { kind: "number" },
         cell: ({ row }) => <span className="tabular-nums">{row.original.resolved_reports}</span>,
       },
       {
         id: "total_points",
         header: "Puntos",
         accessorKey: "total_points",
-        meta: { align: "right" },
+        meta: { kind: "number" },
         cell: ({ row }) => (
           <span className="tabular-nums font-semibold">{row.original.total_points}</span>
         ),

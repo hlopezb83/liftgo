@@ -34,7 +34,7 @@ export function usePaymentIntentsColumns({
         id: "amount",
         header: "Monto",
         accessorKey: "amount",
-        meta: { align: "right" },
+        meta: { kind: "money" },
         cell: ({ row }) => (
           <span className="font-mono">{formatCurrency(Number(row.original.amount))}</span>
         ),
@@ -72,7 +72,7 @@ export function usePaymentIntentsColumns({
         id: "actions",
         header: "",
         enableSorting: false,
-        meta: { align: "right" },
+        meta: { kind: "number" },
         cell: ({ row }) => {
           const intent = row.original;
           const pending = intent.status === "pending_review";

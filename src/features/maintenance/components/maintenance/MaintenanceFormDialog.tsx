@@ -44,9 +44,10 @@ export function MaintenanceFormDialog({
   return (
     <FormDialog
       isPending={isPending}
+      isDirty={form.formState.isDirty}
       open={open}
       onOpenChange={onOpenChange}
-      title={isEdit ? "Editar Mantenimiento" : "Registrar Mantenimiento"}
+      title={isEdit ? "Editar mantenimiento" : "Registrar mantenimiento"}
     >
       <Form {...form}>
         <form onSubmit={onSubmit} className="space-y-4">
@@ -96,7 +97,7 @@ export function MaintenanceFormDialog({
 
           <FormDialogFooter>
             <FormActions
-              submitLabel={isEdit ? "Guardar Cambios" : "Agregar Registro"}
+              submitLabel={isEdit ? "Guardar cambios" : "Agregar registro"}
               isPending={isPending}
               onCancel={() => onOpenChange(false)}
             />

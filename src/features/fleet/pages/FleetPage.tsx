@@ -99,7 +99,7 @@ export default function FleetPage() {
       </Button>
       <RoleGuard module="Flota" minAccess="full" fallback={null}>
         <Button onClick={() => navigate("/fleet/new")} size="sm">
-          <AddIcon className="h-4 w-4 mr-1" /> Agregar Montacargas
+          <AddIcon className="h-4 w-4 mr-1" /> Agregar montacargas
         </Button>
       </RoleGuard>
     </div>
@@ -121,7 +121,7 @@ export default function FleetPage() {
       onClearFilters={reset}
       emptyMessage="No se encontraron montacargas"
       emptyIcon={ForkliftIcon}
-      emptyActionLabel="Agregar Montacargas"
+      emptyActionLabel="Agregar montacargas"
       onEmptyAction={() => navigate("/fleet/new")}
       skeletonColumns={6}
       mobileCardRender={(f) => (
