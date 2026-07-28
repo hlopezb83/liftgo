@@ -5,6 +5,7 @@ import { Camera } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useDialogState } from "@/hooks/useDialogState";
 import { DAMAGE_STATUSES, STATUS_LABELS } from "@/lib/constants";
