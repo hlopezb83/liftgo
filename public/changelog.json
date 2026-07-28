@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.250.0",
+    "date": "2026-07-28",
+    "type": "minor",
+    "title": "R22-2: reportes con estado de error, aviso de cambios sin guardar y errores de acceso en español",
+    "category": "improvement",
+    "description": "Los reportes ahora distinguen 'sin datos' de 'falló la carga' y ofrecen reintentar; los modales avisan antes de perder cambios; los errores de acceso al portal se muestran en español."
+  },
+  {
     "version": "7.249.0",
     "date": "2026-07-28",
     "type": "minor",
