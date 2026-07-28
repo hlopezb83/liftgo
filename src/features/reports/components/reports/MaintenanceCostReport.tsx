@@ -51,6 +51,17 @@ export function MaintenanceCostReport({ startDate, endDate }: Props) {
     paginated: false,
   });
 
+  // R22-B: error state en lugar de "sin mantenimientos" cuando falla la carga.
+  if (fError || mError) {
+    return (
+      <QueryErrorState
+        entity="el reporte de costos de mantenimiento"
+        onRetry={() => { void fRefetch(); void mRefetch(); }}
+        isRetrying={fFetching}
+      />
+    );
+  }
+
   return (
     <>
       <Card>
