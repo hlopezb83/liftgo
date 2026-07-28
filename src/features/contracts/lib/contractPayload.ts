@@ -8,11 +8,17 @@ const numOrNull = (v: string | null | undefined, fallback: number | null = null)
   return Number.isFinite(n) ? roundMoney(n) : fallback;
 };
 
-export function buildContractPayload(form: ContractFormShape, bookingId: string | null) {
+export function buildContractPayload(
+  form: ContractFormShape,
+  bookingId: string | null,
+  existing?: { booking_id?: string | null } | null,
+) {
   // R17-C: NO forzamos `status` ni `signed_at` desde el form. En creación el
   // default de la tabla es `draft`; en edición preservamos lo que ya está
   // (los cambios de estatus van por `useContractDetailLogic.setStatus`, que
   // limpia `signed_at` explícitamente cuando corresponde).
+  // R18-A1: si estamos editando y no llega `bookingId` en la URL, preservamos
+  // el `booking_id` existente para no desligar el contrato de su reserva.
   return {
     customer_id: form.customer_id,
     forklift_id: form.forklift_id,
@@ -25,7 +31,7 @@ export function buildContractPayload(form: ContractFormShape, bookingId: string 
     terms_text: nn(form.terms_text),
     signed_by: nn(form.signed_by),
     notes: nn(form.notes),
-    booking_id: bookingId || null,
+    booking_id: bookingId || existing?.booking_id || null,
     usage_location: nn(form.usage_location),
     max_hours_per_month: numOrNull(form.max_hours_per_month),
     extra_hour_rate: numOrNull(form.extra_hour_rate),
