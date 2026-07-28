@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { SearchIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
