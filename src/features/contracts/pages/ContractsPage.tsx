@@ -154,6 +154,8 @@ export default function ContractsPage() {
       hasActiveFilters={hasActive}
       onClearFilters={reset}
       emptyMessage="No se encontraron contratos"
+      emptyActionLabel="Nuevo contrato"
+      onEmptyAction={() => navigate("/contracts/new")}
       skeletonColumns={7}
       mobileCardRender={(c) => {
         const expiry = getContractExpiryState(c.end_date, c.status);

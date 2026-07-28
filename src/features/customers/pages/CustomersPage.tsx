@@ -162,6 +162,8 @@ export default function CustomersPage() {
         hasActiveFilters={hasActive}
         onClearFilters={reset}
         emptyMessage="No se encontraron clientes"
+        emptyActionLabel="Nuevo cliente"
+        onEmptyAction={openCreate}
         mobileCardRender={renderMobileCard}
         mobileKeyExtractor={(c) => c.id}
         skeletonColumns={6}

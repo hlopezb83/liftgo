@@ -42,12 +42,14 @@ export function FormActions({ submitLabel, isPending, onCancel }: FormActionsPro
     inFlightRef.current = true;
   };
   return (
-    <div className="flex gap-3 pt-2">
+    // Oleada 2 (B-7): convención única de footer — Cancelar a la izquierda,
+    // acción primaria a la derecha, en todos los diálogos de la app.
+    <div className="flex items-center justify-between gap-3 pt-2">
+      <Button type="button" variant="outline" onClick={onCancel} disabled={busy}>Cancelar</Button>
       <Button type="submit" disabled={busy} onPointerDown={blockIfBusy}>
         {busy && <SpinnerIcon className="h-4 w-4 mr-2 animate-spin" />}
         {busy ? "Guardando…" : submitLabel}
       </Button>
-      <Button type="button" variant="outline" onClick={onCancel} disabled={busy}>Cancelar</Button>
     </div>
   );
 }

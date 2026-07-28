@@ -93,6 +93,8 @@ export default function QuotesPage() {
       hasActiveFilters={hasActive}
       onClearFilters={reset}
       emptyMessage="No hay cotizaciones aún"
+      emptyActionLabel="Nueva cotización"
+      onEmptyAction={() => navigate("/quotes/new")}
       skeletonColumns={7}
       mobileCardRender={(q) => {
         // R7 Bloque 19b: reutilizamos el cálculo de vencida en la vista móvil.
