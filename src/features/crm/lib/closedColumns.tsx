@@ -17,6 +17,7 @@ export function buildClosedColumns(
   kind: ClosedKind,
   onReopen: (p: Prospect) => void,
   onConvert?: (p: Prospect) => void,
+  onViewCustomer?: (customerId: string) => void,
 ): ColumnDef<Prospect>[] {
   const base: ColumnDef<Prospect>[] = [
     {
