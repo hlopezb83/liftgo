@@ -68,9 +68,19 @@ export function UtilizationReport({ startDate, endDate }: Props) {
     return { id: fl.id, name: fl.name, bookedDays, totalDays: totalDaysRange, utilization };
   });
 
+  const drilldownBookings: DrilldownBooking[] = bookings.map((b) => ({
+    id: b.id,
+    booking_number: b.booking_number,
+    customer_name: b.customer_name ?? null,
+    forklift_id: b.forklift_id,
+    start_date: b.start_date,
+    end_date: b.end_date,
+    status: b.status,
+  }));
   const selectedBookings = selected
-    ? bookingsForForkliftInRange(bookings as unknown as DrilldownBooking[], selected.id, startDate, endDate)
+    ? bookingsForForkliftInRange(drilldownBookings, selected.id, startDate, endDate)
     : [];
+
 
   const columns: ColumnDef<Row>[] = [
     { id: "name", header: "Montacargas", accessorKey: "name", cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },
