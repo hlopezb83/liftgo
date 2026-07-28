@@ -1,0 +1,18 @@
+{
+  "version": "7.245.0",
+  "date": "2026-07-28",
+  "type": "minor",
+  "title": "Oleadas 2 y 3 UI/UX · empty states con CTA, footers y facelift del portal",
+  "category": "feature",
+  "summary": "Cierra B-3, B-7, C-2 y C-7: CTAs en listas vacías, orden estándar de botones en diálogos, portal de clientes con marca y KPIs unificados, y tema de gráficas aplicado en todos los reportes.",
+  "highlights": [
+    "B-3: Clientes, Cotizaciones, Contratos y Proveedores muestran `EmptyState` con botón \"Nuevo X\" (o \"Limpiar filtros\" cuando hay filtros activos) vía `emptyActionLabel`/`onEmptyAction` en `ListPageLayout`.",
+    "B-7: `FormActions` invierte el orden — Cancelar a la izquierda y la acción primaria a la derecha — estandarizando todos los diálogos y drawers del sistema.",
+    "C-2: Portal de clientes con header sticky + `BrandMark` del tenant, contenedor `max-w-5xl`, KPIs migrados a `KpiTile` con `formatCompactCurrency`/`kpiSizeClass`, nueva tarjeta \"Próximos vencimientos\" y columnas tipadas (`kind: date|money|badge`) en Rentas, Cotizaciones y Facturas.",
+    "C-7: `chartTheme` aplicado en Flujo de Efectivo, Utilización (panel y reporte), Estado de Flota y Rentabilidad por Modelo; los textos sueltos de \"Sin datos\" se reemplazan por `EmptyState`."
+  ],
+  "notes": [
+    "`ContractMobileCard` se extrae de `ContractsPage` para respetar el límite de líneas por función.",
+    "B-8 (rediseño de Conciliación Bancaria a dos columnas) sigue diferido a su propia oleada."
+  ]
+}
