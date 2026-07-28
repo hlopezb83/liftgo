@@ -1,62 +1,45 @@
-## Contexto (verificado en el código)
+## Contexto
 
-- Hoy la importación vive en `src/features/bank-reconciliation`: `lib/csvParsers.ts` (parseo), `components/BankStatementUploader.tsx` (input restringido a `.csv,text/csv`) y `hooks/mutations/useImportBankStatement.ts`.
-- El contrato de salida ya existe y no cambia: `ParsedBankLine { posted_date, description, signed_amount, reference, hash }` + `ParseResult { lines, errors, periodStart, periodEnd }`.
+Al timbrar el REP del pago de FAC-0091 la app mostró "REP ya está siendo timbrado o ya fue timbrado", pero en la base de datos el pago **sí era timbrable** (`rep_cfdi_status = 'none'`, sin UUID) y **no quedó ningún cambio registrado** en la bitácora ese día. Es decir: el mensaje es engañoso y la causa real quedó oculta.
 
-## Lo que encontré en internet
+Analogía: es como un torniquete que dice "ya pasaste" cuando en realidad se atoró; el letrero es siempre el mismo aunque el motivo sea otro.
 
-La documentación pública de BBVA México **no publica un esquema del XML** de estado de cuenta. En la práctica circulan tres variantes:
+## Causa
 
-1. **CFDI con complemento "Estado de Cuenta Bancario" (namespace `ecb`)** — es lo que suele bajarse desde banca en línea junto al PDF. Los movimientos vienen como nodos repetidos con atributos tipo `fecha`/`fechaOperacion`, `concepto`/`descripcion`, `deposito`, `retiro`/`cargo`, `referencia`, `saldo`.
-2. **XML de BBVA Net Cash / Host to Host** (empresas) — estructura propia con nodos `Movimiento`/`Operacion`.
-3. **XML "Excel-like"** (SpreadsheetML) que algunos bancos entregan disfrazado de XML.
+En `stamp-payment-complement`, el "candado" (claim) hace un UPDATE condicional y solo revisa si devolvió fila. Dos situaciones muy distintas terminan en el mismo 409:
 
-Dado que no hay esquema oficial confiable, el parser **no debe asumir un layout fijo**: se construye tolerante a namespaces y con mapeo manual como red de seguridad.
+1. El pago realmente ya está en `stamping`/`stamped` (caso legítimo).
+2. El UPDATE **falló** (error de bloqueo/timeout/trigger) o hubo dos peticiones simultáneas — el error se manda a consola y el usuario recibe el mismo texto.
 
-## Qué se va a construir
+Además, si una petición reclama el pago y luego el proceso muere sin liberarlo, el pago queda atorado en `stamping` para siempre, sin forma de reintentar desde la app.
 
-### 1. `lib/xmlParsers.ts` (nuevo)
-- Parseo con `DOMParser` nativo (sin dependencia nueva).
-- **Detección heurística**: recorre el árbol, encuentra el conjunto de nodos hermanos repetidos más numeroso (los movimientos), y para cada campo evalúa atributos *y* nodos hijos por nombre normalizado (sin acentos, sin namespace, minúsculas):
-  - fecha: `fecha`, `fechaoperacion`, `fechaliquidacion`, `date`
-  - descripción: `concepto`, `descripcion`, `detalle`, `leyenda`
-  - cargo: `retiro`, `cargo`, `debito`, `importeretiro`
-  - abono: `deposito`, `abono`, `credito`, `importedeposito`
-  - monto único: `importe`, `monto`, `amount`
-  - referencia: `referencia`, `folio`, `numeroreferencia`, `clavetraspaso`
-- Reutiliza `parseDateFlexible`, `parseAmount`, `hashLine` y `computeSigned` de `csvParsers.ts` (se extraen a `lib/bankParseUtils.ts` para no duplicar — regla DRY).
-- Soporta fechas ISO con hora (`2026-07-01T00:00:00`) y formato `DDMMMYYYY` que BBVA usa a veces (`01JUL2026`).
-- Regla de signo: si hay cargo/abono separados → `abono - |cargo|`; si hay monto único → se respeta el signo, y si el XML trae un campo `tipo` (`CARGO`/`ABONO`) se usa para forzarlo.
-- Devuelve el mismo `ParseResult`, más un `detectedMapping` para mostrarlo en la UI.
+## Cambios propuestos
 
-### 2. Mapeo manual (fallback)
-Si la detección no encuentra fecha o monto, el uploader muestra un panel con los nombres de campo hallados en el XML y selectores para que el usuario asigne fecha / descripción / cargo / abono / referencia. Ese mapeo se guarda en `localStorage` por cuenta bancaria para no repetirlo cada mes.
+### 1. Distinguir las causas (edge function)
 
-### 3. Vista previa antes de importar
-Nueva tarjeta de previsualización (primeros 10 movimientos + totales cargos/abonos + rango de fechas + conteo de errores) con botón **Confirmar importación**. Aplica tanto a XML como a CSV, así el CSV también gana la previsualización.
+- Si el UPDATE del claim regresa error: responder 503 con el mensaje real de la base ("no se pudo iniciar el timbrado: …") en vez de "ya está siendo timbrado".
+- Si el UPDATE no encontró fila: releer el pago y devolver un mensaje específico según su estado real:
+  - `stamped` → "Este pago ya tiene un REP timbrado".
+  - `stamping` → "El timbrado está en proceso, espera unos segundos".
+  - otro caso → mensaje con el estado detectado, para no volver a quedar a ciegas.
+- Agregar logs con `payment_id` y estado leído en cada rama, para que el próximo reporte sea diagnosticable de inmediato.
 
-### 4. `BankStatementUploader.tsx`
-- `accept=".csv,.xml,text/csv,text/xml,application/xml"`.
-- Enruta por extensión/contenido: si empieza con `<?xml` o `<` → `parseBankXml`, si no → `parseBankCsv`.
-- Se agrega el perfil **"BBVA México (XML)"** a `CSV_PROFILES` (se renombra el tipo a `StatementProfile` manteniendo compatibilidad).
-- Título de la tarjeta pasa a "Subir estado de cuenta (CSV o XML)".
+### 2. Recuperación de claims atorados
 
-### 5. Deduplicación
-El `hash` se calcula igual que en CSV (fecha + monto + referencia + descripción), así que reimportar el mismo periodo en XML tras haberlo hecho en CSV no duplica movimientos, siempre que la descripción coincida. Se documenta esta limitación en el aviso de importación.
+- Registrar la hora de inicio del claim y permitir reclamar de nuevo un pago que lleve más de 5 minutos en `stamping` (equivale a "el torniquete se destraba solo"). Se implementa con una columna nueva de timestamp en `payments` y su condición en el claim, más el GRANT correspondiente.
 
-### 6. Tests
-- `lib/__tests__/xmlParsers.test.ts` con fixtures de las 3 variantes (CFDI `ecb`, Net Cash, XML genérico), casos de: namespaces con prefijo, cargo/abono separados, monto único con signo, fecha con hora, nodo sin monto (error listado, no crash), XML malformado.
-- Test de que `parseBankXml` y `parseBankCsv` producen el mismo `hash` para el mismo movimiento.
+### 3. Evitar dobles disparos desde la UI
 
-### 7. Cierre
-Entrada nueva en `public/changelog.json` + `public/changelog/v7.248.0.json` (minor: nueva capacidad de importación).
+- En el alta de pago (`useRecordPaymentForm`) el REP se timbra automáticamente y además existe el botón manual "Timbrar REP" en el historial: se deshabilitará el botón manual mientras el pago esté en `stamping` o mientras haya un timbrado en curso para ese mismo pago (hoy solo se bloquea de forma global por `isPending`).
 
-## Detalle técnico
+### 4. Validación
 
-- Sin dependencias nuevas: `DOMParser` está en el navegador y el parseo es client-side, igual que el CSV actual.
-- `xmlParsers.ts` se mantiene bajo 150 LOC dividiendo en `detectMovementNodes`, `buildFieldIndex` y `mapNodeToLine`.
-- Nada de la base de datos cambia: se reusa `useImportBankStatement` tal cual.
+- Reintentar el timbrado del pago de FAC-0091 en preview y revisar los logs de la función.
+- Pruebas unitarias del nuevo mapeo de estados a mensajes.
+- Entrada de changelog v7.248.1 (`public/changelog.json` + `public/changelog/v7.248.1.json`).
 
-## Riesgo conocido
+## Detalles técnicos
 
-Sin un XML real de BBVA no puedo garantizar que la heurística acierte al 100% a la primera. Por eso el plan incluye el mapeo manual y la vista previa: aunque la detección falle, la importación se puede completar. **Si me compartes un XML real (puedes tachar saldos y número de cuenta), afino la detección para que funcione sin intervención.**
+- Archivos: `supabase/functions/stamp-payment-complement/index.ts`, `src/features/invoices/hooks/invoices/usePaymentHistoryColumns.tsx`, migración para `payments.rep_stamping_started_at`.
+- El claim sigue siendo atómico (un solo UPDATE condicional); solo se amplía la condición con el vencimiento del claim y se mejora el reporte de error.
+- No se toca la lógica de Facturapi ni el cálculo de parcialidad (`prepare_payment_complement`).

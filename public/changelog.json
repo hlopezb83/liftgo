@@ -1,5 +1,14 @@
 [
   {
+    "version": "7.248.1",
+    "date": "2026-07-28",
+    "type": "patch",
+    "title": "Timbrado de REP: mensajes reales y recuperación de intentos atorados",
+    "category": "fix",
+    "description": "Al timbrar un complemento de pago (REP) la app mostraba siempre 'REP ya está siendo timbrado o ya fue timbrado', incluso cuando el pago sí era timbrable. Ahora el mensaje dice la causa real, el botón evita disparos duplicados y los intentos atorados se liberan solos después de 5 minutos."
+  },
+  {
+
     "version": "7.248.0",
     "date": "2026-07-28",
     "type": "minor",

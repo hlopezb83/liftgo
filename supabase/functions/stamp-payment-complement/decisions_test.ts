@@ -3,7 +3,7 @@
 // `tipo_cambio=17.5` capturado por error mandaba EquivalenciaDR=17.5 al PAC
 // y el timbrado fallaba con CFDI40230. Este test evita la regresión.
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { computeRepExchange } from "./decisions.ts";
+import { claimRejectionMessage, computeRepExchange } from "./decisions.ts";
 
 Deno.test("MonedaP == MonedaDR (ambos MXN) → exchange=1, ignorando tipo_cambio guardado", () => {
   assertEquals(
@@ -173,5 +173,31 @@ Deno.test("thisAmount ≤ 0 → payment_amount_invalid", () => {
       }),
     Error,
     "payment_amount_invalid",
+  );
+});
+
+// R-REP-409: mensajes accionables cuando el claim atómico es rechazado.
+Deno.test("claimRejectionMessage · stamped → ya timbrado", () => {
+  assertEquals(
+    claimRejectionMessage("stamped"),
+    "Este pago ya tiene un REP timbrado",
+  );
+});
+
+Deno.test("claimRejectionMessage · stamping → en proceso", () => {
+  assertEquals(
+    claimRejectionMessage("stamping"),
+    "El timbrado de este REP está en proceso. Espera unos segundos y actualiza.",
+  );
+});
+
+Deno.test("claimRejectionMessage · estado desconocido incluye el estado", () => {
+  assertEquals(
+    claimRejectionMessage("weird"),
+    "No se puede timbrar el REP en el estado actual del pago (weird).",
+  );
+  assertEquals(
+    claimRejectionMessage(null),
+    "No se puede timbrar el REP en el estado actual del pago (desconocido).",
   );
 });

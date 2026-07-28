@@ -1,0 +1,30 @@
+{
+  "version": "7.248.1",
+  "date": "2026-07-28",
+  "type": "patch",
+  "title": "Timbrado de REP: mensajes reales y recuperación de intentos atorados",
+  "category": "fix",
+  "description": "Al timbrar un complemento de pago (REP) la app mostraba siempre 'REP ya está siendo timbrado o ya fue timbrado', incluso cuando el pago sí era timbrable y la falla era otra (bloqueo momentáneo de la base o un intento previo interrumpido). Ahora el mensaje dice la causa real y los intentos que se quedan atorados se liberan solos después de 5 minutos.",
+  "changes": [
+    {
+      "type": "fix",
+      "description": "Si el candado de timbrado falla por un problema técnico se devuelve un error transitorio con la causa real, en lugar del mensaje engañoso de 'ya está siendo timbrado'."
+    },
+    {
+      "type": "fix",
+      "description": "Cuando el candado sí rechaza el intento, se relee el estado del pago y se responde con un mensaje específico: ya timbrado, en proceso, o el estado detectado."
+    },
+    {
+      "type": "improvement",
+      "description": "Nuevo registro de la hora de inicio del timbrado: un intento que quede en 'timbrando' más de 5 minutos puede reintentarse desde la app sin intervención manual."
+    },
+    {
+      "type": "improvement",
+      "description": "El botón 'Timbrar REP' muestra 'Timbrando…' en el pago correspondiente y evita disparos duplicados."
+    },
+    {
+      "type": "improvement",
+      "description": "Registro de diagnóstico con el identificador del pago y su estado en cada rechazo, para poder investigar reportes futuros de inmediato."
+    }
+  ]
+}

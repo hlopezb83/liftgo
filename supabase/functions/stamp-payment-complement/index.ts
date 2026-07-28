@@ -14,7 +14,7 @@ import {
   isFacturapiTimeout,
   sdkCallWithTimeout,
 } from "../_shared/facturapi/withTimeout.ts";
-import { computeRepExchange } from "./decisions.ts";
+import { claimRejectionMessage, computeRepExchange } from "./decisions.ts";
 
 const BUCKET = "cfdi-files";
 const DEFAULT_IVA_RATE = 0.16;
@@ -55,24 +55,61 @@ Deno.serve(async (req) => {
     // rep_cfdi_uuid IS NULL (data no timbrada). Solo `cancelled` puede tener
     // uuid presente. Esto cierra la puerta a data corrupta con uuid poblado en
     // estados no-timbrados que de otra forma pasaría el claim.
+    // Claims vencidos: si un proceso murió tras reclamar, el pago quedaría
+    // atorado en 'stamping' para siempre. Permitimos re-reclamar cuando el
+    // claim tiene más de STALE_CLAIM_MINUTES.
+    const STALE_CLAIM_MINUTES = 5;
+    const staleBefore = new Date(
+      Date.now() - STALE_CLAIM_MINUTES * 60_000,
+    ).toISOString();
     const claimRes = await supabase
       .from("payments")
-      .update({ rep_cfdi_status: "stamping" })
+      .update({
+        rep_cfdi_status: "stamping",
+        rep_stamping_started_at: new Date().toISOString(),
+      })
       .eq("id", payment_id)
-      .in("rep_cfdi_status", ["pending", "error", "none", "cancelled"])
-      .or("rep_cfdi_uuid.is.null,rep_cfdi_status.eq.cancelled")
+      .or(
+        [
+          "and(rep_cfdi_status.in.(pending,error,none),rep_cfdi_uuid.is.null)",
+          "rep_cfdi_status.eq.cancelled",
+          `and(rep_cfdi_status.eq.stamping,rep_cfdi_uuid.is.null,rep_stamping_started_at.lt.${staleBefore})`,
+        ].join(","),
+      )
       .select("id")
       .maybeSingle();
     if (claimRes.error) {
-      console.error("[stamp-payment-complement] claim failed", claimRes.error);
-    }
-    if (!claimRes.data) {
+      // Un fallo del UPDATE (lock/timeout/trigger) NO significa que el REP ya
+      // esté en proceso: se reporta como error transitorio con la causa real.
+      console.error("[stamp-payment-complement] claim failed", {
+        payment_id,
+        err: claimRes.error,
+      });
       return jsonError(
         req,
-        409,
-        "REP ya está siendo timbrado o ya fue timbrado",
+        503,
+        `No se pudo iniciar el timbrado: ${
+          claimRes.error.message ?? "error de base de datos"
+        }`,
       );
     }
+    if (!claimRes.data) {
+      // Releer el estado real para dar un mensaje accionable en vez de un
+      // genérico "ya está siendo timbrado".
+      const { data: current } = await supabase
+        .from("payments")
+        .select("rep_cfdi_status, rep_cfdi_uuid")
+        .eq("id", payment_id)
+        .maybeSingle();
+      const st = current?.rep_cfdi_status ?? null;
+      console.warn("[stamp-payment-complement] claim rejected", {
+        payment_id,
+        rep_cfdi_status: st,
+        has_uuid: Boolean(current?.rep_cfdi_uuid),
+      });
+      return jsonError(req, 409, claimRejectionMessage(st));
+    }
+
 
     // Helper: liberar el claim ante un early-return no-fatal. Deja el pago en
     // 'pending' para que el operador o el retry queue puedan re-intentar.
@@ -81,10 +118,12 @@ Deno.serve(async (req) => {
         .from("payments")
         .update({
           rep_cfdi_status: "pending",
+          rep_stamping_started_at: null,
           rep_error_message: msg ?? null,
         })
         .eq("id", payment_id);
     };
+
 
     // BLOQUE 2.2: un solo RPC transaccional bloquea la factura, calcula
     // NumParcialidad + ImpSaldoAnt y RESERVA installment_number/prior_balance
@@ -120,7 +159,9 @@ Deno.serve(async (req) => {
         .from("payments")
         .update({
           rep_cfdi_status: "error",
+          rep_stamping_started_at: null,
           rep_error_message: errMsg.slice(0, 1000),
+
         })
         .eq("id", payment_id);
       return jsonError(
@@ -268,7 +309,9 @@ Deno.serve(async (req) => {
         .from("payments")
         .update({
           rep_cfdi_status: "error",
+          rep_stamping_started_at: null,
           rep_error_message: desc.detail.slice(0, 1000),
+
         })
         .eq("id", payment_id);
       return jsonError(req, 502, `Facturapi error: ${desc.status}`, {
@@ -320,9 +363,11 @@ Deno.serve(async (req) => {
         rep_facturapi_id: repId,
         rep_cfdi_uuid: repUuid,
         rep_cfdi_status: "stamped",
+        rep_stamping_started_at: null,
         rep_xml_url: xmlPath,
         rep_pdf_url: pdfPath,
         rep_error_message: null,
+
       })
       .eq("id", payment_id);
 
