@@ -126,9 +126,23 @@ export function UtilizationReport({ startDate, endDate }: Props) {
       </Card>
       <Card>
         <CardContent className="p-0 overflow-x-auto">
-          <DataTableV2 table={table} emptyMessage="Sin datos en el rango" />
+          <DataTableV2
+            table={table}
+            emptyMessage="Sin datos en el rango"
+            onRowClick={(r) => setSelected(r)}
+          />
         </CardContent>
       </Card>
+      <UtilizationDetailSheet
+        open={selected !== null}
+        onOpenChange={(o) => { if (!o) setSelected(null); }}
+        forkliftName={selected?.name ?? null}
+        bookedDays={selected?.bookedDays ?? 0}
+        totalDays={selected?.totalDays ?? totalDaysRange}
+        utilization={selected?.utilization ?? 0}
+        bookings={selectedBookings}
+      />
     </>
+
   );
 }
