@@ -1,0 +1,15 @@
+{
+  "version": "7.239.1",
+  "date": "2026-07-28",
+  "type": "patch",
+  "title": "CI · gate visual E2E respeta E2E_VISUAL='0'",
+  "category": "fix",
+  "sections": [
+    {
+      "title": "Fix",
+      "items": [
+        "tests/e2e/visual-desktop.spec.ts y visual-mobile.spec.ts: el gate usaba `!process.env.E2E_VISUAL`, pero la cadena '0' es truthy en JS, por lo que las 15 pruebas visuales se ejecutaban en CI sin baselines y fallaban. Ahora se ejecutan sólo cuando `E2E_VISUAL === '1'`."
+      ]
+    }
+  ]
+}
