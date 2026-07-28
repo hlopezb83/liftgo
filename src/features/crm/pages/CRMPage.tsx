@@ -109,7 +109,16 @@ export default function CRMPage() {
       dialogs.setDialogOpen(true);
     }
   };
-
+  if (isError) {
+    return (
+      <PageTransition>
+        <PageContainer>
+          <PageHeader title="CRM" />
+          <QueryErrorState entity="los prospectos" onRetry={() => refetch()} isRetrying={isFetching} />
+        </PageContainer>
+      </PageTransition>
+    );
+  }
 
   return (
     <TooltipProvider delayDuration={300}>
