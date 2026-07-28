@@ -1,6 +1,7 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { ReportChartCard } from "@/components/domain/ReportChartCard";
-import { PieChart as PieChartIcon } from "@/components/icons";
+import { EmptyState } from "@/components/feedback/EmptyState";
+import { PieChart as PieChartIcon, ChartIcon } from "@/components/icons";
 
 interface PieDataItem {
   name: string;
@@ -62,7 +63,7 @@ export function FleetStatusChart({ data }: FleetStatusChartProps) {
           </ul>
         </div>
       ) : (
-        <p className="text-muted-foreground text-sm text-center py-10">Sin datos aún</p>
+        <EmptyState icon={ChartIcon} title="Sin datos de flota" subtitle="Registra equipos para ver la distribución por estado." />
       )}
     </ReportChartCard>
   );
