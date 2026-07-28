@@ -37,6 +37,7 @@ export function useIncomeStatementData({
 
   return {
     data, filteredData, totals, statementRows, comparisonRows, yearTotals,
+    isError, isFetching, refetch,
     csvRows,
     depreciationBreakdownRows, cogsBreakdownRows,
     rentalBookedBreakdownRows, rentalUnbookedBreakdownRows, salesBreakdownRows,
