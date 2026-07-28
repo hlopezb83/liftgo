@@ -6,8 +6,8 @@ import { DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useBookings } from "@/features/bookings";
-import { chartGridProps, chartTick } from "@/lib/charts/chartTheme";
 import { useForklifts } from "@/features/fleet";
+import { chartGridProps, chartTick } from "@/lib/charts/chartTheme";
 import { exportToCsv } from "@/lib/exportCsv";
 
 interface Props {
