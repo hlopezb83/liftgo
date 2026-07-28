@@ -107,22 +107,13 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {Object.entries(bucketTotals).map(([range, total]) => (
-          <Card key={range}>
-            <CardContent className="pt-4 pb-3 text-center">
-              <p className="text-xs text-muted-foreground">{range} días</p>
-              <p className="font-mono font-bold text-lg">{formatCurrency(total)}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <AgingBucketCards totals={bucketTotals} selected={selectedBucket} onSelect={setSelectedBucket} />
 
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">
-              Detalle de Cartera Vencida — Total: {formatCurrency(grandTotal)}
+              Detalle de cartera vencida{selectedBucket ? ` (${selectedBucket} días)` : ""} — Total: {formatCurrency(selectedBucket ? visibleTotal : grandTotal)}
             </CardTitle>
             <Button variant="outline" size="sm" onClick={handleExport}>
               <DownloadIcon className="h-4 w-4 mr-1" /> Exportar CSV
@@ -130,9 +121,14 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
           </div>
         </CardHeader>
         <CardContent>
-          <DataTableV2 table={table} emptyMessage="No hay facturas vencidas" />
+          <DataTableV2
+            table={table}
+            emptyMessage="No hay facturas vencidas"
+            onRowClick={(i) => navigate(`/invoices/${i.id}`)}
+          />
         </CardContent>
       </Card>
+
     </div>
   );
 }
