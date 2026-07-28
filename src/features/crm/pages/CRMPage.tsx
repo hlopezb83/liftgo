@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePageActions } from "@/contexts/pageActions";
