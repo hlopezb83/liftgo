@@ -30,6 +30,8 @@ export function useRegisterSupplierPayment() {
       supplierBillKeys.all,
       supplierBillKeys.detail(vars.bill_id),
       ["accounts_payable_kpis"],
+      ["dashboard-financial-kpis"],
+      ["cash-flow"],
     ],
     successMsg: "Pago registrado",
     errorTitle: "No se pudo registrar el pago",
