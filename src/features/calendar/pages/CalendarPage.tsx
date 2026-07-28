@@ -33,7 +33,7 @@ export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(nowMty());
   const fetchFrom = subMonths(currentDate, 1);
   const fetchTo = addMonths(currentDate, 1);
-  const { data: bookings, isLoading: bLoading } = useBookingsRange(fetchFrom, fetchTo);
+  const { data: bookings, isLoading: bLoading, isError: bError, isFetching: bFetching, refetch: bRefetch } = useBookingsRange(fetchFrom, fetchTo);
   const { forkliftMap, forklifts, isLoading: fLoading } = useForkliftMap();
 
   const isMobile = useIsMobile();
