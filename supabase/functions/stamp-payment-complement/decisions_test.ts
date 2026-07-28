@@ -175,3 +175,29 @@ Deno.test("thisAmount ≤ 0 → payment_amount_invalid", () => {
     "payment_amount_invalid",
   );
 });
+
+// R-REP-409: mensajes accionables cuando el claim atómico es rechazado.
+Deno.test("claimRejectionMessage · stamped → ya timbrado", () => {
+  assertEquals(
+    claimRejectionMessage("stamped"),
+    "Este pago ya tiene un REP timbrado",
+  );
+});
+
+Deno.test("claimRejectionMessage · stamping → en proceso", () => {
+  assertEquals(
+    claimRejectionMessage("stamping"),
+    "El timbrado de este REP está en proceso. Espera unos segundos y actualiza.",
+  );
+});
+
+Deno.test("claimRejectionMessage · estado desconocido incluye el estado", () => {
+  assertEquals(
+    claimRejectionMessage("weird"),
+    "No se puede timbrar el REP en el estado actual del pago (weird).",
+  );
+  assertEquals(
+    claimRejectionMessage(null),
+    "No se puede timbrar el REP en el estado actual del pago (desconocido).",
+  );
+});
