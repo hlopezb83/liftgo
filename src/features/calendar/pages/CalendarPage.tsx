@@ -34,7 +34,10 @@ export default function CalendarPage() {
   const fetchFrom = subMonths(currentDate, 1);
   const fetchTo = addMonths(currentDate, 1);
   const { data: bookings, isLoading: bLoading, isError: bError, isFetching: bFetching, refetch: bRefetch } = useBookingsRange(fetchFrom, fetchTo);
-  const { forkliftMap, forklifts, isLoading: fLoading } = useForkliftMap();
+  const {
+    forkliftMap, forklifts, isLoading: fLoading,
+    isError: fError, isFetching: fFetching, refetch: fRefetch,
+  } = useForkliftMap();
 
   const isMobile = useIsMobile();
   const [viewMode, setViewMode] = useState<"gantt" | "list">(isMobile ? "list" : "gantt");
