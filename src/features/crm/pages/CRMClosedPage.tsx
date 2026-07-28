@@ -1,4 +1,3 @@
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { SearchIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -7,6 +6,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useHasModuleAccess } from "@/features/users/hooks/useHasModuleAccess";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { ClosedTable } from "../components/closed/ClosedTable";
 import { useClosedProspects } from "../hooks/useClosedProspects";
