@@ -19,8 +19,8 @@ interface Props {
 type Row = { name: string; totalCost: number; count: number };
 
 export function MaintenanceCostReport({ startDate, endDate }: Props) {
-  const { data: forklifts = [] } = useForklifts();
-  const { data: maintenanceLogs = [] } = useMaintenanceLogs();
+  const { data: forklifts = [], isError: fError, isFetching: fFetching, refetch: fRefetch } = useForklifts();
+  const { data: maintenanceLogs = [], isError: mError, refetch: mRefetch } = useMaintenanceLogs();
   const forkliftMap = new Map(forklifts.map((f) => [f.id, f.name]));
 
   const data: Row[] = (() => {
