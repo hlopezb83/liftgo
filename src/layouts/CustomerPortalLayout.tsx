@@ -55,7 +55,7 @@ export default function CustomerPortalLayout() {
        * misma en móvil (overflow-x-auto + shrink-0 en cada tab) para no
        * empujar el ancho del documento y romper el viewport a 390px.
        */}
-      <nav className="border-b bg-card">
+      <nav data-app-header className="border-b bg-card">
         <div className="flex gap-1 overflow-x-auto px-4 sm:px-6 [-webkit-overflow-scrolling:touch]">
           {tabs.map((tab) => {
             const isActive =
