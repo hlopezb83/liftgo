@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.240.2",
+    "date": "2026-07-28",
+    "type": "minor",
+    "title": "Auditoría R19 · contratos, cobro de daños, lote de pagos y RPC",
+    "category": "fix",
+    "description": "Contratos y facturas de proveedor ahora reaccionan al elegir cliente/equipo/moneda (fix RHF 7.83 + React 19 usando useWatch); facturas con cancelación SAT aceptada ya no muestran 'Registrar Pago'; el lote de pagos a proveedor acepta bills 'not_required' además de aprobadas; el prefill de 'Cobro de daño' espera a que cargue el catálogo de clientes en caché frío; al facturar un daño se marca 'invoiced' cerrando el ciclo (evita doble cobro); DamageActions valida cliente y estado antes de navegar; RPC complete_return_inspection rechaza p_hours_used negativo; deals ganados ya convertidos muestran 'Cliente creado' en /crm/cerrados; facturas del portal muestran código de moneda; índice único en contracts.contract_number contra doble-click."
+  },
+  {
     "version": "7.240.1",
     "date": "2026-07-28",
     "type": "patch",
