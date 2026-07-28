@@ -29,15 +29,17 @@ function isProspectFormDirty(
   prospect: Prospect | null | undefined,
   s: ProspectFormSnapshot,
 ): boolean {
-  return (
-    s.company !== (prospect?.companyName ?? "") ||
-    s.contact !== (prospect?.contactPerson ?? "") ||
-    s.email !== (prospect?.email ?? "") ||
-    s.phone !== (prospect?.phone ?? "") ||
-    s.dealValue !== (prospect ? String(prospect.dealValue ?? 0) : "") ||
-    s.notes !== (prospect?.notes ?? "") ||
-    s.quoteId !== (prospect?.quoteId ?? null)
-  );
+  const initial: ProspectFormSnapshot = {
+    company: prospect?.companyName ?? "",
+    contact: prospect?.contactPerson ?? "",
+    email: prospect?.email ?? "",
+    phone: prospect?.phone ?? "",
+    dealValue: prospect ? String(prospect.dealValue ?? 0) : "",
+    notes: prospect?.notes ?? "",
+    quoteId: prospect?.quoteId ?? null,
+  };
+  const keys = Object.keys(initial) as Array<keyof ProspectFormSnapshot>;
+  return keys.some((k) => s[k] !== initial[k]);
 }
 
 export function useProspectForm({
