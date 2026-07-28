@@ -1,6 +1,6 @@
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { formatDateDisplay, formatDateRange } from "@/lib/utils";
 
 interface Booking {
@@ -17,6 +17,7 @@ interface Invoice {
   issued_at: string | null;
   total: number | string;
   status: string;
+  moneda?: string | null;
 }
 
 export function PortalBookingsCard({ bookings }: { bookings: Booking[] }) {
@@ -54,7 +55,10 @@ export function PortalRecentInvoicesCard({ invoices }: { invoices: Invoice[] }) 
               <p className="text-xs text-muted-foreground">{formatDateDisplay(inv.issued_at)}</p>
             </div>
             <div className="flex items-center gap-3">
-              <span className="font-mono font-semibold">{formatCurrency(Number(inv.total))}</span>
+              {/* Auditoría R19: mostrar código de moneda para no confundir USD con MXN. */}
+              <span className="font-mono font-semibold">
+                {formatCurrencyWithCode(Number(inv.total), inv.moneda ?? "MXN")}
+              </span>
               <StatusBadge status={inv.status} />
             </div>
           </div>

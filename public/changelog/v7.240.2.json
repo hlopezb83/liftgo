@@ -1,0 +1,28 @@
+{
+  "version": "7.240.2",
+  "date": "2026-07-28",
+  "type": "minor",
+  "title": "Auditoría R19 · contratos, cobro de daños, lote de pagos y RPC",
+  "category": "fix",
+  "sections": [
+    {
+      "heading": "Bloqueantes (ALTOS)",
+      "items": [
+        "R19-A · Contratos y bill CxP: reemplazado `form.watch()` por `useWatch` en `useContractFormPrefill` y `SupplierBillFormDialog`. Con RHF 7.83 + React 19, `watch()` en render devolvía \"\" y los efectos de auto-carga de tarifas / template / moneda nunca disparaban.",
+        "R19-B · `computeActionFlags` (src/lib/rules/invoices.ts) ahora considera `cfdi.isCancelled` al calcular `isPayable`, ocultando 'Registrar Pago' cuando el SAT ya aceptó la cancelación aunque el status operativo no se haya sincronizado.",
+        "R19-C · RPC `create_supplier_payment_batch` acepta bills con `approval_status IN ('approved','not_required')`. Antes una sola bill no-aprobada abortaba TODO el lote.",
+        "R19-D · `useDamagePrefill` espera a que cargue el catálogo de clientes (`customers.length > 0`) antes de invocar `handleCustomerSelect`. Sin esto Radix Select disparaba `onValueChange(\"\")` y borraba el prefill en caché frío. También filtra el string literal 'null'.",
+        "A-3b · Al facturar un daño (`InvoiceForm.onSuccess`), se actualiza `damage_records.status='invoiced'` cerrando el ciclo. Previene doble cobro por el mismo daño. `DamageActions.handleCreateInvoice` valida cliente y estado antes de navegar."
+      ]
+    },
+    {
+      "heading": "Bajos",
+      "items": [
+        "C-5 · RPC `complete_return_inspection` rechaza `p_hours_used < 0` con ERRCODE `check_violation` (simétrico al guard de costo).",
+        "R19-3 · `closedColumns.tsx` muestra 'Cliente creado' junto al botón Reabrir cuando el deal won ya fue convertido.",
+        "Portal home · `PortalRecentInvoicesCard` usa `formatCurrencyWithCode(total, moneda ?? 'MXN')` para distinguir USD de MXN.",
+        "R19-2 · Índice único `contracts_contract_number_key` con dedupe defensivo, blindando contra doble-click ~100ms."
+      ]
+    }
+  ]
+}

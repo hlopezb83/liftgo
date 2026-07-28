@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { useWatch } from "react-hook-form";
 import { useBookings } from "@/features/bookings";
 import { useCompanySettings } from "@/features/company-settings";
 import type { Database } from "@/integrations/supabase/types";
@@ -32,8 +33,11 @@ export function useContractFormPrefill({
   const { data: company } = useCompanySettings();
   const { data: template } = useDefaultContractTemplate();
 
-  const customerId = form.watch("customer_id");
-  const forkliftId = form.watch("forklift_id");
+  // R19-A: `form.watch()` en render con RHF 7.83 + React 19 devuelve "" aunque
+  // `getValues()` sí tenga el valor → los efectos de auto-carga jamás disparaban.
+  // `useWatch` sí se suscribe correctamente al store del form.
+  const customerId = useWatch({ control: form.control, name: "customer_id" });
+  const forkliftId = useWatch({ control: form.control, name: "forklift_id" });
 
   // Pre-fill desde booking (crear nuevo desde reserva).
   useEffect(() => {

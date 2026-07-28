@@ -71,12 +71,14 @@ function computeActionFlags(invoice: InvoiceLike, cfdiStatus: string): InvoiceAc
   // estatus siga como sent/overdue/partial.
   const balanceKnown = typeof invoice.balance === "number";
   const hasBalance = !balanceKnown || (invoice.balance ?? 0) > 0;
-  const isPayable = (status === "sent" || status === "overdue") && hasBalance;
   const cfdi = computeCfdiFlags(invoice, cfdiStatus);
+  // R19-B: un CFDI con cancelación aceptada por el SAT no es cobrable aunque
+  // el `status` operativo siga en sent/overdue (ventana de desincronía).
+  const isPayable = (status === "sent" || status === "overdue") && hasBalance && !cfdi.isCancelled;
   return {
     isDraft,
     isPayable,
-    showPaymentBtn: (isPayable || status === "partial") && hasBalance,
+    showPaymentBtn: (isPayable || (status === "partial" && !cfdi.isCancelled)) && hasBalance,
     canEdit: isDraft && !cfdi.isStamped && !cfdi.isCancelled,
     canDelete: isDraft && !cfdi.isStamped && !cfdi.isCancelled,
     ...cfdi,

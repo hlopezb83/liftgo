@@ -2,7 +2,7 @@ import { MaintenanceIcon, InvoiceIcon, SuccessIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useCreateMaintenanceLog } from "@/features/maintenance";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { notifySuccess } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import type { DamageRecordWithJoins } from "@/types/rental";
 import { useUpdateDamageRecord } from "../../hooks/useDamageRecords";
 import { chargeableDamageCost } from "../../lib/chargeableDamageCost";
@@ -33,6 +33,13 @@ export function DamageActions({ record }: DamageActionsProps) {
 
   const cost = chargeableDamageCost(record);
   const handleCreateInvoice = () => {
+    // A-3b/C-4: defensa extra por si comparten la URL — el botón ya se oculta
+    // en status invoiced, pero validamos también en click.
+    if (record.status === "invoiced") return;
+    if (!record.customer_id) {
+      notifyError({ title: "El daño no tiene cliente asociado" });
+      return;
+    }
     navigate(`/invoices/new?damage_id=${record.id}&customer_id=${record.customer_id}&amount=${cost ?? ""}`);
   };
 
