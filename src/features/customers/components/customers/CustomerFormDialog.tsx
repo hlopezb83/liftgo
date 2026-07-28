@@ -66,6 +66,7 @@ export function CustomerFormDialog({ open, onOpenChange, initialData, isEdit, is
   return (
     <FormDialog
       isPending={isPending}
+      isDirty={form.formState.isDirty}
       open={open}
       onOpenChange={onOpenChange}
       title={isEdit ? "Editar Cliente" : "Nuevo Cliente"}
