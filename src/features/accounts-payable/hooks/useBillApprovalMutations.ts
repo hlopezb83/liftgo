@@ -7,6 +7,8 @@ const invalidationKeys = (billId: string) => [
   supplierBillKeys.all,
   supplierBillKeys.detail(billId),
   ["accounts_payable_kpis"] as const,
+  ["dashboard-financial-kpis"] as const,
+  ["cash-flow"] as const,
   billApprovalQueries.list({ billId }).queryKey,
 ];
 
