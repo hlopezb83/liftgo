@@ -15,7 +15,7 @@ import { useBankAccounts } from "../hooks/useBankAccounts";
 import { useBankStatementLines } from "../hooks/useBankStatementLines";
 
 export default function BankReconciliationPage() {
-  const { data: accounts } = useBankAccounts();
+  const { data: accounts, isLoading: isLoadingAccounts } = useBankAccounts();
   const [manualAccountId, setManualAccountId] = useState<string | null>(null);
   // Default derivado en render: la primera cuenta activa (o la primera). El usuario puede
   // sobrescribir con el <Select>. Al elegir manualmente, `manualAccountId` toma precedencia.
