@@ -77,15 +77,24 @@ export function DataTableV2<T>({
 
   const toolbar = buildToolbar(table, enableRowSelection, selectionToolbar);
   const useVirtual = virtualized && rows.length > virtualizationThreshold;
+  const selectionState = table.getState().rowSelection;
+  // R-Sel: llave estable de string; `rows` no cambia de identidad al seleccionar,
+  // así que sin esto el body queda memoizado y los checkboxes no se marcan.
+  const selectionKey = Object.keys(selectionState)
+    .filter((k) => selectionState[k])
+    .sort()
+    .join(",");
   const bodyProps = {
     rows,
     columnCount,
     emptyMessage,
     showSelection: enableRowSelection,
+    selectionKey,
     onRowClick,
     onRowPrefetch,
     rowClassName,
   };
+
 
   return (
     <div className="space-y-2">

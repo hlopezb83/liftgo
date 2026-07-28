@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.246.1",
+    "date": "2026-07-28",
+    "type": "patch",
+    "title": "Los checkboxes de las tablas ya se pintan al seleccionar filas",
+    "category": "fix",
+    "description": "Al seleccionar filas en cualquier tabla (por ejemplo en Conciliación bancaria) el contador y la barra de acciones masivas sí respondían, pero los checkboxes de cada fila seguían viéndose vacíos. El cuerpo de la tabla quedaba memoizado porque la lista de filas conserva la misma referencia entre renders; ahora se le pasa una llave de selección que invalida esa memoización."
+  },
+  {
     "version": "7.246.0",
     "date": "2026-07-28",
     "type": "minor",
@@ -8,7 +16,6 @@
     "description": "La conciliación pasa de cuatro tablas apiladas a un espacio de trabajo con pestañas de estado, tabla a la izquierda y panel de emparejamiento fijo a la derecha. Nueva función `get_bank_match_candidates` que busca candidatos en el servidor por monto, ventana de fechas (± 3 a 90 días) y texto, mostrando el desglose del score (monto exacto, días de diferencia, referencia coincidente). Se agregan acciones masivas para confirmar sugeridos e ignorar movimientos con una razón común, atajos J/K, y KPIs en la moneda de la cuenta seleccionada."
   },
   {
-
     "version": "7.245.0",
     "date": "2026-07-28",
     "type": "minor",
