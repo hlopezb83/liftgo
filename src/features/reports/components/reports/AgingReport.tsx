@@ -1,15 +1,19 @@
 import { differenceInDays, parseISO } from "date-fns";
+import { useState } from "react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useInvoicesWithBalance } from "@/features/invoices";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { exportToCsv } from "@/lib/exportCsv";
 import { todayKeyMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { toMxn } from "@/lib/money";
 import { formatDateDisplay, nowMty } from "@/lib/utils";
+import { AgingBucketCards } from "./drilldown/AgingBucketCards";
+
 
 interface AgingReportProps {
   startDate: Date;
