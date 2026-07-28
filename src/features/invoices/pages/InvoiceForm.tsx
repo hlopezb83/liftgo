@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useWatch } from "react-hook-form";
 import { useParams, useSearchParams } from "react-router";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
