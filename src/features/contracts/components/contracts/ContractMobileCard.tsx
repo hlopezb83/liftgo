@@ -12,8 +12,8 @@ export interface ContractCardItem {
   status: string;
   customer_name?: string | null;
   forklift_name?: string | null;
-  start_date: string;
-  end_date: string;
+  start_date: string | null;
+  end_date: string | null;
 }
 
 /** Tarjeta móvil de contratos (extraída de ContractsPage para respetar el límite de líneas). */
