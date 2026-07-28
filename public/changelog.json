@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.247.1",
+    "date": "2026-07-28",
+    "type": "patch",
+    "title": "CI en verde: prueba del portal y archivo sin uso",
+    "category": "quality",
+    "description": "La prueba automatizada del portal buscaba el texto viejo del encabezado ('Lift Go - Portal'), que cambió al mostrar la marca de cada empresa; ahora se ancla en la navegación del portal. También se eliminó el componente PortalStatCard que ya no usaba nadie."
+  },
+  {
     "version": "7.247.0",
     "date": "2026-07-28",
     "type": "minor",

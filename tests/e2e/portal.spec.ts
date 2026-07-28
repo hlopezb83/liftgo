@@ -23,7 +23,9 @@ test.describe("Customer portal", () => {
     await page.getByRole("button", { name: /iniciar sesión/i }).click();
 
     // Esperar el shell real del portal; /portal/login también empieza con /portal y causaba carrera.
-    await expect(page.getByText(/Lift Go - Portal/i)).toBeVisible({ timeout: 15_000 });
+    // Se ancla en la navegación del layout (estable) y no en el texto de marca,
+    // que ahora es dinámico por tenant ("<Razón social> · Portal").
+    await expect(page.getByRole("link", { name: "Facturas" })).toBeVisible({ timeout: 15_000 });
     await page.goto("/portal/invoices");
 
     await expect(page.getByText(portalSeed.invoice_number)).toBeVisible({ timeout: 15_000 });
