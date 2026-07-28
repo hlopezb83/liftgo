@@ -19,7 +19,7 @@ export function DetailRow({ icon: Icon, label, value }: DetailRowProps) {
       <Icon className="h-4 w-4 mt-0.5 text-muted-foreground shrink-0" />
       <div className="min-w-0">
         <p className="text-xs text-muted-foreground">{label}</p>
-        <p className="text-sm font-medium">{value || "—"}</p>
+        <div className="text-sm font-medium">{value || "—"}</div>
       </div>
     </div>
   );
