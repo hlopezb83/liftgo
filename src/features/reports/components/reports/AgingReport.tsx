@@ -1,15 +1,19 @@
 import { differenceInDays, parseISO } from "date-fns";
+import { useState } from "react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useInvoicesWithBalance } from "@/features/invoices";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { exportToCsv } from "@/lib/exportCsv";
 import { todayKeyMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { toMxn } from "@/lib/money";
 import { formatDateDisplay, nowMty } from "@/lib/utils";
+import { AgingBucketCards } from "./drilldown/AgingBucketCards";
+
 
 interface AgingReportProps {
   startDate: Date;
@@ -24,7 +28,10 @@ function getAgingBucket(days: number): string {
 }
 
 export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingReportProps) {
+  const navigate = useNavigateTransition();
+  const [selectedBucket, setSelectedBucket] = useState<string | null>(null);
   const todayYmd = todayKeyMty();
+
   // Vista unificada: ya viene con balance > 0 y status filtrado.
   const { data: rawOverdue, isError, isFetching, refetch } = useInvoicesWithBalance({
     statuses: ["sent", "partial", "overdue"],
@@ -46,6 +53,10 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
   overdueInvoices.forEach((i) => { bucketTotals[i.bucket] += i.balance_mxn; });
 
   const grandTotal = Object.values(bucketTotals).reduce((s, v) => s + v, 0);
+  const visibleInvoices = selectedBucket
+    ? overdueInvoices.filter((i) => i.bucket === selectedBucket)
+    : overdueInvoices;
+  const visibleTotal = visibleInvoices.reduce((s, i) => s + i.balance_mxn, 0);
 
   type Row = typeof overdueInvoices[number];
   const columns: ColumnDef<Row>[] = [
@@ -58,15 +69,16 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
   ];
 
   const table = useLiftgoTable<Row>({
-    data: overdueInvoices,
+    data: visibleInvoices,
     columns,
     getRowId: (i) => i.id,
     initialSorting: [{ id: "days_overdue", desc: true }],
     paginated: false,
   });
 
+
   const handleExport = () => {
-    exportToCsv("antiguedad_cartera.csv", overdueInvoices.map((i) => ({
+    exportToCsv("antiguedad_cartera.csv", visibleInvoices.map((i) => ({
       Factura: i.invoice_number,
       Cliente: i.customer_name || "",
       Moneda: i.moneda || "MXN",
@@ -95,22 +107,13 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
 
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        {Object.entries(bucketTotals).map(([range, total]) => (
-          <Card key={range}>
-            <CardContent className="pt-4 pb-3 text-center">
-              <p className="text-xs text-muted-foreground">{range} días</p>
-              <p className="font-mono font-bold text-lg">{formatCurrency(total)}</p>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <AgingBucketCards totals={bucketTotals} selected={selectedBucket} onSelect={setSelectedBucket} />
 
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-base">
-              Detalle de Cartera Vencida — Total: {formatCurrency(grandTotal)}
+              Detalle de cartera vencida{selectedBucket ? ` (${selectedBucket} días)` : ""} — Total: {formatCurrency(selectedBucket ? visibleTotal : grandTotal)}
             </CardTitle>
             <Button variant="outline" size="sm" onClick={handleExport}>
               <DownloadIcon className="h-4 w-4 mr-1" /> Exportar CSV
@@ -118,9 +121,14 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
           </div>
         </CardHeader>
         <CardContent>
-          <DataTableV2 table={table} emptyMessage="No hay facturas vencidas" />
+          <DataTableV2
+            table={table}
+            emptyMessage="No hay facturas vencidas"
+            onRowClick={(i) => navigate(`/invoices/${i.id}`)}
+          />
         </CardContent>
       </Card>
+
     </div>
   );
 }

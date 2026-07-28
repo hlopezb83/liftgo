@@ -1,5 +1,6 @@
 
 import { differenceInCalendarDays, parseISO } from "date-fns";
+import { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
@@ -10,13 +11,16 @@ import { useBookings } from "@/features/bookings";
 import { useForklifts } from "@/features/fleet";
 import { chartGridProps, chartTick } from "@/lib/charts/chartTheme";
 import { exportToCsv } from "@/lib/exportCsv";
+import { bookingsForForkliftInRange, type DrilldownBooking } from "../../lib/drilldown";
+import { UtilizationDetailSheet } from "./drilldown/UtilizationDetailSheet";
 
 interface Props {
   startDate: Date;
   endDate: Date;
 }
 
-type Row = { name: string; bookedDays: number; totalDays: number; utilization: number };
+type Row = { id: string; name: string; bookedDays: number; totalDays: number; utilization: number };
+
 
 /**
  * R10 Bloque 10.1: dedupe de días reservados por unidad.
@@ -46,6 +50,7 @@ export function UtilizationReport({ startDate, endDate }: Props) {
   const { data: forklifts = [], isError: fError, isFetching: fFetching, refetch: fRefetch } = useForklifts();
   const { data: bookings = [], isError: bError, refetch: bRefetch } = useBookings();
   const hasError = fError || bError;
+  const [selected, setSelected] = useState<Row | null>(null);
 
 
   // Días inclusivos consistente con el resto del reporte (fin inclusivo).
@@ -60,8 +65,21 @@ export function UtilizationReport({ startDate, endDate }: Props) {
     );
     const bookedDays = countUniqueBookedDays(flBookings, startDate, endDate);
     const utilization = Math.min(Math.round((bookedDays / totalDaysRange) * 100), 100);
-    return { name: fl.name, bookedDays, totalDays: totalDaysRange, utilization };
+    return { id: fl.id, name: fl.name, bookedDays, totalDays: totalDaysRange, utilization };
   });
+
+  const drilldownBookings: DrilldownBooking[] = bookings.map((b) => ({
+    id: b.id,
+    booking_number: b.booking_number,
+    customer_name: b.customer_name ?? null,
+    forklift_id: b.forklift_id,
+    start_date: b.start_date,
+    end_date: b.end_date,
+    status: b.status,
+  }));
+  const selectedBookings = selected
+    ? bookingsForForkliftInRange(drilldownBookings, selected.id, startDate, endDate)
+    : [];
 
 
   const columns: ColumnDef<Row>[] = [
@@ -74,10 +92,11 @@ export function UtilizationReport({ startDate, endDate }: Props) {
   const table = useLiftgoTable<Row>({
     data,
     columns,
-    getRowId: (r) => r.name,
+    getRowId: (r) => r.id,
     initialSorting: [{ id: "utilization", desc: true }],
     paginated: false,
   });
+
 
   // R22-B: nunca mostrar "sin datos" (ni exportar CSV vacío) cuando la carga falló.
   if (hasError) {
@@ -117,9 +136,23 @@ export function UtilizationReport({ startDate, endDate }: Props) {
       </Card>
       <Card>
         <CardContent className="p-0 overflow-x-auto">
-          <DataTableV2 table={table} emptyMessage="Sin datos en el rango" />
+          <DataTableV2
+            table={table}
+            emptyMessage="Sin datos en el rango"
+            onRowClick={(r) => setSelected(r)}
+          />
         </CardContent>
       </Card>
+      <UtilizationDetailSheet
+        open={selected !== null}
+        onOpenChange={(o) => { if (!o) setSelected(null); }}
+        forkliftName={selected?.name ?? null}
+        bookedDays={selected?.bookedDays ?? 0}
+        totalDays={selected?.totalDays ?? totalDaysRange}
+        utilization={selected?.utilization ?? 0}
+        bookings={selectedBookings}
+      />
     </>
+
   );
 }

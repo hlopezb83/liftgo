@@ -1,5 +1,6 @@
 
 import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
+import { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
@@ -11,13 +12,16 @@ import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatMonthShortEsFromDate } from "@/lib/format/formatMonthEs";
 import { toMxn } from "@/lib/money";
+import { invoicesForMonth, type DrilldownInvoice } from "../../lib/drilldown";
+import { RevenueMonthDetailSheet } from "./drilldown/RevenueMonthDetailSheet";
 
 interface Props {
   startDate: Date;
   endDate: Date;
 }
 
-type Row = { month: string; invoiced: number; paid: number; count: number };
+type Row = { key: string; month: string; invoiced: number; paid: number; count: number };
+
 
 // R7 Bloque 21.13: eje Y con formato compacto MXN ("$1.2M") para no recortar dígitos.
 const COMPACT_MXN = new Intl.NumberFormat("es-MX", {
@@ -29,6 +33,7 @@ function compactMoneyMxn(n: number): string {
 
 export function RevenueReport({ startDate, endDate }: Props) {
   const { data: invoices = [], isError, isFetching, refetch } = useInvoices();
+  const [selected, setSelected] = useState<Row | null>(null);
   const data: Row[] = (() => {
     // R7 Bloque 5: excluir borradores y canceladas — no son ingreso reconocido.
     const revenueInvoices = invoices.filter(
@@ -39,7 +44,7 @@ export function RevenueReport({ startDate, endDate }: Props) {
     filtered.forEach((inv) => {
       const key = format(startOfMonth(parseISO(inv.issued_at)), "yyyy-MM");
       const label = formatMonthShortEsFromDate(startOfMonth(parseISO(inv.issued_at)));
-      if (!months[key]) months[key] = { month: label, invoiced: 0, paid: 0, count: 0 };
+      if (!months[key]) months[key] = { key, month: label, invoiced: 0, paid: 0, count: 0 };
       // R6-B2: normalizar a MXN cuando la factura está en USD.
       const totalMxn = toMxn(
         Number(inv.total),
@@ -53,6 +58,21 @@ export function RevenueReport({ startDate, endDate }: Props) {
     return Object.entries(months).sort(([a], [b]) => a.localeCompare(b)).map(([, d]) => d);
   })();
 
+  // Mismo universo que el gráfico: dentro del rango y sin borradores/canceladas.
+  const rangeInvoices: DrilldownInvoice[] = invoices
+    .filter((inv) => isWithinInterval(parseISO(inv.issued_at), { start: startDate, end: endDate }))
+    .map((inv) => ({
+      id: inv.id,
+      invoice_number: inv.invoice_number,
+      customer_name: inv.customer_name ?? null,
+      issued_at: inv.issued_at,
+      total: inv.total,
+      status: inv.status,
+      moneda: inv.moneda ?? "MXN",
+      tipo_cambio: inv.tipo_cambio,
+    }));
+  const selectedInvoices = selected ? invoicesForMonth(rangeInvoices, selected.key) : [];
+
 
   const columns: ColumnDef<Row>[] = [
     { id: "month", header: "Mes", accessorKey: "month", cell: ({ row }) => <span className="font-medium">{row.original.month}</span> },
@@ -64,9 +84,10 @@ export function RevenueReport({ startDate, endDate }: Props) {
   const table = useLiftgoTable<Row>({
     data,
     columns,
-    getRowId: (r) => r.month,
+    getRowId: (r) => r.key,
     paginated: false,
   });
+
 
   // R22-B: si la consulta falló, no mostramos ceros ni permitimos exportar.
   if (isError) {
@@ -106,9 +127,22 @@ export function RevenueReport({ startDate, endDate }: Props) {
       </Card>
       <Card>
         <CardContent className="p-0">
-          <DataTableV2 table={table} emptyMessage="Sin facturas en el rango" />
+          <DataTableV2
+            table={table}
+            emptyMessage="Sin facturas en el rango"
+            onRowClick={(r) => setSelected(r)}
+          />
         </CardContent>
       </Card>
+      <RevenueMonthDetailSheet
+        open={selected !== null}
+        onOpenChange={(o) => { if (!o) setSelected(null); }}
+        monthLabel={selected?.month ?? null}
+        invoiced={selected?.invoiced ?? 0}
+        paid={selected?.paid ?? 0}
+        invoices={selectedInvoices}
+      />
     </>
+
   );
 }

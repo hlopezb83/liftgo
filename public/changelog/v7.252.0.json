@@ -1,0 +1,26 @@
+{
+  "version": "7.252.0",
+  "date": "2026-07-28",
+  "type": "minor",
+  "title": "Reportes con detalle al hacer clic: Antigüedad, Utilización e Ingresos",
+  "category": "feature",
+  "description": "Ahora puedes hacer clic en cualquier fila de los reportes de Antigüedad de saldos, Utilización de flota e Ingresos para ver el detalle que compone ese total, sin salir del reporte.",
+  "changes": [
+    {
+      "type": "feature",
+      "description": "Antigüedad de saldos: las tarjetas de cada tramo (Corriente, 1-30, 31-60, 61-90, 90+) ahora filtran la tabla al hacer clic, y al hacer clic en una fila se abre la factura correspondiente. La exportación a CSV respeta el filtro activo."
+    },
+    {
+      "type": "feature",
+      "description": "Utilización de flota: al hacer clic en un montacargas se abre un panel lateral con todas las reservas que traslapan el periodo, sus días dentro del rango, cliente y estatus, con acceso directo a cada reserva."
+    },
+    {
+      "type": "feature",
+      "description": "Ingresos: al hacer clic en un mes se abre un panel lateral con las facturas que componen el total facturado y cobrado de ese mes, con exportación a CSV del mes y acceso directo a cada factura."
+    },
+    {
+      "type": "improvement",
+      "description": "Nueva librería de cálculo compartida para los detalles de reportes (recorte de reservas al rango, detección de traslapes y agrupación mensual de facturas normalizada a MXN), cubierta con pruebas automáticas."
+    }
+  ]
+}
