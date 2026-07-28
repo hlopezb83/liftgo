@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { SpinnerIcon, TrendingUpIcon } from "@/components/icons";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
