@@ -58,9 +58,21 @@ export function RevenueReport({ startDate, endDate }: Props) {
     return Object.entries(months).sort(([a], [b]) => a.localeCompare(b)).map(([, d]) => d);
   })();
 
-  const selectedInvoices = selected
-    ? invoicesForMonth(invoices as unknown as DrilldownInvoice[], selected.key)
-    : [];
+  // Mismo universo que el gráfico: dentro del rango y sin borradores/canceladas.
+  const rangeInvoices: DrilldownInvoice[] = invoices
+    .filter((inv) => isWithinInterval(parseISO(inv.issued_at), { start: startDate, end: endDate }))
+    .map((inv) => ({
+      id: inv.id,
+      invoice_number: inv.invoice_number,
+      customer_name: inv.customer_name ?? null,
+      issued_at: inv.issued_at,
+      total: inv.total,
+      status: inv.status,
+      moneda: inv.moneda ?? "MXN",
+      tipo_cambio: inv.tipo_cambio,
+    }));
+  const selectedInvoices = selected ? invoicesForMonth(rangeInvoices, selected.key) : [];
+
 
   const columns: ColumnDef<Row>[] = [
     { id: "month", header: "Mes", accessorKey: "month", cell: ({ row }) => <span className="font-medium">{row.original.month}</span> },
