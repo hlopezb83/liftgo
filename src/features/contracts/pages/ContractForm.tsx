@@ -15,7 +15,7 @@ import { useContractFormLogic } from "../hooks/useContractFormLogic";
 
 export default function ContractForm() {
   const { isEdit, form, customers, forklifts, isPending, handleSubmit, navigate } = useContractFormLogic();
-  const { control, register } = form;
+  const { control } = form;
 
   return (
     <PageContainer maxWidth="form">
