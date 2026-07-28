@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.248.0",
+    "date": "2026-07-28",
+    "type": "minor",
+    "title": "Conciliación bancaria: importar estados de cuenta en XML",
+    "category": "feature",
+    "description": "Ahora puedes subir el estado de cuenta en XML (por ejemplo el que descarga BBVA México) además del CSV. El sistema detecta solo los movimientos, te muestra una vista previa con totales antes de importar y, si el archivo trae nombres distintos, puedes asignar los campos a mano una sola vez."
+  },
+  {
     "version": "7.247.4",
     "date": "2026-07-28",
     "type": "patch",
