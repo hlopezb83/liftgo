@@ -57,6 +57,15 @@ export function useLiftgoTable<T>({
 
   const tableData = useMemo(() => data ?? [], [data]);
 
+  // R22-W: nulos siempre al final, también al invertir a `desc`.
+  const sortingFnWithNullsLast = useMemo(
+    () =>
+      createLiftgoSortingFn<T>(
+        (columnId) => sorting.find((s) => s.id === columnId)?.desc === true,
+      ),
+    [sorting],
+  );
+
   useEffect(() => {
     setPagination((prev) => (prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }));
   }, [tableData, resetKey]);
