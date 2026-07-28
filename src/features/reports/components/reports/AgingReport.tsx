@@ -78,7 +78,7 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
 
 
   const handleExport = () => {
-    exportToCsv("antiguedad_cartera.csv", overdueInvoices.map((i) => ({
+    exportToCsv("antiguedad_cartera.csv", visibleInvoices.map((i) => ({
       Factura: i.invoice_number,
       Cliente: i.customer_name || "",
       Moneda: i.moneda || "MXN",
