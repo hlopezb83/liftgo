@@ -191,6 +191,10 @@ Deno.test("claimRejectionMessage · stamping → en proceso", () => {
   );
 });
 
+Deno.test("claimRejectionMessage · not_found → pago inexistente", () => {
+  assertEquals(claimRejectionMessage("not_found"), "El pago ya no existe.");
+});
+
 Deno.test("claimRejectionMessage · estado desconocido incluye el estado", () => {
   assertEquals(
     claimRejectionMessage("weird"),
