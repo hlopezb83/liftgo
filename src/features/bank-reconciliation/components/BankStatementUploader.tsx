@@ -67,11 +67,8 @@ export function BankStatementUploader({ bankAccountId }: Props) {
         </div>
         <div className="grid gap-1.5">
           <Label>Archivo CSV</Label>
-          <Input
-            type="file"
-            accept=".csv,text/csv"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          />
+          {/* Oleada 1 (A-13): el input nativo sale en inglés ("Choose File") */}
+          <BankFilePicker file={file} onChange={setFile} />
         </div>
         <div className="flex items-end">
           <Button onClick={handleImport} disabled={!file || importMut.isPending} className="w-full">
