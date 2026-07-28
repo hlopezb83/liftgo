@@ -1,0 +1,58 @@
+{
+  "version": "7.249.0",
+  "date": "2026-07-28",
+  "type": "minor",
+  "title": "Auditoría R22: orden de tablas, KPIs legibles y consistencia visual",
+  "category": "improvement",
+  "description": "Remediación de los hallazgos de la auditoría R22 enfocada en tablas, KPIs, reportes y consistencia de formularios.",
+  "changes": [
+    {
+      "type": "fix",
+      "description": "Ordenamiento: los valores vacíos ahora quedan siempre al final, tanto ascendente como descendente (antes se iban al principio al invertir)."
+    },
+    {
+      "type": "fix",
+      "description": "KPIs: el número principal ya no se corta con puntos suspensivos; se reduce el tamaño de la letra según su longitud."
+    },
+    {
+      "type": "improvement",
+      "description": "Tablas: se eliminó el rayado duplicado en el componente base para dejar una sola fuente de estilo (DataTableV2)."
+    },
+    {
+      "type": "improvement",
+      "description": "Columnas de dinero alineadas a la derecha en Daños y Mantenimiento."
+    },
+    {
+      "type": "improvement",
+      "description": "Reporte de costos de mantenimiento: eje vertical con formato de moneda compacto ($1.2 M / $845 K)."
+    },
+    {
+      "type": "improvement",
+      "description": "Formulario de prospecto: los campos obligatorios usan el asterisco estándar (RequiredMark)."
+    },
+    {
+      "type": "improvement",
+      "description": "Cotizaciones: al editar una cotización se refresca también su ficha de detalle."
+    },
+    {
+      "type": "improvement",
+      "description": "Detalle de cliente: el botón 'Eliminar' ahora se llama 'Archivar', que es lo que realmente hace."
+    },
+    {
+      "type": "improvement",
+      "description": "Menú lateral colapsado: se oculta el texto de la marca para evitar recortes."
+    },
+    {
+      "type": "improvement",
+      "description": "Calendario: mejor contraste de la línea de 'hoy' en tema oscuro."
+    },
+    {
+      "type": "improvement",
+      "description": "Bitácora de auditoría: se traducen los estados de CFDI y de cancelación."
+    },
+    {
+      "type": "improvement",
+      "description": "Transición sutil entre pantallas y encabezados marcados para excluirlos de la impresión."
+    }
+  ]
+}
