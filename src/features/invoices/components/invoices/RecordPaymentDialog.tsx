@@ -44,6 +44,9 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
       width="md"
       testId="record-payment-dialog"
     >
+      <form
+        onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}
+      >
         <div className="space-y-4">
           <div>
             <Label htmlFor="recordPaymentAmount">Monto</Label>
