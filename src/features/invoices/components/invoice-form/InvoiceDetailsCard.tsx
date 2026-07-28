@@ -1,12 +1,12 @@
-import type { UseFormReturn } from "react-hook-form";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNextInvoiceNumber } from "../../hooks/invoices/useNextInvoiceNumber";
-import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
 import { MultiBookingSelector } from "./MultiBookingSelector";
+import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
+import type { UseFormReturn } from "react-hook-form";
 
 interface Customer { id: string; name: string; company?: string | null }
 interface Booking { id: string; [k: string]: unknown }
