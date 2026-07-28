@@ -50,6 +50,7 @@ export function UtilizationReport({ startDate, endDate }: Props) {
   const { data: forklifts = [], isError: fError, isFetching: fFetching, refetch: fRefetch } = useForklifts();
   const { data: bookings = [], isError: bError, refetch: bRefetch } = useBookings();
   const hasError = fError || bError;
+  const [selected, setSelected] = useState<Row | null>(null);
 
 
   // Días inclusivos consistente con el resto del reporte (fin inclusivo).
@@ -64,9 +65,12 @@ export function UtilizationReport({ startDate, endDate }: Props) {
     );
     const bookedDays = countUniqueBookedDays(flBookings, startDate, endDate);
     const utilization = Math.min(Math.round((bookedDays / totalDaysRange) * 100), 100);
-    return { name: fl.name, bookedDays, totalDays: totalDaysRange, utilization };
+    return { id: fl.id, name: fl.name, bookedDays, totalDays: totalDaysRange, utilization };
   });
 
+  const selectedBookings = selected
+    ? bookingsForForkliftInRange(bookings as unknown as DrilldownBooking[], selected.id, startDate, endDate)
+    : [];
 
   const columns: ColumnDef<Row>[] = [
     { id: "name", header: "Montacargas", accessorKey: "name", cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },
@@ -78,10 +82,11 @@ export function UtilizationReport({ startDate, endDate }: Props) {
   const table = useLiftgoTable<Row>({
     data,
     columns,
-    getRowId: (r) => r.name,
+    getRowId: (r) => r.id,
     initialSorting: [{ id: "utilization", desc: true }],
     paginated: false,
   });
+
 
   // R22-B: nunca mostrar "sin datos" (ni exportar CSV vacío) cuando la carga falló.
   if (hasError) {
