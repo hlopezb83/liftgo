@@ -34,14 +34,15 @@ function buildHeaderClass(
 
 function HeaderCell<T>({ header }: { header: Header<T, unknown> }): ReactNode {
   const meta = header.column.columnDef.meta;
+  const { align: resolvedAlign } = resolveColumnKind(meta);
   const canSort = header.column.getCanSort();
   const sortDir = header.column.getIsSorted();
   const className = buildHeaderClass(meta, sortDir);
   if (header.isPlaceholder) return <TableHead key={header.id} className={className} />;
   const innerClass = cn(
     "flex items-center gap-1 w-full uppercase tracking-wider",
-    meta?.align === "right" && "justify-end",
-    meta?.align === "center" && "justify-center",
+    resolvedAlign === "right" && "justify-end",
+    resolvedAlign === "center" && "justify-center",
   );
   const content = (
     <>
