@@ -110,7 +110,6 @@ Deno.serve(async (req) => {
       return jsonError(req, 409, claimRejectionMessage(st));
     }
 
-
     // Helper: liberar el claim ante un early-return no-fatal. Deja el pago en
     // 'pending' para que el operador o el retry queue puedan re-intentar.
     const releaseClaim = async (msg?: string) => {
@@ -123,7 +122,6 @@ Deno.serve(async (req) => {
         })
         .eq("id", payment_id);
     };
-
 
     // BLOQUE 2.2: un solo RPC transaccional bloquea la factura, calcula
     // NumParcialidad + ImpSaldoAnt y RESERVA installment_number/prior_balance
@@ -161,7 +159,6 @@ Deno.serve(async (req) => {
           rep_cfdi_status: "error",
           rep_stamping_started_at: null,
           rep_error_message: errMsg.slice(0, 1000),
-
         })
         .eq("id", payment_id);
       return jsonError(
@@ -311,7 +308,6 @@ Deno.serve(async (req) => {
           rep_cfdi_status: "error",
           rep_stamping_started_at: null,
           rep_error_message: desc.detail.slice(0, 1000),
-
         })
         .eq("id", payment_id);
       return jsonError(req, 502, `Facturapi error: ${desc.status}`, {
@@ -367,7 +363,6 @@ Deno.serve(async (req) => {
         rep_xml_url: xmlPath,
         rep_pdf_url: pdfPath,
         rep_error_message: null,
-
       })
       .eq("id", payment_id);
 
