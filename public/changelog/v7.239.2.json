@@ -1,0 +1,15 @@
+{
+  "version": "7.239.2",
+  "date": "2026-07-28",
+  "type": "patch",
+  "title": "CRM · Convertir prospecto usa el parámetro correcto",
+  "category": "fix",
+  "sections": [
+    {
+      "title": "Fix",
+      "items": [
+        "useClosedProspects.handleConvert enviaba `name=` pero CustomersPage lee `company=`. Ahora el nombre de empresa del prospecto se prellena correctamente en el formulario de nuevo cliente."
+      ]
+    }
+  ]
+}
