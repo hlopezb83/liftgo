@@ -17,8 +17,8 @@ interface Props {
 }
 
 export function UtilizationByModelReport({ startDate, endDate }: Props) {
-  const { data: forklifts = [] } = useForklifts();
-  const { data: bookings = [] } = useBookings();
+  const { data: forklifts = [], isError: fError, isFetching: fFetching, refetch: fRefetch } = useForklifts();
+  const { data: bookings = [], isError: bError, refetch: bRefetch } = useBookings();
 
   const data: ModelRow[] = buildUtilizationRows(forklifts, bookings, startDate, endDate);
 
