@@ -1,6 +1,14 @@
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ChevronDownIcon, ChevronRightIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 
