@@ -1,89 +1,54 @@
 name-template: "v$RESOLVED_VERSION"
 tag-template: "v$RESOLVED_VERSION"
 
-# v7.247.2: migrado al esquema nuevo de release-drafter (PR #1558).
+# v7.247.4: esquema vigente de release-drafter (v7.6.0).
 # - `exclude-labels` → categoría `type: pre-exclude`
-# - `categories[*].labels` → `when.labels.any`
+# - `categories[*].labels` → `when.labels` (lista directa; el modo `any` es el default)
 # - `version-resolver.major/minor.labels` → `semver-increment` por categoría
 categories:
-  - type: pre-exclude
+  - type: "pre-exclude"
     when:
-      labels:
-        any:
-          - "skip-changelog"
+      labels: ["skip-changelog"]
 
   - title: "Nuevas funcionalidades"
-    type: changelog
-    semver-increment: minor
+    semver-increment: "minor"
     when:
-      labels:
-        any:
-          - "feature"
-          - "enhancement"
+      labels: ["feature", "enhancement"]
   - title: "Fixes"
-    type: changelog
-    semver-increment: patch
+    semver-increment: "patch"
     when:
-      labels:
-        any:
-          - "fix"
-          - "bug"
+      labels: ["fix", "bug"]
   - title: "Seguridad"
-    type: changelog
     when:
-      labels:
-        any:
-          - "security"
+      labels: ["security"]
   - title: "Performance"
-    type: changelog
     when:
-      labels:
-        any:
-          - "performance"
+      labels: ["performance"]
   - title: "Infraestructura / CI"
-    type: changelog
-    semver-increment: patch
+    semver-increment: "patch"
     when:
-      labels:
-        any:
-          - "ci"
-          - "infrastructure"
-          - "dependencies"
+      labels: ["ci", "infrastructure", "dependencies"]
   - title: "Base de datos"
-    type: changelog
     when:
-      labels:
-        any:
-          - "database"
+      labels: ["database"]
   - title: "Documentación"
-    type: changelog
-    semver-increment: patch
+    semver-increment: "patch"
     when:
-      labels:
-        any:
-          - "docs"
+      labels: ["docs"]
 
   # Categorías sin título: sólo resuelven el incremento de versión, no salen en las notas.
-  - type: version-resolver
-    semver-increment: major
+  - type: "version-resolver"
+    semver-increment: "major"
     when:
-      labels:
-        any:
-          - "major"
-          - "breaking"
-  - type: version-resolver
-    semver-increment: minor
+      labels: ["major", "breaking"]
+  - type: "version-resolver"
+    semver-increment: "minor"
     when:
-      labels:
-        any:
-          - "minor"
-  - type: version-resolver
-    semver-increment: patch
+      labels: ["minor"]
+  - type: "version-resolver"
+    semver-increment: "patch"
     when:
-      labels:
-        any:
-          - "patch"
-          - "chore"
+      labels: ["patch", "chore"]
 
 # v7.219.0 (M2): autolabeler por prefijo Conventional Commits del título del PR.
 # El workflow pr-title.yml valida que el título respete estos prefijos.
