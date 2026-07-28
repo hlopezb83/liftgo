@@ -1,57 +1,33 @@
-## Causa raíz (confirmada, no es hipótesis)
+## Causa (confirmada)
 
-Reproduje el error contra la base real: **PostgREST rechaza cualquier filtro `or=(...)` en un UPDATE**, con el error `42703: column payments.rep_cfdi_status does not exist` (la columna sí existe; falla al armar la consulta). Pruebas:
+En `src/layouts/sidebar/SidebarNavSection.tsx` (línea 71) el resaltado se decide con:
 
-```text
-PATCH /payments?id=eq.X&rep_cfdi_status=eq.pending      -> OK  []
-PATCH /payments?id=eq.X&or=(a.eq.1,b.eq.2)              -> 42703 "column ... does not exist"
-PATCH /maintenance_policies?...&or=(...)                -> 42703 (mismo patrón)
+```ts
+const isActive = item.url === "/" ? pathname === "/" : pathname.startsWith(item.url);
 ```
 
-Analogía: el candado no estaba "ocupado"; la llave estaba mal cortada y ni siquiera entraba en la cerradura. Como el código solo miraba "¿se abrió o no?", siempre reportaba "ocupado".
+Estando en `/invoices/reconciliation`, ese prefijo también coincide con el ítem **Facturas** (`/invoices`), así que los dos se pintan como activos. En el menú actual es el único par anidado (`/invoices` vs `/invoices/reconciliation`).
 
-Esto explica también el reporte original de ayer (FAC-0091): el claim nunca corrió, por eso no había rastro en la bitácora ni cambio de estado. El v7.248.1 mejoró el mensaje (por eso hoy vemos la causa real) pero no arregló la operación.
+Analogía: es como buscar en un directorio por "empieza con"; al escribir "Juan" también te salta "Juan Carlos".
 
-## Alcance: dos lugares afectados
+## Cambio propuesto
 
-1. `supabase/functions/stamp-payment-complement/index.ts` — el claim atómico del REP nunca funciona: **ningún REP se puede timbrar**.
-2. `supabase/functions/generate-recurring-maintenance/index.ts` — el claim por póliza también falla; hoy no hay pólizas activas (0 registros), así que no hay impacto visible, pero quedaría roto al activar la primera.
+Elegir siempre **la ruta más específica** que coincida, en vez de marcar todas las que coincidan por prefijo:
 
-El resto de `.or()` del proyecto está en SELECT, que sí es válido.
+1. Nuevo helper de activación (en `src/layouts/sidebar/`) que:
+   - considere coincidencia sólo en frontera de segmento (`/invoices` coincide con `/invoices` y `/invoices/123`, pero no con `/invoicesx`);
+   - entre todos los ítems del menú que coincidan, marque activo únicamente el de URL más larga.
+2. Usarlo en el ítem de navegación (línea 71) y en la detección de "grupo con ítem activo" (línea 145), para que la lógica sea la misma en ambos lugares.
 
-## Cambios propuestos
+Con esto, en `/invoices/reconciliation` sólo se resalta **Conciliación de Pagos**, y en `/invoices` o `/invoices/<id>` sólo **Facturas**. El grupo "Dinero" sigue expandiéndose igual.
 
-### 1. RPC de claim para el REP (migración)
+## Validación
 
-Nueva función `claim_payment_rep_stamping(p_payment_id uuid, p_stale_minutes int default 5)`:
-- Un solo `UPDATE ... WHERE id = p_payment_id AND (condición OR completa)` en SQL, atómico, con `SECURITY DEFINER` y `SET search_path = public`.
-- Condición: estados `pending|error|none` con UUID nulo, o `cancelled`, o `stamping` con UUID nulo y claim vencido (> N minutos).
-- Devuelve el estado resultante: `claimed` (éxito) o el `rep_cfdi_status` actual cuando no se pudo reclamar, para seguir dando mensajes específicos.
-- Permisos restringidos a los roles que ya pueden timbrar (admin/administrativo) y a `service_role`.
-
-### 2. Edge function `stamp-payment-complement`
-
-- Sustituir el `.update().or()` por la llamada al RPC.
-- Mantener el manejo actual de errores: error de base → 503 con causa real; rechazo legítimo → 409 con el mensaje de `claimRejectionMessage(status)`.
-- Se conserva `rep_stamping_started_at` y la liberación de claims (`releaseClaim`).
-
-### 3. Edge function `generate-recurring-maintenance`
-
-- Reemplazar el `.update().or()` por un claim equivalente sin OR: filtrar por `last_generated_month.lt.<mes>` y, en un segundo intento, por `last_generated_month.is.null`, o bien un RPC `claim_maintenance_policy_month` análogo (preferido, una sola sentencia atómica).
-
-### 4. Guardarraíl para que no vuelva a pasar
-
-- Comentario/regla en el helper compartido de edge functions y una prueba unitaria que documente que `.or()` no es válido en mutaciones (los claims deben ir por RPC).
-- Prueba de `decisions.ts` para el nuevo mapeo estado → mensaje del RPC.
-
-### 5. Validación
-
-- Reintentar el timbrado del REP del pago de FAC-0091 en preview y revisar los logs de la función.
-- `deno fmt --check`, tests unitarios y typecheck.
-- Entrada de changelog v7.248.2 en `public/changelog.json` + `public/changelog/v7.248.2.json`.
+- Prueba unitaria del helper con los casos: `/invoices`, `/invoices/ca82…`, `/invoices/reconciliation`, `/` y una ruta sin coincidencia.
+- Revisión visual en el preview de `/invoices/reconciliation` y `/invoices`.
+- Entrada de changelog v7.248.3 (`public/changelog.json` + `public/changelog/v7.248.3.json`).
 
 ## Detalles técnicos
 
-- Archivos: migración nueva; `supabase/functions/stamp-payment-complement/index.ts`; `supabase/functions/generate-recurring-maintenance/index.ts`; `supabase/functions/stamp-payment-complement/decisions.ts` (+ test).
-- No se toca la lógica de Facturapi ni `prepare_payment_complement`.
-- La atomicidad se conserva: el claim sigue siendo un único UPDATE condicional, solo que ejecutado en SQL en vez de armado por PostgREST.
+- Archivos: `src/layouts/sidebar/SidebarNavSection.tsx`, nuevo `src/layouts/sidebar/isNavItemActive.ts` (+ test), changelog.
+- Sólo cambia la presentación del menú; no se toca ninguna ruta ni lógica de negocio.
