@@ -51,7 +51,10 @@ export function useContractFormState(existing: ContractRow | null | undefined, i
     if (existing && isEdit && prevExistingId !== nextExistingId) {
       // eslint-disable-next-line react-hooks/set-state-in-effect -- hidratación one-shot RHF cuando llega el contrato async
       setPrevExistingId(nextExistingId);
-      form.reset(mapContractToForm(existing));
+      // R-M9: `keepDirtyValues` evita que un `reset` posterior a que el
+      // usuario ya empezó a teclear le clobbere sus cambios (el fetch del
+      // contrato puede resolver después del primer render).
+      form.reset(mapContractToForm(existing), { keepDirtyValues: true });
       setTemplateApplied(true);
     }
   }, [existing, isEdit, prevExistingId, nextExistingId, form]);
