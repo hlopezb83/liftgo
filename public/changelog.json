@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.239.2",
+    "date": "2026-07-28",
+    "type": "patch",
+    "title": "CRM · Convertir prospecto usa el parámetro correcto",
+    "category": "fix",
+    "description": "handleConvert enviaba `name=` pero CustomersPage lee `company=`, así que el nombre de empresa del prospecto quedaba vacío en el formulario de nuevo cliente. Corregido."
+  },
+  {
     "version": "7.239.1",
     "date": "2026-07-28",
     "type": "patch",

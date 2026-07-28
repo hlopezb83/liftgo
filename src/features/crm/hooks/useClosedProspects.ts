@@ -45,7 +45,7 @@ export function useClosedProspects() {
     const params = new URLSearchParams({
       from_prospect: "true",
       prospect_id: p.id,
-      name: p.companyName,
+      company: p.companyName,
       contact: p.contactPerson ?? "",
       email: p.email ?? "",
       phone: p.phone ?? "",
