@@ -1,5 +1,6 @@
 
 import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
+import { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
@@ -11,13 +12,16 @@ import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatMonthShortEsFromDate } from "@/lib/format/formatMonthEs";
 import { toMxn } from "@/lib/money";
+import { invoicesForMonth, type DrilldownInvoice } from "../../lib/drilldown";
+import { RevenueMonthDetailSheet } from "./drilldown/RevenueMonthDetailSheet";
 
 interface Props {
   startDate: Date;
   endDate: Date;
 }
 
-type Row = { month: string; invoiced: number; paid: number; count: number };
+type Row = { key: string; month: string; invoiced: number; paid: number; count: number };
+
 
 // R7 Bloque 21.13: eje Y con formato compacto MXN ("$1.2M") para no recortar dígitos.
 const COMPACT_MXN = new Intl.NumberFormat("es-MX", {
