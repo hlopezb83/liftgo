@@ -102,6 +102,7 @@ export function FeedbackFormDialog({ open, onOpenChange }: Props) {
     <>
       <FormDialog
       isPending={create.isPending || isCapturing}
+        isDirty={form.formState.isDirty || screenshot !== null}
         open={open && !picking}
         onOpenChange={(o) => { if (!o) { resetAll(); onOpenChange(false); } }}
         title="Reportar bug o sugerir mejora"

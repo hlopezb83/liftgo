@@ -140,13 +140,21 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
     );
   };
 
+  // R22-A: el modal no usa RHF, así que derivamos `isDirty` comparando contra
+  // los valores con los que se abre (monto = saldo, campos libres vacíos).
+  const isDirty =
+    amount !== balance.toFixed(2) ||
+    reference.trim() !== "" ||
+    notes.trim() !== "" ||
+    method !== "transfer";
+
   return {
     amount, setAmount, date, setDate, method, setMethod,
     paymentFormSat, setPaymentFormSat, currency, setCurrency,
     lockedCurrency,
     exchangeRate, setExchangeRate, reference, setReference,
     notes, setNotes, stampRep, setStampRep,
-    createPayment, stampComplement, handleSubmit,
+    createPayment, stampComplement, handleSubmit, isDirty,
   };
 }
 
