@@ -59,14 +59,18 @@ export function InvoiceDetailsCard({
           <FormField control={form.control} name="customerId" render={({ field }) => (
             <FormItem>
               <Label>Cliente</Label>
-              <Select value={field.value || ""} onValueChange={handleCustomerSelect}>
-                <FormControl><SelectTrigger><SelectValue placeholder="Seleccionar cliente" /></SelectTrigger></FormControl>
-                <SelectContent>
-                  {customers?.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}{c.company && c.company !== c.name ? ` — ${c.company}` : ""}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <CustomerSelector
+                  customers={customers ?? []}
+                  customerId={field.value}
+                  customerName={form.getValues("customerName")}
+                  onCustomerIdChange={handleCustomerSelect}
+                  onCustomerNameChange={(name) => form.setValue("customerName", name, { shouldDirty: true })}
+                  required
+                  hideManualName
+                  helpText="Si tu cliente no aparece, regístralo primero en el módulo de Clientes."
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )} />
