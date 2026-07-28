@@ -102,7 +102,7 @@ export function BankStatementLinesTable({
   });
 
   return (
-    <Card>
+    <Card data-testid="bank-lines-table">
       <CardContent className="overflow-x-auto p-0">
         <DataTableV2
           table={table}
@@ -113,8 +113,13 @@ export function BankStatementLinesTable({
           selectionToolbar={({ selectedIds, selectedRows, clearSelection }) => {
             const suggested = selectedRows.filter((l) => l.status === "suggested");
             return (
-              <div className="flex flex-wrap items-center gap-2 border-b bg-muted/40 px-3 py-2 text-xs">
-                <span className="font-medium">{selectedIds.length} seleccionados</span>
+              <div
+                className="flex flex-wrap items-center gap-2 border-b bg-muted/40 px-3 py-2 text-xs"
+                data-testid="bank-bulk-toolbar"
+              >
+                <span className="font-medium" data-testid="bank-bulk-count">
+                  {selectedIds.length} seleccionados
+                </span>
                 <Button
                   size="sm"
                   className="h-7 text-xs"
@@ -131,6 +136,7 @@ export function BankStatementLinesTable({
                 <Input
                   value={bulkReason}
                   onChange={(e) => setBulkReason(e.target.value)}
+                  data-testid="bank-bulk-reason"
                   placeholder="Razón para ignorar…"
                   className="h-7 w-52 text-xs"
                 />
@@ -150,6 +156,7 @@ export function BankStatementLinesTable({
                       },
                     )
                   }
+                  data-testid="bank-bulk-ignore"
                 >
                   Ignorar seleccionados
                 </Button>

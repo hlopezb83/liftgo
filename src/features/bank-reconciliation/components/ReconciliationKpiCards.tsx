@@ -17,16 +17,21 @@ export function ReconciliationKpiCards({ lines, currency = "MXN" }: Props) {
   const pct = total === 0 ? 0 : Math.round((matched / total) * 100);
 
   const cards = [
-    { label: "Cargos del periodo", value: formatCurrencyWithCode(charges, currency) },
-    { label: "Abonos del periodo", value: formatCurrencyWithCode(credits, currency) },
-    { label: "Neto del periodo", value: formatCurrencyWithCode(credits - charges, currency) },
-    { label: "% conciliado", value: `${pct}% (${matched}/${total})`, hint: `${pending} pendientes` },
+    { key: "charges", label: "Cargos del periodo", value: formatCurrencyWithCode(charges, currency) },
+    { key: "credits", label: "Abonos del periodo", value: formatCurrencyWithCode(credits, currency) },
+    { key: "net", label: "Neto del periodo", value: formatCurrencyWithCode(credits - charges, currency) },
+    {
+      key: "reconciled",
+      label: "% conciliado",
+      value: `${pct}% (${matched}/${total})`,
+      hint: `${pending} pendientes`,
+    },
   ];
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3" data-testid="bank-kpis">
       {cards.map((c) => (
-        <Card key={c.label}>
+        <Card key={c.label} data-testid={`bank-kpi-${c.key}`}>
           <CardContent className="py-3">
             <div className="text-xs text-muted-foreground">{c.label}</div>
             <div className="text-lg font-semibold tabular-nums">{c.value}</div>

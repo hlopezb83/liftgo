@@ -113,7 +113,7 @@ export function BankLineMatchPanel({ line, onDone }: Props) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="bank-match-panel">
       <BankLineSummary line={line} isCharge={isCharge} />
 
 
@@ -175,6 +175,7 @@ export function BankLineMatchPanel({ line, onDone }: Props) {
             <Textarea
               value={ignoreReason}
               onChange={(e) => setIgnoreReason(e.target.value)}
+              data-testid="bank-panel-ignore-reason"
               placeholder="Razón…"
               rows={2}
             />
@@ -183,6 +184,7 @@ export function BankLineMatchPanel({ line, onDone }: Props) {
               size="sm"
               onClick={handleIgnore}
               disabled={!ignoreReason.trim() || ignoreMut.isPending}
+              data-testid="bank-panel-ignore-submit"
             >
               Ignorar movimiento
             </Button>

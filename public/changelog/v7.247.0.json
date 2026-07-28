@@ -1,0 +1,17 @@
+{
+  "version": "7.247.0",
+  "date": "2026-07-28",
+  "type": "minor",
+  "title": "Pruebas E2E del módulo de Conciliación Bancaria",
+  "category": "quality",
+  "summary": "Cobertura automatizada y verificación visual del flujo completo de conciliación, con datos de prueba que se autoeliminan.",
+  "highlights": [
+    "Nuevo `tests/e2e/bank-reconciliation.spec.ts`: KPIs del periodo, pestañas de estado, búsqueda por descripción/referencia/monto, selección múltiple, panel de candidatos con score, emparejamiento por monto exacto, ignorar con razón obligatoria y atajos J/K/Escape.",
+    "Nuevo fixture `tests/e2e/fixtures/bankSeed.ts`: crea una cuenta bancaria temporal con importación y 3 movimientos, y los borra siempre al terminar (pase o falle el test), incluyendo un barrido de cuentas huérfanas de corridas previas.",
+    "Snapshot visual del workspace de conciliación, bajo el gate `E2E_VISUAL=1` para no romper CI.",
+    "Se agregaron `data-testid` estables en KPIs, tabla de líneas, barra de acciones masivas, panel de emparejamiento y lista de candidatos (sin cambios de comportamiento ni de diseño)."
+  ],
+  "notes": [
+    "Conciliar una línea solo escribe en `bank_statement_lines`; los pagos reales usados como candidatos nunca se modifican."
+  ]
+}
