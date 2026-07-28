@@ -18,6 +18,7 @@ import { UserMobileCard } from "../components/users/UserMobileCard";
 import { useUserManagementColumns } from "../hooks/users/useUserManagementColumns";
 import { useUserManagementDialogs } from "../hooks/users/useUserManagementDialogs";
 import { useUserManagementFilters } from "../hooks/users/useUserManagementFilters";
+import { useHasModuleAccess } from "../hooks/useHasModuleAccess";
 import { useUsersWithRoles, useToggleStatus, type UserRow } from "../hooks/useUserManagement";
 import type { AppRole } from "../hooks/useUserRole";
 
