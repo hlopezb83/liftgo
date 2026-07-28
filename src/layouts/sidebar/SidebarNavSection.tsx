@@ -68,7 +68,7 @@ function NavMenuItem({ item }: { item: NavItem }) {
   const itemRef = useRef<HTMLLIElement>(null);
   const loader = routeLoaders[item.url];
   const { pathname } = useLocation();
-  const isActive = item.url === "/" ? pathname === "/" : pathname.startsWith(item.url);
+  const isActive = isNavItemActive(pathname, item.url);
 
   const { data: counts } = useSidebarBadgeCounts();
   const currentVersion = useCurrentVersion();
@@ -141,9 +141,7 @@ export function SidebarNavSection({ group }: { group: NavGroup }) {
   const { state } = useSidebar();
   const collapsedSidebar = state === "collapsed";
   const { pathname } = useLocation();
-  const hasActive = group.items.some(
-    (i) => i.url === "/" ? pathname === "/" : pathname.startsWith(i.url),
-  );
+  const hasActive = group.items.some((i) => isNavItemActive(pathname, i.url));
   // Prioridad: lo que el usuario dejó guardado > defaultOpen del grupo > activo.
   const [open, setOpen] = useState(() => {
     const persisted = readNavGroupState()[group.label];
