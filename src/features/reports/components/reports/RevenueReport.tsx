@@ -115,9 +115,22 @@ export function RevenueReport({ startDate, endDate }: Props) {
       </Card>
       <Card>
         <CardContent className="p-0">
-          <DataTableV2 table={table} emptyMessage="Sin facturas en el rango" />
+          <DataTableV2
+            table={table}
+            emptyMessage="Sin facturas en el rango"
+            onRowClick={(r) => setSelected(r)}
+          />
         </CardContent>
       </Card>
+      <RevenueMonthDetailSheet
+        open={selected !== null}
+        onOpenChange={(o) => { if (!o) setSelected(null); }}
+        monthLabel={selected?.month ?? null}
+        invoiced={selected?.invoiced ?? 0}
+        paid={selected?.paid ?? 0}
+        invoices={selectedInvoices}
+      />
     </>
+
   );
 }
