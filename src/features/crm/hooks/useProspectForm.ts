@@ -101,7 +101,18 @@ export function useProspectForm({
 
   const selectedQuote = quoteId ? allQuotes.find((q) => q.id === quoteId) : null;
 
+  // R22-A: sin RHF, derivamos isDirty comparando contra los valores iniciales.
+  const isDirty =
+    company !== (prospect?.companyName ?? "") ||
+    contact !== (prospect?.contactPerson ?? "") ||
+    email !== (prospect?.email ?? "") ||
+    phone !== (prospect?.phone ?? "") ||
+    dealValue !== (prospect ? String(prospect.dealValue ?? 0) : "") ||
+    notes !== (prospect?.notes ?? "") ||
+    quoteId !== (prospect?.quoteId ?? null);
+
   return {
+    isDirty,
     fields: { company, contact, email, phone, dealValue, notes, quoteId, dealValueError },
     setters: {
       setCompany, setContact, setEmail, setPhone,
