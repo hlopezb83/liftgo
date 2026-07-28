@@ -13,6 +13,13 @@ export const TABLES = [
   { value: "damage_records", label: "Registros de Daños" },
   { value: "quotes", label: "Cotizaciones" },
   { value: "return_inspections", label: "Inspecciones de Devolución" },
+  // Oleada 1 (A-2): tablas que se veían crudas
+  { value: "supplier_bills", label: "Facturas de Proveedor" },
+  { value: "parts_inventory", label: "Refacciones" },
+  { value: "user_roles", label: "Roles de Usuario" },
+  { value: "suppliers", label: "Proveedores" },
+  { value: "prospects", label: "Prospectos" },
+  { value: "supplier_payment_batches", label: "Lotes de Pago a Proveedores" },
 ];
 
 const ACTION_LABELS: Record<string, string> = {
