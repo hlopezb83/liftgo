@@ -1,0 +1,26 @@
+{
+  "version": "7.248.2",
+  "date": "2026-07-28",
+  "type": "patch",
+  "title": "Timbrado de REP: se corrige la falla que impedía timbrar complementos de pago",
+  "category": "fix",
+  "description": "El paso previo al timbrado del REP (el 'apartado' del pago para que dos procesos no lo timbren a la vez) fallaba siempre por un problema técnico al consultar la base de datos, y ningún complemento de pago podía timbrarse. Ahora ese apartado se hace con una operación única y segura dentro de la base de datos.",
+  "changes": [
+    {
+      "type": "fix",
+      "description": "Corregido el error 'column payments.rep_cfdi_status does not exist' al timbrar un REP: ya se puede timbrar normalmente."
+    },
+    {
+      "type": "fix",
+      "description": "El mismo problema afectaba a la generación de mantenimientos recurrentes por póliza; también quedó corregido antes de que causara fallas."
+    },
+    {
+      "type": "improvement",
+      "description": "El apartado del pago sigue siendo atómico y libera solo los intentos que llevan más de 5 minutos detenidos."
+    },
+    {
+      "type": "improvement",
+      "description": "Nuevo mensaje cuando el pago ya no existe, y notas técnicas para evitar que el patrón defectuoso se vuelva a introducir."
+    }
+  ]
+}
