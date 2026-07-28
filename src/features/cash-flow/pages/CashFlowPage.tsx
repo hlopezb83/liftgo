@@ -22,7 +22,7 @@ export default function CashFlowPage() {
   const initialBalance = settings?.initialBalance ?? 0;
   const safetyBuffer = settings?.safetyBuffer ?? 0;
 
-  const { data: buckets, isLoading } = useCashFlowProjection({
+  const { data: buckets, isLoading, isError, isFetching, refetch } = useCashFlowProjection({
     weeks,
     initialBalance,
     safetyBuffer,
@@ -38,7 +38,9 @@ export default function CashFlowPage() {
           />
           <CashFlowSettingsBar weeks={weeks} onChangeWeeks={setWeeks} />
 
-          {isLoading || !buckets ? (
+          {isError ? (
+            <QueryErrorState entity="la proyección de flujo de caja" onRetry={() => refetch()} isRetrying={isFetching} />
+          ) : isLoading || !buckets ? (
             <Card><CardContent className="py-12 flex items-center justify-center text-muted-foreground">
               <SpinnerIcon className="h-5 w-5 animate-spin mr-2" /> Calculando proyección…
             </CardContent></Card>
