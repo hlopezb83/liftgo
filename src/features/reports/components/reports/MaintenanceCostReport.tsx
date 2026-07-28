@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useForklifts } from "@/features/fleet";
 import { useMaintenanceLogs } from "@/features/maintenance";
 import { exportToCsv } from "@/lib/exportCsv";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCompactCurrency, formatCurrency } from "@/lib/format/formatCurrency";
 
 interface Props {
   startDate: Date;
