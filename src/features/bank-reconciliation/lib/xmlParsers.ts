@@ -27,9 +27,9 @@ const SYNONYMS: Record<XmlFieldKey, string[]> = {
 
 /** Normaliza: sin namespace, sin acentos, sin separadores, minúsculas. */
 export function normalizeKey(raw: string): string {
-  return raw
-    .split(":")
-    .pop()!
+  const parts = raw.split(":");
+  const local = parts[parts.length - 1] ?? raw;
+  return local
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-zA-Z0-9]/g, "")
