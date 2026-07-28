@@ -47,7 +47,7 @@ export default function ContractDetail() {
       <DetailPageHeader
         title={contract.contract_number}
         backTo="/contracts"
-        badges={<StatusBadge status={contract.status} />}
+        badges={<StatusBadge status={contract.status} label={CONTRACT_STATUS_LABELS[contract.status]} />}
         actions={
           <ContractDetailActions
             id={id}
