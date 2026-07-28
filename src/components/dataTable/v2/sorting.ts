@@ -1,9 +1,13 @@
 import type { Row } from "@tanstack/react-table";
 
 /**
- * Comparador estándar LiftGo: nulls al final, números nativos,
- * strings con localeCompare insensible a acentos y numeric:true.
- * Genérico para alinear con `SortingFn<T>` que pide TanStack por columna.
+ * Comparador estándar LiftGo: números nativos, strings con localeCompare
+ * insensible a acentos y numeric:true.
+ *
+ * R22-W: los nulos NO se manejan aquí. TanStack invierte el resultado del
+ * comparador en `desc`, así que forzarlos al final aquí los mandaba al
+ * principio al invertir. Se delega en la opción de columna `sortUndefined`
+ * (ver `useLiftgoTable`), que TanStack aplica fuera de la inversión.
  */
 export function liftgoSortingFn<T>(
   rowA: Row<T>,
@@ -13,8 +17,8 @@ export function liftgoSortingFn<T>(
   const a = rowA.getValue(columnId);
   const b = rowB.getValue(columnId);
   if (a == null && b == null) return 0;
-  if (a == null) return 1;
-  if (b == null) return -1;
+  if (a == null) return -1;
+  if (b == null) return 1;
   if (typeof a === "number" && typeof b === "number") return a - b;
   return String(a).localeCompare(String(b), undefined, {
     sensitivity: "base",
