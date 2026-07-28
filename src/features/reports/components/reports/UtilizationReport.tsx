@@ -3,6 +3,7 @@ import { differenceInCalendarDays, parseISO } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { DownloadIcon } from "@/components/icons";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useBookings } from "@/features/bookings";
