@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router";
 import { SearchIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -12,6 +13,8 @@ import { useClosedProspects } from "../hooks/useClosedProspects";
 
 export default function CRMClosedPage() {
   const s = useClosedProspects();
+  const navigate = useNavigate();
+  const handleViewCustomer = (id: string) => navigate(`/customers/${id}`);
   // R18-C1: sólo roles con acceso full a Clientes ven "Convertir".
   const canConvert = useHasModuleAccess("Clientes", "full");
 
