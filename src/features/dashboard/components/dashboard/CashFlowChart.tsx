@@ -1,14 +1,10 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { ReportChartCard } from "@/components/domain/ReportChartCard";
-import { ExpenseIcon } from "@/components/icons";
+import { EmptyState } from "@/components/feedback/EmptyState";
+import { ExpenseIcon, ChartIcon } from "@/components/icons";
+// Oleada 3 (C-7): formato y grid unificados desde el tema de gráficas.
+import { chartGridProps, chartTick, formatCompactMxn } from "@/lib/charts/chartTheme";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-
-function formatCompactMxn(v: number): string {
-  const abs = Math.abs(v);
-  if (abs >= 1_000_000) return `$${(v / 1_000_000).toFixed(1)}M`;
-  if (abs >= 1_000) return `$${Math.round(v / 1_000)}k`;
-  return `$${v}`;
-}
 
 interface CashFlowItem {
   month: string;
