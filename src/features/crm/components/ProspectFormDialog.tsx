@@ -56,6 +56,7 @@ export function ProspectFormDialog({
       title={prospectDialogTitle(prospect)}
       description={prospectDialogDescription(prospect, overrideStage)}
       isPending={isPending}
+      isDirty={isDirty}
     >
       <ProspectStageBadgeBlock prospect={prospect} overrideStage={overrideStage} />
       <form onSubmit={handleSubmit} className="space-y-4">
