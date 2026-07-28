@@ -1,0 +1,15 @@
+{
+  "version": "7.246.1",
+  "date": "2026-07-28",
+  "type": "patch",
+  "title": "Los checkboxes de las tablas ya se pintan al seleccionar filas",
+  "category": "fix",
+  "summary": "La selección múltiple funcionaba (contador y barra de acciones masivas correctos) pero los checkboxes de cada fila se veían vacíos.",
+  "highlights": [
+    "`DataTableV2` calcula una llave de selección (`selectionKey`) y la pasa a `DataTableBodyV2` y `VirtualBody`, que ahora derivan el estado marcado de esa llave.",
+    "Sin ese cambio el cuerpo de la tabla quedaba memoizado por el React Compiler: TanStack conserva la MISMA referencia del arreglo de filas al seleccionar, así que el body nunca se volvía a renderizar."
+  ],
+  "notes": [
+    "Detectado durante la verificación visual del nuevo espacio de trabajo de Conciliación bancaria; afectaba a todas las tablas con selección múltiple."
+  ]
+}

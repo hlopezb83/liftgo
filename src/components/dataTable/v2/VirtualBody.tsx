@@ -15,6 +15,8 @@ interface Props<T> {
   columnCount: number;
   emptyMessage: string;
   showSelection: boolean;
+  /** R-Sel: ver `DataTableBodyV2`; invalida el memo cuando cambia la selección. */
+  selectionKey?: string;
   onRowClick?: (item: T) => void;
   rowClassName?: (item: T) => string | undefined;
   onRowPrefetch?: (item: T) => unknown;
@@ -27,13 +29,16 @@ export function VirtualBody<T>({
   columnCount,
   emptyMessage,
   showSelection,
+  selectionKey = "",
   onRowClick,
   rowClassName,
   onRowPrefetch,
   estimateRowHeight = 44,
   maxHeight = 600,
 }: Props<T>): ReactNode {
+  const selectedIds = new Set(selectionKey ? selectionKey.split(",") : []);
   const parentRef = useRef<HTMLDivElement>(null);
+
   const queryClient = useQueryClient();
   const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const armPrefetch = (item: T) => {
@@ -81,7 +86,7 @@ export function VirtualBody<T>({
       {items.map((vi) => {
         const row = rows[vi.index];
         const item = row.original;
-        const isSelected = row.getIsSelected();
+        const isSelected = selectedIds.has(row.id);
         return (
           <TableRow
             key={row.id}

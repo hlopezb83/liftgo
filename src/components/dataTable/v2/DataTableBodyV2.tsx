@@ -15,10 +15,18 @@ interface Props<T> {
   columnCount: number;
   emptyMessage: string;
   showSelection: boolean;
+  /**
+   * R-Sel: ids seleccionados serializados. `rows` conserva la MISMA referencia
+   * entre renders (TanStack cachea el row model), así que el React Compiler
+   * memoizaba el body y los checkboxes nunca se pintaban marcados. Esta llave
+   * de string cambia con la selección e invalida el memo.
+   */
+  selectionKey?: string;
   onRowClick?: (item: T) => void;
   rowClassName?: (item: T) => string | undefined;
   onRowPrefetch?: (item: T) => unknown;
 }
+
 
 /**
  * Tanda 3 P1-6: extraído a hook para que `DataTableBodyV2` no toque refs en
@@ -89,11 +97,13 @@ export function DataTableBodyV2<T>({
   columnCount,
   emptyMessage,
   showSelection,
+  selectionKey = "",
   onRowClick,
   rowClassName,
   onRowPrefetch,
 }: Props<T>): ReactNode {
   const { arm: armPrefetch, disarm: disarmPrefetch } = useRowPrefetchArm(onRowPrefetch);
+  const selectedIds = new Set(selectionKey ? selectionKey.split(",") : []);
 
   if (rows.length === 0) {
     return (
@@ -107,7 +117,8 @@ export function DataTableBodyV2<T>({
     <TableBody>
       {rows.map((row, rowIndex) => {
         const item = row.original;
-        const isSelected = row.getIsSelected();
+        const isSelected = selectedIds.has(row.id);
+
         return (
           <TableRow
             key={row.id}
