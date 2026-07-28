@@ -19,13 +19,22 @@ function DashboardSectionLabel({ children }: { children: React.ReactNode }) {
 
 export default function Dashboard() {
   const {
-    isLoading, insuranceData,
+    isLoading, isError, isFetching, refetch, insuranceData,
     statCards, utilizationPercent,
     pieData, agingBuckets, maintenanceAlerts,
     monthlyUtilization, revenuePerUnit, cashFlowData,
     overdueInvoices,
     financials, alertsProps, canSeeFinancials,
   } = useDashboardSections();
+
+  if (isError) {
+    return (
+      <PageContainer>
+        <PageHeader title="Panel" />
+        <QueryErrorState entity="el tablero" onRetry={() => refetch()} isRetrying={isFetching} />
+      </PageContainer>
+    );
+  }
 
   if (isLoading) {
     return (
