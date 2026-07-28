@@ -13,7 +13,7 @@ import {
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import { APP_CONFIG } from "@/lib/config";
-import { liftgoSortingFn } from "./sorting";
+import { createLiftgoSortingFn } from "./sorting";
 import type { DataTableSelectionContext } from "./types";
 
 interface Options<T> {
