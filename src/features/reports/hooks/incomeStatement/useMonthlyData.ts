@@ -67,7 +67,7 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
   const startStr = toYMD(startDate);
   const endStr = toYMD(endDate);
 
-  const { data: rpc } = useQuery(
+  const { data: rpc, isError, isFetching, refetch } = useQuery(
     incomeStatementQueries.list({ startStr, endStr, accountingBasis }),
   );
 
