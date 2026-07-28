@@ -41,7 +41,13 @@ function computeCfdiFlags(invoice: InvoiceLike, cfdiStatus: string) {
   const cancellationStatus = invoice.cancellation_status ?? "none";
   const hasMotive = Boolean(invoice.cancellation_motive);
   const isStamped = cfdiStatus === "stamped";
-  const isCancelled = cfdiStatus === "cancelled" || invoice.status === "cancelled";
+  // R-M12: cuando el SAT ya aceptó la cancelación (`cancellation_status = 'accepted'`)
+  // debemos tratar la factura como cancelada aunque el `status` / `cfdi_status`
+  // no se hayan sincronizado todavía. Antes seguía apareciendo "Cancelar CFDI".
+  const isCancelled =
+    cfdiStatus === "cancelled" ||
+    invoice.status === "cancelled" ||
+    cancellationStatus === "accepted";
   const isPendingCancel =
     cancellationStatus === "pending" ||
     (hasMotive && !isCancelled && cancellationStatus !== "rejected");
@@ -51,9 +57,9 @@ function computeCfdiFlags(invoice: InvoiceLike, cfdiStatus: string) {
     isPendingCancel,
     isRejectedCancel: cancellationStatus === "rejected",
     canStamp: (cfdiStatus === "pending" || cfdiStatus === "error") && invoice.status !== "cancelled",
-    // R18-A4: no ofrecer "Cancelar CFDI" si el CFDI ya está cancelado o si el
-    // estatus de cancelación ya fue aceptado por el SAT.
-    canCancelCfdi: isStamped && !isPendingCancel && !isCancelled && cancellationStatus !== "accepted",
+    // R18-A4 / R-M12: no ofrecer "Cancelar CFDI" si ya se canceló o si la
+    // cancelación fue aceptada por el SAT.
+    canCancelCfdi: isStamped && !isPendingCancel && !isCancelled,
   };
 }
 

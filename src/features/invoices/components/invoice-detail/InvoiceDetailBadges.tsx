@@ -23,7 +23,13 @@ function resolveFiscalBadge(
   cancellationStatus: string | null | undefined,
 ): { label: string; tone: Tone } {
   if (invoiceStatus === "draft") return { label: "Borrador", tone: "neutral" };
-  if (cfdiStatus === "cancelled" || invoiceStatus === "cancelled") {
+  // R-M12: si el SAT aceptó la cancelación, la factura es "Cancelada"
+  // aunque `invoice.status` / `cfdi_status` aún no se sincronicen.
+  if (
+    cfdiStatus === "cancelled" ||
+    invoiceStatus === "cancelled" ||
+    cancellationStatus === "accepted"
+  ) {
     return { label: "Cancelada", tone: "destructive" };
   }
   if (cancellationStatus === "pending") {

@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.240.0",
+    "date": "2026-07-28",
+    "type": "minor",
+    "title": "Auditoría R · invalidaciones AP, contratos y coherencia de entregas",
+    "category": "fix",
+    "description": "Aprobar/rechazar facturas invalida el pool exportable y las 'Por pagar' incluyen not_required; toasts de reserva ya no duplican mensaje; ContractForm conserva ediciones al hidratarse tarde (keepDirtyValues); StatusBadge de contratos usa etiquetas propias (Enviado/Firmado); useQuotePrefill normaliza rental_meta legacy con defaults de descuento; facturas con cancelación 'accepted' se muestran como Cancelada y ocultan 'Cancelar CFDI'; mensajes de inspección de devolución alineados con el RPC; Gestión de Usuarios oculta controles de escritura sin acceso 'full'; formulario de entregas filtra reservas por montacargas y auto-asigna equipo al elegir reserva."
+  },
+  {
     "version": "7.239.2",
     "date": "2026-07-28",
     "type": "patch",

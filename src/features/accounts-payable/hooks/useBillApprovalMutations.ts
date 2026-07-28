@@ -1,11 +1,16 @@
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { callRpc } from "@/lib/rpc";
 import { billApprovalQueries } from "./useBillApprovalHistory";
+import { exportablePayableQueries } from "./useExportablePayables";
 import { supplierBillKeys } from "./useSupplierBills";
 
+// R-M2: al aprobar/rechazar una factura debemos invalidar el pool de pagos
+// exportables (`useExportablePayables`) para que la lista "Exportar pagos"
+// refleje el nuevo estado sin requerir F5.
 const invalidationKeys = (billId: string) => [
   supplierBillKeys.all,
   supplierBillKeys.detail(billId),
+  exportablePayableQueries.keys.all,
   ["accounts_payable_kpis"] as const,
   ["dashboard-financial-kpis"] as const,
   ["cash-flow"] as const,

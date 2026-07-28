@@ -52,11 +52,26 @@ function lineToRentalLine(item: LineItem, found: EquipmentModel): RentalLineValu
   };
 }
 
+function normalizeRentalLine(raw: Partial<RentalLineValues> | undefined): RentalLineValues {
+  return {
+    modelId: raw?.modelId ?? "",
+    quantity: raw?.quantity ?? 1,
+    dailyRate: raw?.dailyRate ?? 0,
+    weeklyRate: raw?.weeklyRate ?? 0,
+    monthlyRate: raw?.monthlyRate ?? 0,
+    // R-M11: cotizaciones legacy pueden traer `rental_meta` sin `discount`
+    // ni `discountType`. Sin defaults, el zod resolver rechaza el submit con
+    // "se esperaba número, recibido indefinido" al editar.
+    discount: raw?.discount ?? 0,
+    discountType: (raw?.discountType ?? "%") as "%" | "$",
+  };
+}
+
 function getRentalMeta(q: ExistingQuote, items: LineItem[]): RentalLineValues[] | undefined {
-  const direct = q.rental_meta as RentalLineValues[] | undefined;
-  if (direct && direct.length > 0) return direct;
-  const firstItem = (items as Array<LineItem & { _rentalMeta?: RentalLineValues[] }>)?.[0];
-  return firstItem?._rentalMeta;
+  const direct = q.rental_meta as Array<Partial<RentalLineValues>> | undefined;
+  if (direct && direct.length > 0) return direct.map(normalizeRentalLine);
+  const firstItem = (items as Array<LineItem & { _rentalMeta?: Array<Partial<RentalLineValues>> }>)?.[0];
+  return firstItem?._rentalMeta?.map(normalizeRentalLine);
 }
 
 function rebuildRentalLines(items: LineItem[], q: ExistingQuote, models: EquipmentModel[]): RentalLineValues[] {

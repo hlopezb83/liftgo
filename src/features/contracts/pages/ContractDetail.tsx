@@ -10,6 +10,7 @@ import { ContractDetailActions } from "../components/contracts/ContractDetailAct
 import { ContractDetailsCard, ContractTextCard } from "../components/contracts/ContractDetailCards";
 import { RentalFinancialSummary } from "../components/contracts/RentalFinancialSummary";
 import { useContractDetailLogic } from "../hooks/contractDetail/useContractDetailLogic";
+import { CONTRACT_STATUS_LABELS } from "../lib/contractStatusLabels";
 
 function contractDates(contract: { start_date: string | null; end_date: string | null }) {
   return { start: contract.start_date ?? "", end: contract.end_date ?? "" };
@@ -47,7 +48,7 @@ export default function ContractDetail() {
       <DetailPageHeader
         title={contract.contract_number}
         backTo="/contracts"
-        badges={<StatusBadge status={contract.status} />}
+        badges={<StatusBadge status={contract.status} label={CONTRACT_STATUS_LABELS[contract.status]} />}
         actions={
           <ContractDetailActions
             id={id}

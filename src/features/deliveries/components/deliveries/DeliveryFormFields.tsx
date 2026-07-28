@@ -15,7 +15,7 @@ export type DeliveryFormValues = {
 };
 
 type Forklift = { id: string; name: string; model: string };
-type Booking = { id: string; customer_name: string | null; start_date: string; end_date: string };
+type Booking = { id: string; customer_name: string | null; start_date: string; end_date: string; forklift_id: string };
 type Driver = { id: string; name: string; phone?: string | null };
 
 interface Props {
@@ -31,11 +31,20 @@ const TYPE_OPTIONS: SelectOption[] = [
 ];
 
 export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }: Props) {
+  const forkliftId = useWatch({ control: form.control, name: "forkliftId" });
+  const bookingId = useWatch({ control: form.control, name: "bookingId" });
+
+  // R-C6: filtrar reservas visibles al montacargas elegido para evitar
+  // seleccionar una reserva que apunta a otro equipo (el RPC lo rechaza).
+  const visibleBookings = forkliftId
+    ? bookings?.filter((b) => b.forklift_id === forkliftId)
+    : bookings;
+
   const forkliftOptions: SelectOption[] =
     forklifts?.map((f) => ({ value: f.id, label: `${f.name} — ${f.model}` })) ?? [];
 
   const bookingOptions: SelectOption[] =
-    bookings?.map((b) => ({
+    visibleBookings?.map((b) => ({
       value: b.id,
       label: `${b.customer_name || "Desconocido"} (${formatDateRange(b.start_date, b.end_date)})`,
     })) ?? [];
@@ -50,6 +59,25 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
     const driver = activeDrivers?.find((d) => d.name === driverName);
     if (driver?.phone) form.setValue("driverPhone", driver.phone, { shouldDirty: true });
   }, [driverName, activeDrivers, form]);
+
+  // R-C6: al elegir una reserva, auto-asignar su montacargas.
+  useEffect(() => {
+    if (!bookingId) return;
+    const booking = bookings?.find((b) => b.id === bookingId);
+    if (booking && booking.forklift_id !== forkliftId) {
+      form.setValue("forkliftId", booking.forklift_id, { shouldDirty: true });
+    }
+  }, [bookingId, bookings, forkliftId, form]);
+
+  // R-C6: si el montacargas cambia y ya no coincide con la reserva, limpiar.
+  useEffect(() => {
+    if (!bookingId || !forkliftId) return;
+    const booking = bookings?.find((b) => b.id === bookingId);
+    if (booking && booking.forklift_id !== forkliftId) {
+      form.setValue("bookingId", "", { shouldDirty: true });
+    }
+  }, [forkliftId, bookingId, bookings, form]);
+
 
 
 

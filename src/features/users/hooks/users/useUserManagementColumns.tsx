@@ -16,6 +16,10 @@ type UserItem = UserRow & { id?: string };
 interface Params {
   currentUserId?: string;
   isToggling: boolean;
+  /** R-M13: sólo admins pueden cambiar rol, activar/desactivar, resetear
+   *  contraseña y borrar. En modo lectura ocultamos los controles para no
+   *  mostrarle al auditor botones que el servidor rechaza con 403. */
+  canManage?: boolean;
   onRoleChange: (u: UserRow, role: AppRole) => void;
   onToggleStatus: (userId: string, active: boolean) => void;
   onEdit: (u: UserRow) => void;
@@ -24,9 +28,9 @@ interface Params {
 }
 
 export function useUserManagementColumns({
-  currentUserId, isToggling, onRoleChange, onToggleStatus, onEdit, onSetPassword, onDelete,
+  currentUserId, isToggling, canManage = true, onRoleChange, onToggleStatus, onEdit, onSetPassword, onDelete,
 }: Params): ColumnDef<UserItem>[] {
-  return [
+  const base: ColumnDef<UserItem>[] = [
       {
         id: "full_name",
         header: "Nombre",
@@ -58,16 +62,19 @@ export function useUserManagementColumns({
         id: "role",
         header: "Rol",
         accessorKey: "role",
-        cell: ({ row }) => (
-          <Select defaultValue={row.original.role ?? undefined} onValueChange={(val) => onRoleChange(row.original, val as AppRole)}>
-            <SelectTrigger className="w-[160px]" onClick={(e) => e.stopPropagation()}><SelectValue /></SelectTrigger>
-            <SelectContent>
-              {STAFF_ROLES.map((r) => (
-                <SelectItem key={r} value={r}><RoleBadge role={r} /></SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ),
+        cell: ({ row }) => {
+          if (!canManage) return <RoleBadge role={row.original.role} />;
+          return (
+            <Select defaultValue={row.original.role ?? undefined} onValueChange={(val) => onRoleChange(row.original, val as AppRole)}>
+              <SelectTrigger className="w-[160px]" onClick={(e) => e.stopPropagation()}><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {STAFF_ROLES.map((r) => (
+                  <SelectItem key={r} value={r}><RoleBadge role={r} /></SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          );
+        },
       },
       {
         id: "status",
@@ -76,41 +83,50 @@ export function useUserManagementColumns({
         cell: ({ row }) => {
           const u = row.original;
           const isSelf = u.user_id === currentUserId;
-          return !isSelf ? (
+          if (!canManage || isSelf) {
+            return (
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <ShieldIcon className="h-3.5 w-3.5" /> {u.is_active ? "Activo" : "Inactivo"}
+              </div>
+            );
+          }
+          return (
             <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()} role="presentation">
               <Switch checked={u.is_active} onCheckedChange={() => onToggleStatus(u.user_id, u.is_active)} disabled={isToggling} />
               <span className="text-xs text-muted-foreground">{u.is_active ? "Activo" : "Inactivo"}</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <ShieldIcon className="h-3.5 w-3.5" /> Activo
-            </div>
-          );
-        },
-      },
-      {
-        id: "actions",
-        header: "Acciones",
-        enableSorting: false,
-        cell: ({ row }) => {
-          const u = row.original;
-          const isSelf = u.user_id === currentUserId;
-          return (
-            <div className="flex gap-1" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()} role="presentation">
-              <Button variant="ghost" size="icon" title="Editar nombre" aria-label="Editar nombre" onClick={() => onEdit(u)}>
-                <EditIcon className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="icon" title="Asignar contraseña" aria-label="Asignar contraseña" onClick={() => onSetPassword(u)}>
-                <KeyIcon className="h-4 w-4" />
-              </Button>
-              {!isSelf && (
-                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" title="Eliminar usuario" aria-label="Eliminar usuario" onClick={() => onDelete(u)}>
-                  <DeleteIcon className="h-4 w-4" />
-                </Button>
-              )}
             </div>
           );
         },
       },
     ];
+
+  if (!canManage) return base;
+
+  return [
+    ...base,
+    {
+      id: "actions",
+      header: "Acciones",
+      enableSorting: false,
+      cell: ({ row }) => {
+        const u = row.original;
+        const isSelf = u.user_id === currentUserId;
+        return (
+          <div className="flex gap-1" onClick={(e) => e.stopPropagation()} onKeyDown={(e) => e.stopPropagation()} role="presentation">
+            <Button variant="ghost" size="icon" title="Editar nombre" aria-label="Editar nombre" onClick={() => onEdit(u)}>
+              <EditIcon className="h-4 w-4" />
+            </Button>
+            <Button variant="ghost" size="icon" title="Asignar contraseña" aria-label="Asignar contraseña" onClick={() => onSetPassword(u)}>
+              <KeyIcon className="h-4 w-4" />
+            </Button>
+            {!isSelf && (
+              <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" title="Eliminar usuario" aria-label="Eliminar usuario" onClick={() => onDelete(u)}>
+                <DeleteIcon className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
+        );
+      },
+    },
+  ];
 }

@@ -90,7 +90,7 @@ export default function ContractsPage() {
         id: "status",
         header: "Estado",
         accessorKey: "status",
-        cell: ({ row }) => <StatusBadge status={row.original.status} />,
+        cell: ({ row }) => <StatusBadge status={row.original.status} label={CONTRACT_STATUS_LABELS[row.original.status]} />,
       },
       {
         id: "view",
@@ -159,7 +159,7 @@ export default function ContractsPage() {
                       {expiryLabel}
                     </Badge>
                   )}
-                  <StatusBadge status={c.status} />
+                  <StatusBadge status={c.status} label={CONTRACT_STATUS_LABELS[c.status]} />
                 </div>
               </div>
               <p className="text-sm text-muted-foreground">{c.customer_name || "Sin cliente"}</p>
