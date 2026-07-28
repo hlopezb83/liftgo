@@ -57,6 +57,17 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
     }
   };
 
+  // R22-B: un estado de resultados en ceros por falla de red induce a error.
+  if (isError) {
+    return (
+      <QueryErrorState
+        entity="el estado de resultados"
+        onRetry={() => { void refetch(); }}
+        isRetrying={isFetching}
+      />
+    );
+  }
+
   return (
     <>
       {rentedWithoutCost.length > 0 && (
