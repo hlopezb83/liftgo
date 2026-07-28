@@ -50,6 +50,10 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
   overdueInvoices.forEach((i) => { bucketTotals[i.bucket] += i.balance_mxn; });
 
   const grandTotal = Object.values(bucketTotals).reduce((s, v) => s + v, 0);
+  const visibleInvoices = selectedBucket
+    ? overdueInvoices.filter((i) => i.bucket === selectedBucket)
+    : overdueInvoices;
+  const visibleTotal = visibleInvoices.reduce((s, i) => s + i.balance_mxn, 0);
 
   type Row = typeof overdueInvoices[number];
   const columns: ColumnDef<Row>[] = [
@@ -62,12 +66,13 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
   ];
 
   const table = useLiftgoTable<Row>({
-    data: overdueInvoices,
+    data: visibleInvoices,
     columns,
     getRowId: (i) => i.id,
     initialSorting: [{ id: "days_overdue", desc: true }],
     paginated: false,
   });
+
 
   const handleExport = () => {
     exportToCsv("antiguedad_cartera.csv", overdueInvoices.map((i) => ({
