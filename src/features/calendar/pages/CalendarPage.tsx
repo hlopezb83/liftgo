@@ -70,6 +70,15 @@ export default function CalendarPage() {
 
 
 
+  if (bError) {
+    return (
+      <PageContainer>
+        <PageHeader title="Calendario de Disponibilidad" />
+        <QueryErrorState entity="el calendario" onRetry={() => bRefetch()} isRetrying={bFetching} />
+      </PageContainer>
+    );
+  }
+
   if (bLoading || fLoading) {
     return <PageContainer><Skeleton className="h-96" /></PageContainer>;
   }
