@@ -46,3 +46,36 @@ export function formatCurrencyWithCode(
   if (!isRenderable(amount)) return "—";
   return getFormatter(currencyCode).format(amount);
 }
+
+/**
+ * R21 C-3: formato compacto en es-MX para KPIs y ejes de gráfica.
+ * $1,234,567 → "$1.23 M"  ·  $845,000 → "$845 K"  ·  $99,000 → "$99,000.00".
+ * Debajo de $100K devuelve el formato completo (aún cabe en la card).
+ */
+export function formatCompactCurrency(
+  amount: number | null | undefined,
+  currency: string = "MXN",
+): string {
+  if (!isRenderable(amount)) return "—";
+  const abs = Math.abs(amount);
+  if (abs >= 1_000_000) {
+    const v = new Intl.NumberFormat("es-MX", { maximumFractionDigits: 2 }).format(amount / 1_000_000);
+    return `$${v} M`;
+  }
+  if (abs >= 100_000) {
+    const v = new Intl.NumberFormat("es-MX", { maximumFractionDigits: 0 }).format(amount / 1_000);
+    return `$${v} K`;
+  }
+  return getFormatter(currency).format(amount);
+}
+
+/**
+ * R21 C-3: escala tipográfica del KPI según longitud del string formateado.
+ * Evita ellipsis en el número principal: mejor bajar tamaño que truncar.
+ */
+export function kpiSizeClass(formatted: string): string {
+  if (formatted.length > 14) return "text-lg";
+  if (formatted.length > 10) return "text-xl";
+  return "text-2xl";
+}
+
