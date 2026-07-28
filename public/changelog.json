@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.247.3",
+    "date": "2026-07-28",
+    "type": "patch",
+    "title": "Conciliación bancaria: carga sin falso estado vacío",
+    "category": "quality",
+    "description": "Mientras se cargaban las cuentas bancarias, la pantalla de Conciliación mostraba por un instante el mensaje de 'sin cuentas registradas'. Ahora muestra un esqueleto de carga y el mensaje vacío sólo aparece cuando realmente no hay cuentas. También se estabilizó la prueba automatizada del módulo que fallaba de forma intermitente en CI."
+  },
+  {
     "version": "7.247.1",
     "date": "2026-07-28",
     "type": "patch",

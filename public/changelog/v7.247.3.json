@@ -1,0 +1,22 @@
+{
+  "version": "7.247.3",
+  "date": "2026-07-28",
+  "type": "patch",
+  "title": "Conciliación bancaria: carga sin falso estado vacío",
+  "category": "quality",
+  "description": "Mientras se cargaban las cuentas bancarias, la pantalla de Conciliación mostraba por un instante el mensaje 'Aún no tienes cuentas bancarias registradas'. Ahora muestra un esqueleto de carga y el mensaje vacío sólo aparece cuando de verdad no hay cuentas. También se estabilizó la prueba automatizada del módulo, que fallaba de forma intermitente en CI.",
+  "changes": [
+    {
+      "type": "fix",
+      "description": "Skeleton de carga en Conciliación bancaria en lugar del estado vacío prematuro."
+    },
+    {
+      "type": "improvement",
+      "description": "Selector de cuenta con identificador estable (data-testid) para pruebas."
+    },
+    {
+      "type": "improvement",
+      "description": "Prueba E2E de conciliación con espera explícita y timeout de 60s para evitar intermitencias en CI."
+    }
+  ]
+}

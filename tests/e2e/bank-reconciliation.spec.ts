@@ -17,7 +17,9 @@ async function openReconciliation(page: Page, bank: BankSeedIds): Promise<void> 
   await expect(page.getByRole("heading", { name: /conciliación bancaria/i })).toBeVisible({
     timeout: TIMEOUTS.long,
   });
-  await page.getByRole("combobox").first().click();
+  const accountSelect = page.getByTestId("bank-account-select");
+  await expect(accountSelect).toBeVisible({ timeout: TIMEOUTS.long });
+  await accountSelect.click();
   await page.getByRole("option", { name: new RegExp(bank.scope) }).click();
   await expect(page.getByTestId("bank-workspace")).toBeVisible({ timeout: TIMEOUTS.long });
   await expect(page.getByText(bank.orphanRef)).toBeVisible({ timeout: TIMEOUTS.long });
@@ -28,6 +30,9 @@ function row(page: Page, reference: string) {
 }
 
 test.describe("Conciliación bancaria", () => {
+  // Cada test siembra datos vía API, hace login y navega: 30s es justo en CI frío.
+  test.describe.configure({ timeout: 60_000 });
+
   test("KPIs reflejan los movimientos sembrados", async ({ page, bank }) => {
     await openReconciliation(page, bank);
 
