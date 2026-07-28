@@ -1,0 +1,14 @@
+{
+  "version": "7.247.2",
+  "date": "2026-07-28",
+  "type": "patch",
+  "title": "Configuración de notas de release al formato nuevo",
+  "category": "infra",
+  "summary": "Migración de release-drafter al esquema vigente; se eliminan 10 avisos de campos obsoletos en CI.",
+  "highlights": [
+    "`exclude-labels: [skip-changelog]` → categoría `type: pre-exclude`.",
+    "Las 7 categorías (Nuevas funcionalidades, Fixes, Seguridad, Performance, Infraestructura / CI, Base de datos, Documentación) pasan a `type: changelog` con sus etiquetas dentro de `when.labels.any`.",
+    "`version-resolver.major/minor.labels` → `semver-increment` en cada categoría, más categorías `type: version-resolver` (sin título) para `major`/`breaking`, `minor`, `patch`/`chore`.",
+    "Se conservan `version-resolver.default: patch`, autolabeler, plantillas y títulos: las notas generadas y la versión resuelta son idénticas."
+  ]
+}
