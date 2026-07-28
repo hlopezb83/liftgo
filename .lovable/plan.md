@@ -1,28 +1,41 @@
 ## Diagnóstico
 
-**1) Knip:** ejecuté `bunx knip` en el repo actual y pasa (exit 0). El error del anexo viene de una corrida anterior al arreglo v7.247.1 (borrado de `PortalStatCard.tsx`). No hay nada nuevo que corregir; sólo re-verificar.
+El workflow "Actualizar draft de release" falla al validar `.github/release-drafter.yml`. En la migración anterior (v7.247.2) escribí las etiquetas como:
 
-**2) E2E flaky** (`bank-reconciliation.spec.ts`, `openReconciliation`): el click al `combobox` agotó los 30 s del test (pasó en el reintento). Hay dos causas reales que confirmé en `src/features/bank-reconciliation/pages/BankReconciliationPage.tsx`:
+```yaml
+when:
+  labels:
+    any:
+      - "feature"
+```
 
-- Mientras `useBankAccounts()` está cargando, `accounts` es `undefined` y la condición `(accounts ?? []).length === 0` renderiza el **estado vacío** ("Crear primera cuenta") en vez de un skeleton. En CI frío el selector puede tardar en aparecer y, si el usuario/test llega antes, ve un vacío falso.
-- El test usa `getByRole("combobox").first()` sin `timeout` explícito: hereda el timeout global del test (30 s) que ya venía consumido por login + `goto` + render.
+pero el esquema de release-drafter v7.6.0 espera que `when.labels` sea **una lista directa** (el modo `any` ya es el default y se controla aparte con `labels-mode`), o bien que `when` sea una lista de condiciones. De ahí los 10 errores `invalid_union` — uno por cada categoría.
 
-## Cambios propuestos
+## Cambio propuesto
 
-### Frontend (bug real de UX)
-`BankReconciliationPage.tsx`:
-- Tomar `isLoading` de `useBankAccounts()` y mostrar un skeleton mientras carga; el estado vacío sólo cuando la carga terminó y hay 0 cuentas.
-- Agregar `data-testid="bank-account-select"` al `SelectTrigger` para un selector estable.
+Reescribir las 10 categorías de `.github/release-drafter.yml` quitando el nivel `any:`:
 
-### Test E2E
-`tests/e2e/bank-reconciliation.spec.ts`:
-- Usar `getByTestId("bank-account-select")` en lugar de `getByRole("combobox").first()`.
-- Esperar explícitamente su visibilidad con `TIMEOUTS.long` antes del click.
-- Subir el timeout de este archivo con `test.describe.configure({ timeout: 60_000 })` (los tests siembran datos vía API y navegan; 30 s es justo en CI).
+```yaml
+categories:
+  - type: pre-exclude
+    when:
+      labels: ["skip-changelog"]
 
-### Cierre
-- Correr `tsgo --noEmit`, `bun run lint`, `bunx knip` y el spec de conciliación.
-- Agregar entrada de changelog (patch, v7.247.3) en `public/changelog.json` + `public/changelog/v7.247.3.json`.
+  - title: "Nuevas funcionalidades"
+    semver-increment: minor
+    when:
+      labels: ["feature", "enhancement"]
+  ...
+```
 
-## Detalle técnico
-El estado vacío falso ocurre porque React Query devuelve `undefined` en el primer render; el `?? []` colapsa "cargando" y "sin datos" en el mismo caso. Se separa con `isLoading`.
+Detalles:
+- Se conservan exactamente las mismas etiquetas, títulos, `semver-increment` y las categorías `version-resolver` (major/minor/patch).
+- Se elimina también `type: changelog` (no es un tipo válido del esquema; las categorías con `title` ya salen en las notas).
+- Se mantiene `version-resolver.default: patch`, `autolabeler`, `template` y `change-template` sin cambios.
+
+## Validación
+- Parsear el YAML localmente y comprobar la forma de cada `when` (labels debe ser array).
+- Confirmar que no queda ningún `any:` bajo `labels`.
+- Agregar entrada de changelog patch (v7.247.4) en `public/changelog.json` + `public/changelog/v7.247.4.json`.
+
+La confirmación real llega al hacer merge a main, cuando el workflow vuelva a correr sin anotaciones.
