@@ -1,29 +1,85 @@
-Estado verificado hoy en el código: `EmptyState` ya acepta `actionLabel`/`onAction`, `ConfirmDialog` ya reemplazó los `AlertDialog` sueltos (no queda ninguno fuera de `components/ui`), `chartTheme.ts` existe y ya lo usan Ingresos y Costos de Mantenimiento, y el login del portal ya tiene el facelift. Falta lo siguiente.
+# B-8 · Conciliación Bancaria: cómo lo mejoraría
 
-## 1. B-3 · Empty states con CTA en tablas
-Hoy las tablas caen en `EmptyRow` (icono + texto, sin acción). Plan:
-- Permitir que `DataTableV2` reciba `emptyAction` (`{ label, onAction }`) y lo pase a `DataTableBodyV2` / `VirtualBody`, que renderizarán `EmptyState` con botón dentro de la celda de ancho completo en vez de `EmptyRow`.
-- Conectar el CTA en: Clientes, Cotizaciones, Facturas, Contratos, Flota, Mantenimiento, Inventario y Prospectos, reutilizando la misma acción del botón "Nuevo X" del header (los `useListPage`/`useDialogState` ya la exponen).
-- Cuando hay filtros activos, el mensaje será "Sin resultados con estos filtros" y el CTA será "Limpiar filtros" en lugar de "Nuevo X".
+El plan original de B-8 solo pedía "dos columnas". Al revisar el módulo encontré que el layout es el síntoma; los frenos reales están en el flujo de emparejamiento. Propongo atacar ambos.
 
-## 2. B-7 · Footer estandarizado en diálogos
-- Convención: Cancelar a la izquierda, acción primaria a la derecha, destructivo separado por spacer.
-- Ajustar `FormActions` a `flex justify-between` (Cancelar primero en el DOM, primaria a la derecha) y verificar `FormDialogFooter` y `ConfirmDialog` para que compartan el mismo espaciado y orden.
-- Barrido de los diálogos que arman su footer a mano para que usen `FormActions`.
+## Diagnóstico del estado actual
 
-## 3. C-2 · Facelift del portal de clientes (páginas internas)
-- `CustomerPortalLayout`: usar `BrandMark` en el header, header sticky, y contenedor `max-w-5xl mx-auto` para el contenido.
-- `PortalDashboard`: migrar las tarjetas a `KpiTile` con `formatCompactCurrency` + `kpiSizeClass`, y agregar sección "Próximos vencimientos" a partir de las facturas no pagadas.
-- Tablas del portal (Rentas, Cotizaciones, Facturas, Contratos, Estado de cuenta): `StatusBadge` + zebra del sistema + `ColumnMeta.kind` para montos y fechas, y `EmptyState` en lugar de textos sueltos.
+Verificado leyendo `BankReconciliationPage.tsx`, `BankStatementLinesTable.tsx`, `BankLineDetailSheet.tsx`, `BankLineActions.tsx`, `ManualMatchPicker.tsx`, `useManualMatchCandidates.ts` y `matchingScore.ts`:
 
-## 4. C-7 · Gráficas restantes con tema unificado
-- Aplicar `chartTheme.ts` (paleta por tokens, `chartGridProps`, `formatCompactMxn` como `tickFormatter`, `tooltipCurrencyFormatter`, altura mínima) a: `CashFlowChart`, `UtilizationCharts`, `FleetStatusChart`, `CollectionForecast`, `ProfitabilityChart`, `AgingReport` y `UtilizationReport`.
-- Estados vacíos de gráficas con `EmptyState`.
+1. **Página apilada verticalmente**: uploader + KPIs + hasta 4 tablas (Sin emparejar / Sugeridas / Conciliadas / Ignoradas) una debajo de otra. Con un estado de cuenta de 200 líneas hay que hacer scroll largo y nunca se ven banco y sistema al mismo tiempo.
+2. **Candidatos manuales pobres**: `useManualMatchCandidates` trae los **20 pagos más recientes**, sin filtrar por monto, fecha ni cuenta bancaria, y luego filtra en el cliente. Si el pago que buscas es el número 21, simplemente no aparece. Este es el bug funcional más grave del módulo.
+3. **Un movimiento a la vez**: cada línea abre un `Sheet` que se cierra al confirmar. Conciliar 50 líneas = 50 aperturas/cierres.
+4. **Sin acciones masivas**: no se puede "confirmar todas las sugerencias con score ≥ 85" ni ignorar varias comisiones bancarias juntas.
+5. **Sin filtros ni paginación**: las tablas usan `paginated: false` y no hay búsqueda por monto/descripción/rango de fechas ni filtro por importación.
+6. **Score opaco**: se muestra "Score: 92" sin explicar por qué (monto exacto, ±1 día, referencia coincide).
+7. **Moneda**: los KPIs usan `formatCurrency` por defecto aunque la cuenta bancaria tenga `currency` propia (USD).
+8. **Salida limitada para no conciliados**: solo "Ignorar". No hay atajo para crear el gasto o pago faltante desde la línea.
 
-## Fuera de alcance
-- **B-8 (rediseño a dos columnas de Conciliación Bancaria)**: se mantiene diferido; es un rehacer completo de la página y merece su propia tanda.
+## Rediseño propuesto
+
+### Fase 1 · Workspace de dos columnas (el B-8 original)
+
+```text
+┌──────────────────────────────────────────────────────────────┐
+│ Cuenta ▾   Importación ▾   Periodo ▾   Buscar…   [Subir CSV] │
+│ Cargos $X · Abonos $Y · Neto $Z · 62% conciliado ▓▓▓▓▓░░░    │
+├─────────────────────────┬────────────────────────────────────┤
+│ MOVIMIENTOS DEL BANCO   │  PANEL DE EMPAREJAMIENTO           │
+│ [Pendientes][Sug.][OK]  │  Línea seleccionada (banco)        │
+│ ☐ 12/07 OXXO   -$1,200  │  ────────  ⇅  ────────             │
+│ ☑ 13/07 SPEI   +$45,000 │  Candidatos del sistema            │
+│ ☐ 14/07 COMIS.    -$85  │  · Score 92 · monto ✓ fecha ✓ ref ✓│
+│ …                       │  [Confirmar] [Ignorar] [Crear…]    │
+├─────────────────────────┴────────────────────────────────────┤
+│ 3 seleccionadas · [Confirmar sugeridas] [Ignorar] [Limpiar]  │
+└──────────────────────────────────────────────────────────────┘
+```
+
+- Columna izquierda: **una sola tabla** con pestañas de estado (`StatusTabs`, ya estándar en la app) en lugar de 4 tablas apiladas. Selección de fila persistente y resaltada.
+- Columna derecha: panel **fijo** (sticky) que reemplaza al `Sheet`. Al hacer clic en otra línea, el panel cambia sin animación de apertura/cierre. En móvil sigue siendo `Sheet`.
+- Barra superior sticky con cuenta, importación, periodo y búsqueda; KPIs compactos con barra de progreso de conciliación.
+
+### Fase 2 · Candidatos inteligentes (el arreglo funcional)
+
+Reescribir `useManualMatchCandidates` para que reciba la línea seleccionada y consulte del backend:
+- pagos con monto dentro de una tolerancia configurable (exacto, ±1%, o cualquier monto),
+- ventana de fechas ±15 días alrededor de `posted_date`,
+- búsqueda por texto en referencia/cliente/proveedor **en el servidor**,
+- excluyendo pagos ya conciliados con otra línea.
+
+Cada candidato muestra su score calculado con `computeMatchScore` (ya existe y está testeado) y un desglose visual: `monto exacto ✓ · 1 día de diferencia · referencia coincide`.
+
+### Fase 3 · Productividad
+
+- **Selección múltiple** en la tabla (`enableRowSelection` de `DataTableV2`, ya soportado) con toolbar de acciones masivas: *Confirmar sugeridas seleccionadas* e *Ignorar con razón común*.
+- **Confirmar todas las de alta confianza**: un botón que empareja de golpe las sugerencias con score ≥ 85, con diálogo de confirmación que enumera cuántas y por qué monto total.
+- **Teclado**: `↑/↓` mueve de línea, `Enter` confirma la sugerencia, `I` ignora. Registrado en el registry de atajos existente.
+- **Crear desde la línea**: para cargos sin match, botón *Registrar gasto* que abre el formulario de gastos prellenado con fecha, monto y descripción de la línea.
 
 ## Detalles técnicos
-- Sin cambios de base de datos ni de lógica de negocio: todo es presentación.
-- `EmptyState` ya soporta CTA; sólo falta el puente desde `DataTableV2`.
-- Al terminar: nueva entrada `public/changelog.json` + `public/changelog/v7.245.0.json` (minor).
+
+- Nuevo `BankReconciliationWorkspace.tsx` que contiene el grid `lg:grid-cols-[minmax(0,1fr)_420px]`; `BankReconciliationPage.tsx` queda como shell (cuenta + guard + carga).
+- `BankLineDetailSheet` se refactoriza a `BankLineMatchPanel` (contenido puro) reutilizado tanto por el panel fijo en escritorio como por el `Sheet` en móvil, respetando el límite de 150 líneas por componente.
+- Candidatos: nueva RPC `get_bank_match_candidates(line_id, tolerance, search)` con `SET search_path = public` y `SECURITY INVOKER` para respetar RLS; devuelve como máximo 50 filas ordenadas por score.
+- Acciones masivas sobre una RPC transaccional `confirm_bank_matches(line_ids[], ...)` para mantener integridad (patrón ya usado en el proyecto).
+- KPIs: pasar `currency` de la cuenta a `formatCurrencyWithCode`.
+- Pruebas: unitarias del desglose de score y del filtrado de candidatos; E2E de conciliar una línea sugerida y una manual.
+
+## Orden y esfuerzo
+
+| Fase | Contenido | Riesgo |
+|---|---|---|
+| 1 | Layout dos columnas + tabs + panel fijo | Bajo (solo UI) |
+| 2 | RPC de candidatos + desglose de score | Medio (toca backend) |
+| 3 | Selección múltiple, masivas, teclado, crear gasto | Medio |
+
+Recomiendo entregar la Fase 1 sola primero (v7.246.0) para validar el layout con datos reales, y luego 2 y 3.
+
+## Fuera de alcance
+
+- Conexión bancaria automática por API (Belvo/Plaid): distinto proyecto.
+- Reglas de auto-ignorado aprendidas (por ejemplo, comisiones recurrentes): candidato para una oleada posterior.
+
+## Pregunta antes de arrancar
+
+¿Entrego **solo la Fase 1** (layout, sin tocar backend) o el **paquete completo Fases 1–3**?

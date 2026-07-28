@@ -8,42 +8,24 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { BankLineDetailSheet } from "../components/BankLineDetailSheet";
-import { BankStatementLinesTable } from "../components/BankStatementLinesTable";
+import { BankReconciliationWorkspace } from "../components/BankReconciliationWorkspace";
 import { BankStatementUploader } from "../components/BankStatementUploader";
 import { ReconciliationKpiCards } from "../components/ReconciliationKpiCards";
 import { useBankAccounts } from "../hooks/useBankAccounts";
-import { useBankStatementLines, type BankStatementLine } from "../hooks/useBankStatementLines";
-import type { BankLineStatus } from "../lib/bankReconciliationConstants";
-
-const SECTIONS: { key: BankLineStatus; title: string }[] = [
-  { key: "unmatched", title: "Sin emparejar" },
-  { key: "suggested", title: "Sugeridas" },
-  { key: "matched", title: "Conciliadas" },
-  { key: "ignored", title: "Ignoradas" },
-];
+import { useBankStatementLines } from "../hooks/useBankStatementLines";
 
 export default function BankReconciliationPage() {
   const { data: accounts } = useBankAccounts();
   const [manualAccountId, setManualAccountId] = useState<string | null>(null);
   // Default derivado en render: la primera cuenta activa (o la primera). El usuario puede
   // sobrescribir con el <Select>. Al elegir manualmente, `manualAccountId` toma precedencia.
-  const accountId = useMemo(() => {
-    if (manualAccountId) return manualAccountId;
+  const account = useMemo(() => {
     if (!accounts || accounts.length === 0) return null;
-    return (accounts.find((a) => a.is_active) ?? accounts[0]).id;
+    if (manualAccountId) return accounts.find((a) => a.id === manualAccountId) ?? null;
+    return accounts.find((a) => a.is_active) ?? accounts[0];
   }, [manualAccountId, accounts]);
-  const setAccountId = setManualAccountId;
-  const [selected, setSelected] = useState<BankStatementLine | null>(null);
+  const accountId = account?.id ?? null;
   const { data: lines, isLoading } = useBankStatementLines(accountId);
-
-  const grouped = (() => {
-    const g: Record<BankLineStatus, BankStatementLine[]> = {
-      unmatched: [], suggested: [], matched: [], ignored: [],
-    };
-    for (const l of lines ?? []) g[l.status].push(l);
-    return g;
-  })();
 
   return (
     <RoleGuard module="Conciliación Bancaria" minAccess="read">
@@ -68,7 +50,7 @@ export default function BankReconciliationPage() {
             <>
               <Card><CardContent className="py-3 flex items-center gap-3 flex-wrap">
                 <span className="text-sm font-medium">Cuenta:</span>
-                <Select value={accountId ?? ""} onValueChange={setAccountId}>
+                <Select value={accountId ?? ""} onValueChange={setManualAccountId}>
                   <SelectTrigger className="w-64"><SelectValue placeholder="Selecciona una cuenta" /></SelectTrigger>
                   <SelectContent>
                     {(accounts ?? []).map((a) => (
@@ -83,29 +65,16 @@ export default function BankReconciliationPage() {
               {accountId && (
                 <>
                   <BankStatementUploader bankAccountId={accountId} />
-                  <ReconciliationKpiCards lines={lines ?? []} />
-                  {isLoading ? (
-                    <Card><CardContent className="py-12 text-center text-muted-foreground">Cargando movimientos…</CardContent></Card>
-                  ) : (
-                    SECTIONS.map((s) => grouped[s.key].length > 0 && (
-                      <div key={s.key} className="space-y-2">
-                        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                          {s.title} ({grouped[s.key].length})
-                        </h2>
-                        <BankStatementLinesTable lines={grouped[s.key]} onSelect={setSelected} />
-                      </div>
-                    ))
-                  )}
+                  <ReconciliationKpiCards lines={lines ?? []} currency={account?.currency ?? "MXN"} />
+                  <BankReconciliationWorkspace
+                    lines={lines ?? []}
+                    bankAccountId={accountId}
+                    isLoading={isLoading}
+                  />
                 </>
               )}
             </>
           )}
-
-          <BankLineDetailSheet
-            line={selected}
-            open={!!selected}
-            onOpenChange={(o) => { if (!o) setSelected(null); }}
-          />
         </PageContainer>
       </PageTransition>
     </RoleGuard>
