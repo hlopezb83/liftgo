@@ -8,12 +8,18 @@ export const BANK_LINE_STATUS_LABELS: Record<BankLineStatus, string> = {
   ignored: "Ignorado",
 };
 
-export const CSV_PROFILES = ["generico", "bbva", "banorte", "santander"] as const;
-export type CsvProfile = (typeof CSV_PROFILES)[number];
+export const CSV_PROFILES = ["generico", "bbva", "banorte", "santander", "bbva_xml"] as const;
+export type StatementProfile = (typeof CSV_PROFILES)[number];
+/** @deprecated usar StatementProfile */
+export type CsvProfile = StatementProfile;
 
-export const CSV_PROFILE_LABELS: Record<CsvProfile, string> = {
+export const CSV_PROFILE_LABELS: Record<StatementProfile, string> = {
   generico: "Genérico (Fecha, Descripción, Monto, Referencia)",
-  bbva: "BBVA México",
-  banorte: "Banorte",
-  santander: "Santander",
+  bbva: "BBVA México (CSV)",
+  banorte: "Banorte (CSV)",
+  santander: "Santander (CSV)",
+  bbva_xml: "BBVA México (XML)",
 };
+
+/** Perfiles que esperan un archivo XML en lugar de CSV. */
+export const XML_PROFILES: readonly StatementProfile[] = ["bbva_xml"];
