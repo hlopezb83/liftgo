@@ -83,8 +83,8 @@ export default function MaintenancePage() {
       id: "cost",
       header: "Costo",
       accessorFn: (l) => l.cost ?? 0,
-      meta: { align: "right" },
-      cell: ({ row }) => <span className="font-medium">{formatCurrency(row.original.cost || 0)}</span>,
+      meta: { kind: "money" },
+      cell: ({ row }) => <span>{formatCurrency(row.original.cost || 0)}</span>,
     },
     {
       id: "next_service_date",
