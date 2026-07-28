@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router";
 import { SearchIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -12,6 +13,8 @@ import { useClosedProspects } from "../hooks/useClosedProspects";
 
 export default function CRMClosedPage() {
   const s = useClosedProspects();
+  const navigate = useNavigate();
+  const handleViewCustomer = (id: string) => navigate(`/customers/${id}`);
   // R18-C1: sólo roles con acceso full a Clientes ven "Convertir".
   const canConvert = useHasModuleAccess("Clientes", "full");
 
@@ -42,7 +45,7 @@ export default function CRMClosedPage() {
             <TabsTrigger value="lost">Perdidos ({s.metrics.lost.length})</TabsTrigger>
           </TabsList>
           <TabsContent value="won" className="mt-4">
-            <ClosedTable rows={s.wonRows} kind="won" isLoading={s.isLoading} onReopen={s.handleReopen} onConvert={canConvert ? s.handleConvert : undefined} />
+            <ClosedTable rows={s.wonRows} kind="won" isLoading={s.isLoading} onReopen={s.handleReopen} onConvert={canConvert ? s.handleConvert : undefined} onViewCustomer={handleViewCustomer} />
           </TabsContent>
           <TabsContent value="lost" className="mt-4">
             <ClosedTable rows={s.lostRows} kind="lost" isLoading={s.isLoading} onReopen={s.handleReopen} />

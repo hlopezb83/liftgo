@@ -2,7 +2,7 @@ import { DatePickerField } from "@/components/forms/DatePickerField";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CustomerSelector } from "@/features/customers";
 import { useNextInvoiceNumber } from "../../hooks/invoices/useNextInvoiceNumber";
 import { MultiBookingSelector } from "./MultiBookingSelector";
 import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
@@ -59,14 +59,18 @@ export function InvoiceDetailsCard({
           <FormField control={form.control} name="customerId" render={({ field }) => (
             <FormItem>
               <Label>Cliente</Label>
-              <Select value={field.value || ""} onValueChange={handleCustomerSelect}>
-                <FormControl><SelectTrigger><SelectValue placeholder="Seleccionar cliente" /></SelectTrigger></FormControl>
-                <SelectContent>
-                  {customers?.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}{c.company && c.company !== c.name ? ` — ${c.company}` : ""}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <CustomerSelector
+                  customers={customers ?? []}
+                  customerId={field.value}
+                  customerName={form.getValues("customerName")}
+                  onCustomerIdChange={handleCustomerSelect}
+                  onCustomerNameChange={(name) => form.setValue("customerName", name, { shouldDirty: true })}
+                  required
+                  hideManualName
+                  helpText="Si tu cliente no aparece, regístralo primero en el módulo de Clientes."
+                />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )} />

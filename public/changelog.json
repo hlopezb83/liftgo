@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.240.3",
+    "date": "2026-07-28",
+    "type": "patch",
+    "title": "Auditoría R20 · cierre de backlog (URL artesanal de daño, combobox de cliente en facturas, ver cliente en CRM, validación nativa es-MX)",
+    "category": "fix",
+    "description": "R20-1: useDamagePrefill consulta damage_records.status; si ya está 'invoiced' muestra toast y bloquea el prefill (cierra bypass por URL manual). R16-1: InvoiceForm usa CustomerSelector con búsqueda (mismo patrón que Cotizaciones). R19-3 residual: en /crm/cerrados el indicador 'Cliente creado' ahora es botón que navega al detalle. Native-validation: CurrencyField reemplaza la burbuja nativa en inglés por mensaje es-MX vía setCustomValidity."
+  },
+  {
     "version": "7.240.2",
     "date": "2026-07-28",
     "type": "minor",
