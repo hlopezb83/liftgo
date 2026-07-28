@@ -50,7 +50,19 @@ export default function ContractsPage() {
         id: "customer_name",
         header: "Cliente",
         accessorFn: (c) => c.customer_name || "",
-        cell: ({ row }) => row.original.customer_name || "—",
+        // Oleada 1 (A-7): nombres largos truncan con tooltip completo
+        meta: { cellClassName: "max-w-[240px]" },
+        cell: ({ row }) => {
+          const name = row.original.customer_name || "—";
+          return (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="block truncate">{name}</span>
+              </TooltipTrigger>
+              <TooltipContent>{name}</TooltipContent>
+            </Tooltip>
+          );
+        },
       },
       {
         id: "forklift_name",
