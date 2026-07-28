@@ -1,14 +1,33 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { UploadIcon, SpinnerIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { notifyError, notifyWarning } from "@/lib/ui/appFeedback";
 import { useImportBankStatement } from "../hooks/useBankReconciliationMutations";
 import { CSV_PROFILES, CSV_PROFILE_LABELS, type CsvProfile } from "../lib/bankReconciliationConstants";
 import { parseBankCsv } from "../lib/csvParsers";
+
+// Oleada 1 (A-13): file picker on-brand para reemplazar el input nativo en inglés.
+function BankFilePicker({ file, onChange }: { file: File | null; onChange: (f: File | null) => void }) {
+  const ref = useRef<HTMLInputElement>(null);
+  return (
+    <>
+      <input
+        ref={ref}
+        type="file"
+        accept=".csv,text/csv"
+        className="hidden"
+        onChange={(e) => onChange(e.target.files?.[0] ?? null)}
+      />
+      <Button type="button" variant="outline" onClick={() => ref.current?.click()} className="justify-start">
+        <UploadIcon className="h-4 w-4 mr-2" />
+        <span className="truncate">{file?.name ?? "Elegir archivo…"}</span>
+      </Button>
+    </>
+  );
+}
 
 interface Props {
   bankAccountId: string;
@@ -67,11 +86,8 @@ export function BankStatementUploader({ bankAccountId }: Props) {
         </div>
         <div className="grid gap-1.5">
           <Label>Archivo CSV</Label>
-          <Input
-            type="file"
-            accept=".csv,text/csv"
-            onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-          />
+          {/* Oleada 1 (A-13): el input nativo sale en inglés ("Choose File") */}
+          <BankFilePicker file={file} onChange={setFile} />
         </div>
         <div className="flex items-end">
           <Button onClick={handleImport} disabled={!file || importMut.isPending} className="w-full">

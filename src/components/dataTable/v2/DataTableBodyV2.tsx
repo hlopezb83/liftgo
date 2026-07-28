@@ -104,7 +104,7 @@ export function DataTableBodyV2<T>({
 
   return (
     <TableBody>
-      {rows.map((row) => {
+      {rows.map((row, rowIndex) => {
         const item = row.original;
         const isSelected = row.getIsSelected();
         return (
@@ -112,6 +112,8 @@ export function DataTableBodyV2<T>({
             key={row.id}
             data-state={isSelected ? "selected" : undefined}
             className={cn(
+              // Oleada 1 (A-8): zebra uniforme en todas las tablas
+              rowIndex % 2 === 1 && "bg-muted/40",
               onRowClick && "cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
               rowClassName?.(item),
             )}

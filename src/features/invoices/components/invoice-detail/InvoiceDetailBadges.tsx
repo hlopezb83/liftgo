@@ -42,7 +42,8 @@ function resolveFiscalBadge(
     if (invoiceStatus === "paid") return { label: "Pagada", tone: "success" };
     if (invoiceStatus === "partial") return { label: "Parcial", tone: "warning" };
     if (invoiceStatus === "overdue") return { label: "Vencida", tone: "destructive" };
-    return { label: "Timbrada", tone: "info" };
+    // Oleada 1 (A-4): mismo tratamiento verde que la lista (un solo lenguaje)
+    return { label: "Timbrada", tone: "success" };
   }
   return { label: "Pendiente de timbrado", tone: "warning" };
 }

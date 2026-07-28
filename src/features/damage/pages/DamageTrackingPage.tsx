@@ -5,6 +5,7 @@ import { Camera } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useDialogState } from "@/hooks/useDialogState";
 import { DAMAGE_STATUSES, STATUS_LABELS } from "@/lib/constants";
@@ -63,7 +64,19 @@ export default function DamageTrackingPage() {
         id: "customer_name",
         header: "Cliente",
         accessorFn: (r) => r.customers?.name || "",
-        cell: ({ row }) => row.original.customers?.name || "—",
+        // Oleada 1 (A-7): nombres largos truncan con tooltip completo
+        meta: { cellClassName: "max-w-[240px]" },
+        cell: ({ row }) => {
+          const name = row.original.customers?.name || "—";
+          return (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="block truncate">{name}</span>
+              </TooltipTrigger>
+              <TooltipContent>{name}</TooltipContent>
+            </Tooltip>
+          );
+        },
       },
       {
         id: "description",

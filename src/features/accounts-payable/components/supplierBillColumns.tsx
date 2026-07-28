@@ -50,11 +50,10 @@ export function useSupplierBillColumns(): ColumnDef<SupplierBillListItem>[] {
       cell: ({ row }) => {
         const s = row.original.approval_status;
         if (s === "not_required") return <span className="text-xs text-muted-foreground">—</span>;
-        const tone =
-          s === "pending" ? "text-warning" :
-          s === "approved" ? "text-success" :
-          "text-destructive";
-        return <span className={`text-xs font-medium ${tone}`}>{APPROVAL_STATUS_LABELS[s]}</span>;
+        // Oleada 1 (A-3): mismo pill que el resto de la app (StatusBadge).
+        // Mapeo a estados canónicos con estilo definido en StatusBadge.
+        const canonical = s === "pending" ? "pending" : s === "approved" ? "accepted" : "rejected";
+        return <StatusBadge status={canonical} label={APPROVAL_STATUS_LABELS[s]} />;
       },
     },
     {

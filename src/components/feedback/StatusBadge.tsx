@@ -67,5 +67,5 @@ const statusStyles: Record<string, string> = {
 export function StatusBadge({ status, label: labelOverride }: { status: string; label?: string }) {
   const className = statusStyles[status] || "bg-muted text-muted-foreground border-transparent";
   const label = labelOverride || STATUS_LABELS[status] || status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-  return <Badge className={cn(className)}>{label}</Badge>;
+  return <Badge className={cn("whitespace-nowrap", className)}>{label}</Badge>;
 }

@@ -35,7 +35,8 @@ const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error, query) => {
       if (query.meta?.silent) return;
-      notifyError({ error, phase: "query", method: String(query.queryKey[0] ?? "query") });
+      // Oleada 1 (A-11): título humano; la página muestra ErrorState con reintentar.
+      notifyError({ title: "No se pudo cargar la información", error, phase: "query", method: String(query.queryKey[0] ?? "query") });
     },
   }),
   mutationCache: new MutationCache({

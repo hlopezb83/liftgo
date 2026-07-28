@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.241.0",
+    "date": "2026-07-28",
+    "type": "minor",
+    "title": "Oleada 1 UI/UX · quick wins de consistencia visual",
+    "category": "fix",
+    "description": "A-1 traduce estados crudos (out_of_service, preventive, corrective, inspection, in_transit, damaged, maintenance_required). A-2 agrega labels faltantes al Audit Trail (supplier_bills, parts_inventory, user_roles, suppliers, prospects, supplier_payment_batches + campos cfdi_status, stock_quantity, exchange_rate, cancellation_status, hours_reading). A-3 estandariza pill de Aprobación en cuentas por pagar via StatusBadge. A-4 pinta 'Timbrada' en verde (success). A-5 normaliza IVA en PDFs cuando llega como factor 0.16. A-6 evita wrap en StatusBadge. A-7 trunca con Tooltip nombres largos (Contratos, Daños, Flota/Modelo). A-8 zebra uniforme en DataTableV2. A-10 subtítulos ya no muestran '0' durante carga (Clientes, Flota, Proveedores). A-11 humaniza título del toast global de queries. A-13 BankStatementUploader reemplaza el input nativo en inglés por un botón on-brand."
+  },
+  {
     "version": "7.240.3",
     "date": "2026-07-28",
     "type": "patch",

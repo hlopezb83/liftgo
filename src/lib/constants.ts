@@ -126,4 +126,12 @@ export const STATUS_LABELS: Record<string, string> = {
   stamped: "Timbrado",
   error: "Error",
   rep_none: "Sin REP",
+  // Oleada 1 (A-1): estados que hoy se ven crudos en inglés
+  out_of_service: "Fuera de servicio",
+  preventive: "Preventivo",
+  corrective: "Correctivo",
+  inspection: "Inspección",
+  in_transit: "En tránsito",
+  damaged: "Dañado",
+  maintenance_required: "Requiere mantenimiento",
 };

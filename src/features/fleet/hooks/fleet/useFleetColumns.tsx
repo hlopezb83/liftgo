@@ -32,7 +32,24 @@ export function useFleetColumns(
           );
         },
       },
-      { id: "model", header: "Modelo", accessorKey: "model" },
+      {
+        id: "model",
+        header: "Modelo",
+        accessorKey: "model",
+        // Oleada 1 (A-7): nombres largos truncan con tooltip completo
+        meta: { cellClassName: "max-w-[240px]" },
+        cell: ({ row }) => {
+          const m = row.original.model || "—";
+          return (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="block truncate">{m}</span>
+              </TooltipTrigger>
+              <TooltipContent>{m}</TooltipContent>
+            </Tooltip>
+          );
+        },
+      },
       {
         id: "serial_number",
         header: "No. de Serie",

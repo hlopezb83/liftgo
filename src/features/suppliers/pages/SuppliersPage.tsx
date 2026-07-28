@@ -105,7 +105,7 @@ export default function SuppliersPage() {
     <>
       <ListPageLayout
         title="Proveedores"
-        subtitle={`${suppliers?.length || 0} proveedores registrados`}
+        subtitle={suppliers ? `${suppliers.length} proveedores registrados` : undefined}
         actions={
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleExport}>

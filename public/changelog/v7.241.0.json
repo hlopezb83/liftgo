@@ -1,0 +1,21 @@
+{
+  "version": "7.241.0",
+  "date": "2026-07-28",
+  "type": "minor",
+  "title": "Oleada 1 UI/UX · quick wins de consistencia visual",
+  "category": "fix",
+  "summary": "13 mejoras cortas de UI/UX que homogenizan estados, badges, truncados, zebra y toasts en toda la app.",
+  "changes": [
+    "A-1 · STATUS_LABELS: agrega traducciones para out_of_service, preventive, corrective, inspection, in_transit, damaged, maintenance_required.",
+    "A-2 · Audit Trail: nuevas tablas (supplier_bills, parts_inventory, user_roles, suppliers, prospects, supplier_payment_batches) y campos (cfdi_status, stock_quantity, exchange_rate, cancellation_status, work_order_number, hours_reading).",
+    "A-3 · Cuentas por pagar: la columna 'Aprobación' ahora usa StatusBadge en lugar de texto de color.",
+    "A-4 · Facturas: 'Timbrada' se pinta en verde (success) igual que 'Pagada', reforzando que el CFDI está OK.",
+    "A-5 · PDFs: TotalsBox normaliza IVA cuando se recibe como factor 0.16 en vez de 16.",
+    "A-6 · StatusBadge: whitespace-nowrap para que los pills no se rompan en dos líneas.",
+    "A-7 · Truncado con Tooltip en columnas de Cliente (Contratos, Daños) y Modelo (Flota).",
+    "A-8 · DataTableV2: zebra uniforme (bg-muted/40 en filas impares).",
+    "A-10 · Subtítulos de páginas ya no muestran '0 registros' durante la carga inicial (Clientes, Flota, Proveedores).",
+    "A-11 · Título humano en el toast global de queries fallidas: 'No se pudo cargar la información'.",
+    "A-13 · BankStatementUploader: reemplaza el input file nativo (que sale en inglés) por un botón on-brand con el nombre del archivo seleccionado."
+  ]
+}

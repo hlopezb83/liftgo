@@ -4,6 +4,7 @@ import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { AddIcon, ViewIcon, ChevronRightIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Badge } from "@/components/ui/badge";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
@@ -50,7 +51,19 @@ export default function ContractsPage() {
         id: "customer_name",
         header: "Cliente",
         accessorFn: (c) => c.customer_name || "",
-        cell: ({ row }) => row.original.customer_name || "—",
+        // Oleada 1 (A-7): nombres largos truncan con tooltip completo
+        meta: { cellClassName: "max-w-[240px]" },
+        cell: ({ row }) => {
+          const name = row.original.customer_name || "—";
+          return (
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="block truncate">{name}</span>
+              </TooltipTrigger>
+              <TooltipContent>{name}</TooltipContent>
+            </Tooltip>
+          );
+        },
       },
       {
         id: "forklift_name",
