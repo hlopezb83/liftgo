@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.248.2",
+    "date": "2026-07-28",
+    "type": "patch",
+    "title": "Timbrado de REP: se corrige la falla que impedía timbrar complementos de pago",
+    "category": "fix",
+    "description": "El 'apartado' previo al timbrado fallaba siempre por un error técnico de consulta y ningún REP podía timbrarse. Ahora se resuelve con una operación única y segura en la base de datos; el mismo problema en mantenimientos recurrentes también quedó corregido."
+  },
+  {
     "version": "7.248.1",
     "date": "2026-07-28",
     "type": "patch",
