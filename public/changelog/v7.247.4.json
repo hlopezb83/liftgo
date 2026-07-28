@@ -1,0 +1,18 @@
+{
+  "version": "7.247.4",
+  "date": "2026-07-28",
+  "type": "patch",
+  "title": "Notas de versión automáticas de nuevo en verde",
+  "category": "quality",
+  "description": "La configuración que arma el borrador de notas de cada versión usaba una forma de escribir las etiquetas que la herramienta ya no acepta, y el proceso fallaba con 10 errores de validación. Se corrigió el formato sin cambiar ninguna categoría ni el cálculo de la versión.",
+  "changes": [
+    {
+      "type": "fix",
+      "description": "release-drafter.yml: when.labels ahora es una lista directa (sin el nivel 'any')."
+    },
+    {
+      "type": "fix",
+      "description": "Se eliminó el tipo de categoría 'changelog' que no existe en el esquema."
+    }
+  ]
+}
