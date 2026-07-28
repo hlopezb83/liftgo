@@ -94,6 +94,10 @@ export function buildClosedColumns(
               <UserIcon className="h-3.5 w-3.5 mr-1" /> Convertir
             </Button>
           )}
+          {/* R19-3: si el deal won ya se convirtió a cliente, indicarlo. */}
+          {kind === "won" && p.customerId && (
+            <span className="text-xs text-muted-foreground">Cliente creado</span>
+          )}
           <Button size="sm" variant="ghost" onClick={() => onReopen(p)}>
             <ResetIcon className="h-3.5 w-3.5 mr-1" /> Reabrir
           </Button>

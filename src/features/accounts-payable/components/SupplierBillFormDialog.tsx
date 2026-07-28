@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useWatch } from "react-hook-form";
 import { TextareaField, type SelectOption } from "@/components/forms/fields";
 import { SupplierField } from "@/components/forms/fields";
 import { FormActions } from "@/components/forms/FormActions";
@@ -50,7 +51,8 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
   const activeOverrides = overrides ?? importedValues;
   const { form, selectedSupplier, suggestedDueDate, total, isPending, onSubmit } =
     useSupplierBillForm(open, () => onOpenChange(false), bill, activeOverrides);
-  const currency = form.watch("currency");
+  // R19-A: mismo bug de watch() en render — usar useWatch.
+  const currency = useWatch({ control: form.control, name: "currency" });
 
   const handleFile = async (file: File) => {
     const r = await cfdi.importXml(file);

@@ -10,6 +10,7 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
+import { supabase } from "@/integrations/supabase/client";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { CfdiFieldsCard } from "../components/invoice-form/CfdiFieldsCard";
 import { EditableLineItemsTable } from "../components/invoice-form/EditableLineItemsTable";
@@ -24,14 +25,16 @@ export default function InvoiceForm() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const fromQuoteId = searchParams.get("from_quote");
+  const damageId = searchParams.get("damage_id");
 
   const f = useInvoiceFormLogic({ id, fromQuoteId });
 
   useDamagePrefill({
     isEdit: f.isEdit,
-    damageId: searchParams.get("damage_id"),
+    damageId,
     damageCustomerId: searchParams.get("customer_id"),
     damageAmount: searchParams.get("amount"),
+    customers: f.customers,
     form: f.form,
     handleCustomerSelect: f.handleCustomerSelect,
   });
@@ -66,6 +69,11 @@ export default function InvoiceForm() {
       f.createInvoice.mutate(payload, {
         onSuccess: async (data) => {
           await f.syncInvoiceBookings.mutateAsync({ invoiceId: data.id, bookingIds });
+          // A-3b: cerrar el ciclo del daño — sin esto quedaba `repaired`
+          // y se podía cobrar dos veces (la UI ya muestra "Completo" en invoiced).
+          if (damageId && damageId !== "null") {
+            await supabase.from("damage_records").update({ status: "invoiced" }).eq("id", damageId);
+          }
           if (f.fromQuoteId) f.updateQuote.mutate({ id: f.fromQuoteId, status: "accepted" });
           finalize(`Factura ${data.invoice_number} creada`, data.id);
         },
