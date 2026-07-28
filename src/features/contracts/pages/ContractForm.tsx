@@ -98,10 +98,13 @@ export default function ContractForm() {
             <CardHeader><CardTitle className="text-base">Condiciones de Uso</CardTitle></CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="sm:col-span-2">
-                  <Label>Ubicación de Uso del Equipo</Label>
-                  <Input {...register("usage_location")} placeholder="Dirección donde operará el montacargas" />
-                </div>
+                <FormField control={control} name="usage_location" render={({ field }) => (
+                  <FormItem className="sm:col-span-2">
+                    <FormLabel>Ubicación de Uso del Equipo</FormLabel>
+                    <FormControl><Input placeholder="Dirección donde operará el montacargas" {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
                 <FormField control={control} name="max_hours_per_month" render={({ field }) => (
                   <FormItem><FormLabel>Horas Máximas por Mes</FormLabel><FormControl><Input type="number" placeholder="Ej. 200" {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
@@ -124,10 +127,13 @@ export default function ContractForm() {
                 <FormField control={control} name="late_interest_rate" render={({ field }) => (
                   <FormItem><FormLabel>Interés Moratorio (%)</FormLabel><FormControl><Input type="number" step="0.1" placeholder="Ej. 5" {...field} /></FormControl><FormMessage /></FormItem>
                 )} />
-                <div>
-                  <Label>Ciudad del Contrato</Label>
-                  <Input {...register("contract_city")} />
-                </div>
+                <FormField control={control} name="contract_city" render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Ciudad del Contrato</FormLabel>
+                    <FormControl><Input {...field} /></FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )} />
               </div>
             </CardContent>
           </Card>
