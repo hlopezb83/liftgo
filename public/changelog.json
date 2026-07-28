@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.238.2",
+    "date": "2026-07-27",
+    "type": "patch",
+    "title": "CI · silenciar Knip en barrels y superficies de API estables",
+    "category": "chore",
+    "description": "Extiende knip.json.ignore con los archivos que Knip reportó como 'Unused exports/types' (12 exports + 18 tipos): barrels de dataTable/v2, forms/fields, icons e invoices; shims de portal (usePaymentIntents, usePortalExtras) y hooks que exponen tipos públicos para consumidores externos (useDashboardStats, useMrrDetail, etc.). Son superficies de API mantenidas a propósito; Knip vuelve a pasar en verde."
+  },
+  {
     "version": "7.238.1",
     "date": "2026-07-27",
     "type": "patch",

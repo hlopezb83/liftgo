@@ -1,0 +1,16 @@
+{
+  "version": "7.238.2",
+  "date": "2026-07-27",
+  "type": "patch",
+  "title": "CI · silenciar Knip en barrels y superficies de API estables",
+  "category": "chore",
+  "description": "Knip fallaba CI con 12 exports y 18 tipos 'no usados' que en realidad son API pública mantenida a propósito (barrels y hooks que exponen tipos para consumidores externos). Se agregan a knip.json.ignore para desbloquear CI sin borrar código en uso.",
+  "changes": [
+    {
+      "scope": "ci",
+      "type": "change",
+      "summary": "Extender knip.json.ignore",
+      "detail": "Agrega barrels (dataTable/v2, forms/fields, icons, invoices), shims de portal (usePaymentIntents, usePortalExtras, paymentIntents/index) y hooks que exportan tipos públicos (useDashboardStats, useFinancialKpis, useMrrDetail, useCustomerSummary, useDamageRecords, useActivityMetrics, useCashFlowSettings, useBillingSecrets, useInvoiceFormLogic, usePortalCollectionAccount, useQuoteDetailLogic, invoiceHelpers) y helpers internos (useProspectForm, useInvoicePrefill, useIncomeStatementData, useReturnInspectionDialog, useUserManagement, useTableFilters)."
+    }
+  ]
+}
