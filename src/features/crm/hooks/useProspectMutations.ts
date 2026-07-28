@@ -4,8 +4,8 @@ import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { prospectKeys } from "../lib/queryKeys";
 import { applyStageMove, type StageMove } from "../lib/stageMove";
-import type { Prospect } from "../lib/prospectTypes";
 import type { ProspectInsert, ProspectUpdate } from "./useProspects";
+import type { Prospect } from "../lib/prospectTypes";
 
 export function useCreateProspect() {
   return useEntityMutation({
