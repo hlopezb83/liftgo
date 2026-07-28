@@ -105,7 +105,8 @@ export default function DamageTrackingPage() {
         id: "estimated_cost",
         header: "Costo Est.",
         accessorFn: (r) => r.estimated_cost || 0,
-        cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.estimated_cost ?? 0)}</span>,
+        meta: { kind: "money" },
+        cell: ({ row }) => <span>{formatCurrency(row.original.estimated_cost ?? 0)}</span>,
       },
       {
         id: "status",

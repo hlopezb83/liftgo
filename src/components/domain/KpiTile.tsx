@@ -2,6 +2,7 @@ import { type ElementType, type ReactNode } from "react";
 import { Link } from "react-router";
 import { ArrowRight } from "@/components/icons";
 import { Card, CardContent } from "@/components/ui/card";
+import { kpiSizeClass } from "@/lib/format/formatCurrency";
 import { cn } from "@/lib/utils";
 
 /**
@@ -49,9 +50,11 @@ const BG_BY_COLOR: Record<string, string> = {
 function resolveValueClass(value: ReactNode, valueSize: "sm" | "lg"): string {
   if (valueSize === "lg") return "text-2xl font-bold tabular-nums";
   const isString = typeof value === "string";
+  // R22-K: el número principal nunca se trunca; se reduce el tamaño según su
+  // longitud (kpiSizeClass) para que quepa completo en la card.
   return cn(
-    isString ? "text-sm sm:text-base" : "text-lg sm:text-2xl",
-    "font-bold truncate tabular-nums",
+    isString ? cn(kpiSizeClass(value), "sm:text-base") : "text-lg sm:text-2xl",
+    "font-bold tabular-nums",
   );
 }
 

@@ -67,7 +67,7 @@ export default function CustomerDetailPage() {
             </RoleGuard>
             <RoleGuard module="Clientes" minAccess="full" fallback={null}>
               <Button variant="destructive" size="sm" onClick={() => s.setDeleteOpen(true)}>
-                <DeleteIcon className="h-4 w-4 mr-2" /> Eliminar
+                <DeleteIcon className="h-4 w-4 mr-2" /> Archivar
               </Button>
             </RoleGuard>
             {!s.hasPortalAccess && (

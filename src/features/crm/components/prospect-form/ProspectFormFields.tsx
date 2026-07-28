@@ -1,3 +1,4 @@
+import { RequiredMark } from "@/components/forms/RequiredMark";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -24,7 +25,7 @@ export function ProspectFormFields({
   return (
     <>
       <div className="space-y-2">
-        <Label htmlFor="company">Empresa *</Label>
+        <Label htmlFor="company">Empresa <RequiredMark /></Label>
         <Input id="company" value={fields.company} onChange={(e) => setters.setCompany(e.target.value)} required />
       </div>
       <div className="space-y-2">
@@ -53,7 +54,7 @@ export function ProspectFormFields({
 
       <div className="space-y-2">
         <Label htmlFor="deal">
-          Valor del Trato (MXN) {requiresDealValue && <span className="text-destructive">*</span>}
+          Valor del Trato (MXN) {requiresDealValue && <RequiredMark />}
         </Label>
         <Input
           id="deal"

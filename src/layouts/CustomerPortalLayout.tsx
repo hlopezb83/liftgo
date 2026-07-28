@@ -33,7 +33,7 @@ export default function CustomerPortalLayout() {
   return (
     <div className="h-[100dvh] max-w-full overflow-x-clip bg-background flex flex-col">
       {/* Oleada 3 (C-2): header sticky con la marca del tenant vía BrandMark. */}
-      <header className="sticky top-0 z-30 h-14 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 flex items-center justify-between gap-3 px-4 sm:px-6">
+      <header data-app-header className="sticky top-0 z-30 h-14 border-b bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80 flex items-center justify-between gap-3 px-4 sm:px-6">
         <div className="flex items-center gap-3 min-w-0">
           <BrandMark size="sm" />
           <span className="font-semibold text-foreground truncate">
@@ -55,7 +55,7 @@ export default function CustomerPortalLayout() {
        * misma en móvil (overflow-x-auto + shrink-0 en cada tab) para no
        * empujar el ancho del documento y romper el viewport a 390px.
        */}
-      <nav className="border-b bg-card">
+      <nav data-app-header className="border-b bg-card">
         <div className="flex gap-1 overflow-x-auto px-4 sm:px-6 [-webkit-overflow-scrolling:touch]">
           {tabs.map((tab) => {
             const isActive =

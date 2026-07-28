@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.249.0",
+    "date": "2026-07-28",
+    "type": "minor",
+    "title": "Auditoría R22: orden de tablas, KPIs legibles y consistencia visual",
+    "category": "improvement",
+    "description": "Los valores vacíos ahora quedan siempre al final al ordenar (ascendente y descendente), los KPIs ya no truncan el número, se unificó el rayado de tablas, columnas de dinero alineadas a la derecha y varios ajustes de consistencia en formularios, reportes y portal."
+  },
+  {
     "version": "7.248.4",
     "date": "2026-07-28",
     "type": "patch",

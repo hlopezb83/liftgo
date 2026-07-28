@@ -104,6 +104,7 @@ export function useUpdateQuote() {
       return data;
     },
     invalidateKeys: [quoteKeys.lists()],
+    invalidateKeysFn: (_data, vars) => [quoteKeys.detail(vars.id)],
     errorTitle: "Error al actualizar cotización",
   });
 }

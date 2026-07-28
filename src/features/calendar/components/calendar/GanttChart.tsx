@@ -116,7 +116,7 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd }: GanttC
             aria-hidden="true"
           >
             <div
-              className="absolute top-0 w-px bg-primary/70"
+              className="absolute top-0 w-px bg-primary/70 dark:bg-primary"
               style={{ left: `${todayLeftPct}%`, height: `${active.length * 36 + 32}px` }}
             />
           </div>

@@ -13,7 +13,7 @@ import {
 } from "@tanstack/react-table";
 import { useEffect, useMemo, useState } from "react";
 import { APP_CONFIG } from "@/lib/config";
-import { liftgoSortingFn } from "./sorting";
+import { createLiftgoSortingFn } from "./sorting";
 import type { DataTableSelectionContext } from "./types";
 
 interface Options<T> {
@@ -57,6 +57,15 @@ export function useLiftgoTable<T>({
 
   const tableData = useMemo(() => data ?? [], [data]);
 
+  // R22-W: nulos siempre al final, también al invertir a `desc`.
+  const sortingFnWithNullsLast = useMemo(
+    () =>
+      createLiftgoSortingFn<T>(
+        (columnId) => sorting.find((s) => s.id === columnId)?.desc === true,
+      ),
+    [sorting],
+  );
+
   useEffect(() => {
     setPagination((prev) => (prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }));
   }, [tableData, resetKey]);
@@ -92,7 +101,7 @@ export function useLiftgoTable<T>({
     autoResetPageIndex: false,
     data: tableData,
     columns,
-    defaultColumn: { sortingFn: liftgoSortingFn },
+    defaultColumn: { sortingFn: sortingFnWithNullsLast },
     state: {
       sorting,
       rowSelection,

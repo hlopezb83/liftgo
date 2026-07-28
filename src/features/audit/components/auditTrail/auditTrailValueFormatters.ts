@@ -21,6 +21,23 @@ const DATE_ONLY_FIELDS = new Set([
   "valid_until", "last_billed_date",
 ]);
 
+const CFDI_STATUS_LABELS: Record<string, string> = {
+  pending: "Pendiente",
+  stamped: "Timbrada",
+  cancelled: "Cancelada",
+  cancellation_pending: "Cancelación pendiente",
+  error: "Error",
+};
+
+const CANCELLATION_STATUS_LABELS: Record<string, string> = {
+  pending: "Pendiente",
+  requested: "Solicitada",
+  in_process: "En proceso",
+  accepted: "Aceptada",
+  rejected: "Rechazada",
+  cancelled: "Cancelada",
+};
+
 const ENUM_LABEL_FIELDS: Record<string, Record<string, string>> = {
   stage: STAGE_LABELS,
   lost_reason: LOST_REASON_LABELS,
@@ -31,6 +48,8 @@ const ENUM_LABEL_FIELDS: Record<string, Record<string, string>> = {
   fuel_type: FUEL_TYPE_LABELS,
   fuel_level: FUEL_LEVEL_LABELS,
   service_type: MAINTENANCE_WORK_STATUS_LABELS,
+  cfdi_status: CFDI_STATUS_LABELS,
+  cancellation_status: CANCELLATION_STATUS_LABELS,
 };
 
 function formatDateString(field: string, value: string): string | null {
