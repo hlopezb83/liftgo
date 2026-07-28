@@ -31,18 +31,21 @@ export default function PortalRentals() {
         id: "start_date",
         header: "Fecha Inicio",
         accessorKey: "start_date",
+        meta: { kind: "date" },
         cell: ({ row }) => formatDateDisplay(row.original.start_date),
       },
       {
         id: "end_date",
         header: "Fecha Fin",
         accessorKey: "end_date",
+        meta: { kind: "date" },
         cell: ({ row }) => formatDateDisplay(row.original.end_date),
       },
       {
         id: "status",
         header: "Estado",
         accessorKey: "status",
+        meta: { kind: "badge" },
         cell: ({ row }) => <StatusBadge status={row.original.status} />,
       },
     ];

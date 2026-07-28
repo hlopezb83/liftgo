@@ -23,13 +23,13 @@ export default function PortalQuotes() {
   const columns: ColumnDef<Quote>[] = [
     { id: "quote_number", header: "Cotización #", accessorKey: "quote_number",
       cell: ({ row }) => <span className="font-medium">{row.original.quote_number}</span> },
-    { id: "created_at", header: "Fecha", accessorKey: "created_at",
+    { id: "created_at", header: "Fecha", accessorKey: "created_at", meta: { kind: "date" },
       cell: ({ row }) => formatDateDisplay(row.original.created_at) },
-    { id: "valid_until", header: "Válida hasta", accessorKey: "valid_until",
+    { id: "valid_until", header: "Válida hasta", accessorKey: "valid_until", meta: { kind: "date" },
       cell: ({ row }) => row.original.valid_until ? formatDateDisplay(row.original.valid_until) : "—" },
-    { id: "total", header: "Total", accessorFn: (q) => Number(q.total), meta: { align: "right" },
+    { id: "total", header: "Total", accessorFn: (q) => Number(q.total), meta: { kind: "money" },
       cell: ({ row }) => <span className="font-mono">{formatCurrency(Number(row.original.total))}</span> },
-    { id: "status", header: "Estado", accessorKey: "status",
+    { id: "status", header: "Estado", accessorKey: "status", meta: { kind: "badge" },
       cell: ({ row }) => <StatusBadge status={row.original.status} label={quoteStatusLabel(row.original.status)} /> },
   ];
 
