@@ -25,6 +25,7 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
     rentedWithoutCost,
     soldWithoutCost,
     availableYears, selectedYear, setSelectedYear, isComparison,
+    isError, isFetching, refetch,
   } = useIncomeStatementData({ startDate, endDate, accountingBasis });
 
 
