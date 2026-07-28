@@ -1,48 +1,29 @@
-Las tres oleadas ya están entregadas parcialmente (v7.241.0, v7.242.0, v7.243.0). Este plan cierra los ítems que quedaron fuera por scope.
+Estado verificado hoy en el código: `EmptyState` ya acepta `actionLabel`/`onAction`, `ConfirmDialog` ya reemplazó los `AlertDialog` sueltos (no queda ninguno fuera de `components/ui`), `chartTheme.ts` existe y ya lo usan Ingresos y Costos de Mantenimiento, y el login del portal ya tiene el facelift. Falta lo siguiente.
 
-## Ola 2 pendientes
+## 1. B-3 · Empty states con CTA en tablas
+Hoy las tablas caen en `EmptyRow` (icono + texto, sin acción). Plan:
+- Permitir que `DataTableV2` reciba `emptyAction` (`{ label, onAction }`) y lo pase a `DataTableBodyV2` / `VirtualBody`, que renderizarán `EmptyState` con botón dentro de la celda de ancho completo en vez de `EmptyRow`.
+- Conectar el CTA en: Clientes, Cotizaciones, Facturas, Contratos, Flota, Mantenimiento, Inventario y Prospectos, reutilizando la misma acción del botón "Nuevo X" del header (los `useListPage`/`useDialogState` ya la exponen).
+- Cuando hay filtros activos, el mensaje será "Sin resultados con estos filtros" y el CTA será "Limpiar filtros" en lugar de "Nuevo X".
 
-**B-3 · Empty states con CTA** — Auditar módulos principales (Clientes, Cotizaciones, Facturas, Contratos, Flota, Mantenimiento, Inventario, Prospectos) y reemplazar el `EmptyRow` genérico por `EmptyState` con botón "Nuevo X" que dispara el mismo flujo del header. Un solo componente `EmptyStateCTA` reutilizable.
+## 2. B-7 · Footer estandarizado en diálogos
+- Convención: Cancelar a la izquierda, acción primaria a la derecha, destructivo separado por spacer.
+- Ajustar `FormActions` a `flex justify-between` (Cancelar primero en el DOM, primaria a la derecha) y verificar `FormDialogFooter` y `ConfirmDialog` para que compartan el mismo espaciado y orden.
+- Barrido de los diálogos que arman su footer a mano para que usen `FormActions`.
 
-**B-7 · Footer estandarizado en drawers/diálogos** — Convención: Cancelar a la izquierda, Guardar/Confirmar a la derecha, botón destructivo separado por spacer. Aplicar a `FormDialog`, `ConfirmDialog`, `Sheet` de detalle.
+## 3. C-2 · Facelift del portal de clientes (páginas internas)
+- `CustomerPortalLayout`: usar `BrandMark` en el header, header sticky, y contenedor `max-w-5xl mx-auto` para el contenido.
+- `PortalDashboard`: migrar las tarjetas a `KpiTile` con `formatCompactCurrency` + `kpiSizeClass`, y agregar sección "Próximos vencimientos" a partir de las facturas no pagadas.
+- Tablas del portal (Rentas, Cotizaciones, Facturas, Contratos, Estado de cuenta): `StatusBadge` + zebra del sistema + `ColumnMeta.kind` para montos y fechas, y `EmptyState` en lugar de textos sueltos.
 
-**B-8 · Layout de Conciliación Bancaria** — Refactor a dos columnas (movimientos bancarios | movimientos del sistema) con panel de match al centro. Alto scope; requiere levantar la página actual y rehacer grid.
+## 4. C-7 · Gráficas restantes con tema unificado
+- Aplicar `chartTheme.ts` (paleta por tokens, `chartGridProps`, `formatCompactMxn` como `tickFormatter`, `tooltipCurrencyFormatter`, altura mínima) a: `CashFlowChart`, `UtilizationCharts`, `FleetStatusChart`, `CollectionForecast`, `ProfitabilityChart`, `AgingReport` y `UtilizationReport`.
+- Estados vacíos de gráficas con `EmptyState`.
 
-**B-9 · `AlertDialog` → `ConfirmDialog`** — Migrar los `AlertDialog` sueltos a `ConfirmDialog` (ya existe) y pasar `variant="destructive"` donde aplique (eliminar factura, cancelar CFDI, borrar cliente). Quitar el `AlertDialog` de las importaciones.
-
-**B-11 · CRM Kanban optimista + drag directo + empty state** — Mover la carta en cache al soltar (sin esperar RPC), rollback en error, arrastre desde toda la carta (no sólo el handle), empty state por columna con CTA "Nuevo prospecto".
-
-## Ola 3 pendientes
-
-**C-2 · Facelift Portal de Clientes** (10 páginas)
-- `PortalLogin`: fondo con gradiente radial suave, `BrandMark` (ya creado), microcopy es-MX, footer "Powered by LiftGo".
-- Layout común: header sticky con `BrandMark` + cliente logueado + menú, nav horizontal (Inicio / Rentas / Cotizaciones / Facturas / Estado de cuenta), contenedor `max-w-5xl mx-auto`.
-- `PortalDashboard`: 3-4 `KpiTile` uniformados con `formatCompactCurrency` + `kpiSizeClass` (Ola 3 helpers), sección "Próximos vencimientos".
-- Tablas del portal: reutilizar `StatusBadge` + zebra del sistema + `ColumnMeta.kind` (Ola 3 C-1).
-
-**C-7 · Gráficas de reportes legibles** — Paleta desde tokens (`hsl(var(--primary))`, `--accent`, `--muted-foreground`, `--destructive`, máx 4 series), ejes Y con `formatCompactCurrency` como `tickFormatter`, tooltips con `formatCurrency` + fecha es-MX, grid horizontal `strokeDasharray="3 3"`, altura mínima 240px, estados vacíos con `EmptyState`. Alcance: gráficas de Ingresos, Utilización, Flujo de Caja, MRR.
-
-## Orden sugerido
-
-1. **B-9** y **B-7** (rápidos, sin riesgo).
-2. **B-3** empty states (impacto visual alto, bajo riesgo).
-3. **C-2** portal (cara pública — antes de mostrar app a clientes).
-4. **C-7** gráficas (usa helpers de Ola 3).
-5. **B-11** CRM optimista.
-6. **B-8** conciliación (mayor scope, al final).
+## Fuera de alcance
+- **B-8 (rediseño a dos columnas de Conciliación Bancaria)**: se mantiene diferido; es un rehacer completo de la página y merece su propia tanda.
 
 ## Detalles técnicos
-
-- `EmptyStateCTA`: extender el `EmptyState` actual con props `actionLabel` + `onAction` o `href`.
-- CRM optimista: usar `queryClient.setQueryData` + `onMutate/onError` de `useMutation` (patrón ya usado en otras mutations).
-- Gráficas: revisar librería en uso (`Recharts` según stack); crear helper `chartTheme.ts` con colores y formatters, aplicarlo a todos los `<XAxis tickFormatter>`, `<Tooltip formatter>`.
-- Portal: crear `PortalLayout.tsx` con header + nav + container, envolver rutas del portal en él.
-
-## Fuera de scope
-
-- Migración masiva de todas las columnas de todas las tablas a `kind` (C-1 base ya entregada; se hace tabla por tabla en oleadas siguientes).
-- View Transitions API (C-5 opcional, saltado por complejidad).
-
-## Preguntas antes de arrancar
-
-¿Empezamos por **todo el bloque en orden** (grande, ~1 día), o prefieres **una sola tanda pequeña** (B-9 + B-7 + B-3, empty states + destructivos) para validar y seguir?
+- Sin cambios de base de datos ni de lógica de negocio: todo es presentación.
+- `EmptyState` ya soporta CTA; sólo falta el puente desde `DataTableV2`.
+- Al terminar: nueva entrada `public/changelog.json` + `public/changelog/v7.245.0.json` (minor).
