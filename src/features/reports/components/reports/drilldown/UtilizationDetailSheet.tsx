@@ -1,7 +1,7 @@
+import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { StatusBadge } from "@/components/feedback/StatusBadge";
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+
 import { formatDateDisplay } from "@/lib/utils";
 import { hasOverlappingBookings, type ClampedBooking } from "../../../lib/drilldown";
 
