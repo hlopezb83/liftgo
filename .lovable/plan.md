@@ -1,56 +1,57 @@
-## Plan de remediación — Auditoría R (M-2..M-13, C-3, C-6)
+## Auditoría R19 — Validación previa
 
-Aplico los 12 fixes tal cual la tabla, con adaptaciones donde la ubicación real del código difiere del reporte. Estimo v7.240.0 (minor por acumulación de bugs de comportamiento y visibilidad).
+Verifiqué cada finding contra el código actual. **Todos siguen vigentes** (algunas rutas cambiaron por refactors previos, pero el bug persiste).
 
-### Frontend
+| ID | Estado | Nota |
+|---|---|---|
+| R19-A (contracts) | Vigente | `form.watch()` en render en `useContractFormPrefill.ts:35-36` |
+| R19-A (bill CxP) | Vigente | `form.watch("currency")` en `SupplierBillFormDialog.tsx:53` |
+| R19-B | Vigente | `isPayable` no considera `cfdi.isCancelled` (`invoices.ts:74`) |
+| R19-C | Vigente | RPC exige `= 'approved'` estricto (migr. `20260727213612`, línea 41) |
+| R19-D | Vigente | `useDamagePrefill` no espera al catálogo `customers` |
+| A-3b | Vigente | Nada actualiza `damage_records.status='invoiced'` tras crear factura |
+| C-5 | Vigente | RPC no valida `p_hours_used < 0` |
+| R19-3 | Vigente | `closedColumns.tsx` no muestra "Cliente creado" para won convertidos |
+| Portal USD | Vigente | `PortalSections.tsx:57` usa `formatCurrency` sin código |
+| R19-2 | Opcional | Sin índice único en `contracts.contract_number` |
 
-**M-2 · Bill aprobada no aparece en "Exportar pagos"**
-- `src/features/accounts-payable/hooks/useBillApprovalMutations.ts`: agregar `exportablePayableQueries.keys.all` (import desde `./useExportablePayables`) al array `invalidationKeys`. Aplica a los 3 mutations (approve/reject/reapproval).
-- Extender `useBillApprovalMutations.test.ts` con un caso que verifique que `queryClient.invalidateQueries` incluye la key.
+## Plan de implementación (v7.240.2)
 
-**M-3 · Pago CxP no baja "POR PAGAR" en flujo de caja**
-- `src/features/accounts-payable/hooks/useRegisterSupplierPayment.ts`: importar `cashFlowProjectionQueries` desde `@/features/cash-flow/lib/queryKeys` y agregar `cashFlowProjectionQueries.keys.all` al `invalidateKeysFn`.
+### Bloqueantes (ALTOS)
 
-**M-4 · Bills `not_required` invisibles en lote**
-- `src/features/accounts-payable/hooks/useExportablePayables.ts` L44: cambiar `.eq("approval_status", "approved")` por `.in("approval_status", ["approved", "not_required"])`.
+1. **R19-A · Fix RHF 7.83 + React 19 (`watch` → `useWatch`)**
+   - `src/features/contracts/hooks/contractForm/useContractFormPrefill.ts`: reemplazar `form.watch("customer_id"/"forklift_id")` por `useWatch({ control, name })`.
+   - `src/features/accounts-payable/components/SupplierBillFormDialog.tsx`: mismo patrón para `currency`.
 
-**M-6 · Toast "Error desconocido" + duplicado en transición inválida**
-- `src/features/bookings/hooks/bookingActions/useBookingActions.ts` L60-62: usar `getErrorMessage(err)` (de `@/lib/errors`) para mostrar el mensaje SQL traducido.
-- Verificar que no salga toast duplicado desde `useUpdateBooking`/`useCancelBooking` (`useEntityMutation` con `errorTitle`). Si sí, suprimir el toast local del `catch` o pasar `{ silent: true }` según la API disponible; una sola notificación al final.
+2. **R19-B · Bloquear "Registrar Pago" en CFDI cancelado**
+   - `src/lib/rules/invoices.ts`: mover cálculo de `cfdi` arriba de `isPayable`; agregar `&& !cfdi.isCancelled`.
 
-**M-9 · Clobber de inputs al editar contrato**
-- `src/features/contracts/hooks/contractForm/useContractFormState.ts` L54: `form.reset(mapContractToForm(existing), { keepDirtyValues: true })`.
+3. **R19-C · Aceptar `not_required` en lote de pagos**
+   - Nueva migración que recrea `create_supplier_payment_batch` (copiada íntegra de `20260727213612`) cambiando la línea 41 a `NOT IN ('approved', 'not_required')`.
 
-**M-10b · Badge de contrato dice "Sin Pagar" para `sent`**
-- `StatusBadge` ya acepta prop `label`. En `ContractsPage.tsx` (tabla + `mobileCardRender`) y `ContractDetail.tsx`: `<StatusBadge status={c.status} label={CONTRACT_STATUS_LABELS[c.status]} />`.
+4. **R19-D + A-3b · Damage prefill y cierre de ciclo**
+   - `src/features/invoices/hooks/useDamagePrefill.ts`: aceptar `customers` como parámetro; retornar temprano si `!customers?.length` o `damageCustomerId === "null"`.
+   - `src/features/invoices/pages/InvoiceForm.tsx`: pasar `f.customers` al hook; en `onSuccess` de `createInvoice` (rama `!isEdit`), tras `syncInvoiceBookings`, actualizar `damage_records.status='invoiced'` si venimos con `damage_id` válido.
+   - `src/features/damage/components/damage/DamageActions.tsx`: `handleCreateInvoice` chequea `record.status==='invoiced'` y `record.customer_id` antes de navegar (con `notifyError`).
 
-**M-11 · Cotización con `rental_meta` legacy no guarda**
-- `src/features/quotes/hooks/quoteForm/useQuotePrefill.ts` `getRentalMeta`: normalizar cada elemento con defaults antes de retornarlo (`discount ?? 0`, `discountType ?? "%"`, `quantity ?? 1`, tarifas `?? 0`). Test unitario con meta legacy sin `discount`.
+### Bajos (mismo release)
 
-**M-12 · Factura con cancelación aceptada sigue mostrando "Cancelar CFDI"**
-- `src/lib/rules/invoices.ts` L56: el guard ya existe (`cancellationStatus !== "accepted"`). Revisar cómo llega la data: en detalle la mayoría de facturas aceptadas ya tienen `status='cancelled'` y `cfdi_status='cancelled'`, pero si no, `computeCfdiFlags` no marca `isCancelled` cuando solo hay `cancellation_status='accepted'`. Fix: incluir `cancellationStatus === "accepted"` en el cómputo de `isCancelled`.
-- UI: en `InvoiceDetail` añadir badge "Cancelada" cuando `isCancelled` o `cancellationStatus==="accepted"` para evidencia visual.
+5. **C-5 · Guard de horas negativas**
+   - En la misma migración de R19-C, recrear `complete_return_inspection` (copiada de `20260727213612`) agregando `IF p_hours_used < 0 THEN RAISE ...`.
 
-**M-13 · Rol auditor ve controles admin en /users**
-- `src/features/users/pages/UserManagementPage.tsx`: envolver botón "Crear Usuario" en `RoleGuard`/`useHasModuleAccess("Gestión de Usuarios","full")`. En `useUserManagementColumns` ocultar columnas rol-select y toggles cuando `!canFull`.
+6. **R19-3 · Indicador "Cliente creado" en /crm/cerrados**
+   - `src/features/crm/lib/closedColumns.tsx`: al lado del botón Convertir, si `kind==='won' && p.customerId`, mostrar `<span>Cliente creado</span>`.
 
-**C-3 · Toast de devolución contradice estado real**
-- `src/features/returns/hooks/returnInspection/useReturnInspectionDialog.ts` L78-82: alinear con el RPC — `goesToMaintenance = ["major_damage", "needs_repair"].includes(values.condition)`. Quitar `minor_damage` y quitar la disyunción `damageCost > 0`.
+7. **Portal USD · Mostrar moneda**
+   - `src/features/portal/components/PortalSections.tsx`: usar `formatCurrencyWithCode(total, moneda ?? 'MXN')`. Ampliar tipo `Invoice` con `moneda?: string | null`.
 
-**C-6 (F-07) · Entregas no validan coherencia forklift↔booking ni tocan estado**
-- `DeliveryFormFields.tsx`: al seleccionar `bookingId`, filtrar `forkliftOptions` a las del booking (`booking.forklift_id`) y viceversa; validar en `deliveryFormSchema` cuando ambos existan.
-- `useDeliveryCompletion.markComplete`: si `type==="delivery"` y hay booking, disparar transición de flota a `rented` vía RPC/hook existente (`change_forklift_status`) cuando el equipo aún esté `available`. Para `pickup` liberar a `available` si no hay otras reservas activas (idempotente).
+### Opcional
 
-### Backend
+8. **R19-2 · Índice único en `contracts.contract_number`** (sólo si quieres blindaje contra doble-click ~100ms). Recomiendo incluirlo — es baratísimo y coherente con quotes (R17-D).
 
-Sin migraciones. Todo es TypeScript + query keys + validaciones cliente.
+### Cierre
 
-### Tests
+- Actualizar `public/changelog.json` (entrada v7.240.2) y crear `public/changelog/v7.240.2.json`.
+- Correr `bun run lint` para validar.
 
-- `useBillApprovalMutations.test.ts`: assert de invalidación de `exportable_payables`.
-- Test unitario nuevo `useQuotePrefill.legacyMeta.test.tsx` para M-11.
-- E2E opcional para M-6 (toast contiene traducción).
-
-### Changelog & Memory
-
-Nueva entrada v7.240.0 en `public/changelog.json` + detalle en `public/changelog/v7.240.0.json`.
+**¿Confirmas todo (incluye R19-2 opcional) o excluyo el índice de contratos?**
