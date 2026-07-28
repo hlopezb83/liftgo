@@ -6,11 +6,14 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { useHasModuleAccess } from "@/features/users/hooks/useHasModuleAccess";
 import { ClosedTable } from "../components/closed/ClosedTable";
 import { useClosedProspects } from "../hooks/useClosedProspects";
 
 export default function CRMClosedPage() {
   const s = useClosedProspects();
+  // R18-C1: sólo roles con acceso full a Clientes ven "Convertir".
+  const canConvert = useHasModuleAccess("Clientes", "full");
 
   return (
     <PageTransition>
