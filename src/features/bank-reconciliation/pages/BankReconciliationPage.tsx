@@ -7,6 +7,7 @@ import { PageTransition } from "@/components/layout/PageTransition";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { BankReconciliationWorkspace } from "../components/BankReconciliationWorkspace";
 import { BankStatementUploader } from "../components/BankStatementUploader";
