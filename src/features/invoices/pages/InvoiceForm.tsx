@@ -45,7 +45,7 @@ export default function InvoiceForm() {
     if (Number.isFinite(amt) && amt > 0) {
       f.form.setValue(
         "lineItems",
-        [{ description: `Cobro de daño (ref. ${damageId.slice(0, 8)})`, quantity: 1, unitPrice: amt }],
+        [{ description: `Cobro de daño (ref. ${damageId.slice(0, 8)})`, quantity: 1, unit_price: amt, total: amt }],
         { shouldDirty: true },
       );
     }
