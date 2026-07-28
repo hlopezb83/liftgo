@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.247.0",
+    "date": "2026-07-28",
+    "type": "minor",
+    "title": "Pruebas E2E del módulo de Conciliación Bancaria",
+    "category": "quality",
+    "description": "Nueva suite automatizada que valida de punta a punta la conciliación bancaria: KPIs, filtros por estado y búsqueda, selección múltiple, emparejamiento con candidatos, ignorar movimientos y atajos de teclado. Los movimientos de prueba se crean en una cuenta temporal y se borran solos al terminar, así que la base queda intacta."
+  },
+  {
     "version": "7.246.1",
     "date": "2026-07-28",
     "type": "patch",

@@ -91,6 +91,7 @@ export function BankMatchCandidateList({
             <li
               key={c.id}
               className="flex items-start justify-between gap-2 rounded-md border p-2 text-xs"
+              data-testid="bank-candidate"
             >
               <div className="min-w-0 space-y-1">
                 <p className="truncate font-medium">{c.label}</p>
@@ -131,6 +132,7 @@ export function BankMatchCandidateList({
                     ? undefined
                     : "El importe debe coincidir exactamente con el movimiento"
                 }
+                data-testid="bank-candidate-match"
                 onClick={() => onSelect(c.id)}
               >
                 Emparejar

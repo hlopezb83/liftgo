@@ -1,85 +1,47 @@
-# B-8 · Conciliación Bancaria: cómo lo mejoraría
+## Objetivo
 
-El plan original de B-8 solo pedía "dos columnas". Al revisar el módulo encontré que el layout es el síntoma; los frenos reales están en el flujo de emparejamiento. Propongo atacar ambos.
+Validar de punta a punta —y visualmente— el módulo de Conciliación Bancaria, dejando la base de datos exactamente como estaba: cada movimiento creado por las pruebas se borra al terminar.
 
-## Diagnóstico del estado actual
+## Contexto verificado
 
-Verificado leyendo `BankReconciliationPage.tsx`, `BankStatementLinesTable.tsx`, `BankLineDetailSheet.tsx`, `BankLineActions.tsx`, `ManualMatchPicker.tsx`, `useManualMatchCandidates.ts` y `matchingScore.ts`:
+- Ya existe infraestructura Playwright (`tests/e2e/`, `fixtures/seed.ts`, `global.teardown.ts`, `playwright.config.ts` con scopes por test).
+- Las tablas `bank_accounts`, `bank_statement_imports` y `bank_statement_lines` **no** tienen columnas `is_e2e` / `e2e_scope`, así que el purgado global existente no las toca: la limpieza debe hacerse por ID desde el propio fixture.
+- El módulo (`src/features/bank-reconciliation/`) hoy no expone ningún `data-testid`, por lo que los selectores serían frágiles.
+- La suite visual (`visual-desktop.spec.ts`) está apagada por diseño con el gate `E2E_VISUAL=1` (los baselines dependen del runner).
 
-1. **Página apilada verticalmente**: uploader + KPIs + hasta 4 tablas (Sin emparejar / Sugeridas / Conciliadas / Ignoradas) una debajo de otra. Con un estado de cuenta de 200 líneas hay que hacer scroll largo y nunca se ven banco y sistema al mismo tiempo.
-2. **Candidatos manuales pobres**: `useManualMatchCandidates` trae los **20 pagos más recientes**, sin filtrar por monto, fecha ni cuenta bancaria, y luego filtra en el cliente. Si el pago que buscas es el número 21, simplemente no aparece. Este es el bug funcional más grave del módulo.
-3. **Un movimiento a la vez**: cada línea abre un `Sheet` que se cierra al confirmar. Conciliar 50 líneas = 50 aperturas/cierres.
-4. **Sin acciones masivas**: no se puede "confirmar todas las sugerencias con score ≥ 85" ni ignorar varias comisiones bancarias juntas.
-5. **Sin filtros ni paginación**: las tablas usan `paginated: false` y no hay búsqueda por monto/descripción/rango de fechas ni filtro por importación.
-6. **Score opaco**: se muestra "Score: 92" sin explicar por qué (monto exacto, ±1 día, referencia coincide).
-7. **Moneda**: los KPIs usan `formatCurrency` por defecto aunque la cuenta bancaria tenga `currency` propia (USD).
-8. **Salida limitada para no conciliados**: solo "Ignorar". No hay atajo para crear el gasto o pago faltante desde la línea.
+## Plan
 
-## Rediseño propuesto
+### 1. Fixture de datos bancarios con auto-limpieza
+Nuevo `tests/e2e/fixtures/bankSeed.ts`:
+- Crea, con la sesión admin del test, una cuenta bancaria temporal (nombre con sufijo aleatorio + marca `TMP_E2E_<scope>` en `notes`), una importación y 4 líneas de estado de cuenta: un abono que coincide exacto con un pago real, uno con monto aproximado, un cargo (comisión) y una línea sin candidatos.
+- Devuelve los IDs al test.
+- En el teardown del fixture borra **siempre** (aunque el test falle) en orden de FK: primero desmarca líneas conciliadas, luego líneas → importación → cuenta. Falla ruidosamente si algo queda, siguiendo el patrón de `seed.ts`.
+- Red extra: barrido inicial que elimina cualquier cuenta con `notes LIKE 'TMP_E2E_%'` huérfana de corridas anteriores.
 
-### Fase 1 · Workspace de dos columnas (el B-8 original)
+### 2. Testids estables en el módulo
+Agregar `data-testid` (sin cambios de comportamiento ni de estilo) en: workspace, tabla de líneas, fila de línea, panel de emparejamiento, lista de candidatos, botón Emparejar, tarjetas de KPI y pestañas de estado.
 
-```text
-┌──────────────────────────────────────────────────────────────┐
-│ Cuenta ▾   Importación ▾   Periodo ▾   Buscar…   [Subir CSV] │
-│ Cargos $X · Abonos $Y · Neto $Z · 62% conciliado ▓▓▓▓▓░░░    │
-├─────────────────────────┬────────────────────────────────────┤
-│ MOVIMIENTOS DEL BANCO   │  PANEL DE EMPAREJAMIENTO           │
-│ [Pendientes][Sug.][OK]  │  Línea seleccionada (banco)        │
-│ ☐ 12/07 OXXO   -$1,200  │  ────────  ⇅  ────────             │
-│ ☑ 13/07 SPEI   +$45,000 │  Candidatos del sistema            │
-│ ☐ 14/07 COMIS.    -$85  │  · Score 92 · monto ✓ fecha ✓ ref ✓│
-│ …                       │  [Confirmar] [Ignorar] [Crear…]    │
-├─────────────────────────┴────────────────────────────────────┤
-│ 3 seleccionadas · [Confirmar sugeridas] [Ignorar] [Limpiar]  │
-└──────────────────────────────────────────────────────────────┘
-```
+### 3. Spec funcional `tests/e2e/bank-reconciliation.spec.ts`
+Casos:
+1. La página carga, se selecciona la cuenta temporal y los KPIs muestran cargos/abonos/neto y "% conciliado" acordes a las líneas sembradas.
+2. Filtrado por pestañas de estado (Todas / Sin emparejar / Sugerido / Conciliado / Ignorado) y búsqueda por texto/referencia/monto.
+3. Selección de filas: el checkbox se ve marcado, el contador y la barra de acciones masivas responden (regresión del bug corregido en v7.246.1).
+4. Panel de emparejamiento: al elegir una línea aparecen candidatos con score y etiquetas ("Monto exacto", "Mismo día"); emparejar mueve la línea a "Conciliado" y actualiza el % conciliado.
+5. Ignorar líneas seleccionadas con razón obligatoria.
+6. Atajos de teclado J/K para navegar y Enter/C para confirmar.
+7. Sin errores de consola ni toasts de error en todo el flujo.
 
-- Columna izquierda: **una sola tabla** con pestañas de estado (`StatusTabs`, ya estándar en la app) en lugar de 4 tablas apiladas. Selección de fila persistente y resaltada.
-- Columna derecha: panel **fijo** (sticky) que reemplaza al `Sheet`. Al hacer clic en otra línea, el panel cambia sin animación de apertura/cierre. En móvil sigue siendo `Sheet`.
-- Barra superior sticky con cuenta, importación, periodo y búsqueda; KPIs compactos con barra de progreso de conciliación.
+### 4. Validación visual
+- Snapshots del workspace (lista + panel) y de un estado vacío, en 1600x900, dentro del gate `E2E_VISUAL=1` y con máscaras para montos/fechas dinámicas, para no romper el CI actual.
+- Adicionalmente, durante la implementación haré una revisión visual manual con capturas de pantalla del flujo completo y te las reporto.
 
-### Fase 2 · Candidatos inteligentes (el arreglo funcional)
-
-Reescribir `useManualMatchCandidates` para que reciba la línea seleccionada y consulte del backend:
-- pagos con monto dentro de una tolerancia configurable (exacto, ±1%, o cualquier monto),
-- ventana de fechas ±15 días alrededor de `posted_date`,
-- búsqueda por texto en referencia/cliente/proveedor **en el servidor**,
-- excluyendo pagos ya conciliados con otra línea.
-
-Cada candidato muestra su score calculado con `computeMatchScore` (ya existe y está testeado) y un desglose visual: `monto exacto ✓ · 1 día de diferencia · referencia coincide`.
-
-### Fase 3 · Productividad
-
-- **Selección múltiple** en la tabla (`enableRowSelection` de `DataTableV2`, ya soportado) con toolbar de acciones masivas: *Confirmar sugeridas seleccionadas* e *Ignorar con razón común*.
-- **Confirmar todas las de alta confianza**: un botón que empareja de golpe las sugerencias con score ≥ 85, con diálogo de confirmación que enumera cuántas y por qué monto total.
-- **Teclado**: `↑/↓` mueve de línea, `Enter` confirma la sugerencia, `I` ignora. Registrado en el registry de atajos existente.
-- **Crear desde la línea**: para cargos sin match, botón *Registrar gasto* que abre el formulario de gastos prellenado con fecha, monto y descripción de la línea.
+### 5. Cierre
+- Ejecutar `bunx playwright test bank-reconciliation`, typecheck y lint.
+- Verificar por consulta a la base que no quedó ninguna cuenta/línea temporal.
+- Entrada nueva en `public/changelog.json` + `public/changelog/v7.247.0.json` (minor: nueva cobertura de pruebas).
 
 ## Detalles técnicos
 
-- Nuevo `BankReconciliationWorkspace.tsx` que contiene el grid `lg:grid-cols-[minmax(0,1fr)_420px]`; `BankReconciliationPage.tsx` queda como shell (cuenta + guard + carga).
-- `BankLineDetailSheet` se refactoriza a `BankLineMatchPanel` (contenido puro) reutilizado tanto por el panel fijo en escritorio como por el `Sheet` en móvil, respetando el límite de 150 líneas por componente.
-- Candidatos: nueva RPC `get_bank_match_candidates(line_id, tolerance, search)` con `SET search_path = public` y `SECURITY INVOKER` para respetar RLS; devuelve como máximo 50 filas ordenadas por score.
-- Acciones masivas sobre una RPC transaccional `confirm_bank_matches(line_ids[], ...)` para mantener integridad (patrón ya usado en el proyecto).
-- KPIs: pasar `currency` de la cuenta a `formatCurrencyWithCode`.
-- Pruebas: unitarias del desglose de score y del filtrado de candidatos; E2E de conciliar una línea sugerida y una manual.
-
-## Orden y esfuerzo
-
-| Fase | Contenido | Riesgo |
-|---|---|---|
-| 1 | Layout dos columnas + tabs + panel fijo | Bajo (solo UI) |
-| 2 | RPC de candidatos + desglose de score | Medio (toca backend) |
-| 3 | Selección múltiple, masivas, teclado, crear gasto | Medio |
-
-Recomiendo entregar la Fase 1 sola primero (v7.246.0) para validar el layout con datos reales, y luego 2 y 3.
-
-## Fuera de alcance
-
-- Conexión bancaria automática por API (Belvo/Plaid): distinto proyecto.
-- Reglas de auto-ignorado aprendidas (por ejemplo, comisiones recurrentes): candidato para una oleada posterior.
-
-## Pregunta antes de arrancar
-
-¿Entrego **solo la Fase 1** (layout, sin tocar backend) o el **paquete completo Fases 1–3**?
+- El fixture extiende `base.extend<{ bank: BankSeedIds }>` reutilizando `getAuthToken` de `fixtures/helpers.ts` y el cliente Supabase con el token del navegador (mismo patrón que `seed.ts`), sin service role.
+- Las líneas se generan con `hash` único por scope para no chocar con la restricción de deduplicación de importaciones.
+- El emparejamiento en el test usa la UI (RPC `confirm_bank_matches` a través del botón), no llamadas directas, para que la prueba valide de verdad el camino del usuario.

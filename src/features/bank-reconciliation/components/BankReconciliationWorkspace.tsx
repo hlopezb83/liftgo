@@ -102,7 +102,7 @@ export function BankReconciliationWorkspace({ lines, bankAccountId, isLoading }:
   );
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" data-testid="bank-workspace">
       <FiltersToolbar>
         <FiltersToolbar.StatusTabs
           value={status}
@@ -135,7 +135,7 @@ export function BankReconciliationWorkspace({ lines, bankAccountId, isLoading }:
       ) : (
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_420px]">
           <div className="min-w-0">{table}</div>
-          <Card className="h-fit lg:sticky lg:top-4">
+          <Card className="h-fit lg:sticky lg:top-4" data-testid="bank-match-panel-slot">
             <CardContent className="py-4">
               {activeLine ? (
                 <BankLineMatchPanel line={activeLine} onDone={handleDone} />
