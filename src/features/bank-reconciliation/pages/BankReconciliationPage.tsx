@@ -41,7 +41,12 @@ export default function BankReconciliationPage() {
             }
           />
 
-          {(accounts ?? []).length === 0 ? (
+          {isLoadingAccounts ? (
+            <Card><CardContent className="py-6 space-y-3">
+              <Skeleton className="h-5 w-64" />
+              <Skeleton className="h-24 w-full" />
+            </CardContent></Card>
+          ) : (accounts ?? []).length === 0 ? (
             <Card><CardContent className="py-12 text-center text-sm text-muted-foreground space-y-3">
               <p>Aún no tienes cuentas bancarias registradas.</p>
               <Button asChild><Link to="/cuentas-bancarias">Crear primera cuenta</Link></Button>
@@ -51,7 +56,7 @@ export default function BankReconciliationPage() {
               <Card><CardContent className="py-3 flex items-center gap-3 flex-wrap">
                 <span className="text-sm font-medium">Cuenta:</span>
                 <Select value={accountId ?? ""} onValueChange={setManualAccountId}>
-                  <SelectTrigger className="w-64"><SelectValue placeholder="Selecciona una cuenta" /></SelectTrigger>
+                  <SelectTrigger className="w-64" data-testid="bank-account-select"><SelectValue placeholder="Selecciona una cuenta" /></SelectTrigger>
                   <SelectContent>
                     {(accounts ?? []).map((a) => (
                       <SelectItem key={a.id} value={a.id}>
