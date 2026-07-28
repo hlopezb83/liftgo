@@ -172,7 +172,9 @@ Deno.serve(async (req) => {
         .from("payments")
         .update({
           rep_cfdi_status: "error",
+          rep_stamping_started_at: null,
           rep_error_message: errMsg.slice(0, 1000),
+
         })
         .eq("id", payment_id);
       return jsonError(
