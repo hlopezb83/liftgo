@@ -56,6 +56,12 @@ const FIELD_LABELS: Record<string, string> = {
   company_name: "Empresa", contact_person: "Contacto", deal_value: "Valor del Deal", stage: "Etapa",
   quote_id: "Cotización", closed_at: "Fecha de Cierre", lost_reason: "Razón de Pérdida",
   final_amount: "Monto Final", stage_order: "Orden en Etapa",
+  // Oleada 1 (A-2): campos que se veían crudos
+  cfdi_status: "Estado CFDI", stock_quantity: "Cantidad en Stock",
+  exchange_rate: "Tipo de Cambio", payment_in_progress_at: "Pago en Proceso",
+  cancellation_status: "Estado de Cancelación",
+  work_order_number: "Número de OT", hours_reading: "Lectura de Horómetro",
+
 };
 
 export const translateField = (field: string) => FIELD_LABELS[field] || field.replace(/_/g, " ");
