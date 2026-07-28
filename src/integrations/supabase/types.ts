@@ -2310,6 +2310,7 @@ export type Database = {
           rep_folio: string | null
           rep_number: string | null
           rep_pdf_url: string | null
+          rep_stamping_started_at: string | null
           rep_xml_url: string | null
         }
         Insert: {
@@ -2337,6 +2338,7 @@ export type Database = {
           rep_folio?: string | null
           rep_number?: string | null
           rep_pdf_url?: string | null
+          rep_stamping_started_at?: string | null
           rep_xml_url?: string | null
         }
         Update: {
@@ -2364,6 +2366,7 @@ export type Database = {
           rep_folio?: string | null
           rep_number?: string | null
           rep_pdf_url?: string | null
+          rep_stamping_started_at?: string | null
           rep_xml_url?: string | null
         }
         Relationships: [
