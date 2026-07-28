@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.240.1",
+    "date": "2026-07-28",
+    "type": "patch",
+    "title": "InvoiceForm · refactor a subcomponentes",
+    "category": "chore",
+    "description": "Se extrajo InvoiceDetailsCard y el hook useDamagePrefill de InvoiceForm.tsx para eliminar el warning max-lines-per-function sin cambiar comportamiento."
+  },
+  {
     "version": "7.240.0",
     "date": "2026-07-28",
     "type": "minor",
