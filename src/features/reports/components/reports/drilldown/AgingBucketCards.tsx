@@ -1,4 +1,4 @@
-import { XIcon } from "@/components/icons";
+import { CloseIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -46,7 +46,7 @@ export function AgingBucketCards({ totals, selected, onSelect }: Props) {
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span>Mostrando bucket {selected} días</span>
           <Button variant="ghost" size="sm" className="h-6 px-2" onClick={() => onSelect(null)}>
-            <XIcon className="h-3 w-3 mr-1" /> Quitar filtro
+            <CloseIcon className="h-3 w-3 mr-1" /> Quitar filtro
           </Button>
         </div>
       )}
