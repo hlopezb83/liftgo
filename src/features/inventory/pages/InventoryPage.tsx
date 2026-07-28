@@ -51,7 +51,7 @@ export default function InventoryPage() {
       id: "unit_cost",
       header: "Costo Unitario",
       accessorKey: "unit_cost",
-      meta: { align: "right" },
+      meta: { kind: "money" },
       cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.unit_cost)}</span>,
     },
     {

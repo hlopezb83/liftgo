@@ -61,7 +61,7 @@ export function useBankImportsColumns(
         id: "total_count",
         header: "Líneas",
         accessorKey: "total_count",
-        meta: { align: "right" },
+        meta: { kind: "number" },
         cell: ({ row }) => (
           <span className="font-mono text-xs">{row.original.total_count}</span>
         ),
@@ -70,7 +70,7 @@ export function useBankImportsColumns(
         id: "matched_count",
         header: "Conciliadas",
         accessorKey: "matched_count",
-        meta: { align: "right" },
+        meta: { kind: "number" },
         cell: ({ row }) => (
           <span className="font-mono text-xs">{row.original.matched_count}</span>
         ),
@@ -78,7 +78,7 @@ export function useBankImportsColumns(
       {
         id: "pct",
         header: "% Concil.",
-        meta: { align: "right" },
+        meta: { kind: "number" },
         accessorFn: (i) =>
           i.total_count > 0 ? (i.matched_count / i.total_count) * 100 : 0,
         cell: ({ row }) => {

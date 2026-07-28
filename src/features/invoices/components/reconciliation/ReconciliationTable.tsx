@@ -108,7 +108,7 @@ export function ReconciliationTable({ rows, isLoading }: { rows: Row[]; isLoadin
       {
         id: "total",
         header: "Total",
-        meta: { align: "right" },
+        meta: { kind: "money" },
         accessorFn: (r) => Number(r.total),
         cell: ({ row }) => (
           <span className="text-right font-mono">{formatCurrency(Number(row.original.total))}</span>

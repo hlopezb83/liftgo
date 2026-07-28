@@ -51,9 +51,9 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
   const columns: ColumnDef<Row>[] = [
     { id: "invoice_number", header: "Factura", accessorKey: "invoice_number", cell: ({ row }) => <span className="font-mono font-medium">{row.original.invoice_number}</span> },
     { id: "customer_name", header: "Cliente", accessorKey: "customer_name", cell: ({ row }) => row.original.customer_name || "—" },
-    { id: "total", header: "Saldo (MXN)", accessorFn: (i) => i.balance_mxn, meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.balance_mxn)}</span> },
+    { id: "total", header: "Saldo (MXN)", accessorFn: (i) => i.balance_mxn, meta: { kind: "money" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.balance_mxn)}</span> },
     { id: "due_date", header: "Vencimiento", accessorKey: "due_date", cell: ({ row }) => formatDateDisplay(row.original.due_date) },
-    { id: "days_overdue", header: "Días", accessorKey: "days_overdue", meta: { align: "right" }, cell: ({ row }) => <span className="font-mono font-semibold text-destructive">{row.original.days_overdue}</span> },
+    { id: "days_overdue", header: "Días", accessorKey: "days_overdue", meta: { kind: "money" }, cell: ({ row }) => <span className="font-mono font-semibold text-destructive">{row.original.days_overdue}</span> },
     { id: "bucket", header: "Bucket", accessorKey: "bucket", cell: ({ row }) => `${row.original.bucket}d` },
   ];
 

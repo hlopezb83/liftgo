@@ -66,9 +66,9 @@ export function UtilizationReport({ startDate, endDate }: Props) {
 
   const columns: ColumnDef<Row>[] = [
     { id: "name", header: "Montacargas", accessorKey: "name", cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },
-    { id: "bookedDays", header: "Días Reservados", accessorKey: "bookedDays", meta: { align: "right" }, cell: ({ row }) => row.original.bookedDays },
-    { id: "totalDays", header: "Días Totales", accessorKey: "totalDays", meta: { align: "right" }, cell: ({ row }) => row.original.totalDays },
-    { id: "utilization", header: "Utilización", accessorKey: "utilization", meta: { align: "right" }, cell: ({ row }) => <span className="font-mono">{row.original.utilization}%</span> },
+    { id: "bookedDays", header: "Días Reservados", accessorKey: "bookedDays", meta: { kind: "number" }, cell: ({ row }) => row.original.bookedDays },
+    { id: "totalDays", header: "Días Totales", accessorKey: "totalDays", meta: { kind: "number" }, cell: ({ row }) => row.original.totalDays },
+    { id: "utilization", header: "Utilización", accessorKey: "utilization", meta: { kind: "number" }, cell: ({ row }) => <span className="font-mono">{row.original.utilization}%</span> },
   ];
 
   const table = useLiftgoTable<Row>({

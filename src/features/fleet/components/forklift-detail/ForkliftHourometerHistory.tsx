@@ -37,7 +37,7 @@ export function ForkliftHourometerHistory({ history }: ForkliftHourometerHistory
         id: "hours_reading",
         header: "Lectura (hrs)",
         accessorKey: "hours_reading",
-        meta: { align: "right" },
+        meta: { kind: "number" },
         cell: ({ row }) => <span className="font-mono font-semibold">{row.original.hours_reading}</span>,
       },
     ];

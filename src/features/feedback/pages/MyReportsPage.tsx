@@ -51,7 +51,7 @@ export default function MyReportsPage() {
       id: "points_awarded",
       header: "Puntos",
       accessorKey: "points_awarded",
-      meta: { align: "right" },
+      meta: { kind: "number" },
       cell: ({ row }) => <span className="font-medium">{row.original.points_awarded}</span>,
     },
     {
