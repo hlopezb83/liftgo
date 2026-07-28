@@ -33,6 +33,7 @@ function compactMoneyMxn(n: number): string {
 
 export function RevenueReport({ startDate, endDate }: Props) {
   const { data: invoices = [], isError, isFetching, refetch } = useInvoices();
+  const [selected, setSelected] = useState<Row | null>(null);
   const data: Row[] = (() => {
     // R7 Bloque 5: excluir borradores y canceladas — no son ingreso reconocido.
     const revenueInvoices = invoices.filter(
@@ -43,7 +44,7 @@ export function RevenueReport({ startDate, endDate }: Props) {
     filtered.forEach((inv) => {
       const key = format(startOfMonth(parseISO(inv.issued_at)), "yyyy-MM");
       const label = formatMonthShortEsFromDate(startOfMonth(parseISO(inv.issued_at)));
-      if (!months[key]) months[key] = { month: label, invoiced: 0, paid: 0, count: 0 };
+      if (!months[key]) months[key] = { key, month: label, invoiced: 0, paid: 0, count: 0 };
       // R6-B2: normalizar a MXN cuando la factura está en USD.
       const totalMxn = toMxn(
         Number(inv.total),
@@ -57,6 +58,9 @@ export function RevenueReport({ startDate, endDate }: Props) {
     return Object.entries(months).sort(([a], [b]) => a.localeCompare(b)).map(([, d]) => d);
   })();
 
+  const selectedInvoices = selected
+    ? invoicesForMonth(invoices as unknown as DrilldownInvoice[], selected.key)
+    : [];
 
   const columns: ColumnDef<Row>[] = [
     { id: "month", header: "Mes", accessorKey: "month", cell: ({ row }) => <span className="font-medium">{row.original.month}</span> },
@@ -68,9 +72,10 @@ export function RevenueReport({ startDate, endDate }: Props) {
   const table = useLiftgoTable<Row>({
     data,
     columns,
-    getRowId: (r) => r.month,
+    getRowId: (r) => r.key,
     paginated: false,
   });
+
 
   // R22-B: si la consulta falló, no mostramos ceros ni permitimos exportar.
   if (isError) {
