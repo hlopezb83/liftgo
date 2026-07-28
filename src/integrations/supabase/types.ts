@@ -3674,6 +3674,7 @@ export type Database = {
         }
         Returns: undefined
       }
+      confirm_bank_matches: { Args: { p_line_ids: string[] }; Returns: number }
       convert_quote_to_bookings: {
         Args: { p_assignments: Json; p_quote_id: string; p_recurring?: boolean }
         Returns: {
@@ -3807,6 +3808,26 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      get_bank_match_candidates: {
+        Args: {
+          p_amount_tolerance?: number
+          p_date_window?: number
+          p_line_id: string
+          p_search?: string
+        }
+        Returns: {
+          amount: number
+          candidate_date: string
+          day_diff: number
+          exact_amount: boolean
+          id: string
+          kind: string
+          label: string
+          reference: string
+          reference_hit: boolean
+          score: number
+        }[]
+      }
       get_billing_secrets_status: {
         Args: never
         Returns: {
@@ -3918,6 +3939,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      ignore_bank_lines: {
+        Args: { p_line_ids: string[]; p_reason: string }
+        Returns: number
       }
       internal_get_cron_secret: { Args: never; Returns: string }
       list_invoices_with_balance: {

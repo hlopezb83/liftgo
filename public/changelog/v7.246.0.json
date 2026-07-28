@@ -1,0 +1,22 @@
+{
+  "version": "7.246.0",
+  "date": "2026-07-28",
+  "type": "minor",
+  "title": "B-8 · Conciliación bancaria rediseñada: workspace a dos columnas, candidatos inteligentes y acciones masivas",
+  "category": "feature",
+  "summary": "La conciliación deja de ser una lista vertical de cuatro tablas: ahora es un espacio de trabajo con pestañas de estado, tabla a la izquierda y panel de emparejamiento fijo a la derecha, con candidatos buscados en el servidor por monto, fecha y texto, y confirmación/ignorado en bloque.",
+  "highlights": [
+    "Workspace a dos columnas (`lg:grid-cols-[minmax(0,1fr)_420px]`): la fila seleccionada se resalta y su panel de conciliación queda pegado a la derecha; en móvil el mismo panel se abre en un `Sheet`.",
+    "Pestañas de estado (`FiltersToolbar.StatusTabs`) + búsqueda por descripción, referencia o monto, en lugar de cuatro tablas apiladas.",
+    "Nueva función de base de datos `get_bank_match_candidates`: filtra pagos de clientes o de proveedores por monto (tolerancia), ventana de fechas configurable (± 3 a 90 días) y texto (folio, cliente, proveedor o referencia), devolviendo el score con su desglose.",
+    "Cada candidato muestra por qué califica: score, monto exacto o aproximado, días de diferencia y si la referencia coincide. Solo se permite emparejar cuando el importe coincide con el movimiento.",
+    "Acciones masivas: selección múltiple en la tabla con \"Confirmar sugeridos\" (`confirm_bank_matches`) e \"Ignorar seleccionados\" con una razón común (`ignore_bank_lines`).",
+    "Atajos de teclado J/K (o flechas) para recorrer movimientos y Escape para cerrar el panel.",
+    "Los KPIs del periodo respetan la moneda de la cuenta bancaria seleccionada y agregan el conteo de movimientos pendientes."
+  ],
+  "notes": [
+    "Las nuevas funciones de base de datos validan rol (admin/administrativo) y revocan ejecución a usuarios anónimos.",
+    "Se eliminan `BankLineDetailSheet`, `BankLineActions`, `ManualMatchPicker` y `useManualMatchCandidates`, reemplazados por `BankReconciliationWorkspace`, `BankLineMatchPanel` y `BankMatchCandidateList`.",
+    "El picker anterior traía los 20 pagos más recientes sin filtrar; ahora la búsqueda ocurre en el servidor sobre el universo completo."
+  ]
+}

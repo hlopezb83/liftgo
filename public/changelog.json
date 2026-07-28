@@ -1,5 +1,14 @@
 [
   {
+    "version": "7.246.0",
+    "date": "2026-07-28",
+    "type": "minor",
+    "title": "B-8 · Conciliación bancaria rediseñada: workspace a dos columnas y acciones masivas",
+    "category": "feature",
+    "description": "La conciliación pasa de cuatro tablas apiladas a un espacio de trabajo con pestañas de estado, tabla a la izquierda y panel de emparejamiento fijo a la derecha. Nueva función `get_bank_match_candidates` que busca candidatos en el servidor por monto, ventana de fechas (± 3 a 90 días) y texto, mostrando el desglose del score (monto exacto, días de diferencia, referencia coincidente). Se agregan acciones masivas para confirmar sugeridos e ignorar movimientos con una razón común, atajos J/K, y KPIs en la moneda de la cuenta seleccionada."
+  },
+  {
+
     "version": "7.245.0",
     "date": "2026-07-28",
     "type": "minor",
