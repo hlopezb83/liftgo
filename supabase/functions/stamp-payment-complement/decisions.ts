@@ -95,4 +95,3 @@ export function claimRejectionMessage(
       return `No se puede timbrar el REP en el estado actual del pago (${status}).`;
   }
 }
-
