@@ -82,6 +82,17 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
   };
 
 
+  // R22-B: cartera vencida en cero por falla de red es un dato peligroso.
+  if (isError) {
+    return (
+      <QueryErrorState
+        entity="el reporte de antigüedad de saldos"
+        onRetry={() => { void refetch(); }}
+        isRetrying={isFetching}
+      />
+    );
+  }
+
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
