@@ -1,4 +1,5 @@
 import { Link, Outlet, useLocation } from "react-router";
+import { BrandMark } from "@/components/BrandMark";
 import { LogOut, DashboardIcon, CalendarDays, InvoiceIcon, DocumentIcon, MessageSquare, TrophyIcon, VerifiedDocIcon, ExpenseIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
