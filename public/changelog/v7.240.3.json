@@ -1,0 +1,23 @@
+{
+  "version": "7.240.3",
+  "date": "2026-07-28",
+  "type": "patch",
+  "title": "Auditoría R20 · cierre de backlog",
+  "category": "fix",
+  "sections": [
+    {
+      "heading": "Medio",
+      "items": [
+        "R20-1 · `useDamagePrefill` ahora consulta `damage_records.status` antes de prellenar. Si el daño ya está `invoiced`, muestra un toast ('Este daño ya fue facturado') y evita el prefill. Cierra el bypass de armar la URL `/invoices/new?damage_id=…` a mano tras haber facturado."
+      ]
+    },
+    {
+      "heading": "Bajos",
+      "items": [
+        "R16-1 · `InvoiceForm` reemplaza el `<Select>` de cliente por el `CustomerSelector` con búsqueda (mismo componente que ya usan Cotizaciones y demás formularios). Los efectos de selección (filtro de reservas, datos fiscales) se mantienen.",
+        "R19-3 residual · En `/crm/cerrados`, el indicador 'Cliente creado' pasa a ser un botón 'Cliente creado — Ver cliente' que navega al detalle del cliente convertido.",
+        "Native-validation · `CurrencyField` reemplaza la burbuja nativa en inglés ('Please enter a valid value…') por un mensaje en es-MX vía `setCustomValidity`. Cosmético; zod sigue bloqueando la persistencia."
+      ]
+    }
+  ]
+}
