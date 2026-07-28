@@ -297,3 +297,58 @@
     background: hsla(0, 0%, 100%, 0.3);
   }
 }
+
+/* ------------------------------------------------------------------ */
+/* R21 C-5: prefers-reduced-motion — respetar preferencia del sistema. */
+/* ------------------------------------------------------------------ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* R21 C-8: vista de impresión — quita chrome, tablas legibles A4.     */
+/* ------------------------------------------------------------------ */
+@media print {
+  [data-sidebar],
+  [data-app-header],
+  .no-print {
+    display: none !important;
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  main {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: none !important;
+  }
+  * {
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  table {
+    border-collapse: collapse !important;
+  }
+  th, td {
+    border: 1px solid #d4d4d4 !important;
+    padding: 4px 8px !important;
+  }
+  tr {
+    break-inside: avoid !important;
+  }
+  thead {
+    display: table-header-group !important;
+  }
+  a {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+}
