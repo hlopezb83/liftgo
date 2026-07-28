@@ -92,7 +92,7 @@ export function useLiftgoTable<T>({
     autoResetPageIndex: false,
     data: tableData,
     columns,
-    defaultColumn: { sortingFn: liftgoSortingFn },
+    defaultColumn: { sortingFn: sortingFnWithNullsLast },
     state: {
       sorting,
       rowSelection,
