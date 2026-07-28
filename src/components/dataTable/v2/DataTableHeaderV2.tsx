@@ -4,6 +4,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { alignClass } from "./sorting";
+import { resolveColumnKind } from "./columnKind";
 import type { ReactNode } from "react";
 
 interface Props<T> {
