@@ -39,7 +39,7 @@ export function SidebarBranding({ logoUrl, razonSocial }: SidebarBrandingProps) 
             LG
           </div>
         )}
-        <div className="min-w-0">
+        <div className="min-w-0 group-data-[collapsible=icon]:hidden">
           <h2
             className="text-sm font-semibold text-sidebar-primary-foreground tracking-tight leading-tight line-clamp-2 break-words"
             title={name}
