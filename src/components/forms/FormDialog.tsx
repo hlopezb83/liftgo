@@ -40,14 +40,11 @@ interface FormDialogProps {
   /** R10 Bloque 11.1: cuando el submit está en curso, bloquea Esc y click
    *  fuera para evitar cerrar el diálogo con una mutación viva. */
   isPending?: boolean;
+  /** Oleada 2 (B-2): si `true`, cerrar (Esc/click fuera/botón X) pide
+   *  confirmación al usuario antes de descartar cambios. */
+  isDirty?: boolean;
 }
 
-/**
- * Shell estándar para modales de formulario.
- * Aplica: ancho consistente, scroll interno (max-h-[85vh]) y header sticky
- * con `border-b`. El cuerpo y el footer los maneja el caller (normalmente
- * un `<form>` con `<FormSection>`s y un `<FormDialogFooter>` al final).
- */
 export function FormDialog({
   open,
   onOpenChange,
@@ -58,22 +55,46 @@ export function FormDialog({
   testId,
   className,
   isPending = false,
+  isDirty = false,
 }: FormDialogProps) {
+  const [confirmDiscard, setConfirmDiscard] = useState(false);
+
+  const requestClose = () => {
+    if (isPending) return;
+    if (isDirty) {
+      setConfirmDiscard(true);
+      return;
+    }
+    onOpenChange(false);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={(v) => { if (!v && isPending) return; onOpenChange(v); }}>
-      <DialogContent
-        className={cn(WIDTH_CLASS[width], "max-h-[85vh] overflow-y-auto", className)}
-        data-testid={testId}
-        onEscapeKeyDown={(e) => { if (isPending) e.preventDefault(); }}
-        onInteractOutside={(e) => { if (isPending) e.preventDefault(); }}
-      >
-        <DialogHeader className="sticky top-0 bg-background z-10 -mx-6 px-6 pb-3 border-b">
-          <DialogTitle>{title}</DialogTitle>
-          {description ? <DialogDescription>{description}</DialogDescription> : null}
-        </DialogHeader>
-        <div className="pt-2 pb-16">{children}</div>
-      </DialogContent>
-    </Dialog>
+    <>
+      <Dialog open={open} onOpenChange={(v) => { if (v) { onOpenChange(true); return; } requestClose(); }}>
+        <DialogContent
+          className={cn(WIDTH_CLASS[width], "max-h-[85vh] overflow-y-auto", className)}
+          data-testid={testId}
+          onEscapeKeyDown={(e) => { if (isPending || isDirty) e.preventDefault(); if (isDirty && !isPending) requestClose(); }}
+          onInteractOutside={(e) => { if (isPending || isDirty) e.preventDefault(); if (isDirty && !isPending) requestClose(); }}
+        >
+          <DialogHeader className="sticky top-0 bg-background z-10 -mx-6 px-6 pb-3 border-b">
+            <DialogTitle>{title}</DialogTitle>
+            {description ? <DialogDescription>{description}</DialogDescription> : null}
+          </DialogHeader>
+          <div className="pt-2 pb-16">{children}</div>
+        </DialogContent>
+      </Dialog>
+      <ConfirmDialog
+        open={confirmDiscard}
+        onOpenChange={setConfirmDiscard}
+        title="¿Descartar cambios?"
+        description="Los cambios no guardados se perderán."
+        confirmLabel="Descartar"
+        cancelLabel="Seguir editando"
+        destructive
+        onConfirm={() => { setConfirmDiscard(false); onOpenChange(false); }}
+      />
+    </>
   );
 }
 
