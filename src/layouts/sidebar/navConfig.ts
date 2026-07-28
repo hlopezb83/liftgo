@@ -56,7 +56,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { title: "Facturas", url: "/invoices", icon: InvoiceIcon, badgeKey: "intents_pending" },
       // Renombrado de "Conciliación": había DOS "Conciliación" en el mismo
       // grupo (pagos vs bancaria). Ahora son inequívocas.
-      { title: "Conciliación de Pagos", url: "/invoices/reconciliation", icon: GitCompareArrows },
+      { title: "Conciliación CFDI", url: "/invoices/reconciliation", icon: GitCompareArrows },
       { title: "Flujo de Caja", url: "/flujo-de-caja", icon: TrendingUpIcon },
       { title: "Cuentas Bancarias", url: "/cuentas-bancarias", icon: BankIcon },
       { title: "Conciliación Bancaria", url: "/conciliacion-bancaria", icon: ArrowLeftRight },
