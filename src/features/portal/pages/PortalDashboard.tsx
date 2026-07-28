@@ -1,11 +1,12 @@
+import { KpiTile } from "@/components/domain/KpiTile";
 import { CalendarDays, InvoiceIcon, ExpenseIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePortalCustomer, usePortalBookings, usePortalInvoices } from "@/features/customers";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCompactCurrency, kpiSizeClass } from "@/lib/format/formatCurrency";
 import { PortalBookingsCard, PortalRecentInvoicesCard } from "../components/PortalSections";
-import { PortalStatCard } from "../components/PortalStatCard";
+import { PortalUpcomingDues } from "../components/PortalUpcomingDues";
 
 function PortalDashboardSkeleton() {
   return (
