@@ -42,8 +42,10 @@ function countUniqueBookedDays(
 }
 
 export function UtilizationReport({ startDate, endDate }: Props) {
-  const { data: forklifts = [] } = useForklifts();
-  const { data: bookings = [] } = useBookings();
+  const { data: forklifts = [], isError: fError, isFetching: fFetching, refetch: fRefetch } = useForklifts();
+  const { data: bookings = [], isError: bError, refetch: bRefetch } = useBookings();
+  const hasError = fError || bError;
+
 
   // Días inclusivos consistente con el resto del reporte (fin inclusivo).
   const totalDaysRange = Math.max(differenceInCalendarDays(endDate, startDate) + 1, 1);
