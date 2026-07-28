@@ -1,5 +1,6 @@
 
 import { differenceInCalendarDays, parseISO } from "date-fns";
+import { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
@@ -10,13 +11,16 @@ import { useBookings } from "@/features/bookings";
 import { useForklifts } from "@/features/fleet";
 import { chartGridProps, chartTick } from "@/lib/charts/chartTheme";
 import { exportToCsv } from "@/lib/exportCsv";
+import { bookingsForForkliftInRange, type DrilldownBooking } from "../../lib/drilldown";
+import { UtilizationDetailSheet } from "./drilldown/UtilizationDetailSheet";
 
 interface Props {
   startDate: Date;
   endDate: Date;
 }
 
-type Row = { name: string; bookedDays: number; totalDays: number; utilization: number };
+type Row = { id: string; name: string; bookedDays: number; totalDays: number; utilization: number };
+
 
 /**
  * R10 Bloque 10.1: dedupe de días reservados por unidad.
