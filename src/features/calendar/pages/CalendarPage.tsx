@@ -3,6 +3,7 @@ import { startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays, start
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ChevronLeftIcon, ChevronRightIcon, RefreshIcon, WarnIcon } from "@/components/icons";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
