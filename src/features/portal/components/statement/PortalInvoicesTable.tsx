@@ -48,42 +48,46 @@ function PaymentDetailTable({ payments }: { payments: PortalPayment[] }) {
     return <p className="text-xs text-muted-foreground">Sin pagos aplicados.</p>;
   }
   return (
-    <div className="overflow-x-auto">
-    <table className="w-full text-xs">
-      <thead>
-        <tr className="text-muted-foreground">
-          <th className="text-left">Fecha</th>
-          <th className="text-left">Método</th>
-          <th className="text-left">Referencia</th>
-          <th className="text-right">Monto</th>
-        </tr>
-      </thead>
-      <tbody>
+    <Table className="text-xs">
+      <TableHeader>
+        <TableRow>
+          <TableHead>Fecha</TableHead>
+          <TableHead>Método</TableHead>
+          <TableHead>Referencia</TableHead>
+          <TableHead className="text-right">Monto</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
         {payments.map((p) => (
-          <tr key={p.id}>
-            <td>{formatDateDisplay(p.payment_date)}</td>
-            <td>{p.payment_method ?? "—"}</td>
-            <td>{p.reference_number ?? "—"}</td>
-            <td className="text-right font-mono">{formatCurrency(Number(p.amount))}</td>
-          </tr>
+          <TableRow key={p.id}>
+            <TableCell>{formatDateDisplay(p.payment_date)}</TableCell>
+            <TableCell>{p.payment_method ?? "—"}</TableCell>
+            <TableCell>{p.reference_number ?? "—"}</TableCell>
+            <TableCell className="text-right font-mono tabular-nums">
+              {formatCurrency(Number(p.amount))}
+            </TableCell>
+          </TableRow>
         ))}
-      </tbody>
-    </table>
-    </div>
+      </TableBody>
+    </Table>
   );
 }
 
-function InvoiceRow({ row, idx, isOpen, onToggle }: { row: PortalInvoiceRow; idx: number; isOpen: boolean; onToggle: () => void }) {
+function InvoiceRow({ row, isOpen, onToggle }: { row: PortalInvoiceRow; isOpen: boolean; onToggle: () => void }) {
   const r = row;
   return (
     <>
-      <tr className={idx % 2 ? "bg-muted/20" : ""}>
-        <td className="px-2">
-          <button onClick={onToggle}>
+      <TableRow>
+        <TableCell className="px-2">
+          <button
+            type="button"
+            onClick={onToggle}
+            aria-label={isOpen ? "Ocultar pagos" : "Ver pagos"}
+          >
             {isOpen ? <ChevronDownIcon className="h-4 w-4" /> : <ChevronRightIcon className="h-4 w-4" />}
           </button>
-        </td>
-        <td className="px-3 py-2 font-medium">
+        </TableCell>
+        <TableCell className="font-medium">
           <span className="inline-flex items-center gap-2">
             {r.inv.invoice_number}
             {r.moneda && r.moneda !== "MXN" && (
@@ -92,29 +96,31 @@ function InvoiceRow({ row, idx, isOpen, onToggle }: { row: PortalInvoiceRow; idx
               </span>
             )}
           </span>
-        </td>
-        <td className="px-3 py-2">{formatDateDisplay(r.inv.issued_at)}</td>
-        <td className="px-3 py-2">{r.inv.due_date ? formatDateDisplay(r.inv.due_date) : "—"}</td>
-        <td className="px-3 py-2 text-right font-mono">{formatCurrency(Number(r.inv.total))}</td>
-        <td className="px-3 py-2 text-right font-mono text-status-available">{formatCurrency(r.paid)}</td>
-        <td className={`px-3 py-2 text-right font-mono ${r.balance > 0 ? "text-destructive" : ""}`}>
+        </TableCell>
+        <TableCell>{formatDateDisplay(r.inv.issued_at)}</TableCell>
+        <TableCell>{r.inv.due_date ? formatDateDisplay(r.inv.due_date) : "—"}</TableCell>
+        <TableCell className="text-right font-mono tabular-nums">{formatCurrency(Number(r.inv.total))}</TableCell>
+        <TableCell className="text-right font-mono tabular-nums text-status-available">{formatCurrency(r.paid)}</TableCell>
+        <TableCell
+          className={`text-right font-mono tabular-nums ${r.balance > 0 ? "text-destructive" : ""}`}
+        >
           {formatCurrency(r.balance)}
-        </td>
-        <td className="px-3 py-2"><StatusBadge status={r.inv.status} /></td>
-        <td className="px-3 py-2 text-right">
+        </TableCell>
+        <TableCell><StatusBadge status={r.inv.status} /></TableCell>
+        <TableCell className="text-right">
           {r.balance > 0 && (
             <Button size="sm" variant="outline" asChild>
               <a href={`/portal/invoices/${r.inv.id}/pago`}>Pagar</a>
             </Button>
           )}
-        </td>
-      </tr>
+        </TableCell>
+      </TableRow>
       {isOpen && (
-        <tr className="bg-muted/30">
-          <td colSpan={9} className="px-6 py-3">
+        <TableRow className="bg-muted/30">
+          <TableCell colSpan={9} className="px-6 py-3">
             <PaymentDetailTable payments={r.payments} />
-          </td>
-        </tr>
+          </TableCell>
+        </TableRow>
       )}
     </>
   );
@@ -122,36 +128,37 @@ function InvoiceRow({ row, idx, isOpen, onToggle }: { row: PortalInvoiceRow; idx
 
 export function PortalInvoicesTable({ rows, expanded, onToggle }: Props) {
   return (
-    <div className="overflow-x-auto">
-    <table className="w-full text-sm">
-      <thead className="text-xs text-muted-foreground bg-muted/40">
-        <tr>
-          <th className="w-8"></th>
-          <th className="text-left px-3 py-2">Factura #</th>
-          <th className="text-left px-3 py-2">Emisión</th>
-          <th className="text-left px-3 py-2">Vencimiento</th>
-          <th className="text-right px-3 py-2">Total</th>
-          <th className="text-right px-3 py-2">Pagado</th>
-          <th className="text-right px-3 py-2">Saldo</th>
-          <th className="text-left px-3 py-2">Estado</th>
-          <th className="px-3 py-2"></th>
-        </tr>
-      </thead>
-      <tbody>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-8" />
+          <TableHead>Factura #</TableHead>
+          <TableHead>Emisión</TableHead>
+          <TableHead>Vencimiento</TableHead>
+          <TableHead className="text-right">Total</TableHead>
+          <TableHead className="text-right">Pagado</TableHead>
+          <TableHead className="text-right">Saldo</TableHead>
+          <TableHead>Estado</TableHead>
+          <TableHead />
+        </TableRow>
+      </TableHeader>
+      <TableBody>
         {rows.length === 0 && (
-          <tr><td colSpan={9} className="text-center py-6 text-muted-foreground">Sin facturas</td></tr>
+          <TableRow>
+            <TableCell colSpan={9} className="text-center py-6 text-muted-foreground">
+              Sin facturas
+            </TableCell>
+          </TableRow>
         )}
-        {rows.map((r, idx) => (
+        {rows.map((r) => (
           <InvoiceRow
             key={r.inv.id}
             row={r}
-            idx={idx}
             isOpen={!!expanded[r.inv.id]}
             onToggle={() => onToggle(r.inv.id)}
           />
         ))}
-      </tbody>
-    </table>
-    </div>
+      </TableBody>
+    </Table>
   );
 }
