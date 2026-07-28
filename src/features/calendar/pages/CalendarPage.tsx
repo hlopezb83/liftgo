@@ -3,6 +3,7 @@ import { startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays, start
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ChevronLeftIcon, ChevronRightIcon, RefreshIcon, WarnIcon } from "@/components/icons";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
@@ -32,7 +33,7 @@ export default function CalendarPage() {
   const [currentDate, setCurrentDate] = useState(nowMty());
   const fetchFrom = subMonths(currentDate, 1);
   const fetchTo = addMonths(currentDate, 1);
-  const { data: bookings, isLoading: bLoading } = useBookingsRange(fetchFrom, fetchTo);
+  const { data: bookings, isLoading: bLoading, isError: bError, isFetching: bFetching, refetch: bRefetch } = useBookingsRange(fetchFrom, fetchTo);
   const { forkliftMap, forklifts, isLoading: fLoading } = useForkliftMap();
 
   const isMobile = useIsMobile();
@@ -68,6 +69,15 @@ export default function CalendarPage() {
   }, [bookings, todayTs]);
 
 
+
+  if (bError) {
+    return (
+      <PageContainer>
+        <PageHeader title="Calendario de Disponibilidad" />
+        <QueryErrorState entity="el calendario" onRetry={() => bRefetch()} isRetrying={bFetching} />
+      </PageContainer>
+    );
+  }
 
   if (bLoading || fLoading) {
     return <PageContainer><Skeleton className="h-96" /></PageContainer>;

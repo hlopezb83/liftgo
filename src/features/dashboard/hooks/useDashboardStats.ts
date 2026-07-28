@@ -8,3 +8,4 @@ export function useDashboardStats() {
 
   return useQuery(dashboardStatsQueries.list({ dateKey }));
 }
+

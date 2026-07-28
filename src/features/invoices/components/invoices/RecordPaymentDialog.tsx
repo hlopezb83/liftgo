@@ -44,6 +44,9 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
       width="md"
       testId="record-payment-dialog"
     >
+      <form
+        onSubmit={(e) => { e.preventDefault(); handleSubmit(); }}
+      >
         <div className="space-y-4">
           <div>
             <Label htmlFor="recordPaymentAmount">Monto</Label>
@@ -139,15 +142,16 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
           )}
         </div>
         <FormDialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
           <Button
+            type="submit"
             data-testid="record-payment-submit"
-            onClick={handleSubmit}
             disabled={createPayment.isPending || stampComplement.isPending}
           >
             {createPayment.isPending ? "Guardando…" : (stampComplement.isPending ? "Timbrando REP…" : "Registrar Pago")}
           </Button>
         </FormDialogFooter>
+      </form>
     </FormDialog>
   );
 }

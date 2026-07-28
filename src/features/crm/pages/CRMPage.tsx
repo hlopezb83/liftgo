@@ -1,4 +1,7 @@
 import { useState } from "react";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
+import { PageContainer } from "@/components/layout/PageContainer";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePageActions } from "@/contexts/pageActions";
@@ -16,7 +19,7 @@ import { ACTIVE_STAGES } from "../lib/constants";
 import type { DragEndEvent } from "@dnd-kit/core";
 
 export default function CRMPage() {
-  const { data: prospects = [], isLoading } = useProspects();
+  const { data: prospects = [], isLoading, isError, isFetching, refetch } = useProspects();
   const { data: quotes = [] } = useQuotes();
   const { canCloseDeal, assertCanClose } = useProspectGuard();
   const createProspect = useCreateProspect();
@@ -106,7 +109,16 @@ export default function CRMPage() {
       dialogs.setDialogOpen(true);
     }
   };
-
+  if (isError) {
+    return (
+      <PageTransition>
+        <PageContainer>
+          <PageHeader title="CRM" />
+          <QueryErrorState entity="los prospectos" onRetry={() => refetch()} isRetrying={isFetching} />
+        </PageContainer>
+      </PageTransition>
+    );
+  }
 
   return (
     <TooltipProvider delayDuration={300}>

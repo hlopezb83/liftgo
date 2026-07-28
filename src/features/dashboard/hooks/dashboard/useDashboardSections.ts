@@ -57,7 +57,7 @@ function computeAgingBuckets(
  * en `dashboardSectionHelpers` para mantener este hook declarativo.
  */
 export function useDashboardSections() {
-  const { data: stats, isLoading } = useDashboardStats();
+  const { data: stats, isLoading, isError, isFetching, refetch } = useDashboardStats();
   // R14-L: mismos roles que admite get_financial_kpis (20260725050634).
   const { data: role } = useUserRole();
   const canSeeFinancials = role === "admin" || role === "administrativo" || role === "auditor";
@@ -76,6 +76,9 @@ export function useDashboardSections() {
   // sus identidades alimentan cascadas y queremos garantía manual.
   return {
     isLoading,
+    isError,
+    isFetching,
+    refetch,
     insuranceData,
     utilizationPercent,
     overdueInvoices,
