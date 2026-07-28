@@ -68,6 +68,17 @@ export function RevenueReport({ startDate, endDate }: Props) {
     paginated: false,
   });
 
+  // R22-B: si la consulta falló, no mostramos ceros ni permitimos exportar.
+  if (isError) {
+    return (
+      <QueryErrorState
+        entity="el reporte de ingresos"
+        onRetry={() => { void refetch(); }}
+        isRetrying={isFetching}
+      />
+    );
+  }
+
   return (
     <>
       <Card>
