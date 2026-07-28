@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useWatch } from "react-hook-form";
 import { useParams, useSearchParams } from "react-router";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
@@ -27,8 +27,29 @@ export default function InvoiceForm() {
   const { id } = useParams();
   const [searchParams] = useSearchParams();
   const fromQuoteId = searchParams.get("from_quote");
+  const damageId = searchParams.get("damage_id");
+  const damageCustomerId = searchParams.get("customer_id");
+  const damageAmount = searchParams.get("amount");
 
   const f = useInvoiceFormLogic({ id, fromQuoteId });
+
+  // R18-A3: al llegar desde "Facturar daño", prefillamos cliente + una partida
+  // por el costo estimado. Evita que el usuario tenga que capturar de nuevo.
+  const damagePrefilledRef = useRef(false);
+  useEffect(() => {
+    if (damagePrefilledRef.current) return;
+    if (f.isEdit || !damageId || !damageCustomerId) return;
+    damagePrefilledRef.current = true;
+    f.handleCustomerSelect(damageCustomerId);
+    const amt = Number(damageAmount);
+    if (Number.isFinite(amt) && amt > 0) {
+      f.form.setValue(
+        "lineItems",
+        [{ description: `Cobro de daño (ref. ${damageId.slice(0, 8)})`, quantity: 1, unit_price: amt, total: amt }],
+        { shouldDirty: true },
+      );
+    }
+  }, [damageId, damageCustomerId, damageAmount, f.isEdit, f.handleCustomerSelect, f.form]);
   const { data: nextNumber, isLoading: loadingNext } = useNextInvoiceNumber(!f.isEdit);
   const taxRate = useWatch({ control: f.form.control, name: "taxRate" });
   const isSubmitting = f.createInvoice.isPending || f.updateInvoice.isPending;

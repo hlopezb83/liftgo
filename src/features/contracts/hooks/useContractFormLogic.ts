@@ -48,7 +48,7 @@ export function useContractFormLogic() {
   useUnsavedChangesGuard(form.formState.isDirty && !isPending);
 
   const onSubmit = (values: ContractFormValues) => {
-    const payload = buildContractPayload(values, bookingId);
+    const payload = buildContractPayload(values, bookingId, existing);
     if (isEdit && id) {
       updateContract.mutate({ id, ...payload }, {
         onSuccess: () => {

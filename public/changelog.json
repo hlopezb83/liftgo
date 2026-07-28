@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.239.0",
+    "date": "2026-07-28",
+    "type": "minor",
+    "title": "Auditoría R18 · convertir cliente, hidratación de contrato y daños",
+    "category": "fix",
+    "description": "Convertir prospecto usa la ruta correcta y se gatea por rol; ContractForm migra 7 inputs a FormField (fix de hidratación); DamageTrackingPage re-deriva el record desde caché; Facturar daño prefilla cliente y partida; Cancelar CFDI se oculta si ya está aceptado o cancelado; aprobaciones/pagos AP invalidan dashboard y cash flow; condición de inspección usa minor_damage/major_damage/needs_repair."
+  },
+  {
     "version": "7.238.2",
     "date": "2026-07-27",
     "type": "patch",

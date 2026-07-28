@@ -73,7 +73,13 @@ export function useReturnInspectionDialog(bookings: Booking[] | undefined, activ
         onSuccess: () => {
           // R17-W: el mensaje debe reflejar el estado real al que va el equipo.
           // `damaged` → mantenimiento; el resto → disponible.
-          const goesToMaintenance = values.condition === "damaged" || damageCost > 0;
+          // R18: `INSPECTION_CONDITIONS` no incluye "damaged"; usamos los
+          // valores reales que sí implican mantenimiento.
+          const goesToMaintenance =
+            values.condition === "minor_damage" ||
+            values.condition === "major_damage" ||
+            values.condition === "needs_repair" ||
+            damageCost > 0;
           notifySuccess(
             goesToMaintenance
               ? "Inspección registrada — montacargas enviado a mantenimiento"

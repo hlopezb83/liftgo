@@ -51,7 +51,9 @@ function computeCfdiFlags(invoice: InvoiceLike, cfdiStatus: string) {
     isPendingCancel,
     isRejectedCancel: cancellationStatus === "rejected",
     canStamp: (cfdiStatus === "pending" || cfdiStatus === "error") && invoice.status !== "cancelled",
-    canCancelCfdi: isStamped && !isPendingCancel,
+    // R18-A4: no ofrecer "Cancelar CFDI" si el CFDI ya está cancelado o si el
+    // estatus de cancelación ya fue aceptado por el SAT.
+    canCancelCfdi: isStamped && !isPendingCancel && !isCancelled && cancellationStatus !== "accepted",
   };
 }
 

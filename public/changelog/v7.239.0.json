@@ -1,0 +1,18 @@
+{
+  "version": "7.239.0",
+  "date": "2026-07-28",
+  "type": "minor",
+  "title": "Auditoría R18 · convertir cliente, hidratación de contrato y daños",
+  "category": "fix",
+  "highlights": [
+    "R18-C1: 'Convertir a cliente' desde CRM ahora usa /customers?from_prospect=… y sólo aparece para roles con acceso full a Clientes.",
+    "R18-C2: ContractForm migra 7 inputs de register() a FormField controlado — se hidratan correctamente al editar.",
+    "R18-A1: buildContractPayload preserva booking_id existente cuando se edita sin query param.",
+    "R18-A2: DamageTrackingPage re-deriva el registro seleccionado desde la caché tras mutaciones.",
+    "R18-A3: 'Facturar daño' prefilla cliente + partida con costo estimado en /invoices/new.",
+    "R18-A4: 'Cancelar CFDI' se oculta cuando cancellation_status='accepted' o el CFDI ya está cancelado.",
+    "R18-M: Aprobaciones y pagos a proveedor invalidan dashboard-financial-kpis y cash-flow.",
+    "R18-C3: condición de inspección de devolución usa los valores reales (minor_damage/major_damage/needs_repair)."
+  ],
+  "description": "Ola de remediación de la auditoría E2E R18: elimina crashes al convertir prospectos ganados, corrige la hidratación silenciosa del formulario de contratos (7 campos que se perdían al guardar), asegura que la hoja de detalle de daños refleje el estado post-mutación, y cierra fugas del flujo Cobro-de-daño → Factura. Como bonus, aprobaciones y pagos de cuentas por pagar ahora sincronizan el dashboard y el flujo de efectivo en vivo."
+}
