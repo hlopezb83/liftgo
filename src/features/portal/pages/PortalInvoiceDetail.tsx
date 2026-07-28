@@ -23,8 +23,8 @@ function buildLineColumns(currency: string): ColumnDef<LineItem>[] {
   return [
     { id: "description", header: "Descripción", accessorKey: "description", enableSorting: false, cell: ({ row }) => row.original.description || "—" },
     { id: "quantity", header: "Cant.", accessorKey: "quantity", enableSorting: false, meta: { kind: "money" }, cell: ({ row }) => row.original.quantity || 1 },
-    { id: "unit_price", header: "Precio Unit.", accessorKey: "unit_price", enableSorting: false, meta: { kind: "money" }, cell: ({ row }) => <span className="font-mono">{formatCurrencyWithCode(Number(row.original.unit_price || 0), currency)}</span> },
-    { id: "amount", header: "Importe", accessorKey: "amount", enableSorting: false, meta: { kind: "money" }, cell: ({ row }) => <span className="font-mono">{formatCurrencyWithCode(Number(row.original.amount || 0), currency)}</span> },
+    { id: "unit_price", header: "Precio Unit.", accessorKey: "unit_price", enableSorting: false, meta: { kind: "money" }, cell: ({ row }) => {formatCurrencyWithCode(Number(row.original.unit_price || 0), currency)} },
+    { id: "amount", header: "Importe", accessorKey: "amount", enableSorting: false, meta: { kind: "money" }, cell: ({ row }) => {formatCurrencyWithCode(Number(row.original.amount || 0), currency)} },
   ];
 }
 
@@ -33,7 +33,7 @@ function buildPaymentColumns(currency: string): ColumnDef<Payment>[] {
     { id: "payment_date", header: "Fecha", accessorKey: "payment_date", cell: ({ row }) => formatDateDisplay(row.original.payment_date) },
     { id: "payment_method", header: "Método", accessorKey: "payment_method", enableSorting: false, cell: ({ row }) => row.original.payment_method || "—" },
     { id: "reference_number", header: "Referencia", accessorKey: "reference_number", enableSorting: false, cell: ({ row }) => row.original.reference_number || "—" },
-    { id: "amount", header: "Monto", accessorFn: (p) => Number(p.amount), meta: { kind: "money" }, cell: ({ row }) => <span className="font-mono">{formatCurrencyWithCode(Number(row.original.amount), currency)}</span> },
+    { id: "amount", header: "Monto", accessorFn: (p) => Number(p.amount), meta: { kind: "money" }, cell: ({ row }) => {formatCurrencyWithCode(Number(row.original.amount), currency)} },
   ];
 }
 

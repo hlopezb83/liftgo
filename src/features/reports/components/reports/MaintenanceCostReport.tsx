@@ -40,7 +40,7 @@ export function MaintenanceCostReport({ startDate, endDate }: Props) {
   const columns: ColumnDef<Row>[] = [
     { id: "name", header: "Montacargas", accessorKey: "name", cell: ({ row }) => <span className="font-medium">{row.original.name}</span> },
     { id: "count", header: "Trabajos", accessorKey: "count", meta: { kind: "money" }, cell: ({ row }) => row.original.count },
-    { id: "totalCost", header: "Costo Total", accessorKey: "totalCost", meta: { kind: "money" }, cell: ({ row }) => <span className="font-mono">{formatCurrency(row.original.totalCost)}</span> },
+    { id: "totalCost", header: "Costo Total", accessorKey: "totalCost", meta: { kind: "money" }, cell: ({ row }) => {formatCurrency(row.original.totalCost)} },
   ];
 
   const table = useLiftgoTable<Row>({
