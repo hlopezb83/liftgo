@@ -44,7 +44,8 @@ export function TotalsBox({
           <Text style={sharedStyles.totalsValue}>{fmt(subtotal)}</Text>
         </View>
         <View style={sharedStyles.totalsRow}>
-          <Text style={sharedStyles.totalsLabel}>IVA ({taxRate}%):</Text>
+          {/* Oleada 1 (A-5): taxRate puede venir como factor 0.16 — normalizar */}
+          <Text style={sharedStyles.totalsLabel}>IVA ({taxRate < 1 ? taxRate * 100 : taxRate}%):</Text>
           <Text style={sharedStyles.totalsValue}>{fmt(taxAmount)}</Text>
         </View>
         <View style={sharedStyles.totalsDivider} />
