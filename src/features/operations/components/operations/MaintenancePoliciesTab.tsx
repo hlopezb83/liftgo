@@ -82,7 +82,7 @@ export function MaintenancePoliciesTab() {
     { id: "forklift_name", header: "Montacargas", accessorKey: "forklift_name", cell: ({ row }) => <span className="font-medium">{row.original.forklift_name}</span> },
     { id: "provider_name", header: "Proveedor", accessorKey: "provider_name", cell: ({ row }) => row.original.provider_name },
     { id: "service_type", header: "Tipo de Servicio", accessorKey: "service_type", cell: ({ row }) => row.original.service_type },
-    { id: "monthly_cost", header: "Costo Mensual", accessorKey: "monthly_cost", meta: { kind: "money" }, cell: ({ row }) => {formatCurrency(row.original.monthly_cost)} },
+    { id: "monthly_cost", header: "Costo Mensual", accessorKey: "monthly_cost", meta: { kind: "money" }, cell: ({ row }) => formatCurrency(row.original.monthly_cost) },
     { id: "is_active", header: "Estado", enableSorting: false, cell: ({ row }) => <Switch checked={row.original.is_active} onCheckedChange={() => toggleActive(row.original)} /> },
     { id: "last_generated_month", header: "Último Mes Generado", accessorKey: "last_generated_month", cell: ({ row }) => <span className="text-sm text-muted-foreground">{row.original.last_generated_month ?? "—"}</span> },
     {
