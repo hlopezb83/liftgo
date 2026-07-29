@@ -87,7 +87,7 @@ export function FormDialog({
             {description ? <DialogDescription>{description}</DialogDescription> : null}
           </DialogHeader>
           <FormDialogCloseContext.Provider value={closeValue}>
-            <div className="pt-2 pb-16">{children}</div>
+            <div className="pt-2 pb-20">{children}</div>
           </FormDialogCloseContext.Provider>
         </DialogContent>
       </Dialog>
@@ -118,7 +118,7 @@ export function FormDialog({
  */
 export function FormDialogFooter({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <DialogFooter className={cn("sticky bottom-0 -mx-6 px-6 py-3 bg-background border-t", className)}>
+    <DialogFooter className={cn("sticky bottom-0 -mx-6 px-6 py-3 bg-card border-t", className)}>
       {children}
     </DialogFooter>
   );

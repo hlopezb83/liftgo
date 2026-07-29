@@ -63,8 +63,8 @@ export function BankStatementPreview({ result, isPending, onConfirm, onCancel }:
               </TableRow>
             </TableHeader>
             <TableBody>
-              {result.lines.slice(0, 10).map((l) => (
-                <TableRow key={l.hash}>
+              {result.lines.slice(0, 10).map((l, idx) => (
+                <TableRow key={`${l.hash}-${idx}`}>
                   <TableCell className="whitespace-nowrap">{formatDateMty(l.posted_date)}</TableCell>
                   <TableCell className="max-w-[280px] truncate">{l.description}</TableCell>
                   <TableCell className="text-muted-foreground">{l.reference ?? "—"}</TableCell>

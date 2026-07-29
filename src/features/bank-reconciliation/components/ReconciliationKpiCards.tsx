@@ -14,7 +14,10 @@ export function ReconciliationKpiCards({ lines, currency = "MXN" }: Props) {
   const pending = lines.filter((l) => l.status === "unmatched" || l.status === "suggested").length;
   const charges = lines.filter((l) => l.signed_amount < 0).reduce((s, l) => s + Math.abs(l.signed_amount), 0);
   const credits = lines.filter((l) => l.signed_amount > 0).reduce((s, l) => s + l.signed_amount, 0);
-  const pct = total === 0 ? 0 : Math.round((matched / total) * 100);
+  // R23-12: las líneas ignoradas no cuentan como pendientes ni como universo a conciliar.
+  const ignored = lines.filter((l) => l.status === "ignored").length;
+  const conciliable = total - ignored;
+  const pct = conciliable === 0 ? 0 : Math.round((matched / conciliable) * 100);
 
   const cards = [
     { key: "charges", label: "Cargos del periodo", value: formatCurrencyWithCode(charges, currency) },
@@ -23,8 +26,8 @@ export function ReconciliationKpiCards({ lines, currency = "MXN" }: Props) {
     {
       key: "reconciled",
       label: "% conciliado",
-      value: `${pct}% (${matched}/${total})`,
-      hint: `${pending} pendientes`,
+      value: `${pct}% (${matched}/${conciliable})`,
+      hint: ignored > 0 ? `${pending} pendientes · ${ignored} ignorados` : `${pending} pendientes`,
     },
   ];
 
