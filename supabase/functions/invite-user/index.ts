@@ -6,6 +6,7 @@ import {
 } from "../_shared/auth.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { isEmail, isNonEmptyString, isValidRole } from "../_shared/validate.ts";
+import { assignRoleToUser } from "./assignRole.ts";
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
