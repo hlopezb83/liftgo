@@ -15,7 +15,7 @@ const forklift = {
 function useRenderCell(columnId: string) {
   const columns = useFleetColumns(new Set(), new Map());
   const col = columns.find((c) => c.id === columnId);
-  if (!col?.cell) throw new Error("column not found");
+  if (typeof col?.cell !== "function") throw new Error("column not found");
   return col.cell;
 }
 
