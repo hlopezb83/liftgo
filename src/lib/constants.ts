@@ -82,7 +82,7 @@ export const STATUS_LABELS: Record<string, string> = {
   maintenance: "Mantenimiento",
   retired: "Retirado",
   draft: "Borrador",
-  sent: "Sin Pagar",
+  sent: "Sin pagar",
   issued: "Emitida", // R10 Bloque 12.11
   paid: "Pagado",
   overdue: "Vencido",

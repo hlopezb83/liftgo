@@ -19,7 +19,7 @@ function BankFilePicker({ file, onChange }: { file: File | null; onChange: (f: F
         type="file"
         accept=".csv,.xml,text/csv,text/xml,application/xml"
         className="hidden"
-        onChange={(e) => onChange(e.target.files?.[0] ?? null)}
+        onChange={(e) => { onChange(e.target.files?.[0] ?? null); e.target.value = ""; }}
       />
       <Button type="button" variant="outline" onClick={() => ref.current?.click()} className="justify-start">
         <UploadIcon className="h-4 w-4 mr-2" />
