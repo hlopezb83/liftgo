@@ -1,10 +1,10 @@
 import type { ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Badge } from "@/components/ui/badge";
+import { Untranslated } from "@/components/ui/Untranslated";
 import { STATUS_LABELS } from "@/lib/constants";
 import { toYMD } from "@/lib/date/toYMD";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { Untranslated } from "@/components/ui/Untranslated";
 import { formatDateDisplay, formatDateRange, parseDateLocal } from "@/lib/utils";
 import { quoteStatusLabel as quoteLabel } from "../constants";
 import { isPublicoGeneral } from "../hooks/quoteDetail/useQuoteDetailData";
