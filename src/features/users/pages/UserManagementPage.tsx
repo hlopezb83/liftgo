@@ -43,7 +43,7 @@ export default function UserManagementPage() {
   // admin (LAST_ADMIN_CANNOT_BE_DEMOTED/DELETED/DEACTIVATED). Con los datos
   // ya en pantalla deshabilitamos los controles en vez de mostrar toast crudo.
   const activeAdmins = (users ?? []).filter((u) => u.role === "admin" && u.is_active);
-  const lastAdminId = activeAdmins.length === 1 ? activeAdmins[0].user_id : null;
+  const lastAdminId = activeAdmins.length === 1 ? activeAdmins[0].user_id : undefined;
 
   const onRoleChange = (u: UserRow, newRole: AppRole) => setRoleChangeTarget({ user: u, newRole });
   const onToggleStatus = (userId: string, currentActive: boolean) => {
