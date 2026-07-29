@@ -32,7 +32,7 @@ let updateResp: { data: unknown; error: { message: string } | null } = {
 };
 let archiveResp: { data: unknown; error: { message: string } | null } = { data: null, error: null };
 
-const callRpcMock = vi.fn(async (fn: string, args: Record<string, unknown>) => {
+const callRpcMock = vi.fn(async (_fn: string, _args: Record<string, unknown>) => {
   if (archiveResp.error) throw archiveResp.error;
   return archiveResp.data;
 });
