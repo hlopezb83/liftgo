@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.256.2",
+    "date": "2026-07-29",
+    "type": "patch",
+    "title": "Versionado de releases alineado con el changelog",
+    "category": "chore",
+    "description": "El borrador de release en GitHub ya no arranca en v0.0.1: ahora toma la versión oficial del proyecto desde package.json. Se sincronizaron los archivos de versión y se agregó un aviso en CI si el último release publicado queda desfasado."
+  },
+  {
     "version": "7.256.1",
     "date": "2026-07-29",
     "type": "patch",

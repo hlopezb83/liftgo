@@ -56,3 +56,24 @@ jobs:
             exit 1
           }
           echo "OK — todas las versiones coinciden."
+
+      # v7.256.2: aviso (no bloqueante) si el último release publicado en GitHub
+      # quedó por detrás del changelog. Evita que la deriva que hacía a
+      # release-drafter resolver 0.0.1 vuelva a pasar en silencio.
+      - name: Comparar con el último release publicado
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        shell: bash
+        run: |
+          set -uo pipefail
+          PKG=$(node -p "require('./package.json').version")
+          LAST=$(gh release view --json tagName --jq .tagName 2>/dev/null || echo "")
+          if [[ -z "$LAST" ]]; then
+            echo "::warning::No hay ningún release publicado en GitHub. Publica el draft v${PKG} para fijar la línea base."
+            exit 0
+          fi
+          echo "Último release publicado: $LAST (proyecto: v$PKG)"
+          if [[ "$LAST" != "v$PKG" ]]; then
+            echo "::warning::El último release publicado ($LAST) no coincide con la versión del proyecto (v$PKG)."
+          fi

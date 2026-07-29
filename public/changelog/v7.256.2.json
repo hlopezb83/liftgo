@@ -1,0 +1,13 @@
+{
+  "version": "7.256.2",
+  "date": "2026-07-29",
+  "type": "patch",
+  "title": "Versionado de releases alineado con el changelog",
+  "category": "chore",
+  "description": "El borrador de release en GitHub ya no se numeraba solo (arrancaba en v0.0.1 por no existir un release publicado): ahora toma la versión oficial del proyecto. Además se sincronizaron los tres archivos de versión y se agregó un aviso en CI cuando el último release publicado se queda atrás.",
+  "changes": [
+    "release-drafter recibe la versión desde package.json, con precedencia sobre el cálculo automático.",
+    "package.json y public/version.json sincronizados con el changelog.",
+    "Aviso no bloqueante en changelog-check cuando no hay release publicado o va desfasado."
+  ]
+}
