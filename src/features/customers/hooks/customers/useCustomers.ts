@@ -37,11 +37,6 @@ export const customerQueries = defineEntityQueries<"customers", Customer[], Cust
         .limit(LIST_PAGE_LIMIT)
         .returns<Customer[]>();
       if (error) throw error;
-      if (hasReachedListLimit(data)) {
-        console.warn(
-          `[useCustomers] Alcanzó LIST_PAGE_LIMIT (${LIST_PAGE_LIMIT}). Migrar a paginación server-side.`,
-        );
-      }
       return data ?? [];
     },
     detail: (id) => async () => {

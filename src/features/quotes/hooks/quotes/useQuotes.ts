@@ -5,6 +5,7 @@ import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { callRpc } from "@/lib/rpc";
+import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 export type { Quote } from "@/types/rental";
 import type { Quote } from "@/types/rental";
 
@@ -30,7 +31,7 @@ export const quoteQueries = defineEntityQueries<"quotes", QuoteListRow[], QuoteR
         .select(QUOTE_LIST_COLUMNS)
         .or("is_e2e.is.null,is_e2e.eq.false")
         .order("created_at", { ascending: false })
-        .limit(500)
+        .limit(LIST_PAGE_LIMIT)
         .returns<QuoteListRow[]>();
       if (error) throw error;
       return data ?? [];
