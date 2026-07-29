@@ -1,0 +1,13 @@
+{
+  "version": "7.256.1",
+  "date": "2026-07-29",
+  "type": "patch",
+  "title": "Integración continua en verde",
+  "category": "fix",
+  "description": "Se corrigieron tres fallos de la tubería de CI: la prueba del listado de facturas esperaba una etiqueta con mayúscula distinta, la prueba de arrastre del Kanban de CRM seguía esperando la llamada antigua (ahora usa la función transaccional de reordenamiento) y un archivo de funciones de servidor tenía formato inválido.",
+  "changes": [
+    "Prueba de facturas alineada con la etiqueta oficial \"Sin pagar\".",
+    "Prueba E2E del Kanban de CRM ahora observa la RPC reorder_prospect_stage en vez del PATCH plano.",
+    "Formato de supabase/functions/_shared/facturapi/client.ts corregido para deno fmt."
+  ]
+}
