@@ -1,37 +1,48 @@
-## Estado verificado del R22
+## Respuesta corta
 
-Revisé el documento contra el código actual. La mayoría ya está aplicada en rondas previas (v7.249.0–v7.252.0):
+No, todavía no. Lo entregado en las últimas rondas tiene pruebas **parciales**: la lógica pura nueva sí está cubierta, pero varias utilidades y comportamientos de UI quedaron sin red de seguridad.
 
-- ALTOS A/B, MEDIOS C→N y BAJOS O→W: aplicados.
-- Pendiente C-1 (migración a `meta.kind`): hecho en v7.251.0 (55+ columnas).
-- Pendiente C-2 (portal): `BrandMark` ya se usa en `CustomerPortalLayout`, el dashboard del portal usa `formatCompactCurrency` + `kpiSizeClass`, y la tabla del estado de cuenta ya usa el `Table` del sistema.
-- Pendiente B-8 (conciliación): hecho en v7.246.0 con el workspace de 2 columnas y stat cards.
+## Qué SÍ tiene pruebas hoy (verificado)
 
-Quedan **2 pendientes reales**:
+- `src/features/crm/lib/stageMove.ts` → `stageMove.test.ts` (4 casos: mover, recompactar origen, índice fuera de rango, id inexistente)
+- `src/features/crm/hooks/useProspectMutations.ts` → `useProspectMutations.test.ts` (7 casos)
+- `src/features/reports/lib/drilldown.ts` → `drilldown.test.ts` (8 casos)
+- `src/layouts/sidebar/isNavItemActive.ts` → `isNavItemActive.test.ts`
+- E2E: 26 specs cubriendo facturación, portal, conciliación bancaria, roles, filtros y navegación
 
-## 1. B-3 — Estados vacíos con acción (CTA)
+## Qué NO tiene pruebas (huecos detectados)
 
-Hoy `DataTableV2` solo acepta `emptyMessage` como texto plano ("No se encontraron clientes"), sin ícono ni botón. `EmptyState` (con `actionLabel`/`onAction`) existe pero solo se usa en páginas de detalle.
+| Área | Archivo | Riesgo |
+|---|---|---|
+| Mensajes de error de auth del portal | `authErrorMessages.ts` | Medio — traducciones silenciosamente rotas |
+| Orden de nulos en tablas | `createLiftgoSortingFn` | Medio — regresión de orden difícil de ver |
+| Escalado de texto de KPIs | `kpiSizeClass` | Bajo — cosmético |
+| Guardia "¿Descartar cambios?" | `FormDialog` (isDirty) | **Alto** — pérdida de datos del usuario |
+| Estado de error con reintento | `QueryErrorState` | Medio |
+| Estados vacíos con acción/filtros | `TableContent` | Medio |
+| Kanban CRM optimista (extremo a extremo) | sin spec E2E de CRM | **Alto** — es el cambio más reciente |
 
-Qué haré:
-- Permitir en `DataTableV2` un `emptyState?: ReactNode` opcional (además del `emptyMessage` actual, que queda igual para no tocar las demás tablas), renderizado dentro de la fila vacía con `colSpan` completo.
-- Cablear el `EmptyState` con CTA en Clientes, Cotizaciones, Proveedores y Contratos, siguiendo el patrón de Flota:
-  - Sin registros: ícono + "Aún no hay clientes" + botón "Nuevo cliente" que abre el mismo diálogo del toolbar.
-  - Con filtros activos y 0 resultados: mensaje distinto ("Ningún resultado con estos filtros") + botón "Limpiar filtros".
+## Plan propuesto
 
-## 2. B-11 — Kanban de CRM optimista al soltar
+### Fase 1 — Pruebas unitarias de lógica pura (rápidas, sin DOM)
+1. `authErrorMessages.test.ts`: mapeo de credenciales inválidas, email no confirmado, rate limit y fallback genérico en español mexicano.
+2. `createLiftgoSortingFn.test.ts`: nulos/vacíos al final tanto en ascendente como descendente; empates estables; comparación de números vs texto.
+3. `kpiSizeClass.test.ts`: valores cortos, medianos y largos devuelven la clase esperada.
 
-Hoy, al arrastrar una tarjeta a otra columna, `CRMPage.onDragEnd` abre el diálogo de edición en vez de mover. Se siente lento y rompe el gesto.
+### Fase 2 — Pruebas de componentes (Testing Library)
+4. `FormDialog.test.tsx`: con `isDirty` y cierre por Esc aparece la confirmación; "Seguir editando" no cierra; sin cambios cierra directo; durante `isPending` el cierre se ignora.
+5. `QueryErrorState.test.tsx`: renderiza mensaje y el botón "Reintentar" invoca el callback.
+6. `TableContent.test.tsx`: con filtros activos muestra "limpiar filtros"; sin filtros muestra el ícono, el mensaje y el botón de creación.
 
-Qué haré:
-- Mover directo al soltar con `useUpdateProspect`, agregando actualización optimista: `onMutate` toma un snapshot de la caché de prospectos, aplica el nuevo `stage` y `stage_order` con `setQueriesData`, y en `onError` revierte y muestra el toast de error.
-- Conservar las reglas de negocio: si el destino es "Cerrado ganado" sigue pasando por `assertCanClose` (permiso admin) y por el diálogo, porque ese paso exige datos obligatorios; el resto de columnas se mueven directo.
-- Reordenar dentro de la misma columna también optimista (hoy ya llama a la mutación, pero espera al servidor).
+### Fase 3 — E2E del Kanban de CRM
+7. Nuevo `tests/e2e/crm-kanban.spec.ts`: arrastrar una tarjeta entre columnas activas verifica que se mueve al instante, que persiste tras recargar, y que soltar en "Cerrado ganado" abre el diálogo de cierre. Reutiliza el patrón de siembra y limpieza de `bank-reconciliation.spec.ts` para no dejar datos.
+
+### Fase 4 — Cierre
+8. Correr `bunx vitest run` y `bun run lint` completos; ajustar umbrales de cobertura en `vitest.config.ts` sólo si el CI lo exige.
+9. Registrar la entrada en `public/changelog.json` y `public/changelog/v7.253.1.json` (patch: sólo pruebas, sin cambio funcional).
 
 ## Detalles técnicos
 
-- `src/components/dataTable/v2/DataTableV2.tsx`, `DataTableBodyV2.tsx`, `VirtualBody.tsx`, `EmptyRow`: nueva prop opcional `emptyState`.
-- Páginas: `CustomersPage.tsx`, `QuotesPage.tsx`, `SuppliersPage.tsx`, `ContractsPage.tsx` (usan `useListFilters`, así que el "hay filtros activos" sale del estado existente).
-- CRM: `src/features/crm/pages/CRMPage.tsx` y `src/features/crm/hooks/useProspectMutations.ts` (`onMutate`/`onError`/`onSettled` sobre `prospectKeys`).
-- Pruebas: unitarias para el reductor optimista del movimiento de etapa (mover, revertir en error) y para la lógica de "vacío por filtros" vs "vacío real".
-- Cierre: `bun run lint`, vitest, y entrada de changelog v7.253.0 (`public/changelog.json` + `public/changelog/v7.253.0.json`).
+- Los tests de componente usan el mismo setup ya presente en el proyecto (Vitest + jsdom + Testing Library), con mocks de Supabase como en `useProspectMutations.test.ts`.
+- El E2E de CRM necesita `dragTo` de Playwright sobre los `@dnd-kit` sortables; si el arrastre por mouse resulta inestable en CI, se usa el modo de teclado de dnd-kit (Espacio + flechas + Espacio), que es determinista.
+- No se toca código de producción salvo agregar `data-testid` estables al Kanban si los selectores por rol no bastan.

@@ -65,8 +65,10 @@ export function KanbanColumn({
       <ScrollArea className="flex-1">
         <div
           ref={setNodeRef}
+          data-testid={`crm-kanban-column-${stageKey}`}
           className={`p-2 min-h-[200px] transition-colors ${isOver ? "bg-accent/30" : ""}`}
         >
+
           <SortableContext items={itemIds} strategy={verticalListSortingStrategy}>
             {items.length === 0 ? (
               // Oleada 2 (B-11): empty state por columna con CTA — mantiene el

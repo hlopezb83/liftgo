@@ -32,7 +32,14 @@ export function ProspectCard({ prospect, quoteNumber, density, onClick }: Prospe
   };
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
+    <div
+      ref={setNodeRef}
+      style={style}
+      data-testid={`crm-kanban-card-${prospect.id}`}
+      {...attributes}
+      {...listeners}
+    >
+
       <Card
         className={`relative mb-2 ${isCompact ? "p-2" : "p-3"} cursor-grab active:cursor-grabbing border hover:shadow-md transition-shadow`}
         onClick={onClick}
