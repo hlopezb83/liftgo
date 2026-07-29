@@ -13,6 +13,10 @@ import { test, expect } from "./fixtures/crmSeed";
  *  2. Tras el drag, la tarjeta queda en "contactado" de inmediato (optimista).
  *  3. Tras recargar, el cambio persistió en la base de datos.
  */
+// Viewport ancho: con pantallas angostas las columnas del Kanban quedan fuera
+// de vista y el sensor de teclado prioriza el scroll horizontal.
+test.use({ viewport: { width: 1600, height: 900 } });
+
 test("mover una tarjeta de CRM entre columnas es optimista y persiste", async ({ page, crm }) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
@@ -24,14 +28,19 @@ test("mover una tarjeta de CRM entre columnas es optimista y persiste", async ({
   const card = page.getByTestId(`crm-kanban-card-${crm.prospectId}`);
 
   await expect(origin).toBeVisible({ timeout: 20_000 });
+  await expect(target).toBeVisible({ timeout: 20_000 });
   await expect(card).toBeVisible({ timeout: 20_000 });
   await expect(origin.getByTestId(`crm-kanban-card-${crm.prospectId}`)).toBeVisible();
 
   // Drag con teclado: foco -> tomar -> mover a la derecha -> soltar.
+  // Damos un frame entre teclas para que dnd-kit recalcule colisiones.
   await card.focus();
   await page.keyboard.press("Space");
+  await page.waitForTimeout(150);
   await page.keyboard.press("ArrowRight");
+  await page.waitForTimeout(150);
   await page.keyboard.press("Space");
+
 
   // Optimista: la tarjeta debe aparecer en la columna destino sin esperar red.
   await expect(target.getByTestId(`crm-kanban-card-${crm.prospectId}`)).toBeVisible({
