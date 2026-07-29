@@ -118,7 +118,11 @@ export function EquipmentModelsTab() {
       <div className="flex justify-end mb-4">
         <Button onClick={openNew} size="sm"><AddIcon className="h-4 w-4 mr-2" />Agregar Modelo</Button>
       </div>
-      {isMobile ? (
+      {isError ? (
+        <QueryErrorState bare entity="los modelos de equipo" onRetry={() => { void refetch(); }} />
+      ) : isLoading ? (
+        <Card><CardContent className="py-14 text-center text-sm text-muted-foreground">Cargando…</CardContent></Card>
+      ) : isMobile ? (
         <MobileCardList
           items={models ?? []}
           keyExtractor={(m) => m.id}
@@ -144,8 +148,6 @@ export function EquipmentModelsTab() {
             </Card>
           )}
         />
-      ) : isError ? (
-        <QueryErrorState bare entity="los modelos de equipo" onRetry={() => { void refetch(); }} />
       ) : (
         <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay modelos de equipo configurados" />
       )}

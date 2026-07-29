@@ -1,4 +1,5 @@
 import { EmptyState } from "@/components/feedback/EmptyState";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { DownloadIcon, FileClock } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -19,7 +20,7 @@ const COLS: { key: keyof import("../hooks/useAgingReport").AgingRow; label: stri
 ];
 
 export default function AgingReportPage() {
-  const { rows, totals, isLoading } = useAgingReport();
+  const { rows, totals, isLoading, isError, refetch } = useAgingReport();
 
   const overduePct = totals.total > 0
     ? ((totals.d1_30 + totals.d31_60 + totals.d61_90 + totals.d90_plus) / totals.total) * 100
@@ -48,13 +49,19 @@ export default function AgingReportPage() {
         backHref="/cuentas-por-pagar"
         backLabel="Cuentas por pagar"
         actions={
-          <Button variant="outline" onClick={handleExport} disabled={rows.length === 0}>
+          <Button variant="outline" onClick={handleExport} disabled={rows.length === 0 || isError}>
             <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
           </Button>
         }
       />
 
 
+      {/* A4-02: nunca renderizar KPIs en $0 cuando la query falló (falso-cero
+          financiero, mismo patrón que FE3-04 en InvoicesReconciliation). */}
+      {isError ? (
+        <QueryErrorState entity="el reporte de antigüedad de saldos" onRetry={() => { void refetch(); }} />
+      ) : (
+      <>
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Card><CardContent className="p-4">
           <p className="text-xs text-muted-foreground">Cartera total</p>
@@ -117,6 +124,8 @@ export default function AgingReportPage() {
           )}
         </CardContent>
       </Card>
+      </>
+      )}
     </PageContainer>
   );
 }

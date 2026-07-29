@@ -39,7 +39,7 @@ function bucketKey(overdueDays: number): keyof Omit<AgingRow, "supplierId" | "su
 const EMPTY_TOTALS: AgingTotals = { current: 0, d1_30: 0, d31_60: 0, d61_90: 0, d90_plus: 0, total: 0 };
 
 export function useAgingReport() {
-  const { data, isLoading } = useSupplierBills();
+  const { data, isLoading, isError, refetch } = useSupplierBills();
 
   const { rows, totals } = (() => {
     const todayYmd = toYMD(nowMty()) ?? "";
@@ -79,5 +79,5 @@ export function useAgingReport() {
     return { rows, totals };
   })();
 
-  return { rows, totals, isLoading };
+  return { rows, totals, isLoading, isError, refetch };
 }

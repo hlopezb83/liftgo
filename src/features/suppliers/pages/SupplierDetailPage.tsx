@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams } from "react-router";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { NotesCard } from "@/components/domain/NotesCard";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DocumentIcon, MaintenanceIcon, ExpenseIcon, EditIcon } from "@/components/icons";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -27,7 +28,7 @@ type LinkedMaintenance = { id: string; performed_at: string; forklift_id: string
 
 export default function SupplierDetailPage() {
   const { id } = useParams();
-  const { data: suppliers, isLoading } = useSuppliers();
+  const { data: suppliers, isLoading, isError, refetch } = useSuppliers();
   const { data: bills } = useSupplierBills();
   const { data: maintenanceLogs } = useMaintenanceLogs();
   const { forkliftMap } = useForkliftMap();
@@ -81,6 +82,14 @@ export default function SupplierDetailPage() {
 
   if (isLoading) {
     return <PageContainer className="space-y-4"><Skeleton className="h-10 w-64" /><Skeleton className="h-48 w-full" /></PageContainer>;
+  }
+
+  if (isError) {
+    return (
+      <PageContainer>
+        <QueryErrorState entity="los proveedores" onRetry={() => { void refetch(); }} />
+      </PageContainer>
+    );
   }
 
   if (!supplier) {

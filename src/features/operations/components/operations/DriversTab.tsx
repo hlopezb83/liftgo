@@ -90,7 +90,11 @@ export function DriversTab() {
       <div className="flex justify-end mb-4">
         <Button onClick={openNew} size="sm"><AddIcon className="h-4 w-4 mr-2" />Agregar Operador</Button>
       </div>
-      {isMobile ? (
+      {isError ? (
+        <QueryErrorState bare entity="los operadores" onRetry={() => { void refetch(); }} />
+      ) : isLoading ? (
+        <Card><CardContent className="py-14 text-center text-sm text-muted-foreground">Cargando…</CardContent></Card>
+      ) : isMobile ? (
         <MobileCardList
           items={drivers ?? []}
           keyExtractor={(d) => d.id}
@@ -119,8 +123,6 @@ export function DriversTab() {
             </Card>
           )}
         />
-      ) : isError ? (
-        <QueryErrorState bare entity="los operadores" onRetry={() => { void refetch(); }} />
       ) : (
         <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay operadores registrados" />
       )}

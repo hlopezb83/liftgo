@@ -9,7 +9,7 @@ import { useContract, useUpdateContract } from "../useContracts";
  */
 export function useContractDetailLogic() {
   const { id } = useParams();
-  const { data: contract, isLoading } = useContract(id);
+  const { data: contract, isLoading, isError, refetch } = useContract(id);
   const updateContract = useUpdateContract();
 
   const setStatus = (status: string, extra?: Record<string, unknown>) => {
@@ -20,5 +20,5 @@ export function useContractDetailLogic() {
     );
   };
 
-  return { id, contract, isLoading, setStatus };
+  return { id, contract, isLoading, isError, refetch, setStatus };
 }

@@ -118,7 +118,11 @@ export function MaintenancePoliciesTab() {
         <Button size="sm" onClick={openNew}><AddIcon className="h-4 w-4 mr-1" />Nueva Póliza</Button>
       </div>
 
-      {isMobile ? (
+      {isError ? (
+        <QueryErrorState bare entity="las pólizas de mantenimiento" onRetry={() => { void refetch(); }} />
+      ) : isLoading ? (
+        <Card><CardContent className="py-14 text-center text-sm text-muted-foreground">Cargando…</CardContent></Card>
+      ) : isMobile ? (
         <MobileCardList
           items={policies ?? []}
           keyExtractor={(p) => p.id}
@@ -148,8 +152,6 @@ export function MaintenancePoliciesTab() {
             </Card>
           )}
         />
-      ) : isError ? (
-        <QueryErrorState bare entity="las pólizas de mantenimiento" onRetry={() => { void refetch(); }} />
       ) : (
         <div className="border rounded-lg">
           <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay pólizas de mantenimiento configuradas" />
