@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, within } from "@testing-library/react";
 import { BrowserRouter } from "react-router";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Tables } from "@/integrations/supabase/types";
@@ -97,7 +97,8 @@ describe("QuoteDetailActions - Cancelar cotización (FE4-03 / N-R4-C)", () => {
     const onSetStatus = vi.fn();
     renderActions(onSetStatus, acceptedQuote);
     fireEvent.click(screen.getByRole("button", { name: /cancelar cotización/i }));
-    fireEvent.click(screen.getByRole("button", { name: "Cancelar cotización" }));
+    const dialog = screen.getByRole("alertdialog");
+    fireEvent.click(within(dialog).getByRole("button", { name: "Cancelar cotización" }));
     expect(onSetStatus).toHaveBeenCalledWith("cancelled");
   });
 });
