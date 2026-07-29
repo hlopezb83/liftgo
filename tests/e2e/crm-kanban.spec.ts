@@ -50,14 +50,23 @@ test("mover una tarjeta de CRM entre columnas es optimista y persiste", async ({
   await nextFrame(page);
   await page.keyboard.press("ArrowRight");
   await nextFrame(page);
+  const persisted = page.waitForResponse(
+    (response) =>
+      response.request().method() === "PATCH" &&
+      /\/rest\/v1\/prospects(?:\?|$)/.test(response.url()),
+    { timeout: 20_000 },
+  );
   await page.keyboard.press("Space");
-
 
   // Optimista: la tarjeta debe aparecer en la columna destino sin esperar red.
   await expect(target.getByTestId(`crm-kanban-card-${crm.prospectId}`)).toBeVisible({
     timeout: 5_000,
   });
   await expect(origin.getByTestId(`crm-kanban-card-${crm.prospectId}`)).toHaveCount(0);
+
+  // No recargamos mientras el PATCH sigue en vuelo: hacerlo podía abortar la
+  // petición y dejar únicamente el cambio optimista en memoria.
+  expect((await persisted).ok()).toBe(true);
 
   // Persistencia: tras recargar sigue en "contactado" (sin rollback).
   await page.reload({ waitUntil: "domcontentloaded" });

@@ -22,6 +22,7 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 }
 
 const TMP_PREFIX = "TMP_E2E_CRM";
+const ORPHAN_MAX_AGE_MS = 6 * 60 * 60 * 1_000;
 
 export type CrmSeedIds = {
   scope: string;
@@ -49,7 +50,12 @@ function buildScope(testInfo: TestInfo): string {
 }
 
 async function sweepOrphans(client: SupabaseClient): Promise<void> {
-  await client.from("prospects").delete().like("company_name", `${TMP_PREFIX}%`);
+  const cutoff = new Date(Date.now() - ORPHAN_MAX_AGE_MS).toISOString();
+  await client
+    .from("prospects")
+    .delete()
+    .like("company_name", `${TMP_PREFIX}%`)
+    .lt("created_at", cutoff);
 }
 
 export async function seedCrmScenario(page: Page, scope: string): Promise<CrmSeedIds> {
