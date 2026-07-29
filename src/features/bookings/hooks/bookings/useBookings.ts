@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toYMD } from "@/lib/date/toYMD";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import { EXCLUDE_E2E_FILTER, LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
+import { e2eVisibilityFilter, LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import { bookingKeys } from "../../lib/queryKeys";
 export type { Booking, BookingWithForklift } from "@/types/rental";
 
@@ -13,7 +13,7 @@ async function fetchBookingList(forkliftId?: string) {
   let query = supabase
     .from("bookings")
     .select("*, forklifts(name, model)")
-    .or(EXCLUDE_E2E_FILTER)
+    .or(e2eVisibilityFilter())
     .order("start_date", { ascending: false })
     .limit(LIST_FETCH_LIMIT);
   if (forkliftId) query = query.eq("forklift_id", forkliftId);
@@ -74,7 +74,7 @@ export function useBookingsRange(from: string | Date, to: string | Date) {
       const { data, error } = await supabase
         .from("bookings")
         .select("*, forklifts(name, model)")
-        .or(EXCLUDE_E2E_FILTER)
+        .or(e2eVisibilityFilter())
         .gte("end_date", fromStr)
         .lte("start_date", toStr)
         .order("start_date", { ascending: true })
