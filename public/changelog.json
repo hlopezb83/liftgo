@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.261.0",
+    "date": "2026-07-29",
+    "type": "minor",
+    "title": "Cotizaciones aceptadas ahora se pueden cancelar (DB3-08)",
+    "category": "feature",
+    "description": "Se añade el estado 'Cancelada' a cotizaciones y la transición aceptada → cancelada, permitida solo para admin/administrativo y siempre que no existan reservas confirmadas ligadas. Se corrige el mensaje al intentar borrar una cotización aceptada. Se conserva la exención de limpieza de pruebas E2E (app.e2e_teardown + is_e2e) para no romper el teardown."
+  },
+  {
     "version": "7.260.5",
     "date": "2026-07-29",
     "type": "patch",
