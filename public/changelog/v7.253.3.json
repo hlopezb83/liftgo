@@ -1,0 +1,22 @@
+{
+  "version": "7.253.3",
+  "date": "2026-07-29",
+  "type": "patch",
+  "title": "Mover tarjetas del CRM con el teclado ahora funciona en pantallas angostas",
+  "category": "fix",
+  "description": "Se corrigió el movimiento de tarjetas del Kanban de CRM con flechas del teclado cuando las columnas no caben en pantalla, y se estabilizaron las pruebas automáticas de conciliación bancaria.",
+  "changes": [
+    {
+      "type": "fix",
+      "description": "CRM: con las flechas izquierda/derecha la tarjeta salta directamente a la columna vecina, incluso si esa columna estaba fuera de vista por el desplazamiento horizontal."
+    },
+    {
+      "type": "improvement",
+      "description": "El desplazamiento del tablero durante el arrastre con teclado ahora es inmediato, sin animación que retrasara el cambio de columna."
+    },
+    {
+      "type": "improvement",
+      "description": "Pruebas automáticas: la conciliación bancaria reintenta la carga de cuentas si el listado llegó en frío y dispone de más tiempo en el arranque."
+    }
+  ]
+}
