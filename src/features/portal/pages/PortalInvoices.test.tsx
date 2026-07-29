@@ -67,6 +67,6 @@ describe("PortalInvoices", () => {
     renderWithRouter(<PortalInvoices />);
 
     expect(screen.getByText("FAC-0001")).toBeInTheDocument();
-    expect(screen.getByText("$12,000.00 MXN")).toBeInTheDocument();
+    expect(screen.getByText("$12,000.00")).toBeInTheDocument();
   });
 });
