@@ -94,12 +94,18 @@ interface Props {
 }
 
 function BillHeaderRow({ bill }: { bill: DetailBill }) {
+  // N9-UI: balance calculado de solo lectura (total − pagos), no el valor
+  // crudo de la columna editable (N9, pendiente DB4-08c).
+  const paidSum = (bill.payments ?? []).reduce((s, p) => s + Number(p.amount), 0);
+  const computedBalance = Math.max(0, Number(bill.total) - paidSum);
   return (
     <div className="flex items-center justify-between">
       <StatusBadge status={bill.status} label={SUPPLIER_BILL_STATUS_LABELS[bill.status as keyof typeof SUPPLIER_BILL_STATUS_LABELS]} />
       <div className="text-right">
-        <p className="text-xs text-muted-foreground">Saldo</p>
-        <p className="text-xl font-bold font-mono">{formatCurrencyWithCode(Number(bill.balance), bill.currency)}</p>
+        <p className="text-xs text-muted-foreground" title="Calculado: total menos pagos registrados">
+          Saldo (calculado)
+        </p>
+        <p className="text-xl font-bold font-mono">{formatCurrencyWithCode(computedBalance, bill.currency)}</p>
       </div>
     </div>
   );
