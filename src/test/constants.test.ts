@@ -27,7 +27,7 @@ describe("STATUS_LABELS coverage", () => {
   });
 
   it("includes common UI statuses", () => {
-    const uiStatuses = ["all", "draft", "sent", "paid", "overdue", "confirmed", "accepted", "declined", "expired", "completed", "signed", "cancelled", "partial", "pending"];
+    const uiStatuses = ["all", "draft", "sent", "paid", "overdue", "confirmed", "accepted", "rejected", "expired", "completed", "signed", "cancelled", "partial", "pending"];
     for (const s of uiStatuses) {
       expect(STATUS_LABELS[s]).toBeDefined();
     }
