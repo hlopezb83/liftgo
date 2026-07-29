@@ -1,4 +1,8 @@
+import os from "os";
 import { defineConfig, devices } from "@playwright/test";
+
+// Núcleos disponibles para el proceso (respeta cgroups en CI).
+const CPUS = typeof os.availableParallelism === "function" ? os.availableParallelism() : os.cpus().length;
 
 /**
  * Playwright config for LiftGo E2E tests.
