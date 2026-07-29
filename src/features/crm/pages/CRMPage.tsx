@@ -103,7 +103,8 @@ export default function CRMPage() {
   const onDragEnd = (event: DragEndEvent) => {
     const target = resolveDropTarget(event);
     if (!target) return;
-    const { draggableId, sourceStage, newStage, newIndex } = target;
+    const { draggableId, newStage, newIndex } = target;
+
     if (newStage === "cerrado_ganado") {
       // Cerrar ganado exige datos adicionales y permiso: sigue pasando por el diálogo.
       if (!assertCanClose("move")) return;

@@ -63,7 +63,6 @@ export function useDeleteProspect() {
  */
 const MOVE_PROSPECT_STAGE_KEY = ["prospects", "move-stage"] as const;
 
-const MOVE_PROSPECT_STAGE_KEY = ["prospects", "move-stage"] as const;
 
 export function useMoveProspectStage() {
   const queryClient = useQueryClient();
