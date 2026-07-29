@@ -40,6 +40,9 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
   const createPayment = useCreatePayment();
   const stampComplement = useStampPaymentComplement();
 
+  // Sincroniza el código SAT sugerido cuando cambia el método (usuario puede override en UI).
+  const [prevMethod, setPrevMethod] = useState(method);
+
   // Reset local state when the dialog opens or when invoice-derived props change.
   // Patrón oficial React "adjust state when a prop changes": setState durante render
   // guardado por comparación con el valor previo — evita el efecto de sincronización.
@@ -75,16 +78,11 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
       setReference("");
       setNotes("");
     }
-  }
-
-
-
-  // Sincroniza el código SAT sugerido cuando cambia el método (usuario puede override en UI).
-  const [prevMethod, setPrevMethod] = useState(method);
-  if (method !== prevMethod) {
+  } else if (method !== prevMethod) {
     setPrevMethod(method);
     setPaymentFormSat(satCodeForMethod(method));
   }
+
 
   // C-1: exponer un setter no-op para el select de UI; siempre revierte al
   // valor bloqueado de la factura.
