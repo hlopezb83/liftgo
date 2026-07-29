@@ -17,9 +17,9 @@ function createMockAdminClient(scenario: {
     from: (table: string) => {
       captured.table = table;
       return {
-        upsert: async (_payload: unknown, options: { onConflict: string }) => {
+        upsert: (_payload: unknown, options: { onConflict: string }) => {
           captured.onConflict = options.onConflict;
-          return { error: scenario.upsertError ?? null };
+          return Promise.resolve({ error: scenario.upsertError ?? null });
         },
       };
     },
