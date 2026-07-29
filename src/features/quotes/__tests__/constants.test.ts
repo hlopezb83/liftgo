@@ -8,9 +8,13 @@ describe("QUOTE_STATUS_LABELS (V3-5 / DB3-08)", () => {
     expect(QUOTE_STATUS_LABELS.sent).toBe("Enviada");
   });
 
-  it("ya no ofrece el estado obsoleto 'declined'", () => {
-    expect(QUOTE_STATUS_LABELS.declined).toBeUndefined();
+  it("no depende del estado obsoleto 'declined' para rechazar", () => {
+    // 'declined' sobrevive en STATUS_LABELS global (histórico), pero el estado
+    // canónico de cotizaciones es 'rejected'.
+    expect(quoteStatusLabel("rejected")).toBe("Rechazada");
+    expect(quoteStatusLabel("declined")).not.toBe("Rechazada");
   });
+
 
   it("regresa el estado crudo cuando no hay etiqueta", () => {
     expect(quoteStatusLabel("desconocido")).toBe("desconocido");
