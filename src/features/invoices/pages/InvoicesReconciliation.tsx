@@ -38,15 +38,8 @@ export default function InvoicesReconciliation() {
   // vacío y el usuario creía que no había facturas en el periodo.
   const invalidRange = filters.from !== "" && filters.to !== "" && filters.from > filters.to;
 
-  const kpis = [
-      {
-        label: "Total timbrado (producción)",
-        value: formatCurrency(summary?.totalStampedLive ?? 0),
-      },
-      { label: "Timbradas", value: String(summary?.countStamped ?? 0) },
-      { label: "Canceladas", value: String(summary?.countCancelled ?? 0) },
-      { label: "Borradores", value: String(summary?.countDraft ?? 0) },
-    ];
+  const kpis = buildKpis(summary);
+
 
   return (
     <PageContainer maxWidth="wide">
