@@ -1,5 +1,10 @@
 # Changelog
 
+## 7.260.1 — 29/07/2026
+
+- E2E: `e2e_seed_scenario` siembra la cotización en `draft` y la transiciona a `accepted`, alineándose con el trigger `validate_transition` (13 specs del shard 1/2 volvían a fallar en la siembra).
+- Entregas: `validate_delivery_not_in_past` exime a las entregas registradas como `completed` (captura histórica).
+
 ## 7.260.0 — 29/07/2026
 
 - DB2-06/07: `change_forklift_status` como flujo oficial de cambio de estado del equipo + guard de tabla; la bandera `is_e2e` deja de servir para evadir auditoría.
