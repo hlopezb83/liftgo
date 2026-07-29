@@ -85,9 +85,11 @@ export function parseBankCsv(content: string, profile: StatementProfile): ParseR
   const map = PROFILE_HEADERS[profile] ?? PROFILE_HEADERS.generico;
   if (!map) return { lines, errors: ["Perfil no soportado"], periodStart: null, periodEnd: null };
 
+  const minCols = requiredColumns(map);
   const startIdx = parseDateFlexible(rows[0][0] ?? "") ? 0 : 1;
   for (let i = startIdx; i < rows.length; i++) {
-    const result = parseRow(rows[i], map, i);
+    const result = parseRow(rows[i], map, i, minCols);
+
     if (typeof result === "string") { errors.push(result); continue; }
     lines.push(result);
   }
