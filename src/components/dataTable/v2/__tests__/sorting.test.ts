@@ -63,7 +63,9 @@ describe("createLiftgoSortingFn", () => {
   });
 
   it("liftgoSortingFn es la variante ascendente", () => {
-    expect(liftgoSortingFn(row(1), row(null), "value")).toBeGreaterThan(0);
-    expect(liftgoSortingFn(row(null), row(1), "value")).toBeLessThan(0);
+    const asUnknown = (v: Item["value"]) => row(v) as unknown as Row<unknown>;
+    expect(liftgoSortingFn(asUnknown(1), asUnknown(null), "value")).toBeGreaterThan(0);
+    expect(liftgoSortingFn(asUnknown(null), asUnknown(1), "value")).toBeLessThan(0);
   });
+
 });
