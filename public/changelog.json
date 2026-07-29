@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.257.0",
+    "date": "2026-07-29",
+    "type": "minor",
+    "title": "Auditoría R24: guardado seguro en CRM, impresión limpia y arrastre confiable",
+    "category": "fix",
+    "description": "Los modales del CRM ya no cierran antes de confirmar el guardado y avisan al descartar cambios; la impresión sale con tablas completas y sin controles; el Kanban respeta la posición donde se suelta la tarjeta."
+  },
+  {
     "version": "7.256.2",
     "date": "2026-07-29",
     "type": "patch",
