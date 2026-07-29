@@ -157,9 +157,11 @@ export default function CRMPage() {
           canCloseDeal={canCloseDeal}
           assertCanClose={assertCanClose}
           openEdit={openEdit}
-          onCreate={(data) => createProspect.mutate(data)}
-          onUpdate={(id, data) => updateProspect.mutate({ id, ...data })}
-          onDelete={(id) => deleteProspect.mutate(id)}
+          // R24-C: el diálogo hace `await onSave(...)` — con `mutate` el await
+          // resolvía al instante y el modal cerraba con el INSERT en vuelo.
+          onCreate={async (data) => { await createProspect.mutateAsync(data); }}
+          onUpdate={async (id, data) => { await updateProspect.mutateAsync({ id, ...data }); }}
+          onDelete={async (id) => { await deleteProspect.mutateAsync(id); }}
           isPending={createProspect.isPending || updateProspect.isPending}
         />
       </PageTransition>
