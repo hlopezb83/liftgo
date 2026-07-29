@@ -131,7 +131,7 @@ export function PortalInvoicesTable({ rows, expanded, onToggle }: Props) {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="w-8" />
+          <TableHead className="w-8 no-print" />
           <TableHead>Factura #</TableHead>
           <TableHead>Emisión</TableHead>
           <TableHead>Vencimiento</TableHead>
@@ -139,7 +139,7 @@ export function PortalInvoicesTable({ rows, expanded, onToggle }: Props) {
           <TableHead className="text-right">Pagado</TableHead>
           <TableHead className="text-right">Saldo</TableHead>
           <TableHead>Estado</TableHead>
-          <TableHead />
+          <TableHead className="no-print" />
         </TableRow>
       </TableHeader>
       <TableBody>
