@@ -1,0 +1,22 @@
+{
+  "version": "7.253.4",
+  "date": "2026-07-29",
+  "type": "patch",
+  "title": "Pruebas paralelas de CRM y conciliación bancaria estables",
+  "category": "fix",
+  "description": "Se evitó que una prueba automática borre los datos temporales de otra ejecución concurrente y se confirmó la persistencia del Kanban antes de recargar.",
+  "changes": [
+    {
+      "type": "fix",
+      "description": "Los datos temporales de CRM y conciliación bancaria solo se consideran huérfanos después de seis horas, por lo que las pruebas concurrentes ya no se eliminan entre sí."
+    },
+    {
+      "type": "fix",
+      "description": "La prueba del Kanban espera la respuesta exitosa de persistencia antes de recargar la página y comprobar la etapa final."
+    },
+    {
+      "type": "improvement",
+      "description": "La limpieza individual al terminar cada escenario se conserva para no dejar registros de prueba en la base de datos."
+    }
+  ]
+}
