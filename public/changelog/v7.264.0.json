@@ -28,7 +28,7 @@
     {
       "type": "improvement",
       "title": "Fase 5 · Pruebas y smoke de base de datos",
-      "description": "Nuevas pruebas unitarias para las reglas de cierre de prospectos y para las etiquetas de estado de cotizaciones, más un script SQL de humo (supabase/tests/r3_smoke.sql) que verifica manualmente todos los guards DB3-06 a DB3-17. Suite completa: 1377 pruebas en verde."
+      "description": "Nuevas pruebas unitarias para las reglas de cierre de prospectos y para las etiquetas de estado de cotizaciones, más un script SQL de humo (supabase/tests/r3_smoke.sql) que verifica manualmente todos los guards DB3-06 a DB3-17. Suite completa: 1375 pruebas en verde."
     }
   ]
 }
