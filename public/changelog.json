@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.260.1",
+    "date": "2026-07-29",
+    "type": "patch",
+    "title": "Pruebas automatizadas alineadas con las nuevas reglas de estados",
+    "category": "fix",
+    "description": "La siembra de datos de prueba ahora crea la cotización como borrador y la acepta siguiendo el flujo real, con lo que vuelven a pasar las pruebas de facturación, timbrado, pagos, devoluciones y el flujo completo. No afecta datos reales."
+  },
+  {
     "version": "7.260.0",
     "date": "2026-07-29",
     "type": "minor",
