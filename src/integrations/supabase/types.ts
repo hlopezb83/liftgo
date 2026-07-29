@@ -1134,6 +1134,7 @@ export type Database = {
           inspection_id: string | null
           invoice_id: string | null
           maintenance_log_id: string | null
+          previous_forklift_status: string | null
           repaired_at: string | null
           status: string
           updated_at: string
@@ -1152,6 +1153,7 @@ export type Database = {
           inspection_id?: string | null
           invoice_id?: string | null
           maintenance_log_id?: string | null
+          previous_forklift_status?: string | null
           repaired_at?: string | null
           status?: string
           updated_at?: string
@@ -1170,6 +1172,7 @@ export type Database = {
           inspection_id?: string | null
           invoice_id?: string | null
           maintenance_log_id?: string | null
+          previous_forklift_status?: string | null
           repaired_at?: string | null
           status?: string
           updated_at?: string
