@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.258.0",
+    "date": "2026-07-29",
+    "type": "minor",
+    "title": "Auditoría R25 (fase 1): integridad de estados y cancelación de facturas",
+    "category": "fix",
+    "description": "Se crearon las columnas que las funciones de base de datos usaban sin existir, se limitaron los estados válidos de facturas, cotizaciones, reservas y montacargas, y se bloqueó cancelar facturas con pagos o timbradas fuera del flujo SAT."
+  },
+  {
     "version": "7.257.0",
     "date": "2026-07-29",
     "type": "minor",
