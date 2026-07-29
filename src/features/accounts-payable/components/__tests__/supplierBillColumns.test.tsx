@@ -22,7 +22,9 @@ describe("supplierBillColumns Untranslated wrapping", () => {
     const columns = useSupplierBillColumns();
     const billCol = columns.find((c) => c.id === "bill_number");
     const supplierCol = columns.find((c) => c.id === "supplier");
-    if (!billCol?.cell || !supplierCol?.cell) throw new Error("missing cells");
+    if (typeof billCol?.cell !== "function" || typeof supplierCol?.cell !== "function") {
+      throw new Error("missing cells");
+    }
     const { container: c1 } = render(<>{billCol.cell({ row: { original: bill } } as never)}</>);
     const { container: c2 } = render(<>{supplierCol.cell({ row: { original: bill } } as never)}</>);
     expect(c1.querySelector('[translate="no"]')?.textContent).toContain("FP-0001");
