@@ -3991,6 +3991,7 @@ export type Database = {
         Returns: number
       }
       internal_get_cron_secret: { Args: never; Returns: string }
+      is_e2e_actor_email: { Args: { p_email: string }; Returns: boolean }
       list_invoices_with_balance: {
         Args: {
           p_due_from?: string
