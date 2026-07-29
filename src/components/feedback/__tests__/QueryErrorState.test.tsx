@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { fireEvent, render, screen } from "@testing-library/react";
 import { QueryErrorState } from "../QueryErrorState";
 
 describe("QueryErrorState", () => {
@@ -10,10 +9,10 @@ describe("QueryErrorState", () => {
     expect(screen.getByText(/no son confiables/i)).toBeInTheDocument();
   });
 
-  it("invoca onRetry al presionar Reintentar", async () => {
+  it("invoca onRetry al presionar Reintentar", () => {
     const onRetry = vi.fn();
     render(<QueryErrorState entity="los reportes" onRetry={onRetry} />);
-    await userEvent.click(screen.getByRole("button", { name: /reintentar/i }));
+    fireEvent.click(screen.getByRole("button", { name: /reintentar/i }));
     expect(onRetry).toHaveBeenCalledTimes(1);
   });
 
