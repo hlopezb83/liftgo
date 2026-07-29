@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.256.0",
+    "date": "2026-07-29",
+    "type": "minor",
+    "title": "Auditoría R23 fase 4: conciliación tolerante a fallos y validaciones más claras",
+    "category": "fix",
+    "description": "La conciliación en bloque ahora concilia lo que sí es válido y avisa cuántos movimientos quedaron pendientes, la importación bancaria detecta archivos repetidos sin dejar registros vacíos, no se pueden registrar pagos en facturas canceladas, y el CRM y los formularios muestran errores en línea con orden y validaciones corregidas."
+  },
+  {
     "version": "7.255.1",
     "date": "2026-07-29",
     "type": "patch",

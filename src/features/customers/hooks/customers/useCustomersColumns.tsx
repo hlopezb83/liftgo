@@ -24,25 +24,25 @@ export function useCustomersColumns(): ColumnDef<Customer>[] {
       {
         id: "rfc",
         header: "RFC",
-        accessorFn: (c) => c.rfc || "",
+        accessorFn: (c) => c.rfc,
         cell: ({ row }) => <span className="font-mono text-xs">{row.original.rfc || "—"}</span>,
       },
       {
         id: "email",
         header: "Correo",
-        accessorFn: (c) => c.email || "",
+        accessorFn: (c) => c.email,
         cell: ({ row }) => row.original.email || "—",
       },
       {
         id: "phone",
         header: "Teléfono",
-        accessorFn: (c) => c.phone || "",
+        accessorFn: (c) => c.phone,
         cell: ({ row }) => row.original.phone || "—",
       },
       {
         id: "contact_person",
         header: "Persona de Contacto",
-        accessorFn: (c) => c.contact_person || "",
+        accessorFn: (c) => c.contact_person,
         cell: ({ row }) => row.original.contact_person || "—",
       },
     ];

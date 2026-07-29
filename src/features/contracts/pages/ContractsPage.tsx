@@ -50,7 +50,7 @@ export default function ContractsPage() {
       {
         id: "customer_name",
         header: "Cliente",
-        accessorFn: (c) => c.customer_name || "",
+        accessorFn: (c) => c.customer_name,
         // Oleada 1 (A-7): nombres largos truncan con tooltip completo
         meta: { cellClassName: "max-w-[240px]" },
         cell: ({ row }) => {
@@ -68,19 +68,19 @@ export default function ContractsPage() {
       {
         id: "forklift_name",
         header: "Equipo",
-        accessorFn: (c) => c.forklift_name || "",
+        accessorFn: (c) => c.forklift_name,
         cell: ({ row }) => row.original.forklift_name || "—",
       },
       {
         id: "start_date",
         header: "Inicio",
-        accessorFn: (c) => c.start_date || "",
+        accessorFn: (c) => c.start_date,
         cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateDisplay(row.original.start_date)}</span>,
       },
       {
         id: "end_date",
         header: "Fin",
-        accessorFn: (c) => c.end_date || "",
+        accessorFn: (c) => c.end_date,
         cell: ({ row }) => {
           const expiry = getContractExpiryState(row.original.end_date, row.original.status);
           const label = getContractExpiryLabel(expiry);

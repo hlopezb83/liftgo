@@ -61,7 +61,7 @@ function useInvoiceColumns(): ColumnDef<Invoice>[] {
   return [
       { id: "invoice_number", header: "Factura #", accessorKey: "invoice_number",
         cell: ({ row }) => <Untranslated className="font-medium">{row.original.invoice_number}</Untranslated> },
-      { id: "customer_name", header: "Cliente", accessorFn: (i) => i.customer_name || "",
+      { id: "customer_name", header: "Cliente", accessorFn: (i) => i.customer_name,
         cell: ({ row }) => row.original.customer_name ? <Untranslated>{row.original.customer_name}</Untranslated> : "—" },
       { id: "total", header: "Total", accessorFn: (i) => Number(i.total), meta: { kind: "money" },
         cell: ({ row }) => {
@@ -79,7 +79,7 @@ function useInvoiceColumns(): ColumnDef<Invoice>[] {
         cell: ({ row }) => <StatusBadge status={row.original.status} /> },
       { id: "issued_at", header: "Emitida", accessorKey: "issued_at",
         cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateDisplay(row.original.issued_at)}</span> },
-      { id: "due_date", header: "Vencimiento", accessorFn: (i) => i.due_date || "",
+      { id: "due_date", header: "Vencimiento", accessorFn: (i) => i.due_date,
         cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateDisplay(row.original.due_date)}</span> },
       { id: "view", header: "", enableSorting: false, meta: { cellClassName: "w-12" },
         cell: () => <ViewIcon className="h-4 w-4 text-muted-foreground" /> },
