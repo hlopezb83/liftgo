@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.265.0",
+    "date": "2026-07-29",
+    "type": "minor",
+    "title": "Auditoría Ronda 4: blindaje de datos y manejo de errores en pantallas",
+    "category": "improvement",
+    "description": "Se aplicaron los 14 hallazgos de la auditoría Ronda 4: reglas de base de datos para proteger aprobaciones y saldos de facturas de proveedor, estado inicial de daños, liberación de unidades al cancelar reservas y restricción de reservas directas; además, manejo visible de errores de red en 8 páginas de detalle, pestañas móviles y pantallas financieras, cancelación de cotizaciones aceptadas, archivado de daños y objetivos táctiles de 44px en las pantallas de acceso."
+  },
+  {
     "version": "7.264.3",
     "date": "2026-07-29",
     "type": "patch",
