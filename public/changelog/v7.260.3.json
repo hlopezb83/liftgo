@@ -1,0 +1,20 @@
+{
+  "version": "7.260.3",
+  "date": "2026-07-29",
+  "type": "patch",
+  "title": "Limpieza E2E compatible con cotizaciones aceptadas",
+  "category": "fix",
+  "description": "Ajuste de backend para que los escenarios automatizados puedan limpiarse después de aceptar cotizaciones de prueba, sin afectar reglas de negocio reales.",
+  "changes": [
+    {
+      "type": "fix",
+      "title": "Teardown E2E sin bloqueo por cotización aceptada",
+      "description": "e2e_teardown activa una marca transaccional interna antes de borrar datos de prueba del scope actual."
+    },
+    {
+      "type": "security",
+      "title": "Guardia de borrado conservada para datos reales",
+      "description": "guard_quote_delete sólo permite la excepción cuando la fila está marcada como is_e2e y tiene e2e_scope; las cotizaciones aceptadas reales siguen protegidas."
+    }
+  ]
+}
