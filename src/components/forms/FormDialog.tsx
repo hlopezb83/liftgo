@@ -61,14 +61,17 @@ export function FormDialog({
 }: FormDialogProps) {
   const [confirmDiscard, setConfirmDiscard] = useState(false);
 
-  const requestClose = () => {
+  const requestClose = useCallback(() => {
     if (isPending) return;
     if (isDirty) {
       setConfirmDiscard(true);
       return;
     }
     onOpenChange(false);
-  };
+  }, [isPending, isDirty, onOpenChange]);
+
+  // Referencia estable para no re-renderizar todo el árbol del formulario.
+  const closeValue = useMemo(() => requestClose, [requestClose]);
 
   return (
     <>
@@ -83,9 +86,12 @@ export function FormDialog({
             <DialogTitle>{title}</DialogTitle>
             {description ? <DialogDescription>{description}</DialogDescription> : null}
           </DialogHeader>
-          <div className="pt-2 pb-16">{children}</div>
+          <FormDialogCloseContext.Provider value={closeValue}>
+            <div className="pt-2 pb-16">{children}</div>
+          </FormDialogCloseContext.Provider>
         </DialogContent>
       </Dialog>
+
       <ConfirmDialog
         open={confirmDiscard}
         onOpenChange={setConfirmDiscard}
