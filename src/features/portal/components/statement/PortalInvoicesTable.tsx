@@ -98,7 +98,7 @@ function InvoiceRow({ row, isOpen, onToggle }: { row: PortalInvoiceRow; isOpen: 
           </span>
         </TableCell>
         <TableCell>{formatDateDisplay(r.inv.issued_at)}</TableCell>
-        <TableCell>{r.inv.due_date ? formatDateDisplay(r.inv.due_date) : "\u2014"}</TableCell>
+        <TableCell>{r.inv.due_date ? formatDateDisplay(r.inv.due_date) : "—"}</TableCell>
         <TableCell className="text-right font-mono tabular-nums">{formatCurrency(Number(r.inv.total))}</TableCell>
         <TableCell className="text-right font-mono tabular-nums text-status-available">{formatCurrency(r.paid)}</TableCell>
         <TableCell
