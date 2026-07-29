@@ -10,9 +10,9 @@ interface Props {
   canCloseDeal: boolean;
   assertCanClose: (kind: "save" | "create" | "move") => boolean;
   openEdit: (p: Prospect) => void;
-  onCreate: (data: ProspectFormPayload) => void;
-  onUpdate: (id: string, data: ProspectFormPayload) => void;
-  onDelete: (id: string) => void;
+  onCreate: (data: ProspectFormPayload) => void | Promise<void>;
+  onUpdate: (id: string, data: ProspectFormPayload) => void | Promise<void>;
+  onDelete: (id: string) => void | Promise<void>;
   isPending?: boolean;
 }
 
