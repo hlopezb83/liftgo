@@ -3787,6 +3787,10 @@ export type Database = {
             Returns: string
           }
         | { Args: { p_items: Json; p_notes?: string }; Returns: string }
+      damage_restore_forklift_status: {
+        Args: { p_forklift_id: string; p_previous: string }
+        Returns: string
+      }
       delete_booking: { Args: { p_booking_id: string }; Returns: undefined }
       delete_forklift: { Args: { p_forklift_id: string }; Returns: undefined }
       delete_quote_with_unassign: {
