@@ -19,7 +19,7 @@ export function FeedbackFab() {
         size="sm"
         onClick={() => { setMounted(true); setOpen(true); }}
         onMouseEnter={() => setMounted(true)}
-        className="h-8 gap-2 px-2.5 touch:h-11 touch:min-w-11"
+        className="h-8 gap-2 px-2.5 touch:h-11 touch:min-w-11 no-print"
         aria-label="Reportar bug o sugerir mejora"
       >
         <MessageSquarePlus className="h-3.5 w-3.5" />
