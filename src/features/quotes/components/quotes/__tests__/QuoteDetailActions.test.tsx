@@ -6,7 +6,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import type { AppRole } from "@/features/users";
 import { QuoteDetailActions } from "../QuoteDetailActions";
 
-const useUserRoleMock = vi.fn<[], { data: AppRole | null }>();
+const useUserRoleMock = vi.fn<() => { data: AppRole | null }>();
 
 vi.mock("@/layouts/RoleGuard", () => ({
   RoleGuard: ({ children }: { children: ReactNode }) => <>{children}</>,
