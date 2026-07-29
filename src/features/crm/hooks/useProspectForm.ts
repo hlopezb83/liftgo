@@ -53,6 +53,8 @@ export function useProspectForm({
   const [notes, setNotes] = useState("");
   const [quoteId, setQuoteId] = useState<string | null>(null);
   const [dealValueError, setDealValueError] = useState<string | null>(null);
+  // R23-O: error inline de "Empresa" (antes lo reportaba la burbuja nativa del navegador).
+  const [companyError, setCompanyError] = useState<string | null>(null);
 
   const { data: allQuotes = [] } = useQuotes();
 
@@ -77,6 +79,7 @@ export function useProspectForm({
       setDealValue(""); setNotes(""); setQuoteId(null);
     }
     setDealValueError(null);
+    setCompanyError(null);
     /* eslint-enable react-hooks/set-state-in-effect */
   }, [prospect, open]);
 
@@ -111,14 +114,14 @@ export function useProspectForm({
       quote_id: quoteId,
     });
     if (!parsed.success) {
-      const emailIssue = parsed.error.issues.find((i) => i.path[0] === "email");
-      if (emailIssue) setDealValueError(null);
-      // Reutilizamos dealValueError como canal de mensaje ligero; el resto
-      // se reporta vía notifyValidation para no acoplar el hook a la UI.
-      const first = parsed.error.issues[0];
-      setDealValueError(first?.message ?? "Datos inválidos");
+      // R23-O: el error de empresa se muestra bajo su propio campo.
+      const companyIssue = parsed.error.issues.find((i) => i.path[0] === "company_name");
+      setCompanyError(companyIssue?.message ?? null);
+      const other = parsed.error.issues.find((i) => i.path[0] !== "company_name");
+      setDealValueError(companyIssue ? null : other?.message ?? "Datos inválidos");
       return null;
     }
+    setCompanyError(null);
     return parsed.data;
   };
 
@@ -131,9 +134,10 @@ export function useProspectForm({
 
   return {
     isDirty,
-    fields: { company, contact, email, phone, dealValue, notes, quoteId, dealValueError },
+    fields: { company, contact, email, phone, dealValue, notes, quoteId, dealValueError, companyError },
     setters: {
-      setCompany, setContact, setEmail, setPhone,
+      setCompany: (v: string) => { setCompany(v); setCompanyError(null); },
+      setContact, setEmail, setPhone,
       setDealValue: (v: string) => { setDealValue(v); setDealValueError(null); },
       setNotes,
       handleQuoteChange,

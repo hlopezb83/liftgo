@@ -66,7 +66,7 @@ export function ProspectFormDialog({
       isDirty={isDirty}
     >
       <ProspectStageBadgeBlock prospect={prospect} overrideStage={overrideStage} />
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleSubmit} noValidate className="space-y-4">
         <ProspectCreatorBlock createdByName={prospect?.createdByName} />
         <ProspectFormFields
           fields={fields}

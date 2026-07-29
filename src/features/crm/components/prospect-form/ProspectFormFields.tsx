@@ -26,7 +26,13 @@ export function ProspectFormFields({
     <>
       <div className="space-y-2">
         <Label htmlFor="company">Empresa <RequiredMark /></Label>
-        <Input id="company" value={fields.company} onChange={(e) => setters.setCompany(e.target.value)} required />
+        <Input
+          id="company"
+          value={fields.company}
+          onChange={(e) => setters.setCompany(e.target.value)}
+          aria-invalid={fields.companyError ? true : undefined}
+        />
+        {fields.companyError && <p className="text-xs text-destructive">{fields.companyError}</p>}
       </div>
       <div className="space-y-2">
         <Label htmlFor="contact">Persona de Contacto</Label>
