@@ -137,10 +137,46 @@ jobs:
         run: bunx knip --include exports,types --reporter compact
         continue-on-error: true
 
+  # Sharding: la suite (1400+ tests) se reparte en 3 runners que corren en
+  # paralelo con todos los núcleos del runner. Cada shard emite un reporte
+  # "blob" y el job `tests-merge` los une para calcular cobertura global y
+  # aplicar los umbrales (que no tienen sentido por shard).
   tests:
-    name: Tests (Vitest + Coverage)
+    name: Tests (shard ${{ matrix.shard }}/3)
     runs-on: ubuntu-latest
     timeout-minutes: 12
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: ./.github/actions/setup-bun-project
+
+      - name: Tests (Vitest) + Coverage · shard ${{ matrix.shard }}
+        env:
+          # Reporter blob + umbrales desactivados por shard (ver vitest.config.ts).
+          VITEST_SHARD_BLOB: "1"
+          # Heap generoso: los runners tienen 16 GB y el pool de forks usa
+          # todos los núcleos disponibles.
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: bunx vitest run --shard=${{ matrix.shard }}/3 --coverage
+
+      - name: Upload blob report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: vitest-blob-${{ matrix.shard }}
+          path: .vitest-reports/
+          retention-days: 1
+          if-no-files-found: error
+
+  tests-merge:
+    name: Tests (Vitest + Coverage)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: tests
+    if: always()
     permissions:
       contents: read
       checks: write
@@ -152,11 +188,20 @@ jobs:
       # Pre-crear reports/ defensivamente: si vitest falla antes de inicializar
       # los reporters, el step de junit-action muestra el error real.
       - name: Prepare reports directory
-        run: mkdir -p reports
+        run: mkdir -p reports .vitest-reports
 
-      - name: Tests (Vitest) + Coverage
+      - name: Download blob reports
+        uses: actions/download-artifact@v6
+        with:
+          pattern: vitest-blob-*
+          merge-multiple: true
+          path: .vitest-reports
+
+      - name: Merge reports + coverage thresholds
         # Umbrales definidos en vitest.config.ts; bajar de threshold rompe el job.
-        run: bun run test --coverage
+        env:
+          NODE_OPTIONS: --max-old-space-size=6144
+        run: bunx vitest --merge-reports --coverage
 
       - name: Upload coverage report
         if: always()
