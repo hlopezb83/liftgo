@@ -294,8 +294,9 @@ export async function binaryToBytes(bin: unknown): Promise<Uint8Array> {
   throw new Error(
     `Unsupported binary download type from Facturapi SDK: ${
       Object.prototype.toString.call(bin)
-    }`,
+    } keys=[${numericKeys.slice(0, 12).join(",")}]`,
   );
+
 }
 
 export async function binaryToText(bin: unknown): Promise<string> {
