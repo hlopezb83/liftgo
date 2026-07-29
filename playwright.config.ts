@@ -38,9 +38,12 @@ export default defineConfig({
   timeout: 30_000,
   expect: { timeout: 5_000 },
   // Each test gets a unique `e2e_scope` from the seed fixture, so workers can run in parallel without
-  // racing on the global teardown. Tune CI workers per shard (2 × N shards = effective parallelism).
+  // racing on the global teardown. Tune CI workers per shard (workers × N shards = effective parallelism).
   fullyParallel: true,
-  workers: process.env.CI ? 2 : 4,
+  // Escala con los núcleos disponibles en lugar de un número fijo: 2 en un
+  // runner de 4 vCPU (igual que antes) y hasta 8 en máquinas grandes como el
+  // entorno de Lovable. El tope evita saturar la base de datos compartida.
+  workers: Math.min(8, Math.max(2, Math.floor(CPUS / 2))),
   retries: process.env.CI ? 1 : 0,
   // v7.237.3: permite regenerar baselines visuales en CI vía E2E_UPDATE_SNAPSHOTS=1
   // sin tener que editar el comando de Playwright.
