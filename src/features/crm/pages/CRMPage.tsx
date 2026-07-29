@@ -81,10 +81,16 @@ export default function CRMPage() {
     if (!target) return;
     const { draggableId, newStage, newIndex } = target;
 
-    if (newStage === "cerrado_ganado") {
+    const prospect = prospects.find((p) => p.id === draggableId);
+
+    // R23-bajo 3: etapas que exigen valor de trato > 0 pasan por el diálogo cuando
+    // el prospecto todavía no lo tiene; de lo contrario el movimiento fallaría en BD.
+    const needsDealValue =
+      STAGES_REQUIRING_DEAL_VALUE.includes(newStage) && (prospect?.dealValue ?? 0) <= 0;
+
+    if (newStage === "cerrado_ganado" || needsDealValue) {
       // Cerrar ganado exige datos adicionales y permiso: sigue pasando por el diálogo.
-      if (!assertCanClose("move")) return;
-      const prospect = prospects.find((p) => p.id === draggableId);
+      if (newStage === "cerrado_ganado" && !assertCanClose("move")) return;
       if (!prospect) return;
       dialogs.setEditingProspect(prospect);
       dialogs.setOverrideStage(newStage);
