@@ -1,4 +1,5 @@
 import { useState, type FormEvent as ReactFormEvent } from "react";
+import { useLocation } from "react-router";
 import { UsersIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -17,6 +18,10 @@ const TITLES: Record<AuthMode, { title: string; desc: string }> = {
 
 export default function AuthPage() {
   const { signIn, resetPassword, updatePassword } = useAuth();
+  const { pathname } = useLocation();
+  // Link roto sin sesión: el AuthGuard cae aquí silenciosamente — damos un
+  // hint de que la ruta no existe (o requiere sesión) en vez de un login seco.
+  const unknownPath = pathname !== "/" && pathname !== "/login";
   const { data: company } = usePublicBranding();
   const [mode, setMode] = useState<AuthMode>("sign-in");
   const [email, setEmail] = useState("");
@@ -69,6 +74,11 @@ export default function AuthPage() {
           </div>
           <CardTitle>{TITLES[mode].title}</CardTitle>
           <CardDescription>{TITLES[mode].desc}</CardDescription>
+          {unknownPath && (
+            <p className="text-xs text-muted-foreground mt-2">
+              La página «{pathname}» no existe o requiere sesión. Inicia sesión para continuar.
+            </p>
+          )}
         </CardHeader>
         <CardContent>
           <AuthForm
