@@ -37,9 +37,12 @@ export function AccountsPayableKpiCards({ kpis }: Props) {
             </div>
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground truncate">{label}</p>
-              {/* R23-D: sin escala adaptativa, montos ≥$1M se cortaban a 1440px. */}
-              <p className={`font-bold font-mono tabular-nums ${kpiSizeClass(asCount ? String(kpis[key]) : formatCurrency(kpis[key]))} ${tone}`}>
-                {asCount ? kpis[key] : formatCurrency(kpis[key])}
+              {/* R24-D: montos ≥$1M en compacto ($123.46 M) con el exacto al hover. */}
+              <p
+                className={`font-bold font-mono tabular-nums ${kpiSizeClass(asCount ? String(kpis[key]) : formatCompactCurrency(kpis[key]))} ${tone}`}
+                title={asCount ? undefined : formatCurrency(kpis[key])}
+              >
+                {asCount ? kpis[key] : formatCompactCurrency(kpis[key])}
               </p>
 
               {key === "totalPorAprobar" && kpis.countPorAprobar > 0 && (
