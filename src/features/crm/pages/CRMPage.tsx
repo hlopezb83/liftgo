@@ -16,6 +16,7 @@ import { useCRMPageDialogs } from "../hooks/useCRMPageDialogs";
 import { useProspectGuard } from "../hooks/useProspectGuard";
 import { useProspects, useCreateProspect, useUpdateProspect, useDeleteProspect, useMoveProspectStage, type Prospect } from "../hooks/useProspects";
 import { ACTIVE_STAGES } from "../lib/constants";
+import { STAGES_REQUIRING_DEAL_VALUE } from "../lib/prospectFormSchema";
 import { resolveDropTarget } from "../lib/resolveDropTarget";
 import type { DragEndEvent } from "@dnd-kit/core";
 
