@@ -1,4 +1,5 @@
 import { Activity, useState } from "react";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DocumentIcon, SpinnerIcon } from "@/components/icons";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useUserRole } from "@/features/users";
@@ -14,7 +15,7 @@ interface Props {
 }
 
 export function SupplierBillDetailSheet({ billId, open, onOpenChange }: Props) {
-  const { data: bill, isLoading } = useSupplierBill(open ? billId : null);
+  const { data: bill, isLoading, isError, refetch } = useSupplierBill(open ? billId : null);
   const { data: role } = useUserRole();
   const deleteBill = useDeleteSupplierBill();
   const [payDialog, setPayDialog] = useState(false);
@@ -31,15 +32,20 @@ export function SupplierBillDetailSheet({ billId, open, onOpenChange }: Props) {
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <DocumentIcon className="h-5 w-5" />
-            {bill?.bill_number ?? "Cargando…"}
+            {bill?.bill_number ?? (isError ? "Error" : "Cargando…")}
           </SheetTitle>
         </SheetHeader>
 
         <Activity mode={open ? "visible" : "hidden"}>
-        {isLoading || !bill ? (
+        {/* A4-06: sin esta rama la query fallida dejaba el spinner infinito. */}
+        {isError ? (
+          <QueryErrorState bare entity="el detalle de la factura de proveedor" onRetry={() => { void refetch(); }} />
+        ) : isLoading ? (
           <div className="flex items-center justify-center py-12 text-muted-foreground">
             <SpinnerIcon className="h-5 w-5 animate-spin" />
           </div>
+        ) : !bill ? (
+          <p className="py-12 text-center text-sm text-muted-foreground">Factura no encontrada</p>
         ) : (
           <SupplierBillDetailContent
             bill={bill as Parameters<typeof SupplierBillDetailContent>[0]["bill"]}

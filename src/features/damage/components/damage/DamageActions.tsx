@@ -1,10 +1,12 @@
-import { MaintenanceIcon, InvoiceIcon, SuccessIcon } from "@/components/icons";
+import { useState } from "react";
+import { MaintenanceIcon, InvoiceIcon, SuccessIcon, DeleteIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useCreateMaintenanceLog } from "@/features/maintenance";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import type { DamageRecordWithJoins } from "@/types/rental";
-import { useUpdateDamageRecord } from "../../hooks/useDamageRecords";
+import { useArchiveDamageRecord, useUpdateDamageRecord } from "../../hooks/useDamageRecords";
 import { chargeableDamageCost } from "../../lib/chargeableDamageCost";
 
 interface DamageActionsProps { record: DamageRecordWithJoins; }
@@ -13,6 +15,8 @@ export function DamageActions({ record }: DamageActionsProps) {
   const navigate = useNavigateTransition();
   const updateDamage = useUpdateDamageRecord();
   const createMaintenance = useCreateMaintenanceLog();
+  const archiveDamage = useArchiveDamageRecord();
+  const [archiveOpen, setArchiveOpen] = useState(false);
 
   const handleCreateWorkOrder = () => {
     createMaintenance.mutate(
@@ -43,7 +47,17 @@ export function DamageActions({ record }: DamageActionsProps) {
     navigate(`/invoices/new?damage_id=${record.id}&customer_id=${record.customer_id}&amount=${cost ?? ""}`);
   };
 
-  if (record.status === "invoiced") return <span className="text-xs text-muted-foreground">Completo</span>;
+  // Condiciones reales de soft_delete_damage_record: cargo facturado
+  // (invoice_id) o reparado sin cargo. Invoiced sin invoice_id (dato legado)
+  // sigue siendo "Completo" sin acciones.
+  const canArchive = record.invoice_id != null || record.status === "repaired";
+  const archiveBlockReason = canArchive
+    ? undefined
+    : "Para archivar, primero factura el cargo (Cobrar) o marca el daño como reparado";
+
+  if (record.status === "invoiced" && !canArchive) {
+    return <span className="text-xs text-muted-foreground">Completo</span>;
+  }
 
   return (
     <div className="flex gap-1">
@@ -62,6 +76,26 @@ export function DamageActions({ record }: DamageActionsProps) {
           <InvoiceIcon className="h-3.5 w-3.5 mr-1" />Cobrar
         </Button>
       )}
+      <span title={archiveBlockReason}>
+        <Button
+          variant="ghost"
+          size="sm"
+          disabled={!canArchive || archiveDamage.isPending}
+          onClick={() => setArchiveOpen(true)}
+        >
+          <DeleteIcon className="h-3.5 w-3.5 mr-1" />Archivar
+        </Button>
+      </span>
+      <ConfirmDialog
+        open={archiveOpen}
+        onOpenChange={setArchiveOpen}
+        title="¿Archivar este daño?"
+        description="El daño se ocultará de los listados activos y el montacargas volverá a un estado coherente (si no tiene otra renta o mantenimiento abierto). Se conserva el rastro en auditoría."
+        confirmLabel="Archivar"
+        destructive
+        loading={archiveDamage.isPending}
+        onConfirm={() => archiveDamage.mutate(record.id, { onSuccess: () => notifySuccess("Daño archivado") })}
+      />
     </div>
   );
 }
