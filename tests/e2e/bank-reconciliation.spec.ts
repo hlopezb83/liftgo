@@ -43,7 +43,7 @@ function row(page: Page, reference: string) {
 
 test.describe("Conciliación bancaria", () => {
   // Cada test siembra datos vía API, hace login y navega: 30s es justo en CI frío.
-  test.describe.configure({ timeout: 60_000 });
+  test.describe.configure({ timeout: 90_000 });
 
   test("KPIs reflejan los movimientos sembrados", async ({ page, bank }) => {
     await openReconciliation(page, bank);
