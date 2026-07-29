@@ -9,16 +9,18 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { usePortalInvoices, usePortalPayments } from "@/features/customers";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
+import { InvoiceSummaryCards } from "../components/InvoiceSummaryCards";
 import { TotalsBreakdown } from "../components/TotalsBreakdown";
 import { useCfdiDownload } from "../hooks/useCfdiDownload";
+import {
+  usePortalInvoiceDetailData,
+  type PortalLineItem as LineItem,
+  type PortalPaymentRow as Payment,
+} from "../hooks/usePortalInvoiceDetailData";
 
-
-type LineItem = { description?: string; quantity?: number; unit_price?: number; amount?: number };
-type Payment = { id: string; payment_date: string; payment_method: string | null; reference_number: string | null; amount: number | string };
 
 function buildLineColumns(currency: string): ColumnDef<LineItem>[] {
   return [
