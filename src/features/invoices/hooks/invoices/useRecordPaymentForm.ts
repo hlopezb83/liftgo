@@ -6,6 +6,7 @@ import { nowMty } from "@/lib/utils";
 import { satCodeForMethod } from "../../lib/paymentMethods";
 import { useCreatePayment } from "../usePayments";
 import { useStampPaymentComplement } from "./cfdi/usePaymentComplement";
+import { isPaymentFormDirty } from "./paymentFormDirty";
 
 interface Args {
   open: boolean;
@@ -148,18 +149,11 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
     );
   };
 
-  // R22-A: el modal no usa RHF, así que derivamos `isDirty` comparando contra
-  // los valores con los que se abre (monto = saldo, campos libres vacíos).
-  // R23-F: Fecha, Forma SAT y el checkbox de REP también cuentan como cambios;
-  // antes se podían editar y el aviso de "Descartar cambios" nunca aparecía.
-  const isDirty =
-    amount !== balance.toFixed(2) ||
-    reference.trim() !== "" ||
-    notes.trim() !== "" ||
-    method !== "transfer" ||
-    paymentFormSat !== satCodeForMethod("transfer") ||
-    stampRep !== ppdStamped ||
-    toYMD(date) !== toYMD(nowMty());
+  // R22-A / R23-F: ver `paymentFormDirty.ts`.
+  const isDirty = isPaymentFormDirty(
+    { amount, reference, notes, method, paymentFormSat, stampRep, date },
+    { balance, ppdStamped },
+  );
 
 
   return {
