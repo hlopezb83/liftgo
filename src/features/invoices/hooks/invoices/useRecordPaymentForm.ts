@@ -6,6 +6,7 @@ import { nowMty } from "@/lib/utils";
 import { satCodeForMethod } from "../../lib/paymentMethods";
 import { useCreatePayment } from "../usePayments";
 import { useStampPaymentComplement } from "./cfdi/usePaymentComplement";
+import { isPaymentFormDirty } from "./paymentFormDirty";
 
 interface Args {
   open: boolean;
@@ -40,6 +41,9 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
   const createPayment = useCreatePayment();
   const stampComplement = useStampPaymentComplement();
 
+  // Sincroniza el código SAT sugerido cuando cambia el método (usuario puede override en UI).
+  const [prevMethod, setPrevMethod] = useState(method);
+
   // Reset local state when the dialog opens or when invoice-derived props change.
   // Patrón oficial React "adjust state when a prop changes": setState durante render
   // guardado por comparación con el valor previo — evita el efecto de sincronización.
@@ -61,20 +65,25 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
     setPrevLockedCurrency(lockedCurrency);
     setPrevInitialRate(initialRate);
     if (open) {
+      // R23-F: el reset era parcial — Referencia, Notas, Método, Fecha y el
+      // código SAT sobrevivían al "Descartar" y reaparecían al reabrir con
+      // datos de un pago anterior.
       setAmount(balance.toFixed(2));
       setStampRep(ppdStamped);
       setCurrencyState(lockedCurrency);
       setExchangeRate(initialRate);
+      setDate(nowMty());
+      setMethod("transfer");
+      setPrevMethod("transfer");
+      setPaymentFormSat(satCodeForMethod("transfer"));
+      setReference("");
+      setNotes("");
     }
-  }
-
-
-  // Sincroniza el código SAT sugerido cuando cambia el método (usuario puede override en UI).
-  const [prevMethod, setPrevMethod] = useState(method);
-  if (method !== prevMethod) {
+  } else if (method !== prevMethod) {
     setPrevMethod(method);
     setPaymentFormSat(satCodeForMethod(method));
   }
+
 
   // C-1: exponer un setter no-op para el select de UI; siempre revierte al
   // valor bloqueado de la factura.
@@ -140,13 +149,12 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
     );
   };
 
-  // R22-A: el modal no usa RHF, así que derivamos `isDirty` comparando contra
-  // los valores con los que se abre (monto = saldo, campos libres vacíos).
-  const isDirty =
-    amount !== balance.toFixed(2) ||
-    reference.trim() !== "" ||
-    notes.trim() !== "" ||
-    method !== "transfer";
+  // R22-A / R23-F: ver `paymentFormDirty.ts`.
+  const isDirty = isPaymentFormDirty(
+    { amount, reference, notes, method, paymentFormSat, stampRep, date },
+    { balance, ppdStamped },
+  );
+
 
   return {
     amount, setAmount, date, setDate, method, setMethod,

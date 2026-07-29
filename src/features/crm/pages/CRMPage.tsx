@@ -16,6 +16,7 @@ import { useCRMPageDialogs } from "../hooks/useCRMPageDialogs";
 import { useProspectGuard } from "../hooks/useProspectGuard";
 import { useProspects, useCreateProspect, useUpdateProspect, useDeleteProspect, useMoveProspectStage, type Prospect } from "../hooks/useProspects";
 import { ACTIVE_STAGES } from "../lib/constants";
+import { resolveDropTarget } from "../lib/resolveDropTarget";
 import type { DragEndEvent } from "@dnd-kit/core";
 
 export default function CRMPage() {
@@ -74,28 +75,12 @@ export default function CRMPage() {
     dialogs.setDialogOpen(true);
   };
 
-  const resolveDropTarget = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over) return null;
-    const sourceStage = (active.data.current?.stage as string | undefined) ?? null;
-    const overType = over.data.current?.type as "column" | "card" | undefined;
-    const newStage =
-      overType === "column"
-        ? String(over.id)
-        : (over.data.current?.stage as string | undefined) ?? String(over.id);
-    if (!newStage || !sourceStage) return null;
-    return {
-      draggableId: String(active.id),
-      sourceStage,
-      newStage,
-      newIndex: (over.data.current?.sortable?.index as number | undefined) ?? 0,
-    };
-  };
-
   const onDragEnd = (event: DragEndEvent) => {
-    const target = resolveDropTarget(event);
+    const target = resolveDropTarget(event, stagesData);
+
     if (!target) return;
-    const { draggableId, sourceStage, newStage, newIndex } = target;
+    const { draggableId, newStage, newIndex } = target;
+
     if (newStage === "cerrado_ganado") {
       // Cerrar ganado exige datos adicionales y permiso: sigue pasando por el diálogo.
       if (!assertCanClose("move")) return;
@@ -107,14 +92,12 @@ export default function CRMPage() {
       return;
     }
 
-    if (sourceStage === newStage) {
-      updateProspect.mutate({ id: draggableId, stage_order: newIndex });
-      return;
-    }
-
-    // B-11: movimiento entre columnas directo y optimista al soltar.
+    // B-11 + R23-H: mismo camino optimista para reordenar dentro de la columna
+    // y para mover entre columnas — antes el reorder usaba un update plano
+    // sin optimismo ni reindexado.
     moveProspectStage.mutate({ id: draggableId, newStage, newIndex });
   };
+
   if (isError) {
     return (
       <PageTransition>
