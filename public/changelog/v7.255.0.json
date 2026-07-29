@@ -1,0 +1,35 @@
+{
+  "version": "7.255.0",
+  "date": "2026-07-29",
+  "type": "minor",
+  "title": "Auditoría R23 fase 3: orden del CRM confiable e importación bancaria a prueba de errores",
+  "category": "fix",
+  "description": "El orden de las tarjetas del CRM ahora se guarda tal como lo deja el usuario, se puede soltar al final de una columna, la importación bancaria avisa cuando un renglón viene mal formado y el registro de pagos limpia todos sus campos al reabrirse.",
+  "changes": [
+    {
+      "type": "fix",
+      "title": "El orden del CRM se guarda tal como lo dejas",
+      "description": "R23-G: al mover una tarjeta sólo se guardaba su propia posición, así que al recargar el tablero el orden cambiaba y quedaban posiciones repetidas. Ahora el servidor renumera de una sola vez la columna de origen y la de destino."
+    },
+    {
+      "type": "fix",
+      "title": "Reordenar dentro de la misma columna también es instantáneo",
+      "description": "R23-H: mover una tarjeta dentro de su propia columna no mostraba el cambio de inmediato ni renumeraba el resto. Ahora usa el mismo camino que el movimiento entre columnas."
+    },
+    {
+      "type": "fix",
+      "title": "Soltar una tarjeta al final de la columna",
+      "description": "R23-I: soltar en el espacio vacío de una columna enviaba la tarjeta al principio y no había manera de colocarla al final. Ahora cae donde se soltó."
+    },
+    {
+      "type": "fix",
+      "title": "La importación bancaria detecta renglones mal formados",
+      "description": "R23-J: un importe con coma sin comillas partía el renglón y recorría las columnas en silencio, importando fechas y montos equivocados. Ahora el renglón se rechaza con un mensaje que explica cómo corregirlo."
+    },
+    {
+      "type": "fix",
+      "title": "Registrar pago limpia todos sus campos",
+      "description": "R23-F: al descartar y reabrir el diálogo, la referencia, las notas, el método y la fecha del pago anterior seguían ahí. Además esos campos ahora sí activan el aviso de cambios sin guardar."
+    }
+  ]
+}

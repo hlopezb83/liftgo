@@ -8,18 +8,7 @@ import { parseBankCsv } from "../csvParsers";
  * con un mensaje explícito.
  */
 describe("parseBankCsv — validación de columnas (R23-J)", () => {
-  it("rechaza filas con menos columnas de las que exige el perfil", () => {
-    const csv = [
-      "Fecha,Descripción,Importe,Referencia",
-      "01/07/2026,Pago cliente,1500,50",
-      "02/07/2026,Pago proveedor,-800.00,REF2",
-    ].join("\n");
 
-    const result = parseBankCsv(csv, "generico");
-    // La fila corrida se importa igual (tiene 4 campos), pero el caso real de
-    // truncamiento sí se detecta: verificamos el mensaje con una fila corta.
-    expect(result.lines.length).toBeGreaterThanOrEqual(1);
-  });
 
   it("reporta la fila truncada con un mensaje accionable", () => {
     const csv = ["Fecha,Descripción,Importe,Referencia", "01/07/2026,Pago cliente"].join("\n");
