@@ -25,7 +25,7 @@ export function CustomerMobileCard({ customer, onOpen }: Props) {
         label: "Llamar",
         icon: PhoneIcon,
         className: "bg-primary",
-        onAction: () => { window.location.href = `tel:${customer.phone}`; },
+        onAction: () => { globalThis.location.assign(`tel:${customer.phone}`); },
       }] : []}
     >
       <Card className="active:scale-[0.98] transition-transform">

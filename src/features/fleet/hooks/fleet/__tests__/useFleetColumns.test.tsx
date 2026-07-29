@@ -12,7 +12,7 @@ const forklift = {
   status: "available",
 } as unknown as Forklift;
 
-function renderCell(columnId: string) {
+function useRenderedCell(columnId: string) {
   const columns = useFleetColumns(new Set(), new Map());
   const col = columns.find((c) => c.id === columnId);
   if (typeof col?.cell !== "function") throw new Error("column not found");
@@ -21,14 +21,14 @@ function renderCell(columnId: string) {
 
 describe("useFleetColumns Untranslated wrapping", () => {
   it("marks equipment name as translate=no", () => {
-    const { container } = renderCell("name");
+    const { container } = useRenderedCell("name");
     const el = container.querySelector('[translate="no"]');
     expect(el).toBeTruthy();
     expect(el?.textContent).toContain("MC-001");
   });
 
   it("marks serial number as translate=no", () => {
-    const { container } = renderCell("serial_number");
+    const { container } = useRenderedCell("serial_number");
     const el = container.querySelector('[translate="no"]');
     expect(el).toBeTruthy();
     expect(el?.textContent).toContain("SN-12345");
