@@ -61,12 +61,22 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
     setPrevLockedCurrency(lockedCurrency);
     setPrevInitialRate(initialRate);
     if (open) {
+      // R23-F: el reset era parcial — Referencia, Notas, Método, Fecha y el
+      // código SAT sobrevivían al "Descartar" y reaparecían al reabrir con
+      // datos de un pago anterior.
       setAmount(balance.toFixed(2));
       setStampRep(ppdStamped);
       setCurrencyState(lockedCurrency);
       setExchangeRate(initialRate);
+      setDate(nowMty());
+      setMethod("transfer");
+      setPrevMethod("transfer");
+      setPaymentFormSat(satCodeForMethod("transfer"));
+      setReference("");
+      setNotes("");
     }
   }
+
 
 
   // Sincroniza el código SAT sugerido cuando cambia el método (usuario puede override en UI).
