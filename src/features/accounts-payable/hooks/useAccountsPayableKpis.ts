@@ -1,5 +1,6 @@
 
 import { useMemo } from "react";
+import { visibleListRows } from "@/lib/supabase/constants";
 import { toYMD } from "@/lib/date/toYMD";
 import { toMxn } from "@/lib/money";
 import { nowMty } from "@/lib/utils";
@@ -59,7 +60,8 @@ export function useAccountsPayableKpis() {
       totalPendiente: 0, totalVencido: 0, totalPorVencer: 0, pagadoMesActual: 0,
       totalPorAprobar: 0, countPorAprobar: 0, repPendientes: 0,
     };
-    for (const b of data ?? []) accumulateBill(acc, b, ctx);
+    // N8-r3: los KPIs no deben incluir la fila extra del limit+1.
+    for (const b of visibleListRows(data)) accumulateBill(acc, b, ctx);
     return acc;
   }, [data]);
 

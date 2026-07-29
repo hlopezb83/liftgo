@@ -75,23 +75,23 @@ export default function PortalLogin() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="auth-email">Correo electrónico</Label>
-              <Input id="auth-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@empresa.com" required />
+              <Input id="auth-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="tu@empresa.com" required className="touch:h-11" />
             </div>
             {mode === "sign-in" && (
               <div className="space-y-1.5">
                 <Label htmlFor="auth-password">Contraseña</Label>
-                <Input id="auth-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} />
+                <Input id="auth-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} className="touch:h-11" />
               </div>
             )}
-            <Button type="submit" className="w-full" disabled={loading} data-testid="auth-submit">
+            <Button type="submit" className="w-full touch:h-11" disabled={loading} data-testid="auth-submit">
               {getPortalSubmitLabel(loading, mode)}
             </Button>
           </form>
           <div className="mt-4 text-center space-y-1">
             {mode === "sign-in" ? (
-              <Button variant="link" size="sm" onClick={() => setMode("forgot")}>¿Olvidaste tu contraseña?</Button>
+              <Button variant="link" className="touch:min-h-11" onClick={() => setMode("forgot")}>¿Olvidaste tu contraseña?</Button>
             ) : (
-              <Button variant="link" size="sm" onClick={() => setMode("sign-in")}>Volver a iniciar sesión</Button>
+              <Button variant="link" className="touch:min-h-11" onClick={() => setMode("sign-in")}>Volver a iniciar sesión</Button>
             )}
           </div>
           <div className="relative my-4">

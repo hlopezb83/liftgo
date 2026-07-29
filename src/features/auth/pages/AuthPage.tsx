@@ -84,7 +84,7 @@ export default function AuthPage() {
           />
           <div className="mt-4 text-center space-y-1">
             {mode === "sign-in" && (
-              <Button variant="link" size="sm" onClick={() => setMode("forgot")}>¿Olvidaste tu contraseña?</Button>
+              <Button variant="link" className="touch:min-h-11" onClick={() => setMode("forgot")}>¿Olvidaste tu contraseña?</Button>
             )}
             {mode !== "sign-in" && (
               <Button variant="link" onClick={() => setMode("sign-in")}>Volver a Iniciar Sesión</Button>

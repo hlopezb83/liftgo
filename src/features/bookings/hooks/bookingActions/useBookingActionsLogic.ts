@@ -11,7 +11,10 @@ export { BOOKING_STATUS_LABELS } from "./useBookingActions";
 
 export function getValidTransitions(current: string): string[] {
   switch (current) {
-    case "confirmed": return ["completed", "cancelled"];
+    // D3-r3: "Completar" sale del diálogo — sin inspección de retorno la DB
+    // rechaza confirmed→completed (guard DB2-05) con error SQL crudo. El
+    // cierre real de una renta ocurre en /returns vía complete_return_inspection.
+    case "confirmed": return ["cancelled"];
     // R2-5: una reserva completada es terminal en la UI; revivirla a
     // "confirmed" permitía doble reserva traslapada del mismo montacargas.
     // La DB refuerza esto quitándolo de la whitelist de validate_transition.

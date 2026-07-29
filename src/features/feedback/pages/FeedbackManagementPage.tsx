@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { formatMtyDate } from "@/lib/utils";
+import { visibleListRows } from "@/lib/supabase/constants";
 import { FeedbackDetailSheet } from "../components/FeedbackDetailSheet";
 import { useAllFeedbackReports, type FeedbackReport } from "../hooks/useFeedbackReports";
 import {
@@ -23,7 +24,9 @@ export default function FeedbackManagementPage() {
     const acc: Record<FeedbackStatus, FeedbackReport[]> = {
       new: [], triage: [], accepted: [], in_progress: [], resolved: [], closed: [], rejected: [], duplicate: [],
     };
-    for (const r of reports ?? []) acc[r.status as FeedbackStatus]?.push(r);
+    // N3-02: el kanban no debe mostrar la fila extra del limit+1; el crudo
+    // (`reports`) queda solo para ListTruncationNotice.
+    for (const r of visibleListRows(reports)) acc[r.status as FeedbackStatus]?.push(r);
     return acc;
   })();
 

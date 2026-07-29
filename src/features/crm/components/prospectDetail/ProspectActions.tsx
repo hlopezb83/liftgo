@@ -39,7 +39,10 @@ export function ProspectActions({ prospect, onEdit, onClose }: Props) {
             <Button
               onClick={() => { if (assertCanClose("save")) setWonOpen(true); }}
               className="bg-success hover:bg-success/90 text-success-foreground"
-              disabled={!canCloseDeal}
+              // V3-2: la DB solo permite cerrar desde 'negociacion' — sin este
+              // gate el clic terminaba en un error SQL crudo de validate_transition.
+              disabled={!canCloseDeal || prospect.stage !== "negociacion"}
+              title={prospect.stage !== "negociacion" ? "Sólo se puede cerrar un deal en etapa Negociación" : undefined}
             >
               <TrophyIcon className="h-4 w-4 mr-1" /> Ganado
             </Button>

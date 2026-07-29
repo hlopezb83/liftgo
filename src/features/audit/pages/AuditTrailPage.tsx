@@ -5,6 +5,7 @@ import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { useUserRole } from "@/features/users";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
+import { visibleListRows } from "@/lib/supabase/constants";
 import { AuditLogDetailDialog } from "../components/auditTrail/AuditLogDetailDialog";
 import { AuditLogMobileCard } from "../components/auditTrail/AuditLogMobileCard";
 import { TABLES, getRecordLabel } from "../components/auditTrail/auditTrailConstants";
@@ -38,9 +39,12 @@ export default function AuditTrailPage() {
   );
 
   const search = values.q.toLowerCase();
+  // N3-01: recortar la fila extra del limit+1 antes de renderizar/buscar;
+  // el crudo (`logs`) queda solo para ListTruncationNotice.
+  const visibleLogs = visibleListRows(logs);
   const displayed = !search
-    ? (logs ?? [])
-    : (logs ?? []).filter((log) =>
+    ? visibleLogs
+    : visibleLogs.filter((log) =>
         [log.table_name, log.action, log.user_email ?? "", getRecordLabel(log)]
           .join(" ")
           .toLowerCase()

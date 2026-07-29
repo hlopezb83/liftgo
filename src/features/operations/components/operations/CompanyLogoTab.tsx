@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { Image as ImageIcon, SaveIcon, SuccessIcon, InfoAlertIcon, ImageOff } from "@/components/icons";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +13,7 @@ import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { logoSchema, type LogoFormValues } from "../../lib/operationsSchemas";
 
 export function CompanyLogoTab() {
-  const { data: settings, isLoading } = useCompanySettings();
+  const { data: settings, isLoading, isError, refetch } = useCompanySettings();
   const upsert = useUpsertCompanySettings();
   const form = useForm<LogoFormValues>({
     resolver: zodResolver(logoSchema),
@@ -48,6 +49,12 @@ export function CompanyLogoTab() {
   };
 
   if (isLoading) return <Skeleton className="h-64" />;
+
+  if (isError) {
+    return (
+      <QueryErrorState bare entity="el logo de la empresa" onRetry={() => { void refetch(); }} />
+    );
+  }
 
   return (
     <Form {...form}>

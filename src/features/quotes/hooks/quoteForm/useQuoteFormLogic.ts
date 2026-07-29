@@ -28,8 +28,9 @@ export function useQuoteFormLogic() {
   useQuotePrefill({ existingQuote, equipmentModels, form });
 
   // P1-3: una cotización aceptada (o ya convertida a booking) no puede cambiar
-  // de montos — el cliente ya firmó esas cifras. Para corregirla hay que
-  // cancelarla (admin/administrativo) o duplicarla, no editarla.
+  // de montos — el cliente ya firmó esas cifras. V3-3: la DB tampoco permite
+  // rechazarla una vez aceptada; las salidas son cancelarla (solo admin) o
+  // crear una versión nueva.
   const isAmountLocked =
     !!existingQuote && (existingQuote.status === "accepted" || !!existingQuote.accepted_at);
 

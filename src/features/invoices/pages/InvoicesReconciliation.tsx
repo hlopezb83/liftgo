@@ -1,6 +1,7 @@
 import { startOfMonth, endOfMonth } from "date-fns";
 import { useState } from "react";
 import { DownloadIcon, WarnIcon } from "@/components/icons";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -33,10 +34,13 @@ function defaultFilters(): ReconciliationFilters {
 
 export default function InvoicesReconciliation() {
   const [filters, setFilters] = useState<ReconciliationFilters>(defaultFilters);
-  const { data, isLoading } = useReconciliationData(filters);
+  const { data, isLoading, isError, refetch } = useReconciliationData(filters);
 
   const rows = data?.rows ?? [];
   const summary = data?.summary;
+  // A3-03: validación inline del rango — la query con from>to devuelve
+  // vacío y el usuario creía que no había facturas en el periodo.
+  const invalidRange = filters.from !== "" && filters.to !== "" && filters.from > filters.to;
 
   const kpis = [
       {
@@ -57,7 +61,7 @@ export default function InvoicesReconciliation() {
           <Button
             variant="outline"
             onClick={() => { void downloadReconciliationXlsx(rows); }}
-            disabled={rows.length === 0}
+            disabled={rows.length === 0 || isError}
           >
             <DownloadIcon className="h-4 w-4 mr-2" /> Exportar XLSX
           </Button>
@@ -86,6 +90,9 @@ export default function InvoicesReconciliation() {
               value={filters.to}
               onChange={(e) => setFilters((f) => ({ ...f, to: e.target.value }))}
             />
+            {invalidRange && (
+              <p className="text-xs text-destructive">La fecha “Desde” no puede ser posterior a “Hasta”.</p>
+            )}
           </div>
           <div className="space-y-1">
             <Label>Estado fiscal</Label>
@@ -123,6 +130,13 @@ export default function InvoicesReconciliation() {
         </CardContent>
       </Card>
 
+      {isError ? (
+        <QueryErrorState
+          entity="la conciliación de facturas"
+          onRetry={() => { void refetch(); }}
+        />
+      ) : (
+      <>
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {kpis.map((k) => (
           <Card key={k.label}>
@@ -149,6 +163,8 @@ export default function InvoicesReconciliation() {
           <ReconciliationTable rows={rows} isLoading={isLoading} />
         </CardContent>
       </Card>
+      </>
+      )}
 
     </PageContainer>
   );

@@ -93,6 +93,7 @@ export default function QuoteForm() {
             <Alert>
               <AlertDescription>
                 Esta cotización ya fue aceptada o convertida a reserva: sus montos no pueden modificarse.
+                Para corregirla, un administrador puede cancelarla; si necesitas otra versión, crea una cotización nueva.
               </AlertDescription>
             </Alert>
           ) : (

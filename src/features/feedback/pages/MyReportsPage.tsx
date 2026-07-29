@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateMty } from "@/lib/format/dateFormats";
+import { visibleListRows } from "@/lib/supabase/constants";
 import { FeedbackStatusBadge } from "../components/FeedbackStatusBadge";
 import { useMyFeedbackReports } from "../hooks/useFeedbackReports";
 import { FEEDBACK_TYPE_LABELS } from "../lib/constants";
@@ -16,7 +17,10 @@ type Report = NonNullable<ReturnType<typeof useMyFeedbackReports>["data"]>[numbe
 export default function MyReportsPage() {
   const { data: reports, isLoading, isError, refetch } = useMyFeedbackReports();
 
-  const totalPoints = (reports ?? []).reduce((sum, r) => sum + (r.points_awarded ?? 0), 0);
+  // N3-02: el hook pide limit+1; renderizamos solo las filas visibles.
+  // El crudo (`reports`) queda solo para ListTruncationNotice.
+  const visibleReports = visibleListRows(reports);
+  const totalPoints = visibleReports.reduce((sum, r) => sum + (r.points_awarded ?? 0), 0);
 
   const columns: ColumnDef<Report>[] = [
     {
@@ -65,7 +69,7 @@ export default function MyReportsPage() {
   ];
 
   const table = useLiftgoTable<Report>({
-    data: reports ?? [],
+    data: visibleReports,
     columns,
     getRowId: (r) => r.id,
     initialSorting: [{ id: "created_at", desc: true }],
@@ -87,7 +91,7 @@ export default function MyReportsPage() {
 
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-base">{reports?.length ?? 0} reportes</CardTitle>
+          <CardTitle className="text-base">{visibleReports.length} reportes</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {isError ? (

@@ -14,7 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { createEntityKeys } from "@/lib/query/createEntityKeys";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { callRpc } from "@/lib/rpc";
-import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
+import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import type {
   ActivityRange,
   ActivityMetrics,
@@ -112,7 +112,9 @@ export const auditLogsQueries = defineEntityQueries<"audit-logs", AuditLog[], ne
         .from("audit_logs")
         .select(LIST_SELECT)
         .order("created_at", { ascending: false })
-        .limit(LIST_PAGE_LIMIT);
+        // N3-01: limit+1 como los demás hooks — ListTruncationNotice exige
+        // la fila extra para no dar falso positivo con exactamente 500 logs.
+        .limit(LIST_FETCH_LIMIT);
 
       if (filters.table_name) query = query.eq("table_name", filters.table_name);
       if (filters.record_id) query = query.eq("record_id", filters.record_id);
