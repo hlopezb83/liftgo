@@ -28,6 +28,20 @@ function defaultFilters(): ReconciliationFilters {
   };
 }
 
+type ReconciliationSummary = NonNullable<
+  ReturnType<typeof useReconciliationData>["data"]
+>["summary"];
+
+function buildKpis(summary: ReconciliationSummary | undefined): { label: string; value: string }[] {
+  return [
+    { label: "Total timbrado (producción)", value: formatCurrency(summary?.totalStampedLive ?? 0) },
+    { label: "Timbradas", value: String(summary?.countStamped ?? 0) },
+    { label: "Canceladas", value: String(summary?.countCancelled ?? 0) },
+    { label: "Borradores", value: String(summary?.countDraft ?? 0) },
+  ];
+}
+
+
 export default function InvoicesReconciliation() {
   const [filters, setFilters] = useState<ReconciliationFilters>(defaultFilters);
   const { data, isLoading, isError, refetch } = useReconciliationData(filters);
