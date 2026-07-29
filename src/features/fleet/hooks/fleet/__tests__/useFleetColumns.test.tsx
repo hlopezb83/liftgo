@@ -12,16 +12,11 @@ const forklift = {
   status: "available",
 } as unknown as Forklift;
 
-function useRenderCell(columnId: string) {
+function renderCell(columnId: string) {
   const columns = useFleetColumns(new Set(), new Map());
   const col = columns.find((c) => c.id === columnId);
   if (typeof col?.cell !== "function") throw new Error("column not found");
-  return col.cell;
-}
-
-function renderCell(columnId: string) {
-  const Cell = useRenderCell(columnId);
-  return render(<>{Cell({ row: { original: forklift } } as never)}</>);
+  return render(<>{col.cell({ row: { original: forklift } } as never)}</>);
 }
 
 describe("useFleetColumns Untranslated wrapping", () => {
