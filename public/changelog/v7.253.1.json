@@ -1,0 +1,30 @@
+{
+  "version": "7.253.1",
+  "date": "2026-07-28",
+  "type": "patch",
+  "title": "Pruebas automáticas para diálogos, tablas vacías y Kanban de CRM",
+  "category": "improvement",
+  "description": "Se agregaron pruebas automáticas que cubren el aviso de cambios sin guardar, los estados vacíos y de error de las tablas, el ordenamiento con valores en blanco y el movimiento de tarjetas en el CRM.",
+  "changes": [
+    {
+      "type": "improvement",
+      "description": "Formularios en ventana: pruebas que verifican el aviso '¿Descartar cambios?' al cerrar con Esc, que 'Seguir editando' conserva lo capturado y que no se puede cerrar mientras se está guardando."
+    },
+    {
+      "type": "improvement",
+      "description": "Tablas: pruebas de los estados vacíos (con y sin filtros aplicados), del botón 'Limpiar filtros' y del estado de error con 'Reintentar'."
+    },
+    {
+      "type": "improvement",
+      "description": "Ordenamiento: pruebas que confirman que los valores en blanco siempre quedan al final, tanto ascendente como descendente."
+    },
+    {
+      "type": "improvement",
+      "description": "Portal de clientes: pruebas de los mensajes de error de acceso en español mexicano."
+    },
+    {
+      "type": "improvement",
+      "description": "CRM: nueva prueba de extremo a extremo que mueve una tarjeta entre etapas y valida que el cambio se ve al instante y queda guardado; los datos de prueba se eliminan al terminar."
+    }
+  ]
+}
