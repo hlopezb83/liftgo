@@ -1,0 +1,45 @@
+{
+  "version": "7.254.0",
+  "date": "2026-07-29",
+  "type": "minor",
+  "title": "Auditoría UI/UX R23: montos visibles, impresión y captura segura",
+  "category": "fix",
+  "description": "Se corrigieron celdas de dinero que aparecían vacías, la impresión recortada, el botón Cancelar que descartaba cambios sin avisar y la lectura de importes bancarios con coma decimal.",
+  "changes": [
+    {
+      "type": "fix",
+      "title": "Montos vuelven a mostrarse en tablas",
+      "description": "R23-1: diez columnas de dinero (proveedores, pólizas de mantenimiento, reportes de costos, antigüedad de saldos, ingresos y portal del cliente) se renderizaban vacías. Se agregó una prueba automática que impide que el error reaparezca."
+    },
+    {
+      "type": "fix",
+      "title": "Impresión ya no recorta el contenido",
+      "description": "R23-2: al imprimir, el contenido se cortaba al alto de la pantalla. Ahora la vista de impresión libera el alto y el desbordamiento del área principal."
+    },
+    {
+      "type": "fix",
+      "title": "Cancelar respeta los cambios sin guardar",
+      "description": "R23-A: el botón Cancelar cerraba el formulario sin pedir confirmación. Ahora pasa por el mismo aviso de \"¿Descartar cambios?\" que Escape o el clic fuera."
+    },
+    {
+      "type": "fix",
+      "title": "El formulario de prospectos espera al guardado",
+      "description": "R23-B: el modal se cerraba antes de confirmar el guardado y con un error de red se perdía lo capturado. Ahora sólo cierra cuando el servidor responde correctamente."
+    },
+    {
+      "type": "fix",
+      "title": "Kanban de CRM sin saltos al arrastrar rápido",
+      "description": "R23-C: dos arrastres seguidos hacían que una tarjeta regresara a su columna anterior. Se refresca la lista sólo cuando ya no hay movimientos en curso."
+    },
+    {
+      "type": "fix",
+      "title": "Importes grandes legibles en Cuentas por Pagar",
+      "description": "R23-D: los indicadores con montos de siete cifras se cortaban. Ahora el tamaño de letra se ajusta al largo del importe."
+    },
+    {
+      "type": "fix",
+      "title": "Importación bancaria lee correctamente la coma decimal",
+      "description": "R23-E: un importe como 1.500,50 se registraba como 1.5005. El lector ahora reconoce tanto el formato mexicano como el estadounidense."
+    }
+  ]
+}

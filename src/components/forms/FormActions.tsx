@@ -2,12 +2,14 @@ import { useEffect, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 import { SpinnerIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { useFormDialogClose } from "./formDialogContext";
 
 interface FormActionsProps {
   submitLabel: string;
   isPending: boolean;
   onCancel: () => void;
 }
+
 
 /**
  * Bloque 2.1 (v7.146.0): además de `isPending` de la mutación, consumimos
@@ -28,6 +30,10 @@ export function FormActions({ submitLabel, isPending, onCancel }: FormActionsPro
   const isSubmitting = ctx?.formState?.isSubmitting ?? false;
   const busy = isPending || isSubmitting;
   const inFlightRef = useRef(false);
+  // R23-A: dentro de un FormDialog, "Cancelar" pasa por el mismo guard de
+  // cambios sin guardar que Esc y el click fuera.
+  const requestClose = useFormDialogClose();
+  const handleCancel = requestClose ?? onCancel;
 
   useEffect(() => {
     if (!busy) inFlightRef.current = false;
@@ -45,7 +51,8 @@ export function FormActions({ submitLabel, isPending, onCancel }: FormActionsPro
     // Oleada 2 (B-7): convención única de footer — Cancelar a la izquierda,
     // acción primaria a la derecha, en todos los diálogos de la app.
     <div className="flex items-center justify-between gap-3 pt-2">
-      <Button type="button" variant="outline" onClick={onCancel} disabled={busy}>Cancelar</Button>
+      <Button type="button" variant="outline" onClick={handleCancel} disabled={busy}>Cancelar</Button>
+
       <Button type="submit" disabled={busy} onPointerDown={blockIfBusy}>
         {busy && <SpinnerIcon className="h-4 w-4 mr-2 animate-spin" />}
         {busy ? "Guardando…" : submitLabel}

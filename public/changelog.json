@@ -1,5 +1,14 @@
 [
   {
+    "version": "7.254.0",
+    "date": "2026-07-29",
+    "type": "minor",
+    "title": "Auditoría UI/UX R23: montos visibles, impresión y captura segura",
+    "category": "fix",
+    "description": "Se corrigieron celdas de dinero que aparecían vacías, la impresión recortada, el botón Cancelar que descartaba cambios sin avisar y la lectura de importes bancarios con coma decimal."
+  },
+  {
+
     "version": "7.253.4",
     "date": "2026-07-29",
     "type": "patch",

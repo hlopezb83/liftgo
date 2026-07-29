@@ -1,6 +1,6 @@
 import { ClockIcon, WarnIcon, CalendarClock, SuccessIcon, ShieldAlert, FileWarning } from "@/components/icons";
 import { Card, CardContent } from "@/components/ui/card";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrency, kpiSizeClass } from "@/lib/format/formatCurrency";
 import type { AccountsPayableKpis } from "../hooks/useAccountsPayableKpis";
 
 interface Props {
@@ -37,9 +37,11 @@ export function AccountsPayableKpiCards({ kpis }: Props) {
             </div>
             <div className="min-w-0">
               <p className="text-xs text-muted-foreground truncate">{label}</p>
-              <p className={`text-lg font-bold font-mono ${tone}`}>
+              {/* R23-D: sin escala adaptativa, montos ≥$1M se cortaban a 1440px. */}
+              <p className={`font-bold font-mono tabular-nums ${kpiSizeClass(asCount ? String(kpis[key]) : formatCurrency(kpis[key]))} ${tone}`}>
                 {asCount ? kpis[key] : formatCurrency(kpis[key])}
               </p>
+
               {key === "totalPorAprobar" && kpis.countPorAprobar > 0 && (
                 <p className="text-3xs text-muted-foreground">
                   {kpis.countPorAprobar} factura{kpis.countPorAprobar === 1 ? "" : "s"}

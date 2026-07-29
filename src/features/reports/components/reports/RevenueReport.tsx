@@ -77,8 +77,8 @@ export function RevenueReport({ startDate, endDate }: Props) {
   const columns: ColumnDef<Row>[] = [
     { id: "month", header: "Mes", accessorKey: "month", cell: ({ row }) => <span className="font-medium">{row.original.month}</span> },
     { id: "count", header: "Facturas", accessorKey: "count", meta: { kind: "money" }, cell: ({ row }) => row.original.count },
-    { id: "invoiced", header: "Facturado", accessorKey: "invoiced", meta: { kind: "money" }, cell: ({ row }) => {formatCurrency(row.original.invoiced)} },
-    { id: "paid", header: "Pagado", accessorKey: "paid", meta: { kind: "money" }, cell: ({ row }) => {formatCurrency(row.original.paid)} },
+    { id: "invoiced", header: "Facturado", accessorKey: "invoiced", meta: { kind: "money" }, cell: ({ row }) => formatCurrency(row.original.invoiced) },
+    { id: "paid", header: "Pagado", accessorKey: "paid", meta: { kind: "money" }, cell: ({ row }) => formatCurrency(row.original.paid) },
   ];
 
   const table = useLiftgoTable<Row>({
