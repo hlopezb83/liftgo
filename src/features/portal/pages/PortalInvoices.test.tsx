@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import PortalInvoices from "./PortalInvoices";
 
 vi.mock("@/features/customers", () => ({
@@ -9,8 +10,20 @@ vi.mock("@/features/customers", () => ({
 
 import { usePortalInvoices } from "@/features/customers";
 
+function createTestQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+    },
+  });
+}
+
 function renderWithRouter(ui: React.ReactNode) {
-  return render(<MemoryRouter>{ui}</MemoryRouter>);
+  return render(
+    <QueryClientProvider client={createTestQueryClient()}>
+      <MemoryRouter>{ui}</MemoryRouter>
+    </QueryClientProvider>,
+  );
 }
 
 describe("PortalInvoices", () => {
