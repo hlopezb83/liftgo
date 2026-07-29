@@ -33,5 +33,9 @@ describe("celdas de dinero sin return (R23-1)", () => {
       });
     }
     expect(offenders).toEqual([]);
+    // El escaneo recorre todo src/ con I/O síncrono: bajo carga paralela en CI
+    // los 5s por defecto se quedan cortos y el test fallaba por timeout.
+  }, 30_000);
+
   });
 });
