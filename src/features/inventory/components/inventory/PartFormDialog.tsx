@@ -125,9 +125,7 @@ export function PartFormDialog({ open, onOpenChange, part }: PartFormDialogProps
             </div>
           </FormSection>
           <FormDialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
+            <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={isPending} />
             <Button type="submit" disabled={isPending}>
               {isPending ? "Guardando…" : part ? "Guardar" : "Agregar refacción"}
             </Button>
