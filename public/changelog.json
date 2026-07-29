@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.253.4",
+    "date": "2026-07-29",
+    "type": "patch",
+    "title": "Pruebas paralelas de CRM y conciliación bancaria estables",
+    "category": "fix",
+    "description": "Se evitó que una prueba automática borre los datos temporales de otra ejecución concurrente y se confirmó la persistencia del Kanban antes de recargar."
+  },
+  {
     "version": "7.253.3",
     "date": "2026-07-29",
     "type": "patch",

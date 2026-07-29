@@ -27,6 +27,7 @@ if (!SUPABASE_URL || !SUPABASE_KEY) {
 }
 
 const TMP_PREFIX = "TMP_E2E_BANK";
+const ORPHAN_MAX_AGE_MS = 6 * 60 * 60 * 1_000;
 
 export type BankSeedIds = {
   scope: string;
@@ -64,10 +65,12 @@ function buildScope(testInfo: TestInfo): string {
 
 /** Borra cuentas temporales huérfanas de corridas previas (y su cascada). */
 async function sweepOrphans(client: SupabaseClient): Promise<void> {
+  const cutoff = new Date(Date.now() - ORPHAN_MAX_AGE_MS).toISOString();
   const { data } = await client
     .from("bank_accounts")
     .select("id")
-    .like("notes", `${TMP_PREFIX}%`);
+    .like("notes", `${TMP_PREFIX}%`)
+    .lt("created_at", cutoff);
   const ids = (data ?? []).map((a: { id: string }) => a.id);
   if (ids.length === 0) return;
   await client.from("bank_statement_lines").delete().in("bank_account_id", ids);
