@@ -1,5 +1,9 @@
 # Changelog
 
+## 7.260.2 — 29/07/2026
+
+- Refactor: `PortalInvoiceDetail` delega datos y totales a `usePortalInvoiceDetailData` y el resumen a `InvoiceSummaryCards`; se elimina la advertencia de ESLint por complejidad 17.
+
 ## 7.260.1 — 29/07/2026
 
 - E2E: `e2e_seed_scenario` siembra la cotización en `draft` y la transiciona a `accepted`, alineándose con el trigger `validate_transition` (13 specs del shard 1/2 volvían a fallar en la siembra).

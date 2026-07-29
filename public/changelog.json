@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.260.2",
+    "date": "2026-07-29",
+    "type": "patch",
+    "title": "Detalle de factura del portal más simple por dentro",
+    "category": "improvement",
+    "description": "Reorganizamos el detalle de factura del portal de clientes separando el cálculo de totales y las tarjetas de resumen en piezas propias. La pantalla se ve y funciona igual, pero es más fácil de mantener."
+  },
+  {
     "version": "7.260.1",
     "date": "2026-07-29",
     "type": "patch",

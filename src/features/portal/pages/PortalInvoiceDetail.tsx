@@ -9,16 +9,18 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { usePortalInvoices, usePortalPayments } from "@/features/customers";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
+import { InvoiceSummaryCards } from "../components/InvoiceSummaryCards";
 import { TotalsBreakdown } from "../components/TotalsBreakdown";
 import { useCfdiDownload } from "../hooks/useCfdiDownload";
+import {
+  usePortalInvoiceDetailData,
+  type PortalLineItem as LineItem,
+  type PortalPaymentRow as Payment,
+} from "../hooks/usePortalInvoiceDetailData";
 
-
-type LineItem = { description?: string; quantity?: number; unit_price?: number; amount?: number };
-type Payment = { id: string; payment_date: string; payment_method: string | null; reference_number: string | null; amount: number | string };
 
 function buildLineColumns(currency: string): ColumnDef<LineItem>[] {
   return [
@@ -70,15 +72,19 @@ function InvoiceHeaderActions({ hasCfdi, showPay, downloading, onDownload, onPay
 export default function PortalInvoiceDetail() {
   const { id } = useParams();
   const navigate = useNavigateTransition();
-  const { data: invoices, isLoading: invoicesLoading, isError: invoicesError, refetch: refetchInvoices } = usePortalInvoices();
-  const { data: payments, isLoading: paymentsLoading, isError: paymentsError, refetch: refetchPayments } = usePortalPayments();
-  const isLoading = invoicesLoading || paymentsLoading;
-  const isError = invoicesError || paymentsError;
-
-  const invoice = invoices?.find((i) => i.id === id);
-  const invoicePayments: Payment[] = (payments?.filter((p) => p.invoice_id === id) || []) as Payment[];
-  const lineItems: LineItem[] = Array.isArray(invoice?.line_items) ? (invoice?.line_items as LineItem[]) : [];
-  const currency = invoice?.moneda ?? "MXN";
+  const {
+    invoice,
+    invoicePayments,
+    lineItems,
+    currency,
+    totalPaid,
+    balance,
+    hasCfdi,
+    showPay,
+    isLoading,
+    isError,
+    refetchAll,
+  } = usePortalInvoiceDetailData(id);
 
   const lineColumns = useMemo(() => buildLineColumns(currency), [currency]);
   const paymentColumns = useMemo(() => buildPaymentColumns(currency), [currency]);
@@ -104,25 +110,12 @@ export default function PortalInvoiceDetail() {
   if (isError) {
     return (
       <PageContainer maxWidth="wide">
-        <QueryErrorState
-          entity="la factura"
-          onRetry={() => {
-            void refetchInvoices();
-            void refetchPayments();
-          }}
-        />
+        <QueryErrorState entity="la factura" onRetry={refetchAll} />
       </PageContainer>
     );
   }
   if (!invoice) return <p className="text-muted-foreground">Factura no encontrada</p>;
 
-  const totalPaid = invoicePayments.reduce((sum, p) => sum + Number(p.amount), 0);
-  // v7.209.0 A3: restar credited_amount (NCs timbradas) para alinear el saldo
-  // del detalle con el estado de cuenta del portal y con la vista interna.
-  const balance = Number(invoice.total) - totalPaid - Number(invoice.credited_amount ?? 0);
-  const hasCfdi = Boolean(invoice.cfdi_uuid);
-  const showPay = balance > 0 && invoice.status !== "cancelled";
-  const balanceCls = balance > 0 ? "text-destructive" : "";
 
   return (
     <PageContainer maxWidth="wide">
@@ -145,28 +138,13 @@ export default function PortalInvoiceDetail() {
         <span>Emitida: {formatDateDisplay(invoice.issued_at)}</span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground">Total</p>
-            <p className="text-xl font-bold font-mono">{formatCurrencyWithCode(Number(invoice.total), currency)}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground">Pagado</p>
-            <p className="text-xl font-bold font-mono text-status-available">{formatCurrencyWithCode(totalPaid, currency)}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground">Saldo</p>
-            <p className={`text-xl font-bold font-mono ${balanceCls}`}>
-              {formatCurrencyWithCode(balance, currency)}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <InvoiceSummaryCards
+        total={Number(invoice.total)}
+        totalPaid={totalPaid}
+        balance={balance}
+        currency={currency}
+      />
+
 
       <Card>
         <CardHeader>
