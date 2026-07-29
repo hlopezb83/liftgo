@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.264.1",
+    "date": "2026-07-29",
+    "type": "patch",
+    "title": "Limpieza de registros de mantenimiento generados por pruebas automatizadas",
+    "category": "fix",
+    "description": "Se eliminaron los 26 registros de mantenimiento que se veían vacíos: eran órdenes de trabajo de las pruebas automatizadas ligadas a montacargas de prueba ocultos en la app. Ahora los registros de mantenimiento se marcan como datos de prueba, la limpieza automática los borra junto con sus refacciones y mano de obra, y la lista y el Kanban de mantenimiento excluyen datos de prueba."
+  },
+  {
     "version": "7.264.0",
     "date": "2026-07-29",
     "type": "minor",
