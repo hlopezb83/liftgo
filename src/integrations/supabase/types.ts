@@ -356,6 +356,7 @@ export type Database = {
         Row: {
           booking_number: string
           created_at: string
+          currency: string
           customer_contact: string | null
           customer_id: string | null
           customer_name: string | null
@@ -374,6 +375,7 @@ export type Database = {
           site_contact_phone: string | null
           start_date: string
           status: string
+          tipo_cambio: number
           updated_at: string
           version: number
           weekly_rate: number | null
@@ -381,6 +383,7 @@ export type Database = {
         Insert: {
           booking_number: string
           created_at?: string
+          currency?: string
           customer_contact?: string | null
           customer_id?: string | null
           customer_name?: string | null
@@ -399,6 +402,7 @@ export type Database = {
           site_contact_phone?: string | null
           start_date: string
           status?: string
+          tipo_cambio?: number
           updated_at?: string
           version?: number
           weekly_rate?: number | null
@@ -406,6 +410,7 @@ export type Database = {
         Update: {
           booking_number?: string
           created_at?: string
+          currency?: string
           customer_contact?: string | null
           customer_id?: string | null
           customer_name?: string | null
@@ -424,6 +429,7 @@ export type Database = {
           site_contact_phone?: string | null
           start_date?: string
           status?: string
+          tipo_cambio?: number
           updated_at?: string
           version?: number
           weekly_rate?: number | null
@@ -1553,6 +1559,7 @@ export type Database = {
           deleted_at: string | null
           deleted_by: string | null
           e2e_scope: string | null
+          equipment_model_id: string | null
           fuel_type: string | null
           id: string
           image_url: string | null
@@ -1583,6 +1590,7 @@ export type Database = {
           deleted_at?: string | null
           deleted_by?: string | null
           e2e_scope?: string | null
+          equipment_model_id?: string | null
           fuel_type?: string | null
           id?: string
           image_url?: string | null
@@ -1613,6 +1621,7 @@ export type Database = {
           deleted_at?: string | null
           deleted_by?: string | null
           e2e_scope?: string | null
+          equipment_model_id?: string | null
           fuel_type?: string | null
           id?: string
           image_url?: string | null
@@ -1634,7 +1643,15 @@ export type Database = {
           weekly_rate?: number | null
           year?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "forklifts_equipment_model_id_fkey"
+            columns: ["equipment_model_id"]
+            isOneToOne: false
+            referencedRelation: "equipment_models"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invoice_bookings: {
         Row: {
@@ -2574,6 +2591,7 @@ export type Database = {
           subtotal: number
           tax_amount: number
           tax_rate: number
+          tipo_cambio: number
           total: number
           updated_at: string
           valid_until: string | null
@@ -2605,6 +2623,7 @@ export type Database = {
           subtotal?: number
           tax_amount?: number
           tax_rate?: number
+          tipo_cambio?: number
           total?: number
           updated_at?: string
           valid_until?: string | null
@@ -2636,6 +2655,7 @@ export type Database = {
           subtotal?: number
           tax_amount?: number
           tax_rate?: number
+          tipo_cambio?: number
           total?: number
           updated_at?: string
           valid_until?: string | null
@@ -2790,6 +2810,7 @@ export type Database = {
       status_logs: {
         Row: {
           changed_at: string
+          changed_by: string | null
           forklift_id: string
           from_status: string | null
           id: string
@@ -2798,6 +2819,7 @@ export type Database = {
         }
         Insert: {
           changed_at?: string
+          changed_by?: string | null
           forklift_id: string
           from_status?: string | null
           id?: string
@@ -2806,6 +2828,7 @@ export type Database = {
         }
         Update: {
           changed_at?: string
+          changed_by?: string | null
           forklift_id?: string
           from_status?: string | null
           id?: string
@@ -3565,6 +3588,7 @@ export type Database = {
           subtotal: number
           tax_amount: number
           tax_rate: number
+          tipo_cambio: number
           total: number
           updated_at: string
           valid_until: string | null
@@ -3798,6 +3822,7 @@ export type Database = {
           deleted_at: string | null
           deleted_by: string | null
           e2e_scope: string | null
+          equipment_model_id: string | null
           fuel_type: string | null
           id: string
           image_url: string | null
@@ -4143,6 +4168,7 @@ export type Database = {
           subtotal: number
           tax_amount: number
           tax_rate: number
+          tipo_cambio: number
           total: number
           updated_at: string
           valid_until: string | null
