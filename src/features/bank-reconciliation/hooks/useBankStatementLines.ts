@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
+import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import type { BankLineStatus } from "../lib/bankReconciliationConstants";
 
 export interface BankStatementLine {
@@ -38,7 +38,7 @@ export const bankLineQueries = defineEntityQueries<
       )
       .eq("bank_account_id", bankAccountId)
       .order("posted_date", { ascending: false })
-      .limit(LIST_PAGE_LIMIT);
+      .limit(LIST_FETCH_LIMIT);
     if (error) throw error;
     return (data ?? []).map((r) => ({
       ...r,

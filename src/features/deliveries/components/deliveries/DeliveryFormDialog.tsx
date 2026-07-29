@@ -15,6 +15,7 @@ import { DeliveryFormFields, type DeliveryFormValues } from "./DeliveryFormField
 
 const initialForm: DeliveryFormValues = {
   forkliftId: "", bookingId: "", type: "delivery",
+  alreadyCompleted: false,
   scheduledDate: new Date(), scheduledTime: "",
   address: "", driverName: "", driverPhone: "", notes: "",
 };
@@ -42,6 +43,7 @@ export function DeliveryFormDialog() {
         driver_name: values.driverName || null,
         driver_phone: values.driverPhone || null,
         notes: values.notes || null,
+        status: values.alreadyCompleted ? "completed" : "scheduled",
       },
       {
         onSuccess: () => {

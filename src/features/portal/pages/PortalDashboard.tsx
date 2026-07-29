@@ -1,4 +1,5 @@
 import { KpiTile } from "@/components/domain/KpiTile";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { CalendarDays, InvoiceIcon, ExpenseIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -22,12 +23,30 @@ function PortalDashboardSkeleton() {
 }
 
 export default function PortalDashboard() {
-  const { data: customer, isLoading: customerLoading } = usePortalCustomer();
-  const { data: bookings, isLoading: bookingsLoading } = usePortalBookings();
-  const { data: invoices, isLoading: invoicesLoading } = usePortalInvoices();
+  const { data: customer, isLoading: customerLoading, isError: customerError, refetch: refetchCustomer } = usePortalCustomer();
+  const { data: bookings, isLoading: bookingsLoading, isError: bookingsError, refetch: refetchBookings } = usePortalBookings();
+  const { data: invoices, isLoading: invoicesLoading, isError: invoicesError, refetch: refetchInvoices } = usePortalInvoices();
 
   const isLoading = customerLoading || bookingsLoading || invoicesLoading;
   if (isLoading) return <PortalDashboardSkeleton />;
+
+  // A-01: NUNCA renderizar KPIs en 0 ni "sin datos" cuando una query falló —
+  // el cliente externo podría ver un saldo $0 falso durante un outage.
+  const isError = customerError || bookingsError || invoicesError;
+  if (isError) {
+    return (
+      <PageContainer maxWidth="wide">
+        <QueryErrorState
+          entity="tu información de cuenta"
+          onRetry={() => {
+            void refetchCustomer();
+            void refetchBookings();
+            void refetchInvoices();
+          }}
+        />
+      </PageContainer>
+    );
+  }
 
   const bookingList = bookings ?? [];
   const invoiceList = invoices ?? [];

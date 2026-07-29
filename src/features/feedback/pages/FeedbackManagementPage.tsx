@@ -1,11 +1,10 @@
 import { useState } from "react";
-import { WarnIcon } from "@/components/icons";
+import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 import { formatMtyDate } from "@/lib/utils";
 import { FeedbackDetailSheet } from "../components/FeedbackDetailSheet";
 import { useAllFeedbackReports, type FeedbackReport } from "../hooks/useFeedbackReports";
@@ -17,7 +16,7 @@ import {
 } from "../lib/constants";
 
 export default function FeedbackManagementPage() {
-  const { data: reports, isLoading } = useAllFeedbackReports();
+  const { data: reports, isLoading, isError, refetch } = useAllFeedbackReports();
   const [selected, setSelected] = useState<FeedbackReport | null>(null);
 
   const grouped = (() => {
@@ -35,16 +34,11 @@ export default function FeedbackManagementPage() {
         subtitle="Reportes de bugs y mejoras enviados por los usuarios."
       />
 
-      {hasReachedListLimit(reports) && (
-        <Alert>
-          <WarnIcon className="h-4 w-4" />
-          <AlertDescription>
-            Mostrando los primeros {LIST_PAGE_LIMIT} registros. Refina los filtros para ver más.
-          </AlertDescription>
-        </Alert>
-      )}
+      <ListTruncationNotice rows={reports} />
 
-      {isLoading ? (
+      {isError ? (
+        <QueryErrorState entity="los reportes de feedback" onRetry={() => { void refetch(); }} />
+      ) : isLoading ? (
         <p className="text-sm text-muted-foreground">Cargando…</p>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">

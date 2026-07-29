@@ -1,5 +1,6 @@
 
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { MobileCardList } from "@/components/layout/MobileCardList";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -13,7 +14,7 @@ import { formatDateDisplay } from "@/lib/utils";
 type Booking = NonNullable<ReturnType<typeof usePortalBookings>["data"]>[number];
 
 export default function PortalRentals() {
-  const { data: bookings, isLoading } = usePortalBookings();
+  const { data: bookings, isLoading, isError, refetch } = usePortalBookings();
   const isMobile = useIsMobile();
 
   const columns: ColumnDef<Booking>[] = [
@@ -59,6 +60,15 @@ export default function PortalRentals() {
   });
 
   if (isLoading) return <Skeleton className="h-96" />;
+
+  if (isError) {
+    return (
+      <PageContainer maxWidth="wide">
+        <PageHeader title="Mis Rentas" />
+        <QueryErrorState entity="tus rentas" onRetry={() => { void refetch(); }} />
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer maxWidth="wide">

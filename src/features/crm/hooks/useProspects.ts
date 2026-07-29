@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
+import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import { mapProspectRow } from "../lib/prospectMapper";
 import type { Prospect, ProspectRow } from "../lib/prospectTypes";
 
@@ -27,7 +27,7 @@ export const prospectQueries = defineEntityQueries<"prospects", Prospect[], neve
       .from("prospects")
       .select(PROSPECT_COLUMNS)
       .order("stage_order", { ascending: true })
-      .limit(LIST_PAGE_LIMIT);
+      .limit(LIST_FETCH_LIMIT);
     if (error) throw error;
     const rows: ProspectRow[] = (data ?? []) as ProspectRow[];
 

@@ -1,9 +1,9 @@
 import { useLiftgoTable } from "@/components/dataTable/v2";
+import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
-import { AddIcon, PlusCircle, ChevronRightIcon, DocumentIcon, WarnIcon } from "@/components/icons";
+import { AddIcon, PlusCircle, ChevronRightIcon, DocumentIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,7 +15,7 @@ import { RoleGuard } from "@/layouts/RoleGuard";
 import { STATUS_LABELS } from "@/lib/constants";
 import { toYMD } from "@/lib/date/toYMD";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
+import { visibleListRows } from "@/lib/supabase/constants";
 import { formatDateRange, parseDateLocal } from "@/lib/utils";
 import { QUOTE_STATUS_LABELS, quoteStatusLabel as quoteLabel } from "../constants";
 import { isPublicoGeneral } from "../hooks/quoteDetail/useQuoteDetailData";
@@ -32,7 +32,8 @@ const QUOTE_STATUS_OPTIONS = [
 type Quote = NonNullable<ReturnType<typeof useQuotes>["data"]>[number];
 
 export default function QuotesPage() {
-  const { data: quotes, isLoading, isError, refetch } = useQuotes();
+  const { data: quotesRaw, isLoading, isError, refetch } = useQuotes();
+  const quotes = visibleListRows(quotesRaw);
   const navigate = useNavigateTransition();
   usePageActions({ onNew: () => navigate("/quotes/new"), onRefresh: refetch, newLabel: "Nueva cotización" });
 
@@ -70,16 +71,11 @@ export default function QuotesPage() {
           </Button>
         </RoleGuard>
       }
+      notice={
+        <ListTruncationNotice rows={quotesRaw} />
+      }
       filters={
         <div className="space-y-3">
-          {hasReachedListLimit(quotes) && (
-            <Alert>
-              <WarnIcon className="h-4 w-4" />
-              <AlertDescription>
-                Mostrando los primeros {LIST_PAGE_LIMIT} registros. Refina los filtros para ver más.
-              </AlertDescription>
-            </Alert>
-          )}
           <FiltersToolbar>
             <FiltersToolbar.Search
               value={values.q}

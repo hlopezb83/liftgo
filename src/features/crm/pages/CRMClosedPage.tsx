@@ -2,7 +2,6 @@ import { SearchIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
-import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { useHasModuleAccess } from "@/features/users/hooks/useHasModuleAccess";
@@ -45,23 +44,13 @@ export default function CRMClosedPage() {
             <TabsTrigger value="lost">Perdidos ({s.metrics.lost.length})</TabsTrigger>
           </TabsList>
           <TabsContent value="won" className="mt-4">
-            <ClosedTable rows={s.wonRows} kind="won" isLoading={s.isLoading} onReopen={s.handleReopen} onConvert={canConvert ? s.handleConvert : undefined} onViewCustomer={handleViewCustomer} />
+            <ClosedTable rows={s.wonRows} kind="won" isLoading={s.isLoading} onConvert={canConvert ? s.handleConvert : undefined} onViewCustomer={handleViewCustomer} />
           </TabsContent>
           <TabsContent value="lost" className="mt-4">
-            <ClosedTable rows={s.lostRows} kind="lost" isLoading={s.isLoading} onReopen={s.handleReopen} />
+            <ClosedTable rows={s.lostRows} kind="lost" isLoading={s.isLoading} />
           </TabsContent>
         </Tabs>
       </PageContainer>
-
-
-      <ConfirmDialog
-        open={s.reopenTarget !== null}
-        onOpenChange={(open) => !open && s.setReopenTarget(null)}
-        title="Reabrir deal"
-        description={s.reopenTarget ? `¿Reabrir deal con ${s.reopenTarget.companyName}? Volverá a la columna de Negociación.` : ""}
-        confirmLabel="Reabrir"
-        onConfirm={s.confirmReopen}
-      />
     </PageTransition>
   );
 }

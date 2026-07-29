@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { EditIcon, DeleteIcon, TrophyIcon, ErrorIcon, ResetIcon } from "@/components/icons";
+import { EditIcon, DeleteIcon, TrophyIcon, ErrorIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { RoleGuard } from "@/layouts/RoleGuard";
@@ -23,17 +23,12 @@ export function ProspectActions({ prospect, onEdit, onClose }: Props) {
   const [wonOpen, setWonOpen] = useState(false);
   const [lostOpen, setLostOpen] = useState(false);
 
+  // N-6: las etapas cerradas son TERMINALES en la DB (validate_transition).
+  // No se ofrece "Reabrir" — la DB rechazaría la mutación de todas formas.
   const isClosed = prospect.stage === "cerrado_ganado" || prospect.stage === "cerrado_perdido";
 
   const handleDelete = () => {
     deleteProspect.mutate(prospect.id, { onSuccess: onClose });
-  };
-
-  const handleReopen = () => {
-    updateProspect.mutate(
-      { id: prospect.id, stage: "negociacion" },
-      { onSuccess: onClose }
-    );
   };
 
   return (
@@ -52,11 +47,6 @@ export function ProspectActions({ prospect, onEdit, onClose }: Props) {
               <ErrorIcon className="h-4 w-4 mr-1" /> Perdido
             </Button>
           </div>
-        )}
-        {isClosed && (
-          <Button variant="outline" className="w-full" onClick={handleReopen} disabled={updateProspect.isPending}>
-            <ResetIcon className="h-4 w-4 mr-1" /> Reabrir deal
-          </Button>
         )}
         <div className="flex gap-2">
           <Button variant="outline" className="flex-1" onClick={() => { onEdit(); onClose(); }}>

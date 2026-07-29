@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
+import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import type { SupplierRepStatus } from "../lib/supplierRepConstants";
 
 type Row = Database["public"]["Tables"]["supplier_bills"]["Row"];
@@ -66,7 +66,7 @@ async function fetchList(): Promise<SupplierBillListItem[]> {
       .from("supplier_bills")
       .select(BILL_LIST_COLUMNS)
       .order("issue_date", { ascending: false })
-      .limit(LIST_PAGE_LIMIT),
+      .limit(LIST_FETCH_LIMIT),
     supabase
       .from("supplier_payments")
       .select("bill_id, rep_required, rep_status"),

@@ -1,6 +1,8 @@
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { WarnIcon } from "@/components/icons";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
@@ -37,6 +39,16 @@ export function BookingStatusChangeDialog({
             </SelectContent>
           </Select>
         </div>
+        {newStatus === "completed" && (
+          <Alert>
+            <WarnIcon className="h-4 w-4" />
+            <AlertDescription>
+              Completar la reserva aquí NO registra la devolución del equipo: el montacargas
+              quedará como rentado hasta que captures su inspección en Devoluciones y Revisión.
+              La ruta recomendada es registrar primero la inspección del retorno.
+            </AlertDescription>
+          </Alert>
+        )}
 
         <FormDialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>

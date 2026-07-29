@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
+import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 
 const sel = (s: string): string => s;
 
@@ -43,7 +43,7 @@ export const suppliersQueries = defineEntityQueries<"suppliers", Supplier[], nev
       .select(SUPPLIER_COLUMNS)
       .is("deleted_at", null)
       .order("name")
-      .limit(LIST_PAGE_LIMIT)
+      .limit(LIST_FETCH_LIMIT)
       .returns<Supplier[]>();
     if (error) throw error;
     return data ?? [];

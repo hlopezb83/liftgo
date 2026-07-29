@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useParams } from "react-router";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DocumentIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -69,9 +70,10 @@ function InvoiceHeaderActions({ hasCfdi, showPay, downloading, onDownload, onPay
 export default function PortalInvoiceDetail() {
   const { id } = useParams();
   const navigate = useNavigateTransition();
-  const { data: invoices, isLoading: invoicesLoading } = usePortalInvoices();
-  const { data: payments, isLoading: paymentsLoading } = usePortalPayments();
+  const { data: invoices, isLoading: invoicesLoading, isError: invoicesError, refetch: refetchInvoices } = usePortalInvoices();
+  const { data: payments, isLoading: paymentsLoading, isError: paymentsError, refetch: refetchPayments } = usePortalPayments();
   const isLoading = invoicesLoading || paymentsLoading;
+  const isError = invoicesError || paymentsError;
 
   const invoice = invoices?.find((i) => i.id === id);
   const invoicePayments: Payment[] = (payments?.filter((p) => p.invoice_id === id) || []) as Payment[];
@@ -99,6 +101,19 @@ export default function PortalInvoiceDetail() {
   const { downloading, download } = useCfdiDownload(invoice);
 
   if (isLoading) return <Skeleton className="h-96" />;
+  if (isError) {
+    return (
+      <PageContainer maxWidth="wide">
+        <QueryErrorState
+          entity="la factura"
+          onRetry={() => {
+            void refetchInvoices();
+            void refetchPayments();
+          }}
+        />
+      </PageContainer>
+    );
+  }
   if (!invoice) return <p className="text-muted-foreground">Factura no encontrada</p>;
 
   const totalPaid = invoicePayments.reduce((sum, p) => sum + Number(p.amount), 0);

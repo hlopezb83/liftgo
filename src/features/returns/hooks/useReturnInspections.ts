@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
+import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import { nowMty } from "@/lib/utils";
 import type { ReturnInspectionWithJoins } from "@/types/rental";
 
@@ -15,7 +15,7 @@ async function fetchList(forkliftId?: string) {
     .from("return_inspections")
     .select(SELECT_WITH_JOINS)
     .order("inspected_at", { ascending: false })
-    .limit(LIST_PAGE_LIMIT);
+    .limit(LIST_FETCH_LIMIT);
   if (forkliftId) query = query.eq("forklift_id", forkliftId);
   const { data, error } = await query.returns<ReturnInspectionWithJoins[]>();
   if (error) throw error;

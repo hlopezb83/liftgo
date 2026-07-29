@@ -1,15 +1,15 @@
 import { useEffect, useEffectEvent, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useLiftgoTable } from "@/components/dataTable/v2";
-import { AddIcon, UsersIcon, WarnIcon } from "@/components/icons";
+import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
+import { AddIcon, UsersIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePageActions } from "@/contexts/pageActions";
 import { useUpdateProspect } from "@/features/crm";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
+import { visibleListRows } from "@/lib/supabase/constants";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { CustomerFormDialog } from "../components/customers/CustomerFormDialog";
 import { CustomerMobileCard } from "../components/customers/CustomerMobileCard";
@@ -22,7 +22,8 @@ import type { CustomerFormData } from "../lib/customerFormSchema";
 type Customer = NonNullable<ReturnType<typeof useCustomers>["data"]>[number];
 
 export default function CustomersPage() {
-  const { data: customers, isLoading, isError, refetch } = useCustomers();
+  const { data: customersRaw, isLoading, isError, refetch } = useCustomers();
+  const customers = visibleListRows(customersRaw);
   const navigate = useNavigateTransition();
   const [searchParams, setSearchParams] = useSearchParams();
   const createCustomer = useCreateCustomer();
@@ -130,16 +131,11 @@ export default function CustomersPage() {
             </button>
           </RoleGuard>
         }
+        notice={
+          <ListTruncationNotice rows={customersRaw} />
+        }
         filters={
           <div className="space-y-3">
-            {hasReachedListLimit(customers) && (
-              <Alert>
-                <WarnIcon className="h-4 w-4" />
-                <AlertDescription>
-                  Mostrando los primeros {LIST_PAGE_LIMIT} registros. Refina los filtros para ver más.
-                </AlertDescription>
-              </Alert>
-            )}
             <CustomersFilters search={values.q} onSearchChange={(v) => set("q", v)} hasActive={hasActive} onClear={reset} />
           </div>
         }

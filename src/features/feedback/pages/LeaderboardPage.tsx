@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { TrophyIcon, Medal } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -18,7 +19,7 @@ function PositionCell({ pos }: { pos: number }) {
 }
 
 function LeaderboardTable({ period }: { period: LeaderboardPeriod }) {
-  const { data, isLoading } = useLeaderboard(period);
+  const { data, isLoading, isError, refetch } = useLeaderboard(period);
 
   const columns: ColumnDef<LeaderboardRow>[] = [
       {
@@ -77,7 +78,9 @@ function LeaderboardTable({ period }: { period: LeaderboardPeriod }) {
     initialSorting: [{ id: "total_points", desc: true }],
   });
 
-  return (
+  return isError ? (
+    <QueryErrorState entity="la tabla de honor" onRetry={() => { void refetch(); }} bare />
+  ) : (
     <DataTableV2
       table={table}
       isLoading={isLoading}

@@ -110,6 +110,8 @@ export function useUserManual() {
   return {
     manual: query.data,
     isLoading: query.isLoading,
+    isError: query.isError,
+    refetch: query.refetch,
     generate: () => generateMutation.mutate(undefined),
     isGenerating: generateMutation.isPending,
     versions: versionsQuery.data ?? [],

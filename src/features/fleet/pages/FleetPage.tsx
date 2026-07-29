@@ -1,8 +1,8 @@
 import { useLiftgoTable } from "@/components/dataTable/v2";
+import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
-import { AddIcon, DownloadIcon, Forklift as ForkliftIcon, WarnIcon } from "@/components/icons";
+import { AddIcon, DownloadIcon, Forklift as ForkliftIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { usePageActions } from "@/contexts/pageActions";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
@@ -10,7 +10,7 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { exportToCsv } from "@/lib/exportCsv";
-import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
+import { visibleListRows } from "@/lib/supabase/constants";
 import { FleetMobileCard } from "../components/fleet/FleetRowAndCard";
 import { useFleetColumns } from "../hooks/fleet/useFleetColumns";
 import { useFleetLocations } from "../hooks/forklifts/useFleetLocations";
@@ -26,7 +26,8 @@ const EMPTY_MAP: Map<string, string> = new Map();
 const EMPTY_SET: Set<string> = new Set();
 
 export default function FleetPage() {
-  const { data: forklifts, isLoading, isError, refetch } = useForklifts();
+  const { data: forkliftsRaw, isLoading, isError, refetch } = useForklifts();
+  const forklifts = visibleListRows(forkliftsRaw);
   // Tanda 3 P1-5: 1 request a la vista `forklift_current_location`
   // reemplaza useContracts + useDeliveries + useMaintenancePolicies.
   const { data: fleetLocations } = useFleetLocations();
@@ -61,16 +62,10 @@ export default function FleetPage() {
     resetKey: filterKey,
   });
 
+  const notice = <ListTruncationNotice rows={forkliftsRaw} />;
+
   const filters = (
     <div className="space-y-3">
-      {hasReachedListLimit(forklifts) && (
-        <Alert>
-          <WarnIcon className="h-4 w-4" />
-          <AlertDescription>
-            Mostrando los primeros {LIST_PAGE_LIMIT} registros. Refina los filtros para ver más.
-          </AlertDescription>
-        </Alert>
-      )}
       <FiltersToolbar>
         <FiltersToolbar.Search
           value={values.q}
@@ -122,6 +117,7 @@ export default function FleetPage() {
       title="Equipos"
       subtitle={forklifts ? `${forklifts.length} montacargas en la flota` : undefined}
       actions={actions}
+      notice={notice}
       filters={filters}
       isLoading={isLoading}
       isError={isError}

@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { createEntityKeys } from "@/lib/query/createEntityKeys";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { callRpc } from "@/lib/rpc";
+import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import type {
   ActivityRange,
   ActivityMetrics,
@@ -111,7 +112,7 @@ export const auditLogsQueries = defineEntityQueries<"audit-logs", AuditLog[], ne
         .from("audit_logs")
         .select(LIST_SELECT)
         .order("created_at", { ascending: false })
-        .limit(200);
+        .limit(LIST_PAGE_LIMIT);
 
       if (filters.table_name) query = query.eq("table_name", filters.table_name);
       if (filters.record_id) query = query.eq("record_id", filters.record_id);

@@ -1,16 +1,15 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
-import { SettingsIcon, WarnIcon } from "@/components/icons";
+import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
+import { SettingsIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 import { BankReconciliationWorkspace } from "../components/BankReconciliationWorkspace";
 import { BankStatementUploader } from "../components/BankStatementUploader";
 import { ReconciliationKpiCards } from "../components/ReconciliationKpiCards";
@@ -73,14 +72,7 @@ export default function BankReconciliationPage() {
               {accountId && (
                 <>
                   <BankStatementUploader bankAccountId={accountId} />
-                  {hasReachedListLimit(lines) && (
-                    <Alert>
-                      <WarnIcon className="h-4 w-4" />
-                      <AlertDescription>
-                        Mostrando los primeros {LIST_PAGE_LIMIT} registros. Refina los filtros para ver más.
-                      </AlertDescription>
-                    </Alert>
-                  )}
+                  <ListTruncationNotice rows={lines} />
                   <ReconciliationKpiCards lines={lines ?? []} currency={account?.currency ?? "MXN"} />
                   <BankReconciliationWorkspace
                     lines={lines ?? []}

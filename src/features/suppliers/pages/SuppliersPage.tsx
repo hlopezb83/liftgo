@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { PlusCircle, DownloadIcon, ChevronRightIcon, SupplierIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
@@ -11,12 +12,14 @@ import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { exportToCsv } from "@/lib/exportCsv";
+import { visibleListRows } from "@/lib/supabase/constants";
 import { SupplierFormDialog } from "../components/suppliers/SupplierFormDialog";
 import { useSuppliers, SUPPLIER_CATEGORIES } from "../hooks/useSuppliers";
 import type { Supplier } from "../hooks/useSuppliers";
 
 export default function SuppliersPage() {
-  const { data: suppliers, isLoading, isError, refetch } = useSuppliers();
+  const { data: suppliersRaw, isLoading, isError, refetch } = useSuppliers();
+  const suppliers = visibleListRows(suppliersRaw);
   const navigate = useNavigateTransition();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editing, setEditing] = useState<Supplier | null>(null);
@@ -106,6 +109,9 @@ export default function SuppliersPage() {
       <ListPageLayout
         title="Proveedores"
         subtitle={suppliers ? `${suppliers.length} proveedores registrados` : undefined}
+        notice={
+          <ListTruncationNotice rows={suppliersRaw} />
+        }
         actions={
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleExport}>

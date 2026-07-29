@@ -70,7 +70,7 @@ export function ReturnInspectionDialog({
             required
             placeholder="Seleccionar reserva activa"
             options={bookingOptions}
-            description="Solo se muestran reservas cuyo periodo de renta ha finalizado. Si no encuentras la reserva, verifica la fecha de fin o ajústala en el módulo de reservas."
+            description="Solo se muestran reservas cuyo periodo de renta ha finalizado (o rentas vigentes si vienes del flujo de devolución anticipada). Si no encuentras la reserva, verifica la fecha de fin o ajústala en el módulo de reservas."
           />
 
           <DateField
@@ -94,6 +94,7 @@ export function ReturnInspectionDialog({
             label="Notas de Daños"
             placeholder="Describe cualquier daño…"
             rows={3}
+            description="Obligatorio si la condición indica daño (daño menor, daño mayor o necesita reparación)."
           />
 
           {selectedBooking && (
@@ -112,7 +113,7 @@ export function ReturnInspectionDialog({
               control={form.control}
               name="damageCost"
               label="Costo por Daños ($)"
-              type="text"
+              type="number"
               placeholder="0"
             />
             <TextField

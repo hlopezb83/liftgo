@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { TablePagination } from "@/components/feedback/TablePagination";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { SearchBar } from "@/components/forms/SearchBar";
-import { InfoAlertIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -23,7 +23,7 @@ const TYPE_OPTIONS = TYPE_FILTERS.filter((t) => t.value !== "all").map((t) => t.
 const CATEGORY_OPTIONS = CATEGORY_FILTERS.filter((c) => c.value !== "all").map((c) => c.value) as string[];
 
 export default function ChangelogPage() {
-  const { data: changelog = [], isLoading, error } = useChangelog();
+  const { data: changelog = [], isLoading, error, refetch } = useChangelog();
   const { expanded, highlighted, toggle } = useChangelogDeepLink(changelog);
 
   // Oleada 1 sidebar: al visitar el changelog marcamos la versión como vista
@@ -83,13 +83,7 @@ export default function ChangelogPage() {
   if (error) {
     return (
       <PageContainer maxWidth="form">
-        <Card>
-          <CardContent className="text-center space-y-2">
-            <InfoAlertIcon className="h-8 w-8 text-destructive mx-auto" />
-            <p className="font-semibold">No se pudo cargar el historial de cambios</p>
-            <p className="text-sm text-muted-foreground">{error.message}</p>
-          </CardContent>
-        </Card>
+        <QueryErrorState entity="el historial de cambios" onRetry={() => { void refetch(); }} />
       </PageContainer>
     );
   }

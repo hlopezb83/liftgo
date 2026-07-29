@@ -1,10 +1,12 @@
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Untranslated } from "@/components/ui/Untranslated";
 import { useForkliftMap } from "@/features/fleet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { visibleListRows } from "@/lib/supabase/constants";
 import { formatDateDisplay } from "@/lib/utils";
 import { DeliveryFormDialog } from "../components/deliveries/DeliveryFormDialog";
 import { useDeliveries, deliveryQueries } from "../hooks/useDeliveries";
@@ -14,7 +16,8 @@ type Delivery = NonNullable<ReturnType<typeof useDeliveries>["data"]>[number];
 export default function DeliveriesPage() {
   const navigate = useNavigateTransition();
   const { forkliftMap } = useForkliftMap();
-  const { data: deliveries, isLoading, isError, refetch } = useDeliveries();
+  const { data: deliveriesRaw, isLoading, isError, refetch } = useDeliveries();
+  const deliveries = visibleListRows(deliveriesRaw);
 
   const columns: ColumnDef<Delivery>[] = [
       {
@@ -69,6 +72,9 @@ export default function DeliveriesPage() {
       subtitle="Programa y rastrea el transporte de equipos"
       totalCount={deliveries?.length}
       actions={<DeliveryFormDialog />}
+      notice={
+        <ListTruncationNotice rows={deliveriesRaw} />
+      }
       isLoading={isLoading}
       isError={isError}
       onRetry={() => { void refetch(); }}
