@@ -17,6 +17,13 @@ export function wonBlockedReason(stage: string | null | undefined): string | und
   return stage === WON_SOURCE_STAGE ? undefined : "Sólo se puede cerrar un deal en etapa Negociación";
 }
 
+/** N4-02: razón de bloqueo completa (etapa y/o permiso) para el tooltip del botón. */
+export function wonBlockedReasonFull(stage: string | null | undefined, hasPermission: boolean): string | undefined {
+  if (stage !== WON_SOURCE_STAGE) return "Sólo se puede cerrar un deal en etapa Negociación";
+  if (!hasPermission) return "Sólo un administrador o administrativo puede cerrar un deal como Ganado";
+  return undefined;
+}
+
 export function isValidFinalAmount(amount: number | null | undefined): boolean {
   return typeof amount === "number" && Number.isFinite(amount) && amount > 0;
 }

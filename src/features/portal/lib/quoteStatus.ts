@@ -9,7 +9,6 @@ export const QUOTE_STATUS_LABELS: Record<string, string> = {
   sent: "Enviada",
   accepted: "Aceptada",
   rejected: "Rechazada",
-  declined: "Rechazada",
   expired: "Vencida",
   cancelled: "Cancelada",
 };
