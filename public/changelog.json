@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.265.1",
+    "date": "2026-07-29",
+    "type": "patch",
+    "title": "Pruebas de la Ronda 4 y fuga de temporizador en búsquedas",
+    "category": "improvement",
+    "description": "Se agregaron 25 pruebas automáticas para las nuevas reglas de la Ronda 4 (cancelar cotizaciones, archivar daños, entregas y estados de error de red), un guion de humo para los candados de base de datos, y se corrigió el retardo de las cajas de búsqueda para que se cancele al salir de la pantalla."
+  },
+  {
     "version": "7.265.0",
     "date": "2026-07-29",
     "type": "minor",
