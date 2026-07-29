@@ -1,0 +1,19 @@
+{
+  "version": "7.260.0",
+  "date": "2026-07-29",
+  "type": "minor",
+  "title": "Auditoría ronda 2: blindaje de datos y reglas de negocio en la base",
+  "category": "improvement",
+  "summary": "Cierre de la segunda ronda de auditoría: la base de datos ahora rechaza por sí sola los movimientos que rompían la contabilidad o la trazabilidad, aunque se intenten fuera de la aplicación.",
+  "changes": [
+    "Montacargas: el cambio de estado pasa por un flujo oficial que exige razón para mantenimiento/venta/baja e impide marcar rentado sin renta activa o liberar un equipo con renta abierta.",
+    "Notas de crédito: montos siempre positivos y cuadre obligatorio entre importe, impuesto y total.",
+    "Cuentas por pagar: no se pueden pagar facturas de proveedor sin aprobación, ni bajar el total por debajo de lo ya pagado.",
+    "Facturas: las partidas deben cuadrar con el subtotal, no se aceptan pagos en borrador y el regreso de 'pagada' a 'enviada/parcial' sólo ocurre por la sincronización automática de pagos.",
+    "Cotizaciones: rescatar una vencida exige nueva vigencia, no se reenvían caducas y no se pueden borrar las aceptadas o con reservas ligadas.",
+    "Daños: se recuerda y restaura el estado previo del equipo, y no se archivan ni borran sin cargo registrado o reparación.",
+    "Entregas: estados acotados a programada/completada/cancelada, sin mover entregas al pasado, permitiendo el registro histórico de una entrega ya realizada.",
+    "Contratos: tarifas y depósito no negativos, y bloqueo de firma con fechas incoherentes.",
+    "Usuarios: no se puede desactivar al último administrador activo y la auditoría ya no se puede evadir con la bandera de datos de prueba."
+  ]
+}

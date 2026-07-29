@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.260.0",
+    "date": "2026-07-29",
+    "type": "minor",
+    "title": "Auditoría ronda 2: blindaje de datos y reglas de negocio en la base",
+    "category": "improvement",
+    "description": "La base de datos ahora rechaza por sí sola los movimientos que rompían contabilidad o trazabilidad: estados de equipo controlados, notas de crédito y partidas que deben cuadrar, pagos sin aprobación bloqueados, daños con cargo obligatorio, entregas históricas permitidas y protección del último administrador activo."
+  },
+  {
     "version": "7.259.1",
     "date": "2026-07-29",
     "type": "patch",
