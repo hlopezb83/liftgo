@@ -25,6 +25,7 @@ export const maintenanceLogQueries = defineEntityQueries<"maintenance_logs", Mai
         .from("maintenance_logs")
         .select(MAINTENANCE_LOG_COLUMNS)
         .is("deleted_at", null)
+        .or(EXCLUDE_E2E_FILTER)
         .order("performed_at", { ascending: false })
         .limit(LIST_FETCH_LIMIT);
       if (forkliftId) q = q.eq("forklift_id", forkliftId);
