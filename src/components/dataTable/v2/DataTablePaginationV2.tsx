@@ -14,7 +14,8 @@ export function DataTablePaginationV2<T>({ table }: Props<T>) {
   // R13-3: selector de tamaño de página; al cambiar, TanStack re-pagina y el
   // dataVersion (contenido) invalida el memo del compiler por sí solo.
   return (
-    <div className="flex items-center justify-between gap-3 px-2">
+    // R24-B: el paginador no se imprime (la tabla sale completa multipágina).
+    <div className="flex items-center justify-between gap-3 px-2 no-print">
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <span>Filas por página</span>
         <Select
