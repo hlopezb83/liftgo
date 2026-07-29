@@ -21,7 +21,7 @@ interface Props {
   defaultStage?: string;
   overrideStage?: string;
   canCloseDeal?: boolean;
-  onSave: (data: ProspectFormPayload) => void;
+  onSave: (data: ProspectFormPayload) => void | Promise<unknown>;
   onDelete?: () => void;
   /** R12-M8: reenviado a FormDialog para bloquear Esc/click-outside y deshabilitar submit. */
   isPending?: boolean;
@@ -35,14 +35,21 @@ export function ProspectFormDialog({
   const { fields, setters, matchingQuotes, selectedQuote, effectiveStage, requiresDealValue, buildPayload, isDirty } =
     useProspectForm({ prospect, open, defaultStage, overrideStage });
 
-  const handleSubmit = (e: ReactFormEvent) => {
+  // R23-B: antes se cerraba el modal sin esperar el INSERT; con latencia o
+  // error de red el usuario perdía lo capturado. Ahora sólo cerramos en éxito.
+  const handleSubmit = async (e: ReactFormEvent) => {
     e.preventDefault();
     if (isPending) return;
     const payload = buildPayload();
     if (!payload) return;
-    onSave(payload);
-    onOpenChange(false);
+    try {
+      await onSave(payload);
+      onOpenChange(false);
+    } catch {
+      // El toast de error lo emite la mutación; el modal permanece abierto.
+    }
   };
+
 
   const isClosingWonBlocked = effectiveStage === "cerrado_ganado" && !canCloseDeal;
   const showCloseDeal = Boolean(prospect) && effectiveStage === "cerrado_ganado";

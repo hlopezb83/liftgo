@@ -47,17 +47,37 @@ export function parseDateFlexible(value: string): string | null {
   return null;
 }
 
-/** Acepta $1,234.56, (1,234.56) como negativo y espacios/NBSP. */
+/**
+ * Acepta $1,234.56, (1,234.56) como negativo, espacios/NBSP y formato es-MX
+ * con coma decimal ("1.500,50").
+ *
+ * R23-E: antes se borraban TODAS las comas, así que "1.500,50" se leía como
+ * 1.5005 — corrupción silenciosa de 1000x en importaciones bancarias es-MX.
+ * Ahora el ÚLTIMO separador presente manda: si es coma, es el decimal.
+ */
 export function parseAmount(value: string): number | null {
   if (!value) return null;
-  const cleaned = value.replace(/[\s\u00A0]/g, "").replace(/[$,]/g, "");
+  const cleaned = value.replace(/[\s\u00A0]/g, "").replace(/[$]/g, "");
   if (!cleaned) return null;
-  const neg = cleaned.startsWith("(") && cleaned.endsWith(")");
-  const inner = neg ? cleaned.slice(1, -1) : cleaned;
+  const neg =
+    (cleaned.startsWith("(") && cleaned.endsWith(")")) || cleaned.startsWith("-");
+  let inner = cleaned.startsWith("(") && cleaned.endsWith(")") ? cleaned.slice(1, -1) : cleaned;
+
+  const lastComma = inner.lastIndexOf(",");
+  const lastDot = inner.lastIndexOf(".");
+  if (lastComma > lastDot) {
+    // Coma decimal (es-MX / europeo): puntos son separadores de miles.
+    inner = inner.replace(/\./g, "").replace(",", ".");
+  } else {
+    // Punto decimal (en-US): comas son separadores de miles.
+    inner = inner.replace(/,/g, "");
+  }
+
   const num = Number(inner);
   if (!Number.isFinite(num)) return null;
   return neg ? -Math.abs(num) : num;
 }
+
 
 /** Hash estable e idéntico entre CSV y XML para deduplicar reimportaciones. */
 export function hashLine(parts: string[]): string {

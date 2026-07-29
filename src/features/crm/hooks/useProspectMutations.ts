@@ -61,10 +61,13 @@ export function useDeleteProspect() {
  * optimista: la tarjeta se reubica al soltar y, si el servidor falla,
  * se restaura el snapshot previo y se muestra el toast de error.
  */
+const MOVE_PROSPECT_STAGE_KEY = ["prospects", "move-stage"] as const;
+
 export function useMoveProspectStage() {
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, StageMove, { snapshots: [QueryKey, Prospect[] | undefined][] }>({
+    mutationKey: MOVE_PROSPECT_STAGE_KEY,
     mutationFn: async ({ id, newStage, newIndex }: StageMove) => {
       const { error } = await supabase
         .from("prospects")
@@ -84,8 +87,14 @@ export function useMoveProspectStage() {
       context?.snapshots.forEach(([key, data]) => queryClient.setQueryData(key, data));
       notifyError({ title: "Error al mover el prospecto", error });
     },
+    // R23-C: con dos arrastres solapados, invalidar al terminar el primero
+    // hacía que el refetch pisara el estado optimista del segundo y la tarjeta
+    // "regresaba" ~700ms. Sólo invalidamos cuando ya no queda ningún movimiento
+    // en vuelo (el actual todavía cuenta como 1 dentro de onSettled).
     onSettled: () => {
+      if (queryClient.isMutating({ mutationKey: MOVE_PROSPECT_STAGE_KEY }) > 1) return;
       void queryClient.invalidateQueries({ queryKey: prospectKeys.all });
     },
   });
 }
+
