@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.259.1",
+    "date": "2026-07-29",
+    "type": "patch",
+    "title": "Auditoría R25 (FE-12): identificadores a prueba de traducción y CRM más ligero",
+    "category": "improvement",
+    "description": "Folios y nombres propios ya no se corrompen si el navegador traduce la página; el CRM descarga sólo el folio de las cotizaciones; la conciliación bancaria activa virtualización y se documenta el patrón de paginación por cursor."
+  },
+  {
     "version": "7.259.0",
     "date": "2026-07-29",
     "type": "minor",
