@@ -97,9 +97,15 @@ export function parseBankCsv(content: string, profile: StatementProfile): ParseR
   if (!map) return { lines, errors: ["Perfil no soportado"], periodStart: null, periodEnd: null };
 
   const minCols = requiredColumns(map);
+  // R24-F: el perfil define exactamente qué columnas usa; una fila con más
+  // campos significa que un importe con coma partió la fila.
+  const maxCols = minCols;
   const startIdx = parseDateFlexible(rows[0][0] ?? "") ? 0 : 1;
   for (let i = startIdx; i < rows.length; i++) {
-    const result = parseRow(rows[i], map, i, minCols);
+    // Ignoramos celdas vacías al final (exportaciones que dejan la coma final).
+    const row = [...rows[i]];
+    while (row.length > maxCols && (row[row.length - 1] ?? "").trim() === "") row.pop();
+    const result = parseRow(row, map, i, minCols, maxCols);
 
     if (typeof result === "string") { errors.push(result); continue; }
     lines.push(result);
