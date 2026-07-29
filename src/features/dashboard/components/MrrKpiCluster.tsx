@@ -1,6 +1,7 @@
 import { KpiTile } from "@/components/domain/KpiTile";
 import { RevenueIcon, FleetIcon, ChartIcon, UserIcon } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { averageRentPerUnit } from "../lib/mrrKpis";
 import type { MrrItem } from "../hooks/useMrrColumns";
 
 interface Props {
@@ -11,15 +12,14 @@ interface Props {
 
 /**
  * v7.226.1 · extraído de MrrDetailPage para bajar la complejidad ciclomática.
- * MRR, ARR, rentas activas y ARPU. ARR = MRR × 12; ARPU = MRR / clientes únicos.
+ * MRR, ARR, rentas activas y renta promedio por unidad.
+ * ARR = MRR × 12; renta prom. / unidad = MRR ÷ unidades rentadas (v7.264.2).
  */
 export function MrrKpiCluster({ items, totalMrr, isLoading }: Props) {
-  const uniqueCustomers = new Set(
-    items.map((i) => i.customer_id ?? i.customer_name ?? i.forklift_id),
-  ).size;
-  const arpu = uniqueCustomers > 0 ? totalMrr / uniqueCustomers : 0;
+  const avgPerUnit = averageRentPerUnit(totalMrr, items.length);
   const arr = totalMrr * 12;
   const fmt = (n: number) => (isLoading ? "…" : formatCurrency(n));
+
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
