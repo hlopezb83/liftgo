@@ -1,0 +1,18 @@
+{
+  "version": "7.253.2",
+  "date": "2026-07-29",
+  "type": "patch",
+  "title": "Limpieza de código sin uso",
+  "category": "improvement",
+  "description": "Se eliminaron utilidades de gráficas y un alias de tipo que ya no se usaban en ninguna parte de la aplicación.",
+  "changes": [
+    {
+      "type": "improvement",
+      "description": "Se retiraron de la biblioteca de gráficas la paleta, el formateador de tooltip y la clase de altura que ya no ocupaba ninguna pantalla."
+    },
+    {
+      "type": "improvement",
+      "description": "Conciliación bancaria: se eliminó un alias de tipo obsoleto de los perfiles de estado de cuenta."
+    }
+  ]
+}
