@@ -2,6 +2,7 @@ import { NotesCard } from "@/components/domain/NotesCard";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { CustomerField } from "../components/quote-form/CustomerField";
 import { LogisticsCard } from "../components/quote-form/LogisticsCard";
@@ -88,11 +89,19 @@ export default function QuoteForm() {
             )}
           />
 
-          <FormActions
-            submitLabel={f.id ? "Actualizar cotización" : "Crear cotización"}
-            isPending={f.isPending}
-            onCancel={() => f.navigate(-1)}
-          />
+          {f.isAmountLocked ? (
+            <Alert>
+              <AlertDescription>
+                Esta cotización ya fue aceptada o convertida a reserva: sus montos no pueden modificarse.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <FormActions
+              submitLabel={f.id ? "Actualizar cotización" : "Crear cotización"}
+              isPending={f.isPending}
+              onCancel={() => f.navigate(-1)}
+            />
+          )}
         </form>
       </Form>
     </PageContainer>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { sortQuotesByCompanyMatch, validateDealValue, STAGES_REQUIRING_DEAL_VALUE } from "../prospectFormSchema";
+import { sortQuotesByCompanyMatch, validateDealValue, prospectPayloadSchema, STAGES_REQUIRING_DEAL_VALUE } from "../prospectFormSchema";
 
 describe("sortQuotesByCompanyMatch", () => {
   const quotes = [
@@ -46,5 +46,28 @@ describe("STAGES_REQUIRING_DEAL_VALUE", () => {
     expect(STAGES_REQUIRING_DEAL_VALUE).toContain("cerrado_ganado");
     expect(STAGES_REQUIRING_DEAL_VALUE).not.toContain("nuevo_prospecto");
     expect(STAGES_REQUIRING_DEAL_VALUE).not.toContain("contactado");
+  });
+});
+
+describe("prospectPayloadSchema.stage", () => {
+  const base = {
+    company_name: "Acme",
+    contact_person: "",
+    email: "",
+    phone: "",
+    deal_value: 0,
+    notes: "",
+    stage: "nuevo_prospecto",
+    quote_id: null,
+  };
+
+  it("acepta una etapa válida del dominio", () => {
+    const r = prospectPayloadSchema.safeParse({ ...base, stage: "negociacion" });
+    expect(r.success).toBe(true);
+  });
+
+  it("rechaza una etapa fuera del dominio", () => {
+    const r = prospectPayloadSchema.safeParse({ ...base, stage: "inventada" });
+    expect(r.success).toBe(false);
   });
 });

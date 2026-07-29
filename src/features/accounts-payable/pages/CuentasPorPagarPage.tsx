@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { Link } from "react-router";
 import { useLiftgoTable } from "@/components/dataTable/v2";
-import { AddIcon, FileClock, ChartIcon, FileSpreadsheet } from "@/components/icons";
+import { AddIcon, FileClock, ChartIcon, FileSpreadsheet, WarnIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { usePageActions } from "@/contexts/pageActions";
 import { useSuppliers } from "@/features/suppliers";
 import { useHasModuleAccess } from "@/features/users";
 import { useToggleDialog } from "@/hooks/useDialogState";
 import { RoleGuard } from "@/layouts/RoleGuard";
+import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 import { ExportPaymentsDialog } from "../components/ExportPaymentsDialog";
 import {
   useSupplierBillColumns,
@@ -66,7 +68,19 @@ export default function CuentasPorPagarPage() {
           </div>
 
         }
-        filters={<SupplierBillsFilters filters={f} kpis={kpis} suppliers={suppliers} />}
+        filters={
+          <div className="space-y-3">
+            {hasReachedListLimit(bills) && (
+              <Alert>
+                <WarnIcon className="h-4 w-4" />
+                <AlertDescription>
+                  Mostrando los primeros {LIST_PAGE_LIMIT} registros. Refina los filtros para ver más.
+                </AlertDescription>
+              </Alert>
+            )}
+            <SupplierBillsFilters filters={f} kpis={kpis} suppliers={suppliers} />
+          </div>
+        }
         isLoading={isLoading}
         isError={isError}
         onRetry={() => { void refetch(); }}

@@ -1,10 +1,13 @@
 
 import { DataTableV2, DataTablePaginationV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { WarnIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateMty } from "@/lib/format/dateFormats";
+import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 import { FeedbackStatusBadge } from "../components/FeedbackStatusBadge";
 import { useMyFeedbackReports } from "../hooks/useFeedbackReports";
 import { FEEDBACK_TYPE_LABELS } from "../lib/constants";
@@ -81,6 +84,14 @@ export default function MyReportsPage() {
         }
       />
 
+      {hasReachedListLimit(reports) && (
+        <Alert>
+          <WarnIcon className="h-4 w-4" />
+          <AlertDescription>
+            Mostrando los primeros {LIST_PAGE_LIMIT} registros. Refina los filtros para ver más.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Card>
         <CardHeader className="pb-3">

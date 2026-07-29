@@ -6,7 +6,7 @@ import { useEquipmentModels } from "@/features/fleet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
-import { notifySuccess } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "../quotes/useQuotes";
 import { buildSaleItems, buildRentalItems } from "./quoteFormBuilders";
 import { buildQuotePayload } from "./quoteFormPayload";
@@ -26,6 +26,12 @@ export function useQuoteFormLogic() {
 
   const form = useQuoteForm();
   useQuotePrefill({ existingQuote, equipmentModels, form });
+
+  // P1-3: una cotización aceptada (o ya convertida a booking) no puede cambiar
+  // de montos — el cliente ya firmó esas cifras. Para corregirla hay que
+  // rechazarla/duplicarla, no editarla.
+  const isAmountLocked =
+    !!existingQuote && (existingQuote.status === "accepted" || !!existingQuote.accepted_at);
 
   // Suscripciones granulares — evita re-renders globales del form.
   const quoteType = useWatch({ control: form.control, name: "quoteType" });
@@ -61,6 +67,13 @@ export function useQuoteFormLogic() {
   useUnsavedChangesGuard(form.formState.isDirty && !isPending);
 
   const onValid = (values: QuoteFormValues) => {
+    if (isAmountLocked) {
+      notifyError({
+        title: "Cotización aceptada",
+        message: "No se pueden modificar los montos de una cotización aceptada o ya convertida a reserva.",
+      });
+      return;
+    }
     const payload = buildQuotePayload({
       existingQuote, nextNumber,
       customerId: values.customerId,
@@ -112,6 +125,7 @@ export function useQuoteFormLogic() {
     id,
     form,
     quoteType,
+    isAmountLocked,
     currency,
     taxRate,
     dateRange,

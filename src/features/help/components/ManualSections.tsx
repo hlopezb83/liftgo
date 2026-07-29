@@ -19,6 +19,7 @@ export function ManualSections({ search, onSearchChange, sections }: Props) {
           placeholder="Buscar en el manual…"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
+          aria-label="Buscar en el manual"
           className="pl-9"
         />
       </div>

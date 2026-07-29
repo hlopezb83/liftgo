@@ -5,7 +5,7 @@
  * Transiciones reales (switch/case):
  *   "confirmed"  → ["completed", "cancelled"]
  *   "completed"  → ["confirmed"]
- *   "cancelled"  → ["confirmed"]
+ *   "cancelled"  → [] (terminal: P0-2, evita revivir reservas canceladas)
  *   default      → []
  */
 import { describe, it, expect } from "vitest";
@@ -23,8 +23,8 @@ describe("getValidTransitions", () => {
     expect(getValidTransitions("completed")).toEqual(["confirmed"]);
   });
 
-  it('cancelled → ["confirmed"]', () => {
-    expect(getValidTransitions("cancelled")).toEqual(["confirmed"]);
+  it('cancelled → [] (terminal, no se puede revivir)', () => {
+    expect(getValidTransitions("cancelled")).toEqual([]);
   });
 
   it("estado desconocido → []", () => {

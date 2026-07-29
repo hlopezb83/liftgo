@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
+import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import type { Forklift } from "@/types/rental";
 import { forkliftKeys, statusLogKeys } from "../../lib/queryKeys";
 
@@ -27,7 +28,7 @@ export function useForklifts() {
         .is("deleted_at", null)
         .or("is_e2e.is.null,is_e2e.eq.false")
         .order("name")
-        .limit(500)
+        .limit(LIST_PAGE_LIMIT)
         .returns<Forklift[]>();
       if (error) throw error;
       return data ?? [];

@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { MaintenanceIcon } from "@/components/icons";
+import { MaintenanceIcon, WarnIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePageActions } from "@/contexts/pageActions";
 import { MarkAvailableDialog, useForkliftMap } from "@/features/fleet";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useDialogState } from "@/hooks/useDialogState";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 import { formatDateDisplay } from "@/lib/utils";
 import { MaintenanceDetailSheet } from "../components/maintenance/MaintenanceDetailSheet";
 import { MaintenanceFiltersBar } from "../components/maintenance/MaintenanceFiltersBar";
@@ -122,15 +124,25 @@ export default function MaintenancePage() {
           />
         }
         filters={
-          <MaintenanceFiltersBar
-            search={values.q}
-            onSearchChange={(v) => set("q", v)}
-            forkliftFilter={values.forklift || "all"}
-            onForkliftFilterChange={(v) => set("forklift", v)}
-            forklifts={forklifts}
-            hasActive={hasActive}
-            onClear={reset}
-          />
+          <div className="space-y-3">
+            {hasReachedListLimit(logs) && (
+              <Alert>
+                <WarnIcon className="h-4 w-4" />
+                <AlertDescription>
+                  Mostrando los primeros {LIST_PAGE_LIMIT} registros. Refina los filtros para ver más.
+                </AlertDescription>
+              </Alert>
+            )}
+            <MaintenanceFiltersBar
+              search={values.q}
+              onSearchChange={(v) => set("q", v)}
+              forkliftFilter={values.forklift || "all"}
+              onForkliftFilterChange={(v) => set("forklift", v)}
+              forklifts={forklifts}
+              hasActive={hasActive}
+              onClear={reset}
+            />
+          </div>
         }
 
         isLoading={isLoading}

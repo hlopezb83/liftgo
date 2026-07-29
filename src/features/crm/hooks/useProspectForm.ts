@@ -9,7 +9,8 @@ import {
 } from "../lib/prospectFormSchema";
 import type { Prospect } from "./useProspects";
 
-export { STAGE_LABELS, STAGES_REQUIRING_DEAL_VALUE } from "../lib/prospectFormSchema";
+export { STAGES_REQUIRING_DEAL_VALUE } from "../lib/prospectFormSchema";
+export { STAGE_LABELS } from "../lib/constants";
 export type { ProspectFormPayload } from "../lib/prospectFormSchema";
 
 interface UseProspectFormParams {

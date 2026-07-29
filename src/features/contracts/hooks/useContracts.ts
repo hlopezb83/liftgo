@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import type { ContractViewModel } from "@/types/rental";
 import { contractKeys } from "../lib/queryKeys";
 
@@ -22,7 +23,8 @@ async function fetchList() {
   const { data, error } = await supabase
     .from("contracts")
     .select("*, customers(name), forklifts(name)")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(LIST_PAGE_LIMIT);
   if (error) throw error;
   return (data ?? []).map(mapRow);
 }

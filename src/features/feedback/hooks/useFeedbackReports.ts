@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import { feedbackHistoryKeys, feedbackLeaderboardKeys, feedbackReportKeys } from "../lib/queryKeys";
 import type { FeedbackStatus } from "../lib/constants";
 
@@ -31,7 +32,7 @@ export const feedbackReportQueries = defineEntityQueries<
       .from("feedback_reports")
       .select(FEEDBACK_REPORT_COLUMNS)
       .order("created_at", { ascending: false })
-      .limit(500)
+      .limit(LIST_PAGE_LIMIT)
       .returns<FeedbackReport[]>();
     if (error) throw error;
     return data ?? [];
@@ -57,7 +58,7 @@ export function useMyFeedbackReports() {
         .select(FEEDBACK_REPORT_COLUMNS)
         .eq("reporter_id", user?.id ?? "")
         .order("created_at", { ascending: false })
-        .limit(500)
+        .limit(LIST_PAGE_LIMIT)
         .returns<FeedbackReport[]>();
       if (error) throw error;
       return data ?? [];

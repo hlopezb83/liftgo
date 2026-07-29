@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import type { ActivityFilters } from "@/features/dashboard";
 import { ActivityByMember } from "../components/activity/ActivityByMember";
@@ -19,7 +21,7 @@ export default function ActivityPage() {
   const range = useMemo(() => getRange(rangeKey), [rangeKey]);
   const [filters, setFilters] = useState<ActivityFilters>({});
 
-  const { data: metrics } = useActivityMetrics({ from: range.from, to: range.to });
+  const { data: metrics, isLoading, isError, refetch } = useActivityMetrics({ from: range.from, to: range.to });
 
   const updateFilters = (next: Partial<ActivityFilters>) =>
     setFilters((prev) => ({ ...prev, ...next }));
@@ -38,6 +40,16 @@ export default function ActivityPage() {
   };
   const m = metrics ?? empty;
 
+  // UX-03: jamás mostrar ceros como "sin actividad" cuando la query carga o falló.
+  if (isError) {
+    return (
+      <PageContainer>
+        <PageHeader title="Actividad del Equipo" />
+        <QueryErrorState entity="la actividad del equipo" onRetry={() => { void refetch(); }} />
+      </PageContainer>
+    );
+  }
+
   return (
     <PageTransition>
       <PageContainer className="space-y-4">
@@ -55,27 +67,41 @@ export default function ActivityPage() {
           </Tabs>
         </div>
 
-        <ActivityKPIs metrics={m} rangeLabel={range.label.toLowerCase()} />
+        {isLoading ? (
+          <>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <Skeleton className="h-24" />
+              <Skeleton className="h-24" />
+              <Skeleton className="h-24" />
+              <Skeleton className="h-24" />
+            </div>
+            <Skeleton className="h-64" />
+          </>
+        ) : (
+          <>
+            <ActivityKPIs metrics={m} rangeLabel={range.label.toLowerCase()} />
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <ActivityByMember
-            members={m.byMember}
-            selectedActorId={filters.actorId}
-            onSelect={(id) => updateFilters({ actorId: id ?? "system" })}
-          />
-          <ActivityByModule
-            modules={m.byModule}
-            selected={filters.entityType}
-            onSelect={(et) => updateFilters({ entityType: et === filters.entityType ? undefined : et })}
-          />
-        </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <ActivityByMember
+                members={m.byMember}
+                selectedActorId={filters.actorId}
+                onSelect={(id) => updateFilters({ actorId: id ?? "system" })}
+              />
+              <ActivityByModule
+                modules={m.byModule}
+                selected={filters.entityType}
+                onSelect={(et) => updateFilters({ entityType: et === filters.entityType ? undefined : et })}
+              />
+            </div>
 
-        <ActivityTimeline
-          filters={timelineFilters}
-          onFilterChange={updateFilters}
-          onReset={resetFilters}
-          members={m.byMember}
-        />
+            <ActivityTimeline
+              filters={timelineFilters}
+              onFilterChange={updateFilters}
+              onReset={resetFilters}
+              members={m.byMember}
+            />
+          </>
+        )}
       </PageContainer>
     </PageTransition>
   );

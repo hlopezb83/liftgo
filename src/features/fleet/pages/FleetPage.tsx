@@ -1,7 +1,8 @@
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
-import { AddIcon, DownloadIcon, Forklift as ForkliftIcon } from "@/components/icons";
+import { AddIcon, DownloadIcon, Forklift as ForkliftIcon, WarnIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { usePageActions } from "@/contexts/pageActions";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
@@ -9,6 +10,7 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { exportToCsv } from "@/lib/exportCsv";
+import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 import { FleetMobileCard } from "../components/fleet/FleetRowAndCard";
 import { useFleetColumns } from "../hooks/fleet/useFleetColumns";
 import { useFleetLocations } from "../hooks/forklifts/useFleetLocations";
@@ -60,20 +62,30 @@ export default function FleetPage() {
   });
 
   const filters = (
-    <FiltersToolbar>
-      <FiltersToolbar.Search
-        value={values.q}
-        onChange={(v) => set("q", v)}
-        placeholder="Buscar por nombre, modelo..."
-      />
-      <FiltersToolbar.StatusSelect
-        value={values.status as string}
-        onChange={(v) => set("status", v)}
-        options={STATUS_OPTIONS}
-        placeholder="Todos los estados"
-      />
-      <FiltersToolbar.ClearAll visible={hasActive} onClick={reset} />
-    </FiltersToolbar>
+    <div className="space-y-3">
+      {hasReachedListLimit(forklifts) && (
+        <Alert>
+          <WarnIcon className="h-4 w-4" />
+          <AlertDescription>
+            Mostrando los primeros {LIST_PAGE_LIMIT} registros. Refina los filtros para ver más.
+          </AlertDescription>
+        </Alert>
+      )}
+      <FiltersToolbar>
+        <FiltersToolbar.Search
+          value={values.q}
+          onChange={(v) => set("q", v)}
+          placeholder="Buscar por nombre, modelo..."
+        />
+        <FiltersToolbar.StatusSelect
+          value={values.status as string}
+          onChange={(v) => set("status", v)}
+          options={STATUS_OPTIONS}
+          placeholder="Todos los estados"
+        />
+        <FiltersToolbar.ClearAll visible={hasActive} onClick={reset} />
+      </FiltersToolbar>
+    </div>
   );
 
   const actions = (

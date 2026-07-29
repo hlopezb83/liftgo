@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
+import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
 import { customerKeys } from "../../lib/queryKeys";
 
 const sel = (s: string): string => s;
@@ -37,11 +37,6 @@ export const customerQueries = defineEntityQueries<"customers", Customer[], Cust
         .limit(LIST_PAGE_LIMIT)
         .returns<Customer[]>();
       if (error) throw error;
-      if (hasReachedListLimit(data)) {
-        console.warn(
-          `[useCustomers] Alcanzó LIST_PAGE_LIMIT (${LIST_PAGE_LIMIT}). Migrar a paginación server-side.`,
-        );
-      }
       return data ?? [];
     },
     detail: (id) => async () => {

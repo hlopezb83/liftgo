@@ -19,6 +19,17 @@ export const bookingFormSchema = z
   }, {
     message: "La fecha de fin debe ser posterior a la de inicio",
     path: ["date_range"],
+  })
+  .refine((d) => {
+    // Renta mínima de 1 día calendario: fin no puede ser anterior al inicio
+    // (comparación por día, no por timestamp, para aceptar rentas del mismo día).
+    if (!d.date_range.from || !d.date_range.to) return true;
+    const from = new Date(d.date_range.from); from.setHours(0, 0, 0, 0);
+    const to = new Date(d.date_range.to); to.setHours(0, 0, 0, 0);
+    return to.getTime() >= from.getTime();
+  }, {
+    message: "La renta mínima es de 1 día",
+    path: ["date_range"],
   });
 
 export type BookingFormData = z.infer<typeof bookingFormSchema>;

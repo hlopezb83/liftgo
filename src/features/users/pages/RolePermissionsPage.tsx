@@ -99,19 +99,20 @@ export default function RolePermissionsPage() {
                     const canEdit = isAdmin && r !== "admin";
                     return (
                       <td key={r} className="px-3 py-2.5 text-center">
-                        <button
+                        <Button
                           type="button"
+                          variant="ghost"
+                          size="icon"
                           onClick={() => handleCycle(r, mod)}
                           disabled={!canEdit}
                           className={cn(
-                            "inline-flex items-center justify-center rounded-md p-1 transition-colors",
-                            canEdit && "hover:bg-accent cursor-pointer",
-                            !canEdit && "cursor-default opacity-80"
+                            "h-auto w-auto p-1",
+                            !canEdit && "cursor-default opacity-80 disabled:opacity-80"
                           )}
                           title={canEdit ? "Clic para cambiar" : accessConfig[access].label}
                         >
                           <Icon className={cn("h-4 w-4", color)} />
-                        </button>
+                        </Button>
                       </td>
                     );
                   })}

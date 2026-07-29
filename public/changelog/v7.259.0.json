@@ -1,0 +1,20 @@
+{
+  "version": "7.259.0",
+  "date": "2026-07-29",
+  "type": "minor",
+  "title": "Auditoría R25 · Fase 2: remediación de frontend (FE-01 a FE-11)",
+  "category": "improvement",
+  "summary": "Se aplicaron los 11 bloques de frontend de la auditoría: límites de listado consistentes con aviso de truncamiento, accesibilidad, validaciones de formularios y bloqueo de edición de cotizaciones aceptadas.",
+  "changes": [
+    "FE-01/FE-02: LIST_PAGE_LIMIT en 12 hooks de listado y Alert de truncamiento en Cotizaciones, Flota, Mantenimiento, CxP, Clientes, Mis reportes, Feedback y Conciliación bancaria.",
+    "FE-03: ActivityPage con estados de carga y error explícitos.",
+    "FE-04: aria-label en inputs y selects de cambio de estatus, líneas bancarias, notas de crédito, candidatos de conciliación y manual.",
+    "FE-05: CalendarPage usa notifyAsync en lugar de sonner directo.",
+    "FE-06: botones nativos migrados al componente Button compartido (link/ghost según contexto).",
+    "FE-07: el subtítulo con el conteo de resultados ahora también se ve en móvil.",
+    "FE-08: renta mínima de 1 día en reservas; entregas ligadas a reserva y no programables en el pasado.",
+    "FE-09: una cotización aceptada o convertida ya no permite modificar montos.",
+    "FE-10: una reserva cancelada es terminal; ya no puede revivirse a confirmada.",
+    "FE-11: la etapa del prospecto se valida contra el dominio del pipeline."
+  ]
+}

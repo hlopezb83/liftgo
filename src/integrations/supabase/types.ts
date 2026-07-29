@@ -4106,6 +4106,10 @@ export type Database = {
         Args: { p_payment_id: string }
         Returns: Json
       }
+      profile_update_preserves_protected: {
+        Args: { _email: string; _is_active: boolean; _user_id: string }
+        Returns: boolean
+      }
       purge_e2e_data: { Args: never; Returns: Json }
       purge_old_notifications: { Args: never; Returns: number }
       recalc_supplier_bill: { Args: { p_bill_id: string }; Returns: undefined }

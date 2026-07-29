@@ -1,4 +1,5 @@
 import { StatusBadge } from "@/components/feedback/StatusBadge";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
@@ -69,10 +70,11 @@ export function UtilizationDetailSheet({
               <ul className="space-y-1">
                 {bookings.map((b) => (
                   <li key={b.id}>
-                    <button
+                    <Button
                       type="button"
+                      variant="ghost"
                       onClick={() => go(b.id)}
-                      className="w-full flex items-center justify-between gap-3 text-left rounded-md border p-2 text-xs hover:bg-muted"
+                      className="w-full h-auto flex items-center justify-between gap-3 text-left rounded-md border p-2 text-xs font-normal"
                     >
                       <div className="min-w-0">
                         <p className="font-medium truncate">
@@ -86,7 +88,7 @@ export function UtilizationDetailSheet({
                         <StatusBadge status={b.status} />
                         <span className="font-mono font-bold">{b.daysInRange}d</span>
                       </div>
-                    </button>
+                    </Button>
                   </li>
                 ))}
               </ul>

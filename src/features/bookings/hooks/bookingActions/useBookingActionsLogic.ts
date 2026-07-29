@@ -13,7 +13,9 @@ export function getValidTransitions(current: string): string[] {
   switch (current) {
     case "confirmed": return ["completed", "cancelled"];
     case "completed": return ["confirmed"];
-    case "cancelled": return ["confirmed"];
+    // P0-2: una reserva cancelada es terminal en la UI; revivirla permitía
+    // doble reserva del mismo montacargas. La DB refuerza esto con trigger.
+    case "cancelled": return [];
     default: return [];
   }
 }

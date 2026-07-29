@@ -66,4 +66,29 @@ describe("bookingFormSchema", () => {
     const r = bookingFormSchema.parse({ ...baseValid });
     expect(r.recurring_billing).toBe(false);
   });
+
+  it("rechaza renta menor a 1 día calendario (to antes de from mismo día)", () => {
+    const r = bookingFormSchema.safeParse({
+      ...baseValid,
+      date_range: {
+        from: new Date("2026-05-02T08:00:00"),
+        to: new Date("2026-05-01T23:00:00"),
+      },
+    });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.error.issues.some((i) => i.message === "La renta mínima es de 1 día")).toBe(true);
+    }
+  });
+
+  it("acepta renta del mismo día con distintas horas", () => {
+    const r = bookingFormSchema.safeParse({
+      ...baseValid,
+      date_range: {
+        from: new Date("2026-05-01T08:00:00"),
+        to: new Date("2026-05-01T18:00:00"),
+      },
+    });
+    expect(r.success).toBe(true);
+  });
 });
