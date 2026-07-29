@@ -1,0 +1,15 @@
+{
+  "version": "7.255.1",
+  "date": "2026-07-29",
+  "type": "patch",
+  "title": "PDF del complemento de pago (REP) siempre disponible",
+  "category": "fix",
+  "description": "Se corrigió la descarga del PDF del REP cuando el proveedor de timbrado devuelve el archivo en un formato no reconocido; ahora se guarda y puede descargarse desde el pago.",
+  "changes": [
+    {
+      "type": "fix",
+      "title": "El PDF del REP ya no se pierde al timbrar",
+      "description": "El SDK de facturación a veces entrega el archivo como un objeto envuelto (stream, body o arreglo indexado) que la app no reconocía, así que el complemento quedaba timbrado sin PDF. Ahora se aceptan todos esos formatos; el mismo arreglo aplica a facturas, notas de crédito y la reconciliación."
+    }
+  ]
+}
