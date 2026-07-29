@@ -8,7 +8,7 @@ describe("useCustomersColumns Untranslated wrapping", () => {
   it("marks customer name as translate=no", () => {
     const columns = useCustomersColumns();
     const nameCol = columns.find((c) => c.id === "name");
-    if (!nameCol?.cell) throw new Error("no cell");
+    if (typeof nameCol?.cell !== "function") throw new Error("no cell");
     const { container } = render(<>{nameCol.cell({ row: { original: customer } } as never)}</>);
     const el = container.querySelector('[translate="no"]');
     expect(el).toBeTruthy();
