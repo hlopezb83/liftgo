@@ -50,7 +50,20 @@ function computeSigned(map: ColumnMap, r: string[]): number | null {
   return null;
 }
 
-function parseRow(r: string[], map: ColumnMap, idx: number): ParsedBankLine | string {
+/** Última columna que el perfil necesita: sirve para detectar filas corridas. */
+function requiredColumns(map: ColumnMap): number {
+  const indexes = [map.date, map.description, map.amount, map.charge, map.credit].filter(
+    (i): i is number => i !== undefined,
+  );
+  return Math.max(...indexes) + 1;
+}
+
+function parseRow(r: string[], map: ColumnMap, idx: number, minCols: number): ParsedBankLine | string {
+  // R23-J: un importe con coma sin comillas ("1500,50") partía la fila y corría
+  // las columnas en silencio, importando montos y fechas equivocados.
+  if (r.length < minCols) {
+    return `Línea ${idx + 1}: se esperaban al menos ${minCols} columnas y llegaron ${r.length}. Revisa que los importes con coma vengan entre comillas.`;
+  }
   const postedDate = parseDateFlexible(r[map.date] ?? "");
   if (!postedDate) return `Línea ${idx + 1}: fecha inválida ("${r[map.date] ?? ""}")`;
   const description = (r[map.description] ?? "").trim();
@@ -59,6 +72,7 @@ function parseRow(r: string[], map: ColumnMap, idx: number): ParsedBankLine | st
   const reference = map.reference !== undefined ? (r[map.reference] ?? "").trim() || null : null;
   return buildLine({ postedDate, description, signedAmount: signed, reference });
 }
+
 
 export function parseBankCsv(content: string, profile: StatementProfile): ParseResult {
   const rows = splitCsv(content);
