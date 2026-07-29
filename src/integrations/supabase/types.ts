@@ -3685,7 +3685,14 @@ export type Database = {
         }
         Returns: undefined
       }
-      confirm_bank_matches: { Args: { p_line_ids: string[] }; Returns: number }
+      confirm_bank_matches: {
+        Args: { p_line_ids: string[] }
+        Returns: {
+          confirmed: number
+          failed: number
+          failed_ids: string[]
+        }[]
+      }
       convert_quote_to_bookings: {
         Args: { p_assignments: Json; p_quote_id: string; p_recurring?: boolean }
         Returns: {
