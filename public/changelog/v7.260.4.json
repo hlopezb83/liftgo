@@ -1,0 +1,34 @@
+{
+  "version": "7.260.4",
+  "date": "2026-07-29",
+  "type": "patch",
+  "title": "Cobertura de pruebas para blindajes de la auditoría R2",
+  "category": "improvement",
+  "description": "Se añadió una matriz de cobertura de pruebas de la auditoría R2 y se cerraron brechas críticas: test unitario para la asignación de roles en invitación de usuarios (DB2-01), test de componente para el estado de error del portal de clientes (FE2-04) y validación inline de daños en la inspección de devoluciones (FE2-12). Además, el esquema de inspección ahora rechaza notas o costo de daño cuando la condición es 'good'.",
+  "changes": [
+    {
+      "type": "added",
+      "description": "docs/coverage-matrix-r2.md: matriz de cobertura de pruebas para los 34 bloques de la auditoría R2 (DB2-01..21, FE2-01..13)."
+    },
+    {
+      "type": "added",
+      "description": "supabase/functions/invite-user/assignRole.ts + assignRole_test.ts: helper testeable para asignar roles con upsert sobre user_id y test Deno que verifica el arreglo de DB2-01."
+    },
+    {
+      "type": "added",
+      "description": "src/features/portal/pages/PortalInvoices.test.tsx: test de componente que valida QueryErrorState cuando falla la carga de facturas del portal (FE2-04)."
+    },
+    {
+      "type": "added",
+      "description": "src/features/returns/lib/returnInspectionSchema.test.ts: casos de borde para costos negativos, no numéricos, horas negativas y daño con condición 'good' (FE2-12)."
+    },
+    {
+      "type": "changed",
+      "description": "src/features/returns/lib/returnInspectionSchema.ts: ahora rechaza notas o costo de daño cuando la condición no implica daño."
+    },
+    {
+      "type": "changed",
+      "description": "supabase/functions/invite-user/index.ts: delega la asignación de rol en assignRoleToUser para mejorar testabilidad y mantener el fix de DB2-01."
+    }
+  ]
+}

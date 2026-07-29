@@ -6,6 +6,7 @@ import {
 } from "../_shared/auth.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { isEmail, isNonEmptyString, isValidRole } from "../_shared/validate.ts";
+import { assignRoleToUser } from "./assignRole.ts";
 
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
@@ -76,21 +77,9 @@ Deno.serve(async (req) => {
     // borraba el rol residual: el invitado quedaba SIN rol con respuesta 200.
     // El upsert sobre (user_id) reemplaza cualquier rol auto-creado por el
     // trigger de signup, así que el prune ya no es necesario.
-    const { error: roleErr } = await auth.adminClient
-      .from("user_roles")
-      .upsert({ user_id: userId, role }, { onConflict: "user_id" });
-    if (roleErr) {
-      console.error("[invite-user] no se pudo asignar rol", {
-        userId,
-        role,
-        err: roleErr,
-      });
-      // Sin rol el usuario queda sin acceso: NO tragar el error.
-      return jsonError(
-        req,
-        500,
-        "No se pudo asignar el rol al usuario invitado. Reintenta o contacta a soporte.",
-      );
+    const roleResult = await assignRoleToUser(auth.adminClient, userId, role);
+    if (!roleResult.ok) {
+      return jsonError(req, 500, roleResult.message);
     }
 
     await auth.adminClient

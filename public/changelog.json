@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.260.4",
+    "date": "2026-07-29",
+    "type": "patch",
+    "title": "Cobertura de pruebas para blindajes de la auditoría R2",
+    "category": "improvement",
+    "description": "Se añadió una matriz de cobertura de pruebas de la auditoría R2 y se cerraron brechas críticas: test unitario para la asignación de roles en invitación de usuarios (DB2-01), test de componente para el estado de error del portal de clientes (FE2-04) y validación inline de daños en la inspección de devoluciones (FE2-12). Además, el esquema de inspección ahora rechaza notas o costo de daño cuando la condición es 'good'."
+  },
+  {
     "version": "7.260.3",
     "date": "2026-07-29",
     "type": "patch",
