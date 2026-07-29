@@ -85,32 +85,8 @@ export default function CustomersPage() {
     initialSorting: [{ id: "name", desc: false }],
   });
 
-
-
   const renderMobileCard = (c: Customer) => (
-    <SwipeableCard
-      onClick={() => navigate(`/customers/${c.id}`)}
-      rightActions={c.phone ? [{
-        label: "Llamar",
-        icon: PhoneIcon,
-        className: "bg-primary",
-        onAction: () => { window.location.href = `tel:${c.phone}`; },
-      }] : []}
-    >
-      <Card className="active:scale-[0.98] transition-transform">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-1">
-            <Untranslated className="font-semibold text-sm">{c.name}</Untranslated>
-            <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
-          </div>
-          {c.rfc && <p className="text-xs font-mono text-muted-foreground">{c.rfc}</p>}
-          <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-            {c.phone && <span>{c.phone}</span>}
-            {c.email && <span>{c.email}</span>}
-          </div>
-        </CardContent>
-      </Card>
-    </SwipeableCard>
+    <CustomerMobileCard customer={c} onOpen={(id) => navigate(`/customers/${id}`)} />
   );
 
   const openCreate = () => { setEditId(null); setInitialData(undefined); setDialogOpen(true); };
