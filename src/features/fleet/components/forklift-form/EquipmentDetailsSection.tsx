@@ -4,11 +4,11 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FUEL_TYPES, STATUS_LABELS, FUEL_TYPE_LABELS } from "@/lib/constants";
+import type { ForkliftFormData } from "../../lib/forkliftFormSchema";
 
 // D3-r3: en alta la DB rechaza estados que implican operación (rented/sold)
 // sin renta activa — solo available/maintenance son iniciales válidos.
 const CREATABLE_FORKLIFT_STATUSES = ["available", "maintenance"] as const;
-import type { ForkliftFormData } from "../../lib/forkliftFormSchema";
 
 interface Props {
   isEdit: boolean;
