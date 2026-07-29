@@ -1,4 +1,5 @@
 import { FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ProspectStageBadge } from "./ProspectStageBadge";
