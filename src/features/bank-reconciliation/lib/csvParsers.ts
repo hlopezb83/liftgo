@@ -58,11 +58,22 @@ function requiredColumns(map: ColumnMap): number {
   return Math.max(...indexes) + 1;
 }
 
-function parseRow(r: string[], map: ColumnMap, idx: number, minCols: number): ParsedBankLine | string {
+function expectedColumnsMessage(minCols: number, maxCols: number): string {
+  return minCols === maxCols ? `${minCols}` : `entre ${minCols} y ${maxCols}`;
+}
+
+function parseRow(
+  r: string[],
+  map: ColumnMap,
+  idx: number,
+  minCols: number,
+  maxCols: number,
+): ParsedBankLine | string {
   // R23-J: un importe con coma sin comillas ("1500,50") partía la fila y corría
   // las columnas en silencio, importando montos y fechas equivocados.
-  if (r.length < minCols) {
-    return `Línea ${idx + 1}: se esperaban al menos ${minCols} columnas y llegaron ${r.length}. Revisa que los importes con coma vengan entre comillas.`;
+  // R24-F: también rechazamos filas con columnas de MÁS por el mismo motivo.
+  if (r.length < minCols || r.length > maxCols) {
+    return `Línea ${idx + 1}: se esperaban ${expectedColumnsMessage(minCols, maxCols)} columnas y llegaron ${r.length}. Revisa que los importes con coma vengan entre comillas.`;
   }
   const postedDate = parseDateFlexible(r[map.date] ?? "");
   if (!postedDate) return `Línea ${idx + 1}: fecha inválida ("${r[map.date] ?? ""}")`;
