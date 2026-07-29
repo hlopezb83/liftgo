@@ -8,6 +8,7 @@ import { STATUS_LABELS } from "@/lib/constants";
 export const QUOTE_STATUS_LABELS: Record<string, string> = {
   ...STATUS_LABELS,
   sent: "Enviada",
+  cancelled: "Cancelada",
 };
 
 export const quoteStatusLabel = (status: string): string =>
