@@ -9,7 +9,7 @@ import { DeliveryActions } from "../DeliveryActions";
  * el botón "Eliminar" en vez de dejar que el clic truene con el error SQL.
  */
 
-const roleGuardAccessMock = vi.fn<[], boolean>(() => true);
+const roleGuardAccessMock = vi.fn<() => boolean>(() => true);
 
 vi.mock("@/layouts/RoleGuard", () => ({
   RoleGuard: ({ children, fallback }: { children: ReactNode; fallback: ReactNode }) =>
