@@ -1,5 +1,12 @@
 # Changelog
 
+## 7.261.0 — 29/07/2026
+
+- Cotizaciones: nuevo estado `cancelled` y transición `accepted → cancelled` restringida a admin/administrativo y sin reservas `confirmed` ligadas (DB3-08).
+- `guard_quote_delete`: mensaje corregido (cancelar en vez de "rechazar") conservando la exención de teardown E2E (`app.e2e_teardown` + `is_e2e` + `e2e_scope`).
+- UI: filtro de estado de cotizaciones incluye "Cancelada".
+
+
 ## 7.260.3 — 29/07/2026
 
 - E2E: `e2e_teardown` marca su ejecución interna para que `guard_quote_delete` permita borrar únicamente cotizaciones `is_e2e` con `e2e_scope`, manteniendo bloqueado el borrado de cotizaciones aceptadas reales.
