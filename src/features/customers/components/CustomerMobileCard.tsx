@@ -1,7 +1,7 @@
-import { SwipeableCard } from "@/components/layout/SwipeableCard";
+import { SwipeableCard } from "@/components/feedback/SwipeableCard";
+import { ChevronRightIcon, PhoneIcon } from "@/components/icons";
 import { Card, CardContent } from "@/components/ui/card";
 import { Untranslated } from "@/components/ui/Untranslated";
-import { ChevronRightIcon, PhoneIcon } from "@/components/icons";
 
 interface CustomerCardData {
   id: string;
