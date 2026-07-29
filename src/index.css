@@ -331,11 +331,25 @@
     background: #fff !important;
     color: #000 !important;
   }
+  /* R23-2: el shell usa h-[100dvh] + main overflow-auto; sin este reset la
+     impresión recorta el contenido al viewport visible. */
+  html, body {
+    height: auto !important;
+    overflow: visible !important;
+  }
+  #main-content,
+  main,
+  .h-\[100dvh\] {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
   main {
     margin: 0 !important;
     padding: 0 !important;
     max-width: none !important;
   }
+
   * {
     box-shadow: none !important;
     text-shadow: none !important;
