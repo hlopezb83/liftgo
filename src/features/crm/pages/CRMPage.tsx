@@ -84,11 +84,19 @@ export default function CRMPage() {
         ? String(over.id)
         : (over.data.current?.stage as string | undefined) ?? String(over.id);
     if (!newStage || !sourceStage) return null;
+
+    // R23-I: soltar en el área vacía de una columna mandaba la tarjeta al
+    // INICIO (`?? 0`) y no había forma de soltar al final. Ahora ese caso
+    // apunta al final de la columna destino.
+    const sortableIndex = over.data.current?.sortable?.index as number | undefined;
+    const columnLength = stagesData.find((s) => s.key === newStage)?.items.length ?? 0;
+    const appendIndex = sourceStage === newStage ? Math.max(0, columnLength - 1) : columnLength;
+
     return {
       draggableId: String(active.id),
       sourceStage,
       newStage,
-      newIndex: (over.data.current?.sortable?.index as number | undefined) ?? 0,
+      newIndex: sortableIndex ?? appendIndex,
     };
   };
 
@@ -107,14 +115,12 @@ export default function CRMPage() {
       return;
     }
 
-    if (sourceStage === newStage) {
-      updateProspect.mutate({ id: draggableId, stage_order: newIndex });
-      return;
-    }
-
-    // B-11: movimiento entre columnas directo y optimista al soltar.
+    // B-11 + R23-H: mismo camino optimista para reordenar dentro de la columna
+    // y para mover entre columnas — antes el reorder usaba un update plano
+    // sin optimismo ni reindexado.
     moveProspectStage.mutate({ id: draggableId, newStage, newIndex });
   };
+
   if (isError) {
     return (
       <PageTransition>

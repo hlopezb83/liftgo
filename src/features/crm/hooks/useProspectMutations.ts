@@ -63,18 +63,26 @@ export function useDeleteProspect() {
  */
 const MOVE_PROSPECT_STAGE_KEY = ["prospects", "move-stage"] as const;
 
+const MOVE_PROSPECT_STAGE_KEY = ["prospects", "move-stage"] as const;
+
 export function useMoveProspectStage() {
   const queryClient = useQueryClient();
 
   return useMutation<void, Error, StageMove, { snapshots: [QueryKey, Prospect[] | undefined][] }>({
     mutationKey: MOVE_PROSPECT_STAGE_KEY,
+    // R23-G: la RPC reindexa `stage_order` de la columna origen y destino en
+    // una sola transacción. Antes sólo se escribía la tarjeta movida, dejando
+    // órdenes duplicados (#0) y un orden persistido distinto al que veía el
+    // usuario al recargar.
     mutationFn: async ({ id, newStage, newIndex }: StageMove) => {
-      const { error } = await supabase
-        .from("prospects")
-        .update({ stage: newStage, stage_order: newIndex })
-        .eq("id", id);
+      const { error } = await supabase.rpc("reorder_prospect_stage", {
+        p_prospect_id: id,
+        p_new_stage: newStage,
+        p_new_index: newIndex,
+      });
       if (error) throw error;
     },
+
     onMutate: async (move) => {
       await queryClient.cancelQueries({ queryKey: prospectKeys.all });
       const snapshots = queryClient.getQueriesData<Prospect[]>({ queryKey: prospectKeys.all });
