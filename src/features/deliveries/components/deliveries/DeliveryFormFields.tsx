@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useWatch } from "react-hook-form";
 import {
-  TextField, TextareaField, DateField, SelectField, type SelectOption,
+  TextField, TextareaField, DateField, SelectField, CheckboxField, type SelectOption,
 } from "@/components/forms/fields";
 import { FormSection } from "@/components/forms/FormSection";
 import { Form } from "@/components/ui/form";
@@ -10,6 +10,7 @@ import type { UseFormReturn } from "react-hook-form";
 
 export type DeliveryFormValues = {
   forkliftId: string; bookingId: string; type: string;
+  alreadyCompleted: boolean;
   scheduledDate: Date; scheduledTime: string;
   address: string; driverName: string; driverPhone: string; notes: string;
 };
@@ -108,6 +109,13 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
           <DateField control={form.control} name="scheduledDate" label="Fecha" required />
           <TextField control={form.control} name="scheduledTime" label="Hora" type="time" />
         </div>
+
+        <CheckboxField
+          control={form.control}
+          name="alreadyCompleted"
+          label="Ya se realizó (registrar histórico)"
+          description="Permite fecha pasada; la entrega se registra directamente como completada."
+        />
 
         <TextField
           control={form.control}

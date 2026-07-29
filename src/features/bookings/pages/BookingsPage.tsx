@@ -1,10 +1,10 @@
 import { parseISO } from "date-fns";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
-import { AddIcon, ChevronRightIcon, CalendarDays, WarnIcon } from "@/components/icons";
+import { AddIcon, ChevronRightIcon, CalendarDays } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Untranslated } from "@/components/ui/Untranslated";
@@ -13,7 +13,7 @@ import { useUserRole } from "@/features/users";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { BOOKING_STATUSES, STATUS_LABELS } from "@/lib/constants";
-import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
+import { visibleListRows } from "@/lib/supabase/constants";
 import { formatMtyDate } from "@/lib/utils";
 import { RecurringBillingBadge } from "../components/bookings/RecurringBillingBadge";
 import { useBookings, bookingQueries } from "../hooks/bookings/useBookings";
@@ -35,7 +35,8 @@ const getDuration = (start: string, end: string) => {
 
 
 export default function BookingsPage() {
-  const { data: bookings, isLoading, isError, refetch } = useBookings();
+  const { data: bookingsRaw, isLoading, isError, refetch } = useBookings();
+  const bookings = visibleListRows(bookingsRaw);
   const navigate = useNavigateTransition();
   const { data: role } = useUserRole();
   const isAdmin = role === "admin";
@@ -123,16 +124,11 @@ export default function BookingsPage() {
           </Button>
         ) : undefined
       }
+      notice={
+        <ListTruncationNotice rows={bookingsRaw} />
+      }
       filters={
         <div className="space-y-3">
-          {hasReachedListLimit(bookings) && (
-            <Alert>
-              <WarnIcon className="h-4 w-4" />
-              <AlertDescription>
-                Mostrando los primeros {LIST_PAGE_LIMIT} registros. Refina los filtros para ver más.
-              </AlertDescription>
-            </Alert>
-          )}
           <FiltersToolbar>
             <FiltersToolbar.Search
               value={values.q}

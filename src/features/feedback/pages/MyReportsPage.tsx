@@ -1,13 +1,12 @@
 
 import { DataTableV2, DataTablePaginationV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { WarnIcon } from "@/components/icons";
+import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatDateMty } from "@/lib/format/dateFormats";
-import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 import { FeedbackStatusBadge } from "../components/FeedbackStatusBadge";
 import { useMyFeedbackReports } from "../hooks/useFeedbackReports";
 import { FEEDBACK_TYPE_LABELS } from "../lib/constants";
@@ -15,7 +14,7 @@ import { FEEDBACK_TYPE_LABELS } from "../lib/constants";
 type Report = NonNullable<ReturnType<typeof useMyFeedbackReports>["data"]>[number];
 
 export default function MyReportsPage() {
-  const { data: reports, isLoading } = useMyFeedbackReports();
+  const { data: reports, isLoading, isError, refetch } = useMyFeedbackReports();
 
   const totalPoints = (reports ?? []).reduce((sum, r) => sum + (r.points_awarded ?? 0), 0);
 
@@ -84,26 +83,23 @@ export default function MyReportsPage() {
         }
       />
 
-      {hasReachedListLimit(reports) && (
-        <Alert>
-          <WarnIcon className="h-4 w-4" />
-          <AlertDescription>
-            Mostrando los primeros {LIST_PAGE_LIMIT} registros. Refina los filtros para ver más.
-          </AlertDescription>
-        </Alert>
-      )}
+      <ListTruncationNotice rows={reports} />
 
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="text-base">{reports?.length ?? 0} reportes</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
-          <DataTableV2
-            table={table}
-            isLoading={isLoading}
-            emptyMessage="Sin reportes todavía. Usa el botón “Reportar” para enviar el primero."
-          />
-          {(reports?.length ?? 0) > 0 && (
+          {isError ? (
+            <QueryErrorState entity="tus reportes" onRetry={() => { void refetch(); }} bare />
+          ) : (
+            <DataTableV2
+              table={table}
+              isLoading={isLoading}
+              emptyMessage="Sin reportes todavía. Usa el botón “Reportar” para enviar el primero."
+            />
+          )}
+          {!isError && (reports?.length ?? 0) > 0 && (
             <div className="border-t p-3">
               <DataTablePaginationV2 table={table} />
             </div>

@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import { useLiftgoTable } from "@/components/dataTable/v2";
+import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { useUserRole } from "@/features/users";
@@ -61,6 +62,9 @@ export default function AuditTrailPage() {
       <ListPageLayout
         title="Bitácora de Cambios"
         subtitle="Rastrea todos los cambios en el sistema"
+        notice={
+          <ListTruncationNotice rows={logs} />
+        }
         filters={
           <FiltersToolbar>
             <FiltersToolbar.Search

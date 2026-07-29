@@ -14,21 +14,15 @@ export const bookingFormSchema = z
     recurring_billing: z.boolean().default(false),
   })
   .refine((d) => {
-    if (!d.date_range.from || !d.date_range.to) return true;
-    return d.date_range.to >= d.date_range.from;
-  }, {
-    message: "La fecha de fin debe ser posterior a la de inicio",
-    path: ["date_range"],
-  })
-  .refine((d) => {
-    // Renta mínima de 1 día calendario: fin no puede ser anterior al inicio
-    // (comparación por día, no por timestamp, para aceptar rentas del mismo día).
+    // N-04b: refine único por día calendario (permite rentas del mismo día =
+    // 1 día de cobro). Antes había un segundo refine inalcanzable (éste
+    // dispara primero) con copy "renta mínima 1 día" que confundía.
     if (!d.date_range.from || !d.date_range.to) return true;
     const from = new Date(d.date_range.from); from.setHours(0, 0, 0, 0);
     const to = new Date(d.date_range.to); to.setHours(0, 0, 0, 0);
     return to.getTime() >= from.getTime();
   }, {
-    message: "La renta mínima es de 1 día",
+    message: "La fecha de fin debe ser posterior a la de inicio",
     path: ["date_range"],
   });
 

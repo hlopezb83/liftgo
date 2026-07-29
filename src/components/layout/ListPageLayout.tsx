@@ -19,6 +19,12 @@ interface ListPageLayoutProps<T> {
   /** Acción primaria opcional para mostrar como FAB flotante en móvil. */
   mobileFab?: ReactNode;
   filters?: ReactNode;
+  /**
+   * N-01: aviso persistente (p.ej. truncamiento de lista). Se renderiza entre
+   * el encabezado y los filtros, FUERA del Sheet de filtros móvil, para que
+   * sea visible en todos los viewports.
+   */
+  notice?: ReactNode;
   isLoading: boolean;
   /** UX-A1: si la query falla, renderizamos ErrorState en vez de EmptyState. */
   isError?: boolean;
@@ -61,6 +67,7 @@ export function ListPageLayout<T extends { id?: string }>({
   actions,
   mobileFab,
   filters,
+  notice,
   isLoading,
   isError = false,
   onRetry,
@@ -111,6 +118,7 @@ export function ListPageLayout<T extends { id?: string }>({
           subtitle={buildSubtitle(subtitle, totalCount)}
           action={hasMobileFab ? undefined : actions}
         />
+        {notice}
         <FiltersSlot
           filters={filters}
           inSheet={isMobile && !!filters}

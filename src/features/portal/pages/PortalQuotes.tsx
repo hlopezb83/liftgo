@@ -1,5 +1,6 @@
 
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { MobileCardList } from "@/components/layout/MobileCardList";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -16,7 +17,7 @@ import { quoteStatusLabel } from "../lib/quoteStatus";
 type Quote = NonNullable<ReturnType<typeof usePortalQuotes>["data"]>[number];
 
 export default function PortalQuotes() {
-  const { data, isLoading } = usePortalQuotes();
+  const { data, isLoading, isError, refetch } = usePortalQuotes();
   const navigate = useNavigateTransition();
   const isMobile = useIsMobile();
 
@@ -40,6 +41,15 @@ export default function PortalQuotes() {
   });
 
   if (isLoading) return <Skeleton className="h-96" />;
+
+  if (isError) {
+    return (
+      <PageContainer maxWidth="wide">
+        <PageHeader title="Mis Cotizaciones" />
+        <QueryErrorState entity="tus cotizaciones" onRetry={() => { void refetch(); }} />
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer maxWidth="wide">

@@ -4,7 +4,7 @@
  *
  * Transiciones reales (switch/case):
  *   "confirmed"  → ["completed", "cancelled"]
- *   "completed"  → ["confirmed"]
+ *   "completed"  → [] (terminal: R2-5, evita revivir reservas completadas)
  *   "cancelled"  → [] (terminal: P0-2, evita revivir reservas canceladas)
  *   default      → []
  */
@@ -19,8 +19,8 @@ describe("getValidTransitions", () => {
     expect(result).toHaveLength(2);
   });
 
-  it('completed → ["confirmed"]', () => {
-    expect(getValidTransitions("completed")).toEqual(["confirmed"]);
+  it('completed → [] (terminal, no se puede revivir a confirmed)', () => {
+    expect(getValidTransitions("completed")).toEqual([]);
   });
 
   it('cancelled → [] (terminal, no se puede revivir)', () => {

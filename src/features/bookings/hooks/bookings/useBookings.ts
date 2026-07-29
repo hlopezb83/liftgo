@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toYMD } from "@/lib/date/toYMD";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import { EXCLUDE_E2E_FILTER, LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
+import { EXCLUDE_E2E_FILTER, LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import { bookingKeys } from "../../lib/queryKeys";
 export type { Booking, BookingWithForklift } from "@/types/rental";
 
@@ -15,7 +15,7 @@ async function fetchBookingList(forkliftId?: string) {
     .select("*, forklifts(name, model)")
     .or(EXCLUDE_E2E_FILTER)
     .order("start_date", { ascending: false })
-    .limit(LIST_PAGE_LIMIT);
+    .limit(LIST_FETCH_LIMIT);
   if (forkliftId) query = query.eq("forklift_id", forkliftId);
   const { data, error } = await query;
   if (error) throw error;

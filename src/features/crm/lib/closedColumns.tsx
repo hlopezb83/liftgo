@@ -1,5 +1,5 @@
 import type { ColumnDef } from "@/components/dataTable/v2";
-import { ResetIcon, UserIcon } from "@/components/icons";
+import { UserIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -15,7 +15,6 @@ export type ClosedKind = "won" | "lost";
  */
 export function buildClosedColumns(
   kind: ClosedKind,
-  onReopen: (p: Prospect) => void,
   onConvert?: (p: Prospect) => void,
   onViewCustomer?: (customerId: string) => void,
 ): ColumnDef<Prospect>[] {
@@ -101,9 +100,6 @@ export function buildClosedColumns(
               Cliente creado — Ver cliente
             </Button>
           )}
-          <Button size="sm" variant="ghost" onClick={() => onReopen(p)}>
-            <ResetIcon className="h-3.5 w-3.5 mr-1" /> Reabrir
-          </Button>
         </div>
       );
     },

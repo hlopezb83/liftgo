@@ -7,7 +7,6 @@ interface ClosedTableProps {
   rows: Prospect[];
   kind: ClosedKind;
   isLoading: boolean;
-  onReopen: (p: Prospect) => void;
   onConvert?: (p: Prospect) => void;
   onViewCustomer?: (customerId: string) => void;
 }
@@ -16,8 +15,8 @@ interface ClosedTableProps {
  * Tabla de deals cerrados (ganados/perdidos). UI pura: recibe filas filtradas
  * y callbacks. La columna `lostReason` aparece solo cuando `kind === "lost"`.
  */
-export function ClosedTable({ rows, kind, isLoading, onReopen, onConvert, onViewCustomer }: ClosedTableProps) {
-  const columns = buildClosedColumns(kind, onReopen, onConvert, onViewCustomer);
+export function ClosedTable({ rows, kind, isLoading, onConvert, onViewCustomer }: ClosedTableProps) {
+  const columns = buildClosedColumns(kind, onConvert, onViewCustomer);
   const table = useLiftgoTable<Prospect>({
     data: rows,
     columns,

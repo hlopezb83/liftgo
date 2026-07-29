@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { KpiTile } from "@/components/domain/KpiTile";
+import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { SearchBar } from "@/components/forms/SearchBar";
 import { AddIcon, InventoryIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
@@ -10,13 +11,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useDialogState, useToggleDialog } from "@/hooks/useDialogState";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { visibleListRows } from "@/lib/supabase/constants";
 import { PartDetailSheet } from "../components/inventory/PartDetailSheet";
 import { PartFormDialog, PART_CATEGORIES } from "../components/inventory/PartFormDialog";
 import { useInventoryFilters } from "../hooks/inventory/useInventoryFilters";
 import { usePartsInventory, type PartInventory } from "../hooks/usePartsInventory";
 
 export default function InventoryPage() {
-  const { data: parts, isLoading, isError, refetch } = usePartsInventory();
+  const { data: partsRaw, isLoading, isError, refetch } = usePartsInventory();
+  const parts = visibleListRows(partsRaw);
 
   const formDialog = useToggleDialog();
   const [editing, setEditing] = useState<PartInventory | null>(null);
@@ -105,6 +108,9 @@ export default function InventoryPage() {
         subtitle="Gestiona el inventario de partes y refacciones"
         totalCount={filtered.length}
         actions={<Button onClick={openCreate}><AddIcon className="h-4 w-4 mr-1" />Nueva refacción</Button>}
+        notice={
+          <ListTruncationNotice rows={partsRaw} />
+        }
         filters={
           <div className="space-y-3">
             {lowStockCount > 0 && (

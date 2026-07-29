@@ -12,7 +12,10 @@ export { BOOKING_STATUS_LABELS } from "./useBookingActions";
 export function getValidTransitions(current: string): string[] {
   switch (current) {
     case "confirmed": return ["completed", "cancelled"];
-    case "completed": return ["confirmed"];
+    // R2-5: una reserva completada es terminal en la UI; revivirla a
+    // "confirmed" permitía doble reserva traslapada del mismo montacargas.
+    // La DB refuerza esto quitándolo de la whitelist de validate_transition.
+    case "completed": return [];
     // P0-2: una reserva cancelada es terminal en la UI; revivirla permitía
     // doble reserva del mismo montacargas. La DB refuerza esto con trigger.
     case "cancelled": return [];

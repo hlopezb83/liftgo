@@ -1,4 +1,5 @@
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { AddIcon, ViewIcon, DocumentIcon } from "@/components/icons";
@@ -10,6 +11,7 @@ import { Untranslated } from "@/components/ui/Untranslated";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
+import { visibleListRows } from "@/lib/supabase/constants";
 import { formatDateDisplay } from "@/lib/utils";
 import { ContractMobileCard } from "../components/contracts/ContractMobileCard";
 import { useContracts, contractQueries } from "../hooks/useContracts";
@@ -26,7 +28,8 @@ const CONTRACT_STATUS_OPTIONS = [
 type Contract = NonNullable<ReturnType<typeof useContracts>["data"]>[number];
 
 export default function ContractsPage() {
-  const { data: contracts, isLoading, isError, refetch } = useContracts();
+  const { data: contractsRaw, isLoading, isError, refetch } = useContracts();
+  const contracts = visibleListRows(contractsRaw);
   const navigate = useNavigateTransition();
 
   const { values, set, reset, hasActive, filtered } = useTableFilters<Contract, {
@@ -129,6 +132,9 @@ export default function ContractsPage() {
         <RoleGuard module="Contratos" minAccess="full" fallback={null}>
           <Button size="sm" onClick={() => navigate("/contracts/new")}><AddIcon className="h-4 w-4 mr-1" />Nuevo contrato</Button>
         </RoleGuard>
+      }
+      notice={
+        <ListTruncationNotice rows={contractsRaw} />
       }
       filters={
         <FiltersToolbar>

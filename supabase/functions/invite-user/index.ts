@@ -70,35 +70,27 @@ Deno.serve(async (req) => {
 
     const userId = newUser.user.id;
 
-    // BLOQUE 3.2: upsert en vez de update. El default asumido (trigger crea
-    // user_roles con 'dispatcher') no siempre se materializa a tiempo por
-    // ordering de triggers; un UPDATE silencioso dejaba admins recién
-    // invitados sin fila en user_roles y sin acceso.
+    // DB2-01: el árbitro del conflicto debe ser el índice único VIGENTE
+    // user_roles_one_role_per_user (user_id). Con "user_id,role" el upsert
+    // reventaba con duplicate key y, al solo loguearse, el prune posterior
+    // borraba el rol residual: el invitado quedaba SIN rol con respuesta 200.
+    // El upsert sobre (user_id) reemplaza cualquier rol auto-creado por el
+    // trigger de signup, así que el prune ya no es necesario.
     const { error: roleErr } = await auth.adminClient
       .from("user_roles")
-      .upsert({ user_id: userId, role }, { onConflict: "user_id,role" });
+      .upsert({ user_id: userId, role }, { onConflict: "user_id" });
     if (roleErr) {
       console.error("[invite-user] no se pudo asignar rol", {
         userId,
         role,
         err: roleErr,
       });
-    }
-
-    // Bloque 5.4 (R4): tras el upsert, purgar cualquier rol residual (p.ej.
-    // 'customer' auto-creado o un rol previo si el trigger disparó antes).
-    // Sin esto, el usuario acumulaba roles y ganaba permisos incorrectos.
-    const { error: pruneErr } = await auth.adminClient
-      .from("user_roles")
-      .delete()
-      .eq("user_id", userId)
-      .neq("role", role);
-    if (pruneErr) {
-      console.error("[invite-user] no se pudieron purgar roles residuales", {
-        userId,
-        role,
-        err: pruneErr,
-      });
+      // Sin rol el usuario queda sin acceso: NO tragar el error.
+      return jsonError(
+        req,
+        500,
+        "No se pudo asignar el rol al usuario invitado. Reintenta o contacta a soporte.",
+      );
     }
 
     await auth.adminClient

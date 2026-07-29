@@ -5,6 +5,7 @@ import {
   useLiftgoTable,
   type ColumnDef,
 } from "@/components/dataTable/v2";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { MobileCardList } from "@/components/layout/MobileCardList";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -17,7 +18,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 type Contract = NonNullable<ReturnType<typeof usePortalContracts>["data"]>[number];
 
 export default function PortalContracts() {
-  const { data: contracts, isLoading } = usePortalContracts();
+  const { data: contracts, isLoading, isError, refetch } = usePortalContracts();
   const isMobile = useIsMobile();
 
   const columns: ColumnDef<Contract>[] = [
@@ -65,6 +66,15 @@ export default function PortalContracts() {
   });
 
   if (isLoading) return <Skeleton className="h-96" />;
+
+  if (isError) {
+    return (
+      <PageContainer maxWidth="wide">
+        <PageHeader title="Mis Contratos" />
+        <QueryErrorState entity="tus contratos" onRetry={() => { void refetch(); }} />
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer maxWidth="wide">

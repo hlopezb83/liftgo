@@ -5,6 +5,7 @@ const base = {
   forkliftId: "fk-1",
   bookingId: "bk-1",
   type: "delivery",
+  alreadyCompleted: false,
   scheduledDate: new Date(),
   scheduledTime: "10:00",
   address: "Calle 1",
@@ -27,14 +28,23 @@ describe("deliverySchema", () => {
     }
   });
 
-  it("rechaza scheduledDate en el pasado", () => {
+  it("rechaza scheduledDate en el pasado si no es histórica", () => {
     const pastDate = new Date();
     pastDate.setDate(pastDate.getDate() - 1);
     const r = deliverySchema.safeParse({ ...base, scheduledDate: pastDate });
     expect(r.success).toBe(false);
     if (!r.success) {
-      expect(r.error.issues.some((i) => i.message === "La entrega no puede programarse en el pasado")).toBe(true);
+      expect(
+        r.error.issues.some((i) => i.message.includes("marca")),
+      ).toBe(true);
     }
+  });
+
+  it("acepta scheduledDate en el pasado cuando alreadyCompleted es true (histórico)", () => {
+    const pastDate = new Date();
+    pastDate.setDate(pastDate.getDate() - 1);
+    const r = deliverySchema.safeParse({ ...base, alreadyCompleted: true, scheduledDate: pastDate });
+    expect(r.success).toBe(true);
   });
 
   it("acepta scheduledDate hoy", () => {

@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DownloadIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -15,9 +16,9 @@ import { PortalInvoicesTable, type PortalPayment } from "../components/statement
 
 
 export default function PortalStatement() {
-  const { data: customer, isLoading: cl } = usePortalCustomer();
-  const { data: invoices, isLoading: il } = usePortalInvoices();
-  const { data: payments, isLoading: pl } = usePortalPayments();
+  const { data: customer, isLoading: cl, isError: ce, refetch: rc } = usePortalCustomer();
+  const { data: invoices, isLoading: il, isError: ie, refetch: ri } = usePortalInvoices();
+  const { data: payments, isLoading: pl, isError: pe, refetch: rp } = usePortalPayments();
   const { data: summary } = useCustomerSummary(customer?.id);
   const [onlyBalance, setOnlyBalance] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
@@ -68,6 +69,22 @@ export default function PortalStatement() {
   };
 
   if (cl || il || pl) return <Skeleton className="h-96" />;
+
+  if (ce || ie || pe) {
+    return (
+      <PageContainer maxWidth="wide">
+        <PageHeader title="Estado de Cuenta" />
+        <QueryErrorState
+          entity="tu estado de cuenta"
+          onRetry={() => {
+            void rc();
+            void ri();
+            void rp();
+          }}
+        />
+      </PageContainer>
+    );
+  }
 
   return (
     <PageContainer maxWidth="wide">

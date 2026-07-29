@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
+import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import { maintenancePartKeys } from "../lib/queryKeys";
 
 const sel = (s: string): string => s;
@@ -19,7 +19,7 @@ export const partsInventoryQueries = defineEntityQueries<"parts_inventory", Part
         .from("parts_inventory")
         .select(PART_COLUMNS)
         .order("name")
-        .limit(LIST_PAGE_LIMIT)
+        .limit(LIST_FETCH_LIMIT)
         .returns<PartInventory[]>();
       if (error) throw error;
       return data;
@@ -41,7 +41,7 @@ export function useMaintenanceParts(maintenanceLogId?: string) {
         .select("*, parts_inventory(name, sku, category)")
         .eq("maintenance_log_id", maintenanceLogId ?? "")
         .order("created_at")
-        .limit(LIST_PAGE_LIMIT);
+        .limit(LIST_FETCH_LIMIT);
       if (error) throw error;
       return data;
     },

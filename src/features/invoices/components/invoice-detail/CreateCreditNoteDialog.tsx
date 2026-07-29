@@ -26,8 +26,9 @@ export function CreateCreditNoteDialog({ open, onOpenChange, invoice, maxCredita
       onOpenChange={(o) => { if (!o) f.reset(); onOpenChange(o); }}
       title="Nueva nota de Crédito"
       width="2xl"
-      description={<>Reduce el saldo de la factura {invoice.invoice_number}. Máximo acreditable:{" "}
-        <span className="font-mono font-semibold">{formatCurrency(maxCreditable)}</span></>}
+      description={<>Factura {invoice.invoice_number}. Máximo acreditable:{" "}
+        <span className="font-mono font-semibold">{formatCurrency(maxCreditable)}</span>.
+        El borrador NO modifica el saldo; éste se reduce únicamente al timbrar la nota de crédito.</>}
     >
 
 

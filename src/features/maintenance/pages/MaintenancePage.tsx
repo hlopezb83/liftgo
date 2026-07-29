@@ -1,16 +1,15 @@
 import { useState } from "react";
-import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
-import { MaintenanceIcon, WarnIcon } from "@/components/icons";
+import { useLiftgoTable } from "@/components/dataTable/v2";
+import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
+import { MaintenanceIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { usePageActions } from "@/contexts/pageActions";
 import { MarkAvailableDialog, useForkliftMap } from "@/features/fleet";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useDialogState } from "@/hooks/useDialogState";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
-import { formatDateDisplay } from "@/lib/utils";
+import { visibleListRows } from "@/lib/supabase/constants";
 import { MaintenanceDetailSheet } from "../components/maintenance/MaintenanceDetailSheet";
 import { MaintenanceFiltersBar } from "../components/maintenance/MaintenanceFiltersBar";
 import { MaintenanceFormDialog } from "../components/maintenance/MaintenanceFormDialog";
@@ -22,10 +21,12 @@ import { useMaintenanceForm } from "../hooks/maintenance/useMaintenanceForm";
 import { useMaintenanceLogs, type MaintenanceLog } from "../hooks/maintenance/useMaintenanceLogs";
 import { useActiveMechanics } from "../hooks/maintenance/useMechanics";
 import { enrichLogs, maintenanceCsvRows, sumCost, type EnrichedMaintenanceLog } from "../lib/maintenancePageHelpers";
+import { maintenanceColumns } from "./maintenanceColumns";
 
 export default function MaintenancePage() {
   const { forkliftMap, forklifts } = useForkliftMap();
-  const { data: logs, isLoading, isError, refetch } = useMaintenanceLogs();
+  const { data: logsRaw, isLoading, isError, refetch } = useMaintenanceLogs();
+  const logs = visibleListRows(logsRaw);
   const { data: activeMechanics } = useActiveMechanics();
   const generateRecurring = useGenerateRecurringMaintenance();
   const detail = useDialogState<MaintenanceLog>();
@@ -57,48 +58,10 @@ export default function MaintenancePage() {
   });
 
 
-  const columns: ColumnDef<EnrichedMaintenanceLog>[] = [
-    {
-      id: "performed_at",
-      header: "Fecha",
-      accessorKey: "performed_at",
-      cell: ({ row }) => <span className="font-mono text-sm">{formatDateDisplay(row.original.performed_at)}</span>,
-    },
-    {
-      id: "forklift_name",
-      header: "Montacargas",
-      accessorKey: "forklift_name",
-      cell: ({ row }) => <span className="font-medium">{row.original.forklift_name || "—"}</span>,
-    },
-    {
-      id: "service_type",
-      header: "Tipo de Servicio",
-      accessorKey: "service_type",
-    },
-    {
-      id: "performed_by",
-      header: "Realizado Por",
-      accessorFn: (l) => l.performed_by ?? "",
-      cell: ({ row }) => row.original.performed_by || "—",
-    },
-    {
-      id: "cost",
-      header: "Costo",
-      accessorFn: (l) => l.cost ?? 0,
-      meta: { kind: "money" },
-      cell: ({ row }) => <span>{formatCurrency(row.original.cost || 0)}</span>,
-    },
-    {
-      id: "next_service_date",
-      header: "Próximo Servicio",
-      accessorFn: (l) => l.next_service_date ?? "",
-      cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateDisplay(row.original.next_service_date)}</span>,
-    },
-  ];
 
   const table = useLiftgoTable<EnrichedMaintenanceLog>({
     data: filtered,
-    columns,
+    columns: maintenanceColumns,
     getRowId: (l) => l.id,
   });
 
@@ -123,16 +86,11 @@ export default function MaintenancePage() {
             onCreate={formCtl.openCreate}
           />
         }
+        notice={
+          <ListTruncationNotice rows={logsRaw} />
+        }
         filters={
           <div className="space-y-3">
-            {hasReachedListLimit(logs) && (
-              <Alert>
-                <WarnIcon className="h-4 w-4" />
-                <AlertDescription>
-                  Mostrando los primeros {LIST_PAGE_LIMIT} registros. Refina los filtros para ver más.
-                </AlertDescription>
-              </Alert>
-            )}
             <MaintenanceFiltersBar
               search={values.q}
               onSearchChange={(v) => set("q", v)}

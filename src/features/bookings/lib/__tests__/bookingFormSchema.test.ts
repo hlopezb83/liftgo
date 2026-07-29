@@ -77,7 +77,7 @@ describe("bookingFormSchema", () => {
     });
     expect(r.success).toBe(false);
     if (!r.success) {
-      expect(r.error.issues.some((i) => i.message === "La renta mínima es de 1 día")).toBe(true);
+      expect(r.error.issues.some((i) => i.message.includes("posterior"))).toBe(true);
     }
   });
 

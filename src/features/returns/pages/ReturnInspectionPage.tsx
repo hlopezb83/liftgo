@@ -2,6 +2,7 @@ import { format } from "date-fns";
 import { useState } from "react";
 import { useSearchParams } from "react-router";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { PlusCircle } from "@/components/icons";
@@ -12,6 +13,7 @@ import { useBookings } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { visibleListRows } from "@/lib/supabase/constants";
 import { parseDateLocal } from "@/lib/utils";
 import { ReturnInspectionDialog } from "../components/return-inspection/ReturnInspectionDialog";
 import { useReturnInspectionDialog } from "../hooks/returnInspection/useReturnInspectionDialog";
@@ -24,7 +26,8 @@ export default function ReturnInspectionPage() {
   const [searchParams] = useSearchParams();
   const { data: bookings } = useBookings();
   const { forkliftMap } = useForkliftMap();
-  const { data: inspections, isLoading, isError, refetch } = useReturnInspections();
+  const { data: inspectionsRaw, isLoading, isError, refetch } = useReturnInspections();
+  const inspections = visibleListRows(inspectionsRaw);
 
   const [filterDate, setFilterDate] = useState<Date | undefined>();
 
@@ -108,6 +111,9 @@ export default function ReturnInspectionPage() {
         title="Devoluciones y Revisión"
         subtitle="Inspecciona equipos devueltos y actualiza el estado de la flota"
         totalCount={filteredInspections?.length}
+        notice={
+          <ListTruncationNotice rows={inspectionsRaw} />
+        }
         filters={
           <div className="flex items-end gap-3">
             <DatePickerField label="Filtrar por fecha" date={filterDate} onSelect={setFilterDate} placeholder="Todas las fechas" />

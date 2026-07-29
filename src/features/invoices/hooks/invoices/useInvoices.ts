@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { todayKeyMty } from "@/lib/format/dateFormats";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { EXCLUDE_E2E_FILTER, LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
+import { EXCLUDE_E2E_FILTER, LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import {
   createInvoiceListFilters,
   createInvoiceListQueryKey,
@@ -73,7 +73,7 @@ async function fetchInvoiceList(filters?: InvoiceListFilters) {
   const normalized = createInvoiceListFilters(filters);
   const { data, error } = await baseInvoiceQuery(normalized)
     .order("created_at", { ascending: false })
-    .limit(LIST_PAGE_LIMIT)
+    .limit(LIST_FETCH_LIMIT)
     .returns<InvoiceRow[]>();
   if (error) throw error;
   return data ?? [];

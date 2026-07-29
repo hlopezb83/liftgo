@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import { LIST_PAGE_LIMIT } from "@/lib/supabase/constants";
+import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 
 type DeliveryRow = Awaited<ReturnType<typeof fetchDeliveryDetail>>;
 type DeliveryList = Awaited<ReturnType<typeof fetchDeliveryList>>;
@@ -19,7 +19,7 @@ async function fetchDeliveryDetail(id: string) {
 }
 
 async function fetchDeliveryList(bookingId?: string) {
-  let query = supabase.from("deliveries").select("*, forklifts(name, model)").order("scheduled_date").limit(LIST_PAGE_LIMIT);
+  let query = supabase.from("deliveries").select("*, forklifts(name, model)").order("scheduled_date").limit(LIST_FETCH_LIMIT);
   if (bookingId) query = query.eq("booking_id", bookingId);
   const { data, error } = await query;
   if (error) throw error;

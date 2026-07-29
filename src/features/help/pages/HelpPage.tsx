@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useUserRole } from "@/features/users";
@@ -8,7 +9,7 @@ import { ManualEmptyCard, ManualGeneratingCard } from "../components/ManualState
 import { useUserManual } from "../hooks/useUserManual";
 
 export default function HelpPage() {
-  const { manual, isLoading, generate, isGenerating, versions, selectedVersion, setSelectedVersion } = useUserManual();
+  const { manual, isLoading, isError, refetch, generate, isGenerating, versions, selectedVersion, setSelectedVersion } = useUserManual();
   const { data: role } = useUserRole();
   const [search, setSearch] = useState("");
   const isAdmin = role === "admin";
@@ -27,6 +28,16 @@ export default function HelpPage() {
         {Array.from({ length: 5 }).map((_, i) => (
           <Skeleton key={i} className="h-14 w-full" />
         ))}
+      </PageContainer>
+    );
+  }
+
+  // A-02: si la query del manual falló, NO invitar a regenerar (ManualEmptyCard)
+  // sobre un error de red — mostrar estado de error con reintento.
+  if (isError) {
+    return (
+      <PageContainer maxWidth="wide">
+        <QueryErrorState entity="el manual de usuario" onRetry={() => { void refetch(); }} />
       </PageContainer>
     );
   }
