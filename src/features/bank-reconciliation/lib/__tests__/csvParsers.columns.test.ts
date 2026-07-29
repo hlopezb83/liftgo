@@ -42,6 +42,6 @@ describe("parseBankCsv — validación de columnas (R23-J)", () => {
     ].join("\n");
     const result = parseBankCsv(csv, "generico");
     expect(result.errors).toHaveLength(0);
-    expect(result.lines[0].signedAmount).toBe(1500.5);
+    expect(result.lines[0].signed_amount).toBe(1500.5);
   });
 });
