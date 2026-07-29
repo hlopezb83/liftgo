@@ -1,4 +1,15 @@
+import type { Page } from "@playwright/test";
 import { test, expect } from "./fixtures/crmSeed";
+
+/** Cede dos frames para que dnd-kit recalcule colisiones entre teclas. */
+async function nextFrame(page: Page): Promise<void> {
+  await page.evaluate(
+    () =>
+      new Promise<void>((resolve) => {
+        requestAnimationFrame(() => requestAnimationFrame(() => resolve()));
+      }),
+  );
+}
 
 /**
  * E2E del Kanban de CRM con movimiento optimista (dnd-kit).
@@ -36,9 +47,9 @@ test("mover una tarjeta de CRM entre columnas es optimista y persiste", async ({
   // Damos un frame entre teclas para que dnd-kit recalcule colisiones.
   await card.focus();
   await page.keyboard.press("Space");
-  await page.waitForTimeout(150);
+  await nextFrame(page);
   await page.keyboard.press("ArrowRight");
-  await page.waitForTimeout(150);
+  await nextFrame(page);
   await page.keyboard.press("Space");
 
 

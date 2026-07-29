@@ -10,9 +10,9 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { kanbanKeyboardCoordinates } from "../lib/kanbanKeyboardCoordinates";
 import { useState } from "react";
 import { ACTIVE_STAGES } from "../lib/constants";
+import { kanbanKeyboardCoordinates } from "../lib/kanbanKeyboardCoordinates";
 import { KanbanColumn } from "./KanbanColumn";
 import { ProspectCardOverlay } from "./ProspectCard";
 import type { Prospect } from "../hooks/useProspects";
