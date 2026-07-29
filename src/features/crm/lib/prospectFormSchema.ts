@@ -1,14 +1,6 @@
 import { z } from "zod";
 import { optionalEmail } from "@/lib/schemas/common";
-
-export const STAGE_LABELS: Record<string, string> = {
-  nuevo_prospecto: "Nuevo Prospecto",
-  contactado: "Contactado",
-  cotizacion_enviada: "Cotización Enviada",
-  negociacion: "Negociación",
-  cerrado_ganado: "Cerrado Ganado",
-  cerrado_perdido: "Cerrado Perdido",
-};
+import { STAGE_LABELS } from "@/features/crm/lib/constants";
 
 export const STAGES_REQUIRING_DEAL_VALUE = [
   "cotizacion_enviada",
@@ -26,7 +18,10 @@ export const prospectPayloadSchema = z.object({
   phone: z.string().trim().max(30).default(""),
   deal_value: z.number().min(0, "El valor del trato debe ser positivo"),
   notes: z.string().max(2000).default(""),
-  stage: z.string().min(1),
+  stage: z.string().refine(
+    (s) => s in STAGE_LABELS,
+    "Etapa inválida: usa una de las etapas del pipeline",
+  ),
   quote_id: z.string().uuid().nullable(),
 });
 

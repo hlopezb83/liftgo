@@ -2,14 +2,16 @@ import { useEffect, useEffectEvent, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { SwipeableCard } from "@/components/feedback/SwipeableCard";
-import { ChevronRightIcon, AddIcon, PhoneIcon, UsersIcon } from "@/components/icons";
+import { ChevronRightIcon, AddIcon, PhoneIcon, UsersIcon, WarnIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
 import { usePageActions } from "@/contexts/pageActions";
 import { useUpdateProspect } from "@/features/crm";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
+import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { CustomerFormDialog } from "../components/customers/CustomerFormDialog";
 import { CustomersActions, CustomersFilters } from "../components/customers/CustomersToolbar";
@@ -153,7 +155,19 @@ export default function CustomersPage() {
             </button>
           </RoleGuard>
         }
-        filters={<CustomersFilters search={values.q} onSearchChange={(v) => set("q", v)} hasActive={hasActive} onClear={reset} />}
+        filters={
+          <div className="space-y-3">
+            {hasReachedListLimit(customers) && (
+              <Alert>
+                <WarnIcon className="h-4 w-4" />
+                <AlertDescription>
+                  Mostrando los primeros {LIST_PAGE_LIMIT} registros. Refina los filtros para ver más.
+                </AlertDescription>
+              </Alert>
+            )}
+            <CustomersFilters search={values.q} onSearchChange={(v) => set("q", v)} hasActive={hasActive} onClear={reset} />
+          </div>
+        }
         isLoading={isLoading}
         isError={isError}
         onRetry={() => { void refetch(); }}

@@ -138,6 +138,7 @@ export function BankStatementLinesTable({
                   onChange={(e) => setBulkReason(e.target.value)}
                   data-testid="bank-bulk-reason"
                   placeholder="Razón para ignorar…"
+                  aria-label="Razón para ignorar las líneas seleccionadas"
                   className="h-7 w-52 text-xs"
                 />
                 <Button

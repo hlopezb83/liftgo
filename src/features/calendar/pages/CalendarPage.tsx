@@ -1,7 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
 import { useMemo, useState } from "react";
-import { toast } from "sonner";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { ChevronLeftIcon, ChevronRightIcon, RefreshIcon, WarnIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -17,6 +16,7 @@ import { useForkliftMap } from "@/features/fleet";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatDateMty, formatDayMonthMty } from "@/lib/format/dateFormats";
 import { formatMonthLongEs } from "@/lib/format/formatMonthEs";
+import { notifyAsync } from "@/lib/ui/appFeedback";
 import { nowMty, formatMtyDate } from "@/lib/utils";
 import { CalendarStatCards } from "../components/calendar/CalendarStatCards";
 import { EquipmentListView } from "../components/calendar/EquipmentListView";
@@ -112,7 +112,7 @@ export default function CalendarPage() {
         onRefresh={async () => {
           setIsRefreshing(true);
           try {
-            await toast.promise(
+            await notifyAsync(
               qc.refetchQueries({ queryKey: bookingKeys.all, type: "active" }),
               {
                 loading: "Actualizando calendario…",

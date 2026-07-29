@@ -77,10 +77,11 @@ export function RevenueMonthDetailSheet({
             <ul className="space-y-1">
               {invoices.map((inv) => (
                 <li key={inv.id}>
-                  <button
+                  <Button
                     type="button"
+                    variant="ghost"
                     onClick={() => go(inv.id)}
-                    className="w-full flex items-center justify-between gap-3 text-left rounded-md border p-2 text-xs hover:bg-muted"
+                    className="w-full h-auto flex items-center justify-between gap-3 text-left rounded-md border p-2 text-xs font-normal"
                   >
                     <div className="min-w-0">
                       <p className="font-medium truncate">{inv.invoice_number}</p>
@@ -93,7 +94,7 @@ export function RevenueMonthDetailSheet({
                       <StatusBadge status={inv.status} />
                       <span className="font-mono font-bold">{formatCurrency(invoiceTotalMxn(inv))}</span>
                     </div>
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>

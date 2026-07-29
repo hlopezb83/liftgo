@@ -1,4 +1,5 @@
 import { ArrowDownCircle, ArrowUpCircle } from "@/components/icons";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
@@ -29,17 +30,18 @@ function Section({ title, items, kind, onClick }: { title: string; items: CashFl
         <ul className="space-y-1">
           {items.map((it) => (
             <li key={`${it.kind}-${it.id}`}>
-              <button
+              <Button
                 type="button"
+                variant="ghost"
                 onClick={() => onClick(it)}
-                className="w-full flex items-center justify-between gap-3 text-left rounded-md border p-2 text-xs hover:bg-muted"
+                className="w-full h-auto flex items-center justify-between gap-3 text-left rounded-md border p-2 text-xs font-normal"
               >
                 <div className="min-w-0">
                   <p className="font-medium truncate">{it.number}</p>
                   <p className="text-muted-foreground truncate">{it.partyName} · vence {formatDateDisplay(it.dueDate)}</p>
                 </div>
                 <span className="font-mono font-bold shrink-0">{formatCurrency(it.amountMxn)}</span>
-              </button>
+              </Button>
             </li>
           ))}
         </ul>

@@ -42,7 +42,7 @@ export function StatusChangeCard({ forkliftId, currentStatus }: StatusChangeCard
       <CardHeader className="pb-3"><CardTitle className="text-base">Cambiar Estado</CardTitle></CardHeader>
       <CardContent className="flex gap-3 items-end flex-wrap">
         <Select value={newStatus} onValueChange={setNewStatus}>
-          <SelectTrigger className="flex-1 max-w-xs"><SelectValue placeholder="Seleccionar nuevo estado" /></SelectTrigger>
+          <SelectTrigger className="flex-1 max-w-xs" aria-label="Nuevo estado del montacargas"><SelectValue placeholder="Seleccionar nuevo estado" /></SelectTrigger>
           <SelectContent>
             {MANUAL_TARGETS.filter((s) => s !== currentStatus).map((s) => (
               <SelectItem key={s} value={s}>{STATUS_LABELS[s] || s}</SelectItem>
@@ -55,6 +55,7 @@ export function StatusChangeCard({ forkliftId, currentStatus }: StatusChangeCard
           onChange={(e) => setStatusNote(e.target.value)}
           className="flex-1 max-w-xs"
           aria-required={reasonRequired}
+          aria-label="Razón del cambio de estado"
         />
         <Button onClick={handleStatusChange} disabled={!canSubmit} size="sm">Actualizar Estado</Button>
       </CardContent>

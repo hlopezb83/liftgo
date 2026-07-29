@@ -1,4 +1,5 @@
 import { MaintenanceIcon, SuccessIcon, ClipboardList, OverdueIcon } from "@/components/icons";
+import { Button } from "@/components/ui/button";
 import { useUpdateBooking } from "@/features/bookings";
 import { useUpdateInvoice } from "@/features/invoices";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
@@ -112,13 +113,15 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
                 );
               })()}
               {overdueInvoices.length > 3 && (
-                <button
+                <Button
                   type="button"
+                  variant="link"
+                  size="sm"
                   onClick={() => navigate("/invoices?status=overdue")}
-                  className="text-xs text-destructive hover:underline font-medium"
+                  className="h-auto p-0 text-xs text-destructive font-medium"
                 >
                   Ver las {overdueInvoices.length} facturas vencidas →
-                </button>
+                </Button>
               )}
             </div>
           }
@@ -145,13 +148,15 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
           count={overdueBookings.length}
           tone="warning"
           footer={
-            <button
+            <Button
               type="button"
+              variant="link"
+              size="sm"
               onClick={() => navigate("/returns/pending")}
-              className="w-full text-xs font-medium text-warning hover:underline text-center pt-1"
+              className="w-full h-auto p-0 pt-1 text-xs font-medium text-warning"
             >
               Ver todos los retornos pendientes →
-            </button>
+            </Button>
           }
         >
           {overdueBookings.slice(0, 5).map((ob) => (

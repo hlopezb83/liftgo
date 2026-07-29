@@ -1,8 +1,11 @@
 import { useState } from "react";
+import { WarnIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 import { formatMtyDate } from "@/lib/utils";
 import { FeedbackDetailSheet } from "../components/FeedbackDetailSheet";
 import { useAllFeedbackReports, type FeedbackReport } from "../hooks/useFeedbackReports";
@@ -31,6 +34,15 @@ export default function FeedbackManagementPage() {
         title="Gestión de Feedback"
         subtitle="Reportes de bugs y mejoras enviados por los usuarios."
       />
+
+      {hasReachedListLimit(reports) && (
+        <Alert>
+          <WarnIcon className="h-4 w-4" />
+          <AlertDescription>
+            Mostrando los primeros {LIST_PAGE_LIMIT} registros. Refina los filtros para ver más.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Cargando…</p>

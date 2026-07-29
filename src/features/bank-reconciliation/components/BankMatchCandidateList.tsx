@@ -57,6 +57,7 @@ export function BankMatchCandidateList({
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Folio, proveedor, cliente o referencia…"
+          aria-label="Buscar candidatos de conciliación por folio, proveedor, cliente o referencia"
           className="h-8 text-xs"
         />
         <Select

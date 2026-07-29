@@ -28,16 +28,16 @@ export function SupplierPaymentRepReceived({
       )}
       <div className="flex gap-2 flex-wrap">
         {p.rep_xml_url && (
-          <button type="button" onClick={() => openStorageFile(BUCKET, p.rep_xml_url as string)}
-            className="text-primary inline-flex items-center gap-1 hover:underline">
+          <Button type="button" variant="link" size="sm" onClick={() => openStorageFile(BUCKET, p.rep_xml_url as string)}
+            className="h-auto p-0 inline-flex items-center gap-1">
             XML <OpenLinkIcon className="h-3 w-3" />
-          </button>
+          </Button>
         )}
         {p.rep_pdf_url && (
-          <button type="button" onClick={() => openStorageFile(BUCKET, p.rep_pdf_url as string)}
-            className="text-primary inline-flex items-center gap-1 hover:underline">
+          <Button type="button" variant="link" size="sm" onClick={() => openStorageFile(BUCKET, p.rep_pdf_url as string)}
+            className="h-auto p-0 inline-flex items-center gap-1">
             PDF <OpenLinkIcon className="h-3 w-3" />
-          </button>
+          </Button>
         )}
         {canAct && (
           <>

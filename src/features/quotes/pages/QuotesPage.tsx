@@ -1,8 +1,9 @@
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
-import { AddIcon, PlusCircle, ChevronRightIcon, DocumentIcon } from "@/components/icons";
+import { AddIcon, PlusCircle, ChevronRightIcon, DocumentIcon, WarnIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,6 +13,7 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { STATUS_LABELS } from "@/lib/constants";
 import { toYMD } from "@/lib/date/toYMD";
+import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateRange, parseDateLocal } from "@/lib/utils";
 import { QUOTE_STATUS_LABELS, quoteStatusLabel as quoteLabel } from "../constants";
@@ -68,20 +70,30 @@ export default function QuotesPage() {
         </RoleGuard>
       }
       filters={
-        <FiltersToolbar>
-          <FiltersToolbar.Search
-            value={values.q}
-            onChange={(v) => set("q", v)}
-            placeholder="Buscar cotizaciones..."
-          />
-          <FiltersToolbar.StatusTabs
-            value={values.status}
-            onChange={(v) => set("status", v as QuoteStatus | "all")}
-            options={QUOTE_STATUS_OPTIONS}
-          />
+        <div className="space-y-3">
+          {hasReachedListLimit(quotes) && (
+            <Alert>
+              <WarnIcon className="h-4 w-4" />
+              <AlertDescription>
+                Mostrando los primeros {LIST_PAGE_LIMIT} registros. Refina los filtros para ver más.
+              </AlertDescription>
+            </Alert>
+          )}
+          <FiltersToolbar>
+            <FiltersToolbar.Search
+              value={values.q}
+              onChange={(v) => set("q", v)}
+              placeholder="Buscar cotizaciones..."
+            />
+            <FiltersToolbar.StatusTabs
+              value={values.status}
+              onChange={(v) => set("status", v as QuoteStatus | "all")}
+              options={QUOTE_STATUS_OPTIONS}
+            />
 
-          <FiltersToolbar.ClearAll visible={hasActive} onClick={reset} />
-        </FiltersToolbar>
+            <FiltersToolbar.ClearAll visible={hasActive} onClick={reset} />
+          </FiltersToolbar>
+        </div>
       }
 
       isLoading={isLoading}
