@@ -1981,8 +1981,10 @@ export type Database = {
           deleted_at: string | null
           deleted_by: string | null
           description: string | null
+          e2e_scope: string | null
           forklift_id: string
           id: string
+          is_e2e: boolean
           manual_cost: number
           next_service_date: string | null
           performed_at: string
@@ -1998,8 +2000,10 @@ export type Database = {
           deleted_at?: string | null
           deleted_by?: string | null
           description?: string | null
+          e2e_scope?: string | null
           forklift_id: string
           id?: string
+          is_e2e?: boolean
           manual_cost?: number
           next_service_date?: string | null
           performed_at?: string
@@ -2015,8 +2019,10 @@ export type Database = {
           deleted_at?: string | null
           deleted_by?: string | null
           description?: string | null
+          e2e_scope?: string | null
           forklift_id?: string
           id?: string
+          is_e2e?: boolean
           manual_cost?: number
           next_service_date?: string | null
           performed_at?: string
