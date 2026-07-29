@@ -7,6 +7,7 @@ import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Untranslated } from "@/components/ui/Untranslated";
 import { usePageActions } from "@/contexts/pageActions";
 import { useUserRole } from "@/features/users";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
@@ -45,13 +46,13 @@ export default function BookingsPage() {
       id: "booking_number",
       header: "Reserva #",
       accessorKey: "booking_number",
-      cell: ({ row }) => <span className="font-mono font-medium">{row.original.booking_number}</span>,
+      cell: ({ row }) => <Untranslated className="font-mono font-medium">{row.original.booking_number}</Untranslated>,
     },
     {
       id: "forklift_name",
       header: "Equipo",
       accessorFn: (b) => b.forklifts?.name || "",
-      cell: ({ row }) => <span className="font-medium">{row.original.forklifts?.name || "—"}</span>,
+      cell: ({ row }) => row.original.forklifts?.name ? <Untranslated className="font-medium">{row.original.forklifts.name}</Untranslated> : <span className="font-medium">—</span>,
     },
     {
       id: "customer_name",
@@ -59,7 +60,7 @@ export default function BookingsPage() {
       accessorFn: (b) => b.customer_name || "",
       cell: ({ row }) => (
         <div className="flex items-center gap-2">
-          {row.original.customer_name || "—"}
+          {row.original.customer_name ? <Untranslated>{row.original.customer_name}</Untranslated> : "—"}
           <RecurringBillingBadge booking={row.original} />
         </div>
       ),
@@ -164,11 +165,11 @@ export default function BookingsPage() {
         <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/bookings/${b.id}`)}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
-              <span className="font-mono font-semibold text-sm">{b.booking_number}</span>
+              <Untranslated className="font-mono font-semibold text-sm">{b.booking_number}</Untranslated>
               <StatusBadge status={b.status} />
             </div>
-            <span className="text-sm font-medium">{b.forklifts?.name || "—"}</span>
-            <p className="text-sm text-muted-foreground">{b.customer_name || "Sin cliente"}</p>
+            <span className="text-sm font-medium">{b.forklifts?.name ? <Untranslated>{b.forklifts.name}</Untranslated> : "—"}</span>
+            <p className="text-sm text-muted-foreground">{b.customer_name ? <Untranslated>{b.customer_name}</Untranslated> : "Sin cliente"}</p>
             <div className="flex items-center gap-2 mt-1">
               <RecurringBillingBadge booking={b} />
             </div>

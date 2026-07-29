@@ -144,3 +144,36 @@ export function useNextQuoteNumber() {
     },
   });
 }
+
+// v-FE12: la lista completa de `useQuotes()` trae >25 columnas; el CRM sólo
+// necesita `quote_number` por id. Query dedicada, más liviana y con
+// `staleTime` largo (el mapa folio↔id cambia poco).
+const QUOTE_LITE_COLUMNS = sel("id, quote_number");
+
+type QuoteLiteRow = Pick<Quote, "id" | "quote_number">;
+
+const QUOTES_LITE_STALE_MS = 5 * 60_000;
+
+async function fetchQuotesLite() {
+  const { data, error } = await supabase
+    .from("quotes")
+    .select(QUOTE_LITE_COLUMNS)
+    .or("is_e2e.is.null,is_e2e.eq.false")
+    .order("created_at", { ascending: false })
+    .limit(LIST_PAGE_LIMIT)
+    .returns<QuoteLiteRow[]>();
+  if (error) throw error;
+  return data ?? [];
+}
+
+/** Query key dedicada: vive bajo el mismo namespace que `quoteKeys`. */
+const quotesLiteKey = [...quoteKeys.all, "lite"] as const;
+
+/** Lista liviana (`id`, `quote_number`) para mapas folio↔id (p. ej. CRM). */
+export function useQuotesLite() {
+  return useQuery({
+    queryKey: quotesLiteKey,
+    queryFn: fetchQuotesLite,
+    staleTime: QUOTES_LITE_STALE_MS,
+  });
+}

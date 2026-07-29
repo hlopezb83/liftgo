@@ -5,7 +5,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePageActions } from "@/contexts/pageActions";
-import { useQuotes } from "@/features/quotes";
+import { useQuotesLite } from "@/features/quotes";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { CRMKanbanGrid } from "../components/CRMKanbanGrid";
 import { CRMPageDialogs } from "../components/CRMPageDialogs";
@@ -22,7 +22,7 @@ import type { DragEndEvent } from "@dnd-kit/core";
 
 export default function CRMPage() {
   const { data: prospects = [], isLoading, isError, isFetching, refetch } = useProspects();
-  const { data: quotes = [] } = useQuotes();
+  const { data: quotes = [] } = useQuotesLite();
   const { canCloseDeal, assertCanClose } = useProspectGuard();
   const createProspect = useCreateProspect();
   const updateProspect = useUpdateProspect();

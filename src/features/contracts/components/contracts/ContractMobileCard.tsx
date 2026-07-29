@@ -2,6 +2,7 @@ import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ChevronRightIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Untranslated } from "@/components/ui/Untranslated";
 import { formatDateRange } from "@/lib/utils";
 import { getContractExpiryLabel, getContractExpiryState } from "../../lib/contractExpiry";
 import { CONTRACT_STATUS_LABELS } from "../../lib/contractStatusLabels";
@@ -24,7 +25,7 @@ export function ContractMobileCard({ contract, onClick }: { contract: ContractCa
     <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={onClick}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-1">
-          <span className="font-mono font-semibold text-sm">{contract.contract_number}</span>
+          <Untranslated className="font-mono font-semibold text-sm">{contract.contract_number}</Untranslated>
           <div className="flex items-center gap-1.5">
             {expiryLabel && (
               <Badge
@@ -37,9 +38,9 @@ export function ContractMobileCard({ contract, onClick }: { contract: ContractCa
             <StatusBadge status={contract.status} label={CONTRACT_STATUS_LABELS[contract.status]} />
           </div>
         </div>
-        <p className="text-sm text-muted-foreground">{contract.customer_name || "Sin cliente"}</p>
+        <p className="text-sm text-muted-foreground">{contract.customer_name ? <Untranslated>{contract.customer_name}</Untranslated> : "Sin cliente"}</p>
         {contract.forklift_name && (
-          <p className="text-xs text-muted-foreground mt-1">Equipo: {contract.forklift_name}</p>
+          <p className="text-xs text-muted-foreground mt-1">Equipo: <Untranslated>{contract.forklift_name}</Untranslated></p>
         )}
         <div className="flex items-center justify-between mt-3 pt-3 border-t">
           <span className="text-xs text-muted-foreground">

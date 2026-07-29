@@ -7,14 +7,15 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Untranslated } from "@/components/ui/Untranslated";
 import { usePageActions } from "@/contexts/pageActions";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { STATUS_LABELS } from "@/lib/constants";
 import { toYMD } from "@/lib/date/toYMD";
-import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 import { formatDateRange, parseDateLocal } from "@/lib/utils";
 import { QUOTE_STATUS_LABELS, quoteStatusLabel as quoteLabel } from "../constants";
 import { isPublicoGeneral } from "../hooks/quoteDetail/useQuoteDetailData";
@@ -119,7 +120,7 @@ export default function QuotesPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-1">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-mono font-semibold text-sm">{q.quote_number}</span>
+                  <Untranslated className="font-mono font-semibold text-sm">{q.quote_number}</Untranslated>
                   <Badge variant={q.quote_type === "sale" ? "default" : "secondary"} className="text-3xs px-1.5 py-0">
                     {STATUS_LABELS[q.quote_type || "rental"] || "Renta"}
                   </Badge>
@@ -129,7 +130,7 @@ export default function QuotesPage() {
                   {isExpired && <Badge variant="destructive" className="text-3xs px-1.5 py-0">Vencida</Badge>}
                 </div>
               </div>
-              <p className={`text-sm ${q.customer_name && isPublicoGeneral(q.customer_name) ? "text-muted-foreground italic" : "text-muted-foreground"}`}>{q.customer_name || "Sin cliente"}</p>
+              <p className={`text-sm ${q.customer_name && isPublicoGeneral(q.customer_name) ? "text-muted-foreground italic" : "text-muted-foreground"}`}>{q.customer_name ? <Untranslated>{q.customer_name}</Untranslated> : "Sin cliente"}</p>
               <div className="flex items-center justify-between mt-3 pt-3 border-t">
                 <span className="text-xs text-muted-foreground">{formatDateRange(q.start_date, q.end_date)}</span>
                 <div className="flex items-center gap-1">

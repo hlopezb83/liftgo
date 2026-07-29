@@ -1,11 +1,9 @@
 import { useEffect, useEffectEvent, useState } from "react";
 import { useSearchParams } from "react-router";
 import { useLiftgoTable } from "@/components/dataTable/v2";
-import { SwipeableCard } from "@/components/feedback/SwipeableCard";
-import { ChevronRightIcon, AddIcon, PhoneIcon, UsersIcon, WarnIcon } from "@/components/icons";
+import { AddIcon, UsersIcon, WarnIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Card, CardContent } from "@/components/ui/card";
 import { usePageActions } from "@/contexts/pageActions";
 import { useUpdateProspect } from "@/features/crm";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
@@ -14,6 +12,7 @@ import { RoleGuard } from "@/layouts/RoleGuard";
 import { LIST_PAGE_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { CustomerFormDialog } from "../components/customers/CustomerFormDialog";
+import { CustomerMobileCard } from "../components/customers/CustomerMobileCard";
 import { CustomersActions, CustomersFilters } from "../components/customers/CustomersToolbar";
 import { useCustomers, useCreateCustomer, useUpdateCustomer } from "../hooks/customers/useCustomers";
 import { useCustomersColumns } from "../hooks/customers/useCustomersColumns";
@@ -84,32 +83,8 @@ export default function CustomersPage() {
     initialSorting: [{ id: "name", desc: false }],
   });
 
-
-
   const renderMobileCard = (c: Customer) => (
-    <SwipeableCard
-      onClick={() => navigate(`/customers/${c.id}`)}
-      rightActions={c.phone ? [{
-        label: "Llamar",
-        icon: PhoneIcon,
-        className: "bg-primary",
-        onAction: () => { window.location.href = `tel:${c.phone}`; },
-      }] : []}
-    >
-      <Card className="active:scale-[0.98] transition-transform">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between mb-1">
-            <span className="font-semibold text-sm">{c.name}</span>
-            <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
-          </div>
-          {c.rfc && <p className="text-xs font-mono text-muted-foreground">{c.rfc}</p>}
-          <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
-            {c.phone && <span>{c.phone}</span>}
-            {c.email && <span>{c.email}</span>}
-          </div>
-        </CardContent>
-      </Card>
-    </SwipeableCard>
+    <CustomerMobileCard customer={c} onOpen={(id) => navigate(`/customers/${id}`)} />
   );
 
   const openCreate = () => { setEditId(null); setInitialData(undefined); setDialogOpen(true); };

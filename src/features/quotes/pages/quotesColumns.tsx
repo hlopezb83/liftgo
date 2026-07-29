@@ -1,6 +1,7 @@
 import type { ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Badge } from "@/components/ui/badge";
+import { Untranslated } from "@/components/ui/Untranslated";
 import { STATUS_LABELS } from "@/lib/constants";
 import { toYMD } from "@/lib/date/toYMD";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -27,7 +28,7 @@ export function buildQuotesColumns<Q extends {
       id: "quote_number",
       header: "Cotización #",
       accessorKey: "quote_number",
-      cell: ({ row }) => <span className="font-mono font-medium">{row.original.quote_number}</span>,
+      cell: ({ row }) => <Untranslated className="font-mono font-medium">{row.original.quote_number}</Untranslated>,
     },
     {
       id: "type",
@@ -49,9 +50,9 @@ export function buildQuotesColumns<Q extends {
         const name = row.original.customer_name;
         if (!name) return "—";
         if (isPublicoGeneral(name)) {
-          return <span className="text-muted-foreground italic">{name}</span>;
+          return <Untranslated className="text-muted-foreground italic">{name}</Untranslated>;
         }
-        return name;
+        return <Untranslated>{name}</Untranslated>;
       },
     },
     {
