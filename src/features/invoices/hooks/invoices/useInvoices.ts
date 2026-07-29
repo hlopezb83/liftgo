@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { todayKeyMty } from "@/lib/format/dateFormats";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
-import { EXCLUDE_E2E_FILTER, LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
+import { e2eVisibilityFilter, LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import {
   createInvoiceListFilters,
   createInvoiceListQueryKey,
@@ -52,7 +52,7 @@ const INVOICE_LIST_COLUMNS = sel(
 );
 
 function baseInvoiceQuery(normalized: InvoiceListFilters) {
-  let q = supabase.from("invoices").select(INVOICE_LIST_COLUMNS).or(EXCLUDE_E2E_FILTER);
+  let q = supabase.from("invoices").select(INVOICE_LIST_COLUMNS).or(e2eVisibilityFilter());
   if (normalized.status === "overdue") {
     q = q.in("status", ["sent", "partial"]).lt("due_date", todayKeyMty());
   } else if (normalized.status !== "all") {

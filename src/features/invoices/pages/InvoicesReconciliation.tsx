@@ -1,20 +1,16 @@
 import { startOfMonth, endOfMonth } from "date-fns";
 import { useState } from "react";
-import { DownloadIcon, WarnIcon } from "@/components/icons";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
+import { DownloadIcon, WarnIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
-} from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
 import { toYMD } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { nowMty } from "@/lib/utils";
+import { ReconciliationFilterBar } from "../components/reconciliation/ReconciliationFilterBar";
 import { ReconciliationTable } from "../components/reconciliation/ReconciliationTable";
 import {
   useReconciliationData,
@@ -32,6 +28,20 @@ function defaultFilters(): ReconciliationFilters {
   };
 }
 
+type ReconciliationSummary = NonNullable<
+  ReturnType<typeof useReconciliationData>["data"]
+>["summary"];
+
+function buildKpis(summary: ReconciliationSummary | undefined): { label: string; value: string }[] {
+  return [
+    { label: "Total timbrado (producción)", value: formatCurrency(summary?.totalStampedLive ?? 0) },
+    { label: "Timbradas", value: String(summary?.countStamped ?? 0) },
+    { label: "Canceladas", value: String(summary?.countCancelled ?? 0) },
+    { label: "Borradores", value: String(summary?.countDraft ?? 0) },
+  ];
+}
+
+
 export default function InvoicesReconciliation() {
   const [filters, setFilters] = useState<ReconciliationFilters>(defaultFilters);
   const { data, isLoading, isError, refetch } = useReconciliationData(filters);
@@ -42,15 +52,8 @@ export default function InvoicesReconciliation() {
   // vacío y el usuario creía que no había facturas en el periodo.
   const invalidRange = filters.from !== "" && filters.to !== "" && filters.from > filters.to;
 
-  const kpis = [
-      {
-        label: "Total timbrado (producción)",
-        value: formatCurrency(summary?.totalStampedLive ?? 0),
-      },
-      { label: "Timbradas", value: String(summary?.countStamped ?? 0) },
-      { label: "Canceladas", value: String(summary?.countCancelled ?? 0) },
-      { label: "Borradores", value: String(summary?.countDraft ?? 0) },
-    ];
+  const kpis = buildKpis(summary);
+
 
   return (
     <PageContainer maxWidth="wide">
@@ -68,67 +71,7 @@ export default function InvoicesReconciliation() {
         }
       />
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Filtros</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-          <div className="space-y-1">
-            <Label htmlFor="from">Desde</Label>
-            <Input
-              id="from"
-              type="date"
-              value={filters.from}
-              onChange={(e) => setFilters((f) => ({ ...f, from: e.target.value }))}
-            />
-          </div>
-          <div className="space-y-1">
-            <Label htmlFor="to">Hasta</Label>
-            <Input
-              id="to"
-              type="date"
-              value={filters.to}
-              onChange={(e) => setFilters((f) => ({ ...f, to: e.target.value }))}
-            />
-            {invalidRange && (
-              <p className="text-xs text-destructive">La fecha “Desde” no puede ser posterior a “Hasta”.</p>
-            )}
-          </div>
-          <div className="space-y-1">
-            <Label>Estado fiscal</Label>
-            <Select
-              value={filters.fiscalState}
-              onValueChange={(v) =>
-                setFilters((f) => ({ ...f, fiscalState: v as ReconciliationFilters["fiscalState"] }))
-              }
-            >
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas</SelectItem>
-                <SelectItem value="stamped">Timbradas</SelectItem>
-                <SelectItem value="cancelled">Canceladas</SelectItem>
-                <SelectItem value="draft">Borradores</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-1">
-            <Label>Ambiente PAC</Label>
-            <Select
-              value={filters.env}
-              onValueChange={(v) =>
-                setFilters((f) => ({ ...f, env: v as ReconciliationFilters["env"] }))
-              }
-            >
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos</SelectItem>
-                <SelectItem value="live">Producción</SelectItem>
-                <SelectItem value="test">Sandbox</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      <ReconciliationFilterBar filters={filters} invalidRange={invalidRange} onChange={setFilters} />
 
       {isError ? (
         <QueryErrorState

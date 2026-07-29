@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.264.3",
+    "date": "2026-07-29",
+    "type": "patch",
+    "title": "Se arregla el E2E del Kanban de mantenimiento y warnings de lint",
+    "category": "fix",
+    "description": "El filtro que oculta datos de prueba también escondía las órdenes que las pruebas automatizadas acababan de sembrar, y el spec del Kanban fallaba. Ahora la UI puede mostrar esos datos solo en el navegador de pruebas mediante una bandera local. Además se corrigió el orden de imports en 9 archivos y se extrajo la barra de filtros de la conciliación de facturas para bajar la complejidad del componente."
+  },
+  {
     "version": "7.264.2",
     "date": "2026-07-29",
     "type": "patch",
@@ -8,7 +16,6 @@
     "description": "La tarjeta 'ARPU' de la página de MRR dividía el ingreso mensual entre clientes únicos, lo que inflaba el promedio cuando un cliente concentra varios montacargas. Ahora se llama 'Renta prom. / unidad', divide el MRR entre las unidades rentadas activas y muestra la fórmula debajo del monto."
   },
   {
-
     "version": "7.264.1",
     "date": "2026-07-29",
     "type": "patch",

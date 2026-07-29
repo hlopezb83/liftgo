@@ -1,0 +1,19 @@
+{
+  "version": "7.264.3",
+  "date": "2026-07-29",
+  "type": "patch",
+  "title": "Se arregla el E2E del Kanban de mantenimiento y warnings de lint",
+  "category": "fix",
+  "changes": [
+    {
+      "type": "fix",
+      "title": "E2E Kanban de mantenimiento",
+      "description": "Los hooks de listado usan un filtro dinámico: por defecto ocultan datos de prueba y solo los incluyen cuando el navegador tiene la bandera liftgo:e2e-visible, que ponen las pruebas de Playwright."
+    },
+    {
+      "type": "improvement",
+      "title": "Lint limpio",
+      "description": "Orden de imports corregido en 9 archivos y la barra de filtros de conciliación extraída a su propio componente para bajar la complejidad de 19 a menos de 15."
+    }
+  ]
+}

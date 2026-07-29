@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import { EXCLUDE_E2E_FILTER, LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
+import { e2eVisibilityFilter, LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import { maintenanceLogKeys } from "../../lib/queryKeys";
 
 export type MaintenanceLog = Tables<"maintenance_logs">;
@@ -25,7 +25,7 @@ export const maintenanceLogQueries = defineEntityQueries<"maintenance_logs", Mai
         .from("maintenance_logs")
         .select(MAINTENANCE_LOG_COLUMNS)
         .is("deleted_at", null)
-        .or(EXCLUDE_E2E_FILTER)
+        .or(e2eVisibilityFilter())
         .order("performed_at", { ascending: false })
         .limit(LIST_FETCH_LIMIT);
       if (forkliftId) q = q.eq("forklift_id", forkliftId);

@@ -1,6 +1,6 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { EXCLUDE_E2E_FILTER } from "@/lib/supabase/constants";
+import { e2eVisibilityFilter } from "@/lib/supabase/constants";
 import { invoiceKeys } from "../../lib/queryKeys";
 
 export interface ReconciliationRow {
@@ -76,7 +76,7 @@ function buildReconciliationQuery(filters: ReconciliationFilters) {
         .select(
           "id,invoice_number,issued_at,customer_name,status,cfdi_status,cancellation_status,cfdi_uuid,facturapi_invoice_id,facturapi_env,total",
         )
-        .or(EXCLUDE_E2E_FILTER)
+        .or(e2eVisibilityFilter())
         .gte("issued_at", filters.from)
         .lte("issued_at", filters.to)
         .order("invoice_number", { ascending: true });

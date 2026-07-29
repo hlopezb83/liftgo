@@ -6,11 +6,11 @@ import { AddIcon, FileClock, ChartIcon, FileSpreadsheet } from "@/components/ico
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Button } from "@/components/ui/button";
 import { usePageActions } from "@/contexts/pageActions";
-import { visibleListRows } from "@/lib/supabase/constants";
 import { useSuppliers } from "@/features/suppliers";
 import { useHasModuleAccess } from "@/features/users";
 import { useToggleDialog } from "@/hooks/useDialogState";
 import { RoleGuard } from "@/layouts/RoleGuard";
+import { visibleListRows } from "@/lib/supabase/constants";
 import { ExportPaymentsDialog } from "../components/ExportPaymentsDialog";
 import {
   useSupplierBillColumns,
