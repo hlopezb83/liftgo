@@ -100,7 +100,7 @@ export default function PortalStatement() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Facturas</CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 no-print">
             <Checkbox
               id={onlyBalanceId}
               checked={onlyBalance}
