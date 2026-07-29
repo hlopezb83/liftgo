@@ -34,6 +34,17 @@ runs:
         restore-keys: |
           ${{ runner.os }}-node-${{ inputs.node-version }}-bun-${{ inputs.bun-version }}-
 
+    # Cache del pre-bundle de Vite/Vitest (node_modules/.vite): evita re-optimizar
+    # las dependencias en cada job y recorta el arranque de tests y build.
+    - name: Cache Vite dependency pre-bundle
+      uses: actions/cache@v6
+      with:
+        path: node_modules/.vite
+        key: ${{ runner.os }}-vite-${{ hashFiles('**/bun.lock') }}-${{ github.job }}
+        restore-keys: |
+          ${{ runner.os }}-vite-${{ hashFiles('**/bun.lock') }}-
+          ${{ runner.os }}-vite-
+
     - name: Install dependencies
       shell: bash
       run: bun install --frozen-lockfile
