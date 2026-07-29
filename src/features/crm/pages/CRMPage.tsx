@@ -74,34 +74,9 @@ export default function CRMPage() {
     dialogs.setDialogOpen(true);
   };
 
-  const resolveDropTarget = (event: DragEndEvent) => {
-    const { active, over } = event;
-    if (!over) return null;
-    const sourceStage = (active.data.current?.stage as string | undefined) ?? null;
-    const overType = over.data.current?.type as "column" | "card" | undefined;
-    const newStage =
-      overType === "column"
-        ? String(over.id)
-        : (over.data.current?.stage as string | undefined) ?? String(over.id);
-    if (!newStage || !sourceStage) return null;
-
-    // R23-I: soltar en el área vacía de una columna mandaba la tarjeta al
-    // INICIO (`?? 0`) y no había forma de soltar al final. Ahora ese caso
-    // apunta al final de la columna destino.
-    const sortableIndex = over.data.current?.sortable?.index as number | undefined;
-    const columnLength = stagesData.find((s) => s.key === newStage)?.items.length ?? 0;
-    const appendIndex = sourceStage === newStage ? Math.max(0, columnLength - 1) : columnLength;
-
-    return {
-      draggableId: String(active.id),
-      sourceStage,
-      newStage,
-      newIndex: sortableIndex ?? appendIndex,
-    };
-  };
-
   const onDragEnd = (event: DragEndEvent) => {
-    const target = resolveDropTarget(event);
+    const target = resolveDropTarget(event, stagesData);
+
     if (!target) return;
     const { draggableId, newStage, newIndex } = target;
 
