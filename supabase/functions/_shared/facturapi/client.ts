@@ -250,6 +250,47 @@ export async function binaryToBytes(bin: unknown): Promise<Uint8Array> {
     const v = bin as ArrayBufferView;
     return new Uint8Array(v.buffer, v.byteOffset, v.byteLength);
   }
+  // Response-like / stream wrapper: { body: ReadableStream | ... }
+  const withBody = bin as { body?: unknown; stream?: unknown; text?: unknown };
+  if (withBody.body != null) return await binaryToBytes(withBody.body);
+  if (withBody.stream != null) return await binaryToBytes(withBody.stream);
+  // Async iterable (streams estilo Node / web sin instanceof compatible)
+  const asyncIt = bin as { [Symbol.asyncIterator]?: unknown };
+  if (typeof asyncIt[Symbol.asyncIterator] === "function") {
+    const chunks: Uint8Array[] = [];
+    let total = 0;
+    for await (const chunk of bin as AsyncIterable<unknown>) {
+      const part = await binaryToBytes(chunk);
+      chunks.push(part);
+      total += part.byteLength;
+    }
+    const out = new Uint8Array(total);
+    let off = 0;
+    for (const c of chunks) {
+      out.set(c, off);
+      off += c.byteLength;
+    }
+    return out;
+  }
+  if (typeof withBody.text === "function") {
+    const t = await (bin as { text: () => Promise<string> }).text();
+    return new TextEncoder().encode(t);
+  }
+  // Objeto tipo array indexado por números ({0:37,1:80,...})
+  const numericKeys = Object.keys(bin as Record<string, unknown>);
+  if (
+    numericKeys.length > 0 &&
+    numericKeys.every((k) => /^\d+$/.test(k)) &&
+    numericKeys.every((k) =>
+      typeof (bin as Record<string, unknown>)[k] === "number"
+    )
+  ) {
+    const rec = bin as Record<string, number>;
+    return Uint8Array.from(
+      numericKeys.sort((a, b) => Number(a) - Number(b)).map((k) => rec[k]),
+    );
+  }
+
   throw new Error(
     `Unsupported binary download type from Facturapi SDK: ${
       Object.prototype.toString.call(bin)
