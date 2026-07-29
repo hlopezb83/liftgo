@@ -16,9 +16,10 @@ describe("quoteStatusLabel", () => {
     expect(quoteStatusLabel("")).toBe("—");
   });
 
-  it("cubre draft, cancelled y alias declined", () => {
+  it("cubre draft, cancelled y rejected (sin alias muerto declined)", () => {
     expect(QUOTE_STATUS_LABELS.draft).toBe("Borrador");
     expect(QUOTE_STATUS_LABELS.cancelled).toBe("Cancelada");
-    expect(QUOTE_STATUS_LABELS.declined).toBe("Rechazada");
+    expect(QUOTE_STATUS_LABELS.rejected).toBe("Rechazada");
+    expect("declined" in QUOTE_STATUS_LABELS).toBe(false);
   });
 });
