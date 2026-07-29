@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
-import { Image as ImageIcon, SaveIcon, SuccessIcon, InfoAlertIcon, ImageOff } from "@/components/icons";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
+import { Image as ImageIcon, SaveIcon, SuccessIcon, InfoAlertIcon, ImageOff } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

@@ -6,7 +6,6 @@ import { RoleGuard } from "@/layouts/RoleGuard";
 import { useProspectGuard } from "../../hooks/useProspectGuard";
 import { useDeleteProspect, useUpdateProspect, type Prospect } from "../../hooks/useProspects";
 import { canCloseAsWon, wonBlockedReason } from "../../lib/prospectCloseRules";
-
 import { CloseLostDialog } from "../CloseLostDialog";
 import { CloseWonDialog } from "../CloseWonDialog";
 

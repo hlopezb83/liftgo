@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Lock } from "@/components/icons";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
+import { Lock } from "@/components/icons";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Form } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
