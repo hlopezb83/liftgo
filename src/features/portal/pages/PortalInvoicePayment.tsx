@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useParams } from "react-router";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
+
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -153,17 +155,36 @@ function renderPaymentSection(args: PaymentSectionArgs) {
 
 export default function PortalInvoicePayment() {
   const { id } = useParams();
-  const { data: invoices, isLoading: il } = usePortalInvoices();
-  const { data: payments, isLoading: pl } = usePortalPayments();
+  // A3-01: capturar error/refetch de las 3 queries — sin esto un fallo de red
+  // mostraba "Factura no encontrada" o un saldo falso en la pantalla de cobro
+  // (riesgo de pago duplicado).
+  const { data: invoices, isLoading: il, isError: ie, refetch: ri } = usePortalInvoices();
+  const { data: payments, isLoading: pl, isError: pe, refetch: rp } = usePortalPayments();
   const { data: customer } = usePortalCustomer();
-  const { data: intents } = usePortalPaymentIntents(id);
+  const { data: intents, isError: te, refetch: rt } = usePortalPaymentIntents(id);
   const [dlgOpen, setDlgOpen] = useState(false);
 
   const invoice = invoices?.find((i) => i.id === id);
   const invoicePayments = (payments?.filter((p) => p.invoice_id === id) ?? []);
 
   if (il || pl) return <Skeleton className="h-96" />;
+  if (ie || pe || te) {
+    return (
+      <PageContainer maxWidth="wide">
+        <PageHeader title="Pagar factura" />
+        <QueryErrorState
+          entity="la información de pago"
+          onRetry={() => {
+            void ri();
+            void rp();
+            void rt();
+          }}
+        />
+      </PageContainer>
+    );
+  }
   if (!invoice) return <p className="text-muted-foreground">Factura no encontrada</p>;
+
 
   const { balance, pendingReported, moneda, isMxn, balanceLabel } = computeInvoiceTotals(
     invoice,

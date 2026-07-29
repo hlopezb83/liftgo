@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.262.0",
+    "date": "2026-07-29",
+    "type": "minor",
+    "title": "Máquina de estados: cotizaciones y contratos (DB3-06, DB3-07, DB3-09)",
+    "category": "feature",
+    "description": "Las cotizaciones en borrador ya no saltan directo a aceptadas, no se aceptan vencidas y una vez aceptadas quedan bloqueadas también en cliente, equipo y tipo. Los contratos estrenan máquina de estados: nacen en borrador, solo se firman con cliente, fechas y tarifa válidos, y quedan congelados al firmarse o activarse. Además se corrige el botón Rechazar, que enviaba un estado inexistente ('declined' en vez de 'rejected')."
+  },
+  {
     "version": "7.261.0",
     "date": "2026-07-29",
     "type": "minor",

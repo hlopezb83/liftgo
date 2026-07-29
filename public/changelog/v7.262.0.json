@@ -1,0 +1,18 @@
+{
+  "version": "7.262.0",
+  "date": "2026-07-29",
+  "type": "minor",
+  "title": "Máquina de estados: cotizaciones y contratos (DB3-06, DB3-07, DB3-09)",
+  "category": "feature",
+  "description": "Se cierran los atajos de estado en cotizaciones y se define la máquina de estados de contratos.",
+  "changes": [
+    { "type": "feature", "text": "Una cotización en borrador ya no puede aceptarse directamente: primero debe enviarse (DB3-06)." },
+    { "type": "feature", "text": "No se puede aceptar una cotización con vigencia vencida; al aceptar se sella la fecha de aceptación automáticamente." },
+    { "type": "feature", "text": "Cotización aceptada: además de montos y fechas, quedan bloqueados cliente, equipo, tipo y datos de renta (DB3-07)." },
+    { "type": "feature", "text": "Contratos: dominio de estados (borrador, enviado, firmado, activo, cancelado), nacen en borrador y quedan congelados al firmarse/activarse (DB3-09)." },
+    { "type": "feature", "text": "Firmar o activar un contrato exige cliente, fechas coherentes y al menos una tarifa mayor a cero." },
+    { "type": "fix", "text": "El botón Rechazar de cotizaciones enviaba 'declined', estado inexistente en la base de datos: ahora envía 'rejected'." },
+    { "type": "fix", "text": "El escenario de pruebas E2E ahora pasa la cotización por 'enviada' antes de aceptarla." },
+    { "type": "improvement", "text": "Nueva prueba unitaria de QuoteDetailActions que valida los estados aceptar/rechazar." }
+  ]
+}
