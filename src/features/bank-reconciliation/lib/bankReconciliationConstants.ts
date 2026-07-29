@@ -10,8 +10,6 @@ export const BANK_LINE_STATUS_LABELS: Record<BankLineStatus, string> = {
 
 export const CSV_PROFILES = ["generico", "bbva", "banorte", "santander", "bbva_xml"] as const;
 export type StatementProfile = (typeof CSV_PROFILES)[number];
-/** @deprecated usar StatementProfile */
-export type CsvProfile = StatementProfile;
 
 export const CSV_PROFILE_LABELS: Record<StatementProfile, string> = {
   generico: "Genérico (Fecha, Descripción, Monto, Referencia)",

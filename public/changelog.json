@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.253.2",
+    "date": "2026-07-29",
+    "type": "patch",
+    "title": "Limpieza de código sin uso",
+    "category": "improvement",
+    "description": "Se eliminaron utilidades de gráficas y un alias de tipo que ya no se usaban en ninguna parte de la aplicación."
+  },
+  {
     "version": "7.253.1",
     "date": "2026-07-28",
     "type": "patch",
