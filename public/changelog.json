@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.255.1",
+    "date": "2026-07-29",
+    "type": "patch",
+    "title": "PDF del complemento de pago (REP) siempre disponible",
+    "category": "fix",
+    "description": "Se corrigió la descarga del PDF del REP cuando el proveedor de timbrado devuelve el archivo en un formato no reconocido; ahora se guarda y puede descargarse desde el pago."
+  },
+  {
     "version": "7.255.0",
     "date": "2026-07-29",
     "type": "minor",
@@ -8,7 +16,6 @@
     "description": "El orden de las tarjetas del CRM ahora se guarda tal como lo deja el usuario, se puede soltar al final de una columna, la importación bancaria avisa cuando un renglón viene mal formado y el registro de pagos limpia todos sus campos al reabrirse."
   },
   {
-
     "version": "7.254.0",
     "date": "2026-07-29",
     "type": "minor",
@@ -17,7 +24,6 @@
     "description": "Se corrigieron celdas de dinero que aparecían vacías, la impresión recortada, el botón Cancelar que descartaba cambios sin avisar y la lectura de importes bancarios con coma decimal."
   },
   {
-
     "version": "7.253.4",
     "date": "2026-07-29",
     "type": "patch",
