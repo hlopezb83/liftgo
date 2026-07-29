@@ -57,6 +57,11 @@ setup("authenticate as admin", async ({ page }) => {
   // storageState vacío y toda la suite fallaba en cascada (v7.72.2).
   await waitForAuthToken(page, 30_000);
 
+  // Los datos sembrados por `e2e_seed_scenario` llevan `is_e2e = true` y la UI
+  // los oculta por defecto. Esta bandera (solo en el navegador de pruebas) hace
+  // que las listas los incluyan para poder aseverarlos en los specs.
+  await page.evaluate(() => window.localStorage.setItem("liftgo:e2e-visible", "1"));
+
   mkdirSync(dirname(STORAGE_PATH), { recursive: true });
   await page.context().storageState({ path: STORAGE_PATH, indexedDB: true });
 });
