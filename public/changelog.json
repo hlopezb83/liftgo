@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.266.0",
+    "date": "2026-07-30",
+    "type": "minor",
+    "title": "CI más rápido: pruebas en paralelo y uso completo del servidor",
+    "category": "improvement",
+    "description": "La suite de pruebas ahora se reparte en tres ejecuciones paralelas que se unen en un reporte único con cobertura global, el número de procesos se ajusta automáticamente a los núcleos disponibles (pruebas unitarias y de navegador) y se cachea el pre-empaquetado de dependencias para acelerar el arranque."
+  },
+  {
     "version": "7.265.1",
     "date": "2026-07-29",
     "type": "patch",
