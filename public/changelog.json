@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.259.0",
+    "date": "2026-07-29",
+    "type": "minor",
+    "title": "Auditoría R25 (fase 2): remediación de frontend",
+    "category": "improvement",
+    "description": "Listados con límite y aviso de truncamiento, mejoras de accesibilidad, subtítulos visibles en móvil, validaciones más estrictas en reservas y entregas, bloqueo de edición de montos en cotizaciones aceptadas y reservas canceladas ahora terminales."
+  },
+  {
     "version": "7.258.0",
     "date": "2026-07-29",
     "type": "minor",
