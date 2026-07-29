@@ -10,9 +10,9 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { useState } from "react";
 import { ACTIVE_STAGES } from "../lib/constants";
+import { kanbanKeyboardCoordinates } from "../lib/kanbanKeyboardCoordinates";
 import { KanbanColumn } from "./KanbanColumn";
 import { ProspectCardOverlay } from "./ProspectCard";
 import type { Prospect } from "../hooks/useProspects";
@@ -43,7 +43,12 @@ export function CRMKanbanGrid({
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    // `scrollBehavior: "auto"` evita el scroll suave del sensor de teclado, que
+    // retrasaba el cambio de columna varios cientos de ms.
+    useSensor(KeyboardSensor, {
+      coordinateGetter: kanbanKeyboardCoordinates,
+      scrollBehavior: "auto",
+    }),
   );
 
   const activeProspect = activeId

@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.253.3",
+    "date": "2026-07-29",
+    "type": "patch",
+    "title": "Mover tarjetas del CRM con el teclado ahora funciona en pantallas angostas",
+    "category": "fix",
+    "description": "Se corrigió el movimiento de tarjetas del Kanban de CRM con flechas del teclado cuando las columnas no caben en pantalla, y se estabilizaron las pruebas automáticas de conciliación bancaria."
+  },
+  {
     "version": "7.253.2",
     "date": "2026-07-29",
     "type": "patch",
