@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.253.1",
+    "date": "2026-07-28",
+    "type": "patch",
+    "title": "Pruebas automáticas para diálogos, tablas vacías y Kanban de CRM",
+    "category": "improvement",
+    "description": "Se agregaron pruebas automáticas que cubren el aviso de cambios sin guardar, los estados vacíos y de error de las tablas, el ordenamiento con valores en blanco y el movimiento de tarjetas en el CRM."
+  },
+  {
     "version": "7.253.0",
     "date": "2026-07-28",
     "type": "minor",
