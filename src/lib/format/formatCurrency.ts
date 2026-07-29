@@ -74,7 +74,10 @@ export function formatCompactCurrency(
  * Evita ellipsis en el número principal: mejor bajar tamaño que truncar.
  */
 export function kpiSizeClass(formatted: string): string {
-  if (formatted.length > 14) return "text-lg";
+  // R24-D: un escalón extra — con 15+ caracteres `text-lg` seguía clipeándose
+  // a 1280-1440px.
+  if (formatted.length > 14) return "text-base";
+  if (formatted.length > 12) return "text-lg";
   if (formatted.length > 10) return "text-xl";
   return "text-2xl";
 }
