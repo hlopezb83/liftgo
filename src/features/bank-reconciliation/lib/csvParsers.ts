@@ -58,6 +58,14 @@ function requiredColumns(map: ColumnMap): number {
   return Math.max(...indexes) + 1;
 }
 
+/** Total de columnas del perfil, incluyendo la referencia opcional. */
+function maxColumns(map: ColumnMap): number {
+  const indexes = [map.date, map.description, map.amount, map.charge, map.credit, map.reference].filter(
+    (i): i is number => i !== undefined,
+  );
+  return Math.max(...indexes) + 1;
+}
+
 function expectedColumnsMessage(minCols: number, maxCols: number): string {
   return minCols === maxCols ? `${minCols}` : `entre ${minCols} y ${maxCols}`;
 }
@@ -97,9 +105,10 @@ export function parseBankCsv(content: string, profile: StatementProfile): ParseR
   if (!map) return { lines, errors: ["Perfil no soportado"], periodStart: null, periodEnd: null };
 
   const minCols = requiredColumns(map);
-  // R24-F: el perfil define exactamente qué columnas usa; una fila con más
-  // campos significa que un importe con coma partió la fila.
-  const maxCols = minCols;
+  // R24-F: el perfil define el máximo de columnas (incluyendo la referencia
+  // opcional); una fila con más campos significa que un importe con coma
+  // partió la fila y corrió los datos.
+  const maxCols = maxColumns(map);
   const startIdx = parseDateFlexible(rows[0][0] ?? "") ? 0 : 1;
   for (let i = startIdx; i < rows.length; i++) {
     // Ignoramos celdas vacías al final (exportaciones que dejan la coma final).
