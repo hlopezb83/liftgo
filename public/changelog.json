@@ -1,5 +1,14 @@
 [
   {
+    "version": "7.255.0",
+    "date": "2026-07-29",
+    "type": "minor",
+    "title": "Auditoría R23 fase 3: orden del CRM confiable e importación bancaria a prueba de errores",
+    "category": "fix",
+    "description": "El orden de las tarjetas del CRM ahora se guarda tal como lo deja el usuario, se puede soltar al final de una columna, la importación bancaria avisa cuando un renglón viene mal formado y el registro de pagos limpia todos sus campos al reabrirse."
+  },
+  {
+
     "version": "7.254.0",
     "date": "2026-07-29",
     "type": "minor",
