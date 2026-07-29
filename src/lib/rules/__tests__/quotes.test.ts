@@ -9,7 +9,7 @@ describe("rules/quotes", () => {
     expect(isQuoteEditable(q("draft"))).toBe(true);
     expect(isQuoteEditable(q("sent"))).toBe(true);
     expect(isQuoteEditable(q("accepted"))).toBe(false);
-    expect(isQuoteEditable(q("declined"))).toBe(false);
+    expect(isQuoteEditable(q("rejected"))).toBe(false);
   });
 
   it("isQuoteAccepted: status accepted or accepted_at present", () => {
@@ -23,7 +23,7 @@ describe("rules/quotes", () => {
     expect(canConvertQuote(q("accepted"), { isSale: false, alreadyConverted: false })).toBe(true);
     expect(canConvertQuote(q("sent"), { isSale: true, alreadyConverted: false })).toBe(false);
     expect(canConvertQuote(q("sent"), { isSale: false, alreadyConverted: true })).toBe(false);
-    expect(canConvertQuote(q("declined"), { isSale: false, alreadyConverted: false })).toBe(false);
+    expect(canConvertQuote(q("rejected"), { isSale: false, alreadyConverted: false })).toBe(false);
   });
 
   it("canActOnPortalQuote: only sent", () => {

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -11,9 +12,17 @@ import {
 import { formatCurrency } from "@/lib/format/formatCurrency";
 
 export function CxpApprovalTab() {
-  const { data, isLoading } = useCxpApprovalThreshold();
+  const { data, isLoading, isError, refetch } = useCxpApprovalThreshold();
   const update = useUpdateCxpApprovalThreshold();
   const [value, setValue] = useState<string>("");
+
+  // A3-02: antes `isLoading || !data` mostraba el skeleton para siempre en
+  // caso de error (data es undefined cuando isError=true).
+  if (isError) {
+    return (
+      <QueryErrorState bare entity="el umbral de aprobación" onRetry={() => { void refetch(); }} />
+    );
+  }
 
   if (isLoading || !data) return <Skeleton className="h-40" />;
 

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { SaveIcon, InfoIcon } from "@/components/icons";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
@@ -15,7 +16,7 @@ import { ClausesEditor } from "./contractTemplate/ClausesEditor";
 import { EditableList } from "./contractTemplate/EditableList";
 
 export function ContractTemplateTab() {
-  const { data: template, isLoading } = useDefaultContractTemplate();
+  const { data: template, isLoading, isError, refetch } = useDefaultContractTemplate();
   const updateMutation = useUpdateContractTemplate();
 
   const [introText, setIntroText] = useState("");
@@ -39,6 +40,13 @@ export function ContractTemplateTab() {
   }
 
   if (isLoading) return <TableSkeleton />;
+  // A3-02: distinguir error de "no existe plantilla" — antes caían en el
+  // mismo mensaje y el admin no sabía que debía reintentar.
+  if (isError) {
+    return (
+      <QueryErrorState bare entity="la plantilla de contrato" onRetry={() => { void refetch(); }} />
+    );
+  }
   if (!template) return <p className="text-muted-foreground p-4">No se encontró plantilla por defecto. Crea una desde la base de datos.</p>;
 
   const handleSave = async () => {

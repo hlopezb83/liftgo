@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
 import { MobileCardList } from "@/components/layout/MobileCardList";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,7 @@ import { EMPTY_POLICY_FORM, type MaintenancePolicyFormValues } from "./maintenan
 
 export function MaintenancePoliciesTab() {
   const isMobile = useIsMobile();
-  const { data: policies, isLoading } = useMaintenancePolicies();
+  const { data: policies, isLoading, isError, refetch } = useMaintenancePolicies();
   const { data: forklifts } = useForklifts();
   const create = useCreateMaintenancePolicy();
   const update = useUpdateMaintenancePolicy();
@@ -147,6 +148,8 @@ export function MaintenancePoliciesTab() {
             </Card>
           )}
         />
+      ) : isError ? (
+        <QueryErrorState bare entity="las pólizas de mantenimiento" onRetry={() => { void refetch(); }} />
       ) : (
         <div className="border rounded-lg">
           <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay pólizas de mantenimiento configuradas" />

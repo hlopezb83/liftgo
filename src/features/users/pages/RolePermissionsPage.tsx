@@ -1,4 +1,5 @@
 import { BackIcon, SuccessIcon, ViewIcon, RemoveIcon, SpinnerIcon } from "@/components/icons";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
@@ -21,7 +22,7 @@ const CYCLE: AccessLevel[] = ["none", "read", "full"];
 
 export default function RolePermissionsPage() {
   const navigate = useNavigateTransition();
-  const { data: perms, isLoading } = useRolePermissions();
+  const { data: perms, isLoading, isError, refetch } = useRolePermissions();
   const { data: currentRole } = useUserRole();
   const updateMutation = useUpdatePermission();
   const isAdmin = currentRole === "admin";
@@ -31,7 +32,9 @@ export default function RolePermissionsPage() {
   };
 
   const handleCycle = (role: AppRole, module: string) => {
-    if (!isAdmin || role === "admin") return;
+    // A3-04: no editar sin datos cargados — un clic sobre la matriz vacía
+    // mutaría permisos reales partiendo de un "none" falso.
+    if (!isAdmin || role === "admin" || !perms) return;
     const current = getAccess(role, module);
     const nextIdx = (CYCLE.indexOf(current) + 1) % CYCLE.length;
     const next = CYCLE[nextIdx];
@@ -70,6 +73,17 @@ export default function RolePermissionsPage() {
     );
   }
 
+  if (isError) {
+    return (
+      <PageTransition>
+        <PageContainer>
+          {header}
+          <QueryErrorState entity="los permisos por rol" onRetry={() => { void refetch(); }} />
+        </PageContainer>
+      </PageTransition>
+    );
+  }
+
   return (
     <PageTransition>
       <PageContainer>
@@ -96,7 +110,7 @@ export default function RolePermissionsPage() {
                   {STAFF_ROLES.map((r) => {
                     const access = getAccess(r, mod);
                     const { icon: Icon, color } = accessConfig[access];
-                    const canEdit = isAdmin && r !== "admin";
+                    const canEdit = isAdmin && r !== "admin" && !!perms;
                     return (
                       <td key={r} className="px-3 py-2.5 text-center">
                         <Button

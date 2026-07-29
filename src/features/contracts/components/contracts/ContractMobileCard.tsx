@@ -25,8 +25,8 @@ export function ContractMobileCard({ contract, onClick }: { contract: ContractCa
     <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={onClick}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-1">
-          <Untranslated className="font-mono font-semibold text-sm">{contract.contract_number}</Untranslated>
-          <div className="flex items-center gap-1.5">
+          <Untranslated className="font-mono font-semibold text-sm min-w-0 truncate">{contract.contract_number}</Untranslated>
+          <div className="flex items-center gap-1.5 shrink-0">
             {expiryLabel && (
               <Badge
                 variant={expiry === "expired" ? "destructive" : "outline"}

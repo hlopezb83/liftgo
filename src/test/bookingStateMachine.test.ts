@@ -3,7 +3,7 @@
  * Fuente: src/features/bookings/hooks/useBookingActionsLogic.ts
  *
  * Transiciones reales (switch/case):
- *   "confirmed"  → ["completed", "cancelled"]
+ *   "confirmed"  → ["cancelled"] (D3-r3: "completar" se retiró; el cierre ocurre en /returns)
  *   "completed"  → [] (terminal: R2-5, evita revivir reservas completadas)
  *   "cancelled"  → [] (terminal: P0-2, evita revivir reservas canceladas)
  *   default      → []
@@ -12,11 +12,10 @@ import { describe, it, expect } from "vitest";
 import { getValidTransitions } from "@/features/bookings";
 
 describe("getValidTransitions", () => {
-  it('confirmed → incluye "completed" y "cancelled"', () => {
+  it('confirmed → solo "cancelled" (completar ocurre vía /returns, D3-r3)', () => {
     const result = getValidTransitions("confirmed");
-    expect(result).toContain("completed");
     expect(result).toContain("cancelled");
-    expect(result).toHaveLength(2);
+    expect(result).toHaveLength(1);
   });
 
   it('completed → [] (terminal, no se puede revivir a confirmed)', () => {

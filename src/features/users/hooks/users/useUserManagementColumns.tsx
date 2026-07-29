@@ -20,6 +20,9 @@ interface Params {
    *  contraseña y borrar. En modo lectura ocultamos los controles para no
    *  mostrarle al auditor botones que el servidor rechaza con 403. */
   canManage?: boolean;
+  /** Único admin activo: la DB protege su democión/desactivación/borrado;
+   *  deshabilitamos los controles para no mostrar el toast crudo. */
+  lastAdminId?: string;
   onRoleChange: (u: UserRow, role: AppRole) => void;
   onToggleStatus: (userId: string, active: boolean) => void;
   onEdit: (u: UserRow) => void;
@@ -28,7 +31,7 @@ interface Params {
 }
 
 export function useUserManagementColumns({
-  currentUserId, isToggling, canManage = true, onRoleChange, onToggleStatus, onEdit, onSetPassword, onDelete,
+  currentUserId, isToggling, canManage = true, lastAdminId, onRoleChange, onToggleStatus, onEdit, onSetPassword, onDelete,
 }: Params): ColumnDef<UserItem>[] {
   const base: ColumnDef<UserItem>[] = [
       {
@@ -63,7 +66,13 @@ export function useUserManagementColumns({
         header: "Rol",
         accessorKey: "role",
         cell: ({ row }) => {
-          if (!canManage) return <RoleBadge role={row.original.role} />;
+          if (!canManage || row.original.user_id === lastAdminId) {
+            return (
+              <span title={row.original.user_id === lastAdminId ? "Único admin activo: no se puede cambiar su rol" : undefined}>
+                <RoleBadge role={row.original.role} />
+              </span>
+            );
+          }
           return (
             <Select defaultValue={row.original.role ?? undefined} onValueChange={(val) => onRoleChange(row.original, val as AppRole)}>
               <SelectTrigger className="w-[160px]" onClick={(e) => e.stopPropagation()}><SelectValue /></SelectTrigger>
@@ -83,7 +92,7 @@ export function useUserManagementColumns({
         cell: ({ row }) => {
           const u = row.original;
           const isSelf = u.user_id === currentUserId;
-          if (!canManage || isSelf) {
+          if (!canManage || isSelf || u.user_id === lastAdminId) {
             return (
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
                 <ShieldIcon className="h-3.5 w-3.5" /> {u.is_active ? "Activo" : "Inactivo"}
@@ -119,7 +128,7 @@ export function useUserManagementColumns({
             <Button variant="ghost" size="icon" title="Asignar contraseña" aria-label="Asignar contraseña" onClick={() => onSetPassword(u)}>
               <KeyIcon className="h-4 w-4" />
             </Button>
-            {!isSelf && (
+            {!isSelf && u.user_id !== lastAdminId && (
               <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" title="Eliminar usuario" aria-label="Eliminar usuario" onClick={() => onDelete(u)}>
                 <DeleteIcon className="h-4 w-4" />
               </Button>

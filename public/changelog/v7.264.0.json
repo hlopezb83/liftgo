@@ -1,0 +1,34 @@
+{
+  "version": "7.264.0",
+  "date": "2026-07-29",
+  "type": "minor",
+  "title": "Fase 4 y 5: frontend alineado a los guards de la Ronda 3 (FE3-03 a FE3-10)",
+  "category": "improvement",
+  "changes": [
+    {
+      "type": "fix",
+      "title": "FE3-03/FE3-04/FE3-05 · Se acabaron las pantallas 'vacías' cuando en realidad hubo error",
+      "description": "Las pestañas de Operaciones (choferes, mecánicos, modelos, políticas, aprobación de CxP, datos fiscales, logo y plantilla de contrato), la conciliación de facturas y la pantalla de permisos por rol ahora muestran un aviso de error con opción de reintentar en vez de aparentar que no hay datos. En conciliación además se bloquea la exportación si la carga falló y se avisa cuando el rango de fechas está invertido."
+    },
+    {
+      "type": "improvement",
+      "title": "FE3-06 · Aviso honesto cuando una lista se corta",
+      "description": "Bitácora, mis reportes, feedback, cuentas por pagar y conciliación bancaria piden un registro extra al servidor para saber si la lista está truncada, y muestran solo los visibles con el aviso correspondiente."
+    },
+    {
+      "type": "improvement",
+      "title": "FE3-07/FE3-08 · Móvil más cómodo",
+      "description": "Botones y campos de acceso (login de staff y de portal) con área táctil mínima, y tarjetas móviles de clientes y contratos sin textos encimados."
+    },
+    {
+      "type": "fix",
+      "title": "FE3-09/FE3-10 · La interfaz ya no pelea con las reglas del servidor",
+      "description": "El botón 'Ganado' de un prospecto solo se habilita en etapa Negociación, el alta de montacargas solo ofrece estados iniciales válidos, las acciones de reserva respetan la máquina de estados y el último administrador activo queda protegido: no se le puede cambiar el rol, desactivar ni borrar desde la tabla ni desde la tarjeta móvil."
+    },
+    {
+      "type": "improvement",
+      "title": "Fase 5 · Pruebas y smoke de base de datos",
+      "description": "Nuevas pruebas unitarias para las reglas de cierre de prospectos y para las etiquetas de estado de cotizaciones, más un script SQL de humo (supabase/tests/r3_smoke.sql) que verifica manualmente todos los guards DB3-06 a DB3-17. Suite completa: 1377 pruebas en verde."
+    }
+  ]
+}

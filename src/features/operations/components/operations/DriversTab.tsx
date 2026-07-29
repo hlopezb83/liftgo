@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
@@ -17,7 +18,7 @@ import { validateDriverForm } from "../../lib/driverFormValidation";
 
 export function DriversTab() {
   const isMobile = useIsMobile();
-  const { data: drivers, isLoading } = useDrivers();
+  const { data: drivers, isLoading, isError, refetch } = useDrivers();
   const create = useCreateDriver();
   const update = useUpdateDriver();
   const del = useDeleteDriver();
@@ -118,6 +119,8 @@ export function DriversTab() {
             </Card>
           )}
         />
+      ) : isError ? (
+        <QueryErrorState bare entity="los operadores" onRetry={() => { void refetch(); }} />
       ) : (
         <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay operadores registrados" />
       )}

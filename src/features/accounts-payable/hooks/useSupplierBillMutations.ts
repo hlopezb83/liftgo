@@ -20,9 +20,13 @@ export function useCreateSupplierBill() {
   return useEntityMutation<SupplierBillInput, { id: string; bill_number: string }>({
     mutationFn: async (input) => {
       const bill_number = await nextBillNumber();
+      // A3/N5: el alta nunca envía status — un status terminal (paid/cancelled)
+      // era coercionado silenciosamente por la DB a pendiente. Que aplique el
+      // default del servidor y el flujo normal de pagos.
+      const { status: _status, ...rest } = input;
       const { data, error } = await supabase
         .from("supplier_bills")
-        .insert({ ...input, bill_number })
+        .insert({ ...rest, bill_number })
         .select("id, bill_number")
         .single();
       if (error) throw error;

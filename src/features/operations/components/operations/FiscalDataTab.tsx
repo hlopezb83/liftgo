@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { Lock } from "@/components/icons";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Form } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -19,8 +20,8 @@ export function FiscalDataTab() {
   const { data: role, isLoading: isLoadingRole } = useUserRole();
   const isAdmin = role === "admin";
 
-  const { data: settings, isLoading } = useCompanySettings();
-  const { data: secrets, isLoading: isLoadingSecrets } = useBillingSecrets();
+  const { data: settings, isLoading, isError: settingsError, refetch: refetchSettings } = useCompanySettings();
+  const { data: secrets, isLoading: isLoadingSecrets, isError: secretsError, refetch: refetchSecrets } = useBillingSecrets();
   const upsert = useUpsertCompanySettings();
   const upsertSecrets = useUpsertBillingSecrets();
   const form = useForm<FiscalDataValues>({
@@ -75,6 +76,18 @@ export function FiscalDataTab() {
   };
 
   if (isLoadingRole || isLoading || isLoadingSecrets) return <Skeleton className="h-64" />;
+
+  // A3-02: sin esta rama el formulario fiscal aparecía vacío y editable
+  // tras un error de red, invitando a sobreescribir la configuración real.
+  if (settingsError || secretsError) {
+    return (
+      <QueryErrorState
+        bare
+        entity="los datos fiscales"
+        onRetry={() => { void refetchSettings(); void refetchSecrets(); }}
+      />
+    );
+  }
 
   if (!isAdmin) {
     return (

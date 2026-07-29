@@ -39,6 +39,12 @@ export default function UserManagementPage() {
   const { search, setSearch, filterRole, setFilterRole, filtered } = useUserManagementFilters(users);
   const { setEditTarget, setPasswordTarget, setDeleteTarget, setRoleChangeTarget } = dialogs;
 
+  // Último admin activo: la DB rechaza demotar/desactivar/borrar al único
+  // admin (LAST_ADMIN_CANNOT_BE_DEMOTED/DELETED/DEACTIVATED). Con los datos
+  // ya en pantalla deshabilitamos los controles en vez de mostrar toast crudo.
+  const activeAdmins = (users ?? []).filter((u) => u.role === "admin" && u.is_active);
+  const lastAdminId = activeAdmins.length === 1 ? activeAdmins[0].user_id : undefined;
+
   const onRoleChange = (u: UserRow, newRole: AppRole) => setRoleChangeTarget({ user: u, newRole });
   const onToggleStatus = (userId: string, currentActive: boolean) => {
     toggleStatus.mutate({ userId, isActive: !currentActive });
@@ -51,6 +57,7 @@ export default function UserManagementPage() {
     currentUserId: currentUser?.id,
     isToggling: toggleStatus.isPending,
     canManage,
+    lastAdminId,
     onRoleChange,
     onToggleStatus,
     onEdit,
@@ -106,6 +113,7 @@ export default function UserManagementPage() {
             actions={{
               currentUserId: currentUser?.id,
               isToggling: toggleStatus.isPending,
+              lastAdminId,
               onRoleChange,
               onToggleStatus,
               onEdit,

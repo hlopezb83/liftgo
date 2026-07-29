@@ -6,6 +6,7 @@ import { AddIcon, FileClock, ChartIcon, FileSpreadsheet } from "@/components/ico
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Button } from "@/components/ui/button";
 import { usePageActions } from "@/contexts/pageActions";
+import { visibleListRows } from "@/lib/supabase/constants";
 import { useSuppliers } from "@/features/suppliers";
 import { useHasModuleAccess } from "@/features/users";
 import { useToggleDialog } from "@/hooks/useDialogState";
@@ -25,7 +26,9 @@ import type { SupplierBillListItem } from "../hooks/useSupplierBills";
 export default function CuentasPorPagarPage() {
   const { bills, kpis, isLoading, isError, refetch } = useAccountsPayableKpis();
   const { data: suppliers } = useSuppliers();
-  const f = useAccountsPayableFilters(bills);
+  // N8-r3: filtros y tabla operan sobre las filas visibles (sin la fila
+  // extra del limit+1); el crudo (`bills`) queda solo para el aviso.
+  const f = useAccountsPayableFilters(visibleListRows(bills));
   const createDialog = useToggleDialog();
   const exportDialog = useToggleDialog();
   const [selectedId, setSelectedId] = useState<string | null>(null);

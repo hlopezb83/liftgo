@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
@@ -16,7 +17,7 @@ import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedba
 
 export function MechanicsTab() {
   const isMobile = useIsMobile();
-  const { data: mechanics, isLoading } = useMechanics();
+  const { data: mechanics, isLoading, isError, refetch } = useMechanics();
   const create = useCreateMechanic();
   const update = useUpdateMechanic();
   const del = useDeleteMechanic();
@@ -110,6 +111,8 @@ export function MechanicsTab() {
             </Card>
           )}
         />
+      ) : isError ? (
+        <QueryErrorState bare entity="los mecánicos" onRetry={() => { void refetch(); }} />
       ) : (
         <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay mecánicos registrados" />
       )}

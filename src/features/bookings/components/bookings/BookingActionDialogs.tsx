@@ -39,13 +39,15 @@ export function BookingStatusChangeDialog({
             </SelectContent>
           </Select>
         </div>
-        {newStatus === "completed" && (
+        {/* D3-r3: la advertencia FE2-12 queda como nota — la acción "Completar"
+            se retiró del selector; el cierre siempre ocurre en Devoluciones. */}
+        {currentStatus === "confirmed" && (
           <Alert>
             <WarnIcon className="h-4 w-4" />
             <AlertDescription>
-              Completar la reserva aquí NO registra la devolución del equipo: el montacargas
-              quedará como rentado hasta que captures su inspección en Devoluciones y Revisión.
-              La ruta recomendada es registrar primero la inspección del retorno.
+              Para completar una renta usa el flujo de Devoluciones y Revisión:
+              la inspección del retorno es quien marca la reserva como completada
+              y libera el montacargas.
             </AlertDescription>
           </Alert>
         )}

@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RoleGuard } from "@/layouts/RoleGuard";
+import { visibleListRows } from "@/lib/supabase/constants";
 import { BankReconciliationWorkspace } from "../components/BankReconciliationWorkspace";
 import { BankStatementUploader } from "../components/BankStatementUploader";
 import { ReconciliationKpiCards } from "../components/ReconciliationKpiCards";
@@ -73,9 +74,11 @@ export default function BankReconciliationPage() {
                 <>
                   <BankStatementUploader bankAccountId={accountId} />
                   <ListTruncationNotice rows={lines} />
-                  <ReconciliationKpiCards lines={lines ?? []} currency={account?.currency ?? "MXN"} />
+                  {/* N8-r3: KPIs y tabla sin la fila extra del limit+1; el
+                      crudo (`lines`) queda solo para el aviso. */}
+                  <ReconciliationKpiCards lines={visibleListRows(lines)} currency={account?.currency ?? "MXN"} />
                   <BankReconciliationWorkspace
-                    lines={lines ?? []}
+                    lines={visibleListRows(lines)}
                     bankAccountId={accountId}
                     isLoading={isLoading}
                     virtualized
