@@ -1,42 +1,50 @@
-## R23 — Fase 4 (últimos pendientes)
+## Qué pasa
 
-Las fases 1–3 ya cubrieron los críticos y altos (R23-1, R23-2, A, B, C, D, E, F, G, H, I, J). Verifiqué en el código lo que sigue abierto.
+El log de Release Drafter no es un error: el action funcionó y actualizó el borrador. El problema es la versión que resuelve.
 
-### Medios
+Dice literalmente: *"No published release found"* y *"last release: none"*. Release Drafter calcula la versión sumando el incremento (patch) sobre el último **release publicado en GitHub**. Como el repo no tiene ninguno publicado, arranca desde cero: `0.0.0 + patch = 0.0.1`.
 
-**R23-K — Volver a elegir el mismo archivo**
-En `BankStatementUploader.tsx` el `<input type="file">` no limpia su valor, así que reintentar con el mismo archivo no dispara nada. Limpiar `e.target.value` tras el `onChange`.
+Analogía: el odómetro del coche está en 7,256 km, pero le pusimos un contador nuevo que empieza en 0 y ahora marca 1 km.
 
-**R23-M — Orden de columnas con valores vacíos**
-Confirmé 10 columnas con `accessorFn: (x) => x.campo || ""` en Clientes (rfc, email, teléfono, contacto), Facturas (cliente, vencimiento) y Contratos (cliente, equipo, inicio, fin). Eso convierte `null` en `""` y los "—" quedan al inicio en ASC. Dejar que el `null` llegue al comparador (que ya lo ordena al final) y mostrar "—" solo en la celda. Prueba unitaria del orden con nulos.
+Además, al revisar el repo encontré una desincronía real de versiones:
 
-**R23-N — Impresión limpia**
-Marcar con `no-print` (la clase ya existe) las toolbars de listas, buscadores, tabs de estatus, paginador de `DataTableV2`, el FAB de feedback y los controles del estado de cuenta del portal (Descargar PDF, switch de saldo, botones Pagar). Además, en `@media print` forzar tabla de escritorio y ocultar `MobileCardList` vía data-attributes, para que el A4 no salga con tarjetas móviles.
+| Archivo | Versión |
+|---|---|
+| `package.json` | 7.253.4 |
+| `public/version.json` | 7.256.0 |
+| `public/changelog.json[0]` | 7.256.1 |
 
-**R23-O — Validación del formulario de prospecto**
-Quitar el `required` nativo del campo Empresa, agregar `noValidate` al form y mostrar el mensaje de Zod en español bajo el campo (mismo patrón que `dealValueError`), en lugar de la burbuja del navegador.
+El job `version-sync` de `changelog-check.yml` exige que las tres coincidan, así que cualquier PR que toque esos archivos fallará hasta corregirlo.
 
-**R23-L — Confirmación masiva de conciliación**
-Hoy una sugerencia obsoleta aborta todo el lote. Cambiar la RPC `confirm_bank_matches` para procesar línea por línea capturando el conflicto de índice único y devolver `(confirmed, failed, failed_ids)`; la UI mostrará "X conciliados, Y omitidos por conflicto" y dejará las fallidas como `unmatched` para reintentar. Es el punto más delicado de la tanda (migración + cambio de contrato de la RPC).
+## Plan
 
-### Bajos (una pasada)
+### 1. Sincronizar las tres versiones (bloqueante)
+- Subir `package.json` a `7.256.1`.
+- Regenerar `public/version.json` con `node scripts/gen-version.mjs` (lo deriva del changelog).
+- Verificar que exista `public/changelog/v7.256.1.json` (ya existe) y correr el job de validación localmente.
 
-1. Sentence case: "Sin Pagar" → "Sin pagar" en `constants.ts` (y el residual de la toolbar de facturas si sigue existiendo).
-2. Footer del `FormDialog`: fondo sólido y más padding inferior para que no se transparenten los inputs.
-3. Arrastrar a etapas que exigen valor de trato: abrir el diálogo en vez de mover directo.
-4. Borrar el código muerto del Kanban (rama `cerrado_ganado` y copy inalcanzable).
-5. Trigger `enforce_payment_within_invoice_total`: rechazar pagos en facturas canceladas (defensa a nivel API).
-6. Toast "Sin conexión": descartarlo cuando el reintento tiene éxito.
-7. Atajo "C" anunciado en el panel de conciliación: implementarlo o quitar el texto.
-8. `key` duplicada en el preview de importación (`hash` + índice).
-9. Reimportación sin movimientos nuevos: no crear registro de importación vacío y avisar "Archivo ya importado".
-10. "% conciliado": excluir las líneas ignoradas del denominador.
-11. `VirtualBody`: alinear alineación de columnas y zebra con `BodyV2`.
+### 2. Que Release Drafter respete la versión real del proyecto
+Opción recomendada: pasarle la versión explícita desde `package.json`, para que deje de inventar `0.0.x` y el borrador siempre se llame igual que el changelog.
 
-Quedan fuera por ser decisiones de diseño ya tomadas: el umbral de compactación del eje Y (punto 8 del reporte) y `version.json` (ya se regenera con cada entrega).
+En `.github/workflows/release-drafter.yml`:
+- Añadir `actions/checkout@v6` antes del action.
+- Leer la versión con un paso de shell (`node -p "require('./package.json').version"`) y exponerla como output.
+- Pasar `version: ${{ steps.pkg.outputs.version }}` al action.
 
-### Detalles técnicos
+Resultado: el borrador pasa a llamarse `v7.256.1` y se actualiza solo con cada push a `main`.
 
-- Tests: unitarios para el orden con nulos y para la nueva RPC de confirmación masiva; ajuste del E2E de conciliación para el lote parcial.
-- Migración nueva para `confirm_bank_matches` y para el trigger de pagos; sin cambios de esquema.
-- Cierre con `public/changelog.json` + `public/changelog/v7.256.0.json` + `public/version.json` (minor: cambia el contrato de una RPC).
+### 3. Publicar un release base (una sola vez)
+Aunque con el paso 2 ya no es imprescindible, publicar el borrador `v7.256.1` en GitHub deja un "último release publicado" real, lo que además arregla las notas de cambios (hoy el body sólo puede listar commits sin punto de comparación). Esto lo haces tú desde la pestaña Releases; te dejo las instrucciones exactas.
+
+### 4. Guardia opcional en CI
+Añadir al job `version-sync` una comprobación de que el tag del último release publicado no quede por detrás del changelog, para que esta deriva no vuelva a pasar silenciosamente.
+
+## Detalles técnicos
+
+- El input `version` de release-drafter tiene precedencia sobre `RESOLVED_VERSION` calculado, así que anula el `version-resolver.default: patch`.
+- `gen-version.mjs` deriva `version.json` del changelog, no de `package.json`; por eso `package.json` se puede quedar atrás y hay que actualizarlo a mano (o añadir ese paso al script — te lo puedo incluir si lo prefieres).
+- El paso 4 requiere `permissions: contents: read` y una llamada a la API de releases; se puede hacer con `gh release view --json tagName`.
+
+## Fuera de alcance
+- No toco el contenido del changelog ni la numeración histórica.
+- No automatizo la publicación del release (queda manual y deliberada).
