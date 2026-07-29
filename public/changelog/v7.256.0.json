@@ -1,0 +1,34 @@
+{
+  "version": "7.256.0",
+  "date": "2026-07-29",
+  "type": "minor",
+  "title": "Auditoría R23 fase 4: conciliación tolerante a fallos y validaciones más claras",
+  "category": "fix",
+  "sections": [
+    {
+      "title": "Conciliación bancaria",
+      "items": [
+        "Confirmar varios movimientos a la vez ya no falla en bloque: se concilian los válidos y se avisa cuántos quedaron pendientes por sugerencias obsoletas.",
+        "Los movimientos que no se pudieron conciliar regresan a 'Sin emparejar' para elegir otro candidato.",
+        "Importar el mismo estado de cuenta dos veces ya no crea registros vacíos: se informa que no había movimientos nuevos.",
+        "Se puede volver a seleccionar el mismo archivo tras un error de carga.",
+        "El porcentaje de conciliación ya no cuenta los movimientos ignorados."
+      ]
+    },
+    {
+      "title": "Facturación y pagos",
+      "items": [
+        "La base de datos rechaza registrar pagos sobre facturas canceladas."
+      ]
+    },
+    {
+      "title": "CRM y formularios",
+      "items": [
+        "Los errores del formulario de prospectos se muestran en línea, en español, en lugar de globos del navegador.",
+        "Mover una oportunidad sin valor a una etapa que lo requiere abre la edición en vez de fallar.",
+        "El orden por columnas en Clientes, Facturas y Contratos coloca los valores vacíos al final.",
+        "Los modales conservan el pie visible al hacer scroll."
+      ]
+    }
+  ]
+}
