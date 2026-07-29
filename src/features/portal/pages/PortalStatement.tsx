@@ -74,7 +74,7 @@ export default function PortalStatement() {
       <PageHeader
         title="Estado de Cuenta"
         actions={
-          <Button variant="outline" onClick={handleDownload} disabled={!summary || !customer}>
+          <Button variant="outline" onClick={handleDownload} disabled={!summary || !customer} className="no-print">
             <DownloadIcon className="h-4 w-4 mr-2" /> Descargar PDF
           </Button>
         }
