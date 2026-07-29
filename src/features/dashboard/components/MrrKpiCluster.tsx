@@ -46,12 +46,18 @@ export function MrrKpiCluster({ items, totalMrr, isLoading }: Props) {
         iconBg="bg-info/10"
       />
       <KpiTile
-        label="ARPU"
-        value={fmt(arpu)}
+        label="Renta prom. / unidad"
+        value={fmt(avgPerUnit)}
         icon={UserIcon}
         iconColor="text-warning"
         iconBg="bg-warning/10"
+        hint={
+          <span className="text-3xs text-muted-foreground">
+            MRR ÷ {isLoading ? "…" : items.length} unidades rentadas
+          </span>
+        }
       />
+
     </div>
   );
 }
