@@ -22,7 +22,7 @@ import { isPublicoGeneral } from "../hooks/quoteDetail/useQuoteDetailData";
 import { useQuotes, quoteQueries } from "../hooks/quotes/useQuotes";
 import { buildQuotesColumns } from "./quotesColumns";
 
-const QUOTE_STATUSES = ["draft", "sent", "accepted", "declined", "expired", "cancelled"] as const;
+const QUOTE_STATUSES = ["draft", "sent", "accepted", "rejected", "expired", "cancelled"] as const;
 type QuoteStatus = (typeof QUOTE_STATUSES)[number];
 const QUOTE_STATUS_OPTIONS = [
   { value: "all" as const, label: QUOTE_STATUS_LABELS.all ?? "Todos" },

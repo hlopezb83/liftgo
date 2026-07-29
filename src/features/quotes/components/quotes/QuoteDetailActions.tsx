@@ -153,7 +153,8 @@ export function QuoteDetailActions({
                 <SuccessIcon className="h-4 w-4 mr-1" />Aceptar
               </Button>
             )}
-            <Button size="sm" variant="destructive" onClick={() => onSetStatus("declined")}>
+            {/* DB3-06: el dominio de la BD usa 'rejected' (no 'declined'). */}
+            <Button size="sm" variant="destructive" onClick={() => onSetStatus("rejected")}>
               <ErrorIcon className="h-4 w-4 mr-1" />Rechazar
             </Button>
           </>
