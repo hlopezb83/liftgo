@@ -1,0 +1,15 @@
+{
+  "version": "7.259.1",
+  "date": "2026-07-29",
+  "type": "patch",
+  "title": "Auditoría R25 · FE-12: identificadores a prueba de traducción y CRM más ligero",
+  "category": "improvement",
+  "summary": "Cierre del último bloque de la auditoría: folios y nombres propios ya no se corrompen con la traducción automática del navegador, el CRM carga menos datos y la conciliación bancaria queda preparada para volúmenes grandes.",
+  "changes": [
+    "Los folios, nombres de clientes y proveedores, y nombres/series de equipo se marcan como no traducibles en Reservas, Cotizaciones, Contratos, Clientes, Flota, Entregas y Cuentas por Pagar (tabla y tarjeta móvil).",
+    "El CRM ya no descarga la lista completa de cotizaciones: usa una consulta ligera de sólo folio, con caché de 5 minutos.",
+    "La tabla de líneas bancarias activa virtualización para mantenerse fluida con estados de cuenta grandes.",
+    "Nueva nota técnica docs/paginacion-cursor.md con el patrón de paginación por cursor y el criterio para migrar cada módulo.",
+    "La tarjeta móvil de clientes se extrajo a su propio componente para respetar el límite de tamaño."
+  ]
+}
