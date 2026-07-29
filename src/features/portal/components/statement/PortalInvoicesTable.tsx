@@ -78,7 +78,7 @@ function InvoiceRow({ row, isOpen, onToggle }: { row: PortalInvoiceRow; isOpen: 
   return (
     <>
       <TableRow>
-        <TableCell className="px-2">
+        <TableCell className="px-2 no-print">
           <button
             type="button"
             onClick={onToggle}
@@ -87,27 +87,8 @@ function InvoiceRow({ row, isOpen, onToggle }: { row: PortalInvoiceRow; isOpen: 
             {isOpen ? <ChevronDownIcon className="h-4 w-4" /> : <ChevronRightIcon className="h-4 w-4" />}
           </button>
         </TableCell>
-        <TableCell className="font-medium">
-          <span className="inline-flex items-center gap-2">
-            {r.inv.invoice_number}
-            {r.moneda && r.moneda !== "MXN" && (
-              <span className="rounded border px-1.5 py-0.5 text-[10px] font-mono text-muted-foreground">
-                {r.moneda}
-              </span>
-            )}
-          </span>
-        </TableCell>
-        <TableCell>{formatDateDisplay(r.inv.issued_at)}</TableCell>
-        <TableCell>{r.inv.due_date ? formatDateDisplay(r.inv.due_date) : "—"}</TableCell>
-        <TableCell className="text-right font-mono tabular-nums">{formatCurrency(Number(r.inv.total))}</TableCell>
-        <TableCell className="text-right font-mono tabular-nums text-status-available">{formatCurrency(r.paid)}</TableCell>
-        <TableCell
-          className={`text-right font-mono tabular-nums ${r.balance > 0 ? "text-destructive" : ""}`}
-        >
-          {formatCurrency(r.balance)}
-        </TableCell>
-        <TableCell><StatusBadge status={r.inv.status} /></TableCell>
-        <TableCell className="text-right">
+...
+        <TableCell className="text-right no-print">
           {r.balance > 0 && (
             <Button size="sm" variant="outline" asChild>
               <a href={`/portal/invoices/${r.inv.id}/pago`}>Pagar</a>
