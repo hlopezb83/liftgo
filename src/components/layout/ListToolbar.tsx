@@ -34,7 +34,8 @@ export function ListToolbar({
   const showFiltersInSheet = isMobile && !!filters;
 
   return (
-    <div className="space-y-2">
+    // R24-B: buscador, filtros y acciones no deben aparecer en la impresión.
+    <div className="space-y-2 no-print">
       <div className="flex flex-col sm:flex-row sm:items-center gap-2">
         {search && <div className="flex-1 min-w-0">{search}</div>}
         {showFiltersInSheet ? (

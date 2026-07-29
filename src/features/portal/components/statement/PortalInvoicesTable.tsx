@@ -78,7 +78,7 @@ function InvoiceRow({ row, isOpen, onToggle }: { row: PortalInvoiceRow; isOpen: 
   return (
     <>
       <TableRow>
-        <TableCell className="px-2">
+        <TableCell className="px-2 no-print">
           <button
             type="button"
             onClick={onToggle}
@@ -107,7 +107,7 @@ function InvoiceRow({ row, isOpen, onToggle }: { row: PortalInvoiceRow; isOpen: 
           {formatCurrency(r.balance)}
         </TableCell>
         <TableCell><StatusBadge status={r.inv.status} /></TableCell>
-        <TableCell className="text-right">
+        <TableCell className="text-right no-print">
           {r.balance > 0 && (
             <Button size="sm" variant="outline" asChild>
               <a href={`/portal/invoices/${r.inv.id}/pago`}>Pagar</a>
@@ -131,7 +131,7 @@ export function PortalInvoicesTable({ rows, expanded, onToggle }: Props) {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead className="w-8" />
+          <TableHead className="w-8 no-print" />
           <TableHead>Factura #</TableHead>
           <TableHead>Emisión</TableHead>
           <TableHead>Vencimiento</TableHead>
@@ -139,7 +139,7 @@ export function PortalInvoicesTable({ rows, expanded, onToggle }: Props) {
           <TableHead className="text-right">Pagado</TableHead>
           <TableHead className="text-right">Saldo</TableHead>
           <TableHead>Estado</TableHead>
-          <TableHead />
+          <TableHead className="no-print" />
         </TableRow>
       </TableHeader>
       <TableBody>

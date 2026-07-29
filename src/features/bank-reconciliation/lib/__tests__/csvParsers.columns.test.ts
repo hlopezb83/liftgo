@@ -14,14 +14,22 @@ describe("parseBankCsv — validación de columnas (R23-J)", () => {
     const csv = ["Fecha,Descripción,Importe,Referencia", "01/07/2026,Pago cliente"].join("\n");
     const result = parseBankCsv(csv, "generico");
     expect(result.lines).toHaveLength(0);
-    expect(result.errors[0]).toContain("se esperaban al menos 3 columnas");
+    expect(result.errors[0]).toContain("se esperaban entre 3 y 4 columnas");
   });
 
   it("exige las 4 columnas de cargo/abono en el perfil BBVA", () => {
     const csv = ["Fecha,Descripción,Cargo,Abono,Ref", "01/07/2026,Pago,100"].join("\n");
     const result = parseBankCsv(csv, "bbva");
     expect(result.lines).toHaveLength(0);
-    expect(result.errors[0]).toContain("se esperaban al menos 4 columnas");
+    expect(result.errors[0]).toContain("se esperaban entre 4 y 5 columnas");
+  });
+
+  // R24-F: una coma sin comillas también puede AGREGAR columnas.
+  it("rechaza la fila con columnas de más", () => {
+    const csv = ["Fecha,Descripción,Importe,Referencia", "01/07/2026,Pago,1500,50,REF1"].join("\n");
+    const result = parseBankCsv(csv, "generico");
+    expect(result.lines).toHaveLength(0);
+    expect(result.errors[0]).toContain("llegaron 5");
   });
 
   it("sigue importando filas bien formadas", () => {

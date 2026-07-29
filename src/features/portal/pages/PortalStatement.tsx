@@ -74,7 +74,7 @@ export default function PortalStatement() {
       <PageHeader
         title="Estado de Cuenta"
         actions={
-          <Button variant="outline" onClick={handleDownload} disabled={!summary || !customer}>
+          <Button variant="outline" onClick={handleDownload} disabled={!summary || !customer} className="no-print">
             <DownloadIcon className="h-4 w-4 mr-2" /> Descargar PDF
           </Button>
         }
@@ -100,7 +100,7 @@ export default function PortalStatement() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Facturas</CardTitle>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 no-print">
             <Checkbox
               id={onlyBalanceId}
               checked={onlyBalance}

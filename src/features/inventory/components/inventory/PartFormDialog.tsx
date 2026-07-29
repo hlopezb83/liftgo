@@ -7,6 +7,7 @@ import {
   type SelectOption,
 } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { FormSection } from "@/components/forms/FormSection";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -125,9 +126,7 @@ export function PartFormDialog({ open, onOpenChange, part }: PartFormDialogProps
             </div>
           </FormSection>
           <FormDialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
+            <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={isPending} />
             <Button type="submit" disabled={isPending}>
               {isPending ? "Guardando…" : part ? "Guardar" : "Agregar refacción"}
             </Button>

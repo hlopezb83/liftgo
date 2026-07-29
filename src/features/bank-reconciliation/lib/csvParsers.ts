@@ -58,11 +58,30 @@ function requiredColumns(map: ColumnMap): number {
   return Math.max(...indexes) + 1;
 }
 
-function parseRow(r: string[], map: ColumnMap, idx: number, minCols: number): ParsedBankLine | string {
+/** Total de columnas del perfil, incluyendo la referencia opcional. */
+function maxColumns(map: ColumnMap): number {
+  const indexes = [map.date, map.description, map.amount, map.charge, map.credit, map.reference].filter(
+    (i): i is number => i !== undefined,
+  );
+  return Math.max(...indexes) + 1;
+}
+
+function expectedColumnsMessage(minCols: number, maxCols: number): string {
+  return minCols === maxCols ? `${minCols}` : `entre ${minCols} y ${maxCols}`;
+}
+
+function parseRow(
+  r: string[],
+  map: ColumnMap,
+  idx: number,
+  minCols: number,
+  maxCols: number,
+): ParsedBankLine | string {
   // R23-J: un importe con coma sin comillas ("1500,50") partía la fila y corría
   // las columnas en silencio, importando montos y fechas equivocados.
-  if (r.length < minCols) {
-    return `Línea ${idx + 1}: se esperaban al menos ${minCols} columnas y llegaron ${r.length}. Revisa que los importes con coma vengan entre comillas.`;
+  // R24-F: también rechazamos filas con columnas de MÁS por el mismo motivo.
+  if (r.length < minCols || r.length > maxCols) {
+    return `Línea ${idx + 1}: se esperaban ${expectedColumnsMessage(minCols, maxCols)} columnas y llegaron ${r.length}. Revisa que los importes con coma vengan entre comillas.`;
   }
   const postedDate = parseDateFlexible(r[map.date] ?? "");
   if (!postedDate) return `Línea ${idx + 1}: fecha inválida ("${r[map.date] ?? ""}")`;
@@ -86,9 +105,16 @@ export function parseBankCsv(content: string, profile: StatementProfile): ParseR
   if (!map) return { lines, errors: ["Perfil no soportado"], periodStart: null, periodEnd: null };
 
   const minCols = requiredColumns(map);
+  // R24-F: el perfil define el máximo de columnas (incluyendo la referencia
+  // opcional); una fila con más campos significa que un importe con coma
+  // partió la fila y corrió los datos.
+  const maxCols = maxColumns(map);
   const startIdx = parseDateFlexible(rows[0][0] ?? "") ? 0 : 1;
   for (let i = startIdx; i < rows.length; i++) {
-    const result = parseRow(rows[i], map, i, minCols);
+    // Ignoramos celdas vacías al final (exportaciones que dejan la coma final).
+    const row = [...rows[i]];
+    while (row.length > maxCols && (row[row.length - 1] ?? "").trim() === "") row.pop();
+    const result = parseRow(row, map, i, minCols, maxCols);
 
     if (typeof result === "string") { errors.push(result); continue; }
     lines.push(result);

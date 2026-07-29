@@ -1,5 +1,6 @@
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -143,7 +144,10 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
           )}
         </div>
         <FormDialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <FormDialogCancelButton
+            onCancel={() => onOpenChange(false)}
+            disabled={createPayment.isPending || stampComplement.isPending}
+          />
           <Button
             type="submit"
             data-testid="record-payment-submit"

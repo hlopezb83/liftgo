@@ -94,6 +94,10 @@ export function KanbanColumn({
             )}
           </SortableContext>
 
+          {/* R24-G: zona muerta al final de la columna. Sin ella, con la columna
+              llena no había superficie del droppable libre y era imposible soltar
+              una tarjeta DESPUÉS de la última. */}
+          {items.length > 0 && <div aria-hidden className="h-16" />}
         </div>
       </ScrollArea>
 

@@ -1,4 +1,5 @@
 import { FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { ProspectStageBadge } from "./ProspectStageBadge";
@@ -37,7 +38,8 @@ export function ProspectDialogFooter({ isClosingWonBlocked, onCancel, onDelete, 
         </Button>
       )}
       <div className="flex gap-2 ml-auto">
-        <Button type="button" variant="outline" onClick={onCancel} disabled={isPending}>Cancelar</Button>
+        {/* R24-A: pasa por el guard de "¿Descartar cambios?" igual que Esc. */}
+        <FormDialogCancelButton onCancel={onCancel} disabled={isPending} />
         <Button type="submit" disabled={isClosingWonBlocked || isPending}>
           {isPending ? "Guardando…" : "Guardar"}
         </Button>

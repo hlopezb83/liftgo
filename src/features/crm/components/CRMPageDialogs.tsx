@@ -10,9 +10,9 @@ interface Props {
   canCloseDeal: boolean;
   assertCanClose: (kind: "save" | "create" | "move") => boolean;
   openEdit: (p: Prospect) => void;
-  onCreate: (data: ProspectFormPayload) => void;
-  onUpdate: (id: string, data: ProspectFormPayload) => void;
-  onDelete: (id: string) => void;
+  onCreate: (data: ProspectFormPayload) => void | Promise<void>;
+  onUpdate: (id: string, data: ProspectFormPayload) => void | Promise<void>;
+  onDelete: (id: string) => void | Promise<void>;
   isPending?: boolean;
 }
 
@@ -43,12 +43,12 @@ export function CRMPageDialogs({
         defaultStage={dialogs.defaultStage}
         overrideStage={dialogs.overrideStage}
         canCloseDeal={canCloseDeal}
-        onSave={(data) => {
+        onSave={async (data) => {
           if (data.stage === "cerrado_ganado" && !assertCanClose("save")) return;
           if (dialogs.editingProspect) {
-            onUpdate(dialogs.editingProspect.id, data);
+            await onUpdate(dialogs.editingProspect.id, data);
           } else {
-            onCreate(data);
+            await onCreate(data);
           }
         }}
         onDelete={dialogs.editingProspect ? (() => { const target = dialogs.editingProspect; if (target) onDelete(target.id); }) : undefined}
