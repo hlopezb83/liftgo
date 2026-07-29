@@ -1,0 +1,33 @@
+{
+  "version": "7.257.0",
+  "date": "2026-07-29",
+  "type": "minor",
+  "title": "Auditoría R24: guardado seguro en CRM, impresión limpia y arrastre confiable",
+  "category": "fix",
+  "sections": [
+    {
+      "title": "CRM",
+      "items": [
+        "El modal de prospectos ya no se cierra antes de que el servidor confirme el guardado.",
+        "Cancelar en los modales de prospectos, refacciones, daños y pagos ahora pregunta antes de descartar cambios.",
+        "Arrastrar una tarjeta hacia abajo dentro de la misma columna la deja en la posición exacta donde se soltó.",
+        "Se puede soltar una tarjeta después de la última de una columna llena."
+      ]
+    },
+    {
+      "title": "Impresión",
+      "items": [
+        "Al imprimir ya no se activa la vista móvil: las tablas salen completas.",
+        "Barras de búsqueda, filtros, paginación, menú lateral y botón de reportes ya no se imprimen.",
+        "El estado de cuenta del portal imprime sin botones de acción."
+      ]
+    },
+    {
+      "title": "Otros",
+      "items": [
+        "Los KPIs de Cuentas por Pagar usan formato compacto para importes grandes y ya no se desbordan.",
+        "La importación de estados de cuenta rechaza filas con columnas de más para evitar montos desalineados."
+      ]
+    }
+  ]
+}
