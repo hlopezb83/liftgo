@@ -22,6 +22,32 @@ export const LIST_FETCH_LIMIT = LIST_PAGE_LIMIT + 1;
  */
 export const EXCLUDE_E2E_FILTER = "is_e2e.is.null,is_e2e.eq.false";
 
+/** Filtro permisivo: incluye también las filas E2E (solo para las pruebas). */
+const INCLUDE_E2E_FILTER = "is_e2e.is.null,is_e2e.eq.false,is_e2e.eq.true";
+
+/** Bandera en localStorage que activa la visibilidad de datos E2E en la UI. */
+export const E2E_VISIBILITY_KEY = "liftgo:e2e-visible";
+
+/**
+ * Las suites de Playwright siembran filas con `is_e2e = true`; si la UI las
+ * esconde siempre, los specs no pueden verificar lo que acaban de sembrar.
+ * Con la bandera puesta en localStorage (solo la ponen los tests) las listas
+ * incluyen esas filas. En producción nadie la tiene y el filtro es el normal.
+ */
+export function isE2eDataVisible(): boolean {
+  try {
+    return typeof window !== "undefined" && window.localStorage.getItem(E2E_VISIBILITY_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+/** Filtro `.or()` a usar en los hooks de listado. */
+export function e2eVisibilityFilter(): string {
+  return isE2eDataVisible() ? INCLUDE_E2E_FILTER : EXCLUDE_E2E_FILTER;
+}
+
+
 /**
  * True si una lista está realmente truncada. Requiere que el hook haya
  * pedido `LIST_FETCH_LIMIT` (limit+1) filas: con exactamente
