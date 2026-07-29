@@ -138,28 +138,13 @@ export default function PortalInvoiceDetail() {
         <span>Emitida: {formatDateDisplay(invoice.issued_at)}</span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <Card>
-          <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground">Total</p>
-            <p className="text-xl font-bold font-mono">{formatCurrencyWithCode(Number(invoice.total), currency)}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground">Pagado</p>
-            <p className="text-xl font-bold font-mono text-status-available">{formatCurrencyWithCode(totalPaid, currency)}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground">Saldo</p>
-            <p className={`text-xl font-bold font-mono ${balanceCls}`}>
-              {formatCurrencyWithCode(balance, currency)}
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+      <InvoiceSummaryCards
+        total={Number(invoice.total)}
+        totalPaid={totalPaid}
+        balance={balance}
+        currency={currency}
+      />
+
 
       <Card>
         <CardHeader>
