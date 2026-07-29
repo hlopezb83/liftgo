@@ -2,12 +2,14 @@ import { useEffect, useRef } from "react";
 import { useFormContext } from "react-hook-form";
 import { SpinnerIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { useFormDialogClose } from "./formDialogContext";
 
 interface FormActionsProps {
   submitLabel: string;
   isPending: boolean;
   onCancel: () => void;
 }
+
 
 /**
  * Bloque 2.1 (v7.146.0): además de `isPending` de la mutación, consumimos
