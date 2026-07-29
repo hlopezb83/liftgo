@@ -13,6 +13,7 @@ import type { AppRole } from "../../hooks/useUserRole";
 export interface UserRowActions {
   currentUserId?: string;
   isToggling: boolean;
+  lastAdminId?: string;
   onRoleChange: (u: UserRow, role: AppRole) => void;
   onToggleStatus: (userId: string, active: boolean) => void;
   onEdit: (u: UserRow) => void;
@@ -23,6 +24,7 @@ export interface UserRowActions {
 
 export function UserMobileCard({ u, actions }: { u: UserRow; actions: UserRowActions }) {
   const isSelf = u.user_id === actions.currentUserId;
+  const isLastAdmin = u.user_id === actions.lastAdminId;
   return (
     <Card className={!u.is_active ? "opacity-60" : ""}>
       <CardContent className="p-4">
@@ -39,7 +41,7 @@ export function UserMobileCard({ u, actions }: { u: UserRow; actions: UserRowAct
             <Button variant="ghost" size="icon" onClick={() => actions.onSetPassword(u)} aria-label="Asignar contraseña">
               <KeyIcon className="h-4 w-4" />
             </Button>
-            {!isSelf && (
+            {!isSelf && !isLastAdmin && (
               <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive" onClick={() => actions.onDelete(u)} aria-label="Eliminar usuario">
                 <DeleteIcon className="h-4 w-4" />
               </Button>
@@ -49,7 +51,7 @@ export function UserMobileCard({ u, actions }: { u: UserRow; actions: UserRowAct
         <p className="text-xs text-muted-foreground mb-1">{u.email ?? "—"}</p>
         <p className="text-xs text-muted-foreground mb-2">{formatDateMty(u.created_at)}</p>
         <Select defaultValue={u.role ?? undefined} onValueChange={(val) => actions.onRoleChange(u, val as AppRole)}>
-          <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+          <SelectTrigger className="w-full" disabled={isLastAdmin} title={isLastAdmin ? "Único admin activo: no se puede cambiar su rol" : undefined}><SelectValue /></SelectTrigger>
           <SelectContent>
             {STAFF_ROLES.map((r) => (
               <SelectItem key={r} value={r}><RoleBadge role={r} /></SelectItem>
@@ -58,7 +60,7 @@ export function UserMobileCard({ u, actions }: { u: UserRow; actions: UserRowAct
         </Select>
         {!isSelf && (
           <div className="flex items-center gap-2 mt-3">
-            <Switch checked={u.is_active} onCheckedChange={() => actions.onToggleStatus(u.user_id, u.is_active)} disabled={actions.isToggling} />
+            <Switch checked={u.is_active} onCheckedChange={() => actions.onToggleStatus(u.user_id, u.is_active)} disabled={actions.isToggling || isLastAdmin} />
             <span className="text-xs text-muted-foreground">{u.is_active ? "Activo" : "Inactivo"}</span>
           </div>
         )}
