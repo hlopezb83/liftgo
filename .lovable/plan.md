@@ -1,50 +1,55 @@
-## Qué pasa
+## Contexto (verificado en el código actual)
 
-El log de Release Drafter no es un error: el action funcionó y actualizó el borrador. El problema es la versión que resuelve.
+Revisé cada hallazgo del R24 contra el repo. Los 7 son reales hoy:
 
-Dice literalmente: *"No published release found"* y *"last release: none"*. Release Drafter calcula la versión sumando el incremento (patch) sobre el último **release publicado en GitHub**. Como el repo no tiene ninguno publicado, arranca desde cero: `0.0.0 + patch = 0.0.1`.
+- `CRMPage.tsx:160-162` pasa `mutate` (fire-and-forget) al diálogo, que hace `await onSave(...)` → cierra antes de que termine el guardado.
+- `src/hooks/use-mobile.tsx` no considera impresión: al imprimir, el page box (<768px) activa la vista de tarjetas móviles.
+- `.no-print` existe en `index.css:327` pero **ningún componente la usa**.
+- `AccountsPayableKpiCards.tsx` usa `formatCurrency` (no compacto) y `kpiSizeClass` topa en `text-lg`.
+- La migración `20260729012353` desempata siempre a favor de la tarjeta movida (correcto al subir, incorrecto al bajar).
+- `csvParsers.ts` sólo valida columnas de menos, no de más.
+- `resolveDropTarget.ts` inserta antes de la última tarjeta al soltar en su franja inferior.
 
-Analogía: el odómetro del coche está en 7,256 km, pero le pusimos un contador nuevo que empieza en 0 y ahora marca 1 km.
+---
 
-Además, al revisar el repo encontré una desincronía real de versiones:
+## Qué se va a hacer
 
-| Archivo | Versión |
-|---|---|
-| `package.json` | 7.253.4 |
-| `public/version.json` | 7.256.0 |
-| `public/changelog.json[0]` | 7.256.1 |
+### 1. R24-C — Guardado del prospecto realmente esperado (ALTO)
+- En `CRMPage.tsx`, pasar `mutateAsync` en `onCreate`/`onUpdate`/`onDelete` para que el modal cierre sólo cuando el servidor responde.
+- Asegurar toast de error propio en la mutación de crear prospecto ("No se pudo crear el prospecto").
+- Barrido rápido del mismo patrón (`mutate` pasado a diálogos que hacen `await`) en `src/features`; corregir los que aparezcan.
 
-El job `version-sync` de `changelog-check.yml` exige que las tres coincidan, así que cualquier PR que toque esos archivos fallará hasta corregirlo.
+### 2. R24-A — Los 4 footers que saltan el "¿Descartar cambios?" (ALTO)
+Migrar a `FormActions` o, donde el layout sea especial, usar `useFormDialogClose()` en el botón Cancelar:
+- `inventory/PartFormDialog.tsx`
+- `crm/components/prospect-form/ProspectDialogParts.tsx` (footer de `ProspectFormDialog`)
+- `damage/ReportDamageDialog.tsx`
+- `invoices/RecordPaymentDialog.tsx`
 
-## Plan
+### 3. R24-B / R24-H — Impresión (ALTO)
+- `use-mobile.tsx`: `useIsMobile` y `useIsTabletOrBelow` devuelven `false` durante impresión (`useMediaQuery("print")`), para que las listas impriman la **tabla** completa y no las tarjetas paginadas.
+- Aplicar `no-print` en puntos centrales: `ListToolbar` (buscador + acciones), paginación de `DataTableV2`, menú/avatar de usuario del header, FAB de feedback y los controles del estado de cuenta del portal (Descargar PDF, Pagar, switch "Solo con saldo", chevrons).
 
-### 1. Sincronizar las tres versiones (bloqueante)
-- Subir `package.json` a `7.256.1`.
-- Regenerar `public/version.json` con `node scripts/gen-version.mjs` (lo deriva del changelog).
-- Verificar que exista `public/changelog/v7.256.1.json` (ya existe) y correr el job de validación localmente.
+### 4. R24-D — KPI de Cuentas por Pagar (ALTO)
+- Usar `formatCompactCurrency` en el monto, con `title` mostrando el importe exacto al hover.
+- Añadir un escalón a `kpiSizeClass`: `>14 → text-base`, `>12 → text-lg`.
 
-### 2. Que Release Drafter respete la versión real del proyecto
-Opción recomendada: pasarle la versión explícita desde `package.json`, para que deje de inventar `0.0.x` y el borrador siempre se llame igual que el changelog.
+### 5. R24-E — Reorden descendente en la misma columna (MEDIO, base de datos)
+Nueva migración que recrea `reorder_prospect_stage` capturando el `stage_order` original y desempatando según la dirección del movimiento (al bajar, la tarjeta movida va después de los empates). Mover A al final de [A,B,C] queda como [B,C,A] tras recargar.
 
-En `.github/workflows/release-drafter.yml`:
-- Añadir `actions/checkout@v6` antes del action.
-- Leer la versión con un paso de shell (`node -p "require('./package.json').version"`) y exponerla como output.
-- Pasar `version: ${{ steps.pkg.outputs.version }}` al action.
+### 6. R24-F — CSV con columnas de más (MEDIO)
+`parseRow` recibe también `maxCols` y rechaza filas con más columnas de las esperadas, con mensaje de fila claro.
 
-Resultado: el borrador pasa a llamarse `v7.256.1` y se actualiza solo con cada push a `main`.
+### 7. R24-G — Soltar bajo la última tarjeta (BAJO)
+Ajustar `resolveDropTarget` para que, cuando el puntero cae en la mitad inferior de la última tarjeta, el índice sea `index + 1` (va al final).
 
-### 3. Publicar un release base (una sola vez)
-Aunque con el paso 2 ya no es imprescindible, publicar el borrador `v7.256.1` en GitHub deja un "último release publicado" real, lo que además arregla las notas de cambios (hoy el body sólo puede listar commits sin punto de comparación). Esto lo haces tú desde la pestaña Releases; te dejo las instrucciones exactas.
+---
 
-### 4. Guardia opcional en CI
-Añadir al job `version-sync` una comprobación de que el tag del último release publicado no quede por detrás del changelog, para que esta deriva no vuelva a pasar silenciosamente.
+## Pruebas
+- Unitarias nuevas/ajustadas: `kpiSizeClass` (escalón nuevo), `csvParsers` (fila con columnas de más), `resolveDropTarget` (drop en mitad inferior de la última card).
+- Ejecutar las suites de `crm`, `bank-reconciliation`, `accounts-payable` e `invoices`, más `tsgo` y lint.
+- Verificación manual de impresión (Ctrl+P en `/customers` e `/invoices`) documentada en el changelog.
 
-## Detalles técnicos
-
-- El input `version` de release-drafter tiene precedencia sobre `RESOLVED_VERSION` calculado, así que anula el `version-resolver.default: patch`.
-- `gen-version.mjs` deriva `version.json` del changelog, no de `package.json`; por eso `package.json` se puede quedar atrás y hay que actualizarlo a mano (o añadir ese paso al script — te lo puedo incluir si lo prefieres).
-- El paso 4 requiere `permissions: contents: read` y una llamada a la API de releases; se puede hacer con `gh release view --json tagName`.
-
-## Fuera de alcance
-- No toco el contenido del changelog ni la numeración histórica.
-- No automatizo la publicación del release (queda manual y deliberada).
+## Notas técnicas
+- Ningún cambio toca cálculos de dinero ni reglas de negocio; el único cambio de datos es el desempate del reorden del kanban.
+- Se agrega la entrada de changelog correspondiente (`public/changelog.json` + `public/changelog/v7.257.0.json`) y se sincroniza `package.json` / `public/version.json`. Versión propuesta: **7.257.0** (minor: cambios de comportamiento visible + migración).
