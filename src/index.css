@@ -371,4 +371,12 @@
     color: inherit !important;
     text-decoration: none !important;
   }
+  /* R23: al imprimir siempre usamos la tabla de escritorio, nunca las
+     tarjetas móviles (duplicarían el contenido en el papel). */
+  [data-mobile-card-list] {
+    display: none !important;
+  }
+  [data-desktop-table] {
+    display: block !important;
+  }
 }
