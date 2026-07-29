@@ -38,21 +38,41 @@ export function useImportBankStatement() {
         hash: l.hash,
       }));
 
-      const { error: insErr } = await supabase
+      // R23-11: `select()` nos dice cuántas líneas eran realmente nuevas.
+      const { data: inserted, error: insErr } = await supabase
         .from("bank_statement_lines")
-        .upsert(rows, { onConflict: "bank_account_id,hash", ignoreDuplicates: true });
+        .upsert(rows, { onConflict: "bank_account_id,hash", ignoreDuplicates: true })
+        .select("id");
       if (insErr) throw insErr;
+
+      const insertedCount = inserted?.length ?? 0;
+      if (insertedCount === 0) {
+        // Reimportación del mismo archivo: no dejamos un import huérfano en 0.
+        await supabase.from("bank_statement_imports").delete().eq("id", imp.id);
+        return { summary: null, insertedCount: 0 };
+      }
+
+      if (insertedCount !== args.lines.length) {
+        await supabase
+          .from("bank_statement_imports")
+          .update({ lines_count: insertedCount })
+          .eq("id", imp.id);
+      }
 
       const { data: matchRes, error: matchErr } = await supabase.rpc("match_bank_statement_lines", {
         p_import_id: imp.id,
       });
       if (matchErr) throw matchErr;
-      return matchRes;
+      return { summary: Array.isArray(matchRes) && matchRes[0] ? matchRes[0] : null, insertedCount };
     },
     invalidateKeysFn: (_res, vars) => [bankLinesKey(vars.bankAccountId)],
     errorTitle: "Error al importar estado de cuenta",
     onSuccess: (res) => {
-      const summary = Array.isArray(res) && res[0] ? res[0] : null;
+      if (res.insertedCount === 0) {
+        notifySuccess("Archivo ya importado: no había movimientos nuevos.");
+        return;
+      }
+      const summary = res.summary;
       if (summary) {
         notifySuccess(
           `Importación lista: ${summary.matched_count ?? 0} conciliados, ${summary.suggested_count ?? 0} sugeridos, ${summary.unmatched_count ?? 0} sin emparejar.`,
