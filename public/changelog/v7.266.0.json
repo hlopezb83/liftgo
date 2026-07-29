@@ -1,0 +1,24 @@
+{
+  "version": "7.266.0",
+  "date": "2026-07-30",
+  "type": "minor",
+  "title": "CI más rápido: pruebas en paralelo y uso completo del servidor",
+  "category": "improvement",
+  "changes": [
+    {
+      "type": "improvement",
+      "title": "Pruebas repartidas en 3 máquinas en paralelo",
+      "description": "La suite de pruebas se divide en tres partes que corren al mismo tiempo y luego se unen en un solo reporte con la cobertura total, reduciendo el tiempo de espera de la integración continua."
+    },
+    {
+      "type": "improvement",
+      "title": "Uso de todos los núcleos disponibles",
+      "description": "Las pruebas unitarias y las pruebas de navegador ahora ajustan automáticamente el número de procesos al hardware del servidor, en lugar de un número fijo."
+    },
+    {
+      "type": "improvement",
+      "title": "Caché de dependencias precompiladas",
+      "description": "Se guarda el pre-empaquetado de dependencias entre ejecuciones para acelerar el arranque de pruebas y compilaciones."
+    }
+  ]
+}

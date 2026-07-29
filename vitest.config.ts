@@ -1,6 +1,15 @@
+import os from "os";
 import path from "path";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
+
+// Núcleos realmente disponibles para el proceso (respeta cgroups en CI y
+// aprovecha máquinas grandes como el entorno de Lovable, 64 vCPU).
+const CPUS = typeof os.availableParallelism === "function" ? os.availableParallelism() : os.cpus().length;
+
+// `--shard` en CI: cada runner corre una porción y emite un reporte "blob"
+// que el job de merge une para aplicar umbrales de cobertura globales.
+const IS_SHARD = process.env.VITEST_SHARD_BLOB === "1";
 
 export default defineConfig({
   // Sin `babel-plugin-react-compiler` aquí: el compiler no aporta valor bajo
@@ -16,13 +25,25 @@ export default defineConfig({
     globals: true,
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.{test,spec}.{ts,tsx}"],
+    // Paralelismo explícito: por defecto vitest usa CPUS-1 y arranca los
+    // workers en frío. Fijar el máximo a todos los núcleos y precalentar un
+    // piso de workers reduce el wall time tanto en runners de 4 vCPU como en
+    // máquinas grandes. `forks` medido más rápido que `threads` en esta suite.
+    pool: "forks",
+    maxWorkers: CPUS,
+    minWorkers: Math.min(4, CPUS),
+    poolOptions: {
+      forks: { maxForks: CPUS, minForks: Math.min(4, CPUS) },
+    },
     // En CI emitimos JUnit + JSON para que el job pueda subir artifacts y
     // GitHub muestre el resumen de tests fallidos sin perder la salida humana.
     // Cuando VITEST_RLS_JUNIT=1 (script test:rls), el JUnit apunta al archivo
     // que consume el check "RLS results" de mikepenz/action-junit-report.
     // Mantener la salida en config (no CLI) evita problemas de parseo de flags
     // múltiples por parte de bun/vitest v4 entre entornos.
-    reporters: process.env.VITEST_RLS_JUNIT
+    reporters: IS_SHARD
+      ? ["blob"]
+      : process.env.VITEST_RLS_JUNIT
       ? ["default", ["junit", { outputFile: "reports/rls-junit.xml" }]]
       : process.env.CI
       ? ["default", ["junit", { outputFile: "reports/vitest-junit.xml" }], ["json", { outputFile: "reports/vitest.json" }]]
@@ -41,35 +62,40 @@ export default defineConfig({
       // dinero. Global sube +1pp (medido ~14/10/14.4/13, ~0.5pp de margen);
       // per-directory 60/55 sobre lib/domain e invoice/AP libs para que
       // regresiones en el core fiscal fallen el build de inmediato.
-      thresholds: {
-        lines: 14,
-        functions: 10,
-        statements: 14,
-        branches: 12.5,
-        "src/lib/domain/**": {
-          lines: 60,
-          functions: 60,
-          statements: 60,
-          branches: 55,
-        },
-        // v7.224.3: bajamos umbrales tras los refactors de Bloque 21 que
-        // partieron varios helpers de invoices/lib en módulos nuevos sin
-        // tests directos aún. Actuales medidos: L50/F44/S47/B36. Se plantea
-        // recuperar 55/50 en un sprint dedicado a cerrar branches de
-        // cfdiPrechecks + formatStoredCfdiError.
-        "src/features/invoices/lib/**": {
-          lines: 50,
-          functions: 44,
-          statements: 47,
-          branches: 36,
-        },
-        "src/features/accounts-payable/lib/**": {
-          lines: 55,
-          functions: 55,
-          statements: 55,
-          branches: 50,
-        },
-      },
+      // En modo shard los umbrales NO aplican (cada runner ve solo su porción
+      // del código); el job de merge recalcula la cobertura completa y ahí sí
+      // se evalúan.
+      thresholds: IS_SHARD
+        ? undefined
+        : {
+            lines: 14,
+            functions: 10,
+            statements: 14,
+            branches: 12.5,
+            "src/lib/domain/**": {
+              lines: 60,
+              functions: 60,
+              statements: 60,
+              branches: 55,
+            },
+            // v7.224.3: bajamos umbrales tras los refactors de Bloque 21 que
+            // partieron varios helpers de invoices/lib en módulos nuevos sin
+            // tests directos aún. Actuales medidos: L50/F44/S47/B36. Se plantea
+            // recuperar 55/50 en un sprint dedicado a cerrar branches de
+            // cfdiPrechecks + formatStoredCfdiError.
+            "src/features/invoices/lib/**": {
+              lines: 50,
+              functions: 44,
+              statements: 47,
+              branches: 36,
+            },
+            "src/features/accounts-payable/lib/**": {
+              lines: 55,
+              functions: 55,
+              statements: 55,
+              branches: 50,
+            },
+          },
 
     },
   },

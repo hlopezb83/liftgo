@@ -37,3 +37,14 @@ runs:
     - name: Install dependencies
       shell: bash
       run: bun install --frozen-lockfile
+
+    # Cache del pre-bundle de Vite/Vitest (node_modules/.vite). Va DESPUÉS de
+    # `bun install` para que la instalación no borre la carpeta restaurada.
+    - name: Cache Vite dependency pre-bundle
+      uses: actions/cache@v6
+      with:
+        path: node_modules/.vite
+        key: ${{ runner.os }}-vite-${{ github.job }}-${{ hashFiles('**/bun.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-vite-${{ github.job }}-
+          ${{ runner.os }}-vite-
