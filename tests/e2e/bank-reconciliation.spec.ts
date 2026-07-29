@@ -20,10 +20,22 @@ async function openReconciliation(page: Page, bank: BankSeedIds): Promise<void> 
   const accountSelect = page.getByTestId("bank-account-select");
   await expect(accountSelect).toBeVisible({ timeout: TIMEOUTS.long });
   await accountSelect.click();
-  await page.getByRole("option", { name: new RegExp(bank.scope) }).click();
+
+  const option = page.getByRole("option", { name: new RegExp(bank.scope) });
+  // La lista de cuentas se cachea 60s; si el arranque frío de CI la sirvió sin
+  // la cuenta recién sembrada, recargamos una vez y reabrimos el selector.
+  if (!(await option.isVisible().catch(() => false))) {
+    await page.keyboard.press("Escape");
+    await page.reload({ waitUntil: "domcontentloaded" });
+    await expect(accountSelect).toBeVisible({ timeout: TIMEOUTS.long });
+    await accountSelect.click();
+  }
+  await expect(option).toBeVisible({ timeout: TIMEOUTS.long });
+  await option.click();
   await expect(page.getByTestId("bank-workspace")).toBeVisible({ timeout: TIMEOUTS.long });
   await expect(page.getByText(bank.orphanRef)).toBeVisible({ timeout: TIMEOUTS.long });
 }
+
 
 function row(page: Page, reference: string) {
   return page.locator("tbody tr").filter({ hasText: reference });
