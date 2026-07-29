@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.256.1",
+    "date": "2026-07-29",
+    "type": "patch",
+    "title": "Integración continua en verde",
+    "category": "fix",
+    "description": "Se corrigieron tres fallos de CI: etiqueta de estado en la prueba de facturas, la prueba E2E del Kanban de CRM ahora observa la RPC de reordenamiento y se corrigió el formato de un archivo de funciones de servidor."
+  },
+  {
     "version": "7.256.0",
     "date": "2026-07-29",
     "type": "minor",

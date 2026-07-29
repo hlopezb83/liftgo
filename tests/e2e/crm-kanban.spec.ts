@@ -50,10 +50,12 @@ test("mover una tarjeta de CRM entre columnas es optimista y persiste", async ({
   await nextFrame(page);
   await page.keyboard.press("ArrowRight");
   await nextFrame(page);
+  // R23-G: el movimiento persiste vía la RPC `reorder_prospect_stage`
+  // (POST /rest/v1/rpc/...), ya no con un PATCH plano sobre `prospects`.
   const persisted = page.waitForResponse(
     (response) =>
-      response.request().method() === "PATCH" &&
-      /\/rest\/v1\/prospects(?:\?|$)/.test(response.url()),
+      response.request().method() === "POST" &&
+      /\/rest\/v1\/rpc\/reorder_prospect_stage(?:\?|$)/.test(response.url()),
     { timeout: 20_000 },
   );
   await page.keyboard.press("Space");

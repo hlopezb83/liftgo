@@ -296,7 +296,6 @@ export async function binaryToBytes(bin: unknown): Promise<Uint8Array> {
       Object.prototype.toString.call(bin)
     } keys=[${numericKeys.slice(0, 12).join(",")}]`,
   );
-
 }
 
 export async function binaryToText(bin: unknown): Promise<string> {
