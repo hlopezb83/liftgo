@@ -4,6 +4,7 @@ import { EditIcon, DeliveryIcon, SuccessIcon, ErrorIcon, BookOpen, DeleteIcon, I
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { useUserRole } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import type { Tables } from "@/integrations/supabase/types";
 import { RoleGuard } from "@/layouts/RoleGuard";
@@ -100,6 +101,34 @@ function DeleteDialog({ quoteNumber, onDelete }: { quoteNumber: string; onDelete
   );
 }
 
+/**
+ * N-R4-C / DB3-08: la válvula `accepted → cancelled` existe en DB pero no
+ * tenía botón. Solo admin/administrativo (el guard SQL lo exige) y solo en
+ * quotes aceptadas. Si tiene reservas confirmadas la DB rechaza el update y
+ * el toast muestra el motivo exacto (useEntityMutation + translateDbError).
+ */
+function CancelQuoteButton({ quoteNumber, onCancel }: { quoteNumber: string; onCancel: () => void }) {
+  const [open, setOpen] = useState(false);
+  const { data: role } = useUserRole();
+  if (role !== "admin" && role !== "administrativo") return null;
+  return (
+    <>
+      <Button size="sm" variant="outline" className="text-destructive" onClick={() => setOpen(true)}>
+        <ErrorIcon className="h-4 w-4 mr-1" />Cancelar cotización
+      </Button>
+      <ConfirmDialog
+        open={open}
+        onOpenChange={setOpen}
+        title="¿Cancelar cotización aceptada?"
+        description={`La cotización ${quoteNumber} pasará a estado Cancelada de forma irreversible (no podrá reactivarse ni convertirse). Solo es posible si no tiene reservas activas; si las tiene, la base de datos rechazará la operación y verás el motivo.`}
+        confirmLabel="Cancelar cotización"
+        destructive
+        onConfirm={onCancel}
+      />
+    </>
+  );
+}
+
 export function QuoteDetailActions({
   quote, isSale, alreadyConverted, alreadyInvoiced, isConverting,
   canInvoice, invoiceBlockedReason,
@@ -160,6 +189,9 @@ export function QuoteDetailActions({
           </>
         );
       })()}
+      {quote.status === "accepted" && (
+        <CancelQuoteButton quoteNumber={quote.quote_number} onCancel={() => onSetStatus("cancelled")} />
+      )}
       <DeleteDialog quoteNumber={quote.quote_number} onDelete={onDelete} />
     </>
   );

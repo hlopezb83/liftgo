@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { callRpc } from "@/lib/rpc";
 export type { DamageRecord } from "@/types/rental";
 
 type DamageListRow = Awaited<ReturnType<typeof fetchDamageList>>[number];
@@ -49,5 +50,18 @@ export function useUpdateDamageRecord() {
     },
     invalidateKeys: [damageRecordQueries.keys.all],
     errorTitle: "Error al actualizar registro de daño",
+  });
+}
+
+/** Soft delete vía RPC (DB3-14a): restaura el estado coherente del montacargas
+ *  y registra el archivo en status_logs. La RPC exige invoice_id o repaired. */
+export function useArchiveDamageRecord() {
+  return useEntityMutation({
+    mutationFn: async (id: string) => {
+      await callRpc<void>("soft_delete_damage_record", { p_damage_id: id });
+      return id;
+    },
+    invalidateKeys: [damageRecordQueries.keys.all],
+    errorTitle: "Error al archivar registro de daño",
   });
 }

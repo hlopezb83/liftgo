@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import { bankImportKeys, bankLineKeys } from "../lib/queryKeys";
 
 export interface BankStatementImportRow {
@@ -30,7 +31,7 @@ export const bankImportQueries = defineEntityQueries<
       .from("bank_statement_imports")
       .select("id, bank_account_id, file_name, period_start, period_end, lines_count, imported_by, created_at, bank_accounts(name, last4)")
       .order("created_at", { ascending: false })
-      .limit(100);
+      .limit(LIST_FETCH_LIMIT);
     if (error) throw error;
 
     const ids = (imports ?? []).map((i) => i.id);

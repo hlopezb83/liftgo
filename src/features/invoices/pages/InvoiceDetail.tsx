@@ -1,5 +1,6 @@
 import { useParams } from "react-router";
 import { EmptyState } from "@/components/feedback/EmptyState";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { BookingWithForklift } from "@/features/bookings";
@@ -52,7 +53,7 @@ function deriveInvoiceData(
 export default function InvoiceDetail() {
   const { id } = useParams();
   const navigate = useNavigateTransition();
-  const { data: invoice, isLoading, refetch } = useInvoice(id);
+  const { data: invoice, isLoading, isError, refetch } = useInvoice(id);
   const { data: payments } = usePayments(id);
   const { data: creditNotes = [] } = useCreditNotesForInvoice(id);
   const { data: userRole } = useUserRole();
@@ -70,6 +71,13 @@ export default function InvoiceDetail() {
       <PageContainer className="space-y-4">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-64" />
+      </PageContainer>
+    );
+  }
+  if (isError) {
+    return (
+      <PageContainer>
+        <QueryErrorState entity="la factura" onRetry={() => { void refetch(); }} />
       </PageContainer>
     );
   }

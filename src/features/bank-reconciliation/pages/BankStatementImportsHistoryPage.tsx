@@ -1,5 +1,7 @@
 import { useCallback, useState } from "react";
 import { DataTableV2, useLiftgoTable } from "@/components/dataTable/v2";
+import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { BackIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -8,12 +10,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useUserRole } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { visibleListRows } from "@/lib/supabase/constants";
 import { useBankImportsColumns, type ImportRow } from "../hooks/useBankImportsColumns";
 import { useBankStatementImports, useDeleteBankImport } from "../hooks/useBankStatementImports";
 
 export default function BankStatementImportsHistoryPage() {
   const navigate = useNavigateTransition();
-  const { data: imports, isLoading } = useBankStatementImports();
+  const { data: imports, isLoading, isError, refetch } = useBankStatementImports();
   const { data: role } = useUserRole();
   const del = useDeleteBankImport();
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -23,7 +26,7 @@ export default function BankStatementImportsHistoryPage() {
   const columns = useBankImportsColumns(canDelete, onDeleteRequest);
 
   const table = useLiftgoTable<ImportRow>({
-    data: imports ?? [],
+    data: visibleListRows(imports),
     columns,
     getRowId: (i) => i.id,
     initialSorting: [{ id: "created_at", desc: true }],
@@ -42,6 +45,12 @@ export default function BankStatementImportsHistoryPage() {
         </Button>
       </div>
 
+      {/* A4-05: error primero; el aviso usa la lista CRUDA (limit+1). */}
+      {isError ? (
+        <QueryErrorState entity="el historial de imports" onRetry={() => { void refetch(); }} />
+      ) : (
+      <>
+      <ListTruncationNotice rows={imports} />
       <Card>
         <CardContent className="p-0">
           <DataTableV2
@@ -51,6 +60,8 @@ export default function BankStatementImportsHistoryPage() {
           />
         </CardContent>
       </Card>
+      </>
+      )}
 
       <ConfirmDialog
         open={!!confirmId}

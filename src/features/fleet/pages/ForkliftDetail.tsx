@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams } from "react-router";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { EmptyState } from "@/components/feedback/EmptyState";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Edit, DeleteIcon } from "@/components/icons";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
@@ -31,7 +32,7 @@ import { useForklift, useDeleteForklift, useStatusLogs } from "../hooks/forklift
 export default function ForkliftDetail() {
   const { id } = useParams();
   const navigate = useNavigateTransition();
-  const { data: forklift, isLoading } = useForklift(id);
+  const { data: forklift, isLoading, isError, refetch } = useForklift(id);
   const { data: logs } = useStatusLogs(id);
   const { data: bookings } = useBookings(id);
   const { data: maintenanceLogs } = useMaintenanceLogs(id);
@@ -41,6 +42,13 @@ export default function ForkliftDetail() {
   const [deleteOpen, setDeleteOpen] = useState(false);
 
   if (isLoading) return <PageContainer><Skeleton className="h-96" /></PageContainer>;
+  if (isError) {
+    return (
+      <PageContainer>
+        <QueryErrorState entity="el montacargas" onRetry={() => { void refetch(); }} />
+      </PageContainer>
+    );
+  }
   if (!forklift) {
     return (
       <PageContainer>

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { canCloseAsWon, wonBlockedReason, isValidFinalAmount } from "../prospectCloseRules";
+import { canCloseAsWon, wonBlockedReason, wonBlockedReasonFull, isValidFinalAmount } from "../prospectCloseRules";
 
 describe("prospectCloseRules (V3-2 / DB3-16)", () => {
   it("solo permite cerrar como ganado desde negociación", () => {
@@ -15,6 +15,12 @@ describe("prospectCloseRules (V3-2 / DB3-16)", () => {
   it("explica por qué está bloqueado fuera de negociación", () => {
     expect(wonBlockedReason("negociacion")).toBeUndefined();
     expect(wonBlockedReason("cotizacion_enviada")).toMatch(/Negociación/);
+  });
+
+  it("N4-02: explica el bloqueo por rol aunque la etapa sea válida", () => {
+    expect(wonBlockedReasonFull("negociacion", false)).toMatch(/administrador o administrativo/);
+    expect(wonBlockedReasonFull("negociacion", true)).toBeUndefined();
+    expect(wonBlockedReasonFull("cotizacion_enviada", false)).toMatch(/Negociación/);
   });
 
   it("exige monto final mayor a cero", () => {

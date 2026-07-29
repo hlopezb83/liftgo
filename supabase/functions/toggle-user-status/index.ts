@@ -68,17 +68,26 @@ Deno.serve(async (req) => {
       }
     }
 
-    const { error: authErr } = await auth.adminClient.auth.admin.updateUserById(
-      user_id,
-      { ban_duration: is_active ? "none" : "876600h" },
-    );
-    if (authErr) return jsonError(req, 400, authErr.message);
-
+    // DB4-07 (N6): primero profiles — si el trigger LAST_ACTIVE_ADMIN rechaza,
+    // no se baneo nada y no queda estado inconsistente.
     const { error: profileErr } = await auth.adminClient
       .from("profiles")
       .update({ is_active })
       .eq("user_id", user_id);
     if (profileErr) return jsonError(req, 400, profileErr.message);
+
+    const { error: authErr } = await auth.adminClient.auth.admin.updateUserById(
+      user_id,
+      { ban_duration: is_active ? "none" : "876600h" },
+    );
+    if (authErr) {
+      // Compensacion: revertir el UPDATE de profiles si el ban de auth fallo.
+      await auth.adminClient
+        .from("profiles")
+        .update({ is_active: !is_active })
+        .eq("user_id", user_id);
+      return jsonError(req, 400, authErr.message);
+    }
 
     return jsonResponse(req, { success: true, is_active });
   } catch (_err) {

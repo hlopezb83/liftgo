@@ -82,7 +82,11 @@ export function MechanicsTab() {
       <div className="flex justify-end mb-4">
         <Button onClick={openNew} size="sm"><AddIcon className="h-4 w-4 mr-2" />Agregar Mecánico</Button>
       </div>
-      {isMobile ? (
+      {isError ? (
+        <QueryErrorState bare entity="los mecánicos" onRetry={() => { void refetch(); }} />
+      ) : isLoading ? (
+        <Card><CardContent className="py-14 text-center text-sm text-muted-foreground">Cargando…</CardContent></Card>
+      ) : isMobile ? (
         <MobileCardList
           items={mechanics ?? []}
           keyExtractor={(m) => m.id}
@@ -111,8 +115,6 @@ export function MechanicsTab() {
             </Card>
           )}
         />
-      ) : isError ? (
-        <QueryErrorState bare entity="los mecánicos" onRetry={() => { void refetch(); }} />
       ) : (
         <DataTableV2 table={table} isLoading={isLoading} emptyMessage="No hay mecánicos registrados" />
       )}

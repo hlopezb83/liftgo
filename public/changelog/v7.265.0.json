@@ -1,0 +1,54 @@
+{
+  "version": "7.265.0",
+  "date": "2026-07-29",
+  "type": "minor",
+  "title": "Auditoría Ronda 4: blindaje de datos y manejo de errores en pantallas",
+  "category": "improvement",
+  "changes": [
+    {
+      "type": "fix",
+      "title": "Facturas de proveedor: aprobación y saldo protegidos",
+      "description": "Ya no se puede crear una factura de proveedor nacida como aprobada o rechazada, ni editar su saldo a mano. El saldo siempre se recalcula a partir de los pagos registrados."
+    },
+    {
+      "type": "fix",
+      "title": "Daños e inspecciones más confiables",
+      "description": "Todo daño nuevo nace como 'reportado', se valida que la unidad corresponda a la reserva inspeccionada y, al reparar, la unidad regresa a mantenimiento si tiene órdenes abiertas en lugar de marcarse disponible."
+    },
+    {
+      "type": "fix",
+      "title": "Unidades se liberan al cancelar o borrar una reserva",
+      "description": "Un montacargas ya no se queda marcado como rentado cuando su reserva se cancela o elimina."
+    },
+    {
+      "type": "improvement",
+      "title": "Reservas solo por el flujo autorizado",
+      "description": "Crear reservas por inserción directa queda restringido a administradores; el resto debe partir de una cotización."
+    },
+    {
+      "type": "improvement",
+      "title": "Datos fiscales y auditoría",
+      "description": "Se restringió el acceso a columnas fiscales sensibles de facturas y se registran en auditoría los intentos de forzar banderas de datos de prueba."
+    },
+    {
+      "type": "fix",
+      "title": "Activar/desactivar usuarios sin estados inconsistentes",
+      "description": "Ahora se actualiza primero el perfil y después el acceso; si algo falla, el cambio se revierte automáticamente."
+    },
+    {
+      "type": "improvement",
+      "title": "Errores de red visibles en toda la app",
+      "description": "Las 8 páginas de detalle, las pestañas de catálogos en móvil y las pantallas financieras distinguen una falla de conexión de un registro inexistente y ofrecen reintentar."
+    },
+    {
+      "type": "improvement",
+      "title": "Cancelar cotizaciones aceptadas y archivar daños",
+      "description": "Nueva acción para cancelar una cotización aceptada (solo admin y sin reservas confirmadas), botón para archivar daños, y se ocultó 'Eliminar' en entregas ya completadas."
+    },
+    {
+      "type": "improvement",
+      "title": "Accesibilidad en pantallas de acceso",
+      "description": "Botones y campos de las pantallas de inicio de sesión cumplen el mínimo de 44px para uso táctil."
+    }
+  ]
+}

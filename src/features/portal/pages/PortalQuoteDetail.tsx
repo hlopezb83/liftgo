@@ -1,4 +1,5 @@
 import { useParams } from "react-router";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { SuccessIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -34,11 +35,20 @@ function computeLineTotal(it: LineItem): number {
 
 export default function PortalQuoteDetail() {
   const { id } = useParams();
-  const { data: quote, isLoading } = usePortalQuote(id);
+  const { data: quote, isLoading, isError, refetch } = usePortalQuote(id);
   const accept = useAcceptPortalQuote();
   const reject = useRejectPortalQuote();
 
   if (isLoading) return <Skeleton className="h-96" />;
+  // A4-01: un error de red NO es "cotización no encontrada" — el cliente
+  // externo podría estar intentando aceptar una cotización vigente.
+  if (isError) {
+    return (
+      <PageContainer maxWidth="wide">
+        <QueryErrorState entity="la cotización" onRetry={() => { void refetch(); }} />
+      </PageContainer>
+    );
+  }
   if (!quote) return <p className="text-muted-foreground">Cotización no encontrada</p>;
 
   const items: LineItem[] = Array.isArray(quote.line_items) ? (quote.line_items as LineItem[]) : [];

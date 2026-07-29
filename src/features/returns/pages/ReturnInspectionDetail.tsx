@@ -1,4 +1,5 @@
 import { useParams } from "react-router";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -12,7 +13,7 @@ import { useReturnInspection } from "../hooks/useReturnInspections";
 
 export default function ReturnInspectionDetail() {
   const { id } = useParams<{ id: string }>();
-  const { data: ins, isLoading } = useReturnInspection(id);
+  const { data: ins, isLoading, isError, refetch } = useReturnInspection(id);
 
   if (isLoading) {
     return (
@@ -22,6 +23,14 @@ export default function ReturnInspectionDetail() {
           <Skeleton className="h-48" />
           <Skeleton className="h-48" />
         </div>
+      </PageContainer>
+    );
+  }
+
+  if (isError) {
+    return (
+      <PageContainer maxWidth="wide">
+        <QueryErrorState entity="la devolución" onRetry={() => { void refetch(); }} />
       </PageContainer>
     );
   }

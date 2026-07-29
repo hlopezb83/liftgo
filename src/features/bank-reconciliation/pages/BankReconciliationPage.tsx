@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router";
 import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { SettingsIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -18,7 +19,7 @@ import { useBankAccounts } from "../hooks/useBankAccounts";
 import { useBankStatementLines } from "../hooks/useBankStatementLines";
 
 export default function BankReconciliationPage() {
-  const { data: accounts, isLoading: isLoadingAccounts } = useBankAccounts();
+  const { data: accounts, isLoading: isLoadingAccounts, isError: isErrorAccounts, refetch: refetchAccounts } = useBankAccounts();
   const [manualAccountId, setManualAccountId] = useState<string | null>(null);
   // Default derivado en render: la primera cuenta activa (o la primera). El usuario puede
   // sobrescribir con el <Select>. Al elegir manualmente, `manualAccountId` toma precedencia.
@@ -28,7 +29,7 @@ export default function BankReconciliationPage() {
     return accounts.find((a) => a.is_active) ?? accounts[0];
   }, [manualAccountId, accounts]);
   const accountId = account?.id ?? null;
-  const { data: lines, isLoading } = useBankStatementLines(accountId);
+  const { data: lines, isLoading, isError: isErrorLines, refetch: refetchLines } = useBankStatementLines(accountId);
 
   return (
     <RoleGuard module="Conciliación Bancaria" minAccess="read">
@@ -44,6 +45,11 @@ export default function BankReconciliationPage() {
             }
           />
 
+          {/* A4-03: control bancario — nunca KPIs en 0 ante error de red. */}
+          {isErrorAccounts ? (
+            <QueryErrorState entity="las cuentas bancarias" onRetry={() => { void refetchAccounts(); }} />
+          ) : (
+          <>
           {isLoadingAccounts ? (
             <Card><CardContent className="py-6 space-y-3">
               <Skeleton className="h-5 w-64" />
@@ -72,6 +78,10 @@ export default function BankReconciliationPage() {
 
               {accountId && (
                 <>
+                  {isErrorLines ? (
+                    <QueryErrorState entity="las líneas del estado de cuenta" onRetry={() => { void refetchLines(); }} />
+                  ) : (
+                  <>
                   <BankStatementUploader bankAccountId={accountId} />
                   <ListTruncationNotice rows={lines} />
                   {/* N8-r3: KPIs y tabla sin la fila extra del limit+1; el
@@ -83,9 +93,13 @@ export default function BankReconciliationPage() {
                     isLoading={isLoading}
                     virtualized
                   />
+                  </>
+                  )}
                 </>
               )}
             </>
+          )}
+          </>
           )}
         </PageContainer>
       </PageTransition>

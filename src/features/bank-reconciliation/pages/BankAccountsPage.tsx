@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useConfirm } from "@/components/feedback/useConfirm";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
 import { MobileCardList } from "@/components/layout/MobileCardList";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -15,7 +16,7 @@ import { BankAccountFormDialog } from "../components/BankAccountFormDialog";
 import { useBankAccounts, useDeleteBankAccount, type BankAccount } from "../hooks/useBankAccounts";
 
 export default function BankAccountsPage() {
-  const { data: accounts, isLoading } = useBankAccounts();
+  const { data: accounts, isLoading, isError, refetch } = useBankAccounts();
   const [editing, setEditing] = useState<BankAccount | null>(null);
   const [open, setOpen] = useState(false);
   const del = useDeleteBankAccount();
@@ -45,7 +46,10 @@ export default function BankAccountsPage() {
             subtitle="Catálogo de cuentas para conciliación bancaria"
             action={<Button onClick={handleNew}><AddIcon className="h-4 w-4 mr-2" /> Nueva cuenta</Button>}
           />
-          {isTabletOrBelow ? (
+          {/* A4-05: error primero, en ambas ramas (móvil y escritorio). */}
+          {isError ? (
+            <QueryErrorState entity="las cuentas bancarias" onRetry={() => { void refetch(); }} />
+          ) : isTabletOrBelow ? (
             isLoading ? (
               <Card><CardContent className="py-8 text-center text-muted-foreground">Cargando…</CardContent></Card>
             ) : (

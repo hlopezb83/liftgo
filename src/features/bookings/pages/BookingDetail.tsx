@@ -1,5 +1,6 @@
 import { useParams } from "react-router";
 import { EmptyState } from "@/components/feedback/EmptyState";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -21,7 +22,7 @@ import { useBooking } from "../hooks/bookings/useBookings";
 export default function BookingDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigateTransition();
-  const { data: booking, isLoading } = useBooking(id);
+  const { data: booking, isLoading, isError, refetch } = useBooking(id);
   const { data: deliveries } = useDeliveries(id);
   const { data: extensions } = useBookingExtensions(id);
 
@@ -35,6 +36,14 @@ export default function BookingDetail() {
           <Skeleton className="h-48" />
           <Skeleton className="h-48" />
         </div>
+      </PageContainer>
+    );
+  }
+
+  if (isError) {
+    return (
+      <PageContainer maxWidth="wide">
+        <QueryErrorState entity="la reserva" onRetry={() => { void refetch(); }} />
       </PageContainer>
     );
   }

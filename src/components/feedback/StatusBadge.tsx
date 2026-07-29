@@ -45,7 +45,6 @@ const statusStyles: Record<string, string> = {
   pickup: WARNING,
   // danger (rojo)
   overdue: DANGER,
-  declined: DANGER,
   major_damage: DANGER,
   needs_repair: DANGER,
   rejected: DANGER,

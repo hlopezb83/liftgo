@@ -1,12 +1,14 @@
 import { useParams } from "react-router";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { EmptyState } from "@/components/feedback/EmptyState";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBookings } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
+import { useUserRole } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { DeliveryActions } from "../components/deliveries/DeliveryActions";
@@ -22,11 +24,12 @@ import { buildDeliverySubtitle, computeHoursUsed } from "../lib/deliveryDetailHe
 export default function DeliveryDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigateTransition();
-  const { data: delivery, isLoading } = useDelivery(id);
+  const { data: delivery, isLoading, isError, refetch } = useDelivery(id);
   const { data: siblingDeliveries } = useDeliveries(delivery?.booking_id ?? undefined);
   const { data: bookings } = useBookings();
   const { forkliftMap } = useForkliftMap();
   const deleteDelivery = useDeleteDelivery();
+  const { data: role } = useUserRole();
 
   const forklift = delivery ? forkliftMap.get(delivery.forklift_id) : undefined;
   const linkedBooking = delivery?.booking_id
@@ -40,6 +43,14 @@ export default function DeliveryDetail() {
       <PageContainer>
         <Skeleton className="h-10 w-64" />
         <div className="grid gap-6 md:grid-cols-2"><Skeleton className="h-48" /><Skeleton className="h-48" /></div>
+      </PageContainer>
+    );
+  }
+
+  if (isError) {
+    return (
+      <PageContainer>
+        <QueryErrorState entity="la entrega" onRetry={() => { void refetch(); }} />
       </PageContainer>
     );
   }
@@ -58,6 +69,13 @@ export default function DeliveryDetail() {
 
   const hoursUsed = computeHoursUsed(delivery.booking_id, siblingDeliveries);
   const subtitle = buildDeliverySubtitle(forklift?.name, delivery.type);
+  // Espejo de DB3-15: completed → nadie; scheduled → solo admin; cancelled → ok.
+  const canDeleteDelivery =
+    delivery.status === "completed"
+      ? false
+      : delivery.status === "scheduled"
+        ? role === "admin"
+        : true;
 
   const handleDelete = () => {
     deleteDelivery.mutate(delivery.id, {
@@ -76,6 +94,7 @@ export default function DeliveryDetail() {
           actions={
             <DeliveryActions
               status={delivery.status}
+              canDelete={canDeleteDelivery}
               onComplete={() => completion.setSignatureOpen(true)}
               onDelete={handleDelete}
             />

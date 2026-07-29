@@ -1,4 +1,5 @@
 import { EmptyState } from "@/components/feedback/EmptyState";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -18,13 +19,20 @@ function contractDates(contract: { start_date: string | null; end_date: string |
 
 export default function ContractDetail() {
   const navigate = useNavigateTransition();
-  const { id, contract, isLoading, setStatus } = useContractDetailLogic();
+  const { id, contract, isLoading, isError, refetch, setStatus } = useContractDetailLogic();
 
   if (isLoading) {
     return (
       <PageContainer className="space-y-4">
         <Skeleton className="h-8 w-48" />
         <Skeleton className="h-64" />
+      </PageContainer>
+    );
+  }
+  if (isError) {
+    return (
+      <PageContainer>
+        <QueryErrorState entity="el contrato" onRetry={() => { void refetch(); }} />
       </PageContainer>
     );
   }

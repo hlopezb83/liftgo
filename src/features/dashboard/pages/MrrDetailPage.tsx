@@ -1,5 +1,6 @@
 import { DataTableV2, useLiftgoTable } from "@/components/dataTable/v2";
 import { EmptyState } from "@/components/feedback/EmptyState";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { FleetIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -13,7 +14,7 @@ import { useMrrColumns, type MrrItem } from "../hooks/useMrrColumns";
 import { useMrrDetail } from "../hooks/useMrrDetail";
 
 export default function MrrDetailPage() {
-  const { data, isLoading } = useMrrDetail();
+  const { data, isLoading, isError, refetch } = useMrrDetail();
   const isTabletOrBelow = useIsTabletOrBelow();
   const columns = useMrrColumns();
   const items = data?.items ?? [];
@@ -36,6 +37,12 @@ export default function MrrDetailPage() {
         backLabel="Panel"
       />
 
+      {/* A4-04: falso-cero en el KPI financiero estrella — ux-r3 lo había
+          reportado cubierto por error; el cluster solo recibía isLoading. */}
+      {isError ? (
+        <QueryErrorState entity="el detalle de ingreso mensual recurrente" onRetry={() => { void refetch(); }} />
+      ) : (
+      <>
       <MrrKpiCluster items={items} totalMrr={totalMrr} isLoading={isLoading} />
 
       <Card>
@@ -52,6 +59,8 @@ export default function MrrDetailPage() {
           />
         </CardContent>
       </Card>
+      </>
+      )}
     </PageContainer>
   );
 }
