@@ -43,7 +43,12 @@ export function CRMKanbanGrid({
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    // `scrollBehavior: "auto"` evita el scroll suave del sensor de teclado, que
+    // retrasaba el cambio de columna varios cientos de ms.
+    useSensor(KeyboardSensor, {
+      coordinateGetter: kanbanKeyboardCoordinates,
+      scrollBehavior: "auto",
+    }),
   );
 
   const activeProspect = activeId
