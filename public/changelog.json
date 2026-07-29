@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.260.3",
+    "date": "2026-07-29",
+    "type": "patch",
+    "title": "Limpieza E2E compatible con cotizaciones aceptadas",
+    "category": "fix",
+    "description": "La limpieza de pruebas automatizadas ahora puede borrar sólo cotizaciones E2E aceptadas del alcance de prueba sin abrir esa puerta a usuarios reales. Esto evita que el shard de Playwright falle al terminar escenarios de facturación y flujo completo."
+  },
+  {
     "version": "7.260.2",
     "date": "2026-07-29",
     "type": "patch",
