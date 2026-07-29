@@ -6,6 +6,7 @@ import { ChevronRightIcon, AddIcon, PhoneIcon, UsersIcon, WarnIcon } from "@/com
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
+import { Untranslated } from "@/components/ui/Untranslated";
 import { usePageActions } from "@/contexts/pageActions";
 import { useUpdateProspect } from "@/features/crm";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
@@ -99,7 +100,7 @@ export default function CustomersPage() {
       <Card className="active:scale-[0.98] transition-transform">
         <CardContent className="p-4">
           <div className="flex items-center justify-between mb-1">
-            <span className="font-semibold text-sm">{c.name}</span>
+            <Untranslated className="font-semibold text-sm">{c.name}</Untranslated>
             <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
           </div>
           {c.rfc && <p className="text-xs font-mono text-muted-foreground">{c.rfc}</p>}

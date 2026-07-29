@@ -13,6 +13,7 @@ interface Props {
   lines: BankStatementLine[];
   bankAccountId: string;
   isLoading: boolean;
+  virtualized?: boolean;
 }
 
 const STATUS_OPTIONS = [
@@ -33,7 +34,7 @@ function matchesSearch(line: BankStatementLine, term: string): boolean {
   );
 }
 
-export function BankReconciliationWorkspace({ lines, bankAccountId, isLoading }: Props) {
+export function BankReconciliationWorkspace({ lines, bankAccountId, isLoading, virtualized }: Props) {
   const isMobile = useIsMobile();
   const [status, setStatus] = useState<BankLineStatus | "all">("unmatched");
   const [search, setSearch] = useState("");
@@ -98,6 +99,7 @@ export function BankReconciliationWorkspace({ lines, bankAccountId, isLoading }:
       isLoading={isLoading}
       activeId={activeId}
       onSelect={(l) => setActiveId(l.id)}
+      virtualized={virtualized}
     />
   );
 

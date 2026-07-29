@@ -86,6 +86,7 @@ export default function BankReconciliationPage() {
                     lines={lines ?? []}
                     bankAccountId={accountId}
                     isLoading={isLoading}
+                    virtualized
                   />
                 </>
               )}

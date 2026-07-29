@@ -1,5 +1,6 @@
 
 import type { ColumnDef } from "@/components/dataTable/v2";
+import { Untranslated } from "@/components/ui/Untranslated";
 import type { useCustomers } from "./useCustomers";
 
 type Customer = NonNullable<ReturnType<typeof useCustomers>["data"]>[number];
@@ -13,12 +14,12 @@ export function useCustomersColumns(): ColumnDef<Customer>[] {
         // Bloque 4.2 (R4): nombres largos (razón social + ubicación) rompían
         // el ancho de la tabla. Truncamos a 280px con tooltip nativo.
         cell: ({ row }) => (
-          <span
+          <Untranslated
             className="font-medium block max-w-[280px] truncate"
             title={row.original.name}
           >
             {row.original.name}
-          </span>
+          </Untranslated>
         ),
       },
       {

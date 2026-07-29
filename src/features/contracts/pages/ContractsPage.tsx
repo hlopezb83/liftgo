@@ -6,6 +6,7 @@ import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Untranslated } from "@/components/ui/Untranslated";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
@@ -45,7 +46,7 @@ export default function ContractsPage() {
         id: "contract_number",
         header: "Contrato #",
         accessorKey: "contract_number",
-        cell: ({ row }) => <span className="font-medium">{row.original.contract_number}</span>,
+        cell: ({ row }) => <Untranslated className="font-medium">{row.original.contract_number}</Untranslated>,
       },
       {
         id: "customer_name",
@@ -58,9 +59,9 @@ export default function ContractsPage() {
           return (
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="block truncate">{name}</span>
+                <Untranslated className="block truncate">{name}</Untranslated>
               </TooltipTrigger>
-              <TooltipContent>{name}</TooltipContent>
+              <TooltipContent><Untranslated>{name}</Untranslated></TooltipContent>
             </Tooltip>
           );
         },
@@ -69,7 +70,7 @@ export default function ContractsPage() {
         id: "forklift_name",
         header: "Equipo",
         accessorFn: (c) => c.forklift_name,
-        cell: ({ row }) => row.original.forklift_name || "—",
+        cell: ({ row }) => row.original.forklift_name ? <Untranslated>{row.original.forklift_name}</Untranslated> : "—",
       },
       {
         id: "start_date",

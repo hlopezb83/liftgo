@@ -2,6 +2,7 @@ import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Card, CardContent } from "@/components/ui/card";
+import { Untranslated } from "@/components/ui/Untranslated";
 import { useForkliftMap } from "@/features/fleet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateDisplay } from "@/lib/utils";
@@ -20,7 +21,7 @@ export default function DeliveriesPage() {
         id: "delivery_number",
         header: "Entrega #",
         accessorKey: "delivery_number",
-        cell: ({ row }) => <span className="font-mono text-sm text-primary">{row.original.delivery_number}</span>,
+        cell: ({ row }) => <Untranslated className="font-mono text-sm text-primary">{row.original.delivery_number}</Untranslated>,
       },
       {
         id: "scheduled_date",
@@ -37,7 +38,10 @@ export default function DeliveriesPage() {
         id: "forklift_name",
         header: "Montacargas",
         accessorFn: (d) => forkliftMap.get(d.forklift_id)?.name || "",
-        cell: ({ row }) => <span className="font-medium">{forkliftMap.get(row.original.forklift_id)?.name || "—"}</span>,
+        cell: ({ row }) => {
+          const name = forkliftMap.get(row.original.forklift_id)?.name;
+          return name ? <Untranslated className="font-medium">{name}</Untranslated> : <span className="font-medium">—</span>;
+        },
       },
       {
         id: "driver_name",
@@ -76,13 +80,13 @@ export default function DeliveriesPage() {
         <Card className="cursor-pointer" onClick={() => navigate(`/deliveries/${d.id}`)}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-1">
-              <span className="text-xs font-mono text-muted-foreground">{d.delivery_number}</span>
+              <Untranslated className="text-xs font-mono text-muted-foreground">{d.delivery_number}</Untranslated>
               <StatusBadge status={d.status} />
             </div>
             <div className="flex items-center justify-between mb-1">
               <span className="text-sm font-semibold">{d.type === "delivery" ? "Entrega" : "Recolección"}</span>
             </div>
-            <p className="text-sm font-medium">{forkliftMap.get(d.forklift_id)?.name || "—"}</p>
+            <p className="text-sm font-medium">{forkliftMap.get(d.forklift_id)?.name ? <Untranslated>{forkliftMap.get(d.forklift_id)?.name}</Untranslated> : "—"}</p>
             <p className="text-xs text-muted-foreground mt-1">{formatDateDisplay(d.scheduled_date)}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</p>
             {d.address && <p className="text-xs text-muted-foreground truncate">{d.address}</p>}
             {d.driver_name && <p className="text-xs text-muted-foreground">Operador: {d.driver_name}</p>}

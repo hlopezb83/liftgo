@@ -16,6 +16,7 @@ interface Props {
   isLoading?: boolean;
   activeId?: string | null;
   onSelect: (line: BankStatementLine) => void;
+  virtualized?: boolean;
 }
 
 // Mapea el estado de la línea al tono semántico del StatusBadge global.
@@ -87,6 +88,7 @@ export function BankStatementLinesTable({
   isLoading,
   activeId,
   onSelect,
+  virtualized,
 }: Props) {
   const [bulkReason, setBulkReason] = useState("");
   const confirmManyMut = useConfirmBankMatches();
@@ -108,6 +110,7 @@ export function BankStatementLinesTable({
           table={table}
           isLoading={isLoading}
           onRowClick={onSelect}
+          virtualized={virtualized}
           enableRowSelection
           rowClassName={(l) => (l.id === activeId ? "bg-accent/60" : undefined)}
           selectionToolbar={({ selectedIds, selectedRows, clearSelection }) => {

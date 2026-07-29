@@ -3,6 +3,7 @@ import type { ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { SecurityIcon } from "@/components/icons";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Untranslated } from "@/components/ui/Untranslated";
 import { FUEL_TYPE_LABELS } from "@/lib/constants";
 import type { Forklift } from "../forklifts/useForklifts";
 
@@ -18,7 +19,7 @@ export function useFleetColumns(
         cell: ({ row }) => {
           const f = row.original;
           return (
-            <span className="font-mono font-medium flex items-center gap-1.5">
+            <Untranslated as="span" className="font-mono font-medium flex items-center gap-1.5">
               {f.name}
               {activePolicyForkliftIds.has(f.id) && (
                 <Tooltip>
@@ -28,7 +29,7 @@ export function useFleetColumns(
                   <TooltipContent>Póliza de mantenimiento activa</TooltipContent>
                 </Tooltip>
               )}
-            </span>
+            </Untranslated>
           );
         },
       },
@@ -54,7 +55,7 @@ export function useFleetColumns(
         id: "serial_number",
         header: "No. de Serie",
         accessorFn: (f) => f.serial_number || "",
-        cell: ({ row }) => <span className="font-mono text-xs">{row.original.serial_number || "—"}</span>,
+        cell: ({ row }) => row.original.serial_number ? <Untranslated className="font-mono text-xs">{row.original.serial_number}</Untranslated> : <span className="font-mono text-xs">—</span>,
       },
       {
         id: "fuel_type",

@@ -2,6 +2,7 @@
 import { type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Untranslated } from "@/components/ui/Untranslated";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { EXPENSE_CATEGORY_LABELS, SUPPLIER_BILL_STATUS_LABELS, APPROVAL_STATUS_LABELS } from "../lib/supplierBillConstants";
@@ -11,12 +12,12 @@ export function useSupplierBillColumns(): ColumnDef<SupplierBillListItem>[] {
   return [
     {
       id: "bill_number", header: "Folio", accessorKey: "bill_number",
-      cell: ({ row }) => <span className="font-mono font-medium">{row.original.bill_number}</span>,
+      cell: ({ row }) => <Untranslated className="font-mono font-medium">{row.original.bill_number}</Untranslated>,
     },
     {
       id: "supplier", header: "Proveedor",
       accessorFn: (b) => b.suppliers?.name ?? "",
-      cell: ({ row }) => <span>{row.original.suppliers?.name ?? "—"}</span>,
+      cell: ({ row }) => row.original.suppliers?.name ? <Untranslated>{row.original.suppliers.name}</Untranslated> : <span>—</span>,
     },
     {
       id: "issue_date", header: "Emisión", accessorKey: "issue_date",
@@ -72,10 +73,10 @@ export function renderSupplierBillMobileCard(
     <Card onClick={() => onClick(b.id)} className="cursor-pointer">
       <CardContent className="p-4 space-y-2">
         <div className="flex items-center justify-between">
-          <span className="font-mono font-medium">{b.bill_number}</span>
+          <Untranslated className="font-mono font-medium">{b.bill_number}</Untranslated>
           <StatusBadge status={b.status} label={SUPPLIER_BILL_STATUS_LABELS[b.status]} />
         </div>
-        <p className="text-sm">{b.suppliers?.name ?? "—"}</p>
+        <p className="text-sm">{b.suppliers?.name ? <Untranslated>{b.suppliers.name}</Untranslated> : "—"}</p>
         <div className="flex items-center justify-between text-xs">
           <span className="text-muted-foreground">Saldo</span>
           <span className="font-mono font-semibold">{formatCurrencyWithCode(Number(b.balance), b.currency)}</span>
