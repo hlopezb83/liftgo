@@ -1,47 +1,42 @@
-## Auditoría R23 — validación previa
+## R23 — Fase 4 (últimos pendientes)
 
-Verifiqué en fuente antes de planear. Los hallazgos críticos y altos son **reales**:
+Las fases 1–3 ya cubrieron los críticos y altos (R23-1, R23-2, A, B, C, D, E, F, G, H, I, J). Verifiqué en el código lo que sigue abierto.
 
-- **R23-1 confirmado**: `rg "=> \{format" src/` devuelve exactamente las 10 celdas reportadas (RevenueReport 80/81, AgingReport 65, MaintenanceCostReport 43, MaintenancePoliciesTab 85, PortalInvoiceDetail 26/27/36, SupplierDetailPage 56/63). Son arrow functions con cuerpo de bloque sin `return` → renderizan vacío.
-- **R23-2 confirmado**: `MainLayout.tsx:74` usa `h-[100dvh]` y `:82` `main#main-content` con `overflow-auto`; el bloque `@media print` de `index.css:324` no resetea altura ni overflow.
-- **R23-A confirmado**: `FormDialog` ya tiene `requestClose` interno con confirmación, pero **no lo expone**; `FormActions.onCancel` llama `onOpenChange(false)` directo → el botón Cancelar salta el guard.
-- **R23-B confirmado**: `ProspectFormDialog.tsx` hace `onSave(payload); onOpenChange(false)` sin `await`.
-- **R23-D confirmado**: `AccountsPayableKpiCards.tsx` usa `text-lg font-mono` fijo sin `kpiSizeClass` (que ya existe en el proyecto).
-- **R23-E confirmado**: `bankParseUtils.parseAmount` borra todas las comas; `"1.500,50"` → `1.5005`. Corrupción silenciosa.
+### Medios
 
----
+**R23-K — Volver a elegir el mismo archivo**
+En `BankStatementUploader.tsx` el `<input type="file">` no limpia su valor, así que reintentar con el mismo archivo no dispara nada. Limpiar `e.target.value` tras el `onChange`.
 
-## Fase 1 — Críticos (bloquean release)
+**R23-M — Orden de columnas con valores vacíos**
+Confirmé 10 columnas con `accessorFn: (x) => x.campo || ""` en Clientes (rfc, email, teléfono, contacto), Facturas (cliente, vencimiento) y Contratos (cliente, equipo, inicio, fin). Eso convierte `null` en `""` y los "—" quedan al inicio en ASC. Dejar que el `null` llegue al comparador (que ya lo ordena al final) y mostrar "—" solo en la celda. Prueba unitaria del orden con nulos.
 
-1. **Celdas money vacías**: cambiar las 10 `cell: ({ row }) => {fmt(...)}` a expresión directa `=> fmt(...)`.
-2. **Print**: en `@media print` de `index.css`, resetear altura/overflow del shell:
-   `#main-content, main, .h-\[100dvh\] { height:auto !important; max-height:none !important; overflow:visible !important; }`
-3. Guard anti-regresión: test unitario que hace grep del patrón `=> {format` en `src/` y falla si hay ocurrencias (Vitest, rápido y sin depender de CI externo).
+**R23-N — Impresión limpia**
+Marcar con `no-print` (la clase ya existe) las toolbars de listas, buscadores, tabs de estatus, paginador de `DataTableV2`, el FAB de feedback y los controles del estado de cuenta del portal (Descargar PDF, switch de saldo, botones Pagar). Además, en `@media print` forzar tabla de escritorio y ocultar `MobileCardList` vía data-attributes, para que el A4 no salga con tarjetas móviles.
 
-## Fase 2 — Altos
+**R23-O — Validación del formulario de prospecto**
+Quitar el `required` nativo del campo Empresa, agregar `noValidate` al form y mostrar el mensaje de Zod en español bajo el campo (mismo patrón que `dealValueError`), en lugar de la burbuja del navegador.
 
-4. **R23-A dirty-guard en Cancelar**: exponer `requestClose` desde `FormDialog` vía contexto (`FormDialogContext`); `FormActions` consume el contexto y lo usa como fallback cuando existe, manteniendo `onCancel` como API actual para consumidores fuera de diálogo. Sin tocar los 17 consumidores uno por uno.
-5. **R23-B ProspectFormDialog**: hacer `handleSubmit` async, `await onSave(payload)` y cerrar sólo en éxito (tipar `onSave` como `Promise<void> | void`).
-6. **R23-C Kanban mid-flight**: en `useProspectMutations`, invalidar en `onSettled` sólo cuando no queden mutaciones en vuelo (`queryClient.isMutating({ mutationKey })` === 1).
-7. **R23-D CxP KPIs**: aplicar `kpiSizeClass` + `formatCurrency` compacto y quitar el `text-lg` fijo.
-8. **R23-E parser es-MX**: detección de formato en `parseAmount` — si hay coma y punto, el último separador manda; si sólo hay coma con 2 decimales, tratarla como decimal. Tests unitarios para `"1.500,50"`, `"1,500.50"`, `"1500,50"`, `"(1,234.56)"`.
+**R23-L — Confirmación masiva de conciliación**
+Hoy una sugerencia obsoleta aborta todo el lote. Cambiar la RPC `confirm_bank_matches` para procesar línea por línea capturando el conflicto de índice único y devolver `(confirmed, failed, failed_ids)`; la UI mostrará "X conciliados, Y omitidos por conflicto" y dejará las fallidas como `unmatched` para reintentar. Es el punto más delicado de la tanda (migración + cambio de contrato de la RPC).
 
-## Fase 3 — Medios (misma sesión, tras validar Fase 1-2)
+### Bajos (una pasada)
 
-- **R23-G/H/I** Kanban: reindexar `stage_order` en servidor dentro de la RPC de movimiento, usar `useMoveProspectStage` también en reorden de misma columna, y drop en área vacía → `items.length`.
-- **R23-J** CSV: validar número de columnas por fila y reportar error en vez de correr columnas.
-- **R23-K** reset de `value` en el file input del uploader.
-- **R23-L** `confirm_bank_matches`: cambiar de all-or-nothing a por-línea con reporte de fallidas.
-- **R23-M** quitar `|| ""` en columnas para que `createLiftgoSortingFn` maneje nulos.
-- **R23-N/O** `.no-print` en toolbars/paginadores/FAB; `noValidate` + validación Zod en el formulario de prospecto.
-- **R23-F** reset completo en `useRecordPaymentForm` y campos faltantes en el cálculo de dirty.
+1. Sentence case: "Sin Pagar" → "Sin pagar" en `constants.ts` (y el residual de la toolbar de facturas si sigue existiendo).
+2. Footer del `FormDialog`: fondo sólido y más padding inferior para que no se transparenten los inputs.
+3. Arrastrar a etapas que exigen valor de trato: abrir el diálogo en vez de mover directo.
+4. Borrar el código muerto del Kanban (rama `cerrado_ganado` y copy inalcanzable).
+5. Trigger `enforce_payment_within_invoice_total`: rechazar pagos en facturas canceladas (defensa a nivel API).
+6. Toast "Sin conexión": descartarlo cuando el reintento tiene éxito.
+7. Atajo "C" anunciado en el panel de conciliación: implementarlo o quitar el texto.
+8. `key` duplicada en el preview de importación (`hash` + índice).
+9. Reimportación sin movimientos nuevos: no crear registro de importación vacío y avisar "Archivo ya importado".
+10. "% conciliado": excluir las líneas ignoradas del denominador.
+11. `VirtualBody`: alinear alineación de columnas y zebra con `BodyV2`.
 
-## Fase 4 — Bajos
+Quedan fuera por ser decisiones de diseño ya tomadas: el umbral de compactación del eje Y (punto 8 del reporte) y `version.json` (ya se regenera con cada entrega).
 
-Title Case residual, `version.json` desalineado, atajo "C" del panel de conciliación, keys duplicadas en preview, % conciliado excluyendo ignorados, y limpieza de la rama muerta `cerrado_ganado`.
+### Detalles técnicos
 
-## Notas técnicas
-
-- Cada fase cierra con `tsgo`, `bun run lint` y las suites Vitest afectadas.
-- Se agrega entrada de changelog (`public/changelog.json` + `public/changelog/v7.254.0.json` + `CHANGELOG.md`) al final; Fase 1-2 justifican un **minor** (7.254.0) por el fix de parser y el cambio de contrato de `FormDialog`.
-- No se toca lógica monetaria de negocio: la auditoría certifica 114/114 en suites monetarias y la única corrección de datos es el parser de importación bancaria.
+- Tests: unitarios para el orden con nulos y para la nueva RPC de confirmación masiva; ajuste del E2E de conciliación para el lote parcial.
+- Migración nueva para `confirm_bank_matches` y para el trigger de pagos; sin cambios de esquema.
+- Cierre con `public/changelog.json` + `public/changelog/v7.256.0.json` + `public/version.json` (minor: cambia el contrato de una RPC).
