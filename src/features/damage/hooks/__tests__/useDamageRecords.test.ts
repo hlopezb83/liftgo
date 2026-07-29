@@ -30,6 +30,16 @@ let updateResp: { data: unknown; error: { message: string } | null } = {
   data: { id: "dmg-1" },
   error: null,
 };
+let archiveResp: { data: unknown; error: { message: string } | null } = { data: null, error: null };
+
+const callRpcMock = vi.fn(async (fn: string, args: Record<string, unknown>) => {
+  if (archiveResp.error) throw archiveResp.error;
+  return archiveResp.data;
+});
+
+vi.mock("@/lib/rpc", () => ({
+  callRpc: (...args: [string, Record<string, unknown>]) => callRpcMock(...args),
+}));
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({
@@ -51,7 +61,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   }),
 }));
 
-import { useCreateDamageRecord, useUpdateDamageRecord } from "../useDamageRecords";
+import { useArchiveDamageRecord, useCreateDamageRecord, useUpdateDamageRecord } from "../useDamageRecords";
 
 beforeEach(() => {
   insertedPayloads.length = 0;
@@ -59,6 +69,8 @@ beforeEach(() => {
   notifyErrorMock.mockReset();
   insertResp = { data: { id: "dmg-1" }, error: null };
   updateResp = { data: { id: "dmg-1" }, error: null };
+  archiveResp = { data: null, error: null };
+  callRpcMock.mockClear();
 });
 
 describe("useCreateDamageRecord", () => {
@@ -131,6 +143,35 @@ describe("useUpdateDamageRecord", () => {
     await waitFor(() => expect(notifyErrorMock).toHaveBeenCalled());
     expect(notifyErrorMock.mock.calls[0][0]).toMatchObject({
       title: "Error al actualizar registro de daño",
+    });
+  });
+});
+
+describe("useArchiveDamageRecord", () => {
+  it("invoca el RPC soft_delete_damage_record y devuelve el id archivado", async () => {
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useArchiveDamageRecord(), { wrapper: Wrapper });
+
+    await act(async () => {
+      const r = await result.current.mutateAsync("dmg-1");
+      expect(r).toBe("dmg-1");
+    });
+
+    expect(callRpcMock).toHaveBeenCalledWith("soft_delete_damage_record", { p_damage_id: "dmg-1" });
+  });
+
+  it("propaga el error del guard (por ejemplo, sin invoice_id ni repaired) con notifyError", async () => {
+    archiveResp = { data: null, error: { message: "damage requires invoice_id or repaired" } };
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useArchiveDamageRecord(), { wrapper: Wrapper });
+
+    await act(async () => {
+      await result.current.mutateAsync("dmg-1").catch(() => {});
+    });
+
+    await waitFor(() => expect(notifyErrorMock).toHaveBeenCalled());
+    expect(notifyErrorMock.mock.calls[0][0]).toMatchObject({
+      title: "Error al archivar registro de daño",
     });
   });
 });
