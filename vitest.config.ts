@@ -62,35 +62,40 @@ export default defineConfig({
       // dinero. Global sube +1pp (medido ~14/10/14.4/13, ~0.5pp de margen);
       // per-directory 60/55 sobre lib/domain e invoice/AP libs para que
       // regresiones en el core fiscal fallen el build de inmediato.
-      thresholds: {
-        lines: 14,
-        functions: 10,
-        statements: 14,
-        branches: 12.5,
-        "src/lib/domain/**": {
-          lines: 60,
-          functions: 60,
-          statements: 60,
-          branches: 55,
-        },
-        // v7.224.3: bajamos umbrales tras los refactors de Bloque 21 que
-        // partieron varios helpers de invoices/lib en módulos nuevos sin
-        // tests directos aún. Actuales medidos: L50/F44/S47/B36. Se plantea
-        // recuperar 55/50 en un sprint dedicado a cerrar branches de
-        // cfdiPrechecks + formatStoredCfdiError.
-        "src/features/invoices/lib/**": {
-          lines: 50,
-          functions: 44,
-          statements: 47,
-          branches: 36,
-        },
-        "src/features/accounts-payable/lib/**": {
-          lines: 55,
-          functions: 55,
-          statements: 55,
-          branches: 50,
-        },
-      },
+      // En modo shard los umbrales NO aplican (cada runner ve solo su porción
+      // del código); el job de merge recalcula la cobertura completa y ahí sí
+      // se evalúan.
+      thresholds: IS_SHARD
+        ? undefined
+        : {
+            lines: 14,
+            functions: 10,
+            statements: 14,
+            branches: 12.5,
+            "src/lib/domain/**": {
+              lines: 60,
+              functions: 60,
+              statements: 60,
+              branches: 55,
+            },
+            // v7.224.3: bajamos umbrales tras los refactors de Bloque 21 que
+            // partieron varios helpers de invoices/lib en módulos nuevos sin
+            // tests directos aún. Actuales medidos: L50/F44/S47/B36. Se plantea
+            // recuperar 55/50 en un sprint dedicado a cerrar branches de
+            // cfdiPrechecks + formatStoredCfdiError.
+            "src/features/invoices/lib/**": {
+              lines: 50,
+              functions: 44,
+              statements: 47,
+              branches: 36,
+            },
+            "src/features/accounts-payable/lib/**": {
+              lines: 55,
+              functions: 55,
+              statements: 55,
+              branches: 50,
+            },
+          },
 
     },
   },
