@@ -82,7 +82,7 @@ export function ReportDamageDialog() {
             <DamageEvidenceSection previews={previews} onDrop={onDrop} onRemove={removePreview} />
 
             <FormDialogFooter>
-              <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+              <FormDialogCancelButton onCancel={() => setOpen(false)} disabled={isProcessing} />
               <Button type="submit" disabled={isProcessing}>
                 {isProcessing
                   ? <><SpinnerIcon className="h-4 w-4 animate-spin mr-2" />Guardando…</>
