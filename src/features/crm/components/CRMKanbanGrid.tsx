@@ -10,7 +10,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { kanbanKeyboardCoordinates } from "../lib/kanbanKeyboardCoordinates";
 import { useState } from "react";
 import { ACTIVE_STAGES } from "../lib/constants";
 import { KanbanColumn } from "./KanbanColumn";
