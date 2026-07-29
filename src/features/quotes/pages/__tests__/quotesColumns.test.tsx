@@ -19,7 +19,9 @@ describe("buildQuotesColumns Untranslated wrapping", () => {
     const columns = buildQuotesColumns<typeof quote>();
     const numCol = columns.find((c) => c.id === "quote_number");
     const custCol = columns.find((c) => c.id === "customer_name");
-    if (!numCol?.cell || !custCol?.cell) throw new Error("missing cells");
+    if (typeof numCol?.cell !== "function" || typeof custCol?.cell !== "function") {
+      throw new Error("missing cells");
+    }
     const { container: c1 } = render(<>{numCol.cell({ row: { original: quote } } as never)}</>);
     const { container: c2 } = render(<>{custCol.cell({ row: { original: quote } } as never)}</>);
     expect(c1.querySelector('[translate="no"]')?.textContent).toContain("COT-0001");
