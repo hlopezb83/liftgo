@@ -72,7 +72,13 @@ export default function InvoiceForm() {
           // A-3b: cerrar el ciclo del daño — sin esto quedaba `repaired`
           // y se podía cobrar dos veces (la UI ya muestra "Completo" en invoiced).
           if (damageId && damageId !== "null") {
-            await supabase.from("damage_records").update({ status: "invoiced" }).eq("id", damageId);
+            // N4-r3: ligar el daño a la factura creada — sin invoice_id no hay
+            // trazabilidad de qué factura cubre el daño.
+            await supabase
+              .from("damage_records")
+              .update({ status: "invoiced", invoice_id: data.id })
+              .eq("id", damageId);
+
           }
           if (f.fromQuoteId) f.updateQuote.mutate({ id: f.fromQuoteId, status: "accepted" });
           finalize(`Factura ${data.invoice_number} creada`, data.id);
