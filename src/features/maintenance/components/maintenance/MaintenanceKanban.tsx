@@ -16,6 +16,7 @@ import { MaintenanceIcon, ClockIcon, WaitingPartsIcon, SuccessIcon } from "@/com
 import { MAINTENANCE_WORK_STATUSES, MAINTENANCE_WORK_STATUS_LABELS } from "@/lib/constants";
 import { useMaintenanceKanban } from "../../hooks/maintenance/useMaintenanceKanban";
 import { type MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
+import { CloseWorkOrderDialog } from "./CloseWorkOrderDialog";
 import { MaintenanceDetailSheet } from "./kanban/MaintenanceDetailSheet";
 import { MaintenanceKanbanCard } from "./kanban/MaintenanceKanbanCard";
 import { MaintenanceKanbanColumn } from "./kanban/MaintenanceKanbanColumn";
@@ -34,7 +35,9 @@ interface Props {
 export function MaintenanceKanban({ logs }: Props) {
   const [selectedLog, setSelectedLog] = useState<(MaintenanceLog & { forklift_name: string }) | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const { onDragEnd } = useMaintenanceKanban();
+  const { onDragEnd, pendingCloseId, clearPendingClose } = useMaintenanceKanban();
+  const pendingCloseLog = pendingCloseId ? logs.find((l) => l.id === pendingCloseId) ?? null : null;
+
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
@@ -98,6 +101,15 @@ export function MaintenanceKanban({ logs }: Props) {
       </DndContext>
 
       <MaintenanceDetailSheet log={currentLog} onClose={() => setSelectedLog(null)} />
+
+      <CloseWorkOrderDialog
+        open={!!pendingCloseLog}
+        onOpenChange={(v: boolean) => { if (!v) clearPendingClose(); }}
+        log={pendingCloseLog}
+        onCancel={clearPendingClose}
+        onClosed={clearPendingClose}
+      />
+
     </>
   );
 }

@@ -1,0 +1,19 @@
+{
+  "version": "7.268.0",
+  "date": "2026-07-30",
+  "type": "minor",
+  "title": "Mejor experiencia al cerrar órdenes de trabajo y registrar facturas de proveedor",
+  "category": "improvement",
+  "changes": [
+    {
+      "type": "improvement",
+      "title": "Cierre de OT con confirmación y resumen de costos",
+      "description": "Arrastrar una orden de trabajo a 'Completado' ya no la cierra en silencio: ahora se abre un diálogo con el desglose de refacciones, mano de obra y costo manual, permite sellar la fecha de cierre y agregar notas, y avisa antes de enviar si hay un daño abierto ligado a la orden. También se agregó un botón 'Cerrar OT' en el panel de detalle y una banda de 'OT cerrada' con el costo final."
+    },
+    {
+      "type": "improvement",
+      "title": "Alta de CxP por secciones, con total pegajoso y aviso de aprobación",
+      "description": "El formulario de facturas de proveedor se reorganizó en secciones (Comprobante fiscal, Proveedor, Clasificación, Fechas e Importes), se explicó qué hace la carga del XML y el total quedó fijo al pie mostrando por adelantado si el importe supera el umbral de aprobación de CxP."
+    }
+  ]
+}

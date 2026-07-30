@@ -1,6 +1,6 @@
 import { Activity, useState } from "react";
 import { DetailRow } from "@/components/domain/DetailRow";
-import { EditIcon, DeleteIcon, MaintenanceIcon, CalendarIcon, UserIcon, CostIcon, FleetIcon, DocumentIcon } from "@/components/icons";
+import { EditIcon, DeleteIcon, MaintenanceIcon, CalendarIcon, UserIcon, CostIcon, FleetIcon, DocumentIcon, SuccessIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -12,6 +12,7 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { formatDateDisplay } from "@/lib/utils";
 import { useDeleteMaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
+import { CloseWorkOrderDialog } from "./CloseWorkOrderDialog";
 import { MaintenanceLaborSection } from "./MaintenanceLaborSection";
 import { MaintenancePartsSection } from "./MaintenancePartsSection";
 import type { MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
@@ -35,11 +36,13 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
   const deleteLog = useDeleteMaintenanceLog();
   const { data: suppliers } = useSuppliers();
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [closeOpen, setCloseOpen] = useState(false);
 
   if (!log) return null;
 
   const supplier = suppliers?.find((s) => s.id === log.supplier_id);
   const status = STATUS_LABELS[log.work_status] || { label: log.work_status, variant: "secondary" as const };
+  const isClosed = log.work_status === "completed";
 
   const handleDelete = () => {
     deleteLog.mutate(log.id, {
@@ -66,6 +69,14 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
         <Activity mode={open ? "visible" : "hidden"}>
         <div className="mt-4 space-y-4">
           <Badge variant={status.variant}>{status.label}</Badge>
+
+          {isClosed && (
+            <div className="rounded-md border border-success/30 bg-success/10 px-3 py-2 flex items-center justify-between gap-2">
+              <span className="text-sm">OT cerrada el {formatDateDisplay(log.performed_at)}</span>
+              <span className="font-mono text-sm font-semibold">{formatCurrency(log.cost || 0)}</span>
+            </div>
+          )}
+
 
           <div className="space-y-1">
             <DetailRow icon={FleetIcon} label="Montacargas" value={forkliftName} />
@@ -104,7 +115,19 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
 
           <Separator />
           <RoleGuard module="Mantenimiento" minAccess="full" fallback={null}>
+            {!isClosed && (
+              <Button className="w-full mb-2" onClick={() => setCloseOpen(true)}>
+                <SuccessIcon className="h-4 w-4 mr-1" /> Cerrar OT
+              </Button>
+            )}
+            <CloseWorkOrderDialog
+              open={closeOpen}
+              onOpenChange={setCloseOpen}
+              log={{ ...log, forklift_name: forkliftName }}
+              onClosed={() => onOpenChange(false)}
+            />
             <div className="flex gap-2">
+
               <Button variant="outline" className="flex-1" onClick={() => { onEdit(log); onOpenChange(false); }}>
                 <EditIcon className="h-4 w-4 mr-1" /> Editar
               </Button>

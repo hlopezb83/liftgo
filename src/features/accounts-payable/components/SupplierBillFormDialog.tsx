@@ -4,13 +4,15 @@ import { TextareaField, type SelectOption } from "@/components/forms/fields";
 import { SupplierField } from "@/components/forms/fields";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormSection } from "@/components/forms/FormSection";
 import { Form } from "@/components/ui/form";
-import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { useCxpApprovalThreshold } from "@/features/company-settings/hooks/useCxpApprovalThreshold";
 import { useImportSupplierBillCfdi } from "../hooks/useImportSupplierBillCfdi";
 import { useSupplierBillForm, type SupplierBillFormOverrides } from "../hooks/useSupplierBillForm";
 import { CURRENCIES } from "../lib/supplierBillConstants";
 import { SupplierBillCfdiDropzone } from "./SupplierBillCfdiDropzone";
 import { SupplierBillFormFields } from "./SupplierBillFormFields";
+import { SupplierBillTotalPanel } from "./SupplierBillTotalPanel";
 import type { SupplierBillDetail } from "../hooks/useSupplierBill";
 
 interface Props {
@@ -53,6 +55,11 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
     useSupplierBillForm(open, () => onOpenChange(false), bill, activeOverrides);
   // R19-A: mismo bug de watch() en render — usar useWatch.
   const currency = useWatch({ control: form.control, name: "currency" });
+  // Aviso temprano: si el total en MXN supera el umbral, la factura nace pendiente de aprobación.
+  const { data: cxpThreshold } = useCxpApprovalThreshold();
+  const threshold = cxpThreshold?.threshold ?? 0;
+  const exchangeRate = useWatch({ control: form.control, name: "exchange_rate" });
+  const totalMxn = currency === "MXN" ? total : total * Number(exchangeRate || 1);
 
   const handleFile = async (file: File) => {
     const r = await cfdi.importXml(file);
@@ -78,17 +85,26 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
       title={titleOverride ?? (isEdit && bill ? `Editar factura ${bill.bill_number}` : "Nueva factura de proveedor")}
     >
       <Form {...form}>
-        <form onSubmit={onSubmit} className="space-y-3">
+        <form onSubmit={onSubmit} className="space-y-4">
           {allowImport && (
-            <SupplierBillCfdiDropzone
-              busy={cfdi.busy}
-              error={cfdi.error}
-              result={cfdi.result}
-              onFile={handleFile}
-              onClear={handleClear}
-            />
+            <FormSection title="Comprobante fiscal (XML)" first>
+              <SupplierBillCfdiDropzone
+                busy={cfdi.busy}
+                error={cfdi.error}
+                result={cfdi.result}
+                onFile={handleFile}
+                onClear={handleClear}
+              />
+              <p className="text-xs text-muted-foreground">
+                Sube el XML del CFDI y llenamos proveedor, importes, UUID y fechas automáticamente.
+                También puedes capturar los datos a mano.
+              </p>
+            </FormSection>
           )}
-          <SupplierField control={form.control} name="supplier_id" label="Proveedor" required />
+          <FormSection title="Proveedor" first={!allowImport}>
+            <SupplierField control={form.control} name="supplier_id" label="Proveedor" required />
+            <TextareaField control={form.control} name="description" label="Descripción" rows={2} />
+          </FormSection>
           <SupplierBillFormFields
             form={form as never}
             currency={currency}
@@ -96,11 +112,14 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
             selectedSupplier={selectedSupplier}
             suggestedDueDate={suggestedDueDate}
           />
-          <div className="rounded-md bg-muted/50 p-3 flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Total</span>
-            <span className="font-mono text-lg font-bold">{formatCurrencyWithCode(total, currency)}</span>
-          </div>
-          <TextareaField control={form.control} name="description" label="Descripción" rows={2} />
+          <SupplierBillTotalPanel
+            total={total}
+            currency={currency}
+            totalMxn={totalMxn}
+            threshold={threshold}
+          />
+
+
           <FormDialogFooter>
             <FormActions
               submitLabel={isEdit ? "Guardar cambios" : "Registrar"}
