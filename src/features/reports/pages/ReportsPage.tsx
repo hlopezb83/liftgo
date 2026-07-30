@@ -52,7 +52,9 @@ export default function ReportsPage() {
 
   return (
     <PageTransition>
-    <PageContainer>
+    {/* R6-FE-11b: a 402px el FAB flotante tapaba el final del contenido;
+        ListPageLayout ya reserva 6rem para esto, /reports no lo usa. */}
+    <PageContainer className="pb-24 sm:pb-6">
       <PageHeader title="Reportes y Análisis" subtitle="Genera reportes filtrados con exportación" />
 
       <Card>

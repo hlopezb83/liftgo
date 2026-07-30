@@ -124,7 +124,15 @@ export function DateRangePickerField({
           liveLabel={liveLabel}
           localRange={localRange}
           isMobile={isMobile}
-          onCalendarSelect={(r) => setLocalRange(normalizeRange(r))}
+          // R6-FE-11c (N6-VEN-05): con un rango ya completo, un nuevo click
+          // debe reiniciar el rango (nueva fecha de inicio), no extenderlo.
+          onCalendarSelect={(r) => {
+            if (localRange?.from && localRange?.to && r?.from) {
+              setLocalRange(normalizeRange({ from: r.from, to: undefined }));
+              return;
+            }
+            setLocalRange(normalizeRange(r));
+          }}
           onClear={() => setLocalRange(undefined)}
           onCancel={() => setOpen(false)}
           onApply={handleApply}

@@ -1,11 +1,9 @@
 
-import { parseISO, isWithinInterval } from "date-fns";
 import { FleetIcon, SuccessIcon, MaintenanceIcon, ChartIcon } from "@/components/icons";
+import { computeFleetAvailability } from "@/features/availability/utils/fleetAvailability";
 import type { BookingWithForklift } from "@/features/bookings";
 import { StatCards } from "@/features/dashboard";
 import type { Tables } from "@/integrations/supabase/types";
-import { BOOKING_STATUS, FORKLIFT_STATUS } from "@/lib/constants";
-import { nowMty } from "@/lib/utils";
 
 type Forklift = Tables<"forklifts">;
 
@@ -16,39 +14,11 @@ interface CalendarStatCardsProps {
 
 export function CalendarStatCards({ forklifts, bookings }: CalendarStatCardsProps) {
   const stats = (() => {
-    if (!forklifts) return { available: 0, rented: 0, maintenance: 0, utilization: "0%" };
-
-    const today = nowMty();
-    const activeBookingForkliftIds = new Set<string>();
-    bookings?.forEach((b) => {
-      if (b.status === BOOKING_STATUS.confirmed) {
-        try {
-          const start = parseISO(b.start_date);
-          const end = parseISO(b.end_date);
-          if (isWithinInterval(today, { start, end })) {
-            activeBookingForkliftIds.add(b.forklift_id);
-          }
-        } catch { /* skip invalid dates */ }
-      }
-    });
-
-    // v7.227.1: "Rentados" y "Disponibles" se derivan EXCLUSIVAMENTE de reservas
-    // confirmadas activas hoy. Antes se sumaba también forklifts.status='rented',
-    // lo que inflaba el KPI cuando quedaban equipos con status desincronizado
-    // (reservas terminadas sin devolución registrada).
-    const rented = activeBookingForkliftIds.size;
-    const available = forklifts.filter(
-      (f) => f.status !== FORKLIFT_STATUS.retired
-        && f.status !== FORKLIFT_STATUS.sold
-        && f.status !== FORKLIFT_STATUS.maintenance
-        && !activeBookingForkliftIds.has(f.id),
-    ).length;
-    const maintenance = forklifts.filter((f) => f.status === FORKLIFT_STATUS.maintenance).length;
-    const totalActive = forklifts.filter((f) => f.status !== FORKLIFT_STATUS.retired && f.status !== FORKLIFT_STATUS.sold).length;
-    const utilization = totalActive > 0 ? Math.round((rented / totalActive) * 100) : 0;
-
-
-    return { available, rented, maintenance, utilization: `${utilization}%` };
+    // R6-FE-07: una sola definición compartida (fleetAvailability).
+    const a = computeFleetAvailability(forklifts, bookings);
+    if (!a) return { available: 0, rented: 0, maintenance: 0, utilization: "0%" };
+    const utilization = a.totalActive > 0 ? Math.round((a.rented / a.totalActive) * 100) : 0;
+    return { available: a.available, rented: a.rented, maintenance: a.maintenance, utilization: `${utilization}%` };
   })();
 
   const cards = [

@@ -25,9 +25,9 @@ import {
 function buildLineColumns(currency: string): ColumnDef<LineItem>[] {
   return [
     { id: "description", header: "Descripción", accessorKey: "description", enableSorting: false, cell: ({ row }) => row.original.description || "—" },
-    { id: "quantity", header: "Cant.", accessorKey: "quantity", enableSorting: false, meta: { kind: "money" }, cell: ({ row }) => row.original.quantity || 1 },
+    { id: "quantity", header: "Cant.", accessorKey: "qty", enableSorting: false, meta: { kind: "money" }, cell: ({ row }) => row.original.qty ?? row.original.quantity ?? 1 },
     { id: "unit_price", header: "Precio Unit.", accessorKey: "unit_price", enableSorting: false, meta: { kind: "money" }, cell: ({ row }) => formatCurrencyWithCode(Number(row.original.unit_price || 0), currency) },
-    { id: "amount", header: "Importe", accessorKey: "amount", enableSorting: false, meta: { kind: "money" }, cell: ({ row }) => formatCurrencyWithCode(Number(row.original.amount || 0), currency) },
+    { id: "amount", header: "Importe", accessorKey: "total", enableSorting: false, meta: { kind: "money" }, cell: ({ row }) => formatCurrencyWithCode(Number(row.original.total ?? row.original.amount ?? 0), currency) },
   ];
 }
 

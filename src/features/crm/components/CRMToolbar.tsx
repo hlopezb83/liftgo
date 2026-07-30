@@ -89,13 +89,14 @@ export function CRMToolbar({
               size="sm"
               variant="outline"
             >
-              <ToggleGroupItem value="comfortable" aria-label="Cómodo" className="h-9 px-2">
+              {/* R6-FE-09: h-9 = 36px; en táctil 44px. */}
+              <ToggleGroupItem value="comfortable" aria-label="Cómodo" className="h-9 px-2 touch:h-11 touch:min-w-11">
                 <Tooltip>
                   <TooltipTrigger asChild><LayoutGrid className="h-4 w-4" /></TooltipTrigger>
                   <TooltipContent>Vista cómoda</TooltipContent>
                 </Tooltip>
               </ToggleGroupItem>
-              <ToggleGroupItem value="compact" aria-label="Compacto" className="h-9 px-2">
+              <ToggleGroupItem value="compact" aria-label="Compacto" className="h-9 px-2 touch:h-11 touch:min-w-11">
                 <Tooltip>
                   <TooltipTrigger asChild><Rows3 className="h-4 w-4" /></TooltipTrigger>
                   <TooltipContent>Vista compacta</TooltipContent>

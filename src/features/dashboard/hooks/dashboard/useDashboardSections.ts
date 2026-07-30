@@ -1,6 +1,8 @@
 
 import { differenceInDays, parseISO } from "date-fns";
-import { useInsuranceAlerts } from "@/features/fleet";
+import { computeFleetAvailability } from "@/features/availability/utils/fleetAvailability";
+import { useBookings } from "@/features/bookings";
+import { useForklifts, useInsuranceAlerts } from "@/features/fleet";
 import { useUpcomingInvoices } from "@/features/invoices";
 import { useUserRole } from "@/features/users";
 import { nowMty } from "@/lib/utils";
@@ -62,11 +64,24 @@ export function useDashboardSections() {
   const { data: role } = useUserRole();
   const canSeeFinancials = role === "admin" || role === "administrativo" || role === "auditor";
   const { data: kpis } = useFinancialKpis(canSeeFinancials);
-  const { data: insuranceData } = useInsuranceAlerts();
+  // R6-FE-03: mismos roles que admite get_insurance_alerts (20260723055853:
+  // admin/administrativo/auditor/dispatcher/mechanic). Ventas queda fuera.
+  const canSeeInsuranceAlerts =
+    canSeeFinancials || role === "dispatcher" || role === "mechanic";
+  const { data: insuranceData } = useInsuranceAlerts(canSeeInsuranceAlerts);
   // GUI-FE-05: ventas no consulta facturas (rol SELECT-only-denied → toast Forbidden).
   const { data: upcomingInvoices } = useUpcomingInvoices(canSeeFinancials);
 
-  const counts = stats?.fleet_counts ?? EMPTY_COUNTS;
+  // R6-FE-07: la RPC get_dashboard_stats calcula `rented` con CURRENT_DATE
+  // del servidor DB (otra TZ) → cifra distinta a Calendario. Se sobrescribe
+  // con la definición única compartida (booking confirmed que cubre hoy MTY).
+  const { data: forklifts } = useForklifts();
+  const { data: bookings } = useBookings();
+  const availability = computeFleetAvailability(forklifts, bookings);
+  const baseCounts = stats?.fleet_counts ?? EMPTY_COUNTS;
+  const counts = availability
+    ? { ...baseCounts, rented: availability.rented, available: availability.available, maintenance: availability.maintenance }
+    : baseCounts;
   const activeFleet = counts.total - counts.retired - counts.sold;
   const utilizationPercent = computeUtilizationPercent(counts, activeFleet);
 

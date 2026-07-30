@@ -5,7 +5,6 @@ import type { Tables, TablesUpdate } from "@/integrations/supabase/types";
 import { parseJsonbArray } from "@/lib/domain/lineItems";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
-import { nowMty } from "@/lib/utils";
 import { contractTemplateKeys } from "../lib/queryKeys";
 
 // Re-export para compatibilidad con consumidores existentes. La fuente de
@@ -63,7 +62,7 @@ export function useUpdateContractTemplate() {
       const { id, ...rest } = template;
       const updatePayload = {
         ...rest,
-        updated_at: nowMty().toISOString(),
+        updated_at: new Date().toISOString(),
       } as unknown as TablesUpdate<"contract_templates">;
       const { data, error } = await supabase
         .from("contract_templates")

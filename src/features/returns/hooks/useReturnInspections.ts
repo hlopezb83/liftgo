@@ -4,7 +4,6 @@ import type { TablesInsert } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
-import { nowMty } from "@/lib/utils";
 import type { ReturnInspectionWithJoins } from "@/types/rental";
 
 const SELECT_WITH_JOINS =
@@ -70,7 +69,8 @@ export function useCreateReturnInspection() {
         p_hours_used: inspection.hours_used ?? undefined,
         p_fuel_level: inspection.fuel_level ?? undefined,
         p_inspected_by: inspection.inspected_by ?? undefined,
-        p_inspected_at: inspection.inspected_at ?? nowMty().toISOString(),
+        // R6-FE-06: UTC real (mismo bug de doble offset que deliveries).
+        p_inspected_at: inspection.inspected_at ?? new Date().toISOString(),
       });
       if (error) throw error;
       return data;

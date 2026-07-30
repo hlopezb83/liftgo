@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.270.0",
+    "date": "2026-07-30",
+    "type": "minor",
+    "title": "Auditoría Ronda 6: permisos por rol, estados de factura y flota consistente",
+    "category": "improvement",
+    "description": "Se cerraron los 16 hallazgos de la Ronda 6: el mecánico ya puede cerrar reparaciones y liberar la unidad, los permisos por rol quedaron alineados a la matriz (Administrativo y Despachador), las facturas siguen una máquina de estados estricta (cancelar exige motivo, pagar exige pago registrado), los folios de entregas dejan de chocar y el frontend unifica la definición de 'rentado', arregla importes del portal, desfases de zona horaria, objetivos táctiles ≥44px y la recarga sin conexión."
+  },
+  {
     "version": "7.269.1",
     "date": "2026-07-30",
     "type": "patch",

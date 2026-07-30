@@ -63,6 +63,8 @@ function HeaderCell<T>({ header }: { header: Header<T, unknown> }): ReactNode {
             innerClass,
             "cursor-pointer select-none hover:text-foreground transition-colors",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm",
+            // R6-FE-09: target táctil ≥44px sin cambiar la altura visual del header.
+            "touch:min-h-11 touch:-my-3",
           )}
           onClick={header.column.getToggleSortingHandler()}
         >

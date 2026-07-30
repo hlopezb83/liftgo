@@ -3642,6 +3642,16 @@ export type Database = {
         Args: { p_folio: string; p_payment_id: string }
         Returns: string
       }
+      audit_fleet_status_consistency: {
+        Args: never
+        Returns: {
+          forklift_id: string
+          forklift_name: string
+          motivo: string
+          status_actual: string
+          status_esperado: string
+        }[]
+      }
       cancel_booking: {
         Args: { p_booking_id: string; p_reason?: string }
         Returns: undefined

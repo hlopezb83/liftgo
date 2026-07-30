@@ -7,7 +7,6 @@ import type { RentalLine, SaleLine } from "./quoteFormBuilders";
 
 export interface BuildQuotePayloadArgs {
   existingQuote: { quote_number?: string | null; status?: string | null } | null | undefined;
-  nextNumber: string | null | undefined;
   customerId: string;
   customerName: string;
   quoteType: "rental" | "sale" | string;
@@ -41,8 +40,12 @@ function resolveDateStrings(a: BuildQuotePayloadArgs): { startStr: string; endSt
 
 export function buildQuotePayload(a: BuildQuotePayloadArgs) {
   const { startStr, endStr } = resolveDateStrings(a);
+  // R6-FE-08: en creación se omite quote_number — lo asigna el trigger
+  // `trg_assign_quote_number` (folio real, sin consumir secuencia por
+  // display). Solo se conserva al editar una cotización existente.
   return {
-    quote_number: a.existingQuote?.quote_number || a.nextNumber || "COT-0001",
+    // Cadena vacía => el trigger `trg_assign_quote_number` asigna el folio real.
+    quote_number: a.existingQuote?.quote_number ?? "",
     customer_id: a.customerId || null,
     customer_name: a.customerName || null,
     forklift_id: null as string | null,

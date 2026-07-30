@@ -71,10 +71,13 @@ export function useReturnInspectionDialog(bookings: Booking[] | undefined, activ
       },
       {
         onSuccess: () => {
-          // R-C3: alinear el mensaje con el RPC `complete_return_inspection`.
-          // Sólo `major_damage` y `needs_repair` envían el equipo a mantenimiento;
-          // `minor_damage` lo deja disponible aunque tenga costo asociado.
+          // R6-FE-02 (N6-DIS-01): GUI-DB-04 cambió la RPC
+          // `complete_return_inspection` (20260730135234): CUALQUIER condición
+          // de daño (incluido minor_damage) envía la unidad a mantenimiento.
+          // El conjunto debe coincidir con `v_is_damaged_condition` de la RPC.
           const goesToMaintenance =
+            values.condition === "damaged" ||
+            values.condition === "minor_damage" ||
             values.condition === "major_damage" ||
             values.condition === "needs_repair";
           notifySuccess(

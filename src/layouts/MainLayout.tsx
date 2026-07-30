@@ -7,6 +7,7 @@ import { usePageActionsContext } from "@/contexts/pageActions";
 import { PageActionsProvider } from "@/contexts/PageActionsContext";
 import { FeedbackFab } from "@/features/feedback";
 import { GlobalSearch } from "@/features/system/components/GlobalSearch";
+import { OfflineBanner } from "@/layouts/OfflineBanner";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { AppSidebar } from "@/layouts/AppSidebar";
 import { ErrorBoundary } from "@/layouts/ErrorBoundary";
@@ -86,6 +87,7 @@ export default function MainLayout() {
                 <TopbarBreadcrumbs />
               </div>
               <FeedbackFab />
+              <OfflineBanner />
               <GlobalSearch />
             </header>
             <ErrorBoundary>

@@ -98,6 +98,8 @@ export default function CustomerDetailPage() {
       </div>
 
       <CustomerBookingsHistory bookings={s.bookings} />
+      {/* R6-FE-04a: la lista se auto-oculta cuando el rol tiene Facturas=none
+          (ver CustomerInvoicesList). */}
       <CustomerInvoicesList invoices={s.invoices} />
 
       {s.customer.notes && <NotesCard value={s.customer.notes} readOnly />}

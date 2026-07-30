@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useForklifts } from "@/features/fleet";
 import { useMaintenanceLogs } from "@/features/maintenance";
+import { chartTick } from "@/lib/charts/chartTheme";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCompactCurrency, formatCurrency } from "@/lib/format/formatCurrency";
 
@@ -76,7 +77,9 @@ export function MaintenanceCostReport({ startDate, endDate }: Props) {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
-                <XAxis dataKey="name" tick={{ fontSize: 11 }} />
+                {/* R6-FE-11e: nombres de unidad se cortaban a 402px; mismo
+                    patrón que UtilizationReport (ángulo + altura). */}
+                <XAxis dataKey="name" tick={chartTick} interval={0} angle={-35} textAnchor="end" height={60} />
                 <YAxis tick={{ fontSize: 11 }} width={72} tickFormatter={(v) => formatCompactCurrency(Number(v))} />
                 <Tooltip formatter={(val) => formatCurrency(Number(val))} />
                 <Bar dataKey="totalCost" fill="hsl(var(--chart-4))" name="Costo" radius={[4, 4, 0, 0]} />
