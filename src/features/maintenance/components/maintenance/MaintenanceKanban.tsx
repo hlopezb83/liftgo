@@ -16,6 +16,7 @@ import { MaintenanceIcon, ClockIcon, WaitingPartsIcon, SuccessIcon } from "@/com
 import { MAINTENANCE_WORK_STATUSES, MAINTENANCE_WORK_STATUS_LABELS } from "@/lib/constants";
 import { useMaintenanceKanban } from "../../hooks/maintenance/useMaintenanceKanban";
 import { type MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
+import { CloseWorkOrderDialog } from "./CloseWorkOrderDialog";
 import { MaintenanceDetailSheet } from "./kanban/MaintenanceDetailSheet";
 import { MaintenanceKanbanCard } from "./kanban/MaintenanceKanbanCard";
 import { MaintenanceKanbanColumn } from "./kanban/MaintenanceKanbanColumn";
