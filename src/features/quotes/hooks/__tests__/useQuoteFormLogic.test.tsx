@@ -31,7 +31,6 @@ vi.mock("@/features/fleet", () => ({
 
 vi.mock("../quotes/useQuotes", () => ({
   useQuote: () => ({ data: null }),
-  useNextQuoteNumber: () => ({ data: "COT-0099" }),
   useCreateQuote: () => ({ mutate: createMutate, isPending: false }),
   useUpdateQuote: () => ({ mutate: updateMutate, isPending: false }),
 }));
