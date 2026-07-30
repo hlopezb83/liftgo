@@ -78,17 +78,26 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
       title={titleOverride ?? (isEdit && bill ? `Editar factura ${bill.bill_number}` : "Nueva factura de proveedor")}
     >
       <Form {...form}>
-        <form onSubmit={onSubmit} className="space-y-3">
+        <form onSubmit={onSubmit} className="space-y-4">
           {allowImport && (
-            <SupplierBillCfdiDropzone
-              busy={cfdi.busy}
-              error={cfdi.error}
-              result={cfdi.result}
-              onFile={handleFile}
-              onClear={handleClear}
-            />
+            <FormSection title="Comprobante fiscal (XML)" first>
+              <SupplierBillCfdiDropzone
+                busy={cfdi.busy}
+                error={cfdi.error}
+                result={cfdi.result}
+                onFile={handleFile}
+                onClear={handleClear}
+              />
+              <p className="text-xs text-muted-foreground">
+                Sube el XML del CFDI y llenamos proveedor, importes, UUID y fechas automáticamente.
+                También puedes capturar los datos a mano.
+              </p>
+            </FormSection>
           )}
-          <SupplierField control={form.control} name="supplier_id" label="Proveedor" required />
+          <FormSection title="Proveedor" first={!allowImport}>
+            <SupplierField control={form.control} name="supplier_id" label="Proveedor" required />
+            <TextareaField control={form.control} name="description" label="Descripción" rows={2} />
+          </FormSection>
           <SupplierBillFormFields
             form={form as never}
             currency={currency}
@@ -96,11 +105,20 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
             selectedSupplier={selectedSupplier}
             suggestedDueDate={suggestedDueDate}
           />
-          <div className="rounded-md bg-muted/50 p-3 flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Total</span>
-            <span className="font-mono text-lg font-bold">{formatCurrencyWithCode(total, currency)}</span>
+          <div className="sticky bottom-0 space-y-2 rounded-md border bg-muted/70 p-3 backdrop-blur">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-muted-foreground">Total a pagar</span>
+              <span className="font-mono text-lg font-bold">{formatCurrencyWithCode(total, currency)}</span>
+            </div>
+            {needsApproval && (
+              <p className="flex items-start gap-2 text-xs text-warning">
+                <WarnIcon className="mt-0.5 h-3.5 w-3.5 shrink-0" />
+                Supera el umbral de {formatCurrencyWithCode(threshold, "MXN")}: la factura quedará
+                pendiente de aprobación antes de poder pagarse.
+              </p>
+            )}
           </div>
-          <TextareaField control={form.control} name="description" label="Descripción" rows={2} />
+
           <FormDialogFooter>
             <FormActions
               submitLabel={isEdit ? "Guardar cambios" : "Registrar"}
