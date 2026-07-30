@@ -1,0 +1,12 @@
+{
+  "version": "7.269.1",
+  "date": "2026-07-30",
+  "type": "patch",
+  "title": "CI estable: smoke tests de funciones con reintentos",
+  "category": "fix",
+  "highlights": [
+    "`fetchFn` en `_shared/test-helpers.ts`: reintenta hasta 4 veces (backoff 1s/2s/4s) sólo ante 502/503/504/522/524 o error de red; nunca ante respuestas legítimas 4xx/500 de la función.",
+    "Migrados los 19 archivos `index_test.ts` de Edge Functions a `fetchFn`.",
+    "Eliminado `supabase/functions/debug_test.ts` (script temporal que lanzaba una excepción no manejada de stamp-credit-note en cada corrida del CI)."
+  ]
+}

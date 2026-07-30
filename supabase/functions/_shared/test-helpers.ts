@@ -32,3 +32,34 @@ try {
 
 export const fnUrl = (name: string): string =>
   `${SUPABASE_URL}/functions/v1/${name}`;
+
+/**
+ * `fetch` con reintentos para los smoke tests.
+ *
+ * Los edge functions arrancan en frío: la primera petición del día puede
+ * devolver 502/503/504 del gateway antes de que el worker esté listo. Eso
+ * hacía fallar tests que sólo verifican contratos (CORS, 401 sin token).
+ * Reintentamos únicamente ante errores de gateway/red — nunca ante respuestas
+ * legítimas del function (4xx, 500 propio).
+ */
+const GATEWAY_STATUSES = new Set([502, 503, 504, 522, 524]);
+
+export async function fetchFn(
+  input: string | URL,
+  init?: RequestInit,
+  attempts = 4,
+): Promise<Response> {
+  let lastError: unknown = null;
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const res = await fetch(input, init);
+      if (!GATEWAY_STATUSES.has(res.status) || i === attempts - 1) return res;
+      await res.text(); // evita fuga de recursos en Deno
+    } catch (err) {
+      lastError = err;
+      if (i === attempts - 1) throw err;
+    }
+    await new Promise((r) => setTimeout(r, 1000 * 2 ** i));
+  }
+  throw lastError instanceof Error ? lastError : new Error("fetchFn failed");
+}

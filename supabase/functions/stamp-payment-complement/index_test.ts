@@ -1,12 +1,12 @@
 // Smoke tests para stamp-payment-complement (REP CFDI 4.0).
 // Cobertura: CORS preflight + ausencia de Authorization.
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { fnUrl } from "../_shared/test-helpers.ts";
+import { fetchFn, fnUrl } from "../_shared/test-helpers.ts";
 
 const FN_URL = fnUrl("stamp-payment-complement");
 
 Deno.test("stamp-payment-complement: CORS preflight returns 200", async () => {
-  const res = await fetch(FN_URL, {
+  const res = await fetchFn(FN_URL, {
     method: "OPTIONS",
     headers: {
       Origin: "https://example.com",
@@ -18,7 +18,7 @@ Deno.test("stamp-payment-complement: CORS preflight returns 200", async () => {
 });
 
 Deno.test("stamp-payment-complement: rejects requests without Authorization (401)", async () => {
-  const res = await fetch(FN_URL, {
+  const res = await fetchFn(FN_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({

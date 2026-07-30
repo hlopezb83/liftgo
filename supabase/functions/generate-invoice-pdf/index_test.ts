@@ -1,11 +1,11 @@
 // Smoke tests para generate-invoice-pdf (renderizado server-side de factura).
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { fnUrl } from "../_shared/test-helpers.ts";
+import { fetchFn, fnUrl } from "../_shared/test-helpers.ts";
 
 const FN_URL = fnUrl("generate-invoice-pdf");
 
 Deno.test("generate-invoice-pdf: CORS preflight returns 200", async () => {
-  const res = await fetch(FN_URL, {
+  const res = await fetchFn(FN_URL, {
     method: "OPTIONS",
     headers: {
       Origin: "https://example.com",
@@ -17,7 +17,7 @@ Deno.test("generate-invoice-pdf: CORS preflight returns 200", async () => {
 });
 
 Deno.test("generate-invoice-pdf: rejects without Authorization (401)", async () => {
-  const res = await fetch(
+  const res = await fetchFn(
     `${FN_URL}?invoiceId=00000000-0000-0000-0000-000000000000`,
     {
       method: "POST",
