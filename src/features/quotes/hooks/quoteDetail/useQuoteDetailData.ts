@@ -18,7 +18,7 @@ export const isPublicoGeneral = (name?: string | null) =>
  * montacargas deducido en cotizaciones legacy sin `rental_meta`.
  */
 function countQuoteUnits(
-  quote: { line_items?: unknown; forklift_id?: string | null } | null | undefined,
+  quote: Parameters<typeof resolveLegacyForkliftIds>[0] | null | undefined,
   forklifts: { id: string; name: string }[] | undefined,
   rentalMeta: { quantity: number }[],
   isModelBased: boolean,
