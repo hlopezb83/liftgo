@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.268.0",
+    "date": "2026-07-30",
+    "type": "minor",
+    "title": "Mejor experiencia al cerrar órdenes de trabajo y registrar facturas de proveedor",
+    "category": "improvement",
+    "description": "El cierre de una orden de trabajo ahora pide confirmación mostrando el desglose de costos, la fecha de cierre y un aviso si hay un daño abierto. El alta de facturas de proveedor se reorganizó en secciones, con total fijo al pie y aviso anticipado cuando el importe requiere aprobación."
+  },
+  {
     "version": "7.267.1",
     "date": "2026-07-30",
     "type": "patch",
