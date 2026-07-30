@@ -20,7 +20,7 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
   const updateQuote = useUpdateQuote();
   const deleteQuote = useDeleteQuote();
   const { createBookingsFor, convertLegacy } = useQuoteBookingCreator(data, state);
-  const { quote, isModelBasedQuote, durationDays } = data;
+  const { quote, isModelBasedQuote } = data;
 
   const setStatus = async (status: string) => {
     if (!id) return;
