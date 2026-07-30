@@ -40,6 +40,7 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
 
   const supplier = suppliers?.find((s) => s.id === log.supplier_id);
   const status = STATUS_LABELS[log.work_status] || { label: log.work_status, variant: "secondary" as const };
+  const isClosed = log.work_status === "completed";
 
   const handleDelete = () => {
     deleteLog.mutate(log.id, {
