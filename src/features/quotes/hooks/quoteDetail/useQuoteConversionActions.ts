@@ -57,43 +57,7 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
     }
   };
 
-  const proceedWithConversion = () => {
-    if (durationDays >= 30) {
-      state.setShowRecurringDialog(true);
-      return;
-    }
-    if (isModelBasedQuote) {
-      state.setPendingRecurring(false);
-      state.setShowAssignmentDialog(true);
-    } else {
-      void convertLegacy(false);
-    }
-  };
-
-  const handleConvertClick = () => {
-    if (isPublicoGeneral(quote?.customer_name)) {
-      state.setReassignCustomerId("");
-      state.setReassignCustomerName("");
-      state.setShowCustomerReassignDialog(true);
-    } else {
-      proceedWithConversion();
-    }
-  };
-
-  const handleReassignConfirm = async () => {
-    if (!quote || !state.reassignCustomerId) return;
-    await updateQuote.mutateAsync({
-      id: quote.id,
-      customer_id: state.reassignCustomerId,
-      customer_name: state.reassignCustomerName,
-    });
-    state.setShowCustomerReassignDialog(false);
-    notifySuccess("Cliente actualizado");
-    proceedWithConversion();
-  };
-
-  const handleRecurringChoice = (recurring: boolean) => {
-    state.setShowRecurringDialog(false);
+  const proceedWithConversion = (recurring: boolean) => {
     state.setPendingRecurring(recurring);
     if (isModelBasedQuote) {
       state.setShowAssignmentDialog(true);
@@ -102,11 +66,37 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
     }
   };
 
+  const handleConvertClick = () => {
+    state.setShowConvertDialog(true);
+  };
+
+  /**
+   * Paso único de confirmación: reasigna el cliente cuando la cotización está
+   * a nombre de "Público en General" y decide la facturación recurrente antes
+   * de crear las reservas.
+   */
+  const handleConvertConfirm = async (payload: {
+    recurring: boolean; customerId: string; customerName: string;
+  }) => {
+    if (!quote) return;
+    if (isPublicoGeneral(quote.customer_name)) {
+      if (!payload.customerId) return;
+      await updateQuote.mutateAsync({
+        id: quote.id,
+        customer_id: payload.customerId,
+        customer_name: payload.customerName,
+      });
+      notifySuccess("Cliente actualizado");
+    }
+    state.setShowConvertDialog(false);
+    proceedWithConversion(payload.recurring);
+  };
+
   const handleAssignmentConfirm = (assignments: Assignment[]) =>
     createBookingsFor(assignments, state.pendingRecurring);
 
   return {
-    setStatus, handleDelete, handleConvertClick, handleReassignConfirm,
-    handleRecurringChoice, handleAssignmentConfirm, handleDeliveryNext,
+    setStatus, handleDelete, handleConvertClick, handleConvertConfirm,
+    handleAssignmentConfirm, handleDeliveryNext,
   };
 }
