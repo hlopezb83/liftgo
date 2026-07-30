@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.269.1",
+    "date": "2026-07-30",
+    "type": "patch",
+    "title": "CI estable: smoke tests de funciones con reintentos",
+    "category": "fix",
+    "description": "Los smoke tests de las funciones de servidor ya no fallan cuando el arranque en frío devuelve un error de puerta de enlace (504): ahora reintentan con espera creciente. También se eliminó un archivo de depuración temporal que ensuciaba la salida del CI."
+  },
+  {
     "version": "7.269.0",
     "date": "2026-07-30",
     "type": "minor",
