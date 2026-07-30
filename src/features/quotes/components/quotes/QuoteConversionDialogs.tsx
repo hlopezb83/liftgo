@@ -1,7 +1,5 @@
-import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
-import { Button } from "@/components/ui/button";
 import { PostBookingDeliveryDialog } from "@/features/bookings";
-import { CustomerSelector } from "@/features/customers";
+import { ConvertQuoteDialog } from "./ConvertQuoteDialog";
 import { EquipmentAssignmentDialog } from "./EquipmentAssignmentDialog";
 import type { useQuoteDetailLogic } from "../../hooks/quoteDetail/useQuoteDetailLogic";
 
@@ -13,14 +11,12 @@ interface Props {
 
 export function QuoteConversionDialogs({ logic }: Props) {
   const {
-    durationDays, customers, forklifts, equipmentModels, rentalMeta,
-    isConverting,
-    showRecurringDialog, setShowRecurringDialog,
-    showCustomerReassignDialog, setShowCustomerReassignDialog,
-    reassignCustomerId, setReassignCustomerId, reassignCustomerName, setReassignCustomerName,
+    quote, durationDays, unitCount, customers, forklifts, equipmentModels, rentalMeta,
+    isConverting, isModelBasedQuote,
+    showConvertDialog, setShowConvertDialog,
     showAssignmentDialog, setShowAssignmentDialog,
     pendingDeliveries, currentDeliveryIndex,
-    handleReassignConfirm, handleRecurringChoice, handleAssignmentConfirm, handleDeliveryNext,
+    handleConvertConfirm, handleAssignmentConfirm, handleDeliveryNext,
     isPublicoGeneral,
   } = logic;
 
@@ -41,45 +37,20 @@ export function QuoteConversionDialogs({ logic }: Props) {
         />
       )}
 
-      <FormDialog
-      isPending={isConverting}
-        open={showRecurringDialog}
-        onOpenChange={setShowRecurringDialog}
-        title="Facturación Recurrente"
-        description={
-          `Esta cotización cubre un periodo de ${Math.round(durationDays / 30)} mes(es) (${durationDays} días). ` +
-          "¿Desea habilitar la facturación recurrente mensual para las reservas que se crearán?"
-        }
-      >
-        <FormDialogFooter>
-          <Button variant="outline" onClick={() => handleRecurringChoice(false)}>No, crear sin recurrente</Button>
-          <Button onClick={() => handleRecurringChoice(true)}>Sí, habilitar recurrente</Button>
-        </FormDialogFooter>
-      </FormDialog>
-
-      <FormDialog
-      isPending={isConverting}
-        open={showCustomerReassignDialog}
-        onOpenChange={setShowCustomerReassignDialog}
-        title="Asignar cliente"
-        description='Esta cotización está asignada a "Público en General". Selecciona el cliente final antes de convertir a reserva.'
-      >
-        <div className="space-y-4">
-          <CustomerSelector
-            customers={customers?.filter((c) => !isPublicoGeneral(c.name))}
-            customerId={reassignCustomerId}
-            customerName={reassignCustomerName}
-            onCustomerIdChange={setReassignCustomerId}
-            onCustomerNameChange={setReassignCustomerName}
-            required
-            hideManualName
-          />
-          <FormDialogFooter>
-            <Button variant="outline" onClick={() => setShowCustomerReassignDialog(false)}>Cancelar</Button>
-            <Button onClick={handleReassignConfirm} disabled={!reassignCustomerId}>Confirmar y Convertir</Button>
-          </FormDialogFooter>
-        </div>
-      </FormDialog>
+      {quote && showConvertDialog && (
+        <ConvertQuoteDialog
+          open={showConvertDialog}
+          onOpenChange={setShowConvertDialog}
+          quote={quote}
+          durationDays={durationDays}
+          unitCount={unitCount}
+          needsCustomer={isPublicoGeneral(quote.customer_name)}
+          customers={(customers ?? []).filter((c) => !isPublicoGeneral(c.name))}
+          needsAssignment={isModelBasedQuote}
+          isPending={isConverting}
+          onConfirm={(payload) => { void handleConvertConfirm(payload); }}
+        />
+      )}
 
       {showAssignmentDialog && equipmentModels && forklifts && (
         <EquipmentAssignmentDialog
