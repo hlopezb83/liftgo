@@ -56,6 +56,12 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
     useSupplierBillForm(open, () => onOpenChange(false), bill, activeOverrides);
   // R19-A: mismo bug de watch() en render — usar useWatch.
   const currency = useWatch({ control: form.control, name: "currency" });
+  // Aviso temprano: si el total en MXN supera el umbral, la factura nace pendiente de aprobación.
+  const { data: cxpThreshold } = useCxpApprovalThreshold();
+  const threshold = cxpThreshold?.threshold ?? 0;
+  const exchangeRate = useWatch({ control: form.control, name: "exchange_rate" });
+  const totalMxn = currency === "MXN" ? total : total * Number(exchangeRate || 1);
+  const needsApproval = threshold > 0 && totalMxn > threshold;
 
   const handleFile = async (file: File) => {
     const r = await cfdi.importXml(file);
