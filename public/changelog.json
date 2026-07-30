@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.267.0",
+    "date": "2026-07-30",
+    "type": "minor",
+    "title": "Auditoría GUI: integridad de rentas, permisos por rol y usabilidad móvil",
+    "category": "improvement",
+    "description": "Las reservas solo se crean desde cotizaciones aceptadas, las unidades con daños abiertos ya no vuelven a 'Disponible', la acción de reparar crea la orden de trabajo en una sola operación y los folios dejan de duplicarse. Además se corrigieron las fechas fuera de la zona horaria de Monterrey, se ajustaron los permisos de despachador y mecánico, cada rol aterriza en un módulo que puede usar y se ampliaron las áreas táctiles en celular."
+  },
+  {
     "version": "7.266.1",
     "date": "2026-07-30",
     "type": "patch",
