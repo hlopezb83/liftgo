@@ -1,4 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { maintenanceLogKeys } from "../../lib/queryKeys";
 import {
@@ -11,10 +12,15 @@ import type { DragEndEvent } from "@dnd-kit/core";
  * Encapsula el optimistic update del kanban de mantenimiento al arrastrar
  * tarjetas entre columnas. La vista solo conoce el handler y queda libre de
  * acoplamiento con TanStack Query.
+ *
+ * v7.268.0 (UX): soltar en "Completado" ya no cierra la OT en silencio;
+ * se expone `pendingCloseId` para que la vista pida confirmación con el
+ * resumen de costos antes de aplicar el cambio.
  */
 export function useMaintenanceKanban() {
   const updateLog = useUpdateMaintenanceLog();
   const queryClient = useQueryClient();
+  const [pendingCloseId, setPendingCloseId] = useState<string | null>(null);
 
   const onDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -30,6 +36,11 @@ export function useMaintenanceKanban() {
         : (over.data.current?.status as string | undefined) ?? String(over.id);
 
     if (!newStatus || !sourceStatus || sourceStatus === newStatus) return;
+
+    if (newStatus === "completed") {
+      setPendingCloseId(logId);
+      return;
+    }
 
     queryClient.setQueryData<MaintenanceLog[]>(
       maintenanceLogKeys.byFilter({ forkliftId: null }),
@@ -58,5 +69,9 @@ export function useMaintenanceKanban() {
     );
   };
 
-  return { onDragEnd };
+  return {
+    onDragEnd,
+    pendingCloseId,
+    clearPendingClose: () => setPendingCloseId(null),
+  };
 }
