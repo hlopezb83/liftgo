@@ -47,14 +47,15 @@ export interface CloseWorkOrderInput {
 export function useCloseWorkOrder() {
   return useEntityMutation({
     mutationFn: async ({ id, performedAt, description }: CloseWorkOrderInput) => {
-      const patch: Record<string, unknown> = {
+      const patch: TablesUpdate<"maintenance_logs"> = {
         work_status: "completed",
         performed_at: performedAt,
+        ...(description !== null ? { description } : {}),
       };
-      if (description !== null) patch.description = description;
       const { data, error } = await supabase
         .from("maintenance_logs")
         .update(patch)
+
         .eq("id", id)
         .select()
         .single();
