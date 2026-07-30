@@ -1,5 +1,14 @@
 [
   {
+    "version": "7.266.1",
+    "date": "2026-07-30",
+    "type": "patch",
+    "title": "Corrección de la unión de reportes de pruebas en CI",
+    "category": "fix",
+    "description": "La carpeta de reportes parciales de pruebas estaba oculta y el sistema de integración continua no la subía, provocando que el paso final de unión de reportes fallara. Además se eliminó una opción de configuración obsoleta que generaba advertencias."
+  },
+  {
+
     "version": "7.266.0",
     "date": "2026-07-30",
     "type": "minor",

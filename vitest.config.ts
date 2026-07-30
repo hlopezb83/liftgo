@@ -29,12 +29,11 @@ export default defineConfig({
     // workers en frío. Fijar el máximo a todos los núcleos y precalentar un
     // piso de workers reduce el wall time tanto en runners de 4 vCPU como en
     // máquinas grandes. `forks` medido más rápido que `threads` en esta suite.
+    // Vitest 4 eliminó `test.poolOptions`: maxWorkers/minWorkers son top-level.
     pool: "forks",
     maxWorkers: CPUS,
     minWorkers: Math.min(4, CPUS),
-    poolOptions: {
-      forks: { maxForks: CPUS, minForks: Math.min(4, CPUS) },
-    },
+
     // En CI emitimos JUnit + JSON para que el job pueda subir artifacts y
     // GitHub muestre el resumen de tests fallidos sin perder la salida humana.
     // Cuando VITEST_RLS_JUNIT=1 (script test:rls), el JUnit apunta al archivo
