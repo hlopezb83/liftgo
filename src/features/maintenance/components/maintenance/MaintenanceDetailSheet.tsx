@@ -67,6 +67,14 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
         <div className="mt-4 space-y-4">
           <Badge variant={status.variant}>{status.label}</Badge>
 
+          {isClosed && (
+            <div className="rounded-md border border-success/30 bg-success/10 px-3 py-2 flex items-center justify-between gap-2">
+              <span className="text-sm">OT cerrada el {formatDateDisplay(log.performed_at)}</span>
+              <span className="font-mono text-sm font-semibold">{formatCurrency(log.cost || 0)}</span>
+            </div>
+          )}
+
+
           <div className="space-y-1">
             <DetailRow icon={FleetIcon} label="Montacargas" value={forkliftName} />
             <DetailRow icon={CalendarIcon} label="Fecha de Servicio" value={formatDateDisplay(log.performed_at)} />
