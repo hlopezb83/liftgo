@@ -233,7 +233,11 @@ export const activityMetricsQueries = defineEntityQueries<"audit-activity-metric
       const byHour = payload?.byHour ?? [];
 
       const totalCurrent = byMember.reduce((sum, m) => sum + m.total, 0);
-      const uniqueActors = byMember.filter((m) => m.actorId !== null).length;
+      // R6-FE-11d (N6-ADM-02): el trigger no propaga actor_id (NULL = "Sistema");
+      // filtrar null mostraba "Usuarios activos 0" con acciones registradas.
+      // Se cuenta el bucket Sistema como un actor más hasta que la DB propague
+      // el actor real (R6-DB pendiente).
+      const uniqueActors = byMember.filter((m) => m.actorId !== null || m.total > 0).length;
       const peakHour = byHour.length > 0
         ? byHour.reduce((max, h) => (h.total > max.total ? h : max)).hour
         : null;

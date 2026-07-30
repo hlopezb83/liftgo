@@ -12,6 +12,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CONTRACT_STATUS_LABELS } from "@/features/contracts/lib/contractStatusLabels";
 import { usePortalContracts } from "@/features/customers";
 import { useIsMobile } from "@/hooks/use-mobile";
 
@@ -54,7 +55,7 @@ export default function PortalContracts() {
         id: "status",
         accessorKey: "status",
         header: "Estado",
-        cell: ({ row }) => <StatusBadge status={row.original.status} />,
+        cell: ({ row }) => <StatusBadge status={row.original.status} label={CONTRACT_STATUS_LABELS[row.original.status]} />,
       },
     ];
 
@@ -95,7 +96,7 @@ export default function PortalContracts() {
                     <CardContent className="p-3 space-y-1">
                       <div className="flex items-center justify-between gap-2">
                         <span className="font-medium">{c.contract_number}</span>
-                        <StatusBadge status={c.status} />
+                        <StatusBadge status={c.status} label={CONTRACT_STATUS_LABELS[c.status]} />
                       </div>
                       <div className="text-sm text-muted-foreground truncate">
                         {c.forklifts?.name || "—"}

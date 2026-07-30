@@ -31,7 +31,7 @@ export function ActivityKPIs({ metrics, rangeLabel }: Props) {
       icon: UsersIcon,
       label: "Usuarios activos",
       value: metrics.uniqueActors.toLocaleString("es-MX"),
-      hint: <span className="text-xs text-muted-foreground">personas con actividad</span>,
+      hint: <span className="text-xs text-muted-foreground">actores con actividad (incluye Sistema)</span>,
     },
     {
       icon: Layers,

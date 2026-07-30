@@ -8,6 +8,7 @@ import { DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useInvoices } from "@/features/invoices";
+import { chartTick } from "@/lib/charts/chartTheme";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatMonthShortEsFromDate } from "@/lib/format/formatMonthEs";
@@ -114,7 +115,7 @@ export function RevenueReport({ startDate, endDate }: Props) {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
-                <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                <XAxis dataKey="month" tick={chartTick} interval={0} angle={-35} textAnchor="end" height={60} />
                 <YAxis width={80} tickFormatter={(v) => compactMoneyMxn(Number(v))} tick={{ fontSize: 11 }} />
                 <Tooltip formatter={(val) => formatCurrency(Number(val))} />
                 <Bar dataKey="invoiced" fill="hsl(var(--chart-3))" name="Facturado" radius={[4, 4, 0, 0]} />
