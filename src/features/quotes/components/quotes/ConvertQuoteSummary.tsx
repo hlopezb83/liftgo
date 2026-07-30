@@ -1,7 +1,7 @@
 import { InfoRow } from "@/components/forms/InfoRow";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatDateMty } from "@/lib/format/dateFormats";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 
 interface Props {
   quote: Tables<"quotes">;
@@ -42,7 +42,7 @@ export function ConvertQuoteSummary({ quote, durationDays, unitCount }: Props) {
         <InfoRow label="Reservas a crear" value={`${unitCount} unidad(es)`} />
       </div>
       <div className="px-3">
-        <InfoRow label="Total cotizado" value={formatCurrency(quote.total ?? 0, quote.currency ?? "MXN")} />
+        <InfoRow label="Total cotizado" value={formatCurrencyWithCode(quote.total ?? 0, quote.currency ?? "MXN")} />
       </div>
     </div>
   );
