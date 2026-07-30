@@ -113,7 +113,19 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
 
           <Separator />
           <RoleGuard module="Mantenimiento" minAccess="full" fallback={null}>
+            {!isClosed && (
+              <Button className="w-full mb-2" onClick={() => setCloseOpen(true)}>
+                <SuccessIcon className="h-4 w-4 mr-1" /> Cerrar OT
+              </Button>
+            )}
+            <CloseWorkOrderDialog
+              open={closeOpen}
+              onOpenChange={setCloseOpen}
+              log={{ ...log, forklift_name: forkliftName }}
+              onClosed={() => onOpenChange(false)}
+            />
             <div className="flex gap-2">
+
               <Button variant="outline" className="flex-1" onClick={() => { onEdit(log); onOpenChange(false); }}>
                 <EditIcon className="h-4 w-4 mr-1" /> Editar
               </Button>
