@@ -24,6 +24,9 @@ export const insuranceAlertsQueries = defineEntityQueries<"insurance-alerts", In
   },
 );
 
-export function useInsuranceAlerts() {
-  return useQuery(insuranceAlertsQueries.list());
+export function useInsuranceAlerts(enabled = true) {
+  // R6-FE-03 (N6-VEN-01): `enabled` permite gatear por rol — la RPC
+  // get_insurance_alerts (20260723055853) solo admite admin/administrativo/
+  // auditor/dispatcher/mechanic; sin esto ventas veía toast "Forbidden".
+  return useQuery({ ...insuranceAlertsQueries.list(), enabled });
 }

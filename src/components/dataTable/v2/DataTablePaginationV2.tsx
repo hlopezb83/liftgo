@@ -22,7 +22,8 @@ export function DataTablePaginationV2<T>({ table }: Props<T>) {
           value={String(pageSize)}
           onValueChange={(v) => table.setPageSize(Number(v))}
         >
-          <SelectTrigger className="h-8 w-[70px]">
+          {/* R6-FE-09: h-8 = 32px; en táctil sube a 44px. */}
+          <SelectTrigger className="h-8 w-[70px] touch:h-11">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>

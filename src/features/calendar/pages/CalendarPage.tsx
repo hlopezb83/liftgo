@@ -228,23 +228,24 @@ function CalendarToolbar({ viewMode, setViewMode, ganttRange, setGanttRange, isR
   return (
     <div className="flex items-center flex-wrap gap-2">
       <Tabs value={viewMode} onValueChange={(v) => setViewMode(v as "gantt" | "list")}>
-        <TabsList className="h-8">
-          <TabsTrigger value="gantt" className="text-xs px-3 h-6">Gantt</TabsTrigger>
-          <TabsTrigger value="list" className="text-xs px-3 h-6">Lista</TabsTrigger>
+        <TabsList className="h-8 touch:h-11">
+          {/* R6-FE-09: h-6 = 24px; en táctil sube a 44px. */}
+          <TabsTrigger value="gantt" className="text-xs px-3 h-6 touch:h-11 touch:min-w-11">Gantt</TabsTrigger>
+          <TabsTrigger value="list" className="text-xs px-3 h-6 touch:h-11 touch:min-w-11">Lista</TabsTrigger>
         </TabsList>
       </Tabs>
       {viewMode === "gantt" && (
         <Tabs value={ganttRange} onValueChange={(v) => setGanttRange(v as "month" | "week")}>
-          <TabsList className="h-8">
-            <TabsTrigger value="week" className="text-xs px-3 h-6">Semana</TabsTrigger>
-            <TabsTrigger value="month" className="text-xs px-3 h-6">Mes</TabsTrigger>
+          <TabsList className="h-8 touch:h-11">
+            <TabsTrigger value="week" className="text-xs px-3 h-6 touch:h-11 touch:min-w-11">Semana</TabsTrigger>
+            <TabsTrigger value="month" className="text-xs px-3 h-6 touch:h-11 touch:min-w-11">Mes</TabsTrigger>
           </TabsList>
         </Tabs>
       )}
       <Button
         variant="outline"
         size="sm"
-        className="h-8 ml-auto"
+        className="h-8 ml-auto touch:h-11"
         disabled={isRefreshing}
         onClick={onRefresh}
         aria-label="Actualizar calendario"

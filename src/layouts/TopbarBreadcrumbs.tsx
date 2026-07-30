@@ -90,8 +90,8 @@ export function TopbarBreadcrumbs() {
   const hasIntermediate = crumbs.length > 1;
   return (
     <nav aria-label="Ruta" className="flex items-center gap-1 text-sm text-muted-foreground min-w-0 overflow-hidden">
-      {/* GUI-FE-10: área táctil ≥44px en móvil (padding + margen negativo, sin mover el ícono). */}
-      <Link to="/" className="hover:text-foreground transition-colors flex items-center shrink-0 touch:p-3 touch:-m-3" aria-label="Inicio">
+      {/* R6-FE-09: target táctil ≥44px (antes 38px con touch:p-3). */}
+      <Link to="/" className="hover:text-foreground transition-colors flex items-center justify-center shrink-0 touch:min-h-11 touch:min-w-11 touch:-m-3" aria-label="Inicio">
         <HomeIcon className="h-3.5 w-3.5" />
       </Link>
       {hasIntermediate && (
@@ -109,7 +109,7 @@ export function TopbarBreadcrumbs() {
             {isLast ? (
               <span className="font-medium text-foreground truncate">{c.label}</span>
             ) : (
-              <Link to={c.path} className="hover:text-foreground transition-colors truncate">
+              <Link to={c.path} className="hover:text-foreground transition-colors truncate touch:min-h-11 touch:inline-flex touch:items-center">
                 {c.label}
               </Link>
             )}

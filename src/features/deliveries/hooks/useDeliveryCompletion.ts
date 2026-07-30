@@ -1,7 +1,6 @@
 import { useState } from "react";
 import type { Tables } from "@/integrations/supabase/types";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
-import { nowMty } from "@/lib/utils";
 import { buildCompletionPayload } from "../lib/deliveryDetailHelpers";
 import { useUpdateDelivery } from "./useDeliveries";
 
@@ -65,7 +64,10 @@ export function useDeliveryCompletion(
     if (!delivery) return;
     try {
       const payload = buildCompletionPayload(
-        delivery.id, nowMty().toISOString(), signature, hoursReading, minHours,
+        // R6-FE-06 (N6-DIS-07): timestamp UTC real. `nowMty().toISOString()`
+        // aplicaba doble offset (Date ya desplazado a MTY re-interpretado como
+        // UTC) y completed_at quedaba ~6h antes del instante real.
+        delivery.id, new Date().toISOString(), signature, hoursReading, minHours,
       );
       updateDelivery.mutate(payload, {
         onSuccess: () => {

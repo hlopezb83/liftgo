@@ -5,6 +5,8 @@ import { AddIcon, DownloadIcon, Forklift as ForkliftIcon } from "@/components/ic
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Button } from "@/components/ui/button";
 import { usePageActions } from "@/contexts/pageActions";
+import { computeFleetAvailability } from "@/features/availability/utils/fleetAvailability";
+import { useBookings } from "@/features/bookings";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
@@ -28,6 +30,14 @@ const EMPTY_SET: Set<string> = new Set();
 export default function FleetPage() {
   const { data: forkliftsRaw, isLoading, isError, refetch } = useForklifts();
   const forklifts = visibleListRows(forkliftsRaw);
+  // R6-FE-07: el status crudo se desincroniza (MC-103 available CON reserva
+  // activa; MC-105/107/109 rented sin reserva). El filtro "Rentado" usa la
+  // misma definición operativa que Panel y Calendario.
+  const { data: fleetBookings } = useBookings();
+  const rentedIds = computeFleetAvailability(forklifts, fleetBookings)?.rentedForkliftIds;
+  const forkliftsForFilter = (forklifts ?? []).map((f) =>
+    f.status === "available" && rentedIds?.has(f.id) ? { ...f, status: "rented" as const } : f,
+  );
   // Tanda 3 P1-5: 1 request a la vista `forklift_current_location`
   // reemplaza useContracts + useDeliveries + useMaintenancePolicies.
   const { data: fleetLocations } = useFleetLocations();
@@ -47,7 +57,7 @@ export default function FleetPage() {
       status: { type: "enum"; field: keyof Forklift; options: readonly string[] };
     }
   >({
-    items: forklifts ?? [],
+    items: forkliftsForFilter,
     facets: {
       q: { type: "text", fields: ["name", "model", "manufacturer", "serial_number"] },
       status: { type: "enum", field: "status", options: FORKLIFT_STATUSES },

@@ -1,6 +1,16 @@
 import { usePortalInvoices, usePortalPayments } from "@/features/customers";
 
-export type PortalLineItem = { description?: string; quantity?: number; unit_price?: number; amount?: number };
+// R6-FE-05 (N6-POR-01): el shape real de invoices.line_items (verificado en
+// DB, jsonb_object_keys) es description/unit_price/qty/total. Se conservan
+// quantity/amount como fallback por si quedaran filas legadas.
+export type PortalLineItem = {
+  description?: string;
+  qty?: number;
+  total?: number;
+  unit_price?: number;
+  quantity?: number;
+  amount?: number;
+};
 export type PortalPaymentRow = {
   id: string;
   payment_date: string;

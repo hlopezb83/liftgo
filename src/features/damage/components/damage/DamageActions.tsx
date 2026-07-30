@@ -11,6 +11,7 @@ import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import type { DamageRecordWithJoins } from "@/types/rental";
 import { damageRecordQueries, useArchiveDamageRecord, useUpdateDamageRecord } from "../../hooks/useDamageRecords";
 import { chargeableDamageCost } from "../../lib/chargeableDamageCost";
+import { getAccessLevel, useRolePermissions, useUserRole } from "@/features/users";
 
 interface DamageActionsProps {
   record: DamageRecordWithJoins;
@@ -48,6 +49,25 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
   const createMaintenance = useCreateMaintenanceLog();
   const archiveDamage = useArchiveDamageRecord();
   const [archiveOpen, setArchiveOpen] = useState(false);
+
+  // R6-FE-01 (N6-MEC-01/N6-MEC-06): gate por permiso real de módulo.
+  // Sin esto, mechanic/ventas/dispatcher veían "Cobrar"/"Archivar"/"Reparar"
+  // y la mutación moría en RLS (200 [] silencioso o error críptico).
+  // Matriz (seed 20260313001007): mechanic Daños=full / Facturas=none;
+  // dispatcher Daños=none; ventas Daños=none; auditor read-only.
+  const { data: role } = useUserRole();
+  const { data: perms } = useRolePermissions();
+  // Mientras cargan los permisos, fail-closed (mejor deshabilitado que roto).
+  const canManageDamage = !!perms && getAccessLevel(perms, role, "Daños") === "full";
+  const canChargeDamage = !!perms && getAccessLevel(perms, role, "Facturas") === "full";
+  // "Marcar reparado" usa UPDATE damage_records: permitido a mechanic solo
+  // cuando el daño ya está en reparación (UPDATE habilitado por R6-DB-01).
+  const damageBlockReason = canManageDamage
+    ? undefined
+    : "Tu rol no puede modificar daños (se requiere acceso completo al módulo Daños)";
+  const chargeBlockReason = canChargeDamage
+    ? undefined
+    : "Tu rol no tiene acceso a Facturas; pide a administración que genere el cobro";
 
   const handleCreateWorkOrder = async () => {
     try {
@@ -110,25 +130,31 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
   return (
     <div className="flex flex-wrap gap-2">
       {record.status === "reported" && (
-        <Button variant="ghost" size="sm" onClick={handleCreateWorkOrder} disabled={createMaintenance.isPending}>
-          <MaintenanceIcon className="h-3.5 w-3.5 mr-1" />Reparar
-        </Button>
+        <span title={damageBlockReason}>
+          <Button variant="ghost" size="sm" onClick={handleCreateWorkOrder} disabled={!canManageDamage || createMaintenance.isPending}>
+            <MaintenanceIcon className="h-3.5 w-3.5 mr-1" />Reparar
+          </Button>
+        </span>
       )}
       {record.status === "in_repair" && (
-        <Button variant="ghost" size="sm" onClick={handleMarkRepaired} disabled={updateDamage.isPending}>
-          <SuccessIcon className="h-3.5 w-3.5 mr-1" />Marcar reparado
-        </Button>
+        <span title={damageBlockReason}>
+          <Button variant="ghost" size="sm" onClick={handleMarkRepaired} disabled={!canManageDamage || updateDamage.isPending}>
+            <SuccessIcon className="h-3.5 w-3.5 mr-1" />Marcar reparado
+          </Button>
+        </span>
       )}
       {(record.status === "repaired" || record.status === "reported") && (
-        <Button variant="ghost" size="sm" onClick={handleCreateInvoice} disabled={cost == null}>
-          <InvoiceIcon className="h-3.5 w-3.5 mr-1" />Cobrar
-        </Button>
+        <span title={chargeBlockReason}>
+          <Button variant="ghost" size="sm" onClick={handleCreateInvoice} disabled={cost == null || !canChargeDamage}>
+            <InvoiceIcon className="h-3.5 w-3.5 mr-1" />Cobrar
+          </Button>
+        </span>
       )}
       <span title={archiveBlockReason}>
         <Button
           variant="ghost"
           size="sm"
-          disabled={!canArchive || archiveDamage.isPending}
+          disabled={!canManageDamage || !canArchive || archiveDamage.isPending}
           onClick={() => setArchiveOpen(true)}
         >
           <DeleteIcon className="h-3.5 w-3.5 mr-1" />Archivar
@@ -138,6 +164,14 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
           no sólo como tooltip del botón deshabilitado. */}
       {archiveBlockReason && (
         <p className="basis-full text-xs text-muted-foreground">{archiveBlockReason}</p>
+      )}
+      {/* R6-FE-01: razones de bloqueo por rol siempre visibles (mismo patrón
+          que `archiveBlockReason` de GUI-FE-06c). */}
+      {damageBlockReason && record.status !== "invoiced" && (
+        <p className="basis-full text-xs text-muted-foreground">{damageBlockReason}</p>
+      )}
+      {chargeBlockReason && (record.status === "repaired" || record.status === "reported") && (
+        <p className="basis-full text-xs text-muted-foreground">{chargeBlockReason}</p>
       )}
       <ConfirmDialog
         open={archiveOpen}

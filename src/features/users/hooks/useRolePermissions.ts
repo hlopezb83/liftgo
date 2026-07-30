@@ -5,7 +5,6 @@ import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { createEntityKeys } from "@/lib/query/createEntityKeys";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { telemetry } from "@/lib/telemetry";
-import { nowMty } from "@/lib/utils";
 import type { AppRole } from "./useUserRole";
 
 export type AccessLevel = "full" | "read" | "none";
@@ -91,7 +90,7 @@ export function useUpdatePermission() {
     mutationFn: async ({ role, module, access_level }: { role: AppRole; module: string; access_level: AccessLevel }) => {
       const { data, error } = await supabase
         .from("role_permissions")
-        .update({ access_level, updated_at: nowMty().toISOString() })
+        .update({ access_level, updated_at: new Date().toISOString() })
         .eq("role", role)
         .eq("module", module)
         .select("role");
