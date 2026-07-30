@@ -70,7 +70,9 @@ export function SupplierBillFormFields({ form, currency, currencyOptions, select
           )}
         />
       </div>
+      </FormSection>
 
+      <FormSection title="Fechas">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <DateField control={form.control} name="issue_date" label="Fecha emisión" required />
         <div className="space-y-1">
@@ -92,7 +94,9 @@ export function SupplierBillFormFields({ form, currency, currencyOptions, select
           </p>
         </div>
       </div>
+      </FormSection>
 
+      <FormSection title="Importes">
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <FormField
           control={form.control}
@@ -120,8 +124,9 @@ export function SupplierBillFormFields({ form, currency, currencyOptions, select
         <CurrencyField control={form.control} name="tax_amount" label="IVA" currency={currency as "MXN" | "USD"} />
         <CurrencyField control={form.control} name="retention_iva" label="Retención IVA" currency={currency as "MXN" | "USD"} />
         <CurrencyField control={form.control} name="retention_isr" label="Retención ISR" currency={currency as "MXN" | "USD"} />
-
       </div>
+      </FormSection>
     </>
   );
+
 }
