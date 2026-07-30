@@ -1,6 +1,7 @@
 import {
   TextField, DateField, NumberField, CurrencyField, type SelectOption,
 } from "@/components/forms/fields";
+import { FormSection } from "@/components/forms/FormSection";
 import { FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import {
   Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue,
