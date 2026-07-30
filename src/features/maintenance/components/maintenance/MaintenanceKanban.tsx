@@ -34,7 +34,9 @@ interface Props {
 export function MaintenanceKanban({ logs }: Props) {
   const [selectedLog, setSelectedLog] = useState<(MaintenanceLog & { forklift_name: string }) | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
-  const { onDragEnd } = useMaintenanceKanban();
+  const { onDragEnd, pendingCloseId, clearPendingClose } = useMaintenanceKanban();
+  const pendingCloseLog = pendingCloseId ? logs.find((l) => l.id === pendingCloseId) ?? null : null;
+
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
