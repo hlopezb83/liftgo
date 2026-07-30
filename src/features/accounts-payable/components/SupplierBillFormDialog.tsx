@@ -5,15 +5,14 @@ import { SupplierField } from "@/components/forms/fields";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormSection } from "@/components/forms/FormSection";
-import { WarnIcon } from "@/components/icons";
 import { Form } from "@/components/ui/form";
 import { useCxpApprovalThreshold } from "@/features/company-settings/hooks/useCxpApprovalThreshold";
-import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { useImportSupplierBillCfdi } from "../hooks/useImportSupplierBillCfdi";
 import { useSupplierBillForm, type SupplierBillFormOverrides } from "../hooks/useSupplierBillForm";
 import { CURRENCIES } from "../lib/supplierBillConstants";
 import { SupplierBillCfdiDropzone } from "./SupplierBillCfdiDropzone";
 import { SupplierBillFormFields } from "./SupplierBillFormFields";
+import { SupplierBillTotalPanel } from "./SupplierBillTotalPanel";
 import type { SupplierBillDetail } from "../hooks/useSupplierBill";
 
 interface Props {
@@ -61,7 +60,6 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
   const threshold = cxpThreshold?.threshold ?? 0;
   const exchangeRate = useWatch({ control: form.control, name: "exchange_rate" });
   const totalMxn = currency === "MXN" ? total : total * Number(exchangeRate || 1);
-  const needsApproval = threshold > 0 && totalMxn > threshold;
 
   const handleFile = async (file: File) => {
     const r = await cfdi.importXml(file);
