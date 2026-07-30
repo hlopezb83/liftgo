@@ -89,7 +89,8 @@ export function PostBookingDeliveryDialog({
       description={
         <span className="flex items-start gap-2">
           <SuccessIcon className="h-4 w-4 text-success mt-0.5 shrink-0" />
-          <span>¿Deseas programar la entrega de {forkliftName}?</span>
+          {/* GUI-FE-11c (G-ADM-08 residual): fallback si no hay nombre de equipo. */}
+          <span>¿Deseas programar la entrega de {forkliftName || "el equipo"}?</span>
         </span>
       }
     >

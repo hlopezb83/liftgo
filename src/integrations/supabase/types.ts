@@ -4249,6 +4249,15 @@ export type Database = {
         Args: { p_supplier_id: string }
         Returns: undefined
       }
+      start_repair_work_order: {
+        Args: {
+          p_damage_id: string
+          p_description?: string
+          p_estimated_cost?: number
+          p_service_type?: string
+        }
+        Returns: string
+      }
       sync_forklift_rental_status: {
         Args: never
         Returns: {

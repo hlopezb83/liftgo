@@ -18,11 +18,12 @@ describe("rules/quotes", () => {
     expect(isQuoteAccepted(q("draft"))).toBe(false);
   });
 
-  it("canConvertQuote: rental in draft/sent/accepted, not already converted", () => {
-    expect(canConvertQuote(q("sent"), { isSale: false, alreadyConverted: false })).toBe(true);
+  it("canConvertQuote: rental sólo en accepted, no already converted (GUI-FE-01)", () => {
     expect(canConvertQuote(q("accepted"), { isSale: false, alreadyConverted: false })).toBe(true);
-    expect(canConvertQuote(q("sent"), { isSale: true, alreadyConverted: false })).toBe(false);
-    expect(canConvertQuote(q("sent"), { isSale: false, alreadyConverted: true })).toBe(false);
+    expect(canConvertQuote(q("sent"), { isSale: false, alreadyConverted: false })).toBe(false);
+    expect(canConvertQuote(q("draft"), { isSale: false, alreadyConverted: false })).toBe(false);
+    expect(canConvertQuote(q("accepted"), { isSale: true, alreadyConverted: false })).toBe(false);
+    expect(canConvertQuote(q("accepted"), { isSale: false, alreadyConverted: true })).toBe(false);
     expect(canConvertQuote(q("rejected"), { isSale: false, alreadyConverted: false })).toBe(false);
   });
 

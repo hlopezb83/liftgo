@@ -90,7 +90,8 @@ export function TopbarBreadcrumbs() {
   const hasIntermediate = crumbs.length > 1;
   return (
     <nav aria-label="Ruta" className="flex items-center gap-1 text-sm text-muted-foreground min-w-0 overflow-hidden">
-      <Link to="/" className="hover:text-foreground transition-colors flex items-center shrink-0" aria-label="Inicio">
+      {/* GUI-FE-10: área táctil ≥44px en móvil (padding + margen negativo, sin mover el ícono). */}
+      <Link to="/" className="hover:text-foreground transition-colors flex items-center shrink-0 touch:p-3 touch:-m-3" aria-label="Inicio">
         <HomeIcon className="h-3.5 w-3.5" />
       </Link>
       {hasIntermediate && (

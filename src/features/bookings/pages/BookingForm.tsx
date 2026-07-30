@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
 import { CustomerSelector } from "@/features/customers";
 import { ForkliftSelector } from "@/features/fleet";
+import { toYMD } from "@/lib/date/toYMD";
+import { todayKeyMty } from "@/lib/format/dateFormats";
 import { BookingPostDialogs } from "../components/bookings/BookingPostDialogs";
 import { useBookingFormLogic } from "../hooks/bookingForm/useBookingFormLogic";
 
@@ -35,6 +37,9 @@ export default function BookingForm() {
   const endDate = dateRange?.to;
   const showRecurring = Boolean(startDate && endDate && differenceInDays(endDate, startDate) >= 30);
   const forkliftName = selectedForklift?.name ?? "";
+  // GUI-FE-11b (G-ADM-06): advertencia no bloqueante para fechas pasadas.
+  const startYmd = toYMD(startDate);
+  const startInPast = startYmd !== undefined && startYmd < todayKeyMty();
 
   const handleCustomerIdChange = (v: string) => {
     form.setValue("customer_id", v);
@@ -60,6 +65,11 @@ export default function BookingForm() {
                 error={dateRangeError}
                 helperText="La fecha fin es inclusiva; el equipo queda ocupado ese día. Para una renta consecutiva el mismo día que otra termina, inicia al día siguiente."
               />
+              {startInPast && !dateRangeError && (
+                <p className="text-xs text-warning" role="alert">
+                  La fecha de inicio está en el pasado. Verifica que sea correcta antes de confirmar la reserva.
+                </p>
+              )}
               <ForkliftSelector
                 value={forkliftId}
                 onValueChange={(v) => form.setValue("forklift_id", v, { shouldValidate: true })}

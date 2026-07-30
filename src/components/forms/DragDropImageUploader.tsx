@@ -53,7 +53,14 @@ export function DragDropImageUploader({ entityType, entityId, maxFiles = 10, cla
       previews.forEach((p) => URL.revokeObjectURL(p.url));
       setPreviews([]);
     } catch (err) {
-      notifyError({ error: err, message: "Error al subir fotos" });
+      // GUI-FE-11e (G-MEC-04): mensaje genérico en español (sin el texto
+      // técnico crudo del storage/edge function) + severidad warning.
+      notifyError({
+        error: err,
+        title: "No se pudieron subir las fotos",
+        description: "Revisa tu conexión e inténtalo de nuevo. Si el problema continúa, intenta con fotos más ligeras.",
+        severity: "warning",
+      });
     } finally {
       setUploading(false);
     }

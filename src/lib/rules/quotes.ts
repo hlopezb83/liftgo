@@ -8,7 +8,10 @@ import type { Tables } from "@/integrations/supabase/types";
 type QuoteLike = Pick<Tables<"quotes">, "status"> & Partial<Pick<Tables<"quotes">, "accepted_at">>;
 
 const EDITABLE_STATUSES = new Set(["draft", "sent"]);
-const CONVERTIBLE_STATUSES = new Set(["draft", "sent", "accepted"]);
+// GUI-FE-01 (G-VEN-03): sólo una cotización ACEPTADA puede convertirse en
+// reserva. Ofrecer "Convertir a Reserva" en draft/sent habilitaba el bypass
+// de la aceptación del cliente (G-VEN-01).
+const CONVERTIBLE_STATUSES = new Set(["accepted"]);
 
 export function isQuoteEditable(quote: Pick<Tables<"quotes">, "status">): boolean {
   return EDITABLE_STATUSES.has(quote.status);

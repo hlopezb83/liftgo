@@ -102,7 +102,10 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
           name="bookingId"
           label="Reserva Vinculada"
           options={bookingOptions}
-          placeholder="Opcional"
+          // GUI-FE-11a (G-DIS-03): la regla exige reserva; el placeholder
+          // "Opcional" contradecía la validación.
+          required
+          placeholder="Seleccionar reserva"
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

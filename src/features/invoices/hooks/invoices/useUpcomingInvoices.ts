@@ -24,7 +24,7 @@ export interface UpcomingInvoice {
  * expone `balance_mxn` para que los agregadores multi-moneda no sumen
  * USD como si fueran MXN.
  */
-export function useUpcomingInvoices() {
+export function useUpcomingInvoices(enabled = true) {
   const today = todayKeyMty();
   const in30 = toYMD(addDays(nowMty(), 30)) ?? today;
 
@@ -32,7 +32,7 @@ export function useUpcomingInvoices() {
     statuses: ["sent", "partial"],
     dueFrom: today,
     dueTo: in30,
-  });
+  }, enabled);
 
   return {
     ...query,

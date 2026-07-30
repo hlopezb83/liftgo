@@ -63,7 +63,8 @@ export function useDashboardSections() {
   const canSeeFinancials = role === "admin" || role === "administrativo" || role === "auditor";
   const { data: kpis } = useFinancialKpis(canSeeFinancials);
   const { data: insuranceData } = useInsuranceAlerts();
-  const { data: upcomingInvoices } = useUpcomingInvoices();
+  // GUI-FE-05: ventas no consulta facturas (rol SELECT-only-denied → toast Forbidden).
+  const { data: upcomingInvoices } = useUpcomingInvoices(canSeeFinancials);
 
   const counts = stats?.fleet_counts ?? EMPTY_COUNTS;
   const activeFleet = counts.total - counts.retired - counts.sold;

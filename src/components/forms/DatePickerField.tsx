@@ -11,7 +11,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { formatDateMty } from "@/lib/format/dateFormats";
+import { formatMtyCalendarDate } from "@/lib/date/mtyCalendarDate";
 import { cn } from "@/lib/utils";
 import type { Matcher } from "react-day-picker";
 
@@ -53,8 +53,10 @@ export function DatePickerField({
     if (open) setLocalDate(date);
   }
 
-  const triggerLabel = date ? formatDateMty(date) : placeholder;
-  const liveLabel = localDate ? formatDateMty(localDate) : "Selecciona una fecha";
+  // GUI-FE-07: fecha calendario → formatear por componentes locales
+  // (toZonedTime corría el día fuera de TZ Monterrey).
+  const triggerLabel = date ? formatMtyCalendarDate(date) : placeholder;
+  const liveLabel = localDate ? formatMtyCalendarDate(localDate) : "Selecciona una fecha";
 
   const handleApply = () => {
     onSelect(normalize(localDate));

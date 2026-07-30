@@ -74,6 +74,7 @@ export default function Dashboard() {
               maintenanceAlerts={maintenanceAlerts}
               agingBuckets={agingBuckets}
               insuranceData={insuranceData}
+              canSeeFinancials={canSeeFinancials}
               {...alertsProps}
             />
           </div>

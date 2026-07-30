@@ -1,24 +1,72 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { MaintenanceIcon, InvoiceIcon, SuccessIcon, DeleteIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useCreateMaintenanceLog } from "@/features/maintenance";
+import { maintenanceLogKeys } from "@/features/maintenance/lib/queryKeys";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { supabase } from "@/integrations/supabase/client";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import type { DamageRecordWithJoins } from "@/types/rental";
-import { useArchiveDamageRecord, useUpdateDamageRecord } from "../../hooks/useDamageRecords";
+import { damageRecordQueries, useArchiveDamageRecord, useUpdateDamageRecord } from "../../hooks/useDamageRecords";
 import { chargeableDamageCost } from "../../lib/chargeableDamageCost";
 
-interface DamageActionsProps { record: DamageRecordWithJoins; }
+interface DamageActionsProps {
+  record: DamageRecordWithJoins;
+  /** GUI-FE-06 (G-UX-05): el sheet padre pasa esto para cerrarse tras archivar. */
+  onClose?: () => void;
+}
 
-export function DamageActions({ record }: DamageActionsProps) {
+/**
+ * GUI-FE-06d (G-MEC-03): intenta el RPC atómico `start_repair_work_order`
+ * (GUI-DB-09: INSERT maintenance_log + UPDATE damage_record en una sola
+ * transacción, SECURITY DEFINER → también funciona para mechanic, G-MEC-02).
+ * Devuelve `false` si la función aún no existe en este entorno para que el
+ * caller use el flujo legado; lanza cualquier otro error real.
+ */
+async function tryStartRepairWorkOrderRpc(record: DamageRecordWithJoins): Promise<boolean> {
+  const { error } = await supabase.rpc("start_repair_work_order", {
+    p_damage_id: record.id,
+    p_service_type: "Reparación de Daño",
+    p_description: record.description,
+    p_estimated_cost: record.estimated_cost ?? 0,
+  });
+  if (!error) return true;
+  const missingRpc =
+    error.code === "PGRST202" ||
+    error.code === "42883" ||
+    /schema cache|could not find the function/i.test(error.message ?? "");
+  if (missingRpc) return false;
+  throw error;
+}
+
+export function DamageActions({ record, onClose }: DamageActionsProps) {
   const navigate = useNavigateTransition();
+  const queryClient = useQueryClient();
   const updateDamage = useUpdateDamageRecord();
   const createMaintenance = useCreateMaintenanceLog();
   const archiveDamage = useArchiveDamageRecord();
   const [archiveOpen, setArchiveOpen] = useState(false);
 
-  const handleCreateWorkOrder = () => {
+  const handleCreateWorkOrder = async () => {
+    try {
+      const handledByRpc = await tryStartRepairWorkOrderRpc(record);
+      if (handledByRpc) {
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: damageRecordQueries.keys.all }),
+          queryClient.invalidateQueries({ queryKey: maintenanceLogKeys.all }),
+        ]);
+        notifySuccess("Orden de mantenimiento creada");
+        return;
+      }
+    } catch (err) {
+      notifyError({ error: err, title: "No se pudo crear la orden de reparación" });
+      return;
+    }
+    // Fallback (RPC aún no desplegado): flujo legado de dos mutaciones.
+    // Para roles SELECT-only en damage_records la segunda mutación puede
+    // afectar 0 filas (OT huérfana) — de ahí la prioridad del RPC atómico.
     createMaintenance.mutate(
       { forklift_id: record.forklift_id, service_type: "Reparación de Daño", description: record.description, cost: record.estimated_cost || 0 },
       { onSuccess: (data) => { updateDamage.mutate({ id: record.id, status: "in_repair", maintenance_log_id: data.id }); notifySuccess("Orden de mantenimiento creada"); } }
@@ -60,7 +108,7 @@ export function DamageActions({ record }: DamageActionsProps) {
   }
 
   return (
-    <div className="flex gap-1">
+    <div className="flex flex-wrap gap-2">
       {record.status === "reported" && (
         <Button variant="ghost" size="sm" onClick={handleCreateWorkOrder} disabled={createMaintenance.isPending}>
           <MaintenanceIcon className="h-3.5 w-3.5 mr-1" />Reparar
@@ -86,6 +134,11 @@ export function DamageActions({ record }: DamageActionsProps) {
           <DeleteIcon className="h-3.5 w-3.5 mr-1" />Archivar
         </Button>
       </span>
+      {/* GUI-FE-06c (G-UX-09): la razón del bloqueo siempre visible,
+          no sólo como tooltip del botón deshabilitado. */}
+      {archiveBlockReason && (
+        <p className="basis-full text-xs text-muted-foreground">{archiveBlockReason}</p>
+      )}
       <ConfirmDialog
         open={archiveOpen}
         onOpenChange={setArchiveOpen}
@@ -94,7 +147,15 @@ export function DamageActions({ record }: DamageActionsProps) {
         confirmLabel="Archivar"
         destructive
         loading={archiveDamage.isPending}
-        onConfirm={() => archiveDamage.mutate(record.id, { onSuccess: () => notifySuccess("Daño archivado") })}
+        onConfirm={() =>
+          archiveDamage.mutate(record.id, {
+            onSuccess: () => {
+              notifySuccess("Daño archivado");
+              // GUI-FE-06b (G-UX-05): cerrar el sheet tras archivar.
+              onClose?.();
+            },
+          })
+        }
       />
     </div>
   );

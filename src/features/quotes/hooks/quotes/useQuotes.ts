@@ -85,15 +85,34 @@ export function useQuotesByIds(ids: string[] | undefined) {
 }
 
 export function useCreateQuote() {
+  const queryClient = useQueryClient();
   return useEntityMutation({
     mutationFn: async (quote: TablesInsert<"quotes">) => {
       const { data, error } = await supabase.from("quotes").insert(quote).select().single();
-      if (error) throw error;
-      return data;
+      if (!error) return data;
+      // GUI-FE-02 (G-ADM-01/G-VEN-04): el folio venía cacheado por
+      // `useNextQuoteNumber`; si la secuencia está desincronizada el INSERT
+      // choca con quotes_quote_number_unique (23505). Invalidar el cache,
+      // pedir folio fresco y reintentar UNA vez antes de mostrar error.
+      const isFolioConflict =
+        error.code === "23505" && /quote_number/i.test(error.message ?? "");
+      if (!isFolioConflict) throw error;
+      await queryClient.invalidateQueries({ queryKey: quoteKeys.nextNumber() });
+      const { data: freshNumber, error: folioError } = await supabase.rpc("next_quote_number");
+      if (folioError || !freshNumber) throw error;
+      const retry = await supabase
+        .from("quotes")
+        .insert({ ...quote, quote_number: freshNumber })
+        .select()
+        .single();
+      if (retry.error) throw retry.error;
+      return retry.data;
     },
     // R17-D: invalidar `nextNumber` para que el siguiente folio se recalcule.
     invalidateKeys: [quoteKeys.lists(), quoteKeys.nextNumber()],
     errorTitle: "Error al crear cotización",
+    errorMessage:
+      "No se pudo generar un folio disponible para la cotización. Vuelve a intentarlo; si el problema continúa, avisa al administrador (secuencia de folios desincronizada).",
   });
 }
 

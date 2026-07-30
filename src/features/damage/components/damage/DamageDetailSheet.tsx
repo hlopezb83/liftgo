@@ -62,7 +62,7 @@ export function DamageDetailSheet({ record, open, onOpenChange }: Props) {
           <Separator />
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">Acciones:</span>
-            <DamageActions record={record} />
+            <DamageActions record={record} onClose={() => onOpenChange(false)} />
           </div>
 
           <div className="text-xs text-muted-foreground space-y-1">

@@ -101,7 +101,8 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
       description={
         <span className="flex items-start gap-2">
           <FleetIcon className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-          <span>La entrega de {forkliftName} se completó. ¿Deseas programar la recolección?</span>
+          {/* GUI-FE-11c (G-ADM-08 residual): fallback si no hay nombre de equipo. */}
+          <span>La entrega de {forkliftName || "el equipo"} se completó. ¿Deseas programar la recolección?</span>
         </span>
       }
     >
