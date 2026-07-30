@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePublicBranding } from "@/features/company-settings";
 import { FeedbackFab } from "@/features/feedback";
+import { OfflineBanner } from "@/layouts/OfflineBanner";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { cn } from "@/lib/utils";
 

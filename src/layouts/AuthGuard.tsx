@@ -1,8 +1,13 @@
 import { useIsRestoring } from "@tanstack/react-query";
-import { Suspense, lazy, type ReactNode } from "react";
+import { Suspense, lazy, useEffect, useState, type ReactNode } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserRole } from "@/features/users";
 import { PageFallback } from "@/routes/routes-config";
+import { OfflineBanner } from "@/layouts/OfflineBanner";
+
+// R6-FE-10 (offline): sin red la carga de auth/rol nunca resuelve y el splash
+// era infinito. Tras ~8s se muestra pantalla de error con Reintentar.
+const LOADING_TIMEOUT_MS = 8_000;
 
 const AuthPage = lazy(() => import("@/features/auth/pages/AuthPage"));
 const CustomerPortalRoutes = lazy(() =>
@@ -23,6 +28,28 @@ function AppLoader() {
   );
 }
 
+function LoadingError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="flex flex-col items-center gap-4 max-w-sm text-center px-4">
+        <p className="text-lg font-medium">No se pudo cargar LiftGo</p>
+        <p className="text-sm text-muted-foreground">
+          {navigator.onLine
+            ? "La carga está tardando más de lo normal. Revisa tu conexión e inténtalo de nuevo."
+            : "Parece que no tienes conexión a internet. Conéctate y reintenta."}
+        </p>
+        <button
+          type="button"
+          onClick={onRetry}
+          className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground min-h-11"
+        >
+          Reintentar
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function AuthGuard({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
   const { data: role, isLoading: roleLoading } = useUserRole();
@@ -31,8 +58,21 @@ export function AuthGuard({ children }: { children: ReactNode }) {
   // del portal o del `NoAccess` antes de que TanStack hidratara el rol.
   const isRestoring = useIsRestoring();
 
-  if (isRestoring || isLoading || (user && roleLoading)) {
-    return <AppLoader />;
+  const stillLoading = isRestoring || isLoading || (user && roleLoading);
+  const [timedOut, setTimedOut] = useState(false);
+  useEffect(() => {
+    if (!stillLoading) { setTimedOut(false); return; }
+    const t = setTimeout(() => setTimedOut(true), LOADING_TIMEOUT_MS);
+    return () => clearTimeout(t);
+  }, [stillLoading]);
+
+  if (stillLoading) {
+    return (
+      <>
+        <OfflineBanner />
+        {timedOut ? <LoadingError onRetry={() => window.location.reload()} /> : <AppLoader />}
+      </>
+    );
   }
 
 
