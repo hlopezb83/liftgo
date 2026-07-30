@@ -8,9 +8,25 @@ import { supabase } from "@/integrations/supabase/client";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { parseLineItems, parseRentalMeta } from "@/lib/domain/lineItems";
 import { useQuote } from "../quotes/useQuotes";
+import { resolveLegacyForkliftIds } from "./quoteBookingBuilders";
 
 export const isPublicoGeneral = (name?: string | null) =>
   !!name && (name.trim().toLowerCase().includes("público en general") || name.trim().toLowerCase().includes("publico en general"));
+
+/**
+ * Cuántas reservas generará la cotización: una por unidad cotizada, o por
+ * montacargas deducido en cotizaciones legacy sin `rental_meta`.
+ */
+function countQuoteUnits(
+  quote: Parameters<typeof resolveLegacyForkliftIds>[0] | null | undefined,
+  forklifts: { id: string; name: string }[] | undefined,
+  rentalMeta: { quantity: number }[],
+  isModelBased: boolean,
+): number {
+  if (isModelBased) return rentalMeta.reduce((acc, l) => acc + (l.quantity || 0), 0);
+  if (!quote || !forklifts) return 0;
+  return resolveLegacyForkliftIds(quote, forklifts).length;
+}
 
 export function useQuoteDetailData(id: string | undefined) {
   const { data: quote, isLoading, isError, refetch } = useQuote(id);
@@ -61,9 +77,11 @@ export function useQuoteDetailData(id: string | undefined) {
 
   const isModelBasedQuote = rentalMeta.length > 0;
 
+  const unitCount = countQuoteUnits(quote, forklifts, rentalMeta, isModelBasedQuote);
+
   return {
     quote, isLoading, isError, refetchQuote: refetch, customers, forklifts, equipmentModels,
     customerMatch, quoteType, isSale, lineItems, durationDays,
-    rentalMeta, isModelBasedQuote, alreadyConverted, alreadyInvoiced,
+    rentalMeta, isModelBasedQuote, unitCount, alreadyConverted, alreadyInvoiced,
   };
 }

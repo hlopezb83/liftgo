@@ -1,0 +1,24 @@
+{
+  "version": "7.269.0",
+  "date": "2026-07-30",
+  "type": "minor",
+  "title": "Convertir cotización a reserva con confirmación y resumen",
+  "category": "improvement",
+  "changes": [
+    {
+      "type": "improvement",
+      "title": "Un solo paso de confirmación antes de crear reservas",
+      "description": "Antes el botón 'Convertir a Reserva' encadenaba hasta tres ventanas sin contexto (y en cotizaciones antiguas creaba las reservas en silencio). Ahora se abre un diálogo único con el resumen: cliente, periodo, duración en días y meses, cuántas reservas se crearán y el total cotizado."
+    },
+    {
+      "type": "improvement",
+      "title": "Cliente final y facturación recurrente en la misma pantalla",
+      "description": "Si la cotización está a nombre de 'Público en General', se pide el cliente real dentro del mismo diálogo con un aviso claro. La facturación recurrente mensual pasó de dos botones a un interruptor explicado, visible sólo cuando el periodo llega a 30 días."
+    },
+    {
+      "type": "improvement",
+      "title": "Asignación de equipos con contador y aviso de falta de disponibilidad",
+      "description": "El diálogo de asignación muestra cuántas unidades llevan equipo asignado y advierte por adelantado qué modelos no tienen unidades disponibles, en lugar de descubrirlo al abrir cada lista."
+    }
+  ]
+}

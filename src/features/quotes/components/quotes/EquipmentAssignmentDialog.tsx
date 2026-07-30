@@ -2,6 +2,8 @@ import { useEffect } from "react";
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { WarnIcon } from "@/components/icons";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
@@ -111,6 +113,17 @@ export function EquipmentAssignmentDialog({
     );
   };
 
+  // Feedback anticipado: cuántas unidades ya tienen equipo y qué modelos se
+  // quedaron sin disponibilidad (antes sólo se veía al abrir cada selector).
+  const assignedCount = (watched ?? []).filter((a) => a.forkliftId).length;
+  const modelsWithoutStock = Array.from(
+    new Set(
+      fields
+        .map((slot, index) => (getAvailableForModel(slot.modelId, index).length === 0 ? slot.modelName : null))
+        .filter((n): n is string => !!n),
+    ),
+  );
+
   const onSubmit = form.handleSubmit((values) => {
     onConfirm(
       values.assignments.map((a) => ({
@@ -132,6 +145,21 @@ export function EquipmentAssignmentDialog({
     >
       <Form {...form}>
         <form onSubmit={onSubmit} className="space-y-4">
+          <div className="flex items-center justify-between rounded-md border bg-muted/30 px-3 py-2">
+            <span className="text-sm text-muted-foreground">Unidades asignadas</span>
+            <span className="text-sm font-semibold">{assignedCount} de {fields.length}</span>
+          </div>
+
+          {modelsWithoutStock.length > 0 && (
+            <Alert variant="destructive">
+              <WarnIcon className="h-4 w-4" />
+              <AlertDescription>
+                Sin unidades disponibles para: {modelsWithoutStock.join(", ")}. Libera un equipo o
+                cambia su estatus a “Disponible” en Flota para poder crear la reserva.
+              </AlertDescription>
+            </Alert>
+          )}
+
           <div className="space-y-4 max-h-[50vh] overflow-y-auto py-1">
             {fields.map((slot, index) => {
               const available = getAvailableForModel(slot.modelId, index);

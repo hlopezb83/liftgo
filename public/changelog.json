@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.269.0",
+    "date": "2026-07-30",
+    "type": "minor",
+    "title": "Convertir cotización a reserva con confirmación y resumen",
+    "category": "improvement",
+    "description": "El botón 'Convertir a Reserva' ahora abre un diálogo único con el resumen (cliente, periodo, unidades y total), pide el cliente final cuando la cotización es de 'Público en General' y ofrece la facturación recurrente como interruptor explicado. La asignación de equipos muestra contador de unidades y avisa qué modelos no tienen disponibilidad."
+  },
+  {
     "version": "7.268.0",
     "date": "2026-07-30",
     "type": "minor",
