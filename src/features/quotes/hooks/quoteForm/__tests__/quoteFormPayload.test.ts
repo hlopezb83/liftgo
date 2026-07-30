@@ -7,7 +7,6 @@ const baseLine: LineItem = { description: "x", quantity: 1, unit_price: 100, tot
 function args(overrides: Partial<BuildQuotePayloadArgs> = {}): BuildQuotePayloadArgs {
   return {
     existingQuote: null,
-    nextNumber: "COT-1234",
     customerId: "c1",
     customerName: "Cliente SA",
     quoteType: "rental",
@@ -34,15 +33,10 @@ describe("buildQuotePayload", () => {
     expect(p.status).toBe("sent");
   });
 
-  it("usa nextNumber para cotizaciones nuevas, status 'draft'", () => {
+  it("deja el folio vacío en cotizaciones nuevas (lo asigna el trigger), status 'draft'", () => {
     const p = buildQuotePayload(args());
-    expect(p.quote_number).toBe("COT-1234");
+    expect(p.quote_number).toBe("");
     expect(p.status).toBe("draft");
-  });
-
-  it("fallback final 'COT-0001' cuando no hay número previo", () => {
-    const p = buildQuotePayload(args({ existingQuote: null, nextNumber: null }));
-    expect(p.quote_number).toBe("COT-0001");
   });
 
   it("rental: usa fechas explícitas y serializa rental_meta", () => {

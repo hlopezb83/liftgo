@@ -99,7 +99,7 @@ export function useCreateQuote() {
         const payload =
           attempt === 0 || quote.quote_number
             ? quote
-            : { ...quote, quote_number: undefined };
+            : { ...quote, quote_number: "" };
         const { data, error } = await supabase.from("quotes").insert(payload).select().single();
         if (!error) return data;
         lastError = error;

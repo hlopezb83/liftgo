@@ -44,7 +44,8 @@ export function buildQuotePayload(a: BuildQuotePayloadArgs) {
   // `trg_assign_quote_number` (folio real, sin consumir secuencia por
   // display). Solo se conserva al editar una cotización existente.
   return {
-    ...(a.existingQuote?.quote_number ? { quote_number: a.existingQuote.quote_number } : {}),
+    // Cadena vacía => el trigger `trg_assign_quote_number` asigna el folio real.
+    quote_number: a.existingQuote?.quote_number ?? "",
     customer_id: a.customerId || null,
     customer_name: a.customerName || null,
     forklift_id: null as string | null,
