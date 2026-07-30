@@ -100,6 +100,15 @@ export function MaintenanceKanban({ logs }: Props) {
       </DndContext>
 
       <MaintenanceDetailSheet log={currentLog} onClose={() => setSelectedLog(null)} />
+
+      <CloseWorkOrderDialog
+        open={!!pendingCloseLog}
+        onOpenChange={(v) => { if (!v) clearPendingClose(); }}
+        log={pendingCloseLog}
+        onCancel={clearPendingClose}
+        onClosed={clearPendingClose}
+      />
+
     </>
   );
 }
