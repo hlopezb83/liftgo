@@ -15,6 +15,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
       position={isMobile ? "top-center" : "bottom-right"}
+      closeButton
       toastOptions={{
         classNames: {
           toast:
@@ -25,6 +26,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
           success: "group-[.toaster]:border-l-4 group-[.toaster]:border-l-success",
           warning: "group-[.toaster]:border-l-4 group-[.toaster]:border-l-warning",
           error: "group-[.toaster]:border-l-4 group-[.toaster]:border-l-destructive",
+          // GUI-FE-10: botón de cierre del toast con área táctil ≥44px.
+          closeButton:
+            "group-[.toast]:min-h-11 group-[.toast]:min-w-11 group-[.toast]:flex group-[.toast]:items-center group-[.toast]:justify-center",
         },
       }}
       {...props}

@@ -13,7 +13,7 @@ export const isPublicoGeneral = (name?: string | null) =>
   !!name && (name.trim().toLowerCase().includes("público en general") || name.trim().toLowerCase().includes("publico en general"));
 
 export function useQuoteDetailData(id: string | undefined) {
-  const { data: quote, isLoading } = useQuote(id);
+  const { data: quote, isLoading, isError, refetch } = useQuote(id);
   const { data: customers } = useCustomers();
   const { data: forklifts } = useForklifts();
   const { data: equipmentModels } = useEquipmentModels();
@@ -62,7 +62,7 @@ export function useQuoteDetailData(id: string | undefined) {
   const isModelBasedQuote = rentalMeta.length > 0;
 
   return {
-    quote, isLoading, customers, forklifts, equipmentModels,
+    quote, isLoading, isError, refetchQuote: refetch, customers, forklifts, equipmentModels,
     customerMatch, quoteType, isSale, lineItems, durationDays,
     rentalMeta, isModelBasedQuote, alreadyConverted, alreadyInvoiced,
   };

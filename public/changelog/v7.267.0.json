@@ -1,0 +1,64 @@
+{
+  "version": "7.267.0",
+  "date": "2026-07-30",
+  "type": "minor",
+  "title": "Auditoría GUI: integridad de rentas, permisos por rol y usabilidad móvil",
+  "category": "improvement",
+  "changes": [
+    {
+      "type": "fix",
+      "title": "Una reserva solo nace de una cotización aceptada",
+      "description": "El botón 'Convertir a Reserva' ya solo aparece en cotizaciones aceptadas y el servidor rechaza cualquier intento de crear la reserva antes de que el cliente acepte."
+    },
+    {
+      "type": "fix",
+      "title": "Unidades con daños abiertos no vuelven a 'Disponible'",
+      "description": "Al cerrar un mantenimiento o una renta, el equipo permanece en mantenimiento si tiene daños reportados o en reparación. Cualquier daño detectado en la inspección de devolución manda la unidad a mantenimiento."
+    },
+    {
+      "type": "fix",
+      "title": "Reparar un daño crea la orden de trabajo en una sola operación",
+      "description": "La acción 'Reparar' ahora es atómica: crea la orden de mantenimiento y actualiza el daño juntos, evitando órdenes huérfanas. El mecánico ya puede reportar daños."
+    },
+    {
+      "type": "fix",
+      "title": "Folios de cotización y reserva sin duplicados",
+      "description": "El servidor asigna el folio al guardar y las secuencias solo avanzan; si aun así hay choque de folio, la cotización se reintenta automáticamente con uno nuevo."
+    },
+    {
+      "type": "fix",
+      "title": "Fechas correctas fuera de la zona horaria de Monterrey",
+      "description": "Los selectores de fecha mostraban un día menos en navegadores con otra zona horaria; ahora la etiqueta coincide siempre con la fecha guardada."
+    },
+    {
+      "type": "improvement",
+      "title": "Permisos por rol más consistentes",
+      "description": "Despachador pasa a solo lectura en clientes y pierde el borrado de contratos; los contratos activos, firmados o completados ya no se pueden borrar. Las altas de flota, contratos y reservas piden acceso completo al módulo."
+    },
+    {
+      "type": "improvement",
+      "title": "Cada rol aterriza donde puede trabajar",
+      "description": "Quien no tiene tablero (por ejemplo mecánico) entra directo a su primer módulo disponible en lugar de ver 'Sin permisos', y la dirección /login ya no muestra un 404. Ventas deja de ver widgets y avisos de cobranza que no puede consultar."
+    },
+    {
+      "type": "improvement",
+      "title": "Errores claros en lugar de éxitos falsos",
+      "description": "Editar una factura o un cliente sin permisos ahora avisa explícitamente, y un error de red en el detalle de cotización muestra 'Reintentar' en vez de 'Cotización no encontrada'."
+    },
+    {
+      "type": "improvement",
+      "title": "Cuentas por pagar: alta de facturas ya vencidas",
+      "description": "Registrar una factura de proveedor con fecha de vencimiento pasada ya es posible y nace marcada como vencida."
+    },
+    {
+      "type": "improvement",
+      "title": "Uso más cómodo en celular",
+      "description": "Botones, cierres de diálogos, avisos y migas de pan tienen área táctil mínima de 44 px; las acciones de daños ya no se desbordan y el panel se cierra al archivar."
+    },
+    {
+      "type": "fix",
+      "title": "Resumen de cliente y tabla de posiciones reparados",
+      "description": "El resumen por cliente fallaba por una columna mal referenciada y la tabla de posiciones de reportes marcaba error de agrupación; ambos vuelven a cargar."
+    }
+  ]
+}

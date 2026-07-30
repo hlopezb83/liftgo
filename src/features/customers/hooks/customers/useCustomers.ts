@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import { customerKeys } from "../../lib/queryKeys";
 
@@ -86,10 +87,12 @@ export function useUpdateCustomer() {
   return useEntityMutation({
     mutationFn: async ({ id, ...updates }: TablesUpdate<"customers"> & { id: string }) => {
       // R10 Bloque 12.7: no actualizar clientes archivados.
-      const { data, error } = await supabase.from("customers").update(updates).eq("id", id).is("deleted_at", null).select().single();
+      const { data, error } = await supabase.from("customers").update(updates).eq("id", id).is("deleted_at", null).select();
 
       if (error) throw error;
-      return data;
+      // GUI-FE-08: 0 filas = sin permisos (RLS) o registro archivado/inexistente.
+      assertRowsAffected(data, "Actualizar cliente");
+      return data[0];
     },
     invalidateKeys: [customerKeys.all],
     errorTitle: "Error al actualizar cliente",

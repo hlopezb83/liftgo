@@ -14,6 +14,8 @@ export function useQuoteDetailLogic(id: string | undefined) {
     // Data
     quote: data.quote,
     isLoading: data.isLoading,
+    isError: data.isError,
+    refetchQuote: data.refetchQuote,
     lineItems: data.lineItems,
     customerMatch: data.customerMatch,
     quoteType: data.quoteType,

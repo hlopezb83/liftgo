@@ -17,9 +17,11 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
       },
       size: {
-        default: "h-10 px-4 py-2",
-        xs: "h-8 rounded-md px-2.5 text-xs [&_svg]:size-3.5",
-        sm: "h-9 rounded-md px-3",
+        // GUI-FE-10 (G-DIS-04/G-UX-02/06/07/G-MEC-06): tap target ≥44px en
+        // pantallas táctiles; `touch:min-h-11` no afecta escritorio.
+        default: "h-10 px-4 py-2 touch:min-h-11",
+        xs: "h-8 rounded-md px-2.5 text-xs [&_svg]:size-3.5 touch:min-h-11",
+        sm: "h-9 rounded-md px-3 touch:min-h-11",
         lg: "h-11 rounded-md px-8",
         icon: "h-10 w-10 touch:h-11 touch:w-11",
         iconSm: "h-8 w-8 [&_svg]:size-3.5 touch:h-11 touch:w-11",

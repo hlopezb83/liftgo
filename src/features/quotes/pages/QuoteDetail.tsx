@@ -2,6 +2,7 @@ import { useParams } from "react-router";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { ReadOnlyLineItemsTable } from "@/components/domain/ReadOnlyLineItemsTable";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,11 +23,21 @@ export default function QuoteDetail() {
     quote, isLoading, lineItems, customerMatch, quoteType, isSale,
     alreadyConverted, alreadyInvoiced, isConverting,
     setStatus, handleDelete, handleConvertClick,
+    isError, refetchQuote,
   } = logic;
 
   const assignmentStatus = useQuoteSaleAssignmentStatus(quote?.id, lineItems);
 
   if (isLoading) return <PageContainer><Skeleton className="h-64" /></PageContainer>;
+  // GUI-FE-03 (G-ADM-02): un error de red NO es "cotización no encontrada".
+  // Mismo patrón que PortalQuoteDetail: QueryErrorState + Reintentar.
+  if (isError) {
+    return (
+      <PageContainer>
+        <QueryErrorState entity="la cotización" onRetry={() => { void refetchQuote(); }} />
+      </PageContainer>
+    );
+  }
   if (!quote) return <PageContainer><p className="text-muted-foreground">Cotización no encontrada</p></PageContainer>;
 
   const currency = (quote as unknown as { currency?: string }).currency;

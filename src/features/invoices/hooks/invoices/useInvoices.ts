@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { todayKeyMty } from "@/lib/format/dateFormats";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { e2eVisibilityFilter, LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import {
   createInvoiceListFilters,
@@ -182,9 +183,12 @@ export function useInvoicesInfinite(filters?: InvoiceListFilters) {
 export function useUpdateInvoice() {
   return useEntityMutation({
     mutationFn: async ({ id, ...updates }: TablesUpdate<"invoices"> & { id: string }) => {
-      const { data, error } = await supabase.from("invoices").update(updates).eq("id", id).select().single();
+      // GUI-FE-08 (G-DIS-01): sin `.single()`, RLS devolvía 204/0 filas y la
+      // UI fingía éxito; con `.single()` lanzaba PGRST116 críptico.
+      const { data, error } = await supabase.from("invoices").update(updates).eq("id", id).select();
       if (error) throw error;
-      return data;
+      assertRowsAffected(data, "Actualizar factura");
+      return data[0];
     },
     // `invoiceKeys.all` cubre listas y detalle (jerárquico), evitando invalidar dos veces.
     invalidateKeys: [invoiceKeys.all],

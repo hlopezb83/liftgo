@@ -25,12 +25,15 @@ interface RawRoute {
 const rawRoutes: RawRoute[] = [
   { path: "/", loader: () => import("@/features/dashboard/pages/Dashboard"), module: "Dashboard" },
   { path: "/fleet", loader: () => import("@/features/fleet/pages/FleetPage"), module: "Flota" },
-  { path: "/fleet/new", loader: () => import("@/features/fleet/pages/ForkliftForm"), module: "Flota" },
+  // GUI-FE-04 (G-DIS-02): alta de unidad es operación "full" de Flota.
+  { path: "/fleet/new", loader: () => import("@/features/fleet/pages/ForkliftForm"), module: "Flota", minAccess: "full" },
   { path: "/fleet/:id", loader: () => import("@/features/fleet/pages/ForkliftDetail"), module: "Flota" },
-  { path: "/fleet/:id/edit", loader: () => import("@/features/fleet/pages/ForkliftForm"), module: "Flota" },
+  { path: "/fleet/:id/edit", loader: () => import("@/features/fleet/pages/ForkliftForm"), module: "Flota", minAccess: "full" },
   { path: "/calendar", loader: () => import("@/features/calendar/pages/CalendarPage"), module: "Calendario" },
   { path: "/bookings", loader: () => import("@/features/bookings/pages/BookingsPage"), module: "Reservas" },
-  { path: "/bookings/new", loader: () => import("@/features/bookings/pages/BookingForm"), module: "Reservas", adminOnly: true },
+  // GUI-FE-04 (G-DIS-05): la matriz da Reservas=full a dispatcher y el RPC
+  // create_booking ya lo permite; se alinea el router a la matriz.
+  { path: "/bookings/new", loader: () => import("@/features/bookings/pages/BookingForm"), module: "Reservas", minAccess: "full" },
   { path: "/bookings/:id", loader: () => import("@/features/bookings/pages/BookingDetail"), module: "Reservas" },
   { path: "/customers", loader: () => import("@/features/customers/pages/CustomersPage"), module: "Clientes" },
   { path: "/customers/:id", loader: () => import("@/features/customers/pages/CustomerDetailPage"), module: "Clientes" },
@@ -50,9 +53,10 @@ const rawRoutes: RawRoute[] = [
   { path: "/quotes/:id", loader: () => import("@/features/quotes/pages/QuoteDetail"), module: "Cotizaciones" },
   { path: "/quotes/:id/edit", loader: () => import("@/features/quotes/pages/QuoteForm"), module: "Cotizaciones" },
   { path: "/contracts", loader: () => import("@/features/contracts/pages/ContractsPage"), module: "Contratos" },
-  { path: "/contracts/new", loader: () => import("@/features/contracts/pages/ContractForm"), module: "Contratos" },
+  // GUI-FE-04 (G-DIS-05): crear contrato requiere acceso "full" a Contratos.
+  { path: "/contracts/new", loader: () => import("@/features/contracts/pages/ContractForm"), module: "Contratos", minAccess: "full" },
   { path: "/contracts/:id", loader: () => import("@/features/contracts/pages/ContractDetail"), module: "Contratos" },
-  { path: "/contracts/:id/edit", loader: () => import("@/features/contracts/pages/ContractForm"), module: "Contratos" },
+  { path: "/contracts/:id/edit", loader: () => import("@/features/contracts/pages/ContractForm"), module: "Contratos", minAccess: "full" },
   { path: "/activity", loader: () => import("@/features/audit/pages/ActivityPage"), module: "Auditoría" },
   { path: "/audit", loader: () => import("@/features/audit/pages/AuditTrailPage"), module: "Auditoría" },
   { path: "/reports", loader: () => import("@/features/reports/pages/ReportsPage"), module: "Reportes" },

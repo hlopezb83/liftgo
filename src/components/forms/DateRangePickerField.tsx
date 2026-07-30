@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { formatDateMty } from "@/lib/format/dateFormats";
+import { formatMtyCalendarDate } from "@/lib/date/mtyCalendarDate";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 
@@ -34,9 +34,10 @@ const normalizeRange = (r?: DateRange): DateRange | undefined =>
 
 function formatRangeLabel(range: DateRange | undefined, empty: string, partialSuffix: string): string {
   if (!range?.from) return empty;
-  const from = formatDateMty(range.from);
+  // GUI-FE-07: fechas calendario por componentes locales (sin toZonedTime).
+  const from = formatMtyCalendarDate(range.from);
   if (!range.to) return `${from} — ${partialSuffix}`;
-  const to = formatDateMty(range.to);
+  const to = formatMtyCalendarDate(range.to);
   return `${from} — ${to}`;
 }
 

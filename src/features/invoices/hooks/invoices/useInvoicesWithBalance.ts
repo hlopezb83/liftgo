@@ -94,6 +94,8 @@ function buildInvoicesWithBalanceQuery(filter: Filter) {
  * que aplica filtros por rol (customers solo ven sus propias facturas) y
  * empuja el resto de filtros + paginación al servidor.
  */
-export function useInvoicesWithBalance(filter: Filter = {}) {
-  return useQuery(buildInvoicesWithBalanceQuery(filter));
+export function useInvoicesWithBalance(filter: Filter = {}, enabled = true) {
+  // GUI-FE-05: `enabled=false` evita disparar el RPC (y su toast de error)
+  // para roles sin acceso a Facturas.
+  return useQuery({ ...buildInvoicesWithBalanceQuery(filter), enabled });
 }
