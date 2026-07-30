@@ -36,6 +36,7 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
   const deleteLog = useDeleteMaintenanceLog();
   const { data: suppliers } = useSuppliers();
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [closeOpen, setCloseOpen] = useState(false);
 
   if (!log) return null;
 
