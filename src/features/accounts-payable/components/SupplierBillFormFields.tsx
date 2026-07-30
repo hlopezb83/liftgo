@@ -25,7 +25,9 @@ interface Props {
 export function SupplierBillFormFields({ form, currency, currencyOptions, selectedSupplier, suggestedDueDate }: Props) {
   return (
     <>
+      <FormSection title="Clasificación">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+
         <FormField
           control={form.control}
           name="category"
