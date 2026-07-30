@@ -170,6 +170,10 @@ jobs:
           path: .vitest-reports/
           retention-days: 1
           if-no-files-found: error
+          # `.vitest-reports/` empieza con punto: sin esta bandera el upload
+          # ignora los blobs y el job de merge falla ("no blob files found").
+          include-hidden-files: true
+
 
   tests-merge:
     name: Tests (Vitest + Coverage)
