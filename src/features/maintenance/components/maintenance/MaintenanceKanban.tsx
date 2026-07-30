@@ -104,7 +104,7 @@ export function MaintenanceKanban({ logs }: Props) {
 
       <CloseWorkOrderDialog
         open={!!pendingCloseLog}
-        onOpenChange={(v) => { if (!v) clearPendingClose(); }}
+        onOpenChange={(v: boolean) => { if (!v) clearPendingClose(); }}
         log={pendingCloseLog}
         onCancel={clearPendingClose}
         onClosed={clearPendingClose}
