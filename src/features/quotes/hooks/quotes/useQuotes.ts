@@ -88,25 +88,31 @@ export function useCreateQuote() {
   const queryClient = useQueryClient();
   return useEntityMutation({
     mutationFn: async (quote: TablesInsert<"quotes">) => {
-      const { data, error } = await supabase.from("quotes").insert(quote).select().single();
-      if (!error) return data;
-      // GUI-FE-02 (G-ADM-01/G-VEN-04): el folio venía cacheado por
-      // `useNextQuoteNumber`; si la secuencia está desincronizada el INSERT
-      // choca con quotes_quote_number_unique (23505). Invalidar el cache,
-      // pedir folio fresco y reintentar UNA vez antes de mostrar error.
-      const isFolioConflict =
-        error.code === "23505" && /quote_number/i.test(error.message ?? "");
-      if (!isFolioConflict) throw error;
-      await queryClient.invalidateQueries({ queryKey: quoteKeys.nextNumber() });
-      const { data: freshNumber, error: folioError } = await supabase.rpc("next_quote_number");
-      if (folioError || !freshNumber) throw error;
-      const retry = await supabase
-        .from("quotes")
-        .insert({ ...quote, quote_number: freshNumber })
-        .select()
-        .single();
-      if (retry.error) throw retry.error;
-      return retry.data;
+      // R6-FE-08 (A.1/A.3/N6-ADM-03): para cotizaciones NUEVAS no se envía
+      // quote_number — el trigger `trg_assign_quote_number` (20260730135422)
+      // lo asigna server-side, sin quemar folio por display ni depender del
+      // cache de useNextQuoteNumber. Retry defensivo: hasta 3 intentos con
+      // folio fresco explícito si la secuencia está desfasada (23505).
+      const MAX_ATTEMPTS = 3;
+      let lastError: { code?: string; message?: string } | null = null;
+      for (let attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+        const payload =
+          attempt === 0 || quote.quote_number
+            ? quote
+            : { ...quote, quote_number: undefined };
+        const { data, error } = await supabase.from("quotes").insert(payload).select().single();
+        if (!error) return data;
+        lastError = error;
+        const isFolioConflict =
+          error.code === "23505" && /quote_number/i.test(error.message ?? "");
+        if (!isFolioConflict) throw error;
+        // Secuencia desfasada: pedir folio fresco explícito y reintentar.
+        await queryClient.invalidateQueries({ queryKey: quoteKeys.nextNumber() });
+        const { data: freshNumber, error: folioError } = await supabase.rpc("next_quote_number");
+        if (folioError || !freshNumber) throw error;
+        quote = { ...quote, quote_number: freshNumber };
+      }
+      throw lastError;
     },
     // R17-D: invalidar `nextNumber` para que el siguiente folio se recalcule.
     invalidateKeys: [quoteKeys.lists(), quoteKeys.nextNumber()],

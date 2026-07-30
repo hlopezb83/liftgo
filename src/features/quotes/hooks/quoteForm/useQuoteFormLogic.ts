@@ -7,7 +7,7 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
-import { useQuote, useCreateQuote, useUpdateQuote, useNextQuoteNumber } from "../quotes/useQuotes";
+import { useQuote, useCreateQuote, useUpdateQuote } from "../quotes/useQuotes";
 import { buildSaleItems, buildRentalItems } from "./quoteFormBuilders";
 import { buildQuotePayload } from "./quoteFormPayload";
 import { EMPTY_RENTAL_LINE, EMPTY_SALE_LINE, useQuoteForm } from "./useQuoteForm";
@@ -19,7 +19,6 @@ export function useQuoteFormLogic() {
   const navigate = useNavigateTransition();
   const { data: customers } = useCustomers();
   const { data: existingQuote } = useQuote(id);
-  const { data: nextNumber } = useNextQuoteNumber();
   const { data: equipmentModels } = useEquipmentModels();
   const createQuote = useCreateQuote();
   const updateQuote = useUpdateQuote();
@@ -76,7 +75,7 @@ export function useQuoteFormLogic() {
       return;
     }
     const payload = buildQuotePayload({
-      existingQuote, nextNumber,
+      existingQuote,
       customerId: values.customerId,
       customerName: values.customerName,
       quoteType: values.quoteType,

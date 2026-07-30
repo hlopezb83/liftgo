@@ -34,8 +34,8 @@ export function BookingActions({ booking }: BookingActionsProps) {
   // "Crear contrato" y "Cancelar"; el cancel moría en la DB con error críptico.
   const { data: role } = useUserRole();
   const { data: perms } = useRolePermissions();
-  const canCreateContract = !!perms && getAccessLevel(perms, role, "Contratos") === "full";
-  const canCancelBooking = !!perms && getAccessLevel(perms, role, "Reservas") === "full";
+  const canCreateContract = !!perms && getAccessLevel(perms, role ?? undefined, "Contratos") === "full";
+  const canCancelBooking = !!perms && getAccessLevel(perms, role ?? undefined, "Reservas") === "full";
   const cancelBlockReason = canCancelBooking
     ? undefined
     : "Tu rol solo puede consultar reservas; pide a un administrador cancelarla";

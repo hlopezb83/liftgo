@@ -58,8 +58,8 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
   const { data: role } = useUserRole();
   const { data: perms } = useRolePermissions();
   // Mientras cargan los permisos, fail-closed (mejor deshabilitado que roto).
-  const canManageDamage = !!perms && getAccessLevel(perms, role, "Daños") === "full";
-  const canChargeDamage = !!perms && getAccessLevel(perms, role, "Facturas") === "full";
+  const canManageDamage = !!perms && getAccessLevel(perms, role ?? undefined, "Daños") === "full";
+  const canChargeDamage = !!perms && getAccessLevel(perms, role ?? undefined, "Facturas") === "full";
   // "Marcar reparado" usa UPDATE damage_records: permitido a mechanic solo
   // cuando el daño ya está en reparación (UPDATE habilitado por R6-DB-01).
   const damageBlockReason = canManageDamage

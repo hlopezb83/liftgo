@@ -23,7 +23,7 @@ export function CustomerInvoicesList({ invoices }: { invoices: InvoiceRow[] }) {
   // sección; Facturas=read: folio como texto plano sin enlace.
   const { data: role } = useUserRole();
   const { data: perms } = useRolePermissions();
-  const invoicesAccess = getAccessLevel(perms, role, "Facturas");
+  const invoicesAccess = getAccessLevel(perms, role ?? undefined, "Facturas");
   if (perms && invoicesAccess === "none") return null;
   const canOpenInvoice = invoicesAccess === "full";
   return (
