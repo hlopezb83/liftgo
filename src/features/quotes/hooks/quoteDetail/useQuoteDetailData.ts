@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { parseLineItems, parseRentalMeta } from "@/lib/domain/lineItems";
 import { useQuote } from "../quotes/useQuotes";
+import { resolveLegacyForkliftIds } from "./quoteBookingBuilders";
 
 export const isPublicoGeneral = (name?: string | null) =>
   !!name && (name.trim().toLowerCase().includes("público en general") || name.trim().toLowerCase().includes("publico en general"));
@@ -61,9 +62,15 @@ export function useQuoteDetailData(id: string | undefined) {
 
   const isModelBasedQuote = rentalMeta.length > 0;
 
+  // Cuántas reservas se crearán: una por unidad cotizada (o por montacargas
+  // deducido en las cotizaciones legacy sin `rental_meta`).
+  const unitCount = isModelBasedQuote
+    ? rentalMeta.reduce((acc, l) => acc + (l.quantity || 0), 0)
+    : (quote && forklifts ? resolveLegacyForkliftIds(quote, forklifts).length : 0);
+
   return {
     quote, isLoading, isError, refetchQuote: refetch, customers, forklifts, equipmentModels,
     customerMatch, quoteType, isSale, lineItems, durationDays,
-    rentalMeta, isModelBasedQuote, alreadyConverted, alreadyInvoiced,
+    rentalMeta, isModelBasedQuote, unitCount, alreadyConverted, alreadyInvoiced,
   };
 }

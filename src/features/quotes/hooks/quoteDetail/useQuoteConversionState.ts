@@ -12,8 +12,7 @@ export function useQuoteConversionState() {
   const [pendingDeliveries, setPendingDeliveries] = useState<DeliveryInfo[]>([]);
   const [currentDeliveryIndex, setCurrentDeliveryIndex] = useState(0);
   const [isConverting, setIsConverting] = useState(false);
-  const [showRecurringDialog, setShowRecurringDialog] = useState(false);
-  const [showCustomerReassignDialog, setShowCustomerReassignDialog] = useState(false);
+  const [showConvertDialog, setShowConvertDialog] = useState(false);
   const [reassignCustomerId, setReassignCustomerId] = useState("");
   const [reassignCustomerName, setReassignCustomerName] = useState("");
   const [showAssignmentDialog, setShowAssignmentDialog] = useState(false);
@@ -23,8 +22,7 @@ export function useQuoteConversionState() {
     pendingDeliveries, setPendingDeliveries,
     currentDeliveryIndex, setCurrentDeliveryIndex,
     isConverting, setIsConverting,
-    showRecurringDialog, setShowRecurringDialog,
-    showCustomerReassignDialog, setShowCustomerReassignDialog,
+    showConvertDialog, setShowConvertDialog,
     reassignCustomerId, setReassignCustomerId,
     reassignCustomerName, setReassignCustomerName,
     showAssignmentDialog, setShowAssignmentDialog,
