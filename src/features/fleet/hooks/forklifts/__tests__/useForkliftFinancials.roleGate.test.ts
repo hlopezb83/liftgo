@@ -5,7 +5,7 @@ import { createSupabaseChainMock } from "@/test/helpers/supabaseChain";
 import type { AppRole } from "@/lib/domain/roles";
 
 let currentRole: AppRole | null = "mechanic";
-const rpcMock = vi.fn(() => Promise.resolve({
+const rpcMock = vi.fn((_args?: unknown) => Promise.resolve({
   data: { revenue: 100, maintenance_cost: 0 },
   error: null,
 }));

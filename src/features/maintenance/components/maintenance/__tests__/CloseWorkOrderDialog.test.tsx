@@ -1,5 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
+import { QueryClientProvider } from "@tanstack/react-query";
+import { createQueryWrapper } from "@/test/helpers/queryClient";
 import { CloseWorkOrderDialog } from "../CloseWorkOrderDialog";
 
 const closeMutate = vi.fn();
@@ -27,8 +29,11 @@ const baseLog = {
 
 function renderDialog() {
   const onOpenChange = vi.fn();
+  const { queryClient } = createQueryWrapper();
   render(
-    <CloseWorkOrderDialog open onOpenChange={onOpenChange} log={baseLog} />,
+    <QueryClientProvider client={queryClient}>
+      <CloseWorkOrderDialog open onOpenChange={onOpenChange} log={baseLog} />
+    </QueryClientProvider>,
   );
   return { onOpenChange };
 }
