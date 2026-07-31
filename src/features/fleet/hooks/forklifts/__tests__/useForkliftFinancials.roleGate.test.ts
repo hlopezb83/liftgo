@@ -21,7 +21,7 @@ vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({
     rpcResolvers: {
       get_forklift_financials: (...args: unknown[]) => {
-        rpcMock(...args);
+        rpcMock(args);
         return { data: { revenue: 100, maintenance_cost: 0 }, error: null };
       },
     },
