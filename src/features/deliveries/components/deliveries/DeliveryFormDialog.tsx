@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useBookings } from "@/features/bookings";
 import { useActiveDrivers, useForkliftMap } from "@/features/fleet";
 import { toYMD } from "@/lib/format/dateFormats";
+import { nowMty } from "@/lib/utils";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { useCreateDelivery } from "../../hooks/useDeliveries";
@@ -16,7 +17,7 @@ import { DeliveryFormFields, type DeliveryFormValues } from "./DeliveryFormField
 const initialForm: DeliveryFormValues = {
   forkliftId: "", bookingId: "", type: "delivery",
   alreadyCompleted: false,
-  scheduledDate: new Date(), scheduledTime: "",
+  scheduledDate: nowMty(), scheduledTime: "",
   address: "", driverName: "", driverPhone: "", notes: "",
 };
 
