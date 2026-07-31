@@ -62,6 +62,8 @@ const FIELD_LABELS: Record<string, string> = {
   cancellation_status: "Estado de Cancelación",
   work_order_number: "Número de OT", hours_reading: "Lectura de Horómetro",
 
+  // R7-FE-07c (N7-UX-06): caían al fallback crudo ("user id", "version").
+  user_id: "Usuario", version: "Versión",
 };
 
 export const translateField = (field: string) => FIELD_LABELS[field] || field.replace(/_/g, " ");

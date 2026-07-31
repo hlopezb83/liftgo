@@ -48,7 +48,9 @@ export function SelectField<TFieldValues extends FieldValues>({
             disabled={disabled}
           >
             <FormControl>
-              <SelectTrigger>
+              {/* R7-FE-07b (N7-UX-08): nombre accesible explícito — el select
+                  nativo oculto de Radix no hereda el FormLabel. */}
+              <SelectTrigger aria-label={label}>
                 <SelectValue placeholder={placeholder} />
               </SelectTrigger>
             </FormControl>

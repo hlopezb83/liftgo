@@ -90,7 +90,7 @@ export default function PortalContracts() {
               <MobileCardList
                 items={contracts ?? []}
                 keyExtractor={(c) => c.id}
-                emptyMessage="No se encontraron contratos"
+                emptyMessage="Aún no tienes contratos. Cuando tu renta tenga un contrato aparecerá aquí."
                 renderCard={(c) => (
                   <Card>
                     <CardContent className="p-3 space-y-1">
@@ -114,7 +114,7 @@ export default function PortalContracts() {
             <>
               <DataTableV2
                 table={table}
-                emptyMessage="No se encontraron contratos"
+                emptyMessage="Aún no tienes contratos. Cuando tu renta tenga un contrato aparecerá aquí."
               />
               <div className="px-4">
                 <DataTablePaginationV2 table={table} />

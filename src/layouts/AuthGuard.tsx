@@ -14,7 +14,7 @@ const CustomerPortalRoutes = lazy(() =>
   import("@/layouts/CustomerPortalRoutes").then((m) => ({ default: m.CustomerPortalRoutes })),
 );
 
-function AppLoader() {
+function AppLoader({ hint }: { hint?: string }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-background">
       <div className="flex flex-col items-center gap-4">
@@ -23,6 +23,7 @@ function AppLoader() {
           style={{ borderRadius: "30% 70% 70% 30% / 30% 30% 70% 70%" }}
         />
         <p className="text-sm text-muted-foreground">Cargando LiftGo…</p>
+        {hint && <p className="text-xs text-muted-foreground/80">{hint}</p>}
       </div>
     </div>
   );
@@ -70,7 +71,14 @@ export function AuthGuard({ children }: { children: ReactNode }) {
     return (
       <>
         <OfflineBanner />
-        {timedOut ? <LoadingError onRetry={() => window.location.reload()} /> : <AppLoader />}
+        {timedOut ? (
+          <LoadingError onRetry={() => window.location.reload()} />
+        ) : (
+          // R7-FE-04 (N7-UX-04): la percepción de ~15 s son las latencias previas
+          // (restauración de sesión + rol). Mostrar la fase reduce la incertidumbre
+          // sin modificar timeouts (opción menos invasiva).
+          <AppLoader hint={isLoading ? "Conectando…" : "Verificando sesión…"} />
+        )}
       </>
     );
   }

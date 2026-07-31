@@ -62,7 +62,7 @@ export default function PortalQuotes() {
               <MobileCardList
                 items={data ?? []}
                 keyExtractor={(q) => q.id}
-                emptyMessage="No hay cotizaciones para mostrar"
+                emptyMessage="Aún no tienes cotizaciones. Cuando solicites una cotización aparecerá aquí; contáctanos para cotizar tu próximo montacargas."
                 renderCard={(q) => (
                   <Card
                     className="cursor-pointer active:bg-accent/40"
@@ -92,7 +92,7 @@ export default function PortalQuotes() {
           ) : (
             <DataTableV2
               table={table}
-              emptyMessage="No hay cotizaciones para mostrar"
+              emptyMessage="Aún no tienes cotizaciones. Cuando solicites una cotización aparecerá aquí; contáctanos para cotizar tu próximo montacargas."
               onRowClick={(q) => navigate(`/portal/quotes/${q.id}`)}
             />
           )}

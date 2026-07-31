@@ -3,6 +3,7 @@ import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { CalendarDays, InvoiceIcon, ExpenseIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePortalCustomer, usePortalBookings, usePortalInvoices } from "@/features/customers";
 import { formatCompactCurrency, kpiSizeClass } from "@/lib/format/formatCurrency";
@@ -93,6 +94,18 @@ export default function PortalDashboard() {
       <PortalUpcomingDues invoices={unpaidInvoices} />
       {activeBookings.length > 0 && <PortalBookingsCard bookings={activeBookings} />}
       {recentInvoices.length > 0 && <PortalRecentInvoicesCard invoices={recentInvoices} />}
+      {/* R7-FE-06 (N7-POR-02): cliente nuevo — orientación + siguiente paso. */}
+      {activeBookings.length === 0 && invoiceList.length === 0 && (
+        <Card>
+          <CardContent className="pt-4 text-sm space-y-1">
+            <p className="font-medium">Aún no tienes rentas ni facturas.</p>
+            <p className="text-muted-foreground">
+              Cuando tengas una renta activa aparecerá aquí. ¿Necesitas un montacargas?
+              Solicita una cotización con tu ejecutivo de cuenta o contáctanos.
+            </p>
+          </CardContent>
+        </Card>
+      )}
     </PageContainer>
   );
 }

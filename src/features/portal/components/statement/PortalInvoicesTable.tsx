@@ -97,10 +97,10 @@ function InvoiceRow({ row, isOpen, onToggle }: { row: PortalInvoiceRow; isOpen: 
             )}
           </span>
         </TableCell>
-        <TableCell>{formatDateDisplay(r.inv.issued_at)}</TableCell>
+        <TableCell className="hidden md:table-cell">{formatDateDisplay(r.inv.issued_at)}</TableCell>
         <TableCell>{r.inv.due_date ? formatDateDisplay(r.inv.due_date) : "—"}</TableCell>
         <TableCell className="text-right font-mono tabular-nums">{formatCurrency(Number(r.inv.total))}</TableCell>
-        <TableCell className="text-right font-mono tabular-nums text-status-available">{formatCurrency(r.paid)}</TableCell>
+        <TableCell className="hidden md:table-cell text-right font-mono tabular-nums text-status-available">{formatCurrency(r.paid)}</TableCell>
         <TableCell
           className={`text-right font-mono tabular-nums ${r.balance > 0 ? "text-destructive" : ""}`}
         >
@@ -133,10 +133,10 @@ export function PortalInvoicesTable({ rows, expanded, onToggle }: Props) {
         <TableRow>
           <TableHead className="w-8 no-print" />
           <TableHead>Factura #</TableHead>
-          <TableHead>Emisión</TableHead>
+          <TableHead className="hidden md:table-cell">Emisión</TableHead>
           <TableHead>Vencimiento</TableHead>
           <TableHead className="text-right">Total</TableHead>
-          <TableHead className="text-right">Pagado</TableHead>
+          <TableHead className="hidden md:table-cell text-right">Pagado</TableHead>
           <TableHead className="text-right">Saldo</TableHead>
           <TableHead>Estado</TableHead>
           <TableHead className="no-print" />
@@ -146,7 +146,7 @@ export function PortalInvoicesTable({ rows, expanded, onToggle }: Props) {
         {rows.length === 0 && (
           <TableRow>
             <TableCell colSpan={9} className="text-center py-6 text-muted-foreground">
-              Sin facturas
+              Aún no tienes facturas. Tu estado de cuenta se llenará cuando se emita la primera.
             </TableCell>
           </TableRow>
         )}

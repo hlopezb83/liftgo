@@ -16,6 +16,7 @@ import type { Booking } from "@/features/bookings";
 import type { Forklift } from "@/features/fleet";
 import { INSPECTION_CONDITIONS, FUEL_LEVELS, STATUS_LABELS, FUEL_LEVEL_LABELS } from "@/lib/constants";
 import { formatDateRange } from "@/lib/utils";
+import { DAMAGE_CONDITIONS } from "../../lib/returnInspectionSchema";
 import type { ReturnInspectionFormValues } from "../../hooks/returnInspection/useReturnInspectionDialog";
 import type { FormEvent as ReactFormEvent } from "react";
 
@@ -33,6 +34,10 @@ export function ReturnInspectionDialog({
   open, onOpenChange, form, activeBookings, forkliftMap, isPending, onSubmit,
 }: Props) {
   const bookingId = useWatch({ control: form.control, name: "bookingId" });
+  // R7-FE-07a (N7-UX-01): señalar la obligatoriedad ANTES del submit
+  // (asterisco + descripción), no sólo aria-invalid después.
+  const conditionValue = useWatch({ control: form.control, name: "condition" });
+  const isDamageCondition = DAMAGE_CONDITIONS.includes(conditionValue);
 
   const bookingOptions: SelectOption[] =
     activeBookings?.map((b) => ({
@@ -115,6 +120,12 @@ export function ReturnInspectionDialog({
               label="Costo por Daños ($)"
               type="number"
               placeholder="0"
+              required={isDamageCondition}
+              description={
+                isDamageCondition
+                  ? "Obligatorio cuando la condición indica daño (usa 0 si no aplica cargo)."
+                  : undefined
+              }
             />
             <TextField
               control={form.control}
