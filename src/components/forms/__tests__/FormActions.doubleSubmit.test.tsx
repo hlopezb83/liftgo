@@ -74,10 +74,10 @@ function DelayedMutationHarness({ onSubmit, gapMs }: { onSubmit: () => void; gap
 
 function FailingValidationHarness({ onSubmit }: { onSubmit: () => void }) {
   const form = useForm({ defaultValues: { name: "" } });
-  form.register("name", { required: true });
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)}>
+        <input aria-label="name" {...form.register("name", { required: true })} />
         <FormActions submitLabel="Guardar" isPending={false} onCancel={() => {}} />
       </form>
     </FormProvider>
