@@ -2,8 +2,8 @@ import { STAGE_LABELS, LOST_REASON_LABELS } from "@/features/crm";
 import { STATUS_LABELS, FUEL_TYPE_LABELS, FUEL_LEVEL_LABELS, MAINTENANCE_WORK_STATUS_LABELS, ROLE_LABELS } from "@/lib/constants";
 import { formatDateMty, formatDateTimeMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import type { AuditLog } from "../../hooks/useAuditLogs";
 import { translateTable } from "./auditTrailLabels";
+import type { AuditLog } from "../../hooks/useAuditLogs";
 
 const CURRENCY_FIELDS = new Set([
   "deal_value", "final_amount", "total", "subtotal", "tax_amount",

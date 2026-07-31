@@ -11,8 +11,8 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { usePublicBranding } from "@/features/company-settings";
 import { FeedbackFab } from "@/features/feedback";
-import { OfflineBanner } from "@/layouts/OfflineBanner";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { OfflineBanner } from "@/layouts/OfflineBanner";
 import { cn } from "@/lib/utils";
 
 const tabs = [
