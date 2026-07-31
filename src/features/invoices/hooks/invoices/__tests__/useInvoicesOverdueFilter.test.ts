@@ -24,6 +24,7 @@ vi.mock("@/integrations/supabase/client", () => ({
 }));
 
 import { useInvoices } from "../useInvoices";
+import { createInvoiceListFilters } from "../../../lib/invoiceListFilters";
 
 describe("useInvoices — filtro de vencidas (R8-FE-01)", () => {
   beforeEach(() => {
@@ -33,7 +34,7 @@ describe("useInvoices — filtro de vencidas (R8-FE-01)", () => {
 
   it("incluye status='overdue' además de sent/partial", async () => {
     const { Wrapper } = createQueryWrapper();
-    const { result } = renderHook(() => useInvoices({ status: "overdue" }), {
+    const { result } = renderHook(() => useInvoices(createInvoiceListFilters({ status: "overdue" })), {
       wrapper: Wrapper,
     });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -44,7 +45,7 @@ describe("useInvoices — filtro de vencidas (R8-FE-01)", () => {
 
   it("excluye cancelaciones aceptadas vía filtro .or de cancellation_status", async () => {
     const { Wrapper } = createQueryWrapper();
-    const { result } = renderHook(() => useInvoices({ status: "overdue" }), {
+    const { result } = renderHook(() => useInvoices(createInvoiceListFilters({ status: "overdue" })), {
       wrapper: Wrapper,
     });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
@@ -60,7 +61,7 @@ describe("useInvoices — filtro de vencidas (R8-FE-01)", () => {
 
   it("no aplica el filtro de vencidas cuando status es distinto de overdue", async () => {
     const { Wrapper } = createQueryWrapper();
-    const { result } = renderHook(() => useInvoices({ status: "paid" }), {
+    const { result } = renderHook(() => useInvoices(createInvoiceListFilters({ status: "paid" })), {
       wrapper: Wrapper,
     });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));

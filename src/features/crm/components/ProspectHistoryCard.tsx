@@ -30,7 +30,7 @@ export function ProspectHistoryCard({ prospectId }: Props) {
   // para ventas en role_permissions (o ajustar este gate).
   const { data: role } = useUserRole();
   const { data: perms } = useRolePermissions();
-  const canSeeAudit = getAccessLevel(perms, role, "Auditoría") !== "none";
+  const canSeeAudit = getAccessLevel(perms, role ?? undefined, "Auditoría") !== "none";
 
   const visible = expanded ? logs : logs.slice(0, 5);
 
