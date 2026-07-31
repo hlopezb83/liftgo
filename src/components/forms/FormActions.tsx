@@ -108,7 +108,11 @@ export function FormActions({ submitLabel, isPending, onCancel, submitDisabled, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const blockIfBusy = (e: React.PointerEvent<HTMLButtonElement>) => {
+  // El guard vive en `onClick` (no en `onPointerDown`): `click` siempre se
+  // dispara — con puntero, teclado o `fireEvent.click` — y llamar
+  // `preventDefault()` aquí cancela el submit del formulario de forma síncrona,
+  // sin depender de que React haya flusheado `disabled`.
+  const blockIfBusy = (e: React.MouseEvent<HTMLButtonElement>) => {
     if (busy || inFlightRef.current) {
       e.preventDefault();
       e.stopPropagation();
@@ -130,7 +134,8 @@ export function FormActions({ submitLabel, isPending, onCancel, submitDisabled, 
       <div className="flex items-center justify-between gap-3 pt-2">
         <Button type="button" variant="outline" onClick={handleCancel} disabled={busy}>Cancelar</Button>
 
-        <Button type="submit" disabled={submitBlocked} onPointerDown={blockIfBusy}>
+        <Button type="submit" disabled={submitBlocked} onClick={blockIfBusy}>
+
           {busy && <SpinnerIcon className="h-4 w-4 mr-2 animate-spin" />}
           {busy ? "Guardando…" : submitLabel}
         </Button>
