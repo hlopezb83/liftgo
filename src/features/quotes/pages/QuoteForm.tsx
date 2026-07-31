@@ -36,7 +36,7 @@ export default function QuoteForm() {
               render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <SaleLineItems lines={field.value} onChange={field.onChange} models={f.equipmentModels || []} />
+                    <SaleLineItems lines={field.value} onChange={field.onChange} models={f.equipmentModels || []} modelsLoading={f.equipmentModelsLoading} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -55,6 +55,7 @@ export default function QuoteForm() {
                       lines={field.value}
                       onChange={field.onChange}
                       models={f.equipmentModels || []}
+                      modelsLoading={f.equipmentModelsLoading}
                       startDate={f.startDate}
                       endDate={f.endDate}
                     />

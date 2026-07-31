@@ -49,6 +49,18 @@ export const SERVICE_TYPES = [
   "Inspección de Rutina", "Cambio de Aceite", "Servicio de Batería", "Reemplazo de Llantas",
   "Reparación Hidráulica", "Servicio de Frenos", "Reparación Eléctrica", "Póliza de Mantenimiento", "Otro",
 ] as const;
+
+// R7-FE-07d (N7-UX-07): el seed histórico grabó tipos en minúscula y sin
+// acentos ("preventivo", "inspeccion"). Etiqueta de exhibición; no migra datos.
+const LEGACY_SERVICE_TYPE_LABELS: Record<string, string> = {
+  preventivo: "Preventivo",
+  correctivo: "Correctivo",
+  inspeccion: "Inspección",
+};
+export const serviceTypeLabel = (serviceType: string | null | undefined): string => {
+  if (!serviceType) return "—";
+  return LEGACY_SERVICE_TYPE_LABELS[serviceType] ?? serviceType;
+};
 export const INSPECTION_CONDITIONS = ["good", "minor_damage", "major_damage", "needs_repair"] as const;
 export const FUEL_LEVELS = ["Full", "3/4", "1/2", "1/4", "Empty"] as const;
 export const DAMAGE_STATUSES = ["reported", "in_repair", "repaired", "invoiced"] as const;

@@ -66,8 +66,10 @@ export default function QuotesPage() {
       }
       mobileFab={
         <RoleGuard module="Cotizaciones" minAccess="full" fallback={null}>
-          <Button onClick={() => navigate("/quotes/new")} size="icon" className="h-14 w-14 rounded-full shadow-lg" aria-label="Nueva cotización">
-            <PlusCircle className="h-6 w-6" />
+          {/* R7-FE-07f (N7-UX-10): FAB extendido con texto — a 698px el "+" solo
+              con icono obligaba a adivinar la acción primaria. */}
+          <Button onClick={() => navigate("/quotes/new")} className="h-14 rounded-full shadow-lg px-5" aria-label="Nueva cotización">
+            <PlusCircle className="h-6 w-6 mr-2" /> Nueva cotización
           </Button>
         </RoleGuard>
       }
