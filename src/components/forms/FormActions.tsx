@@ -15,6 +15,16 @@ interface FormActionsProps {
   submitDisabledReason?: string;
 }
 
+/** R9 Bloque 2 (capa 3, hardening): la ventana entre que `formState.isSubmitting`
+ *  baja a `false` (RHF resolvió la validación) y `isPending` (React Query) sube
+ *  a `true` (la mutación arrancó) puede tardar hasta ~340ms observados en
+ *  producción (crear cotización) — en ese hueco `busy` es transitoriamente
+ *  `false`. Debounceamos la liberación del guard ese tiempo antes de soltarlo. */
+const RELEASE_DEBOUNCE_MS = 400;
+/** Si nunca hubo mutación (p.ej. error de validación async resuelto sin que
+ *  `busy` llegue a ser `true` en ningún render observado), liberamos el guard
+ *  de todas formas tras este timeout de seguridad para no bloquear reintentos. */
+const SAFETY_TIMEOUT_MS = 1000;
 
 /**
  * Bloque 2.1 (v7.146.0): además de `isPending` de la mutación, consumimos
@@ -27,8 +37,20 @@ interface FormActionsProps {
  *
  * R9 Bloque 2 (capa 3): `inFlightRef` es una guarda síncrona inmune al ciclo
  * de render — cubre la ventana <25ms donde `busy` aún no reflejó el primer
- * submit. Se libera cuando `busy` vuelve a `false` para permitir reintentos
- * tras un error de validación async o mutación fallida.
+ * submit.
+ *
+ * R9 Bloque 2 (capa 3, hardening — auditoría R9): `busy` puede pasar por un
+ * `false` transitorio entre que RHF termina de validar (`isSubmitting` baja)
+ * y la mutación de React Query arranca (`isPending` sube). Si liberamos
+ * `inFlightRef` en ese instante, un segundo click que llegue en esa ventana
+ * (reproducido a 340ms en Crear Cotización, 0.6s en Agregar Cliente) dispara
+ * un submit duplicado. Por eso ya NO liberamos el guard en el primer `false`:
+ * esperamos a que `busy` permanezca `false` de forma estable
+ * (`RELEASE_DEBOUNCE_MS`) antes de soltarlo — si `busy` vuelve a `true` en ese
+ * intervalo (la mutación arrancó), cancelamos la liberación. Como red de
+ * seguridad, si nunca se observó `busy === true` tras iniciar el submit
+ * (p. ej. la validación async falla sin llegar a mutar), liberamos por
+ * `SAFETY_TIMEOUT_MS` para no bloquear reintentos indefinidamente.
  */
 export function FormActions({ submitLabel, isPending, onCancel, submitDisabled, submitDisabledReason }: FormActionsProps) {
   const ctx = useFormContext();
@@ -36,14 +58,55 @@ export function FormActions({ submitLabel, isPending, onCancel, submitDisabled, 
   const busy = isPending || isSubmitting;
   const submitBlocked = busy || submitDisabled;
   const inFlightRef = useRef(false);
+  const hasBeenBusyRef = useRef(false);
+  const releaseTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const safetyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // R23-A: dentro de un FormDialog, "Cancelar" pasa por el mismo guard de
   // cambios sin guardar que Esc y el click fuera.
   const requestClose = useFormDialogClose();
   const handleCancel = requestClose ?? onCancel;
 
+  const clearReleaseTimer = () => {
+    if (releaseTimerRef.current !== null) {
+      clearTimeout(releaseTimerRef.current);
+      releaseTimerRef.current = null;
+    }
+  };
+  const clearSafetyTimer = () => {
+    if (safetyTimerRef.current !== null) {
+      clearTimeout(safetyTimerRef.current);
+      safetyTimerRef.current = null;
+    }
+  };
+  const release = () => {
+    inFlightRef.current = false;
+    hasBeenBusyRef.current = false;
+    clearReleaseTimer();
+    clearSafetyTimer();
+  };
+
   useEffect(() => {
-    if (!busy) inFlightRef.current = false;
+    if (busy) {
+      // La mutación (o la validación) está en curso: ya no necesitamos la
+      // red de seguridad ni una liberación pendiente por un `false` previo.
+      hasBeenBusyRef.current = true;
+      clearReleaseTimer();
+      clearSafetyTimer();
+      return;
+    }
+    if (!hasBeenBusyRef.current) return;
+    clearReleaseTimer();
+    releaseTimerRef.current = setTimeout(release, RELEASE_DEBOUNCE_MS);
+    return clearReleaseTimer;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [busy]);
+
+  // Cleanup de timers al desmontar (evita setState/timers huérfanos).
+  useEffect(() => () => {
+    clearReleaseTimer();
+    clearSafetyTimer();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const blockIfBusy = (e: React.PointerEvent<HTMLButtonElement>) => {
     if (busy || inFlightRef.current) {
@@ -52,6 +115,10 @@ export function FormActions({ submitLabel, isPending, onCancel, submitDisabled, 
       return;
     }
     inFlightRef.current = true;
+    hasBeenBusyRef.current = false;
+    clearReleaseTimer();
+    clearSafetyTimer();
+    safetyTimerRef.current = setTimeout(release, SAFETY_TIMEOUT_MS);
   };
   return (
     // Oleada 2 (B-7): convención única de footer — Cancelar a la izquierda,
