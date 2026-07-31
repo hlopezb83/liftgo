@@ -10,6 +10,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { computeFleetAvailability } from "@/features/availability/utils/fleetAvailability";
 import { useBookings } from "@/features/bookings";
 import { DamagePhotosSection } from "@/features/damage";
 import { useMaintenanceLogs } from "@/features/maintenance";
@@ -36,6 +37,14 @@ export default function ForkliftDetail() {
   const { data: logs } = useStatusLogs(id);
   const { data: bookings } = useBookings(id);
   const { data: maintenanceLogs } = useMaintenanceLogs(id);
+  // R9-FE: mismo criterio operativo que FleetPage — el `status` crudo se
+  // desincroniza (available con reserva vigente, o rented sin ella). El badge
+  // del detalle debe reflejar la disponibilidad derivada, no el status crudo.
+  const availability = forklift && bookings ? computeFleetAvailability([forklift], bookings) : null;
+  const displayStatus =
+    forklift && availability && (forklift.status === "available" || forklift.status === "rented")
+      ? (availability.rentedForkliftIds.has(forklift.id) ? "rented" : "available")
+      : forklift?.status;
   const { data: financials, isLoading: loadingFinancials } = useForkliftFinancials(id);
   const { data: locationData } = useForkliftLocation(id);
   const deleteForklift = useDeleteForklift();
@@ -74,7 +83,7 @@ export default function ForkliftDetail() {
         title={forklift.name}
         subtitle={`${forklift.model} — ${forklift.manufacturer}`}
         backTo="/fleet"
-        badges={<StatusBadge status={forklift.status} />}
+        badges={<StatusBadge status={displayStatus ?? forklift.status} />}
         actions={
           <>
             <RoleGuard module="Flota" minAccess="full" fallback={null}>
