@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { render, screen, fireEvent, within } from "@testing-library/react";
+import { render, screen, fireEvent, within, waitFor } from "@testing-library/react";
 import { BrowserRouter } from "react-router";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import type { Tables } from "@/integrations/supabase/types";
@@ -52,7 +52,7 @@ beforeEach(() => {
 });
 
 describe("QuoteDetailActions (DB3-06)", () => {
-  it("usa el estado 'rejected' del dominio de la base de datos al rechazar, con motivo (R8-FE-15)", () => {
+  it("usa el estado 'rejected' del dominio de la base de datos al rechazar, con motivo (R8-FE-15)", async () => {
     const onSetStatus = vi.fn();
     renderActions(onSetStatus);
     fireEvent.click(screen.getByRole("button", { name: /rechazar/i }));
@@ -61,7 +61,9 @@ describe("QuoteDetailActions (DB3-06)", () => {
       target: { value: "El cliente encontró mejor precio" },
     });
     fireEvent.click(within(dialog).getByRole("button", { name: /confirmar rechazo/i }));
-    expect(onSetStatus).toHaveBeenCalledWith("rejected", { rejectionReason: "El cliente encontró mejor precio" });
+    await waitFor(() =>
+      expect(onSetStatus).toHaveBeenCalledWith("rejected", { rejectionReason: "El cliente encontró mejor precio" }),
+    );
   });
 
   it("acepta solo desde 'sent' y con el estado 'accepted'", () => {

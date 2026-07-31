@@ -16,9 +16,9 @@ function FiscalBadge({ cfdiStatus, status }: { cfdiStatus: string | null; status
 }
 
 describe("FiscalBadge - estado fiscal traducido (R8-FE-18)", () => {
-  it("muestra 'Pagada' para una factura pagada sin timbrar (no el enum crudo)", () => {
+  it("muestra 'Pagado' para una factura pagada sin timbrar (no el enum crudo)", () => {
     render(<FiscalBadge cfdiStatus={null} status="paid" />);
-    expect(screen.getByText("Pagada")).toBeInTheDocument();
+    expect(screen.getByText("Pagado")).toBeInTheDocument();
     expect(screen.queryByText("paid")).not.toBeInTheDocument();
   });
 

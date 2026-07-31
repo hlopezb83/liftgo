@@ -12,8 +12,8 @@ function inclusiveDurationDays(startDate: string | null, endDate: string | null)
 }
 
 describe("duración inclusiva de cotización (R8-FE-14)", () => {
-  it("una cotización del 01 al 10 del mes cuenta 11 días (no 10)", () => {
-    expect(inclusiveDurationDays("2025-06-01", "2025-06-10")).toBe(11);
+  it("una cotización del 01 al 11 del mes cuenta 11 días (no 10)", () => {
+    expect(inclusiveDurationDays("2025-06-01", "2025-06-11")).toBe(11);
   });
 
   it("una renta de un solo día (inicio = fin) cuenta 1 día (no 0)", () => {
