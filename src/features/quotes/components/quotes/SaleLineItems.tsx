@@ -16,9 +16,10 @@ interface SaleLineItemsProps {
   lines: SaleLine[];
   onChange: (lines: SaleLine[]) => void;
   models: EquipmentModel[];
+  modelsLoading?: boolean;
 }
 
-export function SaleLineItems({ lines, onChange, models }: SaleLineItemsProps) {
+export function SaleLineItems({ lines, onChange, models, modelsLoading }: SaleLineItemsProps) {
   const updateLine = (index: number, field: keyof SaleLine, value: string | number) => {
     onChange(lines.map((line, i) => (i === index ? { ...line, [field]: value } : line)));
   };
@@ -54,7 +55,7 @@ export function SaleLineItems({ lines, onChange, models }: SaleLineItemsProps) {
           <AddIcon className="h-4 w-4 mr-1" /> Agregar modelo
         </Button>
 
-        {models.length === 0 && (
+        {!modelsLoading && models.length === 0 && (
           <p className="text-xs text-muted-foreground">No hay modelos de equipo configurados.</p>
         )}
       </CardContent>

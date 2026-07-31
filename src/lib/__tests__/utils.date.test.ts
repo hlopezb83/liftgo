@@ -121,3 +121,21 @@ describe("nowMty", () => {
     expect(mty.getHours()).toBe(21);
   });
 });
+
+
+describe("formatMtyDate — paridad lista/detalle (R7-FE-02, N7-MOV-05)", () => {
+  it("formatea un timestamp ISO con pattern largo en TZ Monterrey, no TZ navegador", () => {
+    // 2026-06-15T02:30:00Z es 2026-06-14 20:30 en Monterrey (UTC-6): el día
+    // debe reportarse como 14, no 15 (lo que rompía DamageDetailSheet con
+    // `format(new Date(...))` sobre TZ del navegador).
+    const iso = "2026-06-15T02:30:00Z";
+    expect(formatMtyDate(iso, "dd/MM/yyyy")).toBe("14/06/2026");
+  });
+
+  it("mismo timestamp con pattern corto y largo coinciden en el día (lista vs. sheet)", () => {
+    const iso = "2026-06-15T02:30:00Z";
+    const short = formatMtyDate(iso, "dd/MM/yyyy");
+    const long = formatMtyDate(iso, "dd MMM yyyy, HH:mm");
+    expect(long.startsWith(short.slice(0, 2))).toBe(true);
+  });
+});

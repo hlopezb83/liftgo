@@ -151,7 +151,7 @@ export default function PortalInvoiceDetail() {
           <CardTitle className="text-base">Partidas</CardTitle>
         </CardHeader>
         <CardContent className="p-0 pt-0">
-          <DataTableV2 table={lineTable} emptyMessage="Sin partidas" />
+          <DataTableV2 table={lineTable} emptyMessage="Sin partidas" className="min-w-[480px]" />
           <div className="mt-4 border-t pt-3">
             <TotalsBreakdown
               subtotal={invoice.subtotal}

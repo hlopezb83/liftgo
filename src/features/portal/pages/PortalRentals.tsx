@@ -81,7 +81,7 @@ export default function PortalRentals() {
               <MobileCardList
                 items={bookings ?? []}
                 keyExtractor={(b) => b.id}
-                emptyMessage="No se encontraron rentas"
+                emptyMessage="Aún no tienes rentas. Cuando tengas una renta activa aparecerá aquí. ¿Necesitas un montacargas? Solicita una cotización con tu ejecutivo de cuenta."
                 renderCard={(b) => (
                   <Card>
                     <CardContent className="p-3 space-y-1">
@@ -101,7 +101,7 @@ export default function PortalRentals() {
               />
             </div>
           ) : (
-            <DataTableV2 table={table} emptyMessage="No se encontraron rentas" />
+            <DataTableV2 table={table} emptyMessage="Aún no tienes rentas. Cuando tengas una renta activa aparecerá aquí. ¿Necesitas un montacargas? Solicita una cotización con tu ejecutivo de cuenta." />
           )}
         </CardContent>
       </Card>

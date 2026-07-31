@@ -86,7 +86,7 @@ export default function PortalInvoices() {
               <MobileCardList
                 items={invoices ?? []}
                 keyExtractor={(i) => i.id}
-                emptyMessage="No se encontraron facturas"
+                emptyMessage="Aún no tienes facturas. Cuando se emita tu primera factura aparecerá aquí. ¿Dudas? Contáctanos."
                 renderCard={(inv) => (
                   <Card
                     className="cursor-pointer active:bg-accent/40"
@@ -114,7 +114,7 @@ export default function PortalInvoices() {
           ) : (
             <DataTableV2
               table={table}
-              emptyMessage="No se encontraron facturas"
+              emptyMessage="Aún no tienes facturas. Cuando se emita tu primera factura aparecerá aquí. ¿Dudas? Contáctanos."
               onRowClick={(inv) => navigate(`/portal/invoices/${inv.id}`)}
             />
           )}

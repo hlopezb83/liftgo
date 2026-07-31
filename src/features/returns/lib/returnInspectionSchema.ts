@@ -10,7 +10,8 @@ const nonNegativeNumericString = (label: string) =>
   }, `${label} no puede ser negativo`);
 
 // A-05: condiciones que implican daño — exigen evidencia inline (notas + costo).
-const DAMAGE_CONDITIONS = ["minor_damage", "major_damage", "needs_repair"];
+// R7-FE-07a: exportada para que el diálogo marque la obligatoriedad visualmente.
+export const DAMAGE_CONDITIONS = ["minor_damage", "major_damage", "needs_repair"];
 
 export const returnInspectionSchema = z
   .object({

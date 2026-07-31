@@ -18,11 +18,12 @@ interface RentalLineItemsProps {
   lines: RentalLine[];
   onChange: (lines: RentalLine[]) => void;
   models: EquipmentModel[];
+  modelsLoading?: boolean;
   startDate?: Date;
   endDate?: Date;
 }
 
-export function RentalLineItems({ lines, onChange, models, startDate, endDate }: RentalLineItemsProps) {
+export function RentalLineItems({ lines, onChange, models, modelsLoading, startDate, endDate }: RentalLineItemsProps) {
   const updateLine = (index: number, field: keyof RentalLine, value: string | number) => {
     onChange(lines.map((line, i) => (i === index ? { ...line, [field]: value } : line)));
   };
@@ -78,7 +79,8 @@ export function RentalLineItems({ lines, onChange, models, startDate, endDate }:
           <AddIcon className="h-4 w-4 mr-1" /> Agregar modelo
         </Button>
 
-        {models.length === 0 && (
+        {/* R7-FE-07e (N7-UX-09): no mostrar mientras los modelos aún cargan. */}
+        {!modelsLoading && models.length === 0 && (
           <p className="text-xs text-muted-foreground">No hay modelos de equipo configurados.</p>
         )}
       </CardContent>

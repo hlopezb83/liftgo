@@ -42,7 +42,8 @@ export function CRMKanbanGrid({
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    // R7-FE-08a (N7-MOV-09): ver MaintenanceKanban — distance 4 → 8.
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     // `scrollBehavior: "auto"` evita el scroll suave del sensor de teclado, que
     // retrasaba el cambio de columna varios cientos de ms.
     useSensor(KeyboardSensor, {

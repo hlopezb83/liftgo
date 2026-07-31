@@ -15,6 +15,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
       theme={theme as ToasterProps["theme"]}
       className="toaster group"
       position={isMobile ? "top-center" : "bottom-right"}
+      // R7-FE-09c (N7-POR-06): el toast top-center se solapaba con el header
+      // sticky (h-14 = 56px) en móvil; 64px lo coloca justo debajo.
+      offset={isMobile ? 64 : undefined}
       closeButton
       toastOptions={{
         classNames: {

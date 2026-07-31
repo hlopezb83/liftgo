@@ -19,7 +19,7 @@ export function useQuoteFormLogic() {
   const navigate = useNavigateTransition();
   const { data: customers } = useCustomers();
   const { data: existingQuote } = useQuote(id);
-  const { data: equipmentModels } = useEquipmentModels();
+  const { data: equipmentModels, isLoading: equipmentModelsLoading } = useEquipmentModels();
   const createQuote = useCreateQuote();
   const updateQuote = useUpdateQuote();
 
@@ -133,6 +133,7 @@ export function useQuoteFormLogic() {
     logisticsCost,
     customers,
     equipmentModels,
+    equipmentModelsLoading,
     lineItems,
     subtotal, taxAmount, total,
     startDate, endDate,

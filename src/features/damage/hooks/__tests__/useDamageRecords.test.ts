@@ -145,6 +145,22 @@ describe("useUpdateDamageRecord", () => {
       title: "Error al actualizar registro de daño",
     });
   });
+
+  it("R7-FE-03 (N7-MOV-08): acepta y envía repaired_at junto con status repaired", async () => {
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useUpdateDamageRecord(), { wrapper: Wrapper });
+    const repairedAt = "2026-06-15T18:00:00.000Z";
+
+    await act(async () => {
+      await result.current.mutateAsync({
+        id: "dmg-1",
+        status: "repaired",
+        repaired_at: repairedAt,
+      } as never);
+    });
+
+    expect(updatedPayloads[0]).toEqual({ status: "repaired", repaired_at: repairedAt });
+  });
 });
 
 describe("useArchiveDamageRecord", () => {

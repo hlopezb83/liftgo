@@ -34,10 +34,20 @@ export default function FleetPage() {
   // activa; MC-105/107/109 rented sin reserva). El filtro "Rentado" usa la
   // misma definición operativa que Panel y Calendario.
   const { data: fleetBookings } = useBookings();
-  const rentedIds = computeFleetAvailability(forklifts, fleetBookings)?.rentedForkliftIds;
-  const forkliftsForFilter = (forklifts ?? []).map((f) =>
-    f.status === "available" && rentedIds?.has(f.id) ? { ...f, status: "rented" as const } : f,
-  );
+  // R7-FE-01 (N7-UX-02): sin reservas cargadas NO remapeamos (rentedIds
+  // undefined), para no mostrar un flash "Disponible" en unidades rented
+  // mientras llega la query de bookings.
+  const rentedIds = fleetBookings
+    ? computeFleetAvailability(forklifts, fleetBookings)?.rentedForkliftIds
+    : undefined;
+  // R7-FE-01: remap BIDIRECCIONAL — available→rented con reserva vigente
+  // (ya existía) y rented→available SIN reserva vigente (MC-105/107/109).
+  // maintenance/retired/sold mandan sobre la reserva (regla del helper).
+  const forkliftsForFilter = (forklifts ?? []).map((f) => {
+    if (!rentedIds || (f.status !== "available" && f.status !== "rented")) return f;
+    const derived = rentedIds.has(f.id) ? ("rented" as const) : ("available" as const);
+    return derived === f.status ? f : { ...f, status: derived };
+  });
   // Tanda 3 P1-5: 1 request a la vista `forklift_current_location`
   // reemplaza useContracts + useDeliveries + useMaintenancePolicies.
   const { data: fleetLocations } = useFleetLocations();

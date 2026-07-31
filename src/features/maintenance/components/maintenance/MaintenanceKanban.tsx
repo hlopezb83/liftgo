@@ -40,7 +40,9 @@ export function MaintenanceKanban({ logs }: Props) {
 
 
   const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    // R7-FE-08a (N7-MOV-09): distance 4 activaba drag en gestos verticales de
+    // scroll; 8px distingue la intención sin estorbar el drag real.
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 

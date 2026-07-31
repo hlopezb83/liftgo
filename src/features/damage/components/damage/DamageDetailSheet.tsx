@@ -1,4 +1,3 @@
-import { format } from "date-fns";
 import { Activity } from "react";
 import { DetailRow } from "@/components/domain/DetailRow";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
@@ -7,6 +6,7 @@ import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { APP_LOCALE } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatMtyDate } from "@/lib/utils";
 import type { DamageRecordWithJoins } from "@/types/rental";
 import { DamageActions } from "./DamageActions";
 import { DamagePhotosSection } from "./DamagePhotosSection";
@@ -44,7 +44,9 @@ export function DamageDetailSheet({ record, open, onOpenChange }: Props) {
             {record.actual_cost != null && record.actual_cost > 0 && (
               <DetailRow icon={CostIcon} label="Costo Real" value={formatCurrency(record.actual_cost)} />
             )}
-            <DetailRow icon={CalendarIcon} label="Fecha" value={format(new Date(record.created_at), "dd MMMM yyyy", { locale: APP_LOCALE })} />
+            {/* R7-FE-02 (N7-MOV-05): TZ de negocio (Monterrey), no TZ del navegador,
+                para coincidir con la lista (formatDateMty). */}
+            <DetailRow icon={CalendarIcon} label="Fecha" value={formatMtyDate(record.created_at, "dd MMMM yyyy", APP_LOCALE)} />
           </div>
 
           <Separator />
@@ -66,8 +68,8 @@ export function DamageDetailSheet({ record, open, onOpenChange }: Props) {
           </div>
 
           <div className="text-xs text-muted-foreground space-y-1">
-            <p>Creado: {format(new Date(record.created_at), "dd MMM yyyy, HH:mm", { locale: APP_LOCALE })}</p>
-            <p>Actualizado: {format(new Date(record.updated_at), "dd MMM yyyy, HH:mm", { locale: APP_LOCALE })}</p>
+            <p>Creado: {formatMtyDate(record.created_at, "dd MMM yyyy, HH:mm", APP_LOCALE)}</p>
+            <p>Actualizado: {formatMtyDate(record.updated_at, "dd MMM yyyy, HH:mm", APP_LOCALE)}</p>
           </div>
         </div>
         </Activity>

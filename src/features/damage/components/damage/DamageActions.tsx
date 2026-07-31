@@ -98,7 +98,9 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
   // que "Cobrar" siga siendo opcional.
   const handleMarkRepaired = () => {
     updateDamage.mutate(
-      { id: record.id, status: "repaired" },
+      // R7-FE-03 (N7-MOV-08): el FE sella `repaired_at` — ningún trigger lo
+      // setea; la migración R6-DB-01 (20260730200505) solo dio GRANT UPDATE.
+      { id: record.id, status: "repaired", repaired_at: new Date().toISOString() },
       { onSuccess: () => notifySuccess("Daño marcado como reparado") },
     );
   };

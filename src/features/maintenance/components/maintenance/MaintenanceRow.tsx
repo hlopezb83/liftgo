@@ -1,5 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import type { Tables } from "@/integrations/supabase/types";
+import { serviceTypeLabel } from "@/lib/constants";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import type { MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
@@ -26,7 +27,7 @@ export function MaintenanceMobileCard({
     >
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-1">
-          <span className="text-sm font-semibold">{log.service_type}</span>
+          <span className="text-sm font-semibold">{serviceTypeLabel(log.service_type)}</span>
           <span className="text-sm font-mono font-medium">{formatCurrency(log.cost || 0)}</span>
         </div>
         <p className="text-sm font-medium">{forkliftMap.get(log.forklift_id)?.name || "—"}</p>

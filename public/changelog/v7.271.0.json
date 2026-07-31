@@ -1,0 +1,19 @@
+{
+  "version": "7.271.0",
+  "date": "2026-07-31",
+  "type": "minor",
+  "title": "Auditoría Ronda 7 (UI/UX): folios auto-curativos, cartera coherente y portal legible",
+  "category": "improvement",
+  "highlights": [
+    "R7-DB-01: los folios de cotizaciones, reservas, entregas, facturas y notas de crédito son auto-curativos (toman el mayor entre el contador y el folio más alto existente) y se resincronizaron todas las secuencias; se corrigió un desfase real en facturas (contador 85 vs FAC-0095) que habría provocado errores de folio duplicado.",
+    "R7-DB-02: el desglose por estado del Panel usa el mismo criterio de vencimiento que el listado de vencidas (10 facturas ya vencidas aparecían como 'Sin pagar'), y un disparador impide marcar como vencida una factura cuya fecha aún no llega.",
+    "Datos: se pobló el beneficiario de las cuentas bancarias con la razón social, para que el portal deje de mostrar '—' en los datos SPEI.",
+    "R7-FE-01: el estado de flota se deriva en ambos sentidos (rentado sin reserva vigente → disponible) en Equipos y en la lista del Calendario, coincidiendo con los contadores del Panel.",
+    "R7-FE-02: el detalle de daño muestra la fecha en zona horaria de Monterrey, igual que la lista (se acabó el desfase de un día).",
+    "R7-FE-03: al marcar un daño como reparado se sella la fecha de reparación.",
+    "R7-FE-04: la pantalla de carga indica la fase ('Conectando…', 'Verificando sesión…') en lugar de un splash mudo.",
+    "R7-FE-05/06/09: portal del cliente — tablas de partidas y estado de cuenta legibles en pantallas angostas, estados vacíos con orientación y acción sugerida, menú hamburguesa con afordancia, equipo visible en contratos enviados y avisos que ya no tapan el encabezado.",
+    "R7-FE-07: asterisco y aviso en 'Costo por Daños', selects con nombre accesible, bitácora sin inglés crudo, ortografía de catálogos ('inspección', 'preventivo', 'correctivo') y botón primario con etiqueta visible en pantallas medianas.",
+    "R7-FE-08: móvil — el arrastre de los tableros kanban ya no pelea con el scroll y los objetivos táctiles del nav, panel y acciones de mantenimiento llegan a 44px."
+  ]
+}

@@ -1,4 +1,5 @@
 import type { ColumnDef } from "@/components/dataTable/v2";
+import { serviceTypeLabel } from "@/lib/constants";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import type { EnrichedMaintenanceLog } from "../lib/maintenancePageHelpers";
@@ -20,6 +21,7 @@ export const maintenanceColumns: ColumnDef<EnrichedMaintenanceLog>[] = [
     id: "service_type",
     header: "Tipo de Servicio",
     accessorKey: "service_type",
+    cell: ({ row }) => serviceTypeLabel(row.original.service_type),
   },
   {
     id: "performed_by",

@@ -91,7 +91,14 @@ export default function PortalStatement() {
       <PageHeader
         title="Estado de Cuenta"
         actions={
-          <Button variant="outline" onClick={handleDownload} disabled={!summary || !customer} className="no-print">
+          <Button
+            variant="outline"
+            onClick={handleDownload}
+            // R7-FE-09d (N7-POR-07): sin facturas el PDF saldría vacío.
+            disabled={!summary || !customer || rows.length === 0}
+            title={rows.length === 0 ? "Aún no hay facturas: el estado de cuenta está vacío" : undefined}
+            className="no-print"
+          >
             <DownloadIcon className="h-4 w-4 mr-2" /> Descargar PDF
           </Button>
         }

@@ -28,14 +28,14 @@ export function MaintenancePageActions({
         onValueChange={(v) => v && onViewModeChange(v as "list" | "board")}
         size="sm"
       >
-        <ToggleGroupItem value="list" aria-label="Vista de lista">
+        <ToggleGroupItem value="list" aria-label="Vista de lista" className="touch:min-h-11 touch:min-w-11">
           <List className="h-4 w-4" />
         </ToggleGroupItem>
-        <ToggleGroupItem value="board" aria-label="Vista de tablero">
+        <ToggleGroupItem value="board" aria-label="Vista de tablero" className="touch:min-h-11 touch:min-w-11">
           <LayoutGrid className="h-4 w-4" />
         </ToggleGroupItem>
       </ToggleGroup>
-      <Button variant="outline" size="sm" onClick={onExport} aria-label="Exportar CSV">
+      <Button variant="outline" size="sm" onClick={onExport} aria-label="Exportar CSV" className="touch:min-w-11">
         <DownloadIcon className="h-4 w-4 sm:mr-1" />
         <span className="hidden sm:inline">Exportar CSV</span>
       </Button>
@@ -46,6 +46,7 @@ export function MaintenancePageActions({
           onClick={onGenerateRecurring}
           disabled={isGenerating}
           aria-label="Generar recurrente"
+          className="touch:min-w-11"
         >
           <RefreshIcon className={`h-4 w-4 sm:mr-1 ${isGenerating ? "animate-spin" : ""}`} />
           <span className="hidden sm:inline">Generar Recurrente</span>

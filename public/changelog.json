@@ -1,5 +1,14 @@
 [
   {
+    "version": "7.271.0",
+    "date": "2026-07-31",
+    "type": "minor",
+    "title": "Auditoría Ronda 7 (UI/UX): folios auto-curativos, cartera coherente y portal legible",
+    "category": "improvement",
+    "description": "Los folios ya no chocan: cada documento toma el número más alto disponible y se resincronizaron todos los contadores (había un desfase real en facturas). El Panel deja de contradecirse en cartera vencida y se impide marcar como vencida una factura que aún no vence. En pantalla: estado de flota derivado en Equipos y Calendario, fechas de daños en hora de Monterrey, sello de fecha al reparar, pantalla de carga con progreso, portal del cliente legible en móvil con estados vacíos orientativos, ortografía de catálogos corregida y objetivos táctiles de 44px."
+  },
+  {
+
     "version": "7.270.0",
     "date": "2026-07-30",
     "type": "minor",
