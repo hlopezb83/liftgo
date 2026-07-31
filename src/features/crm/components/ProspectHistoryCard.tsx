@@ -24,13 +24,15 @@ export function ProspectHistoryCard({ prospectId }: Props) {
   const [expanded, setExpanded] = useState(false);
   const [selected, setSelected] = useState<AuditLog | null>(null);
   // BL-R8-09 (R8-FE-06): RLS devuelve [] (no error) cuando el rol no tiene
-  // política en audit_logs, indistinguible de "sin cambios". Se distingue por
-  // el permiso del módulo Auditoría. Coordinado con R8-DB-01b: cuando se
-  // restaure la política de ventas, dar acceso "read" al módulo Auditoría
-  // para ventas en role_permissions (o ajustar este gate).
+  // política en audit_logs, indistinguible de "sin cambios". Se distingue con
+  // un gate de UI en vez del módulo Auditoría de la matriz de permisos
+  // (esa matriz sólo da acceso a admin/administrativo/auditor, y Ventas SÍ
+  // tiene la política RLS restaurada en audit_logs — R9). Por eso el gate
+  // combina el nivel de acceso a algún módulo (usuario "activo" en el
+  // sistema de permisos) con una excepción explícita para Ventas.
   const { data: role } = useUserRole();
   const { data: perms } = useRolePermissions();
-  const canSeeAudit = getAccessLevel(perms, role ?? undefined, "Auditoría") !== "none";
+  const canSeeAudit = getAccessLevel(perms, role ?? undefined, "Auditoría") !== "none" || role === "ventas";
 
   const visible = expanded ? logs : logs.slice(0, 5);
 
