@@ -69,10 +69,21 @@ describe("useQuotePrefillValues", () => {
   });
 
   it("BL-R8-08: hidrata cuando existingQuote/equipmentModels llegan tarde (después del primer render)", () => {
-    const { result, rerender } = renderHook(
-      (props: { existingQuote: ExistingQuote | undefined; equipmentModels: EquipmentModel[] | undefined; quoteReady: boolean; modelsReady: boolean }) =>
-        useQuotePrefillValues(props),
-      { initialProps: { existingQuote: undefined, equipmentModels: undefined, quoteReady: false, modelsReady: false } },
+    interface LateProps {
+      existingQuote: ExistingQuote | undefined;
+      equipmentModels: EquipmentModel[] | undefined;
+      quoteReady: boolean;
+      modelsReady: boolean;
+    }
+    const initialProps: LateProps = {
+      existingQuote: undefined,
+      equipmentModels: undefined,
+      quoteReady: false,
+      modelsReady: false,
+    };
+    const { result, rerender } = renderHook<ReturnType<typeof useQuotePrefillValues>, LateProps>(
+      (props) => useQuotePrefillValues(props),
+      { initialProps },
     );
     // Primer render: sin data, sin queries listas — el form debe quedarse con sus defaults.
     expect(result.current).toBeUndefined();
