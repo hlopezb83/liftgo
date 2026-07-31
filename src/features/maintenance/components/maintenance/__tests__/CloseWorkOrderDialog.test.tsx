@@ -10,7 +10,7 @@ let openDamage: { id: string; description: string; status: string } | null = nul
 // R8-FE-03 (BL-R8-07): el submit de "Cerrar OT" debe bloquearse en el FE
 // mientras exista un daño abierto ligado a la OT, sin depender del error
 // del trigger server-side (R8-DB-02).
-vi.mock("../../hooks/maintenance/useWorkOrderClose", () => ({
+vi.mock("../../../hooks/maintenance/useWorkOrderClose", () => ({
   useCloseWorkOrder: () => ({ mutate: closeMutate, isPending: false }),
   useOpenDamageForLog: () => ({ data: openDamage }),
 }));
