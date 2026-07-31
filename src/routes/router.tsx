@@ -82,6 +82,10 @@ function HomeRedirect() {
 const authenticatedChildren: RouteObject[] = [
   // Redirect legacy: `<Navigate replace />` evita el flash blanco del loader.
   { path: "/expenses", element: <Navigate to="/cuentas-por-pagar" replace /> },
+  // GUI-FE-04 (R9): /customers/new no existía → "/customers/:id" capturaba
+  // "new" como id (UUID inválido → error SQL crudo). El alta real es un
+  // diálogo en la lista; redirigimos abriendo ese diálogo por query param.
+  { path: "/customers/new", element: <Navigate to="/customers?new=1" replace /> },
   // GUI-FE-09 (G-UX-08): /login no existía → 404 con sesión activa.
   // Sin sesión, AuthGuard muestra la pantalla de login inline; con sesión,
   // "/" resuelve el módulo correcto por rol vía HomeRedirect.

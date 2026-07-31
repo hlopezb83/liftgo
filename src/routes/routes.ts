@@ -49,6 +49,7 @@ export const ROUTES = {
   },
   customers: {
     list: "/customers",
+    new: "/customers/new",
     detail: (id: string) => `/customers/${id}`,
   },
   quotes: {
