@@ -90,7 +90,7 @@ export function CollectionForecast({
           </div>
           <Link
             to="/invoices?status=overdue"
-            className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1"
+            className="text-xs text-muted-foreground hover:text-primary inline-flex items-center gap-1 touch:min-h-11"
           >
             Ver facturas <ArrowRight className="h-3 w-3" />
           </Link>
@@ -104,7 +104,7 @@ export function CollectionForecast({
             </p>
             <Link
               to="/invoices?status=overdue"
-              className="text-2xs text-destructive hover:underline mt-1 inline-flex items-center gap-1"
+              className="text-2xs text-destructive hover:underline mt-1 inline-flex items-center gap-1 touch:min-h-11"
             >
               {forecast.overdueCount} factura{forecast.overdueCount === 1 ? "" : "s"} vencida{forecast.overdueCount === 1 ? "" : "s"}
               <ArrowRight className="h-3 w-3" />
