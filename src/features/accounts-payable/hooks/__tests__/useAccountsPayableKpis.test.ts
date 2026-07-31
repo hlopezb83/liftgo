@@ -115,4 +115,38 @@ describe("useAccountsPayableKpis", () => {
     expect(result.current.kpis.totalVencido).toBe(16_000);
     expect(result.current.kpis.totalPendiente).toBe(16_000);
   });
+
+  it("BL-R8-02 · excluye borradores de Vencido/Por vencer/Pendiente aunque tengan balance y due_date vencido", () => {
+    useSupplierBillsMock.mockReturnValue({
+      data: [bill({ status: "draft", due_date: "2026-05-01", balance: 142_000 })],
+      isLoading: false,
+    });
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useAccountsPayableKpis(), { wrapper: Wrapper });
+    expect(result.current.kpis.totalVencido).toBe(0);
+    expect(result.current.kpis.totalPorVencer).toBe(0);
+    expect(result.current.kpis.totalPendiente).toBe(0);
+  });
+
+  it("BL-R8-02 · un borrador pendiente de aprobación sí cuenta en Por aprobar", () => {
+    useSupplierBillsMock.mockReturnValue({
+      data: [bill({ status: "draft", approval_status: "pending", balance: 500, total: 500 })],
+      isLoading: false,
+    });
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useAccountsPayableKpis(), { wrapper: Wrapper });
+    expect(result.current.kpis.countPorAprobar).toBe(1);
+    expect(result.current.kpis.totalPorAprobar).toBe(500);
+  });
+
+  it("BL-R8-03 · una factura pagada con approval_status huérfano en 'pending' no cuenta como Por aprobar", () => {
+    useSupplierBillsMock.mockReturnValue({
+      data: [bill({ status: "paid", approval_status: "pending", balance: 0, total: 1_000, issue_date: "2026-06-01" })],
+      isLoading: false,
+    });
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useAccountsPayableKpis(), { wrapper: Wrapper });
+    expect(result.current.kpis.countPorAprobar).toBe(0);
+    expect(result.current.kpis.totalPorAprobar).toBe(0);
+  });
 });

@@ -17,7 +17,11 @@ const Toaster = ({ ...props }: ToasterProps) => {
       position={isMobile ? "top-center" : "bottom-right"}
       // R7-FE-09c (N7-POR-06): el toast top-center se solapaba con el header
       // sticky (h-14 = 56px) en móvil; 64px lo coloca justo debajo.
+      // BL-R8-10: en móvil sonner usa `mobileOffset` (default 16px) con
+      // precedencia sobre `offset` (--mobile-offset-top > --offset-top en el
+      // DOM), así que el fix r7 quedó incompleto — hay que fijar ambos.
       offset={isMobile ? 64 : undefined}
+      mobileOffset={isMobile ? 64 : undefined}
       closeButton
       toastOptions={{
         classNames: {

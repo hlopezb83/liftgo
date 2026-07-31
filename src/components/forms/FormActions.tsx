@@ -8,6 +8,11 @@ interface FormActionsProps {
   submitLabel: string;
   isPending: boolean;
   onCancel: () => void;
+  /** BL-R8-07 (R8-FE-03): bloqueo externo del submit (p. ej. daño abierto en
+   *  cierre de OT). No es "busy": no muestra spinner ni activa inFlight. */
+  submitDisabled?: boolean;
+  /** Razón visible del bloqueo (recomendado cuando submitDisabled=true). */
+  submitDisabledReason?: string;
 }
 
 
@@ -25,10 +30,11 @@ interface FormActionsProps {
  * submit. Se libera cuando `busy` vuelve a `false` para permitir reintentos
  * tras un error de validación async o mutación fallida.
  */
-export function FormActions({ submitLabel, isPending, onCancel }: FormActionsProps) {
+export function FormActions({ submitLabel, isPending, onCancel, submitDisabled, submitDisabledReason }: FormActionsProps) {
   const ctx = useFormContext();
   const isSubmitting = ctx?.formState?.isSubmitting ?? false;
   const busy = isPending || isSubmitting;
+  const submitBlocked = busy || submitDisabled;
   const inFlightRef = useRef(false);
   // R23-A: dentro de un FormDialog, "Cancelar" pasa por el mismo guard de
   // cambios sin guardar que Esc y el click fuera.
@@ -50,13 +56,18 @@ export function FormActions({ submitLabel, isPending, onCancel }: FormActionsPro
   return (
     // Oleada 2 (B-7): convención única de footer — Cancelar a la izquierda,
     // acción primaria a la derecha, en todos los diálogos de la app.
-    <div className="flex items-center justify-between gap-3 pt-2">
-      <Button type="button" variant="outline" onClick={handleCancel} disabled={busy}>Cancelar</Button>
+    <div className="space-y-2">
+      {submitDisabled && submitDisabledReason && (
+        <p className="text-xs text-destructive text-right">{submitDisabledReason}</p>
+      )}
+      <div className="flex items-center justify-between gap-3 pt-2">
+        <Button type="button" variant="outline" onClick={handleCancel} disabled={busy}>Cancelar</Button>
 
-      <Button type="submit" disabled={busy} onPointerDown={blockIfBusy}>
-        {busy && <SpinnerIcon className="h-4 w-4 mr-2 animate-spin" />}
-        {busy ? "Guardando…" : submitLabel}
-      </Button>
+        <Button type="submit" disabled={submitBlocked} onPointerDown={blockIfBusy}>
+          {busy && <SpinnerIcon className="h-4 w-4 mr-2 animate-spin" />}
+          {busy ? "Guardando…" : submitLabel}
+        </Button>
+      </div>
     </div>
   );
 }

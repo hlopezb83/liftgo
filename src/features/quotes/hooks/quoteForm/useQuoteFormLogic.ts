@@ -18,13 +18,13 @@ export function useQuoteFormLogic() {
   const { id } = useParams();
   const navigate = useNavigateTransition();
   const { data: customers } = useCustomers();
-  const { data: existingQuote } = useQuote(id);
-  const { data: equipmentModels, isLoading: equipmentModelsLoading } = useEquipmentModels();
+  const { data: existingQuote, isSuccess: quoteSuccess } = useQuote(id);
+  const { data: equipmentModels, isLoading: equipmentModelsLoading, isSuccess: modelsSuccess } = useEquipmentModels();
   const createQuote = useCreateQuote();
   const updateQuote = useUpdateQuote();
 
   const form = useQuoteForm();
-  useQuotePrefill({ existingQuote, equipmentModels, form });
+  useQuotePrefill({ existingQuote, equipmentModels, quoteReady: quoteSuccess, modelsReady: modelsSuccess, form });
 
   // P1-3: una cotización aceptada (o ya convertida a booking) no puede cambiar
   // de montos — el cliente ya firmó esas cifras. V3-3: la DB tampoco permite

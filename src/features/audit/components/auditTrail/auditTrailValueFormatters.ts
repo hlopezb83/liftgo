@@ -1,8 +1,9 @@
 import { STAGE_LABELS, LOST_REASON_LABELS } from "@/features/crm";
-import { STATUS_LABELS, FUEL_TYPE_LABELS, FUEL_LEVEL_LABELS, MAINTENANCE_WORK_STATUS_LABELS } from "@/lib/constants";
+import { STATUS_LABELS, FUEL_TYPE_LABELS, FUEL_LEVEL_LABELS, MAINTENANCE_WORK_STATUS_LABELS, ROLE_LABELS } from "@/lib/constants";
 import { formatDateMty, formatDateTimeMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import type { AuditLog } from "../../hooks/useAuditLogs";
+import { translateTable } from "./auditTrailLabels";
 
 const CURRENCY_FIELDS = new Set([
   "deal_value", "final_amount", "total", "subtotal", "tax_amount",
@@ -50,6 +51,8 @@ const ENUM_LABEL_FIELDS: Record<string, Record<string, string>> = {
   service_type: MAINTENANCE_WORK_STATUS_LABELS,
   cfdi_status: CFDI_STATUS_LABELS,
   cancellation_status: CANCELLATION_STATUS_LABELS,
+  // BL-R8-16: el campo role se veía como "administrativo" sin traducir.
+  role: ROLE_LABELS,
 };
 
 function formatDateString(field: string, value: string): string | null {
@@ -94,5 +97,9 @@ export function getRecordLabel(log: AuditLog): string {
   if (!data) return log.record_id.slice(0, 8);
   const pick = (k: string) => (typeof data[k] === "string" ? (data[k] as string) : undefined);
   const desc = pick("description");
-  return pick("name") || pick("booking_number") || pick("contract_number") || pick("invoice_number") || pick("quote_number") || desc?.slice(0, 30) || log.record_id.slice(0, 8);
+  // BL-R8-16: profiles tiene `full_name` (no `name`); sin él caía al UUID
+  // cortado. Como último recurso se muestra la tabla traducida + UUID corto
+  // para que al menos se entienda el contexto.
+  return pick("name") || pick("full_name") || pick("booking_number") || pick("contract_number") || pick("invoice_number") || pick("quote_number") || desc?.slice(0, 30)
+    || `${translateTable(log.table_name)} ${log.record_id.slice(0, 8)}`;
 }

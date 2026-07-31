@@ -17,6 +17,8 @@ export const TABLES = [
   { value: "supplier_bills", label: "Facturas de Proveedor" },
   { value: "parts_inventory", label: "Refacciones" },
   { value: "user_roles", label: "Roles de Usuario" },
+  // BL-R8-16: cambios de perfil (nombre, rol mostrado) se veían crudos.
+  { value: "profiles", label: "Perfiles de Usuario" },
   { value: "suppliers", label: "Proveedores" },
   { value: "prospects", label: "Prospectos" },
   { value: "supplier_payment_batches", label: "Lotes de Pago a Proveedores" },
@@ -64,6 +66,8 @@ const FIELD_LABELS: Record<string, string> = {
 
   // R7-FE-07c (N7-UX-06): caían al fallback crudo ("user id", "version").
   user_id: "Usuario", version: "Versión",
+  // BL-R8-16
+  role: "Rol", full_name: "Nombre Completo", avatar_url: "Foto de Perfil",
 };
 
 export const translateField = (field: string) => FIELD_LABELS[field] || field.replace(/_/g, " ");

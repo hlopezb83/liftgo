@@ -52,11 +52,16 @@ beforeEach(() => {
 });
 
 describe("QuoteDetailActions (DB3-06)", () => {
-  it("usa el estado 'rejected' del dominio de la base de datos al rechazar", () => {
+  it("usa el estado 'rejected' del dominio de la base de datos al rechazar, con motivo (R8-FE-15)", () => {
     const onSetStatus = vi.fn();
     renderActions(onSetStatus);
     fireEvent.click(screen.getByRole("button", { name: /rechazar/i }));
-    expect(onSetStatus).toHaveBeenCalledWith("rejected");
+    const dialog = screen.getByRole("dialog");
+    fireEvent.change(within(dialog).getByLabelText(/motivo del rechazo/i), {
+      target: { value: "El cliente encontró mejor precio" },
+    });
+    fireEvent.click(within(dialog).getByRole("button", { name: /confirmar rechazo/i }));
+    expect(onSetStatus).toHaveBeenCalledWith("rejected", { rejectionReason: "El cliente encontró mejor precio" });
   });
 
   it("acepta solo desde 'sent' y con el estado 'accepted'", () => {

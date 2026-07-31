@@ -12,6 +12,7 @@ import { toYMD } from "@/lib/date/toYMD";
 import { isQuoteEditable, canConvertQuote } from "@/lib/rules/quotes";
 import { parseDateLocal } from "@/lib/utils";
 import { QuotePDFButton } from "./QuotePDFButton";
+import { RejectQuoteDialog } from "./RejectQuoteDialog";
 
 interface Props {
   quote: Tables<"quotes">;
@@ -21,7 +22,7 @@ interface Props {
   isConverting: boolean;
   canInvoice: boolean;
   invoiceBlockedReason?: string;
-  onSetStatus: (status: string) => void;
+  onSetStatus: (status: string, opts?: { rejectionReason?: string }) => void;
   onConvertClick: () => void;
   onDelete: () => void;
 }
@@ -136,6 +137,8 @@ export function QuoteDetailActions({
 }: Props) {
   const navigate = useNavigateTransition();
   const isEditable = isQuoteEditable(quote);
+  // BL-R8-19: rechazar pasa por diálogo de motivo (patrón "Perdido" del CRM).
+  const [rejectOpen, setRejectOpen] = useState(false);
   return (
     <>
       <QuotePDFButton quoteId={quote.id} />
@@ -183,9 +186,18 @@ export function QuoteDetailActions({
               </Button>
             )}
             {/* DB3-06: el dominio de la BD usa 'rejected' (no 'declined'). */}
-            <Button size="sm" variant="destructive" onClick={() => onSetStatus("rejected")}>
+            <Button size="sm" variant="destructive" onClick={() => setRejectOpen(true)}>
               <ErrorIcon className="h-4 w-4 mr-1" />Rechazar
             </Button>
+            <RejectQuoteDialog
+              quoteNumber={quote.quote_number}
+              open={rejectOpen}
+              onOpenChange={setRejectOpen}
+              onConfirm={(reason) => {
+                onSetStatus("rejected", { rejectionReason: reason });
+                setRejectOpen(false);
+              }}
+            />
           </>
         );
       })()}

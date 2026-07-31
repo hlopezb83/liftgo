@@ -37,7 +37,9 @@
     --destructive: 0 72% 45%; /* R7 Bloque 16: contraste ≥4.5:1 con texto blanco */
     --destructive-foreground: 0 0% 100%;
 
-    --success: 142 71% 38%;
+    /* BL-R8-15: 38% daba ~2.7:1 (texto sobre bg-success/10, <4.5 AA).
+     * 26% da ≈4.9:1 y mejora el sólido (blanco sobre success: 6.07:1). */
+    --success: 142 71% 26%;
     --success-foreground: 0 0% 100%;
 
     --warning: 38 92% 50%;
@@ -120,6 +122,10 @@
     /* 0 84% 65% da ~5.1:1 y mantiene el hue destructive. */
     --destructive: 0 72% 50%; /* R7 Bloque 16: contraste ≥4.5:1 en dark */
     --destructive-foreground: 0 0% 100%;
+
+    /* BL-R8-15: en dark heredamos el token; 26% se hunde sobre fondo oscuro.
+     * 50% da ≈5.0:1 sobre bg-success/10 en dark. */
+    --success: 142 65% 50%;
 
     --border: 220 20% 18%;
     --input: 220 20% 18%;

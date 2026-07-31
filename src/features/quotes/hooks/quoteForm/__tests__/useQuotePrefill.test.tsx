@@ -48,7 +48,7 @@ describe("useQuotePrefill", () => {
   it("prefill de cotización existente NO marca isDirty (blindaje del guard)", () => {
     const { result } = renderHook(() => {
       const form = useQuoteForm();
-      useQuotePrefill({ existingQuote: existingRental, equipmentModels: models, form });
+      useQuotePrefill({ existingQuote: existingRental, equipmentModels: models, quoteReady: true, modelsReady: true, form });
       return form;
     });
     expect(result.current.formState.isDirty).toBe(false);
@@ -58,7 +58,7 @@ describe("useQuotePrefill", () => {
   it("no re-hidrata cuando el mismo existingQuote llega otra vez (no pisa cambios del usuario)", () => {
     const form = renderHook(() => {
       const f = useQuoteForm();
-      useQuotePrefill({ existingQuote: existingRental, equipmentModels: models, form: f });
+      useQuotePrefill({ existingQuote: existingRental, equipmentModels: models, quoteReady: true, modelsReady: true, form: f });
       return f;
     });
     act(() => form.result.current.setValue("customerName", "Editado", { shouldDirty: true }));
