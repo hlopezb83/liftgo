@@ -7,6 +7,7 @@ import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/component
 import type { BookingWithForklift } from "@/features/bookings";
 import { RecurringBillingBadge } from "@/features/bookings";
 import { rentalDaysInclusive } from "@/features/bookings";
+import { computeFleetAvailability } from "@/features/availability/utils/fleetAvailability";
 import type { Tables } from "@/integrations/supabase/types";
 import { BOOKING_STATUS } from "@/lib/constants";
 import { nowMty, formatMtyDate } from "@/lib/utils";
@@ -45,6 +46,13 @@ function enrichBookings(bookings: BookingWithForklift[] | undefined): Map<string
 export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProps) {
   const bookingsByForklift = useMemo(() => enrichBookings(bookings), [bookings]);
   const todayTs = useMemo(() => nowMty().getTime(), []);
+  // R7-FE-01 (N7-UX-02): el badge usa la MISMA definición derivada que el
+  // encabezado del Calendario y el Panel (helper único), no `forklifts.status`
+  // crudo, que el seed deja desincronizado. Sin reservas cargadas → status crudo.
+  const rentedIds = useMemo(
+    () => (bookings ? computeFleetAvailability(forklifts, bookings)?.rentedForkliftIds : undefined),
+    [forklifts, bookings],
+  );
 
   return (
     <div className="space-y-1">
@@ -65,7 +73,15 @@ export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProp
                 <ChevronRightIcon className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-90" />
                 <span className="text-sm font-mono font-medium">{fl.name}</span>
                 <span className="text-xs text-muted-foreground">{fl.model}</span>
-                <StatusBadge status={fl.status} />
+                <StatusBadge
+                  status={
+                    !rentedIds || (fl.status !== "available" && fl.status !== "rented")
+                      ? fl.status
+                      : rentedIds.has(fl.id)
+                        ? "rented"
+                        : "available"
+                  }
+                />
               </div>
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 {activeBooking && <span className="text-primary font-medium">Rentado</span>}
