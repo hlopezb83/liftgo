@@ -22,7 +22,7 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
   const { createBookingsFor, convertLegacy } = useQuoteBookingCreator(data, state);
   const { quote, isModelBasedQuote } = data;
 
-  const setStatus = async (status: string) => {
+  const setStatus = async (status: string, opts?: { rejectionReason?: string }) => {
     if (!id) return;
     // R8 Bloque 2: al aceptar internamente (sin pasar por RPC del portal), poblar
     // auditoría (`accepted_at` / `accepted_by_user_id`) para trazabilidad. El trigger
@@ -32,6 +32,10 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
       const { data: userData } = await import("@/integrations/supabase/client").then((m) => m.supabase.auth.getUser());
       extra.accepted_at = new Date().toISOString();
       extra.accepted_by_user_id = userData.user?.id ?? null;
+    }
+    // BL-R8-19: persistir el motivo de rechazo (columna ya existente).
+    if (status === "rejected" && opts?.rejectionReason) {
+      extra.rejection_reason = opts.rejectionReason;
     }
     updateQuote.mutate(
       { id, status, ...extra },

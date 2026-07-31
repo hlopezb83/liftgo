@@ -65,7 +65,9 @@ export function useQuoteDetailData(id: string | undefined) {
 
   const durationDays = (!quote?.start_date || !quote?.end_date)
     ? 0
-    : differenceInDays(new Date(quote.end_date), new Date(quote.start_date));
+    // BL-R8-18 (R8-FE-14): unificar con BookingPeriodCard — los rangos de
+    // renta son inclusivos (inicio y fin cuentan). Misma fórmula que R17-L.
+    : Math.max(1, differenceInDays(new Date(quote.end_date), new Date(quote.start_date)) + 1);
 
   const rentalMeta = (() => {
     if (!quote || isSale) return [];

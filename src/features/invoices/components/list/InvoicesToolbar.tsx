@@ -22,6 +22,7 @@ export function InvoicesActionsBar({ onOpenPreview, onExport, onNew, previewPend
         <Button
           variant="outline"
           size="sm"
+          className="min-w-11"
           onClick={onOpenPreview}
           disabled={previewPending}
           aria-label="Generar recurrentes"
@@ -31,7 +32,7 @@ export function InvoicesActionsBar({ onOpenPreview, onExport, onNew, previewPend
           <span className="hidden sm:inline">Generar Recurrentes</span>
         </Button>
       </RoleGuard>
-      <Button variant="outline" size="sm" onClick={onExport} aria-label="Exportar CSV" title="Exportar CSV">
+      <Button variant="outline" size="sm" className="min-w-11" onClick={onExport} aria-label="Exportar CSV" title="Exportar CSV">
         <DownloadIcon className="h-4 w-4 sm:mr-1" />
         <span className="hidden sm:inline">Exportar CSV</span>
       </Button>

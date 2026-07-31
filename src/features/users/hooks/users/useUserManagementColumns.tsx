@@ -73,6 +73,15 @@ export function useUserManagementColumns({
               </span>
             );
           }
+          // BL-R8-22: el Select solo contiene STAFF_ROLES; para un rol
+          // no-staff (customer) SelectValue quedaba vacío. Badge read-only.
+          if (!row.original.role || !STAFF_ROLES.includes(row.original.role as Exclude<AppRole, "customer">)) {
+            return (
+              <span title="Los usuarios cliente no se gestionan desde aquí">
+                <RoleBadge role={row.original.role} />
+              </span>
+            );
+          }
           return (
             <Select defaultValue={row.original.role ?? undefined} onValueChange={(val) => onRoleChange(row.original, val as AppRole)}>
               <SelectTrigger className="w-[160px]" onClick={(e) => e.stopPropagation()}><SelectValue /></SelectTrigger>

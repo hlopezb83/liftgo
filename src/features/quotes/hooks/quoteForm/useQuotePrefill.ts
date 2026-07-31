@@ -115,6 +115,11 @@ export function buildPrefillValues(q: ExistingQuote, models: EquipmentModel[]): 
 interface Props {
   existingQuote: ExistingQuote | null | undefined;
   equipmentModels: EquipmentModel[] | undefined;
+  /** BL-R8-08 (R8-FE-04): flags isSuccess de las queries origen. La data por
+   *  sí sola no basta — con cache stale una query puede tener `data` viejo
+   *  mientras aún no resuelve la navegación SPA (lista→detalle→editar). */
+  quoteReady: boolean;
+  modelsReady: boolean;
   form: QuoteFormReturn;
 }
 
@@ -123,18 +128,24 @@ interface Props {
  * (o cuando entramos en modo "nuevo" y necesitamos defaults con validUntil).
  * `keepDirty: false` es crítico para que `useUnsavedChangesGuard` no dispare al abrir.
  */
-export function useQuotePrefill({ existingQuote, equipmentModels, form }: Props) {
+export function useQuotePrefill({ existingQuote, equipmentModels, quoteReady, modelsReady, form }: Props) {
   const [hydratedId, setHydratedId] = useState<string | null>(null);
 
   useEffect(() => {
     // Sin cotización existente: form ya tiene defaults con validUntil default.
     if (!existingQuote) return;
     if (!equipmentModels) return;
+    // BL-R8-08: hidratar solo cuando AMBAS queries resolvieron (isSuccess).
+    // Sin este gate, en navegación SPA el efecto corría con existingQuote del
+    // cache pero equipmentModels del fetch anterior (o viceversa) y el reset
+    // dejaba las líneas vacías; la recarga de URL funcionaba porque ambas
+    // llegaban juntas. Re-hidratamos si cambia el id (otra cotización).
+    if (!quoteReady || !modelsReady) return;
     const nextId = existingQuote.id ?? "existing";
     if (hydratedId === nextId) return;
     form.reset(buildPrefillValues(existingQuote, equipmentModels), { keepDirty: false });
     // eslint-disable-next-line react-hooks/set-state-in-effect -- hidratación one-shot: marcar id ya hidratado tras reset del form
     setHydratedId(nextId);
-  }, [existingQuote, equipmentModels, form, hydratedId]);
+  }, [existingQuote, equipmentModels, quoteReady, modelsReady, form, hydratedId]);
 }
 

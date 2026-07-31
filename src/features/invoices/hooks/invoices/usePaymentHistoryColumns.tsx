@@ -9,7 +9,13 @@ import { notifyError } from "@/lib/ui/appFeedback";
 import { formatDateDisplay } from "@/lib/utils";
 import { RepBadge } from "../../components/invoice-detail/RepBadge";
 import { downloadCfdiBlob, type CfdiFormat } from "../../lib/downloadCfdiBlob";
+import { PAYMENT_METHODS } from "../../lib/paymentMethods";
 import { useStampPaymentComplement } from "./cfdi/usePaymentComplement";
+
+// BL-R8-28: etiquetas ES para payments.payment_method (transfer/cash/check/card).
+const PAYMENT_METHOD_LABELS: Record<string, string> = Object.fromEntries(
+  PAYMENT_METHODS.map((m) => [m.value, m.label]),
+);
 
 type Payment = Tables<"payments">;
 
@@ -40,7 +46,11 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
       },
       {
         id: "payment_method", header: "Método", accessorKey: "payment_method",
-        cell: ({ row }) => <span className="text-sm capitalize">{row.original.payment_method || "—"}</span>,
+        cell: ({ row }) => (
+          <span className="text-sm">
+            {(row.original.payment_method && PAYMENT_METHOD_LABELS[row.original.payment_method]) || row.original.payment_method || "—"}
+          </span>
+        ),
       },
       {
         id: "reference_number", header: "Referencia", accessorKey: "reference_number",

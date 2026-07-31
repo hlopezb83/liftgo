@@ -49,6 +49,9 @@ export function CloseWorkOrderDialog({ open, onOpenChange, log, onClosed, onCanc
 
   const onSubmit = form.handleSubmit((data) => {
     if (!log) return;
+    // BL-R8-07: nunca enviar el cierre con daño abierto — el trigger R8-DB-02
+    // es la autoridad, pero no dependemos del error del servidor.
+    if (openDamage) return;
     const note = data.closing_notes.trim();
     const description = note
       ? [log.description, `Cierre: ${note}`].filter(Boolean).join("\n")
@@ -84,8 +87,8 @@ export function CloseWorkOrderDialog({ open, onOpenChange, log, onClosed, onCanc
                 <WarnIcon className="h-4 w-4" />
                 <AlertTitle>Hay un daño abierto ligado a esta OT</AlertTitle>
                 <AlertDescription>
-                  {openDamage.description} — marca el daño como reparado antes de cerrar,
-                  o el sistema rechazará el cierre.
+                  {openDamage.description} — marca el daño como reparado antes de cerrar.
+                  El cierre está bloqueado mientras el daño siga abierto.
                 </AlertDescription>
               </Alert>
             )}
@@ -106,7 +109,13 @@ export function CloseWorkOrderDialog({ open, onOpenChange, log, onClosed, onCanc
           </FormSection>
 
           <FormDialogFooter>
-            <FormActions submitLabel="Cerrar OT" isPending={close.isPending} onCancel={handleCancel} />
+            <FormActions
+              submitLabel="Cerrar OT"
+              isPending={close.isPending}
+              onCancel={handleCancel}
+              submitDisabled={!!openDamage}
+              submitDisabledReason="No se puede cerrar: hay un daño abierto ligado a esta OT."
+            />
           </FormDialogFooter>
         </form>
       </Form>

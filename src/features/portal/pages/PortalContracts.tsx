@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { CONTRACT_STATUS_LABELS } from "@/features/contracts/lib/contractStatusLabels";
 import { usePortalContracts } from "@/features/customers";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { formatDateDisplay } from "@/lib/utils";
 
 type Contract = NonNullable<ReturnType<typeof usePortalContracts>["data"]>[number];
 
@@ -46,13 +47,13 @@ export default function PortalContracts() {
         id: "start_date",
         accessorKey: "start_date",
         header: "Inicio",
-        cell: ({ row }) => row.original.start_date || "—",
+        cell: ({ row }) => formatDateDisplay(row.original.start_date),
       },
       {
         id: "end_date",
         accessorKey: "end_date",
         header: "Fin",
-        cell: ({ row }) => row.original.end_date || "—",
+        cell: ({ row }) => formatDateDisplay(row.original.end_date),
       },
       {
         id: "status",
@@ -106,7 +107,7 @@ export default function PortalContracts() {
                         {c.forklifts?.model ? ` — ${c.forklifts.model}` : ""}
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        {c.start_date || "—"} → {c.end_date || "—"}
+                        {formatDateDisplay(c.start_date)} → {formatDateDisplay(c.end_date)}
                       </div>
                     </CardContent>
                   </Card>

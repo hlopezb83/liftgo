@@ -6,6 +6,7 @@ import {
   type ColumnDef,
 } from "@/components/dataTable/v2";
 import { Badge } from "@/components/ui/badge";
+import { STATUS_LABELS } from "@/lib/constants";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 
@@ -33,7 +34,8 @@ function FiscalBadge({ cfdiStatus, status }: { cfdiStatus: string | null; status
     return <Badge variant="destructive">Cancelada</Badge>;
   if (cfdiStatus === "stamped") return <Badge>Timbrada</Badge>;
   if (status === "draft") return <Badge variant="outline">Borrador</Badge>;
-  return <Badge variant="secondary">{status}</Badge>;
+  // BL-R8-25: no mostrar el enum crudo ("paid" → "Pagada").
+  return <Badge variant="secondary">{STATUS_LABELS[status] ?? status}</Badge>;
 }
 
 export function ReconciliationTable({ rows, isLoading }: { rows: Row[]; isLoading: boolean }) {

@@ -1,0 +1,24 @@
+{
+  "version": "7.272.0",
+  "date": "2026-07-31",
+  "type": "minor",
+  "title": "Auditoría Ronda 8: permisos restaurados, cierre de OT blindado y detalles de interfaz",
+  "category": "improvement",
+  "highlights": [
+    "R8-DB-01: se restauraron las reglas de lectura que se habían perdido en limpiezas previas — el rol Mecánico vuelve a ver reservas y extensiones (la flota le decía 'Sin reservas aún' en falso) y el rol Ventas vuelve a ver el historial de cambios de prospectos, acotado únicamente a prospectos para no exponer datos personales de otros módulos.",
+    "R8-DB-02: cerrar una orden de trabajo con daños abiertos ahora se rechaza en el servidor, no sólo en pantalla; el sembrado de pruebas automatizadas queda exento.",
+    "R8-DB-03: diagnóstico de coherencia de cuentas por pagar (estatus vs. fecha de vencimiento); el saneo sólo corre si se activa a mano, en producción el proceso diario ya lo mantiene al día.",
+    "R8-FE-01: el tab 'Vencido' de facturas usa el mismo criterio que el Panel (incluye el estado 'vencida' y excluye cancelaciones aceptadas).",
+    "R8-FE-02: el detalle de unidad sólo consulta el dato financiero cuando el rol puede verlo; se acabó el aviso de error para Mecánico y Ventas.",
+    "R8-FE-03: el botón 'Cerrar OT' se deshabilita y explica el motivo cuando hay un daño abierto ligado.",
+    "R8-FE-04: al editar una cotización ya no se pierden las partidas por navegar lista → detalle → editar; el formulario espera a que los datos estén completos.",
+    "R8-FE-05/09/10/13: avisos que ya no tapan el encabezado en móvil y objetivos táctiles de 44px en interruptores, casillas, botones de iconos de facturas y la barra de antigüedad de cartera.",
+    "R8-FE-06: el historial de un prospecto distingue 'no tienes permiso' de 'sin cambios'.",
+    "R8-FE-07: los indicadores de cuentas por pagar dejan de contar borradores como vencidos y facturas pagadas como pendientes de aprobar.",
+    "R8-FE-08/16: fechas del portal de contratos con formato mexicano y la inspección de devolución usa la hora de Monterrey.",
+    "R8-FE-11/12/18/19: mejor contraste en insignias de éxito y textos en español en bitácora, conciliación fiscal e historial de pagos (sin cortar identificadores).",
+    "R8-FE-14: la duración mostrada en cotizaciones ahora es inclusiva, igual que el cálculo con el que se cobra.",
+    "R8-FE-15: rechazar una cotización pide el motivo y lo guarda.",
+    "R8-FE-17: en Usuarios, los roles que no son de personal interno se muestran como sólo lectura."
+  ]
+}

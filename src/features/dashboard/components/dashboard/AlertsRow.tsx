@@ -92,7 +92,10 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
                             key={b.range}
                             type="button"
                             onClick={() => navigate(`/invoices?status=overdue&aging=${b.range}`)}
-                            className={`${palette[i] ?? "bg-destructive"} transition-opacity hover:opacity-80`}
+                            // BL-R8-17: segmento visual de 8px; pseudo-elemento
+                            // expande el área táctil a 44px de alto sin cambiar
+                            // la geometría de la barra.
+                            className={`${palette[i] ?? "bg-destructive"} relative transition-opacity hover:opacity-80 before:absolute before:-inset-y-[18px] before:inset-x-0 before:content-['']`}
                             style={{ width: `${pct}%` }}
                             title={`${b.range}d: ${formatCurrency(b.total)}`}
                             aria-label={`Aging ${b.range} días: ${formatCurrency(b.total)}`}

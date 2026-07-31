@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { AuditLogDetailDialog, HIDDEN_DIFF_FIELDS, formatAuditValue, formatTimestamp, translateAction, translateField, type AuditLog, useAuditLogs } from "@/features/audit";
+import { getAccessLevel, useRolePermissions, useUserRole } from "@/features/users";
 interface Props {
   prospectId: string;
 }
@@ -22,6 +23,14 @@ export function ProspectHistoryCard({ prospectId }: Props) {
   const { data: logs = [], isLoading } = useAuditLogs({ table_name: "prospects", record_id: prospectId });
   const [expanded, setExpanded] = useState(false);
   const [selected, setSelected] = useState<AuditLog | null>(null);
+  // BL-R8-09 (R8-FE-06): RLS devuelve [] (no error) cuando el rol no tiene
+  // política en audit_logs, indistinguible de "sin cambios". Se distingue por
+  // el permiso del módulo Auditoría. Coordinado con R8-DB-01b: cuando se
+  // restaure la política de ventas, dar acceso "read" al módulo Auditoría
+  // para ventas en role_permissions (o ajustar este gate).
+  const { data: role } = useUserRole();
+  const { data: perms } = useRolePermissions();
+  const canSeeAudit = getAccessLevel(perms, role ?? undefined, "Auditoría") !== "none";
 
   const visible = expanded ? logs : logs.slice(0, 5);
 
@@ -37,6 +46,10 @@ export function ProspectHistoryCard({ prospectId }: Props) {
         <CardContent>
           {isLoading ? (
             <Skeleton className="h-24" />
+          ) : !canSeeAudit ? (
+            <p className="text-sm text-muted-foreground">
+              No tienes permiso para ver el historial de cambios.
+            </p>
           ) : logs.length === 0 ? (
             <p className="text-sm text-muted-foreground">Sin cambios registrados</p>
           ) : (

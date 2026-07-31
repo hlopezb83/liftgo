@@ -55,7 +55,15 @@ const INVOICE_LIST_COLUMNS = sel(
 function baseInvoiceQuery(normalized: InvoiceListFilters) {
   let q = supabase.from("invoices").select(INVOICE_LIST_COLUMNS).or(e2eVisibilityFilter());
   if (normalized.status === "overdue") {
-    q = q.in("status", ["sent", "partial"]).lt("due_date", todayKeyMty());
+    // BL-R8-04 (R8-FE-01): alinear el tab "Vencido" con el criterio canónico de la DB
+    // (v_overdue_invoices / get_dashboard_stats, migración 20260729082148 y 20260731191845):
+    // incluir status='overdue' y excluir cancelaciones aceptadas.
+    // La fecha de corte usa `todayKeyMty()` (America/Monterrey), misma fuente de "hoy"
+    // que el resto del FE; la DB usa CURRENT_DATE (UTC) — ventana residual 18:00-24:00 MTY,
+    // aceptada en BL-R8-21 (la unificación total de TZ es decisión de producto separada).
+    q = q.in("status", ["sent", "partial", "overdue"])
+      .lt("due_date", todayKeyMty())
+      .or("cancellation_status.is.null,cancellation_status.neq.accepted");
   } else if (normalized.status !== "all") {
     q = q.eq("status", normalized.status);
   }

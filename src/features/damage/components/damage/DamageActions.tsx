@@ -5,13 +5,13 @@ import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useCreateMaintenanceLog } from "@/features/maintenance";
 import { maintenanceLogKeys } from "@/features/maintenance/lib/queryKeys";
+import { getAccessLevel, useRolePermissions, useUserRole } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { supabase } from "@/integrations/supabase/client";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import type { DamageRecordWithJoins } from "@/types/rental";
 import { damageRecordQueries, useArchiveDamageRecord, useUpdateDamageRecord } from "../../hooks/useDamageRecords";
 import { chargeableDamageCost } from "../../lib/chargeableDamageCost";
-import { getAccessLevel, useRolePermissions, useUserRole } from "@/features/users";
 
 interface DamageActionsProps {
   record: DamageRecordWithJoins;

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { translateField, translateAction, translateTable, HIDDEN_DIFF_FIELDS } from "../auditTrailLabels";
+import { translateField, translateAction, translateTable, HIDDEN_DIFF_FIELDS, TABLES } from "../auditTrailLabels";
 
 describe("auditTrailLabels", () => {
   it("traduce campos conocidos al español", () => {
@@ -30,5 +30,16 @@ describe("auditTrailLabels", () => {
     expect(HIDDEN_DIFF_FIELDS.has("stage_order")).toBe(true);
     expect(HIDDEN_DIFF_FIELDS.has("search_vector")).toBe(true);
     expect(HIDDEN_DIFF_FIELDS.has("status")).toBe(false);
+  });
+
+  it("BL-R8-16 · traduce la tabla profiles", () => {
+    expect(translateTable("profiles")).toBe("Perfiles de Usuario");
+    expect(TABLES.some((t) => t.value === "profiles" && t.label === "Perfiles de Usuario")).toBe(true);
+  });
+
+  it("BL-R8-16 · traduce los campos role, full_name y avatar_url", () => {
+    expect(translateField("role")).toBe("Rol");
+    expect(translateField("full_name")).toBe("Nombre Completo");
+    expect(translateField("avatar_url")).toBe("Foto de Perfil");
   });
 });

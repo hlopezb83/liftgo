@@ -14,7 +14,7 @@ import { useForkliftMap } from "@/features/fleet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { visibleListRows } from "@/lib/supabase/constants";
-import { parseDateLocal } from "@/lib/utils";
+import { nowMty, parseDateLocal } from "@/lib/utils";
 import { ReturnInspectionDialog } from "../components/return-inspection/ReturnInspectionDialog";
 import { useReturnInspectionDialog } from "../hooks/returnInspection/useReturnInspectionDialog";
 import { useReturnInspections } from "../hooks/useReturnInspections";
@@ -34,7 +34,10 @@ export default function ReturnInspectionPage() {
   // R10 Bloque 7: en modo `?early=1`, incluir rentas vigentes con fin futuro
   // para permitir devolución anticipada. En modo normal, exigir end_date <= hoy.
   const isEarlyReturn = searchParams.get("early") === "1";
-  const today = new Date();
+  // BL-R8-21 (R8-FE-16): fuente única de "hoy" = America/Monterrey, no la TZ
+  // del browser (con browser en GMT+9 una renta que vence hoy en MX quedaba
+  // fuera del filtro de devolución).
+  const today = nowMty();
   today.setHours(23, 59, 59, 999);
   const activeBookings = bookings?.filter(
     (b) => b.status === "confirmed"
