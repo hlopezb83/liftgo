@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.272.0",
+    "date": "2026-07-31",
+    "type": "minor",
+    "title": "Auditoría Ronda 8: permisos restaurados, cierre de OT blindado y detalles de interfaz",
+    "category": "improvement",
+    "description": "Se restauraron los permisos de lectura que se habían perdido (Mecánico vuelve a ver reservas y extensiones; Ventas vuelve a ver el historial de prospectos, sólo prospectos). Cerrar una orden de trabajo con daños abiertos ahora se rechaza también en el servidor. En pantalla: el tab 'Vencido' de facturas coincide con el Panel, el detalle de unidad ya no pide datos financieros a roles sin permiso, editar cotizaciones ya no pierde partidas, rechazar cotización pide motivo, la duración cotizada es inclusiva igual que el cobro, y se corrigieron indicadores de cuentas por pagar, fechas del portal, traducciones de bitácora/conciliación/pagos, contraste de insignias y objetivos táctiles de 44px."
+  },
+  {
     "version": "7.271.0",
     "date": "2026-07-31",
     "type": "minor",
@@ -8,7 +16,6 @@
     "description": "Los folios ya no chocan: cada documento toma el número más alto disponible y se resincronizaron todos los contadores (había un desfase real en facturas). El Panel deja de contradecirse en cartera vencida y se impide marcar como vencida una factura que aún no vence. En pantalla: estado de flota derivado en Equipos y Calendario, fechas de daños en hora de Monterrey, sello de fecha al reparar, pantalla de carga con progreso, portal del cliente legible en móvil con estados vacíos orientativos, ortografía de catálogos corregida y objetivos táctiles de 44px."
   },
   {
-
     "version": "7.270.0",
     "date": "2026-07-30",
     "type": "minor",
