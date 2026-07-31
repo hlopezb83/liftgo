@@ -35,7 +35,10 @@ export default function PortalContracts() {
         accessorFn: (c) => `${c.forklifts?.name ?? ""} ${c.forklifts?.model ?? ""}`.trim(),
         cell: ({ row }) => (
           <>
-            {row.original.forklifts?.name || "—"} — {row.original.forklifts?.model || ""}
+            {/* R7-FE-09b (N7-POR-05): contratos sin equipo asignado mostraban "—". */}
+            {row.original.forklifts?.name
+              ? `${row.original.forklifts.name} — ${row.original.forklifts.model ?? ""}`
+              : "Equipo por asignar"}
           </>
         ),
       },
@@ -99,7 +102,7 @@ export default function PortalContracts() {
                         <StatusBadge status={c.status} label={CONTRACT_STATUS_LABELS[c.status]} />
                       </div>
                       <div className="text-sm text-muted-foreground truncate">
-                        {c.forklifts?.name || "—"}
+                        {c.forklifts?.name ?? "Equipo por asignar"}
                         {c.forklifts?.model ? ` — ${c.forklifts.model}` : ""}
                       </div>
                       <div className="text-xs text-muted-foreground">
