@@ -153,21 +153,12 @@ export function DateRangePickerField({
           liveLabel={liveLabel}
           localRange={localRange}
           isMobile={isMobile}
-          // R6-FE-11c (N6-VEN-05): con un rango ya completo, un nuevo click
-          // debe reiniciar el rango (nueva fecha de inicio), no extenderlo.
           onCalendarSelect={(r) => {
-            if (localRange?.from && localRange?.to && r?.from) {
-              setLocalRange(normalizeRange({ from: r.from, to: undefined }));
-              return;
-            }
-            const next = normalizeRange(r);
-            setLocalRange(next);
-            // R10-FE-02: from==to es selección PARCIAL (primer clic), no un
-            // rango de un día — sólo se auto-aplica un rango real (from != to).
-            if (next?.from && next?.to && next.from.getTime() !== next.to.getTime()) {
-              applyRange(next);
-            }
+            const { range, apply } = nextRangeState(localRange, r);
+            setLocalRange(range);
+            if (apply) applyRange(range);
           }}
+
           onClear={() => setLocalRange(undefined)}
           onCancel={() => setOpen(false)}
           onApply={() => applyRange(localRange)}
