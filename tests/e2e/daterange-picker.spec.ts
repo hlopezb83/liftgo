@@ -84,16 +84,19 @@ test.describe("DateRangePickerField auto-aplicación", () => {
     await expect(apply).toBeVisible();
     await expect(apply).toBeDisabled();
 
-    const dayButton = (n: number) =>
-      grid.locator("button").filter({ hasText: new RegExp(`^\\s*${n}\\s*$`) }).first();
+    // Días habilitados del mes visible (evita días fuera de mes o
+    // deshabilitados, que hacían que el clic no seleccionara nada en CI).
+    const days = grid.locator("button:not([disabled])").filter({ hasText: /^\s*\d+\s*$/ });
 
-    // Primer clic: selección parcial → el diálogo sigue abierto.
-    await clickDay(dayButton(5));
+    // Primer clic: selección parcial → el diálogo sigue abierto y hay un día
+    // marcado como seleccionado (assert de estado, no de texto).
+    await clickDay(days.nth(4));
     await expect(grid).toBeVisible();
-    await expect(page.getByText(/selecciona fin/i)).toBeVisible();
+    await expect(grid.locator('[aria-selected="true"]').first()).toBeVisible({ timeout: 5_000 });
 
     // Segundo clic en otra fecha: rango real → se auto-aplica y cierra.
-    await clickDay(dayButton(20));
+    await clickDay(days.nth(19));
     await expect(grid).toBeHidden({ timeout: 5_000 });
   });
 });
+
