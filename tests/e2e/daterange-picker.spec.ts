@@ -7,6 +7,7 @@ import { test, expect, type Locator } from "@playwright/test";
  */
 async function clickDay(day: Locator): Promise<void> {
   await day.waitFor({ state: "visible", timeout: 5_000 });
+  // eslint-disable-next-line playwright/no-force-option -- el repintado del rango marca el día como "inestable"; el clic forzado es intencional.
   await day.click({ force: true, timeout: 10_000 });
 }
 
