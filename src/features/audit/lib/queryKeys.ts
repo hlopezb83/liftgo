@@ -11,6 +11,8 @@
  * description). El detalle re-descarga la fila completa por id.
  */
 import { supabase } from "@/integrations/supabase/client";
+import { ROLE_LABELS } from "@/lib/constants";
+import type { AppRole } from "@/lib/domain/roles";
 import { createEntityKeys } from "@/lib/query/createEntityKeys";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { callRpc } from "@/lib/rpc";
