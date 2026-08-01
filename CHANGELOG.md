@@ -1,5 +1,17 @@
 # Changelog
 
+## 7.273.0 — 01/08/2026
+
+Auditoría Ronda 9 (pre-release): cierre de los 6 bloqueantes.
+
+- Cotizaciones (P0): hidratación reactiva del formulario (`values` de RHF) en lugar de `reset()` one-shot — se acabó la pérdida de partidas al navegar lista → detalle → editar. Fallback para cotizaciones legacy sin `rental_meta`.
+- Base de datos: nueva función `today_mty()` como única fuente de "hoy"; se reemplazó `CURRENT_DATE` (UTC) en indicadores, `v_overdue_invoices`, alertas, contadores y validaciones.
+- Frontend: defaults de fecha en zona horaria de Monterrey (devoluciones, entregas, mantenimiento, CxP, vigencia de cotización).
+- CRM: `ProspectHistoryCard` permite el rol Ventas sin exponer el módulo Auditoría.
+- Flota: badge del detalle derivado con `computeFleetAvailability`.
+- Formularios: guard anti doble submit robusto (liberación con debounce + timeout de seguridad, ahora en `onClick`).
+- Rutas: `/customers/new` redirige al alta por diálogo; identificadores no-UUID muestran "no encontrado".
+
 ## 7.272.0 — 31/07/2026
 
 Auditoría Ronda 8: permisos restaurados, cierre de OT blindado y detalles de interfaz.
