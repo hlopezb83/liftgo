@@ -1,5 +1,6 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { nowMty } from "@/lib/utils";
 import { quoteStatusLabel } from "../../constants";
 import { useUpdateQuote, useDeleteQuote } from "../quotes/useQuotes";
 import { useQuoteBookingCreator, type Assignment } from "./useQuoteBookingCreator";
@@ -34,8 +35,11 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
       extra.accepted_by_user_id = userData.user?.id ?? null;
     }
     // BL-R8-19: persistir el motivo de rechazo (columna ya existente).
-    if (status === "rejected" && opts?.rejectionReason) {
-      extra.rejection_reason = opts.rejectionReason;
+    // R9-P2: además sellar `rejected_at` para que historial y reportes sepan CUÁNDO
+    // se rechazó (antes quedaba NULL y el rechazo no era trazable en el tiempo).
+    if (status === "rejected") {
+      extra.rejected_at = nowMty().toISOString();
+      if (opts?.rejectionReason) extra.rejection_reason = opts.rejectionReason;
     }
     updateQuote.mutate(
       { id, status, ...extra },

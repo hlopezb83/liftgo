@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
 import { deliverySchema } from "../deliveryFormSchema";
+import { nowMty } from "@/lib/utils";
 
 const base = {
   forkliftId: "fk-1",
@@ -29,7 +30,8 @@ describe("deliverySchema", () => {
   });
 
   it("rechaza scheduledDate en el pasado si no es histórica", () => {
-    const pastDate = new Date();
+    // Base en hora Monterrey: usar new Date() daba falsos negativos entre 00:00 y 06:00 UTC.
+    const pastDate = nowMty();
     pastDate.setDate(pastDate.getDate() - 1);
     const r = deliverySchema.safeParse({ ...base, scheduledDate: pastDate });
     expect(r.success).toBe(false);
@@ -41,7 +43,8 @@ describe("deliverySchema", () => {
   });
 
   it("acepta scheduledDate en el pasado cuando alreadyCompleted es true (histórico)", () => {
-    const pastDate = new Date();
+    // Base en hora Monterrey: usar new Date() daba falsos negativos entre 00:00 y 06:00 UTC.
+    const pastDate = nowMty();
     pastDate.setDate(pastDate.getDate() - 1);
     const r = deliverySchema.safeParse({ ...base, alreadyCompleted: true, scheduledDate: pastDate });
     expect(r.success).toBe(true);

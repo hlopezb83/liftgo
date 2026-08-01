@@ -45,27 +45,21 @@ function DateRangeFooter({
   localRange,
   onClear,
   onCancel,
-  onApply,
 }: {
   localRange?: DateRange;
   onClear: () => void;
   onCancel: () => void;
-  onApply: () => void;
 }) {
-  const canApply = !!(localRange?.from && localRange?.to);
   return (
     <DialogFooter className="px-5 py-3 border-t flex-row justify-between sm:justify-between gap-2">
       <Button type="button" variant="ghost" size="sm" onClick={onClear} disabled={!localRange?.from}>
         Limpiar
       </Button>
-      <div className="flex gap-2">
-        <Button type="button" variant="outline" size="sm" onClick={onCancel}>
-          Cancelar
-        </Button>
-        <Button type="button" size="sm" onClick={onApply} disabled={!canApply}>
-          Aplicar
-        </Button>
-      </div>
+      {/* R9-P2: sin botón "Aplicar" — al elegir la fecha final el rango se
+          aplica y el diálogo se cierra (3 clics → 2). */}
+      <Button type="button" variant="outline" size="sm" onClick={onCancel}>
+        Cancelar
+      </Button>
     </DialogFooter>
   );
 }
@@ -94,8 +88,9 @@ export function DateRangePickerField({
     ? formatRangeLabel(localRange, "", "selecciona fin")
     : "Selecciona la fecha de inicio";
 
-  const handleApply = () => {
-    onSelect(normalizeRange(localRange));
+  // R9-P2: auto-aplicar en cuanto el rango queda completo.
+  const applyRange = (range?: DateRange) => {
+    onSelect(normalizeRange(range));
     setOpen(false);
   };
 
@@ -131,11 +126,13 @@ export function DateRangePickerField({
               setLocalRange(normalizeRange({ from: r.from, to: undefined }));
               return;
             }
-            setLocalRange(normalizeRange(r));
+            const next = normalizeRange(r);
+            setLocalRange(next);
+            // Rango completo → aplicar y cerrar sin paso extra.
+            if (next?.from && next?.to) applyRange(next);
           }}
           onClear={() => setLocalRange(undefined)}
           onCancel={() => setOpen(false)}
-          onApply={handleApply}
         />
       </Dialog>
       {error ? <p className="text-sm text-destructive">{error}</p> : helperText ? <p className="text-xs text-muted-foreground">{helperText}</p> : null}
@@ -151,7 +148,6 @@ function RangeDialogBody({
   onCalendarSelect,
   onClear,
   onCancel,
-  onApply,
 }: {
   label: string;
   liveLabel: string;
@@ -160,7 +156,6 @@ function RangeDialogBody({
   onCalendarSelect: (r?: DateRange) => void;
   onClear: () => void;
   onCancel: () => void;
-  onApply: () => void;
 }) {
   const months = isMobile ? 1 : 2;
   return (
@@ -182,7 +177,6 @@ function RangeDialogBody({
         localRange={localRange}
         onClear={onClear}
         onCancel={onCancel}
-        onApply={onApply}
       />
     </DialogContent>
   );

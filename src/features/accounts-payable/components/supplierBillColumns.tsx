@@ -51,6 +51,11 @@ export function useSupplierBillColumns(): ColumnDef<SupplierBillListItem>[] {
       cell: ({ row }) => {
         const s = row.original.approval_status;
         if (s === "not_required") return <span className="text-xs text-muted-foreground">—</span>;
+        // R9-P2: una factura ya pagada (o cancelada) no puede seguir "Por aprobar".
+        // Cuando el approval_status quedó huérfano en 'pending', la fila mentía.
+        if (s === "pending" && (row.original.status === "paid" || row.original.status === "cancelled")) {
+          return <span className="text-xs text-muted-foreground">—</span>;
+        }
         // Oleada 1 (A-3): mismo pill que el resto de la app (StatusBadge).
         // Mapeo a estados canónicos con estilo definido en StatusBadge.
         const canonical = s === "pending" ? "pending" : s === "approved" ? "accepted" : "rejected";

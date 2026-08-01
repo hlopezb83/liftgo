@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toYMD } from "@/lib/date/toYMD";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { positiveAmount } from "@/lib/schemas";
 import { nowMty } from "@/lib/utils";
@@ -23,11 +24,13 @@ interface Props {
 // Bloque 3.4 (R4): el monto debe ser > 0 y ≤ saldo pendiente. Antes se podía
 // reportar una transferencia mayor al saldo, lo que confundía al admin al
 // revisar el intent.
+// R9-P2: el mensaje ahora dice CUÁL es el saldo (antes el botón sólo se
+// deshabilitaba y el cliente no sabía por qué).
 const makeSchema = (balance: number) => z.object({
   transferDate: z.date({ error: "La fecha es obligatoria" }),
   amount: positiveAmount().refine(
     (v) => Number(v) <= Number(balance.toFixed(2)) + 0.005,
-    { message: "El monto no puede superar el saldo pendiente" },
+    { message: `El monto no puede superar el saldo pendiente (${formatCurrency(balance)})` },
   ),
   senderBank: z.string().default(""),
   senderLast4: z
@@ -136,7 +139,9 @@ export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isPending || !form.formState.isValid}>
+            {/* R9-P2: no se deshabilita por validez — al enviar, el error de
+                sobrepago se muestra bajo el campo Monto en vez de un botón muerto. */}
+            <Button type="submit" disabled={isPending}>
               Enviar reporte
             </Button>
           </FormDialogFooter>

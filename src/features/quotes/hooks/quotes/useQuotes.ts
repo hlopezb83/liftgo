@@ -20,7 +20,7 @@ const QUOTE_LIST_COLUMNS = sel(
 );
 
 type QuoteListRow = Quote;
-type QuoteRow = Quote;
+type QuoteRow = Quote | null;
 
 export const quoteQueries = defineEntityQueries<"quotes", QuoteListRow[], QuoteRow>(
   "quotes",
@@ -38,12 +38,15 @@ export const quoteQueries = defineEntityQueries<"quotes", QuoteListRow[], QuoteR
     },
     detail: (id: string) => async () => {
       if (!id) throw new Error("Quote ID is required");
+      // R9-P2: `maybeSingle` en lugar de `single`. Tras borrar una cotización, un
+      // refetch en vuelo devolvía 0 filas y PostgREST respondía 406 (error crudo +
+      // toasts). Ahora "no existe" es `null` y la pantalla muestra "no encontrada".
       const { data, error } = await supabase
         .from("quotes")
         .select(QUOTE_COLUMNS)
         .eq("id", id)
-        .single()
-        .returns<QuoteRow>();
+        .maybeSingle()
+        .returns<QuoteRow | null>();
       if (error) throw error;
       return data;
     },

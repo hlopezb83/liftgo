@@ -1,0 +1,16 @@
+{
+  "version": "7.273.1",
+  "date": "2026-08-01",
+  "type": "patch",
+  "title": "Auditoría Ronda 9 · Fase 2: los 7 detalles P2",
+  "category": "improvement",
+  "highlights": [
+    "R9-P2-01: al rechazar una cotización ahora se guarda la fecha y hora del rechazo. Antes quedaba vacía y no se podía saber cuándo se rechazó.",
+    "R9-P2-02: una factura de proveedor ya pagada o cancelada deja de mostrarse como 'Por aprobar'; en esos casos la columna de aprobación muestra un guion.",
+    "R9-P2-03: si se borra una cotización mientras está abierta, la pantalla muestra 'no encontrada' en lugar de un error técnico (se eliminó el error 406).",
+    "R9-P2-04: en el portal del cliente, reportar una transferencia mayor al saldo ya explica el motivo e indica el saldo pendiente exacto; antes el botón simplemente quedaba deshabilitado sin mensaje.",
+    "R9-P2-05: la bitácora ya no muestra códigos hexadecimales en cambios de usuarios y roles: ahora aparece el nombre o correo de la persona y el nombre del rol.",
+    "R9-P2-06: la lista de entregas muestra el montacargas correcto usando los datos que ya trae la consulta, en vez de dejar '—' cuando la unidad no estaba en la lista cargada.",
+    "R9-P2-07: el filtro de rango de fechas se aplica al elegir la fecha final y cierra solo. Se eliminó el botón 'Aplicar' (de 3 clics a 2)."
+  ]
+}
