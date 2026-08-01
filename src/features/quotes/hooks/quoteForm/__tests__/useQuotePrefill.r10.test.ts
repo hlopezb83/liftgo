@@ -43,3 +43,28 @@ describe("R10-FE-03 · prefill de partidas legacy", () => {
     expect(v.rentalLines[0].dailyRate).toBe(500);
   });
 });
+
+describe("R10-FE-03b · periodicidad de la tarifa legacy", () => {
+  const q = (desc: string): ExistingQuote => ({
+    ...base,
+    line_items: [{ description: desc, quantity: 1, unit_price: 20000, total: 20000 }],
+  });
+
+  it("coloca la tarifa mensual en monthlyRate (no en dailyRate)", () => {
+    const l = buildPrefillValues(q("MCAPC025A048/001 — Renta mensual"), models).rentalLines[0];
+    expect(l.monthlyRate).toBe(20000);
+    expect(l.dailyRate).toBe(0);
+  });
+
+  it("coloca la tarifa semanal en weeklyRate", () => {
+    const l = buildPrefillValues(q("MCAPC025A048/001 — Renta semanal"), models).rentalLines[0];
+    expect(l.weeklyRate).toBe(20000);
+    expect(l.dailyRate).toBe(0);
+  });
+
+  it("sin pista en la descripción asume tarifa diaria", () => {
+    const l = buildPrefillValues(q("Renta montacargas"), models).rentalLines[0];
+    expect(l.dailyRate).toBe(20000);
+    expect(l.monthlyRate).toBe(0);
+  });
+});

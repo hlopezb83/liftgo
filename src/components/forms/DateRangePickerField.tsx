@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatMtyCalendarDate } from "@/lib/date/mtyCalendarDate";
 import { cn } from "@/lib/utils";
+import { isPartialRange, nextRangeState, normalizeRange } from "./dateRangeState";
 import type { DateRange } from "react-day-picker";
 
 interface DateRangePickerFieldProps {
@@ -26,20 +27,19 @@ interface DateRangePickerFieldProps {
   helperText?: string;
 }
 
-const normalize = (d?: Date) =>
-  d ? new Date(d.getFullYear(), d.getMonth(), d.getDate()) : undefined;
 
-const normalizeRange = (r?: DateRange): DateRange | undefined =>
-  r ? { from: normalize(r.from), to: normalize(r.to) } : undefined;
+
 
 function formatRangeLabel(range: DateRange | undefined, empty: string, partialSuffix: string): string {
   if (!range?.from) return empty;
   // GUI-FE-07: fechas calendario por componentes locales (sin toZonedTime).
   const from = formatMtyCalendarDate(range.from);
-  if (!range.to) return `${from} — ${partialSuffix}`;
+  // R10-FE-02b: `from == to` sigue siendo selección parcial.
+  if (isPartialRange(range)) return `${from} — ${partialSuffix}`;
   const to = formatMtyCalendarDate(range.to);
   return `${from} — ${to}`;
 }
+
 
 function DateRangeFooter({
   localRange,
@@ -127,21 +127,12 @@ export function DateRangePickerField({
           liveLabel={liveLabel}
           localRange={localRange}
           isMobile={isMobile}
-          // R6-FE-11c (N6-VEN-05): con un rango ya completo, un nuevo click
-          // debe reiniciar el rango (nueva fecha de inicio), no extenderlo.
           onCalendarSelect={(r) => {
-            if (localRange?.from && localRange?.to && r?.from) {
-              setLocalRange(normalizeRange({ from: r.from, to: undefined }));
-              return;
-            }
-            const next = normalizeRange(r);
-            setLocalRange(next);
-            // R10-FE-02: from==to es selección PARCIAL (primer clic), no un
-            // rango de un día — sólo se auto-aplica un rango real (from != to).
-            if (next?.from && next?.to && next.from.getTime() !== next.to.getTime()) {
-              applyRange(next);
-            }
+            const { range, apply } = nextRangeState(localRange, r);
+            setLocalRange(range);
+            if (apply) applyRange(range);
           }}
+
           onClear={() => setLocalRange(undefined)}
           onCancel={() => setOpen(false)}
           onApply={() => applyRange(localRange)}

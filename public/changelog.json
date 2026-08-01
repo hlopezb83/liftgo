@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.274.1",
+    "date": "2026-08-01",
+    "type": "patch",
+    "title": "Verificación visual R10: calendario y tarifas antiguas",
+    "category": "fix",
+    "description": "El selector de rango de fechas vuelve a completarse con dos clics (antes pedía un tercero). Al editar cotizaciones antiguas, una tarifa mensual ya se carga en el campo mensual y deja de inflar el total estimado."
+  },
+  {
     "version": "7.274.0",
     "date": "2026-08-01",
     "type": "minor",

@@ -66,20 +66,36 @@ function legacyQty(item: LineItem): number | undefined {
   return typeof raw === "number" || typeof raw === "string" ? Number(raw) : undefined;
 }
 
+/**
+ * R10-FE-03b: la descripción legacy indica la periodicidad de la tarifa
+ * ("… — Renta mensual"). Colocar un importe mensual en `dailyRate` lo
+ * multiplica por los días del periodo y reproduce el total fantasma
+ * ($20,000/mes → $640,000). Sin pista, se asume diaria (comportamiento previo).
+ */
+export function rentalRateField(description?: string | null): "dailyRate" | "weeklyRate" | "monthlyRate" {
+  const d = (description ?? "").toLowerCase();
+  if (d.includes("mensual") || d.includes("/mes")) return "monthlyRate";
+  if (d.includes("semanal") || d.includes("/semana")) return "weeklyRate";
+  return "dailyRate";
+}
+
 function lineToRentalLineFallback(item: LineItem): RentalLineValues {
+  // R10-FE-03 (P1): NO sintetizar la tarifa desde `total` (importe de la
+  // partida): al multiplicarse por los días de renta genera totales fantasma.
+  const rate = Number(item.unit_price) || 0;
+  const field = rentalRateField(item.description);
   return {
     modelId: "",
     // R10-FE-03 (P1): cotizaciones legacy usan `qty` (no `quantity`).
     quantity: Number(item.quantity ?? legacyQty(item)) || 1,
-    // R10-FE-03 (P1): NO sintetizar la tarifa desde `total` (importe de la
-    // partida): al multiplicarse por los días de renta genera totales fantasma.
-    dailyRate: Number(item.unit_price) || 0,
-    weeklyRate: 0,
-    monthlyRate: 0,
+    dailyRate: field === "dailyRate" ? rate : 0,
+    weeklyRate: field === "weeklyRate" ? rate : 0,
+    monthlyRate: field === "monthlyRate" ? rate : 0,
     discount: item.discount || 0,
     discountType: (item.discount_type || "%") as "%" | "$",
   };
 }
+
 
 function normalizeRentalLine(raw: Partial<RentalLineValues> | undefined): RentalLineValues {
   return {
