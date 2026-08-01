@@ -74,15 +74,37 @@ function normalizeJson(value: unknown): Record<string, unknown> | null {
 // PostgREST devuelve `null` si el campo no existe en el jsonb, así que basta
 // escoger el primero definido entre new_* y luego old_*.
 type LabelProjectionRow = {
+  table_name: string;
   new_name: string | null; new_booking: string | null; new_contract: string | null;
   new_invoice: string | null; new_quote: string | null; new_desc: string | null;
   old_name: string | null; old_booking: string | null; old_contract: string | null;
   old_invoice: string | null; old_quote: string | null; old_desc: string | null;
+  new_full: string | null; old_full: string | null;
+  new_email: string | null; old_email: string | null;
+  new_role: string | null; old_role: string | null;
 };
+
+/**
+ * R9-P2: `user_roles` y `profiles` no tienen columnas name/number, así que la
+ * bitácora caía al fallback hexadecimal (`record_id.slice(0,8)`). Ahora se
+ * etiquetan con el rol o el nombre/correo de la persona.
+ */
+function buildIdentityLabel(row: LabelProjectionRow): string | null {
+  if (row.table_name === "user_roles") {
+    const role = row.new_role ?? row.old_role;
+    if (!role) return null;
+    return `Rol: ${ROLE_LABELS[role as AppRole] ?? role}`;
+  }
+  if (row.table_name === "profiles") {
+    return row.new_full ?? row.old_full ?? row.new_email ?? row.old_email;
+  }
+  return null;
+}
 
 function buildLabel(row: LabelProjectionRow, recordId: string): string {
   const first = (
-    row.new_name ?? row.new_booking ?? row.new_contract ?? row.new_invoice ?? row.new_quote
+    buildIdentityLabel(row)
+    ?? row.new_name ?? row.new_booking ?? row.new_contract ?? row.new_invoice ?? row.new_quote
     ?? row.old_name ?? row.old_booking ?? row.old_contract ?? row.old_invoice ?? row.old_quote
     ?? row.new_desc ?? row.old_desc
   );
@@ -95,9 +117,11 @@ const LIST_SELECT =
   "new_name:new_data->>name, new_booking:new_data->>booking_number, " +
   "new_contract:new_data->>contract_number, new_invoice:new_data->>invoice_number, " +
   "new_quote:new_data->>quote_number, new_desc:new_data->>description, " +
+  "new_full:new_data->>full_name, new_email:new_data->>email, new_role:new_data->>role, " +
   "old_name:old_data->>name, old_booking:old_data->>booking_number, " +
   "old_contract:old_data->>contract_number, old_invoice:old_data->>invoice_number, " +
-  "old_quote:old_data->>quote_number, old_desc:old_data->>description";
+  "old_quote:old_data->>quote_number, old_desc:old_data->>description, " +
+  "old_full:old_data->>full_name, old_email:old_data->>email, old_role:old_data->>role";
 
 const DETAIL_SELECT =
   "id, table_name, record_id, action, old_data, new_data, changed_fields, user_id, created_at";
