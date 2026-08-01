@@ -159,10 +159,15 @@ function RangeDialogBody({
 }) {
   const months = isMobile ? 1 : 2;
   return (
-    <DialogContent className="max-w-fit p-0 gap-0">
+    // El ancho se fija (no `max-w-fit`) para que el diálogo no se re-centre
+    // al cambiar la etiqueta viva: el reflow provocaba clics inestables.
+    <DialogContent className="w-fit min-w-[22rem] max-w-[95vw] p-0 gap-0">
       <DialogHeader className="px-5 pt-5 pb-3 border-b">
         <DialogTitle className="text-base">{label.replace(/\s*\*\s*$/, "")}</DialogTitle>
-        <p className="text-sm text-muted-foreground font-mono mt-1">{liveLabel}</p>
+        <p className="text-sm text-muted-foreground font-mono mt-1 h-5 whitespace-nowrap overflow-hidden">
+          {liveLabel}
+        </p>
+
       </DialogHeader>
       <div className="p-3">
         <Calendar
