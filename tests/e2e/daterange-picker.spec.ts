@@ -60,11 +60,12 @@ test.describe("DateRangePickerField", () => {
 });
 
 /**
- * R9-P2-07: el filtro de rango se aplica solo al completar la selección
- * (antes hacía falta un tercer clic en "Aplicar").
+ * R10-FE-02: el primer clic (from == to) es selección PARCIAL y no cierra el
+ * diálogo; un rango real (from != to) se auto-aplica; existe botón "Aplicar"
+ * para confirmar rangos de un solo día.
  */
 test.describe("DateRangePickerField auto-aplicación", () => {
-  test("cierra el popover al completar el rango, sin botón Aplicar", async ({ page }) => {
+  test("primer clic no cierra; rango real auto-aplica y hay botón Aplicar", async ({ page }) => {
     await page.goto("/quotes/new", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: /cotizaci/i }).first()).toBeVisible({
       timeout: 15_000,
@@ -78,13 +79,21 @@ test.describe("DateRangePickerField auto-aplicación", () => {
 
     const grid = page.getByRole("grid").first();
     await expect(grid).toBeVisible({ timeout: 5_000 });
-    await expect(page.getByRole("button", { name: /^aplicar$/i })).toHaveCount(0);
+    // R10-FE-02: el botón Aplicar vuelve a existir (deshabilitado sin rango).
+    const apply = page.getByRole("button", { name: /^aplicar$/i });
+    await expect(apply).toBeVisible();
+    await expect(apply).toBeDisabled();
 
     const dayButton = (n: number) =>
       grid.locator("button").filter({ hasText: new RegExp(`^\\s*${n}\\s*$`) }).first();
-    await clickDay(dayButton(5));
-    await clickDay(dayButton(20));
 
+    // Primer clic: selección parcial → el diálogo sigue abierto.
+    await clickDay(dayButton(5));
+    await expect(grid).toBeVisible();
+    await expect(page.getByText(/selecciona fin/i)).toBeVisible();
+
+    // Segundo clic en otra fecha: rango real → se auto-aplica y cierra.
+    await clickDay(dayButton(20));
     await expect(grid).toBeHidden({ timeout: 5_000 });
   });
 });
