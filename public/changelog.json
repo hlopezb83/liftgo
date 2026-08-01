@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.274.2",
+    "date": "2026-08-01",
+    "type": "patch",
+    "title": "CI verde y refuerzo de permisos en cartera vencida",
+    "category": "fix",
+    "description": "Se estabilizó la prueba automática del selector de fechas, se limpió código sin uso que detenía el CI y la vista de facturas vencidas ahora respeta los permisos de cada usuario."
+  },
+  {
     "version": "7.274.1",
     "date": "2026-08-01",
     "type": "patch",

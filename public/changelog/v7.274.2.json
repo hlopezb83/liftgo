@@ -1,0 +1,21 @@
+{
+  "version": "7.274.2",
+  "date": "2026-08-01",
+  "type": "patch",
+  "title": "CI verde: E2E del calendario, Knip y vista de cartera vencida",
+  "category": "fix",
+  "changes": [
+    {
+      "area": "CI / E2E",
+      "detail": "daterange-picker.spec.ts fallaba en CI al buscar el texto 'selecciona fin': el localizador de días podía caer en un día deshabilitado o fuera de mes y el clic no seleccionaba nada. Ahora se usan sólo botones habilitados y se valida el estado (aria-selected) en vez del texto."
+    },
+    {
+      "area": "CI / Knip",
+      "detail": "Eliminados exports muertos que rompían el job de Knip: useNextQuoteNumber, toMtyYMD, parseMtyDate y el tipo QuoteFormReturn."
+    },
+    {
+      "area": "Seguridad (DB)",
+      "detail": "public.v_overdue_invoices pasa a security_invoker = on: la cartera vencida se lee con los permisos (RLS) de quien consulta, no con los del creador de la vista."
+    }
+  ]
+}
