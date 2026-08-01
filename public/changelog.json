@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.273.1",
+    "date": "2026-08-01",
+    "type": "patch",
+    "title": "Auditoría Ronda 9 · Fase 2: los 7 detalles P2",
+    "category": "improvement",
+    "description": "Cierre de los 7 hallazgos P2 de la Ronda 9: el rechazo de cotizaciones ya guarda su fecha, las facturas de proveedor pagadas dejan de decir 'Por aprobar', borrar una cotización abierta ya no lanza un error técnico, el portal explica el sobrepago indicando el saldo, la bitácora muestra nombres en vez de códigos, la lista de entregas muestra el montacargas correcto y el filtro de fechas se aplica solo al elegir el rango."
+  },
+  {
     "version": "7.273.0",
     "date": "2026-08-01",
     "type": "minor",
