@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { z } from "zod";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { UserPlus } from "@/components/icons";
@@ -103,7 +103,7 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
         </div>
         <FormDialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-          <Button onClick={handleInvite} disabled={inviteUser.isPending || !fullName.trim() || !email.trim()}>
+          <Button onClick={onInviteClick} disabled={inviteUser.isPending || !fullName.trim() || !email.trim()}>
             {inviteUser.isPending ? "Creando…" : "Crear usuario"}
           </Button>
         </FormDialogFooter>
