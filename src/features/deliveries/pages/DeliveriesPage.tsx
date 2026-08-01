@@ -9,6 +9,7 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { visibleListRows } from "@/lib/supabase/constants";
 import { formatDateDisplay } from "@/lib/utils";
 import { DeliveryFormDialog } from "../components/deliveries/DeliveryFormDialog";
+import { resolveDeliveryForkliftName } from "../lib/resolveDeliveryForkliftName";
 import { useDeliveries, deliveryQueries } from "../hooks/useDeliveries";
 
 type Delivery = NonNullable<ReturnType<typeof useDeliveries>["data"]>[number];
@@ -44,9 +45,9 @@ export default function DeliveriesPage() {
         // el mapa a veces no tenía la unidad y la celda quedaba en "—". La
         // consulta de entregas ya trae el join `forklifts(name, model)`: se usa
         // como fuente primaria y el mapa sólo como respaldo.
-        accessorFn: (d) => d.forklifts?.name || forkliftMap.get(d.forklift_id)?.name || "",
+        accessorFn: (d) => resolveDeliveryForkliftName(d, forkliftMap) ?? "",
         cell: ({ row }) => {
-          const name = row.original.forklifts?.name || forkliftMap.get(row.original.forklift_id)?.name;
+          const name = resolveDeliveryForkliftName(row.original, forkliftMap);
           return name ? <Untranslated className="font-medium">{name}</Untranslated> : <span className="font-medium">—</span>;
         },
       },

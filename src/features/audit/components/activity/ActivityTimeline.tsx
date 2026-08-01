@@ -9,6 +9,7 @@ import type { AppRole } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { translateActivityTitle, translateActivityDescription } from "@/lib/domain/activityTranslations";
 import { formatDateTimeShortMty } from "@/lib/format/dateFormats";
+import { actorLabel } from "../../lib/activityMetricsCalculators";
 import { ENTITY_LABELS, ENTITY_ROUTES, EVENT_LABELS, EVENT_TYPES } from "../../lib/activityConstants";
 import { ActorAvatar } from "./ActorAvatar";
 import type { MemberStat } from "../../hooks/useActivityMetrics";
@@ -93,7 +94,7 @@ export function ActivityTimeline({ filters, onFilterChange, onReset, members }: 
           <div className="divide-y">
             {data.map((a, idx) => {
               const route = ENTITY_ROUTES[a.entity_type];
-              const actorName = a.actor_name ?? "Sistema";
+              const actorName = actorLabel(a.actor_id ?? null, a.actor_name ?? null);
               const moduleLabel = ENTITY_LABELS[a.entity_type] ?? a.entity_type;
               const interactive = route
                 ? {

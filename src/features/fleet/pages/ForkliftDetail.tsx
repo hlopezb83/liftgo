@@ -10,7 +10,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
-import { computeFleetAvailability } from "@/features/availability/utils/fleetAvailability";
+import { computeFleetAvailability, deriveForkliftDisplayStatus } from "@/features/availability/utils/fleetAvailability";
 import { useBookings } from "@/features/bookings";
 import { DamagePhotosSection } from "@/features/damage";
 import { useMaintenanceLogs } from "@/features/maintenance";
@@ -41,10 +41,7 @@ export default function ForkliftDetail() {
   // desincroniza (available con reserva vigente, o rented sin ella). El badge
   // del detalle debe reflejar la disponibilidad derivada, no el status crudo.
   const availability = forklift && bookings ? computeFleetAvailability([forklift], bookings) : null;
-  const displayStatus =
-    forklift && availability && (forklift.status === "available" || forklift.status === "rented")
-      ? (availability.rentedForkliftIds.has(forklift.id) ? "rented" : "available")
-      : forklift?.status;
+  const displayStatus = deriveForkliftDisplayStatus(forklift, availability);
   const { data: financials, isLoading: loadingFinancials } = useForkliftFinancials(id);
   const { data: locationData } = useForkliftLocation(id);
   const deleteForklift = useDeleteForklift();
