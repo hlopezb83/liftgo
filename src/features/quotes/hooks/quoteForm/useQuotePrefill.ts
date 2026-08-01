@@ -177,15 +177,17 @@ export function useQuotePrefillValues({ existingQuote, equipmentModels, quoteRea
   // Caché derivada en estado (no en ref): calcularla durante el render con
   // `useState` es el patrón soportado por React para memoizar por clave sin
   // efectos ni timers, y no rompe la regla `react-hooks/refs`.
-  const ready = Boolean(existingQuote && equipmentModels && quoteReady && modelsReady);
-  const nextId = ready && existingQuote ? (existingQuote.id ?? "existing") : null;
+  const source = quoteReady && modelsReady && existingQuote && equipmentModels
+    ? { quote: existingQuote, models: equipmentModels, id: existingQuote.id ?? "existing" }
+    : null;
   const [cache, setCache] = useState<{ id: string; values: QuoteFormValues } | null>(null);
 
-  if (ready && nextId && existingQuote && equipmentModels && cache?.id !== nextId) {
-    setCache({ id: nextId, values: buildPrefillValues(existingQuote, equipmentModels) });
+  if (source && cache?.id !== source.id) {
+    setCache({ id: source.id, values: buildPrefillValues(source.quote, source.models) });
   }
 
-  if (!nextId) return undefined;
-  return cache?.id === nextId ? cache.values : undefined;
+  if (!source) return undefined;
+  return cache?.id === source.id ? cache.values : undefined;
 }
+
 
