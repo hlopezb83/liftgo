@@ -63,8 +63,11 @@ function lineToRentalLine(item: LineItem, found: EquipmentModel): RentalLineValu
 function lineToRentalLineFallback(item: LineItem): RentalLineValues {
   return {
     modelId: "",
-    quantity: item.quantity || 1,
-    dailyRate: item.unit_price || item.total || 0,
+    // R10-FE-03 (P1): cotizaciones legacy usan `qty` (no `quantity`).
+    quantity: Number(item.quantity ?? item.qty) || 1,
+    // R10-FE-03 (P1): NO sintetizar la tarifa desde `total` (importe de la
+    // partida): al multiplicarse por los días de renta genera totales fantasma.
+    dailyRate: Number(item.unit_price) || 0,
     weeklyRate: 0,
     monthlyRate: 0,
     discount: item.discount || 0,

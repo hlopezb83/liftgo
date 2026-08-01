@@ -28,7 +28,10 @@ export function RentalLineRow({ line, index, models, disableRemove, startDate, e
       <div className="grid grid-cols-1 sm:grid-cols-[1fr_80px_40px] gap-3 items-end">
         <div className="space-y-1.5">
           <Label className="text-xs">Modelo *</Label>
-          <Select value={line.modelId} onValueChange={(v) => onModelChange(index, v)}>
+          {/* R10-FE-01 (P0): el BubbleSelect de Radix emite onValueChange("")
+              cuando el valor se hidrata sin colección registrada (dropdown
+              nunca abierto). Un "" jamás es intención del usuario. */}
+          <Select value={line.modelId} onValueChange={(v) => { if (!v) return; onModelChange(index, v); }}>
             <SelectTrigger>
               <SelectValue placeholder="Seleccionar modelo" />
             </SelectTrigger>
