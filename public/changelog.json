@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.273.0",
+    "date": "2026-08-01",
+    "type": "minor",
+    "title": "Auditoría Ronda 9 (pre-release): cierre de los 6 bloqueantes",
+    "category": "improvement",
+    "description": "Se resolvió el bloqueante crítico al editar cotizaciones (las partidas de renta se vaciaban al navegar lista → detalle → editar) y las cotizaciones antiguas vuelven a precargar. Se unificó 'hoy' en hora de Monterrey en indicadores, vistas y validaciones, eliminando la contradicción diaria de 'Cartera Vencida $0'. Además: Ventas vuelve a ver el historial de prospectos, el detalle de unidad muestra el estado derivado real, se eliminó el doble submit que duplicaba registros y /customers/new ya no rompe."
+  },
+  {
     "version": "7.272.0",
     "date": "2026-07-31",
     "type": "minor",

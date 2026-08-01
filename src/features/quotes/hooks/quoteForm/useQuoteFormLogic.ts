@@ -11,7 +11,7 @@ import { useQuote, useCreateQuote, useUpdateQuote } from "../quotes/useQuotes";
 import { buildSaleItems, buildRentalItems } from "./quoteFormBuilders";
 import { buildQuotePayload } from "./quoteFormPayload";
 import { EMPTY_RENTAL_LINE, EMPTY_SALE_LINE, useQuoteForm } from "./useQuoteForm";
-import { useQuotePrefill } from "./useQuotePrefill";
+import { useQuotePrefillValues } from "./useQuotePrefill";
 import type { QuoteFormValues } from "../../lib/quoteFormSchema";
 
 export function useQuoteFormLogic() {
@@ -23,8 +23,14 @@ export function useQuoteFormLogic() {
   const createQuote = useCreateQuote();
   const updateQuote = useUpdateQuote();
 
-  const form = useQuoteForm();
-  useQuotePrefill({ existingQuote, equipmentModels, quoteReady: quoteSuccess, modelsReady: modelsSuccess, form });
+  // R9-P0 (BL-R8-08): valores reactivos memoizados por quoteId — ver
+  // `useQuotePrefillValues`. Se calculan ANTES de `useQuoteForm` para
+  // pasarlos como opción `values` de RHF (reemplaza el `form.reset()`
+  // one-shot del useEffect anterior, no determinista en navegación SPA).
+  const prefillValues = useQuotePrefillValues({
+    existingQuote, equipmentModels, quoteReady: quoteSuccess, modelsReady: modelsSuccess,
+  });
+  const form = useQuoteForm(prefillValues);
 
   // P1-3: una cotización aceptada (o ya convertida a booking) no puede cambiar
   // de montos — el cliente ya firmó esas cifras. V3-3: la DB tampoco permite

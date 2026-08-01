@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { todayKeyMty } from "@/lib/format/dateFormats";
 import { initialReturnInspectionForm, returnInspectionSchema } from "./returnInspectionSchema";
 
 describe("returnInspectionSchema", () => {
@@ -87,5 +88,14 @@ describe("returnInspectionSchema", () => {
       const paths = result.error.issues.map((i) => i.path.join("."));
       expect(paths).toContain("hoursUsed");
     }
+  });
+});
+
+describe("initialReturnInspectionForm — TZ Monterrey (Auditoría R9)", () => {
+  it("el default de inspectedAt es una fecha válida coherente con todayKeyMty()", () => {
+    // R9: el default debe construirse con nowMty() (no `new Date()` crudo), de
+    // forma consistente con el resto de "hoy" de negocio del app.
+    expect(initialReturnInspectionForm.inspectedAt).toBeInstanceOf(Date);
+    expect(todayKeyMty()).toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 });

@@ -10,6 +10,7 @@ import { useCxpApprovalThreshold } from "@/features/company-settings/hooks/useCx
 import { useImportSupplierBillCfdi } from "../hooks/useImportSupplierBillCfdi";
 import { useSupplierBillForm, type SupplierBillFormOverrides } from "../hooks/useSupplierBillForm";
 import { CURRENCIES } from "../lib/supplierBillConstants";
+import { nowMty } from "@/lib/utils";
 import { SupplierBillCfdiDropzone } from "./SupplierBillCfdiDropzone";
 import { SupplierBillFormFields } from "./SupplierBillFormFields";
 import { SupplierBillTotalPanel } from "./SupplierBillTotalPanel";
@@ -27,7 +28,7 @@ const CURRENCY_OPTIONS: SelectOption[] = CURRENCIES.map((c) => ({ value: c, labe
 
 const EMPTY_FORM = {
   supplier_id: "", category: "", description: "",
-  issue_date: new Date(), currency: "MXN" as const, exchange_rate: 1,
+  issue_date: nowMty(), currency: "MXN" as const, exchange_rate: 1,
   subtotal: 0, tax_amount: 0, retention_iva: 0, retention_isr: 0,
   cfdi_uuid: "",
 };

@@ -1,7 +1,7 @@
-import { useEffect, useState } from "react";
+import { useMemo, useRef } from "react";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { parseDateLocal } from "@/lib/utils";
-import { EMPTY_RENTAL_LINE, EMPTY_SALE_LINE, type QuoteFormReturn } from "./useQuoteForm";
+import { EMPTY_RENTAL_LINE, EMPTY_SALE_LINE } from "./useQuoteForm";
 import type { QuoteFormValues, RentalLineValues, SaleLineValues } from "../../lib/quoteFormSchema";
 
 export type EquipmentModel = {
@@ -52,6 +52,26 @@ function lineToRentalLine(item: LineItem, found: EquipmentModel): RentalLineValu
   };
 }
 
+/**
+ * R9VTA-04: fallback para cotizaciones legacy sin `rental_meta` cuyas
+ * partidas usan una descripción libre ("Renta montacargas") que no casa con
+ * ningún modelo del catálogo (`matchModel` requiere fabricante + modelo
+ * exactos). En vez de descartar la partida (línea vacía => totales $0.00),
+ * conservamos cantidad/tarifa/descuento históricos con `modelId: ""` para
+ * que el usuario sólo tenga que re-seleccionar el modelo.
+ */
+function lineToRentalLineFallback(item: LineItem): RentalLineValues {
+  return {
+    modelId: "",
+    quantity: item.quantity || 1,
+    dailyRate: item.unit_price || item.total || 0,
+    weeklyRate: 0,
+    monthlyRate: 0,
+    discount: item.discount || 0,
+    discountType: (item.discount_type || "%") as "%" | "$",
+  };
+}
+
 function normalizeRentalLine(raw: Partial<RentalLineValues> | undefined): RentalLineValues {
   return {
     modelId: raw?.modelId ?? "",
@@ -79,11 +99,24 @@ function rebuildRentalLines(items: LineItem[], q: ExistingQuote, models: Equipme
   if (meta && meta.length > 0) return meta;
   if (items.length === 0) return [{ ...EMPTY_RENTAL_LINE }];
   const matched = new Map<string, RentalLineValues>();
+  const fallbackDescriptions = new Set<string>();
+  const fallbackLines: RentalLineValues[] = [];
   for (const item of items) {
     const found = matchModel(item, models);
-    if (found && !matched.has(found.id)) matched.set(found.id, lineToRentalLine(item, found));
+    if (found) {
+      if (!matched.has(found.id)) matched.set(found.id, lineToRentalLine(item, found));
+      continue;
+    }
+    // R9VTA-04: sin match de modelo, conservar la partida histórica en vez
+    // de descartarla (dedupe por descripción para no duplicar breakdown
+    // diario/semanal/mensual de una misma partida legacy).
+    const key = item.description ?? "";
+    if (!fallbackDescriptions.has(key)) {
+      fallbackDescriptions.add(key);
+      fallbackLines.push(lineToRentalLineFallback(item));
+    }
   }
-  const arr = Array.from(matched.values());
+  const arr = [...matched.values(), ...fallbackLines];
   return arr.length > 0 ? arr : [{ ...EMPTY_RENTAL_LINE }];
 }
 
@@ -111,7 +144,6 @@ export function buildPrefillValues(q: ExistingQuote, models: EquipmentModel[]): 
   };
 }
 
-
 interface Props {
   existingQuote: ExistingQuote | null | undefined;
   equipmentModels: EquipmentModel[] | undefined;
@@ -120,32 +152,37 @@ interface Props {
    *  mientras aún no resuelve la navegación SPA (lista→detalle→editar). */
   quoteReady: boolean;
   modelsReady: boolean;
-  form: QuoteFormReturn;
 }
 
 /**
- * UX-M1: hidrata el form una sola vez cuando llega la cotización existente
- * (o cuando entramos en modo "nuevo" y necesitamos defaults con validUntil).
- * `keepDirty: false` es crítico para que `useUnsavedChangesGuard` no dispare al abrir.
+ * R9-P0 (BL-R8-08): reemplaza el `form.reset()` one-shot (ejecutado desde un
+ * `useEffect`, ~500ms después del primer render en navegación SPA) por un
+ * valor memoizado que se pasa a `useForm({ values })` (RHF v7). RHF
+ * resincroniza el form cada vez que cambia la *referencia* de `values`, así
+ * que:
+ *
+ *  - Mientras `existingQuote`/`equipmentModels` no estén listos (`isSuccess`
+ *    de ambas queries), devolvemos `undefined` y el form se queda con sus
+ *    `defaultValues` (o con lo que el usuario ya haya escrito).
+ *  - Cuando ambas resuelven, calculamos `buildPrefillValues` UNA sola vez
+ *    por `quoteId` y cacheamos esa referencia (useRef) — si React vuelve a
+ *    renderizar con la misma cotización (misma id) pero un array de
+ *    `equipmentModels` con nueva identidad (p.ej. refetch de la query),
+ *    devolvemos el objeto cacheado en vez de reconstruirlo, para que RHF no
+ *    dispare otro reset y no pise ediciones del usuario.
+ *  - Si cambia el `quoteId` (otra cotización), se recalcula y cachea de
+ *    nuevo — determinista, sin efectos ni timers.
  */
-export function useQuotePrefill({ existingQuote, equipmentModels, quoteReady, modelsReady, form }: Props) {
-  const [hydratedId, setHydratedId] = useState<string | null>(null);
+export function useQuotePrefillValues({ existingQuote, equipmentModels, quoteReady, modelsReady }: Props): QuoteFormValues | undefined {
+  const cacheRef = useRef<{ id: string; values: QuoteFormValues } | null>(null);
 
-  useEffect(() => {
-    // Sin cotización existente: form ya tiene defaults con validUntil default.
-    if (!existingQuote) return;
-    if (!equipmentModels) return;
-    // BL-R8-08: hidratar solo cuando AMBAS queries resolvieron (isSuccess).
-    // Sin este gate, en navegación SPA el efecto corría con existingQuote del
-    // cache pero equipmentModels del fetch anterior (o viceversa) y el reset
-    // dejaba las líneas vacías; la recarga de URL funcionaba porque ambas
-    // llegaban juntas. Re-hidratamos si cambia el id (otra cotización).
-    if (!quoteReady || !modelsReady) return;
+  return useMemo(() => {
+    if (!existingQuote || !equipmentModels) return undefined;
+    if (!quoteReady || !modelsReady) return undefined;
     const nextId = existingQuote.id ?? "existing";
-    if (hydratedId === nextId) return;
-    form.reset(buildPrefillValues(existingQuote, equipmentModels), { keepDirty: false });
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- hidratación one-shot: marcar id ya hidratado tras reset del form
-    setHydratedId(nextId);
-  }, [existingQuote, equipmentModels, quoteReady, modelsReady, form, hydratedId]);
+    if (cacheRef.current && cacheRef.current.id === nextId) return cacheRef.current.values;
+    const values = buildPrefillValues(existingQuote, equipmentModels);
+    cacheRef.current = { id: nextId, values };
+    return values;
+  }, [existingQuote, equipmentModels, quoteReady, modelsReady]);
 }
-

@@ -32,11 +32,19 @@ export function defaultQuoteFormValues(): QuoteFormValues {
 /**
  * UX-M1: instancia RHF + Zod para QuoteForm.
  * La validación vive en `quoteFormSchema`; errores se renderizan con `<FormMessage>`.
+ *
+ * R9-P0 (BL-R8-08): `values` (opción reactiva de RHF v7, distinta de
+ * `defaultValues`) permite hidratar el form de forma determinista cuando la
+ * cotización existente y el catálogo de equipos llegan tarde (navegación
+ * SPA lista→detalle→editar). RHF resincroniza el form cada vez que cambia
+ * la *referencia* de `values`; ver `useQuotePrefillValues` para el
+ * memoizado que evita resets espurios y pérdida de ediciones del usuario.
  */
-export function useQuoteForm() {
+export function useQuoteForm(values?: QuoteFormValues) {
   return useForm<QuoteFormValues>({
     resolver: zodResolver(quoteFormSchema),
     defaultValues: defaultQuoteFormValues(),
+    values,
     mode: "onSubmit",
   });
 }

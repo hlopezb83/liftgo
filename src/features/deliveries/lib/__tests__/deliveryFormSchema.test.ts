@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { deliverySchema } from "../deliveryFormSchema";
 
 const base = {
@@ -49,6 +49,22 @@ describe("deliverySchema", () => {
 
   it("acepta scheduledDate hoy", () => {
     const r = deliverySchema.safeParse({ ...base, scheduledDate: new Date() });
+    expect(r.success).toBe(true);
+  });
+});
+
+describe("deliverySchema — TZ Monterrey (Auditoría R9)", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("no rechaza como pasado un scheduledDate de \"hoy en Monterrey\" cuando UTC ya cruzó a mañana", () => {
+    // 2026-01-01T02:00:00Z == 2025-12-31 20:00 en Monterrey (UTC-6): sigue
+    // siendo "hoy" 31-dic para el negocio, aunque en UTC ya sea 1-ene.
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-01T02:00:00Z"));
+    const scheduledDate = new Date(2025, 11, 31);
+    const r = deliverySchema.safeParse({ ...base, scheduledDate });
     expect(r.success).toBe(true);
   });
 });

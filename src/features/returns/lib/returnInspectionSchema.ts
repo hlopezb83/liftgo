@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { nowMty } from "@/lib/utils";
 
 // R17-F: rechazar costos negativos y horas negativas desde el form (además del
 // guard SQL en `complete_return_inspection`).
@@ -69,7 +70,7 @@ export type ReturnInspectionFormValues = z.infer<typeof returnInspectionSchema>;
 
 export const initialReturnInspectionForm: ReturnInspectionFormValues = {
   bookingId: "",
-  inspectedAt: new Date(),
+  inspectedAt: nowMty(),
   condition: "good",
   damageNotes: "",
   damageCost: "",

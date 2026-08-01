@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { nowMty } from "@/lib/utils";
 
 /**
  * UX-M1: schema Zod para QuoteForm (fuente de verdad de la validación).
@@ -124,7 +125,7 @@ export const quoteFormSchema = z.object({
   // R10 Bloque 11.2: `validUntil` no puede quedar en el pasado.
   // Comparación por día calendario (Monterrey) para no rechazar "hoy".
   if (val.validUntil) {
-    const today = new Date();
+    const today = nowMty();
     today.setHours(0, 0, 0, 0);
     const vu = new Date(val.validUntil);
     vu.setHours(0, 0, 0, 0);

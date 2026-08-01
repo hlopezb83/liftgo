@@ -1,4 +1,5 @@
 import { useUserRole } from "@/features/users";
+import { isValidUuid } from "@/lib/isValidUuid";
 import type { Tables } from "@/integrations/supabase/types";
 import { useCustomerDetailActions } from "../customerDetail/useCustomerDetailActions";
 import { useCustomerDetailDialogs } from "../customerDetail/useCustomerDetailDialogs";
@@ -26,9 +27,13 @@ function buildEditInitialData(customer: Customer | undefined | null): Record<Edi
 }
 
 export function useCustomerDetailPage(id: string | undefined) {
-  const { data: customer, isLoading } = useCustomer(id);
-  const { data: summary } = useCustomerSummary(id);
-  const { data: profitability } = useCustomerProfitability(id);
+  // R9 (defensa): si el segmento de ruta no es un UUID válido (p. ej. "new"
+  // colado por una ruta mal armada) no disparamos ningún fetch — se muestra
+  // el estado "Cliente no encontrado" en vez de un error SQL crudo.
+  const validId = isValidUuid(id) ? id : undefined;
+  const { data: customer, isLoading } = useCustomer(validId);
+  const { data: summary } = useCustomerSummary(validId);
+  const { data: profitability } = useCustomerProfitability(validId);
   const { data: role } = useUserRole();
 
   const dialogs = useCustomerDetailDialogs();

@@ -34,7 +34,7 @@ describe("ROUTES ↔ appRoutes sincronía", () => {
     "/portal/estado-cuenta", "/portal/contracts", "/portal/mis-reportes", "/portal/leaderboard",
   ]);
   // Legacy redirect declarado inline en App.tsx.
-  const inlineRoutes = new Set(["/expenses"]);
+  const inlineRoutes = new Set(["/expenses", "/customers/new"]);
 
   const referenced = collect(ROUTES as unknown as Node);
 

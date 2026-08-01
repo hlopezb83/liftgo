@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { nowMty } from "@/lib/utils";
 
 export const deliverySchema = z.object({
   forkliftId: z.string().min(1, "Selecciona un montacargas"),
@@ -17,7 +18,7 @@ export const deliverySchema = z.object({
   // La fecha pasada sólo es válida si se registra como completada.
   if (values.alreadyCompleted) return;
   const day = new Date(values.scheduledDate); day.setHours(0, 0, 0, 0);
-  const today = new Date(); today.setHours(0, 0, 0, 0);
+  const today = nowMty(); today.setHours(0, 0, 0, 0);
   if (day.getTime() < today.getTime()) {
     ctx.addIssue({
       code: "custom",

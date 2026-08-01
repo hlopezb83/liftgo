@@ -4276,6 +4276,7 @@ export type Database = {
           previous_status: string
         }[]
       }
+      today_mty: { Args: never; Returns: string }
       unmatch_bank_line: { Args: { p_line_id: string }; Returns: undefined }
       update_user_role_safe: {
         Args: {

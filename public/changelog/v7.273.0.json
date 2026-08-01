@@ -1,0 +1,17 @@
+{
+  "version": "7.273.0",
+  "date": "2026-08-01",
+  "type": "minor",
+  "title": "Auditoría Ronda 9 (pre-release): cierre de los 6 bloqueantes",
+  "category": "improvement",
+  "highlights": [
+    "R9-01 (P0): editar una cotización navegando lista → detalle → editar ya no vacía las partidas de renta. El formulario ahora se hidrata de forma reactiva en cuanto llegan los datos, en lugar de un llenado único que se perdía; los totales vuelven a calcularse y ya se puede guardar.",
+    "R9-02: cotizaciones antiguas sin metadatos de renta ya precargan sus partidas con la descripción y las tarifas históricas, en vez de aparecer en blanco.",
+    "R9-03: una sola fuente de 'hoy' en hora de Monterrey. Antes, entre las 18:00 y las 24:00, el Panel decía 'Cartera Vencida $0' mientras la lista de facturas sí marcaba vencidos. Se unificaron indicadores, vista de vencidas, alertas, contadores del menú y validaciones de fechas.",
+    "R9-04: los defaults de fecha en inspecciones de devolución, entregas, mantenimiento, cuentas por pagar y vigencia de cotizaciones usan la fecha de Monterrey.",
+    "R9-05: el rol Ventas vuelve a ver el historial de cambios de un prospecto (antes decía 'No tienes permiso' pese a tener acceso).",
+    "R9-06: el detalle de una unidad muestra el estado real derivado (una unidad con reserva vigente ya no aparece como 'Disponible'), igual que la lista de flota.",
+    "R9-07: doble submit sistémico corregido. Dos clics rápidos en 'Guardar' ya no crean registros duplicados (reproducido al crear cotización y al agregar cliente); el bloqueo se libera correctamente para reintentar tras un error.",
+    "R9-08: /customers/new dejó de romperse — ahora redirige a la lista con el diálogo de alta abierto, y un identificador inválido muestra 'no encontrado' en lugar de un error técnico."
+  ]
+}

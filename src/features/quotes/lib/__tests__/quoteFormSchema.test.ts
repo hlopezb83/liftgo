@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { quoteFormSchema } from "../quoteFormSchema";
 
 const baseRental = {
@@ -158,5 +158,18 @@ describe("quoteFormSchema · descuentos %", () => {
       saleLines: [{ ...baseSale.saleLines[0], discount: 101, discountType: "%" as const }],
     });
     expect(r.success).toBe(false);
+  });
+});
+
+describe("quoteFormSchema — validUntil TZ Monterrey (Auditoría R9)", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("no rechaza como pasado un validUntil de \"hoy en Monterrey\" cuando UTC ya cruzó a mañana", () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-01-01T02:00:00Z"));
+    const r = quoteFormSchema.safeParse({ ...baseSale, validUntil: new Date(2025, 11, 31) });
+    expect(r.success).toBe(true);
   });
 });

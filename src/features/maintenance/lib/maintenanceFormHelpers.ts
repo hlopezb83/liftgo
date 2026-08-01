@@ -1,6 +1,7 @@
 import { parseISO } from "date-fns";
 import { z } from "zod";
 import { toYMD } from "@/lib/format/dateFormats";
+import { nowMty } from "@/lib/utils";
 import type { MaintenanceLog } from "../hooks/maintenance/useMaintenanceLogs";
 
 export const maintenanceFormSchema = z.object({
@@ -20,7 +21,7 @@ export type MaintenanceFormValues = z.infer<typeof maintenanceFormSchema>;
 
 export const initialMaintenanceForm: MaintenanceFormValues = {
   forkliftId: "", serviceType: "", description: "", cost: null,
-  performedBy: "", performedAt: new Date(), nextServiceDate: undefined, supplierId: "",
+  performedBy: "", performedAt: nowMty(), nextServiceDate: undefined, supplierId: "",
 };
 
 export function maintenanceLogToFormValues(log: MaintenanceLog): MaintenanceFormValues {
@@ -34,7 +35,7 @@ export function maintenanceLogToFormValues(log: MaintenanceLog): MaintenanceForm
     description: log.description || "",
     cost: manual ?? null,
     performedBy: log.performed_by || "",
-    performedAt: log.performed_at ? parseISO(log.performed_at) : new Date(),
+    performedAt: log.performed_at ? parseISO(log.performed_at) : nowMty(),
     nextServiceDate: log.next_service_date ? parseISO(log.next_service_date) : undefined,
     supplierId: log.supplier_id || "",
   };

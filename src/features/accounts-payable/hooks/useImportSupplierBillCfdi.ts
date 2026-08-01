@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useCompanySettings } from "@/features/company-settings";
 import { useSuppliers } from "@/features/suppliers";
 import { notifyError, notifyWarning } from "@/lib/ui/appFeedback";
+import { nowMty } from "@/lib/utils";
 import { parseCfdiXml, CfdiParseError, type CfdiParsed } from "../lib/parseCfdiXml";
 import { checkSupplierBillCfdiUuid } from "./useCheckSupplierBillCfdiUuid";
 import { useUploadSupplierBillXml, type UploadedCfdiXml } from "./useUploadSupplierBillXml";
@@ -47,7 +48,7 @@ function buildInitialValues(parsed: CfdiParsed, supplierId: string): Partial<Sup
     retention_isr: parsed.retentionIsr,
     cfdi_uuid: parsed.uuid ?? undefined,
     payment_method_sat: parsed.paymentMethodSat ?? undefined,
-    issue_date: parsed.issueDate ?? new Date(),
+    issue_date: parsed.issueDate ?? nowMty(),
     description: [parsed.serie, parsed.folio].filter(Boolean).join("-") || "",
   };
 }
