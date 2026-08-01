@@ -20,7 +20,7 @@ const QUOTE_LIST_COLUMNS = sel(
 );
 
 type QuoteListRow = Quote;
-type QuoteRow = Quote;
+type QuoteRow = Quote | null;
 
 export const quoteQueries = defineEntityQueries<"quotes", QuoteListRow[], QuoteRow>(
   "quotes",
