@@ -54,6 +54,19 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
     onCreated();
   };
 
+  // R10-FE-04: guard capa 3 — cierra la ventana entre el clic y el primer
+  // render con isPending=true (mismo patrón que FormActions).
+  const inFlightRef = useRef(false);
+  const onInviteClick = async () => {
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
+    try {
+      await handleInvite();
+    } finally {
+      inFlightRef.current = false;
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
