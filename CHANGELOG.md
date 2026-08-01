@@ -1,5 +1,19 @@
 # Changelog
 
+## 7.274.0 — 01/08/2026
+
+Auditoría R10: 4 bloqueantes + 2 P2 con diff.
+
+- **R10-FE-01 (P0)** `RentalLineRow` / `SaleLineRow`: guard `if (!v) return` en `onValueChange` — el `BubbleSelect` de Radix emitía `""` al hidratar el form y corrompía las líneas precargadas.
+- **R10-FE-03 (P1)** `useQuotePrefill.lineToRentalLineFallback`: lee `qty ?? quantity` y ya no sintetiza `dailyRate` desde `total` (total fantasma de $434,000 en COT-0001).
+- **R10-DB-01 (P1 seguridad)** `expire_stale_quotes`: `REVOKE` de `anon`/`authenticated` + guard `auth.role() = 'service_role'`.
+- **R10-FE-02 (P1)** `DateRangePickerField`: `from == to` es selección parcial (no auto-aplica); vuelve el botón **Aplicar** (habilitado con rango completo).
+- **R10-FE-04 (P2)** `InviteUserDialog`: `inFlightRef` contra doble submit.
+- **R10-DB-02**: no aplica — la línea `v_starts_today := p_start_date <= CURRENT_DATE` vive en `create_booking`, no en `start_repair_work_order`, y ya usa `today_mty()` desde R9. Verificado en `supabase/tests/r10_smoke.sql`.
+- Verificación: `tsgo --noEmit` limpio, tests de cotizaciones en verde (+3 nuevos), E2E `daterange-picker.spec.ts` actualizado.
+
+
+
 ## 7.273.5 — 01/08/2026
 
 Refactor de complejidad ciclomática: 0 warnings `complexity` (umbral 15), sin cambios de comportamiento.

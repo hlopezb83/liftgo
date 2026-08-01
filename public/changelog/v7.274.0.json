@@ -1,0 +1,39 @@
+{
+  "version": "7.274.0",
+  "date": "2026-08-01",
+  "type": "minor",
+  "title": "Auditoría R10: cotizaciones, permisos y selector de fechas",
+  "category": "fix",
+  "changes": [
+    {
+      "area": "Cotizaciones",
+      "detail": "R10-FE-01 (P0): RentalLineRow y SaleLineRow ignoran onValueChange(\"\") del BubbleSelect de Radix, que borraba modelo y tarifas de las líneas recién hidratadas al editar una cotización."
+    },
+    {
+      "area": "Cotizaciones",
+      "detail": "R10-FE-03 (P1): el prefill lee `qty ?? quantity` en partidas legacy y deja de usar `total` como tarifa diaria (origen del total fantasma de $434,000 en COT-0001)."
+    },
+    {
+      "area": "Seguridad",
+      "detail": "R10-DB-01 (P1): expire_stale_quotes pierde EXECUTE para authenticated/anon y suma un guard interno que sólo permite service_role (cron/edge)."
+    },
+    {
+      "area": "Filtros",
+      "detail": "R10-FE-02 (P1): DateRangePickerField trata from==to como selección parcial, mantiene el auto-aplicado de rangos reales y reintroduce el botón Aplicar para rangos de un día."
+    },
+    {
+      "area": "Usuarios",
+      "detail": "R10-FE-04 (P2): InviteUserDialog usa guard con useRef para cerrar la ventana de doble submit previa a isPending."
+    },
+    {
+      "area": "Verificación",
+      "detail": "R10-DB-02 revisado: la expresión con CURRENT_DATE pertenece a create_booking (no a start_repair_work_order) y ya usa today_mty() desde R9; se documenta en supabase/tests/r10_smoke.sql."
+    }
+  ],
+  "verification": {
+    "eslint": "sin errores",
+    "tsc": "limpio",
+    "tests": "suite vitest en verde + 3 pruebas nuevas de prefill legacy",
+    "sql": "supabase/tests/r10_smoke.sql"
+  }
+}
