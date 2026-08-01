@@ -61,11 +61,19 @@ export function AuthGuard({ children }: { children: ReactNode }) {
 
   const stillLoading = isRestoring || isLoading || (user && roleLoading);
   const [timedOut, setTimedOut] = useState(false);
+  // El reset se hace como estado derivado durante el render (patrón soportado
+  // por React) para no encadenar renders con un setState dentro del efecto.
+  const [prevLoading, setPrevLoading] = useState(stillLoading);
+  if (prevLoading !== stillLoading) {
+    setPrevLoading(stillLoading);
+    if (!stillLoading) setTimedOut(false);
+  }
   useEffect(() => {
-    if (!stillLoading) { setTimedOut(false); return; }
+    if (!stillLoading) return;
     const t = setTimeout(() => setTimedOut(true), LOADING_TIMEOUT_MS);
     return () => clearTimeout(t);
   }, [stillLoading]);
+
 
   if (stillLoading) {
     return (
