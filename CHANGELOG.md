@@ -1,5 +1,12 @@
 # Changelog
 
+## 7.273.3 — 01/08/2026
+
+Estabilidad del selector de rango de fechas.
+
+- `DateRangePickerField`: `DialogContent` pasa de `max-w-fit` a ancho fijo (`w-fit min-w-[22rem]`) y la etiqueta viva tiene alto fijo. Evita el reflow/re-centrado del diálogo al elegir la fecha inicial.
+- `tests/e2e/daterange-picker.spec.ts`: helper `clickDay()` que espera visibilidad y fuerza el clic; elimina el fallo intermitente "element is not stable / detached" en CI.
+
 ## 7.273.2 — 01/08/2026
 
 Auditoría Ronda 9 · Cierre: cobertura de pruebas.
