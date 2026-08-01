@@ -162,16 +162,6 @@ export function useDeleteQuote() {
   });
 }
 
-export function useNextQuoteNumber() {
-  return useQuery({
-    queryKey: quoteKeys.nextNumber(),
-    queryFn: async () => {
-      const { data, error } = await supabase.rpc("next_quote_number");
-      if (error) throw error;
-      return data as string;
-    },
-  });
-}
 
 // v-FE12: la lista completa de `useQuotes()` trae >25 columnas; el CRM sólo
 // necesita `quote_number` por id. Query dedicada, más liviana y con

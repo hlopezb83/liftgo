@@ -1,5 +1,15 @@
 # Changelog
 
+## 7.274.2 — 01/08/2026
+
+Remediación del run de CI `83268379122` (2 jobs rojos) + hallazgo de seguridad.
+
+- **E2E** `daterange-picker.spec.ts`: el filtro `hasText: /^\s*5\s*$/` podía apuntar a un día deshabilitado o fuera del mes visible, así que el clic no seleccionaba nada y `getByText(/selecciona fin/i)` no aparecía. Ahora se usan sólo `button:not([disabled])` y se afirma el estado (`aria-selected`) en lugar del texto de la etiqueta viva.
+- **Knip**: eliminados exports sin uso — `useNextQuoteNumber`, `toMtyYMD`, `parseMtyDate` y el tipo `QuoteFormReturn`.
+- **Seguridad (SUPA_security_definer_view)**: `public.v_overdue_invoices` era la única vista pública sin `security_invoker`, por lo que leía `invoices` con los privilegios del owner y saltaba RLS. Migración: `ALTER VIEW ... SET (security_invoker = on)`.
+
+
+
 ## 7.274.1 — 01/08/2026
 
 Hallazgos de la verificación visual de R10 (Playwright con sesión).
