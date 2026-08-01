@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.274.0",
+    "date": "2026-08-01",
+    "type": "minor",
+    "title": "Auditoría R10: cotizaciones, permisos y selector de fechas",
+    "category": "fix",
+    "description": "Al editar una cotización ya no se borran modelo ni tarifas de las partidas, y las cotizaciones antiguas dejan de mostrar totales inflados. El selector de rango de fechas ya no se cierra con el primer clic y recupera el botón Aplicar. Además, la expiración automática de cotizaciones sólo puede ejecutarla el proceso interno."
+  },
+  {
     "version": "7.273.5",
     "date": "2026-08-01",
     "type": "patch",

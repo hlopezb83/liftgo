@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { z } from "zod";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { UserPlus } from "@/components/icons";
@@ -54,6 +54,19 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
     onCreated();
   };
 
+  // R10-FE-04: guard capa 3 — cierra la ventana entre el clic y el primer
+  // render con isPending=true (mismo patrón que FormActions).
+  const inFlightRef = useRef(false);
+  const onInviteClick = async () => {
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
+    try {
+      await handleInvite();
+    } finally {
+      inFlightRef.current = false;
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -103,7 +116,7 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
         </div>
         <FormDialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
-          <Button onClick={handleInvite} disabled={inviteUser.isPending || !fullName.trim() || !email.trim()}>
+          <Button onClick={onInviteClick} disabled={inviteUser.isPending || !fullName.trim() || !email.trim()}>
             {inviteUser.isPending ? "Creando…" : "Crear usuario"}
           </Button>
         </FormDialogFooter>

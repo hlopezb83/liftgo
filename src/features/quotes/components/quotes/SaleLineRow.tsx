@@ -24,7 +24,9 @@ export function SaleLineRow({ line, index, models, disableRemove, onUpdate, onRe
     <div className="grid grid-cols-1 sm:grid-cols-[1fr_80px_120px_140px_100px_40px] gap-3 items-end border-b border-border pb-4 last:border-0 last:pb-0">
       <div className="space-y-1.5">
         <Label className="text-xs">Modelo *</Label>
-        <Select value={line.modelId} onValueChange={(v) => onUpdate(index, "modelId", v)}>
+        {/* R10-FE-01 (P0): mismo guard que RentalLineRow — ignorar "" del
+            BubbleSelect de Radix al hidratar valores sin colección registrada. */}
+        <Select value={line.modelId} onValueChange={(v) => { if (!v) return; onUpdate(index, "modelId", v); }}>
           <SelectTrigger>
             <SelectValue placeholder="Seleccionar modelo" />
           </SelectTrigger>
