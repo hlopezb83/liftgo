@@ -45,27 +45,21 @@ function DateRangeFooter({
   localRange,
   onClear,
   onCancel,
-  onApply,
 }: {
   localRange?: DateRange;
   onClear: () => void;
   onCancel: () => void;
-  onApply: () => void;
 }) {
-  const canApply = !!(localRange?.from && localRange?.to);
   return (
     <DialogFooter className="px-5 py-3 border-t flex-row justify-between sm:justify-between gap-2">
       <Button type="button" variant="ghost" size="sm" onClick={onClear} disabled={!localRange?.from}>
         Limpiar
       </Button>
-      <div className="flex gap-2">
-        <Button type="button" variant="outline" size="sm" onClick={onCancel}>
-          Cancelar
-        </Button>
-        <Button type="button" size="sm" onClick={onApply} disabled={!canApply}>
-          Aplicar
-        </Button>
-      </div>
+      {/* R9-P2: sin botón "Aplicar" — al elegir la fecha final el rango se
+          aplica y el diálogo se cierra (3 clics → 2). */}
+      <Button type="button" variant="outline" size="sm" onClick={onCancel}>
+        Cancelar
+      </Button>
     </DialogFooter>
   );
 }
