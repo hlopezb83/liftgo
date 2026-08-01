@@ -1,6 +1,6 @@
 import { useUserRole } from "@/features/users";
-import { isValidUuid } from "@/lib/isValidUuid";
 import type { Tables } from "@/integrations/supabase/types";
+import { isValidUuid } from "@/lib/isValidUuid";
 import { useCustomerDetailActions } from "../customerDetail/useCustomerDetailActions";
 import { useCustomerDetailDialogs } from "../customerDetail/useCustomerDetailDialogs";
 import { useCustomerProfitability } from "./useCustomerProfitability";
