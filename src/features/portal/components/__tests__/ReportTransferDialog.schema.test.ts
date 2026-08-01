@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { makeSchema } from "../ReportTransferDialog";
+import { makeSchema } from "../reportTransferSchema";
 
 const balance = 1234.5;
 const schema = makeSchema(balance);
