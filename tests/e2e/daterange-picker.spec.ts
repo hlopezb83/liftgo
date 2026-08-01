@@ -1,4 +1,14 @@
-import { test, expect } from "@playwright/test";
+import { test, expect, type Locator } from "@playwright/test";
+
+/**
+ * Al seleccionar la fecha inicial el calendario re-pinta las celdas (preview
+ * del rango), por lo que Playwright puede ver el botón como "inestable" o
+ * "detached". Esperamos a que esté visible y forzamos el clic.
+ */
+async function clickDay(day: Locator): Promise<void> {
+  await day.waitFor({ state: "visible", timeout: 5_000 });
+  await day.click({ force: true, timeout: 10_000 });
+}
 
 /**
  * Regresión Sprint J — DateRangePickerField.
@@ -40,8 +50,8 @@ test.describe("DateRangePickerField", () => {
     const dayButton = (n: number) =>
       grid.locator("button").filter({ hasText: new RegExp(`^\\s*${n}\\s*$`) }).first();
 
-    await dayButton(5).click();
-    await dayButton(20).click();
+    await clickDay(dayButton(5));
+    await clickDay(dayButton(20));
 
     // No debe haber errores en consola (RangeError de date-fns v4).
     expect(errors, `Errores JS: ${errors.join(" | ")}`).toEqual([]);
@@ -71,8 +81,8 @@ test.describe("DateRangePickerField auto-aplicación", () => {
 
     const dayButton = (n: number) =>
       grid.locator("button").filter({ hasText: new RegExp(`^\\s*${n}\\s*$`) }).first();
-    await dayButton(5).click();
-    await dayButton(20).click();
+    await clickDay(dayButton(5));
+    await clickDay(dayButton(20));
 
     await expect(grid).toBeHidden({ timeout: 5_000 });
   });
