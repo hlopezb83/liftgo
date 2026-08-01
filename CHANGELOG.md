@@ -1,5 +1,28 @@
 # Changelog
 
+## 7.273.2 — 01/08/2026
+
+Auditoría Ronda 9 · Cierre: cobertura de pruebas.
+
+- E2E `tests/e2e/quote-edit-prefill.spec.ts`: recorre lista → detalle → editar y verifica que los valores precargados sobreviven la ventana de ~1.5 s en la que el `reset()` tardío los borraba (condición NO-GO del documento R9).
+- `supabase/tests/r9_smoke.sql`: valida `today_mty()`, ausencia de `CURRENT_DATE` en funciones de negocio, `v_overdue_invoices` sobre `today_mty()`, `quotes.rejected_at` poblado y CxP sin aprobación huérfana. Ejecutado contra el entorno: 5/5 OK.
+- Nuevas pruebas unitarias (40): `deriveForkliftDisplayStatus`, `buildLabel` (bitácora), `resolveDeliveryForkliftName`, columna de aprobación de CxP, esquema de sobrepago del portal, `useQuote` con `maybeSingle()`, `setStatus` con `rejected_at` y gate de `ProspectHistoryCard`.
+- E2E de `DateRangePickerField`: confirma auto-aplicación al completar el rango y ausencia del botón "Aplicar".
+- Bitácora: `actorLabel()` distingue "Sistema" (sin `actor_id`) de un usuario no identificado (`Usuario <id corto>`).
+- Refactor de apoyo: se extrajeron `deriveForkliftDisplayStatus` y `resolveDeliveryForkliftName` desde las páginas para poder probarlos sin montarlas.
+
+## 7.273.1 — 01/08/2026
+
+Auditoría Ronda 9 · Fase 2: los 7 detalles P2.
+
+- Cotizaciones: `rejected_at` al rechazar; detalle con `maybeSingle()` (fin del 406 tras borrar).
+- CxP: la columna de aprobación deja de mostrar "Por aprobar" en facturas pagadas o canceladas.
+- Portal: el sobrepago indica el saldo pendiente exacto y el botón permanece habilitado para dar retroalimentación.
+- Bitácora: nombres y roles legibles en lugar de identificadores hexadecimales.
+- Entregas: el nombre del montacargas se toma del join de la consulta, con el mapa de flota como respaldo.
+- Filtros: `DateRangePickerField` se aplica solo al completar el rango.
+
+
 ## 7.273.0 — 01/08/2026
 
 Auditoría Ronda 9 (pre-release): cierre de los 6 bloqueantes.
