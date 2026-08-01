@@ -196,6 +196,7 @@ function RangeDialogBody({
         localRange={localRange}
         onClear={onClear}
         onCancel={onCancel}
+        onApply={onApply}
       />
     </DialogContent>
   );
