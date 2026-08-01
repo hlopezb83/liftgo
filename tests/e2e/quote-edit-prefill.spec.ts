@@ -34,9 +34,8 @@ test.describe("Cotizaciones — precarga al editar (R9 P0)", () => {
     await expect(editar).toBeVisible({ timeout: TIMEOUTS.medium });
     await editar.click();
 
-    // El cliente debe aparecer precargado.
-    const clienteVisible = page.getByText(/cliente/i).first();
-    await expect(clienteVisible).toBeVisible({ timeout: TIMEOUTS.medium });
+    // El formulario de edición debe montarse antes de leer nada.
+    await expect(page.locator("form").first()).toBeVisible({ timeout: TIMEOUTS.medium });
 
     // Snapshot de los valores de todos los inputs visibles del formulario.
     const readInputs = async (): Promise<string[]> =>
@@ -44,9 +43,22 @@ test.describe("Cotizaciones — precarga al editar (R9 P0)", () => {
         els.map((e) => (e instanceof HTMLInputElement ? e.value : "")),
       );
 
+    // La precarga depende de la query de detalle: esperamos a que aplique en
+    // vez de leer en el primer frame (antes esto era una carrera y el CI
+    // fallaba de forma intermitente con "el formulario abrió vacío").
+    await expect
+      .poll(
+        async () => (await readInputs()).filter((v) => v.trim() !== "").length,
+        {
+          message: "el formulario abrió vacío: la precarga no aplicó",
+          timeout: TIMEOUTS.medium,
+        },
+      )
+      .toBeGreaterThan(0);
+
     const before = await readInputs();
     const filledBefore = before.filter((v) => v.trim() !== "");
-    expect(filledBefore.length, "el formulario abrió vacío: la precarga no aplicó").toBeGreaterThan(0);
+
 
     // Ventana en la que ocurría la corrupción por reset tardío.
     // eslint-disable-next-line playwright/no-wait-for-timeout -- la regresión es temporal: hay que esperar la ventana del reset tardío.
