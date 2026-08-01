@@ -26,7 +26,7 @@ interface Props {
 // revisar el intent.
 // R9-P2: el mensaje ahora dice CUÁL es el saldo (antes el botón sólo se
 // deshabilitaba y el cliente no sabía por qué).
-const makeSchema = (balance: number) => z.object({
+export const makeSchema = (balance: number) => z.object({
   transferDate: z.date({ error: "La fecha es obligatoria" }),
   amount: positiveAmount().refine(
     (v) => Number(v) <= Number(balance.toFixed(2)) + 0.005,

@@ -52,3 +52,25 @@ export function computeFleetAvailability(
 
   return { rentedForkliftIds, rented, available, maintenance, totalActive };
 }
+
+/**
+ * R9-05: estado a MOSTRAR en el detalle de una unidad.
+ *
+ * El `status` crudo se desincroniza (una unidad `available` con reserva
+ * vigente, o `rented` sin ella). Sólo se deriva para el par available/rented:
+ * `maintenance`, `retired` y `sold` son estados explícitos que mandan.
+ *
+ * Extraído de ForkliftDetail para poder probarlo sin montar la página.
+ */
+export function deriveForkliftDisplayStatus(
+  forklift: ForkliftLike | undefined | null,
+  availability: FleetAvailability | null,
+): string | undefined {
+  if (!forklift) return undefined;
+  const derivable =
+    forklift.status === FORKLIFT_STATUS.available || forklift.status === FORKLIFT_STATUS.rented;
+  if (!availability || !derivable) return forklift.status;
+  return availability.rentedForkliftIds.has(forklift.id)
+    ? FORKLIFT_STATUS.rented
+    : FORKLIFT_STATUS.available;
+}

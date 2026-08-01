@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.273.2",
+    "date": "2026-08-01",
+    "type": "patch",
+    "title": "Auditoría Ronda 9 · Cierre: pruebas de todo lo corregido",
+    "category": "improvement",
+    "description": "Se agregó la cobertura de pruebas que faltaba para cerrar la Ronda 9: una prueba de extremo a extremo del bloqueante de precarga de cotizaciones, un guion de verificación de base de datos para la hora de Monterrey y la trazabilidad del rechazo, y 40 pruebas nuevas sobre los 7 detalles P2. Además, la bitácora ya distingue los eventos automáticos del 'Sistema' de un usuario no identificado."
+  },
+  {
     "version": "7.273.1",
     "date": "2026-08-01",
     "type": "patch",

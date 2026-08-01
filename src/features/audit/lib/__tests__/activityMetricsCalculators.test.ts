@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { aggregateActivity } from "../activityMetricsCalculators";
+import { aggregateActivity, actorLabel } from "../activityMetricsCalculators";
 
 describe("aggregateActivity", () => {
   it("agrupa por miembro, módulo y hora", () => {
@@ -41,5 +41,21 @@ describe("aggregateActivity", () => {
       { actor_id: "u1", actor_name: "Ana", actor_role: null, entity_type: "x", created_at: "2026-05-26T10:00:00Z" },
     ]);
     expect(r.byMember[0].lastAt).toBe("2026-05-26T10:00:00Z");
+  });
+});
+
+describe("actorLabel (R9-P2-07)", () => {
+  it("marca como Sistema sólo los eventos sin actor", () => {
+    expect(actorLabel(null, null)).toBe("Sistema");
+  });
+
+  it("no llama Sistema a un usuario con id pero sin nombre resuelto", () => {
+    const label = actorLabel("a3f9b2c1-1111-2222-3333-444455556666", null);
+    expect(label).not.toBe("Sistema");
+    expect(label).toBe("Usuario a3f9b2c1");
+  });
+
+  it("usa el nombre cuando está disponible", () => {
+    expect(actorLabel("a3f9b2c1", "Ana Torres")).toBe("Ana Torres");
   });
 });

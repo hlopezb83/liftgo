@@ -9,6 +9,17 @@ interface Row {
   created_at: string;
 }
 
+/**
+ * R9-P2-07: sólo los eventos SIN actor son del "Sistema". Si hay `actor_id`
+ * pero el perfil no resolvió el nombre, es una persona no identificada: antes
+ * ambos casos se mostraban como "Sistema" y se confundían automatizaciones
+ * con usuarios reales.
+ */
+export function actorLabel(actorId: string | null, actorName: string | null): string {
+  if (actorName) return actorName;
+  return actorId ? `Usuario ${actorId.slice(0, 8)}` : "Sistema";
+}
+
 function upsertMember(memberMap: Map<string, MemberStat>, r: Row) {
   const key = r.actor_id ?? "system";
   const existing = memberMap.get(key);
@@ -19,7 +30,7 @@ function upsertMember(memberMap: Map<string, MemberStat>, r: Row) {
   }
   memberMap.set(key, {
     actorId: r.actor_id,
-    actorName: r.actor_name ?? "Sistema",
+    actorName: actorLabel(r.actor_id, r.actor_name),
     actorRole: r.actor_role as AppRole | null,
     total: 1,
     lastAt: r.created_at,

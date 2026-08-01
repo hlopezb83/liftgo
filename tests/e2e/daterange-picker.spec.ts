@@ -47,3 +47,33 @@ test.describe("DateRangePickerField", () => {
     expect(errors, `Errores JS: ${errors.join(" | ")}`).toEqual([]);
   });
 });
+
+/**
+ * R9-P2-07: el filtro de rango se aplica solo al completar la selección
+ * (antes hacía falta un tercer clic en "Aplicar").
+ */
+test.describe("DateRangePickerField auto-aplicación", () => {
+  test("cierra el popover al completar el rango, sin botón Aplicar", async ({ page }) => {
+    await page.goto("/quotes/new", { waitUntil: "domcontentloaded" });
+    await expect(page.getByRole("heading", { name: /cotizaci/i }).first()).toBeVisible({
+      timeout: 15_000,
+    });
+
+    const trigger = page
+      .getByRole("button", { name: /periodo|rango|fecha/i })
+      .filter({ hasText: /-|selecc/i })
+      .first();
+    await trigger.click();
+
+    const grid = page.getByRole("grid").first();
+    await expect(grid).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByRole("button", { name: /^aplicar$/i })).toHaveCount(0);
+
+    const dayButton = (n: number) =>
+      grid.locator("button").filter({ hasText: new RegExp(`^\\s*${n}\\s*$`) }).first();
+    await dayButton(5).click();
+    await dayButton(20).click();
+
+    await expect(grid).toBeHidden({ timeout: 5_000 });
+  });
+});

@@ -75,7 +75,7 @@ function normalizeJson(value: unknown): Record<string, unknown> | null {
 // P1-4b: proyecciones ligeras para armar el label sin traer old_data/new_data.
 // PostgREST devuelve `null` si el campo no existe en el jsonb, así que basta
 // escoger el primero definido entre new_* y luego old_*.
-type LabelProjectionRow = {
+export type LabelProjectionRow = {
   table_name: string;
   new_name: string | null; new_booking: string | null; new_contract: string | null;
   new_invoice: string | null; new_quote: string | null; new_desc: string | null;
@@ -103,7 +103,7 @@ function buildIdentityLabel(row: LabelProjectionRow): string | null {
   return null;
 }
 
-function buildLabel(row: LabelProjectionRow, recordId: string): string {
+export function buildLabel(row: LabelProjectionRow, recordId: string): string {
   const first = (
     buildIdentityLabel(row)
     ?? row.new_name ?? row.new_booking ?? row.new_contract ?? row.new_invoice ?? row.new_quote
