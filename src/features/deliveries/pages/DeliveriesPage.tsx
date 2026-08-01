@@ -9,8 +9,8 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { visibleListRows } from "@/lib/supabase/constants";
 import { formatDateDisplay } from "@/lib/utils";
 import { DeliveryFormDialog } from "../components/deliveries/DeliveryFormDialog";
-import { resolveDeliveryForkliftName } from "../lib/resolveDeliveryForkliftName";
 import { useDeliveries, deliveryQueries } from "../hooks/useDeliveries";
+import { resolveDeliveryForkliftName } from "../lib/resolveDeliveryForkliftName";
 
 type Delivery = NonNullable<ReturnType<typeof useDeliveries>["data"]>[number];
 
