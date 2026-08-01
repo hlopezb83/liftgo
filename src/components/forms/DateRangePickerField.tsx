@@ -88,8 +88,9 @@ export function DateRangePickerField({
     ? formatRangeLabel(localRange, "", "selecciona fin")
     : "Selecciona la fecha de inicio";
 
-  const handleApply = () => {
-    onSelect(normalizeRange(localRange));
+  // R9-P2: auto-aplicar en cuanto el rango queda completo.
+  const applyRange = (range?: DateRange) => {
+    onSelect(normalizeRange(range));
     setOpen(false);
   };
 
