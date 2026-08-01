@@ -126,11 +126,13 @@ export function DateRangePickerField({
               setLocalRange(normalizeRange({ from: r.from, to: undefined }));
               return;
             }
-            setLocalRange(normalizeRange(r));
+            const next = normalizeRange(r);
+            setLocalRange(next);
+            // Rango completo → aplicar y cerrar sin paso extra.
+            if (next?.from && next?.to) applyRange(next);
           }}
           onClear={() => setLocalRange(undefined)}
           onCancel={() => setOpen(false)}
-          onApply={handleApply}
         />
       </Dialog>
       {error ? <p className="text-sm text-destructive">{error}</p> : helperText ? <p className="text-xs text-muted-foreground">{helperText}</p> : null}
