@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.273.4",
+    "date": "2026-08-01",
+    "type": "patch",
+    "title": "Calidad de código: lint sin errores",
+    "category": "fix",
+    "description": "Se corrigió el error que rompía la revisión automática de código (lint) y varios avisos: la prueba de aprobación de CxP ahora usa un componente real, el guardián de sesión y la precarga de cotizaciones dejan de usar patrones desaconsejados por React, y se ordenaron importaciones."
+  },
+  {
     "version": "7.273.3",
     "date": "2026-08-01",
     "type": "patch",
