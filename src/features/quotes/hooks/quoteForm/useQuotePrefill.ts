@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useState } from "react";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { parseDateLocal } from "@/lib/utils";
 import { EMPTY_RENTAL_LINE, EMPTY_SALE_LINE } from "./useQuoteForm";
