@@ -66,24 +66,24 @@ export function FormActions({ submitLabel, isPending, onCancel, submitDisabled, 
   const requestClose = useFormDialogClose();
   const handleCancel = requestClose ?? onCancel;
 
-  const clearReleaseTimer = () => {
+  const clearReleaseTimer = useCallback(() => {
     if (releaseTimerRef.current !== null) {
       clearTimeout(releaseTimerRef.current);
       releaseTimerRef.current = null;
     }
-  };
-  const clearSafetyTimer = () => {
+  }, []);
+  const clearSafetyTimer = useCallback(() => {
     if (safetyTimerRef.current !== null) {
       clearTimeout(safetyTimerRef.current);
       safetyTimerRef.current = null;
     }
-  };
-  const release = () => {
+  }, []);
+  const release = useCallback(() => {
     inFlightRef.current = false;
     hasBeenBusyRef.current = false;
     clearReleaseTimer();
     clearSafetyTimer();
-  };
+  }, [clearReleaseTimer, clearSafetyTimer]);
 
   useEffect(() => {
     if (busy) {
@@ -98,15 +98,14 @@ export function FormActions({ submitLabel, isPending, onCancel, submitDisabled, 
     clearReleaseTimer();
     releaseTimerRef.current = setTimeout(release, RELEASE_DEBOUNCE_MS);
     return clearReleaseTimer;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [busy]);
+  }, [busy, clearReleaseTimer, clearSafetyTimer, release]);
 
   // Cleanup de timers al desmontar (evita setState/timers huérfanos).
   useEffect(() => () => {
     clearReleaseTimer();
     clearSafetyTimer();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [clearReleaseTimer, clearSafetyTimer]);
+
 
   // El guard vive en `onClick` (no en `onPointerDown`): `click` siempre se
   // dispara — con puntero, teclado o `fireEvent.click` — y llamar
