@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { isPartialRange, nextRangeState } from "../DateRangePickerField";
+import { isPartialRange, nextRangeState } from "../dateRangeState";
 
 const d = (day: number) => new Date(2026, 7, day); // agosto 2026
 
