@@ -136,11 +136,15 @@ export function DateRangePickerField({
             }
             const next = normalizeRange(r);
             setLocalRange(next);
-            // Rango completo → aplicar y cerrar sin paso extra.
-            if (next?.from && next?.to) applyRange(next);
+            // R10-FE-02: from==to es selección PARCIAL (primer clic), no un
+            // rango de un día — sólo se auto-aplica un rango real (from != to).
+            if (next?.from && next?.to && next.from.getTime() !== next.to.getTime()) {
+              applyRange(next);
+            }
           }}
           onClear={() => setLocalRange(undefined)}
           onCancel={() => setOpen(false)}
+          onApply={() => applyRange(localRange)}
         />
       </Dialog>
       {error ? <p className="text-sm text-destructive">{error}</p> : helperText ? <p className="text-xs text-muted-foreground">{helperText}</p> : null}
