@@ -148,7 +148,6 @@ function RangeDialogBody({
   onCalendarSelect,
   onClear,
   onCancel,
-  onApply,
 }: {
   label: string;
   liveLabel: string;
@@ -157,7 +156,6 @@ function RangeDialogBody({
   onCalendarSelect: (r?: DateRange) => void;
   onClear: () => void;
   onCancel: () => void;
-  onApply: () => void;
 }) {
   const months = isMobile ? 1 : 2;
   return (
@@ -179,7 +177,6 @@ function RangeDialogBody({
         localRange={localRange}
         onClear={onClear}
         onCancel={onCancel}
-        onApply={onApply}
       />
     </DialogContent>
   );
