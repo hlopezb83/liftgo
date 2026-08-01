@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.274.3",
+    "date": "2026-08-01",
+    "type": "patch",
+    "title": "Lint limpio en el diálogo de reporte de transferencia",
+    "category": "fix",
+    "description": "Se separó el esquema de validación del componente para eliminar el último aviso de ESLint y restaurar la recarga en caliente. Sin cambios visibles para el usuario."
+  },
+  {
     "version": "7.274.2",
     "date": "2026-08-01",
     "type": "patch",

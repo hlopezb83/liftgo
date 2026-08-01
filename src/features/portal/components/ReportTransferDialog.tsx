@@ -1,17 +1,15 @@
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { TextField, CurrencyField, DateField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toYMD } from "@/lib/date/toYMD";
-import { formatCurrency } from "@/lib/format/formatCurrency";
 import { zodResolver } from "@/lib/forms/zodResolver";
-import { positiveAmount } from "@/lib/schemas";
 import { nowMty } from "@/lib/utils";
 import { useCreatePaymentIntent } from "../hooks/usePortalExtras";
+import { makeSchema, type ReportTransferFormValues } from "./reportTransferSchema";
 
 interface Props {
   open: boolean;
@@ -21,29 +19,7 @@ interface Props {
   balance: number;
 }
 
-// Bloque 3.4 (R4): el monto debe ser > 0 y ≤ saldo pendiente. Antes se podía
-// reportar una transferencia mayor al saldo, lo que confundía al admin al
-// revisar el intent.
-// R9-P2: el mensaje ahora dice CUÁL es el saldo (antes el botón sólo se
-// deshabilitaba y el cliente no sabía por qué).
-export const makeSchema = (balance: number) => z.object({
-  transferDate: z.date({ error: "La fecha es obligatoria" }),
-  amount: positiveAmount().refine(
-    (v) => Number(v) <= Number(balance.toFixed(2)) + 0.005,
-    { message: `El monto no puede superar el saldo pendiente (${formatCurrency(balance)})` },
-  ),
-  senderBank: z.string().default(""),
-  senderLast4: z
-    .string()
-    .default("")
-    .refine((v) => !v || /^\d{4}$/.test(v), { message: "Debe ser 4 dígitos" }),
-  trackingKey: z.string().default(""),
-  proofFile: z
-    .custom<File | null>((v) => v === null || v instanceof File, { message: "Archivo inválido" })
-    .nullable()
-    .default(null),
-});
-type FormValues = z.input<ReturnType<typeof makeSchema>>;
+type FormValues = ReportTransferFormValues;
 
 export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId, balance }: Props) {
   const { mutate, isPending } = useCreatePaymentIntent();
