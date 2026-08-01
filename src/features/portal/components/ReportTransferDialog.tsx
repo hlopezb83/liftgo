@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { toYMD } from "@/lib/date/toYMD";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { positiveAmount } from "@/lib/schemas";
 import { nowMty } from "@/lib/utils";
