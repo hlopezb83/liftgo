@@ -1,5 +1,4 @@
 import { useParams } from "react-router";
-import { NotesCard } from "@/components/domain/NotesCard";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
@@ -12,14 +11,11 @@ import { useUserRole } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { DeliveryActions } from "../components/deliveries/DeliveryActions";
+import { DeliveryDetailBody } from "../components/deliveries/DeliveryDetailBody";
 import { DeliveryDetailDialogs } from "../components/deliveries/DeliveryDetailDialogs";
-import {
-  DeliveryStatusCard, DeliveryEquipmentCard, DeliveryLogisticsCard, DeliveryBookingCard,
-} from "../components/deliveries/DeliveryInfoCards";
-import { DeliverySignatureCard } from "../components/deliveries/DeliverySignatureCard";
 import { useDeliveries, useDelivery, useDeleteDelivery } from "../hooks/useDeliveries";
 import { useDeliveryCompletion } from "../hooks/useDeliveryCompletion";
-import { buildDeliverySubtitle, computeHoursUsed } from "../lib/deliveryDetailHelpers";
+import { buildDeliverySubtitle, canDeleteDeliveryFor, computeHoursUsed } from "../lib/deliveryDetailHelpers";
 
 export default function DeliveryDetail() {
   const { id } = useParams<{ id: string }>();
@@ -67,16 +63,6 @@ export default function DeliveryDetail() {
     );
   }
 
-  const hoursUsed = computeHoursUsed(delivery.booking_id, siblingDeliveries);
-  const subtitle = buildDeliverySubtitle(forklift?.name, delivery.type);
-  // Espejo de DB3-15: completed → nadie; scheduled → solo admin; cancelled → ok.
-  const canDeleteDelivery =
-    delivery.status === "completed"
-      ? false
-      : delivery.status === "scheduled"
-        ? role === "admin"
-        : true;
-
   const handleDelete = () => {
     deleteDelivery.mutate(delivery.id, {
       onSuccess: () => { notifySuccess("Entrega eliminada"); navigate("/deliveries"); },
@@ -88,52 +74,26 @@ export default function DeliveryDetail() {
       <PageContainer>
         <DetailPageHeader
           title={delivery.delivery_number}
-          subtitle={subtitle}
+          subtitle={buildDeliverySubtitle(forklift?.name, delivery.type)}
           badges={<StatusBadge status={delivery.status} />}
           backTo="/deliveries"
           actions={
             <DeliveryActions
               status={delivery.status}
-              canDelete={canDeleteDelivery}
+              canDelete={canDeleteDeliveryFor(delivery.status, role)}
               onComplete={() => completion.setSignatureOpen(true)}
               onDelete={handleDelete}
             />
           }
         />
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <DeliveryStatusCard
-            type={delivery.type}
-            scheduledDate={delivery.scheduled_date}
-            scheduledTime={delivery.scheduled_time}
-            completedAt={delivery.completed_at}
-          />
-          <DeliveryEquipmentCard
-            forkliftName={forklift?.name}
-            forkliftModel={forklift?.model}
-            hoursReading={delivery.hours_reading}
-            hoursUsed={hoursUsed}
-          />
-          <DeliveryLogisticsCard
-            address={delivery.address}
-            driverName={delivery.driver_name}
-            driverPhone={delivery.driver_phone}
-            transportCost={delivery.transport_cost}
-            chargedToCustomer={delivery.charged_to_customer}
-          />
-          {linkedBooking && (
-            <DeliveryBookingCard
-              bookingNumber={linkedBooking.booking_number}
-              customerName={linkedBooking.customer_name}
-              startDate={linkedBooking.start_date}
-              endDate={linkedBooking.end_date}
-            />
-          )}
-        </div>
-
-        {delivery.notes && <NotesCard value={delivery.notes} readOnly title="Notas" />}
-
-        <DeliverySignatureCard signatureBase64={delivery.signature_base64} />
+        <DeliveryDetailBody
+          delivery={delivery}
+          forkliftName={forklift?.name}
+          forkliftModel={forklift?.model}
+          hoursUsed={computeHoursUsed(delivery.booking_id, siblingDeliveries)}
+          linkedBooking={linkedBooking}
+        />
       </PageContainer>
 
       <DeliveryDetailDialogs
@@ -149,3 +109,4 @@ export default function DeliveryDetail() {
     </>
   );
 }
+

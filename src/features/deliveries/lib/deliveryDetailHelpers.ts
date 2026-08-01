@@ -46,3 +46,15 @@ export const buildDeliverySubtitle = (
   const label = type === "delivery" ? "Entrega" : "Recolección";
   return `${name} · ${label}`;
 };
+
+/**
+ * Espejo de DB3-15: completed → nadie; scheduled → solo admin; cancelled → ok.
+ */
+export const canDeleteDeliveryFor = (
+  status: string,
+  role: string | null | undefined,
+): boolean => {
+  if (status === "completed") return false;
+  if (status === "scheduled") return role === "admin";
+  return true;
+};

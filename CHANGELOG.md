@@ -1,5 +1,17 @@
 # Changelog
 
+## 7.273.5 — 01/08/2026
+
+Refactor de complejidad ciclomática: 0 warnings `complexity` (umbral 15), sin cambios de comportamiento.
+
+- `DamageActions.tsx` (26 → <15): permisos en `useDamagePermissions` + `damageArchiveBlockReason`; UI en `DamageActionButtons` / `DamageBlockReasons`.
+- `DeliveryDetail.tsx` (18 → <15): tarjetas en `DeliveryDetailBody`; regla de borrado en `canDeleteDeliveryFor()`.
+- `useDashboardSections.ts` (16 → <15): helpers puros `dashboardAccess()` y `mergeFleetCounts()`.
+- `PortalDashboard.tsx` (17 → <15): KPIs derivados en `derivePortalKpis()` (`features/portal/lib/portalKpis.ts`).
+- Verificación: `eslint` 0 errores / 0 warnings de complejidad, `tsgo --noEmit` limpio, 1467 tests en verde.
+
+
+
 ## 7.273.4 — 01/08/2026
 
 Calidad de código: `bun run lint` en verde.
