@@ -58,34 +58,52 @@ function computeAgingBuckets(
  * Centraliza derivaciones del dashboard. Toda la lógica de mapping pura vive
  * en `dashboardSectionHelpers` para mantener este hook declarativo.
  */
+/** Roles con acceso a KPIs financieros y a alertas de seguros (espejo de las RPC). */
+function dashboardAccess(role: string | null | undefined) {
+  const canSeeFinancials = role === "admin" || role === "administrativo" || role === "auditor";
+  return {
+    canSeeFinancials,
+    // R6-FE-03: get_insurance_alerts admite además dispatcher/mechanic. Ventas queda fuera.
+    canSeeInsuranceAlerts: canSeeFinancials || role === "dispatcher" || role === "mechanic",
+  };
+}
+
+/** R6-FE-07: `rented` de la RPC usa CURRENT_DATE del servidor (otra TZ); se
+ *  sobrescribe con la definición única compartida (booking confirmed hoy MTY). */
+function mergeFleetCounts(
+  baseCounts: typeof EMPTY_COUNTS,
+  availability: ReturnType<typeof computeFleetAvailability>,
+) {
+  if (!availability) return baseCounts;
+  return {
+    ...baseCounts,
+    rented: availability.rented,
+    available: availability.available,
+    maintenance: availability.maintenance,
+  };
+}
+
 export function useDashboardSections() {
   const { data: stats, isLoading, isError, isFetching, refetch } = useDashboardStats();
   // R14-L: mismos roles que admite get_financial_kpis (20260725050634).
   const { data: role } = useUserRole();
-  const canSeeFinancials = role === "admin" || role === "administrativo" || role === "auditor";
+  const { canSeeFinancials, canSeeInsuranceAlerts } = dashboardAccess(role);
   const { data: kpis } = useFinancialKpis(canSeeFinancials);
-  // R6-FE-03: mismos roles que admite get_insurance_alerts (20260723055853:
-  // admin/administrativo/auditor/dispatcher/mechanic). Ventas queda fuera.
-  const canSeeInsuranceAlerts =
-    canSeeFinancials || role === "dispatcher" || role === "mechanic";
   const { data: insuranceData } = useInsuranceAlerts(canSeeInsuranceAlerts);
   // GUI-FE-05: ventas no consulta facturas (rol SELECT-only-denied → toast Forbidden).
   const { data: upcomingInvoices } = useUpcomingInvoices(canSeeFinancials);
 
-  // R6-FE-07: la RPC get_dashboard_stats calcula `rented` con CURRENT_DATE
-  // del servidor DB (otra TZ) → cifra distinta a Calendario. Se sobrescribe
-  // con la definición única compartida (booking confirmed que cubre hoy MTY).
   const { data: forklifts } = useForklifts();
   const { data: bookings } = useBookings();
-  const availability = computeFleetAvailability(forklifts, bookings);
-  const baseCounts = stats?.fleet_counts ?? EMPTY_COUNTS;
-  const counts = availability
-    ? { ...baseCounts, rented: availability.rented, available: availability.available, maintenance: availability.maintenance }
-    : baseCounts;
+  const counts = mergeFleetCounts(
+    stats?.fleet_counts ?? EMPTY_COUNTS,
+    computeFleetAvailability(forklifts, bookings),
+  );
   const activeFleet = counts.total - counts.retired - counts.sold;
   const utilizationPercent = computeUtilizationPercent(counts, activeFleet);
 
   const overdueInvoices = stats?.overdue_invoices ?? [];
+
 
   // Nota: React Compiler memoiza las derivaciones puras siguientes.
   // Sólo conservamos useMemo para `counts` y `overdueInvoices` porque

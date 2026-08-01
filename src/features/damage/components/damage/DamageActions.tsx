@@ -1,17 +1,16 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
-import { MaintenanceIcon, InvoiceIcon, SuccessIcon, DeleteIcon } from "@/components/icons";
-import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useCreateMaintenanceLog } from "@/features/maintenance";
 import { maintenanceLogKeys } from "@/features/maintenance/lib/queryKeys";
-import { getAccessLevel, useRolePermissions, useUserRole } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { supabase } from "@/integrations/supabase/client";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import type { DamageRecordWithJoins } from "@/types/rental";
+import { damageArchiveBlockReason, useDamagePermissions } from "../../hooks/useDamagePermissions";
 import { damageRecordQueries, useArchiveDamageRecord, useUpdateDamageRecord } from "../../hooks/useDamageRecords";
 import { chargeableDamageCost } from "../../lib/chargeableDamageCost";
+import { DamageActionButtons, DamageBlockReasons } from "./DamageActionButtons";
 
 interface DamageActionsProps {
   record: DamageRecordWithJoins;
@@ -50,24 +49,8 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
   const archiveDamage = useArchiveDamageRecord();
   const [archiveOpen, setArchiveOpen] = useState(false);
 
-  // R6-FE-01 (N6-MEC-01/N6-MEC-06): gate por permiso real de módulo.
-  // Sin esto, mechanic/ventas/dispatcher veían "Cobrar"/"Archivar"/"Reparar"
-  // y la mutación moría en RLS (200 [] silencioso o error críptico).
-  // Matriz (seed 20260313001007): mechanic Daños=full / Facturas=none;
-  // dispatcher Daños=none; ventas Daños=none; auditor read-only.
-  const { data: role } = useUserRole();
-  const { data: perms } = useRolePermissions();
-  // Mientras cargan los permisos, fail-closed (mejor deshabilitado que roto).
-  const canManageDamage = !!perms && getAccessLevel(perms, role ?? undefined, "Daños") === "full";
-  const canChargeDamage = !!perms && getAccessLevel(perms, role ?? undefined, "Facturas") === "full";
-  // "Marcar reparado" usa UPDATE damage_records: permitido a mechanic solo
-  // cuando el daño ya está en reparación (UPDATE habilitado por R6-DB-01).
-  const damageBlockReason = canManageDamage
-    ? undefined
-    : "Tu rol no puede modificar daños (se requiere acceso completo al módulo Daños)";
-  const chargeBlockReason = canChargeDamage
-    ? undefined
-    : "Tu rol no tiene acceso a Facturas; pide a administración que genere el cobro";
+  const { canManageDamage, canChargeDamage, damageBlockReason, chargeBlockReason } = useDamagePermissions();
+  const { canArchive, archiveBlockReason } = damageArchiveBlockReason(record);
 
   const handleCreateWorkOrder = async () => {
     try {
@@ -85,8 +68,6 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
       return;
     }
     // Fallback (RPC aún no desplegado): flujo legado de dos mutaciones.
-    // Para roles SELECT-only en damage_records la segunda mutación puede
-    // afectar 0 filas (OT huérfana) — de ahí la prioridad del RPC atómico.
     createMaintenance.mutate(
       { forklift_id: record.forklift_id, service_type: "Reparación de Daño", description: record.description, cost: record.estimated_cost || 0 },
       { onSuccess: (data) => { updateDamage.mutate({ id: record.id, status: "in_repair", maintenance_log_id: data.id }); notifySuccess("Orden de mantenimiento creada"); } }
@@ -94,21 +75,18 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
   };
 
   // R17-G: permitir cerrar un daño sin factura (equipo reparado internamente).
-  // Sólo aplica cuando ya está en reparación; deja el daño en `repaired` para
-  // que "Cobrar" siga siendo opcional.
   const handleMarkRepaired = () => {
     updateDamage.mutate(
-      // R7-FE-03 (N7-MOV-08): el FE sella `repaired_at` — ningún trigger lo
-      // setea; la migración R6-DB-01 (20260730200505) solo dio GRANT UPDATE.
+      // R7-FE-03 (N7-MOV-08): el FE sella `repaired_at`.
       { id: record.id, status: "repaired", repaired_at: new Date().toISOString() },
       { onSuccess: () => notifySuccess("Daño marcado como reparado") },
     );
   };
 
   const cost = chargeableDamageCost(record);
+  const showCharge = record.status === "repaired" || record.status === "reported";
   const handleCreateInvoice = () => {
-    // A-3b/C-4: defensa extra por si comparten la URL — el botón ya se oculta
-    // en status invoiced, pero validamos también en click.
+    // A-3b/C-4: defensa extra por si comparten la URL.
     if (record.status === "invoiced") return;
     if (!record.customer_id) {
       notifyError({ title: "El daño no tiene cliente asociado" });
@@ -117,64 +95,37 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
     navigate(`/invoices/new?damage_id=${record.id}&customer_id=${record.customer_id}&amount=${cost ?? ""}`);
   };
 
-  // Condiciones reales de soft_delete_damage_record: cargo facturado
-  // (invoice_id) o reparado sin cargo. Invoiced sin invoice_id (dato legado)
-  // sigue siendo "Completo" sin acciones.
-  const canArchive = record.invoice_id != null || record.status === "repaired";
-  const archiveBlockReason = canArchive
-    ? undefined
-    : "Para archivar, primero factura el cargo (Cobrar) o marca el daño como reparado";
-
   if (record.status === "invoiced" && !canArchive) {
     return <span className="text-xs text-muted-foreground">Completo</span>;
   }
 
   return (
     <div className="flex flex-wrap gap-2">
-      {record.status === "reported" && (
-        <span title={damageBlockReason}>
-          <Button variant="ghost" size="sm" onClick={handleCreateWorkOrder} disabled={!canManageDamage || createMaintenance.isPending}>
-            <MaintenanceIcon className="h-3.5 w-3.5 mr-1" />Reparar
-          </Button>
-        </span>
-      )}
-      {record.status === "in_repair" && (
-        <span title={damageBlockReason}>
-          <Button variant="ghost" size="sm" onClick={handleMarkRepaired} disabled={!canManageDamage || updateDamage.isPending}>
-            <SuccessIcon className="h-3.5 w-3.5 mr-1" />Marcar reparado
-          </Button>
-        </span>
-      )}
-      {(record.status === "repaired" || record.status === "reported") && (
-        <span title={chargeBlockReason}>
-          <Button variant="ghost" size="sm" onClick={handleCreateInvoice} disabled={cost == null || !canChargeDamage}>
-            <InvoiceIcon className="h-3.5 w-3.5 mr-1" />Cobrar
-          </Button>
-        </span>
-      )}
-      <span title={archiveBlockReason}>
-        <Button
-          variant="ghost"
-          size="sm"
-          disabled={!canManageDamage || !canArchive || archiveDamage.isPending}
-          onClick={() => setArchiveOpen(true)}
-        >
-          <DeleteIcon className="h-3.5 w-3.5 mr-1" />Archivar
-        </Button>
-      </span>
-      {/* GUI-FE-06c (G-UX-09): la razón del bloqueo siempre visible,
-          no sólo como tooltip del botón deshabilitado. */}
-      {archiveBlockReason && (
-        <p className="basis-full text-xs text-muted-foreground">{archiveBlockReason}</p>
-      )}
-      {/* R6-FE-01: razones de bloqueo por rol siempre visibles (mismo patrón
-          que `archiveBlockReason` de GUI-FE-06c). */}
-      {damageBlockReason && record.status !== "invoiced" && (
-        <p className="basis-full text-xs text-muted-foreground">{damageBlockReason}</p>
-      )}
-      {chargeBlockReason && (record.status === "repaired" || record.status === "reported") && (
-        <p className="basis-full text-xs text-muted-foreground">{chargeBlockReason}</p>
-      )}
+      <DamageActionButtons
+        status={record.status}
+        canManageDamage={canManageDamage}
+        canChargeDamage={canChargeDamage}
+        canArchive={canArchive}
+        canCharge={showCharge}
+        costMissing={cost == null}
+        damageBlockReason={damageBlockReason}
+        chargeBlockReason={chargeBlockReason}
+        archiveBlockReason={archiveBlockReason}
+        isCreatingWorkOrder={createMaintenance.isPending}
+        isUpdating={updateDamage.isPending}
+        isArchiving={archiveDamage.isPending}
+        onCreateWorkOrder={() => { void handleCreateWorkOrder(); }}
+        onMarkRepaired={handleMarkRepaired}
+        onCreateInvoice={handleCreateInvoice}
+        onArchive={() => setArchiveOpen(true)}
+      />
+      <DamageBlockReasons
+        status={record.status}
+        showCharge={showCharge}
+        damageBlockReason={damageBlockReason}
+        chargeBlockReason={chargeBlockReason}
+        archiveBlockReason={archiveBlockReason}
+      />
       <ConfirmDialog
         open={archiveOpen}
         onOpenChange={setArchiveOpen}

@@ -9,6 +9,8 @@ import { usePortalCustomer, usePortalBookings, usePortalInvoices } from "@/featu
 import { formatCompactCurrency, kpiSizeClass } from "@/lib/format/formatCurrency";
 import { PortalBookingsCard, PortalRecentInvoicesCard } from "../components/PortalSections";
 import { PortalUpcomingDues } from "../components/PortalUpcomingDues";
+import { derivePortalKpis } from "../lib/portalKpis";
+
 
 function PortalDashboardSkeleton() {
   return (
@@ -28,13 +30,11 @@ export default function PortalDashboard() {
   const { data: bookings, isLoading: bookingsLoading, isError: bookingsError, refetch: refetchBookings } = usePortalBookings();
   const { data: invoices, isLoading: invoicesLoading, isError: invoicesError, refetch: refetchInvoices } = usePortalInvoices();
 
-  const isLoading = customerLoading || bookingsLoading || invoicesLoading;
-  if (isLoading) return <PortalDashboardSkeleton />;
+  if (customerLoading || bookingsLoading || invoicesLoading) return <PortalDashboardSkeleton />;
 
   // A-01: NUNCA renderizar KPIs en 0 ni "sin datos" cuando una query falló —
   // el cliente externo podría ver un saldo $0 falso durante un outage.
-  const isError = customerError || bookingsError || invoicesError;
-  if (isError) {
+  if (customerError || bookingsError || invoicesError) {
     return (
       <PageContainer maxWidth="wide">
         <QueryErrorState
@@ -49,22 +49,13 @@ export default function PortalDashboard() {
     );
   }
 
-  const bookingList = bookings ?? [];
-  const invoiceList = invoices ?? [];
-  const activeBookings = bookingList.filter((b) => b.status === "confirmed");
-  const unpaidInvoices = invoiceList.filter((i) => i.status !== "paid" && i.status !== "cancelled");
-  // R12 A3: saldo real MXN — usar `balance` (no `total`) y multiplicar por
-  // `tipo_cambio` para normalizar facturas en USD. El RPC `get_portal_invoices`
-  // ya devuelve ambos campos desde el fix R6.
-  const outstanding = unpaidInvoices.reduce(
-    (sum, i) => sum + Number((i as { balance?: number | string | null }).balance ?? 0) * Number((i as { tipo_cambio?: number | string | null }).tipo_cambio ?? 1),
-    0,
-  );
-  const recentInvoices = invoiceList.slice(0, 5);
+  const { invoiceList, activeBookings, unpaidInvoices, recentInvoices, outstanding } =
+    derivePortalKpis(bookings, invoices);
   const welcome = customer?.name ? `Bienvenido, ${customer.name}` : "Bienvenido";
   // Oleada 3 (C-3/C-2): formato compacto + escala tipográfica para no truncar el saldo.
   const outstandingLabel = formatCompactCurrency(outstanding);
   const balanceClass = `font-mono ${kpiSizeClass(outstandingLabel)} ${outstanding > 0 ? "text-destructive" : ""}`;
+
 
   return (
     <PageContainer maxWidth="wide">
