@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.273.5",
+    "date": "2026-08-01",
+    "type": "patch",
+    "title": "Refactor de complejidad en 4 pantallas",
+    "category": "improvement",
+    "description": "Se simplificaron las pantallas de Daños, Detalle de transporte, Dashboard y Portal del cliente separando permisos, cálculos y botoneras en piezas más pequeñas. El comportamiento visible es idéntico."
+  },
+  {
     "version": "7.273.4",
     "date": "2026-08-01",
     "type": "patch",
