@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.274.4",
+    "date": "2026-08-01",
+    "type": "patch",
+    "title": "CI estable en la prueba de precarga de cotizaciones",
+    "category": "fix",
+    "description": "La prueba automática de edición de cotizaciones ya no falla por leer el formulario antes de que carguen los datos. Sin cambios visibles en la app."
+  },
+  {
     "version": "7.274.3",
     "date": "2026-08-01",
     "type": "patch",
