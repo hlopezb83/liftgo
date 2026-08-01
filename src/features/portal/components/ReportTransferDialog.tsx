@@ -139,7 +139,9 @@ export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
               Cancelar
             </Button>
-            <Button type="submit" disabled={isPending || !form.formState.isValid}>
+            {/* R9-P2: no se deshabilita por validez — al enviar, el error de
+                sobrepago se muestra bajo el campo Monto en vez de un botón muerto. */}
+            <Button type="submit" disabled={isPending}>
               Enviar reporte
             </Button>
           </FormDialogFooter>

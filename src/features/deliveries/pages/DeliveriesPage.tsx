@@ -40,9 +40,13 @@ export default function DeliveriesPage() {
       {
         id: "forklift_name",
         header: "Montacargas",
-        accessorFn: (d) => forkliftMap.get(d.forklift_id)?.name || "",
+        // R9-P2: la lista de montacargas puede venir filtrada/paginada, así que
+        // el mapa a veces no tenía la unidad y la celda quedaba en "—". La
+        // consulta de entregas ya trae el join `forklifts(name, model)`: se usa
+        // como fuente primaria y el mapa sólo como respaldo.
+        accessorFn: (d) => d.forklifts?.name || forkliftMap.get(d.forklift_id)?.name || "",
         cell: ({ row }) => {
-          const name = forkliftMap.get(row.original.forklift_id)?.name;
+          const name = row.original.forklifts?.name || forkliftMap.get(row.original.forklift_id)?.name;
           return name ? <Untranslated className="font-medium">{name}</Untranslated> : <span className="font-medium">—</span>;
         },
       },
