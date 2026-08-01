@@ -23,6 +23,7 @@ test.describe("Cotizaciones — precarga al editar (R9 P0)", () => {
     // Lista → detalle: primera fila con folio COT-.
     const firstQuote = page.getByText(/COT-\d+/).first();
     if ((await firstQuote.count()) === 0) {
+      // eslint-disable-next-line playwright/no-skipped-test -- skip condicional: el entorno puede no tener cotizaciones sembradas.
       test.skip(true, "sin cotizaciones sembradas en el entorno");
     }
     const folio = (await firstQuote.textContent())?.trim() ?? "";
@@ -48,6 +49,7 @@ test.describe("Cotizaciones — precarga al editar (R9 P0)", () => {
     expect(filledBefore.length, "el formulario abrió vacío: la precarga no aplicó").toBeGreaterThan(0);
 
     // Ventana en la que ocurría la corrupción por reset tardío.
+    // eslint-disable-next-line playwright/no-wait-for-timeout -- la regresión es temporal: hay que esperar la ventana del reset tardío.
     await page.waitForTimeout(1_500);
 
     const after = await readInputs();

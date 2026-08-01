@@ -16,12 +16,17 @@ const base = {
   category: null,
 };
 
-function renderApproval(bill: Record<string, unknown>) {
+function ApprovalCell({ bill }: { bill: Record<string, unknown> }) {
   const columns = useSupplierBillColumns();
   const col = columns.find((c) => c.id === "approval_status");
   if (typeof col?.cell !== "function") throw new Error("missing approval cell");
-  return render(<>{col.cell({ row: { original: bill } } as never)}</>);
+  return <>{col.cell({ row: { original: bill } } as never)}</>;
 }
+
+function renderApproval(bill: Record<string, unknown>) {
+  return render(<ApprovalCell bill={bill} />);
+}
+
 
 describe("supplierBillColumns — aprobación (R9-P2-02)", () => {
   it("no muestra 'Por aprobar' en una factura pagada", () => {

@@ -1,5 +1,15 @@
 # Changelog
 
+## 7.273.4 — 01/08/2026
+
+Calidad de código: `bun run lint` en verde.
+
+- `supplierBillColumns.approval.test.tsx`: el hook se llama dentro de un componente `ApprovalCell` (error `react-hooks/rules-of-hooks`).
+- `FormActions.tsx`: `useCallback` para los timers; se eliminan los `eslint-disable` que bloqueaban el React Compiler.
+- `useQuotePrefill.ts`: caché por `quoteId` como estado derivado en render (adiós `react-hooks/refs`).
+- `AuthGuard.tsx`: reset de `timedOut` como estado derivado en vez de `setState` en efecto.
+- `import-x/order` autofix y `eslint-disable` justificados en los specs de Playwright.
+
 ## 7.273.3 — 01/08/2026
 
 Estabilidad del selector de rango de fechas.

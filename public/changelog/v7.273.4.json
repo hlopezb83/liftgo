@@ -1,0 +1,14 @@
+{
+  "version": "7.273.4",
+  "date": "2026-08-01",
+  "type": "patch",
+  "title": "Calidad de código: lint sin errores",
+  "category": "fix",
+  "highlights": [
+    "Se eliminó el único error de lint: la prueba de la columna de aprobación de CxP llamaba un hook fuera de un componente; ahora usa un componente auxiliar.",
+    "FormActions: los temporizadores se memorizan con useCallback y se quitaron las excepciones de lint que impedían optimizar el componente.",
+    "useQuotePrefill: la caché de precarga pasa de useRef a estado derivado en render (sin acceder a refs durante el render).",
+    "AuthGuard: el reinicio del aviso de carga lenta ya no usa setState dentro del efecto, evitando renders en cascada.",
+    "Orden de importaciones corregido y anotaciones justificadas en las pruebas E2E."
+  ]
+}

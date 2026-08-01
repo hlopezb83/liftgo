@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useState } from "react";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { parseDateLocal } from "@/lib/utils";
 import { EMPTY_RENTAL_LINE, EMPTY_SALE_LINE } from "./useQuoteForm";
@@ -174,15 +174,20 @@ interface Props {
  *    nuevo — determinista, sin efectos ni timers.
  */
 export function useQuotePrefillValues({ existingQuote, equipmentModels, quoteReady, modelsReady }: Props): QuoteFormValues | undefined {
-  const cacheRef = useRef<{ id: string; values: QuoteFormValues } | null>(null);
+  // Caché derivada en estado (no en ref): calcularla durante el render con
+  // `useState` es el patrón soportado por React para memoizar por clave sin
+  // efectos ni timers, y no rompe la regla `react-hooks/refs`.
+  const source = quoteReady && modelsReady && existingQuote && equipmentModels
+    ? { quote: existingQuote, models: equipmentModels, id: existingQuote.id ?? "existing" }
+    : null;
+  const [cache, setCache] = useState<{ id: string; values: QuoteFormValues } | null>(null);
 
-  return useMemo(() => {
-    if (!existingQuote || !equipmentModels) return undefined;
-    if (!quoteReady || !modelsReady) return undefined;
-    const nextId = existingQuote.id ?? "existing";
-    if (cacheRef.current && cacheRef.current.id === nextId) return cacheRef.current.values;
-    const values = buildPrefillValues(existingQuote, equipmentModels);
-    cacheRef.current = { id: nextId, values };
-    return values;
-  }, [existingQuote, equipmentModels, quoteReady, modelsReady]);
+  if (source && cache?.id !== source.id) {
+    setCache({ id: source.id, values: buildPrefillValues(source.quote, source.models) });
+  }
+
+  if (!source) return undefined;
+  return cache?.id === source.id ? cache.values : undefined;
 }
+
+
