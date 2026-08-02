@@ -6,6 +6,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import type { AppRole } from "@/features/users";
 import { NavLink } from "@/layouts/NavLink";
 import { ChangePasswordDialog } from "@/layouts/sidebar/ChangePasswordDialog";
+import { getUserInitials } from "@/layouts/sidebar/userIdentity";
 import { ROLE_LABELS } from "@/lib/constants";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -54,13 +55,21 @@ export function SidebarUserFooter({ email, role, currentVersion, onSignOut }: Si
 
   return (
     <SidebarFooter className="p-3 border-t border-sidebar-border space-y-2">
-      <div className="min-w-0">
+      <div className="min-w-0 flex items-center gap-2">
+        <span
+          aria-hidden
+          className="shrink-0 grid place-items-center h-7 w-7 rounded-full bg-sidebar-primary/15 text-sidebar-primary text-2xs font-semibold"
+        >
+          {getUserInitials(email)}
+        </span>
+        <div className="min-w-0">
         <p className="text-xs text-sidebar-foreground/80 truncate" title={email ?? ""}>{email}</p>
         {role && (
           <p className="text-3xs text-sidebar-foreground/50 uppercase tracking-wide font-medium">
             {ROLE_LABELS[role] ?? role}
           </p>
         )}
+        </div>
       </div>
       <div className="flex items-center justify-between gap-1">
         <div className="flex items-center gap-0.5">
