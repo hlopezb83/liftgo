@@ -179,6 +179,9 @@ function RangeDialogBody({
           mode="range"
           selected={localRange}
           onSelect={onCalendarSelect}
+          // R12-FE-03 (P2 r11): con un rango ya completo, el siguiente clic
+          // reinicia la selección (rdp v10 fusionaba con el `from` viejo).
+          resetOnSelect
           numberOfMonths={months}
           className="pointer-events-auto"
         />

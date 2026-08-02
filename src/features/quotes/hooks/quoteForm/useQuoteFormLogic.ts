@@ -91,7 +91,9 @@ export function useQuoteFormLogic() {
       endDate: values.dateRange?.to,
       lineItems,
       subtotal, taxRate: values.taxRate, taxAmount, total,
-      validUntil: values.validUntil ?? null,
+      // R12-FE-07 (P2 r11): la vigencia nunca queda antes del fin del periodo
+      // cotizado (una cotización no puede nacer vencida para su propio rango).
+      validUntil: resolveValidUntil(values.validUntil, values.dateRange?.to),
       notes: values.notes,
       currency: values.currency,
     });
