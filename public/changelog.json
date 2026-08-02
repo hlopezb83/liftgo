@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.275.0",
+    "date": "2026-08-02",
+    "type": "minor",
+    "title": "Auditoría R12: totales fantasma, precios pactados y paleta cálida",
+    "category": "improvement",
+    "description": "Las cotizaciones antiguas ya no muestran totales inflados al editarlas y elegir un modelo deja de borrar el precio negociado. Fechas automáticas en horario de Monterrey, borradores fuera de SPEI y antigüedad, y nueva paleta cálida con acento dorado."
+  },
+  {
     "version": "7.274.4",
     "date": "2026-08-01",
     "type": "patch",
