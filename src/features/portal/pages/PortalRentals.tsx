@@ -1,12 +1,11 @@
-
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
+import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { MobileCardList } from "@/components/layout/MobileCardList";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Skeleton } from "@/components/ui/skeleton";
 import { usePortalBookings } from "@/features/customers";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatDateDisplay } from "@/lib/utils";
@@ -59,7 +58,7 @@ export default function PortalRentals() {
     paginated: false,
   });
 
-  if (isLoading) return <Skeleton className="h-96" />;
+  if (isLoading) return <TableSkeleton rows={6} columnCount={5} />;
 
   if (isError) {
     return (

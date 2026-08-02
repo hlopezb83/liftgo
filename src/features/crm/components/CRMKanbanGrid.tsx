@@ -11,6 +11,7 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core";
 import { useState } from "react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { ACTIVE_STAGES } from "../lib/constants";
 import { kanbanKeyboardCoordinates } from "../lib/kanbanKeyboardCoordinates";
 import { KanbanColumn } from "./KanbanColumn";
@@ -58,9 +59,24 @@ export function CRMKanbanGrid({
 
   if (isLoading) {
     return (
-      <div className="flex gap-4">
+      <div className="flex gap-3" role="status">
+        <span className="sr-only">Cargando prospectos…</span>
         {ACTIVE_STAGES.map((s) => (
-          <div key={s.key} className="w-64 shrink-0 rounded-xl bg-muted/50 animate-pulse h-96" />
+          <div key={s.key} className="w-64 shrink-0 rounded-xl border bg-card p-3">
+            <div className="mb-3 flex items-center justify-between">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-10" />
+            </div>
+            <div className="space-y-2">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="rounded-lg border bg-background p-3 space-y-2">
+                  <Skeleton className="h-3.5 w-3/4" />
+                  <Skeleton className="h-3 w-1/2" />
+                  <Skeleton className="h-3 w-2/5" />
+                </div>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     );
