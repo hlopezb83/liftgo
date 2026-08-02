@@ -62,8 +62,20 @@ describe("R10-FE-03b · periodicidad de la tarifa legacy", () => {
     expect(l.dailyRate).toBe(0);
   });
 
-  it("sin pista en la descripción asume tarifa diaria", () => {
+  // R12-FE-01: sin pista textual, un cargo único (unit_price == total) en un
+  // periodo ≥28 días es mensual (COT-0001 / COT-0005).
+  it("infiere mensual cuando hay un solo cargo y el periodo es de un mes", () => {
     const l = buildPrefillValues(q("Renta montacargas"), models).rentalLines[0];
+    expect(l.monthlyRate).toBe(20000);
+    expect(l.dailyRate).toBe(0);
+  });
+
+  it("mantiene tarifa diaria en periodos cortos", () => {
+    const l = buildPrefillValues(
+      { ...base, start_date: "2026-01-01", end_date: "2026-01-05",
+        line_items: [{ description: "Renta montacargas", quantity: 1, unit_price: 20000, total: 20000 }] },
+      models,
+    ).rentalLines[0];
     expect(l.dailyRate).toBe(20000);
     expect(l.monthlyRate).toBe(0);
   });
