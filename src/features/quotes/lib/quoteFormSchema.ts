@@ -137,6 +137,22 @@ export const quoteFormSchema = z.object({
       });
     }
   }
+
+  // R12-FE-07 (P2 r11): la vigencia no puede ser anterior al inicio del
+  // periodo de renta cotizado.
+  if (val.validUntil && val.dateRange?.from) {
+    const vu = new Date(val.validUntil);
+    vu.setHours(0, 0, 0, 0);
+    const from = new Date(val.dateRange.from);
+    from.setHours(0, 0, 0, 0);
+    if (vu.getTime() < from.getTime()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["validUntil"],
+        message: "La vigencia no puede ser anterior al periodo de renta",
+      });
+    }
+  }
 });
 
 export type QuoteFormValues = z.infer<typeof quoteFormSchema>;
