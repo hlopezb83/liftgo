@@ -13,6 +13,7 @@ import { ErrorBoundary } from "@/layouts/ErrorBoundary";
 import { useMainScrollRestoration } from "@/layouts/hooks/useMainScrollRestoration";
 import { OfflineBanner } from "@/layouts/OfflineBanner";
 import { TopbarBreadcrumbs } from "@/layouts/TopbarBreadcrumbs";
+import { TopbarUserMenu } from "@/layouts/TopbarUserMenu";
 import { SentryNavigationSync } from "@/lib/observability/SentryNavigationSync";
 import { NAV_SHORTCUTS } from "@/lib/shortcuts/registry";
 
@@ -89,6 +90,7 @@ export default function MainLayout() {
               <FeedbackFab />
               <OfflineBanner />
               <GlobalSearch />
+              <TopbarUserMenu />
             </header>
             <ErrorBoundary>
               <Outlet />
