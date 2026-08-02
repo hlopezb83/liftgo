@@ -36,9 +36,11 @@ export function RentalLineItems({ lines, onChange, models, modelsLoading, startD
           ? {
               ...line,
               modelId,
-              dailyRate: model?.default_daily_rate ?? 0,
-              weeklyRate: model?.default_weekly_rate ?? 0,
-              monthlyRate: model?.default_monthly_rate ?? 0,
+              // R12-FE-02 (P1 r11): sólo rellenar desde catálogo las tarifas
+              // en 0 — no pisar el precio histórico/pactado de la línea.
+              dailyRate: line.dailyRate || model?.default_daily_rate || 0,
+              weeklyRate: line.weeklyRate || model?.default_weekly_rate || 0,
+              monthlyRate: line.monthlyRate || model?.default_monthly_rate || 0,
             }
           : line,
       ),

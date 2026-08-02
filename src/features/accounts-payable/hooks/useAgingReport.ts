@@ -48,7 +48,8 @@ export function useAgingReport() {
     for (const b of data ?? []) {
       // R7 Bloque 6: normalizamos a MXN para no mezclar monedas en buckets/totales.
       const balance = toMxn(Number(b.balance), b.currency, b.exchange_rate);
-      if (b.status === "cancelled" || balance <= 0) continue;
+      // R12-FE-08 (P2 r11): la antigüedad excluye también borradores.
+      if (b.status === "cancelled" || b.status === "draft" || balance <= 0) continue;
       const supplierId = b.supplier_id ?? "sin-proveedor";
       const supplierName = b.suppliers?.name ?? "Sin proveedor";
       const row = byId.get(supplierId) ?? {

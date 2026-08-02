@@ -34,7 +34,10 @@ export function ReadOnlyLineItemsTable({ lineItems }: ReadOnlyLineItemsTableProp
             {lineItems.map((item, idx) => (
               <TableRow key={idx}>
                 <TableCell>{item.description}</TableCell>
-                <TableCell className="text-right">{item.quantity}</TableCell>
+                {/* R12-FE-04 (P2 r11): partidas legacy usan `qty`. */}
+                <TableCell className="text-right">
+                  {item.quantity ?? (item as unknown as Record<string, unknown>).qty as number ?? 1}
+                </TableCell>
                 <TableCell className="text-right font-mono">{formatCurrency(Number(item.unit_price))}</TableCell>
                 {hasDiscount && (
                   <TableCell className="text-right text-destructive font-mono">
