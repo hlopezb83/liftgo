@@ -122,22 +122,33 @@ export const quoteFormSchema = z.object({
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["logisticsCost"], message: "Ingresa el costo logístico" });
   }
 
-  // R10 Bloque 11.2: `validUntil` no puede quedar en el pasado.
-  // Comparación por día calendario (Monterrey) para no rechazar "hoy".
-  if (val.validUntil) {
-    const today = nowMty();
-    today.setHours(0, 0, 0, 0);
-    const vu = new Date(val.validUntil);
-    vu.setHours(0, 0, 0, 0);
-    if (vu.getTime() < today.getTime()) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["validUntil"],
-        message: "La fecha de vigencia no puede estar en el pasado",
-      });
-    }
-  }
+  checkValidUntil(val.validUntil, val.dateRange?.from, ctx);
 });
+
+const atMidnight = (d: Date): number => {
+  const x = new Date(d);
+  x.setHours(0, 0, 0, 0);
+  return x.getTime();
+};
+
+/**
+ * R10 Bloque 11.2: `validUntil` no puede quedar en el pasado (día calendario
+ * de Monterrey, para no rechazar "hoy").
+ * R12-FE-07 (P2 r11): tampoco antes del inicio del periodo de renta.
+ */
+function checkValidUntil(validUntil: Date | null | undefined, from: Date | undefined, ctx: z.RefinementCtx): void {
+  if (!validUntil) return;
+  const vu = atMidnight(validUntil);
+  const issue = (message: string) =>
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["validUntil"], message });
+  if (vu < atMidnight(nowMty())) {
+    issue("La fecha de vigencia no puede estar en el pasado");
+    return;
+  }
+  if (from && vu < atMidnight(from)) {
+    issue("La vigencia no puede ser anterior al periodo de renta");
+  }
+}
 
 export type QuoteFormValues = z.infer<typeof quoteFormSchema>;
 export type RentalLineValues = z.infer<typeof rentalLineSchema>;

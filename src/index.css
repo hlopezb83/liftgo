@@ -13,26 +13,30 @@
 /* ------------------------------------------------------------------ */
 @layer base {
   :root {
-    --background: 220 20% 97%;
-    --foreground: 220 30% 10%;
+    /* R12-UX-01: paleta cálida de baja saturación (grises con matiz 30°)
+     * en lugar del gris azulado 220°; reduce la sensación "genérica" y
+     * combina con el dorado de marca. */
+    --background: 30 20% 97%;
+    --foreground: 30 12% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 220 30% 10%;
+    --card-foreground: 30 12% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 30% 10%;
+    --popover-foreground: 30 12% 12%;
 
     --primary: 220 45% 20%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 220 20% 93%;
-    --secondary-foreground: 220 30% 15%;
+    --secondary: 30 16% 93%;
+    --secondary-foreground: 30 14% 18%;
 
-    --muted: 220 15% 94%;
-    --muted-foreground: 220 10% 45%;
+    --muted: 30 14% 94%;
+    --muted-foreground: 30 8% 42%;
 
-    --accent: 220 15% 92%;
-    --accent-foreground: 220 30% 15%;
+    --accent: 38 30% 92%;
+    --accent-foreground: 30 14% 18%;
+
 
     --destructive: 0 72% 45%; /* R7 Bloque 16: contraste ≥4.5:1 con texto blanco */
     --destructive-foreground: 0 0% 100%;
@@ -48,9 +52,9 @@
     --info: 217 91% 60%;
     --info-foreground: 0 0% 100%;
 
-    --border: 220 15% 90%;
-    --input: 220 15% 90%;
-    --ring: 220 45% 20%;
+    --border: 30 14% 89%;
+    --input: 30 14% 89%;
+    --ring: 38 40% 50%;
 
     --radius: 0.75rem;
 
@@ -75,14 +79,16 @@
     --status-draft: 220 10% 55%;
     --status-warning: 45 93% 47%;
 
-    --gantt-1: 217 91% 60%;
-    --gantt-2: 25 95% 53%;
-    --gantt-3: 280 65% 60%;
-    --gantt-4: 142 71% 45%;
-    --gantt-5: 38 92% 50%;
-    --gantt-6: 340 75% 55%;
-    --gantt-7: 190 80% 45%;
-    --gantt-8: 60 70% 45%;
+    /* R12-UX-02: escala Gantt derivada de la marca (azul profundo → dorado),
+     * en vez de 8 tonos saturados sin relación entre sí. */
+    --gantt-1: 220 45% 32%;
+    --gantt-2: 38 45% 45%;
+    --gantt-3: 205 40% 40%;
+    --gantt-4: 28 40% 48%;
+    --gantt-5: 220 30% 45%;
+    --gantt-6: 45 42% 42%;
+    --gantt-7: 195 35% 38%;
+    --gantt-8: 15 38% 46%;
 
     --crm-stage-new: var(--primary);
     --crm-stage-contacted: 210 80% 55%;

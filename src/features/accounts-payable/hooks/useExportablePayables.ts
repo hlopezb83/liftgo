@@ -43,6 +43,8 @@ export const exportablePayableQueries = defineEntityQueries<
         .select("id, bill_number, supplier_id, due_date, balance, currency, description, payment_in_progress_at, suppliers(name, rfc)")
         // R-M4: incluir también facturas que no requieren aprobación explícita.
         .in("approval_status", ["approved", "not_required"])
+        // R12-FE-06 (P2 r11): nunca dispersar borradores.
+        .neq("status", "draft")
         .gt("balance", 0)
         .order("due_date", { ascending: true, nullsFirst: false }),
       supabase

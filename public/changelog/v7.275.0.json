@@ -1,0 +1,49 @@
+{
+  "version": "7.275.0",
+  "date": "2026-08-02",
+  "type": "minor",
+  "title": "Auditoría R12: totales fantasma, precios pactados y paleta cálida",
+  "category": "improvement",
+  "changes": [
+    {
+      "area": "Cotizaciones",
+      "detail": "Precarga legacy: cuando una partida antigua tiene un solo cargo (precio unitario igual al importe) y el periodo cotizado es de 28 días o más, el importe se interpreta como renta mensual en vez de diaria. Corrige los totales inflados de COT-0001 y COT-0005 al editar."
+    },
+    {
+      "area": "Cotizaciones",
+      "detail": "Elegir un modelo de equipo ya no pisa las tarifas capturadas: sólo rellena desde el catálogo las tarifas que estén en cero, conservando el precio negociado."
+    },
+    {
+      "area": "Cotizaciones",
+      "detail": "La vigencia nunca queda antes del fin del periodo cotizado (se ajusta automáticamente) y se valida que no sea anterior al inicio de la renta."
+    },
+    {
+      "area": "Fechas",
+      "detail": "El selector de rango reinicia la selección al hacer clic después de un rango completo, evitando rangos combinados por accidente."
+    },
+    {
+      "area": "Documentos",
+      "detail": "Las tablas de partidas de sólo lectura vuelven a mostrar la cantidad en documentos antiguos que guardaban el campo con otro nombre."
+    },
+    {
+      "area": "Mantenimiento",
+      "detail": "El resumen de costos al cerrar una orden de trabajo ya contempla las OT antiguas cuyo costo se guardó en el campo anterior; ya no muestra $0.00."
+    },
+    {
+      "area": "Cuentas por pagar",
+      "detail": "La exportación SPEI y el reporte de antigüedad excluyen las facturas de proveedor en borrador."
+    },
+    {
+      "area": "Base de datos",
+      "detail": "Las fechas automáticas (servicio de OT, emisión de facturas y notas de crédito, gastos, pagos y facturas de proveedor) usan la fecha de Monterrey, no la UTC del servidor."
+    },
+    {
+      "area": "Seguridad",
+      "detail": "La matriz de permisos por rol sólo es legible por roles internos; los clientes del portal ya no tienen acceso."
+    },
+    {
+      "area": "Interfaz",
+      "detail": "Nueva paleta cálida de baja saturación con acento dorado de marca (fondos, bordes y foco) y escala de colores del Gantt derivada de la marca en vez de ocho tonos saturados sin relación."
+    }
+  ]
+}

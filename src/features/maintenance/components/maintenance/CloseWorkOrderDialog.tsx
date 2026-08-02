@@ -81,7 +81,9 @@ export function CloseWorkOrderDialog({ open, onOpenChange, log, onClosed, onCanc
       <Form {...form}>
         <form onSubmit={onSubmit} className="space-y-4">
           <FormSection title="Resumen del servicio" first>
-            {log && <WorkOrderCloseSummary maintenanceLogId={log.id} manualCost={Number(log.manual_cost ?? 0)} />}
+            {/* R12-FE-05 (P2 r11): OTs antiguas guardan el costo en `cost`
+                con manual_cost=0 — el resumen mostraba $0.00 al cerrar. */}
+            {log && <WorkOrderCloseSummary maintenanceLogId={log.id} manualCost={Number(log.manual_cost || log.cost || 0)} />}
             {openDamage && (
               <Alert variant="destructive">
                 <WarnIcon className="h-4 w-4" />
