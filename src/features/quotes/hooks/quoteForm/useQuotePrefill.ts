@@ -70,20 +70,38 @@ function legacyQty(item: LineItem): number | undefined {
  * R10-FE-03b: la descripción legacy indica la periodicidad de la tarifa
  * ("… — Renta mensual"). Colocar un importe mensual en `dailyRate` lo
  * multiplica por los días del periodo y reproduce el total fantasma
- * ($20,000/mes → $640,000). Sin pista, se asume diaria (comportamiento previo).
+ * ($20,000/mes → $640,000).
+ *
+ * R12-FE-01 (P1 r11): sin pista textual, si la partida tiene un solo cargo
+ * (`unit_price == total`) y el periodo es de 28 días o más, el importe es
+ * casi seguro mensual (COT-0001 / COT-0005). En cualquier otro caso se
+ * mantiene el comportamiento previo (diaria).
  */
-export function rentalRateField(description?: string | null): "dailyRate" | "weeklyRate" | "monthlyRate" {
+export function rentalRateField(
+  description?: string | null,
+  item?: { unit_price?: number | null; total?: number | null },
+  rentalDays?: number,
+): "dailyRate" | "weeklyRate" | "monthlyRate" {
   const d = (description ?? "").toLowerCase();
   if (d.includes("mensual") || d.includes("/mes")) return "monthlyRate";
   if (d.includes("semanal") || d.includes("/semana")) return "weeklyRate";
+  const unit = item?.unit_price;
+  const total = item?.total;
+  if (
+    unit != null && total != null &&
+    Number(unit) === Number(total) &&
+    (rentalDays ?? 0) >= 28
+  ) {
+    return "monthlyRate";
+  }
   return "dailyRate";
 }
 
-function lineToRentalLineFallback(item: LineItem): RentalLineValues {
+function lineToRentalLineFallback(item: LineItem, rentalDays?: number): RentalLineValues {
   // R10-FE-03 (P1): NO sintetizar la tarifa desde `total` (importe de la
   // partida): al multiplicarse por los días de renta genera totales fantasma.
   const rate = Number(item.unit_price) || 0;
-  const field = rentalRateField(item.description);
+  const field = rentalRateField(item.description, item, rentalDays);
   return {
     modelId: "",
     // R10-FE-03 (P1): cotizaciones legacy usan `qty` (no `quantity`).
@@ -95,6 +113,17 @@ function lineToRentalLineFallback(item: LineItem): RentalLineValues {
     discountType: (item.discount_type || "%") as "%" | "$",
   };
 }
+
+/** Días del periodo cotizado (mínimo 1) para inferir la periodicidad legacy. */
+export function quoteRentalDays(startDate?: string | null, endDate?: string | null): number {
+  if (!startDate || !endDate) return 0;
+  const from = parseDateLocal(startDate);
+  const to = parseDateLocal(endDate);
+  const ms = to.getTime() - from.getTime();
+  if (!Number.isFinite(ms)) return 0;
+  return Math.max(1, Math.round(ms / 86_400_000) + 1);
+}
+
 
 
 function normalizeRentalLine(raw: Partial<RentalLineValues> | undefined): RentalLineValues {
