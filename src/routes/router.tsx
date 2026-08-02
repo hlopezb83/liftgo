@@ -82,6 +82,12 @@ function HomeRedirect() {
 const authenticatedChildren: RouteObject[] = [
   // Redirect legacy: `<Navigate replace />` evita el flash blanco del loader.
   { path: "/expenses", element: <Navigate to="/cuentas-por-pagar" replace /> },
+  // R12-UIX-08: alias históricos que quedaban en 404.
+  { path: "/accounts-payable", element: <Navigate to="/cuentas-por-pagar" replace /> },
+  { path: "/payments", element: <Navigate to="/invoices" replace /> },
+  { path: "/prospects", element: <Navigate to="/crm" replace /> },
+  { path: "/availability", element: <Navigate to="/calendar" replace /> },
+  { path: "/cash-flow", element: <Navigate to="/flujo-de-caja" replace /> },
   // GUI-FE-04 (R9): /customers/new no existía → "/customers/:id" capturaba
   // "new" como id (UUID inválido → error SQL crudo). El alta real es un
   // diálogo en la lista; redirigimos abriendo ese diálogo por query param.

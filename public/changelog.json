@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.276.0",
+    "date": "2026-08-02",
+    "type": "minor",
+    "title": "R12 UI/UX: badges unificados, acento dorado y rutas alias",
+    "category": "improvement",
+    "description": "Etiquetas de estado con punto de color y mejor contraste, dorado de marca en las acciones primarias, estados vacíos y esqueletos de carga consistentes, y las direcciones antiguas (/payments, /prospects, /availability, /cash-flow) ya no dan 404."
+  },
+  {
     "version": "7.275.0",
     "date": "2026-08-02",
     "type": "minor",

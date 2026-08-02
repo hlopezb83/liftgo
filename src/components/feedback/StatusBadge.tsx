@@ -4,15 +4,18 @@ import { cn } from "@/lib/utils";
 
 // Bloque 3 (R5): tono suave (bg tintado /10 + texto de color) para mejorar
 // contraste y evitar bloques sólidos saturados en tablas densas.
-const SUCCESS = "bg-success/10 text-success border-success/20";
-const INFO = "bg-info/10 text-info border-info/20";
-const WARNING = "bg-warning/10 text-warning border-warning/20";
-const DANGER = "bg-destructive/15 text-destructive border border-destructive/30";
-const NEUTRAL_DARK = "bg-status-completed/15 text-foreground border-transparent";
-const NEUTRAL_LIGHT = "bg-muted text-muted-foreground border-transparent";
-// v7.183 (Lote C): tono sólido apagado para estados terminales (Vendido,
-// Cancelado, Retirado) — cierra visualmente el registro sin gritar en la tabla.
-const NEUTRAL_SOLID = "bg-muted-foreground/80 text-background border-transparent";
+// R12-UIX-02: patrón unificado punto de color + etiqueta en --foreground.
+// El fondo tintado al 10% y el borde al 20% mantienen la jerarquía sin
+// bloques saturados; el color vive en el punto, así el texto siempre cumple
+// contraste AA (incluye "Vencido", antes ~3.9:1).
+const SUCCESS = "bg-success/10 border-success/20 [--dot:hsl(var(--success))]";
+const INFO = "bg-info/10 border-info/20 [--dot:hsl(var(--info))]";
+const WARNING = "bg-warning/10 border-warning/25 [--dot:hsl(var(--warning))]";
+const DANGER = "bg-destructive/10 border-destructive/25 [--dot:hsl(var(--destructive))]";
+const NEUTRAL_DARK = "bg-muted border-border [--dot:hsl(var(--status-completed))]";
+const NEUTRAL_LIGHT = "bg-muted/60 border-border [--dot:hsl(var(--muted-foreground))]";
+// Estados terminales (Vendido, Cancelado, Retirado): punto hueco/apagado.
+const NEUTRAL_SOLID = "bg-muted border-border opacity-80 [--dot:hsl(var(--muted-foreground))]";
 
 const statusStyles: Record<string, string> = {
   // success
@@ -64,7 +67,12 @@ const statusStyles: Record<string, string> = {
 };
 
 export function StatusBadge({ status, label: labelOverride }: { status: string; label?: string }) {
-  const className = statusStyles[status] || "bg-muted text-muted-foreground border-transparent";
+  const className = statusStyles[status] || NEUTRAL_LIGHT;
   const label = labelOverride || STATUS_LABELS[status] || status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-  return <Badge className={cn("whitespace-nowrap", className)}>{label}</Badge>;
+  return (
+    <Badge className={cn("gap-1.5 whitespace-nowrap font-medium text-foreground", className)}>
+      <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-[color:var(--dot)]" />
+      {label}
+    </Badge>
+  );
 }
