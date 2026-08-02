@@ -24,6 +24,17 @@ export interface BuildQuotePayloadArgs {
   currency: string;
 }
 
+/**
+ * R12-FE-07 (P2 r11): la vigencia por defecto (hoy+30) puede caer antes del
+ * fin del periodo cotizado, dejando la cotización vencida para su propio
+ * rango. Se toma el máximo entre la vigencia elegida y la fecha fin.
+ */
+export function resolveValidUntil(validUntil?: Date | null, endDate?: Date | null): Date | null {
+  if (!validUntil) return endDate ?? null;
+  if (!endDate) return validUntil;
+  return endDate.getTime() > validUntil.getTime() ? endDate : validUntil;
+}
+
 function pickFirstModelId(a: BuildQuotePayloadArgs): string | null {
   const lines = a.quoteType === "sale" ? a.saleLines : a.rentalLines;
   return lines.find((l) => l.modelId)?.modelId ?? null;

@@ -9,7 +9,7 @@ import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useQuote, useCreateQuote, useUpdateQuote } from "../quotes/useQuotes";
 import { buildSaleItems, buildRentalItems } from "./quoteFormBuilders";
-import { buildQuotePayload } from "./quoteFormPayload";
+import { buildQuotePayload, resolveValidUntil } from "./quoteFormPayload";
 import { EMPTY_RENTAL_LINE, EMPTY_SALE_LINE, useQuoteForm } from "./useQuoteForm";
 import { useQuotePrefillValues } from "./useQuotePrefill";
 import type { QuoteFormValues } from "../../lib/quoteFormSchema";
