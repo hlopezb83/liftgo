@@ -152,6 +152,7 @@ function rebuildRentalLines(items: LineItem[], q: ExistingQuote, models: Equipme
   const meta = getRentalMeta(q, items);
   if (meta && meta.length > 0) return meta;
   if (items.length === 0) return [{ ...EMPTY_RENTAL_LINE }];
+  const rentalDays = quoteRentalDays(q.start_date, q.end_date);
   const matched = new Map<string, RentalLineValues>();
   const fallbackDescriptions = new Set<string>();
   const fallbackLines: RentalLineValues[] = [];
@@ -167,7 +168,7 @@ function rebuildRentalLines(items: LineItem[], q: ExistingQuote, models: Equipme
     const key = item.description ?? "";
     if (!fallbackDescriptions.has(key)) {
       fallbackDescriptions.add(key);
-      fallbackLines.push(lineToRentalLineFallback(item));
+      fallbackLines.push(lineToRentalLineFallback(item, rentalDays));
     }
   }
   const arr = [...matched.values(), ...fallbackLines];
