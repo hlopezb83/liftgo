@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.279.0",
+    "date": "2026-08-03",
+    "type": "minor",
+    "title": "Auditoría R14 P2: validación de cotizaciones y consistencia visual",
+    "category": "improvement",
+    "description": "Las partidas vacías dejan de bloquear el guardado de cotizaciones, se avisa cuando faltan datos, se unifican las etiquetas 'Vencida', las categorías de refacciones y el subtítulo del detalle de cliente."
+  },
+  {
     "version": "7.278.0",
     "date": "2026-08-03",
     "type": "minor",
