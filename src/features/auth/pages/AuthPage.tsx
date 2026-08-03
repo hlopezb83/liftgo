@@ -1,5 +1,6 @@
 import { useState, type FormEvent as ReactFormEvent } from "react";
 import { useLocation } from "react-router";
+import { AuthBrandPanel } from "@/components/branding/AuthBrandPanel";
 import { UsersIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -58,8 +59,14 @@ export default function AuthPage() {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
-      <Card className="w-full max-w-md animate-fade-in">
+    <main className="min-h-screen flex">
+      <AuthBrandPanel
+        logoUrl={company?.logo_url}
+        razonSocial={company?.razon_social}
+        tagline="Opera tu flota de montacargas sin fricción."
+      />
+      <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-background via-background to-primary/5 p-4">
+      <Card className="w-full max-w-md animate-fade-in shadow-lg">
         <CardHeader className="text-center pt-8 pb-2">
           <div className="flex justify-center mb-5">
             {company?.logo_url ? (
@@ -112,6 +119,7 @@ export default function AuthPage() {
           )}
         </CardContent>
       </Card>
+      </div>
     </main>
   );
 }

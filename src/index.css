@@ -101,9 +101,11 @@
 
     --chart-1: 220 45% 20%;
     --chart-2: 142 71% 45%;
-    --chart-3: 217 91% 60%;
+    /* R12 UI/UX Fase 3: chart-3/5 eran azul y morado saturados; ahora
+     * siguen la misma escala navy/dorado/tierra del Gantt. */
+    --chart-3: 25 45% 48%;
     --chart-4: 38 40% 50%;
-    --chart-5: 280 65% 60%;
+    --chart-5: 200 30% 45%;
   }
 
   .dark {
@@ -232,6 +234,15 @@
   --color-chart-3: hsl(var(--chart-3));
   --color-chart-4: hsl(var(--chart-4));
   --color-chart-5: hsl(var(--chart-5));
+
+  /* R12 UI/UX Fase 3: escala de elevación corta con tinte cálido, en vez
+   * de sombras neutras planas. */
+  --shadow-2xs: 0 1px 1px hsl(30 20% 12% / 0.04);
+  --shadow-xs: 0 1px 2px hsl(30 20% 12% / 0.06);
+  --shadow-sm: 0 1px 2px hsl(30 20% 12% / 0.06), 0 1px 3px hsl(30 20% 12% / 0.05);
+  --shadow-md: 0 2px 4px hsl(30 20% 12% / 0.06), 0 4px 12px hsl(30 20% 12% / 0.07);
+  --shadow-lg: 0 4px 8px hsl(30 20% 12% / 0.06), 0 12px 28px hsl(30 20% 12% / 0.10);
+  --shadow-xl: 0 8px 16px hsl(30 20% 12% / 0.07), 0 24px 48px hsl(30 20% 12% / 0.12);
 
   --radius-lg: var(--radius);
   --radius-md: calc(var(--radius) - 2px);

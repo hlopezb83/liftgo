@@ -1,4 +1,5 @@
 import { useState, useEffect, type FormEvent as ReactFormEvent } from "react";
+import { AuthBrandPanel } from "@/components/branding/AuthBrandPanel";
 import { CompanyIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -48,7 +49,13 @@ export default function PortalLogin() {
 
   return (
     // Oleada 3 (C-2): facelift con gradiente radial suave + footer "Powered by".
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-[radial-gradient(ellipse_at_top,hsl(var(--accent)/0.12),transparent_60%),radial-gradient(ellipse_at_bottom,hsl(var(--primary)/0.08),transparent_55%)]">
+    <div className="min-h-screen flex">
+      <AuthBrandPanel
+        logoUrl={company?.logo_url}
+        razonSocial={company?.razon_social}
+        tagline="Tus rentas, facturas y contratos, siempre a la mano."
+      />
+      <div className="flex-1 flex flex-col items-center justify-center p-4 bg-[radial-gradient(ellipse_at_top,hsl(var(--accent)/0.12),transparent_60%),radial-gradient(ellipse_at_bottom,hsl(var(--primary)/0.08),transparent_55%)]">
       <Card className="w-full max-w-md shadow-lg border-border/60">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
@@ -106,6 +113,7 @@ export default function PortalLogin() {
       <p className="mt-6 text-xs text-muted-foreground">
         Powered by <span className="font-semibold text-foreground">LiftGo</span>
       </p>
+      </div>
     </div>
   );
 }
