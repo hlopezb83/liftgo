@@ -59,7 +59,8 @@ const statusStyles: Record<string, string> = {
   closed: NEUTRAL_SOLID,
   // neutral suave (borradores / inactivos temporales)
   draft: NEUTRAL_LIGHT,
-  expired: NEUTRAL_LIGHT,
+  // R14-FE-02: "vencida" es accionable para el cliente -> rojo semántico.
+  expired: DANGER,
   inactive: NEUTRAL_LIGHT,
   duplicate: NEUTRAL_LIGHT,
   rep_none: NEUTRAL_LIGHT,
