@@ -39,6 +39,11 @@ export function SaleLineItems({ lines, onChange, models, modelsLoading }: SaleLi
         <CardTitle className="text-base">Equipos a Cotizar</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* R13-P2-04: el catálogo de modelos sólo guarda tarifas de renta; el
+            precio de venta se captura a mano y por eso inicia en $0. */}
+        <p className="text-xs text-muted-foreground">
+          Los modelos no tienen precio de venta en catálogo: captura el precio unitario de cada equipo.
+        </p>
         {lines.map((line, index) => (
           <SaleLineRow
             key={index}
