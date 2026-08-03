@@ -5,6 +5,7 @@ import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/f
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { APP_CONFIG } from "@/lib/config";
+import { resolveValidUntil } from "../../hooks/quoteForm/quoteFormPayload";
 import type { QuoteFormValues } from "../../lib/quoteFormSchema";
 import type { DateRange } from "react-day-picker";
 import type { UseFormReturn } from "react-hook-form";
@@ -31,7 +32,14 @@ export function QuoteDetailsCard({ form, isRental }: Props) {
                   <DateRangePickerField
                     label="Periodo de Renta"
                     dateRange={field.value as DateRange | undefined}
-                    onSelect={(v) => field.onChange(v)}
+                    onSelect={(v) => {
+                      field.onChange(v);
+                      // R13-P2-03: el payload coacciona la vigencia a
+                      // max(vigencia, fin del periodo). Sin esto el campo
+                      // visible quedaba desincronizado con lo que se guarda.
+                      const synced = resolveValidUntil(form.getValues("validUntil"), v?.to);
+                      if (synced) form.setValue("validUntil", synced, { shouldValidate: true });
+                    }}
                     required
                   />
                 </FormControl>

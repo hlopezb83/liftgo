@@ -12,7 +12,7 @@ interface Props {
 const HIDDEN_LONG_FIELDS = new Set(["cfdi_xml", "line_items", "facturapi_invoice_id"]);
 
 /** R13-P2-07: dos valores son "iguales" si ambos están vacíos o coinciden. */
-export function isSameValue(oldV: unknown, newV: unknown): boolean {
+function isSameValue(oldV: unknown, newV: unknown): boolean {
   const norm = (v: unknown) => (v === null || v === undefined || v === "" ? "" : JSON.stringify(v));
   return norm(oldV) === norm(newV);
 }

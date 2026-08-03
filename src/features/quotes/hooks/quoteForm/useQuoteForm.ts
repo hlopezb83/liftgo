@@ -1,4 +1,4 @@
-import { addDays } from "date-fns";
+import { addDays, startOfDay } from "date-fns";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { nowMty } from "@/lib/utils";
@@ -20,7 +20,9 @@ export function defaultQuoteFormValues(): QuoteFormValues {
     currency: "MXN",
     taxRate: "16",
     notes: "",
-    validUntil: addDays(nowMty(), 30),
+    // R13-P2-03: a medianoche — con la hora del día el picker mostraba un
+    // día distinto al que termina persistido.
+    validUntil: startOfDay(addDays(nowMty(), 30)),
     dateRange: undefined,
     rentalLines: [{ ...EMPTY_RENTAL_LINE }],
     saleLines: [{ ...EMPTY_SALE_LINE }],
