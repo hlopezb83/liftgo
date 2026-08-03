@@ -87,10 +87,14 @@ export function RentalLineRow({ line, index, models, disableRemove, startDate, e
             </ToggleGroup>
           </div>
         </div>
+        {/* R14-FE-07: sin modelo ni fechas el "$0.00" se leía como precio real. */}
         <div className="ml-auto text-right">
           <Label className="text-xs text-muted-foreground">Total estimado</Label>
-          <p className="text-sm font-medium">{formatCurrency(computeRentalLineTotal(line, startDate, endDate))}</p>
+          <p className="text-sm font-medium">
+            {estimatedTotal > 0 ? formatCurrency(estimatedTotal) : <span className="text-muted-foreground">—</span>}
+          </p>
         </div>
+
       </div>
     </div>
   );
