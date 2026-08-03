@@ -130,18 +130,24 @@ export function quoteRentalDays(startDate?: string | null, endDate?: string | nu
 
 
 
-function normalizeRentalLine(raw: Partial<RentalLineValues> | undefined): RentalLineValues {
+/** Tarifas con defaults (extraído para mantener la complejidad bajo el umbral). */
+function normalizeRates(raw: Partial<RentalLineValues> | undefined) {
   return {
-    modelId: raw?.modelId ?? "",
-    quantity: raw?.quantity ?? 1,
     dailyRate: raw?.dailyRate ?? 0,
     weeklyRate: raw?.weeklyRate ?? 0,
     monthlyRate: raw?.monthlyRate ?? 0,
     // R-M11: cotizaciones legacy pueden traer `rental_meta` sin `discount`
-    // ni `discountType`. Sin defaults, el zod resolver rechaza el submit con
-    // "se esperaba número, recibido indefinido" al editar.
+    // ni `discountType`. Sin defaults, el zod resolver rechaza el submit.
     discount: raw?.discount ?? 0,
     discountType: (raw?.discountType ?? "%") as "%" | "$",
+  };
+}
+
+function normalizeRentalLine(raw: Partial<RentalLineValues> | undefined): RentalLineValues {
+  return {
+    modelId: raw?.modelId ?? "",
+    quantity: raw?.quantity ?? 1,
+    ...normalizeRates(raw),
     // R13-FE-01: sobreviven el round-trip por `rental_meta`.
     legacyTotal: raw?.legacyTotal,
     legacyDescription: raw?.legacyDescription,
