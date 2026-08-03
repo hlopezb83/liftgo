@@ -1,5 +1,5 @@
-import { serviceTypeLabel } from "@/lib/constants";
 import { Card, CardContent } from "@/components/ui/card";
+import { serviceTypeLabel } from "@/lib/constants";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay, cn } from "@/lib/utils";
 import type { MaintenanceLog } from "../../../hooks/maintenance/useMaintenanceLogs";

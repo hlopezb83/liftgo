@@ -1,4 +1,3 @@
-import { serviceTypeLabel } from "@/lib/constants";
 import { Activity, useState } from "react";
 import { DetailRow } from "@/components/domain/DetailRow";
 import { EditIcon, DeleteIcon, MaintenanceIcon, CalendarIcon, UserIcon, CostIcon, FleetIcon, DocumentIcon, SuccessIcon } from "@/components/icons";
@@ -9,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useSuppliers } from "@/features/suppliers";
 import { RoleGuard } from "@/layouts/RoleGuard";
+import { serviceTypeLabel } from "@/lib/constants";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { formatDateDisplay } from "@/lib/utils";
