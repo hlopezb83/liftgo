@@ -19,6 +19,14 @@ import { CustomerProfitabilityCard } from "../components/customer-detail/Custome
 import { CustomerFormDialog } from "../components/customers/CustomerFormDialog";
 import { useCustomerDetailPage } from "../hooks/customers/useCustomerDetailPage";
 
+function customerSubtitle(customer: { name: string; company?: string | null; rfc?: string | null }): string | undefined {
+  const company = (customer.company ?? "").trim();
+  const isRedundant = company === "" || company.toLowerCase() === customer.name.trim().toLowerCase();
+  if (!isRedundant) return company;
+  const rfc = (customer.rfc ?? "").trim();
+  return rfc === "" ? undefined : `RFC ${rfc}`;
+}
+
 export default function CustomerDetailPage() {
   const { id } = useParams();
   const navigate = useNavigateTransition();
@@ -52,7 +60,9 @@ export default function CustomerDetailPage() {
     <PageContainer maxWidth="wide">
       <DetailPageHeader
         title={s.customer.name}
-        subtitle={s.customer.company || undefined}
+        // R14-FE-04: si la empresa repite el nombre del contacto, el subtítulo
+        // duplicaba el título; en ese caso se muestra el RFC como metadato útil.
+        subtitle={customerSubtitle(s.customer)}
         backTo="/customers"
         actions={
           <>

@@ -11,6 +11,7 @@ import { RoleGuard } from "@/layouts/RoleGuard";
 import { APP_LOCALE } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { useDeletePart, type PartInventory } from "../../hooks/usePartsInventory";
+import { partCategoryLabel } from "../../lib/partCategories";
 
 interface Props {
   part: PartInventory | null;
@@ -49,7 +50,7 @@ export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
         <Activity mode={open ? "visible" : "hidden"}>
         <div className="mt-4 space-y-4">
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="outline">{part.category}</Badge>
+            <Badge variant="outline">{partCategoryLabel(part.category)}</Badge>
             {isLow && (
               <Badge variant="destructive" className="gap-1">
                 <WarnIcon className="h-3 w-3" /> Stock bajo
@@ -59,7 +60,7 @@ export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
 
           <div className="space-y-1">
             <DetailRow icon={Hash} label="SKU" value={<span className="font-mono">{part.sku}</span>} />
-            <DetailRow icon={Tag} label="Categoría" value={part.category} />
+            <DetailRow icon={Tag} label="Categoría" value={partCategoryLabel(part.category)} />
             <DetailRow icon={CostIcon} label="Costo Unitario" value={formatCurrency(part.unit_cost)} />
           </div>
 
