@@ -12,6 +12,9 @@ export interface RentalLine {
   monthlyRate: number;
   discount: number;
   discountType: "%" | "$";
+  /** R13-FE-01: importe histórico de partidas legacy sin modelo. */
+  legacyTotal?: number;
+  legacyDescription?: string;
 }
 
 interface RentalLineItemsProps {

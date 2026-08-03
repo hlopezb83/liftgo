@@ -7,6 +7,7 @@ import { FormSection } from "@/components/forms/FormSection";
 import { WarnIcon } from "@/components/icons";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Form } from "@/components/ui/form";
+import { serviceTypeLabel } from "@/lib/constants";
 import { toYMD } from "@/lib/date/toYMD";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { nowMty } from "@/lib/utils";
@@ -75,15 +76,15 @@ export function CloseWorkOrderDialog({ open, onOpenChange, log, onClosed, onCanc
       onOpenChange={(v) => (v ? onOpenChange(true) : handleCancel())}
       isPending={close.isPending}
       title="Cerrar orden de trabajo"
-      description={log ? `${log.service_type} — ${log.forklift_name ?? "Equipo"}` : undefined}
+      description={log ? `${serviceTypeLabel(log.service_type)} — ${log.forklift_name ?? "Equipo"}` : undefined}
       testId="close-work-order-dialog"
     >
       <Form {...form}>
         <form onSubmit={onSubmit} className="space-y-4">
           <FormSection title="Resumen del servicio" first>
-            {/* R12-FE-05 (P2 r11): OTs antiguas guardan el costo en `cost`
-                con manual_cost=0 — el resumen mostraba $0.00 al cerrar. */}
-            {log && <WorkOrderCloseSummary maintenanceLogId={log.id} manualCost={Number(log.manual_cost || log.cost || 0)} />}
+            {/* R13-FE-02 (P1): `cost` es el total (manual + refacciones + MO).
+                Pasarlo como "costo manual" duplicaba refacciones y mano de obra. */}
+            {log && <WorkOrderCloseSummary maintenanceLogId={log.id} storedCost={Number(log.cost || 0)} manualCost={Number(log.manual_cost || 0)} />}
             {openDamage && (
               <Alert variant="destructive">
                 <WarnIcon className="h-4 w-4" />

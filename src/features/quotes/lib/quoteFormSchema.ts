@@ -30,6 +30,11 @@ const rentalLineBase = z.object({
   monthlyRate: z.number(),
   discount: z.number(),
   discountType: z.enum(["%", "$"]),
+  // R13-FE-01 (P1): las cotizaciones legacy sin `rental_meta` guardan un
+  // precio plano acordado. Se conserva aquí para no recalcularlo mientras la
+  // partida no tenga modelo seleccionado.
+  legacyTotal: z.number().optional(),
+  legacyDescription: z.string().optional(),
 });
 
 const saleLineBase = z.object({
@@ -42,15 +47,16 @@ const saleLineBase = z.object({
 
 // Estrictos — se usan sólo en superRefine para el bloque activo.
 export const rentalLineSchema = rentalLineBase.extend({
-  modelId: nonEmptyId,
+  // R13-FE-01: una partida legacy válida puede no tener modelo todavía.
+  modelId: z.string(),
   quantity: positiveInt,
   dailyRate: nonNegative,
   weeklyRate: nonNegative,
   monthlyRate: nonNegative,
   discount: nonNegative,
 }).refine(
-  (l) => l.dailyRate > 0 || l.weeklyRate > 0 || l.monthlyRate > 0,
-  { message: "Ingresa al menos una tarifa (diaria, semanal o mensual)", path: ["monthlyRate"] },
+  (l) => (l.legacyTotal ?? 0) > 0 || (l.modelId !== "" && (l.dailyRate > 0 || l.weeklyRate > 0 || l.monthlyRate > 0)),
+  { message: "Selecciona un modelo e ingresa al menos una tarifa", path: ["monthlyRate"] },
 ).refine(
   // R7 Bloque 21.6: descuento porcentual > 100% no es un valor válido de negocio;
   // antes se clampeaba silenciosamente en invoiceTotals.ts (podía enmascarar errores).
