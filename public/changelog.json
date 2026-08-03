@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.277.0",
+    "date": "2026-08-02",
+    "type": "minor",
+    "title": "R12 UI/UX Fase 2 y 3: menú de usuario, elevación y acceso con marca",
+    "category": "improvement",
+    "description": "Nuevo menú de usuario con avatar en la barra superior (correo, rol, tema, contraseña y cerrar sesión), apartado activo del menú lateral en dorado de marca, escala de sombras cálidas, gráficas alineadas a la paleta de marca y pantallas de acceso con panel de marca."
+  },
+  {
     "version": "7.276.0",
     "date": "2026-08-02",
     "type": "minor",
