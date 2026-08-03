@@ -3,7 +3,7 @@ import { toYMD } from "@/lib/format/dateFormats";
 
 export type EquipmentModel = { id: string; manufacturer: string; model: string };
 export type SaleLine = { modelId: string; quantity: number; unitPrice: number; discount?: number; discountType?: "%" | "$" };
-export type RentalLine = { modelId: string; quantity: number; dailyRate: number; weeklyRate: number; monthlyRate: number; discount?: number; discountType?: "%" | "$" };
+export type RentalLine = { modelId: string; quantity: number; dailyRate: number; weeklyRate: number; monthlyRate: number; discount?: number; discountType?: "%" | "$"; legacyTotal?: number; legacyDescription?: string };
 
 export function buildSaleItems(lines: SaleLine[], models: EquipmentModel[]): LineItem[] {
   return lines
@@ -25,6 +25,22 @@ export function buildRentalItems(
   lines: RentalLine[], models: EquipmentModel[], startDate: Date, endDate: Date,
 ): LineItem[] {
   const items: LineItem[] = [];
+  // R13-FE-01 (P1): conservar partidas legacy sin modelo con su importe
+  // histórico (antes se filtraban y al guardar borraban line_items -> $0).
+  for (const line of lines.filter((l) => !l.modelId && (l.legacyTotal ?? 0) > 0)) {
+    const unitPrice = line.legacyTotal ?? 0;
+    const item: LineItem = {
+      description: line.legacyDescription ?? "Renta montacargas",
+      quantity: line.quantity,
+      unit_price: unitPrice,
+      total: unitPrice * line.quantity,
+    };
+    if (line.discount && line.discount > 0) {
+      item.discount = line.discount;
+      item.discount_type = line.discountType;
+    }
+    items.push(item);
+  }
   const valid = lines.filter((l) => l.modelId && (l.dailyRate > 0 || l.weeklyRate > 0 || l.monthlyRate > 0));
   for (const line of valid) {
     const model = models.find((m) => m.id === line.modelId);

@@ -111,6 +111,10 @@ function lineToRentalLineFallback(item: LineItem, rentalDays?: number): RentalLi
     monthlyRate: field === "monthlyRate" ? rate : 0,
     discount: item.discount || 0,
     discountType: (item.discount_type || "%") as "%" | "$",
+    // R13-FE-01 (P1): importe histórico acordado; se usa tal cual mientras la
+    // partida no tenga modelo (recalcular tarifa x periodo lo corrompe).
+    legacyTotal: Number(item.unit_price ?? item.total) || undefined,
+    legacyDescription: item.description ?? undefined,
   };
 }
 
@@ -138,6 +142,9 @@ function normalizeRentalLine(raw: Partial<RentalLineValues> | undefined): Rental
     // "se esperaba número, recibido indefinido" al editar.
     discount: raw?.discount ?? 0,
     discountType: (raw?.discountType ?? "%") as "%" | "$",
+    // R13-FE-01: sobreviven el round-trip por `rental_meta`.
+    legacyTotal: raw?.legacyTotal,
+    legacyDescription: raw?.legacyDescription,
   };
 }
 
