@@ -1,5 +1,14 @@
 [
   {
+    "version": "7.279.1",
+    "date": "2026-08-03",
+    "type": "patch",
+    "title": "Altura de mástil en metros: se desbloquea el cierre de inspecciones de retorno",
+    "category": "fix",
+    "description": "Se corrigieron las alturas de mástil guardadas en milímetros (4800 → 4.8 m) en montacargas y modelos, lo que impedía completar inspecciones de retorno, y se activó la validación de rango de forma permanente."
+  },
+  {
+
     "version": "7.279.0",
     "date": "2026-08-03",
     "type": "minor",
