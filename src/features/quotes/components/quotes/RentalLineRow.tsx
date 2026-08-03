@@ -23,7 +23,9 @@ interface Props {
 }
 
 export function RentalLineRow({ line, index, models, disableRemove, startDate, endDate, onUpdate, onModelChange, onRemove }: Props) {
+  const estimatedTotal = computeRentalLineTotal(line, startDate, endDate);
   return (
+
     <div className="space-y-3 border-b border-border pb-4 last:border-0 last:pb-0">
       <div className="grid grid-cols-1 sm:grid-cols-[1fr_80px_40px] gap-3 items-end">
         <div className="space-y-1.5">
