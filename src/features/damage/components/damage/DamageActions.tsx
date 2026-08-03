@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useAuth } from "@/contexts/AuthContext";
 import { useCreateMaintenanceLog } from "@/features/maintenance";
 import { maintenanceLogKeys } from "@/features/maintenance/lib/queryKeys";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
@@ -43,6 +44,7 @@ async function tryStartRepairWorkOrderRpc(record: DamageRecordWithJoins): Promis
 
 export function DamageActions({ record, onClose }: DamageActionsProps) {
   const navigate = useNavigateTransition();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const updateDamage = useUpdateDamageRecord();
   const createMaintenance = useCreateMaintenanceLog();
