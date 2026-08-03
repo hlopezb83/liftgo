@@ -1,0 +1,24 @@
+{
+  "version": "7.279.1",
+  "date": "2026-08-03",
+  "type": "patch",
+  "title": "Altura de mástil en metros: se desbloquea el cierre de inspecciones de retorno",
+  "category": "fix",
+  "changes": [
+    {
+      "type": "fix",
+      "title": "Alturas de mástil corregidas de milímetros a metros",
+      "description": "56 montacargas y 6 modelos de equipo tenían la altura de mástil guardada en milímetros (4800 y 7620). Ahora quedan en metros (4.8 m y 7.62 m) y los valores en 0 quedaron vacíos por no ser una altura válida."
+    },
+    {
+      "type": "fix",
+      "title": "Ya se puede completar la inspección de retorno",
+      "description": "Al cerrar una inspección el sistema actualiza el montacargas; la altura fuera de rango hacía que la base de datos rechazara el cambio con el error 'forklifts_mast_height_range_chk'. Con los datos corregidos el cierre funciona normalmente."
+    },
+    {
+      "type": "improvement",
+      "title": "Regla de rango activada de forma permanente",
+      "description": "Se validó la restricción de altura (0 a 20 m) en montacargas y se agregó la misma regla a los modelos de equipo, para que un modelo mal capturado no vuelva a contaminar los montacargas creados desde él."
+    }
+  ]
+}
