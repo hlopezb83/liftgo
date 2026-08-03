@@ -1,5 +1,12 @@
 [
   {
+    "version": "7.278.0",
+    "date": "2026-08-03",
+    "type": "minor",
+    "title": "Auditoría R13: cotizaciones legacy, cierre de OT y ajustes de uso",
+    "category": "fix"
+  },
+  {
     "version": "7.277.0",
     "date": "2026-08-02",
     "type": "minor",
