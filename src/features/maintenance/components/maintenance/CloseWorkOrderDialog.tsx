@@ -1,3 +1,4 @@
+import { serviceTypeLabel } from "@/lib/constants";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { DateField, TextareaField } from "@/components/forms/fields";
@@ -75,7 +76,7 @@ export function CloseWorkOrderDialog({ open, onOpenChange, log, onClosed, onCanc
       onOpenChange={(v) => (v ? onOpenChange(true) : handleCancel())}
       isPending={close.isPending}
       title="Cerrar orden de trabajo"
-      description={log ? `${log.service_type} — ${log.forklift_name ?? "Equipo"}` : undefined}
+      description={log ? `${serviceTypeLabel(log.service_type)} — ${log.forklift_name ?? "Equipo"}` : undefined}
       testId="close-work-order-dialog"
     >
       <Form {...form}>

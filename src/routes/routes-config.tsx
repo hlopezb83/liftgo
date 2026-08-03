@@ -31,9 +31,10 @@ const rawRoutes: RawRoute[] = [
   { path: "/fleet/:id/edit", loader: () => import("@/features/fleet/pages/ForkliftForm"), module: "Flota", minAccess: "full" },
   { path: "/calendar", loader: () => import("@/features/calendar/pages/CalendarPage"), module: "Calendario" },
   { path: "/bookings", loader: () => import("@/features/bookings/pages/BookingsPage"), module: "Reservas" },
-  // GUI-FE-04 (G-DIS-05): la matriz da Reservas=full a dispatcher y el RPC
-  // create_booking ya lo permite; se alinea el router a la matriz.
-  { path: "/bookings/new", loader: () => import("@/features/bookings/pages/BookingForm"), module: "Reservas", minAccess: "full" },
+  // R13-P2-05: la DB rechaza el alta directa de reservas para despachador
+  // (sólo admin o conversión desde cotización). Antes llenaba el form y
+  // fallaba al guardar; ahora la ruta queda restringida como el botón.
+  { path: "/bookings/new", loader: () => import("@/features/bookings/pages/BookingForm"), module: "Reservas", minAccess: "full", adminOnly: true },
   { path: "/bookings/:id", loader: () => import("@/features/bookings/pages/BookingDetail"), module: "Reservas" },
   { path: "/customers", loader: () => import("@/features/customers/pages/CustomersPage"), module: "Clientes" },
   { path: "/customers/:id", loader: () => import("@/features/customers/pages/CustomerDetailPage"), module: "Clientes" },

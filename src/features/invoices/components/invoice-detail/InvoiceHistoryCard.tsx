@@ -11,13 +11,21 @@ interface Props {
 
 const HIDDEN_LONG_FIELDS = new Set(["cfdi_xml", "line_items", "facturapi_invoice_id"]);
 
+/** R13-P2-07: dos valores son "iguales" si ambos están vacíos o coinciden. */
+export function isSameValue(oldV: unknown, newV: unknown): boolean {
+  const norm = (v: unknown) => (v === null || v === undefined || v === "" ? "" : JSON.stringify(v));
+  return norm(oldV) === norm(newV);
+}
+
 function summarizeChanges(log: AuditLog): string[] {
   if (log.action === "INSERT") return ["Factura creada"];
   if (log.action === "DELETE") return ["Factura eliminada"];
   const fields = log.changed_fields || [];
   if (fields.length === 0) return ["Sin cambios detectables"];
-  return fields
+  const changes = fields
     .filter((f) => f !== "updated_at")
+    // R13-P2-07: omitir campos sin cambio real (renglones "— → —").
+    .filter((f) => HIDDEN_LONG_FIELDS.has(f) || !isSameValue(log.old_data?.[f], log.new_data?.[f]))
     .map((f) => {
       if (HIDDEN_LONG_FIELDS.has(f)) return `${translateField(f)}: actualizado`;
       const oldV = log.old_data?.[f];
@@ -29,6 +37,7 @@ function summarizeChanges(log: AuditLog): string[] {
       };
       return `${translateField(f)}: ${fmt(oldV)} → ${fmt(newV)}`;
     });
+  return changes.length > 0 ? changes : ["Sin cambios detectables"];
 }
 
 export function InvoiceHistoryCard({ invoiceId }: Props) {

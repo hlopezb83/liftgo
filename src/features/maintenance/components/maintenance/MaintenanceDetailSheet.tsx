@@ -1,3 +1,4 @@
+import { serviceTypeLabel } from "@/lib/constants";
 import { Activity, useState } from "react";
 import { DetailRow } from "@/components/domain/DetailRow";
 import { EditIcon, DeleteIcon, MaintenanceIcon, CalendarIcon, UserIcon, CostIcon, FleetIcon, DocumentIcon, SuccessIcon } from "@/components/icons";
@@ -62,7 +63,7 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
         <SheetHeader>
           <SheetTitle className="flex items-center gap-2">
             <MaintenanceIcon className="h-5 w-5" />
-            {log.service_type}
+            {serviceTypeLabel(log.service_type)}
           </SheetTitle>
         </SheetHeader>
 
@@ -138,7 +139,7 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
                 open={confirmOpen}
                 onOpenChange={setConfirmOpen}
                 title="¿Archivar registro de mantenimiento?"
-                description={`Se ocultará de los listados pero se conservará el historial del servicio "${log.service_type}" del ${formatDateDisplay(log.performed_at)} para auditoría.`}
+                description={`Se ocultará de los listados pero se conservará el historial del servicio "${serviceTypeLabel(log.service_type)}" del ${formatDateDisplay(log.performed_at)} para auditoría.`}
                 confirmLabel="Archivar"
                 destructive
                 loading={deleteLog.isPending}

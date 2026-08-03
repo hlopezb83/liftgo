@@ -2,7 +2,7 @@ import { Activity } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
-import { MAINTENANCE_WORK_STATUS_LABELS } from "@/lib/constants";
+import { MAINTENANCE_WORK_STATUS_LABELS, serviceTypeLabel } from "@/lib/constants";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { MaintenanceLaborSection } from "../MaintenanceLaborSection";
@@ -21,7 +21,7 @@ export function MaintenanceDetailSheet({ log, onClose }: Props) {
         {log && (
           <>
             <SheetHeader>
-              <SheetTitle>{log.service_type}</SheetTitle>
+              <SheetTitle>{serviceTypeLabel(log.service_type)}</SheetTitle>
               <SheetDescription>{log.forklift_name}</SheetDescription>
             </SheetHeader>
 

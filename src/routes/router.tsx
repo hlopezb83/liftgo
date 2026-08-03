@@ -88,6 +88,9 @@ const authenticatedChildren: RouteObject[] = [
   { path: "/prospects", element: <Navigate to="/crm" replace /> },
   { path: "/availability", element: <Navigate to="/calendar" replace /> },
   { path: "/cash-flow", element: <Navigate to="/flujo-de-caja" replace /> },
+  // R13-P2-06: alias inglés/corto de conciliación bancaria.
+  { path: "/conciliacion", element: <Navigate to="/conciliacion-bancaria" replace /> },
+  { path: "/bank-reconciliation", element: <Navigate to="/conciliacion-bancaria" replace /> },
   // GUI-FE-04 (R9): /customers/new no existía → "/customers/:id" capturaba
   // "new" como id (UUID inválido → error SQL crudo). El alta real es un
   // diálogo en la lista; redirigimos abriendo ese diálogo por query param.

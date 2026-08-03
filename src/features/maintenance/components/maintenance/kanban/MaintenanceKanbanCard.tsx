@@ -1,3 +1,4 @@
+import { serviceTypeLabel } from "@/lib/constants";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatDateDisplay, cn } from "@/lib/utils";
@@ -20,7 +21,7 @@ export function MaintenanceKanbanCard({ log, isDragging, onSelect }: Props) {
     >
       <CardContent className="p-3 space-y-1">
         <div className="flex items-center justify-between">
-          <span className="text-sm font-semibold truncate">{log.service_type}</span>
+          <span className="text-sm font-semibold truncate">{serviceTypeLabel(log.service_type)}</span>
           <span className="text-xs font-mono font-medium">{formatCurrency(log.cost || 0)}</span>
         </div>
         <p className="text-sm text-muted-foreground truncate">{log.forklift_name || "—"}</p>
