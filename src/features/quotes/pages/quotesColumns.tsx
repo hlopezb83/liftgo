@@ -81,7 +81,8 @@ export function buildQuotesColumns<Q extends {
         return (
           <div className="flex items-center gap-1.5">
             <StatusBadge status={q.status} label={quoteLabel(q.status)} />
-            {isExpired && <Badge variant="destructive" className="text-3xs px-1.5 py-0">Vencida</Badge>}
+            {/* R14-FE-02/06: mismo lenguaje de badge (punto) que el resto de estados. */}
+            {isExpired && <StatusBadge status="expired" label="Vencida" />}
           </div>
         );
       },

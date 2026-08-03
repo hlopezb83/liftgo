@@ -98,7 +98,8 @@
     --crm-stage-new: var(--primary);
     --crm-stage-contacted: 210 80% 55%;
     --crm-stage-quoted: 45 93% 47%;
-    --crm-stage-negotiating: 280 60% 55%;
+    /* R14-FE-03: morado saturado rompía la escala de marca. */
+    --crm-stage-negotiating: 25 45% 48%;
 
     --chart-1: 220 45% 20%;
     --chart-2: 142 71% 45%;

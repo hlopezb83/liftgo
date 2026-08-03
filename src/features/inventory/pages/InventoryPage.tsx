@@ -16,6 +16,7 @@ import { PartDetailSheet } from "../components/inventory/PartDetailSheet";
 import { PartFormDialog, PART_CATEGORIES } from "../components/inventory/PartFormDialog";
 import { useInventoryFilters } from "../hooks/inventory/useInventoryFilters";
 import { usePartsInventory, type PartInventory } from "../hooks/usePartsInventory";
+import { partCategoryLabel } from "../lib/partCategories";
 
 export default function InventoryPage() {
   const { data: partsRaw, isLoading, isError, refetch } = usePartsInventory();
@@ -48,7 +49,7 @@ export default function InventoryPage() {
       id: "category",
       header: "Categoría",
       accessorKey: "category",
-      cell: ({ row }) => <Badge variant="outline">{row.original.category}</Badge>,
+      cell: ({ row }) => <Badge variant="outline">{partCategoryLabel(row.original.category)}</Badge>,
     },
     {
       id: "unit_cost",
@@ -93,7 +94,7 @@ export default function InventoryPage() {
             <Badge variant={isLow ? "destructive" : "secondary"}>{p.stock_quantity}</Badge>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <Badge variant="outline">{p.category}</Badge>
+            <Badge variant="outline">{partCategoryLabel(p.category)}</Badge>
             <span className="font-mono">{formatCurrency(p.unit_cost)}</span>
           </div>
         </CardContent>

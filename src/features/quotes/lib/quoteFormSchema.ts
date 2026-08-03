@@ -94,10 +94,17 @@ export const quoteFormSchema = z.object({
   logisticsCost: nonNegative.default(0),
 }).superRefine((val, ctx) => {
   if (val.quoteType === "rental") {
-    if (val.rentalLines.length === 0) {
+    // R14-FE-01: "Agregar modelo" deja una fila-draft prístina que invalidaba
+    // el submit sin feedback global. Se ignoran (tampoco llegan al payload).
+    const isPristine = (l: (typeof val.rentalLines)[number]) =>
+      l.modelId === "" && !l.legacyTotal &&
+      l.dailyRate === 0 && l.weeklyRate === 0 && l.monthlyRate === 0;
+    const lines = val.rentalLines.filter((l) => !isPristine(l));
+    if (lines.length === 0) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["rentalLines"], message: "Agrega al menos una partida" });
     }
     val.rentalLines.forEach((line, i) => {
+      if (isPristine(line)) return;
       const r = rentalLineSchema.safeParse(line);
       if (!r.success) {
         for (const issue of r.error.issues) {
@@ -111,10 +118,14 @@ export const quoteFormSchema = z.object({
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["dateRange"], message: "La fecha final debe ser posterior a la inicial" });
     }
   } else if (val.quoteType === "sale") {
-    if (val.saleLines.length === 0) {
+    const isPristineSale = (l: (typeof val.saleLines)[number]) =>
+      l.modelId === "" && l.unitPrice === 0;
+    const lines = val.saleLines.filter((l) => !isPristineSale(l));
+    if (lines.length === 0) {
       ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["saleLines"], message: "Agrega al menos una partida" });
     }
     val.saleLines.forEach((line, i) => {
+      if (isPristineSale(line)) return;
       const r = saleLineSchema.safeParse(line);
       if (!r.success) {
         for (const issue of r.error.issues) {
@@ -123,6 +134,7 @@ export const quoteFormSchema = z.object({
       }
     });
   }
+
 
   if (val.includeLogistics && val.logisticsCost <= 0) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["logisticsCost"], message: "Ingresa el costo logístico" });

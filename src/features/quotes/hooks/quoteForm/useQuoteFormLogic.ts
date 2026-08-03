@@ -117,7 +117,12 @@ export function useQuoteFormLogic() {
     }
   };
 
-  const handleSubmit = form.handleSubmit(onValid);
+  // R14-FE-01 (Fix B): antes el submit rechazado por validación fallaba en
+  // silencio (sólo error de campo, a veces fuera de viewport).
+  const handleSubmit = form.handleSubmit(onValid, () => {
+    notifyError({ title: "Revisa los campos marcados", error: new Error("Hay datos incompletos en el formulario") });
+  });
+
 
   const handleTypeChange = (type: string) => {
     const t = (type === "sale" ? "sale" : "rental") as "rental" | "sale";

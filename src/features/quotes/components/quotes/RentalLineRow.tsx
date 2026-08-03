@@ -23,7 +23,9 @@ interface Props {
 }
 
 export function RentalLineRow({ line, index, models, disableRemove, startDate, endDate, onUpdate, onModelChange, onRemove }: Props) {
+  const estimatedTotal = computeRentalLineTotal(line, startDate, endDate);
   return (
+
     <div className="space-y-3 border-b border-border pb-4 last:border-0 last:pb-0">
       <div className="grid grid-cols-1 sm:grid-cols-[1fr_80px_40px] gap-3 items-end">
         <div className="space-y-1.5">
@@ -87,10 +89,14 @@ export function RentalLineRow({ line, index, models, disableRemove, startDate, e
             </ToggleGroup>
           </div>
         </div>
+        {/* R14-FE-07: sin modelo ni fechas el "$0.00" se leía como precio real. */}
         <div className="ml-auto text-right">
           <Label className="text-xs text-muted-foreground">Total estimado</Label>
-          <p className="text-sm font-medium">{formatCurrency(computeRentalLineTotal(line, startDate, endDate))}</p>
+          <p className="text-sm font-medium">
+            {estimatedTotal > 0 ? formatCurrency(estimatedTotal) : <span className="text-muted-foreground">—</span>}
+          </p>
         </div>
+
       </div>
     </div>
   );

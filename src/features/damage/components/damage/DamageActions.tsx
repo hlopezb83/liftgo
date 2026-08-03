@@ -1,6 +1,7 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
+import { useAuth } from "@/contexts/AuthContext";
 import { useCreateMaintenanceLog } from "@/features/maintenance";
 import { maintenanceLogKeys } from "@/features/maintenance/lib/queryKeys";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
@@ -43,6 +44,7 @@ async function tryStartRepairWorkOrderRpc(record: DamageRecordWithJoins): Promis
 
 export function DamageActions({ record, onClose }: DamageActionsProps) {
   const navigate = useNavigateTransition();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const updateDamage = useUpdateDamageRecord();
   const createMaintenance = useCreateMaintenanceLog();
@@ -69,7 +71,7 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
     }
     // Fallback (RPC aún no desplegado): flujo legado de dos mutaciones.
     createMaintenance.mutate(
-      { forklift_id: record.forklift_id, service_type: "Reparación de Daño", description: record.description, cost: record.estimated_cost || 0 },
+      { forklift_id: record.forklift_id, service_type: "Reparación de Daño", description: record.description, cost: record.estimated_cost || 0, performed_by: user?.email ?? null },
       { onSuccess: (data) => { updateDamage.mutate({ id: record.id, status: "in_repair", maintenance_log_id: data.id }); notifySuccess("Orden de mantenimiento creada"); } }
     );
   };

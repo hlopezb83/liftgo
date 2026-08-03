@@ -1,0 +1,17 @@
+{
+  "version": "7.279.0",
+  "date": "2026-08-03",
+  "type": "minor",
+  "title": "Auditoría R14 P2: validación de cotizaciones y consistencia visual",
+  "category": "improvement",
+  "changes": [
+    { "area": "Cotizaciones", "detail": "Agregar una partida vacía ya no bloquea el guardado: las filas en blanco se ignoran al validar." },
+    { "area": "Cotizaciones", "detail": "Si el formulario tiene datos incompletos aparece un aviso 'Revisa los campos marcados' en lugar de fallar en silencio." },
+    { "area": "Cotizaciones", "detail": "El 'Total estimado' de una partida sin modelo ni fechas muestra un guion en vez de un engañoso $0.00." },
+    { "area": "Cotizaciones", "detail": "La etiqueta 'Vencida' usa el mismo estilo de estado que el resto de la app, en rojo, tanto en escritorio como en móvil." },
+    { "area": "CRM", "detail": "La etapa 'Negociación' cambia a un tono terracota alineado a la paleta de marca." },
+    { "area": "Clientes", "detail": "El detalle de cliente ya no repite el nombre como subtítulo: muestra el RFC cuando la empresa es la misma persona." },
+    { "area": "Inventario", "detail": "Las categorías de refacciones se muestran siempre con su etiqueta en español, incluso en registros antiguos." },
+    { "area": "Daños", "detail": "El flujo alterno de creación de orden de reparación también registra quién la atiende." }
+  ]
+}
