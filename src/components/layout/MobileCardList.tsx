@@ -20,7 +20,8 @@ export function MobileCardList<T>({ items, renderCard, emptyMessage, keyExtracto
   }
 
   return (
-    <div className="space-y-3">
+    {/* R13-P2-09: espacio inferior para que el FAB no tape la última tarjeta. */}
+    <div className="space-y-3 pb-24">
       {items.map((item) => (
         <div key={keyExtractor(item)}>{renderCard(item)}</div>
       ))}
