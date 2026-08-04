@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { NumberField, TextField, TextareaField } from "@/components/forms/fields";
+import { CheckboxField, DateField, NumberField, TextField, TextareaField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FleetIcon, SuccessIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useCreateDelivery } from "@/features/deliveries";
+import { toYMD } from "@/lib/date/toYMD";
+import { formatMtyCalendarDate } from "@/lib/date/mtyCalendarDate";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { notifySuccess } from "@/lib/ui/appFeedback";
+import { nowMty, parseDateLocal } from "@/lib/utils";
 
 interface PostBookingDeliveryDialogProps {
   open: boolean;
@@ -24,12 +27,27 @@ interface PostBookingDeliveryDialogProps {
 }
 
 const schema = z.object({
+  scheduledDate: z.date({ error: "Fecha requerida" }),
+  alreadyCompleted: z.boolean().default(false),
   address: z.string().default(""),
   driverName: z.string().default(""),
   driverPhone: z.string().default(""),
   scheduledTime: z.string().default(""),
   hoursReading: z.number().min(0).nullable().default(null),
   notes: z.string().default(""),
+}).superRefine((values, ctx) => {
+  // La DB rechaza entregas programadas en el pasado salvo que ya estén
+  // completadas. Validamos aquí para mostrar el error en el campo.
+  if (values.alreadyCompleted) return;
+  const day = new Date(values.scheduledDate); day.setHours(0, 0, 0, 0);
+  const today = nowMty(); today.setHours(0, 0, 0, 0);
+  if (day.getTime() < today.getTime()) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["scheduledDate"],
+      message: "La fecha es pasada: ajústala o marca “Ya se realizó”",
+    });
+  }
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -40,9 +58,15 @@ export function PostBookingDeliveryDialog({
   const createDelivery = useCreateDelivery();
   const [showForm, setShowForm] = useState(false);
 
+  const bookingStart = parseDateLocal(startDate);
+  const today = nowMty(); today.setHours(0, 0, 0, 0);
+  const startIsPast = !!bookingStart && bookingStart.getTime() < today.getTime();
+  const defaultDate = startIsPast || !bookingStart ? nowMty() : bookingStart;
+
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
+      scheduledDate: defaultDate, alreadyCompleted: false,
       address: customerAddress || "", driverName: "", driverPhone: "",
       scheduledTime: "", hoursReading: null, notes: "",
     },
@@ -55,18 +79,22 @@ export function PostBookingDeliveryDialog({
     if (!open) { setShowForm(false); }
     if (open) {
       form.reset({
+        scheduledDate: defaultDate, alreadyCompleted: false,
         address: customerAddress || "", driverName: "", driverPhone: "",
         scheduledTime: "", hoursReading: null, notes: "",
       });
     }
-  }, [open, customerAddress, form]);
+    // `defaultDate` se recalcula en cada render; dependemos de `startDate`.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, customerAddress, startDate, form]);
 
   const handleSchedule = form.handleSubmit((values) => {
     createDelivery.mutate(
       {
         forklift_id: forkliftId,
         booking_id: bookingId,
-        scheduled_date: startDate,
+        scheduled_date: toYMD(values.scheduledDate),
+        status: values.alreadyCompleted ? "completed" : "scheduled",
         scheduled_time: values.scheduledTime || null,
         address: values.address || null,
         driver_name: values.driverName || null,
@@ -104,10 +132,21 @@ export function PostBookingDeliveryDialog({
       ) : (
         <Form {...form}>
           <form onSubmit={handleSchedule} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              <div><p className="text-muted-foreground">Fecha</p><p className="font-medium">{startDate}</p></div>
-              <div><p className="text-muted-foreground">Tipo</p><p className="font-medium">Entrega</p></div>
+            {startIsPast && (
+              <p className="text-sm text-muted-foreground">
+                La reserva inició el {formatMtyCalendarDate(bookingStart)}; ajusta la fecha o marca que ya se realizó.
+              </p>
+            )}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <DateField control={form.control} name="scheduledDate" label="Fecha de Entrega" required />
+              <div className="text-sm"><p className="text-muted-foreground">Tipo</p><p className="font-medium">Entrega</p></div>
             </div>
+            <CheckboxField
+              control={form.control}
+              name="alreadyCompleted"
+              label="Ya se realizó"
+              description="Registra la entrega como completada (permite fechas pasadas)."
+            />
             <TextField control={form.control} name="address" label="Dirección de Entrega" placeholder="Ingresa la dirección" />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <TextField control={form.control} name="driverName" label="Nombre del Operador" placeholder="Opcional" />
