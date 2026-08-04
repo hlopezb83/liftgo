@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.279.2",
+    "date": "2026-08-04",
+    "type": "patch",
+    "title": "Entregas: fecha editable al convertir cotizaciones con inicio pasado",
+    "category": "fix",
+    "description": "El diálogo de entrega tras crear la reserva ahora permite elegir la fecha y marcar “Ya se realizó”, y la validación del sistema usa el día de Monterrey en lugar de la hora del servidor."
+  },
+  {
     "version": "7.279.1",
     "date": "2026-08-03",
     "type": "patch",
