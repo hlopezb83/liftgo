@@ -215,7 +215,7 @@ export function RecurringPreviewBody({
             />
           ))}
         </div>
-      </ScrollArea>
+      </div>
     </>
   );
 }
