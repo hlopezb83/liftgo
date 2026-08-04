@@ -199,7 +199,10 @@ export function RecurringPreviewBody({
   return (
     <>
       <SummaryBar eligibleCount={eligibleCount} selectedCount={selectedCount} totalSelected={totalSelected} />
-      <ScrollArea className="max-h-[50vh] pr-3 mt-3">
+      {/* v7.279.3: `ScrollArea` de Radix necesita altura definida; con sólo
+          `max-h` su viewport (`h-full`) crecía al alto del contenido y el
+          scroll nunca se activaba (contenido recortado). Scroll nativo. */}
+      <div className="max-h-[50vh] overflow-y-auto pr-3 mt-3">
         <div className="space-y-4">
           {groups.map(([customer, groupLines]) => (
             <CustomerGroup
