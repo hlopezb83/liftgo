@@ -2,7 +2,6 @@ import { Link } from "react-router";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { SuccessIcon, ErrorIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import type { GenerateRecurringResponse } from "../../hooks/invoices/recurring/useGenerateRecurringInvoices";
 
 interface Props {
@@ -32,7 +31,8 @@ export function RecurringInvoicesResultDialog({ open, onOpenChange, result, onRe
         </>
       }
     >
-      <ScrollArea className="max-h-[60vh] pr-3">
+      {/* v7.279.3: scroll nativo — ScrollArea de Radix no activa scroll con sólo max-h. */}
+      <div className="max-h-[60vh] overflow-y-auto pr-3">
         <div className="space-y-4">
           {created.length > 0 && (
             <div>
@@ -81,7 +81,7 @@ export function RecurringInvoicesResultDialog({ open, onOpenChange, result, onRe
             </div>
           )}
         </div>
-      </ScrollArea>
+      </div>
 
       <FormDialogFooter>
         <Button onClick={() => onOpenChange(false)}>Cerrar</Button>
