@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.279.3",
+    "date": "2026-08-04",
+    "type": "patch",
+    "title": "Facturas recurrentes: se arregla el scroll de los modales",
+    "category": "fix",
+    "description": "La vista previa de facturas recurrentes y el diálogo de resultado recortaban la lista sin permitir desplazarla; ahora se puede recorrer todo el contenido con rueda, teclado o gesto táctil."
+  },
+  {
     "version": "7.279.2",
     "date": "2026-08-04",
     "type": "patch",
