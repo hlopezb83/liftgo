@@ -1,0 +1,31 @@
+{
+  "version": "7.279.3",
+  "date": "2026-08-04",
+  "type": "patch",
+  "title": "Facturas recurrentes: se arregla el scroll en los modales de vista previa y resultado",
+  "sections": [
+    {
+      "heading": "Root cause",
+      "items": [
+        "`RecurringPreviewBody.tsx` y `RecurringInvoicesResultDialog.tsx` usaban `<ScrollArea>` de Radix con sólo `max-h-[50vh]` / `max-h-[60vh]`.",
+        "El `Root` de Radix ScrollArea tiene `overflow: hidden` y su `Viewport` interno usa `h-full`. Sin altura definida en el Root, el viewport crecía al alto del contenido (`clientHeight === scrollHeight`), así que nunca se convertía en contenedor con scroll y el Root simplemente recortaba el contenido.",
+        "Medido en Playwright: Root 450px, contenido 1370px, viewport 1370/1370 y `scrollTop` sin efecto. Sólo el diálogo completo se movía 55px."
+      ]
+    },
+    {
+      "heading": "Cambios",
+      "items": [
+        "RecurringPreviewBody.tsx: `<ScrollArea className=\"max-h-[50vh]\">` → `<div className=\"max-h-[50vh] overflow-y-auto\">` (scroll nativo, compatible con gesto táctil).",
+        "RecurringInvoicesResultDialog.tsx: mismo cambio con `max-h-[60vh]`.",
+        "Imports de `ScrollArea` eliminados en ambos archivos."
+      ]
+    },
+    {
+      "heading": "Verificación",
+      "items": [
+        "Playwright 1280x900 en /invoices: el contenedor queda con `clientHeight=450`, `scrollHeight=1370` y `scrollTop=400` responde.",
+        "Typecheck sin errores."
+      ]
+    }
+  ]
+}
