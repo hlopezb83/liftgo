@@ -59,9 +59,14 @@ export function PostBookingDeliveryDialog({
   const [showForm, setShowForm] = useState(false);
 
   const bookingStart = parseDateLocal(startDate);
-  const today = nowMty(); today.setHours(0, 0, 0, 0);
-  const startIsPast = !!bookingStart && bookingStart.getTime() < today.getTime();
-  const defaultDate = startIsPast || !bookingStart ? nowMty() : bookingStart;
+  const startOfToday = nowMty(); startOfToday.setHours(0, 0, 0, 0);
+  const startIsPast = !!bookingStart && bookingStart.getTime() < startOfToday.getTime();
+  const defaultDate = useMemo(() => {
+    const start = parseDateLocal(startDate);
+    const todayStart = nowMty(); todayStart.setHours(0, 0, 0, 0);
+    if (!start || start.getTime() < todayStart.getTime()) return nowMty();
+    return start;
+  }, [startDate]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -84,9 +89,7 @@ export function PostBookingDeliveryDialog({
         scheduledTime: "", hoursReading: null, notes: "",
       });
     }
-    // `defaultDate` se recalcula en cada render; dependemos de `startDate`.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, customerAddress, startDate, form]);
+  }, [open, customerAddress, defaultDate, form]);
 
   const handleSchedule = form.handleSubmit((values) => {
     createDelivery.mutate(
