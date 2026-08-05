@@ -96,6 +96,7 @@ export interface YearTotals {
   revenueRentalBooked: number;
   revenueRentalUnbooked: number;
   revenueSales: number;
+  revenueOtherServices: number;
   revenueDamageRecovery: number;
   maintenanceCost: number;
   damageCost: number;
