@@ -22,6 +22,7 @@ interface RpcMonthRow {
   revenue_rental_booked: number;
   revenue_rental_unbooked: number;
   revenue_sales: number;
+  revenue_other_services: number;
   revenue_damage_recovery: number;
   maintenance_cost: number;
   damage_cost: number;
