@@ -55,6 +55,7 @@ export interface MonthData {
   revenueRentalBooked: number;
   revenueRentalUnbooked: number;
   revenueSales: number;
+  revenueOtherServices: number;
   revenueDamageRecovery: number;
   maintenanceCost: number;
   damageCost: number;
