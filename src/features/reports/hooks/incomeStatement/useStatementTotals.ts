@@ -47,6 +47,7 @@ function aggregate(rows: MonthData[]) {
     revenueRentalBooked: roundMoney(t.revenueRentalBooked),
     revenueRentalUnbooked: roundMoney(t.revenueRentalUnbooked),
     revenueSales: roundMoney(t.revenueSales),
+    revenueOtherServices: roundMoney(t.revenueOtherServices),
     revenueDamageRecovery: roundMoney(t.revenueDamageRecovery),
     maintenanceCost: roundMoney(t.maintenanceCost),
     damageCost: roundMoney(t.damageCost),
