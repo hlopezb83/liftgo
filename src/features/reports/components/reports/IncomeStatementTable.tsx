@@ -20,6 +20,7 @@ interface Props {
   rentalBookedBreakdownRows: BreakdownRow[];
   rentalUnbookedBreakdownRows: BreakdownRow[];
   salesBreakdownRows: BreakdownRow[];
+  otherServicesBreakdownRows: BreakdownRow[];
   damageRecoveryBreakdownRows: BreakdownRow[];
   expenseDetailBreakdownByCategory: Record<string, BreakdownRow[]>;
 }
@@ -28,6 +29,7 @@ export function IncomeStatementTable({
   isComparison, filteredData, yearTotals, comparisonRows, statementRows,
   depreciationBreakdownRows, cogsBreakdownRows,
   rentalBookedBreakdownRows, rentalUnbookedBreakdownRows, salesBreakdownRows,
+  otherServicesBreakdownRows,
   damageRecoveryBreakdownRows,
   expenseDetailBreakdownByCategory,
 }: Props) {
@@ -59,6 +61,7 @@ export function IncomeStatementTable({
                 rentalBookedBreakdownRows, rentalUnbookedBreakdownRows, salesBreakdownRows,
                 damageRecoveryBreakdownRows,
                 expenseDetailBreakdownByCategory,
+                otherServicesBreakdownRows,
               );
               const isExpandable = breakdown !== null;
               const isOpen = isExpandable && !!open[breakdown.key];

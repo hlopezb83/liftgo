@@ -7,6 +7,7 @@ import {
 
 interface RowTotals {
   revenue: number; revenueRentalBooked: number; revenueRentalUnbooked: number; revenueSales: number;
+  revenueOtherServices: number;
   revenueDamageRecovery: number;
   maintenanceCost: number; damageCost: number; depreciation: number;
   depreciationRented: number; depreciationIdle: number;
@@ -58,6 +59,7 @@ export function buildStatementRows(filteredData: MonthData[], totals: RowTotals)
     { label: "  Ingresos por Rentas (con reserva)", values: filteredData.map((r) => r.revenueRentalBooked), total: totals.revenueRentalBooked },
     { label: "  Ingresos por Rentas (sin reserva)", values: filteredData.map((r) => r.revenueRentalUnbooked), total: totals.revenueRentalUnbooked },
     { label: "  Ingresos por Ventas de Equipo", values: filteredData.map((r) => r.revenueSales), total: totals.revenueSales },
+    { label: "  Otros Ingresos por Servicios", values: filteredData.map((r) => r.revenueOtherServices), total: totals.revenueOtherServices },
     { label: "  Recuperación de Daños", values: filteredData.map((r) => r.revenueDamageRecovery), total: totals.revenueDamageRecovery },
     { label: "= Total Ingresos", values: filteredData.map((r) => r.revenue), total: totals.revenue, isSubtotal: true },
     { label: "(-) Mantenimiento", values: filteredData.map((r) => r.maintenanceCost), total: totals.maintenanceCost, isCost: true },

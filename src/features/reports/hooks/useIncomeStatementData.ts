@@ -30,6 +30,7 @@ export function useIncomeStatementData({
     statementRows, csvRows,
     depreciationBreakdownRows, cogsBreakdownRows,
     rentalBookedBreakdownRows, rentalUnbookedBreakdownRows, salesBreakdownRows,
+    otherServicesBreakdownRows,
     damageRecoveryBreakdownRows,
     expenseDetailBreakdownByCategory,
   } = useStatementRows(filteredData, totals);
@@ -41,6 +42,7 @@ export function useIncomeStatementData({
     csvRows,
     depreciationBreakdownRows, cogsBreakdownRows,
     rentalBookedBreakdownRows, rentalUnbookedBreakdownRows, salesBreakdownRows,
+    otherServicesBreakdownRows,
     damageRecoveryBreakdownRows,
     expenseDetailBreakdownByCategory,
     rentedWithoutCost,
