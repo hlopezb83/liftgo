@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.279.5",
+    "date": "2026-08-05",
+    "type": "patch",
+    "title": "Facturas recurrentes: ya se pueden seleccionar reservas individuales",
+    "category": "fix",
+    "description": "En la vista previa, las casillas de cada reserva estaban deshabilitadas y sólo se podía seleccionar por cliente. Ahora se puede incluir o excluir cada reserva por separado antes de generar."
+  },
+  {
     "version": "7.279.4",
     "date": "2026-08-05",
     "type": "patch",
@@ -32,7 +40,6 @@
     "description": "Se corrigieron las alturas de mástil guardadas en milímetros (4800 → 4.8 m) en montacargas y modelos, lo que impedía completar inspecciones de retorno, y se activó la validación de rango de forma permanente."
   },
   {
-
     "version": "7.279.0",
     "date": "2026-08-03",
     "type": "minor",

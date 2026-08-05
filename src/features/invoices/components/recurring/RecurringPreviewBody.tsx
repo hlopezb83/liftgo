@@ -86,15 +86,15 @@ function LineRow({
 }) {
   return (
     <div className="flex items-center gap-3 px-3 py-2 text-sm">
-      {/* R14-I: selección por reserva (el edge factura todos sus períodos
-          pendientes). El checkbox refleja el grupo pero no alterna por línea. */}
+      {/* Selección por reserva: el edge factura todos los períodos pendientes
+          de la reserva, por eso alternar una línea alterna toda la reserva. */}
       <Checkbox
         checked={line.eligible && selected.has(line.bookingId)}
-        disabled
-        aria-label={`Incluida vía selección de la reserva ${line.bookingCode ?? line.bookingId}`}
+        disabled={!line.eligible}
+        onCheckedChange={() => onToggle(line.bookingId)}
+        aria-label={`Incluir la reserva ${line.bookingCode ?? line.bookingId}`}
       />
-      {/* onToggle no se invoca aquí — usado por el checkbox del grupo. */}
-      {(() => { void onToggle; return null; })()}
+
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <span className="font-mono text-xs">
