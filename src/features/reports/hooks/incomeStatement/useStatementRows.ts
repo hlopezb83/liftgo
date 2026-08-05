@@ -10,6 +10,7 @@ import {
 
 interface Totals {
   revenue: number; revenueRentalBooked: number; revenueRentalUnbooked: number; revenueSales: number;
+  revenueOtherServices: number;
   revenueDamageRecovery: number;
   maintenanceCost: number; damageCost: number; depreciation: number;
   depreciationRented: number; depreciationIdle: number;
@@ -34,6 +35,7 @@ export function useStatementRows(filteredData: MonthData[], totals: Totals) {
   const rentalBookedBreakdownRows = buildBreakdownRows(filteredData, (m) => m.rentalBookedByCustomer);
   const rentalUnbookedBreakdownRows = buildBreakdownRows(filteredData, (m) => m.rentalUnbookedByCustomer);
   const salesBreakdownRows = buildBreakdownRows(filteredData, (m) => m.salesByCustomer);
+  const otherServicesBreakdownRows = buildBreakdownRows(filteredData, (m) => m.otherServicesByCustomer);
   const damageRecoveryBreakdownRows = buildBreakdownRows(filteredData, (m) => m.damageRecoveryByCustomer);
 
   const expenseDetailBreakdownByCategory = EXPENSE_DETAIL_CATEGORIES.reduce<
@@ -47,6 +49,7 @@ export function useStatementRows(filteredData: MonthData[], totals: Totals) {
     statementRows, csvRows,
     depreciationBreakdownRows, cogsBreakdownRows,
     rentalBookedBreakdownRows, rentalUnbookedBreakdownRows, salesBreakdownRows,
+    otherServicesBreakdownRows,
     damageRecoveryBreakdownRows,
     expenseDetailBreakdownByCategory,
   };
@@ -76,6 +79,7 @@ export function useComparisonRows(yearTotals: YearTotals[]): ComparisonRow[] {
     { label: "  Ingresos por Rentas (con reserva)", ...v((yt) => yt.revenueRentalBooked) },
     { label: "  Ingresos por Rentas (sin reserva)", ...v((yt) => yt.revenueRentalUnbooked) },
     { label: "  Ingresos por Ventas de Equipo", ...v((yt) => yt.revenueSales) },
+    { label: "  Otros Ingresos por Servicios", ...v((yt) => yt.revenueOtherServices) },
     { label: "  Recuperación de Daños", ...v((yt) => yt.revenueDamageRecovery) },
     { label: "= Total Ingresos", ...v((yt) => yt.revenue, { isSubtotal: true }) },
     { label: "(-) Mantenimiento", ...v((yt) => yt.maintenanceCost, { isCost: true }) },

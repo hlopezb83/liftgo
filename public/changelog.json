@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.280.0",
+    "date": "2026-08-05",
+    "type": "minor",
+    "title": "Estado de Resultados: nueva categoría “Otros Ingresos por Servicios”",
+    "category": "feature",
+    "description": "Las facturas de servicios que no son renta ni venta de equipo (logística, maniobras, etc.) se contabilizaban por descarte como “Ventas de Equipo”. Ahora tienen su propio renglón con desglose por cliente."
+  },
+  {
     "version": "7.279.5",
     "date": "2026-08-05",
     "type": "patch",
