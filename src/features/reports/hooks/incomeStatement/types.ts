@@ -68,6 +68,7 @@ export interface MonthData {
   rentalBookedByCustomer: Record<string, number>;
   rentalUnbookedByCustomer: Record<string, number>;
   salesByCustomer: Record<string, number>;
+  otherServicesByCustomer: Record<string, number>;
   damageRecoveryByCustomer: Record<string, number>;
   grossProfit: number;
   grossMargin: number;
