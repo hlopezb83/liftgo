@@ -1,0 +1,13 @@
+{
+  "version": "7.279.5",
+  "date": "2026-08-05",
+  "type": "patch",
+  "title": "Facturas recurrentes: ya se pueden seleccionar reservas individuales",
+  "category": "fix",
+  "description": "En la vista previa, las casillas de cada reserva estaban deshabilitadas y sólo se podía seleccionar por cliente. Ahora se puede incluir o excluir cada reserva por separado antes de generar.",
+  "changes": [
+    "Casillas por reserva habilitadas en la vista previa de facturas recurrentes.",
+    "Las reservas no elegibles siguen deshabilitadas.",
+    "La casilla del cliente sigue funcionando como seleccionar/deseleccionar todo."
+  ]
+}
