@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.279.4",
+    "date": "2026-08-05",
+    "type": "patch",
+    "title": "Cotizaciones: descuentos en porcentaje ya no bloquean el guardado",
+    "category": "fix",
+    "description": "La validación de la base de datos interpretaba todos los descuentos como pesos, aunque fueran porcentajes, y rechazaba la cotización con “Las partidas no cuadran con el subtotal”. Ahora respeta el tipo de descuento (% o $)."
+  },
+  {
     "version": "7.279.3",
     "date": "2026-08-04",
     "type": "patch",
