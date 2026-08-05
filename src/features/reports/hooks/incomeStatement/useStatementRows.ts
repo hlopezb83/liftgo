@@ -12,6 +12,7 @@ interface Totals {
   revenue: number; revenueRentalBooked: number; revenueRentalUnbooked: number; revenueSales: number;
   revenueOtherServices: number;
   revenueDamageRecovery: number;
+  creditNotes: number;
   maintenanceCost: number; damageCost: number; depreciation: number;
   depreciationRented: number; depreciationIdle: number;
   cogsForkliftSales: number;
@@ -37,6 +38,7 @@ export function useStatementRows(filteredData: MonthData[], totals: Totals) {
   const salesBreakdownRows = buildBreakdownRows(filteredData, (m) => m.salesByCustomer);
   const otherServicesBreakdownRows = buildBreakdownRows(filteredData, (m) => m.otherServicesByCustomer);
   const damageRecoveryBreakdownRows = buildBreakdownRows(filteredData, (m) => m.damageRecoveryByCustomer);
+  const creditNotesBreakdownRows = buildBreakdownRows(filteredData, (m) => m.creditNotesByCustomer, true);
 
   const expenseDetailBreakdownByCategory = EXPENSE_DETAIL_CATEGORIES.reduce<
     Record<string, ReturnType<typeof buildExpenseDetailBreakdown>>
@@ -51,6 +53,7 @@ export function useStatementRows(filteredData: MonthData[], totals: Totals) {
     rentalBookedBreakdownRows, rentalUnbookedBreakdownRows, salesBreakdownRows,
     otherServicesBreakdownRows,
     damageRecoveryBreakdownRows,
+    creditNotesBreakdownRows,
     expenseDetailBreakdownByCategory,
   };
 }
@@ -81,7 +84,8 @@ export function useComparisonRows(yearTotals: YearTotals[]): ComparisonRow[] {
     { label: "  Ingresos por Ventas de Equipo", ...v((yt) => yt.revenueSales) },
     { label: "  Otros Ingresos por Servicios", ...v((yt) => yt.revenueOtherServices) },
     { label: "  Recuperación de Daños", ...v((yt) => yt.revenueDamageRecovery) },
-    { label: "= Total Ingresos", ...v((yt) => yt.revenue, { isSubtotal: true }) },
+    { label: "(-) Notas de Crédito", ...v((yt) => yt.creditNotes, { isCost: true }) },
+    { label: "= Ingresos Netos", ...v((yt) => yt.revenue, { isSubtotal: true }) },
     { label: "(-) Mantenimiento", ...v((yt) => yt.maintenanceCost, { isCost: true }) },
     { label: "(-) Daños", ...v((yt) => yt.damageCost, { isCost: true }) },
     ...DIRECT_COST_CATEGORIES.map((c) => ({

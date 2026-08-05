@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.281.0",
+    "date": "2026-08-05",
+    "type": "minor",
+    "title": "Estado de Resultados: notas de crédito como renglón propio",
+    "category": "improvement",
+    "description": "Las categorías de ingreso vuelven a mostrar el importe bruto facturado (ya cuadran con su desglose por cliente) y las notas de crédito aparecen en su propio renglón negativo, seguido de “= Ingresos Netos”, como en Odoo o QuickBooks."
+  },
+  {
     "version": "7.280.0",
     "date": "2026-08-05",
     "type": "minor",

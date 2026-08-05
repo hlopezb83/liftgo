@@ -57,6 +57,7 @@ export interface MonthData {
   revenueSales: number;
   revenueOtherServices: number;
   revenueDamageRecovery: number;
+  creditNotes: number;
   maintenanceCost: number;
   damageCost: number;
   depreciation: number;
@@ -70,6 +71,7 @@ export interface MonthData {
   salesByCustomer: Record<string, number>;
   otherServicesByCustomer: Record<string, number>;
   damageRecoveryByCustomer: Record<string, number>;
+  creditNotesByCustomer: Record<string, number>;
   grossProfit: number;
   grossMargin: number;
   expenses: Record<ExpenseCategory, number>;
@@ -98,6 +100,7 @@ export interface YearTotals {
   revenueSales: number;
   revenueOtherServices: number;
   revenueDamageRecovery: number;
+  creditNotes: number;
   maintenanceCost: number;
   damageCost: number;
   depreciation: number;

@@ -22,6 +22,7 @@ interface Props {
   salesBreakdownRows: BreakdownRow[];
   otherServicesBreakdownRows: BreakdownRow[];
   damageRecoveryBreakdownRows: BreakdownRow[];
+  creditNotesBreakdownRows: BreakdownRow[];
   expenseDetailBreakdownByCategory: Record<string, BreakdownRow[]>;
 }
 
@@ -31,6 +32,7 @@ export function IncomeStatementTable({
   rentalBookedBreakdownRows, rentalUnbookedBreakdownRows, salesBreakdownRows,
   otherServicesBreakdownRows,
   damageRecoveryBreakdownRows,
+  creditNotesBreakdownRows,
   expenseDetailBreakdownByCategory,
 }: Props) {
   const [open, setOpen] = useState<Record<string, boolean>>({});
@@ -62,6 +64,7 @@ export function IncomeStatementTable({
                 damageRecoveryBreakdownRows,
                 expenseDetailBreakdownByCategory,
                 otherServicesBreakdownRows,
+                creditNotesBreakdownRows,
               );
               const isExpandable = breakdown !== null;
               const isOpen = isExpandable && !!open[breakdown.key];

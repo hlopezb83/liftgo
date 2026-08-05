@@ -9,6 +9,7 @@ interface RowTotals {
   revenue: number; revenueRentalBooked: number; revenueRentalUnbooked: number; revenueSales: number;
   revenueOtherServices: number;
   revenueDamageRecovery: number;
+  creditNotes: number;
   maintenanceCost: number; damageCost: number; depreciation: number;
   depreciationRented: number; depreciationIdle: number;
   cogsForkliftSales: number;
@@ -61,7 +62,8 @@ export function buildStatementRows(filteredData: MonthData[], totals: RowTotals)
     { label: "  Ingresos por Ventas de Equipo", values: filteredData.map((r) => r.revenueSales), total: totals.revenueSales },
     { label: "  Otros Ingresos por Servicios", values: filteredData.map((r) => r.revenueOtherServices), total: totals.revenueOtherServices },
     { label: "  Recuperación de Daños", values: filteredData.map((r) => r.revenueDamageRecovery), total: totals.revenueDamageRecovery },
-    { label: "= Total Ingresos", values: filteredData.map((r) => r.revenue), total: totals.revenue, isSubtotal: true },
+    { label: "(-) Notas de Crédito", values: filteredData.map((r) => r.creditNotes), total: totals.creditNotes, isCost: true },
+    { label: "= Ingresos Netos", values: filteredData.map((r) => r.revenue), total: totals.revenue, isSubtotal: true },
     { label: "(-) Mantenimiento", values: filteredData.map((r) => r.maintenanceCost), total: totals.maintenanceCost, isCost: true },
     { label: "(-) Daños", values: filteredData.map((r) => r.damageCost), total: totals.damageCost, isCost: true },
     ...directCostRows(filteredData, totals),

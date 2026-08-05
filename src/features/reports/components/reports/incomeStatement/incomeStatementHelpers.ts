@@ -42,6 +42,7 @@ export function getBreakdownFor(
   damageRecoveryRows: BreakdownRow[] = [],
   expenseDetailByCategory: Record<string, BreakdownRow[]> = {},
   otherServicesRows: BreakdownRow[] = [],
+  creditNotesRows: BreakdownRow[] = [],
 ) {
   if (label === "(-) Depreciación (Equipos Rentados)") return { rows: depRows, key: "dep" as const };
   if (label === "(-) Costo de Equipos Vendidos") return { rows: cogsRows, key: "cogs" as const };
@@ -50,6 +51,7 @@ export function getBreakdownFor(
   if (label === "  Ingresos por Ventas de Equipo") return { rows: salesRows, key: "sales" as const };
   if (label === "  Otros Ingresos por Servicios") return { rows: otherServicesRows, key: "otherServices" as const };
   if (label === "  Recuperación de Daños") return { rows: damageRecoveryRows, key: "damageRecovery" as const };
+  if (label === "(-) Notas de Crédito") return { rows: creditNotesRows, key: "creditNotes" as const };
   const cat = resolveExpenseCategory(label);
   if (cat && expenseDetailByCategory[cat]) {
     return { rows: expenseDetailByCategory[cat], key: `exp:${cat}` as const };
