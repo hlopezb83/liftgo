@@ -120,8 +120,10 @@ export function useCreateQuote() {
     // R17-D: invalidar `nextNumber` para que el siguiente folio se recalcule.
     invalidateKeys: [quoteKeys.lists(), quoteKeys.nextNumber()],
     errorTitle: "Error al crear cotización",
-    errorMessage:
-      "No se pudo generar un folio disponible para la cotización. Vuelve a intentarlo; si el problema continúa, avisa al administrador (secuencia de folios desincronizada).",
+    // R14: el mensaje de folio sólo aplica a conflictos de folio (23505 sobre
+    // quote_number). Para el resto (validaciones de la BD, RLS, etc.) se
+    // muestra el mensaje real en lugar de un texto engañoso.
+    errorMessage: quoteCreateErrorMessage,
   });
 }
 
