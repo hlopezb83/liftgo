@@ -1,32 +1,62 @@
-# Cuadrar el desglose por cliente con el renglón de ingresos (Estado de Resultados)
+# Notas de crédito como renglón propio (contra-ingreso) en el Estado de Resultados
 
 ## Qué encontré
 
-En julio 2026, el renglón "Ingresos por Rentas (con reserva)" y su desglose por cliente no cuadran por **$32,220**:
+En julio 2026 el renglón "Ingresos por Rentas (con reserva)" y su desglose por cliente no cuadran por **$32,220**:
 
-- Facturas de renta con reserva de julio (8 clientes): **$409,800** — es la suma que muestra el desglose.
-- El renglón del reporte resta la nota de crédito de julio (FAC-0089, LOGISTORAGE, $32,220) y muestra **$377,580**.
+- Facturas de renta con reserva de julio (8 clientes): **$409,800** — es lo que suma el desglose.
+- El renglón del reporte ya resta la nota de crédito FAC-0089 (LOGISTORAGE, $32,220) y muestra **$377,580**.
 
-La causa: en el RPC `get_income_statement`, los totales por mes restan las notas de crédito por categoría, pero las agregaciones por cliente (`rental_booked_by_customer`, `rental_unbooked_by_customer`, `sales_by_customer`, `other_services_by_customer`, `damage_recovery_by_customer`) se calculan **solo con facturas**, sin descontar notas de crédito.
+Hoy el RPC `get_income_statement` resta las notas de crédito directamente dentro de cada categoría de ingreso, pero las agregaciones por cliente se calculan sólo con facturas. Por eso las partes no suman el total.
 
-Analogía: el total del ticket ya aplica la devolución, pero el desglose por producto la ignora; por eso las partes no suman lo mismo que el total.
+## Mejor práctica (Odoo / QuickBooks)
+
+Ambos tratan las notas de crédito como **contra-ingreso**, no como una resta silenciosa:
+
+- QuickBooks: cuenta "Sales Returns and Allowances" que aparece como renglón negativo debajo de Ingresos brutos, y luego "Net Sales".
+- Odoo: los credit notes son asientos en las mismas cuentas de ingreso pero con signo contrario; los reportes muestran el movimiento, de modo que puedes ver bruto y neto.
+
+Regla contable: nunca se "borra" la venta original; se muestra la reducción por separado para conservar la trazabilidad. Eso es exactamente lo que pides.
 
 ## Cambio propuesto
 
-Migración de base de datos que reescribe `public.get_income_statement` para que el desglose por cliente sea neto de notas de crédito:
+### Estructura nueva del bloque de ingresos
 
-1. Agregar un CTE `cn_by_customer` que agrupe las notas de crédito por `month_key`, `revenue_kind` y el `customer_name` de la factura original (mismas reglas de clasificación que ya existen).
-2. Unir facturas y notas de crédito (estas últimas con signo negativo) antes de hacer `jsonb_object_agg` en las cinco agregaciones por cliente.
-3. Omitir del desglose las entradas que queden en 0 exacto (una nota de crédito total que cancele la factura del mes), para no mostrar renglones vacíos.
-4. Sin cambios en la lógica de totales mensuales: sólo se alinea el desglose con lo que ya se muestra.
+```text
+Ingresos por Rentas (con reserva)        409,800   [expandible por cliente]
+Ingresos por Rentas (sin reserva)              …   [expandible por cliente]
+Ingresos por Ventas de Equipo                  …   [expandible por cliente]
+Otros Ingresos por Servicios                   …   [expandible por cliente]
+Recuperación de Daños                          …   [expandible por cliente]
+(-) Notas de Crédito                     -32,220   [expandible por cliente]
+= Ingresos Netos                          377,580
+```
+
+Cada categoría vuelve a mostrar el **importe bruto facturado**, que ya cuadra con su desglose; las notas de crédito viven en su propio renglón negativo, expandible por cliente (mostrando factura afectada), y el subtotal de Ingresos Netos es el que alimenta la utilidad bruta y todos los cálculos posteriores.
+
+### Base de datos
+
+Migración que reescribe `public.get_income_statement`:
+
+1. Los campos `revenue_rental_booked`, `revenue_rental_unbooked`, `revenue_sales`, `revenue_other_services`, `revenue_damage_recovery` dejan de restar notas de crédito (quedan brutos y cuadran con su desglose por cliente).
+2. Nuevos campos por mes: `credit_notes_total` (positivo, se presenta en negativo) y `credit_notes_by_customer` (desglose por cliente y factura afectada).
+3. `revenue` se conserva como **ingreso neto** (bruto menos notas de crédito) para no alterar utilidad bruta, márgenes ni ningún KPI que ya lo consuma.
+
+### Frontend
+
+- `types.ts` / `useMonthlyData.ts`: mapear `creditNotes` y `creditNotesByCustomer`.
+- `statementRowFactories.ts` / `useStatementRows.ts`: nuevo renglón "(-) Notas de Crédito" (isCost) más su breakdown, y subtotal "= Ingresos Netos" antes de costos.
+- `incomeStatementHelpers.ts` (`getBreakdownFor`): registrar la clave `creditNotes`.
+- `IncomeStatementTable.tsx` / `IncomeStatementReport.tsx`: mostrar el renglón y su drill-down; CSV y PDF lo heredan.
+- Comparativo anual (`useComparisonRows`): agregar la fila equivalente.
 
 ## Verificación
 
-- Consulta SQL comparando, para cada mes de 2026, `revenue_rental_booked` contra la suma del desglose por cliente: deben coincidir dentro de $0.01 en las cinco categorías.
-- Revisión visual en `/income-statement` (julio): LOGISTORAGE debe pasar de $55,500 a $23,280 y el desglose debe sumar $377,580.
+- SQL por mes de 2026: cada categoría bruta debe igualar la suma de su desglose por cliente (±$0.01), y `bruto − notas de crédito = revenue`.
+- Julio en `/reports` (Estado de Resultados): rentas con reserva 409,800 con LOGISTORAGE en 55,500, renglón de notas de crédito −32,220, Ingresos Netos 377,580.
+- `tsgo` + suite de tests de reports; actualizar fixtures de PDF/CSV y tests de `statementRowFactories`.
 
 ## Detalle técnico
 
-- Archivos: sólo migración de base de datos (`get_income_statement`). El frontend no cambia: `useMonthlyData`, `statementRowFactories` y `IncomeStatementTable` ya consumen los mismos campos.
-- CSV y PDF heredan el desglose corregido automáticamente.
-- Changelog: nueva entrada `v7.280.1` (patch) en `public/changelog.json` + `public/changelog/v7.280.1.json`, y alineación de `package.json` / `public/version.json`.
+- Cambios: una migración de base de datos y los archivos de `src/features/reports/{hooks,components}/incomeStatement/`.
+- Changelog: nueva entrada `v7.281.0` (minor) en `public/changelog.json` + `public/changelog/v7.281.0.json`, alineando `package.json` y `public/version.json`.
