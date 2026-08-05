@@ -35,6 +35,7 @@ interface RpcMonthRow {
   rental_booked_by_customer: Record<string, number>;
   rental_unbooked_by_customer: Record<string, number>;
   sales_by_customer: Record<string, number>;
+  other_services_by_customer: Record<string, number>;
   damage_recovery_by_customer: Record<string, number>;
   depreciation_by_forklift: Record<string, number>;
   cogs_by_forklift: Record<string, number>;
