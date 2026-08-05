@@ -16,6 +16,7 @@ function aggregate(rows: MonthData[]) {
         revenueRentalBooked: acc.revenueRentalBooked + r.revenueRentalBooked,
         revenueRentalUnbooked: acc.revenueRentalUnbooked + r.revenueRentalUnbooked,
         revenueSales: acc.revenueSales + r.revenueSales,
+        revenueOtherServices: acc.revenueOtherServices + r.revenueOtherServices,
         revenueDamageRecovery: acc.revenueDamageRecovery + r.revenueDamageRecovery,
         maintenanceCost: acc.maintenanceCost + r.maintenanceCost,
         damageCost: acc.damageCost + r.damageCost,
