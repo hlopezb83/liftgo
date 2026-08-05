@@ -103,6 +103,7 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
       revenueRentalBooked: Number(m.revenue_rental_booked),
       revenueRentalUnbooked: Number(m.revenue_rental_unbooked),
       revenueSales: Number(m.revenue_sales),
+      revenueOtherServices: Number(m.revenue_other_services ?? 0),
       revenueDamageRecovery: Number(m.revenue_damage_recovery ?? 0),
       maintenanceCost: Number(m.maintenance_cost),
       damageCost: Number(m.damage_cost),
