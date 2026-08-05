@@ -61,6 +61,7 @@ const month: MonthData = {
   revenueSales: 2_000,
   revenueOtherServices: 0,
   revenueDamageRecovery: 0,
+  creditNotes: 0,
   maintenanceCost: 1_000,
   damageCost: 0,
   depreciation: 500,
@@ -74,6 +75,7 @@ const month: MonthData = {
   salesByCustomer: {},
   otherServicesByCustomer: {},
   damageRecoveryByCustomer: {},
+  creditNotesByCustomer: {},
 
   grossProfit: 9_000,
   grossMargin: 90,
@@ -99,7 +101,7 @@ export const incomeStatement = {
   yearTotals: [
     {
       year: "2025",
-      revenue: 100_000, revenueRentalBooked: 80_000, revenueRentalUnbooked: 0, revenueSales: 20_000, revenueOtherServices: 0, revenueDamageRecovery: 0,
+      revenue: 100_000, revenueRentalBooked: 80_000, revenueRentalUnbooked: 0, revenueSales: 20_000, revenueOtherServices: 0, revenueDamageRecovery: 0, creditNotes: 0,
       maintenanceCost: 10_000, damageCost: 0, depreciation: 5_000, depreciationRented: 4_000, depreciationIdle: 1_000, cogsForkliftSales: 0,
       expenses: { ...emptyExpenses(), nomina: 12_000 },
       grossProfit: 90_000, grossMargin: 90, totalExpenses: 22_000,
