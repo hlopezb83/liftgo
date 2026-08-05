@@ -6,6 +6,8 @@ import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { callRpc } from "@/lib/rpc";
 import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
+import { quoteCreateErrorMessage } from "../../lib/quoteErrors";
+
 export type { Quote } from "@/types/rental";
 import type { Quote } from "@/types/rental";
 
