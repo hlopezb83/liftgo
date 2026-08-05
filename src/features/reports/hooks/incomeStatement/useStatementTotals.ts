@@ -29,6 +29,7 @@ function aggregate(rows: MonthData[]) {
     },
     {
       revenue: 0, revenueRentalBooked: 0, revenueRentalUnbooked: 0, revenueSales: 0,
+      revenueOtherServices: 0,
       revenueDamageRecovery: 0,
       maintenanceCost: 0, damageCost: 0, depreciation: 0,
       depreciationRented: 0, depreciationIdle: 0,
