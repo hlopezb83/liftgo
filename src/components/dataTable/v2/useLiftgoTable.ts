@@ -77,8 +77,10 @@ export function useLiftgoTable<T>({
   );
 
   useEffect(() => {
+    console.warn("[LIFTGO-DEBUG] reset effect", { len: tableData.length, resetKey });
     setPagination((prev) => (prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }));
-  }, [dataVersion, resetKey]);
+  }, [dataVersion, resetKey, tableData.length]);
+
 
 
   const resolveSelectable =
