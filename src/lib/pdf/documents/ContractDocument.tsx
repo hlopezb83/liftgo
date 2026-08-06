@@ -28,6 +28,7 @@ export interface ContractDocumentProps {
     representante_legal?: string | null;
     contact_person?: string | null;
     address?: string | null;
+    domicilio_fiscal_cp?: string | null;
     rfc?: string | null;
   } | null;
   forklift: {
