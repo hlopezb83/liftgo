@@ -92,10 +92,8 @@ export function ContractDocument(props: ContractDocumentProps) {
   ];
   const city = vars.ciudad;
   // v7.282.0: la fecha impresa es la de firma (o inicio de vigencia), no "hoy".
-  const signingDate = contractSigningDate(contract);
-  const formattedDate = signingDate
-    ? format(parseYMD(signingDate), "dd/MM/yyyy")
-    : format(nowMty(), "dd/MM/yyyy");
+  const signingDate = contract.signed_at || contract.start_date || null;
+  const formattedDate = (signingDate && formatDateDisplay(signingDate)) || format(nowMty(), "dd/MM/yyyy");
   const wrapperProps = { company, logoBase64, contractNumber: contract.contract_number };
 
   return (
