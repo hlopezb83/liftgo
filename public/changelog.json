@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.282.0",
+    "date": "2026-08-06",
+    "type": "minor",
+    "title": "Contrato de arrendamiento: domicilio limpio y cláusula de depósito",
+    "category": "improvement",
+    "description": "El contrato ahora imprime el domicilio del cliente sin el ruido del catálogo del SAT y con código postal, incluye una cláusula formal de Depósito en Garantía, además de Seguro, Entrega y Facturación, y se fecha con la firma real del contrato."
+  },
+  {
     "version": "7.281.1",
     "date": "2026-08-06",
     "type": "patch",

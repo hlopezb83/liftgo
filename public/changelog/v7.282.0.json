@@ -1,0 +1,18 @@
+{
+  "version": "7.282.0",
+  "date": "2026-08-06",
+  "type": "minor",
+  "title": "Auditoría del contrato de arrendamiento",
+  "category": "improvement",
+  "description": "Corrección del domicilio legal, contenido legal ampliado y fechas correctas en contrato y pagaré.",
+  "changes": [
+    "Nuevo helper formatLegalAddress: limpia domicilios importados de la CSF (quita 'OTRA NO ESPECIFICADA EN EL CATALOGO', reordena el tipo de vialidad) y agrega C.P.",
+    "Nueva cláusula QUINTA. Depósito en Garantía (aplicación, devolución a 30 días y vínculo con el pagaré)",
+    "Nuevas cláusulas de Seguro y Responsabilidad Civil, Entrega/Devolución/Maniobras y Facturación y Notificaciones",
+    "Eliminados los símbolos '$' duplicados en montos del contrato y del pagaré",
+    "El contrato y el pagaré se fechan con la fecha de firma (o inicio) en vez de la fecha de hoy; el pagaré muestra Vencimiento",
+    "Nuevos placeholders: {rfc_arrendador}, {cp_arrendador}, {cp_cliente}, {fecha_firma}, {vencimiento_pagare}",
+    "Índice único en contract_templates para evitar plantillas por defecto duplicadas",
+    "PDF: separador de encabezado en todas las páginas y control de viudas en títulos de cláusula"
+  ]
+}
