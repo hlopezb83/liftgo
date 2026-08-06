@@ -144,10 +144,9 @@ export function useLiftgoTable<T>({
   // referencia ante cualquier cambio de contenido, así que solo se recalcula
   // cuando la data realmente cambia (no en cada render por sort/paginación/
   // selección/apertura de diálogo). Ahorro medido: 21ms → <1ms a 500 filas.
-  const dataVersion = useMemo(
-    () => tableData.map((r) => JSON.stringify(r)).join("|"),
-    [tableData],
-  );
+  // `dataVersion` se calcula arriba (junto al efecto de reinicio de página).
+
+
 
   const sortKey = sorting.map((s) => `${s.id}:${s.desc ? "d" : "a"}`).join(",");
   const selKey = Object.keys(rowSelection).length;
