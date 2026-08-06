@@ -1,3 +1,4 @@
+import { useMemo } from "react";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
@@ -29,7 +30,7 @@ const EMPTY_SET: Set<string> = new Set();
 
 export default function FleetPage() {
   const { data: forkliftsRaw, isLoading, isError, refetch } = useForklifts();
-  const forklifts = visibleListRows(forkliftsRaw);
+  const forklifts = useMemo(() => visibleListRows(forkliftsRaw), [forkliftsRaw]);
   // R6-FE-07: el status crudo se desincroniza (MC-103 available CON reserva
   // activa; MC-105/107/109 rented sin reserva). El filtro "Rentado" usa la
   // misma definición operativa que Panel y Calendario.
@@ -37,17 +38,28 @@ export default function FleetPage() {
   // R7-FE-01 (N7-UX-02): sin reservas cargadas NO remapeamos (rentedIds
   // undefined), para no mostrar un flash "Disponible" en unidades rented
   // mientras llega la query de bookings.
-  const rentedIds = fleetBookings
-    ? computeFleetAvailability(forklifts, fleetBookings)?.rentedForkliftIds
-    : undefined;
+  const rentedIds = useMemo(
+    () =>
+      fleetBookings
+        ? computeFleetAvailability(forklifts, fleetBookings)?.rentedForkliftIds
+        : undefined,
+    [forklifts, fleetBookings],
+  );
   // R7-FE-01: remap BIDIRECCIONAL — available→rented con reserva vigente
   // (ya existía) y rented→available SIN reserva vigente (MC-105/107/109).
   // maintenance/retired/sold mandan sobre la reserva (regla del helper).
-  const forkliftsForFilter = (forklifts ?? []).map((f) => {
-    if (!rentedIds || (f.status !== "available" && f.status !== "rented")) return f;
-    const derived = rentedIds.has(f.id) ? ("rented" as const) : ("available" as const);
-    return derived === f.status ? f : { ...f, status: derived };
-  });
+  // v7.281.1 · memoizado: sin esto el arreglo era nuevo en cada render y la
+  // tabla reiniciaba la paginación a la página 1.
+  const forkliftsForFilter = useMemo(
+    () =>
+      (forklifts ?? []).map((f) => {
+        if (!rentedIds || (f.status !== "available" && f.status !== "rented")) return f;
+        const derived = rentedIds.has(f.id) ? ("rented" as const) : ("available" as const);
+        return derived === f.status ? f : { ...f, status: derived };
+      }),
+    [forklifts, rentedIds],
+  );
+
   // Tanda 3 P1-5: 1 request a la vista `forklift_current_location`
   // reemplaza useContracts + useDeliveries + useMaintenancePolicies.
   const { data: fleetLocations } = useFleetLocations();

@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.281.1",
+    "date": "2026-08-06",
+    "type": "patch",
+    "title": "Arreglada la paginación de las tablas",
+    "category": "fix",
+    "description": "Los botones “Siguiente”, “Anterior” y los números de página no funcionaban en listas como Equipos, Facturas o Reservas: la tabla se reiniciaba sola a la página 1 en cada clic."
+  },
+  {
     "version": "7.281.0",
     "date": "2026-08-05",
     "type": "minor",
