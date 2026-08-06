@@ -77,7 +77,7 @@ function ContractPageWrapper({
     <Page size="A4" style={sharedStyles.page}>
       <AccentBar />
       <ContractHeader company={company} logoBase64={logoBase64} contractNumber={contractNumber} />
-      <View style={sharedStyles.separator} />
+      <View style={sharedStyles.separator} fixed />
       {children}
       <Footer companyName={company?.razon_social ?? null} prefix={footerPrefix} />
     </Page>
