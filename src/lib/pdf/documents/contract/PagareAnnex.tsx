@@ -2,6 +2,7 @@ import { Text, View } from "@react-pdf/renderer";
 import { replacePlaceholders } from "@/lib/domain/templateUtils";
 import type { TemplateData, ContractData } from "@/lib/pdf/contract/data";
 import { DEFAULT_PAGARE } from "@/lib/pdf/contract/data-templates";
+import { customerLegalAddress } from "@/lib/pdf/contract/placeholders";
 import { contractStyles } from "@/lib/pdf/theme/styles";
 
 interface PagareAnnexProps {
@@ -13,6 +14,7 @@ interface PagareAnnexProps {
     representante_legal?: string | null;
     contact_person?: string | null;
     address?: string | null;
+    domicilio_fiscal_cp?: string | null;
     rfc?: string | null;
   } | null;
   city: string;
@@ -38,10 +40,11 @@ export function PagareAnnex({ contract, tpl, vars, customer, city, formattedDate
 
       <View style={contractStyles.pagareHeadRow}>
         <FieldRow label="Número:" value="1/1" />
-        <FieldRow label="Bueno por:" value={`$${vars.deposito}`} />
+        <FieldRow label="Bueno por:" value={vars.deposito} />
       </View>
       <FieldRow label="Lugar:" value={city} />
       <FieldRow label="Fecha:" value={formattedDate} />
+      <FieldRow label="Vencimiento:" value={vars.vencimiento_pagare} />
 
       <Text style={[contractStyles.subsectionTitle, { marginTop: 12 }]}>TEXTO DEL PAGARÉ</Text>
       <Text style={contractStyles.pagareBody}>
@@ -56,7 +59,7 @@ export function PagareAnnex({ contract, tpl, vars, customer, city, formattedDate
         Representante Legal: {customer?.representante_legal || customer?.contact_person || "______________________"}
       </Text>
       <Text style={contractStyles.pagareLine}>
-        Domicilio: {customer?.address || "______________________"}
+        Domicilio: {customerLegalAddress(customer) || "______________________"}
       </Text>
       <Text style={contractStyles.pagareLineSpaced}>
         RFC: {customer?.rfc || "______________________"}
