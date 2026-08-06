@@ -1,11 +1,16 @@
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatLegalAddress } from "@/lib/format/formatLegalAddress";
 import { formatDateDisplay } from "@/lib/utils";
 import type { ContractData } from "./fetchers";
 
-interface CompanyInfo { razon_social?: string | null }
+interface CompanyInfo {
+  razon_social?: string | null;
+  rfc?: string | null;
+  lugar_expedicion?: string | null;
+}
 interface CustomerInfo {
   name?: string | null; address?: string | null; rfc?: string | null;
-  representante_legal?: string | null;
+  representante_legal?: string | null; domicilio_fiscal_cp?: string | null;
 }
 interface ForkliftInfo {
   manufacturer?: string | null; model?: string | null; serial_number?: string | null;
@@ -15,11 +20,22 @@ interface ForkliftInfo {
 const fmtDate = (d?: string | null) => (d ? (formatDateDisplay(d) || "[Fecha]") : "[Fecha]");
 const num = (v: number | string | null | undefined) => Number(v || 0);
 
+/**
+ * v7.282.0: el domicilio del cliente se normaliza (limpia relleno del catálogo
+ * SAT y agrega C.P.) antes de imprimirse en el contrato y el pagaré.
+ */
+export function customerLegalAddress(customer: CustomerInfo | null): string {
+  return formatLegalAddress(customer?.address, { cp: customer?.domicilio_fiscal_cp });
+}
+
 function buildPartyVars(contract: ContractData, company: CompanyInfo | null, customer: CustomerInfo | null) {
   return {
     arrendador: company?.razon_social || "[Arrendador]",
+    rfc_arrendador: company?.rfc || "[RFC del arrendador]",
+    cp_arrendador: company?.lugar_expedicion || "—",
     arrendatario: customer?.name || contract.customer_name || "[Arrendatario]",
-    domicilio_cliente: customer?.address || "[Domicilio del cliente]",
+    domicilio_cliente: customerLegalAddress(customer) || "[Domicilio del cliente]",
+    cp_cliente: customer?.domicilio_fiscal_cp || "—",
     rfc_cliente: customer?.rfc || "[RFC]",
     representante_legal: customer?.representante_legal || "[Representante Legal]",
   };
@@ -56,17 +72,28 @@ function buildEquipmentVars(forklift: ForkliftInfo | null) {
   };
 }
 
+/**
+ * Fecha de firma del contrato: la registrada al firmar; si no existe, la fecha
+ * de inicio de vigencia. Nunca "hoy" al momento de descargar el PDF.
+ */
+export function contractSigningDate(contract: ContractData): string | null {
+  return contract.signed_at || contract.start_date || null;
+}
+
 export function buildPlaceholderVars(
   contract: ContractData,
   company: CompanyInfo | null,
   customer: CustomerInfo | null,
   forklift: ForkliftInfo | null,
 ): Record<string, string> {
+  const signing = contractSigningDate(contract);
   return {
     ...buildPartyVars(contract, company, customer),
     ...buildUsageVars(contract),
     ...buildPricingVars(contract),
     ...buildEquipmentVars(forklift),
     ciudad: contract.contract_city || "San Pedro Garza García, N.L.",
+    fecha_firma: signing ? fmtDate(signing) : "[Fecha de firma]",
+    vencimiento_pagare: fmtDate(contract.end_date),
   };
 }
