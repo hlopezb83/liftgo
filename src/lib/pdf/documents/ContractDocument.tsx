@@ -4,7 +4,7 @@ import { AccentBar } from "@/lib/pdf/components/AccentBar";
 import { Footer } from "@/lib/pdf/components/Footer";
 import type { TemplateData, ContractData } from "@/lib/pdf/contract/data";
 import { sharedStyles, contractStyles } from "@/lib/pdf/theme/styles";
-import { nowMty } from "@/lib/utils";
+import { formatDateDisplay, nowMty } from "@/lib/utils";
 import { ChecklistAnnex } from "./contract/ChecklistAnnex";
 import { ContractBody } from "./contract/ContractBody";
 import { PagareAnnex } from "./contract/PagareAnnex";
@@ -28,6 +28,7 @@ export interface ContractDocumentProps {
     representante_legal?: string | null;
     contact_person?: string | null;
     address?: string | null;
+    domicilio_fiscal_cp?: string | null;
     rfc?: string | null;
   } | null;
   forklift: {
@@ -76,7 +77,7 @@ function ContractPageWrapper({
     <Page size="A4" style={sharedStyles.page}>
       <AccentBar />
       <ContractHeader company={company} logoBase64={logoBase64} contractNumber={contractNumber} />
-      <View style={sharedStyles.separator} />
+      <View style={sharedStyles.separator} fixed />
       {children}
       <Footer companyName={company?.razon_social ?? null} prefix={footerPrefix} />
     </Page>
@@ -91,7 +92,9 @@ export function ContractDocument(props: ContractDocumentProps) {
     { key: "pagare", show: mode === "full" || mode === "pagare" },
   ];
   const city = vars.ciudad;
-  const formattedDate = format(nowMty(), "dd/MM/yyyy");
+  // v7.282.0: la fecha impresa es la de firma (o inicio de vigencia), no "hoy".
+  const signingDate = contract.signed_at || contract.start_date || null;
+  const formattedDate = (signingDate && formatDateDisplay(signingDate)) || format(nowMty(), "dd/MM/yyyy");
   const wrapperProps = { company, logoBase64, contractNumber: contract.contract_number };
 
   return (

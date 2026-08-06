@@ -37,7 +37,7 @@ export async function fetchRelatedData(contract: ContractData) {
     contract.customer_id
       ? supabase
           .from("customers")
-          .select("name, rfc, address, contact_person, representante_legal")
+          .select("name, rfc, address, contact_person, representante_legal, domicilio_fiscal_cp")
           .eq("id", contract.customer_id)
           .single()
       : Promise.resolve({ data: null }),
@@ -53,12 +53,16 @@ export async function fetchRelatedData(contract: ContractData) {
 }
 
 export async function fetchTemplate(): Promise<TemplateData> {
+  // v7.282.0: orden explícito — si existiera más de una plantilla marcada como
+  // predeterminada, gana la editada más recientemente (antes era arbitrario).
   const { data } = await supabase
     .from("contract_templates")
-    .select("intro_text, declarations_landlord, declarations_tenant, clauses, checklist_sections, pagare_text")
+    .select("intro_text, declarations_landlord, declarations_tenant, clauses, checklist_sections, pagare_text, updated_at")
     .eq("is_default", true)
+    .order("updated_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+
 
   if (!data) {
     return {

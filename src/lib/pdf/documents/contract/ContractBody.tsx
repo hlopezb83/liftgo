@@ -74,7 +74,7 @@ function ClausesSection({
     <>
       <SectionTitle text="II. CLÁUSULAS" />
       {clauses.map((c, i) => (
-        <View key={i} style={contractStyles.clauseBlock} wrap>
+        <View key={i} style={contractStyles.clauseBlock} wrap minPresenceAhead={40}>
           <Text style={contractStyles.clauseTitle}>{replacePlaceholders(c.title, vars)}</Text>
           <Text style={contractStyles.clauseBody}>{replacePlaceholders(c.body, vars)}</Text>
         </View>
