@@ -57,6 +57,16 @@ export function useLiftgoTable<T>({
 
   const tableData = useMemo(() => data ?? [], [data]);
 
+  // v7.281.1 · Huella de CONTENIDO de los datos. Se usa tanto para invalidar la
+  // memoización del compiler (abajo) como para decidir si hay que volver a la
+  // página 1. Antes el efecto dependía de la REFERENCIA `tableData`, y como las
+  // páginas derivan arreglos en cada render (map/filtros), la paginación se
+  // reiniciaba sola en cada click y nunca avanzaba de página.
+  const dataVersion = useMemo(
+    () => tableData.map((r) => JSON.stringify(r)).join("|"),
+    [tableData],
+  );
+
   // R22-W: nulos siempre al final, también al invertir a `desc`.
   const sortingFnWithNullsLast = useMemo(
     () =>
@@ -68,7 +78,8 @@ export function useLiftgoTable<T>({
 
   useEffect(() => {
     setPagination((prev) => (prev.pageIndex === 0 ? prev : { ...prev, pageIndex: 0 }));
-  }, [tableData, resetKey]);
+  }, [dataVersion, resetKey]);
+
 
   const resolveSelectable =
     typeof enableRowSelection === "function"
