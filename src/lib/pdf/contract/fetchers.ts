@@ -37,7 +37,7 @@ export async function fetchRelatedData(contract: ContractData) {
     contract.customer_id
       ? supabase
           .from("customers")
-          .select("name, rfc, address, contact_person, representante_legal")
+          .select("name, rfc, address, contact_person, representante_legal, domicilio_fiscal_cp")
           .eq("id", contract.customer_id)
           .single()
       : Promise.resolve({ data: null }),
