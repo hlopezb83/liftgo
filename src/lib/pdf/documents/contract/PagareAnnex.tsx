@@ -57,6 +57,8 @@ export function PagareAnnex({ contract, tpl, vars, customer, city, formattedDate
       </Text>
       <Text style={contractStyles.pagareLine}>
         Representante Legal: {customer?.representante_legal || "______________________"}
+      </Text>
+
 
       <Text style={contractStyles.pagareLine}>
         Domicilio: {customerLegalAddress(customer) || "______________________"}
