@@ -1,0 +1,14 @@
+{
+  "version": "7.282.1",
+  "date": "2026-08-07",
+  "type": "patch",
+  "title": "El pagaré ya no usa la persona de contacto como Representante Legal",
+  "category": "fix",
+  "description": "Cuando el cliente no tenía capturado su representante legal, el pagaré rellenaba el hueco con la persona de contacto (que a veces coincide con un testigo del contrato). Ahora la línea queda en blanco para firmarse a mano y el sistema avisa que falta el dato.",
+  "changes": [
+    "Eliminado el respaldo a 'persona de contacto' en la línea Representante Legal del pagaré",
+    "Nota en el pagaré aclarando que los testigos no intervienen como suscriptor ni aval",
+    "Alerta en el formulario de contrato con enlace a la ficha del cliente cuando falta el representante legal",
+    "Aviso al descargar el PDF si el cliente no tiene representante legal capturado"
+  ]
+}
