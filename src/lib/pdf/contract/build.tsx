@@ -1,6 +1,7 @@
 import type { ContractData } from "@/lib/pdf/contract/data";
 import { ContractDocument, type PDFMode } from "@/lib/pdf/documents/ContractDocument";
 import { renderAndSave } from "@/lib/pdf/renderAndSave";
+import { notifyWarning } from "@/lib/ui/appFeedback";
 
 export async function buildContractPdf(contract: ContractData, mode: PDFMode): Promise<void> {
   const { fetchRelatedData, fetchTemplate, fetchLogoBase64, buildPlaceholderVars } =
@@ -10,6 +11,13 @@ export async function buildContractPdf(contract: ContractData, mode: PDFMode): P
   const tpl = await fetchTemplate();
   const vars = buildPlaceholderVars(contract, company, customer, forklift);
   const logoBase64 = await fetchLogoBase64(company?.logo_url);
+
+  if (!customer?.representante_legal) {
+    notifyWarning("El cliente no tiene Representante Legal capturado", {
+      description: "El contrato y el pagaré saldrán con la línea en blanco para llenarse a mano.",
+    });
+  }
+
 
   const suffix = mode === "full" ? "" : `-${mode}`;
   await renderAndSave(
