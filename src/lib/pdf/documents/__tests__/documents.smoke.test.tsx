@@ -208,4 +208,20 @@ describe("PDF Documents — smoke", () => {
     );
     
   });
+
+  it("no usa contact_person como Representante Legal en el pagaré", () => {
+    const html = snap(
+      <ContractDocument
+        mode="pagare"
+        contract={contract}
+        tpl={template}
+        vars={{ ciudad: "Monterrey" }}
+        logoBase64={null}
+        company={company}
+        customer={{ name: "Cliente Demo SA", representante_legal: null, contact_person: "ROSA MARTINEZ", address: "Calle X 123", rfc: "XAXX010101000" }}
+        forklift={{ manufacturer: "Toyota", model: "8FGCU25", serial_number: "SN-001", fuel_type: "lpg" }}
+      />,
+    );
+    expect(html).not.toContain("ROSA MARTINEZ");
+  });
 });
