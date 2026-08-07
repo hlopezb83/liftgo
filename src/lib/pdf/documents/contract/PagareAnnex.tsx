@@ -77,6 +77,10 @@ export function PagareAnnex({ contract, tpl, vars, customer, city, formattedDate
       <View style={contractStyles.pagareSignatureBox}>
         <Text style={contractStyles.checklistKey}>Firma del Aval</Text>
       </View>
+      <Text style={[contractStyles.checklistKey, { marginTop: 10 }]}>
+        Nota: los testigos del contrato no intervienen en este pagaré como suscriptor ni como aval.
+      </Text>
     </View>
   );
 }
+
