@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.282.1",
+    "date": "2026-08-07",
+    "type": "patch",
+    "title": "El pagaré ya no usa la persona de contacto como Representante Legal",
+    "category": "fix",
+    "description": "Cuando el cliente no tenía capturado su representante legal, el pagaré rellenaba el hueco con la persona de contacto (que a veces coincide con un testigo del contrato). Ahora la línea queda en blanco y el sistema avisa que falta el dato."
+  },
+  {
     "version": "7.282.0",
     "date": "2026-08-06",
     "type": "minor",
