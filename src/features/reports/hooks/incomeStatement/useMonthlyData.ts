@@ -67,6 +67,75 @@ export const incomeStatementQueries = defineEntityQueries<
   staleTime: 60_000,
 });
 
+/** Consolida el COGS manual (facturas de proveedor `costo_venta`) con el automático. */
+function resolveCogs(m: RpcMonthRow) {
+  const rawExpenses = { ...emptyExpenses(), ...m.expenses } as Record<ExpenseCategory, number>;
+  // Las facturas de proveedor con categoría `costo_venta` representan el mismo
+  // concepto que el valor en libros de equipos vendidos: se suman al COGS y se
+  // retiran de `expenses` para evitar doble conteo.
+  const cogsManual = Number(rawExpenses.costo_venta ?? 0);
+  const expenses = { ...rawExpenses, costo_venta: 0 };
+  const cogsForkliftSales = Number(m.cogs_forklift_sales ?? 0) + cogsManual;
+  const cogsByForklift: Record<string, number> = { ...(m.cogs_by_forklift ?? {}) };
+  if (cogsManual > 0) cogsByForklift["Facturas de proveedor (manual)"] = cogsManual;
+  return { expenses, cogsForkliftSales, cogsByForklift };
+}
+
+/** Desgloses por cliente/equipo (todos opcionales en el RPC). */
+function mapBreakdowns(m: RpcMonthRow) {
+  return {
+    depreciationByForklift: m.depreciation_by_forklift ?? {},
+    rentalBookedByCustomer: m.rental_booked_by_customer ?? {},
+    rentalUnbookedByCustomer: m.rental_unbooked_by_customer ?? {},
+    salesByCustomer: m.sales_by_customer ?? {},
+    otherServicesByCustomer: m.other_services_by_customer ?? {},
+    damageRecoveryByCustomer: m.damage_recovery_by_customer ?? {},
+    creditNotesByCustomer: m.credit_notes_by_customer ?? {},
+    expensesDetailByCategory: m.expenses_detail_by_category ?? {},
+  };
+}
+
+/** Montos escalares del mes (ingresos, costos y depreciación). */
+function mapAmounts(m: RpcMonthRow) {
+  return {
+    revenue: Number(m.revenue),
+    revenueRentalBooked: Number(m.revenue_rental_booked),
+    revenueRentalUnbooked: Number(m.revenue_rental_unbooked),
+    revenueSales: Number(m.revenue_sales),
+    revenueOtherServices: Number(m.revenue_other_services ?? 0),
+    revenueDamageRecovery: Number(m.revenue_damage_recovery ?? 0),
+    creditNotes: Number(m.credit_notes_total ?? 0),
+    maintenanceCost: Number(m.maintenance_cost),
+    damageCost: Number(m.damage_cost),
+    depreciation: Number(m.depreciation),
+    depreciationRented: Number(m.depreciation_rented ?? 0),
+    depreciationIdle: Number(m.depreciation_idle ?? 0),
+  };
+}
+
+function mapMonthRow(m: RpcMonthRow): MonthData {
+  const { expenses, cogsForkliftSales, cogsByForklift } = resolveCogs(m);
+  const amounts = mapAmounts(m);
+  const derived = computeDerivedTotals({
+    revenue: amounts.revenue,
+    maintenanceCost: amounts.maintenanceCost,
+    damageCost: amounts.damageCost,
+    depreciation: amounts.depreciation,
+    cogsForkliftSales,
+    expenses,
+  });
+  return {
+    monthKey: m.month_key,
+    month: formatMonthShortEs(m.month_key),
+    ...amounts,
+    cogsForkliftSales,
+    cogsByForklift,
+    ...mapBreakdowns(m),
+    expenses,
+    ...derived,
+  };
+}
+
 export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
   const startStr = toYMD(startDate);
   const endStr = toYMD(endDate);
@@ -75,62 +144,10 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
     incomeStatementQueries.list({ startStr, endStr, accountingBasis }),
   );
 
-  const data: MonthData[] = (rpc?.months ?? []).map((m): MonthData => {
-    const rawExpenses = { ...emptyExpenses(), ...m.expenses } as Record<ExpenseCategory, number>;
-    // Consolidación COGS: las facturas de proveedor con categoría `costo_venta`
-    // representan el mismo concepto que el valor en libros de equipos vendidos.
-    // Se suman a `cogsForkliftSales` y se retiran de `expenses` para evitar
-    // doble conteo en la utilidad bruta y en el total de egresos.
-    const cogsManual = Number(rawExpenses.costo_venta ?? 0);
-    const expenses = { ...rawExpenses, costo_venta: 0 };
-    const cogsAuto = Number(m.cogs_forklift_sales ?? 0);
-    const cogsForkliftSales = cogsAuto + cogsManual;
-    const cogsByForklift: Record<string, number> = { ...(m.cogs_by_forklift ?? {}) };
-    if (cogsManual > 0) {
-      cogsByForklift["Facturas de proveedor (manual)"] = cogsManual;
-    }
-    const derived = computeDerivedTotals({
-      revenue: Number(m.revenue),
-      maintenanceCost: Number(m.maintenance_cost),
-      damageCost: Number(m.damage_cost),
-      depreciation: Number(m.depreciation),
-      cogsForkliftSales,
-      expenses,
-    });
-    const label = formatMonthShortEs(m.month_key);
-    return {
-      monthKey: m.month_key,
-      month: label,
-      revenue: Number(m.revenue),
-      revenueRentalBooked: Number(m.revenue_rental_booked),
-      revenueRentalUnbooked: Number(m.revenue_rental_unbooked),
-      revenueSales: Number(m.revenue_sales),
-      revenueOtherServices: Number(m.revenue_other_services ?? 0),
-      revenueDamageRecovery: Number(m.revenue_damage_recovery ?? 0),
-      creditNotes: Number(m.credit_notes_total ?? 0),
-      maintenanceCost: Number(m.maintenance_cost),
-      damageCost: Number(m.damage_cost),
-      depreciation: Number(m.depreciation),
-      depreciationRented: Number(m.depreciation_rented ?? 0),
-      depreciationIdle: Number(m.depreciation_idle ?? 0),
-      cogsForkliftSales,
-      cogsByForklift,
-      depreciationByForklift: m.depreciation_by_forklift ?? {},
-      rentalBookedByCustomer: m.rental_booked_by_customer ?? {},
-      rentalUnbookedByCustomer: m.rental_unbooked_by_customer ?? {},
-      salesByCustomer: m.sales_by_customer ?? {},
-      otherServicesByCustomer: m.other_services_by_customer ?? {},
-      damageRecoveryByCustomer: m.damage_recovery_by_customer ?? {},
-      creditNotesByCustomer: m.credit_notes_by_customer ?? {},
-      expenses,
-      expensesDetailByCategory: m.expenses_detail_by_category ?? {},
-      ...derived,
-    };
-  });
-
-
+  const data: MonthData[] = (rpc?.months ?? []).map(mapMonthRow);
   const rentedWithoutCost = rpc?.rented_without_cost ?? [];
   const soldWithoutCost = rpc?.sold_without_cost ?? [];
 
   return { data, rentedWithoutCost, soldWithoutCost, isError, isFetching, refetch };
 }
+
