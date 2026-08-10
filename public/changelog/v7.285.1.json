@@ -1,0 +1,18 @@
+{
+  "version": "7.285.1",
+  "date": "2026-08-10",
+  "type": "patch",
+  "title": "Knip limpio: refresco de cancelación de NC conectado en UI",
+  "category": "improvement",
+  "description": "Se eliminó el export muerto useRefreshCreditNoteCancellationStatus conectándolo al detalle de factura: ahora las notas de crédito con cancelación pendiente muestran un botón para actualizar el estado SAT. Typecheck y knip quedaron limpios.",
+  "changes": [
+    {
+      "scope": "invoices",
+      "summary": "Conectar useRefreshCreditNoteCancellationStatus en InvoiceCreditNotesCard"
+    },
+    {
+      "scope": "invoices",
+      "summary": "Agregar botón de actualizar estado SAT para NC con cancelación pendiente"
+    }
+  ]
+}
