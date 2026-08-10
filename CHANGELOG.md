@@ -1,3 +1,8 @@
+## 7.286.2 - 2026-08-10
+
+- Seguridad: report_profit_by_model exige permiso Reportes/read.
+- Pruebas: supabase/tests/r2_smoke.sql y tests de useInviteUser.
+
 ## 7.286.1 - 2026-08-10
 
 - Entregas: se permite reprogramar una recolección pendiente cuando la reserva ya está completada (FIX-R2-11).
