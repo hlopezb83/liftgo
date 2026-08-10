@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.284.2",
+    "date": "2026-08-10",
+    "type": "patch",
+    "title": "Lint limpio: complejidad reducida y orden de imports",
+    "category": "improvement",
+    "description": "Se dividieron 4 funciones demasiado complejas en piezas pequeñas y se ordenaron los imports señalados por ESLint. Sin cambios de comportamiento."
+  },
+  {
     "version": "7.284.1",
     "date": "2026-08-10",
     "type": "patch",

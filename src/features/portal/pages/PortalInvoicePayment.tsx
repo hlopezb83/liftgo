@@ -155,49 +155,73 @@ function renderPaymentSection(args: PaymentSectionArgs) {
   return <ForeignCurrencyNotice moneda={args.moneda} balanceLabel={args.balanceLabel} />;
 }
 
+function PaymentQueryError({ onRetry }: { onRetry: () => void }) {
+  return (
+    <PageContainer maxWidth="wide">
+      <PageHeader title="Pagar factura" />
+      <QueryErrorState entity="la información de pago" onRetry={onRetry} />
+    </PageContainer>
+  );
+}
+
 export default function PortalInvoicePayment() {
   const { id } = useParams();
   // A3-01: capturar error/refetch de las 3 queries — sin esto un fallo de red
   // mostraba "Factura no encontrada" o un saldo falso en la pantalla de cobro
   // (riesgo de pago duplicado).
-  const { data: invoices, isLoading: il, isError: ie, refetch: ri } = usePortalInvoices();
-  const { data: payments, isLoading: pl, isError: pe, refetch: rp } = usePortalPayments();
+  const inv = usePortalInvoices();
+  const pay = usePortalPayments();
   const { data: customer } = usePortalCustomer();
-  const { data: intents, isError: te, refetch: rt } = usePortalPaymentIntents(id);
+  const int = usePortalPaymentIntents(id);
   const [dlgOpen, setDlgOpen] = useState(false);
 
+  const invoices = inv.data;
+  const intents = int.data;
   const invoice = invoices?.find((i) => i.id === id);
-  const invoicePayments = (payments?.filter((p) => p.invoice_id === id) ?? []);
+  const invoicePayments = pay.data?.filter((p) => p.invoice_id === id) ?? [];
 
-  if (il || pl) return <Skeleton className="h-96" />;
-  if (ie || pe || te) {
-    return (
-      <PageContainer maxWidth="wide">
-        <PageHeader title="Pagar factura" />
-        <QueryErrorState
-          entity="la información de pago"
-          onRetry={() => {
-            void ri();
-            void rp();
-            void rt();
-          }}
-        />
-      </PageContainer>
-    );
-  }
+  const isLoading = inv.isLoading || pay.isLoading;
+  const hasError = inv.isError || pay.isError || int.isError;
+  const retryAll = () => {
+    void inv.refetch();
+    void pay.refetch();
+    void int.refetch();
+  };
+
+  if (isLoading) return <Skeleton className="h-96" />;
+  if (hasError) return <PaymentQueryError onRetry={retryAll} />;
   if (!invoice) return <p className="text-muted-foreground">Factura no encontrada</p>;
 
-
-  const { balance, reportableBalance, pendingReported, moneda, isMxn, balanceLabel } = computeInvoiceTotals(
-    invoice,
-    invoicePayments,
-    intents ?? [],
+  return (
+    <PaymentBody
+      invoice={invoice}
+      invoicePayments={invoicePayments}
+      intents={intents ?? []}
+      customer={customer}
+      dlgOpen={dlgOpen}
+      setDlgOpen={setDlgOpen}
+    />
   );
-  const concept = `${invoice.invoice_number}`;
+}
+
+interface PaymentBodyProps {
+  invoice: NonNullable<ReturnType<typeof usePortalInvoices>["data"]>[number];
+  invoicePayments: NonNullable<ReturnType<typeof usePortalPayments>["data"]>;
+  intents: Intent[];
+  customer: ReturnType<typeof usePortalCustomer>["data"];
+  dlgOpen: boolean;
+  setDlgOpen: (v: boolean) => void;
+}
+
+function PaymentBody({
+  invoice, invoicePayments, intents, customer, dlgOpen, setDlgOpen,
+}: PaymentBodyProps) {
+  const { balance, reportableBalance, pendingReported, moneda, isMxn, balanceLabel } =
+    computeInvoiceTotals(invoice, invoicePayments, intents);
 
   const paymentSection = renderPaymentSection({
     balance,
-    concept,
+    concept: `${invoice.invoice_number}`,
     pendingReported,
     moneda,
     isMxn,
@@ -220,7 +244,7 @@ export default function PortalInvoicePayment() {
 
       {paymentSection}
 
-      {!!intents?.length && <PortalIntentsTable intents={intents as Intent[]} />}
+      {intents.length > 0 && <PortalIntentsTable intents={intents} />}
 
       {customer && isMxn && (
         <ReportTransferDialog
@@ -235,3 +259,4 @@ export default function PortalInvoicePayment() {
     </PageContainer>
   );
 }
+
