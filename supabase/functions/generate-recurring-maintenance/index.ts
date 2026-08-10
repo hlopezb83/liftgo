@@ -79,7 +79,11 @@ Deno.serve(async (req) => {
     const details: string[] = [];
     for (const p of omittedByStatus) {
       details.push(
-        `⊘ ${p.forklifts?.name ?? p.forklift_id} — omitida: unidad no rentada (estado: ${p.forklifts?.status ?? "desconocido"})`,
+        `⊘ ${
+          p.forklifts?.name ?? p.forklift_id
+        } — omitida: unidad no rentada (estado: ${
+          p.forklifts?.status ?? "desconocido"
+        })`,
       );
     }
 
