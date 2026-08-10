@@ -192,18 +192,36 @@ export default function PortalInvoicePayment() {
   if (hasError) return <PaymentQueryError onRetry={retryAll} />;
   if (!invoice) return <p className="text-muted-foreground">Factura no encontrada</p>;
 
-
-
-  const { balance, reportableBalance, pendingReported, moneda, isMxn, balanceLabel } = computeInvoiceTotals(
-    invoice,
-    invoicePayments,
-    intents ?? [],
+  return (
+    <PaymentBody
+      invoice={invoice}
+      invoicePayments={invoicePayments}
+      intents={intents ?? []}
+      customer={customer}
+      dlgOpen={dlgOpen}
+      setDlgOpen={setDlgOpen}
+    />
   );
-  const concept = `${invoice.invoice_number}`;
+}
+
+interface PaymentBodyProps {
+  invoice: NonNullable<ReturnType<typeof usePortalInvoices>["data"]>[number];
+  invoicePayments: NonNullable<ReturnType<typeof usePortalPayments>["data"]>;
+  intents: Intent[];
+  customer: ReturnType<typeof usePortalCustomer>["data"];
+  dlgOpen: boolean;
+  setDlgOpen: (v: boolean) => void;
+}
+
+function PaymentBody({
+  invoice, invoicePayments, intents, customer, dlgOpen, setDlgOpen,
+}: PaymentBodyProps) {
+  const { balance, reportableBalance, pendingReported, moneda, isMxn, balanceLabel } =
+    computeInvoiceTotals(invoice, invoicePayments, intents);
 
   const paymentSection = renderPaymentSection({
     balance,
-    concept,
+    concept: `${invoice.invoice_number}`,
     pendingReported,
     moneda,
     isMxn,
@@ -226,7 +244,7 @@ export default function PortalInvoicePayment() {
 
       {paymentSection}
 
-      {!!intents?.length && <PortalIntentsTable intents={intents as Intent[]} />}
+      {intents.length > 0 && <PortalIntentsTable intents={intents} />}
 
       {customer && isMxn && (
         <ReportTransferDialog
@@ -241,3 +259,4 @@ export default function PortalInvoicePayment() {
     </PageContainer>
   );
 }
+
