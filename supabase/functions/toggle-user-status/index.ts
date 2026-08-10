@@ -99,7 +99,10 @@ Deno.serve(async (req) => {
       );
       if (revokeErr) {
         // No revertir la desactivación por esto; el guard de is_active ya protege.
-        console.error("[toggle-user-status] revoke sessions:", revokeErr.message);
+        console.error(
+          "[toggle-user-status] revoke sessions:",
+          revokeErr.message,
+        );
       }
     }
 

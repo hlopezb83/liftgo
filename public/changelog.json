@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.283.1",
+    "date": "2026-08-10",
+    "type": "patch",
+    "title": "CI verde: formato Deno en Edge Functions",
+    "category": "fix",
+    "description": "Se aplicó `deno fmt` a 4 edge functions para desbloquear el job de CI. Solo cambios cosméticos de formato."
+  },
+  {
     "version": "7.283.0",
     "date": "2026-08-10",
     "type": "minor",
