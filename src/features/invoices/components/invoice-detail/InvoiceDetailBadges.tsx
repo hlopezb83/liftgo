@@ -15,6 +15,8 @@ interface Props {
   cfdiStatus: string;
   cancellationStatus?: string | null;
   showSandboxChip: boolean;
+  /** R2 (bajo 7): CFDI timbrado pero el XML aún no se ha recuperado del PAC. */
+  cfdiXmlPending?: boolean;
 }
 
 function resolveFiscalBadge(
@@ -53,11 +55,15 @@ export function InvoiceDetailBadges({
   cfdiStatus,
   cancellationStatus,
   showSandboxChip,
+  cfdiXmlPending,
 }: Props) {
   const fiscal = resolveFiscalBadge(invoiceStatus, cfdiStatus, cancellationStatus);
   return (
     <>
       <Badge className={toneClass[fiscal.tone]}>{fiscal.label}</Badge>
+      {cfdiXmlPending && (
+        <Badge className={toneClass.warning}>XML por recuperar</Badge>
+      )}
       {showSandboxChip && <Badge className={toneClass.warning}>Sandbox</Badge>}
     </>
   );

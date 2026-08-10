@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useUploadDocument } from "@/hooks/useDocuments";
@@ -30,6 +30,11 @@ export function useReportDamageForm(onClose: () => void) {
     defaultValues: DEFAULTS,
   });
   const [previews, setPreviews] = useState<DamagePreview[]>([]);
+  // FIX-R2-07 (03-FIX-13): ref espejo para revocar SOLO al desmontar.
+  const previewsRef = useRef<DamagePreview[]>([]);
+  useEffect(() => {
+    previewsRef.current = previews;
+  }, [previews]);
 
   const createDamage = useCreateDamageRecord();
   const uploadDoc = useUploadDocument();
@@ -54,9 +59,12 @@ export function useReportDamageForm(onClose: () => void) {
     form.reset(DEFAULTS);
   };
 
+  // Antes el cleanup corría en CADA cambio de `previews` y revocaba URLs aún
+  // en uso (la foto anterior se rompía al añadir otra). removePreview/reset ya
+  // revocan puntualmente; aquí solo se limpia lo que quede al desmontar.
   useEffect(() => () => {
-    previews.forEach((p) => URL.revokeObjectURL(p.url));
-  }, [previews]);
+    previewsRef.current.forEach((p) => URL.revokeObjectURL(p.url));
+  }, []);
 
   const handleSubmit = form.handleSubmit(async (values) => {
     try {

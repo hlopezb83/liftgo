@@ -1,4 +1,5 @@
 -- RLS: audit_logs — bitácora inmutable y de lectura restringida.
+-- FIX-R2-04: chequeo de BREACH fuera del handler (ver invoices.sql).
 BEGIN;
 
 INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
@@ -42,22 +43,24 @@ BEGIN
   BEGIN
     UPDATE public.audit_logs SET action = 'TAMPERED'
      WHERE id = '66666666-0000-4000-8000-00000000000a';
-    IF EXISTS (SELECT 1 FROM public.audit_logs WHERE action = 'TAMPERED') THEN
-      RAISE EXCEPTION 'BREACH: la bitácora es modificable';
-    END IF;
-  EXCEPTION WHEN others THEN
-    RAISE NOTICE 'OK: audit_logs inmutable ante UPDATE';
+  EXCEPTION WHEN insufficient_privilege THEN
+    NULL; -- denegación esperada; el efecto se verifica abajo
   END;
+  IF EXISTS (SELECT 1 FROM public.audit_logs WHERE action = 'TAMPERED') THEN
+    RAISE EXCEPTION 'RLS BREACH: la bitácora es modificable';
+  END IF;
+  RAISE NOTICE 'OK: audit_logs inmutable ante UPDATE';
 
   BEGIN
     DELETE FROM public.audit_logs WHERE id = '66666666-0000-4000-8000-00000000000a';
-    IF NOT EXISTS (SELECT 1 FROM public.audit_logs
-                    WHERE id = '66666666-0000-4000-8000-00000000000a') THEN
-      RAISE EXCEPTION 'BREACH: la bitácora es borrable';
-    END IF;
-  EXCEPTION WHEN others THEN
-    RAISE NOTICE 'OK: audit_logs inmutable ante DELETE';
+  EXCEPTION WHEN insufficient_privilege THEN
+    NULL; -- denegación esperada; el efecto se verifica abajo
   END;
+  IF NOT EXISTS (SELECT 1 FROM public.audit_logs
+                  WHERE id = '66666666-0000-4000-8000-00000000000a') THEN
+    RAISE EXCEPTION 'RLS BREACH: la bitácora es borrable';
+  END IF;
+  RAISE NOTICE 'OK: audit_logs inmutable ante DELETE';
 END $$;
 
 ROLLBACK;

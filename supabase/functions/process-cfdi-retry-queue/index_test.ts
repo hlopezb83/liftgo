@@ -1,5 +1,8 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { nextRetryAt } from "../_shared/cfdiRetryQueue.ts";
+// R2 (bajo 6): decisiones importadas del módulo REAL — antes se
+// reimplementaban inline y el test pasaba aunque FIX-15 se rompiera.
+import { decideStampRetry, decideTerminalStatus } from "./decisions.ts";
 
 Deno.test("nextRetryAt: 0 intentos → ~1 min", () => {
   const delta = nextRetryAt(0).getTime() - Date.now();
@@ -55,38 +58,31 @@ Deno.test("operation → function mapping usa funciones reales (contrato con CHE
 });
 
 // TESTS-ARQ2 (DIFF 3): estado terminal `exhausted` cuando attempts alcanza
-// max_attempts. Espejo puro de la rama en index.ts para blindar la política.
+// max_attempts. Ahora prueba la función REAL que usa index.ts.
 Deno.test("terminal state: attempts >= max_attempts → exhausted", () => {
-  const decide = (attempts: number, max: number) =>
-    attempts >= max ? "exhausted" : "pending";
-  assertEquals(decide(5, 5), "exhausted");
-  assertEquals(decide(6, 5), "exhausted");
-  assertEquals(decide(4, 5), "pending");
+  assertEquals(decideTerminalStatus(5, 5), "exhausted");
+  assertEquals(decideTerminalStatus(6, 5), "exhausted");
+  assertEquals(decideTerminalStatus(4, 5), "pending");
 });
 
 // FIX-15: antes de re-timbrar, si la factura ya no está en pending|error o
 // ya tiene cfdi_uuid, el reintento debe tratarse como no-op exitoso.
 Deno.test("FIX-15: factura ya timbrada/cancelada -> no-op succeeded (no re-timbra)", () => {
-  const decide = (
-    st: { cfdi_status?: string; cfdi_uuid?: string | null } | null,
-  ) => {
-    if (
-      !st || st.cfdi_uuid ||
-      (st.cfdi_status !== "pending" && st.cfdi_status !== "error")
-    ) {
-      return "succeeded_noop_state";
-    }
-    return "proceed";
-  };
   assertEquals(
-    decide({ cfdi_status: "stamped", cfdi_uuid: "u1" }),
+    decideStampRetry({ cfdi_status: "stamped", cfdi_uuid: "u1" }),
     "succeeded_noop_state",
   );
   assertEquals(
-    decide({ cfdi_status: "cancelled", cfdi_uuid: null }),
+    decideStampRetry({ cfdi_status: "cancelled", cfdi_uuid: null }),
     "succeeded_noop_state",
   );
-  assertEquals(decide(null), "succeeded_noop_state");
-  assertEquals(decide({ cfdi_status: "error", cfdi_uuid: null }), "proceed");
-  assertEquals(decide({ cfdi_status: "pending", cfdi_uuid: null }), "proceed");
+  assertEquals(decideStampRetry(null), "succeeded_noop_state");
+  assertEquals(
+    decideStampRetry({ cfdi_status: "error", cfdi_uuid: null }),
+    "proceed",
+  );
+  assertEquals(
+    decideStampRetry({ cfdi_status: "pending", cfdi_uuid: null }),
+    "proceed",
+  );
 });

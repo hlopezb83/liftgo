@@ -1,4 +1,5 @@
 -- RLS: contracts — escritura gobernada por la matriz (has_permission); mecánico sin acceso.
+-- FIX-R2-04: chequeo de BREACH fuera del handler (ver invoices.sql).
 BEGIN;
 
 INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
@@ -20,6 +21,7 @@ SET LOCAL role = 'authenticated';
 SET LOCAL request.jwt.claims TO '{"sub":"bbbbbbbb-0000-4000-8000-000000000001","role":"authenticated"}';
 
 DO $$
+DECLARE v_blocked boolean := false;
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM public.contracts
                   WHERE id = 'bbbbbbbb-0000-4000-8000-00000000000f') THEN
@@ -29,10 +31,13 @@ BEGIN
   IF NOT public.has_permission('Contratos', 'full') THEN
     BEGIN
       INSERT INTO public.contracts (contract_number) VALUES ('CTR-RLS-HACK');
-      RAISE EXCEPTION 'RLS BREACH: dispatcher sin permiso creó un contrato';
-    EXCEPTION WHEN others THEN
-      RAISE NOTICE 'OK: escritura de contratos gobernada por la matriz';
+    EXCEPTION WHEN insufficient_privilege THEN
+      v_blocked := true;
     END;
+    IF NOT v_blocked THEN
+      RAISE EXCEPTION 'RLS BREACH: dispatcher sin permiso creó un contrato';
+    END IF;
+    RAISE NOTICE 'OK: escritura de contratos gobernada por la matriz';
   END IF;
 END $$;
 

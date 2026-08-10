@@ -13,6 +13,8 @@ export const bookingKeys = {
     [...bookingKeys.all, "customer", customerId] as const,
   byForklift: (forkliftId: string) =>
     [...bookingKeys.all, "forklift", forkliftId] as const,
+  /** Prefijo del listado por rango de fechas (drilldown de utilización / calendario). */
+  range: () => [...bookingKeys.all, "range"] as const,
   extensions: (bookingId: string) =>
     [...bookingKeys.detail(bookingId), "extensions"] as const,
   auditLogs: (bookingId: string) =>

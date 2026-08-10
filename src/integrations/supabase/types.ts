@@ -838,6 +838,7 @@ export type Database = {
           invoice_id: string
           issued_at: string
           line_items: Json
+          lookup_attempts: number
           motive: string
           reason_text: string
           status: string
@@ -868,6 +869,7 @@ export type Database = {
           invoice_id: string
           issued_at?: string
           line_items?: Json
+          lookup_attempts?: number
           motive: string
           reason_text: string
           status?: string
@@ -898,6 +900,7 @@ export type Database = {
           invoice_id?: string
           issued_at?: string
           line_items?: Json
+          lookup_attempts?: number
           motive?: string
           reason_text?: string
           status?: string
@@ -2340,6 +2343,7 @@ export type Database = {
           rep_error_message: string | null
           rep_facturapi_id: string | null
           rep_folio: string | null
+          rep_lookup_attempts: number
           rep_number: string | null
           rep_pdf_url: string | null
           rep_stamping_started_at: string | null
@@ -2368,6 +2372,7 @@ export type Database = {
           rep_error_message?: string | null
           rep_facturapi_id?: string | null
           rep_folio?: string | null
+          rep_lookup_attempts?: number
           rep_number?: string | null
           rep_pdf_url?: string | null
           rep_stamping_started_at?: string | null
@@ -2396,6 +2401,7 @@ export type Database = {
           rep_error_message?: string | null
           rep_facturapi_id?: string | null
           rep_folio?: string | null
+          rep_lookup_attempts?: number
           rep_number?: string | null
           rep_pdf_url?: string | null
           rep_stamping_started_at?: string | null
@@ -3636,6 +3642,14 @@ export type Database = {
         Args: { _target_user_id: string }
         Returns: undefined
       }
+      assign_forklift_to_sale_quote: {
+        Args: {
+          p_forklift_ids: string[]
+          p_line_indices: number[]
+          p_quote_id: string
+        }
+        Returns: undefined
+      }
       assign_stamped_credit_note_number: {
         Args: { p_credit_note_id: string; p_folio: string }
         Returns: string
@@ -4005,6 +4019,7 @@ export type Database = {
         }[]
       }
       get_sidebar_badge_counts: { Args: never; Returns: Json }
+      has_active_rental: { Args: { p_forklift_id: string }; Returns: boolean }
       has_permission: {
         Args: { p_level?: string; p_module: string }
         Returns: boolean

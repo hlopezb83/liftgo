@@ -6,6 +6,14 @@ import { e2eVisibilityFilter, LIST_FETCH_LIMIT } from "@/lib/supabase/constants"
 import { bookingKeys } from "../../lib/queryKeys";
 export type { Booking, BookingWithForklift } from "@/types/rental";
 
+/**
+ * Límite del listado por rango (drilldown de utilización / calendario).
+ * El hook pide BOOKINGS_RANGE_LIMIT + 1 filas para distinguir "2000 exactas" de
+ * "truncado" (mismo patrón que LIST_FETCH_LIMIT/LIST_PAGE_LIMIT): el consumidor
+ * recorta a BOOKINGS_RANGE_LIMIT y muestra un aviso si length > límite.
+ */
+export const BOOKINGS_RANGE_LIMIT = 2000;
+
 type BookingListRow = Awaited<ReturnType<typeof fetchBookingList>>[number];
 type BookingDetailRow = Awaited<ReturnType<typeof fetchBookingDetail>>;
 
@@ -67,10 +75,9 @@ export function useBookingsRange(from: string | Date, to: string | Date) {
   const toStr = typeof to === "string" ? to : toYMD(to);
 
   return useQuery({
-    queryKey: [...bookingKeys.all, "range", fromStr, toStr] as const,
+    queryKey: [...bookingKeys.range(), fromStr, toStr] as const,
     staleTime: 60_000,
     queryFn: async () => {
-      const RANGE_LIMIT = 2000;
       const { data, error } = await supabase
         .from("bookings")
         .select("*, forklifts(name, model)")
@@ -78,13 +85,8 @@ export function useBookingsRange(from: string | Date, to: string | Date) {
         .gte("end_date", fromStr)
         .lte("start_date", toStr)
         .order("start_date", { ascending: true })
-        .limit(RANGE_LIMIT);
+        .limit(BOOKINGS_RANGE_LIMIT + 1); // +1: detectar truncamiento real
       if (error) throw error;
-      if ((data?.length ?? 0) >= RANGE_LIMIT) {
-        console.warn(
-          `[useBookingsRange] Alcanzó el límite de ${RANGE_LIMIT} reservas en el rango ${fromStr}..${toStr}. Migrar a paginación por semanas.`,
-        );
-      }
       return data;
     },
   });

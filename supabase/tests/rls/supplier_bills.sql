@@ -1,4 +1,5 @@
 -- RLS: supplier_bills — cuentas por pagar restringidas a admin/administrativo (auditor solo lee).
+-- FIX-R2-04: chequeo de BREACH fuera del handler (ver invoices.sql).
 BEGIN;
 
 INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
@@ -25,10 +26,16 @@ BEGIN
     RAISE EXCEPTION 'RLS BREACH: ventas lee cuentas por pagar';
   END IF;
 
+  DECLARE v_blocked boolean := false;
   BEGIN
-    INSERT INTO public.supplier_bills (bill_number, total) VALUES ('CXP-RLS-HACK', 1);
-    RAISE EXCEPTION 'RLS BREACH: ventas creó una factura de proveedor';
-  EXCEPTION WHEN others THEN
+    BEGIN
+      INSERT INTO public.supplier_bills (bill_number, total) VALUES ('CXP-RLS-HACK', 1);
+    EXCEPTION WHEN insufficient_privilege THEN
+      v_blocked := true;
+    END;
+    IF NOT v_blocked THEN
+      RAISE EXCEPTION 'RLS BREACH: ventas creó una factura de proveedor';
+    END IF;
     RAISE NOTICE 'OK: ventas bloqueado en supplier_bills';
   END;
 END $$;
@@ -48,12 +55,13 @@ BEGIN
     UPDATE public.supplier_bills SET total = 0
      WHERE id = '99999999-0000-4000-8000-00000000000f';
     GET DIAGNOSTICS v_rows = ROW_COUNT;
-    IF v_rows > 0 THEN
-      RAISE EXCEPTION 'RLS BREACH: auditor modificó una factura de proveedor';
-    END IF;
   EXCEPTION WHEN insufficient_privilege THEN
-    RAISE NOTICE 'OK: auditor es de solo lectura';
+    v_rows := 0; -- denegación esperada
   END;
+  IF v_rows > 0 THEN
+    RAISE EXCEPTION 'RLS BREACH: auditor modificó una factura de proveedor';
+  END IF;
+  RAISE NOTICE 'OK: auditor es de solo lectura';
 END $$;
 
 ROLLBACK;

@@ -44,11 +44,28 @@ export async function requireAuth(req: Request): Promise<AuthResult> {
   // SEC-M2: un JWT emitido sigue siendo válido aunque el usuario haya sido
   // desactivado (getClaims no consulta la DB). Verificar is_active en cada
   // llamada cierra la ventana de acceso (~1h) de usuarios dados de baja.
-  const { data: profile } = await adminClient
+  const { data: profile, error: profileError } = await adminClient
     .from("profiles")
     .select("is_active")
     .eq("user_id", userId)
     .maybeSingle();
+  // SEC-M2 (R2 Bajo 3): fail-closed. Si la consulta a profiles falla no podemos
+  // saber si la cuenta sigue activa; denegar (mismo criterio que el rate limiter,
+  // SEC-M4) en vez de dejar pasar a un usuario potencialmente desactivado.
+  if (profileError) {
+    console.error(
+      "[auth] profiles lookup failed, fail-closed:",
+      profileError.message,
+    );
+    return {
+      ok: false,
+      response: jsonError(
+        req,
+        503,
+        "Servicio de verificación de cuenta no disponible. Reintenta en unos segundos.",
+      ),
+    };
+  }
   if (profile && profile.is_active === false) {
     return { ok: false, response: jsonError(req, 403, "Cuenta desactivada") };
   }
@@ -123,11 +140,28 @@ export async function requireServiceOrRole(
 
   // SEC-M2: mismo guard de cuenta desactivada en la ruta con rol explícito
   // (el bypass service_role de arriba queda intacto: no tiene profile).
-  const { data: profile } = await adminClient
+  const { data: profile, error: profileError } = await adminClient
     .from("profiles")
     .select("is_active")
     .eq("user_id", userId)
     .maybeSingle();
+  // SEC-M2 (R2 Bajo 3): fail-closed. Si la consulta a profiles falla no podemos
+  // saber si la cuenta sigue activa; denegar (mismo criterio que el rate limiter,
+  // SEC-M4) en vez de dejar pasar a un usuario potencialmente desactivado.
+  if (profileError) {
+    console.error(
+      "[auth] profiles lookup failed, fail-closed:",
+      profileError.message,
+    );
+    return {
+      ok: false,
+      response: jsonError(
+        req,
+        503,
+        "Servicio de verificación de cuenta no disponible. Reintenta en unos segundos.",
+      ),
+    };
+  }
   if (profile && profile.is_active === false) {
     return { ok: false, response: jsonError(req, 403, "Cuenta desactivada") };
   }

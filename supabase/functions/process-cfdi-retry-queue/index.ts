@@ -20,6 +20,11 @@ import {
   getFacturapiConfig,
   retryOnFacturapi5xx,
 } from "../_shared/facturapi/client.ts";
+import {
+  decideStampRetry,
+  decideTerminalStatus,
+  type StampInvoiceState,
+} from "./decisions.ts";
 
 interface QueueRow {
   id: string;
@@ -225,14 +230,11 @@ Deno.serve(async (req) => {
           .select("cfdi_status, cfdi_uuid")
           .eq("id", row.invoice_id)
           .maybeSingle();
-        const st = invRow as
-          | { cfdi_status?: string; cfdi_uuid?: string | null }
-          | null;
+        const st = invRow as StampInvoiceState | null;
         // Ya timbrada / en reconcile / cancelada → nada que reintentar.
-        if (
-          !st || st.cfdi_uuid ||
-          (st.cfdi_status !== "pending" && st.cfdi_status !== "error")
-        ) {
+        // R2 (bajo 6): decisión REAL importada desde decisions.ts (el test
+        // consume la misma función — ya no hay lógica duplicada).
+        if (decideStampRetry(st) === "succeeded_noop_state") {
           await markQueueRow(admin, row.id, {
             status: "succeeded",
             attempts: nextAttempts,
@@ -336,33 +338,39 @@ Deno.serve(async (req) => {
       } else {
         const errMsg = (invRes.body as { error?: string } | null)?.error ??
           String(invRes.body);
-        const isTerminal = nextAttempts >= row.max_attempts;
+        const queueStatus = decideTerminalStatus(
+          nextAttempts,
+          row.max_attempts,
+        );
         await markQueueRow(admin, row.id, {
-          status: isTerminal ? "exhausted" : "pending",
+          status: queueStatus,
           attempts: nextAttempts,
           last_error: String(errMsg).slice(0, 2000),
-          next_retry_at: isTerminal
+          next_retry_at: queueStatus === "exhausted"
             ? nowIso
             : nextRetryAt(nextAttempts).toISOString(),
         });
         results.push({
           id: row.id,
-          status: isTerminal ? "exhausted" : "retry",
+          status: queueStatus === "exhausted" ? "exhausted" : "retry",
           http: invRes.status,
         });
       }
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      const isTerminal = nextAttempts >= row.max_attempts;
+      const queueStatus = decideTerminalStatus(nextAttempts, row.max_attempts);
       await markQueueRow(admin, row.id, {
-        status: isTerminal ? "exhausted" : "pending",
+        status: queueStatus,
         attempts: nextAttempts,
         last_error: msg.slice(0, 2000),
-        next_retry_at: isTerminal
+        next_retry_at: queueStatus === "exhausted"
           ? nowIso
           : nextRetryAt(nextAttempts).toISOString(),
       });
-      results.push({ id: row.id, status: isTerminal ? "exhausted" : "retry" });
+      results.push({
+        id: row.id,
+        status: queueStatus === "exhausted" ? "exhausted" : "retry",
+      });
     }
   }
 

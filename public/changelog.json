@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.286.0",
+    "date": "2026-08-10",
+    "type": "minor",
+    "title": "Auditoría R2: 26 correcciones en CFDI, flota, reportes y seguridad",
+    "category": "improvement",
+    "description": "Se validaron y aplicaron las 26 correcciones de la auditoría R2: reconciliación de timbrado que ya no revierte REP/NC al primer intento fallido (contadores de misses), cola de reintentos CFDI con lógica extraída y probada, aviso de XML pendiente en el detalle de factura, guards de venta de equipo (archivado, vendido o con renta activa) en una sola operación atómica, horómetro no negativo, filtros de mantenimiento en disponibilidad y creación de reservas, backfills de costos de póliza y bitácora de estatus, reportes protegidos por permiso, invalidación de caché de reportes, enlace de recuperación visible al invitar usuarios y pruebas RLS que ya no ocultan fallas."
+  },
+  {
     "version": "7.285.1",
     "date": "2026-08-10",
     "type": "patch",

@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { reportKeys } from "@/features/reports/lib/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
@@ -47,7 +48,7 @@ export function useCreateMaintenanceLog() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [maintenanceLogKeys.all],
+    invalidateKeys: [maintenanceLogKeys.all, reportKeys.all],
     errorTitle: "Error al crear registro de mantenimiento",
   });
 }
@@ -59,7 +60,7 @@ export function useUpdateMaintenanceLog() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [maintenanceLogKeys.all],
+    invalidateKeys: [maintenanceLogKeys.all, reportKeys.all],
     errorTitle: "Error al actualizar registro de mantenimiento",
   });
 }
@@ -70,7 +71,7 @@ export function useDeleteMaintenanceLog() {
       const { error } = await supabase.rpc("soft_delete_maintenance_log", { p_log_id: id });
       if (error) throw error;
     },
-    invalidateKeys: [maintenanceLogKeys.all],
+    invalidateKeys: [maintenanceLogKeys.all, reportKeys.all],
     errorTitle: "Error al archivar registro de mantenimiento",
   });
 }

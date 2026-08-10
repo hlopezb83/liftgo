@@ -15,7 +15,9 @@ export function DeliveryActions({ status, canDelete, onComplete, onDelete }: Del
   const [open, setOpen] = useState(false);
   return (
     <div className="flex gap-2">
-      {status !== "completed" && (
+      {/* FIX-R2-08 (02-FIX-10 frontend): cancelled tampoco se puede completar;
+          el backend ya lo rechaza — ocultar en vez de mostrar el error crudo. */}
+      {status !== "completed" && status !== "cancelled" && (
         <Button size="sm" onClick={onComplete}>
           <SuccessIcon className="h-4 w-4 mr-1" /> Completar
         </Button>

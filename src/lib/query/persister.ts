@@ -11,7 +11,21 @@ import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persist
 import type { Query } from "@tanstack/react-query";
 
 const STORAGE_KEY = "liftgo:rq-cache:v2"; // SEC-B7: invalida cachés previas con datos financieros
+// SEC-B7 residual (R2 Bajo 2): la caché v1 (con datos financieros, pre-allowlist)
+// nunca se purgó al subir a v2 — quedaba en localStorage indefinidamente.
+const LEGACY_STORAGE_KEYS = ["liftgo:rq-cache:v1"] as const;
 const MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24h
+
+/** Borra cachés persistidas de versiones anteriores. Idempotente; se llama al boot. */
+function purgeLegacyPersistedCaches(storage: Storage) {
+  for (const key of LEGACY_STORAGE_KEYS) {
+    try {
+      storage.removeItem(key);
+    } catch {
+      // storage bloqueado (modo privado, políticas): no romper el arranque.
+    }
+  }
+}
 
 /**
  * Prefijos de queryKey que se persisten en disco.
@@ -97,6 +111,7 @@ export function createBrowserPersister() {
       throttleTime: 1000,
     });
   }
+  purgeLegacyPersistedCaches(window.localStorage);
   return createSyncStoragePersister({
     storage: window.localStorage,
     key: STORAGE_KEY,

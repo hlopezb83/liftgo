@@ -1,5 +1,6 @@
 -- RLS: billing_secrets — tabla más sensible (llaves de Facturapi).
 -- Guard: NINGÚN rol de aplicación puede leerla; solo admin escribe.
+-- FIX-R2-04: chequeo de BREACH fuera del handler (ver invoices.sql).
 BEGIN;
 
 INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
@@ -23,10 +24,16 @@ BEGIN
     RAISE EXCEPTION 'RLS BREACH: ventas puede leer billing_secrets';
   END IF;
 
+  DECLARE v_blocked boolean := false;
   BEGIN
-    INSERT INTO public.billing_secrets (key, value) VALUES ('facturapi_live', 'sk_test');
-    RAISE EXCEPTION 'RLS BREACH: ventas pudo insertar billing_secrets';
-  EXCEPTION WHEN others THEN
+    BEGIN
+      INSERT INTO public.billing_secrets (key, value) VALUES ('facturapi_live', 'sk_test');
+    EXCEPTION WHEN insufficient_privilege THEN
+      v_blocked := true;
+    END;
+    IF NOT v_blocked THEN
+      RAISE EXCEPTION 'RLS BREACH: ventas pudo insertar billing_secrets';
+    END IF;
     RAISE NOTICE 'OK: ventas bloqueado en billing_secrets';
   END;
 END $$;

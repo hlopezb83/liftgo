@@ -30,7 +30,9 @@ import {
 } from "../_shared/facturapi/client.ts";
 
 import {
+  decideLookupOutcome,
   decideRowAction,
+  MAX_LOOKUP_MISSES,
   MAX_STAMPING_ATTEMPTS,
   type PacLookup,
   type StuckRow as PureStuckRow,
@@ -70,8 +72,40 @@ Deno.serve(async (req) => {
     return json({ error: "Fetch failed" }, 500);
   }
 
+  // N4: consultar TAMBIÉN REP y NC atascados ANTES de decidir si salir —
+  // si solo hay pagos o NCs en 'stamping', el cron no debe irse sin
+  // procesarlos (deadlock permanente tras un timeout del PAC).
+  const { data: stuckPayments, error: payErr } = await admin
+    .from("payments")
+    .select(
+      "id, invoice_id, rep_cfdi_uuid, rep_facturapi_id, rep_stamping_started_at, rep_lookup_attempts",
+    )
+    .eq("rep_cfdi_status", "stamping")
+    .lt("rep_stamping_started_at", cutoff)
+    .limit(20);
+
+  if (payErr) {
+    console.error("[reconcile-stamping] payments fetch failed", payErr);
+  }
+
+  const { data: stuckNcs, error: ncErr } = await admin
+    .from("credit_notes")
+    .select("id, cfdi_uuid, facturapi_invoice_id, updated_at, lookup_attempts")
+    .eq("cfdi_status", "stamping")
+    .lt("updated_at", cutoff)
+    .limit(20);
+
+  if (ncErr) {
+    console.error("[reconcile-stamping] credit_notes fetch failed", ncErr);
+  }
+
   const stuck = (rows ?? []) as StuckRow[];
-  if (stuck.length === 0) {
+  const payments = (stuckPayments ?? []) as Array<Record<string, unknown>>;
+  const ncs = (stuckNcs ?? []) as Array<Record<string, unknown>>;
+
+  // N4: salir SOLO si las tres listas están vacías. Con trabajo pendiente,
+  // se continúa y se pide la config del PAC (no se gasta en ciclos vacíos).
+  if (stuck.length === 0 && payments.length === 0 && ncs.length === 0) {
     return json({ processed: 0, results: [] }, 200);
   }
 
@@ -120,6 +154,11 @@ Deno.serve(async (req) => {
           ) {
             pac = { kind: "hit", facturapi_id: hit.id, uuid: hit.uuid };
           }
+        } else {
+          // N5: el SDK no expone invoices.list → NO es un "miss" (nunca se
+          // consultó al PAC). lookup_failed: difiere sin consumir el
+          // presupuesto de misses y jamás revierte sin haber consultado.
+          pac = { kind: "lookup_failed" };
         }
       } catch (err) {
         console.error("[reconcile-stamping] lookup by external_id failed", {
@@ -143,11 +182,15 @@ Deno.serve(async (req) => {
         continue;
       }
       if (action.kind === "retry_lookup") {
-        // H6: PAC no respondió o la búsqueda no encontró nada (aún). Bump del
-        // contador y dejar la fila en 'stamping' para el próximo ciclo.
-        await admin.from("invoices")
-          .update({ stamping_attempts: (row.stamping_attempts ?? 0) + 1 })
-          .eq("id", row.id);
+        // N9: solo un miss REAL consume el presupuesto de intentos; un
+        // lookup_failed (PAC caído / SDK sin list) difiere SIN bump — si no,
+        // 10 ciclos de PAC caído agotaban el presupuesto y el primer miss
+        // real revertía a 'error' de inmediato.
+        if (action.consume_attempt) {
+          await admin.from("invoices")
+            .update({ stamping_attempts: (row.stamping_attempts ?? 0) + 1 })
+            .eq("id", row.id);
+        }
         results.push({ invoice_id: row.id, status: "pac_lookup_deferred" });
         continue;
       }
@@ -308,27 +351,15 @@ Deno.serve(async (req) => {
   // ── H4: reconciliación de COMPLEMENTOS DE PAGO (REP) ─────────────────────
   // Mismo patrón que invoices: payments atascados en rep_cfdi_status='stamping'
   // tras un timeout del PAC. Sin esto, el claim stale re-timbraba un duplicado.
-  const { data: stuckPayments, error: payErr } = await admin
-    .from("payments")
-    .select(
-      "id, invoice_id, rep_cfdi_uuid, rep_facturapi_id, rep_stamping_started_at",
-    )
-    .eq("rep_cfdi_status", "stamping")
-    .lt("rep_stamping_started_at", cutoff)
-    .limit(20);
-
-  if (payErr) {
-    console.error("[reconcile-stamping] payments fetch failed", payErr);
-  }
-
-  for (const p of (stuckPayments ?? []) as Array<Record<string, unknown>>) {
+  // N4: la consulta se movió ARRIBA del early return (bloque inicial).
+  for (const p of payments) {
     const paymentId = p.id as string;
     let facturapiId = p.rep_facturapi_id as string | null;
     let repUuid = p.rep_cfdi_uuid as string | null;
 
     // R12-B2 (payments): sin ids persistidos, lookup al PAC por external_id.
     if (!facturapiId || !repUuid) {
-      let lookupFailed = false;
+      let pac: PacLookup = { kind: "miss" };
       try {
         const listFn = (client.invoices as unknown as {
           list?: (q: Record<string, unknown>) => Promise<unknown>;
@@ -349,36 +380,54 @@ Deno.serve(async (req) => {
           if (
             hit && typeof hit.id === "string" && typeof hit.uuid === "string"
           ) {
-            facturapiId = hit.id;
-            repUuid = hit.uuid;
-            await admin.from("payments")
-              .update({ rep_facturapi_id: facturapiId, rep_cfdi_uuid: repUuid })
-              .eq("id", paymentId);
+            pac = { kind: "hit", facturapi_id: hit.id, uuid: hit.uuid };
           }
+        } else {
+          // N5: SDK sin invoices.list → lookup_failed (nunca revertir sin
+          // haber consultado al PAC).
+          pac = { kind: "lookup_failed" };
         }
       } catch (err) {
-        lookupFailed = true;
+        pac = { kind: "lookup_failed" };
         console.error("[reconcile-stamping] REP lookup failed", {
           payment_id: paymentId,
           err: describeFacturapiError(err).message,
         });
       }
-      if (!facturapiId || !repUuid) {
-        if (lookupFailed) {
-          // PAC no respondió: dejar en 'stamping' y reintentar el próximo ciclo.
-          results.push({
-            invoice_id: paymentId,
-            status: "rep_lookup_deferred",
-          });
-          continue;
+      // N5/N9: la decisión (recover / defer / revert) vive en decisions.ts.
+      const lookupAttempts = p.rep_lookup_attempts as number | null;
+      const outcome = decideLookupOutcome(pac, lookupAttempts);
+      if (outcome.kind === "recover") {
+        facturapiId = outcome.facturapi_id;
+        repUuid = outcome.uuid;
+        await admin.from("payments")
+          .update({
+            rep_facturapi_id: facturapiId,
+            rep_cfdi_uuid: repUuid,
+            rep_lookup_attempts: 0, // racha de misses consecutivos: reset
+          })
+          .eq("id", paymentId);
+      } else if (outcome.kind === "defer") {
+        // N9: solo un miss REAL incrementa el contador; lookup_failed no.
+        if (outcome.consume_attempt) {
+          await admin.from("payments")
+            .update({ rep_lookup_attempts: (lookupAttempts ?? 0) + 1 })
+            .eq("id", paymentId);
         }
-        // PAC confirma que nunca se timbró → seguro volver a 'error'.
+        // PAC no respondió o aún no indexa: reintentar el próximo ciclo.
+        results.push({ invoice_id: paymentId, status: "rep_lookup_deferred" });
+        continue;
+      } else {
+        // N5: revert SOLO tras MAX_LOOKUP_MISSES misses consecutivos con el
+        // PAC respondiendo (antes: al primer miss → re-timbrado → CFDI
+        // tipo P duplicado ante el SAT).
         await admin.from("payments")
           .update({
             rep_cfdi_status: "error",
             rep_stamping_started_at: null,
+            rep_lookup_attempts: (lookupAttempts ?? 0) + 1,
             rep_error_message:
-              "Timbrado de REP interrumpido sin registro en Facturapi. Puedes reintentar el timbrado.",
+              `Timbrado de REP interrumpido; Facturapi confirmó ${MAX_LOOKUP_MISSES} veces que el CFDI no existe. Puedes reintentar el timbrado.`,
           })
           .eq("id", paymentId);
         results.push({
@@ -443,6 +492,7 @@ Deno.serve(async (req) => {
           rep_xml_url: xmlPath,
           rep_pdf_url: pdfPath,
           rep_error_message: null,
+          rep_lookup_attempts: 0,
         })
         .eq("id", paymentId);
       results.push({ invoice_id: paymentId, status: "rep_reconciled" });
@@ -463,24 +513,14 @@ Deno.serve(async (req) => {
   // ── H5: reconciliación de NOTAS DE CRÉDITO ───────────────────────────────
   // El claim de stamp-credit-note solo admite pending|error y nada reconciliaba
   // credit_notes: una NC en 'stamping' tras timeout quedaba ingestionable.
-  const { data: stuckNcs, error: ncErr } = await admin
-    .from("credit_notes")
-    .select("id, cfdi_uuid, facturapi_invoice_id, updated_at")
-    .eq("cfdi_status", "stamping")
-    .lt("updated_at", cutoff)
-    .limit(20);
-
-  if (ncErr) {
-    console.error("[reconcile-stamping] credit_notes fetch failed", ncErr);
-  }
-
-  for (const nc of (stuckNcs ?? []) as Array<Record<string, unknown>>) {
+  // N4: la consulta se movió ARRIBA del early return (bloque inicial).
+  for (const nc of ncs) {
     const ncId = nc.id as string;
     let facturapiId = nc.facturapi_invoice_id as string | null;
     let ncUuid = nc.cfdi_uuid as string | null;
 
     if (!facturapiId || !ncUuid) {
-      let lookupFailed = false;
+      let pac: PacLookup = { kind: "miss" };
       try {
         const listFn = (client.invoices as unknown as {
           list?: (q: Record<string, unknown>) => Promise<unknown>;
@@ -500,31 +540,51 @@ Deno.serve(async (req) => {
           if (
             hit && typeof hit.id === "string" && typeof hit.uuid === "string"
           ) {
-            facturapiId = hit.id;
-            ncUuid = hit.uuid;
-            await admin.from("credit_notes")
-              .update({ facturapi_invoice_id: facturapiId, cfdi_uuid: ncUuid })
-              .eq("id", ncId);
+            pac = { kind: "hit", facturapi_id: hit.id, uuid: hit.uuid };
           }
+        } else {
+          // N5: SDK sin invoices.list → lookup_failed (nunca revertir sin
+          // haber consultado al PAC).
+          pac = { kind: "lookup_failed" };
         }
       } catch (err) {
-        lookupFailed = true;
+        pac = { kind: "lookup_failed" };
         console.error("[reconcile-stamping] NC lookup failed", {
           credit_note_id: ncId,
           err: describeFacturapiError(err).message,
         });
       }
-      if (!facturapiId || !ncUuid) {
-        if (lookupFailed) {
-          results.push({ invoice_id: ncId, status: "nc_lookup_deferred" });
-          continue;
+      // N5/N9: la decisión (recover / defer / revert) vive en decisions.ts.
+      const lookupAttempts = nc.lookup_attempts as number | null;
+      const outcome = decideLookupOutcome(pac, lookupAttempts);
+      if (outcome.kind === "recover") {
+        facturapiId = outcome.facturapi_id;
+        ncUuid = outcome.uuid;
+        await admin.from("credit_notes")
+          .update({
+            facturapi_invoice_id: facturapiId,
+            cfdi_uuid: ncUuid,
+            lookup_attempts: 0, // racha de misses consecutivos: reset
+          })
+          .eq("id", ncId);
+      } else if (outcome.kind === "defer") {
+        // N9: solo un miss REAL incrementa el contador; lookup_failed no.
+        if (outcome.consume_attempt) {
+          await admin.from("credit_notes")
+            .update({ lookup_attempts: (lookupAttempts ?? 0) + 1 })
+            .eq("id", ncId);
         }
-        // PAC confirma que nunca se timbró → 'error' (el claim vuelve a admitirla).
+        results.push({ invoice_id: ncId, status: "nc_lookup_deferred" });
+        continue;
+      } else {
+        // N5: revert SOLO tras MAX_LOOKUP_MISSES misses consecutivos con el
+        // PAC respondiendo (el claim vuelve a admitir pending|error).
         await admin.from("credit_notes")
           .update({
             cfdi_status: "error",
+            lookup_attempts: (lookupAttempts ?? 0) + 1,
             cfdi_error_message:
-              "Timbrado de NC interrumpido sin registro en Facturapi. Puedes reintentar el timbrado.",
+              `Timbrado de NC interrumpido; Facturapi confirmó ${MAX_LOOKUP_MISSES} veces que el CFDI no existe. Puedes reintentar el timbrado.`,
           })
           .eq("id", ncId);
         results.push({ invoice_id: ncId, status: "nc_reverted_to_error" });
@@ -584,6 +644,7 @@ Deno.serve(async (req) => {
           cfdi_xml_url: xmlPath,
           cfdi_pdf_url: pdfPath,
           cfdi_error_message: null,
+          lookup_attempts: 0,
         })
         .eq("id", ncId);
       results.push({ invoice_id: ncId, status: "nc_reconciled" });

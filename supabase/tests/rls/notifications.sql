@@ -1,4 +1,5 @@
 -- RLS: notifications — cada usuario solo ve/edita las suyas; solo admin/administrativo insertan.
+-- FIX-R2-04: chequeo de BREACH fuera del handler (ver invoices.sql).
 BEGIN;
 
 INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
@@ -35,11 +36,17 @@ BEGIN
     RAISE NOTICE 'OK: no borra notificaciones ajenas';
   END;
 
+  DECLARE v_blocked2 boolean := false;
   BEGIN
-    INSERT INTO public.notifications (user_id, type, title)
-    VALUES ('55555555-0000-4000-8000-000000000002', 'info', 'Spam');
-    RAISE EXCEPTION 'RLS BREACH: ventas pudo crear notificaciones';
-  EXCEPTION WHEN others THEN
+    BEGIN
+      INSERT INTO public.notifications (user_id, type, title)
+      VALUES ('55555555-0000-4000-8000-000000000002', 'info', 'Spam');
+    EXCEPTION WHEN insufficient_privilege THEN
+      v_blocked2 := true;
+    END;
+    IF NOT v_blocked2 THEN
+      RAISE EXCEPTION 'RLS BREACH: ventas pudo crear notificaciones';
+    END IF;
     RAISE NOTICE 'OK: solo admin/administrativo crean notificaciones';
   END;
 END $$;

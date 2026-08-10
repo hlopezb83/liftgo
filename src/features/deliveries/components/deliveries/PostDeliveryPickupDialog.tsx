@@ -60,11 +60,11 @@ interface BodyProps {
   delivery: DeliverySource;
   bookingEndDate: string;
   onOpenChange: (open: boolean) => void;
+  createDelivery: ReturnType<typeof useCreateDelivery>;
 }
 
 /** Cuerpo del diálogo: se monta al abrir, por lo que no requiere reset en efecto. */
-function PickupDialogBody({ delivery, bookingEndDate, onOpenChange }: BodyProps) {
-  const createDelivery = useCreateDelivery();
+function PickupDialogBody({ delivery, bookingEndDate, onOpenChange, createDelivery }: BodyProps) {
   const [showForm, setShowForm] = useState(false);
   const minHours = delivery.hours_reading;
 
@@ -138,10 +138,14 @@ function PickupDialogBody({ delivery, bookingEndDate, onOpenChange }: BodyProps)
 }
 
 export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, bookingEndDate, forkliftName }: PostDeliveryPickupDialogProps) {
+  // R2 Bajo 13b: la mutación se eleva al padre para restaurar isPending en el
+  // FormDialog (sin él, Escape/clic-fuera cierran el diálogo a media mutación).
+  const createDelivery = useCreateDelivery();
   return (
     <FormDialog
       open={open}
       onOpenChange={onOpenChange}
+      isPending={createDelivery.isPending}
       width="md"
       title="¿Programar recolección?"
       description={
@@ -158,6 +162,7 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
           delivery={delivery}
           bookingEndDate={bookingEndDate}
           onOpenChange={onOpenChange}
+          createDelivery={createDelivery}
         />
       ) : null}
     </FormDialog>

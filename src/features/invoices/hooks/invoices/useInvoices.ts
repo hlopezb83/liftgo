@@ -1,4 +1,5 @@
 import { queryOptions, useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
+import { reportKeys } from "@/features/reports/lib/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { todayKeyMty } from "@/lib/format/dateFormats";
@@ -27,7 +28,7 @@ const sel = (s: string): string => s;
 // el payload de red + inflaba el costo de `dataVersion` en la tabla.
 const INVOICE_COLUMNS = sel(
   "id, invoice_number, folio, serie, customer_id, customer_name, booking_id, quote_id, " +
-  "status, cfdi_status, cfdi_uuid, cfdi_pdf_url, cfdi_xml_url, cfdi_xml, cfdi_error_message, " +
+  "status, cfdi_status, cfdi_uuid, cfdi_pdf_url, cfdi_xml_url, cfdi_xml, cfdi_error_message, cfdi_xml_pending, " +
   "cancellation_status, cancellation_motive, cancellation_reason, cancelled_at, substitution_uuid, " +
   "acuse_pdf_url, acuse_xml_url, facturapi_invoice_id, facturapi_env, stamping_attempts, " +
   "stamp_variance, stamp_variance_checked_at, invoice_type, forma_pago, metodo_pago, uso_cfdi, " +
@@ -164,7 +165,7 @@ export function useCreateInvoice() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [invoiceKeys.all],
+    invalidateKeys: [invoiceKeys.all, reportKeys.all],
     errorTitle: "Error al crear factura",
   });
 }
@@ -199,7 +200,7 @@ export function useUpdateInvoice() {
       return data[0];
     },
     // `invoiceKeys.all` cubre listas y detalle (jerárquico), evitando invalidar dos veces.
-    invalidateKeys: [invoiceKeys.all],
+    invalidateKeys: [invoiceKeys.all, reportKeys.all],
     errorTitle: "Error al actualizar factura",
   });
 }
@@ -212,7 +213,7 @@ export function useDeleteInvoice() {
       if (error) throw error;
       return id;
     },
-    invalidateKeys: [invoiceKeys.lists()],
+    invalidateKeys: [invoiceKeys.lists(), reportKeys.all],
     successMsg: "Factura eliminada",
     errorTitle: "Error al eliminar factura",
     onSuccess: (id) => {

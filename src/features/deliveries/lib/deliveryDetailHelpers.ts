@@ -18,15 +18,20 @@ export const buildCompletionPayload = (
   completedAtIso: string,
   signature?: string,
   hoursReading?: string,
-  /** R10 Bloque 4: horómetro de la entrega para validar que la recolección no
-   *  sea menor (produciría "Horas Usadas" negativo). */
+  /** R10 Bloque 4 / FIX-R2-06 (03-FIX-07): piso del horómetro = máximo entre
+   *  la entrega hermana y la última lectura global de la unidad (monótono). */
   minHours?: number | null,
 ) => {
   const hrs = hoursReading ? parseFloat(hoursReading) : undefined;
-  if (hrs !== undefined && Number.isFinite(hrs) && minHours != null && hrs < minHours) {
-    throw new Error(
-      `El horómetro no puede ser menor a ${minHours} hrs (registradas en la entrega).`,
-    );
+  if (hrs !== undefined) {
+    if (!Number.isFinite(hrs) || hrs < 0) {
+      throw new Error("El horómetro debe ser un número mayor o igual a 0.");
+    }
+    if (minHours != null && hrs < minHours) {
+      throw new Error(
+        `El horómetro no puede ser menor a ${minHours} hrs (última lectura registrada de la unidad).`,
+      );
+    }
   }
   return {
     id,
