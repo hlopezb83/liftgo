@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { Tables } from "@/integrations/supabase/types";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
+import { applyDiscountToBase, lineItemTotal } from "@/lib/domain/invoiceHelpers";
 import { parseLineItems } from "@/lib/domain/lineItems";
 import { roundMoney, sumMoney } from "@/lib/money";
 import { useCreateCreditNote } from "./useCreditNotes";
@@ -23,10 +24,18 @@ export function useCreditNoteForm(
   const taxRate = Number(invoice.tax_rate) || 0;
   // BL-001: sumMoney/roundMoney evitan drift IEEE-754 acumulado en el subtotal
   // y en el redondeo final del IVA (currency.js internamente).
+  // M24: la base de cada línea es qty×price MENOS su descuento (mismo criterio
+  // que el timbrado BL-02). Ignorarlo inflaba la NC sobre facturas con descuento.
   const subtotal = sumMoney(
     lines
       .filter((l) => l._selected)
-      .map((l) => Number(l.quantity || 0) * Number(l.unit_price || 0)),
+      .map((l) =>
+        applyDiscountToBase(
+          lineItemTotal(l.quantity, l.unit_price),
+          l.discount,
+          l.discount_type,
+        )
+      ),
   );
   const taxAmount = roundMoney(subtotal * (taxRate / 100));
   const total = roundMoney(subtotal + taxAmount);
@@ -47,7 +56,16 @@ export function useCreditNoteForm(
   const submit = (stamp: boolean) => {
     const selectedLines = lines
       .filter((l) => l._selected && Number(l.quantity) > 0 && Number(l.unit_price) > 0)
-      .map(({ _selected: _s, ...rest }) => rest);
+      // M24: persistir el total NETO de línea (con descuento aplicado) para que
+      // la NC y su CFDI reflejen lo realmente acreditado.
+      .map(({ _selected: _s, ...rest }) => ({
+        ...rest,
+        total: applyDiscountToBase(
+          lineItemTotal(rest.quantity, rest.unit_price),
+          rest.discount,
+          rest.discount_type,
+        ),
+      }));
 
     createMutation.mutate(
       {

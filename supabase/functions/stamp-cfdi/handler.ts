@@ -230,20 +230,30 @@ export async function handleStampCfdi(
           description?: string;
           quantity?: number;
           unit_price?: number;
-          product_key?: string;
+          // M19: los line_items persisten las claves SAT con estos nombres
+          // (ver invoiceFormBuilders.ts / nonRentalLines.ts). `product_key`
+          // NUNCA existió: todo timbraba con el genérico 78101803.
+          clave_prod_serv?: string;
+          clave_unidad?: string;
+          objeto_imp?: string;
           discount?: number;
           discount_type?: "%" | "$";
         }
       >).map((li) => {
         const quantity = li.quantity || 1;
         const unitPrice = li.unit_price || 0;
+        const objetoImp = li.objeto_imp ?? "02";
         const item: Record<string, unknown> = {
           product: {
             description: li.description || "Servicio de renta",
-            product_key: li.product_key || "78101803",
+            product_key: li.clave_prod_serv || "78101803",
+            unit_key: li.clave_unidad || "E48",
             price: unitPrice,
             tax_included: false,
-            taxes: [{ type: "IVA", rate: taxRateFraction }],
+            // M19: ObjetoImp 01 = no objeto de impuesto → línea sin traslados.
+            taxes: objetoImp === "01"
+              ? []
+              : [{ type: "IVA", rate: taxRateFraction }],
           },
           quantity,
         };

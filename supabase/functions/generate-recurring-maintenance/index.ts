@@ -42,11 +42,13 @@ Deno.serve(async (req) => {
       String(nextMonth.getMonth() + 1).padStart(2, "0")
     }-01`;
 
+    // FIX-14: sin filtro de estatus en la query — las pólizas activas de
+    // unidades no rentadas se clasifican como "omitidas por estado" y se
+    // reportan, en vez de desaparecer silenciosamente.
     const { data: policies, error: pErr } = await supabase
       .from("maintenance_policies")
       .select("*, forklifts!inner(id, status, name)")
-      .eq("is_active", true)
-      .eq("forklifts.status", "rented");
+      .eq("is_active", true);
 
     if (pErr) throw pErr;
 
@@ -58,16 +60,28 @@ Deno.serve(async (req) => {
       provider_name: string | null;
       monthly_cost: number;
       last_generated_month: string | null;
-      forklifts?: { name?: string | null } | null;
+      forklifts?: { name?: string | null; status?: string | null } | null;
     };
 
-    const candidates = ((policies ?? []) as Policy[]).filter(
+    const pendingPolicies = ((policies ?? []) as Policy[]).filter(
       (p) => !p.last_generated_month || p.last_generated_month < currentMonth,
+    );
+    const omittedByStatus = pendingPolicies.filter(
+      (p) => p.forklifts?.status !== "rented",
+    );
+    const candidates = pendingPolicies.filter(
+      (p) => p.forklifts?.status === "rented",
     );
 
     let generated = 0;
-    let skipped = (policies?.length ?? 0) - candidates.length;
+    // skipped = ya generadas este mes (las omitidas por estado van aparte).
+    let skipped = (policies?.length ?? 0) - pendingPolicies.length;
     const details: string[] = [];
+    for (const p of omittedByStatus) {
+      details.push(
+        `⊘ ${p.forklifts?.name ?? p.forklift_id} — omitida: unidad no rentada (estado: ${p.forklifts?.status ?? "desconocido"})`,
+      );
+    }
 
     // BL-41: claim atómico por póliza ANTES de insertar el log. Si otra corrida
     // ya reclamó el mes, el claim devuelve false y omitimos la póliza
@@ -133,6 +147,7 @@ Deno.serve(async (req) => {
     return jsonResponse(req, {
       generated,
       skipped,
+      omitted_by_status: omittedByStatus.length,
       month: currentMonth,
       details,
     });

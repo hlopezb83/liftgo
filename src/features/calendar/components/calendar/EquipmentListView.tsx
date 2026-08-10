@@ -10,6 +10,7 @@ import { RecurringBillingBadge } from "@/features/bookings";
 import { rentalDaysInclusive } from "@/features/bookings";
 import type { Tables } from "@/integrations/supabase/types";
 import { BOOKING_STATUS } from "@/lib/constants";
+import { toYMD } from "@/lib/date/toYMD";
 import { nowMty, formatMtyDate } from "@/lib/utils";
 
 type Forklift = Tables<"forklifts">;
@@ -45,7 +46,9 @@ function enrichBookings(bookings: BookingWithForklift[] | undefined): Map<string
 
 export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProps) {
   const bookingsByForklift = useMemo(() => enrichBookings(bookings), [bookings]);
-  const todayTs = useMemo(() => nowMty().getTime(), []);
+  // M12: día calendario MTY (YYYY-MM-DD) — los timestamps perdían el último
+  // día de la renta (end_date a medianoche < ahora) y el badge "Activa".
+  const todayYmd = useMemo(() => toYMD(nowMty()) as string, []);
   // R7-FE-01 (N7-UX-02): el badge usa la MISMA definición derivada que el
   // encabezado del Calendario y el Panel (helper único), no `forklifts.status`
   // crudo, que el seed deja desincronizado. Sin reservas cargadas → status crudo.
@@ -59,10 +62,13 @@ export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProp
       {forklifts?.map((fl) => {
         const flBookings = bookingsByForklift.get(fl.id) ?? [];
         const activeBooking = flBookings.find(
-          (e) => e.booking.status === BOOKING_STATUS.confirmed && e.startTs <= todayTs && e.endTs >= todayTs,
+          (e) =>
+            e.booking.status === BOOKING_STATUS.confirmed &&
+            e.booking.start_date <= todayYmd &&
+            e.booking.end_date >= todayYmd,
         )?.booking;
         const upcoming = flBookings
-          .filter((e) => e.startTs > todayTs && e.booking.status === BOOKING_STATUS.confirmed)
+          .filter((e) => e.booking.start_date > todayYmd && e.booking.status === BOOKING_STATUS.confirmed)
           .sort((a, b) => a.startTs - b.startTs)
           .map((e) => e.booking);
 

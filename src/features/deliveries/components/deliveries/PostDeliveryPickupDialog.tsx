@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { NumberField, TextField, TextareaField } from "@/components/forms/fields";
+import { parseISO } from "date-fns";
+import { DateField, NumberField, TextField, TextareaField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FleetIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
+import { toYMD } from "@/lib/date/toYMD";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { notifySuccess } from "@/lib/ui/appFeedback";
+import { nowMty } from "@/lib/utils";
 import { useCreateDelivery } from "../../hooks/useDeliveries";
 
 interface PostDeliveryPickupDialogProps {
@@ -27,6 +30,7 @@ interface PostDeliveryPickupDialogProps {
 
 // BL-42 (horómetro): la recolección no puede tener menos horas que la entrega.
 const makeSchema = (minHours: number | null) => z.object({
+  scheduledDate: z.date(),
   address: z.string().default(""),
   driverName: z.string().default(""),
   driverPhone: z.string().default(""),
@@ -48,9 +52,17 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
   const [showForm, setShowForm] = useState(false);
   const minHours = delivery.hours_reading;
 
+  // M8: si la renta ya venció, proponer HOY como fecha de recolección
+  // (comparación por día calendario); nunca una fecha en el pasado.
+  const defaultScheduledDate = (): Date => {
+    const todayYmd = toYMD(nowMty()) as string;
+    return bookingEndDate >= todayYmd ? parseISO(bookingEndDate) : nowMty();
+  };
+
   const form = useForm<FormValues>({
     resolver: zodResolver(makeSchema(minHours)),
     defaultValues: {
+      scheduledDate: defaultScheduledDate(),
       address: delivery.address || "",
       driverName: delivery.driver_name || "",
       driverPhone: delivery.driver_phone || "",
@@ -65,12 +77,14 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
     if (!open) setShowForm(false);
     if (open) {
       form.reset({
+        scheduledDate: defaultScheduledDate(),
         address: delivery.address || "",
         driverName: delivery.driver_name || "",
         driverPhone: delivery.driver_phone || "",
         scheduledTime: "", hoursReading: null, notes: "",
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, delivery, form]);
 
   const handleSchedule = form.handleSubmit((values) => {
@@ -79,7 +93,7 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
         forklift_id: delivery.forklift_id,
         booking_id: delivery.booking_id,
         type: "pickup",
-        scheduled_date: bookingEndDate,
+        scheduled_date: toYMD(values.scheduledDate) ?? bookingEndDate,
         scheduled_time: values.scheduledTime || null,
         address: values.address || null,
         driver_name: values.driverName || null,
@@ -117,7 +131,7 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
         <Form {...form}>
           <form onSubmit={handleSchedule} className="space-y-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              <div><p className="text-muted-foreground">Fecha de Recolección</p><p className="font-medium">{bookingEndDate}</p></div>
+              <DateField control={form.control} name="scheduledDate" label="Fecha de Recolección" required />
               <div><p className="text-muted-foreground">Tipo</p><p className="font-medium">Recolección</p></div>
             </div>
             <TextField control={form.control} name="address" label="Dirección de Recolección" placeholder="Ingresa la dirección" />

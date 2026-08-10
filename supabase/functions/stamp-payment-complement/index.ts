@@ -238,9 +238,12 @@ Deno.serve(async (req) => {
       exchange: invoiceExchange,
     };
 
-    if (ivaRate > 0) {
-      relatedDoc.taxes = [{ base, type: "IVA", rate: ivaRate, factor: "Tasa" }];
-    }
+    // M21: incluir TrasladoDR TAMBIÉN con tasa 0. Si la factura origen gravó
+    // IVA al 0% (ObjetoImp "02"), el Anexo 20 exige el nodo TrasladoDR con
+    // TasaOCuotaDR=0.000000 e ImporteDR=0; omitirlo provoca rechazo del PAC.
+    // (invoice.tax_rate null ya cayó al default 16% arriba, así que aquí la
+    // única forma de ivaRate===0 es una tasa 0 legítima que SÍ debe declararse.)
+    relatedDoc.taxes = [{ base, type: "IVA", rate: ivaRate, factor: "Tasa" }];
 
     const dataEntry: Record<string, unknown> = {
       payment_form: payment.payment_form_sat,

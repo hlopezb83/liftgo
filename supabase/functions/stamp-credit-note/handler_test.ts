@@ -321,3 +321,74 @@ Deno.test("handler: stub mode (no API key) returns stub:true UUID", async () => 
   assertEquals(body.stub, true);
   assert(serviceState.updates.some((u) => u.patch.cfdi_status === "stamped"));
 });
+
+// FIX-12 (M24): la NC debe propagar el descuento de línea al payload de
+// Facturapi, igual que stamp-cfdi (BL-02), para no acreditar el bruto.
+Deno.test("handler: propaga discount al item de Facturapi cuando la línea trae descuento", async () => {
+  let capturedBody: Record<string, unknown> | null = null;
+  const mock = installFacturapiMock({
+    "/invoices": (req) => {
+      if (req.method === "POST") {
+        return req.json().then((b) => {
+          capturedBody = b as Record<string, unknown>;
+          return facturapiOk({ id: "fapi_nc_disc", uuid: "NC-UUID-DISC" });
+        });
+      }
+      return new Response("not found", { status: 404 });
+    },
+    "/invoices/fapi_nc_disc/xml": () => xmlResponse("<xml/>"),
+    "/invoices/fapi_nc_disc/pdf": () =>
+      pdfResponse(new Uint8Array([0x25, 0x50, 0x44, 0x46])),
+  });
+  try {
+    const ncData = {
+      id: NC_ID,
+      invoice_id: INVOICE_ID,
+      tax_rate: 16,
+      currency: "MXN",
+      line_items: [
+        {
+          description: "NC",
+          quantity: 2,
+          unit_price: 100,
+          discount: 10,
+          discount_type: "%",
+        },
+      ],
+    };
+    const { deps } = makeDeps({
+      env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          credit_notes: { data: ncData, error: null },
+          invoices: { data: STAMPED_INVOICE, error: null },
+          company_settings: { data: { facturapi_mode: "test" }, error: null },
+          billing_secrets: { data: null, error: null },
+        },
+        selectsSeq: {
+          credit_notes: [
+            { data: ncData, error: null },
+            { data: [], error: null },
+          ],
+        },
+        updatesSeq: {
+          credit_notes: [{ data: { id: NC_ID }, error: null }],
+        },
+        updates: { credit_notes: { data: null, error: null } },
+      },
+    });
+    const res = await handleStampCreditNote(
+      makeRequest({ credit_note_id: NC_ID }),
+      deps,
+    );
+    await res.json();
+    assertEquals(res.status, 200);
+    const items =
+      (capturedBody as { items?: Array<{ discount?: number }> } | null)?.items;
+    // base 200, descuento 10% = 20
+    assertEquals(items?.[0]?.discount, 20);
+  } finally {
+    mock.restore();
+  }
+});

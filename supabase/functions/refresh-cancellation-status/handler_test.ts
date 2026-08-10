@@ -217,3 +217,66 @@ Deno.test("refresh-cancellation: Facturapi PUT falla -> 502", async () => {
     mock.restore();
   }
 });
+
+// FIX-13: acepta credit_note_id como alternativa a invoice_id.
+const CREDIT_NOTE_ID = "44444444-4444-4444-8444-444444444444";
+
+Deno.test("refresh-cancellation: 400 si no se envía ni invoice_id ni credit_note_id", async () => {
+  const { deps } = makeDeps({
+    service: {
+      selects: { user_roles: { data: [{ role: "admin" }], error: null } },
+    },
+  });
+  const res = await handleRefreshCancellation(makeRequest({}), deps);
+  assertEquals(res.status, 400);
+});
+
+Deno.test("refresh-cancellation: 400 si se envían ambos ids a la vez", async () => {
+  const { deps } = makeDeps({
+    service: {
+      selects: { user_roles: { data: [{ role: "admin" }], error: null } },
+    },
+  });
+  const res = await handleRefreshCancellation(
+    makeRequest({ invoice_id: INVOICE_ID, credit_note_id: CREDIT_NOTE_ID }),
+    deps,
+  );
+  assertEquals(res.status, 400);
+});
+
+Deno.test("refresh-cancellation: credit_note_id resuelve contra tabla credit_notes", async () => {
+  const mock = installFacturapiMock({
+    "/invoices/fapi_nc/status": () => new Response("", { status: 200 }),
+    "/invoices/fapi_nc": () => facturapiOk({ cancellation_status: "accepted" }),
+  });
+  try {
+    const { deps, serviceState } = makeDeps({
+      env: { FACTURAPI_TEST_KEY: "sk_test" },
+      fetchImpl: globalThis.fetch,
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          credit_notes: {
+            data: { facturapi_invoice_id: "fapi_nc" },
+            error: null,
+          },
+          company_settings: { data: { facturapi_mode: "test" }, error: null },
+          billing_secrets: { data: null, error: null },
+        },
+        updates: { credit_notes: { data: null, error: null } },
+      },
+    });
+    const res = await handleRefreshCancellation(
+      makeRequest({ credit_note_id: CREDIT_NOTE_ID }),
+      deps,
+    );
+    const body = await res.json();
+    assertEquals(res.status, 200);
+    assertEquals(body.cancellation_status, "accepted");
+    const upd = serviceState.updates.find((u) => u.table === "credit_notes");
+    assert(upd, "expected credit_notes update, not invoices");
+    assertEquals(upd!.patch.status, "cancelled");
+  } finally {
+    mock.restore();
+  }
+});

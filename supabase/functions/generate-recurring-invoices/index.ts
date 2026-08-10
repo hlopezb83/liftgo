@@ -4,6 +4,7 @@ import { authenticateCronRequest } from "../_shared/cronAuth.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 import { computeProrate } from "./prorate.ts";
+import { fromCents, sumMoneyCents } from "../_shared/money.ts";
 
 const TZ = "America/Monterrey";
 
@@ -341,7 +342,7 @@ async function executePlan(supabase: any, items: PlanItem[]) {
       const { data: customer } = await supabase
         .from("customers")
         .select(
-          "rfc, razon_social, name, regimen_fiscal, domicilio_fiscal_cp, uso_cfdi",
+          "rfc, razon_social, name, regimen_fiscal, domicilio_fiscal_cp, uso_cfdi, tax_rate",
         )
         .eq("id", first.customerId)
         .maybeSingle();
@@ -362,10 +363,19 @@ async function executePlan(supabase: any, items: PlanItem[]) {
         };
       });
 
-      const subtotal = group.reduce((acc, i) => acc + i.billedAmount, 0);
-      const taxRate = 16;
-      const taxAmount = Math.round(subtotal * (taxRate / 100) * 100) / 100;
-      const total = Math.round((subtotal + taxAmount) * 100) / 100;
+      // M23: tasa por cliente (frontera 8%, exento 0%) en vez de 16 fijo,
+      // y aritmética en centavos enteros (_shared/money.ts) en vez de floats
+      // con Math.round — elimina el drift de centavos acumulado por período.
+      const subtotalCents = sumMoneyCents(group.map((i) => i.billedAmount));
+      const customerRate = Number(customer?.tax_rate);
+      const taxRate = Number.isFinite(customerRate) &&
+          customerRate >= 0 && customerRate <= 100
+        ? customerRate
+        : 16;
+      const taxAmountCents = Math.round(subtotalCents * (taxRate / 100));
+      const subtotal = fromCents(subtotalCents);
+      const taxAmount = fromCents(taxAmountCents);
+      const total = fromCents(subtotalCents + taxAmountCents);
 
       // BL-B5 (Ola 2.2): RPC atómico — invoice + pivot + last_billed_date
       // en una sola transacción con advisory lock por reserva. Evita facturas

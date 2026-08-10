@@ -14,6 +14,12 @@ import { jsonResponse } from "../_shared/http.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 import { nextRetryAt } from "../_shared/cfdiRetryQueue.ts";
 import { authenticateCronRequest } from "../_shared/cronAuth.ts";
+import {
+  createFacturapiClient,
+  describeFacturapiError,
+  getFacturapiConfig,
+  retryOnFacturapi5xx,
+} from "../_shared/facturapi/client.ts";
 
 interface QueueRow {
   id: string;
@@ -209,6 +215,104 @@ Deno.serve(async (req) => {
 
     const nextAttempts = row.attempts + 1;
     try {
+      // Riesgo residual (Baja): antes de RE-TIMBRAR verificar que el intento
+      // anterior realmente no timbró. Un 5xx del PAC pudo emitir el CFDI
+      // server-side; el claim admite 'error'+uuid NULL y re-timbraría un
+      // duplicado ante el SAT.
+      if (row.operation === "stamp") {
+        const { data: invRow } = await admin
+          .from("invoices")
+          .select("cfdi_status, cfdi_uuid")
+          .eq("id", row.invoice_id)
+          .maybeSingle();
+        const st = invRow as
+          | { cfdi_status?: string; cfdi_uuid?: string | null }
+          | null;
+        // Ya timbrada / en reconcile / cancelada → nada que reintentar.
+        if (
+          !st || st.cfdi_uuid ||
+          (st.cfdi_status !== "pending" && st.cfdi_status !== "error")
+        ) {
+          await markQueueRow(admin, row.id, {
+            status: "succeeded",
+            attempts: nextAttempts,
+            last_error: null,
+          });
+          results.push({ id: row.id, status: "succeeded_noop_state" });
+          continue;
+        }
+        // Lookup al PAC por external_id: si el 5xx timbró server-side,
+        // recuperamos los ids y dejamos que reconcile-stamping-invoices
+        // descargue el XML — en vez de emitir un CFDI duplicado.
+        try {
+          const { apiKey } = await getFacturapiConfig(
+            admin as unknown as { from: (t: string) => unknown } as never,
+            (k) => Deno.env.get(k),
+          );
+          if (apiKey) {
+            const pacClient = createFacturapiClient(apiKey);
+            const listFn = (pacClient.invoices as unknown as {
+              list?: (q: Record<string, unknown>) => Promise<unknown>;
+            }).list;
+            if (typeof listFn === "function") {
+              const res = await retryOnFacturapi5xx(() =>
+                listFn.call(pacClient.invoices, {
+                  q: row.invoice_id,
+                  limit: 5,
+                }) as Promise<unknown>
+              );
+              const data = ((res as { data?: unknown }).data ?? []) as Array<
+                Record<string, unknown>
+              >;
+              const hit = data.find((d) =>
+                String((d as { external_id?: unknown }).external_id ?? "") ===
+                  row.invoice_id
+              );
+              if (
+                hit && typeof hit.id === "string" &&
+                typeof hit.uuid === "string"
+              ) {
+                await admin.from("invoices")
+                  .update({
+                    facturapi_invoice_id: hit.id,
+                    cfdi_uuid: hit.uuid,
+                    cfdi_status: "stamping", // reconcile descarga el XML y cierra
+                  })
+                  .eq("id", row.invoice_id);
+                await markQueueRow(admin, row.id, {
+                  status: "succeeded",
+                  attempts: nextAttempts,
+                  last_error: null,
+                });
+                results.push({
+                  id: row.id,
+                  status: "succeeded_recovered_from_pac",
+                });
+                continue;
+              }
+            }
+          }
+        } catch (lookupErr) {
+          // Lookup no disponible: NO re-timbrar a ciegas. Dejar la fila en
+          // pending para el próximo ciclo (backoff normal).
+          console.warn(
+            "[process-cfdi-retry-queue] pac lookup failed, deferring",
+            {
+              invoice_id: row.invoice_id,
+              err: describeFacturapiError(lookupErr).message,
+            },
+          );
+          await markQueueRow(admin, row.id, {
+            status: "pending",
+            attempts: nextAttempts,
+            last_error: "PAC lookup no disponible antes de re-timbrar",
+            next_retry_at: nextRetryAt(nextAttempts).toISOString(),
+          });
+          results.push({ id: row.id, status: "retry_lookup_deferred" });
+          continue;
+        }
+      }
+
       const invRes = await invokeStampFn(
         fnName,
         row.operation,

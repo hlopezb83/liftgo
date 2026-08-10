@@ -7,6 +7,7 @@ import { maintenanceLogKeys } from "../../lib/queryKeys";
 interface GenerateMaintenanceResponse {
   generated: number;
   skipped: number;
+  omitted_by_status?: number;
   month: string;
   details?: string[];
 }
@@ -30,6 +31,10 @@ export function useGenerateRecurringMaintenance() {
           `${result.generated} registro(s) de mantenimiento generado(s) para ${result.month}`,
         );
         void queryClient.invalidateQueries({ queryKey: maintenanceLogKeys.all });
+      } else if ((result.omitted_by_status ?? 0) > 0) {
+        notifyInfo(
+          `No se generó ningún registro: ${result.omitted_by_status} póliza(s) activa(s) pertenecen a unidades no rentadas este mes`,
+        );
       } else {
         notifyInfo("No hay pólizas pendientes de generar para este mes");
       }

@@ -52,21 +52,36 @@ export async function handleRefreshCancellation(
     if (!auth.ok) return json({ error: auth.message }, auth.status);
     const supabase = auth.supabase;
 
-    const { invoice_id } = (await req.json().catch(() => ({}))) as {
-      invoice_id?: unknown;
-    };
-    if (!isUUID(invoice_id)) {
-      return json({ error: "invoice_id must be a valid UUID" }, 400);
+    // M25: acepta invoice_id (facturas) O credit_note_id (notas de crédito).
+    // Las NCs con cancelación pendiente ante el SAT no tenían vía de refresh
+    // y bloqueaban NCs futuras vía el guard anti-sobre-acreditación (BL-08).
+    const { invoice_id, credit_note_id } =
+      (await req.json().catch(() => ({}))) as {
+        invoice_id?: unknown;
+        credit_note_id?: unknown;
+      };
+    const hasInvoice = isUUID(invoice_id);
+    const hasCreditNote = isUUID(credit_note_id);
+    if (hasInvoice === hasCreditNote) {
+      return json(
+        {
+          error:
+            "Provide exactly one of invoice_id or credit_note_id (valid UUID)",
+        },
+        400,
+      );
     }
+    const table = hasCreditNote ? "credit_notes" : "invoices";
+    const docId = (hasCreditNote ? credit_note_id : invoice_id) as string;
 
     const { data: invoice } = await supabase
-      .from("invoices")
+      .from(table)
       .select("facturapi_invoice_id, cancellation_status")
-      .eq("id", invoice_id as string)
+      .eq("id", docId)
       .single();
     const inv = invoice as Record<string, unknown> | null;
     if (!inv?.facturapi_invoice_id) {
-      return json({ error: "Invoice has no Facturapi reference" }, 404);
+      return json({ error: "Document has no Facturapi reference" }, 404);
     }
 
     const { apiKey } = await getFacturapiConfig(supabase, deps.env);
@@ -147,9 +162,9 @@ export async function handleRefreshCancellation(
       update.status = "cancelled";
       update.cancelled_at = new Date().toISOString();
     }
-    await supabase.from("invoices").update(update).eq(
+    await supabase.from(table).update(update).eq(
       "id",
-      invoice_id as string,
+      docId,
     );
 
     return json({ success: true, cancellation_status: satStatus }, 200);

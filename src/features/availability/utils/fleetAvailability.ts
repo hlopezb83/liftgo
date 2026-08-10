@@ -1,5 +1,5 @@
-import { parseISO, isWithinInterval } from "date-fns";
 import { BOOKING_STATUS, FORKLIFT_STATUS } from "@/lib/constants";
+import { toYMD } from "@/lib/date/toYMD";
 import { nowMty } from "@/lib/utils";
 
 type ForkliftLike = { id: string; status: string };
@@ -27,15 +27,14 @@ export function computeFleetAvailability(
 ): FleetAvailability | null {
   if (!forklifts) return null;
 
-  const today = nowMty();
+  // M12: comparar por DÍA CALENDARIO (strings YYYY-MM-DD). Con timestamps, el
+  // último día de renta quedaba "disponible" desde las 00:00 (off-by-one).
+  // Convención LiftGo: rango inclusivo (daterange '[]' en Postgres).
+  const todayYmd = toYMD(nowMty()) as string;
   const rentedForkliftIds = new Set<string>();
   bookings?.forEach((b) => {
     if (b.status !== BOOKING_STATUS.confirmed) return;
-    try {
-      const start = parseISO(b.start_date);
-      const end = parseISO(b.end_date);
-      if (isWithinInterval(today, { start, end })) rentedForkliftIds.add(b.forklift_id);
-    } catch { /* skip invalid dates */ }
+    if (b.start_date <= todayYmd && b.end_date >= todayYmd) rentedForkliftIds.add(b.forklift_id);
   });
 
   const isActive = (status: string) =>
