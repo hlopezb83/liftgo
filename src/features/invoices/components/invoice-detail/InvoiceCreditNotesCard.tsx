@@ -16,6 +16,7 @@ import {
   useDeleteCreditNote,
   type CreditNote,
 } from "../../hooks/creditNotes/useCreditNotes";
+import { useRefreshCreditNoteCancellationStatus } from "../../hooks/invoices/cfdi/useRefreshCancellationStatus";
 import { computeMaxCreditable } from "../../lib/computeMaxCreditable";
 import { downloadCfdiBlob, type CfdiFormat } from "../../lib/downloadCfdiBlob";
 import { CancelCreditNoteDialog } from "./CancelCreditNoteDialog";
