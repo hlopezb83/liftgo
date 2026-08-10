@@ -2,7 +2,11 @@
 // `decisions.ts` (antes reimplementaban la lógica y congelaban la semántica
 // vieja pre-R12-B2 que duplicaba CFDIs en el SAT).
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-import { decideRowAction, decideXmlFailure } from "./decisions.ts";
+import {
+  decideRowAction,
+  decideXmlFailure,
+  MAX_STAMPING_ATTEMPTS,
+} from "./decisions.ts";
 
 const NOW = new Date().toISOString();
 const _ = NOW; // solo para documentar que las filas siempre traen updated_at real
@@ -94,7 +98,6 @@ Deno.test("sin consulta posible al PAC (pac null) → revert_error", () => {
     { kind: "revert_error" },
   );
 });
-
 
 Deno.test("umbral de stale: 10 min", () => {
   const STALE_THRESHOLD_MIN = 10;
