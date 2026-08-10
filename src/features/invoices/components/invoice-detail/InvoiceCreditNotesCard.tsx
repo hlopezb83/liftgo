@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useConfirm } from "@/components/feedback/useConfirm";
-import { AddIcon, StampIcon, DocumentIcon, DownloadIcon, ErrorIcon, DeleteIcon } from "@/components/icons";
+import { AddIcon, StampIcon, DocumentIcon, DownloadIcon, ErrorIcon, DeleteIcon, RefreshIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -16,6 +16,7 @@ import {
   useDeleteCreditNote,
   type CreditNote,
 } from "../../hooks/creditNotes/useCreditNotes";
+import { useRefreshCreditNoteCancellationStatus } from "../../hooks/invoices/cfdi/useRefreshCancellationStatus";
 import { computeMaxCreditable } from "../../lib/computeMaxCreditable";
 import { downloadCfdiBlob, type CfdiFormat } from "../../lib/downloadCfdiBlob";
 import { CancelCreditNoteDialog } from "./CancelCreditNoteDialog";
@@ -52,6 +53,7 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
   const [cancelTarget, setCancelTarget] = useState<CreditNote | null>(null);
   const stampMutation = useStampCreditNote();
   const deleteMutation = useDeleteCreditNote();
+  const refreshCancelMutation = useRefreshCreditNoteCancellationStatus();
   const confirm = useConfirm();
 
   const activeCredits = creditNotes
@@ -111,11 +113,23 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
                             <Button variant="ghost" size="icon" className="h-7 w-7" title="XML SAT" aria-label="Descargar XML SAT" onClick={() => downloadCreditNote(cn.id, "xml", cn.credit_note_number)}>
                               <DownloadIcon className="h-3.5 w-3.5" />
                             </Button>
-                            {cn.cancellation_status !== "pending" && cn.status !== "cancelled" && (
+                            {cn.cancellation_status === "pending" ? (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-7 w-7"
+                                title="Actualizar estado SAT"
+                                aria-label="Actualizar estado SAT de nota de crédito"
+                                disabled={refreshCancelMutation.isPending}
+                                onClick={() => refreshCancelMutation.mutate(cn.id)}
+                              >
+                                <RefreshIcon className={`h-3.5 w-3.5 ${refreshCancelMutation.isPending ? "animate-spin" : ""}`} />
+                              </Button>
+                            ) : cn.status !== "cancelled" ? (
                               <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" title="Cancelar NC" aria-label="Cancelar nota de crédito" onClick={() => setCancelTarget(cn)}>
                                 <ErrorIcon className="h-3.5 w-3.5" />
                               </Button>
-                            )}
+                            ) : null}
                           </>
                         )}
                         {cn.status === "draft" && (
