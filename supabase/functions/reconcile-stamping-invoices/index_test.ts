@@ -50,7 +50,7 @@ Deno.test("R12-B2: PAC lookup falló → retry en próximo cron (no revert)", ()
   );
 });
 
-Deno.test("PAC confirma que no existe → revert_error", () => {
+Deno.test("H6: primer 'miss' del PAC → retry_lookup (no revierte todavía)", () => {
   assertEquals(
     decideRowAction(
       {
@@ -61,9 +61,40 @@ Deno.test("PAC confirma que no existe → revert_error", () => {
       },
       { kind: "miss" },
     ),
+    { kind: "retry_lookup" },
+  );
+});
+
+Deno.test("H6: 'miss' al agotar MAX_STAMPING_ATTEMPTS → revert_error", () => {
+  assertEquals(
+    decideRowAction(
+      {
+        id: "a",
+        cfdi_uuid: null,
+        facturapi_invoice_id: null,
+        stamping_attempts: MAX_STAMPING_ATTEMPTS - 1,
+      },
+      { kind: "miss" },
+    ),
     { kind: "revert_error" },
   );
 });
+
+Deno.test("sin consulta posible al PAC (pac null) → revert_error", () => {
+  assertEquals(
+    decideRowAction(
+      {
+        id: "a",
+        cfdi_uuid: null,
+        facturapi_invoice_id: null,
+        stamping_attempts: 0,
+      },
+      null,
+    ),
+    { kind: "revert_error" },
+  );
+});
+
 
 Deno.test("umbral de stale: 10 min", () => {
   const STALE_THRESHOLD_MIN = 10;
