@@ -53,10 +53,17 @@ export async function requireAuth(req: Request): Promise<AuthResult> {
   // saber si la cuenta sigue activa; denegar (mismo criterio que el rate limiter,
   // SEC-M4) en vez de dejar pasar a un usuario potencialmente desactivado.
   if (profileError) {
-    console.error("[auth] profiles lookup failed, fail-closed:", profileError.message);
+    console.error(
+      "[auth] profiles lookup failed, fail-closed:",
+      profileError.message,
+    );
     return {
       ok: false,
-      response: jsonError(req, 503, "Servicio de verificación de cuenta no disponible. Reintenta en unos segundos."),
+      response: jsonError(
+        req,
+        503,
+        "Servicio de verificación de cuenta no disponible. Reintenta en unos segundos.",
+      ),
     };
   }
   if (profile && profile.is_active === false) {
@@ -142,10 +149,17 @@ export async function requireServiceOrRole(
   // saber si la cuenta sigue activa; denegar (mismo criterio que el rate limiter,
   // SEC-M4) en vez de dejar pasar a un usuario potencialmente desactivado.
   if (profileError) {
-    console.error("[auth] profiles lookup failed, fail-closed:", profileError.message);
+    console.error(
+      "[auth] profiles lookup failed, fail-closed:",
+      profileError.message,
+    );
     return {
       ok: false,
-      response: jsonError(req, 503, "Servicio de verificación de cuenta no disponible. Reintenta en unos segundos."),
+      response: jsonError(
+        req,
+        503,
+        "Servicio de verificación de cuenta no disponible. Reintenta en unos segundos.",
+      ),
     };
   }
   if (profile && profile.is_active === false) {

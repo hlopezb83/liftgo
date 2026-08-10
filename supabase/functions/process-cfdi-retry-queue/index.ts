@@ -338,7 +338,10 @@ Deno.serve(async (req) => {
       } else {
         const errMsg = (invRes.body as { error?: string } | null)?.error ??
           String(invRes.body);
-        const queueStatus = decideTerminalStatus(nextAttempts, row.max_attempts);
+        const queueStatus = decideTerminalStatus(
+          nextAttempts,
+          row.max_attempts,
+        );
         await markQueueRow(admin, row.id, {
           status: queueStatus,
           attempts: nextAttempts,
