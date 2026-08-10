@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.284.0",
+    "date": "2026-08-10",
+    "type": "minor",
+    "title": "Pruebas de seguridad (RLS) para 15 tablas críticas",
+    "category": "security",
+    "description": "Se agregaron 15 pruebas SQL que verifican, contra la base real, que cada rol solo pueda ver y modificar lo que le corresponde."
+  },
+  {
     "version": "7.283.1",
     "date": "2026-08-10",
     "type": "patch",

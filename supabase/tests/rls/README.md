@@ -70,6 +70,20 @@ ROLLBACK;
 | `parts_inventory.sql` | `parts_inventory` | Mecánico read-only, admin escribe |
 | `return_inspections.sql` | `return_inspections` | Dispatcher/admin escriben, ventas solo lee |
 | `damage_records.sql` | `damage_records` | Mismo patrón que return_inspections |
+| `billing_secrets.sql` | `billing_secrets` | Nadie (ni admin) lee llaves fiscales desde el cliente |
+| `invoices.sql` | `invoices` | Ventas sin acceso; dispatcher solo lectura |
+| `payments_portal.sql` | `payments` | Cliente A no ve pagos del cliente B ni registra pagos |
+| `customers_portal.sql` | `customers` | Cliente ve solo su registro; mecánico sin padrón |
+| `profiles.sql` | `profiles` | No auto-reactivación, no cambio de email, no perfiles ajenos |
+| `notifications.sql` | `notifications` | Solo propias; solo admin/administrativo insertan |
+| `audit_logs.sql` | `audit_logs` | Ventas solo prospects; bitácora inmutable |
+| `role_permissions.sql` | `role_permissions` | Ventas no escala su matriz de permisos |
+| `forklifts.sql` | `forklifts` | Mecánico lee la flota pero no la modifica |
+| `supplier_bills.sql` | `supplier_bills` | Ventas sin CxP; auditor solo lectura |
+| `company_settings.sql` | `company_settings` | Ventas no cambia el RFC emisor; cliente sin acceso |
+| `contracts.sql` | `contracts` | Escritura vía matriz `has_permission`; mecánico sin acceso |
+| `documents.sql` | `documents` | Mecánico solo docs de equipo/mantenimiento |
+| `user_manual.sql` | `user_manual` | Cliente del portal no lee ni escribe el manual interno |
 
 Cada archivo termina en `ROLLBACK;` — es seguro correrlos contra cualquier DB
 transaccional sin dejar residuos.
