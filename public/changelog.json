@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.286.2",
+    "date": "2026-08-10",
+    "type": "patch",
+    "title": "Rentabilidad por modelo protegida por permiso + pruebas de la ronda R2",
+    "category": "security",
+    "description": "report_profit_by_model era la única consulta de reportes sin validación de permiso: ahora exige lectura del módulo Reportes, igual que las demás. Se agregó el smoke SQL r2_smoke.sql (11 verificaciones de la ronda R2: trigger de entregas, filtros de mantenimiento, venta de equipo, guards de reportes y backfills sin filas pendientes) y pruebas del enlace de acceso al invitar usuarios."
+  },
+  {
     "version": "7.286.1",
     "date": "2026-08-10",
     "type": "patch",
