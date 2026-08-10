@@ -44,18 +44,9 @@ export function useContractFormPrefill({
     if (isEdit || !bookingId || !bookings || !forklifts) return;
     const booking = bookings.find((b) => b.id === bookingId);
     if (!booking) return;
-    const forklift = forklifts.find((f) => f.id === booking.forklift_id);
-    const opts = { shouldDirty: false } as const;
-    if (booking.customer_id) form.setValue("customer_id", booking.customer_id, opts);
-    form.setValue("forklift_id", booking.forklift_id, opts);
-    if (booking.start_date) form.setValue("start_date", booking.start_date, opts);
-    if (booking.end_date) form.setValue("end_date", booking.end_date, opts);
-    // M5: tarifas NEGOCIADAS de la reserva (persistidas desde la cotización
-    // aceptada); fallback al catálogo del equipo solo si la reserva no tiene.
-    form.setValue("daily_rate", String(booking.daily_rate ?? forklift?.daily_rate ?? 0), opts);
-    form.setValue("weekly_rate", String(booking.weekly_rate ?? forklift?.weekly_rate ?? 0), opts);
-    form.setValue("monthly_rate", String(booking.monthly_rate ?? forklift?.monthly_rate ?? 0), opts);
+    applyBookingPrefill(form, booking, forklifts.find((f) => f.id === booking.forklift_id));
   }, [bookingId, bookings, forklifts, isEdit, form]);
+
 
   // Auto-fill tarifas al elegir equipo (sin booking).
   useEffect(() => {
