@@ -11,7 +11,7 @@ import { BOOKINGS_RANGE_LIMIT, useBookingsRange } from "@/features/bookings";
 import { chartGridProps, chartTick } from "@/lib/charts/chartTheme";
 import { exportToCsv } from "@/lib/exportCsv";
 import { useUtilizationByUnitReport } from "../../hooks/useUtilizationReportData";
-import { bookingsForForkliftInRange, type DrilldownBooking } from "../../lib/drilldown";
+import { bookingsForForkliftInRange, type ClampedBooking, type DrilldownBooking } from "../../lib/drilldown";
 import { UtilizationDetailSheet } from "./drilldown/UtilizationDetailSheet";
 
 interface Props {
@@ -92,7 +92,7 @@ function SelectedUnitSheet({ selected, onClose, totalDaysRange, bookings }: {
   selected: Row | null;
   onClose: () => void;
   totalDaysRange: number;
-  bookings: DrilldownBooking[];
+  bookings: ClampedBooking[];
 }) {
   return (
     <UtilizationDetailSheet
