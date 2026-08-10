@@ -335,15 +335,20 @@ Deno.serve(async (req) => {
         }).list;
         if (typeof listFn === "function") {
           const res = await retryOnFacturapi5xx(() =>
-            listFn.call(client.invoices, { q: paymentId, limit: 5 }) as Promise<unknown>
+            listFn.call(client.invoices, { q: paymentId, limit: 5 }) as Promise<
+              unknown
+            >
           );
           const data = ((res as { data?: unknown }).data ?? []) as Array<
             Record<string, unknown>
           >;
           const hit = data.find((d) =>
-            String((d as { external_id?: unknown }).external_id ?? "") === paymentId
+            String((d as { external_id?: unknown }).external_id ?? "") ===
+              paymentId
           );
-          if (hit && typeof hit.id === "string" && typeof hit.uuid === "string") {
+          if (
+            hit && typeof hit.id === "string" && typeof hit.uuid === "string"
+          ) {
             facturapiId = hit.id;
             repUuid = hit.uuid;
             await admin.from("payments")
@@ -361,7 +366,10 @@ Deno.serve(async (req) => {
       if (!facturapiId || !repUuid) {
         if (lookupFailed) {
           // PAC no respondió: dejar en 'stamping' y reintentar el próximo ciclo.
-          results.push({ invoice_id: paymentId, status: "rep_lookup_deferred" });
+          results.push({
+            invoice_id: paymentId,
+            status: "rep_lookup_deferred",
+          });
           continue;
         }
         // PAC confirma que nunca se timbró → seguro volver a 'error'.
@@ -373,7 +381,10 @@ Deno.serve(async (req) => {
               "Timbrado de REP interrumpido sin registro en Facturapi. Puedes reintentar el timbrado.",
           })
           .eq("id", paymentId);
-        results.push({ invoice_id: paymentId, status: "rep_reverted_to_error" });
+        results.push({
+          invoice_id: paymentId,
+          status: "rep_reverted_to_error",
+        });
         continue;
       }
     }
@@ -384,7 +395,9 @@ Deno.serve(async (req) => {
       let pdfPath: string | null = null;
       try {
         const xmlTxt = await binaryToText(
-          await retryOnFacturapi5xx(() => client.invoices.downloadXml(facturapiId!)),
+          await retryOnFacturapi5xx(() =>
+            client.invoices.downloadXml(facturapiId!)
+          ),
         );
         const path = `${p.invoice_id}/rep-${repUuid}.xml`;
         const { error: upErr } = await admin.storage.from("cfdi-files").upload(
@@ -401,7 +414,9 @@ Deno.serve(async (req) => {
       }
       try {
         const pdfBytes = await binaryToBytes(
-          await retryOnFacturapi5xx(() => client.invoices.downloadPdf(facturapiId!)),
+          await retryOnFacturapi5xx(() =>
+            client.invoices.downloadPdf(facturapiId!)
+          ),
         );
         const path = `${p.invoice_id}/rep-${repUuid}.pdf`;
         const { error: upErr } = await admin.storage.from("cfdi-files").upload(
@@ -433,8 +448,15 @@ Deno.serve(async (req) => {
       results.push({ invoice_id: paymentId, status: "rep_reconciled" });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.error("[reconcile-stamping] REP unexpected", { payment_id: paymentId, err: msg });
-      results.push({ invoice_id: paymentId, status: "rep_exception", error: msg });
+      console.error("[reconcile-stamping] REP unexpected", {
+        payment_id: paymentId,
+        err: msg,
+      });
+      results.push({
+        invoice_id: paymentId,
+        status: "rep_exception",
+        error: msg,
+      });
     }
   }
 
@@ -465,7 +487,9 @@ Deno.serve(async (req) => {
         }).list;
         if (typeof listFn === "function") {
           const res = await retryOnFacturapi5xx(() =>
-            listFn.call(client.invoices, { q: ncId, limit: 5 }) as Promise<unknown>
+            listFn.call(client.invoices, { q: ncId, limit: 5 }) as Promise<
+              unknown
+            >
           );
           const data = ((res as { data?: unknown }).data ?? []) as Array<
             Record<string, unknown>
@@ -473,7 +497,9 @@ Deno.serve(async (req) => {
           const hit = data.find((d) =>
             String((d as { external_id?: unknown }).external_id ?? "") === ncId
           );
-          if (hit && typeof hit.id === "string" && typeof hit.uuid === "string") {
+          if (
+            hit && typeof hit.id === "string" && typeof hit.uuid === "string"
+          ) {
             facturapiId = hit.id;
             ncUuid = hit.uuid;
             await admin.from("credit_notes")
@@ -511,7 +537,9 @@ Deno.serve(async (req) => {
       let pdfPath: string | null = null;
       try {
         const xml = await binaryToText(
-          await retryOnFacturapi5xx(() => client.invoices.downloadXml(facturapiId!)),
+          await retryOnFacturapi5xx(() =>
+            client.invoices.downloadXml(facturapiId!)
+          ),
         );
         const path = `credit-notes/${ncId}/${ncUuid}.xml`;
         const { error: upErr } = await admin.storage.from("cfdi-files").upload(
@@ -528,7 +556,9 @@ Deno.serve(async (req) => {
       }
       try {
         const bytes = await binaryToBytes(
-          await retryOnFacturapi5xx(() => client.invoices.downloadPdf(facturapiId!)),
+          await retryOnFacturapi5xx(() =>
+            client.invoices.downloadPdf(facturapiId!)
+          ),
         );
         const path = `credit-notes/${ncId}/${ncUuid}.pdf`;
         const { error: upErr } = await admin.storage.from("cfdi-files").upload(
@@ -559,7 +589,10 @@ Deno.serve(async (req) => {
       results.push({ invoice_id: ncId, status: "nc_reconciled" });
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.error("[reconcile-stamping] NC unexpected", { credit_note_id: ncId, err: msg });
+      console.error("[reconcile-stamping] NC unexpected", {
+        credit_note_id: ncId,
+        err: msg,
+      });
       results.push({ invoice_id: ncId, status: "nc_exception", error: msg });
     }
   }

@@ -200,7 +200,10 @@ export async function enforceRateLimit(
   // en vez de continuar sin límite: un fallo (natural o inducido) no debe
   // dejar funciones sensibles (reset-user-password, invite-user) sin freno.
   if (error) {
-    console.error(`[rateLimit:${bucket}] RPC error, fail-closed:`, error.message);
+    console.error(
+      `[rateLimit:${bucket}] RPC error, fail-closed:`,
+      error.message,
+    );
     return new Response(
       JSON.stringify({
         error:

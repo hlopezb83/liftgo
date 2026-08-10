@@ -68,7 +68,11 @@ Deno.serve(async (req) => {
       });
     if (linkErr || !linkData?.properties?.action_link) {
       console.error("[reset-user-password] generateLink:", linkErr?.message);
-      return jsonError(req, 500, "No se pudo generar el enlace de recuperación");
+      return jsonError(
+        req,
+        500,
+        "No se pudo generar el enlace de recuperación",
+      );
     }
 
     // Revocar sesiones vigentes del usuario (RPC del FIX-02).
@@ -77,7 +81,10 @@ Deno.serve(async (req) => {
       { _user_id: user_id },
     );
     if (revokeErr) {
-      console.error("[reset-user-password] revoke sessions:", revokeErr.message);
+      console.error(
+        "[reset-user-password] revoke sessions:",
+        revokeErr.message,
+      );
     }
 
     return jsonResponse(req, {
