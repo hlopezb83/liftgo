@@ -44,19 +44,18 @@ SELECT pg_temp.expect_true(
   EXISTS (SELECT 1 FROM pg_proc WHERE proname = 'assign_forklift_to_sale_quote' AND prosecdef)
 );
 
--- 03-FIX-R2-01: guard de permiso en las RPCs de reportes.
+-- 03-FIX-R2-01: guard de permiso/rol en TODAS las RPCs de reportes.
 SELECT pg_temp.expect_true(
-  'R2-REP guard has_permission en RPCs de reportes',
+  'R2-REP todas las RPCs report_* con guard de permiso',
   NOT EXISTS (
     SELECT 1 FROM pg_proc p
     JOIN pg_namespace n ON n.oid = p.pronamespace AND n.nspname = 'public'
-    WHERE p.proname IN (
-      'report_profit_by_model', 'report_revenue_month_invoices',
-      'report_maintenance_cost_by_unit', 'report_utilization', 'get_income_statement'
-    )
+    WHERE (p.proname LIKE 'report\_%' OR p.proname = 'get_income_statement')
       AND p.prosrc NOT ILIKE '%has_permission%'
+      AND p.prosrc NOT ILIKE '%has_role%'
   )
 );
+
 
 -- 03-FIX-R2-08: la vista de vencidas corre con permisos del invocador.
 SELECT pg_temp.expect_true(
