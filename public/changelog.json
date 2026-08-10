@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.284.1",
+    "date": "2026-08-10",
+    "type": "patch",
+    "title": "CI verde: prueba de reconciliación de timbrado alineada con la política H6",
+    "category": "fix",
+    "description": "Se actualizó una prueba obsoleta que esperaba revertir a 'error' al primer 'no existe' del PAC; la política vigente reintenta hasta agotar 10 intentos para no duplicar CFDIs."
+  },
+  {
     "version": "7.284.0",
     "date": "2026-08-10",
     "type": "minor",
