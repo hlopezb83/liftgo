@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.283.0",
+    "date": "2026-08-10",
+    "type": "minor",
+    "title": "Endurecimiento de permisos, reservas, flota y facturación",
+    "category": "fix",
+    "description": "Los permisos por rol ahora también se aplican en la base de datos, las entregas deben corresponder a su reserva, no se cancelan reservas con equipo en sitio, las órdenes de trabajo de daño ya no quedan en $0, las órdenes archivadas dejan de bloquear la disponibilidad y se evita la doble facturación de un daño y el doble timbrado de un REP. Los reportes se calculan en el servidor para no truncar datos."
+  },
+  {
     "version": "7.282.1",
     "date": "2026-08-07",
     "type": "patch",
