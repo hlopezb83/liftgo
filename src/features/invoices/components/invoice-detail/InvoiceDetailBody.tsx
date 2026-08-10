@@ -70,6 +70,7 @@ export function InvoiceDetailBody({
             cfdiStatus={cfdiStatus}
             cancellationStatus={(invoice as unknown as { cancellation_status?: string | null }).cancellation_status ?? null}
             showSandboxChip={visibility.showSandboxChip}
+            cfdiXmlPending={Boolean((invoice as unknown as { cfdi_xml_pending?: boolean | null }).cfdi_xml_pending)}
           />
         }
         actions={
@@ -82,6 +83,7 @@ export function InvoiceDetailBody({
             isStamping={actions.stampCfdi.isPending}
             onOpenPayment={() => actions.setPaymentDialogOpen(true)}
             onEdit={actions.handleEdit}
+            onRecoveredXml={refetch}
             onStamp={actions.handleStamp}
             onDownloadXml={actions.handleDownloadXml}
             onCancelCfdi={() => actions.setCancelDialogOpen(true)}
