@@ -1,0 +1,15 @@
+{
+  "version": "7.284.1",
+  "date": "2026-08-10",
+  "type": "patch",
+  "title": "CI verde: prueba de reconciliación de timbrado alineada con la política H6",
+  "category": "fix",
+  "description": "Una prueba de Deno esperaba el comportamiento viejo (revertir a 'error' al primer 'no existe' del PAC). La lógica real (H6) reintenta hasta agotar los 10 intentos antes de revertir, para no duplicar CFDIs. Se actualizó la prueba a la política vigente.",
+  "changes": [
+    "Reescrito el caso 'PAC confirma que no existe' en reconcile-stamping-invoices/index_test.ts",
+    "Nuevo caso: primer 'miss' del PAC → retry_lookup",
+    "Nuevo caso: 'miss' al llegar a MAX_STAMPING_ATTEMPTS → revert_error",
+    "Nuevo caso: sin consulta posible al PAC (null) → revert_error",
+    "9/9 pruebas Deno en verde y `deno fmt` aplicado"
+  ]
+}
