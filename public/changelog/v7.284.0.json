@@ -1,0 +1,25 @@
+{
+  "version": "7.284.0",
+  "date": "2026-08-10",
+  "type": "minor",
+  "title": "Pruebas de seguridad (RLS) para 15 tablas críticas",
+  "category": "security",
+  "description": "El ERP solo tenía 7 pruebas de políticas de acceso. Se agregaron 15 archivos SQL más que verifican, contra la base real, que cada rol solo pueda ver y modificar lo que le corresponde (finanzas, portal de clientes, bitácora, matriz de permisos y catálogos internos).",
+  "changes": [
+    "billing_secrets: ni siquiera un admin puede leer las llaves fiscales desde el cliente",
+    "invoices: ventas sin acceso; dispatcher solo lectura",
+    "payments: el cliente A no ve los pagos del cliente B ni puede registrar pagos",
+    "customers: el cliente del portal solo ve su propio registro; el mecánico no ve el padrón",
+    "profiles: nadie se auto-reactiva, cambia su correo ni edita perfiles ajenos",
+    "notifications: cada quien ve solo las suyas; solo admin/administrativo crean",
+    "audit_logs: ventas solo ve bitácora de prospectos y la bitácora es inmutable",
+    "role_permissions: ventas no puede escalar su propia matriz de permisos",
+    "forklifts: el mecánico lee la flota pero no la modifica ni la borra",
+    "supplier_bills: ventas sin cuentas por pagar; auditor solo lectura",
+    "company_settings: ventas no puede cambiar el RFC emisor; el cliente no accede",
+    "contracts: la escritura se gobierna por la matriz has_permission",
+    "documents: el mecánico solo ve documentos de equipo/mantenimiento",
+    "user_manual: el cliente del portal no lee ni escribe el manual interno",
+    "README de supabase/tests/rls actualizado con la tabla de cobertura"
+  ]
+}
