@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.286.1",
+    "date": "2026-08-10",
+    "type": "patch",
+    "title": "Cierre R2: reprogramar recolecciones de reservas completadas",
+    "category": "fix",
+    "description": "Se cerró el último pendiente de la auditoría R2: la validación de entregas ya permite reprogramar una recolección residual cuando la reserva pasó a completada (la renta terminó pero la unidad sigue con el cliente). Los registros nuevos siguen exigiendo reserva confirmada y que el montacargas coincida. Los backfills de costos de póliza y bitácora de estatus se verificaron sin filas pendientes."
+  },
+  {
     "version": "7.286.0",
     "date": "2026-08-10",
     "type": "minor",
