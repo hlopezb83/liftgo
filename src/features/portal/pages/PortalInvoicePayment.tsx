@@ -118,11 +118,14 @@ function computeInvoiceTotals(
   const balance = invoice.balance != null
     ? Number(invoice.balance)
     : Math.max(0, Number(invoice.total) - totalPaid - Number(invoice.credited_amount ?? 0));
+  // FIX-FE-04: lo reportable descuenta lo que ya está en revisión; sin esto el
+  // cliente podía reportar el saldo completo dos veces (sobrepago al aprobar).
+  const reportableBalance = Math.max(0, balance - pendingReported);
   // R14-E: SPEI (CLABE MXN) sólo aplica a facturas en pesos.
   const moneda = invoice.moneda ?? "MXN";
   const isMxn = moneda === "MXN";
   const balanceLabel = formatCurrencyWithCode(balance, moneda);
-  return { balance, pendingReported, moneda, isMxn, balanceLabel };
+  return { balance, reportableBalance, pendingReported, moneda, isMxn, balanceLabel };
 }
 
 interface PaymentSectionArgs {
@@ -185,7 +188,7 @@ export default function PortalInvoicePayment() {
   if (!invoice) return <p className="text-muted-foreground">Factura no encontrada</p>;
 
 
-  const { balance, pendingReported, moneda, isMxn, balanceLabel } = computeInvoiceTotals(
+  const { balance, reportableBalance, pendingReported, moneda, isMxn, balanceLabel } = computeInvoiceTotals(
     invoice,
     invoicePayments,
     intents ?? [],
@@ -199,7 +202,7 @@ export default function PortalInvoicePayment() {
     moneda,
     isMxn,
     balanceLabel,
-    canReport: !!customer,
+    canReport: !!customer && reportableBalance > 0,
     onReport: () => setDlgOpen(true),
   });
 
@@ -225,7 +228,8 @@ export default function PortalInvoicePayment() {
           onOpenChange={setDlgOpen}
           invoiceId={invoice.id}
           customerId={customer.id}
-          balance={balance}
+          balance={reportableBalance}
+          pendingInReview={pendingReported}
         />
       )}
     </PageContainer>

@@ -32,7 +32,18 @@ export function decideRowAction(
     return { kind: "recover", facturapi_id: pac.facturapi_id, uuid: pac.uuid };
   }
   if (pac?.kind === "lookup_failed") return { kind: "retry_lookup" };
-  return { kind: "revert_error" }; // pac.kind === "miss": el PAC confirma que nunca se timbró
+  // H6: un "miss" de búsqueda no es prueba definitiva (búsquedas del PAC son
+  // eventualmente consistentes; un lookup indisponible tampoco). Reintentamos
+  // hasta agotar MAX_STAMPING_ATTEMPTS; solo entonces, con el PAC respondiendo
+  // consistentemente que no existe, es seguro revertir a 'error' (sin uuid,
+  // estado re-timbrable).
+  if (pac?.kind === "miss") {
+    const attempts = (row.stamping_attempts ?? 0) + 1;
+    return attempts >= MAX_STAMPING_ATTEMPTS
+      ? { kind: "revert_error" }
+      : { kind: "retry_lookup" };
+  }
+  return { kind: "revert_error" }; // pac === null: sin consulta posible
 }
 
 // Política de reintentos de descarga de XML (espejo de la lógica en index.ts).

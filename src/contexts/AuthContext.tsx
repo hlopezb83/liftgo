@@ -7,7 +7,6 @@ interface AuthContextValue {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
-  signUp: (email: string, password: string, fullName?: string) => Promise<{ error: Error | null }>;
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: Error | null }>;
@@ -41,18 +40,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
 
-  const signUp = useCallback(async (email: string, password: string, fullName?: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: window.location.origin,
-        data: { full_name: fullName },
-      },
-    });
-    return { error };
-  }, []);
-
   const signIn = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error };
@@ -64,7 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Evita que datos residuales de un usuario aparezcan al iniciar sesión otro.
     try {
       if (typeof window !== "undefined") {
-        window.localStorage.removeItem("liftgo:rq-cache:v1");
+        window.localStorage.removeItem("liftgo:rq-cache:v2");
       }
     } catch { /* storage puede estar bloqueado; no romper logout */ }
   }, []);
@@ -84,8 +71,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Memoizar el value evita re-renders en cascada de TODA la app cuando
   // cualquier hijo se actualiza por motivos no relacionados con auth.
   const value = useMemo(
-    () => ({ user, session, isLoading, signUp, signIn, signOut, resetPassword, updatePassword }),
-    [user, session, isLoading, signUp, signIn, signOut, resetPassword, updatePassword],
+    () => ({ user, session, isLoading, signIn, signOut, resetPassword, updatePassword }),
+    [user, session, isLoading, signIn, signOut, resetPassword, updatePassword],
   );
 
   // React 19: `<Context>` como Provider directo, sin `.Provider`.

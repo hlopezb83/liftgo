@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { notifySuccess } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { usePortalCollectionAccount } from "../hooks/usePortalExtras";
 
 interface Props {
@@ -12,7 +12,15 @@ interface Props {
 }
 
 function copy(text: string, label: string) {
-  navigator.clipboard.writeText(text).then(() => notifySuccess(`${label} copiado`));
+  // FIX-FE-12a: sin catch, un rechazo del clipboard (permiso denegado, pestaña
+  // sin foco) dejaba unhandled rejection y el usuario sin feedback.
+  navigator.clipboard.writeText(text)
+    .then(() => notifySuccess(`${label} copiado`))
+    .catch(() => notifyError({
+      title: `No se pudo copiar ${label.toLowerCase()}`,
+      description: "Copia el dato manualmente.",
+      severity: "warning",
+    }));
 }
 
 export function StpTransferCard({ amount, concept }: Props) {

@@ -41,11 +41,21 @@ const REPORT_TYPES = [
 ];
 
 export default function ReportsPage() {
-  const [searchParams] = useSearchParams();
-  const initialType = REPORT_TYPES.some((t) => t.value === searchParams.get("type"))
-    ? (searchParams.get("type") ?? "utilization")
+  // FIX-FE-12b: el tipo de reporte vive en la URL (sincronización bidireccional).
+  // Antes se leía solo en mount: links a /reports?type=aging no hacían nada
+  // estando ya en la página y el Select no actualizaba la URL.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const paramType = searchParams.get("type");
+  const reportType = REPORT_TYPES.some((t) => t.value === paramType)
+    ? (paramType as string)
     : "utilization";
-  const [reportType, setReportType] = useState(initialType);
+  const setReportType = (value: string) => {
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set("type", value);
+      return next;
+    }, { replace: true });
+  };
   const [dateRange, setDateRange] = useState<DateRange>({ from: subMonths(nowMty(), 3), to: nowMty() });
   const startDate = dateRange?.from ?? subMonths(nowMty(), 3);
   const endDate = dateRange?.to ?? nowMty();

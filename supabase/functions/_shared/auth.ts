@@ -41,6 +41,18 @@ export async function requireAuth(req: Request): Promise<AuthResult> {
   const userId = data.claims.sub as string;
   const email = (data.claims.email as string | undefined) ?? null;
 
+  // SEC-M2: un JWT emitido sigue siendo válido aunque el usuario haya sido
+  // desactivado (getClaims no consulta la DB). Verificar is_active en cada
+  // llamada cierra la ventana de acceso (~1h) de usuarios dados de baja.
+  const { data: profile } = await adminClient
+    .from("profiles")
+    .select("is_active")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (profile && profile.is_active === false) {
+    return { ok: false, response: jsonError(req, 403, "Cuenta desactivada") };
+  }
+
   return { ok: true, userId, email, role: null, adminClient };
 }
 
@@ -109,6 +121,17 @@ export async function requireServiceOrRole(
     return { ok: false, response: jsonError(req, 401, "Unauthorized") };
   }
 
+  // SEC-M2: mismo guard de cuenta desactivada en la ruta con rol explícito
+  // (el bypass service_role de arriba queda intacto: no tiene profile).
+  const { data: profile } = await adminClient
+    .from("profiles")
+    .select("is_active")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (profile && profile.is_active === false) {
+    return { ok: false, response: jsonError(req, 403, "Cuenta desactivada") };
+  }
+
   const { data: roleData } = await adminClient
     .from("user_roles")
     .select("role")
@@ -173,11 +196,25 @@ export async function enforceRateLimit(
     _window_seconds: windowSeconds,
   });
 
-  // Si el RPC falla, hacemos fail-open con log (no queremos romper la operación legítima
-  // por un error transitorio del rate limiter).
+  // SEC-M4: fail-closed. Si el RPC del rate limiter falla, rechazamos con 503
+  // en vez de continuar sin límite: un fallo (natural o inducido) no debe
+  // dejar funciones sensibles (reset-user-password, invite-user) sin freno.
   if (error) {
-    console.error(`[rateLimit:${bucket}] RPC error, fail-open:`, error.message);
-    return null;
+    console.error(`[rateLimit:${bucket}] RPC error, fail-closed:`, error.message);
+    return new Response(
+      JSON.stringify({
+        error:
+          "Servicio de control de acceso no disponible. Reintenta en unos segundos.",
+      }),
+      {
+        status: 503,
+        headers: {
+          ...getCorsHeaders(req),
+          "Content-Type": "application/json",
+          "Retry-After": "30",
+        },
+      },
+    );
   }
 
   if (data === false) {

@@ -96,9 +96,13 @@ export default function CustomersPage() {
     notifySuccess("Cliente agregado");
     setDialogOpen(false);
     if (!prospectId || !newCustomer?.id) return;
-    updateProspect.mutate({ id: prospectId, customer_id: newCustomer.id });
+    // FIX-FE-06: el toast se muestra en onSuccess — antes era optimista y se
+    // celebraba una vinculación que podía fallar (fire-and-forget).
+    updateProspect.mutate(
+      { id: prospectId, customer_id: newCustomer.id },
+      { onSuccess: () => notifySuccess("Prospecto vinculado al nuevo cliente") },
+    );
     setProspectId(null);
-    notifySuccess("Prospecto vinculado al nuevo cliente");
   };
 
   const handleSubmit = (form: CustomerFormData) => {

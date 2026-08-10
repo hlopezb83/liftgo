@@ -10,7 +10,7 @@
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import type { Query } from "@tanstack/react-query";
 
-const STORAGE_KEY = "liftgo:rq-cache:v1";
+const STORAGE_KEY = "liftgo:rq-cache:v2"; // SEC-B7: invalida cachés previas con datos financieros
 const MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24h
 
 /**
@@ -25,23 +25,20 @@ const MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24h
  */
 export const PERSIST_ALLOWLIST: readonly string[] = [
   // Dashboard KPIs y agregados. `dashboard-activity-feed` queda excluido a
-  // propósito — dato muy dinámico, no vale la pena persistirlo.
+  // propósito (dato muy dinámico). SEC-B7: los KPIs financieros, el detalle
+  // MRR, contratos, cash-flow settings y estados de resultados NO se
+  // persisten — datos financieros sensibles no deben quedar en localStorage.
   "dashboard-stats",
-  "dashboard-mrr-detail",
-  "dashboard-financial-kpis",
   // Catálogos operativos
   "equipment_models",
   "drivers",
   "mechanics",
   "forklifts",
   "parts_inventory",
-  "contracts",
   "insurance-alerts",
   // Configuración pública / branding
   "changelog",
   "public_branding",
-  "cash_flow_settings",
-  "income_statement",
   "user-manual",
   "user-manual-versions",
 ];
@@ -63,6 +60,12 @@ export const PERSIST_BLOCKLIST: readonly string[] = [
   "pac-config",
   // Portal cliente
   "portal",
+  // SEC-B7: datos financieros / contractuales sensibles
+  "income_statement",
+  "dashboard-financial-kpis",
+  "dashboard-mrr-detail",
+  "contracts",
+  "cash_flow_settings",
   // Auditoría / feedback (datos volátiles o sensibles)
   "audit",
   "audit_log",

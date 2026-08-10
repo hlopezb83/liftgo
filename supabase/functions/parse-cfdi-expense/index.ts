@@ -112,16 +112,27 @@ serve(async (req) => {
       return jsonError(req, 400, msg);
     }
 
-    // BL-36: TipoDeComprobante debe ser Ingreso (I) o Egreso (E — nota de crédito).
+    // BL-36: TipoDeComprobante debe ser Ingreso (I).
     // N (nómina), P (pago) y T (traslado) no son facturas de proveedor gastables.
-    if (
-      cfdi.tipo_comprobante && cfdi.tipo_comprobante !== "I" &&
-      cfdi.tipo_comprobante !== "E"
-    ) {
+    // H3: E (nota de crédito de proveedor) tampoco se acepta aquí: insertarla
+    // como supplier_bill con total positivo la convierte en DEUDA (balance=total,
+    // entra al aging como pagable) cuando en realidad es saldo a favor. Hasta
+    // existir un modelo de "saldo a favor de proveedor", se rechaza con
+    // instrucción de captura manual.
+    if (cfdi.tipo_comprobante === "E") {
       return jsonError(
         req,
         400,
-        `CFDI TipoDeComprobante='${cfdi.tipo_comprobante}' no es una factura de proveedor (sólo I o E).`,
+        "CFDI_NOTA_CREDITO_PROVEEDOR: este XML es una nota de crédito (TipoDeComprobante='E'), " +
+          "no una factura. No la importes como cuenta por pagar: regístrala manualmente " +
+          "como saldo a favor del proveedor o aplícala contra la factura original que ampara.",
+      );
+    }
+    if (cfdi.tipo_comprobante && cfdi.tipo_comprobante !== "I") {
+      return jsonError(
+        req,
+        400,
+        `CFDI TipoDeComprobante='${cfdi.tipo_comprobante}' no es una factura de proveedor (sólo I).`,
       );
     }
 

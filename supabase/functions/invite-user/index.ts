@@ -35,11 +35,20 @@ Deno.serve(async (req) => {
     if (!isValidRole(role)) {
       return jsonError(req, 400, "Invalid role");
     }
-    if (
-      password !== undefined &&
-      (typeof password !== "string" || password.length < 8)
-    ) {
-      return jsonError(req, 400, "Password must be at least 8 characters");
+    // SEC-B5: si el admin fija la contraseña manualmente, exigir fortaleza:
+    // 12-72 caracteres con mayúscula, minúscula, dígito y símbolo.
+    if (password !== undefined) {
+      const strong = typeof password === "string" &&
+        password.length >= 12 && password.length <= 72 &&
+        /[a-z]/.test(password) && /[A-Z]/.test(password) &&
+        /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password);
+      if (!strong) {
+        return jsonError(
+          req,
+          400,
+          "La contraseña debe tener 12-72 caracteres e incluir mayúsculas, minúsculas, números y símbolos",
+        );
+      }
     }
 
     // AUTH-001: verificar unicidad de email antes de crear el usuario para
@@ -87,7 +96,25 @@ Deno.serve(async (req) => {
       .update({ full_name, email })
       .eq("user_id", userId);
 
-    return jsonResponse(req, { success: true, user_id: userId, email });
+    // SEC-B5: recovery link para que el invitado defina su propia contraseña
+    // en el primer acceso. El admin comparte el enlace; no necesita conocer
+    // ninguna contraseña. Si falla, no bloquea la invitación (el admin puede
+    // reintentar desde reset-user-password, FIX-03).
+    const { data: linkData, error: linkErr } = await auth.adminClient.auth
+      .admin.generateLink({
+        type: "recovery",
+        email,
+      });
+    if (linkErr) {
+      console.error("[invite-user] generateLink:", linkErr.message);
+    }
+
+    return jsonResponse(req, {
+      success: true,
+      user_id: userId,
+      email,
+      recovery_link: linkData?.properties?.action_link ?? null,
+    });
   } catch (_err) {
     console.error("invite-user error:", _err);
     return jsonError(req, 500, "Internal server error");

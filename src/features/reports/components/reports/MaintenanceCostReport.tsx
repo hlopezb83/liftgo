@@ -1,16 +1,14 @@
 
-import { parseISO, isWithinInterval } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useForklifts } from "@/features/fleet";
-import { useMaintenanceLogs } from "@/features/maintenance";
 import { chartTick } from "@/lib/charts/chartTheme";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCompactCurrency, formatCurrency } from "@/lib/format/formatCurrency";
+import { useMaintenanceCostByUnitReport } from "../../hooks/useMaintenanceCostByUnitReport";
 
 interface Props {
   startDate: Date;
@@ -20,21 +18,9 @@ interface Props {
 type Row = { name: string; totalCost: number; count: number };
 
 export function MaintenanceCostReport({ startDate, endDate }: Props) {
-  const { data: forklifts = [], isError: fError, isFetching: fFetching, refetch: fRefetch } = useForklifts();
-  const { data: maintenanceLogs = [], isError: mError, refetch: mRefetch } = useMaintenanceLogs();
-  const forkliftMap = new Map(forklifts.map((f) => [f.id, f.name]));
-
-  const data: Row[] = (() => {
-    const filtered = maintenanceLogs.filter((m) => isWithinInterval(parseISO(m.performed_at), { start: startDate, end: endDate }));
-    const byForklift: Record<string, Row> = {};
-    filtered.forEach((m) => {
-      const name = forkliftMap.get(m.forklift_id) || "Desconocido";
-      if (!byForklift[m.forklift_id]) byForklift[m.forklift_id] = { name, totalCost: 0, count: 0 };
-      byForklift[m.forklift_id].totalCost += Number(m.cost || 0);
-      byForklift[m.forklift_id].count++;
-    });
-    return Object.values(byForklift);
-  })();
+  // FIX-FE-01: agregación server-side vía RPC; useMaintenanceLogs() está capado
+  // a 501 filas y el costo total quedaba subestimado sin aviso.
+  const { data = [], isError, isFetching, refetch } = useMaintenanceCostByUnitReport(startDate, endDate);
 
   const chartData = [...data].sort((a, b) => b.totalCost - a.totalCost);
 
@@ -53,12 +39,12 @@ export function MaintenanceCostReport({ startDate, endDate }: Props) {
   });
 
   // R22-B: error state en lugar de "sin mantenimientos" cuando falla la carga.
-  if (fError || mError) {
+  if (isError) {
     return (
       <QueryErrorState
         entity="el reporte de costos de mantenimiento"
-        onRetry={() => { void fRefetch(); void mRefetch(); }}
-        isRetrying={fFetching}
+        onRetry={() => { void refetch(); }}
+        isRetrying={isFetching}
       />
     );
   }
@@ -68,7 +54,7 @@ export function MaintenanceCostReport({ startDate, endDate }: Props) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Costos de Mantenimiento por Unidad</CardTitle>
-          <Button variant="outline" size="sm" onClick={() => exportToCsv("costos-mantenimiento.csv", chartData)}>
+          <Button variant="outline" size="sm" onClick={() => exportToCsv("costos-mantenimiento.csv", chartData.map((r) => ({ name: r.name, totalCost: r.totalCost, count: r.count })))}>
             <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
           </Button>
         </CardHeader>

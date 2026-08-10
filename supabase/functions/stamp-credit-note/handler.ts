@@ -274,6 +274,10 @@ export async function handleStampCreditNote(
     const payload: Record<string, unknown> = {
       type: "E",
       use: "G02",
+      // H5: external_id = credit_note_id. Si el PAC timbra pero la respuesta
+      // se pierde (timeout), reconcile-stamping-invoices recupera el CFDI de
+      // egreso por external_id en vez de dejar la NC atascada o re-timbrar.
+      external_id: credit_note_id as string,
       customer: {
         legal_name: legalName,
         tax_id: taxId,

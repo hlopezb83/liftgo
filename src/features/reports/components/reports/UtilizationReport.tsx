@@ -1,5 +1,4 @@
 
-import { differenceInCalendarDays, parseISO } from "date-fns";
 import { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
@@ -7,10 +6,10 @@ import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useBookings } from "@/features/bookings";
-import { useForklifts } from "@/features/fleet";
+import { useBookingsRange } from "@/features/bookings";
 import { chartGridProps, chartTick } from "@/lib/charts/chartTheme";
 import { exportToCsv } from "@/lib/exportCsv";
+import { useUtilizationByUnitReport } from "../../hooks/useUtilizationReportData";
 import { bookingsForForkliftInRange, type DrilldownBooking } from "../../lib/drilldown";
 import { UtilizationDetailSheet } from "./drilldown/UtilizationDetailSheet";
 
@@ -21,52 +20,17 @@ interface Props {
 
 type Row = { id: string; name: string; bookedDays: number; totalDays: number; utilization: number };
 
-
-/**
- * R10 Bloque 10.1: dedupe de días reservados por unidad.
- * Recorta cada reserva al rango [startDate, endDate] y usa unión de rangos
- * (Set de días calendario) para que reservas traslapadas no sumen doble.
- */
-function countUniqueBookedDays(
-  bookings: { start_date: string; end_date: string }[],
-  rangeStart: Date,
-  rangeEnd: Date,
-): number {
-  const days = new Set<number>();
-  const startMs = new Date(rangeStart.getFullYear(), rangeStart.getMonth(), rangeStart.getDate()).getTime();
-  const endMs = new Date(rangeEnd.getFullYear(), rangeEnd.getMonth(), rangeEnd.getDate()).getTime();
-  for (const b of bookings) {
-    const bs = parseISO(b.start_date);
-    const be = parseISO(b.end_date);
-    const s = Math.max(new Date(bs.getFullYear(), bs.getMonth(), bs.getDate()).getTime(), startMs);
-    const e = Math.min(new Date(be.getFullYear(), be.getMonth(), be.getDate()).getTime(), endMs);
-    if (e < s) continue;
-    for (let t = s; t <= e; t += 86_400_000) days.add(t);
-  }
-  return days.size;
-}
-
 export function UtilizationReport({ startDate, endDate }: Props) {
-  const { data: forklifts = [], isError: fError, isFetching: fFetching, refetch: fRefetch } = useForklifts();
-  const { data: bookings = [], isError: bError, refetch: bRefetch } = useBookings();
-  const hasError = fError || bError;
+  // FIX-FE-01: agregación server-side vía RPC (useBookings/useForklifts están
+  // capados a 501 filas). La unión de días anti-traslape vive en SQL.
+  const { data = [], isError, isFetching, refetch } = useUtilizationByUnitReport(startDate, endDate);
+  // Drilldown: solo reservas que se traslapan con el rango (filtro server-side).
+  const { data: bookings = [] } = useBookingsRange(startDate, endDate);
   const [selected, setSelected] = useState<Row | null>(null);
-
-
-  // Días inclusivos consistente con el resto del reporte (fin inclusivo).
-  const totalDaysRange = Math.max(differenceInCalendarDays(endDate, startDate) + 1, 1);
-  const data: Row[] = forklifts.map((fl) => {
-    const flBookings = bookings.filter(
-      (b) => b.forklift_id === fl.id
-        && b.status !== "cancelled"
-        // solapamiento con el rango del reporte
-        && parseISO(b.start_date) <= endDate
-        && parseISO(b.end_date) >= startDate,
-    );
-    const bookedDays = countUniqueBookedDays(flBookings, startDate, endDate);
-    const utilization = Math.min(Math.round((bookedDays / totalDaysRange) * 100), 100);
-    return { id: fl.id, name: fl.name, bookedDays, totalDays: totalDaysRange, utilization };
-  });
+  const totalDaysRange = data[0]?.totalDays ?? Math.max(
+    Math.round((endDate.getTime() - startDate.getTime()) / 86_400_000) + 1,
+    1,
+  );
 
   const drilldownBookings: DrilldownBooking[] = bookings.map((b) => ({
     id: b.id,
@@ -99,12 +63,12 @@ export function UtilizationReport({ startDate, endDate }: Props) {
 
 
   // R22-B: nunca mostrar "sin datos" (ni exportar CSV vacío) cuando la carga falló.
-  if (hasError) {
+  if (isError) {
     return (
       <QueryErrorState
         entity="el reporte de utilización"
-        onRetry={() => { void fRefetch(); void bRefetch(); }}
-        isRetrying={fFetching}
+        onRetry={() => { void refetch(); }}
+        isRetrying={isFetching}
       />
     );
   }
@@ -114,7 +78,7 @@ export function UtilizationReport({ startDate, endDate }: Props) {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle className="text-base">Utilización de Flota</CardTitle>
-          <Button variant="outline" size="sm" onClick={() => exportToCsv("reporte-utilizacion.csv", data)}>
+          <Button variant="outline" size="sm" onClick={() => exportToCsv("reporte-utilizacion.csv", data.map((r) => ({ id: r.id, name: r.name, bookedDays: r.bookedDays, totalDays: r.totalDays, utilization: r.utilization })))}>
             <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
           </Button>
         </CardHeader>

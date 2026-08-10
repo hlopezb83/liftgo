@@ -1740,6 +1740,7 @@ export type Database = {
           cfdi_status: string | null
           cfdi_uuid: string | null
           cfdi_xml: string | null
+          cfdi_xml_pending: boolean
           cfdi_xml_url: string | null
           created_at: string
           customer_id: string | null
@@ -1798,6 +1799,7 @@ export type Database = {
           cfdi_status?: string | null
           cfdi_uuid?: string | null
           cfdi_xml?: string | null
+          cfdi_xml_pending?: boolean
           cfdi_xml_url?: string | null
           created_at?: string
           customer_id?: string | null
@@ -1856,6 +1858,7 @@ export type Database = {
           cfdi_status?: string | null
           cfdi_uuid?: string | null
           cfdi_xml?: string | null
+          cfdi_xml_pending?: boolean
           cfdi_xml_url?: string | null
           created_at?: string
           customer_id?: string | null
@@ -3999,6 +4002,10 @@ export type Database = {
         }[]
       }
       get_sidebar_badge_counts: { Args: never; Returns: Json }
+      has_permission: {
+        Args: { p_level?: string; p_module: string }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -4221,6 +4228,14 @@ export type Database = {
         }
         Returns: undefined
       }
+      report_maintenance_cost_by_unit: {
+        Args: { _end: string; _start: string }
+        Returns: {
+          name: string
+          total_cost: number
+          work_count: number
+        }[]
+      }
       report_profit_by_model: {
         Args: { _end: string; _start: string }
         Returns: {
@@ -4233,6 +4248,50 @@ export type Database = {
           units: number
         }[]
       }
+      report_revenue_by_month: {
+        Args: { _end: string; _start: string }
+        Returns: {
+          invoice_count: number
+          invoiced: number
+          month_key: string
+          paid: number
+        }[]
+      }
+      report_revenue_month_invoices: {
+        Args: { _month_key: string }
+        Returns: {
+          customer_name: string
+          id: string
+          invoice_number: string
+          issued_at: string
+          moneda: string
+          status: string
+          tipo_cambio: number
+          total: number
+        }[]
+      }
+      report_utilization_by_model: {
+        Args: { _end: string; _start: string }
+        Returns: {
+          available: number
+          booked_days: number
+          model: string
+          rented: number
+          total_days: number
+          units: number
+          utilization: number
+        }[]
+      }
+      report_utilization_by_unit: {
+        Args: { _end: string; _start: string }
+        Returns: {
+          booked_days: number
+          forklift_id: string
+          name: string
+          total_days: number
+          utilization: number
+        }[]
+      }
       request_bill_reapproval: {
         Args: { p_bill_id: string; p_notes?: string }
         Returns: undefined
@@ -4243,6 +4302,7 @@ export type Database = {
       }
       restore_forklift: { Args: { p_forklift_id: string }; Returns: undefined }
       revert_audit_log: { Args: { p_audit_log_id: string }; Returns: string }
+      revoke_user_sessions: { Args: { _user_id: string }; Returns: undefined }
       soft_delete_customer: {
         Args: { p_customer_id: string }
         Returns: undefined

@@ -56,6 +56,8 @@ export function QuoteConversionDialogs({ logic }: Props) {
         <EquipmentAssignmentDialog
           open={showAssignmentDialog}
           onOpenChange={setShowAssignmentDialog}
+          startDate={quote?.start_date ?? null}
+          endDate={quote?.end_date ?? null}
           rentalMeta={rentalMeta}
           models={equipmentModels}
           forklifts={forklifts}

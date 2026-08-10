@@ -254,6 +254,10 @@ Deno.serve(async (req) => {
 
     const payload = {
       type: "P",
+      // H4: external_id = payment_id. Si el PAC timbra pero la respuesta se
+      // pierde (timeout), reconcile-stamping-invoices localiza el REP con
+      // invoices.list({ q: payment_id }) en vez de re-timbrar un duplicado.
+      external_id: payment_id as string,
       customer: {
         legal_name: invoice.receptor_razon_social || invoice.customer_name ||
           "Público General",

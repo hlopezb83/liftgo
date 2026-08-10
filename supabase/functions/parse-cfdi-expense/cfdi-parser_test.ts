@@ -162,3 +162,59 @@ Deno.test("parseCfdi: TipoDeComprobante inválido => null (no confía en input)"
   const r = parseCfdi(xml);
   assertEquals(r.tipo_comprobante, null);
 });
+
+Deno.test("H1: tax_amount se lee del Impuestos GLOBAL, no del de concepto", () => {
+  const xml = `<?xml version="1.0"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0"
+  SubTotal="1000.00" Total="1160.00" TipoDeComprobante="I" Fecha="2026-08-01T10:00:00">
+  <cfdi:Emisor Rfc="AAA010101AAA" Nombre="Proveedor" RegimenFiscal="601"/>
+  <cfdi:Receptor Rfc="BBB020202BBB" Nombre="LiftGo" UsoCFDI="G03"
+    DomicilioFiscalReceptor="64000" RegimenFiscalReceptor="601"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto ClaveProdServ="78101803" Descripcion="Refaccion"
+      Importe="1000.00" ValorUnitario="1000.00" Cantidad="1">
+      <cfdi:Impuestos>
+        <cfdi:Traslados>
+          <cfdi:Traslado Base="1000.00" Impuesto="002" TasaOCuota="0.160000" Importe="160.00"/>
+        </cfdi:Traslados>
+      </cfdi:Impuestos>
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosTrasladados="160.00">
+    <cfdi:Traslados>
+      <cfdi:Traslado Base="1000.00" Impuesto="002" TipoFactor="Tasa" TasaOCuota="0.160000" Importe="160.00"/>
+    </cfdi:Traslados>
+  </cfdi:Impuestos>
+  <cfdi:Complemento><tfd:TimbreFiscalDigital UUID="AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE"/></cfdi:Complemento>
+</cfdi:Comprobante>`;
+  const cfdi = parseCfdi(xml);
+  assertEquals(cfdi.tax_amount, 160);
+});
+
+Deno.test("H2: retenciones no se duplican (concepto + global)", () => {
+  const xml = `<?xml version="1.0"?>
+<cfdi:Comprobante xmlns:cfdi="http://www.sat.gob.mx/cfd/4" Version="4.0"
+  SubTotal="1000.00" Total="853.33" TipoDeComprobante="I" Fecha="2026-08-01T10:00:00">
+  <cfdi:Emisor Rfc="AAA010101AAA" Nombre="Proveedor" RegimenFiscal="601"/>
+  <cfdi:Receptor Rfc="BBB020202BBB" Nombre="LiftGo" UsoCFDI="G03"
+    DomicilioFiscalReceptor="64000" RegimenFiscalReceptor="601"/>
+  <cfdi:Conceptos>
+    <cfdi:Concepto ClaveProdServ="80141600" Descripcion="Servicio"
+      Importe="1000.00" ValorUnitario="1000.00" Cantidad="1">
+      <cfdi:Impuestos>
+        <cfdi:Retenciones>
+          <cfdi:Retencion Impuesto="002" Importe="106.67"/>
+        </cfdi:Retenciones>
+      </cfdi:Impuestos>
+    </cfdi:Concepto>
+  </cfdi:Conceptos>
+  <cfdi:Impuestos TotalImpuestosRetenidos="106.67">
+    <cfdi:Retenciones>
+      <cfdi:Retencion Impuesto="002" Importe="106.67"/>
+    </cfdi:Retenciones>
+  </cfdi:Impuestos>
+  <cfdi:Complemento><tfd:TimbreFiscalDigital UUID="AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEF"/></cfdi:Complemento>
+</cfdi:Comprobante>`;
+  const cfdi = parseCfdi(xml);
+  assertEquals(cfdi.retention_iva, 106.67);
+});

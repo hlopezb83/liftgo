@@ -24,19 +24,24 @@ export function useFeedbackStatusUpdate(report: FeedbackReport | null) {
 
   const [optimisticStatus, setOptimisticStatus] = useOptimisticStatus<string>(
     report?.status ?? "",
-    async () => {
-      // La mutación se dispara desde `apply` con los args completos.
-      // Aquí solo actualizamos el estado optimista.
+    async (next) => {
+      if (!report) return;
+      // Await de la mutación REAL: la UI conserva el valor optimista hasta que
+      // el servidor confirma (sin flicker nuevo→viejo→nuevo) y un rechazo
+      // revierte sin unhandled rejection (try/catch en useOptimisticStatus).
+      await update.mutateAsync({
+        reportId: report.id,
+        newStatus: next as FeedbackStatus,
+        comment: comment.trim() || undefined,
+      });
+      setNewStatus("");
+      setComment("");
     },
   );
 
   const apply = () => {
     if (!report || !newStatus) return;
     setOptimisticStatus(newStatus);
-    update.mutate(
-      { reportId: report.id, newStatus, comment: comment.trim() || undefined },
-      { onSuccess: () => { setNewStatus(""); setComment(""); } },
-    );
   };
 
   return {

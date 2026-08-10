@@ -22,7 +22,13 @@ export function useOptimisticStatus<T extends string>(
   const setStatus = (next: T) => {
     startTransition(async () => {
       apply(next);
-      await mutate(next);
+      try {
+        await mutate(next);
+      } catch {
+        // El estado optimista revierte solo al resolverse la transición.
+        // El error ya lo reporta el caller (toast de useEntityMutation /
+        // onError); sin este catch quedaba un unhandled rejection.
+      }
     });
   };
 

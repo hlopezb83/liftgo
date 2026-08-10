@@ -1,5 +1,6 @@
 
 import { differenceInDays, parseISO } from "date-fns";
+import { toMxn } from "@/lib/money";
 import { computeFleetAvailability } from "@/features/availability/utils/fleetAvailability";
 import { useBookings } from "@/features/bookings";
 import { useForklifts, useInsuranceAlerts } from "@/features/fleet";
@@ -44,11 +45,15 @@ function computeAgingBuckets(
     const days = differenceInDays(nowMty(), parseISO(inv.due_date));
     // BL-1.1 R5: usar balance_mxn calculado en `v_invoices_with_balance`
     // para no sumar USD como si fueran MXN.
+    // FIX-FE-08: el fallback también debe convertir — sin toMxn una factura en
+    // USD sin balance_mxn entraba al bucket como si fueran pesos (~18× menos).
     const amount = inv.balance_mxn != null
       ? Number(inv.balance_mxn)
-      : inv.balance != null
-        ? Number(inv.balance)
-        : Number(inv.total);
+      : toMxn(
+          inv.balance != null ? Number(inv.balance) : Number(inv.total),
+          inv.moneda,
+          inv.tipo_cambio,
+        );
     buckets[bucketFor(days)] += amount;
   }
   return Object.entries(buckets).map(([range, total]) => ({ range, total })).filter((b) => b.total > 0);

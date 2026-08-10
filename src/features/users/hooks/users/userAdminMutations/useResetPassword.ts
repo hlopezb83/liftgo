@@ -2,37 +2,24 @@ import { useMutation } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { extractEdgeErrorMessage } from "@/lib/supabase/invokeEdgeFunction";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
-import { PasswordValidationError } from "../../../lib/PasswordValidationError";
 
-/**
- * No usa `useEntityMutation` porque necesita suprimir el toast global de error
- * cuando la falla es una `PasswordValidationError` (se muestra inline en el
- * formulario), comportamiento que `useEntityMutation` no permite personalizar.
- */
 export function useResetPassword() {
   return useMutation({
-    mutationFn: async ({ userId, newPassword }: { userId: string; newPassword: string }) => {
+    mutationFn: async ({ userId }: { userId: string }) => {
       const { data, error } = await supabase.functions.invoke("reset-user-password", {
-        body: { user_id: userId, new_password: newPassword },
+        body: { user_id: userId },
       });
-      // R14-K: extraer body real preservando el flujo especial de PasswordValidationError.
       if (error) throw new Error(await extractEdgeErrorMessage(error));
-      if (data?.success === false && typeof data.error === "string") {
-        const code = data.code === "pwned" ? "pwned" : "weak_password";
-        const raw = typeof data.raw === "string" ? data.raw : undefined;
-        throw new PasswordValidationError(data.error, code, raw);
-      }
       if (data?.error) throw new Error(data.error);
-      return data as { email: string };
+      return data as { email: string; recovery_link: string };
     },
     onSuccess: (data) => {
-      notifySuccess("Contraseña actualizada", {
-        description: `Comparte la nueva contraseña con ${data.email}`,
+      notifySuccess("Enlace de recuperación generado", {
+        description: `Comparte este enlace de un solo uso con ${data.email}: ${data.recovery_link}`,
       });
     },
     onError: (err: Error) => {
-      if (err instanceof PasswordValidationError) return;
-      notifyError({ title: "Error al actualizar contraseña", error: err });
+      notifyError({ title: "Error al generar enlace de recuperación", error: err });
     },
   });
 }

@@ -1,7 +1,9 @@
 import { useEffect } from "react";
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { z } from "zod";
+import { parseISO } from "date-fns";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { useAvailableForklifts } from "@/features/fleet/hooks/forklifts/useAvailableForklifts";
 import { WarnIcon } from "@/components/icons";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -75,6 +77,8 @@ type FormValues = z.infer<typeof schema>;
 interface EquipmentAssignmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  startDate: string | null;
+  endDate: string | null;
   rentalMeta: RentalLineMeta[];
   models: EquipmentModel[];
   forklifts: Forklift[];
@@ -83,9 +87,16 @@ interface EquipmentAssignmentDialogProps {
 }
 
 export function EquipmentAssignmentDialog({
-  open, onOpenChange, rentalMeta, models, forklifts, onConfirm, isLoading,
+  open, onOpenChange, startDate, endDate, rentalMeta, models, forklifts, onConfirm, isLoading,
 }: EquipmentAssignmentDialogProps) {
   const slots = buildAssignmentSlots(rentalMeta, models);
+  // H11: reusar la RPC get_available_forklifts con la ventana de la cotización
+  // para no ofrecer unidades con OT en curso o dentro del buffer de mantenimiento
+  // (create_booking las rechazaría al confirmar).
+  const { availableForklifts, datesSelected } = useAvailableForklifts(
+    startDate && endDate ? { from: parseISO(startDate), to: parseISO(endDate) } : undefined,
+  );
+  const rpcAvailableIds = datesSelected ? new Set(availableForklifts.map((f) => f.id)) : null;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -107,6 +118,7 @@ export function EquipmentAssignmentDialog({
     return forklifts.filter(
       (f) =>
         f.status === "available" &&
+        (!rpcAvailableIds || rpcAvailableIds.has(f.id)) &&
         f.manufacturer === model.manufacturer &&
         f.model === model.model &&
         !alreadyAssigned.has(f.id),

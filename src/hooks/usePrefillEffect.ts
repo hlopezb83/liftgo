@@ -31,7 +31,14 @@ function serializeDeps(deps: unknown[]): string {
       if (d === null) return "n";
       if (typeof d === "object") {
         // Objetos frecuentes en callsites: entidades con id, arrays de ids.
-        if ("id" in (d as Record<string, unknown>)) return `id:${(d as { id: unknown }).id}`;
+        if ("id" in (d as Record<string, unknown>)) {
+          // FIX-FE-05: el id solo no basta — tras un refetch la entidad cambia
+          // de contenido conservando el id y el prefill quedaba stale. Huella
+          // con updated_at (rápida) o JSON completo como fallback.
+          const rec = d as { id: unknown; updated_at?: unknown };
+          const version = rec.updated_at != null ? String(rec.updated_at) : JSON.stringify(d);
+          return `id:${String(rec.id)}|v:${version}`;
+        }
         if (Array.isArray(d)) return `[${d.map((x) => (x == null ? "" : String(x))).join(",")}]`;
         return JSON.stringify(d);
       }

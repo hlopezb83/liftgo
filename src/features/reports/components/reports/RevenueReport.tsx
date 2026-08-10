@@ -1,5 +1,5 @@
 
-import { format, parseISO, isWithinInterval, startOfMonth } from "date-fns";
+import { parseISO } from "date-fns";
 import { useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer } from "recharts";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
@@ -7,13 +7,11 @@ import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useInvoices } from "@/features/invoices";
 import { chartTick } from "@/lib/charts/chartTheme";
 import { exportToCsv } from "@/lib/exportCsv";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatMonthShortEsFromDate } from "@/lib/format/formatMonthEs";
-import { toMxn } from "@/lib/money";
-import { invoicesForMonth, type DrilldownInvoice } from "../../lib/drilldown";
+import { useRevenueByMonthReport, useRevenueMonthInvoices } from "../../hooks/useRevenueByMonthReport";
 import { RevenueMonthDetailSheet } from "./drilldown/RevenueMonthDetailSheet";
 
 interface Props {
@@ -33,46 +31,20 @@ function compactMoneyMxn(n: number): string {
 }
 
 export function RevenueReport({ startDate, endDate }: Props) {
-  const { data: invoices = [], isError, isFetching, refetch } = useInvoices();
+  // FIX-FE-01: agregación server-side (patrón useProfitByModelReport).
+  // useInvoices() está capado a LIST_FETCH_LIMIT (501 filas) y el reporte
+  // subestimaba ingresos silenciosamente con más de 500 facturas.
+  const { data: rows = [], isError, isFetching, refetch } = useRevenueByMonthReport(startDate, endDate);
   const [selected, setSelected] = useState<Row | null>(null);
-  const data: Row[] = (() => {
-    // R7 Bloque 5: excluir borradores y canceladas — no son ingreso reconocido.
-    const revenueInvoices = invoices.filter(
-      (inv) => inv.status !== "draft" && inv.status !== "cancelled",
-    );
-    const filtered = revenueInvoices.filter((inv) => isWithinInterval(parseISO(inv.issued_at), { start: startDate, end: endDate }));
-    const months: Record<string, Row> = {};
-    filtered.forEach((inv) => {
-      const key = format(startOfMonth(parseISO(inv.issued_at)), "yyyy-MM");
-      const label = formatMonthShortEsFromDate(startOfMonth(parseISO(inv.issued_at)));
-      if (!months[key]) months[key] = { key, month: label, invoiced: 0, paid: 0, count: 0 };
-      // R6-B2: normalizar a MXN cuando la factura está en USD.
-      const totalMxn = toMxn(
-        Number(inv.total),
-        (inv as { moneda?: string | null }).moneda ?? "MXN",
-        (inv as { tipo_cambio?: number | string | null }).tipo_cambio,
-      );
-      months[key].invoiced += totalMxn;
-      months[key].count++;
-      if (inv.status === "paid") months[key].paid += totalMxn;
-    });
-    return Object.entries(months).sort(([a], [b]) => a.localeCompare(b)).map(([, d]) => d);
-  })();
-
-  // Mismo universo que el gráfico: dentro del rango y sin borradores/canceladas.
-  const rangeInvoices: DrilldownInvoice[] = invoices
-    .filter((inv) => isWithinInterval(parseISO(inv.issued_at), { start: startDate, end: endDate }))
-    .map((inv) => ({
-      id: inv.id,
-      invoice_number: inv.invoice_number,
-      customer_name: inv.customer_name ?? null,
-      issued_at: inv.issued_at,
-      total: inv.total,
-      status: inv.status,
-      moneda: inv.moneda ?? "MXN",
-      tipo_cambio: inv.tipo_cambio,
-    }));
-  const selectedInvoices = selected ? invoicesForMonth(rangeInvoices, selected.key) : [];
+  const data: Row[] = rows.map((r) => ({
+    key: r.monthKey,
+    month: formatMonthShortEsFromDate(parseISO(`${r.monthKey}-01`)),
+    invoiced: r.invoiced,
+    paid: r.paid,
+    count: r.invoiceCount,
+  }));
+  // Drilldown: solo las facturas del mes seleccionado (RPC, sin límite de filas).
+  const { data: selectedInvoices = [] } = useRevenueMonthInvoices(selected?.key ?? null);
 
 
   const columns: ColumnDef<Row>[] = [

@@ -7,7 +7,7 @@ export function useInviteUser() {
     mutationFn: async (payload: { email: string; full_name: string; role: string; password?: string }) => {
       // R14-K: invokeEdgeFunction extrae el body real de errores no-2xx
       // (ej. 409 "Ya existe un usuario con ese correo").
-      return await invokeEdgeFunction<{ success: boolean; user_id: string; email: string }>(
+      return await invokeEdgeFunction<{ success: boolean; user_id: string; email: string; recovery_link: string | null }>(
         "invite-user",
         { body: payload },
       );
