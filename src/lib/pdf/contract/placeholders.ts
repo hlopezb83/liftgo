@@ -28,18 +28,31 @@ export function customerLegalAddress(customer: CustomerInfo | null): string {
   return formatLegalAddress(customer?.address, { cp: customer?.domicilio_fiscal_cp });
 }
 
-function buildPartyVars(contract: ContractData, company: CompanyInfo | null, customer: CustomerInfo | null) {
+/** Placeholder por defecto cuando el dato legal no está capturado. */
+const orDash = (v: string | null | undefined, fallback: string) => v || fallback;
+
+function buildLessorVars(company: CompanyInfo | null) {
   return {
-    arrendador: company?.razon_social || "[Arrendador]",
-    rfc_arrendador: company?.rfc || "[RFC del arrendador]",
-    cp_arrendador: company?.lugar_expedicion || "—",
-    arrendatario: customer?.name || contract.customer_name || "[Arrendatario]",
-    domicilio_cliente: customerLegalAddress(customer) || "[Domicilio del cliente]",
-    cp_cliente: customer?.domicilio_fiscal_cp || "—",
-    rfc_cliente: customer?.rfc || "[RFC]",
-    representante_legal: customer?.representante_legal || "[Representante Legal]",
+    arrendador: orDash(company?.razon_social, "[Arrendador]"),
+    rfc_arrendador: orDash(company?.rfc, "[RFC del arrendador]"),
+    cp_arrendador: orDash(company?.lugar_expedicion, "—"),
   };
 }
+
+function buildLesseeVars(contract: ContractData, customer: CustomerInfo | null) {
+  return {
+    arrendatario: orDash(customer?.name || contract.customer_name, "[Arrendatario]"),
+    domicilio_cliente: orDash(customerLegalAddress(customer), "[Domicilio del cliente]"),
+    cp_cliente: orDash(customer?.domicilio_fiscal_cp, "—"),
+    rfc_cliente: orDash(customer?.rfc, "[RFC]"),
+    representante_legal: orDash(customer?.representante_legal, "[Representante Legal]"),
+  };
+}
+
+function buildPartyVars(contract: ContractData, company: CompanyInfo | null, customer: CustomerInfo | null) {
+  return { ...buildLessorVars(company), ...buildLesseeVars(contract, customer) };
+}
+
 
 function buildUsageVars(contract: ContractData) {
   return {
