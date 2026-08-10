@@ -53,6 +53,7 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
   const [cancelTarget, setCancelTarget] = useState<CreditNote | null>(null);
   const stampMutation = useStampCreditNote();
   const deleteMutation = useDeleteCreditNote();
+  const refreshCancelMutation = useRefreshCreditNoteCancellationStatus();
   const confirm = useConfirm();
 
   const activeCredits = creditNotes
