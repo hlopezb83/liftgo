@@ -1,4 +1,4 @@
-import { parseISO, addDays } from "date-fns";
+import { parseISO, addDays, startOfDay } from "date-fns";
 import { Link } from "react-router";
 import { TrendingUpIcon, ArrowRight, CalendarIcon } from "@/components/icons";
 import { Card, CardContent } from "@/components/ui/card";
@@ -41,6 +41,10 @@ export function CollectionForecast({
 }: CollectionForecastProps) {
   const forecast = (() => {
     const today = nowMty();
+    // FIX-FE-07: comparar por día calendario. parseISO(due_date) es 00:00 y
+    // nowMty() trae hora: las facturas que vencen HOY quedaban fuera del
+    // pronóstico (y no son "overdue" hasta mañana → invisibles un día).
+    const todayStart = startOfDay(today);
     const in7 = addDays(today, 7);
     const in30 = addDays(today, 30);
 
@@ -50,7 +54,7 @@ export function CollectionForecast({
       .filter((inv) => {
         if (!inv.due_date) return false;
         const due = parseISO(inv.due_date);
-        return due >= today && due <= in7;
+        return due >= todayStart && due <= in7;
       })
       .reduce((sum, inv) => sum + amountInMxn(inv), 0);
 
@@ -58,7 +62,7 @@ export function CollectionForecast({
       .filter((inv) => {
         if (!inv.due_date) return false;
         const due = parseISO(inv.due_date);
-        return due >= today && due <= in30;
+        return due >= todayStart && due <= in30;
       })
       .reduce((sum, inv) => sum + amountInMxn(inv), 0);
 
@@ -73,7 +77,7 @@ export function CollectionForecast({
       upcoming7Count: upcomingInvoices.filter((inv) => {
         if (!inv.due_date) return false;
         const due = parseISO(inv.due_date);
-        return due >= today && due <= in7;
+        return due >= todayStart && due <= in7;
       }).length,
     };
   })();

@@ -89,6 +89,20 @@ Deno.serve(async (req) => {
       return jsonError(req, 400, authErr.message);
     }
 
+    // SEC-M2: al desactivar, revocar sesiones/refresh tokens vigentes.
+    // El ban impide refrescar, pero los JWT ya emitidos seguirían válidos
+    // hasta expirar; requireAuth (FIX-02) los rechaza vía profiles.is_active.
+    if (is_active === false) {
+      const { error: revokeErr } = await auth.adminClient.rpc(
+        "revoke_user_sessions",
+        { _user_id: user_id },
+      );
+      if (revokeErr) {
+        // No revertir la desactivación por esto; el guard de is_active ya protege.
+        console.error("[toggle-user-status] revoke sessions:", revokeErr.message);
+      }
+    }
+
     return jsonResponse(req, { success: true, is_active });
   } catch (_err) {
     console.error("toggle-user-status error:", _err);

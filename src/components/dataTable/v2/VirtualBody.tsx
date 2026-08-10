@@ -1,7 +1,7 @@
 import { useQueryClient, type QueryClient } from "@tanstack/react-query";
 import { flexRender, type Row } from "@tanstack/react-table";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useRef, type ReactNode, type Ref } from "react";
+import { useEffect, useRef, type ReactNode, type Ref } from "react";
 import { EmptyRow } from "@/components/feedback/EmptyRow";
 import { Checkbox } from "@/components/ui/checkbox";
 import { TableBody, TableCell, TableRow } from "@/components/ui/table";
@@ -52,6 +52,10 @@ export function VirtualBody<T>({
     if (timerRef.current) clearTimeout(timerRef.current);
     timerRef.current = undefined;
   };
+  // FIX-FE-11: cleanup al desmontar — sin esto un timer armado por hover/focus
+  // podía disparar un prefetchQuery fantasma sobre un componente ya muerto
+  // (cambio de página, filtro que vacía la tabla, dentro de los 120ms).
+  useEffect(() => () => disarmPrefetch(), []);
   // `useVirtualizer` retorna una API imperativa que muta internamente y no puede
   // memoizarse por el React Compiler. Es un patrón oficial de TanStack Virtual.
   // eslint-disable-next-line react-hooks/incompatible-library

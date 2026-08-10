@@ -33,7 +33,10 @@ export function deriveInvoiceTotals(invoice: InvoiceLike | undefined, payments: 
   const totalPaid = payments.reduce((sum, p) => sum + Number(p.amount), 0);
   // v7.209.0 A3: restar credited_amount (NCs timbradas) para alinear el saldo
   // del detalle con el estado de cuenta del portal y con la vista interna.
-  const balance = Number(invoice?.total ?? 0) - totalPaid - Number(invoice?.credited_amount ?? 0);
+  // FIX-FE-09: clamp a 0 — sobrepago o NC mayor al remanente mostraba un saldo
+  // negativo, inconsistente con el estado de cuenta (que presenta $0). Mismo
+  // criterio que computeInvoiceTotals de PortalInvoicePayment.
+  const balance = Math.max(0, Number(invoice?.total ?? 0) - totalPaid - Number(invoice?.credited_amount ?? 0));
   return {
     totalPaid,
     balance,

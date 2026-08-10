@@ -22,7 +22,16 @@ export function useExtendBookingPreview(
     if (!forklift || !newEndDate) return null;
     const endYMD = toYMD(newEndDate);
     if (!endYMD) return null;
-    const items = generateLineItems(forklift, booking.start_date, endYMD);
+    // M6: el preview debe usar las tarifas pactadas en la reserva (la cotización
+    // pudo negociar precios distintos al catálogo); fallback al catálogo solo
+    // si la reserva no tiene tarifa propia.
+    const ratedForklift = {
+      ...forklift,
+      daily_rate: booking.daily_rate ?? forklift.daily_rate,
+      weekly_rate: booking.weekly_rate ?? forklift.weekly_rate,
+      monthly_rate: booking.monthly_rate ?? forklift.monthly_rate,
+    };
+    const items = generateLineItems(ratedForklift, booking.start_date, endYMD);
     const totals = computeTotals(items, DEFAULT_VAT_RATE * 100);
     // R9 Bloque 3: propagamos el código de moneda para que el preview lo
     // formatee explícitamente. Hoy `bookings` no persiste moneda propia

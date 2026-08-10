@@ -48,7 +48,13 @@ export function validateDealValue(
   dealValue: string,
   requiresDealValue: boolean,
 ): { value: number; error: string | null } {
-  const parsedValue = parseFloat(dealValue) || 0;
+  const trimmed = dealValue.trim();
+  // FIX-FE-10: parseFloat tragaba prefijos ("12x3" → 12, "abc" → 0 silencioso).
+  // Number() es estricto: cualquier entrada no vacía no numérica se rechaza.
+  const parsedValue = trimmed === "" ? 0 : Number(trimmed);
+  if (trimmed !== "" && !Number.isFinite(parsedValue)) {
+    return { value: 0, error: "Ingresa un monto numérico válido" };
+  }
   if (requiresDealValue && parsedValue <= 0) {
     return { value: parsedValue, error: "El valor del trato debe ser mayor a $0 para esta etapa" };
   }

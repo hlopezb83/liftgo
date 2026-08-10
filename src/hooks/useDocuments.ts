@@ -88,11 +88,19 @@ export function useDeleteDocument() {
         .eq("id", id)
         .maybeSingle();
       const path = doc?.file_url ? extractStoragePath(doc.file_url) : null;
-      if (path) {
-        await supabase.storage.from("documents").remove([path]);
-      }
+      // FIX-FE-03: borrar primero la fila DB. Antes se borraba el objeto de
+      // Storage primero: si el DELETE fallaba, la fila viva quedaba apuntando
+      // a un objeto inexistente (documento roto en la UI).
       const { error } = await supabase.from("documents").delete().eq("id", id);
       if (error) throw error;
+      // Best-effort: si el remove falla queda un objeto huérfano en el bucket
+      // (recuperable/purgable), no una referencia rota visible al usuario.
+      if (path) {
+        const { error: storageError } = await supabase.storage.from("documents").remove([path]);
+        if (storageError) {
+          console.warn("[useDeleteDocument] Fila eliminada pero el objeto quedó huérfano:", path, storageError);
+        }
+      }
     },
     invalidateKeys: [documentsQueries.keys.all],
     errorTitle: "Error al eliminar el documento",

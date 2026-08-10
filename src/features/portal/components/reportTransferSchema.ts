@@ -7,11 +7,18 @@ import { positiveAmount } from "@/lib/schemas";
 // revisar el intent.
 // R9-P2: el mensaje ahora dice CUÁL es el saldo (antes el botón sólo se
 // deshabilitaba y el cliente no sabía por qué).
-export const makeSchema = (balance: number) => z.object({
+// FIX-FE-04: se valida contra el remanente descontando intents pending_review;
+// sin esto el cliente podía sobre-reportar y generar intents duplicados que al
+// aprobarse sobrepagaban la factura.
+export const makeSchema = (reportableBalance: number, pendingInReview = 0) => z.object({
   transferDate: z.date({ error: "La fecha es obligatoria" }),
   amount: positiveAmount().refine(
-    (v) => Number(v) <= Number(balance.toFixed(2)) + 0.005,
-    { message: `El monto no puede superar el saldo pendiente (${formatCurrency(balance)})` },
+    (v) => Number(v) <= Number(reportableBalance.toFixed(2)) + 0.005,
+    {
+      message: pendingInReview > 0
+        ? `El monto no puede superar el saldo reportable (${formatCurrency(reportableBalance)}). Ya tienes ${formatCurrency(pendingInReview)} en revisión.`
+        : `El monto no puede superar el saldo pendiente (${formatCurrency(reportableBalance)})`,
+    },
   ),
   senderBank: z.string().default(""),
   senderLast4: z

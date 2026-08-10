@@ -87,7 +87,7 @@ export default function PortalLogin() {
             {mode === "sign-in" && (
               <div className="space-y-1.5">
                 <Label htmlFor="auth-password">Contraseña</Label>
-                <Input id="auth-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} className="touch:h-11" />
+                <Input id="auth-password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={8} className="touch:h-11" />
               </div>
             )}
             <Button type="submit" className="w-full touch:h-11" disabled={loading} data-testid="auth-submit">

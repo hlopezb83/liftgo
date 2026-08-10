@@ -16,16 +16,19 @@ interface Props {
   onOpenChange: (v: boolean) => void;
   invoiceId: string;
   customerId: string;
+  /** Saldo reportable = saldo de la factura menos intents en revisión. */
   balance: number;
+  /** Monto total ya reportado en intents pending_review (para el mensaje). */
+  pendingInReview?: number;
 }
 
 type FormValues = ReportTransferFormValues;
 
-export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId, balance }: Props) {
+export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId, balance, pendingInReview = 0 }: Props) {
   const { mutate, isPending } = useCreatePaymentIntent();
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(makeSchema(balance)),
+    resolver: zodResolver(makeSchema(balance, pendingInReview)),
     defaultValues: {
       transferDate: nowMty(),
       amount: Number(balance.toFixed(2)),

@@ -50,9 +50,11 @@ export function useContractFormPrefill({
     form.setValue("forklift_id", booking.forklift_id, opts);
     if (booking.start_date) form.setValue("start_date", booking.start_date, opts);
     if (booking.end_date) form.setValue("end_date", booking.end_date, opts);
-    form.setValue("daily_rate", String(forklift?.daily_rate || 0), opts);
-    form.setValue("weekly_rate", String(forklift?.weekly_rate || 0), opts);
-    form.setValue("monthly_rate", String(forklift?.monthly_rate || 0), opts);
+    // M5: tarifas NEGOCIADAS de la reserva (persistidas desde la cotización
+    // aceptada); fallback al catálogo del equipo solo si la reserva no tiene.
+    form.setValue("daily_rate", String(booking.daily_rate ?? forklift?.daily_rate ?? 0), opts);
+    form.setValue("weekly_rate", String(booking.weekly_rate ?? forklift?.weekly_rate ?? 0), opts);
+    form.setValue("monthly_rate", String(booking.monthly_rate ?? forklift?.monthly_rate ?? 0), opts);
   }, [bookingId, bookings, forklifts, isEdit, form]);
 
   // Auto-fill tarifas al elegir equipo (sin booking).
