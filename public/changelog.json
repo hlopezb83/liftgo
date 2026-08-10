@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.285.1",
+    "date": "2026-08-10",
+    "type": "patch",
+    "title": "Knip limpio: refresco de cancelación de NC conectado en UI",
+    "category": "improvement",
+    "description": "Se eliminó el export muerto useRefreshCreditNoteCancellationStatus conectándolo al detalle de factura: ahora las notas de crédito con cancelación pendiente muestran un botón para actualizar el estado SAT. Typecheck y knip quedaron limpios."
+  },
+  {
     "version": "7.285.0",
     "date": "2026-08-10",
     "title": "Cierre del paquete de 66 correcciones (validación y remanentes)",
