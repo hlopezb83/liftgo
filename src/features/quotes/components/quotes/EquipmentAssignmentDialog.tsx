@@ -1,15 +1,15 @@
+import { parseISO } from "date-fns";
 import { useEffect } from "react";
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { z } from "zod";
-import { parseISO } from "date-fns";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
-import { useAvailableForklifts } from "@/features/fleet/hooks/forklifts/useAvailableForklifts";
 import { WarnIcon } from "@/components/icons";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useAvailableForklifts } from "@/features/fleet/hooks/forklifts/useAvailableForklifts";
 import type { Tables } from "@/integrations/supabase/types";
 import type { RentalLineMeta } from "@/lib/domain/lineItems";
 import { formatCurrency } from "@/lib/format/formatCurrency";

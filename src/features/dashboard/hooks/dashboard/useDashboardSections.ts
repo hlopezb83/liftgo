@@ -1,11 +1,11 @@
 
 import { differenceInDays, parseISO } from "date-fns";
-import { toMxn } from "@/lib/money";
 import { computeFleetAvailability } from "@/features/availability/utils/fleetAvailability";
 import { useBookings } from "@/features/bookings";
 import { useForklifts, useInsuranceAlerts } from "@/features/fleet";
 import { useUpcomingInvoices } from "@/features/invoices";
 import { useUserRole } from "@/features/users";
+import { toMxn } from "@/lib/money";
 import { nowMty } from "@/lib/utils";
 import {
   EMPTY_COUNTS,
