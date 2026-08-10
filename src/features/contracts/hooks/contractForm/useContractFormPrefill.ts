@@ -12,6 +12,37 @@ import type { UseFormReturn } from "react-hook-form";
 type Customer = Database["public"]["Tables"]["customers"]["Row"];
 type Forklift = Database["public"]["Tables"]["forklifts"]["Row"];
 
+interface BookingPrefillSource {
+  customer_id: string | null;
+  forklift_id: string;
+  start_date: string | null;
+  end_date: string | null;
+  daily_rate: number | null;
+  weekly_rate: number | null;
+  monthly_rate: number | null;
+}
+
+/**
+ * Copia los datos de la reserva al formulario de contrato.
+ * M5: usa las tarifas NEGOCIADAS de la reserva (persistidas desde la cotización
+ * aceptada); solo cae al catálogo del equipo si la reserva no las trae.
+ */
+function applyBookingPrefill(
+  form: UseFormReturn<ContractFormValues>,
+  booking: BookingPrefillSource,
+  forklift: Forklift | undefined,
+) {
+  const opts = { shouldDirty: false } as const;
+  if (booking.customer_id) form.setValue("customer_id", booking.customer_id, opts);
+  form.setValue("forklift_id", booking.forklift_id, opts);
+  if (booking.start_date) form.setValue("start_date", booking.start_date, opts);
+  if (booking.end_date) form.setValue("end_date", booking.end_date, opts);
+  form.setValue("daily_rate", String(booking.daily_rate ?? forklift?.daily_rate ?? 0), opts);
+  form.setValue("weekly_rate", String(booking.weekly_rate ?? forklift?.weekly_rate ?? 0), opts);
+  form.setValue("monthly_rate", String(booking.monthly_rate ?? forklift?.monthly_rate ?? 0), opts);
+}
+
+
 interface Args {
   isEdit: boolean;
   bookingId: string | null;
