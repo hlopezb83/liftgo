@@ -5,9 +5,9 @@ import { Button } from "@/components/ui/button";
 import type { Tables } from "@/integrations/supabase/types";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { computeInvoiceFlags, type InvoiceActionFlags } from "@/lib/rules/invoices";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useRefreshCancellationStatus } from "../../hooks/invoices/cfdi/useRefreshCancellationStatus";
-import { downloadCfdiBlob } from "../../lib/downloadCfdiBlob";
+import { downloadCfdiBlob, fetchCfdiBlob } from "../../lib/downloadCfdiBlob";
 import { InvoicePDFButton } from "../invoices/InvoicePDFButton";
 import type { InvoiceVisibility } from "../../lib/invoiceVisibility";
 
@@ -25,6 +25,8 @@ interface Props {
   onDownloadXml: () => void;
   onCancelCfdi: () => void;
   onDelete: () => void;
+  /** R2 (bajo 7): refetch del detalle tras recuperar el XML pendiente. */
+  onRecoveredXml?: () => void;
 }
 
 type Flags = InvoiceActionFlags;
@@ -78,6 +80,41 @@ function AcuseDownloadButtons({ invoiceId, invoiceNumber }: { invoiceId: string;
 }
 
 
+
+/**
+ * R2 (bajo 7): superficie para `cfdi_xml_pending`. El botón llama a
+ * download-cfdi, que re-descarga el XML desde Facturapi, lo persiste en
+ * Storage y limpia el flag server-side; luego se hace refetch del detalle.
+ */
+function XmlPendingBlock({
+  invoiceId,
+  onRecovered,
+}: {
+  invoiceId: string;
+  onRecovered: () => void;
+}) {
+  const [loading, setLoading] = useState(false);
+  const handle = async () => {
+    setLoading(true);
+    try {
+      await fetchCfdiBlob({ invoice_id: invoiceId }, "xml");
+      notifySuccess("XML recuperado", {
+        description: "El CFDI XML ya quedó adjunto a la factura.",
+      });
+      onRecovered();
+    } catch (err) {
+      notifyError({ error: err, message: "No se pudo recuperar el XML desde Facturapi" });
+    } finally {
+      setLoading(false);
+    }
+  };
+  return (
+    <Button size="sm" variant="outline" onClick={handle} disabled={loading}>
+      <RefreshIcon className={`h-4 w-4 mr-1 ${loading ? "animate-spin" : ""}`} />
+      {loading ? "Recuperando…" : "Reintentar descarga XML"}
+    </Button>
+  );
+}
 
 function resolvePdfMode(visibility: InvoiceVisibility): "draft" | "cfdi" | "hidden" {
   if (visibility.showCfdiPdf) return "cfdi";
@@ -155,6 +192,7 @@ function CfdiXmlActions({
 export function InvoiceDetailActions({
   invoice, cfdiStatus, userRole: _userRole, visibility, balance,
   isStamping, onOpenPayment, onEdit, onStamp, onDownloadXml, onCancelCfdi, onDelete,
+  onRecoveredXml,
 }: Props) {
   // v7.226.0 · E2E-N6: pasar balance para ocultar "Registrar pago" si NC/pagos cubren la factura.
   const flags = computeInvoiceFlags({ ...invoice, balance: balance ?? null }, cfdiStatus, null);
@@ -162,6 +200,9 @@ export function InvoiceDetailActions({
   return (
     <>
       <CancellationBlock flags={flags} invoiceId={invoice.id} />
+      {invoice.cfdi_xml_pending ? (
+        <XmlPendingBlock invoiceId={invoice.id} onRecovered={onRecoveredXml ?? (() => {})} />
+      ) : null}
       {flags.canEdit ? (
         <RoleGuard module="Facturas" minAccess="full" fallback={null}>
           <Button size="sm" variant="outline" onClick={onEdit}>

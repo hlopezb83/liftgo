@@ -70,8 +70,10 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
       return;
     }
     // Fallback (RPC aún no desplegado): flujo legado de dos mutaciones.
+    // FIX-R2-05 (03-FIX-01 residual): el importe va en manual_cost; el trigger
+    // recalc_maintenance_log_cost pisa `cost` a 0 sin partes/labor.
     createMaintenance.mutate(
-      { forklift_id: record.forklift_id, service_type: "Reparación de Daño", description: record.description, cost: record.estimated_cost || 0, performed_by: user?.email ?? null },
+      { forklift_id: record.forklift_id, service_type: "Reparación de Daño", description: record.description, manual_cost: record.estimated_cost || 0, performed_by: user?.email ?? null },
       { onSuccess: (data) => { updateDamage.mutate({ id: record.id, status: "in_repair", maintenance_log_id: data.id }); notifySuccess("Orden de mantenimiento creada"); } }
     );
   };

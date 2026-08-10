@@ -1,4 +1,5 @@
 -- RLS: user_manual — manual interno restringido al personal; el cliente del portal no lo ve.
+-- FIX-R2-04: chequeo de BREACH fuera del handler (ver invoices.sql).
 BEGIN;
 
 INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
@@ -18,10 +19,16 @@ BEGIN
     RAISE EXCEPTION 'RLS BREACH: cliente del portal lee el manual interno';
   END IF;
 
+  DECLARE v_blocked boolean := false;
   BEGIN
-    INSERT INTO public.user_manual (content) VALUES ('contenido malicioso');
-    RAISE EXCEPTION 'RLS BREACH: cliente pudo escribir en user_manual';
-  EXCEPTION WHEN others THEN
+    BEGIN
+      INSERT INTO public.user_manual (content) VALUES ('contenido malicioso');
+    EXCEPTION WHEN insufficient_privilege THEN
+      v_blocked := true;
+    END;
+    IF NOT v_blocked THEN
+      RAISE EXCEPTION 'RLS BREACH: cliente pudo escribir en user_manual';
+    END IF;
     RAISE NOTICE 'OK: cliente bloqueado en user_manual';
   END;
 END $$;

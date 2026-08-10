@@ -1,8 +1,10 @@
+import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { buildCompletionPayload } from "../lib/deliveryDetailHelpers";
-import { useUpdateDelivery } from "./useDeliveries";
+import { deliveryKeys, useUpdateDelivery } from "./useDeliveries";
 
 type Delivery = Tables<"deliveries">;
 type Booking = { end_date: string };
@@ -37,8 +39,35 @@ export function useDeliveryCompletion(
   const [pickupPrompt, setPickupPrompt] = useState<PickupPrompt | null>(null);
 
   const priorDelivery = siblingDeliveries?.find((d) => d.type === "delivery");
-  const minHours =
-    delivery?.type === "pickup" ? priorDelivery?.hours_reading ?? null : null;
+
+  // FIX-R2-06 (03-FIX-07): última lectura global de la unidad (cualquier
+  // entrega/recolección previa, no solo la hermana de esta reserva).
+  const forkliftId = delivery?.forklift_id ?? null;
+  const { data: lastGlobalReading } = useQuery({
+    queryKey: [...deliveryKeys.all, "last-hours-reading", forkliftId],
+    enabled: forkliftId != null,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("deliveries")
+        .select("hours_reading")
+        .eq("forklift_id", forkliftId as string)
+        .not("hours_reading", "is", null)
+        .order("completed_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (error) throw error;
+      return data?.hours_reading ?? null;
+    },
+  });
+
+  // Piso monótono: entrega hermana (pickups) y última lectura global.
+  const minHours = (() => {
+    const candidates = [
+      delivery?.type === "pickup" ? priorDelivery?.hours_reading ?? null : null,
+      lastGlobalReading ?? null,
+    ].filter((v): v is number => v != null);
+    return candidates.length > 0 ? Math.max(...candidates) : null;
+  })();
 
   const promptPickupIfNeeded = (freshHoursReading: number | null) => {
     if (!delivery) return;

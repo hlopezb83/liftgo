@@ -1,47 +1,23 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createQueryWrapper } from "@/test/helpers/queryClient";
-import {
-  createSupabaseChainMock,
-  type ChainResolver,
-} from "@/test/helpers/supabaseChain";
+import { createSupabaseChainMock } from "@/test/helpers/supabaseChain";
 
 const h = vi.hoisted(() => {
   const state = {
-    assignedInsertError: null as { code?: string; message: string } | null,
-    forkliftsSelect: [{ id: "f-1", status: "available" }] as
-      { id: string; status: string }[],
-    forkliftsUpdateResult: [{ id: "f-1" }] as { id: string }[] | null,
-    statusLogsInsertError: null as { code?: string; message: string } | null,
-    statusLogsInsertResult: [{ id: "log-1" }] as { id: string }[] | null,
+    rpcError: null as { code?: string; message: string } | null,
+    rpcCalls: [] as { fn: string; args: unknown }[],
   };
-  const quoteAssignResolver = (calls: { method: string; args: unknown[] }[]) => {
-    if (calls.some((c) => c.method === "insert")) {
-      return { data: null, error: state.assignedInsertError };
-    }
-    return { data: [], error: null };
-  };
-  const forkliftsResolver = (calls: { method: string; args: unknown[] }[]) => {
-    if (calls.some((c) => c.method === "update")) {
-      return { data: state.forkliftsUpdateResult, error: null };
-    }
-    return { data: state.forkliftsSelect, error: null };
-  };
-  const statusLogsResolver = (calls: { method: string; args: unknown[] }[]) => {
-    if (calls.some((c) => c.method === "insert")) {
-      return { data: state.statusLogsInsertResult, error: state.statusLogsInsertError };
-    }
-    return { data: [], error: null };
-  };
-  return { state, quoteAssignResolver, forkliftsResolver, statusLogsResolver };
+  return { state };
 });
 
 vi.mock("@/integrations/supabase/client", () => ({
   supabase: createSupabaseChainMock({
-    tableResolvers: {
-      quote_assigned_forklifts: h.quoteAssignResolver as ChainResolver,
-      forklifts: h.forkliftsResolver as ChainResolver,
-      status_logs: h.statusLogsResolver as ChainResolver,
+    rpcResolvers: {
+      assign_forklift_to_sale_quote: (args) => {
+        h.state.rpcCalls.push({ fn: "assign_forklift_to_sale_quote", args });
+        return { data: null, error: h.state.rpcError };
+      },
     },
   }),
 }));
@@ -60,34 +36,47 @@ import { useAssignForklift } from "../useAssignForklift";
 
 describe("useAssignForklift", () => {
   beforeEach(() => {
-    h.state.assignedInsertError = null;
-    h.state.forkliftsSelect = [{ id: "f-1", status: "available" }];
-    h.state.forkliftsUpdateResult = [{ id: "f-1" }];
-    h.state.statusLogsInsertError = null;
-    h.state.statusLogsInsertResult = [{ id: "log-1" }];
+    h.state.rpcError = null;
+    h.state.rpcCalls = [];
   });
 
-  it("happy path: insert + update + status_logs", async () => {
+  it("happy path: una sola llamada RPC con arrays paralelos", async () => {
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useAssignForklift(), { wrapper: Wrapper });
     result.current.mutate([{ quoteId: "q-1", forkliftId: "f-1", lineIndex: 0 }]);
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(h.state.rpcCalls).toEqual([
+      {
+        fn: "assign_forklift_to_sale_quote",
+        args: { p_quote_id: "q-1", p_forklift_ids: ["f-1"], p_line_indices: [0] },
+      },
+    ]);
   });
 
-  it("falla si el insert en quote_assigned_forklifts choca (unique)", async () => {
-    h.state.assignedInsertError = { code: "23505", message: "duplicate" };
+  it("agrupa por cotización: una llamada RPC por quoteId", async () => {
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useAssignForklift(), { wrapper: Wrapper });
+    result.current.mutate([
+      { quoteId: "q-1", forkliftId: "f-1", lineIndex: 0 },
+      { quoteId: "q-1", forkliftId: "f-2", lineIndex: 1 },
+      { quoteId: "q-2", forkliftId: "f-3", lineIndex: 0 },
+    ]);
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(h.state.rpcCalls).toHaveLength(2);
+    expect(h.state.rpcCalls[0].args).toEqual({
+      p_quote_id: "q-1", p_forklift_ids: ["f-1", "f-2"], p_line_indices: [0, 1],
+    });
+    expect(h.state.rpcCalls[1].args).toEqual({
+      p_quote_id: "q-2", p_forklift_ids: ["f-3"], p_line_indices: [0],
+    });
+  });
+
+  it("propaga el error de la RPC (sold / archivado / renta activa)", async () => {
+    h.state.rpcError = { code: "check_violation", message: "El montacargas tiene una renta activa" };
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useAssignForklift(), { wrapper: Wrapper });
     result.current.mutate([{ quoteId: "q-1", forkliftId: "f-1", lineIndex: 0 }]);
     await waitFor(() => expect(result.current.isError).toBe(true));
-  });
-
-  it("falla si update no afecta filas (RLS)", async () => {
-    h.state.forkliftsUpdateResult = [];
-    const { Wrapper } = createQueryWrapper();
-    const { result } = renderHook(() => useAssignForklift(), { wrapper: Wrapper });
-    result.current.mutate([{ quoteId: "q-1", forkliftId: "f-1", lineIndex: 0 }]);
-    await waitFor(() => expect(result.current.isError).toBe(true));
-    expect((result.current.error as Error).message).toMatch(/no se modificó/);
+    expect((result.current.error as { message: string }).message).toMatch(/renta activa/);
   });
 });

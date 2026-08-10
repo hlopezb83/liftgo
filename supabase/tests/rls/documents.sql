@@ -1,4 +1,5 @@
 -- RLS: documents — el mecánico solo ve documentos de equipo/mantenimiento; cliente del portal no ve nada.
+-- FIX-R2-04: chequeo de BREACH fuera del handler (ver invoices.sql).
 BEGIN;
 
 INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
@@ -31,13 +32,14 @@ BEGIN
 
   BEGIN
     DELETE FROM public.documents WHERE entity_type = 'forklift';
-    IF NOT EXISTS (SELECT 1 FROM public.documents
-                    WHERE id = 'cccccccc-0000-4000-8000-00000000000a') THEN
-      RAISE EXCEPTION 'RLS BREACH: mecánico borró documentos';
-    END IF;
-  EXCEPTION WHEN others THEN
-    RAISE NOTICE 'OK: mecánico es de solo lectura en documents';
+  EXCEPTION WHEN insufficient_privilege THEN
+    NULL; -- denegación esperada; el efecto se verifica abajo
   END;
+  IF NOT EXISTS (SELECT 1 FROM public.documents
+                  WHERE id = 'cccccccc-0000-4000-8000-00000000000a') THEN
+    RAISE EXCEPTION 'RLS BREACH: mecánico borró documentos';
+  END IF;
+  RAISE NOTICE 'OK: mecánico es de solo lectura en documents';
 END $$;
 
 -- 2) Cliente del portal: sin acceso al repositorio interno.

@@ -3,8 +3,10 @@
 // vieja pre-R12-B2 que duplicaba CFDIs en el SAT).
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import {
+  decideLookupOutcome,
   decideRowAction,
   decideXmlFailure,
+  MAX_LOOKUP_MISSES,
   MAX_STAMPING_ATTEMPTS,
 } from "./decisions.ts";
 
@@ -20,7 +22,7 @@ Deno.test("con facturapi_id + uuid → reconcile directo", () => {
         facturapi_invoice_id: "f",
         stamping_attempts: 0,
       },
-      null,
+      { kind: "miss" }, // irrelevante: reconcile cortocircuita antes de leer pac
     ),
     { kind: "reconcile" },
   );
@@ -50,7 +52,7 @@ Deno.test("R12-B2: PAC lookup falló → retry en próximo cron (no revert)", ()
       },
       { kind: "lookup_failed" },
     ),
-    { kind: "retry_lookup" },
+    { kind: "retry_lookup", consume_attempt: false },
   );
 });
 
@@ -65,7 +67,7 @@ Deno.test("H6: primer 'miss' del PAC → retry_lookup (no revierte todavía)", (
       },
       { kind: "miss" },
     ),
-    { kind: "retry_lookup" },
+    { kind: "retry_lookup", consume_attempt: true },
   );
 });
 
@@ -84,18 +86,21 @@ Deno.test("H6: 'miss' al agotar MAX_STAMPING_ATTEMPTS → revert_error", () => {
   );
 });
 
-Deno.test("sin consulta posible al PAC (pac null) → revert_error", () => {
+Deno.test("Bajo-5: SDK sin invoices.list → lookup_failed → NUNCA revert (contrato real de index.ts)", () => {
+  // index.ts mapea "SDK sin list" a { kind: "lookup_failed" } (FIX-R2-02).
+  // Este test congela el contrato sobre el código REAL: ni siquiera con el
+  // presupuesto de intentos agotado se revierte sin haber consultado al PAC.
   assertEquals(
     decideRowAction(
       {
         id: "a",
         cfdi_uuid: null,
         facturapi_invoice_id: null,
-        stamping_attempts: 0,
+        stamping_attempts: 999,
       },
-      null,
+      { kind: "lookup_failed" },
     ),
-    { kind: "revert_error" },
+    { kind: "retry_lookup", consume_attempt: false },
   );
 });
 
@@ -119,4 +124,57 @@ Deno.test("xml retry: intento 10+ marca error (fin de reintentos)", () => {
   assertEquals(decideXmlFailure(9), "mark_error");
   assertEquals(decideXmlFailure(10), "mark_error");
   assertEquals(decideXmlFailure(25), "mark_error");
+});
+
+Deno.test("N9: lookup_failed con presupuesto casi agotado → sigue sin consumir ni revertir", () => {
+  assertEquals(
+    decideRowAction(
+      {
+        id: "a",
+        cfdi_uuid: null,
+        facturapi_invoice_id: null,
+        stamping_attempts: MAX_STAMPING_ATTEMPTS - 1,
+      },
+      { kind: "lookup_failed" },
+    ),
+    { kind: "retry_lookup", consume_attempt: false },
+  );
+});
+
+// ── N5 (R2): decideLookupOutcome — REP/NC ya no revierten al primer miss ──
+
+Deno.test("N5: hit del PAC → recover con ids", () => {
+  assertEquals(
+    decideLookupOutcome({ kind: "hit", facturapi_id: "f1", uuid: "u1" }, 0),
+    { kind: "recover", facturapi_id: "f1", uuid: "u1" },
+  );
+});
+
+Deno.test("N5: misses 1..N-1 → defer consumiendo intento (NO revert al primer miss)", () => {
+  assertEquals(
+    decideLookupOutcome({ kind: "miss" }, null),
+    { kind: "defer", consume_attempt: true },
+  );
+  assertEquals(
+    decideLookupOutcome({ kind: "miss" }, MAX_LOOKUP_MISSES - 2),
+    { kind: "defer", consume_attempt: true },
+  );
+});
+
+Deno.test("N5: miss número MAX_LOOKUP_MISSES consecutivo → revert", () => {
+  assertEquals(
+    decideLookupOutcome({ kind: "miss" }, MAX_LOOKUP_MISSES - 1),
+    { kind: "revert" },
+  );
+});
+
+Deno.test("N9: lookup_failed nunca consume presupuesto ni revierte", () => {
+  assertEquals(
+    decideLookupOutcome({ kind: "lookup_failed" }, null),
+    { kind: "defer", consume_attempt: false },
+  );
+  assertEquals(
+    decideLookupOutcome({ kind: "lookup_failed" }, 999),
+    { kind: "defer", consume_attempt: false },
+  );
 });

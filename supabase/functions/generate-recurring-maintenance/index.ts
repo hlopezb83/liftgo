@@ -33,14 +33,6 @@ Deno.serve(async (req) => {
       String(nowMty.getMonth() + 1).padStart(2, "0")
     }`;
     const firstOfMonth = `${currentMonth}-01`;
-    const nextMonth = new Date(
-      nowMty.getFullYear(),
-      nowMty.getMonth() + 1,
-      1,
-    );
-    const firstOfNextMonth = `${nextMonth.getFullYear()}-${
-      String(nextMonth.getMonth() + 1).padStart(2, "0")
-    }-01`;
 
     // FIX-14: sin filtro de estatus en la query — las pólizas activas de
     // unidades no rentadas se clasifican como "omitidas por estado" y se
@@ -118,6 +110,10 @@ Deno.serve(async (req) => {
 
       // BL-40: el log queda 'scheduled'; no carga P&L hasta que el mecánico
       // lo confirme como 'completed'.
+      // FIX-R2-02 (N2): el importe va en manual_cost (el trigger
+      // recalc_maintenance_log_cost pisa `cost` a 0 sin partes/labor) y NO se
+      // escribe next_service_date: un servicio de póliza programado no debe
+      // activar el buffer de disponibilidad ±3 días (M17/FIX-R2-01).
       const { error: insertErr } = await supabase
         .from("maintenance_logs")
         .insert({
@@ -125,11 +121,10 @@ Deno.serve(async (req) => {
           service_type: policy.service_type,
           description: policy.description ||
             `Póliza mensual - ${policy.provider_name}`,
-          cost: policy.monthly_cost,
+          manual_cost: policy.monthly_cost,
           performed_by: policy.provider_name,
           performed_at: firstOfMonth,
           work_status: "scheduled",
-          next_service_date: firstOfNextMonth,
         });
 
       if (insertErr) {

@@ -1,4 +1,5 @@
 -- RLS: payments — cliente del portal solo ve pagos de SUS facturas.
+-- FIX-R2-04: chequeo de BREACH fuera del handler (ver invoices.sql).
 BEGIN;
 
 INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
@@ -38,11 +39,17 @@ BEGIN
     RAISE EXCEPTION 'RLS ROTA: cliente A no ve sus propios pagos';
   END IF;
 
+  DECLARE v_blocked boolean := false;
   BEGIN
-    INSERT INTO public.payments (invoice_id, amount)
-    VALUES ('22222222-0000-4000-8000-0000000000a2', 1);
-    RAISE EXCEPTION 'RLS BREACH: cliente pudo registrar un pago';
-  EXCEPTION WHEN others THEN
+    BEGIN
+      INSERT INTO public.payments (invoice_id, amount)
+      VALUES ('22222222-0000-4000-8000-0000000000a2', 1);
+    EXCEPTION WHEN insufficient_privilege THEN
+      v_blocked := true;
+    END;
+    IF NOT v_blocked THEN
+      RAISE EXCEPTION 'RLS BREACH: cliente pudo registrar un pago';
+    END IF;
     RAISE NOTICE 'OK: cliente no inserta pagos';
   END;
 END $$;

@@ -120,7 +120,7 @@ async function persistDownload(
   bytes: Uint8Array,
   contentType: string,
   table: "invoices" | "payments" | "credit_notes",
-  updates: Record<string, string>,
+  updates: Record<string, unknown>,
   matchColumn: string,
   matchValue: string,
 ) {
@@ -400,7 +400,10 @@ Deno.serve(async (req) => {
       "invoices",
       baseFormat === "pdf"
         ? { cfdi_pdf_url: newPath }
-        : { cfdi_xml_url: newPath },
+        // R2 (bajo 7): si la descarga manual recupera el XML, limpiar el flag
+        // cfdi_xml_pending que dejó reconcile-stamping-invoices al agotar
+        // sus reintentos automáticos.
+        : { cfdi_xml_url: newPath, cfdi_xml_pending: false },
       "id",
       invoice_id,
     );

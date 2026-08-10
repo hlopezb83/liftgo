@@ -1,4 +1,5 @@
 -- RLS: forklifts — mecánico lee la flota pero no la modifica ni la borra.
+-- FIX-R2-04: chequeo de BREACH fuera del handler (ver invoices.sql).
 BEGIN;
 
 INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
@@ -27,22 +28,24 @@ BEGIN
     UPDATE public.forklifts SET status = 'maintenance'
      WHERE id = '88888888-0000-4000-8000-00000000000f';
     GET DIAGNOSTICS v_rows = ROW_COUNT;
-    IF v_rows > 0 THEN
-      RAISE EXCEPTION 'RLS BREACH: mecánico modificó la flota directamente';
-    END IF;
   EXCEPTION WHEN insufficient_privilege THEN
-    RAISE NOTICE 'OK: mecánico no escribe en forklifts';
+    v_rows := 0; -- denegación esperada
   END;
+  IF v_rows > 0 THEN
+    RAISE EXCEPTION 'RLS BREACH: mecánico modificó la flota directamente';
+  END IF;
+  RAISE NOTICE 'OK: mecánico no escribe en forklifts';
 
   BEGIN
     DELETE FROM public.forklifts WHERE id = '88888888-0000-4000-8000-00000000000f';
-    IF NOT EXISTS (SELECT 1 FROM public.forklifts
-                    WHERE id = '88888888-0000-4000-8000-00000000000f') THEN
-      RAISE EXCEPTION 'RLS BREACH: mecánico borró un equipo';
-    END IF;
-  EXCEPTION WHEN others THEN
-    RAISE NOTICE 'OK: mecánico no borra equipos';
+  EXCEPTION WHEN insufficient_privilege THEN
+    NULL; -- denegación esperada; el efecto se verifica abajo
   END;
+  IF NOT EXISTS (SELECT 1 FROM public.forklifts
+                  WHERE id = '88888888-0000-4000-8000-00000000000f') THEN
+    RAISE EXCEPTION 'RLS BREACH: mecánico borró un equipo';
+  END IF;
+  RAISE NOTICE 'OK: mecánico no borra equipos';
 END $$;
 
 ROLLBACK;
