@@ -1,3 +1,8 @@
+## 7.286.1 - 2026-08-10
+
+- Entregas: se permite reprogramar una recolección pendiente cuando la reserva ya está completada (FIX-R2-11).
+- Datos: backfills H7(b)/H8(b) verificados sin filas pendientes.
+
 # Changelog
 
 ## 7.274.2 — 01/08/2026
