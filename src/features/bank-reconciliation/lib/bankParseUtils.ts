@@ -65,7 +65,13 @@ export function parseAmount(value: string): number | null {
 
   const lastComma = inner.lastIndexOf(",");
   const lastDot = inner.lastIndexOf(".");
-  if (lastComma > lastDot) {
+  // M22: en-US SIN decimales: "1,500" / "12,345,678" — coma(s) con exactamente
+  // 3 dígitos por grupo y sin punto → separadores de miles, no decimal.
+  // Sin esta regla "1,500" se leía como 1.50 (corrupción ×1000).
+  // No aplica a decimales por coma: "1,50" (2 dígitos) sigue siendo 1.50.
+  if (lastDot === -1 && /^-?\d{1,3}(,\d{3})+$/.test(inner)) {
+    inner = inner.replace(/,/g, "");
+  } else if (lastComma > lastDot) {
     // Coma decimal (es-MX / europeo): puntos son separadores de miles.
     inner = inner.replace(/\./g, "").replace(",", ".");
   } else {

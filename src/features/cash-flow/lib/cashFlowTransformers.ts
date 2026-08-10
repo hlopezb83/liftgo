@@ -11,6 +11,22 @@ import type { CashFlowItem } from "./cashFlowUtils";
 // La implementación canónica vive en `@/lib/money`.
 export { toMxn };
 
+/**
+ * FX faltante: moneda foránea sin tipo de cambio válido (> 0, finito).
+ * toMxn en ese caso devuelve el monto SIN convertir (1:1) — proyectarlo sería
+ * una subestimación silenciosa (~18× para USD). El cash-flow EXCLUYE estos
+ * documentos; el consumidor puede listarlos con este helper para avisar.
+ */
+export function isFxMissing(
+  currency: string | null | undefined,
+  fx: number | string | null | undefined,
+): boolean {
+  const code = (currency ?? "MXN").toUpperCase();
+  if (code === "MXN") return false;
+  const rate = Number(fx ?? 0);
+  return !(Number.isFinite(rate) && rate > 0);
+}
+
 export interface InvoiceRow {
   id: string;
   invoice_number: string;
@@ -45,6 +61,8 @@ export interface PaymentRow {
 export function buildPaidByInvoice(payments: ReadonlyArray<PaymentRow>): Map<string, number> {
   const map = new Map<string, number>();
   for (const p of payments) {
+    // FX faltante → excluir: sumarlo 1:1 subestimaría el pagado real.
+    if (isFxMissing(p.currency, p.exchange_rate)) continue;
     const mxn = toMxn(Number(p.amount), p.currency, p.exchange_rate);
     map.set(p.invoice_id, (map.get(p.invoice_id) ?? 0) + mxn);
   }
@@ -57,6 +75,8 @@ export function invoiceToItem(
   paidByInvoice: ReadonlyMap<string, number>,
 ): CashFlowItem | null {
   if (!inv.due_date) return null;
+  // FX faltante → excluir de la proyección en vez de asumir USD 1:1 como MXN.
+  if (isFxMissing(inv.moneda, inv.tipo_cambio)) return null;
   const totalMxn = toMxn(Number(inv.total), inv.moneda ?? "MXN", inv.tipo_cambio);
   // v7.209.0 A4: descontar NCs timbradas (mismo doc → mismo TC) para no
   // proyectar cobro sobre montos ya acreditados al cliente.
@@ -87,6 +107,7 @@ function supplierName(s: BillRow["suppliers"]): string {
 /** Transforma una cuenta por pagar en `CashFlowItem` (salida), o null. */
 export function billToItem(b: BillRow): CashFlowItem | null {
   if (!b.due_date) return null;
+  if (isFxMissing(b.currency, b.exchange_rate)) return null;
   // Bloque 5.3 (R4): balance null/NaN generaba "$NaN" en la tabla. Coalescemos
   // a 0 antes de convertir a MXN — si queda ≤ 0.01 se descarta con el guard.
   const rawBalance = Number(b.balance);

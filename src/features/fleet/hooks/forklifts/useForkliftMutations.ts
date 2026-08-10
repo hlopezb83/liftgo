@@ -11,11 +11,19 @@ export function useCreateForklift() {
     mutationFn: async (forklift: TablesInsert<"forklifts">) => {
       const { data, error } = await supabase.from("forklifts").insert(forklift).select().single();
       if (error) throw error;
-      await supabase.from("status_logs").insert({
+      const { error: logError } = await supabase.from("status_logs").insert({
         forklift_id: data.id,
         to_status: forklift.status || "available",
         note: "Registro inicial",
       });
+      // FIX-12: no revertir la creación (ya fue exitosa), pero no silenciar el
+      // fallo del historial inicial (RLS, red).
+      if (logError) {
+        notifyError({
+          error: logError,
+          title: "Montacargas creado, pero no se registró el historial inicial de estado",
+        });
+      }
       return data;
     },
     invalidateKeys: [forkliftKeys.all],

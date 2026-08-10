@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { supabase } from "@/integrations/supabase/client";
-import { notifySuccess } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { CfdiFieldsCard } from "../components/invoice-form/CfdiFieldsCard";
 import { EditableLineItemsTable } from "../components/invoice-form/EditableLineItemsTable";
 import { InvoiceDetailsCard } from "../components/invoice-form/InvoiceDetailsCard";
@@ -74,11 +74,23 @@ export default function InvoiceForm() {
           if (damageId && damageId !== "null") {
             // N4-r3: ligar el daño a la factura creada — sin invoice_id no hay
             // trazabilidad de qué factura cubre el daño.
-            await supabase
+            // FIX-03 (H9): UPDATE condicional — solo cierra el daño si nadie
+            // lo facturó antes. Si afecta 0 filas, otro proceso ya lo facturó.
+            const { data: closedRows, error: closeError } = await supabase
               .from("damage_records")
               .update({ status: "invoiced", invoice_id: data.id })
-              .eq("id", damageId);
-
+              .eq("id", damageId)
+              .neq("status", "invoiced")
+              .is("invoice_id", null)
+              .select("id");
+            if (closeError) {
+              notifyError({ error: closeError, title: `Factura ${data.invoice_number} creada, pero no se pudo ligar el daño` });
+            } else if (!closedRows || closedRows.length === 0) {
+              notifyError({
+                title: "Este daño ya fue facturado",
+                error: new Error(`La factura ${data.invoice_number} puede ser un duplicado: otro proceso ya marcó el daño como facturado. Verifica y cancela la que sobre.`),
+              });
+            }
           }
           if (f.fromQuoteId) f.updateQuote.mutate({ id: f.fromQuoteId, status: "accepted" });
           finalize(`Factura ${data.invoice_number} creada`, data.id);

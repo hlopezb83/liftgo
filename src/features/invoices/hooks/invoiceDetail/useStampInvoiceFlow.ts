@@ -52,6 +52,9 @@ export function useStampInvoiceFlow(refetch: () => void) {
           title: "Faltan datos para timbrar",
           message: `Completa en el cliente o en la factura: ${missing.join(", ")}.`,
         });
+        // M20: este return temprano NO pasa por onSettled de la mutación;
+        // sin resetear el ref el botón quedaba bloqueado hasta recargar.
+        inFlightRef.current = false;
         refetch();
         return;
       }

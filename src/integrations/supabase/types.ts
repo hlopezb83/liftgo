@@ -1057,6 +1057,7 @@ export type Database = {
           representante_legal: string | null
           rfc: string | null
           tax_id: string | null
+          tax_rate: number
           updated_at: string
           user_id: string | null
           uso_cfdi: string | null
@@ -1084,6 +1085,7 @@ export type Database = {
           representante_legal?: string | null
           rfc?: string | null
           tax_id?: string | null
+          tax_rate?: number
           updated_at?: string
           user_id?: string | null
           uso_cfdi?: string | null
@@ -1111,6 +1113,7 @@ export type Database = {
           representante_legal?: string | null
           rfc?: string | null
           tax_id?: string | null
+          tax_rate?: number
           updated_at?: string
           user_id?: string | null
           uso_cfdi?: string | null

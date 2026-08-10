@@ -17,6 +17,7 @@ import {
   isFacturapiTimeout,
   sdkCallWithTimeout,
 } from "../_shared/facturapi/withTimeout.ts";
+import { roundMoney } from "../_shared/money.ts";
 
 export type { SupabaseLike };
 export interface StampCreditNoteDeps {
@@ -34,6 +35,8 @@ type LineItem = {
   quantity?: number;
   unit_price?: number;
   product_key?: string;
+  discount?: number;
+  discount_type?: "%" | "$";
 };
 
 export async function handleStampCreditNote(
@@ -237,19 +240,36 @@ export async function handleStampCreditNote(
     const ncTaxRatePct = ncRow.tax_rate == null ? 16 : Number(ncRow.tax_rate);
     const ncTaxRateFraction = ncTaxRatePct / 100;
     const items = Array.isArray(ncRow.line_items)
-      ? (ncRow.line_items as LineItem[]).map((li) => ({
-        product: {
-          description: li.description || "Nota de crédito",
-          product_key: li.product_key || "84111506",
-          price: li.unit_price || 0,
-          tax_included: false,
-          taxes: [{
-            type: "IVA",
-            rate: ncTaxRateFraction,
-          }],
-        },
-        quantity: li.quantity || 1,
-      }))
+      ? (ncRow.line_items as LineItem[]).map((li) => {
+        const quantity = li.quantity || 1;
+        const unitPrice = li.unit_price || 0;
+        const item: Record<string, unknown> = {
+          product: {
+            description: li.description || "Nota de crédito",
+            product_key: li.product_key || "84111506",
+            price: unitPrice,
+            tax_included: false,
+            taxes: [{
+              type: "IVA",
+              rate: ncTaxRateFraction,
+            }],
+          },
+          quantity,
+        };
+        // M24 (espejo de BL-02 en stamp-cfdi): propagar el descuento de la
+        // línea de la factura origen. Sin esto el CFDI de egreso acredita el
+        // importe BRUTO — más de lo facturado neto.
+        if (li.discount && li.discount > 0) {
+          const base = unitPrice * quantity;
+          const discountAmount = li.discount_type === "$"
+            ? Math.min(li.discount, base)
+            : (base * li.discount) / 100;
+          if (discountAmount > 0) {
+            item.discount = roundMoney(discountAmount);
+          }
+        }
+        return item;
+      })
       : [];
 
     const legalName = sanitizeLegalName(

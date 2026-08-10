@@ -1,32 +1,38 @@
-import { useEffect, useState } from "react";
+import { parseISO } from "date-fns";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { NumberField, TextField, TextareaField } from "@/components/forms/fields";
+import { DateField, NumberField, TextField, TextareaField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FleetIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
+import { toYMD } from "@/lib/date/toYMD";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { notifySuccess } from "@/lib/ui/appFeedback";
+import { nowMty } from "@/lib/utils";
 import { useCreateDelivery } from "../../hooks/useDeliveries";
+
+interface DeliverySource {
+  forklift_id: string;
+  booking_id: string | null;
+  address: string | null;
+  driver_name: string | null;
+  driver_phone: string | null;
+  hours_reading: number | null;
+}
 
 interface PostDeliveryPickupDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  delivery: {
-    forklift_id: string;
-    booking_id: string | null;
-    address: string | null;
-    driver_name: string | null;
-    driver_phone: string | null;
-    hours_reading: number | null;
-  };
+  delivery: DeliverySource;
   bookingEndDate: string;
   forkliftName: string;
 }
 
 // BL-42 (horómetro): la recolección no puede tener menos horas que la entrega.
 const makeSchema = (minHours: number | null) => z.object({
+  scheduledDate: z.date(),
   address: z.string().default(""),
   driverName: z.string().default(""),
   driverPhone: z.string().default(""),
@@ -43,7 +49,21 @@ const makeSchema = (minHours: number | null) => z.object({
 });
 type FormValues = z.infer<ReturnType<typeof makeSchema>>;
 
-export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, bookingEndDate, forkliftName }: PostDeliveryPickupDialogProps) {
+// M8: si la renta ya venció, proponer HOY como fecha de recolección
+// (comparación por día calendario); nunca una fecha en el pasado.
+const defaultScheduledDate = (bookingEndDate: string): Date => {
+  const todayYmd = toYMD(nowMty()) as string;
+  return bookingEndDate >= todayYmd ? parseISO(bookingEndDate) : nowMty();
+};
+
+interface BodyProps {
+  delivery: DeliverySource;
+  bookingEndDate: string;
+  onOpenChange: (open: boolean) => void;
+}
+
+/** Cuerpo del diálogo: se monta al abrir, por lo que no requiere reset en efecto. */
+function PickupDialogBody({ delivery, bookingEndDate, onOpenChange }: BodyProps) {
   const createDelivery = useCreateDelivery();
   const [showForm, setShowForm] = useState(false);
   const minHours = delivery.hours_reading;
@@ -51,6 +71,7 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
   const form = useForm<FormValues>({
     resolver: zodResolver(makeSchema(minHours)),
     defaultValues: {
+      scheduledDate: defaultScheduledDate(bookingEndDate),
       address: delivery.address || "",
       driverName: delivery.driver_name || "",
       driverPhone: delivery.driver_phone || "",
@@ -58,28 +79,13 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
     },
   });
 
-  useEffect(() => {
-    // Reset local UI state y form al abrir/cerrar el diálogo. `form.reset` de
-    // react-hook-form debe ejecutarse fuera del render (patrón oficial).
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (!open) setShowForm(false);
-    if (open) {
-      form.reset({
-        address: delivery.address || "",
-        driverName: delivery.driver_name || "",
-        driverPhone: delivery.driver_phone || "",
-        scheduledTime: "", hoursReading: null, notes: "",
-      });
-    }
-  }, [open, delivery, form]);
-
   const handleSchedule = form.handleSubmit((values) => {
     createDelivery.mutate(
       {
         forklift_id: delivery.forklift_id,
         booking_id: delivery.booking_id,
         type: "pickup",
-        scheduled_date: bookingEndDate,
+        scheduled_date: toYMD(values.scheduledDate) ?? bookingEndDate,
         scheduled_time: values.scheduledTime || null,
         address: values.address || null,
         driver_name: values.driverName || null,
@@ -91,9 +97,49 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
     );
   });
 
+  if (!showForm) {
+    return (
+      <FormDialogFooter className="flex-col gap-2 sm:flex-col">
+        <Button className="w-full" onClick={() => setShowForm(true)}>
+          <FleetIcon className="h-4 w-4 mr-2" /> Programar recolección
+        </Button>
+        <Button variant="outline" className="w-full" onClick={() => onOpenChange(false)}>Omitir por Ahora</Button>
+      </FormDialogFooter>
+    );
+  }
+
+  return (
+    <Form {...form}>
+      <form onSubmit={handleSchedule} className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+          <DateField control={form.control} name="scheduledDate" label="Fecha de Recolección" required />
+          <div><p className="text-muted-foreground">Tipo</p><p className="font-medium">Recolección</p></div>
+        </div>
+        <TextField control={form.control} name="address" label="Dirección de Recolección" placeholder="Ingresa la dirección" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <TextField control={form.control} name="driverName" label="Nombre del Operador" />
+          <TextField control={form.control} name="driverPhone" label="Teléfono del Operador" type="tel" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <TextField control={form.control} name="scheduledTime" label="Hora Programada" type="time" />
+          <NumberField control={form.control} name="hoursReading" label="Horómetro (hrs)" min={0} step={0.1} placeholder="Ej: 1250" />
+        </div>
+        <TextareaField control={form.control} name="notes" label="Notas" rows={2} />
+
+        <FormDialogFooter className="flex-col gap-2 sm:flex-row">
+          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Omitir</Button>
+          <Button type="submit" disabled={createDelivery.isPending}>
+            {createDelivery.isPending ? "Programando..." : "Programar recolección"}
+          </Button>
+        </FormDialogFooter>
+      </form>
+    </Form>
+  );
+}
+
+export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, bookingEndDate, forkliftName }: PostDeliveryPickupDialogProps) {
   return (
     <FormDialog
-      isPending={createDelivery.isPending}
       open={open}
       onOpenChange={onOpenChange}
       width="md"
@@ -106,40 +152,14 @@ export function PostDeliveryPickupDialog({ open, onOpenChange, delivery, booking
         </span>
       }
     >
-      {!showForm ? (
-        <FormDialogFooter className="flex-col gap-2 sm:flex-col">
-          <Button className="w-full" onClick={() => setShowForm(true)}>
-            <FleetIcon className="h-4 w-4 mr-2" /> Programar recolección
-          </Button>
-          <Button variant="outline" className="w-full" onClick={() => onOpenChange(false)}>Omitir por Ahora</Button>
-        </FormDialogFooter>
-      ) : (
-        <Form {...form}>
-          <form onSubmit={handleSchedule} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-              <div><p className="text-muted-foreground">Fecha de Recolección</p><p className="font-medium">{bookingEndDate}</p></div>
-              <div><p className="text-muted-foreground">Tipo</p><p className="font-medium">Recolección</p></div>
-            </div>
-            <TextField control={form.control} name="address" label="Dirección de Recolección" placeholder="Ingresa la dirección" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <TextField control={form.control} name="driverName" label="Nombre del Operador" />
-              <TextField control={form.control} name="driverPhone" label="Teléfono del Operador" type="tel" />
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              <TextField control={form.control} name="scheduledTime" label="Hora Programada" type="time" />
-              <NumberField control={form.control} name="hoursReading" label="Horómetro (hrs)" min={0} step={0.1} placeholder="Ej: 1250" />
-            </div>
-            <TextareaField control={form.control} name="notes" label="Notas" rows={2} />
-
-            <FormDialogFooter className="flex-col gap-2 sm:flex-row">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Omitir</Button>
-              <Button type="submit" disabled={createDelivery.isPending}>
-                {createDelivery.isPending ? "Programando..." : "Programar recolección"}
-              </Button>
-            </FormDialogFooter>
-          </form>
-        </Form>
-      )}
+      {open ? (
+        <PickupDialogBody
+          key={`${delivery.forklift_id}-${delivery.booking_id ?? "sin-reserva"}`}
+          delivery={delivery}
+          bookingEndDate={bookingEndDate}
+          onOpenChange={onOpenChange}
+        />
+      ) : null}
     </FormDialog>
   );
 }

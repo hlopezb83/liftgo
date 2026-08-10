@@ -1,5 +1,11 @@
 [
   {
+    "version": "7.285.0",
+    "date": "2026-08-10",
+    "title": "Cierre del paquete de 66 correcciones (validación y remanentes)",
+    "description": "Se validó el paquete completo de 66 correcciones contra el código actual y se implementaron los remanentes: recolección post-entrega con fecha editable, off-by-one del último día de renta, guard de alta de montacargas, cascada de evidencias de daños, pólizas omitidas reportadas, claves SAT por línea en timbrado, REP con IVA tasa 0, IVA por cliente en facturación recurrente, NC con descuentos, cancelaciones de notas de crédito, cash-flow sin tipo de cambio y reintento de timbrado con lookup previo."
+  },
+  {
     "version": "7.284.2",
     "date": "2026-08-10",
     "type": "patch",
