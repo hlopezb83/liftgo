@@ -1,0 +1,36 @@
+{
+  "version": "7.285.0",
+  "date": "2026-08-10",
+  "title": "Cierre del paquete de 66 correcciones (validación y remanentes)",
+  "sections": [
+    {
+      "heading": "Reservas y entregas",
+      "items": [
+        "Recolección post-entrega con fecha editable (nunca en el pasado).",
+        "Corrección del off-by-one en el último día de renta."
+      ]
+    },
+    {
+      "heading": "Flota y mantenimiento",
+      "items": [
+        "Alta de montacargas obligatoriamente en estado disponible.",
+        "Cargo por daño no duplicable desde facturación.",
+        "Evidencias de daños archivados eliminadas en cascada.",
+        "Pólizas omitidas por estado ahora se reportan.",
+        "Log de estado inicial con manejo de error."
+      ]
+    },
+    {
+      "heading": "Finanzas y CFDI",
+      "items": [
+        "Claves SAT por línea en el timbrado.",
+        "REP con TrasladoDR IVA tasa 0 cuando la factura gravó 0%.",
+        "Tasa de IVA por cliente en facturación recurrente.",
+        "Notas de crédito replican descuentos de la factura origen.",
+        "Consulta de cancelación extendida a notas de crédito.",
+        "Flujo de efectivo excluye documentos en moneda extranjera sin tipo de cambio.",
+        "Reintento de timbrado con búsqueda previa por external_id."
+      ]
+    }
+  ]
+}
