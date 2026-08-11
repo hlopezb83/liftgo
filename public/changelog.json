@@ -4,7 +4,7 @@
     "date": "2026-08-11",
     "type": "patch",
     "title": "CI: arranque de Supabase local en el workflow de tests RLS",
-    "category": "performance",
+    "category": "infra",
     "changes": [
       "El job rls-db-tests fallaba en el step de arranque en sus 3 runs: la lista de exclusiones incluia `pgbouncer`, contenedor inexistente en la CLI 2.34.0 (reemplazado por `supavisor`).",
       "Exclusiones corregidas a nombres validos de la CLI 2.34.0; se conserva `gotrue` porque las suites RLS necesitan el schema `auth`.",
