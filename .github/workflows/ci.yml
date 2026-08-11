@@ -404,11 +404,6 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.VITE_SUPABASE_PUBLISHABLE_KEY }}
           VITE_SUPABASE_PROJECT_ID: ${{ secrets.VITE_SUPABASE_PROJECT_ID }}
-          # v7.238.1: visual audit desactivado en CI hasta commitear baselines.
-          # Para generar/actualizar baselines corre manualmente:
-          #   .github/workflows/e2e-visual-baselines.yml (workflow_dispatch)
-          # Cuando existan los snapshots *-chromium-linux.png, cambiar a '1'.
-          E2E_VISUAL: '0'
         run: bunx playwright test --shard=${{ matrix.shard }}/${{ matrix.total }}
 
       - name: Upload Playwright HTML report
