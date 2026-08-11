@@ -1,30 +1,45 @@
-# Proveedor GAM LEON no se reconoce al importar el XML
+# Auditoría: "Firmado por" e "Interés moratorio" no llegan al PDF del contrato
 
-## Qué encontré (verificado en la base de datos)
+## Qué encontré (verificado en datos reales)
 
-- El XML es del emisor **GAM LEON**, RFC **GLE2112131B2**.
-- El proveedor "GAM LEON" (id `4736e98b…`) existe y **no está eliminado**, pero su campo **RFC está vacío (null)**.
-- **El RFC nunca se perdió: nunca se guardó.** La bitácora de auditoría de ese registro tiene una sola entrada: el alta del 25-mar-2026, y ya en ese momento el RFC venía vacío. No existe ninguna edición posterior que lo haya borrado.
-- No es un caso aislado: la mayoría de los proveedores dados de alta en marzo (carga inicial) quedaron sin RFC (BBVA BANCOMER, CERTOK, EFEX PAY, GOOGLE ADS, etc.). Los capturados de mayo en adelante sí traen RFC.
-- Ya se registró antes una factura de GAM LEON con XML (CXP-0179, del mismo emisor GLE2112131B2), pero **importar un CFDI no escribe el RFC en el proveedor**, así que el dato siguió vacío.
+Revisé el contrato CTR-0003 y el resto:
 
-Analogía: el ERP busca al proveedor por su "credencial" (RFC). A GAM LEON nunca se le llenó la credencial en el alta masiva, así que aunque esté en la lista, el buscador no lo encuentra.
+| Contrato | Firmado por | Interés moratorio |
+|---|---|---|
+| CTR-0001 | ALEJANDRO MORENO PEREZ | 5 |
+| CTR-0002 | MAHA MESTASSI | 0 |
+| CTR-0003 | MAHA MESTASSI | 0 |
 
-## Qué se va a hacer
+Los datos **sí se guardan** correctamente desde el formulario de editar contrato. El problema está del lado del PDF:
 
-1. **Corregir el dato**: guardar `GLE2112131B2` en el proveedor GAM LEON.
-2. **Coincidencia por nombre como respaldo**: si no hay match por RFC, buscar por nombre normalizado (sin acentos, puntuación ni sufijos societarios). Si hay una sola coincidencia, se preselecciona el proveedor y se avisa que el match fue por nombre.
-3. **Autocompletar el RFC faltante**: cuando el proveedor se identifica por nombre y no tiene RFC, ofrecer en el modal la acción "Guardar RFC del CFDI en el proveedor". Así el siguiente XML empata directo.
-4. **Normalizar la comparación de RFC** (quitar espacios/guiones, mayúsculas) en ambos lados.
-5. **Aviso más útil** cuando no hay match: mostrar RFC y nombre del emisor.
-6. **Reporte de proveedores sin RFC**: indicador en la lista de Proveedores para detectar los registros de la carga inicial que siguen incompletos.
-7. Actualizar CHANGELOG y versión (minor).
+1. **"Firmado por" nunca se imprime.** El generador de PDF trae el campo `signed_by`, pero ningún bloque del documento lo usa: el recuadro de firma de EL ARRENDATARIO imprime el nombre del cliente y, como subtítulo, el representante legal. No existe placeholder `{firmado_por}` en el registro de plantillas. Es un dato que se captura y se queda solo en la pantalla de detalle.
 
-## Detalles técnicos
+2. **El interés moratorio se sustituye por 5% cuando vale 0.** El PDF calcula el valor como "el capturado *o* 5". En programación, el `0` cuenta como "vacío", así que un 0% capturado se convierte en 5% impreso. Los dos contratos con 0 salen con 5% en la cláusula CUARTA y en el pagaré. La plantilla en base de datos sí contiene los placeholders correctos, no es problema de plantilla.
 
-- Nuevo helper puro `src/features/accounts-payable/lib/matchSupplierByCfdi.ts`: recibe `{ emitterRfc, emitterName }` + lista de proveedores y devuelve `{ supplierId, matchedBy: "rfc" | "name" | null }`. Incluye `normalizeRfc` y `normalizeCompanyName` (elimina SA DE CV, S DE RL, SAPI, puntuación y acentos).
-- `useImportSupplierBillCfdi.ts` usa el helper y expone `matchedBy` para que el modal muestre el aviso y la acción de guardar RFC.
-- La acción de guardar usa el mutation de actualización existente de `useSuppliers` e invalida su query.
-- Tests Vitest del helper: RFC exacto, RFC con formato sucio, nombre único, nombre ambiguo (no matchear), sin coincidencia.
-- Corrección puntual del RFC de GAM LEON mediante actualización de datos (no migración de esquema).
-- `parseCfdiXml.ts` no se modifica: ya extrae bien `emitterRfc` y `emitterName`.
+Analogía: es como una forma donde escribiste "0 pesos de multa" y la impresora, al ver un cero, decide que dejaste el campo en blanco y estampa el valor de fábrica.
+
+## Cambios propuestos
+
+1. **Imprimir "Firmado por" en el contrato**
+   - Nuevo placeholder `{firmado_por}` disponible en las plantillas editables.
+   - En el recuadro de firma de EL ARRENDATARIO: si hay "Firmado por", se imprime como la persona que firma (`Firma: NOMBRE`), debajo del nombre del cliente, junto al representante legal cuando ambos existan.
+   - Si está vacío, se conserva el comportamiento actual (línea sin nombre).
+
+2. **Respetar el 0% de interés moratorio**
+   - Sustituir la lógica "valor o 5" por "usa el 5 solo si el dato es nulo/indefinido". Un 0 capturado imprimirá 0%.
+   - Mismo criterio para "Horas máximas por mes" y "Tarifa por hora extra", que tienen exactamente el mismo defecto.
+
+3. **Aviso en el formulario**: al dejar Interés Moratorio en 0, mostrar texto de ayuda indicando que se imprimirá "0%" en el contrato y el pagaré (para que sea una decisión consciente, no un descuido).
+
+4. **Pruebas** que fijen ambos comportamientos: PDF con `late_interest_rate: 0` debe decir 0%, y PDF con `signed_by` debe contener ese nombre.
+
+5. **Changelog** como versión patch (corrección de datos que no llegaban al documento).
+
+## Detalle técnico
+
+- `src/lib/pdf/contract/placeholders.ts`: helper `numOr(value, fallback)` con chequeo `== null` en lugar de `||`; aplicarlo a `interes_moratorio`, `horas_max` y `tarifa_extra`. Añadir `firmado_por` a `buildPlaceholderVars` (fallback `""`).
+- `src/lib/pdf/contract/placeholderRegistry.ts`: registrar `{firmado_por}`.
+- `src/lib/pdf/documents/contract/ContractBody.tsx`: componer `rightSub` con representante legal y/o `contract.signed_by`.
+- `src/features/contracts/components/ContractFormSections.tsx`: `FormDescription` en `late_interest_rate`.
+- `src/lib/pdf/documents/__tests__/documents.smoke.test.tsx` (+ `src/test/contractPlaceholders.test.ts`): casos con `late_interest_rate: 0` y `signed_by` presente.
+- `package.json`, `CHANGELOG.md`, `public/changelog.json`, `public/changelog/vX.Y.Z.json`.
