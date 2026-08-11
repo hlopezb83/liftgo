@@ -26,8 +26,10 @@ vi.mock("@/lib/ui/appFeedback", () => ({
 import { useUpdateStatus } from "@/features/fleet/hooks/forklifts/useForkliftMutations";
 import { useCreatePayment } from "@/features/invoices/hooks/usePayments";
 
-function invalidatedKeys(spy: ReturnType<typeof vi.spyOn>) {
-  return spy.mock.calls.map((c) => JSON.stringify((c[0] as { queryKey?: unknown })?.queryKey));
+function invalidatedKeys(spy: { mock: { calls: unknown[][] } }): string[] {
+  return spy.mock.calls
+    .map((c) => JSON.stringify((c[0] as { queryKey?: unknown } | undefined)?.queryKey))
+    .filter((k): k is string => typeof k === "string");
 }
 
 describe("FIX-R3-05 · las mutaciones invalidan reportKeys.all", () => {
