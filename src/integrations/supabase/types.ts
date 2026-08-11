@@ -2976,6 +2976,7 @@ export type Database = {
           created_by: string | null
           currency: string
           description: string | null
+          discount: number
           due_date: string | null
           exchange_rate: number
           folio: string | null
@@ -3017,6 +3018,7 @@ export type Database = {
           created_by?: string | null
           currency?: string
           description?: string | null
+          discount?: number
           due_date?: string | null
           exchange_rate?: number
           folio?: string | null
@@ -3058,6 +3060,7 @@ export type Database = {
           created_by?: string | null
           currency?: string
           description?: string | null
+          discount?: number
           due_date?: string | null
           exchange_rate?: number
           folio?: string | null
