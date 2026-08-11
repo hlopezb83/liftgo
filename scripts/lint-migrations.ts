@@ -7,7 +7,16 @@
  *    - Tener al menos un `GRANT ... ON public.<t>` en el mismo archivo.
  *    - Tener `ALTER TABLE public.<t> ENABLE ROW LEVEL SECURITY` en el mismo archivo.
  *    - Tener al menos un `CREATE POLICY ... ON public.<t>` en el mismo archivo.
- * 2. Toda función con `SECURITY DEFINER` debe declarar `SET search_path = public` (o `= pg_catalog, public`).
+ * 2. Toda función con `SECURITY DEFINER` debe declarar `SET search_path = public`
+ *    (o `= pg_catalog, public`). Desde v7.302.0 la regla es POR FUNCIÓN: antes
+ *    bastaba con que el archivo tuviera un `SET search_path` en cualquier parte,
+ *    así que una segunda función sin él pasaba desapercibida.
+ * 3. Prohibido `CREATE POLICY ... FOR ALL ... USING (true)` (salvo `TO service_role`,
+ *    que ya bypasea RLS). Ver REGLAS PERMANENTES de migraciones.
+ *
+ * Las reglas 2 (por función) y 3 solo aplican a migraciones con timestamp
+ * >= NEW_RULES_SINCE: el historial anterior está congelado y su estado final ya
+ * fue endurecido en v7.294.0/v7.299.x (y lo vigila supabase/tests/rls/00_invariants.sql).
  *
  * Se ignoran comentarios de línea (`--`) y de bloque (`/* ... *\/`) para evitar
  * falsos positivos/negativos frecuentes con grep textual.
@@ -21,6 +30,31 @@ import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
 
 const MIGRATIONS_DIR = "supabase/migrations";
+
+/** Migraciones con timestamp >= a este valor deben cumplir las reglas nuevas. */
+const NEW_RULES_SINCE = "20260812";
+
+function isLegacy(path: string): boolean {
+  const base = path.split("/").pop() ?? path;
+  const stamp = /^(\d{8})/.exec(base)?.[1];
+  return stamp !== undefined && stamp < NEW_RULES_SINCE;
+}
+
+/** Trozos `CREATE [OR REPLACE] FUNCTION nombre(...)` con su encabezado. */
+function extractFunctions(sql: string): { name: string; header: string }[] {
+  const starts: { name: string; index: number }[] = [];
+  const re = /create\s+(?:or\s+replace\s+)?function\s+([\w".]+)\s*\(/gi;
+  for (const m of sql.matchAll(re)) {
+    starts.push({ name: unquote(m[1]), index: m.index ?? 0 });
+  }
+  return starts.map((s, i) => {
+    const end = i + 1 < starts.length ? starts[i + 1].index : sql.length;
+    const chunk = sql.slice(s.index, end);
+    // El encabezado va hasta el inicio del cuerpo (`AS $tag$` o `AS '...'`).
+    const bodyAt = /\bas\s+(\$[a-z_]*\$|')/i.exec(chunk)?.index;
+    return { name: s.name, header: bodyAt === undefined ? chunk : chunk.slice(0, bodyAt) };
+  });
+}
 
 function stripSqlComments(sql: string): string {
   // Bloque primero, luego línea.
@@ -88,14 +122,45 @@ function lintFile(path: string): Finding[] {
 
   // 2. SECURITY DEFINER sin search_path explícito.
   //    Postgres acepta `SET search_path = public` y `SET search_path TO 'public'`.
-  if (/security\s+definer/i.test(sql)) {
-    if (!/set\s+search_path\s*(=|to)\s+/i.test(sql)) {
+  const legacy = isLegacy(path);
+
+  if (legacy) {
+    // Regla histórica (por archivo) para el historial congelado.
+    if (/security\s+definer/i.test(sql) && !/set\s+search_path\s*(=|to)\s+/i.test(sql)) {
       findings.push({
         file: path,
-        message:
-          "Función SECURITY DEFINER sin `SET search_path = public` explícito",
+        message: "Función SECURITY DEFINER sin `SET search_path = public` explícito",
       });
     }
+    return findings;
+  }
+
+  // Regla por función: cada CREATE FUNCTION con SECURITY DEFINER necesita su
+  // propio SET search_path en el encabezado.
+  for (const fn of extractFunctions(sql)) {
+    if (!/security\s+definer/i.test(fn.header)) continue;
+    if (!/set\s+search_path\s*(=|to)\s+/i.test(fn.header)) {
+      findings.push({
+        file: path,
+        message: `Función SECURITY DEFINER \`${fn.name}\` sin \`SET search_path = public\` en su encabezado`,
+      });
+    }
+  }
+
+  // 3. CREATE POLICY ... FOR ALL ... USING (true)
+  for (const stmt of sql.split(";")) {
+    if (!/create\s+policy/i.test(stmt)) continue;
+    if (!/\bfor\s+all\b/i.test(stmt)) continue;
+    if (!/using\s*\(\s*true\s*\)/i.test(stmt)) continue;
+    // `TO service_role` es aceptable: ese rol ya bypasea RLS.
+    if (/\bto\s+service_role\b/i.test(stmt) && !/\bto\s+[^;]*\b(anon|authenticated|public)\b/i.test(stmt)) {
+      continue;
+    }
+    const name = /create\s+policy\s+("[^"]+"|[\w]+)/i.exec(stmt)?.[1] ?? "(sin nombre)";
+    findings.push({
+      file: path,
+      message: `Policy ${name}: prohibido \`FOR ALL ... USING (true)\`. Usa has_role()/propiedad y separa por comando.`,
+    });
   }
 
   return findings;
