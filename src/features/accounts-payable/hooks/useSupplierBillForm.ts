@@ -5,6 +5,7 @@ import { useSuppliers } from "@/features/suppliers";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
 import { toYMD } from "@/lib/date/toYMD";
 import { zodResolver } from "@/lib/forms/zodResolver";
+import { roundMoney } from "@/lib/money";
 import { nonNegativeAmountCoerced, positiveAmountCoerced } from "@/lib/schemas";
 import { nowMty } from "@/lib/utils";
 import { useCreateSupplierBill, useUpdateSupplierBill } from "./useSupplierBillMutations";
@@ -22,6 +23,8 @@ export const supplierBillFormSchema = z.object({
   currency: z.enum(["MXN", "USD"]),
   exchange_rate: positiveAmountCoerced("Tipo de cambio inválido").default(1),
   subtotal: nonNegativeAmountCoerced("Subtotal inválido"),
+  // Descuento a nivel Comprobante (atributo `Descuento` del CFDI).
+  discount: nonNegativeAmountCoerced("Descuento inválido").default(0),
   tax_amount: nonNegativeAmountCoerced("Impuesto inválido").default(0),
   retention_iva: nonNegativeAmountCoerced("Retención IVA inválida").default(0),
   retention_isr: nonNegativeAmountCoerced("Retención ISR inválida").default(0),
@@ -59,6 +62,7 @@ function billToFormDefaults(bill: SupplierBillDetail): SupplierBillFormData {
     currency: (bill.currency === "USD" ? "USD" : "MXN"),
     exchange_rate: Number(bill.exchange_rate ?? 1),
     subtotal: Number(bill.subtotal),
+    discount: Number(bill.discount ?? 0),
     tax_amount: Number(bill.tax_amount),
     retention_iva: Number(bill.retention_iva),
     retention_isr: Number(bill.retention_isr),
@@ -88,7 +92,7 @@ export function useSupplierBillForm(
   const emptyDefaults: SupplierBillFormData = {
     supplier_id: "", category: "", description: "",
     issue_date: nowMty(), currency: "MXN", exchange_rate: 1,
-    subtotal: 0, tax_amount: 0, retention_iva: 0, retention_isr: 0,
+    subtotal: 0, discount: 0, tax_amount: 0, retention_iva: 0, retention_isr: 0,
     cfdi_uuid: "",
   };
 
@@ -112,9 +116,9 @@ export function useSupplierBillForm(
 
 
   const { data: suppliersList } = useSuppliers();
-  const [supplierId, issueDate, dueDate, subtotalRaw, taxRaw, retIvaRaw, retIsrRaw] = useWatch({
+  const [supplierId, issueDate, dueDate, subtotalRaw, discountRaw, taxRaw, retIvaRaw, retIsrRaw] = useWatch({
     control: form.control,
-    name: ["supplier_id", "issue_date", "due_date", "subtotal", "tax_amount", "retention_iva", "retention_isr"],
+    name: ["supplier_id", "issue_date", "due_date", "subtotal", "discount", "tax_amount", "retention_iva", "retention_isr"],
   });
 
   const selectedSupplier = suppliersList?.find((s) => s.id === supplierId);
@@ -137,10 +141,13 @@ export function useSupplierBillForm(
 
 
   const subtotal = Number(subtotalRaw || 0);
+  const discount = Number(discountRaw || 0);
   const tax = Number(taxRaw || 0);
   const retIva = Number(retIvaRaw || 0);
   const retIsr = Number(retIsrRaw || 0);
-  const total = subtotal + tax - retIva - retIsr;
+  // El descuento reduce la base antes de impuestos, como en el CFDI:
+  // total = subtotal - descuento + traslados - retenciones.
+  const total = roundMoney(subtotal - discount + tax - retIva - retIsr);
 
   const onSubmit = (data: SupplierBillFormData) => {
     const basePayload = {
@@ -154,6 +161,7 @@ export function useSupplierBillForm(
       currency: data.currency,
       exchange_rate: data.exchange_rate,
       subtotal: data.subtotal,
+      discount: data.discount,
       tax_amount: data.tax_amount,
       retention_iva: data.retention_iva,
       retention_isr: data.retention_isr,
