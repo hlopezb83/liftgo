@@ -46,8 +46,27 @@ describe("buildPaymentsWorkbook", () => {
     expect(data[1][0]).toBe("Proveedor Uno SA de CV");
     expect(data[1][9]).toBe("15/06/2026");
     const totalRow = data[3] as unknown as (string | number)[];
-    expect(totalRow[9]).toBe("TOTAL");
+    expect(totalRow[9]).toBe("TOTAL MXN");
     expect(Number(totalRow[10])).toBeCloseTo(1750.75, 2);
+    expect(totalRow[11]).toBe("MXN");
+  });
+
+  it("emite un renglón de total por moneda cuando se mezclan monedas", () => {
+    const mixed: PaymentExportRow[] = [
+      ...rows,
+      { ...rows[0], bill_number: "FAC-0003", amount: 100, currency: "USD" },
+      { ...rows[1], bill_number: "FAC-0004", amount: 50, currency: "USD" },
+    ];
+    const wb = buildPaymentsWorkbook(XLSX, mixed);
+    const ws = wb.Sheets["Pagos"];
+    const data = XLSX.utils.sheet_to_json<string[]>(ws, { header: 1 });
+    // 1 header + 4 filas + 2 totales (MXN y USD), sin mezclar montos.
+    expect(data.length).toBe(7);
+    const totalRows = data.slice(5) as unknown as (string | number)[][];
+    expect(totalRows[0][9]).toBe("TOTAL MXN");
+    expect(Number(totalRows[0][10])).toBeCloseTo(1750.75, 2);
+    expect(totalRows[1][9]).toBe("TOTAL USD");
+    expect(Number(totalRows[1][10])).toBeCloseTo(150, 2);
   });
 
   it("CLABE se preserva como cadena de 18 dígitos", () => {

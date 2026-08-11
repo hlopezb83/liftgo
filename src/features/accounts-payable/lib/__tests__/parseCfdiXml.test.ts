@@ -74,6 +74,17 @@ describe("parseCfdiXml", () => {
     expect(parsed.retentionIsr).toBe(0);
   });
 
+  it("parsea el atributo Descuento del Comprobante (0 si no viene)", () => {
+    expect(parseCfdiXml(XML_SIN_IMPUESTOS).discount).toBe(0);
+    const conDescuento = XML_SIN_IMPUESTOS.replace(
+      'SubTotal="500.00"',
+      'SubTotal="500.00" Descuento="50.00"',
+    );
+    const parsed = parseCfdiXml(conDescuento);
+    expect(parsed.discount).toBe(50);
+    expect(parsed.subtotal).toBe(500);
+  });
+
   it("lanza CfdiParseError si no es un Comprobante", () => {
     expect(() => parseCfdiXml("<foo/>")).toThrow(CfdiParseError);
   });
