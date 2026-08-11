@@ -123,15 +123,43 @@ async function persistDownload(
   updates: Record<string, unknown>,
   matchColumn: string,
   matchValue: string,
-) {
+): Promise<boolean> {
   const { error: upErr } = await supabase.storage
     .from(BUCKET)
     .upload(newPath, bytes, { contentType, upsert: true });
   if (upErr) {
     console.error("Storage upload failed:", upErr);
-    return;
+    return false;
   }
-  await supabase.from(table).update(updates).eq(matchColumn, matchValue);
+  // FIX-R3-03: no silenciar el fallo del UPDATE (incluye la limpieza de
+  // cfdi_xml_pending) — sin él el badge "XML por recuperar" queda permanente.
+  const { error: updErr } = await supabase
+    .from(table)
+    .update(updates)
+    .eq(matchColumn, matchValue);
+  if (updErr) {
+    console.error(
+      "download-cfdi: update de metadatos falló tras el upload:",
+      updErr,
+    );
+    return false;
+  }
+  return true;
+}
+
+// FIX-R3-03: limpia cfdi_xml_pending cuando el XML ya es servible (Storage o
+// columna). No bloquea la descarga: un fallo sólo se registra.
+async function clearXmlPendingFlag(
+  supabase: SupabaseClient,
+  invoiceId: string,
+): Promise<void> {
+  const { error } = await supabase
+    .from("invoices")
+    .update({ cfdi_xml_pending: false })
+    .eq("id", invoiceId);
+  if (error) {
+    console.error("download-cfdi: no se pudo limpiar cfdi_xml_pending:", error);
+  }
 }
 
 function facturapiErrorResponse(
@@ -346,7 +374,7 @@ Deno.serve(async (req) => {
       }
 
       const newPath = `${invoice_id}/acuse-${invoice.cfdi_uuid}.${baseFormat}`;
-      await persistDownload(
+      const acusePersisted = await persistDownload(
         supabase,
         newPath,
         res.bytes,
@@ -358,6 +386,12 @@ Deno.serve(async (req) => {
         "id",
         invoice_id,
       );
+      if (!acusePersisted) {
+        console.error(
+          "download-cfdi: acuse servido sin persistir metadatos",
+          { invoice_id, format: baseFormat },
+        );
+      }
       return attachmentResponse(req, res.bytes, contentType, filename);
     }
 
@@ -371,10 +405,16 @@ Deno.serve(async (req) => {
         | null,
     );
     if (existing) {
+      if (baseFormat === "xml" && invoice.cfdi_xml_pending) {
+        await clearXmlPendingFlag(supabase, invoice_id);
+      }
       return attachmentResponse(req, existing, contentType, filename);
     }
 
     if (baseFormat === "xml" && invoice.cfdi_xml) {
+      if (invoice.cfdi_xml_pending) {
+        await clearXmlPendingFlag(supabase, invoice_id);
+      }
       return attachmentResponse(req, invoice.cfdi_xml, contentType, filename);
     }
 
@@ -392,7 +432,7 @@ Deno.serve(async (req) => {
     if (!res.ok) return facturapiErrorResponse(req, res);
 
     const newPath = `${invoice_id}/${invoice.cfdi_uuid}.${baseFormat}`;
-    await persistDownload(
+    const persisted = await persistDownload(
       supabase,
       newPath,
       res.bytes,
@@ -407,6 +447,13 @@ Deno.serve(async (req) => {
       "id",
       invoice_id,
     );
+    if (!persisted) {
+      // FIX-R3-03: el archivo se descargó pero no se persistió path/flag.
+      console.error("download-cfdi: descarga servida sin persistir metadatos", {
+        invoice_id,
+        format: baseFormat,
+      });
+    }
     return attachmentResponse(req, res.bytes, contentType, filename);
   } catch (err) {
     console.error("download-cfdi error:", err);

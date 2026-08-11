@@ -1,9 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { reportKeys } from "@/features/reports/lib/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { notifyError } from "@/lib/ui/appFeedback";
 import type { Forklift } from "@/types/rental";
+// FIX-R3-05: alta/estado de unidades alimenta utilización y utilidad por unidad.
 import { forkliftKeys, insuranceAlertsKeys, statusLogKeys } from "../../lib/queryKeys";
 
 export function useCreateForklift() {
@@ -26,7 +28,7 @@ export function useCreateForklift() {
       }
       return data;
     },
-    invalidateKeys: [forkliftKeys.all],
+    invalidateKeys: [forkliftKeys.all, reportKeys.all],
     errorTitle: "Error al crear montacargas",
   });
 }
@@ -93,7 +95,7 @@ export function useUpdateStatus() {
       });
       if (error) throw error;
     },
-    invalidateKeys: [forkliftKeys.all, statusLogKeys.all],
+    invalidateKeys: [forkliftKeys.all, statusLogKeys.all, reportKeys.all],
     errorTitle: "Error al actualizar estado de montacargas",
   });
 }

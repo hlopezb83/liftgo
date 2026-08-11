@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
+import { reportKeys } from "@/features/reports/lib/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { callRpc } from "@/lib/rpc";
+// FIX-R3-05: costos de reparación alimentan los reportes.
 export type { DamageRecord } from "@/types/rental";
 
 type DamageListRow = Awaited<ReturnType<typeof fetchDamageList>>[number];
@@ -36,7 +38,7 @@ export function useCreateDamageRecord() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [damageRecordQueries.keys.all],
+    invalidateKeys: [damageRecordQueries.keys.all, reportKeys.all],
     errorTitle: "Error al crear registro de daño",
   });
 }
@@ -48,7 +50,7 @@ export function useUpdateDamageRecord() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [damageRecordQueries.keys.all],
+    invalidateKeys: [damageRecordQueries.keys.all, reportKeys.all],
     errorTitle: "Error al actualizar registro de daño",
   });
 }
@@ -61,7 +63,7 @@ export function useArchiveDamageRecord() {
       await callRpc<void>("soft_delete_damage_record", { p_damage_id: id });
       return id;
     },
-    invalidateKeys: [damageRecordQueries.keys.all],
+    invalidateKeys: [damageRecordQueries.keys.all, reportKeys.all],
     errorTitle: "Error al archivar registro de daño",
   });
 }

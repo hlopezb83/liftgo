@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.287.0",
+    "date": "2026-08-10",
+    "type": "minor",
+    "title": "Auditoría R3: archivado de órdenes cerradas, guardas de venta y reportes al día",
+    "category": "fix",
+    "description": "Se cierran los 10 hallazgos de la ronda R3. Ya se pueden archivar órdenes de trabajo terminadas o canceladas que tenían refacciones y mano de obra (antes fallaba y las refacciones no regresaban al inventario). La asignación de unidades a una cotización de venta ahora valida que la cotización exista, sea de venta y esté aceptada, y quitar una unidad ocurre en un solo paso seguro. El horómetro sugerido ignora entregas programadas o canceladas. Al re-timbrar complementos de pago y notas de crédito se reinicia el contador de intentos, evitando errores prematuros. La descarga de CFDI apaga el aviso de 'XML por recuperar' en todos los casos y avisa si no logró guardar los datos; ese botón queda oculto para roles de sólo lectura. Los reportes se actualizan al registrar pagos, daños o cambios de flota."
+  },
+  {
     "version": "7.286.2",
     "date": "2026-08-10",
     "type": "patch",

@@ -1,8 +1,10 @@
 import { useQuery } from "@tanstack/react-query";
+import { reportKeys } from "@/features/reports/lib/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+// FIX-R3-05: los reportes de ingresos/utilidad dependen de los pagos.
 import { invoiceKeys, paymentKeys } from "../lib/queryKeys";
 
 // P3-10.3: los KPIs financieros del dashboard (overdue_total, DSO) dependen
@@ -58,7 +60,7 @@ export function useCreatePayment() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [paymentKeys.all, invoiceKeys.all, DASHBOARD_FINANCIAL_KPIS_KEY],
+    invalidateKeys: [paymentKeys.all, invoiceKeys.all, DASHBOARD_FINANCIAL_KPIS_KEY, reportKeys.all],
     errorTitle: "Error al registrar pago",
   });
 }
@@ -75,7 +77,7 @@ export function useUpdatePayment() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [paymentKeys.all, invoiceKeys.all, DASHBOARD_FINANCIAL_KPIS_KEY],
+    invalidateKeys: [paymentKeys.all, invoiceKeys.all, DASHBOARD_FINANCIAL_KPIS_KEY, reportKeys.all],
     errorTitle: "Error al actualizar pago",
   });
 }

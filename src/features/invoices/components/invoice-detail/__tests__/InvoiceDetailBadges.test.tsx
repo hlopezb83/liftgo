@@ -51,3 +51,42 @@ describe("InvoiceDetailBadges (R7 Bloque 11)", () => {
     expect(screen.getByText("Borrador")).toBeInTheDocument();
   });
 });
+
+describe("InvoiceDetailBadges (R3 bajo-9): badge XML por recuperar", () => {
+  it("muestra 'XML por recuperar' cuando cfdiXmlPending=true", () => {
+    render(
+      <InvoiceDetailBadges
+        invoiceStatus="sent"
+        cfdiStatus="stamped"
+        cancellationStatus={null}
+        showSandboxChip={false}
+        cfdiXmlPending={true}
+      />,
+    );
+    expect(screen.getByText("XML por recuperar")).toBeInTheDocument();
+    expect(screen.getByText("Timbrada")).toBeInTheDocument();
+  });
+
+  it("NO muestra 'XML por recuperar' cuando cfdiXmlPending=false u omitido", () => {
+    const { rerender } = render(
+      <InvoiceDetailBadges
+        invoiceStatus="sent"
+        cfdiStatus="stamped"
+        cancellationStatus={null}
+        showSandboxChip={false}
+        cfdiXmlPending={false}
+      />,
+    );
+    expect(screen.queryByText("XML por recuperar")).not.toBeInTheDocument();
+
+    rerender(
+      <InvoiceDetailBadges
+        invoiceStatus="sent"
+        cfdiStatus="stamped"
+        cancellationStatus={null}
+        showSandboxChip={false}
+      />,
+    );
+    expect(screen.queryByText("XML por recuperar")).not.toBeInTheDocument();
+  });
+});

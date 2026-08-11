@@ -52,7 +52,12 @@ export function useDeliveryCompletion(
         .select("hours_reading")
         .eq("forklift_id", forkliftId as string)
         .not("hours_reading", "is", null)
-        .order("completed_at", { ascending: false })
+        // FIX-R3-02: sólo lecturas de entregas realmente completadas y no
+        // canceladas; una programada (completed_at NULL) ganaba el orden.
+        .not("completed_at", "is", null)
+        .neq("status", "cancelled")
+        .order("completed_at", { ascending: false, nullsFirst: false })
+        .order("id", { ascending: false })
         .limit(1)
         .maybeSingle();
       if (error) throw error;

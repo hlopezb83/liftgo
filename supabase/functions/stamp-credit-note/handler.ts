@@ -98,7 +98,8 @@ export async function handleStampCreditNote(
     // Claim atómico para evitar doble timbrado concurrente.
     const claimRes = await supabase
       .from("credit_notes")
-      .update({ cfdi_status: "stamping" })
+      // FIX-R3-01F: reiniciar el presupuesto de misses del reconciliador.
+      .update({ cfdi_status: "stamping", lookup_attempts: 0 })
       .eq("id", credit_note_id)
       .in("cfdi_status", ["pending", "error"])
       .is("cfdi_uuid", null)
