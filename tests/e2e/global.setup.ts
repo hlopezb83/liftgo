@@ -1,67 +1,69 @@
-import { mkdirSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname } from "node:path";
 import { test as setup, expect } from "@playwright/test";
-import { signIn, waitForAuthToken } from "./fixtures/helpers";
+import { TIMEOUTS } from "./fixtures/helpers";
+import {
+  assertIsStaffUser,
+  buildStorageState,
+  ensureRoleStorageState,
+  signInViaApi,
+} from "./fixtures/apiAuth";
 
 const STORAGE_PATH = "tests/e2e/.auth/admin.json";
 
-setup("authenticate as admin", async ({ page }) => {
+/**
+ * Fase 4: autenticación por API en vez de por UI.
+ *
+ * Pedimos la sesión a Supabase (`signInWithPassword`) y escribimos el
+ * storageState directo a disco. Después abrimos UNA página para confirmar que
+ * la app hidrata la sesión — si no, fallamos loud antes de correr la suite.
+ */
+setup("authenticate as admin", async ({ page, baseURL }) => {
   const email = process.env.E2E_TEST_EMAIL;
   const password = process.env.E2E_TEST_PASSWORD;
 
   if (!email || !password) {
     throw new Error(
       "Missing E2E_TEST_EMAIL / E2E_TEST_PASSWORD env vars. " +
-        "Set them locally in .env.local or as GitHub Actions secrets."
+        "Set them locally in .env.local or as GitHub Actions secrets.",
     );
   }
 
-  await page.goto("/");
-  await expect(page.getByRole("heading", { name: "Iniciar Sesión" })).toBeVisible({ timeout: 15_000 });
-
-  await signIn(page, email, password);
-
-  // Esperar redirección post-login a una ruta de admin. Antes usábamos
-  // `waitForLoadState("networkidle").catch(() => {})`, que silenciaba timeouts
-  // reales (un login fallido continuaba con storageState vacío).
-  await page.waitForURL(/\/(dashboard)?$/, { timeout: 20_000 });
-
-  // FAIL LOUDLY if the configured user is a Customer Portal account.
-  // The admin area lives at "/" or "/dashboard"; portal users get redirected to "/portal/*".
-  const url = new URL(page.url());
-  if (url.pathname.startsWith("/portal")) {
-    throw new Error(
-      `E2E_TEST_EMAIL (${email}) is a Customer Portal user — landed on ${url.pathname}. ` +
-        "Use an admin account (role 'admin' in public.user_roles) instead."
-    );
-  }
-  // Also detect the portal banner just in case the URL hasn't updated yet.
-  const portalBanner = await page.getByText(/Lift Go - Portal/i).count();
-  if (portalBanner > 0) {
-    throw new Error(
-      `E2E_TEST_EMAIL (${email}) logged into the Customer Portal layout. ` +
-        "Use an admin account (role 'admin' in public.user_roles) instead."
-    );
-  }
-
-  // Dashboard or any authenticated admin layout
-  await expect(page).toHaveURL(/\/(dashboard)?$/, { timeout: 20_000 });
-  // Wait until the auth screen is gone and the app shell rendered.
-  await expect(page.getByRole("heading", { name: "Iniciar Sesión" })).toHaveCount(0, {
-    timeout: 15_000,
-  });
-  await expect(page.locator("nav, [role='navigation']").first()).toBeVisible({ timeout: 15_000 });
-
-  // Poll activo hasta que Supabase persista la sesión en localStorage.
-  // Reemplaza `waitForTimeout(500)` que en runners lentos generaba
-  // storageState vacío y toda la suite fallaba en cascada (v7.72.2).
-  await waitForAuthToken(page, 30_000);
-
-  // Los datos sembrados por `e2e_seed_scenario` llevan `is_e2e = true` y la UI
-  // los oculta por defecto. Esta bandera (solo en el navegador de pruebas) hace
-  // que las listas los incluyan para poder aseverarlos en los specs.
-  await page.evaluate(() => window.localStorage.setItem("liftgo:e2e-visible", "1"));
+  const url = baseURL ?? "http://localhost:4173";
+  const session = await signInViaApi(email, password);
+  // FAIL LOUDLY si la cuenta configurada es del Portal de Clientes.
+  await assertIsStaffUser(session, email);
 
   mkdirSync(dirname(STORAGE_PATH), { recursive: true });
-  await page.context().storageState({ path: STORAGE_PATH, indexedDB: true });
+  writeFileSync(STORAGE_PATH, JSON.stringify(buildStorageState(session, url), null, 2));
+
+  // Verificación end-to-end de que la sesión inyectada sirve en el navegador.
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await page.evaluate(
+    ([key, value]) => {
+      window.localStorage.setItem(key, value);
+      window.localStorage.setItem("liftgo:e2e-visible", "1");
+    },
+    [
+      `sb-${new URL(session.user.aud === "" ? url : url).hostname.split(".")[0]}-auth-token`,
+      JSON.stringify(session),
+    ] as const,
+  );
+  // Recargamos con la sesión ya presente y exigimos el shell autenticado.
+  await page.goto("/", { waitUntil: "domcontentloaded" });
+  await expect(page.getByRole("heading", { name: "Iniciar Sesión" })).toHaveCount(0, {
+    timeout: TIMEOUTS.long,
+  });
+  await expect(page.locator("nav, [role='navigation']").first()).toBeVisible({
+    timeout: TIMEOUTS.long,
+  });
+
+  // storageState cacheado por rol para roles-matrix.spec.ts (opcional).
+  const ROLES = ["ventas", "administrativo", "mecanico"] as const;
+  for (const role of ROLES) {
+    const rEmail = process.env[`E2E_${role.toUpperCase()}_EMAIL`];
+    const rPassword = process.env[`E2E_${role.toUpperCase()}_PASSWORD`];
+    if (!rEmail || !rPassword) continue;
+    await ensureRoleStorageState(role, rEmail, rPassword, url);
+  }
 });
