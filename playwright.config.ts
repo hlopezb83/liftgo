@@ -49,9 +49,6 @@ export default defineConfig({
   // entorno de Lovable. El tope evita saturar la base de datos compartida.
   workers: Math.min(8, Math.max(2, Math.floor(CPUS / 2))),
   retries: process.env.CI ? 1 : 0,
-  // v7.237.3: permite regenerar baselines visuales en CI vía E2E_UPDATE_SNAPSHOTS=1
-  // sin tener que editar el comando de Playwright.
-  updateSnapshots: process.env.E2E_UPDATE_SNAPSHOTS ? "all" : undefined,
   reporter: process.env.CI
     ? [
         ["list"],
