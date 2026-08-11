@@ -100,6 +100,25 @@ ROLLBACK;
 | `contracts.sql` | `contracts` | Escritura vía matriz `has_permission`; mecánico sin acceso |
 | `documents.sql` | `documents` | Mecánico solo docs de equipo/mantenimiento |
 | `user_manual.sql` | `user_manual` | Cliente del portal no lee ni escribe el manual interno |
+| `bookings.sql` | `bookings` | Cliente solo sus rentas; ventas read-only; INSERT directo solo admin |
+| `deliveries.sql` | `deliveries` | Logística cerrada: ventas/mecánico/cliente sin acceso |
+| `maintenance_logs.sql` | `maintenance_logs` | Matriz `has_permission('Mantenimiento')`: mecánico full, auditor read, ventas none |
+| `status_logs.sql` | `status_logs` | Ventas escribe pero NO lee; dispatcher no borra la bitácora |
+| `activity_feed.sql` | `activity_feed` | Back-office lee; solo admin escribe; cliente sin acceso |
+| `collection_notes.sql` | `collection_notes` | El cliente nunca lee las notas de cobranza sobre él |
+| `collection_reminders_log.sql` | `collection_reminders_log` | Bitácora inmutable desde el cliente; solo service_role registra |
+| `booking_extensions.sql` | `booking_extensions` | Cliente ve solo extensiones de sus rentas y no se auto-extiende |
+| `quotes_backoffice.sql` | `quotes` | Ventas full; mecánico/auditor read-only; cliente no altera su total |
+| `contract_templates.sql` | `contract_templates` | Ventas no reescribe el clausulado; solo admin/administrativo |
+| `rate_limits.sql` | `rate_limits` | Nadie (ni admin) la toca desde el cliente; solo service_role |
+| `storage_objects_documents.sql` | `storage.objects` (bucket `documents`) | Cliente lee solo su archivo exacto; mecánico solo `forklift/` y `maintenance/`; ventas no borra |
+
+Convención adicional en las suites nuevas: cada una prueba **anon** (`SET LOCAL
+role = 'anon'`), el **cliente del portal**, el **staff según `role_permissions`**
+y, donde aplica, **service_role** (`SET LOCAL role = 'service_role'`, que hace
+bypass de RLS). Para cambiar de rol dentro de la transacción se usa `RESET ROLE;`
+antes del siguiente `SET LOCAL role = ...`.
+
 
 Cada archivo termina en `ROLLBACK;` — es seguro correrlos contra cualquier DB
 transaccional sin dejar residuos.
