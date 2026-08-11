@@ -4055,7 +4055,12 @@ export type Database = {
         Returns: number
       }
       internal_get_cron_secret: { Args: never; Returns: string }
+      is_admin_administrativo_auditor: { Args: never; Returns: boolean }
+      is_admin_or_administrativo: { Args: never; Returns: boolean }
+      is_backoffice: { Args: never; Returns: boolean }
       is_e2e_actor_email: { Args: { p_email: string }; Returns: boolean }
+      is_ops_staff: { Args: never; Returns: boolean }
+      is_staff: { Args: never; Returns: boolean }
       list_invoices_with_balance: {
         Args: {
           p_due_from?: string

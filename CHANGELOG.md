@@ -1,3 +1,10 @@
+## 7.297.0 - 2026-08-11
+
+- Perf (RLS): 234 policies del schema `public` recreadas con `(select auth.uid())` en vez de `auth.uid()` — la funcion STABLE pasa de evaluarse por fila a un InitPlan unico por query (evidencia EXPLAIN antes/despues en el comentario de la migracion, sobre `public.invoices`).
+- Perf (RLS): nuevas funciones helper STABLE `is_admin_or_administrativo`, `is_admin_administrativo_auditor`, `is_ops_staff`, `is_backoffice` e `is_staff`; consolidan las OR-chains de `has_role` en un solo `EXISTS` sobre `user_roles`. 29 policies las usan.
+- Sin cambio de semantica: mismos `TO`, mismos comandos, misma logica booleana. Las policies `TO public` conservan `has_role` inline porque los helpers solo tienen EXECUTE para `authenticated`/`service_role` (nunca `anon`).
+- La migracion incluye una verificacion final que aborta si queda alguna policy con `auth.uid()` sin envolver. Estado verificado: 247 policies, 0 pendientes.
+
 ## 7.296.0 - 2026-08-11
 
 - Tests: 12 suites RLS SQL nuevas en `supabase/tests/rls/` — bookings, deliveries, maintenance_logs, status_logs, activity_feed, collection_notes, collection_reminders_log, booking_extensions, quotes (back-office), contract_templates, rate_limits y storage.objects (bucket `documents`).

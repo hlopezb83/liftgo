@@ -1,5 +1,17 @@
 [
   {
+    "version": "7.297.0",
+    "date": "2026-08-11",
+    "type": "minor",
+    "title": "Consultas más rápidas en toda la app",
+    "category": "performance",
+    "changes": [
+      "Las reglas de acceso ahora identifican al usuario una sola vez por consulta en lugar de una vez por cada fila leída",
+      "Las verificaciones de rol repetidas se agruparon en funciones únicas: una consulta hace una sola revisión de permisos en vez de hasta seis",
+      "No cambia quién puede ver o editar nada: mismos permisos, misma información visible"
+    ]
+  },
+  {
     "version": "7.296.0",
     "date": "2026-08-11",
     "type": "minor",
