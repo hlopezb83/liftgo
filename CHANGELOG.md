@@ -1,3 +1,11 @@
+## 7.302.2 - 2026-08-11
+
+**UI — encabezados de detalle/edición coherentes**
+- `FormPageHeader` y `DetailPageHeader`: el regreso pasa a un botón "Volver" con etiqueta en su propio renglón (antes iba en línea con el `<h1>`, duplicando el breadcrumb y desalineando el título).
+- `PageContainer`: `wide`, `form` y `narrow` ahora llevan `mx-auto`; en 1600x900 el contenido queda centrado en vez de pegado al borde izquierdo.
+- Formularios de contrato, cotización y factura muestran el folio del registro como subtítulo en modo edición.
+- `ContractConditionsCard`: `0` deja de tratarse como vacío; "Interés Moratorio 0%" vuelve a mostrarse.
+
 ## 7.302.1 - 2026-08-11
 
 **Corrección — datos del contrato que no llegaban al PDF**

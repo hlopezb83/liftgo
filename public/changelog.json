@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.302.2",
+    "date": "2026-08-11",
+    "type": "patch",
+    "title": "Encabezados de detalle y edición unificados y centrados",
+    "category": "correcciones",
+    "changes": [
+      "El botón 'Volver' ya no compite con el título: va en su propio renglón, arriba",
+      "Las páginas de formulario y detalle se centran en pantallas anchas",
+      "En edición se muestra el folio del registro (ej. CTR-0003) debajo del título",
+      "El detalle de contrato ya muestra 'Interés Moratorio 0%' en vez de ocultarlo"
+    ]
+  },
+  {
     "version": "7.302.1",
     "date": "2026-08-11",
     "type": "patch",
