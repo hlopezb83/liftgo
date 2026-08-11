@@ -83,7 +83,7 @@ ROLLBACK;
 | `quotes_portal.sql` | `quotes` | Cliente portal solo ve sus cotizaciones |
 | `supplier_payments.sql` | `supplier_payments` | Solo admin/administrativo puede insertar |
 | `user_roles.sql` | `user_roles` | Escalada de privilegio: usuario no-admin NO puede insertarse `admin` |
-| `parts_inventory.sql` | `parts_inventory` | Mecánico read-only, admin escribe |
+| `parts_inventory.sql` | `parts_inventory` | Lectores (`is_inventory_reader`) vs escritores (`is_parts_writer`); ventas y cliente sin acceso |
 | `return_inspections.sql` | `return_inspections` | Dispatcher/admin escriben, ventas solo lee |
 | `damage_records.sql` | `damage_records` | Mismo patrón que return_inspections |
 | `billing_secrets.sql` | `billing_secrets` | Nadie (ni admin) lee llaves fiscales desde el cliente |
@@ -112,6 +112,8 @@ ROLLBACK;
 | `contract_templates.sql` | `contract_templates` | Ventas no reescribe el clausulado; solo admin/administrativo |
 | `rate_limits.sql` | `rate_limits` | Nadie (ni admin) la toca desde el cliente; solo service_role |
 | `storage_objects_documents.sql` | `storage.objects` (bucket `documents`) | Cliente lee solo su archivo exacto; mecánico solo `forklift/` y `maintenance/`; ventas no borra |
+| `maintenance_parts.sql` | `maintenance_parts` | Auditor read-only; mecánico/admin escriben; cliente y anon sin acceso |
+| `supplier_payment_batches.sql` | `supplier_payment_batches`, `supplier_payment_batch_items` | CLABEs solo para admin/administrativo; auditor y mecánico sin acceso |
 
 Convención adicional en las suites nuevas: cada una prueba **anon** (`SET LOCAL
 role = 'anon'`), el **cliente del portal**, el **staff según `role_permissions`**
