@@ -44,7 +44,8 @@ runs:
       uses: actions/cache@v6
       with:
         path: node_modules/.vite
-        key: ${{ runner.os }}-vite-${{ github.job }}-${{ hashFiles('**/bun.lock') }}
+        # Fase 5.6: sin `github.job` en la key — el pre-bundle es idéntico entre
+        # jobs, y separarlo por job hacía que cada uno partiera de cero.
+        key: ${{ runner.os }}-vite-${{ hashFiles('**/bun.lock') }}
         restore-keys: |
-          ${{ runner.os }}-vite-${{ github.job }}-
           ${{ runner.os }}-vite-

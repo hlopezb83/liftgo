@@ -1,3 +1,15 @@
+## 7.301.0 - 2026-08-11
+
+Fase 5 de la auditoría de CI (`.github/workflows/ci.yml`):
+
+- **Reuso de build**: el job `build` compila con las `VITE_*` y sube `dist/` como artifact (`retention-days: 1`) + cache `ci-dist-<sha>`. El job `e2e` lo descarga y Playwright solo levanta `vite preview` (`E2E_REUSE_BUILD=1` en `playwright.config.ts`); `bundle-size.yml` restaura ese mismo `dist` y solo compila si hay cache miss. Antes se compilaba 4 veces por PR (build, 2 shards e2e, bundle-size); ahora 1.
+- **Fin de la triple corrida RLS**: se eliminó el job `rls` (`test:rls`). Los `*.rls.test.ts` corren una sola vez dentro de los shards de Vitest y `scripts/extract-rls-junit.py` reconstruye `reports/rls-junit.xml` desde el JUnit consolidado, conservando el check "RLS results". La validación real contra Postgres sigue viviendo en `rls-db-tests.yml`.
+- **Vitest `--changed` en PRs**: nuevo job `changes` decide el modo. PRs = solo tests afectados (`--changed origin/<base> --passWithNoTests`); push a main, cron, `workflow_dispatch` o PRs que tocan `vitest.config.ts` / `src/test/setup.ts` / `package.json` / `bun.lock` = suite completa **con** los umbrales de cobertura (el gate se evalúa donde la medición es válida).
+- **`dorny/paths-filter@de90cc6` (v3.0.2, pineado por SHA)**: `e2e` se salta si el diff no toca `src/`, `tests/`, config de build; `edge-functions` se salta si no toca `supabase/functions/`.
+- **`deno test --parallel`** en el job `edge-functions`.
+- **Cache de pre-bundle de Vite sin `github.job`** en la key (`setup-bun-project`): todos los jobs comparten la misma entrada en vez de empezar en frío cada uno.
+- Sin cambios en concurrency groups, pins SHA, `retention-days`, `permissions` ni los gates de coverage/bundle.
+
 ## 7.300.2 - 2026-08-11
 
 - Fix CI (`rls-db-tests`): el step "Start Supabase" fallaba con `ERROR: relation "public.collection_reminders_log" does not exist (SQLSTATE 42P01)` al aplicar `20260515044551` desde cero (la tabla se crea en `20260720011916`).
