@@ -55,6 +55,36 @@ describe("supplierBillFormSchema — validación", () => {
     expect(r.success).toBe(true);
   });
 
+  it("M-21: rechaza retenciones mayores que subtotal + impuestos", () => {
+    const r = supplierBillFormSchema.safeParse({
+      ...validBill(),
+      subtotal: 1000,
+      tax_amount: 160,
+      retention_iva: 1000,
+      retention_isr: 200,
+    });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(
+        r.error.issues.some((i) =>
+          i.message.includes("retenciones (IVA + ISR) no pueden ser mayores"),
+        ),
+      ).toBe(true);
+    }
+  });
+
+  it("M-21: acepta retenciones iguales a la base gravable", () => {
+    const r = supplierBillFormSchema.safeParse({
+      ...validBill(),
+      subtotal: 1000,
+      tax_amount: 160,
+      retention_iva: 1060,
+      retention_isr: 100,
+    });
+    expect(r.success).toBe(true);
+  });
+
+
   it("exige supplier_id no vacío", () => {
     const r = supplierBillFormSchema.safeParse({ ...validBill(), supplier_id: "" });
     expect(r.success).toBe(false);
