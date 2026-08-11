@@ -38,6 +38,20 @@ describe("buildPlaceholderVars", () => {
     }
   });
 
+  it("monto_pagare usa el costo de adquisición del equipo", () => {
+    const vars = buildPlaceholderVars(baseContract, null, null, {
+      manufacturer: "Toyota",
+      acquisition_cost: 350000,
+    });
+    expect(vars.monto_pagare).toContain("350,000");
+    expect(vars.deposito).toContain("5,000");
+  });
+
+  it("monto_pagare cae al depósito si el equipo no tiene costo de adquisición", () => {
+    const vars = buildPlaceholderVars(baseContract, null, null, { manufacturer: "Toyota" });
+    expect(vars.monto_pagare).toBe(vars.deposito);
+  });
+
   it("usa fallbacks legibles cuando faltan datos", () => {
     const vars = buildPlaceholderVars(baseContract, null, null, null);
     expect(vars.arrendador).toBe("[Arrendador]");
