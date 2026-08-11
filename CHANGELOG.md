@@ -1,3 +1,10 @@
+## 7.300.0 - 2026-08-11
+
+- Tests E2E: fuera `auth.spec.ts`, `quote-to-booking.spec.ts`, `booking-to-invoice.spec.ts` y `accounts-payable.spec.ts` (redundantes); sus asserts se movieron a `full-flow.spec.ts` y `smoke-nav.spec.ts`.
+- Tests E2E: `fiscal-stamp/cancel/credit-note/rep` se consolidan en `fiscal-actions.spec.ts` (visibilidad y estado de botones fiscales); el comportamiento del PAC lo cubren los `handler_test.ts` de Deno.
+- Tests E2E: `global.setup.ts` ahora hace login por API con `supabase.auth.signInWithPassword` y escribe el storageState a disco; storageState cacheado por rol para `roles-matrix.spec.ts`, que ya no usa el form de login.
+- Tests E2E: timeouts magicos sustituidos por `TIMEOUTS` de `fixtures/helpers.ts` en toda la suite.
+
 ## 7.299.1 - 2026-08-11
 
 - Seguridad: `FORCE ROW LEVEL SECURITY` en billing_secrets, invoices, payments, contracts, customers, supplier_bills, supplier_payments, profiles, user_roles, role_permissions y audit_logs.

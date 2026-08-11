@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.300.0",
+    "date": "2026-08-11",
+    "type": "minor",
+    "title": "Fase 4: consolidacion de la suite E2E y login por API",
+    "category": "testing",
+    "changes": [
+      "Eliminados auth.spec.ts, quote-to-booking.spec.ts, booking-to-invoice.spec.ts y accounts-payable.spec.ts; sus asserts viven ahora en full-flow.spec.ts y smoke-nav.spec.ts.",
+      "Los cuatro specs fiscales (stamp, cancel, credit-note, rep) se degradan a un unico fiscal-actions.spec.ts de visibilidad/estado de botones; el comportamiento del PAC queda en los tests Deno.",
+      "global.setup.ts autentica por API (signInWithPassword) y escribe el storageState directo, con cache por rol para roles-matrix; sigue fallando loud si el auth no sirve.",
+      "Timeouts magicos reemplazados por las constantes TIMEOUTS de fixtures/helpers.ts en toda la suite."
+    ]
+  },
+  {
     "version": "7.299.1",
     "date": "2026-08-11",
     "type": "patch",
