@@ -1,0 +1,10 @@
+{
+  "description": "Se cierran dos huecos de seguridad críticos: crear facturas recurrentes y cambiar el estado de un montacargas ahora exigen rol autorizado.",
+  "changes": [
+    "create_recurring_invoice: solo admin/administrativo (y el proceso automático)",
+    "change_forklift_status: solo admin, administrativo y mecánico",
+    "Se retira el permiso de ejecución a visitantes sin sesión en ambas funciones",
+    "Nueva prueba supabase/tests/c1_c2_smoke.sql",
+    "Sin cambios en la lógica de negocio existente"
+  ]
+}
