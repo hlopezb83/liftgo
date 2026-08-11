@@ -65,11 +65,45 @@ jobs:
 
       # Solo se necesita Postgres + el schema `auth`: se excluyen los servicios
       # pesados para bajar el arranque de ~4 min a ~1 min.
+      #
+      # IMPORTANTE: los nombres de `-x` deben existir en la CLI pineada. En
+      # 2.34.0 los válidos son exactamente:
+      #   edge-runtime, gotrue, imgproxy, kong, logflare, mailpit,
+      #   postgres-meta, postgrest, realtime, storage-api, studio, supavisor, vector
+      # `pgbouncer` ya no existe (se reemplazó por supavisor) y hacía que el
+      # arranque no fuera el esperado. `gotrue` se conserva porque las suites
+      # RLS necesitan el schema `auth` poblado.
       - name: Start Supabase (solo DB + auth)
+        continue-on-error: false
+        timeout-minutes: 15
         run: |
+          set -euxo pipefail
+          docker version
+          supabase --version
           supabase start \
-            -x studio,imgproxy,logflare,vector,edge-runtime,realtime,storage-api,mailpit,postgres-meta,supavisor,pgbouncer
+            -x studio,imgproxy,logflare,vector,edge-runtime,realtime,storage-api,mailpit,postgres-meta,supavisor \
+            --debug
           supabase status
+
+      # Diagnóstico para futuros fallos de arranque: sin esto el log del job
+      # solo muestra "service not healthy" sin decir cuál ni por qué.
+      - name: Diagnóstico de arranque (solo en fallo)
+        if: failure()
+        run: |
+          set +e
+          echo "::group::docker ps -a"
+          docker ps -a
+          echo "::endgroup::"
+          echo "::group::supabase status"
+          supabase status
+          echo "::endgroup::"
+          for c in $(docker ps -aq --filter "name=supabase_"); do
+            echo "::group::logs $(docker inspect --format '{{.Name}}' "$c")"
+            docker logs --tail 200 "$c" 2>&1
+            echo "::endgroup::"
+          done
+
+
 
       # `db reset` re-crea la DB y reaplica TODAS las migraciones en orden:
       # si alguna migración no aplica limpio desde cero, el job falla aquí.

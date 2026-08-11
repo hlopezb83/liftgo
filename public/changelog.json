@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.297.1",
+    "date": "2026-08-11",
+    "type": "patch",
+    "title": "CI: arranque de Supabase local en el workflow de tests RLS",
+    "category": "infra",
+    "changes": [
+      "El job rls-db-tests fallaba en el step de arranque en sus 3 runs: la lista de exclusiones incluia `pgbouncer`, contenedor inexistente en la CLI 2.34.0 (reemplazado por `supavisor`).",
+      "Exclusiones corregidas a nombres validos de la CLI 2.34.0; se conserva `gotrue` porque las suites RLS necesitan el schema `auth`.",
+      "El step ahora corre con `set -euxo pipefail`, `--debug`, `timeout-minutes: 15` y `continue-on-error: false` explicito.",
+      "Nuevo step de diagnostico `if: failure()` con `docker ps -a`, `supabase status` y logs de los contenedores `supabase_*`.",
+      "Sin cambios en `db reset`, `scripts/run_sql_suites.py`, la publicacion JUnit ni los triggers/paths."
+    ]
+  },
+  {
     "version": "7.297.0",
     "date": "2026-08-11",
     "type": "minor",
