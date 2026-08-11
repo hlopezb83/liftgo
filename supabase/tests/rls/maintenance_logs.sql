@@ -21,7 +21,7 @@ INSERT INTO public.forklifts (id, name, model) VALUES
   ('a0000003-0000-4000-8000-0000000000f1', 'MC-ML-1', 'Modelo ML');
 
 INSERT INTO public.maintenance_logs (id, forklift_id, service_type, description) VALUES
-  ('a0000003-0000-4000-8000-0000000000m1'::text::uuid, 'a0000003-0000-4000-8000-0000000000f1',
+  ('a0000003-0000-4000-8000-0000000000d1', 'a0000003-0000-4000-8000-0000000000f1',
    'preventivo', 'Servicio RLS');
 
 -- 1) anon: sin acceso.
