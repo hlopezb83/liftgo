@@ -1,3 +1,10 @@
+## 7.302.1 - 2026-08-11
+
+**Corrección — datos del contrato que no llegaban al PDF**
+- PDF de contrato: el campo `signed_by` ("Firmado por") ahora se imprime en el recuadro de firma de EL ARRENDATARIO y se expone como placeholder `{firmado_por}`.
+- `buildPlaceholderVars` dejaba de respetar el valor `0`: un interés moratorio de 0% se imprimía como 5%. Mismo arreglo para `horas_max` y `tarifa_extra`.
+- Formulario de contrato: aviso cuando el interés moratorio queda en 0%.
+
 ## 7.302.0 - 2026-08-11
 
 **E1 — Verificación final FORCE RLS + USING(true)**

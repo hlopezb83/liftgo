@@ -37,4 +37,5 @@ export const CONTRACT_PLACEHOLDERS: readonly ContractPlaceholder[] = [
   { key: "{capacidad}", desc: "Capacidad de carga" },
   { key: "{combustible}", desc: "Tipo de combustible" },
   { key: "{ciudad}", desc: "Ciudad del contrato" },
+  { key: "{firmado_por}", desc: "Persona que firma por el cliente (campo \"Firmado por\")" },
 ] as const;

@@ -28,7 +28,7 @@ function Bullet({ text }: { text: string }) {
 
 function SignaturePair({ leftLabel, leftName, rightLabel, rightName, rightSub }: {
   leftLabel: string; leftName: string;
-  rightLabel: string; rightName: string; rightSub?: string;
+  rightLabel: string; rightName: string; rightSub?: string[];
 }) {
   return (
     <View style={contractStyles.signatureRow} wrap={false}>
@@ -42,7 +42,9 @@ function SignaturePair({ leftLabel, leftName, rightLabel, rightName, rightSub }:
         <View style={contractStyles.signatureBox}>
           <Text style={contractStyles.signatureLabel}>{rightLabel}</Text>
           <Text style={contractStyles.signatureName}>{rightName}</Text>
-          {rightSub && <Text style={contractStyles.signatureName}>{rightSub}</Text>}
+          {rightSub?.map((line) => (
+            <Text key={line} style={contractStyles.signatureName}>{line}</Text>
+          ))}
         </View>
       </View>
     </View>
@@ -96,7 +98,12 @@ function buildTenantDecls(
 
 export function ContractBody({ contract, tpl, vars, company, customer, city, formattedDate }: PartiesContractBodyProps) {
   const tenantDecls = buildTenantDecls(tpl.declarations_tenant, customer);
-  const rightSub = customer?.representante_legal ? `Rep. Legal: ${customer.representante_legal}` : undefined;
+  // v7.302.1: el recuadro de EL ARRENDATARIO ahora imprime también quién firma
+  // (`signed_by`), que antes se capturaba en el contrato pero nunca salía en el PDF.
+  const rightSub = [
+    customer?.representante_legal ? `Rep. Legal: ${customer.representante_legal}` : null,
+    contract.signed_by ? `Firma: ${contract.signed_by}` : null,
+  ].filter((v): v is string => !!v);
 
   return (
     <View>
