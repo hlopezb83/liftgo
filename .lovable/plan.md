@@ -1,27 +1,30 @@
-# Reconocer al proveedor al importar el XML (CFDI)
+# Proveedor GAM LEON no se reconoce al importar el XML
 
-## Qué está pasando
+## Qué encontré (verificado en la base de datos)
 
-El XML es del emisor **GAM LEON**, RFC **GLE2112131B2**.
+- El XML es del emisor **GAM LEON**, RFC **GLE2112131B2**.
+- El proveedor "GAM LEON" (id `4736e98b…`) existe y **no está eliminado**, pero su campo **RFC está vacío (null)**.
+- **El RFC nunca se perdió: nunca se guardó.** La bitácora de auditoría de ese registro tiene una sola entrada: el alta del 25-mar-2026, y ya en ese momento el RFC venía vacío. No existe ninguna edición posterior que lo haya borrado.
+- No es un caso aislado: la mayoría de los proveedores dados de alta en marzo (carga inicial) quedaron sin RFC (BBVA BANCOMER, CERTOK, EFEX PAY, GOOGLE ADS, etc.). Los capturados de mayo en adelante sí traen RFC.
+- Ya se registró antes una factura de GAM LEON con XML (CXP-0179, del mismo emisor GLE2112131B2), pero **importar un CFDI no escribe el RFC en el proveedor**, así que el dato siguió vacío.
 
-En la base de datos ese proveedor **sí existe** ("GAM LEON"), pero su campo **RFC está vacío**.
-
-El importador de XML busca al proveedor **únicamente comparando el RFC del emisor** contra el RFC guardado. Como el registro no tiene RFC, no hay coincidencia y aparece "Proveedor no encontrado por RFC".
-
-Analogía: el ERP busca al proveedor por su "número de credencial"; la credencial de GAM LEON está en blanco, así que aunque el proveedor esté en la lista, no lo encuentra.
+Analogía: el ERP busca al proveedor por su "credencial" (RFC). A GAM LEON nunca se le llenó la credencial en el alta masiva, así que aunque esté en la lista, el buscador no lo encuentra.
 
 ## Qué se va a hacer
 
-1. **Normalizar la comparación de RFC**: quitar espacios, guiones y mayúsculas/minúsculas en ambos lados antes de comparar (hoy solo se hace mayúsculas).
-2. **Coincidencia secundaria por nombre**: si no hay match por RFC, buscar por nombre normalizado (sin acentos, sin "S.A. de C.V.", sin puntuación). Si hay exactamente una coincidencia, se preselecciona el proveedor y se avisa que el match fue por nombre, no por RFC.
-3. **Ofrecer guardar el RFC faltante**: cuando el proveedor se identifica por nombre y no tiene RFC registrado, mostrar en el modal un aviso con acción "Guardar RFC en el proveedor" que actualice el registro con el RFC del CFDI. Así el siguiente XML ya empata directo.
-4. **Mensaje de aviso más útil**: en vez de solo "Proveedor no encontrado por RFC", indicar el RFC y el nombre del emisor para facilitar la selección manual.
-5. Actualizar CHANGELOG y versión (patch/minor según alcance final).
+1. **Corregir el dato**: guardar `GLE2112131B2` en el proveedor GAM LEON.
+2. **Coincidencia por nombre como respaldo**: si no hay match por RFC, buscar por nombre normalizado (sin acentos, puntuación ni sufijos societarios). Si hay una sola coincidencia, se preselecciona el proveedor y se avisa que el match fue por nombre.
+3. **Autocompletar el RFC faltante**: cuando el proveedor se identifica por nombre y no tiene RFC, ofrecer en el modal la acción "Guardar RFC del CFDI en el proveedor". Así el siguiente XML empata directo.
+4. **Normalizar la comparación de RFC** (quitar espacios/guiones, mayúsculas) en ambos lados.
+5. **Aviso más útil** cuando no hay match: mostrar RFC y nombre del emisor.
+6. **Reporte de proveedores sin RFC**: indicador en la lista de Proveedores para detectar los registros de la carga inicial que siguen incompletos.
+7. Actualizar CHANGELOG y versión (minor).
 
 ## Detalles técnicos
 
-- `src/features/accounts-payable/hooks/useImportSupplierBillCfdi.ts`: extraer `matchSupplierId` a un helper puro nuevo (`../lib/matchSupplierByCfdi.ts`) que reciba `{ emitterRfc, emitterName }` y la lista de proveedores, y devuelva `{ supplierId, matchedBy: "rfc" | "name" | null }`.
-- Normalizadores: `normalizeRfc` (trim, upper, quitar no alfanuméricos) y `normalizeCompanyName` (upper, quitar acentos, puntuación y sufijos societarios: SA DE CV, S DE RL, SAPI, etc.).
-- Tests Vitest para el helper: match por RFC exacto, RFC con formato sucio, match por nombre único, nombre ambiguo (no matchear), sin coincidencia.
-- La acción "Guardar RFC" usa el mutation existente de actualización de proveedores (`useSuppliers` update) e invalida su query.
-- No se modifica el parser `parseCfdiXml.ts` (ya extrae correctamente `emitterRfc` y `emitterName`).
+- Nuevo helper puro `src/features/accounts-payable/lib/matchSupplierByCfdi.ts`: recibe `{ emitterRfc, emitterName }` + lista de proveedores y devuelve `{ supplierId, matchedBy: "rfc" | "name" | null }`. Incluye `normalizeRfc` y `normalizeCompanyName` (elimina SA DE CV, S DE RL, SAPI, puntuación y acentos).
+- `useImportSupplierBillCfdi.ts` usa el helper y expone `matchedBy` para que el modal muestre el aviso y la acción de guardar RFC.
+- La acción de guardar usa el mutation de actualización existente de `useSuppliers` e invalida su query.
+- Tests Vitest del helper: RFC exacto, RFC con formato sucio, nombre único, nombre ambiguo (no matchear), sin coincidencia.
+- Corrección puntual del RFC de GAM LEON mediante actualización de datos (no migración de esquema).
+- `parseCfdiXml.ts` no se modifica: ya extrae bien `emitterRfc` y `emitterName`.
