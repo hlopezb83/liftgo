@@ -83,7 +83,7 @@ ROLLBACK;
 | `quotes_portal.sql` | `quotes` | Cliente portal solo ve sus cotizaciones |
 | `supplier_payments.sql` | `supplier_payments` | Solo admin/administrativo puede insertar |
 | `user_roles.sql` | `user_roles` | Escalada de privilegio: usuario no-admin NO puede insertarse `admin` |
-| `parts_inventory.sql` | `parts_inventory` | Mecánico read-only, admin escribe |
+| `parts_inventory.sql` | `parts_inventory` | Lectores (`is_inventory_reader`) vs escritores (`is_parts_writer`); ventas y cliente sin acceso |
 | `return_inspections.sql` | `return_inspections` | Dispatcher/admin escriben, ventas solo lee |
 | `damage_records.sql` | `damage_records` | Mismo patrón que return_inspections |
 | `billing_secrets.sql` | `billing_secrets` | Nadie (ni admin) lee llaves fiscales desde el cliente |
