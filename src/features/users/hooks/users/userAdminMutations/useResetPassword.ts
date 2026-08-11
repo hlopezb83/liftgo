@@ -13,9 +13,20 @@ export function useResetPassword() {
       if (data?.error) throw new Error(data.error);
       return data as { email: string; recovery_link: string };
     },
+    // El enlace es de un solo uso y la sesión del usuario ya fue revocada:
+    // el toast debe durar lo suficiente y ofrecer copiado (mismo patrón que
+    // useInviteUser). El diálogo además lo muestra de forma persistente.
     onSuccess: (data) => {
+      const link = data.recovery_link;
       notifySuccess("Enlace de recuperación generado", {
-        description: `Comparte este enlace de un solo uso con ${data.email}: ${data.recovery_link}`,
+        description: `Comparte este enlace de un solo uso con ${data.email}: ${link}`,
+        durationMs: 15_000,
+        action: {
+          label: "Copiar enlace",
+          onClick: () => {
+            void navigator.clipboard.writeText(link).catch(() => undefined);
+          },
+        },
       });
     },
     onError: (err: Error) => {
