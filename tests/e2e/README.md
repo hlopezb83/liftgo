@@ -24,7 +24,6 @@ E2E_PORTAL_EMAIL / E2E_PORTAL_PASSWORD
 ```bash
 bun run test:e2e                    # corre toda la suite (chromium + portal)
 bun run test:e2e:ui                 # modo interactivo
-bun run test:e2e:update-snapshots   # actualiza baselines visuales
 bun run test:e2e:report             # abre el HTML report
 ```
 
@@ -36,17 +35,9 @@ bun run test:e2e:report             # abre el HTML report
 | Filtros | `filters-invoices.spec.ts` | Regresión StatusTabs de Facturas (bug v7.62.2). |
 | Filtros | `filters-quotes.spec.ts` | StatusTabs + búsqueda `match-sorter`. |
 | Filtros | `daterange-picker.spec.ts` | Regresión `DateRangePickerField` en `/quotes/new` (v7.71.2). |
-| Visual | `visual-desktop.spec.ts` | Snapshots 1600×900 en 10 rutas clave. |
-| Visual | `visual-mobile.spec.ts` | Snapshots 390×800 + no overflow horizontal. |
 | Roles | `roles-matrix.spec.ts` | Rutas y acciones permitidas por rol. |
 | Portal | `portal.spec.ts` (previo) | Sesión de cliente y read-only. |
 | Smoke | `smoke-nav.spec.ts` (previo) | 30+ rutas sin error boundary. |
-
-## Snapshots visuales
-
-Baselines por primera corrida en `tests/e2e/__screenshots__/`. Regenera con
-`test:e2e:update-snapshots` **solo** tras un cambio de diseño intencional; los
-diffs quedan en `playwright-report/`.
 
 ## Datos y limpieza
 
