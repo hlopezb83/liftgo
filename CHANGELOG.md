@@ -1,3 +1,10 @@
+## 7.298.0 - 2026-08-11
+
+- CI: se elimina la infraestructura de testing visual E2E que nunca se activo (e2e-visual-baselines.yml solo tenia workflow_dispatch y jamas corrio).
+- CI: fuera visual-desktop.spec.ts, visual-mobile.spec.ts y el snapshot visual de bank-reconciliation.spec.ts; ~15 tests skipped menos por shard.
+- CI: fuera el script test:e2e:update-snapshots, la opcion updateSnapshots/E2E_UPDATE_SNAPSHOTS y la variable E2E_VISUAL de ci.yml.
+- Docs: tests/e2e/README.md sin la seccion de snapshots visuales.
+
 ## 7.297.2 - 2026-08-11
 
 - CI: dependabot.yml pasa el frontend del ecosistema `npm` al `bun` para que regenere `bun.lock`; asi `bun install --frozen-lockfile` deja de fallar en changelog-check y bundle-size.
