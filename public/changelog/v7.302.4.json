@@ -1,0 +1,13 @@
+{
+  "version": "7.302.4",
+  "date": "2026-08-11",
+  "type": "patch",
+  "title": "Ignorar TypeScript 7.x en Dependabot hasta soporte de typescript-eslint",
+  "category": "infraestructura",
+  "changes": [
+    "Añadida regla ignore para typescript >= 7 en el ecosistema bun de dependabot.yml",
+    "Evita que Dependabot genere el PR 'Bump typescript to 7.0.2' que rompe ESLint",
+    "Parches y menores de TypeScript 6.x siguen siendo propuestos normalmente",
+    "El ignore se retirará cuando typescript-eslint anuncie soporte para TS 7"
+  ]
+}
