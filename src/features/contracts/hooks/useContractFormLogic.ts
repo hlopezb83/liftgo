@@ -70,5 +70,5 @@ export function useContractFormLogic() {
 
   const handleSubmit = form.handleSubmit(onSubmit);
 
-  return { id, isEdit, form, customers, forklifts, isPending, handleSubmit, navigate };
+  return { id, isEdit, contractNumber: existing?.contract_number ?? null, form, customers, forklifts, isPending, handleSubmit, navigate };
 }

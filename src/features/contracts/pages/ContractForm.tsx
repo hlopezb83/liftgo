@@ -12,7 +12,7 @@ import { MissingLegalRepAlert } from "../components/contracts/MissingLegalRepAle
 import { useContractFormLogic } from "../hooks/useContractFormLogic";
 
 export default function ContractForm() {
-  const { isEdit, form, customers, forklifts, isPending, handleSubmit, navigate } = useContractFormLogic();
+  const { isEdit, contractNumber, form, customers, forklifts, isPending, handleSubmit, navigate } = useContractFormLogic();
   const { control } = form;
   const customerId = form.watch("customer_id");
   const selected = customers?.find((c) => c.id === customerId);
@@ -20,7 +20,11 @@ export default function ContractForm() {
 
   return (
     <PageContainer maxWidth="form">
-      <FormPageHeader title={isEdit ? "Editar contrato" : "Nuevo contrato"} onBack={() => navigate("/contracts")} />
+      <FormPageHeader
+        title={isEdit ? "Editar contrato" : "Nuevo contrato"}
+        subtitle={isEdit ? contractNumber ?? undefined : undefined}
+        onBack={() => navigate("/contracts")}
+      />
 
       <Form {...form}>
         <form onSubmit={handleSubmit} className="space-y-6" noValidate>

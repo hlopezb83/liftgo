@@ -17,9 +17,9 @@ interface PageContainerProps {
 
 const WIDTHS: Record<MaxWidth, string> = {
   full: "",
-  wide: "max-w-5xl",
-  form: "max-w-3xl",
-  narrow: "max-w-xl",
+  wide: "max-w-5xl mx-auto",
+  form: "max-w-3xl mx-auto",
+  narrow: "max-w-xl mx-auto",
 };
 
 /**
