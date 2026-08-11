@@ -40,7 +40,7 @@ export function PagareAnnex({ contract, tpl, vars, customer, city, formattedDate
 
       <View style={contractStyles.pagareHeadRow}>
         <FieldRow label="Número:" value="1/1" />
-        <FieldRow label="Bueno por:" value={vars.deposito} />
+        <FieldRow label="Bueno por:" value={vars.monto_pagare} />
       </View>
       <FieldRow label="Lugar:" value={city} />
       <FieldRow label="Fecha:" value={formattedDate} />
