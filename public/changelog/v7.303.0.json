@@ -1,0 +1,13 @@
+{
+  "version": "7.303.0",
+  "date": "2026-08-11",
+  "type": "minor",
+  "title": "El pagaré se emite por el costo de adquisición del equipo",
+  "category": "contratos",
+  "changes": [
+    "El monto del pagaré (Anexo B) ahora toma el costo de adquisición del montacargas del contrato",
+    "Nueva variable de plantilla {monto_pagare} disponible en el editor de plantillas de contrato",
+    "Si el equipo no tiene costo de adquisición capturado, el pagaré usa el depósito en garantía como respaldo",
+    "La cláusula de depósito en garantía sigue mostrando el monto del depósito"
+  ]
+}
