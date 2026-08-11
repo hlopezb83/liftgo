@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.301.0",
+    "date": "2026-08-11",
+    "type": "minor",
+    "title": "CI más rápido: se elimina trabajo duplicado",
+    "category": "mejoras",
+    "changes": [
+      "La app ahora se compila una sola vez por corrida y ese mismo resultado lo reutilizan las pruebas de navegador y la medición de tamaño.",
+      "Las pruebas de permisos dejan de ejecutarse tres veces; corren una vez y se conserva el mismo reporte.",
+      "En cada propuesta de cambio se ejecutan solo las pruebas afectadas; la suite completa sigue corriendo al integrar a la rama principal y en la corrida semanal.",
+      "Las pruebas de navegador y de funciones del servidor se saltan cuando el cambio no las toca, y las pruebas del servidor corren en paralelo."
+    ]
+  },
+  {
     "version": "7.300.2",
     "date": "2026-08-11",
     "type": "patch",
