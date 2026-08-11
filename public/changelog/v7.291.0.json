@@ -17,6 +17,7 @@
     "Equipos disponibles: ya no se muestra \"sin disponibilidad\" mientras carga",
     "Reporte de daño: al reintentar no se duplica el registro si falló la subida de fotos",
     "Subida de fotos: se bloquea durante la carga y solo se conservan las fallidas para reintento",
-    "Nueva versión disponible: guarda anti-bucle de recarga (máx. 2 por ventana)"
+    "Nueva versión disponible: guarda anti-bucle de recarga (máx. 2 por ventana)",
+    "Pruebas nuevas: guarda anti-bucle de recarga, saneo CSV y límite de retenciones en facturas de proveedor"
   ]
 }
