@@ -34,6 +34,9 @@ jobs:
     name: Sincronía package.json ↔ version.json ↔ changelog
     runs-on: ubuntu-latest
     timeout-minutes: 3
+    # v7.297.2: los PRs de Dependabot nunca tocan version.json ni el changelog
+    # por diseño; el check queda INTACTO para PRs humanos.
+    if: github.actor != 'dependabot[bot]'
     steps:
       # v7.219.0 (H3): bloquea PRs donde package.json/version.json/changelog no coinciden.
       - uses: actions/checkout@v6

@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.297.2",
+    "date": "2026-08-11",
+    "type": "patch",
+    "title": "CI: los PRs de Dependabot ya no rompen changelog-check, bundle-size ni pr-title",
+    "category": "infra",
+    "changes": [
+      "dependabot.yml: el frontend pasa del ecosistema `npm` al `bun`. Dependabot npm actualizaba package.json pero no regeneraba `bun.lock`, por lo que `bun install --frozen-lockfile` fallaba en setup-bun-project y tumbaba changelog-check y bundle-size. El ecosistema `bun` entiende el `bun.lock` de texto y lo regenera en el mismo commit.",
+      "dependabot.yml: `commit-message: { prefix: chore, include: scope }` en ambos ecosistemas — los titulos quedan como `chore(deps): bump ...` y pasan el lint de Conventional Commits.",
+      "pr-title.yml: `if: github.actor != 'dependabot[bot]'` en el job como red de seguridad; los titulos de Dependabot no alimentan el release draft.",
+      "changelog-check.yml: el job `version-sync` se salta para PRs de Dependabot (nunca tocan version.json ni el changelog). Intacto para PRs humanos.",
+      "Sin cambios en los gates de PRs humanos: `validate`, bundle-size y el resto de la logica siguen igual."
+    ]
+  },
+  {
     "version": "7.297.1",
     "date": "2026-08-11",
     "type": "patch",

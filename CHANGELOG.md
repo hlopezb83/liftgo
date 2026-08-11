@@ -1,3 +1,10 @@
+## 7.297.2 - 2026-08-11
+
+- CI: dependabot.yml pasa el frontend del ecosistema `npm` al `bun` para que regenere `bun.lock`; asi `bun install --frozen-lockfile` deja de fallar en changelog-check y bundle-size.
+- CI: `commit-message: { prefix: chore, include: scope }` en ambos ecosistemas — titulos `chore(deps): bump ...` que pasan el lint de Conventional Commits.
+- CI: `if: github.actor != 'dependabot[bot]'` en el job de pr-title.yml y en `version-sync` de changelog-check.yml (red de seguridad).
+- Sin cambios en los gates de PRs humanos.
+
 ## 7.297.1 - 2026-08-11
 
 - CI: `.github/workflows/rls-db-tests.yml` fallaba siempre en el step de arranque; la lista `-x` incluia `pgbouncer`, contenedor inexistente en la CLI 2.34.0 (reemplazado por `supavisor`).

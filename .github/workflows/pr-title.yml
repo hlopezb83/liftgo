@@ -18,6 +18,11 @@ jobs:
     name: Conventional Commits
     runs-on: ubuntu-latest
     timeout-minutes: 3
+    # v7.297.2: los títulos de Dependabot ("Bump the actions-minor-patch
+    # group...") no siguen Conventional Commits y no alimentan el release
+    # draft de features. dependabot.yml ya emite "chore(deps): ..."; esto es
+    # la red de seguridad para PRs abiertos antes de ese cambio.
+    if: github.actor != 'dependabot[bot]'
     steps:
       # v7.219.0 (M2): valida que el título del PR siga Conventional Commits
       # para que release-drafter clasifique cambios correctamente.
