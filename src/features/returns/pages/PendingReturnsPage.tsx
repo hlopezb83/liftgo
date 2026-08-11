@@ -5,10 +5,11 @@ import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { useBookings, type BookingWithForklift } from "@/features/bookings";
+import { type BookingWithForklift } from "@/features/bookings";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { nowMty, parseDateLocal } from "@/lib/utils";
+import { usePendingReturns } from "../hooks/usePendingReturns";
 
 /**
  * /returns/pending — Montacargas cuya reserva ya terminó y siguen sin regresar
@@ -17,19 +18,18 @@ import { nowMty, parseDateLocal } from "@/lib/utils";
  */
 export default function PendingReturnsPage() {
   const navigate = useNavigateTransition();
-  const { data: bookings, isLoading, isError, refetch } = useBookings();
+  // Query dedicada server-side (status/return_status/end_date filtrados en
+  // PostgREST, orden end_date ASC): el listado genérico de useBookings está
+  // truncado (LIMIT) y ordenado por start_date DESC, lo que hacía desaparecer
+  // de esta página los retornos más vencidos.
+  const { data: pendingReturns, isLoading, isError, refetch } = usePendingReturns();
 
   // Alineado con get_dashboard_stats(): return_status IS DISTINCT FROM 'returned'
   // y end_date < CURRENT_DATE (America/Monterrey), sin incluir el día actual.
   const today = nowMty();
   today.setHours(0, 0, 0, 0);
 
-  const pending = (bookings ?? []).filter(
-    (b) =>
-      b.status === "confirmed" &&
-      b.return_status !== "returned" &&
-      parseDateLocal(b.end_date) < today,
-  );
+  const pending = pendingReturns ?? [];
 
 
   const columns: ColumnDef<BookingWithForklift>[] = [
