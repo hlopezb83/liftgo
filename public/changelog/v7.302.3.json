@@ -1,0 +1,16 @@
+{
+  "version": "7.302.3",
+  "date": "2026-08-11",
+  "type": "patch",
+  "title": "Saltar validación de changelog en PRs de Dependabot",
+  "category": "infraestructura",
+  "description": "El job validate de changelog-check ahora omite los PRs generados por Dependabot, evitando fallos espurios cuando el bot solo actualiza dependencias. Los PRs humanos siguen ejecutando ambos checks de changelog de forma normal.",
+  "changes": [
+    "El job validate de changelog-check ya omite PRs creados por dependabot[bot]",
+    "Se alinea con el job version-sync, que ya tenía el mismo guard",
+    "Los PRs humanos siguen ejecutando ambos checks sin cambios"
+  ],
+  "technical": [
+    "Añadido if: github.actor != 'dependabot[bot]' al job validate en .github/workflows/changelog-check.yml"
+  ]
+}
