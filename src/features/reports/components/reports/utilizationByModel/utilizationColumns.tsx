@@ -1,5 +1,6 @@
 import type { ColumnDef } from "@/components/dataTable/v2";
-import { getUtilColor, type ModelRow } from "./utilizationHelpers";
+import { cn } from "@/lib/utils";
+import { getUtilTextClass, type ModelRow } from "./utilizationHelpers";
 
 export const utilizationColumns: ColumnDef<ModelRow>[] = [
   { id: "model", header: "Modelo", accessorKey: "model", cell: ({ row }) => <span className="font-medium">{row.original.model}</span> },
@@ -14,9 +15,10 @@ export const utilizationColumns: ColumnDef<ModelRow>[] = [
     accessorKey: "utilization",
     meta: { kind: "number" },
     cell: ({ row }) => (
-      <span className="font-mono" style={{ color: getUtilColor(row.original.utilization) }}>
+      <span className={cn("tabular-nums font-medium", getUtilTextClass(row.original.utilization))}>
         {row.original.utilization}%
       </span>
     ),
   },
 ];
+
