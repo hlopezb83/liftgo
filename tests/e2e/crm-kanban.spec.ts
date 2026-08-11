@@ -1,5 +1,6 @@
 import type { Page } from "@playwright/test";
 import { test, expect } from "./fixtures/crmSeed";
+import { TIMEOUTS } from "./fixtures/helpers";
 
 /** Cede dos frames para que dnd-kit recalcule colisiones entre teclas. */
 async function nextFrame(page: Page): Promise<void> {
@@ -38,9 +39,9 @@ test("mover una tarjeta de CRM entre columnas es optimista y persiste", async ({
   const target = page.getByTestId("crm-kanban-column-contactado");
   const card = page.getByTestId(`crm-kanban-card-${crm.prospectId}`);
 
-  await expect(origin).toBeVisible({ timeout: 20_000 });
-  await expect(target).toBeVisible({ timeout: 20_000 });
-  await expect(card).toBeVisible({ timeout: 20_000 });
+  await expect(origin).toBeVisible({ timeout: TIMEOUTS.xl });
+  await expect(target).toBeVisible({ timeout: TIMEOUTS.xl });
+  await expect(card).toBeVisible({ timeout: TIMEOUTS.xl });
   await expect(origin.getByTestId(`crm-kanban-card-${crm.prospectId}`)).toBeVisible();
 
   // Drag con teclado: foco -> tomar -> mover a la derecha -> soltar.
@@ -56,13 +57,13 @@ test("mover una tarjeta de CRM entre columnas es optimista y persiste", async ({
     (response) =>
       response.request().method() === "POST" &&
       /\/rest\/v1\/rpc\/reorder_prospect_stage(?:\?|$)/.test(response.url()),
-    { timeout: 20_000 },
+    { timeout: TIMEOUTS.xl },
   );
   await page.keyboard.press("Space");
 
   // Optimista: la tarjeta debe aparecer en la columna destino sin esperar red.
   await expect(target.getByTestId(`crm-kanban-card-${crm.prospectId}`)).toBeVisible({
-    timeout: 5_000,
+    timeout: TIMEOUTS.short,
   });
   await expect(origin.getByTestId(`crm-kanban-card-${crm.prospectId}`)).toHaveCount(0);
 
@@ -73,7 +74,7 @@ test("mover una tarjeta de CRM entre columnas es optimista y persiste", async ({
   // Persistencia: tras recargar sigue en "contactado" (sin rollback).
   await page.reload({ waitUntil: "domcontentloaded" });
   await expect(target.getByTestId(`crm-kanban-card-${crm.prospectId}`)).toBeVisible({
-    timeout: 20_000,
+    timeout: TIMEOUTS.xl,
   });
 
   expect(errors, `errores de página: ${errors.join(" | ")}`).toEqual([]);
@@ -83,10 +84,10 @@ test("abrir la tarjeta muestra el panel de detalle del prospecto", async ({ page
   await page.goto("/crm", { waitUntil: "domcontentloaded" });
 
   const card = page.getByTestId(`crm-kanban-card-${crm.prospectId}`);
-  await expect(card).toBeVisible({ timeout: 20_000 });
+  await expect(card).toBeVisible({ timeout: TIMEOUTS.xl });
   await card.click();
 
   const sheet = page.getByRole("dialog");
-  await expect(sheet).toBeVisible({ timeout: 10_000 });
+  await expect(sheet).toBeVisible({ timeout: TIMEOUTS.medium });
   await expect(sheet.getByText(crm.companyName)).toBeVisible();
 });

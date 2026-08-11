@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures/seed";
+import { TIMEOUTS } from "./fixtures/helpers";
 
 /**
  * Smoke E2E del Kanban de Mantenimiento.
@@ -27,14 +28,14 @@ test("seeded maintenance work order appears in pending column", async ({ page, s
   // aria-label estable. Espera explícita a que el toolbar esté hidratado antes
   // de click, evita timeouts en runners fríos.
   const boardToggle = page.getByLabel(/vista de tablero/i);
-  await expect(boardToggle).toBeEnabled({ timeout: 15_000 });
+  await expect(boardToggle).toBeEnabled({ timeout: TIMEOUTS.long });
   await boardToggle.click();
 
   const pendingColumn = page.getByTestId("maintenance-kanban-column-pending");
-  await expect(pendingColumn).toBeVisible({ timeout: 15_000 });
+  await expect(pendingColumn).toBeVisible({ timeout: TIMEOUTS.long });
 
   const seededCard = page.getByTestId(`maintenance-kanban-card-${seed.maintenance_log_id}`);
-  await expect(seededCard).toBeVisible({ timeout: 10_000 });
+  await expect(seededCard).toBeVisible({ timeout: TIMEOUTS.medium });
 
   // La tarjeta sembrada debe estar DENTRO de la columna pending, no en otra.
   await expect(pendingColumn.getByTestId(`maintenance-kanban-card-${seed.maintenance_log_id}`)).toBeVisible();
@@ -42,5 +43,5 @@ test("seeded maintenance work order appears in pending column", async ({ page, s
   await seededCard.click();
   // El sheet de detalle usa role=dialog. No asertamos copy específico para no
   // acoplar al texto de la UI.
-  await expect(page.getByRole("dialog")).toBeVisible({ timeout: 5_000 });
+  await expect(page.getByRole("dialog")).toBeVisible({ timeout: TIMEOUTS.short });
 });
