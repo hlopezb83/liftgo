@@ -44,7 +44,7 @@ export async function fetchRelatedData(contract: ContractData) {
     contract.forklift_id
       ? supabase
           .from("forklifts")
-          .select("manufacturer, model, serial_number, capacity_kg, fuel_type")
+          .select("manufacturer, model, serial_number, capacity_kg, fuel_type, acquisition_cost")
           .eq("id", contract.forklift_id)
           .single()
       : Promise.resolve({ data: null }),

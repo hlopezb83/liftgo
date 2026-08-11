@@ -29,6 +29,7 @@ export const CONTRACT_PLACEHOLDERS: readonly ContractPlaceholder[] = [
   { key: "{tarifa_semanal}", desc: "Tarifa semanal (ya incluye $)" },
   { key: "{tarifa_mensual}", desc: "Tarifa mensual (ya incluye $)" },
   { key: "{deposito}", desc: "Monto del depósito (ya incluye $)" },
+  { key: "{monto_pagare}", desc: "Monto del pagaré: costo de adquisición del equipo (ya incluye $)" },
   { key: "{interes_moratorio}", desc: "Tasa de interés moratorio" },
   { key: "{frecuencia_pago}", desc: "Frecuencia de pago" },
   { key: "{marca}", desc: "Marca del equipo" },

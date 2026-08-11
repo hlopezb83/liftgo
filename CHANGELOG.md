@@ -1,3 +1,11 @@
+## 7.303.0 - 2026-08-11
+
+**Pagaré por el costo de adquisición del equipo**
+- El Anexo B (pagaré) deja de emitirse por el depósito en garantía: el campo "Bueno por" y el texto usan ahora `{monto_pagare}` = `forklifts.acquisition_cost` del equipo del contrato.
+- `fetchRelatedData` trae `acquisition_cost`; `buildPlaceholderVars` expone `monto_pagare` con fallback a `deposit_amount` cuando el equipo no tiene costo capturado (evita pagarés en $0.00).
+- `{monto_pagare}` registrado en `CONTRACT_PLACEHOLDERS` para el editor de plantillas; la cláusula quinta sigue usando `{deposito}`.
+- Tests: casos nuevos en `src/test/contractPlaceholders.test.ts` con y sin costo de adquisición.
+
 ## 7.302.2 - 2026-08-11
 
 **UI — encabezados de detalle/edición coherentes**

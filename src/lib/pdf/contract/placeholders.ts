@@ -15,6 +15,7 @@ interface CustomerInfo {
 interface ForkliftInfo {
   manufacturer?: string | null; model?: string | null; serial_number?: string | null;
   capacity_kg?: number | null; fuel_type?: string | null;
+  acquisition_cost?: number | null;
 }
 
 const fmtDate = (d?: string | null) => (d ? (formatDateDisplay(d) || "[Fecha]") : "[Fecha]");
@@ -107,6 +108,13 @@ export function buildPlaceholderVars(
     ...buildUsageVars(contract),
     ...buildPricingVars(contract),
     ...buildEquipmentVars(forklift),
+    // v7.303.0: el pagaré se emite por el costo de adquisición del equipo;
+    // si el equipo no lo tiene capturado, cae al depósito en garantía.
+    monto_pagare: formatCurrency(
+      num(forklift?.acquisition_cost) > 0
+        ? num(forklift?.acquisition_cost)
+        : num(contract.deposit_amount),
+    ),
     firmado_por: contract.signed_by || "",
     ciudad: contract.contract_city || "San Pedro Garza García, N.L.",
     fecha_firma: signing ? fmtDate(signing) : "[Fecha de firma]",
