@@ -1,0 +1,9 @@
+{
+  "description": "Cierre de la cobertura de pruebas del paquete de correcciones R3.",
+  "changes": [
+    "Nuevo smoke SQL supabase/tests/r3_fixes_smoke.sql con 9 verificaciones de la ronda R3 (bypass de archivado de OT, guardas de la venta, RPC de desasignación y reset de contadores de timbrado)",
+    "Pruebas de useUnassignForklift: llamada RPC única, propagación de errores e invalidación de caches",
+    "Prueba del horómetro global: excluye entregas canceladas y sin fecha de completado",
+    "Pruebas de invalidación de reportKeys al registrar pagos y al cambiar el estatus de una unidad"
+  ]
+}
