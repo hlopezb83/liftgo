@@ -15,6 +15,7 @@ interface CustomerInfo {
 interface ForkliftInfo {
   manufacturer?: string | null; model?: string | null; serial_number?: string | null;
   capacity_kg?: number | null; fuel_type?: string | null;
+  acquisition_cost?: number | null;
 }
 
 const fmtDate = (d?: string | null) => (d ? (formatDateDisplay(d) || "[Fecha]") : "[Fecha]");
