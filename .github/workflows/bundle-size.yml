@@ -51,7 +51,17 @@ jobs:
           path: .bundle-size-base
           key: bundle-size-base-${{ steps.base-sha.outputs.sha }}
 
-      - name: Build PR
+      # Fase 5.1: el job `build` de ci.yml ya compiló este mismo commit y dejó
+      # el `dist/` en cache. Si está, no se recompila (ahorra ~2 min por PR).
+      - name: Restaurar dist del CI
+        id: dist-cache
+        uses: actions/cache/restore@v6
+        with:
+          path: dist
+          key: ci-dist-${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Build PR (solo si no hay dist del CI)
+        if: steps.dist-cache.outputs.cache-hit != 'true'
         run: bun run build
 
       - name: Medir bundle del PR

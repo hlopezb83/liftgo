@@ -70,7 +70,11 @@ export default defineConfig({
   webServer: process.env.E2E_NO_SERVER
     ? undefined
     : {
-        command: "bun run build && bun run preview --port 4173 --strictPort",
+        // E2E_REUSE_BUILD=1 (CI, Fase 5.1): el `dist/` ya viene del job `build`,
+        // así que solo se sirve con `vite preview` en vez de recompilar aquí.
+        command: process.env.E2E_REUSE_BUILD
+          ? "bun run preview --port 4173 --strictPort"
+          : "bun run build && bun run preview --port 4173 --strictPort",
         url: baseURL,
         timeout: 180_000,
         reuseExistingServer: !process.env.CI,
