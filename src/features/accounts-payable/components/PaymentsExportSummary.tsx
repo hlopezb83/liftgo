@@ -45,7 +45,7 @@ export function PaymentsExportSummary({
         </div>
         {hasInvalid && (
           <p className="text-xs text-destructive mt-1">
-            Hay proveedores seleccionados sin CLABE válida.
+            Hay renglones inválidos: proveedor sin CLABE válida o monto mayor al saldo pendiente.
           </p>
         )}
       </div>

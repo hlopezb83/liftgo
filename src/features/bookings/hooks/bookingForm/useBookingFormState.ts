@@ -21,14 +21,18 @@ export function useBookingFormState() {
   const dateRange = useWatch({ control: form.control, name: "date_range" }) as DateRange | undefined;
   const forkliftId = useWatch({ control: form.control, name: "forklift_id" });
 
-  const { availableForklifts, forklifts, datesSelected } = useAvailableForklifts(dateRange);
+  const { availableForklifts, forklifts, datesSelected, isSuccess: availabilitySettled } =
+    useAvailableForklifts(dateRange);
 
   // Reset forklift selection si deja de estar disponible al cambiar fechas.
+  // M-16: gatear con `isSuccess` — mientras la query de disponibilidad carga,
+  // `availableForklifts` es [] por defecto y el efecto borraba la selección.
   useEffect(() => {
+    if (!availabilitySettled) return;
     if (forkliftId && datesSelected && !availableForklifts.some((f) => f.id === forkliftId)) {
       form.setValue("forklift_id", "");
     }
-  }, [availableForklifts, forkliftId, datesSelected, form]);
+  }, [availableForklifts, forkliftId, datesSelected, availabilitySettled, form]);
 
   // Normaliza errores anidados de date_range a un único string.
   const dateRangeErrorObj = form.formState.errors.date_range as

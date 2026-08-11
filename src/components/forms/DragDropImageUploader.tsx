@@ -53,6 +53,8 @@ export function DragDropImageUploader({ entityType, entityId, maxFiles = 10, cla
     accept: { "image/*": [".png", ".jpg", ".jpeg", ".webp", ".heic"] },
     maxFiles,
     multiple: true,
+    // M-19a: no aceptar más fotos mientras hay una subida en curso.
+    disabled: uploading,
   });
 
   const removePreview = (index: number) => {
@@ -67,24 +69,46 @@ export function DragDropImageUploader({ entityType, entityId, maxFiles = 10, cla
   const handleUploadAll = async () => {
     if (previews.length === 0) return;
     setUploading(true);
+    // Snapshot: el estado puede cambiar mientras las subidas están en vuelo.
+    const targets = previews;
     try {
       // R7 · Deuda: uploads en paralelo (antes serial) para reducir latencia
       // percibida al subir varias evidencias a la vez.
-      await Promise.all(
-        previews.map(({ file }) => uploadDoc.mutateAsync({ file, entityType, entityId })),
+      // M-19b: `allSettled` — antes un solo fallo abortaba el batch y, como
+      // las exitosas no se removían, reintentar las DUPLICABA en el servidor.
+      // Ahora solo se remueven (y se revoca su objectURL) las subidas con
+      // éxito; las fallidas se conservan para reintento.
+      const results = await Promise.allSettled(
+        targets.map(({ file }) => uploadDoc.mutateAsync({ file, entityType, entityId })),
       );
-      notifySuccess(`${previews.length} foto(s) subida(s)`);
-      previews.forEach((p) => URL.revokeObjectURL(p.url));
-      setPreviews([]);
-    } catch (err) {
-      // GUI-FE-11e (G-MEC-04): mensaje genérico en español (sin el texto
-      // técnico crudo del storage/edge function) + severidad warning.
-      notifyError({
-        error: err,
-        title: "No se pudieron subir las fotos",
-        description: "Revisa tu conexión e inténtalo de nuevo. Si el problema continúa, intenta con fotos más ligeras.",
-        severity: "warning",
-      });
+      const succeededIds = new Set(
+        targets.filter((_, i) => results[i].status === "fulfilled").map((p) => p.id),
+      );
+      const failedCount = results.length - succeededIds.size;
+
+      setPreviews((prev) =>
+        prev.filter((p) => {
+          if (succeededIds.has(p.id)) {
+            URL.revokeObjectURL(p.url);
+            return false;
+          }
+          return true;
+        }),
+      );
+
+      if (failedCount === 0) {
+        notifySuccess(`${targets.length} foto(s) subida(s)`);
+      } else {
+        // GUI-FE-11e (G-MEC-04): mensaje genérico en español (sin el texto
+        // técnico crudo del storage/edge function) + severidad warning.
+        const firstError = results.find((r) => r.status === "rejected");
+        notifyError({
+          error: firstError && firstError.status === "rejected" ? firstError.reason : new Error("upload_failed"),
+          title: "No se pudieron subir las fotos",
+          description: `${failedCount} foto(s) fallaron y se conservan abajo para reintentar. Revisa tu conexión; si el problema continúa, intenta con fotos más ligeras.`,
+          severity: "warning",
+        });
+      }
     } finally {
       setUploading(false);
     }

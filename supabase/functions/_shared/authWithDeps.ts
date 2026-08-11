@@ -77,6 +77,33 @@ export async function authenticateWithDeps(
     if (!userId) {
       return { ok: false, status: 401, message: "Unauthorized" };
     }
+    // M-1: un JWT emitido sigue siendo válido ~1h aunque el usuario haya sido
+    // desactivado (getClaims no consulta la DB). Verificar is_active en cada
+    // llamada cierra la ventana de acceso de usuarios dados de baja. Mismo
+    // guard fail-closed que requireAuth/requireServiceOrRole (_shared/auth.ts).
+    const profileRes = await supabase.from("profiles").select("is_active").eq(
+      "user_id",
+      userId,
+    ).maybeSingle();
+    const profileErr = (profileRes as { error: unknown }).error;
+    if (profileErr) {
+      // Fail-closed: si no podemos verificar la cuenta, denegamos en vez de
+      // dejar pasar a un usuario potencialmente desactivado.
+      if (logTag) console.error(`${logTag} profile lookup failed`, { userId });
+      return {
+        ok: false,
+        status: 503,
+        message:
+          "Servicio de verificación de cuenta no disponible. Reintenta en unos segundos.",
+      };
+    }
+    const profile = (profileRes as { data: unknown }).data as
+      | { is_active: boolean | null }
+      | null;
+    if (!profile || profile.is_active === false) {
+      if (logTag) console.error(`${logTag} inactive account`, { userId });
+      return { ok: false, status: 403, message: "Cuenta desactivada" };
+    }
     const rolesRes = await supabase.from("user_roles").select("role").eq(
       "user_id",
       userId,

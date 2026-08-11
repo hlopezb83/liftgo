@@ -3,6 +3,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
 import { ErrorBoundary } from "./layouts/ErrorBoundary";
+import { reloadForStaleChunk } from "./lib/staleChunkReload";
 import "./lib/forms/zodConfig";
 import "./index.css";
 
@@ -23,8 +24,6 @@ const LocaleShim = new Proxy(OrigLocale, {
 }) as typeof Intl.Locale;
 (Intl as { Locale: typeof Intl.Locale }).Locale = LocaleShim;
 
-const RELOAD_KEY = "vite-preload-reload";
-
 function isStaleChunkError(message: string | undefined): boolean {
   if (!message) return false;
   return (
@@ -34,29 +33,23 @@ function isStaleChunkError(message: string | undefined): boolean {
   );
 }
 
-function reloadOnce(): void {
-  if (sessionStorage.getItem(RELOAD_KEY) === "1") return;
-  sessionStorage.setItem(RELOAD_KEY, "1");
-  window.location.reload();
-}
-
 window.addEventListener("vite:preloadError", (event) => {
   event.preventDefault();
-  reloadOnce();
+  reloadForStaleChunk();
 });
 
 window.addEventListener("error", (event) => {
-  if (isStaleChunkError(event.message)) reloadOnce();
+  if (isStaleChunkError(event.message)) reloadForStaleChunk();
 });
 
 window.addEventListener("unhandledrejection", (event) => {
   const message = event.reason instanceof Error ? event.reason.message : String(event.reason ?? "");
-  if (isStaleChunkError(message)) reloadOnce();
+  if (isStaleChunkError(message)) reloadForStaleChunk();
 });
 
-window.addEventListener("load", () => {
-  sessionStorage.removeItem(RELOAD_KEY);
-});
+// M-22: ya NO se borra la llave en `load` — eso causaba un bucle infinito
+// de recargas cuando el chunk stale persistía. La guarda con timestamp en
+// `staleChunkReload.ts` limita a 2 recargas por ventana de 30 s.
 
 const rootEl = document.getElementById("root");
 if (!rootEl) throw new Error("Root element #root not found");

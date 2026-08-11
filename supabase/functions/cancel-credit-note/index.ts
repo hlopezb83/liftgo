@@ -53,13 +53,28 @@ Deno.serve(async (req) => {
       return jsonError(req, 400, "Only stamped credit notes can be cancelled");
     }
 
-    const { apiKey } = await getFacturapiConfig(
+    const { apiKey, mode } = await getFacturapiConfig(
       supabase,
       (k) => Deno.env.get(k),
     );
 
     let satStatus = "accepted";
     const isStub = !apiKey || !nc.facturapi_invoice_id;
+
+    if (isStub && mode === "live") {
+      // M-2 (mismo guard C-2 que cancel-cfdi/handler.ts): en modo live NUNCA
+      // marcamos "aceptada" una cancelación stub. Un stub en live significa
+      // (a) API key faltante o (b) nota de crédito sin facturapi_invoice_id
+      // (probablemente timbrada como stub en test y migrada a live).
+      // Cancelarla fake dejaría el SAT y la BD divergentes.
+      return jsonError(
+        req,
+        400,
+        !apiKey
+          ? "Facturapi API key no configurada para modo live. No se puede cancelar sin llamar al SAT."
+          : "La nota de crédito no tiene facturapi_invoice_id (no fue timbrada realmente). No se puede cancelar en modo live.",
+      );
+    }
 
     if (apiKey && nc.facturapi_invoice_id) {
       const client = createFacturapiClient(apiKey);

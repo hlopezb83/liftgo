@@ -34,7 +34,7 @@ type ReconciliationSummary = NonNullable<
 
 function buildKpis(summary: ReconciliationSummary | undefined): { label: string; value: string }[] {
   return [
-    { label: "Total timbrado (producción)", value: formatCurrency(summary?.totalStampedLive ?? 0) },
+    { label: "Total timbrado (producción, MXN)", value: formatCurrency(summary?.totalStampedLive ?? 0) },
     { label: "Timbradas", value: String(summary?.countStamped ?? 0) },
     { label: "Canceladas", value: String(summary?.countCancelled ?? 0) },
     { label: "Borradores", value: String(summary?.countDraft ?? 0) },
@@ -90,6 +90,16 @@ export default function InvoicesReconciliation() {
           </Card>
         ))}
       </div>
+
+      {summary && summary.countStampedMissingFx > 0 && (
+        <Alert>
+          <WarnIcon className="h-4 w-4" />
+          <AlertDescription>
+            {summary.countStampedMissingFx} factura(s) timbrada(s) sin tipo de cambio fueron
+            excluidas del total timbrado (MXN). Captura el tipo de cambio para incluirlas.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {summary && summary.gaps.length > 0 && (
         <Alert>

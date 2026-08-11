@@ -85,8 +85,16 @@ async function invokeStampFn(
   try {
     body = JSON.parse(text);
   } catch { /* text-only response */ }
-  // 200 → success. 409 → already stamped/cancelled → tratar como éxito idempotente.
-  return { ok: res.ok || res.status === 409, status: res.status, body };
+  // 200 → success. 409 → already stamped → éxito idempotente SOLO para stamp.
+  // M-6: para operaciones de cancelación (cancel, cancel_nc, cancel_rep) un
+  // 409 significa que el documento no está en estado cancelable — NO es un
+  // éxito idempotente y reintentar daría el mismo 409 para siempre, así que
+  // el caller lo trata como fallo terminal (exhausted).
+  return {
+    ok: res.ok || (res.status === 409 && operation === "stamp"),
+    status: res.status,
+    body,
+  };
 }
 
 /**
@@ -338,10 +346,15 @@ Deno.serve(async (req) => {
       } else {
         const errMsg = (invRes.body as { error?: string } | null)?.error ??
           String(invRes.body);
-        const queueStatus = decideTerminalStatus(
-          nextAttempts,
-          row.max_attempts,
-        );
+        // M-6: 409 en una cancelación (stamp ya lo filtró como éxito en
+        // invokeStampFn) = el documento no es cancelable → fallo TERMINAL
+        // inmediato (exhausted), sin gastar los reintentos restantes.
+        const queueStatus = invRes.status === 409
+          ? "exhausted"
+          : decideTerminalStatus(
+            nextAttempts,
+            row.max_attempts,
+          );
         await markQueueRow(admin, row.id, {
           status: queueStatus,
           attempts: nextAttempts,

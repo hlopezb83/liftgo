@@ -21,7 +21,7 @@ export function useCreateBooking() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [bookingKeys.lists(), bookingKeys.range(), forkliftKeys.lists(), ["status_logs"] as const, reportKeys.all],
+    invalidateKeys: [bookingKeys.lists(), bookingKeys.range(), bookingKeys.byForkliftAll(), forkliftKeys.lists(), ["status_logs"] as const, reportKeys.all],
 
     errorTitle: "Error al crear reserva",
   });
@@ -36,7 +36,9 @@ export function useUpdateBooking() {
     },
     // R17-E: refrescar también el detalle para que la vista de reserva vea
     // cambios (status, fechas, contactos) sin necesidad de F5.
-    invalidateKeys: [bookingKeys.lists(), bookingKeys.range(), reportKeys.all],
+    // M-17: `byForkliftAll()` cubre la key ["bookings","forklift",id] que
+    // usa useBookings(forkliftId) — lists()/range() no la alcanzan.
+    invalidateKeys: [bookingKeys.lists(), bookingKeys.range(), bookingKeys.byForkliftAll(), reportKeys.all],
     invalidateKeysFn: (_d, vars) => [bookingKeys.detail(vars.id)],
     errorTitle: "Error al actualizar reserva",
   });
@@ -49,7 +51,7 @@ export function useDeleteBooking() {
       if (error) throw error;
       return bookingId;
     },
-    invalidateKeys: [bookingKeys.lists(), bookingKeys.range(), forkliftKeys.lists(), ["status_logs"] as const, reportKeys.all],
+    invalidateKeys: [bookingKeys.lists(), bookingKeys.range(), bookingKeys.byForkliftAll(), forkliftKeys.lists(), ["status_logs"] as const, reportKeys.all],
     invalidateKeysFn: (id) => [bookingKeys.detail(id)],
     errorTitle: "Error al eliminar reserva",
   });
@@ -67,7 +69,7 @@ export function useCancelBooking() {
       if (error) throw error;
       return bookingId;
     },
-    invalidateKeys: [bookingKeys.lists(), bookingKeys.range(), forkliftKeys.lists(), ["status_logs"] as const, reportKeys.all],
+    invalidateKeys: [bookingKeys.lists(), bookingKeys.range(), bookingKeys.byForkliftAll(), forkliftKeys.lists(), ["status_logs"] as const, reportKeys.all],
     invalidateKeysFn: (id) => [bookingKeys.detail(id)],
     errorTitle: "Error al cancelar reserva",
   });

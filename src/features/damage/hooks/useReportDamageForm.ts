@@ -38,6 +38,9 @@ export function useReportDamageForm(onClose: () => void) {
 
   const createDamage = useCreateDamageRecord();
   const uploadDoc = useUploadDocument();
+  // M-18: id del damage_record ya creado en un intento previo cuya subida de
+  // fotos falló. Se limpia en `reset()` (éxito completo o cierre del form).
+  const createdRecordIdRef = useRef<string | null>(null);
 
   const onDrop = (acceptedFiles: File[]) => {
     setPreviews((prev) => {
@@ -64,6 +67,9 @@ export function useReportDamageForm(onClose: () => void) {
       prev.forEach((p) => URL.revokeObjectURL(p.url));
       return [];
     });
+    // M-18: al resetear (éxito completo o cierre) se olvida el registro
+    // creado — un submit posterior debe crear uno nuevo.
+    createdRecordIdRef.current = null;
     form.reset(DEFAULTS);
   };
 
@@ -74,20 +80,28 @@ export function useReportDamageForm(onClose: () => void) {
     previewsRef.current.forEach((p) => URL.revokeObjectURL(p.url));
   }, []);
 
-  const handleSubmit = form.handleSubmit(async (values) => {
+  const submitDamage = async (values: ReportDamageValues) => {
     try {
-      const newRecord = await createDamage.mutateAsync({
-        forklift_id: values.forkliftId,
-        customer_id: values.customerId || null,
-        description: values.description,
-        estimated_cost: values.estimatedCost ?? 0,
-        status: "reported",
-      });
+      // M-18: si el registro se creó pero la subida de fotos falló, el
+      // reintento REUTILIZA el id ya creado (solo re-subir fotos) en vez de
+      // insertar un damage_record duplicado.
+      let recordId = createdRecordIdRef.current;
+      if (!recordId) {
+        const newRecord = await createDamage.mutateAsync({
+          forklift_id: values.forkliftId,
+          customer_id: values.customerId || null,
+          description: values.description,
+          estimated_cost: values.estimatedCost ?? 0,
+          status: "reported",
+        });
+        recordId = newRecord.id;
+        createdRecordIdRef.current = recordId;
+      }
 
       if (previews.length > 0) {
         await Promise.all(
           previews.map(({ file }) =>
-            uploadDoc.mutateAsync({ file, entityType: "damage_record", entityId: newRecord.id }),
+            uploadDoc.mutateAsync({ file, entityType: "damage_record", entityId: recordId }),
           ),
         );
       }
@@ -102,7 +116,9 @@ export function useReportDamageForm(onClose: () => void) {
     } catch {
       // silent: errors handled by mutation hooks
     }
-  });
+  };
+
+  const handleSubmit = (e?: React.BaseSyntheticEvent) => form.handleSubmit(submitDamage)(e);
 
   return {
     form,

@@ -1,4 +1,4 @@
-import { differenceInDays, parseISO } from "date-fns";
+import { differenceInCalendarDays, differenceInDays, parseISO, subDays } from "date-fns";
 import { useState } from "react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useInvoicesWithBalance } from "@/features/invoices";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { exportToCsv } from "@/lib/exportCsv";
-import { todayKeyMty } from "@/lib/format/dateFormats";
+import { toYMD } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { toMxn } from "@/lib/money";
 import { formatDateDisplay, nowMty } from "@/lib/utils";
@@ -30,16 +30,21 @@ function getAgingBucket(days: number): string {
 export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingReportProps) {
   const navigate = useNavigateTransition();
   const [selectedBucket, setSelectedBucket] = useState<string | null>(null);
-  const todayYmd = todayKeyMty();
+  // M-13: la definición canónica de vencida (v_overdue_invoices) exige
+  // due_date < hoy (>= 1 día de atraso). `p_due_to` del RPC es INCLUSIVO,
+  // así que se pasa "ayer" — con "hoy" entraban facturas que vencen hoy.
+  const yesterdayYmd = toYMD(subDays(nowMty(), 1));
 
   // Vista unificada: ya viene con balance > 0 y status filtrado.
   const { data: rawOverdue, isError, isFetching, refetch } = useInvoicesWithBalance({
     statuses: ["sent", "partial", "overdue"],
-    dueTo: todayYmd,
+    dueTo: yesterdayYmd,
   });
 
   const overdueInvoices = (rawOverdue ?? [])
-    .filter((i) => i.due_date && parseISO(i.due_date) < nowMty())
+    // Doble guarda client-side: >= 1 día calendario de atraso (no basta
+    // `due < now`, que cuenta las que vencen hoy a medianoche).
+    .filter((i) => i.due_date && differenceInCalendarDays(nowMty(), parseISO(i.due_date)) >= 1)
     .map((i) => {
       const days = differenceInDays(nowMty(), parseISO(i.due_date as string));
       // R6-B2: normalizar a MXN. Preferir balance_mxn del servidor; fallback toMxn.

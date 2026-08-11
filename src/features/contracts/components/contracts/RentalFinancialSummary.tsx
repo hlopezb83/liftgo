@@ -30,7 +30,10 @@ export function RentalFinancialSummary({
   const days = rentalDaysInclusive(start, end);
   const items = calculateRentalCost(dailyRate, weeklyRate, monthlyRate, start, end);
   const expectedRevenue = items.reduce((sum, item) => sum + item.total, 0);
-  const invoicedAmount = (invoices || []).reduce((sum, inv) => sum + Number(inv.total), 0);
+  // M-14: expectedRevenue es sin IVA → comparar contra el SUBTOTAL de las
+  // facturas (antes se usaba `total`, con IVA, y el balance restante salía
+  // artificialmente negativo).
+  const invoicedAmount = (invoices || []).reduce((sum, inv) => sum + Number(inv.subtotal), 0);
   const remaining = expectedRevenue - invoicedAmount;
   const invoiceCount = invoices?.length || 0;
 

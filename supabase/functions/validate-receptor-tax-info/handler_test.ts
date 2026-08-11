@@ -35,6 +35,8 @@ function makeService(invoice: Record<string, unknown> | null): SupabaseLike {
   return buildSupabaseMock({
     selects: {
       user_roles: { data: [{ role: "admin" }], error: null },
+      // M-1: authenticateWithDeps ahora verifica profiles.is_active.
+      profiles: { data: { is_active: true }, error: null },
       invoices: {
         data: invoice,
         error: invoice ? null : { message: "not found" },

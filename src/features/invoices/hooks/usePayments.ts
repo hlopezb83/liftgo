@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { cashFlowProjectionQueries } from "@/features/cash-flow/lib/queryKeys";
 import { reportKeys } from "@/features/reports/lib/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
@@ -60,7 +61,8 @@ export function useCreatePayment() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [paymentKeys.all, invoiceKeys.all, DASHBOARD_FINANCIAL_KPIS_KEY, reportKeys.all],
+    // M-12: los pagos mueven la proyección de flujo de caja — invalidarla.
+    invalidateKeys: [paymentKeys.all, invoiceKeys.all, DASHBOARD_FINANCIAL_KPIS_KEY, reportKeys.all, cashFlowProjectionQueries.keys.all],
     errorTitle: "Error al registrar pago",
   });
 }
@@ -77,7 +79,8 @@ export function useUpdatePayment() {
       if (error) throw error;
       return data;
     },
-    invalidateKeys: [paymentKeys.all, invoiceKeys.all, DASHBOARD_FINANCIAL_KPIS_KEY, reportKeys.all],
+    // M-12: los pagos mueven la proyección de flujo de caja — invalidarla.
+    invalidateKeys: [paymentKeys.all, invoiceKeys.all, DASHBOARD_FINANCIAL_KPIS_KEY, reportKeys.all, cashFlowProjectionQueries.keys.all],
     errorTitle: "Error al actualizar pago",
   });
 }
