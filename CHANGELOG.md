@@ -1,3 +1,9 @@
+## 7.293.0 - 2026-08-11
+
+- Seguridad: revocado EXECUTE a anon en todas las funciones SECURITY DEFINER salvo accept/reject_quote_from_portal y get_public_branding.
+- Seguridad: get_portal_collection_account exige sesión; claim_payment_rep_stamping exige admin/administrativo o service_role.
+- Funciones de folios, notificaciones y limpieza reservadas a service_role.
+
 ## 7.286.2 - 2026-08-10
 
 - Seguridad: report_profit_by_model exige permiso Reportes/read.
