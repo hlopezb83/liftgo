@@ -37,6 +37,12 @@ updates:
         dependency-type: "production"
         update-types:
           - "patch"
+    # v7.302.4 — ignorar TypeScript 7.x hasta que typescript-eslint lo soporte;
+    # el PR "Bump typescript to 7.0.2" rompe el job ESLint. Menores/parches de
+    # la línea 6.x siguen permitidos.
+    ignore:
+      - dependency-name: "typescript"
+        versions: [">= 7"]
     # v7.219.0 (M3): removidos ignores de jspdf/jspdf-autotable — la app ya
     # no depende de ellos (migrada a @react-pdf en Ola anterior).
 
