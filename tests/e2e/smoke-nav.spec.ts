@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test";
+import { TIMEOUTS } from "./fixtures/helpers";
 
 /**
  * Smoke test: every critical route loads without throwing an error boundary.
@@ -63,7 +64,7 @@ test.describe("Smoke navigation", () => {
       // Aserción de landmark: la página debe renderizar contenido real, no
       // quedar en blanco. Antes el test pasaba con un body vacío.
       await expect(page.locator("main, [role='main'], h1, h2").first()).toBeVisible({
-        timeout: 7_000,
+        timeout: TIMEOUTS.short,
       });
 
       expect(errors, `Uncaught errors on ${path}: ${errors.join(" | ")}`).toEqual([]);
@@ -86,7 +87,7 @@ test.describe("Smoke navigation — mobile viewport", () => {
       await page.goto(path, { waitUntil: "domcontentloaded" });
 
       await expect(page.locator("main, [role='main'], h1, h2").first()).toBeVisible({
-        timeout: 7_000,
+        timeout: TIMEOUTS.short,
       });
 
       // Validar que no hay scroll horizontal (síntoma de tabla sin

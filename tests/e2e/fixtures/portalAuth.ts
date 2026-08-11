@@ -1,5 +1,5 @@
 import { expect, type Page } from "@playwright/test";
-import { signIn, waitForAuthToken } from "./helpers";
+import { signIn, waitForAuthToken, TIMEOUTS } from "./helpers";
 
 /**
  * Helper de login para el portal cliente (/portal/login).
@@ -20,11 +20,11 @@ export async function loginPortal(page: Page, email: string, password: string): 
   await page.context().clearCookies();
   await page.goto("/portal/login", { waitUntil: "domcontentloaded" });
   await expect(page.getByRole("heading", { name: /portal|cliente|iniciar/i }).first())
-    .toBeVisible({ timeout: 15_000 });
+    .toBeVisible({ timeout: TIMEOUTS.long });
   await signIn(page, email, password);
   await waitForAuthToken(page);
   // PortalLogin redirige a "/" tras auth; el router de cliente resuelve luego
   // a /portal. Aceptamos ambos para no depender del timing exacto del segundo
   // redirect (v7.224.4).
-  await page.waitForURL(/\/(portal(\/|$)|$)/, { timeout: 20_000 });
+  await page.waitForURL(/\/(portal(\/|$)|$)/, { timeout: TIMEOUTS.xl });
 }

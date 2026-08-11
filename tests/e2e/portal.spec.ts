@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures/portalSeed";
+import { TIMEOUTS } from "./fixtures/helpers";
 
 /**
  * Portal de clientes — corre sin storageState de admin (proyecto propio en playwright.config.ts).
@@ -12,7 +13,7 @@ test.describe("Customer portal", () => {
     await page.goto("/portal/login");
     await expect(
       page.getByRole("button", { name: /entrar|iniciar|acceder|sign in/i }).first(),
-    ).toBeVisible({ timeout: 10_000 });
+    ).toBeVisible({ timeout: TIMEOUTS.medium });
   });
 
   test("portal customer sees assigned invoice", async ({ page, portalSeed, portalCreds }) => {
@@ -25,9 +26,9 @@ test.describe("Customer portal", () => {
     // Esperar el shell real del portal; /portal/login también empieza con /portal y causaba carrera.
     // Se ancla en la navegación del layout (estable) y no en el texto de marca,
     // que ahora es dinámico por tenant ("<Razón social> · Portal").
-    await expect(page.getByRole("link", { name: "Facturas" })).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByRole("link", { name: "Facturas" })).toBeVisible({ timeout: TIMEOUTS.long });
     await page.goto("/portal/invoices");
 
-    await expect(page.getByText(portalSeed.invoice_number)).toBeVisible({ timeout: 15_000 });
+    await expect(page.getByText(portalSeed.invoice_number)).toBeVisible({ timeout: TIMEOUTS.long });
   });
 });

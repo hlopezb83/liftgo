@@ -1,4 +1,5 @@
 import { test, expect, type Locator } from "@playwright/test";
+import { TIMEOUTS } from "./fixtures/helpers";
 
 /**
  * Al seleccionar la fecha inicial el calendario re-pinta las celdas (preview
@@ -6,9 +7,9 @@ import { test, expect, type Locator } from "@playwright/test";
  * "detached". Esperamos a que esté visible y forzamos el clic.
  */
 async function clickDay(day: Locator): Promise<void> {
-  await day.waitFor({ state: "visible", timeout: 5_000 });
+  await day.waitFor({ state: "visible", timeout: TIMEOUTS.short });
   // eslint-disable-next-line playwright/no-force-option -- el repintado del rango marca el día como "inestable"; el clic forzado es intencional.
-  await day.click({ force: true, timeout: 10_000 });
+  await day.click({ force: true, timeout: TIMEOUTS.medium });
 }
 
 /**
@@ -32,19 +33,19 @@ test.describe("DateRangePickerField", () => {
 
     await page.goto("/quotes/new", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: /cotizaci/i }).first()).toBeVisible({
-      timeout: 15_000,
+      timeout: TIMEOUTS.long,
     });
 
     const trigger = page
       .getByRole("button", { name: /periodo|rango|fecha/i })
       .filter({ hasText: /-|selecc/i })
       .first();
-    await expect(trigger).toBeVisible({ timeout: 10_000 });
+    await expect(trigger).toBeVisible({ timeout: TIMEOUTS.medium });
     await trigger.click();
 
     // Calendario visible (react-day-picker usa role="grid").
     const grid = page.getByRole("grid").first();
-    await expect(grid).toBeVisible({ timeout: 5_000 });
+    await expect(grid).toBeVisible({ timeout: TIMEOUTS.short });
 
     // Selecciona el día 5 y luego el 20 del mes visible. En rdp v10 el
     // día se pinta dentro de un <button> descendiente de la gridcell.
@@ -68,7 +69,7 @@ test.describe("DateRangePickerField auto-aplicación", () => {
   test("primer clic no cierra; rango real auto-aplica y hay botón Aplicar", async ({ page }) => {
     await page.goto("/quotes/new", { waitUntil: "domcontentloaded" });
     await expect(page.getByRole("heading", { name: /cotizaci/i }).first()).toBeVisible({
-      timeout: 15_000,
+      timeout: TIMEOUTS.long,
     });
 
     const trigger = page
@@ -78,7 +79,7 @@ test.describe("DateRangePickerField auto-aplicación", () => {
     await trigger.click();
 
     const grid = page.getByRole("grid").first();
-    await expect(grid).toBeVisible({ timeout: 5_000 });
+    await expect(grid).toBeVisible({ timeout: TIMEOUTS.short });
     // R10-FE-02: el botón Aplicar vuelve a existir (deshabilitado sin rango).
     const apply = page.getByRole("button", { name: /^aplicar$/i });
     await expect(apply).toBeVisible();
@@ -92,11 +93,11 @@ test.describe("DateRangePickerField auto-aplicación", () => {
     // marcado como seleccionado (assert de estado, no de texto).
     await clickDay(days.nth(4));
     await expect(grid).toBeVisible();
-    await expect(grid.locator('[aria-selected="true"]').first()).toBeVisible({ timeout: 5_000 });
+    await expect(grid.locator('[aria-selected="true"]').first()).toBeVisible({ timeout: TIMEOUTS.short });
 
     // Segundo clic en otra fecha: rango real → se auto-aplica y cierra.
     await clickDay(days.nth(19));
-    await expect(grid).toBeHidden({ timeout: 5_000 });
+    await expect(grid).toBeHidden({ timeout: TIMEOUTS.short });
   });
 });
 

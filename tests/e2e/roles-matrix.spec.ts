@@ -1,5 +1,6 @@
 import { test, expect, type Page } from "@playwright/test";
-import { signIn } from "./fixtures/helpers";
+import { TIMEOUTS } from "./fixtures/helpers";
+import { applyApiSession } from "./fixtures/apiAuth";
 
 /**
  * Matriz de roles — valida que cada rol ve/no ve las acciones destructivas
@@ -50,15 +51,14 @@ const ROLES: RoleFixture[] = [
 ];
 
 async function loginAs(page: Page, email: string, password: string) {
-  await page.context().clearCookies();
+  // Fase 4: login por API + inyección del storageState del rol (cacheado por
+  // `global.setup.ts` cuando las credenciales existen). Ya no dependemos del
+  // form de login para cada rol.
+  await applyApiSession(page, email, password);
   await page.goto("/", { waitUntil: "domcontentloaded" });
-  await page.evaluate(() => window.localStorage.clear());
-  await page.goto("/", { waitUntil: "domcontentloaded" });
-  await expect(page.getByRole("heading", { name: "Iniciar Sesión" })).toBeVisible({
-    timeout: 15_000,
+  await expect(page.getByRole("heading", { name: "Iniciar Sesión" })).toHaveCount(0, {
+    timeout: TIMEOUTS.long,
   });
-  await signIn(page, email, password);
-  await page.waitForURL(/\/(dashboard)?$/, { timeout: 20_000 });
 }
 
 for (const role of ROLES) {
@@ -73,7 +73,7 @@ for (const role of ROLES) {
 
       for (const path of role.canSee) {
         await page.goto(path, { waitUntil: "domcontentloaded" });
-        await expect(page.locator("main, [role='main']").first()).toBeVisible({ timeout: 10_000 });
+        await expect(page.locator("main, [role='main']").first()).toBeVisible({ timeout: TIMEOUTS.medium });
         await expect(page.getByText(/no autorizado|acceso denegado/i)).toHaveCount(0);
       }
 

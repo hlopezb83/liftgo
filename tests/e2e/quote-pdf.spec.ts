@@ -1,4 +1,5 @@
 import { test, expect } from "./fixtures/seed";
+import { TIMEOUTS } from "./fixtures/helpers";
 
 /**
  * Quote PDF download happy path.
@@ -18,17 +19,17 @@ test("download PDF from seeded quote produces a COT-*.pdf file", async ({ page, 
 
   await page.goto(`/quotes/${seed.quote_id}`, { waitUntil: "domcontentloaded" });
   await page.evaluate(() => document.fonts?.ready).catch(() => {});
-  await expect(page.getByText(seed.quote_number).first()).toBeVisible({ timeout: 15_000 });
+  await expect(page.getByText(seed.quote_number).first()).toBeVisible({ timeout: TIMEOUTS.long });
 
   // v7.223.0: usar data-testid en lugar de regex de copy.
   const pdfButton = page.getByTestId("quote-download-pdf").first();
-  await expect(pdfButton).toBeEnabled({ timeout: 15_000 });
+  await expect(pdfButton).toBeEnabled({ timeout: TIMEOUTS.long });
 
   // Capturar el evento download en paralelo con el click para evitar race.
   // Timeout amplio: `@react-pdf/renderer` es un chunk lazy de ~1.46 MB y en
   // cold-start de CI la primera descarga puede tardar >20 s.
   const [download] = await Promise.all([
-    page.waitForEvent("download", { timeout: 45_000 }),
+    page.waitForEvent("download", { timeout: TIMEOUTS.pdf }),
     pdfButton.click(),
   ]);
 
