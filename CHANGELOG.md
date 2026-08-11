@@ -1,3 +1,11 @@
+## 7.297.1 - 2026-08-11
+
+- CI: `.github/workflows/rls-db-tests.yml` fallaba siempre en el step de arranque; la lista `-x` incluia `pgbouncer`, contenedor inexistente en la CLI 2.34.0 (reemplazado por `supavisor`).
+- CI: exclusiones corregidas a nombres validos de 2.34.0; se conserva `gotrue` porque las suites RLS necesitan el schema `auth`.
+- CI: el step ahora usa `set -euxo pipefail`, `--debug`, `timeout-minutes: 15` y `continue-on-error: false` explicito.
+- CI: nuevo step `if: failure()` con `docker ps -a`, `supabase status` y logs de los contenedores `supabase_*`.
+- Sin cambios en `db reset`, `scripts/run_sql_suites.py`, publicacion JUnit ni triggers/paths.
+
 ## 7.297.0 - 2026-08-11
 
 - Perf (RLS): 234 policies del schema `public` recreadas con `(select auth.uid())` en vez de `auth.uid()` — la funcion STABLE pasa de evaluarse por fila a un InitPlan unico por query (evidencia EXPLAIN antes/despues en el comentario de la migracion, sobre `public.invoices`).
