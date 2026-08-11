@@ -1,0 +1,10 @@
+{
+  "description": "El contrato en PDF ahora imprime el campo \"Firmado por\" y respeta el interés moratorio capturado, incluso cuando es 0%.",
+  "changes": [
+    "El recuadro de firma de EL ARRENDATARIO muestra 'Firma: <nombre>' con el dato capturado en 'Firmado por'",
+    "Nuevo placeholder {firmado_por} disponible en las plantillas de contrato editables",
+    "Un interés moratorio de 0% ya no se reemplaza por 5% en la cláusula ni en el pagaré",
+    "Horas máximas por mes y tarifa por hora extra también respetan el valor 0",
+    "Aviso en el formulario cuando el interés moratorio queda en 0%"
+  ]
+}
