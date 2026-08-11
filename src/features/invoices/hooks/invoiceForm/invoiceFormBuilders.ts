@@ -29,7 +29,7 @@ export type ExistingInvoice = {
 export type SourceQuote = {
   customer_name?: string | null; customer_id: string | null;
   line_items?: unknown; tax_rate?: number | string; notes?: string | null;
-  quote_type?: string;
+  quote_type?: string; currency?: string | null;
 };
 
 export type Forklift = { id: string; name: string; manufacturer?: string | null; model: string; serial_number?: string | null };
@@ -116,6 +116,9 @@ interface FromQuoteArgs {
 
 export function buildFromQuote({ q, assignments, forklifts, customers }: FromQuoteArgs): InvoiceFormValues {
   const cfdi: CfdiFormValues = { ...EMPTY_CFDI };
+  // Las cotizaciones soportan USD: heredar la moneda para no facturar en MXN
+  // montos cotizados en USD. El TC lo captura el usuario en CfdiFieldsCard.
+  if (q.currency === "USD") cfdi.moneda = "USD";
   if (q.customer_id && customers) {
     const c = customers.find((x) => x.id === q.customer_id);
     if (c) Object.assign(cfdi, cfdiFromCustomer(c));

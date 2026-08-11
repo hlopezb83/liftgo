@@ -43,6 +43,7 @@ function buildInitialValues(parsed: CfdiParsed, supplierId: string): Partial<Sup
     currency: parsed.currency,
     exchange_rate: parsed.exchangeRate,
     subtotal: parsed.subtotal,
+    discount: parsed.discount,
     tax_amount: parsed.taxAmount,
     retention_iva: parsed.retentionIva,
     retention_isr: parsed.retentionIsr,

@@ -71,7 +71,7 @@ export function useExportPaymentsForm(open: boolean, onClose: () => void) {
     rowState: selection.rowState,
     notes, setNotes,
     selected: selection.selected,
-    total: selection.total,
+    totalsByCurrency: selection.totalsByCurrency,
     hasInvalid: selection.hasInvalid,
     allEligibleSelected: selection.allEligibleSelected,
     toggleAll: selection.toggleAll,

@@ -1,9 +1,15 @@
 import { useState } from "react";
+import { roundMoney } from "@/lib/money";
 import type { ExportablePayable } from "./useExportablePayables";
 
 interface RowState {
   selected: boolean;
   amount: number;
+}
+
+export interface CurrencyTotal {
+  currency: string;
+  total: number;
 }
 
 export type SupplierBillRow = ExportablePayable;
@@ -33,7 +39,19 @@ export function usePaymentSelection(open: boolean, bills: SupplierBillRow[] | un
   }
 
   const selected: SupplierBillRow[] = (bills ?? []).filter((b) => rowState[b.id]?.selected);
-  const total = selected.reduce((acc, b) => acc + (rowState[b.id]?.amount ?? 0), 0);
+  // Total por moneda: sumar montos de MXN y USD en un solo número mezclaría
+  // peras con manzanas (el Excel también se totaliza por moneda).
+  const totalsByCurrency: CurrencyTotal[] = [
+    ...selected
+      .reduce((acc, b) => {
+        const currency = b.currency || "MXN";
+        acc.set(currency, (acc.get(currency) ?? 0) + (rowState[b.id]?.amount ?? 0));
+        return acc;
+      }, new Map<string, number>())
+      .entries(),
+  ]
+    .map(([currency, total]) => ({ currency, total: roundMoney(total) }))
+    .sort((a, b) => a.currency.localeCompare(b.currency));
   const hasInvalid = selected.some((b) => !b.has_valid_clabe);
   const eligible: SupplierBillRow[] = (bills ?? []).filter(
     (b) => b.has_valid_clabe && !b.payment_in_progress_at,
@@ -69,7 +87,7 @@ export function usePaymentSelection(open: boolean, bills: SupplierBillRow[] | un
   return {
     rowState,
     selected,
-    total,
+    totalsByCurrency,
     hasInvalid,
     allEligibleSelected,
     toggleAll,

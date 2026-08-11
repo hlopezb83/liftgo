@@ -1,17 +1,19 @@
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import type { CurrencyTotal } from "../hooks/usePaymentSelection";
 
 interface Props {
   notes: string;
   onNotesChange: (value: string) => void;
   selectedCount: number;
-  total: number;
+  /** Totales agrupados por moneda (los pagos pueden mezclar MXN y USD). */
+  totalsByCurrency: CurrencyTotal[];
   hasInvalid: boolean;
 }
 
 export function PaymentsExportSummary({
-  notes, onNotesChange, selectedCount, total, hasInvalid,
+  notes, onNotesChange, selectedCount, totalsByCurrency, hasInvalid,
 }: Props) {
   return (
     <div className="grid sm:grid-cols-2 gap-3 pt-2">
@@ -31,7 +33,15 @@ export function PaymentsExportSummary({
         </div>
         <div className="flex items-center justify-between text-sm mt-1">
           <span className="text-muted-foreground">Total a pagar</span>
-          <span className="font-mono font-bold text-lg">{formatCurrency(total)}</span>
+          <span className="font-mono font-bold text-lg text-right">
+            {totalsByCurrency.length === 0
+              ? formatCurrencyWithCode(0)
+              : totalsByCurrency.map((t) => (
+                  <span key={t.currency} className="block">
+                    {formatCurrencyWithCode(t.total, t.currency)} {t.currency}
+                  </span>
+                ))}
+          </span>
         </div>
         {hasInvalid && (
           <p className="text-xs text-destructive mt-1">

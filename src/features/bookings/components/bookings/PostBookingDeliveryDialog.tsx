@@ -98,6 +98,9 @@ export function PostBookingDeliveryDialog({
         booking_id: bookingId,
         scheduled_date: toYMD(values.scheduledDate),
         status: values.alreadyCompleted ? "completed" : "scheduled",
+        // Si nace completada, sellar completed_at (las queries de horas e
+        // historial filtran por completed_at NOT NULL).
+        completed_at: values.alreadyCompleted ? new Date().toISOString() : null,
         scheduled_time: values.scheduledTime || null,
         address: values.address || null,
         driver_name: values.driverName || null,

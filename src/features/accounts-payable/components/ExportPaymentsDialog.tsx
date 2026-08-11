@@ -39,7 +39,7 @@ export function ExportPaymentsDialog({ open, onOpenChange }: Props) {
         notes={form.notes}
         onNotesChange={form.setNotes}
         selectedCount={form.selected.length}
-        total={form.total}
+        totalsByCurrency={form.totalsByCurrency}
         hasInvalid={form.hasInvalid}
       />
 
