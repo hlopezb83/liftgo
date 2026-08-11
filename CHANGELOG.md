@@ -1,3 +1,9 @@
+## 7.299.1 - 2026-08-11
+
+- Seguridad: `FORCE ROW LEVEL SECURITY` en billing_secrets, invoices, payments, contracts, customers, supplier_bills, supplier_payments, profiles, user_roles, role_permissions y audit_logs.
+- Seguridad: verificado que edge functions (service_role / caller client) y triggers SECURITY DEFINER no dependian del bypass por propiedad de tabla.
+- Docs: la migracion incluye el procedimiento de rollback y la consulta de verificacion en `pg_class`.
+
 ## 7.299.0 - 2026-08-11
 
 - Tests RLS: nueva suite `maintenance_parts.sql` (anon/cliente bloqueados, auditor read-only, mecanico y admin escriben, service_role bypass).
