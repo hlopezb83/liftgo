@@ -59,4 +59,53 @@ BEGIN
   END;
 END $$;
 
+-- 4) anon: sin GRANT ni policy sobre profiles (endurecimiento v7.302.5).
+RESET ROLE;
+SET LOCAL role = 'anon';
+SET LOCAL request.jwt.claims TO '{"role":"anon"}';
+
+DO $$
+DECLARE
+  v_count integer;
+BEGIN
+  BEGIN
+    SELECT COUNT(*) INTO v_count FROM public.profiles;
+    IF v_count <> 0 THEN
+      RAISE EXCEPTION 'RLS BREACH: anon lee profiles';
+    END IF;
+    RAISE NOTICE 'OK: anon sin filas en profiles';
+  EXCEPTION WHEN insufficient_privilege THEN
+    RAISE NOTICE 'OK: anon sin GRANT sobre profiles';
+  END;
+
+  BEGIN
+    INSERT INTO public.profiles (user_id, email)
+    VALUES ('44444444-0000-4000-8000-00000000000a', 'anon@test.local');
+    RAISE EXCEPTION 'RLS BREACH: anon insertó en profiles';
+  EXCEPTION WHEN insufficient_privilege THEN
+    RAISE NOTICE 'OK: insert de anon bloqueado';
+  END;
+END $$;
+
+-- 5) authenticated no conserva DELETE sobre profiles (solo service_role borra).
+RESET ROLE;
+SET LOCAL role = 'authenticated';
+SET LOCAL request.jwt.claims TO '{"sub":"44444444-0000-4000-8000-000000000002","role":"authenticated"}';
+
+DO $$
+BEGIN
+  BEGIN
+    DELETE FROM public.profiles WHERE user_id = '44444444-0000-4000-8000-000000000002';
+    IF NOT EXISTS (SELECT 1 FROM public.profiles
+                    WHERE user_id = '44444444-0000-4000-8000-000000000002') THEN
+      RAISE EXCEPTION 'RLS BREACH: usuario borró su propio profile';
+    END IF;
+    RAISE NOTICE 'OK: delete sin efecto (sin policy)';
+  EXCEPTION WHEN insufficient_privilege THEN
+    RAISE NOTICE 'OK: delete de profiles denegado a authenticated';
+  END;
+END $$;
+
+RESET ROLE;
 ROLLBACK;
+

@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.302.5",
+    "date": "2026-08-11",
+    "type": "patch",
+    "title": "Endurecimiento de permisos en Perfiles y Proveedores",
+    "category": "seguridad",
+    "changes": [
+      "Retirado todo permiso base de visitantes no autenticados sobre perfiles y proveedores",
+      "Perfiles: los usuarios autenticados ya no pueden borrar registros (solo procesos internos)",
+      "Activada la protección reforzada de reglas de acceso (FORCE RLS) en proveedores",
+      "Nueva suite de pruebas RLS para proveedores y casos extra en la suite de perfiles",
+      "Sin cambios de comportamiento visible: las reglas de quién ve o edita qué son las mismas"
+    ]
+  },
+  {
     "version": "7.302.4",
     "date": "2026-08-11",
     "type": "patch",
