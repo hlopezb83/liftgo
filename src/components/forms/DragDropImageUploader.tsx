@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { UploadIcon, X, SpinnerIcon, ImageIcon } from "@/components/icons";
 import { useUploadDocument } from "@/hooks/useDocuments";
@@ -12,17 +12,40 @@ interface DragDropImageUploaderProps {
   className?: string;
 }
 
+interface Preview { id: string; file: File; url: string }
+
 export function DragDropImageUploader({ entityType, entityId, maxFiles = 10, className }: DragDropImageUploaderProps) {
   const uploadDoc = useUploadDocument();
   const [uploading, setUploading] = useState(false);
-  const [previews, setPreviews] = useState<{ file: File; url: string }[]>([]);
+  const [previews, setPreviews] = useState<Preview[]>([]);
+  // Ref espejo: revoca sólo al desmontar (si el usuario cierra sin subir).
+  const previewsRef = useRef<Preview[]>([]);
+  useEffect(() => {
+    previewsRef.current = previews;
+  }, [previews]);
+  useEffect(() => () => {
+    previewsRef.current.forEach((p) => URL.revokeObjectURL(p.url));
+  }, []);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newPreviews = acceptedFiles.map((file) => ({
-      file,
-      url: URL.createObjectURL(file),
-    }));
-    setPreviews((prev) => [...prev, ...newPreviews].slice(0, maxFiles));
+    setPreviews((prev) => {
+      const room = Math.max(maxFiles - prev.length, 0);
+      const accepted = acceptedFiles.slice(0, room);
+      if (acceptedFiles.length > room) {
+        notifyError({
+          error: new Error("max_files"),
+          title: `Sólo se pueden adjuntar ${maxFiles} fotos`,
+          description: "Se descartaron las fotos excedentes.",
+          severity: "warning",
+        });
+      }
+      const added = accepted.map((file) => ({
+        id: `${file.name}-${file.lastModified}-${crypto.randomUUID()}`,
+        file,
+        url: URL.createObjectURL(file),
+      }));
+      return [...prev, ...added];
+    });
   }, [maxFiles]);
 
   const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
@@ -35,10 +58,11 @@ export function DragDropImageUploader({ entityType, entityId, maxFiles = 10, cla
   const removePreview = (index: number) => {
     setPreviews((prev) => {
       const removed = prev[index];
-      URL.revokeObjectURL(removed.url);
+      if (removed) URL.revokeObjectURL(removed.url);
       return prev.filter((_, i) => i !== index);
     });
   };
+
 
   const handleUploadAll = async () => {
     if (previews.length === 0) return;
@@ -106,7 +130,7 @@ export function DragDropImageUploader({ entityType, entityId, maxFiles = 10, cla
         <>
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
             {previews.map((p, i) => (
-              <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border border-border">
+              <div key={p.id} className="relative group aspect-square rounded-lg overflow-hidden border border-border">
                 <img src={p.url} alt={`Preview ${i + 1}`} className="w-full h-full object-cover" />
                 <button
                   type="button"

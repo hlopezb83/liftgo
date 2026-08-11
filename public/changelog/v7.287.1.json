@@ -1,0 +1,11 @@
+{
+  "description": "Ajustes visuales del reporte de Utilización por Modelo y limpieza de las vistas previas de fotos.",
+  "changes": [
+    "Gráfica de utilización con cuadrícula, ticks y tooltip basados en los tokens de la app",
+    "Eje de modelos más ancho para no cortar nombres largos",
+    "Porcentaje de utilización con clases semánticas y cifras alineadas (tabular-nums)",
+    "DragDropImageUploader libera las URLs temporales al desmontar y al descartar fotos por exceder el límite",
+    "Aviso cuando se supera el máximo de fotos y llave estable por miniatura",
+    "Reporte de daños: se dejan de crear vistas previas para fotos que exceden el límite de 10"
+  ]
+}

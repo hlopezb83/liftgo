@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.287.1",
+    "date": "2026-08-11",
+    "type": "patch",
+    "title": "Detalles visuales de Utilización y liberación de vistas previas de fotos",
+    "category": "fix",
+    "description": "El reporte de Utilización por Modelo ahora usa el mismo estilo de gráfica que el resto (cuadrícula, ticks y tooltip con los colores de la app), muestra nombres de modelo más largos sin cortarlos y alinea los porcentajes con colores por tema en lugar de color fijo. En la carga de fotos, las vistas previas ya se liberan de memoria al cerrar sin subir y cuando se descartan fotos por exceder el límite (ahora con aviso), y las miniaturas usan una llave estable para no confundirse al eliminar una del centro."
+  },
+  {
     "version": "7.287.0",
     "date": "2026-08-10",
     "type": "minor",

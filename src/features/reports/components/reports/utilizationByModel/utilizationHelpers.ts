@@ -28,6 +28,17 @@ export function getUtilColor(pct: number) {
 }
 
 /**
+ * Versión en clases Tailwind (tokens semánticos) para texto en tablas:
+ * evita `style={{ color }}` y respeta tema claro/oscuro.
+ */
+export function getUtilTextClass(pct: number) {
+  if (pct > 75) return "text-status-available";
+  if (pct >= 40) return "text-status-warning";
+  return "text-status-overdue";
+}
+
+
+/**
  * R12-M9: unión de días calendario por unidad (Set), consistente con
  * UtilizationReport.countUniqueBookedDays. Reservas traslapadas del mismo
  * montacargas cuentan 1 vez; el agregado por modelo suma los días únicos
