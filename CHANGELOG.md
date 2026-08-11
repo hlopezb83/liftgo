@@ -1,3 +1,11 @@
+## 7.295.0 - 2026-08-11
+
+- CI: nuevo workflow `.github/workflows/rls-db-tests.yml` (job `rls-db-tests`) — Fase 2 de supabase/tests/rls/README.md.
+- CI: `supabase start` + `supabase db reset` aplican todas las migraciones desde cero y validan su orden.
+- CI: las 21 suites RLS SQL corren con roles/JWT reales; resultados JUnit vía .github/actions/publish-test-results.
+- CI: smoke SQL (c1_c2, r2, r3, r4, r9, r10) en modo informativo; se salta en PRs de forks y solo corre con cambios en supabase/** o src/**.
+- Herramientas: `scripts/run_sql_suites.py` ejecuta suites SQL y emite JUnit.
+
 ## 7.294.0 - 2026-08-11
 
 - Seguridad (Tema 1): company_settings con FORCE ROW LEVEL SECURITY, policies normalizadas a TO authenticated y (select auth.uid()).
