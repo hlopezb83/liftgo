@@ -1,5 +1,21 @@
 [
   {
+    "version": "7.291.0",
+    "date": "2026-08-11",
+    "type": "minor",
+    "title": "Auditoría de severidad media: seguridad, CFDI, multimoneda y estabilidad",
+    "category": "fix",
+    "description": "Se corrigen 22 hallazgos de severidad media en seguridad de backend, cancelaciones CFDI, sumas financieras multimoneda y estabilidad de la interfaz.",
+    "changes": [
+      "Sesiones: un JWT vigente de un usuario desactivado ya no autoriza funciones de borde (se valida profiles.is_active)",
+      "Contadores del menú lateral: solo personal interno puede consultarlos",
+      "Portal: los clientes vuelven a ver los pagos de sus propias facturas",
+      "Rutas protegidas: fail-closed si no se puede verificar rol o permisos",
+      "Búsqueda global: término escapado y errores de consulta ya no se silencian",
+      "Exportación CSV: mitigación de inyección de fórmulas en Excel/Sheets"
+    ]
+  },
+  {
     "version": "7.290.0",
     "date": "2026-08-11",
     "type": "minor",

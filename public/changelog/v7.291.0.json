@@ -1,0 +1,22 @@
+{
+  "description": "Auditoría de severidad media (M-1 … M-22): endurecimiento de seguridad en funciones de borde y base de datos, manejo correcto de cancelaciones ante el SAT, sumas financieras multimoneda y estabilidad de la interfaz.",
+  "changes": [
+    "Sesiones: un JWT vigente de un usuario desactivado ya no autoriza funciones de borde (se valida profiles.is_active)",
+    "Contadores del menú lateral: solo personal interno puede consultarlos",
+    "Portal: los clientes vuelven a ver los pagos de sus propias facturas",
+    "Rutas protegidas: fail-closed si no se puede verificar rol o permisos",
+    "Búsqueda global: término escapado y errores de consulta ya no se silencian",
+    "Exportación CSV: mitigación de inyección de fórmulas en Excel/Sheets",
+    "CFDI: cancelaciones mapean el estado del SAT, el 409 se trata como idempotente y no se marca cancelado sin confirmación",
+    "Contratos: el ingreso esperado se compara contra el subtotal facturado (sin IVA)",
+    "Conciliación: los montos en USD se convierten a MXN antes de sumarse",
+    "Pagos a proveedores: validación y marcado por renglón cuando el monto excede el saldo",
+    "Facturas de proveedor: las retenciones no pueden exceder la base gravable",
+    "Antigüedad de saldos: definición de vencida alineada con v_overdue_invoices",
+    "Cachés: se invalidan rol de usuario, proyección de flujo de efectivo y reservas por montacargas",
+    "Equipos disponibles: ya no se muestra \"sin disponibilidad\" mientras carga",
+    "Reporte de daño: al reintentar no se duplica el registro si falló la subida de fotos",
+    "Subida de fotos: se bloquea durante la carga y solo se conservan las fallidas para reintento",
+    "Nueva versión disponible: guarda anti-bucle de recarga (máx. 2 por ventana)"
+  ]
+}
