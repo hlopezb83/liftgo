@@ -3,6 +3,7 @@
 // sigue siendo síncrono porque solo lo consume `downloadPaymentsXlsx` (y el test
 // que lo importa vía top-level dynamic import).
 import { format } from "date-fns";
+import { roundMoney } from "@/lib/money";
 import { nowMty } from "@/lib/utils";
 import type * as XLSX from "@e965/xlsx";
 
@@ -45,7 +46,9 @@ function fmtDueDate(d: string | null): string {
 
 export function buildPaymentsWorkbook(xlsx: typeof XLSX, rows: PaymentExportRow[]): XLSX.WorkBook {
   const data: (string | number)[][] = [[...HEADERS]];
-  let total = 0;
+  // Los pagos pueden mezclar monedas: un TOTAL único sumaría peras con
+  // manzanas (y antes se etiquetaba con la moneda de la primera fila).
+  const totalsByCurrency = new Map<string, number>();
   for (const r of rows) {
     data.push([
       r.supplier_name,
@@ -61,9 +64,11 @@ export function buildPaymentsWorkbook(xlsx: typeof XLSX, rows: PaymentExportRow[
       Number(r.amount.toFixed(2)),
       r.currency,
     ]);
-    total += Number(r.amount);
+    totalsByCurrency.set(r.currency, (totalsByCurrency.get(r.currency) ?? 0) + Number(r.amount));
   }
-  data.push(["", "", "", "", "", "", "", "", "", "TOTAL", Number(total.toFixed(2)), rows[0]?.currency ?? "MXN"]);
+  for (const [currency, total] of [...totalsByCurrency.entries()].sort(([a], [b]) => a.localeCompare(b))) {
+    data.push(["", "", "", "", "", "", "", "", "", `TOTAL ${currency}`, roundMoney(total), currency]);
+  }
 
   const ws = xlsx.utils.aoa_to_sheet(data);
   ws["!cols"] = [

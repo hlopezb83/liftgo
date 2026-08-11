@@ -17,6 +17,8 @@ export interface CfdiParsed {
   currency: "MXN" | "USD";
   exchangeRate: number;
   subtotal: number;
+  /** Atributo `Descuento` del Comprobante (0 si no viene). */
+  discount: number;
   taxAmount: number;
   retentionIva: number;
   retentionIsr: number;
@@ -175,6 +177,7 @@ export function parseCfdiXml(xml: string): CfdiParsed {
     currency,
     exchangeRate,
     subtotal: num(comprobante.getAttribute("SubTotal")),
+    discount: num(comprobante.getAttribute("Descuento")),
     taxAmount,
     retentionIva,
     retentionIsr,

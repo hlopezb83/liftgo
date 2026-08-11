@@ -1,0 +1,12 @@
+{
+  "description": "Se corrigen seis errores altos detectados en la auditoría: descuentos de CFDI en facturas de proveedor, mezcla de monedas en la exportación de pagos, descuento fijo duplicado en cotizaciones, moneda al facturar cotizaciones en USD, fecha de cierre de entregas ya completadas y truncamiento del listado de retornos pendientes.",
+  "changes": [
+    "Nuevo campo Descuento en facturas de proveedor (se importa del CFDI y se persiste); total = subtotal - descuento + IVA - retenciones",
+    "Excel de pagos y resumen del modal totalizan por moneda (TOTAL MXN / TOTAL USD)",
+    "El descuento fijo \"$\" de una línea de renta se aplica una sola vez, no a cada partida generada",
+    "Al facturar una cotización en USD, el CFDI hereda la moneda",
+    "Entregas creadas como \"ya completadas\" sellan completed_at",
+    "/returns/pending usa una consulta dedicada con filtros y orden en el servidor",
+    "Tests nuevos: descuento en parseCfdiXml, totales por moneda en buildPaymentsXlsx, descuento \"$\" en quoteFormBuilders"
+  ]
+}

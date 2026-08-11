@@ -58,6 +58,21 @@ describe("buildRentalItems", () => {
     }
   });
 
+  it("aplica el descuento fijo \"$\" una sola vez por línea (primera partida)", () => {
+    // 1-mar → 15-may genera partidas mensual + semanal + diaria; el "$" no debe
+    // copiarse a todas (se descontaría N veces en computeTotals).
+    const lines: RentalLine[] = [
+      { modelId: "m1", quantity: 1, dailyRate: 100, weeklyRate: 600, monthlyRate: 1800, discount: 500, discountType: "$" },
+    ];
+    const items = buildRentalItems(lines, models, start, new Date(2026, 4, 15));
+    expect(items.length).toBeGreaterThan(1);
+    const withDiscount = items.filter((it) => (it.discount ?? 0) > 0);
+    expect(withDiscount).toHaveLength(1);
+    expect(withDiscount[0]).toBe(items[0]);
+    expect(withDiscount[0].discount).toBe(500);
+    expect(withDiscount[0].discount_type).toBe("$");
+  });
+
   it("retorna vacío cuando no hay líneas válidas", () => {
     expect(buildRentalItems([], models, start, end)).toEqual([]);
   });

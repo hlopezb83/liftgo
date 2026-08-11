@@ -41,6 +41,7 @@ const validBill = () => ({
   currency: "MXN" as const,
   exchange_rate: 1,
   subtotal: 10000,
+  discount: 0,
   tax_amount: 1600,
   retention_iva: 0,
   retention_isr: 0,

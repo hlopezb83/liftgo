@@ -45,6 +45,9 @@ export function DeliveryFormDialog() {
         driver_phone: values.driverPhone || null,
         notes: values.notes || null,
         status: values.alreadyCompleted ? "completed" : "scheduled",
+        // Si nace completada, sellar completed_at (las queries de horas e
+        // historial filtran por completed_at NOT NULL).
+        completed_at: values.alreadyCompleted ? new Date().toISOString() : null,
       },
       {
         onSuccess: () => {

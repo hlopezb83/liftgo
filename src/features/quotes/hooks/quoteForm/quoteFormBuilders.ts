@@ -49,8 +49,13 @@ export function buildRentalItems(
       modelName, line.dailyRate, line.weeklyRate, line.monthlyRate,
       toYMD(startDate), toYMD(endDate), line.quantity,
     );
-    for (const item of generated) {
-      if (line.discount && line.discount > 0) {
+    for (const [index, item] of generated.entries()) {
+      // El descuento fijo "$" es por línea de renta, no por partida: copiarlo a
+      // cada partida generada (mensual+semanal+diaria) hacía que computeTotals
+      // lo descontara N veces. Se aplica solo a la primera partida, igual que la
+      // vista previa. Los "%" son porcentuales y sí aplican a cada partida.
+      const appliesToItem = line.discountType !== "$" || index === 0;
+      if (line.discount && line.discount > 0 && appliesToItem) {
         item.discount = line.discount;
         item.discount_type = line.discountType;
       }
