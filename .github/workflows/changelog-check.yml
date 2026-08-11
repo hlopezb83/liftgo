@@ -25,6 +25,9 @@ jobs:
     name: Validar semver / orden / detalle
     runs-on: ubuntu-latest
     timeout-minutes: 3
+    # v7.302.3: los PRs de Dependabot no tocan el changelog; evita fallos
+    # espurios en esos PRs. El check sigue intacto para PRs humanos.
+    if: github.actor != 'dependabot[bot]'
     steps:
       - uses: actions/checkout@v6
       - uses: ./.github/actions/setup-bun-project
