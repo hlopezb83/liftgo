@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
+import { reportKeys } from "@/features/reports/lib/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { callRpc } from "@/lib/rpc";
 // FIX-R3-05: costos de reparación alimentan los reportes.
-import { reportKeys } from "@/features/reports/lib/queryKeys";
 export type { DamageRecord } from "@/types/rental";
 
 type DamageListRow = Awaited<ReturnType<typeof fetchDamageList>>[number];

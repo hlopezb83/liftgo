@@ -1,11 +1,11 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { reportKeys } from "@/features/reports/lib/queryKeys";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { notifyError } from "@/lib/ui/appFeedback";
 import type { Forklift } from "@/types/rental";
 // FIX-R3-05: alta/estado de unidades alimenta utilización y utilidad por unidad.
-import { reportKeys } from "@/features/reports/lib/queryKeys";
 import { forkliftKeys, insuranceAlertsKeys, statusLogKeys } from "../../lib/queryKeys";
 
 export function useCreateForklift() {

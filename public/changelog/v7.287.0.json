@@ -1,0 +1,50 @@
+{
+  "version": "7.287.0",
+  "date": "2026-08-10",
+  "type": "minor",
+  "title": "Auditoría R3: 10 correcciones",
+  "category": "fix",
+  "description": "Cierre completo de la ronda de auditoría R3 (1 alta, 1 media, 8 bajas).",
+  "changes": [
+    {
+      "scope": "flota",
+      "summary": "FIX-R3-01: soft_delete_maintenance_log usa un bypass transaccional para archivar OTs completed/cancelled con refacciones/MO"
+    },
+    {
+      "scope": "entregas",
+      "summary": "FIX-R3-02: la última lectura global de horómetro filtra completed_at NULL y entregas canceladas"
+    },
+    {
+      "scope": "flota",
+      "summary": "FIX-R3-03: assign_forklift_to_sale_quote valida cotización existente, tipo sale y estado accepted (FOR UPDATE)"
+    },
+    {
+      "scope": "flota",
+      "summary": "FIX-R3-04: nueva RPC transaccional unassign_forklift_from_sale_quote; hook migrado"
+    },
+    {
+      "scope": "cfdi",
+      "summary": "FIX-R3-01F: reset de rep_lookup_attempts y lookup_attempts al reclamar el timbrado"
+    },
+    {
+      "scope": "cfdi",
+      "summary": "FIX-R3-02F: el reconciliador usa decideXmlFailure en vez de política inline duplicada"
+    },
+    {
+      "scope": "cfdi",
+      "summary": "FIX-R3-03F: download-cfdi limpia cfdi_xml_pending en todas las ramas y verifica el UPDATE"
+    },
+    {
+      "scope": "ui",
+      "summary": "FIX-R3-04F: XmlPendingBlock envuelto en RoleGuard (Facturas, full)"
+    },
+    {
+      "scope": "reportes",
+      "summary": "FIX-R3-05: reportKeys.all en mutaciones de pagos, daños y flota"
+    },
+    {
+      "scope": "tests",
+      "summary": "FIX-R3-06: 2 pruebas del badge 'XML por recuperar'"
+    }
+  ]
+}
