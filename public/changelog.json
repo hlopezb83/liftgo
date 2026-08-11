@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.302.0",
+    "date": "2026-08-11",
+    "type": "minor",
+    "title": "Candados automáticos de seguridad y reglas de estados",
+    "category": "mejoras",
+    "changes": [
+      "Se agregó una verificación automática que detiene cualquier cambio que deje una tabla sensible desprotegida o una regla de acceso abierta a todo el mundo.",
+      "El revisor de cambios de base de datos ahora exige la protección función por función, no solo una vez por archivo.",
+      "Se documentaron y probaron las reglas de cambio de estado de facturas, entregas y contratos (101 pruebas nuevas).",
+      "Cada propuesta de cambio recibe un comentario automático con el reporte de cobertura de pruebas."
+    ]
+  },
+  {
     "version": "7.301.0",
     "date": "2026-08-11",
     "type": "minor",
