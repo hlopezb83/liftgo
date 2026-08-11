@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.289.0",
+    "date": "2026-08-11",
+    "type": "minor",
+    "title": "Seguridad: permisos por rol en facturación recurrente y estado de flota",
+    "category": "security",
+    "description": "Se cierran dos huecos críticos: crear facturas recurrentes y cambiar el estado de un montacargas ahora exigen rol autorizado.",
+    "changes": [
+      "create_recurring_invoice: solo admin/administrativo (y el proceso automático)",
+      "change_forklift_status: solo admin, administrativo y mecánico",
+      "Se retira el permiso de ejecución a visitantes sin sesión",
+      "Nueva prueba supabase/tests/c1_c2_smoke.sql"
+    ]
+  },
+  {
+
     "version": "7.288.0",
     "date": "2026-08-11",
     "type": "minor",
