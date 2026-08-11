@@ -114,7 +114,10 @@ export default function InvoiceForm() {
 
   return (
     <PageContainer maxWidth="wide">
-      <FormPageHeader title={f.isEdit ? "Editar Factura" : "Nueva factura"} />
+      <FormPageHeader
+        title={f.isEdit ? "Editar factura" : "Nueva factura"}
+        subtitle={f.isEdit ? f.invoiceNumber ?? undefined : undefined}
+      />
 
       <Form {...f.form}>
         {/* eslint-disable-next-line react-hooks/refs -- onSubmit only writes justSavedRef inside async callbacks */}

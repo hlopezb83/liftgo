@@ -136,6 +136,7 @@ export function useQuoteFormLogic() {
 
   return {
     id,
+    quoteNumber: existingQuote?.quote_number ?? null,
     form,
     quoteType,
     isAmountLocked,
