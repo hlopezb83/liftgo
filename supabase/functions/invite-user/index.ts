@@ -53,11 +53,15 @@ Deno.serve(async (req) => {
 
     // AUTH-001: verificar unicidad de email antes de crear el usuario para
     // devolver 409 explícito en vez de un error crudo de Supabase Auth.
+    // B-2: `.eq` en vez de `.ilike` — con ilike los comodines `%`/`_` del
+    // email producían falsos 409. `emailLc` ya está en minúsculas (línea de
+    // arriba) y GoTrue normaliza los emails a minúsculas al crear el usuario,
+    // así que la comparación exacta contra profiles.email es suficiente.
     const emailLc = email.toLowerCase();
     const { data: existingProfile } = await auth.adminClient
       .from("profiles")
       .select("user_id")
-      .ilike("email", emailLc)
+      .eq("email", emailLc)
       .maybeSingle();
     if (existingProfile) {
       return jsonError(req, 409, "Ya existe un usuario con ese correo");

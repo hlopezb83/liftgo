@@ -23,4 +23,13 @@ describe("computeMaxCreditable (BL-08 v7.90.0)", () => {
   it("valores no numéricos coerción segura", () => {
     expect(computeMaxCreditable(Number("abc"), 0, 0)).toBe(0);
   });
+
+  it("B-7: total exactamente cubierto por NC devuelve 0 sin drift IEEE-754", () => {
+    // 10.21 - 5.11 - 5.10 daba 8.88e-16 en float crudo y la UI ofrecía NC de $0.
+    expect(computeMaxCreditable(10.21, 5.11, 5.10)).toBe(0);
+  });
+
+  it("B-7: redondea a 2 decimales monetarios", () => {
+    expect(computeMaxCreditable(100.005, 0.001, 0)).toBe(100);
+  });
 });

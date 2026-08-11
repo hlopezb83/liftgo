@@ -1,6 +1,5 @@
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
-import { nowMty } from "@/lib/utils";
 import { quoteStatusLabel } from "../../constants";
 import { useUpdateQuote, useDeleteQuote } from "../quotes/useQuotes";
 import { useQuoteBookingCreator, type Assignment } from "./useQuoteBookingCreator";
@@ -38,7 +37,9 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
     // R9-P2: además sellar `rejected_at` para que historial y reportes sepan CUÁNDO
     // se rechazó (antes quedaba NULL y el rechazo no era trazable en el tiempo).
     if (status === "rejected") {
-      extra.rejected_at = nowMty().toISOString();
+      // B-9: instante UTC real (nowMty().toISOString() serializaba el reloj
+      // MTY con sufijo "Z", desplazando la hora). Mismo patrón que accepted_at.
+      extra.rejected_at = new Date().toISOString();
       if (opts?.rejectionReason) extra.rejection_reason = opts.rejectionReason;
     }
     updateQuote.mutate(

@@ -38,8 +38,11 @@ export function exportToCsv<T extends Record<string, unknown>>(
   const csv = Papa.unparse(rows.map(sanitizeCsvRow), { header: true, newline: "\r\n" });
   const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
   const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
+  const url = URL.createObjectURL(blob);
+  link.href = url;
   link.download = filename;
   link.click();
-  URL.revokeObjectURL(link.href);
+  // B-5: revocar en el mismo tick del click cancela la descarga en Firefox;
+  // diferir la revocación 1s da tiempo a que el navegador consuma el blob.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }

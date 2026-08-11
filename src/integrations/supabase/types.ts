@@ -827,6 +827,7 @@ export type Database = {
           cfdi_pdf_url: string | null
           cfdi_status: string
           cfdi_uuid: string | null
+          cfdi_xml_pending: boolean
           cfdi_xml_url: string | null
           created_at: string
           created_by: string | null
@@ -841,6 +842,7 @@ export type Database = {
           lookup_attempts: number
           motive: string
           reason_text: string
+          stamping_attempts: number
           status: string
           substitution_uuid: string | null
           subtotal: number
@@ -858,6 +860,7 @@ export type Database = {
           cfdi_pdf_url?: string | null
           cfdi_status?: string
           cfdi_uuid?: string | null
+          cfdi_xml_pending?: boolean
           cfdi_xml_url?: string | null
           created_at?: string
           created_by?: string | null
@@ -872,6 +875,7 @@ export type Database = {
           lookup_attempts?: number
           motive: string
           reason_text: string
+          stamping_attempts?: number
           status?: string
           substitution_uuid?: string | null
           subtotal?: number
@@ -889,6 +893,7 @@ export type Database = {
           cfdi_pdf_url?: string | null
           cfdi_status?: string
           cfdi_uuid?: string | null
+          cfdi_xml_pending?: boolean
           cfdi_xml_url?: string | null
           created_at?: string
           created_by?: string | null
@@ -903,6 +908,7 @@ export type Database = {
           lookup_attempts?: number
           motive?: string
           reason_text?: string
+          stamping_attempts?: number
           status?: string
           substitution_uuid?: string | null
           subtotal?: number
@@ -2346,7 +2352,9 @@ export type Database = {
           rep_lookup_attempts: number
           rep_number: string | null
           rep_pdf_url: string | null
+          rep_stamping_attempts: number
           rep_stamping_started_at: string | null
+          rep_xml_pending: boolean
           rep_xml_url: string | null
         }
         Insert: {
@@ -2375,7 +2383,9 @@ export type Database = {
           rep_lookup_attempts?: number
           rep_number?: string | null
           rep_pdf_url?: string | null
+          rep_stamping_attempts?: number
           rep_stamping_started_at?: string | null
+          rep_xml_pending?: boolean
           rep_xml_url?: string | null
         }
         Update: {
@@ -2404,7 +2414,9 @@ export type Database = {
           rep_lookup_attempts?: number
           rep_number?: string | null
           rep_pdf_url?: string | null
+          rep_stamping_attempts?: number
           rep_stamping_started_at?: string | null
+          rep_xml_pending?: boolean
           rep_xml_url?: string | null
         }
         Relationships: [

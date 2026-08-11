@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { useBookings } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { visibleListRows } from "@/lib/supabase/constants";
 import { nowMty, parseDateLocal } from "@/lib/utils";
@@ -54,12 +55,12 @@ export default function ReturnInspectionPage() {
     : !filterDate
       ? inspections
       : inspections.filter((i) => {
-          // `inspected_at` es timestamptz; `new Date` respeta la TZ del navegador.
-          const d = new Date(i.inspected_at);
+          // B-12: `inspected_at` es timestamptz — su día calendario se deriva
+          // en TZ Monterrey (misma fuente de "hoy" que el filtro de rentas,
+          // líneas 37-41), no en la TZ del navegador. El día del picker ya
+          // viene como fecha local elegida por el usuario.
           return (
-            d.getFullYear() === filterDate.getFullYear() &&
-            d.getMonth() === filterDate.getMonth() &&
-            d.getDate() === filterDate.getDate()
+            formatDateMty(i.inspected_at) === format(filterDate, "dd/MM/yyyy")
           );
         });
 
@@ -74,7 +75,7 @@ export default function ReturnInspectionPage() {
       id: "inspected_at",
       header: "Fecha",
       accessorKey: "inspected_at",
-      cell: ({ row }) => <span className="font-mono text-sm">{format(new Date(row.original.inspected_at), "dd/MM/yyyy")}</span>,
+      cell: ({ row }) => <span className="font-mono text-sm">{formatDateMty(row.original.inspected_at)}</span>,
     },
     {
       id: "forklift_name",
@@ -150,7 +151,7 @@ export default function ReturnInspectionPage() {
               </div>
               <p className="text-sm text-muted-foreground">{ins.bookings?.customer_name || "—"}</p>
               <div className="flex items-center justify-between mt-2 text-xs text-muted-foreground">
-                <span className="font-mono">{format(new Date(ins.inspected_at), "dd/MM/yyyy")}</span>
+                <span className="font-mono">{formatDateMty(ins.inspected_at)}</span>
                 {ins.damage_cost ? (
                   <span className="font-mono font-medium text-foreground">{formatCurrency(ins.damage_cost)}</span>
                 ) : null}

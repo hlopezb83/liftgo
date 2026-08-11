@@ -38,8 +38,15 @@ function accumulateBill(acc: AccountsPayableKpis, b: SupplierBillListItem, ctx: 
     if (b.due_date && b.due_date < ctx.todayYmd) acc.totalVencido += balMxn;
     else if (b.due_date && b.due_date <= ctx.in7Ymd) acc.totalPorVencer += balMxn;
   }
-  if (b.status === "paid" && b.issue_date.startsWith(ctx.monthPrefix)) {
-    acc.pagadoMesActual += totalMxn(b);
+  // B-10: "pagado mes actual" se calcula por la FECHA REAL DE PAGO
+  // (supplier_payments.payment_date), no por issue_date — una factura emitida
+  // en mayo y pagada en junio cuenta en junio. Se suman los amounts de los
+  // pagos del mes (soporta pagos parciales) convertidos a MXN con la
+  // moneda/tipo de cambio de la factura.
+  for (const p of b.payments) {
+    if (p.payment_date.startsWith(ctx.monthPrefix)) {
+      acc.pagadoMesActual += toMxn(Number(p.amount), b.currency, b.exchange_rate);
+    }
   }
   // BL-R8-03: una factura pagada puede quedar con approval_status huérfano en
   // 'pending' (CP-0010) — no cuenta como "por aprobar". Los borradores SÍ

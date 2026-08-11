@@ -48,7 +48,9 @@ export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProp
   const bookingsByForklift = useMemo(() => enrichBookings(bookings), [bookings]);
   // M12: día calendario MTY (YYYY-MM-DD) — los timestamps perdían el último
   // día de la renta (end_date a medianoche < ahora) y el badge "Activa".
-  const todayYmd = useMemo(() => toYMD(nowMty()) as string, []);
+  // B-13: NO memoizar con [] — congelaba "hoy" para siempre en sesiones
+  // largas (SPA abierta de un día a otro). Se calcula en cada render.
+  const todayYmd = toYMD(nowMty()) as string;
   // R7-FE-01 (N7-UX-02): el badge usa la MISMA definición derivada que el
   // encabezado del Calendario y el Panel (helper único), no `forklifts.status`
   // crudo, que el seed deja desincronizado. Sin reservas cargadas → status crudo.

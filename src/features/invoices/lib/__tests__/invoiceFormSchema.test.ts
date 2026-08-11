@@ -129,6 +129,31 @@ describe("invoiceFormSchema", () => {
     });
     expect(res.success).toBe(false);
   });
+
+  it("B-11: rechaza tipoCambio 0 con moneda distinta de MXN", () => {
+    const v = buildEmptyInvoiceValues();
+    const res = invoiceFormSchema.safeParse({
+      ...v,
+      customerId: "cust-1",
+      cfdi: { ...v.cfdi, moneda: "USD", tipoCambio: 0 },
+      lineItems: [{ ...EMPTY_LINE, description: "Renta", quantity: 1, unit_price: 100, total: 100 }],
+    });
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      expect(res.error.issues.some((i) => i.message.includes("tipo de cambio debe ser mayor a 0"))).toBe(true);
+    }
+  });
+
+  it("B-11: acepta tipoCambio > 0 con moneda USD", () => {
+    const v = buildEmptyInvoiceValues();
+    const res = invoiceFormSchema.safeParse({
+      ...v,
+      customerId: "cust-1",
+      cfdi: { ...v.cfdi, moneda: "USD", tipoCambio: 18.5 },
+      lineItems: [{ ...EMPTY_LINE, description: "Renta", quantity: 1, unit_price: 100, total: 100 }],
+    });
+    expect(res.success).toBe(true);
+  });
 });
 
 describe("buildEmptyInvoiceValues", () => {

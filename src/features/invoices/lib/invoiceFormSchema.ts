@@ -57,6 +57,15 @@ export const invoiceFormSchema = z
         ctx.addIssue({ code: "custom", path: ["cfdi", "globalYear"], message: "Requerido para Público en General" });
       }
     }
+    // B-11: tipoCambio admite 0 en el schema base, pero para moneda foránea
+    // un tipo de cambio 0 es inválido (colapsaría la conversión a MXN).
+    if (values.cfdi.moneda !== "MXN" && !(values.cfdi.tipoCambio > 0)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["cfdi", "tipoCambio"],
+        message: "El tipo de cambio debe ser mayor a 0 para moneda distinta de MXN",
+      });
+    }
     // M2: una factura con todas las partidas en $0 no debe poder crearse.
     const invoiceTotal = values.lineItems.reduce(
       (sum, l) => sum + (l.quantity || 0) * (l.unit_price || 0),

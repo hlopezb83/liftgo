@@ -10,12 +10,18 @@ import type { Prospect } from "../lib/prospectTypes";
 export function useCreateProspect() {
   return useEntityMutation({
     mutationFn: async (p: Omit<ProspectInsert, "stage_order" | "customer_id">) => {
-      const { data: existing } = await supabase
+      // B-14: si el SELECT de max(stage_order) falla NO se puede asumir 0 —
+      // antes insertaba stage_order=0 silenciosamente y descuadraba el kanban.
+      const { data: existing, error: orderError } = await supabase
         .from("prospects")
         .select("stage_order")
         .eq("stage", p.stage)
         .order("stage_order", { ascending: false })
         .limit(1);
+      if (orderError) throw orderError;
+      // TODO: carrera de concurrencia — dos creaciones simultáneas pueden leer
+      // el mismo max y chocar en stage_order. El fix real es un RPC atómico
+      // (next_stage_order por etapa); fuera de alcance de B-14.
       const nextOrder = (existing?.[0]?.stage_order ?? -1) + 1;
       const { data, error } = await supabase
         .from("prospects")

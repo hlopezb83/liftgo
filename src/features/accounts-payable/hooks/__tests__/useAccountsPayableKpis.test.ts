@@ -31,6 +31,7 @@ function bill(over: Partial<Record<string, unknown>> = {}) {
     exchange_rate: 1,
     rep_summary: { pending: 0, received: 0, rejected: 0, total: 0, worst: "not_required" },
     suppliers: { id: "s-1", name: "Prov" },
+    payments: [],
     ...over,
   };
 }
@@ -90,11 +91,25 @@ describe("useAccountsPayableKpis", () => {
     expect(result.current.kpis.countPorAprobar).toBe(0);
   });
 
-  it("suma pagadoMesActual solo cuando issue_date está en el mes en curso", () => {
+  it("B-10 · suma pagadoMesActual por payment_date de los pagos del mes, no por issue_date", () => {
     useSupplierBillsMock.mockReturnValue({
       data: [
-        bill({ status: "paid", issue_date: "2026-06-05", total: 1_000, balance: 0 }),
-        bill({ status: "paid", issue_date: "2026-05-30", total: 500, balance: 0 }),
+        // Factura emitida en mayo pero pagada en junio → cuenta en junio.
+        bill({
+          status: "paid",
+          issue_date: "2026-05-30",
+          total: 1_000,
+          balance: 0,
+          payments: [{ payment_date: "2026-06-05", amount: 1_000 }],
+        }),
+        // Factura emitida en junio pero pagada en mayo → NO cuenta en junio.
+        bill({
+          status: "paid",
+          issue_date: "2026-06-02",
+          total: 500,
+          balance: 0,
+          payments: [{ payment_date: "2026-05-30", amount: 500 }],
+        }),
       ],
       isLoading: false,
     });
