@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.288.0",
+    "date": "2026-08-11",
+    "type": "minor",
+    "title": "Auditoría R4: desasignar equipos vendidos y descargas CFDI",
+    "category": "fix",
+    "description": "Se corrige el bloqueo que impedía devolver a disponible un montacargas desasignado de una cotización de venta, y el badge \"XML por recuperar\" que nunca se apagaba en facturas.",
+    "changes": [
+      "Regla de estados reconoce el flujo interno de flota (sold -> available)",
+      "download-cfdi consulta cfdi_xml_pending y limpia el badge",
+      "Se registran en logs los fallos al guardar NC y REP",
+      "Limpieza de deuda técnica en useUnassignForklift",
+      "Nuevo bloque de pruebas en r4_smoke.sql"
+    ]
+  },
+  {
     "version": "7.287.3",
     "date": "2026-08-11",
     "type": "patch",

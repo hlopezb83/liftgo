@@ -247,7 +247,7 @@ Deno.serve(async (req) => {
       if (!res.ok) return facturapiErrorResponse(req, res);
 
       const newPath = `credit-notes/${cn.id}/${cn.cfdi_uuid}.${baseFormat}`;
-      await persistDownload(
+      const cnPersisted = await persistDownload(
         supabase,
         newPath,
         res.bytes,
@@ -259,6 +259,14 @@ Deno.serve(async (req) => {
         "id",
         credit_note_id,
       );
+      if (!cnPersisted) {
+        // FIX-R4-04: la NC se sirve igual, pero el fallo de persistencia
+        // debe quedar en logs (mismo patrón que la rama de facturas).
+        console.error("download-cfdi: NC servida sin persistir metadatos", {
+          credit_note_id,
+          format: baseFormat,
+        });
+      }
       return attachmentResponse(req, res.bytes, contentType, filename);
     }
 
@@ -303,7 +311,7 @@ Deno.serve(async (req) => {
 
       const newPath =
         `${payment.invoice_id}/rep-${payment.rep_cfdi_uuid}.${baseFormat}`;
-      await persistDownload(
+      const repPersisted = await persistDownload(
         supabase,
         newPath,
         res.bytes,
@@ -315,6 +323,14 @@ Deno.serve(async (req) => {
         "id",
         payment_id,
       );
+      if (!repPersisted) {
+        // FIX-R4-04: el REP se sirve igual, pero el fallo de persistencia
+        // debe quedar en logs.
+        console.error("download-cfdi: REP servido sin persistir metadatos", {
+          payment_id,
+          format: baseFormat,
+        });
+      }
       return attachmentResponse(req, res.bytes, contentType, filename);
     }
 
@@ -322,7 +338,7 @@ Deno.serve(async (req) => {
     const { data: invoice, error: invErr } = await supabase
       .from("invoices")
       .select(
-        "id, invoice_number, cfdi_uuid, cfdi_status, cancellation_status, cfdi_xml, cfdi_xml_url, cfdi_pdf_url, acuse_pdf_url, acuse_xml_url, facturapi_invoice_id",
+        "id, invoice_number, cfdi_uuid, cfdi_status, cancellation_status, cfdi_xml, cfdi_xml_url, cfdi_xml_pending, cfdi_pdf_url, acuse_pdf_url, acuse_xml_url, facturapi_invoice_id",
       )
       .eq("id", invoice_id)
       .single();

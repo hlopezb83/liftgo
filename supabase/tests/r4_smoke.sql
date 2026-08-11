@@ -215,4 +215,42 @@ BEGIN
   PERFORM set_config('request.jwt.claims', NULL, true);
 END $$;
 
+-- ---------------------------------------------------------------------------
+-- FIX-R4-01 · unassign: sold -> available permitido solo con app.forklift_rpc
+-- ---------------------------------------------------------------------------
+DO $$
+DECLARE
+  v_forklift uuid;
+  v_status text;
+BEGIN
+  SELECT id INTO v_forklift FROM public.forklifts
+   WHERE deleted_at IS NULL AND status = 'available' LIMIT 1;
+  IF v_forklift IS NULL THEN
+    RAISE NOTICE 'SKIP FIX-R4-01 (sin unidades disponibles)';
+    RETURN;
+  END IF;
+
+  -- Fixture: available -> sold es transicion permitida por la whitelist.
+  UPDATE public.forklifts SET status = 'sold' WHERE id = v_forklift;
+
+  -- Control negativo: SIN el flag, sold -> available debe seguir bloqueado.
+  BEGIN
+    UPDATE public.forklifts SET status = 'available' WHERE id = v_forklift;
+    RAISE WARNING 'FALLO FIX-R4-01a (sold->available paso sin flag)';
+  EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'OK  FIX-R4-01a sold->available bloqueado sin flag  ->  %', SQLERRM;
+  END;
+
+  -- Camino feliz: mismo bypass que usa unassign_forklift_from_sale_quote.
+  PERFORM set_config('app.forklift_rpc', 'on', true);
+  UPDATE public.forklifts SET status = 'available' WHERE id = v_forklift;
+  SELECT status INTO v_status FROM public.forklifts WHERE id = v_forklift;
+  IF v_status = 'available' THEN
+    RAISE NOTICE 'OK  FIX-R4-01b camino feliz unassign (sold->available con app.forklift_rpc)';
+  ELSE
+    RAISE WARNING 'FALLO FIX-R4-01b (status=% tras unassign)', v_status;
+  END IF;
+  PERFORM set_config('app.forklift_rpc', 'off', true);
+END $$;
+
 ROLLBACK;
