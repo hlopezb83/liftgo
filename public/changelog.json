@@ -23,7 +23,7 @@
       "Se alinea con el job version-sync, que ya tenía el mismo guard",
       "Los PRs humanos siguen ejecutando ambos checks sin cambios"
     ]
-  }
+  },
   {
     "version": "7.302.2",
     "date": "2026-08-11",
