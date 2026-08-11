@@ -40,9 +40,17 @@ export function useReportDamageForm(onClose: () => void) {
   const uploadDoc = useUploadDocument();
 
   const onDrop = (acceptedFiles: File[]) => {
-    const newPreviews = acceptedFiles.map((file) => ({ file, url: URL.createObjectURL(file) }));
-    setPreviews((prev) => [...prev, ...newPreviews].slice(0, 10));
+    setPreviews((prev) => {
+      // Sólo se crean URLs para las fotos que caben (máx. 10); las excedentes
+      // ya no dejan blobs colgados.
+      const room = Math.max(10 - prev.length, 0);
+      const added = acceptedFiles
+        .slice(0, room)
+        .map((file) => ({ file, url: URL.createObjectURL(file) }));
+      return [...prev, ...added];
+    });
   };
+
 
   const removePreview = (index: number) => {
     setPreviews((prev) => {
