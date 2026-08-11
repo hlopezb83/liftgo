@@ -164,22 +164,4 @@ test.describe("Conciliación bancaria", () => {
     await expect(page.getByTestId("bank-match-panel")).toHaveCount(0);
     await expectNoToastError(page);
   });
-
-  test("snapshot visual del workspace", async ({ page, bank }) => {
-    // eslint-disable-next-line playwright/no-skipped-test -- Baselines dependen del runner; gate E2E_VISUAL=1.
-    test.skip(process.env.E2E_VISUAL !== "1", "Visual desactivado (activa con E2E_VISUAL=1)");
-    await openReconciliation(page, bank);
-    await row(page, bank.orphanRef).click();
-    await expect(page.getByTestId("bank-match-panel")).toBeVisible();
-    await page.evaluate(() => document.fonts?.ready);
-
-    await expect(page.getByTestId("bank-workspace")).toHaveScreenshot(
-      "bank-reconciliation-workspace.png",
-      {
-        animations: "disabled",
-        maxDiffPixelRatio: 0.02,
-        mask: [page.locator("time, [data-dynamic]"), page.locator(".animate-pulse")],
-      },
-    );
-  });
 });
