@@ -1,0 +1,145 @@
+name: RLS DB tests
+
+# Fase 2 de supabase/tests/rls/README.md (TESTS-RLS-PHASE2).
+# Levanta un Supabase local efímero, aplica las ~400 migraciones desde cero
+# (esto valida además que apliquen limpio y en orden) y corre las 21 suites
+# RLS SQL con roles/JWT reales, más los smoke SQL de supabase/tests/.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "supabase/**"
+      - "src/**"
+      - "scripts/run_sql_suites.py"
+      - ".github/workflows/rls-db-tests.yml"
+  push:
+    branches: [main]
+    paths:
+      - "supabase/**"
+      - "src/**"
+      - "scripts/run_sql_suites.py"
+      - ".github/workflows/rls-db-tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rls-db-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  rls-db-tests:
+    name: RLS DB tests (Supabase local)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    # Mismo criterio que los jobs e2e/edge-functions de ci.yml: los PRs desde
+    # forks no tienen acceso al entorno con secrets, y este job depende del
+    # runner con Docker del repo. "Skipped" cuenta como success en el gate.
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
+
+    env:
+      # URL fija del Postgres que expone `supabase start` en local/CI.
+      DB_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+
+    steps:
+      - uses: actions/checkout@v6
+
+      # Caché del binario de la CLI: setup-cli lo descarga de GitHub Releases
+      # en cada run; la clave incluye la versión pineada para invalidar al subir.
+      - name: Cache Supabase CLI
+        uses: actions/cache@v6
+        with:
+          path: ~/.local/share/supabase-cli
+          key: ${{ runner.os }}-supabase-cli-2.34.0
+
+      - name: Setup Supabase CLI
+        uses: supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520 # v3.0.0
+        with:
+          version: 2.34.0
+
+      # Solo se necesita Postgres + el schema `auth`: se excluyen los servicios
+      # pesados para bajar el arranque de ~4 min a ~1 min.
+      - name: Start Supabase (solo DB + auth)
+        run: |
+          supabase start \
+            -x studio,imgproxy,logflare,vector,edge-runtime,realtime,storage-api,mailpit,postgres-meta,supavisor,pgbouncer
+          supabase status
+
+      # `db reset` re-crea la DB y reaplica TODAS las migraciones en orden:
+      # si alguna migración no aplica limpio desde cero, el job falla aquí.
+      - name: Reset DB (aplica todas las migraciones desde cero)
+        run: supabase db reset --no-seed
+
+      - name: Verificar migraciones aplicadas
+        run: |
+          set -euo pipefail
+          APPLIED=$(psql "$DB_URL" -Atc "select count(*) from supabase_migrations.schema_migrations")
+          FILES=$(find supabase/migrations -name '*.sql' | wc -l | tr -d ' ')
+          echo "Migraciones aplicadas: $APPLIED / archivos: $FILES"
+          if [[ "$APPLIED" -lt "$FILES" ]]; then
+            echo "::error::Se aplicaron $APPLIED migraciones de $FILES archivos"
+            exit 1
+          fi
+
+      - name: Prepare reports directory
+        run: mkdir -p reports
+
+      # Las suites RLS hacen SET LOCAL role / request.jwt.claims y terminan en
+      # ROLLBACK (ver supabase/tests/rls/README.md). ON_ERROR_STOP=1: cualquier
+      # RAISE EXCEPTION de una suite = fuga de RLS detectada.
+      - name: RLS suites (supabase/tests/rls/*.sql)
+        id: rls
+        run: |
+          python3 scripts/run_sql_suites.py \
+            --db-url "$DB_URL" \
+            --dir supabase/tests/rls \
+            --junit reports/rls-db-junit.xml \
+            --suite-name "RLS DB" \
+            --mode strict
+
+      # Los smoke (c1_c2, r2, r3, r4, r9, r10) verifican catálogo/estructura y
+      # reportan con RAISE WARNING 'FALLO ...' en vez de abortar. Informativos:
+      # algunos asumen datos de staging que no existen en una DB recién creada.
+      - name: Smoke SQL (supabase/tests/*.sql)
+        id: smoke
+        continue-on-error: true
+        run: |
+          python3 scripts/run_sql_suites.py \
+            --db-url "$DB_URL" \
+            --dir supabase/tests \
+            --junit reports/sql-smoke-junit.xml \
+            --suite-name "SQL smoke" \
+            --mode smoke
+
+      - name: Upload SQL reports
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: rls-db-reports
+          path: reports/
+          retention-days: 14
+          if-no-files-found: ignore
+
+      - name: Publish RLS DB results to PR summary
+        if: always()
+        uses: ./.github/actions/publish-test-results
+        with:
+          report_paths: reports/rls-db-junit.xml
+          check_name: RLS DB results
+
+      - name: Publish SQL smoke results to PR summary
+        if: always()
+        uses: ./.github/actions/publish-test-results
+        with:
+          report_paths: reports/sql-smoke-junit.xml
+          check_name: SQL smoke results
+
+      - name: Stop Supabase
+        if: always()
+        run: supabase stop --no-backup || true
