@@ -79,7 +79,7 @@ Deno.serve(async (req) => {
   const { data: stuckPayments, error: payErr } = await admin
     .from("payments")
     .select(
-      "id, invoice_id, rep_cfdi_uuid, rep_facturapi_id, rep_stamping_started_at, rep_lookup_attempts",
+      "id, invoice_id, rep_cfdi_uuid, rep_facturapi_id, rep_stamping_started_at, rep_lookup_attempts, rep_stamping_attempts",
     )
     .eq("rep_cfdi_status", "stamping")
     .lt("rep_stamping_started_at", cutoff)
@@ -91,7 +91,9 @@ Deno.serve(async (req) => {
 
   const { data: stuckNcs, error: ncErr } = await admin
     .from("credit_notes")
-    .select("id, cfdi_uuid, facturapi_invoice_id, updated_at, lookup_attempts")
+    .select(
+      "id, cfdi_uuid, facturapi_invoice_id, updated_at, lookup_attempts, stamping_attempts",
+    )
     .eq("cfdi_status", "stamping")
     .lt("updated_at", cutoff)
     .limit(20);
@@ -485,7 +487,38 @@ Deno.serve(async (req) => {
       }
       // Nunca marcar stamped sin XML (misma regla que invoices): reintentar.
       if (!xmlPath) {
-        results.push({ invoice_id: paymentId, status: "rep_xml_pending" });
+        // B-15: presupuesto de reintentos como en invoices (H6) — antes un REP
+        // cuyo XML nunca se podía descargar reintentaba POR SIEMPRE. Tras
+        // MAX_STAMPING_ATTEMPTS se marca stamped + rep_xml_pending (el CFDI ya
+        // existe ante el SAT; el XML se sube manualmente desde el portal del
+        // PAC) para que salga de la cola.
+        const attempts = ((p.rep_stamping_attempts as number | null) ?? 0) + 1;
+        const exhausted = decideXmlFailure(
+          p.rep_stamping_attempts as number | null,
+        ) === "mark_error";
+        await admin.from("payments")
+          .update({
+            ...(exhausted
+              ? {
+                rep_cfdi_status: "stamped",
+                rep_stamping_started_at: null,
+                rep_xml_pending: true,
+                rep_error_message:
+                  `Reconcile: REP timbrado pero la descarga de XML falló tras ${attempts} intentos. Sube el XML/PDF manualmente desde el portal de Facturapi y limpia rep_xml_pending.`,
+              }
+              : {
+                rep_error_message:
+                  `Reconcile: descarga de XML del REP falló (intento ${attempts}/${MAX_STAMPING_ATTEMPTS}). Se reintentará automáticamente.`,
+              }),
+            rep_stamping_attempts: attempts,
+          })
+          .eq("id", paymentId);
+        results.push({
+          invoice_id: paymentId,
+          status: exhausted
+            ? "rep_stamped_xml_pending_manual"
+            : "rep_xml_pending",
+        });
         continue;
       }
       await admin.from("payments")
@@ -496,6 +529,8 @@ Deno.serve(async (req) => {
           rep_pdf_url: pdfPath,
           rep_error_message: null,
           rep_lookup_attempts: 0,
+          rep_stamping_attempts: 0,
+          rep_xml_pending: false,
         })
         .eq("id", paymentId);
       results.push({ invoice_id: paymentId, status: "rep_reconciled" });
@@ -637,7 +672,38 @@ Deno.serve(async (req) => {
         });
       }
       if (!xmlPath) {
-        results.push({ invoice_id: ncId, status: "nc_xml_pending" });
+        // B-15: presupuesto de reintentos como en invoices (H6) — antes una NC
+        // cuyo XML nunca se podía descargar reintentaba POR SIEMPRE. Tras
+        // MAX_STAMPING_ATTEMPTS se marca stamped + cfdi_xml_pending (el CFDI ya
+        // existe ante el SAT y cancel-credit-note exige 'stamped'; el XML se
+        // sube manualmente desde el portal del PAC) para que salga de la cola.
+        const attempts = ((nc.stamping_attempts as number | null) ?? 0) + 1;
+        const exhausted = decideXmlFailure(
+          nc.stamping_attempts as number | null,
+        ) === "mark_error";
+        await admin.from("credit_notes")
+          .update({
+            ...(exhausted
+              ? {
+                cfdi_status: "stamped",
+                status: "stamped",
+                cfdi_xml_pending: true,
+                cfdi_error_message:
+                  `Reconcile: NC timbrada pero la descarga de XML falló tras ${attempts} intentos. Sube el XML/PDF manualmente desde el portal de Facturapi y limpia cfdi_xml_pending.`,
+              }
+              : {
+                cfdi_error_message:
+                  `Reconcile: descarga de XML de la NC falló (intento ${attempts}/${MAX_STAMPING_ATTEMPTS}). Se reintentará automáticamente.`,
+              }),
+            stamping_attempts: attempts,
+          })
+          .eq("id", ncId);
+        results.push({
+          invoice_id: ncId,
+          status: exhausted
+            ? "nc_stamped_xml_pending_manual"
+            : "nc_xml_pending",
+        });
         continue;
       }
       await admin.from("credit_notes")
@@ -648,6 +714,8 @@ Deno.serve(async (req) => {
           cfdi_pdf_url: pdfPath,
           cfdi_error_message: null,
           lookup_attempts: 0,
+          stamping_attempts: 0,
+          cfdi_xml_pending: false,
         })
         .eq("id", ncId);
       results.push({ invoice_id: ncId, status: "nc_reconciled" });

@@ -1,4 +1,5 @@
 import { generateLineItemsFromModel, type LineItem } from "@/lib/domain/invoiceHelpers";
+import { lineItemTotal } from "@/lib/domain/invoiceTotals";
 import { toYMD } from "@/lib/format/dateFormats";
 
 export type EquipmentModel = { id: string; manufacturer: string; model: string };
@@ -14,7 +15,8 @@ export function buildSaleItems(lines: SaleLine[], models: EquipmentModel[]): Lin
         description: m ? `${m.manufacturer} ${m.model} - Venta de equipo` : "Venta de equipo",
         quantity: l.quantity,
         unit_price: l.unitPrice,
-        total: l.quantity * l.unitPrice,
+        // B-8: total monetario redondeado (antes float crudo).
+        total: lineItemTotal(l.quantity, l.unitPrice),
         discount: l.discount || 0,
         discount_type: l.discountType || "%",
       };
@@ -33,7 +35,8 @@ export function buildRentalItems(
       description: line.legacyDescription ?? "Renta montacargas",
       quantity: line.quantity,
       unit_price: unitPrice,
-      total: unitPrice * line.quantity,
+      // B-8: total monetario redondeado (antes float crudo).
+      total: lineItemTotal(line.quantity, unitPrice),
     };
     if (line.discount && line.discount > 0) {
       item.discount = line.discount;

@@ -1,5 +1,27 @@
 [
   {
+    "version": "7.292.0",
+    "date": "2026-08-11",
+    "type": "minor",
+    "title": "Auditoría de severidad baja: sesión, pagos, precisión monetaria y folios",
+    "category": "fix",
+    "description": "Se corrigen 13 hallazgos de severidad baja en cierre de sesión, KPIs de cuentas por pagar, precisión monetaria en notas de crédito, fechas en horario de Monterrey y control de acceso a folios borrador.",
+    "changes": [
+      "Cierre de sesión: si falla la red, igual se limpia la caché local y se revoca la sesión localmente (sin errores sueltos)",
+      "Cuentas por pagar: el KPI \"Pagado mes actual\" ahora usa la fecha real de pago y suma pagos parciales convertidos a MXN",
+      "Notas de crédito: sumas monetarias sin desfase de redondeo; ya no se ofrece crear una NC por $0.00",
+      "Facturas: se bloquea guardar en moneda distinta a MXN con tipo de cambio 0",
+      "Calendario: \"hoy\" deja de congelarse en sesiones largas (badge de renta activa correcto al cambiar de día)",
+      "CRM: si falla la lectura del orden del tablero se muestra el error en vez de asumir la primera posición",
+      "Devoluciones: fechas de inspección mostradas y filtradas en horario de Monterrey",
+      "Exportar CSV: se corrige la descarga cancelada en Firefox",
+      "Restauración de scroll: el historial en memoria se acota a 50 rutas recientes",
+      "Timbrado: los complementos de pago y las notas de crédito dejan de reintentar la descarga del XML indefinidamente (se marcan como \"XML pendiente\")",
+      "Folios borrador: solo Admin y Administrativo pueden consumir la numeración de facturas y notas de crédito",
+      "Pruebas nuevas: tope de crédito sin desfase decimal y validación de tipo de cambio en moneda extranjera"
+    ]
+  },
+  {
     "version": "7.291.0",
     "date": "2026-08-11",
     "type": "minor",

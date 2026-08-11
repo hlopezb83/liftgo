@@ -11,6 +11,21 @@ import { useLocation, useNavigationType } from "react-router";
  */
 const scrollByKey = new Map<string, number>();
 
+// B-6: el Map vive a nivel módulo y crecía sin tope con cada location.key
+// visitada. Se acota a las 50 entradas más recientes (los Map iteran en orden
+// de inserción: la primera llave es la más vieja).
+const MAX_SCROLL_ENTRIES = 50;
+
+function rememberScroll(key: string, top: number) {
+  // Re-insertar para refrescar el orden de inserción (LRU simple).
+  scrollByKey.delete(key);
+  scrollByKey.set(key, top);
+  if (scrollByKey.size > MAX_SCROLL_ENTRIES) {
+    const first = scrollByKey.keys().next().value;
+    if (first !== undefined) scrollByKey.delete(first);
+  }
+}
+
 export function useMainScrollRestoration(ref: RefObject<HTMLElement | null>) {
   const location = useLocation();
   const navType = useNavigationType();
@@ -21,7 +36,7 @@ export function useMainScrollRestoration(ref: RefObject<HTMLElement | null>) {
     if (!el) return;
     const key = location.key;
     const onScroll = () => {
-      scrollByKey.set(key, el.scrollTop);
+      rememberScroll(key, el.scrollTop);
     };
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => {

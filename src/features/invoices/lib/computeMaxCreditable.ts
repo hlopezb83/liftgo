@@ -11,6 +11,8 @@
  * favor del cliente. Hoy no hay flujo de reembolso implementado; queda como
  * feature pendiente ("saldo a favor / devoluciones").
  */
+import { roundMoney } from "@/lib/money";
+
 export function computeMaxCreditable(
   invoiceTotal: number,
   activeCredits: number,
@@ -19,5 +21,8 @@ export function computeMaxCreditable(
   const total = Number(invoiceTotal) || 0;
   const active = Number(activeCredits) || 0;
   const draft = Number(draftCredits) || 0;
-  return total - active - draft;
+  // B-7: redondear a 2 decimales monetarios — con float crudo un total
+  // exactamente cubierto por las NC devolvía drift (10.21−5.11−5.10 =
+  // 8.88e-16 > 0) y la UI ofrecía crear una NC por $0.00.
+  return roundMoney(total - active - draft);
 }

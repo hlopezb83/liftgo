@@ -46,14 +46,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
-    // MP-M5: logout determinista — limpiar la cache persistida de TanStack Query.
-    // Evita que datos residuales de un usuario aparezcan al iniciar sesión otro.
+    // B-4: si supabase.auth.signOut() rechaza (red caída, etc.) la purga de
+    // localStorage NO se saltaba y quedaba un unhandled rejection. try/finally
+    // garantiza la purga; el catch hace fallback a signOut local (silencioso).
     try {
-      if (typeof window !== "undefined") {
-        window.localStorage.removeItem("liftgo:rq-cache:v2");
-      }
-    } catch { /* storage puede estar bloqueado; no romper logout */ }
+      await supabase.auth.signOut();
+    } catch {
+      // Fallback silencioso: revocar solo la sesión local sin llamar al server.
+      try {
+        await supabase.auth.signOut({ scope: "local" });
+      } catch { /* nada más que hacer; el finally igual purga la cache */ }
+    } finally {
+      // MP-M5: logout determinista — limpiar la cache persistida de TanStack Query.
+      // Evita que datos residuales de un usuario aparezcan al iniciar sesión otro.
+      try {
+        if (typeof window !== "undefined") {
+          window.localStorage.removeItem("liftgo:rq-cache:v2");
+        }
+      } catch { /* storage puede estar bloqueado; no romper logout */ }
+    }
   }, []);
 
   const resetPassword = useCallback(async (email: string) => {

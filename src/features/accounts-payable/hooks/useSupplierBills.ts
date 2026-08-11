@@ -16,9 +16,18 @@ export interface BillRepSummary {
   worst: SupplierRepStatus; // pending > rejected > received > not_required
 }
 
+/** Pago aplicado a una factura de proveedor (para KPIs por fecha de pago). */
+export interface BillPaymentRow {
+  payment_date: string;
+  amount: number;
+}
+
 export interface SupplierBillListItem extends Row {
   suppliers: { id: string; name: string } | null;
   rep_summary: BillRepSummary;
+  // B-10: pagos reales de la factura — el KPI "pagado mes actual" se calcula
+  // por payment_date, no por issue_date.
+  payments: BillPaymentRow[];
 }
 
 export interface SupplierBillDetail extends Row {
@@ -31,6 +40,8 @@ type PaymentRepRow = {
   bill_id: string;
   rep_required: boolean;
   rep_status: SupplierRepStatus;
+  payment_date: string;
+  amount: number;
 };
 
 function emptySummary(): BillRepSummary {
@@ -69,18 +80,26 @@ async function fetchList(): Promise<SupplierBillListItem[]> {
       .limit(LIST_FETCH_LIMIT),
     supabase
       .from("supplier_payments")
-      .select("bill_id, rep_required, rep_status"),
+      .select("bill_id, rep_required, rep_status, payment_date, amount"),
   ]);
 
   if (billsRes.error) throw billsRes.error;
   if (paymentsRes.error) throw paymentsRes.error;
 
   const summaryMap = new Map<string, BillRepSummary>();
-  for (const p of (paymentsRes.data ?? []) as PaymentRepRow[]) accumulatePayment(summaryMap, p);
+  const paymentsMap = new Map<string, BillPaymentRow[]>();
+  for (const p of (paymentsRes.data ?? []) as PaymentRepRow[]) {
+    accumulatePayment(summaryMap, p);
+    const list = paymentsMap.get(p.bill_id);
+    const row: BillPaymentRow = { payment_date: p.payment_date, amount: p.amount };
+    if (list) list.push(row);
+    else paymentsMap.set(p.bill_id, [row]);
+  }
 
   const bills = (billsRes.data ?? []) as unknown as SupplierBillListItem[];
   for (const b of bills) {
     b.rep_summary = summaryMap.get(b.id) ?? emptySummary();
+    b.payments = paymentsMap.get(b.id) ?? [];
   }
   return bills;
 }

@@ -12,6 +12,11 @@ import {
   isFacturapiTimeout,
   sdkCallWithTimeout,
 } from "../_shared/facturapi/withTimeout.ts";
+import {
+  enqueueCfdiRetry,
+  isTransientFacturapiError,
+} from "../_shared/cfdiRetryQueue.ts";
+import type { SupabaseLike } from "../_shared/types.ts";
 
 const VALID_MOTIVES = new Set(["01", "02", "03", "04"]);
 
@@ -109,8 +114,29 @@ Deno.serve(async (req) => {
           }, { status: 504 });
         }
         const desc = describeFacturapiError(err);
+        // B-1: encolar reintento solo si el error es transitorio (5xx / red /
+        // 429) — la cancelación NO llegó al SAT, así que reintentar es seguro.
+        // Mismo patrón que cancel-cfdi (BL-44); el consumer de la cola
+        // (process-cfdi-retry-queue) reinvoca esta función con la operación
+        // `cancel_nc`, mapeando invoice_id → credit_note_id y esparciendo el
+        // payload plano.
+        if (isTransientFacturapiError(desc)) {
+          await enqueueCfdiRetry(supabase as unknown as SupabaseLike, {
+            operation: "cancel_nc",
+            invoiceId: credit_note_id,
+            payload: {
+              motive,
+              ...(motive === "01" && substitution_uuid
+                ? { substitution_uuid }
+                : {}),
+              ...(cancellation_reason ? { cancellation_reason } : {}),
+            },
+            errorMessage: `${desc.code ?? ""} ${desc.message}`.trim(),
+          });
+        }
         return jsonError(req, 502, `Facturapi cancel error: ${desc.status}`, {
           detail: desc.detail,
+          transient: isTransientFacturapiError(desc),
         });
       }
     }

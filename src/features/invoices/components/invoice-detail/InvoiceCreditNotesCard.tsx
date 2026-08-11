@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { CREDIT_NOTE_MOTIVE_LABELS as MOTIVE_LABELS } from "@/features/invoices/lib/creditNoteMotives";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { sumMoney } from "@/lib/money";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { formatDateDisplay } from "@/lib/utils";
 import {
@@ -56,16 +57,22 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
   const refreshCancelMutation = useRefreshCreditNoteCancellationStatus();
   const confirm = useConfirm();
 
-  const activeCredits = creditNotes
-    .filter((cn) => cn.cfdi_status === "stamped" && cn.cancellation_status !== "accepted" && cn.status !== "cancelled")
-    .reduce((s, cn) => s + Number(cn.total), 0);
-  const draftCredits = creditNotes
-    .filter((cn) => cn.status === "draft")
-    .reduce((s, cn) => s + Number(cn.total), 0);
+  // B-7: sumas monetarias con sumMoney (sin drift IEEE-754) y comparación con
+  // epsilon de medio centavo (convención del repo, ver cashFlowTransformers).
+  const activeCredits = sumMoney(
+    creditNotes
+      .filter((cn) => cn.cfdi_status === "stamped" && cn.cancellation_status !== "accepted" && cn.status !== "cancelled")
+      .map((cn) => Number(cn.total)),
+  );
+  const draftCredits = sumMoney(
+    creditNotes
+      .filter((cn) => cn.status === "draft")
+      .map((cn) => Number(cn.total)),
+  );
 
   // BL-08 v7.90.0: los pagos no limitan el crédito (ver computeMaxCreditable).
   const maxCreditable = computeMaxCreditable(Number(invoice.total), activeCredits, draftCredits);
-  const canCreate = invoice.cfdi_status === "stamped" && invoice.status !== "cancelled" && maxCreditable > 0;
+  const canCreate = invoice.cfdi_status === "stamped" && invoice.status !== "cancelled" && maxCreditable > 0.005;
 
   if (creditNotes.length === 0 && !canCreate) return null;
 
