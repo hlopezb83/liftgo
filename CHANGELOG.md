@@ -1,3 +1,9 @@
+## 7.294.0 - 2026-08-11
+
+- Seguridad (Tema 1): company_settings con FORCE ROW LEVEL SECURITY, policies normalizadas a TO authenticated y (select auth.uid()).
+- Seguridad (Tema 2): policy de storage.objects para clientes del portal usa coincidencia exacta de ruta ('documents/' || name) en vez de LIKE por sufijo.
+- Seguridad (Tema 4): guards has_role en assert_invoice_cancellable, peek_next_invoice_number, assign_stamped_invoice_number/rep_number/credit_note_number, claim_maintenance_policy_month, damage_restore_forklift_status, has_active_rental y get_available_forklifts; REVOKE a anon/PUBLIC.
+
 ## 7.293.0 - 2026-08-11
 
 - Seguridad: revocado EXECUTE a anon en todas las funciones SECURITY DEFINER salvo accept/reject_quote_from_portal y get_public_branding.
