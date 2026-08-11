@@ -6,18 +6,34 @@ son 100% mockeados y no ejercitan políticas.
 
 ## Estado
 
-- **Fase 1 (v7.222.0):** archivos versionados; NO se ejecutan en CI hasta que
-  el job `rls-policies` se habilite en `.github/workflows/ci.yml` con acceso a
-  una DB shadow. El motivo: requerimos `SUPABASE_DB_URL` (o `supabase start`),
-  ninguno de los cuales está en el pipeline actual.
-- **Fase 2:** activar el job `rls-policies` (ver `.github/workflows/ci.yml`
-  comentario `TESTS-RLS-PHASE2`). Habilitar `supabase start` en el runner o
-  proveer `RLS_DB_URL` como secret. Correr con:
-  ```bash
-  for f in supabase/tests/rls/*.sql; do
-    psql "$RLS_DB_URL" -v ON_ERROR_STOP=1 -f "$f"
-  done
-  ```
+- **Fase 1 (v7.222.0):** archivos versionados; no se ejecutaban en CI por falta
+  de una DB shadow.
+- **Fase 2 (v7.295.0): ACTIVA.** El workflow
+  `.github/workflows/rls-db-tests.yml` (job `rls-db-tests`) levanta un Supabase
+  local efímero con `supabase start`, corre `supabase db reset` (reaplica TODAS
+  las migraciones desde cero, validando que apliquen limpio y en orden) y
+  ejecuta estas suites contra esa DB. Los resultados se publican como JUnit
+  (`reports/rls-db-junit.xml`) con `.github/actions/publish-test-results`.
+  Se dispara solo cuando cambian `supabase/**` o `src/**`, y se salta en PRs
+  desde forks.
+
+Correr en local (requiere Docker y la CLI de Supabase):
+
+```bash
+supabase start
+supabase db reset --no-seed
+python3 scripts/run_sql_suites.py \
+  --db-url postgresql://postgres:postgres@127.0.0.1:54322/postgres \
+  --dir supabase/tests/rls \
+  --junit reports/rls-db-junit.xml \
+  --suite-name "RLS DB" --mode strict
+```
+
+Los smoke SQL de `supabase/tests/*.sql` (c1_c2, r2, r3, r4, r9, r10) corren en
+el mismo job en modo `smoke` (usan `\set ON_ERROR_STOP off` y reportan con
+`RAISE WARNING 'FALLO ...'`). Son **informativos** (`continue-on-error`) porque
+algunos asumen datos de staging que no existen en una DB recién creada.
+
 
 ## Convención por archivo
 
