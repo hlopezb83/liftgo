@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.292.1",
+    "date": "2026-08-11",
+    "type": "patch",
+    "title": "Rentabilidad por cliente: acceso restringido en el portal",
+    "category": "security",
+    "description": "La función de rentabilidad por cliente ahora valida quién la llama: el personal interno puede consultar cualquier cliente y un cliente del portal solo su propia información.",
+    "changes": [
+      "Personal interno (admin, administrativo, auditor y ventas) mantiene acceso a la rentabilidad de cualquier cliente",
+      "Un cliente del portal solo puede consultar su propia rentabilidad; cualquier otro identificador es rechazado",
+      "Se revoca el acceso a usuarios sin sesión"
+    ]
+  },
+  {
     "version": "7.292.0",
     "date": "2026-08-11",
     "type": "minor",
