@@ -1,0 +1,16 @@
+{
+  "version": "7.293.0",
+  "date": "2026-08-11",
+  "type": "minor",
+  "title": "Endurecimiento de acceso: funciones internas cerradas al público",
+  "category": "security",
+  "changes": [
+    "Los datos bancarios de cobranza del portal ahora exigen sesión iniciada",
+    "El bloqueo de timbrado de complementos de pago (REP) queda reservado a Admin/Administrativo y a los procesos automáticos",
+    "Reportes financieros, folios fiscales, recálculo de cuentas por pagar, conciliación de timbrado y utilidades de pruebas ya no son accesibles sin sesión",
+    "Numeración de folios, avisos internos y tareas de limpieza quedan reservadas para los procesos automáticos del sistema",
+    "Solo se conservan públicas las tres funciones que el portal necesita sin sesión: aceptar cotización, rechazar cotización y la marca de la empresa",
+    "Las alertas de seguridad del backend bajaron de 227 a 146"
+  ],
+  "description": "Se cerró el acceso sin sesión a todas las funciones internas del backend, dejando públicas únicamente las tres que el portal necesita. Además, la consulta de datos bancarios y el timbrado de complementos ahora validan quién los llama."
+}
