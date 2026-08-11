@@ -1,5 +1,13 @@
 [
   {
+    "version": "7.287.2",
+    "date": "2026-08-11",
+    "type": "patch",
+    "title": "Pruebas de cierre de la auditoría R3",
+    "category": "improvement",
+    "description": "Se completó la cobertura de pruebas de las 10 correcciones de la ronda R3: un nuevo script de verificación en base de datos (archivado de órdenes cerradas, validaciones al asignar y quitar unidades de una cotización de venta, y reinicio de intentos de timbrado) y pruebas automáticas de la desasignación de unidades, del horómetro sugerido (que ignora entregas canceladas o no completadas) y de la actualización de los reportes al registrar pagos o cambiar el estatus de una unidad. No cambia el comportamiento de la app."
+  },
+  {
     "version": "7.287.1",
     "date": "2026-08-11",
     "type": "patch",
