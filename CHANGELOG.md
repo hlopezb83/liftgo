@@ -1,3 +1,10 @@
+## 7.299.0 - 2026-08-11
+
+- Tests RLS: nueva suite `maintenance_parts.sql` (anon/cliente bloqueados, auditor read-only, mecanico y admin escriben, service_role bypass).
+- Tests RLS: nueva suite `supplier_payment_batches.sql` para lotes de pago y sus partidas; las CLABEs solo las ve admin/administrativo.
+- Tests RLS: `parts_inventory.sql` reescrita — la anterior usaba el rol inexistente `mecanico` y la columna `quantity`, por lo que validaba en falso.
+- Docs: `supabase/tests/rls/README.md` con las 35 suites.
+
 ## 7.298.0 - 2026-08-11
 
 - CI: se elimina la infraestructura de testing visual E2E que nunca se activo (e2e-visual-baselines.yml solo tenia workflow_dispatch y jamas corrio).

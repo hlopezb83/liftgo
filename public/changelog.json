@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.299.0",
+    "date": "2026-08-11",
+    "type": "minor",
+    "title": "RLS: suites de tests para las tablas endurecidas (inventario, refacciones y lotes de pago)",
+    "category": "infra",
+    "changes": [
+      "Nueva suite maintenance_parts.sql: anon y cliente del portal sin acceso, auditor read-only, mecanico y admin escriben, service_role hace bypass.",
+      "Nueva suite supplier_payment_batches.sql: cubre supplier_payment_batches y supplier_payment_batch_items; las CLABEs solo son visibles para admin/administrativo (auditor y mecanico bloqueados).",
+      "parts_inventory.sql reescrita: la version anterior insertaba el rol inexistente 'mecanico' y la columna inexistente 'quantity', por lo que pasaba por accidente; ahora valida is_inventory_reader vs is_parts_writer y que ventas no lee inventario.",
+      "README.md de supabase/tests/rls actualizado: 35 suites documentadas."
+    ],
+    "summary": "Se extienden las suites RLS SQL a las tablas endurecidas en la migracion anterior y se corrige la suite de parts_inventory, que validaba en falso."
+  },
+  {
     "version": "7.298.0",
     "date": "2026-08-11",
     "type": "minor",
