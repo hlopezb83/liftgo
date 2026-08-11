@@ -201,7 +201,11 @@ export function InvoiceDetailActions({
     <>
       <CancellationBlock flags={flags} invoiceId={invoice.id} />
       {invoice.cfdi_xml_pending ? (
-        <XmlPendingBlock invoiceId={invoice.id} onRecovered={onRecoveredXml ?? (() => {})} />
+        // FIX-R3-04: download-cfdi exige admin/administrativo/ventas; ocultar
+        // el botón a roles de sólo lectura como el resto de acciones.
+        <RoleGuard module="Facturas" minAccess="full" fallback={null}>
+          <XmlPendingBlock invoiceId={invoice.id} onRecovered={onRecoveredXml ?? (() => {})} />
+        </RoleGuard>
       ) : null}
       {flags.canEdit ? (
         <RoleGuard module="Facturas" minAccess="full" fallback={null}>

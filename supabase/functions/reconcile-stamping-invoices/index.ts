@@ -33,6 +33,7 @@ import {
   decideLookupOutcome,
   decideRowAction,
   MAX_LOOKUP_MISSES,
+  decideXmlFailure,
   MAX_STAMPING_ATTEMPTS,
   type PacLookup,
   type StuckRow as PureStuckRow,
@@ -274,7 +275,8 @@ Deno.serve(async (req) => {
       // para forzar revisión manual.
       if (!cfdiXml || !xmlPath) {
         const attempts = (row.stamping_attempts ?? 0) + 1;
-        const exhausted = attempts >= MAX_STAMPING_ATTEMPTS;
+        // FIX-R3-02: política de reintentos en una sola fuente (decisions.ts).
+        const exhausted = decideXmlFailure(row.stamping_attempts) === "mark_error";
         await admin.from("invoices")
           .update({
             ...(exhausted
