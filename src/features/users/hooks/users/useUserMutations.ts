@@ -19,7 +19,9 @@ export function useUpdateRole() {
       // sabemos que exactamente 1 fila fue afectada. `assertRowsAffected`
       // ya no aplica porque no tenemos el resultset de la mutación.
     },
-    invalidateKeys: [userKeys.all],
+    // M-5: invalidar también `["user_role", userId]` (useUserRole) — sin esto
+    // la UI conservaba permisos stale hasta 5 min tras cambiar un rol.
+    invalidateKeys: [userKeys.all, ["user_role"] as const],
     successMsg: "Rol actualizado",
     errorTitle: "Error al actualizar rol",
   });

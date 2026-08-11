@@ -39,6 +39,15 @@ export const supplierBillFormSchema = z.object({
   if (v.coverage_start && v.coverage_end && v.coverage_end.getTime() < v.coverage_start.getTime()) {
     ctx.addIssue({ code: "custom", path: ["coverage_end"], message: "Fin de cobertura debe ser posterior al inicio" });
   }
+  // M-21b: las retenciones no pueden exceder la base gravable — de lo
+  // contrario el total saldría negativo o menor al real.
+  if (v.retention_iva + v.retention_isr > v.subtotal + v.tax_amount) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["retention_iva"],
+      message: "Las retenciones (IVA + ISR) no pueden ser mayores que el subtotal más impuestos",
+    });
+  }
 });
 
 export type SupplierBillFormData = z.infer<typeof supplierBillFormSchema>;

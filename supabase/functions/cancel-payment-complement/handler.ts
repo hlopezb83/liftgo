@@ -20,6 +20,13 @@ export type CancelRepDeps = StampCfdiDeps;
 
 export const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 const VALID_MOTIVES = new Set(["01", "02", "03", "04"]);
+// M-7: mismos estados SAT que cancel-cfdi/handler.ts.
+const VALID_SAT_STATUSES = [
+  "accepted",
+  "pending",
+  "rejected",
+  "expired",
+];
 
 export async function handleCancelPaymentComplement(
   req: Request,
@@ -40,9 +47,10 @@ export async function handleCancelPaymentComplement(
     const supabase = auth.supabase;
 
     const body = await req.json().catch(() => ({}));
-    const { payment_id, motive } = body as {
+    const { payment_id, motive, substitution_uuid } = body as {
       payment_id?: unknown;
       motive?: unknown;
+      substitution_uuid?: unknown;
     };
     if (!isUUID(payment_id)) {
       return jsonError(req, 400, "payment_id must be a valid UUID");
@@ -53,6 +61,16 @@ export async function handleCancelPaymentComplement(
       return jsonError(req, 400, "motive must be one of 01,02,03,04");
     }
     const motiveCode = motive;
+    // M-7: mismo guard que cancel-cfdi — motivo 01 ("comprobante emitido con
+    // errores con relación") exige el UUID del CFDI sustituto; sin él el SAT
+    // rechaza el trámite y el REP local queda en un estado ambiguo.
+    if (motiveCode === "01" && !isUUID(substitution_uuid)) {
+      return jsonError(
+        req,
+        400,
+        "substitution_uuid (UUID de factura sustituta) es requerido para motivo 01",
+      );
+    }
 
     const { data: payment } = await supabase
       .from("payments").select("rep_facturapi_id, rep_cfdi_status").eq(
@@ -69,15 +87,28 @@ export async function handleCancelPaymentComplement(
     if (!apiKey) return jsonError(req, 400, "Facturapi key not configured");
 
     const client = createFacturapiClient(apiKey);
+    let satStatus = "accepted";
     try {
-      await sdkCallWithTimeout((signal) =>
+      const params: Record<string, string> = { motive: motiveCode };
+      if (motiveCode === "01" && substitution_uuid) {
+        params.substitution = substitution_uuid as string;
+      }
+      const cancelJson = await sdkCallWithTimeout((signal) =>
         cancelInvoiceWithSignal(
           client,
           pay.rep_facturapi_id as string,
-          { motive: motiveCode },
+          params,
           { signal },
         )
       );
+      // M-7: mapear la respuesta del PAC como cancel-cfdi — antes se ignoraba
+      // cancellation_status y el REP quedaba 'cancelled' en la BD aunque el
+      // SAT lo hubiera dejado pendiente/rechazado/expirado.
+      const rawStatus = ((cancelJson as { cancellation_status?: string })
+        ?.cancellation_status) ?? "accepted";
+      satStatus = VALID_SAT_STATUSES.includes(rawStatus)
+        ? rawStatus
+        : "pending";
     } catch (err) {
       if (isFacturapiTimeout(err)) {
         console.warn("[cancel-payment-complement] facturapi timeout", {
@@ -95,14 +126,33 @@ export async function handleCancelPaymentComplement(
       });
     }
 
-    await supabase.from("payments")
-      .update({
-        rep_cfdi_status: "cancelled",
-        rep_cancelled_at: new Date().toISOString(),
-      })
-      .eq("id", payment_id);
+    // M-7: solo marcar cancelled cuando el SAT aceptó la cancelación. Con
+    // pending/rejected/expired el REP sigue vigente (stamped) — el admin
+    // puede refrescar el estado después (mismo criterio que cancel-cfdi).
+    const isAccepted = satStatus === "accepted";
+    if (isAccepted) {
+      const updRes = await supabase.from("payments")
+        .update({
+          rep_cfdi_status: "cancelled",
+          rep_cancelled_at: new Date().toISOString(),
+        })
+        .eq("id", payment_id);
+      // M-7: verificar el error del UPDATE — antes un fallo silencioso dejaba
+      // el REP cancelado en el SAT pero 'stamped' en la BD, divergencia
+      // imposible de detectar desde la app.
+      if ((updRes as { error: unknown }).error) {
+        return jsonError(req, 500, "Failed to update payment");
+      }
+    }
 
-    return jsonResponse(req, { success: true });
+    return jsonResponse(req, {
+      success: true,
+      cancellation_status: satStatus,
+      accepted: isAccepted,
+      warning: !isAccepted
+        ? "El SAT marcó la cancelación como pendiente. El receptor tiene 72 horas para aceptar o rechazar."
+        : undefined,
+    });
   } catch (_err) {
     return jsonError(req, 500, "Internal server error");
   }

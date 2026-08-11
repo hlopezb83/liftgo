@@ -119,6 +119,10 @@ export function PaymentsExportTable({
       cell: ({ row }) => {
         const st = rowState[row.original.id];
         const inProgress = !!row.original.payment_in_progress_at;
+        const amount = st?.amount ?? row.original.balance;
+        // M-20: marcar el renglón cuando el monto excede el saldo (misma
+        // tolerancia que RegisterSupplierPaymentDialog) o no es positivo.
+        const invalidAmount = !!st?.selected && (amount <= 0 || amount > row.original.balance + 0.0001);
         return (
           <Input
             type="number"
@@ -128,7 +132,11 @@ export function PaymentsExportTable({
             disabled={!row.original.has_valid_clabe || !st?.selected || inProgress}
             value={st?.amount ?? row.original.balance}
             onChange={(e) => onChangeAmount(row.original.id, Number(e.target.value))}
-            className="h-7 w-28 ml-auto text-right font-mono text-xs"
+            aria-invalid={invalidAmount}
+            className={cn(
+              "h-7 w-28 ml-auto text-right font-mono text-xs",
+              invalidAmount && "border-destructive text-destructive focus-visible:ring-destructive",
+            )}
           />
         );
       },

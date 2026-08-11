@@ -1,6 +1,8 @@
 // R-Perf P2-8: import dinámico para no cargar 106 KB gz al montar la ruta.
 import { format } from "date-fns";
+import { isFxMissing } from "@/features/cash-flow/lib/cashFlowTransformers";
 import { formatDateMty } from "@/lib/format/dateFormats";
+import { toMxn } from "@/lib/money";
 import { nowMty } from "@/lib/utils";
 import type { ReconciliationRow } from "../hooks/reconciliation/useReconciliationData";
 
@@ -25,6 +27,7 @@ export async function downloadReconciliationXlsx(rows: ReconciliationRow[]): Pro
   const XLSX = await import("@e965/xlsx");
   const data: (string | number)[][] = [[...HEADERS]];
   let total = 0;
+  let missingFx = 0;
   for (const r of rows) {
     data.push([
       r.invoice_number,
@@ -37,9 +40,20 @@ export async function downloadReconciliationXlsx(rows: ReconciliationRow[]): Pro
       r.facturapi_env ?? "",
       Number(Number(r.total).toFixed(2)),
     ]);
-    if (r.cfdi_status === "stamped" && r.facturapi_env === "live") total += Number(r.total);
+    // M-15: mismo criterio que el KPI de la página — convertir a MXN y
+    // excluir del total las timbradas foráneas sin tipo de cambio válido.
+    if (r.cfdi_status === "stamped" && r.facturapi_env === "live") {
+      if (isFxMissing(r.moneda, r.tipo_cambio)) {
+        missingFx++;
+      } else {
+        total += toMxn(Number(r.total), r.moneda, r.tipo_cambio);
+      }
+    }
   }
-  data.push(["", "", "", "", "", "", "", "TOTAL TIMBRADO", Number(total.toFixed(2))]);
+  data.push(["", "", "", "", "", "", "", "TOTAL TIMBRADO (MXN)", Number(total.toFixed(2))]);
+  if (missingFx > 0) {
+    data.push(["", "", "", "", "", "", "", "Sin tipo de cambio (excluidas del total)", missingFx]);
+  }
 
   const ws = XLSX.utils.aoa_to_sheet(data);
   ws["!cols"] = [

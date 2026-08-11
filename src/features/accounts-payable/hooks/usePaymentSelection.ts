@@ -15,6 +15,12 @@ export interface CurrencyTotal {
 export type SupplierBillRow = ExportablePayable;
 
 /**
+ * Misma tolerancia de redondeo que RegisterSupplierPaymentDialog
+ * (`amount <= balance + 0.0001`) para no rechazar centavos de floating point.
+ */
+const AMOUNT_TOLERANCE = 0.0001;
+
+/**
  * Estado puro de selección múltiple en el diálogo de exportación de pagos.
  * Separa el manejo de `rowState` + totales del flujo de export en sí.
  */
@@ -52,7 +58,13 @@ export function usePaymentSelection(open: boolean, bills: SupplierBillRow[] | un
   ]
     .map(([currency, total]) => ({ currency, total: roundMoney(total) }))
     .sort((a, b) => a.currency.localeCompare(b.currency));
-  const hasInvalid = selected.some((b) => !b.has_valid_clabe);
+  // M-20: además de la CLABE, validar el monto por renglón con el mismo
+  // criterio que RegisterSupplierPaymentDialog: 0 < amount <= balance + tol.
+  const hasInvalid = selected.some((b) => {
+    if (!b.has_valid_clabe) return true;
+    const amount = rowState[b.id]?.amount ?? b.balance;
+    return amount <= 0 || amount > b.balance + AMOUNT_TOLERANCE;
+  });
   const eligible: SupplierBillRow[] = (bills ?? []).filter(
     (b) => b.has_valid_clabe && !b.payment_in_progress_at,
   );

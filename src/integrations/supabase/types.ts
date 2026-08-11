@@ -3826,6 +3826,10 @@ export type Database = {
             Returns: string
           }
         | { Args: { p_items: Json; p_notes?: string }; Returns: string }
+      customer_owns_invoice: {
+        Args: { p_invoice_id: string }
+        Returns: boolean
+      }
       damage_restore_forklift_status: {
         Args: { p_forklift_id: string; p_previous: string }
         Returns: string

@@ -38,7 +38,15 @@ function makeDeps(opts: {
   fetchImpl?: typeof fetch;
 }) {
   const caller = buildSupabaseMock({ claims: { sub: USER_ID } });
-  const service = buildSupabaseMock(opts.service ?? {});
+  const service = buildSupabaseMock({
+    ...(opts.service ?? {}),
+    selects: {
+      // M-1: authenticateWithDeps ahora verifica profiles.is_active — default
+      // cuenta activa para no repetir el mock en cada test.
+      profiles: { data: { is_active: true }, error: null },
+      ...(opts.service?.selects ?? {}),
+    },
+  });
   const env = opts.env ?? {};
   const deps: RefreshCancellationDeps = {
     createCallerClient: () => caller.client,

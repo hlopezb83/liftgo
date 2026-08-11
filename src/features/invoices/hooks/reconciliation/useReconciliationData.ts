@@ -1,5 +1,7 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
+import { isFxMissing } from "@/features/cash-flow/lib/cashFlowTransformers";
 import { supabase } from "@/integrations/supabase/client";
+import { toMxn } from "@/lib/money";
 import { e2eVisibilityFilter } from "@/lib/supabase/constants";
 import { invoiceKeys } from "../../lib/queryKeys";
 
@@ -15,6 +17,9 @@ export interface ReconciliationRow {
   facturapi_invoice_id: string | null;
   facturapi_env: string | null;
   total: number;
+  /** M-15: moneda y tipo de cambio para normalizar el total a MXN. */
+  moneda: string | null;
+  tipo_cambio: number | null;
 }
 
 export interface ReconciliationFilters {
@@ -25,7 +30,10 @@ export interface ReconciliationFilters {
 }
 
 export interface ReconciliationSummary {
+  /** Total timbrado (producción) normalizado a MXN. */
   totalStampedLive: number;
+  /** Facturas timbradas foráneas sin tipo de cambio válido — EXCLUIDAS del total. */
+  countStampedMissingFx: number;
   countStamped: number;
   countCancelled: number;
   countDraft: number;
@@ -34,6 +42,7 @@ export interface ReconciliationSummary {
 
 function computeSummary(rows: ReconciliationRow[]): ReconciliationSummary {
   let totalStampedLive = 0;
+  let countStampedMissingFx = 0;
   let countStamped = 0;
   let countCancelled = 0;
   let countDraft = 0;
@@ -43,7 +52,17 @@ function computeSummary(rows: ReconciliationRow[]): ReconciliationSummary {
       countCancelled++;
     } else if (r.cfdi_status === "stamped") {
       countStamped++;
-      if (r.facturapi_env === "live") totalStampedLive += Number(r.total);
+      if (r.facturapi_env === "live") {
+        // M-15: antes se sumaba USD + MXN 1:1. Ahora se convierte a MXN con
+        // el tipo de cambio del documento; las foráneas sin TC válido se
+        // EXCLUYEN del total (sumarlas 1:1 subestima ~18×) y se contabilizan
+        // aparte para mostrar la nota "N sin tipo de cambio".
+        if (isFxMissing(r.moneda, r.tipo_cambio)) {
+          countStampedMissingFx++;
+        } else {
+          totalStampedLive += toMxn(Number(r.total), r.moneda, r.tipo_cambio);
+        }
+      }
     } else if (r.status === "draft") {
       countDraft++;
     }
@@ -63,7 +82,7 @@ function computeSummary(rows: ReconciliationRow[]): ReconciliationSummary {
     }
   }
 
-  return { totalStampedLive, countStamped, countCancelled, countDraft, gaps };
+  return { totalStampedLive, countStampedMissingFx, countStamped, countCancelled, countDraft, gaps };
 }
 
 function buildReconciliationQuery(filters: ReconciliationFilters) {
@@ -74,7 +93,7 @@ function buildReconciliationQuery(filters: ReconciliationFilters) {
       let q = supabase
         .from("invoices")
         .select(
-          "id,invoice_number,issued_at,customer_name,status,cfdi_status,cancellation_status,cfdi_uuid,facturapi_invoice_id,facturapi_env,total",
+          "id,invoice_number,issued_at,customer_name,status,cfdi_status,cancellation_status,cfdi_uuid,facturapi_invoice_id,facturapi_env,total,moneda,tipo_cambio",
         )
         .or(e2eVisibilityFilter())
         .gte("issued_at", filters.from)

@@ -18,12 +18,22 @@ function makeDeps(opts: {
   claimsError?: unknown;
   rolesData?: Array<{ role: string }> | null;
   rolesError?: unknown;
+  profileData?: { is_active: boolean | null } | null;
+  profileError?: unknown;
 }): {
   createCallerClient: (h: string) => CallerLike;
   createServiceClient: () => SupabaseLike;
 } {
   const service = buildSupabaseMock({
     selects: {
+      // M-1: authenticateWithDeps verifica profiles.is_active tras el JWT.
+      // Default: cuenta activa para no repetir el mock en cada test.
+      profiles: {
+        data: opts.profileData === undefined
+          ? { is_active: true }
+          : opts.profileData,
+        error: opts.profileError ?? null,
+      },
       user_roles: {
         data: opts.rolesData ?? [],
         error: opts.rolesError ?? null,
@@ -140,4 +150,63 @@ Deno.test("authWithDeps: sub vacío en claims no-service_role → 401", async ()
   });
   assertStrictEquals(res.ok, false);
   if (!res.ok) assertEquals(res.status, 401);
+});
+
+// M-1: un JWT vigente (~1h) de un usuario desactivado ya no basta — se
+// verifica profiles.is_active en cada llamada (mismo guard que auth.ts).
+Deno.test("authWithDeps: usuario desactivado → 403", async () => {
+  const res = await authenticateWithDeps({
+    req: req({ Authorization: "Bearer u" }),
+    ...makeDeps({
+      claims: { role: "authenticated", sub: "u-4" },
+      rolesData: [{ role: "admin" }],
+      profileData: { is_active: false },
+    }),
+    allowedRoles: ["admin"],
+  });
+  assertStrictEquals(res.ok, false);
+  if (!res.ok) {
+    assertEquals(res.status, 403);
+    assertEquals(res.message, "Cuenta desactivada");
+  }
+});
+
+Deno.test("authWithDeps: profile inexistente → 403 (fail-closed)", async () => {
+  const res = await authenticateWithDeps({
+    req: req({ Authorization: "Bearer u" }),
+    ...makeDeps({
+      claims: { role: "authenticated", sub: "u-5" },
+      rolesData: [{ role: "admin" }],
+      profileData: null,
+    }),
+    allowedRoles: ["admin"],
+  });
+  assertStrictEquals(res.ok, false);
+  if (!res.ok) assertEquals(res.status, 403);
+});
+
+Deno.test("authWithDeps: profiles lookup falla → 503 (fail-closed)", async () => {
+  const res = await authenticateWithDeps({
+    req: req({ Authorization: "Bearer u" }),
+    ...makeDeps({
+      claims: { role: "authenticated", sub: "u-6" },
+      rolesData: [{ role: "admin" }],
+      profileError: { message: "db down" },
+    }),
+    allowedRoles: ["admin"],
+  });
+  assertStrictEquals(res.ok, false);
+  if (!res.ok) assertEquals(res.status, 503);
+});
+
+Deno.test("authWithDeps: service_role bypassa también el check de is_active", async () => {
+  const res = await authenticateWithDeps({
+    req: req({ Authorization: "Bearer service-token" }),
+    ...makeDeps({
+      claims: { role: "service_role", sub: "svc" },
+      profileError: { message: "no debe consultarse" },
+    }),
+    allowedRoles: ["admin"],
+  });
+  assertStrictEquals(res.ok, true);
 });

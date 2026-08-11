@@ -9,7 +9,10 @@ export function useContractFinancialSummary(bookingId: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("invoices")
-        .select("total, status")
+        // M-14: se selecciona `subtotal` (sin IVA) porque el consumidor lo
+        // compara contra el revenue esperado del contrato, que es sin IVA.
+        // Comparar contra `total` (con IVA) inflaba lo facturado.
+        .select("subtotal, status")
         .eq("booking_id", bookingId)
         .neq("status", "cancelled");
       if (error) throw error;

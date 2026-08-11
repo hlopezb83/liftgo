@@ -34,8 +34,17 @@ export function useExportPaymentsForm(open: boolean, onClose: () => void) {
       bill_id: b.id,
       amount: Number((selection.rowState[b.id]?.amount ?? b.balance).toFixed(2)),
     }));
+    // M-20: validar por renglón contra el saldo (misma regla que
+    // RegisterSupplierPaymentDialog), no sólo amount > 0.
+    const overBalance = selection.selected.some(
+      (b) => (selection.rowState[b.id]?.amount ?? b.balance) > b.balance + 0.0001,
+    );
     if (items.some((i) => i.amount <= 0)) {
       notifyValidation({ message: "Todos los montos deben ser mayores a 0." });
+      return;
+    }
+    if (overBalance) {
+      notifyValidation({ message: "Hay montos que exceden el saldo pendiente de la factura. Ajusta los renglones marcados." });
       return;
     }
     try {

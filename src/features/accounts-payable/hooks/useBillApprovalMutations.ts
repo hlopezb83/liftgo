@@ -1,3 +1,4 @@
+import { cashFlowProjectionQueries } from "@/features/cash-flow/lib/queryKeys";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { callRpc } from "@/lib/rpc";
 import { billApprovalQueries } from "./useBillApprovalHistory";
@@ -13,7 +14,9 @@ const invalidationKeys = (billId: string) => [
   exportablePayableQueries.keys.all,
   ["accounts_payable_kpis"] as const,
   ["dashboard-financial-kpis"] as const,
-  ["cash-flow"] as const,
+  // M-12: antes invalidaba la key muerta ["cash-flow"]; la proyección real
+  // vive bajo la raíz "cash_flow_projection" (cash-flow/lib/queryKeys).
+  cashFlowProjectionQueries.keys.all,
   billApprovalQueries.list({ billId }).queryKey,
 ];
 

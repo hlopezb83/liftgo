@@ -43,7 +43,15 @@ function makeDeps(opts: {
     claims: opts.callerClaims === undefined ? { sub: USER_ID } : opts
       .callerClaims,
   });
-  const service = buildSupabaseMock(opts.service ?? {});
+  const service = buildSupabaseMock({
+    ...(opts.service ?? {}),
+    selects: {
+      // M-1: authenticateWithDeps ahora verifica profiles.is_active — default
+      // cuenta activa para no repetir el mock en cada test.
+      profiles: { data: { is_active: true }, error: null },
+      ...(opts.service?.selects ?? {}),
+    },
+  });
   const env = opts.env ?? {};
   const deps: CancelCfdiDeps = {
     createCallerClient: () => caller.client,

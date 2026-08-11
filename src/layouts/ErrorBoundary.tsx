@@ -2,6 +2,7 @@ import { Component, type ErrorInfo, type ReactNode } from "react";
 import { WarnIcon, RefreshIcon, HomeIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Sentry } from "@/lib/observability/sentry";
+import { clearStaleChunkReloadGuard, reloadForStaleChunk } from "@/lib/staleChunkReload";
 
 interface Props {
   children: ReactNode;
@@ -18,8 +19,6 @@ interface State {
   error: Error | null;
   isChunkError: boolean;
 }
-
-const RELOAD_KEY = "vite-preload-reload";
 
 function isStaleChunkMessage(msg: string): boolean {
   return (
@@ -54,17 +53,16 @@ export class ErrorBoundary extends Component<Props, State> {
       scope.setContext("react", { componentStack: info.componentStack });
       Sentry.captureException(error);
     });
-    if (
-      isStaleChunkMessage(error?.message ?? "") &&
-      sessionStorage.getItem(RELOAD_KEY) !== "1"
-    ) {
-      sessionStorage.setItem(RELOAD_KEY, "1");
-      window.location.reload();
+    // M-22: la guarda anti-bucle (timestamp + máx. 2 recargas por ventana de
+    // 30 s) vive en `@/lib/staleChunkReload` y decide si recargar o rendirse.
+    if (isStaleChunkMessage(error?.message ?? "")) {
+      reloadForStaleChunk();
     }
   }
 
   private handleReload = (): void => {
-    sessionStorage.removeItem(RELOAD_KEY);
+    // Recarga manual explícita del usuario: se permite siempre.
+    clearStaleChunkReloadGuard();
     window.location.reload();
   };
 

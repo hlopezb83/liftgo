@@ -7,6 +7,7 @@ import { getAccessLevel, useRolePermissions, useUserRole } from "@/features/user
 import { AdminRouteGuard } from "@/layouts/AdminRouteGuard";
 import { AuthGuard } from "@/layouts/AuthGuard";
 import MainLayout from "@/layouts/MainLayout";
+import { NoAccess } from "@/layouts/NoAccess";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { RouteErrorElement } from "@/layouts/RouteErrorElement";
 import { appRoutes } from "@/routes/routes-config";
@@ -68,11 +69,20 @@ const LANDING_CANDIDATES: { module: string; path: string }[] = [
  * Debe declararse ANTES que el spread de `appRoutes` (misma ruta "/").
  */
 function HomeRedirect() {
-  const { data: role, isLoading: roleLoading } = useUserRole();
-  const { data: perms, isLoading: permsLoading } = useRolePermissions();
+  const { data: role, isLoading: roleLoading, isError: roleError } = useUserRole();
+  const { data: perms, isLoading: permsLoading, isError: permsError } = useRolePermissions();
   if (roleLoading || permsLoading) return <PageFallback />;
-  if (!role || !perms || getAccessLevel(perms, role, "Dashboard") !== "none") {
-    return <DashboardLazy />;
+  // M-4: fail-closed — si no se pudo verificar rol/permisos, NO renderizar el
+  // Dashboard sin guard (antes el `!role || !perms` caía al Dashboard).
+  if (roleError || permsError) return <NoAccess module="Dashboard" reason="error" />;
+  if (!role) return <NoAccess module="Dashboard" reason="no-role" />;
+  if (!perms || getAccessLevel(perms, role, "Dashboard") !== "none") {
+    // Mismo guard que aplicaría `appRoutes` si Dashboard estuviera declarado ahí.
+    return (
+      <RoleGuard module="Dashboard">
+        <DashboardLazy />
+      </RoleGuard>
+    );
   }
   const target = LANDING_CANDIDATES.find((c) => getAccessLevel(perms, role, c.module) !== "none");
   // /help no tiene guard de módulo — aterrizaje seguro si todo es "none".

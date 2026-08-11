@@ -23,8 +23,20 @@ export interface EntityResults {
 
 const EMPTY: EntityResults = { invoices: [], customers: [], bookings: [] };
 
+/**
+ * M-10: el término se interpola crudo dentro de `.or()` de PostgREST — las
+ * comas/paréntesis/comillas rompen la sintaxis del filtro y `%`/`_` actúan
+ * como wildcards de ILIKE. Se eliminan los caracteres de sintaxis y se
+ * escapan los wildcards (PostgREST usa `\` como escape de LIKE).
+ */
+function sanitizeSearchTerm(term: string): string {
+  return term
+    .replace(/[,"'()]/g, "")
+    .replace(/[\\%_]/g, (ch) => `\\${ch}`);
+}
+
 export async function searchEntities(query: string): Promise<EntityResults> {
-  const q = query.trim();
+  const q = sanitizeSearchTerm(query.trim());
   if (q.length < 2) return EMPTY;
   const like = `%${q}%`;
   const [invRes, custRes, bookRes] = await Promise.all([
@@ -47,6 +59,10 @@ export async function searchEntities(query: string): Promise<EntityResults> {
       .order("created_at", { ascending: false })
       .limit(5),
   ]);
+  // M-10: antes los `.error` se ignoraban y la búsqueda devolvía vacío aunque
+  // las 3 consultas hubieran fallado (falso "sin resultados"). Si TODAS
+  // fallan, propagar el primer error para que la query entre en estado error.
+  if (invRes.error && custRes.error && bookRes.error) throw invRes.error;
   return {
     invoices: (invRes.data ?? []).map((i) => ({
       id: i.id,

@@ -153,7 +153,10 @@ export async function handleRefreshCancellation(
         satStatus = rawCancel;
       }
     } else if (prior === "none") {
-      satStatus = "pending";
+      // M-8: el documento nunca se canceló y el PAC no reporta nada → NO
+      // escribir un cancellation_status='pending' espurio (eso haría creer a
+      // la UI que hay una cancelación en trámite que nunca se solicitó).
+      return json({ success: true, cancellation_status: prior }, 200);
     }
 
     const update: Record<string, unknown> = { cancellation_status: satStatus };
@@ -162,10 +165,15 @@ export async function handleRefreshCancellation(
       update.status = "cancelled";
       update.cancelled_at = new Date().toISOString();
     }
-    await supabase.from(table).update(update).eq(
+    const updRes = await supabase.from(table).update(update).eq(
       "id",
       docId,
     );
+    // M-8: verificar el error del UPDATE — antes un fallo silencioso dejaba
+    // la BD desactualizada mientras la función respondía success.
+    if ((updRes as { error: unknown }).error) {
+      return json({ error: "Failed to update document" }, 500);
+    }
 
     return json({ success: true, cancellation_status: satStatus }, 200);
   } catch (_err) {

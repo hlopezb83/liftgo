@@ -32,10 +32,12 @@ export function useAvailableForklifts(dateRange: DateRange | undefined) {
   const startStr = toYMD(startDate);
   const endStr = toYMD(endDate);
 
-  const { data: availableForklifts = [], isLoading } = useQuery({
+  const { data: availableForklifts = [], isLoading, isSuccess } = useQuery({
     ...availableForkliftsQueries.list({ available: true, startStr, endStr }),
     enabled: datesSelected,
   });
 
-  return { availableForklifts, forklifts: availableForklifts, datesSelected, isLoading };
+  // M-16: `isSuccess` permite a los consumidores distinguir "lista vacía
+  // confirmada" de "aún cargando" (con `data=[]` por defecto ambas lucen igual).
+  return { availableForklifts, forklifts: availableForklifts, datesSelected, isLoading, isSuccess };
 }
