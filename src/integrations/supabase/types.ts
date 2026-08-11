@@ -4355,6 +4355,10 @@ export type Database = {
         }[]
       }
       today_mty: { Args: never; Returns: string }
+      unassign_forklift_from_sale_quote: {
+        Args: { p_assignment_id: string; p_forklift_id: string }
+        Returns: undefined
+      }
       unmatch_bank_line: { Args: { p_line_id: string }; Returns: undefined }
       update_user_role_safe: {
         Args: {
