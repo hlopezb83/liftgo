@@ -1,3 +1,9 @@
+## 7.300.2 - 2026-08-11
+
+- Fix CI (`rls-db-tests`): el step "Start Supabase" fallaba con `ERROR: relation "public.collection_reminders_log" does not exist (SQLSTATE 42P01)` al aplicar `20260515044551` desde cero (la tabla se crea en `20260720011916`).
+- Nuevo `scripts/patch_legacy_migrations.py`: envuelve las sentencias fuera de orden en `DO $$ IF to_regclass(...) IS NOT NULL ... $$` **solo en el checkout del runner**; las migraciones del repo y de producción quedan intactas.
+- El workflow ejecuta el parche antes de `supabase start` y lo incluye en los `paths` que disparan el job.
+
 ## 7.300.1 - 2026-08-11
 
 - Fix (DB_PERMISSION_DENIED en /cuentas-por-pagar): la v7.294.0 revoco EXECUTE a `authenticated` en las funciones de folio, pero `set_supplier_bill_number`, `set_delivery_number` y `set_inspection_number` eran triggers sin SECURITY DEFINER y heredaban el rol del usuario.

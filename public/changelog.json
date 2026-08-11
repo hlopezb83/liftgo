@@ -1,5 +1,16 @@
 [
   {
+    "version": "7.300.2",
+    "date": "2026-08-11",
+    "type": "patch",
+    "title": "CI: los tests de base de datos ya no se caen al reconstruir el historial",
+    "category": "correcciones",
+    "changes": [
+      "El job de pruebas de seguridad de base de datos fallaba siempre al reconstruir la base desde cero: una migración de mayo aplicaba una regla sobre una tabla que en el historial se crea hasta julio.",
+      "Se agregó un paso previo que protege esas sentencias antiguas solo en el servidor de pruebas; producción no cambia."
+    ]
+  },
+  {
     "version": "7.300.1",
     "date": "2026-08-11",
     "type": "patch",

@@ -12,6 +12,7 @@ on:
       - "supabase/**"
       - "src/**"
       - "scripts/run_sql_suites.py"
+      - "scripts/patch_legacy_migrations.py"
       - ".github/workflows/rls-db-tests.yml"
   push:
     branches: [main]
@@ -19,6 +20,7 @@ on:
       - "supabase/**"
       - "src/**"
       - "scripts/run_sql_suites.py"
+      - "scripts/patch_legacy_migrations.py"
       - ".github/workflows/rls-db-tests.yml"
   workflow_dispatch:
 
@@ -73,6 +75,13 @@ jobs:
       # `pgbouncer` ya no existe (se reemplazó por supavisor) y hacía que el
       # arranque no fuera el esperado. `gotrue` se conserva porque las suites
       # RLS necesitan el schema `auth` poblado.
+      # Algunas migraciones históricas se escribieron contra producción, donde
+      # la tabla referenciada ya existía por otro camino. Desde cero fallan con
+      # 42P01 y tumban el job antes de correr un test. Este script envuelve esas
+      # sentencias en un guard `to_regclass(...)` SOLO en el checkout del runner.
+      - name: Parchar migraciones fuera de orden (solo en el runner)
+        run: python3 scripts/patch_legacy_migrations.py
+
       - name: Start Supabase (solo DB + auth)
         continue-on-error: false
         timeout-minutes: 15
