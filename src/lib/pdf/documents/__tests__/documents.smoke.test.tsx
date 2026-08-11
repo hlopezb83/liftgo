@@ -224,4 +224,21 @@ describe("PDF Documents — smoke", () => {
     );
     expect(html).not.toContain("ROSA MARTINEZ");
   });
+
+  it("imprime 'Firmado por' en el recuadro de EL ARRENDATARIO", () => {
+    const html = snap(
+      <ContractDocument
+        mode="contract"
+        contract={{ ...contract, signed_by: "MAHA MESTASSI" }}
+        tpl={template}
+        vars={{ ciudad: "Monterrey" }}
+        logoBase64={null}
+        company={company}
+        customer={{ name: "Cliente Demo SA", representante_legal: "Juan Pérez", contact_person: null, address: "Calle X 123", rfc: "XAXX010101000" }}
+        forklift={{ manufacturer: "Toyota", model: "8FGCU25", serial_number: "SN-001", fuel_type: "lpg" }}
+      />,
+    );
+    expect(html).toContain("MAHA MESTASSI");
+    expect(html).toContain("Juan Pérez");
+  });
 });

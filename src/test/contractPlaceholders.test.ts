@@ -46,6 +46,26 @@ describe("buildPlaceholderVars", () => {
     expect(vars.ciudad).toBe("Monterrey, N.L.");
   });
 
+  it("respeta un interés moratorio de 0% y expone firmado_por", () => {
+    const vars = buildPlaceholderVars(
+      { ...baseContract, late_interest_rate: 0, signed_by: "MAHA MESTASSI", max_hours_per_month: 0 },
+      null,
+      null,
+      null,
+    );
+    expect(vars.interes_moratorio).toBe("0");
+    expect(vars.horas_max).toBe("0");
+    expect(vars.firmado_por).toBe("MAHA MESTASSI");
+  });
+
+  it("usa 5% de interés cuando el dato no está capturado", () => {
+    const vars = buildPlaceholderVars(
+      { ...baseContract, late_interest_rate: null } as unknown as ContractData,
+      null, null, null,
+    );
+    expect(vars.interes_moratorio).toBe("5");
+  });
+
   it("reemplaza placeholders en una plantilla de contrato", () => {
     const vars = buildPlaceholderVars(
       baseContract,
