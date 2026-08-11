@@ -44,10 +44,7 @@ setup("authenticate as admin", async ({ page, baseURL }) => {
       window.localStorage.setItem(key, value);
       window.localStorage.setItem("liftgo:e2e-visible", "1");
     },
-    [
-      `sb-${new URL(session.user.aud === "" ? url : url).hostname.split(".")[0]}-auth-token`,
-      JSON.stringify(session),
-    ] as const,
+    [supabaseEnv().storageKey, JSON.stringify(session)] as const,
   );
   // Recargamos con la sesión ya presente y exigimos el shell autenticado.
   await page.goto("/", { waitUntil: "domcontentloaded" });
