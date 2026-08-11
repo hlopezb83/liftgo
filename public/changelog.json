@@ -1,5 +1,17 @@
 [
   {
+    "version": "7.296.0",
+    "date": "2026-08-11",
+    "type": "minor",
+    "title": "Cobertura de pruebas de seguridad para 12 áreas más",
+    "category": "quality",
+    "changes": [
+      "Nuevas pruebas automáticas de reglas de acceso para rentas, entregas, mantenimiento, bitácoras, cobranza, extensiones, cotizaciones (back-office), plantillas de contrato, control de abuso y archivos del bucket de documentos",
+      "Cada prueba verifica: sin sesión no se ve nada, el cliente del portal solo ve lo suyo, el personal ve según su matriz de permisos y los procesos automáticos según corresponde",
+      "Se corrigió una prueba existente de cotizaciones que usaba un nombre de columna obsoleto"
+    ]
+  },
+  {
     "version": "7.295.0",
     "date": "2026-08-11",
     "type": "minor",

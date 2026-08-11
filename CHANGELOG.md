@@ -1,3 +1,10 @@
+## 7.296.0 - 2026-08-11
+
+- Tests: 12 suites RLS SQL nuevas en `supabase/tests/rls/` — bookings, deliveries, maintenance_logs, status_logs, activity_feed, collection_notes, collection_reminders_log, booking_extensions, quotes (back-office), contract_templates, rate_limits y storage.objects (bucket `documents`).
+- Cada suite cubre anon, cliente del portal, staff según `role_permissions` y service_role donde aplica; todas terminan en `ROLLBACK;`.
+- Fix: `quotes_portal.sql` usaba `customers.portal_user_id`, columna inexistente; ahora usa `customers.user_id` (convención desactualizada, no un bug de policy).
+- Docs: `supabase/tests/rls/README.md` actualizado con las 33 suites y la convención de cambio de rol (`RESET ROLE`).
+
 ## 7.295.0 - 2026-08-11
 
 - CI: nuevo workflow `.github/workflows/rls-db-tests.yml` (job `rls-db-tests`) — Fase 2 de supabase/tests/rls/README.md.
