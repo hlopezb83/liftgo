@@ -130,7 +130,7 @@ export function DragDropImageUploader({ entityType, entityId, maxFiles = 10, cla
         <>
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
             {previews.map((p, i) => (
-              <div key={i} className="relative group aspect-square rounded-lg overflow-hidden border border-border">
+              <div key={p.id} className="relative group aspect-square rounded-lg overflow-hidden border border-border">
                 <img src={p.url} alt={`Preview ${i + 1}`} className="w-full h-full object-cover" />
                 <button
                   type="button"
