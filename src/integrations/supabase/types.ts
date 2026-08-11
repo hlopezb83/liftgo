@@ -4059,7 +4059,10 @@ export type Database = {
       is_admin_or_administrativo: { Args: never; Returns: boolean }
       is_backoffice: { Args: never; Returns: boolean }
       is_e2e_actor_email: { Args: { p_email: string }; Returns: boolean }
+      is_inventory_reader: { Args: never; Returns: boolean }
+      is_maintenance_reader: { Args: never; Returns: boolean }
       is_ops_staff: { Args: never; Returns: boolean }
+      is_parts_writer: { Args: never; Returns: boolean }
       is_staff: { Args: never; Returns: boolean }
       list_invoices_with_balance: {
         Args: {
