@@ -1,0 +1,9 @@
+{
+  "description": "Los encabezados de las pantallas de detalle y edición se unificaron: 'Volver' en su propio renglón, contenido centrado en escritorio y folio visible en modo edición.",
+  "changes": [
+    "El botón 'Volver' ya no compite con el título: va en su propio renglón, arriba",
+    "Las páginas de formulario y detalle se centran en pantallas anchas",
+    "En edición se muestra el folio del registro (ej. CTR-0003) debajo del título",
+    "El detalle de contrato ya muestra 'Interés Moratorio 0%' en vez de ocultarlo"
+  ]
+}

@@ -7,8 +7,11 @@ import type { ContractData } from "./ContractPDFButton";
  * Aislado del componente página para reducir su complejidad ciclomática.
  */
 export function ContractConditionsCard({ contract }: { contract: ContractData }) {
+  // v7.302.2: comparar contra null/undefined — un `0` capturado es un dato
+  // válido y antes desaparecía junto con su etiqueta.
+  const has = (v: unknown) => v !== null && v !== undefined && v !== "";
   const visible =
-    contract.usage_location || contract.max_hours_per_month || contract.payment_frequency;
+    has(contract.usage_location) || has(contract.max_hours_per_month) || has(contract.payment_frequency);
   if (!visible) return null;
 
   return (
@@ -22,16 +25,16 @@ export function ContractConditionsCard({ contract }: { contract: ContractData })
               {contract.usage_location}
             </div>
           )}
-          {contract.max_hours_per_month && (
+          {has(contract.max_hours_per_month) && (
             <div><span className="text-muted-foreground block">Horas Máx/Mes</span>{contract.max_hours_per_month}</div>
           )}
-          {contract.extra_hour_rate && (
+          {has(contract.extra_hour_rate) && (
             <div><span className="text-muted-foreground block">Tarifa Hora Extra</span>{formatCurrency(Number(contract.extra_hour_rate))}</div>
           )}
           {contract.payment_frequency && (
             <div><span className="text-muted-foreground block">Frecuencia de Pago</span>{contract.payment_frequency}</div>
           )}
-          {contract.late_interest_rate && (
+          {has(contract.late_interest_rate) && (
             <div><span className="text-muted-foreground block">Interés Moratorio</span>{contract.late_interest_rate}%</div>
           )}
           {contract.witness_1 && (

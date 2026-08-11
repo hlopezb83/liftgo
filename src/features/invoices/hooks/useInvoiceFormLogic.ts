@@ -106,6 +106,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId }: UseInvoiceFormLogicArgs
 
   return {
     form, isEdit, id, fromQuoteId,
+    invoiceNumber: existing?.invoice_number ?? null,
     customers, availableBookings,
     sourceQuote,
     saleAssignmentGuard,

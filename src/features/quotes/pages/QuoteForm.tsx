@@ -20,7 +20,10 @@ export default function QuoteForm() {
 
   return (
     <PageContainer maxWidth="form">
-      <FormPageHeader title={f.id ? "Editar cotización" : "Nueva cotización"} />
+      <FormPageHeader
+        title={f.id ? "Editar cotización" : "Nueva cotización"}
+        subtitle={f.id ? f.quoteNumber ?? undefined : undefined}
+      />
       <Form {...form}>
         <form onSubmit={f.handleSubmit} className="space-y-6">
           <QuoteTypeCard value={f.quoteType} onChange={f.handleTypeChange} />
