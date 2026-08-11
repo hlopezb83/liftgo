@@ -1,3 +1,10 @@
+## 7.300.1 - 2026-08-11
+
+- Fix (DB_PERMISSION_DENIED en /cuentas-por-pagar): la v7.294.0 revoco EXECUTE a `authenticated` en las funciones de folio, pero `set_supplier_bill_number`, `set_delivery_number` y `set_inspection_number` eran triggers sin SECURITY DEFINER y heredaban el rol del usuario.
+- Los tres triggers de folio pasan a `SECURITY DEFINER` con `SET search_path = public`.
+- `next_supplier_bill_number`, `next_contract_number` y `next_quote_number` (llamadas por RPC desde la app) llevan guard `is_staff()` y recuperan `GRANT EXECUTE` a `authenticated`; sin acceso para `anon` ni portal.
+- Nueva suite `supabase/tests/rls/folio_functions.sql` (36 suites en total).
+
 ## 7.300.0 - 2026-08-11
 
 - Tests E2E: fuera `auth.spec.ts`, `quote-to-booking.spec.ts`, `booking-to-invoice.spec.ts` y `accounts-payable.spec.ts` (redundantes); sus asserts se movieron a `full-flow.spec.ts` y `smoke-nav.spec.ts`.
