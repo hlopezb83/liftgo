@@ -2,7 +2,7 @@ import { parseISO } from "date-fns";
 import { Controller } from "react-hook-form";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
@@ -124,7 +124,14 @@ export function UsageConditionsCard({ control }: { control: Ctrl }) {
             </FormItem>
           )} />
           <FormField control={control} name="late_interest_rate" render={({ field }) => (
-            <FormItem><FormLabel>Interés Moratorio (%)</FormLabel><FormControl><Input type="number" step="0.1" placeholder="Ej. 5" {...field} /></FormControl><FormMessage /></FormItem>
+            <FormItem>
+              <FormLabel>Interés Moratorio (%)</FormLabel>
+              <FormControl><Input type="number" step="0.1" placeholder="Ej. 5" {...field} /></FormControl>
+              {Number(field.value) === 0 && field.value !== "" && (
+                <FormDescription>Se imprimirá 0% en el contrato y en el pagaré.</FormDescription>
+              )}
+              <FormMessage />
+            </FormItem>
           )} />
           <FormField control={control} name="contract_city" render={({ field }) => (
             <FormItem>
