@@ -1,0 +1,8 @@
+{
+  "description": "El enlace de recuperación de un solo uso ya no se pierde: se muestra de forma persistente en el diálogo de restablecimiento con un botón para copiarlo, y el toast ahora dura 15 segundos con acción de copiado.",
+  "changes": [
+    "SetPasswordDialog muestra el enlace generado hasta que el admin cierra el diálogo",
+    "Botón Copiar enlace en diálogo y toast",
+    "useResetPassword: durationMs 15s + action de copiado"
+  ]
+}

@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.287.3",
+    "date": "2026-08-11",
+    "type": "patch",
+    "title": "Enlace de recuperación persistente al restablecer contraseña",
+    "category": "fix",
+    "description": "El enlace de un solo uso ahora se muestra dentro del diálogo con botón para copiarlo, y el toast dura 15 segundos e incluye la acción \"Copiar enlace\".",
+    "changes": [
+      "El diálogo permanece abierto mostrando el enlace generado",
+      "Botón Copiar enlace en el diálogo y en el toast",
+      "Toast extendido a 15 segundos"
+    ]
+  },
+  {
     "version": "7.287.2",
     "date": "2026-08-11",
     "type": "patch",
