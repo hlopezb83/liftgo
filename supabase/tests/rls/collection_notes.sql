@@ -20,11 +20,11 @@ INSERT INTO public.customers (id, name, user_id) VALUES
   ('c0000006-0000-4000-8000-0000000000c1', 'Cliente CN', 'c0000006-0000-4000-8000-000000000004');
 
 INSERT INTO public.invoices (id, invoice_number, customer_id, customer_name, total) VALUES
-  ('c0000006-0000-4000-8000-0000000000i1', 'FAC-CN-1',
+  ('c0000006-0000-4000-8000-0000000000b1', 'FAC-CN-1',
    'c0000006-0000-4000-8000-0000000000c1', 'Cliente CN', 1000);
 
 INSERT INTO public.collection_notes (id, invoice_id, note) VALUES
-  ('c0000006-0000-4000-8000-0000000000a1', 'c0000006-0000-4000-8000-0000000000i1',
+  ('c0000006-0000-4000-8000-0000000000a1', 'c0000006-0000-4000-8000-0000000000b1',
    'El cliente promete pago el viernes');
 
 -- 1) anon: sin acceso.
@@ -64,7 +64,7 @@ BEGIN
 
   BEGIN
     INSERT INTO public.collection_notes (invoice_id, note)
-    VALUES ('c0000006-0000-4000-8000-0000000000i1', 'nota de ventas');
+    VALUES ('c0000006-0000-4000-8000-0000000000b1', 'nota de ventas');
   EXCEPTION WHEN insufficient_privilege OR check_violation THEN
     v_blocked := true;
   END;
@@ -105,7 +105,7 @@ DO $$
 DECLARE v_rows int;
 BEGIN
   INSERT INTO public.collection_notes (invoice_id, note)
-  VALUES ('c0000006-0000-4000-8000-0000000000i1', 'Seguimiento administrativo');
+  VALUES ('c0000006-0000-4000-8000-0000000000b1', 'Seguimiento administrativo');
   GET DIAGNOSTICS v_rows = ROW_COUNT;
   IF v_rows <> 1 THEN
     RAISE EXCEPTION 'RLS ROTA: administrativo deberia poder crear notas de cobranza';

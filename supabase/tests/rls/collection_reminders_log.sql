@@ -21,11 +21,11 @@ INSERT INTO public.customers (id, name, user_id) VALUES
   ('c1000007-0000-4000-8000-0000000000c1', 'Cliente CRL', 'c1000007-0000-4000-8000-000000000004');
 
 INSERT INTO public.invoices (id, invoice_number, customer_id, customer_name, total) VALUES
-  ('c1000007-0000-4000-8000-0000000000i1', 'FAC-CRL-1',
+  ('c1000007-0000-4000-8000-0000000000b1', 'FAC-CRL-1',
    'c1000007-0000-4000-8000-0000000000c1', 'Cliente CRL', 500);
 
 INSERT INTO public.collection_reminders_log (id, invoice_id, reminder_type, recipient_email) VALUES
-  ('c1000007-0000-4000-8000-0000000000a1', 'c1000007-0000-4000-8000-0000000000i1',
+  ('c1000007-0000-4000-8000-0000000000a1', 'c1000007-0000-4000-8000-0000000000b1',
    'vencida', 'cobranza@test.local');
 
 -- 1) anon: sin acceso (los correos de contacto no se filtran).
@@ -77,7 +77,7 @@ BEGIN
 
   BEGIN
     INSERT INTO public.collection_reminders_log (invoice_id, reminder_type, recipient_email)
-    VALUES ('c1000007-0000-4000-8000-0000000000i1', 'falso', 'hack@test.local');
+    VALUES ('c1000007-0000-4000-8000-0000000000b1', 'falso', 'hack@test.local');
   EXCEPTION WHEN insufficient_privilege OR check_violation THEN
     v_blocked := true;
   END;
@@ -119,7 +119,7 @@ DO $$
 DECLARE v_rows int;
 BEGIN
   INSERT INTO public.collection_reminders_log (invoice_id, reminder_type, recipient_email)
-  VALUES ('c1000007-0000-4000-8000-0000000000i1', 'proxima', 'cobranza@test.local');
+  VALUES ('c1000007-0000-4000-8000-0000000000b1', 'proxima', 'cobranza@test.local');
   GET DIAGNOSTICS v_rows = ROW_COUNT;
   IF v_rows <> 1 THEN
     RAISE EXCEPTION 'ROTO: service_role deberia poder registrar recordatorios';

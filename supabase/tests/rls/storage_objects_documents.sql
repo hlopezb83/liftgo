@@ -23,16 +23,16 @@ INSERT INTO public.customers (id, name, user_id) VALUES
   ('50000012-0000-4000-8000-0000000000c2', 'Cliente B SO', '50000012-0000-4000-8000-000000000004');
 
 INSERT INTO public.invoices (id, invoice_number, customer_id, customer_name, total) VALUES
-  ('50000012-0000-4000-8000-0000000000i1', 'FAC-SO-A',
+  ('50000012-0000-4000-8000-0000000000e1', 'FAC-SO-A',
    '50000012-0000-4000-8000-0000000000c1', 'Cliente A SO', 100),
-  ('50000012-0000-4000-8000-0000000000i2', 'FAC-SO-B',
+  ('50000012-0000-4000-8000-0000000000e2', 'FAC-SO-B',
    '50000012-0000-4000-8000-0000000000c2', 'Cliente B SO', 100);
 
 -- Documentos: uno del cliente A, uno del cliente B y uno interno de equipo.
 INSERT INTO public.documents (id, entity_type, entity_id, file_name, file_url) VALUES
-  ('50000012-0000-4000-8000-0000000000d1', 'invoice', '50000012-0000-4000-8000-0000000000i1',
+  ('50000012-0000-4000-8000-0000000000d1', 'invoice', '50000012-0000-4000-8000-0000000000e1',
    'factura-a.pdf', 'documents/invoice/50000012-a/factura.pdf'),
-  ('50000012-0000-4000-8000-0000000000d2', 'invoice', '50000012-0000-4000-8000-0000000000i2',
+  ('50000012-0000-4000-8000-0000000000d2', 'invoice', '50000012-0000-4000-8000-0000000000e2',
    'factura-b.pdf', 'documents/invoice/50000012-b/factura.pdf'),
   ('50000012-0000-4000-8000-0000000000d3', 'forklift', gen_random_uuid(),
    'manual.pdf', 'documents/forklift/50000012-f1/manual.pdf');

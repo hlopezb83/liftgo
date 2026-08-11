@@ -22,9 +22,9 @@ INSERT INTO public.customers (id, name, user_id) VALUES
   ('40000009-0000-4000-8000-0000000000c2', 'Otro Cliente QB', NULL);
 
 INSERT INTO public.quotes (id, customer_id, quote_number, status, subtotal, tax_amount, total) VALUES
-  ('40000009-0000-4000-8000-0000000000q1', '40000009-0000-4000-8000-0000000000c1',
+  ('40000009-0000-4000-8000-0000000000e1', '40000009-0000-4000-8000-0000000000c1',
    'COT-QB-1', 'draft', 1000, 160, 1160),
-  ('40000009-0000-4000-8000-0000000000q2', '40000009-0000-4000-8000-0000000000c2',
+  ('40000009-0000-4000-8000-0000000000e2', '40000009-0000-4000-8000-0000000000c2',
    'COT-QB-2', 'draft', 2000, 320, 2320);
 
 -- 1) anon: sin acceso al pipeline comercial.
@@ -54,7 +54,7 @@ BEGIN
 
   BEGIN
     UPDATE public.quotes SET total = 1
-     WHERE id = '40000009-0000-4000-8000-0000000000q1';
+     WHERE id = '40000009-0000-4000-8000-0000000000e1';
     GET DIAGNOSTICS v_rows = ROW_COUNT;
   EXCEPTION WHEN insufficient_privilege OR check_violation THEN
     v_rows := 0;
@@ -87,7 +87,7 @@ BEGIN
 
   BEGIN
     UPDATE public.quotes SET status = 'accepted'
-     WHERE id = '40000009-0000-4000-8000-0000000000q1';
+     WHERE id = '40000009-0000-4000-8000-0000000000e1';
     GET DIAGNOSTICS v_rows = ROW_COUNT;
   EXCEPTION WHEN insufficient_privilege OR check_violation THEN
     v_rows := 0;
@@ -109,7 +109,7 @@ BEGIN
   END IF;
 
   BEGIN
-    DELETE FROM public.quotes WHERE id = '40000009-0000-4000-8000-0000000000q2';
+    DELETE FROM public.quotes WHERE id = '40000009-0000-4000-8000-0000000000e2';
     GET DIAGNOSTICS v_rows = ROW_COUNT;
   EXCEPTION WHEN insufficient_privilege OR check_violation THEN
     v_rows := 0;
@@ -134,7 +134,7 @@ BEGIN
   END IF;
 
   UPDATE public.quotes SET subtotal = 1500
-   WHERE id = '40000009-0000-4000-8000-0000000000q1';
+   WHERE id = '40000009-0000-4000-8000-0000000000e1';
   GET DIAGNOSTICS v_rows = ROW_COUNT;
   IF v_rows <> 1 THEN
     RAISE EXCEPTION 'RLS ROTA: ventas deberia poder editar cotizaciones';
