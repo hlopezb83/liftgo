@@ -39,7 +39,7 @@ describe("FIX-R3-05 · las mutaciones invalidan reportKeys.all", () => {
     const { result } = renderHook(() => useCreatePayment(), { wrapper: Wrapper });
     result.current.mutate({ invoice_id: "i-1", amount: 100, payment_date: "2026-08-10" });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(invalidatedKeys(spy).some((k) => k?.includes("report"))).toBe(true);
+    expect(invalidatedKeys(spy).some((k) => k.includes("report"))).toBe(true);
   });
 
   it("cambiar el estatus de una unidad invalida los reportes", async () => {
@@ -48,6 +48,6 @@ describe("FIX-R3-05 · las mutaciones invalidan reportKeys.all", () => {
     const { result } = renderHook(() => useUpdateStatus(), { wrapper: Wrapper });
     result.current.mutate({ forkliftId: "f-1", toStatus: "maintenance", note: "servicio" });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(invalidatedKeys(spy).some((k) => k?.includes("report"))).toBe(true);
+    expect(invalidatedKeys(spy).some((k) => k.includes("report"))).toBe(true);
   });
 });
