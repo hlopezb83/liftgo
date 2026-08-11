@@ -19,6 +19,8 @@ interface ForkliftInfo {
 
 const fmtDate = (d?: string | null) => (d ? (formatDateDisplay(d) || "[Fecha]") : "[Fecha]");
 const num = (v: number | string | null | undefined) => Number(v || 0);
+/** v7.302.1: respeta el 0 capturado (antes `|| fallback` lo trataba como vacío). */
+const numOr = (v: number | null | undefined, fallback: number): number => (v == null ? fallback : v);
 
 /**
  * v7.282.0: el domicilio del cliente se normaliza (limpia relleno del catálogo
@@ -57,8 +59,8 @@ function buildPartyVars(contract: ContractData, company: CompanyInfo | null, cus
 function buildUsageVars(contract: ContractData) {
   return {
     ubicacion: contract.usage_location || "[Dirección]",
-    horas_max: String(contract.max_hours_per_month || "—"),
-    tarifa_extra: formatCurrency(num(contract.extra_hour_rate)),
+    horas_max: contract.max_hours_per_month == null ? "—" : String(contract.max_hours_per_month),
+    tarifa_extra: formatCurrency(contract.extra_hour_rate ?? 0),
     fecha_inicio: fmtDate(contract.start_date),
     fecha_fin: fmtDate(contract.end_date),
   };
@@ -70,7 +72,7 @@ function buildPricingVars(contract: ContractData) {
     tarifa_semanal: formatCurrency(num(contract.weekly_rate)),
     tarifa_mensual: formatCurrency(num(contract.monthly_rate)),
     deposito: formatCurrency(num(contract.deposit_amount)),
-    interes_moratorio: String(contract.late_interest_rate || 5),
+    interes_moratorio: String(numOr(contract.late_interest_rate, 5)),
     frecuencia_pago: contract.payment_frequency || "Mensual",
   };
 }
@@ -105,6 +107,7 @@ export function buildPlaceholderVars(
     ...buildUsageVars(contract),
     ...buildPricingVars(contract),
     ...buildEquipmentVars(forklift),
+    firmado_por: contract.signed_by || "",
     ciudad: contract.contract_city || "San Pedro Garza García, N.L.",
     fecha_firma: signing ? fmtDate(signing) : "[Fecha de firma]",
     vencimiento_pagare: fmtDate(contract.end_date),
