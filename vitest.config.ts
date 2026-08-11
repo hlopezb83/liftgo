@@ -48,7 +48,9 @@ export default defineConfig({
       ? ["default", ["junit", { outputFile: "reports/vitest-junit.xml" }], ["json", { outputFile: "reports/vitest.json" }]]
       : ["default"],
     coverage: {
-      reporter: ["text", "html", "lcov"],
+      // json-summary + json: los consume davelosert/vitest-coverage-report-action
+      // para comentar la cobertura en el PR (job tests-merge).
+      reporter: ["text", "html", "lcov", "json-summary", "json"],
       reportsDirectory: "reports/coverage",
       include: ["src/**/*.{ts,tsx}"],
       exclude: ["src/**/*.test.{ts,tsx}", "src/test/**", "src/integrations/supabase/types.ts"],

@@ -311,6 +311,18 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
 
+      # E3: comentario de cobertura en el PR a partir del mismo reporte que se
+      # sube como artifact `coverage-report` (json-summary + json-final).
+      # Solo aplica en la corrida completa: en modo `--changed` no se genera
+      # cobertura y el comentario sería engañoso.
+      - name: Comentar cobertura en el PR
+        if: github.event_name == 'pull_request' && needs.changes.outputs.vitest_mode == 'full'
+        uses: davelosert/vitest-coverage-report-action@8b157684c6a6b259b97d45e72b44242865c0f6a5 # v2.12.2
+        with:
+          json-summary-path: reports/coverage/coverage-summary.json
+          json-final-path: reports/coverage/coverage-final.json
+          file-coverage-mode: changes
+
       - name: Upload Vitest reports
         if: always()
         uses: actions/upload-artifact@v7
