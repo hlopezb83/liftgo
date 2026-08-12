@@ -3,7 +3,7 @@ import { replacePlaceholders } from "@/lib/domain/templateUtils";
 import type { ContractData } from "@/lib/pdf/contract/fetchers";
 import { DEFAULT_PAGARE } from "@/lib/pdf/contract/data-templates";
 import { CONTRACT_PLACEHOLDERS } from "@/lib/pdf/contract/placeholderRegistry";
-import { buildPlaceholderVars } from "@/lib/pdf/contract/placeholders";
+import { buildPagareVars, buildPlaceholderVars } from "@/lib/pdf/contract/placeholders";
 
 const baseContract: ContractData = {
   id: "ct1",
