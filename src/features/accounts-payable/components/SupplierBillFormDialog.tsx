@@ -6,7 +6,7 @@ import { FormActions } from "@/components/forms/FormActions";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormSection } from "@/components/forms/FormSection";
 import { Form } from "@/components/ui/form";
-import { useCxpApprovalThreshold } from "@/features/company-settings/hooks/useCxpApprovalThreshold";
+import { useCxpApprovalThreshold } from "@/features/company-settings";
 import { nowMty } from "@/lib/utils";
 import { useImportSupplierBillCfdi } from "../hooks/useImportSupplierBillCfdi";
 import { useSupplierBillForm, type SupplierBillFormOverrides } from "../hooks/useSupplierBillForm";

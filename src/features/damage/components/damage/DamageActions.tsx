@@ -3,13 +3,13 @@ import { useState } from "react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateMaintenanceLog } from "@/features/maintenance";
-import { maintenanceLogKeys } from "@/features/maintenance/lib/queryKeys";
+import { maintenanceLogKeys } from "@/features/maintenance";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { supabase } from "@/integrations/supabase/client";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import type { DamageRecordWithJoins } from "@/types/rental";
 import { damageArchiveBlockReason, useDamagePermissions } from "../../hooks/useDamagePermissions";
 import { damageRecordQueries, useArchiveDamageRecord, useUpdateDamageRecord } from "../../hooks/useDamageRecords";
+import { useStartRepairWorkOrder } from "../../hooks/useStartRepairWorkOrder";
 import { chargeableDamageCost } from "../../lib/chargeableDamageCost";
 import { DamageActionButtons, DamageBlockReasons } from "./DamageActionButtons";
 
@@ -19,29 +19,6 @@ interface DamageActionsProps {
   onClose?: () => void;
 }
 
-/**
- * GUI-FE-06d (G-MEC-03): intenta el RPC atómico `start_repair_work_order`
- * (GUI-DB-09: INSERT maintenance_log + UPDATE damage_record en una sola
- * transacción, SECURITY DEFINER → también funciona para mechanic, G-MEC-02).
- * Devuelve `false` si la función aún no existe en este entorno para que el
- * caller use el flujo legado; lanza cualquier otro error real.
- */
-async function tryStartRepairWorkOrderRpc(record: DamageRecordWithJoins): Promise<boolean> {
-  const { error } = await supabase.rpc("start_repair_work_order", {
-    p_damage_id: record.id,
-    p_service_type: "Reparación de Daño",
-    p_description: record.description,
-    p_estimated_cost: record.estimated_cost ?? 0,
-  });
-  if (!error) return true;
-  const missingRpc =
-    error.code === "PGRST202" ||
-    error.code === "42883" ||
-    /schema cache|could not find the function/i.test(error.message ?? "");
-  if (missingRpc) return false;
-  throw error;
-}
-
 export function DamageActions({ record, onClose }: DamageActionsProps) {
   const navigate = useNavigateTransition();
   const { user } = useAuth();
@@ -49,6 +26,7 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
   const updateDamage = useUpdateDamageRecord();
   const createMaintenance = useCreateMaintenanceLog();
   const archiveDamage = useArchiveDamageRecord();
+  const { tryStartRepairWorkOrder } = useStartRepairWorkOrder();
   const [archiveOpen, setArchiveOpen] = useState(false);
 
   const { canManageDamage, canChargeDamage, damageBlockReason, chargeBlockReason } = useDamagePermissions();
@@ -56,7 +34,7 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
 
   const handleCreateWorkOrder = async () => {
     try {
-      const handledByRpc = await tryStartRepairWorkOrderRpc(record);
+      const handledByRpc = await tryStartRepairWorkOrder(record);
       if (handledByRpc) {
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: damageRecordQueries.keys.all }),

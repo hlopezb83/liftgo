@@ -1,4 +1,4 @@
-import { cashFlowProjectionQueries } from "@/features/cash-flow/lib/queryKeys";
+import { cashFlowProjectionQueries } from "@/features/cash-flow";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { callRpc } from "@/lib/rpc";
 import { exportablePayableQueries } from "./useExportablePayables";

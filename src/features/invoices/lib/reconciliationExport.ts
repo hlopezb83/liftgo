@@ -1,6 +1,6 @@
 // R-Perf P2-8: import dinámico para no cargar 106 KB gz al montar la ruta.
 import { format } from "date-fns";
-import { isFxMissing } from "@/features/cash-flow/lib/cashFlowTransformers";
+import { isFxMissing } from "@/features/cash-flow";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { toMxn } from "@/lib/money";
 import { nowMty } from "@/lib/utils";

@@ -1,5 +1,17 @@
 [
   {
+    "version": "7.306.1",
+    "date": "2026-08-12",
+    "type": "patch",
+    "title": "arch-check verde",
+    "category": "arquitectura",
+    "changes": [
+      "Se agrega src/lib/domain/stateMachines.ts al allowlist congelado de scripts/arch-check.sh",
+      "Se eliminan imports directos de Supabase en componentes/páginas (DamageActions, InvoiceForm) moviendo la lógica a hooks",
+      "Se eliminan 17 cross-feature deep imports creando barrels para cash-flow y reports y ampliando contracts/maintenance"
+    ]
+  },
+  {
     "version": "7.305.1",
     "date": "2026-08-12",
     "type": "patch",

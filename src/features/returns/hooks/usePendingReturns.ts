@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { bookingKeys } from "@/features/bookings/lib/queryKeys";
+import { bookingKeys } from "@/features/bookings";
 import { supabase } from "@/integrations/supabase/client";
 import { toYMD } from "@/lib/date/toYMD";
 import { e2eVisibilityFilter } from "@/lib/supabase/constants";

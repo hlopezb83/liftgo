@@ -10,17 +10,18 @@ import { Form, FormControl, FormField, FormItem, FormMessage } from "@/component
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { useUnsavedChangesGuard } from "@/hooks/useUnsavedChangesGuard";
-import { supabase } from "@/integrations/supabase/client";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { notifySuccess } from "@/lib/ui/appFeedback";
 import { CfdiFieldsCard } from "../components/invoice-form/CfdiFieldsCard";
 import { EditableLineItemsTable } from "../components/invoice-form/EditableLineItemsTable";
 import { InvoiceDetailsCard } from "../components/invoice-form/InvoiceDetailsCard";
 import { SaleAssignmentBlocked } from "../components/invoice-form/SaleAssignmentBlocked";
+import { useCloseDamageOnInvoice } from "../hooks/useCloseDamageOnInvoice";
 import { useDamagePrefill } from "../hooks/useDamagePrefill";
 import { useInvoiceFormLogic } from "../hooks/useInvoiceFormLogic";
 import type { InvoiceFormValues } from "../lib/invoiceFormSchema";
 
 export default function InvoiceForm() {
+  const { closeDamageOnInvoice } = useCloseDamageOnInvoice();
   const navigate = useNavigateTransition();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
@@ -76,21 +77,7 @@ export default function InvoiceForm() {
             // trazabilidad de qué factura cubre el daño.
             // FIX-03 (H9): UPDATE condicional — solo cierra el daño si nadie
             // lo facturó antes. Si afecta 0 filas, otro proceso ya lo facturó.
-            const { data: closedRows, error: closeError } = await supabase
-              .from("damage_records")
-              .update({ status: "invoiced", invoice_id: data.id })
-              .eq("id", damageId)
-              .neq("status", "invoiced")
-              .is("invoice_id", null)
-              .select("id");
-            if (closeError) {
-              notifyError({ error: closeError, title: `Factura ${data.invoice_number} creada, pero no se pudo ligar el daño` });
-            } else if (!closedRows || closedRows.length === 0) {
-              notifyError({
-                title: "Este daño ya fue facturado",
-                error: new Error(`La factura ${data.invoice_number} puede ser un duplicado: otro proceso ya marcó el daño como facturado. Verifica y cancela la que sobre.`),
-              });
-            }
+            await closeDamageOnInvoice(damageId, data.id, data.invoice_number);
           }
           if (f.fromQuoteId) f.updateQuote.mutate({ id: f.fromQuoteId, status: "accepted" });
           finalize(`Factura ${data.invoice_number} creada`, data.id);

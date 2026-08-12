@@ -1,5 +1,5 @@
 import { queryOptions, useInfiniteQuery, useQuery, useQueryClient } from "@tanstack/react-query";
-import { reportKeys } from "@/features/reports/lib/queryKeys";
+import { reportKeys } from "@/features/reports";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { todayKeyMty } from "@/lib/format/dateFormats";

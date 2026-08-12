@@ -1,5 +1,5 @@
 import { forkliftKeys } from "@/features/fleet";
-import { reportKeys } from "@/features/reports/lib/queryKeys";
+import { reportKeys } from "@/features/reports";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
