@@ -94,6 +94,58 @@ def patch_file(path: Path, relation: str, write: bool) -> bool:
         path.write_text("".join(pieces))
     return changed
 
+# --- Guard de GRANT/REVOKE sobre funciones que aún no existen -----------------
+# Varias migraciones antiguas revocan EXECUTE sobre funciones creadas en
+# migraciones POSTERIORES (p. ej. public.create_notification, creada el
+# 20260720, revocada el 20260608). En la nube ya existían por otro camino; al
+# reconstruir desde cero fallan con 42883 y tumban `supabase start`.
+# to_regprocedure() devuelve NULL en vez de lanzar error si la función no
+# existe, así que la sentencia simplemente se salta en ese punto del historial.
+
+FUNC_GRANT_RE = re.compile(r"^\s*(?:GRANT|REVOKE)\b.*\bON\s+FUNCTION\b", re.I | re.S)
+FUNC_SIG_RE = re.compile(r"\bpublic\.[A-Za-z_][A-Za-z0-9_]*\s*\([^)]*\)")
+LEADING_COMMENTS_RE = re.compile(r"\A(?:\s*--[^\n]*\n)+")
+
+
+def guard_function_stmt(stmt: str) -> str | None:
+    """Envuelve un GRANT/REVOKE ON FUNCTION en un check to_regprocedure."""
+    lead_match = LEADING_COMMENTS_RE.match(stmt)
+    lead = lead_match.group(0) if lead_match else ""
+    body = stmt[len(lead):].strip().rstrip(";").strip()
+    if not FUNC_GRANT_RE.match(body) or "$" in body:
+        return None
+    sigs = FUNC_SIG_RE.findall(body)
+    if not sigs:
+        return None
+    norm = [re.sub(r"\s+", " ", s).strip() for s in sigs]
+    cond = "\n     AND ".join(
+        "to_regprocedure('" + s + "') IS NOT NULL" for s in norm
+    )
+    return (
+        f"{lead}DO $lgp_guard$\nBEGIN\n"
+        f"  IF {cond} THEN\n"
+        f"    EXECUTE $lgp${body}$lgp$;\n"
+        f"  END IF;\nEND $lgp_guard$;"
+    )
+
+
+def patch_function_grants(path: Path, write: bool) -> int:
+    sql = path.read_text()
+    if "ON FUNCTION" not in sql.upper() or "to_regprocedure(" in sql:
+        return 0
+    changed = 0
+    pieces = []
+    for stmt in split_statements(sql):
+        guarded = guard_function_stmt(stmt)
+        if guarded is not None:
+            pieces.append(guarded + "\n")
+            changed += 1
+        else:
+            pieces.append(stmt)
+    if changed and write:
+        path.write_text("".join(pieces))
+    return changed
+
 
 def main() -> int:
     ap = argparse.ArgumentParser()
@@ -112,9 +164,17 @@ def main() -> int:
                 verb = "requiere parche" if args.check else "parchada"
                 print(f"{verb}: {path.name} → guard sobre public.{relation}")
 
+    for path in sorted(MIGRATIONS.glob("*.sql")):
+        n = patch_function_grants(path, write=not args.check)
+        if n:
+            pending += n
+            verb = "requiere parche" if args.check else "parchada"
+            print(f"{verb}: {path.name} → {n} GRANT/REVOKE ON FUNCTION con guard")
+
     if not pending:
         print("Sin parches pendientes.")
     return 1 if (args.check and pending) else 0
+
 
 
 if __name__ == "__main__":

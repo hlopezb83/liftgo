@@ -1,5 +1,17 @@
 [
   {
+    "version": "7.306.2",
+    "date": "2026-08-12",
+    "type": "patch",
+    "title": "CI: rls-db-tests arranca desde cero",
+    "category": "infraestructura",
+    "changes": [
+      "scripts/patch_legacy_migrations.py: nuevo paso que envuelve todo GRANT/REVOKE ... ON FUNCTION en un guard to_regprocedure() (solo en el checkout del runner).",
+      "Se salta la sentencia en el punto del historial donde la función aún no existe y se aplica normal cuando ya existe.",
+      "Sin cambios en producción, db reset, run_sql_suites.py ni en la publicación JUnit."
+    ]
+  },
+  {
     "version": "7.306.1",
     "date": "2026-08-12",
     "type": "patch",
