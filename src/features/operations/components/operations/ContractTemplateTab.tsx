@@ -133,8 +133,11 @@ export function ContractTemplateTab() {
 
         <AccordionItem value="pagare">
           <AccordionTrigger>Pagaré — Anexo B</AccordionTrigger>
-          <AccordionContent>
-            <Textarea value={pagareText} onChange={(e) => setPagareText(e.target.value)} rows={6} />
+          <AccordionContent className="space-y-2">
+            <Textarea value={pagareText} onChange={(e) => setPagareText(e.target.value)} rows={12} />
+            <Button variant="outline" size="sm" onClick={() => setPagareText(DEFAULT_PAGARE)}>
+              Restaurar texto sugerido
+            </Button>
           </AccordionContent>
         </AccordionItem>
       </Accordion>
