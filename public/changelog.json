@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.305.0",
+    "date": "2026-08-12",
+    "type": "minor",
+    "title": "Seguro opcional en cotizaciones",
+    "category": "cotizaciones",
+    "changes": [
+      "Nueva casilla 'Incluir Seguro' con su monto en el formulario de cotización, igual que el Servicio de Logística",
+      "El seguro se agrega como partida propia y suma al subtotal, IVA y total",
+      "Al editar o duplicar una cotización, el seguro vuelve a cargarse en su casilla",
+      "La partida de seguro viaja a la factura con la clave SAT de servicios de seguros"
+    ]
+  },
+  {
     "version": "7.304.0",
     "date": "2026-08-12",
     "type": "minor",

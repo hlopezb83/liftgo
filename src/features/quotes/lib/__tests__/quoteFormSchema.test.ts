@@ -10,6 +10,8 @@ const baseRental = {
   notes: "",
   includeLogistics: false,
   logisticsCost: 0,
+  includeInsurance: false,
+  insuranceCost: 0,
   dateRange: { from: new Date("2026-02-01"), to: new Date("2026-02-28") },
   rentalLines: [
     { modelId: "mod-1", quantity: 1, dailyRate: 0, weeklyRate: 0, monthlyRate: 15000, discount: 0, discountType: "%" as const },
@@ -125,6 +127,17 @@ describe("quoteFormSchema", () => {
 
   it("acepta logística con costo válido", () => {
     const r = quoteFormSchema.safeParse({ ...baseRental, includeLogistics: true, logisticsCost: 5000 });
+    expect(r.success).toBe(true);
+  });
+
+  it("exige insuranceCost > 0 cuando includeInsurance=true", () => {
+    const r = quoteFormSchema.safeParse({ ...baseRental, includeInsurance: true, insuranceCost: 0 });
+    expect(r.success).toBe(false);
+    if (!r.success) expect(r.error.issues.some(i => i.path.join(".") === "insuranceCost")).toBe(true);
+  });
+
+  it("acepta seguro con monto > 0", () => {
+    const r = quoteFormSchema.safeParse({ ...baseRental, includeInsurance: true, insuranceCost: 3200 });
     expect(r.success).toBe(true);
   });
 

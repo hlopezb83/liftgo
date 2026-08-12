@@ -182,6 +182,8 @@ describe("useQuoteFormLogic — submit + guard", () => {
       result.current.form.setValue("dateRange", { from: new Date("2026-05-01"), to: new Date("2026-05-31") });
       result.current.form.setValue("includeLogistics", true);
       result.current.form.setValue("logisticsCost", 5000);
+      result.current.form.setValue("includeInsurance", true);
+      result.current.form.setValue("insuranceCost", 3200);
     });
     act(() => result.current.handleTypeChange("sale"));
     const v = result.current.form.getValues();
@@ -193,5 +195,7 @@ describe("useQuoteFormLogic — submit + guard", () => {
     expect(v.saleLines[0].modelId).toBe("");
     expect(v.includeLogistics).toBe(false);
     expect(v.logisticsCost).toBe(0);
+    expect(v.includeInsurance).toBe(false);
+    expect(v.insuranceCost).toBe(0);
   });
 });

@@ -11,12 +11,17 @@ type QuoteForm = UseFormReturn<QuoteFormValues>;
 interface Props {
   form: QuoteForm;
   includeLogistics: boolean;
+  includeInsurance: boolean;
 }
 
-export function LogisticsCard({ form, includeLogistics }: Props) {
+/**
+ * Servicios adicionales de la cotización (logística y seguro). Cada uno es
+ * una casilla + monto que se convierte en una partida propia del desglose.
+ */
+export function LogisticsCard({ form, includeLogistics, includeInsurance }: Props) {
   return (
     <Card>
-      <CardContent className="pt-6 space-y-3">
+      <CardContent className="pt-6 space-y-4">
         <FormField
           control={form.control}
           name="includeLogistics"
@@ -44,6 +49,49 @@ export function LogisticsCard({ form, includeLogistics }: Props) {
             render={({ field }) => (
               <FormItem className="space-y-1.5 max-w-xs">
                 <Label>Monto del Servicio</Label>
+                <FormControl>
+                  <Input
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    placeholder="0.00"
+                    value={field.value || ""}
+                    onChange={(e) => field.onChange(Number(e.target.value) || 0)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
+
+        <FormField
+          control={form.control}
+          name="includeInsurance"
+          render={({ field }) => (
+            <FormItem className="flex flex-row items-center gap-2 space-y-0">
+              <FormControl>
+                <Checkbox
+                  id="include-insurance"
+                  checked={field.value}
+                  onCheckedChange={(checked) => {
+                    const on = !!checked;
+                    field.onChange(on);
+                    if (!on) form.setValue("insuranceCost", 0, { shouldDirty: true });
+                  }}
+                />
+              </FormControl>
+              <Label htmlFor="include-insurance" className="cursor-pointer">Incluir Seguro</Label>
+            </FormItem>
+          )}
+        />
+        {includeInsurance && (
+          <FormField
+            control={form.control}
+            name="insuranceCost"
+            render={({ field }) => (
+              <FormItem className="space-y-1.5 max-w-xs">
+                <Label>Monto del Seguro</Label>
                 <FormControl>
                   <Input
                     type="number"

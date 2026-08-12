@@ -34,6 +34,14 @@ describe("extractNonRentalLines", () => {
     expect(result[0].description).toBe("Entrega en sitio del cliente");
   });
 
+  it("usa clave SAT de seguros para la partida de Seguro", () => {
+    const result = extractNonRentalLines([
+      { description: "Seguro", quantity: 1, unit_price: 3_200, total: 3_200 },
+    ]);
+    expect(result).toHaveLength(1);
+    expect(result[0].clave_prod_serv).toBe("84131500");
+  });
+
   it("devuelve [] si el input no es un arreglo", () => {
     expect(extractNonRentalLines(null)).toEqual([]);
     expect(extractNonRentalLines(undefined)).toEqual([]);

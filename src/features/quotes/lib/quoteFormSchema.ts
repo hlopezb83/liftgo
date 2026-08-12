@@ -92,6 +92,8 @@ export const quoteFormSchema = z.object({
   saleLines: z.array(saleLineBase).default([]),
   includeLogistics: z.boolean().default(false),
   logisticsCost: nonNegative.default(0),
+  includeInsurance: z.boolean().default(false),
+  insuranceCost: nonNegative.default(0),
 }).superRefine((val, ctx) => {
   if (val.quoteType === "rental") {
     // R14-FE-01: "Agregar modelo" deja una fila-draft prístina que invalidaba
@@ -138,6 +140,10 @@ export const quoteFormSchema = z.object({
 
   if (val.includeLogistics && val.logisticsCost <= 0) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["logisticsCost"], message: "Ingresa el costo logístico" });
+  }
+
+  if (val.includeInsurance && val.insuranceCost <= 0) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["insuranceCost"], message: "Ingresa el costo del seguro" });
   }
 
   checkValidUntil(val.validUntil, val.dateRange?.from, ctx);
