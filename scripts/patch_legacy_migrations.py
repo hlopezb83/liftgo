@@ -117,8 +117,9 @@ def guard_function_stmt(stmt: str) -> str | None:
     sigs = FUNC_SIG_RE.findall(body)
     if not sigs:
         return None
+    norm = [re.sub(r"\s+", " ", s).strip() for s in sigs]
     cond = "\n     AND ".join(
-        f"to_regprocedure('{re.sub(r'\\s+', ' ', s).strip()}') IS NOT NULL" for s in sigs
+        "to_regprocedure('" + s + "') IS NOT NULL" for s in norm
     )
     return (
         f"{lead}DO $lgp_guard$\nBEGIN\n"
