@@ -1,3 +1,8 @@
+## 7.306.1 - 2026-08-12
+
+**Arquitectura — allowlist de `src/lib/domain/stateMachines.ts`**
+- `scripts/arch-check.sh`: se agrega `stateMachines.ts` al allowlist congelado de `src/lib/domain/`; el archivo es genuinamente cross-domain (invoices, deliveries, contracts) y espejo en TypeScript de los triggers de la base de datos.
+
 ## 7.306.0 - 2026-08-12
 
 **Configuración — datos fiscales desde la CSF**
