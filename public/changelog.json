@@ -1,5 +1,17 @@
 [
   {
+    "version": "7.306.4",
+    "date": "2026-08-12",
+    "type": "patch",
+    "title": "Ajuste de frecuencia en triggers de workflows",
+    "category": "infraestructura",
+    "changes": [
+      "codeql.yml: se elimina el trigger pull_request; el análisis SAST sigue corriendo en push a main, en cron semanal y bajo demanda.",
+      "prod-smoke.yml: el cron pasa de cada 30 min a cada hora; se conserva como única alerta de caída del hosting.",
+      "lighthouse.yml: el cron pasa de diario a semanal (lunes 11:00 UTC); se mantiene workflow_dispatch para auditorías manuales."
+    ]
+  },
+  {
     "version": "7.306.3",
     "date": "2026-08-12",
     "type": "patch",
