@@ -32,6 +32,22 @@ export function FiscalDataTab() {
     defaultValues,
   });
 
+  // Mapea la CSF del SAT a los campos del emisor. El CP fiscal es el lugar
+  // de expedición del CFDI.
+  const mapCsf = useCallback((data: ParsedCsfData): Partial<FiscalDataValues> => ({
+    rfc: data.rfc || undefined,
+    razon_social: data.razon_social || data.name || undefined,
+    regimen_fiscal: data.regimen_fiscal || undefined,
+    lugar_expedicion: data.domicilio_fiscal_cp || undefined,
+  }), []);
+
+  // No guardamos automáticamente: sólo precargamos para que el admin revise.
+  const handleCsfParsed = useCallback((patch: Partial<FiscalDataValues>) => {
+    (Object.entries(patch) as [keyof FiscalDataValues, string | undefined][]).forEach(([key, value]) => {
+      if (value) form.setValue(key, value, { shouldDirty: true, shouldValidate: true });
+    });
+  }, [form]);
+
   useEffect(() => {
     if (!settings) return;
     const s = settings as Record<string, unknown>;
