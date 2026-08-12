@@ -110,6 +110,10 @@ jobs:
             functions:
               - 'supabase/functions/**'
               - '.github/workflows/ci.yml'
+            migrations:
+              - 'supabase/migrations/**'
+              - 'scripts/lint-migrations.ts'
+              - '.github/workflows/ci.yml'
             vitest_full:
               - 'src/test/setup.ts'
               - 'vitest.config.ts'
