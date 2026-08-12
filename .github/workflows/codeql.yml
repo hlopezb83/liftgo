@@ -8,13 +8,6 @@ on:
       - "public/changelog.json"
       - "**/*.md"
       - ".lovable/**"
-  pull_request:
-    branches: [main]
-    paths-ignore:
-      - "public/changelog/**"
-      - "public/changelog.json"
-      - "**/*.md"
-      - ".lovable/**"
   schedule:
     # Lunes 12:00 UTC (06:00 America/Monterrey)
     - cron: "0 12 * * 1"
