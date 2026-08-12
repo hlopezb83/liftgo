@@ -5,13 +5,13 @@ updates:
   # v7.297.2 — antes era "npm". Dependabot npm actualiza package.json pero NO
   # regenera `bun.lock`, así que `bun install --frozen-lockfile` (en
   # .github/actions/setup-bun-project) reventaba en TODOS los PRs de deps y
-  # tumbaba changelog-check y bundle-size. El ecosistema "bun" sí entiende el
+  # tumbaba changelog-check. El ecosistema "bun" sí entiende el
   # lockfile de texto `bun.lock` (lockfileVersion 1) y lo regenera en el mismo
   # commit del PR.
   #
   # Si en algún momento Dependabot dejara de resolver "bun", la alternativa es
   # volver a "npm" y añadir un paso de re-lock; mientras tanto, el `if:` de
-  # dependabot en pr-title.yml y changelog-check.yml es la red de seguridad.
+  # dependabot en changelog-check.yml es la red de seguridad.
   - package-ecosystem: "bun"
     directory: "/"
     schedule:
@@ -22,8 +22,7 @@ updates:
     open-pull-requests-limit: 5
     labels:
       - "dependencies"
-    # Títulos/commits tipo "chore(deps): bump ..." → pasan pr-title.yml
-    # (Conventional Commits + subjectPattern ^[^A-Z]).
+    # Títulos/commits tipo "chore(deps): bump ..." (Conventional Commits).
     commit-message:
       prefix: "chore"
       include: "scope"

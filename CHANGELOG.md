@@ -1,3 +1,11 @@
+## 7.306.3 - 2026-08-12
+
+**Infraestructura — limpieza de workflows de andamiaje**
+- Eliminados `release-drafter.yml` (+ `.github/release-drafter.yml`), `pr-title.yml`, `labeler.yml` (+ `.github/labeler.yml`) y `stale.yml`.
+- `bundle-size.yml`: pasa a `workflow_dispatch` únicamente, con input opcional `base_ref`; el job de medición/comparación queda intacto.
+- `changelog-check.yml`: se elimina el paso que comparaba contra GitHub Releases.
+- `ci.yml` y `dependabot.yml`: comentarios actualizados sin referencias a los workflows eliminados.
+
 ## 7.306.2 - 2026-08-12
 
 **Infraestructura — `rls-db-tests` arranca desde cero**

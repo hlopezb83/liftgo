@@ -1,15 +1,15 @@
 name: Bundle size
 
 on:
-  pull_request:
-    branches: [main]
-    paths-ignore:
-      - "public/changelog/**"
-      - "public/changelog.json"
-      - "**/*.md"
-      - ".lovable/**"
-      - "supabase/**"
+  # v7.306.3 — solo bajo demanda: este repo no tiene flujo de PRs humanos,
+  # así que la comparación de bundle se corre manualmente cuando interesa.
+  # Sin `base_ref` (dispatch), la base es la rama por defecto del repo.
   workflow_dispatch:
+    inputs:
+      base_ref:
+        description: "Rama o SHA base para comparar (default: rama principal)"
+        required: false
+        default: ""
 
 permissions:
   contents: read
@@ -36,8 +36,9 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git fetch origin "${{ github.base_ref }}" --depth=1
-          BASE_SHA=$(git rev-parse "origin/${{ github.base_ref }}")
+          BASE_REF="${{ inputs.base_ref || github.event.repository.default_branch }}"
+          git fetch origin "$BASE_REF" --depth=1
+          BASE_SHA=$(git rev-parse FETCH_HEAD)
           echo "sha=$BASE_SHA" >> "$GITHUB_OUTPUT"
           echo "Base SHA: $BASE_SHA"
 

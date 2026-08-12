@@ -362,8 +362,9 @@ jobs:
           retention-days: 1
           if-no-files-found: error
 
-      # Mismo build reutilizado por bundle-size.yml (otro workflow no puede
-      # descargar artifacts sin permisos extra, pero sí comparte el cache).
+      # Mismo build reutilizado por bundle-size.yml cuando se dispara a mano
+      # (otro workflow no puede descargar artifacts sin permisos extra, pero sí
+      # comparte el cache).
       - name: Cache dist para bundle-size
         uses: actions/cache/save@v6
         with:
