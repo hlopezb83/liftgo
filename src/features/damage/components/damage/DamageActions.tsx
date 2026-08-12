@@ -26,6 +26,7 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
   const updateDamage = useUpdateDamageRecord();
   const createMaintenance = useCreateMaintenanceLog();
   const archiveDamage = useArchiveDamageRecord();
+  const { tryStartRepairWorkOrder } = useStartRepairWorkOrder();
   const [archiveOpen, setArchiveOpen] = useState(false);
 
   const { canManageDamage, canChargeDamage, damageBlockReason, chargeBlockReason } = useDamagePermissions();
@@ -33,7 +34,7 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
 
   const handleCreateWorkOrder = async () => {
     try {
-      const handledByRpc = await tryStartRepairWorkOrderRpc(record);
+      const handledByRpc = await tryStartRepairWorkOrder(record);
       if (handledByRpc) {
         await Promise.all([
           queryClient.invalidateQueries({ queryKey: damageRecordQueries.keys.all }),
