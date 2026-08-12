@@ -2,7 +2,7 @@ import { Text, View } from "@react-pdf/renderer";
 import { replacePlaceholders } from "@/lib/domain/templateUtils";
 import type { TemplateData, ContractData } from "@/lib/pdf/contract/data";
 import { DEFAULT_PAGARE } from "@/lib/pdf/contract/data-templates";
-import { customerLegalAddress } from "@/lib/pdf/contract/placeholders";
+import { buildPagareVars, customerLegalAddress } from "@/lib/pdf/contract/placeholders";
 import { contractStyles } from "@/lib/pdf/theme/styles";
 
 interface PagareAnnexProps {
