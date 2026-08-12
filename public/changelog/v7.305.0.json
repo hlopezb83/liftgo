@@ -1,0 +1,35 @@
+{
+  "version": "7.305.0",
+  "date": "2026-08-12",
+  "type": "minor",
+  "title": "Seguro opcional en cotizaciones",
+  "sections": [
+    {
+      "heading": "Contexto",
+      "items": [
+        "En la cotización sólo se podía agregar el Servicio de Logística como servicio adicional. El seguro del equipo se capturaba a mano o se perdía."
+      ]
+    },
+    {
+      "heading": "Frontend",
+      "items": [
+        "`LogisticsCard.tsx`: nueva casilla 'Incluir Seguro' con campo 'Monto del Seguro', al lado de la de logística.",
+        "`quoteFormSchema.ts`: campos `includeInsurance` / `insuranceCost` y validación 'Ingresa el costo del seguro' cuando la casilla está activa y el monto es 0.",
+        "`useQuoteFormLogic.ts`: la partida 'Seguro' se agrega al desglose (cantidad 1) y suma a subtotal, IVA y total; se limpia al cambiar entre renta y venta.",
+        "`useQuotePrefill.ts`: al editar o duplicar, la partida 'Seguro' rehidrata la casilla y el monto en vez de reconstruirse como partida de renta/venta."
+      ]
+    },
+    {
+      "heading": "Facturación",
+      "items": [
+        "`nonRentalLines.ts`: la partida de seguro viaja a la factura con clave SAT 84131500 (servicios de seguros); el resto conserva 78101800 (flete)."
+      ]
+    },
+    {
+      "heading": "Tests",
+      "items": [
+        "Casos nuevos en `quoteFormSchema.test.ts`, `useQuoteFormLogic.test.tsx`, `useQuotePrefill.test.tsx` y `nonRentalLines.test.ts`. 118/118 en verde en el área de cotizaciones."
+      ]
+    }
+  ]
+}
