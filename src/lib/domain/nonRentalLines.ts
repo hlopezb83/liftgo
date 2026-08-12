@@ -50,8 +50,9 @@ export function extractNonRentalLines(quoteLineItems: unknown): NonRentalLineDto
       total: Number(item.total ?? Number(item.quantity ?? 1) * Number(item.unit_price ?? 0)),
       discount: typeof item.discount === "number" ? item.discount : undefined,
       discount_type: (item.discount_type as "%" | "$" | undefined) ?? undefined,
-      // Servicio de flete/transporte de carga
-      clave_prod_serv: "78101800",
+      // Servicio de seguros (84131500) para la partida de seguro;
+      // flete/transporte de carga (78101800) para el resto.
+      clave_prod_serv: /seguro/i.test(item.description ?? "") ? "84131500" : "78101800",
       clave_unidad: "E48",
       objeto_imp: "02",
     }));
