@@ -1,3 +1,10 @@
+## 7.306.2 - 2026-08-12
+
+**Infraestructura — `rls-db-tests` arranca desde cero**
+- Causa raíz: migraciones de junio revocan `EXECUTE` sobre funciones creadas en julio (`create_notification`, `notify_admins`, …). En la nube existían por otro camino; desde cero fallan con `42883` y tumban `supabase start`.
+- `scripts/patch_legacy_migrations.py`: nuevo paso que envuelve cada `GRANT/REVOKE ... ON FUNCTION` en un guard `to_regprocedure(...) IS NOT NULL` (solo en el checkout efímero del runner).
+- Sin cambios en `db reset`, `run_sql_suites.py`, la publicación JUnit ni la versión de la CLI.
+
 ## 7.306.1 - 2026-08-12
 
 **Arquitectura — `arch-check` verde**
