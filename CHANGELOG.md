@@ -1,3 +1,10 @@
+## 7.306.7 - 2026-08-12
+
+**Infraestructura — CI sin `supabase db lint`**
+- El paso fallaba en todos los runs con `Cannot find project ref`: `supabase db lint` requiere una DB (linked o local), no lintea archivos.
+- Eliminado también el `Setup Supabase CLI` del job; se conservan los guards de GRANT/RLS/POLICY/search_path sobre migraciones nuevas.
+- La validación real contra DB limpia la sigue haciendo `rls-db-tests.yml`.
+
 ## 7.306.6 - 2026-08-12
 
 **Infraestructura — lint de migraciones dentro del CI**
