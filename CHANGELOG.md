@@ -1,3 +1,11 @@
+## 7.306.0 - 2026-08-12
+
+**Configuración — datos fiscales desde la CSF**
+- `FiscalDataTab`: nuevo bloque "Importar desde CSF" con `CsfDropzone` (solo Admin).
+- Mapea RFC, razón social, régimen fiscal y CP fiscal → lugar de expedición.
+- Precarga el formulario (`shouldDirty`); se aplica hasta presionar Guardar.
+- Reutiliza la edge function `parse-csf`; sin cambios de base de datos.
+
 ## 7.305.1 - 2026-08-12
 
 **Contratos — montos del pagaré**
