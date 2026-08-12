@@ -1,11 +1,14 @@
-import { useEffect } from "react";
+import { useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
+import { CsfDropzone } from "@/components/forms/CsfDropzone";
+import { SectionHeading } from "@/components/forms/SectionHeading";
 import { Lock } from "@/components/icons";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Form } from "@/components/ui/form";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CompanyFiscalForm, PacConfigForm, useBillingSecrets, useCompanySettings, useUpsertBillingSecrets, useUpsertCompanySettings } from "@/features/company-settings";
+import type { ParsedCsfData } from "@/features/customers";
 import { useUserRole } from "@/features/users";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
@@ -28,6 +31,22 @@ export function FiscalDataTab() {
     resolver: zodResolver(fiscalSchema),
     defaultValues,
   });
+
+  // Mapea la CSF del SAT a los campos del emisor. El CP fiscal es el lugar
+  // de expedición del CFDI.
+  const mapCsf = useCallback((data: ParsedCsfData): Partial<FiscalDataValues> => ({
+    rfc: data.rfc || undefined,
+    razon_social: data.razon_social || data.name || undefined,
+    regimen_fiscal: data.regimen_fiscal || undefined,
+    lugar_expedicion: data.domicilio_fiscal_cp || undefined,
+  }), []);
+
+  // No guardamos automáticamente: sólo precargamos para que el admin revise.
+  const handleCsfParsed = useCallback((patch: Partial<FiscalDataValues>) => {
+    (Object.entries(patch) as [keyof FiscalDataValues, string | undefined][]).forEach(([key, value]) => {
+      if (value) form.setValue(key, value, { shouldDirty: true, shouldValidate: true });
+    });
+  }, [form]);
 
   useEffect(() => {
     if (!settings) return;
@@ -107,7 +126,17 @@ export function FiscalDataTab() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-3xl space-y-6">
+        <div className="space-y-3 rounded-lg border border-dashed p-4">
+          <SectionHeading>Importar desde CSF</SectionHeading>
+          <p className="text-sm text-muted-foreground">
+            Sube la Constancia de Situación Fiscal (PDF) de tu empresa para llenar
+            automáticamente RFC, razón social, régimen fiscal y lugar de expedición.
+            Revisa los datos y presiona Guardar para aplicarlos.
+          </p>
+          <CsfDropzone<FiscalDataValues> onParsed={handleCsfParsed} mapData={mapCsf} />
+        </div>
         <CompanyFiscalForm isPending={isPending} />
+
         <PacConfigForm
           isPending={isPending}
           hasTestKey={!!secrets?.has_test_key}

@@ -1,0 +1,14 @@
+{
+  "version": "7.306.0",
+  "date": "2026-08-12",
+  "type": "minor",
+  "title": "Datos fiscales de la empresa desde la CSF",
+  "category": "feature",
+  "description": "En Configuración > Datos Fiscales ahora se puede subir la Constancia de Situación Fiscal (PDF) de la empresa emisora para llenar automáticamente RFC, razón social, régimen fiscal y lugar de expedición. Los datos se precargan en el formulario y sólo se aplican al presionar Guardar.",
+  "changes": [
+    "FiscalDataTab.tsx: bloque 'Importar desde CSF' con CsfDropzone (solo Admin).",
+    "El código postal fiscal de la CSF se mapea a Lugar de expedición.",
+    "Los campos que la CSF no trae conservan su valor actual; no se guarda nada automáticamente.",
+    "Reutiliza la edge function existente parse-csf; sin cambios de base de datos."
+  ]
+}
