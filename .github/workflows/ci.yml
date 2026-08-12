@@ -544,6 +544,49 @@ jobs:
           report_paths: reports/playwright-junit-shard${{ matrix.shard }}.xml
           check_name: Playwright results (shard ${{ matrix.shard }})
 
+  # v7.306.5: fusionado desde el workflow separado supabase-lint.yml.
+  # Solo corre cuando cambian migraciones o el linter (filtro `migrations`).
+  supabase-lint:
+    name: Supabase migrations lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    needs: changes
+    if: needs.changes.outputs.migrations == 'true'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # Necesario para el diff contra base_ref.
+          fetch-depth: 0
+      - uses: ./.github/actions/setup-bun-project
+
+      - name: Resolver migraciones nuevas/modificadas
+        id: files
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+            git fetch origin "${{ github.base_ref }}" --depth=1
+            FILES=$(git diff --name-only --diff-filter=AM "origin/${{ github.base_ref }}"...HEAD -- 'supabase/migrations/*.sql' | tr '\n' ' ')
+          else
+            FILES=$(find supabase/migrations -maxdepth 1 -name '*.sql' -print 2>/dev/null | tr '\n' ' ' || true)
+          fi
+          echo "list=${FILES}" >> "$GITHUB_OUTPUT"
+          echo "Archivos: ${FILES:-<ninguno>}"
+
+      - name: Validar GRANT / RLS / POLICY / search_path
+        if: steps.files.outputs.list != ''
+        run: bun scripts/lint-migrations.ts ${{ steps.files.outputs.list }}
+
+      - name: Setup Supabase CLI
+        # Pin exacto (evita drift silencioso al usar `latest`, ver auditoría H1). v3.0.0 (Node 24).
+        uses: supabase/setup-cli@46f7f98c7f948ad727d22c1e67fab04c223a0520 # v3.0.0
+        with:
+          version: 2.34.0
+
+      - name: supabase db lint
+        # No requiere proyecto remoto: lint sintáctico de las migraciones locales.
+        run: supabase db lint --linked=false
+
   actionlint:
     name: Actionlint (workflows YAML)
     runs-on: ubuntu-latest
