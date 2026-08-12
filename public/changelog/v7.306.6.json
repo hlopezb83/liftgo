@@ -1,5 +1,5 @@
 {
-  "version": "7.306.5",
+  "version": "7.306.6",
   "date": "2026-08-12",
   "type": "patch",
   "title": "Lint de migraciones fusionado en el CI",
@@ -9,6 +9,7 @@
     "ci.yml: nuevo job \"Supabase migrations lint\" (guards de GRANT/RLS/search_path + supabase db lint) que solo corre cuando cambian supabase/migrations/** o scripts/lint-migrations.ts.",
     "changes: nuevo filtro migrations con dorny/paths-filter.",
     "ci-success: el nuevo job se agrega al gate único de branch protection.",
-    "Eliminado .github/workflows/supabase-lint.yml."
+    "Eliminado .github/workflows/supabase-lint.yml.",
+    "El paso solo lintea migraciones nuevas o modificadas (diff del PR o del push); en cron/manual no lintea nada. Antes, en push, recorría el histórico completo y fallaba porque las migraciones antiguas reparten GRANT/RLS entre varios archivos."
   ]
 }
