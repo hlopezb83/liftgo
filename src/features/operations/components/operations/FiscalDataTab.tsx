@@ -126,7 +126,17 @@ export function FiscalDataTab() {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="max-w-3xl space-y-6">
+        <div className="space-y-3 rounded-lg border border-dashed p-4">
+          <SectionHeading>Importar desde CSF</SectionHeading>
+          <p className="text-sm text-muted-foreground">
+            Sube la Constancia de Situación Fiscal (PDF) de tu empresa para llenar
+            automáticamente RFC, razón social, régimen fiscal y lugar de expedición.
+            Revisa los datos y presiona Guardar para aplicarlos.
+          </p>
+          <CsfDropzone<FiscalDataValues> onParsed={handleCsfParsed} mapData={mapCsf} />
+        </div>
         <CompanyFiscalForm isPending={isPending} />
+
         <PacConfigForm
           isPending={isPending}
           hasTestKey={!!secrets?.has_test_key}
