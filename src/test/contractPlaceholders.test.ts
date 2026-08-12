@@ -53,6 +53,26 @@ describe("buildPlaceholderVars", () => {
     expect(vars.monto_pagare).toBe(vars.deposito);
   });
 
+  it("en el pagaré, {deposito} legado se resuelve al monto del pagaré", () => {
+    const vars = buildPagareVars(
+      buildPlaceholderVars(baseContract, null, null, { acquisition_cost: 350000 }),
+    );
+    expect(vars.deposito).toBe(vars.monto_pagare);
+    expect(vars.deposito).toContain("350,000");
+  });
+
+  it("el pagaré usa 5% de mora cuando el contrato tiene 0", () => {
+    const vars = buildPagareVars(
+      buildPlaceholderVars({ ...baseContract, late_interest_rate: 0 } as ContractData, null, null, null),
+    );
+    expect(vars.interes_moratorio).toBe("5");
+  });
+
+  it("el pagaré respeta la tasa de mora capturada", () => {
+    const vars = buildPagareVars(buildPlaceholderVars(baseContract, null, null, null));
+    expect(vars.interes_moratorio).toBe("7");
+  });
+
   it("el texto por defecto del pagare no deja placeholders sin resolver", () => {
     const vars = buildPlaceholderVars(
       { ...baseContract, contract_number: "CT-2026-001" } as ContractData,
