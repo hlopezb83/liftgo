@@ -10,6 +10,7 @@ En el PDF `CTR-0003-pagare.pdf` conviven dos cifras distintas:
 Causa confirmada: la plantilla guardada en la base de datos ("Plantilla Estándar") todavía tiene el texto viejo del pagaré, que usa el marcador `{deposito}`. El texto sugerido nuevo del código (que usa `{monto_pagare}` y el monto con letra) nunca se aplicó a la plantilla existente, así que el encabezado se calcula con la lógica nueva y el cuerpo con la plantilla vieja.
 
 Errores adicionales que arrastra la plantilla vieja:
+
 - No incluye el **monto con letra**, obligatorio en la práctica mercantil para un pagaré.
 - La jurisdicción está **escrita a mano como "Monterrey, Nuevo León"**, en vez de tomar la ciudad del contrato (aquí San Pedro Garza García, N.L.).
 - Interés moratorio impreso como **0% mensual**: el contrato CTR-0003 tiene `late_interest_rate = 0`. Un pagaré que declara 0% de mora es legalmente débil.
@@ -31,4 +32,4 @@ Errores adicionales que arrastra la plantilla vieja:
 
 ## Pregunta abierta
 
-Si prefieres que la tasa moratoria en 0% simplemente **omita** esa cláusula del pagaré en lugar de usar un valor por defecto, dímelo y lo ajusto antes de implementar.
+Si prefieres que la tasa moratoria en 0% simplemente **omita** esa cláusula del pagaré en lugar de usar un valor por defecto, dímelo y lo ajusto antes de implementar. Para el pagare manten la tasa de interes en 5%
