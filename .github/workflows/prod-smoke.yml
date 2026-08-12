@@ -2,8 +2,8 @@ name: Prod smoke
 
 on:
   schedule:
-    # Cada 30 min.
-    - cron: "*/30 * * * *"
+    # Cada hora.
+    - cron: "0 * * * *"
   workflow_dispatch:
 
 permissions:
