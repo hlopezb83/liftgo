@@ -89,6 +89,7 @@ jobs:
     outputs:
       app: ${{ steps.filter.outputs.app }}
       functions: ${{ steps.filter.outputs.functions }}
+      migrations: ${{ steps.filter.outputs.migrations }}
       vitest_mode: ${{ steps.mode.outputs.vitest_mode }}
     steps:
       - uses: actions/checkout@v6
