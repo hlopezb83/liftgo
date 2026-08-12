@@ -123,3 +123,23 @@ export function buildPlaceholderVars(
     vencimiento_pagare: fmtDate(contract.end_date),
   };
 }
+
+/** Tasa moratoria mínima del pagaré cuando el contrato no captura una. */
+export const PAGARE_DEFAULT_LATE_INTEREST = "5";
+
+/**
+ * v7.305.1: variables específicas del Anexo B (pagaré).
+ * - `{deposito}`: plantillas legadas lo usaban como monto del pagaré; se
+ *   resuelve al monto del pagaré para que encabezado y cuerpo nunca discrepen.
+ * - `{interes_moratorio}`: un pagaré con 0% de mora es legalmente débil;
+ *   cae a 5% cuando el contrato no captura tasa.
+ */
+export function buildPagareVars(vars: Record<string, string>): Record<string, string> {
+  const rate = Number(vars.interes_moratorio ?? 0);
+  return {
+    ...vars,
+    deposito: vars.monto_pagare ?? vars.deposito,
+    interes_moratorio:
+      !Number.isFinite(rate) || rate <= 0 ? PAGARE_DEFAULT_LATE_INTEREST : String(rate),
+  };
+}

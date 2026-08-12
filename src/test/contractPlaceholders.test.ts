@@ -3,7 +3,7 @@ import { replacePlaceholders } from "@/lib/domain/templateUtils";
 import type { ContractData } from "@/lib/pdf/contract/fetchers";
 import { DEFAULT_PAGARE } from "@/lib/pdf/contract/data-templates";
 import { CONTRACT_PLACEHOLDERS } from "@/lib/pdf/contract/placeholderRegistry";
-import { buildPlaceholderVars } from "@/lib/pdf/contract/placeholders";
+import { buildPagareVars, buildPlaceholderVars } from "@/lib/pdf/contract/placeholders";
 
 const baseContract: ContractData = {
   id: "ct1",
@@ -51,6 +51,26 @@ describe("buildPlaceholderVars", () => {
   it("monto_pagare cae al depósito si el equipo no tiene costo de adquisición", () => {
     const vars = buildPlaceholderVars(baseContract, null, null, { manufacturer: "Toyota" });
     expect(vars.monto_pagare).toBe(vars.deposito);
+  });
+
+  it("en el pagaré, {deposito} legado se resuelve al monto del pagaré", () => {
+    const vars = buildPagareVars(
+      buildPlaceholderVars(baseContract, null, null, { acquisition_cost: 350000 }),
+    );
+    expect(vars.deposito).toBe(vars.monto_pagare);
+    expect(vars.deposito).toContain("350,000");
+  });
+
+  it("el pagaré usa 5% de mora cuando el contrato tiene 0", () => {
+    const vars = buildPagareVars(
+      buildPlaceholderVars({ ...baseContract, late_interest_rate: 0 } as ContractData, null, null, null),
+    );
+    expect(vars.interes_moratorio).toBe("5");
+  });
+
+  it("el pagaré respeta la tasa de mora capturada", () => {
+    const vars = buildPagareVars(buildPlaceholderVars(baseContract, null, null, null));
+    expect(vars.interes_moratorio).toBe("7");
   });
 
   it("el texto por defecto del pagare no deja placeholders sin resolver", () => {

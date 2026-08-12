@@ -1,5 +1,17 @@
 [
   {
+    "version": "7.305.1",
+    "date": "2026-08-12",
+    "type": "patch",
+    "title": "Corrección de montos en el pagaré",
+    "category": "contratos",
+    "changes": [
+      "El cuerpo del pagaré ya usa el monto correcto (costo de adquisición del equipo) en vez del depósito en garantía",
+      "Las plantillas con el texto viejo se actualizaron al texto sugerido, con monto en letra y jurisdicción según la ciudad del contrato",
+      "Si el contrato tiene 0% de interés moratorio, el pagaré usa 5% mensual por defecto"
+    ]
+  },
+  {
     "version": "7.305.0",
     "date": "2026-08-12",
     "type": "minor",

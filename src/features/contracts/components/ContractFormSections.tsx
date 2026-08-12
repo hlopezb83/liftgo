@@ -128,7 +128,9 @@ export function UsageConditionsCard({ control }: { control: Ctrl }) {
               <FormLabel>Interés Moratorio (%)</FormLabel>
               <FormControl><Input type="number" step="0.1" placeholder="Ej. 5" {...field} /></FormControl>
               {Number(field.value) === 0 && field.value !== "" && (
-                <FormDescription>Se imprimirá 0% en el contrato y en el pagaré.</FormDescription>
+                <FormDescription>
+                  Se imprimirá 0% en el contrato. El pagaré usará 5% mensual por defecto.
+                </FormDescription>
               )}
               <FormMessage />
             </FormItem>
