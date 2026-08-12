@@ -15,11 +15,13 @@ import { CfdiFieldsCard } from "../components/invoice-form/CfdiFieldsCard";
 import { EditableLineItemsTable } from "../components/invoice-form/EditableLineItemsTable";
 import { InvoiceDetailsCard } from "../components/invoice-form/InvoiceDetailsCard";
 import { SaleAssignmentBlocked } from "../components/invoice-form/SaleAssignmentBlocked";
+import { useCloseDamageOnInvoice } from "../hooks/useCloseDamageOnInvoice";
 import { useDamagePrefill } from "../hooks/useDamagePrefill";
 import { useInvoiceFormLogic } from "../hooks/useInvoiceFormLogic";
 import type { InvoiceFormValues } from "../lib/invoiceFormSchema";
 
 export default function InvoiceForm() {
+  const { closeDamageOnInvoice } = useCloseDamageOnInvoice();
   const navigate = useNavigateTransition();
   const { id } = useParams();
   const [searchParams] = useSearchParams();
