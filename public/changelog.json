@@ -3,11 +3,12 @@
     "version": "7.306.1",
     "date": "2026-08-12",
     "type": "patch",
-    "title": "Allowlist de stateMachines.ts en arch-check",
+    "title": "arch-check verde",
     "category": "arquitectura",
     "changes": [
       "Se agrega src/lib/domain/stateMachines.ts al allowlist congelado de scripts/arch-check.sh",
-      "El archivo es genuinamente cross-domain (invoices, deliveries, contracts) y espejo de los triggers de la base de datos"
+      "Se eliminan imports directos de Supabase en componentes/páginas (DamageActions, InvoiceForm) moviendo la lógica a hooks",
+      "Se eliminan 17 cross-feature deep imports creando barrels para cash-flow y reports y ampliando contracts/maintenance"
     ]
   },
   {
