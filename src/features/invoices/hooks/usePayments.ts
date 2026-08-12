@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
-import { cashFlowProjectionQueries } from "@/features/cash-flow/lib/queryKeys";
-import { reportKeys } from "@/features/reports/lib/queryKeys";
+import { cashFlowProjectionQueries } from "@/features/cash-flow";
+import { reportKeys } from "@/features/reports";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";

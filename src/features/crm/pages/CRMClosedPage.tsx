@@ -4,7 +4,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { useHasModuleAccess } from "@/features/users/hooks/useHasModuleAccess";
+import { useHasModuleAccess } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { ClosedTable } from "../components/closed/ClosedTable";

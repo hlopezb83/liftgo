@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateMaintenanceLog } from "@/features/maintenance";
-import { maintenanceLogKeys } from "@/features/maintenance/lib/queryKeys";
+import { maintenanceLogKeys } from "@/features/maintenance";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import type { DamageRecordWithJoins } from "@/types/rental";

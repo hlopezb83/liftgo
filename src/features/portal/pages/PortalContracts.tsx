@@ -12,7 +12,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { CONTRACT_STATUS_LABELS } from "@/features/contracts/lib/contractStatusLabels";
+import { CONTRACT_STATUS_LABELS } from "@/features/contracts";
 import { usePortalContracts } from "@/features/customers";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatDateDisplay } from "@/lib/utils";
