@@ -1,3 +1,11 @@
+## 7.305.1 - 2026-08-12
+
+**Contratos — montos del pagaré**
+- `placeholders.ts`: nuevo `buildPagareVars()`; `{deposito}` legado se resuelve al monto del pagaré y la mora cae a 5% cuando el contrato tiene 0.
+- `PagareAnnex.tsx`: encabezado y cuerpo usan las mismas variables (ya no discrepan).
+- Datos: plantillas de contrato con `pagare_text` legado actualizadas al texto sugerido (monto con letra, ciudad del contrato).
+- Tests: casos nuevos en `contractPlaceholders.test.ts`.
+
 ## 7.305.0 - 2026-08-12
 
 **Cotizaciones — seguro opcional**
