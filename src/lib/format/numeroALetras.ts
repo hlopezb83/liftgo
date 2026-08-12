@@ -78,7 +78,10 @@ export function numeroALetras(amount: number | null | undefined, currencyLabel =
   const entero = Math.floor(cents / 100);
   const centavos = cents % 100;
 
-  const letras = enteroALetras(entero);
+  // Apócope legal: "UN PESO", "VEINTIÚN PESOS", "CIENTO UN PESOS".
+  const letras = enteroALetras(entero)
+    .replace(/VEINTIUNO$/, "VEINTIÚN")
+    .replace(/UNO$/, "UN");
   const singular = entero === 1 && currencyLabel === "PESOS" ? "PESO" : currencyLabel;
   const negativo = Number.isFinite(value) && value < 0 ? "MENOS " : "";
 

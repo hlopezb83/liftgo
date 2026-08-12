@@ -13,7 +13,8 @@ describe("numeroALetras", () => {
   });
 
   it("convierte decenas y veintenas", () => {
-    expect(numeroALetras(21)).toBe("VEINTIUNO PESOS 00/100 M.N.");
+    expect(numeroALetras(21)).toBe("VEINTIÚN PESOS 00/100 M.N.");
+    expect(numeroALetras(101)).toBe("CIENTO UN PESOS 00/100 M.N.");
     expect(numeroALetras(35)).toBe("TREINTA Y CINCO PESOS 00/100 M.N.");
     expect(numeroALetras(100)).toBe("CIEN PESOS 00/100 M.N.");
     expect(numeroALetras(115)).toBe("CIENTO QUINCE PESOS 00/100 M.N.");
