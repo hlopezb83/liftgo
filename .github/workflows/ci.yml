@@ -564,11 +564,18 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
+          # El linter valida el CONTRATO de una migración nueva (CREATE TABLE +
+          # GRANT + RLS + POLICY en el mismo archivo). Las migraciones históricas
+          # reparten esas piezas entre varios archivos, así que NUNCA se linta el
+          # histórico completo: solo lo que agrega/modifica el commit o el PR.
           if [[ "${{ github.event_name }}" == "pull_request" ]]; then
             git fetch origin "${{ github.base_ref }}" --depth=1
             FILES=$(git diff --name-only --diff-filter=AM "origin/${{ github.base_ref }}"...HEAD -- 'supabase/migrations/*.sql' | tr '\n' ' ')
+          elif [[ "${{ github.event_name }}" == "push" ]]; then
+            FILES=$(git diff --name-only --diff-filter=AM "${{ github.event.before }}" "${{ github.sha }}" -- 'supabase/migrations/*.sql' 2>/dev/null | tr '\n' ' ' || true)
           else
-            FILES=$(find supabase/migrations -maxdepth 1 -name '*.sql' -print 2>/dev/null | tr '\n' ' ' || true)
+            # schedule / workflow_dispatch: sin diff de referencia, no hay nada que validar.
+            FILES=""
           fi
           echo "list=${FILES}" >> "$GITHUB_OUTPUT"
           echo "Archivos: ${FILES:-<ninguno>}"

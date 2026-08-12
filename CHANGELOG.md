@@ -1,9 +1,10 @@
-## 7.306.5 - 2026-08-12
+## 7.306.6 - 2026-08-12
 
 **Infraestructura — lint de migraciones dentro del CI**
 - `ci.yml`: nuevo job `Supabase migrations lint` (guards de GRANT/RLS/POLICY/search_path + `supabase db lint`), con `needs: changes` y filtro `migrations` (`supabase/migrations/**`, `scripts/lint-migrations.ts`).
 - `ci-success`: el job se suma al gate único de branch protection.
 - Eliminado `.github/workflows/supabase-lint.yml` (ya no hay lints fuera del CI).
+- El paso solo lintea migraciones **nuevas o modificadas** (diff del PR o del push); en cron/manual no lintea nada. Lintear el histórico completo fallaba porque las migraciones antiguas reparten `GRANT`/RLS entre varios archivos.
 
 ## 7.306.3 - 2026-08-12
 
