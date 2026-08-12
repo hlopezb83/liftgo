@@ -4,3 +4,5 @@
 export * from "./hooks/maintenance/useMaintenanceLogs";
 export * from "./hooks/maintenance/useMaintenancePolicies";
 export * from "./hooks/maintenance/useMechanics";
+// v7.306.1 · ARQ2-A5: exponer queryKeys al público para consumo cross-feature.
+export { maintenanceLogKeys } from "./lib/queryKeys";
