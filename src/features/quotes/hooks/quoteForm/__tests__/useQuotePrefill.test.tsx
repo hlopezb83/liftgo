@@ -43,6 +43,13 @@ describe("buildPrefillValues", () => {
     expect(v.logisticsCost).toBe(5000);
   });
 
+  it("detecta seguro cuando la línea existe y no lo trata como partida de renta", () => {
+    const q = { ...existingRental, line_items: [{ description: "Seguro", quantity: 1, unit_price: 3200, total: 3200 }] };
+    const v = buildPrefillValues(q, models);
+    expect(v.includeInsurance).toBe(true);
+    expect(v.insuranceCost).toBe(3200);
+  });
+
   it("R9VTA-04: cotización legacy sin rental_meta y con descripción libre conserva tarifas/precio históricos", () => {
     const legacy: ExistingQuote = {
       ...existingRental,
