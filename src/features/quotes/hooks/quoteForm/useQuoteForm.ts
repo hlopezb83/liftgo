@@ -28,6 +28,8 @@ export function defaultQuoteFormValues(): QuoteFormValues {
     saleLines: [{ ...EMPTY_SALE_LINE }],
     includeLogistics: false,
     logisticsCost: 0,
+    includeInsurance: false,
+    insuranceCost: 0,
   };
 }
 

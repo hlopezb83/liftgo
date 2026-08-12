@@ -69,7 +69,7 @@ export default function QuoteForm() {
             />
           )}
 
-          <LogisticsCard form={form} includeLogistics={f.includeLogistics} />
+          <LogisticsCard form={form} includeLogistics={f.includeLogistics} includeInsurance={f.includeInsurance} />
 
           <CostSummaryCard
             lineItems={f.lineItems}

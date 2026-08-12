@@ -20,10 +20,14 @@ export type ExistingQuote = {
 const matchModel = (item: LineItem, models: EquipmentModel[]) =>
   models.find((m) => item.description?.includes(m.manufacturer) && item.description?.includes(m.model));
 
-function extractLogistics(items: LineItem[]): { include: boolean; cost: number } {
-  const logisticsItem = items.find((item) => item.description?.includes("Logística"));
-  if (!logisticsItem) return { include: false, cost: 0 };
-  return { include: true, cost: logisticsItem.unit_price || logisticsItem.total || 0 };
+/** Servicios adicionales que se capturan como casilla + monto, no como partida libre. */
+const isLogisticsLine = (item: LineItem) => !!item.description?.includes("Logística");
+const isInsuranceLine = (item: LineItem) => /seguro/i.test(item.description ?? "");
+
+function extractExtra(items: LineItem[], match: (item: LineItem) => boolean): { include: boolean; cost: number } {
+  const found = items.find(match);
+  if (!found) return { include: false, cost: 0 };
+  return { include: true, cost: found.unit_price || found.total || 0 };
 }
 
 function rebuildSaleLines(items: LineItem[], models: EquipmentModel[]): SaleLineValues[] {
@@ -191,8 +195,9 @@ function rebuildRentalLines(items: LineItem[], q: ExistingQuote, models: Equipme
 export function buildPrefillValues(q: ExistingQuote, models: EquipmentModel[]): QuoteFormValues {
   const isSale = q.quote_type === "sale";
   const allItems = (q.line_items as LineItem[]) || [];
-  const logistics = extractLogistics(allItems);
-  const nonLogistics = allItems.filter((item) => !item.description?.includes("Logística"));
+  const logistics = extractExtra(allItems, isLogisticsLine);
+  const insurance = extractExtra(allItems, isInsuranceLine);
+  const nonLogistics = allItems.filter((item) => !isLogisticsLine(item) && !isInsuranceLine(item));
 
   return {
     quoteType: isSale ? "sale" : "rental",
@@ -209,6 +214,8 @@ export function buildPrefillValues(q: ExistingQuote, models: EquipmentModel[]): 
     saleLines: isSale ? rebuildSaleLines(nonLogistics, models) : [{ ...EMPTY_SALE_LINE }],
     includeLogistics: logistics.include,
     logisticsCost: logistics.cost,
+    includeInsurance: insurance.include,
+    insuranceCost: insurance.cost,
   };
 }
 

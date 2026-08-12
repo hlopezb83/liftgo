@@ -48,6 +48,8 @@ export function useQuoteFormLogic() {
   const currency = useWatch({ control: form.control, name: "currency" });
   const includeLogistics = useWatch({ control: form.control, name: "includeLogistics" });
   const logisticsCost = useWatch({ control: form.control, name: "logisticsCost" });
+  const includeInsurance = useWatch({ control: form.control, name: "includeInsurance" });
+  const insuranceCost = useWatch({ control: form.control, name: "insuranceCost" });
 
   const startDate = dateRange?.from;
   const endDate = dateRange?.to;
@@ -64,8 +66,12 @@ export function useQuoteFormLogic() {
     if (includeLogistics && (logisticsCost ?? 0) > 0) {
       items.push({ description: "Servicio de Logística", quantity: 1, unit_price: logisticsCost, total: logisticsCost });
     }
+    if (includeInsurance && (insuranceCost ?? 0) > 0) {
+      items.push({ description: "Seguro", quantity: 1, unit_price: insuranceCost, total: insuranceCost });
+    }
     return items;
-  }, [quoteType, saleLines, rentalLines, equipmentModels, startDate, endDate, includeLogistics, logisticsCost]);
+  }, [quoteType, saleLines, rentalLines, equipmentModels, startDate, endDate,
+      includeLogistics, logisticsCost, includeInsurance, insuranceCost]);
 
   const { subtotal, taxAmount, total } = computeTotals(lineItems, Number(taxRate) || 0);
 
@@ -132,6 +138,8 @@ export function useQuoteFormLogic() {
     form.setValue("dateRange", undefined, { shouldDirty: true });
     form.setValue("includeLogistics", false, { shouldDirty: true });
     form.setValue("logisticsCost", 0, { shouldDirty: true });
+    form.setValue("includeInsurance", false, { shouldDirty: true });
+    form.setValue("insuranceCost", 0, { shouldDirty: true });
   };
 
   return {
@@ -145,6 +153,8 @@ export function useQuoteFormLogic() {
     dateRange,
     includeLogistics,
     logisticsCost,
+    includeInsurance,
+    insuranceCost,
     customers,
     equipmentModels,
     equipmentModelsLoading,
