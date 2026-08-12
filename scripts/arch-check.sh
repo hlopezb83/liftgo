@@ -65,6 +65,7 @@ nonRentalLines.ts
 rentalCalculation.ts
 roles.ts
 satCatalogs.ts
+stateMachines.ts
 templateUtils.ts
 EOF
 )
