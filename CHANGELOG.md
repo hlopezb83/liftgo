@@ -1,3 +1,13 @@
+## 7.305.0 - 2026-08-12
+
+**Cotizaciones — seguro opcional**
+- `LogisticsCard`: nueva casilla "Incluir Seguro" + campo "Monto del Seguro", junto a la de logística.
+- `quoteFormSchema`: `includeInsurance` / `insuranceCost` con validación espejo de la logística.
+- `useQuoteFormLogic`: partida "Seguro" en el desglose (suma a subtotal/IVA/total) y limpieza al cambiar renta↔venta.
+- `useQuotePrefill`: la partida "Seguro" rehidrata casilla y monto en vez de reconstruirse como partida de renta/venta.
+- `nonRentalLines`: clave SAT 84131500 para seguros al facturar; 78101800 para el resto.
+- Tests: casos nuevos en `quoteFormSchema.test.ts`, `useQuoteFormLogic.test.tsx`, `useQuotePrefill.test.tsx`, `nonRentalLines.test.ts`.
+
 ## 7.304.0 - 2026-08-12
 
 **Pagaré — redacción endurecida**
