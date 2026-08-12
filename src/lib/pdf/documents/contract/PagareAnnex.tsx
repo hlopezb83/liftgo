@@ -31,6 +31,7 @@ function FieldRow({ label, value }: { label: string; value: string }) {
 }
 
 export function PagareAnnex({ contract, tpl, vars, customer, city, formattedDate }: PagareAnnexProps) {
+  const pagareVars = buildPagareVars(vars);
   return (
     <View>
       <Text style={[contractStyles.docTitle, { marginBottom: 4 }]}>PAGARÉ</Text>
@@ -40,15 +41,15 @@ export function PagareAnnex({ contract, tpl, vars, customer, city, formattedDate
 
       <View style={contractStyles.pagareHeadRow}>
         <FieldRow label="Número:" value="1/1" />
-        <FieldRow label="Bueno por:" value={vars.monto_pagare} />
+        <FieldRow label="Bueno por:" value={pagareVars.monto_pagare} />
       </View>
       <FieldRow label="Lugar:" value={city} />
       <FieldRow label="Fecha:" value={formattedDate} />
-      <FieldRow label="Vencimiento:" value={vars.vencimiento_pagare} />
+      <FieldRow label="Vencimiento:" value={pagareVars.vencimiento_pagare} />
 
       <Text style={[contractStyles.subsectionTitle, { marginTop: 12 }]}>TEXTO DEL PAGARÉ</Text>
       <Text style={contractStyles.pagareBody}>
-        {replacePlaceholders(tpl.pagare_text || DEFAULT_PAGARE, vars)}
+        {replacePlaceholders(tpl.pagare_text || DEFAULT_PAGARE, pagareVars)}
       </Text>
 
       <Text style={contractStyles.pagareSubsection}>1. DATOS DEL SUSCRIPTOR</Text>
