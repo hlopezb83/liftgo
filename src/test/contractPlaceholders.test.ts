@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { replacePlaceholders } from "@/lib/domain/templateUtils";
 import type { ContractData } from "@/lib/pdf/contract/fetchers";
+import { DEFAULT_PAGARE } from "@/lib/pdf/contract/data-templates";
 import { CONTRACT_PLACEHOLDERS } from "@/lib/pdf/contract/placeholderRegistry";
 import { buildPlaceholderVars } from "@/lib/pdf/contract/placeholders";
 
@@ -50,6 +51,19 @@ describe("buildPlaceholderVars", () => {
   it("monto_pagare cae al depósito si el equipo no tiene costo de adquisición", () => {
     const vars = buildPlaceholderVars(baseContract, null, null, { manufacturer: "Toyota" });
     expect(vars.monto_pagare).toBe(vars.deposito);
+  });
+
+  it("el texto por defecto del pagare no deja placeholders sin resolver", () => {
+    const vars = buildPlaceholderVars(
+      { ...baseContract, contract_number: "CT-2026-001" } as ContractData,
+      { razon_social: "LiftGo S.A." },
+      { name: "Acme" },
+      { manufacturer: "Toyota", model: "8FGCU25", serial_number: "SN-1", acquisition_cost: 350000 },
+    );
+    const texto = replacePlaceholders(DEFAULT_PAGARE, vars);
+    expect(texto).not.toMatch(/\{[a-z_]+\}/);
+    expect(texto).toContain("TRESCIENTOS CINCUENTA MIL PESOS 00/100 M.N.");
+    expect(texto).toContain("CT-2026-001");
   });
 
   it("usa fallbacks legibles cuando faltan datos", () => {

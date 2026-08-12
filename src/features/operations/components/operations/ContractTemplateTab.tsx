@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { Textarea } from "@/components/ui/textarea";
 import { useDefaultContractTemplate, useUpdateContractTemplate, type ContractClause, type ChecklistSection } from "@/features/contracts";
+import { DEFAULT_PAGARE } from "@/lib/pdf/contract/data-templates";
 import { CONTRACT_PLACEHOLDERS as PLACEHOLDERS } from "@/lib/pdf/contract/placeholderRegistry";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { ChecklistEditor } from "./contractTemplate/ChecklistEditor";
@@ -133,8 +134,11 @@ export function ContractTemplateTab() {
 
         <AccordionItem value="pagare">
           <AccordionTrigger>Pagaré — Anexo B</AccordionTrigger>
-          <AccordionContent>
-            <Textarea value={pagareText} onChange={(e) => setPagareText(e.target.value)} rows={6} />
+          <AccordionContent className="space-y-2">
+            <Textarea value={pagareText} onChange={(e) => setPagareText(e.target.value)} rows={12} />
+            <Button variant="outline" size="sm" onClick={() => setPagareText(DEFAULT_PAGARE)}>
+              Restaurar texto sugerido
+            </Button>
           </AccordionContent>
         </AccordionItem>
       </Accordion>

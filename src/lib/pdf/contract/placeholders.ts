@@ -1,5 +1,6 @@
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatLegalAddress } from "@/lib/format/formatLegalAddress";
+import { numeroALetras } from "@/lib/format/numeroALetras";
 import { formatDateDisplay } from "@/lib/utils";
 import type { ContractData } from "./fetchers";
 
@@ -103,18 +104,19 @@ export function buildPlaceholderVars(
   forklift: ForkliftInfo | null,
 ): Record<string, string> {
   const signing = contractSigningDate(contract);
+  // v7.303.0: el pagaré se emite por el costo de adquisición del equipo;
+  // si el equipo no lo tiene capturado, cae al depósito en garantía.
+  const montoPagare = num(forklift?.acquisition_cost) > 0
+    ? num(forklift?.acquisition_cost)
+    : num(contract.deposit_amount);
   return {
     ...buildPartyVars(contract, company, customer),
     ...buildUsageVars(contract),
     ...buildPricingVars(contract),
     ...buildEquipmentVars(forklift),
-    // v7.303.0: el pagaré se emite por el costo de adquisición del equipo;
-    // si el equipo no lo tiene capturado, cae al depósito en garantía.
-    monto_pagare: formatCurrency(
-      num(forklift?.acquisition_cost) > 0
-        ? num(forklift?.acquisition_cost)
-        : num(contract.deposit_amount),
-    ),
+    monto_pagare: formatCurrency(montoPagare),
+    monto_pagare_letra: numeroALetras(montoPagare),
+    contrato: contract.contract_number || "—",
     firmado_por: contract.signed_by || "",
     ciudad: contract.contract_city || "San Pedro Garza García, N.L.",
     fecha_firma: signing ? fmtDate(signing) : "[Fecha de firma]",

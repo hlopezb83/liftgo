@@ -1,3 +1,12 @@
+## 7.304.0 - 2026-08-12
+
+**Pagaré — redacción endurecida**
+- `DEFAULT_PAGARE` reescrito: lugar y fecha de suscripción en el cuerpo, "por valor recibido", referencia al contrato y equipo garantizado, vencimiento anticipado, intereses moratorios sobre saldo insoluto, renuncia a presentación/protesto/avisos y obligación solidaria del aval.
+- La jurisdicción usa `{ciudad}` (antes "Monterrey, Nuevo León" quemado en el texto).
+- Nuevo `src/lib/format/numeroALetras.ts` (español MX, apócope legal, centavos `NN/100 M.N.`) + placeholders `{monto_pagare_letra}` y `{contrato}`.
+- `ContractTemplateTab`: botón "Restaurar texto sugerido" del pagaré; las plantillas guardadas no se sobrescriben.
+- Tests: `numeroALetras.test.ts` y caso que valida que el pagaré por defecto no deje placeholders sin resolver.
+
 ## 7.303.0 - 2026-08-11
 
 **Pagaré por el costo de adquisición del equipo**

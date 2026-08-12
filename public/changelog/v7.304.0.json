@@ -1,0 +1,14 @@
+{
+  "version": "7.304.0",
+  "date": "2026-08-12",
+  "type": "minor",
+  "title": "Mejora de la redacción del pagaré (Anexo B)",
+  "category": "contratos",
+  "changes": [
+    "Nuevo texto sugerido del pagaré con fórmulas de la práctica mercantil mexicana: por valor recibido, renuncia a presentación y protesto, obligación solidaria del aval y vencimiento anticipado",
+    "La jurisdicción deja de estar fija en Monterrey y toma la ciudad del contrato",
+    "El monto ahora se imprime con cifra y letra (nueva variable monto_pagaré_letra)",
+    "Nueva variable contrato para citar el número de contrato y el equipo garantizado dentro del pagaré",
+    "Botón Restaurar texto sugerido en el editor de plantillas: las plantillas ya guardadas no se modifican solas"
+  ]
+}
