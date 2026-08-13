@@ -183,6 +183,11 @@ jobs:
         with:
           report_paths: reports/sql-smoke-junit.xml
           check_name: SQL smoke results
+          # Smoke es informativo y no-fatal (el step "Smoke SQL" lleva
+          # continue-on-error: true). Si el reporte trae fallos, NO queremos
+          # que la publicación tumbe el job: sólo publicar el check para revisión.
+          fail_on_failure: "false"
+          require_tests: "false"
 
 
       - name: Stop Supabase
