@@ -33,7 +33,7 @@ BEGIN
   END IF;
 
   BEGIN
-    INSERT INTO public.billing_secrets (key, value) VALUES ('facturapi_live', 'sk_test');
+    INSERT INTO public.billing_secrets (facturapi_live_key) VALUES ('sk_test');
   EXCEPTION WHEN insufficient_privilege THEN
     v_blocked := true;
   END;
