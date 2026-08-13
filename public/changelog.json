@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.307.5",
+    "date": "2026-08-13",
+    "type": "patch",
+    "title": "CI: últimas 5 suites RLS en verde y fix real de lectura de archivos del portal",
+    "category": "infraestructura",
+    "changes": [
+      "`billing_secrets`: el fixture usaba columnas inexistentes (`key`/`value`); ahora usa `facturapi_live_key`.",
+      "`maintenance_parts`: el alta del mecánico chocaba con el índice único log+refacción; se agregó una segunda refacción al fixture.",
+      "`notifications`: la baja de una notificación ajena no borra filas (RLS la oculta); la suite ahora valida `ROW_COUNT = 0` en vez de la existencia de la fila.",
+      "`payments_portal`: las facturas del fixture pasan a estado `sent`, porque el trigger bloquea pagos sobre borradores.",
+      "Bug real detectado por la suite de storage: la policy del bucket `documents` consultaba `public.documents` dentro del USING, y las propias reglas de esa tabla bloqueaban la subconsulta, así que el cliente del portal veía cero archivos. Se movió la verificación a la función `customer_can_read_document_object` (SECURITY DEFINER, sólo `authenticated`) y se recreó la policy sin cambiar el alcance."
+    ]
+  },
+  {
     "version": "7.307.4",
     "date": "2026-08-13",
     "type": "patch",
