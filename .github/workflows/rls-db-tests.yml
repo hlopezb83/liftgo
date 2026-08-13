@@ -151,6 +151,7 @@ jobs:
       # algunos asumen datos de staging que no existen en una DB recién creada.
       - name: Smoke SQL (supabase/tests/*.sql)
         id: smoke
+        if: always()
         continue-on-error: true
         run: |
           python3 scripts/run_sql_suites.py \
