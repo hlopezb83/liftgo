@@ -18,6 +18,7 @@ import { useInvoiceFormTotals } from "./invoiceForm/useInvoiceFormTotals";
 import { useInvoicePrefill } from "./invoiceForm/useInvoicePrefill";
 import { useInvoiceBookings, useAllInvoiceBookings } from "./invoices/useInvoiceBookings";
 import { useInvoice, useInvoices } from "./invoices/useInvoices";
+import { useExtensionPrefill } from "./useExtensionPrefill";
 
 export type { InvoiceFormValues, LineItemValues };
 
