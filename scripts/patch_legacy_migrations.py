@@ -147,6 +147,45 @@ def patch_function_grants(path: Path, write: bool) -> int:
     return changed
 
 
+# --- Guard de ADD CONSTRAINT cuyo nombre ya existe como INDEX ----------------
+# Algunas migraciones antiguas crean un `CREATE UNIQUE INDEX IF NOT EXISTS foo`
+# y una migración posterior hace `ADD CONSTRAINT foo UNIQUE (...)` protegida
+# sólo por un check en pg_constraint. Al reconstruir desde cero el índice ya
+# existe con ese nombre y el ADD CONSTRAINT falla con 42P07 (name clash).
+# Ampliamos el guard para mirar también pg_class (índices/relaciones).
+
+CONSTRAINT_GUARD_RE = re.compile(
+    r"NOT\s+EXISTS\s*\(\s*SELECT\s+1\s+FROM\s+pg_constraint\s+"
+    r"WHERE\s+conname\s*=\s*'([A-Za-z0-9_]+)'\s*\)",
+    re.I,
+)
+
+
+def patch_constraint_name_clash(path: Path, write: bool) -> int:
+    sql = path.read_text()
+    if "pg_constraint" not in sql or "pg_class" in sql:
+        return 0
+    count = 0
+
+    def repl(m: re.Match) -> str:
+        nonlocal count
+        count += 1
+        name = m.group(1)
+        return (
+            "NOT EXISTS (\n"
+            f"    SELECT 1 FROM pg_constraint WHERE conname = '{name}'\n"
+            "    UNION ALL\n"
+            "    SELECT 1 FROM pg_class c JOIN pg_namespace n ON n.oid = c.relnamespace\n"
+            f"     WHERE c.relname = '{name}' AND n.nspname = 'public'\n"
+            "  )"
+        )
+
+    out = CONSTRAINT_GUARD_RE.sub(repl, sql)
+    if count and write:
+        path.write_text(out)
+    return count
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--check", action="store_true")
@@ -170,6 +209,13 @@ def main() -> int:
             pending += n
             verb = "requiere parche" if args.check else "parchada"
             print(f"{verb}: {path.name} → {n} GRANT/REVOKE ON FUNCTION con guard")
+
+    for path in sorted(MIGRATIONS.glob("*.sql")):
+        n = patch_constraint_name_clash(path, write=not args.check)
+        if n:
+            pending += n
+            verb = "requiere parche" if args.check else "parchada"
+            print(f"{verb}: {path.name} → {n} ADD CONSTRAINT con guard de nombre")
 
     if not pending:
         print("Sin parches pendientes.")
