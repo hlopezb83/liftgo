@@ -10,7 +10,7 @@ ON CONFLICT DO NOTHING;
 INSERT INTO public.user_roles (user_id, role) VALUES
   ('bbbbbbbb-0000-4000-8000-000000000001', 'dispatcher'),
   ('bbbbbbbb-0000-4000-8000-000000000002', 'mechanic')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
 INSERT INTO public.contracts (id, contract_number)
 VALUES ('bbbbbbbb-0000-4000-8000-00000000000f', 'CTR-RLS-TEST');

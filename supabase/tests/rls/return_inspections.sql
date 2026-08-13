@@ -7,7 +7,7 @@ ON CONFLICT DO NOTHING;
 
 INSERT INTO public.user_roles (user_id, role) VALUES
   ('a3333333-3333-4333-8333-333333333333', 'ventas')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
 SET LOCAL role = 'authenticated';
 SET LOCAL request.jwt.claims TO '{"sub":"a3333333-3333-4333-8333-333333333333","role":"authenticated"}';

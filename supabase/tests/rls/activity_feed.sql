@@ -14,7 +14,7 @@ INSERT INTO public.user_roles (user_id, role) VALUES
   ('af000005-0000-4000-8000-000000000002', 'dispatcher'),
   ('af000005-0000-4000-8000-000000000003', 'ventas'),
   ('af000005-0000-4000-8000-000000000004', 'customer')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
 INSERT INTO public.activity_feed (id, event_type, entity_type, entity_id, title) VALUES
   ('af000005-0000-4000-8000-0000000000a1', 'created', 'booking', gen_random_uuid(), 'Evento RLS');

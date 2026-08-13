@@ -9,11 +9,12 @@ ON CONFLICT DO NOTHING;
 INSERT INTO public.user_roles (user_id, role) VALUES
   ('44444444-0000-4000-8000-000000000001', 'ventas'),
   ('44444444-0000-4000-8000-000000000002', 'mechanic')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
 INSERT INTO public.profiles (user_id, email, is_active) VALUES
   ('44444444-0000-4000-8000-000000000001', 'ventas.prof@test.local', false),
-  ('44444444-0000-4000-8000-000000000002', 'mecanico.prof@test.local', true);
+  ('44444444-0000-4000-8000-000000000002', 'mecanico.prof@test.local', true)
+ON CONFLICT (user_id) DO UPDATE SET email = EXCLUDED.email, is_active = EXCLUDED.is_active;
 
 SET LOCAL role = 'authenticated';
 SET LOCAL request.jwt.claims TO '{"sub":"44444444-0000-4000-8000-000000000001","role":"authenticated"}';

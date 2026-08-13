@@ -9,7 +9,7 @@ VALUES
   ('b2222222-2222-4222-8222-222222222222', 'cliente-b@test.local', now(), now())
 ON CONFLICT DO NOTHING;
 
-INSERT INTO public.customers (id, name, portal_user_id)
+INSERT INTO public.customers (id, name, user_id)
 VALUES
   ('c1111111-1111-4111-8111-111111111111', 'Cliente A', 'a1111111-1111-4111-8111-111111111111'),
   ('c2222222-2222-4222-8222-222222222222', 'Cliente B', 'b2222222-2222-4222-8222-222222222222')

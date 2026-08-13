@@ -12,10 +12,10 @@ ON CONFLICT DO NOTHING;
 INSERT INTO public.user_roles (user_id, role) VALUES
   ('11111111-0000-4000-8000-000000000001', 'ventas'),
   ('11111111-0000-4000-8000-000000000002', 'dispatcher')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
-INSERT INTO public.invoices (id, invoice_number, customer_name, total)
-VALUES ('11111111-0000-4000-8000-00000000000f', 'FAC-RLS-TEST', 'Cliente RLS', 1000);
+INSERT INTO public.invoices (id, invoice_number, customer_name, subtotal, tax_amount, total)
+VALUES ('11111111-0000-4000-8000-00000000000f', 'FAC-RLS-TEST', 'Cliente RLS', 1000, 0, 1000);
 
 SET LOCAL role = 'authenticated';
 
@@ -30,8 +30,8 @@ BEGIN
   END IF;
 
   BEGIN
-    INSERT INTO public.invoices (invoice_number, customer_name, total)
-    VALUES ('FAC-RLS-HACK', 'Hacker', 1);
+    INSERT INTO public.invoices (invoice_number, customer_name, subtotal, tax_amount, total)
+    VALUES ('FAC-RLS-HACK', 'Hacker', 1, 0, 1);
   EXCEPTION WHEN insufficient_privilege THEN
     v_blocked := true;
   END;

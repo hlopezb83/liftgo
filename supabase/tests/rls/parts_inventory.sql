@@ -19,7 +19,7 @@ INSERT INTO public.user_roles (user_id, role) VALUES
   ('f1111111-1111-4111-8111-111111111103', 'auditor'),
   ('f1111111-1111-4111-8111-111111111104', 'ventas'),
   ('f1111111-1111-4111-8111-111111111105', 'customer')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
 INSERT INTO public.parts_inventory (id, name, sku, category, stock_quantity, unit_cost) VALUES
   ('f1111111-1111-4111-8111-1111111111a1', 'Filtro RLS', 'SKU-RLS-1', 'Filtros', 10, 250);

@@ -12,7 +12,7 @@ ON CONFLICT DO NOTHING;
 INSERT INTO public.user_roles (user_id, role) VALUES
   ('4a000011-0000-4000-8000-000000000001', 'admin'),
   ('4a000011-0000-4000-8000-000000000002', 'customer')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
 INSERT INTO public.rate_limits (bucket, identifier) VALUES
   ('rls-test-bucket', 'rls-test-identifier');

@@ -14,14 +14,14 @@ INSERT INTO public.user_roles (user_id, role) VALUES
   ('c0000006-0000-4000-8000-000000000002', 'auditor'),
   ('c0000006-0000-4000-8000-000000000003', 'ventas'),
   ('c0000006-0000-4000-8000-000000000004', 'customer')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
 INSERT INTO public.customers (id, name, user_id) VALUES
   ('c0000006-0000-4000-8000-0000000000c1', 'Cliente CN', 'c0000006-0000-4000-8000-000000000004');
 
-INSERT INTO public.invoices (id, invoice_number, customer_id, customer_name, total) VALUES
+INSERT INTO public.invoices (id, invoice_number, customer_id, customer_name, subtotal, tax_amount, total) VALUES
   ('c0000006-0000-4000-8000-0000000000b1', 'FAC-CN-1',
-   'c0000006-0000-4000-8000-0000000000c1', 'Cliente CN', 1000);
+   'c0000006-0000-4000-8000-0000000000c1', 'Cliente CN', 1000, 0, 1000);
 
 INSERT INTO public.collection_notes (id, invoice_id, note) VALUES
   ('c0000006-0000-4000-8000-0000000000a1', 'c0000006-0000-4000-8000-0000000000b1',

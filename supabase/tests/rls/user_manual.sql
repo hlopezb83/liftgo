@@ -8,7 +8,7 @@ ON CONFLICT DO NOTHING;
 
 INSERT INTO public.user_roles (user_id, role) VALUES
   ('dddddddd-0000-4000-8000-000000000001', 'customer')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
 SET LOCAL role = 'authenticated';
 SET LOCAL request.jwt.claims TO '{"sub":"dddddddd-0000-4000-8000-000000000001","role":"authenticated"}';
@@ -22,7 +22,7 @@ BEGIN
   DECLARE v_blocked boolean := false;
   BEGIN
     BEGIN
-      INSERT INTO public.user_manual (content) VALUES ('contenido malicioso');
+      INSERT INTO public.user_manual (content) VALUES ('"contenido malicioso"'::jsonb);
     EXCEPTION WHEN insufficient_privilege THEN
       v_blocked := true;
     END;
