@@ -1,3 +1,10 @@
+## 7.307.6 - 2026-08-13
+
+**Infraestructura — CI: partidas obligatorias en el fixture de pagos del portal**
+- `payments_portal`: el trigger `validate_invoice_line_items_signs` exige al menos una partida en facturas fuera de borrador; el fixture ahora incluye `line_items` con importe cuadrado al subtotal.
+- El paso de smoke SQL corre con `if: always()` para que genere su reporte JUnit aunque falle la suite RLS previa.
+- Los pasos de publicación de resultados sólo se ejecutan si el archivo JUnit existe, evitando el error "No test results found".
+
 ## 7.307.5 - 2026-08-13
 
 **Infraestructura — CI: últimas 5 suites RLS en verde y fix real de lectura de archivos del portal**

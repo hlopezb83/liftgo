@@ -151,6 +151,7 @@ jobs:
       # algunos asumen datos de staging que no existen en una DB recién creada.
       - name: Smoke SQL (supabase/tests/*.sql)
         id: smoke
+        if: always()
         continue-on-error: true
         run: |
           python3 scripts/run_sql_suites.py \
@@ -170,18 +171,19 @@ jobs:
           if-no-files-found: ignore
 
       - name: Publish RLS DB results to PR summary
-        if: always()
+        if: always() && hashFiles('reports/rls-db-junit.xml') != ''
         uses: ./.github/actions/publish-test-results
         with:
           report_paths: reports/rls-db-junit.xml
           check_name: RLS DB results
 
       - name: Publish SQL smoke results to PR summary
-        if: always()
+        if: always() && hashFiles('reports/sql-smoke-junit.xml') != ''
         uses: ./.github/actions/publish-test-results
         with:
           report_paths: reports/sql-smoke-junit.xml
           check_name: SQL smoke results
+
 
       - name: Stop Supabase
         if: always()
