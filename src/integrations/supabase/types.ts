@@ -3865,6 +3865,10 @@ export type Database = {
             Returns: string
           }
         | { Args: { p_items: Json; p_notes?: string }; Returns: string }
+      customer_can_read_document_object: {
+        Args: { p_name: string }
+        Returns: boolean
+      }
       customer_owns_invoice: {
         Args: { p_invoice_id: string }
         Returns: boolean
