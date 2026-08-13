@@ -319,25 +319,31 @@ export type Database = {
       }
       booking_extensions: {
         Row: {
+          billed_at: string | null
           booking_id: string
           created_at: string | null
           id: string
+          invoice_id: string | null
           new_end_date: string
           original_end_date: string
           reason: string | null
         }
         Insert: {
+          billed_at?: string | null
           booking_id: string
           created_at?: string | null
           id?: string
+          invoice_id?: string | null
           new_end_date: string
           original_end_date: string
           reason?: string | null
         }
         Update: {
+          billed_at?: string | null
           booking_id?: string
           created_at?: string | null
           id?: string
+          invoice_id?: string | null
           new_end_date?: string
           original_end_date?: string
           reason?: string | null
@@ -348,6 +354,27 @@ export type Database = {
             columns: ["booking_id"]
             isOneToOne: false
             referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_extensions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_extensions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_invoices_with_balance"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booking_extensions_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "v_overdue_invoices"
             referencedColumns: ["id"]
           },
         ]

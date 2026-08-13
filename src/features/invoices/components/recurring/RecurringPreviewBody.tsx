@@ -198,6 +198,11 @@ export function RecurringPreviewBody({
   return (
     <>
       <SummaryBar eligibleCount={eligibleCount} selectedCount={selectedCount} totalSelected={totalSelected} />
+      {/* v7.307.0: aclarar el alcance — aquí sólo entran rentas mensuales recurrentes. */}
+      <p className="text-xs text-muted-foreground">
+        Sólo se listan reservas confirmadas con facturación recurrente mensual. Las extensiones de
+        rentas cortas se cobran desde el detalle de la reserva, con “Facturar extensión”.
+      </p>
       {/* v7.279.3: `ScrollArea` de Radix necesita altura definida; con sólo
           `max-h` su viewport (`h-full`) crecía al alto del contenido y el
           scroll nunca se activaba (contenido recortado). Scroll nativo. */}

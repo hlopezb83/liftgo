@@ -91,7 +91,10 @@ export default function BookingDetail() {
       </div>
 
       <BookingHourometerCard {...hourometer} />
-      <BookingExtensionsCard extensions={extensionsList} />
+      <BookingExtensionsCard
+        extensions={extensionsList}
+        recurringBilling={booking.recurring_billing}
+      />
 
       <BookingStatusHistory bookingId={booking.id} />
     </PageContainer>

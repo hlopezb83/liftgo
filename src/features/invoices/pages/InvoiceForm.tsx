@@ -4,6 +4,7 @@ import { useParams, useSearchParams } from "react-router";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
+import { useMarkExtensionBilled } from "@/features/bookings";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
@@ -27,8 +28,10 @@ export default function InvoiceForm() {
   const [searchParams] = useSearchParams();
   const fromQuoteId = searchParams.get("from_quote");
   const damageId = searchParams.get("damage_id");
+  const extensionId = searchParams.get("extension_id");
 
-  const f = useInvoiceFormLogic({ id, fromQuoteId });
+  const f = useInvoiceFormLogic({ id, fromQuoteId, extensionId });
+  const markExtensionBilled = useMarkExtensionBilled();
 
   useDamagePrefill({
     isEdit: f.isEdit,
@@ -78,6 +81,15 @@ export default function InvoiceForm() {
             // FIX-03 (H9): UPDATE condicional — solo cierra el daño si nadie
             // lo facturó antes. Si afecta 0 filas, otro proceso ya lo facturó.
             await closeDamageOnInvoice(damageId, data.id, data.invoice_number);
+          }
+          // v7.307.0: sellar la extensión como facturada (guard en BD impide
+          // ligarla a una segunda factura).
+          if (extensionId && f.extension?.booking_id) {
+            await markExtensionBilled.mutateAsync({
+              extensionId,
+              bookingId: f.extension.booking_id,
+              invoiceId: data.id,
+            });
           }
           if (f.fromQuoteId) f.updateQuote.mutate({ id: f.fromQuoteId, status: "accepted" });
           finalize(`Factura ${data.invoice_number} creada`, data.id);
