@@ -9,7 +9,7 @@ ON CONFLICT DO NOTHING;
 INSERT INTO public.user_roles (user_id, role) VALUES
   ('aaaaaaaa-0000-4000-8000-000000000001', 'ventas'),
   ('aaaaaaaa-0000-4000-8000-000000000002', 'customer')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
 INSERT INTO public.company_settings (id, razon_social, rfc, regimen_fiscal, lugar_expedicion)
 VALUES ('aaaaaaaa-0000-4000-8000-00000000000f', 'LiftGo RLS', 'AAA010101AAA', '601', '64000');

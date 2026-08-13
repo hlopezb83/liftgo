@@ -22,7 +22,7 @@ ON CONFLICT DO NOTHING;
 INSERT INTO public.user_roles (user_id, role) VALUES
   ('4a000099-0000-4000-8000-000000000001', 'administrativo'),
   ('4a000099-0000-4000-8000-000000000002', 'customer')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
 -- 1) anon: sin EXECUTE en las funciones de folio expuestas.
 DO $$

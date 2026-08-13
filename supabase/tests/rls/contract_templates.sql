@@ -15,7 +15,7 @@ INSERT INTO public.user_roles (user_id, role) VALUES
   ('c7000010-0000-4000-8000-000000000002', 'ventas'),
   ('c7000010-0000-4000-8000-000000000003', 'mechanic'),
   ('c7000010-0000-4000-8000-000000000004', 'customer')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
 INSERT INTO public.contract_templates (id, name, body_text) VALUES
   ('c7000010-0000-4000-8000-0000000000a1', 'Arrendamiento RLS', 'Cuerpo del contrato de prueba');

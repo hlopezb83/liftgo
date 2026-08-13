@@ -10,7 +10,7 @@ ON CONFLICT DO NOTHING;
 INSERT INTO public.user_roles (user_id, role) VALUES
   ('55555555-0000-4000-8000-000000000001', 'ventas'),
   ('55555555-0000-4000-8000-000000000002', 'dispatcher')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
 INSERT INTO public.notifications (id, user_id, type, title) VALUES
   ('55555555-0000-4000-8000-00000000000a', '55555555-0000-4000-8000-000000000001', 'info', 'Para user1'),

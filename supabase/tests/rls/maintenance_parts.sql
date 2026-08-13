@@ -18,7 +18,7 @@ INSERT INTO public.user_roles (user_id, role) VALUES
   ('f2222222-2222-4222-8222-222222222202', 'auditor'),
   ('f2222222-2222-4222-8222-222222222203', 'admin'),
   ('f2222222-2222-4222-8222-222222222204', 'customer')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
 INSERT INTO public.forklifts (id, name, model) VALUES
   ('f2222222-2222-4222-8222-2222222222f1', 'Montacargas MP', 'MP-100');

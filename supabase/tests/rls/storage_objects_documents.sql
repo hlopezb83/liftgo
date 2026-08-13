@@ -16,17 +16,17 @@ INSERT INTO public.user_roles (user_id, role) VALUES
   ('50000012-0000-4000-8000-000000000002', 'mechanic'),
   ('50000012-0000-4000-8000-000000000003', 'customer'),
   ('50000012-0000-4000-8000-000000000004', 'customer')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
 INSERT INTO public.customers (id, name, user_id) VALUES
   ('50000012-0000-4000-8000-0000000000c1', 'Cliente A SO', '50000012-0000-4000-8000-000000000003'),
   ('50000012-0000-4000-8000-0000000000c2', 'Cliente B SO', '50000012-0000-4000-8000-000000000004');
 
-INSERT INTO public.invoices (id, invoice_number, customer_id, customer_name, total) VALUES
+INSERT INTO public.invoices (id, invoice_number, customer_id, customer_name, subtotal, tax_amount, total) VALUES
   ('50000012-0000-4000-8000-0000000000e1', 'FAC-SO-A',
-   '50000012-0000-4000-8000-0000000000c1', 'Cliente A SO', 100),
+   '50000012-0000-4000-8000-0000000000c1', 'Cliente A SO', 100, 0, 100),
   ('50000012-0000-4000-8000-0000000000e2', 'FAC-SO-B',
-   '50000012-0000-4000-8000-0000000000c2', 'Cliente B SO', 100);
+   '50000012-0000-4000-8000-0000000000c2', 'Cliente B SO', 100, 0, 100);
 
 -- Documentos: uno del cliente A, uno del cliente B y uno interno de equipo.
 INSERT INTO public.documents (id, entity_type, entity_id, file_name, file_url) VALUES

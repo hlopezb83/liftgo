@@ -10,9 +10,9 @@ ON CONFLICT DO NOTHING;
 INSERT INTO public.user_roles (user_id, role) VALUES
   ('cccccccc-0000-4000-8000-000000000001', 'mechanic'),
   ('cccccccc-0000-4000-8000-000000000002', 'customer')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
-INSERT INTO public.documents (id, entity_type, entity_id, file_name, file_path) VALUES
+INSERT INTO public.documents (id, entity_type, entity_id, file_name, file_url) VALUES
   ('cccccccc-0000-4000-8000-00000000000a', 'forklift', gen_random_uuid(), 'manual.pdf', 'docs/manual.pdf'),
   ('cccccccc-0000-4000-8000-00000000000b', 'invoice', gen_random_uuid(), 'factura.pdf', 'docs/factura.pdf');
 

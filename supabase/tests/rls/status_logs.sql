@@ -15,7 +15,7 @@ INSERT INTO public.user_roles (user_id, role) VALUES
   ('50000004-0000-4000-8000-000000000002', 'ventas'),
   ('50000004-0000-4000-8000-000000000003', 'dispatcher'),
   ('50000004-0000-4000-8000-000000000004', 'customer')
-ON CONFLICT DO NOTHING;
+ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
 INSERT INTO public.forklifts (id, name, model) VALUES
   ('50000004-0000-4000-8000-0000000000f1', 'MC-SL-1', 'Modelo SL');
