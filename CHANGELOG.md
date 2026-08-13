@@ -1,3 +1,11 @@
+## 7.307.7 - 2026-08-13
+
+**Infraestructura — CI: última suite RLS en verde y smoke SQL tolerante a base vacía**
+- `payments_portal`: la factura del fixture pasa a $1,000 para que el intento de pago del cliente choque contra RLS y no contra el trigger de saldo (`enforce_payment_balance`).
+- `r3_smoke` y `r4_smoke`: `expect_error` ahora reporta SKIP cuando la sentencia afecta 0 filas — en CI la base se reconstruye sin datos y los guards no tenían nada que bloquear (falsos FALLO).
+- `r4_smoke`: corregido `RAISE` con `%%` (error 42601 que abortaba la transacción y tumbaba el resto del archivo) y DB4-02a se salta cuando no hay JWT, porque el guard delega en `service_role`.
+- `r9_smoke`: R9-02 ahora nombra las funciones que usan `CURRENT_DATE` en vez de fallar sin pistas.
+
 ## 7.307.6 - 2026-08-13
 
 **Infraestructura — CI: partidas obligatorias en el fixture de pagos del portal**
