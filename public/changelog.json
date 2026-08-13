@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.307.0",
+    "date": "2026-08-13",
+    "type": "minor",
+    "title": "Facturar la extensión de una reserva",
+    "category": "facturación",
+    "changes": [
+      "Nuevo botón \"Facturar extensión\" en el detalle de la reserva: cobra sólo el tramo nuevo (día siguiente al fin original hasta la nueva fecha de fin, inclusivo).",
+      "`booking_extensions` ahora guarda `invoice_id` y `billed_at`, con un guard en base de datos que impide facturar dos veces la misma extensión.",
+      "Las partidas se calculan con el mismo escalonado mensual → semanal → diario de una renta normal, respetando la tarifa pactada en la reserva.",
+      "El formulario de factura acepta `?extension_id=` y vuelve a permitir la reserva aunque su período original ya esté facturado.",
+      "El modal de facturas recurrentes aclara que sólo lista rentas mensuales recurrentes; las extensiones de renta corta se cobran desde la reserva."
+    ]
+  },
+  {
     "version": "7.306.7",
     "date": "2026-08-12",
     "type": "patch",

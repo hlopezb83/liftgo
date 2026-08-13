@@ -1,3 +1,12 @@
+## 7.307.0 - 2026-08-13
+
+**Facturación — extensiones de reserva**
+- Nuevo botón "Facturar extensión" en el detalle de la reserva; factura sólo el tramo nuevo (`fin original + 1` … `nuevo fin`, inclusivo).
+- `booking_extensions`: nuevas columnas `invoice_id` y `billed_at` + trigger que bloquea el doble cobro.
+- Partidas calculadas con `calculateRentalCost` (mensual → semanal → diario), respetando la tarifa pactada en la reserva.
+- `InvoiceForm` acepta `?extension_id=` y re-habilita la reserva en el selector aunque el período original ya esté facturado.
+- El modal de recurrentes aclara su alcance (sólo mensuales recurrentes).
+
 ## 7.306.7 - 2026-08-12
 
 **Infraestructura — CI sin `supabase db lint`**
