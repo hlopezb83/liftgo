@@ -38,18 +38,23 @@ SELECT pg_temp.expect_true(
 
 -- 3) Ninguna funcion de negocio debe seguir usando CURRENT_DATE / now()::date.
 --    Se excluyen las funciones de semilla/limpieza E2E.
-SELECT pg_temp.expect_true(
-  'R9-02 sin CURRENT_DATE en funciones de negocio',
-  NOT EXISTS (
-    SELECT 1
+DO $$
+DECLARE v_names text;
+BEGIN
+  SELECT string_agg(DISTINCT p.proname, ', ')
+    INTO v_names
     FROM pg_proc p
     JOIN pg_namespace n ON n.oid = p.pronamespace
-    WHERE n.nspname = 'public'
-      AND p.proname NOT LIKE 'e2e\_%'
-      AND p.proname <> 'today_mty'
-      AND p.prosrc ~* '(current_date|now\(\)::date)'
-  )
-);
+   WHERE n.nspname = 'public'
+     AND p.proname NOT LIKE 'e2e\_%'
+     AND p.proname <> 'today_mty'
+     AND p.prosrc ~* '(current_date|now\(\)::date)';
+  IF v_names IS NULL THEN
+    RAISE NOTICE 'OK  R9-02 sin CURRENT_DATE en funciones de negocio';
+  ELSE
+    RAISE WARNING 'FALLO  R9-02 funciones con CURRENT_DATE: %', v_names;
+  END IF;
+END $$;
 
 -- 4) La vista de cartera vencida se apoya en today_mty().
 SELECT pg_temp.expect_true(
