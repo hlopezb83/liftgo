@@ -35,13 +35,20 @@ OUT_OF_ORDER: list[tuple[str, str]] = [
 
 
 def split_statements(sql: str) -> list[str]:
-    """Corta por `;` de nivel superior, respetando bloques dollar-quoted."""
+    """Corta por `;` de nivel superior, respetando bloques dollar-quoted y
+    comentarios de línea (`--`), que pueden contener `;`."""
     out: list[str] = []
     buf = ""
     i = 0
     tag: str | None = None
     while i < len(sql):
         if tag is None:
+            if sql.startswith("--", i):
+                nl = sql.find("\n", i)
+                nl = len(sql) if nl == -1 else nl + 1
+                buf += sql[i:nl]
+                i = nl
+                continue
             m = re.match(r"\$[a-zA-Z_]*\$", sql[i:])
             if m:
                 tag = m.group(0)
@@ -64,6 +71,15 @@ def split_statements(sql: str) -> list[str]:
     if buf.strip():
         out.append(buf)
     return out
+
+
+def sanitize_comment_semicolons(lead: str) -> str:
+    """El splitter del CLI de Supabase NO ignora comentarios: un `;` dentro de
+    un `-- comentario` parte el statement siguiente. Si ese statement es un
+    bloque `DO $lgp_guard$ ... END`, queda cortado a la mitad y Postgres falla
+    con `syntax error at or near "IF"`. Neutralizamos el `;` del comentario."""
+    return lead.replace(";", ".")
+
 
 
 def sql_literal(body: str) -> str:
