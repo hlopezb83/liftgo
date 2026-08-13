@@ -97,8 +97,22 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     return set;
   })();
 
+  // v7.307.0: al facturar una extensión, la reserva YA tiene factura del
+  // período original. Se re-habilita para poder ligar la factura del tramo
+  // extendido; el doble cobro lo evita el guard de `booking_extensions`.
+  const { extension } = useExtensionPrefill({
+    isEdit,
+    extensionId,
+    customersLoaded: (customers?.length ?? 0) > 0,
+    form,
+    handleCustomerSelect,
+  });
+  const extensionBookingId = extension?.booking_id ?? null;
+
   const availableBookings = bookings?.filter(
-    (booking) => booking.status === "confirmed" && !invoicedBookingIds.has(booking.id),
+    (booking) =>
+      booking.status === "confirmed" &&
+      (!invoicedBookingIds.has(booking.id) || booking.id === extensionBookingId),
   ) as BookingWithForklift[] | undefined;
 
   const onSubmit = (values: InvoiceFormValues) => submit.buildPayload({
@@ -113,6 +127,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     customers, availableBookings,
     sourceQuote,
     saleAssignmentGuard,
+    extension,
     handleCustomerSelect, handleBookingSelect, handleBookingsChange,
     onSubmit,
     createInvoice: submit.createInvoice,
@@ -123,3 +138,4 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     isPending: submit.isPending,
   };
 }
+
