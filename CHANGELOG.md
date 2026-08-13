@@ -1,3 +1,10 @@
+## 7.307.3 - 2026-08-13
+
+**Infraestructura — CI: comentarios con `;` ya no parten los guards**
+- El job `rls-db-tests` seguía fallando con `syntax error at or near "IF"` (42601): el splitter del CLI de Supabase no ignora los comentarios `--`, y un `;` dentro de un comentario de rollback partía a la mitad el bloque `DO $lgp_guard$`.
+- `scripts/patch_legacy_migrations.py` ahora neutraliza los `;` de los comentarios que preceden a un guard y su propio splitter también ignora comentarios de línea.
+- Producción no se toca: el parche sólo existe en la copia efímera del runner.
+
 ## 7.307.2 - 2026-08-13
 
 **Infraestructura — CI: guards sin dollar-quoting anidado**
