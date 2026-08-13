@@ -82,6 +82,15 @@ export default function InvoiceForm() {
             // lo facturó antes. Si afecta 0 filas, otro proceso ya lo facturó.
             await closeDamageOnInvoice(damageId, data.id, data.invoice_number);
           }
+          // v7.307.0: sellar la extensión como facturada (guard en BD impide
+          // ligarla a una segunda factura).
+          if (extensionId && f.extension?.booking_id) {
+            await markExtensionBilled.mutateAsync({
+              extensionId,
+              bookingId: f.extension.booking_id,
+              invoiceId: data.id,
+            });
+          }
           if (f.fromQuoteId) f.updateQuote.mutate({ id: f.fromQuoteId, status: "accepted" });
           finalize(`Factura ${data.invoice_number} creada`, data.id);
         },
