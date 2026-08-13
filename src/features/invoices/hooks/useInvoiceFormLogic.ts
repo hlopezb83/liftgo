@@ -31,9 +31,12 @@ export interface SaleAssignmentGuard {
 interface UseInvoiceFormLogicArgs {
   id?: string;
   fromQuoteId: string | null;
+  /** v7.307.0: id de `booking_extensions` cuando venimos de "Facturar extensión". */
+  extensionId?: string | null;
 }
 
-export function useInvoiceFormLogic({ id, fromQuoteId }: UseInvoiceFormLogicArgs) {
+export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: UseInvoiceFormLogicArgs) {
+
   const isEdit = !!id;
 
   const { data: bookings } = useBookings();
