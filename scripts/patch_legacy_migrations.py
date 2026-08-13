@@ -66,15 +66,25 @@ def split_statements(sql: str) -> list[str]:
     return out
 
 
+def sql_literal(body: str) -> str:
+    """Literal SQL con comillas simples duplicadas.
+
+    IMPORTANTE: no usamos dollar-quoting anidado ($lgp$ dentro de $lgp_guard$)
+    porque el splitter de statements del CLI de Supabase no empareja los tags y
+    parte el bloque DO por los `;` internos (syntax error at or near "IF").
+    """
+    return "'" + body.replace("'", "''") + "'"
+
+
 def guard(stmt: str, relation: str) -> str:
     body = stmt.strip().rstrip(";").strip()
-    # $lgp$ como tag para no chocar con comillas del SQL original.
     return (
         f"DO $lgp_guard$\nBEGIN\n"
         f"  IF to_regclass('public.{relation}') IS NOT NULL THEN\n"
-        f"    EXECUTE $lgp${body}$lgp$;\n"
+        f"    EXECUTE {sql_literal(body)};\n"
         f"  END IF;\nEND $lgp_guard$;"
     )
+
 
 
 def patch_file(path: Path, relation: str, write: bool) -> bool:
@@ -124,7 +134,7 @@ def guard_function_stmt(stmt: str) -> str | None:
     return (
         f"{lead}DO $lgp_guard$\nBEGIN\n"
         f"  IF {cond} THEN\n"
-        f"    EXECUTE $lgp${body}$lgp$;\n"
+        f"    EXECUTE {sql_literal(body)};\n"
         f"  END IF;\nEND $lgp_guard$;"
     )
 

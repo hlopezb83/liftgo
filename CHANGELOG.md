@@ -1,3 +1,10 @@
+## 7.307.2 - 2026-08-13
+
+**Infraestructura — CI: guards sin dollar-quoting anidado**
+- El job `rls-db-tests` fallaba con `syntax error at or near "IF"` (42601): el splitter de statements del CLI de Supabase no empareja tags dollar-quoted anidados y partía los bloques `DO $lgp_guard$ ... EXECUTE $lgp$...$lgp$` por sus `;` internos.
+- `scripts/patch_legacy_migrations.py` ahora genera el `EXECUTE` con un literal de comillas simples escapadas en vez de dollar-quoting anidado.
+- Producción no se toca: el parche sólo existe en la copia efímera del runner.
+
 ## 7.307.1 - 2026-08-13
 
 **Infraestructura — CI: migraciones aplicables desde cero**
