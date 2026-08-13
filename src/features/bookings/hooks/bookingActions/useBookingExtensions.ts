@@ -7,7 +7,9 @@ import { bookingKeys } from "../../lib/queryKeys";
 
 const sel = (s: string): string => s;
 
-const BOOKING_EXTENSION_COLUMNS = sel("id, booking_id, original_end_date, new_end_date, reason, created_at");
+const BOOKING_EXTENSION_COLUMNS = sel(
+  "id, booking_id, original_end_date, new_end_date, reason, created_at, invoice_id, billed_at",
+);
 
 export function useBookingExtensions(bookingId?: string) {
   return useQuery({
@@ -26,6 +28,68 @@ export function useBookingExtensions(bookingId?: string) {
     },
   });
 }
+
+/**
+ * Extensión individual + contexto de facturación (reserva, cliente y tarifas
+ * del equipo). Lo consume el prefill de "Facturar extensión" (v7.307.0).
+ */
+export type BookingExtensionWithContext = Tables<"booking_extensions"> & {
+  bookings: {
+    id: string;
+    booking_number: string | null;
+    customer_id: string | null;
+    customer_name: string | null;
+    monthly_rate: number | null;
+    recurring_billing: boolean | null;
+    forklifts: {
+      name: string | null;
+      serial_number: string | null;
+      daily_rate: number | null;
+      weekly_rate: number | null;
+      monthly_rate: number | null;
+    } | null;
+  } | null;
+};
+
+export function useBookingExtension(extensionId?: string) {
+  return useQuery({
+    queryKey: [...bookingKeys.all, "extension", extensionId ?? ""],
+    enabled: !!extensionId,
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("booking_extensions")
+        .select(
+          `${BOOKING_EXTENSION_COLUMNS}, bookings!inner(id, booking_number, customer_id, customer_name, monthly_rate, recurring_billing, forklifts(name, serial_number, daily_rate, weekly_rate, monthly_rate))`,
+        )
+        .eq("id", extensionId ?? "")
+        .maybeSingle()
+        .returns<BookingExtensionWithContext | null>();
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+/**
+ * Sella la extensión como facturada. El trigger de BD impide re-vincularla a
+ * otra factura si ya tenía una (guard contra doble cobro).
+ */
+export function useMarkExtensionBilled() {
+  return useEntityMutation({
+    mutationFn: async (vars: { extensionId: string; bookingId: string; invoiceId: string }) => {
+      const { error } = await supabase
+        .from("booking_extensions")
+        .update({ invoice_id: vars.invoiceId, billed_at: new Date().toISOString() })
+        .eq("id", vars.extensionId)
+        .is("invoice_id", null);
+      if (error) throw error;
+      return vars;
+    },
+    invalidateKeysFn: (_d, vars) => [bookingKeys.extensions(vars.bookingId), bookingKeys.all],
+    errorTitle: "Error al marcar la extensión como facturada",
+  });
+}
+
 
 /**
  * Extiende una reserva vía RPC atómica `extend_booking`.
