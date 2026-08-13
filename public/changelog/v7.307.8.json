@@ -1,0 +1,11 @@
+{
+  "version": "7.307.8",
+  "date": "2026-08-13",
+  "type": "patch",
+  "title": "CI: el paso de publicación de smoke ya no tumba el job",
+  "category": "infraestructura",
+  "changes": [
+    "El paso `Publish SQL smoke results` usaba el default `fail_on_failure: true` del wrapper, así que cualquier fallo en el reporte JUnit de smoke (informativo, con `continue-on-error: true`) volvía a marcar el job como fallido, contradiciendo el diseño no-fatal del smoke.",
+    "Ahora `fail_on_failure: false` y `require_tests: false` en la publicación de smoke: el check se publica para revisión pero no puede fallar el job. El paso de RLS DB conserva `fail_on_failure: true` (los fallos de RLS sí deben romper el gate)."
+  ]
+}
