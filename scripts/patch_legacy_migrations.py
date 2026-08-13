@@ -134,7 +134,7 @@ def guard_function_stmt(stmt: str) -> str | None:
     return (
         f"{lead}DO $lgp_guard$\nBEGIN\n"
         f"  IF {cond} THEN\n"
-        f"    EXECUTE $lgp${body}$lgp$;\n"
+        f"    EXECUTE {sql_literal(body)};\n"
         f"  END IF;\nEND $lgp_guard$;"
     )
 
