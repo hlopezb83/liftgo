@@ -136,7 +136,7 @@ LEADING_COMMENTS_RE = re.compile(r"\A(?:\s*--[^\n]*\n)+")
 def guard_function_stmt(stmt: str) -> str | None:
     """Envuelve un GRANT/REVOKE ON FUNCTION en un check to_regprocedure."""
     lead_match = LEADING_COMMENTS_RE.match(stmt)
-    lead = lead_match.group(0) if lead_match else ""
+    lead = sanitize_comment_semicolons(lead_match.group(0)) if lead_match else ""
     body = stmt[len(lead):].strip().rstrip(";").strip()
     if not FUNC_GRANT_RE.match(body) or "$" in body:
         return None
