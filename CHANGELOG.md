@@ -1,3 +1,10 @@
+## 7.307.1 - 2026-08-13
+
+**Infraestructura — CI: migraciones aplicables desde cero**
+- El job `rls-db-tests` fallaba al reconstruir la base desde cero: una migración intentaba crear una restricción única con el mismo nombre que un índice creado antes (error 42P07).
+- `scripts/patch_legacy_migrations.py` (parche sólo en el runner) ahora amplía esos guards para revisar también índices/relaciones existentes, no sólo restricciones.
+- Producción no se toca: las migraciones ya están aplicadas y el parche vive únicamente en la copia efímera del CI.
+
 ## 7.307.0 - 2026-08-13
 
 **Facturación — extensiones de reserva**
