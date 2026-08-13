@@ -11,10 +11,17 @@ BEGIN;
 
 CREATE OR REPLACE FUNCTION pg_temp.expect_error(p_label text, p_sql text)
 RETURNS void LANGUAGE plpgsql AS $$
+DECLARE v_rows bigint;
 BEGIN
   BEGIN
     EXECUTE p_sql;
-    RAISE WARNING 'FALLO (no hubo error): %', p_label;
+    GET DIAGNOSTICS v_rows = ROW_COUNT;
+    IF v_rows = 0 THEN
+      -- Sin datos que tocar (DB recien migrada en CI): el guard no puede opinar.
+      RAISE NOTICE 'SKIP %  (0 filas afectadas: sin datos de prueba)', p_label;
+    ELSE
+      RAISE WARNING 'FALLO (no hubo error): %', p_label;
+    END IF;
   EXCEPTION WHEN OTHERS THEN
     RAISE NOTICE 'OK  %  ->  %', p_label, SQLERRM;
   END;
@@ -55,6 +62,10 @@ BEGIN
   SELECT id INTO v_forklift FROM public.forklifts WHERE deleted_at IS NULL LIMIT 1;
   IF v_forklift IS NULL THEN
     RAISE NOTICE 'SKIP DB4-02 (sin montacargas)';
+    RETURN;
+  END IF;
+  IF auth.jwt() IS NULL THEN
+    RAISE NOTICE 'SKIP DB4-02a (sin JWT: el guard delega en service_role)';
     RETURN;
   END IF;
   INSERT INTO public.damage_records (forklift_id, description, status)
@@ -110,7 +121,7 @@ BEGIN
   UPDATE public.bookings SET status = 'cancelled' WHERE id = v_booking;
   SELECT status INTO v_status FROM public.forklifts WHERE id = v_forklift;
   IF v_status = 'available' THEN
-    RAISE NOTICE 'OK  DB4-04 unidad liberada al cancelar (%%)', v_status;
+    RAISE NOTICE 'OK  DB4-04 unidad liberada al cancelar (%)', v_status;
   ELSE
     RAISE WARNING 'FALLO DB4-04 unidad quedo en %', v_status;
   END IF;

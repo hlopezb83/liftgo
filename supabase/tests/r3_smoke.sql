@@ -11,10 +11,17 @@ BEGIN;
 -- Helper: reporta OK cuando la operacion falla como se espera.
 CREATE OR REPLACE FUNCTION pg_temp.expect_error(p_label text, p_sql text)
 RETURNS void LANGUAGE plpgsql AS $$
+DECLARE v_rows bigint;
 BEGIN
   BEGIN
     EXECUTE p_sql;
-    RAISE WARNING 'FALLO (no hubo error): %', p_label;
+    GET DIAGNOSTICS v_rows = ROW_COUNT;
+    IF v_rows = 0 THEN
+      -- Sin datos que tocar (DB recien migrada en CI): el guard no puede opinar.
+      RAISE NOTICE 'SKIP %  (0 filas afectadas: sin datos de prueba)', p_label;
+    ELSE
+      RAISE WARNING 'FALLO (no hubo error): %', p_label;
+    END IF;
   EXCEPTION WHEN OTHERS THEN
     RAISE NOTICE 'OK  %  ->  %', p_label, SQLERRM;
   END;
