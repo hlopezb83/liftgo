@@ -4,6 +4,7 @@ import { useParams, useSearchParams } from "react-router";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
+import { useMarkExtensionBilled } from "@/features/bookings";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
@@ -27,8 +28,10 @@ export default function InvoiceForm() {
   const [searchParams] = useSearchParams();
   const fromQuoteId = searchParams.get("from_quote");
   const damageId = searchParams.get("damage_id");
+  const extensionId = searchParams.get("extension_id");
 
-  const f = useInvoiceFormLogic({ id, fromQuoteId });
+  const f = useInvoiceFormLogic({ id, fromQuoteId, extensionId });
+  const markExtensionBilled = useMarkExtensionBilled();
 
   useDamagePrefill({
     isEdit: f.isEdit,
