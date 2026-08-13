@@ -1,3 +1,11 @@
+## 7.307.4 - 2026-08-13
+
+**Infraestructura — CI: las suites RLS ya corren contra una base reconstruida**
+- Causa raíz de las 30 suites en rojo: al crear el usuario de prueba, el trigger `handle_new_user` ya le asigna el rol `customer`, y el índice único `user_roles_one_role_per_user` hacía que el `INSERT ... ON CONFLICT DO NOTHING` del rol de staff se descartara en silencio. Las suites ahora hacen upsert del rol.
+- Fixtures corregidos: facturas con `subtotal`+`tax_amount` cuadrados, `documents.file_url`, `user_manual.content` como JSON, `customers.user_id`, UUID inválido en `supplier_payment_batch_items`, perfiles con upsert y variable fuera de alcance en `role_permissions`.
+- `billing_secrets` acepta la denegación por falta de GRANT como válida.
+- Migración de sincronía (idempotente, sin efecto en producción): crea `public.notifications` —existía en producción pero en ninguna migración— con sus GRANT/RLS, y elimina el trigger obsoleto `trg_validate_transition` sobre `deliveries` que revivía al aplicar el historial desde cero.
+
 ## 7.307.3 - 2026-08-13
 
 **Infraestructura — CI: comentarios con `;` ya no parten los guards**
