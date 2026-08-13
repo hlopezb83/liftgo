@@ -24,7 +24,8 @@ INSERT INTO public.forklifts (id, name, model) VALUES
   ('f2222222-2222-4222-8222-2222222222f1', 'Montacargas MP', 'MP-100');
 
 INSERT INTO public.parts_inventory (id, name, sku, category, stock_quantity, unit_cost) VALUES
-  ('f2222222-2222-4222-8222-2222222222a1', 'Aceite RLS', 'SKU-MP-1', 'Lubricantes', 20, 400);
+  ('f2222222-2222-4222-8222-2222222222a1', 'Aceite RLS', 'SKU-MP-1', 'Lubricantes', 20, 400),
+  ('f2222222-2222-4222-8222-2222222222a2', 'Filtro RLS', 'SKU-MP-2', 'Filtros', 20, 400);
 
 INSERT INTO public.maintenance_logs (id, forklift_id, service_type, description) VALUES
   ('f2222222-2222-4222-8222-2222222222b1', 'f2222222-2222-4222-8222-2222222222f1',
@@ -115,7 +116,7 @@ BEGIN
   END IF;
 
   INSERT INTO public.maintenance_parts (maintenance_log_id, part_id, quantity_used, cost_at_time)
-  VALUES ('f2222222-2222-4222-8222-2222222222b1', 'f2222222-2222-4222-8222-2222222222a1', 1, 400);
+  VALUES ('f2222222-2222-4222-8222-2222222222b1', 'f2222222-2222-4222-8222-2222222222a2', 1, 400);
   GET DIAGNOSTICS v_rows = ROW_COUNT;
   IF v_rows <> 1 THEN
     RAISE EXCEPTION 'RLS ROTA: mecanico deberia poder registrar consumo de refacciones';

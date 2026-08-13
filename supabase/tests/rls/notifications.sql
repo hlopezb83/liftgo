@@ -26,13 +26,17 @@ BEGIN
       (SELECT COUNT(*) FROM public.notifications);
   END IF;
 
+  DECLARE v_rows int := 0;
   BEGIN
-    DELETE FROM public.notifications WHERE id = '55555555-0000-4000-8000-00000000000b';
-    IF NOT EXISTS (SELECT 1 FROM public.notifications
-                    WHERE id = '55555555-0000-4000-8000-00000000000b') THEN
+    BEGIN
+      DELETE FROM public.notifications WHERE id = '55555555-0000-4000-8000-00000000000b';
+      GET DIAGNOSTICS v_rows = ROW_COUNT;
+    EXCEPTION WHEN insufficient_privilege THEN
+      v_rows := 0; -- denegación válida
+    END;
+    IF v_rows <> 0 THEN
       RAISE EXCEPTION 'RLS BREACH: user1 borró notificación ajena';
     END IF;
-  EXCEPTION WHEN insufficient_privilege THEN
     RAISE NOTICE 'OK: no borra notificaciones ajenas';
   END;
 

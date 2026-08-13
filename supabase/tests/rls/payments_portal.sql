@@ -16,9 +16,9 @@ INSERT INTO public.customers (id, name, user_id) VALUES
   ('22222222-0000-4000-8000-0000000000a1', 'Cliente A RLS', '22222222-0000-4000-8000-00000000000a'),
   ('22222222-0000-4000-8000-0000000000b1', 'Cliente B RLS', '22222222-0000-4000-8000-00000000000b');
 
-INSERT INTO public.invoices (id, invoice_number, customer_id, customer_name, subtotal, tax_amount, total) VALUES
-  ('22222222-0000-4000-8000-0000000000a2', 'FAC-RLS-A', '22222222-0000-4000-8000-0000000000a1', 'Cliente A RLS', 500, 0, 500),
-  ('22222222-0000-4000-8000-0000000000b2', 'FAC-RLS-B', '22222222-0000-4000-8000-0000000000b1', 'Cliente B RLS', 900, 0, 900);
+INSERT INTO public.invoices (id, invoice_number, customer_id, customer_name, subtotal, tax_amount, total, status) VALUES
+  ('22222222-0000-4000-8000-0000000000a2', 'FAC-RLS-A', '22222222-0000-4000-8000-0000000000a1', 'Cliente A RLS', 500, 0, 500, 'sent'),
+  ('22222222-0000-4000-8000-0000000000b2', 'FAC-RLS-B', '22222222-0000-4000-8000-0000000000b1', 'Cliente B RLS', 900, 0, 900, 'sent');
 
 INSERT INTO public.payments (id, invoice_id, amount) VALUES
   ('22222222-0000-4000-8000-0000000000a3', '22222222-0000-4000-8000-0000000000a2', 500),
