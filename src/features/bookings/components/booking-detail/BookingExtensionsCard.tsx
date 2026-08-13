@@ -1,4 +1,4 @@
-import { FileTextIcon, HistoryIcon } from "@/components/icons";
+import { HistoryIcon, InvoiceIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -80,7 +80,7 @@ export function BookingExtensionsCard({ extensions, recurringBilling }: Props) {
                       variant="outline"
                       onClick={() => navigate(`/invoices/new?extension_id=${ext.id}`)}
                     >
-                      <FileTextIcon className="mr-2 h-4 w-4" /> Facturar extensión
+                      <InvoiceIcon className="mr-2 h-4 w-4" /> Facturar extensión
                     </Button>
                   )}
                 </div>
