@@ -61,7 +61,7 @@ export function CreateCreditNoteDialog({ open, onOpenChange, invoice, maxCredita
             </div>
           </div>
 
-          <CreditNoteLinesTable lines={f.lines} onUpdate={f.updateLine} />
+          <CreditNoteLinesTable lines={f.lines} onUpdate={f.updateLine} lineMax={f.lineMax} />
 
           <div className="flex justify-end">
             <div className="w-64 space-y-1 text-sm">

@@ -216,3 +216,32 @@ describe("calculateRentalCost — cap 29-30 días al mes (BL-15)", () => {
 
 
 
+
+/**
+ * Fix 8.4 (Sprint 8): el cap BL-15 ("mes completo a partir de 28 días") no debe
+ * aplicar a extensiones — el cliente ya pagó el mes base y cobrarle un mes
+ * entero por 28-29 días extra le carga días no rentados.
+ */
+describe("calculateRentalCost · cap BL-15 en extensiones", () => {
+  const daily = 1000;
+  const monthly = 20000;
+
+  const totalOf = (days: number, isExtension: boolean) => {
+    const start = new Date(2026, 7, 1);
+    const end = new Date(2026, 7, 1);
+    end.setDate(end.getDate() + days - 1);
+    return calculateRentalCost(daily, null, monthly, start, end, isExtension)
+      .reduce((acc, i) => acc + i.total, 0);
+  };
+
+  it.each([28, 29, 31])("extensión de %i días no cobra el mes completo fijo", (days) => {
+    const extension = totalOf(days, true);
+    const prorated = (monthly * days) / 30;
+    expect(extension).toBeLessThanOrEqual(Math.max(prorated, monthly) + 0.01);
+    expect(extension).toBeCloseTo(Math.min(daily * days, prorated), 2);
+  });
+
+  it("renta inicial de 29 días sí conserva el cap de mes completo", () => {
+    expect(totalOf(29, false)).toBe(monthly);
+  });
+});

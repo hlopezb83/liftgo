@@ -6,9 +6,11 @@ import type { EditableCreditNoteLine } from "../../hooks/creditNotes/useCreditNo
 interface Props {
   lines: EditableCreditNoteLine[];
   onUpdate: (idx: number, patch: Partial<EditableCreditNoteLine>) => void;
+  /** Fix 8.1: máximos facturados por línea, para mostrar el hint del tope. */
+  lineMax?: (idx: number) => { quantity: number; unit_price: number };
 }
 
-export function CreditNoteLinesTable({ lines, onUpdate }: Props) {
+export function CreditNoteLinesTable({ lines, onUpdate, lineMax }: Props) {
   return (
     <div className="border rounded-md">
       <Table>
@@ -36,21 +38,33 @@ export function CreditNoteLinesTable({ lines, onUpdate }: Props) {
                 <Input
                   type="number" min={0} step="0.01"
                   value={l.quantity}
+                  max={lineMax?.(i).quantity}
                   disabled={!l._selected}
                   onChange={(e) => onUpdate(i, { quantity: Number(e.target.value) })}
                   aria-label={`Cantidad a acreditar de ${l.description}`}
                   className="h-8 text-right font-mono text-sm [appearance:textfield] [-moz-appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
+                {lineMax && (
+                  <p className="mt-1 text-[11px] text-muted-foreground text-right">
+                    Máximo: {lineMax(i).quantity} unidades facturadas
+                  </p>
+                )}
               </TableCell>
               <TableCell>
                 <Input
                   type="number" min={0} step="0.01"
                   value={l.unit_price}
+                  max={lineMax?.(i).unit_price}
                   disabled={!l._selected}
                   onChange={(e) => onUpdate(i, { unit_price: Number(e.target.value) })}
                   aria-label={`Precio unitario a acreditar de ${l.description}`}
                   className="h-8 text-right font-mono text-sm [appearance:textfield] [-moz-appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                 />
+                {lineMax && (
+                  <p className="mt-1 text-[11px] text-muted-foreground text-right">
+                    Máximo: {formatCurrency(lineMax(i).unit_price)} facturado
+                  </p>
+                )}
               </TableCell>
               <TableCell className="text-right font-mono text-sm">
                 {formatCurrency(Number(l.quantity || 0) * Number(l.unit_price || 0))}
