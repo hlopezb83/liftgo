@@ -2780,6 +2780,7 @@ export type Database = {
           created_at: string
           damage_cost: number | null
           damage_notes: string | null
+          extra_hours: number | null
           forklift_id: string
           fuel_level: string | null
           hours_used: number | null
@@ -2787,6 +2788,7 @@ export type Database = {
           inspected_at: string
           inspected_by: string | null
           inspection_number: string
+          suggested_extra_hour_charge: number | null
         }
         Insert: {
           booking_id: string
@@ -2794,6 +2796,7 @@ export type Database = {
           created_at?: string
           damage_cost?: number | null
           damage_notes?: string | null
+          extra_hours?: number | null
           forklift_id: string
           fuel_level?: string | null
           hours_used?: number | null
@@ -2801,6 +2804,7 @@ export type Database = {
           inspected_at?: string
           inspected_by?: string | null
           inspection_number: string
+          suggested_extra_hour_charge?: number | null
         }
         Update: {
           booking_id?: string
@@ -2808,6 +2812,7 @@ export type Database = {
           created_at?: string
           damage_cost?: number | null
           damage_notes?: string | null
+          extra_hours?: number | null
           forklift_id?: string
           fuel_level?: string | null
           hours_used?: number | null
@@ -2815,6 +2820,7 @@ export type Database = {
           inspected_at?: string
           inspected_by?: string | null
           inspection_number?: string
+          suggested_extra_hour_charge?: number | null
         }
         Relationships: [
           {
