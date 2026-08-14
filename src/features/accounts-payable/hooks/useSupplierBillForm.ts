@@ -157,7 +157,10 @@ export function useSupplierBillForm(
   const retIsr = Number(retIsrRaw || 0);
   // El descuento reduce la base antes de impuestos, como en el CFDI:
   // total = subtotal - descuento + traslados - retenciones.
-  const total = roundMoney(subtotal - discount + tax - retIva - retIsr);
+  // Piso defensivo: el total nunca debe ser negativo (la guarda del schema
+  // ya bloquea retenciones excesivas, pero esto protege contra datos
+  // importados o editados directamente en BD).
+  const total = roundMoney(Math.max(0, subtotal - discount + tax - retIva - retIsr));
 
   const onSubmit = (data: SupplierBillFormData) => {
     const basePayload = {
