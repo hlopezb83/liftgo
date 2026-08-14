@@ -72,6 +72,13 @@ export function buildPaidByInvoice(payments: ReadonlyArray<PaymentRow>): Map<str
   return map;
 }
 
+/**
+ * Saldo mínimo proyectable (MXN): medio centavo. Saldos residuales por debajo
+ * son ruido de redondeo de centavos/TC y no ameritan fila en la proyección.
+ * Único umbral para entradas (facturas) y salidas (bills).
+ */
+const MIN_PROJECTABLE_BALANCE_MXN = 0.005;
+
 /** Transforma una factura en `CashFlowItem` (entrada), o null si no aplica. */
 export function invoiceToItem(
   inv: InvoiceRow,
@@ -88,7 +95,7 @@ export function invoiceToItem(
   const creditedDoc = Number(inv.credited_amount ?? 0);
   const balanceDoc = Number(inv.total) - paidDoc - creditedDoc;
   const balanceMxn = toMxn(balanceDoc, inv.moneda ?? "MXN", inv.tipo_cambio);
-  if (balanceMxn < 0.005) return null;
+  if (balanceMxn < MIN_PROJECTABLE_BALANCE_MXN) return null;
   return {
     id: inv.id,
     number: inv.invoice_number,
@@ -115,7 +122,7 @@ export function billToItem(b: BillRow): CashFlowItem | null {
   const rawBalance = Number(b.balance);
   const safeBalance = Number.isFinite(rawBalance) ? rawBalance : 0;
   const balanceMxn = toMxn(safeBalance, b.currency, b.exchange_rate);
-  if (!Number.isFinite(balanceMxn) || balanceMxn < 0.005) return null;
+  if (!Number.isFinite(balanceMxn) || balanceMxn < MIN_PROJECTABLE_BALANCE_MXN) return null;
   return {
     id: b.id,
     number: b.bill_number,
