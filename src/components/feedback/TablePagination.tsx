@@ -44,7 +44,7 @@ export function TablePagination({ page, totalPages, onPageChange }: TablePaginat
         <PaginationItem>
           <PaginationPrevious
             onClick={goPrev}
-            className={page === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            disabled={page === 1}
           />
         </PaginationItem>
         {visiblePages.map((p, i) =>
@@ -57,7 +57,6 @@ export function TablePagination({ page, totalPages, onPageChange }: TablePaginat
               <PaginationLink
                 isActive={p === page}
                 onClick={() => onPageChange(p)}
-                className="cursor-pointer"
               >
                 {p}
               </PaginationLink>
@@ -67,7 +66,7 @@ export function TablePagination({ page, totalPages, onPageChange }: TablePaginat
         <PaginationItem>
           <PaginationNext
             onClick={goNext}
-            className={page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            disabled={page === totalPages}
           />
         </PaginationItem>
       </PaginationContent>
