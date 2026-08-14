@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { RequiredMark } from "@/components/forms/RequiredMark";
 import { UploadIcon, SpinnerIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
@@ -108,14 +109,7 @@ export function UploadSupplierRepDialog({
             )}
           />
           <FormDialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              disabled={upload.isPending}
-              onClick={() => onOpenChange(false)}
-            >
-              Cancelar
-            </Button>
+            <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={upload.isPending} />
             <Button type="submit" disabled={!form.formState.isValid || upload.isPending}>
               {upload.isPending ? (
                 <><SpinnerIcon className="h-4 w-4 mr-1 animate-spin" /> Validando…</>

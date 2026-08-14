@@ -1,6 +1,6 @@
 
 import { FleetIcon, SuccessIcon, MaintenanceIcon, ChartIcon } from "@/components/icons";
-import { computeFleetAvailability } from "@/features/availability/utils/fleetAvailability";
+import { computeFleetAvailability, useServerTodayMty } from "@/features/availability";
 import type { BookingWithForklift } from "@/features/bookings";
 import { StatCards } from "@/features/dashboard";
 import type { Tables } from "@/integrations/supabase/types";
@@ -13,9 +13,11 @@ interface CalendarStatCardsProps {
 }
 
 export function CalendarStatCards({ forklifts, bookings }: CalendarStatCardsProps) {
+  // R10.9: "hoy" resuelto en el servidor (TZ Monterrey), no el reloj del navegador.
+  const todayYmd = useServerTodayMty();
   const stats = (() => {
     // R6-FE-07: una sola definición compartida (fleetAvailability).
-    const a = computeFleetAvailability(forklifts, bookings);
+    const a = computeFleetAvailability(forklifts, bookings, todayYmd);
     if (!a) return { available: 0, rented: 0, maintenance: 0, utilization: "0%" };
     const utilization = a.totalActive > 0 ? Math.round((a.rented / a.totalActive) * 100) : 0;
     return { available: a.available, rented: a.rented, maintenance: a.maintenance, utilization: `${utilization}%` };
