@@ -74,7 +74,7 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
       notifyError({ title: "El daño no tiene cliente asociado" });
       return;
     }
-    navigate(`/invoices/new?damage_id=${record.id}&customer_id=${record.customer_id}&amount=${cost ?? ""}`);
+    navigate(`/invoices/new?damage_id=${record.id}&customer_id=${record.customer_id}`);
   };
 
   if (record.status === "invoiced" && !canArchive) {

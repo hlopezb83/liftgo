@@ -37,7 +37,6 @@ export default function InvoiceForm() {
     isEdit: f.isEdit,
     damageId,
     damageCustomerId: searchParams.get("customer_id"),
-    damageAmount: searchParams.get("amount"),
     customers: f.customers,
     form: f.form,
     handleCustomerSelect: f.handleCustomerSelect,
