@@ -22,6 +22,7 @@ export function ClosedTable({ rows, kind, isLoading, onConvert, onViewCustomer }
     columns,
     getRowId: (p) => p.id,
     initialSorting: [{ id: "closedAt", desc: true }],
+    paginated: false,
   });
 
   return (
