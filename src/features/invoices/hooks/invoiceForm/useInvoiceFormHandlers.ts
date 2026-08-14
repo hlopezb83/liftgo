@@ -35,7 +35,7 @@ function applyCfdiPatch(form: UseFormReturn<InvoiceFormValues>, customer: Custom
   });
 }
 
-function buildLinesForBooking(booking: Booking, forklifts: Forklift[] | undefined): LineItemValues[] {
+export function buildLinesForBooking(booking: Booking, forklifts: Forklift[] | undefined): LineItemValues[] {
   const forklift = forklifts?.find((f) => f.id === booking.forklift_id);
   if (!forklift) return [];
   // La reserva puede traer tarifas pactadas distintas a las actuales del
