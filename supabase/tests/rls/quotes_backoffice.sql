@@ -1,5 +1,5 @@
 -- RLS: quotes (back-office) — complemento de quotes_portal.sql.
--- Ventas/dispatcher/administrativo/admin escriben; mecánico y auditor solo leen;
+-- Ventas/administrativo/admin escriben; dispatcher, mecánico y auditor solo leen;
 -- el cliente del portal solo ve las suyas y no puede alterar precios; anon sin acceso.
 BEGIN;
 
@@ -7,14 +7,16 @@ INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
   ('40000009-0000-4000-8000-000000000001', 'ventas.qb@test.local', now(), now()),
   ('40000009-0000-4000-8000-000000000002', 'mecanico.qb@test.local', now(), now()),
   ('40000009-0000-4000-8000-000000000003', 'auditor.qb@test.local', now(), now()),
-  ('40000009-0000-4000-8000-000000000004', 'cliente.qb@test.local', now(), now())
+  ('40000009-0000-4000-8000-000000000004', 'cliente.qb@test.local', now(), now()),
+  ('40000009-0000-4000-8000-000000000005', 'dispatcher.qb@test.local', now(), now())
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.user_roles (user_id, role) VALUES
   ('40000009-0000-4000-8000-000000000001', 'ventas'),
   ('40000009-0000-4000-8000-000000000002', 'mechanic'),
   ('40000009-0000-4000-8000-000000000003', 'auditor'),
-  ('40000009-0000-4000-8000-000000000004', 'customer')
+  ('40000009-0000-4000-8000-000000000004', 'customer'),
+  ('40000009-0000-4000-8000-000000000005', 'dispatcher')
 ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
 INSERT INTO public.customers (id, name, user_id) VALUES
@@ -140,6 +142,49 @@ BEGIN
     RAISE EXCEPTION 'RLS ROTA: ventas deberia poder editar cotizaciones';
   END IF;
   RAISE NOTICE 'OK: ventas administra quotes';
+END $$;
+
+-- 6) Dispatcher: solo lectura (v7.320.4) — no puede crear, editar ni borrar cotizaciones.
+SET LOCAL request.jwt.claims TO '{"sub":"40000009-0000-4000-8000-000000000005","role":"authenticated"}';
+
+DO $$
+DECLARE v_rows int; v_blocked boolean := false;
+BEGIN
+  IF (SELECT COUNT(*) FROM public.quotes) < 2 THEN
+    RAISE EXCEPTION 'RLS ROTA: dispatcher deberia leer quotes';
+  END IF;
+
+  BEGIN
+    INSERT INTO public.quotes (customer_id, quote_number, status, subtotal, tax_amount, total)
+    VALUES ('40000009-0000-4000-8000-0000000000c1', 'COT-QB-DISP', 'draft', 1, 0, 1);
+  EXCEPTION WHEN insufficient_privilege OR check_violation THEN
+    v_blocked := true;
+  END;
+  IF NOT v_blocked THEN
+    RAISE EXCEPTION 'RLS BREACH: dispatcher pudo crear una cotizacion';
+  END IF;
+
+  BEGIN
+    UPDATE public.quotes SET total = 1
+     WHERE id = '40000009-0000-4000-8000-0000000000e1';
+    GET DIAGNOSTICS v_rows = ROW_COUNT;
+  EXCEPTION WHEN insufficient_privilege OR check_violation THEN
+    v_rows := 0;
+  END;
+  IF v_rows > 0 THEN
+    RAISE EXCEPTION 'RLS BREACH: dispatcher pudo editar una cotizacion';
+  END IF;
+
+  BEGIN
+    DELETE FROM public.quotes WHERE id = '40000009-0000-4000-8000-0000000000e2';
+    GET DIAGNOSTICS v_rows = ROW_COUNT;
+  EXCEPTION WHEN insufficient_privilege OR check_violation THEN
+    v_rows := 0;
+  END;
+  IF v_rows > 0 THEN
+    RAISE EXCEPTION 'RLS BREACH: dispatcher pudo borrar una cotizacion';
+  END IF;
+  RAISE NOTICE 'OK: dispatcher es de solo lectura en quotes';
 END $$;
 
 ROLLBACK;

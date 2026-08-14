@@ -1,5 +1,30 @@
 [
  {
+  "version": "7.320.5",
+  "date": "2026-08-14",
+  "type": "patch",
+  "category": "seguridad",
+  "title": "Blindaje de pruebas RLS y memoria de seguridad para la matriz de roles restringida",
+  "changes": [
+   "Pruebas RLS: se actualizaron las suites status_logs.sql, collection_notes.sql y quotes_backoffice.sql para reflejar y blindar el nuevo contrato (v7.320.4): dispatchers ahora son solo lectura en quotes/collection_notes y el mecánico es solo lectura en status_logs (escribe vía la RPC change_forklift_status). Se corrigieron comentarios obsoletos y se añadieron aserciones de que estos roles ya no pueden insertar/actualizar/borrar.",
+   "Memoria de seguridad: se registró en el security-memory que la restricción read-only de dispatchers/mecánicos y el FORCE RLS en las 4 tablas son intencionales, para que futuros escaneos no los marquen como 'falta de policy de escritura'."
+  ]
+ },
+ {
+  "version": "7.320.4",
+  "date": "2026-08-14",
+  "type": "patch",
+  "category": "seguridad",
+  "title": "Matriz de roles RLS: dispatchers y mecánicos restringidos a solo lectura en tablas sensibles",
+  "changes": [
+   "Seguridad RLS: se reemplazaron 4 políticas FOR ALL (CRUD completo) por políticas FOR SELECT para roles restringidos: dispatchers en credit_notes, quotes y collection_notes; mecánicos en status_logs. Antes estos roles podían crear, editar y borrar registros en tablas financieras/auditoría que no les corresponden.",
+   "Endurecimiento: se activó FORCE ROW LEVEL SECURITY en las 4 tablas (credit_notes, quotes, collection_notes, status_logs) para que ni el dueño de la tabla pueda saltarse las reglas de fila.",
+   "Corrección del diff original: la tabla real del log de flota es status_logs (el borrador referenciaba forklift_status_logs, que no existe y habría abortado la migración). También se usó (select auth.uid()) en todas las políticas conforme a las reglas permanentes de SQL del proyecto.",
+   "Seguridad del remedio verificada: los cambios de estado de flota se hacen vía la RPC change_forklift_status (SECURITY DEFINER), no por inserts directos de mecánicos; el único insert directo a status_logs es de useCreateForklift (admin). No se rompe ningún flujo.",
+   "Verificación: migración aplicada, 4 policies FOR SELECT confirmadas, FORCE RLS=true en las 4 tablas."
+  ]
+ },
+ {
   "version": "7.320.3",
   "date": "2026-08-14",
   "type": "patch",
