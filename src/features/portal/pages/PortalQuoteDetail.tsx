@@ -17,7 +17,7 @@ import {
   useAcceptPortalQuote,
   useRejectPortalQuote,
 } from "../hooks/usePortalExtras";
-import { quoteStatusLabel } from "../lib/quoteStatus";
+import { isQuotePastValidity, quoteStatusLabel } from "../lib/quoteStatus";
 
 
 interface LineItem {
@@ -59,13 +59,7 @@ export default function PortalQuoteDetail() {
   const validUntilDate = quote.valid_until ? parseDateLocal(quote.valid_until) : null;
   // Vigencia contra la fecha de Monterrey (TZ del negocio), NO la medianoche
   // local del navegador del cliente — mismo patrón que PortalUpcomingDues.
-  const todayMty = nowMty();
-  const startOfTodayMty = new Date(
-    todayMty.getFullYear(),
-    todayMty.getMonth(),
-    todayMty.getDate(),
-  ).getTime();
-  const isExpired = validUntilDate ? validUntilDate.getTime() < startOfTodayMty : false;
+  const isExpired = isQuotePastValidity(validUntilDate, nowMty());
   const canAct = canActOnPortalQuote(quote) && !isExpired;
   const wasAccepted = isQuoteAccepted(quote);
 

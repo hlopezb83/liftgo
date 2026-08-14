@@ -19,6 +19,7 @@ import { roundMoney } from "@/lib/money";
 import { positiveAmount } from "@/lib/schemas";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { useUpdatePayment, type Payment } from "../../hooks/usePayments";
+import { validateEditPaymentAmount } from "./validateEditPaymentAmount";
 
 const METHODS = [
   { value: "transfer", label: "Transferencia" },
@@ -78,10 +79,10 @@ export function EditPaymentDialog({ open, onOpenChange, payment, balance }: Prop
   const onSubmit = (values: FormValues) => {
     // BL-11: rechazar sobrepagos al editar. El techo es el saldo actual (que ya
     // incluye este pago) más el monto original del pago editado.
-    const maxAllowed = roundMoney(balance + payment.amount);
-    if (!isRepStamped && roundMoney(values.amount) - maxAllowed > 0.01) {
+    const validation = validateEditPaymentAmount(values.amount, balance, payment.amount, isRepStamped);
+    if (!validation.ok) {
       notifyValidation({
-        message: `El monto excede el saldo pendiente más el pago original ($${maxAllowed.toFixed(2)}). Ajusta la cantidad.`,
+        message: `El monto excede el saldo pendiente más el pago original ($${validation.maxAllowed.toFixed(2)}). Ajusta la cantidad.`,
       });
       return;
     }

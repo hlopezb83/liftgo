@@ -1,3 +1,8 @@
+## 7.326.1 - 2026-08-14
+
+**Mantenimiento — Cobertura de pruebas de los sprints M1-M3**
+- Se agregaron 22 pruebas para los seis arreglos que habían quedado sin red de seguridad: totales de factura con partidas exentas, IVA por línea en notas de crédito, límite de uso de la generación de manuales con IA, vigencia de cotizaciones en horario de Monterrey, tope de monto al editar un pago y la unión sin duplicados de facturas en el resumen del contrato. Suite completa en verde: 1837 pruebas, sin errores de tipos ni advertencias de lint.
+
 ## 7.326.0 - 2026-08-14
 
 **Mejoras — Sprint M3 — Robustez y consistencia**

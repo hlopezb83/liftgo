@@ -17,3 +17,15 @@ export function quoteStatusLabel(status: string | null | undefined): string {
   if (!status) return "—";
   return QUOTE_STATUS_LABELS[status] ?? "—";
 }
+
+/**
+ * F8 (Sprint M2): vigencia de la cotización contra la medianoche del negocio
+ * (Monterrey), no la medianoche local del navegador del cliente. `today`
+ * debe venir de `nowMty()`; `validUntil`/parseado con `parseDateLocal` para
+ * evitar drift de TZ en el propio `valid_until`.
+ */
+export function isQuotePastValidity(validUntilDate: Date | null, today: Date): boolean {
+  if (!validUntilDate) return false;
+  const startOfTodayMty = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+  return validUntilDate.getTime() < startOfTodayMty;
+}
