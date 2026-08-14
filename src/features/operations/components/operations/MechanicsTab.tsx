@@ -14,6 +14,7 @@ import { Switch } from "@/components/ui/switch";
 import { useMechanics, useCreateMechanic, useUpdateMechanic, useDeleteMechanic, Mechanic } from "@/features/maintenance";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 
 export function MechanicsTab() {
   const isMobile = useIsMobile();
@@ -134,7 +135,7 @@ export function MechanicsTab() {
             <div className="space-y-1.5"><Label>Notas</Label><Input placeholder="Notas opcionales" value={form.notes} onChange={(e) => set("notes", e.target.value)} /></div>
           </div>
           <FormDialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <FormDialogCancelButton onCancel={() => setOpen(false)} disabled={create.isPending || update.isPending} />
             <Button onClick={handleSubmit} disabled={create.isPending || update.isPending}>{editId ? "Guardar" : "Agregar"}</Button>
           </FormDialogFooter>
         </FormDialog>

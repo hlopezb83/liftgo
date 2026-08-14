@@ -19,6 +19,7 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FUEL_TYPES, FUEL_TYPE_LABELS } from "@/lib/constants";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 
 
 export function EquipmentModelsTab() {
@@ -174,7 +175,7 @@ export function EquipmentModelsTab() {
             </div>
           </div>
           <FormDialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <FormDialogCancelButton onCancel={() => setOpen(false)} disabled={create.isPending || update.isPending} />
             <Button onClick={handleSubmit} disabled={create.isPending || update.isPending}>{editId ? "Guardar" : "Agregar"}</Button>
           </FormDialogFooter>
         </FormDialog>

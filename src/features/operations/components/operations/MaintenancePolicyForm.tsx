@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import type { MaintenancePolicyFormValues } from "./maintenancePolicyFormTypes";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 
 
 interface Props {
@@ -65,7 +66,7 @@ export function MaintenancePolicyForm({
         </div>
       </FormSection>
       <FormDialogFooter>
-        <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+        <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={isPending} />
         <Button onClick={onSave} disabled={isPending}>
           {isEdit ? "Guardar" : "Agregar póliza"}
         </Button>

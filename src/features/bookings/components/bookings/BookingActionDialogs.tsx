@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { BOOKING_STATUS_LABELS, getValidTransitions } from "../../hooks/bookingActions/useBookingActionsLogic";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 
 interface StatusChangeDialogProps {
   open: boolean;
@@ -53,7 +54,7 @@ export function BookingStatusChangeDialog({
         )}
 
         <FormDialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <FormDialogCancelButton onCancel={() => onOpenChange(false)} />
           <Button onClick={onConfirm} disabled={!newStatus || newStatus === currentStatus}>
             Confirmar Cambio
           </Button>
@@ -94,7 +95,7 @@ export function BookingExtendDialog({
         )}
 
         <FormDialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <FormDialogCancelButton onCancel={() => onOpenChange(false)} />
           <Button onClick={onExtend} disabled={isPending}>Extender</Button>
         </FormDialogFooter>
       </div>
