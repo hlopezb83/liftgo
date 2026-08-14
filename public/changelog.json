@@ -1,5 +1,11 @@
 [
   {
+    "version": "7.321.0",
+    "date": "2026-08-14",
+    "title": "Paginación accesible: enlaces <a> → <button> con estado disabled real",
+    "description": "PaginationLink era un <a> sin href, así que no era enfocable por teclado (Tab no lo alcanzaba) y los usuarios de lector de pantalla/teclado no podían paginar. Además, prev/next en los extremos se \"deshabilitaban\" con pointer-events-none opacity-50, un hack visual que no comunicaba el estado a tecnología asistiva. Se convirtió a <button type=button> enfocable, se añadieron tipos ref HTMLButtonElement y se usó disabled nativo en TablePagination. Se añadió disabled:pointer-events-none disabled:opacity-50 para preservar la apariencia."
+  },
+  {
     "version": "7.320.9",
     "date": "2026-08-14",
     "title": "Tabla de deals cerrados del CRM ahora muestra todos los registros",
