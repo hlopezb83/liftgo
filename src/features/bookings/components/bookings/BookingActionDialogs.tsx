@@ -1,6 +1,7 @@
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { WarnIcon } from "@/components/icons";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -8,7 +9,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { formatDateDisplay } from "@/lib/utils";
 import { BOOKING_STATUS_LABELS, getValidTransitions } from "../../hooks/bookingActions/useBookingActionsLogic";
-import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 
 interface StatusChangeDialogProps {
   open: boolean;

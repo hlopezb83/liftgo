@@ -3,6 +3,7 @@ import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTa
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
 import { MobileCardList } from "@/components/layout/MobileCardList";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,6 @@ import { Switch } from "@/components/ui/switch";
 import { useMechanics, useCreateMechanic, useUpdateMechanic, useDeleteMechanic, Mechanic } from "@/features/maintenance";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
-import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 
 export function MechanicsTab() {
   const isMobile = useIsMobile();

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
 import { MobileCardList } from "@/components/layout/MobileCardList";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,6 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FUEL_TYPES, FUEL_TYPE_LABELS } from "@/lib/constants";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
-import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 
 
 export function EquipmentModelsTab() {
