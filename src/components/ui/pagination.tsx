@@ -66,7 +66,7 @@ const PaginationPrevious = ({ className, ref, ...props }: ComponentProps<typeof 
 };
 PaginationPrevious.displayName = "PaginationPrevious";
 
-const PaginationNext = ({ className, ref, ...props }: ComponentProps<typeof PaginationLink> & { ref?: Ref<HTMLAnchorElement> }) => {
+const PaginationNext = ({ className, ref, ...props }: ComponentProps<typeof PaginationLink> & { ref?: Ref<HTMLButtonElement> }) => {
   return (
     <PaginationLink ref={ref} aria-label="Ir a la página siguiente" size="default" className={cn("gap-1 pr-2.5", className)} {...props}>
       <span>Siguiente</span>
