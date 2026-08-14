@@ -38,7 +38,16 @@ function applyCfdiPatch(form: UseFormReturn<InvoiceFormValues>, customer: Custom
 function buildLinesForBooking(booking: Booking, forklifts: Forklift[] | undefined): LineItemValues[] {
   const forklift = forklifts?.find((f) => f.id === booking.forklift_id);
   if (!forklift) return [];
-  const items = generateLineItems(forklift, booking.start_date, booking.end_date);
+  // La reserva puede traer tarifas pactadas distintas a las actuales del
+  // montacargas; prevalece la de la reserva y cae a la del montacargas si es
+  // null (mismo patrón que useExtendBookingPreview). ?? 0 garantiza number.
+  const rated: Forklift = {
+    ...forklift,
+    daily_rate: booking.daily_rate ?? forklift.daily_rate ?? 0,
+    weekly_rate: booking.weekly_rate ?? forklift.weekly_rate ?? 0,
+    monthly_rate: booking.monthly_rate ?? forklift.monthly_rate ?? 0,
+  };
+  const items = generateLineItems(rated, booking.start_date, booking.end_date);
   return items.map((item) => ({
     ...item,
     clave_prod_serv: "78181500",
