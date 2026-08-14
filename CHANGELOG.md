@@ -1,3 +1,11 @@
+## 7.318.0 - 2026-08-14
+
+**Mejoras — Venta y baja de unidades: solo se bloquean con renta realmente abierta**
+- Una unidad solo se considera rentada si su entrega está completada y aún no se registra la devolución; antes bastaba una reserva confirmada, aunque ya se hubiera devuelto.
+- La misma regla aplica ahora en el cambio de estado desde la app, en la asignación a cotizaciones de venta y en cambios directos en base de datos.
+- El mensaje de error es claro: pide completar la devolución antes de vender o dar de baja la unidad.
+- Se agregaron pruebas de las máquinas de estado: contrato completado final, factura borrador que no puede vencer y cuenta por pagar con pagos que no se puede cancelar.
+
 ## 7.317.4 - 2026-08-14
 
 **Correcciones — Pruebas de los candados de dinero (notas de crédito, sobrepago y fechas de Monterrey)**
