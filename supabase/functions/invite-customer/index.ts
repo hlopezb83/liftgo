@@ -66,7 +66,9 @@ Deno.serve(async (req) => {
       const { error: delErr } = await auth.adminClient.auth.admin.deleteUser(
         userId,
       );
-      if (delErr) console.error("invite-customer cleanup deleteUser failed:", delErr);
+      if (delErr) {
+        console.error("invite-customer cleanup deleteUser failed:", delErr);
+      }
       await auth.adminClient.from("user_roles").delete().eq("user_id", userId);
       await auth.adminClient.from("profiles").delete().eq("user_id", userId);
     };
@@ -116,7 +118,10 @@ Deno.serve(async (req) => {
     });
 
     if (resetErr) {
-      console.error("Password reset email failed", { code: (resetErr as { code?: string }).code ?? "unknown", status: (resetErr as { status?: number }).status ?? 0 });
+      console.error("Password reset email failed", {
+        code: (resetErr as { code?: string }).code ?? "unknown",
+        status: (resetErr as { status?: number }).status ?? 0,
+      });
     }
 
     return jsonResponse(req, { success: true, user_id: userId });

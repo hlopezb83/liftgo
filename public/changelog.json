@@ -1,5 +1,11 @@
 [
   {
+    "version": "7.326.3",
+    "date": "2026-08-14",
+    "title": "Formato de las funciones de backend",
+    "description": "Se aplicó el formateador oficial a siete archivos de funciones de backend que rompían la verificación de estilo en CI. No hay cambios de comportamiento."
+  },
+  {
     "version": "7.326.2",
     "date": "2026-08-14",
     "title": "Prueba RLS de facturas alineada con la matriz de roles",

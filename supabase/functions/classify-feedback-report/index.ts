@@ -114,9 +114,11 @@ Reporte:
 - Reportero: ${report.reporter_type}
 ${
         selectedEl
-          ? `- Elemento señalado: <element><${clamp(selectedEl.tagName, 50)}> "${
-            clamp(selectedEl.text, 2000)
-          }" (selector: ${clamp(selectedEl.cssPath, 300)})</element>`
+          ? `- Elemento señalado: <element><${
+            clamp(selectedEl.tagName, 50)
+          }> "${clamp(selectedEl.text, 2000)}" (selector: ${
+            clamp(selectedEl.cssPath, 300)
+          })</element>`
           : ""
       }
 

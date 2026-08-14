@@ -20,7 +20,7 @@ export function computeRepExchange(input: RepExchangeInput): {
   const paymentCurrency = (input.paymentCurrency ?? "MXN").toUpperCase();
   const invoiceCurrency = (input.invoiceCurrency ?? "MXN").toUpperCase();
   if (invoiceCurrency === paymentCurrency) {
-  return { invoiceCurrency, invoiceExchange: 1 };
+    return { invoiceCurrency, invoiceExchange: 1 };
   }
   const rate = Number(input.invoiceTipoCambio ?? 1);
   const invoiceExchange = Number.isFinite(rate) && rate > 0 ? rate : 1;
