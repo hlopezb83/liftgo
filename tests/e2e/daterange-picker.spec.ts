@@ -36,9 +36,10 @@ test.describe("DateRangePickerField", () => {
       timeout: TIMEOUTS.long,
     });
 
+    // v7.323.1: tras DatePickerMx el trigger es un botón de ícono con
+    // aria-label "Abrir calendario de …" (ya no muestra el texto del rango).
     const trigger = page
-      .getByRole("button", { name: /periodo|rango|fecha/i })
-      .filter({ hasText: /-|selecc/i })
+      .getByRole("button", { name: /abrir calendario/i })
       .first();
     await expect(trigger).toBeVisible({ timeout: TIMEOUTS.medium });
     await trigger.click();
@@ -72,9 +73,10 @@ test.describe("DateRangePickerField auto-aplicación", () => {
       timeout: TIMEOUTS.long,
     });
 
+    // v7.323.1: tras DatePickerMx el trigger es un botón de ícono con
+    // aria-label "Abrir calendario de …" (ya no muestra el texto del rango).
     const trigger = page
-      .getByRole("button", { name: /periodo|rango|fecha/i })
-      .filter({ hasText: /-|selecc/i })
+      .getByRole("button", { name: /abrir calendario/i })
       .first();
     await trigger.click();
 
