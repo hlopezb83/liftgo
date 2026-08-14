@@ -23,7 +23,9 @@ interface Props {
 const schema = z
   .object({
     reason: z.string().min(1, "Selecciona una razón"),
-    extraNote: z.string().default(""),
+    // Se concatena a `notes` del prospecto (límite 2000 en prospectFormSchema);
+    // se acota la nota extra para no inflar el campo en DB.
+    extraNote: z.string().max(2000, "Máximo 2000 caracteres").default(""),
   })
   .refine((v) => v.reason !== "otro" || v.extraNote.trim().length > 0, {
     message: "Describe la razón cuando eliges 'Otro'",

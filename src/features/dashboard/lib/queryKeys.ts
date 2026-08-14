@@ -221,7 +221,12 @@ export const activityFeedQueries = defineEntityQueries<"dashboard-activity-feed"
       }
       if (filters.entityType) query = query.eq("entity_type", filters.entityType);
       if (filters.eventType) query = query.eq("event_type", filters.eventType);
-      if (filters.search) query = query.ilike("description", `%${filters.search}%`);
+      // M-10: `%`/`_` actúan como wildcards de ILIKE y `\` es el escape de
+      // PostgREST; se escapan para que la búsqueda sea literal.
+      if (filters.search) {
+        const term = filters.search.replace(/[\\%_]/g, (ch) => `\\${ch}`);
+        query = query.ilike("description", `%${term}%`);
+      }
 
       const { data, error } = await query.returns<ActivityFeedRow[]>();
       if (error) throw error;

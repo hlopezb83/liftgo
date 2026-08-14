@@ -9,7 +9,7 @@ const Pagination = ({ className, ref, ...props }: ComponentProps<"nav"> & { ref?
     <nav
       ref={ref}
       role="navigation"
-      aria-label="pagination"
+      aria-label="Paginación"
       className={cn("mx-auto flex w-full justify-center", className)}
       {...props}
     />

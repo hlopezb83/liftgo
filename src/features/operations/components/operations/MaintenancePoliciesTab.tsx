@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Switch } from "@/components/ui/switch";
+import { computeFleetAvailability, useServerTodayMty } from "@/features/availability";
+import { useBookings } from "@/features/bookings";
 import { useForklifts } from "@/features/fleet";
 import {
   useMaintenancePolicies,
@@ -26,6 +28,10 @@ export function MaintenancePoliciesTab() {
   const isMobile = useIsMobile();
   const { data: policies, isLoading, isError, refetch } = useMaintenancePolicies();
   const { data: forklifts } = useForklifts();
+  // R6-FE-07: el status crudo se desincroniza; "rentado" = reserva confirmed
+  // que cubre hoy (misma definición que FleetPage / Panel / Calendario).
+  const { data: fleetBookings } = useBookings();
+  const todayYmd = useServerTodayMty();
   const create = useCreateMaintenancePolicy();
   const update = useUpdateMaintenancePolicy();
   const del = useDeleteMaintenancePolicy();
@@ -35,9 +41,21 @@ export function MaintenancePoliciesTab() {
   const set = (key: keyof MaintenancePolicyFormValues, value: string) =>
     setForm((p) => ({ ...p, [key]: value }));
 
-  const rentedForklifts = forklifts?.filter(
-    (f) => f.status === "rented" || (editId && policies?.find((p) => p.id === editId)?.forklift_id === f.id)
+  // R7-FE-01: sin reservas cargadas no remapeamos (fallback al status crudo)
+  // para no ocultar unidades rentadas mientras llega la query de bookings.
+  const rentedIds = useMemo(
+    () =>
+      fleetBookings
+        ? computeFleetAvailability(forklifts, fleetBookings, todayYmd)?.rentedForkliftIds
+        : undefined,
+    [forklifts, fleetBookings, todayYmd],
   );
+  const rentedForklifts = forklifts?.filter((f) => {
+    if (editId && policies?.find((p) => p.id === editId)?.forklift_id === f.id) return true;
+    // maintenance/retired/sold mandan sobre la reserva (regla del helper).
+    if (f.status !== "available" && f.status !== "rented") return false;
+    return rentedIds ? rentedIds.has(f.id) : f.status === "rented";
+  });
   const existingForkliftIds = policies?.map((p) => p.forklift_id) ?? [];
   const availableForSelect = rentedForklifts?.filter(
     (f) => !existingForkliftIds.includes(f.id) || (editId && policies?.find((p) => p.id === editId)?.forklift_id === f.id)

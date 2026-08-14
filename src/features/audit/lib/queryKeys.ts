@@ -234,12 +234,19 @@ interface ActivityMetricsRpcPayload {
   previousCount: number;
 }
 
+// Un string malformado produce `Invalid Date` y `toISOString()` lanza dentro
+// del queryFn. Se normaliza como `readActivityFeedFilter` (dashboard): sólo
+// se acepta un Date válido o un string parseable a fecha válida; si no, cae
+// a "ahora".
+function parseRangeDate(raw: unknown): Date {
+  const d = raw instanceof Date ? raw : typeof raw === "string" ? new Date(raw) : null;
+  return d && !Number.isNaN(d.getTime()) ? d : new Date();
+}
+
 function readActivityRange(filter: Readonly<Record<string, unknown>> | undefined): ActivityRange {
-  const fromRaw = filter?.from;
-  const toRaw = filter?.to;
   return {
-    from: typeof fromRaw === "string" ? new Date(fromRaw) : new Date(),
-    to: typeof toRaw === "string" ? new Date(toRaw) : new Date(),
+    from: parseRangeDate(filter?.from),
+    to: parseRangeDate(filter?.to),
   };
 }
 
