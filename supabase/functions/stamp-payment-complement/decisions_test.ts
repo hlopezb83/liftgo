@@ -205,3 +205,48 @@ Deno.test("claimRejectionMessage · estado desconocido incluye el estado", () =>
     "No se puede timbrar el REP en el estado actual del pago (desconocido).",
   );
 });
+
+// v7.320.6: guardia defensiva de tipo de cambio para moneda extranjera.
+import { validatePaymentExchange as _vpx } from "./decisions.ts";
+
+Deno.test("validatePaymentExchange: MXN siempre ok (ignora exchange_rate)", () => {
+  assertEquals(validatePaymentExchange({ paymentCurrency: "MXN", exchangeRate: null }), { ok: true });
+  assertEquals(validatePaymentExchange({ paymentCurrency: "MXN", exchangeRate: 0 }), { ok: true });
+  assertEquals(validatePaymentExchange({ paymentCurrency: "mxn", exchangeRate: 17.5 }), { ok: true });
+  assertEquals(validatePaymentExchange({ paymentCurrency: null, exchangeRate: null }), { ok: true });
+});
+
+Deno.test("validatePaymentExchange: USD sin TC (null/0) → rechazo 422", () => {
+  const r1 = validatePaymentExchange({ paymentCurrency: "USD", exchangeRate: null });
+  assertEquals(r1.ok, false);
+  assertEquals(
+    (r1 as { ok: false; message: string }).message,
+    "El Tipo de Cambio es obligatorio y debe ser mayor a 0 para pagos en moneda extranjera.",
+  );
+  const r2 = validatePaymentExchange({ paymentCurrency: "USD", exchangeRate: 0 });
+  assertEquals(r2.ok, false);
+  const r3 = validatePaymentExchange({ paymentCurrency: "USD", exchangeRate: -5 });
+  assertEquals(r3.ok, false);
+});
+
+Deno.test("validatePaymentExchange: USD con TC inválido (NaN/ string) → rechazo 422", () => {
+  assertEquals(
+    validatePaymentExchange({ paymentCurrency: "USD", exchangeRate: Number.NaN }).ok,
+    false,
+  );
+  assertEquals(
+    validatePaymentExchange({ paymentCurrency: "USD", exchangeRate: "abc" }).ok,
+    false,
+  );
+});
+
+Deno.test("validatePaymentExchange: USD con TC válido > 0 → ok", () => {
+  assertEquals(
+    validatePaymentExchange({ paymentCurrency: "USD", exchangeRate: 18.5 }),
+    { ok: true },
+  );
+  assertEquals(
+    validatePaymentExchange({ paymentCurrency: "EUR", exchangeRate: "21.3" }),
+    { ok: true },
+  );
+});
