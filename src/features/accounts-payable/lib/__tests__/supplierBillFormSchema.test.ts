@@ -88,4 +88,40 @@ describe("supplierBillFormSchema (UX-M2)", () => {
       supplierBillFormSchema.safeParse({ ...base, payment_method_sat: "XXX" as unknown as "PUE" }).success,
     ).toBe(false);
   });
+
+  // M-21b: retenciones vs base gravable real (subtotal − descuento + impuestos).
+  it("rechaza retenciones que exceden la base gravable cuando hay descuento", () => {
+    // subtotal=1000, discount=200, tax=160 → base real = 960.
+    // retenciones=1000 > 960 → debe fallar (antes pasaba porque usaba subtotal+tax=1160).
+    const r = supplierBillFormSchema.safeParse({
+      ...base,
+      discount: 200,
+      retention_iva: 600,
+      retention_isr: 400,
+    });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.error.issues.some((i) => i.path.includes("retention_iva"))).toBe(true);
+    }
+  });
+
+  it("acepta retenciones iguales a la base gravable con descuento", () => {
+    // base real = 1000 − 200 + 160 = 960; retenciones = 960 → límite exacto, válido.
+    const r = supplierBillFormSchema.safeParse({
+      ...base,
+      discount: 200,
+      retention_iva: 480,
+      retention_isr: 480,
+    });
+    expect(r.success).toBe(true);
+  });
+
+  it("rechaza retenciones que exceden subtotal + tax sin descuento", () => {
+    const r = supplierBillFormSchema.safeParse({
+      ...base,
+      retention_iva: 700,
+      retention_isr: 500, // 1200 > 1000 + 160
+    });
+    expect(r.success).toBe(false);
+  });
 });
