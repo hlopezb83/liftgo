@@ -47,6 +47,21 @@ function buildDailyRemainder(
   };
 }
 
+function isClampedShortMonthEnd(
+  months: number,
+  remaining: number,
+  remainderStart: Date,
+  startDate: Date,
+  endDate: Date,
+): boolean {
+  return (
+    months > 0 &&
+    remaining > 0 &&
+    remainderStart.getDate() !== startDate.getDate() &&
+    isLastDayOfMonth(endDate)
+  );
+}
+
 export function calculateRentalCost(
   dailyRate: number | null,
   weeklyRate: number | null,
@@ -88,12 +103,7 @@ export function calculateRentalCost(
   // clampeó (su día difiere del día de inicio), el tramo son exactamente
   // `months` meses calendario: el remanente se trata como 0 días. Con
   // remaining = 0 el cap BL-15 queda intacto (no hay remanente que capear).
-  if (
-    months > 0 &&
-    remaining > 0 &&
-    remainderStart.getDate() !== startDate.getDate() &&
-    isLastDayOfMonth(endDate)
-  ) {
+  if (isClampedShortMonthEnd(months, remaining, remainderStart, startDate, endDate)) {
     remaining = 0;
   }
 

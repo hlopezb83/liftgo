@@ -6,6 +6,7 @@ import {
 import { FormSection } from "@/components/forms/FormSection";
 import { Form } from "@/components/ui/form";
 import { formatDateRange } from "@/lib/utils";
+import { selectableBookings } from "./selectableBookings";
 import type { UseFormReturn } from "react-hook-form";
 
 export type DeliveryFormValues = {
@@ -30,19 +31,6 @@ const TYPE_OPTIONS: SelectOption[] = [
   { value: "delivery", label: "Entrega" },
   { value: "pickup", label: "Recolección" },
 ];
-
-/**
- * R-C6 + F9: reservas seleccionables para una entrega. Sólo las `confirmed`
- * (canceladas/completadas son terminales) y, si ya hay montacargas elegido,
- * sólo las de ese equipo — el RPC rechaza cualquier otra combinación.
- */
-export function selectableBookings(
-  bookings: Booking[] | undefined,
-  forkliftId: string | undefined,
-): Booking[] | undefined {
-  const active = bookings?.filter((b) => b.status === "confirmed");
-  return forkliftId ? active?.filter((b) => b.forklift_id === forkliftId) : active;
-}
 
 export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }: Props) {
   const forkliftId = useWatch({ control: form.control, name: "forkliftId" });
