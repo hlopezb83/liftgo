@@ -71,7 +71,8 @@ export const DELIVERY_INITIAL_STATUSES: readonly DeliveryStatus[] = [
 export const CONTRACT_INITIAL_STATUSES: readonly ContractStatus[] = CONTRACT_STATUSES;
 
 export const INVOICE_TRANSITIONS: Record<InvoiceStatus, readonly InvoiceStatus[]> = {
-  draft: ["sent", "overdue", "cancelled"],
+  // Sprint 4 (Fix 4.2): un borrador no puede vencerse; primero debe enviarse.
+  draft: ["sent", "cancelled"],
   sent: ["overdue", "paid", "cancelled"],
   overdue: ["paid", "cancelled"],
   partial: ["overdue", "cancelled"],
