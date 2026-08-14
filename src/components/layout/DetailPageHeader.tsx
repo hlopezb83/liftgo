@@ -1,8 +1,8 @@
 import { ReactNode } from "react";
 import { BackIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { readSessionParams } from "@/hooks/filters/sessionStorage";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
 interface DetailPageHeaderProps {
   title: string;
