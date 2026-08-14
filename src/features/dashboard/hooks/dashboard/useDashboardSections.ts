@@ -1,7 +1,6 @@
 
 import { differenceInDays, parseISO } from "date-fns";
-import { useServerTodayMty } from "@/features/availability/hooks/useServerTodayMty";
-import { computeFleetAvailability } from "@/features/availability/utils/fleetAvailability";
+import { useServerTodayMty, computeFleetAvailability } from "@/features/availability";
 import { useBookings } from "@/features/bookings";
 import { useForklifts, useInsuranceAlerts } from "@/features/fleet";
 import { useUpcomingInvoices } from "@/features/invoices";
