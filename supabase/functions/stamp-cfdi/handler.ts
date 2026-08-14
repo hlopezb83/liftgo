@@ -262,15 +262,19 @@ export async function handleStampCfdi(
         // a monto para que el XML timbrado coincida con el total de la app.
         if (li.discount && li.discount > 0) {
           const base = unitPrice * quantity;
+          // S2-2.2: el porcentaje se capea en [0,100] igual que
+          // `applyDiscountToBase` en src/lib/domain/invoiceTotals.ts.
+          const discountPct = Math.min(100, Math.max(0, li.discount ?? 0));
           const discountAmount = li.discount_type === "$"
             ? Math.min(li.discount, base)
-            : (base * li.discount) / 100;
+            : (base * discountPct) / 100;
           if (discountAmount > 0) {
             // BL-A5: `roundMoney` (2 decimales, centavos enteros) reemplaza el
             // `Math.round(*100)/100` histórico para eliminar drift IEEE-754.
             item.discount = roundMoney(discountAmount);
           }
         }
+
         return item;
       })
       : [];
