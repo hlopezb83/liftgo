@@ -97,5 +97,7 @@ export function useUpdateStatus() {
     },
     invalidateKeys: [forkliftKeys.all, statusLogKeys.all, reportKeys.all],
     errorTitle: "Error al actualizar estado de montacargas",
+    // Sprint 4 (Fix 4.4): mostrar el mensaje del servidor (p.ej. renta activa).
+    errorMessage: (error) => error.message,
   });
 }
