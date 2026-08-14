@@ -7,7 +7,12 @@ export interface LineItem {
   total: number;
   discount?: number;
   discount_type?: "%" | "$";
+  /** SAT CFDI 4.0: "01" = no objeto de impuesto (no genera IVA). */
+  objeto_imp?: string;
+  /** Tasa de IVA en porcentaje para esta línea; si falta se usa la tasa global. */
+  tax_rate?: number;
 }
+
 
 /** Wrap a number into a currency.js instance with MXN-compatible 2-decimal precision. */
 export const money = (value: number) => currency(value, { precision: 2 });
