@@ -67,7 +67,10 @@ Deno.serve(async (req) => {
         email: userData.user.email,
       });
     if (linkErr || !linkData?.properties?.action_link) {
-      console.error("[reset-user-password] generateLink failed", { code: (linkErr as { code?: string } | null)?.code ?? "unknown", status: (linkErr as { status?: number } | null)?.status ?? 0 });
+      console.error("[reset-user-password] generateLink failed", {
+        code: (linkErr as { code?: string } | null)?.code ?? "unknown",
+        status: (linkErr as { status?: number } | null)?.status ?? 0,
+      });
       return jsonError(
         req,
         500,

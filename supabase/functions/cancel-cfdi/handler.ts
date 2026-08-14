@@ -62,7 +62,6 @@ export async function handleCancelCfdi(
   };
 
   try {
-
     const auth = await authenticateWithDeps({
       req,
       createCallerClient: (h) => deps.createCallerClient(h),
@@ -73,7 +72,6 @@ export async function handleCancelCfdi(
     if (!auth.ok) return json({ error: auth.message }, auth.status);
     const supabase = auth.supabase;
     supabaseRef = supabase;
-
 
     const body = await req.json().catch(() => ({}));
     const { invoice_id, motive, substitution_uuid, cancellation_reason } =
@@ -201,7 +199,6 @@ export async function handleCancelCfdi(
     const { apiKey, mode } = await getFacturapiConfig(supabase, deps.env);
     const facturApiId = inv.facturapi_invoice_id as string | null | undefined;
 
-
     let satStatus = "accepted";
     const isStub = !apiKey || !facturApiId;
 
@@ -212,7 +209,6 @@ export async function handleCancelCfdi(
       // migrada a live). Cancelarla fake dejaría el SAT y la BD divergentes.
       await releaseCancelClaim();
       return json(
-
         {
           error: !apiKey
             ? "Facturapi API key no configurada para modo live. No se puede cancelar sin llamar al SAT."
@@ -302,7 +298,6 @@ export async function handleCancelCfdi(
       return json({ error: "Failed to update invoice" }, 500);
     }
     claimedRef = false;
-
 
     return json(
       {
