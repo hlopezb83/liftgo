@@ -1,5 +1,11 @@
 [
   {
+    "version": "7.326.2",
+    "date": "2026-08-14",
+    "title": "Prueba RLS de facturas alineada con la matriz de roles",
+    "description": "La suite SQL de facturas seguía esperando que el rol despachador pudiera leer facturas, algo que se le retiró en el Sprint M2. Ahora la prueba verifica que el despachador no lee ni modifica facturas y se agregó el caso del rol auditor como sólo lectura."
+  },
+  {
     "version": "7.326.1",
     "date": "2026-08-14",
     "title": "Cobertura de pruebas de los sprints M1-M3",
