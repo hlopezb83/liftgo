@@ -1,0 +1,13 @@
+{
+  "version": "7.311.0",
+  "date": "2026-08-14",
+  "type": "minor",
+  "title": "Sprint 5: integridad de datos en daños, cotizaciones y comprobantes",
+  "category": "correcciones",
+  "changes": [
+    "El monto de la factura por daños se toma del reporte guardado en la base, no del enlace, así nadie puede alterarlo desde la URL.",
+    "Si falla la conversión de una cotización a reserva, ahora se muestra el error real en pantalla en vez de fallar en silencio.",
+    "Los comprobantes de pago se validan (tipo y tamaño de archivo) antes de subirse.",
+    "Una extensión de reserva solo puede facturarse una vez: la base de datos lo impide con un índice único."
+  ]
+}
