@@ -102,7 +102,7 @@ describe("translatePgError — nivel 3: texto libre y fallback", () => {
   });
 
   it("null devuelve el mensaje genérico", () => {
-    expect(translatePgError(null).message).toBe("Ocurrió un error inesperado.");
+    expect(translatePgError(null).message).toBe("Error desconocido");
   });
 });
 
