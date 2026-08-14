@@ -1,5 +1,18 @@
 [
  {
+  "version": "7.320.3",
+  "date": "2026-08-14",
+  "type": "patch",
+  "category": "corrección",
+  "title": "Reservas ligadas a facturas canceladas ya no bloquean re-facturación",
+  "changes": [
+   "Facturación: useAllInvoiceBookings ahora devuelve las filas del pivote invoice_bookings solo de facturas NO canceladas, en lugar de delegar en la query compartida list({}) que siempre devolvía [] por estar gateada por invoiceId. Antes, las reservas ligadas a una factura solo vía pivote (sin invoices.booking_id directo) nunca se excluían del selector, permitiendo facturarlas dos veces.",
+   "Además se filtran server-side las filas cuyo invoice está cancelado (invoices!inner(status) + neq status cancelled), para que una reserva cuya factura anterior fue cancelada pueda re-facturarse. Antes el path del pivote añadía el booking_id sin revisar el estado de la factura.",
+   "Pruebas: nuevo archivo collectInvoicedBookingIds.test.ts (5 casos) cubriendo doble facturación por pivote, exclusión de canceladas, reserva en edición, combinación cancelada+activa y set vacío.",
+   "Verificación: typecheck OK, ESLint 0 warnings, 1707/1707 pruebas verdes, query PostgREST validada (HTTP 200)."
+  ]
+ },
+ {
   "version": "7.320.2",
   "date": "2026-08-14",
   "type": "patch",

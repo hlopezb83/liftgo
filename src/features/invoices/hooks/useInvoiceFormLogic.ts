@@ -46,7 +46,7 @@ function collectBookingQuoteIds(bookings?: { quote_id?: string | null }[]): stri
 }
 
 /** Reservas que ya están facturadas (por columna directa o por pivote). */
-function collectInvoicedBookingIds(
+export function collectInvoicedBookingIds(
   invoices: { status: string; booking_id?: string | null }[] | undefined,
   allInvoiceBookings: { invoice_id: string; booking_id: string }[] | undefined,
   currentInvoiceId?: string,
