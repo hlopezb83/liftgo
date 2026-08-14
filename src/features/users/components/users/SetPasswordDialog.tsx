@@ -1,4 +1,5 @@
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
 import { useSetPasswordForm } from "../../hooks/useSetPasswordForm";
 import type { UserRow } from "../../hooks/useUserManagement";
@@ -62,7 +63,7 @@ export function SetPasswordDialog({ user, onClose }: Props) {
               </div>
             )}
             <FormDialogFooter>
-              <Button type="button" variant="outline" onClick={handleClose}>Cancelar</Button>
+              <FormDialogCancelButton onCancel={handleClose} disabled={isPending} />
               <Button type="button" disabled={isPending} onClick={handleGenerateLink}>
                 {isPending ? "Generando…" : "Generar enlace de recuperación"}
               </Button>

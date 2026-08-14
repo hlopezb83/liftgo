@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,7 +37,7 @@ export function EditNameDialog({ user, onClose }: EditNameDialogProps) {
           <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <FormDialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancelar</Button>
+          <FormDialogCancelButton onCancel={onClose} disabled={updateName.isPending} />
           <Button onClick={handleSave} disabled={updateName.isPending || !name.trim()}>
             {updateName.isPending ? "Guardando…" : "Guardar"}
           </Button>

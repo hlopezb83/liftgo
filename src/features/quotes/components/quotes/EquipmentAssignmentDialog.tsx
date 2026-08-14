@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { WarnIcon } from "@/components/icons";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -186,23 +187,24 @@ export function EquipmentAssignmentDialog({
                         <FormLabel className="text-sm">{slot.modelName}</FormLabel>
                         <Badge variant="outline" className="text-xs">Unidad {index + 1}</Badge>
                       </div>
-                      <Select value={field.value} onValueChange={field.onChange}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Seleccionar montacargas disponible" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {available.length === 0 && (
-                            <SelectItem value="__none" disabled>No hay unidades disponibles</SelectItem>
-                          )}
-                          {available.map((f) => (
-                            <SelectItem key={f.id} value={f.id}>
-                              {f.manufacturer} {f.model} — {f.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      {available.length === 0 ? (
+                        <p className="text-sm text-muted-foreground py-2">No hay unidades disponibles</p>
+                      ) : (
+                        <Select value={field.value} onValueChange={field.onChange}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Seleccionar montacargas disponible" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {available.map((f) => (
+                              <SelectItem key={f.id} value={f.id}>
+                                {f.manufacturer} {f.model} — {f.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
                       <p className="text-xs text-muted-foreground">
                         Tarifa pactada: {formatCurrency(slot.monthlyRate)} / mes · {formatCurrency(slot.dailyRate)} / día
                       </p>
@@ -214,7 +216,7 @@ export function EquipmentAssignmentDialog({
             })}
           </div>
           <FormDialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={isLoading} />
             <Button type="submit" disabled={!form.formState.isValid || isLoading}>
               {isLoading ? "Creando reservas..." : "Confirmar y Crear reservas"}
             </Button>

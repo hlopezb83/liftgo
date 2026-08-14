@@ -113,7 +113,7 @@ function mappingErrors(map: XmlFieldMapping): string[] {
   return errors;
 }
 
-function mapNodeToLine(f: Record<string, string>, map: XmlFieldMapping, index: number) {
+async function mapNodeToLine(f: Record<string, string>, map: XmlFieldMapping, index: number) {
   const rawDate = f[map.date ?? ""] ?? "";
   const postedDate = parseDateFlexible(rawDate);
   if (!postedDate) return `Movimiento ${index + 1}: fecha inválida ("${rawDate}")`;
@@ -121,7 +121,7 @@ function mapNodeToLine(f: Record<string, string>, map: XmlFieldMapping, index: n
   if (signed === null || signed === 0) return `Movimiento ${index + 1}: importe inválido o cero`;
   const description = (map.description ? f[map.description] ?? "" : "").trim() || "Movimiento bancario";
   const reference = map.reference ? (f[map.reference] ?? "").trim() || null : null;
-  return buildLine({ postedDate, description, signedAmount: signed, reference });
+  return await buildLine({ postedDate, description, signedAmount: signed, reference });
 }
 
 const EMPTY_RESULT: XmlParseResult = {
@@ -141,7 +141,7 @@ function readDocument(content: string): Document | string {
   return doc;
 }
 
-export function parseBankXml(content: string, override: XmlFieldMapping = {}): XmlParseResult {
+export async function parseBankXml(content: string, override: XmlFieldMapping = {}): Promise<XmlParseResult> {
   const doc = readDocument(content);
   if (typeof doc === "string") return { ...EMPTY_RESULT, errors: [doc] };
 
@@ -163,7 +163,7 @@ export function parseBankXml(content: string, override: XmlFieldMapping = {}): X
   const errors: string[] = [];
   const lines = [];
   for (let i = 0; i < parsedNodes.length; i++) {
-    const result = mapNodeToLine(parsedNodes[i], mapping, i);
+    const result = await mapNodeToLine(parsedNodes[i], mapping, i);
     if (typeof result === "string") { errors.push(result); continue; }
     lines.push(result);
   }
