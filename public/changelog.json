@@ -1,5 +1,19 @@
 [
  {
+  "version": "7.320.0",
+  "date": "2026-08-14",
+  "type": "minor",
+  "category": "mejoras",
+  "title": "Actualización de librerías: 14 paquetes al día (parches y menores)",
+  "changes": [
+   "Actualizadas dependencias sin cambios de comportamiento: @supabase/supabase-js 2.112.3, @sentry/react 10.70.0, react-hook-form 7.85.0, @hookform/resolvers 5.8.0, @react-pdf/renderer 4.6.1, lucide-react 1.31.0, papaparse 5.6.0.",
+   "Parches de seguridad y estabilidad: dompurify 3.4.13, marked 18.0.9, sonner 2.0.8, @tanstack/react-virtual 3.14.9.",
+   "Herramientas de desarrollo: knip 6.32.2, typescript-eslint 8.67.0, rollup-plugin-visualizer 7.1.1.",
+   "Se documentó en docs/dependency-update-audit-2026-08-14.md por qué se aplazan TypeScript 7, react-dropzone 20, @tanstack/react-table 9, jsdom 30 y @types/node 26.",
+   "Verificación: typecheck OK, ESLint 0 warnings, 1698/1698 pruebas verdes, build OK."
+  ]
+ },
+ {
   "version": "7.319.0",
   "date": "2026-08-14",
   "type": "minor",
