@@ -50,7 +50,12 @@ export function useStampCfdi() {
         notifyInfo("El timbrado ya está en proceso; actualizando estado…");
         return true; // suprime toast de error estándar
       }
+      // Toast con traducción SAT + reporte copiable con el payload íntegro
+      // del PAC (soporte administrativo lo necesita completo).
+      notifyCfdiError({ error, phase: "Timbrado CFDI" });
+      return true;
     },
+
     onSuccess: (data) => {
       const suffix = data.stub
         ? " (modo prueba)"
