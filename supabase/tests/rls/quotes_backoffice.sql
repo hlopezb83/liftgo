@@ -1,5 +1,5 @@
 -- RLS: quotes (back-office) — complemento de quotes_portal.sql.
--- Ventas/dispatcher/administrativo/admin escriben; mecánico y auditor solo leen;
+-- Ventas/administrativo/admin escriben; dispatcher, mecánico y auditor solo leen;
 -- el cliente del portal solo ve las suyas y no puede alterar precios; anon sin acceso.
 BEGIN;
 
