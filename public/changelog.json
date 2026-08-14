@@ -1,5 +1,11 @@
 [
   {
+    "version": "7.327.0",
+    "date": "2026-08-14",
+    "title": "Avisos en flujo de caja, moneda en conciliación y limpieza de código muerto",
+    "description": "La proyección de flujo de caja ahora avisa cuántos documentos quedaron fuera por no tener fecha de vencimiento o por vencer después del horizonte elegido, en vez de excluirlos en silencio. En conciliación bancaria los importes del movimiento y de sus candidatos se muestran en la moneda real de la cuenta (antes siempre en pesos). Se eliminó el ayudante de idempotencia de webhooks que no tenía consumidores. Los hallazgos F1 (índice de documentos, ya existente) y F2 (borrar .env, administrado por la plataforma) no aplican."
+  },
+  {
     "version": "7.326.3",
     "date": "2026-08-14",
     "title": "Formato de las funciones de backend",
