@@ -78,8 +78,8 @@ describe("parseBankXml", () => {
   });
 
   it("maneja XML mal formado y XML sin movimientos", async () => {
-    expect(await parseBankXml("<root><a>").lines).toHaveLength(0);
-    expect(await parseBankXml("<root><solo fecha='2026-07-01'/></root>").errors[0]).toMatch(/movimientos/i);
+    expect((await parseBankXml("<root><a>")).lines).toHaveLength(0);
+    expect((await parseBankXml("<root><solo fecha='2026-07-01'/></root>")).errors[0]).toMatch(/movimientos/i);
   });
 
   it("genera el mismo hash que el CSV para el mismo movimiento", async () => {
@@ -88,8 +88,8 @@ describe("parseBankXml", () => {
       <mov fecha="2026-07-02" concepto="OTRO" deposito="10.00" retiro="0.00" referencia="X"/>
     </root>`;
     const csv = "01/07/2026,SPEI RECIBIDO ACME,0.00,1500.50,0012345\n02/07/2026,OTRO,0.00,10.00,X";
-    const fromXml = await parseBankXml(xml).lines[0];
-    const fromCsv = await parseBankCsv(csv, "bbva").lines[0];
+    const fromXml = (await parseBankXml(xml)).lines[0];
+    const fromCsv = (await parseBankCsv(csv, "bbva")).lines[0];
     expect(fromXml.hash).toBe(fromCsv.hash);
   });
 });
