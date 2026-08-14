@@ -8,6 +8,11 @@ import type { ParseResult } from "../lib/bankParseUtils";
 
 const mappingKey = (bankAccountId: string) => `liftgo:bank-xml-mapping:${bankAccountId}`;
 
+// Fix 6.3: archivos gigantes (tanto en bytes como en cantidad de líneas)
+// congelaban la pestaña al intentar parsearlos/renderizarlos en el cliente.
+export const MAX_FILE_SIZE_BYTES = 10 * 1024 * 1024;
+export const MAX_PARSED_LINES = 50_000;
+
 function loadMapping(bankAccountId: string): XmlFieldMapping {
   try {
     const raw = localStorage.getItem(mappingKey(bankAccountId));
@@ -27,6 +32,10 @@ function saveMapping(bankAccountId: string, mapping: XmlFieldMapping) {
 
 const isXml = (content: string) => content.trimStart().startsWith("<");
 
+function tooManyLines(result: ParseResult): boolean {
+  return result.lines.length > MAX_PARSED_LINES;
+}
+
 export function useStatementUpload(bankAccountId: string) {
   const [profile, setProfile] = useState<StatementProfile>("generico");
   const [file, setFile] = useState<File | null>(null);
@@ -36,8 +45,8 @@ export function useStatementUpload(bankAccountId: string) {
   const [content, setContent] = useState<string>("");
   const importMut = useImportBankStatement();
 
-  const runXml = useCallback((text: string, override: XmlFieldMapping) => {
-    const parsed = parseBankXml(text, override);
+  const runXml = useCallback(async (text: string, override: XmlFieldMapping) => {
+    const parsed = await parseBankXml(text, override);
     setXmlFields(parsed.availableFields);
     setMapping({ ...parsed.detectedMapping, ...override });
     setPreview(parsed);
@@ -46,11 +55,32 @@ export function useStatementUpload(bankAccountId: string) {
 
   const analyze = useCallback(async () => {
     if (!file) return;
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      notifyError({
+        title: "Archivo demasiado grande",
+        description: "El estado de cuenta excede 10 MB; divídelo por período.",
+        phase: "parseBankStatement",
+        severity: "warning",
+        context: { fileName: file.name, fileSize: file.size },
+      });
+      return;
+    }
     const text = await file.text();
     setContent(text);
     const useXml = isXml(text) || XML_PROFILES.includes(profile) || file.name.toLowerCase().endsWith(".xml");
-    const parsed = useXml ? runXml(text, loadMapping(bankAccountId)) : parseBankCsv(text, profile);
+    const parsed = useXml ? await runXml(text, loadMapping(bankAccountId)) : await parseBankCsv(text, profile);
     if (!useXml) { setXmlFields([]); setPreview(parsed); }
+    if (tooManyLines(parsed)) {
+      setPreview(null);
+      notifyError({
+        title: "Archivo con demasiados movimientos",
+        description: `El archivo tiene más de ${MAX_PARSED_LINES.toLocaleString("es-MX")} líneas; divídelo por período antes de importarlo.`,
+        phase: "parseBankStatement",
+        severity: "warning",
+        context: { profile, fileName: file.name, lineCount: parsed.lines.length },
+      });
+      return;
+    }
     if (parsed.lines.length === 0 && !useXml) {
       notifyError({
         title: "No se pudieron leer movimientos del archivo",
@@ -64,7 +94,7 @@ export function useStatementUpload(bankAccountId: string) {
 
   const remap = useCallback((next: XmlFieldMapping) => {
     saveMapping(bankAccountId, next);
-    runXml(content, next);
+    void runXml(content, next);
   }, [bankAccountId, content, runXml]);
 
   const reset = useCallback(() => {

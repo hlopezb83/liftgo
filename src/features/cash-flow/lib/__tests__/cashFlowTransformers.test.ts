@@ -24,13 +24,17 @@ describe("cashFlowTransformers", () => {
   });
 
   describe("buildPaidByInvoice", () => {
-    it("agrupa y convierte pagos por invoice_id", () => {
+    // Fix 6.4: los pagos se suman EN MONEDA DEL DOCUMENTO (sin convertir a
+    // MXN individualmente) — el Fix 3.2 garantiza que siempre coinciden con
+    // la moneda de la factura, así que sumar el monto crudo es correcto y
+    // evita mezclar tipos de cambio distintos.
+    it("agrupa pagos por invoice_id en moneda del documento", () => {
       const map = buildPaidByInvoice([
         { invoice_id: "a", amount: 100, currency: "MXN", exchange_rate: null },
         { invoice_id: "a", amount: 50, currency: "USD", exchange_rate: 20 },
         { invoice_id: "b", amount: 30, currency: "MXN", exchange_rate: null },
       ]);
-      expect(map.get("a")).toBe(1100);
+      expect(map.get("a")).toBe(150);
       expect(map.get("b")).toBe(30);
     });
   });

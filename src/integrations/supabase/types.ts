@@ -4194,6 +4194,7 @@ export type Database = {
       next_invoice_number_e2e: { Args: never; Returns: string }
       next_quote_number: { Args: never; Returns: string }
       next_quote_number_e2e: { Args: never; Returns: string }
+      next_stage_order: { Args: { p_stage: string }; Returns: number }
       next_supplier_bill_number: { Args: never; Returns: string }
       notify_admins: {
         Args: {
