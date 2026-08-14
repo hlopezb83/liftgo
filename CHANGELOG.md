@@ -1,3 +1,18 @@
+## 7.326.0 - 2026-08-14
+
+**Mejoras — Sprint M3 — Robustez y consistencia**
+- Editar un pago ya valida el tope contra el saldo y bloquea monto y fecha cuando el complemento ya está timbrado. El resumen financiero del contrato incluye las reservas ligadas por la tabla de relación. Las estadísticas del tablero salieron de la caché guardada en el navegador. Un daño reportado puede marcarse reparado sin orden de trabajo. La conciliación bancaria elige la tabla destino por el tipo de candidato y no por el signo del movimiento. No se puede cambiar la moneda de una cuenta con movimientos importados, y el selector de entregas sólo ofrece reservas confirmadas.
+
+## 7.325.0 - 2026-08-14
+
+**Mejoras — Sprint M2 — Backend y portal de clientes**
+- Invitar a un cliente ahora deshace la cuenta creada si falla cualquier paso, en vez de dejar usuarios a medias. Cancelar un complemento de pago ante una caída del PAC entra a la cola de reintentos. Las funciones de inteligencia artificial y de validación de comprobantes ganaron límite de uso y tope de tamaño de archivo, y los errores internos dejaron de exponer detalles técnicos. El rol despachador ya no ve facturas, pagos ni gastos de operación, como declara la matriz de roles. En el portal, un error de red al pagar muestra un estado con reintento en vez de 'cuenta no configurada', la vigencia de las cotizaciones se evalúa en horario de Monterrey y el formulario de reporte de transferencia valida longitudes y rango de fecha.
+
+## 7.324.0 - 2026-08-14
+
+**Mejoras — Sprint M1 — Dinero y documentos**
+- Las extensiones de renta ahora respetan las tarifas diaria y semanal pactadas en la reserva (antes sólo la mensual). Una renta que arranca el 29-31 y termina en un mes corto ya no cobra un día extra (31-ene → 28-feb = un mes exacto). El resumen de totales del formulario de factura considera las líneas exentas y las tasas por partida, así que lo que ves en pantalla es lo que se guarda. Las notas de crédito calculan el IVA partida por partida. Al convertir una cotización ya no se borran las tarifas de la reserva con ceros. Las facturas de proveedor rechazan descuentos mayores al subtotal y los pagos a proveedores ya no aceptan fecha futura.
+
 ## 7.323.1 - 2026-08-14
 
 **Correcciones — Fallas de CI (knip y E2E del selector de rango)**
