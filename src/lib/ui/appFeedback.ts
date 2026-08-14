@@ -52,6 +52,26 @@ interface SimpleOpts {
   description?: string;
   action?: ActionLike;
   durationMs?: number;
+  /**
+   * Clave de deduplicación. Dos toasts con la misma clave se reemplazan en
+   * lugar de apilarse (doble clic rápido, reintentos automáticos).
+   */
+  dedupeKey?: string;
+}
+
+/**
+ * Deriva un id estable a partir del contenido del toast para que un doble
+ * clic no genere dos toasts idénticos. Hash tipo FNV-1a, suficiente para
+ * distinguir mensajes sin colisiones prácticas.
+ */
+export function toastDedupeId(kind: string, title: string, description?: string): string {
+  const text = `${kind}|${title}|${description ?? ""}`;
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < text.length; i += 1) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return `${kind}-${hash.toString(36)}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -69,6 +89,11 @@ export interface NotifyErrorInput {
   context?: Record<string, unknown>;
   errorCode?: ErrorCode;
   method?: string;
+  /**
+   * Clave de deduplicación. Si se omite se deriva del título + descripción,
+   * de modo que dos errores idénticos seguidos ocupan un solo toast.
+   */
+  dedupeKey?: string;
   /**
    * `critical` (default): duración infinita, requiere clic para cerrar.
    *  Para fallos de runtime, llamadas a backend, errores inesperados.
@@ -92,6 +117,9 @@ function resolveTitle(input: NotifyErrorInput): string {
  * Toast de error con reporte estructurado adjunto. Por defecto es persistente
  * (requiere clic) y muestra el botón "Ver detalles" que abre el diálogo global
  * con el reporte copiable. Usa `severity: "warning"` para errores esperables.
+ *
+ * Deduplicación: dos llamadas con el mismo contenido (o el mismo `dedupeKey`)
+ * reemplazan el toast anterior en vez de apilar uno nuevo.
  */
 export function notifyError(input: NotifyErrorInput): string | number {
   const title = resolveTitle(input);
@@ -111,6 +139,7 @@ export function notifyError(input: NotifyErrorInput): string | number {
   const isCritical = input.severity !== "warning";
 
   return toast.error(title, {
+    id: input.dedupeKey ?? toastDedupeId("error", title, description),
     description,
     duration: isCritical ? DURATION.errorCritical : DURATION.errorWarning,
     closeButton: true,
@@ -120,6 +149,7 @@ export function notifyError(input: NotifyErrorInput): string | number {
     },
   });
 }
+
 
 // ---------------------------------------------------------------------------
 // notifyValidation — toast warning corto para validaciones de formulario
