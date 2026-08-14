@@ -209,7 +209,9 @@ export async function handleCancelCfdi(
       // Un stub en live significa (a) API key faltante o (b) factura sin
       // facturapi_invoice_id (probablemente timbrada como stub en test y
       // migrada a live). Cancelarla fake dejaría el SAT y la BD divergentes.
+      await releaseCancelClaim();
       return json(
+
         {
           error: !apiKey
             ? "Facturapi API key no configurada para modo live. No se puede cancelar sin llamar al SAT."
