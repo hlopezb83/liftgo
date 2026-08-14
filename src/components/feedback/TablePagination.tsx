@@ -66,7 +66,7 @@ export function TablePagination({ page, totalPages, onPageChange }: TablePaginat
         <PaginationItem>
           <PaginationNext
             onClick={goNext}
-            className={page === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+            disabled={page === totalPages}
           />
         </PaginationItem>
       </PaginationContent>
