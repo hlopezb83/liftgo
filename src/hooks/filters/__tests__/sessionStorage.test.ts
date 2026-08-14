@@ -3,7 +3,6 @@ import { readSessionParams, writeSessionParams } from "../sessionStorage";
 
 describe("sessionStorage filter helpers", () => {
   afterEach(() => {
-    vi.restoreAllMocks();
     try {
       window.sessionStorage.clear();
     } catch {
@@ -12,12 +11,27 @@ describe("sessionStorage filter helpers", () => {
   });
 
   it("readSessionParams devuelve URLSearchParams vacío cuando getItem lanza", () => {
-    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => {
-      throw new DOMException("Security error", "SecurityError");
+    const original = window.sessionStorage;
+    const failing = {
+      getItem: () => {
+        throw new DOMException("Security error", "SecurityError");
+      },
+      setItem: () => {},
+      removeItem: () => {},
+      clear: () => {},
+    } as unknown as Storage;
+    Object.defineProperty(window, "sessionStorage", {
+      value: failing,
+      configurable: true,
     });
 
     const params = readSessionParams("/proveedores");
     expect(params.toString()).toBe("");
+
+    Object.defineProperty(window, "sessionStorage", {
+      value: original,
+      configurable: true,
+    });
   });
 
   it("readSessionParams lee el valor guardado cuando funciona", () => {
@@ -28,23 +42,53 @@ describe("sessionStorage filter helpers", () => {
   });
 
   it("writeSessionParams no propaga el error cuando setItem lanza", () => {
-    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
-      throw new DOMException("Quota exceeded", "QuotaExceededError");
+    const original = window.sessionStorage;
+    const failing = {
+      getItem: () => null,
+      setItem: () => {
+        throw new DOMException("Quota exceeded", "QuotaExceededError");
+      },
+      removeItem: () => {},
+      clear: () => {},
+    } as unknown as Storage;
+    Object.defineProperty(window, "sessionStorage", {
+      value: failing,
+      configurable: true,
     });
 
     expect(() => {
       writeSessionParams("/proveedores", new URLSearchParams("status=open"));
     }).not.toThrow();
+
+    Object.defineProperty(window, "sessionStorage", {
+      value: original,
+      configurable: true,
+    });
   });
 
   it("writeSessionParams no propaga el error cuando removeItem lanza", () => {
-    vi.spyOn(Storage.prototype, "removeItem").mockImplementation(() => {
-      throw new DOMException("Security error", "SecurityError");
+    const original = window.sessionStorage;
+    const failing = {
+      getItem: () => null,
+      setItem: () => {},
+      removeItem: () => {
+        throw new DOMException("Security error", "SecurityError");
+      },
+      clear: () => {},
+    } as unknown as Storage;
+    Object.defineProperty(window, "sessionStorage", {
+      value: failing,
+      configurable: true,
     });
 
     expect(() => {
       writeSessionParams("/proveedores", new URLSearchParams(""));
     }).not.toThrow();
+
+    Object.defineProperty(window, "sessionStorage", {
+      value: original,
+      configurable: true,
+    });
   });
 
   it("writeSessionParams escribe y readSessionParams lee de vuelta", () => {
