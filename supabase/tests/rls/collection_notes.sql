@@ -6,7 +6,8 @@ INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
   ('c0000006-0000-4000-8000-000000000001', 'administrativo.cn@test.local', now(), now()),
   ('c0000006-0000-4000-8000-000000000002', 'auditor.cn@test.local', now(), now()),
   ('c0000006-0000-4000-8000-000000000003', 'ventas.cn@test.local', now(), now()),
-  ('c0000006-0000-4000-8000-000000000004', 'cliente.cn@test.local', now(), now())
+  ('c0000006-0000-4000-8000-000000000004', 'cliente.cn@test.local', now(), now()),
+  ('c0000006-0000-4000-8000-000000000005', 'dispatcher.cn@test.local', now(), now())
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.user_roles (user_id, role) VALUES
