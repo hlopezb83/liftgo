@@ -14,7 +14,9 @@ export const forkliftLocationQueries = defineEntityQueries<"forklift-location", 
       throw new Error("forklift-location: usar detail(forkliftId)");
     },
     detail: (forkliftId: string) => async () => {
-      const { data: contract } = await supabase
+      // 10.8: propagar el error en vez de degradar a `null` — indistinguible
+      // de "sin ubicación" para quien consume el hook.
+      const { data: contract, error: contractError } = await supabase
         .from("contracts")
         .select("usage_location")
         .eq("forklift_id", forkliftId)
@@ -22,9 +24,10 @@ export const forkliftLocationQueries = defineEntityQueries<"forklift-location", 
         .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
+      if (contractError) throw contractError;
       if (contract?.usage_location) return contract.usage_location;
 
-      const { data: delivery } = await supabase
+      const { data: delivery, error: deliveryError } = await supabase
         .from("deliveries")
         .select("address")
         .eq("forklift_id", forkliftId)
@@ -32,6 +35,7 @@ export const forkliftLocationQueries = defineEntityQueries<"forklift-location", 
         .order("completed_at", { ascending: false })
         .limit(1)
         .maybeSingle();
+      if (deliveryError) throw deliveryError;
       return delivery?.address ?? null;
     },
   },

@@ -27,7 +27,7 @@ export function PageHeader({ title, subtitle, action, actions, backHref, backLab
           </Button>
         )}
         <h1 className="text-xl sm:text-2xl font-semibold tracking-tight line-clamp-2">{title}</h1>
-        {subtitle && <p className="text-muted-foreground text-xs sm:text-sm">{subtitle}</p>}
+        {subtitle && <p className="text-muted-foreground text-xs sm:text-sm line-clamp-2">{subtitle}</p>}
       </div>
       {right && <div className="shrink-0 flex flex-wrap gap-2">{right}</div>}
     </div>

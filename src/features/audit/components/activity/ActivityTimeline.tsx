@@ -73,6 +73,7 @@ export function ActivityTimeline({ filters, onFilterChange, onReset, members }: 
             </Select>
             <Input
               placeholder="Buscar…"
+              aria-label="Buscar en actividad"
               className="h-8 w-[180px] text-xs"
               value={filters.search ?? ""}
               onChange={(e) => onFilterChange({ search: e.target.value || undefined })}

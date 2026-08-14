@@ -1,3 +1,5 @@
+import { roundMoney } from "@/lib/money";
+
 /**
  * Cálculo de depreciación prorrateada (BL-18).
  *
@@ -22,5 +24,5 @@ export function prorateDepreciation(
   const clampedDays = Math.min(rentedDays, daysInMonth);
   const monthly = acquisitionCost / 48;
   const value = monthly * (clampedDays / daysInMonth);
-  return Math.round(value * 100) / 100;
+  return roundMoney(value);
 }

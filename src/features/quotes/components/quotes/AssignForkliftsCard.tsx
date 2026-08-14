@@ -4,6 +4,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAssignForklift, useForklifts, useQuoteAssignments, useUnassignForklift } from "@/features/fleet";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
+import { Skeleton } from "@/components/ui/skeleton";
 import { AssignForkliftsLineRow } from "./AssignForkliftsLineRow";
 
 interface Props {
@@ -35,7 +36,7 @@ export function AssignForkliftsCard({ quoteId, lineItems }: Props) {
 
   const assignedForkliftIds = new Set((assignments || []).map((a) => a.forklift_id));
 
-  if (isLoading) return null;
+  if (isLoading) return <Skeleton className="h-48" />;
 
   const selectedElsewhereForLine = (currentIndex: number) =>
     new Set(

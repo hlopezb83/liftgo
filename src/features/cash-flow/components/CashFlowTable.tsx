@@ -3,6 +3,8 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 import { cn } from "@/lib/utils";
 import type { CashFlowBucket, LightColor } from "../lib/cashFlowUtils";
 
+const LIGHT_LABELS: Record<LightColor, string> = { red: "En riesgo", amber: "Precaución", green: "Saludable" };
+
 interface Props {
   buckets: CashFlowBucket[];
   onSelect: (bucket: CashFlowBucket) => void;
@@ -57,7 +59,7 @@ export function CashFlowTable({ buckets, onSelect }: Props) {
               {formatCurrency(b.cumulative)}
             </TableCell>
             <TableCell className="text-center">
-              <span className={cn("inline-block h-3 w-3 rounded-full", lightClass(b.light))} aria-label={b.light} />
+              <span className={cn("inline-block h-3 w-3 rounded-full", lightClass(b.light))} aria-label={LIGHT_LABELS[b.light]} />
             </TableCell>
           </TableRow>
         ))}

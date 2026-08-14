@@ -47,6 +47,7 @@ export function PaymentsExportTable({
           checked={rowState[row.original.id]?.selected ?? false}
           disabled={!row.original.has_valid_clabe || !!row.original.payment_in_progress_at}
           onCheckedChange={(v) => onToggleRow(row.original.id, Boolean(v), row.original.balance)}
+          aria-label={`Seleccionar factura ${row.original.bill_number}`}
         />
       ),
     },
@@ -132,6 +133,7 @@ export function PaymentsExportTable({
             disabled={!row.original.has_valid_clabe || !st?.selected || inProgress}
             value={st?.amount ?? row.original.balance}
             onChange={(e) => onChangeAmount(row.original.id, Number(e.target.value))}
+            aria-label={`Monto a pagar de factura ${row.original.bill_number}`}
             aria-invalid={invalidAmount}
             className={cn(
               "h-7 w-28 ml-auto text-right font-mono text-xs",

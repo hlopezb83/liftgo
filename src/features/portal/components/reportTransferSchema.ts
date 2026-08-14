@@ -28,6 +28,11 @@ export const makeSchema = (reportableBalance: number, pendingInReview = 0) => z.
   trackingKey: z.string().default(""),
   proofFile: z
     .custom<File | null>((v) => v === null || v instanceof File, { message: "Archivo inválido" })
+    .refine((f) => f === null || f.size <= 5 * 1024 * 1024, "El comprobante no puede exceder 5 MB")
+    .refine(
+      (f) => f === null || ["application/pdf", "image/png", "image/jpeg", "image/webp"].includes(f.type),
+      "Formato no permitido (PDF, PNG, JPG o WebP)",
+    )
     .nullable()
     .default(null),
 });
