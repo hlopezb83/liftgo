@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { TextField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { zodResolver } from "@/lib/forms/zodResolver";
@@ -50,7 +51,7 @@ export function CustomerInviteDialog({ open, onOpenChange, customerName, isPendi
             placeholder="cliente@ejemplo.com"
           />
           <FormDialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={isPending} />
             <Button type="submit" disabled={isPending || !form.formState.isValid}>
               {isPending ? "Enviando..." : "Enviar Invitación"}
             </Button>

@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { TextareaField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { zodResolver } from "@/lib/forms/zodResolver";
@@ -61,9 +62,7 @@ export function RejectBillDialog({ open, onOpenChange, billId, billNumber }: Pro
             placeholder="Describe el motivo del rechazo"
           />
           <FormDialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
+            <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={reject.isPending} />
             <Button
               type="submit"
               variant="destructive"

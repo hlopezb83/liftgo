@@ -1,32 +1,36 @@
 project_id = "zxefrzfaynnfwazqhwxp"
 
 [functions.delete-user]
-verify_jwt = false
+verify_jwt = true
 
 [functions.parse-csf]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-manual]
-verify_jwt = false
+verify_jwt = true
 
+# cron-only: auth via authenticateCronRequest
 [functions.generate-recurring-maintenance]
 verify_jwt = false
 
 [functions.reset-user-password]
-verify_jwt = false
+verify_jwt = true
 
 [functions.toggle-user-status]
-verify_jwt = false
+verify_jwt = true
 
 [functions.invite-user]
-verify_jwt = false
+verify_jwt = true
 
+# cron-only: auth via authenticateCronRequest
 [functions.process-cfdi-retry-queue]
 verify_jwt = false
 
+# cron-only: auth via authenticateCronRequest
 [functions.reconcile-stamping-invoices]
 verify_jwt = false
 
+# cron-only: auth via authenticateCronRequest
 [functions.generate-recurring-invoices]
 verify_jwt = false
 

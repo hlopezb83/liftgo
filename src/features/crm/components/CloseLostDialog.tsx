@@ -3,6 +3,7 @@ import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { SelectField, TextareaField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { ErrorIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -97,9 +98,7 @@ export function CloseLostDialog({ prospect, open, onOpenChange, onConfirm, isPen
           />
 
           <FormDialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
-              Cancelar
-            </Button>
+            <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={isPending} />
             <Button type="submit" variant="destructive" disabled={isPending}>
               <ErrorIcon className="h-4 w-4 mr-1" />
               Confirmar Perdido

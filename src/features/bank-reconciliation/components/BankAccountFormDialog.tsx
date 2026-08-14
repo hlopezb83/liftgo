@@ -9,6 +9,7 @@ import {
   type SelectOption,
 } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { FormSection } from "@/components/forms/FormSection";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
@@ -131,9 +132,7 @@ export function BankAccountFormDialog({ open, onOpenChange, initial }: Props) {
             <TextField control={form.control} name="notes" label="Notas" />
           </FormSection>
           <FormDialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
+            <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={upsert.isPending} />
             <Button type="submit" disabled={upsert.isPending || !form.formState.isValid}>
               {initial ? "Guardar" : "Agregar cuenta"}
             </Button>
