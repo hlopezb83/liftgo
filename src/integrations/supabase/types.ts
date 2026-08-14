@@ -4176,6 +4176,7 @@ export type Database = {
         }
       }
       mark_overdue_supplier_bills: { Args: never; Returns: number }
+      mark_started_bookings_rented: { Args: never; Returns: number }
       mark_supplier_rep_rejected: {
         Args: { p_notes: string; p_payment_id: string }
         Returns: undefined
