@@ -20,11 +20,43 @@ export function computeRepExchange(input: RepExchangeInput): {
   const paymentCurrency = (input.paymentCurrency ?? "MXN").toUpperCase();
   const invoiceCurrency = (input.invoiceCurrency ?? "MXN").toUpperCase();
   if (invoiceCurrency === paymentCurrency) {
-    return { invoiceCurrency, invoiceExchange: 1 };
+  return { invoiceCurrency, invoiceExchange: 1 };
   }
   const rate = Number(input.invoiceTipoCambio ?? 1);
   const invoiceExchange = Number.isFinite(rate) && rate > 0 ? rate : 1;
   return { invoiceCurrency, invoiceExchange };
+}
+
+// v7.320.6: guardia defensiva para moneda extranjera. La edge function es la
+// última línea antes del PAC; `payments.exchange_rate` es NUMERIC DEFAULT 1 sin
+// check constraint, así que un pago USD sembrado con TC=1 (o nulo/0) pasaría
+// silenciosamente y se timbraría con tipoCambio=1 → CFDI fiscalmente incorrecto.
+// El formulario (useRecordPaymentForm) valida, pero cualquier path fuera de la
+// UI (seed, inserción directa, migración) lo saltaría. Extraído a función pura
+// para test de regresión.
+export interface PaymentExchangeInput {
+  paymentCurrency: string | null | undefined;
+  exchangeRate: number | string | null | undefined;
+}
+
+export type PaymentExchangeValidation =
+  | { ok: true }
+  | { ok: false; message: string };
+
+export function validatePaymentExchange(
+  input: PaymentExchangeInput,
+): PaymentExchangeValidation {
+  const currency = (input.paymentCurrency ?? "MXN").toUpperCase();
+  if (currency === "MXN") return { ok: true };
+  const tc = Number(input.exchangeRate);
+  if (!Number.isFinite(tc) || tc <= 0) {
+    return {
+      ok: false,
+      message:
+        "El Tipo de Cambio es obligatorio y debe ser mayor a 0 para pagos en moneda extranjera.",
+    };
+  }
+  return { ok: true };
 }
 
 // TESTS-ARQ2 v3 · DIFF 9 residual: contrato Anexo 20 de parcialidades.
