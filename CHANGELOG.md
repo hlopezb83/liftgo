@@ -1,3 +1,8 @@
+## 7.330.0 - 2026-08-14
+
+**Pulido visual — Sprints V1, V2 y V3**
+- Pulido visual en toda la app: la paginación indica el rango visible ('26–50 de 312'), las pantallas vacías de daños, entregas, devoluciones e usuarios ofrecen un botón para crear el primer registro, y los esqueletos de carga replican el layout final (tablero, calendario, flujo de efectivo, permisos) sin brincos. Sidebar: atajo Ctrl+B documentado, contadores con tope '99+', el grupo activo ya responde al colapsar y el creador rápido muestra esqueleto mientras cargan permisos. Los campos obligatorios de fecha usan la misma marca que el resto de formularios y el subidor de imágenes es accesible por teclado. Consistencia global: puntos suspensivos tipográficos, colores desde tokens del tema, un solo proveedor de tooltips (300 ms), alto de pantalla 100dvh en móvil, montos con tipografía tabular y el campo de moneda ahora muestra separador de miles y entiende '1,234.50' al pegarlo.
+
 ## 7.329.1 - 2026-08-14
 
 **Sprint B3 — Detalles de interfaz**
