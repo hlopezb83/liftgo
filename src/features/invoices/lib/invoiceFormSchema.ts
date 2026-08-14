@@ -9,7 +9,12 @@ export const lineItemSchema = z.object({
   clave_prod_serv: z.string().optional(),
   clave_unidad: z.string().optional(),
   objeto_imp: z.string().optional(),
-  discount: z.number().optional(),
+  discount: z
+    .number()
+    .min(0, "El descuento no puede ser negativo")
+    .max(100, "El descuento no puede exceder 100%")
+    .optional(),
+
   discount_type: z.enum(["%", "$"]).optional(),
 });
 

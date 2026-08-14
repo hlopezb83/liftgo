@@ -46,7 +46,23 @@ export async function handleCancelCfdi(
   const err = (status: number, message: string) =>
     jsonError(req, status, message);
 
+  // S2-2.4: refs para poder liberar el claim de cancelación ante cualquier
+  // salida temprana o excepción inesperada.
+  let supabaseRef: SupabaseLike | null = null;
+  let invoiceIdRef: string | null = null;
+  let claimedRef = false;
+  let pacAttempted = false;
+  const releaseCancelClaim = async () => {
+    if (!claimedRef || !supabaseRef || !invoiceIdRef) return;
+    claimedRef = false;
+    await supabaseRef
+      .from("invoices")
+      .update({ cancellation_status: "none" })
+      .eq("id", invoiceIdRef);
+  };
+
   try {
+
     const auth = await authenticateWithDeps({
       req,
       createCallerClient: (h) => deps.createCallerClient(h),
@@ -56,6 +72,8 @@ export async function handleCancelCfdi(
     });
     if (!auth.ok) return json({ error: auth.message }, auth.status);
     const supabase = auth.supabase;
+    supabaseRef = supabase;
+
 
     const body = await req.json().catch(() => ({}));
     const { invoice_id, motive, substitution_uuid, cancellation_reason } =
@@ -64,6 +82,8 @@ export async function handleCancelCfdi(
     if (!isUUID(invoice_id)) {
       return json({ error: "invoice_id must be a valid UUID" }, 400);
     }
+    invoiceIdRef = invoice_id as string;
+
     if (typeof motive !== "string" || !VALID_MOTIVES.has(motive)) {
       return json({ error: "motive must be one of 01,02,03,04" }, 400);
     }
@@ -156,8 +176,31 @@ export async function handleCancelCfdi(
       }
     }
 
+    // S2-2.4: claim atómico pending — evita que dos requests concurrentes
+    // manden dos cancelaciones al SAT. Solo la primera cambia
+    // cancellation_status 'none' → 'pending' sobre una factura timbrada.
+    const claimRes = await supabase
+      .from("invoices")
+      .update({ cancellation_status: "pending" })
+      .eq("id", invoice_id as string)
+      .eq("cfdi_status", "stamped")
+      .in("cancellation_status", ["none"])
+      .select("id")
+      .maybeSingle();
+    if (!(claimRes as { data: unknown }).data) {
+      return json(
+        {
+          error:
+            "Ya hay una cancelación en proceso o la factura no está timbrada",
+        },
+        409,
+      );
+    }
+    claimedRef = true;
+
     const { apiKey, mode } = await getFacturapiConfig(supabase, deps.env);
     const facturApiId = inv.facturapi_invoice_id as string | null | undefined;
+
 
     let satStatus = "accepted";
     const isStub = !apiKey || !facturApiId;
@@ -167,7 +210,9 @@ export async function handleCancelCfdi(
       // Un stub en live significa (a) API key faltante o (b) factura sin
       // facturapi_invoice_id (probablemente timbrada como stub en test y
       // migrada a live). Cancelarla fake dejaría el SAT y la BD divergentes.
+      await releaseCancelClaim();
       return json(
+
         {
           error: !apiKey
             ? "Facturapi API key no configurada para modo live. No se puede cancelar sin llamar al SAT."
@@ -178,6 +223,7 @@ export async function handleCancelCfdi(
     }
 
     if (apiKey && facturApiId) {
+      pacAttempted = true;
       const client = createFacturapiClient(apiKey);
       const params: Record<string, string> = { motive };
       if (motive === "01" && substitution_uuid) {
@@ -222,6 +268,9 @@ export async function handleCancelCfdi(
             errorMessage: `${desc.code ?? ""} ${desc.message}`.trim(),
           });
         }
+        // La cancelación NO llegó al SAT: liberamos el claim para que el
+        // reintento (manual o vía cola) pueda volver a tomarlo.
+        await releaseCancelClaim();
         return json(
           {
             error: `Facturapi cancel error: ${desc.status}`,
@@ -252,6 +301,8 @@ export async function handleCancelCfdi(
     if ((updRes as { error: unknown }).error) {
       return json({ error: "Failed to update invoice" }, 500);
     }
+    claimedRef = false;
+
 
     return json(
       {
@@ -266,6 +317,9 @@ export async function handleCancelCfdi(
       200,
     );
   } catch (_err) {
+    // Solo liberamos el claim si nunca se contactó al PAC; si ya se llamó, el
+    // estado 'pending' es correcto hasta que se reconcilie con el SAT.
+    if (!pacAttempted) await releaseCancelClaim();
     return err(500, "Internal server error");
   }
 }

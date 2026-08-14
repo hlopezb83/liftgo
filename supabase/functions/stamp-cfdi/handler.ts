@@ -262,15 +262,19 @@ export async function handleStampCfdi(
         // a monto para que el XML timbrado coincida con el total de la app.
         if (li.discount && li.discount > 0) {
           const base = unitPrice * quantity;
+          // S2-2.2: el porcentaje se capea en [0,100] igual que
+          // `applyDiscountToBase` en src/lib/domain/invoiceTotals.ts.
+          const discountPct = Math.min(100, Math.max(0, li.discount ?? 0));
           const discountAmount = li.discount_type === "$"
             ? Math.min(li.discount, base)
-            : (base * li.discount) / 100;
+            : (base * discountPct) / 100;
           if (discountAmount > 0) {
             // BL-A5: `roundMoney` (2 decimales, centavos enteros) reemplaza el
             // `Math.round(*100)/100` histórico para eliminar drift IEEE-754.
             item.discount = roundMoney(discountAmount);
           }
         }
+
         return item;
       })
       : [];
@@ -315,6 +319,25 @@ export async function handleStampCfdi(
       }
     }
 
+    // S2-2.1: moneda foránea sin tipo de cambio válido → 422 sin llamar al PAC.
+    // El SAT exige TipoCambio > 0 cuando Moneda != MXN; el viejo fallback
+    // `|| 1` timbraba con paridad 1:1 y falseaba los importes en pesos.
+    const moneda = String(inv.moneda ?? "MXN").toUpperCase();
+    const tipoCambio = typeof inv.tipo_cambio === "number"
+      ? inv.tipo_cambio
+      : Number(inv.tipo_cambio ?? NaN);
+    if (moneda !== "MXN" && (!Number.isFinite(tipoCambio) || tipoCambio <= 0)) {
+      await releaseClaim(`Factura en ${moneda} sin tipo de cambio`);
+      return json(
+        {
+          error:
+            `La factura en ${moneda} no tiene tipo de cambio válido. Captura el tipo de cambio antes de timbrar.`,
+        },
+        422,
+        jsonHeaders,
+      );
+    }
+
     const payload: Record<string, unknown> = {
       type: "I",
       customer: {
@@ -327,9 +350,10 @@ export async function handleStampCfdi(
       payment_form: paymentForm,
       payment_method: paymentMethod,
       use: usoCfdi,
-      currency: inv.moneda || "MXN",
-      exchange: inv.tipo_cambio || 1,
+      currency: moneda,
+      exchange: moneda === "MXN" ? 1 : tipoCambio,
       series: inv.serie || undefined,
+
       // BL-20: validar folio numérico antes de castear (Number("BORRADOR")=NaN
       // rompía el payload JSON hacia Facturapi).
       folio_number: (() => {
