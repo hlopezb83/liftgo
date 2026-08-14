@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { cfdiFromCustomer, type Customer } from "../invoiceFormBuilders";
+import { cfdiFromCustomer, buildFromQuote, type Customer, type SourceQuote } from "../invoiceFormBuilders";
 
 function makeCustomer(over: Partial<Customer> = {}): Customer {
   return {
