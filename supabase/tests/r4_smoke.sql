@@ -40,18 +40,30 @@ END; $$;
 
 -- ---------------------------------------------------------------------------
 -- DB4-01 · supplier_bills no puede nacer aprobada ni rechazada
+-- Los guards (set_supplier_bill_approval_status / guard_supplier_bill_approval)
+-- delegan cuando NO hay JWT (service_role / cron / psql directo). Por eso el
+-- caso se simula con un JWT de usuario autenticado, igual que DB4-08d.
 -- ---------------------------------------------------------------------------
-SELECT pg_temp.expect_error(
-  'DB4-01a alta de bill pre-aprobada',
-  $q$INSERT INTO public.supplier_bills
-       (bill_number, issue_date, subtotal, tax_amount, total, status, approval_status)
-     VALUES ('SMOKE-R4-1', CURRENT_DATE, 100, 16, 116, 'pending', 'approved')$q$);
+DO $$
+BEGIN
+  PERFORM set_config('request.jwt.claims',
+    json_build_object('role', 'authenticated', 'sub', gen_random_uuid())::text, true);
 
-SELECT pg_temp.expect_error(
-  'DB4-01b alta de bill pre-rechazada',
-  $q$INSERT INTO public.supplier_bills
-       (bill_number, issue_date, subtotal, tax_amount, total, status, approval_status)
-     VALUES ('SMOKE-R4-2', CURRENT_DATE, 100, 16, 116, 'pending', 'rejected')$q$);
+  PERFORM pg_temp.expect_error(
+    'DB4-01a alta de bill pre-aprobada',
+    $q$INSERT INTO public.supplier_bills
+         (bill_number, issue_date, subtotal, tax_amount, total, status, approval_status)
+       VALUES ('SMOKE-R4-1', public.today_mty(), 100, 16, 116, 'pending', 'approved')$q$);
+
+  PERFORM pg_temp.expect_error(
+    'DB4-01b alta de bill pre-rechazada',
+    $q$INSERT INTO public.supplier_bills
+         (bill_number, issue_date, subtotal, tax_amount, total, status, approval_status)
+       VALUES ('SMOKE-R4-2', public.today_mty(), 100, 16, 116, 'pending', 'rejected')$q$);
+
+  PERFORM set_config('request.jwt.claims', NULL, true);
+END $$;
+
 
 -- ---------------------------------------------------------------------------
 -- DB4-02 · damage_records nace en 'reported' y valida la unidad de la reserva
