@@ -219,20 +219,17 @@ Deno.serve(async (req) => {
 
     const paymentDateIso = `${payment.payment_date}T12:00:00`;
     const paymentCurrency = (payment.currency as string | null) || "MXN";
-    // Moneda extranjera: el TC es obligatorio y > 0. El default de columna (1)
-    // para un pago USD produciría un CFDI con tipoCambio=1 → fiscalmente
-    // incorrecto. La edge function es la última defensa antes del PAC:
-    // rechazar, no asumir. (Recupera el guardia perdido en el refactor v7.308.0.)
-    if (paymentCurrency !== "MXN") {
-      const tc = Number(payment.exchange_rate);
-      if (!Number.isFinite(tc) || tc <= 0) {
-        await releaseClaim("Tipo de cambio inválido para moneda extranjera");
-        return jsonError(
-          req,
-          422,
-          "El Tipo de Cambio es obligatorio y debe ser mayor a 0 para pagos en moneda extranjera.",
-        );
-      }
+    // v7.320.6: moneda extranjera exige TC > 0. El default de columna (1) para
+    // un pago USD produciría un CFDI con tipoCambio=1 → fiscalmente incorrecto.
+    // La edge function es la última defensa antes del PAC: rechazar, no asumir.
+    // (Recupera el guardia perdido en el refactor v7.308.0.)
+    const exchangeCheck = validatePaymentExchange({
+      paymentCurrency,
+      exchangeRate: payment.exchange_rate,
+    });
+    if (!exchangeCheck.ok) {
+      await releaseClaim("Tipo de cambio inválido para moneda extranjera");
+      return jsonError(req, 422, exchangeCheck.message);
     }
     const paymentExchange = paymentCurrency === "MXN"
       ? 1
