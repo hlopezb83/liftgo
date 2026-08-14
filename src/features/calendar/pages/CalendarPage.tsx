@@ -88,31 +88,9 @@ export default function CalendarPage() {
   }
 
   if (bLoading || fLoading) {
-    // Skeleton que anticipa el layout real: KPIs de flota (4 tiles), la
-    // toolbar de vistas/rango y la tarjeta del Gantt/lista, para evitar el
-    // salto de contenido al hidratar. Misma convención que TableSkeleton:
-    // contenedor role="status" + texto sr-only.
-    return (
-      <PageContainer>
-        <PageHeader title="Calendario de Disponibilidad" />
-        <div className="space-y-6" role="status">
-          <span className="sr-only">Cargando calendario…</span>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-            {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
-          </div>
-          <div className="flex items-center flex-wrap gap-2">
-            <Skeleton className="h-8 w-32" />
-            <Skeleton className="h-8 w-36" />
-            <Skeleton className="h-8 w-24 ml-auto" />
-          </div>
-          <div className="rounded-xl border bg-card p-6 space-y-4">
-            <Skeleton className="h-5 w-48" />
-            <Skeleton className="h-80 w-full" />
-          </div>
-        </div>
-      </PageContainer>
-    );
+    return <CalendarLoadingSkeleton />;
   }
+
 
   return (
     <PageTransition>
