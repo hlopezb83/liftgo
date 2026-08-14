@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.318.0",
+    "date": "2026-08-14",
+    "type": "minor",
+    "title": "Venta y baja de unidades: solo se bloquean con renta realmente abierta",
+    "category": "mejoras",
+    "changes": [
+      "Una unidad solo se considera rentada si su entrega está completada y aún no se registra la devolución; antes bastaba una reserva confirmada, aunque ya se hubiera devuelto.",
+      "La misma regla aplica ahora en el cambio de estado desde la app, en la asignación a cotizaciones de venta y en cambios directos en base de datos.",
+      "El mensaje de error es claro: pide completar la devolución antes de vender o dar de baja la unidad.",
+      "Se agregaron pruebas de las máquinas de estado: contrato completado final, factura borrador que no puede vencer y cuenta por pagar con pagos que no se puede cancelar."
+    ]
+  },
+  {
     "version": "7.317.4",
     "date": "2026-08-14",
     "type": "patch",
