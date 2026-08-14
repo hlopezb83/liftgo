@@ -170,6 +170,7 @@ export function BankLineMatchPanel({ line, currency, onDone }: Props) {
             </p>
             <BankMatchCandidateList
               lineId={line.id}
+              currency={currency}
               search={search}
               onSearchChange={setSearch}
               dateWindow={dateWindow}
