@@ -266,6 +266,9 @@ export async function handleCancelCfdi(
             errorMessage: `${desc.code ?? ""} ${desc.message}`.trim(),
           });
         }
+        // La cancelación NO llegó al SAT: liberamos el claim para que el
+        // reintento (manual o vía cola) pueda volver a tomarlo.
+        await releaseCancelClaim();
         return json(
           {
             error: `Facturapi cancel error: ${desc.status}`,
@@ -296,6 +299,8 @@ export async function handleCancelCfdi(
     if ((updRes as { error: unknown }).error) {
       return json({ error: "Failed to update invoice" }, 500);
     }
+    claimedRef = false;
+
 
     return json(
       {
