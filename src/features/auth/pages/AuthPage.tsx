@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentVersion } from "@/features/changelog";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { usePublicBranding } from "@/features/company-settings";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { AuthForm, type AuthMode } from "../components/AuthForm";
@@ -20,6 +21,7 @@ const TITLES: Record<AuthMode, { title: string; desc: string }> = {
 export default function AuthPage() {
   const { signIn, resetPassword, updatePassword } = useAuth();
   const { pathname } = useLocation();
+  const navigate = useNavigateTransition();
   // Link roto sin sesión: el AuthGuard cae aquí silenciosamente — damos un
   // hint de que la ruta no existe (o requiere sesión) en vez de un login seco.
   const unknownPath = pathname !== "/" && pathname !== "/login";

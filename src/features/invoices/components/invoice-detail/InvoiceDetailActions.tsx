@@ -2,6 +2,7 @@ import { useState } from "react";
 import { EditIcon, StampIcon, ErrorIcon, PaymentIcon, DeleteIcon, RefreshIcon, DocumentIcon, FileCode2 } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Tables } from "@/integrations/supabase/types";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { computeInvoiceFlags, type InvoiceActionFlags } from "@/lib/rules/invoices";
@@ -222,6 +223,24 @@ export function InvoiceDetailActions({
           <Button size="sm" onClick={onOpenPayment} data-testid="invoice-register-payment">
             <PaymentIcon className="h-4 w-4 mr-1" />Registrar pago
           </Button>
+        </RoleGuard>
+      ) : null}
+      {flags.paymentBlockedByPendingCancellation ? (
+        <RoleGuard module="Facturas" minAccess="full" fallback={null}>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <Button size="sm" disabled data-testid="invoice-register-payment-blocked">
+                    <PaymentIcon className="h-4 w-4 mr-1" />Registrar pago
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                Cancelación en proceso ante el SAT (esperando aceptación del receptor)
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </RoleGuard>
       ) : null}
       {pdfMode !== "hidden" ? (
