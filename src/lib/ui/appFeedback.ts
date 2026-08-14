@@ -168,7 +168,9 @@ export interface NotifyValidationInput {
  * antes de continuar.
  */
 export function notifyValidation(input: NotifyValidationInput): string | number {
-  return toast.warning(input.title ?? "Revisa los datos", {
+  const title = input.title ?? "Revisa los datos";
+  return toast.warning(title, {
+    id: toastDedupeId("validation", title, input.message),
     description: input.message,
     duration: DURATION.validation,
   });
@@ -178,13 +180,15 @@ export function notifyValidation(input: NotifyValidationInput): string | number 
 // notifySuccess / notifyInfo / notifyWarning — sustitutos de toast.*
 // ---------------------------------------------------------------------------
 
-function buildOpts(opts?: SimpleOpts, fallbackDuration?: number) {
+function buildOpts(kind: string, title: string, opts?: SimpleOpts, fallbackDuration?: number) {
   return {
+    id: opts?.dedupeKey ?? toastDedupeId(kind, title, opts?.description),
     description: opts?.description,
     action: opts?.action,
     duration: opts?.durationMs ?? fallbackDuration,
   };
 }
+
 
 /**
  * Toast de éxito. Acepta la firma de sonner (`title, opts?`) para que el
