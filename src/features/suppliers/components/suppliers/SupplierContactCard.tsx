@@ -11,7 +11,14 @@ type SupplierContactInfo = {
   regimen_fiscal?: string | null;
 };
 
-const websiteHref = (url: string) => (url.startsWith("http") ? url : `https://${url}`);
+const websiteHref = (url: string): string | null => {
+  try {
+    const u = new URL(url.startsWith("http") ? url : `https://${url}`);
+    return u.protocol === "https:" ? u.href : null;
+  } catch {
+    return null;
+  }
+};
 
 export function SupplierContactCard({ supplier }: { supplier: SupplierContactInfo }) {
   const hasFiscal = Boolean(supplier.rfc || supplier.regimen_fiscal);

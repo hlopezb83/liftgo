@@ -57,14 +57,17 @@ export interface PaymentRow {
 }
 
 
-/** Mapa de pagos acumulados (en MXN) agrupados por invoice_id. */
+/**
+ * Mapa de pagos acumulados EN MONEDA DEL DOCUMENTO (no MXN), agrupados por
+ * invoice_id. El Fix 3.2 garantiza que un pago se registra en la misma
+ * moneda que la factura, así que sumamos el monto crudo sin convertir:
+ * convertir cada pago a MXN con su propio TC y luego restar del total en MXN
+ * mezclaba tipos de cambio distintos y producía saldos irreales (Fix 6.4).
+ */
 export function buildPaidByInvoice(payments: ReadonlyArray<PaymentRow>): Map<string, number> {
   const map = new Map<string, number>();
   for (const p of payments) {
-    // FX faltante → excluir: sumarlo 1:1 subestimaría el pagado real.
-    if (isFxMissing(p.currency, p.exchange_rate)) continue;
-    const mxn = toMxn(Number(p.amount), p.currency, p.exchange_rate);
-    map.set(p.invoice_id, (map.get(p.invoice_id) ?? 0) + mxn);
+    map.set(p.invoice_id, (map.get(p.invoice_id) ?? 0) + Number(p.amount));
   }
   return map;
 }
@@ -77,22 +80,21 @@ export function invoiceToItem(
   if (!inv.due_date) return null;
   // FX faltante → excluir de la proyección en vez de asumir USD 1:1 como MXN.
   if (isFxMissing(inv.moneda, inv.tipo_cambio)) return null;
-  const totalMxn = toMxn(Number(inv.total), inv.moneda ?? "MXN", inv.tipo_cambio);
-  // v7.209.0 A4: descontar NCs timbradas (mismo doc → mismo TC) para no
-  // proyectar cobro sobre montos ya acreditados al cliente.
-  const creditedMxn = toMxn(
-    Number(inv.credited_amount ?? 0),
-    inv.moneda ?? "MXN",
-    inv.tipo_cambio,
-  );
-  const balance = totalMxn - (paidByInvoice.get(inv.id) ?? 0) - creditedMxn;
-  if (balance < 0.005) return null;
+  // Fix 6.4: el saldo se calcula EN MONEDA DEL DOCUMENTO (total - pagos -
+  // NCs, todos ya en esa moneda) y solo el residual se convierte a MXN con
+  // el TC del documento. Antes se convertía cada pieza por separado a MXN
+  // con su propio TC, mezclando tipos de cambio distintos.
+  const paidDoc = paidByInvoice.get(inv.id) ?? 0;
+  const creditedDoc = Number(inv.credited_amount ?? 0);
+  const balanceDoc = Number(inv.total) - paidDoc - creditedDoc;
+  const balanceMxn = toMxn(balanceDoc, inv.moneda ?? "MXN", inv.tipo_cambio);
+  if (balanceMxn < 0.005) return null;
   return {
     id: inv.id,
     number: inv.invoice_number,
     partyName: inv.customer_name ?? "—",
     dueDate: inv.due_date,
-    amountMxn: balance,
+    amountMxn: balanceMxn,
     kind: "in",
     navigatePath: `/invoices/${inv.id}`,
   };

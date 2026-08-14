@@ -38,7 +38,8 @@ export function useQuoteDetailData(id: string | undefined) {
     queryKey: bookingKeys.byFilter({ quote_id: id ?? "" }),
     enabled: !!id,
     queryFn: async () => {
-      const { data } = await supabase.from("bookings").select("id").eq("quote_id", id ?? "");
+      const { data, error } = await supabase.from("bookings").select("id").eq("quote_id", id ?? "");
+      if (error) throw error;
       return data || [];
     },
   });
@@ -48,10 +49,11 @@ export function useQuoteDetailData(id: string | undefined) {
     queryKey: invoiceKeys.byFilter({ quote_id: id ?? "" }),
     enabled: !!id,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("invoices")
         .select("id,status")
         .eq("quote_id", id ?? "");
+      if (error) throw error;
       return data || [];
     },
   });

@@ -38,7 +38,7 @@ export function LogoUploader({ logoUrl, onChange }: Props) {
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+            accept="image/png,image/jpeg,image/webp"
             className="hidden"
             onChange={handleUpload}
           />

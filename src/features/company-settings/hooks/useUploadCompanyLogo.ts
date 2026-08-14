@@ -11,14 +11,19 @@ export function useUploadCompanyLogo() {
       notifyValidation({ message: "El archivo no debe superar 2MB" });
       return null;
     }
-    if (!file.type.startsWith("image/")) {
-      notifyValidation({ message: "Solo se permiten archivos de imagen" });
+    const ALLOWED: Record<string, string> = {
+      "image/png": "png",
+      "image/jpeg": "jpg",
+      "image/webp": "webp",
+    };
+    if (!ALLOWED[file.type]) {
+      notifyValidation({ message: "Solo se permiten imágenes PNG, JPG o WebP" });
       return null;
     }
 
     setUploading(true);
     try {
-      const ext = file.name.split(".").pop();
+      const ext = ALLOWED[file.type];
       const filePath = `company/logo_${Date.now()}.${ext}`;
       const { error: uploadError } = await supabase.storage.from("documents").upload(filePath, file);
       if (uploadError) throw uploadError;
