@@ -13,9 +13,19 @@ export interface PaymentIntentInput {
   proof_file: File | null;
 }
 
+// Fix 5.3: la extensión se deriva del MIME validado por el schema (whitelist),
+// nunca del nombre del archivo — evita subir un `.html` renombrado a `.pdf`.
+const MIME_TO_EXT: Record<string, string> = {
+  "application/pdf": "pdf",
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+};
+
 async function uploadProof(input: PaymentIntentInput): Promise<string | null> {
   if (!input.proof_file) return null;
-  const ext = input.proof_file.name.split(".").pop() ?? "bin";
+  const ext = MIME_TO_EXT[input.proof_file.type];
+  if (!ext) throw new Error("Formato de comprobante no permitido");
   const path = `${input.customer_id}/${input.invoice_id}/${Date.now()}.${ext}`;
   const { error } = await supabase.storage
     .from("payment-proofs")
@@ -38,7 +48,14 @@ export function useCreatePaymentIntent() {
         tracking_key: input.tracking_key,
         proof_url: proofUrl,
       });
-      if (error) throw error;
+      if (error) {
+        // Fix 5.3: si el insert falla después de subir el comprobante, no
+        // dejar el archivo huérfano en el storage.
+        if (proofUrl) {
+          await supabase.storage.from("payment-proofs").remove([proofUrl]);
+        }
+        throw error;
+      }
     },
     invalidateKeys: [paymentIntentsQueries.keys.all],
     successMsg: "Reporte de pago enviado. Lo revisaremos a la brevedad.",

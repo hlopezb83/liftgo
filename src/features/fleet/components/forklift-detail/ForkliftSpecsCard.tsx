@@ -7,9 +7,11 @@ import { formatCurrency } from "@/lib/format/formatCurrency";
 interface ForkliftSpecsCardProps {
   forklift: Tables<"forklifts">;
   currentLocation?: string | null;
+  /** 10.8: la query de ubicación falló — no confundir con "sin ubicación". */
+  locationError?: boolean;
 }
 
-export function ForkliftSpecsCard({ forklift, currentLocation }: ForkliftSpecsCardProps) {
+export function ForkliftSpecsCard({ forklift, currentLocation, locationError }: ForkliftSpecsCardProps) {
   const acquisitionCost = forklift.acquisition_cost;
   const specs = [
     { label: "Modelo", value: forklift.model },
@@ -20,7 +22,7 @@ export function ForkliftSpecsCard({ forklift, currentLocation }: ForkliftSpecsCa
     { label: "Tipo de Combustible", value: forklift.fuel_type ? (FUEL_TYPE_LABELS[forklift.fuel_type] || forklift.fuel_type) : null },
     { label: "No. de Serie", value: forklift.serial_number },
     { label: "Costo de Adquisición", value: acquisitionCost ? formatCurrency(Number(acquisitionCost)) : null },
-    { label: "Ubicación Actual", value: currentLocation || null },
+    { label: "Ubicación Actual", value: locationError ? "No se pudo cargar la ubicación" : (currentLocation || null) },
     { label: "Aseguradora", value: forklift.insurance_provider || null },
     { label: "No. Póliza", value: forklift.insurance_policy_number || null },
     { label: "Vigencia Seguro", value: forklift.insurance_expiry || null },
