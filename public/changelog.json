@@ -1,5 +1,11 @@
 [
   {
+    "version": "7.321.2",
+    "date": "2026-08-14",
+    "title": "Acceso a sessionStorage sin protección en filtros de tablas",
+    "description": "readSessionParams y writeSessionParams accedían a window.sessionStorage sin try/catch. En navegación privada (Safari), cuota llena o almacenamiento deshabilitado, getItem/setItem lanzan excepciones que rompían useTableFilters y la tabla no cargaba. Se envolvió cada acceso en try/catch con valores por defecto seguros."
+  },
+  {
     "version": "7.321.1",
     "date": "2026-08-14",
     "title": "Total negativo en factura de proveedor por retenciones",
