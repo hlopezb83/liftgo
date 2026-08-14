@@ -42,6 +42,20 @@ describe("extractNonRentalLines", () => {
     expect(result[0].clave_prod_serv).toBe("84131500");
   });
 
+  // F8: la clasificación se ancla al formato generado " — Renta …"; una línea
+  // manual que solo menciona la palabra ya no se descarta por falso positivo.
+  it("conserva partidas manuales que mencionan 'Renta' fuera del formato generado", () => {
+    const result = extractNonRentalLines([
+      { description: "Renta diaria de operador", quantity: 1, unit_price: 900, total: 900 },
+      { description: "Cargo por Renta mensual atrasada", quantity: 1, unit_price: 500, total: 500 },
+      { description: "MC-01 — Renta mensual (Serie: X)", quantity: 1, unit_price: 8000, total: 8000 },
+    ]);
+    expect(result.map((r) => r.description)).toEqual([
+      "Renta diaria de operador",
+      "Cargo por Renta mensual atrasada",
+    ]);
+  });
+
   it("devuelve [] si el input no es un arreglo", () => {
     expect(extractNonRentalLines(null)).toEqual([]);
     expect(extractNonRentalLines(undefined)).toEqual([]);
