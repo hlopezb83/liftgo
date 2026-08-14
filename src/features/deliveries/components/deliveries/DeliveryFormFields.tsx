@@ -145,7 +145,7 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
           name="notes"
           label="Notas"
           rows={2}
-          placeholder="Instrucciones especiales..."
+          placeholder="Instrucciones especiales…"
         />
       </FormSection>
     </Form>

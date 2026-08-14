@@ -28,7 +28,7 @@ export function CreateCreditNoteDialog({ open, onOpenChange, invoice, maxCredita
       title="Nueva nota de Crédito"
       width="2xl"
       description={<>Factura {invoice.invoice_number}. Máximo acreditable:{" "}
-        <span className="font-mono font-semibold">{formatCurrency(maxCreditable)}</span>.
+        <span className="tabular-nums font-semibold">{formatCurrency(maxCreditable)}</span>.
         El borrador NO modifica el saldo; éste se reduce únicamente al timbrar la nota de crédito.</>}
     >
 
@@ -92,7 +92,7 @@ export function CreateCreditNoteDialog({ open, onOpenChange, invoice, maxCredita
             Guardar borrador
           </Button>
           <Button onClick={() => f.submit(true)} disabled={!f.canSubmit}>
-            {f.isPending ? "Procesando..." : "Guardar y timbrar"}
+            {f.isPending ? "Procesando…" : "Guardar y timbrar"}
           </Button>
         </FormDialogFooter>
     </FormDialog>

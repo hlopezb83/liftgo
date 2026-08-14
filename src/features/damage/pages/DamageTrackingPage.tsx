@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
-import { useDialogState } from "@/hooks/useDialogState";
+import { useDialogState, useToggleDialog } from "@/hooks/useDialogState";
 import { DAMAGE_STATUSES, STATUS_LABELS } from "@/lib/constants";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -28,6 +28,9 @@ export default function DamageTrackingPage() {
   const { data: records, isLoading, isError, refetch } = useDamageRecords();
   const { data: photoCounts } = useDamagePhotoCounts();
   const detail = useDialogState<DamageRecordWithJoins>();
+  // Control externo del diálogo de reporte para poder abrirlo también desde
+  // el CTA del EmptyState (mismo patrón que InventoryPage/PartFormDialog).
+  const reportDialog = useToggleDialog();
 
   const getPhotoCount = (id: string) => photoCounts?.[id] || 0;
 
@@ -46,75 +49,8 @@ export default function DamageTrackingPage() {
     },
   });
 
+  const columns = buildDamageColumns(photoCounts);
 
-  const columns: ColumnDef<DamageRow>[] = [
-      {
-        id: "created_at",
-        header: "Fecha",
-        accessorKey: "created_at",
-        cell: ({ row }) => <span className="font-mono text-sm">{formatDateMty(row.original.created_at)}</span>,
-      },
-      {
-        id: "forklift_name",
-        header: "Montacargas",
-        accessorFn: (r) => r.forklifts?.name || "",
-        cell: ({ row }) => <span className="font-medium">{row.original.forklifts?.name || "—"}</span>,
-      },
-      {
-        id: "customer_name",
-        header: "Cliente",
-        accessorFn: (r) => r.customers?.name || "",
-        // Oleada 1 (A-7): nombres largos truncan con tooltip completo
-        meta: { cellClassName: "max-w-[240px]" },
-        cell: ({ row }) => {
-          const name = row.original.customers?.name || "—";
-          return (
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="block truncate">{name}</span>
-              </TooltipTrigger>
-              <TooltipContent>{name}</TooltipContent>
-            </Tooltip>
-          );
-        },
-      },
-      {
-        id: "description",
-        header: "Descripción",
-        enableSorting: false,
-        meta: { cellClassName: "max-w-[200px] truncate" },
-        cell: ({ row }) => row.original.description,
-      },
-      {
-        id: "photos",
-        header: "Fotos",
-        enableSorting: false,
-        meta: { align: "center", cellClassName: "w-16" },
-        cell: ({ row }) => {
-          const count = photoCounts?.[row.original.id] || 0;
-          return count > 0 ? (
-            <Badge variant="secondary" className="gap-1 text-xs px-1.5 py-0">
-              <Camera className="h-3 w-3" /> {count}
-            </Badge>
-          ) : (
-            <span className="text-muted-foreground text-xs">—</span>
-          );
-        },
-      },
-      {
-        id: "estimated_cost",
-        header: "Costo Est.",
-        accessorFn: (r) => r.estimated_cost || 0,
-        meta: { kind: "money" },
-        cell: ({ row }) => <span>{formatCurrency(row.original.estimated_cost ?? 0)}</span>,
-      },
-      {
-        id: "status",
-        header: "Estado",
-        accessorKey: "status",
-        cell: ({ row }) => <StatusBadge status={row.original.status} />,
-      },
-    ];
 
   const table = useLiftgoTable<DamageRow>({
     data: filtered,
@@ -127,13 +63,13 @@ export default function DamageTrackingPage() {
       <ListPageLayout
         title="Seguimiento de Daños"
         subtitle="Rastrea daños desde inspecciones hasta reparación y facturación"
-        actions={<ReportDamageDialog />}
+        actions={<ReportDamageDialog open={reportDialog.open} onOpenChange={reportDialog.setOpen} />}
         filters={
           <FiltersToolbar>
             <FiltersToolbar.Search
               value={values.q}
               onChange={(v) => set("q", v)}
-              placeholder="Buscar por descripción, montacargas..."
+              placeholder="Buscar por descripción, montacargas…"
             />
             <FiltersToolbar.StatusSelect
               value={values.status}
@@ -152,6 +88,8 @@ export default function DamageTrackingPage() {
         hasActiveFilters={hasActive}
         onClearFilters={reset}
         emptyMessage="No se encontraron registros de daños"
+        emptyActionLabel="Reportar daño"
+        onEmptyAction={reportDialog.openDialog}
         mobileCardRender={(r) => (
           <Card className="cursor-pointer" onClick={() => detail.open(r as DamageRecordWithJoins)}>
             <CardContent className="p-4 space-y-2">
@@ -185,4 +123,75 @@ export default function DamageTrackingPage() {
       />
     </>
   );
+}
+
+function buildDamageColumns(photoCounts: Record<string, number> | undefined): ColumnDef<DamageRow>[] {
+  return [
+    {
+      id: "created_at",
+      header: "Fecha",
+      accessorKey: "created_at",
+      cell: ({ row }) => <span className="font-mono text-sm">{formatDateMty(row.original.created_at)}</span>,
+    },
+    {
+      id: "forklift_name",
+      header: "Montacargas",
+      accessorFn: (r) => r.forklifts?.name || "",
+      cell: ({ row }) => <span className="font-medium">{row.original.forklifts?.name || "—"}</span>,
+    },
+    {
+      id: "customer_name",
+      header: "Cliente",
+      accessorFn: (r) => r.customers?.name || "",
+      // Oleada 1 (A-7): nombres largos truncan con tooltip completo
+      meta: { cellClassName: "max-w-[240px]" },
+      cell: ({ row }) => {
+        const name = row.original.customers?.name || "—";
+        return (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="block truncate">{name}</span>
+            </TooltipTrigger>
+            <TooltipContent>{name}</TooltipContent>
+          </Tooltip>
+        );
+      },
+    },
+    {
+      id: "description",
+      header: "Descripción",
+      enableSorting: false,
+      meta: { cellClassName: "max-w-[200px] truncate" },
+      cell: ({ row }) => row.original.description,
+    },
+    {
+      id: "photos",
+      header: "Fotos",
+      enableSorting: false,
+      meta: { align: "center", cellClassName: "w-16" },
+      cell: ({ row }) => {
+        const count = photoCounts?.[row.original.id] || 0;
+        return count > 0 ? (
+          <Badge variant="secondary" className="gap-1 text-xs px-1.5 py-0">
+            <Camera className="h-3 w-3" /> {count}
+          </Badge>
+        ) : (
+          <span className="text-muted-foreground text-xs">—</span>
+        );
+      },
+    },
+    {
+      id: "estimated_cost",
+      header: "Costo Est.",
+      accessorFn: (r) => r.estimated_cost || 0,
+      meta: { kind: "money" },
+      cell: ({ row }) => <span>{formatCurrency(row.original.estimated_cost ?? 0)}</span>,
+    },
+    {
+      id: "status",
+      header: "Estado",
+      accessorKey: "status",
+      cell: ({ row }) => <StatusBadge status={row.original.status} />,
+    },
+  ];
 }

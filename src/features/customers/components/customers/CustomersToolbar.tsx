@@ -51,7 +51,7 @@ export function CustomersFilters({
 }: Pick<Props, "search" | "onSearchChange" | "hasActive" | "onClear">) {
   return (
     <FiltersToolbar>
-      <FiltersToolbar.Search value={search} onChange={onSearchChange} placeholder="Buscar clientes..." />
+      <FiltersToolbar.Search value={search} onChange={onSearchChange} placeholder="Buscar clientes…" />
       {onClear && (
         <FiltersToolbar.ClearAll visible={!!hasActive} onClick={onClear} />
       )}

@@ -15,6 +15,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { formatMtyCalendarDate } from "@/lib/date/mtyCalendarDate";
 import { cn, nowMty } from "@/lib/utils";
+import { RequiredMark } from "./RequiredMark";
 import type { Matcher } from "react-day-picker";
 
 const SHORTCUTS_HINT = "Atajos: H = hoy · + / − ajustan el segmento · ← → cambian de segmento";
@@ -73,7 +74,7 @@ export function DatePickerField({
     <div className="space-y-1.5">
       <Label htmlFor={fieldId}>
         {label}
-        {required && " *"}
+        {required && <RequiredMark />}
       </Label>
       <Dialog open={open} onOpenChange={setOpen}>
         <div className="flex items-start gap-2">

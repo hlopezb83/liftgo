@@ -3,7 +3,7 @@ import { useState } from "react";
 import { EditIcon, DeliveryIcon, SuccessIcon, ErrorIcon, BookOpen, DeleteIcon, InvoiceIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useUserRole } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import type { Tables } from "@/integrations/supabase/types";
@@ -41,7 +41,7 @@ function ConvertButton({ quote, isSale, alreadyConverted, isConverting, onConver
   if (!canConvert) return null;
   return (
     <Button size="sm" variant="default" onClick={onConvertClick} disabled={isConverting}>
-      <BookOpen className="h-4 w-4 mr-1" />{isConverting ? "Creando reservas..." : "Convertir a Reserva"}
+      <BookOpen className="h-4 w-4 mr-1" />{isConverting ? "Creando reservas…" : "Convertir a Reserva"}
     </Button>
   );
 }
@@ -67,18 +67,16 @@ function InvoiceButton({ quote, isSale, alreadyInvoiced, canInvoice, invoiceBloc
     );
   }
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span>
-            <Button size="sm" variant="default" disabled className="pointer-events-none opacity-60">
-              <InvoiceIcon className="h-4 w-4 mr-1" />Facturar
-            </Button>
-          </span>
-        </TooltipTrigger>
-        <TooltipContent>{invoiceBlockedReason ?? "Asigna los equipos antes de facturar"}</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <span>
+          <Button size="sm" variant="default" disabled className="pointer-events-none opacity-60">
+            <InvoiceIcon className="h-4 w-4 mr-1" />Facturar
+          </Button>
+        </span>
+      </TooltipTrigger>
+      <TooltipContent>{invoiceBlockedReason ?? "Asigna los equipos antes de facturar"}</TooltipContent>
+    </Tooltip>
   );
 }
 
@@ -168,18 +166,16 @@ export function QuoteDetailActions({
         return (
           <>
             {isExpired ? (
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span>
-                      <Button size="sm" variant="default" disabled>
-                        <SuccessIcon className="h-4 w-4 mr-1" />Aceptar
-                      </Button>
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent>Cotización vencida. Actualiza la vigencia para aceptarla.</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span>
+                    <Button size="sm" variant="default" disabled>
+                      <SuccessIcon className="h-4 w-4 mr-1" />Aceptar
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>Cotización vencida. Actualiza la vigencia para aceptarla.</TooltipContent>
+              </Tooltip>
             ) : (
               <Button size="sm" variant="default" onClick={() => onSetStatus("accepted")}>
                 <SuccessIcon className="h-4 w-4 mr-1" />Aceptar

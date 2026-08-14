@@ -109,7 +109,7 @@ export function PacConfigForm({ isPending, hasTestKey, hasLiveKey }: Props) {
               label="API Key Test (Sandbox)"
               value={field.value}
               onChange={field.onChange}
-              placeholder="sk_test_..."
+              placeholder="sk_test_…"
               isConfigured={hasTestKey}
             />
           )} />
@@ -118,7 +118,7 @@ export function PacConfigForm({ isPending, hasTestKey, hasLiveKey }: Props) {
               label="API Key Live (Producción)"
               value={field.value}
               onChange={field.onChange}
-              placeholder="sk_live_..."
+              placeholder="sk_live_…"
               isConfigured={hasLiveKey}
             />
           )} />

@@ -32,7 +32,7 @@ export function BankStatementPreview({ result, isPending, onConfirm, onCancel }:
           </div>
           <div>
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Abonos</p>
-            <p className="font-medium tabular-nums text-emerald-600">{formatCurrency(totalCredits)}</p>
+            <p className="font-medium tabular-nums text-success">{formatCurrency(totalCredits)}</p>
           </div>
           <div>
             <p className="text-xs uppercase tracking-wide text-muted-foreground">Cargos</p>
@@ -47,7 +47,7 @@ export function BankStatementPreview({ result, isPending, onConfirm, onCancel }:
         </div>
 
         {result.errors.length > 0 && (
-          <p className="text-xs text-amber-600">
+          <p className="text-xs text-warning">
             {result.errors.length} movimiento(s) se ignorarán por datos inválidos. Primero: {result.errors[0]}
           </p>
         )}
@@ -68,7 +68,7 @@ export function BankStatementPreview({ result, isPending, onConfirm, onCancel }:
                   <TableCell className="whitespace-nowrap">{formatDateMty(l.posted_date)}</TableCell>
                   <TableCell className="max-w-[280px] truncate">{l.description}</TableCell>
                   <TableCell className="text-muted-foreground">{l.reference ?? "—"}</TableCell>
-                  <TableCell className={`text-right tabular-nums ${l.signed_amount < 0 ? "text-destructive" : "text-emerald-600"}`}>
+                  <TableCell className={`text-right tabular-nums ${l.signed_amount < 0 ? "text-destructive" : "text-success"}`}>
                     {formatCurrency(l.signed_amount)}
                   </TableCell>
                 </TableRow>

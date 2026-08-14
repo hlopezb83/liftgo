@@ -19,7 +19,7 @@ export function SupplierBillTotalPanel({ total, currency, totalMxn, threshold }:
     <div className="sticky bottom-0 space-y-2 rounded-md border bg-muted/70 p-3 backdrop-blur">
       <div className="flex items-center justify-between">
         <span className="text-sm text-muted-foreground">Total a pagar</span>
-        <span className="font-mono text-lg font-bold">{formatCurrencyWithCode(total, currency)}</span>
+        <span className="tabular-nums text-lg font-bold">{formatCurrencyWithCode(total, currency)}</span>
       </div>
       {needsApproval && (
         <p className="flex items-start gap-2 text-xs text-warning">

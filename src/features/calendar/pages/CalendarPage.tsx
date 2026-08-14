@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useBookingsRange, bookingKeys } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -88,12 +88,12 @@ export default function CalendarPage() {
   }
 
   if (bLoading || fLoading) {
-    return <PageContainer><Skeleton className="h-96" /></PageContainer>;
+    return <CalendarLoadingSkeleton />;
   }
+
 
   return (
     <PageTransition>
-    <TooltipProvider>
     <PageContainer>
       <PageHeader
         title="Calendario de Disponibilidad"
@@ -185,7 +185,6 @@ export default function CalendarPage() {
       )}
 
     </PageContainer>
-    </TooltipProvider>
     </PageTransition>
   );
 }
@@ -205,7 +204,7 @@ function EndingSoonAlert({ items, forkliftMap }: { items: BookingLike[]; forklif
         <div className="space-y-1">
           {items.map((b) => (
             <div key={b.id} className="flex items-center justify-between text-sm p-2 rounded bg-background/80">
-              <span>{forkliftMap.get(b.forklift_id)?.name} — {b.customer_name}</span>
+              <span>{forkliftMap.get(b.forklift_id)?.name} — {b.customer_name ?? "Sin cliente"}</span>
               <span className="text-xs text-muted-foreground">Termina: {formatMtyDate(b.end_date)}</span>
             </div>
           ))}
@@ -253,5 +252,33 @@ function CalendarToolbar({ viewMode, setViewMode, ganttRange, setGanttRange, isR
         <RefreshIcon className={`h-4 w-4 mr-1 ${isRefreshing ? "animate-spin" : ""}`} /> Actualizar
       </Button>
     </div>
+  );
+}
+
+/**
+ * Skeleton que anticipa el layout real: KPIs de flota (4 tiles), la toolbar de
+ * vistas/rango y la tarjeta del Gantt/lista, para evitar el salto de contenido
+ * al hidratar. Misma convención que TableSkeleton: role="status" + sr-only.
+ */
+function CalendarLoadingSkeleton() {
+  return (
+    <PageContainer>
+      <PageHeader title="Calendario de Disponibilidad" />
+      <div className="space-y-6" role="status">
+        <span className="sr-only">Cargando calendario…</span>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
+        </div>
+        <div className="flex items-center flex-wrap gap-2">
+          <Skeleton className="h-8 w-32" />
+          <Skeleton className="h-8 w-36" />
+          <Skeleton className="h-8 w-24 ml-auto" />
+        </div>
+        <div className="rounded-xl border bg-card p-6 space-y-4">
+          <Skeleton className="h-5 w-48" />
+          <Skeleton className="h-80 w-full" />
+        </div>
+      </div>
+    </PageContainer>
   );
 }

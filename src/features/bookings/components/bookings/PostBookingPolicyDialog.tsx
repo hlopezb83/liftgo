@@ -108,7 +108,7 @@ export function PostBookingPolicyDialog({ open, onOpenChange, forkliftId, forkli
             <FormDialogFooter className="flex-col gap-2 sm:flex-row">
               <Button type="button" variant="outline" onClick={onSkip}>Omitir</Button>
               <Button type="submit" disabled={createPolicy.isPending}>
-                {createPolicy.isPending ? "Creando..." : "Crear póliza"}
+                {createPolicy.isPending ? "Creando…" : "Crear póliza"}
               </Button>
             </FormDialogFooter>
           </form>

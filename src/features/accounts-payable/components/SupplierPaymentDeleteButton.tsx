@@ -1,6 +1,6 @@
 import { DeleteIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface Props {
   canDelete: boolean;
@@ -12,24 +12,22 @@ interface Props {
 export function SupplierPaymentDeleteButton({ canDelete, deleteBlocked, isPending, onClick }: Props) {
   return (
     <div className="pt-1 flex justify-end">
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <span>
-              <Button
-                size="sm"
-                variant="ghost"
-                className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
-                disabled={!canDelete || isPending}
-                onClick={onClick}
-              >
-                <DeleteIcon className="h-3 w-3 mr-1" /> Eliminar pago
-              </Button>
-            </span>
-          </TooltipTrigger>
-          {deleteBlocked && <TooltipContent>{deleteBlocked}</TooltipContent>}
-        </Tooltip>
-      </TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span>
+            <Button
+              size="sm"
+              variant="ghost"
+              className="h-7 px-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+              disabled={!canDelete || isPending}
+              onClick={onClick}
+            >
+              <DeleteIcon className="h-3 w-3 mr-1" /> Eliminar pago
+            </Button>
+          </span>
+        </TooltipTrigger>
+        {deleteBlocked && <TooltipContent>{deleteBlocked}</TooltipContent>}
+      </Tooltip>
     </div>
   );
 }

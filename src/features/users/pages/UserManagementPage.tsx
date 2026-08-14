@@ -5,6 +5,7 @@ import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToggleDialog } from "@/hooks/useDialogState";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { STAFF_ROLES } from "@/lib/constants";
 import { CredentialsDialog } from "../components/users/CredentialsDialog";
@@ -34,6 +35,9 @@ export default function UserManagementPage() {
   // resetear contraseña, borrar) sólo con acceso "full" al módulo. Auditor
   // veía los controles y recibía 403 al enviarlos.
   const canManage = useHasModuleAccess("Gestión de Usuarios", "full");
+  // Control externo del diálogo de invitación para abrirlo también desde el
+  // CTA del EmptyState (mismo patrón que InventoryPage/PartFormDialog).
+  const inviteDialog = useToggleDialog();
 
   const dialogs = useUserManagementDialogs();
   const { search, setSearch, filterRole, setFilterRole, filtered } = useUserManagementFilters(users);
@@ -83,7 +87,7 @@ export default function UserManagementPage() {
             <Button variant="outline" onClick={() => navigate("/users/permissions")}>
               <SecurityIcon className="mr-2 h-4 w-4" />Ver permisos
             </Button>
-            {canManage && <InviteUserDialog onCreated={() => {}} />}
+            {canManage && <InviteUserDialog onCreated={() => {}} open={inviteDialog.open} onOpenChange={inviteDialog.setOpen} />}
           </div>
         }
         filters={
@@ -106,6 +110,8 @@ export default function UserManagementPage() {
         table={table}
         emptyMessage="No hay usuarios"
         emptyIcon={UsersIcon}
+        emptyActionLabel={canManage ? "Crear usuario" : undefined}
+        onEmptyAction={canManage ? inviteDialog.openDialog : undefined}
         skeletonColumns={6}
         mobileCardRender={(u) => (
           <UserMobileCard

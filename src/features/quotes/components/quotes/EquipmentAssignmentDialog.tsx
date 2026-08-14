@@ -218,7 +218,7 @@ export function EquipmentAssignmentDialog({
           <FormDialogFooter>
             <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={isLoading} />
             <Button type="submit" disabled={!form.formState.isValid || isLoading}>
-              {isLoading ? "Creando reservas..." : "Confirmar y Crear reservas"}
+              {isLoading ? "Creando reservas…" : "Confirmar y Crear reservas"}
             </Button>
           </FormDialogFooter>
         </form>

@@ -115,7 +115,7 @@ export function MaintenanceLaborSection({ maintenanceLogId, readOnly = false }: 
       )}
 
       {isLoading ? (
-        <p className="text-sm text-muted-foreground">Cargando...</p>
+        <p className="text-sm text-muted-foreground">Cargando…</p>
       ) : labor.length === 0 ? (
         <p className="text-sm text-muted-foreground italic">Sin mano de obra registrada.</p>
       ) : (

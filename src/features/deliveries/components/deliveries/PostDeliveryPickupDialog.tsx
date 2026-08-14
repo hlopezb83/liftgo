@@ -129,7 +129,7 @@ function PickupDialogBody({ delivery, bookingEndDate, onOpenChange, createDelive
         <FormDialogFooter className="flex-col gap-2 sm:flex-row">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Omitir</Button>
           <Button type="submit" disabled={createDelivery.isPending}>
-            {createDelivery.isPending ? "Programando..." : "Programar recolección"}
+            {createDelivery.isPending ? "Programando…" : "Programar recolección"}
           </Button>
         </FormDialogFooter>
       </form>

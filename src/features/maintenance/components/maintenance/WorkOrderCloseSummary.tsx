@@ -36,12 +36,12 @@ export function WorkOrderCloseSummary({ maintenanceLogId, storedCost, manualCost
       {rows.map((r) => (
         <div key={r.label} className="flex items-center justify-between px-3 py-2 text-sm">
           <span className="text-muted-foreground">{r.label}</span>
-          <span className="font-mono">{formatCurrency(r.value)}</span>
+          <span className="tabular-nums">{formatCurrency(r.value)}</span>
         </div>
       ))}
       <div className="flex items-center justify-between px-3 py-2">
         <span className="text-sm font-medium">Costo total</span>
-        <Badge variant="secondary" className="font-mono text-base">{formatCurrency(total)}</Badge>
+        <Badge variant="secondary" className="tabular-nums text-base">{formatCurrency(total)}</Badge>
       </div>
     </div>
   );

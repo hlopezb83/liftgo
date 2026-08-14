@@ -87,7 +87,7 @@ export function CancelCfdiDialog({
           <FormDialogFooter>
             <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={cancelCfdi.isPending} label="Cerrar" />
             <Button type="submit" variant="destructive" disabled={cancelCfdi.isPending}>
-              {cancelCfdi.isPending ? "Cancelando..." : "Confirmar Cancelación"}
+              {cancelCfdi.isPending ? "Cancelando…" : "Confirmar Cancelación"}
             </Button>
           </FormDialogFooter>
         </form>

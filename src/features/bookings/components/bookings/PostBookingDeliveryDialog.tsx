@@ -167,7 +167,7 @@ export function PostBookingDeliveryDialog({
             <FormDialogFooter className="flex-col gap-2 sm:flex-row">
               <Button type="button" variant="outline" onClick={onSkip}>Omitir</Button>
               <Button type="submit" disabled={createDelivery.isPending}>
-                {createDelivery.isPending ? "Programando..." : "Programar entrega"}
+                {createDelivery.isPending ? "Programando…" : "Programar entrega"}
               </Button>
             </FormDialogFooter>
           </form>

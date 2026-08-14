@@ -72,7 +72,7 @@ export function MaintenanceFormDialog({
               control={form.control}
               name="description"
               label="Descripción"
-              placeholder="Detalles del servicio..."
+              placeholder="Detalles del servicio…"
               rows={3}
             />
           </FormSection>

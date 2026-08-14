@@ -1,6 +1,6 @@
 import { SuccessIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatDateDisplay } from "@/lib/utils";
 import { useReconciliationStatus } from "../hooks/useReconciliationStatus";
 
@@ -14,20 +14,18 @@ export function ReconciliationBadge({ paymentId, supplierPaymentId }: Props) {
   if (!data) return null;
   const last4 = data.bank_last4 ? ` ····${data.bank_last4}` : "";
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Badge className="bg-status-available text-success-foreground border-transparent text-3xs gap-1">
-            <SuccessIcon className="h-3 w-3" />
-            Conciliado {formatDateDisplay(data.matched_at)}
-          </Badge>
-        </TooltipTrigger>
-        <TooltipContent>
-          <p className="text-xs">
-            {data.bank_account_name}{last4}
-          </p>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Badge className="bg-status-available text-success-foreground border-transparent text-3xs gap-1">
+          <SuccessIcon className="h-3 w-3" />
+          Conciliado {formatDateDisplay(data.matched_at)}
+        </Badge>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p className="text-xs">
+          {data.bank_account_name}{last4}
+        </p>
+      </TooltipContent>
+    </Tooltip>
   );
 }

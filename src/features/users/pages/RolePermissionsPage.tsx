@@ -1,5 +1,6 @@
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
-import { BackIcon, SuccessIcon, ViewIcon, RemoveIcon, SpinnerIcon } from "@/components/icons";
+import { TableSkeleton } from "@/components/feedback/TableSkeleton";
+import { BackIcon, SuccessIcon, ViewIcon, RemoveIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
@@ -65,8 +66,10 @@ export default function RolePermissionsPage() {
       <PageTransition>
         <PageContainer>
           {header}
-          <div className="flex items-center justify-center py-20">
-            <SpinnerIcon className="h-6 w-6 animate-spin text-muted-foreground" />
+          {/* Skeleton que replica la matriz módulos × roles (misma forma y
+              alto que la tabla final) en vez de un spinner centrado. */}
+          <div className="rounded-lg border bg-card overflow-auto">
+            <TableSkeleton columnCount={STAFF_ROLES.length + 1} rows={MODULES.length} />
           </div>
         </PageContainer>
       </PageTransition>

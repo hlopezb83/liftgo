@@ -48,7 +48,7 @@ function SummaryBar({
       </div>
       <div className="ml-auto">
         <span className="text-muted-foreground">Total: </span>
-        <span className="font-mono font-bold">{formatCurrency(totalSelected)}</span>
+        <span className="tabular-nums font-bold">{formatCurrency(totalSelected)}</span>
         <span className="text-xs text-muted-foreground ml-1">(IVA incl.)</span>
       </div>
     </div>

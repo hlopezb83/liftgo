@@ -108,7 +108,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
                         <div key={b.range} className="flex items-center gap-1">
                           <span className={`inline-block h-2 w-2 rounded-sm ${palette[i] ?? "bg-destructive"}`} />
                           <span className="text-muted-foreground">{b.range}d:</span>
-                          <span className="font-mono font-medium">{formatCurrency(b.total)}</span>
+                          <span className="tabular-nums font-medium">{formatCurrency(b.total)}</span>
                         </div>
                       ))}
                     </div>
@@ -135,7 +135,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
               primary={inv.invoice_number}
               secondary={inv.customer_name}
               onClick={() => navigate(`/invoices/${inv.id}`)}
-              rightTop={<span className="font-mono font-semibold text-destructive text-sm sm:text-base whitespace-nowrap">{formatCurrency(Number(inv.total))}</span>}
+              rightTop={<span className="tabular-nums font-semibold text-destructive text-sm sm:text-base whitespace-nowrap">{formatCurrency(Number(inv.total))}</span>}
               rightBottom={`Vence: ${formatDateDisplay(inv.due_date)}`}
               action={{ icon: SuccessIcon, title: "Marcar pagada", onClick: (e) => handleMarkPaid(inv, e), className: "text-status-available" }}
             />
@@ -168,7 +168,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
               primary={ob.forklift_name}
               secondary={ob.customer_name}
               onClick={() => navigate(`/returns?booking_id=${ob.booking_id}`)}
-              rightTop={<span className="font-mono font-semibold text-warning whitespace-nowrap">{ob.days_overdue} días</span>}
+              rightTop={<span className="tabular-nums font-semibold text-warning whitespace-nowrap">{ob.days_overdue} días</span>}
               rightBottom={`Venció: ${formatDateDisplay(ob.end_date)}`}
               action={{
                 icon: ClipboardList,

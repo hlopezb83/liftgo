@@ -142,7 +142,7 @@ export function CustomerSelector({
                     return value.toLowerCase().includes(search.toLowerCase()) ? 1 : 0;
                   }}
                 >
-                  <CommandInput placeholder="Buscar cliente..." />
+                  <CommandInput placeholder="Buscar cliente…" />
                   <CommandList>
                     <CommandEmpty>Sin resultados.</CommandEmpty>
                     <CommandGroup>

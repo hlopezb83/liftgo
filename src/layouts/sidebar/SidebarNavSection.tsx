@@ -100,6 +100,12 @@ function NavMenuItem({ item }: { item: NavItem }) {
       timerRef.current = null;
     }
   };
+  // FIX-FE-11 (mismo patrón que VirtualBody/DataTableBodyV2): cleanup al
+  // desmontar — sin esto un timer armado por hover/focus podía disparar un
+  // import() fantasma sobre un componente ya muerto (cambio de ruta o grupo
+  // colapsado dentro de los 120ms). La closure captura la primera instancia
+  // de cancelPrefetch, que sólo depende de timerRef (estable).
+  useEffect(() => () => cancelPrefetch(), []);
 
   return (
     <SidebarMenuItem ref={itemRef}>
@@ -123,15 +129,18 @@ function NavMenuItem({ item }: { item: NavItem }) {
           aria-label={`${numericCount} pendientes`}
           className="bg-sidebar-primary/15 text-sidebar-primary"
         >
-          {numericCount}
+          {/* Tope visual: 3+ dígitos rompen la alineación del badge. */}
+          {numericCount > 99 ? "99+" : numericCount}
         </SidebarMenuBadge>
       )}
       {isChangelogNew && (
         <SidebarMenuBadge
           aria-label="Hay novedades"
-          className="bg-amber-500/20 text-amber-600"
+          className="bg-warning/15 [--dot:hsl(var(--warning))]"
         >
-          •
+          {/* Dot con token del sistema (patrón StatusBadge), sin "•" literal
+              ni colores amber hardcoded. */}
+          <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[color:var(--dot)]" />
         </SidebarMenuBadge>
       )}
     </SidebarMenuItem>
@@ -170,14 +179,18 @@ export function SidebarNavSection({ group }: { group: NavGroup }) {
 
   return (
     <SidebarGroup>
-      <Collapsible open={open || hasActive} onOpenChange={handleOpenChange}>
+      {/* open={open} (sin `|| hasActive`): el estado inicial ya abre el grupo
+          si contiene la ruta activa, pero una vez montado el gesto del usuario
+          manda — antes el click persistía false y el grupo seguía abierto,
+          así que la UI no respondía al gesto. */}
+      <Collapsible open={open} onOpenChange={handleOpenChange}>
         <CollapsibleTrigger asChild>
           <SidebarGroupLabel
             className="cursor-pointer flex items-center justify-between hover:text-sidebar-foreground"
           >
             <span>{group.label}</span>
             <ChevronRightIcon
-              className={`h-3.5 w-3.5 transition-transform ${open || hasActive ? "rotate-90" : ""}`}
+              className={`h-3.5 w-3.5 transition-transform ${open ? "rotate-90" : ""}`}
             />
           </SidebarGroupLabel>
         </CollapsibleTrigger>

@@ -53,7 +53,7 @@ export function CustomerInviteDialog({ open, onOpenChange, customerName, isPendi
           <FormDialogFooter>
             <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={isPending} />
             <Button type="submit" disabled={isPending || !form.formState.isValid}>
-              {isPending ? "Enviando..." : "Enviar Invitación"}
+              {isPending ? "Enviando…" : "Enviar Invitación"}
             </Button>
           </FormDialogFooter>
         </form>

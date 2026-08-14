@@ -2,7 +2,7 @@ import { useState } from "react";
 import { EditIcon, StampIcon, ErrorIcon, PaymentIcon, DeleteIcon, RefreshIcon, DocumentIcon, FileCode2 } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Tables } from "@/integrations/supabase/types";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { computeInvoiceFlags, type InvoiceActionFlags } from "@/lib/rules/invoices";
@@ -125,7 +125,7 @@ function resolvePdfMode(visibility: InvoiceVisibility): "draft" | "cfdi" | "hidd
 
 function StampButtons({ flags, isStamping, onStamp }: { flags: Flags; isStamping: boolean; onStamp: () => void }) {
   if (!flags.canStamp) return null;
-  const label = isStamping ? "Timbrando..." : "Timbrar CFDI";
+  const label = isStamping ? "Timbrando…" : "Timbrar CFDI";
   const variant = flags.isDraft ? undefined : "outline";
   // B12: guard local + onPointerDown para evitar doble timbrado por doble-click
   // rápido antes de que `isStamping` propague. useStampCfdi también trata el
@@ -227,20 +227,18 @@ export function InvoiceDetailActions({
       ) : null}
       {flags.paymentBlockedByPendingCancellation ? (
         <RoleGuard module="Facturas" minAccess="full" fallback={null}>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span>
-                  <Button size="sm" disabled data-testid="invoice-register-payment-blocked">
-                    <PaymentIcon className="h-4 w-4 mr-1" />Registrar pago
-                  </Button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                Cancelación en proceso ante el SAT (esperando aceptación del receptor)
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span>
+                <Button size="sm" disabled data-testid="invoice-register-payment-blocked">
+                  <PaymentIcon className="h-4 w-4 mr-1" />Registrar pago
+                </Button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>
+              Cancelación en proceso ante el SAT (esperando aceptación del receptor)
+            </TooltipContent>
+          </Tooltip>
         </RoleGuard>
       ) : null}
       {pdfMode !== "hidden" ? (

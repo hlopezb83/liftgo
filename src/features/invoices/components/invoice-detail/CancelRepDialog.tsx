@@ -70,7 +70,7 @@ export function CancelRepDialog({ open, onOpenChange, paymentId, onSuccess }: Ca
           <FormDialogFooter>
             <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={cancelRep.isPending} label="Cerrar" />
             <Button type="submit" variant="destructive" disabled={cancelRep.isPending}>
-              {cancelRep.isPending ? "Cancelando..." : "Confirmar Cancelación"}
+              {cancelRep.isPending ? "Cancelando…" : "Confirmar Cancelación"}
             </Button>
           </FormDialogFooter>
         </form>

@@ -156,7 +156,7 @@ export function TermsAndSignaturesCard({ control }: { control: Ctrl }) {
         <FormField control={control} name="terms_text" render={({ field }) => (
           <FormItem>
             <FormLabel>Términos y Condiciones</FormLabel>
-            <FormControl><Textarea rows={10} placeholder="Se cargará automáticamente al seleccionar cliente y equipo..." {...field} /></FormControl>
+            <FormControl><Textarea rows={10} placeholder="Se cargará automáticamente al seleccionar cliente y equipo…" {...field} /></FormControl>
             <FormMessage />
           </FormItem>
         )} />

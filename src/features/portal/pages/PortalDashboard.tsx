@@ -54,7 +54,7 @@ export default function PortalDashboard() {
   const welcome = customer?.name ? `Bienvenido, ${customer.name}` : "Bienvenido";
   // Oleada 3 (C-3/C-2): formato compacto + escala tipográfica para no truncar el saldo.
   const outstandingLabel = formatCompactCurrency(outstanding);
-  const balanceClass = `font-mono ${kpiSizeClass(outstandingLabel)} ${outstanding > 0 ? "text-destructive" : ""}`;
+  const balanceClass = `tabular-nums ${kpiSizeClass(outstandingLabel)} ${outstanding > 0 ? "text-destructive" : ""}`;
 
 
   return (

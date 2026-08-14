@@ -59,7 +59,7 @@ function BankLineSummary({ line, isCharge, currency }: { line: BankStatementLine
       </div>
       <p
         className={cn(
-          "font-mono text-lg font-semibold tabular-nums",
+          "text-lg font-semibold tabular-nums",
           isCharge ? "text-destructive" : "text-success",
         )}
       >

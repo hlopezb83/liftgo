@@ -103,7 +103,7 @@ export function CollectionForecast({
         <div className="grid grid-cols-1 sm:grid-cols-[1.4fr_1fr_1fr] gap-4 items-start">
           <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-3">
             <p className="text-xs text-muted-foreground mb-1">Vencido hoy</p>
-            <p className="text-2xl font-bold font-mono text-destructive leading-tight">
+            <p className="text-2xl font-bold tabular-nums text-destructive leading-tight">
               {formatCurrency(forecast.overdueTotal)}
             </p>
             <Link
@@ -118,7 +118,7 @@ export function CollectionForecast({
             <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
               <CalendarIcon className="h-3 w-3" /> Próximos 7 días
             </p>
-            <p className="text-base font-semibold font-mono text-foreground/80">{formatCurrency(forecast.expected7)}</p>
+            <p className="text-base font-semibold tabular-nums text-foreground/80">{formatCurrency(forecast.expected7)}</p>
             <p className="text-3xs text-muted-foreground mt-0.5">
               Vencidas + {forecast.upcoming7Count} por vencer
             </p>
@@ -127,7 +127,7 @@ export function CollectionForecast({
             <p className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
               <CalendarIcon className="h-3 w-3" /> Próximos 30 días
             </p>
-            <p className="text-base font-semibold font-mono text-foreground/80">
+            <p className="text-base font-semibold tabular-nums text-foreground/80">
               {formatCurrency(forecast.expected30)}
             </p>
             <p className="text-3xs text-muted-foreground mt-0.5">Cobranza esperada total</p>

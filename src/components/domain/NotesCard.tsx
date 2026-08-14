@@ -10,7 +10,7 @@ interface NotesCardProps {
   readOnly?: boolean;
 }
 
-export function NotesCard({ value, onChange, placeholder = "Notas adicionales...", title = "Notas", rows = 3, readOnly = false }: NotesCardProps) {
+export function NotesCard({ value, onChange, placeholder = "Notas adicionales…", title = "Notas", rows = 3, readOnly = false }: NotesCardProps) {
   return (
     <Card>
       <CardHeader><CardTitle className="text-base">{title}</CardTitle></CardHeader>

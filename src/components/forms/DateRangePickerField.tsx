@@ -16,6 +16,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { formatMtyCalendarDate } from "@/lib/date/mtyCalendarDate";
 import { cn, nowMty } from "@/lib/utils";
 import { isPartialRange, nextRangeState, normalizeRange } from "./dateRangeState";
+import { RequiredMark } from "./RequiredMark";
 import type { DateRange } from "react-day-picker";
 
 interface DateRangePickerFieldProps {
@@ -107,7 +108,7 @@ export function DateRangePickerField({
     <div className="space-y-1.5">
       <Label>
         {label}
-        {required ? " *" : null}
+        {required && <RequiredMark />}
       </Label>
       <Dialog open={open} onOpenChange={setOpen}>
         {/* Captura rápida con teclado (DD/MM/AAAA) para inicio y fin. */}

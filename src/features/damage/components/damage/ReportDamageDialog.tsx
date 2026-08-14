@@ -16,8 +16,22 @@ function getReportButtonLabel(previewsCount: number): string {
   return `Reportar (${previewsCount} fotos)`;
 }
 
-export function ReportDamageDialog() {
-  const [open, setOpen] = useState(false);
+interface ReportDamageDialogProps {
+  /**
+   * Control externo opcional del estado abierto (p. ej. el CTA del EmptyState
+   * de la página). Sin estas props el diálogo se auto-gestiona, como antes.
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function ReportDamageDialog({ open: openProp, onOpenChange }: ReportDamageDialogProps = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
+  const setOpen = (v: boolean) => {
+    setInternalOpen(v);
+    onOpenChange?.(v);
+  };
   const { data: forklifts } = useForklifts();
   const { data: customers } = useCustomers();
   const { form, previews, onDrop, removePreview, reset, handleSubmit, isProcessing } =
@@ -66,7 +80,7 @@ export function ReportDamageDialog() {
               control={form.control}
               name="description"
               label="Descripción del daño"
-              placeholder="Describe el daño encontrado..."
+              placeholder="Describe el daño encontrado…"
               rows={3}
               required
             />

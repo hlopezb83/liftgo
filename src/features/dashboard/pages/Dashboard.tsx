@@ -37,11 +37,33 @@ export default function Dashboard() {
   }
 
   if (isLoading) {
+    // Skeleton por secciones reales: replica la jerarquía final (KPIs de
+    // Operación 5 tiles, Finanzas 4 tiles, alertas y grid de gráficas) para
+    // evitar saltos de contenido al hidratar. Misma convención de accesibilidad
+    // que TableSkeleton: contenedor role="status" + texto sr-only.
     return (
       <PageContainer>
         <PageHeader title="Panel" />
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6">
-          {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} className="h-28 rounded-xl" />)}
+        <div className="flex flex-col gap-6" role="status">
+          <span className="sr-only">Cargando tablero…</span>
+          <section className="order-2 md:order-1">
+            <DashboardSectionLabel>Operación</DashboardSectionLabel>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
+            </div>
+          </section>
+          <section className="order-3 md:order-2 border-t border-border/60 pt-5">
+            <DashboardSectionLabel>Finanzas</DashboardSectionLabel>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
+            </div>
+          </section>
+          <Skeleton className="order-1 md:order-3 h-16 rounded-xl" />
+          <div className="order-4 grid grid-cols-1 xl:grid-cols-3 gap-4">
+            <Skeleton className="h-72 rounded-xl xl:col-span-1" />
+            <Skeleton className="h-72 rounded-xl xl:col-span-2" />
+            <Skeleton className="h-80 rounded-xl xl:col-span-3" />
+          </div>
         </div>
       </PageContainer>
     );

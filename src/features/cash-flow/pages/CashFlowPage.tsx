@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
-import { SpinnerIcon, TrendingUpIcon } from "@/components/icons";
+import { TableSkeleton } from "@/components/feedback/TableSkeleton";
+import { TrendingUpIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { CashFlowSettingsBar } from "../components/CashFlowSettingsBar";
 import { CashFlowSummaryCards } from "../components/CashFlowSummaryCards";
@@ -55,9 +57,19 @@ export default function CashFlowPage() {
           {isError ? (
             <QueryErrorState entity="la proyección de flujo de caja" onRetry={() => refetch()} isRetrying={isFetching} />
           ) : isLoading || !buckets ? (
-            <Card><CardContent className="py-12 flex items-center justify-center text-muted-foreground">
-              <SpinnerIcon className="h-5 w-5 animate-spin mr-2" /> Calculando proyección…
-            </CardContent></Card>
+            // Skeleton que anticipa el layout final (5 tarjetas de resumen +
+            // tabla de 7 columnas) en vez de un spinner, para evitar el salto
+            // de contenido al resolver la proyección.
+            <>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                {Array.from({ length: 5 }, (_, i) => <Skeleton key={i} className="h-16 rounded-xl" />)}
+              </div>
+              <Card>
+                <CardContent className="p-0">
+                  <TableSkeleton columnCount={7} rows={8} />
+                </CardContent>
+              </Card>
+            </>
           ) : (
             <>
               <ExcludedNotice noDueDate={excludedNoDueDate} outOfHorizon={excludedOutOfHorizon} />

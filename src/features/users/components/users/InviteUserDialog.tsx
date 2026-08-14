@@ -17,10 +17,21 @@ const inviteEmailSchema = z.string().trim().email("Ingresa un correo válido");
 
 interface InviteUserDialogProps {
   onCreated: () => void;
+  /**
+   * Control externo opcional del estado abierto (p. ej. el CTA del EmptyState
+   * de la página). Sin estas props el diálogo se auto-gestiona, como antes.
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
-  const [open, setOpen] = useState(false);
+export function InviteUserDialog({ onCreated, open: openProp, onOpenChange }: InviteUserDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
+  const setOpen = (v: boolean) => {
+    setInternalOpen(v);
+    onOpenChange?.(v);
+  };
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [emailError, setEmailError] = useState<string | null>(null);

@@ -47,7 +47,7 @@ export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
             <div className="space-y-1.5">
               <Label>Nota de seguimiento</Label>
               <Textarea
-                placeholder="Ej: Se habló con el contacto, prometió pago para el viernes..."
+                placeholder="Ej: Se habló con el contacto, prometió pago para el viernes…"
                 value={noteText}
                 onChange={(e) => setNoteText(e.target.value)}
                 rows={2}
@@ -67,7 +67,7 @@ export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
           </div>
         )}
 
-        {isLoading && <p className="text-sm text-muted-foreground">Cargando...</p>}
+        {isLoading && <p className="text-sm text-muted-foreground">Cargando…</p>}
         {notes && notes.length === 0 && !showForm && (
           <p className="text-sm text-muted-foreground text-center py-4">Sin gestiones registradas</p>
         )}

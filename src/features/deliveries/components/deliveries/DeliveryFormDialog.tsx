@@ -21,8 +21,22 @@ const initialForm: DeliveryFormValues = {
   address: "", driverName: "", driverPhone: "", notes: "",
 };
 
-export function DeliveryFormDialog() {
-  const [open, setOpen] = useState(false);
+interface DeliveryFormDialogProps {
+  /**
+   * Control externo opcional del estado abierto (p. ej. el CTA del EmptyState
+   * de la página). Sin estas props el diálogo se auto-gestiona, como antes.
+   */
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+}
+
+export function DeliveryFormDialog({ open: openProp, onOpenChange }: DeliveryFormDialogProps = {}) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
+  const setOpen = (v: boolean) => {
+    setInternalOpen(v);
+    onOpenChange?.(v);
+  };
   const form = useForm<DeliveryFormValues>({
     resolver: zodResolver(deliverySchema),
     defaultValues: initialForm,

@@ -61,7 +61,7 @@ export default function AuthPage() {
   };
 
   return (
-    <main className="min-h-screen flex">
+    <main className="min-h-[100dvh] flex">
       <AuthBrandPanel
         logoUrl={company?.logo_url}
         razonSocial={company?.razon_social}

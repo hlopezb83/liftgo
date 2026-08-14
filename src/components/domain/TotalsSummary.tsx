@@ -23,7 +23,7 @@ export function TotalsSummary({ subtotal, taxRate, taxAmount, total, onTaxRateCh
         <div className="flex flex-col items-end gap-2">
           <div className="flex items-center gap-4 text-sm">
             <span className="text-muted-foreground">Subtotal</span>
-            <span className="font-mono w-28 text-right">{fmt(subtotal)}</span>
+            <span className="tabular-nums w-28 text-right">{fmt(subtotal)}</span>
           </div>
           <div className="flex items-center gap-4 text-sm">
             {onTaxRateChange ? (
@@ -45,11 +45,11 @@ export function TotalsSummary({ subtotal, taxRate, taxAmount, total, onTaxRateCh
             ) : (
               <span className="text-muted-foreground">IVA ({displayRate}%)</span>
             )}
-            <span className="font-mono w-28 text-right">{fmt(taxAmount)}</span>
+            <span className="tabular-nums w-28 text-right">{fmt(taxAmount)}</span>
           </div>
           <div className="flex items-center gap-4 text-base font-bold border-t pt-2">
             <span>Total</span>
-            <span className="font-mono w-28 text-right">{fmt(total)}</span>
+            <span className="tabular-nums w-28 text-right">{fmt(total)}</span>
           </div>
         </div>
       </CardContent>

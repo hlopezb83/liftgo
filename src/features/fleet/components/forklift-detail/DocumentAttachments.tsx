@@ -74,14 +74,14 @@ export function DocumentAttachments({ entityType, entityId }: { entityType: stri
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2"><Paperclip className="h-4 w-4" /> Adjuntos</CardTitle>
           <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()} disabled={uploadDoc.isPending}>
-            <UploadIcon className="h-3.5 w-3.5 mr-1" />{uploadDoc.isPending ? "Subiendo..." : "Subir"}
+            <UploadIcon className="h-3.5 w-3.5 mr-1" />{uploadDoc.isPending ? "Subiendo…" : "Subir"}
           </Button>
           <input ref={fileRef} type="file" multiple accept={DOC_ACCEPT} className="hidden" onChange={handleUpload} />
         </div>
       </CardHeader>
       <CardContent>
         {isLoading ? (
-          <p className="text-sm text-muted-foreground">Cargando...</p>
+          <p className="text-sm text-muted-foreground">Cargando…</p>
         ) : documents && documents.length > 0 ? (
           <div className="space-y-2">
             {documents.map((doc) => (

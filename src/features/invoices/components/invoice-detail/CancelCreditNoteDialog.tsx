@@ -82,7 +82,7 @@ export function CancelCreditNoteDialog({ open, onOpenChange, creditNote }: Props
           <FormDialogFooter>
             <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={cancelMutation.isPending} label="Cerrar" />
             <Button type="submit" variant="destructive" disabled={cancelMutation.isPending}>
-              {cancelMutation.isPending ? "Cancelando..." : "Confirmar Cancelación"}
+              {cancelMutation.isPending ? "Cancelando…" : "Confirmar Cancelación"}
             </Button>
           </FormDialogFooter>
         </form>

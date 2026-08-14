@@ -24,7 +24,7 @@ export function ProspectQuoteSelector({ quoteId, onChange, matchingQuotes, selec
       <Label htmlFor="quote">Cotización Vinculada</Label>
       <Select value={quoteId ?? "none"} onValueChange={onChange}>
         <SelectTrigger id="quote">
-          <SelectValue placeholder="Seleccionar cotización..." />
+          <SelectValue placeholder="Seleccionar cotización…" />
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="none">Sin cotización</SelectItem>

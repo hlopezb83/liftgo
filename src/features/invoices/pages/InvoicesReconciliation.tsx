@@ -85,7 +85,7 @@ export default function InvoicesReconciliation() {
           <Card key={k.label}>
             <CardContent className="py-3">
               <p className="text-xs text-muted-foreground">{k.label}</p>
-              <p className="text-lg font-semibold font-mono">{k.value}</p>
+              <p className="text-lg font-semibold tabular-nums">{k.value}</p>
             </CardContent>
           </Card>
         ))}
