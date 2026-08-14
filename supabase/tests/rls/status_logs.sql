@@ -103,16 +103,39 @@ BEGIN
   RAISE NOTICE 'OK: dispatcher no borra status_logs';
 END $$;
 
--- 5) Mecánico: acceso completo.
+-- 5) Mecánico: solo lectura (los cambios de estatus se hacen vía la RPC
+--    change_forklift_status, que es SECURITY DEFINER y escribe en status_logs).
 SET LOCAL request.jwt.claims TO '{"sub":"50000004-0000-4000-8000-000000000001","role":"authenticated"}';
 
 DO $$
+DECLARE v_rows int; v_blocked boolean := false;
 BEGIN
   IF (SELECT COUNT(*) FROM public.status_logs
        WHERE id = '50000004-0000-4000-8000-0000000000a1') <> 1 THEN
     RAISE EXCEPTION 'RLS ROTA: mecanico deberia leer status_logs';
   END IF;
-  RAISE NOTICE 'OK: mecanico lee status_logs';
+
+  -- El mecánico ya NO puede escribir directamente en la bitácora (v7.320.4).
+  BEGIN
+    INSERT INTO public.status_logs (forklift_id, to_status)
+    VALUES ('50000004-0000-4000-8000-0000000000f1', 'rented');
+  EXCEPTION WHEN insufficient_privilege OR check_violation THEN
+    v_blocked := true;
+  END;
+  IF NOT v_blocked THEN
+    RAISE EXCEPTION 'RLS BREACH: mecanico pudo insertar en status_logs';
+  END IF;
+
+  BEGIN
+    DELETE FROM public.status_logs WHERE id = '50000004-0000-4000-8000-0000000000a1';
+    GET DIAGNOSTICS v_rows = ROW_COUNT;
+  EXCEPTION WHEN insufficient_privilege OR check_violation THEN
+    v_rows := 0;
+  END;
+  IF v_rows > 0 THEN
+    RAISE EXCEPTION 'RLS BREACH: mecanico pudo borrar status_logs';
+  END IF;
+  RAISE NOTICE 'OK: mecanico es de solo lectura en status_logs';
 END $$;
 
 ROLLBACK;
