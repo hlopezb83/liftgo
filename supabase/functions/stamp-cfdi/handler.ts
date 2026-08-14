@@ -319,6 +319,25 @@ export async function handleStampCfdi(
       }
     }
 
+    // S2-2.1: moneda foránea sin tipo de cambio válido → 422 sin llamar al PAC.
+    // El SAT exige TipoCambio > 0 cuando Moneda != MXN; el viejo fallback
+    // `|| 1` timbraba con paridad 1:1 y falseaba los importes en pesos.
+    const moneda = String(inv.moneda ?? "MXN").toUpperCase();
+    const tipoCambio = typeof inv.tipo_cambio === "number"
+      ? inv.tipo_cambio
+      : Number(inv.tipo_cambio ?? NaN);
+    if (moneda !== "MXN" && (!Number.isFinite(tipoCambio) || tipoCambio <= 0)) {
+      await releaseClaim(`Factura en ${moneda} sin tipo de cambio`);
+      return json(
+        {
+          error:
+            `La factura en ${moneda} no tiene tipo de cambio válido. Captura el tipo de cambio antes de timbrar.`,
+        },
+        422,
+        jsonHeaders,
+      );
+    }
+
     const payload: Record<string, unknown> = {
       type: "I",
       customer: {
@@ -331,9 +350,10 @@ export async function handleStampCfdi(
       payment_form: paymentForm,
       payment_method: paymentMethod,
       use: usoCfdi,
-      currency: inv.moneda || "MXN",
-      exchange: inv.tipo_cambio || 1,
+      currency: moneda,
+      exchange: moneda === "MXN" ? 1 : tipoCambio,
       series: inv.serie || undefined,
+
       // BL-20: validar folio numérico antes de castear (Number("BORRADOR")=NaN
       // rompía el payload JSON hacia Facturapi).
       folio_number: (() => {
