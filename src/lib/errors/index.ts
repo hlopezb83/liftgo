@@ -1,7 +1,5 @@
 import { translatePgError } from "./pgErrorCatalog";
 
-export { translatePgError, CONSTRAINT_MESSAGES, SQLSTATE_MESSAGES } from "./pgErrorCatalog";
-export type { PgErrorTranslation, ErrorSeverity } from "./pgErrorCatalog";
 
 /**
  * Extrae un mensaje legible de cualquier valor `unknown` y lo traduce a un
