@@ -40,6 +40,8 @@ test.describe("Fiscal — estado de acciones en detalle de factura", () => {
     // acciones que exigen un CFDI vigente (cancelar / nota de crédito).
     const isStamped = (await cancelBtn.count()) > 0 && (await cancelBtn.isVisible());
 
+    /* eslint-disable playwright/no-conditional-expect -- el estado fiscal del
+       seed no es determinista: se valida la invariante que aplique. */
     if (isStamped) {
       await expect(cancelBtn).toBeVisible({ timeout: TIMEOUTS.short });
       await expect(creditNoteBtn).toBeVisible({ timeout: TIMEOUTS.short });
@@ -48,6 +50,7 @@ test.describe("Fiscal — estado de acciones en detalle de factura", () => {
       await expect(stampBtn).toBeEnabled({ timeout: TIMEOUTS.short });
       await expect(creditNoteBtn).toHaveCount(0);
     }
+    /* eslint-enable playwright/no-conditional-expect */
 
     // El registro de pago (origen del REP) siempre está disponible mientras la
     // factura no esté saldada.
