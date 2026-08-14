@@ -5,6 +5,7 @@ import { useCustomers } from "@/features/customers";
 import { useEquipmentModels, useForklifts } from "@/features/fleet";
 import { invoiceKeys } from "@/features/invoices";
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { parseLineItems, parseRentalMeta } from "@/lib/domain/lineItems";
 import { useQuote } from "../quotes/useQuotes";
@@ -36,15 +37,15 @@ function computeDurationDays(startDate?: string | null, endDate?: string | null)
 
 /** Lee `rental_meta` de la columna o, en cotizaciones legacy, de la partida. */
 function resolveRentalMeta(
-  quote: { rental_meta?: unknown; line_items?: unknown } | null | undefined,
+  quote: { rental_meta?: Json | null; line_items?: Json | null } | null | undefined,
   isSale: boolean,
 ): { modelId: string; quantity: number }[] {
   if (!quote || isSale) return [];
-  const fromColumn = parseRentalMeta(quote.rental_meta);
+  const fromColumn = parseRentalMeta(quote.rental_meta ?? undefined);
   if (fromColumn.length > 0) return fromColumn;
   const allItems = parseLineItems<
     LineItem & { _rentalMeta?: { modelId: string; quantity: number }[] }
-  >(quote.line_items);
+  >(quote.line_items ?? undefined);
   return allItems[0]?._rentalMeta ?? [];
 }
 
