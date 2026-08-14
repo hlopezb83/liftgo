@@ -67,12 +67,27 @@ export function saleLineTotal(line: SaleLineInput): number {
   return applyDiscountToBase(base, line.discount, line.discount_type);
 }
 
+/**
+ * S2-2.3: los impuestos se calculan LÍNEA POR LÍNEA para reflejar `objeto_imp`.
+ * Las líneas con `objeto_imp === "01"` (no objeto de impuesto) no generan IVA,
+ * igual que en `stamp-cfdi/handler.ts`, donde esas líneas van con `taxes: []`.
+ * Cada línea puede además traer su propia `tax_rate`; si no, usa `taxRate`.
+ */
 export function computeTotals(lineItems: LineItem[], taxRate: number) {
-  const subtotal = lineItems.reduce(
-    (sum, item) => sum.add(applyDiscount(item)),
-    money(0)
-  );
-  const taxAmount = subtotal.multiply(taxRate).divide(100);
+  let subtotal = money(0);
+  let taxAmount = money(0);
+
+  for (const item of lineItems) {
+    const base = applyDiscount(item);
+    subtotal = subtotal.add(base);
+    if (item.objeto_imp === "01") continue;
+    const rate = typeof item.tax_rate === "number" && Number.isFinite(item.tax_rate)
+      ? item.tax_rate
+      : taxRate;
+    if (!rate) continue;
+    taxAmount = taxAmount.add(money(base).multiply(rate).divide(100));
+  }
+
   const total = subtotal.add(taxAmount);
   return {
     subtotal: subtotal.value,
@@ -80,3 +95,4 @@ export function computeTotals(lineItems: LineItem[], taxRate: number) {
     total: total.value,
   };
 }
+
