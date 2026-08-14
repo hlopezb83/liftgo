@@ -14,7 +14,11 @@ import {
   isFacturapiTimeout,
   sdkCallWithTimeout,
 } from "../_shared/facturapi/withTimeout.ts";
-import { claimRejectionMessage, computeRepExchange } from "./decisions.ts";
+import {
+  claimRejectionMessage,
+  computeRepExchange,
+  validatePaymentExchange,
+} from "./decisions.ts";
 
 const BUCKET = "cfdi-files";
 const DEFAULT_IVA_RATE = 0.16;
@@ -215,7 +219,21 @@ Deno.serve(async (req) => {
 
     const paymentDateIso = `${payment.payment_date}T12:00:00`;
     const paymentCurrency = (payment.currency as string | null) || "MXN";
-    const paymentExchange = Number(payment.exchange_rate || 1);
+    // v7.320.6: moneda extranjera exige TC > 0. El default de columna (1) para
+    // un pago USD produciría un CFDI con tipoCambio=1 → fiscalmente incorrecto.
+    // La edge function es la última defensa antes del PAC: rechazar, no asumir.
+    // (Recupera el guardia perdido en el refactor v7.308.0.)
+    const exchangeCheck = validatePaymentExchange({
+      paymentCurrency,
+      exchangeRate: payment.exchange_rate,
+    });
+    if (!exchangeCheck.ok) {
+      await releaseClaim("Tipo de cambio inválido para moneda extranjera");
+      return jsonError(req, 422, exchangeCheck.message);
+    }
+    const paymentExchange = paymentCurrency === "MXN"
+      ? 1
+      : Number(payment.exchange_rate);
 
     // BL-05 + R10 Bloque 8.2: el related doc refleja la moneda de la FACTURA
     // origen. Anexo 20 exige EquivalenciaDR=1 cuando MonedaDR == MonedaP (misma
