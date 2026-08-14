@@ -71,7 +71,8 @@ export const DELIVERY_INITIAL_STATUSES: readonly DeliveryStatus[] = [
 export const CONTRACT_INITIAL_STATUSES: readonly ContractStatus[] = CONTRACT_STATUSES;
 
 export const INVOICE_TRANSITIONS: Record<InvoiceStatus, readonly InvoiceStatus[]> = {
-  draft: ["sent", "overdue", "cancelled"],
+  // Sprint 4 (Fix 4.2): un borrador no puede vencerse; primero debe enviarse.
+  draft: ["sent", "cancelled"],
   sent: ["overdue", "paid", "cancelled"],
   overdue: ["paid", "cancelled"],
   partial: ["overdue", "cancelled"],
@@ -87,12 +88,13 @@ export const DELIVERY_TRANSITIONS: Record<DeliveryStatus, readonly DeliveryStatu
 };
 
 /**
- * contracts: solo `signed`, `active` y `cancelled` están bloqueados por el
- * trigger. Desde draft/sent el flujo es libre (la UI decide).
+ * contracts: `signed`, `active`, `completed` y `cancelled` están bloqueados por
+ * el trigger. Desde draft/sent el flujo es libre (la UI decide).
  */
 export const CONTRACT_LOCKED_STATUSES: readonly ContractStatus[] = [
   "signed",
   "active",
+  "completed",
   "cancelled",
 ];
 
@@ -101,10 +103,11 @@ export const CONTRACT_TRANSITIONS: Record<ContractStatus, readonly ContractStatu
   sent: ["draft", "signed", "active", "completed", "cancelled"],
   signed: ["completed", "cancelled"],
   active: ["completed", "cancelled"],
-  // `completed` no está en la lista bloqueada del trigger.
-  completed: ["draft", "sent", "signed", "active", "cancelled"],
+  // Sprint 4 (Fix 4.1): `completed` es terminal (espejo del trigger).
+  completed: [],
   cancelled: [],
 };
+
 
 /** Campos que un contrato firmado/activo/cancelado ya no puede editar. */
 export const CONTRACT_FROZEN_FIELDS = [

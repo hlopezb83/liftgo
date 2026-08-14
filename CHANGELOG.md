@@ -1,3 +1,12 @@
+## 7.310.0 - 2026-08-14
+
+**Correcciones — Sprint 4: máquinas de estado (contratos, facturas, CxP y unidades)**
+- Contratos: `completed` es terminal en `stateMachines.ts` y en `enforce_signed_contract_lock` (solo `service_role` escapa); se suma a `CONTRACT_LOCKED_STATUSES`, congelando tarifas, depósito, fechas y términos.
+- Facturas: se elimina `draft → overdue` en TS y en `validate_transition` (queda `['sent','cancelled']`); el marcado de vencidas solo opera sobre facturas ya enviadas.
+- CxP: salir de `paid` en `supplier_bills` requiere `service_role` o cero `supplier_payments` ligados; si hay pagos, error "La cuenta tiene pagos registrados; elimina o reversa los pagos primero.".
+- Flota: `rented → sold/retired` se bloquea si existe reserva confirmada con entrega completada y sin devolución; `useUpdateStatus` ahora muestra el mensaje del servidor en el toast.
+- Tests: casos nuevos en `stateMachines.test.ts` y suite `supabase/tests/sprint4_state_machines_smoke.sql`.
+
 ## 7.309.0 - 2026-08-14
 
 **Correcciones — Sprint 3: triggers de dinero (NCs, saldos y zona horaria)**

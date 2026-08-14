@@ -54,6 +54,14 @@ describe("invoices · máquina de estados", () => {
     }
   });
 
+  // Sprint 4 (Fix 4.2)
+  it("draft nunca pasa directo a overdue", () => {
+    expect(canTransitionInvoice("draft", "overdue")).toBe(false);
+    expect(canTransitionInvoice("draft", "overdue", { paymentSync: true })).toBe(false);
+    expect(canTransitionInvoice("draft", "sent")).toBe(true);
+  });
+
+
   it("paid -> cancelled solo con el flujo fiscal (SAT / service_role)", () => {
     expect(canTransitionInvoice("paid", "cancelled")).toBe(false);
     expect(canTransitionInvoice("paid", "cancelled", { satFlow: true })).toBe(true);
@@ -155,8 +163,16 @@ describe("contracts · candado de firmado/activo", () => {
     }
   });
 
-  it("congela los campos económicos de un contrato firmado/activo/cancelado", () => {
-    for (const status of ["signed", "active", "cancelled"] as const) {
+  // Sprint 4 (Fix 4.1)
+  it("completed es terminal incluso para admin", () => {
+    for (const to of CONTRACT_STATUSES.filter((s) => s !== "completed")) {
+      expect(canTransitionContract("completed", to, { isAdmin: true })).toBe(false);
+    }
+    expect(canTransitionContract("completed", "completed", { isAdmin: true })).toBe(true);
+  });
+
+  it("congela los campos económicos de un contrato firmado/activo/completado/cancelado", () => {
+    for (const status of ["signed", "active", "completed", "cancelled"] as const) {
       expect(isContractFrozen(status)).toBe(true);
       for (const field of CONTRACT_FROZEN_FIELDS) {
         expect(canEditContractField(status, field)).toBe(false);
@@ -164,9 +180,10 @@ describe("contracts · candado de firmado/activo", () => {
       // Campos no listados siguen siendo editables (p. ej. notas internas).
       expect(canEditContractField(status, "notes")).toBe(true);
     }
-    for (const status of ["draft", "sent", "completed"] as const) {
+    for (const status of ["draft", "sent"] as const) {
       expect(isContractFrozen(status)).toBe(false);
       expect(canEditContractField(status, "daily_rate")).toBe(true);
     }
   });
 });
+
