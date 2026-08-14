@@ -9,6 +9,10 @@ type Booking = {
   id: string; customer_name?: string | null; customer_id?: string | null;
   forklift_id: string; start_date: string; end_date: string;
   quote_id?: string | null;
+  /** Tarifas pactadas en la reserva; null si no se capturaron (caen al montacargas). */
+  daily_rate?: number | null;
+  weekly_rate?: number | null;
+  monthly_rate?: number | null;
 };
 
 type QuoteSource = { id: string; line_items: unknown };
@@ -31,10 +35,19 @@ function applyCfdiPatch(form: UseFormReturn<InvoiceFormValues>, customer: Custom
   });
 }
 
-function buildLinesForBooking(booking: Booking, forklifts: Forklift[] | undefined): LineItemValues[] {
+export function buildLinesForBooking(booking: Booking, forklifts: Forklift[] | undefined): LineItemValues[] {
   const forklift = forklifts?.find((f) => f.id === booking.forklift_id);
   if (!forklift) return [];
-  const items = generateLineItems(forklift, booking.start_date, booking.end_date);
+  // La reserva puede traer tarifas pactadas distintas a las actuales del
+  // montacargas; prevalece la de la reserva y cae a la del montacargas si es
+  // null (mismo patrón que useExtendBookingPreview). ?? 0 garantiza number.
+  const rated: Forklift = {
+    ...forklift,
+    daily_rate: booking.daily_rate ?? forklift.daily_rate ?? 0,
+    weekly_rate: booking.weekly_rate ?? forklift.weekly_rate ?? 0,
+    monthly_rate: booking.monthly_rate ?? forklift.monthly_rate ?? 0,
+  };
+  const items = generateLineItems(rated, booking.start_date, booking.end_date);
   return items.map((item) => ({
     ...item,
     clave_prod_serv: "78181500",
