@@ -265,6 +265,13 @@
 
   --font-sans: "Inter", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  /* Convención de tipografía numérica (Sprint V3, F6):
+   * - KPIs, tarjetas y resúmenes (TotalsSummary, summary cards, cifras
+   *   destacadas): Inter con `tabular-nums` — alinea columnas de dígitos
+   *   sin cambiar de familia tipográfica.
+   * - Tablas de datos densas: conservan `font-mono` (JetBrains Mono) para
+   *   montos, y siempre `font-mono` para identificadores técnicos (UUID,
+   *   RFC, CLABE, SKU, folios, núm. de documento). */
 }
 
 @keyframes accordion-down {

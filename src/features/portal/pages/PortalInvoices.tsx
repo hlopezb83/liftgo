@@ -99,7 +99,7 @@ export default function PortalInvoices() {
                       </div>
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <span>{formatDateDisplay(inv.issued_at)}</span>
-                        <span className="font-mono font-semibold text-foreground">
+                        <span className="tabular-nums font-semibold text-foreground">
                           {formatCurrencyWithCode(Number(inv.total), inv.moneda ?? "MXN")}
                         </span>
                       </div>

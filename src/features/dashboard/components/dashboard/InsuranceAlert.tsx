@@ -34,7 +34,7 @@ export function InsuranceAlert({ data }: InsuranceAlertProps) {
           >
             <span className="font-medium">{f.name}</span>
             <div className="text-right">
-              <span className={`font-mono font-semibold ${f.days_left <= 0 ? "text-destructive" : "text-warning"}`}>
+              <span className={`tabular-nums font-semibold ${f.days_left <= 0 ? "text-destructive" : "text-warning"}`}>
                 {f.days_left <= 0 ? "Vencida" : `${f.days_left} días`}
               </span>
               <p className="text-xs text-muted-foreground">Vence: {formatDateDisplay(f.insurance_expiry)}</p>

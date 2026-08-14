@@ -33,7 +33,7 @@ export function PaymentsExportSummary({
         </div>
         <div className="flex items-center justify-between text-sm mt-1">
           <span className="text-muted-foreground">Total a pagar</span>
-          <span className="font-mono font-bold text-lg text-right">
+          <span className="tabular-nums font-bold text-lg text-right">
             {totalsByCurrency.length === 0
               ? formatCurrencyWithCode(0)
               : totalsByCurrency.map((t) => (

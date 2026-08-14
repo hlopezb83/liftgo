@@ -139,6 +139,8 @@ export default function ReturnInspectionPage() {
         table={table}
         onRowClick={(ins) => navigate(`/returns/${ins.id}`)}
         emptyMessage="No hay inspecciones de devolución"
+        emptyActionLabel="Nueva Devolución"
+        onEmptyAction={openNew}
         mobileCardRender={(ins) => (
           <Card className="cursor-pointer" onClick={() => navigate(`/returns/${ins.id}`)}>
             <CardContent className="p-4">

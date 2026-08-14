@@ -252,7 +252,7 @@ function PaymentBody({
       />
       <div className="-mt-2 flex items-center gap-2 text-sm text-muted-foreground">
         <StatusBadge status={invoice.status} />
-        <span>Saldo: <span className="font-mono">{balanceLabel}</span></span>
+        <span>Saldo: <span className="tabular-nums">{balanceLabel}</span></span>
       </div>
 
       {paymentSection}

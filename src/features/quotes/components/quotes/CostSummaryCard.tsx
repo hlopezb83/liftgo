@@ -34,13 +34,13 @@ export function CostSummaryCard({ lineItems, subtotal, taxRate, taxAmount, total
                 <span className="text-destructive text-xs ml-1">{discountLabel(item, currency)}</span>
               )}
             </span>
-            <span className="font-mono">{fmt(applyDiscount(item))}</span>
+            <span className="tabular-nums">{fmt(applyDiscount(item))}</span>
           </div>
         ))}
         <div className="border-t pt-2 mt-2 space-y-1">
-          <div className="flex justify-between text-sm"><span>Subtotal</span><span className="font-mono">{fmt(subtotal)}</span></div>
-          <div className="flex justify-between text-sm"><span>IVA ({taxRate}%)</span><span className="font-mono">{fmt(taxAmount)}</span></div>
-          <div className="flex justify-between font-bold"><span>Total</span><span className="font-mono">{fmt(total)}</span></div>
+          <div className="flex justify-between text-sm"><span>Subtotal</span><span className="tabular-nums">{fmt(subtotal)}</span></div>
+          <div className="flex justify-between text-sm"><span>IVA ({taxRate}%)</span><span className="tabular-nums">{fmt(taxAmount)}</span></div>
+          <div className="flex justify-between font-bold"><span>Total</span><span className="tabular-nums">{fmt(total)}</span></div>
         </div>
       </CardContent>
     </Card>

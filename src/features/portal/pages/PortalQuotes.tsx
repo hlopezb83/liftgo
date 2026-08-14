@@ -74,7 +74,7 @@ export default function PortalQuotes() {
                       </div>
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
                         <span>{formatDateDisplay(q.created_at)}</span>
-                        <span className="font-mono font-semibold text-foreground">
+                        <span className="tabular-nums font-semibold text-foreground">
                           {formatCurrency(Number(q.total))}
                         </span>
                       </div>

@@ -62,7 +62,7 @@ export function MaintenancePolicyForm({
         </div>
         <div className="space-y-1.5">
           <Label>Descripción</Label>
-          <Textarea value={form.description} onChange={(e) => onChange("description", e.target.value)} rows={2} placeholder="Detalles de la póliza..." />
+          <Textarea value={form.description} onChange={(e) => onChange("description", e.target.value)} rows={2} placeholder="Detalles de la póliza…" />
         </div>
       </FormSection>
       <FormDialogFooter>

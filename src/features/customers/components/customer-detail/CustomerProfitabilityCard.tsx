@@ -15,15 +15,15 @@ export function CustomerProfitabilityCard({ revenue, maintenance_cost, gross_mar
       <CardContent className="space-y-3">
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Ingresos</span>
-          <span className="font-mono font-semibold">{formatCurrency(revenue)}</span>
+          <span className="tabular-nums font-semibold">{formatCurrency(revenue)}</span>
         </div>
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Costos Mant.</span>
-          <span className="font-mono font-semibold">{formatCurrency(maintenance_cost)}</span>
+          <span className="tabular-nums font-semibold">{formatCurrency(maintenance_cost)}</span>
         </div>
         <div className="flex justify-between text-sm border-t pt-2">
           <span className="font-medium">Margen Bruto</span>
-          <span className={`font-mono font-bold ${gross_margin >= 0 ? "text-status-available" : "text-destructive"}`}>
+          <span className={`tabular-nums font-bold ${gross_margin >= 0 ? "text-status-available" : "text-destructive"}`}>
             {formatCurrency(gross_margin)} ({margin_percent}%)
           </span>
         </div>

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { SuccessIcon, DuplicateIcon, InfoIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 
 interface Props {
@@ -35,16 +35,14 @@ function IdRow({ label, tooltip, value, placeholder = "— pendiente de timbrado
     <div className="flex items-center justify-between gap-3 py-1.5">
       <div className="flex items-center gap-1.5 min-w-0">
         <span className="text-sm text-muted-foreground shrink-0">{label}</span>
-        <TooltipProvider delayDuration={200}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <InfoIcon className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
-            </TooltipTrigger>
-            <TooltipContent side="top" className="max-w-xs text-xs">
-              {tooltip}
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <InfoIcon className="h-3.5 w-3.5 text-muted-foreground/60 shrink-0" />
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-xs text-xs">
+            {tooltip}
+          </TooltipContent>
+        </Tooltip>
       </div>
       <div className="flex items-center gap-2 min-w-0">
         <span

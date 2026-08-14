@@ -69,7 +69,7 @@ export default function BankAccountsPage() {
                       </div>
                       <div className="flex items-center justify-between text-sm">
                         <span className="font-mono text-xs text-muted-foreground">•••• {a.last4 ?? "—"}</span>
-                        <span className="font-mono tabular-nums font-medium">{formatCurrency(a.initial_balance)}</span>
+                        <span className="tabular-nums font-medium">{formatCurrency(a.initial_balance)}</span>
                       </div>
                       <div className="flex justify-end gap-1 pt-1 border-t">
                         <Button variant="ghost" size="sm" onClick={() => handleEdit(a)}><EditIcon className="h-3.5 w-3.5 mr-1" />Editar</Button>

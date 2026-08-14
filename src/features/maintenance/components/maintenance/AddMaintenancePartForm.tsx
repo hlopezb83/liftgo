@@ -37,13 +37,13 @@ export function AddMaintenancePartForm({
                   {selectedPart.name}
                   {selectedPart.sku && <span className="text-muted-foreground ml-1">({selectedPart.sku})</span>}
                 </span>
-              ) : "Buscar refacción..."}
+              ) : "Buscar refacción…"}
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-[300px] p-0" align="start">
             <Command>
-              <CommandInput placeholder="Buscar por nombre o SKU..." />
+              <CommandInput placeholder="Buscar por nombre o SKU…" />
               <CommandList>
                 <CommandEmpty>No se encontraron refacciones.</CommandEmpty>
                 <CommandGroup>

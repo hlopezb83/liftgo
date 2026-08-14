@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useSidebar } from "@/components/ui/sidebar";
 import { useRolePermissions, useUserRole } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
@@ -31,8 +32,22 @@ export function SidebarQuickCreate() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const navigate = useNavigateTransition();
-  const { data: role } = useUserRole();
-  const { data: permissions } = useRolePermissions();
+  const { data: role, isLoading: roleLoading } = useUserRole();
+  const { data: permissions, isLoading: permsLoading } = useRolePermissions();
+
+  // CLS: mientras cargan rol/permisos el botón no existe y aparece de golpe.
+  // Skeleton con las mismas dimensiones del botón final (size="sm" → h-9,
+  // tap target táctil 44px; colapsado → h-9 w-9).
+  if (roleLoading || permsLoading) {
+    return (
+      <div className={collapsed ? "px-2 py-2" : "px-3 py-2"}>
+        <Skeleton
+          aria-hidden
+          className={collapsed ? "h-9 w-9 touch:min-h-11" : "h-9 w-full touch:min-h-11"}
+        />
+      </div>
+    );
+  }
 
   const allowed = ACTIONS.filter((a) => {
     if (a.adminOnly) return role === "admin";

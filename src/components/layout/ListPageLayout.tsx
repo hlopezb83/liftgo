@@ -71,7 +71,8 @@ export function ListPageLayout<T extends { id?: string }>({
   isLoading,
   isError = false,
   onRetry,
-  emptyMessage = "No se encontraron resultados",
+  // V1-F5: copy unificado con DataTableV2/EmptyRow/búsqueda global ("Sin resultados").
+  emptyMessage = "Sin resultados",
   emptyIcon,
   emptyActionLabel,
   onEmptyAction,

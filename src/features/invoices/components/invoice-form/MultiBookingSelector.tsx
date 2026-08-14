@@ -64,7 +64,7 @@ export function MultiBookingSelector({ bookings, selectedIds, onChange }: Props)
         </PopoverTrigger>
         <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
           <Command>
-            <CommandInput placeholder="Buscar reserva..." />
+            <CommandInput placeholder="Buscar reserva…" />
             <CommandList>
               <CommandEmpty>Sin reservas disponibles.</CommandEmpty>
               <CommandGroup>

@@ -15,19 +15,19 @@ export function InvoiceSummaryCards({ total, totalPaid, balance, currency }: Inv
       <Card>
         <CardContent className="pt-4">
           <p className="text-xs text-muted-foreground">Total</p>
-          <p className="text-xl font-bold font-mono">{formatCurrencyWithCode(total, currency)}</p>
+          <p className="text-xl font-bold tabular-nums">{formatCurrencyWithCode(total, currency)}</p>
         </CardContent>
       </Card>
       <Card>
         <CardContent className="pt-4">
           <p className="text-xs text-muted-foreground">Pagado</p>
-          <p className="text-xl font-bold font-mono text-status-available">{formatCurrencyWithCode(totalPaid, currency)}</p>
+          <p className="text-xl font-bold tabular-nums text-status-available">{formatCurrencyWithCode(totalPaid, currency)}</p>
         </CardContent>
       </Card>
       <Card>
         <CardContent className="pt-4">
           <p className="text-xs text-muted-foreground">Saldo</p>
-          <p className={`text-xl font-bold font-mono ${balanceCls}`}>{formatCurrencyWithCode(balance, currency)}</p>
+          <p className={`text-xl font-bold tabular-nums ${balanceCls}`}>{formatCurrencyWithCode(balance, currency)}</p>
         </CardContent>
       </Card>
     </div>

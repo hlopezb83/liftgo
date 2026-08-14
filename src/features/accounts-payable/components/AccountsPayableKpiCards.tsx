@@ -39,7 +39,7 @@ export function AccountsPayableKpiCards({ kpis }: Props) {
               <p className="text-xs text-muted-foreground truncate">{label}</p>
               {/* R24-D: montos ≥$1M en compacto ($123.46 M) con el exacto al hover. */}
               <p
-                className={`font-bold font-mono tabular-nums ${kpiSizeClass(asCount ? String(kpis[key]) : formatCompactCurrency(kpis[key]))} ${tone}`}
+                className={`font-bold tabular-nums ${kpiSizeClass(asCount ? String(kpis[key]) : formatCompactCurrency(kpis[key]))} ${tone}`}
                 title={asCount ? undefined : formatCurrency(kpis[key])}
               >
                 {asCount ? kpis[key] : formatCompactCurrency(kpis[key])}

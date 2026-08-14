@@ -116,7 +116,7 @@ export function SupplierBankAccountFormDialog({ open, onOpenChange, supplierId, 
               name="bank_name"
               label="Banco"
               required
-              placeholder="BBVA, Banorte..."
+              placeholder="BBVA, Banorte…"
             />
             <TextField
               control={form.control}

@@ -12,10 +12,10 @@ import { getAuthSubmitLabel } from "@/features/auth";
 import type { AuthMode } from "@/features/auth";
 
 describe("getAuthSubmitLabel", () => {
-  it("devuelve 'Cargando...' cuando loading=true, sin importar el modo", () => {
+  it("devuelve 'Cargando…' cuando loading=true, sin importar el modo", () => {
     const modes: AuthMode[] = ["sign-in", "forgot", "reset"];
     for (const mode of modes) {
-      expect(getAuthSubmitLabel(true, mode)).toBe("Cargando...");
+      expect(getAuthSubmitLabel(true, mode)).toBe("Cargando…");
     }
   });
 

@@ -66,7 +66,10 @@ export function AppProviders({ children }: { children: ReactNode }) {
         <AuthProvider>
           <AuthQueryCacheSync />
           <AuthSnapshotSync />
-          <TooltipProvider>
+          {/* Delay global acordado (300ms): único TooltipProvider de la app.
+              Excepción deliberada: el sidebar mantiene su propio provider con
+              delayDuration={0} para tooltips instantáneos de navegación. */}
+          <TooltipProvider delayDuration={300}>
             <Sonner />
             <ErrorDetailsDialog />
             <ConfirmProvider>{children}</ConfirmProvider>

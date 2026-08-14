@@ -36,6 +36,7 @@ export const NAV_SHORTCUTS: NavShortcut[] = [
 
 export const GLOBAL_SHORTCUTS: ShortcutDef[] = [
   { keys: "Ctrl+K", description: "Búsqueda y navegación", group: "global" },
+  { keys: "Ctrl+B", description: "Mostrar u ocultar la barra lateral", group: "global" },
   { keys: "?", description: "Mostrar atajos de teclado", group: "global" },
   { keys: "/", description: "Enfocar barra de búsqueda", group: "global" },
   { keys: "Ctrl+Shift+N", description: "Acción nuevo (página actual)", group: "global" },

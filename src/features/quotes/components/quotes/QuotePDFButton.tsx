@@ -18,7 +18,7 @@ export function QuotePDFButton({ quoteId }: QuotePDFButtonProps) {
       data-testid="quote-download-pdf"
     >
       <FileDown className="h-4 w-4 mr-1" />
-      {loading ? "Generando..." : "Descargar PDF"}
+      {loading ? "Generando…" : "Descargar PDF"}
     </Button>
   );
 }

@@ -2,6 +2,7 @@ import { useId, useState } from "react";
 import { DateHintNote } from "@/components/forms/DateHintNote";
 import { MaskedDateInput } from "@/components/forms/MaskedDateInput";
 import { CalendarIcon } from "@/components/icons";
+import { RequiredMark } from "./RequiredMark";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -73,7 +74,7 @@ export function DatePickerField({
     <div className="space-y-1.5">
       <Label htmlFor={fieldId}>
         {label}
-        {required && " *"}
+        {required && <RequiredMark />}
       </Label>
       <Dialog open={open} onOpenChange={setOpen}>
         <div className="flex items-start gap-2">

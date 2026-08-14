@@ -110,6 +110,8 @@ export default function PendingReturnsPage() {
       table={table}
       onRowClick={(b) => navigate(`/bookings/${b.id}`)}
       emptyMessage="No hay retornos pendientes — toda la flota rentada está al corriente"
+      emptyActionLabel="Registrar devolución"
+      onEmptyAction={() => navigate("/returns")}
       mobileCardRender={(b) => {
         const days = differenceInCalendarDays(today, parseDateLocal(b.end_date));
         return (

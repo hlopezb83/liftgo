@@ -36,15 +36,15 @@ export function TotalsBreakdown({
     <div className={`space-y-1 text-sm text-right ${className}`}>
       <div className="flex justify-end gap-8">
         <span className="text-muted-foreground">Subtotal</span>
-        <span className="font-mono">{formatCurrency(Number(subtotal ?? 0))}</span>
+        <span className="tabular-nums">{formatCurrency(Number(subtotal ?? 0))}</span>
       </div>
       <div className="flex justify-end gap-8">
         <span className="text-muted-foreground">IVA ({rateLabel}%)</span>
-        <span className="font-mono">{formatCurrency(Number(taxAmount ?? 0))}</span>
+        <span className="tabular-nums">{formatCurrency(Number(taxAmount ?? 0))}</span>
       </div>
       <div className={`flex justify-end gap-8 font-bold ${totalClass}`}>
         <span>Total</span>
-        <span className="font-mono">{formatCurrency(Number(total ?? 0))}</span>
+        <span className="tabular-nums">{formatCurrency(Number(total ?? 0))}</span>
       </div>
     </div>
   );

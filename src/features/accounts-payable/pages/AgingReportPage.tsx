@@ -65,21 +65,21 @@ export default function AgingReportPage() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Card><CardContent className="p-4">
           <p className="text-xs text-muted-foreground">Cartera total</p>
-          <p className="text-xl font-bold font-mono">{formatCurrency(totals.total)}</p>
+          <p className="text-xl font-bold tabular-nums">{formatCurrency(totals.total)}</p>
         </CardContent></Card>
         <Card><CardContent className="p-4">
           <p className="text-xs text-muted-foreground">Corriente</p>
-          <p className="text-xl font-bold font-mono text-success">{formatCurrency(totals.current)}</p>
+          <p className="text-xl font-bold tabular-nums text-success">{formatCurrency(totals.current)}</p>
         </CardContent></Card>
         <Card><CardContent className="p-4">
           <p className="text-xs text-muted-foreground">Vencido</p>
-          <p className="text-xl font-bold font-mono text-destructive">
+          <p className="text-xl font-bold tabular-nums text-destructive">
             {formatCurrency(totals.d1_30 + totals.d31_60 + totals.d61_90 + totals.d90_plus)}
           </p>
         </CardContent></Card>
         <Card><CardContent className="p-4">
           <p className="text-xs text-muted-foreground">% vencido</p>
-          <p className="text-xl font-bold font-mono">{overduePct.toFixed(1)}%</p>
+          <p className="text-xl font-bold tabular-nums">{overduePct.toFixed(1)}%</p>
         </CardContent></Card>
       </div>
 

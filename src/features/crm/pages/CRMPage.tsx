@@ -3,7 +3,6 @@ import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
-import { TooltipProvider } from "@/components/ui/tooltip";
 import { usePageActions } from "@/contexts/pageActions";
 import { useQuotesLite } from "@/features/quotes";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -117,9 +116,8 @@ export default function CRMPage() {
   }
 
   return (
-    <TooltipProvider delayDuration={300}>
-      <PageTransition>
-        <div className="flex flex-col h-[calc(100vh-3rem)]">
+    <PageTransition>
+        <div className="flex flex-col h-[calc(100dvh-3rem)]">
           <CRMToolbar
             filters={filters}
             update={update}
@@ -165,6 +163,5 @@ export default function CRMPage() {
           isPending={createProspect.isPending || updateProspect.isPending}
         />
       </PageTransition>
-    </TooltipProvider>
   );
 }

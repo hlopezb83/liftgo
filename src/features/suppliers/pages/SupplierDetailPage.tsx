@@ -135,7 +135,7 @@ export default function SupplierDetailPage() {
             <div className="rounded-full bg-primary/10 p-3"><ExpenseIcon className="h-5 w-5 text-primary" /></div>
             <div>
               <p className="text-sm text-muted-foreground">Total Gastos Operativos</p>
-              <p className="text-xl font-bold font-mono">{formatCurrency(totalExpenses)}</p>
+              <p className="text-xl font-bold tabular-nums">{formatCurrency(totalExpenses)}</p>
               <p className="text-xs text-muted-foreground">{linkedExpenses.length} registro(s)</p>
             </div>
           </CardContent>
@@ -145,7 +145,7 @@ export default function SupplierDetailPage() {
             <div className="rounded-full bg-primary/10 p-3"><MaintenanceIcon className="h-5 w-5 text-primary" /></div>
             <div>
               <p className="text-sm text-muted-foreground">Total Mantenimiento</p>
-              <p className="text-xl font-bold font-mono">{formatCurrency(totalMaintenance)}</p>
+              <p className="text-xl font-bold tabular-nums">{formatCurrency(totalMaintenance)}</p>
               <p className="text-xs text-muted-foreground">{linkedMaintenance.length} registro(s)</p>
             </div>
           </CardContent>

@@ -108,7 +108,7 @@ function InvoiceCard({ inv, onClick }: { inv: Invoice; onClick: () => void }) {
               const moneda = (inv as Invoice & { moneda?: string | null }).moneda ?? "MXN";
               return (
                 <>
-                  <span className="text-sm font-semibold font-mono">{formatCurrency(Number(inv.total))}</span>
+                  <span className="text-sm font-semibold tabular-nums">{formatCurrency(Number(inv.total))}</span>
                   {moneda !== "MXN" && (
                     <span className="text-[10px] font-medium text-muted-foreground bg-muted px-1 rounded">{moneda}</span>
                   )}

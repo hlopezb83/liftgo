@@ -33,7 +33,7 @@ export function MaintenanceFiltersBar({
       <FiltersToolbar.Search
         value={search}
         onChange={onSearchChange}
-        placeholder="Buscar por servicio, técnico..."
+        placeholder="Buscar por servicio, técnico…"
       />
       <Select value={forkliftFilter || "all"} onValueChange={onForkliftFilterChange}>
         <SelectTrigger className="w-full sm:w-[200px] h-9">

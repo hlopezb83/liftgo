@@ -103,7 +103,7 @@ export default function FleetPage() {
         <FiltersToolbar.Search
           value={values.q}
           onChange={(v) => set("q", v)}
-          placeholder="Buscar por nombre, modelo..."
+          placeholder="Buscar por nombre, modelo…"
         />
         <FiltersToolbar.StatusSelect
           value={values.status as string}

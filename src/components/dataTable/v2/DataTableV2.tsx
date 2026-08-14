@@ -2,7 +2,7 @@ import { type ReactNode } from "react";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { MobileCardList } from "@/components/layout/MobileCardList";
 import { Table } from "@/components/ui/table";
-import { useIsMobile } from "@/hooks/use-mobile";
+import { useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { DataTableBodyV2 } from "./DataTableBodyV2";
 import { DataTableHeaderV2 } from "./DataTableHeaderV2";
 import { VirtualBody } from "./VirtualBody";
@@ -57,13 +57,16 @@ export function DataTableV2<T>({
   virtualized = false,
   virtualizationThreshold = 100,
 }: Props<T>) {
-  const isMobile = useIsMobile();
+  // V1-F6: mismo breakpoint que ListPageLayout (<1024px, useIsTabletOrBelow);
+  // antes divergía (<768px) y entre 768–1023px la página mostraba tarjetas
+  // mientras un DataTableV2 directo seguía en tabla.
+  const isTabletOrBelow = useIsTabletOrBelow();
   const rows = table.getRowModel().rows;
   const columnCount = table.getAllLeafColumns().length;
 
   if (isLoading) return <TableSkeleton columnCount={columnCount} rows={5} />;
 
-  if (isMobile && mobileCardRender) {
+  if (isTabletOrBelow && mobileCardRender) {
     const items = rows.map((r) => r.original);
     return (
       <MobileCardList

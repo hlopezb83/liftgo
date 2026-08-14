@@ -105,7 +105,7 @@ function BillHeaderRow({ bill }: { bill: DetailBill }) {
         <p className="text-xs text-muted-foreground" title="Calculado: total menos pagos registrados">
           Saldo (calculado)
         </p>
-        <p className="text-xl font-bold font-mono">{formatCurrencyWithCode(computedBalance, bill.currency)}</p>
+        <p className="text-xl font-bold tabular-nums">{formatCurrencyWithCode(computedBalance, bill.currency)}</p>
       </div>
     </div>
   );

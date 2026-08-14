@@ -11,6 +11,13 @@ const PAGE_SIZE_OPTIONS = [10, 25, 50, 100] as const;
 export function DataTablePaginationV2<T>({ table }: Props<T>) {
   const { pageIndex, pageSize } = table.getState().pagination;
   const totalPages = table.getPageCount();
+  // Indicador de rango: filas visibles de la página actual sobre el total
+  // filtrado. Con paginación manual desactivada (getPageCount() === -1) se
+  // muestran todas las filas, así que el rango cubre el total completo.
+  const totalRows = table.getFilteredRowModel().rows.length;
+  const isPaginated = totalPages !== -1;
+  const rangeStart = totalRows === 0 ? 0 : pageIndex * pageSize + 1;
+  const rangeEnd = isPaginated ? Math.min(totalRows, (pageIndex + 1) * pageSize) : totalRows;
   // R13-3: selector de tamaño de página; al cambiar, TanStack re-pagina y el
   // dataVersion (contenido) invalida el memo del compiler por sí solo.
   return (
@@ -32,6 +39,9 @@ export function DataTablePaginationV2<T>({ table }: Props<T>) {
             ))}
           </SelectContent>
         </Select>
+        <span>
+          {rangeStart}–{rangeEnd} de {totalRows}
+        </span>
       </div>
       <TablePagination
         page={pageIndex + 1}

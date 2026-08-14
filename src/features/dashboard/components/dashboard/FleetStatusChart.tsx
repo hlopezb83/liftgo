@@ -44,7 +44,7 @@ export function FleetStatusChart({ data }: FleetStatusChartProps) {
               </PieChart>
             </ResponsiveContainer>
             <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-2xl font-bold font-mono leading-none">{total}</span>
+              <span className="text-2xl font-bold tabular-nums leading-none">{total}</span>
               <span className="text-2xs text-muted-foreground uppercase tracking-wider mt-1">Equipos</span>
             </div>
           </div>

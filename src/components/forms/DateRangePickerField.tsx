@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { MaskedDateInput } from "@/components/forms/MaskedDateInput";
 import { CalendarIcon } from "@/components/icons";
+import { RequiredMark } from "./RequiredMark";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -107,7 +108,7 @@ export function DateRangePickerField({
     <div className="space-y-1.5">
       <Label>
         {label}
-        {required ? " *" : null}
+        {required && <RequiredMark />}
       </Label>
       <Dialog open={open} onOpenChange={setOpen}>
         {/* Captura rápida con teclado (DD/MM/AAAA) para inicio y fin. */}

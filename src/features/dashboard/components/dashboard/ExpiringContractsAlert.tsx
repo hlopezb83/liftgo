@@ -48,7 +48,7 @@ export function ExpiringContractsAlert({ contracts }: ExpiringContractsAlertProp
             </div>
             <div className="flex items-center gap-2">
               <div className="text-right">
-                <span className={`font-mono font-semibold ${c.days_remaining <= 7 ? "text-destructive" : "text-warning"}`}>
+                <span className={`tabular-nums font-semibold ${c.days_remaining <= 7 ? "text-destructive" : "text-warning"}`}>
                   {c.days_remaining} días
                 </span>
                 <p className="text-xs text-muted-foreground">Vence: {formatDateDisplay(c.end_date)}</p>

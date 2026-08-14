@@ -62,7 +62,7 @@ export default function ForkliftForm() {
               <FormField control={form.control} name="notes" render={({ field }) => (
                 <FormItem>
                   <FormControl>
-                    <Textarea placeholder="Notas internas sobre este montacargas..." rows={3} {...field} />
+                    <Textarea placeholder="Notas internas sobre este montacargas…" rows={3} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>

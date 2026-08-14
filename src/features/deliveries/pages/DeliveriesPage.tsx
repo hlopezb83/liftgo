@@ -5,6 +5,7 @@ import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Card, CardContent } from "@/components/ui/card";
 import { Untranslated } from "@/components/ui/Untranslated";
 import { useForkliftMap } from "@/features/fleet";
+import { useToggleDialog } from "@/hooks/useDialogState";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { visibleListRows } from "@/lib/supabase/constants";
 import { formatDateDisplay } from "@/lib/utils";
@@ -19,6 +20,9 @@ export default function DeliveriesPage() {
   const { forkliftMap } = useForkliftMap();
   const { data: deliveriesRaw, isLoading, isError, refetch } = useDeliveries();
   const deliveries = visibleListRows(deliveriesRaw);
+  // Control externo del diálogo para abrirlo también desde el CTA del
+  // EmptyState (mismo patrón que InventoryPage/PartFormDialog).
+  const scheduleDialog = useToggleDialog();
 
   const columns: ColumnDef<Delivery>[] = [
       {
@@ -76,7 +80,7 @@ export default function DeliveriesPage() {
       title="Entregas"
       subtitle="Programa y rastrea el transporte de equipos"
       totalCount={deliveries?.length}
-      actions={<DeliveryFormDialog />}
+      actions={<DeliveryFormDialog open={scheduleDialog.open} onOpenChange={scheduleDialog.setOpen} />}
       notice={
         <ListTruncationNotice rows={deliveriesRaw} />
       }
@@ -87,6 +91,8 @@ export default function DeliveriesPage() {
       onRowClick={(d) => navigate(`/deliveries/${d.id}`)}
       onRowPrefetch={(d) => deliveryQueries.detail(d.id)}
       emptyMessage="No hay entregas programadas"
+      emptyActionLabel="Programar entrega"
+      onEmptyAction={scheduleDialog.openDialog}
       mobileCardRender={(d) => (
         <Card className="cursor-pointer" onClick={() => navigate(`/deliveries/${d.id}`)}>
           <CardContent className="p-4">

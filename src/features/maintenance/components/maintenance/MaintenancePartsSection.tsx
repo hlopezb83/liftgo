@@ -81,7 +81,7 @@ export function MaintenancePartsSection({ maintenanceLogId, currentCost, readOnl
       )}
 
       {loadingUsed ? (
-        <p className="text-sm text-muted-foreground">Cargando...</p>
+        <p className="text-sm text-muted-foreground">Cargando…</p>
       ) : usedParts.length === 0 ? (
         <p className="text-sm text-muted-foreground italic">No se han agregado refacciones.</p>
       ) : (

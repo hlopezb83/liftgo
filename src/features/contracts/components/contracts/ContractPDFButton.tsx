@@ -29,7 +29,7 @@ export function ContractPDFButton({ contract }: { contract: ContractData }) {
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" disabled={loading}>
           <FileDown className="h-4 w-4 mr-1" />
-          {loading ? "Generando..." : "Descargar PDF"}
+          {loading ? "Generando…" : "Descargar PDF"}
           <ChevronDownIcon className="h-3 w-3 ml-1" />
         </Button>
       </DropdownMenuTrigger>

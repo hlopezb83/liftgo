@@ -82,7 +82,7 @@ export default function QuotesPage() {
             <FiltersToolbar.Search
               value={values.q}
               onChange={(v) => set("q", v)}
-              placeholder="Buscar cotizaciones..."
+              placeholder="Buscar cotizaciones…"
             />
             <FiltersToolbar.StatusTabs
               value={values.status}
@@ -133,7 +133,7 @@ export default function QuotesPage() {
               <div className="flex items-center justify-between mt-3 pt-3 border-t">
                 <span className="text-xs text-muted-foreground">{formatDateRange(q.start_date, q.end_date)}</span>
                 <div className="flex items-center gap-1">
-                  <span className="text-sm font-semibold font-mono">{formatCurrency(q.total)}</span>
+                  <span className="text-sm font-semibold tabular-nums">{formatCurrency(q.total)}</span>
                   <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
                 </div>
               </div>

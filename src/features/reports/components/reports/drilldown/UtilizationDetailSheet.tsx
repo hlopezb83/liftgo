@@ -20,7 +20,7 @@ function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <p className="text-3xs uppercase text-muted-foreground">{label}</p>
-      <p className="font-mono font-bold">{value}</p>
+      <p className="tabular-nums font-bold">{value}</p>
     </div>
   );
 }

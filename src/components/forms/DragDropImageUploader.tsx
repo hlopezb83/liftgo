@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { UploadIcon, X, SpinnerIcon, ImageIcon } from "@/components/icons";
 import { useUploadDocument } from "@/hooks/useDocuments";
+import { Button } from "@/components/ui/button";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { cn } from "@/lib/utils";
 
@@ -155,26 +156,29 @@ export function DragDropImageUploader({ entityType, entityId, maxFiles = 10, cla
           <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
             {previews.map((p, i) => (
               <div key={p.id} className="relative group aspect-square rounded-lg overflow-hidden border border-border">
-                <img src={p.url} alt={`Preview ${i + 1}`} className="w-full h-full object-cover" />
-                <button
+                <img src={p.url} alt={`Vista previa ${i + 1}`} className="w-full h-full object-cover" />
+                <Button
                   type="button"
+                  variant="secondary"
+                  size="iconSm"
                   onClick={() => removePreview(i)}
-                  className="absolute top-1 right-1 rounded-full bg-background/80 p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                  aria-label={`Quitar foto ${i + 1}`}
+                  className="absolute top-1 right-1 rounded-full bg-background/80 hover:bg-background opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
                 >
-                  <X className="h-3.5 w-3.5 text-destructive" />
-                </button>
+                  <X className="text-destructive" />
+                </Button>
               </div>
             ))}
           </div>
-          <button
+          <Button
             type="button"
             onClick={handleUploadAll}
             disabled={uploading}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50 transition-colors"
+            className="w-full"
           >
-            {uploading ? <SpinnerIcon className="h-4 w-4 animate-spin" /> : <UploadIcon className="h-4 w-4" />}
-            {uploading ? "Subiendo..." : `Subir ${previews.length} foto(s)`}
-          </button>
+            {uploading ? <SpinnerIcon className="animate-spin" /> : <UploadIcon />}
+            {uploading ? "Subiendo…" : `Subir ${previews.length} foto(s)`}
+          </Button>
         </>
       )}
     </div>

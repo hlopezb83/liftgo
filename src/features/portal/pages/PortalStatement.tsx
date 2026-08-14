@@ -107,15 +107,15 @@ export default function PortalStatement() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card><CardContent className="pt-4">
           <p className="text-xs text-muted-foreground">Facturado total</p>
-          <p className="text-xl font-bold font-mono">{formatCurrency(totals.invoiced)}</p>
+          <p className="text-xl font-bold tabular-nums">{formatCurrency(totals.invoiced)}</p>
         </CardContent></Card>
         <Card><CardContent className="pt-4">
           <p className="text-xs text-muted-foreground">Pagado total</p>
-          <p className="text-xl font-bold font-mono text-status-available">{formatCurrency(totals.paid)}</p>
+          <p className="text-xl font-bold tabular-nums text-status-available">{formatCurrency(totals.paid)}</p>
         </CardContent></Card>
         <Card><CardContent className="pt-4">
           <p className="text-xs text-muted-foreground">Saldo pendiente</p>
-          <p className={`text-xl font-bold font-mono ${totals.balance > 0 ? "text-destructive" : ""}`}>
+          <p className={`text-xl font-bold tabular-nums ${totals.balance > 0 ? "text-destructive" : ""}`}>
             {formatCurrency(totals.balance)}
           </p>
         </CardContent></Card>

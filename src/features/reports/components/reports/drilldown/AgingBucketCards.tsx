@@ -36,7 +36,7 @@ export function AgingBucketCards({ totals, selected, onSelect }: Props) {
             >
               <CardContent className="pt-4 pb-3 text-center">
                 <p className="text-xs text-muted-foreground">{range} días</p>
-                <p className="font-mono font-bold text-lg">{formatCurrency(total)}</p>
+                <p className="tabular-nums font-bold text-lg">{formatCurrency(total)}</p>
               </CardContent>
             </Card>
           );

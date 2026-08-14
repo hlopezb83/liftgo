@@ -60,7 +60,7 @@ export function MrrMobileList({ items, totalMrr }: Props) {
       {items.length > 0 && (
         <div className="flex items-center justify-between border-t pt-3 px-1">
           <span className="text-sm font-bold">Total MRR</span>
-          <span className="text-sm font-bold font-mono">{formatCurrency(totalMrr)}</span>
+          <span className="text-sm font-bold tabular-nums">{formatCurrency(totalMrr)}</span>
         </div>
       )}
     </div>

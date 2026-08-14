@@ -35,7 +35,7 @@ export function IncomeStatementToolbar({
         <DownloadIcon className="h-4 w-4 mr-1" />CSV
       </Button>
       <Button variant="outline" size="sm" onClick={onExportPdf} disabled={pdfLoading}>
-        <FileDown className="h-4 w-4 mr-1" />{pdfLoading ? "Generando..." : "PDF"}
+        <FileDown className="h-4 w-4 mr-1" />{pdfLoading ? "Generando…" : "PDF"}
       </Button>
     </div>
   );

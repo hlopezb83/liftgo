@@ -14,7 +14,7 @@ import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 type Mode = "sign-in" | "forgot";
 
 function getPortalSubmitLabel(loading: boolean, mode: Mode): string {
-  if (loading) return "Cargando...";
+  if (loading) return "Cargando…";
   if (mode === "forgot") return "Enviar Enlace";
   return "Iniciar Sesión";
 }
@@ -49,7 +49,7 @@ export default function PortalLogin() {
 
   return (
     // Oleada 3 (C-2): facelift con gradiente radial suave + footer "Powered by".
-    <div className="min-h-screen flex">
+    <div className="min-h-[100dvh] flex">
       <AuthBrandPanel
         logoUrl={company?.logo_url}
         razonSocial={company?.razon_social}
