@@ -1,5 +1,5 @@
 import currency from "currency.js";
-import { differenceInDays, differenceInCalendarMonths, addMonths, addDays } from "date-fns";
+import { differenceInDays, differenceInCalendarMonths, addMonths, addDays, isLastDayOfMonth } from "date-fns";
 import type { Forklift } from "@/types/rental";
 import { money, type LineItem } from "./invoiceTotals";
 
@@ -79,6 +79,23 @@ export function calculateRentalCost(
 
   const remainderStart = months > 0 ? addMonths(startDate, months) : startDate;
   let remaining = Math.max(0, differenceInDays(effectiveEnd, remainderStart));
+
+  // F2 (Sprint M1): fin de mes corto. Si la renta arranca en un día que no
+  // existe en el mes destino (p. ej. 31-ene → feb), `addMonths` clampea el
+  // ancla del remanente al último día del mes y deja un remanente espurio de
+  // 1 día → se facturaba "1 mes + 1 día" una renta que es exactamente un mes
+  // (31-ene → 28-feb). Cuando `endDate` ES el último día de su mes y el ancla
+  // clampeó (su día difiere del día de inicio), el tramo son exactamente
+  // `months` meses calendario: el remanente se trata como 0 días. Con
+  // remaining = 0 el cap BL-15 queda intacto (no hay remanente que capear).
+  if (
+    months > 0 &&
+    remaining > 0 &&
+    remainderStart.getDate() !== startDate.getDate() &&
+    isLastDayOfMonth(endDate)
+  ) {
+    remaining = 0;
+  }
 
   // Buffer separado para poder aplicar el cap BL-15 sin tocar los meses ya
   // facturados a tarifa mensual (esos representan calendario cerrado).

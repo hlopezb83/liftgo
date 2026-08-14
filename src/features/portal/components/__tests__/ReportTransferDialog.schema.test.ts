@@ -5,7 +5,9 @@ const balance = 1234.5;
 const schema = makeSchema(balance);
 
 const valid = {
-  transferDate: new Date("2026-02-01T12:00:00Z"),
+  // SEC-M2: el schema ahora exige fecha no futura y ≤60 días en el pasado;
+  // usar una fecha reciente dinámica para que el test no dependa del reloj.
+  transferDate: new Date(Date.now() - 24 * 60 * 60 * 1000),
   amount: 100,
   senderBank: "",
   senderLast4: "",

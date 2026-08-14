@@ -1,9 +1,8 @@
 import { useState } from "react";
 import type { Tables } from "@/integrations/supabase/types";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
-import { applyDiscountToBase, lineItemTotal } from "@/lib/domain/invoiceHelpers";
+import { applyDiscountToBase, computeTotals, lineItemTotal } from "@/lib/domain/invoiceHelpers";
 import { parseLineItems } from "@/lib/domain/lineItems";
-import { roundMoney, sumMoney } from "@/lib/money";
 import { useCreateCreditNote } from "./useCreditNotes";
 
 export type EditableCreditNoteLine = LineItem & { _selected: boolean };
@@ -22,23 +21,24 @@ export function useCreditNoteForm(
   const createMutation = useCreateCreditNote();
 
   const taxRate = Number(invoice.tax_rate) || 0;
-  // BL-001: sumMoney/roundMoney evitan drift IEEE-754 acumulado en el subtotal
-  // y en el redondeo final del IVA (currency.js internamente).
+  // BL-001: el cálculo vía currency.js (dentro de computeTotals) evita drift
+  // IEEE-754 acumulado en el subtotal y en el redondeo final del IVA.
   // M24: la base de cada línea es qty×price MENOS su descuento (mismo criterio
-  // que el timbrado BL-02). Ignorarlo inflaba la NC sobre facturas con descuento.
-  const subtotal = sumMoney(
-    lines
-      .filter((l) => l._selected)
-      .map((l) =>
-        applyDiscountToBase(
-          lineItemTotal(l.quantity, l.unit_price),
-          l.discount,
-          l.discount_type,
-        )
-      ),
-  );
-  const taxAmount = roundMoney(subtotal * (taxRate / 100));
-  const total = roundMoney(subtotal + taxAmount);
+  // que el timbrado BL-02) — computeTotals aplica el descuento vía applyDiscount.
+  // F4 (Sprint M1): el IVA se calcula LÍNEA POR LÍNEA con el mismo criterio que
+  // la factura (computeTotals): las líneas `objeto_imp === "01"` no generan IVA
+  // y cada línea puede traer su propia `tax_rate`. Antes se aplicaba la tasa
+  // global sobre todo el subtotal, inflando el IVA de NCs con líneas exentas.
+  const selectedItems: LineItem[] = lines
+    .filter((l) => l._selected)
+    .map((l) => ({
+      ...l,
+      total: lineItemTotal(l.quantity, l.unit_price),
+    }));
+  const totals = computeTotals(selectedItems, taxRate);
+  const subtotal = totals.subtotal;
+  const taxAmount = totals.taxAmount;
+  const total = totals.total;
   const exceedsMax = total > maxCreditable + 0.01;
   const canSubmit =
     reason.trim().length > 0 && total > 0 && !exceedsMax && !createMutation.isPending;

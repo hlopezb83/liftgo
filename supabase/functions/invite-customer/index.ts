@@ -59,24 +59,56 @@ Deno.serve(async (req) => {
 
     const userId = newUser.user.id;
 
-    await auth.adminClient
+    // Compensacion: si alguna escritura falla, borrar el usuario de auth
+    // creado (el resto cae en cascade / limpieza best-effort, como delete-user)
+    // para no dejar una cuenta huerfana a medias.
+    const cleanupInvitedUser = async () => {
+      const { error: delErr } = await auth.adminClient.auth.admin.deleteUser(
+        userId,
+      );
+      if (delErr) console.error("invite-customer cleanup deleteUser failed:", delErr);
+      await auth.adminClient.from("user_roles").delete().eq("user_id", userId);
+      await auth.adminClient.from("profiles").delete().eq("user_id", userId);
+    };
+
+    const { error: delRoleErr } = await auth.adminClient
       .from("user_roles")
       .delete()
       .eq("user_id", userId)
       .eq("role", "dispatcher");
+    if (delRoleErr) {
+      console.error("invite-customer delete user_roles failed:", delRoleErr);
+      await cleanupInvitedUser();
+      return jsonError(req, 500, "Internal server error");
+    }
 
-    await auth.adminClient
+    const { error: insRoleErr } = await auth.adminClient
       .from("user_roles")
       .insert({ user_id: userId, role: "customer" });
+    if (insRoleErr) {
+      console.error("invite-customer insert user_roles failed:", insRoleErr);
+      await cleanupInvitedUser();
+      return jsonError(req, 500, "Internal server error");
+    }
 
-    await auth.adminClient
+    const { error: insProfileErr } = await auth.adminClient
       .from("profiles")
       .insert({ user_id: userId, full_name: customer.name });
+    if (insProfileErr) {
+      console.error("invite-customer insert profiles failed:", insProfileErr);
+      await cleanupInvitedUser();
+      return jsonError(req, 500, "Internal server error");
+    }
 
-    await auth.adminClient
+    const { error: linkErr } = await auth.adminClient
       .from("customers")
       .update({ user_id: userId })
       .eq("id", customer_id);
+    if (linkErr) {
+      console.error("invite-customer link customer failed:", linkErr);
+      await cleanupInvitedUser();
+      return jsonError(req, 500, "Internal server error");
+    }
 
     const { error: resetErr } = await auth.adminClient.auth.admin.generateLink({
       type: "recovery",

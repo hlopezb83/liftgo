@@ -39,6 +39,8 @@ export type BookingExtensionWithContext = Tables<"booking_extensions"> & {
     booking_number: string | null;
     customer_id: string | null;
     customer_name: string | null;
+    daily_rate: number | null;
+    weekly_rate: number | null;
     monthly_rate: number | null;
     recurring_billing: boolean | null;
     forklifts: {
@@ -59,7 +61,7 @@ export function useBookingExtension(extensionId?: string) {
       const { data, error } = await supabase
         .from("booking_extensions")
         .select(
-          `${BOOKING_EXTENSION_COLUMNS}, bookings!inner(id, booking_number, customer_id, customer_name, monthly_rate, recurring_billing, forklifts(name, serial_number, daily_rate, weekly_rate, monthly_rate))`,
+          `${BOOKING_EXTENSION_COLUMNS}, bookings!inner(id, booking_number, customer_id, customer_name, daily_rate, weekly_rate, monthly_rate, recurring_billing, forklifts(name, serial_number, daily_rate, weekly_rate, monthly_rate))`,
         )
         .eq("id", extensionId ?? "")
         .maybeSingle()

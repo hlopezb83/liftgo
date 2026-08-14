@@ -84,6 +84,30 @@ describe("supplierBillFormSchema — validación", () => {
     expect(r.success).toBe(true);
   });
 
+  it("F6: rechaza descuento mayor que el subtotal", () => {
+    const r = supplierBillFormSchema.safeParse({ ...validBill(), subtotal: 1000, discount: 1200 });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(
+        r.error.issues.some((i) => i.message.includes("El descuento no puede ser mayor que el subtotal")),
+      ).toBe(true);
+    }
+  });
+
+  it("F6: acepta retenciones iguales a la base neta (subtotal − descuento + impuestos)", () => {
+    const r = supplierBillFormSchema.safeParse({
+      ...validBill(),
+      subtotal: 1000,
+      discount: 400,
+      tax_amount: 160,
+      retention_iva: 660,
+      retention_isr: 100,
+    });
+    expect(r.success).toBe(true);
+  });
+
+
+
 
   it("exige supplier_id no vacío", () => {
     const r = supplierBillFormSchema.safeParse({ ...validBill(), supplier_id: "" });
@@ -217,6 +241,18 @@ describe("supplierPaymentSchema — validación", () => {
     const r = supplierPaymentSchema.safeParse({ ...validPayment(), payment_date: undefined });
     expect(r.success).toBe(false);
   });
+
+  it("F7: rechaza payment_date futura", () => {
+    const future = new Date();
+    future.setFullYear(future.getFullYear() + 1);
+    const r = supplierPaymentSchema.safeParse({ ...validPayment(), payment_date: future });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.error.issues.some((i) => /no puede ser futura/.test(i.message))).toBe(true);
+    }
+  });
+
+
 
   it("aplica defaults al omitir campos opcionales", () => {
     const r = supplierPaymentSchema.safeParse({

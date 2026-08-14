@@ -57,6 +57,8 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
   };
 
   // R17-G: permitir cerrar un daño sin factura (equipo reparado internamente).
+  // F6: la misma transición aplica desde `reported` (reparación interna sin OT);
+  // el handler es agnóstico al status previo — solo sella repaired_at.
   const handleMarkRepaired = () => {
     updateDamage.mutate(
       // R7-FE-03 (N7-MOV-08): el FE sella `repaired_at`.

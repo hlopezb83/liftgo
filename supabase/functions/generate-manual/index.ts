@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { requireAdmin } from "../_shared/auth.ts";
+import { enforceRateLimit, requireAdmin } from "../_shared/auth.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { handleCors } from "../_shared/cors.ts";
 import { aiChatCompletion, AiGatewayError } from "../_shared/ai.ts";
@@ -72,6 +72,18 @@ serve(async (req) => {
     const auth = await requireAdmin(req);
     if (!auth.ok) return auth.response;
     const supabase = auth.adminClient;
+
+    // SEC: la generación del manual consume muchos créditos de AI; mismo
+    // límite que parse-csf (5 req / 60s por usuario).
+    const limited = await enforceRateLimit(
+      req,
+      supabase,
+      "generate-manual",
+      auth.userId,
+      5,
+      60,
+    );
+    if (limited) return limited;
 
     // LOVABLE_API_KEY se valida dentro de aiChatCompletion.
 

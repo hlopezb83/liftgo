@@ -26,7 +26,7 @@ type StateResult = ReturnType<typeof useQuoteConversionState>;
  */
 export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
   const queryClient = useQueryClient();
-  const { quote, customers, forklifts } = data;
+  const { quote, customers, forklifts, equipmentModels } = data;
 
   const createBookingsFor = async (assignments: Assignment[], recurring: boolean) => {
     if (!quote) return;
@@ -77,7 +77,21 @@ export function useQuoteBookingCreator(data: DataResult, state: StateResult) {
       notifyValidation({ message: "No se encontraron montacargas para crear reservas" });
       return;
     }
-    const assignments = ids.map((fId) => ({ forkliftId: fId, dailyRate: 0, weeklyRate: 0, monthlyRate: 0 }));
+    // F5 (Sprint M1): NO enviar tarifas en 0 — la RPC `convert_quote_to_bookings`
+    // hacía UPDATE con esos ceros y pisaba las tarifas de la unidad (y un 0 no
+    // cae al catálogo en los previews `booking.daily_rate ?? forklift.daily_rate`).
+    // Se envían las tarifas del equipo (unidad → defaults de su modelo), mismo
+    // fallback que muestra EquipmentAssignmentDialog.
+    const assignments = ids.map((fId) => {
+      const forklift = forklifts.find((f) => f.id === fId);
+      const model = equipmentModels?.find((m) => m.id === forklift?.equipment_model_id);
+      return {
+        forkliftId: fId,
+        dailyRate: forklift?.daily_rate ?? model?.default_daily_rate ?? 0,
+        weeklyRate: forklift?.weekly_rate ?? model?.default_weekly_rate ?? 0,
+        monthlyRate: forklift?.monthly_rate ?? model?.default_monthly_rate ?? 0,
+      };
+    });
     await createBookingsFor(assignments, recurring);
   };
 

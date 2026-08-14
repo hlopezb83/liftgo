@@ -10,10 +10,10 @@
 import { createSyncStoragePersister } from "@tanstack/query-sync-storage-persister";
 import type { Query } from "@tanstack/react-query";
 
-const STORAGE_KEY = "liftgo:rq-cache:v2"; // SEC-B7: invalida cachés previas con datos financieros
+const STORAGE_KEY = "liftgo:rq-cache:v3"; // SEC-B7/F5: invalida cachés previas con datos financieros (dashboard-stats con PII)
 // SEC-B7 residual (R2 Bajo 2): la caché v1 (con datos financieros, pre-allowlist)
 // nunca se purgó al subir a v2 — quedaba en localStorage indefinidamente.
-const LEGACY_STORAGE_KEYS = ["liftgo:rq-cache:v1"] as const;
+const LEGACY_STORAGE_KEYS = ["liftgo:rq-cache:v1", "liftgo:rq-cache:v2"] as const;
 const MAX_AGE_MS = 24 * 60 * 60 * 1000; // 24h
 
 /** Borra cachés persistidas de versiones anteriores. Idempotente; se llama al boot. */
@@ -42,7 +42,6 @@ export const PERSIST_ALLOWLIST: readonly string[] = [
   // propósito (dato muy dinámico). SEC-B7: los KPIs financieros, el detalle
   // MRR, contratos, cash-flow settings y estados de resultados NO se
   // persisten — datos financieros sensibles no deben quedar en localStorage.
-  "dashboard-stats",
   // Catálogos operativos
   "equipment_models",
   "drivers",
@@ -80,6 +79,8 @@ export const PERSIST_BLOCKLIST: readonly string[] = [
   "dashboard-mrr-detail",
   "contracts",
   "cash_flow_settings",
+  // F5: `overdue_invoices` dentro de dashboard-stats trae customer_name/balance (PII financiera).
+  "dashboard-stats",
   // Auditoría / feedback (datos volátiles o sensibles)
   "audit",
   "audit_log",

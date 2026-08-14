@@ -138,7 +138,7 @@ export function RegisterSupplierPaymentDialog({
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <CurrencyField control={form.control} name="amount" label="Monto" required />
-            <DateField control={form.control} name="payment_date" label="Fecha" required />
+            <DateField control={form.control} name="payment_date" label="Fecha" required disabledMatcher={{ after: new Date() }} />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <SelectField

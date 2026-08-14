@@ -16,7 +16,7 @@ export type DeliveryFormValues = {
 };
 
 type Forklift = { id: string; name: string; model: string };
-type Booking = { id: string; customer_name: string | null; start_date: string; end_date: string; forklift_id: string };
+type Booking = { id: string; customer_name: string | null; start_date: string; end_date: string; forklift_id: string; status: string };
 type Driver = { id: string; name: string; phone?: string | null };
 
 interface Props {
@@ -37,9 +37,12 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
 
   // R-C6: filtrar reservas visibles al montacargas elegido para evitar
   // seleccionar una reserva que apunta a otro equipo (el RPC lo rechaza).
+  // F9: sólo reservas `confirmed` — las canceladas/completadas son terminales
+  // (useBookingActionsLogic) y no deben ofrecerse para nuevas entregas.
+  const activeBookings = bookings?.filter((b) => b.status === "confirmed");
   const visibleBookings = forkliftId
-    ? bookings?.filter((b) => b.forklift_id === forkliftId)
-    : bookings;
+    ? activeBookings?.filter((b) => b.forklift_id === forkliftId)
+    : activeBookings;
 
   const forkliftOptions: SelectOption[] =
     forklifts?.map((f) => ({ value: f.id, label: `${f.name} — ${f.model}` })) ?? [];

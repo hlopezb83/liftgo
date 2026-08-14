@@ -10,7 +10,7 @@ export type { Forklift };
 const sel = (s: string): string => s;
 
 const FORKLIFT_COLUMNS = sel(
-  "id, name, model, manufacturer, year, capacity_kg, mast_height_m, fuel_type, serial_number, status, daily_rate, weekly_rate, monthly_rate, image_url, notes, created_at, updated_at, acquisition_cost, insurance_provider, insurance_policy_number, insurance_expiry, insurance_cost, is_e2e, e2e_scope, deleted_at, deleted_by, acquisition_date, sold_at"
+  "id, name, model, manufacturer, year, capacity_kg, mast_height_m, fuel_type, serial_number, status, daily_rate, weekly_rate, monthly_rate, image_url, notes, created_at, updated_at, acquisition_cost, insurance_provider, insurance_policy_number, insurance_expiry, insurance_cost, is_e2e, e2e_scope, deleted_at, deleted_by, acquisition_date, sold_at, equipment_model_id"
 );
 
 const STATUS_LOG_COLUMNS = sel("id, forklift_id, from_status, to_status, changed_at, note");

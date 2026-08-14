@@ -59,22 +59,30 @@ export interface ExtensionLineItemsInput {
   newEndDate: string;
   /** Tarifas del equipo (maestras). */
   forkliftRates: ExtensionRates;
-  /** Tarifa mensual pactada en la reserva; gana sobre la maestra si es > 0. */
-  bookingMonthlyRate?: number | null;
+  /**
+   * Tarifas pactadas en la reserva (diaria/semanal/mensual); cada una gana
+   * sobre la maestra si es > 0. Una tarifa en 0 o nula cae al catálogo.
+   */
+  bookingRates?: ExtensionRates | null;
   forkliftName?: string | null;
   serialNumber?: string | null;
 }
 
-/** Tarifas efectivas: la pactada en la reserva pisa a la maestra si es > 0. */
+/**
+ * Tarifas efectivas: CADA tarifa pactada en la reserva (diaria, semanal y
+ * mensual) pisa a la maestra si es > 0; en 0 o nula se usa el catálogo.
+ */
 export function resolveExtensionRates(
   forkliftRates: ExtensionRates,
-  bookingMonthlyRate?: number | null,
+  bookingRates?: ExtensionRates | null,
 ): Required<Record<"daily" | "weekly" | "monthly", number>> {
-  const booked = Number(bookingMonthlyRate) || 0;
+  const bookedDaily = Number(bookingRates?.daily_rate) || 0;
+  const bookedWeekly = Number(bookingRates?.weekly_rate) || 0;
+  const bookedMonthly = Number(bookingRates?.monthly_rate) || 0;
   return {
-    daily: Number(forkliftRates.daily_rate) || 0,
-    weekly: Number(forkliftRates.weekly_rate) || 0,
-    monthly: booked > 0 ? booked : Number(forkliftRates.monthly_rate) || 0,
+    daily: bookedDaily > 0 ? bookedDaily : Number(forkliftRates.daily_rate) || 0,
+    weekly: bookedWeekly > 0 ? bookedWeekly : Number(forkliftRates.weekly_rate) || 0,
+    monthly: bookedMonthly > 0 ? bookedMonthly : Number(forkliftRates.monthly_rate) || 0,
   };
 }
 
@@ -87,14 +95,14 @@ export function buildExtensionLineItems({
   originalEndDate,
   newEndDate,
   forkliftRates,
-  bookingMonthlyRate,
+  bookingRates,
   forkliftName,
   serialNumber,
 }: ExtensionLineItemsInput): LineItem[] {
   const range = extensionBillableRange(originalEndDate, newEndDate);
   if (!range) return [];
 
-  const rates = resolveExtensionRates(forkliftRates, bookingMonthlyRate);
+  const rates = resolveExtensionRates(forkliftRates, bookingRates);
   // Fix 8.4: isExtension=true evita que el cap BL-15 cobre "mes completo"
   // sobre un tramo que ya es, por definición, adicional a una renta base.
   const items = calculateRentalCost(
