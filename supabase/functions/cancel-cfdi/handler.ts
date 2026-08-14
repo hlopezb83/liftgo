@@ -81,6 +81,8 @@ export async function handleCancelCfdi(
     if (!isUUID(invoice_id)) {
       return json({ error: "invoice_id must be a valid UUID" }, 400);
     }
+    invoiceIdRef = invoice_id as string;
+
     if (typeof motive !== "string" || !VALID_MOTIVES.has(motive)) {
       return json({ error: "motive must be one of 01,02,03,04" }, 400);
     }
