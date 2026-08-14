@@ -131,7 +131,7 @@ export function buildFromQuote({ q, assignments, forklifts, customers }: FromQuo
     customerId: q.customer_id ?? "",
     customerName: toStr(q.customer_name),
     lineItems: items.map((item, i) => enrichLineItem(item, i, isSaleWithAssignments, assignments, forklifts)),
-    taxRate: Number(q.tax_rate) || 16,
+    taxRate: q.tax_rate == null ? 16 : Number(q.tax_rate),
     dueDate: undefined,
     issueDate: nowMty(),
     notes: toStr(q.notes),
