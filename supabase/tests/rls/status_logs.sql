@@ -80,7 +80,7 @@ BEGIN
   RAISE NOTICE 'OK: ventas escribe pero no lee status_logs';
 END $$;
 
--- 4) Dispatcher: lee y registra, pero no borra (solo admin/mecánico tienen ALL).
+-- 4) Dispatcher: lee y registra, pero no borra (solo admin tiene ALL; el mecánico es solo lectura).
 SET LOCAL request.jwt.claims TO '{"sub":"50000004-0000-4000-8000-000000000003","role":"authenticated"}';
 
 DO $$
