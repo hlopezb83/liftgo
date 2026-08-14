@@ -1,0 +1,10 @@
+{
+  "version": "7.326.3",
+  "date": "2026-08-14",
+  "type": "patch",
+  "title": "Formato de las funciones de backend",
+  "category": "chore",
+  "changes": [
+    "deno fmt aplicado a 7 archivos de supabase/functions"
+  ]
+}
