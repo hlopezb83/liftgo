@@ -1,3 +1,10 @@
+## 7.318.1 - 2026-08-14
+
+**Correcciones — Facturación de extensiones: candado a prueba de doble clic y pestañas**
+- Ahora la base de datos impide de raíz que dos facturas queden ligadas a la misma extensión de reserva, incluso desde dos pestañas al mismo tiempo.
+- Si una extensión ya fue facturada, el aviso llega como error de negocio con mensaje claro en vez de un error técnico de base de datos.
+- Se eliminó un índice duplicado en extensiones de reserva.
+
 ## 7.318.0 - 2026-08-14
 
 **Mejoras — Venta y baja de unidades: solo se bloquean con renta realmente abierta**
