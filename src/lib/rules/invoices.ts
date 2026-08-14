@@ -65,6 +65,35 @@ function computeCfdiFlags(invoice: InvoiceLike, cfdiStatus: string) {
   };
 }
 
+interface PaymentFlags {
+  readonly isPayable: boolean;
+  readonly showPaymentBtn: boolean;
+  readonly paymentBlockedByPendingCancellation: boolean;
+}
+
+/**
+ * Flags de cobrabilidad. Un CFDI cancelado — o con cancelación pendiente ante
+ * el SAT (Fix 8.2) — no es cobrable aunque el `status` operativo siga en
+ * sent/overdue (ventana de desincronía, R19-B).
+ */
+function computePaymentFlags(
+  status: string,
+  hasBalance: boolean,
+  cfdi: { isCancelled: boolean; isPendingCancel: boolean },
+): PaymentFlags {
+  const openStatus = status === "sent" || status === "overdue" || status === "partial";
+  const cfdiBlocked = cfdi.isCancelled || cfdi.isPendingCancel;
+  const isPayable = (status === "sent" || status === "overdue") && hasBalance && !cfdiBlocked;
+  return {
+    isPayable,
+    showPaymentBtn: openStatus && hasBalance && !cfdiBlocked,
+    // Bloqueado únicamente por la cancelación pendiente (para mostrar tooltip
+    // explicativo en vez de ocultar el botón sin explicación).
+    paymentBlockedByPendingCancellation:
+      openStatus && hasBalance && !cfdi.isCancelled && cfdi.isPendingCancel,
+  };
+}
+
 function computeActionFlags(invoice: InvoiceLike, cfdiStatus: string): InvoiceActionFlags {
   const status = invoice.status;
   const isDraft = status === "draft";
@@ -74,29 +103,15 @@ function computeActionFlags(invoice: InvoiceLike, cfdiStatus: string): InvoiceAc
   const balanceKnown = typeof invoice.balance === "number";
   const hasBalance = !balanceKnown || (invoice.balance ?? 0) > 0;
   const cfdi = computeCfdiFlags(invoice, cfdiStatus);
-  // R19-B: un CFDI con cancelación aceptada por el SAT no es cobrable aunque
-  // el `status` operativo siga en sent/overdue (ventana de desincronía).
-  // Fix 8.2: mientras la cancelación ante el SAT esté pendiente (esperando
-  // aceptación/rechazo del receptor), tampoco es cobrable — cobrar un CFDI
-  // que puede cancelarse en cualquier momento generaría un pago huérfano.
-  const isPayable =
-    (status === "sent" || status === "overdue") && hasBalance && !cfdi.isCancelled && !cfdi.isPendingCancel;
-  const wouldShowPaymentBtn =
-    (isPayable || (status === "partial" && !cfdi.isCancelled && !cfdi.isPendingCancel)) && hasBalance;
-  // Bloqueado únicamente por la cancelación pendiente (para mostrar tooltip
-  // explicativo en vez de ocultar el botón sin explicación).
-  const paymentBlockedByPendingCancellation =
-    (status === "sent" || status === "overdue" || status === "partial") &&
-    hasBalance &&
-    !cfdi.isCancelled &&
-    cfdi.isPendingCancel;
+  const payment = computePaymentFlags(status, hasBalance, cfdi);
+  const editable = isDraft && !cfdi.isStamped && !cfdi.isCancelled;
   return {
     isDraft,
-    isPayable,
-    showPaymentBtn: wouldShowPaymentBtn,
-    paymentBlockedByPendingCancellation,
-    canEdit: isDraft && !cfdi.isStamped && !cfdi.isCancelled,
-    canDelete: isDraft && !cfdi.isStamped && !cfdi.isCancelled,
+    isPayable: payment.isPayable,
+    showPaymentBtn: payment.showPaymentBtn,
+    paymentBlockedByPendingCancellation: payment.paymentBlockedByPendingCancellation,
+    canEdit: editable,
+    canDelete: editable,
     ...cfdi,
   };
 }

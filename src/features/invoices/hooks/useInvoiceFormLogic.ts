@@ -36,16 +36,84 @@ interface UseInvoiceFormLogicArgs {
   extensionId?: string | null;
 }
 
+/** Ids únicos de cotización referenciados por las reservas. */
+function collectBookingQuoteIds(bookings?: { quote_id?: string | null }[]): string[] {
+  const set = new Set<string>();
+  bookings?.forEach((b) => {
+    if (b.quote_id) set.add(b.quote_id);
+  });
+  return Array.from(set);
+}
+
+/** Reservas que ya están facturadas (por columna directa o por pivote). */
+function collectInvoicedBookingIds(
+  invoices: { status: string; booking_id?: string | null }[] | undefined,
+  allInvoiceBookings: { invoice_id: string; booking_id: string }[] | undefined,
+  currentInvoiceId?: string,
+): Set<string> {
+  const set = new Set<string>();
+  invoices?.forEach((inv) => {
+    if (inv.status !== "cancelled" && inv.booking_id) set.add(inv.booking_id);
+  });
+  // Excluye las reservas de la factura que se está editando.
+  allInvoiceBookings?.forEach((row) => {
+    if (currentInvoiceId && row.invoice_id === currentInvoiceId) return;
+    set.add(row.booking_id);
+  });
+  return set;
+}
+
+interface QuoteAssignmentStatus {
+  isComplete: boolean;
+  totalAssigned: number;
+  totalRequired: number;
+  missingByLine: SaleAssignmentGuard["missingByLine"];
+}
+
+/** Bloquea facturar una venta cuando faltan unidades asignadas a la cotización. */
+function buildSaleAssignmentGuard(
+  status: QuoteAssignmentStatus,
+  opts: { isEdit: boolean; fromQuoteId: string | null; quoteType?: string },
+): SaleAssignmentGuard {
+  const isPendingSale = !opts.isEdit && !!opts.fromQuoteId && opts.quoteType === "sale";
+  return {
+    shouldBlock: isPendingSale && !status.isComplete,
+    totalAssigned: status.totalAssigned,
+    totalRequired: status.totalRequired,
+    missingByLine: status.missingByLine,
+  };
+}
+
+function toQuoteLineItems(sourceQuote?: { line_items?: unknown } | null): LineItem[] {
+  return Array.isArray(sourceQuote?.line_items)
+    ? (sourceQuote?.line_items as unknown as LineItem[])
+    : [];
+}
+
+/** Reservas confirmadas aún no facturadas (+ la de la extensión en curso). */
+function filterAvailableBookings(
+  bookings: BookingWithForklift[] | undefined,
+  invoicedBookingIds: Set<string>,
+  extensionBookingId: string | null,
+): BookingWithForklift[] | undefined {
+  return bookings?.filter(
+    (booking) =>
+      booking.status === "confirmed" &&
+      (!invoicedBookingIds.has(booking.id) || booking.id === extensionBookingId),
+  );
+}
+
 export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: UseInvoiceFormLogicArgs) {
 
   const isEdit = !!id;
+  const quoteId = fromQuoteId || undefined;
 
   const { data: bookings } = useBookings();
   const { data: forklifts } = useForklifts();
   const { data: customers } = useCustomers();
   const { data: existing } = useInvoice(id);
-  const { data: sourceQuote } = useQuote(fromQuoteId || undefined);
-  const { data: assignments } = useQuoteAssignments(fromQuoteId || undefined);
+  const { data: sourceQuote } = useQuote(quoteId);
+  const { data: assignments } = useQuoteAssignments(quoteId);
   const { data: invoices } = useInvoices();
   const { data: allInvoiceBookings } = useAllInvoiceBookings();
   const { data: invoiceBookingsRows } = useInvoiceBookings(id);
@@ -58,45 +126,28 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
 
   useInvoicePrefill({ existing, sourceQuote, assignments, forklifts, customers, isEdit, form, existingBookingIds });
 
-  const quoteLineItems: LineItem[] = Array.isArray(sourceQuote?.line_items)
-    ? (sourceQuote?.line_items as unknown as LineItem[])
-    : [];
-  const quoteAssignmentStatus = useQuoteSaleAssignmentStatus(fromQuoteId || undefined, quoteLineItems);
+  const quoteAssignmentStatus = useQuoteSaleAssignmentStatus(
+    quoteId,
+    toQuoteLineItems(sourceQuote),
+  );
 
-  const saleAssignmentGuard: SaleAssignmentGuard = {
-    shouldBlock:
-      !isEdit &&
-      !!sourceQuote &&
-      !!fromQuoteId &&
-      sourceQuote.quote_type === "sale" &&
-      !quoteAssignmentStatus.isComplete,
-    totalAssigned: quoteAssignmentStatus.totalAssigned,
-    totalRequired: quoteAssignmentStatus.totalRequired,
-    missingByLine: quoteAssignmentStatus.missingByLine,
-  };
+  const saleAssignmentGuard = buildSaleAssignmentGuard(quoteAssignmentStatus, {
+    isEdit,
+    fromQuoteId,
+    quoteType: sourceQuote?.quote_type,
+  });
 
   const submit = useInvoiceFormSubmit();
-  const uniqueBookingQuoteIds = (() => {
-    const set = new Set<string>();
-    bookings?.forEach((b) => { if (b.quote_id) set.add(b.quote_id); });
-    return Array.from(set);
-  })();
+  const uniqueBookingQuoteIds = collectBookingQuoteIds(bookings);
   const { data: bookingSourceQuotes } = useQuotesByIds(uniqueBookingQuoteIds);
   const { handleCustomerSelect, handleBookingSelect, handleBookingsChange } = useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes: bookingSourceQuotes });
   const totals = useInvoiceFormTotals(form);
 
-  const invoicedBookingIds = (() => {
-    const set = new Set<string>();
-    invoices?.forEach((inv) => {
-      if (inv.status !== "cancelled" && inv.booking_id) set.add(inv.booking_id);
-    });
-    // Reservas vinculadas vía pivote (excluyendo las de la factura que se está editando).
-    allInvoiceBookings?.forEach((row) => {
-      if (isEdit && row.invoice_id === id) return;
-      set.add(row.booking_id);
-    });
-    return set;
-  })();
+  const invoicedBookingIds = collectInvoicedBookingIds(
+    invoices,
+    allInvoiceBookings,
+    isEdit ? id : undefined,
+  );
 
   // v7.307.0: al facturar una extensión, la reserva YA tiene factura del
   // período original. Se re-habilita para poder ligar la factura del tramo
@@ -110,11 +161,11 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   });
   const extensionBookingId = extension?.booking_id ?? null;
 
-  const availableBookings = bookings?.filter(
-    (booking) =>
-      booking.status === "confirmed" &&
-      (!invoicedBookingIds.has(booking.id) || booking.id === extensionBookingId),
-  ) as BookingWithForklift[] | undefined;
+  const availableBookings = filterAvailableBookings(
+    bookings as BookingWithForklift[] | undefined,
+    invoicedBookingIds,
+    extensionBookingId,
+  );
 
   const onSubmit = (values: InvoiceFormValues) => submit.buildPayload({
     values, isEdit, fromQuoteId,

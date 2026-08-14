@@ -67,9 +67,6 @@ export const DELIVERY_INITIAL_STATUSES: readonly DeliveryStatus[] = [
   "completed",
 ];
 
-/** contracts no pasa por validate_transition: su INSERT no está restringido. */
-export const CONTRACT_INITIAL_STATUSES: readonly ContractStatus[] = CONTRACT_STATUSES;
-
 export const INVOICE_TRANSITIONS: Record<InvoiceStatus, readonly InvoiceStatus[]> = {
   // Sprint 4 (Fix 4.2): un borrador no puede vencerse; primero debe enviarse.
   draft: ["sent", "cancelled"],
@@ -121,8 +118,6 @@ export const CONTRACT_FROZEN_FIELDS = [
   "extra_hour_rate",
   "max_hours_per_month",
 ] as const;
-
-export type ContractFrozenField = (typeof CONTRACT_FROZEN_FIELDS)[number];
 
 export interface InvoiceTransitionOptions {
   /**

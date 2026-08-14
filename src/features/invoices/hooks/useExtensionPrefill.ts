@@ -24,6 +24,58 @@ interface Params {
  * SÓLO del tramo extendido (`original_end_date + 1` … `new_end_date`).
  * Bloquea si la extensión ya tiene factura ligada (guard anti doble cobro).
  */
+type ExtensionBooking = {
+  id?: string | null;
+  customer_id?: string | null;
+  customer_name?: string | null;
+  monthly_rate?: number | null;
+  forklifts?: {
+    name?: string | null;
+    serial_number?: string | null;
+    daily_rate?: number | null;
+    weekly_rate?: number | null;
+    monthly_rate?: number | null;
+  } | null;
+} | null;
+
+/** Prellena cliente y reserva ligada en el formulario. */
+function applyBookingFields(
+  form: UseFormReturn<InvoiceFormValues>,
+  booking: ExtensionBooking,
+  handleCustomerSelect: (id: string) => void,
+) {
+  if (!booking) return;
+  if (booking.customer_id) handleCustomerSelect(booking.customer_id);
+  if (booking.customer_name) {
+    form.setValue("customerName", booking.customer_name, { shouldDirty: true });
+  }
+  if (booking.id) {
+    form.setValue("bookingIds", [booking.id], { shouldDirty: true });
+    form.setValue("bookingId", booking.id, { shouldDirty: true });
+  }
+}
+
+/** Partidas del tramo extendido, según tarifas del equipo o de la reserva. */
+function buildItemsForExtension(
+  originalEndDate: string,
+  newEndDate: string,
+  booking: ExtensionBooking,
+) {
+  const forklift = booking?.forklifts ?? null;
+  return buildExtensionLineItems({
+    originalEndDate,
+    newEndDate,
+    forkliftRates: {
+      daily_rate: forklift?.daily_rate,
+      weekly_rate: forklift?.weekly_rate,
+      monthly_rate: forklift?.monthly_rate,
+    },
+    bookingMonthlyRate: booking?.monthly_rate,
+    forkliftName: forklift?.name,
+    serialNumber: forklift?.serial_number,
+  });
+}
+
 export function useExtensionPrefill({
   isEdit, extensionId, customersLoaded, form, handleCustomerSelect,
 }: Params) {
@@ -51,28 +103,13 @@ export function useExtensionPrefill({
       return;
     }
 
-    if (booking?.customer_id) handleCustomerSelect(booking.customer_id);
-    if (booking?.customer_name) {
-      form.setValue("customerName", booking.customer_name, { shouldDirty: true });
-    }
-    if (booking?.id) {
-      form.setValue("bookingIds", [booking.id], { shouldDirty: true });
-      form.setValue("bookingId", booking.id, { shouldDirty: true });
-    }
+    applyBookingFields(form, booking as ExtensionBooking, handleCustomerSelect);
 
-    const forklift = booking?.forklifts ?? null;
-    const items = buildExtensionLineItems({
-      originalEndDate: ext.original_end_date,
-      newEndDate: ext.new_end_date,
-      forkliftRates: {
-        daily_rate: forklift?.daily_rate,
-        weekly_rate: forklift?.weekly_rate,
-        monthly_rate: forklift?.monthly_rate,
-      },
-      bookingMonthlyRate: booking?.monthly_rate,
-      forkliftName: forklift?.name,
-      serialNumber: forklift?.serial_number,
-    });
+    const items = buildItemsForExtension(
+      ext.original_end_date,
+      ext.new_end_date,
+      booking as ExtensionBooking,
+    );
 
     if (items.length === 0) {
       notifyWarning({

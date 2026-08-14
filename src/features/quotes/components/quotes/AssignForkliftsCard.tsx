@@ -2,9 +2,9 @@ import { useState } from "react";
 import { PackageCheck, WarnIcon } from "@/components/icons";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useAssignForklift, useForklifts, useQuoteAssignments, useUnassignForklift } from "@/features/fleet";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
-import { Skeleton } from "@/components/ui/skeleton";
 import { AssignForkliftsLineRow } from "./AssignForkliftsLineRow";
 
 interface Props {
