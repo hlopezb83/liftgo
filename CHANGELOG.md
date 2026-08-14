@@ -1,3 +1,12 @@
+## 7.319.0 - 2026-08-14
+
+**Mejoras — Cierre de auditoría: fecha del servidor en flota, orden del CRM y conciliación multimoneda**
+- El cálculo de disponibilidad de flota (calendario, lista de equipos, flota y detalle de unidad) ahora usa la fecha del servidor en hora de Monterrey, no el reloj de la computadora.
+- El Kanban de CRM ya no puede tener dos prospectos en la misma posición: se normalizaron los casos existentes y la base de datos lo impide; si ocurre una carrera, la app reintenta sola.
+- La conciliación bancaria automática ahora empareja pagos en otra moneda usando su tipo de cambio, igual que las sugerencias manuales.
+- Cancelar en el diálogo de comprobante de pago a proveedor y en el borrado de bitácora ahora avisa de cambios sin guardar.
+- El texto de ayuda del logo ya no ofrece SVG, que no está permitido.
+
 ## 7.318.3 - 2026-08-14
 
 **Mejoras — Etiquetas de IA en español en el detalle de feedback**
