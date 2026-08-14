@@ -2,6 +2,7 @@ import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 import { notifyInfo, notifySuccess } from "@/lib/ui/appFeedback";
 import { translateFacturapiError } from "../../../lib/facturapiErrors";
+import { notifyCfdiError } from "../../../lib/notifyCfdiError";
 import { invoiceKeys } from "../../../lib/queryKeys";
 
 interface StampCfdiResponse {
@@ -50,7 +51,12 @@ export function useStampCfdi() {
         notifyInfo("El timbrado ya está en proceso; actualizando estado…");
         return true; // suprime toast de error estándar
       }
+      // Toast con traducción SAT + reporte copiable con el payload íntegro
+      // del PAC (soporte administrativo lo necesita completo).
+      notifyCfdiError({ error, phase: "Timbrado CFDI" });
+      return true;
     },
+
     onSuccess: (data) => {
       const suffix = data.stub
         ? " (modo prueba)"

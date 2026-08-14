@@ -1,3 +1,12 @@
+## 7.323.0 - 2026-08-14
+
+**Mejoras — Errores de servidor y SAT traducidos + toasts sin duplicados**
+- Catálogo de errores de Postgres/PostgREST en tres niveles: nombre de restricción, SQLSTATE y patrones de texto; reemplaza los mensajes genéricos por instrucciones accionables en español.
+- Errores P0001 (reglas de negocio del backend) se muestran tal cual porque ya vienen redactados para el usuario.
+- Rechazos del SAT/FacturAPI clasificados por código numérico (301, 302, 304, 307, 402, 404) sin confundir montos con códigos; el reporte copiable conserva la respuesta completa del PAC.
+- Timbrado de CFDI notifica con contexto fiscal (folio, RFC receptor, UUID, código SAT) en el diálogo de detalles.
+- Toasts deduplicados por contenido o `dedupeKey`: los clics repetidos reemplazan el toast en vez de apilarlo.
+
 ## 7.322.1 - 2026-08-14
 
 **Mantenimiento — Borrador de plan fuera de Git**
