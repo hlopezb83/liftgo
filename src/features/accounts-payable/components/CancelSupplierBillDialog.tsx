@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { TextareaField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { zodResolver } from "@/lib/forms/zodResolver";
@@ -63,9 +64,7 @@ export function CancelSupplierBillDialog({
             rows={3}
           />
           <FormDialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Volver
-            </Button>
+            <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={cancel.isPending} label="Volver" />
             <Button type="submit" variant="destructive" disabled={cancel.isPending}>
               {cancel.isPending ? "Cancelando…" : "Cancelar factura"}
             </Button>

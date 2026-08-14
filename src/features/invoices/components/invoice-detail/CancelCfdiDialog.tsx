@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { SelectField, TextField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { CANCELLATION_REASONS } from "@/lib/domain/satCatalogs";
@@ -84,9 +85,7 @@ export function CancelCfdiDialog({
             />
           )}
           <FormDialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cerrar
-            </Button>
+            <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={cancelCfdi.isPending} label="Cerrar" />
             <Button type="submit" variant="destructive" disabled={cancelCfdi.isPending}>
               {cancelCfdi.isPending ? "Cancelando..." : "Confirmar Cancelación"}
             </Button>

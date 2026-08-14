@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { z } from "zod";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { UserPlus } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogTrigger } from "@/components/ui/dialog";
@@ -115,7 +116,7 @@ export function InviteUserDialog({ onCreated }: InviteUserDialogProps) {
           </div>
         </div>
         <FormDialogFooter>
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+          <FormDialogCancelButton onCancel={() => setOpen(false)} disabled={inviteUser.isPending} />
           <Button onClick={onInviteClick} disabled={inviteUser.isPending || !fullName.trim() || !email.trim()}>
             {inviteUser.isPending ? "Creando…" : "Crear usuario"}
           </Button>

@@ -31,7 +31,7 @@ export function FeedbackChipsRow({ type, module, severity, hasAi, classifying, p
       )}
       {classifying && (
         <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
-          <SpinnerIcon className="h-3 w-3 animate-spin" /> Clasificando con AI…
+          <SpinnerIcon className="h-3 w-3 animate-spin" /> Clasificando con IA…
         </span>
       )}
       <Badge variant="secondary" className="ml-auto">{points} pts</Badge>

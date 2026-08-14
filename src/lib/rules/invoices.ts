@@ -23,6 +23,8 @@ export interface InvoiceActionFlags {
   isDraft: boolean;
   isPayable: boolean;
   showPaymentBtn: boolean;
+  /** Fix 8.2: hay pago posible salvo por cancelación SAT pendiente (tooltip). */
+  paymentBlockedByPendingCancellation: boolean;
   canEdit: boolean;
   canDelete: boolean;
   canStamp: boolean;
@@ -74,11 +76,25 @@ function computeActionFlags(invoice: InvoiceLike, cfdiStatus: string): InvoiceAc
   const cfdi = computeCfdiFlags(invoice, cfdiStatus);
   // R19-B: un CFDI con cancelación aceptada por el SAT no es cobrable aunque
   // el `status` operativo siga en sent/overdue (ventana de desincronía).
-  const isPayable = (status === "sent" || status === "overdue") && hasBalance && !cfdi.isCancelled;
+  // Fix 8.2: mientras la cancelación ante el SAT esté pendiente (esperando
+  // aceptación/rechazo del receptor), tampoco es cobrable — cobrar un CFDI
+  // que puede cancelarse en cualquier momento generaría un pago huérfano.
+  const isPayable =
+    (status === "sent" || status === "overdue") && hasBalance && !cfdi.isCancelled && !cfdi.isPendingCancel;
+  const wouldShowPaymentBtn =
+    (isPayable || (status === "partial" && !cfdi.isCancelled && !cfdi.isPendingCancel)) && hasBalance;
+  // Bloqueado únicamente por la cancelación pendiente (para mostrar tooltip
+  // explicativo en vez de ocultar el botón sin explicación).
+  const paymentBlockedByPendingCancellation =
+    (status === "sent" || status === "overdue" || status === "partial") &&
+    hasBalance &&
+    !cfdi.isCancelled &&
+    cfdi.isPendingCancel;
   return {
     isDraft,
     isPayable,
-    showPaymentBtn: (isPayable || (status === "partial" && !cfdi.isCancelled)) && hasBalance,
+    showPaymentBtn: wouldShowPaymentBtn,
+    paymentBlockedByPendingCancellation,
     canEdit: isDraft && !cfdi.isStamped && !cfdi.isCancelled,
     canDelete: isDraft && !cfdi.isStamped && !cfdi.isCancelled,
     ...cfdi,

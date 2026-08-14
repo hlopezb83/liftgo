@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { SelectField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { CANCELLATION_REASONS } from "@/lib/domain/satCatalogs";
@@ -67,9 +68,7 @@ export function CancelRepDialog({ open, onOpenChange, paymentId, onSuccess }: Ca
             options={REP_MOTIVE_OPTIONS.map((r) => ({ value: r.code, label: r.label }))}
           />
           <FormDialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cerrar
-            </Button>
+            <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={cancelRep.isPending} label="Cerrar" />
             <Button type="submit" variant="destructive" disabled={cancelRep.isPending}>
               {cancelRep.isPending ? "Cancelando..." : "Confirmar Cancelación"}
             </Button>

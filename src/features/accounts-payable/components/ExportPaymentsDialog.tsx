@@ -1,4 +1,5 @@
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { DownloadIcon, SpinnerIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { useExportPaymentsForm } from "../hooks/useExportPaymentsForm";
@@ -44,9 +45,7 @@ export function ExportPaymentsDialog({ open, onOpenChange }: Props) {
       />
 
       <FormDialogFooter>
-        <Button variant="outline" onClick={() => onOpenChange(false)} disabled={form.isSubmitting}>
-          Cancelar
-        </Button>
+        <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={form.isSubmitting} />
         <Button onClick={form.handleExport} disabled={!form.canExport}>
           {form.isSubmitting ? (
             <SpinnerIcon className="h-4 w-4 animate-spin mr-1" />

@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { TextareaField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { zodResolver } from "@/lib/forms/zodResolver";
@@ -55,9 +56,7 @@ export function SupplierPaymentRejectDialog({ open, onOpenChange, onConfirm, pen
             placeholder="Ej. UUID no corresponde a la factura"
           />
           <FormDialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
+            <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={pending} />
             <Button
               type="submit"
               variant="destructive"

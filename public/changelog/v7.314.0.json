@@ -1,0 +1,13 @@
+{
+  "version": "7.314.0",
+  "date": "2026-08-14",
+  "type": "minor",
+  "title": "Sprint 8: reglas de facturación en notas de crédito y extensiones",
+  "category": "correcciones",
+  "changes": [
+    "Cada línea de una nota de crédito tiene tope por cantidad y precio facturado, y ahora se muestra el máximo permitido debajo de cada campo.",
+    "No se pueden registrar pagos de facturas con cancelación pendiente ante el SAT.",
+    "La vista previa de extensión cobra solo el periodo extendido y coincide centavo a centavo con la factura generada.",
+    "Una extensión de 28 o 29 días se prorratea en vez de cobrar un mes completo; un mes calendario cerrado sí se cobra como mes."
+  ]
+}

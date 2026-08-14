@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCurrentVersion } from "@/features/changelog";
+import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { usePublicBranding } from "@/features/company-settings";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { AuthForm, type AuthMode } from "../components/AuthForm";
@@ -20,6 +21,7 @@ const TITLES: Record<AuthMode, { title: string; desc: string }> = {
 export default function AuthPage() {
   const { signIn, resetPassword, updatePassword } = useAuth();
   const { pathname } = useLocation();
+  const navigate = useNavigateTransition();
   // Link roto sin sesión: el AuthGuard cae aquí silenciosamente — damos un
   // hint de que la ruta no existe (o requiere sesión) en vez de un login seco.
   const unknownPath = pathname !== "/" && pathname !== "/login";
@@ -111,7 +113,7 @@ export default function AuthPage() {
             <div className="absolute inset-0 flex items-center"><span className="w-full border-t" /></div>
             <div className="relative flex justify-center text-xs uppercase"><span className="bg-card px-2 text-muted-foreground">o</span></div>
           </div>
-          <Button variant="outline" className="w-full touch:min-h-11" onClick={() => window.location.href = "/portal/login"}>
+          <Button variant="outline" className="w-full touch:min-h-11" onClick={() => navigate("/portal/login")}>
             <UsersIcon className="mr-2 h-4 w-4" /> Portal de Clientes
           </Button>
           {currentVersion && (

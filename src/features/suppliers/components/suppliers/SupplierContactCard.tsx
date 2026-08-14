@@ -11,7 +11,14 @@ type SupplierContactInfo = {
   regimen_fiscal?: string | null;
 };
 
-const websiteHref = (url: string) => (url.startsWith("http") ? url : `https://${url}`);
+const websiteHref = (url: string): string | null => {
+  try {
+    const u = new URL(url.startsWith("http") ? url : `https://${url}`);
+    return u.protocol === "https:" ? u.href : null;
+  } catch {
+    return null;
+  }
+};
 
 export function SupplierContactCard({ supplier }: { supplier: SupplierContactInfo }) {
   const hasFiscal = Boolean(supplier.rfc || supplier.regimen_fiscal);
@@ -45,14 +52,18 @@ export function SupplierContactCard({ supplier }: { supplier: SupplierContactInf
           {supplier.website && (
             <div className="flex items-center gap-2 text-sm">
               <Globe className="h-4 w-4 text-muted-foreground" />
-              <a
-                href={websiteHref(supplier.website)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-primary hover:underline"
-              >
-                {supplier.website}
-              </a>
+              {websiteHref(supplier.website) ? (
+                <a
+                  href={websiteHref(supplier.website) as string}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary hover:underline"
+                >
+                  {supplier.website}
+                </a>
+              ) : (
+                <span>{supplier.website}</span>
+              )}
             </div>
           )}
           {supplier.address && (

@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useLocation } from "react-router";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { useAuth } from "@/contexts/AuthContext";
@@ -119,9 +120,7 @@ export function FeedbackFormDialog({ open, onOpenChange }: Props) {
               onClearElement={handleClearElement}
             />
             <FormDialogFooter>
-              <Button type="button" variant="ghost" onClick={() => { resetAll(); onOpenChange(false); }}>
-                Cancelar
-              </Button>
+              <FormDialogCancelButton onCancel={() => { resetAll(); onOpenChange(false); }} disabled={create.isPending || isCapturing} />
               <Button type="submit" disabled={create.isPending || isCapturing}>
                 {create.isPending ? "Enviando…" : isCapturing ? "Capturando…" : "Enviar reporte"}
               </Button>

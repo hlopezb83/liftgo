@@ -52,7 +52,14 @@ export function calculateRentalCost(
   weeklyRate: number | null,
   monthlyRate: number | null,
   startDate: Date,
-  endDate: Date
+  endDate: Date,
+  /**
+   * Fix 8.4: en el tramo de una EXTENSIÓN el cliente ya pagó el mes base;
+   * capear el remanente a "mes completo" cobraría días no rentados. Cuando
+   * es `true`, el cap BL-15 no aplica un mes completo — en su lugar el
+   * remanente se capea a `mensual × días/30` (prorrateo), nunca al mes entero.
+   */
+  isExtension = false,
 ): LineItem[] {
   const items: LineItem[] = [];
   const d = dailyRate || 0;
@@ -102,12 +109,25 @@ export function calculateRentalCost(
     );
     const remainderCost = remainderItems.reduce((acc, it) => acc + it.total, 0);
     if (remainderTotalDays >= 28 && remainderCost > m) {
-      items.push({
-        description: "Renta mensual",
-        quantity: 1,
-        unit_price: m,
-        total: m,
-      });
+      if (isExtension) {
+        // Fix 8.4: nunca cobrar el mes completo en una extensión — prorratear
+        // en su lugar (mensual × días/30), capeando el costo escalonado.
+        const prorated = money(m).multiply(remainderTotalDays).divide(DAYS_PER_MONTH_FALLBACK).value;
+        const cappedTotal = Math.min(remainderCost, prorated);
+        items.push({
+          description: "Renta mensual (prorrateo)",
+          quantity: remainderTotalDays,
+          unit_price: money(cappedTotal).divide(remainderTotalDays).value,
+          total: cappedTotal,
+        });
+      } else {
+        items.push({
+          description: "Renta mensual",
+          quantity: 1,
+          unit_price: m,
+          total: m,
+        });
+      }
     } else {
       items.push(...remainderItems);
     }

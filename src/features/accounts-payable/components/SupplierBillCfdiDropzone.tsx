@@ -50,7 +50,7 @@ export function SupplierBillCfdiDropzone({ busy, error, result, onFile, onClear 
             </p>
           </div>
         </div>
-        <Button type="button" variant="ghost" size="sm" onClick={onClear} className="shrink-0">
+        <Button type="button" variant="ghost" size="sm" onClick={onClear} className="shrink-0" aria-label="Quitar CFDI cargado">
           <X className="h-4 w-4" />
         </Button>
       </div>

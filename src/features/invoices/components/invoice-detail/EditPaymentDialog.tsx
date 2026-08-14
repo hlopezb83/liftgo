@@ -10,6 +10,7 @@ import {
   TextareaField,
 } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { toYMD } from "@/lib/date/toYMD";
@@ -117,9 +118,7 @@ export function EditPaymentDialog({ open, onOpenChange, payment }: Props) {
           <TextareaField control={form.control} name="notes" label="Notas" rows={2} />
 
           <FormDialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
+            <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={updatePayment.isPending} />
             <Button type="submit" disabled={updatePayment.isPending}>
               {updatePayment.isPending ? "Guardando…" : "Guardar cambios"}
             </Button>

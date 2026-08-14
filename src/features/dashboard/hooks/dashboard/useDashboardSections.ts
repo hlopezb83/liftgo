@@ -1,6 +1,6 @@
 
 import { differenceInDays, parseISO } from "date-fns";
-import { computeFleetAvailability } from "@/features/availability/utils/fleetAvailability";
+import { useServerTodayMty, computeFleetAvailability } from "@/features/availability";
 import { useBookings } from "@/features/bookings";
 import { useForklifts, useInsuranceAlerts } from "@/features/fleet";
 import { useUpcomingInvoices } from "@/features/invoices";
@@ -100,9 +100,12 @@ export function useDashboardSections() {
 
   const { data: forklifts } = useForklifts();
   const { data: bookings } = useBookings();
+  // R10.9: fecha "hoy" resuelta en servidor — evita que un reloj/TZ mal
+  // configurado en el navegador corra las unidades rentadas/disponibles.
+  const todayYmd = useServerTodayMty();
   const counts = mergeFleetCounts(
     stats?.fleet_counts ?? EMPTY_COUNTS,
-    computeFleetAvailability(forklifts, bookings),
+    computeFleetAvailability(forklifts, bookings, todayYmd),
   );
   const activeFleet = counts.total - counts.retired - counts.sold;
   const utilizationPercent = computeUtilizationPercent(counts, activeFleet);

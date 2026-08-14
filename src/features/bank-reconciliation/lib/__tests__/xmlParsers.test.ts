@@ -33,8 +33,8 @@ const NETCASH = `<?xml version="1.0"?>
 </EstadoCuenta>`;
 
 describe("parseBankXml", () => {
-  it("lee el complemento CFDI ecb con prefijos de namespace", () => {
-    const r = parseBankXml(CFDI_ECB);
+  it("lee el complemento CFDI ecb con prefijos de namespace", async () => {
+    const r = await parseBankXml(CFDI_ECB);
     expect(r.errors).toHaveLength(0);
     expect(r.lines).toHaveLength(2);
     expect(r.lines[0]).toMatchObject({ posted_date: "2026-07-01", signed_amount: 1500.5, reference: "0012345" });
@@ -43,53 +43,53 @@ describe("parseBankXml", () => {
     expect(r.periodEnd).toBe("2026-07-05");
   });
 
-  it("usa el campo Tipo para dar signo a un importe único y acepta fecha con hora", () => {
-    const r = parseBankXml(NETCASH);
+  it("usa el campo Tipo para dar signo a un importe único y acepta fecha con hora", async () => {
+    const r = await parseBankXml(NETCASH);
     expect(r.lines).toHaveLength(2);
     expect(r.lines[0]).toMatchObject({ posted_date: "2026-07-10", signed_amount: -2300 });
     expect(r.lines[1].signed_amount).toBe(500);
   });
 
-  it("detecta el mapeo y expone los campos disponibles", () => {
-    const r = parseBankXml(CFDI_ECB);
+  it("detecta el mapeo y expone los campos disponibles", async () => {
+    const r = await parseBankXml(CFDI_ECB);
     expect(r.detectedMapping).toMatchObject({ date: "fecha", description: "concepto", credit: "deposito", charge: "retiro" });
     expect(r.availableFields).toContain("referencia");
   });
 
-  it("permite sobreescribir el mapeo manualmente", () => {
+  it("permite sobreescribir el mapeo manualmente", async () => {
     const xml = `<root><m f1="2026-07-02" f2="COBRO" f3="100.00"/><m f1="2026-07-03" f2="COBRO 2" f3="200.00"/></root>`;
-    const auto = parseBankXml(xml);
+    const auto = await parseBankXml(xml);
     expect(auto.lines).toHaveLength(0);
     expect(auto.errors.length).toBeGreaterThan(0);
-    const manual = parseBankXml(xml, { date: "f1", description: "f2", amount: "f3" });
+    const manual = await parseBankXml(xml, { date: "f1", description: "f2", amount: "f3" });
     expect(manual.lines).toHaveLength(2);
     expect(manual.lines[0].description).toBe("COBRO");
   });
 
-  it("reporta el movimiento inválido sin romper el resto", () => {
+  it("reporta el movimiento inválido sin romper el resto", async () => {
     const xml = `<root>
       <mov fecha="2026-07-01" concepto="OK" importe="100"/>
       <mov fecha="no-fecha" concepto="MALA" importe="50"/>
       <mov fecha="2026-07-04" concepto="CERO" importe="0"/>
     </root>`;
-    const r = parseBankXml(xml);
+    const r = await parseBankXml(xml);
     expect(r.lines).toHaveLength(1);
     expect(r.errors).toHaveLength(2);
   });
 
-  it("maneja XML mal formado y XML sin movimientos", () => {
-    expect(parseBankXml("<root><a>").lines).toHaveLength(0);
-    expect(parseBankXml("<root><solo fecha='2026-07-01'/></root>").errors[0]).toMatch(/movimientos/i);
+  it("maneja XML mal formado y XML sin movimientos", async () => {
+    expect((await parseBankXml("<root><a>")).lines).toHaveLength(0);
+    expect((await parseBankXml("<root><solo fecha='2026-07-01'/></root>")).errors[0]).toMatch(/movimientos/i);
   });
 
-  it("genera el mismo hash que el CSV para el mismo movimiento", () => {
+  it("genera el mismo hash que el CSV para el mismo movimiento", async () => {
     const xml = `<root>
       <mov fecha="2026-07-01" concepto="SPEI RECIBIDO ACME" deposito="1500.50" retiro="0.00" referencia="0012345"/>
       <mov fecha="2026-07-02" concepto="OTRO" deposito="10.00" retiro="0.00" referencia="X"/>
     </root>`;
     const csv = "01/07/2026,SPEI RECIBIDO ACME,0.00,1500.50,0012345\n02/07/2026,OTRO,0.00,10.00,X";
-    const fromXml = parseBankXml(xml).lines[0];
-    const fromCsv = parseBankCsv(csv, "bbva").lines[0];
+    const fromXml = (await parseBankXml(xml)).lines[0];
+    const fromCsv = (await parseBankCsv(csv, "bbva")).lines[0];
     expect(fromXml.hash).toBe(fromCsv.hash);
   });
 });

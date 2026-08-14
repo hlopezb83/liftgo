@@ -4,6 +4,7 @@ import { z } from "zod";
 import { DataTableV2, useLiftgoTable } from "@/components/dataTable/v2";
 import { TextareaField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form } from "@/components/ui/form";
@@ -104,9 +105,7 @@ export function PaymentIntentsSection({ invoiceId }: Props) {
               placeholder="Motivo del rechazo (visible para el cliente)"
             />
             <FormDialogFooter>
-              <Button type="button" variant="outline" onClick={() => setRejectId(null)}>
-                Cancelar
-              </Button>
+              <FormDialogCancelButton onCancel={() => setRejectId(null)} disabled={review.isPending} />
               <Button
                 type="submit"
                 variant="destructive"

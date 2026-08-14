@@ -43,7 +43,7 @@ export default function ForkliftDetail() {
   const availability = forklift && bookings ? computeFleetAvailability([forklift], bookings) : null;
   const displayStatus = deriveForkliftDisplayStatus(forklift, availability);
   const { data: financials, isLoading: loadingFinancials } = useForkliftFinancials(id);
-  const { data: locationData } = useForkliftLocation(id);
+  const { data: locationData, isError: locationError } = useForkliftLocation(id);
   const deleteForklift = useDeleteForklift();
   const [deleteOpen, setDeleteOpen] = useState(false);
 
@@ -106,7 +106,7 @@ export default function ForkliftDetail() {
 
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <ForkliftSpecsCard forklift={forklift} currentLocation={locationData} />
+        <ForkliftSpecsCard forklift={forklift} currentLocation={locationData} locationError={locationError} />
         <ForkliftRatesCard forklift={forklift} />
       </div>
 

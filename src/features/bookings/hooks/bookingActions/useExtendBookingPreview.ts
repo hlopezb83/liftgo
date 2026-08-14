@@ -1,7 +1,8 @@
 import { useForklifts } from "@/features/fleet";
-import { generateLineItems, computeTotals } from "@/lib/domain/invoiceHelpers";
+import { computeTotals } from "@/lib/domain/invoiceHelpers";
 import { toYMD } from "@/lib/format/dateFormats";
 import { DEFAULT_VAT_RATE } from "@/lib/money";
+import { buildExtensionLineItems } from "../../lib/extensionBilling";
 import type { BookingWithForklift } from "../bookings/useBookings";
 
 /**
@@ -31,7 +32,22 @@ export function useExtendBookingPreview(
       weekly_rate: booking.weekly_rate ?? forklift.weekly_rate,
       monthly_rate: booking.monthly_rate ?? forklift.monthly_rate,
     };
-    const items = generateLineItems(ratedForklift, booking.start_date, endYMD);
+    // Fix 8.3: el preview debe cobrar sólo el tramo extendido
+    // (`original_end_date + 1` … `new_end_date`), igual que la factura real,
+    // no la renta completa desde `start_date`.
+    const items = buildExtensionLineItems({
+      originalEndDate: booking.end_date,
+      newEndDate: endYMD,
+      forkliftRates: {
+        daily_rate: ratedForklift.daily_rate,
+        weekly_rate: ratedForklift.weekly_rate,
+        monthly_rate: ratedForklift.monthly_rate,
+      },
+      bookingMonthlyRate: booking.monthly_rate,
+      forkliftName: forklift.name,
+      serialNumber: forklift.serial_number,
+    });
+    if (items.length === 0) return null;
     const totals = computeTotals(items, DEFAULT_VAT_RATE * 100);
     // R9 Bloque 3: propagamos el código de moneda para que el preview lo
     // formatee explícitamente. Hoy `bookings` no persiste moneda propia

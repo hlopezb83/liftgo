@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useStatementUpload } from "../hooks/useStatementUpload";
+import { notifyError } from "@/lib/ui/appFeedback";
+import { MAX_FILE_SIZE_BYTES, useStatementUpload } from "../hooks/useStatementUpload";
 import { CSV_PROFILES, CSV_PROFILE_LABELS, type StatementProfile } from "../lib/bankReconciliationConstants";
 import { BankStatementPreview } from "./BankStatementPreview";
 import { BankXmlFieldMapper } from "./BankXmlFieldMapper";
@@ -19,7 +20,23 @@ function BankFilePicker({ file, onChange }: { file: File | null; onChange: (f: F
         type="file"
         accept=".csv,.xml,text/csv,text/xml,application/xml"
         className="hidden"
-        onChange={(e) => { onChange(e.target.files?.[0] ?? null); e.target.value = ""; }}
+        onChange={(e) => {
+          const picked = e.target.files?.[0] ?? null;
+          e.target.value = "";
+          // Fix 6.3: defensa doble — validar tamaño también en el picker, antes
+          // de que `analyze()` intente leer el archivo completo en memoria.
+          if (picked && picked.size > MAX_FILE_SIZE_BYTES) {
+            notifyError({
+              title: "Archivo demasiado grande",
+              description: "El estado de cuenta excede 10 MB; divídelo por período.",
+              phase: "parseBankStatement",
+              severity: "warning",
+              context: { fileName: picked.name, fileSize: picked.size },
+            });
+            return;
+          }
+          onChange(picked);
+        }}
       />
       <Button type="button" variant="outline" onClick={() => ref.current?.click()} className="justify-start">
         <UploadIcon className="h-4 w-4 mr-2" />

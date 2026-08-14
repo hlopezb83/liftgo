@@ -84,7 +84,7 @@ Deno.serve(async (req) => {
     });
 
     if (resetErr) {
-      console.error("Password reset email error:", resetErr.message);
+      console.error("Password reset email failed", { code: (resetErr as { code?: string }).code ?? "unknown", status: (resetErr as { status?: number }).status ?? 0 });
     }
 
     return jsonResponse(req, { success: true, user_id: userId });

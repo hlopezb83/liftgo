@@ -4,7 +4,6 @@ import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { WarnIcon, SpinnerIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 import { Form } from "@/components/ui/form";
 import { useCustomers } from "@/features/customers";
 import { useForklifts } from "@/features/fleet";
@@ -37,13 +36,11 @@ export function ReportDamageDialog() {
   ];
 
   return (
-    <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) reset(); }}>
-      <DialogTrigger asChild>
-        <Button>
-          <WarnIcon className="h-4 w-4 mr-2" />
-          Reportar daño
-        </Button>
-      </DialogTrigger>
+    <>
+      <Button onClick={() => setOpen(true)}>
+        <WarnIcon className="h-4 w-4 mr-2" />
+        Reportar daño
+      </Button>
       <FormDialog
       isPending={isProcessing}
       isDirty={form.formState.isDirty || previews.length > 0}
@@ -93,6 +90,6 @@ export function ReportDamageDialog() {
           </form>
         </Form>
       </FormDialog>
-    </Dialog>
+    </>
   );
 }

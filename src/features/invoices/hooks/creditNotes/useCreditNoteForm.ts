@@ -49,9 +49,32 @@ export function useCreditNoteForm(
     setLines(original.map((li) => ({ ...li, _selected: true })));
   };
 
+  // Fix 8.1: cap por línea contra la factura original. Sin esto se puede
+  // subir cantidad/precio de una línea por encima de lo facturado (y
+  // des-seleccionar otra) para "colar" un importe mayor al credited real.
   const updateLine = (idx: number, patch: Partial<EditableCreditNoteLine>) => {
-    setLines((prev) => prev.map((l, i) => (i === idx ? { ...l, ...patch } : l)));
+    setLines((prev) =>
+      prev.map((l, i) => {
+        if (i !== idx) return l;
+        const merged = { ...l, ...patch };
+        const src = original[idx];
+        if (!src) return merged;
+        if (patch.quantity !== undefined) {
+          merged.quantity = Math.min(Number(patch.quantity) || 0, Number(src.quantity) || 0);
+        }
+        if (patch.unit_price !== undefined) {
+          merged.unit_price = Math.min(Number(patch.unit_price) || 0, Number(src.unit_price) || 0);
+        }
+        return merged;
+      }),
+    );
   };
+
+  /** Máximo facturado por línea (para hints "Máximo: N unidades facturadas"). */
+  const lineMax = (idx: number) => ({
+    quantity: Number(original[idx]?.quantity) || 0,
+    unit_price: Number(original[idx]?.unit_price) || 0,
+  });
 
   const submit = (stamp: boolean) => {
     const selectedLines = lines
@@ -88,7 +111,7 @@ export function useCreditNoteForm(
   };
 
   return {
-    motive, setMotive, reason, setReason, lines, updateLine,
+    motive, setMotive, reason, setReason, lines, updateLine, lineMax,
     taxRate, subtotal, taxAmount, total, exceedsMax, canSubmit,
     isPending: createMutation.isPending,
     submit, reset,

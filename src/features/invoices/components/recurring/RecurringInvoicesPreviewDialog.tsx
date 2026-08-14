@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatMonthLongEs } from "@/lib/format/formatMonthEs";
@@ -116,9 +117,7 @@ export function RecurringInvoicesPreviewDialog({
       />
 
       <FormDialogFooter>
-        <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isGenerating}>
-          Cancelar
-        </Button>
+        <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={isGenerating} />
         <Button
           onClick={() => onConfirm(Array.from(selected))}
           disabled={isLoading || isGenerating || selectedCount === 0}

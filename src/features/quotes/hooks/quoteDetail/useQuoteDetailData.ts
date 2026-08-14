@@ -34,28 +34,33 @@ export function useQuoteDetailData(id: string | undefined) {
   const { data: forklifts } = useForklifts();
   const { data: equipmentModels } = useEquipmentModels();
 
-  const { data: linkedBookings } = useQuery({
+  const { data: linkedBookings, isError: isBookingsError } = useQuery({
     queryKey: bookingKeys.byFilter({ quote_id: id ?? "" }),
     enabled: !!id,
     queryFn: async () => {
-      const { data } = await supabase.from("bookings").select("id").eq("quote_id", id ?? "");
+      const { data, error } = await supabase.from("bookings").select("id").eq("quote_id", id ?? "");
+      if (error) throw error;
       return data || [];
     },
   });
-  const alreadyConverted = (linkedBookings?.length ?? 0) > 0;
+  // Fix 5.2: si la query falla, no hay certeza de que la cotización NO esté
+  // convertida — se trata como "ya convertida" para bloquear el botón en vez
+  // de habilitarlo por defecto (evita duplicados por fallas de red).
+  const alreadyConverted = (linkedBookings?.length ?? 0) > 0 || isBookingsError;
 
-  const { data: linkedInvoices } = useQuery({
+  const { data: linkedInvoices, isError: isInvoicesError } = useQuery({
     queryKey: invoiceKeys.byFilter({ quote_id: id ?? "" }),
     enabled: !!id,
     queryFn: async () => {
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from("invoices")
         .select("id,status")
         .eq("quote_id", id ?? "");
+      if (error) throw error;
       return data || [];
     },
   });
-  const alreadyInvoiced = (linkedInvoices ?? []).some((i) => i.status !== "cancelled");
+  const alreadyInvoiced = (linkedInvoices ?? []).some((i) => i.status !== "cancelled") || isInvoicesError;
 
 
   const customerMatch = customers?.find((c) => c.id === quote?.customer_id);

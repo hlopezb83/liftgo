@@ -85,27 +85,39 @@ export function parseAmount(value: string): number | null {
 }
 
 
-/** Hash estable e idéntico entre CSV y XML para deduplicar reimportaciones. */
-export function hashLine(parts: string[]): string {
-  let h = 0;
-  const s = parts.join("|");
-  for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0;
-  return Math.abs(h).toString(36);
+/**
+ * Hash SHA-256 (Web Crypto) truncado a 20 hex chars (80 bits) — suficiente
+ * para evitar colisiones prácticas incluso con decenas de miles de
+ * movimientos por cuenta.
+ *
+ * Fix 6.2: el hash anterior era un hash de 32 bits (`h * 31 + charCode`) con
+ * `Math.abs`, que colisionaba con volúmenes moderados de movimientos y
+ * descartaba en silencio líneas legítimas vía el upsert con
+ * `ignoreDuplicates`. SHA-256 es criptográficamente robusto contra
+ * colisiones y async por naturaleza (Web Crypto no expone versión síncrona).
+ */
+export async function hashLine(parts: string[]): Promise<string> {
+  const data = new TextEncoder().encode(parts.join("|"));
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  const hex = Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  return hex.slice(0, 20);
 }
 
-export function buildLine(input: {
+export async function buildLine(input: {
   postedDate: string;
   description: string;
   signedAmount: number;
   reference: string | null;
-}): ParsedBankLine {
+}): Promise<ParsedBankLine> {
   const { postedDate, description, signedAmount, reference } = input;
   return {
     posted_date: postedDate,
     description,
     signed_amount: signedAmount,
     reference,
-    hash: hashLine([postedDate, signedAmount.toFixed(2), reference ?? "", description.slice(0, 80)]),
+    hash: await hashLine([postedDate, signedAmount.toFixed(2), reference ?? "", description.slice(0, 80)]),
   };
 }
 

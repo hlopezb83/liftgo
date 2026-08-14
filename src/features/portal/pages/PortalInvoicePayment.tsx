@@ -7,6 +7,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
   usePortalInvoices,
   usePortalPayments,
@@ -28,28 +29,31 @@ function PortalIntentsTable({ intents }: { intents: Intent[] }) {
     <Card>
       <CardHeader><CardTitle className="text-base">Reportes anteriores</CardTitle></CardHeader>
       <CardContent className="p-0">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="text-xs text-muted-foreground bg-muted/40">
-              <tr>
-                <th className="text-left px-3 py-2">Fecha</th>
-                <th className="text-left px-3 py-2">Monto</th>
-                <th className="text-left px-3 py-2">Rastreo</th>
-                <th className="text-left px-3 py-2">Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {intents.map((i, idx) => (
-                <tr key={i.id} className={idx % 2 ? "bg-muted/20" : ""}>
-                  <td className="px-3 py-2">{formatDateDisplay(i.transfer_date)}</td>
-                  <td className="px-3 py-2 font-mono">{formatCurrency(Number(i.amount))}</td>
-                  <td className="px-3 py-2 font-mono">{i.tracking_key ?? "—"}</td>
-                  <td className="px-3 py-2">{intentStatusLabel(i.status)}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Fecha</TableHead>
+              <TableHead>Monto</TableHead>
+              <TableHead>Rastreo</TableHead>
+              <TableHead>Estado</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {intents.map((i) => (
+              <TableRow key={i.id}>
+                <TableCell>{formatDateDisplay(i.transfer_date)}</TableCell>
+                <TableCell className="font-mono">{formatCurrency(Number(i.amount))}</TableCell>
+                <TableCell
+                  className="font-mono max-w-[10rem] truncate"
+                  title={i.tracking_key ?? undefined}
+                >
+                  {i.tracking_key ?? "—"}
+                </TableCell>
+                <TableCell>{intentStatusLabel(i.status)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </CardContent>
     </Card>
   );

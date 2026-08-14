@@ -68,14 +68,31 @@ export async function aiChatCompletion(
   if (typeof opts.temperature === "number") body.temperature = opts.temperature;
   if (typeof opts.maxTokens === "number") body.max_tokens = opts.maxTokens;
 
-  const resp = await fetch(AI_ENDPOINT, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(body),
-  });
+  let resp: Response;
+  try {
+    resp = await fetch(AI_ENDPOINT, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
+      // Defensa: el gateway puede colgarse; abortamos a los 20s.
+      signal: AbortSignal.timeout(20_000),
+    });
+  } catch (err) {
+    if (err instanceof DOMException && err.name === "TimeoutError") {
+      throw new AiGatewayError(
+        504,
+        "El servicio de clasificación no respondió; intenta de nuevo",
+      );
+    }
+    throw new AiGatewayError(
+      502,
+      "No se pudo contactar el servicio de IA",
+      err instanceof Error ? err.message : String(err),
+    );
+  }
 
   if (!resp.ok) {
     const errText = await resp.text().catch(() => "");

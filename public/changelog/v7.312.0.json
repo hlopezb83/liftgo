@@ -1,0 +1,13 @@
+{
+  "version": "7.312.0",
+  "date": "2026-08-14",
+  "type": "minor",
+  "title": "Sprint 6: conciliación bancaria y flujo de efectivo",
+  "category": "correcciones",
+  "changes": [
+    "Los estados de cuenta se identifican con huella digital (SHA-256) para evitar cargar dos veces el mismo archivo.",
+    "Límites de carga: máximo 10 MB y 50,000 líneas por archivo, con aviso claro al usuario.",
+    "Las sugerencias de conciliación consideran la moneda y descartan candidatos sin tipo de cambio registrado.",
+    "El flujo de efectivo calcula los saldos en la moneda del documento."
+  ]
+}

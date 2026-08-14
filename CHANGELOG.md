@@ -1,3 +1,51 @@
+## 7.316.0 - 2026-08-14
+
+**Correcciones — Sprint 10: accesibilidad y pulido visual**
+- Se agregaron esqueletos de carga para evitar saltos de contenido.
+- Los semáforos de flujo de efectivo tienen descripción en español para lectores de pantalla.
+- Controles de línea de tiempo y tablas con nombres accesibles.
+- Las tablas del portal de clientes usan el mismo componente compartido del resto de la app.
+
+## 7.315.0 - 2026-08-14
+
+**Correcciones — Sprint 9: seguridad de funciones, cargas y datos personales**
+- Las llamadas a la IA tienen límite de 20 segundos y avisan cuando el servicio no responde.
+- El logo de la empresa solo acepta PNG, JPG o WebP hasta 2 MB.
+- Los registros técnicos de invitación y restablecimiento de contraseña ya no guardan datos personales.
+- La clasificación automática de reportes está protegida contra instrucciones maliciosas en el texto del usuario.
+- Todas las funciones llamadas desde la app exigen sesión válida, y los enlaces a sitios de proveedores se fuerzan a HTTPS.
+
+## 7.314.0 - 2026-08-14
+
+**Correcciones — Sprint 8: reglas de facturación en notas de crédito y extensiones**
+- Cada línea de una nota de crédito tiene tope por cantidad y precio facturado, y ahora se muestra el máximo permitido debajo de cada campo.
+- No se pueden registrar pagos de facturas con cancelación pendiente ante el SAT.
+- La vista previa de extensión cobra solo el periodo extendido y coincide centavo a centavo con la factura generada.
+- Una extensión de 28 o 29 días se prorratea en vez de cobrar un mes completo; un mes calendario cerrado sí se cobra como mes.
+
+## 7.313.0 - 2026-08-14
+
+**Correcciones — Sprint 7: consistencia de formularios y kanban de CRM**
+- Todos los diálogos usan el mismo botón de Cancelar, con el mismo comportamiento (~26 pantallas).
+- El diálogo de reportar daño ya no duplica su contenedor, evitando saltos visuales.
+- Mover tarjetas en el kanban de CRM usa una operación atómica en la base: dos usuarios simultáneos ya no desordenan las etapas.
+
+## 7.312.0 - 2026-08-14
+
+**Correcciones — Sprint 6: conciliación bancaria y flujo de efectivo**
+- Los estados de cuenta se identifican con huella digital (SHA-256) para evitar cargar dos veces el mismo archivo.
+- Límites de carga: máximo 10 MB y 50,000 líneas por archivo, con aviso claro al usuario.
+- Las sugerencias de conciliación consideran la moneda y descartan candidatos sin tipo de cambio registrado.
+- El flujo de efectivo calcula los saldos en la moneda del documento.
+
+## 7.311.0 - 2026-08-14
+
+**Correcciones — Sprint 5: integridad de datos en daños, cotizaciones y comprobantes**
+- El monto de la factura por daños se toma del reporte guardado en la base, no del enlace, así nadie puede alterarlo desde la URL.
+- Si falla la conversión de una cotización a reserva, ahora se muestra el error real en pantalla en vez de fallar en silencio.
+- Los comprobantes de pago se validan (tipo y tamaño de archivo) antes de subirse.
+- Una extensión de reserva solo puede facturarse una vez: la base de datos lo impide con un índice único.
+
 ## 7.310.0 - 2026-08-14
 
 **Correcciones — Sprint 4: máquinas de estado (contratos, facturas, CxP y unidades)**

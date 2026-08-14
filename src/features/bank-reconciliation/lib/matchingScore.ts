@@ -7,9 +7,9 @@
 //   referencia parcial (substring) → 15 pts
 
 export interface ScoreInput {
-  /** Monto absoluto del pago (positivo). */
+  /** Monto absoluto del pago (positivo), en la moneda ORIGINAL del pago. */
   paymentAmount: number;
-  /** Monto absoluto de la línea bancaria (positivo). */
+  /** Monto absoluto de la línea bancaria (positivo), en la moneda de la cuenta. */
   lineAmount: number;
   /** Fecha del pago YYYY-MM-DD. */
   paymentDate: string;
@@ -19,6 +19,12 @@ export interface ScoreInput {
   paymentReference: string | null;
   /** Texto bruto de la línea bancaria (descripción + referencia). */
   lineText: string | null;
+  /** Moneda del pago (p.ej. "USD"). Si se omite, se asume igual a la de la cuenta. */
+  paymentCurrency?: string | null;
+  /** Moneda de la cuenta bancaria del estado de cuenta. */
+  accountCurrency?: string | null;
+  /** Tipo de cambio del pago (moneda pago → moneda cuenta). */
+  paymentExchangeRate?: number | string | null;
 }
 
 const AMOUNT_TOLERANCE = 0.01;
@@ -34,8 +40,26 @@ function daysBetween(a: string, b: string): number {
   return Math.round(Math.abs(da - db) / 86_400_000);
 }
 
+/**
+ * Convierte `paymentAmount` a la moneda de la cuenta bancaria, replicando la
+ * regla del RPC `get_bank_match_candidates` (Fix 6.1):
+ *   v_amount = currency === accountCurrency ? amount : amount * exchange_rate
+ * Si las monedas difieren y no hay exchange_rate, no matchea (no se asume
+ * un TC implícito de 1:1).
+ */
+function convertPaymentAmount(input: ScoreInput): number | null {
+  const paymentCurrency = (input.paymentCurrency ?? input.accountCurrency ?? "MXN").toUpperCase();
+  const accountCurrency = (input.accountCurrency ?? paymentCurrency).toUpperCase();
+  if (paymentCurrency === accountCurrency) return input.paymentAmount;
+  const rate = Number(input.paymentExchangeRate ?? NaN);
+  if (!Number.isFinite(rate) || rate <= 0) return null;
+  return input.paymentAmount * rate;
+}
+
 export function computeMatchScore(input: ScoreInput): number {
-  const amountDiff = Math.abs(input.paymentAmount - input.lineAmount);
+  const convertedAmount = convertPaymentAmount(input);
+  if (convertedAmount === null) return 0;
+  const amountDiff = Math.abs(convertedAmount - input.lineAmount);
   if (amountDiff > AMOUNT_TOLERANCE) return 0;
 
   const dDiff = daysBetween(input.paymentDate, input.lineDate);

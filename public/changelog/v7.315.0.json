@@ -1,0 +1,14 @@
+{
+  "version": "7.315.0",
+  "date": "2026-08-14",
+  "type": "minor",
+  "title": "Sprint 9: seguridad de funciones, cargas y datos personales",
+  "category": "correcciones",
+  "changes": [
+    "Las llamadas a la IA tienen límite de 20 segundos y avisan cuando el servicio no responde.",
+    "El logo de la empresa solo acepta PNG, JPG o WebP hasta 2 MB.",
+    "Los registros técnicos de invitación y restablecimiento de contraseña ya no guardan datos personales.",
+    "La clasificación automática de reportes está protegida contra instrucciones maliciosas en el texto del usuario.",
+    "Todas las funciones llamadas desde la app exigen sesión válida, y los enlaces a sitios de proveedores se fuerzan a HTTPS."
+  ]
+}

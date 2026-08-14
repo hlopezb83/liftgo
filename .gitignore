@@ -27,3 +27,8 @@ dist-ssr
 /reports/
 playwright-report/
 test-results/
+
+# Variables de entorno locales
+.env
+.env.local
+!.env.example

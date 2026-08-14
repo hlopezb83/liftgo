@@ -77,12 +77,19 @@ export function useBookingExtension(extensionId?: string) {
 export function useMarkExtensionBilled() {
   return useEntityMutation({
     mutationFn: async (vars: { extensionId: string; bookingId: string; invoiceId: string }) => {
-      const { error } = await supabase
+      // Fix 5.4: UPDATE condicional — si otra pestaña/proceso ya ligó una
+      // factura a esta extensión, `.is("invoice_id", null)` no afecta filas y
+      // lanzamos error explícito en vez de dejarlo pasar en silencio.
+      const { data, error } = await supabase
         .from("booking_extensions")
         .update({ invoice_id: vars.invoiceId, billed_at: new Date().toISOString() })
         .eq("id", vars.extensionId)
-        .is("invoice_id", null);
+        .is("invoice_id", null)
+        .select("id");
       if (error) throw error;
+      if (!data || data.length === 0) {
+        throw new Error("Esta extensión ya fue facturada");
+      }
       return vars;
     },
     invalidateKeysFn: (_d, vars) => [bookingKeys.extensions(vars.bookingId), bookingKeys.all],

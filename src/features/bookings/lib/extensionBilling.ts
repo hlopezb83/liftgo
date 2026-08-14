@@ -95,12 +95,15 @@ export function buildExtensionLineItems({
   if (!range) return [];
 
   const rates = resolveExtensionRates(forkliftRates, bookingMonthlyRate);
+  // Fix 8.4: isExtension=true evita que el cap BL-15 cobre "mes completo"
+  // sobre un tramo que ya es, por definición, adicional a una renta base.
   const items = calculateRentalCost(
     rates.daily,
     rates.weekly,
     rates.monthly,
     parseYmdNoon(range.start),
     parseYmdNoon(range.end),
+    true,
   );
 
   const prefix = forkliftName ? `${forkliftName} — ` : "";

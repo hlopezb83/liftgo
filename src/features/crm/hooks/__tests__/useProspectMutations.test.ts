@@ -31,6 +31,11 @@ let selectResp: { data: unknown; error: { message: string } | null } = {
   data: [{ stage_order: 4 }],
   error: null,
 };
+// R23-H: el orden lo calcula la RPC atómica `next_stage_order`.
+let nextOrderResp: { data: unknown; error: { message: string } | null } = {
+  data: 5,
+  error: null,
+};
 let insertResp: { data: unknown; error: { message: string } | null } = {
   data: { id: "p-1", stage_order: 5 },
   error: null,
@@ -63,6 +68,9 @@ vi.mock("@/integrations/supabase/client", () => ({
         return selectResp;
       },
     },
+    rpcResolvers: {
+      next_stage_order: () => nextOrderResp,
+    },
   }),
 }));
 
@@ -79,13 +87,14 @@ beforeEach(() => {
   toastSuccess.mockReset();
   notifyErrorMock.mockReset();
   selectResp = { data: [{ stage_order: 4 }], error: null };
+  nextOrderResp = { data: 5, error: null };
   insertResp = { data: { id: "p-1", stage_order: 5 }, error: null };
   updateResp = { data: { id: "p-1" }, error: null };
   deleteResp = { data: null, error: null };
 });
 
 describe("useCreateProspect", () => {
-  it("calcula stage_order = max existente + 1", async () => {
+  it("usa el stage_order que devuelve la RPC atómica", async () => {
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useCreateProspect(), { wrapper: Wrapper });
 
@@ -104,8 +113,8 @@ describe("useCreateProspect", () => {
     expect(toastSuccess).toHaveBeenCalledWith("Prospecto creado");
   });
 
-  it("cuando la columna está vacía usa stage_order = 0", async () => {
-    selectResp = { data: [], error: null };
+  it("cuando la columna está vacía la RPC devuelve 0", async () => {
+    nextOrderResp = { data: 0, error: null };
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useCreateProspect(), { wrapper: Wrapper });
 
