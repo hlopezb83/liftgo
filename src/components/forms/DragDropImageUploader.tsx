@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { UploadIcon, X, SpinnerIcon, ImageIcon } from "@/components/icons";
-import { useUploadDocument } from "@/hooks/useDocuments";
 import { Button } from "@/components/ui/button";
+import { useUploadDocument } from "@/hooks/useDocuments";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { cn } from "@/lib/utils";
 

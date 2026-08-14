@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Skeleton } from "@/components/ui/skeleton";
 import { useSidebar } from "@/components/ui/sidebar";
+import { Skeleton } from "@/components/ui/skeleton";
 import { useRolePermissions, useUserRole } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 

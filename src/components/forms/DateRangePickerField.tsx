@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { MaskedDateInput } from "@/components/forms/MaskedDateInput";
 import { CalendarIcon } from "@/components/icons";
-import { RequiredMark } from "./RequiredMark";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -17,6 +16,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { formatMtyCalendarDate } from "@/lib/date/mtyCalendarDate";
 import { cn, nowMty } from "@/lib/utils";
 import { isPartialRange, nextRangeState, normalizeRange } from "./dateRangeState";
+import { RequiredMark } from "./RequiredMark";
 import type { DateRange } from "react-day-picker";
 
 interface DateRangePickerFieldProps {
