@@ -1,5 +1,11 @@
 [
   {
+    "version": "7.320.8",
+    "date": "2026-08-14",
+    "title": "Descuento fijo ($>100) en partidas ya no se bloquea al facturar",
+    "description": "El schema de partidas de factura usaba .max(100) en el descuento sin distinguir el tipo. Un descuento fijo (00) heredado de una cotización válida se rechazaba con \"El descuento no puede exceder 100%\". Ahora el tope de 100 solo aplica a descuentos porcentuales (%), igualando el comportamiento del schema de cotizaciones y de la capa de dominio. Se añadieron pruebas de regresión."
+  },
+  {
     "version": "7.320.7",
     "date": "2026-08-14",
     "title": "Cotización exenta (0% IVA) ya no se factura con 16%",
