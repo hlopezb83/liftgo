@@ -53,7 +53,7 @@ export function LogoUploader({ logoUrl, onChange }: Props) {
           )}
         </div>
       </div>
-      <p className="text-xs text-muted-foreground">JPG, PNG, WebP o SVG. Máximo 2MB.</p>
+      <p className="text-xs text-muted-foreground">JPG, PNG o WebP. Máximo 2MB.</p>
     </div>
   );
 }

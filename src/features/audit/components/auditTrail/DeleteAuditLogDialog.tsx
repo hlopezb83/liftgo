@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { FormDialog } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { WarnIcon, UndoIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -82,9 +83,7 @@ export function DeleteAuditLogDialog({ log, isReverting, onClose, onRevert }: Pr
           </div>
 
           <div className="flex justify-end">
-            <Button variant="ghost" disabled={isPending} onClick={onClose}>
-              Cancelar
-            </Button>
+            <FormDialogCancelButton onCancel={onClose} disabled={isPending} />
           </div>
         </div>
       )}

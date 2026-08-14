@@ -10,6 +10,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useServerTodayMty } from "@/features/availability";
 import { computeFleetAvailability, deriveForkliftDisplayStatus } from "@/features/availability/utils/fleetAvailability";
 import { useBookings } from "@/features/bookings";
 import { DamagePhotosSection } from "@/features/damage";
@@ -40,7 +41,8 @@ export default function ForkliftDetail() {
   // R9-FE: mismo criterio operativo que FleetPage — el `status` crudo se
   // desincroniza (available con reserva vigente, o rented sin ella). El badge
   // del detalle debe reflejar la disponibilidad derivada, no el status crudo.
-  const availability = forklift && bookings ? computeFleetAvailability([forklift], bookings) : null;
+  const todayYmd = useServerTodayMty();
+  const availability = forklift && bookings ? computeFleetAvailability([forklift], bookings, todayYmd) : null;
   const displayStatus = deriveForkliftDisplayStatus(forklift, availability);
   const { data: financials, isLoading: loadingFinancials } = useForkliftFinancials(id);
   const { data: locationData, isError: locationError } = useForkliftLocation(id);

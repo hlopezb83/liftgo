@@ -4,14 +4,13 @@ import { useMemo } from "react";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ChevronRightIcon } from "@/components/icons";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
-import { computeFleetAvailability } from "@/features/availability/utils/fleetAvailability";
+import { computeFleetAvailability, useServerTodayMty } from "@/features/availability";
 import type { BookingWithForklift } from "@/features/bookings";
 import { RecurringBillingBadge } from "@/features/bookings";
 import { rentalDaysInclusive } from "@/features/bookings";
 import type { Tables } from "@/integrations/supabase/types";
 import { BOOKING_STATUS } from "@/lib/constants";
-import { toYMD } from "@/lib/date/toYMD";
-import { nowMty, formatMtyDate } from "@/lib/utils";
+import { formatMtyDate } from "@/lib/utils";
 
 type Forklift = Tables<"forklifts">;
 
@@ -50,13 +49,14 @@ export function EquipmentListView({ forklifts, bookings }: EquipmentListViewProp
   // día de la renta (end_date a medianoche < ahora) y el badge "Activa".
   // B-13: NO memoizar con [] — congelaba "hoy" para siempre en sesiones
   // largas (SPA abierta de un día a otro). Se calcula en cada render.
-  const todayYmd = toYMD(nowMty()) as string;
+  // R10.9: fecha del servidor; el fallback al reloj local vive dentro del hook.
+  const todayYmd = useServerTodayMty();
   // R7-FE-01 (N7-UX-02): el badge usa la MISMA definición derivada que el
   // encabezado del Calendario y el Panel (helper único), no `forklifts.status`
   // crudo, que el seed deja desincronizado. Sin reservas cargadas → status crudo.
   const rentedIds = useMemo(
-    () => (bookings ? computeFleetAvailability(forklifts, bookings)?.rentedForkliftIds : undefined),
-    [forklifts, bookings],
+    () => (bookings ? computeFleetAvailability(forklifts, bookings, todayYmd)?.rentedForkliftIds : undefined),
+    [forklifts, bookings, todayYmd],
   );
 
   return (

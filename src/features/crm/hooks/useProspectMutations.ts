@@ -13,15 +13,22 @@ export function useCreateProspect() {
       // R23-H: `next_stage_order` calcula el siguiente orden dentro de una
       // transacción con `pg_advisory_xact_lock`, eliminando la carrera de
       // concurrencia del patrón anterior (leer max, luego insertar).
-      const { data: nextOrder, error: orderError } = await supabase.rpc("next_stage_order", {
-        p_stage: p.stage,
-      });
-      if (orderError) throw orderError;
-      const { data, error } = await supabase
-        .from("prospects")
-        .insert({ ...p, stage_order: nextOrder as number })
-        .select()
-        .single();
+      // Cierre v7.319.0: el constraint UNIQUE (stage, stage_order) cierra la
+      // ventana entre el cálculo y el INSERT; ante 23505 se recalcula y se
+      // reintenta una sola vez.
+      const insertOnce = async () => {
+        const { data: nextOrder, error: orderError } = await supabase.rpc("next_stage_order", {
+          p_stage: p.stage,
+        });
+        if (orderError) throw orderError;
+        return supabase
+          .from("prospects")
+          .insert({ ...p, stage_order: nextOrder as number })
+          .select()
+          .single();
+      };
+      let { data, error } = await insertOnce();
+      if (error?.code === "23505") ({ data, error } = await insertOnce());
       if (error) throw error;
       return data;
     },
@@ -30,6 +37,7 @@ export function useCreateProspect() {
     errorTitle: "Error al crear prospecto",
   });
 }
+
 
 export function useUpdateProspect() {
   return useEntityMutation({

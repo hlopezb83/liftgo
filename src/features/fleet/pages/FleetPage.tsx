@@ -6,7 +6,7 @@ import { AddIcon, DownloadIcon, Forklift as ForkliftIcon } from "@/components/ic
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Button } from "@/components/ui/button";
 import { usePageActions } from "@/contexts/pageActions";
-import { computeFleetAvailability } from "@/features/availability/utils/fleetAvailability";
+import { computeFleetAvailability, useServerTodayMty } from "@/features/availability";
 import { useBookings } from "@/features/bookings";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
@@ -38,12 +38,13 @@ export default function FleetPage() {
   // R7-FE-01 (N7-UX-02): sin reservas cargadas NO remapeamos (rentedIds
   // undefined), para no mostrar un flash "Disponible" en unidades rented
   // mientras llega la query de bookings.
+  const todayYmd = useServerTodayMty();
   const rentedIds = useMemo(
     () =>
       fleetBookings
-        ? computeFleetAvailability(forklifts, fleetBookings)?.rentedForkliftIds
+        ? computeFleetAvailability(forklifts, fleetBookings, todayYmd)?.rentedForkliftIds
         : undefined,
-    [forklifts, fleetBookings],
+    [forklifts, fleetBookings, todayYmd],
   );
   // R7-FE-01: remap BIDIRECCIONAL — available→rented con reserva vigente
   // (ya existía) y rented→available SIN reserva vigente (MC-105/107/109).
