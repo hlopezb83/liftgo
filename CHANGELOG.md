@@ -1,3 +1,10 @@
+## 7.322.1 - 2026-08-14
+
+**Mantenimiento — Borrador de plan fuera de Git**
+- Los commits titulados "Update plan" contenían un solo archivo: `.lovable/plan.md`, el borrador que se reescribe en cada iteración del modo plan.
+- Se agregó `.lovable/plan.md` a `.gitignore` para dejar de versionarlo.
+- Los planes aprobados se siguen archivando en `.lovable/plan/` y permanecen versionados en el repositorio.
+
 ## 7.320.1 - 2026-08-14
 
 **Mejoras — Lote 3 de librerías: jest-dom 7 aplicado, jsdom 30 descartado**

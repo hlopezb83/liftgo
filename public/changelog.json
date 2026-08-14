@@ -1,5 +1,11 @@
 [
   {
+    "version": "7.322.1",
+    "date": "2026-08-14",
+    "title": "Borrador de plan fuera de Git",
+    "description": "Los commits ruidosos titulados 'Update plan' provenían de .lovable/plan.md, el borrador que se reescribe en cada iteración del modo plan. Se agregó a .gitignore para dejar de versionarlo; los planes aprobados siguen archivándose y versionándose en .lovable/plan/."
+  },
+  {
     "version": "7.322.0",
     "date": "2026-08-14",
     "title": "Captura rápida de fechas con teclado (DD/MM/AAAA)",
