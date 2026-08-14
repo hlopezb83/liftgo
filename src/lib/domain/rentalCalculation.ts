@@ -47,6 +47,18 @@ function buildDailyRemainder(
   };
 }
 
+function monthlyItems(monthlyRate: number, months: number): LineItem[] {
+  if (months <= 0) return [];
+  return [
+    {
+      description: "Renta mensual",
+      quantity: months,
+      unit_price: monthlyRate,
+      total: money(monthlyRate).multiply(months).value,
+    },
+  ];
+}
+
 function isClampedShortMonthEnd(
   months: number,
   remaining: number,
@@ -83,14 +95,7 @@ export function calculateRentalCost(
 
   const effectiveEnd = addDays(endDate, 1);
   const months = calcMonths(m, startDate, effectiveEnd);
-  if (months > 0) {
-    items.push({
-      description: "Renta mensual",
-      quantity: months,
-      unit_price: m,
-      total: money(m).multiply(months).value,
-    });
-  }
+  items.push(...monthlyItems(m, months));
 
   const remainderStart = months > 0 ? addMonths(startDate, months) : startDate;
   let remaining = Math.max(0, differenceInDays(effectiveEnd, remainderStart));
