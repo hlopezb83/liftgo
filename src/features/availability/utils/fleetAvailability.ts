@@ -24,13 +24,19 @@ export interface FleetAvailability {
 export function computeFleetAvailability(
   forklifts: ForkliftLike[] | undefined,
   bookings: BookingLike[] | undefined,
+  /**
+   * R10.9: fecha "hoy" (YYYY-MM-DD, TZ Monterrey) a usar como fuente única.
+   * Por defecto usa el reloj del navegador (`nowMty()`); los consumidores que
+   * quieran blindarse contra un reloj/TZ desconfigurado deben pasar la fecha
+   * obtenida del servidor (ver `useServerTodayMty`).
+   */
+  todayYmd: string = toYMD(nowMty()),
 ): FleetAvailability | null {
   if (!forklifts) return null;
 
   // M12: comparar por DÍA CALENDARIO (strings YYYY-MM-DD). Con timestamps, el
   // último día de renta quedaba "disponible" desde las 00:00 (off-by-one).
   // Convención LiftGo: rango inclusivo (daterange '[]' en Postgres).
-  const todayYmd = toYMD(nowMty()) as string;
   const rentedForkliftIds = new Set<string>();
   bookings?.forEach((b) => {
     if (b.status !== BOOKING_STATUS.confirmed) return;

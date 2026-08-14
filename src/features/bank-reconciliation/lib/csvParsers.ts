@@ -70,13 +70,13 @@ function expectedColumnsMessage(minCols: number, maxCols: number): string {
   return minCols === maxCols ? `${minCols}` : `entre ${minCols} y ${maxCols}`;
 }
 
-function parseRow(
+async function parseRow(
   r: string[],
   map: ColumnMap,
   idx: number,
   minCols: number,
   maxCols: number,
-): ParsedBankLine | string {
+): Promise<ParsedBankLine | string> {
   // R23-J: un importe con coma sin comillas ("1500,50") partía la fila y corría
   // las columnas en silencio, importando montos y fechas equivocados.
   // R24-F: también rechazamos filas con columnas de MÁS por el mismo motivo.
@@ -89,11 +89,11 @@ function parseRow(
   const signed = computeSigned(map, r);
   if (signed === null || signed === 0) return `Línea ${idx + 1}: monto inválido o cero`;
   const reference = map.reference !== undefined ? (r[map.reference] ?? "").trim() || null : null;
-  return buildLine({ postedDate, description, signedAmount: signed, reference });
+  return await buildLine({ postedDate, description, signedAmount: signed, reference });
 }
 
 
-export function parseBankCsv(content: string, profile: StatementProfile): ParseResult {
+export async function parseBankCsv(content: string, profile: StatementProfile): Promise<ParseResult> {
   const rows = splitCsv(content);
   const errors: string[] = [];
   const lines: ParsedBankLine[] = [];
@@ -103,6 +103,7 @@ export function parseBankCsv(content: string, profile: StatementProfile): ParseR
   }
   const map = PROFILE_HEADERS[profile] ?? PROFILE_HEADERS.generico;
   if (!map) return { lines, errors: ["Perfil no soportado"], periodStart: null, periodEnd: null };
+
 
   const minCols = requiredColumns(map);
   // R24-F: el perfil define el máximo de columnas (incluyendo la referencia
@@ -114,7 +115,7 @@ export function parseBankCsv(content: string, profile: StatementProfile): ParseR
     // Ignoramos celdas vacías al final (exportaciones que dejan la coma final).
     const row = [...rows[i]];
     while (row.length > maxCols && (row[row.length - 1] ?? "").trim() === "") row.pop();
-    const result = parseRow(row, map, i, minCols, maxCols);
+    const result = await parseRow(row, map, i, minCols, maxCols);
 
     if (typeof result === "string") { errors.push(result); continue; }
     lines.push(result);
