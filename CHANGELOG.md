@@ -1,3 +1,8 @@
+## 7.318.3 - 2026-08-14
+
+**Mejoras — Etiquetas de IA en español en el detalle de feedback**
+- El chip y el bloque de razonamiento del clasificador ahora dicen "IA" en vez de "AI".
+
 ## 7.318.2 - 2026-08-14
 
 **Mejoras — Cancelar en diálogos: mismo aviso de cambios sin guardar en toda la app**

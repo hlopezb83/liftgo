@@ -1,5 +1,15 @@
 [
   {
+    "version": "7.318.3",
+    "date": "2026-08-14",
+    "type": "patch",
+    "category": "mejoras",
+    "title": "Etiquetas de IA en español en el detalle de feedback",
+    "changes": [
+      "El chip y el bloque de razonamiento del clasificador ahora dicen \"IA\" en vez de \"AI\"."
+    ]
+  },
+  {
     "version": "7.318.2",
     "date": "2026-08-14",
     "type": "patch",
