@@ -77,9 +77,9 @@ export function calculateRentalCost(
   isExtension = false,
 ): LineItem[] {
   const items: LineItem[] = [];
-  const d = dailyRate || 0;
-  const w = weeklyRate || 0;
-  const m = monthlyRate || 0;
+  const d = dailyRate ?? 0;
+  const w = weeklyRate ?? 0;
+  const m = monthlyRate ?? 0;
 
   const effectiveEnd = addDays(endDate, 1);
   const months = calcMonths(m, startDate, effectiveEnd);
