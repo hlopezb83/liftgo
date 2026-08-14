@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { validateEditPaymentAmount } from "../EditPaymentDialog";
+import { validateEditPaymentAmount } from "../validateEditPaymentAmount";
 
 /**
  * M3-01: tope BL-11 al editar un pago — el monto nuevo no puede exceder el
