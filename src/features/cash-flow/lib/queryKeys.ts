@@ -53,6 +53,27 @@ export interface CashFlowProjectionResult {
   excludedOutOfHorizon: number;
 }
 
+/** F4: conteo HEAD de facturas activas sin fecha de vencimiento. */
+async function countInvoicesWithoutDueDate(): Promise<number> {
+  const res = await supabase.from("v_invoices_with_balance")
+    .select("id", { count: "exact", head: true })
+    .in("status", ACTIVE_INVOICE_STATUSES)
+    .is("due_date", null);
+  if (res.error) throw res.error;
+  return res.count ?? 0;
+}
+
+/** F4: conteo HEAD de cuentas por pagar activas sin fecha de vencimiento. */
+async function countBillsWithoutDueDate(): Promise<number> {
+  const res = await supabase.from("supplier_bills")
+    .select("id", { count: "exact", head: true })
+    .in("status", ACTIVE_BILL_STATUSES)
+    .in("approval_status", ["not_required", "approved"])
+    .is("due_date", null);
+  if (res.error) throw res.error;
+  return res.count ?? 0;
+}
+
 export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projection", {
   list: (filter?: Readonly<Record<string, unknown>>) => async (): Promise<CashFlowProjectionResult> => {
     const { weeks, initialBalance, safetyBuffer } = (filter ?? {}) as CashFlowProjectionFilter;
@@ -61,7 +82,7 @@ export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projecti
     // para construir `paidByInvoice` sobre las facturas activas listadas más
     // abajo. Ahora primero traemos las facturas/bills activas y filtramos los
     // pagos por su `invoice_id` → payload proporcional a lo que se proyecta.
-    const [invRes, billRes, invNoDueRes, billNoDueRes] = await Promise.all([
+    const [invRes, billRes, noDueInvoices, noDueBills] = await Promise.all([
       supabase.from("v_invoices_with_balance")
         .select("id, invoice_number, total, due_date, customer_name, moneda, tipo_cambio, credited_amount")
         .in("status", ACTIVE_INVOICE_STATUSES)
@@ -73,20 +94,11 @@ export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projecti
         .in("approval_status", ["not_required", "approved"])
         .not("due_date", "is", null)
         .returns<BillRow[]>(),
-      supabase.from("v_invoices_with_balance")
-        .select("id", { count: "exact", head: true })
-        .in("status", ACTIVE_INVOICE_STATUSES)
-        .is("due_date", null),
-      supabase.from("supplier_bills")
-        .select("id", { count: "exact", head: true })
-        .in("status", ACTIVE_BILL_STATUSES)
-        .in("approval_status", ["not_required", "approved"])
-        .is("due_date", null),
+      countInvoicesWithoutDueDate(),
+      countBillsWithoutDueDate(),
     ]);
     if (invRes.error) throw invRes.error;
     if (billRes.error) throw billRes.error;
-    if (invNoDueRes.error) throw invNoDueRes.error;
-    if (billNoDueRes.error) throw billNoDueRes.error;
 
     const activeInvoiceIds = (invRes.data ?? []).map((i) => i.id).filter(Boolean);
     let payments: PaymentRow[] = [];
@@ -114,7 +126,7 @@ export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projecti
     const todayYmd = format(today, "yyyy-MM-dd");
     return {
       buckets,
-      excludedNoDueDate: (invNoDueRes.count ?? 0) + (billNoDueRes.count ?? 0),
+      excludedNoDueDate: noDueInvoices + noDueBills,
       excludedOutOfHorizon: countOutOfHorizon(items, buildWeekBuckets(today, weeks), todayYmd),
     };
   },
