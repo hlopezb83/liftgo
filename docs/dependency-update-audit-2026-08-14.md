@@ -44,3 +44,13 @@ Verificación: `tsgo --noEmit` OK · `bun run lint` 0 warnings · `bunx vitest r
 - Actualizar por lotes con `bun add` explícito, nunca `ncu -u` masivo.
 - Verificación por lote: typecheck, lint, vitest, build.
 - Cada lote genera su propia entrada de changelog.
+
+## Lote 3 — resultado (v7.320.1)
+
+| Paquete | De | A | Resultado |
+| --- | --- | --- | --- |
+| `@testing-library/jest-dom` (dev) | 6.9.1 | 7.0.1 | **Aplicado.** Solo se usan `toBeInTheDocument` (109), `toBeDisabled` (5) y `toHaveTextContent` (2); todos siguen soportados en v7. |
+| `jsdom` (dev) | 26.1.0 | 30.0.1 | **Descartado, se mantiene 26.1.0.** Confirma el histórico de v7.29.1: `documents.smoke.test.tsx` falla con `TypeError: 'set' on proxy: trap returned falsish for property '0'` en `setValueForStyle` de react-dom 19 al renderizar componentes de `@react-pdf`. 9 pruebas rojas. Reintentar cuando jsdom o react-dom corrijan la interacción con `CSSStyleDeclaration`. |
+| `@types/node` (dev) | 24 | 26.2.0 | **Pospuesto.** `.node-version` = 24 y `engines.node` = `>=24`; subir tipos antes que el runtime desalinea CI. Condición para subir: mover Node a 26 en `.node-version` y en los workflows. |
+
+Verificación del lote: `tsgo --noEmit` OK · `bun run lint` 0 warnings · `bunx vitest run` 1698/1698 · `bun run build` OK.
