@@ -1,3 +1,9 @@
+## 7.323.1 - 2026-08-14
+
+**Correcciones — Fallas de CI (knip y E2E del selector de rango)**
+- `src/lib/errors/index.ts` dejó de re-exportar `translatePgError`, `CONSTRAINT_MESSAGES` y `SQLSTATE_MESSAGES`: knip los marcaba como exports sin uso porque los consumidores importan directo del catálogo.
+- `tests/e2e/daterange-picker.spec.ts` localiza el trigger por `aria-label` "Abrir calendario…": tras DatePickerMx el botón es de ícono y ya no contiene el texto del rango.
+
 ## 7.323.0 - 2026-08-14
 
 **Mejoras — Errores de servidor y SAT traducidos + toasts sin duplicados**
