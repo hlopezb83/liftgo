@@ -1,5 +1,5 @@
--- RLS: collection_notes — notas de cobranza. Admin/administrativo/dispatcher full,
--- auditor solo lectura; ventas, mecánico, cliente del portal y anon sin acceso.
+-- RLS: collection_notes — notas de cobranza. Admin/administrativo full;
+-- dispatcher y auditor solo lectura; ventas, mecánico, cliente del portal y anon sin acceso.
 BEGIN;
 
 INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
