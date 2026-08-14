@@ -37,9 +37,27 @@ export function useInvoiceBookings(invoiceId: string | undefined) {
   });
 }
 
-/** Todas las filas de la pivote (para excluir reservas ya facturadas en el selector). */
+/**
+ * Todas las filas del pivote para facturas NO canceladas.
+ * Se usa para excluir del selector de reservas aquellas ya facturadas.
+ * - v7.320.3: antes delegaba en `invoiceBookingQueries.list({})`, que se gatea
+ *   con `if (!invoiceId) return []` y por tanto devolvía SIEMPRE `[]` → las
+ *   reservas ligadas solo vía pivote nunca se excluían (doble facturación).
+ * - Además filtra las filas cuyo invoice está cancelado, para no bloquear
+ *   re-facturar una reserva cuya factura anterior se canceló.
+ */
 export function useAllInvoiceBookings() {
-  return useQuery(invoiceBookingQueries.list({}));
+  return useQuery({
+    queryKey: [...invoiceBookingKeys.all, "non-cancelled"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("invoice_bookings")
+        .select("booking_id, invoice_id, invoices!inner(status)")
+        .neq("invoices.status", "cancelled");
+      if (error) throw error;
+      return (data ?? []) as { booking_id: string; invoice_id: string }[];
+    },
+  });
 }
 
 /** Sincroniza las reservas de una factura (delete + insert). */
