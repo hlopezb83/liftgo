@@ -1,22 +1,30 @@
 import { z } from "zod";
 import { nowMty } from "@/lib/utils";
 
-export const lineItemSchema = z.object({
-  description: z.string().trim().min(1, "Descripción requerida"),
-  quantity: z.number().min(1, "Cantidad ≥ 1"),
-  unit_price: z.number().min(0, "Precio ≥ 0"),
-  total: z.number(),
-  clave_prod_serv: z.string().optional(),
-  clave_unidad: z.string().optional(),
-  objeto_imp: z.string().optional(),
-  discount: z
-    .number()
-    .min(0, "El descuento no puede ser negativo")
-    .max(100, "El descuento no puede exceder 100%")
-    .optional(),
+export const lineItemSchema = z
+  .object({
+    description: z.string().trim().min(1, "Descripción requerida"),
+    quantity: z.number().min(1, "Cantidad ≥ 1"),
+    unit_price: z.number().min(0, "Precio ≥ 0"),
+    total: z.number(),
+    clave_prod_serv: z.string().optional(),
+    clave_unidad: z.string().optional(),
+    objeto_imp: z.string().optional(),
+    // El tope de 100 solo aplica a descuentos porcentuales ('%'); un descuento
+    // fijo ('$') puede ser mayor al total de la línea (la capa de dominio lo
+    // clampea a 0). Antes .max(100) bloqueaba descuentos fijos válidos heredados
+    // de cotizaciones, impidiendo convertir una cotización con descuento $>100.
+    discount: z
+      .number()
+      .min(0, "El descuento no puede ser negativo")
+      .optional(),
 
-  discount_type: z.enum(["%", "$"]).optional(),
-});
+    discount_type: z.enum(["%", "$"]).optional(),
+  })
+  .refine(
+    (l) => l.discount_type !== "%" || l.discount == null || l.discount <= 100,
+    { message: "El descuento no puede exceder 100%", path: ["discount"] },
+  );
 
 
 export const cfdiSchema = z.object({
