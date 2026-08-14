@@ -1,0 +1,14 @@
+{
+  "version": "7.309.0",
+  "date": "2026-08-14",
+  "type": "minor",
+  "title": "Sprint 3: triggers de dinero — notas de crédito, saldos y hora de Monterrey",
+  "category": "correcciones",
+  "changes": [
+    "El saldo de una factura ahora descuenta las notas de crédito timbradas: una factura cubierta por completo con NC se marca como pagada aunque no tenga pagos, y ya no contamina cartera vencida ni DSO.",
+    "Nuevo trigger en notas de crédito: al timbrar, corregir o eliminar una NC, la factura ligada se recalcula al instante.",
+    "Cuando una factura se queda sin abonos, regresa a 'enviada' o 'vencida' según la fecha local de Monterrey (`today_mty()`), no la fecha UTC.",
+    "El bloqueo de sobrepago en base de datos considera las notas de crédito: el techo es total menos NCs timbradas.",
+    "La función interna de sincronización de NC queda revocada para anon y usuarios firmados."
+  ]
+}
