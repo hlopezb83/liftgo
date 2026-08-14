@@ -1,3 +1,11 @@
+## 7.320.1 - 2026-08-14
+
+**Mejoras — Lote 3 de librerías: jest-dom 7 aplicado, jsdom 30 descartado**
+- Herramientas de prueba: @testing-library/jest-dom actualizado de 6.9.1 a 7.0.1; los matchers en uso siguen soportados.
+- jsdom 30 se probó y se descartó: rompe la generación de PDFs en pruebas (error de estilos con React 19). Se mantiene jsdom 26.1.0.
+- @types/node se queda en 24 mientras el runtime de CI siga en Node 24.
+- Verificación: typecheck OK, ESLint 0 warnings, 1698/1698 pruebas verdes, build OK.
+
 ## 7.320.0 - 2026-08-14
 
 **Mejoras — Actualización de librerías: 14 paquetes al día (parches y menores)**
