@@ -1,3 +1,9 @@
+## 7.318.2 - 2026-08-14
+
+**Mejoras — Cancelar en diálogos: mismo aviso de cambios sin guardar en toda la app**
+- Los botones Cancelar de reservas, operadores, mecánicos, modelos de equipo y políticas de mantenimiento ahora piden confirmación si hay cambios sin guardar.
+- Esos mismos diálogos ya no se pueden cerrar a media operación mientras se guarda.
+
 ## 7.318.1 - 2026-08-14
 
 **Correcciones — Facturación de extensiones: candado a prueba de doble clic y pestañas**
