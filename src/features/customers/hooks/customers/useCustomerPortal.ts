@@ -137,7 +137,8 @@ export function usePortalPayments() {
       const { data, error } = await supabase
         .from("payments")
         .select(PORTAL_PAYMENT_COLUMNS)
-        .order("payment_date", { ascending: false });
+        .order("payment_date", { ascending: false })
+        .returns<PortalPaymentRow[]>();
       if (error) throw error;
       return data;
     },
