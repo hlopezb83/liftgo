@@ -1,4 +1,5 @@
--- RLS: status_logs — bitácora de estatus de flota. Mecánico y admin full;
+-- RLS: status_logs — bitácora de estatus de flota. Admin full; mecánico solo
+-- lectura (escribe vía la RPC change_forklift_status, SECURITY DEFINER);
 -- dispatcher/administrativo leen y registran; ventas SOLO registra (no lee);
 -- cliente del portal y anon sin acceso.
 BEGIN;
