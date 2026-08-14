@@ -16,7 +16,12 @@ export interface NonRentalLineDto {
   objeto_imp?: string;
 }
 
-const RENTAL_KEYWORDS = ["Renta mensual", "Renta semanal", "Renta diaria"];
+// Las partidas de renta GENERADAS (rentalCalculation.generateLineItemsFrom*)
+// tienen formato exacto `<equipo> — Renta mensual|semanal|diaria…`: la palabra
+// clave va siempre tras el separador " — ". Antes se buscaba el substring en
+// cualquier posición, así que una línea manual como "Cargo por Renta mensual
+// atrasada" se descartaba por falso positivo. Anclamos al formato generado.
+const GENERATED_RENTAL_LINE = / — Renta (mensual|semanal|diaria)/;
 const SALE_SUFFIX = /Venta de equipo/i;
 
 /**
@@ -27,7 +32,7 @@ const SALE_SUFFIX = /Venta de equipo/i;
 function isRentalOrSaleLine(description: string | undefined): boolean {
   if (!description) return false;
   if (SALE_SUFFIX.test(description)) return true;
-  return RENTAL_KEYWORDS.some((kw) => description.includes(kw));
+  return GENERATED_RENTAL_LINE.test(description);
 }
 
 /**

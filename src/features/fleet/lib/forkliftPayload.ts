@@ -1,7 +1,12 @@
+import { roundMoney } from "@/lib/money";
 import type { ForkliftFormData } from "./forkliftFormSchema";
 
 const numOrNull = (v: string) => (v ? parseFloat(v) : null);
-const numOrZero = (v: string) => (v ? parseFloat(v) : 0);
+// Frontera de persistencia monetaria: las tarifas/costos se redondean a 2
+// decimales con la regla del repo (currency.js) — parseFloat crudo admitía
+// 3+ decimales que luego desalineaban totales y comparaciones de saldo.
+const moneyOrNull = (v: string) => (v ? roundMoney(parseFloat(v)) : null);
+const moneyOrZero = (v: string) => (v ? roundMoney(parseFloat(v)) : 0);
 
 export function buildForkliftPayload(form: ForkliftFormData) {
   return {
@@ -14,15 +19,15 @@ export function buildForkliftPayload(form: ForkliftFormData) {
     fuel_type: form.fuel_type,
     serial_number: form.serial_number || null,
     status: form.status,
-    daily_rate: numOrZero(form.daily_rate),
-    weekly_rate: numOrZero(form.weekly_rate),
-    monthly_rate: numOrZero(form.monthly_rate),
-    acquisition_cost: numOrZero(form.acquisition_cost),
+    daily_rate: moneyOrZero(form.daily_rate),
+    weekly_rate: moneyOrZero(form.weekly_rate),
+    monthly_rate: moneyOrZero(form.monthly_rate),
+    acquisition_cost: moneyOrZero(form.acquisition_cost),
     notes: form.notes || null,
     insurance_provider: form.insurance_provider || null,
     insurance_policy_number: form.insurance_policy_number || null,
     insurance_expiry: form.insurance_expiry || null,
-    insurance_cost: numOrNull(form.insurance_cost),
+    insurance_cost: moneyOrNull(form.insurance_cost),
   };
 }
 

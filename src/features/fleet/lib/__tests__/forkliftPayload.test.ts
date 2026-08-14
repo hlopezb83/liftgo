@@ -79,3 +79,31 @@ describe("mapForkliftMutationError", () => {
     expect(mapForkliftMutationError("otro error")).toBe("otro error");
   });
 });
+
+// F7: frontera de persistencia monetaria — las tarifas/costos se redondean a
+// 2 decimales antes de llegar a la BD.
+describe("buildForkliftPayload · redondeo monetario (F7)", () => {
+  const form = {
+    ...base,
+    daily_rate: "500.999",
+    weekly_rate: "2500.005",
+    monthly_rate: "8000.4449",
+    acquisition_cost: "250000.126",
+    insurance_cost: "1200.567",
+  };
+
+  it("redondea tarifas y costos a 2 decimales", () => {
+    const payload = buildForkliftPayload(form);
+    expect(payload.daily_rate).toBe(501);
+    expect(payload.weekly_rate).toBe(2500.01);
+    expect(payload.monthly_rate).toBe(8000.44);
+    expect(payload.acquisition_cost).toBe(250000.13);
+    expect(payload.insurance_cost).toBe(1200.57);
+  });
+
+  it("conserva los fallbacks de campos vacíos", () => {
+    const payload = buildForkliftPayload({ ...form, daily_rate: "", insurance_cost: "" });
+    expect(payload.daily_rate).toBe(0);
+    expect(payload.insurance_cost).toBeNull();
+  });
+});
