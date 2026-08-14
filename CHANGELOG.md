@@ -1,3 +1,12 @@
+## 7.317.0 - 2026-08-14
+
+**Correcciones — Cierre de sprints: horas extra en devoluciones y pruebas de cierre**
+- La inspección de devolución calcula el exceso de horas contra el contrato y sugiere el cargo correspondiente.
+- El detalle de la devolución muestra un aviso con las horas excedidas y el monto sugerido para facturación manual.
+- Se agregaron pruebas del bloqueo de pagos con cancelación pendiente ante el SAT.
+- Se agregaron pruebas de los límites del logo de empresa (2 MB, PNG/JPG/WebP) y de los estados de cuenta (10 MB, 50,000 movimientos).
+- Se agregó una suite de verificación en base de datos para los arreglos de moneda de pagos, sobrepagos y horas extra.
+
 ## 7.316.0 - 2026-08-14
 
 **Correcciones — Sprint 10: accesibilidad y pulido visual**
