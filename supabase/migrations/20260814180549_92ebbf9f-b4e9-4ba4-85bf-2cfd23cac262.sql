@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.assign_prospect_stage_order() FROM PUBLIC, anon, authenticated;

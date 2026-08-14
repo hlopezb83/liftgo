@@ -67,7 +67,7 @@ describe("supplierBillFormSchema — validación", () => {
     if (!r.success) {
       expect(
         r.error.issues.some((i) =>
-          i.message.includes("retenciones (IVA + ISR) no pueden ser mayores"),
+          i.message.includes("retenciones (IVA + ISR) no pueden exceder"),
         ),
       ).toBe(true);
     }
