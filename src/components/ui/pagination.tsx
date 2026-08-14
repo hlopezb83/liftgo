@@ -34,11 +34,12 @@ PaginationItem.displayName = "PaginationItem";
 type PaginationLinkProps = {
   isActive?: boolean;
 } & Pick<ButtonProps, "size"> &
-  ComponentProps<"a">;
+  ComponentProps<"button">;
 
-const PaginationLink = ({ className, isActive, size = "icon", ref, ...props }: PaginationLinkProps & { ref?: Ref<HTMLAnchorElement> }) => {
+const PaginationLink = ({ className, isActive, size = "icon", ref, ...props }: PaginationLinkProps & { ref?: Ref<HTMLButtonElement> }) => {
   return (
-    <a
+    <button
+      type="button"
       ref={ref}
       aria-current={isActive ? "page" : undefined}
       className={cn(
@@ -46,6 +47,7 @@ const PaginationLink = ({ className, isActive, size = "icon", ref, ...props }: P
           variant: isActive ? "outline" : "ghost",
           size,
         }),
+        "disabled:pointer-events-none disabled:opacity-50",
         className,
       )}
       {...props}
@@ -54,7 +56,7 @@ const PaginationLink = ({ className, isActive, size = "icon", ref, ...props }: P
 };
 PaginationLink.displayName = "PaginationLink";
 
-const PaginationPrevious = ({ className, ref, ...props }: ComponentProps<typeof PaginationLink> & { ref?: Ref<HTMLAnchorElement> }) => {
+const PaginationPrevious = ({ className, ref, ...props }: ComponentProps<typeof PaginationLink> & { ref?: Ref<HTMLButtonElement> }) => {
   return (
     <PaginationLink ref={ref} aria-label="Ir a la página anterior" size="default" className={cn("gap-1 pl-2.5", className)} {...props}>
       <ChevronLeftIcon className="h-4 w-4" />
