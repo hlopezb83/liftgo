@@ -26,7 +26,6 @@ describe("computeInvoiceFlags · Fix 8.2 pagos con cancelación SAT pendiente", 
       null,
     );
     expect(f.isPendingCancel).toBe(true);
-    expect(f.isPayable).toBe(false);
     expect(f.showPaymentBtn).toBe(false);
     expect(f.paymentBlockedByPendingCancellation).toBe(true);
   });

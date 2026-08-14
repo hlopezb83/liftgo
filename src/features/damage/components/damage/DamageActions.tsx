@@ -5,6 +5,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useCreateMaintenanceLog } from "@/features/maintenance";
 import { maintenanceLogKeys } from "@/features/maintenance";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import type { DamageRecordWithJoins } from "@/types/rental";
 import { damageArchiveBlockReason, useDamagePermissions } from "../../hooks/useDamagePermissions";
@@ -28,6 +29,7 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
   const archiveDamage = useArchiveDamageRecord();
   const { tryStartRepairWorkOrder } = useStartRepairWorkOrder();
   const [archiveOpen, setArchiveOpen] = useState(false);
+  const [chargeOpen, setChargeOpen] = useState(false);
 
   const { canManageDamage, canChargeDamage, damageBlockReason, chargeBlockReason } = useDamagePermissions();
   const { canArchive, archiveBlockReason } = damageArchiveBlockReason(record);
@@ -69,6 +71,10 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
 
   const cost = chargeableDamageCost(record);
   const showCharge = record.status === "repaired" || record.status === "reported";
+  const goToInvoiceForm = () => {
+    navigate(`/invoices/new?damage_id=${record.id}&customer_id=${record.customer_id}`);
+  };
+
   const handleCreateInvoice = () => {
     // A-3b/C-4: defensa extra por si comparten la URL.
     if (record.status === "invoiced") return;
@@ -76,7 +82,14 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
       notifyError({ title: "El daño no tiene cliente asociado" });
       return;
     }
-    navigate(`/invoices/new?damage_id=${record.id}&customer_id=${record.customer_id}`);
+    // Daño aún NO reparado: se factura el costo ESTIMADO y una vez `invoiced`
+    // no hay ajuste automático — pedimos confirmación explícita con la
+    // advertencia correspondiente antes de navegar al formulario de factura.
+    if (record.status === "reported") {
+      setChargeOpen(true);
+      return;
+    }
+    goToInvoiceForm();
   };
 
   if (record.status === "invoiced" && !canArchive) {
@@ -109,6 +122,14 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
         damageBlockReason={damageBlockReason}
         chargeBlockReason={chargeBlockReason}
         archiveBlockReason={archiveBlockReason}
+      />
+      <ConfirmDialog
+        open={chargeOpen}
+        onOpenChange={setChargeOpen}
+        title="Facturar daño sin reparar"
+        description={`El daño aún no está reparado: se cobrará el costo estimado (${formatCurrency(cost ?? 0)}). Si el costo real de la reparación difiere, la diferencia requerirá una nota de crédito o un cargo manual al cerrar la reparación.`}
+        confirmLabel="Continuar a factura"
+        onConfirm={goToInvoiceForm}
       />
       <ConfirmDialog
         open={archiveOpen}

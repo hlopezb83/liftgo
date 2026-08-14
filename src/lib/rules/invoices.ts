@@ -21,7 +21,6 @@ type CompanyLike = { facturapi_mode?: string | null } | null | undefined;
 
 export interface InvoiceActionFlags {
   isDraft: boolean;
-  isPayable: boolean;
   showPaymentBtn: boolean;
   /** Fix 8.2: hay pago posible salvo por cancelación SAT pendiente (tooltip). */
   paymentBlockedByPendingCancellation: boolean;
@@ -66,7 +65,6 @@ function computeCfdiFlags(invoice: InvoiceLike, cfdiStatus: string) {
 }
 
 interface PaymentFlags {
-  readonly isPayable: boolean;
   readonly showPaymentBtn: boolean;
   readonly paymentBlockedByPendingCancellation: boolean;
 }
@@ -83,9 +81,7 @@ function computePaymentFlags(
 ): PaymentFlags {
   const openStatus = status === "sent" || status === "overdue" || status === "partial";
   const cfdiBlocked = cfdi.isCancelled || cfdi.isPendingCancel;
-  const isPayable = (status === "sent" || status === "overdue") && hasBalance && !cfdiBlocked;
   return {
-    isPayable,
     showPaymentBtn: openStatus && hasBalance && !cfdiBlocked,
     // Bloqueado únicamente por la cancelación pendiente (para mostrar tooltip
     // explicativo en vez de ocultar el botón sin explicación).
@@ -107,7 +103,6 @@ function computeActionFlags(invoice: InvoiceLike, cfdiStatus: string): InvoiceAc
   const editable = isDraft && !cfdi.isStamped && !cfdi.isCancelled;
   return {
     isDraft,
-    isPayable: payment.isPayable,
     showPaymentBtn: payment.showPaymentBtn,
     paymentBlockedByPendingCancellation: payment.paymentBlockedByPendingCancellation,
     canEdit: editable,
