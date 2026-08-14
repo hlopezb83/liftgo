@@ -124,3 +124,74 @@ export default function DamageTrackingPage() {
     </>
   );
 }
+
+function buildDamageColumns(photoCounts: Record<string, number> | undefined): ColumnDef<DamageRow>[] {
+  return [
+    {
+      id: "created_at",
+      header: "Fecha",
+      accessorKey: "created_at",
+      cell: ({ row }) => <span className="font-mono text-sm">{formatDateMty(row.original.created_at)}</span>,
+    },
+    {
+      id: "forklift_name",
+      header: "Montacargas",
+      accessorFn: (r) => r.forklifts?.name || "",
+      cell: ({ row }) => <span className="font-medium">{row.original.forklifts?.name || "—"}</span>,
+    },
+    {
+      id: "customer_name",
+      header: "Cliente",
+      accessorFn: (r) => r.customers?.name || "",
+      // Oleada 1 (A-7): nombres largos truncan con tooltip completo
+      meta: { cellClassName: "max-w-[240px]" },
+      cell: ({ row }) => {
+        const name = row.original.customers?.name || "—";
+        return (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="block truncate">{name}</span>
+            </TooltipTrigger>
+            <TooltipContent>{name}</TooltipContent>
+          </Tooltip>
+        );
+      },
+    },
+    {
+      id: "description",
+      header: "Descripción",
+      enableSorting: false,
+      meta: { cellClassName: "max-w-[200px] truncate" },
+      cell: ({ row }) => row.original.description,
+    },
+    {
+      id: "photos",
+      header: "Fotos",
+      enableSorting: false,
+      meta: { align: "center", cellClassName: "w-16" },
+      cell: ({ row }) => {
+        const count = photoCounts?.[row.original.id] || 0;
+        return count > 0 ? (
+          <Badge variant="secondary" className="gap-1 text-xs px-1.5 py-0">
+            <Camera className="h-3 w-3" /> {count}
+          </Badge>
+        ) : (
+          <span className="text-muted-foreground text-xs">—</span>
+        );
+      },
+    },
+    {
+      id: "estimated_cost",
+      header: "Costo Est.",
+      accessorFn: (r) => r.estimated_cost || 0,
+      meta: { kind: "money" },
+      cell: ({ row }) => <span>{formatCurrency(row.original.estimated_cost ?? 0)}</span>,
+    },
+    {
+      id: "status",
+      header: "Estado",
+      accessorKey: "status",
+      cell: ({ row }) => <StatusBadge status={row.original.status} />,
+    },
+  ];
+}
