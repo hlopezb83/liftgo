@@ -10,8 +10,19 @@ const PORTAL_BOOKING_COLUMNS = sel("id, forklift_id, start_date, end_date, statu
 // v7.216.0 (C6): columnas explícitas — sólo las que consume la UI del portal
 // (PortalStatement, PortalInvoiceDetail, PortalInvoicePayment).
 const PORTAL_PAYMENT_COLUMNS = sel(
-  "id, invoice_id, payment_date, payment_method, reference_number, amount, invoices(invoice_number)"
+  "id, invoice_id, payment_date, payment_method, reference_number, amount, invoices(invoice_number)",
 );
+
+export interface PortalPaymentRow {
+  id: string;
+  invoice_id: string | null;
+  payment_date: string;
+  payment_method: string | null;
+  reference_number: string | null;
+  amount: number | string;
+  invoices: { invoice_number: string } | null;
+}
+
 
 export interface PortalCustomerRow {
   id: string;
