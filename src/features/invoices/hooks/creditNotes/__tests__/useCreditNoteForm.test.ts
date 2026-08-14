@@ -106,3 +106,51 @@ describe("useCreditNoteForm — regla de maxCreditable", () => {
     });
   });
 });
+
+/**
+ * M1-04: el IVA de la NC se calcula línea por línea vía computeTotals (no
+ * tasa global sobre el subtotal completo) — línea exenta "01" no genera IVA
+ * y una línea con tax_rate propio usa esa tasa en vez de la global.
+ */
+describe("useCreditNoteForm — impuestos línea por línea (computeTotals)", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("línea objeto_imp='01' no genera IVA aunque haya otras líneas gravadas", () => {
+    const invoice = mkInvoice({
+      tax_rate: 16,
+      line_items: [
+        { description: "Gravada", quantity: 1, unit_price: 100, total: 100, objeto_imp: "02" },
+        { description: "Exenta", quantity: 1, unit_price: 50, total: 50, objeto_imp: "01" },
+      ] as unknown as Tables<"invoices">["line_items"],
+    });
+    const { result } = render(99999, invoice);
+    expect(result.current.subtotal).toBe(150);
+    expect(result.current.taxAmount).toBe(16);
+    expect(result.current.total).toBe(166);
+  });
+
+  it("tax_rate por línea gana sobre la tasa global de la factura", () => {
+    const invoice = mkInvoice({
+      tax_rate: 16,
+      line_items: [
+        { description: "Especial", quantity: 1, unit_price: 100, total: 100, tax_rate: 8 },
+      ] as unknown as Tables<"invoices">["line_items"],
+    });
+    const { result } = render(99999, invoice);
+    expect(result.current.taxAmount).toBe(8);
+    expect(result.current.total).toBe(108);
+  });
+
+  it("des-seleccionar la única línea gravada deja IVA en 0", () => {
+    const invoice = mkInvoice({
+      tax_rate: 16,
+      line_items: [
+        { description: "Gravada", quantity: 1, unit_price: 100, total: 100, objeto_imp: "02" },
+      ] as unknown as Tables<"invoices">["line_items"],
+    });
+    const { result } = render(99999, invoice);
+    act(() => result.current.updateLine(0, { _selected: false }));
+    expect(result.current.taxAmount).toBe(0);
+    expect(result.current.total).toBe(0);
+  });
+});

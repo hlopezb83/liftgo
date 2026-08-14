@@ -3,6 +3,29 @@ import { invoiceKeys } from "@/features/invoices";
 import { supabase } from "@/integrations/supabase/client";
 
 type InvoiceSummaryRow = { id: string; subtotal: number; status: string };
+type PivotRow = { invoice_id: string; invoices: InvoiceSummaryRow | null };
+
+/**
+ * F3 (Sprint M3): combina la ruta directa (invoices.booking_id) con las
+ * facturas ligadas vía la pivote `invoice_bookings`, deduplicando por
+ * `invoice.id` (una factura ligada por ambas rutas cuenta una sola vez) y
+ * descartando `status === 'cancelled'` en ambas fuentes.
+ */
+export function combineInvoiceSummaries(
+  direct: InvoiceSummaryRow[] | null,
+  pivot: PivotRow[] | null,
+): InvoiceSummaryRow[] {
+  const byId = new Map<string, InvoiceSummaryRow>();
+  for (const row of direct ?? []) {
+    byId.set(row.id, row);
+  }
+  for (const row of pivot ?? []) {
+    const invoice = row.invoices;
+    if (!invoice || invoice.status === "cancelled") continue;
+    byId.set(invoice.id, invoice);
+  }
+  return Array.from(byId.values());
+}
 
 export function useContractFinancialSummary(bookingId: string) {
   return useQuery({
@@ -28,17 +51,10 @@ export function useContractFinancialSummary(bookingId: string) {
         .eq("booking_id", bookingId);
       if (pivotErr) throw pivotErr;
 
-      const byId = new Map<string, InvoiceSummaryRow>();
-      for (const row of (direct ?? []) as InvoiceSummaryRow[]) {
-        byId.set(row.id, row);
-      }
-      for (const row of pivot ?? []) {
-        const invoice = row.invoices as InvoiceSummaryRow | null;
-        if (!invoice || invoice.status === "cancelled") continue;
-        byId.set(invoice.id, invoice);
-      }
-
-      return Array.from(byId.values());
+      return combineInvoiceSummaries(
+        direct as InvoiceSummaryRow[] | null,
+        pivot as unknown as PivotRow[] | null,
+      );
     },
   });
 }

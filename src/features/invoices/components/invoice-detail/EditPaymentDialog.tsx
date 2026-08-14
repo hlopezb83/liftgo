@@ -20,6 +20,27 @@ import { positiveAmount } from "@/lib/schemas";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { useUpdatePayment, type Payment } from "../../hooks/usePayments";
 
+/**
+ * M3-01: valida el tope BL-11 al editar un pago — el monto nuevo no puede
+ * exceder el saldo actual (que ya incluye este pago) más el monto original
+ * del pago editado, con tolerancia de 0.01. Con REP timbrado el servidor
+ * rechaza cambios de monto/fecha; el cliente no debe ni intentar validarlos
+ * (se ignoran, siempre pasa).
+ */
+export function validateEditPaymentAmount(
+  newAmount: number,
+  balance: number,
+  originalAmount: number,
+  isRepStamped: boolean,
+): { ok: true } | { ok: false; maxAllowed: number } {
+  if (isRepStamped) return { ok: true };
+  const maxAllowed = roundMoney(balance + originalAmount);
+  if (roundMoney(newAmount) - maxAllowed > 0.01) {
+    return { ok: false, maxAllowed };
+  }
+  return { ok: true };
+}
+
 const METHODS = [
   { value: "transfer", label: "Transferencia" },
   { value: "cash", label: "Efectivo" },
@@ -78,10 +99,10 @@ export function EditPaymentDialog({ open, onOpenChange, payment, balance }: Prop
   const onSubmit = (values: FormValues) => {
     // BL-11: rechazar sobrepagos al editar. El techo es el saldo actual (que ya
     // incluye este pago) más el monto original del pago editado.
-    const maxAllowed = roundMoney(balance + payment.amount);
-    if (!isRepStamped && roundMoney(values.amount) - maxAllowed > 0.01) {
+    const validation = validateEditPaymentAmount(values.amount, balance, payment.amount, isRepStamped);
+    if (!validation.ok) {
       notifyValidation({
-        message: `El monto excede el saldo pendiente más el pago original ($${maxAllowed.toFixed(2)}). Ajusta la cantidad.`,
+        message: `El monto excede el saldo pendiente más el pago original ($${validation.maxAllowed.toFixed(2)}). Ajusta la cantidad.`,
       });
       return;
     }
