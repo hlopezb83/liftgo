@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { sanitizeNumericInput } from "../CurrencyField";
+import { sanitizeNumericInput } from "../sanitizeNumericInput";
 
 /**
  * Fix BLOCKING (review): en locale es-MX la coma es separador de MILES y el
