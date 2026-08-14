@@ -13,10 +13,9 @@ export function useCreateProspect() {
       // R23-H: `next_stage_order` calcula el siguiente orden dentro de una
       // transacción con `pg_advisory_xact_lock`, eliminando la carrera de
       // concurrencia del patrón anterior (leer max, luego insertar).
-      const { data: nextOrder, error: orderError } = await (supabase as any).rpc(
-        "next_stage_order",
-        { p_stage: p.stage },
-      );
+      const { data: nextOrder, error: orderError } = await supabase.rpc("next_stage_order", {
+        p_stage: p.stage,
+      });
       if (orderError) throw orderError;
       const { data, error } = await supabase
         .from("prospects")

@@ -84,8 +84,15 @@ test("create a customer through the UI with E2E isolation", async ({ page }) => 
       .from("customers")
       .select("id,is_e2e,e2e_scope")
       .eq("name", customerName)
-      .single();
+      // El scope aísla este run: sin él, un cliente residual con el mismo
+      // nombre (o el reintento de Playwright) devolvía 0/2 filas y `.single()`
+      // fallaba con "Cannot coerce the result to a single JSON object".
+      .eq("e2e_scope", e2eScope)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
     if (selectErr) throw new Error(`Verificación E2E falló: ${selectErr.message}`);
+    if (!created) throw new Error(`Verificación E2E falló: no se encontró el cliente ${customerName}`);
     createdId = created.id;
     expect(created.is_e2e).toBe(true);
     expect(created.e2e_scope).toBe(e2eScope);
