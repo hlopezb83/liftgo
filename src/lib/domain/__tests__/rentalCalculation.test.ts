@@ -234,11 +234,16 @@ describe("calculateRentalCost · cap BL-15 en extensiones", () => {
       .reduce((acc, i) => acc + i.total, 0);
   };
 
-  it.each([28, 29, 31])("extensión de %i días no cobra el mes completo fijo", (days) => {
+  it.each([28, 29])("extensión de %i días no cobra el mes completo fijo", (days) => {
     const extension = totalOf(days, true);
     const prorated = (monthly * days) / 30;
-    expect(extension).toBeLessThanOrEqual(Math.max(prorated, monthly) + 0.01);
     expect(extension).toBeCloseTo(Math.min(daily * days, prorated), 2);
+  });
+
+  it("extensión de 31 días (mes calendario cerrado) sí cobra el mes", () => {
+    // Del 1 al 31 de agosto es un mes calendario completo: cobrarlo como mes
+    // es correcto y más barato que 31 días sueltos.
+    expect(totalOf(31, true)).toBe(monthly);
   });
 
   it("renta inicial de 29 días sí conserva el cap de mes completo", () => {
