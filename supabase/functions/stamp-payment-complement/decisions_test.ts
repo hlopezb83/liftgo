@@ -207,7 +207,6 @@ Deno.test("claimRejectionMessage · estado desconocido incluye el estado", () =>
 });
 
 // v7.320.6: guardia defensiva de tipo de cambio para moneda extranjera.
-import { validatePaymentExchange as _vpx } from "./decisions.ts";
 
 Deno.test("validatePaymentExchange: MXN siempre ok (ignora exchange_rate)", () => {
   assertEquals(validatePaymentExchange({ paymentCurrency: "MXN", exchangeRate: null }), { ok: true });
