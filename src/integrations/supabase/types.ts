@@ -4076,6 +4076,7 @@ export type Database = {
       }
       get_sidebar_badge_counts: { Args: never; Returns: Json }
       has_active_rental: { Args: { p_forklift_id: string }; Returns: boolean }
+      has_open_rental: { Args: { p_forklift_id: string }; Returns: boolean }
       has_permission: {
         Args: { p_level?: string; p_module: string }
         Returns: boolean
