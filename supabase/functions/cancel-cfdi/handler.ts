@@ -71,6 +71,8 @@ export async function handleCancelCfdi(
     });
     if (!auth.ok) return json({ error: auth.message }, auth.status);
     const supabase = auth.supabase;
+    supabaseRef = supabase;
+
 
     const body = await req.json().catch(() => ({}));
     const { invoice_id, motive, substitution_uuid, cancellation_reason } =
