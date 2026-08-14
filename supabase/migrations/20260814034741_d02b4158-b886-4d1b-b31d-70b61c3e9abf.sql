@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.sync_invoice_status_from_credit_notes() FROM PUBLIC, anon, authenticated;

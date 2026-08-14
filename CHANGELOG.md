@@ -1,3 +1,12 @@
+## 7.309.0 - 2026-08-14
+
+**Correcciones — Sprint 3: triggers de dinero (NCs, saldos y zona horaria)**
+- `sync_invoice_status_from_payments` ahora resta las notas de crédito timbradas: `balance = total - pagos - NCs`. Factura cubierta 100% por NC → `paid`, nunca `overdue`.
+- Nuevo trigger `trg_sync_invoice_from_credit_notes` en `credit_notes` (INSERT/DELETE/UPDATE de status o total) que recalcula la factura ligada de inmediato.
+- Rama sin abonos: la factura vuelve a `sent` u `overdue` comparando `due_date` contra `public.today_mty()` (hora de Monterrey) en vez de UTC.
+- `enforce_payment_within_invoice_total` considera las NCs timbradas: el techo de pagos es `total - NCs`.
+- `sync_invoice_status_from_credit_notes` con `EXECUTE` revocado a `anon` y `authenticated`.
+
 ## 7.308.0 - 2026-08-14
 
 **Correcciones — Sprint 2: fronteras fiscales del timbrado CFDI (SAT)**
