@@ -1,6 +1,7 @@
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { WarnIcon } from "@/components/icons";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -53,7 +54,7 @@ export function BookingStatusChangeDialog({
         )}
 
         <FormDialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <FormDialogCancelButton onCancel={() => onOpenChange(false)} />
           <Button onClick={onConfirm} disabled={!newStatus || newStatus === currentStatus}>
             Confirmar Cambio
           </Button>
@@ -94,7 +95,7 @@ export function BookingExtendDialog({
         )}
 
         <FormDialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+          <FormDialogCancelButton onCancel={() => onOpenChange(false)} />
           <Button onClick={onExtend} disabled={isPending}>Extender</Button>
         </FormDialogFooter>
       </div>

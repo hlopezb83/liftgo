@@ -3,6 +3,7 @@ import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTa
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { AddIcon, EditIcon, DeleteIcon } from "@/components/icons";
 import { MobileCardList } from "@/components/layout/MobileCardList";
 import { Button } from "@/components/ui/button";
@@ -134,7 +135,7 @@ export function MechanicsTab() {
             <div className="space-y-1.5"><Label>Notas</Label><Input placeholder="Notas opcionales" value={form.notes} onChange={(e) => set("notes", e.target.value)} /></div>
           </div>
           <FormDialogFooter>
-            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <FormDialogCancelButton onCancel={() => setOpen(false)} disabled={create.isPending || update.isPending} />
             <Button onClick={handleSubmit} disabled={create.isPending || update.isPending}>{editId ? "Guardar" : "Agregar"}</Button>
           </FormDialogFooter>
         </FormDialog>

@@ -1,4 +1,5 @@
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { FormSection } from "@/components/forms/FormSection";
 import { RequiredMark } from "@/components/forms/RequiredMark";
 import { Button } from "@/components/ui/button";
@@ -65,7 +66,7 @@ export function MaintenancePolicyForm({
         </div>
       </FormSection>
       <FormDialogFooter>
-        <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+        <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={isPending} />
         <Button onClick={onSave} disabled={isPending}>
           {isEdit ? "Guardar" : "Agregar póliza"}
         </Button>
