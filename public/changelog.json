@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.317.2",
+    "date": "2026-08-14",
+    "type": "patch",
+    "title": "Limpieza de código: revisión automática de calidad en verde",
+    "category": "correcciones",
+    "changes": [
+      "Se simplificaron las reglas de acciones de facturas separando el cálculo de cobrabilidad.",
+      "Los formularios de factura y el detalle de cotización se dividieron en funciones más pequeñas y legibles.",
+      "El prellenado de facturación de extensiones se reorganizó en pasos claros.",
+      "Se eliminaron dos definiciones de estados de contrato que ya no se usaban.",
+      "Se ordenaron importaciones y se estabilizó una prueba automatizada de acciones fiscales."
+    ]
+  },
+  {
     "version": "7.317.1",
     "date": "2026-08-14",
     "type": "patch",

@@ -1,3 +1,12 @@
+## 7.317.2 - 2026-08-14
+
+**Correcciones — Limpieza de código: revisión automática de calidad en verde**
+- Se simplificaron las reglas de acciones de facturas separando el cálculo de cobrabilidad.
+- Los formularios de factura y el detalle de cotización se dividieron en funciones más pequeñas y legibles.
+- El prellenado de facturación de extensiones se reorganizó en pasos claros.
+- Se eliminaron dos definiciones de estados de contrato que ya no se usaban.
+- Se ordenaron importaciones y se estabilizó una prueba automatizada de acciones fiscales.
+
 ## 7.317.1 - 2026-08-14
 
 **Correcciones — Arreglos de CI: lint, archivo sin uso y prueba E2E inestable**
