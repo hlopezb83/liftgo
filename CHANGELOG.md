@@ -1,3 +1,10 @@
+## 7.307.9 - 2026-08-14
+
+**Correcciones — Sprint 1: tres bugs bloqueantes de UI y arranque de sesión**
+- Nueva cuenta bancaria: el formulario valida en `onChange`, así el botón de guardar se habilita al llenar los campos requeridos.
+- Notas de crédito: el botón de eliminar borrador se deshabilita mientras corre la mutación (evita doble borrado).
+- Auth: `getSession()` del bootstrap ahora tiene `.catch`, un fallo de red ya no deja la app cargando.
+
 ## 7.307.8 - 2026-08-13
 
 **Infraestructura — CI: el paso de publicación de smoke ya no tumba el job**

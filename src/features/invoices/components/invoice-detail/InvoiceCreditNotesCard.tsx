@@ -144,7 +144,7 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
                             <Button variant="outline" size="sm" className="h-7 text-xs" disabled={stampMutation.isPending} onClick={() => stampMutation.mutate(cn.id)}>
                               <StampIcon className="h-3 w-3 mr-1" /> Timbrar
                             </Button>
-                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" title="Eliminar borrador" aria-label="Eliminar borrador de nota de crédito" onClick={async () => {
+                            <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" title="Eliminar borrador" aria-label="Eliminar borrador de nota de crédito" disabled={deleteMutation.isPending} onClick={async () => {
                               const ok = await confirm({
                                 title: "Eliminar borrador",
                                 description: "¿Eliminar el borrador de la nota de crédito? Esta acción no se puede deshacer.",

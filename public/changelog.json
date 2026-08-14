@@ -1,5 +1,17 @@
 [
   {
+    "version": "7.307.9",
+    "date": "2026-08-14",
+    "type": "patch",
+    "title": "Sprint 1: tres bugs bloqueantes de UI y arranque de sesión",
+    "category": "correcciones",
+    "changes": [
+      "Nueva cuenta bancaria: el formulario ahora valida en `onChange`, así el botón de guardar se habilita al llenar los campos requeridos (antes quedaba deshabilitado para siempre).",
+      "Notas de crédito: el botón de eliminar borrador se deshabilita mientras corre la mutación, evitando dobles borrados por doble clic.",
+      "Auth: `supabase.auth.getSession()` en el bootstrap ahora tiene `.catch` — un fallo de red ya no deja la app cargando indefinidamente ni genera una promesa rechazada sin manejar."
+    ]
+  },
+  {
     "version": "7.307.8",
     "date": "2026-08-13",
     "type": "patch",

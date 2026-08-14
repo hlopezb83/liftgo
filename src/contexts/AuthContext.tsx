@@ -30,11 +30,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     // Defensive bootstrap: if INITIAL_SESSION never fires (SDK bug, network blip)
     // this guarantees isLoading transitions to false. Setters are idempotent.
-    supabase.auth.getSession().then(({ data: { session: initialSession } }) => {
-      setSession(initialSession);
-      setUser(initialSession?.user ?? null);
-      setIsLoading(false);
-    });
+    supabase.auth.getSession()
+      .then(({ data: { session: initialSession } }) => {
+        setSession(initialSession);
+        setUser(initialSession?.user ?? null);
+        setIsLoading(false);
+      })
+      .catch(() => setIsLoading(false));
 
     return () => subscription.unsubscribe();
   }, []);
