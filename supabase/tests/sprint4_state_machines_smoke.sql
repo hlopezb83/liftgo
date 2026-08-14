@@ -51,4 +51,59 @@ SELECT pg_temp.expect_true(
     ILIKE '%completa la devolución antes de venderla%'
 );
 
+-- Fix 4.4 (semántica): "renta activa" = entrega completada sin devolución.
+SELECT pg_temp.expect_true(
+  'S4-4.4 existe has_open_rental() con semántica entrega/devolución',
+  (SELECT prosrc FROM pg_proc WHERE proname = 'has_open_rental') ILIKE '%deliveries%'
+  AND (SELECT prosrc FROM pg_proc WHERE proname = 'has_open_rental') ILIKE '%return%'
+);
+
+SELECT pg_temp.expect_true(
+  'S4-4.4 el trigger de flota usa has_open_rental()',
+  (SELECT prosrc FROM pg_proc WHERE proname = 'guard_forklift_status_change')
+    ILIKE '%has_open_rental%'
+);
+
+SELECT pg_temp.expect_true(
+  'S4-4.4 change_forklift_status usa has_open_rental()',
+  (SELECT prosrc FROM pg_proc WHERE proname = 'change_forklift_status')
+    ILIKE '%has_open_rental%'
+);
+
+SELECT pg_temp.expect_true(
+  'S4-4.4 la RPC de venta usa has_open_rental()',
+  (SELECT prosrc FROM pg_proc WHERE proname = 'assign_forklift_to_sale_quote')
+    ILIKE '%has_open_rental%'
+);
+
+-- Comportamiento: CxP pagada con pagos no puede salir de 'paid'.
+DO $$
+DECLARE
+  v_bill uuid := '4f000000-0000-4000-8000-000000000001';
+  v_blocked boolean := false;
+BEGIN
+  INSERT INTO public.supplier_bills (id, bill_number, issue_date, subtotal, tax_amount,
+                                     total, due_date, status)
+  VALUES (v_bill, 'S4-BILL-001', public.today_mty(), 1000, 0, 1000,
+          public.today_mty() + 10, 'pending');
+
+  INSERT INTO public.supplier_payments (bill_id, amount, payment_date)
+  VALUES (v_bill, 1000, public.today_mty());
+
+  PERFORM pg_temp.expect_true(
+    'S4-4.3 la CxP con pago total queda en paid',
+    (SELECT status::text FROM public.supplier_bills WHERE id = v_bill) = 'paid'
+  );
+
+  BEGIN
+    UPDATE public.supplier_bills SET status = 'cancelled' WHERE id = v_bill;
+  EXCEPTION WHEN others THEN
+    v_blocked := true;
+  END;
+  PERFORM pg_temp.expect_true('S4-4.3 CxP pagada con pagos no se cancela', v_blocked);
+EXCEPTION WHEN others THEN
+  RAISE WARNING 'FALLO  S4-4.3 prueba de comportamiento abortada: %', SQLERRM;
+END $$;
+
+
 ROLLBACK;
