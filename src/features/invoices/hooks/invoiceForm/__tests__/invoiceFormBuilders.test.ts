@@ -53,3 +53,56 @@ describe("cfdiFromCustomer", () => {
     expect(patch.receptorDomicilioFiscalCp).toBe("");
   });
 });
+
+function makeQuote(over: Partial<SourceQuote> = {}): SourceQuote {
+  return {
+    customer_id: "cust-1",
+    customer_name: "Empresa de Prueba SA de CV",
+    line_items: [],
+    tax_rate: 16,
+    currency: "MXN",
+    ...over,
+  };
+}
+
+describe("buildFromQuote — taxRate", () => {
+  it("preserva tax_rate = 0 (cliente exento) sin forzar 16 (regresión del bug)", () => {
+    const form = buildFromQuote({ q: makeQuote({ tax_rate: 0 }), assignments: undefined, forklifts: undefined, customers: undefined });
+    expect(form.taxRate).toBe(0);
+  });
+
+  it("preserva tax_rate = 8", () => {
+    const form = buildFromQuote({ q: makeQuote({ tax_rate: 8 }), assignments: undefined, forklifts: undefined, customers: undefined });
+    expect(form.taxRate).toBe(8);
+  });
+
+  it("preserva tax_rate = 16", () => {
+    const form = buildFromQuote({ q: makeQuote({ tax_rate: 16 }), assignments: undefined, forklifts: undefined, customers: undefined });
+    expect(form.taxRate).toBe(16);
+  });
+
+  it("usa 16 como default cuando tax_rate es null", () => {
+    const form = buildFromQuote({ q: makeQuote({ tax_rate: null as unknown as number }), assignments: undefined, forklifts: undefined, customers: undefined });
+    expect(form.taxRate).toBe(16);
+  });
+
+  it("usa 16 como default cuando tax_rate es undefined", () => {
+    const form = buildFromQuote({ q: makeQuote({ tax_rate: undefined }), assignments: undefined, forklifts: undefined, customers: undefined });
+    expect(form.taxRate).toBe(16);
+  });
+
+  it("hereda customerId, customerName, currency (USD) y lineItems", () => {
+    const items = [{ description: "Renta", quantity: 1, unit_price: 1000 }];
+    const form = buildFromQuote({
+      q: makeQuote({ customer_id: "cust-2", customer_name: "Cliente USD", tax_rate: 0, currency: "USD", line_items: items }),
+      assignments: undefined,
+      forklifts: undefined,
+      customers: undefined,
+    });
+    expect(form.customerId).toBe("cust-2");
+    expect(form.customerName).toBe("Cliente USD");
+    expect(form.cfdi.moneda).toBe("USD");
+    expect(form.taxRate).toBe(0);
+    expect(form.lineItems).toEqual(items);
+  });
+});
