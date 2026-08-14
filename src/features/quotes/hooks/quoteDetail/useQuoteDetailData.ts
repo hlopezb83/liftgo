@@ -28,6 +28,26 @@ function countQuoteUnits(
   return resolveLegacyForkliftIds(quote, forklifts).length;
 }
 
+/** Rango inclusivo: inicio y fin cuentan (BL-R8-18 / R17-L). */
+function computeDurationDays(startDate?: string | null, endDate?: string | null): number {
+  if (!startDate || !endDate) return 0;
+  return Math.max(1, differenceInDays(new Date(endDate), new Date(startDate)) + 1);
+}
+
+/** Lee `rental_meta` de la columna o, en cotizaciones legacy, de la partida. */
+function resolveRentalMeta(
+  quote: { rental_meta?: unknown; line_items?: unknown } | null | undefined,
+  isSale: boolean,
+): { modelId: string; quantity: number }[] {
+  if (!quote || isSale) return [];
+  const fromColumn = parseRentalMeta(quote.rental_meta);
+  if (fromColumn.length > 0) return fromColumn;
+  const allItems = parseLineItems<
+    LineItem & { _rentalMeta?: { modelId: string; quantity: number }[] }
+  >(quote.line_items);
+  return allItems[0]?._rentalMeta ?? [];
+}
+
 export function useQuoteDetailData(id: string | undefined) {
   const { data: quote, isLoading, isError, refetch } = useQuote(id);
   const { data: customers } = useCustomers();
@@ -68,19 +88,9 @@ export function useQuoteDetailData(id: string | undefined) {
   const isSale = quoteType === "sale";
   const lineItems = parseLineItems<LineItem>(quote?.line_items);
 
-  const durationDays = (!quote?.start_date || !quote?.end_date)
-    ? 0
-    // BL-R8-18 (R8-FE-14): unificar con BookingPeriodCard — los rangos de
-    // renta son inclusivos (inicio y fin cuentan). Misma fórmula que R17-L.
-    : Math.max(1, differenceInDays(new Date(quote.end_date), new Date(quote.start_date)) + 1);
+  const durationDays = computeDurationDays(quote?.start_date, quote?.end_date);
 
-  const rentalMeta = (() => {
-    if (!quote || isSale) return [];
-    const fromColumn = parseRentalMeta(quote.rental_meta);
-    if (fromColumn.length > 0) return fromColumn;
-    const allItems = parseLineItems<LineItem & { _rentalMeta?: { modelId: string; quantity: number }[] }>(quote.line_items);
-    return allItems[0]?._rentalMeta ?? [];
-  })();
+  const rentalMeta = resolveRentalMeta(quote, isSale);
 
   const isModelBasedQuote = rentalMeta.length > 0;
 

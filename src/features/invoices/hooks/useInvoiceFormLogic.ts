@@ -36,6 +36,33 @@ interface UseInvoiceFormLogicArgs {
   extensionId?: string | null;
 }
 
+/** Ids únicos de cotización referenciados por las reservas. */
+function collectBookingQuoteIds(bookings?: { quote_id?: string | null }[]): string[] {
+  const set = new Set<string>();
+  bookings?.forEach((b) => {
+    if (b.quote_id) set.add(b.quote_id);
+  });
+  return Array.from(set);
+}
+
+/** Reservas que ya están facturadas (por columna directa o por pivote). */
+function collectInvoicedBookingIds(
+  invoices: { status: string; booking_id?: string | null }[] | undefined,
+  allInvoiceBookings: { invoice_id: string; booking_id: string }[] | undefined,
+  currentInvoiceId?: string,
+): Set<string> {
+  const set = new Set<string>();
+  invoices?.forEach((inv) => {
+    if (inv.status !== "cancelled" && inv.booking_id) set.add(inv.booking_id);
+  });
+  // Excluye las reservas de la factura que se está editando.
+  allInvoiceBookings?.forEach((row) => {
+    if (currentInvoiceId && row.invoice_id === currentInvoiceId) return;
+    set.add(row.booking_id);
+  });
+  return set;
+}
+
 export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: UseInvoiceFormLogicArgs) {
 
   const isEdit = !!id;
@@ -76,27 +103,16 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   };
 
   const submit = useInvoiceFormSubmit();
-  const uniqueBookingQuoteIds = (() => {
-    const set = new Set<string>();
-    bookings?.forEach((b) => { if (b.quote_id) set.add(b.quote_id); });
-    return Array.from(set);
-  })();
+  const uniqueBookingQuoteIds = collectBookingQuoteIds(bookings);
   const { data: bookingSourceQuotes } = useQuotesByIds(uniqueBookingQuoteIds);
   const { handleCustomerSelect, handleBookingSelect, handleBookingsChange } = useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes: bookingSourceQuotes });
   const totals = useInvoiceFormTotals(form);
 
-  const invoicedBookingIds = (() => {
-    const set = new Set<string>();
-    invoices?.forEach((inv) => {
-      if (inv.status !== "cancelled" && inv.booking_id) set.add(inv.booking_id);
-    });
-    // Reservas vinculadas vía pivote (excluyendo las de la factura que se está editando).
-    allInvoiceBookings?.forEach((row) => {
-      if (isEdit && row.invoice_id === id) return;
-      set.add(row.booking_id);
-    });
-    return set;
-  })();
+  const invoicedBookingIds = collectInvoicedBookingIds(
+    invoices,
+    allInvoiceBookings,
+    isEdit ? id : undefined,
+  );
 
   // v7.307.0: al facturar una extensión, la reserva YA tiene factura del
   // período original. Se re-habilita para poder ligar la factura del tramo
