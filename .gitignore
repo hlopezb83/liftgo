@@ -32,3 +32,6 @@ test-results/
 .env
 .env.local
 !.env.example
+
+# Lovable: borrador de plan (los planes aprobados en .lovable/plan/ sí se versionan)
+.lovable/plan.md
