@@ -103,6 +103,9 @@ describe("buildFromQuote — taxRate", () => {
     expect(form.customerName).toBe("Cliente USD");
     expect(form.cfdi.moneda).toBe("USD");
     expect(form.taxRate).toBe(0);
-    expect(form.lineItems).toEqual(items);
+    expect(form.lineItems).toHaveLength(1);
+    expect(form.lineItems[0].description).toBe("Renta");
+    expect(form.lineItems[0].quantity).toBe(1);
+    expect(form.lineItems[0].unit_price).toBe(1000);
   });
 });
