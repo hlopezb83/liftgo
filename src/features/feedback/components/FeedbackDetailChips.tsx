@@ -26,7 +26,7 @@ export function FeedbackChipsRow({ type, module, severity, hasAi, classifying, p
       {severityLabel && <Badge variant="outline">{severityLabel}</Badge>}
       {hasAi && (
         <Badge variant="secondary" className="gap-1">
-          <Sparkles className="h-3 w-3" /> AI
+          <Sparkles className="h-3 w-3" /> IA
         </Badge>
       )}
       {classifying && (
@@ -50,7 +50,7 @@ export function AiReasoningCard({ reasoning, onReclassify, reclassifying }: AiCa
     <div className="text-xs text-muted-foreground bg-muted/30 rounded-md p-2 border">
       <div className="flex items-center justify-between mb-1">
         <span className="font-medium flex items-center gap-1">
-          <Sparkles className="h-3 w-3" /> Razonamiento del AI
+          <Sparkles className="h-3 w-3" /> Razonamiento de la IA
         </span>
         <Button
           type="button"
