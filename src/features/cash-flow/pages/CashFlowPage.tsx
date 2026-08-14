@@ -14,6 +14,17 @@ import { useCashFlowProjection } from "../hooks/useCashFlowProjection";
 import { useCashFlowSettings } from "../hooks/useCashFlowSettings";
 import type { CashFlowBucket } from "../lib/cashFlowUtils";
 
+/** F4: aviso de documentos excluidos de la proyección. */
+function ExcludedNotice({ noDueDate, outOfHorizon }: { noDueDate: number; outOfHorizon: number }) {
+  if (noDueDate === 0 && outOfHorizon === 0) return null;
+  return (
+    <p className="text-xs text-muted-foreground" data-testid="cash-flow-excluded-notice">
+      {noDueDate > 0 && `${noDueDate} documento(s) sin fecha de vencimiento excluidos de la proyección. `}
+      {outOfHorizon > 0 && `${outOfHorizon} documento(s) vencen fuera del horizonte seleccionado.`}
+    </p>
+  );
+}
+
 export default function CashFlowPage() {
   const [weeks, setWeeks] = useState(8);
   const [selected, setSelected] = useState<CashFlowBucket | null>(null);
@@ -22,11 +33,14 @@ export default function CashFlowPage() {
   const initialBalance = settings?.initialBalance ?? 0;
   const safetyBuffer = settings?.safetyBuffer ?? 0;
 
-  const { data: buckets, isLoading, isError, isFetching, refetch } = useCashFlowProjection({
+  const { data: projection, isLoading, isError, isFetching, refetch } = useCashFlowProjection({
     weeks,
     initialBalance,
     safetyBuffer,
   });
+  const buckets = projection?.buckets;
+  const excludedNoDueDate = projection?.excludedNoDueDate ?? 0;
+  const excludedOutOfHorizon = projection?.excludedOutOfHorizon ?? 0;
 
   return (
     <RoleGuard module="Flujo de Caja" minAccess="read">
@@ -46,6 +60,7 @@ export default function CashFlowPage() {
             </CardContent></Card>
           ) : (
             <>
+              <ExcludedNotice noDueDate={excludedNoDueDate} outOfHorizon={excludedOutOfHorizon} />
               <CashFlowSummaryCards buckets={buckets} initialBalance={initialBalance} />
               <Card>
                 <CardContent className="p-0 overflow-x-auto">

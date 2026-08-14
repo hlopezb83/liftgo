@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { formatDateDisplay, cn } from "@/lib/utils";
 import {
   useConfirmBankMatch,
@@ -18,6 +18,8 @@ import type { BankStatementLine } from "../hooks/useBankStatementLines";
 
 interface Props {
   line: BankStatementLine;
+  /** Moneda de la cuenta bancaria (los importes se expresan en ella). */
+  currency: string;
   /** Se invoca al completar una acción (conciliar / ignorar / deshacer). */
   onDone: () => void;
 }
@@ -40,7 +42,7 @@ function matchTarget(kind: BankMatchCandidate["kind"], id: string) {
 }
 
 /** Encabezado del panel: importe, estado y datos del movimiento bancario. */
-function BankLineSummary({ line, isCharge }: { line: BankStatementLine; isCharge: boolean }) {
+function BankLineSummary({ line, isCharge, currency }: { line: BankStatementLine; isCharge: boolean; currency: string }) {
   return (
     <div className="space-y-1.5 rounded-md border p-3">
       <div className="flex items-start justify-between gap-2">
@@ -61,7 +63,7 @@ function BankLineSummary({ line, isCharge }: { line: BankStatementLine; isCharge
           isCharge ? "text-destructive" : "text-success",
         )}
       >
-        {formatCurrency(line.signed_amount)}
+        {formatCurrencyWithCode(line.signed_amount, currency)}
       </p>
       {line.reference && (
         <p className="text-xs text-muted-foreground">
@@ -76,7 +78,7 @@ function BankLineSummary({ line, isCharge }: { line: BankStatementLine; isCharge
 }
 
 
-export function BankLineMatchPanel({ line, onDone }: Props) {
+export function BankLineMatchPanel({ line, currency, onDone }: Props) {
   const [search, setSearch] = useState("");
   const [dateWindow, setDateWindow] = useState<DateWindow>(15);
   const [ignoreReason, setIgnoreReason] = useState("");
@@ -117,7 +119,7 @@ export function BankLineMatchPanel({ line, onDone }: Props) {
 
   return (
     <div className="space-y-4" data-testid="bank-match-panel">
-      <BankLineSummary line={line} isCharge={isCharge} />
+      <BankLineSummary line={line} isCharge={isCharge} currency={currency} />
 
 
       {line.status === "suggested" && suggestedId && (
@@ -168,6 +170,7 @@ export function BankLineMatchPanel({ line, onDone }: Props) {
             </p>
             <BankMatchCandidateList
               lineId={line.id}
+              currency={currency}
               search={search}
               onSearchChange={setSearch}
               dateWindow={dateWindow}

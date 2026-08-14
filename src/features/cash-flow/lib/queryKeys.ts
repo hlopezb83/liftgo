@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { nowMty } from "@/lib/utils";
@@ -9,7 +10,13 @@ import {
   type InvoiceRow,
   type PaymentRow,
 } from "./cashFlowTransformers";
-import { bucketByWeek, type CashFlowBucket, type CashFlowItem } from "./cashFlowUtils";
+import {
+  bucketByWeek,
+  buildWeekBuckets,
+  countOutOfHorizon,
+  type CashFlowBucket,
+  type CashFlowItem,
+} from "./cashFlowUtils";
 
 export interface CashFlowSettings {
   id: string | null;
@@ -34,15 +41,48 @@ export interface CashFlowProjectionFilter extends Record<string, unknown> {
   safetyBuffer: number;
 }
 
+export interface CashFlowProjectionResult {
+  buckets: CashFlowBucket[];
+  /**
+   * F4: documentos activos SIN fecha de vencimiento. La query los excluye
+   * (`.not("due_date","is",null)`) y antes desaparecían en silencio; el conteo
+   * se expone para avisar en la UI (patrón "excluir + avisar").
+   */
+  excludedNoDueDate: number;
+  /** Documentos cuyo vencimiento cae fuera del horizonte seleccionado. */
+  excludedOutOfHorizon: number;
+}
+
+/** F4: conteo HEAD de facturas activas sin fecha de vencimiento. */
+async function countInvoicesWithoutDueDate(): Promise<number> {
+  const res = await supabase.from("v_invoices_with_balance")
+    .select("id", { count: "exact", head: true })
+    .in("status", ACTIVE_INVOICE_STATUSES)
+    .is("due_date", null);
+  if (res.error) throw res.error;
+  return res.count ?? 0;
+}
+
+/** F4: conteo HEAD de cuentas por pagar activas sin fecha de vencimiento. */
+async function countBillsWithoutDueDate(): Promise<number> {
+  const res = await supabase.from("supplier_bills")
+    .select("id", { count: "exact", head: true })
+    .in("status", ACTIVE_BILL_STATUSES)
+    .in("approval_status", ["not_required", "approved"])
+    .is("due_date", null);
+  if (res.error) throw res.error;
+  return res.count ?? 0;
+}
+
 export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projection", {
-  list: (filter?: Readonly<Record<string, unknown>>) => async (): Promise<CashFlowBucket[]> => {
+  list: (filter?: Readonly<Record<string, unknown>>) => async (): Promise<CashFlowProjectionResult> => {
     const { weeks, initialBalance, safetyBuffer } = (filter ?? {}) as CashFlowProjectionFilter;
     // Tanda 3 P2-7: se acota `payments` a los invoice_id vigentes.
     // Antes se descargaba TODA la tabla `payments` (sin límite ni rango) solo
     // para construir `paidByInvoice` sobre las facturas activas listadas más
     // abajo. Ahora primero traemos las facturas/bills activas y filtramos los
     // pagos por su `invoice_id` → payload proporcional a lo que se proyecta.
-    const [invRes, billRes] = await Promise.all([
+    const [invRes, billRes, noDueInvoices, noDueBills] = await Promise.all([
       supabase.from("v_invoices_with_balance")
         .select("id, invoice_number, total, due_date, customer_name, moneda, tipo_cambio, credited_amount")
         .in("status", ACTIVE_INVOICE_STATUSES)
@@ -54,6 +94,8 @@ export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projecti
         .in("approval_status", ["not_required", "approved"])
         .not("due_date", "is", null)
         .returns<BillRow[]>(),
+      countInvoicesWithoutDueDate(),
+      countBillsWithoutDueDate(),
     ]);
     if (invRes.error) throw invRes.error;
     if (billRes.error) throw billRes.error;
@@ -79,7 +121,14 @@ export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projecti
       const item = billToItem(b);
       if (item) items.push(item);
     }
-    return bucketByWeek(items, nowMty(), weeks, initialBalance, safetyBuffer);
+    const today = nowMty();
+    const buckets = bucketByWeek(items, today, weeks, initialBalance, safetyBuffer);
+    const todayYmd = format(today, "yyyy-MM-dd");
+    return {
+      buckets,
+      excludedNoDueDate: noDueInvoices + noDueBills,
+      excludedOutOfHorizon: countOutOfHorizon(items, buildWeekBuckets(today, weeks), todayYmd),
+    };
   },
   staleTime: 60_000,
 });

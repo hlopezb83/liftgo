@@ -111,3 +111,19 @@ export function bucketByWeek(
   applySemaforo(buckets, initial, safetyBuffer);
   return buckets;
 }
+
+/**
+ * F4: cuenta las partidas cuyo vencimiento cae FUERA del horizonte de semanas
+ * (mismo criterio que `bucketByWeek`, que las descarta silenciosamente).
+ */
+export function countOutOfHorizon(
+  items: CashFlowItem[],
+  buckets: CashFlowBucket[],
+  todayYmd: string,
+): number {
+  let n = 0;
+  for (const it of items) {
+    if (findBucketIndex(buckets, it.dueDate, todayYmd) < 0) n++;
+  }
+  return n;
+}

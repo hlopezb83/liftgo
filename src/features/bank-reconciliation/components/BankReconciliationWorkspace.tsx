@@ -12,6 +12,8 @@ import type { BankStatementLine } from "../hooks/useBankStatementLines";
 interface Props {
   lines: BankStatementLine[];
   bankAccountId: string;
+  /** Moneda de la cuenta bancaria: los movimientos se expresan en ella. */
+  currency: string;
   isLoading: boolean;
   virtualized?: boolean;
 }
@@ -34,7 +36,7 @@ function matchesSearch(line: BankStatementLine, term: string): boolean {
   );
 }
 
-export function BankReconciliationWorkspace({ lines, bankAccountId, isLoading, virtualized }: Props) {
+export function BankReconciliationWorkspace({ lines, bankAccountId, currency, isLoading, virtualized }: Props) {
   const isMobile = useIsMobile();
   const [status, setStatus] = useState<BankLineStatus | "all">("unmatched");
   const [search, setSearch] = useState("");
@@ -128,7 +130,7 @@ export function BankReconciliationWorkspace({ lines, bankAccountId, isLoading, v
               </SheetHeader>
               {activeLine && (
                 <div className="mt-4">
-                  <BankLineMatchPanel line={activeLine} onDone={handleDone} />
+                  <BankLineMatchPanel line={activeLine} currency={currency} onDone={handleDone} />
                 </div>
               )}
             </SheetContent>
@@ -140,7 +142,7 @@ export function BankReconciliationWorkspace({ lines, bankAccountId, isLoading, v
           <Card className="h-fit lg:sticky lg:top-4" data-testid="bank-match-panel-slot">
             <CardContent className="py-4">
               {activeLine ? (
-                <BankLineMatchPanel line={activeLine} onDone={handleDone} />
+                <BankLineMatchPanel line={activeLine} currency={currency} onDone={handleDone} />
               ) : (
                 <EmptyState
                   title="Selecciona un movimiento"

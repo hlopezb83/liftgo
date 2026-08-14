@@ -40,6 +40,7 @@ describe("BankMatchCandidateList", () => {
       <Wrapper>
         <BankMatchCandidateList
           lineId="line-1"
+          currency="MXN"
           search=""
           onSearchChange={() => {}}
           dateWindow={15}
@@ -50,5 +51,25 @@ describe("BankMatchCandidateList", () => {
     );
     fireEvent.click(screen.getByTestId("bank-candidate-match"));
     expect(onSelect).toHaveBeenCalledWith("sp-1", "supplier_payment");
+  });
+
+  // F5: el importe del candidato se formatea con la moneda de la cuenta,
+  // no siempre en MXN.
+  it("formatea el importe con la moneda de la cuenta (USD)", () => {
+    const { Wrapper } = createQueryWrapper();
+    render(
+      <Wrapper>
+        <BankMatchCandidateList
+          lineId="line-1"
+          currency="USD"
+          search=""
+          onSearchChange={() => {}}
+          dateWindow={15}
+          onDateWindowChange={() => {}}
+          onSelect={() => {}}
+        />
+      </Wrapper>,
+    );
+    expect(screen.getByText(/USD|US\$/)).toBeInTheDocument();
   });
 });
