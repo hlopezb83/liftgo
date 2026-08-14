@@ -1,51 +1,32 @@
-import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { useForm } from "react-hook-form";
-import { DeliveryFormFields, type DeliveryFormValues } from "../DeliveryFormFields";
+import { selectableBookings } from "../DeliveryFormFields";
 
-function Harness({ bookings }: { bookings: Array<Record<string, unknown>> }) {
-  const form = useForm<DeliveryFormValues>({
-    defaultValues: {
-      forkliftId: "", bookingId: "", type: "delivery", alreadyCompleted: false,
-      scheduledDate: new Date(), scheduledTime: "", address: "", driverName: "",
-      driverPhone: "", notes: "",
-    },
+const booking = (id: string, status: string, forkliftId = "f1") => ({
+  id,
+  customer_name: `Cliente ${id}`,
+  start_date: "2024-01-01",
+  end_date: "2024-01-05",
+  forklift_id: forkliftId,
+  status,
+});
+
+describe("selectableBookings (F9)", () => {
+  const bookings = [
+    booking("b1", "confirmed"),
+    booking("b2", "cancelled"),
+    booking("b3", "completed"),
+    booking("b4", "confirmed", "f2"),
+  ];
+
+  it("excluye reservas canceladas y completadas", () => {
+    expect(selectableBookings(bookings, undefined)?.map((b) => b.id)).toEqual(["b1", "b4"]);
   });
-  return (
-    <DeliveryFormFields
-      form={form}
-      forklifts={[]}
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      bookings={bookings as any}
-      activeDrivers={[]}
-    />
-  );
-}
 
-describe("DeliveryFormFields", () => {
-  // F9: sólo reservas `confirmed` deben ofrecerse; cancelled/completed son terminales.
-  it("solo lista reservas confirmed en el selector", () => {
-    render(
-      <Harness
-        bookings={[
-          { id: "b1", customer_name: "Cliente A", start_date: "2024-01-01", end_date: "2024-01-05", forklift_id: "f1", status: "confirmed" },
-          { id: "b2", customer_name: "Cliente B", start_date: "2024-01-01", end_date: "2024-01-05", forklift_id: "f1", status: "cancelled" },
-          { id: "b3", customer_name: "Cliente C", start_date: "2024-01-01", end_date: "2024-01-05", forklift_id: "f1", status: "completed" },
-        ]}
-      />,
-    );
+  it("además filtra por el montacargas seleccionado", () => {
+    expect(selectableBookings(bookings, "f1")?.map((b) => b.id)).toEqual(["b1"]);
+  });
 
-    // Radix Select sólo monta las opciones al abrir el combobox (pointerdown).
-    const triggers = screen.getAllByRole("combobox");
-    for (const trigger of triggers) {
-      fireEvent.pointerDown(
-        trigger,
-        new window.PointerEvent("pointerdown", { bubbles: true, button: 0, ctrlKey: false }),
-      );
-    }
-
-    expect(screen.getByText(/Cliente A/)).toBeInTheDocument();
-    expect(screen.queryByText(/Cliente B/)).not.toBeInTheDocument();
-    expect(screen.queryByText(/Cliente C/)).not.toBeInTheDocument();
+  it("tolera la lista indefinida", () => {
+    expect(selectableBookings(undefined, "f1")).toBeUndefined();
   });
 });
