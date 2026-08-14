@@ -1,5 +1,11 @@
 [
   {
+    "version": "7.323.1",
+    "date": "2026-08-14",
+    "title": "Fallas de CI corregidas (knip y E2E del selector de rango)",
+    "description": "Se quitaron re-exports sin uso en el módulo de errores que hacían fallar el análisis de knip, y la prueba E2E del selector de rango de fechas ahora busca el botón de calendario por su etiqueta accesible, porque tras la captura rápida de fechas el botón es un ícono sin texto."
+  },
+  {
     "version": "7.323.0",
     "date": "2026-08-14",
     "title": "Errores de servidor y SAT traducidos + toasts sin duplicados",
