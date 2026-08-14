@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.317.4",
+    "date": "2026-08-14",
+    "type": "patch",
+    "title": "Pruebas de los candados de dinero (notas de crédito, sobrepago y fechas de Monterrey)",
+    "category": "correcciones",
+    "changes": [
+      "Se agregaron pruebas automáticas que verifican que una nota de crédito timbrada por el total deja la factura como pagada.",
+      "Se verifican los bloqueos de sobrepago y de pagos en moneda distinta a la factura.",
+      "Se comprueba que borrar el único pago de una factura vencida la deja en vencida y no en enviada.",
+      "Se comprueba que una cuenta por pagar que vence mañana (hora Monterrey) no se marca vencida hoy."
+    ]
+  },
+  {
     "version": "7.317.3",
     "date": "2026-08-14",
     "type": "patch",

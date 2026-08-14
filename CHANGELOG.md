@@ -1,3 +1,11 @@
+## 7.317.4 - 2026-08-14
+
+**Correcciones — Pruebas de los candados de dinero (notas de crédito, sobrepago y fechas de Monterrey)**
+- Se agregaron pruebas automáticas que verifican que una nota de crédito timbrada por el total deja la factura como pagada.
+- Se verifican los bloqueos de sobrepago y de pagos en moneda distinta a la factura.
+- Se comprueba que borrar el único pago de una factura vencida la deja en vencida y no en enviada.
+- Se comprueba que una cuenta por pagar que vence mañana (hora Monterrey) no se marca vencida hoy.
+
 ## 7.317.3 - 2026-08-14
 
 **Correcciones — Fechas de negocio en hora de Monterrey y pruebas SQL en verde**
