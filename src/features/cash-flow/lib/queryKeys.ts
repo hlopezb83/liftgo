@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { nowMty } from "@/lib/utils";
@@ -9,7 +10,13 @@ import {
   type InvoiceRow,
   type PaymentRow,
 } from "./cashFlowTransformers";
-import { bucketByWeek, type CashFlowBucket, type CashFlowItem } from "./cashFlowUtils";
+import {
+  bucketByWeek,
+  buildWeekBuckets,
+  countOutOfHorizon,
+  type CashFlowBucket,
+  type CashFlowItem,
+} from "./cashFlowUtils";
 
 export interface CashFlowSettings {
   id: string | null;
@@ -34,15 +41,27 @@ export interface CashFlowProjectionFilter extends Record<string, unknown> {
   safetyBuffer: number;
 }
 
+export interface CashFlowProjectionResult {
+  buckets: CashFlowBucket[];
+  /**
+   * F4: documentos activos SIN fecha de vencimiento. La query los excluye
+   * (`.not("due_date","is",null)`) y antes desaparecían en silencio; el conteo
+   * se expone para avisar en la UI (patrón "excluir + avisar").
+   */
+  excludedNoDueDate: number;
+  /** Documentos cuyo vencimiento cae fuera del horizonte seleccionado. */
+  excludedOutOfHorizon: number;
+}
+
 export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projection", {
-  list: (filter?: Readonly<Record<string, unknown>>) => async (): Promise<CashFlowBucket[]> => {
+  list: (filter?: Readonly<Record<string, unknown>>) => async (): Promise<CashFlowProjectionResult> => {
     const { weeks, initialBalance, safetyBuffer } = (filter ?? {}) as CashFlowProjectionFilter;
     // Tanda 3 P2-7: se acota `payments` a los invoice_id vigentes.
     // Antes se descargaba TODA la tabla `payments` (sin límite ni rango) solo
     // para construir `paidByInvoice` sobre las facturas activas listadas más
     // abajo. Ahora primero traemos las facturas/bills activas y filtramos los
     // pagos por su `invoice_id` → payload proporcional a lo que se proyecta.
-    const [invRes, billRes] = await Promise.all([
+    const [invRes, billRes, invNoDueRes, billNoDueRes] = await Promise.all([
       supabase.from("v_invoices_with_balance")
         .select("id, invoice_number, total, due_date, customer_name, moneda, tipo_cambio, credited_amount")
         .in("status", ACTIVE_INVOICE_STATUSES)
@@ -54,9 +73,20 @@ export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projecti
         .in("approval_status", ["not_required", "approved"])
         .not("due_date", "is", null)
         .returns<BillRow[]>(),
+      supabase.from("v_invoices_with_balance")
+        .select("id", { count: "exact", head: true })
+        .in("status", ACTIVE_INVOICE_STATUSES)
+        .is("due_date", null),
+      supabase.from("supplier_bills")
+        .select("id", { count: "exact", head: true })
+        .in("status", ACTIVE_BILL_STATUSES)
+        .in("approval_status", ["not_required", "approved"])
+        .is("due_date", null),
     ]);
     if (invRes.error) throw invRes.error;
     if (billRes.error) throw billRes.error;
+    if (invNoDueRes.error) throw invNoDueRes.error;
+    if (billNoDueRes.error) throw billNoDueRes.error;
 
     const activeInvoiceIds = (invRes.data ?? []).map((i) => i.id).filter(Boolean);
     let payments: PaymentRow[] = [];
@@ -79,7 +109,14 @@ export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projecti
       const item = billToItem(b);
       if (item) items.push(item);
     }
-    return bucketByWeek(items, nowMty(), weeks, initialBalance, safetyBuffer);
+    const today = nowMty();
+    const buckets = bucketByWeek(items, today, weeks, initialBalance, safetyBuffer);
+    const todayYmd = format(today, "yyyy-MM-dd");
+    return {
+      buckets,
+      excludedNoDueDate: (invNoDueRes.count ?? 0) + (billNoDueRes.count ?? 0),
+      excludedOutOfHorizon: countOutOfHorizon(items, buildWeekBuckets(today, weeks), todayYmd),
+    };
   },
   staleTime: 60_000,
 });
