@@ -63,6 +63,27 @@ function collectInvoicedBookingIds(
   return set;
 }
 
+interface QuoteAssignmentStatus {
+  isComplete: boolean;
+  totalAssigned: number;
+  totalRequired: number;
+  missingByLine: SaleAssignmentGuard["missingByLine"];
+}
+
+/** Bloquea facturar una venta cuando faltan unidades asignadas a la cotización. */
+function buildSaleAssignmentGuard(
+  status: QuoteAssignmentStatus,
+  opts: { isEdit: boolean; fromQuoteId: string | null; quoteType?: string },
+): SaleAssignmentGuard {
+  const isPendingSale = !opts.isEdit && !!opts.fromQuoteId && opts.quoteType === "sale";
+  return {
+    shouldBlock: isPendingSale && !status.isComplete,
+    totalAssigned: status.totalAssigned,
+    totalRequired: status.totalRequired,
+    missingByLine: status.missingByLine,
+  };
+}
+
 export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: UseInvoiceFormLogicArgs) {
 
   const isEdit = !!id;
@@ -90,17 +111,11 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     : [];
   const quoteAssignmentStatus = useQuoteSaleAssignmentStatus(fromQuoteId || undefined, quoteLineItems);
 
-  const saleAssignmentGuard: SaleAssignmentGuard = {
-    shouldBlock:
-      !isEdit &&
-      !!sourceQuote &&
-      !!fromQuoteId &&
-      sourceQuote.quote_type === "sale" &&
-      !quoteAssignmentStatus.isComplete,
-    totalAssigned: quoteAssignmentStatus.totalAssigned,
-    totalRequired: quoteAssignmentStatus.totalRequired,
-    missingByLine: quoteAssignmentStatus.missingByLine,
-  };
+  const saleAssignmentGuard = buildSaleAssignmentGuard(quoteAssignmentStatus, {
+    isEdit,
+    fromQuoteId,
+    quoteType: sourceQuote?.quote_type,
+  });
 
   const submit = useInvoiceFormSubmit();
   const uniqueBookingQuoteIds = collectBookingQuoteIds(bookings);
