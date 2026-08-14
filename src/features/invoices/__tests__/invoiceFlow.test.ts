@@ -131,10 +131,16 @@ describe("useCreateInvoice — hook real", () => {
       } as unknown as Parameters<typeof result.current.mutateAsync>[0]),
     ).rejects.toMatchObject({ code: "42501" });
 
+    // El catálogo traduce 42501 a un mensaje accionable de permisos en vez
+    // del título genérico de la mutación.
     await waitFor(() =>
       expect(notifyErrorMock).toHaveBeenCalledWith(
-        expect.objectContaining({ title: "Error al crear factura" }),
+        expect.objectContaining({
+          title: "Sin permisos",
+          description: expect.stringContaining("permiso"),
+        }),
       ),
     );
+
   });
 });
