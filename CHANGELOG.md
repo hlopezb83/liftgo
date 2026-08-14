@@ -1,3 +1,12 @@
+## 7.308.0 - 2026-08-14
+
+**Correcciones — Sprint 2: fronteras fiscales del timbrado CFDI (SAT)**
+- Timbrado: factura en moneda != MXN sin tipo de cambio válido → 422 con mensaje claro, sin llamar al PAC (se elimina el fallback `|| 1`).
+- Descuentos: el schema del formulario rechaza < 0 y > 100%; `stamp-cfdi` capea el porcentaje en [0, 100] con la misma regla que `applyDiscountToBase`.
+- IVA por línea: `computeTotals` grava partida por partida respetando `objeto_imp` (las líneas 01 no generan IVA), igual que el payload de timbrado.
+- Cancelación: `cancel-cfdi` hace claim atómico `none` → `pending` antes de llamar al SAT; la segunda petición concurrente recibe 409.
+- Tests nuevos de totales: factura mixta 01+02, 100% exenta y normal.
+
 ## 7.307.9 - 2026-08-14
 
 **Correcciones — Sprint 1: tres bugs bloqueantes de UI y arranque de sesión**
