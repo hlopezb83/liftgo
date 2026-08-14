@@ -115,4 +115,38 @@ BEGIN
   RAISE NOTICE 'OK: administrativo administra collection_notes';
 END $$;
 
+-- 6) Dispatcher: solo lectura (v7.320.4) — no puede crear ni alterar notas de cobranza.
+SET LOCAL request.jwt.claims TO '{"sub":"c0000006-0000-4000-8000-000000000005","role":"authenticated"}';
+
+DO $$
+DECLARE v_rows int; v_blocked boolean := false;
+BEGIN
+  IF (SELECT COUNT(*) FROM public.collection_notes
+       WHERE id = 'c0000006-0000-4000-8000-0000000000a1') <> 1 THEN
+    RAISE EXCEPTION 'RLS ROTA: dispatcher deberia leer collection_notes';
+  END IF;
+
+  BEGIN
+    INSERT INTO public.collection_notes (invoice_id, note)
+    VALUES ('c0000006-0000-4000-8000-0000000000b1', 'nota del dispatcher');
+  EXCEPTION WHEN insufficient_privilege OR check_violation THEN
+    v_blocked := true;
+  END;
+  IF NOT v_blocked THEN
+    RAISE EXCEPTION 'RLS BREACH: dispatcher pudo crear notas de cobranza';
+  END IF;
+
+  BEGIN
+    UPDATE public.collection_notes SET note = 'alterada por dispatcher'
+     WHERE id = 'c0000006-0000-4000-8000-0000000000a1';
+    GET DIAGNOSTICS v_rows = ROW_COUNT;
+  EXCEPTION WHEN insufficient_privilege OR check_violation THEN
+    v_rows := 0;
+  END;
+  IF v_rows > 0 THEN
+    RAISE EXCEPTION 'RLS BREACH: dispatcher pudo alterar notas de cobranza';
+  END IF;
+  RAISE NOTICE 'OK: dispatcher es de solo lectura en collection_notes';
+END $$;
+
 ROLLBACK;
