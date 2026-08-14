@@ -17,7 +17,9 @@ export const feedbackScreenshotUrlQueries = defineEntityQueries<
     if (error) throw error;
     return data?.signedUrl ?? null;
   },
-  staleTime: 5 * 60_000,
+  // La URL firmada vive 10 min (TTL 600s); el staleTime debe quedar por debajo
+  // del TTL para no servir URLs expiradas desde el caché (4 min < 10 min).
+  staleTime: 4 * 60_000,
 });
 
 /** Returns a signed URL (valid 10 min) for a feedback screenshot stored in private bucket. */

@@ -1,0 +1,6 @@
+{
+  "version": "7.329.1",
+  "date": "2026-08-14",
+  "title": "Sprint B3 — Detalles de interfaz",
+  "description": "En pólizas de mantenimiento, una unidad se considera rentada por su reserva vigente y no por el estatus guardado, igual que en Flota. El diálogo de cambio de contraseña pide mínimo 8 caracteres en todos los campos y se limpia al cerrarse. La paginación anuncia 'Paginación' en español para lectores de pantalla. La pantalla de 'Factura no encontrada' del portal ahora tiene encabezado y botón para volver a facturas. El formulario de refacciones limita la cantidad a las existencias reales (antes permitía hasta 999 con inventario en cero). Se eliminó un componente de barra de herramientas sin uso."
+}

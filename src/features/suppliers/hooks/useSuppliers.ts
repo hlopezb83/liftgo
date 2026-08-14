@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 
 const sel = (s: string): string => s;
@@ -81,9 +82,13 @@ export function useCreateSupplier() {
 export function useUpdateSupplier() {
   return useEntityMutation({
     mutationFn: async ({ id, ...updates }: Partial<Supplier> & { id: string }) => {
-      const { data, error } = await supabase.from("suppliers").update(updates).eq("id", id).select().single();
+      // R10 Bloque 12.7: no actualizar proveedores archivados.
+      const { data, error } = await supabase.from("suppliers").update(updates).eq("id", id).is("deleted_at", null).select();
+
       if (error) throw new Error(translateSupplierError(error));
-      return data;
+      // GUI-FE-08: 0 filas = sin permisos (RLS) o registro archivado/inexistente.
+      assertRowsAffected(data, "Actualizar proveedor");
+      return data[0];
     },
     invalidateKeys: [suppliersQueries.keys.all],
     successMsg: "Proveedor actualizado",

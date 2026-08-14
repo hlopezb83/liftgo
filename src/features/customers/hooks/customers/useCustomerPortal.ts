@@ -7,6 +7,22 @@ const sel = (s: string): string => s;
 
 const PORTAL_CUSTOMER_COLUMNS = sel("id, name, rfc, domicilio_fiscal_cp");
 const PORTAL_BOOKING_COLUMNS = sel("id, forklift_id, start_date, end_date, status");
+// v7.216.0 (C6): columnas explícitas — sólo las que consume la UI del portal
+// (PortalStatement, PortalInvoiceDetail, PortalInvoicePayment).
+const PORTAL_PAYMENT_COLUMNS = sel(
+  "id, invoice_id, payment_date, payment_method, reference_number, amount, invoices(invoice_number)",
+);
+
+export interface PortalPaymentRow {
+  id: string;
+  invoice_id: string | null;
+  payment_date: string;
+  payment_method: string | null;
+  reference_number: string | null;
+  amount: number | string;
+  invoices: { invoice_number: string } | null;
+}
+
 
 export interface PortalCustomerRow {
   id: string;
@@ -120,8 +136,9 @@ export function usePortalPayments() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("payments")
-        .select("*, invoices(invoice_number)")
-        .order("payment_date", { ascending: false });
+        .select(PORTAL_PAYMENT_COLUMNS)
+        .order("payment_date", { ascending: false })
+        .returns<PortalPaymentRow[]>();
       if (error) throw error;
       return data;
     },

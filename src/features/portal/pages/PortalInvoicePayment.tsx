@@ -168,6 +168,15 @@ function PaymentQueryError({ onRetry }: { onRetry: () => void }) {
   );
 }
 
+function InvoiceNotFound() {
+  return (
+    <PageContainer maxWidth="wide">
+      <PageHeader title="Pagar factura" backHref="/portal/invoices" backLabel="Facturas" />
+      <p className="text-muted-foreground">Factura no encontrada</p>
+    </PageContainer>
+  );
+}
+
 export default function PortalInvoicePayment() {
   const { id } = useParams();
   // A3-01: capturar error/refetch de las 3 queries — sin esto un fallo de red
@@ -194,7 +203,7 @@ export default function PortalInvoicePayment() {
 
   if (isLoading) return <Skeleton className="h-96" />;
   if (hasError) return <PaymentQueryError onRetry={retryAll} />;
-  if (!invoice) return <p className="text-muted-foreground">Factura no encontrada</p>;
+  if (!invoice) return <InvoiceNotFound />;
 
   return (
     <PaymentBody

@@ -58,7 +58,15 @@ export function useCreateFeedback() {
         .insert(payload)
         .select()
         .single();
-      if (error) throw error;
+      if (error) {
+        // BL-36 (mismo patrón que useDocuments): rollback del screenshot en
+        // Storage si la fila no se pudo crear; sin esto quedan objetos
+        // huérfanos en el bucket sin fila que los referencie.
+        if (screenshotUrl) {
+          await supabase.storage.from("feedback-screenshots").remove([screenshotUrl]);
+        }
+        throw error;
+      }
       return data;
     },
     invalidateKeys: [["feedback_reports"]],

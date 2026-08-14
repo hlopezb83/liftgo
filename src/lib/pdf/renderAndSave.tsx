@@ -33,7 +33,10 @@ function saveBlob(blob: Blob, filename: string): void {
   a.download = filename;
   a.rel = "noopener";
   a.click();
-  URL.revokeObjectURL(url);
+  // B-5 (mismo patrón que exportCsv): revocar en el mismo tick del click
+  // cancela la descarga en Firefox; diferir 1s da tiempo a que el navegador
+  // consuma el blob.
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
 /**

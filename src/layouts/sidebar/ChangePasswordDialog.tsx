@@ -18,10 +18,19 @@ export function ChangePasswordDialog({ open, onOpenChange }: Props) {
   const [confirm, setConfirm] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Al cerrar sin guardar se limpian los campos (antes solo se limpiaban en éxito).
+  const handleOpenChange = (next: boolean) => {
+    if (!next) {
+      setPassword("");
+      setConfirm("");
+    }
+    onOpenChange(next);
+  };
+
   const handleSubmit = async (e: ReactFormEvent) => {
     e.preventDefault();
-    if (password.length < 6) {
-      notifyValidation({ message: "La contraseña debe tener al menos 6 caracteres" });
+    if (password.length < 8) {
+      notifyValidation({ message: "La contraseña debe tener al menos 8 caracteres" });
       return;
     }
     if (password !== confirm) {
@@ -45,7 +54,7 @@ export function ChangePasswordDialog({ open, onOpenChange }: Props) {
     <FormDialog
       isPending={loading}
       open={open}
-      onOpenChange={onOpenChange}
+      onOpenChange={handleOpenChange}
       title="Cambiar Contraseña"
       width="sm"
       description="Ingresa tu nueva contraseña."
@@ -76,7 +85,7 @@ export function ChangePasswordDialog({ open, onOpenChange }: Props) {
             />
           </div>
           <FormDialogFooter>
-            <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={loading} />
+            <FormDialogCancelButton onCancel={() => handleOpenChange(false)} disabled={loading} />
             <Button type="submit" disabled={loading}>
               {loading ? "Guardando…" : "Guardar"}
             </Button>

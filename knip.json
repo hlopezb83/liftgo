@@ -28,7 +28,6 @@
     "src/components/feedback/CardListSkeleton.tsx",
     "src/components/feedback/FormSkeleton.tsx",
     "src/components/layout/DetailLayout.tsx",
-    "src/components/layout/ListToolbar.tsx",
     "src/features/invoices/index.ts",
     "src/features/portal/hooks/usePaymentIntents.ts",
     "src/features/portal/hooks/usePortalExtras.ts",

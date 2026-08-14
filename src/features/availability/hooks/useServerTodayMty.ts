@@ -17,7 +17,11 @@ export function useServerTodayMty(): string {
       if (error) throw error;
       return data as string;
     },
-    staleTime: 5 * 60 * 1000,
+    // El "hoy" del servidor cambia una vez al día, pero con staleTime largo
+    // una sesión abierta cerca de medianoche podía quedarse con la fecha del
+    // día anterior. 60s mantiene la fecha razonablemente fresca sin presionar
+    // la RPC (una llamada por minuto como máximo por sesión activa).
+    staleTime: 60 * 1000,
     retry: 1,
   });
 

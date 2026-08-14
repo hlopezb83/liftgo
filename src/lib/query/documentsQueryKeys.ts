@@ -53,5 +53,8 @@ export const documentsQueries = defineEntityQueries("documents", {
     if (error) throw error;
     return attachSignedUrls(data ?? []);
   },
-  staleTime: 60_000,
+  // Las signed URLs incrustadas en las filas viven SIGNED_URL_TTL_SECONDS (1h).
+  // El staleTime debe quedar por debajo del TTL con margen para no servir URLs
+  // expiradas desde el caché (50 min < 60 min).
+  staleTime: 50 * 60_000,
 });

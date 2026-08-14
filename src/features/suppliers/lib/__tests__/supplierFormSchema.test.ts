@@ -62,4 +62,28 @@ describe("supplierFormSchema", () => {
       ).toBe(false);
     }
   });
+  it("rechaza campos de texto que exceden su límite máximo", () => {
+    const cases: Array<[keyof typeof emptySupplierFormData, number]> = [
+      ["name", 200],
+      ["contact_person", 200],
+      ["phone", 40],
+      ["website", 200],
+      ["address", 500],
+      ["notes", 2000],
+    ];
+    for (const [field, max] of cases) {
+      const ok = supplierFormSchema.safeParse({
+        ...emptySupplierFormData,
+        name: "ACME",
+        [field]: "a".repeat(max),
+      });
+      expect(ok.success, `${field} en el límite`).toBe(true);
+      const bad = supplierFormSchema.safeParse({
+        ...emptySupplierFormData,
+        name: "ACME",
+        [field]: "a".repeat(max + 1),
+      });
+      expect(bad.success, `${field} excedido`).toBe(false);
+    }
+  });
 });

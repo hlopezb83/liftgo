@@ -82,7 +82,9 @@ export function AddMaintenancePartForm({
         <Input
           type="number"
           min={1}
-          max={selectedPart?.stock_quantity || 999}
+          // Sin refacción seleccionada (o stock 0) el tope es 0: el hint HTML
+          // nunca permite exceder el stock real (la validación vive en handleAddPart).
+          max={selectedPart?.stock_quantity ?? 0}
           value={quantity}
           onChange={(e) => setQuantity(parseInt(e.target.value) || 1)}
         />
