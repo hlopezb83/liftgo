@@ -1,5 +1,11 @@
 [
   {
+    "version": "7.321.1",
+    "date": "2026-08-14",
+    "title": "Total negativo en factura de proveedor por retenciones",
+    "description": "La guarda del schema de facturas de proveedor usaba subtotal+impuestos como límite de retenciones, ignorando el descuento. Con descuento>0 permitía retenciones que producían total negativo. Corregida la base gravable a subtotal−descuento+impuestos y añadido piso Math.max(0) defensivo en el cálculo del total."
+  },
+  {
     "version": "7.321.0",
     "date": "2026-08-14",
     "title": "Paginación accesible: enlaces <a> → <button> con estado disabled real",
