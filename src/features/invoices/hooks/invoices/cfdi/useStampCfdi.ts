@@ -2,6 +2,7 @@ import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 import { notifyInfo, notifySuccess } from "@/lib/ui/appFeedback";
 import { translateFacturapiError } from "../../../lib/facturapiErrors";
+import { notifyCfdiError } from "../../../lib/notifyCfdiError";
 import { invoiceKeys } from "../../../lib/queryKeys";
 
 interface StampCfdiResponse {
