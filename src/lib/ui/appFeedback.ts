@@ -195,14 +195,14 @@ function buildOpts(kind: string, title: string, opts?: SimpleOpts, fallbackDurat
  * codemod desde `toast.success` sea mecánico.
  */
 export function notifySuccess(title: string, opts?: SimpleOpts): string | number {
-  return toast.success(title, buildOpts(opts, DURATION.success));
+  return toast.success(title, buildOpts("success", title, opts, DURATION.success));
 }
 
 /**
  * Toast informativo (estados neutrales, "no hay nada que generar", etc.).
  */
 export function notifyInfo(title: string, opts?: SimpleOpts): string | number {
-  return toast.info(title, buildOpts(opts, DURATION.info));
+  return toast.info(title, buildOpts("info", title, opts, DURATION.info));
 }
 
 /**
@@ -215,13 +215,15 @@ export interface NotifySimpleInput {
 }
 export function notifyWarning(input: string | NotifySimpleInput, opts?: SimpleOpts): string | number {
   if (typeof input === "string") {
-    return toast.warning(input, buildOpts(opts, DURATION.warning));
+    return toast.warning(input, buildOpts("warning", input, opts, DURATION.warning));
   }
   return toast.warning(input.title, {
+    id: toastDedupeId("warning", input.title, input.description),
     description: input.description,
     duration: DURATION.warning,
   });
 }
+
 
 // ---------------------------------------------------------------------------
 // notifyAsync — toast con estado loading/success/error para operaciones largas
