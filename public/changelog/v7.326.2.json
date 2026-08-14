@@ -1,0 +1,11 @@
+{
+  "version": "7.326.2",
+  "date": "2026-08-14",
+  "type": "patch",
+  "title": "Prueba RLS de facturas alineada con la matriz de roles",
+  "category": "bugfix",
+  "changes": [
+    "invoices.sql: despachador ya no debe leer facturas",
+    "invoices.sql: nuevo caso de auditor con acceso de sólo lectura"
+  ]
+}
