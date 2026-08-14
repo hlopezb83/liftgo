@@ -1,10 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { readSessionParams, writeSessionParams } from "../sessionStorage";
 
 describe("sessionStorage filter helpers", () => {
-  beforeEach(() => {
+  afterEach(() => {
     vi.restoreAllMocks();
-    // Limpia cualquier residuo
     try {
       window.sessionStorage.clear();
     } catch {
