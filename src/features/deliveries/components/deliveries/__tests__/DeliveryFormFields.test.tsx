@@ -1,5 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { useForm } from "react-hook-form";
 import { DeliveryFormFields, type DeliveryFormValues } from "../DeliveryFormFields";
@@ -35,6 +34,16 @@ describe("DeliveryFormFields", () => {
         ]}
       />,
     );
+
+    // Radix Select sólo monta las opciones al abrir el combobox (pointerdown).
+    const triggers = screen.getAllByRole("combobox");
+    for (const trigger of triggers) {
+      fireEvent.pointerDown(
+        trigger,
+        new window.PointerEvent("pointerdown", { bubbles: true, button: 0, ctrlKey: false }),
+      );
+    }
+
     expect(screen.getByText(/Cliente A/)).toBeInTheDocument();
     expect(screen.queryByText(/Cliente B/)).not.toBeInTheDocument();
     expect(screen.queryByText(/Cliente C/)).not.toBeInTheDocument();
