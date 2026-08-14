@@ -54,6 +54,14 @@ describe("invoices · máquina de estados", () => {
     }
   });
 
+  // Sprint 4 (Fix 4.2)
+  it("draft nunca pasa directo a overdue", () => {
+    expect(canTransitionInvoice("draft", "overdue")).toBe(false);
+    expect(canTransitionInvoice("draft", "overdue", { paymentSync: true })).toBe(false);
+    expect(canTransitionInvoice("draft", "sent")).toBe(true);
+  });
+
+
   it("paid -> cancelled solo con el flujo fiscal (SAT / service_role)", () => {
     expect(canTransitionInvoice("paid", "cancelled")).toBe(false);
     expect(canTransitionInvoice("paid", "cancelled", { satFlow: true })).toBe(true);
