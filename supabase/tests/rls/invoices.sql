@@ -6,12 +6,14 @@ BEGIN;
 
 INSERT INTO auth.users (id, email, created_at, updated_at) VALUES
   ('11111111-0000-4000-8000-000000000001', 'ventas.inv@test.local', now(), now()),
-  ('11111111-0000-4000-8000-000000000002', 'dispatcher.inv@test.local', now(), now())
+  ('11111111-0000-4000-8000-000000000002', 'dispatcher.inv@test.local', now(), now()),
+  ('11111111-0000-4000-8000-000000000003', 'auditor.inv@test.local', now(), now())
 ON CONFLICT DO NOTHING;
 
 INSERT INTO public.user_roles (user_id, role) VALUES
   ('11111111-0000-4000-8000-000000000001', 'ventas'),
-  ('11111111-0000-4000-8000-000000000002', 'dispatcher')
+  ('11111111-0000-4000-8000-000000000002', 'dispatcher'),
+  ('11111111-0000-4000-8000-000000000003', 'auditor')
 ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
 INSERT INTO public.invoices (id, invoice_number, customer_name, subtotal, tax_amount, total)
