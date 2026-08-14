@@ -14,7 +14,8 @@ INSERT INTO public.user_roles (user_id, role) VALUES
   ('c0000006-0000-4000-8000-000000000001', 'administrativo'),
   ('c0000006-0000-4000-8000-000000000002', 'auditor'),
   ('c0000006-0000-4000-8000-000000000003', 'ventas'),
-  ('c0000006-0000-4000-8000-000000000004', 'customer')
+  ('c0000006-0000-4000-8000-000000000004', 'customer'),
+  ('c0000006-0000-4000-8000-000000000005', 'dispatcher')
 ON CONFLICT (user_id) DO UPDATE SET role = EXCLUDED.role;
 
 INSERT INTO public.customers (id, name, user_id) VALUES
