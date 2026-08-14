@@ -1,3 +1,10 @@
+## 7.317.1 - 2026-08-14
+
+**Correcciones — Arreglos de CI: lint, archivo sin uso y prueba E2E inestable**
+- Se eliminó un tipo permisivo en la creación de prospectos que rompía la revisión de código.
+- Se borró un archivo de validación de notas de crédito que ya no se usaba.
+- La prueba automatizada de alta de clientes ya no falla cuando queda un registro residual con el mismo nombre.
+
 ## 7.317.0 - 2026-08-14
 
 **Correcciones — Cierre de sprints: horas extra en devoluciones y pruebas de cierre**
