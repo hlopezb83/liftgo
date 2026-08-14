@@ -1,3 +1,10 @@
+## 7.317.3 - 2026-08-14
+
+**Correcciones — Fechas de negocio en hora de Monterrey y pruebas SQL en verde**
+- Catorce reglas de negocio (facturas de proveedor, cotizaciones, flota, panel y seguros) usan la fecha de Monterrey en el historial de cambios, igual que en producción.
+- Se restauró la tarea diaria que marca como rentadas las unidades cuya reserva inicia hoy.
+- Las pruebas automáticas de base de datos r4 y r9 vuelven a pasar en integración continua.
+
 ## 7.317.2 - 2026-08-14
 
 **Correcciones — Limpieza de código: revisión automática de calidad en verde**
