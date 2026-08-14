@@ -46,7 +46,22 @@ export async function handleCancelCfdi(
   const err = (status: number, message: string) =>
     jsonError(req, status, message);
 
+  // S2-2.4: refs para poder liberar el claim de cancelación ante cualquier
+  // salida temprana o excepción inesperada.
+  let supabaseRef: SupabaseLike | null = null;
+  let invoiceIdRef: string | null = null;
+  let claimedRef = false;
+  const releaseCancelClaim = async () => {
+    if (!claimedRef || !supabaseRef || !invoiceIdRef) return;
+    claimedRef = false;
+    await supabaseRef
+      .from("invoices")
+      .update({ cancellation_status: "none" })
+      .eq("id", invoiceIdRef);
+  };
+
   try {
+
     const auth = await authenticateWithDeps({
       req,
       createCallerClient: (h) => deps.createCallerClient(h),
