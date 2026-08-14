@@ -31,18 +31,24 @@ const TYPE_OPTIONS: SelectOption[] = [
   { value: "pickup", label: "Recolección" },
 ];
 
+/**
+ * R-C6 + F9: reservas seleccionables para una entrega. Sólo las `confirmed`
+ * (canceladas/completadas son terminales) y, si ya hay montacargas elegido,
+ * sólo las de ese equipo — el RPC rechaza cualquier otra combinación.
+ */
+export function selectableBookings(
+  bookings: Booking[] | undefined,
+  forkliftId: string | undefined,
+): Booking[] | undefined {
+  const active = bookings?.filter((b) => b.status === "confirmed");
+  return forkliftId ? active?.filter((b) => b.forklift_id === forkliftId) : active;
+}
+
 export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }: Props) {
   const forkliftId = useWatch({ control: form.control, name: "forkliftId" });
   const bookingId = useWatch({ control: form.control, name: "bookingId" });
 
-  // R-C6: filtrar reservas visibles al montacargas elegido para evitar
-  // seleccionar una reserva que apunta a otro equipo (el RPC lo rechaza).
-  // F9: sólo reservas `confirmed` — las canceladas/completadas son terminales
-  // (useBookingActionsLogic) y no deben ofrecerse para nuevas entregas.
-  const activeBookings = bookings?.filter((b) => b.status === "confirmed");
-  const visibleBookings = forkliftId
-    ? activeBookings?.filter((b) => b.forklift_id === forkliftId)
-    : activeBookings;
+  const visibleBookings = selectableBookings(bookings, forkliftId);
 
   const forkliftOptions: SelectOption[] =
     forklifts?.map((f) => ({ value: f.id, label: `${f.name} — ${f.model}` })) ?? [];
