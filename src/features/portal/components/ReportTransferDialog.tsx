@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { TextField, CurrencyField, DateField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -115,9 +116,7 @@ export function ReportTransferDialog({ open, onOpenChange, invoiceId, customerId
             )}
           />
           <FormDialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
-              Cancelar
-            </Button>
+            <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={isPending} />
             {/* R9-P2: no se deshabilita por validez — al enviar, el error de
                 sobrepago se muestra bajo el campo Monto en vez de un botón muerto. */}
             <Button type="submit" disabled={isPending}>

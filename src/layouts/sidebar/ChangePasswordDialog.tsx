@@ -1,5 +1,6 @@
 import { useState, type FormEvent as ReactFormEvent } from "react";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -75,7 +76,7 @@ export function ChangePasswordDialog({ open, onOpenChange }: Props) {
             />
           </div>
           <FormDialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+            <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={loading} />
             <Button type="submit" disabled={loading}>
               {loading ? "Guardando…" : "Guardar"}
             </Button>

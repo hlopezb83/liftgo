@@ -7,6 +7,7 @@ import {
   TextField,
 } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
@@ -138,14 +139,7 @@ export function EditReceptorFiscalDialog({ open, onOpenChange, invoice }: Props)
           )}
 
           <FormDialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-              disabled={update.isPending}
-            >
-              Cancelar
-            </Button>
+            <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={update.isPending} />
             <Button type="submit" disabled={update.isPending}>
               {update.isPending ? "Guardando…" : "Guardar"}
             </Button>

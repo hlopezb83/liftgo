@@ -1,4 +1,5 @@
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -86,9 +87,7 @@ export function CreateCreditNoteDialog({ open, onOpenChange, invoice, maxCredita
         </div>
 
         <FormDialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={f.isPending}>
-            Cancelar
-          </Button>
+          <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={f.isPending} />
           <Button variant="secondary" onClick={() => f.submit(false)} disabled={!f.canSubmit}>
             Guardar borrador
           </Button>

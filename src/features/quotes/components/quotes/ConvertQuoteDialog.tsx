@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
+import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { FormSection } from "@/components/forms/FormSection";
 import { WarnIcon } from "@/components/icons";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -106,9 +107,7 @@ export function ConvertQuoteDialog({
         )}
 
         <FormDialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isPending}>
-            Cancelar
-          </Button>
+          <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={isPending} />
           <Button
             type="button"
             disabled={blocked || isPending}

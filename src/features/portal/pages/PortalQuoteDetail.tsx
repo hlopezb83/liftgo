@@ -5,6 +5,7 @@ import { SuccessIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { canActOnPortalQuote, isQuoteAccepted } from "@/lib/rules/quotes";
@@ -78,28 +79,31 @@ export default function PortalQuoteDetail() {
       <Card>
         <CardHeader><CardTitle className="text-base">Partidas</CardTitle></CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="text-xs text-muted-foreground bg-muted/40">
-              <tr>
-                <th className="text-left px-3 py-2">Descripción</th>
-                <th className="text-right px-3 py-2">Cant.</th>
-                <th className="text-right px-3 py-2">P. Unit.</th>
-                <th className="text-right px-3 py-2">Importe</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Descripción</TableHead>
+                <TableHead className="text-right">Cant.</TableHead>
+                <TableHead className="text-right">P. Unit.</TableHead>
+                <TableHead className="text-right">Importe</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {items.map((it, idx) => (
-                <tr key={idx} className={idx % 2 ? "bg-muted/20" : ""}>
-                  <td className="px-3 py-2">{it.description ?? "—"}</td>
-                  <td className="px-3 py-2 text-right font-mono">{it.quantity ?? 1}</td>
-                  <td className="px-3 py-2 text-right font-mono">{formatCurrency(Number(it.unit_price ?? 0))}</td>
-                  <td className="px-3 py-2 text-right font-mono">{formatCurrency(computeLineTotal(it))}</td>
-                </tr>
+                <TableRow key={idx}>
+                  <TableCell
+                    className="max-w-[10rem] truncate"
+                    title={it.description ?? undefined}
+                  >
+                    {it.description ?? "—"}
+                  </TableCell>
+                  <TableCell className="text-right font-mono">{it.quantity ?? 1}</TableCell>
+                  <TableCell className="text-right font-mono">{formatCurrency(Number(it.unit_price ?? 0))}</TableCell>
+                  <TableCell className="text-right font-mono">{formatCurrency(computeLineTotal(it))}</TableCell>
+                </TableRow>
               ))}
-            </tbody>
-          </table>
-          </div>
+            </TableBody>
+          </Table>
           <div className="border-t p-4">
             <TotalsBreakdown
               subtotal={quote.subtotal}
