@@ -98,7 +98,10 @@ describe("FiltersToolbar", () => {
           <FiltersToolbar.DateRange value="" onChange={onChange} placeholder="Filtrar por fecha" />
         </FiltersToolbar>,
       );
-      expect(screen.getByRole("button", { name: /filtrar por fecha/i })).toBeInTheDocument();
+      // v7.322.0: el rango se captura en dos inputs enmascarados + botón de calendario.
+      const inputs = screen.getAllByPlaceholderText("dd/mm/aaaa");
+      expect(inputs).toHaveLength(2);
+      expect(inputs[0]).toHaveValue("");
     });
 
     it("deserializes 'YYYY-MM-DD..YYYY-MM-DD' and shows the formatted range", () => {
@@ -108,10 +111,9 @@ describe("FiltersToolbar", () => {
           <FiltersToolbar.DateRange value="2026-06-01..2026-06-30" onChange={onChange} />
         </FiltersToolbar>,
       );
-      // El formato del trigger es "01/06/2026 — 30/06/2026" (formatRangeLabel).
-      const trigger = screen.getByRole("button");
-      expect(trigger.textContent).toMatch(/01\/06\/2026/);
-      expect(trigger.textContent).toMatch(/30\/06\/2026/);
+      const inputs = screen.getAllByPlaceholderText("dd/mm/aaaa");
+      expect(inputs[0]).toHaveValue("01/06/2026");
+      expect(inputs[1]).toHaveValue("30/06/2026");
     });
 
     it("handles only-from range (open interval) without throwing", () => {
@@ -121,8 +123,9 @@ describe("FiltersToolbar", () => {
           <FiltersToolbar.DateRange value="2026-06-01.." onChange={onChange} />
         </FiltersToolbar>,
       );
-      const trigger = screen.getByRole("button");
-      expect(trigger.textContent).toMatch(/01\/06\/2026/);
+      const inputs = screen.getAllByPlaceholderText("dd/mm/aaaa");
+      expect(inputs[0]).toHaveValue("01/06/2026");
+      expect(inputs[1]).toHaveValue("");
     });
 
     it("does not throw for invalid serialized values", () => {
