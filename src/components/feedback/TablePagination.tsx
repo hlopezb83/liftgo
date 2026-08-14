@@ -57,7 +57,6 @@ export function TablePagination({ page, totalPages, onPageChange }: TablePaginat
               <PaginationLink
                 isActive={p === page}
                 onClick={() => onPageChange(p)}
-                className="cursor-pointer"
               >
                 {p}
               </PaginationLink>
