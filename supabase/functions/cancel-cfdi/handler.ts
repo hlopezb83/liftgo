@@ -51,6 +51,7 @@ export async function handleCancelCfdi(
   let supabaseRef: SupabaseLike | null = null;
   let invoiceIdRef: string | null = null;
   let claimedRef = false;
+  let pacAttempted = false;
   const releaseCancelClaim = async () => {
     if (!claimedRef || !supabaseRef || !invoiceIdRef) return;
     claimedRef = false;
@@ -222,6 +223,7 @@ export async function handleCancelCfdi(
     }
 
     if (apiKey && facturApiId) {
+      pacAttempted = true;
       const client = createFacturapiClient(apiKey);
       const params: Record<string, string> = { motive };
       if (motive === "01" && substitution_uuid) {
@@ -315,6 +317,9 @@ export async function handleCancelCfdi(
       200,
     );
   } catch (_err) {
+    // Solo liberamos el claim si nunca se contactó al PAC; si ya se llamó, el
+    // estado 'pending' es correcto hasta que se reconcilie con el SAT.
+    if (!pacAttempted) await releaseCancelClaim();
     return err(500, "Internal server error");
   }
 }
