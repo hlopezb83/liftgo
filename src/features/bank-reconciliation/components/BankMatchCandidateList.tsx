@@ -15,6 +15,7 @@ import { formatDateDisplay, cn } from "@/lib/utils";
 import {
   useBankMatchCandidates,
   DATE_WINDOW_OPTIONS,
+  type BankMatchCandidate,
   type DateWindow,
 } from "../hooks/useBankMatchCandidates";
 
@@ -24,7 +25,8 @@ interface Props {
   onSearchChange: (v: string) => void;
   dateWindow: DateWindow;
   onDateWindowChange: (v: DateWindow) => void;
-  onSelect: (candidateId: string) => void;
+  /** F7: además del UUID se propaga `kind` (tabla destino del match). */
+  onSelect: (candidateId: string, kind: BankMatchCandidate["kind"]) => void;
   disabled?: boolean;
 }
 
@@ -134,7 +136,7 @@ export function BankMatchCandidateList({
                     : "El importe debe coincidir exactamente con el movimiento"
                 }
                 data-testid="bank-candidate-match"
-                onClick={() => onSelect(c.id)}
+                onClick={() => onSelect(c.id, c.kind)}
               >
                 Emparejar
               </Button>

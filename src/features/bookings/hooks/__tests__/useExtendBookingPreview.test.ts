@@ -65,7 +65,7 @@ describe("useExtendBookingPreview · BL-A1 IVA 16%", () => {
       originalEndDate: "2026-08-15",
       newEndDate: "2026-08-20",
       forkliftRates: { daily_rate: 1000, weekly_rate: null, monthly_rate: null },
-      bookingMonthlyRate: null,
+      bookingRates: null,
       forkliftName: "Toyota A",
       serialNumber: "SN-1",
     });

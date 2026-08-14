@@ -20,6 +20,30 @@ type Update = Database["public"]["Tables"]["supplier_bank_accounts"]["Update"];
 // en `@/lib/schemas/common`.
 export { CLABE_REGEX, isValidClabe };
 
+const PRIMARY_UNIQUE_INDEX = "supplier_bank_accounts_one_primary";
+
+function errorCode(error: unknown): string | undefined {
+  if (typeof error === "object" && error !== null && "code" in error) {
+    const code = (error as { code?: unknown }).code;
+    return typeof code === "string" ? code : undefined;
+  }
+  return undefined;
+}
+
+/**
+ * Mensaje de error al crear/actualizar una cuenta bancaria de proveedor.
+ * F2: `clearPrimary` + insert/update no son atómicos; una carrera concurrente
+ * puede violar el índice único parcial `supplier_bank_accounts_one_primary`
+ * (23505). Se traduce a un mensaje claro en vez del error crudo de Postgres.
+ */
+export function bankAccountMutationErrorMessage(error: Error): string {
+  const message = error.message ?? "";
+  if (errorCode(error) === "23505" && new RegExp(PRIMARY_UNIQUE_INDEX, "i").test(message)) {
+    return "Ya existe una cuenta primaria para este proveedor. Actualiza la lista y desmarca la primaria actual antes de continuar.";
+  }
+  return message;
+}
+
 export function maskClabe(clabe: string | null): string {
   if (!clabe) return "—";
   const trimmed = clabe.trim();
@@ -80,6 +104,7 @@ export function useCreateSupplierBankAccount() {
     invalidateKeys: [supplierBankAccountKeys.all],
     successMsg: "Cuenta bancaria agregada",
     errorTitle: "No se pudo crear la cuenta bancaria",
+    errorMessage: bankAccountMutationErrorMessage,
   });
 }
 
@@ -94,6 +119,7 @@ export function useUpdateSupplierBankAccount() {
     invalidateKeys: [supplierBankAccountKeys.all],
     successMsg: "Cuenta bancaria actualizada",
     errorTitle: "No se pudo actualizar la cuenta bancaria",
+    errorMessage: bankAccountMutationErrorMessage,
   });
 }
 

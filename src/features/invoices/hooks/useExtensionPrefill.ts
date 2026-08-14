@@ -28,6 +28,8 @@ type ExtensionBooking = {
   id?: string | null;
   customer_id?: string | null;
   customer_name?: string | null;
+  daily_rate?: number | null;
+  weekly_rate?: number | null;
   monthly_rate?: number | null;
   forklifts?: {
     name?: string | null;
@@ -70,7 +72,13 @@ function buildItemsForExtension(
       weekly_rate: forklift?.weekly_rate,
       monthly_rate: forklift?.monthly_rate,
     },
-    bookingMonthlyRate: booking?.monthly_rate,
+    // F1 (Sprint M1): las tarifas pactadas diaria/semanal también ganan
+    // sobre el catálogo (antes sólo la mensual).
+    bookingRates: {
+      daily_rate: booking?.daily_rate,
+      weekly_rate: booking?.weekly_rate,
+      monthly_rate: booking?.monthly_rate,
+    },
     forkliftName: forklift?.name,
     serialNumber: forklift?.serial_number,
   });

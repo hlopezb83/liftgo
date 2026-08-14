@@ -1,3 +1,4 @@
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DuplicateIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,9 +25,21 @@ function copy(text: string, label: string) {
 }
 
 export function StpTransferCard({ amount, concept }: Props) {
-  const { data, isLoading } = usePortalCollectionAccount();
+  const { data, isLoading, isError, refetch, isRefetching } = usePortalCollectionAccount();
 
   if (isLoading) return <Skeleton className="h-64" />;
+  // A-01: NUNCA mostrar "cuenta no configurada" cuando la query falló (red,
+  // outage) — el cliente podría creer que no puede pagar por SPEI. Mismo
+  // patrón de error+retry que PortalDashboard.
+  if (isError) {
+    return (
+      <QueryErrorState
+        entity="los datos para transferencia"
+        onRetry={() => void refetch()}
+        isRetrying={isRefetching}
+      />
+    );
+  }
   if (!data || !data.clabe) {
     return (
       <Card>

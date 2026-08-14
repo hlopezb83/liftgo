@@ -10,6 +10,8 @@ export const lineItemSchema = z
     clave_prod_serv: z.string().optional(),
     clave_unidad: z.string().optional(),
     objeto_imp: z.string().optional(),
+    /** Tasa de IVA en porcentaje para esta línea; si falta se usa la tasa global. */
+    tax_rate: z.number().min(0).optional(),
     // El tope de 100 solo aplica a descuentos porcentuales ('%'); un descuento
     // fijo ('$') puede ser mayor al total de la línea (la capa de dominio lo
     // clampea a 0). Antes .max(100) bloqueaba descuentos fijos válidos heredados

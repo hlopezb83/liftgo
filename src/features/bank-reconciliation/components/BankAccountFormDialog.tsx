@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { useUpsertBankAccount, type BankAccount } from "../hooks/useBankAccounts";
+import { useBankAccountHasLines } from "../hooks/useBankStatementLines";
 
 interface Props {
   open: boolean;
@@ -71,6 +72,11 @@ export function BankAccountFormDialog({ open, onOpenChange, initial }: Props) {
     if (open) form.reset(valuesFor(initial));
   }, [open, initial, form]);
 
+  // F8: cambiar la moneda de una cuenta con movimientos importados rompe el
+  // scoring FX del matching. Bloqueamos el campo en edición cuando hay líneas.
+  const { data: hasImportedLines = false } = useBankAccountHasLines(initial?.id ?? null);
+  const currencyLocked = !!initial && hasImportedLines;
+
   const onSubmit = form.handleSubmit((values) => {
     upsert.mutate(
       {
@@ -117,6 +123,12 @@ export function BankAccountFormDialog({ open, onOpenChange, initial }: Props) {
                 name="currency"
                 label="Moneda"
                 options={CURRENCY_OPTIONS}
+                disabled={currencyLocked}
+                description={
+                  currencyLocked
+                    ? "La moneda no se puede cambiar porque la cuenta tiene movimientos importados. Crea una cuenta nueva si necesitas otra moneda."
+                    : undefined
+                }
               />
               <NumberField
                 control={form.control}

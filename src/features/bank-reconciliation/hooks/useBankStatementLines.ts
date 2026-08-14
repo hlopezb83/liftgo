@@ -57,3 +57,24 @@ export function useBankStatementLines(bankAccountId: string | null) {
     enabled: !!bankAccountId,
   });
 }
+
+/**
+ * F8: ¿la cuenta tiene líneas de estado de cuenta importadas?
+ * Se usa para bloquear el cambio de moneda en edición (rompería el scoring FX
+ * del matching). Conteo head-only, sin traer filas.
+ */
+export function useBankAccountHasLines(bankAccountId: string | null | undefined) {
+  return useQuery({
+    queryKey: [...bankLineQueries.keys.all, "has-lines", bankAccountId ?? null] as const,
+    enabled: !!bankAccountId,
+    staleTime: 30_000,
+    queryFn: async (): Promise<boolean> => {
+      const { count, error } = await supabase
+        .from("bank_statement_lines")
+        .select("id", { count: "exact", head: true })
+        .eq("bank_account_id", bankAccountId as string);
+      if (error) throw error;
+      return (count ?? 0) > 0;
+    },
+  });
+}

@@ -39,6 +39,16 @@ export const supplierBillFormSchema = z.object({
   if (v.coverage_start && v.coverage_end && v.coverage_end.getTime() < v.coverage_start.getTime()) {
     ctx.addIssue({ code: "custom", path: ["coverage_end"], message: "Fin de cobertura debe ser posterior al inicio" });
   }
+  // F6 (Sprint M1): el descuento no puede exceder el subtotal — de lo
+  // contrario el total (subtotal − descuento + impuestos − retenciones)
+  // saldría negativo.
+  if (v.discount > v.subtotal) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["discount"],
+      message: "El descuento no puede ser mayor que el subtotal",
+    });
+  }
   // M-21b: las retenciones no pueden exceder la base gravable real
   // (subtotal − descuento + impuestos). Usar `subtotal + tax` dejaría pasar
   // retenciones que, al restarse del descuento, producen un total negativo.

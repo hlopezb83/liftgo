@@ -143,6 +143,34 @@ describe("calculateRentalCost — casos de borde de calendario", () => {
   });
 });
 
+describe("calculateRentalCost — fin de mes corto (F2, Sprint M1)", () => {
+  it("31 ene → 28 feb se factura como 1 mes exacto (sin día espurio)", () => {
+    const items = calculateRentalCost(0, 0, 10_000, d("2026-01-31"), d("2026-02-28"));
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ description: "Renta mensual", quantity: 1, total: 10_000 });
+  });
+
+  it("31 ene → 28 feb con tarifa diaria disponible tampoco agrega día espurio", () => {
+    const items = calculateRentalCost(500, 2_000, 10_000, d("2026-01-31"), d("2026-02-28"));
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ description: "Renta mensual", quantity: 1 });
+  });
+
+  it("31 mar → 30 abr se factura como 1 mes exacto", () => {
+    const items = calculateRentalCost(0, 0, 10_000, d("2026-03-31"), d("2026-04-30"));
+    expect(items).toHaveLength(1);
+    expect(items[0]).toMatchObject({ description: "Renta mensual", quantity: 1 });
+  });
+
+  it("31 ene → 1 mar NO se altera: sigue siendo 1 mes + 2 días", () => {
+    // endDate no es fin de mes: el remanente real de 2 días debe conservarse.
+    const items = calculateRentalCost(500, 0, 10_000, d("2026-01-31"), d("2026-03-01"));
+    expect(items[0]).toMatchObject({ description: "Renta mensual", quantity: 1 });
+    const daily = items.find((i) => i.description === "Renta diaria");
+    expect(daily).toMatchObject({ quantity: 2, total: 1_000 });
+  });
+});
+
 describe("generateLineItems — timezone stability (BL-14)", () => {
   const forklift: Forklift = {
     id: "fk-1",

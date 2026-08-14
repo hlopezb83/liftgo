@@ -1,10 +1,11 @@
 import { handleCors } from "../_shared/cors.ts";
-import { requireRole } from "../_shared/auth.ts";
+import { enforceRateLimit, requireRole } from "../_shared/auth.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 
 const BUCKET = "cfdi-files";
 const TOLERANCE = 0.01;
+const MAX_FILE_BYTES = 5 * 1024 * 1024; // 5 MB (mismo cap que parse-csf)
 
 // ---------- Helpers (XML parsing sin DOM) ----------
 
@@ -60,6 +61,17 @@ Deno.serve(async (req) => {
     if (!auth.ok) return auth.response;
     const { userId, adminClient: supabase } = auth;
 
+    // Mismo rate limit que parse-csf (5 req / 60s por usuario).
+    const limited = await enforceRateLimit(
+      req,
+      supabase,
+      "validate-supplier-rep",
+      userId,
+      5,
+      60,
+    );
+    if (limited) return limited;
+
     const body = await req.json().catch(() => ({}));
     const { payment_id, xml_base64, pdf_base64 } = body as {
       payment_id?: string;
@@ -71,6 +83,24 @@ Deno.serve(async (req) => {
     }
     if (!xml_base64 || typeof xml_base64 !== "string") {
       return jsonError(req, 400, "xml_base64 es obligatorio");
+    }
+    // Cap de tamaño (mismo formato que parse-csf): base64 length * 3/4 ≈ bytes.
+    if (xml_base64.length > Math.ceil(MAX_FILE_BYTES * 4 / 3)) {
+      return jsonError(
+        req,
+        413,
+        "El XML excede el tamaño máximo permitido (5MB)",
+      );
+    }
+    if (
+      pdf_base64 != null && typeof pdf_base64 === "string" &&
+      pdf_base64.length > Math.ceil(MAX_FILE_BYTES * 4 / 3)
+    ) {
+      return jsonError(
+        req,
+        413,
+        "El PDF excede el tamaño máximo permitido (5MB)",
+      );
     }
 
     // Load payment + bill + supplier

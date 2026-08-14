@@ -6,6 +6,7 @@ import {
 import { FormSection } from "@/components/forms/FormSection";
 import { Form } from "@/components/ui/form";
 import { formatDateRange } from "@/lib/utils";
+import { selectableBookings } from "./selectableBookings";
 import type { UseFormReturn } from "react-hook-form";
 
 export type DeliveryFormValues = {
@@ -16,7 +17,7 @@ export type DeliveryFormValues = {
 };
 
 type Forklift = { id: string; name: string; model: string };
-type Booking = { id: string; customer_name: string | null; start_date: string; end_date: string; forklift_id: string };
+type Booking = { id: string; customer_name: string | null; start_date: string; end_date: string; forklift_id: string; status: string };
 type Driver = { id: string; name: string; phone?: string | null };
 
 interface Props {
@@ -35,11 +36,7 @@ export function DeliveryFormFields({ form, forklifts, bookings, activeDrivers }:
   const forkliftId = useWatch({ control: form.control, name: "forkliftId" });
   const bookingId = useWatch({ control: form.control, name: "bookingId" });
 
-  // R-C6: filtrar reservas visibles al montacargas elegido para evitar
-  // seleccionar una reserva que apunta a otro equipo (el RPC lo rechaza).
-  const visibleBookings = forkliftId
-    ? bookings?.filter((b) => b.forklift_id === forkliftId)
-    : bookings;
+  const visibleBookings = selectableBookings(bookings, forkliftId);
 
   const forkliftOptions: SelectOption[] =
     forklifts?.map((f) => ({ value: f.id, label: `${f.name} — ${f.model}` })) ?? [];

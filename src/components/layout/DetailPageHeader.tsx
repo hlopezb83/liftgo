@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { BackIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { readSessionParams } from "@/hooks/filters/sessionStorage";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 
 interface DetailPageHeaderProps {
@@ -22,7 +23,8 @@ export function DetailPageHeader({ title, subtitle, badges, backTo, actions, pri
   const navigate = useNavigateTransition();
 
   const handleBack = () => {
-    const savedParams = sessionStorage.getItem(`list-filters:${backTo}`);
+    // F4: reutiliza el guard try/catch centralizado en sessionStorage.ts.
+    const savedParams = readSessionParams(backTo).toString();
     navigate(savedParams ? `${backTo}?${savedParams}` : backTo);
   };
 

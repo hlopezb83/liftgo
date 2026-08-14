@@ -13,7 +13,7 @@ import {
 } from "../hooks/useBankReconciliationMutations";
 import { BANK_LINE_STATUS_LABELS } from "../lib/bankReconciliationConstants";
 import { BankMatchCandidateList } from "./BankMatchCandidateList";
-import type { DateWindow } from "../hooks/useBankMatchCandidates";
+import type { BankMatchCandidate, DateWindow } from "../hooks/useBankMatchCandidates";
 import type { BankStatementLine } from "../hooks/useBankStatementLines";
 
 interface Props {
@@ -29,10 +29,13 @@ const LINE_STATUS_TONE: Record<string, string> = {
   ignored: "inactive",
 };
 
-function matchTarget(isCharge: boolean, id: string) {
+// F7: la tabla destino la decide el `kind` que expone el RPC
+// (`payment` → payments, `supplier_payment` → supplier_payments), no el signo
+// de la línea — un abono podía emparejarse contra supplier_payments y viceversa.
+function matchTarget(kind: BankMatchCandidate["kind"], id: string) {
   return {
-    paymentId: isCharge ? undefined : id,
-    supplierPaymentId: isCharge ? id : undefined,
+    paymentId: kind === "payment" ? id : undefined,
+    supplierPaymentId: kind === "supplier_payment" ? id : undefined,
   };
 }
 
@@ -87,12 +90,12 @@ export function BankLineMatchPanel({ line, onDone }: Props) {
   const canAct = line.status === "unmatched" || line.status === "suggested";
   const canUndo = line.status === "matched" || line.status === "ignored";
 
-  const doMatch = (candidateId: string) => {
+  const doMatch = (candidateId: string, kind: BankMatchCandidate["kind"]) => {
     confirmMut.mutate(
       {
         lineId: line.id,
         bankAccountId: line.bank_account_id,
-        ...matchTarget(isCharge, candidateId),
+        ...matchTarget(kind, candidateId),
       },
       { onSuccess: onDone },
     );
@@ -126,7 +129,14 @@ export function BankLineMatchPanel({ line, onDone }: Props) {
           <Button
             size="sm"
             disabled={confirmMut.isPending}
-            onClick={() => doMatch(suggestedId)}
+            // El id sugerido ya viene por columna: suggested_supplier_payment_id
+            // apunta a supplier_payments; suggested_payment_id a payments.
+            onClick={() =>
+              doMatch(
+                suggestedId,
+                line.suggested_supplier_payment_id != null ? "supplier_payment" : "payment",
+              )
+            }
           >
             Confirmar emparejamiento
           </Button>

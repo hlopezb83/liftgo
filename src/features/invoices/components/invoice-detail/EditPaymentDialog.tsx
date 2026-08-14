@@ -17,7 +17,7 @@ import { toYMD } from "@/lib/date/toYMD";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { roundMoney } from "@/lib/money";
 import { positiveAmount } from "@/lib/schemas";
-import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { useUpdatePayment, type Payment } from "../../hooks/usePayments";
 
 const METHODS = [
@@ -45,10 +45,13 @@ interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   payment: Payment;
+  /** Saldo pendiente de la factura (ya incluye este pago). Usado para el tope BL-11. */
+  balance: number;
 }
 
-export function EditPaymentDialog({ open, onOpenChange, payment }: Props) {
+export function EditPaymentDialog({ open, onOpenChange, payment, balance }: Props) {
   const updatePayment = useUpdatePayment();
+  const isRepStamped = (payment.rep_cfdi_status as string | null) === "stamped";
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -73,12 +76,24 @@ export function EditPaymentDialog({ open, onOpenChange, payment }: Props) {
   }, [open, payment, form]);
 
   const onSubmit = (values: FormValues) => {
+    // BL-11: rechazar sobrepagos al editar. El techo es el saldo actual (que ya
+    // incluye este pago) más el monto original del pago editado.
+    const maxAllowed = roundMoney(balance + payment.amount);
+    if (!isRepStamped && roundMoney(values.amount) - maxAllowed > 0.01) {
+      notifyValidation({
+        message: `El monto excede el saldo pendiente más el pago original ($${maxAllowed.toFixed(2)}). Ajusta la cantidad.`,
+      });
+      return;
+    }
+
     updatePayment.mutate(
       {
         id: payment.id,
         invoice_id: payment.invoice_id,
-        amount: roundMoney(values.amount),
-        payment_date: toYMD(values.date) ?? "",
+        // Con REP timbrado el servidor rechaza cambios de monto/fecha; se envían
+        // los valores originales para no dar pie a un intento inválido.
+        amount: isRepStamped ? payment.amount : roundMoney(values.amount),
+        payment_date: isRepStamped ? payment.payment_date : (toYMD(values.date) ?? ""),
         payment_method: values.method,
         reference_number: values.reference.trim() || null,
         notes: values.notes.trim() || null,
@@ -100,8 +115,19 @@ export function EditPaymentDialog({ open, onOpenChange, payment }: Props) {
       open={open} onOpenChange={onOpenChange} title="Editar pago" width="md">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-          <CurrencyField control={form.control} name="amount" label="Monto" required />
-          <DateField control={form.control} name="date" label="Fecha" required disabledMatcher={{ after: new Date() }} />
+          {isRepStamped ? (
+            <div className="rounded-md bg-warning/10 border border-warning/30 p-2 text-xs text-warning">
+              ⚠️ Este pago tiene un Complemento de Pago (REP) timbrado. Monto y Fecha no se pueden modificar; cancela el REP primero si necesitas corregirlos.
+            </div>
+          ) : null}
+          <CurrencyField control={form.control} name="amount" label="Monto" required disabled={isRepStamped} />
+          <DateField
+            control={form.control}
+            name="date"
+            label="Fecha"
+            required
+            disabledMatcher={isRepStamped ? () => true : { after: new Date() }}
+          />
           <SelectField
             control={form.control}
             name="method"

@@ -48,7 +48,10 @@ export function DamageActionButtons({
           </Button>
         </span>
       )}
-      {status === "in_repair" && (
+      {/* F6: un daño `reported` reparado internamente sin OT quedaba en callejón
+          sin salida (archivar exige invoice_id o status repaired). Se permite la
+          transición reported → repaired con el mismo botón/permiso que in_repair. */}
+      {(status === "in_repair" || status === "reported") && (
         <span title={damageBlockReason}>
           <Button variant="ghost" size="sm" onClick={onMarkRepaired} disabled={!canManageDamage || isUpdating}>
             <SuccessIcon className="h-3.5 w-3.5 mr-1" />Marcar reparado

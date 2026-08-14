@@ -1,7 +1,7 @@
 import { z } from "https://esm.sh/zod@4.4.3";
 import { handleCors } from "../_shared/cors.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
-import { requireRole } from "../_shared/auth.ts";
+import { enforceRateLimit, requireRole } from "../_shared/auth.ts";
 import { aiChatCompletion, AiGatewayError } from "../_shared/ai.ts";
 
 const SEVERITIES = ["critical", "high", "medium", "low"] as const;
@@ -55,6 +55,17 @@ Deno.serve(async (req) => {
     const auth = await requireRole(req, ["admin", "administrativo"]);
     if (!auth.ok) return auth.response;
     const admin = auth.adminClient;
+
+    // SEC: la clasificación consume créditos de AI; mismo límite que parse-csf.
+    const limited = await enforceRateLimit(
+      req,
+      admin,
+      "classify-feedback-report",
+      auth.userId,
+      5,
+      60,
+    );
+    if (limited) return limited;
 
     const parsed = BodySchema.safeParse(await req.json());
     if (!parsed.success) {
@@ -183,6 +194,7 @@ Responde estrictamente con JSON: {"severity": "...", "module": "...", "reasoning
     return jsonResponse(req, { report: updated, classification });
   } catch (err) {
     console.error("[classify-feedback] fatal", err);
-    return jsonError(req, 500, err instanceof Error ? err.message : "unknown");
+    // No filtrar err.message al cliente (detalle interno); mensaje genérico.
+    return jsonError(req, 500, "Internal server error");
   }
 });

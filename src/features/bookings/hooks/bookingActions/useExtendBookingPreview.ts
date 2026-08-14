@@ -23,15 +23,9 @@ export function useExtendBookingPreview(
     if (!forklift || !newEndDate) return null;
     const endYMD = toYMD(newEndDate);
     if (!endYMD) return null;
-    // M6: el preview debe usar las tarifas pactadas en la reserva (la cotización
-    // pudo negociar precios distintos al catálogo); fallback al catálogo solo
-    // si la reserva no tiene tarifa propia.
-    const ratedForklift = {
-      ...forklift,
-      daily_rate: booking.daily_rate ?? forklift.daily_rate,
-      weekly_rate: booking.weekly_rate ?? forklift.weekly_rate,
-      monthly_rate: booking.monthly_rate ?? forklift.monthly_rate,
-    };
+    // M6 / F1 (Sprint M1): el preview debe usar las tarifas pactadas en la
+    // reserva (diaria, semanal y mensual); `resolveExtensionRates` aplica el
+    // fallback al catálogo por tarifa cuando la pactada es 0 o nula.
     // Fix 8.3: el preview debe cobrar sólo el tramo extendido
     // (`original_end_date + 1` … `new_end_date`), igual que la factura real,
     // no la renta completa desde `start_date`.
@@ -39,11 +33,15 @@ export function useExtendBookingPreview(
       originalEndDate: booking.end_date,
       newEndDate: endYMD,
       forkliftRates: {
-        daily_rate: ratedForklift.daily_rate,
-        weekly_rate: ratedForklift.weekly_rate,
-        monthly_rate: ratedForklift.monthly_rate,
+        daily_rate: forklift.daily_rate,
+        weekly_rate: forklift.weekly_rate,
+        monthly_rate: forklift.monthly_rate,
       },
-      bookingMonthlyRate: booking.monthly_rate,
+      bookingRates: {
+        daily_rate: booking.daily_rate,
+        weekly_rate: booking.weekly_rate,
+        monthly_rate: booking.monthly_rate,
+      },
       forkliftName: forklift.name,
       serialNumber: forklift.serial_number,
     });

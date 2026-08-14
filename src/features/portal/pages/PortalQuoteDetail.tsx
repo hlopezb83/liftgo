@@ -9,7 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { canActOnPortalQuote, isQuoteAccepted } from "@/lib/rules/quotes";
-import { formatDateDisplay, parseDateLocal } from "@/lib/utils";
+import { formatDateDisplay, nowMty, parseDateLocal } from "@/lib/utils";
 import { PortalQuoteActionCard } from "../components/PortalQuoteActionCard";
 import { TotalsBreakdown } from "../components/TotalsBreakdown";
 import {
@@ -57,7 +57,15 @@ export default function PortalQuoteDetail() {
   // status siga en 'sent'. El server-side (RPC accept_portal_quote) también
   // valida vigencia; esto es la guarda visual para no engañar al cliente.
   const validUntilDate = quote.valid_until ? parseDateLocal(quote.valid_until) : null;
-  const isExpired = validUntilDate ? validUntilDate.getTime() < new Date().setHours(0, 0, 0, 0) : false;
+  // Vigencia contra la fecha de Monterrey (TZ del negocio), NO la medianoche
+  // local del navegador del cliente — mismo patrón que PortalUpcomingDues.
+  const todayMty = nowMty();
+  const startOfTodayMty = new Date(
+    todayMty.getFullYear(),
+    todayMty.getMonth(),
+    todayMty.getDate(),
+  ).getTime();
+  const isExpired = validUntilDate ? validUntilDate.getTime() < startOfTodayMty : false;
   const canAct = canActOnPortalQuote(quote) && !isExpired;
   const wasAccepted = isQuoteAccepted(quote);
 

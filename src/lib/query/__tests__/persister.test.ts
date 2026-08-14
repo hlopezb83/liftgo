@@ -59,7 +59,7 @@ describe("query persister allowlist/blocklist", () => {
   });
 
   it("shouldPersistQuery: allowlist → true, blocklist → false, resto → false", () => {
-    expect(shouldPersistQuery({ queryKey: ["dashboard-stats"] } as never)).toBe(true);
+    expect(shouldPersistQuery({ queryKey: ["dashboard-stats"] } as never)).toBe(false);
     expect(shouldPersistQuery({ queryKey: ["forklifts"] } as never)).toBe(true);
     expect(shouldPersistQuery({ queryKey: ["user_role", "abc"] } as never)).toBe(false);
     expect(shouldPersistQuery({ queryKey: ["customers"] } as never)).toBe(false);

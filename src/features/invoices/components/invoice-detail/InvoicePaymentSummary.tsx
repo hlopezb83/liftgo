@@ -107,6 +107,7 @@ export function InvoicePaymentSummary({
           open={true}
           onOpenChange={(open) => { if (!open) setEditingPayment(null); }}
           payment={editingPayment}
+          balance={balance}
         />
       ) : null}
 

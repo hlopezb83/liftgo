@@ -20,6 +20,7 @@ function toLineItems(items: LineItemValues[]): LineItem[] {
     clave_prod_serv: i.clave_prod_serv,
     clave_unidad: i.clave_unidad,
     objeto_imp: i.objeto_imp,
+    tax_rate: i.tax_rate,
   }));
 }
 
