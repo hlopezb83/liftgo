@@ -90,6 +90,7 @@ export default function BankReconciliationPage() {
                   <BankReconciliationWorkspace
                     lines={visibleListRows(lines)}
                     bankAccountId={accountId}
+                    currency={account?.currency ?? "MXN"}
                     isLoading={isLoading}
                     virtualized
                   />

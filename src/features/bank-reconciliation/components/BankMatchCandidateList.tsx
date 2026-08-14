@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { formatDateDisplay, cn } from "@/lib/utils";
 import {
   useBankMatchCandidates,
@@ -21,6 +21,8 @@ import {
 
 interface Props {
   lineId: string;
+  /** Moneda de la cuenta bancaria. */
+  currency: string;
   search: string;
   onSearchChange: (v: string) => void;
   dateWindow: DateWindow;
@@ -38,6 +40,7 @@ function scoreTone(score: number): string {
 
 export function BankMatchCandidateList({
   lineId,
+  currency,
   search,
   onSearchChange,
   dateWindow,
@@ -100,7 +103,7 @@ export function BankMatchCandidateList({
                 <p className="truncate font-medium">{c.label}</p>
                 <p className="text-muted-foreground">
                   {formatDateDisplay(c.candidate_date)} ·{" "}
-                  <span className="font-mono tabular-nums">{formatCurrency(c.amount)}</span>
+                  <span className="font-mono tabular-nums">{formatCurrencyWithCode(c.amount, currency)}</span>
                   {c.reference ? ` · ${c.reference}` : ""}
                 </p>
                 <div className="flex flex-wrap gap-1">
