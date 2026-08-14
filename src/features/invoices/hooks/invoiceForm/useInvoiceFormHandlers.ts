@@ -9,6 +9,10 @@ type Booking = {
   id: string; customer_name?: string | null; customer_id?: string | null;
   forklift_id: string; start_date: string; end_date: string;
   quote_id?: string | null;
+  /** Tarifas pactadas en la reserva; null si no se capturaron (caen al montacargas). */
+  daily_rate?: number | null;
+  weekly_rate?: number | null;
+  monthly_rate?: number | null;
 };
 
 type QuoteSource = { id: string; line_items: unknown };
