@@ -63,6 +63,7 @@ export function BankAccountFormDialog({ open, onOpenChange, initial }: Props) {
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: emptyValues,
+    mode: "onChange",
   });
 
   useEffect(() => {
