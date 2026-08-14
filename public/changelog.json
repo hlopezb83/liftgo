@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.308.0",
+    "date": "2026-08-14",
+    "type": "minor",
+    "title": "Sprint 2: fronteras fiscales del timbrado CFDI (SAT)",
+    "category": "correcciones",
+    "changes": [
+      "Timbrado: una factura en moneda distinta de MXN sin tipo de cambio válido se rechaza con error 422 y mensaje claro, sin llamar al PAC. Se elimina el fallback silencioso de paridad 1:1.",
+      "Descuentos: el formulario de factura ya no acepta descuentos negativos ni mayores a 100%, y el timbrado capea el porcentaje en [0, 100] con la misma regla que la app.",
+      "IVA por línea: los totales se calculan partida por partida respetando `objeto_imp` — las líneas 01 (no objeto de impuesto) ya no generan IVA, igual que en el CFDI timbrado.",
+      "Cancelación: `cancel-cfdi` hace un claim atómico (`none` → `pending`) antes de llamar al SAT; dos peticiones simultáneas ya no pueden enviar dos cancelaciones (la segunda recibe 409).",
+      "Nuevos tests de totales cubriendo factura mixta, factura 100% exenta y factura normal."
+    ]
+  },
+  {
     "version": "7.307.9",
     "date": "2026-08-14",
     "type": "patch",
