@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { MaskedDateInput } from "@/components/forms/MaskedDateInput";
 import { CalendarIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -13,7 +14,7 @@ import {
 import { Label } from "@/components/ui/label";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatMtyCalendarDate } from "@/lib/date/mtyCalendarDate";
-import { cn } from "@/lib/utils";
+import { cn, nowMty } from "@/lib/utils";
 import { isPartialRange, nextRangeState, normalizeRange } from "./dateRangeState";
 import type { DateRange } from "react-day-picker";
 
@@ -109,19 +110,37 @@ export function DateRangePickerField({
         {required ? " *" : null}
       </Label>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button
-            type="button"
-            variant="outline"
-            className={cn(
-              "w-full justify-start text-left font-normal",
-              !dateRange?.from && "text-muted-foreground",
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {triggerLabel}
-          </Button>
-        </DialogTrigger>
+        {/* Captura rápida con teclado (DD/MM/AAAA) para inicio y fin. */}
+        <div className="flex items-start gap-2">
+          <MaskedDateInput
+            value={dateRange?.from}
+            onChange={(d) => onSelect(normalizeRange({ from: d, to: dateRange?.to }))}
+            today={nowMty()}
+            aria-label={`${label} — inicio`}
+            className="flex-1 min-w-0"
+          />
+          <span className="pt-2 text-muted-foreground">—</span>
+          <MaskedDateInput
+            value={dateRange?.to}
+            onChange={(d) => onSelect(normalizeRange({ from: dateRange?.from, to: d }))}
+            today={nowMty()}
+            aria-label={`${label} — fin`}
+            className="flex-1 min-w-0"
+          />
+          <DialogTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              title={triggerLabel}
+              aria-label={`Abrir calendario de ${label.replace(/\s*\*\s*$/, "")}`}
+              className={cn("shrink-0", !dateRange?.from && "text-muted-foreground")}
+            >
+              <CalendarIcon className="h-4 w-4" />
+            </Button>
+          </DialogTrigger>
+        </div>
+
         <RangeDialogBody
           label={label}
           liveLabel={liveLabel}

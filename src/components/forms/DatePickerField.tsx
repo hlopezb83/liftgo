@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useId, useState } from "react";
+import { DateHintNote } from "@/components/forms/DateHintNote";
+import { MaskedDateInput } from "@/components/forms/MaskedDateInput";
 import { CalendarIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -12,8 +14,11 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { formatMtyCalendarDate } from "@/lib/date/mtyCalendarDate";
-import { cn } from "@/lib/utils";
+import { cn, nowMty } from "@/lib/utils";
 import type { Matcher } from "react-day-picker";
+
+const SHORTCUTS_HINT = "Atajos: H = hoy · + / − ajustan el segmento · ← → cambian de segmento";
+
 
 interface DatePickerFieldProps {
   label: string;
@@ -45,6 +50,8 @@ export function DatePickerField({
 }: DatePickerFieldProps) {
   const [open, setOpen] = useState(false);
   const [localDate, setLocalDate] = useState<Date | undefined>(date);
+  const fieldId = useId();
+  const noteId = `${fieldId}-note`;
 
   // React-blessed pattern: sync local state con la prop cuando abre el modal.
   const [prevOpen, setPrevOpen] = useState(open);
@@ -55,7 +62,6 @@ export function DatePickerField({
 
   // GUI-FE-07: fecha calendario → formatear por componentes locales
   // (toZonedTime corría el día fuera de TZ Monterrey).
-  const triggerLabel = date ? formatMtyCalendarDate(date) : placeholder;
   const liveLabel = localDate ? formatMtyCalendarDate(localDate) : "Selecciona una fecha";
 
   const handleApply = () => {
@@ -65,24 +71,38 @@ export function DatePickerField({
 
   return (
     <div className="space-y-1.5">
-      <Label>
+      <Label htmlFor={fieldId}>
         {label}
         {required && " *"}
       </Label>
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button
-            type="button"
-            variant="outline"
-            className={cn(
-              "w-full justify-start text-left font-normal",
-              !date && "text-muted-foreground",
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {triggerLabel}
-          </Button>
-        </DialogTrigger>
+        <div className="flex items-start gap-2">
+          <div className="flex-1 space-y-1">
+            {/* Captura rápida con teclado numérico (DD/MM/AAAA). */}
+            <MaskedDateInput
+              id={fieldId}
+              value={date}
+              onChange={(d) => onSelect(normalize(d))}
+              today={nowMty()}
+              placeholder={placeholder === "Seleccionar fecha" ? undefined : placeholder}
+              aria-describedby={noteId}
+              className="w-full"
+            />
+          </div>
+          <DialogTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              title={SHORTCUTS_HINT}
+              aria-label={`Abrir calendario de ${label.replace(/\s*\*\s*$/, "")}`}
+              className={cn("shrink-0", !date && "text-muted-foreground")}
+            >
+              <CalendarIcon className="h-4 w-4" />
+            </Button>
+          </DialogTrigger>
+        </div>
+
         <DialogContent className="max-w-fit p-0 gap-0">
           <DialogHeader className="px-5 pt-5 pb-3 border-b">
             <DialogTitle className="text-base">{label.replace(/\s*\*\s*$/, "")}</DialogTitle>
@@ -123,6 +143,7 @@ export function DatePickerField({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      <DateHintNote date={date} id={noteId} />
       {error && <p className="text-sm text-destructive">{error}</p>}
     </div>
   );
