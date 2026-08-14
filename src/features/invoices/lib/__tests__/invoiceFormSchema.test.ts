@@ -73,6 +73,45 @@ describe("lineItemSchema", () => {
     });
     expect(res.success).toBe(false);
   });
+
+  it("permite descuento fijo ('$') mayor a 100 (regresión del bug)", () => {
+    const res = lineItemSchema.safeParse({
+      ...EMPTY_LINE,
+      description: "x", quantity: 1, unit_price: 100, total: 100,
+      discount: 500, discount_type: "$",
+    });
+    expect(res.success).toBe(true);
+  });
+
+  it("rechaza descuento porcentual ('%') mayor a 100", () => {
+    const res = lineItemSchema.safeParse({
+      ...EMPTY_LINE,
+      description: "x", quantity: 1, unit_price: 100, total: 100,
+      discount: 150, discount_type: "%",
+    });
+    expect(res.success).toBe(false);
+    if (!res.success) {
+      expect(res.error.issues.some((i) => i.message === "El descuento no puede exceder 100%")).toBe(true);
+    }
+  });
+
+  it("acepta descuento porcentual ('%') exactamente 100", () => {
+    const res = lineItemSchema.safeParse({
+      ...EMPTY_LINE,
+      description: "x", quantity: 1, unit_price: 100, total: 100,
+      discount: 100, discount_type: "%",
+    });
+    expect(res.success).toBe(true);
+  });
+
+  it("acepta descuento porcentual ('%') 0", () => {
+    const res = lineItemSchema.safeParse({
+      ...EMPTY_LINE,
+      description: "x", quantity: 1, unit_price: 100, total: 100,
+      discount: 0, discount_type: "%",
+    });
+    expect(res.success).toBe(true);
+  });
 });
 
 describe("cfdiSchema", () => {
