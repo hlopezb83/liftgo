@@ -16,7 +16,7 @@ import { Label } from "@/components/ui/label";
 import { formatMtyCalendarDate } from "@/lib/date/mtyCalendarDate";
 import { cn, nowMty } from "@/lib/utils";
 import { RequiredMark } from "./RequiredMark";
-import type { Matcher } from "react-day-picker";
+import { dateMatchModifiers, type Matcher } from "react-day-picker";
 
 const SHORTCUTS_HINT = "Atajos: H = hoy · + / − ajustan el segmento · ← → cambian de segmento";
 
