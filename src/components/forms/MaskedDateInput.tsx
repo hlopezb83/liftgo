@@ -57,11 +57,15 @@ export function MaskedDateInput({
   const [error, setError] = useState<string | null>(null);
 
   // Sincroniza cuando la fecha cambia desde fuera (calendario, reset del form).
+  // Excepción: si el usuario está escribiendo (captura parcial o inválida) y el
+  // valor externo quedó en `undefined` por nuestro propio aviso, se conserva el
+  // texto tecleado y el mensaje de error.
+  const typing = digits.length > 0 && digits.length < 8;
   const [prevValue, setPrevValue] = useState(value);
   if (value !== prevValue) {
     setPrevValue(value);
     const next = digitsFromDate(value);
-    if (next !== digits) {
+    if (next !== digits && !(value === undefined && typing)) {
       setDigits(next);
       setError(null);
     }
