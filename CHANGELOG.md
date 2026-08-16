@@ -1,3 +1,8 @@
+## 7.330.3 - 2026-08-16
+
+**Restaurar package.json y lockfile**
+- El archivo package.json y el lockfile quedaron vacíos/perdidos en el último commit, lo que rompía la compilación con 'Script not found build:dev'. Se restauraron ambos desde la última versión válida del historial y se reinstalaron las dependencias; la compilación vuelve a funcionar.
+
 ## 7.330.2 - 2026-08-15
 
 **Verificación paquete sprints_pulido (reentrega)**
