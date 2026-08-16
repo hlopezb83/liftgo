@@ -1,3 +1,8 @@
+## 7.330.1 - 2026-08-14
+
+**Verificación paquete sprints_bajos (reentrega)**
+- Se revisó nuevamente el paquete de sprints B1, B2 y B3 recibido: 29 de 30 arreglos ya estaban aplicados en la app (v7.327.0 a v7.329.1), incluidos el costo real de daños en $0, las columnas acotadas de pagos del portal y la pantalla de 'Factura no encontrada' con encabezado. El único pendiente, quitar el archivo .env del control de versiones, no aplica: ese archivo lo administra la plataforma y sólo contiene la dirección del backend y la llave pública protegida por RLS. Sin cambios de comportamiento.
+
 ## 7.330.0 - 2026-08-14
 
 **Pulido visual — Sprints V1, V2 y V3**
