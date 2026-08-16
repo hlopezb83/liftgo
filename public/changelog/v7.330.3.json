@@ -1,0 +1,8 @@
+{
+  "description": "El archivo package.json y el lockfile quedaron vacíos/perdidos en el último commit, lo que rompía la compilación con 'Script not found build:dev'. Se restauraron ambos desde la última versión válida del historial y se reinstalaron las dependencias; la compilación vuelve a funcionar.",
+  "changes": [
+    "Restaurado package.json (estaba en 0 bytes)",
+    "Restaurado bun.lock desde el historial",
+    "Reinstaladas dependencias y verificado el build"
+  ]
+}
