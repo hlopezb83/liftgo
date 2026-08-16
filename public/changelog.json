@@ -1,5 +1,17 @@
 [
   {
+    "version": "7.331.1",
+    "date": "2026-08-16",
+    "type": "patch",
+    "category": "fix",
+    "title": "Arreglar la página de Historial de cambios",
+    "changes": [
+      "27 entradas del historial no tenían el campo `type`, lo que hacía fallar la validación y dejaba la página /changelog con el error 'No se pudo cargar la información'.",
+      "Se normalizaron los archivos de detalle para que siempre tengan `description` y una lista de cambios en texto.",
+      "El script de build ahora valida el historial completo (índice y detalles) para que un registro mal formado no vuelva a romper la página."
+    ]
+  },
+  {
     "version": "7.331.0",
     "date": "2026-08-16",
     "type": "minor",
