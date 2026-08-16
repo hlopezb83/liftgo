@@ -54,6 +54,12 @@ export function DatePickerField({
   const fieldId = useId();
   const noteId = `${fieldId}-note`;
 
+  // §3.3 auditoría v2: mismo criterio de bloqueo para calendario y teclado.
+  const isDateDisabled = disabled
+    ? (d: Date) => dateMatchModifiers(d, disabled)
+    : undefined;
+
+
   // React-blessed pattern: sync local state con la prop cuando abre el modal.
   const [prevOpen, setPrevOpen] = useState(open);
   if (open !== prevOpen) {
