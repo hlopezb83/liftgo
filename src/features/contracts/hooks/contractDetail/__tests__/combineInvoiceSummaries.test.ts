@@ -48,3 +48,55 @@ describe("combineInvoiceSummaries", () => {
     expect(combineInvoiceSummaries(null, null)).toEqual([]);
   });
 });
+
+/**
+ * Auditoría v2 §3.2: una factura que cubre varias reservas ya no se suma
+ * completa en el resumen de cada contrato.
+ */
+describe("atribución de facturas multi-reserva", () => {
+  const invoice = {
+    id: "inv-9",
+    subtotal: 30000,
+    status: "sent",
+    line_items: [
+      { description: "Reserva A", total: 18000 },
+      { description: "Reserva B", quantity: 2, unit_price: 6000 },
+    ],
+  };
+
+  it("usa la partida indicada por line_index", () => {
+    const result = combineInvoiceSummaries(
+      [],
+      [{ invoice_id: "inv-9", line_index: 0, invoices: invoice }],
+      { "inv-9": 2 },
+    );
+    expect(result).toEqual([{ id: "inv-9", subtotal: 18000, status: "sent" }]);
+  });
+
+  it("calcula la partida por cantidad × precio unitario", () => {
+    const result = combineInvoiceSummaries(
+      [],
+      [{ invoice_id: "inv-9", line_index: 1, invoices: invoice }],
+      { "inv-9": 2 },
+    );
+    expect(result[0].subtotal).toBe(12000);
+  });
+
+  it("sin line_index prorratea entre las reservas de la factura", () => {
+    const result = combineInvoiceSummaries(
+      [],
+      [{ invoice_id: "inv-9", line_index: null, invoices: { ...invoice, line_items: null } }],
+      { "inv-9": 3 },
+    );
+    expect(result[0].subtotal).toBe(10000);
+  });
+
+  it("factura de una sola reserva conserva su subtotal completo", () => {
+    const result = combineInvoiceSummaries(
+      [],
+      [{ invoice_id: "inv-9", line_index: 0, invoices: invoice }],
+      { "inv-9": 1 },
+    );
+    expect(result[0].subtotal).toBe(30000);
+  });
+});
