@@ -1,3 +1,12 @@
+## 7.331.0 - 2026-08-16
+
+**Auditoría v2: invitaciones de cliente, fechas por teclado y resumen de contrato**
+
+- Invitaciones al portal idempotentes (ya no chocan con el disparador `handle_new_user` ni borran la cuenta).
+- Resumen financiero de contratos: atribución/prorrateo de facturas que cubren varias reservas.
+- Campo de fecha con teclado: respeta fechas bloqueadas y avisa de capturas incompletas.
+- Pivote de reservas facturadas paginado y refrescado al cancelar un CFDI.
+
 ## 7.330.3 - 2026-08-16
 
 **Restaurar package.json y lockfile**

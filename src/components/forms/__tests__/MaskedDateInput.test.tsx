@@ -88,4 +88,39 @@ describe("MaskedDateInput", () => {
     expect(input().value).toBe("");
     expect(out()).toBe("vacío");
   });
+
+  // §3.4 auditoría v2: la captura parcial ya no conserva en silencio la fecha previa.
+  it("captura parcial limpia el valor y avisa al salir del campo", () => {
+    render(<Harness />);
+    type("15092026");
+    expect(out()).toBe(new Date(2026, 8, 15).toDateString());
+
+    fireEvent.change(input(), { target: { value: "1509" } });
+    fireEvent.blur(input());
+    expect(out()).toBe("vacío");
+    expect(screen.getByText("Fecha incompleta (DD/MM/AAAA)")).toBeInTheDocument();
+  });
+
+  // §3.3 auditoría v2: el teclado respeta el matcher de fechas deshabilitadas.
+  it("rechaza por teclado una fecha bloqueada por el matcher", () => {
+    function Blocked() {
+      const [value, setValue] = useState<Date | undefined>(undefined);
+      return (
+        <>
+          <MaskedDateInput
+            value={value}
+            onChange={setValue}
+            today={TODAY}
+            isDateDisabled={() => true}
+            aria-label="Fecha"
+          />
+          <output data-testid="out">{value ? value.toDateString() : "vacío"}</output>
+        </>
+      );
+    }
+    render(<Blocked />);
+    type("15092026");
+    expect(out()).toBe("vacío");
+    expect(screen.getByText("Esta fecha no está permitida")).toBeInTheDocument();
+  });
 });

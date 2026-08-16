@@ -21,6 +21,13 @@ export interface MaskedDateInputProps {
   id?: string;
   placeholder?: string;
   disabled?: boolean;
+  /**
+   * §3.3 auditoría v2: mismo criterio que el `disabled` del calendario. Si la
+   * fecha capturada por teclado cae en el matcher se rechaza (antes solo el
+   * calendario respetaba la restricción y el teclado la brincaba, p. ej. la
+   * fecha de un pago con REP timbrado).
+   */
+  isDateDisabled?: (date: Date) => boolean;
   className?: string;
   "aria-describedby"?: string;
   "aria-label"?: string;
@@ -41,6 +48,7 @@ export function MaskedDateInput({
   id,
   placeholder = MASK_PLACEHOLDER,
   disabled,
+  isDateDisabled,
   className,
   ...aria
 }: MaskedDateInputProps) {
@@ -49,23 +57,46 @@ export function MaskedDateInput({
   const [error, setError] = useState<string | null>(null);
 
   // Sincroniza cuando la fecha cambia desde fuera (calendario, reset del form).
+  // Excepción: si el usuario está escribiendo (captura parcial o inválida) y el
+  // valor externo quedó en `undefined` por nuestro propio aviso, se conserva el
+  // texto tecleado y el mensaje de error.
+  const typing = digits.length > 0 && digits.length < 8;
   const [prevValue, setPrevValue] = useState(value);
   if (value !== prevValue) {
     setPrevValue(value);
     const next = digitsFromDate(value);
-    if (next !== digits) {
+    if (next !== digits && !(value === undefined && typing)) {
       setDigits(next);
       setError(null);
     }
   }
 
-  const commit = (next: string, notify = true) => {
+  /**
+   * @param final `true` en blur: además avisa de capturas parciales.
+   */
+  const commit = (next: string, final = false) => {
     setDigits(next);
     const parsed = parseMaskedDate(next);
+
+    // §3.3: fecha completa pero bloqueada por el matcher del calendario.
+    if (parsed.date && isDateDisabled?.(parsed.date)) {
+      setError("Esta fecha no está permitida");
+      onChange(undefined);
+      return;
+    }
+
+    // §3.4: captura parcial (menos de 8 dígitos). Antes el formulario conservaba
+    // en silencio la fecha anterior; ahora se limpia el valor y, al salir del
+    // campo, se muestra el aviso.
+    if (!parsed.complete) {
+      const incomplete = next.length > 0;
+      setError(final && incomplete ? "Fecha incompleta (DD/MM/AAAA)" : null);
+      if (final || !incomplete) onChange(undefined);
+      return;
+    }
+
     setError(parsed.error);
-    if (!notify) return;
-    if (parsed.date) onChange(parsed.date);
-    else if (next.length === 0) onChange(undefined);
+    onChange(parsed.date ?? undefined);
   };
 
   const applyDigits = (next: string) => {
@@ -129,7 +160,7 @@ export function MaskedDateInput({
         value={formatMask(digits)}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        onBlur={() => commit(digits, false)}
+        onBlur={() => commit(digits, true)}
         placeholder={placeholder}
         disabled={disabled}
         inputMode="numeric"

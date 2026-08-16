@@ -1,4 +1,5 @@
 import { useId, useState } from "react";
+import { dateMatchModifiers, type Matcher } from "react-day-picker";
 import { DateHintNote } from "@/components/forms/DateHintNote";
 import { MaskedDateInput } from "@/components/forms/MaskedDateInput";
 import { CalendarIcon } from "@/components/icons";
@@ -16,7 +17,6 @@ import { Label } from "@/components/ui/label";
 import { formatMtyCalendarDate } from "@/lib/date/mtyCalendarDate";
 import { cn, nowMty } from "@/lib/utils";
 import { RequiredMark } from "./RequiredMark";
-import type { Matcher } from "react-day-picker";
 
 const SHORTCUTS_HINT = "Atajos: H = hoy · + / − ajustan el segmento · ← → cambian de segmento";
 
@@ -54,6 +54,12 @@ export function DatePickerField({
   const fieldId = useId();
   const noteId = `${fieldId}-note`;
 
+  // §3.3 auditoría v2: mismo criterio de bloqueo para calendario y teclado.
+  const isDateDisabled = disabled
+    ? (d: Date) => dateMatchModifiers(d, disabled)
+    : undefined;
+
+
   // React-blessed pattern: sync local state con la prop cuando abre el modal.
   const [prevOpen, setPrevOpen] = useState(open);
   if (open !== prevOpen) {
@@ -86,6 +92,8 @@ export function DatePickerField({
               onChange={(d) => onSelect(normalize(d))}
               today={nowMty()}
               placeholder={placeholder === "Seleccionar fecha" ? undefined : placeholder}
+              // §3.3: el teclado respeta el mismo matcher que el calendario.
+              isDateDisabled={isDateDisabled}
               aria-describedby={noteId}
               className="w-full"
             />
