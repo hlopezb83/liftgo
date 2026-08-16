@@ -1,9 +1,4 @@
 {
-  "version": "6.51.0",
-  "date": "2026-06-13",
-  "type": "minor",
-  "category": "refactor",
-  "title": "Refactor arquitectónico — paso 6: separación form-state / mutation / side-effects en hooks *Logic",
   "description": "Sexto paso del plan de auditoría. useBookingActionsLogic se descompuso en tres hooks atómicos siguiendo la separación de responsabilidades. Los otros candidatos (useInvoiceFormLogic, useForkliftFormLogic, useContractFormPrefill) ya estaban dentro del presupuesto y/o ya delegaban a sub-hooks.",
   "changes": [
     "Nuevo useBookingDialogsState — sólo estado local de UI (extendOpen, statusDialogOpen, newStatus, newEndDate).",
