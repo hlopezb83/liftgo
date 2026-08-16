@@ -1,3 +1,8 @@
+## 7.330.2 - 2026-08-15
+
+**Verificación paquete sprints_pulido (reentrega)**
+- Se revisó de nuevo el paquete de pulido visual (sprints V1, V2 y V3): los 24 arreglos ya estaban aplicados en la app desde la versión 7.330.0. El único parche restante creaba pruebas del campo de moneda importándolo desde el archivo antiguo; esas pruebas ya existen apuntando al módulo correcto, así que se descartó. Suite completa en verde: 1860 pruebas. Sin cambios de comportamiento.
+
 ## 7.330.1 - 2026-08-14
 
 **Verificación paquete sprints_bajos (reentrega)**
