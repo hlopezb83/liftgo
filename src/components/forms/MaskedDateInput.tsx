@@ -67,30 +67,31 @@ export function MaskedDateInput({
     }
   }
 
-  const commit = (next: string, notify = true) => {
+  /**
+   * @param final `true` en blur: además avisa de capturas parciales.
+   */
+  const commit = (next: string, final = false) => {
     setDigits(next);
     const parsed = parseMaskedDate(next);
 
     // §3.3: fecha completa pero bloqueada por el matcher del calendario.
     if (parsed.date && isDateDisabled?.(parsed.date)) {
       setError("Esta fecha no está permitida");
-      if (notify) onChange(undefined);
+      onChange(undefined);
       return;
     }
 
-    // §3.4: captura parcial (menos de 8 dígitos). Antes no se avisaba ni se
-    // notificaba al formulario, así que se persistía en silencio la fecha
-    // anterior. Ahora se limpia el valor y se muestra el error.
-    if (!parsed.date && next.length > 0 && !parsed.complete) {
-      setError("Fecha incompleta (DD/MM/AAAA)");
-      if (notify) onChange(undefined);
+    // §3.4: captura parcial (menos de 8 dígitos). Antes el formulario conservaba
+    // en silencio la fecha anterior; ahora se limpia el valor y, al salir del
+    // campo, se muestra el aviso.
+    if (!parsed.complete) {
+      setError(final && next.length > 0 ? "Fecha incompleta (DD/MM/AAAA)" : null);
+      onChange(undefined);
       return;
     }
 
     setError(parsed.error);
-    if (!notify) return;
-    if (parsed.date) onChange(parsed.date);
-    else onChange(undefined);
+    onChange(parsed.date ?? undefined);
   };
 
   const applyDigits = (next: string) => {
