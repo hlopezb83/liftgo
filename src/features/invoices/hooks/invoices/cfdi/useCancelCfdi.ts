@@ -1,7 +1,7 @@
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { invokeEdgeFunction } from "@/lib/supabase/invokeEdgeFunction";
 import { notifyInfo, notifySuccess, notifyWarning } from "@/lib/ui/appFeedback";
-import { invoiceKeys } from "../../../lib/queryKeys";
+import { invoiceBookingKeys, invoiceKeys } from "../../../lib/queryKeys";
 interface CancelCfdiVars {
   invoiceId: string;
   motive: string;
@@ -31,7 +31,9 @@ export function useCancelCfdi() {
         },
       });
     },
-    invalidateKeys: [invoiceKeys.all],
+    // N-B2: al cancelar hay que refrescar también el pivote, si no la reserva
+    // sigue bloqueada para re-facturar hasta que expire el caché.
+    invalidateKeys: [invoiceKeys.all, invoiceBookingKeys.all],
     invalidateKeysFn: (_data, { invoiceId }) => [invoiceKeys.detail(invoiceId)],
     errorTitle: "Error al cancelar",
     onSuccess: (data) => {
