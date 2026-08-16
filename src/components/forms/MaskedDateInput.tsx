@@ -21,6 +21,13 @@ export interface MaskedDateInputProps {
   id?: string;
   placeholder?: string;
   disabled?: boolean;
+  /**
+   * §3.3 auditoría v2: mismo criterio que el `disabled` del calendario. Si la
+   * fecha capturada por teclado cae en el matcher se rechaza (antes solo el
+   * calendario respetaba la restricción y el teclado la brincaba, p. ej. la
+   * fecha de un pago con REP timbrado).
+   */
+  isDateDisabled?: (date: Date) => boolean;
   className?: string;
   "aria-describedby"?: string;
   "aria-label"?: string;
