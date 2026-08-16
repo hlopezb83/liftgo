@@ -1,10 +1,5 @@
 {
-  "version": "7.72.1",
-  "date": "2026-07-15",
-  "type": "patch",
-  "title": "CI verde: selectores E2E robustos y baselines visuales opt-in",
-  "category": "quality",
-  "summary": "Se corrigen los fallos del pipeline en los shards de Playwright: selectores estables en daterange-picker y filters-invoices, y suites visuales gateadas por E2E_VISUAL=1 para evitar 'A snapshot doesn't exist'.",
+  "description": "Se corrigieron los dos flakies de Playwright: (1) `daterange-picker.spec.ts` localiza los días vía el `<button>` interno de la gridcell para tolerar los aria-labels que produce react-day-picker v10 con `Intl.DateTimeFormat('es-MX')`; (2) `filters-invoices.spec.ts` ahora usa los labels vigentes (Sin Pagar / Pagado / Vencido / Todos) y espera al `tablist` antes del primer click. Las suites visuales (`visual-desktop`/`visual-mobile`) quedan detrás del gate `E2E_VISUAL=1` para evitar los 15 fallos por baselines inexistentes; se regeneran con `E2E_VISUAL=1 bun run test:e2e:update-snapshots`. Adicional: se sustituyó `ls` por `find` en `supabase-lint.yml` para limpiar el aviso `SC2012` de actionlint.",
   "changes": [
     "`daterange-picker.spec.ts`: los días del calendario se localizan por el `<button>` interno de la gridcell (`grid.locator('button').filter({ hasText: /^\\s*5\\s*$/ })`) para tolerar aria-labels emitidos por react-day-picker v10 + `Intl.DateTimeFormat('es-MX')`.",
     "`filters-invoices.spec.ts`: usa los labels vigentes (Sin Pagar / Pagado / Vencido / Todos) — antes buscaba 'Pendiente', que ya no existe —, espera al `tablist` y verifica `data-state=active` en lugar de `aria-selected`.",

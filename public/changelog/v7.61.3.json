@@ -1,16 +1,7 @@
 {
-  "version": "7.61.3",
-  "date": "2026-07-12",
-  "type": "patch",
-  "title": "Fondo blanco detrás del logo en el sidebar",
-  "category": "bugfix",
+  "description": "El logo de la empresa se mostraba directamente sobre el fondo oscuro del sidebar, lo que hacía perder contraste en logos con colores oscuros o transparencias. Ahora el logo se renderiza dentro de un contenedor blanco (bg-white) con bordes redondeados y padding, respetando la altura fija y el ancho máximo.",
   "changes": [
-    {
-      "area": "Sidebar",
-      "items": [
-        "El logo ahora se muestra dentro de un contenedor blanco con bordes redondeados para mejorar el contraste sobre el fondo oscuro del sidebar.",
-        "Se conserva la altura fija de h-9 y el ancho máximo de 7 rem, con padding interno para evitar que el logo toque los bordes."
-      ]
-    }
+    "Sidebar: El logo ahora se muestra dentro de un contenedor blanco con bordes redondeados para mejorar el contraste sobre el fondo oscuro del sidebar.",
+    "Sidebar: Se conserva la altura fija de h-9 y el ancho máximo de 7 rem, con padding interno para evitar que el logo toque los bordes."
   ]
 }

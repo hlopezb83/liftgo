@@ -1,29 +1,6 @@
 {
-  "version": "7.264.1",
-  "date": "2026-07-29",
-  "type": "patch",
-  "title": "Limpieza de registros de mantenimiento generados por pruebas automatizadas",
-  "category": "fix",
+  "description": "Se eliminaron los 26 registros de mantenimiento que se veían vacíos: eran órdenes de trabajo de las pruebas automatizadas ligadas a montacargas de prueba ocultos en la app. Ahora los registros de mantenimiento se marcan como datos de prueba, la limpieza automática los borra junto con sus refacciones y mano de obra, y la lista y el Kanban de mantenimiento excluyen datos de prueba.",
   "changes": [
-    {
-      "type": "fix",
-      "title": "Se eliminaron los 26 registros de mantenimiento 'vacíos'",
-      "description": "Eran órdenes de trabajo creadas por las pruebas automatizadas (descripción 'E2E Kanban WO', costo 0, sin responsable) ligadas a montacargas de prueba que la app oculta, por lo que la columna Montacargas aparecía como '—'. Se purgaron junto con el resto de datos de prueba huérfanos."
-    },
-    {
-      "type": "fix",
-      "title": "Los registros de mantenimiento ya se marcan como datos de prueba",
-      "description": "maintenance_logs ahora tiene los campos is_e2e/e2e_scope protegidos por el mismo guard que el resto de tablas, y la siembra de pruebas los marca al crearlos."
-    },
-    {
-      "type": "fix",
-      "title": "La limpieza automática ya no deja basura",
-      "description": "e2e_teardown y e2e_purge_all borran las órdenes de mantenimiento (con refacciones y mano de obra) antes de borrar los montacargas de prueba, conservando el bypass app.e2e_teardown + is_e2e."
-    },
-    {
-      "type": "improvement",
-      "title": "La lista y el Kanban de mantenimiento excluyen datos de prueba",
-      "description": "useMaintenanceLogs aplica el filtro estándar EXCLUDE_E2E_FILTER."
-    }
+    "Se eliminaron los 26 registros de mantenimiento que se veían vacíos: eran órdenes de trabajo de las pruebas automatizadas ligadas a montacargas de prueba ocultos en la app. Ahora los registros de mantenimiento se marcan como datos de prueba, la limpieza automática los borra junto con sus refacciones y mano de obra, y la lista y el Kanban de mantenimiento excluyen datos de prueba."
   ]
 }

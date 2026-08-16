@@ -1,9 +1,4 @@
 {
-  "version": "7.306.6",
-  "date": "2026-08-12",
-  "type": "patch",
-  "title": "Lint de migraciones fusionado en el CI",
-  "category": "infraestructura",
   "description": "El workflow separado de lint de migraciones se integra como un job más del CI, condicionado por filtro de rutas.",
   "changes": [
     "ci.yml: nuevo job \"Supabase migrations lint\" (guards de GRANT/RLS/search_path + supabase db lint) que solo corre cuando cambian supabase/migrations/** o scripts/lint-migrations.ts.",

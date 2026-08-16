@@ -1,9 +1,4 @@
 {
-  "version": "7.166.0",
-  "date": "2026-07-22",
-  "type": "minor",
-  "title": "R7 Cierre Fase 4 · onError extensible, 409 timbrado benigno, aceptar vencidas, badge Vencida y nested button changelog",
-  "category": "bugfix",
   "description": "Cierra los pendientes de las fases 2-4 del R7: hook de mutación con onError extensible, reclasificación de 409 de timbrado como info, bloqueo de aceptar cotizaciones vencidas, badge visual de vencida en el listado y eliminación de <button> anidado en el changelog.",
   "changes": [
     "useEntityMutation: nuevo callback opcional onError(error, vars) que puede suprimir el toast estándar (return true) y errorMessage ahora se aplica al toast por defecto",

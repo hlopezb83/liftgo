@@ -1,14 +1,6 @@
 {
-  "version": "6.116.0",
-  "date": "2026-07-09",
-  "type": "minor",
-  "title": "Auditoría visual Fase 3 — cohesión de headers de tabla",
-  "summary": "Fix estructural en DataTableV2 que unifica el rendering de headers sortables y no-sortables en todas las tablas del sistema.",
+  "description": "Los headers sortables de DataTableV2 no heredaban `text-transform: uppercase` del <th> padre (UA reset de <button>). Ahora todos los headers de tabla del app se renderizan uniformemente en MAYÚSCULAS con tracking-wider, alineados a los headers no-sortables. Fix global que impacta todas las tablas del sistema.",
   "changes": [
-    {
-      "category": "fix",
-      "title": "Headers sortables ahora respetan uppercase",
-      "description": "El <th> de shadcn Table define `text-xs font-semibold uppercase tracking-wider`. Los headers no-sortables heredaban las 4 clases. Los sortables van dentro de un <button>, y el UA style de <button> tiene `text-transform: none` por defecto que rompe la herencia de `uppercase`. Se agregaron `uppercase tracking-wider` al innerClass del HeaderCell para que ambos casos rendericen idénticos. Impacta todas las tablas del app (~50 módulos que usan DataTableV2)."
-    }
+    "Los headers sortables de DataTableV2 no heredaban `text-transform: uppercase` del <th> padre (UA reset de <button>). Ahora todos los headers de tabla del app se renderizan uniformemente en MAYÚSCULAS con tracking-wider, alineados a los headers no-sortables. Fix global que impacta todas las tablas del sistema."
   ]
 }

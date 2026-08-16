@@ -1,0 +1,9 @@
+{
+  "description": "Migraciones correctivas de seguridad: configuración, documentos y funciones internas",
+  "changes": [
+    "Configuración de la empresa: reglas de acceso reforzadas y limitadas a usuarios con sesión, con protección de acceso por fila obligatoria",
+    "Documentos en almacenamiento: los clientes del portal solo ven archivos cuya ruta coincide exactamente con sus propios documentos",
+    "Funciones internas de folios fiscales, cancelación de facturas, pólizas de mantenimiento y disponibilidad de flota ahora exigen rol de personal interno",
+    "Se revoca el acceso público (anónimo) a esas funciones"
+  ]
+}

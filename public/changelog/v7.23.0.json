@@ -1,28 +1,6 @@
 {
-  "version": "7.23.0",
-  "date": "2026-07-12",
-  "type": "minor",
-  "title": "Fase F — Suspense skeletons semánticos + limpieza de bailouts",
-  "sections": [
-    {
-      "heading": "Lote 1 — Compiler bailouts resueltos",
-      "items": [
-        "`src/hooks/useListFilters.ts`: desestructura `options` al tope del hook para exponer `searchFields`, `searchAccessors` y `statusField` como dependencias estables. Elimina la supresión `eslint-disable-next-line react-hooks/exhaustive-deps` y permite que React Compiler memoice el `useMemo` de filtrado sin bailout.",
-        "`src/lib/ui/__tests__/AuthQueryCacheSync.test.tsx`: refactor a helpers puros `renderWith(user, qc)` y `rerenderWith(rerender, user, qc)` para mutar el mock antes de renderizar. Elimina la reasignación de variable dentro del wrapper (anti-pattern detectado por react-compiler).",
-        "Resultado: `bunx eslint` y `bunx tsgo --noEmit` en verde, sin advertencias."
-      ]
-    },
-    {
-      "heading": "Lote 3 — Suspense granular con esqueletos semánticos",
-      "items": [
-        "Nuevo `src/routes/RouteSkeletons.tsx`: expone `PageFallback` que selecciona el esqueleto correcto según el `pathname`:",
-        "  • `SkeletonDashboard` para `/` y `/mrr` (grid de KPIs + gráficos).",
-        "  • `SkeletonForm` para rutas terminadas en `/new` o `/edit` (grid de inputs + acciones).",
-        "  • `SkeletonDetail` para rutas de segundo nivel `/modulo/:id` (header + cards + tabla).",
-        "  • `SkeletonList` (default) para listados de primer nivel (toolbar + filas de tabla).",
-        "`src/routes/routes-config.tsx`: re-exporta `PageFallback` desde el nuevo archivo, quitando el spinner genérico anterior.",
-        "El mensaje de 'La carga está tardando' se muestra como un chip flotante inferior (`fixed inset-x-0 bottom-6`), no invasivo, tras 10s de espera."
-      ]
-    }
+  "description": "Lote 1 (compiler bailouts): `useListFilters` desestructura `options` para deps estables y elimina el `eslint-disable exhaustive-deps`, dejando que React Compiler memoice sin fricción; el test `AuthQueryCacheSync` reemplaza la reasignación impura por helpers `renderWith` / `rerenderWith`. Lote 3 (Suspense granular): nuevo `src/routes/RouteSkeletons.tsx` con esqueletos semánticos (`Dashboard`, `List`, `Detail`, `Form`) que se seleccionan según el pathname; el spinner genérico se sustituye por siluetas que coinciden con la página destino y el mensaje de recarga tras 10s ahora es un toast flotante no invasivo. Zero warnings de ESLint/typecheck.",
+  "changes": [
+    "Lote 1 (compiler bailouts): `useListFilters` desestructura `options` para deps estables y elimina el `eslint-disable exhaustive-deps`, dejando que React Compiler memoice sin fricción; el test `AuthQueryCacheSync` reemplaza la reasignación impura por helpers `renderWith` / `rerenderWith`. Lote 3 (Suspense granular): nuevo `src/routes/RouteSkeletons.tsx` con esqueletos semánticos (`Dashboard`, `List`, `Detail`, `Form`) que se seleccionan según el pathname; el spinner genérico se sustituye por siluetas que coinciden con la página destino y el mensaje de recarga tras 10s ahora es un toast flotante no invasivo. Zero warnings de ESLint/typecheck."
   ]
 }

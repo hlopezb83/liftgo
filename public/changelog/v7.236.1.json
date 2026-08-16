@@ -1,35 +1,6 @@
 {
-  "version": "7.236.1",
-  "date": "2026-07-27",
-  "type": "patch",
-  "title": "Sidebar · punto ámbar de Changelog reactivo in-tab",
-  "category": "fix",
-  "summary": "El indicador de novedades del ítem 'Changelog' no se apagaba al visitar /changelog en la misma pestaña: ahora reacciona al instante vía useSyncExternalStore.",
-  "sections": [
-    {
-      "title": "Causa raíz",
-      "items": [
-        "`SidebarNavSection.tsx` leía `localStorage.getItem('liftgo:lastSeenVersion')` durante el render, sin suscripción.",
-        "El evento nativo `storage` sólo dispara entre pestañas distintas, así que el `setItem` que hace `ChangelogPage` en la misma pestaña no provocaba re-render del sidebar.",
-        "Resultado: el punto ámbar seguía visible hasta la próxima recarga completa."
-      ]
-    },
-    {
-      "title": "Fix",
-      "items": [
-        "Nuevo hook `useLastSeenVersion()` en `SidebarNavSection.tsx` basado en `useSyncExternalStore`, suscrito a `storage` (entre pestañas) y a un custom event `liftgo:lastSeenVersion` (in-tab).",
-        "`ChangelogPage.tsx` dispara `window.dispatchEvent(new Event('liftgo:lastSeenVersion'))` justo después del `setItem`.",
-        "El punto se apaga al instante sin recargar; sigue persistiendo entre sesiones."
-      ]
-    },
-    {
-      "title": "Verificación (Playwright)",
-      "items": [
-        "Con `lastSeenVersion` limpio, el punto aparece en el ítem 'Changelog' del sidebar.",
-        "Al navegar a /changelog el punto desaparece sin recargar.",
-        "Al volver a /, el punto sigue apagado y `localStorage.lastSeenVersion === '7.236.0'`.",
-        "0 errores de consola."
-      ]
-    }
+  "description": "El indicador de novedades leía localStorage sólo en render y no se actualizaba tras marcar la versión como vista en /changelog. Ahora el sidebar se suscribe vía useSyncExternalStore a un custom event ('liftgo:lastSeenVersion') que ChangelogPage dispara al persistir la versión, de modo que el punto se apaga al instante sin recargar.",
+  "changes": [
+    "El indicador de novedades leía localStorage sólo en render y no se actualizaba tras marcar la versión como vista en /changelog. Ahora el sidebar se suscribe vía useSyncExternalStore a un custom event ('liftgo:lastSeenVersion') que ChangelogPage dispara al persistir la versión, de modo que el punto se apaga al instante sin recargar."
   ]
 }

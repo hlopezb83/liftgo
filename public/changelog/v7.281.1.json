@@ -1,29 +1,10 @@
 {
-  "version": "7.281.1",
-  "date": "2026-08-06",
-  "type": "patch",
-  "title": "Arreglada la paginación de las tablas (no se podía pasar a la página 2)",
   "description": "En listas como Equipos, Facturas o Reservas los botones “Siguiente”, “Anterior” y los números de página no hacían nada: la tabla siempre regresaba a la página 1.",
   "changes": [
-    {
-      "area": "Tablas (useLiftgoTable)",
-      "items": [
-        "El efecto que regresa a la página 1 dependía de la REFERENCIA del arreglo de datos; como las páginas derivan sus arreglos en cada render (map/filtros), se reiniciaba la paginación en cada clic.",
-        "Ahora depende de la huella de CONTENIDO de los datos (dataVersion) y del resetKey de filtros, así que sólo vuelve a la página 1 cuando cambian los datos o los filtros."
-      ]
-    },
-    {
-      "area": "Equipos",
-      "items": [
-        "FleetPage memoiza visibleListRows, el cálculo de unidades rentadas y el remapeo de estado, evitando arreglos nuevos en cada render."
-      ]
-    },
-    {
-      "area": "Verificación",
-      "items": [
-        "Prueba de regresión nueva: la paginación se conserva con arreglos de nueva referencia y se reinicia al cambiar resetKey.",
-        "Verificado en el navegador en /fleet y /invoices: Siguiente, Anterior y el clic directo en un número cambian de página."
-      ]
-    }
+    "Tablas (useLiftgoTable): El efecto que regresa a la página 1 dependía de la REFERENCIA del arreglo de datos; como las páginas derivan sus arreglos en cada render (map/filtros), se reiniciaba la paginación en cada clic.",
+    "Tablas (useLiftgoTable): Ahora depende de la huella de CONTENIDO de los datos (dataVersion) y del resetKey de filtros, así que sólo vuelve a la página 1 cuando cambian los datos o los filtros.",
+    "Equipos: FleetPage memoiza visibleListRows, el cálculo de unidades rentadas y el remapeo de estado, evitando arreglos nuevos en cada render.",
+    "Verificación: Prueba de regresión nueva: la paginación se conserva con arreglos de nueva referencia y se reinicia al cambiar resetKey.",
+    "Verificación: Verificado en el navegador en /fleet y /invoices: Siguiente, Anterior y el clic directo en un número cambian de página."
   ]
 }

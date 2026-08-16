@@ -1,13 +1,6 @@
 {
-  "version": "7.274.3",
-  "date": "2026-08-01",
-  "type": "patch",
-  "title": "Lint limpio: esquema de reporte de transferencia en archivo propio",
-  "category": "fix",
+  "description": "Se separó el esquema de validación del componente para eliminar el último aviso de ESLint y restaurar la recarga en caliente. Sin cambios visibles para el usuario.",
   "changes": [
-    {
-      "area": "Portal / Calidad",
-      "detail": "ReportTransferDialog.tsx exportaba además del componente el esquema de validación (makeSchema), lo que rompía el Fast Refresh de Vite y generaba un warning de ESLint. El esquema y su tipo se movieron a src/features/portal/components/reportTransferSchema.ts; el diálogo y sus pruebas ahora lo importan de ahí. Sin cambios de comportamiento."
-    }
+    "Se separó el esquema de validación del componente para eliminar el último aviso de ESLint y restaurar la recarga en caliente. Sin cambios visibles para el usuario."
   ]
 }

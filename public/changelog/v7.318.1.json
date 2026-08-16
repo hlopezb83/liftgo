@@ -1,0 +1,8 @@
+{
+  "description": "Facturación de extensiones: candado a prueba de doble clic y pestañas",
+  "changes": [
+    "Ahora la base de datos impide de raíz que dos facturas queden ligadas a la misma extensión de reserva, incluso si se intenta al mismo tiempo desde dos pestañas.",
+    "Si una extensión ya fue facturada, el aviso llega como error de negocio con mensaje claro en vez de un error técnico de base de datos.",
+    "Se eliminó un índice duplicado en extensiones de reserva."
+  ]
+}

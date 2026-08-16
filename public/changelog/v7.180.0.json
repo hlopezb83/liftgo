@@ -1,9 +1,4 @@
 {
-  "version": "7.180.0",
-  "date": "2026-07-22",
-  "type": "minor",
-  "title": "Arquitectura · P2-6 split de ListPageLayout y QuoteForm",
-  "category": "infra",
   "description": "Sprint dedicado para cerrar P2-6: dividir los dos archivos >250 LOC identificados en la auditoría, sin cambios de API pública ni de comportamiento.",
   "changes": [
     "ListPageLayout (330 → 176 LOC): extraídos 4 sub-componentes internos a src/components/layout/listPage/ — PullToRefreshIndicator, FiltersSlot, TableContent, LoadMoreFooter. Eliminada la excepción eslint-disable complexity.",

@@ -1,0 +1,7 @@
+{
+  "description": "CI: los tests de base de datos ya no se caen al reconstruir el historial",
+  "changes": [
+    "El job de pruebas de seguridad de base de datos fallaba siempre al reconstruir la base desde cero: una migración de mayo aplicaba una regla sobre una tabla que en el historial se crea hasta julio.",
+    "Se agregó un paso previo que protege esas sentencias antiguas solo en el servidor de pruebas; producción no cambia."
+  ]
+}

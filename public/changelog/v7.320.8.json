@@ -1,0 +1,6 @@
+{
+  "description": "El schema de partidas de factura usaba .max(100) en el descuento sin distinguir el tipo. Un descuento fijo (00) heredado de una cotización válida se rechazaba con \"El descuento no puede exceder 100%\". Ahora el tope de 100 solo aplica a descuentos porcentuales (%), igualando el comportamiento del schema de cotizaciones y de la capa de dominio. Se añadieron pruebas de regresión.",
+  "changes": [
+    "El schema de partidas de factura usaba .max(100) en el descuento sin distinguir el tipo. Un descuento fijo (00) heredado de una cotización válida se rechazaba con \"El descuento no puede exceder 100%\". Ahora el tope de 100 solo aplica a descuentos porcentuales (%), igualando el comportamiento del schema de cotizaciones y de la capa de dominio. Se añadieron pruebas de regresión."
+  ]
+}

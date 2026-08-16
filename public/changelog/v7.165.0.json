@@ -1,9 +1,4 @@
 {
-  "version": "7.165.0",
-  "date": "2026-07-22",
-  "type": "minor",
-  "title": "R7 Fases 2-4 · Reportes multi-moneda, RoleGuard clientes, badges timbrado, TZ inspecciones y descuento >100%",
-  "category": "bugfix",
   "description": "Cierre de bloques 5-15 y 21 del reporte R7: exactitud fiscal, seguridad y UX.",
   "changes": [
     "Reporte de Ingresos: excluye borradores y canceladas; YAxis formateado con `compactMoneyMxn` para evitar recortes.",

@@ -1,9 +1,5 @@
 {
-  "version": "7.213.0",
-  "date": "2026-07-23",
-  "type": "minor",
-  "title": "Arquitectura Lote D: src/lib deja de importar features",
-  "category": "refactor",
+  "description": "Arquitectura Lote D: src/lib deja de importar features",
   "changes": [
     "Movidos los DTOs canónicos a src/lib/domain: customerTypes.ts y contractTypes.ts. Los archivos previos en features/*/lib se reducen a re-export shims para no romper consumidores.",
     "Nueva capa src/lib/rules/invoiceVisibility.ts con computeInvoiceVisibility + InvoiceVisibility. src/features/invoices/lib/invoiceVisibility.ts queda como shim.",

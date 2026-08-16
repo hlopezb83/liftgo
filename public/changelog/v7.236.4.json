@@ -1,0 +1,6 @@
+{
+  "description": "useUnsavedChangesGuard ya no suscribe el listener global 'beforeunload' cuando isDirty=false. Se conserva el comportamiento dinámico si se pasa un getter (función). Corrige el test 'no registra beforeunload cuando isDirty=false' que estaba tumbando el CI.",
+  "changes": [
+    "useUnsavedChangesGuard ya no suscribe el listener global 'beforeunload' cuando isDirty=false. Se conserva el comportamiento dinámico si se pasa un getter (función). Corrige el test 'no registra beforeunload cuando isDirty=false' que estaba tumbando el CI."
+  ]
+}

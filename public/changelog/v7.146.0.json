@@ -1,9 +1,5 @@
 {
-  "version": "7.146.0",
-  "date": "2026-07-21",
-  "type": "minor",
-  "title": "Bloque 2 (R4) — Doble submit, crash mantenimiento sin fecha, overflow del portal móvil",
-  "category": "fix",
+  "description": "Bloque 2 (R4) — Doble submit, crash mantenimiento sin fecha, overflow del portal móvil",
   "changes": [
     "2.1 FormActions: además de la prop `isPending`, ahora consume `formState.isSubmitting` de react-hook-form para bloquear el submit mientras se resuelve la validación async de Zod. Cierra el doble submit reproducido en 'Agregar cliente' (doble click rápido → 1 solo registro).",
     "2.2 parseDateLocal (src/lib/utils.ts): endurecido — no lanza ante null/undefined/'', devuelve null. Test unitario nuevo.",

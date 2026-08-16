@@ -1,9 +1,4 @@
 {
-  "version": "7.179.0",
-  "date": "2026-07-22",
-  "type": "minor",
-  "title": "Arquitectura · P3-8 constantes al feature dueño + P3-9 hooks reorganizados",
-  "category": "infra",
   "description": "Codemod que cierra los hallazgos P3-8 y P3-9 de la auditoría arquitectónica sin romper consumidores.",
   "changes": [
     "P3-8: 5 constantes movidas de src/lib/domain/ al feature dueño — contractTypes→features/contracts/lib, customerTypes→features/customers/lib, creditNoteMotives y paymentIntentStatus→features/invoices/lib, feedbackMessages→features/feedback/lib. 13 imports @/lib/domain/* actualizados.",

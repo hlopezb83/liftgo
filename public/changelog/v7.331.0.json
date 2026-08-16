@@ -1,34 +1,10 @@
 {
-  "version": "7.331.0",
-  "date": "2026-08-16",
-  "type": "minor",
-  "title": "Auditoría v2: invitaciones de cliente, fechas por teclado y resumen de contrato",
-  "category": "bugfix",
+  "description": "Auditoría v2: invitaciones de cliente, fechas por teclado y resumen de contrato",
   "changes": [
-    {
-      "area": "Clientes",
-      "items": [
-        "Las invitaciones al portal ya no fallan ni borran la cuenta cuando el disparador de la base ya creó el perfil y el rol (alta idempotente)."
-      ]
-    },
-    {
-      "area": "Contratos",
-      "items": [
-        "El resumen financiero ya no cuenta completa una factura que cubre varias reservas: ahora atribuye la partida o prorratea el subtotal."
-      ]
-    },
-    {
-      "area": "Formularios",
-      "items": [
-        "El campo de fecha con teclado respeta las fechas bloqueadas del calendario y avisa cuando la captura queda incompleta en vez de conservar la fecha anterior."
-      ]
-    },
-    {
-      "area": "Facturación",
-      "items": [
-        "El listado de reservas ya facturadas se pagina para no cortarse en 1000 filas.",
-        "Cancelar un CFDI refresca el pivote de reservas para poder re-facturar de inmediato."
-      ]
-    }
+    "Clientes: Las invitaciones al portal ya no fallan ni borran la cuenta cuando el disparador de la base ya creó el perfil y el rol (alta idempotente).",
+    "Contratos: El resumen financiero ya no cuenta completa una factura que cubre varias reservas: ahora atribuye la partida o prorratea el subtotal.",
+    "Formularios: El campo de fecha con teclado respeta las fechas bloqueadas del calendario y avisa cuando la captura queda incompleta en vez de conservar la fecha anterior.",
+    "Facturación: El listado de reservas ya facturadas se pagina para no cortarse en 1000 filas.",
+    "Facturación: Cancelar un CFDI refresca el pivote de reservas para poder re-facturar de inmediato."
   ]
 }

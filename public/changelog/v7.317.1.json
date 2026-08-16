@@ -1,0 +1,8 @@
+{
+  "description": "Arreglos de CI: lint, archivo sin uso y prueba E2E inestable",
+  "changes": [
+    "Se eliminó un tipo permisivo en la creación de prospectos que rompía la revisión de código.",
+    "Se borró un archivo de validación de notas de crédito que ya no se usaba.",
+    "La prueba automatizada de alta de clientes ya no falla cuando queda un registro residual con el mismo nombre."
+  ]
+}

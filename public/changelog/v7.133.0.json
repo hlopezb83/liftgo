@@ -1,9 +1,5 @@
 {
-  "version": "7.133.0",
-  "date": "2026-07-20",
-  "type": "minor",
-  "title": "Endurecimiento fiscal: NC-1/NC-2, timeout CFDI seguro y stamp_variance",
-  "summary": "Se cierran las urgentes del reporte de verificación: retry queue alineada al CHECK constraint, autenticación real de pg_cron vía CRON_SECRET en vault, TIMEOUT en Facturapi que ya no arriesga doble timbrado, y una nueva columna `invoices.stamp_variance` que registra discrepancias local vs Facturapi con tolerancia de 0.02 MXN.",
+  "description": "Endurecimiento fiscal: NC-1/NC-2, timeout CFDI seguro y stamp_variance",
   "changes": [
     "**NC-1 (retry queue)**: `process-cfdi-retry-queue` ahora usa los estados válidos del CHECK (`processing`/`succeeded`/`exhausted`), hace claim optimista `pending→processing` para evitar doble consumo entre corridas, y chequea el `error` de cada update. Fix del mapping `cancel_rep` (antes apuntaba a función inexistente `cancel-rep`, ahora a `cancel-payment-complement`).",
     "**NC-2 (auth cron)**: nuevo `CRON_SECRET` guardado en vault. RPC `internal_get_cron_secret()` (SECURITY DEFINER, solo service_role) lo expone a las edge functions. `process-cfdi-retry-queue` y `reconcile-stamping-invoices` exigen `x-cron-secret` o `Authorization: Bearer <CRON_SECRET|service_role>`; sin match responden 401. pg_cron reprogramado para enviar el header desde vault en vez de la llave pública anon.",

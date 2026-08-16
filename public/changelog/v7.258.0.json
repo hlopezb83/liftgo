@@ -1,35 +1,6 @@
 {
-  "version": "7.258.0",
-  "date": "2026-07-29",
-  "type": "minor",
-  "title": "Auditoría R25 (fase 1): integridad de estados y cancelación de facturas",
-  "category": "fix",
-  "summary": "Primera tanda de la auditoría E2E: se cierra el desfase entre el código de base de datos y las columnas reales, y se blindan las máquinas de estado.",
-  "sections": [
-    {
-      "title": "DB-01 · Columnas faltantes (drift)",
-      "items": [
-        "convert_quote_to_bookings usaba forklifts.equipment_model_id, quotes.tipo_cambio, bookings.currency y bookings.tipo_cambio; cancel_booking escribía status_logs.changed_by. Ninguna existía en la base: se crearon de forma idempotente."
-      ]
-    },
-    {
-      "title": "DB-02 · Dominio de estados",
-      "items": [
-        "CHECK de dominio en facturas (draft, sent, partial, paid, overdue, cancelled), cotizaciones, reservas y montacargas. Validados contra los datos existentes sin errores."
-      ]
-    },
-    {
-      "title": "DB-03 · Máquina de estados",
-      "items": [
-        "Nuevo trigger validate_transition en invoices, quotes, bookings, supplier_bills y forklifts: rechaza saltos ilegales (por ejemplo pagada → borrador, o reserva cancelada → confirmada, que provocaba doble reserva)."
-      ]
-    },
-    {
-      "title": "DB-04 · Cancelación de facturas",
-      "items": [
-        "Se cableó assert_invoice_cancellable: ya no se puede cancelar una factura con pagos aplicados.",
-        "Una factura timbrada sólo puede cancelarse por el flujo SAT (cancellation_status = accepted), no con un cambio directo de estado."
-      ]
-    }
+  "description": "Se crearon las columnas que las funciones de base de datos usaban sin existir, se limitaron los estados válidos de facturas, cotizaciones, reservas y montacargas, y se bloqueó cancelar facturas con pagos o timbradas fuera del flujo SAT.",
+  "changes": [
+    "Se crearon las columnas que las funciones de base de datos usaban sin existir, se limitaron los estados válidos de facturas, cotizaciones, reservas y montacargas, y se bloqueó cancelar facturas con pagos o timbradas fuera del flujo SAT."
   ]
 }

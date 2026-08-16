@@ -1,9 +1,5 @@
 {
-  "version": "7.308.0",
-  "date": "2026-08-14",
-  "type": "minor",
-  "title": "Sprint 2: fronteras fiscales del timbrado CFDI (SAT)",
-  "category": "correcciones",
+  "description": "Sprint 2: fronteras fiscales del timbrado CFDI (SAT)",
   "changes": [
     "Timbrado: una factura en moneda distinta de MXN sin tipo de cambio válido se rechaza con error 422 y mensaje claro, sin llamar al PAC. Se elimina el fallback silencioso de paridad 1:1.",
     "Descuentos: el formulario de factura ya no acepta descuentos negativos ni mayores a 100%, y el timbrado capea el porcentaje en [0, 100] con la misma regla que la app.",

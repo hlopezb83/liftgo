@@ -1,0 +1,6 @@
+{
+  "description": "Los commits ruidosos titulados 'Update plan' provenían de .lovable/plan.md, el borrador que se reescribe en cada iteración del modo plan. Se agregó a .gitignore para dejar de versionarlo; los planes aprobados siguen archivándose y versionándose en .lovable/plan/.",
+  "changes": [
+    "Los commits ruidosos titulados 'Update plan' provenían de .lovable/plan.md, el borrador que se reescribe en cada iteración del modo plan. Se agregó a .gitignore para dejar de versionarlo; los planes aprobados siguen archivándose y versionándose en .lovable/plan/."
+  ]
+}

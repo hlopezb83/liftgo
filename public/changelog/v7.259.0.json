@@ -1,10 +1,5 @@
 {
-  "version": "7.259.0",
-  "date": "2026-07-29",
-  "type": "minor",
-  "title": "Auditoría R25 · Fase 2: remediación de frontend (FE-01 a FE-11)",
-  "category": "improvement",
-  "summary": "Se aplicaron los 11 bloques de frontend de la auditoría: límites de listado consistentes con aviso de truncamiento, accesibilidad, validaciones de formularios y bloqueo de edición de cotizaciones aceptadas.",
+  "description": "Listados con límite y aviso de truncamiento, mejoras de accesibilidad, subtítulos visibles en móvil, validaciones más estrictas en reservas y entregas, bloqueo de edición de montos en cotizaciones aceptadas y reservas canceladas ahora terminales.",
   "changes": [
     "FE-01/FE-02: LIST_PAGE_LIMIT en 12 hooks de listado y Alert de truncamiento en Cotizaciones, Flota, Mantenimiento, CxP, Clientes, Mis reportes, Feedback y Conciliación bancaria.",
     "FE-03: ActivityPage con estados de carga y error explícitos.",

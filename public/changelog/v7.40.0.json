@@ -1,31 +1,6 @@
 {
-  "version": "7.40.0",
-  "date": "2026-07-12",
-  "type": "minor",
-  "title": "Fix crítico: sidebar dejaba de reservar espacio en Tailwind v4",
-  "summary": "Migración de sintaxis abreviada de CSS variables a la forma v4 (`[var(--x)]`) en el Sidebar, resolviendo el overlap con el contenido principal detectado en la auditoría visual. Además, `TableHeader` sticky sólido y `<Table>` sin `max-h` global.",
-  "sections": [
-    {
-      "title": "Root cause",
-      "items": [
-        "Tailwind v4 dejó de expandir `w-[--sidebar-width]` a `var(--sidebar-width)`. El spacer del sidebar colapsaba a 0px y el sidebar fijo se superponía al `<main>`."
-      ]
-    },
-    {
-      "title": "Cambios",
-      "items": [
-        "`src/components/ui/sidebar/Sidebar.tsx`: 6 utilities `-[--sidebar-width...]` → `-[var(--sidebar-width...)]`.",
-        "`src/components/ui/sidebar/SidebarMenu.tsx`: `max-w-[--skeleton-width]` → `max-w-[var(--skeleton-width)]`.",
-        "`src/components/ui/chart.tsx`: `border-[--color-border]`, `bg-[--color-bg]` → sintaxis v4.",
-        "`src/components/ui/table.tsx`: `TableHeader` de `bg-muted/50` a `bg-card`; wrapper sin `max-h`; `tracking-wider` → `tracking-wide`."
-      ]
-    },
-    {
-      "title": "Verificación",
-      "items": [
-        "Playwright headless en /, /mrr y /customers a 1280×1800, 1024×768, 768×1024.",
-        "Sidebar reserva 16rem (expandido) / 3rem (colapsado) sin overlap. Tabla MRR renderiza 6 columnas sin recorte."
-      ]
-    }
+  "description": "En Tailwind v4 la sintaxis abreviada `w-[--var]` para custom properties dejó de resolverse a `var(--var)` y devolvía un ancho vacío. El spacer del `<Sidebar>` colapsaba a 0px y el sidebar fijo se superponía al contenido en desktop y tablet (visible en /mrr, dashboard, listados). Migradas todas las ocurrencias a la sintaxis v4 (`w-[var(--sidebar-width)]`, `[var(--color-bg)]`, etc.) en `Sidebar.tsx`, `SidebarMenu.tsx` y `chart.tsx`. Verificado con Playwright en desktop (1280×1800) y tablet portrait/landscape. De paso: `TableHeader` pasa de `bg-muted/50` (translúcido, dejaba ver contenido debajo al hacer sticky) a `bg-card` sólido, se elimina el `max-h-[calc(100vh-20rem)]` rígido de `<Table>` que recortaba tablas largas, y `tracking-wider` → `tracking-wide` para consistencia con el resto de encabezados densos.",
+  "changes": [
+    "En Tailwind v4 la sintaxis abreviada `w-[--var]` para custom properties dejó de resolverse a `var(--var)` y devolvía un ancho vacío. El spacer del `<Sidebar>` colapsaba a 0px y el sidebar fijo se superponía al contenido en desktop y tablet (visible en /mrr, dashboard, listados). Migradas todas las ocurrencias a la sintaxis v4 (`w-[var(--sidebar-width)]`, `[var(--color-bg)]`, etc.) en `Sidebar.tsx`, `SidebarMenu.tsx` y `chart.tsx`. Verificado con Playwright en desktop (1280×1800) y tablet portrait/landscape. De paso: `TableHeader` pasa de `bg-muted/50` (translúcido, dejaba ver contenido debajo al hacer sticky) a `bg-card` sólido, se elimina el `max-h-[calc(100vh-20rem)]` rígido de `<Table>` que recortaba tablas largas, y `tracking-wider` → `tracking-wide` para consistencia con el resto de encabezados densos."
   ]
 }

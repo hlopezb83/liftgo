@@ -1,29 +1,6 @@
 {
-  "version": "7.263.0",
-  "date": "2026-07-29",
-  "type": "minor",
-  "title": "Fase 3 de base de datos: banderas E2E, roles, redondeo y sync de pagos (DB3-10 a DB3-13)",
-  "category": "security",
+  "description": "El guard de datos de prueba (is_e2e/e2e_scope) ahora también aplica al crear filas y solo lo pueden usar el robot de pruebas, el service_role o las RPC oficiales de siembra; todo cambio de bandera queda auditado. Se vuelve inmutable el user_id de user_roles (evita escalación de privilegios), los importes de pagos de clientes y proveedores se redondean a dos decimales, y la exención interna app.payment_sync solo vale cuando el cambio viene realmente del trigger de sincronización.",
   "changes": [
-    {
-      "type": "security",
-      "title": "DB3-10 · Banderas de pruebas blindadas en alta y edición",
-      "description": "El guard de is_e2e/e2e_scope ahora también corre en INSERT en facturas, cotizaciones, reservas, pagos, clientes, montacargas y modelos. Solo el actor E2E, el service_role o las RPC oficiales de siembra (que marcan la sesión con app.e2e_seed) pueden crear filas marcadas como prueba. Además, cualquier cambio de esas banderas queda siempre registrado en la bitácora de auditoría, aunque lo haga el actor E2E."
-    },
-    {
-      "type": "security",
-      "title": "DB3-11 · user_id inmutable en user_roles",
-      "description": "Ya no se puede reasignar un rol existente a otro usuario con un UPDATE directo; hay que borrar e insertar por la vía oficial. Cierra un vector de escalación de privilegios."
-    },
-    {
-      "type": "fix",
-      "title": "DB3-12 · Redondeo a dos decimales en pagos",
-      "description": "Los importes de pagos de clientes y de proveedores se redondean a dos decimales al guardarse, y se sanearon los registros existentes. Evita saldos con centavos fantasma."
-    },
-    {
-      "type": "security",
-      "title": "DB3-13 · La exención app.payment_sync exige profundidad de trigger",
-      "description": "La excepción que permite mover el estado de una factura durante la sincronización de pagos ahora solo aplica cuando el UPDATE viene realmente del trigger (pg_trigger_depth() > 1). Un SET manual del flag ya no abre la máquina de estados."
-    }
+    "El guard de datos de prueba (is_e2e/e2e_scope) ahora también aplica al crear filas y solo lo pueden usar el robot de pruebas, el service_role o las RPC oficiales de siembra; todo cambio de bandera queda auditado. Se vuelve inmutable el user_id de user_roles (evita escalación de privilegios), los importes de pagos de clientes y proveedores se redondean a dos decimales, y la exención interna app.payment_sync solo vale cuando el cambio viene realmente del trigger de sincronización."
   ]
 }

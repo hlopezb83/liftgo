@@ -1,0 +1,6 @@
+{
+  "description": "Se migraron múltiples watch() a useWatch para aislar re-renders y se reemplazaron Controllers crudos por el wrapper FormField. Incluye BookingForm, useSupplierBillForm, DeliveryFormFields, PacConfigForm, FeedbackFormFields, ReturnInspectionDialog, EquipmentAssignmentDialog, InvoiceForm, useBookingFormState, useForkliftFormState, UploadSupplierRepDialog y ReportTransferDialog.",
+  "changes": [
+    "Se migraron múltiples watch() a useWatch para aislar re-renders y se reemplazaron Controllers crudos por el wrapper FormField. Incluye BookingForm, useSupplierBillForm, DeliveryFormFields, PacConfigForm, FeedbackFormFields, ReturnInspectionDialog, EquipmentAssignmentDialog, InvoiceForm, useBookingFormState, useForkliftFormState, UploadSupplierRepDialog y ReportTransferDialog."
+  ]
+}

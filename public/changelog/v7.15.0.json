@@ -1,9 +1,4 @@
 {
-  "version": "7.15.0",
-  "date": "2026-07-11",
-  "type": "minor",
-  "title": "React 19.2: useEffectEvent, derived state fuera de useEffect y linter del Compiler",
-  "category": "improvement",
   "description": "Auditoría integral de la implementación de React y ejecución del Lote 5 de modernización.",
   "changes": [
     "Diagnóstico: react@19.2.7 (última estable de la línea 19, publicada en oct-2026). 0 React.forwardRef, 0 React.FC, 0 PropTypes, 0 lifecycles de clase, 0 'use client' parásitos. Providers propios ya usan la sintaxis JSX <Context value> de React 19. Routing con lazy() + Suspense por ruta con PageFallback tolerante a fallos. useDeferredValue y useOptimistic ya adoptados en filtros y feedback. `eslint-plugin-react-compiler` instalado.",

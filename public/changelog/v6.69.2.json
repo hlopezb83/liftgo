@@ -1,34 +1,12 @@
 {
-  "version": "6.69.2",
-  "date": "2026-06-14",
-  "type": "patch",
-  "title": "Fix CI: deno fmt en handlers CFDI y limpieza de dead code",
-  "category": "fix",
+  "description": "Aplicado `deno fmt` a 4 archivos del job edge-functions (cancel-cfdi/handler.ts, cancel-cfdi/handler_test.ts, refresh-cancellation-status/handler.ts, refresh-cancellation-status/handler_test.ts) que rompían `deno fmt --check` con 'Found 4 not formatted files'. Eliminado src/features/fleet/hooks/forklifts/useForkliftOptions.ts (creado en Fase A v6.68.0 pero nunca importado) que disparaba knip como 'Unused files (1)' y rompería el job quality. Validado localmente: typecheck, knip, vitest 707/707, deno fmt/lint todos en verde. Desbloquea rls y e2e que estaban saltados por `needs: [quality]`.",
   "changes": [
-    {
-      "area": "CI / Edge Functions (Deno)",
-      "items": [
-        "supabase/functions/cancel-cfdi/handler.ts — reformateado por `deno fmt` (imports multi-línea, ternarios, objects expandidos).",
-        "supabase/functions/cancel-cfdi/handler_test.ts — reformateado por `deno fmt`.",
-        "supabase/functions/refresh-cancellation-status/handler.ts — reformateado por `deno fmt`.",
-        "supabase/functions/refresh-cancellation-status/handler_test.ts — reformateado por `deno fmt`.",
-        "El step `Deno fmt --check` del job edge-functions reportaba 'Found 4 not formatted files in 60 files' y rompía CI con exit 1."
-      ]
-    },
-    {
-      "area": "CI / Knip",
-      "items": [
-        "Eliminado src/features/fleet/hooks/forklifts/useForkliftOptions.ts — hook creado en Fase A de la auditoría de rendimiento (v6.68.0) pero nunca importado en ninguna parte del código.",
-        "Knip lo reportaba como 'Unused files (1)' y habría roto el job quality en el siguiente run de CI."
-      ]
-    }
-  ],
-  "validation": [
-    "bunx tsc --noEmit -p tsconfig.app.json — sin errores",
-    "bunx knip --include files,dependencies,binaries — sin issues",
-    "bun run test — 707/707 tests passing (123 archivos)",
-    "deno fmt --check — Checked 60 files, sin diffs",
-    "deno lint — Checked 59 files, sin warnings"
-  ],
-  "impact": "Desbloquea 3 jobs de CI: edge-functions (estaba rojo por fmt), rls y e2e (estaban saltados porque dependen de quality)."
+    "CI / Edge Functions (Deno): supabase/functions/cancel-cfdi/handler.ts — reformateado por `deno fmt` (imports multi-línea, ternarios, objects expandidos).",
+    "CI / Edge Functions (Deno): supabase/functions/cancel-cfdi/handler_test.ts — reformateado por `deno fmt`.",
+    "CI / Edge Functions (Deno): supabase/functions/refresh-cancellation-status/handler.ts — reformateado por `deno fmt`.",
+    "CI / Edge Functions (Deno): supabase/functions/refresh-cancellation-status/handler_test.ts — reformateado por `deno fmt`.",
+    "CI / Edge Functions (Deno): El step `Deno fmt --check` del job edge-functions reportaba 'Found 4 not formatted files in 60 files' y rompía CI con exit 1.",
+    "CI / Knip: Eliminado src/features/fleet/hooks/forklifts/useForkliftOptions.ts — hook creado en Fase A de la auditoría de rendimiento (v6.68.0) pero nunca importado en ninguna parte del código.",
+    "CI / Knip: Knip lo reportaba como 'Unused files (1)' y habría roto el job quality en el siguiente run de CI."
+  ]
 }

@@ -1,10 +1,5 @@
 {
-  "version": "7.72.0",
-  "date": "2026-07-15",
-  "type": "minor",
-  "title": "Sprint J — Suite E2E ampliada con Playwright",
-  "category": "quality",
-  "summary": "Se agregaron 7 specs Playwright cubriendo flujo completo cotización→pago, regresión de filtros (Facturas, Cotizaciones, DateRangePicker), auditoría visual desktop/mobile por viewport y matriz de roles.",
+  "description": "Se agregaron 7 specs Playwright cubriendo el flujo completo cotización→reserva→factura→pago, regresiones históricas de filtros (Facturas v7.62.2, DateRangePicker v7.71.2, búsqueda de Cotizaciones), auditoría visual con snapshots en desktop 1600×900 y mobile 390×800, y matriz de roles. Se añadieron scripts `test:e2e:update-snapshots` y `test:e2e:report`, y documentación en `tests/e2e/README.md`.",
   "changes": [
     "Nuevo `tests/e2e/full-flow.spec.ts` que ejerce la cadena cotización → reserva → factura → pago sobre un seed único.",
     "Regresión StatusTabs de Facturas (`filters-invoices.spec.ts`) para el bug v7.62.2: alterna 5×4 combinaciones sin congelarse.",

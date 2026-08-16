@@ -1,0 +1,6 @@
+{
+  "description": "El mensaje de la guarda de retenciones cambió a 'no pueden exceder' pero la prueba M-21 seguía buscando el texto viejo. Además, los inserts de prospectos sin stage_order caían al DEFAULT 0 y chocaban con el constraint UNIQUE (stage, stage_order), rompiendo los E2E de CRM. Se quitó el DEFAULT y se agregó un trigger BEFORE INSERT que asigna el orden con next_stage_order cuando viene nulo.",
+  "changes": [
+    "El mensaje de la guarda de retenciones cambió a 'no pueden exceder' pero la prueba M-21 seguía buscando el texto viejo. Además, los inserts de prospectos sin stage_order caían al DEFAULT 0 y chocaban con el constraint UNIQUE (stage, stage_order), rompiendo los E2E de CRM. Se quitó el DEFAULT y se agregó un trigger BEFORE INSERT que asigna el orden con next_stage_order cuando viene nulo."
+  ]
+}

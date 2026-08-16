@@ -1,30 +1,6 @@
 {
-  "version": "7.273.5",
-  "date": "2026-08-01",
-  "type": "patch",
-  "title": "Refactor de complejidad ciclomática (4 pantallas)",
-  "category": "improvement",
+  "description": "Se simplificaron las pantallas de Daños, Detalle de transporte, Dashboard y Portal del cliente separando permisos, cálculos y botoneras en piezas más pequeñas. El comportamiento visible es idéntico.",
   "changes": [
-    {
-      "area": "Daños",
-      "detail": "DamageActions (26 → <15): permisos extraídos a useDamagePermissions + damageArchiveBlockReason; botonera y razones de bloqueo movidas a DamageActionButtons/DamageBlockReasons."
-    },
-    {
-      "area": "Transportes",
-      "detail": "DeliveryDetail (18 → <15): tarjetas movidas a DeliveryDetailBody y regla de borrado a canDeleteDeliveryFor() en deliveryDetailHelpers."
-    },
-    {
-      "area": "Dashboard",
-      "detail": "useDashboardSections (16 → <15): dashboardAccess() y mergeFleetCounts() como helpers puros."
-    },
-    {
-      "area": "Portal",
-      "detail": "PortalDashboard (17 → <15): KPIs derivados en derivePortalKpis() (src/features/portal/lib/portalKpis.ts)."
-    }
-  ],
-  "verification": {
-    "eslint": "0 errores, 0 warnings de complejidad",
-    "tsc": "limpio",
-    "tests": "1467 tests en verde"
-  }
+    "Se simplificaron las pantallas de Daños, Detalle de transporte, Dashboard y Portal del cliente separando permisos, cálculos y botoneras en piezas más pequeñas. El comportamiento visible es idéntico."
+  ]
 }

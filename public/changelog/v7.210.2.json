@@ -1,0 +1,6 @@
+{
+  "description": "Mantenimiento: recalcular cost al insertar (evita servicios con $0)",
+  "changes": [
+    "Mantenimiento: recalcular cost al insertar (evita servicios con $0)"
+  ]
+}

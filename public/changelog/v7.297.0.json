@@ -1,0 +1,8 @@
+{
+  "description": "Consultas más rápidas en toda la app",
+  "changes": [
+    "Las reglas de acceso ahora identifican al usuario una sola vez por consulta en lugar de una vez por cada fila leída",
+    "Las verificaciones de rol repetidas se agruparon en funciones únicas: una consulta hace una sola revisión de permisos en vez de hasta seis",
+    "No cambia quién puede ver o editar nada: mismos permisos, misma información visible"
+  ]
+}

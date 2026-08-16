@@ -1,18 +1,8 @@
 {
-  "version": "6.69.1",
-  "date": "2026-06-14",
-  "type": "patch",
-  "title": "Fix CI: elimina throw dentro de finally en fixtures E2E",
-  "category": "fix",
+  "description": "tests/e2e/fixtures/seed.ts y portalSeed.ts: se refactoriza el patrón try/finally para capturar el error del test en una variable y relanzarlo al final, evitando la regla no-unsafe-finally de ESLint que bloqueaba el job 'Lint, Knip, Tests, Build' en CI. Comportamiento de teardown idéntico (siempre corre, diferencia fallo de test vs fuga de datos).",
   "changes": [
-    {
-      "area": "CI / Tests E2E",
-      "items": [
-        "tests/e2e/fixtures/seed.ts: refactor del bloque try/finally — el resultado del test se captura en `testError` y se relanza al final, eliminando el `throw` dentro de `finally` (regla no-unsafe-finally).",
-        "tests/e2e/fixtures/portalSeed.ts: mismo refactor para el fixture del portal de clientes.",
-        "Comportamiento preservado: el teardown siempre corre, los errores de teardown se loggean cuando el test falló y se relanzan cuando el test pasó (detección de fugas de datos)."
-      ]
-    }
-  ],
-  "impact": "Desbloquea el job 'Lint, Knip, Tests, Build' en GitHub Actions que estaba fallando con exit code 1 por 2 errores de no-unsafe-finally."
+    "CI / Tests E2E: tests/e2e/fixtures/seed.ts: refactor del bloque try/finally — el resultado del test se captura en `testError` y se relanza al final, eliminando el `throw` dentro de `finally` (regla no-unsafe-finally).",
+    "CI / Tests E2E: tests/e2e/fixtures/portalSeed.ts: mismo refactor para el fixture del portal de clientes.",
+    "CI / Tests E2E: Comportamiento preservado: el teardown siempre corre, los errores de teardown se loggean cuando el test falló y se relanzan cuando el test pasó (detección de fugas de datos)."
+  ]
 }

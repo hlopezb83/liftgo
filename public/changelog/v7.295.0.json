@@ -1,0 +1,9 @@
+{
+  "description": "Pruebas automáticas de reglas de acceso a la base de datos",
+  "changes": [
+    "Las 21 baterías de pruebas de reglas de acceso ahora se ejecutan automáticamente en cada cambio, contra una base de datos temporal creada desde cero",
+    "Se valida que las más de 400 migraciones se apliquen limpias y en orden",
+    "Los resultados se publican como reporte en cada revisión de código",
+    "Las pruebas de humo SQL existentes corren en el mismo proceso, en modo informativo"
+  ]
+}

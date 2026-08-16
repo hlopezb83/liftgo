@@ -1,13 +1,6 @@
 {
-  "version": "7.274.4",
-  "date": "2026-08-01",
-  "type": "patch",
-  "title": "CI estable: prueba de precarga de cotizaciones sin carrera",
-  "category": "fix",
+  "description": "La prueba automática de edición de cotizaciones ya no falla por leer el formulario antes de que carguen los datos. Sin cambios visibles en la app.",
   "changes": [
-    {
-      "area": "CI / E2E",
-      "detail": "quote-edit-prefill.spec.ts leía los campos del formulario en el primer frame tras pulsar 'Editar'. Si la consulta de detalle aún no había resuelto, todos los inputs estaban vacíos y la prueba fallaba con 'el formulario abrió vacío' aunque la app funcionara. Ahora se espera a que el formulario esté montado y se usa expect.poll hasta que la precarga aplique; después se conserva la verificación de estabilidad a 1.5 s."
-    }
+    "La prueba automática de edición de cotizaciones ya no falla por leer el formulario antes de que carguen los datos. Sin cambios visibles en la app."
   ]
 }

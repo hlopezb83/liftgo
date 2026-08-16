@@ -1,10 +1,5 @@
 {
-  "version": "7.71.4",
-  "date": "2026-07-15",
-  "type": "patch",
-  "title": "Configuración — Umbral de aprobación CxP ya se guarda para Administrativo",
-  "category": "bugfix",
-  "summary": "La política RLS de company_settings solo permitía UPDATE a admin, por lo que Administrativo veía 'guardado' sin cambios reales.",
+  "description": "El umbral de aprobación de Facturas de Proveedor no se persistía cuando lo modificaba un usuario con rol Administrativo. La política RLS de `company_settings` solo permitía UPDATE a `admin`, por lo que la mutación completaba sin filas afectadas y sin error visible. Se agregó una política de actualización para el rol Administrativo.",
   "changes": [
     "Nueva política RLS 'Administrativo update company_settings' que permite editar la configuración de empresa (incluido el umbral CxP) al rol Administrativo."
   ]

@@ -1,0 +1,6 @@
+{
+  "description": "readSessionParams y writeSessionParams accedían a window.sessionStorage sin try/catch. En navegación privada (Safari), cuota llena o almacenamiento deshabilitado, getItem/setItem lanzan excepciones que rompían useTableFilters y la tabla no cargaba. Se envolvió cada acceso en try/catch con valores por defecto seguros.",
+  "changes": [
+    "readSessionParams y writeSessionParams accedían a window.sessionStorage sin try/catch. En navegación privada (Safari), cuota llena o almacenamiento deshabilitado, getItem/setItem lanzan excepciones que rompían useTableFilters y la tabla no cargaba. Se envolvió cada acceso en try/catch con valores por defecto seguros."
+  ]
+}

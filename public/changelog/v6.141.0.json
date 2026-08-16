@@ -1,9 +1,5 @@
 {
-  "version": "6.141.0",
-  "date": "2026-07-10",
-  "type": "minor",
-  "title": "DRY Lote 1 (parcial): auth y respuestas JSON unificadas en Edge Functions",
-  "summary": "Primer batch del Lote 1 de la auditoría DRY. 7 edge functions migradas al patrón compartido (requireAdmin/requireRole + jsonResponse/jsonError). Reducción neta ≈360 LOC.",
+  "description": "Se migran 7 edge functions (validate-supplier-rep, invite-user, invite-customer, delete-user, toggle-user-status, reset-user-password, generate-manual) para consumir requireAdmin/requireRole y los helpers jsonResponse/jsonError de _shared. Se eliminan ~360 LOC de boilerplate (auth manual con getClaims + roles y respuestas con headers CORS duplicados). Sin cambios funcionales; 802 tests pasan.",
   "changes": [
     "validate-supplier-rep: reemplazo de auth manual (getClaims + user_roles) por requireRole(['admin','administrativo']); todas las respuestas usan jsonResponse/jsonError. 338 → 261 LOC.",
     "generate-manual: migrado a requireAdmin y helpers jsonResponse/jsonError. 291 → 205 LOC.",

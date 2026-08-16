@@ -1,9 +1,4 @@
 {
-  "version": "7.306.1",
-  "date": "2026-08-12",
-  "type": "patch",
-  "title": "arch-check verde",
-  "category": "arquitectura",
   "description": "Se arreglan los tres guardrails que fallaban en scripts/arch-check.sh: allowlist de stateMachines.ts en src/lib/domain/, eliminación de imports directos de Supabase en componentes/páginas de features, y eliminación de 17 cross-feature deep imports mediante barrels públicos.",
   "changes": [
     "scripts/arch-check.sh: stateMachines.ts agregado al allowlist congelado de src/lib/domain/.",

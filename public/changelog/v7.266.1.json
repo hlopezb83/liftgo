@@ -1,19 +1,6 @@
 {
-  "version": "7.266.1",
-  "date": "2026-07-30",
-  "type": "patch",
-  "title": "Corrección de la unión de reportes de pruebas en CI",
-  "category": "fix",
+  "description": "La carpeta de reportes parciales de pruebas estaba oculta y el sistema de integración continua no la subía, provocando que el paso final de unión de reportes fallara. Además se eliminó una opción de configuración obsoleta que generaba advertencias.",
   "changes": [
-    {
-      "type": "fix",
-      "title": "Los reportes parciales ya se guardan correctamente",
-      "description": "La carpeta de reportes parciales estaba oculta y el sistema de integración continua la ignoraba, por lo que el paso final de unión fallaba al no encontrar ningún archivo. Ahora se incluyen explícitamente."
-    },
-    {
-      "type": "fix",
-      "title": "Configuración de pruebas actualizada a la nueva versión",
-      "description": "Se eliminó una opción obsoleta de configuración de procesos que generaba una advertencia en cada ejecución de pruebas."
-    }
+    "La carpeta de reportes parciales de pruebas estaba oculta y el sistema de integración continua no la subía, provocando que el paso final de unión de reportes fallara. Además se eliminó una opción de configuración obsoleta que generaba advertencias."
   ]
 }

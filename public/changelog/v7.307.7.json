@@ -1,9 +1,5 @@
 {
-  "version": "7.307.7",
-  "date": "2026-08-13",
-  "type": "patch",
-  "title": "CI: última suite RLS en verde y smoke SQL tolerante a base vacía",
-  "category": "infraestructura",
+  "description": "CI: última suite RLS en verde y smoke SQL tolerante a base vacía",
   "changes": [
     "`payments_portal`: la factura del fixture pasa a $1,000 para que el intento de pago del cliente choque contra RLS y no contra el trigger de saldo (`enforce_payment_balance`).",
     "`r3_smoke` y `r4_smoke`: `expect_error` ahora reporta SKIP cuando la sentencia afecta 0 filas — en CI la base se reconstruye sin datos y los guards no tenían nada que bloquear (falsos FALLO).",

@@ -1,36 +1,6 @@
 {
-  "version": "7.107.0",
-  "date": "2026-07-20",
-  "type": "minor",
-  "title": "Auditoría con datos reales + concurrencia: BL-48/50/51/52 + DRIFT-01 + OBS-1",
-  "sections": [
-    {
-      "heading": "BL-48 · get_income_statement ahora incluye operating_expenses",
-      "body": "Antes el P&L solo consideraba `supplier_bills`; el módulo de Gastos Operativos (nómina, renta, servicios) se capturaba en la app pero nunca llegaba al reporte, sobrestimando la utilidad neta. La RPC ahora agrega ambas fuentes en un CTE `expense_lines` (UNION ALL) agrupado por (mes, categoría), preservando el mismo shape JSON y todos los demás cálculos (rentas, ventas, notas de crédito, depreciación, COGS). Se excluyen `software` y `depreciacion` en ambas fuentes, alineado con la regla vigente de reportes financieros."
-    },
-    {
-      "heading": "BL-50 · get_mrr_detail alineado con el KPI de MRR",
-      "body": "La pantalla `/mrr` mostraba 56,000 mientras el dashboard mostraba 28,000 porque el detalle usaba `f.monthly_rate` (maestra) e incluía reservas sin `recurring_billing`. Ahora replica exactamente los filtros de `get_financial_kpis`: `COALESCE(b.monthly_rate, f.monthly_rate)`, `recurring_billing = true`, `status = 'confirmed'`, vigencia a hoy y `customer_id NOT NULL`. Se añade `rate_source` ('booking' | 'forklift') por fila para trazabilidad."
-    },
-    {
-      "heading": "BL-51 · get_customer_summary.total_paid refleja pagos parciales",
-      "body": "Antes se calculaba con `SUM(total) FILTER (WHERE status='paid')`, así un cliente con $10,000 abonados a una factura de $29,000 aparecía como '0 pagado'. Ahora suma directo la tabla `payments` unida a `invoices`, excluyendo pagos ligados a facturas canceladas."
-    },
-    {
-      "heading": "BL-52 · secuencias reales para folios RSV / COT / ENT / DEV",
-      "body": "Las funciones `next_booking_number`, `next_quote_number`, `next_delivery_number` e `next_inspection_number` leían `MAX+1` — bajo concurrencia dos sesiones podían asignar el mismo folio y perder una con `23505`. Migración crea `booking_number_seq`, `quote_number_seq`, `delivery_number_seq` e `inspection_number_seq` inicializadas al máximo actual (excluyendo folios `E2E-`), otorga `USAGE, SELECT` a `authenticated` y `service_role`, y reescribe las 4 funciones usando `nextval(...)` con el mismo patrón que ya usaba `FAC-`."
-    },
-    {
-      "heading": "DRIFT-01 · versionar objetos huérfanos del dashboard",
-      "body": "Migración de saneamiento (idempotente) para tabla `collection_reminders_log` (con índices, RLS y políticas de admin/administrativo/auditor) y funciones `create_notification`, `notify_admins`, `notify_payment_received`. Antes vivían solo en el ambiente productivo y un despliegue nuevo (staging, DR) rompía a mitad de migraciones. La policy de `realtime.messages` queda fuera de scope: pertenece al schema `realtime` gestionado por Supabase."
-    },
-    {
-      "heading": "OBS-1 · etiqueta de P&L renombrada",
-      "body": "En el Estado de Resultados, `revenue_sales` (facturas sin `booking_id` ni cotización de renta) se rotula como **'Otros ingresos (sin reserva)'** en lugar de 'Ingresos por Ventas', porque incluye rentas facturadas manualmente y no solo ventas de equipo."
-    },
-    {
-      "heading": "Verificación",
-      "body": "- Migraciones aplicadas exitosamente contra la BD.\n- `get_customer_summary` con `total_paid` ahora consulta pagos reales.\n- `get_mrr_detail` y `get_financial_kpis` comparten los mismos filtros de MRR.\n- BL-49 (columna `ml.total_cost`) ya se había resuelto en v7.106.1.\n- OBS-2 (índice único excluye `is_e2e`) queda documentado: se controla con la barrera `allow_e2e_seed` y no requiere cambio de código."
-    }
+  "description": "Auditoría con datos reales + concurrencia: BL-48/50/51/52 + DRIFT-01 + OBS-1",
+  "changes": [
+    "Auditoría con datos reales + concurrencia: BL-48/50/51/52 + DRIFT-01 + OBS-1"
   ]
 }

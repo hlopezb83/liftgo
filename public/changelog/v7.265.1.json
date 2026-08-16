@@ -1,24 +1,6 @@
 {
-  "version": "7.265.1",
-  "date": "2026-07-29",
-  "type": "patch",
-  "title": "Pruebas de la Ronda 4 y fuga de temporizador en búsquedas",
-  "category": "improvement",
+  "description": "Se agregaron 25 pruebas automáticas para las nuevas reglas de la Ronda 4 (cancelar cotizaciones, archivar daños, entregas y estados de error de red), un guion de humo para los candados de base de datos, y se corrigió el retardo de las cajas de búsqueda para que se cancele al salir de la pantalla.",
   "changes": [
-    {
-      "type": "improvement",
-      "title": "Pruebas automáticas de las nuevas reglas",
-      "description": "Se agregaron 25 pruebas que cubren la cancelación de cotizaciones aceptadas, el archivado de daños, la ocultación de 'Eliminar' en entregas y los estados de error de red en pestañas de catálogos y páginas de detalle."
-    },
-    {
-      "type": "improvement",
-      "title": "Guion de verificación de base de datos",
-      "description": "Nuevo guion de humo que ejercita los ocho candados de base de datos de la Ronda 4 (facturas de proveedor, daños, liberación de unidades, reservas directas y columnas fiscales)."
-    },
-    {
-      "type": "fix",
-      "title": "Búsquedas ya no actualizan pantallas cerradas",
-      "description": "El retardo de las cajas de búsqueda se cancela al salir de la pantalla, evitando actualizaciones sobre vistas que ya no existen."
-    }
+    "Se agregaron 25 pruebas automáticas para las nuevas reglas de la Ronda 4 (cancelar cotizaciones, archivar daños, entregas y estados de error de red), un guion de humo para los candados de base de datos, y se corrigió el retardo de las cajas de búsqueda para que se cancele al salir de la pantalla."
   ]
 }

@@ -1,37 +1,6 @@
 {
-  "version": "7.41.0",
-  "date": "2026-07-12",
-  "type": "minor",
-  "title": "Auditoría visual — Lote 2: grids, overlays y headers responsive",
-  "summary": "Ajustes finos de responsive tras el fix crítico del sidebar. KPIs mejor distribuidos en tablet, overlays consistentes con tema, títulos largos ya no se cortan y sheets más anchos en tablet.",
-  "sections": [
-    {
-      "title": "Grids",
-      "items": [
-        "Dashboard (skeleton) y StatCards: `grid-cols-2 md:grid-cols-3 lg:grid-cols-5` para que 5 KPIs llenen tablet landscape sin fila huérfana.",
-        "ForkliftDetail, CustomerDetailPage: `grid-cols-1 md:grid-cols-2 lg:grid-cols-3` para aprovechar 768-1024px.",
-        "SupplierDetailPage: primera fila con 2 cards pasa a `md:grid-cols-2` (era `md:grid-cols-3`, dejando hueco)."
-      ]
-    },
-    {
-      "title": "Overlays y diálogos",
-      "items": [
-        "AlertDialog overlay: `bg-background/80 backdrop-blur-sm` (era `bg-black/80` opaco).",
-        "ErrorDetailsDialog: `max-h-[50vh]` (era 60vh) para no comer footer en tablet landscape."
-      ]
-    },
-    {
-      "title": "Headers y sheets",
-      "items": [
-        "PageHeader y DetailPageHeader: `line-clamp-2` en lugar de `truncate` para nombres largos en tablet portrait.",
-        "FeedbackDetailSheet y BankLineDetailSheet: `sm:max-w-2xl` (era `xl`)."
-      ]
-    },
-    {
-      "title": "Descartado",
-      "items": [
-        "El auditor reportó 'CTAs duplicados' en 8 páginas. Falso positivo: `usePageActions` sólo registra hotkeys (n/r), no renderiza UI. El `actions` de ListPageLayout es el único botón visible."
-      ]
-    }
+  "description": "Segunda ola de correcciones tras el fix crítico del sidebar (v7.40.0). Los 3 subagentes que auditaron formularios, detalles y listados en desktop/tablet destaparon inconsistencias en KPIs, overlays y anchos de sheets. Se descarta el hallazgo de 'CTAs duplicados' del auditor porque `usePageActions` sólo registra atajos de teclado (n/r), no renderiza botón. Cambios: (1) Dashboard skeleton y `StatCards` alineados a `md:grid-cols-3 lg:grid-cols-5` para que 5 KPIs llenen bien tablet landscape (1024px) sin fila huérfana. (2) `ForkliftDetail`, `CustomerDetailPage` y `SupplierDetailPage` añaden breakpoint `md:grid-cols-2` para aprovechar 768-1024px en vez de saltar directo de 1→3 columnas. (3) `AlertDialog` overlay pasa de `bg-black/80` a `bg-background/80 backdrop-blur-sm` para igualar `Dialog` estándar y respetar tema. (4) `ErrorDetailsDialog` `max-h-[60vh]→[50vh]` para tablet landscape (768px alto). (5) `DetailPageHeader` y `PageHeader` cambian `truncate` por `line-clamp-2` para no cortar nombres de entidad en tablet portrait. (6) `FeedbackDetailSheet` y `BankLineDetailSheet` suben de `sm:max-w-xl` a `sm:max-w-2xl` para tablet.",
+  "changes": [
+    "Segunda ola de correcciones tras el fix crítico del sidebar (v7.40.0). Los 3 subagentes que auditaron formularios, detalles y listados en desktop/tablet destaparon inconsistencias en KPIs, overlays y anchos de sheets. Se descarta el hallazgo de 'CTAs duplicados' del auditor porque `usePageActions` sólo registra atajos de teclado (n/r), no renderiza botón. Cambios: (1) Dashboard skeleton y `StatCards` alineados a `md:grid-cols-3 lg:grid-cols-5` para que 5 KPIs llenen bien tablet landscape (1024px) sin fila huérfana. (2) `ForkliftDetail`, `CustomerDetailPage` y `SupplierDetailPage` añaden breakpoint `md:grid-cols-2` para aprovechar 768-1024px en vez de saltar directo de 1→3 columnas. (3) `AlertDialog` overlay pasa de `bg-black/80` a `bg-background/80 backdrop-blur-sm` para igualar `Dialog` estándar y respetar tema. (4) `ErrorDetailsDialog` `max-h-[60vh]→[50vh]` para tablet landscape (768px alto). (5) `DetailPageHeader` y `PageHeader` cambian `truncate` por `line-clamp-2` para no cortar nombres de entidad en tablet portrait. (6) `FeedbackDetailSheet` y `BankLineDetailSheet` suben de `sm:max-w-xl` a `sm:max-w-2xl` para tablet."
   ]
 }

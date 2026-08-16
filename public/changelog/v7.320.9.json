@@ -1,0 +1,6 @@
+{
+  "description": "ClosedTable usaba useLiftgoTable con paginación habilitada por defecto (pageSize 10). En una vista de deals cerrados (ganados/perdidos) esto ocultaba la mayoría de los registros tras paginación innecesaria. Se añadió paginated: false para mostrar todos los deals cerrados de una sola vez.",
+  "changes": [
+    "ClosedTable usaba useLiftgoTable con paginación habilitada por defecto (pageSize 10). En una vista de deals cerrados (ganados/perdidos) esto ocultaba la mayoría de los registros tras paginación innecesaria. Se añadió paginated: false para mostrar todos los deals cerrados de una sola vez."
+  ]
+}

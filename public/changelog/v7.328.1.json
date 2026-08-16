@@ -1,6 +1,6 @@
 {
-  "version": "7.328.1",
-  "date": "2026-08-14",
-  "title": "Umbral único de saldo proyectable en flujo de caja",
-  "description": "El medio centavo que define cuándo un saldo residual es demasiado pequeño para aparecer en la proyección de flujo de caja ahora vive en una sola constante documentada, en vez de repetirse en dos lugares. Sin cambios de comportamiento."
+  "description": "El medio centavo que define cuándo un saldo residual es demasiado pequeño para aparecer en la proyección de flujo de caja ahora vive en una sola constante documentada, en vez de repetirse en dos lugares. Sin cambios de comportamiento.",
+  "changes": [
+    "El medio centavo que define cuándo un saldo residual es demasiado pequeño para aparecer en la proyección de flujo de caja ahora vive en una sola constante documentada, en vez de repetirse en dos lugares. Sin cambios de comportamiento."
+  ]
 }

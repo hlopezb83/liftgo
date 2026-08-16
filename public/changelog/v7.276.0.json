@@ -1,37 +1,6 @@
 {
-  "version": "7.276.0",
-  "date": "2026-08-02",
-  "type": "minor",
-  "title": "R12 UI/UX: badges unificados, acento dorado y rutas alias",
-  "category": "improvement",
+  "description": "Etiquetas de estado con punto de color y mejor contraste, dorado de marca en las acciones primarias, estados vacíos y esqueletos de carga consistentes, y las direcciones antiguas (/payments, /prospects, /availability, /cash-flow) ya no dan 404.",
   "changes": [
-    {
-      "area": "Interfaz",
-      "detail": "Todas las etiquetas de estado usan el mismo patrón: punto de color + texto en color de texto normal, con fondo tintado suave. Se lee igual en cualquier tabla y mejora el contraste de estados como 'Vencido'."
-    },
-    {
-      "area": "Interfaz",
-      "detail": "El dorado de marca pasa a las acciones primarias (botones principales, foco y el indicador del menú activo); el azul marino se queda como color estructural del sidebar, gráficas y Gantt."
-    },
-    {
-      "area": "Interfaz",
-      "detail": "Los estados vacíos usan el acento dorado en el ícono, para que se vean parte del sistema y no como un bloque gris."
-    },
-    {
-      "area": "Tablas",
-      "detail": "El resaltado de fila al pasar el cursor usa el tono de acento cálido en vez de gris, consistente con la fila seleccionada."
-    },
-    {
-      "area": "CRM",
-      "detail": "La carga del tablero muestra columnas y tarjetas con la forma real en vez de bloques grises."
-    },
-    {
-      "area": "Portal del cliente",
-      "detail": "Facturas, rentas y cotizaciones muestran un esqueleto de tabla al cargar, igual que el resto de la app."
-    },
-    {
-      "area": "Navegación",
-      "detail": "Las direcciones antiguas /payments, /prospects, /availability, /cash-flow y /accounts-payable ahora redirigen a su pantalla real en vez de mostrar 404."
-    }
+    "Etiquetas de estado con punto de color y mejor contraste, dorado de marca en las acciones primarias, estados vacíos y esqueletos de carga consistentes, y las direcciones antiguas (/payments, /prospects, /availability, /cash-flow) ya no dan 404."
   ]
 }

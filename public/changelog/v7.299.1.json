@@ -1,0 +1,9 @@
+{
+  "description": "Seguridad: FORCE ROW LEVEL SECURITY en 11 tablas sensibles",
+  "changes": [
+    "FORCE RLS activado en billing_secrets, invoices, payments, contracts, customers, supplier_bills, supplier_payments, profiles, user_roles, role_permissions y audit_logs (antes solo company_settings lo tenia).",
+    "Verificado previamente que ninguna edge function ni seed dependia del bypass por propiedad de tabla: las funciones administrativas usan service_role y las de usuario reenvian el Authorization del caller.",
+    "Verificado que todos los triggers que escriben en otras tablas (auditoria, actividad, notificaciones, recalculos) son SECURITY DEFINER propiedad de postgres, que conserva BYPASSRLS.",
+    "La migracion documenta el procedimiento de rollback (NO FORCE ROW LEVEL SECURITY por tabla) y la consulta de verificacion en pg_class."
+  ]
+}

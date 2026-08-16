@@ -1,9 +1,5 @@
 {
-  "version": "7.188.0",
-  "date": "2026-07-22",
-  "type": "minor",
-  "title": "Auditoría R7 · cierre de pendientes",
-  "category": "improvement",
+  "description": "Auditoría R7 · pendientes: constraints BD montacargas, doble-timbrado, descargas CFDI en Portal, badge de moneda",
   "changes": [
     "BD (B10a): CHECK constraints NOT VALID en public.forklifts para año (1980–actual+1), capacidad (0–100 000 kg), altura del mástil (0–20 m) y tarifas/costos no negativos. Los datos legacy quedan intactos; sólo aplica a filas nuevas o editadas.",
     "Facturas (B12): botón 'Timbrar CFDI' con guarda onPointerDown además de disabled, para bloquear el doble-timbrado por doble-click rápido antes de que React propague el estado.",

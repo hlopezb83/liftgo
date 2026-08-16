@@ -1,9 +1,5 @@
 {
-  "version": "7.212.0",
-  "date": "2026-07-23",
-  "type": "minor",
-  "title": "Arquitectura Lote C-β: nonRentalLines migrado a lib/domain",
-  "category": "refactor",
+  "description": "Arquitectura Lote C-β: nonRentalLines migrado a lib/domain",
   "changes": [
     "Movido src/features/quotes/utils/nonRentalLines.ts → src/lib/domain/nonRentalLines.ts para romper el ciclo invoices → quotes → invoices.",
     "Añadido DTO local NonRentalLineDto en lib/domain para eliminar la dependencia inversa hacia @/features/invoices/lib/invoiceFormSchema.",

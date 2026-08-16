@@ -1,0 +1,6 @@
+{
+  "description": "CI: mock de useHasModuleAccess en tests de InvoicesPage",
+  "changes": [
+    "CI: mock de useHasModuleAccess en tests de InvoicesPage"
+  ]
+}

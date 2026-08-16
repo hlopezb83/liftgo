@@ -1,13 +1,6 @@
 {
-  "version": "7.286.2",
-  "date": "2026-08-10",
-  "type": "patch",
-  "title": "Rentabilidad por modelo protegida por permiso + pruebas de la ronda R2",
-  "category": "security",
   "description": "Se cerró la última RPC de reportes sin validación de permiso y se agregaron pruebas automatizadas para los puntos de la auditoría R2 que no tenían cobertura.",
   "changes": [
-    { "scope": "security", "summary": "report_profit_by_model ahora exige permiso de lectura en Reportes" },
-    { "scope": "tests", "summary": "Nuevo smoke SQL r2_smoke.sql con 11 verificaciones de la ronda R2" },
-    { "scope": "tests", "summary": "Pruebas del enlace de acceso al invitar usuarios (con y sin enlace)" }
+    "Se cerró la última RPC de reportes sin validación de permiso y se agregaron pruebas automatizadas para los puntos de la auditoría R2 que no tenían cobertura."
   ]
 }

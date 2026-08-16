@@ -1,31 +1,6 @@
 {
-  "version": "7.47.0",
-  "date": "2026-07-12",
-  "type": "minor",
-  "title": "date-fns: centralización de formatos con toYMD y formatDateMty",
-  "summary": "Auditoría de date-fns v4: se eliminaron los usos inline de format() con literales 'yyyy-MM-dd' y 'dd/MM/yyyy' migrándolos a los helpers canónicos.",
-  "sections": [
-    {
-      "heading": "Helpers",
-      "items": [
-        "toYMD ahora usa overload TS: cuando la entrada es Date, retorna string (evita `!` en callsites).",
-        "src/lib/format/dateFormats.ts reexporta toYMD como single entry point.",
-        "Nuevos helpers: formatDateLongMty, formatDayMonthMty, formatDateTimeShortMty, todayKeyMty."
-      ]
-    },
-    {
-      "heading": "Migraciones",
-      "items": [
-        "yyyy-MM-dd → toYMD: useBookingActions, useExtendBookingPreview, useBookingFormSubmit, ContractForm, DeliveryFormDialog, useRecordPaymentForm, InvoicesReconciliation, maintenanceFormHelpers, quoteFormBuilders, useMonthlyData.",
-        "dd/MM/yyyy → formatDateMty: DatePickerField, DateRangePickerField, RecurringBillingBadge, reconciliationExport, IncomeStatementDocument, CalendarPage.",
-        "MMMM yyyy → formatMonthLongEs en CalendarPage (cumple la regla de etiquetas de mes)."
-      ]
-    },
-    {
-      "heading": "Tree shaking",
-      "items": [
-        "date-fns v4 es ESM-only; los imports nombrados actuales ya son óptimos, no se requieren subpath imports."
-      ]
-    }
+  "description": "Se eliminaron 20+ usos inline de format(d,'yyyy-MM-dd') y format(d,'dd/MM/yyyy') migrándolos a los helpers canónicos toYMD y formatDateMty. Incluye BookingForm, ContractForm, DeliveryFormDialog, MaintenanceForm, QuoteBuilders, useRecordPaymentForm, InvoicesReconciliation, useMonthlyData, useExtendBookingPreview, DatePickerField, DateRangePickerField, RecurringBillingBadge, CalendarPage (rango con formatMonthLongEs) y IncomeStatementDocument. toYMD ahora tiene overload que preserva string cuando la entrada es Date.",
+  "changes": [
+    "Se eliminaron 20+ usos inline de format(d,'yyyy-MM-dd') y format(d,'dd/MM/yyyy') migrándolos a los helpers canónicos toYMD y formatDateMty. Incluye BookingForm, ContractForm, DeliveryFormDialog, MaintenanceForm, QuoteBuilders, useRecordPaymentForm, InvoicesReconciliation, useMonthlyData, useExtendBookingPreview, DatePickerField, DateRangePickerField, RecurringBillingBadge, CalendarPage (rango con formatMonthLongEs) y IncomeStatementDocument. toYMD ahora tiene overload que preserva string cuando la entrada es Date."
   ]
 }

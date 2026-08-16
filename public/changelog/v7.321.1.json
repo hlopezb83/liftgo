@@ -1,0 +1,6 @@
+{
+  "description": "La guarda del schema de facturas de proveedor usaba subtotal+impuestos como límite de retenciones, ignorando el descuento. Con descuento>0 permitía retenciones que producían total negativo. Corregida la base gravable a subtotal−descuento+impuestos y añadido piso Math.max(0) defensivo en el cálculo del total.",
+  "changes": [
+    "La guarda del schema de facturas de proveedor usaba subtotal+impuestos como límite de retenciones, ignorando el descuento. Con descuento>0 permitía retenciones que producían total negativo. Corregida la base gravable a subtotal−descuento+impuestos y añadido piso Math.max(0) defensivo en el cálculo del total."
+  ]
+}

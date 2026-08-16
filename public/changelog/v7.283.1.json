@@ -1,9 +1,4 @@
 {
-  "version": "7.283.1",
-  "date": "2026-08-10",
-  "type": "patch",
-  "title": "CI verde: formato Deno en Edge Functions",
-  "category": "fix",
   "description": "El job de CI fallaba con `deno fmt --check` por 4 archivos sin formatear. Solo cambios de espaciado y saltos de línea; sin cambios de lógica ni comportamiento.",
   "changes": [
     "Aplicado `deno fmt` a supabase/functions/_shared/auth.ts",

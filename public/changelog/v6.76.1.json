@@ -1,16 +1,7 @@
 {
-  "version": "6.76.1",
-  "date": "2026-06-23",
-  "type": "patch",
-  "title": "Forzar FormaPago=99 en CFDI con MetodoPago PPD",
-  "category": "bugfix",
+  "description": "Corrige timbrado de facturas PPD (Pago en Parcialidades o Diferido). El SAT exige que `FormaPago` sea \"99\" (Por definir) cuando `MetodoPago` es PPD. `stamp-cfdi` ahora normaliza el valor automáticamente antes de enviar a Facturapi, evitando el rechazo CFDI40105.",
   "changes": [
-    {
-      "area": "Facturación / CFDI",
-      "items": [
-        "`stamp-cfdi` ahora fuerza `payment_form = \"99\"` cuando `metodo_pago = \"PPD\"`, cumpliendo la validación SAT CFDI40105.",
-        "Resuelve el error 400 de Facturapi: 'El campo FormaPago no contiene el valor \"99\"' al timbrar facturas a crédito."
-      ]
-    }
+    "Facturación / CFDI: `stamp-cfdi` ahora fuerza `payment_form = \"99\"` cuando `metodo_pago = \"PPD\"`, cumpliendo la validación SAT CFDI40105.",
+    "Facturación / CFDI: Resuelve el error 400 de Facturapi: 'El campo FormaPago no contiene el valor \"99\"' al timbrar facturas a crédito."
   ]
 }

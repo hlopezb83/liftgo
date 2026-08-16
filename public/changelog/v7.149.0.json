@@ -1,9 +1,5 @@
 {
-  "version": "7.149.0",
-  "date": "2026-07-21",
-  "type": "minor",
-  "title": "Bloque 5 (R4) — ⌘K entidades, rol nulo, guards NaN, roles residuales y check-version",
-  "category": "fix",
+  "description": "Bloque 5 (R4) — ⌘K entidades, rol nulo, guards NaN, roles residuales y check-version",
   "changes": [
     "5.1 GlobalSearch (⌘K): además de páginas, ahora indexa Facturas (invoice_number/customer_name), Clientes (name/rfc) y Reservas (booking_number/customer_name). Búsqueda server-side con debounce 200ms, 5 resultados por entidad, se activa desde 2 caracteres. Resultados aparecen en secciones dedicadas arriba de las páginas.",
     "5.2 Rol 'Sin rol' explícito: UserRow.role ahora es AppRole | null. Cuando el trigger de user_roles no dispara o la fila fue removida, la tabla muestra un badge destructive 'Sin rol' con tooltip explicativo, en vez de inventar 'dispatcher' silenciosamente. UserMobileCard y useUserManagementColumns aceptan `undefined` en el <Select> para permitir asignación posterior.",

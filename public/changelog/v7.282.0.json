@@ -1,9 +1,4 @@
 {
-  "version": "7.282.0",
-  "date": "2026-08-06",
-  "type": "minor",
-  "title": "Auditoría del contrato de arrendamiento",
-  "category": "improvement",
   "description": "Corrección del domicilio legal, contenido legal ampliado y fechas correctas en contrato y pagaré.",
   "changes": [
     "Nuevo helper formatLegalAddress: limpia domicilios importados de la CSF (quita 'OTRA NO ESPECIFICADA EN EL CATALOGO', reordena el tipo de vialidad) y agrega C.P.",
