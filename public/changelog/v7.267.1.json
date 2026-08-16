@@ -1,14 +1,6 @@
 {
-  "version": "7.267.1",
-  "date": "2026-07-30",
-  "type": "patch",
-  "title": "Corrección al guardar cotizaciones, facturas y reservas",
-  "category": "fix",
+  "description": "La validación de estados intentaba leer la fecha de vencimiento (dato exclusivo de facturas de proveedor) al guardar cualquier documento, rompiendo el alta de cotizaciones, facturas, reservas y equipos. Ahora esa comprobación aplica solo a facturas de proveedor.",
   "changes": [
-    {
-      "type": "fix",
-      "title": "Ya se pueden crear cotizaciones, facturas y reservas de nuevo",
-      "description": "La validación de estados intentaba leer la fecha de vencimiento (un dato que solo existe en las facturas de proveedor) al guardar cualquier documento, lo que rompía el alta de cotizaciones, facturas, reservas y equipos. Ahora esa comprobación aplica únicamente a facturas de proveedor."
-    }
+    "La validación de estados intentaba leer la fecha de vencimiento (dato exclusivo de facturas de proveedor) al guardar cualquier documento, rompiendo el alta de cotizaciones, facturas, reservas y equipos. Ahora esa comprobación aplica solo a facturas de proveedor."
   ]
 }

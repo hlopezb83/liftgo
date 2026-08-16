@@ -1,9 +1,4 @@
 {
-  "version": "7.279.4",
-  "date": "2026-08-05",
-  "type": "patch",
-  "title": "Cotizaciones: descuentos en porcentaje ya no bloquean el guardado",
-  "category": "fix",
   "description": "La validación de la base de datos interpretaba todos los descuentos como pesos, aunque fueran porcentajes, y rechazaba la cotización con “Las partidas no cuadran con el subtotal”. Ahora respeta el tipo de descuento (% o $), igual que la app.",
   "changes": [
     "validate_invoice_line_items_signs() respeta discount_type (% o $) y nunca deja una partida en negativo",

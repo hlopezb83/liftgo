@@ -1,9 +1,4 @@
 {
-  "version": "7.306.3",
-  "date": "2026-08-12",
-  "type": "patch",
-  "title": "Limpieza de workflows de andamiaje",
-  "category": "infraestructura",
   "description": "Se eliminan cuatro workflows pensados para un flujo de PRs humanos que este proyecto no tiene (release-drafter, pr-title, labeler, stale) y bundle-size pasa a ejecutarse solo bajo demanda. Se limpian las referencias cruzadas en ci.yml, changelog-check.yml y dependabot.yml.",
   "changes": [
     "Eliminados .github/workflows/release-drafter.yml y .github/release-drafter.yml: el versionado canónico vive en version.json + changelog JSON.",

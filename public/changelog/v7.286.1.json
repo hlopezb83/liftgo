@@ -1,13 +1,6 @@
 {
-  "version": "7.286.1",
-  "date": "2026-08-10",
-  "type": "patch",
-  "title": "Cierre R2: reprogramar recolecciones de reservas completadas",
-  "category": "fix",
   "description": "Se cerró el último pendiente de la auditoría R2: ahora sí se puede reprogramar una recolección que quedó pendiente cuando la reserva ya se marcó como completada.",
   "changes": [
-    { "scope": "deliveries", "summary": "Recolección pendiente reprogramable aunque la reserva esté completada" },
-    { "scope": "deliveries", "summary": "Las entregas nuevas siguen exigiendo reserva confirmada y equipo coincidente" },
-    { "scope": "data", "summary": "Backfills de pólizas y bitácora de estatus verificados sin filas pendientes" }
+    "Se cerró el último pendiente de la auditoría R2: ahora sí se puede reprogramar una recolección que quedó pendiente cuando la reserva ya se marcó como completada."
   ]
 }

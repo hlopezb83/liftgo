@@ -1,0 +1,6 @@
+{
+  "description": "Los errores de base de datos ya no muestran 'Error en el servidor': un catálogo traduce la restricción violada (RFC de cliente duplicado, movimiento bancario ya importado, lugar ocupado en el tablero de CRM…) y, si no la reconoce, cae al SQLSTATE (23505, 23503, 42501, 40001…). Los rechazos del SAT/FacturAPI se identifican por código (301 XML mal formado, 402 RFC no inscrito en el padrón, 304 certificado revocado, 307 CFDI duplicado) y el payload íntegro del PAC viaja al diálogo de detalles copiable para soporte administrativo. Además, los toasts se deduplican por contenido: un doble clic rápido ya no apila notificaciones idénticas.",
+  "changes": [
+    "Los errores de base de datos ya no muestran 'Error en el servidor': un catálogo traduce la restricción violada (RFC de cliente duplicado, movimiento bancario ya importado, lugar ocupado en el tablero de CRM…) y, si no la reconoce, cae al SQLSTATE (23505, 23503, 42501, 40001…). Los rechazos del SAT/FacturAPI se identifican por código (301 XML mal formado, 402 RFC no inscrito en el padrón, 304 certificado revocado, 307 CFDI duplicado) y el payload íntegro del PAC viaja al diálogo de detalles copiable para soporte administrativo. Además, los toasts se deduplican por contenido: un doble clic rápido ya no apila notificaciones idénticas."
+  ]
+}

@@ -1,10 +1,5 @@
 {
-  "version": "7.242.0",
-  "date": "2026-07-28",
-  "type": "minor",
-  "title": "Oleada 2 UI/UX · confianza en datos y confirmación al descartar",
-  "category": "fix",
-  "summary": "Errores de red ya no muestran '$0.00' engañoso en Panel, Flujo de caja, CRM y Calendario. FormDialog confirma antes de descartar cambios. Payment dialog envía con Enter. Overlays más oscuros. Guardas contra nombres nulos en Gantt.",
+  "description": "B-1 introduce QueryErrorState y lo cablea en Panel, Flujo de caja, CRM y Calendario para evitar que un fallo de red muestre $0.00 como si fueran datos válidos. B-2 agrega `isDirty` a FormDialog para pedir confirmación al descartar cambios (Esc/click fuera). B-6 envuelve RecordPaymentDialog en <form> para enviar con Enter. B-10 blindaje null en el sort del Gantt. B-12 sube contraste de overlays (Dialog/Sheet/AlertDialog) usando bg-foreground/30.",
   "changes": [
     "B-1 · QueryErrorState: nuevo componente estándar para queries de TanStack. Cableado en Panel, Flujo de caja, CRM y Calendario para que un fallo de red no aparente cifras válidas.",
     "B-2 · FormDialog: nueva prop `isDirty` que dispara ConfirmDialog al intentar cerrar (Esc, click fuera) si hay cambios sin guardar.",

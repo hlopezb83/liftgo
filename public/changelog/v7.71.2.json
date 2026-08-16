@@ -1,17 +1,8 @@
 {
-  "version": "7.71.2",
-  "date": "2026-07-14",
-  "type": "patch",
-  "title": "Cotizaciones — El selector de Periodo de Renta ya abre el modal",
-  "category": "bugfix",
+  "description": "Fix: en /quotes/new el botón de \"Seleccionar fechas\" del Periodo de Renta no abría el modal ni en mobile ni en desktop. El trigger del `DateRangePickerField` usaba un wrapper funcional (`RangeTriggerButton`) dentro de `<DialogTrigger asChild>`, que descartaba los props inyectados por Radix Slot (onClick, ref), impidiendo que el Dialog reaccionara al click. Se inlineó el `<Button>` en el DialogTrigger para restaurar el comportamiento.",
   "changes": [
-    {
-      "area": "Cotizaciones",
-      "items": [
-        "El botón \"Seleccionar fechas\" del Periodo de Renta en /quotes/new no abría el modal (ni mobile ni desktop).",
-        "Causa: el trigger envolvía el `<Button>` en un componente wrapper dentro de `<DialogTrigger asChild>`, y Radix Slot no podía inyectar `onClick` ni `ref` sobre él.",
-        "Fix: se inlineó el `<Button>` de shadcn directamente dentro del `DialogTrigger`, replicando el patrón ya usado en `DatePickerField`."
-      ]
-    }
+    "Cotizaciones: El botón \"Seleccionar fechas\" del Periodo de Renta en /quotes/new no abría el modal (ni mobile ni desktop).",
+    "Cotizaciones: Causa: el trigger envolvía el `<Button>` en un componente wrapper dentro de `<DialogTrigger asChild>`, y Radix Slot no podía inyectar `onClick` ni `ref` sobre él.",
+    "Cotizaciones: Fix: se inlineó el `<Button>` de shadcn directamente dentro del `DialogTrigger`, replicando el patrón ya usado en `DatePickerField`."
   ]
 }

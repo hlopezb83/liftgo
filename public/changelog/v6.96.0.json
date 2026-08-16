@@ -1,9 +1,5 @@
 {
-  "version": "6.96.0",
-  "date": "2026-06-24",
-  "type": "minor",
-  "title": "Migración a SDK oficial de Facturapi",
-  "category": "improvement",
+  "description": "Las Edge Functions de timbrado, cancelación y descarga ahora usan el SDK oficial npm:facturapi@4.18.0 con errores tipados y wrapper compartido.",
   "changes": [
     "Las Edge Functions de timbrado, cancelación y descarga (stamp-cfdi, stamp-credit-note, stamp-payment-complement, cancel-cfdi, cancel-credit-note, cancel-payment-complement, refresh-cancellation-status, download-cfdi) ahora usan el SDK oficial npm:facturapi@4.18.0 en lugar de fetch manual.",
     "Nuevo wrapper compartido supabase/functions/_shared/facturapi/client.ts con resolveFacturapiKey, createFacturapiClient, describeFacturapiError y helpers binaryToBytes/binaryToText.",

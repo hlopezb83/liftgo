@@ -1,0 +1,7 @@
+{
+  "description": "Cancelar en diálogos: mismo aviso de cambios sin guardar en toda la app",
+  "changes": [
+    "Los botones Cancelar de reservas, operadores, mecánicos, modelos de equipo y políticas de mantenimiento ahora piden confirmación si hay cambios sin guardar.",
+    "Esos mismos diálogos ya no se pueden cerrar a media operación mientras se guarda."
+  ]
+}

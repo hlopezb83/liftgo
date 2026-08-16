@@ -1,9 +1,5 @@
 {
-  "version": "7.316.0",
-  "date": "2026-08-14",
-  "type": "minor",
-  "title": "Sprint 10: accesibilidad y pulido visual",
-  "category": "correcciones",
+  "description": "Sprint 10: accesibilidad y pulido visual",
   "changes": [
     "Se agregaron esqueletos de carga para evitar saltos de contenido.",
     "Los semáforos de flujo de efectivo tienen descripción en español para lectores de pantalla.",

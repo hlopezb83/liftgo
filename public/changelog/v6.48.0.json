@@ -1,40 +1,6 @@
 {
-  "version": "6.48.0",
-  "date": "2026-06-12",
-  "type": "minor",
-  "title": "Refactor arquitectónico — pasos 1 a 3 del plan de auditoría",
-  "summary": "Migración de hooks a factories de query keys, schemas Zod movidos a lib/ y barrels públicos por feature.",
-  "details": {
-    "step1_query_keys": {
-      "scope": "src/features/{invoices,bookings,fleet,customers}/hooks/**",
-      "changes": [
-        "useCustomers, useInviteCustomer → customerKeys",
-        "useBookings, useBookingMutations, useBookingExtensions → bookingKeys",
-        "useForklifts, useForkliftMutations, useAssignForklift, useUnassignForklift → forkliftKeys",
-        "useInvoices, useNextInvoiceNumber, useInvoicesWithBalance, useStampCfdi, useCancelCfdi, useRefreshCancellationStatus, useGenerateRecurringInvoices → invoiceKeys",
-        "usePayments, usePaymentComplement → paymentKeys",
-        "useCreditNoteMutations, useCreditNotesQueries → creditNoteKeys",
-        "useCollectionNotes → collectionNoteKeys"
-      ],
-      "bug_fixed": "useInvoice(id) usaba ['invoices', id] que colisionaba con la lista ['invoices'] de useInvoices; ahora usa invoiceKeys.detail(id) = ['invoices','detail',id]."
-    },
-    "step2_zod_schemas": {
-      "moved_from_components_to_lib": [
-        "deliverySchema → src/features/deliveries/lib/deliveryFormSchema.ts",
-        "fiscalSchema + logoSchema → src/features/operations/lib/operationsSchemas.ts",
-        "supplierPaymentSchema → src/features/accounts-payable/lib/supplierPaymentSchema.ts",
-        "returnInspectionSchema → src/features/returns/lib/returnInspectionSchema.ts (hook re-exporta)"
-      ]
-    },
-    "step3_barrels": {
-      "new_files": [
-        "src/features/invoices/index.ts",
-        "src/features/bookings/index.ts",
-        "src/features/fleet/index.ts",
-        "src/features/customers/index.ts",
-        "src/features/crm/index.ts"
-      ],
-      "lint_rule": "no-restricted-imports cross-feature permanece en 'warn' hasta migración total de imports; barrels listos para consumirse."
-    }
-  }
+  "description": "Paso 1: migración de hooks a las factories de query keys creadas en v6.47.0. 18 hooks de invoices/bookings/fleet/customers ahora usan invoiceKeys/bookingKeys/forkliftKeys/customerKeys/paymentKeys/creditNoteKeys/collectionNoteKeys en lugar de literales sueltos, corrigiendo el bug latente donde useInvoice(id) usaba ['invoices', id] y colisionaba con la lista. Paso 2: 5 esquemas Zod sacados de componentes de UI a sus respectivos features/*/lib/*Schema.ts (DeliveryFormDialog, FiscalDataTab, CompanyLogoTab, RegisterSupplierPaymentDialog, useReturnInspectionDialog). Paso 3: barrels públicos src/features/{invoices,bookings,fleet,customers,crm}/index.ts para que consumidores cross-feature importen sólo la API pública. Sin cambios de UI ni de lógica.",
+  "changes": [
+    "Paso 1: migración de hooks a las factories de query keys creadas en v6.47.0. 18 hooks de invoices/bookings/fleet/customers ahora usan invoiceKeys/bookingKeys/forkliftKeys/customerKeys/paymentKeys/creditNoteKeys/collectionNoteKeys en lugar de literales sueltos, corrigiendo el bug latente donde useInvoice(id) usaba ['invoices', id] y colisionaba con la lista. Paso 2: 5 esquemas Zod sacados de componentes de UI a sus respectivos features/*/lib/*Schema.ts (DeliveryFormDialog, FiscalDataTab, CompanyLogoTab, RegisterSupplierPaymentDialog, useReturnInspectionDialog). Paso 3: barrels públicos src/features/{invoices,bookings,fleet,customers,crm}/index.ts para que consumidores cross-feature importen sólo la API pública. Sin cambios de UI ni de lógica."
+  ]
 }

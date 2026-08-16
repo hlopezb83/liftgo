@@ -1,9 +1,4 @@
 {
-  "version": "7.13.0",
-  "date": "2026-07-11",
-  "type": "minor",
-  "title": "React 19: useDeferredValue en listas + useOptimistic en feedback",
-  "category": "improvement",
   "description": "Adopción quirúrgica de dos APIs concurrentes de React 19 en los puntos con mayor impacto perceptible de fluidez.",
   "changes": [
     "useListFilters (hook central de las 7 pantallas de lista: Facturas, Cotizaciones, Reservas, Contratos, Mantenimiento, Daños, Clientes) ahora envuelve el término de búsqueda y el filtro de estado en useDeferredValue. Escribir en el input responde inmediato mientras el filter() sobre miles de items ocurre en una render de baja prioridad — sin bloquear el teclado.",

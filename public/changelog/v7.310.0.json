@@ -1,9 +1,5 @@
 {
-  "version": "7.310.0",
-  "date": "2026-08-14",
-  "type": "minor",
-  "title": "Sprint 4: máquinas de estado — contratos, facturas, cuentas por pagar y unidades",
-  "category": "correcciones",
+  "description": "Sprint 4: máquinas de estado — contratos, facturas, cuentas por pagar y unidades",
   "changes": [
     "Un contrato completado ahora es final: no se puede regresar a borrador, enviado, firmado o activo, y sus montos quedan congelados.",
     "Una factura en borrador ya no puede aparecer como vencida; primero debe enviarse.",

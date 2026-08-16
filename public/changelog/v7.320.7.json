@@ -1,0 +1,6 @@
+{
+  "description": "Al convertir una cotización con tasa 0% (cliente exento) a factura, el sistema forzaba 16% de IVA porque usaba Number(tax_rate) || 16. Ahora se preserva el 0 explícito y solo se aplica el default 16 cuando la cotización no trae tasa. Se añadieron pruebas de regresión para buildFromQuote.",
+  "changes": [
+    "Al convertir una cotización con tasa 0% (cliente exento) a factura, el sistema forzaba 16% de IVA porque usaba Number(tax_rate) || 16. Ahora se preserva el 0 explícito y solo se aplica el default 16 cuando la cotización no trae tasa. Se añadieron pruebas de regresión para buildFromQuote."
+  ]
+}

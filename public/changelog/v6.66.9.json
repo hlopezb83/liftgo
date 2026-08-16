@@ -1,33 +1,6 @@
 {
-  "version": "6.66.9",
-  "date": "2026-06-13",
-  "type": "minor",
-  "title": "Auditoría de tests — Lote 3 (ciclo de vida + KPIs)",
-  "category": "testing",
-  "sections": [
-    {
-      "heading": "Vitest — KPIs y ciclo de vida (17 tests nuevos)",
-      "items": [
-        "useMrrDetail: invoca get_mrr_detail, redondea total_mrr a 2 decimales, normaliza respuesta null a {items:[], total_mrr:0}, propaga errores del RPC.",
-        "useAccountsPayableKpis: clasifica vencido/por vencer (7 días), convierte USD→MXN con exchange_rate al agregar 'por aprobar', ignora cancelled en todos los buckets, suma pagadoMesActual solo del mes en curso.",
-        "useAgingReport: 5 buckets (current, 1-30, 31-60, 61-90, 90+), agrega múltiples facturas del mismo proveedor, excluye cancelled o balance≤0, ordena descendente por total, mapea null→'sin-proveedor'.",
-        "rentalCalculation casos de borde de calendario: febrero bisiesto 2024 (29 días = 1 mes), febrero no bisiesto 2025 (28 días = 1 mes), cruce de año bisiesto."
-      ]
-    },
-    {
-      "heading": "Deno Edge Functions — Smoke tests (3 funciones)",
-      "items": [
-        "stamp-payment-complement (REP CFDI 4.0): CORS preflight + rechazo sin Authorization.",
-        "cancel-credit-note: CORS preflight + rechazo sin Authorization.",
-        "generate-recurring-maintenance: CORS preflight + rechazo sin Authorization."
-      ]
-    },
-    {
-      "heading": "Resultados",
-      "items": [
-        "Suite Vitest: 604/604 tests verde (99 archivos).",
-        "Cobertura Edge Functions: 7 con test real, 9 smoke-only, 1 sin test (mejora desde 4/6/7)."
-      ]
-    }
+  "description": "17 tests Vitest nuevos: useMrrDetail (source of truth del KPI MRR, normaliza respuesta nula y redondea), useAccountsPayableKpis (buckets vencido/por vencer/USD→MXN/cancelled), useAgingReport (5 buckets 0-30-60-90-90+, agregación por proveedor, orden), rentalCalculation (febrero bisiesto 2024 vs 2025, cruce de año). Smoke tests Deno para 3 Edge Functions previamente sin cobertura: stamp-payment-complement (REP), cancel-credit-note y generate-recurring-maintenance. Suite total: 604 tests verde.",
+  "changes": [
+    "17 tests Vitest nuevos: useMrrDetail (source of truth del KPI MRR, normaliza respuesta nula y redondea), useAccountsPayableKpis (buckets vencido/por vencer/USD→MXN/cancelled), useAgingReport (5 buckets 0-30-60-90-90+, agregación por proveedor, orden), rentalCalculation (febrero bisiesto 2024 vs 2025, cruce de año). Smoke tests Deno para 3 Edge Functions previamente sin cobertura: stamp-payment-complement (REP), cancel-credit-note y generate-recurring-maintenance. Suite total: 604 tests verde."
   ]
 }

@@ -1,15 +1,6 @@
 {
-  "version": "7.273.2",
-  "date": "2026-08-01",
-  "type": "patch",
-  "title": "Auditoría Ronda 9 · Cierre: pruebas de todo lo corregido",
-  "category": "improvement",
-  "highlights": [
-    "Prueba de extremo a extremo del bloqueante P0: se recorre lista → detalle → editar de una cotización y se verifica que los datos precargados siguen ahí 1.5 segundos después (la ventana en la que antes se borraban solos).",
-    "Nuevo guion de verificación de base de datos (r9_smoke.sql): confirma que 'hoy' se calcula en hora de Monterrey en todas las funciones y vistas, que no quedan cotizaciones rechazadas sin fecha y que no hay facturas de proveedor pagadas en estado 'Por aprobar'.",
-    "40 pruebas nuevas que cubren los 7 detalles P2 y los bloqueantes sin cobertura: sello de fecha de rechazo, columna de aprobación de CxP, detalle de cotización borrada, validación de sobrepago en el portal, etiquetas de la bitácora, nombre del montacargas en entregas y estado derivado del detalle de unidad.",
-    "El historial de prospectos ahora tiene prueba de permisos: Ventas y Admin lo ven; un rol sin acceso recibe el mensaje de permiso y no un engañoso 'sin cambios'.",
-    "La bitácora distingue al 'Sistema' (eventos automáticos sin usuario) de un usuario no identificado; antes ambos se mostraban igual.",
-    "El filtro de rango de fechas suma una prueba de extremo a extremo que confirma que se aplica solo y que ya no existe el botón 'Aplicar'."
+  "description": "Se agregó la cobertura de pruebas que faltaba para cerrar la Ronda 9: una prueba de extremo a extremo del bloqueante de precarga de cotizaciones, un guion de verificación de base de datos para la hora de Monterrey y la trazabilidad del rechazo, y 40 pruebas nuevas sobre los 7 detalles P2. Además, la bitácora ya distingue los eventos automáticos del 'Sistema' de un usuario no identificado.",
+  "changes": [
+    "Se agregó la cobertura de pruebas que faltaba para cerrar la Ronda 9: una prueba de extremo a extremo del bloqueante de precarga de cotizaciones, un guion de verificación de base de datos para la hora de Monterrey y la trazabilidad del rechazo, y 40 pruebas nuevas sobre los 7 detalles P2. Además, la bitácora ya distingue los eventos automáticos del 'Sistema' de un usuario no identificado."
   ]
 }

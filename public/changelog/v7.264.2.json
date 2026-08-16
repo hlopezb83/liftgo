@@ -1,24 +1,6 @@
 {
-  "version": "7.264.2",
-  "date": "2026-07-29",
-  "type": "patch",
-  "title": "El KPI de renta promedio ahora se calcula por unidad rentada",
-  "category": "improvement",
+  "description": "La tarjeta 'ARPU' de la página de MRR dividía el ingreso mensual entre clientes únicos, lo que inflaba el promedio cuando un cliente concentra varios montacargas. Ahora se llama 'Renta prom. / unidad', divide el MRR entre las unidades rentadas activas y muestra la fórmula debajo del monto.",
   "changes": [
-    {
-      "type": "improvement",
-      "title": "ARPU reemplazado por 'Renta prom. / unidad'",
-      "description": "Antes el KPI dividía el MRR entre clientes únicos, lo que inflaba el número cuando un solo cliente concentra varios montacargas (por ejemplo, 7 unidades de un mismo cliente). Ahora se divide el MRR entre las unidades rentadas activas."
-    },
-    {
-      "type": "improvement",
-      "title": "Fórmula visible en la tarjeta",
-      "description": "La tarjeta muestra debajo del monto la leyenda 'MRR ÷ N unidades rentadas' para que quede claro de dónde sale el promedio."
-    },
-    {
-      "type": "improvement",
-      "title": "Cálculo centralizado y probado",
-      "description": "Se extrajo averageRentPerUnit a src/features/dashboard/lib/mrrKpis.ts con pruebas unitarias (0 unidades, conteo negativo y división normal). El total de MRR y la RPC get_mrr_detail no cambian."
-    }
+    "La tarjeta 'ARPU' de la página de MRR dividía el ingreso mensual entre clientes únicos, lo que inflaba el promedio cuando un cliente concentra varios montacargas. Ahora se llama 'Renta prom. / unidad', divide el MRR entre las unidades rentadas activas y muestra la fórmula debajo del monto."
   ]
 }

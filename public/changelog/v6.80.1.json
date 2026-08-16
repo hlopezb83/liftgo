@@ -1,9 +1,4 @@
 {
-  "version": "6.80.1",
-  "date": "2026-06-23",
-  "type": "patch",
-  "title": "Facturación recurrente: autorrecuperación de reservas marcadas sin factura",
-  "category": "fix",
   "description": "Las reservas cuyo último período facturado quedó marcado pero sin factura vinculada se vuelven a considerar pendientes automáticamente. Además, si la vinculación falla a mitad del proceso, la factura recién creada se elimina para evitar facturas huérfanas.",
   "changes": [
     "Sanidad de last_billed_date: si no existe invoice_bookings para ese período, la reserva se trata como nunca facturada.",

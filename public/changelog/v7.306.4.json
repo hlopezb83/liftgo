@@ -1,9 +1,4 @@
 {
-  "version": "7.306.4",
-  "date": "2026-08-12",
-  "type": "patch",
-  "title": "Ajuste de frecuencia en triggers de workflows",
-  "category": "infraestructura",
   "description": "Se ajustan los triggers de tres workflows para reducir ruido y minutos de CI sin perder cobertura de monitoreo.",
   "changes": [
     "codeql.yml: se elimina el trigger pull_request; el análisis SAST sigue corriendo en push a main, en cron semanal y bajo demanda.",

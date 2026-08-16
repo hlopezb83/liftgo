@@ -1,9 +1,4 @@
 {
-  "version": "7.260.5",
-  "date": "2026-07-29",
-  "type": "patch",
-  "title": "Fix de lint en test de asignación de roles",
-  "category": "fix",
   "description": "Se corrige una advertencia de deno lint en el test del helper assignRoleToUser: la función mock de upsert era async sin usar await. Se reemplazó por una función síncrona que retorna Promise.resolve.",
   "changes": [
     "supabase/functions/invite-user/assignRole_test.ts: removido async innecesario del mock upsert y retorno envuelto en Promise.resolve",

@@ -1,9 +1,5 @@
 {
-  "version": "7.309.0",
-  "date": "2026-08-14",
-  "type": "minor",
-  "title": "Sprint 3: triggers de dinero — notas de crédito, saldos y hora de Monterrey",
-  "category": "correcciones",
+  "description": "Sprint 3: triggers de dinero — notas de crédito, saldos y hora de Monterrey",
   "changes": [
     "El saldo de una factura ahora descuenta las notas de crédito timbradas: una factura cubierta por completo con NC se marca como pagada aunque no tenga pagos, y ya no contamina cartera vencida ni DSO.",
     "Nuevo trigger en notas de crédito: al timbrar, corregir o eliminar una NC, la factura ligada se recalcula al instante.",

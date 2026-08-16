@@ -1,10 +1,5 @@
 {
-  "version": "7.260.0",
-  "date": "2026-07-29",
-  "type": "minor",
-  "title": "Auditoría ronda 2: blindaje de datos y reglas de negocio en la base",
-  "category": "improvement",
-  "summary": "Cierre de la segunda ronda de auditoría: la base de datos ahora rechaza por sí sola los movimientos que rompían la contabilidad o la trazabilidad, aunque se intenten fuera de la aplicación.",
+  "description": "La base de datos ahora rechaza por sí sola los movimientos que rompían contabilidad o trazabilidad: estados de equipo controlados, notas de crédito y partidas que deben cuadrar, pagos sin aprobación bloqueados, daños con cargo obligatorio, entregas históricas permitidas y protección del último administrador activo.",
   "changes": [
     "Montacargas: el cambio de estado pasa por un flujo oficial que exige razón para mantenimiento/venta/baja e impide marcar rentado sin renta activa o liberar un equipo con renta abierta.",
     "Notas de crédito: montos siempre positivos y cuadre obligatorio entre importe, impuesto y total.",

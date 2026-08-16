@@ -1,11 +1,6 @@
 {
-  "version": "7.273.3",
-  "date": "2026-08-01",
-  "type": "patch",
-  "title": "Estabilidad: el selector de rango de fechas ya no \"brinca\"",
-  "category": "fix",
-  "highlights": [
-    "El diálogo del rango de fechas ahora tiene ancho fijo: al elegir la fecha inicial la etiqueta cambiaba de largo, el diálogo se re-centraba y los días se desplazaban bajo el cursor.",
-    "La prueba automatizada del selector de rango deja de fallar por 'elemento inestable / desprendido' al hacer clic en el segundo día."
+  "description": "El diálogo del selector de rango cambiaba de ancho al elegir la fecha inicial, lo que hacía que se re-centrara y los días se movieran justo al hacer clic. Ahora el ancho es fijo y la prueba automatizada del rango deja de fallar de forma intermitente.",
+  "changes": [
+    "El diálogo del selector de rango cambiaba de ancho al elegir la fecha inicial, lo que hacía que se re-centrara y los días se movieran justo al hacer clic. Ahora el ancho es fijo y la prueba automatizada del rango deja de fallar de forma intermitente."
   ]
 }

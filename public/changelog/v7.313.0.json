@@ -1,9 +1,5 @@
 {
-  "version": "7.313.0",
-  "date": "2026-08-14",
-  "type": "minor",
-  "title": "Sprint 7: consistencia de formularios y kanban de CRM",
-  "category": "correcciones",
+  "description": "Sprint 7: consistencia de formularios y kanban de CRM",
   "changes": [
     "Todos los diálogos usan el mismo botón de Cancelar, con el mismo comportamiento (~26 pantallas).",
     "El diálogo de reportar daño ya no duplica su contenedor, evitando saltos visuales.",

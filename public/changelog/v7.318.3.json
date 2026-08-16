@@ -1,0 +1,6 @@
+{
+  "description": "Etiquetas de IA en español en el detalle de feedback",
+  "changes": [
+    "El chip y el bloque de razonamiento del clasificador ahora dicen \"IA\" en vez de \"AI\"."
+  ]
+}

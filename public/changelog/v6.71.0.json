@@ -1,41 +1,6 @@
 {
-  "version": "6.71.0",
-  "date": "2026-06-14",
-  "type": "minor",
-  "title": "Refactor arquitectónico: Fase A del audit",
-  "category": "refactor",
+  "description": "Ejecutados los 6 items accionables del audit v6.70.x sin tocar el código productivo de facturación (CFDI) ni la capa shadcn upstream. (1) Movidos tests de flujo a sus features: bookingFlow→features/bookings/__tests__/, invoiceFlow+paymentFlow→features/invoices/__tests__/, lineItems→lib/domain/__tests__/. (2) Agregadas constantes tipadas BOOKING_STATUS/FORKLIFT_STATUS + tipos BookingStatus/ForkliftStatus en lib/constants.ts; eliminados literales 'confirmed'/'rented'/'available' en 4 archivos del calendario (CalendarStatCards, EquipmentListView, GanttChart, GanttRow). (3) Split CRMClosedPage (210→74 LOC) en hook useClosedProspects + componente ClosedTable + factory closedColumns.tsx; página queda como container puro. (4) Split useExportPaymentsForm (120→78 LOC) extrayendo usePaymentSelection (selección múltiple + totales puros) del orquestador. (5) Renombrado Fleet.tsx→FleetPage.tsx alineado con convención §22 de naming; migrado a useResourceList eliminando filtrado manual duplicado. (6) routes-config.tsx actualizado al rename. Knip ya estaba activo en CI desde v6.70.0; no requiere acción extra. Items omitidos con justificación: sidebar.tsx (shadcn upstream, excepción §22.2), CFDI Edge Functions (requiere E2E dedicado antes), capa data-access (necesita RFC), routes-config distribuido (cosmético sin beneficio), reorg src/hooks-lib (cosmético, rompe imports masivos), Customer/IVA 'duplicado' (falso positivo del audit). 707/707 tests + typecheck + knip en verde.",
   "changes": [
-    {
-      "type": "refactor",
-      "description": "Tests de flujo co-localizados con sus features: src/test/bookingFlow.test.ts → src/features/bookings/__tests__/, invoiceFlow.test.ts + paymentFlow.test.ts → src/features/invoices/__tests__/, lineItems.test.ts → src/lib/domain/__tests__/. Mejora discovery y mantenibilidad."
-    },
-    {
-      "type": "refactor",
-      "description": "Nuevas constantes tipadas en lib/constants.ts: BOOKING_STATUS, FORKLIFT_STATUS (objetos sello) + tipos BookingStatus, ForkliftStatus derivados. Type-safe y permiten encontrar usos por símbolo."
-    },
-    {
-      "type": "refactor",
-      "description": "Calendario sin literales de status: CalendarStatCards, EquipmentListView, GanttChart, GanttRow ahora consumen BOOKING_STATUS y FORKLIFT_STATUS en vez de strings 'confirmed'/'rented'/'available'. Renombrado STATUS_LABELS local en GanttRow a BOOKING_STATUS_LABELS para evitar colisión semántica."
-    },
-    {
-      "type": "refactor",
-      "description": "CRMClosedPage (210→74 LOC) split en 3 archivos: hook useClosedProspects (estado + filtros + reapertura), componente ClosedTable (UI pura de tabla) y factory closedColumns.tsx (definición de columnas por kind). Página queda como container declarativo."
-    },
-    {
-      "type": "refactor",
-      "description": "useExportPaymentsForm (120→78 LOC) split: usePaymentSelection extrae el estado puro de selección múltiple + cálculo de totales (sin side effects); el orquestador conserva solo la composición + handleExport con notificaciones."
-    },
-    {
-      "type": "refactor",
-      "description": "Renombrado src/features/fleet/pages/Fleet.tsx → FleetPage.tsx siguiendo la convención §22.2 (sufijo Page obligatorio para páginas). routes-config.tsx actualizado."
-    },
-    {
-      "type": "refactor",
-      "description": "FleetPage migrado a useResourceList: eliminado el filtrado manual con useSearchParams (~30 LOC) que reimplementaba useListFilters. Ahora consume el patrón estándar de listas; mantiene persistencia de filtros en URL y sessionStorage."
-    },
-    {
-      "type": "docs",
-      "description": "6 items del audit omitidos con justificación documentada: sidebar.tsx (excepción shadcn upstream §22.2), refactor CFDI Edge Functions (requiere E2E dedicado), capa data-access (RFC pendiente), routes-config distribuido (cosmético), reorg hooks/lib (rompe imports masivos), Customer/IVA 'duplicado' (falso positivo del audit)."
-    }
+    "Ejecutados los 6 items accionables del audit v6.70.x sin tocar el código productivo de facturación (CFDI) ni la capa shadcn upstream. (1) Movidos tests de flujo a sus features: bookingFlow→features/bookings/__tests__/, invoiceFlow+paymentFlow→features/invoices/__tests__/, lineItems→lib/domain/__tests__/. (2) Agregadas constantes tipadas BOOKING_STATUS/FORKLIFT_STATUS + tipos BookingStatus/ForkliftStatus en lib/constants.ts; eliminados literales 'confirmed'/'rented'/'available' en 4 archivos del calendario (CalendarStatCards, EquipmentListView, GanttChart, GanttRow). (3) Split CRMClosedPage (210→74 LOC) en hook useClosedProspects + componente ClosedTable + factory closedColumns.tsx; página queda como container puro. (4) Split useExportPaymentsForm (120→78 LOC) extrayendo usePaymentSelection (selección múltiple + totales puros) del orquestador. (5) Renombrado Fleet.tsx→FleetPage.tsx alineado con convención §22 de naming; migrado a useResourceList eliminando filtrado manual duplicado. (6) routes-config.tsx actualizado al rename. Knip ya estaba activo en CI desde v6.70.0; no requiere acción extra. Items omitidos con justificación: sidebar.tsx (shadcn upstream, excepción §22.2), CFDI Edge Functions (requiere E2E dedicado antes), capa data-access (necesita RFC), routes-config distribuido (cosmético sin beneficio), reorg src/hooks-lib (cosmético, rompe imports masivos), Customer/IVA 'duplicado' (falso positivo del audit). 707/707 tests + typecheck + knip en verde."
   ]
 }

@@ -1,0 +1,9 @@
+{
+  "description": "Guardia de tipo de cambio para moneda extranjera en el timbrado del complemento de pago (REP)",
+  "changes": [
+    "Seguridad CFDI: la edge function stamp-payment-complement perdió en el refactor v7.308.0 el guardia que validaba el tipo de cambio para pagos en moneda extranjera. La columna payments.exchange_rate es NUMERIC DEFAULT 1 sin check constraint, así que un pago USD creado fuera del formulario (seed, inserción directa, migración) con TC=1 pasaría silenciosamente y se timbraría con tipoCambio=1, produciendo un CFDI fiscalmente incorrecto. La edge function es la última defensa antes del PAC y ahora rechaza con 422.",
+    "Refactor: la decisión se extrajo a la función pura validatePaymentExchange en decisions.ts (siguiendo el patrón de computeRepExchange) para permitir test de regresión sin levantar la BD. index.ts la invoca y libera el claim antes del early-return.",
+    "Pruebas: 4 casos nuevos en decisions_test.ts (MXN siempre ok, USD sin TC → 422, USD con TC inválido → 422, USD con TC válido → ok). Suite completa 23/23 verdes.",
+    "Consistencia: se verificó que stamp-cfdi/handler.ts ya aplica el guardia equivalente para facturas en moneda extranjera; no se requirió cambio adicional."
+  ]
+}

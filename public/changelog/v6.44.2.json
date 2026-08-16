@@ -1,9 +1,5 @@
 {
-  "version": "6.44.2",
-  "date": "2026-06-12",
-  "type": "patch",
-  "title": "TypeScript: strict completo activado (Lote B.2 + B.3)",
-  "category": "tooling",
+  "description": "TypeScript: strict completo activado (Lote B.2 + B.3)",
   "changes": [
     "Activado `strict: true` en `tsconfig.app.json` (incluye strictNullChecks, strictFunctionTypes, etc.)",
     "Corregidos 25 errores de tipos en 19 archivos al límite null/undefined entre componentes",

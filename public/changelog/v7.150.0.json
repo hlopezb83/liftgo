@@ -1,9 +1,5 @@
 {
-  "version": "7.150.0",
-  "date": "2026-07-21",
-  "type": "minor",
-  "title": "Bloque 6 (R4) — Endurecimiento de permisos, REP claim leak y limpieza",
-  "category": "security",
+  "description": "Bloque 6 (R4) — Endurecimiento de permisos, REP claim leak y limpieza",
   "changes": [
     "6.1 billing_secrets write-only: REVOKE ALL a anon, REVOKE SELECT a authenticated y GRANT SELECT column-level sólo a (id, created_at, updated_at). Las llaves de Facturapi (facturapi_test_key / facturapi_live_key) dejan de ser legibles desde el cliente aun para admins; sólo Edge Functions con service_role las leen. useBillingSecrets ahora hace .select('id, updated_at') para no romper el returning tras el revoke.",
     "6.2 customer_payment_intents: REVOKE ALL a anon (defensa en profundidad). RLS y grants a authenticated/service_role intactos.",

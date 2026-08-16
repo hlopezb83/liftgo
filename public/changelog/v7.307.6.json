@@ -1,9 +1,5 @@
 {
-  "version": "7.307.6",
-  "date": "2026-08-13",
-  "type": "patch",
-  "title": "CI: partidas obligatorias en el fixture de pagos del portal",
-  "category": "infraestructura",
+  "description": "CI: partidas obligatorias en el fixture de pagos del portal",
   "changes": [
     "`payments_portal`: el trigger `validate_invoice_line_items_signs` exige al menos una partida en facturas fuera de borrador; el fixture ahora incluye `line_items` con importe cuadrado al subtotal.",
     "El paso de smoke SQL corre con `if: always()` para que genere su reporte JUnit aunque falle la suite RLS previa.",

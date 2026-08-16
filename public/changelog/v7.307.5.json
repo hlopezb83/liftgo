@@ -1,9 +1,5 @@
 {
-  "version": "7.307.5",
-  "date": "2026-08-13",
-  "type": "patch",
-  "title": "CI: últimas 5 suites RLS en verde y fix real de lectura de archivos del portal",
-  "category": "infraestructura",
+  "description": "CI: últimas 5 suites RLS en verde y fix real de lectura de archivos del portal",
   "changes": [
     "`billing_secrets`: el fixture usaba columnas inexistentes (`key`/`value`); ahora usa `facturapi_live_key`.",
     "`maintenance_parts`: el alta del mecánico chocaba con el índice único log+refacción; se agregó una segunda refacción al fixture.",

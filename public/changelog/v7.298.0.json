@@ -1,33 +1,10 @@
 {
-  "version": "7.298.0",
-  "date": "2026-08-11",
-  "type": "minor",
-  "title": "CI: se elimina la infraestructura de testing visual E2E (peso muerto)",
-  "sections": [
-    {
-      "heading": "Diagnóstico",
-      "items": [
-        "`.github/workflows/e2e-visual-baselines.yml` nunca se ejecutó: era `workflow_dispatch` puro y jamás se dispararon los baselines.",
-        "`visual-desktop.spec.ts` y `visual-mobile.spec.ts` estaban gateados con `E2E_VISUAL !== '1'` y `ci.yml` fijaba `E2E_VISUAL: '0'`, así que sumaban ~15 tests skipped en cada shard de Playwright sin aportar señal.",
-        "Las rutas fotografiadas (`/mrr`, `/income-statement`, `/invoices`) muestran datos vivos; incluso con máscaras y `maxDiffPixelRatio` de 0.02 los snapshots serían inestables entre corridas."
-      ]
-    },
-    {
-      "heading": "Eliminado",
-      "items": [
-        "`.github/workflows/e2e-visual-baselines.yml`.",
-        "`tests/e2e/visual-desktop.spec.ts` y `tests/e2e/visual-mobile.spec.ts`.",
-        "El test `snapshot visual del workspace` de `tests/e2e/bank-reconciliation.spec.ts` (último consumidor del gate).",
-        "Script `test:e2e:update-snapshots` de package.json y la opción `updateSnapshots` / `E2E_UPDATE_SNAPSHOTS` de playwright.config.ts.",
-        "La variable `E2E_VISUAL: '0'` del job e2e de ci.yml y la sección de snapshots visuales de tests/e2e/README.md."
-      ]
-    },
-    {
-      "heading": "Sin cambios",
-      "items": [
-        "El resto de la suite E2E, el sharding, los reportes JUnit/HTML y los gates de CI quedan idénticos.",
-        "Si en el futuro se quiere regresión visual, el camino correcto es snapshots de componentes aislados con data fija, no capturas de páginas con datos vivos."
-      ]
-    }
+  "description": "CI: se elimina la infraestructura de testing visual E2E (peso muerto)",
+  "changes": [
+    "e2e-visual-baselines.yml nunca corrio (solo workflow_dispatch) y los specs visuales estaban gateados con E2E_VISUAL='0' en ci.yml: ~15 tests skipped por shard sin aportar senal.",
+    "Eliminados el workflow, visual-desktop.spec.ts, visual-mobile.spec.ts y el test 'snapshot visual del workspace' de bank-reconciliation.spec.ts.",
+    "Eliminados el script test:e2e:update-snapshots, la opcion updateSnapshots/E2E_UPDATE_SNAPSHOTS de playwright.config.ts y la variable E2E_VISUAL de ci.yml.",
+    "tests/e2e/README.md actualizado: fuera la seccion de snapshots visuales y las filas de la tabla de cobertura.",
+    "Las rutas fotografiadas mostraban datos vivos (/mrr, /income-statement, /invoices); la regresion visual correcta seria por componente aislado con data fija."
   ]
 }

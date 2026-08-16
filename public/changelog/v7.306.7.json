@@ -1,10 +1,6 @@
 {
-  "version": "7.306.7",
-  "date": "2026-08-12",
-  "type": "patch",
-  "title": "CI: eliminado el paso `supabase db lint`",
-  "category": "infraestructura",
-  "highlights": [
+  "description": "CI: eliminado el paso `supabase db lint`",
+  "changes": [
     "El paso fallaba siempre con \"Cannot find project ref\": `supabase db lint` no es un lint de archivos, necesita una base de datos (linked o local).",
     "Se removió también el `Setup Supabase CLI` que solo servía para ese paso; el job conserva los guards de GRANT/RLS/POLICY/search_path sobre las migraciones nuevas.",
     "La validación de migraciones contra una DB limpia sigue cubierta por rls-db-tests.yml (supabase start + db reset + suites SQL)."

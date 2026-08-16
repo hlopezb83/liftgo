@@ -1,36 +1,6 @@
 {
-  "version": "7.285.0",
-  "date": "2026-08-10",
-  "title": "Cierre del paquete de 66 correcciones (validación y remanentes)",
-  "sections": [
-    {
-      "heading": "Reservas y entregas",
-      "items": [
-        "Recolección post-entrega con fecha editable (nunca en el pasado).",
-        "Corrección del off-by-one en el último día de renta."
-      ]
-    },
-    {
-      "heading": "Flota y mantenimiento",
-      "items": [
-        "Alta de montacargas obligatoriamente en estado disponible.",
-        "Cargo por daño no duplicable desde facturación.",
-        "Evidencias de daños archivados eliminadas en cascada.",
-        "Pólizas omitidas por estado ahora se reportan.",
-        "Log de estado inicial con manejo de error."
-      ]
-    },
-    {
-      "heading": "Finanzas y CFDI",
-      "items": [
-        "Claves SAT por línea en el timbrado.",
-        "REP con TrasladoDR IVA tasa 0 cuando la factura gravó 0%.",
-        "Tasa de IVA por cliente en facturación recurrente.",
-        "Notas de crédito replican descuentos de la factura origen.",
-        "Consulta de cancelación extendida a notas de crédito.",
-        "Flujo de efectivo excluye documentos en moneda extranjera sin tipo de cambio.",
-        "Reintento de timbrado con búsqueda previa por external_id."
-      ]
-    }
+  "description": "Se validó el paquete completo de 66 correcciones contra el código actual y se implementaron los remanentes: recolección post-entrega con fecha editable, off-by-one del último día de renta, guard de alta de montacargas, cascada de evidencias de daños, pólizas omitidas reportadas, claves SAT por línea en timbrado, REP con IVA tasa 0, IVA por cliente en facturación recurrente, NC con descuentos, cancelaciones de notas de crédito, cash-flow sin tipo de cambio y reintento de timbrado con lookup previo.",
+  "changes": [
+    "Se validó el paquete completo de 66 correcciones contra el código actual y se implementaron los remanentes: recolección post-entrega con fecha editable, off-by-one del último día de renta, guard de alta de montacargas, cascada de evidencias de daños, pólizas omitidas reportadas, claves SAT por línea en timbrado, REP con IVA tasa 0, IVA por cliente en facturación recurrente, NC con descuentos, cancelaciones de notas de crédito, cash-flow sin tipo de cambio y reintento de timbrado con lookup previo."
   ]
 }

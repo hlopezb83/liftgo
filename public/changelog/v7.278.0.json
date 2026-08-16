@@ -1,19 +1,6 @@
 {
-  "version": "7.278.0",
-  "date": "2026-08-03",
-  "type": "minor",
-  "title": "Auditoría R13: cotizaciones legacy, cierre de OT y ajustes de uso",
-  "category": "fix",
+  "description": "Auditoría R13: cotizaciones legacy, cierre de OT y ajustes de uso",
   "changes": [
-    { "area": "Cotizaciones", "detail": "Las partidas heredadas conservan su importe original aunque no tengan modelo del catálogo: ya no se borran ni muestran total en $0." },
-    { "area": "Mantenimiento", "detail": "El resumen de cierre de orden de trabajo ya no duplica los costos: refacciones y mano de obra se restan del total y el resto se muestra como 'Otros'." },
-    { "area": "Mantenimiento", "detail": "El tipo de servicio se muestra con su etiqueta en español en el tablero, el detalle y el cierre." },
-    { "area": "Mantenimiento", "detail": "Al iniciar una reparación desde un daño se registra automáticamente quién la atiende." },
-    { "area": "Cotizaciones", "detail": "La fecha 'Válida hasta' se actualiza sola cuando el periodo de renta termina después, y ya no muestra un día distinto al guardado." },
-    { "area": "Cotizaciones", "detail": "En cotizaciones de venta se aclara que el precio unitario se captura a mano porque el catálogo sólo guarda tarifas de renta." },
-    { "area": "Reservas", "detail": "El alta directa de reservas queda restringida a administradores, igual que el botón: antes el formulario se abría y fallaba al guardar." },
-    { "area": "Navegación", "detail": "Nuevos atajos /conciliacion y /bank-reconciliation hacia Conciliación bancaria." },
-    { "area": "Facturas", "detail": "El historial ya no muestra renglones de cambios vacíos ('— → —')." },
-    { "area": "Interfaz", "detail": "El anillo de foco dorado tiene mayor contraste en tema claro y oscuro, y las listas móviles dejan espacio para el botón flotante." }
+    "Auditoría R13: cotizaciones legacy, cierre de OT y ajustes de uso"
   ]
 }

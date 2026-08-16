@@ -1,9 +1,5 @@
 {
-  "version": "7.201.0",
-  "date": "2026-07-23",
-  "type": "patch",
-  "title": "Pronóstico de Cobranza: se restauran facturas vencidas",
-  "category": "bugfix",
+  "description": "Pronóstico de Cobranza: se restauran facturas vencidas",
   "changes": [
     "get_dashboard_stats ahora expone la lista overdue_invoices (id, invoice_number, total, balance, balance_mxn, moneda, tipo_cambio, due_date) tomada de v_invoices_with_balance para facturas con status IN ('sent','partial','overdue'), cancellation_status distinto a 'accepted', due_date pasado y balance_mxn > 0.",
     "Corrige la tarjeta 'Pronóstico de Cobranza' del dashboard, que mostraba $0 en 'Vencido hoy' y en las próximas ventanas de 7/30 días porque el RPC nunca devolvía la lista de vencidas.",

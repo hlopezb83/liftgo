@@ -1,0 +1,7 @@
+{
+  "description": "Blindaje de pruebas RLS y memoria de seguridad para la matriz de roles restringida",
+  "changes": [
+    "Pruebas RLS: se actualizaron las suites status_logs.sql, collection_notes.sql y quotes_backoffice.sql para reflejar y blindar el nuevo contrato (v7.320.4): dispatchers ahora son solo lectura en quotes/collection_notes y el mecánico es solo lectura en status_logs (escribe vía la RPC change_forklift_status). Se corrigieron comentarios obsoletos y se añadieron aserciones de que estos roles ya no pueden insertar/actualizar/borrar.",
+    "Memoria de seguridad: se registró en el security-memory que la restricción read-only de dispatchers/mecánicos y el FORCE RLS en las 4 tablas son intencionales, para que futuros escaneos no los marquen como 'falta de policy de escritura'."
+  ]
+}

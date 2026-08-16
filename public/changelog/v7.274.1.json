@@ -1,21 +1,6 @@
 {
-  "version": "7.274.1",
-  "date": "2026-08-01",
-  "type": "patch",
-  "title": "Verificación visual R10: calendario en 2 clics y tarifas legacy",
-  "category": "fix",
+  "description": "El selector de rango de fechas vuelve a completarse con dos clics (antes pedía un tercero). Al editar cotizaciones antiguas, una tarifa mensual ya se carga en el campo mensual y deja de inflar el total estimado.",
   "changes": [
-    {
-      "area": "Filtros",
-      "detail": "R10-FE-02b: el reinicio de rango sólo aplica con un rango REAL previo. Con from==to (primer clic de react-day-picker) el segundo clic reiniciaba la selección, así que el rango exigía tres clics. Lógica extraída a nextRangeState()/isPartialRange() con pruebas unitarias."
-    },
-    {
-      "area": "Cotizaciones",
-      "detail": "R10-FE-03b: en cotizaciones legacy la tarifa se coloca según la periodicidad de la descripción (mensual/semanal/diaria) vía rentalRateField(). Antes una 'Renta mensual' de $20,000 caía en Tarifa Diaria y se multiplicaba por los días del periodo (COT-0002: $640,000 → $20,666)."
-    }
-  ],
-  "verification": {
-    "browser": "Playwright con sesión: /quotes/new aplica el rango en 2 clics sin errores JS; /quotes/COT-0002/edit y COT-0003/edit precargan modelo, cantidad y tarifa correctas",
-    "tests": "8 pruebas nuevas (5 de rango, 3 de periodicidad legacy)"
-  }
+    "El selector de rango de fechas vuelve a completarse con dos clics (antes pedía un tercero). Al editar cotizaciones antiguas, una tarifa mensual ya se carga en el campo mensual y deja de inflar el total estimado."
+  ]
 }

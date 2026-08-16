@@ -1,9 +1,4 @@
 {
-  "version": "7.16.0",
-  "date": "2026-07-11",
-  "type": "minor",
-  "title": "React Compiler activo en build de producción",
-  "category": "improvement",
   "description": "Fase A del Lote 5: activación del compilador de React en el pipeline de build.",
   "changes": [
     "vite.config.ts: swap `@vitejs/plugin-react-swc` → `@vitejs/plugin-react@4.7` con `babel: { plugins: [['babel-plugin-react-compiler', { target: '19' }]] }`. El compilador procesa cada componente/hook y genera memoización automática cuando el código cumple las Reglas de React; los archivos que las violan quedan intactos (bail-out silencioso).",

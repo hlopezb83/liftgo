@@ -1,40 +1,6 @@
 {
-  "version": "7.59.0",
-  "date": "2026-07-12",
-  "type": "minor",
-  "title": "Lote G: consolidación de hooks utilitarios en librerías estándar",
-  "summary": "Se reemplazó código custom-made de bajo/medio impacto por dependencias del ecosistema (usehooks-ts, match-sorter, react-hotkeys-hook) sin cambiar APIs internas ni UX.",
-  "sections": [
-    {
-      "heading": "Migraciones",
-      "items": [
-        "`useDebouncedValue` — wrapper delgado sobre `useDebounceValue` de usehooks-ts, misma firma para todos los call-sites.",
-        "`useIsMobile` / `useIsTabletOrBelow` — ahora delegan en `useMediaQuery` de usehooks-ts; se elimina el listener manual sobre `window.matchMedia`.",
-        "`ErrorDetailsDialog` — el helper `copyToClipboard` con fallback a `execCommand` se reemplazó por `useCopyToClipboard` de usehooks-ts.",
-        "`useKeySequence` — eliminado; secuencias `g + tecla` ahora vía `useHotkeys(['g>d', 'g>k', …])` de react-hotkeys-hook (v5 soporta `sequenceSplitKey`).",
-        "`useListFilters` — la búsqueda por texto usa `matchSorter` (threshold CONTAINS, `baseSort` por índice para preservar orden). El filtro por status y el sync a URL/sessionStorage se mantienen sin cambios.",
-        "`safeUuid` — simplificado; se retira el fallback a `Math.random` (crypto.randomUUID es universal en los navegadores objetivo)."
-      ]
-    },
-    {
-      "heading": "Paquetes",
-      "items": [
-        "Se instalaron usehooks-ts@^3.1.1 y match-sorter@^8.3.0.",
-        "Sin nuevas dependencias para atajos: se reutilizó react-hotkeys-hook@^5.3.3 ya instalado."
-      ]
-    },
-    {
-      "heading": "Fuera de alcance",
-      "items": [
-        "Pull-to-refresh (usePullToRefresh) se mantiene custom: la alternativa evaluada (react-simple-pull-to-refresh) es un componente que exige reubicar el scroll container fuera de `<main>` en MainLayout, con riesgo de regresión visual desproporcionado al beneficio. Se conservará el hook actual hasta que amerite un sprint dedicado."
-      ]
-    },
-    {
-      "heading": "Verificación",
-      "items": [
-        "tsgo sin errores.",
-        "Tests: `useDebouncedValue` (4/4) y `useListFilters` (6/6) pasan sin modificar sus assertions."
-      ]
-    }
+  "description": "Reemplazo de código custom-made por dependencias del ecosistema: `useDebouncedValue` y las media queries (`useIsMobile`, `useIsTabletOrBelow`) delegan en usehooks-ts (`useDebounceValue`, `useMediaQuery`). `ErrorDetailsDialog` usa `useCopyToClipboard` en lugar del helper con fallback a `document.execCommand`. `useKeySequence` (secuencias tipo Gmail `g + tecla`) se eliminó a favor de `useHotkeys(['g>d', 'g>k', …])` de react-hotkeys-hook v5. `useListFilters` conserva su API pública pero la búsqueda por texto ahora usa `matchSorter` (threshold CONTAINS, `baseSort` por índice para preservar orden estable). `safeUuid` se simplificó eliminando el fallback a `Math.random`. Pull-to-refresh se documentó como fuera de alcance para este lote (la alternativa evaluada implica reubicar el scroll container y el riesgo de regresión visual supera el beneficio). Se instalaron usehooks-ts@^3.1.1 y match-sorter@^8.3.0.",
+  "changes": [
+    "Reemplazo de código custom-made por dependencias del ecosistema: `useDebouncedValue` y las media queries (`useIsMobile`, `useIsTabletOrBelow`) delegan en usehooks-ts (`useDebounceValue`, `useMediaQuery`). `ErrorDetailsDialog` usa `useCopyToClipboard` en lugar del helper con fallback a `document.execCommand`. `useKeySequence` (secuencias tipo Gmail `g + tecla`) se eliminó a favor de `useHotkeys(['g>d', 'g>k', …])` de react-hotkeys-hook v5. `useListFilters` conserva su API pública pero la búsqueda por texto ahora usa `matchSorter` (threshold CONTAINS, `baseSort` por índice para preservar orden estable). `safeUuid` se simplificó eliminando el fallback a `Math.random`. Pull-to-refresh se documentó como fuera de alcance para este lote (la alternativa evaluada implica reubicar el scroll container y el riesgo de regresión visual supera el beneficio). Se instalaron usehooks-ts@^3.1.1 y match-sorter@^8.3.0."
   ]
 }

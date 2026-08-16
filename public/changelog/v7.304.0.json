@@ -1,9 +1,5 @@
 {
-  "version": "7.304.0",
-  "date": "2026-08-12",
-  "type": "minor",
-  "title": "Mejora de la redacción del pagaré (Anexo B)",
-  "category": "contratos",
+  "description": "Mejora de la redacción del pagaré (Anexo B)",
   "changes": [
     "Nuevo texto sugerido del pagaré con fórmulas de la práctica mercantil mexicana: por valor recibido, renuncia a presentación y protesto, obligación solidaria del aval y vencimiento anticipado",
     "La jurisdicción deja de estar fija en Monterrey y toma la ciudad del contrato",

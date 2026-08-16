@@ -1,9 +1,5 @@
 {
-  "version": "7.326.3",
-  "date": "2026-08-14",
-  "type": "patch",
-  "title": "Formato de las funciones de backend",
-  "category": "chore",
+  "description": "Se aplicó el formateador oficial a siete archivos de funciones de backend que rompían la verificación de estilo en CI. No hay cambios de comportamiento.",
   "changes": [
     "deno fmt aplicado a 7 archivos de supabase/functions"
   ]

@@ -1,9 +1,4 @@
 {
-  "version": "7.180.1",
-  "date": "2026-07-22",
-  "type": "patch",
-  "title": "Regresión completa post-cierre de 10 hallazgos de arquitectura",
-  "category": "infra",
   "description": "Verificación global ejecutada tras cerrar los 10 hallazgos de la auditoría arquitectónica (P1, P2 y P3).",
   "changes": [
     "Typecheck limpio en todo el proyecto (tsgo exit 0).",

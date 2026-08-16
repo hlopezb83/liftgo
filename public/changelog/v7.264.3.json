@@ -1,19 +1,6 @@
 {
-  "version": "7.264.3",
-  "date": "2026-07-29",
-  "type": "patch",
-  "title": "Se arregla el E2E del Kanban de mantenimiento y warnings de lint",
-  "category": "fix",
+  "description": "El filtro que oculta datos de prueba también escondía las órdenes que las pruebas automatizadas acababan de sembrar, y el spec del Kanban fallaba. Ahora la UI puede mostrar esos datos solo en el navegador de pruebas mediante una bandera local. Además se corrigió el orden de imports en 9 archivos y se extrajo la barra de filtros de la conciliación de facturas para bajar la complejidad del componente.",
   "changes": [
-    {
-      "type": "fix",
-      "title": "E2E Kanban de mantenimiento",
-      "description": "Los hooks de listado usan un filtro dinámico: por defecto ocultan datos de prueba y solo los incluyen cuando el navegador tiene la bandera liftgo:e2e-visible, que ponen las pruebas de Playwright."
-    },
-    {
-      "type": "improvement",
-      "title": "Lint limpio",
-      "description": "Orden de imports corregido en 9 archivos y la barra de filtros de conciliación extraída a su propio componente para bajar la complejidad de 19 a menos de 15."
-    }
+    "El filtro que oculta datos de prueba también escondía las órdenes que las pruebas automatizadas acababan de sembrar, y el spec del Kanban fallaba. Ahora la UI puede mostrar esos datos solo en el navegador de pruebas mediante una bandera local. Además se corrigió el orden de imports en 9 archivos y se extrajo la barra de filtros de la conciliación de facturas para bajar la complejidad del componente."
   ]
 }

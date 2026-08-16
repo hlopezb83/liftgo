@@ -1,9 +1,4 @@
 {
-  "version": "7.14.0",
-  "date": "2026-07-11",
-  "type": "minor",
-  "title": "React 19: providers usan `<Context>` directo sin `.Provider`",
-  "category": "improvement",
   "description": "Lote 4 de la modernización a React 19: adopción del JSX simplificado para providers y auditoría paralela de higiene de useEffect en los hooks base.",
   "changes": [
     "AuthContext, PageActionsContext y ConfirmProvider migran al patrón React 19: `<AuthContext value={value}>` reemplaza a `<AuthContext.Provider value={value}>`. Se conserva `createContext` para el descriptor y `useContext` para el consumo — sólo cambia el render.",

@@ -1,26 +1,6 @@
 {
-  "version": "7.0.0",
-  "date": "2026-07-10",
-  "type": "major",
-  "title": "Migración a React 19",
-  "category": "chore",
+  "description": "Upgrade de React 18.3.1 → 19.2.7 (react-dom y @types/react-dom incluidos). Typecheck limpio sin necesidad de codemod (no usábamos `defaultProps`, string refs ni `ReactDOM.render` legacy). 804/804 tests siguen pasando y no aparecen nuevos warnings en runtime. Desbloquea `useOptimistic`, `useActionState`, `ref` como prop, metadata nativo (`<title>`/`<meta>`) y mejores mensajes de hidratación. La limpieza de `forwardRef` en wrappers shadcn/ui queda como refactor DRY posterior.",
   "changes": [
-    {
-      "type": "changed",
-      "description": "React y react-dom actualizados de 18.3.1 → 19.2.7."
-    },
-    {
-      "type": "changed",
-      "description": "@types/react y @types/react-dom actualizados a v19."
-    },
-    {
-      "type": "verified",
-      "description": "Typecheck (`tsgo`) sin errores; no fue necesario ejecutar codemod (el proyecto ya cumplía los requisitos de R19)."
-    },
-    {
-      "type": "verified",
-      "description": "Suite completa 804/804 tests pasando. Smoke test runtime sin errores nuevos."
-    }
-  ],
-  "notes": "Compatibilidad confirmada: Radix UI, @tanstack/react-query 5, react-hook-form 7, react-router-dom 6.30, sonner 1.7, recharts 3, cmdk 1.1. Bump marcado como major por ser cambio de framework subyacente, aunque no hay breaking changes de cara al usuario."
+    "Upgrade de React 18.3.1 → 19.2.7 (react-dom y @types/react-dom incluidos). Typecheck limpio sin necesidad de codemod (no usábamos `defaultProps`, string refs ni `ReactDOM.render` legacy). 804/804 tests siguen pasando y no aparecen nuevos warnings en runtime. Desbloquea `useOptimistic`, `useActionState`, `ref` como prop, metadata nativo (`<title>`/`<meta>`) y mejores mensajes de hidratación. La limpieza de `forwardRef` en wrappers shadcn/ui queda como refactor DRY posterior."
+  ]
 }

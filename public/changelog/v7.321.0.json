@@ -1,0 +1,6 @@
+{
+  "description": "PaginationLink era un <a> sin href, así que no era enfocable por teclado (Tab no lo alcanzaba) y los usuarios de lector de pantalla/teclado no podían paginar. Además, prev/next en los extremos se \"deshabilitaban\" con pointer-events-none opacity-50, un hack visual que no comunicaba el estado a tecnología asistiva. Se convirtió a <button type=button> enfocable, se añadieron tipos ref HTMLButtonElement y se usó disabled nativo en TablePagination. Se añadió disabled:pointer-events-none disabled:opacity-50 para preservar la apariencia.",
+  "changes": [
+    "PaginationLink era un <a> sin href, así que no era enfocable por teclado (Tab no lo alcanzaba) y los usuarios de lector de pantalla/teclado no podían paginar. Además, prev/next en los extremos se \"deshabilitaban\" con pointer-events-none opacity-50, un hack visual que no comunicaba el estado a tecnología asistiva. Se convirtió a <button type=button> enfocable, se añadieron tipos ref HTMLButtonElement y se usó disabled nativo en TablePagination. Se añadió disabled:pointer-events-none disabled:opacity-50 para preservar la apariencia."
+  ]
+}

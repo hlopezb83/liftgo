@@ -1,9 +1,5 @@
 {
-  "version": "7.315.0",
-  "date": "2026-08-14",
-  "type": "minor",
-  "title": "Sprint 9: seguridad de funciones, cargas y datos personales",
-  "category": "correcciones",
+  "description": "Sprint 9: seguridad de funciones, cargas y datos personales",
   "changes": [
     "Las llamadas a la IA tienen límite de 20 segundos y avisan cuando el servicio no responde.",
     "El logo de la empresa solo acepta PNG, JPG o WebP hasta 2 MB.",

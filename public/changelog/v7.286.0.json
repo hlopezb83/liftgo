@@ -1,22 +1,6 @@
 {
-  "version": "7.286.0",
-  "date": "2026-08-10",
-  "type": "minor",
-  "title": "Auditoría R2: 26 correcciones en CFDI, flota, reportes y seguridad",
-  "category": "improvement",
   "description": "Se validaron y aplicaron las 26 correcciones de la auditoría R2 en finanzas/CFDI, flota/reservas y frontend/seguridad, incluyendo 4 migraciones de base de datos.",
   "changes": [
-    { "scope": "cfdi", "summary": "Reconciliación de timbrado ya no sale temprano y sí revisa REP y notas de crédito" },
-    { "scope": "cfdi", "summary": "REP/NC solo revierten a error tras 5 búsquedas fallidas consecutivas (contadores nuevos)" },
-    { "scope": "cfdi", "summary": "Fallo de consulta al PAC ya no consume presupuesto de reintentos" },
-    { "scope": "cfdi", "summary": "Cola de reintentos CFDI con lógica extraída a decisions.ts y probada" },
-    { "scope": "invoices", "summary": "Aviso y recuperación de XML pendiente en el detalle de factura" },
-    { "scope": "fleet", "summary": "Venta de equipo atómica con guards de archivado, vendido y renta activa" },
-    { "scope": "fleet", "summary": "Disponibilidad y creación de reservas ignoran OT archivadas o canceladas" },
-    { "scope": "deliveries", "summary": "Horómetro no negativo validado en formulario y base de datos" },
-    { "scope": "maintenance", "summary": "Costos de póliza corregidos y next_service_date limpiado (backfill)" },
-    { "scope": "fleet", "summary": "Bitácora retroactiva de equipos que volvieron a disponible" },
-    { "scope": "reports", "summary": "RPCs de reportes protegidos por permiso y caché invalidada al facturar o reservar" },
-    { "scope": "security", "summary": "Guard de usuario inactivo fail-closed y pruebas RLS que ya no ocultan fallas" }
+    "Se validaron y aplicaron las 26 correcciones de la auditoría R2 en finanzas/CFDI, flota/reservas y frontend/seguridad, incluyendo 4 migraciones de base de datos."
   ]
 }

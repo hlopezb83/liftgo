@@ -1,17 +1,9 @@
 {
-  "version": "7.320.2",
-  "date": "2026-08-14",
-  "type": "patch",
-  "title": "Facturas respetan las tarifas pactadas en la reserva",
-  "sections": [
-    {
-      "heading": "Cambios",
-      "items": [
-        "Facturación: buildLinesForBooking ahora fusiona las tarifas de la reserva (daily/weekly/monthly) prevaleciendo sobre las actuales del montacargas, con fallback al montacargas cuando la reserva no capturó tarifa. Antes se ignoraban las tarifas pactadas y se usaban las actuales del montacargas.",
-        "Patrón alineado con useExtendBookingPreview (extensión de reserva), que ya respetaba las tarifas de la reserva.",
-        "Pruebas: nuevo archivo useInvoiceFormHandlers.test.ts (4 casos) cubriendo tarifa pactada, fallback a montacargas, claves CFDI y ausencia de montacargas.",
-        "Verificación: typecheck OK, ESLint 0 warnings, 1702/1702 pruebas verdes."
-      ]
-    }
+  "description": "Facturas respetan las tarifas pactadas en la reserva",
+  "changes": [
+    "Facturación: buildLinesForBooking ahora fusiona las tarifas de la reserva (daily/weekly/monthly) prevaleciendo sobre las actuales del montacargas, con fallback al montacargas cuando la reserva no capturó tarifa. Antes se ignoraban las tarifas pactadas y se usaban las actuales del montacargas.",
+    "Patrón alineado con useExtendBookingPreview (extensión de reserva), que ya respetaba las tarifas de la reserva.",
+    "Pruebas: nuevo archivo useInvoiceFormHandlers.test.ts (4 casos) cubriendo tarifa pactada, fallback a montacargas, claves CFDI y ausencia de montacargas.",
+    "Verificación: typecheck OK, ESLint 0 warnings, 1702/1702 pruebas verdes."
   ]
 }

@@ -1,6 +1,6 @@
 {
-  "version": "7.328.0",
-  "date": "2026-08-14",
-  "title": "Costos de daños, redondeo de tarifas y partidas manuales de renta",
-  "description": "El detalle de un daño ya reparado o facturado ahora muestra el costo real aunque sea $0 (garantía absorbida), en vez de dejarlo invisible. Al facturar un daño que aún no está reparado se pide confirmación explícita avisando que se cobrará el costo estimado y que cualquier diferencia requerirá nota de crédito o cargo manual. Las tarifas y costos de montacargas se redondean a dos decimales al guardarse. Las partidas manuales que mencionan 'Renta' fuera del formato generado (por ejemplo 'Renta diaria de operador') ya no se descartan al facturar desde reserva. Se eliminó una bandera interna de cobrabilidad sin uso que divergía de la regla vigente."
+  "description": "El detalle de un daño ya reparado o facturado ahora muestra el costo real aunque sea $0 (garantía absorbida), en vez de dejarlo invisible. Al facturar un daño que aún no está reparado se pide confirmación explícita avisando que se cobrará el costo estimado y que cualquier diferencia requerirá nota de crédito o cargo manual. Las tarifas y costos de montacargas se redondean a dos decimales al guardarse. Las partidas manuales que mencionan 'Renta' fuera del formato generado (por ejemplo 'Renta diaria de operador') ya no se descartan al facturar desde reserva. Se eliminó una bandera interna de cobrabilidad sin uso que divergía de la regla vigente.",
+  "changes": [
+    "El detalle de un daño ya reparado o facturado ahora muestra el costo real aunque sea $0 (garantía absorbida), en vez de dejarlo invisible. Al facturar un daño que aún no está reparado se pide confirmación explícita avisando que se cobrará el costo estimado y que cualquier diferencia requerirá nota de crédito o cargo manual. Las tarifas y costos de montacargas se redondean a dos decimales al guardarse. Las partidas manuales que mencionan 'Renta' fuera del formato generado (por ejemplo 'Renta diaria de operador') ya no se descartan al facturar desde reserva. Se eliminó una bandera interna de cobrabilidad sin uso que divergía de la regla vigente."
+  ]
 }

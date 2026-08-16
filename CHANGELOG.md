@@ -1,3 +1,11 @@
+## 7.331.1 - 2026-08-16
+
+**Arreglar la página de Historial de cambios**
+
+- 27 entradas sin `type` rompían la validación y dejaban /changelog con "No se pudo cargar la información".
+- Detalles normalizados a `description` + `changes` (lista de textos).
+- El build ahora valida todo el historial para evitar recaídas.
+
 ## 7.331.0 - 2026-08-16
 
 **Auditoría v2: invitaciones de cliente, fechas por teclado y resumen de contrato**

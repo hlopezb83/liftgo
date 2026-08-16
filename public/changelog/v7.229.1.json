@@ -1,16 +1,6 @@
 {
-  "version": "7.229.1",
-  "date": "2026-07-25",
-  "type": "patch",
-  "title": "Knip · elimina export muerto useDeleteAuditLog",
-  "category": "chore",
-  "sections": [
-    {
-      "heading": "CI · Knip desbloqueado",
-      "items": [
-        "src/features/audit/hooks/useAuditLogs.ts: se elimina la función `useDeleteAuditLog` (sin consumidores desde R14-G, que retiró la acción Eliminar de la bitácora por ser append-only).",
-        "El step `bunx knip --include exports,types` vuelve a 0 unused exports y el job 'CI success' pasa a verde."
-      ]
-    }
+  "description": "R14-G removió la acción Eliminar de la bitácora (append-only) pero dejó el hook `useDeleteAuditLog` exportado sin consumidores; knip lo marcaba como export muerto y rompía CI. Se elimina el hook (10 líneas) y sus imports colaterales quedan intactos.",
+  "changes": [
+    "R14-G removió la acción Eliminar de la bitácora (append-only) pero dejó el hook `useDeleteAuditLog` exportado sin consumidores; knip lo marcaba como export muerto y rompía CI. Se elimina el hook (10 líneas) y sus imports colaterales quedan intactos."
   ]
 }

@@ -1,8 +1,4 @@
 {
-  "version": "6.46.2",
-  "date": "2026-06-12",
-  "type": "patch",
-  "title": "División de invoiceHelpers (paso 4 auditoría)",
   "description": "Se separó invoiceHelpers.ts en módulos por responsabilidad, manteniendo el archivo original como barril de re-export.",
   "changes": [
     "src/lib/domain/invoiceTotals.ts → LineItem, money, lineItemTotal, applyDiscount(ToBase), saleLineTotal, computeTotals",

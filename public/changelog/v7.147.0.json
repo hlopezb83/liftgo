@@ -1,9 +1,5 @@
 {
-  "version": "7.147.0",
-  "date": "2026-07-21",
-  "type": "minor",
-  "title": "Bloque 3 (R4) — Portal del cliente: IVA, badges de cotización, vigencia y monto de transferencia",
-  "category": "fix",
+  "description": "Bloque 3 (R4) — Portal del cliente: IVA, badges de cotización, vigencia y monto de transferencia",
   "changes": [
     "3.1 TotalsBreakdown: normaliza tax_rate al mostrar. Si el valor es ≤ 1 se trata como fracción (0.16) y se multiplica ×100. Antes el portal mostraba 'IVA (0.16%)' en facturas y cotizaciones.",
     "3.2 Nuevo helper src/features/portal/lib/quoteStatus.ts con QUOTE_STATUS_LABELS (draft/sent/accepted/rejected/expired/cancelled) y fallback '—' para estados desconocidos. Se usa como label override en <StatusBadge> desde PortalQuotes y PortalQuoteDetail, así 'sent' ya no aparece como 'Sin Pagar' (label de facturas) sino como 'Enviada'.",

@@ -1,0 +1,8 @@
+{
+  "description": "Arreglo: permiso denegado al registrar facturas de proveedor",
+  "changes": [
+    "Los automatismos que asignan folio a facturas de proveedor, entregas e inspecciones ahora corren con privilegios propios (SECURITY DEFINER); antes heredaban la falta de permiso del usuario y rompian el guardado.",
+    "next_supplier_bill_number, next_contract_number y next_quote_number vuelven a ser ejecutables por usuarios con sesion, ahora con guard de personal interno (is_staff); portal y anonimos reciben acceso denegado.",
+    "Nueva suite SQL supabase/tests/rls/folio_functions.sql para que la regresion quede cubierta en CI."
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "description": "Corrección de montos en el pagaré",
+  "changes": [
+    "El cuerpo del pagaré ya usa el monto correcto (costo de adquisición del equipo) en vez del depósito en garantía",
+    "Las plantillas con el texto viejo se actualizaron al texto sugerido, con monto en letra y jurisdicción según la ciudad del contrato",
+    "Si el contrato tiene 0% de interés moratorio, el pagaré usa 5% mensual por defecto"
+  ]
+}

@@ -1,21 +1,6 @@
 {
-  "version": "7.279.2",
-  "date": "2026-08-04",
-  "type": "patch",
-  "title": "Entregas: fecha editable al convertir cotizaciones con inicio pasado",
-  "category": "fix",
+  "description": "El diálogo de entrega tras crear la reserva ahora permite elegir la fecha y marcar “Ya se realizó”, y la validación del sistema usa el día de Monterrey en lugar de la hora del servidor.",
   "changes": [
-    {
-      "area": "Entregas",
-      "detail": "Al crear una reserva desde una cotización con fecha de inicio pasada, el diálogo de entrega ya no se bloquea: la fecha es editable y se precarga con hoy, con un aviso de la fecha original de la reserva."
-    },
-    {
-      "area": "Entregas",
-      "detail": "Nueva casilla “Ya se realizó” para registrar entregas históricas como completadas, permitiendo fechas pasadas."
-    },
-    {
-      "area": "Entregas",
-      "detail": "La validación de “no programar en el pasado” ahora usa el día actual en horario de Monterrey en vez de la hora del servidor (UTC), evitando rechazos indebidos por la tarde."
-    }
+    "El diálogo de entrega tras crear la reserva ahora permite elegir la fecha y marcar “Ya se realizó”, y la validación del sistema usa el día de Monterrey en lugar de la hora del servidor."
   ]
 }

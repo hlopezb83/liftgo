@@ -1,0 +1,6 @@
+{
+  "description": "Todos los campos de fecha ahora incluyen un input enmascarado dd/mm/aaaa con salto automático entre segmentos, pensado para el teclado numérico. Atajos: H (o T) escribe hoy, + / − y flechas ↑↓ ajustan el segmento activo, ←→ cambian de segmento y Esc limpia. Valida años bisiestos y días imposibles (31/02), acepta pegado en ISO y muestra una nota informativa cuando la fecha cae en fin de semana o día festivo/inhábil bancario mexicano (LFT art. 74 + jueves y viernes santo, 2 nov y 12 dic), sin bloquear el guardado.",
+  "changes": [
+    "Todos los campos de fecha ahora incluyen un input enmascarado dd/mm/aaaa con salto automático entre segmentos, pensado para el teclado numérico. Atajos: H (o T) escribe hoy, + / − y flechas ↑↓ ajustan el segmento activo, ←→ cambian de segmento y Esc limpia. Valida años bisiestos y días imposibles (31/02), acepta pegado en ISO y muestra una nota informativa cuando la fecha cae en fin de semana o día festivo/inhábil bancario mexicano (LFT art. 74 + jueves y viernes santo, 2 nov y 12 dic), sin bloquear el guardado."
+  ]
+}

@@ -1,25 +1,6 @@
 {
-  "version": "7.260.2",
-  "date": "2026-07-29",
-  "type": "patch",
-  "title": "Detalle de factura del portal más simple por dentro",
-  "category": "improvement",
   "description": "Refactor interno del detalle de factura del portal para reducir la complejidad del componente.",
   "changes": [
-    {
-      "type": "improvement",
-      "title": "Datos separados de la vista",
-      "description": "Nuevo hook usePortalInvoiceDetailData que centraliza carga de facturas/pagos y el cálculo de pagado, saldo y banderas de acción."
-    },
-    {
-      "type": "improvement",
-      "title": "Tarjetas de resumen reutilizables",
-      "description": "Se extrajo InvoiceSummaryCards (Total, Pagado, Saldo) del detalle de factura."
-    },
-    {
-      "type": "fix",
-      "title": "Advertencia de lint resuelta",
-      "description": "PortalInvoiceDetail baja de complejidad 17 a un nivel dentro del límite permitido."
-    }
+    "Refactor interno del detalle de factura del portal para reducir la complejidad del componente."
   ]
 }

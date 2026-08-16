@@ -1,0 +1,6 @@
+{
+  "description": "Se quitaron re-exports sin uso en el módulo de errores que hacían fallar el análisis de knip, y la prueba E2E del selector de rango de fechas ahora busca el botón de calendario por su etiqueta accesible, porque tras la captura rápida de fechas el botón es un ícono sin texto.",
+  "changes": [
+    "Se quitaron re-exports sin uso en el módulo de errores que hacían fallar el análisis de knip, y la prueba E2E del selector de rango de fechas ahora busca el botón de calendario por su etiqueta accesible, porque tras la captura rápida de fechas el botón es un ícono sin texto."
+  ]
+}

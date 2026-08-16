@@ -1,9 +1,4 @@
 {
-  "version": "7.306.2",
-  "date": "2026-08-12",
-  "type": "patch",
-  "title": "CI: rls-db-tests arranca desde cero",
-  "category": "infraestructura",
   "description": "El job rls-db-tests fallaba en todos los runs de main al levantar Supabase local: migraciones antiguas revocan EXECUTE sobre funciones creadas en migraciones posteriores (create_notification, notify_admins, etc.), lo que desde cero truena con 42883. Se extiende el parche efímero del runner para envolver esas sentencias en un guard to_regprocedure().",
   "changes": [
     "scripts/patch_legacy_migrations.py: nuevo paso que envuelve todo GRANT/REVOKE ... ON FUNCTION en un guard to_regprocedure() (solo en el checkout del runner).",

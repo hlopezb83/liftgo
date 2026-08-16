@@ -1,32 +1,13 @@
 {
-  "version": "7.281.0",
-  "date": "2026-08-05",
-  "type": "minor",
-  "title": "Estado de Resultados: notas de crédito como renglón propio (contra-ingreso)",
   "description": "Los renglones de ingreso mostraban el neto de notas de crédito, pero su desglose por cliente se calculaba sólo con facturas; por eso las partes no sumaban el total. Ahora se sigue la práctica de Odoo/QuickBooks: ingreso bruto por categoría y las notas de crédito en un renglón negativo separado.",
   "changes": [
-    {
-      "area": "RPC get_income_statement",
-      "items": [
-        "revenue_rental_booked, revenue_rental_unbooked, revenue_sales, revenue_other_services y revenue_damage_recovery ya no restan notas de crédito: son importes brutos que cuadran con su desglose por cliente.",
-        "Nuevos campos por mes: credit_notes_total y credit_notes_by_customer (desglose por cliente y factura afectada).",
-        "El campo revenue se conserva como ingreso neto, por lo que utilidad bruta, márgenes y KPIs no cambian."
-      ]
-    },
-    {
-      "area": "Frontend (Reportes)",
-      "items": [
-        "Nuevo renglón “(-) Notas de Crédito” expandible por cliente/factura y subtotal “= Ingresos Netos” (antes “= Total Ingresos”).",
-        "MonthData y YearTotals incluyen creditNotes y creditNotesByCustomer; el comparativo anual agrega la fila equivalente.",
-        "CSV, PDF y fixtures actualizados."
-      ]
-    },
-    {
-      "area": "Verificación",
-      "items": [
-        "Julio 2026: rentas con reserva $409,800 (igual a la suma por cliente), notas de crédito -$32,220, Ingresos Netos $388,080.",
-        "Typecheck y 54 pruebas de reportes/PDF en verde."
-      ]
-    }
+    "RPC get_income_statement: revenue_rental_booked, revenue_rental_unbooked, revenue_sales, revenue_other_services y revenue_damage_recovery ya no restan notas de crédito: son importes brutos que cuadran con su desglose por cliente.",
+    "RPC get_income_statement: Nuevos campos por mes: credit_notes_total y credit_notes_by_customer (desglose por cliente y factura afectada).",
+    "RPC get_income_statement: El campo revenue se conserva como ingreso neto, por lo que utilidad bruta, márgenes y KPIs no cambian.",
+    "Frontend (Reportes): Nuevo renglón “(-) Notas de Crédito” expandible por cliente/factura y subtotal “= Ingresos Netos” (antes “= Total Ingresos”).",
+    "Frontend (Reportes): MonthData y YearTotals incluyen creditNotes y creditNotesByCustomer; el comparativo anual agrega la fila equivalente.",
+    "Frontend (Reportes): CSV, PDF y fixtures actualizados.",
+    "Verificación: Julio 2026: rentas con reserva $409,800 (igual a la suma por cliente), notas de crédito -$32,220, Ingresos Netos $388,080.",
+    "Verificación: Typecheck y 54 pruebas de reportes/PDF en verde."
   ]
 }

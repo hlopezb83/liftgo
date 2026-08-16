@@ -1,9 +1,5 @@
 {
-  "version": "7.311.0",
-  "date": "2026-08-14",
-  "type": "minor",
-  "title": "Sprint 5: integridad de datos en daños, cotizaciones y comprobantes",
-  "category": "correcciones",
+  "description": "Sprint 5: integridad de datos en daños, cotizaciones y comprobantes",
   "changes": [
     "El monto de la factura por daños se toma del reporte guardado en la base, no del enlace, así nadie puede alterarlo desde la URL.",
     "Si falla la conversión de una cotización a reserva, ahora se muestra el error real en pantalla en vez de fallar en silencio.",

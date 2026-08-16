@@ -1,33 +1,6 @@
 {
-  "version": "7.277.0",
-  "date": "2026-08-02",
-  "type": "minor",
-  "title": "R12 UI/UX Fase 2 y 3: menú de usuario, elevación y acceso con marca",
-  "category": "improvement",
+  "description": "Nuevo menú de usuario con avatar en la barra superior (correo, rol, tema, contraseña y cerrar sesión), apartado activo del menú lateral en dorado de marca, escala de sombras cálidas, gráficas alineadas a la paleta de marca y pantallas de acceso con panel de marca.",
   "changes": [
-    {
-      "area": "Navegación",
-      "detail": "La barra superior ahora tiene un menú de usuario con avatar de iniciales: muestra correo y rol, y permite cambiar de tema, cambiar contraseña o cerrar sesión sin abrir el menú lateral."
-    },
-    {
-      "area": "Menú lateral",
-      "detail": "El apartado activo se marca con la barra y el texto en dorado de marca sobre un fondo tenue, en vez del resaltado gris."
-    },
-    {
-      "area": "Menú lateral",
-      "detail": "El pie del menú muestra el avatar del usuario junto a su correo y rol."
-    },
-    {
-      "area": "Interfaz",
-      "detail": "Se definió una escala de sombras con tinte cálido (tarjetas, menús y diálogos) para dar profundidad en vez del look plano anterior."
-    },
-    {
-      "area": "Reportes",
-      "detail": "Las gráficas ya no usan azul y morado saturados: siguen la misma escala de marca (azul marino, dorado y tonos tierra) del Gantt."
-    },
-    {
-      "area": "Acceso",
-      "detail": "Las pantallas de inicio de sesión de empleados y del portal de clientes muestran un panel de marca con el logo y acento dorado en pantallas grandes."
-    }
+    "Nuevo menú de usuario con avatar en la barra superior (correo, rol, tema, contraseña y cerrar sesión), apartado activo del menú lateral en dorado de marca, escala de sombras cálidas, gráficas alineadas a la paleta de marca y pantallas de acceso con panel de marca."
   ]
 }

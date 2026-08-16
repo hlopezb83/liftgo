@@ -1,15 +1,6 @@
 {
-  "version": "7.261.0",
-  "date": "2026-07-29",
-  "type": "minor",
-  "title": "Cotizaciones aceptadas ahora se pueden cancelar (DB3-08)",
-  "category": "feature",
   "description": "Válvula de escape para cotizaciones aceptadas, conservando la exención de teardown E2E.",
   "changes": [
-    { "type": "feature", "text": "Nuevo estado 'Cancelada' en cotizaciones (dominio de status ampliado)." },
-    { "type": "feature", "text": "Transición aceptada → cancelada permitida solo a admin/administrativo y sin reservas confirmadas ligadas." },
-    { "type": "fix", "text": "Mensaje corregido al borrar una cotización aceptada: antes sugería rechazarla (transición prohibida)." },
-    { "type": "fix", "text": "Se conserva la exención de teardown E2E (app.e2e_teardown + is_e2e) en guard_quote_delete para no romper las pruebas." },
-    { "type": "improvement", "text": "Filtro de estado en Cotizaciones incluye 'Cancelada' con etiqueta en femenino." }
+    "Válvula de escape para cotizaciones aceptadas, conservando la exención de teardown E2E."
   ]
 }

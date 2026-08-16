@@ -1,24 +1,6 @@
 {
-  "version": "7.270.0",
-  "date": "2026-07-30",
-  "type": "minor",
-  "title": "Auditoría Ronda 6: permisos por rol, estados de factura y flota consistente",
-  "category": "improvement",
-  "highlights": [
-    "R6-DB-01: el mecánico ya puede cerrar el ciclo de reparación (marcar reparado / archivar) con política y trigger que le impiden tocar montos, cliente o factura; la unidad se libera sólo si no quedan daños ni órdenes de trabajo abiertas.",
-    "R6-DB-02: RLS alineada a la matriz de roles — Administrativo pasa a sólo lectura en Equipos y Despachador pierde el acceso directo a Daños y la edición directa de unidades (sus flujos por RPC siguen intactos).",
-    "R6-DB-03: máquina de estados estricta en facturas — una factura pagada ya no se cancela por PATCH directo (sólo flujo SAT), cancelar exige motivo y marcar pagada exige al menos un pago registrado.",
-    "R6-DB-04: resincronización de folios incluyendo la secuencia de entregas, evitando conflictos 409 tras importaciones o siembras.",
-    "R6-DB-05: nueva RPC de diagnóstico `audit_fleet_status_consistency()` para admin y auditor.",
-    "R6-FE-01/04: gates de rol reales en acciones de daños, folios de factura en el detalle de cliente y acciones de reserva (Cancelar / Crear contrato) con razón visible en vez de error críptico.",
-    "R6-FE-02: el aviso tras una devolución con daño ya dice 'Mantenimiento' en lugar de 'Disponible'.",
-    "R6-FE-03: el widget de seguros del Panel se gatea por rol y deja de disparar avisos 'Forbidden' a Ventas.",
-    "R6-FE-05: las partidas del portal del cliente muestran importes reales (shape correcto de `line_items`).",
-    "R6-FE-06: se elimina el doble desfase de zona horaria al completar entregas e inspecciones.",
-    "R6-FE-07: definición única de 'rentado' compartida por Panel, Calendario y Equipos (`fleetAvailability`).",
-    "R6-FE-08: el formulario de cotización deja de quemar folios; el número lo asigna el servidor al guardar, con reintentos ante secuencia desfasada.",
-    "R6-FE-09: objetivos táctiles ≥44px en breadcrumb, paginador, pestañas, toggles y cierre de diálogos.",
-    "R6-FE-10: recargar sin conexión ya no deja la pantalla de carga infinita; aparece aviso de 'Sin conexión' con opción de reintentar.",
-    "R6-FE-11: ajustes menores — badge de contratos del portal, FAB que tapaba contenido en Reportes, reinicio del selector de rango de fechas y etiquetas del eje X en móvil."
+  "description": "Se cerraron los 16 hallazgos de la Ronda 6: el mecánico ya puede cerrar reparaciones y liberar la unidad, los permisos por rol quedaron alineados a la matriz (Administrativo y Despachador), las facturas siguen una máquina de estados estricta (cancelar exige motivo, pagar exige pago registrado), los folios de entregas dejan de chocar y el frontend unifica la definición de 'rentado', arregla importes del portal, desfases de zona horaria, objetivos táctiles ≥44px y la recarga sin conexión.",
+  "changes": [
+    "Se cerraron los 16 hallazgos de la Ronda 6: el mecánico ya puede cerrar reparaciones y liberar la unidad, los permisos por rol quedaron alineados a la matriz (Administrativo y Despachador), las facturas siguen una máquina de estados estricta (cancelar exige motivo, pagar exige pago registrado), los folios de entregas dejan de chocar y el frontend unifica la definición de 'rentado', arregla importes del portal, desfases de zona horaria, objetivos táctiles ≥44px y la recarga sin conexión."
   ]
 }

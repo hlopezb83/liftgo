@@ -1,48 +1,6 @@
 {
-  "version": "7.8.0",
-  "date": "2026-07-11",
-  "type": "minor",
-  "title": "Zod 4 — Hardening completo (10 hallazgos de auditoría)",
-  "sections": [
-    {
-      "heading": "HIGH — Edge function sincronizada con v4",
-      "items": [
-        "supabase/functions/classify-feedback-report/index.ts: zod 3.23.8 → 4.4.3.",
-        "Reemplazo de parsed.error.flatten() por z.treeifyError(parsed.error).",
-        "z.string().uuid() → z.uuid() (validador top-level de Zod 4)."
-      ]
-    },
-    {
-      "heading": "MEDIUM — Inconsistencias corregidas",
-      "items": [
-        "optionalEmail() ahora delega en z.email() (Zod 4 top-level, mejor tree-shaking).",
-        "SupplierBankAccountFormDialog deja de re-implementar el refine de CLABE y usa clabeOptional() (aceptando mensaje custom).",
-        "Nuevas fábricas en lib/schemas/common.ts: positiveAmountCoerced() y nonNegativeAmountCoerced() para inputs string→number, evitando que cada feature decida su propia postura."
-      ]
-    },
-    {
-      "heading": "LOW — Pulido 'top of the line'",
-      "items": [
-        "Locale es-MX built-in aplicado globalmente vía z.config(z.locales.es()) desde src/lib/forms/zodConfig.ts (side-effect import en main.tsx).",
-        "Nuevo barrel src/lib/schemas/index.ts que permite subdividir la capa sin romper imports.",
-        "zodResolver.ts: comentario obsoleto de source-map removido; documentada la regla z.input vs z.infer para el consumidor."
-      ]
-    },
-    {
-      "heading": "Tests",
-      "items": [
-        "Nuevo src/features/__tests__/domain-schemas.test.ts: 10 casos table-driven sobre customerFormSchema, supplierFormSchema y partFormSchema.",
-        "Cobertura adicional de positiveAmountCoerced, nonNegativeAmountCoerced y optionalEmail migrado."
-      ]
-    },
-    {
-      "heading": "Verificación",
-      "items": [
-        "tsgo --noEmit OK.",
-        "ESLint 0 warnings.",
-        "843/843 tests verdes.",
-        "Edge function classify-feedback-report desplegada."
-      ]
-    }
+  "description": "Auditoría y limpieza integral de la implementación Zod 4. Edge function classify-feedback-report migrada de zod 3.23 a 4.4.3, reemplazando .flatten() por z.treeifyError() y z.string().uuid() por z.uuid(). optionalEmail() en lib/schemas/common.ts ahora usa z.email() top-level (mejor tree-shaking). Nuevas fábricas positiveAmountCoerced() y nonNegativeAmountCoerced() en common.ts para casos con coerción string→number. SupplierBankAccountFormDialog deja de duplicar el refine de CLABE y consume clabeOptional() con mensaje custom. Nuevo barrel src/lib/schemas/index.ts. Locale es-MX aplicado globalmente vía z.config(z.locales.es()) desde src/lib/forms/zodConfig.ts (importado en main.tsx). zodResolver.ts limpiado: comentario obsoleto de source-map removido, agregada guía z.input vs z.infer. Nuevo test src/features/__tests__/domain-schemas.test.ts con 10 casos table-driven cubriendo customer/supplier/part y las nuevas fábricas coerced. Verificación: tsgo OK, ESLint 0 warnings, 843/843 tests OK, edge function desplegada.",
+  "changes": [
+    "Auditoría y limpieza integral de la implementación Zod 4. Edge function classify-feedback-report migrada de zod 3.23 a 4.4.3, reemplazando .flatten() por z.treeifyError() y z.string().uuid() por z.uuid(). optionalEmail() en lib/schemas/common.ts ahora usa z.email() top-level (mejor tree-shaking). Nuevas fábricas positiveAmountCoerced() y nonNegativeAmountCoerced() en common.ts para casos con coerción string→number. SupplierBankAccountFormDialog deja de duplicar el refine de CLABE y consume clabeOptional() con mensaje custom. Nuevo barrel src/lib/schemas/index.ts. Locale es-MX aplicado globalmente vía z.config(z.locales.es()) desde src/lib/forms/zodConfig.ts (importado en main.tsx). zodResolver.ts limpiado: comentario obsoleto de source-map removido, agregada guía z.input vs z.infer. Nuevo test src/features/__tests__/domain-schemas.test.ts con 10 casos table-driven cubriendo customer/supplier/part y las nuevas fábricas coerced. Verificación: tsgo OK, ESLint 0 warnings, 843/843 tests OK, edge function desplegada."
   ]
 }
