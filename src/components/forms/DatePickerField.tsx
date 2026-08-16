@@ -86,6 +86,8 @@ export function DatePickerField({
               onChange={(d) => onSelect(normalize(d))}
               today={nowMty()}
               placeholder={placeholder === "Seleccionar fecha" ? undefined : placeholder}
+              // §3.3: el teclado respeta el mismo matcher que el calendario.
+              isDateDisabled={isDateDisabled}
               aria-describedby={noteId}
               className="w-full"
             />
