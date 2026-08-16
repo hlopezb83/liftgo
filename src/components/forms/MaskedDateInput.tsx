@@ -48,6 +48,7 @@ export function MaskedDateInput({
   id,
   placeholder = MASK_PLACEHOLDER,
   disabled,
+  isDateDisabled,
   className,
   ...aria
 }: MaskedDateInputProps) {
@@ -69,10 +70,27 @@ export function MaskedDateInput({
   const commit = (next: string, notify = true) => {
     setDigits(next);
     const parsed = parseMaskedDate(next);
+
+    // §3.3: fecha completa pero bloqueada por el matcher del calendario.
+    if (parsed.date && isDateDisabled?.(parsed.date)) {
+      setError("Esta fecha no está permitida");
+      if (notify) onChange(undefined);
+      return;
+    }
+
+    // §3.4: captura parcial (menos de 8 dígitos). Antes no se avisaba ni se
+    // notificaba al formulario, así que se persistía en silencio la fecha
+    // anterior. Ahora se limpia el valor y se muestra el error.
+    if (!parsed.date && next.length > 0 && !parsed.complete) {
+      setError("Fecha incompleta (DD/MM/AAAA)");
+      if (notify) onChange(undefined);
+      return;
+    }
+
     setError(parsed.error);
     if (!notify) return;
     if (parsed.date) onChange(parsed.date);
-    else if (next.length === 0) onChange(undefined);
+    else onChange(undefined);
   };
 
   const applyDigits = (next: string) => {
