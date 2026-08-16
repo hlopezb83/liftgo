@@ -73,41 +73,12 @@ Deno.serve(async (req) => {
       await auth.adminClient.from("profiles").delete().eq("user_id", userId);
     };
 
-    const { error: delRoleErr } = await auth.adminClient
-      .from("user_roles")
-      .delete()
-      .eq("user_id", userId)
-      .eq("role", "dispatcher");
-    if (delRoleErr) {
-      console.error("invite-customer delete user_roles failed:", delRoleErr);
-      await cleanupInvitedUser();
-      return jsonError(req, 500, "Internal server error");
-    }
-
-    const { error: insRoleErr } = await auth.adminClient
-      .from("user_roles")
-      .insert({ user_id: userId, role: "customer" });
-    if (insRoleErr) {
-      console.error("invite-customer insert user_roles failed:", insRoleErr);
-      await cleanupInvitedUser();
-      return jsonError(req, 500, "Internal server error");
-    }
-
-    const { error: insProfileErr } = await auth.adminClient
-      .from("profiles")
-      .insert({ user_id: userId, full_name: customer.name });
-    if (insProfileErr) {
-      console.error("invite-customer insert profiles failed:", insProfileErr);
-      await cleanupInvitedUser();
-      return jsonError(req, 500, "Internal server error");
-    }
-
-    const { error: linkErr } = await auth.adminClient
-      .from("customers")
-      .update({ user_id: userId })
-      .eq("id", customer_id);
-    if (linkErr) {
-      console.error("invite-customer link customer failed:", linkErr);
+    const provisioned = await provisionCustomerAccess(auth.adminClient, {
+      userId,
+      customerId: customer_id,
+      fullName: customer.name,
+    });
+    if (!provisioned.ok) {
       await cleanupInvitedUser();
       return jsonError(req, 500, "Internal server error");
     }
