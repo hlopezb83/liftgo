@@ -89,8 +89,9 @@ export function MaskedDateInput({
     // en silencio la fecha anterior; ahora se limpia el valor y, al salir del
     // campo, se muestra el aviso.
     if (!parsed.complete) {
-      setError(final && next.length > 0 ? "Fecha incompleta (DD/MM/AAAA)" : null);
-      onChange(undefined);
+      const incomplete = next.length > 0;
+      setError(final && incomplete ? "Fecha incompleta (DD/MM/AAAA)" : null);
+      if (final || !incomplete) onChange(undefined);
       return;
     }
 
