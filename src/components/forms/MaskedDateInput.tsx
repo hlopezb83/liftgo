@@ -155,7 +155,7 @@ export function MaskedDateInput({
         value={formatMask(digits)}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        onBlur={() => commit(digits, false)}
+        onBlur={() => commit(digits, true)}
         placeholder={placeholder}
         disabled={disabled}
         inputMode="numeric"
