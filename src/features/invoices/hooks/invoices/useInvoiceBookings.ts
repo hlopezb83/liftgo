@@ -37,6 +37,11 @@ export function useInvoiceBookings(invoiceId: string | undefined) {
   });
 }
 
+/** Tamaño de página del pivote (tope típico de PostgREST). */
+const PIVOT_PAGE_SIZE = 1000;
+/** Tope defensivo: 20 páginas = 20 000 filas de pivote. */
+const PIVOT_MAX_PAGES = 20;
+
 /**
  * Todas las filas del pivote para facturas NO canceladas.
  * Se usa para excluir del selector de reservas aquellas ya facturadas.
@@ -45,17 +50,33 @@ export function useInvoiceBookings(invoiceId: string | undefined) {
  *   reservas ligadas solo vía pivote nunca se excluían (doble facturación).
  * - Además filtra las filas cuyo invoice está cancelado, para no bloquear
  *   re-facturar una reserva cuya factura anterior se canceló.
+ * - Auditoría v2 §3.5: el `select` sin `.limit()` se cortaba en el tope de
+ *   PostgREST (~1000 filas) y las reservas antiguas ya facturadas dejaban de
+ *   excluirse, reabriendo la doble facturación a escala. Ahora se pagina.
  */
 export function useAllInvoiceBookings() {
   return useQuery({
     queryKey: [...invoiceBookingKeys.all, "non-cancelled"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("invoice_bookings")
-        .select("booking_id, invoice_id, invoices!inner(status)")
-        .neq("invoices.status", "cancelled");
-      if (error) throw error;
-      return (data ?? []) as { booking_id: string; invoice_id: string }[];
+      const rows: { booking_id: string; invoice_id: string }[] = [];
+      for (let page = 0; page < PIVOT_MAX_PAGES; page++) {
+        const from = page * PIVOT_PAGE_SIZE;
+        const { data, error } = await supabase
+          .from("invoice_bookings")
+          .select("booking_id, invoice_id, invoices!inner(status)")
+          .neq("invoices.status", "cancelled")
+          .order("invoice_id", { ascending: true })
+          .order("booking_id", { ascending: true })
+          .range(from, from + PIVOT_PAGE_SIZE - 1);
+        if (error) throw error;
+        const batch = (data ?? []) as { booking_id: string; invoice_id: string }[];
+        rows.push(...batch);
+        if (batch.length < PIVOT_PAGE_SIZE) return rows;
+      }
+      console.warn(
+        "[useAllInvoiceBookings] pivote truncado: se alcanzó el tope de páginas; el guard anti-doble-facturación puede estar incompleto.",
+      );
+      return rows;
     },
   });
 }
