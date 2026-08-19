@@ -1,0 +1,9 @@
+{
+  "description": "Nueva redacción del pagaré y de la cláusula de depósito en garantía",
+  "changes": [
+    "El pagaré ahora garantiza también la responsabilidad por daños graves, robo parcial o total o pérdida del equipo durante la vigencia del contrato y sus renovaciones.",
+    "Se conservó la referencia al valor de reposición y al vencimiento anticipado para sostener el monto y la exigibilidad del título.",
+    "La devolución o destrucción del pagaré al renovar o terminar el contrato se pactó en la cláusula QUINTA del contrato (ahora 'Depósito en Garantía y Pagaré'), dejando el pagaré como promesa incondicional de pago.",
+    "Se actualizó la plantilla predeterminada en base de datos para que el texto nuevo aparezca al editar desde Configuración."
+  ]
+}
