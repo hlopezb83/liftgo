@@ -80,6 +80,9 @@ export function GlobalSearch() {
   const entityQuery = useEntitySearch(debouncedInput, open);
   const entities = entityQuery.data;
   const hasEntities = !!entities && (entities.invoices.length + entities.customers.length + entities.bookings.length > 0);
+  // L-6a: secciones cuya consulta falló (las demás sí traen resultados).
+  const SECTION_LABELS: Record<string, string> = { invoices: "Facturas", customers: "Clientes", bookings: "Reservas" };
+  const failedSections = Object.keys(entities?.errors ?? {}).map((k) => SECTION_LABELS[k] ?? k);
 
   const go = (url: string) => {
     setOpen(false);
