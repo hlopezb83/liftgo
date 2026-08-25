@@ -10,8 +10,10 @@ export interface UpcomingInvoice {
   total: number;
   /** Saldo pendiente en moneda del documento. */
   balance: number;
-  /** Saldo pendiente convertido a MXN (BL-1.1 R5). */
-  balance_mxn: number;
+  /** Saldo pendiente convertido a MXN (BL-1.1 R5). Null si falta tipo de cambio (H-2). */
+  balance_mxn: number | null;
+  /** H-2: factura en divisa sin tipo de cambio capturado. */
+  fx_missing: boolean;
   moneda: string | null;
   tipo_cambio: number | null;
   due_date: string;
@@ -42,6 +44,7 @@ export function useUpcomingInvoices(enabled = true) {
       total: inv.total,
       balance: inv.balance,
       balance_mxn: inv.balance_mxn,
+      fx_missing: inv.fx_missing,
       moneda: inv.moneda,
       tipo_cambio: inv.tipo_cambio,
       due_date: inv.due_date as string,

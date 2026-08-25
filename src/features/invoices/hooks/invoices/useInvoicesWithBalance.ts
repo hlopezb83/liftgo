@@ -11,14 +11,24 @@ export interface InvoiceWithBalance {
   total: number;
   paid_amount: number;
   balance: number;
-  /** Saldo convertido a MXN vía tipo_cambio de la factura (view v_invoices_with_balance). */
-  balance_mxn: number;
+  /**
+   * Saldo convertido a MXN vía tipo_cambio de la factura
+   * (view `v_invoices_with_balance`).
+   *
+   * H-2: es `null` cuando la factura está en divisa y no tiene tipo de cambio
+   * capturado. NO usar `balance` como respaldo — eso volvería a sumar USD
+   * como si fueran pesos. Los agregadores deben excluir estas filas.
+   */
+  balance_mxn: number | null;
+  /** H-2: factura en divisa sin tipo de cambio capturado. */
+  fx_missing: boolean;
   due_date: string | null;
   issued_at: string;
   booking_id: string | null;
   moneda: string | null;
   tipo_cambio: number | null;
 }
+
 
 interface Filter {
   /** Estados a incluir. Default: ['sent','partial','overdue']. */
@@ -66,22 +76,34 @@ function buildInvoicesWithBalanceQuery(filter: Filter) {
 
       const rows = (data ?? []) as Record<string, unknown>[];
 
-      return rows.map((r) => ({
-        id: r.id as string,
-        invoice_number: r.invoice_number as string,
-        customer_name: (r.customer_name as string | null) ?? null,
-        customer_id: (r.customer_id as string | null) ?? null,
-        status: r.status as string,
-        total: Number(r.total),
-        paid_amount: Number(r.paid_amount),
-        balance: Number(r.balance),
-        due_date: (r.due_date as string | null) ?? null,
-        issued_at: r.issued_at as string,
-        booking_id: (r.booking_id as string | null) ?? null,
-        moneda: (r.moneda as string | null) ?? null,
-        tipo_cambio: r.tipo_cambio == null ? null : Number(r.tipo_cambio),
-        balance_mxn: r.balance_mxn == null ? Number(r.balance) : Number(r.balance_mxn),
-      }));
+      return rows.map((r) => {
+        // H-2: la vista marca `fx_missing` cuando la factura está en divisa y
+        // no trae tipo de cambio; en ese caso `balance_mxn` llega en NULL y
+        // debe propagarse como null (no como el saldo crudo en divisa).
+        const fxMissing = r.fx_missing === true;
+        return {
+          id: r.id as string,
+          invoice_number: r.invoice_number as string,
+          customer_name: (r.customer_name as string | null) ?? null,
+          customer_id: (r.customer_id as string | null) ?? null,
+          status: r.status as string,
+          total: Number(r.total),
+          paid_amount: Number(r.paid_amount),
+          balance: Number(r.balance),
+          due_date: (r.due_date as string | null) ?? null,
+          issued_at: r.issued_at as string,
+          booking_id: (r.booking_id as string | null) ?? null,
+          moneda: (r.moneda as string | null) ?? null,
+          tipo_cambio: r.tipo_cambio == null ? null : Number(r.tipo_cambio),
+          fx_missing: fxMissing,
+          balance_mxn: fxMissing
+            ? null
+            : r.balance_mxn == null
+              ? Number(r.balance)
+              : Number(r.balance_mxn),
+        };
+      });
+
     },
   });
 }

@@ -8,6 +8,11 @@ export interface RevenueMonthRow {
   invoiced: number;
   paid: number;
   invoiceCount: number;
+  /**
+   * H-2: facturas en divisa sin `tipo_cambio` capturado. No se convierten a
+   * MXN (antes se sumaban 1:1) y por eso quedan fuera de `invoiced`.
+   */
+  fxMissingCount: number;
 }
 
 /**
@@ -15,6 +20,9 @@ export interface RevenueMonthRow {
  * `report_revenue_by_month` (mismo patrón que useProfitByModelReport).
  * Reemplaza `useInvoices()` (capado a 501 filas) que subestimaba el reporte.
  * Postgres devuelve `numeric` como string; el mapping normaliza a `number`.
+ *
+ * H-1: `paid` viene de los pagos reales y `invoiced` ya deduce las notas de
+ * crédito timbradas.
  */
 export function useRevenueByMonthReport(startDate: Date, endDate: Date) {
   const start = toYMD(startDate);
@@ -32,10 +40,12 @@ export function useRevenueByMonthReport(startDate: Date, endDate: Date) {
         invoiced: Number(r.invoiced),
         paid: Number(r.paid),
         invoiceCount: Number(r.invoice_count),
+        fxMissingCount: Number(r.fx_missing_count ?? 0),
       }));
     },
   });
 }
+
 
 /**
  * Facturas que componen un mes (drilldown). Solo se ejecuta al abrir el sheet

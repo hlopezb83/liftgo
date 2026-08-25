@@ -38,6 +38,7 @@ function computeAgingBuckets(
     balance_mxn?: number | string | null;
     moneda?: string | null;
     tipo_cambio?: number | string | null;
+    fx_missing?: boolean | null;
   }>,
 ) {
   const buckets = { "0-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
@@ -47,6 +48,9 @@ function computeAgingBuckets(
     // para no sumar USD como si fueran MXN.
     // FIX-FE-08: el fallback también debe convertir — sin toMxn una factura en
     // USD sin balance_mxn entraba al bucket como si fueran pesos (~18× menos).
+    // H-2: factura en divisa sin tipo de cambio → se excluye del bucket en
+    // vez de sumarse 1:1 como si fueran pesos.
+    if (inv.fx_missing === true) continue;
     const amount = inv.balance_mxn != null
       ? Number(inv.balance_mxn)
       : toMxn(
