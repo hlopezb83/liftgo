@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.341.0",
+    "date": "2026-08-25",
+    "type": "minor",
+    "title": "Sobrepagos bloqueados, tipo de tarifa explícito y errores sin datos internos (M-10, M-15, M-16, H-11)",
+    "changes": [
+      "M-10: cada partida de renta guarda su periodicidad (diaria, semanal o mensual); al editar una cotización la tarifa vuelve a su casilla correcta sin adivinar por el texto. Las cotizaciones anteriores siguen usando la inferencia previa.",
+      "M-15: el margen de medio centavo sólo sirve para marcar una factura como pagada; cualquier pago que exceda el saldo real se rechaza, tanto en facturas de cliente como en cuentas por pagar.",
+      "M-16a: los errores de timbrado ya no muestran al usuario el detalle interno del proveedor de facturación; queda sólo en la bitácora del servidor.",
+      "M-16b: las invitaciones de usuarios y clientes y la clasificación de reportes devuelven un mensaje genérico en vez del error crudo de la base de datos o de autenticación.",
+      "H-11: los datos de pruebas automatizadas quedan ocultos del lado del servidor para los roles despachador, mecánico, ventas y auditor en clientes, cotizaciones y montacargas."
+    ],
+    "description": "Se refuerza el control de sobrepagos en cobros y pagos a proveedores, las cotizaciones recuerdan el tipo de tarifa de cada partida, los errores del servidor dejan de exponer detalles internos y los datos de prueba quedan aislados por rol."
+  },
+  {
     "version": "7.340.0",
     "date": "2026-08-25",
     "type": "minor",
