@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.335.0",
+    "date": "2026-08-25",
+    "type": "minor",
+    "title": "Protección forward-only contra facturas de reserva sin periodo (H-6)",
+    "description": "Las facturas nuevas vinculadas a una reserva deben llevar un periodo de facturación; así el índice de duplicados las distingue de la mensualidad recurrente sin tocar el historial.",
+    "changes": [
+      "H-6: trigger BEFORE INSERT/UPDATE enforce_invoice_booking_period bloquea facturas con reserva y billing_period_start nulo; exime a roles de backend (postgres, service_role) para no romper la facturación recurrente ni los seeds e2e.",
+      "H-6: el formulario de factura exige el periodo en el esquema Zod cuando hay reserva y lo auto-llena con el mes de la fecha de emisión al ligar la reserva.",
+      "H-6: al facturar una extensión, el periodo se toma del tramo extendido (no del mes de emisión) para coincidir con los días cobrados.",
+      "H-6: la tarjeta de detalles muestra dos campos de periodo (inicio/fin) visibles solo cuando la factura tiene reserva.",
+      "H-6: nueva suite de humo SQL h6_invoice_period_smoke.sql que verifica el bloqueo como rol authenticated y permite los casos con periodo y sin reserva."
+    ]
+  },
+  {
     "version": "7.334.0",
     "date": "2026-08-25",
     "type": "minor",
@@ -181,10 +195,10 @@
     "type": "minor"
   },
   {
-    "version": "7.324.0",
+    "version": "7.326.0",
     "date": "2026-08-14",
-    "title": "Sprint M1 — Dinero y documentos",
-    "description": "Las extensiones de renta ahora respetan las tarifas diaria y semanal pactadas en la reserva (antes sólo la mensual). Una renta que arranca el 29-31 y termina en un mes corto ya no cobra un día extra (31-ene → 28-feb = un mes exacto). El resumen de totales del formulario de factura considera las líneas exentas y las tasas por partida, así que lo que ves en pantalla es lo que se guarda. Las notas de crédito calculan el IVA partida por partida. Al convertir una cotización ya no se borran las tarifas de la reserva con ceros. Las facturas de proveedor rechazan descuentos mayores al subtotal y los pagos a proveedores ya no aceptan fecha futura.",
+    "title": "Sprint M3 — Robustez y consistencia",
+    "description": "Editar un pago ya valida el tope contra el saldo y bloquea monto y fecha cuando el complemento ya está timbrado. El resumen financiero del contrato incluye las reservas ligadas por la tabla de relación. Las estadísticas del tablero salieron de la caché guardada en el navegador. Un daño reportado puede marcarse reparado sin orden de trabajo. La conciliación bancaria elige la tabla destino por el tipo de candidato y no por el signo del movimiento. No se puede cambiar la moneda de una cuenta con movimientos importados, y el selector de entregas sólo ofrece reservas confirmadas.",
     "type": "minor"
   },
   {
@@ -195,10 +209,10 @@
     "type": "minor"
   },
   {
-    "version": "7.326.0",
+    "version": "7.324.0",
     "date": "2026-08-14",
-    "title": "Sprint M3 — Robustez y consistencia",
-    "description": "Editar un pago ya valida el tope contra el saldo y bloquea monto y fecha cuando el complemento ya está timbrado. El resumen financiero del contrato incluye las reservas ligadas por la tabla de relación. Las estadísticas del tablero salieron de la caché guardada en el navegador. Un daño reportado puede marcarse reparado sin orden de trabajo. La conciliación bancaria elige la tabla destino por el tipo de candidato y no por el signo del movimiento. No se puede cambiar la moneda de una cuenta con movimientos importados, y el selector de entregas sólo ofrece reservas confirmadas.",
+    "title": "Sprint M1 — Dinero y documentos",
+    "description": "Las extensiones de renta ahora respetan las tarifas diaria y semanal pactadas en la reserva (antes sólo la mensual). Una renta que arranca el 29-31 y termina en un mes corto ya no cobra un día extra (31-ene → 28-feb = un mes exacto). El resumen de totales del formulario de factura considera las líneas exentas y las tasas por partida, así que lo que ves en pantalla es lo que se guarda. Las notas de crédito calculan el IVA partida por partida. Al convertir una cotización ya no se borran las tarifas de la reserva con ceros. Las facturas de proveedor rechazan descuentos mayores al subtotal y los pagos a proveedores ya no aceptan fecha futura.",
     "type": "minor"
   },
   {

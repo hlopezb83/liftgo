@@ -56,10 +56,23 @@ export const invoiceFormSchema = z
     taxRate: z.number().min(0),
     issueDate: z.date(),
     dueDate: z.date().optional(),
+    /** H-6: periodo de facturación obligatorio cuando la factura tiene reserva. */
+    billingPeriodStart: z.string().default(""),
+    billingPeriodEnd: z.string().default(""),
     notes: z.string(),
     cfdi: cfdiSchema,
   })
   .superRefine((values, ctx) => {
+    // H-6: una factura vinculada a reserva debe llevar periodo de facturación.
+    const hasBooking = values.bookingIds.length > 0 || values.bookingId.trim() !== "";
+    if (hasBooking && !values.billingPeriodStart) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["billingPeriodStart"],
+        message: "El periodo de facturación es requerido para facturas con reserva",
+      });
+    }
+
     const rfc = (values.cfdi.receptorRfc || "").toUpperCase();
     if (rfc === "XAXX010101000") {
       if (!values.cfdi.globalPeriodicity) {
@@ -120,6 +133,8 @@ export const buildEmptyInvoiceValues = (): InvoiceFormValues => ({
   taxRate: 16,
   issueDate: nowMty(),
   dueDate: undefined,
+  billingPeriodStart: "",
+  billingPeriodEnd: "",
   notes: "",
   cfdi: { ...EMPTY_CFDI },
 });

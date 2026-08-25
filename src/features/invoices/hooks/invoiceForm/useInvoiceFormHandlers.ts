@@ -1,6 +1,8 @@
 import type { Forklift } from "@/features/fleet";
 import { generateLineItems } from "@/lib/domain/invoiceHelpers";
 import { extractNonRentalLines } from "@/lib/domain/nonRentalLines";
+import { monthBounds } from "@/lib/date/monthBounds";
+import { nowMty } from "@/lib/utils";
 import { cfdiFromCustomer, type Customer } from "./invoiceFormBuilders";
 import type { InvoiceFormValues, LineItemValues } from "../../lib/invoiceFormSchema";
 import type { UseFormReturn } from "react-hook-form";
@@ -103,6 +105,15 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
 
     form.setValue("bookingIds", selectedIds, { shouldDirty: true });
     form.setValue("bookingId", selectedIds[0] ?? "", { shouldDirty: true });
+
+    // H-6: al ligar una reserva, pre-llenar el periodo con el mes de la fecha
+    // de emisión si el usuario aún no lo ha capturado (caso típico: mensualidad).
+    if (selectedIds.length > 0 && !form.getValues("billingPeriodStart")) {
+      const issue = form.getValues("issueDate") ?? nowMty();
+      const { start, end } = monthBounds(issue);
+      form.setValue("billingPeriodStart", start, { shouldDirty: true });
+      form.setValue("billingPeriodEnd", end, { shouldDirty: true });
+    }
 
     if (selected.length === 0) return;
 
