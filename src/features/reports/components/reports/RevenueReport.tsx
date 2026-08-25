@@ -86,7 +86,15 @@ export function RevenueReport({ startDate, endDate }: Props) {
           </Button>
         </CardHeader>
         <CardContent>
+          {fxMissingTotal > 0 && (
+            <p className="mb-3 rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-muted-foreground">
+              {fxMissingTotal} factura{fxMissingTotal === 1 ? "" : "s"} en divisa sin tipo de cambio
+              {fxMissingTotal === 1 ? " no se incluyó" : " no se incluyeron"} en los importes. Captura el
+              tipo de cambio para que sumen al reporte.
+            </p>
+          )}
           <div className="h-64">
+
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data}>
                 <CartesianGrid strokeDasharray="3 3" className="stroke-border" vertical={false} />
