@@ -41,6 +41,24 @@ const ITEMS: Item[] = [
   { title: "Ayuda", url: "/help", icon: HelpIcon, group: "Administración" },
 ];
 
+const SECTION_LABELS: Record<string, string> = {
+  invoices: "Facturas", customers: "Clientes", bookings: "Reservas",
+};
+
+/**
+ * L-6a: fallo parcial de una sección — avisar en vez de mostrarla vacía como
+ * si simplemente no hubiera coincidencias.
+ */
+function SearchPartialErrors({ errors }: { errors?: Record<string, string> }) {
+  const failed = Object.keys(errors ?? {}).map((k) => SECTION_LABELS[k] ?? k);
+  if (failed.length === 0) return null;
+  return (
+    <div className="px-3 py-2 text-xs text-warning" role="status">
+      No se pudo buscar en: {failed.join(", ")}. Intenta de nuevo.
+    </div>
+  );
+}
+
 export function GlobalSearch() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
