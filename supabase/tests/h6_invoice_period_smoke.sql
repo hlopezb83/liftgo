@@ -110,7 +110,7 @@ BEGIN
                                   status, issued_at, due_date,
                                   billing_period_start, billing_period_end)
     VALUES ('H6-FAC-A', 'H6 Smoke SA de CV', v_cust, v_book,
-            1000, 160, 1160, 'sent', public.today_mty(), public.today_mty() + 30,
+            1000, 160, 1160, 'draft', public.today_mty(), public.today_mty() + 30,
             NULL, NULL);
     v_ok := false;
   EXCEPTION WHEN check_violation THEN
@@ -126,7 +126,7 @@ BEGIN
                                   status, issued_at, due_date,
                                   billing_period_start, billing_period_end)
     VALUES ('H6-FAC-B', 'H6 Smoke SA de CV', v_cust, v_book,
-            1000, 160, 1160, 'sent', public.today_mty(), public.today_mty() + 30,
+            1000, 160, 1160, 'draft', public.today_mty(), public.today_mty() + 30,
             public.today_mty(), public.today_mty() + 30);
     v_ok := true;
   EXCEPTION WHEN others THEN
@@ -142,7 +142,7 @@ BEGIN
                                   status, issued_at, due_date,
                                   billing_period_start, billing_period_end)
     VALUES ('H6-FAC-C', 'H6 Smoke SA de CV', v_cust, NULL,
-            500, 80, 580, 'sent', public.today_mty(), public.today_mty() + 15,
+            500, 80, 580, 'draft', public.today_mty(), public.today_mty() + 15,
             NULL, NULL);
     v_ok := true;
   EXCEPTION WHEN others THEN
