@@ -113,6 +113,11 @@ export function useExtensionPrefill({
 
     applyBookingFields(form, booking as ExtensionBooking, handleCustomerSelect);
 
+    // H-6: el periodo de facturación de una extensión es el tramo extendido
+    // (no el mes de emisión), para que coincida con los días cobrados.
+    form.setValue("billingPeriodStart", range.start, { shouldDirty: true });
+    form.setValue("billingPeriodEnd", range.end, { shouldDirty: true });
+
     const items = buildItemsForExtension(
       ext.original_end_date,
       ext.new_end_date,

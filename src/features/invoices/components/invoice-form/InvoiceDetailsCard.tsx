@@ -1,6 +1,8 @@
+import { useWatch } from "react-hook-form";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { CustomerSelector } from "@/features/customers";
 import { useNextInvoiceNumber } from "../../hooks/invoices/useNextInvoiceNumber";
@@ -24,6 +26,8 @@ export function InvoiceDetailsCard({
   isEdit, form, customers, availableBookings, handleCustomerSelect, handleBookingsChange,
 }: Props) {
   const { data: nextNumber, isLoading: loadingNext } = useNextInvoiceNumber(!isEdit);
+  const bookingIds = useWatch({ control: form.control, name: "bookingIds" }) ?? [];
+  const hasBooking = bookingIds.length > 0 || !!form.getValues("bookingId");
 
   return (
     <Card>
@@ -87,6 +91,32 @@ export function InvoiceDetailsCard({
             </FormItem>
           )} />
         </div>
+
+        {hasBooking && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-md border bg-muted/30 p-4">
+            <p className="text-sm text-muted-foreground sm:col-span-2">
+              Periodo de facturación — requerido para reservas. El índice de duplicados usa este rango.
+            </p>
+            <FormField control={form.control} name="billingPeriodStart" render={({ field }) => (
+              <FormItem>
+                <Label>Periodo · Inicio</Label>
+                <FormControl>
+                  <Input type="date" value={field.value} onChange={(e) => field.onChange(e.target.value)} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="billingPeriodEnd" render={({ field }) => (
+              <FormItem>
+                <Label>Periodo · Fin</Label>
+                <FormControl>
+                  <Input type="date" value={field.value} onChange={(e) => field.onChange(e.target.value)} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )} />
+          </div>
+        )}
       </CardContent>
     </Card>
   );

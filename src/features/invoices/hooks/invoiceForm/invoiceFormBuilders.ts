@@ -17,6 +17,7 @@ export type ExistingInvoice = {
   customer_name?: string | null; customer_id: string | null; booking_id?: string | null;
   line_items?: unknown; tax_rate?: number | string; due_date?: string | null;
   issued_at?: string | null; notes?: string | null;
+  billing_period_start?: string | null; billing_period_end?: string | null;
   serie?: string | null; folio?: string | null; forma_pago?: string | null;
   metodo_pago?: string | null; uso_cfdi?: string | null; moneda?: string | null;
   tipo_cambio?: number | string | null; receptor_rfc?: string | null;
@@ -102,6 +103,8 @@ export function buildFromInvoice(inv: ExistingInvoice, customers: Customer[] | u
     taxRate: Number(inv.tax_rate) || 0,
     dueDate: inv.due_date ? parseDateLocal(inv.due_date) : undefined,
     issueDate: inv.issued_at ? parseDateLocal(inv.issued_at) : nowMty(),
+    billingPeriodStart: toStr(inv.billing_period_start),
+    billingPeriodEnd: toStr(inv.billing_period_end),
     notes: toStr(inv.notes),
     cfdi,
   };
@@ -134,6 +137,8 @@ export function buildFromQuote({ q, assignments, forklifts, customers }: FromQuo
     taxRate: q.tax_rate == null ? 16 : Number(q.tax_rate),
     dueDate: undefined,
     issueDate: nowMty(),
+    billingPeriodStart: "",
+    billingPeriodEnd: "",
     notes: toStr(q.notes),
     cfdi,
   };

@@ -66,6 +66,8 @@ export function useInvoiceFormSubmit() {
     const items = toLineItems(lineItems);
     const { subtotal, taxAmount, total } = computeTotals(items, taxRate);
     const primaryBookingId = bookingIds[0] || values.bookingId || (isEdit ? orEmpty(existingBookingId, null) : null) || null;
+    // H-6: si la factura lleva reserva, enviamos el periodo; si no, va null.
+    const hasBooking = !!primaryBookingId;
     return {
       booking_id: primaryBookingId,
       customer_id: customerId || null,
@@ -75,6 +77,8 @@ export function useInvoiceFormSubmit() {
       subtotal: roundMoney(subtotal), tax_rate: taxRate, tax_amount: roundMoney(taxAmount), total: roundMoney(total),
       due_date: toYMD(dueDate) ?? null,
       issued_at: toYMD(issueDate) ?? "",
+      billing_period_start: hasBooking ? (values.billingPeriodStart || null) : null,
+      billing_period_end: hasBooking ? (values.billingPeriodEnd || null) : null,
       notes: nn(notes),
 
       ...buildCfdiPayload(cfdi),
