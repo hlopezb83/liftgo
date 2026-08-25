@@ -15,9 +15,11 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   invoice: Tables<"invoices">;
   maxCreditable: number;
+  /** H-5: importe ya declarado en complementos de pago (REP) vigentes. */
+  repBacked?: number;
 }
 
-export function CreateCreditNoteDialog({ open, onOpenChange, invoice, maxCreditable }: Props) {
+export function CreateCreditNoteDialog({ open, onOpenChange, invoice, maxCreditable, repBacked = 0 }: Props) {
   const f = useCreditNoteForm(invoice, maxCreditable, () => onOpenChange(false));
 
   return (
@@ -29,8 +31,13 @@ export function CreateCreditNoteDialog({ open, onOpenChange, invoice, maxCredita
       width="2xl"
       description={<>Factura {invoice.invoice_number}. Máximo acreditable:{" "}
         <span className="tabular-nums font-semibold">{formatCurrency(maxCreditable)}</span>.
+        {repBacked > 0.005 && (
+          <> El tope descuenta {formatCurrency(repBacked)} ya declarados en complementos de pago (REP) vigentes;
+            para acreditar más, cancela primero esos complementos ante el SAT.</>
+        )}{" "}
         El borrador NO modifica el saldo; éste se reduce únicamente al timbrar la nota de crédito.</>}
     >
+
 
 
         <div className="space-y-4">
