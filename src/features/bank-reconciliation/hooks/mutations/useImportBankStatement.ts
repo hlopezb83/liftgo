@@ -63,6 +63,7 @@ export function useImportBankStatement() {
         if (cleanupLinesErr || cleanupImpErr) {
           throw new Error(
             "La importación falló y no se pudo limpiar por completo. Revisa el estado de cuenta antes de reintentar.",
+            { cause: chunkErr },
           );
         }
         throw chunkErr;
