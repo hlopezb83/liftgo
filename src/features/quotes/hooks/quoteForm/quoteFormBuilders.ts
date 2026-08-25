@@ -23,6 +23,34 @@ export function buildSaleItems(lines: SaleLine[], models: EquipmentModel[]): Lin
     });
 }
 
+/**
+ * M-9: el descuento fijo "$" es por línea de renta, no por partida. Antes se
+ * aplicaba solo a la primera partida y el remanente se perdía cuando esa
+ * partida no lo absorbía entera. Ahora se distribuye en cascada: cada partida
+ * absorbe hasta su propio total hasta agotar el descuento. Los "%" son
+ * porcentuales y sí aplican a cada partida.
+ */
+function applyLineDiscount(line: RentalLine, generated: LineItem[]): void {
+  const discount = line.discount && line.discount > 0 ? line.discount : 0;
+  if (discount === 0) return;
+  if (line.discountType !== "$") {
+    for (const item of generated) {
+      item.discount = discount;
+      item.discount_type = line.discountType;
+    }
+    return;
+  }
+  let remaining = discount;
+  for (const item of generated) {
+    if (remaining <= 0) break;
+    // Nunca descontar más que el total de la partida (clamp a 0).
+    const applied = Math.min(remaining, item.total || 0);
+    item.discount = money(applied).value;
+    item.discount_type = "$";
+    remaining = money(remaining).subtract(applied).value;
+  }
+}
+
 export function buildRentalItems(
   lines: RentalLine[], models: EquipmentModel[], startDate: Date, endDate: Date,
 ): LineItem[] {
