@@ -1,0 +1,17 @@
+{
+  "version": "7.337.0",
+  "date": "2026-08-25",
+  "type": "minor",
+  "title": "Entregas cerradas, cotizaciones convertidas y bitácora limpia (M-7, M-8, L-2, L-4)",
+  "changes": [
+    "M-7: una entrega marcada como completada ya no puede reabrirse ni cambiar de estado (solo procesos internos del sistema).",
+    "M-7: al completar una entrega la unidad pasa automáticamente a 'Rentado' y se registra el movimiento en su bitácora; una recolección ya no dispara ese efecto (corrección al parche original, que marcaba rentada la unidad al recolectarla).",
+    "M-7: el efecto también aplica cuando la entrega se captura ya completada desde el alta.",
+    "M-8: nuevo estado 'Convertida' para cotizaciones. Al generar las reservas, la cotización aceptada pasa a Convertida y queda protegida contra cambios de montos, fechas, cliente o equipo.",
+    "M-8: el nuevo estado se muestra con etiqueta y color propios en la lista de cotizaciones, el detalle y el portal del cliente, y se puede filtrar por él.",
+    "L-2: al eliminar una cotización ya no se registran movimientos falsos en la bitácora de unidades que no cambiaron de estado.",
+    "L-4: si no se envía fecha en un pago a proveedor se usa la fecha de hoy en horario de Monterrey en lugar de la fecha UTC.",
+    "M-6 se revisó y ya estaba aplicado en la base de datos; no requirió cambios.",
+    "Nueva suite de humo SQL fix03_m7_m8_l2_smoke.sql que cubre entrega vs recolección, el candado de reapertura y los tres cambios restantes."
+  ]
+}
