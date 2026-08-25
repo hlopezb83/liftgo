@@ -223,7 +223,7 @@ export async function handleStampCfdi(
 
     // BL-01: distinguir tasa cero legítima (0) de "no capturada" (null/undefined).
     const taxRatePct = typeof inv.tax_rate === "number" ? inv.tax_rate : 16;
-    const taxRateFraction = taxRatePct / 100;
+    
     const items = Array.isArray(inv.line_items)
       ? (inv.line_items as Array<
         {
@@ -236,6 +236,7 @@ export async function handleStampCfdi(
           clave_prod_serv?: string;
           clave_unidad?: string;
           objeto_imp?: string;
+          tax_rate?: number;
           discount?: number;
           discount_type?: "%" | "$";
         }
@@ -243,6 +244,14 @@ export async function handleStampCfdi(
         const quantity = li.quantity || 1;
         const unitPrice = li.unit_price || 0;
         const objetoImp = li.objeto_imp ?? "02";
+        // C-1: tasa por línea con fallback línea → factura (taxRatePct ya
+        // cae a 16 cuando invoices.tax_rate no es numérico), igual que
+        // `computeTotals` en src/lib/domain/invoiceTotals.ts.
+        const lineRatePct =
+          typeof li.tax_rate === "number" && Number.isFinite(li.tax_rate)
+            ? li.tax_rate
+            : taxRatePct;
+        const lineRateFraction = lineRatePct / 100;
         const item: Record<string, unknown> = {
           product: {
             description: li.description || "Servicio de renta",
@@ -253,7 +262,7 @@ export async function handleStampCfdi(
             // M19: ObjetoImp 01 = no objeto de impuesto → línea sin traslados.
             taxes: objetoImp === "01"
               ? []
-              : [{ type: "IVA", rate: taxRateFraction }],
+              : [{ type: "IVA", rate: lineRateFraction }],
           },
           quantity,
         };
@@ -568,15 +577,25 @@ export async function handleStampCfdi(
       });
     }
 
-    // BL-A5: reconciliación del total timbrado. Facturapi redondea
-    // descuentos/impuestos por línea de forma distinta a la app; si el total
-    // timbrado difiere de invoices.total se REGISTRA la varianza (columnas
-    // stamp_variance*) sin romper el flujo 'stamped' — solo warning en
-    // cfdi_error_message + console.error para auditoría fiscal.
+    // BL-A5 (C-1): reconciliación del total timbrado endurecida a ERROR.
+    // Si |varianza| > 0.01 la factura NO queda como 'stamped': se persiste
+    // igual la identidad fiscal (uuid, xml, urls, facturapi_invoice_id) —el
+    // CFDI ya existe ante el SAT y debe poder cancelarse— pero con
+    // cfdi_status='error' y se responde 502 para que el operador corrija.
 
     const stampedTotal = (facturApiInvoice as { total?: unknown }).total;
     const varianceCheck = computeStampVariance(inv.total, stampedTotal);
-    if (varianceCheck && !varianceCheck.withinTolerance) {
+    const hasVariance = Boolean(varianceCheck && !varianceCheck.withinTolerance);
+    const varianceMessage = hasVariance && varianceCheck
+      ? `Error BL-A5: el total timbrado (${
+        Number(stampedTotal).toFixed(2)
+      }) difiere del total de la factura (${
+        Number(inv.total).toFixed(2)
+      }); varianza ${
+        varianceCheck.variance.toFixed(2)
+      }. El CFDI existe ante el SAT: cancélalo y corrige tasas/descuentos.`
+      : null;
+    if (hasVariance && varianceCheck) {
       console.error("[stamp-cfdi] BL-A5 stamp variance detectada", {
         invoice_id,
         invoice_total: inv.total,
@@ -590,14 +609,8 @@ export async function handleStampCfdi(
       cfdi_xml: cfdiXml,
       cfdi_xml_url: xmlStoragePath,
       cfdi_pdf_url: pdfStoragePath,
-      cfdi_status: "stamped",
-      cfdi_error_message: varianceCheck && !varianceCheck.withinTolerance
-        ? `Advertencia BL-A5: el total timbrado (${
-          Number(stampedTotal).toFixed(2)
-        }) difiere del total de la factura (${
-          Number(inv.total).toFixed(2)
-        }); varianza ${varianceCheck.variance.toFixed(2)}.`
-        : null,
+      cfdi_status: hasVariance ? "error" : "stamped",
+      cfdi_error_message: varianceMessage,
       ...(varianceCheck
         ? {
           stamp_variance: varianceCheck.variance,
@@ -624,6 +637,22 @@ export async function handleStampCfdi(
         jsonHeaders,
       );
     }
+
+    // C-1: varianza fuera de tolerancia → se cortó el flujo después de
+    // persistir la identidad fiscal, para no dejar un CFDI huérfano.
+    if (hasVariance) {
+      return json(
+        {
+          error: varianceMessage ??
+            "Stamp variance exceeds tolerance; invoice not stamped",
+          cfdi_uuid: cfdiUuid,
+        },
+        502,
+        jsonHeaders,
+      );
+    }
+
+
 
     // Folio diferido: si el invoice_number todavía es placeholder BORRADOR-XXXX
     // y Facturapi devolvió folio, promovemos el invoice_number a FAC-<folio>.
