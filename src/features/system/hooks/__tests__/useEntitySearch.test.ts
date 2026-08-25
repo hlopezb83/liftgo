@@ -43,3 +43,16 @@ describe("searchEntities", () => {
     expect(res.bookings[0]).toMatchObject({ label: "RSV-0007", url: "/bookings/b1" });
   });
 });
+
+describe("searchEntities — filtros M-3", () => {
+  it("excluye cancelados y clientes eliminados", async () => {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const inv = supabase.from("invoices") as unknown as Record<string, ReturnType<typeof vi.fn>>;
+    const cust = supabase.from("customers") as unknown as Record<string, ReturnType<typeof vi.fn>>;
+    const book = supabase.from("bookings") as unknown as Record<string, ReturnType<typeof vi.fn>>;
+    await searchEntities("ACME");
+    expect(inv.neq).toHaveBeenCalledWith("status", "cancelled");
+    expect(book.neq).toHaveBeenCalledWith("status", "cancelled");
+    expect(cust.is).toHaveBeenCalledWith("deleted_at", null);
+  });
+});
