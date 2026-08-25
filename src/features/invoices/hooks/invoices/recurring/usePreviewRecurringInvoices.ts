@@ -20,6 +20,9 @@ export interface RecurringPreviewLine {
   monthlyRate: number;
   // BL-12: monto real a facturar (prorrateado en el primer ciclo si aplica).
   billedAmount: number;
+  // M-13: tasa de IVA del cliente (0–100, porcentaje) devuelta por el edge
+  // (customer.tax_rate; frontera 8%, exento 0%). null/undefined ⇒ DEFAULT_VAT_RATE.
+  taxRate?: number | null;
   isProrated: boolean;
   proratedDays?: number;
   eligible: boolean;

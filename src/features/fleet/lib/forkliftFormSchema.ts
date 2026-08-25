@@ -33,6 +33,13 @@ export const forkliftFormSchema = z
         ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["year"], message: `Año debe estar entre 1980 y ${CURRENT_YEAR + 1}` });
       }
     }
+    // L-7: rango razonable 2000–2100 para la vigencia del seguro.
+    if (data.insurance_expiry) {
+      const expiryYear = new Date(data.insurance_expiry).getFullYear();
+      if (!Number.isFinite(expiryYear) || expiryYear < 2000 || expiryYear > 2100) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["insurance_expiry"], message: "Vigencia del seguro debe estar entre los años 2000 y 2100" });
+      }
+    }
     if (data.capacity_kg) {
       const n = Number(data.capacity_kg);
       if (!Number.isFinite(n) || n <= 0 || n > 100_000) {

@@ -1,7 +1,9 @@
 
 import { toYMD } from "@/lib/date/toYMD";
-import { toMxn } from "@/lib/money";
+import { sumMoney, toMxn } from "@/lib/money";
 import { nowMty } from "@/lib/utils";
+// M-14c: patrón isFxMissing del cash-flow para docs sin tipo de cambio.
+import { isFxMissing } from "@/features/cash-flow/lib/cashFlowTransformers";
 import { useSupplierBills } from "./useSupplierBills";
 
 export interface AgingRow {
@@ -50,6 +52,9 @@ export function useAgingReport() {
       const balance = toMxn(Number(b.balance), b.currency, b.exchange_rate);
       // R12-FE-08 (P2 r11): la antigüedad excluye también borradores.
       if (b.status === "cancelled" || b.status === "draft" || balance <= 0) continue;
+      // M-14c: moneda foránea sin TC válido ⇒ toMxn devolvió el monto 1:1;
+      // envejecerlo distorsiona la cartera. Se excluye del reporte.
+      if (isFxMissing(b.currency, b.exchange_rate)) continue;
       const supplierId = b.supplier_id ?? "sin-proveedor";
       const supplierName = b.suppliers?.name ?? "Sin proveedor";
       const row = byId.get(supplierId) ?? {
@@ -57,22 +62,24 @@ export function useAgingReport() {
         current: 0, d1_30: 0, d31_60: 0, d61_90: 0, d90_plus: 0, total: 0,
       };
 
-      const due = b.due_date ?? b.issue_date;
-      const key = bucketKey(diffDays(todayYmd, due));
-      row[key] += balance;
-      row.total += balance;
+      // M-14a: sin due_date la factura es "Corriente" — envejecer desde
+      // issue_date inflaba artificialmente los buckets vencidos.
+      const key = b.due_date ? bucketKey(diffDays(todayYmd, b.due_date)) : "current";
+      // M-14b: acumular con sumMoney (centavos) sin drift IEEE-754.
+      row[key] = sumMoney([row[key], balance]);
+      row.total = sumMoney([row.total, balance]);
       byId.set(supplierId, row);
     }
 
     const rows = Array.from(byId.values()).sort((a, b) => b.total - a.total);
     const totals: AgingTotals = rows.reduce<AgingTotals>(
       (acc, r) => ({
-        current: acc.current + r.current,
-        d1_30: acc.d1_30 + r.d1_30,
-        d31_60: acc.d31_60 + r.d31_60,
-        d61_90: acc.d61_90 + r.d61_90,
-        d90_plus: acc.d90_plus + r.d90_plus,
-        total: acc.total + r.total,
+        current: sumMoney([acc.current, r.current]),
+        d1_30: sumMoney([acc.d1_30, r.d1_30]),
+        d31_60: sumMoney([acc.d31_60, r.d31_60]),
+        d61_90: sumMoney([acc.d61_90, r.d61_90]),
+        d90_plus: sumMoney([acc.d90_plus, r.d90_plus]),
+        total: sumMoney([acc.total, r.total]),
       }),
       EMPTY_TOTALS,
     );
@@ -80,5 +87,6 @@ export function useAgingReport() {
     return { rows, totals };
   })();
 
-  return { rows, totals, isLoading, isError, refetch };
+  // rawBills: lista cruda (limit+1) para ListTruncationNotice en la página (H-10b).
+  return { rows, totals, rawBills: data, isLoading, isError, refetch };
 }

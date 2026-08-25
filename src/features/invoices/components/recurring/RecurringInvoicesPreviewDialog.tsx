@@ -4,7 +4,7 @@ import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButto
 import { Button } from "@/components/ui/button";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatMonthLongEs } from "@/lib/format/formatMonthEs";
-import { applyVat } from "@/lib/money";
+import { applyVat, DEFAULT_VAT_RATE, sumMoney } from "@/lib/money";
 import { RecurringPreviewBody } from "./RecurringPreviewBody";
 import type {
   RecurringPreviewLine,
@@ -25,6 +25,12 @@ function periodTitle(period: string | null): string {
   const [y, m] = period.split("-").map(Number);
   if (!y || !m) return "Vista previa";
   return `Vista previa — ${formatMonthLongEs(new Date(y, m - 1, 1))}`;
+}
+
+/** M-13: tasa de IVA de la línea como fracción (0.16 por defecto). */
+function vatRateFor(line: RecurringPreviewLine): number {
+  const pct = Number(line.taxRate);
+  return Number.isFinite(pct) && pct >= 0 && pct <= 100 ? pct / 100 : DEFAULT_VAT_RATE;
 }
 
 export function RecurringInvoicesPreviewDialog({
@@ -59,9 +65,13 @@ export function RecurringInvoicesPreviewDialog({
   }
   const groups = Array.from(groupMap.entries()).sort((a, b) => a[0].localeCompare(b[0], "es"));
 
-  const totalSelected = lines
-    .filter((l) => selected.has(l.bookingId))
-    .reduce((acc, l) => acc + applyVat(l.billedAmount), 0);
+  // M-13: IVA por línea con la tasa del cliente (customer.tax_rate) en vez de
+  // 16% fijo, y acumulación con sumMoney (centavos) — sin drift de centavos.
+  const totalSelected = sumMoney(
+    lines
+      .filter((l) => selected.has(l.bookingId))
+      .map((l) => applyVat(l.billedAmount, vatRateFor(l))),
+  );
 
   const toggle = (id: string) => {
     setSelected((prev) => {

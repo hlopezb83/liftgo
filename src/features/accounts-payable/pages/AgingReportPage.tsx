@@ -1,4 +1,5 @@
 import { EmptyState } from "@/components/feedback/EmptyState";
+import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { TableSkeleton } from "@/components/feedback/TableSkeleton";
 import { DownloadIcon, FileClock } from "@/components/icons";
@@ -20,7 +21,7 @@ const COLS: { key: keyof import("../hooks/useAgingReport").AgingRow; label: stri
 ];
 
 export default function AgingReportPage() {
-  const { rows, totals, isLoading, isError, refetch } = useAgingReport();
+  const { rows, totals, rawBills, isLoading, isError, refetch } = useAgingReport();
 
   const overduePct = totals.total > 0
     ? ((totals.d1_30 + totals.d31_60 + totals.d61_90 + totals.d90_plus) / totals.total) * 100
@@ -55,6 +56,9 @@ export default function AgingReportPage() {
         }
       />
 
+
+      {/* H-10b: avisar cuando la lista cruda está truncada (limit+1). */}
+      <ListTruncationNotice rows={rawBills} />
 
       {/* A4-02: nunca renderizar KPIs en $0 cuando la query falló (falso-cero
           financiero, mismo patrón que FE3-04 en InvoicesReconciliation). */}
