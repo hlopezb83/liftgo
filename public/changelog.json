@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.335.0",
+    "date": "2026-08-25",
+    "type": "minor",
+    "title": "Protección forward-only contra facturas de reserva sin periodo (H-6)",
+    "description": "Las facturas nuevas vinculadas a una reserva deben llevar un periodo de facturación; así el índice de duplicados las distingue de la mensualidad recurrente sin tocar el historial.",
+    "changes": [
+      "H-6: trigger BEFORE INSERT/UPDATE enforce_invoice_booking_period bloquea facturas con reserva y billing_period_start nulo; exime a roles de backend (postgres, service_role) para no romper la facturación recurrente ni los seeds e2e.",
+      "H-6: el formulario de factura exige el periodo en el esquema Zod cuando hay reserva y lo auto-llena con el mes de la fecha de emisión al ligar la reserva.",
+      "H-6: al facturar una extensión, el periodo se toma del tramo extendido (no del mes de emisión) para coincidir con los días cobrados.",
+      "H-6: la tarjeta de detalles muestra dos campos de periodo (inicio/fin) visibles solo cuando la factura tiene reserva.",
+      "H-6: nueva suite de humo SQL h6_invoice_period_smoke.sql que verifica el bloqueo como rol authenticated y permite los casos con periodo y sin reserva."
+    ]
+  },
+  {
     "version": "7.334.0",
     "date": "2026-08-25",
     "type": "minor",
