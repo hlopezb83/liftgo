@@ -1,9 +1,9 @@
 
+// M-14c: patrón isFxMissing del cash-flow para docs sin tipo de cambio.
+import { isFxMissing } from "@/features/cash-flow/lib/cashFlowTransformers";
 import { toYMD } from "@/lib/date/toYMD";
 import { sumMoney, toMxn } from "@/lib/money";
 import { nowMty } from "@/lib/utils";
-// M-14c: patrón isFxMissing del cash-flow para docs sin tipo de cambio.
-import { isFxMissing } from "@/features/cash-flow/lib/cashFlowTransformers";
 import { useSupplierBills } from "./useSupplierBills";
 
 export interface AgingRow {
