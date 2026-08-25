@@ -49,7 +49,7 @@ export function useCustomerDetailActions({ id, expectedVersion, setInviteOpen, s
 
   const handleEditSubmit = (form: CustomerFormData) => {
     if (!id) return;
-    updateCustomer.mutate({ id, ...customerFormToUpdate(form) }, {
+    updateCustomer.mutate({ id, expectedVersion, ...customerFormToUpdate(form) }, {
       onSuccess: () => { notifySuccess("Cliente actualizado"); setEditOpen(false); },
     });
   };
