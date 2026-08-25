@@ -1591,6 +1591,30 @@ export type Database = {
           },
         ]
       }
+      fiscal_periods: {
+        Row: {
+          closed_at: string | null
+          closed_by: string | null
+          created_at: string
+          period: string
+          updated_at: string
+        }
+        Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          period: string
+          updated_at?: string
+        }
+        Update: {
+          closed_at?: string | null
+          closed_by?: string | null
+          created_at?: string
+          period?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       forklifts: {
         Row: {
           acquisition_cost: number | null
@@ -2355,6 +2379,7 @@ export type Database = {
       payments: {
         Row: {
           amount: number
+          amount_mxn: number | null
           created_at: string
           created_by: string | null
           currency: string
@@ -2386,6 +2411,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          amount_mxn?: number | null
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -2417,6 +2443,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          amount_mxn?: number | null
           created_at?: string
           created_by?: string | null
           currency?: string
@@ -4076,6 +4103,10 @@ export type Database = {
         }[]
       }
       get_sidebar_badge_counts: { Args: never; Returns: Json }
+      guard_fiscal_period_open: {
+        Args: { _date: string; _table_name: string }
+        Returns: undefined
+      }
       has_active_rental: { Args: { p_forklift_id: string }; Returns: boolean }
       has_open_rental: { Args: { p_forklift_id: string }; Returns: boolean }
       has_permission: {
