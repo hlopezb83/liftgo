@@ -11,14 +11,24 @@ export interface InvoiceWithBalance {
   total: number;
   paid_amount: number;
   balance: number;
-  /** Saldo convertido a MXN vía tipo_cambio de la factura (view v_invoices_with_balance). */
-  balance_mxn: number;
+  /**
+   * Saldo convertido a MXN vía tipo_cambio de la factura
+   * (view `v_invoices_with_balance`).
+   *
+   * H-2: es `null` cuando la factura está en divisa y no tiene tipo de cambio
+   * capturado. NO usar `balance` como respaldo — eso volvería a sumar USD
+   * como si fueran pesos. Los agregadores deben excluir estas filas.
+   */
+  balance_mxn: number | null;
+  /** H-2: factura en divisa sin tipo de cambio capturado. */
+  fx_missing: boolean;
   due_date: string | null;
   issued_at: string;
   booking_id: string | null;
   moneda: string | null;
   tipo_cambio: number | null;
 }
+
 
 interface Filter {
   /** Estados a incluir. Default: ['sent','partial','overdue']. */
