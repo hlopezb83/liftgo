@@ -17,8 +17,10 @@ const CUSTOMER_LIST_COLUMNS = sel(
   "id, name, company, rfc, email, phone, contact_person, address, razon_social, regimen_fiscal, uso_cfdi, domicilio_fiscal_cp, representante_legal"
 );
 
+// M-11a: `version` es indispensable para el bloqueo optimista del formulario
+// de edición (trigger `bump_version_optimistic` la incrementa en cada UPDATE).
 const CUSTOMER_DETAIL_COLUMNS = sel(
-  "id, name, company, email, phone, address, notes, website, contact_person, rfc, regimen_fiscal, uso_cfdi, domicilio_fiscal_cp, representante_legal, tax_id, user_id, created_at, updated_at"
+  "id, name, company, email, phone, address, notes, website, contact_person, rfc, regimen_fiscal, uso_cfdi, domicilio_fiscal_cp, representante_legal, tax_id, user_id, version, created_at, updated_at"
 );
 
 export type Customer = Tables<"customers">;
