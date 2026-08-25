@@ -8,7 +8,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { CREDIT_NOTE_MOTIVE_LABELS as MOTIVE_LABELS } from "@/features/invoices/lib/creditNoteMotives";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { sumMoney } from "@/lib/money";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { formatDateDisplay } from "@/lib/utils";
 import {
