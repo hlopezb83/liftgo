@@ -638,6 +638,22 @@ export async function handleStampCfdi(
       );
     }
 
+    // C-1: varianza fuera de tolerancia → se cortó el flujo después de
+    // persistir la identidad fiscal, para no dejar un CFDI huérfano.
+    if (hasVariance) {
+      return json(
+        {
+          error: varianceMessage ??
+            "Stamp variance exceeds tolerance; invoice not stamped",
+          cfdi_uuid: cfdiUuid,
+        },
+        502,
+        jsonHeaders,
+      );
+    }
+
+
+
     // Folio diferido: si el invoice_number todavía es placeholder BORRADOR-XXXX
     // y Facturapi devolvió folio, promovemos el invoice_number a FAC-<folio>.
     // Facturapi es la fuente de verdad para mantener 1:1 con su serie.
