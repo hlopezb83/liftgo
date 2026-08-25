@@ -79,7 +79,10 @@ Deno.serve(async (req) => {
     if (createErr) {
       const msg = createErr.message || "";
       const status = /already|registered|exists/i.test(msg) ? 409 : 400;
-      return jsonError(req, status, msg || "No se pudo crear el usuario");
+      // M-16b: no exponer el mensaje crudo de Auth; solo el status distingue
+      // el caso "ya existe" (409) para la interfaz.
+      console.error("[invite-user] createUser:", createErr);
+      return jsonError(req, status, "No se pudo procesar la solicitud");
     }
 
     const userId = newUser.user.id;

@@ -80,3 +80,30 @@ describe("R10-FE-03b · periodicidad de la tarifa legacy", () => {
     expect(l.monthlyRate).toBe(0);
   });
 });
+
+// M-10: `rate_type` explícito manda sobre la heurística legacy.
+describe("M-10: rate_type explícito en line_items", () => {
+  const models = [{ id: "m1", manufacturer: "Cat", model: "MCAPC025A048" }];
+  const withRateType = (rateType: string, description: string): ExistingQuote => ({
+    id: "q1", quote_type: "rental", customer_id: "c1", customer_name: "ACME",
+    start_date: "2026-01-01", end_date: "2026-02-01", tax_rate: 16, currency: "MXN",
+    line_items: [{ description, quantity: 1, unit_price: 20000, total: 20000, rate_type: rateType }],
+  });
+
+  it("usa dailyRate aunque la descripción diga mensual", () => {
+    const l = buildPrefillValues(withRateType("daily", "Equipo — Renta mensual"), models).rentalLines[0];
+    expect(l.dailyRate).toBe(20000);
+    expect(l.monthlyRate).toBe(0);
+  });
+
+  it("usa weeklyRate cuando rate_type es weekly", () => {
+    const l = buildPrefillValues(withRateType("weekly", "Renta montacargas"), models).rentalLines[0];
+    expect(l.weeklyRate).toBe(20000);
+    expect(l.dailyRate).toBe(0);
+  });
+
+  it("usa monthlyRate cuando rate_type es monthly", () => {
+    const l = buildPrefillValues(withRateType("monthly", "Renta montacargas"), models).rentalLines[0];
+    expect(l.monthlyRate).toBe(20000);
+  });
+});

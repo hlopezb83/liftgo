@@ -81,14 +81,33 @@ function legacyQty(item: LineItem): number | undefined {
  * casi seguro mensual (COT-0001 / COT-0005). En cualquier otro caso se
  * mantiene el comportamiento previo (diaria).
  */
+type RentalRateField = "dailyRate" | "weeklyRate" | "monthlyRate";
+
+/**
+ * M-10: lee el `rate_type` explícito persistido en la partida (line_items).
+ * Cuando existe, es la fuente de verdad y evita la heurística legacy.
+ * Las partidas históricas (sin `rate_type`) siguen usando el fallback.
+ */
+function explicitRateField(item?: { rate_type?: unknown } | null): RentalRateField | undefined {
+  const rt = item?.rate_type;
+  if (rt === "daily" || rt === "dailyRate") return "dailyRate";
+  if (rt === "weekly" || rt === "weeklyRate") return "weeklyRate";
+  if (rt === "monthly" || rt === "monthlyRate") return "monthlyRate";
+  return undefined;
+}
+
 export function rentalRateField(
   description?: string | null,
-  item?: { unit_price?: number | null; total?: number | null },
+  item?: { unit_price?: number | null; total?: number | null; rate_type?: unknown },
   rentalDays?: number,
-): "dailyRate" | "weeklyRate" | "monthlyRate" {
+): RentalRateField {
+  // M-10: `rate_type` explícito tiene prioridad sobre las heurísticas.
+  const explicit = explicitRateField(item);
+  if (explicit) return explicit;
   const d = (description ?? "").toLowerCase();
   if (d.includes("mensual") || d.includes("/mes")) return "monthlyRate";
   if (d.includes("semanal") || d.includes("/semana")) return "weeklyRate";
+
   const unit = item?.unit_price;
   const total = item?.total;
   if (

@@ -33,6 +33,7 @@ function buildDailyRemainder(
       quantity: remaining,
       unit_price: dailyRate,
       total: money(dailyRate).multiply(remaining).value,
+      rate_type: "daily",
     };
   }
   let fallback: currency | null = null;
@@ -44,6 +45,7 @@ function buildDailyRemainder(
     quantity: remaining,
     unit_price: fallback.value,
     total: fallback.multiply(remaining).value,
+    rate_type: "daily",
   };
 }
 
@@ -55,6 +57,7 @@ function monthlyItems(monthlyRate: number, months: number): LineItem[] {
       quantity: months,
       unit_price: monthlyRate,
       total: money(monthlyRate).multiply(months).value,
+      rate_type: "monthly",
     },
   ];
 }
@@ -123,6 +126,7 @@ export function calculateRentalCost(
       quantity: weeks,
       unit_price: w,
       total: money(w).multiply(weeks).value,
+      rate_type: "weekly",
     });
     remaining -= weeks * DAYS_PER_WEEK;
   }
@@ -151,6 +155,7 @@ export function calculateRentalCost(
           quantity: remainderTotalDays,
           unit_price: money(cappedTotal).divide(remainderTotalDays).value,
           total: cappedTotal,
+          rate_type: "monthly",
         });
       } else {
         items.push({
@@ -158,6 +163,7 @@ export function calculateRentalCost(
           quantity: 1,
           unit_price: m,
           total: m,
+          rate_type: "monthly",
         });
       }
     } else {

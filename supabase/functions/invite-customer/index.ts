@@ -56,7 +56,11 @@ Deno.serve(async (req) => {
         user_metadata: { full_name: customer.name },
       });
 
-    if (createErr) return jsonError(req, 400, createErr.message);
+    if (createErr) {
+      // M-16b: mensaje genérico al cliente; el error crudo queda en el log.
+      console.error("[invite-customer] createUser:", createErr);
+      return jsonError(req, 400, "No se pudo procesar la solicitud");
+    }
 
     const userId = newUser.user.id;
 
