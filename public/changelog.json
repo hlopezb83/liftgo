@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.340.0",
+    "date": "2026-08-25",
+    "type": "minor",
+    "title": "Periodos fiscales cerrados, tipo de cambio congelado y descuentos que no se pierden (M-1 a M-4, M-9)",
+    "changes": [
+      "M-1: se pueden cerrar periodos fiscales (AAAA-MM); una vez cerrados, el sistema rechaza facturas emitidas o pagos registrados con fecha dentro de ese periodo. Sólo los administradores cierran o reabren periodos.",
+      "M-2a: el tipo de cambio de una factura queda congelado en cuanto está timbrada o ya tiene pagos registrados.",
+      "M-2b: cada pago guarda su importe equivalente en pesos, calculado con el tipo de cambio de la factura y actualizado si se edita el pago.",
+      "M-3: la búsqueda global ya no muestra facturas ni reservas canceladas, ni clientes eliminados.",
+      "M-4: la fecha de un pago no puede estar a más de 7 días en el futuro (hora de Monterrey) ni ser anterior a la emisión de su factura.",
+      "M-9: en cotizaciones, un descuento fijo en pesos se reparte en cascada entre las partidas de renta generadas (mensual, semanal y diaria) en vez de perder el remanente en la primera partida."
+    ],
+    "description": "Se agrega el cierre de periodos fiscales, se congela el tipo de cambio de facturas timbradas o con pagos, se validan las fechas de pago, se limpia la búsqueda global y el descuento fijo de cotizaciones se distribuye correctamente."
+  },
+  {
     "version": "7.339.0",
     "date": "2026-08-25",
     "type": "minor",

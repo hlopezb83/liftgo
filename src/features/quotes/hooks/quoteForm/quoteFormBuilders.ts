@@ -1,5 +1,5 @@
 import { generateLineItemsFromModel, type LineItem } from "@/lib/domain/invoiceHelpers";
-import { lineItemTotal } from "@/lib/domain/invoiceTotals";
+import { lineItemTotal, money } from "@/lib/domain/invoiceTotals";
 import { toYMD } from "@/lib/format/dateFormats";
 
 export type EquipmentModel = { id: string; manufacturer: string; model: string };
@@ -21,6 +21,34 @@ export function buildSaleItems(lines: SaleLine[], models: EquipmentModel[]): Lin
         discount_type: l.discountType || "%",
       };
     });
+}
+
+/**
+ * M-9: el descuento fijo "$" es por línea de renta, no por partida. Antes se
+ * aplicaba solo a la primera partida y el remanente se perdía cuando esa
+ * partida no lo absorbía entera. Ahora se distribuye en cascada: cada partida
+ * absorbe hasta su propio total hasta agotar el descuento. Los "%" son
+ * porcentuales y sí aplican a cada partida.
+ */
+function applyLineDiscount(line: RentalLine, generated: LineItem[]): void {
+  const discount = line.discount && line.discount > 0 ? line.discount : 0;
+  if (discount === 0) return;
+  if (line.discountType !== "$") {
+    for (const item of generated) {
+      item.discount = discount;
+      item.discount_type = line.discountType;
+    }
+    return;
+  }
+  let remaining = discount;
+  for (const item of generated) {
+    if (remaining <= 0) break;
+    // Nunca descontar más que el total de la partida (clamp a 0).
+    const applied = Math.min(remaining, item.total || 0);
+    item.discount = money(applied).value;
+    item.discount_type = "$";
+    remaining = money(remaining).subtract(applied).value;
+  }
 }
 
 export function buildRentalItems(
@@ -52,18 +80,8 @@ export function buildRentalItems(
       modelName, line.dailyRate, line.weeklyRate, line.monthlyRate,
       toYMD(startDate), toYMD(endDate), line.quantity,
     );
-    for (const [index, item] of generated.entries()) {
-      // El descuento fijo "$" es por línea de renta, no por partida: copiarlo a
-      // cada partida generada (mensual+semanal+diaria) hacía que computeTotals
-      // lo descontara N veces. Se aplica solo a la primera partida, igual que la
-      // vista previa. Los "%" son porcentuales y sí aplican a cada partida.
-      const appliesToItem = line.discountType !== "$" || index === 0;
-      if (line.discount && line.discount > 0 && appliesToItem) {
-        item.discount = line.discount;
-        item.discount_type = line.discountType;
-      }
-      items.push(item);
-    }
+    applyLineDiscount(line, generated);
+    items.push(...generated);
   }
   return items;
 }

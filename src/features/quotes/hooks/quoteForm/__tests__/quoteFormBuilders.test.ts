@@ -77,3 +77,36 @@ describe("buildRentalItems", () => {
     expect(buildRentalItems([], models, start, end)).toEqual([]);
   });
 });
+
+describe("buildRentalItems — descuento fijo en cascada (M-9)", () => {
+  const start = new Date(2026, 2, 1);
+  const end = new Date(2026, 3, 10); // ~1 mes + 1 semana + días
+
+  it("reparte el descuento $ entre partidas hasta agotarlo", () => {
+    const lines: RentalLine[] = [
+      { modelId: "m1", quantity: 1, dailyRate: 100, weeklyRate: 500, monthlyRate: 1800, discount: 2000, discountType: "$" },
+    ];
+    const items = buildRentalItems(lines, models, start, end);
+    expect(items.length).toBeGreaterThan(1);
+    const totalDiscount = items.reduce((acc, it) => acc + (it.discount ?? 0), 0);
+    // Nunca se descuenta más que el descuento pedido ni más que el total de cada partida.
+    expect(totalDiscount).toBeLessThanOrEqual(2000);
+    for (const it of items) {
+      expect(it.discount ?? 0).toBeLessThanOrEqual(it.total ?? 0);
+    }
+    // Se aprovecha más de una partida cuando la primera no absorbe todo.
+    const conDescuento = items.filter((it) => (it.discount ?? 0) > 0);
+    expect(conDescuento.length).toBeGreaterThan(1);
+    expect(conDescuento.every((it) => it.discount_type === "$")).toBe(true);
+  });
+
+  it("no excede el total de una sola partida cuando el descuento es pequeño", () => {
+    const lines: RentalLine[] = [
+      { modelId: "m1", quantity: 1, dailyRate: 100, weeklyRate: 500, monthlyRate: 1800, discount: 300, discountType: "$" },
+    ];
+    const items = buildRentalItems(lines, models, start, end);
+    const conDescuento = items.filter((it) => (it.discount ?? 0) > 0);
+    expect(conDescuento).toHaveLength(1);
+    expect(conDescuento[0].discount).toBe(300);
+  });
+});

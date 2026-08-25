@@ -46,21 +46,25 @@ export async function searchEntities(query: string): Promise<EntityResults> {
   if (q.length < 2) return EMPTY;
   const like = `%${q}%`;
   const [invRes, custRes, bookRes] = await Promise.all([
+    // M-3: no mostrar documentos cancelados ni clientes eliminados.
     supabase
       .from("invoices")
       .select("id, invoice_number, customer_name, total")
+      .neq("status", "cancelled")
       .or(`invoice_number.ilike.${like},customer_name.ilike.${like}`)
       .order("created_at", { ascending: false })
       .limit(5),
     supabase
       .from("customers")
       .select("id, name, rfc")
+      .is("deleted_at", null)
       .or(`name.ilike.${like},rfc.ilike.${like}`)
       .order("name")
       .limit(5),
     supabase
       .from("bookings")
       .select("id, booking_number, customer_name")
+      .neq("status", "cancelled")
       .or(`booking_number.ilike.${like},customer_name.ilike.${like}`)
       .order("created_at", { ascending: false })
       .limit(5),

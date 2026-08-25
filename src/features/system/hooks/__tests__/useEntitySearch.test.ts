@@ -4,7 +4,7 @@ vi.mock("@/integrations/supabase/client", () => {
   const build = (data: unknown) => {
     const chain: Record<string, unknown> = {};
     const ret = { data, error: null };
-    ["select", "or", "order", "limit"].forEach((k) => {
+    ["select", "or", "order", "limit", "neq", "is"].forEach((k) => {
       chain[k] = vi.fn(() => (k === "limit" ? Promise.resolve(ret) : chain));
     });
     return chain;
@@ -12,14 +12,14 @@ vi.mock("@/integrations/supabase/client", () => {
   const invoices = [{ id: "i1", invoice_number: "FAC-0001", customer_name: "ACME" }, { id: "i2", invoice_number: null, customer_name: null }];
   const customers = [{ id: "c1", name: "Cliente Uno", rfc: "AAA010101AAA" }];
   const bookings = [{ id: "b1", booking_number: "RSV-0007", customer_name: "ACME" }];
+  const cache: Record<string, Record<string, unknown>> = {
+    invoices: build(invoices),
+    customers: build(customers),
+    bookings: build(bookings),
+  };
   return {
     supabase: {
-      from: (table: string) => {
-        if (table === "invoices") return build(invoices);
-        if (table === "customers") return build(customers);
-        if (table === "bookings") return build(bookings);
-        return build([]);
-      },
+      from: (table: string) => cache[table] ?? build([]),
     },
   };
 });
@@ -41,5 +41,18 @@ describe("searchEntities", () => {
     expect(res.invoices[1].label).toBe("—");
     expect(res.customers[0]).toMatchObject({ label: "Cliente Uno", sub: "AAA010101AAA", url: "/customers/c1" });
     expect(res.bookings[0]).toMatchObject({ label: "RSV-0007", url: "/bookings/b1" });
+  });
+});
+
+describe("searchEntities — filtros M-3", () => {
+  it("excluye cancelados y clientes eliminados", async () => {
+    const { supabase } = await import("@/integrations/supabase/client");
+    const inv = supabase.from("invoices") as unknown as Record<string, ReturnType<typeof vi.fn>>;
+    const cust = supabase.from("customers") as unknown as Record<string, ReturnType<typeof vi.fn>>;
+    const book = supabase.from("bookings") as unknown as Record<string, ReturnType<typeof vi.fn>>;
+    await searchEntities("ACME");
+    expect(inv.neq).toHaveBeenCalledWith("status", "cancelled");
+    expect(book.neq).toHaveBeenCalledWith("status", "cancelled");
+    expect(cust.is).toHaveBeenCalledWith("deleted_at", null);
   });
 });
