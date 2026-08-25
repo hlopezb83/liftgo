@@ -13,6 +13,8 @@ export const QUOTE_STATUS_LABELS: Record<string, string> = {
   // orden del spread global.
   rejected: "Rechazada",
   cancelled: "Cancelada",
+  // M-8: la cotización ya generó sus reservas.
+  converted: "Convertida",
 };
 
 export const quoteStatusLabel = (status: string): string =>
