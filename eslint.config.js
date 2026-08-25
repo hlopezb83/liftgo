@@ -15,6 +15,9 @@ export default tseslint.config(
       "dist",
       "src/components/ui/**",
       "src/integrations/supabase/types.ts",
+      // Archivos auto-generados por la plataforma. No se editan manualmente.
+      "src/integrations/supabase/client.ts",
+      "src/integrations/supabase/previewAuthStorage.ts",
       "supabase/functions/**",
       "scripts/**",
       // Scripts locales de auditoría visual (no forman parte del bundle).

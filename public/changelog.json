@@ -1,5 +1,15 @@
 [
   {
+    "version": "7.332.1",
+    "date": "2026-08-25",
+    "type": "patch",
+    "title": "Ignorar archivos auto-generados de Supabase en ESLint",
+    "description": "Se añadieron client.ts y previewAuthStorage.ts a los ignores de ESLint para evitar errores de lint en archivos auto-generados por la plataforma.",
+    "changes": [
+      "Añadidos src/integrations/supabase/client.ts y previewAuthStorage.ts al bloque ignores de eslint.config.js."
+    ]
+  },
+  {
     "version": "7.332.0",
     "date": "2026-08-19",
     "type": "minor",
