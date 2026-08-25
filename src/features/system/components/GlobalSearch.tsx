@@ -125,6 +125,15 @@ export function GlobalSearch() {
             </div>
           </CommandEmpty>
 
+          {/* L-6a: fallo parcial de una sección — avisar en vez de mostrarla
+              vacía como si no hubiera coincidencias. */}
+          {failedSections.length > 0 && (
+            <div className="px-3 py-2 text-xs text-warning" role="status">
+              No se pudo buscar en: {failedSections.join(", ")}. Intenta de nuevo.
+            </div>
+          )}
+
+
           {hasEntities && entities.invoices.length > 0 && (
             <CommandGroup heading="Facturas">
               {entities.invoices.map((e) => (
