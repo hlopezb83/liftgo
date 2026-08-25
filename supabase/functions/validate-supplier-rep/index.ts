@@ -29,6 +29,31 @@ function extractAllAttr(xml: string, tag: string, attr: string): string[] {
   return out;
 }
 
+// L-8: chequeo estructural mínimo de XML bien formado (balance de tags) antes
+// de cualquier parseo por regex: evita extraer datos de un XML truncado o
+// corrupto que el regex aceptaría silenciosamente.
+export function isWellFormedXml(xml: string): boolean {
+  if (!/^\s*</.test(xml)) return false;
+  const stack: string[] = [];
+  const re = /<(\/?)([a-zA-Z_][\w.-]*(?::[\w.-]+)?)((?:"[^"]*"|'[^']*'|[^"'<>])*?)(\/?)>/g;
+  let m: RegExpExecArray | null;
+  let sawRoot = false;
+  while ((m = re.exec(xml)) !== null) {
+    const closing = m[1];
+    const name = m[2];
+    const selfClose = m[4];
+    if (closing) {
+      if (stack.pop() !== name) return false;
+    } else if (!selfClose) {
+      stack.push(name);
+      sawRoot = true;
+    } else {
+      sawRoot = true;
+    }
+  }
+  return sawRoot && stack.length === 0;
+}
+
 // Encuentra TODOS los nodos cfdi/pago Pago para extraer Monto/Fecha y sus DoctoRelacionado
 function extractPagoNodes(
   xml: string,
@@ -139,7 +164,16 @@ Deno.serve(async (req) => {
       return jsonError(req, 400, "XML inválido (base64)");
     }
 
+    if (!isWellFormedXml(xmlText)) {
+      return jsonError(
+        req,
+        400,
+        "XML malformado: el documento no está bien formado (tags desbalanceados o truncado)",
+      );
+    }
+
     // Validaciones
+
     const tipo = extractAttr(xmlText, "Comprobante", "TipoDeComprobante");
     if (tipo !== "P") {
       return jsonError(
