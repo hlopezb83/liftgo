@@ -1,3 +1,12 @@
+## 7.342.0 - 2026-08-25
+
+**Factura sin cliente bloqueada, notas de crédito sin borradores huérfanos y XML validado (L-1, L-3, L-8, M-17a)**
+
+- L-1: una factura puede guardarse como borrador sin cliente, pero al pasar a cualquier otro estado el sistema exige que tenga cliente asignado y lo avisa con un mensaje claro.
+- L-3: si falla el timbrado de una nota de crédito recién creada, el borrador se elimina automáticamente para no dejar registros huérfanos ni consumir folios.
+- L-8: los complementos de pago de proveedor se rechazan si el XML viene truncado o con etiquetas desbalanceadas, en vez de leerse a medias.
+- M-17a: se agrega un archivo de datos iniciales de demostración para entornos locales y de pruebas.
+
 ## 7.336.0 - 2026-08-25
 
 **Reportes financieros con notas de crédito, cobros reales y control de tipo de cambio**
