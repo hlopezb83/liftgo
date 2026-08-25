@@ -61,31 +61,14 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
   const refreshCancelMutation = useRefreshCreditNoteCancellationStatus();
   const confirm = useConfirm();
 
-  // B-7: sumas monetarias con sumMoney (sin drift IEEE-754) y comparación con
-  // epsilon de medio centavo (convención del repo, ver cashFlowTransformers).
-  const activeCredits = sumMoney(
-    creditNotes
-      .filter((cn) => cn.cfdi_status === "stamped" && cn.cancellation_status !== "accepted" && cn.status !== "cancelled")
-      .map((cn) => Number(cn.total)),
-  );
-  const draftCredits = sumMoney(
-    creditNotes
-      .filter((cn) => cn.status === "draft")
-      .map((cn) => Number(cn.total)),
-  );
+  const {
+    activeCredits, draftCredits, repBacked, repPayments, otherPaid,
+    maxCreditable, blockedByReps, willCreateCredit,
+  } = computeCreditNoteLimits(Number(invoice.total), creditNotes, payments);
 
-  // H-5: los pagos con REP timbrado y vigente sí topan la NC (ver
-  // computeMaxCreditable y el disparador enforce_credit_note_max).
-  const repPayments = repBackedPayments(payments);
-  const repBacked = sumRepBackedPayments(payments);
-  const otherPaid = sumMoney(
-    payments.filter((p) => !isRepBacked(p)).map((p) => Number(p.amount) || 0),
-  );
-
-  const maxCreditable = computeMaxCreditable(Number(invoice.total), activeCredits, draftCredits, repBacked);
   const canCreate = invoice.cfdi_status === "stamped" && invoice.status !== "cancelled" && maxCreditable > 0.005;
-  const blockedByReps = repBacked > 0.005 && maxCreditable <= 0.005;
-  const willCreateCredit = otherPaid > 0.005 && maxCreditable > 0.005;
+
+
 
 
   if (creditNotes.length === 0 && !canCreate && !blockedByReps) return null;
