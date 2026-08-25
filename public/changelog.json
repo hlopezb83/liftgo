@@ -1,5 +1,22 @@
 [
   {
+    "version": "7.339.0",
+    "date": "2026-08-25",
+    "type": "minor",
+    "title": "Antigüedad de saldos correcta, IVA real en recurrentes y listas con aviso (H-10, M-13, M-14, L-7)",
+    "changes": [
+      "M-14a: las facturas de proveedor sin fecha de vencimiento se clasifican como 'Corriente' en lugar de aparecer vencidas por su fecha de emisión.",
+      "M-14b: los buckets y totales de antigüedad se suman en centavos, sin desviaciones por decimales.",
+      "M-14c: las facturas en moneda extranjera sin tipo de cambio se excluyen del reporte para no contarlas 1:1 y subestimar la cartera.",
+      "H-10a: la exportación de cuentas por pagar limita las consultas y detecta cuando la lista viene recortada.",
+      "H-10b: la página de Antigüedad de Saldos avisa cuando se muestran sólo los primeros registros.",
+      "M-13: la vista previa de facturas recurrentes calcula el IVA con la tasa real de cada cliente (frontera 8%, exento 0%) y suma en centavos, igual que la factura que se genera.",
+      "L-7: los pagos rechazan montos mayores a $99,999,999.99 con un mensaje claro.",
+      "L-7: la vigencia del seguro de un montacargas debe estar entre los años 2000 y 2100."
+    ],
+    "description": "Se corrige el reporte de antigüedad de saldos (facturas sin vencimiento, monedas sin tipo de cambio y sumas en centavos), la vista previa de facturas recurrentes usa el IVA real de cada cliente y se añaden avisos de listas recortadas y validaciones de captura."
+  },
+  {
     "version": "7.338.0",
     "date": "2026-08-25",
     "type": "minor",
