@@ -33,7 +33,7 @@ export function useForkliftFormSubmit({ id, isEdit, expectedUpdatedAt }: Args) {
     const onError = (err: Error) => notifyError({ error: err, message: mapForkliftMutationError(err.message) });
 
     if (isEdit && id) {
-      update.mutate({ id, ...payload }, {
+      update.mutate({ id, expectedUpdatedAt, ...payload }, {
         onSuccess: () => { notifySuccess("Montacargas actualizado"); navigate(`/fleet/${id}`); },
         onError,
       });
