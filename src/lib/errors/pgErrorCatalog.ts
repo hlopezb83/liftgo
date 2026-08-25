@@ -146,6 +146,9 @@ const TEXT_PATTERNS: Array<{ pattern: RegExp; entry: CatalogEntry }> = [
   // M-7: `completed` es terminal en entregas; el mensaje crudo del trigger cae
   // en el 23514 genérico ("revisa montos, fechas y cantidades"), que no explica nada.
   { pattern: /entrega completada no puede reabrirse/i, entry: { title: "Entrega cerrada", message: "Esta entrega ya está completada y no puede reabrirse. Registra una recolección o crea una nueva entrega.", severity: "warning" } },
+  // L-1: la BD bloquea sacar una factura de borrador sin cliente asignado.
+  { pattern: /no puede salir de borrador sin cliente|invoices_customer_required_when_not_draft/i, entry: { title: "Falta el cliente", message: "Asigna un cliente a la factura antes de sacarla de borrador.", severity: "warning" } },
+
   { pattern: /exclusion constraint/i, entry: { message: "Las fechas se traslapan con otra reserva o con mantenimiento programado.", severity: "warning" } },
   { pattern: /duplicate key|already exists/i, entry: { message: "Ya existe un registro con esos datos.", severity: "warning" } },
   { pattern: /violates row-level security|permission denied/i, entry: { title: "Sin permisos", message: "No tienes permisos para esta acción." } },
