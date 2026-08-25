@@ -8,6 +8,8 @@ export const QUOTE_STATUS_LABELS: Record<string, string> = {
   draft: "Borrador",
   sent: "Enviada",
   accepted: "Aceptada",
+  // M-8: la cotización ya se convirtió en reservas.
+  converted: "Convertida",
   rejected: "Rechazada",
   expired: "Vencida",
   cancelled: "Cancelada",

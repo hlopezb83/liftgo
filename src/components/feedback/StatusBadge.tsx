@@ -36,6 +36,8 @@ const statusStyles: Record<string, string> = {
   delivery: INFO,
   invoiced: INFO,
   new: INFO,
+  // M-8: cotización ya convertida en reservas (ciclo cerrado, informativo).
+  converted: INFO,
   // warning (ámbar)
   maintenance: WARNING,
   partial: WARNING,

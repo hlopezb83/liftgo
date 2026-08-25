@@ -100,6 +100,7 @@ export const STATUS_LABELS: Record<string, string> = {
   overdue: "Vencido",
   confirmed: "Confirmado",
   accepted: "Aceptado",
+  converted: "Convertida",
   expired: "Expirado",
   completed: "Completado",
   reported: "Reportado",
