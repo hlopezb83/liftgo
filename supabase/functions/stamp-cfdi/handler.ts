@@ -223,7 +223,7 @@ export async function handleStampCfdi(
 
     // BL-01: distinguir tasa cero legítima (0) de "no capturada" (null/undefined).
     const taxRatePct = typeof inv.tax_rate === "number" ? inv.tax_rate : 16;
-    const taxRateFraction = taxRatePct / 100;
+    
     const items = Array.isArray(inv.line_items)
       ? (inv.line_items as Array<
         {
