@@ -3,10 +3,10 @@
  * Extraído del componente para mantenerlo simple y poder probarlo aparte.
  */
 import { sumMoney } from "@/lib/money";
-import type { CreditNote } from "../hooks/creditNotes/useCreditNotes";
-import type { Payment } from "../hooks/usePayments";
 import { computeMaxCreditable } from "./computeMaxCreditable";
 import { isRepBacked, repBackedPayments, sumRepBackedPayments } from "./repBackedPayments";
+import type { CreditNote } from "../hooks/creditNotes/useCreditNotes";
+import type { Payment } from "../hooks/usePayments";
 
 export interface CreditNoteLimits {
   activeCredits: number;
