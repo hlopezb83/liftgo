@@ -69,7 +69,14 @@ export async function searchEntities(query: string): Promise<EntityResults> {
   // las 3 consultas hubieran fallado (falso "sin resultados"). Si TODAS
   // fallan, propagar el primer error para que la query entre en estado error.
   if (invRes.error && custRes.error && bookRes.error) throw invRes.error;
+  // L-6a: fallo parcial — devolver las secciones OK y exponer el error por
+  // sección para distinguirlo de "cero resultados".
+  const errors: NonNullable<EntityResults["errors"]> = {};
+  if (invRes.error) errors.invoices = invRes.error.message;
+  if (custRes.error) errors.customers = custRes.error.message;
+  if (bookRes.error) errors.bookings = bookRes.error.message;
   return {
+    ...(Object.keys(errors).length > 0 ? { errors } : {}),
     invoices: (invRes.data ?? []).map((i) => ({
       id: i.id,
       label: i.invoice_number ?? "—",
