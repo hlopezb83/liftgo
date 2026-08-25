@@ -179,4 +179,29 @@ describe("useCreateCreditNote", () => {
     expect(toastSuccess).not.toHaveBeenCalled();
     expect(notifyErrorMock).toHaveBeenCalled();
   });
+
+  // L-3: rollback compensatorio del draft cuando el timbrado falla.
+  it("stamp falla → elimina el draft creado (rollback compensatorio)", async () => {
+    stampResp = { data: null, error: { message: "Facturapi 500" } };
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useCreateCreditNote(), { wrapper: Wrapper });
+
+    result.current.mutate({ ...baseInput, stamp: true });
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    const deleteCall = creditNotesCalls.find((c) => c.method === "delete");
+    expect(deleteCall).toBeDefined();
+    expect(creditNotesCalls.some((c) => c.method === "eq" && c.args[0] === "id" && c.args[1] === "cn-1")).toBe(true);
+  });
+
+  it("stamp OK → NO elimina el draft", async () => {
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useCreateCreditNote(), { wrapper: Wrapper });
+
+    result.current.mutate({ ...baseInput, stamp: true });
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+
+    expect(creditNotesCalls.find((c) => c.method === "delete")).toBeUndefined();
+  });
 });
+
