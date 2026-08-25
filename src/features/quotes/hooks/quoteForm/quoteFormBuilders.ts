@@ -1,5 +1,5 @@
 import { generateLineItemsFromModel, type LineItem } from "@/lib/domain/invoiceHelpers";
-import { lineItemTotal } from "@/lib/domain/invoiceTotals";
+import { lineItemTotal, money } from "@/lib/domain/invoiceTotals";
 import { toYMD } from "@/lib/format/dateFormats";
 
 export type EquipmentModel = { id: string; manufacturer: string; model: string };
