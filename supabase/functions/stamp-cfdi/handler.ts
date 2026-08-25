@@ -236,6 +236,7 @@ export async function handleStampCfdi(
           clave_prod_serv?: string;
           clave_unidad?: string;
           objeto_imp?: string;
+          tax_rate?: number;
           discount?: number;
           discount_type?: "%" | "$";
         }
@@ -243,6 +244,14 @@ export async function handleStampCfdi(
         const quantity = li.quantity || 1;
         const unitPrice = li.unit_price || 0;
         const objetoImp = li.objeto_imp ?? "02";
+        // C-1: tasa por línea con fallback línea → factura (taxRatePct ya
+        // cae a 16 cuando invoices.tax_rate no es numérico), igual que
+        // `computeTotals` en src/lib/domain/invoiceTotals.ts.
+        const lineRatePct =
+          typeof li.tax_rate === "number" && Number.isFinite(li.tax_rate)
+            ? li.tax_rate
+            : taxRatePct;
+        const lineRateFraction = lineRatePct / 100;
         const item: Record<string, unknown> = {
           product: {
             description: li.description || "Servicio de renta",
@@ -253,7 +262,7 @@ export async function handleStampCfdi(
             // M19: ObjetoImp 01 = no objeto de impuesto → línea sin traslados.
             taxes: objetoImp === "01"
               ? []
-              : [{ type: "IVA", rate: taxRateFraction }],
+              : [{ type: "IVA", rate: lineRateFraction }],
           },
           quantity,
         };
