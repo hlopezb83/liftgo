@@ -101,8 +101,7 @@ BEGIN
 
   -- A partir de aquí nos hacemos pasar por un operador autenticado (admin).
   SET LOCAL ROLE authenticated;
-  SET LOCAL request.jwt.claims TO json_build_object(
-    'sub', v_user, 'role', 'authenticated')::text;
+  SET LOCAL request.jwt.claims TO '{"sub":"12111111-0000-4000-8000-000000000006","role":"authenticated"}';
 
   -- Caso A: reserva SIN periodo -> debe bloquear.
   BEGIN
