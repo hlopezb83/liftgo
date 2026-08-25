@@ -577,15 +577,25 @@ export async function handleStampCfdi(
       });
     }
 
-    // BL-A5: reconciliación del total timbrado. Facturapi redondea
-    // descuentos/impuestos por línea de forma distinta a la app; si el total
-    // timbrado difiere de invoices.total se REGISTRA la varianza (columnas
-    // stamp_variance*) sin romper el flujo 'stamped' — solo warning en
-    // cfdi_error_message + console.error para auditoría fiscal.
+    // BL-A5 (C-1): reconciliación del total timbrado endurecida a ERROR.
+    // Si |varianza| > 0.01 la factura NO queda como 'stamped': se persiste
+    // igual la identidad fiscal (uuid, xml, urls, facturapi_invoice_id) —el
+    // CFDI ya existe ante el SAT y debe poder cancelarse— pero con
+    // cfdi_status='error' y se responde 502 para que el operador corrija.
 
     const stampedTotal = (facturApiInvoice as { total?: unknown }).total;
     const varianceCheck = computeStampVariance(inv.total, stampedTotal);
-    if (varianceCheck && !varianceCheck.withinTolerance) {
+    const hasVariance = Boolean(varianceCheck && !varianceCheck.withinTolerance);
+    const varianceMessage = hasVariance && varianceCheck
+      ? `Error BL-A5: el total timbrado (${
+        Number(stampedTotal).toFixed(2)
+      }) difiere del total de la factura (${
+        Number(inv.total).toFixed(2)
+      }); varianza ${
+        varianceCheck.variance.toFixed(2)
+      }. El CFDI existe ante el SAT: cancélalo y corrige tasas/descuentos.`
+      : null;
+    if (hasVariance && varianceCheck) {
       console.error("[stamp-cfdi] BL-A5 stamp variance detectada", {
         invoice_id,
         invoice_total: inv.total,
@@ -599,14 +609,8 @@ export async function handleStampCfdi(
       cfdi_xml: cfdiXml,
       cfdi_xml_url: xmlStoragePath,
       cfdi_pdf_url: pdfStoragePath,
-      cfdi_status: "stamped",
-      cfdi_error_message: varianceCheck && !varianceCheck.withinTolerance
-        ? `Advertencia BL-A5: el total timbrado (${
-          Number(stampedTotal).toFixed(2)
-        }) difiere del total de la factura (${
-          Number(inv.total).toFixed(2)
-        }); varianza ${varianceCheck.variance.toFixed(2)}.`
-        : null,
+      cfdi_status: hasVariance ? "error" : "stamped",
+      cfdi_error_message: varianceMessage,
       ...(varianceCheck
         ? {
           stamp_variance: varianceCheck.variance,
