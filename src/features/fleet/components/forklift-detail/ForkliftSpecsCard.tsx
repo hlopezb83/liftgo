@@ -13,7 +13,10 @@ interface ForkliftSpecsCardProps {
 }
 
 export function ForkliftSpecsCard({ forklift, currentLocation, locationError }: ForkliftSpecsCardProps) {
-  const acquisitionCost = forklift.acquisition_cost;
+  // H-9: costo de adquisición y costo de póliza son datos financieros
+  // sensibles; el resto de las especificaciones sigue visible para todos.
+  const canSeeCosts = useCanSeeFinancialCosts();
+  const acquisitionCost = canSeeCosts ? forklift.acquisition_cost : null;
   const specs = [
     { label: "Modelo", value: forklift.model },
     { label: "Fabricante", value: forklift.manufacturer },
