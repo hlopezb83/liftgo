@@ -38,14 +38,38 @@ export function useImportBankStatement() {
         hash: l.hash,
       }));
 
-      // R23-11: `select()` nos dice cuántas líneas eran realmente nuevas.
-      const { data: inserted, error: insErr } = await supabase
-        .from("bank_statement_lines")
-        .upsert(rows, { onConflict: "bank_account_id,hash", ignoreDuplicates: true })
-        .select("id");
-      if (insErr) throw insErr;
+      // M-12: upsert en lotes de 1000 filas. Un único upsert con archivos
+      // grandes excede los límites de payload / statement_timeout de PostgREST.
+      // Si cualquier lote falla, se borran las líneas ya insertadas y el header
+      // para no dejar importaciones a medias.
+      const CHUNK_SIZE = 1000;
+      let insertedCount = 0;
+      try {
+        for (let offset = 0; offset < rows.length; offset += CHUNK_SIZE) {
+          const chunk = rows.slice(offset, offset + CHUNK_SIZE);
+          // R23-11: `select()` nos dice cuántas líneas eran realmente nuevas.
+          const { data: inserted, error: insErr } = await supabase
+            .from("bank_statement_lines")
+            .upsert(chunk, { onConflict: "bank_account_id,hash", ignoreDuplicates: true })
+            .select("id");
+          if (insErr) throw insErr;
+          insertedCount += inserted?.length ?? 0;
+        }
+      } catch (chunkErr) {
+        const { error: cleanupLinesErr } = await supabase
+          .from("bank_statement_lines").delete().eq("import_id", imp.id);
+        const { error: cleanupImpErr } = await supabase
+          .from("bank_statement_imports").delete().eq("id", imp.id);
+        if (cleanupLinesErr || cleanupImpErr) {
+          const cleanupError = new Error(
+            "La importación falló y no se pudo limpiar por completo. Revisa el estado de cuenta antes de reintentar.",
+          );
+          (cleanupError as Error & { cause?: unknown }).cause = chunkErr;
+          throw cleanupError;
+        }
+        throw chunkErr;
+      }
 
-      const insertedCount = inserted?.length ?? 0;
       if (insertedCount === 0) {
         // Reimportación del mismo archivo: no dejamos un import huérfano en 0.
         await supabase.from("bank_statement_imports").delete().eq("id", imp.id);

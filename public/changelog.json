@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.338.0",
+    "date": "2026-08-25",
+    "type": "minor",
+    "title": "Ediciones sin pisarse, costos protegidos e importaciones grandes (M-11, H-9, M-12, L-6a)",
+    "description": "Las ediciones simultáneas de clientes y montacargas ya no se sobrescriben, los costos financieros de la flota quedan reservados a roles con acceso financiero y las importaciones bancarias grandes se procesan por lotes.",
+    "changes": [
+      "M-11a: al editar un cliente, si otra persona guardó cambios mientras tenías el formulario abierto, ahora se avisa y no se sobrescribe su trabajo.",
+      "M-11b: la misma protección aplica al editar montacargas, y ya no se puede modificar una unidad archivada por error.",
+      "H-9: las tarifas de renta, el costo de adquisición y el costo de la póliza sólo se muestran a los roles con acceso financiero (administrador y administrativo).",
+      "M-12: la importación de estados de cuenta bancarios se procesa en lotes de 1000 movimientos; si algo falla se limpia la importación completa en vez de dejarla a medias.",
+      "L-6a: si una sección de la búsqueda global falla (facturas, clientes o reservas), se muestra un aviso en lugar de aparentar que no hay resultados."
+    ]
+  },
+  {
     "version": "7.337.0",
     "date": "2026-08-25",
     "type": "minor",

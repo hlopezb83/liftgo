@@ -39,6 +39,8 @@ export function useCustomerDetailPage(id: string | undefined) {
   const dialogs = useCustomerDetailDialogs();
   const actions = useCustomerDetailActions({
     id,
+    // M-11a: versión cargada → bloqueo optimista en el guardado.
+    expectedVersion: customer?.version ?? null,
     setInviteOpen: dialogs.setInviteOpen,
     setEditOpen: dialogs.setEditOpen,
   });

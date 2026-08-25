@@ -2,12 +2,16 @@ import { MoneyIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { useCanSeeFinancialCosts } from "../../hooks/useCanSeeFinancialCosts";
 
 interface ForkliftRatesCardProps {
   forklift: Tables<"forklifts">;
 }
 
 export function ForkliftRatesCard({ forklift }: ForkliftRatesCardProps) {
+  // H-9: tarifas y costo de adquisición sólo para roles con acceso financiero.
+  const canSeeCosts = useCanSeeFinancialCosts();
+  if (!canSeeCosts) return null;
   return (
     <Card>
       <CardHeader className="pb-3">

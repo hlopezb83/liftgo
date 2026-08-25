@@ -17,8 +17,10 @@ const CUSTOMER_LIST_COLUMNS = sel(
   "id, name, company, rfc, email, phone, contact_person, address, razon_social, regimen_fiscal, uso_cfdi, domicilio_fiscal_cp, representante_legal"
 );
 
+// M-11a: `version` es indispensable para el bloqueo optimista del formulario
+// de edición (trigger `bump_version_optimistic` la incrementa en cada UPDATE).
 const CUSTOMER_DETAIL_COLUMNS = sel(
-  "id, name, company, email, phone, address, notes, website, contact_person, rfc, regimen_fiscal, uso_cfdi, domicilio_fiscal_cp, representante_legal, tax_id, user_id, created_at, updated_at"
+  "id, name, company, email, phone, address, notes, website, contact_person, rfc, regimen_fiscal, uso_cfdi, domicilio_fiscal_cp, representante_legal, tax_id, user_id, version, created_at, updated_at"
 );
 
 export type Customer = Tables<"customers">;
@@ -83,13 +85,34 @@ export function useCreateCustomer() {
   });
 }
 
+/**
+ * M-11a: bloqueo optimista. El llamador envía `expectedVersion` — el valor de
+ * `version` que tenía el registro CUANDO se abrió el formulario. Si otro
+ * usuario guardó en el intermedio, el trigger `bump_version_optimistic` ya
+ * incrementó la columna, el UPDATE afecta 0 filas y abortamos en vez de pisar
+ * los cambios ajenos (lost update). Sin `expectedVersion` se conserva el
+ * comportamiento anterior (sin bloqueo) para no romper flujos internos.
+ */
 export function useUpdateCustomer() {
   return useEntityMutation({
-    mutationFn: async ({ id, ...updates }: TablesUpdate<"customers"> & { id: string }) => {
+    mutationFn: async ({ id, expectedVersion, ...updates }: TablesUpdate<"customers"> & {
+      id: string;
+      expectedVersion?: number | null;
+    }) => {
       // R10 Bloque 12.7: no actualizar clientes archivados.
-      const { data, error } = await supabase.from("customers").update(updates).eq("id", id).is("deleted_at", null).select();
+      let q = supabase.from("customers").update(updates).eq("id", id).is("deleted_at", null);
+      if (expectedVersion != null) q = q.eq("version", expectedVersion);
+      const { data, error } = await q.select();
 
       if (error) throw error;
+      if ((!data || data.length === 0) && expectedVersion != null) {
+        // Distinguir conflicto de concurrencia de "sin permisos / archivado".
+        const { data: still } = await supabase
+          .from("customers").select("version").eq("id", id).is("deleted_at", null).maybeSingle();
+        if (still) {
+          throw new Error("stale_write: otro usuario modificó este cliente; recarga y vuelve a intentar");
+        }
+      }
       // GUI-FE-08: 0 filas = sin permisos (RLS) o registro archivado/inexistente.
       assertRowsAffected(data, "Actualizar cliente");
       return data[0];

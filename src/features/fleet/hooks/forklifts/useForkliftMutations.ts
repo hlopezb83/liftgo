@@ -38,9 +38,27 @@ export function useUpdateForklift() {
   // R-arq 9b: migrado a `useEntityMutation` para heredar toast/translateDbError
   // consistentes. El `setQueryData` optimista se conserva vía `onSuccess` custom.
   return useEntityMutation({
-    mutationFn: async ({ id, ...updates }: TablesUpdate<"forklifts"> & { id: string }) => {
-      const { data, error } = await supabase.from("forklifts").update(updates).eq("id", id).select().single();
+    // M-11b: bloqueo optimista contra el `updated_at` que tenía el registro
+    // cuando se cargó el formulario, más filtro `deleted_at IS NULL` para no
+    // "revivir" una unidad archivada por otro usuario en paralelo.
+    mutationFn: async ({ id, expectedUpdatedAt, ...updates }: TablesUpdate<"forklifts"> & {
+      id: string;
+      expectedUpdatedAt?: string | null;
+    }) => {
+      let q = supabase.from("forklifts").update(updates).eq("id", id).is("deleted_at", null);
+      if (expectedUpdatedAt) q = q.eq("updated_at", expectedUpdatedAt);
+      const { data, error } = await q.select().maybeSingle();
       if (error) throw error;
+      if (!data) {
+        if (expectedUpdatedAt) {
+          const { data: still } = await supabase
+            .from("forklifts").select("id").eq("id", id).is("deleted_at", null).maybeSingle();
+          if (still) {
+            throw new Error("stale_write: otro usuario modificó este montacargas; recarga y vuelve a intentar");
+          }
+        }
+        throw new Error("Actualizar montacargas: el registro no existe o fue archivado");
+      }
       return data;
     },
     invalidateKeys: [insuranceAlertsKeys.all],

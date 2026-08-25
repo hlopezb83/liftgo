@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Tables } from "@/integrations/supabase/types";
 import { FUEL_TYPE_LABELS } from "@/lib/constants";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { useCanSeeFinancialCosts } from "../../hooks/useCanSeeFinancialCosts";
 
 interface ForkliftSpecsCardProps {
   forklift: Tables<"forklifts">;
@@ -12,7 +13,10 @@ interface ForkliftSpecsCardProps {
 }
 
 export function ForkliftSpecsCard({ forklift, currentLocation, locationError }: ForkliftSpecsCardProps) {
-  const acquisitionCost = forklift.acquisition_cost;
+  // H-9: costo de adquisición y costo de póliza son datos financieros
+  // sensibles; el resto de las especificaciones sigue visible para todos.
+  const canSeeCosts = useCanSeeFinancialCosts();
+  const acquisitionCost = canSeeCosts ? forklift.acquisition_cost : null;
   const specs = [
     { label: "Modelo", value: forklift.model },
     { label: "Fabricante", value: forklift.manufacturer },
@@ -26,7 +30,7 @@ export function ForkliftSpecsCard({ forklift, currentLocation, locationError }: 
     { label: "Aseguradora", value: forklift.insurance_provider || null },
     { label: "No. Póliza", value: forklift.insurance_policy_number || null },
     { label: "Vigencia Seguro", value: forklift.insurance_expiry || null },
-    { label: "Costo Póliza", value: forklift.insurance_cost ? formatCurrency(Number(forklift.insurance_cost)) : null },
+    { label: "Costo Póliza", value: canSeeCosts && forklift.insurance_cost ? formatCurrency(Number(forklift.insurance_cost)) : null },
   ];
 
   return (

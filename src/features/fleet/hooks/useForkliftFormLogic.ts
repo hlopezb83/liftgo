@@ -28,7 +28,10 @@ export function useForkliftFormLogic() {
     useForkliftFormState(form, existing);
   // R14-C: equipmentModels undefined = catálogos aún cargando; no resetear.
   useForkliftPrefill(existing, form, equipmentModels !== undefined);
-  const { onSubmit, navigate, isPending } = useForkliftFormSubmit({ id, isEdit });
+  // M-11b: `updated_at` del registro cargado → bloqueo optimista al guardar.
+  const { onSubmit, navigate, isPending } = useForkliftFormSubmit({
+    id, isEdit, expectedUpdatedAt: existing?.updated_at ?? null,
+  });
 
   const handleManufacturerChange = (value: string) => {
     // R14-C: value vacío = evento espurio de Radix (colección sin items al
