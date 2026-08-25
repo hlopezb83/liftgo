@@ -3550,6 +3550,7 @@ export type Database = {
           facturapi_invoice_id: string | null
           folio: string | null
           forma_pago: string | null
+          fx_missing: boolean | null
           global_months: string | null
           global_periodicity: string | null
           global_year: number | null
@@ -4139,6 +4140,7 @@ export type Database = {
           facturapi_invoice_id: string | null
           folio: string | null
           forma_pago: string | null
+          fx_missing: boolean | null
           global_months: string | null
           global_periodicity: string | null
           global_year: number | null
@@ -4336,6 +4338,7 @@ export type Database = {
       report_revenue_by_month: {
         Args: { _end: string; _start: string }
         Returns: {
+          fx_missing_count: number
           invoice_count: number
           invoiced: number
           month_key: string
