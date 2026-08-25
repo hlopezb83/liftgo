@@ -27,11 +27,13 @@ function customerFormToUpdate(form: CustomerFormData) {
 
 interface Params {
   id: string | undefined;
+  /** M-11a: `version` del cliente tal como se cargó (bloqueo optimista). */
+  expectedVersion?: number | null;
   setInviteOpen: (open: boolean) => void;
   setEditOpen: (open: boolean) => void;
 }
 
-export function useCustomerDetailActions({ id, setInviteOpen, setEditOpen }: Params) {
+export function useCustomerDetailActions({ id, expectedVersion, setInviteOpen, setEditOpen }: Params) {
   const navigate = useNavigateTransition();
   const updateCustomer = useUpdateCustomer();
   const deleteCustomer = useDeleteCustomer();
