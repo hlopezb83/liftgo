@@ -11,6 +11,12 @@ export interface LineItem {
   objeto_imp?: string;
   /** Tasa de IVA en porcentaje para esta línea; si falta se usa la tasa global. */
   tax_rate?: number;
+  /**
+   * M-10: periodicidad explícita de la tarifa de renta que originó la partida.
+   * Es la fuente de verdad al reconstruir el formulario de una cotización;
+   * las partidas históricas (sin este campo) usan la heurística legacy.
+   */
+  rate_type?: "daily" | "weekly" | "monthly";
 }
 
 
