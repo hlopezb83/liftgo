@@ -17,9 +17,11 @@ import {
   useDeleteCreditNote,
   type CreditNote,
 } from "../../hooks/creditNotes/useCreditNotes";
+import { usePayments } from "../../hooks/usePayments";
 import { useRefreshCreditNoteCancellationStatus } from "../../hooks/invoices/cfdi/useRefreshCancellationStatus";
 import { computeMaxCreditable } from "../../lib/computeMaxCreditable";
 import { downloadCfdiBlob, type CfdiFormat } from "../../lib/downloadCfdiBlob";
+import { isRepBacked, repBackedPayments, sumRepBackedPayments } from "../../lib/repBackedPayments";
 import { CancelCreditNoteDialog } from "./CancelCreditNoteDialog";
 import { CreateCreditNoteDialog } from "./CreateCreditNoteDialog";
 
