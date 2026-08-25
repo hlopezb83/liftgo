@@ -11,9 +11,11 @@ import type { ForkliftFormData } from "../../lib/forkliftFormSchema";
 interface Args {
   id?: string;
   isEdit: boolean;
+  /** M-11b: `updated_at` cargado en el formulario (bloqueo optimista). */
+  expectedUpdatedAt?: string | null;
 }
 
-export function useForkliftFormSubmit({ id, isEdit }: Args) {
+export function useForkliftFormSubmit({ id, isEdit, expectedUpdatedAt }: Args) {
   const navigate = useNavigateTransition();
   const create = useCreateForklift();
   const update = useUpdateForklift();
