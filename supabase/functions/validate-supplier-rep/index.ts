@@ -164,7 +164,16 @@ Deno.serve(async (req) => {
       return jsonError(req, 400, "XML inválido (base64)");
     }
 
+    if (!isWellFormedXml(xmlText)) {
+      return jsonError(
+        req,
+        400,
+        "XML malformado: el documento no está bien formado (tags desbalanceados o truncado)",
+      );
+    }
+
     // Validaciones
+
     const tipo = extractAttr(xmlText, "Comprobante", "TipoDeComprobante");
     if (tipo !== "P") {
       return jsonError(
