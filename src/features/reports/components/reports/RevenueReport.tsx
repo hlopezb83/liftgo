@@ -43,6 +43,9 @@ export function RevenueReport({ startDate, endDate }: Props) {
     paid: r.paid,
     count: r.invoiceCount,
   }));
+  // H-2: facturas en divisa sin tipo de cambio quedan fuera de los importes.
+  const fxMissingTotal = rows.reduce((s, r) => s + r.fxMissingCount, 0);
+
   // Drilldown: solo las facturas del mes seleccionado (RPC, sin límite de filas).
   const { data: selectedInvoices = [] } = useRevenueMonthInvoices(selected?.key ?? null);
 
