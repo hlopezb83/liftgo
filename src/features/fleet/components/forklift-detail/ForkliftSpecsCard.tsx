@@ -30,7 +30,7 @@ export function ForkliftSpecsCard({ forklift, currentLocation, locationError }: 
     { label: "Aseguradora", value: forklift.insurance_provider || null },
     { label: "No. Póliza", value: forklift.insurance_policy_number || null },
     { label: "Vigencia Seguro", value: forklift.insurance_expiry || null },
-    { label: "Costo Póliza", value: forklift.insurance_cost ? formatCurrency(Number(forklift.insurance_cost)) : null },
+    { label: "Costo Póliza", value: canSeeCosts && forklift.insurance_cost ? formatCurrency(Number(forklift.insurance_cost)) : null },
   ];
 
   return (
