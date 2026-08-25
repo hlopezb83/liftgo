@@ -2,7 +2,7 @@ import { parseISO, addDays, startOfDay } from "date-fns";
 import { Link } from "react-router";
 import { TrendingUpIcon, ArrowRight, CalendarIcon } from "@/components/icons";
 import { Card, CardContent } from "@/components/ui/card";
-import { amountInMxn } from "@/features/dashboard/lib/collectionForecast";
+import { amountInMxn, countFxMissing } from "@/features/dashboard/lib/collectionForecast";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { nowMty } from "@/lib/utils";
 
@@ -16,6 +16,8 @@ interface OverdueInvoice {
   balance_mxn?: number | null;
   moneda?: string | null;
   tipo_cambio?: number | null;
+  /** H-2: factura en divisa sin tipo de cambio capturado. */
+  fx_missing?: boolean | null;
   due_date: string | null;
 }
 
@@ -74,6 +76,8 @@ export function CollectionForecast({
       expected7,
       expected30,
       overdueCount: overdueInvoices.length,
+      // H-2: facturas en divisa sin TC quedan fuera de los importes.
+      fxMissingCount: countFxMissing(overdueInvoices) + countFxMissing(upcomingInvoices),
       upcoming7Count: upcomingInvoices.filter((inv) => {
         if (!inv.due_date) return false;
         const due = parseISO(inv.due_date);
@@ -133,6 +137,13 @@ export function CollectionForecast({
             <p className="text-3xs text-muted-foreground mt-0.5">Cobranza esperada total</p>
           </div>
         </div>
+
+        {forecast.fxMissingCount > 0 && (
+          <p className="mt-3 text-3xs text-muted-foreground">
+            {forecast.fxMissingCount} factura{forecast.fxMissingCount === 1 ? "" : "s"} en divisa sin tipo de
+            cambio {forecast.fxMissingCount === 1 ? "quedó" : "quedaron"} fuera del pronóstico.
+          </p>
+        )}
       </CardContent>
     </Card>
   );
