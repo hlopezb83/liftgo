@@ -48,26 +48,35 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
     .map((i) => {
       const days = differenceInDays(nowMty(), parseISO(i.due_date as string));
       // R6-B2: normalizar a MXN. Preferir balance_mxn del servidor; fallback toMxn.
-      const balanceMxn = Number.isFinite(Number(i.balance_mxn))
-        ? Number(i.balance_mxn)
-        : toMxn(Number(i.balance), i.moneda, i.tipo_cambio);
+      // H-2: si la factura está en divisa sin tipo de cambio, balance_mxn queda
+      // en null y la fila se excluye de los totales (antes sumaba USD como MXN).
+      const balanceMxn = i.fx_missing
+        ? null
+        : i.balance_mxn != null
+          ? Number(i.balance_mxn)
+          : toMxn(Number(i.balance), i.moneda, i.tipo_cambio);
       return { ...i, days_overdue: days, bucket: getAgingBucket(days), balance_mxn: balanceMxn };
     });
 
   const bucketTotals: Record<string, number> = { "0-30": 0, "31-60": 0, "61-90": 0, "90+": 0 };
-  overdueInvoices.forEach((i) => { bucketTotals[i.bucket] += i.balance_mxn; });
+  overdueInvoices.forEach((i) => { if (i.balance_mxn != null) bucketTotals[i.bucket] += i.balance_mxn; });
+  const fxMissingCount = overdueInvoices.filter((i) => i.balance_mxn == null).length;
 
   const grandTotal = Object.values(bucketTotals).reduce((s, v) => s + v, 0);
   const visibleInvoices = selectedBucket
     ? overdueInvoices.filter((i) => i.bucket === selectedBucket)
     : overdueInvoices;
-  const visibleTotal = visibleInvoices.reduce((s, i) => s + i.balance_mxn, 0);
+  const visibleTotal = visibleInvoices.reduce((s, i) => s + (i.balance_mxn ?? 0), 0);
 
   type Row = typeof overdueInvoices[number];
   const columns: ColumnDef<Row>[] = [
     { id: "invoice_number", header: "Factura", accessorKey: "invoice_number", cell: ({ row }) => <span className="font-mono font-medium">{row.original.invoice_number}</span> },
     { id: "customer_name", header: "Cliente", accessorKey: "customer_name", cell: ({ row }) => row.original.customer_name || "—" },
-    { id: "total", header: "Saldo (MXN)", accessorFn: (i) => i.balance_mxn, meta: { kind: "money" }, cell: ({ row }) => formatCurrency(row.original.balance_mxn) },
+    { id: "total", header: "Saldo (MXN)", accessorFn: (i) => i.balance_mxn ?? -1, meta: { kind: "money" }, cell: ({ row }) => (
+      row.original.balance_mxn == null
+        ? <span className="text-warning" title="Factura en divisa sin tipo de cambio capturado">Sin T.C.</span>
+        : formatCurrency(row.original.balance_mxn)
+    ) },
     { id: "due_date", header: "Vencimiento", accessorKey: "due_date", cell: ({ row }) => formatDateDisplay(row.original.due_date) },
     { id: "days_overdue", header: "Días", accessorKey: "days_overdue", meta: { kind: "money" }, cell: ({ row }) => <span className="font-mono font-semibold text-destructive">{row.original.days_overdue}</span> },
     { id: "bucket", header: "Bucket", accessorKey: "bucket", cell: ({ row }) => `${row.original.bucket}d` },
@@ -90,7 +99,7 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
       "Tipo Cambio": i.tipo_cambio ?? 1,
       Total: i.total,
       Saldo: i.balance,
-      "Saldo MXN": i.balance_mxn,
+      "Saldo MXN": i.balance_mxn ?? "",
       "Fecha Vencimiento": i.due_date || "",
       "Días Vencida": i.days_overdue,
       Bucket: i.bucket,
