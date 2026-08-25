@@ -1,3 +1,14 @@
+## 7.333.0 - 2026-08-25
+
+**Timbrado con IVA por línea y candados de integridad fiscal**
+
+- C-1: el timbrado envía a Facturapi la tasa de IVA de cada partida (0%, 8%, 16% o exenta) en lugar de la tasa global de la factura.
+- C-1: si el total timbrado difiere del total de la factura por más de un centavo, la factura queda en estado de error y el timbrado responde con falla, pero se conservan el folio fiscal, el XML y el ID de Facturapi para poder cancelar el CFDI.
+- C-2: una factura timbrada sin cancelación aceptada ya no permite editar partidas, subtotal, impuestos, tasa, total ni fecha de emisión.
+- H-7: una cuenta por pagar en estado pagado con pagos registrados no puede cambiar de estado hasta reversar esos pagos.
+- H-5: se conserva el tope de notas de crédito contra el total de la factura (opción B); no se restringen las notas de crédito por devolución sobre facturas ya cobradas.
+- H-6: no se aplicó el índice único de factura manual por reserva; se documentó en docs/audits/h6-facturas-manuales-duplicadas-2026-08-25.md que la regla rompería la facturación mensual recurrente.
+
 ## 7.331.1 - 2026-08-16
 
 **Arreglar la página de Historial de cambios**
