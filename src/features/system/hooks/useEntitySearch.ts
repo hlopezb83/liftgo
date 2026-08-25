@@ -19,6 +19,12 @@ export interface EntityResults {
   invoices: EntityHit[];
   customers: EntityHit[];
   bookings: EntityHit[];
+  /**
+   * L-6a: si 1 o 2 de las 3 consultas fallan, la sección afectada se expone
+   * aquí en vez de devolverse vacía (falso "sin resultados"). La UI muestra un
+   * aviso por sección.
+   */
+  errors?: Partial<Record<"invoices" | "customers" | "bookings", string>>;
 }
 
 const EMPTY: EntityResults = { invoices: [], customers: [], bookings: [] };
