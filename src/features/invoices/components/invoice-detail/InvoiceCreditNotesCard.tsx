@@ -102,46 +102,16 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
         </CardHeader>
         <CardContent className="p-0">
           {repBacked > 0.005 && (
-            <div className="mx-6 mb-4 rounded-md border border-warning/30 bg-warning/10 p-3 text-sm">
-              <p className="font-medium">
-                {blockedByReps
-                  ? "No se puede emitir una nota de crédito por ahora"
-                  : "Máximo acreditable limitado por complementos de pago"}
-              </p>
-              <div className="mt-2 space-y-0.5 text-xs text-muted-foreground">
-                <div className="flex justify-between">
-                  <span>Total de la factura</span>
-                  <span className="font-mono tabular-nums">{formatCurrency(Number(invoice.total))}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Notas de crédito previas</span>
-                  <span className="font-mono tabular-nums">− {formatCurrency(activeCredits + draftCredits)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Declarado en complementos de pago (REP) vigentes</span>
-                  <span className="font-mono tabular-nums">− {formatCurrency(repBacked)}</span>
-                </div>
-                <div className="flex justify-between border-t pt-0.5 font-medium text-foreground">
-                  <span>Máximo acreditable</span>
-                  <span className="font-mono tabular-nums">{formatCurrency(maxCreditable)}</span>
-                </div>
-              </div>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Para acreditar más, primero cancela ante el SAT los complementos de pago listados abajo (desde
-                el historial de pagos de esta factura). La aceptación del SAT puede tardar hasta 72 horas.
-              </p>
-              <ul className="mt-2 space-y-1 text-xs">
-                {repPayments.map((p) => (
-                  <li key={p.id} className="flex items-center justify-between gap-2">
-                    <span className="font-mono">{p.rep_number ?? p.rep_folio ?? "REP"}</span>
-                    <span className="text-muted-foreground">{formatDateDisplay(p.payment_date)}</span>
-                    <span className="font-mono tabular-nums">{formatCurrency(Number(p.amount) || 0)}</span>
-                    <Badge variant="outline" className="border-warning/30 text-warning">Timbrado</Badge>
-                  </li>
-                ))}
-              </ul>
-            </div>
+            <CreditNoteRepLimitNotice
+              invoiceTotal={Number(invoice.total)}
+              priorCredits={activeCredits + draftCredits}
+              repBacked={repBacked}
+              maxCreditable={maxCreditable}
+              repPayments={repPayments}
+              blocked={blockedByReps}
+            />
           )}
+
           {willCreateCredit && (
             <p className="mx-6 mb-4 text-xs text-muted-foreground">
               Esta factura tiene {formatCurrency(otherPaid)} cobrados sin complemento de pago vigente. Una nota de
