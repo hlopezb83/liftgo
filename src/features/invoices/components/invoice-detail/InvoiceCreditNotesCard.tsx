@@ -50,6 +50,7 @@ interface Props {
 
 export function InvoiceCreditNotesCard({ invoice }: Props) {
   const { data: creditNotes = [] } = useCreditNotesForInvoice(invoice.id);
+  const { data: payments = [] } = usePayments(invoice.id);
   const [createOpen, setCreateOpen] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<CreditNote | null>(null);
   const stampMutation = useStampCreditNote();
@@ -70,9 +71,19 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
       .map((cn) => Number(cn.total)),
   );
 
-  // BL-08 v7.90.0: los pagos no limitan el crédito (ver computeMaxCreditable).
-  const maxCreditable = computeMaxCreditable(Number(invoice.total), activeCredits, draftCredits);
+  // H-5: los pagos con REP timbrado y vigente sí topan la NC (ver
+  // computeMaxCreditable y el disparador enforce_credit_note_max).
+  const repPayments = repBackedPayments(payments);
+  const repBacked = sumRepBackedPayments(payments);
+  const otherPaid = sumMoney(
+    payments.filter((p) => !isRepBacked(p)).map((p) => Number(p.amount) || 0),
+  );
+
+  const maxCreditable = computeMaxCreditable(Number(invoice.total), activeCredits, draftCredits, repBacked);
   const canCreate = invoice.cfdi_status === "stamped" && invoice.status !== "cancelled" && maxCreditable > 0.005;
+  const blockedByReps = repBacked > 0.005 && maxCreditable <= 0.005;
+  const willCreateCredit = otherPaid > 0.005 && maxCreditable > 0.005;
+
 
   if (creditNotes.length === 0 && !canCreate) return null;
 
