@@ -8,7 +8,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { CREDIT_NOTE_MOTIVE_LABELS as MOTIVE_LABELS } from "@/features/invoices/lib/creditNoteMotives";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { sumMoney } from "@/lib/money";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { formatDateDisplay } from "@/lib/utils";
 import {
@@ -18,10 +17,12 @@ import {
   type CreditNote,
 } from "../../hooks/creditNotes/useCreditNotes";
 import { useRefreshCreditNoteCancellationStatus } from "../../hooks/invoices/cfdi/useRefreshCancellationStatus";
-import { computeMaxCreditable } from "../../lib/computeMaxCreditable";
+import { usePayments } from "../../hooks/usePayments";
+import { computeCreditNoteLimits } from "../../lib/creditNoteLimits";
 import { downloadCfdiBlob, type CfdiFormat } from "../../lib/downloadCfdiBlob";
 import { CancelCreditNoteDialog } from "./CancelCreditNoteDialog";
 import { CreateCreditNoteDialog } from "./CreateCreditNoteDialog";
+import { CreditNoteRepLimitNotice } from "./CreditNoteRepLimitNotice";
 
 
 async function downloadCreditNote(creditNoteId: string, format: CfdiFormat, number: string) {
@@ -50,6 +51,7 @@ interface Props {
 
 export function InvoiceCreditNotesCard({ invoice }: Props) {
   const { data: creditNotes = [] } = useCreditNotesForInvoice(invoice.id);
+  const { data: payments = [] } = usePayments(invoice.id);
   const [createOpen, setCreateOpen] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<CreditNote | null>(null);
   const stampMutation = useStampCreditNote();
@@ -57,24 +59,17 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
   const refreshCancelMutation = useRefreshCreditNoteCancellationStatus();
   const confirm = useConfirm();
 
-  // B-7: sumas monetarias con sumMoney (sin drift IEEE-754) y comparación con
-  // epsilon de medio centavo (convención del repo, ver cashFlowTransformers).
-  const activeCredits = sumMoney(
-    creditNotes
-      .filter((cn) => cn.cfdi_status === "stamped" && cn.cancellation_status !== "accepted" && cn.status !== "cancelled")
-      .map((cn) => Number(cn.total)),
-  );
-  const draftCredits = sumMoney(
-    creditNotes
-      .filter((cn) => cn.status === "draft")
-      .map((cn) => Number(cn.total)),
-  );
+  const {
+    activeCredits, draftCredits, repBacked, repPayments, otherPaid,
+    maxCreditable, blockedByReps, willCreateCredit,
+  } = computeCreditNoteLimits(Number(invoice.total), creditNotes, payments);
 
-  // BL-08 v7.90.0: los pagos no limitan el crédito (ver computeMaxCreditable).
-  const maxCreditable = computeMaxCreditable(Number(invoice.total), activeCredits, draftCredits);
   const canCreate = invoice.cfdi_status === "stamped" && invoice.status !== "cancelled" && maxCreditable > 0.005;
 
-  if (creditNotes.length === 0 && !canCreate) return null;
+
+
+
+  if (creditNotes.length === 0 && !canCreate && !blockedByReps) return null;
 
   return (
     <>
@@ -88,10 +83,28 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
           )}
         </CardHeader>
         <CardContent className="p-0">
+          {repBacked > 0.005 && (
+            <CreditNoteRepLimitNotice
+              invoiceTotal={Number(invoice.total)}
+              priorCredits={activeCredits + draftCredits}
+              repBacked={repBacked}
+              maxCreditable={maxCreditable}
+              repPayments={repPayments}
+              blocked={blockedByReps}
+            />
+          )}
+
+          {willCreateCredit && (
+            <p className="mx-6 mb-4 text-xs text-muted-foreground">
+              Esta factura tiene {formatCurrency(otherPaid)} cobrados sin complemento de pago vigente. Una nota de
+              crédito por ese importe dejará saldo a favor del cliente, aplicable a facturas futuras.
+            </p>
+          )}
           {creditNotes.length === 0 ? (
             <p className="px-6 pb-4 text-sm text-muted-foreground">Sin notas de crédito emitidas.</p>
           ) : (
             <Table>
+
               <TableHeader>
                 <TableRow>
                   <TableHead>Número</TableHead>
@@ -173,7 +186,9 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
           onOpenChange={setCreateOpen}
           invoice={invoice}
           maxCreditable={maxCreditable}
+          repBacked={repBacked}
         />
+
       )}
 
       {cancelTarget && (

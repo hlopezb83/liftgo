@@ -1,3 +1,13 @@
+## 7.334.0 - 2026-08-25
+
+**Notas de crédito topadas por complementos de pago (REP)**
+
+- H-5: el máximo acreditable de una factura ahora descuenta los pagos respaldados por un complemento de pago (REP) timbrado y vigente, tanto en la interfaz como en base de datos.
+- Los pagos sin complemento timbrado (facturas PUE o capturas internas) y los complementos ya cancelados no limitan la nota de crédito.
+- La tarjeta de notas de crédito muestra el desglose del tope (total, notas previas, importe con REP vigente) y lista los complementos que hay que cancelar primero, advirtiendo que el SAT puede tardar hasta 72 horas.
+- Cuando hay cobros sin complemento vigente se avisa que la nota de crédito dejará saldo a favor del cliente.
+- Nuevas pruebas de máximo acreditable y de pagos con REP, más suite de humo SQL h5_credit_note_rep_smoke.sql.
+
 ## 7.333.0 - 2026-08-25
 
 **Timbrado con IVA por línea y candados de integridad fiscal**
