@@ -52,28 +52,8 @@ export function buildRentalItems(
       modelName, line.dailyRate, line.weeklyRate, line.monthlyRate,
       toYMD(startDate), toYMD(endDate), line.quantity,
     );
-    // M-9: el descuento fijo "$" es por línea de renta, no por partida. Antes
-    // se aplicaba solo a la primera partida y el remanente se perdía cuando esa
-    // partida no lo absorbía entera. Ahora se distribuye en cascada: cada
-    // partida absorbe hasta su propio total hasta agotar el descuento.
-    let remainingDiscount =
-      line.discountType === "$" && line.discount && line.discount > 0 ? line.discount : 0;
-    for (const item of generated) {
-      if (line.discountType === "$") {
-        if (remainingDiscount > 0) {
-          // Nunca descontar más que el total de la partida (clamp a 0).
-          const applied = Math.min(remainingDiscount, item.total || 0);
-          item.discount = money(applied).value;
-          item.discount_type = "$";
-          remainingDiscount = money(remainingDiscount).subtract(applied).value;
-        }
-      } else if (line.discount && line.discount > 0) {
-        // Los "%" son porcentuales y sí aplican a cada partida.
-        item.discount = line.discount;
-        item.discount_type = line.discountType;
-      }
-      items.push(item);
-    }
+    applyLineDiscount(line, generated);
+    items.push(...generated);
   }
   return items;
 }
