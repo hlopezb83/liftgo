@@ -234,7 +234,9 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
           onOpenChange={setCreateOpen}
           invoice={invoice}
           maxCreditable={maxCreditable}
+          repBacked={repBacked}
         />
+
       )}
 
       {cancelTarget && (
