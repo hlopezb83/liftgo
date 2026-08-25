@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.336.0",
+    "date": "2026-08-25",
+    "type": "minor",
+    "title": "Reportes financieros con notas de crédito, cobros reales y control de tipo de cambio",
+    "description": "Los reportes de ingresos, utilidad y estado de resultados ya descuentan notas de crédito y usan los pagos reales; las facturas en divisa sin tipo de cambio dejan de sumarse como si fueran pesos y se avisan en pantalla.",
+    "changes": [
+      "H-1: el reporte de ingresos por mes descuenta las notas de crédito timbradas y calcula lo cobrado con los pagos reales en lugar del estado de la factura.",
+      "H-2: las facturas en divisa sin tipo de cambio ya no se suman 1 a 1 como pesos; quedan fuera de los totales y se muestra un aviso con cuántas son en Ingresos, Antigüedad de saldos y Pronóstico de cobranza.",
+      "H-2: en el detalle de antigüedad esas facturas se marcan como 'Sin T.C.' para identificarlas y capturarles el tipo de cambio.",
+      "H-3: la utilidad por modelo usa el subtotal sin IVA, deduce notas de crédito y considera las facturas ligadas por el puente de reservas.",
+      "H-4 y M-5: el estado de resultados prorratea la depreciación a 48 meses y la base de efectivo usa la fecha real de los pagos.",
+      "Nuevas pruebas de conversión a MXN para evitar que vuelva la mezcla de monedas en los agregados."
+    ]
+  },
+  {
     "version": "7.335.0",
     "date": "2026-08-25",
     "type": "minor",
