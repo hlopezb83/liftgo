@@ -8,6 +8,9 @@ import { useCreatePayment } from "../usePayments";
 import { useStampPaymentComplement } from "./cfdi/usePaymentComplement";
 import { isPaymentFormDirty } from "./paymentFormDirty";
 
+/** L-7: monto máximo de un pago individual (anti-capturas erróneas). */
+const MAX_PAYMENT_AMOUNT = 99_999_999.99;
+
 interface Args {
   open: boolean;
   balance: number;
@@ -93,6 +96,13 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
   const handleSubmit = async () => {
     const amt = roundMoney(Number(amount));
     if (!amt || amt <= 0) { notifyValidation({ message: "Monto inválido" }); return; }
+    // L-7: techo de monto — rechaza capturas absurdas antes de persistir.
+    if (amt > MAX_PAYMENT_AMOUNT) {
+      notifyValidation({
+        message: "El monto excede el máximo permitido ($99,999,999.99). Verifica la cantidad.",
+      });
+      return;
+    }
     // R10 Bloque 8.1: la fecha de pago no puede ser futura (SAT rechaza REP con
     // fecha posterior a la del timbrado y contabilidad se rompe).
     const endOfToday = nowMty();

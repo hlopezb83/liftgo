@@ -72,3 +72,15 @@ describe("forkliftFormSchema", () => {
   });
 });
 
+
+describe("forkliftFormSchema — L-7 vigencia del seguro", () => {
+  it("rechaza años fuera de 2000–2100", () => {
+    const res = forkliftFormSchema.safeParse({ name: "M1", model: "X", insurance_expiry: "0221-05-01" });
+    expect(res.success).toBe(false);
+  });
+
+  it("acepta una vigencia razonable", () => {
+    const res = forkliftFormSchema.safeParse({ name: "M1", model: "X", insurance_expiry: "2027-05-01" });
+    expect(res.success).toBe(true);
+  });
+});

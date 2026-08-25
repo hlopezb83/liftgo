@@ -5,6 +5,19 @@ import { z } from "zod";
 const CURRENT_YEAR = new Date().getFullYear();
 
 
+/** L-7: rango razonable 2000–2100 para la vigencia del seguro. */
+function validateInsuranceExpiry(value: string | undefined, ctx: z.RefinementCtx) {
+  if (!value) return;
+  const expiryYear = new Date(value).getFullYear();
+  if (!Number.isFinite(expiryYear) || expiryYear < 2000 || expiryYear > 2100) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["insurance_expiry"],
+      message: "Vigencia del seguro debe estar entre los años 2000 y 2100",
+    });
+  }
+}
+
 export const forkliftFormSchema = z
   .object({
     name: z.string().min(1, "Nombre es requerido").max(120, "Nombre demasiado largo"),
@@ -33,6 +46,7 @@ export const forkliftFormSchema = z
         ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["year"], message: `Año debe estar entre 1980 y ${CURRENT_YEAR + 1}` });
       }
     }
+    validateInsuranceExpiry(data.insurance_expiry, ctx);
     if (data.capacity_kg) {
       const n = Number(data.capacity_kg);
       if (!Number.isFinite(n) || n <= 0 || n > 100_000) {

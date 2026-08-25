@@ -82,6 +82,9 @@ type PreviewLine = {
   // BL-12: monto efectivo a facturar. Igual a monthlyRate salvo el primer
   // ciclo prorrateado (start_date a mitad de mes).
   billedAmount: number;
+  // M-13: tasa de IVA del cliente (porcentaje 0–100). La vista previa la usa
+  // para totalizar igual que la generación real (frontera 8%, exento 0%).
+  taxRate?: number | null;
   isProrated: boolean;
   proratedDays?: number;
   eligible: boolean;
@@ -129,6 +132,25 @@ async function buildPlan(supabase: any): Promise<{
     .eq("recurring_billing", true)
     .eq("status", "confirmed");
   if (bErr) throw bErr;
+
+  // M-13: precargar la tasa de IVA de cada cliente para exponerla en el preview.
+  const customerIds = Array.from(
+    new Set(
+      ((bookings || []) as Array<{ customer_id: string | null }>)
+        .map((b) => b.customer_id)
+        .filter((id): id is string => !!id),
+    ),
+  );
+  const taxRateByCustomer = new Map<string, number | null>();
+  if (customerIds.length > 0) {
+    const { data: custRows } = await supabase
+      .from("customers")
+      .select("id, tax_rate")
+      .in("id", customerIds);
+    for (const c of (custRows ?? []) as Array<{ id: string; tax_rate: number | null }>) {
+      taxRateByCustomer.set(c.id, c.tax_rate);
+    }
+  }
 
   const nowMty = nowInMonterrey();
   const lines: PreviewLine[] = [];
@@ -224,6 +246,9 @@ async function buildPlan(supabase: any): Promise<{
         periodLabel,
         monthlyRate,
         billedAmount,
+        taxRate: booking.customer_id
+          ? taxRateByCustomer.get(booking.customer_id) ?? null
+          : null,
         isProrated,
         proratedDays: isProrated ? proratedDays : undefined,
         eligible: true,

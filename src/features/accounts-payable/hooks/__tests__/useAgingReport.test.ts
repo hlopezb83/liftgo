@@ -120,3 +120,39 @@ describe("useAgingReport", () => {
     expect(result.current.totals.current).toBe(26_000);
   });
 });
+
+describe("useAgingReport — M-14", () => {
+  useFakeTimeMty("2026-06-13T12:00:00");
+
+  it("M-14a: facturas sin due_date caen en Corriente (no se envejecen por issue_date)", () => {
+    useSupplierBillsMock.mockReturnValue({
+      data: [bill({ due_date: null, issue_date: "2025-01-01", balance: 900 })],
+      isLoading: false,
+    });
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useAgingReport(), { wrapper: Wrapper });
+    expect(result.current.totals.current).toBe(900);
+    expect(result.current.totals.d90_plus).toBe(0);
+  });
+
+  it("M-14c: excluye moneda foránea sin tipo de cambio válido", () => {
+    useSupplierBillsMock.mockReturnValue({
+      data: [
+        bill({ currency: "USD", exchange_rate: null, balance: 1_000 }),
+        bill({ currency: "USD", exchange_rate: 18, balance: 100 }),
+      ],
+      isLoading: false,
+    });
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useAgingReport(), { wrapper: Wrapper });
+    expect(result.current.totals.total).toBe(1_800);
+  });
+
+  it("H-10b: expone rawBills para el aviso de truncado", () => {
+    const rows = [bill()];
+    useSupplierBillsMock.mockReturnValue({ data: rows, isLoading: false });
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useAgingReport(), { wrapper: Wrapper });
+    expect(result.current.rawBills).toBe(rows);
+  });
+});

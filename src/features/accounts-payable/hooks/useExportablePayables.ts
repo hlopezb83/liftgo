@@ -1,6 +1,8 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+// H-10a: patrón N-03 — pedir limit+1 para detectar listas truncadas.
+import { LIST_FETCH_LIMIT, hasReachedListLimit } from "@/lib/supabase/constants";
 
 export interface ExportablePayable {
   id: string;
@@ -46,10 +48,12 @@ export const exportablePayableQueries = defineEntityQueries<
         // R12-FE-06 (P2 r11): nunca dispersar borradores.
         .neq("status", "draft")
         .gt("balance", 0)
-        .order("due_date", { ascending: true, nullsFirst: false }),
+        .order("due_date", { ascending: true, nullsFirst: false })
+        .limit(LIST_FETCH_LIMIT),
       supabase
         .from("supplier_bank_accounts")
-        .select("supplier_id, bank_name, clabe, account_number, account_holder, is_primary, created_at"),
+        .select("supplier_id, bank_name, clabe, account_number, account_holder, is_primary, created_at")
+        .limit(LIST_FETCH_LIMIT),
     ]);
     if (billsRes.error) throw billsRes.error;
     if (banksRes.error) throw banksRes.error;
@@ -69,7 +73,9 @@ export const exportablePayableQueries = defineEntityQueries<
 });
 
 export function useExportablePayables() {
-  return useQuery(exportablePayableQueries.list());
+  const query = useQuery(exportablePayableQueries.list());
+  // H-10a: exponer flag de truncado para que la UI muestre ListTruncationNotice.
+  return { ...query, isTruncated: hasReachedListLimit(query.data) };
 }
 
 interface BankInfo {
