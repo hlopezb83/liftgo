@@ -29,10 +29,25 @@ export function useCreateCreditNote() {
         .single();
       if (error) throw error;
       if (stamp) {
-        await invokeEdgeFunction("stamp-credit-note", {
-          body: { credit_note_id: created.id },
-        });
+        try {
+          await invokeEdgeFunction("stamp-credit-note", {
+            body: { credit_note_id: created.id },
+          });
+        } catch (stampErr) {
+          // L-3: rollback compensatorio. Si el timbrado falla después de crear
+          // el draft, se elimina para no dejar registros huérfanos ni consumir
+          // folios. El error de timbrado siempre se re-lanza tal cual.
+          const { error: rollbackErr } = await supabase
+            .from("credit_notes")
+            .delete()
+            .eq("id", created.id);
+          if (rollbackErr) {
+            console.error("No se pudo revertir la nota de crédito draft", rollbackErr);
+          }
+          throw stampErr;
+        }
       }
+
       return { created, stamped: !!stamp };
     },
     invalidateKeys: CREDIT_NOTE_INVALIDATIONS,
