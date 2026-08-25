@@ -61,10 +61,11 @@ export function useImportBankStatement() {
         const { error: cleanupImpErr } = await supabase
           .from("bank_statement_imports").delete().eq("id", imp.id);
         if (cleanupLinesErr || cleanupImpErr) {
-          throw new Error(
+          const cleanupError = new Error(
             "La importación falló y no se pudo limpiar por completo. Revisa el estado de cuenta antes de reintentar.",
-            { cause: chunkErr },
           );
+          (cleanupError as Error & { cause?: unknown }).cause = chunkErr;
+          throw cleanupError;
         }
         throw chunkErr;
       }
