@@ -190,7 +190,9 @@ Responde estrictamente con JSON: {"severity": "...", "module": "...", "reasoning
       .single();
 
     if (updateErr) {
-      return jsonError(req, 500, updateErr.message);
+      // M-16b: no filtrar el error crudo de BD al cliente; log interno.
+      console.error("[classify-feedback] update error:", updateErr);
+      return jsonError(req, 500, "No se pudo procesar la solicitud");
     }
 
     return jsonResponse(req, { report: updated, classification });
