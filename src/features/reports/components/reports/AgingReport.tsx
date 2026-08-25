@@ -135,6 +135,14 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
           </div>
         </CardHeader>
         <CardContent>
+          {fxMissingCount > 0 && (
+            <p className="mb-3 rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-muted-foreground">
+              {fxMissingCount} factura{fxMissingCount === 1 ? "" : "s"} en divisa sin tipo de cambio
+              {fxMissingCount === 1 ? " no suma" : " no suman"} a los totales en MXN. Captura el tipo de
+              cambio en la factura para incluirla.
+            </p>
+          )}
+
           <DataTableV2
             table={table}
             emptyMessage="No hay facturas vencidas"
