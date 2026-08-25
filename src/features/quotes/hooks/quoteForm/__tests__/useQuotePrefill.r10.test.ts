@@ -84,9 +84,9 @@ describe("R10-FE-03b · periodicidad de la tarifa legacy", () => {
 // M-10: `rate_type` explícito manda sobre la heurística legacy.
 describe("M-10: rate_type explícito en line_items", () => {
   const models = [{ id: "m1", manufacturer: "Cat", model: "MCAPC025A048" }];
-  const withRateType = (rateType: string, description: string) => ({
+  const withRateType = (rateType: string, description: string): ExistingQuote => ({
     id: "q1", quote_type: "rental", customer_id: "c1", customer_name: "ACME",
-    start_date: "2026-01-01", end_date: "2026-02-01",
+    start_date: "2026-01-01", end_date: "2026-02-01", tax_rate: 16, currency: "MXN",
     line_items: [{ description, quantity: 1, unit_price: 20000, total: 20000, rate_type: rateType }],
   });
 
