@@ -12,14 +12,14 @@ vi.mock("@/integrations/supabase/client", () => {
   const invoices = [{ id: "i1", invoice_number: "FAC-0001", customer_name: "ACME" }, { id: "i2", invoice_number: null, customer_name: null }];
   const customers = [{ id: "c1", name: "Cliente Uno", rfc: "AAA010101AAA" }];
   const bookings = [{ id: "b1", booking_number: "RSV-0007", customer_name: "ACME" }];
+  const cache: Record<string, Record<string, unknown>> = {
+    invoices: build(invoices),
+    customers: build(customers),
+    bookings: build(bookings),
+  };
   return {
     supabase: {
-      from: (table: string) => {
-        if (table === "invoices") return build(invoices);
-        if (table === "customers") return build(customers);
-        if (table === "bookings") return build(bookings);
-        return build([]);
-      },
+      from: (table: string) => cache[table] ?? build([]),
     },
   };
 });
