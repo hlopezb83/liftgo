@@ -1,6 +1,7 @@
 // Smoke tests para validate-supplier-rep (admin/administrativo).
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
 import { fetchFn, fnUrl } from "../_shared/test-helpers.ts";
+import { isWellFormedXml } from "./index.ts";
 
 const FN_URL = fnUrl("validate-supplier-rep");
 
@@ -45,7 +46,6 @@ Deno.test("validate-supplier-rep: rechaza Authorization inválido (401)", async 
 });
 
 // L-8: chequeo estructural de XML bien formado antes del parseo por regex.
-import { isWellFormedXml } from "./index.ts";
 
 Deno.test("isWellFormedXml: acepta XML válido con declaración y namespaces", () => {
   const xml =
