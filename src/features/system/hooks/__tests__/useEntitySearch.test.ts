@@ -4,7 +4,7 @@ vi.mock("@/integrations/supabase/client", () => {
   const build = (data: unknown) => {
     const chain: Record<string, unknown> = {};
     const ret = { data, error: null };
-    ["select", "or", "order", "limit"].forEach((k) => {
+    ["select", "or", "order", "limit", "neq", "is"].forEach((k) => {
       chain[k] = vi.fn(() => (k === "limit" ? Promise.resolve(ret) : chain));
     });
     return chain;
