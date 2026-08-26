@@ -27,3 +27,20 @@ export async function openStorageFile(
   }
   window.open(data.signedUrl, "_blank", "noopener");
 }
+
+/**
+ * N-9: abre un archivo cuyo valor persistido puede ser un `path` de Storage
+ * (nuevo) o una URL firmada completa (registros legacy con TTL de 5 años).
+ * Las URLs se abren tal cual; los paths se firman on-demand con TTL corto.
+ */
+export async function openStoredFile(
+  bucket: string,
+  pathOrUrl: string,
+  options?: { ttlSeconds?: number; errorMessage?: string },
+): Promise<void> {
+  if (/^https?:\/\//i.test(pathOrUrl)) {
+    window.open(pathOrUrl, "_blank", "noopener");
+    return;
+  }
+  await openStorageFile(bucket, pathOrUrl, options);
+}

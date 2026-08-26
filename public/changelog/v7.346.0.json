@@ -1,0 +1,20 @@
+{
+  "version": "7.346.0",
+  "date": "2026-08-26",
+  "type": "minor",
+  "title": "Facturación recurrente, devoluciones y descargas de CFDI (fix-13 / fix-14)",
+  "changes": [
+    "N-7a: la última factura recurrente de un contrato se corta en la fecha de fin y se prorratea con la misma fórmula que el primer ciclo, en vez de cobrar el mes completo.",
+    "N-7c: una tarifa pactada de $0 (cortesía) ya se respeta; antes se caía a la tarifa de lista del montacargas.",
+    "N-12: la bolsa de horas del contrato se calcula con meses de calendario reales y prorrateo del remanente, en lugar de redondear días entre 30 (que inflaba la bolsa en meses de 31 días).",
+    "N-13: la inspección de retorno registra los días de retraso y un cargo sugerido por devolución tardía (informativo, no se factura solo).",
+    "N-35: el prellenado de daños en facturas usa el costo real cuando ya existe, no el estimado.",
+    "N-8: el portal del cliente ya puede descargar sus CFDI: el rol cliente está autorizado con verificación de propiedad en facturas, notas de crédito y REP.",
+    "N-9: los archivos de proveedores se abren con enlaces firmados de corta duración generados al momento, en vez de URLs de 5 años; se mantiene compatibilidad con los enlaces antiguos.",
+    "N-10: si falta la llave del PAC, el retimbrado se pospone en vez de intentarse y arriesgar documentos duplicados.",
+    "N-11: se puede volver a cancelar un CFDI rechazado o vencido, y las cancelaciones huérfanas de más de 72 horas se reinician.",
+    "N-44: los nombres de archivo de descarga se sanitizan y las descargas de CFDI tienen límite de 30 solicitudes por minuto.",
+    "N-37 descartado: la corrección propuesta para rentas ancladas al día 31 regresaba el comportamiento ya validado (31 ene → 1 mar) y encarecía el cobro; se conserva la lógica actual.",
+    "Nueva prueba de humo SQL: supabase/tests/r_fix13_devoluciones_smoke.sql."
+  ]
+}

@@ -76,7 +76,7 @@ export async function handleRefreshCancellation(
 
     const { data: invoice } = await supabase
       .from(table)
-      .select("facturapi_invoice_id, cancellation_status")
+      .select("facturapi_invoice_id, cancellation_status, updated_at")
       .eq("id", docId)
       .single();
     const inv = invoice as Record<string, unknown> | null;
@@ -151,6 +151,22 @@ export async function handleRefreshCancellation(
       // Nunca degradar un estado terminal a pending.
       if (!(TERMINAL_STATUSES.has(prior) && rawCancel === "pending")) {
         satStatus = rawCancel;
+      }
+    } else if (prior === "pending") {
+      // N-11: el PAC no reporta la cancelación pero llevamos >72h en
+      // 'pending' → la solicitud quedó huérfana (nunca llegó al SAT o el PAC
+      // la perdió). Resetear a 'none' para desbloquear un nuevo intento.
+      const requestedAt = inv.updated_at as string | null;
+      const STALE_PENDING_MS = 72 * 60 * 60 * 1000;
+      const ageMs = requestedAt
+        ? Date.now() - new Date(requestedAt).getTime()
+        : 0;
+      if (requestedAt && ageMs > STALE_PENDING_MS) {
+        console.warn(
+          "[refresh-cancellation-status] stale pending >72h, resetting to none",
+          { docId, requestedAt },
+        );
+        satStatus = "none";
       }
     } else if (prior === "none") {
       // M-8: el documento nunca se canceló y el PAC no reporta nada → NO

@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders, handleCors } from "../_shared/cors.ts";
 import { jsonError } from "../_shared/http.ts";
-import { requireRole } from "../_shared/auth.ts";
+import { enforceRateLimit, requireRole } from "../_shared/auth.ts";
 import { isUUID } from "../_shared/validate.ts";
 import {
   getFacturapiConfig,
@@ -101,7 +101,9 @@ function attachmentResponse(
 ): Response {
   const headers = new Headers(getCorsHeaders(req));
   headers.set("Content-Type", contentType);
-  headers.set("Content-Disposition", `attachment; filename="${filename}"`);
+  // N-44: sanear el filename (header injection / caracteres de ruta).
+  const safeFilename = filename.replace(/[^A-Za-z0-9._-]/g, "_");
+  headers.set("Content-Disposition", `attachment; filename="${safeFilename}"`);
   return new Response(body, { headers });
 }
 
@@ -186,9 +188,41 @@ Deno.serve(async (req) => {
   if (corsRes) return corsRes;
 
   try {
-    const auth = await requireRole(req, ["admin", "administrativo", "ventas"]);
+    const auth = await requireRole(req, [
+      "admin",
+      "administrativo",
+      "ventas",
+      "customer",
+    ]);
     if (!auth.ok) return auth.response;
     const supabase = auth.adminClient;
+
+    // N-44: rate limit de descargas (30 req/min por usuario; fail-closed).
+    const limited = await enforceRateLimit(
+      req,
+      supabase,
+      "download-cfdi",
+      auth.userId,
+      30,
+      60,
+    );
+    if (limited) return limited;
+
+    // N-8: un customer sólo puede descargar CFDIs de su propio customer_id.
+    // Staff (admin/administrativo/ventas) no pasa por este chequeo.
+    const requireOwnership = async (
+      customerId: unknown,
+    ): Promise<Response | null> => {
+      if (auth.role !== "customer") return null;
+      const { data: ownerId } = await supabase.rpc(
+        "get_customer_id_for_user",
+        { p_user_id: auth.userId },
+      );
+      if (!ownerId || ownerId !== customerId) {
+        return jsonError(req, 403, "Forbidden: not the owner of this document");
+      }
+      return null;
+    };
 
     const body = await req.json().catch(() => null);
     const invoice_id = body?.invoice_id;
@@ -221,13 +255,15 @@ Deno.serve(async (req) => {
       const { data: cn } = await supabase
         .from("credit_notes")
         .select(
-          "id, credit_note_number, cfdi_uuid, cfdi_status, cfdi_xml_url, cfdi_pdf_url, facturapi_invoice_id",
+          "id, customer_id, credit_note_number, cfdi_uuid, cfdi_status, cfdi_xml_url, cfdi_pdf_url, facturapi_invoice_id",
         )
         .eq("id", credit_note_id)
         .single();
       if (!cn || cn.cfdi_status !== "stamped" || !cn.cfdi_uuid) {
         return jsonError(req, 409, "Credit note not stamped");
       }
+      const cnForbidden = await requireOwnership(cn.customer_id);
+      if (cnForbidden) return cnForbidden;
       const filename = `${cn.credit_note_number || cn.cfdi_uuid}.${baseFormat}`;
       const existing = await tryStorageDownload(
         supabase,
@@ -291,6 +327,15 @@ Deno.serve(async (req) => {
       ) {
         return jsonError(req, 409, "REP not stamped");
       }
+      if (auth.role === "customer") {
+        const { data: repInv } = await supabase
+          .from("invoices")
+          .select("customer_id")
+          .eq("id", payment.invoice_id as string)
+          .maybeSingle();
+        const repForbidden = await requireOwnership(repInv?.customer_id);
+        if (repForbidden) return repForbidden;
+      }
       const filename = `REP-${payment.rep_cfdi_uuid}.${baseFormat}`;
       const existing = await tryStorageDownload(
         supabase,
@@ -344,11 +389,13 @@ Deno.serve(async (req) => {
     const { data: invoice, error: invErr } = await supabase
       .from("invoices")
       .select(
-        "id, invoice_number, cfdi_uuid, cfdi_status, cancellation_status, cfdi_xml, cfdi_xml_url, cfdi_xml_pending, cfdi_pdf_url, acuse_pdf_url, acuse_xml_url, facturapi_invoice_id",
+        "id, customer_id, invoice_number, cfdi_uuid, cfdi_status, cancellation_status, cfdi_xml, cfdi_xml_url, cfdi_xml_pending, cfdi_pdf_url, acuse_pdf_url, acuse_xml_url, facturapi_invoice_id",
       )
       .eq("id", invoice_id)
       .single();
     if (invErr || !invoice) return jsonError(req, 404, "Invoice not found");
+    const invForbidden = await requireOwnership(invoice.customer_id);
+    if (invForbidden) return invForbidden;
     const cfdiOk = invoice.cfdi_status === "stamped" ||
       invoice.cfdi_status === "cancelled";
     if (!cfdiOk || !invoice.cfdi_uuid) {

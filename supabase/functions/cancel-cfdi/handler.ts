@@ -176,13 +176,15 @@ export async function handleCancelCfdi(
 
     // S2-2.4: claim atómico pending — evita que dos requests concurrentes
     // manden dos cancelaciones al SAT. Solo la primera cambia
-    // cancellation_status 'none' → 'pending' sobre una factura timbrada.
+    // cancellation_status → 'pending' sobre una factura timbrada.
+    // N-11: se admiten también 'rejected' y 'expired' (estados terminales de
+    // un intento previo) para permitir reintentar la cancelación.
     const claimRes = await supabase
       .from("invoices")
       .update({ cancellation_status: "pending" })
       .eq("id", invoice_id as string)
       .eq("cfdi_status", "stamped")
-      .in("cancellation_status", ["none"])
+      .in("cancellation_status", ["none", "rejected", "expired"])
       .select("id")
       .maybeSingle();
     if (!(claimRes as { data: unknown }).data) {

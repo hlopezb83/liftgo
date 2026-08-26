@@ -2818,7 +2818,9 @@ export type Database = {
           inspected_at: string
           inspected_by: string | null
           inspection_number: string
+          late_days: number | null
           suggested_extra_hour_charge: number | null
+          suggested_late_charge: number | null
         }
         Insert: {
           booking_id: string
@@ -2834,7 +2836,9 @@ export type Database = {
           inspected_at?: string
           inspected_by?: string | null
           inspection_number: string
+          late_days?: number | null
           suggested_extra_hour_charge?: number | null
+          suggested_late_charge?: number | null
         }
         Update: {
           booking_id?: string
@@ -2850,7 +2854,9 @@ export type Database = {
           inspected_at?: string
           inspected_by?: string | null
           inspection_number?: string
+          late_days?: number | null
           suggested_extra_hour_charge?: number | null
+          suggested_late_charge?: number | null
         }
         Relationships: [
           {

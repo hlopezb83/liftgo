@@ -65,7 +65,7 @@ export function SupplierBillFormDialog({ open, onOpenChange, bill, overrides, ti
   const handleFile = async (file: File) => {
     const r = await cfdi.importXml(file);
     if (r) {
-      setImportedValues({ initialValues: r.initialValues, cfdiXmlUrl: r.uploaded.signedUrl });
+      setImportedValues({ initialValues: r.initialValues, cfdiXmlUrl: r.uploaded.path });
       form.reset({ ...EMPTY_FORM, ...r.initialValues });
     }
   };

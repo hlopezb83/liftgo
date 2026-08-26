@@ -108,7 +108,8 @@ export function RegisterSupplierPaymentDialog({
     let receipt_url = data.receipt_url || undefined;
     if (receiptFile) {
       const uploaded = await uploader.mutateAsync({ file: receiptFile, billId });
-      receipt_url = uploaded.signedUrl;
+      // N-9: persistimos el path, no una signed URL de 5 años.
+      receipt_url = uploaded.path;
     }
     register.mutate(
       {

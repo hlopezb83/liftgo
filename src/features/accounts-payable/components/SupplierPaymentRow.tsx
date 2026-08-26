@@ -2,6 +2,7 @@ import { SpinnerIcon, OpenLinkIcon } from "@/components/icons";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ReconciliationBadge } from "@/features/bank-reconciliation";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { openStoredFile } from "@/lib/storage/openStorageFile";
 import { formatDateDisplay } from "@/lib/utils";
 import { useSupplierPaymentActions } from "../hooks/useSupplierPaymentActions";
 import { PAYMENT_METHOD_LABELS } from "../lib/supplierBillConstants";
@@ -10,6 +11,8 @@ import { SupplierPaymentRejectDialog } from "./SupplierPaymentRejectDialog";
 import { SupplierPaymentRepSection } from "./SupplierPaymentRepSection";
 import { UploadSupplierRepDialog } from "./UploadSupplierRepDialog";
 import type { SupplierPayment } from "../hooks/useSupplierBill";
+
+const RECEIPTS_BUCKET = "supplier-payment-receipts";
 
 interface Props {
   payment: SupplierPayment;
@@ -32,9 +35,13 @@ function PaymentHeader({ p, currency }: { p: SupplierPayment; currency: string }
         {p.bank_account && <> · {p.bank_account}</>}
       </p>
       {p.receipt_url && (
-        <a href={p.receipt_url} target="_blank" rel="noreferrer" className="text-primary inline-flex items-center gap-1 hover:underline">
+        <button
+          type="button"
+          onClick={() => openStoredFile(RECEIPTS_BUCKET, String(p.receipt_url))}
+          className="text-primary inline-flex items-center gap-1 hover:underline"
+        >
           Comprobante <OpenLinkIcon className="h-3 w-3" />
-        </a>
+        </button>
       )}
     </>
   );
