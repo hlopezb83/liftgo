@@ -851,6 +851,7 @@ export type Database = {
         Row: {
           cancellation_motive: string | null
           cancellation_reason: string | null
+          cancellation_requested_at: string | null
           cancellation_status: string
           cancelled_at: string | null
           cfdi_error_message: string | null
@@ -884,6 +885,7 @@ export type Database = {
         Insert: {
           cancellation_motive?: string | null
           cancellation_reason?: string | null
+          cancellation_requested_at?: string | null
           cancellation_status?: string
           cancelled_at?: string | null
           cfdi_error_message?: string | null
@@ -917,6 +919,7 @@ export type Database = {
         Update: {
           cancellation_motive?: string | null
           cancellation_reason?: string | null
+          cancellation_requested_at?: string | null
           cancellation_status?: string
           cancelled_at?: string | null
           cfdi_error_message?: string | null
@@ -1799,6 +1802,7 @@ export type Database = {
           booking_id: string | null
           cancellation_motive: string | null
           cancellation_reason: string | null
+          cancellation_requested_at: string | null
           cancellation_status: string
           cancelled_at: string | null
           cfdi_error_message: string | null
@@ -1858,6 +1862,7 @@ export type Database = {
           booking_id?: string | null
           cancellation_motive?: string | null
           cancellation_reason?: string | null
+          cancellation_requested_at?: string | null
           cancellation_status?: string
           cancelled_at?: string | null
           cfdi_error_message?: string | null
@@ -1917,6 +1922,7 @@ export type Database = {
           booking_id?: string | null
           cancellation_motive?: string | null
           cancellation_reason?: string | null
+          cancellation_requested_at?: string | null
           cancellation_status?: string
           cancelled_at?: string | null
           cfdi_error_message?: string | null
@@ -2400,6 +2406,7 @@ export type Database = {
           reference_number: string | null
           rep_cancellation_motive: string | null
           rep_cancellation_reason: string | null
+          rep_cancellation_requested_at: string | null
           rep_cancellation_status: string
           rep_cancelled_at: string | null
           rep_cfdi_status: string
@@ -2436,6 +2443,7 @@ export type Database = {
           reference_number?: string | null
           rep_cancellation_motive?: string | null
           rep_cancellation_reason?: string | null
+          rep_cancellation_requested_at?: string | null
           rep_cancellation_status?: string
           rep_cancelled_at?: string | null
           rep_cfdi_status?: string
@@ -2472,6 +2480,7 @@ export type Database = {
           reference_number?: string | null
           rep_cancellation_motive?: string | null
           rep_cancellation_reason?: string | null
+          rep_cancellation_requested_at?: string | null
           rep_cancellation_status?: string
           rep_cancelled_at?: string | null
           rep_cfdi_status?: string
