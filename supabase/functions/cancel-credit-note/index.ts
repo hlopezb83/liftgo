@@ -84,25 +84,27 @@ Deno.serve(async (req) => {
     // cancelación al SAT.
     const { data: claim } = await supabase
       .from("credit_notes")
-      .update({ cancellation_status: "pending" })
+      .update({
+        cancellation_status: "pending",
+        // R4-14: timestamp dedicado de la solicitud (ver cancel-cfdi).
+        cancellation_requested_at: new Date().toISOString(),
+      })
       .eq("id", credit_note_id)
       .eq("cfdi_status", "stamped")
-      .eq("cancellation_status", "none")
+      .in("cancellation_status", ["none", "rejected", "expired"])
       .select("id")
       .maybeSingle();
     if (!claim) {
       return jsonError(
         req,
         409,
-        "Ya hay una cancelación en proceso para esta nota de crédito",
+        // R4-02: 'rejected'/'expired' son reintentables (admite el claim).
+        "Ya hay una cancelación en proceso para esta nota de crédito; si fue rechazada o expiró, puedes reintentarla",
       );
     }
-    const releaseClaim = async () => {
-      await supabase.from("credit_notes")
-        .update({ cancellation_status: "none" })
-        .eq("id", credit_note_id)
-        .eq("cancellation_status", "pending");
-    };
+    claimed = true;
+    const releaseClaim = releaseClaimRef;
+
 
     const { apiKey, mode } = await getFacturapiConfig(
       supabase,
