@@ -1,5 +1,15 @@
 [
   {
+    "version": "7.350.2",
+    "date": "2026-08-27",
+    "type": "patch",
+    "title": "Type-check Deno: nulabilidad de `inv` en refresh-cancellation-status",
+    "description": "El chequeo de tipos de CI fallaba con 'inv is possibly null' en 3 lugares del handler. Se reforzó el guard 404 para validar `!inv` además de la falta de referencia Facturapi, lo que permite a TypeScript estrechar el tipo sin cambiar el comportamiento.",
+    "changes": [
+      "Guard de 404 en refresh-cancellation-status/handler.ts ahora valida `!inv || !facturapiId`, eliminando los 3 errores TS18047 del type-check de CI."
+    ]
+  },
+  {
     "version": "7.350.1",
     "date": "2026-08-27",
     "type": "patch",
