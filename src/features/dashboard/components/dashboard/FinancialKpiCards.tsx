@@ -50,6 +50,14 @@ export function FinancialKpiCards({
       color: overdueTotal > 0 ? "text-destructive" : "text-muted-foreground",
       bgColor: overdueTotal > 0 ? "bg-destructive/10" : "bg-muted",
       href: "/invoices?status=overdue",
+      // N-15: aviso cuando hay facturas en divisa sin tipo de cambio fuera del total.
+      hint: overdueFxMissingCount > 0
+        ? (
+          <span className="text-xs text-warning">
+            {overdueFxMissingCount} factura(s) en divisa sin tipo de cambio no se incluyen
+          </span>
+        )
+        : undefined,
     },
   ];
 
