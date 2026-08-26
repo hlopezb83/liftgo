@@ -1,0 +1,14 @@
+{
+  "version": "7.344.0",
+  "date": "2026-08-26",
+  "type": "minor",
+  "title": "Conciliación bancaria: tipo de cambio, validación de signo y deduplicación de movimientos",
+  "changes": [
+    "N-4: al confirmar una conciliación, el importe del pago se convierte a la moneda de la cuenta bancaria con su tipo de cambio. Antes se comparaba el monto en crudo y las conciliaciones de pagos en moneda extranjera se rechazaban por 'monto no coincide'. Si falta el tipo de cambio, el mensaje ahora lo dice.",
+    "N-5: la lista de candidatos para un cargo del banco ya convierte los pagos a proveedor con el tipo de cambio de la factura, igual que el emparejamiento automático. Antes los pagos en moneda extranjera nunca aparecían como candidatos.",
+    "N-25: ya no se puede ligar un cargo del banco a un cobro de cliente ni un depósito a un pago a proveedor; la confirmación valida que el signo del movimiento corresponda al tipo de pago.",
+    "N-23: dos movimientos idénticos dentro del mismo archivo (misma fecha, importe y descripción, sin referencia) ya no se descartan en silencio: el hash de deduplicación incluye la posición de la línea en el archivo.",
+    "N-24: si una importación no trae movimientos nuevos o falla el emparejamiento, se limpian tanto las líneas como el encabezado, sin dejar importaciones a medias.",
+    "Nueva prueba unitaria del hash de deduplicación y prueba de humo SQL del módulo de conciliación."
+  ]
+}
