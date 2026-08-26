@@ -4146,6 +4146,7 @@ export type Database = {
         Returns: number
       }
       internal_get_cron_secret: { Args: never; Returns: string }
+      is_active_user: { Args: { _user_id: string }; Returns: boolean }
       is_admin_administrativo_auditor: { Args: never; Returns: boolean }
       is_admin_or_administrativo: { Args: never; Returns: boolean }
       is_backoffice: { Args: never; Returns: boolean }

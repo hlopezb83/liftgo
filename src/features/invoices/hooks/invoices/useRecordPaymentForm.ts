@@ -20,10 +20,12 @@ interface Args {
   invoiceCurrency?: string | null;
   /** R7 Bloque 14: tipo de cambio de la factura para prellenar el TC del pago. */
   invoiceExchangeRate?: number | null;
+  /** N-34: fecha de emisión de la factura (YYYY-MM-DD) para validar payment_date >= issued_at. */
+  invoiceIssuedAt?: string | null;
   onOpenChange: (open: boolean) => void;
 }
 
-export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, invoiceCurrency, invoiceExchangeRate, onOpenChange }: Args) {
+export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, invoiceCurrency, invoiceExchangeRate, invoiceIssuedAt, onOpenChange }: Args) {
   const lockedCurrency = (invoiceCurrency ?? "MXN").toUpperCase();
   // R7 Bloque 14: TC inicial del pago = TC de la factura (o 1 para MXN).
   const initialRate = lockedCurrency === "MXN"
@@ -109,6 +111,15 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
     endOfToday.setHours(23, 59, 59, 999);
     if (date > endOfToday) {
       notifyValidation({ message: "La fecha del pago no puede ser futura." });
+      return;
+    }
+    // N-34: alineado con trg_payment_date_window — el pago no puede ser
+    // anterior a la emisión de la factura. Validar en cliente evita el error
+    // crudo del trigger.
+    if (invoiceIssuedAt && toYMD(date) < invoiceIssuedAt.slice(0, 10)) {
+      notifyValidation({
+        message: `La fecha del pago no puede ser anterior a la fecha de emisión de la factura (${invoiceIssuedAt.slice(0, 10)}).`,
+      });
       return;
     }
     // BL-11: rechazar sobrepagos. Antes se permitía registrar un pago mayor al

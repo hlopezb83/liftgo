@@ -87,6 +87,20 @@ Deno.serve(async (req) => {
 
     const userId = newUser.user.id;
 
+    // N-30: compensacion — si alguna escritura posterior falla, borrar el
+    // usuario auth creado (mismo patron que cleanupInvitedUser de
+    // invite-customer) para no dejar cuentas huerfanas a medias.
+    const cleanupInvitedUser = async () => {
+      const { error: delErr } = await auth.adminClient.auth.admin.deleteUser(
+        userId,
+      );
+      if (delErr) {
+        console.error("invite-user cleanup deleteUser failed:", delErr);
+      }
+      await auth.adminClient.from("user_roles").delete().eq("user_id", userId);
+      await auth.adminClient.from("profiles").delete().eq("user_id", userId);
+    };
+
     // DB2-01: el árbitro del conflicto debe ser el índice único VIGENTE
     // user_roles_one_role_per_user (user_id). Con "user_id,role" el upsert
     // reventaba con duplicate key y, al solo loguearse, el prune posterior
@@ -95,13 +109,20 @@ Deno.serve(async (req) => {
     // trigger de signup, así que el prune ya no es necesario.
     const roleResult = await assignRoleToUser(auth.adminClient, userId, role);
     if (!roleResult.ok) {
+      console.error("[invite-user] assignRoleToUser:", roleResult.message);
+      await cleanupInvitedUser();
       return jsonError(req, 500, roleResult.message);
     }
 
-    await auth.adminClient
+    const { error: profileErr } = await auth.adminClient
       .from("profiles")
       .update({ full_name, email })
       .eq("user_id", userId);
+    if (profileErr) {
+      console.error("[invite-user] profiles update:", profileErr);
+      await cleanupInvitedUser();
+      return jsonError(req, 500, "No se pudo completar la invitación");
+    }
 
     // SEC-B5: recovery link para que el invitado defina su propia contraseña
     // en el primer acceso. El admin comparte el enlace; no necesita conocer
