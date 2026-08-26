@@ -1,0 +1,11 @@
+{
+  "version": "7.342.4",
+  "date": "2026-08-26",
+  "type": "patch",
+  "title": "Pagos a proveedor con fecha de Monterrey y reverso de pagos desbloqueado",
+  "changes": [
+    "Los pagos a proveedores se registran con el día vigente en Monterrey; antes, después de las 18:00, el sistema los fechaba al día siguiente por usar la hora UTC.",
+    "Al eliminar o reversar un pago de una factura ya pagada, la factura vuelve correctamente a 'parcial'. Antes quedaba atorada en 'pagada' porque el candado de seguridad ignoraba el recálculo automático.",
+    "Se agregó una prueba de humo SQL que valida ambos comportamientos."
+  ]
+}
