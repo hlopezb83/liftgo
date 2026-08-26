@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { chargeableDamageCost } from "@/features/damage/lib/chargeableDamageCost";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { notifyError, notifyWarning } from "@/lib/ui/appFeedback";
@@ -41,7 +42,7 @@ export function useDamagePrefill({
     let cancelled = false;
     supabase
       .from("damage_records")
-      .select("status, estimated_cost")
+      .select("status, estimated_cost, actual_cost")
       .eq("id", damageId)
       .maybeSingle()
       .then(({ data: damage, error }) => {
@@ -53,8 +54,10 @@ export function useDamagePrefill({
           return;
         }
         handleCustomerSelect(damageCustomerId);
-        const amt = Number(damage.estimated_cost);
-        if (Number.isFinite(amt) && amt > 0) {
+        // N-35: regla chargeableDamageCost — si el daño ya está reparado y
+        // tiene actual_cost, ése manda sobre el estimado.
+        const amt = chargeableDamageCost(damage);
+        if (amt != null && Number.isFinite(amt) && amt > 0) {
           form.setValue(
             "lineItems",
             [{ description: `Cobro de daño (ref. ${damageId.slice(0, 8)})`, quantity: 1, unit_price: amt, total: amt }],
@@ -62,7 +65,7 @@ export function useDamagePrefill({
           );
         } else {
           notifyWarning({
-            title: "Sin costo estimado registrado",
+            title: "Sin costo cobrable registrado",
             description: "Captura el monto a facturar manualmente.",
           });
         }

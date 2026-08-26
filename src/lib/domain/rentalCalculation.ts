@@ -20,6 +20,7 @@ function calcMonths(monthlyRate: number, startDate: Date, effectiveEnd: Date): n
   return Math.max(0, months);
 }
 
+
 function buildDailyRemainder(
   remaining: number,
   dailyRate: number,
@@ -101,6 +102,7 @@ export function calculateRentalCost(
   items.push(...monthlyItems(m, months));
 
   const remainderStart = months > 0 ? addMonths(startDate, months) : startDate;
+
   let remaining = Math.max(0, differenceInDays(effectiveEnd, remainderStart));
 
   // F2 (Sprint M1): fin de mes corto. Si la renta arranca en un día que no

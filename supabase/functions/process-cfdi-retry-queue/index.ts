@@ -254,11 +254,11 @@ Deno.serve(async (req) => {
         // Lookup al PAC por external_id: si el 5xx timbró server-side,
         // recuperamos los ids y dejamos que reconcile-stamping-invoices
         // descargue el XML — en vez de emitir un CFDI duplicado.
+        const { apiKey } = await getFacturapiConfig(
+          admin as unknown as { from: (t: string) => unknown } as never,
+          (k) => Deno.env.get(k),
+        );
         try {
-          const { apiKey } = await getFacturapiConfig(
-            admin as unknown as { from: (t: string) => unknown } as never,
-            (k) => Deno.env.get(k),
-          );
           if (apiKey) {
             const pacClient = createFacturapiClient(apiKey);
             const listFn = (pacClient.invoices as unknown as {
@@ -319,6 +319,23 @@ Deno.serve(async (req) => {
             next_retry_at: nextRetryAt(nextAttempts).toISOString(),
           });
           results.push({ id: row.id, status: "retry_lookup_deferred" });
+          continue;
+        }
+        // N-10: sin API key del PAC no hubo lookup posible y el catch no se
+        // disparó → NO re-timbrar a ciegas (riesgo de CFDI duplicado ante el
+        // SAT). Dejar la fila pending con backoff para el próximo ciclo.
+        if (!apiKey) {
+          console.warn(
+            "[process-cfdi-retry-queue] no PAC apiKey, deferring re-stamp",
+            { invoice_id: row.invoice_id },
+          );
+          await markQueueRow(admin, row.id, {
+            status: "pending",
+            attempts: nextAttempts,
+            last_error: "Facturapi key no configurada; re-timbrado diferido",
+            next_retry_at: nextRetryAt(nextAttempts).toISOString(),
+          });
+          results.push({ id: row.id, status: "retry_deferred_no_apikey" });
           continue;
         }
       }

@@ -6,7 +6,6 @@ const MAX_BYTES = 2 * 1024 * 1024; // 2 MB (un XML CFDI rara vez supera 100 KB)
 
 export interface UploadedCfdiXml {
   path: string;
-  signedUrl: string;
 }
 
 export function useUploadSupplierBillXml() {
@@ -24,11 +23,9 @@ export function useUploadSupplierBillXml() {
         upsert: false,
       });
       if (upErr) throw upErr;
-      const { data: signed, error: signErr } = await supabase.storage
-        .from(BUCKET)
-        .createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
-      if (signErr || !signed) throw signErr ?? new Error("No se pudo firmar la URL");
-      return { path, signedUrl: signed.signedUrl };
+      // N-9: sólo se persiste el `path`; la firma se hace on-demand con TTL
+      // corto en el punto de lectura (openStoredFile).
+      return { path };
     },
     errorTitle: "No se pudo subir el XML",
   });

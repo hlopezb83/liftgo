@@ -163,8 +163,11 @@ async function buildPlan(supabase: any): Promise<{
   for (const booking of bookings || []) {
     const forklift = (booking.forklifts as Forklift | null) ?? null;
     // BL-31 (v7.92.0): preferir tarifa pactada en la reserva; fallback a la maestra.
-    const monthlyRate = Number(booking.monthly_rate) ||
-      forklift?.monthly_rate || 0;
+    // N-7c: nullish, no `||` — una tarifa pactada de 0 es un dato válido
+    // (cortesía/canje) y no debe reemplazarse por la tarifa maestra.
+    const monthlyRate = booking.monthly_rate != null
+      ? Number(booking.monthly_rate)
+      : (forklift?.monthly_rate ?? 0);
 
     // Derivar last_billed_date desde el historial REAL de facturas vinculadas
     // (source of truth). Ignora bookings.last_billed_date cuando el historial lo
@@ -226,18 +229,36 @@ async function buildPlan(supabase: any): Promise<{
           isProrated = true;
         }
       }
-      const billingEnd = lastOfMonth(billingStart);
+      let billingEnd = lastOfMonth(billingStart);
+      // N-7a: si el contrato termina dentro del periodo, facturar sólo hasta
+      // end_date y prorratear el último ciclo simétricamente al primero (BL-12).
+      let isEndProrated = false;
+      if (booking.end_date) {
+        const contractEnd = dateOnlyToMty(booking.end_date);
+        if (contractEnd >= billingStart && contractEnd < billingEnd) {
+          billingEnd = contractEnd;
+          isEndProrated = true;
+        }
+      }
       const startStr = toIsoDate(billingStart);
       const endStr = toIsoDate(billingEnd);
       const periodLabel = `${fmtMx(billingStart)} al ${fmtMx(billingEnd)}`;
 
+      const daysInMonth = lastOfMonth(billingStart).getUTCDate();
+      const billedDays = billingEnd.getUTCDate() - billingStart.getUTCDate() +
+        1;
+      // Prorrateo simétrico: computeProrate(startDay) factura
+      // (daysInMonth - startDay + 1) días; invirtiendo, startDay =
+      // daysInMonth - billedDays + 1 cubre el primer ciclo, el último y el mes
+      // completo con la misma fórmula.
       const prorate = computeProrate(
-        isProrated ? billingStart.getUTCDate() : 1,
-        billingEnd.getUTCDate(),
+        daysInMonth - billedDays + 1,
+        daysInMonth,
         monthlyRate,
       );
       const proratedDays = prorate.proratedDays;
       const billedAmount = prorate.billedAmount;
+      const proratedPeriod = isProrated || isEndProrated;
 
       const baseLine: PreviewLine = {
         bookingId: booking.id,
@@ -253,8 +274,9 @@ async function buildPlan(supabase: any): Promise<{
         taxRate: booking.customer_id
           ? taxRateByCustomer.get(booking.customer_id) ?? null
           : null,
-        isProrated,
-        proratedDays: isProrated ? proratedDays : undefined,
+        isProrated: proratedPeriod,
+        proratedDays: proratedPeriod ? proratedDays : undefined,
+
         eligible: true,
       };
 

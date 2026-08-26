@@ -7,7 +7,6 @@ const ACCEPTED = ["application/pdf", "image/png", "image/jpeg", "image/webp"];
 
 export interface UploadedReceipt {
   path: string;
-  signedUrl: string;
 }
 
 export function useUploadSupplierReceipt() {
@@ -22,11 +21,9 @@ export function useUploadSupplierReceipt() {
         upsert: false,
       });
       if (upErr) throw upErr;
-      const { data: signed, error: signErr } = await supabase.storage
-        .from(BUCKET)
-        .createSignedUrl(path, 60 * 60 * 24 * 365 * 5);
-      if (signErr || !signed) throw signErr ?? new Error("No se pudo firmar la URL");
-      return { path, signedUrl: signed.signedUrl };
+      // N-9: sólo se persiste el `path`; la firma se hace on-demand con TTL
+      // corto en el punto de lectura (openStoredFile).
+      return { path };
     },
     errorTitle: "No se pudo subir el comprobante",
   });
