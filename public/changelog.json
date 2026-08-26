@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.353.0",
+    "date": "2026-08-26",
+    "type": "minor",
+    "title": "Panel con fecha de Monterrey, flota limpia y conciliación en dos sentidos",
+    "description": "El Panel dejó de usar la fecha UTC, que después de las 6 de la tarde adelantaba un día las facturas vencidas y los meses de las gráficas. La utilización por equipo ya no se infla con rentas futuras o canceladas, los conteos de flota excluyen equipos archivados y datos de prueba, y el flujo de efectivo suma pagos ya convertidos a pesos sin incluir facturas canceladas. En conciliación bancaria, un pago en pesos contra una cuenta en dólares ahora se convierte dividiendo entre el tipo de cambio, por lo que el movimiento correcto sí aparece como candidato.",
+    "changes": [
+      "R4-06: get_dashboard_stats usa public.today_mty() en lugar de CURRENT_DATE en facturas vencidas, rentas atrasadas, alertas de mantenimiento y los meses de flujo de efectivo y utilización mensual.",
+      "R4-07: el bloque utilization solo considera reservas confirmed/completed ya iniciadas y acota end_date a hoy.",
+      "R4-08: filtro deleted_at IS NULL AND is_e2e IS NOT TRUE en fleet_counts, utilization, fleet_days, alertas de mantenimiento y rentas atrasadas; nuevo bucket out_of_service.",
+      "R4-09: cash_flow.paid suma payments.amount_mxn y excluye pagos de facturas canceladas o E2E; cash_flow.invoiced convierte con tipo_cambio como report_revenue_by_month.",
+      "R4-11: confirm_bank_match y get_bank_match_candidates convierten en ambos sentidos (MXN → divisa divide) con redondeo a 2 decimales antes de la tolerancia; misma regla replicada en matchingScore.ts con 4 pruebas nuevas."
+    ]
+  },
+  {
     "version": "7.352.0",
     "date": "2026-08-26",
     "type": "minor",
