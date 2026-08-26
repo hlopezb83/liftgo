@@ -34,13 +34,22 @@ describe("computeUtilizationPercent", () => {
 
 describe("buildFinancials", () => {
   it("usa defaults 0 cuando faltan KPIs", () => {
-    expect(buildFinancials(undefined)).toEqual({ mrr: 0, dso: 0, overdueTotal: 0 });
+    expect(buildFinancials(undefined)).toEqual({
+      mrr: 0, dso: 0, overdueTotal: 0, overdueFxMissingCount: 0,
+    });
   });
 
   it("propaga valores presentes", () => {
     expect(buildFinancials({ mrr: 100000, dso: 35, overdue_total: 5000 })).toEqual({
-      mrr: 100000, dso: 35, overdueTotal: 5000,
+      mrr: 100000, dso: 35, overdueTotal: 5000, overdueFxMissingCount: 0,
     });
+  });
+
+  // N-15: las facturas en divisa sin tipo de cambio se reportan aparte.
+  it("propaga el conteo de facturas sin tipo de cambio", () => {
+    expect(
+      buildFinancials({ mrr: 0, dso: 0, overdue_total: 5000, overdue_fx_missing_count: 3 }),
+    ).toEqual({ mrr: 0, dso: 0, overdueTotal: 5000, overdueFxMissingCount: 3 });
   });
 });
 
