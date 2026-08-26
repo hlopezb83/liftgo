@@ -1,7 +1,7 @@
-import type { ElementType, ReactNode } from "react";
 import { KpiTile } from "@/components/domain/KpiTile";
 import { RevenueIcon, TrendingUpIcon, CalendarClock, OverdueIcon } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import type { ElementType, ReactNode } from "react";
 
 interface FinancialKpiCardsProps {
   mrr: number;
