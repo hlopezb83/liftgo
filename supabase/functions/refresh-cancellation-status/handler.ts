@@ -199,12 +199,22 @@ export async function handleRefreshCancellation(
       return json({ success: true, cancellation_status: prior }, 200);
     }
 
-    const update: Record<string, unknown> = { cancellation_status: satStatus };
+    // N-27: para el REP el estado se persiste en rep_cancellation_status y
+    // rep_cfdi_status sólo baja a 'cancelled' cuando el SAT confirma.
+    const update: Record<string, unknown> = isPayment
+      ? { rep_cancellation_status: satStatus }
+      : { cancellation_status: satStatus };
     if (satStatus === "accepted") {
-      update.cfdi_status = "cancelled";
-      update.status = "cancelled";
-      update.cancelled_at = new Date().toISOString();
+      if (isPayment) {
+        update.rep_cfdi_status = "cancelled";
+        update.rep_cancelled_at = new Date().toISOString();
+      } else {
+        update.cfdi_status = "cancelled";
+        update.status = "cancelled";
+        update.cancelled_at = new Date().toISOString();
+      }
     }
+
     const updRes = await supabase.from(table).update(update).eq(
       "id",
       docId,
