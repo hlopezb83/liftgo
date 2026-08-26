@@ -335,7 +335,10 @@ Deno.test("cancel-cfdi: C-2 live sin apiKey rechaza cancelación stub", async ()
   assertEquals(res.status, 400);
   assert(String(body.error).includes("API key no configurada"));
   // Y nunca actualizamos la factura.
-  const upd = serviceState.updates.find((u) => u.table === "invoices");
+  // Solo el claim/release de cancellation_status: la factura nunca se canceló.
+  const upd = serviceState.updates.find((u) =>
+    u.table === "invoices" && u.patch.cfdi_status !== undefined
+  );
   assertEquals(upd, undefined);
 });
 
@@ -362,7 +365,10 @@ Deno.test("cancel-cfdi: C-2 live sin facturapi_invoice_id rechaza stub", async (
   const body = await res.json();
   assertEquals(res.status, 400);
   assert(String(body.error).includes("facturapi_invoice_id"));
-  const upd = serviceState.updates.find((u) => u.table === "invoices");
+  // Solo el claim/release de cancellation_status: la factura nunca se canceló.
+  const upd = serviceState.updates.find((u) =>
+    u.table === "invoices" && u.patch.cfdi_status !== undefined
+  );
   assertEquals(upd, undefined);
 });
 
@@ -398,7 +404,10 @@ Deno.test("cancel-cfdi: BL-A4 rechaza 409 si hay pagos aplicados", async () => {
   assertEquals(res.status, 409);
   assert(String(body.error).includes("pago"));
   // Ningún update: la factura sigue timbrada.
-  const upd = serviceState.updates.find((u) => u.table === "invoices");
+  // Solo el claim/release de cancellation_status: la factura nunca se canceló.
+  const upd = serviceState.updates.find((u) =>
+    u.table === "invoices" && u.patch.cfdi_status !== undefined
+  );
   assertEquals(upd, undefined);
 });
 
@@ -477,7 +486,9 @@ Deno.test("cancel-cfdi: BL-44 Facturapi 500 encola reintento con payload plano",
     assertEquals(payload.motive, "02");
     assertEquals(payload.substitution_uuid, undefined);
     // Y la factura NO se tocó (la cancelación no llegó al SAT).
-    const upd = serviceState.updates.find((u) => u.table === "invoices");
+    const upd = serviceState.updates.find((u) =>
+      u.table === "invoices" && u.patch.cfdi_status !== undefined
+    );
     assertEquals(upd, undefined);
   } finally {
     mock.restore();

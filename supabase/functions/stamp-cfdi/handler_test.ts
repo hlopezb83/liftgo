@@ -329,7 +329,7 @@ Deno.test("computeStampVariance: tolerancia de 1 centavo", () => {
   assertEquals(negative, { variance: -0.5, withinTolerance: false });
 });
 
-Deno.test("handler: BL-A5 registra varianza sin romper el flujo stamped", async () => {
+Deno.test("handler: BL-A5 varianza fuera de tolerancia responde 502 y marca error", async () => {
   const mock = installFacturapiMock({
     "/invoices": (req) => {
       if (req.method === "POST") {
