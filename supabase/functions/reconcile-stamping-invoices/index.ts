@@ -383,6 +383,18 @@ Deno.serve(async (req) => {
   // N4: la consulta se movió ARRIBA del early return (bloque inicial).
   for (const p of payments) {
     const paymentId = p.id as string;
+    if (
+      !(await claimRow(
+        "payments",
+        paymentId,
+        "rep_stamping_started_at",
+        p.rep_stamping_started_at,
+      ))
+    ) {
+      results.push({ invoice_id: paymentId, status: "claimed_by_other_run" });
+      continue;
+    }
+
     let facturapiId = p.rep_facturapi_id as string | null;
     let repUuid = p.rep_cfdi_uuid as string | null;
 
