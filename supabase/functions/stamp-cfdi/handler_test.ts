@@ -401,7 +401,6 @@ Deno.test("handler: BL-A5 varianza fuera de tolerancia responde 502 y marca erro
       String(stampUpdate!.patch.cfdi_error_message).includes("BL-A5"),
       "expected a BL-A5 warning in cfdi_error_message",
     );
-
   } finally {
     mock.restore();
   }
