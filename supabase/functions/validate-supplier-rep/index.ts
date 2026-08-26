@@ -35,7 +35,8 @@ function extractAllAttr(xml: string, tag: string, attr: string): string[] {
 export function isWellFormedXml(xml: string): boolean {
   if (!/^\s*</.test(xml)) return false;
   const stack: string[] = [];
-  const re = /<(\/?)([a-zA-Z_][\w.-]*(?::[\w.-]+)?)((?:"[^"]*"|'[^']*'|[^"'<>])*?)(\/?)>/g;
+  const re =
+    /<(\/?)([a-zA-Z_][\w.-]*(?::[\w.-]+)?)((?:"[^"]*"|'[^']*'|[^"'<>])*?)(\/?)>/g;
   let m: RegExpExecArray | null;
   let sawRoot = false;
   while ((m = re.exec(xml)) !== null) {
