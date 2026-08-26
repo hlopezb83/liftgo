@@ -24,12 +24,30 @@ Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
 
+  // R4-01 (patrón cancel-cfdi): refs fuera del try para liberar el claim en
+  // el catch cuando una excepción ocurre ANTES de contactar al PAC; si ya se
+  // llamó al PAC, 'pending' es correcto hasta reconciliar vía refresh.
+  let supabaseRef: SupabaseLike | null = null;
+  let creditNoteIdRef: string | null = null;
+  let claimed = false;
+  let pacAttempted = false;
+  const releaseClaimRef = async () => {
+    if (!claimed || !supabaseRef || !creditNoteIdRef) return;
+    claimed = false;
+    await supabaseRef.from("credit_notes")
+      .update({ cancellation_status: "none" })
+      .eq("id", creditNoteIdRef)
+      .eq("cancellation_status", "pending");
+  };
+
   try {
     // EC-A1: requireServiceOrRole = requireRole + bypass service_role JWT para
     // el consumer de cfdi_retry_queue (mismo patrón que stamp-cfdi).
     const auth = await requireServiceOrRole(req, ["admin", "administrativo"]);
     if (!auth.ok) return auth.response;
     const supabase = auth.adminClient;
+    supabaseRef = supabase as unknown as SupabaseLike;
+
 
     const body = await req.json().catch(() => null);
     const { credit_note_id, motive, substitution_uuid, cancellation_reason } =
