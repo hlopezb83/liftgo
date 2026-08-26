@@ -124,11 +124,35 @@ Deno.serve(async (req) => {
   }
   const client = createFacturapiClient(apiKey);
 
+  // N-29: claim optimista por fila. Dos ejecuciones concurrentes del cron
+  // (o un reintento manual encimado) podían procesar el mismo documento y
+  // duplicar llamadas al PAC. El UPDATE condicionado al valor leído del
+  // timestamp deja pasar sólo a la primera; la segunda salta la fila.
+  const claimRow = async (
+    table: string,
+    id: string,
+    tsColumn: string,
+    tsValue: unknown,
+  ): Promise<boolean> => {
+    if (typeof tsValue !== "string") return true;
+    const { data } = await admin.from(table)
+      .update({ [tsColumn]: new Date().toISOString() })
+      .eq("id", id)
+      .eq(tsColumn, tsValue)
+      .select("id")
+      .maybeSingle();
+    return Boolean(data);
+  };
+
   const results: Array<
     { invoice_id: string; status: string; error?: string }
   > = [];
 
   for (const row of stuck) {
+    if (!(await claimRow("invoices", row.id, "updated_at", row.updated_at))) {
+      results.push({ invoice_id: row.id, status: "claimed_by_other_run" });
+      continue;
+    }
     if (!row.facturapi_invoice_id || !row.cfdi_uuid) {
       // R12-B2 / TESTS-ARQ2 DIFF 2: la decisión (recover vs retry vs revert)
       // vive en `decisions.ts`; aquí solo materializamos la consulta al PAC y
@@ -359,6 +383,18 @@ Deno.serve(async (req) => {
   // N4: la consulta se movió ARRIBA del early return (bloque inicial).
   for (const p of payments) {
     const paymentId = p.id as string;
+    if (
+      !(await claimRow(
+        "payments",
+        paymentId,
+        "rep_stamping_started_at",
+        p.rep_stamping_started_at,
+      ))
+    ) {
+      results.push({ invoice_id: paymentId, status: "claimed_by_other_run" });
+      continue;
+    }
+
     let facturapiId = p.rep_facturapi_id as string | null;
     let repUuid = p.rep_cfdi_uuid as string | null;
 
@@ -554,6 +590,10 @@ Deno.serve(async (req) => {
   // N4: la consulta se movió ARRIBA del early return (bloque inicial).
   for (const nc of ncs) {
     const ncId = nc.id as string;
+    if (!(await claimRow("credit_notes", ncId, "updated_at", nc.updated_at))) {
+      results.push({ invoice_id: ncId, status: "claimed_by_other_run" });
+      continue;
+    }
     let facturapiId = nc.facturapi_invoice_id as string | null;
     let ncUuid = nc.cfdi_uuid as string | null;
 

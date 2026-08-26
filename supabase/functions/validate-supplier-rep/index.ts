@@ -99,10 +99,11 @@ Deno.serve(async (req) => {
     if (limited) return limited;
 
     const body = await req.json().catch(() => ({}));
-    const { payment_id, xml_base64, pdf_base64 } = body as {
+    const { payment_id, xml_base64, pdf_base64, force } = body as {
       payment_id?: string;
       xml_base64?: string;
       pdf_base64?: string | null;
+      force?: boolean;
     };
     if (!isUUID(payment_id)) {
       return jsonError(req, 400, "payment_id inválido");
@@ -132,13 +133,23 @@ Deno.serve(async (req) => {
     // Load payment + bill + supplier
     const { data: payment, error: payErr } = await supabase
       .from("supplier_payments")
-      .select("id, bill_id, amount, rep_status, rep_required")
+      .select("id, bill_id, amount, rep_status, rep_required, rep_cfdi_uuid")
       .eq("id", payment_id).single();
     if (payErr || !payment) {
       return jsonError(req, 404, "Pago no encontrado");
     }
     if (!payment.rep_required) {
       return jsonError(req, 400, "Este pago no requiere REP");
+    }
+    // N-32: no sobrescribir un REP ya validado sin intención explícita. Antes
+    // una segunda carga pisaba el UUID recibido y perdíamos la trazabilidad
+    // del complemento original ante el SAT.
+    if (payment.rep_status === "received" && payment.rep_cfdi_uuid && !force) {
+      return jsonError(
+        req,
+        409,
+        `Este pago ya tiene un REP validado (${payment.rep_cfdi_uuid}). Envía force=true para reemplazarlo.`,
+      );
     }
 
     const { data: bill } = await supabase
@@ -295,6 +306,15 @@ Deno.serve(async (req) => {
       .eq("id", payment_id);
 
     if (updErr) {
+      // N-32: el índice único parcial sobre rep_cfdi_uuid puede dispararse si
+      // otro pago registró el mismo UUID entre la verificación y el guardado.
+      if ((updErr as { code?: string }).code === "23505") {
+        return jsonError(
+          req,
+          409,
+          `El UUID ${repUuid} ya está registrado en otro pago`,
+        );
+      }
       return jsonError(req, 500, `No se pudo guardar: ${updErr.message}`);
     }
 

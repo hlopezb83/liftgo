@@ -2398,6 +2398,9 @@ export type Database = {
           payment_method: string | null
           prior_balance: number | null
           reference_number: string | null
+          rep_cancellation_motive: string | null
+          rep_cancellation_reason: string | null
+          rep_cancellation_status: string
           rep_cancelled_at: string | null
           rep_cfdi_status: string
           rep_cfdi_uuid: string | null
@@ -2409,6 +2412,7 @@ export type Database = {
           rep_pdf_url: string | null
           rep_stamping_attempts: number
           rep_stamping_started_at: string | null
+          rep_substitution_uuid: string | null
           rep_xml_pending: boolean
           rep_xml_url: string | null
         }
@@ -2430,6 +2434,9 @@ export type Database = {
           payment_method?: string | null
           prior_balance?: number | null
           reference_number?: string | null
+          rep_cancellation_motive?: string | null
+          rep_cancellation_reason?: string | null
+          rep_cancellation_status?: string
           rep_cancelled_at?: string | null
           rep_cfdi_status?: string
           rep_cfdi_uuid?: string | null
@@ -2441,6 +2448,7 @@ export type Database = {
           rep_pdf_url?: string | null
           rep_stamping_attempts?: number
           rep_stamping_started_at?: string | null
+          rep_substitution_uuid?: string | null
           rep_xml_pending?: boolean
           rep_xml_url?: string | null
         }
@@ -2462,6 +2470,9 @@ export type Database = {
           payment_method?: string | null
           prior_balance?: number | null
           reference_number?: string | null
+          rep_cancellation_motive?: string | null
+          rep_cancellation_reason?: string | null
+          rep_cancellation_status?: string
           rep_cancelled_at?: string | null
           rep_cfdi_status?: string
           rep_cfdi_uuid?: string | null
@@ -2473,6 +2484,7 @@ export type Database = {
           rep_pdf_url?: string | null
           rep_stamping_attempts?: number
           rep_stamping_started_at?: string | null
+          rep_substitution_uuid?: string | null
           rep_xml_pending?: boolean
           rep_xml_url?: string | null
         }

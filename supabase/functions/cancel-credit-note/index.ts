@@ -50,13 +50,39 @@ Deno.serve(async (req) => {
 
     const { data: nc, error: ncErr } = await supabase
       .from("credit_notes")
-      .select("cfdi_status, facturapi_invoice_id")
+      .select("cfdi_status, cancellation_status, facturapi_invoice_id")
       .eq("id", credit_note_id)
       .single();
     if (ncErr || !nc) return jsonError(req, 404, "Credit note not found");
     if (nc.cfdi_status !== "stamped") {
       return jsonError(req, 400, "Only stamped credit notes can be cancelled");
     }
+
+    // N-28: claim atómico estilo cancel-cfdi (S2-2.4). Sólo la primera
+    // petición concurrente cambia cancellation_status 'none' → 'pending' sobre
+    // una NC timbrada; las demás reciben 409 en vez de mandar una segunda
+    // cancelación al SAT.
+    const { data: claim } = await supabase
+      .from("credit_notes")
+      .update({ cancellation_status: "pending" })
+      .eq("id", credit_note_id)
+      .eq("cfdi_status", "stamped")
+      .eq("cancellation_status", "none")
+      .select("id")
+      .maybeSingle();
+    if (!claim) {
+      return jsonError(
+        req,
+        409,
+        "Ya hay una cancelación en proceso para esta nota de crédito",
+      );
+    }
+    const releaseClaim = async () => {
+      await supabase.from("credit_notes")
+        .update({ cancellation_status: "none" })
+        .eq("id", credit_note_id)
+        .eq("cancellation_status", "pending");
+    };
 
     const { apiKey, mode } = await getFacturapiConfig(
       supabase,
@@ -67,6 +93,8 @@ Deno.serve(async (req) => {
     const isStub = !apiKey || !nc.facturapi_invoice_id;
 
     if (isStub && mode === "live") {
+      // N-28: liberar el claim — la cancelación NUNCA llegó al PAC.
+      await releaseClaim();
       // M-2 (mismo guard C-2 que cancel-cfdi/handler.ts): en modo live NUNCA
       // marcamos "aceptada" una cancelación stub. Un stub en live significa
       // (a) API key faltante o (b) nota de crédito sin facturapi_invoice_id
@@ -107,6 +135,7 @@ Deno.serve(async (req) => {
           console.warn("[cancel-credit-note] facturapi timeout", {
             credit_note_id,
           });
+          await releaseClaim();
           return jsonResponse(req, {
             error: "PAC no respondió a tiempo, reintenta",
             code: "TIMEOUT",
@@ -114,6 +143,9 @@ Deno.serve(async (req) => {
           }, { status: 504 });
         }
         const desc = describeFacturapiError(err);
+        // N-28: la cancelación no se confirmó ante el SAT — liberar el claim
+        // para no bloquear el reintento (manual o vía cola).
+        await releaseClaim();
         // B-1: encolar reintento solo si el error es transitorio (5xx / red /
         // 429) — la cancelación NO llegó al SAT, así que reintentar es seguro.
         // Mismo patrón que cancel-cfdi (BL-44); el consumer de la cola
