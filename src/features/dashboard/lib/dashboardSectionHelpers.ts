@@ -85,13 +85,21 @@ export function mapCashFlow(stats?: StatsLike) {
   }));
 }
 
-type KpisLike = { mrr?: number; dso?: number; overdue_total?: number; expiring_contracts?: unknown };
+type KpisLike = {
+  mrr?: number;
+  dso?: number;
+  overdue_total?: number;
+  overdue_fx_missing_count?: number;
+  expiring_contracts?: unknown;
+};
 
 export function buildFinancials(kpis?: KpisLike) {
   return {
     mrr: kpis?.mrr ?? 0,
     dso: kpis?.dso ?? 0,
     overdueTotal: kpis?.overdue_total ?? 0,
+    // N-15: facturas en divisa sin tipo de cambio quedan fuera del total.
+    overdueFxMissingCount: kpis?.overdue_fx_missing_count ?? 0,
   };
 }
 
