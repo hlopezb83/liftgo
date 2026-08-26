@@ -140,7 +140,6 @@ export async function handleCancelPaymentComplement(
       return jsonError(req, 400, "Facturapi key not configured");
     }
 
-
     const client = createFacturapiClient(apiKey);
     let satStatus = "accepted";
     try {
@@ -227,7 +226,6 @@ export async function handleCancelPaymentComplement(
     if ((updRes as { error: unknown }).error) {
       return jsonError(req, 500, "Failed to update payment");
     }
-
 
     return jsonResponse(req, {
       success: true,

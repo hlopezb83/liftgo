@@ -83,9 +83,11 @@ export async function handleRefreshCancellation(
       ? "credit_notes"
       : "invoices";
     const isPayment = table === "payments";
-    const docId =
-      (hasPayment ? payment_id : hasCreditNote ? credit_note_id : invoice_id) as
-        string;
+    const docId = (hasPayment
+      ? payment_id
+      : hasCreditNote
+      ? credit_note_id
+      : invoice_id) as string;
 
     const { data: invoice } = await supabase
       .from(table)
@@ -97,15 +99,18 @@ export async function handleRefreshCancellation(
       .eq("id", docId)
       .single();
     const inv = invoice as Record<string, unknown> | null;
-    const facturapiId = (isPayment
-      ? inv?.rep_facturapi_id
-      : inv?.facturapi_invoice_id) as string | undefined;
+    const facturapiId =
+      (isPayment ? inv?.rep_facturapi_id : inv?.facturapi_invoice_id) as
+        | string
+        | undefined;
     if (!facturapiId) {
       return json({ error: "Document has no Facturapi reference" }, 404);
     }
 
     const { apiKey } = await getFacturapiConfig(supabase, deps.env);
-    if (!apiKey) return json({ error: "Facturapi key not configured" }, 400);
+    if (!apiKey) {
+      return json({ error: "Facturapi key not configured" }, 400);
+    }
 
     const fid = facturapiId;
 
@@ -159,9 +164,10 @@ export async function handleRefreshCancellation(
         ((facturApiInv?.cancellation as Record<string, unknown> | undefined)
           ?.status as string | undefined);
     const rootStatus = facturApiInv?.status as string | undefined;
-    const prior = ((isPayment
-      ? inv.rep_cancellation_status
-      : inv.cancellation_status) as string | undefined) ?? "none";
+    const prior =
+      ((isPayment ? inv.rep_cancellation_status : inv.cancellation_status) as
+        | string
+        | undefined) ?? "none";
 
     // Facturapi marca la cancelación aceptada bajando el `status` raíz a
     // "canceled" (a veces "cancelled") y no siempre poblando cancellation_status.

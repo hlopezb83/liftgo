@@ -84,7 +84,6 @@ Deno.serve(async (req) => {
         .eq("cancellation_status", "pending");
     };
 
-
     const { apiKey, mode } = await getFacturapiConfig(
       supabase,
       (k) => Deno.env.get(k),
