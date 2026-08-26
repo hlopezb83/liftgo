@@ -87,6 +87,7 @@ export default function Dashboard() {
                 utilizationPercent={utilizationPercent}
                 dso={financials.dso}
                 overdueTotal={financials.overdueTotal}
+                overdueFxMissingCount={financials.overdueFxMissingCount}
               />
             </section>
           )}
