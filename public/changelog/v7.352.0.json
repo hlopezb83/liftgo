@@ -1,0 +1,14 @@
+{
+  "version": "7.352.0",
+  "date": "2026-08-26",
+  "type": "minor",
+  "title": "Moneda extranjera y notas de crédito: fin de la paridad 1:1 silenciosa",
+  "description": "Se corrigieron cinco fallas de cálculo de dinero en base de datos. Los pagos en dólares ya no se guardaban como si fueran pesos, la vista de saldos ya no suma pagos de distintas monedas sin convertir, la validación de sobrepago compara montos en la misma moneda, una factura cubierta al 100% por notas de crédito timbradas ya queda como pagada en vez de vencida, y la conversión de cotizaciones en divisa sin tipo de cambio ya no inventa paridad 1:1.",
+  "changes": [
+    "R4-03: trg_payment_amount_mxn considera payments.currency e invoices.moneda; rechaza monedas cruzadas y deja amount_mxn en NULL (fx_missing) cuando falta tipo de cambio, en vez de multiplicar por 1.",
+    "R4-10: v_invoices_with_balance convierte cada pago a la moneda de la factura con la precedencia FX de report_revenue_by_month; se conservan los GRANT y security_invoker.",
+    "R4-15: enforce_payment_within_invoice_total y sync_invoice_status_from_payments suman pagos ya convertidos a la moneda de la factura; se rechaza el pago si no hay tipo de cambio para verificar el sobrepago.",
+    "R4-16: nueva rama en sync_invoice_status_from_payments — cero pagos y crédito >= total (tolerancia 0.005) marca la factura como pagada.",
+    "R4-12: convert_quote_to_bookings usa COALESCE(NULLIF(tipo_cambio,0), 1 solo si MXN); una cotización en divisa sin TC genera reservas con tipo_cambio NULL."
+  ]
+}
