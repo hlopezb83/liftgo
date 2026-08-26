@@ -78,17 +78,52 @@ export async function handleCancelPaymentComplement(
         "substitution_uuid (UUID de factura sustituta) es requerido para motivo 01",
       );
     }
+    if (
+      cancellation_reason !== undefined && cancellation_reason !== null &&
+      (typeof cancellation_reason !== "string" ||
+        cancellation_reason.length > 1000)
+    ) {
+      return jsonError(req, 400, "cancellation_reason too long");
+    }
 
+    // N-49: claim atómico pre-PAC — persiste motivo/sustitución/razón y marca
+    // rep_cancellation_status='pending' en un solo UPDATE condicionado. Sólo
+    // la primera petición concurrente pasa; las demás reciben 409 en vez de
+    // mandar una segunda cancelación del REP al SAT.
     const { data: payment } = await supabase
-      .from("payments").select("rep_facturapi_id, rep_cfdi_status").eq(
-        "id",
-        payment_id,
-      ).single();
-    if (!payment) return jsonError(req, 404, "Payment not found");
+      .from("payments")
+      .update({
+        rep_cancellation_status: "pending",
+        rep_cancellation_motive: motiveCode,
+        rep_substitution_uuid: motiveCode === "01" ? substitution_uuid : null,
+        rep_cancellation_reason: typeof cancellation_reason === "string"
+          ? cancellation_reason
+          : null,
+      })
+      .eq("id", payment_id)
+      .eq("rep_cfdi_status", "stamped")
+      .eq("rep_cancellation_status", "none")
+      .select("rep_facturapi_id, rep_cfdi_status")
+      .maybeSingle();
+    if (!payment) {
+      const { data: existing } = await supabase
+        .from("payments").select("id, rep_cfdi_status").eq("id", payment_id)
+        .maybeSingle();
+      if (!existing) return jsonError(req, 404, "Payment not found");
+      if ((existing as Record<string, unknown>).rep_cfdi_status !== "stamped") {
+        return jsonError(req, 400, "El REP no está timbrado");
+      }
+      return jsonError(req, 409, "Ya hay una cancelación del REP en proceso");
+    }
     const pay = payment as Record<string, unknown>;
-    if (pay.rep_cfdi_status !== "stamped" || !pay.rep_facturapi_id) {
+    if (!pay.rep_facturapi_id) {
+      // N-49: sin referencia al PAC no hay nada que cancelar — liberar claim.
+      await supabase.from("payments")
+        .update({ rep_cancellation_status: "none" })
+        .eq("id", payment_id);
       return jsonError(req, 400, "El REP no está timbrado");
     }
+
 
     const { apiKey } = await getFacturapiConfig(supabase, deps.env);
     if (!apiKey) return jsonError(req, 400, "Facturapi key not configured");
