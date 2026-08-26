@@ -80,6 +80,8 @@ export async function handleCancelPaymentComplement(
     if (!isUUID(payment_id)) {
       return jsonError(req, 400, "payment_id must be a valid UUID");
     }
+    paymentIdRef = payment_id as string;
+
     // Fix B v7.90.0: motivo es OBLIGATORIO y debe ser un código válido del SAT.
     // Antes se caía silenciosamente a "02", ocultando errores del cliente.
     if (typeof motive !== "string" || !VALID_MOTIVES.has(motive)) {
