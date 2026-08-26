@@ -1,0 +1,11 @@
+{
+  "version": "7.350.3",
+  "date": "2026-08-26",
+  "type": "patch",
+  "title": "Pruebas de Edge Functions alineadas con el comportamiento actual",
+  "description": "Cuatro pruebas de cancel-cfdi y stamp-cfdi seguían esperando el comportamiento viejo y tumbaban el CI. Se actualizaron a las reglas vigentes: el claim/liberación de cancelación ya no cuenta como cambio de la factura, y una varianza de total fuera de tolerancia responde error en vez de dar por timbrada la factura.",
+  "changes": [
+    "cancel-cfdi: las 3 pruebas que verificaban «no se tocó la factura» ahora ignoran el claim temporal de cancelación y solo revisan cambios reales de estado fiscal.",
+    "stamp-cfdi: la prueba de varianza BL-A5 ahora espera respuesta 502 con la factura marcada en error, conforme al endurecimiento C-1."
+  ]
+}
