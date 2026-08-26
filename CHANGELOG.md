@@ -1,3 +1,10 @@
+## 7.342.3 - 2026-08-26
+
+**Datos de prueba con fecha de Monterrey y más cobertura en facturación**
+
+- Los datos de prueba automatizados se fechan con el día vigente en Monterrey; antes usaban la fecha UTC y tras las 18:00 locales la factura quedaba "emitida mañana", lo que hacía que registrar un pago fuera rechazado.
+- Nuevas pruebas para catálogos de métodos de pago, motivos de nota de crédito, topes de acreditación y claves de consulta de facturas.
+
 ## 7.342.0 - 2026-08-25
 
 **Factura sin cliente bloqueada, notas de crédito sin borradores huérfanos y XML validado (L-1, L-3, L-8, M-17a)**
