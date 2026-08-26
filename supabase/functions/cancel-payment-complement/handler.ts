@@ -124,9 +124,22 @@ export async function handleCancelPaymentComplement(
       return jsonError(req, 400, "El REP no está timbrado");
     }
 
+    // N-49: helper para liberar el claim cuando la cancelación NUNCA llegó al
+    // SAT (config faltante, timeout o error del PAC). Si no se libera, un
+    // reintento posterior chocaría con su propio 'pending'.
+    const releaseClaim = async () => {
+      await supabase.from("payments")
+        .update({ rep_cancellation_status: "none" })
+        .eq("id", payment_id)
+        .eq("rep_cancellation_status", "pending");
+    };
 
     const { apiKey } = await getFacturapiConfig(supabase, deps.env);
-    if (!apiKey) return jsonError(req, 400, "Facturapi key not configured");
+    if (!apiKey) {
+      await releaseClaim();
+      return jsonError(req, 400, "Facturapi key not configured");
+    }
+
 
     const client = createFacturapiClient(apiKey);
     let satStatus = "accepted";
