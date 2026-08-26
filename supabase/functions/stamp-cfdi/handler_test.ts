@@ -387,7 +387,7 @@ Deno.test("handler: BL-A5 varianza fuera de tolerancia responde 502 y marca erro
     assertEquals(body.cfdi_uuid, "CFDI-UUID-VAR");
 
     const stampUpdate = serviceState.updates.find((u) =>
-      u.table === "invoices" && u.patch.cfdi_uuid === "CFDI-UUID-VAR"
+      u.table === "invoices" && u.patch.stamp_variance !== undefined
     );
     assert(stampUpdate, "expected a fiscal-identity update on invoices");
     assertEquals(stampUpdate!.patch.cfdi_status, "error");
