@@ -381,16 +381,17 @@ Deno.test("handler: BL-A5 registra varianza sin romper el flujo stamped", async 
       deps,
     );
     const body = await res.json();
-    // El flujo stamped NO se rompe por la varianza.
-    assertEquals(res.status, 200);
-    assertEquals(body.success, true);
+    // C-1: la varianza fuera de tolerancia corta el flujo con 502, pero la
+    // identidad fiscal ya quedó persistida (el CFDI existe ante el SAT).
+    assertEquals(res.status, 502);
     assertEquals(body.cfdi_uuid, "CFDI-UUID-VAR");
 
     const stampUpdate = serviceState.updates.find((u) =>
-      u.table === "invoices" && u.patch.cfdi_status === "stamped"
+      u.table === "invoices" && u.patch.cfdi_uuid === "CFDI-UUID-VAR"
     );
-    assert(stampUpdate, "expected a stamped update on invoices");
-    // La varianza queda registrada y el warning va en cfdi_error_message.
+    assert(stampUpdate, "expected a fiscal-identity update on invoices");
+    assertEquals(stampUpdate!.patch.cfdi_status, "error");
+    // La varianza queda registrada y el detalle va en cfdi_error_message.
     assertEquals(stampUpdate!.patch.stamp_variance, 0.49);
     assert(
       typeof stampUpdate!.patch.stamp_variance_checked_at === "string",
@@ -400,6 +401,7 @@ Deno.test("handler: BL-A5 registra varianza sin romper el flujo stamped", async 
       String(stampUpdate!.patch.cfdi_error_message).includes("BL-A5"),
       "expected a BL-A5 warning in cfdi_error_message",
     );
+
   } finally {
     mock.restore();
   }
