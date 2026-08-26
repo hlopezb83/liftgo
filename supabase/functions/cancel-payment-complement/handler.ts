@@ -39,6 +39,22 @@ export async function handleCancelPaymentComplement(
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
 
+  // R4-01 (patrón cancel-cfdi): refs fuera del try para liberar el claim en
+  // el catch cuando una excepción ocurre ANTES de contactar al PAC; si ya se
+  // llamó al PAC, 'pending' es correcto hasta reconciliar vía refresh.
+  let supabaseRef: SupabaseLike | null = null;
+  let paymentIdRef: string | null = null;
+  let claimed = false;
+  let pacAttempted = false;
+  const releaseClaimRef = async () => {
+    if (!claimed || !supabaseRef || !paymentIdRef) return;
+    claimed = false;
+    await supabaseRef.from("payments")
+      .update({ rep_cancellation_status: "none" })
+      .eq("id", paymentIdRef)
+      .eq("rep_cancellation_status", "pending");
+  };
+
   try {
     const auth = await authenticateWithDeps({
       req,
@@ -49,6 +65,8 @@ export async function handleCancelPaymentComplement(
     });
     if (!auth.ok) return jsonError(req, auth.status, auth.message);
     const supabase = auth.supabase;
+    supabaseRef = supabase;
+
 
     const body = await req.json().catch(() => ({}));
     const { payment_id, motive, substitution_uuid, cancellation_reason } =
