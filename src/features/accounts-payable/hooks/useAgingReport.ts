@@ -43,9 +43,10 @@ const EMPTY_TOTALS: AgingTotals = { current: 0, d1_30: 0, d31_60: 0, d61_90: 0, 
 export function useAgingReport() {
   const { data, isLoading, isError, refetch } = useSupplierBills();
 
-  const { rows, totals } = (() => {
+  const { rows, totals, fxMissingCount } = (() => {
     const todayYmd = toYMD(nowMty()) ?? "";
     const byId = new Map<string, AgingRow>();
+    let fxMissingCount = 0;
 
     for (const b of data ?? []) {
       // R7 Bloque 6: normalizamos a MXN para no mezclar monedas en buckets/totales.
@@ -54,7 +55,10 @@ export function useAgingReport() {
       if (b.status === "cancelled" || b.status === "draft" || balance <= 0) continue;
       // M-14c: moneda foránea sin TC válido ⇒ toMxn devolvió el monto 1:1;
       // envejecerlo distorsiona la cartera. Se excluye del reporte.
-      if (isFxMissing(b.currency, b.exchange_rate)) continue;
+      if (isFxMissing(b.currency, b.exchange_rate)) {
+        fxMissingCount += 1;
+        continue;
+      }
       const supplierId = b.supplier_id ?? "sin-proveedor";
       const supplierName = b.suppliers?.name ?? "Sin proveedor";
       const row = byId.get(supplierId) ?? {
@@ -84,9 +88,9 @@ export function useAgingReport() {
       EMPTY_TOTALS,
     );
 
-    return { rows, totals };
+    return { rows, totals, fxMissingCount };
   })();
 
   // rawBills: lista cruda (limit+1) para ListTruncationNotice en la página (H-10b).
-  return { rows, totals, rawBills: data, isLoading, isError, refetch };
+  return { rows, totals, fxMissingCount, rawBills: data, isLoading, isError, refetch };
 }

@@ -1,0 +1,10 @@
+{
+  "version": "7.342.2",
+  "date": "2026-08-26",
+  "type": "patch",
+  "title": "Aviso de facturas de proveedor en divisa sin tipo de cambio (antigüedad de saldos)",
+  "changes": [
+    "La antigüedad de cuentas por pagar ahora avisa cuántas facturas en moneda extranjera quedaron fuera de los totales por no tener tipo de cambio capturado.",
+    "Antes esas facturas desaparecían del reporte sin aviso y la cartera total se veía menor de lo real."
+  ]
+}
