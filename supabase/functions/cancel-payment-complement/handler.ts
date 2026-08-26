@@ -169,6 +169,9 @@ export async function handleCancelPaymentComplement(
         console.warn("[cancel-payment-complement] facturapi timeout", {
           payment_id,
         });
+        // N-49: la cancelación no se confirmó; liberar el claim para permitir
+        // el reintento manual (el estado real se verifica con el refresh).
+        await releaseClaim();
         return jsonResponse(req, {
           error: "PAC no respondió a tiempo, reintenta",
           code: "TIMEOUT",
@@ -181,6 +184,7 @@ export async function handleCancelPaymentComplement(
       // Mismo patrón que cancel-cfdi / cancel-credit-note; el consumer de la
       // cola (process-cfdi-retry-queue) reinvoca esta función con la operación
       // `cancel_rep`, mapeando invoice_id → payment_id y esparciendo el payload.
+      await releaseClaim();
       if (isTransientFacturapiError(desc)) {
         await enqueueCfdiRetry(supabase, {
           operation: "cancel_rep",
@@ -204,20 +208,26 @@ export async function handleCancelPaymentComplement(
     // pending/rejected/expired el REP sigue vigente (stamped) — el admin
     // puede refrescar el estado después (mismo criterio que cancel-cfdi).
     const isAccepted = satStatus === "accepted";
-    if (isAccepted) {
-      const updRes = await supabase.from("payments")
-        .update({
-          rep_cfdi_status: "cancelled",
-          rep_cancelled_at: new Date().toISOString(),
-        })
-        .eq("id", payment_id);
-      // M-7: verificar el error del UPDATE — antes un fallo silencioso dejaba
-      // el REP cancelado en el SAT pero 'stamped' en la BD, divergencia
-      // imposible de detectar desde la app.
-      if ((updRes as { error: unknown }).error) {
-        return jsonError(req, 500, "Failed to update payment");
-      }
+    // N-49: el estado del SAT siempre se persiste (pending se conserva para
+    // que el refresh lo pueda consultar después).
+    const updRes = await supabase.from("payments")
+      .update({
+        rep_cancellation_status: satStatus,
+        ...(isAccepted
+          ? {
+            rep_cfdi_status: "cancelled",
+            rep_cancelled_at: new Date().toISOString(),
+          }
+          : {}),
+      })
+      .eq("id", payment_id);
+    // M-7: verificar el error del UPDATE — antes un fallo silencioso dejaba
+    // el REP cancelado en el SAT pero 'stamped' en la BD, divergencia
+    // imposible de detectar desde la app.
+    if ((updRes as { error: unknown }).error) {
+      return jsonError(req, 500, "Failed to update payment");
     }
+
 
     return jsonResponse(req, {
       success: true,
