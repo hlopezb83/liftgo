@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
-// deno-lint-ignore-file no-explicit-any
+import { type SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { provisionCustomerAccess } from "./provision.ts";
 
 interface Call {
@@ -34,7 +34,7 @@ function makeClient(errors: Record<string, unknown> = {}) {
         },
       };
     },
-  } as any;
+  } as unknown as SupabaseClient;
   return { client, calls };
 }
 
