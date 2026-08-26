@@ -13,5 +13,6 @@
     "L-4: si no se envía fecha en un pago a proveedor se usa la fecha de hoy en horario de Monterrey en lugar de la fecha UTC.",
     "M-6 se revisó y ya estaba aplicado en la base de datos; no requirió cambios.",
     "Nueva suite de humo SQL fix03_m7_m8_l2_smoke.sql que cubre entrega vs recolección, el candado de reapertura y los tres cambios restantes."
-  ]
+  ],
+  "description": "Una entrega completada ya no puede reabrirse y marca la unidad como rentada; las cotizaciones convertidas tienen su propio estado y la bitácora de unidades deja de registrar movimientos que no ocurrieron."
 }

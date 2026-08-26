@@ -10,5 +10,6 @@
     "N-38: la inspección de devolución bloquea la fila de la unidad para serializar devoluciones simultáneas, la libera únicamente si seguía rentada y registra la bitácora sólo cuando el cambio realmente ocurrió.",
     "N-39: al completar una entrega, la unidad se promueve a 'rentada' sólo si estaba disponible (ya no pisa mantenimiento ni fuera de servicio) y la bitácora guarda el estatus previo real en vez de asumir 'disponible'.",
     "Nueva prueba de humo SQL: supabase/tests/r_fix12_unidades_smoke.sql."
-  ]
+  ],
+  "description": "Integridad de estatus de unidades rentadas (N-6, N-38, N-39, N-41, N-42)"
 }

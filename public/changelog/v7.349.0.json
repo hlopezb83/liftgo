@@ -13,5 +13,6 @@
     "N-30: si falla la asignación de rol o el perfil al invitar a un usuario interno, la cuenta a medias se elimina automáticamente.",
     "Descartados por ya estar resueltos o ser inocuos: N-17 (la policy de dispatchers sobre la bitácora ya no existe), N-26 (el bloqueo de campos de contratos firmados ya está cubierto) y N-22 (condición equivalente en depreciación).",
     "Nueva prueba de humo SQL: supabase/tests/r_fix17_18_smoke.sql."
-  ]
+  ],
+  "description": "Bitácora, portal de clientes y control de acceso (fix-17 / fix-18)"
 }

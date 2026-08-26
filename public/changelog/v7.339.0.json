@@ -12,5 +12,6 @@
     "M-13: la vista previa de facturas recurrentes calcula el IVA con la tasa real de cada cliente (frontera 8%, exento 0%) y suma en centavos, igual que la factura que se genera.",
     "L-7: los pagos rechazan montos mayores a $99,999,999.99 con un mensaje claro.",
     "L-7: la vigencia del seguro de un montacargas debe estar entre los años 2000 y 2100."
-  ]
+  ],
+  "description": "Se corrige el reporte de antigüedad de saldos (facturas sin vencimiento, monedas sin tipo de cambio y sumas en centavos), la vista previa de facturas recurrentes usa el IVA real de cada cliente y se añaden avisos de listas recortadas y validaciones de captura."
 }

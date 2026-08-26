@@ -6,5 +6,6 @@
   "changes": [
     "La antigüedad de cuentas por pagar ahora avisa cuántas facturas en moneda extranjera quedaron fuera de los totales por no tener tipo de cambio capturado.",
     "Antes esas facturas desaparecían del reporte sin aviso y la cartera total se veía menor de lo real."
-  ]
+  ],
+  "description": "El reporte de antigüedad de cuentas por pagar muestra un aviso con las facturas en divisa excluidas por falta de tipo de cambio."
 }

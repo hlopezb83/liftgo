@@ -16,5 +16,6 @@
     "N-44: los nombres de archivo de descarga se sanitizan y las descargas de CFDI tienen límite de 30 solicitudes por minuto.",
     "N-37 descartado: la corrección propuesta para rentas ancladas al día 31 regresaba el comportamiento ya validado (31 ene → 1 mar) y encarecía el cobro; se conserva la lógica actual.",
     "Nueva prueba de humo SQL: supabase/tests/r_fix13_devoluciones_smoke.sql."
-  ]
+  ],
+  "description": "Facturación recurrente, devoluciones y descargas de CFDI (fix-13 / fix-14)"
 }
