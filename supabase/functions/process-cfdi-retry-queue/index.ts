@@ -335,12 +335,15 @@ Deno.serve(async (req) => {
             "[process-cfdi-retry-queue] no PAC apiKey, deferring re-stamp",
             { invoice_id: row.invoice_id },
           );
+          // R4-13: deferral de infraestructura (sin API key no hubo lookup
+          // ni re-timbrado) → NO consumir un intento (ver arriba).
           await markQueueRow(admin, row.id, {
             status: "pending",
-            attempts: nextAttempts,
+            attempts: row.attempts,
             last_error: "Facturapi key no configurada; re-timbrado diferido",
-            next_retry_at: nextRetryAt(nextAttempts).toISOString(),
+            next_retry_at: nextRetryAt(row.attempts + 1).toISOString(),
           });
+
           results.push({ id: row.id, status: "retry_deferred_no_apikey" });
           continue;
         }
