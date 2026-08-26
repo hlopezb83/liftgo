@@ -18,7 +18,15 @@ export function FinancialKpiCards({
   overdueTotal,
   overdueFxMissingCount = 0,
 }: FinancialKpiCardsProps) {
-  const kpis = [
+  const kpis: Array<{
+    label: string;
+    value: string;
+    icon: ElementType;
+    color: string;
+    bgColor: string;
+    href: string;
+    hint?: ReactNode;
+  }> = [
     {
       label: "Ingreso Mensual Recurrente",
       value: formatCurrency(mrr),
