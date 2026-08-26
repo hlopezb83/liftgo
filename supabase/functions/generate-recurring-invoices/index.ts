@@ -147,7 +147,11 @@ async function buildPlan(supabase: any): Promise<{
       .from("customers")
       .select("id, tax_rate")
       .in("id", customerIds);
-    for (const c of (custRows ?? []) as Array<{ id: string; tax_rate: number | null }>) {
+    for (
+      const c of (custRows ?? []) as Array<
+        { id: string; tax_rate: number | null }
+      >
+    ) {
       taxRateByCustomer.set(c.id, c.tax_rate);
     }
   }

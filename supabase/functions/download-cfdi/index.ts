@@ -174,7 +174,10 @@ function facturapiErrorResponse(
     : `Facturapi error: ${res.status}`;
   // M-16a: no exponer `res.detail` (detalle interno de Facturapi) al cliente;
   // se conserva solo en el log del servidor.
-  console.error("download-cfdi: facturapi error detail:", res.detail.slice(0, 500));
+  console.error(
+    "download-cfdi: facturapi error detail:",
+    res.detail.slice(0, 500),
+  );
   return jsonError(req, 502, msg);
 }
 

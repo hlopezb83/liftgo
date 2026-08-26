@@ -223,7 +223,7 @@ export async function handleStampCfdi(
 
     // BL-01: distinguir tasa cero legítima (0) de "no capturada" (null/undefined).
     const taxRatePct = typeof inv.tax_rate === "number" ? inv.tax_rate : 16;
-    
+
     const items = Array.isArray(inv.line_items)
       ? (inv.line_items as Array<
         {
@@ -585,7 +585,9 @@ export async function handleStampCfdi(
 
     const stampedTotal = (facturApiInvoice as { total?: unknown }).total;
     const varianceCheck = computeStampVariance(inv.total, stampedTotal);
-    const hasVariance = Boolean(varianceCheck && !varianceCheck.withinTolerance);
+    const hasVariance = Boolean(
+      varianceCheck && !varianceCheck.withinTolerance,
+    );
     const varianceMessage = hasVariance && varianceCheck
       ? `Error BL-A5: el total timbrado (${
         Number(stampedTotal).toFixed(2)
@@ -651,8 +653,6 @@ export async function handleStampCfdi(
         jsonHeaders,
       );
     }
-
-
 
     // Folio diferido: si el invoice_number todavía es placeholder BORRADOR-XXXX
     // y Facturapi devolvió folio, promovemos el invoice_number a FAC-<folio>.

@@ -1,5 +1,17 @@
 [
   {
+    "version": "7.342.1",
+    "date": "2026-08-26",
+    "type": "patch",
+    "title": "Formato de funciones de servidor corregido (CI en verde)",
+    "changes": [
+      "Se aplicó el formateo automático a cinco archivos de funciones de servidor (timbrado, descarga de CFDI, facturación recurrente y validación de complementos de pago) que hacían fallar la verificación de formato en integración continua.",
+      "Sin cambios de comportamiento: solo saltos de línea y sangría."
+    ],
+    "description": "Corrección de formato en funciones de servidor para que la verificación automática de integración continua vuelva a pasar."
+  },
+  {
+
     "version": "7.342.0",
     "date": "2026-08-25",
     "type": "minor",

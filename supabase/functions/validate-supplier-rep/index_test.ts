@@ -54,7 +54,8 @@ Deno.test("isWellFormedXml: acepta XML válido con declaración y namespaces", (
 });
 
 Deno.test("isWellFormedXml: rechaza XML truncado", () => {
-  const xml = `<?xml version="1.0"?><cfdi:Comprobante><cfdi:Emisor Rfc="AAA010101AAA"/>`;
+  const xml =
+    `<?xml version="1.0"?><cfdi:Comprobante><cfdi:Emisor Rfc="AAA010101AAA"/>`;
   assertEquals(isWellFormedXml(xml), false);
 });
 
