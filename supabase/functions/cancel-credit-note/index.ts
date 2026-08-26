@@ -50,13 +50,40 @@ Deno.serve(async (req) => {
 
     const { data: nc, error: ncErr } = await supabase
       .from("credit_notes")
-      .select("cfdi_status, facturapi_invoice_id")
+      .select("cfdi_status, cancellation_status, facturapi_invoice_id")
       .eq("id", credit_note_id)
       .single();
     if (ncErr || !nc) return jsonError(req, 404, "Credit note not found");
     if (nc.cfdi_status !== "stamped") {
       return jsonError(req, 400, "Only stamped credit notes can be cancelled");
     }
+
+    // N-28: claim atómico estilo cancel-cfdi (S2-2.4). Sólo la primera
+    // petición concurrente cambia cancellation_status 'none' → 'pending' sobre
+    // una NC timbrada; las demás reciben 409 en vez de mandar una segunda
+    // cancelación al SAT.
+    const { data: claim } = await supabase
+      .from("credit_notes")
+      .update({ cancellation_status: "pending" })
+      .eq("id", credit_note_id)
+      .eq("cfdi_status", "stamped")
+      .eq("cancellation_status", "none")
+      .select("id")
+      .maybeSingle();
+    if (!claim) {
+      return jsonError(
+        req,
+        409,
+        "Ya hay una cancelación en proceso para esta nota de crédito",
+      );
+    }
+    const releaseClaim = async () => {
+      await supabase.from("credit_notes")
+        .update({ cancellation_status: "none" })
+        .eq("id", credit_note_id)
+        .eq("cancellation_status", "pending");
+    };
+
 
     const { apiKey, mode } = await getFacturapiConfig(
       supabase,
