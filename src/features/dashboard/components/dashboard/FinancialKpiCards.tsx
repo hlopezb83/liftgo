@@ -7,9 +7,17 @@ interface FinancialKpiCardsProps {
   utilizationPercent: number;
   dso: number;
   overdueTotal: number;
+  /** N-15: facturas vencidas en divisa sin tipo de cambio (excluidas del total). */
+  overdueFxMissingCount?: number;
 }
 
-export function FinancialKpiCards({ mrr, utilizationPercent, dso, overdueTotal }: FinancialKpiCardsProps) {
+export function FinancialKpiCards({
+  mrr,
+  utilizationPercent,
+  dso,
+  overdueTotal,
+  overdueFxMissingCount = 0,
+}: FinancialKpiCardsProps) {
   const kpis = [
     {
       label: "Ingreso Mensual Recurrente",
