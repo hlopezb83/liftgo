@@ -94,6 +94,8 @@ Deno.serve(async (req) => {
     const isStub = !apiKey || !nc.facturapi_invoice_id;
 
     if (isStub && mode === "live") {
+      // N-28: liberar el claim — la cancelación NUNCA llegó al PAC.
+      await releaseClaim();
       // M-2 (mismo guard C-2 que cancel-cfdi/handler.ts): en modo live NUNCA
       // marcamos "aceptada" una cancelación stub. Un stub en live significa
       // (a) API key faltante o (b) nota de crédito sin facturapi_invoice_id
@@ -134,6 +136,7 @@ Deno.serve(async (req) => {
           console.warn("[cancel-credit-note] facturapi timeout", {
             credit_note_id,
           });
+          await releaseClaim();
           return jsonResponse(req, {
             error: "PAC no respondió a tiempo, reintenta",
             code: "TIMEOUT",
@@ -141,6 +144,9 @@ Deno.serve(async (req) => {
           }, { status: 504 });
         }
         const desc = describeFacturapiError(err);
+        // N-28: la cancelación no se confirmó ante el SAT — liberar el claim
+        // para no bloquear el reintento (manual o vía cola).
+        await releaseClaim();
         // B-1: encolar reintento solo si el error es transitorio (5xx / red /
         // 429) — la cancelación NO llegó al SAT, así que reintentar es seguro.
         // Mismo patrón que cancel-cfdi (BL-44); el consumer de la cola
