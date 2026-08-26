@@ -1,16 +1,33 @@
 import { KpiTile } from "@/components/domain/KpiTile";
 import { RevenueIcon, TrendingUpIcon, CalendarClock, OverdueIcon } from "@/components/icons";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import type { ElementType, ReactNode } from "react";
 
 interface FinancialKpiCardsProps {
   mrr: number;
   utilizationPercent: number;
   dso: number;
   overdueTotal: number;
+  /** N-15: facturas vencidas en divisa sin tipo de cambio (excluidas del total). */
+  overdueFxMissingCount?: number;
 }
 
-export function FinancialKpiCards({ mrr, utilizationPercent, dso, overdueTotal }: FinancialKpiCardsProps) {
-  const kpis = [
+export function FinancialKpiCards({
+  mrr,
+  utilizationPercent,
+  dso,
+  overdueTotal,
+  overdueFxMissingCount = 0,
+}: FinancialKpiCardsProps) {
+  const kpis: Array<{
+    label: string;
+    value: string;
+    icon: ElementType;
+    color: string;
+    bgColor: string;
+    href: string;
+    hint?: ReactNode;
+  }> = [
     {
       label: "Ingreso Mensual Recurrente",
       value: formatCurrency(mrr),
@@ -42,6 +59,14 @@ export function FinancialKpiCards({ mrr, utilizationPercent, dso, overdueTotal }
       color: overdueTotal > 0 ? "text-destructive" : "text-muted-foreground",
       bgColor: overdueTotal > 0 ? "bg-destructive/10" : "bg-muted",
       href: "/invoices?status=overdue",
+      // N-15: aviso cuando hay facturas en divisa sin tipo de cambio fuera del total.
+      hint: overdueFxMissingCount > 0
+        ? (
+          <span className="text-xs text-warning">
+            {overdueFxMissingCount} factura(s) en divisa sin tipo de cambio no se incluyen
+          </span>
+        )
+        : undefined,
     },
   ];
 
@@ -56,6 +81,7 @@ export function FinancialKpiCards({ mrr, utilizationPercent, dso, overdueTotal }
           iconColor={kpi.color}
           iconBg={kpi.bgColor}
           href={kpi.href}
+          hint={kpi.hint}
         />
       ))}
     </div>

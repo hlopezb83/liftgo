@@ -1,3 +1,13 @@
+## 7.348.0 - 2026-08-26
+
+**Panel y reportes financieros (fix-16)**
+
+- N-14: el Panel vuelve a mostrar la utilización por unidad y las alertas de mantenimiento próximo (7 días); antes esas tarjetas siempre salían vacías porque el backend no enviaba los datos.
+- N-16: los conteos de flota (disponibles, rentados, en mantenimiento, retirados) ya no se traslapan y suman el total real; además las cifras del Panel excluyen los registros de prueba.
+- N-15: la Cartera Vencida deja fuera las facturas en divisa sin tipo de cambio y avisa cuántas quedaron sin incluir.
+- N-19: al convertir un pago a pesos manda el tipo de cambio del pago y, si no hay, el de la factura; antes el Panel y el reporte de ingresos daban cifras distintas para el mismo pago.
+- N-20: el reporte de ingresos por mes ya no cuenta 1 a 1 los pagos en divisa sin tipo de cambio; ahora los marca como faltantes de tipo de cambio.
+
 ## 7.347.0 - 2026-08-26
 
 **Cancelaciones ante el SAT y conciliación de timbrado (fix-15)**
