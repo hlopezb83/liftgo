@@ -74,7 +74,15 @@ Deno.serve(async (req) => {
       .from("profiles")
       .update({ is_active })
       .eq("user_id", user_id);
-    if (profileErr) return jsonError(req, 400, profileErr.message);
+    if (profileErr) {
+      // N-43: no filtrar el error crudo de BD al cliente; log interno.
+      console.error("[toggle-user-status] profile update error:", profileErr);
+      return jsonError(
+        req,
+        400,
+        "No se pudo actualizar el estado del usuario",
+      );
+    }
 
     const { error: authErr } = await auth.adminClient.auth.admin.updateUserById(
       user_id,
@@ -86,7 +94,13 @@ Deno.serve(async (req) => {
         .from("profiles")
         .update({ is_active: !is_active })
         .eq("user_id", user_id);
-      return jsonError(req, 400, authErr.message);
+      // N-43: no filtrar el error crudo de auth al cliente; log interno.
+      console.error("[toggle-user-status] auth ban error:", authErr);
+      return jsonError(
+        req,
+        400,
+        "No se pudo actualizar el estado del usuario",
+      );
     }
 
     // SEC-M2: al desactivar, revocar sesiones/refresh tokens vigentes.
