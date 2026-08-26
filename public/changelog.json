@@ -1,5 +1,15 @@
 [
   {
+    "version": "7.350.1",
+    "date": "2026-08-27",
+    "type": "patch",
+    "title": "Lint Deno: elimina `any` en prueba de provisionamiento (fix-19)",
+    "description": "Se reemplazó el cast `as any` por `as unknown as SupabaseClient` en provision_test.ts y se quitó la directiva de ignore, dejando `deno lint` en verde para los 99 archivos de Edge Functions.",
+    "changes": [
+      "Reemplazo de `as any` por `as unknown as SupabaseClient` en invite-customer/provision_test.ts para cumplir con la regla no-explicit-any de Deno lint."
+    ]
+  },
+  {
     "version": "7.350.0",
     "date": "2026-08-27",
     "type": "minor",
