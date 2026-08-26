@@ -55,39 +55,60 @@ export async function handleRefreshCancellation(
     // M25: acepta invoice_id (facturas) O credit_note_id (notas de crédito).
     // Las NCs con cancelación pendiente ante el SAT no tenían vía de refresh
     // y bloqueaban NCs futuras vía el guard anti-sobre-acreditación (BL-08).
-    const { invoice_id, credit_note_id } =
+    // N-27: acepta TAMBIÉN payment_id para refrescar la cancelación del REP
+    // (complemento de pago) persistida en `payments`.
+    const { invoice_id, credit_note_id, payment_id } =
       (await req.json().catch(() => ({}))) as {
         invoice_id?: unknown;
         credit_note_id?: unknown;
+        payment_id?: unknown;
       };
     const hasInvoice = isUUID(invoice_id);
     const hasCreditNote = isUUID(credit_note_id);
-    if (hasInvoice === hasCreditNote) {
+    const hasPayment = isUUID(payment_id);
+    const provided = Number(hasInvoice) + Number(hasCreditNote) +
+      Number(hasPayment);
+    if (provided !== 1) {
       return json(
         {
           error:
-            "Provide exactly one of invoice_id or credit_note_id (valid UUID)",
+            "Provide exactly one of invoice_id, credit_note_id or payment_id (valid UUID)",
         },
         400,
       );
     }
-    const table = hasCreditNote ? "credit_notes" : "invoices";
-    const docId = (hasCreditNote ? credit_note_id : invoice_id) as string;
+    const table = hasPayment
+      ? "payments"
+      : hasCreditNote
+      ? "credit_notes"
+      : "invoices";
+    const isPayment = table === "payments";
+    const docId =
+      (hasPayment ? payment_id : hasCreditNote ? credit_note_id : invoice_id) as
+        string;
 
     const { data: invoice } = await supabase
       .from(table)
-      .select("facturapi_invoice_id, cancellation_status, updated_at")
+      .select(
+        isPayment
+          ? "rep_facturapi_id, rep_cancellation_status, rep_cfdi_status, updated_at"
+          : "facturapi_invoice_id, cancellation_status, updated_at",
+      )
       .eq("id", docId)
       .single();
     const inv = invoice as Record<string, unknown> | null;
-    if (!inv?.facturapi_invoice_id) {
+    const facturapiId = (isPayment
+      ? inv?.rep_facturapi_id
+      : inv?.facturapi_invoice_id) as string | undefined;
+    if (!facturapiId) {
       return json({ error: "Document has no Facturapi reference" }, 404);
     }
 
     const { apiKey } = await getFacturapiConfig(supabase, deps.env);
     if (!apiKey) return json({ error: "Facturapi key not configured" }, 400);
 
-    const fid = inv.facturapi_invoice_id as string;
+    const fid = facturapiId;
+
     const client = createFacturapiClient(apiKey);
     let facturApiInv: Record<string, unknown> = {};
     try {
