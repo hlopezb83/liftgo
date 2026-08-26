@@ -1,0 +1,14 @@
+{
+  "version": "7.345.0",
+  "date": "2026-08-26",
+  "type": "minor",
+  "title": "Integridad de estatus de unidades rentadas (N-6, N-38, N-39, N-41, N-42)",
+  "changes": [
+    "N-6: una unidad con renta vencida y sin devolución registrada ya no se puede reservar ni aparece como disponible en la búsqueda por fechas. Antes sólo se revisaba el traslape de fechas, así que un montacargas que seguía con el cliente podía volver a rentarse.",
+    "N-41: al cancelar o eliminar otra reserva, y en la sincronización de flota, la unidad ya no se marca como 'disponible' si sigue físicamente con el cliente. La definición de renta activa ahora incluye las vencidas sin devolución.",
+    "N-42: ningún cambio de estatus de una unidad rentada (a disponible, mantenimiento, fuera de servicio, vendida o baja) es posible si hay una entrega sin devolución. Antes el candado sólo cubría venta y baja; se exime el flujo interno de la inspección de retorno.",
+    "N-38: la inspección de devolución bloquea la fila de la unidad para serializar devoluciones simultáneas, la libera únicamente si seguía rentada y registra la bitácora sólo cuando el cambio realmente ocurrió.",
+    "N-39: al completar una entrega, la unidad se promueve a 'rentada' sólo si estaba disponible (ya no pisa mantenimiento ni fuera de servicio) y la bitácora guarda el estatus previo real en vez de asumir 'disponible'.",
+    "Nueva prueba de humo SQL: supabase/tests/r_fix12_unidades_smoke.sql."
+  ]
+}
