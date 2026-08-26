@@ -1,5 +1,16 @@
 [
   {
+    "version": "7.342.3",
+    "date": "2026-08-26",
+    "type": "patch",
+    "title": "Datos de prueba con fecha de Monterrey y más cobertura en facturación",
+    "changes": [
+      "Los datos de prueba automatizados ahora se fechan con el día vigente en Monterrey; antes se creaban con la fecha UTC y, después de las 18:00 hora local, la factura quedaba 'emitida mañana' y el registro de pago era rechazado.",
+      "Se agregaron pruebas para los catálogos de métodos de pago, motivos de nota de crédito, topes de acreditación y claves de consulta de facturas."
+    ],
+    "description": "Los datos de prueba automatizados usan la fecha de Monterrey y se amplió la cobertura de pruebas en facturación."
+  },
+  {
     "version": "7.342.2",
     "date": "2026-08-26",
     "type": "patch",
@@ -11,7 +22,6 @@
     "description": "El reporte de antigüedad de cuentas por pagar muestra un aviso con las facturas en divisa excluidas por falta de tipo de cambio."
   },
   {
-
     "version": "7.342.1",
     "date": "2026-08-26",
     "type": "patch",
@@ -23,7 +33,6 @@
     "description": "Corrección de formato en funciones de servidor para que la verificación automática de integración continua vuelva a pasar."
   },
   {
-
     "version": "7.342.0",
     "date": "2026-08-25",
     "type": "minor",
