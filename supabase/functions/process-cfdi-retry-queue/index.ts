@@ -312,12 +312,18 @@ Deno.serve(async (req) => {
               err: describeFacturapiError(lookupErr).message,
             },
           );
+          // R4-13: deferral de INFRAESTRUCTURA (no hubo llamada real al PAC
+          // para re-timbrar) → NO consumir un intento; antes el contador
+          // subía en cada ciclo sin agotamiento (reintento infinito) y, al
+          // configurarse la key, el re-timbrado real moría como 'exhausted'
+          // por intentos gastados en deferrals.
           await markQueueRow(admin, row.id, {
             status: "pending",
-            attempts: nextAttempts,
+            attempts: row.attempts,
             last_error: "PAC lookup no disponible antes de re-timbrar",
-            next_retry_at: nextRetryAt(nextAttempts).toISOString(),
+            next_retry_at: nextRetryAt(row.attempts + 1).toISOString(),
           });
+
           results.push({ id: row.id, status: "retry_lookup_deferred" });
           continue;
         }
