@@ -1,0 +1,14 @@
+{
+  "version": "7.348.0",
+  "date": "2026-08-26",
+  "type": "minor",
+  "title": "Panel y reportes financieros (fix-16)",
+  "changes": [
+    "N-14: el Panel vuelve a mostrar la utilización por unidad y las alertas de mantenimiento próximo (7 días); antes esas tarjetas siempre salían vacías porque el backend no enviaba los datos.",
+    "N-16: los conteos de flota (disponibles, rentados, en mantenimiento, retirados) ya no se traslapan y suman el total real; además las cifras del Panel excluyen los registros de prueba.",
+    "N-15: la Cartera Vencida deja fuera las facturas en divisa sin tipo de cambio y avisa cuántas quedaron sin incluir, con un aviso en la tarjeta del Panel.",
+    "N-19: al convertir un pago a pesos manda el tipo de cambio del pago y, si no hay, el de la factura; antes el Panel y el reporte de ingresos daban cifras distintas para el mismo pago. Aplica a pagos nuevos o editados, sin recalcular el histórico.",
+    "N-20: el reporte de ingresos por mes ya no cuenta 1 a 1 los pagos en divisa sin tipo de cambio; ahora los marca como faltantes de tipo de cambio.",
+    "Nueva prueba de humo SQL: supabase/tests/r_fix16_dashboard_finanzas_smoke.sql."
+  ]
+}
