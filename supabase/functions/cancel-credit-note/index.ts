@@ -24,12 +24,29 @@ Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
 
+  // R4-01 (patrón cancel-cfdi): refs fuera del try para liberar el claim en
+  // el catch cuando una excepción ocurre ANTES de contactar al PAC; si ya se
+  // llamó al PAC, 'pending' es correcto hasta reconciliar vía refresh.
+  let supabaseRef: SupabaseLike | null = null;
+  let creditNoteIdRef: string | null = null;
+  let claimed = false;
+  let pacAttempted = false;
+  const releaseClaimRef = async () => {
+    if (!claimed || !supabaseRef || !creditNoteIdRef) return;
+    claimed = false;
+    await supabaseRef.from("credit_notes")
+      .update({ cancellation_status: "none" })
+      .eq("id", creditNoteIdRef)
+      .eq("cancellation_status", "pending");
+  };
+
   try {
     // EC-A1: requireServiceOrRole = requireRole + bypass service_role JWT para
     // el consumer de cfdi_retry_queue (mismo patrón que stamp-cfdi).
     const auth = await requireServiceOrRole(req, ["admin", "administrativo"]);
     if (!auth.ok) return auth.response;
     const supabase = auth.adminClient;
+    supabaseRef = supabase as unknown as SupabaseLike;
 
     const body = await req.json().catch(() => null);
     const { credit_note_id, motive, substitution_uuid, cancellation_reason } =
@@ -38,6 +55,8 @@ Deno.serve(async (req) => {
     if (!isUUID(credit_note_id)) {
       return jsonError(req, 400, "credit_note_id must be UUID");
     }
+    creditNoteIdRef = credit_note_id as string;
+
     if (typeof motive !== "string" || !VALID_MOTIVES.has(motive)) {
       return jsonError(req, 400, "motive must be 01-04");
     }
@@ -64,25 +83,26 @@ Deno.serve(async (req) => {
     // cancelación al SAT.
     const { data: claim } = await supabase
       .from("credit_notes")
-      .update({ cancellation_status: "pending" })
+      .update({
+        cancellation_status: "pending",
+        // R4-14: timestamp dedicado de la solicitud (ver cancel-cfdi).
+        cancellation_requested_at: new Date().toISOString(),
+      })
       .eq("id", credit_note_id)
       .eq("cfdi_status", "stamped")
-      .eq("cancellation_status", "none")
+      .in("cancellation_status", ["none", "rejected", "expired"])
       .select("id")
       .maybeSingle();
     if (!claim) {
       return jsonError(
         req,
         409,
-        "Ya hay una cancelación en proceso para esta nota de crédito",
+        // R4-02: 'rejected'/'expired' son reintentables (admite el claim).
+        "Ya hay una cancelación en proceso para esta nota de crédito; si fue rechazada o expiró, puedes reintentarla",
       );
     }
-    const releaseClaim = async () => {
-      await supabase.from("credit_notes")
-        .update({ cancellation_status: "none" })
-        .eq("id", credit_note_id)
-        .eq("cancellation_status", "pending");
-    };
+    claimed = true;
+    const releaseClaim = releaseClaimRef;
 
     const { apiKey, mode } = await getFacturapiConfig(
       supabase,
@@ -110,6 +130,7 @@ Deno.serve(async (req) => {
     }
 
     if (apiKey && nc.facturapi_invoice_id) {
+      pacAttempted = true;
       const client = createFacturapiClient(apiKey);
       const params: Record<string, string> = { motive };
       if (motive === "01" && substitution_uuid) {
@@ -135,13 +156,18 @@ Deno.serve(async (req) => {
           console.warn("[cancel-credit-note] facturapi timeout", {
             credit_note_id,
           });
-          await releaseClaim();
+          // R4-05: NO liberar el claim — la cancelación pudo llegar al SAT y
+          // solo se perdió la respuesta; reintentar de inmediato arriesga una
+          // doble cancelación. Se conserva 'pending' y el estado real se
+          // resuelve vía refresh-cancellation-status (igual que cancel-cfdi).
           return jsonResponse(req, {
-            error: "PAC no respondió a tiempo, reintenta",
+            error:
+              "PAC no respondió a tiempo; consulta el estado con refresh-cancellation-status antes de reintentar",
             code: "TIMEOUT",
             transient: true,
           }, { status: 504 });
         }
+
         const desc = describeFacturapiError(err);
         // N-28: la cancelación no se confirmó ante el SAT — liberar el claim
         // para no bloquear el reintento (manual o vía cola).
@@ -197,7 +223,11 @@ Deno.serve(async (req) => {
       accepted: isAccepted,
     });
   } catch (err) {
+    // R4-01: solo liberamos el claim si nunca se contactó al PAC; si ya se
+    // llamó, el estado 'pending' es correcto hasta reconciliar con el SAT.
+    if (!pacAttempted) await releaseClaimRef();
     console.error("cancel-credit-note error:", err);
+
     return jsonError(req, 500, "Internal server error");
   }
 });

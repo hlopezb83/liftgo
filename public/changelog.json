@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.351.0",
+    "date": "2026-08-26",
+    "type": "minor",
+    "title": "Cancelaciones fiscales: sin bloqueos permanentes ni doble cancelación",
+    "description": "Se corrigieron cinco fallas del flujo de cancelación ante el SAT (notas de crédito y complementos de pago). El «apartado» que evita cancelaciones dobles ya no se queda pegado para siempre cuando algo falla antes de contactar al PAC, ahora permite reintentar cancelaciones rechazadas o expiradas, y ya no se libera ante un timeout (donde el SAT sí pudo haber recibido la solicitud). Además, el desbloqueo automático a las 72 horas ahora se mide desde la solicitud real y los reintentos diferidos por falta de configuración ya no consumen intentos.",
+    "changes": [
+      "R4-01: cancel-credit-note y cancel-payment-complement liberan el apartado de cancelación en el catch solo si nunca se contactó al PAC, evitando documentos atascados en «pendiente».",
+      "R4-02: el apartado admite reintentar cancelaciones en estado rechazado o expirado; el mensaje 409 lo explica.",
+      "R4-05: ante timeout del PAC ya no se libera el apartado; se conserva «pendiente» y se sugiere consultar el estado real antes de reintentar (evita doble cancelación ante el SAT).",
+      "R4-14: nuevas columnas cancellation_requested_at (facturas y notas de crédito) y rep_cancellation_requested_at (pagos), fijadas en el apartado y usadas por el reset automático de 72 horas en vez de updated_at.",
+      "R4-13: los aplazamientos por falta de lookup o de API key del PAC ya no incrementan el contador de intentos de la cola de reintimbrado."
+    ]
+  },
+  {
     "version": "7.350.3",
     "date": "2026-08-26",
     "type": "patch",

@@ -181,7 +181,12 @@ export async function handleCancelCfdi(
     // un intento previo) para permitir reintentar la cancelación.
     const claimRes = await supabase
       .from("invoices")
-      .update({ cancellation_status: "pending" })
+      .update({
+        cancellation_status: "pending",
+        // R4-14: timestamp dedicado de la solicitud — el reset stale de 72 h
+        // (refresh-cancellation-status) ya no depende de updated_at.
+        cancellation_requested_at: new Date().toISOString(),
+      })
       .eq("id", invoice_id as string)
       .eq("cfdi_status", "stamped")
       .in("cancellation_status", ["none", "rejected", "expired"])

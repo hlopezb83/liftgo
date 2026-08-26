@@ -93,8 +93,8 @@ export async function handleRefreshCancellation(
       .from(table)
       .select(
         isPayment
-          ? "rep_facturapi_id, rep_cancellation_status, rep_cfdi_status, updated_at"
-          : "facturapi_invoice_id, cancellation_status, updated_at",
+          ? "rep_facturapi_id, rep_cancellation_status, rep_cfdi_status, rep_cancellation_requested_at, updated_at"
+          : "facturapi_invoice_id, cancellation_status, cancellation_requested_at, updated_at",
       )
       .eq("id", docId)
       .single();
@@ -186,7 +186,15 @@ export async function handleRefreshCancellation(
       // N-11: el PAC no reporta la cancelación pero llevamos >72h en
       // 'pending' → la solicitud quedó huérfana (nunca llegó al SAT o el PAC
       // la perdió). Resetear a 'none' para desbloquear un nuevo intento.
-      const requestedAt = inv.updated_at as string | null;
+      // R4-14: medir la antigüedad desde la SOLICITUD (columna dedicada que
+      // fija el claim), no desde updated_at — cualquier UPDATE ajeno (p. ej.
+      // el claim de reconcile-stamping-invoices en cada corrida) reiniciaba
+      // el reloj y el reset de 72 h podía no disparar nunca. Fallback a
+      // updated_at para filas anteriores a la columna.
+      const requestedAt = ((isPayment
+        ? inv.rep_cancellation_requested_at
+        : inv.cancellation_requested_at) ?? inv.updated_at) as string | null;
+
       const STALE_PENDING_MS = 72 * 60 * 60 * 1000;
       const ageMs = requestedAt
         ? Date.now() - new Date(requestedAt).getTime()
