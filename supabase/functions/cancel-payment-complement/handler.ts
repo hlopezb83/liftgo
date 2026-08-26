@@ -263,6 +263,10 @@ export async function handleCancelPaymentComplement(
         : undefined,
     });
   } catch (_err) {
+    // R4-01: solo liberamos el claim si nunca se contactó al PAC; si ya se
+    // llamó, el estado 'pending' es correcto hasta reconciliar con el SAT.
+    if (!pacAttempted) await releaseClaimRef();
+
     return jsonError(req, 500, "Internal server error");
   }
 }
