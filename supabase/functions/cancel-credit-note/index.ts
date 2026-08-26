@@ -56,6 +56,8 @@ Deno.serve(async (req) => {
     if (!isUUID(credit_note_id)) {
       return jsonError(req, 400, "credit_note_id must be UUID");
     }
+    creditNoteIdRef = credit_note_id as string;
+
     if (typeof motive !== "string" || !VALID_MOTIVES.has(motive)) {
       return jsonError(req, 400, "motive must be 01-04");
     }
