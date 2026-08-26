@@ -9,5 +9,6 @@
     "H-9: las tarifas de renta, el costo de adquisición y el costo de la póliza sólo se muestran a los roles con acceso financiero (administrador y administrativo).",
     "M-12: la importación de estados de cuenta bancarios se procesa en lotes de 1000 movimientos; si algo falla se limpia la importación completa en vez de dejarla a medias.",
     "L-6a: si una sección de la búsqueda global falla (facturas, clientes o reservas), se muestra un aviso en lugar de aparentar que no hay resultados."
-  ]
+  ],
+  "description": "Las ediciones simultáneas de clientes y montacargas ya no se sobrescriben, los costos financieros de la flota quedan reservados a roles con acceso financiero y las importaciones bancarias grandes se procesan por lotes."
 }

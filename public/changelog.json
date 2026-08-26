@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.350.0",
+    "date": "2026-08-27",
+    "type": "minor",
+    "title": "Retroalimentación, clasificación AI y reportes de pago (fix-19)",
+    "changes": [
+      "N-43: activar o desactivar un usuario ya no muestra el error técnico de la base ni de autenticación; se responde un mensaje genérico y el detalle queda solo en la bitácora del servidor.",
+      "N-46: la clasificación AI de un reporte ya no se repite sola. Si el reporte ya fue clasificado, hay que pedir «Reclasificar» explícitamente; así no se gastan créditos de más.",
+      "N-46: la clasificación AI ya no pisa la severidad ni el módulo que un administrador corrigió a mano; solo llena los campos que siguen sin clasificar.",
+      "N-47: el título de un reporte debe tener entre 3 y 300 caracteres y la descripción entre 10 y 5000.",
+      "N-47: el tipo de reportero (cliente o interno) se deduce del rol real del usuario y ya no puede falsearse desde la aplicación.",
+      "N-48: un reporte de pago del portal se valida en el servidor: el monto debe ser mayor a cero y no puede exceder el saldo disponible de la factura, descontando pagos, notas de crédito timbradas y otros reportes pendientes de revisión."
+    ]
+  },
+  {
     "version": "7.349.0",
     "date": "2026-08-26",
     "type": "minor",

@@ -29,7 +29,7 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
     const ctx = (report.context_json ?? {}) as Record<string, unknown>;
     const needsClassification = !ctx.ai_classification && (report.module === "Sin clasificar" || !report.severity);
     if (needsClassification && !classify.isPending) {
-      classify.mutate(report.id);
+      classify.mutate({ reportId: report.id });
     }
   }, [report?.id]);
 
@@ -69,7 +69,7 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
           {aiClass && (
             <AiReasoningCard
               reasoning={aiClass.reasoning}
-              onReclassify={() => classify.mutate(report.id)}
+              onReclassify={() => classify.mutate({ reportId: report.id, force: true })}
               reclassifying={classify.isPending}
             />
           )}

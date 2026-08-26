@@ -1,0 +1,15 @@
+{
+  "version": "7.347.0",
+  "date": "2026-08-26",
+  "type": "minor",
+  "title": "Cancelaciones ante el SAT y conciliación de timbrado (fix-15)",
+  "changes": [
+    "N-49: la cancelación de un complemento de pago (REP) ahora se aparta antes de llamar al PAC; dos clics simultáneos ya no mandan dos cancelaciones al SAT y el estado (motivo, sustitución y razón) queda guardado.",
+    "N-27: los REP con cancelación pendiente ya se pueden refrescar desde el PAC y solo se marcan como cancelados cuando el SAT lo confirma.",
+    "N-28: las notas de crédito usan el mismo apartado atómico antes de cancelar; si el PAC falla o no responde, el apartado se libera para permitir el reintento.",
+    "N-29: la conciliación automática de timbrado aparta cada documento (facturas, REP y notas de crédito) para que dos ejecuciones del proceso no dupliquen consultas al PAC.",
+    "N-32: no se puede sobrescribir un REP de proveedor ya validado sin confirmarlo explícitamente, y el UUID duplicado se rechaza con un mensaje claro.",
+    "Base de datos: nuevas columnas de seguimiento de cancelación en pagos y restricción única del UUID de REP en pagos a proveedores."
+  ],
+  "description": "Cancelaciones ante el SAT y conciliación de timbrado (fix-15)"
+}

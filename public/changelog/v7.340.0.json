@@ -10,5 +10,6 @@
     "M-3: la búsqueda global ya no muestra facturas ni reservas canceladas, ni clientes eliminados.",
     "M-4: la fecha de un pago no puede estar a más de 7 días en el futuro (hora de Monterrey) ni ser anterior a la emisión de su factura.",
     "M-9: en cotizaciones, un descuento fijo en pesos se reparte en cascada entre las partidas de renta generadas (mensual, semanal y diaria) en vez de perder el remanente en la primera partida."
-  ]
+  ],
+  "description": "Se agrega el cierre de periodos fiscales, se congela el tipo de cambio de facturas timbradas o con pagos, se validan las fechas de pago, se limpia la búsqueda global y el descuento fijo de cotizaciones se distribuye correctamente."
 }

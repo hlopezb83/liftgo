@@ -6,5 +6,6 @@
   "changes": [
     "Se aplicó el formateo automático a cinco archivos de funciones de servidor (timbrado, descarga de CFDI, facturación recurrente y validación de complementos de pago) que hacían fallar la verificación de formato en integración continua.",
     "Sin cambios de comportamiento: solo saltos de línea y sangría."
-  ]
+  ],
+  "description": "Corrección de formato en funciones de servidor para que la verificación automática de integración continua vuelva a pasar."
 }

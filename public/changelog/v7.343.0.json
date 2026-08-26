@@ -10,5 +10,6 @@
     "N-33: el tipo de cambio de una factura ya sólo queda bloqueado si la factura está timbrada o si algún pago tiene complemento de pago (REP) timbrado; un pago sin REP ya no impide corregir una captura equivocada.",
     "N-2: la exigencia de cliente en la factura se revisa únicamente al salir de borrador, no en cada actualización interna de estado.",
     "Nueva prueba de humo SQL que valida los cinco comportamientos."
-  ]
+  ],
+  "description": "Se desbloquea el reverso de pagos a proveedor, las facturas sólo acreditadas dejan de marcarse como pagadas y se unifica el criterio de notas de crédito."
 }

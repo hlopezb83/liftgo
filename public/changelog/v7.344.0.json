@@ -10,5 +10,6 @@
     "N-23: dos movimientos idénticos dentro del mismo archivo (misma fecha, importe y descripción, sin referencia) ya no se descartan en silencio: el hash de deduplicación incluye la posición de la línea en el archivo.",
     "N-24: si una importación no trae movimientos nuevos o falla el emparejamiento, se limpian tanto las líneas como el encabezado, sin dejar importaciones a medias.",
     "Nueva prueba unitaria del hash de deduplicación y prueba de humo SQL del módulo de conciliación."
-  ]
+  ],
+  "description": "Se corrige la conversión de moneda al conciliar, se valida el signo de los movimientos y se evita perder movimientos duplicados dentro de un mismo archivo."
 }

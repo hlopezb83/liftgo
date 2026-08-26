@@ -37,7 +37,11 @@ const MODULES = [
   "Otro / General",
 ] as const;
 
-const BodySchema = z.object({ report_id: z.uuid() });
+const BodySchema = z.object({
+  report_id: z.uuid(),
+  // N-46: reclasificar exige force:true (evita gastar créditos y pisar revisión).
+  force: z.boolean().optional().default(false),
+});
 
 const ClassificationSchema = z.object({
   severity: z.enum(SEVERITIES),
@@ -84,6 +88,17 @@ Deno.serve(async (req) => {
     }
 
     const ctx = (report.context_json ?? {}) as Record<string, unknown>;
+
+    // N-46: si ya existe una clasificación AI previa, exigir force:true.
+    if (ctx.ai_classification != null && parsed.data.force !== true) {
+      return jsonError(
+        req,
+        409,
+        "El reporte ya tiene clasificación AI; reintenta con force: true",
+        { detail: { ai_classification: ctx.ai_classification } },
+      );
+    }
+
     const selectedEl = ctx.selected_element as
       | Record<string, unknown>
       | undefined;
@@ -176,15 +191,23 @@ Responde estrictamente con JSON: {"severity": "...", "module": "...", "reasoning
       },
     };
 
+    // N-46: no pisar overrides manuales de severity/module — solo escribir los
+    // valores AI si el campo sigue sin clasificar. `module` es NOT NULL con
+    // default 'Sin clasificar', así que ese valor cuenta como "vacío".
+    const updatePayload: Record<string, unknown> = { context_json: newContext };
+    if (report.severity == null) {
+      updatePayload.severity = classification.severity;
+    }
+    if (
+      report.module == null || report.module === "" ||
+      report.module === "Sin clasificar"
+    ) {
+      updatePayload.module = classification.module;
+    }
+
     const { data: updated, error: updateErr } = await admin
       .from("feedback_reports")
-      .update({
-        severity: report.type === "bug"
-          ? classification.severity
-          : classification.severity,
-        module: classification.module,
-        context_json: newContext,
-      })
+      .update(updatePayload)
       .eq("id", report.id)
       .select()
       .single();

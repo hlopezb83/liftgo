@@ -6,5 +6,6 @@
   "changes": [
     "Los datos de prueba automatizados ahora se fechan con el día vigente en Monterrey; antes se creaban con la fecha UTC y, después de las 18:00 hora local, la factura quedaba 'emitida mañana' y el registro de pago era rechazado.",
     "Se agregaron pruebas para los catálogos de métodos de pago, motivos de nota de crédito, topes de acreditación y claves de consulta de facturas."
-  ]
+  ],
+  "description": "Los datos de prueba automatizados usan la fecha de Monterrey y se amplió la cobertura de pruebas en facturación."
 }
