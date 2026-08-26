@@ -1,4 +1,16 @@
+## 7.345.0 - 2026-08-26
+
+**Integridad de estatus de unidades rentadas (N-6, N-38, N-39, N-41, N-42)**
+
+- N-6: una unidad con renta vencida sin devolución registrada ya no se puede reservar ni aparece como disponible; antes sólo se revisaba el traslape de fechas.
+- N-41: cancelar/eliminar otra reserva y la sincronización de flota ya no bajan a "disponible" una unidad que sigue con el cliente.
+- N-42: cualquier salida de "rentada" (disponible, mantenimiento, fuera de servicio, vendida, baja) exige devolución registrada; se exime el flujo interno (`app.forklift_rpc`).
+- N-38: la inspección de devolución bloquea la fila (`FOR UPDATE`), libera sólo si la unidad seguía rentada y registra bitácora sólo si hubo cambio.
+- N-39: la entrega completada promueve a "rentada" únicamente desde "disponible" y registra el estatus previo real.
+- Nueva prueba: `supabase/tests/r_fix12_unidades_smoke.sql`.
+
 ## 7.344.0 - 2026-08-26
+
 
 **Conciliación bancaria: tipo de cambio, validación de signo y deduplicación de movimientos (N-4, N-5, N-23, N-24, N-25)**
 
