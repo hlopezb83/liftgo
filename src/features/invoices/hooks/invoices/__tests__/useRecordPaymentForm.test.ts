@@ -197,4 +197,22 @@ describe("useRecordPaymentForm", () => {
     );
     expect(createPaymentMutate).toHaveBeenCalledTimes(1);
   });
+  // N-34: espejo del trigger trg_payment_date_window — el pago no puede ser
+  // anterior a la emisión de la factura.
+  it("submit con fecha anterior a issued_at → notifyValidation, no llama createPayment", async () => {
+    const { result } = renderForm({ balance: 500, invoiceIssuedAt: "2999-01-01" });
+    act(() => result.current.setAmount("100"));
+    await act(async () => { await result.current.handleSubmit(); });
+    expect(notifyValidationMock).toHaveBeenCalledWith({
+      message: expect.stringContaining("anterior a la fecha de emisión"),
+    });
+    expect(createPaymentMutate).not.toHaveBeenCalled();
+  });
+
+  it("submit con issued_at antiguo sí llama createPayment", async () => {
+    const { result } = renderForm({ balance: 500, invoiceIssuedAt: "2000-01-01" });
+    act(() => result.current.setAmount("100"));
+    await act(async () => { await result.current.handleSubmit(); });
+    expect(createPaymentMutate).toHaveBeenCalledTimes(1);
+  });
 });

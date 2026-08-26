@@ -1,3 +1,17 @@
+## 7.349.0 - 2026-08-26
+
+**Bitácora, portal de clientes y control de acceso (fix-17 / fix-18)**
+
+- N-18: revertir un cambio desde la bitácora ya verifica que el registro no se haya modificado después; si hubo cambios posteriores se rechaza con un mensaje claro en vez de pisarlos en silencio.
+- N-31: ya no se puede invitar al portal a un cliente archivado; al archivarlo se desvincula su cuenta del portal y deja de ver su registro.
+- N-34: el diálogo de registrar pago avisa en español si la fecha es anterior a la emisión de la factura, en vez de mostrar el error crudo de la base.
+- N-36: extender una renta ya no se bloquea por órdenes de mantenimiento archivadas, apenas agendadas o canceladas; solo cuentan las que representan trabajo real.
+- N-40: la lectura del horómetro en entregas no puede ser menor a la última registrada de esa unidad; la regla ahora vive también en la base de datos.
+- N-45: un usuario desactivado pierde el acceso de inmediato (antes conservaba permisos hasta que caducaba su sesión). Los usuarios sin perfil se consideran activos.
+- N-30: si falla la asignación de rol o el perfil al invitar a un usuario interno, la cuenta a medias se elimina automáticamente.
+- Descartados por ya estar resueltos o ser inocuos: N-17 (la policy de dispatchers sobre la bitácora ya no existe), N-26 (el bloqueo de campos de contratos firmados ya está cubierto) y N-22 (condición equivalente en depreciación).
+- Nueva prueba de humo SQL: supabase/tests/r_fix17_18_smoke.sql.
+
 ## 7.348.0 - 2026-08-26
 
 **Panel y reportes financieros (fix-16)**

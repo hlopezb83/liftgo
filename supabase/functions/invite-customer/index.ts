@@ -35,12 +35,15 @@ Deno.serve(async (req) => {
 
     const { data: customer, error: custErr } = await auth.adminClient
       .from("customers")
-      .select("id, user_id, name")
+      .select("id, user_id, name, deleted_at")
       .eq("id", customer_id)
+      .is("deleted_at", null)
       .single();
 
     if (custErr || !customer) {
-      return jsonError(req, 404, "Customer not found");
+      // N-31: si el cliente esta archivado (deleted_at NOT NULL) no se puede
+      // invitar al portal; respondemos 409 sin filtrar si existe o no.
+      return jsonError(req, 409, "Customer is archived or not found");
     }
     if (customer.user_id) {
       return jsonError(req, 409, "Customer already has portal access");

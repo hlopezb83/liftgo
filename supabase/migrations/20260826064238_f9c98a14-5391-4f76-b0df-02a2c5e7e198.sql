@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.trg_customer_archive_unlink_user() FROM PUBLIC, anon, authenticated;
