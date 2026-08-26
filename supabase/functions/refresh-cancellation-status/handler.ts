@@ -159,7 +159,10 @@ export async function handleRefreshCancellation(
         ((facturApiInv?.cancellation as Record<string, unknown> | undefined)
           ?.status as string | undefined);
     const rootStatus = facturApiInv?.status as string | undefined;
-    const prior = (inv.cancellation_status as string | undefined) ?? "none";
+    const prior = ((isPayment
+      ? inv.rep_cancellation_status
+      : inv.cancellation_status) as string | undefined) ?? "none";
+
     // Facturapi marca la cancelación aceptada bajando el `status` raíz a
     // "canceled" (a veces "cancelled") y no siempre poblando cancellation_status.
     let satStatus = prior;
