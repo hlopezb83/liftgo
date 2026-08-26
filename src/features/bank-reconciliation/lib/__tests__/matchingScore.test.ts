@@ -46,3 +46,66 @@ describe("computeMatchScore", () => {
     ).toBe(85);
   });
 });
+
+describe("computeMatchScore · FX bidireccional (R4-11)", () => {
+  const base = {
+    paymentDate: "2026-06-01",
+    lineDate: "2026-06-01",
+    paymentReference: "REF001",
+    lineText: "TRANSFERENCIA REF001 ACME",
+  };
+
+  it("pago MXN contra cuenta USD divide entre el tipo de cambio", () => {
+    // 17,500 MXN / 17.50 = 1,000 USD
+    expect(
+      computeMatchScore({
+        ...base,
+        paymentAmount: 17_500,
+        lineAmount: 1000,
+        paymentCurrency: "MXN",
+        accountCurrency: "USD",
+        paymentExchangeRate: 17.5,
+      }),
+    ).toBe(100);
+  });
+
+  it("pago USD contra cuenta MXN sigue multiplicando", () => {
+    expect(
+      computeMatchScore({
+        ...base,
+        paymentAmount: 1000,
+        lineAmount: 17_500,
+        paymentCurrency: "USD",
+        accountCurrency: "MXN",
+        paymentExchangeRate: 17.5,
+      }),
+    ).toBe(100);
+  });
+
+  it("redondea a 2 decimales antes de aplicar la tolerancia", () => {
+    // 1000 / 3 = 333.333... → 333.33 (dentro de la tolerancia de 0.01)
+    expect(
+      computeMatchScore({
+        ...base,
+        paymentAmount: 1000,
+        lineAmount: 333.33,
+        paymentCurrency: "MXN",
+        accountCurrency: "USD",
+        paymentExchangeRate: 3,
+      }),
+    ).toBe(100);
+  });
+
+  it("sin tipo de cambio entre monedas distintas no matchea", () => {
+    expect(
+      computeMatchScore({
+        ...base,
+        paymentAmount: 17_500,
+        lineAmount: 1000,
+        paymentCurrency: "MXN",
+        accountCurrency: "USD",
+        paymentExchangeRate: null,
+      }),
+    ).toBe(0);
+  });
+});

@@ -42,10 +42,13 @@ function daysBetween(a: string, b: string): number {
 
 /**
  * Convierte `paymentAmount` a la moneda de la cuenta bancaria, replicando la
- * regla del RPC `get_bank_match_candidates` (Fix 6.1):
- *   v_amount = currency === accountCurrency ? amount : amount * exchange_rate
- * Si las monedas difieren y no hay exchange_rate, no matchea (no se asume
- * un TC implícito de 1:1).
+ * regla del RPC `get_bank_match_candidates` (Fix R4-11, bidireccional):
+ *   - misma moneda              -> amount
+ *   - pago MXN -> cuenta divisa -> ROUND(amount / rate, 2)
+ *   - pago divisa -> otra       -> ROUND(amount * rate, 2)
+ * El redondeo a 2 decimales se aplica ANTES de la tolerancia de 0.01, igual
+ * que en el servidor. Si las monedas difieren y no hay exchange_rate, no
+ * matchea (no se asume un TC implícito de 1:1).
  */
 function convertPaymentAmount(input: ScoreInput): number | null {
   const paymentCurrency = (input.paymentCurrency ?? input.accountCurrency ?? "MXN").toUpperCase();
@@ -53,8 +56,12 @@ function convertPaymentAmount(input: ScoreInput): number | null {
   if (paymentCurrency === accountCurrency) return input.paymentAmount;
   const rate = Number(input.paymentExchangeRate ?? NaN);
   if (!Number.isFinite(rate) || rate <= 0) return null;
-  return input.paymentAmount * rate;
+  const converted = paymentCurrency === "MXN"
+    ? input.paymentAmount / rate
+    : input.paymentAmount * rate;
+  return Math.round(converted * 100) / 100;
 }
+
 
 export function computeMatchScore(input: ScoreInput): number {
   const convertedAmount = convertPaymentAmount(input);
