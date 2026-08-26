@@ -1,0 +1,10 @@
+{
+  "version": "7.342.3",
+  "date": "2026-08-26",
+  "type": "patch",
+  "title": "Datos de prueba con fecha de Monterrey y más cobertura en facturación",
+  "changes": [
+    "Los datos de prueba automatizados ahora se fechan con el día vigente en Monterrey; antes se creaban con la fecha UTC y, después de las 18:00 hora local, la factura quedaba 'emitida mañana' y el registro de pago era rechazado.",
+    "Se agregaron pruebas para los catálogos de métodos de pago, motivos de nota de crédito, topes de acreditación y claves de consulta de facturas."
+  ]
+}
