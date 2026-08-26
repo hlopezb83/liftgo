@@ -1,0 +1,14 @@
+{
+  "version": "7.343.0",
+  "date": "2026-08-26",
+  "type": "minor",
+  "title": "Reverso de pagos a proveedor, facturas acreditadas y criterio único de notas de crédito",
+  "changes": [
+    "N-3: al eliminar o reversar un pago de una factura de proveedor pagada, el sistema ya puede recalcular su estado a 'parcial'. El candado de transiciones de estado todavía la dejaba atorada aunque el otro candado ya se había corregido.",
+    "N-1: una factura cubierta sólo con notas de crédito ya no se marca como 'pagada'; ahora se requiere al menos un pago real del cliente. Si una factura estaba marcada como pagada sin pagos y sólo hay notas de crédito, regresa a 'enviada'.",
+    "N-21: la base de datos usa el mismo criterio que la pantalla para decidir qué notas de crédito descuentan saldo (timbradas, no canceladas y sin cancelación aceptada), evitando diferencias entre lo que ve el usuario y lo que valida el servidor.",
+    "N-33: el tipo de cambio de una factura ya sólo queda bloqueado si la factura está timbrada o si algún pago tiene complemento de pago (REP) timbrado; un pago sin REP ya no impide corregir una captura equivocada.",
+    "N-2: la exigencia de cliente en la factura se revisa únicamente al salir de borrador, no en cada actualización interna de estado.",
+    "Nueva prueba de humo SQL que valida los cinco comportamientos."
+  ]
+}

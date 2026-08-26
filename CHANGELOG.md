@@ -1,3 +1,14 @@
+## 7.343.0 - 2026-08-26
+
+**Reverso de pagos a proveedor, facturas acreditadas y criterio único de notas de crédito (N-1, N-2, N-3, N-21, N-33)**
+
+- N-3: al eliminar o reversar un pago de una factura de proveedor pagada, el sistema ya puede recalcular su estado a "parcial"; el candado de transiciones de estado todavía la dejaba atorada.
+- N-1: una factura cubierta sólo con notas de crédito ya no se marca como "pagada"; se requiere al menos un pago real del cliente.
+- N-21: la base de datos usa el mismo criterio que la pantalla para las notas de crédito que descuentan saldo (timbradas, no canceladas y sin cancelación aceptada).
+- N-33: el tipo de cambio sólo queda bloqueado si la factura está timbrada o si algún pago tiene REP timbrado.
+- N-2: la exigencia de cliente se revisa únicamente al salir de borrador, no en cada actualización interna de estado.
+- Nueva prueba de humo SQL (`supabase/tests/r_fix10_finanzas_smoke.sql`).
+
 ## 7.342.3 - 2026-08-26
 
 **Datos de prueba con fecha de Monterrey y más cobertura en facturación**
