@@ -21,7 +21,7 @@ const COLS: { key: keyof import("../hooks/useAgingReport").AgingRow; label: stri
 ];
 
 export default function AgingReportPage() {
-  const { rows, totals, rawBills, isLoading, isError, refetch } = useAgingReport();
+  const { rows, totals, fxMissingCount, rawBills, isLoading, isError, refetch } = useAgingReport();
 
   const overduePct = totals.total > 0
     ? ((totals.d1_30 + totals.d31_60 + totals.d61_90 + totals.d90_plus) / totals.total) * 100
@@ -59,6 +59,16 @@ export default function AgingReportPage() {
 
       {/* H-10b: avisar cuando la lista cruda está truncada (limit+1). */}
       <ListTruncationNotice rows={rawBills} />
+
+      {/* M-14c: las facturas en divisa sin tipo de cambio se excluyen de los
+          buckets; sin este aviso la cartera se veía menor de lo real. */}
+      {!isError && fxMissingCount > 0 && (
+        <p className="rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-muted-foreground">
+          {fxMissingCount} factura{fxMissingCount === 1 ? "" : "s"} de proveedor en divisa sin tipo de cambio
+          {fxMissingCount === 1 ? " no suma" : " no suman"} a los totales en MXN. Captura el tipo de cambio
+          en la factura para incluirla en la antigüedad.
+        </p>
+      )}
 
       {/* A4-02: nunca renderizar KPIs en $0 cuando la query falló (falso-cero
           financiero, mismo patrón que FE3-04 en InvoicesReconciliation). */}
