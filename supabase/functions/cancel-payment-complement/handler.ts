@@ -114,6 +114,8 @@ export async function handleCancelPaymentComplement(
       .from("payments")
       .update({
         rep_cancellation_status: "pending",
+        // R4-14: timestamp dedicado de la solicitud (ver cancel-cfdi).
+        rep_cancellation_requested_at: new Date().toISOString(),
         rep_cancellation_motive: motiveCode,
         rep_substitution_uuid: motiveCode === "01" ? substitution_uuid : null,
         rep_cancellation_reason: typeof cancellation_reason === "string"
@@ -122,7 +124,7 @@ export async function handleCancelPaymentComplement(
       })
       .eq("id", payment_id)
       .eq("rep_cfdi_status", "stamped")
-      .eq("rep_cancellation_status", "none")
+      .in("rep_cancellation_status", ["none", "rejected", "expired"])
       .select("rep_facturapi_id, rep_cfdi_status")
       .maybeSingle();
     if (!payment) {
@@ -133,26 +135,27 @@ export async function handleCancelPaymentComplement(
       if ((existing as Record<string, unknown>).rep_cfdi_status !== "stamped") {
         return jsonError(req, 400, "El REP no está timbrado");
       }
-      return jsonError(req, 409, "Ya hay una cancelación del REP en proceso");
+      // R4-02: 'rejected'/'expired' son reintentables (admite el claim); el
+      // 409 ahora solo aplica a una cancelación realmente en curso.
+      return jsonError(
+        req,
+        409,
+        "Ya hay una cancelación del REP en proceso; si fue rechazada o expiró, puedes reintentarla",
+      );
     }
+    claimed = true;
     const pay = payment as Record<string, unknown>;
     if (!pay.rep_facturapi_id) {
       // N-49: sin referencia al PAC no hay nada que cancelar — liberar claim.
-      await supabase.from("payments")
-        .update({ rep_cancellation_status: "none" })
-        .eq("id", payment_id);
+      await releaseClaimRef();
       return jsonError(req, 400, "El REP no está timbrado");
     }
 
     // N-49: helper para liberar el claim cuando la cancelación NUNCA llegó al
-    // SAT (config faltante, timeout o error del PAC). Si no se libera, un
-    // reintento posterior chocaría con su propio 'pending'.
-    const releaseClaim = async () => {
-      await supabase.from("payments")
-        .update({ rep_cancellation_status: "none" })
-        .eq("id", payment_id)
-        .eq("rep_cancellation_status", "pending");
-    };
+    // SAT (config faltante o error del PAC). Si no se libera, un reintento
+    // posterior chocaría con su propio 'pending'.
+    const releaseClaim = releaseClaimRef;
+
 
     const { apiKey } = await getFacturapiConfig(supabase, deps.env);
     if (!apiKey) {
