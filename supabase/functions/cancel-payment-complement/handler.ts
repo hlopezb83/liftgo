@@ -67,7 +67,6 @@ export async function handleCancelPaymentComplement(
     const supabase = auth.supabase;
     supabaseRef = supabase;
 
-
     const body = await req.json().catch(() => ({}));
     const { payment_id, motive, substitution_uuid, cancellation_reason } =
       body as {
@@ -155,7 +154,6 @@ export async function handleCancelPaymentComplement(
     // SAT (config faltante o error del PAC). Si no se libera, un reintento
     // posterior chocaría con su propio 'pending'.
     const releaseClaim = releaseClaimRef;
-
 
     const { apiKey } = await getFacturapiConfig(supabase, deps.env);
     if (!apiKey) {

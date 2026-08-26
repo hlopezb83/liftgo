@@ -48,7 +48,6 @@ Deno.serve(async (req) => {
     const supabase = auth.adminClient;
     supabaseRef = supabase as unknown as SupabaseLike;
 
-
     const body = await req.json().catch(() => null);
     const { credit_note_id, motive, substitution_uuid, cancellation_reason } =
       body ?? {};
@@ -104,7 +103,6 @@ Deno.serve(async (req) => {
     }
     claimed = true;
     const releaseClaim = releaseClaimRef;
-
 
     const { apiKey, mode } = await getFacturapiConfig(
       supabase,

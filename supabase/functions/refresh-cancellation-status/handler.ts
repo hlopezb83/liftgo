@@ -96,7 +96,6 @@ export async function handleRefreshCancellation(
           ? "rep_facturapi_id, rep_cancellation_status, rep_cfdi_status, rep_cancellation_requested_at, updated_at"
           : "facturapi_invoice_id, cancellation_status, cancellation_requested_at, updated_at",
       )
-
       .eq("id", docId)
       .single();
     const inv = invoice as Record<string, unknown> | null;
