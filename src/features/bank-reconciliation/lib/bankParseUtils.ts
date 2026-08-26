@@ -8,6 +8,7 @@ export interface ParsedBankLine {
   description: string;
   signed_amount: number; // positivo = abono, negativo = cargo
   reference: string | null;
+  line_seq: number; // indice de la linea dentro del archivo (discriminador de dedup)
   hash: string;
 }
 
@@ -110,14 +111,19 @@ export async function buildLine(input: {
   description: string;
   signedAmount: number;
   reference: string | null;
+  lineSeq: number;
 }): Promise<ParsedBankLine> {
-  const { postedDate, description, signedAmount, reference } = input;
+  const { postedDate, description, signedAmount, reference, lineSeq } = input;
   return {
     posted_date: postedDate,
     description,
     signed_amount: signedAmount,
     reference,
-    hash: await hashLine([postedDate, signedAmount.toFixed(2), reference ?? "", description.slice(0, 80)]),
+    line_seq: lineSeq,
+    // N-23: el indice de linea discrimina movimientos identicos dentro del
+    // mismo archivo (mismo monto/fecha/referencia) sin romper la dedup de
+    // reimportaciones, que conservan el mismo orden de lineas.
+    hash: await hashLine([String(lineSeq), postedDate, signedAmount.toFixed(2), reference ?? "", description.slice(0, 80)]),
   };
 }
 

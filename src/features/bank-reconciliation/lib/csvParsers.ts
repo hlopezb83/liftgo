@@ -89,7 +89,7 @@ async function parseRow(
   const signed = computeSigned(map, r);
   if (signed === null || signed === 0) return `Línea ${idx + 1}: monto inválido o cero`;
   const reference = map.reference !== undefined ? (r[map.reference] ?? "").trim() || null : null;
-  return await buildLine({ postedDate, description, signedAmount: signed, reference });
+  return await buildLine({ postedDate, description, signedAmount: signed, reference, lineSeq: idx });
 }
 
 

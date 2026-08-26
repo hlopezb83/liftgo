@@ -35,6 +35,7 @@ export function useImportBankStatement() {
         description: l.description,
         signed_amount: l.signed_amount,
         reference: l.reference,
+        line_seq: l.line_seq,
         hash: l.hash,
       }));
 
@@ -72,6 +73,9 @@ export function useImportBankStatement() {
 
       if (insertedCount === 0) {
         // Reimportación del mismo archivo: no dejamos un import huérfano en 0.
+        // N-24: borramos también las líneas del import previo (si las hubiera)
+        // antes del header, para no dejar líneas huérfanas.
+        await supabase.from("bank_statement_lines").delete().eq("import_id", imp.id);
         await supabase.from("bank_statement_imports").delete().eq("id", imp.id);
         return { summary: null, insertedCount: 0 };
       }
@@ -83,11 +87,19 @@ export function useImportBankStatement() {
           .eq("id", imp.id);
       }
 
-      const { data: matchRes, error: matchErr } = await supabase.rpc("match_bank_statement_lines", {
-        p_import_id: imp.id,
-      });
-      if (matchErr) throw matchErr;
-      return { summary: Array.isArray(matchRes) && matchRes[0] ? matchRes[0] : null, insertedCount };
+      // N-24: si el emparejamiento falla, limpiamos líneas + header igual que en
+      // el fallo del upsert, para no dejar importaciones a medias.
+      try {
+        const { data: matchRes, error: matchErr } = await supabase.rpc("match_bank_statement_lines", {
+          p_import_id: imp.id,
+        });
+        if (matchErr) throw matchErr;
+        return { summary: Array.isArray(matchRes) && matchRes[0] ? matchRes[0] : null, insertedCount };
+      } catch (matchErr) {
+        await supabase.from("bank_statement_lines").delete().eq("import_id", imp.id);
+        await supabase.from("bank_statement_imports").delete().eq("id", imp.id);
+        throw matchErr;
+      }
     },
     invalidateKeysFn: (_res, vars) => [bankLinesKey(vars.bankAccountId)],
     errorTitle: "Error al importar estado de cuenta",

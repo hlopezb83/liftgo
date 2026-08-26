@@ -1,3 +1,14 @@
+## 7.344.0 - 2026-08-26
+
+**Conciliación bancaria: tipo de cambio, validación de signo y deduplicación de movimientos (N-4, N-5, N-23, N-24, N-25)**
+
+- N-4: al confirmar una conciliación el importe del pago se convierte a la moneda de la cuenta bancaria; antes se comparaba en crudo y los pagos en moneda extranjera se rechazaban.
+- N-5: los candidatos de pago a proveedor se convierten con el tipo de cambio de la factura, igual que el emparejamiento automático.
+- N-25: un cargo del banco sólo puede conciliarse con un pago a proveedor y un depósito sólo con un cobro de cliente.
+- N-23: el hash de deduplicación incluye la posición de la línea en el archivo (`bank_statement_lines.line_seq`), para no perder movimientos idénticos.
+- N-24: las importaciones fallidas o sin movimientos nuevos limpian líneas y encabezado.
+- Nuevas pruebas: `bankLineHash.test.ts` y `supabase/tests/r_fix11_conciliacion_smoke.sql`.
+
 ## 7.343.0 - 2026-08-26
 
 **Reverso de pagos a proveedor, facturas acreditadas y criterio único de notas de crédito (N-1, N-2, N-3, N-21, N-33)**

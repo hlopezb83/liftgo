@@ -193,6 +193,7 @@ export type Database = {
           id: string
           ignored_reason: string | null
           import_id: string
+          line_seq: number | null
           match_score: number | null
           matched_at: string | null
           matched_by: string | null
@@ -214,6 +215,7 @@ export type Database = {
           id?: string
           ignored_reason?: string | null
           import_id: string
+          line_seq?: number | null
           match_score?: number | null
           matched_at?: string | null
           matched_by?: string | null
@@ -235,6 +237,7 @@ export type Database = {
           id?: string
           ignored_reason?: string | null
           import_id?: string
+          line_seq?: number | null
           match_score?: number | null
           matched_at?: string | null
           matched_by?: string | null

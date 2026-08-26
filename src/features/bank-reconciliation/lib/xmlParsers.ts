@@ -121,7 +121,7 @@ async function mapNodeToLine(f: Record<string, string>, map: XmlFieldMapping, in
   if (signed === null || signed === 0) return `Movimiento ${index + 1}: importe inválido o cero`;
   const description = (map.description ? f[map.description] ?? "" : "").trim() || "Movimiento bancario";
   const reference = map.reference ? (f[map.reference] ?? "").trim() || null : null;
-  return await buildLine({ postedDate, description, signedAmount: signed, reference });
+  return await buildLine({ postedDate, description, signedAmount: signed, reference, lineSeq: index });
 }
 
 const EMPTY_RESULT: XmlParseResult = {
