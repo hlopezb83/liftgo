@@ -165,6 +165,7 @@ export async function handleCancelPaymentComplement(
 
     const client = createFacturapiClient(apiKey);
     let satStatus = "accepted";
+    pacAttempted = true;
     try {
       const params: Record<string, string> = { motive: motiveCode };
       if (motiveCode === "01" && substitution_uuid) {
@@ -191,11 +192,14 @@ export async function handleCancelPaymentComplement(
         console.warn("[cancel-payment-complement] facturapi timeout", {
           payment_id,
         });
-        // N-49: la cancelación no se confirmó; liberar el claim para permitir
-        // el reintento manual (el estado real se verifica con el refresh).
-        await releaseClaim();
+        // R4-05: NO liberar el claim — la cancelación pudo llegar al SAT y
+        // solo se perdió la respuesta; reintentar de inmediato arriesga una
+        // doble cancelación. Se conserva 'pending' y el estado real se
+        // resuelve vía refresh-cancellation-status (igual que cancel-cfdi).
         return jsonResponse(req, {
-          error: "PAC no respondió a tiempo, reintenta",
+          error:
+            "PAC no respondió a tiempo; consulta el estado con refresh-cancellation-status antes de reintentar",
+
           code: "TIMEOUT",
           transient: true,
         }, { status: 504 });
