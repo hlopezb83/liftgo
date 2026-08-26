@@ -51,11 +51,14 @@ export async function handleCancelPaymentComplement(
     const supabase = auth.supabase;
 
     const body = await req.json().catch(() => ({}));
-    const { payment_id, motive, substitution_uuid } = body as {
-      payment_id?: unknown;
-      motive?: unknown;
-      substitution_uuid?: unknown;
-    };
+    const { payment_id, motive, substitution_uuid, cancellation_reason } =
+      body as {
+        payment_id?: unknown;
+        motive?: unknown;
+        substitution_uuid?: unknown;
+        cancellation_reason?: unknown;
+      };
+
     if (!isUUID(payment_id)) {
       return jsonError(req, 400, "payment_id must be a valid UUID");
     }
