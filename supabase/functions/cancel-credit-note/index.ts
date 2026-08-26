@@ -132,6 +132,7 @@ Deno.serve(async (req) => {
     }
 
     if (apiKey && nc.facturapi_invoice_id) {
+      pacAttempted = true;
       const client = createFacturapiClient(apiKey);
       const params: Record<string, string> = { motive };
       if (motive === "01" && substitution_uuid) {
@@ -157,13 +158,18 @@ Deno.serve(async (req) => {
           console.warn("[cancel-credit-note] facturapi timeout", {
             credit_note_id,
           });
-          await releaseClaim();
+          // R4-05: NO liberar el claim — la cancelación pudo llegar al SAT y
+          // solo se perdió la respuesta; reintentar de inmediato arriesga una
+          // doble cancelación. Se conserva 'pending' y el estado real se
+          // resuelve vía refresh-cancellation-status (igual que cancel-cfdi).
           return jsonResponse(req, {
-            error: "PAC no respondió a tiempo, reintenta",
+            error:
+              "PAC no respondió a tiempo; consulta el estado con refresh-cancellation-status antes de reintentar",
             code: "TIMEOUT",
             transient: true,
           }, { status: 504 });
         }
+
         const desc = describeFacturapiError(err);
         // N-28: la cancelación no se confirmó ante el SAT — liberar el claim
         // para no bloquear el reintento (manual o vía cola).
