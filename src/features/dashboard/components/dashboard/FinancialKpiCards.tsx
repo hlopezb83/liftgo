@@ -81,6 +81,7 @@ export function FinancialKpiCards({
           iconColor={kpi.color}
           iconBg={kpi.bgColor}
           href={kpi.href}
+          hint={kpi.hint}
         />
       ))}
     </div>
