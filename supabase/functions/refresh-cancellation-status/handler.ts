@@ -103,7 +103,7 @@ export async function handleRefreshCancellation(
       (isPayment ? inv?.rep_facturapi_id : inv?.facturapi_invoice_id) as
         | string
         | undefined;
-    if (!facturapiId) {
+    if (!inv || !facturapiId) {
       return json({ error: "Document has no Facturapi reference" }, 404);
     }
 
