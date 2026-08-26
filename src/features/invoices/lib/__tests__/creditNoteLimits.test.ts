@@ -27,7 +27,7 @@ describe("computeCreditNoteLimits", () => {
       1000,
       [
         cn({ id: "a", total: 200 }),
-        cn({ id: "b", total: 100, status: "draft", cfdi_status: null }),
+        cn({ id: "b", total: 100, status: "draft", cfdi_status: undefined }),
         cn({ id: "c", total: 500, cancellation_status: "accepted" }),
       ],
       [],
