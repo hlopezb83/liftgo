@@ -1,5 +1,4 @@
 import { Activity, useState } from "react";
-import { Activity, useState } from "react";
 import { DetailRow } from "@/components/domain/DetailRow";
 import { EditIcon, DeleteIcon, InventoryIcon, Hash, Tag, Layers, WarnIcon, CostIcon, LocationIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
