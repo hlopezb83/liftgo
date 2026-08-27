@@ -10,7 +10,7 @@ import type { Tables } from "@/integrations/supabase/types";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { toYMD } from "@/lib/date/toYMD";
 import { isQuoteEditable, canConvertQuote } from "@/lib/rules/quotes";
-import { parseDateLocal } from "@/lib/utils";
+import { nowMty, parseDateLocal } from "@/lib/utils";
 import { QuotePDFButton } from "./QuotePDFButton";
 import { RejectQuoteDialog } from "./RejectQuoteDialog";
 
@@ -161,7 +161,10 @@ export function QuoteDetailActions({
       {quote.status === "sent" && (() => {
         // R7 Bloque 7: bloquear "Aceptar" si la cotización ya venció.
         const validUntil = quote.valid_until ? parseDateLocal(quote.valid_until) : null;
-        const today = parseDateLocal(toYMD(new Date()));
+        // FIX B4: `new Date()` usaba el reloj/TZ del navegador; con un equipo mal
+        // configurado la cotización se veía vencida un día antes. `nowMty()` fija
+        // el "hoy" del negocio (America/Monterrey).
+        const today = parseDateLocal(toYMD(nowMty()));
         const isExpired = !!validUntil && !!today && validUntil.getTime() < today.getTime();
         return (
           <>

@@ -16,7 +16,7 @@ import { STATUS_LABELS } from "@/lib/constants";
 import { toYMD } from "@/lib/date/toYMD";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { visibleListRows } from "@/lib/supabase/constants";
-import { formatDateRange, parseDateLocal } from "@/lib/utils";
+import { formatDateRange, nowMty, parseDateLocal } from "@/lib/utils";
 import { QUOTE_STATUS_LABELS, quoteStatusLabel as quoteLabel } from "../constants";
 import { isPublicoGeneral } from "../hooks/quoteDetail/useQuoteDetailData";
 import { useQuotes, quoteQueries } from "../hooks/quotes/useQuotes";
@@ -111,7 +111,10 @@ export default function QuotesPage() {
       mobileCardRender={(q) => {
         // R7 Bloque 19b: reutilizamos el cálculo de vencida en la vista móvil.
         const validUntil = q.valid_until ? parseDateLocal(q.valid_until) : null;
-        const today = parseDateLocal(toYMD(new Date()));
+        // FIX B4: `new Date()` usaba el reloj/TZ del navegador; con un equipo mal
+        // configurado la cotización se veía vencida un día antes. `nowMty()` fija
+        // el "hoy" del negocio (America/Monterrey).
+        const today = parseDateLocal(toYMD(nowMty()));
         const isExpired = q.status === "sent" && !!validUntil && !!today && validUntil.getTime() < today.getTime();
         return (
           <Card className="cursor-pointer active:scale-[0.98] transition-transform" onClick={() => navigate(`/quotes/${q.id}`)}>
