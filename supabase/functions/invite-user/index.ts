@@ -113,7 +113,6 @@ Deno.serve(async (req) => {
       await cleanupInvitedUser();
       // M-16b/R4-33: mensaje genérico al cliente; el detalle queda en el log.
       return jsonError(req, 500, "No se pudo completar la invitación");
-
     }
 
     const { error: profileErr } = await auth.adminClient

@@ -171,7 +171,6 @@ async function buildPlan(supabase: any): Promise<{
       : (forklift?.monthly_rate != null ? Number(forklift.monthly_rate) : null);
     const monthlyRate = configuredRate ?? 0;
 
-
     // Derivar last_billed_date desde el historial REAL de facturas vinculadas
     // (source of truth). Ignora bookings.last_billed_date cuando el historial lo
     // contradice — es la columna que se desincroniza (v6.110.0).
@@ -315,7 +314,6 @@ async function buildPlan(supabase: any): Promise<{
       // R4-32: sólo se omite cuando NO hay tarifa configurada (null en la
       // reserva y en la maestra). Una tarifa 0 pactada se factura por $0.
       if (configuredRate == null) {
-
         lines.push({ ...baseLine, eligible: false, reason: "no_monthly_rate" });
         break;
       }
