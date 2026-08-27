@@ -73,6 +73,16 @@ export default function AgingReportPage() {
         </p>
       )}
 
+      {/* FIX A7: las facturas sin fecha de vencimiento ya no se disfrazan de
+          "Corriente"; se avisa para que se capture la fecha. */}
+      {!isError && noDueDateCount > 0 && (
+        <p className="rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-muted-foreground">
+          {noDueDateCount} factura{noDueDateCount === 1 ? "" : "s"} de proveedor sin fecha de vencimiento
+          {noDueDateCount === 1 ? " se muestra" : " se muestran"} en la columna “Sin vencimiento”. Captura la
+          fecha para que entre{noDueDateCount === 1 ? "" : "n"} en la antigüedad.
+        </p>
+      )}
+
       {/* A4-02: nunca renderizar KPIs en $0 cuando la query falló (falso-cero
           financiero, mismo patrón que FE3-04 en InvoicesReconciliation). */}
       {isError ? (
