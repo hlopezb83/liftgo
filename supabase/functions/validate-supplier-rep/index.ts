@@ -315,7 +315,10 @@ Deno.serve(async (req) => {
           `El UUID ${repUuid} ya está registrado en otro pago`,
         );
       }
-      return jsonError(req, 500, `No se pudo guardar: ${updErr.message}`);
+      // M-16b/R4-33: no filtrar el error crudo de BD al cliente; log interno.
+      console.error("[validate-supplier-rep] supplier_payments update:", updErr);
+      return jsonError(req, 500, "No se pudo guardar el pago");
+
     }
 
     // Activity feed (best effort)
