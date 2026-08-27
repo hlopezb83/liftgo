@@ -4,6 +4,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/comp
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { InvoiceFormValues } from "../../lib/invoiceFormSchema";
+import { nowMty } from "@/lib/utils";
 
 const PERIODICITY_OPTIONS = [
   { code: "01", label: "01 · Diaria" },
@@ -27,7 +28,7 @@ const MONTH_OPTIONS = [
 
 export function GlobalInvoiceFields() {
   const { control, setValue, getValues } = useFormContext<InvoiceFormValues>();
-  const currentYear = new Date().getFullYear();
+  const currentYear = nowMty().getFullYear();
   // R10 Bloque 12.13: prellena Año con el actual si viene vacío.
   useEffect(() => {
     if (getValues("cfdi.globalYear") == null) {
@@ -78,7 +79,7 @@ export function GlobalInvoiceFields() {
                 type="number"
                 min={2020}
                 max={2099}
-                placeholder={String(new Date().getFullYear())}
+                placeholder={String(nowMty().getFullYear())}
                 value={field.value ?? ""}
                 onChange={(e) => field.onChange(e.target.value === "" ? undefined : Number(e.target.value))}
               />

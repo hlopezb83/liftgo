@@ -14,6 +14,7 @@ import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButto
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { toYMD } from "@/lib/date/toYMD";
+import { nowMty } from "@/lib/utils";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { roundMoney } from "@/lib/money";
 import { positiveAmount } from "@/lib/schemas";
@@ -127,7 +128,7 @@ export function EditPaymentDialog({ open, onOpenChange, payment, balance }: Prop
             name="date"
             label="Fecha"
             required
-            disabledMatcher={isRepStamped ? () => true : { after: new Date() }}
+            disabledMatcher={isRepStamped ? () => true : { after: nowMty() }}
           />
           <SelectField
             control={form.control}
