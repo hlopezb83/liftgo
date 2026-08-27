@@ -1,0 +1,11 @@
+{
+  "description": "Se endurece el portal de clientes y la preparación de datos de prueba. La limpieza del escenario de pruebas ya no puede borrar pagos ni reportes de pago de facturas reales. Al reportar un pago, el comprobante debe estar en la carpeta del propio cliente y sólo se aceptan archivos PDF, PNG, JPEG o WebP. Borrar un comprobante propio pendiente ya no se bloquea por registros de otros clientes. Además, dos reportes de pago enviados al mismo tiempo sobre la misma factura ya no pueden exceder el saldo.",
+  "changes": [
+    "R5-06: e2e_seed_portal_scenario acota los DELETE de customer_payment_intents y payments a facturas con is_e2e = true.",
+    "R5-08a: la policy INSERT de customer_payment_intents exige (storage.foldername(proof_url))[1] = customer_id.",
+    "R5-08b: la policy DELETE de payment-proofs acota el NOT EXISTS a intents del mismo cliente.",
+    "R5-12: validate_payment_intent_amount bloquea la factura con SELECT ... FOR UPDATE antes de calcular el saldo disponible.",
+    "R5-19: la policy INSERT de payment-proofs valida el MIME type (pdf/png/jpeg/webp) y el bucket permanece privado con límite de 10 MB.",
+    "R5-07 descartado: apagar allow_e2e_seed globalmente rompería CI; el DEFAULT para entornos nuevos ya es false y la suite lo habilita explícitamente."
+  ]
+}
