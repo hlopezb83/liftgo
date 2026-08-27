@@ -120,6 +120,11 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const { data: invoiceBookingsRows } = useInvoiceBookings(id);
   const existingBookingIds = (invoiceBookingsRows ?? []).map((r) => r.booking_id);
 
+  // R5-09: snapshot congelado de la versión la primera vez que `existing`
+  // resuelve (no la versión viva de React Query, que un refetch sobrescribiría).
+  const invoiceVersionRef = useRef<number | null>(null);
+  if (invoiceVersionRef.current == null && existing) invoiceVersionRef.current = existing.version;
+
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
     defaultValues: buildEmptyInvoiceValues(),
