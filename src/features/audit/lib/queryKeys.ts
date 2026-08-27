@@ -74,14 +74,21 @@ function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
   return typeof value === "object" && value !== null;
 }
 
-function readAuditLogFilters(filter: Readonly<Record<string, unknown>> | undefined): AuditLogFilters {
+const AUDIT_ORIGINS: readonly AuditOrigin[] = ["default", "user", "system", "e2e", "all"];
+
+export function readAuditLogFilters(filter: Readonly<Record<string, unknown>> | undefined): AuditLogFilters {
   const filters: AuditLogFilters = {};
   if (isRecord(filter)) {
     if (typeof filter.table_name === "string") filters.table_name = filter.table_name;
     if (typeof filter.record_id === "string") filters.record_id = filter.record_id;
+    if (typeof filter.origin === "string" && (AUDIT_ORIGINS as readonly string[]).includes(filter.origin)) {
+      filters.origin = filter.origin as AuditOrigin;
+    }
   }
+  filters.origin ??= "default";
   return filters;
 }
+
 
 function normalizeJson(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : null;
