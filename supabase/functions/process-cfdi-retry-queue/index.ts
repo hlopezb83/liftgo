@@ -372,9 +372,52 @@ Deno.serve(async (req) => {
       } else {
         const errMsg = (invRes.body as { error?: string } | null)?.error ??
           String(invRes.body);
-        // M-6: 409 en una cancelación (stamp ya lo filtró como éxito en
-        // invokeStampFn) = el documento no es cancelable → fallo TERMINAL
-        // inmediato (exhausted), sin gastar los reintentos restantes.
+        // R5-02: 409 en cancel_nc/cancel_rep = claim propio 'pending' (el
+        // intento anterior murió por timeout DESPUÉS de llamar al PAC). NO
+        // es un fallo terminal: reprogramar como deferral de infraestructura
+        // SIN consumir intento (patrón R4-13 de este mismo archivo) y pedir
+        // reconciliación del estado real en el SAT.
+        if (
+          invRes.status === 409 &&
+          (row.operation === "cancel_nc" || row.operation === "cancel_rep")
+        ) {
+          await markQueueRow(admin, row.id, {
+            status: "pending",
+            attempts: row.attempts,
+            last_error: String(errMsg).slice(0, 2000),
+            next_retry_at: nextRetryAt(row.attempts + 1).toISOString(),
+          });
+          // Best-effort: refresh-cancellation-status consulta al PAC y
+          // actualiza cancellation_status; si falla, el próximo ciclo
+          // reintenta el deferral.
+          try {
+            await fetch(
+              `https://${projectRef}.supabase.co/functions/v1/refresh-cancellation-status`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${serviceKey}`,
+                  "apikey": serviceKey,
+                },
+                body: JSON.stringify(
+                  row.operation === "cancel_rep"
+                    ? { payment_id: row.invoice_id }
+                    : { credit_note_id: row.invoice_id },
+                ),
+              },
+            );
+          } catch { /* best-effort */ }
+          results.push({
+            id: row.id,
+            status: "retry_claim_pending",
+            http: invRes.status,
+          });
+          continue;
+        }
+        // M-6: 409 en una cancelación de factura (stamp ya lo filtró como
+        // éxito en invokeStampFn) = el documento no es cancelable → fallo
+        // TERMINAL inmediato (exhausted), sin gastar los reintentos.
         const queueStatus = invRes.status === 409
           ? "exhausted"
           : decideTerminalStatus(
