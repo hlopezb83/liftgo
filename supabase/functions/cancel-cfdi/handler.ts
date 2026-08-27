@@ -229,8 +229,11 @@ export async function handleCancelCfdi(
     }
 
     if (apiKey && facturApiId) {
-      pacAttempted = true;
+      // R5-14: marcar pacAttempted DESPUÉS de construir el cliente (patrón
+      // cancel-payment-complement): si createFacturapiClient lanza, el catch
+      // externo aún puede liberar el claim.
       const client = createFacturapiClient(apiKey);
+      pacAttempted = true;
       const params: Record<string, string> = { motive };
       if (motive === "01" && substitution_uuid) {
         params.substitution = substitution_uuid as string;
