@@ -1,3 +1,13 @@
+## 7.357.0 - 2026-08-27
+
+**Pagos en otra moneda con tipo de cambio y estados correctos con nota de crédito parcial (fix-27)**
+
+- R5-01: se permite registrar un pago en moneda distinta a la de la factura cuando hay tipo de cambio (en el pago o en la factura); sin tipo de cambio se sigue rechazando.
+- R5-15: con nota de crédito parcial y sin pagos, una factura pagada pasa a "vencida" si ya venció (antes siempre a "enviada") y el resto de los casos pasa a "parcial".
+- R5-02: un 409 al cancelar notas de crédito o complementos de pago ya no marca la fila como fallo terminal; se reprograma sin gastar intentos y se consulta el estado real en el SAT.
+- R5-13: al liberar el apartado de cancelación de una factura solo se toca si sigue en "pendiente", para no pisar un estado ya reconciliado.
+- R5-14: si falla la construcción del cliente del PAC, el apartado de cancelación ya se libera correctamente.
+
 ## 7.356.1 - 2026-08-27
 
 **Se restaura la suite E2E en CI**

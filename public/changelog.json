@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.357.0",
+    "date": "2026-08-27",
+    "type": "minor",
+    "title": "Pagos en otra moneda con tipo de cambio y estados correctos con nota de crédito parcial",
+    "description": "Ahora se puede registrar un pago en una moneda distinta a la de la factura siempre que exista tipo de cambio (en el pago o en la factura); sin tipo de cambio se sigue rechazando. Además, si una factura tiene nota de crédito parcial y no tiene pagos, su estado se calcula bien: pasa a \"vencida\" cuando ya se pasó la fecha límite y a \"parcial\" cuando no estaba pagada. También se corrigieron cancelaciones de notas de crédito y complementos de pago que quedaban atoradas o marcadas como fallidas para siempre.",
+    "changes": [
+      "R5-01: enforce_payment_matches_invoice_currency permite el cruce de divisas si hay payments.exchange_rate o invoices.tipo_cambio; el trigger se recrea.",
+      "R5-15: sync_invoice_status_from_payments aplica overdue/sent segun due_date al degradar una factura 'paid' con NC parcial, y pasa a 'partial' el resto de los casos.",
+      "R5-02: un 409 en cancel_nc/cancel_rep se reprograma como deferral sin consumir intento y dispara refresh-cancellation-status en lugar de marcarse exhausted.",
+      "R5-13: releaseCancelClaim en cancel-cfdi solo libera el claim si cancellation_status sigue en 'pending'.",
+      "R5-14: pacAttempted se marca despues de createFacturapiClient en cancel-cfdi y cancel-credit-note para que el catch libere el claim."
+    ]
+  },
+  {
     "version": "7.356.1",
     "date": "2026-08-27",
     "type": "patch",
