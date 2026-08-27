@@ -1,27 +1,29 @@
-# Cierre de la ronda C — reservas vencidas visibles
+# "Error al crear factura" — la app publicada está atrasada
 
-La ronda C quedó implementada salvo un pendiente operativo que sí verifiqué contra la base de datos.
+## Diagnóstico (verificado)
 
-## Lo que falta (verificado)
+El reporte viene de la **versión 7.332.0**, que es lo que hay publicado hoy. El código actual del proyecto va en **7.363.0**.
 
-La reconciliación automática ya está en marcha: la función `reconcile_expired_bookings()` existe y corre todos los días a las 08:10 UTC. Por diseño sólo cierra reservas que tienen evidencia de devolución (inspección de retorno o recolección completada).
+El 25 de agosto se agregó una regla en la base de datos (`enforce_invoice_booking_period`) que rechaza cualquier factura ligada a una reserva sin periodo de facturación. La pantalla que pide ese periodo y lo valida antes de guardar se agregó en el front en la v7.333.0 — es decir, **una versión después de la que está publicada**.
 
-Eso deja un hueco: hoy hay **2 reservas confirmadas que terminaron el 25 de agosto** (unidades MCLTC025A048/005 y MCLTC025A048/012) sin ninguna devolución registrada. La automatización nunca las va a tocar — correctamente, porque nadie documentó el retorno — pero tampoco existe ninguna pantalla que le avise a operaciones que están ahí. Las unidades siguen marcadas como "Rentada" y no se pueden volver a rentar.
+Resultado: en la app publicada el usuario factura desde una reserva, el formulario ni siquiera muestra el campo "Periodo de facturación", y la base de datos rechaza el guardado con el mensaje técnico que aparece en el reporte. En el preview (7.363.0) el campo sí aparece y el error no ocurre.
 
-Revisé el módulo de reservas y no hay ningún indicador de vencimiento en la lista ni en el detalle.
+Analogía: la cerradura de la puerta se cambió, pero al usuario todavía no le entregamos la llave nueva.
 
-## Qué construir
+## Qué hacer
 
-1. **Etiqueta "Vencida" en la lista de reservas**: toda reserva confirmada o activa cuya fecha de fin ya pasó muestra una etiqueta con los días de atraso, igual que ya hicimos en Entregas.
-2. **Aviso resumen arriba de la lista**: "N reservas vencidas sin devolución registrada", con un filtro rápido para verlas solas.
-3. **Filtro por vencidas** dentro de los filtros existentes de la tabla de reservas.
-4. **Aviso en el detalle de la reserva**: cuando está vencida, un mensaje que explique que la unidad sigue ocupada hasta registrar la devolución, con el botón de inspección de retorno a la mano.
-5. Sin cambios en la base de datos: la corrección de las 2 reservas actuales la hace el usuario desde la app registrando la devolución real (o cancelando), que es lo correcto contablemente.
+1. **Publicar la versión actual.** Eso solo ya elimina el error: el formulario publicado pasa a incluir el campo de periodo, se autollena con las fechas de la reserva seleccionada y valida antes de enviar.
+2. **Red de seguridad en el formulario** (para que el rechazo de la base de datos nunca llegue crudo al usuario): si al guardar hay reserva seleccionada y el periodo quedó vacío, derivarlo de las fechas de la reserva en lugar de mandar nulo.
+3. **Mensaje entendible**: mapear el código `23514` de esta regla a un texto de negocio ("Selecciona el periodo de facturación de la reserva") en lugar del texto técnico.
 
 ## Alcance técnico
 
-- Nuevo helper `src/features/bookings/lib/bookingOverdue.ts` (espejo de `deliveryOverdue.ts`): usa `nowMty()` y `parseDateLocal`, expone `bookingOverdueDays`, `isBookingOverdue`, `countOverdueBookings` y la etiqueta.
-- `BookingsPage.tsx`: columna/celda con el badge de atraso, faceta "Vencidas" vía `useTableFilters`, aviso con el conteo.
-- `BookingDetail.tsx`: banner de reserva vencida con acceso a registrar devolución.
-- Pruebas unitarias del helper (incluyendo el corte de medianoche en Monterrey).
-- Changelog y versión: `v7.364.0` (minor).
+- `src/features/invoices/hooks/invoiceForm/useInvoiceFormSubmit.ts`: fallback del periodo a partir de las reservas seleccionadas antes del insert.
+- Mapa de errores de negocio de facturas: entrada para el mensaje del trigger `enforce_invoice_booking_period`.
+- Prueba unitaria del fallback.
+- Changelog y versión: `v7.363.1` (patch).
+- Publicar al terminar.
+
+## Nota sobre el trabajo en curso
+
+El plan aprobado de reservas vencidas (badge "Vencida", filtro y aviso en Reservas, `v7.364.0`) sigue pendiente. Sugerencia de orden: primero este arreglo + publicación, luego reservas vencidas.
