@@ -139,13 +139,36 @@ const WARNING_SQLSTATES = new Set([
 // Nivel 3 — texto libre
 // ---------------------------------------------------------------------------
 
+/**
+ * Mensajes de negocio que viajan dentro de un SQLSTATE genérico (típicamente
+ * `23514` de un CHECK o trigger). Se evalúan ANTES del nivel 2, porque si no
+ * el código genérico gana y el usuario ve "revisa montos, fechas y cantidades".
+ */
+const PRIORITY_TEXT_PATTERNS: Array<{ pattern: RegExp; entry: CatalogEntry }> = [
+  {
+    pattern: /invoices_booking_period_required|billing_period_start|periodo de facturación/i,
+    entry: {
+      title: "Falta el periodo de facturación",
+      message: "Las facturas ligadas a una reserva necesitan un periodo de facturación. Captura la fecha de inicio y fin del periodo e intenta de nuevo.",
+      severity: "warning",
+    },
+  },
+  {
+    pattern: /entrega completada no puede reabrirse/i,
+    entry: {
+      title: "Entrega cerrada",
+      message: "Esta entrega ya está completada y no puede reabrirse. Registra una recolección o crea una nueva entrega.",
+      severity: "warning",
+    },
+  },
+];
+
 const TEXT_PATTERNS: Array<{ pattern: RegExp; entry: CatalogEntry }> = [
   { pattern: /stale_write/i, entry: { title: "Cambios no guardados", message: "Este registro fue modificado en otra pestaña o por otro usuario. Recarga los datos para ver los cambios más recientes.", severity: "warning" } },
   { pattern: /LAST_ADMIN_CANNOT_BE_DEMOTED/i, entry: { message: "No puedes cambiar el rol del último administrador. Promueve a otro usuario primero.", severity: "warning" } },
   { pattern: /LAST_ADMIN_CANNOT_BE_DELETED/i, entry: { message: "No puedes eliminar al último administrador del sistema.", severity: "warning" } },
-  // M-7: `completed` es terminal en entregas; el mensaje crudo del trigger cae
-  // en el 23514 genérico ("revisa montos, fechas y cantidades"), que no explica nada.
-  { pattern: /entrega completada no puede reabrirse/i, entry: { title: "Entrega cerrada", message: "Esta entrega ya está completada y no puede reabrirse. Registra una recolección o crea una nueva entrega.", severity: "warning" } },
+  // M-7: ver PRIORITY_TEXT_PATTERNS (el trigger llega con 23514).
+
   // L-1: la BD bloquea sacar una factura de borrador sin cliente asignado.
   { pattern: /no puede salir de borrador sin cliente|invoices_customer_required_when_not_draft/i, entry: { title: "Falta el cliente", message: "Asigna un cliente a la factura antes de sacarla de borrador.", severity: "warning" } },
 
@@ -215,6 +238,10 @@ export function translatePgError(error: unknown, fallbackTitle = "Error"): PgErr
   if (constraint) {
     const entry = CONSTRAINT_MESSAGES[constraint];
     return build({ severity: "warning", ...entry }, fallbackTitle, { constraint });
+  }
+
+  for (const { pattern, entry } of PRIORITY_TEXT_PATTERNS) {
+    if (pattern.test(text)) return build(entry, fallbackTitle, {});
   }
 
   const sqlstate = findSqlstate(details.code, text);

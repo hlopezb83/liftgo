@@ -1,29 +1,42 @@
-# "Error al crear factura" — la app publicada está atrasada
+# Limpiar la Bitácora de Cambios de registros de prueba y de movimientos del sistema
 
-## Diagnóstico (verificado)
+## Lo que encontré (consultado en la base de datos)
 
-El reporte viene de la **versión 7.332.0**, que es lo que hay publicado hoy. El código actual del proyecto va en **7.363.0**.
+La Bitácora tiene **2,626 registros**. Revisándolos:
 
-El 25 de agosto se agregó una regla en la base de datos (`enforce_invoice_booking_period`) que rechaza cualquier factura ligada a una reserva sin periodo de facturación. La pantalla que pide ese periodo y lo valida antes de guardar se agregó en el front en la v7.333.0 — es decir, **una versión después de la que está publicada**.
+1. **26 registros son claramente de pruebas E2E**: son movimientos de mantenimiento con la marca de prueba (`is_e2e = true`) y un identificador de corrida tipo `w14-894830a1-c9je`, todos del 29 de julio. El disparador que escribe la bitácora ya intenta ignorar los datos de prueba, pero esa vez no los filtró.
+2. **El filtro anti-pruebas tiene un hueco**: solo funciona en tablas que tienen la marca `is_e2e`. Diez tablas auditadas **no la tienen** (entregas, proveedores, gastos operativos, prospectos, contratos, facturas de proveedor, cuentas bancarias, líneas bancarias, inspecciones y configuración). Cualquier corrida de pruebas que las toque queda registrada como si fuera actividad real.
+3. **Los movimientos masivos del sistema se ven como actividad de usuarios**: por ejemplo hoy hay 67 actualizaciones de pagos en el mismo segundo (fueron de un ajuste técnico de tipo de cambio), y 47 el 28 de julio. No traen usuario y hacen mucho ruido.
+4. **No hay datos de prueba vivos** en flota, clientes, cotizaciones, reservas, facturas ni pagos: la limpieza de las pruebas sí borra los registros, pero la bitácora es "solo agregar" y sus rastros quedan.
+5. Los registros cuyo documento original ya no existe (261, concentrados en febrero y marzo) **sí son borrados reales del negocio**, no basura de pruebas. No se tocan.
 
-Resultado: en la app publicada el usuario factura desde una reserva, el formulario ni siquiera muestra el campo "Periodo de facturación", y la base de datos rechaza el guardado con el mensaje técnico que aparece en el reporte. En el preview (7.363.0) el campo sí aparece y el error no ocurre.
+Analogía: la caja negra graba todo, incluidos los vuelos de simulador y los ajustes del mecánico. Falta etiquetar esas grabaciones para poder ocultarlas.
 
-Analogía: la cerradura de la puerta se cambió, pero al usuario todavía no le entregamos la llave nueva.
+## Qué voy a hacer
 
-## Qué hacer
+1. **Etiquetar el origen de cada registro de la bitácora**: prueba, sistema (ajustes técnicos y procesos automáticos) o usuario.
+2. **Cerrar el hueco del filtro**: cualquier movimiento hecho dentro de una sesión de pruebas queda marcado como prueba, aunque la tabla no tenga la marca propia.
+3. **Marcar hacia atrás** los 26 registros de prueba ya existentes y los movimientos masivos sin usuario.
+4. **Ocultar por defecto** los registros de prueba en la pantalla Bitácora de Cambios, con un filtro "Origen" (Todos / Usuarios / Sistema / Pruebas) para quien quiera verlos.
+5. **Permitir borrarlos**: una acción de administrador que elimina únicamente los registros marcados como prueba, y que la limpieza automática de las pruebas la ejecute al terminar cada corrida para que no se vuelva a acumular.
 
-1. **Publicar la versión actual.** Eso solo ya elimina el error: el formulario publicado pasa a incluir el campo de periodo, se autollena con las fechas de la reserva seleccionada y valida antes de enviar.
-2. **Red de seguridad en el formulario** (para que el rechazo de la base de datos nunca llegue crudo al usuario): si al guardar hay reserva seleccionada y el periodo quedó vacío, derivarlo de las fechas de la reserva en lugar de mandar nulo.
-3. **Mensaje entendible**: mapear el código `23514` de esta regla a un texto de negocio ("Selecciona el periodo de facturación de la reserva") en lugar del texto técnico.
+## Detalle técnico
 
-## Alcance técnico
+Migración:
+- `public.audit_logs`: agregar `is_e2e boolean not null default false` y `source text not null default 'user'` (`user` | `system` | `e2e`), más índice parcial por `created_at desc where is_e2e = false`.
+- `audit_trigger_fn()`: marcar `is_e2e` cuando la sesión sea de pruebas (`is_e2e_actor_email`, `app.e2e_seed = 'on'`, o payload con `is_e2e`/`e2e_scope`) aunque la tabla no tenga la columna; marcar `source = 'system'` cuando `auth.uid()` sea nulo o cuando `app.audit_source = 'system'`.
+- Backfill: `is_e2e = true` en los 26 registros con `is_e2e` en el payload; `source = 'system'` en los registros sin `user_id`.
+- `purge_e2e_audit_logs()`: `SECURITY DEFINER`, `SET search_path = public`, guard de rol admin, borra solo `is_e2e = true` usando una bandera de sesión que el trigger de inmutabilidad respeta (`enforce_audit_logs_immutable` se ajusta para permitir ese caso y solo ese). `REVOKE EXECUTE ... FROM anon`.
+- `e2e_teardown()` y `e2e_purge_all()`: llamar al purgado al final.
 
-- `src/features/invoices/hooks/invoiceForm/useInvoiceFormSubmit.ts`: fallback del periodo a partir de las reservas seleccionadas antes del insert.
-- Mapa de errores de negocio de facturas: entrada para el mensaje del trigger `enforce_invoice_booking_period`.
-- Prueba unitaria del fallback.
-- Changelog y versión: `v7.363.1` (patch).
-- Publicar al terminar.
+Frontend:
+- `src/features/audit/lib/queryKeys.ts`: la consulta excluye `is_e2e = true` salvo que el filtro lo pida.
+- `AuditTrailPage.tsx`: nuevo facet `origen` en `useTableFilters` (por defecto "Usuarios y sistema").
+- `useAuditTrailColumns.tsx`: etiqueta "Sistema" / "Prueba" junto al usuario.
+- Pruebas unitarias del armado de filtros y de la etiqueta de origen.
 
-## Nota sobre el trabajo en curso
+Versión `v7.364.0` (minor) en `public/changelog.json` y `CHANGELOG.md`.
 
-El plan aprobado de reservas vencidas (badge "Vencida", filtro y aviso en Reservas, `v7.364.0`) sigue pendiente. Sugerencia de orden: primero este arreglo + publicación, luego reservas vencidas.
+## Nota sobre lo que ya quedó listo
+
+El arreglo de facturas ligadas a reservas (periodo de facturación autollenado y mensaje claro en lugar del error técnico) ya está implementado y probado como **v7.363.1**; solo falta publicar para que la app en producción deje de mostrar ese error.

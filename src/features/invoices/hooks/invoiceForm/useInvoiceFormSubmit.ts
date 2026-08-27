@@ -1,5 +1,7 @@
 import { useUpdateQuote } from "@/features/quotes";
 import { orEmpty } from "@/lib/coerce";
+import { monthBounds } from "@/lib/date/monthBounds";
+import { nowMty } from "@/lib/utils";
 import { toYMD } from "@/lib/date/toYMD";
 import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
 import { toJsonArray } from "@/lib/domain/lineItems";
@@ -33,6 +35,22 @@ interface BuildPayloadArgs {
 }
 
 const nn = (s: string | null | undefined): string | null => (s ? s : null);
+
+/**
+ * Periodo de facturación para facturas ligadas a una reserva.
+ * Si falta alguno de los extremos, se deriva del mes de la fecha de emisión
+ * (mismo criterio que el pre-llenado del formulario), porque la BD prohíbe
+ * guardar una factura con reserva y periodo nulo.
+ */
+export function resolveBillingPeriod(
+  start: string | null | undefined,
+  end: string | null | undefined,
+  issueDate: Date | null | undefined,
+): { start: string; end: string } {
+  if (start && end) return { start, end };
+  const bounds = monthBounds(issueDate ?? nowMty());
+  return { start: start || bounds.start, end: end || bounds.end };
+}
 
 function buildCfdiPayload(cfdi: CfdiFormValues) {
   const isGlobal = (cfdi.receptorRfc || "").toUpperCase() === "XAXX010101000";
@@ -68,6 +86,12 @@ export function useInvoiceFormSubmit() {
     const primaryBookingId = bookingIds[0] || values.bookingId || (isEdit ? orEmpty(existingBookingId, null) : null) || null;
     // H-6: si la factura lleva reserva, enviamos el periodo; si no, va null.
     const hasBooking = !!primaryBookingId;
+    // Red de seguridad: la BD rechaza (23514) cualquier factura con reserva y
+    // periodo nulo. Si el formulario llega sin periodo (edición de facturas
+    // viejas, o reserva ligada por código), lo derivamos del mes de emisión.
+    const period = hasBooking
+      ? resolveBillingPeriod(values.billingPeriodStart, values.billingPeriodEnd, issueDate)
+      : { start: null, end: null };
     return {
       booking_id: primaryBookingId,
       customer_id: customerId || null,
@@ -77,8 +101,8 @@ export function useInvoiceFormSubmit() {
       subtotal: roundMoney(subtotal), tax_rate: taxRate, tax_amount: roundMoney(taxAmount), total: roundMoney(total),
       due_date: toYMD(dueDate) ?? null,
       issued_at: toYMD(issueDate) ?? "",
-      billing_period_start: hasBooking ? (values.billingPeriodStart || null) : null,
-      billing_period_end: hasBooking ? (values.billingPeriodEnd || null) : null,
+      billing_period_start: period.start,
+      billing_period_end: period.end,
       notes: nn(notes),
 
       ...buildCfdiPayload(cfdi),
