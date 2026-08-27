@@ -5,6 +5,14 @@ import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import { bankImportKeys, bankLineKeys } from "../lib/queryKeys";
 
+/**
+ * R4-24: la consulta de líneas por import no puede quedar sin `.limit()`:
+ * PostgREST aplica su cap por defecto (~1000 filas) y los stats por import
+ * (`matched_count`/`total_count`) saldrían subestimados en silencio.
+ */
+const IMPORT_LINES_STATS_LIMIT = LIST_FETCH_LIMIT * LIST_FETCH_LIMIT;
+
+
 export interface BankStatementImportRow {
   id: string;
   bank_account_id: string;
@@ -40,7 +48,8 @@ export const bankImportQueries = defineEntityQueries<
     const { data: lines, error: linesErr } = await supabase
       .from("bank_statement_lines")
       .select("import_id, status")
-      .in("import_id", ids);
+      .in("import_id", ids)
+      .limit(IMPORT_LINES_STATS_LIMIT);
     if (linesErr) throw linesErr;
 
     const stats = new Map<string, { matched: number; total: number }>();

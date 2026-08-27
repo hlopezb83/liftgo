@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.355.0",
+    "date": "2026-08-27",
+    "type": "minor",
+    "title": "Conciliación bancaria al día y facturas a prueba de ediciones simultáneas",
+    "description": "El sello de \"conciliado\" que se muestra en los pagos ahora se actualiza al instante al conciliar, desemparejar o ignorar movimientos, y el historial de importaciones muestra de inmediato el estado de cuenta recién subido. Los contadores de conciliadas por importación dejan de quedarse cortos en cuentas con mucho movimiento, y la lista de movimientos avisa cuando se alcanzó el tope en lugar de ocultar filas en silencio. Además, si dos personas editan la misma factura al mismo tiempo, la segunda ya no pisa los cambios de la primera: recibe un aviso para recargar. También queda desactivado el permiso de datos de prueba en la configuración de la empresa.",
+    "changes": [
+      "R4-22: las acciones de conciliar, desemparejar e ignorar (individuales y en lote) invalidan reconciliationStatusQueries.keys.all además de las líneas.",
+      "R4-23: useImportBankStatement invalida bankImportKeys.all para refrescar el historial de importaciones.",
+      "R4-24: la consulta de líneas por importación usa IMPORT_LINES_STATS_LIMIT explícito y ya no depende del cap silencioso de PostgREST.",
+      "R4-29: useBankStatementLines expone isTruncated y BankReconciliationPage muestra ListTruncationNotice solo al alcanzar el tope.",
+      "R4-25: useUpdateInvoice acepta expectedVersion y aplica bloqueo optimista (patrón M-11a); InvoiceForm envía la versión cargada y distingue conflicto de concurrencia de falta de permisos.",
+      "R4-21: allow_e2e_seed queda en false en las filas existentes de company_settings."
+    ]
+  },
+  {
     "version": "7.354.0",
     "date": "2026-08-26",
     "type": "minor",

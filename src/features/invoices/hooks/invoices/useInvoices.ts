@@ -189,16 +189,38 @@ export function useInvoicesInfinite(filters?: InvoiceListFilters) {
   });
 }
 
+/**
+ * R4-25: bloqueo optimista (mismo patrón que M-11a en clientes/montacargas).
+ * El llamador envía `expectedVersion` — el `version` que tenía la factura al
+ * abrir el formulario. Si otro usuario guardó en el intermedio, el trigger
+ * `trg_invoices_version` ya incrementó la columna, el UPDATE afecta 0 filas y
+ * abortamos en vez de pisar los cambios ajenos. Sin `expectedVersion` se
+ * conserva el comportamiento anterior.
+ */
 export function useUpdateInvoice() {
   return useEntityMutation({
-    mutationFn: async ({ id, ...updates }: TablesUpdate<"invoices"> & { id: string }) => {
+    mutationFn: async ({ id, expectedVersion, ...updates }: TablesUpdate<"invoices"> & {
+      id: string;
+      expectedVersion?: number | null;
+    }) => {
       // GUI-FE-08 (G-DIS-01): sin `.single()`, RLS devolvía 204/0 filas y la
       // UI fingía éxito; con `.single()` lanzaba PGRST116 críptico.
-      const { data, error } = await supabase.from("invoices").update(updates).eq("id", id).select();
+      let q = supabase.from("invoices").update(updates).eq("id", id);
+      if (expectedVersion != null) q = q.eq("version", expectedVersion);
+      const { data, error } = await q.select();
       if (error) throw error;
+      if ((!data || data.length === 0) && expectedVersion != null) {
+        // Distinguir conflicto de concurrencia de "sin permisos / inexistente".
+        const { data: still } = await supabase
+          .from("invoices").select("version").eq("id", id).maybeSingle();
+        if (still) {
+          throw new Error("stale_write: otro usuario modificó esta factura; recarga y vuelve a intentar");
+        }
+      }
       assertRowsAffected(data, "Actualizar factura");
       return data[0];
     },
+
     // `invoiceKeys.all` cubre listas y detalle (jerárquico), evitando invalidar dos veces.
     invalidateKeys: [invoiceKeys.all, reportKeys.all],
     errorTitle: "Error al actualizar factura",

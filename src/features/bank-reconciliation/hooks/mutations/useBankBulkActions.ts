@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { notifySuccess, notifyWarning } from "@/lib/ui/appFeedback";
 import { bankLinesKey } from "../useBankStatementLines";
+import { reconciliationStatusQueries } from "../useReconciliationStatus";
 
 interface ConfirmManyResult {
   confirmed: number;
@@ -19,7 +20,7 @@ export function useConfirmBankMatches() {
       const row = Array.isArray(data) ? data[0] : null;
       return { confirmed: Number(row?.confirmed ?? 0), failed: Number(row?.failed ?? 0) };
     },
-    invalidateKeysFn: (_d, vars) => [bankLinesKey(vars.bankAccountId)],
+    invalidateKeysFn: (_d, vars) => [bankLinesKey(vars.bankAccountId), reconciliationStatusQueries.keys.all],
     errorTitle: "No se pudieron conciliar los movimientos",
     onSuccess: (res) => {
       if (res.failed > 0) {
@@ -44,7 +45,7 @@ export function useIgnoreBankLines() {
       if (error) throw error;
       return Number(data ?? 0);
     },
-    invalidateKeysFn: (_d, vars) => [bankLinesKey(vars.bankAccountId)],
+    invalidateKeysFn: (_d, vars) => [bankLinesKey(vars.bankAccountId), reconciliationStatusQueries.keys.all],
     successMsg: "Movimientos ignorados",
     errorTitle: "No se pudieron ignorar los movimientos",
   });

@@ -29,7 +29,7 @@ export default function BankReconciliationPage() {
     return accounts.find((a) => a.is_active) ?? accounts[0];
   }, [manualAccountId, accounts]);
   const accountId = account?.id ?? null;
-  const { data: lines, isLoading, isError: isErrorLines, refetch: refetchLines } = useBankStatementLines(accountId);
+  const { data: lines, isLoading, isError: isErrorLines, refetch: refetchLines, isTruncated: isLinesTruncated } = useBankStatementLines(accountId);
 
   return (
     <RoleGuard module="Conciliación Bancaria" minAccess="read">
@@ -83,7 +83,8 @@ export default function BankReconciliationPage() {
                   ) : (
                   <>
                   <BankStatementUploader bankAccountId={accountId} />
-                  <ListTruncationNotice rows={lines} />
+                  {/* R4-29: aviso explícito cuando la lista llega al tope (limit+1). */}
+                  {isLinesTruncated && <ListTruncationNotice rows={lines} />}
                   {/* N8-r3: KPIs y tabla sin la fila extra del limit+1; el
                       crudo (`lines`) queda solo para el aviso. */}
                   <ReconciliationKpiCards lines={visibleListRows(lines)} currency={account?.currency ?? "MXN"} />

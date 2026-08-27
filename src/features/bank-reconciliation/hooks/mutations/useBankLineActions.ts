@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { bankLinesKey } from "../useBankStatementLines";
+import { reconciliationStatusQueries } from "../useReconciliationStatus";
 
 export function useConfirmBankMatch() {
   return useEntityMutation<
@@ -20,7 +21,7 @@ export function useConfirmBankMatch() {
       });
       if (error) throw error;
     },
-    invalidateKeysFn: (_d, vars) => [bankLinesKey(vars.bankAccountId)],
+    invalidateKeysFn: (_d, vars) => [bankLinesKey(vars.bankAccountId), reconciliationStatusQueries.keys.all],
     successMsg: "Movimiento conciliado",
     errorTitle: "No se pudo conciliar el movimiento",
   });
@@ -32,7 +33,7 @@ export function useUnmatchBankLine() {
       const { error } = await supabase.rpc("unmatch_bank_line", { p_line_id: args.lineId });
       if (error) throw error;
     },
-    invalidateKeysFn: (_d, vars) => [bankLinesKey(vars.bankAccountId)],
+    invalidateKeysFn: (_d, vars) => [bankLinesKey(vars.bankAccountId), reconciliationStatusQueries.keys.all],
     successMsg: "Movimiento desemparejado",
     errorTitle: "No se pudo desemparejar el movimiento",
   });
@@ -47,7 +48,7 @@ export function useIgnoreBankLine() {
         .eq("id", args.lineId);
       if (error) throw error;
     },
-    invalidateKeysFn: (_d, vars) => [bankLinesKey(vars.bankAccountId)],
+    invalidateKeysFn: (_d, vars) => [bankLinesKey(vars.bankAccountId), reconciliationStatusQueries.keys.all],
     successMsg: "Movimiento marcado como ignorado",
     errorTitle: "No se pudo marcar el movimiento como ignorado",
   });

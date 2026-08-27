@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
-import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
+import { hasReachedListLimit, LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import type { BankLineStatus } from "../lib/bankReconciliationConstants";
 
 export interface BankStatementLine {
@@ -52,11 +52,16 @@ export const bankLinesKey = (bankAccountId: string | null) =>
   bankLineQueries.list({ bankAccountId }).queryKey;
 
 export function useBankStatementLines(bankAccountId: string | null) {
-  return useQuery({
+  const query = useQuery({
     ...bankLineQueries.list({ bankAccountId }),
     enabled: !!bankAccountId,
   });
+  // R4-29: exponer flag de truncado (patrón H-10a) para que la UI avise con
+  // ListTruncationNotice en vez de ocultar silenciosamente las líneas más
+  // viejas cuando la cuenta supera el tope de la lista.
+  return { ...query, isTruncated: hasReachedListLimit(query.data) };
 }
+
 
 /**
  * F8: ¿la cuenta tiene líneas de estado de cuenta importadas?
