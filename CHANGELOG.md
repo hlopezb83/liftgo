@@ -1,3 +1,12 @@
+## [7.362.0] - 2026-08-27
+### Cierre de auditoría: errores de carga visibles, saldos por moneda y facturas sin vencimiento
+- CRM cerrados: si la consulta falla se muestra el error con reintento en vez de listas vacías (B3).
+- Detalle de proveedor: aviso de listas truncadas sobre los totales de gastos y mantenimiento (B5).
+- Detalle de factura: pagos normalizados a la moneda del documento y aviso de pagos sin tipo de cambio (B6).
+- Estado de resultados: gastos de proveedor convertidos a MXN y sin incluir borradores (A3).
+- MRR y KPIs financieros: rentas en divisa convertidas a MXN (A4).
+- Antigüedad de saldos / Cuentas por pagar: bucket y marca "Sin vencimiento" (A7).
+
 ## 7.359.3 - 2026-08-27
 
 **Pruebas E2E: el seeding ya no se apaga a media corrida**
