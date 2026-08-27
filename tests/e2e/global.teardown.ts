@@ -42,9 +42,22 @@ export default async function globalTeardown(): Promise<void> {
   if (error) {
      
     console.error("[e2e] globalTeardown: purge_e2e_data falló:", error.message);
-    return;
+  } else {
+     
+    console.log("[e2e] globalTeardown: purge_e2e_data OK", data);
   }
 
-   
-  console.log("[e2e] globalTeardown: purge_e2e_data OK", data);
+  // R5-07: el interruptor de seeding E2E vuelve a quedar apagado al terminar la
+  // suite; `global.setup.ts` lo enciende explícitamente en cada corrida.
+  const { error: disableError } = await client
+    .from("company_settings")
+    .update({ allow_e2e_seed: false })
+    .neq("allow_e2e_seed", false);
+  if (disableError) {
+     
+    console.error("[e2e] globalTeardown: no se pudo apagar allow_e2e_seed:", disableError.message);
+  } else {
+     
+    console.log("[e2e] globalTeardown: allow_e2e_seed apagado");
+  }
 }

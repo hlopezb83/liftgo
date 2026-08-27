@@ -1,3 +1,10 @@
+## 7.359.2 - 2026-08-27
+
+**Datos de prueba: el interruptor de seeding queda apagado (fix-29 / R5-07)**
+
+- R5-07: `allow_e2e_seed` queda en `false` en el entorno actual; el valor por defecto para entornos nuevos ya era `false`.
+- El teardown de las pruebas E2E vuelve a apagar el interruptor al terminar la suite, aunque falle la purga de datos de prueba.
+
 ## 7.359.1 - 2026-08-27
 
 **Edición de facturas: bloqueo optimista más confiable (fix-30)**
