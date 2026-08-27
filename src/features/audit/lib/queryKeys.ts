@@ -43,17 +43,32 @@ export interface AuditLog {
   changed_fields: string[] | null;
   user_id: string | null;
   created_at: string;
+  /** v7.364.0: origen del movimiento — usuario, sistema (procesos) o prueba E2E. */
+  source?: AuditSource;
+  is_e2e?: boolean;
   // joined
   user_email?: string;
   /** Etiqueta pre-computada para la lista (P1-4b). */
   label?: string;
 }
 
+export type AuditSource = "user" | "system" | "e2e";
+
+/**
+ * v7.364.0: filtro de origen de la bitácora.
+ * - `default`: oculta los registros de pruebas automatizadas (comportamiento normal).
+ * - `user` / `system` / `e2e`: sólo ese origen.
+ * - `all`: no filtra nada.
+ */
+export type AuditOrigin = "default" | "user" | "system" | "e2e" | "all";
+
 export interface AuditLogFilters {
   table_name?: string;
   record_id?: string;
+  origin?: AuditOrigin;
   [key: string]: unknown;
 }
+
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
   return typeof value === "object" && value !== null;
