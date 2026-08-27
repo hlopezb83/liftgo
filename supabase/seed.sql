@@ -25,18 +25,26 @@ WHERE NOT EXISTS (SELECT 1 FROM public.company_settings);
 DO $$
 DECLARE
   v_admin_email text := nullif(current_setting('app.seed_admin_email', true), '');
+  v_admin_id uuid;
+  v_n integer;
 BEGIN
   IF v_admin_email IS NULL THEN
     RAISE NOTICE 'app.seed_admin_email no definido: seed.sql no asigna rol admin';
     RETURN;
   END IF;
-  INSERT INTO public.user_roles (user_id, role)
-  SELECT id, 'admin'::public.app_role
-  FROM auth.users
-  WHERE lower(email) = lower(v_admin_email)
-  ON CONFLICT (user_id, role) DO NOTHING;
-  IF NOT FOUND THEN
+  -- R5-18: trim + lookup previo para separar "no existe" de "ya tenía el rol".
+  v_admin_email := trim(v_admin_email);
+  SELECT id INTO v_admin_id FROM auth.users WHERE lower(email) = lower(v_admin_email);
+  IF v_admin_id IS NULL THEN
     RAISE WARNING 'app.seed_admin_email=% no existe en auth.users; no se asignó admin', v_admin_email;
+    RETURN;
+  END IF;
+  INSERT INTO public.user_roles (user_id, role)
+  VALUES (v_admin_id, 'admin'::public.app_role)
+  ON CONFLICT (user_id, role) DO NOTHING;
+  GET DIAGNOSTICS v_n = ROW_COUNT;
+  IF v_n = 0 THEN
+    RAISE NOTICE 'app.seed_admin_email=% ya tenía rol admin; nada que hacer', v_admin_email;
   END IF;
 END $$;
 

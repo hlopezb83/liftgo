@@ -1,3 +1,12 @@
+## 7.359.1 - 2026-08-27
+
+**Edición de facturas: bloqueo optimista más confiable (fix-30)**
+
+- R5-09: la versión de la factura se congela al abrir el formulario, así un refresco en segundo plano ya no permite pisar cambios de otra persona.
+- R5-16: en edición, el botón Guardar queda deshabilitado ("Cargando la factura…") hasta que la factura termina de cargar.
+- R5-17: el mensaje "otro usuario modificó esta factura" solo aparece cuando la versión realmente cambió; si fue un tema de permisos, se muestra el error correcto.
+- R5-18: el seed de desarrollo distingue entre un correo que no existe (aviso) y un usuario que ya era administrador (nota informativa).
+
 ## 7.359.0 - 2026-08-27
 
 **Portal de clientes: comprobantes más seguros y sin sobrepagos por reportes simultáneos (fix-29)**

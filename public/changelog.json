@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.359.1",
+    "date": "2026-08-27",
+    "type": "patch",
+    "title": "Edición de facturas: bloqueo optimista más confiable",
+    "description": "Al editar una factura, la versión usada para evitar sobrescribir cambios de otra persona ahora se congela al abrir el formulario, y el botón Guardar permanece deshabilitado hasta que la factura termina de cargar. El mensaje de conflicto solo aparece cuando alguien realmente modificó la factura; si el problema fue de permisos, se muestra el error correcto. El script de datos de prueba distingue entre un correo inexistente y un usuario que ya era administrador.",
+    "changes": [
+      "R5-09: useInvoiceFormLogic congela invoiceVersion con useRef la primera vez que la factura resuelve.",
+      "R5-16: en edición, Guardar se deshabilita mientras invoiceVersion sea null, con el aviso 'Cargando la factura…'.",
+      "R5-17: useUpdateInvoice lanza stale_write solo si la versión en base difiere de expectedVersion.",
+      "R5-18: seed.sql hace trim y lookup previo del email; WARNING si no existe y NOTICE si ya tenía el rol admin."
+    ]
+  },
+  {
     "version": "7.359.0",
     "date": "2026-08-27",
     "type": "minor",

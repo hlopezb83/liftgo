@@ -1,4 +1,5 @@
 
+import { useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useBookings, type BookingWithForklift } from "@/features/bookings";
 import { useCustomers } from "@/features/customers";
@@ -119,6 +120,11 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const { data: invoiceBookingsRows } = useInvoiceBookings(id);
   const existingBookingIds = (invoiceBookingsRows ?? []).map((r) => r.booking_id);
 
+  // R5-09: snapshot congelado de la versión la primera vez que `existing`
+  // resuelve (no la versión viva de React Query, que un refetch sobrescribiría).
+  const invoiceVersionRef = useRef<number | null>(null);
+  if (invoiceVersionRef.current == null && existing) invoiceVersionRef.current = existing.version;
+
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
     defaultValues: buildEmptyInvoiceValues(),
@@ -177,7 +183,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     form, isEdit, id, fromQuoteId,
     invoiceNumber: existing?.invoice_number ?? null,
     // R4-25: versión al abrir el formulario, para bloqueo optimista al guardar.
-    invoiceVersion: existing?.version ?? null,
+    invoiceVersion: invoiceVersionRef.current,
     customers, availableBookings,
     sourceQuote,
     saleAssignmentGuard,

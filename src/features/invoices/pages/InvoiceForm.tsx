@@ -155,7 +155,12 @@ export default function InvoiceForm() {
             </CardContent>
           </Card>
 
-          <FormActions submitLabel={f.isEdit ? "Actualizar factura" : "Crear factura"} isPending={f.isPending} onCancel={() => navigate(-1)} />
+          {/* R5-16: en edición, bloquear Guardar hasta que `existing` resuelva
+              y haya invoiceVersion; sin ella el UPDATE iría sin bloqueo optimista. */}
+          <FormActions submitLabel={f.isEdit ? "Actualizar factura" : "Crear factura"} isPending={f.isPending} onCancel={() => navigate(-1)}
+            submitDisabled={f.isEdit && f.invoiceVersion == null}
+            submitDisabledReason={f.isEdit && f.invoiceVersion == null ? "Cargando la factura…" : undefined}
+          />
         </form>
       </Form>
     </PageContainer>
