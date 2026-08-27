@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.361.0",
+    "date": "2026-08-27",
+    "type": "minor",
+    "title": "Ingresos por unidad, rentabilidad por cliente y montos en pesos",
+    "description": "Las facturas recurrentes que cubren varias reservas no se le acreditaban a ningún montacargas, la rentabilidad por cliente comparaba montos con IVA contra costos sin IVA, y varios totales sumaban dólares como si fueran pesos. Se corrigieron los cálculos y se liberaron para cotizar las unidades cuya renta ya terminó.",
+    "changes": [
+      "Nueva vista v_invoice_forklift_revenue: reparte el ingreso de facturas multi-reserva entre las unidades que cubren.",
+      "get_forklift_financials y la sección de utilización del Panel usan la nueva atribución (antes faltaban $716,300).",
+      "get_customer_profitability usa ingreso neto sin IVA, resta notas de crédito y ya no duplica costos de mantenimiento.",
+      "Flujo de efectivo del Panel incluye facturas pagadas antiguas sin registro en pagos.",
+      "El selector de equipos al cotizar ya no descarta unidades marcadas 'rentado' cuya reserva ya venció.",
+      "Detalle de proveedor y resumen financiero de contrato convierten los importes a pesos con su tipo de cambio."
+    ]
+  },
+  {
     "version": "7.360.0",
     "date": "2026-08-27",
     "type": "minor",
