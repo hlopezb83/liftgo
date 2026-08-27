@@ -1,3 +1,12 @@
+## [7.365.0] - 2026-08-27
+### Ronda D de auditoría: truncamiento, monedas y drift de centavos
+- `useDamageRecords`: `.limit(LIST_FETCH_LIMIT)` — la lista de daños se truncaba en 1000 filas sin aviso y subestimaba los costos en reportes (D1).
+- `useReconciliationData`: `.limit(LIST_FETCH_LIMIT)` en la consulta de conciliación fiscal; el total timbrado y los huecos de folio quedaban incompletos en rangos amplios (D2).
+- `usePaymentHistoryColumns`: `formatCurrencyWithCode(amount, currency)` en vez de `formatCurrency` (un pago USD se formateaba con reglas MXN) (D2).
+- `MaintenancePartsSection` y `WorkOrderCloseSummary`: sumas con `sumMoney`/`roundMoney` para evitar drift IEEE-754 en costos de OT (D3).
+- `RentalFinancialSummary`: usa la moneda de la reserva; si las tarifas no son MXN, el "Balance Restante" ya no compara 1:1 contra lo facturado en pesos. "Revenue Esperado" → "Ingreso Esperado" (D4).
+- `PartDetailSheet`: fechas con `formatDateTimeMty` en lugar de `date-fns` con TZ del navegador.
+
 ## [7.364.0] - 2026-08-27
 ### Bitácora: origen de cada movimiento (usuario / sistema / prueba)
 - `audit_logs`: columnas `is_e2e` y `source`, índice parcial para la lista sin pruebas.
