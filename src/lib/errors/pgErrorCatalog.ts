@@ -240,6 +240,10 @@ export function translatePgError(error: unknown, fallbackTitle = "Error"): PgErr
     return build({ severity: "warning", ...entry }, fallbackTitle, { constraint });
   }
 
+  for (const { pattern, entry } of PRIORITY_TEXT_PATTERNS) {
+    if (pattern.test(text)) return build(entry, fallbackTitle, {});
+  }
+
   const sqlstate = findSqlstate(details.code, text);
   if (sqlstate === "P0001") {
     // `RAISE EXCEPTION` de nuestros triggers: el mensaje ya viene redactado
