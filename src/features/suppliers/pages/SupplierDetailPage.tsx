@@ -17,7 +17,6 @@ import { useMaintenanceLogs } from "@/features/maintenance";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { toMxn } from "@/lib/money";
-
 import { formatDateDisplay } from "@/lib/utils";
 import { SupplierBankAccountsSection } from "../components/suppliers/SupplierBankAccountsSection";
 import { SupplierContactCard } from "../components/suppliers/SupplierContactCard";

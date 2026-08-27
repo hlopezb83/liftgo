@@ -1,8 +1,8 @@
-import { WarnIcon } from "@/components/icons";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ReadOnlyLineItemsTable } from "@/components/domain/ReadOnlyLineItemsTable";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
+import { WarnIcon } from "@/components/icons";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { BookingWithForklift } from "@/features/bookings";
 import type { useQuote } from "@/features/quotes";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
