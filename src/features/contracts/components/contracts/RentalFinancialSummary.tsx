@@ -1,8 +1,9 @@
 import { MoneyIcon, DocumentIcon, TrendingUpIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { rentalDaysInclusive } from "@/features/bookings";
+import { rentalDaysInclusive, useBooking } from "@/features/bookings";
 import { calculateRentalCost } from "@/lib/domain/invoiceHelpers";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrency, formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { sumMoney } from "@/lib/money";
 import { parseDateLocal } from "@/lib/utils";
 import { useContractFinancialSummary } from "../../hooks/contractDetail/useContractFinancialSummary";
 
@@ -24,18 +25,25 @@ export function RentalFinancialSummary({
   monthlyRate,
 }: RentalFinancialSummaryProps) {
   const { data: invoices } = useContractFinancialSummary(bookingId);
+  const { data: booking } = useBooking(bookingId);
+  // Ronda D·#4: las tarifas del contrato están en la moneda de la reserva.
+  // Lo facturado ya viene normalizado a MXN, así que comparar 1:1 contra una
+  // reserva en USD inventaba un "balance restante" falso.
+  const rateCurrency = ((booking as { currency?: string | null } | undefined)?.currency ?? "MXN").toUpperCase();
+  const isForeignRate = rateCurrency !== "MXN";
 
   const start = parseDateLocal(startDate);
   const end = parseDateLocal(endDate);
   const days = rentalDaysInclusive(start, end);
   const items = calculateRentalCost(dailyRate, weeklyRate, monthlyRate, start, end);
-  const expectedRevenue = items.reduce((sum, item) => sum + item.total, 0);
+  const expectedRevenue = sumMoney(items.map((item) => item.total));
   // M-14: expectedRevenue es sin IVA → comparar contra el SUBTOTAL de las
   // facturas (antes se usaba `total`, con IVA, y el balance restante salía
   // artificialmente negativo).
-  const invoicedAmount = (invoices || []).reduce((sum, inv) => sum + Number(inv.subtotal), 0);
-  const remaining = expectedRevenue - invoicedAmount;
+  const invoicedAmount = sumMoney((invoices || []).map((inv) => Number(inv.subtotal)));
+  const remaining = sumMoney([expectedRevenue, -invoicedAmount]);
   const invoiceCount = invoices?.length || 0;
+
 
   return (
     <Card>
