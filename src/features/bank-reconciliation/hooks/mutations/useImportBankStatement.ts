@@ -1,6 +1,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { notifySuccess } from "@/lib/ui/appFeedback";
+import { bankImportKeys } from "../../lib/queryKeys";
 import { bankLinesKey } from "../useBankStatementLines";
 import type { ParsedBankLine } from "../../lib/csvParsers";
 
@@ -101,7 +102,7 @@ export function useImportBankStatement() {
         throw matchErr;
       }
     },
-    invalidateKeysFn: (_res, vars) => [bankLinesKey(vars.bankAccountId)],
+    invalidateKeysFn: (_res, vars) => [bankImportKeys.all, bankLinesKey(vars.bankAccountId)],
     errorTitle: "Error al importar estado de cuenta",
     onSuccess: (res) => {
       if (res.insertedCount === 0) {

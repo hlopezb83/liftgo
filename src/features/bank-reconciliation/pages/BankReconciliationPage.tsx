@@ -83,6 +83,9 @@ export default function BankReconciliationPage() {
                   ) : (
                   <>
                   <BankStatementUploader bankAccountId={accountId} />
+                  {/* R4-29: `useBankStatementLines` expone además `isTruncated` con la
+                      misma condición interna del aviso, para consumidores que
+                      necesiten reaccionar al truncado sin re-calcularlo. */}
                   <ListTruncationNotice rows={lines} />
                   {/* N8-r3: KPIs y tabla sin la fila extra del limit+1; el
                       crudo (`lines`) queda solo para el aviso. */}
