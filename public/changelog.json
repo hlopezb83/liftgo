@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.364.0",
+    "date": "2026-08-27",
+    "type": "minor",
+    "title": "Bitácora limpia: se separan pruebas, sistema y usuarios",
+    "description": "La Bitácora de Cambios mezclaba rastros de las pruebas automatizadas y ajustes técnicos masivos con la actividad real. Ahora cada registro trae su origen, las pruebas se ocultan por defecto y un administrador puede borrarlas.",
+    "changes": [
+      "Bitácora: nuevo filtro Origen (usuarios y sistema, solo usuarios, solo sistema, solo pruebas, todos).",
+      "Bitácora: etiquetas 'Sistema' y 'Prueba' junto al usuario del movimiento.",
+      "Bitácora: los registros de pruebas automatizadas se ocultan por defecto.",
+      "Bitácora: acción de administrador para eliminar únicamente los registros marcados como prueba.",
+      "Base de datos: el registro automático detecta las sesiones de prueba aunque la tabla no tenga marca propia y etiqueta como 'sistema' los movimientos sin usuario."
+    ]
+  },
+  {
     "version": "7.363.1",
     "date": "2026-08-27",
     "type": "patch",

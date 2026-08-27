@@ -43,30 +43,52 @@ export interface AuditLog {
   changed_fields: string[] | null;
   user_id: string | null;
   created_at: string;
+  /** v7.364.0: origen del movimiento — usuario, sistema (procesos) o prueba E2E. */
+  source?: AuditSource;
+  is_e2e?: boolean;
   // joined
   user_email?: string;
   /** Etiqueta pre-computada para la lista (P1-4b). */
   label?: string;
 }
 
+export type AuditSource = "user" | "system" | "e2e";
+
+/**
+ * v7.364.0: filtro de origen de la bitácora.
+ * - `default`: oculta los registros de pruebas automatizadas (comportamiento normal).
+ * - `user` / `system` / `e2e`: sólo ese origen.
+ * - `all`: no filtra nada.
+ */
+export type AuditOrigin = "default" | "user" | "system" | "e2e" | "all";
+
 export interface AuditLogFilters {
   table_name?: string;
   record_id?: string;
+  origin?: AuditOrigin;
   [key: string]: unknown;
 }
+
 
 function isRecord(value: unknown): value is Readonly<Record<string, unknown>> {
   return typeof value === "object" && value !== null;
 }
 
-function readAuditLogFilters(filter: Readonly<Record<string, unknown>> | undefined): AuditLogFilters {
+const AUDIT_ORIGINS: readonly AuditOrigin[] = ["default", "user", "system", "e2e", "all"];
+
+export function readAuditLogFilters(filter: Readonly<Record<string, unknown>> | undefined): AuditLogFilters {
   const filters: AuditLogFilters = {};
   if (isRecord(filter)) {
     if (typeof filter.table_name === "string") filters.table_name = filter.table_name;
     if (typeof filter.record_id === "string") filters.record_id = filter.record_id;
+    if (typeof filter.origin === "string" && (AUDIT_ORIGINS as readonly string[]).includes(filter.origin)) {
+      filters.origin = filter.origin as AuditOrigin;
+    }
   }
+  filters.origin ??= "default";
   return filters;
 }
+
 
 function normalizeJson(value: unknown): Record<string, unknown> | null {
   return typeof value === "object" && value !== null ? (value as Record<string, unknown>) : null;
@@ -115,7 +137,7 @@ export function buildLabel(row: LabelProjectionRow, recordId: string): string {
 }
 
 const LIST_SELECT =
-  "id, table_name, record_id, action, changed_fields, user_id, created_at, " +
+  "id, table_name, record_id, action, changed_fields, user_id, created_at, source, is_e2e, " +
   "new_name:new_data->>name, new_booking:new_data->>booking_number, " +
   "new_contract:new_data->>contract_number, new_invoice:new_data->>invoice_number, " +
   "new_quote:new_data->>quote_number, new_desc:new_data->>description, " +
@@ -144,6 +166,12 @@ export const auditLogsQueries = defineEntityQueries<"audit-logs", AuditLog[], ne
 
       if (filters.table_name) query = query.eq("table_name", filters.table_name);
       if (filters.record_id) query = query.eq("record_id", filters.record_id);
+      // v7.364.0: por defecto la bitácora oculta los rastros de las pruebas E2E.
+      if (filters.origin === "default") query = query.eq("is_e2e", false);
+      else if (filters.origin === "e2e") query = query.eq("is_e2e", true);
+      else if (filters.origin === "user" || filters.origin === "system") {
+        query = query.eq("source", filters.origin);
+      }
 
       const { data, error } = await query.returns<Array<LabelProjectionRow & {
         id: string;
@@ -153,6 +181,8 @@ export const auditLogsQueries = defineEntityQueries<"audit-logs", AuditLog[], ne
         changed_fields: string[] | null;
         user_id: string | null;
         created_at: string;
+        source: AuditSource | null;
+        is_e2e: boolean | null;
       }>>();
       if (error) throw error;
 
@@ -164,8 +194,11 @@ export const auditLogsQueries = defineEntityQueries<"audit-logs", AuditLog[], ne
         changed_fields: row.changed_fields,
         user_id: row.user_id,
         created_at: row.created_at,
+        source: row.source ?? "user",
+        is_e2e: row.is_e2e ?? false,
         label: buildLabel(row, row.record_id),
       }));
+
       const userIds = [...new Set(logs.map((l) => l.user_id).filter((id): id is string => id !== null))];
 
       if (userIds.length > 0) {

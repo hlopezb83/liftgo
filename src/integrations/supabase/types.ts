@@ -62,9 +62,11 @@ export type Database = {
           changed_fields: string[] | null
           created_at: string
           id: string
+          is_e2e: boolean
           new_data: Json | null
           old_data: Json | null
           record_id: string
+          source: string
           table_name: string
           user_id: string | null
         }
@@ -73,9 +75,11 @@ export type Database = {
           changed_fields?: string[] | null
           created_at?: string
           id?: string
+          is_e2e?: boolean
           new_data?: Json | null
           old_data?: Json | null
           record_id: string
+          source?: string
           table_name: string
           user_id?: string | null
         }
@@ -84,9 +88,11 @@ export type Database = {
           changed_fields?: string[] | null
           created_at?: string
           id?: string
+          is_e2e?: boolean
           new_data?: Json | null
           old_data?: Json | null
           record_id?: string
+          source?: string
           table_name?: string
           user_id?: string | null
         }
@@ -4302,6 +4308,7 @@ export type Database = {
         Args: { _email: string; _is_active: boolean; _user_id: string }
         Returns: boolean
       }
+      purge_e2e_audit_logs: { Args: never; Returns: number }
       purge_e2e_data: { Args: never; Returns: Json }
       purge_old_notifications: { Args: never; Returns: number }
       recalc_supplier_bill: { Args: { p_bill_id: string }; Returns: undefined }
