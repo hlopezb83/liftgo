@@ -1,7 +1,7 @@
 import { useUpdateQuote } from "@/features/quotes";
 import { orEmpty } from "@/lib/coerce";
 import { monthBounds } from "@/lib/date/monthBounds";
-import { nowMty } from "@/lib/date/nowMty";
+import { nowMty } from "@/lib/utils";
 import { toYMD } from "@/lib/date/toYMD";
 import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
 import { toJsonArray } from "@/lib/domain/lineItems";
