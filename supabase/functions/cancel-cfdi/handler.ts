@@ -58,7 +58,10 @@ export async function handleCancelCfdi(
     await supabaseRef
       .from("invoices")
       .update({ cancellation_status: "none" })
-      .eq("id", invoiceIdRef);
+      .eq("id", invoiceIdRef)
+      // R5-13: liberar solo si el claim sigue 'pending' (patrón
+      // cancel-credit-note): evita pisar un estado ya reconciliado.
+      .eq("cancellation_status", "pending");
   };
 
   try {
@@ -226,8 +229,11 @@ export async function handleCancelCfdi(
     }
 
     if (apiKey && facturApiId) {
-      pacAttempted = true;
+      // R5-14: marcar pacAttempted DESPUÉS de construir el cliente (patrón
+      // cancel-payment-complement): si createFacturapiClient lanza, el catch
+      // externo aún puede liberar el claim.
       const client = createFacturapiClient(apiKey);
+      pacAttempted = true;
       const params: Record<string, string> = { motive };
       if (motive === "01" && substitution_uuid) {
         params.substitution = substitution_uuid as string;
