@@ -49,6 +49,19 @@ export default async function globalTeardown(): Promise<void> {
 
   // R5-07: el interruptor de seeding E2E vuelve a quedar apagado al terminar la
   // suite; `global.setup.ts` lo enciende explícitamente en cada corrida.
+  //
+  // Con `--shard`, cada shard corre su propio teardown: si un shard termina
+  // antes, apagaría el interruptor mientras el otro sigue sembrando (causa de
+  // "E2E seeding disabled on this environment"). En ese caso NO lo apagamos
+  // aquí; el apagado se hace en un paso final del workflow (o manualmente).
+  const isSharded = process.argv.some((a) => a.startsWith("--shard")) ||
+    !!process.env.PLAYWRIGHT_SHARD || process.env.E2E_KEEP_SEED_FLAG === "1";
+  if (isSharded) {
+     
+    console.log("[e2e] globalTeardown: corrida por shards, se conserva allow_e2e_seed.");
+    return;
+  }
+
   const { error: disableError } = await client
     .from("company_settings")
     .update({ allow_e2e_seed: false })
