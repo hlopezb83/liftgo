@@ -105,7 +105,7 @@ export default function AuditTrailPage() {
               placeholder="Tabla"
             />
             <FiltersToolbar.StatusSelect
-              value={origin}
+              value={values.origin === "all" ? "default" : values.origin}
               onChange={(v) => set("origin", v)}
               options={ORIGIN_OPTIONS}
               placeholder="Origen"
