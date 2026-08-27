@@ -83,8 +83,10 @@ export default function BankReconciliationPage() {
                   ) : (
                   <>
                   <BankStatementUploader bankAccountId={accountId} />
-                  {/* R4-29: aviso explícito cuando la lista llega al tope (limit+1). */}
-                  {isLinesTruncated && <ListTruncationNotice rows={lines} />}
+                  {/* R4-29: el aviso se muestra solo al alcanzar el tope; el hook
+                      expone `isTruncated` con la misma condición para consumidores
+                      que necesiten reaccionar al truncado. */}
+                  <ListTruncationNotice rows={isLinesTruncated ? lines : null} />
                   {/* N8-r3: KPIs y tabla sin la fila extra del limit+1; el
                       crudo (`lines`) queda solo para el aviso. */}
                   <ReconciliationKpiCards lines={visibleListRows(lines)} currency={account?.currency ?? "MXN"} />
