@@ -113,3 +113,20 @@ describe("getErrorMessage sigue delegando al catálogo", () => {
     expect(getErrorMessage(new Error("LAST_ADMIN_CANNOT_BE_DELETED"))).toMatch(/último administrador/i);
   });
 });
+
+describe("mensajes de negocio con SQLSTATE genérico", () => {
+  it("traduce el periodo de facturación faltante aunque llegue como 23514", () => {
+    const r = translatePgError({
+      code: "23514",
+      message: "La factura vinculada a una reserva requiere un periodo de facturación (billing_period_start).",
+    });
+    expect(r.matched).toBe(true);
+    expect(r.title).toBe("Falta el periodo de facturación");
+    expect(r.severity).toBe("warning");
+  });
+
+  it("sigue traduciendo la entrega completada", () => {
+    const r = translatePgError({ code: "23514", message: "una entrega completada no puede reabrirse" });
+    expect(r.title).toBe("Entrega cerrada");
+  });
+});
