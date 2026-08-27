@@ -111,7 +111,8 @@ Deno.serve(async (req) => {
     if (!roleResult.ok) {
       console.error("[invite-user] assignRoleToUser:", roleResult.message);
       await cleanupInvitedUser();
-      return jsonError(req, 500, roleResult.message);
+      // M-16b/R4-33: mensaje genérico al cliente; el detalle queda en el log.
+      return jsonError(req, 500, "No se pudo completar la invitación");
     }
 
     const { error: profileErr } = await auth.adminClient

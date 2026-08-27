@@ -163,11 +163,13 @@ async function buildPlan(supabase: any): Promise<{
   for (const booking of bookings || []) {
     const forklift = (booking.forklifts as Forklift | null) ?? null;
     // BL-31 (v7.92.0): preferir tarifa pactada en la reserva; fallback a la maestra.
-    // N-7c: nullish, no `||` — una tarifa pactada de 0 es un dato válido
-    // (cortesía/canje) y no debe reemplazarse por la tarifa maestra.
-    const monthlyRate = booking.monthly_rate != null
+    // N-7c/R4-32: nullish, no `||` — una tarifa pactada de 0 es un dato válido
+    // (cortesía/canje) y NO debe confundirse con "sin tarifa configurada".
+    // configuredRate = null sólo cuando ni la reserva ni la maestra tienen valor.
+    const configuredRate = booking.monthly_rate != null
       ? Number(booking.monthly_rate)
-      : (forklift?.monthly_rate ?? 0);
+      : (forklift?.monthly_rate != null ? Number(forklift.monthly_rate) : null);
+    const monthlyRate = configuredRate ?? 0;
 
     // Derivar last_billed_date desde el historial REAL de facturas vinculadas
     // (source of truth). Ignora bookings.last_billed_date cuando el historial lo
@@ -309,7 +311,9 @@ async function buildPlan(supabase: any): Promise<{
         lines.push({ ...baseLine, eligible: false, reason: "no_customer" });
         break;
       }
-      if (monthlyRate === 0) {
+      // R4-32: sólo se omite cuando NO hay tarifa configurada (null en la
+      // reserva y en la maestra). Una tarifa 0 pactada se factura por $0.
+      if (configuredRate == null) {
         lines.push({ ...baseLine, eligible: false, reason: "no_monthly_rate" });
         break;
       }

@@ -1,0 +1,19 @@
+{
+  "version": "7.354.0",
+  "date": "2026-08-26",
+  "type": "minor",
+  "title": "Liberación de unidades, extensiones seguras y menos datos expuestos",
+  "description": "Sincronizar el estatus de la flota y cancelar una reserva ya no se caen por la validación interna de rentas entregadas: la unidad se libera correctamente. Extender una reserva ahora se rechaza si el montacargas tiene una orden de trabajo en curso, igual que al crear la reserva, y revertir un cambio desde la bitácora ya no falla por los candados de estado. Además, la vista de saldos deja de ser legible sin iniciar sesión, el seed deja de regalar el rol de administrador, los comprobantes de pago ya se pueden borrar mientras el reporte está en revisión y la facturación recurrente ya no omite tarifas de cero pactadas.",
+  "changes": [
+    "R4-17: sync_forklift_rental_status fija y resetea app.forklift_rpc para que el paso rented → available no sea abortado por el guard N-42.",
+    "R4-26: cancel_booking fija y resetea app.forklift_rpc alrededor del UPDATE a forklifts.",
+    "R4-18: extend_booking rechaza unidades con orden de trabajo in_progress, con el mismo mensaje y ERRCODE que create_booking.",
+    "R4-19: nuevo bypass app.audit_revert fijado por revert_audit_log y honrado por validate_transition y guard_delivery_completed_terminal.",
+    "R4-27: REVOKE ALL de public.v_invoices_with_balance al rol anon; se conservan authenticated y service_role.",
+    "R4-20: supabase/seed.sql ya no otorga admin al usuario más antiguo; ahora requiere el GUC app.seed_admin_email.",
+    "R4-21: company_settings.allow_e2e_seed pasa a DEFAULT false y e2e_seed_portal_scenario solo asigna el rol customer a cuentas sin ningún rol previo (falla si la cuenta ya tiene otro rol).",
+    "R4-28: nueva policy DELETE en el bucket payment-proofs (cliente borra su propio comprobante mientras el intent siga pending_review o esté huérfano) y límite de 10 MB por archivo.",
+    "R4-33: invite-user y validate-supplier-rep devuelven mensajes genéricos; el detalle queda solo en console.error.",
+    "R4-32: generate-recurring-invoices distingue tarifa no configurada (null) de tarifa 0 pactada; solo la primera se omite con no_monthly_rate."
+  ]
+}
