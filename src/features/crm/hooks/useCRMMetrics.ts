@@ -35,7 +35,11 @@ export function useCRMMetrics(): {
     const won = closed.filter((p) => p.stage === "cerrado_ganado");
     const lost = closed.filter((p) => p.stage === "cerrado_perdido");
 
-    const now = new Date();
+    // Ronda C (C3): `new Date()` usaba el reloj/TZ del navegador — un equipo mal
+    // configurado cortaba el mes o los últimos 30 días en otra fecha que el resto
+    // del sistema. `nowMty()` fija el "hoy" del negocio (America/Monterrey).
+    const now = nowMty();
+
     const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const start30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
