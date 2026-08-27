@@ -55,9 +55,9 @@ export function RentalFinancialSummary({
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 text-muted-foreground text-xs">
               <TrendingUpIcon className="h-3.5 w-3.5" />
-              Revenue Esperado
+              Ingreso Esperado
             </div>
-            <p className="text-lg font-bold">{formatCurrency(expectedRevenue)}</p>
+            <p className="text-lg font-bold">{formatCurrencyWithCode(expectedRevenue, rateCurrency)}</p>
             <p className="text-xs text-muted-foreground">{days} días</p>
           </div>
           <div className="space-y-1">
@@ -73,12 +73,23 @@ export function RentalFinancialSummary({
               <MoneyIcon className="h-3.5 w-3.5" />
               Balance Restante
             </div>
-            <p className={`text-lg font-bold ${remaining <= 0 ? "text-success" : "text-warning"}`}>
-              {formatCurrency(remaining)}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {remaining <= 0 ? "Al día" : "Pendiente"}
-            </p>
+            {isForeignRate ? (
+              <>
+                <p className="text-lg font-bold text-muted-foreground">—</p>
+                <p className="text-xs text-muted-foreground">
+                  Tarifas en {rateCurrency}; no comparable contra lo facturado en MXN.
+                </p>
+              </>
+            ) : (
+              <>
+                <p className={`text-lg font-bold ${remaining <= 0 ? "text-success" : "text-warning"}`}>
+                  {formatCurrency(remaining)}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {remaining <= 0 ? "Al día" : "Pendiente"}
+                </p>
+              </>
+            )}
           </div>
         </div>
       </CardContent>
