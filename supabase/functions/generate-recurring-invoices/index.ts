@@ -356,8 +356,11 @@ async function buildPlan(supabase: any): Promise<{
         forkliftSerial: forklift?.serial_number ?? null,
         monthlyRate,
         billedAmount,
-        isProrated,
-        proratedDays,
+        // FIX R4-31: propagar el prorrateo del período (primer O último
+        // ciclo), no solo el flag local de primer ciclo, para que la
+        // descripción de la factura refleje el prorrateo como el preview.
+        isProrated: proratedPeriod,
+        proratedDays: proratedPeriod ? proratedDays : 0,
         billingStart,
         billingEnd,
         startStr,

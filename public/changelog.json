@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.356.0",
+    "date": "2026-08-27",
+    "type": "minor",
+    "title": "Cancelación de complementos de pago visible y prorrateo correcto en facturas",
+    "description": "Cuando la cancelación de un complemento de pago (REP) queda en proceso ante el SAT, ahora se ve claramente en el historial de pagos: aparece la etiqueta \"Cancelación REP en proceso\", se oculta el botón de cancelar para evitar intentos repetidos y se agrega \"Consultar estado SAT\" para resolverlo desde la app. Además, el formulario de reportes acepta títulos y descripciones más largos (los mismos límites que la base), y las facturas recurrentes del último mes ya indican en su descripción que están prorrateadas.",
+    "changes": [
+      "R4-04: PAYMENT_COLUMNS incluye rep_cancellation_status/motive/reason y se agrega useRefreshRepCancellationStatus que invoca refresh-cancellation-status con payment_id.",
+      "R4-04: el historial de pagos muestra badge de cancelación en proceso, oculta \"Cancelar REP\" y ofrece \"Consultar estado SAT\".",
+      "R4-30: el esquema zod de feedback se alinea a los CHECK de BD (título 3-300, descripción 10-5000).",
+      "R4-31: generate-recurring-invoices propaga isProrated/proratedDays del período completo (primer o último ciclo) a la línea de la factura."
+    ]
+  },
+  {
     "version": "7.355.0",
     "date": "2026-08-27",
     "type": "minor",

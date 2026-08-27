@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { type ColumnDef } from "@/components/dataTable/v2";
-import { EditIcon, StampIcon, DocumentIcon, FileCode2, ErrorIcon } from "@/components/icons";
+import { EditIcon, StampIcon, DocumentIcon, FileCode2, ErrorIcon, RefreshIcon } from "@/components/icons";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ReconciliationBadge } from "@/features/bank-reconciliation";
 import type { Tables } from "@/integrations/supabase/types";
@@ -11,6 +12,7 @@ import { RepBadge } from "../../components/invoice-detail/RepBadge";
 import { downloadCfdiBlob, type CfdiFormat } from "../../lib/downloadCfdiBlob";
 import { PAYMENT_METHODS } from "../../lib/paymentMethods";
 import { useStampPaymentComplement } from "./cfdi/usePaymentComplement";
+import { useRefreshRepCancellationStatus } from "./cfdi/useRefreshCancellationStatus";
 
 // BL-R8-28: etiquetas ES para payments.payment_method (transfer/cash/check/card).
 const PAYMENT_METHOD_LABELS: Record<string, string> = Object.fromEntries(
@@ -37,6 +39,9 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
   // se elige en un diálogo dedicado (CancelRepDialog).
   const [cancelRepPaymentId, setCancelRepPaymentId] = useState<string | null>(null);
   const stampRep = useStampPaymentComplement();
+  // FIX R4-04: permite consultar al SAT el estado de una cancelación REP
+  // en proceso (la edge function ya acepta payment_id).
+  const refreshRepCancel = useRefreshRepCancellationStatus();
 
   const columns: ColumnDef<Payment>[] = (() => {
     const base: ColumnDef<Payment>[] = [
@@ -83,6 +88,8 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
           const p = row.original;
           const status = (p.rep_cfdi_status as string | null) ?? "none";
           const repNumber = (p.rep_number as string | null) ?? null;
+          // FIX R4-04: cancelación REP en proceso ante el SAT.
+          const repCancelPending = (p.rep_cancellation_status as string | null) === "pending";
           return (
             <div className="flex items-center gap-1.5">
               {repNumber && (
@@ -97,7 +104,7 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
                   <Button variant="ghost" size="icon" className="h-7 w-7" title="REP XML" aria-label="Descargar REP XML" onClick={() => downloadRep(p.id, "xml")}>
                     <FileCode2 className="h-3.5 w-3.5" />
                   </Button>
-                  {allowRepMutations && (
+                  {allowRepMutations && !repCancelPending && (
                     <Button
                       variant="ghost" size="icon" className="h-7 w-7 text-destructive"
                       title="Cancelar REP"
@@ -106,6 +113,22 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
                     >
                       <ErrorIcon className="h-3.5 w-3.5" />
                     </Button>
+                  )}
+                  {repCancelPending && (
+                    <>
+                      <Badge variant="outline" className="border-warning/30 text-warning text-[10px]">
+                        Cancelación REP en proceso
+                      </Badge>
+                      <Button
+                        variant="ghost" size="icon" className="h-7 w-7"
+                        title="Consultar estado SAT"
+                        aria-label="Consultar estado SAT"
+                        disabled={refreshRepCancel.isPending}
+                        onClick={() => refreshRepCancel.mutate(p.id)}
+                      >
+                        <RefreshIcon className={`h-3.5 w-3.5 ${refreshRepCancel.isPending ? "animate-spin" : ""}`} />
+                      </Button>
+                    </>
                   )}
                 </>
               )}
