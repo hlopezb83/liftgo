@@ -18,10 +18,12 @@ const COLS: { key: keyof import("../hooks/useAgingReport").AgingRow; label: stri
   { key: "d31_60", label: "31–60 días" },
   { key: "d61_90", label: "61–90 días" },
   { key: "d90_plus", label: "+90 días" },
+  // FIX A7: columna propia para facturas sin fecha de vencimiento.
+  { key: "no_due", label: "Sin vencimiento" },
 ];
 
 export default function AgingReportPage() {
-  const { rows, totals, fxMissingCount, rawBills, isLoading, isError, refetch } = useAgingReport();
+  const { rows, totals, fxMissingCount, noDueDateCount, rawBills, isLoading, isError, refetch } = useAgingReport();
 
   const overduePct = totals.total > 0
     ? ((totals.d1_30 + totals.d31_60 + totals.d61_90 + totals.d90_plus) / totals.total) * 100
@@ -37,6 +39,7 @@ export default function AgingReportPage() {
         "31-60": r.d31_60,
         "61-90": r.d61_90,
         "+90": r.d90_plus,
+        "Sin vencimiento": r.no_due,
         Total: r.total,
       })),
     );
