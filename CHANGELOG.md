@@ -1,3 +1,14 @@
+## 7.359.0 - 2026-08-27
+
+**Portal de clientes: comprobantes más seguros y sin sobrepagos por reportes simultáneos (fix-29)**
+
+- R5-06: la limpieza del escenario de pruebas del portal ya no borra pagos ni reportes de pago de facturas reales del cliente.
+- R5-08a: al reportar un pago, el comprobante debe estar en la carpeta del propio cliente.
+- R5-08b: borrar un comprobante propio pendiente ya no se bloquea por reportes de otros clientes.
+- R5-12: se bloquea la factura al validar el monto, así dos reportes simultáneos no pueden exceder el saldo.
+- R5-19: sólo se aceptan comprobantes PDF, PNG, JPEG o WebP; el bucket sigue privado y con límite de 10 MB.
+- R5-07 descartado: apagar `allow_e2e_seed` globalmente rompería CI; el valor por defecto para entornos nuevos ya es `false`.
+
 ## 7.358.0 - 2026-08-27
 
 **Indicadores financieros y tablero sin datos de prueba ni mezcla de monedas (fix-28)**
