@@ -68,6 +68,12 @@ export function useInvoiceFormSubmit() {
     const primaryBookingId = bookingIds[0] || values.bookingId || (isEdit ? orEmpty(existingBookingId, null) : null) || null;
     // H-6: si la factura lleva reserva, enviamos el periodo; si no, va null.
     const hasBooking = !!primaryBookingId;
+    // Red de seguridad: la BD rechaza (23514) cualquier factura con reserva y
+    // periodo nulo. Si el formulario llega sin periodo (edición de facturas
+    // viejas, o reserva ligada por código), lo derivamos del mes de emisión.
+    const period = hasBooking
+      ? resolveBillingPeriod(values.billingPeriodStart, values.billingPeriodEnd, issueDate)
+      : { start: null, end: null };
     return {
       booking_id: primaryBookingId,
       customer_id: customerId || null,
