@@ -65,11 +65,18 @@ export function useAuditTrailColumns(
         header: "Usuario",
         accessorFn: (l) => l.user_email || "Sistema",
         cell: ({ row }) => (
-          <span className="text-sm text-muted-foreground">
+          <span className="flex items-center gap-2 text-sm text-muted-foreground">
             {row.original.user_email || "Sistema"}
+            {/* v7.364.0: distinguir movimientos automáticos y rastros de pruebas. */}
+            {row.original.is_e2e ? (
+              <Badge variant="outline">Prueba</Badge>
+            ) : row.original.source === "system" ? (
+              <Badge variant="secondary">Sistema</Badge>
+            ) : null}
           </span>
         ),
       },
+
       {
         id: "created_at",
         header: "Cuándo",
