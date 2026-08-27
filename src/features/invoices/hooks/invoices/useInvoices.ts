@@ -213,7 +213,9 @@ export function useUpdateInvoice() {
         // Distinguir conflicto de concurrencia de "sin permisos / inexistente".
         const { data: still } = await supabase
           .from("invoices").select("version").eq("id", id).maybeSingle();
-        if (still) {
+        // R5-17: conflicto real solo si la versión cambió; si coincide, el
+        // UPDATE falló por otra causa (RLS/permisos) -> error genérico abajo.
+        if (still && still.version !== expectedVersion) {
           throw new Error("stale_write: otro usuario modificó esta factura; recarga y vuelve a intentar");
         }
       }
