@@ -14,8 +14,18 @@ export interface CRMMetrics {
   lost: Prospect[];
 }
 
-export function useCRMMetrics(): { data: CRMMetrics; isLoading: boolean } {
-  const { data: prospects = [], isLoading } = useProspects();
+/**
+ * FIX B3: antes sólo se exponían `data` e `isLoading`. Si la consulta fallaba
+ * (red o permisos), las páginas mostraban listas VACÍAS — el usuario creía que
+ * no había registros cuando en realidad no se pudieron cargar.
+ */
+export function useCRMMetrics(): {
+  data: CRMMetrics;
+  isLoading: boolean;
+  isError: boolean;
+  refetch: () => void;
+} {
+  const { data: prospects = [], isLoading, isError, refetch } = useProspects();
 
   const data: CRMMetrics = (() => {
     const active = prospects.filter((p) => !p.isClosed);
@@ -49,5 +59,5 @@ export function useCRMMetrics(): { data: CRMMetrics; isLoading: boolean } {
     };
   })();
 
-  return { data, isLoading };
+  return { data, isLoading, isError, refetch: () => { void refetch(); } };
 }

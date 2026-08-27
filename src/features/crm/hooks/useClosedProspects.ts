@@ -11,7 +11,7 @@ import type { Prospect } from "./useProspects";
  * pre-cargados del prospecto ganado.
  */
 export function useClosedProspects() {
-  const { data: metrics, isLoading } = useCRMMetrics();
+  const { data: metrics, isLoading, isError, refetch } = useCRMMetrics();
   const navigate = useNavigateTransition();
   const [search, setSearch] = useState("");
 
@@ -46,6 +46,8 @@ export function useClosedProspects() {
   return {
     metrics,
     isLoading,
+    isError,
+    refetch,
     search,
     setSearch,
     wonRows,
