@@ -4305,6 +4305,13 @@ export type Database = {
       purge_e2e_data: { Args: never; Returns: Json }
       purge_old_notifications: { Args: never; Returns: number }
       recalc_supplier_bill: { Args: { p_bill_id: string }; Returns: undefined }
+      reconcile_expired_bookings: {
+        Args: never
+        Returns: {
+          closed_bookings: number
+          freed_forklifts: number
+        }[]
+      }
       reconcile_stamping_invoice: {
         Args: {
           p_cfdi_uuid: string
