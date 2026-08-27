@@ -21,7 +21,10 @@ const PAYMENT_COLUMNS = sel(
   "id, invoice_id, amount, currency, exchange_rate, payment_date, payment_method, payment_form_sat, " +
   "reference_number, installment_number, prior_balance, notes, created_by, created_at, " +
   "rep_number, rep_folio, rep_facturapi_id, rep_cfdi_uuid, rep_cfdi_status, rep_pdf_url, rep_xml_url, " +
-  "rep_error_message, rep_cancelled_at, e2e_scope, is_e2e",
+  // FIX R4-04: columnas rep_cancellation_* necesarias para mostrar la
+  // cancelación REP en proceso y habilitar "Consultar estado SAT".
+  "rep_error_message, rep_cancelled_at, rep_cancellation_status, rep_cancellation_motive, rep_cancellation_reason, " +
+  "e2e_scope, is_e2e",
 );
 
 export const paymentQueries = defineEntityQueries<"payments", Payment[], never>("payments", {
