@@ -170,12 +170,13 @@ export default function DeliveriesPage() {
             onChange={(v) => set("status", v)}
             options={STATUS_OPTIONS}
           />
-          <FiltersToolbar.Select
+          <FiltersToolbar.StatusSelect
             value={values.type}
             onChange={(v) => set("type", v)}
             options={TYPE_OPTIONS}
-            ariaLabel="Filtrar por tipo"
+            placeholder="Todos los tipos"
           />
+
           <FiltersToolbar.ClearAll visible={hasActive} onClick={reset} />
         </FiltersToolbar>
       }
