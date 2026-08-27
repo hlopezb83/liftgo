@@ -18,8 +18,8 @@ Analogía: el usuario usó una copia vieja del formulario, impresa antes de que 
 1. **Confirmar versión en producción**: revisar que la app publicada sirva 7.365.0 y no una build vieja en caché. Si la publicada está atrasada, republicar.
 2. **Reproducir el caso** en la versión actual: `/invoices/new`, seleccionar cliente + reserva, dejar el periodo vacío y guardar. Debe crearse con el periodo del mes de emisión.
 3. **Mejorar el mensaje y la UI del formulario** (por si el usuario quiere control explícito):
-   - Prellenar visiblemente el periodo con el mes de emisión (o con las fechas de la reserva) al seleccionar una reserva, en lugar de derivarlo solo al guardar.
-   - Si aun así falla, que el mensaje de error apunte al campo "Periodo de facturación" y lo resalte.
+  - Prellenar visiblemente el periodo con el mes de emisión (o con las fechas de la reserva) al seleccionar una reserva, en lugar de derivarlo solo al guardar.
+  - Si aun así falla, que el mensaje de error apunte al campo "Periodo de facturación" y lo resalte.
 4. **Actualizar el changelog** con la entrada correspondiente (patch).
 
 ## Detalles técnicos
@@ -27,3 +27,5 @@ Analogía: el usuario usó una copia vieja del formulario, impresa antes de que 
 - Regla de BD: check constraint que exige `billing_period_start`/`billing_period_end` no nulos cuando `booking_id` no es nulo (código Postgres 23514).
 - Red de seguridad de cliente: `resolveBillingPeriod(start, end, issueDate)` usa `monthBounds(nowMty())` como respaldo.
 - Cambio de UI: al elegir reserva, sembrar los campos del formulario con las fechas de la reserva recortadas al mes de emisión, respetando `nowMty()` para evitar corrimientos de zona horaria.
+
+NO HAGAS NADA
