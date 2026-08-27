@@ -1,3 +1,10 @@
+## [7.364.0] - 2026-08-27
+### Bitácora: origen de cada movimiento (usuario / sistema / prueba)
+- `audit_logs`: columnas `is_e2e` y `source`, índice parcial para la lista sin pruebas.
+- `audit_trigger_fn()`: marca sesiones E2E aunque la tabla no tenga `is_e2e`; `source = 'system'` para movimientos sin usuario o con `app.audit_source = 'system'`.
+- `purge_e2e_audit_logs()`: RPC admin que borra solo filas `is_e2e = true` (usa `app.audit_maintenance`).
+- Bitácora: filtro "Origen", badges "Sistema"/"Prueba" y botón de purga para admin.
+
 ## [7.363.0] - 2026-08-27
 ### Entregas atrasadas visibles y fechas con reloj de Monterrey
 - Entregas: badge "Vencida · N días" y aviso resumen de entregas programadas fuera de fecha (C2).
