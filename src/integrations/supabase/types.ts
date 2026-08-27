@@ -3578,6 +3578,18 @@ export type Database = {
         }
         Relationships: []
       }
+      v_invoice_forklift_revenue: {
+        Row: {
+          forklift_id: string | null
+          invoice_id: string | null
+          is_e2e: boolean | null
+          net_mxn_share: number | null
+          paid_at: string | null
+          status: string | null
+          total_mxn_share: number | null
+        }
+        Relationships: []
+      }
       v_invoices_with_balance: {
         Row: {
           acuse_pdf_url: string | null

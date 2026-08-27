@@ -1,8 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
 import { invoiceKeys } from "@/features/invoices";
 import { supabase } from "@/integrations/supabase/client";
+import { toMxn } from "@/lib/money";
 
 type InvoiceSummaryRow = { id: string; subtotal: number; status: string };
+type InvoiceCurrencyRow = InvoiceSummaryRow & {
+  moneda?: string | null;
+  tipo_cambio?: number | string | null;
+};
+
+/**
+ * FIX B2: el resumen sumaba `subtotal` en crudo. Una factura en USD se
+ * contaba 1:1 contra un revenue esperado en pesos (como pagar una cuenta en
+ * pesos con billetes de dólar del mismo número). Normalizamos a MXN.
+ */
+function subtotalMxn(row: InvoiceCurrencyRow): number {
+  return toMxn(Number(row.subtotal ?? 0), row.moneda ?? null, row.tipo_cambio ?? null);
+}
 type InvoiceLine = { total?: number | null; unit_price?: number | null; quantity?: number | null };
 type PivotInvoice = InvoiceSummaryRow & { line_items?: unknown };
 export type PivotRow = {
@@ -55,14 +69,16 @@ export function combineInvoiceSummaries(
 ): InvoiceSummaryRow[] {
   const byId = new Map<string, InvoiceSummaryRow>();
   for (const row of direct ?? []) {
-    byId.set(row.id, row);
+    byId.set(row.id, { ...row, subtotal: subtotalMxn(row as InvoiceCurrencyRow) });
   }
   for (const row of pivot ?? []) {
     const invoice = row.invoices;
     if (!invoice || invoice.status === "cancelled") continue;
     const count = bookingsPerInvoice?.[invoice.id] ?? 1;
-    const subtotal =
+    const rawSubtotal =
       count > 1 ? attributedSubtotal(invoice, row.line_index, count) : invoice.subtotal;
+    const cur = invoice as InvoiceCurrencyRow;
+    const subtotal = toMxn(Number(rawSubtotal ?? 0), cur.moneda ?? null, cur.tipo_cambio ?? null);
     byId.set(invoice.id, { id: invoice.id, subtotal, status: invoice.status });
   }
   return Array.from(byId.values());
@@ -79,7 +95,7 @@ export function useContractFinancialSummary(bookingId: string) {
         // M-14: se selecciona `subtotal` (sin IVA) porque el consumidor lo
         // compara contra el revenue esperado del contrato, que es sin IVA.
         // Comparar contra `total` (con IVA) inflaba lo facturado.
-        .select("id, subtotal, status")
+        .select("id, subtotal, status, moneda, tipo_cambio")
         .eq("booking_id", bookingId)
         .neq("status", "cancelled");
       if (directErr) throw directErr;
@@ -88,7 +104,7 @@ export function useContractFinancialSummary(bookingId: string) {
       // `invoice_bookings` (reservas 2..n de una factura combinada).
       const { data: pivot, error: pivotErr } = await supabase
         .from("invoice_bookings")
-        .select("invoice_id, line_index, invoices(id, subtotal, status, line_items)")
+        .select("invoice_id, line_index, invoices(id, subtotal, status, line_items, moneda, tipo_cambio)")
         .eq("booking_id", bookingId);
       if (pivotErr) throw pivotErr;
 
