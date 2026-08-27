@@ -30,6 +30,9 @@ export default function BankReconciliationPage() {
   }, [manualAccountId, accounts]);
   const accountId = account?.id ?? null;
   const { data: lines, isLoading, isError: isErrorLines, refetch: refetchLines, isTruncated: isLinesTruncated } = useBankStatementLines(accountId);
+  // R4-29: el hook expone la bandera de truncado; el aviso se renderiza solo
+  // cuando la lista realmente alcanzó el tope (limit+1).
+  const truncatedRows = isLinesTruncated ? lines : null;
 
   return (
     <RoleGuard module="Conciliación Bancaria" minAccess="read">
@@ -86,7 +89,7 @@ export default function BankReconciliationPage() {
                   {/* R4-29: el aviso se muestra solo al alcanzar el tope; el hook
                       expone `isTruncated` con la misma condición para consumidores
                       que necesiten reaccionar al truncado. */}
-                  <ListTruncationNotice rows={isLinesTruncated ? lines : null} />
+                  <ListTruncationNotice rows={truncatedRows} />
                   {/* N8-r3: KPIs y tabla sin la fila extra del limit+1; el
                       crudo (`lines`) queda solo para el aviso. */}
                   <ReconciliationKpiCards lines={visibleListRows(lines)} currency={account?.currency ?? "MXN"} />
