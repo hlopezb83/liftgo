@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useParams } from "react-router";
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { NotesCard } from "@/components/domain/NotesCard";
+import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { DocumentIcon, MaintenanceIcon, ExpenseIcon, EditIcon } from "@/components/icons";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
@@ -134,6 +135,11 @@ export default function SupplierDetailPage() {
       <DocumentAttachments entityType="supplier" entityId={supplier.id} />
 
 
+
+      {/* FIX B5: los totales de abajo se calculan sobre listas con tope de
+          filas; sin este aviso el usuario creería que ve el total completo. */}
+      <ListTruncationNotice rows={bills} />
+      <ListTruncationNotice rows={maintenanceLogs} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Card>
