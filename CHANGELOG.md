@@ -1,3 +1,11 @@
+## 7.356.1 - 2026-08-27
+
+**Se restaura la suite E2E en CI**
+
+- Las pruebas E2E fallaban con "E2E seeding disabled on this environment": el permiso de datos de prueba quedó apagado tras R4-21.
+- `tests/e2e/global.setup.ts` ahora habilita `allow_e2e_seed` con la sesión admin antes de correr la suite.
+- El valor por defecto para entornos nuevos sigue siendo `false`.
+
 ## 7.349.0 - 2026-08-26
 
 **Bitácora, portal de clientes y control de acceso (fix-17 / fix-18)**
