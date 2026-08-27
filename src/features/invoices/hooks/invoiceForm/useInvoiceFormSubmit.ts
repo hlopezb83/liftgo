@@ -34,6 +34,22 @@ interface BuildPayloadArgs {
 
 const nn = (s: string | null | undefined): string | null => (s ? s : null);
 
+/**
+ * Periodo de facturación para facturas ligadas a una reserva.
+ * Si falta alguno de los extremos, se deriva del mes de la fecha de emisión
+ * (mismo criterio que el pre-llenado del formulario), porque la BD prohíbe
+ * guardar una factura con reserva y periodo nulo.
+ */
+export function resolveBillingPeriod(
+  start: string | null | undefined,
+  end: string | null | undefined,
+  issueDate: Date | null | undefined,
+): { start: string; end: string } {
+  if (start && end) return { start, end };
+  const bounds = monthBounds(issueDate ?? nowMty());
+  return { start: start || bounds.start, end: end || bounds.end };
+}
+
 function buildCfdiPayload(cfdi: CfdiFormValues) {
   const isGlobal = (cfdi.receptorRfc || "").toUpperCase() === "XAXX010101000";
   return {
