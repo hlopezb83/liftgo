@@ -1,3 +1,10 @@
+## 7.359.3 - 2026-08-27
+
+**Pruebas E2E: el seeding ya no se apaga a media corrida**
+
+- `tests/e2e/fixtures/seed.ts` reintenta el seeding tras re-habilitar `allow_e2e_seed` si el RPC responde "seeding disabled".
+- `tests/e2e/global.teardown.ts` no apaga el interruptor en corridas por shards (`--shard` o `E2E_KEEP_SEED_FLAG=1`).
+
 ## 7.359.2 - 2026-08-27
 
 **Datos de prueba: el interruptor de seeding queda apagado (fix-29 / R5-07)**

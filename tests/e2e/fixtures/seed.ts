@@ -55,11 +55,43 @@ function buildScope(testInfo: TestInfo): string {
   return `w${worker}-${testId}-${rand}`;
 }
 
+/**
+ * Vuelve a encender `allow_e2e_seed` si algo lo apagó a media corrida.
+ * Con `--shard`, el teardown global de un shard puede apagar el interruptor
+ * mientras otro shard sigue sembrando: por eso el seeding se auto-repara.
+ */
+async function enableSeedFlag(client: SupabaseClient): Promise<void> {
+  const { data: rows, error } = await client
+    .from("company_settings")
+    .select("id")
+    .limit(1);
+  if (error) throw new Error(`[e2e] No se pudo leer company_settings: ${error.message}`);
+  const row = rows?.[0];
+  if (!row) throw new Error("[e2e] No existe fila en company_settings para habilitar el seed.");
+  const { error: updateError } = await client
+    .from("company_settings")
+    .update({ allow_e2e_seed: true })
+    .eq("id", row.id);
+  if (updateError) {
+    throw new Error(`[e2e] No se pudo habilitar allow_e2e_seed: ${updateError.message}`);
+  }
+}
+
 export async function seedScenario(page: Page, scope: string): Promise<SeedIds> {
   await page.goto("/");
   const client = await clientFromPage(page);
   const { data, error } = await client.rpc("e2e_seed_scenario", { p_scope: scope });
-  if (error) throw new Error(`e2e_seed_scenario failed: ${error.message}`);
+  if (error) {
+    if (!/seeding disabled/i.test(error.message)) {
+      throw new Error(`e2e_seed_scenario failed: ${error.message}`);
+    }
+    await enableSeedFlag(client);
+    const retry = await client.rpc("e2e_seed_scenario", { p_scope: scope });
+    if (retry.error) {
+      throw new Error(`e2e_seed_scenario failed (tras re-habilitar): ${retry.error.message}`);
+    }
+    return retry.data as SeedIds;
+  }
   return data as SeedIds;
 }
 
