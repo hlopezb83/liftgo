@@ -86,10 +86,11 @@ async function invokeStampFn(
     body = JSON.parse(text);
   } catch { /* text-only response */ }
   // 200 → success. 409 → already stamped → éxito idempotente SOLO para stamp.
-  // M-6: para operaciones de cancelación (cancel, cancel_nc, cancel_rep) un
-  // 409 significa que el documento no está en estado cancelable — NO es un
-  // éxito idempotente y reintentar daría el mismo 409 para siempre, así que
-  // el caller lo trata como fallo terminal (exhausted).
+  // M-6: para `cancel` un 409 = documento no cancelable → fallo terminal.
+  // R5-02: para `cancel_nc`/`cancel_rep` un 409 suele ser el PROPIO claim
+  // 'pending' dejado por un intento anterior que murió por timeout tras
+  // llamar al PAC; el caller lo reprograma como deferral SIN consumir
+  // intento y dispara refresh-cancellation-status para reconciliar.
   return {
     ok: res.ok || (res.status === 409 && operation === "stamp"),
     status: res.status,
