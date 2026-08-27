@@ -1,5 +1,16 @@
 [
   {
+    "version": "7.365.1",
+    "date": "2026-08-27",
+    "type": "patch",
+    "title": "Bitácora: se corrige el fallo al guardar movimientos sin sesión de pruebas",
+    "description": "El registro automático de la bitácora podía quedarse sin la marca de origen y rechazaba el movimiento, lo que además tumbaba el arranque de la base de datos en el entorno de pruebas.",
+    "changes": [
+      "Bitácora: la marca de 'registro de prueba' siempre se guarda como sí o no, nunca vacía.",
+      "Pruebas automatizadas: la base de datos vuelve a arrancar y las 21 suites de seguridad pueden ejecutarse."
+    ]
+  },
+  {
     "version": "7.365.0",
     "date": "2026-08-27",
     "type": "minor",

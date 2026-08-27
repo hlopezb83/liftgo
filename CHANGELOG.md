@@ -1,3 +1,9 @@
+## [7.365.1] - 2026-08-27
+### Fix: `audit_trigger_fn()` insertaba `is_e2e` NULL
+- `current_setting('app.e2e_seed', true)` devuelve NULL fuera de sesiones E2E; `false OR NULL = NULL` dejaba `v_is_e2e` en NULL y el INSERT violaba el NOT NULL de `audit_logs.is_e2e` (SQLSTATE 23502).
+- Rompía `supabase db start` en CI (seed.sql sobre `company_settings`) → 0/21 suites SQL smoke.
+- Todos los predicados del trigger van ahora envueltos en `coalesce(..., false)`; `v_source` con `coalesce(..., 'system')`.
+
 ## [7.365.0] - 2026-08-27
 ### Ronda D de auditoría: truncamiento, monedas y drift de centavos
 - `useDamageRecords`: `.limit(LIST_FETCH_LIMIT)` — la lista de daños se truncaba en 1000 filas sin aviso y subestimaba los costos en reportes (D1).
