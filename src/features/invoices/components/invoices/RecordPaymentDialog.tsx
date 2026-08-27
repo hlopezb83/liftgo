@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { PAYMENT_METHODS } from "@/features/invoices/lib/paymentMethods";
 import { FORMA_PAGO, MONEDA } from "@/lib/domain/satCatalogs";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { nowMty } from "@/lib/utils";
 import { useRecordPaymentForm } from "../../hooks/invoices/useRecordPaymentForm";
 
 interface Props {
@@ -72,7 +73,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
             label="Fecha"
             date={date}
             onSelect={(d) => { if (d) setDate(d); }}
-            disabled={{ after: new Date() }}
+            disabled={{ after: nowMty() }}
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
