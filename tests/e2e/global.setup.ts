@@ -65,6 +65,9 @@ setup("authenticate as admin", async ({ page, baseURL }) => {
   const session = await signInViaApi(email, password);
   // FAIL LOUDLY si la cuenta configurada es del Portal de Clientes.
   await assertIsStaffUser(session, email);
+  await ensureE2eSeedEnabled(session.access_token);
+
+
 
   mkdirSync(dirname(STORAGE_PATH), { recursive: true });
   writeFileSync(STORAGE_PATH, JSON.stringify(buildStorageState(session, url), null, 2));
