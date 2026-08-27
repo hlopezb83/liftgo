@@ -5,7 +5,7 @@ import { Untranslated } from "@/components/ui/Untranslated";
 import { STATUS_LABELS } from "@/lib/constants";
 import { toYMD } from "@/lib/date/toYMD";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { formatDateDisplay, formatDateRange, parseDateLocal } from "@/lib/utils";
+import { formatDateDisplay, formatDateRange, nowMty, parseDateLocal } from "@/lib/utils";
 import { quoteStatusLabel as quoteLabel } from "../constants";
 import { isPublicoGeneral } from "../hooks/quoteDetail/useQuoteDetailData";
 
@@ -76,7 +76,10 @@ export function buildQuotesColumns<Q extends {
         const q = row.original;
         // R7 Bloque 19b: badge "Vencida" para cotizaciones enviadas cuya vigencia pasó.
         const validUntil = q.valid_until ? parseDateLocal(q.valid_until) : null;
-        const today = parseDateLocal(toYMD(new Date()));
+        // FIX B4: `new Date()` usaba el reloj/TZ del navegador; con un equipo mal
+        // configurado la cotización se veía vencida un día antes. `nowMty()` fija
+        // el "hoy" del negocio (America/Monterrey).
+        const today = parseDateLocal(toYMD(nowMty()));
         const isExpired = q.status === "sent" && !!validUntil && !!today && validUntil.getTime() < today.getTime();
         return (
           <div className="flex items-center gap-1.5">
