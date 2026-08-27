@@ -16,12 +16,12 @@ import { useAuditLogs, usePurgeE2eAuditLogs, useRevertAuditLog } from "../hooks/
 import type { AuditLog, AuditOrigin } from "../hooks/useAuditLogs";
 
 // v7.364.0: los rastros de las pruebas automatizadas se ocultan por defecto.
-const ORIGIN_OPTIONS: { value: AuditOrigin; label: string }[] = [
+const ORIGIN_OPTIONS: { value: string; label: string }[] = [
   { value: "default", label: "Usuarios y sistema" },
   { value: "user", label: "Solo usuarios" },
   { value: "system", label: "Solo sistema" },
   { value: "e2e", label: "Solo pruebas" },
-  { value: "all", label: "Todos los orígenes" },
+  { value: "any", label: "Todos los orígenes" },
 ];
 
 export default function AuditTrailPage() {
@@ -47,7 +47,9 @@ export default function AuditTrailPage() {
     },
   });
 
-  const origin: AuditOrigin = values.origin === "all"
+  // `useTableFilters` usa "all" como "sin filtro"; ahí aplica el default
+  // (ocultar pruebas). "any" es la opción explícita de ver todo.
+  const origin: AuditOrigin = values.origin === "any"
     ? "all"
     : ORIGIN_OPTIONS.some((o) => o.value === values.origin)
       ? (values.origin as AuditOrigin)
