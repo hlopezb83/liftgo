@@ -58,7 +58,10 @@ export async function handleCancelCfdi(
     await supabaseRef
       .from("invoices")
       .update({ cancellation_status: "none" })
-      .eq("id", invoiceIdRef);
+      .eq("id", invoiceIdRef)
+      // R5-13: liberar solo si el claim sigue 'pending' (patrón
+      // cancel-credit-note): evita pisar un estado ya reconciliado.
+      .eq("cancellation_status", "pending");
   };
 
   try {
