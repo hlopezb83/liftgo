@@ -1,3 +1,4 @@
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { SearchIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -38,18 +39,24 @@ export default function CRMClosedPage() {
           }
         />
 
-        <Tabs defaultValue="won">
-          <TabsList>
-            <TabsTrigger value="won">Ganados ({s.metrics.won.length})</TabsTrigger>
-            <TabsTrigger value="lost">Perdidos ({s.metrics.lost.length})</TabsTrigger>
-          </TabsList>
-          <TabsContent value="won" className="mt-4">
-            <ClosedTable rows={s.wonRows} kind="won" isLoading={s.isLoading} onConvert={canConvert ? s.handleConvert : undefined} onViewCustomer={handleViewCustomer} />
-          </TabsContent>
-          <TabsContent value="lost" className="mt-4">
-            <ClosedTable rows={s.lostRows} kind="lost" isLoading={s.isLoading} />
-          </TabsContent>
-        </Tabs>
+        {/* FIX B3: sin esto, un fallo de carga se veía como historial vacío. */}
+        {s.isError ? (
+          <QueryErrorState entity="el histórico de deals cerrados" onRetry={s.refetch} />
+        ) : (
+          <Tabs defaultValue="won">
+            <TabsList>
+              <TabsTrigger value="won">Ganados ({s.metrics.won.length})</TabsTrigger>
+              <TabsTrigger value="lost">Perdidos ({s.metrics.lost.length})</TabsTrigger>
+            </TabsList>
+            <TabsContent value="won" className="mt-4">
+              <ClosedTable rows={s.wonRows} kind="won" isLoading={s.isLoading} onConvert={canConvert ? s.handleConvert : undefined} onViewCustomer={handleViewCustomer} />
+            </TabsContent>
+            <TabsContent value="lost" className="mt-4">
+              <ClosedTable rows={s.lostRows} kind="lost" isLoading={s.isLoading} />
+            </TabsContent>
+          </Tabs>
+        )}
+
       </PageContainer>
     </PageTransition>
   );

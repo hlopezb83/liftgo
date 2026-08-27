@@ -1,6 +1,8 @@
 import { ReadOnlyLineItemsTable } from "@/components/domain/ReadOnlyLineItemsTable";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
+import { WarnIcon } from "@/components/icons";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import type { BookingWithForklift } from "@/features/bookings";
 import type { useQuote } from "@/features/quotes";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
@@ -36,6 +38,8 @@ interface Derived {
   creditedAmount: number;
   total: number;
   balance: number;
+  /** FIX B6: pagos en otra moneda que no se pudieron convertir. */
+  unconvertiblePayments: number;
   showCfdiError: boolean;
   showCollectionNotes: boolean;
   visibility: Visibility;
@@ -57,7 +61,7 @@ export function InvoiceDetailBody({
   invoice, id, derived, actions, userRole, sourceQuote, sourceBookings, refetch,
 }: Props) {
   const { paymentList, lineItems, cfdiStatus, totalPaid, creditedAmount, total, balance,
-    showCfdiError, showCollectionNotes, visibility, ppdStamped } = derived;
+    unconvertiblePayments, showCfdiError, showCollectionNotes, visibility, ppdStamped } = derived;
 
   return (
     <>
@@ -91,6 +95,16 @@ export function InvoiceDetailBody({
           />
         }
       />
+
+      {unconvertiblePayments > 0 && (
+        <Alert variant="destructive">
+          <WarnIcon className="h-4 w-4" />
+          <AlertDescription>
+            {unconvertiblePayments} pago(s) están registrados en otra moneda sin tipo de cambio,
+            por lo que no se incluyen en el saldo. Captura el tipo de cambio para que el saldo cuadre.
+          </AlertDescription>
+        </Alert>
+      )}
 
       <InvoiceDetailIdentifiers
         cfdiUuid={invoice.cfdi_uuid}

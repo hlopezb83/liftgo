@@ -26,7 +26,11 @@ export function useSupplierBillColumns(): ColumnDef<SupplierBillListItem>[] {
     {
       id: "due_date", header: "Vence",
       accessorFn: (b) => b.due_date ?? "",
-      cell: ({ row }) => formatDateDisplay(row.original.due_date),
+      // FIX A7: sin fecha de vencimiento la factura se veía como si estuviera
+      // al corriente; ahora se marca para que se capture.
+      cell: ({ row }) => row.original.due_date
+        ? formatDateDisplay(row.original.due_date)
+        : <span className="text-warning">Sin vencimiento</span>,
     },
     {
       id: "total", header: "Total", accessorKey: "total", meta: { kind: "money" },
@@ -87,7 +91,7 @@ export function renderSupplierBillMobileCard(
           <span className="font-mono font-semibold">{formatCurrencyWithCode(Number(b.balance), b.currency)}</span>
         </div>
         <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>Vence: {formatDateDisplay(b.due_date)}</span>
+          <span>{b.due_date ? `Vence: ${formatDateDisplay(b.due_date)}` : "Sin vencimiento"}</span>
           <span>{formatCurrencyWithCode(Number(b.total), b.currency)}</span>
         </div>
       </CardContent>

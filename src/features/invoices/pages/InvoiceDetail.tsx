@@ -17,12 +17,14 @@ import { useInvoiceBookings } from "../hooks/invoices/useInvoiceBookings";
 import { useInvoice } from "../hooks/invoices/useInvoices";
 import { usePayments } from "../hooks/usePayments";
 import { computeInvoiceVisibility } from "../lib/invoiceVisibility";
+import { type PaymentLike, sumPaymentsInInvoiceCurrency } from "../lib/paymentCurrency";
 
 function computeCreditedAmount(creditNotes: Array<{ cfdi_status: string | null; status: string; cancellation_status: string | null; total: number }>): number {
   return creditNotes
     .filter((cn) => cn.cfdi_status === "stamped" && cn.status !== "cancelled" && cn.cancellation_status !== "accepted")
     .reduce((s, cn) => s + Number(cn.total), 0);
 }
+
 
 function deriveInvoiceData(
   invoice: NonNullable<ReturnType<typeof useInvoice>["data"]>,
@@ -33,7 +35,11 @@ function deriveInvoiceData(
   const paymentList = payments ?? [];
   const lineItems = parseLineItems<LineItem>(invoice.line_items);
   const cfdiStatus = invoice.cfdi_status ?? "pending";
-  const totalPaid = paymentList.reduce((sum, p) => sum + Number(p.amount), 0);
+  const { totalPaid, unconvertible: unconvertiblePayments } = sumPaymentsInInvoiceCurrency(
+    paymentList as ReadonlyArray<PaymentLike>,
+    invoice.moneda,
+    invoice.tipo_cambio,
+  );
   const creditedAmount = computeCreditedAmount(creditNotes ?? []);
   const total = Number(invoice.total);
   const visibility = computeInvoiceVisibility(
@@ -41,7 +47,7 @@ function deriveInvoiceData(
     company as Parameters<typeof computeInvoiceVisibility>[1],
   );
   return {
-    paymentList, lineItems, cfdiStatus, totalPaid, creditedAmount, total,
+    paymentList, lineItems, cfdiStatus, totalPaid, creditedAmount, total, unconvertiblePayments,
     balance: total - totalPaid - creditedAmount,
     showCfdiError: Boolean(invoice.cfdi_error_message) && cfdiStatus !== "stamped",
     showCollectionNotes: !["paid", "draft"].includes(invoice.status),

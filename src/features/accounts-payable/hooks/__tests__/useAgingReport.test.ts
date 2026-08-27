@@ -124,15 +124,17 @@ describe("useAgingReport", () => {
 describe("useAgingReport — M-14", () => {
   useFakeTimeMty("2026-06-13T12:00:00");
 
-  it("M-14a: facturas sin due_date caen en Corriente (no se envejecen por issue_date)", () => {
+  it("A7: facturas sin due_date van a su propio bucket (no a Corriente ni envejecidas)", () => {
     useSupplierBillsMock.mockReturnValue({
       data: [bill({ due_date: null, issue_date: "2025-01-01", balance: 900 })],
       isLoading: false,
     });
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useAgingReport(), { wrapper: Wrapper });
-    expect(result.current.totals.current).toBe(900);
+    expect(result.current.totals.no_due).toBe(900);
+    expect(result.current.totals.current).toBe(0);
     expect(result.current.totals.d90_plus).toBe(0);
+    expect(result.current.noDueDateCount).toBe(1);
   });
 
   it("M-14c: excluye moneda foránea sin tipo de cambio válido", () => {

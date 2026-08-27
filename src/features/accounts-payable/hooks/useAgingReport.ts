@@ -14,6 +14,8 @@ export interface AgingRow {
   d31_60: number;
   d61_90: number;
   d90_plus: number;
+  /** FIX A7: facturas sin fecha de vencimiento; no son "Corriente". */
+  no_due: number;
   total: number;
 }
 
@@ -23,6 +25,7 @@ export interface AgingTotals {
   d31_60: number;
   d61_90: number;
   d90_plus: number;
+  no_due: number;
   total: number;
 }
 
@@ -38,15 +41,16 @@ function bucketKey(overdueDays: number): keyof Omit<AgingRow, "supplierId" | "su
   return "d90_plus";
 }
 
-const EMPTY_TOTALS: AgingTotals = { current: 0, d1_30: 0, d31_60: 0, d61_90: 0, d90_plus: 0, total: 0 };
+const EMPTY_TOTALS: AgingTotals = { current: 0, d1_30: 0, d31_60: 0, d61_90: 0, d90_plus: 0, no_due: 0, total: 0 };
 
 export function useAgingReport() {
   const { data, isLoading, isError, refetch } = useSupplierBills();
 
-  const { rows, totals, fxMissingCount } = (() => {
+  const { rows, totals, fxMissingCount, noDueDateCount } = (() => {
     const todayYmd = toYMD(nowMty()) ?? "";
     const byId = new Map<string, AgingRow>();
     let fxMissingCount = 0;
+    let noDueDateCount = 0;
 
     for (const b of data ?? []) {
       // R7 Bloque 6: normalizamos a MXN para no mezclar monedas en buckets/totales.
@@ -63,12 +67,20 @@ export function useAgingReport() {
       const supplierName = b.suppliers?.name ?? "Sin proveedor";
       const row = byId.get(supplierId) ?? {
         supplierId, supplierName,
-        current: 0, d1_30: 0, d31_60: 0, d61_90: 0, d90_plus: 0, total: 0,
+        current: 0, d1_30: 0, d31_60: 0, d61_90: 0, d90_plus: 0, no_due: 0, total: 0,
       };
 
-      // M-14a: sin due_date la factura es "Corriente" — envejecer desde
-      // issue_date inflaba artificialmente los buckets vencidos.
-      const key = b.due_date ? bucketKey(diffDays(todayYmd, b.due_date)) : "current";
+      // FIX A7: antes, sin due_date la factura caía en "Corriente" y se veía
+      // sana aunque nadie supiera cuándo se paga. Ahora va a su propia columna
+      // "Sin vencimiento" para que se capture la fecha faltante.
+      // (M-14a: envejecerla desde issue_date inflaba los buckets vencidos.)
+      let key: keyof Omit<AgingRow, "supplierId" | "supplierName" | "total">;
+      if (b.due_date) {
+        key = bucketKey(diffDays(todayYmd, b.due_date));
+      } else {
+        key = "no_due";
+        noDueDateCount += 1;
+      }
       // M-14b: acumular con sumMoney (centavos) sin drift IEEE-754.
       row[key] = sumMoney([row[key], balance]);
       row.total = sumMoney([row.total, balance]);
@@ -83,14 +95,15 @@ export function useAgingReport() {
         d31_60: sumMoney([acc.d31_60, r.d31_60]),
         d61_90: sumMoney([acc.d61_90, r.d61_90]),
         d90_plus: sumMoney([acc.d90_plus, r.d90_plus]),
+        no_due: sumMoney([acc.no_due, r.no_due]),
         total: sumMoney([acc.total, r.total]),
       }),
       EMPTY_TOTALS,
     );
 
-    return { rows, totals, fxMissingCount };
+    return { rows, totals, fxMissingCount, noDueDateCount };
   })();
 
   // rawBills: lista cruda (limit+1) para ListTruncationNotice en la página (H-10b).
-  return { rows, totals, fxMissingCount, rawBills: data, isLoading, isError, refetch };
+  return { rows, totals, fxMissingCount, noDueDateCount, rawBills: data, isLoading, isError, refetch };
 }
