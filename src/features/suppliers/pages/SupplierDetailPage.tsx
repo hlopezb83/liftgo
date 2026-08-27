@@ -15,6 +15,8 @@ import { DocumentAttachments, useForkliftMap } from "@/features/fleet";
 import { useMaintenanceLogs } from "@/features/maintenance";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { toMxn } from "@/lib/money";
+
 import { formatDateDisplay } from "@/lib/utils";
 import { SupplierBankAccountsSection } from "../components/suppliers/SupplierBankAccountsSection";
 import { SupplierContactCard } from "../components/suppliers/SupplierContactCard";
@@ -36,6 +38,9 @@ export default function SupplierDetailPage() {
   const supplier = suppliers?.find((s) => s.id === id);
   const [editOpen, setEditOpen] = useState(false);
 
+  // FIX B1: el total de gastos sumaba `total` en crudo, mezclando facturas en
+  // USD con las de MXN (como sumar dólares y pesos en la misma cuenta).
+  // Ahora cada factura se convierte a MXN con su tipo de cambio.
   const linkedExpenses: LinkedExpense[] = (bills || [])
     .filter((b) => b.supplier_id === id && b.status !== "cancelled")
     .map((b) => ({
@@ -43,8 +48,9 @@ export default function SupplierDetailPage() {
       expense_date: b.issue_date,
       category: b.category ?? "—",
       description: b.description,
-      amount: Number(b.total),
+      amount: toMxn(Number(b.total), b.currency, b.exchange_rate),
     }));
+
   const linkedMaintenance = (maintenanceLogs || []).filter((m) => m.supplier_id === id);
 
   const totalExpenses = linkedExpenses.reduce((sum, e) => sum + e.amount, 0);

@@ -1,5 +1,5 @@
 import { parseISO } from "date-fns";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { z } from "zod";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
@@ -10,6 +10,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { computeFleetAvailability, useServerTodayMty } from "@/features/availability";
+import { useBookings } from "@/features/bookings";
 import { useAvailableForklifts } from "@/features/fleet";
 import type { Tables } from "@/integrations/supabase/types";
 import type { RentalLineMeta } from "@/lib/domain/lineItems";
@@ -18,6 +20,10 @@ import { zodResolver } from "@/lib/forms/zodResolver";
 
 type Forklift = Tables<"forklifts">;
 type EquipmentModel = Tables<"equipment_models">;
+
+/** Estados en los que una unidad NO puede asignarse a una cotización. */
+const BLOCKED_STATUSES = new Set(["maintenance", "retired", "sold", "out_of_service"]);
+
 
 export interface AssignmentResult {
   forkliftId: string;
@@ -98,6 +104,26 @@ export function EquipmentAssignmentDialog({
     startDate && endDate ? { from: parseISO(startDate), to: parseISO(endDate) } : undefined,
   );
   const rpcAvailableIds = datesSelected ? new Set(availableForklifts.map((f) => f.id)) : null;
+  // FIX A5: el `status` crudo se desincroniza (unidades `rented` cuya reserva
+  // ya terminó y nadie cerró la devolución). Antes quedaban fuera del selector
+  // aunque estuvieran libres. Usamos la misma definición operativa que Flota:
+  // los estados explícitos (maintenance/retired/sold/out_of_service) mandan y
+  // el resto se valida contra la RPC de disponibilidad de la ventana elegida.
+  const { data: assignmentBookings } = useBookings();
+  const todayYmd = useServerTodayMty();
+  const rentedIds = useMemo(
+    () =>
+      assignmentBookings
+        ? computeFleetAvailability(forklifts, assignmentBookings, todayYmd)?.rentedForkliftIds
+        : undefined,
+    [forklifts, assignmentBookings, todayYmd],
+  );
+  const isSelectable = (f: Forklift) => {
+    if (BLOCKED_STATUSES.has(f.status)) return false;
+    if (rpcAvailableIds) return true; // la RPC ya validó la ventana de fechas
+    return rentedIds ? !rentedIds.has(f.id) : f.status === "available";
+  };
+
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -118,12 +144,13 @@ export function EquipmentAssignmentDialog({
     );
     return forklifts.filter(
       (f) =>
-        f.status === "available" &&
+        isSelectable(f) &&
         (!rpcAvailableIds || rpcAvailableIds.has(f.id)) &&
         f.manufacturer === model.manufacturer &&
         f.model === model.model &&
         !alreadyAssigned.has(f.id),
     );
+
   };
 
   // Feedback anticipado: cuántas unidades ya tienen equipo y qué modelos se
