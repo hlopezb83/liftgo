@@ -312,7 +312,10 @@ async function buildPlan(supabase: any): Promise<{
         lines.push({ ...baseLine, eligible: false, reason: "no_customer" });
         break;
       }
-      if (monthlyRate === 0) {
+      // R4-32: sólo se omite cuando NO hay tarifa configurada (null en la
+      // reserva y en la maestra). Una tarifa 0 pactada se factura por $0.
+      if (configuredRate == null) {
+
         lines.push({ ...baseLine, eligible: false, reason: "no_monthly_rate" });
         break;
       }
