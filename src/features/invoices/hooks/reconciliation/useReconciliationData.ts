@@ -2,7 +2,7 @@ import { queryOptions, useQuery } from "@tanstack/react-query";
 import { isFxMissing } from "@/features/cash-flow";
 import { supabase } from "@/integrations/supabase/client";
 import { toMxn } from "@/lib/money";
-import { e2eVisibilityFilter } from "@/lib/supabase/constants";
+import { e2eVisibilityFilter, LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import { invoiceKeys } from "../../lib/queryKeys";
 
 export interface ReconciliationRow {

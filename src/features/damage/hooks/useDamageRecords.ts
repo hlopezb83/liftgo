@@ -5,6 +5,7 @@ import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { callRpc } from "@/lib/rpc";
+import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 // FIX-R3-05: costos de reparación alimentan los reportes.
 export type { DamageRecord } from "@/types/rental";
 
