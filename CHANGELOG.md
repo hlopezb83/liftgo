@@ -1,3 +1,10 @@
+## [7.363.0] - 2026-08-27
+### Entregas atrasadas visibles y fechas con reloj de Monterrey
+- Entregas: badge "Vencida · N días" y aviso resumen de entregas programadas fuera de fecha (C2).
+- Entregas: columna "Tipo" en escritorio y filtros de búsqueda, estado y tipo con `useTableFilters` (C2).
+- CRM: `useCRMMetrics` usa `nowMty()` para los cortes MTD y 30 días (C3).
+- Pagos (cliente y proveedor) y factura global: validación de "no futuro" con `nowMty()` (C4).
+
 ## [7.362.0] - 2026-08-27
 ### Cierre de auditoría: errores de carga visibles, saldos por moneda y facturas sin vencimiento
 - CRM cerrados: si la consulta falla se muestra el error con reintento en vez de listas vacías (B3).
