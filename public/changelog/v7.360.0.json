@@ -1,0 +1,12 @@
+{
+  "version": "7.360.0",
+  "date": "2026-08-27",
+  "type": "minor",
+  "title": "Panel: el Flujo de Efectivo vuelve a mostrar lo cobrado en todos los meses",
+  "description": "La barra 'Pagado' de la gráfica de Flujo de Efectivo solo mostraba agosto porque sumaba el monto en pesos de cada pago, un dato que se empezó a guardar hace poco y que estaba vacío en los pagos anteriores. Se rellenaron los pagos históricos con su monto en pesos y el Panel ahora lo calcula al momento cuando el dato falte.",
+  "changes": [
+    "Relleno único de payments.amount_mxn en pagos históricos usando el tipo de cambio del pago, o el de su factura, y 1 a 1 cuando el pago es en MXN.",
+    "get_dashboard_stats: paid_cte usa COALESCE(p.amount_mxn, p.amount * tipo de cambio) con precedencia pago → factura → 1 solo si el pago es MXN.",
+    "Se conservan SECURITY DEFINER, SET search_path = public, el guard de roles y la ausencia de EXECUTE para anon."
+  ]
+}
