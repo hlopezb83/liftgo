@@ -183,7 +183,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     form, isEdit, id, fromQuoteId,
     invoiceNumber: existing?.invoice_number ?? null,
     // R4-25: versión al abrir el formulario, para bloqueo optimista al guardar.
-    invoiceVersion: existing?.version ?? null,
+    invoiceVersion: invoiceVersionRef.current,
     customers, availableBookings,
     sourceQuote,
     saleAssignmentGuard,
