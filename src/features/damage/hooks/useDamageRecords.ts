@@ -5,17 +5,22 @@ import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { callRpc } from "@/lib/rpc";
+import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 // FIX-R3-05: costos de reparación alimentan los reportes.
 export type { DamageRecord } from "@/types/rental";
 
 type DamageListRow = Awaited<ReturnType<typeof fetchDamageList>>[number];
 
 async function fetchDamageList() {
+  // Ronda D·#1: sin `.limit()` PostgREST truncaba en 1000 filas en silencio y
+  // los reportes de costos de daños subestimaban el total. Pedimos limit+1 para
+  // poder detectar truncamiento aguas arriba.
   const { data, error } = await supabase
     .from("damage_records")
     .select("*, forklifts(name, model), customers(name)")
     .is("deleted_at", null)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(LIST_FETCH_LIMIT);
   if (error) throw error;
   return data ?? [];
 }

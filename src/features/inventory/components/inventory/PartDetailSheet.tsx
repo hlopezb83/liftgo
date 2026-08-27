@@ -1,4 +1,3 @@
-import { format } from "date-fns";
 import { Activity, useState } from "react";
 import { DetailRow } from "@/components/domain/DetailRow";
 import { EditIcon, DeleteIcon, InventoryIcon, Hash, Tag, Layers, WarnIcon, CostIcon, LocationIcon } from "@/components/icons";
@@ -8,7 +7,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { RoleGuard } from "@/layouts/RoleGuard";
-import { APP_LOCALE } from "@/lib/format/dateFormats";
+import { formatDateTimeMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { useDeletePart, type PartInventory } from "../../hooks/usePartsInventory";
 import { partCategoryLabel } from "../../lib/partCategories";
@@ -88,8 +87,8 @@ export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
 
           <Separator />
           <div className="text-xs text-muted-foreground space-y-1">
-            <p>Creado: {format(new Date(part.created_at), "dd MMM yyyy, HH:mm", { locale: APP_LOCALE })}</p>
-            <p>Actualizado: {format(new Date(part.updated_at), "dd MMM yyyy, HH:mm", { locale: APP_LOCALE })}</p>
+            <p>Creado: {formatDateTimeMty(part.created_at)}</p>
+            <p>Actualizado: {formatDateTimeMty(part.updated_at)}</p>
           </div>
 
           <Separator />

@@ -8,6 +8,7 @@ import {
   type PartInventory,
 } from "@/features/inventory";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { roundMoney, sumMoney } from "@/lib/money";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { AddMaintenancePartForm } from "./AddMaintenancePartForm";
 
@@ -56,7 +57,9 @@ export function MaintenancePartsSection({ maintenanceLogId, currentCost, readOnl
     );
   };
 
-  const partsCost = usedParts.reduce((sum, p) => sum + p.quantity_used * p.cost_at_time, 0);
+  // Ronda D·#3: acumular con sumMoney (centavos) para evitar drift IEEE-754
+  // en órdenes con muchas refacciones.
+  const partsCost = sumMoney(usedParts.map((p) => roundMoney(p.quantity_used * p.cost_at_time)));
 
   return (
     <div className="space-y-4">

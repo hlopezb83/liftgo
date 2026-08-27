@@ -2,7 +2,7 @@ import { queryOptions, useQuery } from "@tanstack/react-query";
 import { isFxMissing } from "@/features/cash-flow";
 import { supabase } from "@/integrations/supabase/client";
 import { toMxn } from "@/lib/money";
-import { e2eVisibilityFilter } from "@/lib/supabase/constants";
+import { e2eVisibilityFilter, LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import { invoiceKeys } from "../../lib/queryKeys";
 
 export interface ReconciliationRow {
@@ -98,7 +98,10 @@ function buildReconciliationQuery(filters: ReconciliationFilters) {
         .or(e2eVisibilityFilter())
         .gte("issued_at", filters.from)
         .lte("issued_at", filters.to)
-        .order("invoice_number", { ascending: true });
+        .order("invoice_number", { ascending: true })
+        // Ronda D·#2: sin límite explícito PostgREST cortaba en 1000 filas y el
+        // total timbrado / detección de huecos de folio quedaba incompleto.
+        .limit(LIST_FETCH_LIMIT);
 
       if (filters.fiscalState === "stamped") q = q.eq("cfdi_status", "stamped");
       else if (filters.fiscalState === "cancelled") q = q.eq("cfdi_status", "cancelled");

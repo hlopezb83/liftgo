@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { useMaintenanceParts } from "@/features/inventory";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { roundMoney, sumMoney } from "@/lib/money";
 import { useMaintenanceLabor } from "../../hooks/maintenance/useMaintenanceLabor";
 
 interface Props {
@@ -16,14 +17,15 @@ export function WorkOrderCloseSummary({ maintenanceLogId, storedCost, manualCost
   const { data: parts = [] } = useMaintenanceParts(maintenanceLogId);
   const { data: labor = [] } = useMaintenanceLabor(maintenanceLogId);
 
-  const partsCost = parts.reduce((sum, p) => sum + p.quantity_used * p.cost_at_time, 0);
+  // Ronda D·#3: sumas monetarias con sumMoney (centavos) para evitar drift IEEE-754.
+  const partsCost = sumMoney(parts.map((p) => roundMoney(p.quantity_used * p.cost_at_time)));
   const laborHours = labor.reduce((sum, l) => sum + Number(l.hours ?? 0), 0);
-  const laborCost = labor.reduce((sum, l) => sum + Number(l.total_cost ?? 0), 0);
+  const laborCost = sumMoney(labor.map((l) => Number(l.total_cost ?? 0)));
   // R13-FE-02 (P1): `cost` ya incluye refacciones + mano de obra (trigger
   // recalc_maintenance_log_cost). Si manual_cost = 0, el componente "otros" es
   // el residual — nunca el cost completo, que duplicaría parts + labor.
-  const otherCost = manualCost > 0 ? manualCost : Math.max(0, storedCost - partsCost - laborCost);
-  const total = partsCost + laborCost + otherCost;
+  const otherCost = manualCost > 0 ? manualCost : Math.max(0, sumMoney([storedCost, -partsCost, -laborCost]));
+  const total = sumMoney([partsCost, laborCost, otherCost]);
 
   const rows = [
     { label: `Refacciones (${parts.length})`, value: partsCost },
