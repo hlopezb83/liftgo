@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.358.0",
+    "date": "2026-08-27",
+    "type": "minor",
+    "title": "Indicadores financieros y tablero sin datos de prueba ni mezcla de monedas",
+    "description": "Los indicadores financieros y el tablero ya no se distorsionan con datos de prueba ni con mezcla de monedas. Los KPIs (MRR, DSO, vencido) excluyen registros de prueba y unidades eliminadas; en el flujo de efectivo las notas de crédito en dólares se convierten a pesos con el tipo de cambio de su factura y solo cuentan las notas realmente vigentes; el ingreso por unidad también se convierte a pesos. Además, una factura con pago parcial ya puede pasar a \"pagada\" y revertir un cambio desde la bitácora ya no deja abierto un permiso interno cuando la reversión falla.",
+    "changes": [
+      "R5-03: get_financial_kpis filtra is_e2e y forklifts.deleted_at en MRR, DSO y vencido.",
+      "R5-04: validate_transition permite la transición 'partial' -> 'paid' en facturas.",
+      "R5-05: revert_audit_log envuelve la restauración en BEGIN...EXCEPTION y resetea app.audit_revert a 'off' también cuando falla.",
+      "R5-10: credited_cte de get_dashboard_stats convierte a MXN con invoices.tipo_cambio, exige cfdi_status='stamped', status<>'cancelled', cancellation_status<>'accepted' y excluye NCs de facturas E2E.",
+      "R5-11: la subconsulta 'revenue' de utilization convierte a MXN con moneda/tipo_cambio de la factura."
+    ]
+  },
+  {
     "version": "7.357.0",
     "date": "2026-08-27",
     "type": "minor",

@@ -1,3 +1,13 @@
+## 7.358.0 - 2026-08-27
+
+**Indicadores financieros y tablero sin datos de prueba ni mezcla de monedas (fix-28)**
+
+- R5-03: los KPIs financieros (MRR, DSO, vencido) ya no incluyen registros de prueba ni unidades eliminadas.
+- R5-04: una factura con pago parcial ya puede pasar a "pagada" al completarse el saldo.
+- R5-05: si falla revertir un cambio desde la bitácora, el permiso interno de reversión se apaga siempre en vez de quedar activo.
+- R5-10: en el flujo de efectivo, las notas de crédito en dólares se convierten a pesos con el tipo de cambio de su factura y solo cuentan las vigentes (timbradas, no canceladas y sin cancelación aceptada); se excluyen las de facturas de prueba.
+- R5-11: el ingreso por unidad en el ranking de utilización también se convierte a pesos.
+
 ## 7.357.0 - 2026-08-27
 
 **Pagos en otra moneda con tipo de cambio y estados correctos con nota de crédito parcial (fix-27)**
