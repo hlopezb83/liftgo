@@ -66,15 +66,13 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
       {
         id: "amount", header: "Monto", accessorFn: (p) => Number(p.amount), meta: { kind: "number" },
         cell: ({ row }) => {
-          // R8 Bloque 6·#1: badge de moneda cuando no es MXN, consistente con el listado de facturas.
+          // Ronda D·#2: el monto se formatea CON su propia moneda (no siempre MXN),
+          // igual que en Cuentas por Pagar; el badge solo refuerza la divisa foránea.
           const currency = (row.original as Payment & { currency?: string | null }).currency ?? "MXN";
           return (
             <div className="flex items-center justify-end gap-2">
               <ReconciliationBadge paymentId={row.original.id} />
-              <span className="font-mono">{formatCurrency(Number(row.original.amount))}</span>
-              {currency !== "MXN" && (
-                <span className="text-[10px] font-medium text-muted-foreground bg-muted px-1 rounded">{currency}</span>
-              )}
+              <span className="font-mono">{formatCurrencyWithCode(Number(row.original.amount), currency)}</span>
             </div>
           );
         },

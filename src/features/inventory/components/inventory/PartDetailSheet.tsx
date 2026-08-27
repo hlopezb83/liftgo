@@ -87,8 +87,8 @@ export function PartDetailSheet({ part, open, onOpenChange, onEdit }: Props) {
 
           <Separator />
           <div className="text-xs text-muted-foreground space-y-1">
-            <p>Creado: {format(new Date(part.created_at), "dd MMM yyyy, HH:mm", { locale: APP_LOCALE })}</p>
-            <p>Actualizado: {format(new Date(part.updated_at), "dd MMM yyyy, HH:mm", { locale: APP_LOCALE })}</p>
+            <p>Creado: {formatDateTimeMty(part.created_at)}</p>
+            <p>Actualizado: {formatDateTimeMty(part.updated_at)}</p>
           </div>
 
           <Separator />
