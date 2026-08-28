@@ -64,7 +64,12 @@ export default function InvoiceForm() {
     if (f.isEdit && f.id) {
       const invoiceId = f.id;
       f.updateInvoice.mutate({ id: invoiceId, expectedVersion: f.invoiceVersion, ...payload }, {
-        onSuccess: async () => {
+        onSuccess: async (data) => {
+          // FIX R6-13: el trigger ya incrementó `version` en esta escritura;
+          // actualizar el snapshot ANTES del sync para que, si
+          // syncInvoiceBookings falla, el reintento de Guardar no dispare un
+          // falso stale_write contra nuestra propia escritura.
+          f.setInvoiceVersion(data?.version ?? null);
           await f.syncInvoiceBookings.mutateAsync({ invoiceId, bookingIds });
           finalize("Factura actualizada", invoiceId);
         },
