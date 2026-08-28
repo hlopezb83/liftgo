@@ -20,6 +20,13 @@ export function useForkliftFormLogic() {
   const isEdit = !!id;
   const { data: existing } = useForklift(id);
 
+  // FIX R6-12: snapshot de `updated_at` al abrir el form (no el valor vivo de
+  // React Query, que un refetch sobrescribiría, neutralizando el candado
+  // optimista igual que en R6-06). Se resetea al cambiar el id de ruta.
+  const expectedUpdatedAtRef = useRef<string | null>(null);
+  if (expectedUpdatedAtRef.current == null && existing) expectedUpdatedAtRef.current = existing.updated_at;
+  useEffect(() => { expectedUpdatedAtRef.current = null; }, [id]);
+
   const form = useForm<ForkliftFormData>({
     resolver: zodResolver(forkliftFormSchema),
     defaultValues: emptyForm,
