@@ -78,6 +78,7 @@ export function useCustomerDetailPage(id: string | undefined) {
     hasPortalAccess, hasDependencies,
     editInitialData: buildEditInitialData(customer),
     ...dialogs,
+    setEditOpen,
     ...actions,
   };
 }
