@@ -12,7 +12,7 @@ import { fetchCompanyDataAndLogo, type PdfLineItem } from "@/lib/pdf/shared";
  * para mantener este módulo como pura capa de presentación / renderizado.
  */
 export async function buildInvoicePdf(payload: InvoicePdfPayload): Promise<void> {
-  const { invoice, customerRfc, customerCp } = payload;
+  const { invoice, customerRfc, customerCp, customerName } = payload;
 
   const { company, logoBase64 } = await fetchCompanyDataAndLogo();
 
@@ -28,7 +28,7 @@ export async function buildInvoicePdf(payload: InvoicePdfPayload): Promise<void>
       company={company}
       logoBase64={logoBase64}
       invoiceLabel={invoiceLabel}
-      customerName={invoice.customer_name}
+      customerName={customerName}
       customerRfc={customerRfc}
       customerCp={customerCp}
       issuedAt={invoice.issued_at}
