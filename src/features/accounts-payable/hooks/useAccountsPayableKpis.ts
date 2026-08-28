@@ -33,6 +33,14 @@ function totalMxn(b: SupplierBillListItem): number {
 
 function accumulateBill(acc: AccountsPayableKpis, b: SupplierBillListItem, ctx: KpiCtx) {
   if (b.status === "cancelled") return;
+  // G-B4: misma regla que el reporte de antigüedad. Una factura en divisa sin
+  // tipo de cambio se sumaba 1:1 e inflaba "Total pendiente/vencido", dejando
+  // la portada de CxP descuadrada contra el aging (que sí la excluye).
+  if (isFxMissing(b.currency, b.exchange_rate)) {
+    acc.fxMissingCount += 1;
+    acc.repPendientes += b.rep_summary.pending;
+    return;
+  }
   const balMxn = balanceMxn(b);
   // BL-R8-02: un borrador con balance no es cartera vencida ni pendiente real
   // (CP-0009 draft inflaba "Vencido $142K"). Se excluye de los tres KPIs de saldo.
@@ -73,7 +81,7 @@ export function useAccountsPayableKpis() {
 
     const acc: AccountsPayableKpis = {
       totalPendiente: 0, totalVencido: 0, totalPorVencer: 0, pagadoMesActual: 0,
-      totalPorAprobar: 0, countPorAprobar: 0, repPendientes: 0,
+      totalPorAprobar: 0, countPorAprobar: 0, repPendientes: 0, fxMissingCount: 0,
     };
     // N8-r3: los KPIs no deben incluir la fila extra del limit+1.
     for (const b of visibleListRows(data)) accumulateBill(acc, b, ctx);
