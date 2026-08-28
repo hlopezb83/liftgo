@@ -1,3 +1,10 @@
+## [7.369.1] - 2026-08-28
+### Ronda R6 (fix-35): limpieza E2E incompleta (R6-18)
+- `e2e_seed_portal_scenario` y `e2e_teardown`: DELETE de `public.credit_notes` por `invoice_id`/`customer_id` E2E antes de borrar `invoices`/`customers`. La FK `credit_notes_invoice_id_fkey` es ON DELETE RESTRICT y las NC no llevan `is_e2e`, así que el teardown fallaba con 23503 y dejaba datos de prueba residuales.
+- Ambas funciones borran los objetos huérfanos `payment-proofs/<customer_id>/%` de `storage.objects` (usando `EXISTS ... LIKE` en vez del `LIKE ANY (SELECT array_agg(...))` del parche).
+- `e2e_teardown` reporta los conteos `credit_notes` y `storage_objects`.
+- Se conservan guard de rol admin, `SET search_path = public`, validación `allow_e2e_seed`, la regla de no reasignar roles ajenos y los permisos (`REVOKE` a anon / `EXECUTE` a authenticated). `auth.uid()` envuelto en `(select auth.uid())`.
+
 ## [7.369.0] - 2026-08-28
 ### Ronda R6 (fix-34): candados optimistas y falsos conflictos
 - `useCustomerDetailPage`: snapshot de `customer.version` al abrir el diálogo de edición (`useRef` + `setEditOpen` envuelto). Antes se pasaba la versión viva de React Query y un refetch con el diálogo abierto neutralizaba el candado → lost update (R6-06).
