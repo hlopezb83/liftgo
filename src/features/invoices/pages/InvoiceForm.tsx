@@ -3,6 +3,7 @@ import { useWatch } from "react-hook-form";
 import { useParams, useSearchParams } from "react-router";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
 import { FormActions } from "@/components/forms/FormActions";
+import { EmptyState } from "@/components/feedback/EmptyState";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
