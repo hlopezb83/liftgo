@@ -1,3 +1,11 @@
+## [7.370.0] - 2026-08-28
+### Ronda E: archivado de OT, drift monetario y guardas de UI
+- `soft_delete_maintenance_log` (E1): una OT `completed` solo la archiva `admin` y ya NO se borran `maintenance_parts` / `maintenance_labor` de órdenes cerradas (era pérdida de historial de costos). Las órdenes abiertas siguen limpiando sus renglones. `MaintenanceDetailSheet` deshabilita "Archivar" para no-admin en OT cerradas.
+- `InvoiceDetail` / `paymentCurrency` (E2): `sumMoney` para pagos y notas de crédito, `roundMoney` para el saldo. Elimina el drift IEEE-754 que mostraba saldo residual en facturas totalmente pagadas.
+- `CustomerDetailPage` (E3): rama `isError` con `QueryErrorState` + reintentar; antes un fallo de red/RLS se veía como "Cliente no encontrado".
+- `MaintenancePolicyForm`, `CreateCreditNoteDialog`, `RegisterSupplierPaymentDialog` (E4): `isDirty` conectado a `FormDialog` para confirmar antes de descartar cambios.
+- `useCRMMetrics` (E5): nuevo helper `toMty()` en `src/lib/utils.ts`; los cortes MTD/30d comparan fechas de cierre en la misma escala (America/Monterrey).
+
 ## [7.369.1] - 2026-08-28
 ### Ronda R6 (fix-35): limpieza E2E incompleta (R6-18)
 - `e2e_seed_portal_scenario` y `e2e_teardown`: DELETE de `public.credit_notes` por `invoice_id`/`customer_id` E2E antes de borrar `invoices`/`customers`. La FK `credit_notes_invoice_id_fkey` es ON DELETE RESTRICT y las NC no llevan `is_e2e`, así que el teardown fallaba con 23503 y dejaba datos de prueba residuales.
