@@ -20,9 +20,13 @@ import { computeInvoiceVisibility } from "../lib/invoiceVisibility";
 import { type PaymentLike, sumPaymentsInInvoiceCurrency } from "../lib/paymentCurrency";
 
 function computeCreditedAmount(creditNotes: Array<{ cfdi_status: string | null; status: string; cancellation_status: string | null; total: number }>): number {
-  return creditNotes
-    .filter((cn) => cn.cfdi_status === "stamped" && cn.status !== "cancelled" && cn.cancellation_status !== "accepted")
-    .reduce((s, cn) => s + Number(cn.total), 0);
+  // E2: `sumMoney` en vez de `reduce` con floats crudos (mismo criterio que
+  // `computeMaxCreditable` y la cartera).
+  return sumMoney(
+    creditNotes
+      .filter((cn) => cn.cfdi_status === "stamped" && cn.status !== "cancelled" && cn.cancellation_status !== "accepted")
+      .map((cn) => Number(cn.total)),
+  );
 }
 
 
