@@ -1,4 +1,16 @@
+## [7.367.0] - 2026-08-28
+### Ronda R6 (fix-32): portal de pagos, conciliación y storage
+- `approve_payment_intent`: `SELECT ... FOR UPDATE` de la factura (dos aprobaciones concurrentes podían sobrepasar el saldo), conversión FX de `payments` con el mismo `CASE` que `sync_invoice_status_from_payments`, descuento de intents `pending_review`, criterio canónico de NC (`stamped` + `status <> 'cancelled'` + `cancellation_status IS DISTINCT FROM 'accepted'`) y pago insertado con `exchange_rate = NULL` (R6-04).
+- `validate_payment_intent_amount`: lee `moneda`/`tipo_cambio` y suma los pagos convertidos; en facturas en divisa el saldo disponible ya no se calculaba 1:1 (R6-09).
+- `confirm_bank_match` y `get_bank_match_candidates`: `LEFT JOIN invoices` + fallback `COALESCE(NULLIF(p.exchange_rate,0), NULLIF(i.tipo_cambio,0))` (R6-10).
+- Policy INSERT de `customer_payment_intents`: excluye facturas `cancelled`/`draft` o con cancelación aceptada y exige `(storage.foldername(proof_url))[2] = invoice_id` (R6-15).
+- Policy DELETE de `storage.objects` (`payment-proofs`): el `NOT EXISTS` de intents ya procesados sale del `OR` de roles, así admin/administrativo tampoco borran evidencia aprobada (R6-14).
+- Policy INSERT de `storage.objects`: se elimina `COALESCE(metadata->>'mimetype','application/pdf')`; el mimetype declarado es obligatorio (R6-24).
+- Bucket `payment-proofs`: privado y con límite de 10 MB (R6-05). Nota: se configuró con la herramienta de storage, no por SQL (`INSERT INTO storage.buckets` está prohibido y además el bucket ya existía, por lo que el `ON CONFLICT DO NOTHING` del parche no habría hecho nada).
+- Nuevo smoke `supabase/tests/r_fix32_portal_pagos_smoke.sql` (15 verificaciones).
+
 ## [7.366.0] - 2026-08-28
+
 ### Ronda R6: triggers de facturación, pagos en divisa y bypass GUC
 - `sync_invoice_status(uuid)`: nuevo helper; `sync_invoice_status_from_credit_notes()` llamaba a la función *trigger* de pagos fuera de contexto (`trigger_protocol_violated`) (R6-01).
 - `trg_sync_invoice_from_credit_notes`: ahora también dispara con `cfdi_status` y `cancellation_status`.
