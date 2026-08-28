@@ -13,6 +13,8 @@ export interface ExportablePayable {
   due_date: string | null;
   balance: number;
   currency: string;
+  /** G-B5: necesario para mostrar el equivalente en MXN del lote de dispersión. */
+  exchange_rate: number | null;
   description: string | null;
   payment_in_progress_at: string | null;
   bank_name: string | null;
@@ -42,7 +44,7 @@ export const exportablePayableQueries = defineEntityQueries<
     const [billsRes, banksRes] = await Promise.all([
       supabase
         .from("supplier_bills")
-        .select("id, bill_number, supplier_id, due_date, balance, currency, description, payment_in_progress_at, suppliers(name, rfc)")
+        .select("id, bill_number, supplier_id, due_date, balance, currency, exchange_rate, description, payment_in_progress_at, suppliers(name, rfc)")
         // R-M4: incluir también facturas que no requieren aprobación explícita.
         .in("approval_status", ["approved", "not_required"])
         // R12-FE-06 (P2 r11): nunca dispersar borradores.
@@ -99,7 +101,7 @@ function resolveBankInfo(bank: BankAccountRow | undefined): BankInfo {
 }
 
 function toExportable(
-  row: { id: string; bill_number: string; supplier_id: string | null; due_date: string | null; balance: number; currency: string; description: string | null; payment_in_progress_at: string | null; suppliers: { name: string; rfc: string | null } | null },
+  row: { id: string; bill_number: string; supplier_id: string | null; due_date: string | null; balance: number; currency: string; exchange_rate: number | null; description: string | null; payment_in_progress_at: string | null; suppliers: { name: string; rfc: string | null } | null },
   bySupplier: Map<string, BankAccountRow>,
 ): ExportablePayable {
   const sup = row.suppliers;
@@ -113,6 +115,7 @@ function toExportable(
     due_date: row.due_date,
     balance: Number(row.balance),
     currency: row.currency,
+    exchange_rate: row.exchange_rate == null ? null : Number(row.exchange_rate),
     description: row.description,
     payment_in_progress_at: row.payment_in_progress_at,
     ...resolveBankInfo(bank),
