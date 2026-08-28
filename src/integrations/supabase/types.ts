@@ -505,6 +505,7 @@ export type Database = {
         Row: {
           attempts: number
           created_at: string
+          deferrals: number
           id: string
           invoice_id: string
           last_error: string | null
@@ -518,6 +519,7 @@ export type Database = {
         Insert: {
           attempts?: number
           created_at?: string
+          deferrals?: number
           id?: string
           invoice_id: string
           last_error?: string | null
@@ -531,6 +533,7 @@ export type Database = {
         Update: {
           attempts?: number
           created_at?: string
+          deferrals?: number
           id?: string
           invoice_id?: string
           last_error?: string | null

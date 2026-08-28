@@ -1,3 +1,14 @@
+## [7.368.0] - 2026-08-28
+### Ronda R6 (fix-33): cola de reintentos CFDI
+- Migración: `cfdi_retry_queue.deferrals integer not null default 0` — contador real en vez del truco de prefijo `[deferrals=N]` en `last_error` que proponía el parche (R6-02).
+- `process-cfdi-retry-queue`: tope `MAX_DEFERRALS = 10`; superado, la fila pasa a `exhausted` con diagnóstico. Antes `attempts` quedaba congelado y `max_attempts` nunca se alcanzaba → bucle infinito contra el PAC (R6-02).
+- Backoff creciente con `nextRetryAt(deferrals)` (2, 4, 8… min, tope 60) en vez del `next_retry_at` fijo de ~2 min (R6-22).
+- Nuevo `isDocCancelled()`: tras el refresh se relee `invoices` / `credit_notes` / `payments` y, si la cancelación quedó confirmada, la fila se cierra como `succeeded` (R6-03).
+- `refresh-cancellation-status`: `AbortSignal.timeout(10_000)` y logs de warning en respuesta no-OK y en excepción (antes `catch {}` vacío) (R6-23).
+- `cancel` (facturas) entra al camino de deferral, pero **solo** cuando el 409 trae `code: "CANCELLATION_IN_PROGRESS"` (nuevo en `cancel-cfdi/handler.ts`). El 409 de `assert_invoice_cancellable` (factura no cancelable) sigue siendo terminal — el parche original los mezclaba y habría reintentado 10 veces una factura con pagos aplicados (R6-08, ajustado).
+- `deferrals` se reinicia a 0 al cerrar la fila o al consumir un intento real.
+- Tests: 5 casos nuevos en `supabase/functions/process-cfdi-retry-queue/index_test.ts` (13 pasando).
+
 ## [7.367.0] - 2026-08-28
 ### Ronda R6 (fix-32): portal de pagos, conciliación y storage
 - `approve_payment_intent`: `SELECT ... FOR UPDATE` de la factura (dos aprobaciones concurrentes podían sobrepasar el saldo), conversión FX de `payments` con el mismo `CASE` que `sync_invoice_status_from_payments`, descuento de intents `pending_review`, criterio canónico de NC (`stamped` + `status <> 'cancelled'` + `cancellation_status IS DISTINCT FROM 'accepted'`) y pago insertado con `exchange_rate = NULL` (R6-04).

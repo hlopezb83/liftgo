@@ -1,0 +1,1 @@
+ALTER TABLE public.cfdi_retry_queue ADD COLUMN IF NOT EXISTS deferrals integer NOT NULL DEFAULT 0;
