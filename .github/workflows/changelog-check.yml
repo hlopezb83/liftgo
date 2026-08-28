@@ -29,7 +29,7 @@ jobs:
     # espurios en esos PRs. El check sigue intacto para PRs humanos.
     if: github.actor != 'dependabot[bot]'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-bun-project
       - run: bun scripts/validate-changelog.ts
 
@@ -42,7 +42,7 @@ jobs:
     if: github.actor != 'dependabot[bot]'
     steps:
       # v7.219.0 (H3): bloquea PRs donde package.json/version.json/changelog no coinciden.
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Compare versions
         shell: bash
         run: |

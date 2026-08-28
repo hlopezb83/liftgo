@@ -92,7 +92,7 @@ jobs:
       migrations: ${{ steps.filter.outputs.migrations }}
       vitest_mode: ${{ steps.mode.outputs.vitest_mode }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: dorny/paths-filter@de90cc6fb38fc0963ad72b210f1f284cd68cea36 # v3.0.2
         id: filter
         with:
@@ -142,7 +142,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-bun-project
       - run: bun run lint
 
@@ -151,7 +151,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-bun-project
       - run: bunx tsc --noEmit -p tsconfig.app.json
 
@@ -160,7 +160,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Ejecutar guardrails de arquitectura
         # Ver docs/architecture-guardrails.md (G1–G5).
         run: bash scripts/arch-check.sh
@@ -173,7 +173,7 @@ jobs:
     # o licencias no permitidas. Solo aplica en pull_request (necesita base/head).
     if: github.event_name == 'pull_request'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0 (Node 24)
         with:
           fail-on-severity: high
@@ -185,7 +185,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 6
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-bun-project
 
       # Bloquea PRs si hay archivos huérfanos o dependencias sin uso.
@@ -211,7 +211,7 @@ jobs:
       matrix:
         shard: [1, 2, 3]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # `--changed` necesita historia para diffear contra la base del PR.
           fetch-depth: ${{ needs.changes.outputs.vitest_mode == 'changed' && 0 || 1 }}
@@ -261,7 +261,7 @@ jobs:
       checks: write
       pull-requests: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-bun-project
 
       # Pre-crear reports/ defensivamente: si vitest falla antes de inicializar
@@ -270,7 +270,7 @@ jobs:
         run: mkdir -p reports .vitest-reports
 
       - name: Download blob reports
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           pattern: vitest-blob-*
           merge-multiple: true
@@ -349,7 +349,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 8
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-bun-project
       # Fase 5.1: este es el ÚNICO build de la app en el CI. Las variables
       # VITE_* se embeben aquí para que el mismo `dist/` sirva a las E2E.
@@ -384,7 +384,7 @@ jobs:
     if: needs.secrets-check.outputs.has_supabase == 'true' && needs.changes.outputs.functions == 'true'
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup Deno
         uses: denoland/setup-deno@22d081ff2d3a40755e97629de92e3bcbfa7cf2ed # v2.0.5 (Node 24)
@@ -456,14 +456,14 @@ jobs:
         shard: [1, 2]
         total: [2]
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - uses: ./.github/actions/setup-bun-project
 
       # Fase 5.1: se reutiliza el dist/ del job `build` en vez de recompilar
       # dentro del webServer de Playwright (E2E_REUSE_BUILD hace que el
       # webServer solo levante `vite preview` sobre este dist).
       - name: Download dist del job build
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist
@@ -553,7 +553,7 @@ jobs:
     needs: changes
     if: needs.changes.outputs.migrations == 'true'
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
         with:
           # Necesario para el diff contra base_ref.
           fetch-depth: 0
@@ -597,7 +597,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
       - name: Run actionlint
         uses: reviewdog/action-actionlint@6fb7acc99f4a1008869fa8a0f09cfca740837d9d # v1.72.0
         with:
