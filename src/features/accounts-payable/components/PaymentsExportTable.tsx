@@ -3,7 +3,7 @@ import { InfoAlertIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { cn, formatDateDisplay } from "@/lib/utils";
 import type { ExportablePayable } from "../hooks/useExportablePayables";
 
@@ -108,8 +108,15 @@ export function PaymentsExportTable({
       header: "Saldo",
       accessorKey: "balance",
       meta: { kind: "money" },
+      // G-B1/G-B2: el lote puede mezclar MXN y USD; formatear todo en MXN hacía
+      // que el operador dispersara un monto en la divisa equivocada.
       cell: ({ row }) => (
-        <span className="font-mono">{formatCurrency(row.original.balance)}</span>
+        <span className="font-mono">
+          {formatCurrencyWithCode(row.original.balance, row.original.currency)}
+          {row.original.currency !== "MXN" && (
+            <Badge variant="outline" className="ml-1 text-3xs">{row.original.currency}</Badge>
+          )}
+        </span>
       ),
     },
     {
