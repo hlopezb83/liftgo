@@ -141,3 +141,66 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
     </Sheet>
   );
 }
+
+interface ActionsProps {
+  log: MaintenanceLog;
+  forkliftName: string;
+  isClosed: boolean;
+  /** E1: solo admin puede archivar una OT cerrada (el RPC lo valida también). */
+  canArchiveClosed: boolean;
+  deletePending: boolean;
+  closeOpen: boolean;
+  onCloseOpenChange: (open: boolean) => void;
+  confirmOpen: boolean;
+  onConfirmOpenChange: (open: boolean) => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  onSheetClose: () => void;
+}
+
+function MaintenanceDetailActions({
+  log, forkliftName, isClosed, canArchiveClosed, deletePending,
+  closeOpen, onCloseOpenChange, confirmOpen, onConfirmOpenChange,
+  onEdit, onDelete, onSheetClose,
+}: ActionsProps) {
+  const archiveBlocked = isClosed && !canArchiveClosed;
+  return (
+    <>
+      {!isClosed && (
+        <Button className="w-full mb-2" onClick={() => onCloseOpenChange(true)}>
+          <SuccessIcon className="h-4 w-4 mr-1" /> Cerrar OT
+        </Button>
+      )}
+      <CloseWorkOrderDialog
+        open={closeOpen}
+        onOpenChange={onCloseOpenChange}
+        log={{ ...log, forklift_name: forkliftName }}
+        onClosed={onSheetClose}
+      />
+      <div className="flex gap-2">
+        <Button variant="outline" className="flex-1" onClick={onEdit}>
+          <EditIcon className="h-4 w-4 mr-1" /> Editar
+        </Button>
+        <Button
+          variant="destructive"
+          className="flex-1"
+          disabled={archiveBlocked}
+          title={archiveBlocked ? "La orden esta cerrada: solo un administrador puede archivarla" : undefined}
+          onClick={() => onConfirmOpenChange(true)}
+        >
+          <DeleteIcon className="h-4 w-4 mr-1" /> Archivar
+        </Button>
+        <ConfirmDialog
+          open={confirmOpen}
+          onOpenChange={onConfirmOpenChange}
+          title="¿Archivar registro de mantenimiento?"
+          description={`${isClosed ? "La orden está cerrada: se conservan sus refacciones y mano de obra. " : ""}Se ocultará de los listados pero se conservará el historial del servicio "${serviceTypeLabel(log.service_type)}" del ${formatDateDisplay(log.performed_at)} para auditoría.`}
+          confirmLabel="Archivar"
+          destructive
+          loading={deletePending}
+          onConfirm={onDelete}
+        />
+      </div>
+    </>
+  );
+}
