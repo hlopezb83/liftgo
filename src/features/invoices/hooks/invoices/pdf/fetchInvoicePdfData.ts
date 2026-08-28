@@ -66,5 +66,8 @@ export async function fetchInvoicePdfData(invoiceId: string): Promise<InvoicePdf
   if (error || !invoice) throw new Error("Factura no encontrada");
 
   const { customerRfc, customerCp } = await resolveCustomerFiscal(invoice);
-  return { invoice, customerRfc, customerCp };
+  // F3: la razón social timbrada manda sobre el nombre denormalizado.
+  const customerName = invoice.receptor_razon_social || invoice.customer_name || "—";
+  return { invoice, customerRfc, customerCp, customerName };
+
 }
