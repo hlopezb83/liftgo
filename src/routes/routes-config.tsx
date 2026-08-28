@@ -82,8 +82,11 @@ const rawRoutes: RawRoute[] = [
   { path: "/users/permissions", loader: () => import("@/features/users/pages/RolePermissionsPage"), module: "Gestión de Usuarios" },
   { path: "/changelog", loader: () => import("@/features/changelog/pages/ChangelogPage") },
   { path: "/help", loader: () => import("@/features/help/pages/HelpPage") },
-  { path: "/mis-reportes", loader: () => import("@/features/feedback/pages/MyReportsPage"), module: "Feedback" },
-  { path: "/leaderboard", loader: () => import("@/features/feedback/pages/LeaderboardPage"), module: "Feedback" },
+  // G-C4: intencionalmente sin `module`. Son vistas propias del usuario
+  // (sus reportes / tabla de posiciones) y ya están acotadas por RLS a nivel
+  // de fila; el módulo "Feedback" gobierna la *gestión* de reportes ajenos.
+  { path: "/mis-reportes", loader: () => import("@/features/feedback/pages/MyReportsPage") },
+  { path: "/leaderboard", loader: () => import("@/features/feedback/pages/LeaderboardPage") },
   { path: "/feedback", loader: () => import("@/features/feedback/pages/FeedbackManagementPage"), module: "Feedback" },
 ];
 
