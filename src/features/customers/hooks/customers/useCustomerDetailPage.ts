@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useState } from "react";
 import { useUserRole } from "@/features/users";
 import type { Tables } from "@/integrations/supabase/types";
 import { isValidUuid } from "@/lib/isValidUuid";
@@ -44,15 +44,18 @@ export function useCustomerDetailPage(id: string | undefined) {
   // (patrón R5-09 de facturas). Sin él, un refetch de `useCustomer` mientras el
   // diálogo está abierto actualiza `customer.version` en vivo y el guardado
   // pisa cambios ajenos (lost update).
-  const customerVersionRef = useRef<number | null>(null);
+  // useState (no ref): el snapshot sólo se escribe en el handler de apertura
+  // del diálogo y se lee como estado — leer un ref durante render está
+  // prohibido por react-hooks/refs.
+  const [customerVersion, setCustomerVersion] = useState<number | null>(null);
   const setEditOpen = (open: boolean) => {
-    if (open) customerVersionRef.current = customer?.version ?? null;
+    if (open) setCustomerVersion(customer?.version ?? null);
     dialogs.setEditOpen(open);
   };
   const actions = useCustomerDetailActions({
     id,
     // M-11a: versión congelada al abrir → bloqueo optimista en el guardado.
-    expectedVersion: customerVersionRef.current,
+    expectedVersion: customerVersion,
     setInviteOpen: dialogs.setInviteOpen,
     setEditOpen: dialogs.setEditOpen,
   });
