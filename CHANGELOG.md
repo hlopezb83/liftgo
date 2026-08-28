@@ -1,3 +1,10 @@
+## [7.374.2] - 2026-08-28
+### Lint: refs en render, no-control-regex y orden de imports
+- `useCustomerDetailPage`, `useForkliftFormLogic`, `useInvoiceFormLogic` (react-hooks/refs): los snapshots de bloqueo optimista (`customer.version`, `updated_at`, `invoice.version`) pasan de `useRef` leído/escrito en render a `useState` + efectos (`prev ?? valor` conserva la captura única; el reset por cambio de `id` se mantiene). Mismo comportamiento, patrón compatible con React Compiler.
+- `exportCsv` (no-control-regex, único **error** del lint): se reemplaza la regex `/^[\s\u0000-\u001F]*[=+\-@]/` por comparación de caracteres (`startsWithFormula`), misma cobertura anti CSV-injection.
+- `DeliveriesPage`, `MaintenancePoliciesTab` (max-lines) y `MaintenanceDetailSheet` (complexity 16→~11): se extraen `buildDeliveryColumns`, `DeliveryMobileCard`, `PolicyMobileCard` y `MaintenanceDetailActions` sin cambios visuales.
+- Orden de imports (`import-x/order`) en `EditPaymentDialog`, `GlobalInvoiceFields`, `useInvoiceFormSubmit` e `InvoiceForm`.
+
 ## [7.374.1] - 2026-08-28
 ### Fix CI: teardown E2E y prueba del pagaré
 - `e2e_teardown` / `e2e_seed_portal_scenario`: se elimina el `DELETE FROM storage.objects` (la plataforma lo bloquea con "Direct deletion from storage tables is not allowed"), que hacía fallar 6 pruebas E2E. La limpieza de objetos huérfanos debe hacerse vía Storage API.
