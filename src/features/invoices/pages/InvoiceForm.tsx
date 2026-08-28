@@ -3,6 +3,7 @@ import { useWatch } from "react-hook-form";
 import { useParams, useSearchParams } from "react-router";
 import { TotalsSummary } from "@/components/domain/TotalsSummary";
 import { FormActions } from "@/components/forms/FormActions";
+import { EmptyState } from "@/components/feedback/EmptyState";
 import { FormPageHeader } from "@/components/layout/FormPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -63,7 +64,12 @@ export default function InvoiceForm() {
     if (f.isEdit && f.id) {
       const invoiceId = f.id;
       f.updateInvoice.mutate({ id: invoiceId, expectedVersion: f.invoiceVersion, ...payload }, {
-        onSuccess: async () => {
+        onSuccess: async (data) => {
+          // FIX R6-13: el trigger ya incrementó `version` en esta escritura;
+          // actualizar el snapshot ANTES del sync para que, si
+          // syncInvoiceBookings falla, el reintento de Guardar no dispare un
+          // falso stale_write contra nuestra propia escritura.
+          f.setInvoiceVersion(data?.version ?? null);
           await f.syncInvoiceBookings.mutateAsync({ invoiceId, bookingIds });
           finalize("Factura actualizada", invoiceId);
         },
@@ -107,6 +113,22 @@ export default function InvoiceForm() {
         onGoToQuote={() => navigate(`/quotes/${f.fromQuoteId}`)}
         onBack={() => navigate(-1)}
       />
+    );
+  }
+
+  // FIX R6-25: id inexistente o sin permisos en modo edición — mostrar estado
+  // con salida (patrón de InvoiceDetail) en vez del form vacío con
+  // "Cargando la factura…" indefinido y el botón de Guardar bloqueado.
+  if (f.isEdit && !f.isLoadingInvoice && !f.existing) {
+    return (
+      <PageContainer>
+        <EmptyState
+          title="Factura no encontrada o sin permisos"
+          subtitle="La factura no existe, fue eliminada o no tienes acceso a ella."
+          actionLabel="Volver a facturas"
+          onAction={() => navigate("/invoices")}
+        />
+      </PageContainer>
     );
   }
 

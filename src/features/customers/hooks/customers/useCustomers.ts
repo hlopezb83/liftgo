@@ -109,7 +109,10 @@ export function useUpdateCustomer() {
         // Distinguir conflicto de concurrencia de "sin permisos / archivado".
         const { data: still } = await supabase
           .from("customers").select("version").eq("id", id).is("deleted_at", null).maybeSingle();
-        if (still) {
+        // FIX R6-11: conflicto real solo si la versión cambió; si coincide, el
+        // UPDATE falló por RLS/permisos y no hay que reportar un falso
+        // stale_write (patrón R5-17 de facturas).
+        if (still && still.version !== expectedVersion) {
           throw new Error("stale_write: otro usuario modificó este cliente; recarga y vuelve a intentar");
         }
       }

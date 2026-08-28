@@ -1,5 +1,5 @@
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { useBookings, type BookingWithForklift } from "@/features/bookings";
 import { useCustomers } from "@/features/customers";
@@ -112,7 +112,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   const { data: bookings } = useBookings();
   const { data: forklifts } = useForklifts();
   const { data: customers } = useCustomers();
-  const { data: existing } = useInvoice(id);
+  const { data: existing, isLoading: isLoadingExisting } = useInvoice(id);
   const { data: sourceQuote } = useQuote(quoteId);
   const { data: assignments } = useQuoteAssignments(quoteId);
   const { data: invoices } = useInvoices();
@@ -124,6 +124,10 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   // resuelve (no la versión viva de React Query, que un refetch sobrescribiría).
   const invoiceVersionRef = useRef<number | null>(null);
   if (invoiceVersionRef.current == null && existing) invoiceVersionRef.current = existing.version;
+  // FIX R6-19: al navegar de /invoices/A/edit a /invoices/B/edit React Router
+  // no remonta el form; resetear el snapshot para no arrastrar el candado de
+  // otra factura (falso stale_write o candado neutralizado).
+  useEffect(() => { invoiceVersionRef.current = null; }, [id]);
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
@@ -181,6 +185,13 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
 
   return {
     form, isEdit, id, fromQuoteId,
+    existing,
+    isLoadingInvoice: isLoadingExisting,
+    // FIX R6-13: setter del snapshot — tras un `updateInvoice` exitoso el
+    // trigger ya incrementó `version`; actualizar el ref permite reintentar el
+    // sync posterior sin disparar un falso stale_write contra la propia
+    // escritura.
+    setInvoiceVersion: (v: number | null) => { invoiceVersionRef.current = v; },
     invoiceNumber: existing?.invoice_number ?? null,
     // R4-25: versión al abrir el formulario, para bloqueo optimista al guardar.
     invoiceVersion: invoiceVersionRef.current,

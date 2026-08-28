@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import { useUserRole } from "@/features/users";
 import type { Tables } from "@/integrations/supabase/types";
 import { isValidUuid } from "@/lib/isValidUuid";
@@ -37,10 +38,19 @@ export function useCustomerDetailPage(id: string | undefined) {
   const { data: role } = useUserRole();
 
   const dialogs = useCustomerDetailDialogs();
+  // FIX R6-06: snapshot de `customer.version` al ABRIR el diálogo de edición
+  // (patrón R5-09 de facturas). Sin él, un refetch de `useCustomer` mientras el
+  // diálogo está abierto actualiza `customer.version` en vivo y el guardado
+  // pisa cambios ajenos (lost update).
+  const customerVersionRef = useRef<number | null>(null);
+  const setEditOpen = (open: boolean) => {
+    if (open) customerVersionRef.current = customer?.version ?? null;
+    dialogs.setEditOpen(open);
+  };
   const actions = useCustomerDetailActions({
     id,
-    // M-11a: versión cargada → bloqueo optimista en el guardado.
-    expectedVersion: customer?.version ?? null,
+    // M-11a: versión congelada al abrir → bloqueo optimista en el guardado.
+    expectedVersion: customerVersionRef.current,
     setInviteOpen: dialogs.setInviteOpen,
     setEditOpen: dialogs.setEditOpen,
   });
@@ -68,6 +78,7 @@ export function useCustomerDetailPage(id: string | undefined) {
     hasPortalAccess, hasDependencies,
     editInitialData: buildEditInitialData(customer),
     ...dialogs,
+    setEditOpen,
     ...actions,
   };
 }

@@ -1,3 +1,13 @@
+## [7.369.0] - 2026-08-28
+### Ronda R6 (fix-34): candados optimistas y falsos conflictos
+- `useCustomerDetailPage`: snapshot de `customer.version` al abrir el diálogo de edición (`useRef` + `setEditOpen` envuelto). Antes se pasaba la versión viva de React Query y un refetch con el diálogo abierto neutralizaba el candado → lost update (R6-06).
+- `useUpdateCustomer`: el probe compara `still.version !== expectedVersion`; si coincide, el 0-filas viene de RLS/permisos y ya no se reporta un falso `stale_write` (R6-11).
+- `useUpdateForklift`: el probe selecciona `updated_at` y lo compara con el snapshot en vez de solo comprobar existencia (R6-12).
+- `useForkliftFormLogic`: `expectedUpdatedAt` congelado al cargar el registro y reseteado al cambiar el `id` de ruta (R6-12).
+- `useInvoiceFormLogic`: reset de `invoiceVersionRef` en `useEffect` sobre `id` (navegar de /invoices/A/edit a /invoices/B/edit no remonta el form) y nuevo `setInvoiceVersion` + `existing` / `isLoadingInvoice` expuestos (R6-19, R6-13, R6-25).
+- `InvoiceForm`: tras `updateInvoice` se actualiza el snapshot con `data.version` antes de `syncInvoiceBookings`, para que reintentar Guardar no choque contra la propia escritura (R6-13); y en modo edición con id inexistente o sin permisos se muestra `EmptyState` con salida a /invoices en vez del form vacío cargando indefinidamente (R6-25).
+- Verificación: 317 pruebas de facturas/clientes/flota en verde y typecheck limpio.
+
 ## [7.368.0] - 2026-08-28
 ### Ronda R6 (fix-33): cola de reintentos CFDI
 - Migración: `cfdi_retry_queue.deferrals integer not null default 0` — contador real en vez del truco de prefijo `[deferrals=N]` en `last_error` que proponía el parche (R6-02).
