@@ -1,5 +1,5 @@
 
-import { nowMty } from "@/lib/utils";
+import { nowMty, toMty } from "@/lib/utils";
 import { useProspects, type Prospect } from "./useProspects";
 
 
@@ -40,14 +40,20 @@ export function useCRMMetrics(): {
     // del sistema. `nowMty()` fija el "hoy" del negocio (America/Monterrey).
     const now = nowMty();
 
+    // E5: los cortes se construyen sobre el reloj de Monterrey y las fechas de
+    // cierre se convierten a la MISMA escala con `toMty`. Antes se comparaba
+    // una medianoche en la TZ del navegador contra un instante UTC, corriendo
+    // el corte de mes unas horas en equipos fuera de México.
     const startMonth = new Date(now.getFullYear(), now.getMonth(), 1);
     const start30d = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    const wonMTD = won.filter((p) => p.closedAt && new Date(p.closedAt) >= startMonth);
-    const lostMTD = lost.filter((p) => p.closedAt && new Date(p.closedAt) >= startMonth);
+    const closedAtMty = (p: Prospect) => (p.closedAt ? toMty(p.closedAt) : null);
 
-    const won30 = won.filter((p) => p.closedAt && new Date(p.closedAt) >= start30d).length;
-    const lost30 = lost.filter((p) => p.closedAt && new Date(p.closedAt) >= start30d).length;
+    const wonMTD = won.filter((p) => { const d = closedAtMty(p); return d !== null && d >= startMonth; });
+    const lostMTD = lost.filter((p) => { const d = closedAtMty(p); return d !== null && d >= startMonth; });
+
+    const won30 = won.filter((p) => { const d = closedAtMty(p); return d !== null && d >= start30d; }).length;
+    const lost30 = lost.filter((p) => { const d = closedAtMty(p); return d !== null && d >= start30d; }).length;
     const total30 = won30 + lost30;
     const winRate30d = total30 > 0 ? Math.round((won30 / total30) * 100) : 0;
 
