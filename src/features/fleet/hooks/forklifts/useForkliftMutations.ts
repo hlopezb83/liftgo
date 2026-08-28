@@ -51,9 +51,12 @@ export function useUpdateForklift() {
       if (error) throw error;
       if (!data) {
         if (expectedUpdatedAt) {
+          // FIX R6-12: incluir `updated_at` en el probe y compararlo con el
+          // snapshot; si coincide, el UPDATE falló por RLS/permisos (no por
+          // concurrencia) y no hay que reportar un falso stale_write.
           const { data: still } = await supabase
-            .from("forklifts").select("id").eq("id", id).is("deleted_at", null).maybeSingle();
-          if (still) {
+            .from("forklifts").select("updated_at").eq("id", id).is("deleted_at", null).maybeSingle();
+          if (still && still.updated_at !== expectedUpdatedAt) {
             throw new Error("stale_write: otro usuario modificó este montacargas; recarga y vuelve a intentar");
           }
         }
