@@ -72,7 +72,13 @@ export function PortalRecentInvoicesCard({
             </div>
           </div>
         ))}
+        {total > invoices.length ? (
+          <Link to="/portal/invoices" className="block pt-1 text-sm text-primary hover:underline">
+            Ver todas ({total})
+          </Link>
+        ) : null}
       </CardContent>
+
     </Card>
   );
 }
