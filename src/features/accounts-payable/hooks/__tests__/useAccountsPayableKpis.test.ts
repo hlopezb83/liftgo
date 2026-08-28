@@ -165,3 +165,34 @@ describe("useAccountsPayableKpis", () => {
     expect(result.current.kpis.totalPorAprobar).toBe(0);
   });
 });
+
+describe("useAccountsPayableKpis · G-B4/G-B6 tipo de cambio faltante", () => {
+  useFakeTimeMty("2026-06-13T12:00:00");
+
+  it("excluye de los totales la factura en divisa sin tipo de cambio y la cuenta", () => {
+    useSupplierBillsMock.mockReturnValue({
+      data: [
+        bill({ due_date: "2026-05-01", balance: 500, total: 500, currency: "USD", exchange_rate: null }),
+        bill({ due_date: "2026-05-01", balance: 1_000, total: 1_000 }),
+      ],
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+    const { result } = renderHook(() => useAccountsPayableKpis(), { wrapper: createQueryWrapper() });
+    expect(result.current.kpis.fxMissingCount).toBe(1);
+    expect(result.current.kpis.totalPendiente).toBe(1_000);
+    expect(result.current.kpis.totalVencido).toBe(1_000);
+  });
+
+  it("no cuenta como faltante una factura MXN sin tipo de cambio", () => {
+    useSupplierBillsMock.mockReturnValue({
+      data: [bill({ currency: "MXN", exchange_rate: null })],
+      isLoading: false,
+      isError: false,
+      refetch: vi.fn(),
+    });
+    const { result } = renderHook(() => useAccountsPayableKpis(), { wrapper: createQueryWrapper() });
+    expect(result.current.kpis.fxMissingCount).toBe(0);
+  });
+});
