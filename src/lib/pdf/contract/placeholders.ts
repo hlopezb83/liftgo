@@ -97,6 +97,22 @@ export function contractSigningDate(contract: ContractData): string | null {
   return contract.signed_at || contract.start_date || null;
 }
 
+/**
+ * v7.303.0: el pagaré se emite por el costo de adquisición del equipo;
+ * si el equipo no lo tiene capturado, cae al depósito en garantía.
+ * G-A2: puede resultar 0 cuando ninguno está capturado — los callers deben
+ * advertirlo antes de generar el Anexo B (un pagaré "Bueno por $0.00" no sirve
+ * como garantía).
+ */
+export function resolvePagareAmount(
+  contract: Pick<ContractData, "deposit_amount">,
+  forklift: { acquisition_cost?: number | null } | null,
+): number {
+  return num(forklift?.acquisition_cost) > 0
+    ? num(forklift?.acquisition_cost)
+    : num(contract.deposit_amount);
+}
+
 export function buildPlaceholderVars(
   contract: ContractData,
   company: CompanyInfo | null,
@@ -104,11 +120,7 @@ export function buildPlaceholderVars(
   forklift: ForkliftInfo | null,
 ): Record<string, string> {
   const signing = contractSigningDate(contract);
-  // v7.303.0: el pagaré se emite por el costo de adquisición del equipo;
-  // si el equipo no lo tiene capturado, cae al depósito en garantía.
-  const montoPagare = num(forklift?.acquisition_cost) > 0
-    ? num(forklift?.acquisition_cost)
-    : num(contract.deposit_amount);
+  const montoPagare = resolvePagareAmount(contract, forklift);
   return {
     ...buildPartyVars(contract, company, customer),
     ...buildUsageVars(contract),
