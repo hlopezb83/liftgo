@@ -61,12 +61,18 @@ describe("buildPlaceholderVars", () => {
     expect(vars.deposito).toContain("350,000");
   });
 
-  it("el pagaré usa 5% de mora cuando el contrato tiene 0", () => {
+  it("el pagaré respeta un 0% capturado explícitamente (G-A3)", () => {
     const vars = buildPagareVars(
       buildPlaceholderVars({ ...baseContract, late_interest_rate: 0 } as ContractData, null, null, null),
     );
+    expect(vars.interes_moratorio).toBe("0");
+  });
+
+  it("el pagaré usa 5% de mora cuando la tasa no es válida", () => {
+    const vars = buildPagareVars({ ...buildPlaceholderVars(baseContract, null, null, null), interes_moratorio: "" });
     expect(vars.interes_moratorio).toBe("5");
   });
+
 
   it("el pagaré respeta la tasa de mora capturada", () => {
     const vars = buildPagareVars(buildPlaceholderVars(baseContract, null, null, null));
