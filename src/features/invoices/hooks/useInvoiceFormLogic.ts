@@ -124,6 +124,10 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
   // resuelve (no la versión viva de React Query, que un refetch sobrescribiría).
   const invoiceVersionRef = useRef<number | null>(null);
   if (invoiceVersionRef.current == null && existing) invoiceVersionRef.current = existing.version;
+  // FIX R6-19: al navegar de /invoices/A/edit a /invoices/B/edit React Router
+  // no remonta el form; resetear el snapshot para no arrastrar el candado de
+  // otra factura (falso stale_write o candado neutralizado).
+  useEffect(() => { invoiceVersionRef.current = null; }, [id]);
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
