@@ -19,7 +19,7 @@ export async function buildContractPdf(contract: ContractData, mode: PDFMode): P
   }
 
   // G-A2: sin costo de adquisición ni depósito el Anexo B sale "Bueno por $0.00".
-  if (mode !== "contract" && resolvePagareAmount(contract, forklift) <= 0) {
+  if ((mode === "full" || mode === "pagare") && resolvePagareAmount(contract, forklift) <= 0) {
     notifyWarning("El pagaré saldrá por $0.00", {
       description:
         "El equipo no tiene costo de adquisición y el contrato no tiene depósito en garantía. Captura alguno de los dos antes de recabar la firma.",
