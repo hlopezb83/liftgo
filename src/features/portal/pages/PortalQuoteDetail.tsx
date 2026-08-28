@@ -52,6 +52,8 @@ export default function PortalQuoteDetail() {
   }
   if (!quote) return <p className="text-muted-foreground">Cotización no encontrada</p>;
 
+  // F2: la cotización puede estar en USD; formatear siempre con su moneda.
+  const quoteCurrency = (quote as { currency?: string | null }).currency || "MXN";
   const items: LineItem[] = Array.isArray(quote.line_items) ? (quote.line_items as LineItem[]) : [];
   // Bloque 3.3 (R4): si valid_until pasó, no permitimos aceptar aunque el
   // status siga en 'sent'. El server-side (RPC accept_portal_quote) también
