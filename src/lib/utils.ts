@@ -1,5 +1,6 @@
 import { clsx, type ClassValue } from "clsx";
 import { format, type Locale } from "date-fns";
+import { es } from "date-fns/locale";
 import { toZonedTime } from "date-fns-tz";
 import { twMerge } from "tailwind-merge";
 import { APP_CONFIG } from "@/lib/config";
