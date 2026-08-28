@@ -7,6 +7,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useSuppliers } from "@/features/suppliers";
+import { useUserRole } from "@/features/users";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { serviceTypeLabel } from "@/lib/constants";
 import { formatCurrency } from "@/lib/format/formatCurrency";
