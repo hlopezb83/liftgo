@@ -179,7 +179,8 @@ describe("useAccountsPayableKpis · G-B4/G-B6 tipo de cambio faltante", () => {
       isError: false,
       refetch: vi.fn(),
     });
-    const { result } = renderHook(() => useAccountsPayableKpis(), { wrapper: createQueryWrapper() });
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useAccountsPayableKpis(), { wrapper: Wrapper });
     expect(result.current.kpis.fxMissingCount).toBe(1);
     expect(result.current.kpis.totalPendiente).toBe(1_000);
     expect(result.current.kpis.totalVencido).toBe(1_000);
@@ -192,7 +193,8 @@ describe("useAccountsPayableKpis · G-B4/G-B6 tipo de cambio faltante", () => {
       isError: false,
       refetch: vi.fn(),
     });
-    const { result } = renderHook(() => useAccountsPayableKpis(), { wrapper: createQueryWrapper() });
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useAccountsPayableKpis(), { wrapper: Wrapper });
     expect(result.current.kpis.fxMissingCount).toBe(0);
   });
 });
