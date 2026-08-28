@@ -566,11 +566,15 @@ Deno.serve(async (req) => {
         await markQueueRow(admin, row.id, {
           status: queueStatus,
           attempts: nextAttempts,
+          // FIX R6-02: hubo un intento real → el contador de deferrals se
+          // reinicia (solo cuentan los aplazamientos consecutivos).
+          deferrals: 0,
           last_error: String(errMsg).slice(0, 2000),
           next_retry_at: queueStatus === "exhausted"
             ? nowIso
             : nextRetryAt(nextAttempts).toISOString(),
         });
+
         results.push({
           id: row.id,
           status: queueStatus === "exhausted" ? "exhausted" : "retry",
