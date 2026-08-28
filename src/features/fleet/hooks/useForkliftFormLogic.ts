@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useParams } from "react-router";
 import { zodResolver } from "@/lib/forms/zodResolver";
@@ -23,9 +23,13 @@ export function useForkliftFormLogic() {
   // FIX R6-12: snapshot de `updated_at` al abrir el form (no el valor vivo de
   // React Query, que un refetch sobrescribiría, neutralizando el candado
   // optimista igual que en R6-06). Se resetea al cambiar el id de ruta.
-  const expectedUpdatedAtRef = useRef<string | null>(null);
-  if (expectedUpdatedAtRef.current == null && existing) expectedUpdatedAtRef.current = existing.updated_at;
-  useEffect(() => { expectedUpdatedAtRef.current = null; }, [id]);
+  // useState + efectos (no ref en render): react-hooks/refs prohíbe leer/
+  // escribir refs durante el renderizado.
+  const [expectedUpdatedAt, setExpectedUpdatedAt] = useState<string | null>(null);
+  useEffect(() => { setExpectedUpdatedAt(null); }, [id]);
+  useEffect(() => {
+    if (existing) setExpectedUpdatedAt((prev) => prev ?? existing.updated_at);
+  }, [existing]);
 
   const form = useForm<ForkliftFormData>({
     resolver: zodResolver(forkliftFormSchema),
@@ -38,7 +42,7 @@ export function useForkliftFormLogic() {
   useForkliftPrefill(existing, form, equipmentModels !== undefined);
   // M-11b: `updated_at` del registro cargado → bloqueo optimista al guardar.
   const { onSubmit, navigate, isPending } = useForkliftFormSubmit({
-    id, isEdit, expectedUpdatedAt: expectedUpdatedAtRef.current,
+    id, isEdit, expectedUpdatedAt,
   });
 
   const handleManufacturerChange = (value: string) => {
