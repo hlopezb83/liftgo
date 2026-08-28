@@ -182,6 +182,29 @@ export function MaintenancePoliciesTab() {
   );
 }
 
+function PolicyMobileCard({ policy, onToggle, onEdit, onDelete }: { policy: MaintenancePolicy; onToggle: () => void; onEdit: () => void; onDelete: () => void }) {
+  return (
+    <Card>
+      <CardContent className="p-3 space-y-1">
+        <div className="flex items-center justify-between gap-2">
+          <span className="font-medium">{policy.forklift_name}</span>
+          <div className="flex items-center gap-2">
+            <Switch checked={policy.is_active} onCheckedChange={onToggle} />
+            <MaintenancePolicyRowActions policy={policy} onEdit={onEdit} onDelete={onDelete} />
+          </div>
+        </div>
+        <div className="text-xs text-muted-foreground truncate">
+          {policy.provider_name} · {policy.service_type}
+        </div>
+        <div className="text-xs text-muted-foreground">
+          <span className="font-mono">{formatCurrency(policy.monthly_cost)}</span>
+          {policy.last_generated_month ? ` · Último: ${policy.last_generated_month}` : ""}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 function MaintenancePolicyRowActions({ policy, onEdit, onDelete }: { policy: MaintenancePolicy; onEdit: () => void; onDelete: () => void }) {
   const [open, setOpen] = useState(false);
   return (
