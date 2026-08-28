@@ -78,7 +78,7 @@ function ReceiptField({ file, onChange, disabled }: ReceiptFieldProps) {
 }
 
 export function RegisterSupplierPaymentDialog({
-  open, onOpenChange, billId, billNumber, balance,
+  open, onOpenChange, billId, billNumber, balance, currency = "MXN",
 }: Props) {
   const register = useRegisterSupplierPayment();
   const uploader = useUploadSupplierReceipt();
