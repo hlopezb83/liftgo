@@ -1,5 +1,5 @@
 
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useBookings, type BookingWithForklift } from "@/features/bookings";
 import { useCustomers } from "@/features/customers";
@@ -122,12 +122,18 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
 
   // R5-09: snapshot congelado de la versión la primera vez que `existing`
   // resuelve (no la versión viva de React Query, que un refetch sobrescribiría).
-  const invoiceVersionRef = useRef<number | null>(null);
-  if (invoiceVersionRef.current == null && existing) invoiceVersionRef.current = existing.version;
+  // useState + efectos (no ref en render): react-hooks/refs prohíbe leer/
+  // escribir refs durante el renderizado.
+  const [invoiceVersion, setInvoiceVersion] = useState<number | null>(null);
   // FIX R6-19: al navegar de /invoices/A/edit a /invoices/B/edit React Router
   // no remonta el form; resetear el snapshot para no arrastrar el candado de
   // otra factura (falso stale_write o candado neutralizado).
-  useEffect(() => { invoiceVersionRef.current = null; }, [id]);
+  useEffect(() => { setInvoiceVersion(null); }, [id]);
+  // Captura única: la primera vez que `existing` resuelve. Un refetch posterior
+  // no sobrescribe el snapshot (`prev ??` guard).
+  useEffect(() => {
+    if (existing) setInvoiceVersion((prev) => prev ?? existing.version);
+  }, [existing]);
 
   const form = useForm<InvoiceFormValues>({
     resolver: zodResolver(invoiceFormSchema),
@@ -191,10 +197,10 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     // trigger ya incrementó `version`; actualizar el ref permite reintentar el
     // sync posterior sin disparar un falso stale_write contra la propia
     // escritura.
-    setInvoiceVersion: (v: number | null) => { invoiceVersionRef.current = v; },
+    setInvoiceVersion,
     invoiceNumber: existing?.invoice_number ?? null,
     // R4-25: versión al abrir el formulario, para bloqueo optimista al guardar.
-    invoiceVersion: invoiceVersionRef.current,
+    invoiceVersion,
     customers, availableBookings,
     sourceQuote,
     saleAssignmentGuard,
