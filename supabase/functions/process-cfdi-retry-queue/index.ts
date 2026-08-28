@@ -129,6 +129,74 @@ async function markQueueRow(
   return true;
 }
 
+// FIX R6-02: tope de deferrals consecutivos. Superado, la fila pasa a
+// `exhausted` con diagnóstico en vez de reintentar contra el PAC para siempre
+// (antes `attempts` quedaba congelado y `max_attempts` nunca se alcanzaba).
+export const MAX_DEFERRALS = 10;
+
+// FIX R6-08: `cancel-cfdi` devuelve 409 en DOS casos distintos:
+//  (a) claim propio 'pending' de un intento anterior → diferible.
+//  (b) factura no cancelable (pagos aplicados) → terminal.
+// El código de error distingue ambos; nunca el status HTTP.
+export const CANCELLATION_IN_PROGRESS_CODE = "CANCELLATION_IN_PROGRESS";
+
+export function is409Deferrable(
+  operation: string,
+  body: unknown,
+): boolean {
+  if (operation === "cancel_nc" || operation === "cancel_rep") return true;
+  if (operation !== "cancel") return false;
+  return (body as { code?: string } | null)?.code ===
+    CANCELLATION_IN_PROGRESS_CODE;
+}
+
+// FIX R6-03: tras el refresh best-effort, lee el documento afectado y
+// determina si la cancelación quedó confirmada. Tabla/columnas por operación:
+//  - cancel     → invoices(status, cfdi_status, cancellation_status)
+//  - cancel_nc  → credit_notes(status, cfdi_status, cancellation_status)
+//  - cancel_rep → payments(rep_cfdi_status, rep_cancellation_status)
+async function isDocCancelled(
+  admin: ReturnType<typeof getAdminClient>,
+  operation: string,
+  docId: string,
+): Promise<boolean> {
+  const isRep = operation === "cancel_rep";
+  const table = isRep
+    ? "payments"
+    : operation === "cancel_nc"
+    ? "credit_notes"
+    : "invoices";
+  const select = isRep
+    ? "rep_cfdi_status, rep_cancellation_status"
+    : "status, cfdi_status, cancellation_status";
+  const { data, error } = await admin
+    .from(table)
+    .select(select)
+    .eq("id", docId)
+    .maybeSingle() as {
+      data: Record<string, unknown> | null;
+      error: { message?: string } | null;
+    };
+  if (error || !data) {
+    if (error) {
+      console.warn("[process-cfdi-retry-queue] doc read after refresh failed", {
+        table,
+        docId,
+        error: error.message ?? String(error),
+      });
+    }
+    return false;
+  }
+  if (isRep) {
+    return data.rep_cfdi_status === "cancelled" ||
+      data.rep_cancellation_status === "accepted";
+  }
+  return data.status === "cancelled" || data.cfdi_status === "cancelled" ||
+    data.cancellation_status === "accepted";
+}
+
+
+
 Deno.serve(async (req) => {
   const corsRes = handleCors(req);
   if (corsRes) return corsRes;
