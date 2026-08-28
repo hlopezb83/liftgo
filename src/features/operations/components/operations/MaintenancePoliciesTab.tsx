@@ -61,16 +61,23 @@ export function MaintenancePoliciesTab() {
     (f) => !existingForkliftIds.includes(f.id) || (editId && policies?.find((p) => p.id === editId)?.forklift_id === f.id)
   );
 
-  const openNew = () => { setEditId(null); setForm(EMPTY_POLICY_FORM); setOpen(true); };
+  // E4: snapshot de los valores al abrir el modal para poder avisar antes de
+  // descartar cambios (el formulario es state plano, sin react-hook-form).
+  const [baseline, setBaseline] = useState<MaintenancePolicyFormValues>(EMPTY_POLICY_FORM);
+  const isDirty = JSON.stringify(form) !== JSON.stringify(baseline);
+
+  const openNew = () => { setEditId(null); setForm(EMPTY_POLICY_FORM); setBaseline(EMPTY_POLICY_FORM); setOpen(true); };
   const openEdit = (p: MaintenancePolicy) => {
     setEditId(p.id);
-    setForm({
+    const values: MaintenancePolicyFormValues = {
       forklift_id: p.forklift_id,
       provider_name: p.provider_name,
       monthly_cost: String(p.monthly_cost),
       service_type: p.service_type,
       description: p.description ?? "",
-    });
+    };
+    setForm(values);
+    setBaseline(values);
     setOpen(true);
   };
 
@@ -181,6 +188,7 @@ export function MaintenancePoliciesTab() {
         onOpenChange={setOpen}
         isEdit={!!editId}
         isPending={create.isPending || update.isPending}
+        isDirty={isDirty}
         form={form}
         availableForklifts={availableForSelect}
         onChange={set}

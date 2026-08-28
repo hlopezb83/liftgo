@@ -19,14 +19,17 @@ interface Props {
   availableForklifts: Array<{ id: string; name: string; model: string }> | undefined;
   onChange: (key: keyof MaintenancePolicyFormValues, value: string) => void;
   onSave: () => void;
+  /** E4: pide confirmación al cerrar si hay cambios sin guardar. */
+  isDirty?: boolean;
 }
 
 export function MaintenancePolicyForm({
-  open, onOpenChange, isEdit, isPending, form, availableForklifts, onChange, onSave,
+  open, onOpenChange, isEdit, isPending, form, availableForklifts, onChange, onSave, isDirty = false,
 }: Props) {
   return (
     <FormDialog
       isPending={isPending}
+      isDirty={isDirty}
       open={open}
       onOpenChange={onOpenChange}
       title={`${isEdit ? "Editar" : "Nueva"} Póliza de Mantenimiento`}
