@@ -158,7 +158,7 @@ Deno.serve(async (req) => {
   const { data: pendingRows, error } = await admin
     .from("cfdi_retry_queue")
     .select(
-      "id, operation, invoice_id, attempts, max_attempts, payload, status",
+      "id, operation, invoice_id, attempts, max_attempts, payload, status, deferrals, last_error",
     )
     .eq("status", "pending")
     .lte("next_retry_at", nowIso)
@@ -173,7 +173,7 @@ Deno.serve(async (req) => {
   const { data: staleRows, error: staleErr } = await admin
     .from("cfdi_retry_queue")
     .select(
-      "id, operation, invoice_id, attempts, max_attempts, payload, status",
+      "id, operation, invoice_id, attempts, max_attempts, payload, status, deferrals, last_error",
     )
     .eq("status", "processing")
     .lt("updated_at", staleCutoff)
