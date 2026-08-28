@@ -101,3 +101,13 @@ export function capitalize(str: string): string {
 export function nowMty(): Date {
   return toZonedTime(new Date(), APP_CONFIG.TIMEZONE);
 }
+
+/**
+ * E5: lleva un instante (timestamp de la BD) al reloj de pared de Monterrey,
+ * para poder compararlo con cortes construidos a partir de `nowMty()`. Sin
+ * esto se mezclaban dos escalas (instante UTC vs. hora local del navegador) y
+ * los cortes de mes/30 días se desfasaban en equipos fuera de México.
+ */
+export function toMty(value: Date | string | number): Date {
+  return toZonedTime(new Date(value), APP_CONFIG.TIMEZONE);
+}
