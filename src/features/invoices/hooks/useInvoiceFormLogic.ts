@@ -185,6 +185,13 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
 
   return {
     form, isEdit, id, fromQuoteId,
+    existing,
+    isLoadingInvoice: isLoadingExisting,
+    // FIX R6-13: setter del snapshot — tras un `updateInvoice` exitoso el
+    // trigger ya incrementó `version`; actualizar el ref permite reintentar el
+    // sync posterior sin disparar un falso stale_write contra la propia
+    // escritura.
+    setInvoiceVersion: (v: number | null) => { invoiceVersionRef.current = v; },
     invoiceNumber: existing?.invoice_number ?? null,
     // R4-25: versión al abrir el formulario, para bloqueo optimista al guardar.
     invoiceVersion: invoiceVersionRef.current,
