@@ -136,6 +136,28 @@ export function buildCsvRows(statementRows: StatementRow[], filteredData: MonthD
   });
 }
 
+/**
+ * G-A1: en modo "Comparativo" la pantalla muestra la tabla año vs año, pero el
+ * CSV se armaba con `filteredData` (el detalle mensual de TODOS los años), así
+ * que el archivo descargado no cuadraba con lo visible. Este builder exporta
+ * exactamente las filas comparativas.
+ */
+export function buildComparisonCsvRows(
+  comparisonRows: { label: string; yearValues: number[]; delta: number; deltaPct: number | null; isPercent?: boolean }[],
+  years: string[],
+): Record<string, string>[] {
+  const fmt = (v: number, isPercent?: boolean) => (isPercent ? `${v.toFixed(1)}%` : v.toFixed(2));
+  return comparisonRows.map((row) => {
+    const obj: Record<string, string> = { Concepto: row.label };
+    years.forEach((y, i) => {
+      obj[y] = fmt(row.yearValues[i] ?? 0, row.isPercent);
+    });
+    obj["Variación"] = fmt(row.delta, row.isPercent);
+    obj["Variación %"] = row.deltaPct === null ? "—" : `${row.deltaPct.toFixed(1)}%`;
+    return obj;
+  });
+}
+
 interface ComparisonValueOptions {
   isCost?: boolean;
   isSubtotal?: boolean;

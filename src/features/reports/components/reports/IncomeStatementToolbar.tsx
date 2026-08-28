@@ -10,12 +10,14 @@ interface Props {
   selectedYear: string;
   setSelectedYear: (v: string) => void;
   csvRows: CsvRow[];
+  csvFilename?: string;
   onExportPdf: () => void;
   pdfLoading: boolean;
 }
 
 export function IncomeStatementToolbar({
-  availableYears, selectedYear, setSelectedYear, csvRows, onExportPdf, pdfLoading,
+  availableYears, selectedYear, setSelectedYear, csvRows,
+  csvFilename = "estado-resultados.csv", onExportPdf, pdfLoading,
 }: Props) {
   return (
     <div className="flex items-center justify-end gap-2 flex-wrap">
@@ -31,7 +33,7 @@ export function IncomeStatementToolbar({
           </SelectContent>
         </Select>
       )}
-      <Button variant="outline" size="sm" onClick={() => exportToCsv("estado-resultados.csv", csvRows)}>
+      <Button variant="outline" size="sm" disabled={csvRows.length === 0} onClick={() => exportToCsv(csvFilename, csvRows)}>
         <DownloadIcon className="h-4 w-4 mr-1" />CSV
       </Button>
       <Button variant="outline" size="sm" onClick={onExportPdf} disabled={pdfLoading}>
