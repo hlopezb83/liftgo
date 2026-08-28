@@ -5,8 +5,11 @@ import Papa from "papaparse";
  * ejecutan celdas de texto que empiezan con `=`, `+`, `-` o `@`; prefijarlas
  * con `'` fuerza interpretación como texto literal. Sólo aplica a strings —
  * los números reales (incl. negativos) no se tocan.
+ * G-A6: se ignora el espacio/tab/salto de línea inicial (Excel también evalúa
+ * `\t=1+1`) y los encabezados también se sanean, porque en varios reportes las
+ * columnas se generan a partir de datos capturados por el usuario.
  */
-const FORMULA_PREFIX = /^[=+\-@]/;
+const FORMULA_PREFIX = /^[\s\u0000-\u001F]*[=+\-@]/;
 export function sanitizeCsvCell(value: unknown): unknown {
   if (typeof value === "string" && FORMULA_PREFIX.test(value)) {
     return `'${value}`;
@@ -14,10 +17,14 @@ export function sanitizeCsvCell(value: unknown): unknown {
   return value;
 }
 
+function sanitizeHeader(key: string): string {
+  return FORMULA_PREFIX.test(key) ? `'${key}` : key;
+}
+
 function sanitizeCsvRow<T extends Record<string, unknown>>(row: T): T {
   const out: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(row)) {
-    out[key] = sanitizeCsvCell(value);
+    out[sanitizeHeader(key)] = sanitizeCsvCell(value);
   }
   return out as T;
 }

@@ -131,15 +131,17 @@ export const PAGARE_DEFAULT_LATE_INTEREST = "5";
  * v7.305.1: variables específicas del Anexo B (pagaré).
  * - `{deposito}`: plantillas legadas lo usaban como monto del pagaré; se
  *   resuelve al monto del pagaré para que encabezado y cuerpo nunca discrepen.
- * - `{interes_moratorio}`: un pagaré con 0% de mora es legalmente débil;
- *   cae a 5% cuando el contrato no captura tasa.
+ * - `{interes_moratorio}`: G-A3 — sólo se aplica el default cuando la tasa no
+ *   es un número válido. Un 0% capturado explícitamente en el contrato se
+ *   respeta: imprimir 5% en un título de crédito sería una tasa no pactada.
  */
 export function buildPagareVars(vars: Record<string, string>): Record<string, string> {
-  const rate = Number(vars.interes_moratorio ?? 0);
+  const raw = vars.interes_moratorio;
+  const rate = Number(raw);
+  const invalid = raw == null || raw === "" || !Number.isFinite(rate) || rate < 0;
   return {
     ...vars,
     deposito: vars.monto_pagare ?? vars.deposito,
-    interes_moratorio:
-      !Number.isFinite(rate) || rate <= 0 ? PAGARE_DEFAULT_LATE_INTEREST : String(rate),
+    interes_moratorio: invalid ? PAGARE_DEFAULT_LATE_INTEREST : String(rate),
   };
 }
