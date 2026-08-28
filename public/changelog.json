@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.374.3",
+    "date": "2026-08-28",
+    "type": "patch",
+    "title": "Actions de CI actualizadas a su última versión",
+    "description": "Se actualizaron las acciones oficiales de GitHub que usa la integración continua. No hay cambios en la aplicación.",
+    "changes": [
+      "actions/checkout de v6 a v7 (20 usos en 8 flujos), con protección reforzada de credenciales en PRs de forks.",
+      "actions/download-artifact de v6 a v8, compatible con el upload-artifact v7 que ya se usaba.",
+      "actions/setup-node de v5 a v7 en la acción compuesta setup-bun-project.",
+      "actions/upload-artifact, actions/cache y github/codeql-action ya estaban en su última versión."
+    ]
+  },
+  {
     "version": "7.374.2",
     "date": "2026-08-28",
     "type": "patch",

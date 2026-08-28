@@ -1,3 +1,10 @@
+## [7.374.3] - 2026-08-28
+### CI: actions oficiales de GitHub al día
+- `actions/checkout` v6 → **v7** (20 usos en `ci.yml`, `codeql.yml`, `bundle-size.yml`, `gitleaks.yml`, `lighthouse.yml`, `rls-db-tests.yml`, `changelog-check.yml`): endurece el manejo de credenciales en PRs de forks; mismas entradas.
+- `actions/download-artifact` v6 → **v8** (2 usos en `ci.yml`): requiere `upload-artifact` v6+, ya estábamos en v7.
+- `actions/setup-node` v5 → **v7** (`.github/actions/setup-bun-project`): corre sobre Node 24, mismas entradas `node-version`/`cache`.
+- Sin cambios: `actions/upload-artifact@v7`, `actions/cache@v6`, `github/codeql-action@v4` (ya en su última major). Las actions de terceros siguen fijadas por SHA vía Dependabot.
+
 ## [7.374.2] - 2026-08-28
 ### Lint: refs en render, no-control-regex y orden de imports
 - `useCustomerDetailPage`, `useForkliftFormLogic`, `useInvoiceFormLogic` (react-hooks/refs): los snapshots de bloqueo optimista (`customer.version`, `updated_at`, `invoice.version`) pasan de `useRef` leído/escrito en render a `useState` + efectos (`prev ?? valor` conserva la captura única; el reset por cambio de `id` se mantiene). Mismo comportamiento, patrón compatible con React Compiler.
