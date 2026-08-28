@@ -11,29 +11,38 @@ export interface InvoicePdfPayload {
   invoice: Tables<"invoices">;
   customerRfc: string | null;
   customerCp: string | null;
+  customerName: string;
 }
 
+/**
+ * F3: los datos fiscales del receptor se congelan en la factura al emitirla
+ * (`receptor_*`). El PDF debe reflejar ESE snapshot, no el estado actual del
+ * cliente: si el cliente cambió de domicilio fiscal o fue eliminado, el PDF
+ * antes mostraba el CP vacío o un dato distinto al del XML timbrado.
+ * El JOIN vivo a `customers` queda solo como respaldo para facturas antiguas.
+ */
 async function resolveCustomerFiscal(invoice: {
   customer_id: string | null;
   receptor_rfc: string | null;
+  receptor_domicilio_fiscal_cp: string | null;
 }): Promise<{ customerRfc: string | null; customerCp: string | null }> {
-  let customerRfc: string | null = null;
-  let customerCp: string | null = null;
+  let customerRfc: string | null = invoice.receptor_rfc ?? null;
+  let customerCp: string | null = invoice.receptor_domicilio_fiscal_cp ?? null;
 
-  if (invoice.customer_id) {
+  if ((!customerRfc || !customerCp) && invoice.customer_id) {
     const { data: cust } = await supabase
       .from("customers")
       .select("rfc, domicilio_fiscal_cp")
       .eq("id", invoice.customer_id)
-      .single();
+      .maybeSingle();
     if (cust) {
-      customerRfc = cust.rfc;
-      customerCp = cust.domicilio_fiscal_cp;
+      customerRfc = customerRfc || cust.rfc;
+      customerCp = customerCp || cust.domicilio_fiscal_cp;
     }
   }
-  if (!customerRfc && invoice.receptor_rfc) customerRfc = invoice.receptor_rfc;
   return { customerRfc, customerCp };
 }
+
 
 export async function fetchInvoicePdfData(invoiceId: string): Promise<InvoicePdfPayload> {
   // v7.216.0 (C6): columnas explícitas; el PDF consume prácticamente toda la fila.
@@ -57,5 +66,8 @@ export async function fetchInvoicePdfData(invoiceId: string): Promise<InvoicePdf
   if (error || !invoice) throw new Error("Factura no encontrada");
 
   const { customerRfc, customerCp } = await resolveCustomerFiscal(invoice);
-  return { invoice, customerRfc, customerCp };
+  // F3: la razón social timbrada manda sobre el nombre denormalizado.
+  const customerName = invoice.receptor_razon_social || invoice.customer_name || "—";
+  return { invoice, customerRfc, customerCp, customerName };
+
 }

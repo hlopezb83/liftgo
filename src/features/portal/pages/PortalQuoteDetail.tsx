@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { canActOnPortalQuote, isQuoteAccepted } from "@/lib/rules/quotes";
 import { formatDateDisplay, nowMty, parseDateLocal } from "@/lib/utils";
 import { PortalQuoteActionCard } from "../components/PortalQuoteActionCard";
@@ -52,6 +52,8 @@ export default function PortalQuoteDetail() {
   }
   if (!quote) return <p className="text-muted-foreground">Cotización no encontrada</p>;
 
+  // F2: la cotización puede estar en USD; formatear siempre con su moneda.
+  const quoteCurrency = (quote as { currency?: string | null }).currency || "MXN";
   const items: LineItem[] = Array.isArray(quote.line_items) ? (quote.line_items as LineItem[]) : [];
   // Bloque 3.3 (R4): si valid_until pasó, no permitimos aceptar aunque el
   // status siga en 'sent'. El server-side (RPC accept_portal_quote) también
@@ -100,8 +102,8 @@ export default function PortalQuoteDetail() {
                     {it.description ?? "—"}
                   </TableCell>
                   <TableCell className="text-right font-mono">{it.quantity ?? 1}</TableCell>
-                  <TableCell className="text-right font-mono">{formatCurrency(Number(it.unit_price ?? 0))}</TableCell>
-                  <TableCell className="text-right font-mono">{formatCurrency(computeLineTotal(it))}</TableCell>
+                  <TableCell className="text-right font-mono">{formatCurrencyWithCode(Number(it.unit_price ?? 0), quoteCurrency)}</TableCell>
+                  <TableCell className="text-right font-mono">{formatCurrencyWithCode(computeLineTotal(it), quoteCurrency)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -112,6 +114,7 @@ export default function PortalQuoteDetail() {
               taxRate={quote.tax_rate}
               taxAmount={quote.tax_amount}
               total={quote.total}
+              currency={quoteCurrency}
               emphasizeTotal
             />
           </div>

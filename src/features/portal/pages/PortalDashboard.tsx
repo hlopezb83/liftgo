@@ -84,7 +84,7 @@ export default function PortalDashboard() {
 
       <PortalUpcomingDues invoices={unpaidInvoices} />
       {activeBookings.length > 0 && <PortalBookingsCard bookings={activeBookings} />}
-      {recentInvoices.length > 0 && <PortalRecentInvoicesCard invoices={recentInvoices} />}
+      {recentInvoices.length > 0 && <PortalRecentInvoicesCard invoices={recentInvoices} totalCount={invoiceList.length} />}
       {/* R7-FE-06 (N7-POR-02): cliente nuevo — orientación + siguiente paso. */}
       {activeBookings.length === 0 && invoiceList.length === 0 && (
         <Card>

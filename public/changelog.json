@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.371.0",
+    "date": "2026-08-28",
+    "type": "minor",
+    "title": "Portal del cliente en su moneda y datos fiscales correctos en el PDF",
+    "description": "Las cotizaciones del portal ya se muestran en su propia moneda, el saldo pendiente se calcula igual en todas las pantallas y el PDF de factura usa los datos fiscales congelados al emitirla.",
+    "changes": [
+      "Las cotizaciones del portal (lista, detalle y totales) muestran su código de moneda real; antes una cotización en dólares se veía como pesos.",
+      "El saldo pendiente del tablero del portal usa la misma conversión a pesos que el estado de cuenta, sin inflar facturas ya en pesos.",
+      "El PDF de factura toma la razón social y el código postal fiscal guardados en la factura; si el cliente cambió de domicilio o fue eliminado, el documento sigue siendo correcto.",
+      "Las tarjetas de facturas recientes y próximos vencimientos avisan cuántas facturas hay en total con un enlace a la lista completa."
+    ]
+  },
+  {
     "version": "7.370.0",
     "date": "2026-08-28",
     "type": "minor",
