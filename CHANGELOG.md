@@ -1,3 +1,14 @@
+## [7.366.0] - 2026-08-28
+### Ronda R6: triggers de facturación, pagos en divisa y bypass GUC
+- `sync_invoice_status(uuid)`: nuevo helper; `sync_invoice_status_from_credit_notes()` llamaba a la función *trigger* de pagos fuera de contexto (`trigger_protocol_violated`) (R6-01).
+- `trg_sync_invoice_from_credit_notes`: ahora también dispara con `cfdi_status` y `cancellation_status`.
+- `trg_payment_amount_mxn()`: permite el cruce divisa→MXN cuando hay TC (pago o factura); sólo falla si no hay ninguno (R6-07).
+- `trg_payments_currency_matches_invoice`: `UPDATE OF currency, invoice_id, exchange_rate, amount` (R6-16).
+- `sync_forklift_rental_status`, `cancel_booking`, `create_booking`, `complete_return_inspection`, `e2e_seed_portal_scenario`: `EXCEPTION WHEN OTHERS` + reset de `app.forklift_rpc` / `app.booking_rpc` / `app.e2e_seed` + `RAISE` (R6-17).
+- `get_financial_kpis`: `expiring_contracts` excluye clientes E2E y unidades borradas con `(f.id IS NULL OR f.deleted_at IS NULL)` para no perder contratos sin unidad; se **conserva** la conversión a MXN del MRR (FIX A4) que el parche original revertía (R6-20).
+- `get_dashboard_stats`: `invoice_stats.breakdown` suma en MXN; se **conserva** `v_invoice_forklift_revenue` en `utilization` (FIX A1) (R6-21).
+- Nuevo smoke `supabase/tests/r_fix31_triggers_smoke.sql`.
+
 ## [7.365.1] - 2026-08-27
 ### Fix: `audit_trigger_fn()` insertaba `is_e2e` NULL
 - `current_setting('app.e2e_seed', true)` devuelve NULL fuera de sesiones E2E; `false OR NULL = NULL` dejaba `v_is_e2e` en NULL y el INSERT violaba el NOT NULL de `audit_logs.is_e2e` (SQLSTATE 23502).
