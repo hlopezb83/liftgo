@@ -200,10 +200,15 @@ export async function handleCancelCfdi(
         {
           error:
             "Ya hay una cancelación en proceso o la factura no está timbrada",
+          // FIX R6-08: código explícito para que process-cfdi-retry-queue
+          // distinga este 409 (claim propio pendiente → aplazable) del 409
+          // de "factura no cancelable" (terminal).
+          code: "CANCELLATION_IN_PROGRESS",
         },
         409,
       );
     }
+
     claimedRef = true;
 
     const { apiKey, mode } = await getFacturapiConfig(supabase, deps.env);
