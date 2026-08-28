@@ -3,6 +3,7 @@ import { InfoAlertIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { isFxMissing } from "@/features/cash-flow";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { cn, formatDateDisplay } from "@/lib/utils";
 import type { ExportablePayable } from "../hooks/useExportablePayables";
@@ -113,8 +114,14 @@ export function PaymentsExportTable({
       cell: ({ row }) => (
         <span className="font-mono">
           {formatCurrencyWithCode(row.original.balance, row.original.currency)}
-          {row.original.currency !== "MXN" && (
-            <Badge variant="outline" className="ml-1 text-3xs">{row.original.currency}</Badge>
+          {isFxMissing(row.original.currency, row.original.exchange_rate) && (
+            <Badge
+              variant="outline"
+              className="ml-1 text-3xs border-warning/40 text-warning"
+              title="Factura en divisa sin tipo de cambio capturado"
+            >
+              Sin TC
+            </Badge>
           )}
         </span>
       ),
