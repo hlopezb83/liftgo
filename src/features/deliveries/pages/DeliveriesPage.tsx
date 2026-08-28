@@ -279,29 +279,9 @@ export default function DeliveriesPage() {
       emptyMessage="No hay entregas programadas"
       emptyActionLabel="Programar entrega"
       onEmptyAction={scheduleDialog.openDialog}
-      mobileCardRender={(d) => {
-        const overdue = deliveryOverdueDays(d);
-        return (
-        <Card className="cursor-pointer" onClick={() => navigate(`/deliveries/${d.id}`)}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-1">
-              <Untranslated className="text-xs font-mono text-muted-foreground">{d.delivery_number}</Untranslated>
-              <StatusBadge status={d.status} />
-            </div>
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-semibold">{typeLabel(d.type)}</span>
-              {overdue > 0 && (
-                <Badge variant="destructive" className="text-3xs px-1.5 py-0">{deliveryOverdueLabel(overdue)}</Badge>
-              )}
-            </div>
-            <p className="text-sm font-medium">{forkliftMap.get(d.forklift_id)?.name ? <Untranslated>{forkliftMap.get(d.forklift_id)?.name}</Untranslated> : "—"}</p>
-            <p className="text-xs text-muted-foreground mt-1">{formatDateDisplay(d.scheduled_date)}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</p>
-            {d.address && <p className="text-xs text-muted-foreground truncate">{d.address}</p>}
-            {d.driver_name && <p className="text-xs text-muted-foreground">Operador: {d.driver_name}</p>}
-          </CardContent>
-        </Card>
-        );
-      }}
+      mobileCardRender={(d) => (
+        <DeliveryMobileCard d={d} forkliftMap={forkliftMap} onClick={() => navigate(`/deliveries/${d.id}`)} />
+      )}
     />
   );
 }
