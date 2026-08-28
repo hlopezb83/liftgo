@@ -1,3 +1,10 @@
+## [7.371.0] - 2026-08-28
+### Ronda F: portal del cliente y PDFs fiscales
+- `PortalQuotes` / `PortalQuoteDetail` / `TotalsBreakdown` (F2): `formatCurrencyWithCode` con `quote.currency`; antes toda cotización se formateaba en MXN aunque estuviera en USD y el cliente podía aceptarla creyendo un monto ~18x menor.
+- `portalKpis.derivePortalKpis` (F1): usa `toMxn(balance, moneda, tipo_cambio)` + `sumMoney` en vez de multiplicar siempre por `tipo_cambio`. Elimina la divergencia entre el saldo del tablero y el del estado de cuenta.
+- `fetchInvoicePdfData` / `buildInvoicePdf` (F3): `receptor_razon_social` y `receptor_domicilio_fiscal_cp` (snapshot fiscal al emitir) son la fuente primaria; el JOIN vivo a `customers` queda como respaldo y usa `maybeSingle()`.
+- `PortalSections` / `PortalUpcomingDues` (F4): enlace "Ver todas (N)" cuando la lista se recorta a 5.
+
 ## [7.370.0] - 2026-08-28
 ### Ronda E: archivado de OT, drift monetario y guardas de UI
 - `soft_delete_maintenance_log` (E1): una OT `completed` solo la archiva `admin` y ya NO se borran `maintenance_parts` / `maintenance_labor` de órdenes cerradas (era pérdida de historial de costos). Las órdenes abiertas siguen limpiando sus renglones. `MaintenanceDetailSheet` deshabilita "Archivar" para no-admin en OT cerradas.
