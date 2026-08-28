@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
@@ -41,7 +42,15 @@ export function PortalBookingsCard({ bookings }: { bookings: Booking[] }) {
   );
 }
 
-export function PortalRecentInvoicesCard({ invoices }: { invoices: Invoice[] }) {
+/**
+ * F4: la lista se recorta a 5; si hay más facturas se muestra un enlace a la
+ * lista completa para que el cliente no crea que esas son todas.
+ */
+export function PortalRecentInvoicesCard({
+  invoices,
+  totalCount,
+}: { invoices: Invoice[]; totalCount?: number }) {
+  const total = totalCount ?? invoices.length;
   return (
     <Card>
       <CardHeader>

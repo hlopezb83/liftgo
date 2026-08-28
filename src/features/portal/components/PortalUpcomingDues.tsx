@@ -1,3 +1,4 @@
+import { Link } from "react-router";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
@@ -35,8 +36,9 @@ function dueBadge(days: number) {
  * Ordena las facturas pendientes por fecha de vencimiento más cercana.
  */
 export function PortalUpcomingDues({ invoices }: { invoices: UpcomingDueInvoice[] }) {
-  const rows = invoices
-    .filter((i) => !!i.due_date)
+  const pending = invoices.filter((i) => !!i.due_date);
+  const rows = pending
+    .slice()
     .sort((a, b) => (a.due_date ?? "").localeCompare(b.due_date ?? ""))
     .slice(0, 5);
 
@@ -67,6 +69,11 @@ export function PortalUpcomingDues({ invoices }: { invoices: UpcomingDueInvoice[
             </div>
           );
         })}
+        {pending.length > rows.length ? (
+          <Link to="/portal/invoices" className="block pt-1 text-sm text-primary hover:underline">
+            Ver todas ({pending.length})
+          </Link>
+        ) : null}
       </CardContent>
     </Card>
   );
