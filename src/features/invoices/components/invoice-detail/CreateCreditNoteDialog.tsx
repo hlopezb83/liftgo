@@ -27,6 +27,7 @@ export function CreateCreditNoteDialog({ open, onOpenChange, invoice, maxCredita
       isPending={f.isPending}
       open={open}
       onOpenChange={(o) => { if (!o) f.reset(); onOpenChange(o); }}
+      isDirty={f.isDirty}
       title="Nueva nota de Crédito"
       width="2xl"
       description={<>Factura {invoice.invoice_number}. Máximo acreditable:{" "}

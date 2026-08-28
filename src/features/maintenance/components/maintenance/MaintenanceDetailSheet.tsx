@@ -7,6 +7,7 @@ import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useSuppliers } from "@/features/suppliers";
+import { useUserRole } from "@/features/users";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { serviceTypeLabel } from "@/lib/constants";
 import { formatCurrency } from "@/lib/format/formatCurrency";
@@ -35,6 +36,9 @@ interface Props {
 
 export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, onEdit }: Props) {
   const deleteLog = useDeleteMaintenanceLog();
+  // E1: una OT cerrada ya trae costos capturados; solo admin puede archivarla
+  // (el RPC lo valida en el servidor, aqui evitamos el intento fallido).
+  const { data: role } = useUserRole();
   const { data: suppliers } = useSuppliers();
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [closeOpen, setCloseOpen] = useState(false);
@@ -132,14 +136,20 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
               <Button variant="outline" className="flex-1" onClick={() => { onEdit(log); onOpenChange(false); }}>
                 <EditIcon className="h-4 w-4 mr-1" /> Editar
               </Button>
-              <Button variant="destructive" className="flex-1" onClick={() => setConfirmOpen(true)}>
+              <Button
+                variant="destructive"
+                className="flex-1"
+                disabled={isClosed && role !== "admin"}
+                title={isClosed && role !== "admin" ? "La orden esta cerrada: solo un administrador puede archivarla" : undefined}
+                onClick={() => setConfirmOpen(true)}
+              >
                 <DeleteIcon className="h-4 w-4 mr-1" /> Archivar
               </Button>
               <ConfirmDialog
                 open={confirmOpen}
                 onOpenChange={setConfirmOpen}
                 title="¿Archivar registro de mantenimiento?"
-                description={`Se ocultará de los listados pero se conservará el historial del servicio "${serviceTypeLabel(log.service_type)}" del ${formatDateDisplay(log.performed_at)} para auditoría.`}
+                description={`${isClosed ? "La orden está cerrada: se conservan sus refacciones y mano de obra. " : ""}Se ocultará de los listados pero se conservará el historial del servicio "${serviceTypeLabel(log.service_type)}" del ${formatDateDisplay(log.performed_at)} para auditoría.`}
                 confirmLabel="Archivar"
                 destructive
                 loading={deleteLog.isPending}

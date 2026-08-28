@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.370.0",
+    "date": "2026-08-28",
+    "type": "minor",
+    "title": "Archivado seguro de mantenimiento y saldos exactos",
+    "description": "Archivar una orden de trabajo cerrada ya no borra su historial de costos, los saldos de factura dejan de mostrar centavos fantasma y los formularios avisan antes de descartar cambios.",
+    "changes": [
+      "Solo un administrador puede archivar una orden de mantenimiento cerrada, y sus refacciones y mano de obra se conservan.",
+      "El saldo y las notas de crédito de una factura se calculan con redondeo monetario: se acabaron los saldos de -0.000000001 que pintaban una factura pagada como pendiente.",
+      "El detalle de cliente muestra un aviso con botón de reintentar cuando la consulta falla, en vez de decir que el cliente no existe.",
+      "Nueva póliza de mantenimiento, nueva nota de crédito y registro de pago a proveedor piden confirmación antes de cerrarse con cambios sin guardar.",
+      "Las métricas del CRM (ganados del mes y tasa de cierre a 30 días) usan siempre el horario de Monterrey."
+    ]
+  },
+  {
     "version": "7.369.1",
     "date": "2026-08-28",
     "type": "patch",

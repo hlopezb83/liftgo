@@ -40,6 +40,16 @@ export function useCreditNoteForm(
   const taxAmount = totals.taxAmount;
   const total = totals.total;
   const exceedsMax = total > maxCreditable + 0.01;
+  // E4: hay cambios que se perderían si el usuario cierra el modal sin querer
+  // (motivo distinto al default, texto capturado o líneas des-seleccionadas).
+  const isDirty =
+    motive !== "return" ||
+    reason.trim().length > 0 ||
+    lines.some((l) => !l._selected) ||
+    lines.some((l, i) =>
+      Number(l.quantity) !== Number(original[i]?.quantity ?? 0) ||
+      Number(l.unit_price) !== Number(original[i]?.unit_price ?? 0));
+
   const canSubmit =
     reason.trim().length > 0 && total > 0 && !exceedsMax && !createMutation.isPending;
 
@@ -112,7 +122,7 @@ export function useCreditNoteForm(
 
   return {
     motive, setMotive, reason, setReason, lines, updateLine, lineMax,
-    taxRate, subtotal, taxAmount, total, exceedsMax, canSubmit,
+    taxRate, subtotal, taxAmount, total, exceedsMax, canSubmit, isDirty,
     isPending: createMutation.isPending,
     submit, reset,
   };

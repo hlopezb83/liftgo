@@ -1,6 +1,7 @@
 import { useParams } from "react-router";
 import { NotesCard } from "@/components/domain/NotesCard";
 import { EmptyState } from "@/components/feedback/EmptyState";
+import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { UserPlus, EditIcon, DeleteIcon, FileDown } from "@/components/icons";
 import { DetailPageHeader } from "@/components/layout/DetailPageHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -44,6 +45,14 @@ export default function CustomerDetailPage() {
   };
 
   if (s.isLoading) return <PageContainer><Skeleton className="h-96" /></PageContainer>;
+  // E3: un fallo de red/RLS ya no se disfraza de "Cliente no encontrado".
+  if (s.isError) {
+    return (
+      <PageContainer>
+        <QueryErrorState entity="el cliente" onRetry={() => { void s.refetch(); }} />
+      </PageContainer>
+    );
+  }
   if (!s.customer) {
     return (
       <PageContainer>

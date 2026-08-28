@@ -1,4 +1,4 @@
-import { toMxn } from "@/lib/money";
+import { sumMoney, toMxn } from "@/lib/money";
 
 export type PaymentLike = {
   amount: number;
@@ -43,25 +43,28 @@ export function sumPaymentsInInvoiceCurrency(
 ): { totalPaid: number; unconvertible: number } {
   const invCode = code(invoiceCurrency);
   const invRate = positiveRate(invoiceRate);
-  let totalPaid = 0;
+  // E2: acumular con `sumMoney` (currency.js) y no con `+=` en float crudo —
+  // un total exactamente cubierto devolvía saldos tipo -1.8e-13 y la UI pintaba
+  // la factura como pendiente.
+  const parts: number[] = [];
   let unconvertible = 0;
 
   for (const p of payments) {
     if (code(p.currency) === invCode) {
-      totalPaid += Number(p.amount ?? 0);
+      parts.push(Number(p.amount ?? 0));
       continue;
     }
     const mxn = paymentToMxn(p);
     if (mxn === null) {
       unconvertible += 1;
     } else if (invCode === "MXN") {
-      totalPaid += mxn;
+      parts.push(mxn);
     } else if (invRate !== null) {
-      totalPaid += mxn / invRate;
+      parts.push(mxn / invRate);
     } else {
       unconvertible += 1;
     }
   }
 
-  return { totalPaid, unconvertible };
+  return { totalPaid: sumMoney(parts), unconvertible };
 }

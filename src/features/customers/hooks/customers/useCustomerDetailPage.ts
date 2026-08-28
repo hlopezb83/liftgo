@@ -32,7 +32,9 @@ export function useCustomerDetailPage(id: string | undefined) {
   // colado por una ruta mal armada) no disparamos ningún fetch — se muestra
   // el estado "Cliente no encontrado" en vez de un error SQL crudo.
   const validId = isValidUuid(id) ? id : undefined;
-  const { data: customer, isLoading } = useCustomer(validId);
+  // E3: `isError`/`refetch` se exponen para que la página distinga "falló la
+  // consulta" de "el cliente no existe" (antes ambos caían en el mismo vacío).
+  const { data: customer, isLoading, isError, refetch } = useCustomer(validId);
   const { data: summary } = useCustomerSummary(validId);
   const { data: profitability } = useCustomerProfitability(validId);
   const { data: role } = useUserRole();
@@ -72,7 +74,7 @@ export function useCustomerDetailPage(id: string | undefined) {
   const hasDependencies = bookings.length > 0 || invoices.length > 0;
 
   return {
-    isLoading, customer: customer ?? undefined, summary, profitability, role,
+    isLoading, isError, refetch, customer: customer ?? undefined, summary, profitability, role,
     bookings, invoices, activeBookingsCount,
     totalInvoiced, totalPaid, outstanding,
     hasPortalAccess, hasDependencies,

@@ -130,7 +130,9 @@ export function RegisterSupplierPaymentDialog({
 
   return (
     <FormDialog
-      isPending={register.isPending || uploader.isPending} open={open} onOpenChange={onOpenChange} title={`Registrar pago — ${billNumber}`}>
+      isPending={register.isPending || uploader.isPending}
+      isDirty={form.formState.isDirty || receiptFile !== null}
+      open={open} onOpenChange={onOpenChange} title={`Registrar pago — ${billNumber}`}>
       <div className="rounded-md bg-muted/50 p-3 mb-2 flex items-center justify-between text-sm">
         <span className="text-muted-foreground">Saldo actual</span>
         <span className="tabular-nums font-bold">{formatCurrency(balance)}</span>
