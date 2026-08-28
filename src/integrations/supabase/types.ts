@@ -4512,6 +4512,10 @@ export type Database = {
           previous_status: string
         }[]
       }
+      sync_invoice_status: {
+        Args: { p_invoice_id: string }
+        Returns: undefined
+      }
       today_mty: { Args: never; Returns: string }
       unassign_forklift_from_sale_quote: {
         Args: { p_assignment_id: string; p_forklift_id: string }
