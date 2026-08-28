@@ -10,6 +10,7 @@ import { useUserRole } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { parseLineItems } from "@/lib/domain/lineItems";
+import { roundMoney, sumMoney } from "@/lib/money";
 import { InvoiceDetailBody } from "../components/invoice-detail/InvoiceDetailBody";
 import { useCreditNotesForInvoice } from "../hooks/creditNotes/useCreditNotes";
 import { useInvoiceDetailActions } from "../hooks/invoiceDetail/useInvoiceDetailActions";
@@ -52,7 +53,7 @@ function deriveInvoiceData(
   );
   return {
     paymentList, lineItems, cfdiStatus, totalPaid, creditedAmount, total, unconvertiblePayments,
-    balance: total - totalPaid - creditedAmount,
+    balance: roundMoney(total - totalPaid - creditedAmount),
     showCfdiError: Boolean(invoice.cfdi_error_message) && cfdiStatus !== "stamped",
     showCollectionNotes: !["paid", "draft"].includes(invoice.status),
     visibility,
