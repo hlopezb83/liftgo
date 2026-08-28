@@ -7,7 +7,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { canActOnPortalQuote, isQuoteAccepted } from "@/lib/rules/quotes";
 import { formatDateDisplay, nowMty, parseDateLocal } from "@/lib/utils";
 import { PortalQuoteActionCard } from "../components/PortalQuoteActionCard";
@@ -100,8 +100,8 @@ export default function PortalQuoteDetail() {
                     {it.description ?? "—"}
                   </TableCell>
                   <TableCell className="text-right font-mono">{it.quantity ?? 1}</TableCell>
-                  <TableCell className="text-right font-mono">{formatCurrency(Number(it.unit_price ?? 0))}</TableCell>
-                  <TableCell className="text-right font-mono">{formatCurrency(computeLineTotal(it))}</TableCell>
+                  <TableCell className="text-right font-mono">{formatCurrencyWithCode(Number(it.unit_price ?? 0), quoteCurrency)}</TableCell>
+                  <TableCell className="text-right font-mono">{formatCurrencyWithCode(computeLineTotal(it), quoteCurrency)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -112,6 +112,7 @@ export default function PortalQuoteDetail() {
               taxRate={quote.tax_rate}
               taxAmount={quote.tax_amount}
               total={quote.total}
+              currency={quoteCurrency}
               emphasizeTotal
             />
           </div>

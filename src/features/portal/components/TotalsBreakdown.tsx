@@ -1,10 +1,12 @@
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 
 interface Props {
   subtotal: number | string | null | undefined;
   taxRate?: number | string | null;
   taxAmount: number | string | null | undefined;
   total: number | string | null | undefined;
+  /** Código de moneda del documento (MXN por defecto). */
+  currency?: string | null;
   /** Cuando `true`, resalta el total con tamaño mayor (portal invoice). */
   emphasizeTotal?: boolean;
   className?: string;
@@ -19,9 +21,11 @@ export function TotalsBreakdown({
   taxRate,
   taxAmount,
   total,
+  currency,
   emphasizeTotal = false,
   className = "",
 }: Props) {
+  const code = currency || "MXN";
   const totalClass = emphasizeTotal ? "text-base" : "";
   // Bloque 3.1 (R4): tax_rate en DB se guarda como fracción (0.16) para facturas
   // y como porcentaje (16) para cotizaciones. Normalizamos al mostrar: si el
@@ -36,15 +40,15 @@ export function TotalsBreakdown({
     <div className={`space-y-1 text-sm text-right ${className}`}>
       <div className="flex justify-end gap-8">
         <span className="text-muted-foreground">Subtotal</span>
-        <span className="tabular-nums">{formatCurrency(Number(subtotal ?? 0))}</span>
+        <span className="tabular-nums">{formatCurrencyWithCode(Number(subtotal ?? 0), code)}</span>
       </div>
       <div className="flex justify-end gap-8">
         <span className="text-muted-foreground">IVA ({rateLabel}%)</span>
-        <span className="tabular-nums">{formatCurrency(Number(taxAmount ?? 0))}</span>
+        <span className="tabular-nums">{formatCurrencyWithCode(Number(taxAmount ?? 0), code)}</span>
       </div>
       <div className={`flex justify-end gap-8 font-bold ${totalClass}`}>
         <span>Total</span>
-        <span className="tabular-nums">{formatCurrency(Number(total ?? 0))}</span>
+        <span className="tabular-nums">{formatCurrencyWithCode(Number(total ?? 0), code)}</span>
       </div>
     </div>
   );

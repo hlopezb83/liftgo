@@ -1,8 +1,17 @@
-type Invoice = { status?: string | null; balance?: number | string | null; tipo_cambio?: number | string | null };
+import { sumMoney, toMxn } from "@/lib/money";
+
+type Invoice = {
+  status?: string | null;
+  balance?: number | string | null;
+  moneda?: string | null;
+  tipo_cambio?: number | string | null;
+};
 
 /**
- * R12 A3: saldo real MXN — usar `balance` (no `total`) y multiplicar por
- * `tipo_cambio` para normalizar facturas en USD.
+ * R12 A3: saldo real MXN — usar `balance` (no `total`).
+ * F1: la conversión usa `toMxn` (misma fuente de verdad que Estado de Cuenta),
+ * que solo aplica `tipo_cambio` cuando la moneda NO es MXN. Antes multiplicaba
+ * siempre, inflando el saldo de facturas en MXN con tipo de cambio heredado.
  */
 export function derivePortalKpis<B extends { status: string }, I extends Invoice>(
   bookings: B[] | undefined,
@@ -12,9 +21,8 @@ export function derivePortalKpis<B extends { status: string }, I extends Invoice
   const invoiceList = invoices ?? [];
   const activeBookings = bookingList.filter((b) => b.status === "confirmed");
   const unpaidInvoices = invoiceList.filter((i) => i.status !== "paid" && i.status !== "cancelled");
-  const outstanding = unpaidInvoices.reduce(
-    (sum, i) => sum + Number(i.balance ?? 0) * Number(i.tipo_cambio ?? 1),
-    0,
+  const outstanding = sumMoney(
+    unpaidInvoices.map((i) => toMxn(Number(i.balance ?? 0), i.moneda ?? "MXN", i.tipo_cambio)),
   );
   return {
     invoiceList,
