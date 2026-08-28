@@ -153,28 +153,12 @@ export function MaintenancePoliciesTab() {
           keyExtractor={(p) => p.id}
           emptyMessage="No hay pólizas de mantenimiento configuradas"
           renderCard={(p) => (
-            <Card>
-              <CardContent className="p-3 space-y-1">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-medium">{p.forklift_name}</span>
-                  <div className="flex items-center gap-2">
-                    <Switch checked={p.is_active} onCheckedChange={() => toggleActive(p)} />
-                    <MaintenancePolicyRowActions
-                      policy={p}
-                      onEdit={() => openEdit(p)}
-                      onDelete={() => del.mutate(p.id)}
-                    />
-                  </div>
-                </div>
-                <div className="text-xs text-muted-foreground truncate">
-                  {p.provider_name} · {p.service_type}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  <span className="font-mono">{formatCurrency(p.monthly_cost)}</span>
-                  {p.last_generated_month ? ` · Último: ${p.last_generated_month}` : ""}
-                </div>
-              </CardContent>
-            </Card>
+            <PolicyMobileCard
+              policy={p}
+              onToggle={() => toggleActive(p)}
+              onEdit={() => openEdit(p)}
+              onDelete={() => del.mutate(p.id)}
+            />
           )}
         />
       ) : (
