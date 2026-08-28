@@ -116,6 +116,22 @@ export default function InvoiceForm() {
     );
   }
 
+  // FIX R6-25: id inexistente o sin permisos en modo edición — mostrar estado
+  // con salida (patrón de InvoiceDetail) en vez del form vacío con
+  // "Cargando la factura…" indefinido y el botón de Guardar bloqueado.
+  if (f.isEdit && !f.isLoadingInvoice && !f.existing) {
+    return (
+      <PageContainer>
+        <EmptyState
+          title="Factura no encontrada o sin permisos"
+          subtitle="La factura no existe, fue eliminada o no tienes acceso a ella."
+          actionLabel="Volver a facturas"
+          onAction={() => navigate("/invoices")}
+        />
+      </PageContainer>
+    );
+  }
+
   return (
     <PageContainer maxWidth="wide">
       <FormPageHeader
