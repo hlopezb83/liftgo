@@ -438,6 +438,8 @@ Deno.serve(async (req) => {
           status: "succeeded",
           attempts: nextAttempts,
           last_error: null,
+          // FIX R6-02: cerrar la fila resetea el contador de deferrals.
+          deferrals: 0,
         });
         results.push({
           id: row.id,
@@ -447,26 +449,19 @@ Deno.serve(async (req) => {
       } else {
         const errMsg = (invRes.body as { error?: string } | null)?.error ??
           String(invRes.body);
-        // R5-02: 409 en cancel_nc/cancel_rep = claim propio 'pending' (el
-        // intento anterior murió por timeout DESPUÉS de llamar al PAC). NO
-        // es un fallo terminal: reprogramar como deferral de infraestructura
-        // SIN consumir intento (patrón R4-13 de este mismo archivo) y pedir
-        // reconciliación del estado real en el SAT.
-        if (
-          invRes.status === 409 &&
-          (row.operation === "cancel_nc" || row.operation === "cancel_rep")
-        ) {
-          await markQueueRow(admin, row.id, {
-            status: "pending",
-            attempts: row.attempts,
-            last_error: String(errMsg).slice(0, 2000),
-            next_retry_at: nextRetryAt(row.attempts + 1).toISOString(),
-          });
+        // R5-02 + FIX R6-08: 409 con claim propio 'pending' (el intento
+        // anterior murió por timeout DESPUÉS de llamar al PAC). NO es un fallo
+        // terminal: reprogramar como deferral SIN consumir intento y pedir
+        // reconciliación del estado real en el SAT. Para `cancel` solo aplica
+        // cuando el body trae code=CANCELLATION_IN_PROGRESS; el otro 409
+        // ("no cancelable") sigue siendo terminal.
+        if (invRes.status === 409 && is409Deferrable(row.operation, invRes.body)) {
+          const deferrals = (row.deferrals ?? 0) + 1;
           // Best-effort: refresh-cancellation-status consulta al PAC y
           // actualiza cancellation_status; si falla, el próximo ciclo
           // reintenta el deferral.
           try {
-            await fetch(
+            const refreshRes = await fetch(
               `https://${projectRef}.supabase.co/functions/v1/refresh-cancellation-status`,
               {
                 method: "POST",
@@ -475,14 +470,82 @@ Deno.serve(async (req) => {
                   "Authorization": `Bearer ${serviceKey}`,
                   "apikey": serviceKey,
                 },
+                // FIX R6-23: timeout de 10s para que una función colgada no
+                // consuma el wall-clock del lote de 25 filas.
+                signal: AbortSignal.timeout(10_000),
                 body: JSON.stringify(
                   row.operation === "cancel_rep"
                     ? { payment_id: row.invoice_id }
-                    : { credit_note_id: row.invoice_id },
+                    : row.operation === "cancel_nc"
+                    ? { credit_note_id: row.invoice_id }
+                    : { invoice_id: row.invoice_id },
                 ),
               },
             );
-          } catch { /* best-effort */ }
+            // FIX R6-23: observar el resultado (antes se descartaba).
+            if (!refreshRes.ok) {
+              console.warn(
+                "[process-cfdi-retry-queue] refresh-cancellation-status failed",
+                { row_id: row.id, status: refreshRes.status },
+              );
+            }
+          } catch (refreshErr) {
+            // FIX R6-23: catch con log (antes catch vacío).
+            console.warn(
+              "[process-cfdi-retry-queue] refresh-cancellation-status threw",
+              {
+                row_id: row.id,
+                error: refreshErr instanceof Error
+                  ? refreshErr.message
+                  : String(refreshErr),
+              },
+            );
+          }
+          // FIX R6-03: si el refresh reconcilió la cancelación, la fila es un
+          // ÉXITO, no un deferral más ni un exhausted espurio.
+          if (await isDocCancelled(admin, row.operation, row.invoice_id)) {
+            await markQueueRow(admin, row.id, {
+              status: "succeeded",
+              attempts: row.attempts,
+              last_error: null,
+              deferrals: 0,
+            });
+            results.push({
+              id: row.id,
+              status: "succeeded",
+              http: invRes.status,
+            });
+            continue;
+          }
+          if (deferrals > MAX_DEFERRALS) {
+            // FIX R6-02: tope alcanzado → exhausted con diagnóstico.
+            await markQueueRow(admin, row.id, {
+              status: "exhausted",
+              attempts: row.attempts,
+              deferrals,
+              last_error:
+                `MAX_DEFERRALS=${MAX_DEFERRALS} alcanzado tras ${deferrals} aplazamientos; último 409: ${
+                  String(errMsg)
+                }`.slice(0, 2000),
+              next_retry_at: nowIso,
+            });
+            results.push({
+              id: row.id,
+              status: "exhausted",
+              http: invRes.status,
+            });
+            continue;
+          }
+          await markQueueRow(admin, row.id, {
+            status: "pending",
+            attempts: row.attempts,
+            deferrals,
+            last_error: String(errMsg).slice(0, 2000),
+            // FIX R6-22: backoff creciente según el contador de deferrals
+            // (2, 4, 8… min con tope de 60) en vez del fijo de ~2 min que
+            // spameaba al PAC en cada ciclo.
+            next_retry_at: nextRetryAt(deferrals).toISOString(),
+          });
           results.push({
             id: row.id,
             status: "retry_claim_pending",
@@ -490,6 +553,7 @@ Deno.serve(async (req) => {
           });
           continue;
         }
+
         // M-6: 409 en una cancelación de factura (stamp ya lo filtró como
         // éxito en invokeStampFn) = el documento no es cancelable → fallo
         // TERMINAL inmediato (exhausted), sin gastar los reintentos.
