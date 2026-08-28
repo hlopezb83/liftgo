@@ -34,10 +34,14 @@ function renderFallback(fallback: ReactNode | undefined, node: ReactNode) {
 }
 
 export function RoleGuard({ module, minAccess = "read", children, fallback }: RoleGuardProps) {
+  const isRestoring = useIsRestoring();
   const { data: role, isLoading: roleLoading, isError: roleError } = useUserRole();
   const { data: perms, isLoading: permsLoading, isError: permsError } = useRolePermissions();
 
-  const loading = roleLoading || permsLoading;
+  // G-C1: mismo criterio que AuthGuard (R7 Bloque 17b). Durante la restauración
+  // del caché persistido `isLoading` es false con `data` undefined y el guard
+  // renderizaba NoAccess a usuarios que sí tienen acceso.
+  const loading = isRestoring || roleLoading || permsLoading;
   const error = roleError || permsError;
   const reason = resolveGuardReason({ loading, error, role });
 
