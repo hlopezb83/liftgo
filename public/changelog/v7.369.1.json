@@ -1,0 +1,8 @@
+{
+  "description": "Limpieza completa de datos de prueba: notas de crédito y comprobantes huérfanos (R6-18)",
+  "changes": [
+    "Se eliminan las notas de crédito ligadas a facturas o clientes de prueba antes de borrarlos (la llave foránea lo impedía).",
+    "Se borran los comprobantes de pago huérfanos de los clientes de prueba en el almacenamiento.",
+    "La limpieza reporta cuántas notas de crédito y archivos se eliminaron."
+  ]
+}

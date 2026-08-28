@@ -1,5 +1,17 @@
 [
   {
+    "version": "7.369.1",
+    "date": "2026-08-28",
+    "type": "patch",
+    "title": "Limpieza completa de datos de prueba",
+    "description": "Los escenarios de prueba automatizada ahora se borran por completo: antes quedaban atorados cuando existía una nota de crédito y los comprobantes de pago se quedaban guardados sin dueño.",
+    "changes": [
+      "Al sembrar o limpiar un escenario de prueba se eliminan primero las notas de crédito ligadas a sus facturas o clientes, que antes bloqueaban el borrado.",
+      "Se eliminan los comprobantes de pago huérfanos de los clientes de prueba en el almacenamiento.",
+      "El resultado de la limpieza ahora reporta cuántas notas de crédito y archivos se borraron."
+    ]
+  },
+  {
     "version": "7.369.0",
     "date": "2026-08-28",
     "type": "minor",
