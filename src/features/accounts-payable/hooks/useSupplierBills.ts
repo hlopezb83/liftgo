@@ -80,7 +80,10 @@ async function fetchList(): Promise<SupplierBillListItem[]> {
       .limit(LIST_FETCH_LIMIT),
     supabase
       .from("supplier_payments")
-      .select("bill_id, rep_required, rep_status, payment_date, amount"),
+      // G-B3: sin .limit() PostgREST corta en su tope por defecto (1000) sin
+      // avisar y se perdían pagos del resumen REP y del KPI "pagado mes actual".
+      .select("bill_id, rep_required, rep_status, payment_date, amount")
+      .limit(LIST_FETCH_LIMIT),
   ]);
 
   if (billsRes.error) throw billsRes.error;

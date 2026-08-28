@@ -97,6 +97,22 @@ export function contractSigningDate(contract: ContractData): string | null {
   return contract.signed_at || contract.start_date || null;
 }
 
+/**
+ * v7.303.0: el pagaré se emite por el costo de adquisición del equipo;
+ * si el equipo no lo tiene capturado, cae al depósito en garantía.
+ * G-A2: puede resultar 0 cuando ninguno está capturado — los callers deben
+ * advertirlo antes de generar el Anexo B (un pagaré "Bueno por $0.00" no sirve
+ * como garantía).
+ */
+export function resolvePagareAmount(
+  contract: Pick<ContractData, "deposit_amount">,
+  forklift: { acquisition_cost?: number | null } | null,
+): number {
+  return num(forklift?.acquisition_cost) > 0
+    ? num(forklift?.acquisition_cost)
+    : num(contract.deposit_amount);
+}
+
 export function buildPlaceholderVars(
   contract: ContractData,
   company: CompanyInfo | null,
@@ -104,11 +120,7 @@ export function buildPlaceholderVars(
   forklift: ForkliftInfo | null,
 ): Record<string, string> {
   const signing = contractSigningDate(contract);
-  // v7.303.0: el pagaré se emite por el costo de adquisición del equipo;
-  // si el equipo no lo tiene capturado, cae al depósito en garantía.
-  const montoPagare = num(forklift?.acquisition_cost) > 0
-    ? num(forklift?.acquisition_cost)
-    : num(contract.deposit_amount);
+  const montoPagare = resolvePagareAmount(contract, forklift);
   return {
     ...buildPartyVars(contract, company, customer),
     ...buildUsageVars(contract),
@@ -131,15 +143,17 @@ export const PAGARE_DEFAULT_LATE_INTEREST = "5";
  * v7.305.1: variables específicas del Anexo B (pagaré).
  * - `{deposito}`: plantillas legadas lo usaban como monto del pagaré; se
  *   resuelve al monto del pagaré para que encabezado y cuerpo nunca discrepen.
- * - `{interes_moratorio}`: un pagaré con 0% de mora es legalmente débil;
- *   cae a 5% cuando el contrato no captura tasa.
+ * - `{interes_moratorio}`: G-A3 — sólo se aplica el default cuando la tasa no
+ *   es un número válido. Un 0% capturado explícitamente en el contrato se
+ *   respeta: imprimir 5% en un título de crédito sería una tasa no pactada.
  */
 export function buildPagareVars(vars: Record<string, string>): Record<string, string> {
-  const rate = Number(vars.interes_moratorio ?? 0);
+  const raw = vars.interes_moratorio;
+  const rate = Number(raw);
+  const invalid = raw == null || raw === "" || !Number.isFinite(rate) || rate < 0;
   return {
     ...vars,
     deposito: vars.monto_pagare ?? vars.deposito,
-    interes_moratorio:
-      !Number.isFinite(rate) || rate <= 0 ? PAGARE_DEFAULT_LATE_INTEREST : String(rate),
+    interes_moratorio: invalid ? PAGARE_DEFAULT_LATE_INTEREST : String(rate),
   };
 }

@@ -8,6 +8,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthSnapshotSync } from "@/features/users";
+import { handleSessionExpired } from "@/lib/auth/sessionExpiry";
 import {
   createBrowserPersister,
   shouldPersistQuery,
@@ -34,18 +35,23 @@ const queryClient = new QueryClient({
   },
   queryCache: new QueryCache({
     onError: (error, query) => {
-      if (query.meta?.silent) return;
-      // Oleada 1 (A-11): título humano; la página muestra ErrorState con reintentar.
-      notifyError({ title: "No se pudo cargar la información", error, phase: "query", method: String(query.queryKey[0] ?? "query") });
+      // G-C3: un JWT vencido cierra sesión y manda al login antes de cualquier toast.
+      void handleSessionExpired(error).then((handled) => {
+        if (handled || query.meta?.silent) return;
+        // Oleada 1 (A-11): título humano; la página muestra ErrorState con reintentar.
+        notifyError({ title: "No se pudo cargar la información", error, phase: "query", method: String(query.queryKey[0] ?? "query") });
+      });
     },
   }),
   mutationCache: new MutationCache({
     onError: (error, _vars, _ctx, mutation) => {
-      if (mutation.meta?.silent) return;
-      // Si la mutación ya tiene un onError local, dejamos que él maneje el toast
-      // (típicamente usando notifyError) para evitar notificaciones duplicadas.
-      if (mutation.options.onError) return;
-      notifyError({ error, phase: "mutation" });
+      void handleSessionExpired(error).then((handled) => {
+        if (handled || mutation.meta?.silent) return;
+        // Si la mutación ya tiene un onError local, dejamos que él maneje el toast
+        // (típicamente usando notifyError) para evitar notificaciones duplicadas.
+        if (mutation.options.onError) return;
+        notifyError({ error, phase: "mutation" });
+      });
     },
   }),
 });

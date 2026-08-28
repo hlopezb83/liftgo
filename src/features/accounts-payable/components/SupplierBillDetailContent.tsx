@@ -194,6 +194,7 @@ export function SupplierBillDetailContent({ bill, perms, isAdmin, dialogs, onClo
         billId={bill.id}
         billNumber={bill.bill_number}
         balance={Number(bill.balance)}
+        currency={bill.currency ?? "MXN"}
       />
       <CancelSupplierBillDialog
         open={dialogs.cancelDialog}

@@ -99,7 +99,13 @@ describe("formatMtyDate", () => {
   });
 
   it("Bloque 1.1: month_key 'YYYY-MM' etiqueta el mes correcto (día 1)", () => {
-    expect(formatMtyDate("2026-04", "MMM yyyy").toLowerCase()).toContain("apr");
+    // G-A7: el locale por defecto ahora es es-MX ⇒ "abr", no "apr".
+    expect(formatMtyDate("2026-04", "MMM yyyy").toLowerCase()).toContain("abr");
+  });
+
+  it("G-A7: nombres de mes/día se imprimen en español sin pasar locale", () => {
+    expect(formatMtyDate("2026-04-06", "MMMM").toLowerCase()).toBe("abril");
+    expect(formatMtyDate("2026-04-06", "EEEE").toLowerCase()).toBe("lunes");
   });
 });
 

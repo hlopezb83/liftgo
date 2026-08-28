@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { Label } from "@/components/ui/label";
 import { toYMD } from "@/lib/date/toYMD";
-import { formatCurrency } from "@/lib/format/formatCurrency";
+import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { nowMty } from "@/lib/utils";
 import { useRegisterSupplierPayment } from "../hooks/useRegisterSupplierPayment";
@@ -24,6 +24,8 @@ interface Props {
   billId: string;
   billNumber: string;
   balance: number;
+  /** G-B1: la factura puede estar en USD; sin esto el saldo se veía en MXN. */
+  currency?: string;
 }
 
 const METHOD_OPTIONS: SelectOption[] = PAYMENT_METHODS.map((m) => ({ value: m.value, label: m.label }));
@@ -76,7 +78,7 @@ function ReceiptField({ file, onChange, disabled }: ReceiptFieldProps) {
 }
 
 export function RegisterSupplierPaymentDialog({
-  open, onOpenChange, billId, billNumber, balance,
+  open, onOpenChange, billId, billNumber, balance, currency = "MXN",
 }: Props) {
   const register = useRegisterSupplierPayment();
   const uploader = useUploadSupplierReceipt();
@@ -135,7 +137,7 @@ export function RegisterSupplierPaymentDialog({
       open={open} onOpenChange={onOpenChange} title={`Registrar pago — ${billNumber}`}>
       <div className="rounded-md bg-muted/50 p-3 mb-2 flex items-center justify-between text-sm">
         <span className="text-muted-foreground">Saldo actual</span>
-        <span className="tabular-nums font-bold">{formatCurrency(balance)}</span>
+        <span className="tabular-nums font-bold">{formatCurrencyWithCode(balance, currency)}</span>
       </div>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3">

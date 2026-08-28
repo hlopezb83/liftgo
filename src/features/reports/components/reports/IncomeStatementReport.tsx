@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
+import { buildComparisonCsvRows } from "../../hooks/incomeStatement/statementRowFactories";
 import { useIncomeStatementData } from "../../hooks/useIncomeStatementData";
 import { IncomeStatementTable } from "./IncomeStatementTable";
 import { IncomeStatementToolbar } from "./IncomeStatementToolbar";
@@ -33,6 +34,11 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
 
 
   const [pdfLoading, setPdfLoading] = useState(false);
+  // G-A1: el CSV debe reflejar lo que se ve en pantalla, no el detalle mensual crudo.
+  const comparisonCsvRows = isComparison
+    ? buildComparisonCsvRows(comparisonRows, yearTotals.map((yt) => yt.year))
+    : [];
+
 
   const netPositive = totals.netProfit >= 0;
   const marginPositive = totals.margin >= 0;
@@ -132,7 +138,8 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
         availableYears={availableYears}
         selectedYear={selectedYear}
         setSelectedYear={setSelectedYear}
-        csvRows={csvRows}
+        csvRows={isComparison ? comparisonCsvRows : csvRows}
+        csvFilename={isComparison ? "estado-resultados-comparativo.csv" : "estado-resultados.csv"}
         onExportPdf={handleExportPdf}
         pdfLoading={pdfLoading}
       />
