@@ -1,5 +1,21 @@
 [
   {
+    "version": "7.367.0",
+    "date": "2026-08-28",
+    "type": "minor",
+    "title": "Portal de pagos, conciliación bancaria y comprobantes",
+    "description": "Se reforzó la aprobación de reportes de pago del portal: ya no es posible sobrepasar el saldo de una factura con dos aprobaciones al mismo tiempo, los montos en otra moneda se convierten correctamente y los comprobantes de reportes ya procesados quedan protegidos.",
+    "changes": [
+      "Aprobación de reportes de pago: la factura se bloquea durante la aprobación y se descuentan los reportes que siguen pendientes de revisión.",
+      "Facturas en dólares: los pagos en otra moneda se convierten con el tipo de cambio correcto al calcular el saldo, tanto al aprobar como al reportar desde el portal.",
+      "Notas de crédito canceladas ya no reducen el saldo pendiente al aprobar un pago.",
+      "Conciliación bancaria: si un pago no trae tipo de cambio propio, se usa el de su factura, al sugerir candidatos y al confirmar el movimiento.",
+      "Portal: no se pueden reportar pagos sobre facturas canceladas o en borrador, y el comprobante debe subirse en la carpeta de la factura correspondiente.",
+      "Comprobantes: ya nadie puede borrar el archivo de un reporte aprobado o rechazado, y no se aceptan archivos sin tipo declarado; el buzón acepta hasta 10 MB."
+    ]
+  },
+  {
+
     "version": "7.366.0",
     "date": "2026-08-28",
     "type": "minor",
