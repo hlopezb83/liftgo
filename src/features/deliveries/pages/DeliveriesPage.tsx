@@ -44,6 +44,94 @@ function typeLabel(type: string | null | undefined): string {
   return "—";
 }
 
+type ForkliftMap = ReturnType<typeof useForkliftMap>["forkliftMap"];
+
+function buildDeliveryColumns(forkliftMap: ForkliftMap): ColumnDef<Delivery>[] {
+  return [
+    {
+      id: "delivery_number",
+      header: "Entrega #",
+      accessorKey: "delivery_number",
+      cell: ({ row }) => <Untranslated className="font-mono text-sm text-primary">{row.original.delivery_number}</Untranslated>,
+    },
+    {
+      // C2: el tipo (entrega vs recolección) sólo existía en la tarjeta móvil.
+      id: "type",
+      header: "Tipo",
+      accessorFn: (d) => typeLabel(d.type),
+      cell: ({ row }) => <span className="text-sm">{typeLabel(row.original.type)}</span>,
+    },
+    {
+      id: "scheduled_date",
+      header: "Fecha",
+      accessorKey: "scheduled_date",
+      cell: ({ row }) => {
+        const overdue = deliveryOverdueDays(row.original);
+        return (
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-sm">
+              {formatDateDisplay(row.original.scheduled_date)}
+              {row.original.scheduled_time ? ` ${row.original.scheduled_time}` : ""}
+            </span>
+            {overdue > 0 && (
+              <Badge variant="destructive" className="text-3xs px-1.5 py-0">{deliveryOverdueLabel(overdue)}</Badge>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      id: "forklift_name",
+      header: "Montacargas",
+      // R9-P2: la lista de montacargas puede venir filtrada/paginada, así que
+      // el mapa a veces no tenía la unidad y la celda quedaba en "—". La
+      // consulta de entregas ya trae el join `forklifts(name, model)`: se usa
+      // como fuente primaria y el mapa sólo como respaldo.
+      accessorFn: (d) => resolveDeliveryForkliftName(d, forkliftMap) ?? "",
+      cell: ({ row }) => {
+        const name = resolveDeliveryForkliftName(row.original, forkliftMap);
+        return name ? <Untranslated className="font-medium">{name}</Untranslated> : <span className="font-medium">—</span>;
+      },
+    },
+    {
+      id: "driver_name",
+      header: "Operador",
+      accessorFn: (d) => d.driver_name || "",
+      cell: ({ row }) => row.original.driver_name || "—",
+    },
+    {
+      id: "status",
+      header: "Estado",
+      accessorKey: "status",
+      cell: ({ row }) => <StatusBadge status={row.original.status} />,
+    },
+  ];
+}
+
+function DeliveryMobileCard({ d, forkliftMap, onClick }: { d: Delivery; forkliftMap: ForkliftMap; onClick: () => void }) {
+  const overdue = deliveryOverdueDays(d);
+  return (
+    <Card className="cursor-pointer" onClick={onClick}>
+      <CardContent className="p-4">
+        <div className="flex items-center justify-between mb-1">
+          <Untranslated className="text-xs font-mono text-muted-foreground">{d.delivery_number}</Untranslated>
+          <StatusBadge status={d.status} />
+        </div>
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-sm font-semibold">{typeLabel(d.type)}</span>
+          {overdue > 0 && (
+            <Badge variant="destructive" className="text-3xs px-1.5 py-0">{deliveryOverdueLabel(overdue)}</Badge>
+          )}
+        </div>
+        <p className="text-sm font-medium">{forkliftMap.get(d.forklift_id)?.name ? <Untranslated>{forkliftMap.get(d.forklift_id)?.name}</Untranslated> : "—"}</p>
+        <p className="text-xs text-muted-foreground mt-1">{formatDateDisplay(d.scheduled_date)}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</p>
+        {d.address && <p className="text-xs text-muted-foreground truncate">{d.address}</p>}
+        {d.driver_name && <p className="text-xs text-muted-foreground">Operador: {d.driver_name}</p>}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function DeliveriesPage() {
   const navigate = useNavigateTransition();
   const { forkliftMap } = useForkliftMap();
@@ -70,65 +158,7 @@ export default function DeliveriesPage() {
 
   const overdueCount = countOverdueDeliveries(deliveries);
 
-  const columns: ColumnDef<Delivery>[] = [
-      {
-        id: "delivery_number",
-        header: "Entrega #",
-        accessorKey: "delivery_number",
-        cell: ({ row }) => <Untranslated className="font-mono text-sm text-primary">{row.original.delivery_number}</Untranslated>,
-      },
-      {
-        // C2: el tipo (entrega vs recolección) sólo existía en la tarjeta móvil.
-        id: "type",
-        header: "Tipo",
-        accessorFn: (d) => typeLabel(d.type),
-        cell: ({ row }) => <span className="text-sm">{typeLabel(row.original.type)}</span>,
-      },
-      {
-        id: "scheduled_date",
-        header: "Fecha",
-        accessorKey: "scheduled_date",
-        cell: ({ row }) => {
-          const overdue = deliveryOverdueDays(row.original);
-          return (
-            <div className="flex items-center gap-2">
-              <span className="font-mono text-sm">
-                {formatDateDisplay(row.original.scheduled_date)}
-                {row.original.scheduled_time ? ` ${row.original.scheduled_time}` : ""}
-              </span>
-              {overdue > 0 && (
-                <Badge variant="destructive" className="text-3xs px-1.5 py-0">{deliveryOverdueLabel(overdue)}</Badge>
-              )}
-            </div>
-          );
-        },
-      },
-      {
-        id: "forklift_name",
-        header: "Montacargas",
-        // R9-P2: la lista de montacargas puede venir filtrada/paginada, así que
-        // el mapa a veces no tenía la unidad y la celda quedaba en "—". La
-        // consulta de entregas ya trae el join `forklifts(name, model)`: se usa
-        // como fuente primaria y el mapa sólo como respaldo.
-        accessorFn: (d) => resolveDeliveryForkliftName(d, forkliftMap) ?? "",
-        cell: ({ row }) => {
-          const name = resolveDeliveryForkliftName(row.original, forkliftMap);
-          return name ? <Untranslated className="font-medium">{name}</Untranslated> : <span className="font-medium">—</span>;
-        },
-      },
-      {
-        id: "driver_name",
-        header: "Operador",
-        accessorFn: (d) => d.driver_name || "",
-        cell: ({ row }) => row.original.driver_name || "—",
-      },
-      {
-        id: "status",
-        header: "Estado",
-        accessorKey: "status",
-        cell: ({ row }) => <StatusBadge status={row.original.status} />,
-      },
-    ];
+  const columns = buildDeliveryColumns(forkliftMap);
 
   const table = useLiftgoTable<Delivery>({
     data: filtered,
@@ -191,29 +221,9 @@ export default function DeliveriesPage() {
       emptyMessage="No hay entregas programadas"
       emptyActionLabel="Programar entrega"
       onEmptyAction={scheduleDialog.openDialog}
-      mobileCardRender={(d) => {
-        const overdue = deliveryOverdueDays(d);
-        return (
-        <Card className="cursor-pointer" onClick={() => navigate(`/deliveries/${d.id}`)}>
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between mb-1">
-              <Untranslated className="text-xs font-mono text-muted-foreground">{d.delivery_number}</Untranslated>
-              <StatusBadge status={d.status} />
-            </div>
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-sm font-semibold">{typeLabel(d.type)}</span>
-              {overdue > 0 && (
-                <Badge variant="destructive" className="text-3xs px-1.5 py-0">{deliveryOverdueLabel(overdue)}</Badge>
-              )}
-            </div>
-            <p className="text-sm font-medium">{forkliftMap.get(d.forklift_id)?.name ? <Untranslated>{forkliftMap.get(d.forklift_id)?.name}</Untranslated> : "—"}</p>
-            <p className="text-xs text-muted-foreground mt-1">{formatDateDisplay(d.scheduled_date)}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</p>
-            {d.address && <p className="text-xs text-muted-foreground truncate">{d.address}</p>}
-            {d.driver_name && <p className="text-xs text-muted-foreground">Operador: {d.driver_name}</p>}
-          </CardContent>
-        </Card>
-        );
-      }}
+      mobileCardRender={(d) => (
+        <DeliveryMobileCard d={d} forkliftMap={forkliftMap} onClick={() => navigate(`/deliveries/${d.id}`)} />
+      )}
     />
   );
 }

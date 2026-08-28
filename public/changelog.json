@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.374.2",
+    "date": "2026-08-28",
+    "type": "patch",
+    "title": "Correcciones de lint: bloqueos optimistas más robustos",
+    "description": "Se corrigieron los avisos del linter: la protección contra guardados simultáneos en clientes, montacargas y facturas ahora usa el patrón recomendado por React, y la limpieza de fórmulas en archivos CSV dejó de usar una expresión prohibida.",
+    "changes": [
+      "Los candados de \"alguien más lo modificó\" en clientes, montacargas y facturas pasaron de refs a estado de React, eliminando lecturas de refs durante el renderizado.",
+      "La detección de fórmulas peligrosas al exportar CSV ahora compara caracteres en vez de una expresión regular con caracteres de control.",
+      "Se extrajeron componentes auxiliares en Entregas, Pólizas de mantenimiento y el detalle de mantenimiento para cumplir los límites de tamaño y complejidad.",
+      "Se corrigió el orden de imports en cuatro archivos de facturación."
+    ]
+  },
+  {
     "version": "7.374.1",
     "date": "2026-08-28",
     "type": "patch",

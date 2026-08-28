@@ -120,46 +120,87 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
 
           <Separator />
           <RoleGuard module="Mantenimiento" minAccess="full" fallback={null}>
-            {!isClosed && (
-              <Button className="w-full mb-2" onClick={() => setCloseOpen(true)}>
-                <SuccessIcon className="h-4 w-4 mr-1" /> Cerrar OT
-              </Button>
-            )}
-            <CloseWorkOrderDialog
-              open={closeOpen}
-              onOpenChange={setCloseOpen}
-              log={{ ...log, forklift_name: forkliftName }}
-              onClosed={() => onOpenChange(false)}
+            <MaintenanceDetailActions
+              log={log}
+              forkliftName={forkliftName}
+              isClosed={isClosed}
+              canArchiveClosed={role === "admin"}
+              deletePending={deleteLog.isPending}
+              closeOpen={closeOpen}
+              onCloseOpenChange={setCloseOpen}
+              confirmOpen={confirmOpen}
+              onConfirmOpenChange={setConfirmOpen}
+              onEdit={() => { onEdit(log); onOpenChange(false); }}
+              onDelete={handleDelete}
+              onSheetClose={() => onOpenChange(false)}
             />
-            <div className="flex gap-2">
-
-              <Button variant="outline" className="flex-1" onClick={() => { onEdit(log); onOpenChange(false); }}>
-                <EditIcon className="h-4 w-4 mr-1" /> Editar
-              </Button>
-              <Button
-                variant="destructive"
-                className="flex-1"
-                disabled={isClosed && role !== "admin"}
-                title={isClosed && role !== "admin" ? "La orden esta cerrada: solo un administrador puede archivarla" : undefined}
-                onClick={() => setConfirmOpen(true)}
-              >
-                <DeleteIcon className="h-4 w-4 mr-1" /> Archivar
-              </Button>
-              <ConfirmDialog
-                open={confirmOpen}
-                onOpenChange={setConfirmOpen}
-                title="¿Archivar registro de mantenimiento?"
-                description={`${isClosed ? "La orden está cerrada: se conservan sus refacciones y mano de obra. " : ""}Se ocultará de los listados pero se conservará el historial del servicio "${serviceTypeLabel(log.service_type)}" del ${formatDateDisplay(log.performed_at)} para auditoría.`}
-                confirmLabel="Archivar"
-                destructive
-                loading={deleteLog.isPending}
-                onConfirm={handleDelete}
-              />
-            </div>
           </RoleGuard>
         </div>
         </Activity>
       </SheetContent>
     </Sheet>
+  );
+}
+
+interface ActionsProps {
+  log: MaintenanceLog;
+  forkliftName: string;
+  isClosed: boolean;
+  /** E1: solo admin puede archivar una OT cerrada (el RPC lo valida también). */
+  canArchiveClosed: boolean;
+  deletePending: boolean;
+  closeOpen: boolean;
+  onCloseOpenChange: (open: boolean) => void;
+  confirmOpen: boolean;
+  onConfirmOpenChange: (open: boolean) => void;
+  onEdit: () => void;
+  onDelete: () => void;
+  onSheetClose: () => void;
+}
+
+function MaintenanceDetailActions({
+  log, forkliftName, isClosed, canArchiveClosed, deletePending,
+  closeOpen, onCloseOpenChange, confirmOpen, onConfirmOpenChange,
+  onEdit, onDelete, onSheetClose,
+}: ActionsProps) {
+  const archiveBlocked = isClosed && !canArchiveClosed;
+  return (
+    <>
+      {!isClosed && (
+        <Button className="w-full mb-2" onClick={() => onCloseOpenChange(true)}>
+          <SuccessIcon className="h-4 w-4 mr-1" /> Cerrar OT
+        </Button>
+      )}
+      <CloseWorkOrderDialog
+        open={closeOpen}
+        onOpenChange={onCloseOpenChange}
+        log={{ ...log, forklift_name: forkliftName }}
+        onClosed={onSheetClose}
+      />
+      <div className="flex gap-2">
+        <Button variant="outline" className="flex-1" onClick={onEdit}>
+          <EditIcon className="h-4 w-4 mr-1" /> Editar
+        </Button>
+        <Button
+          variant="destructive"
+          className="flex-1"
+          disabled={archiveBlocked}
+          title={archiveBlocked ? "La orden esta cerrada: solo un administrador puede archivarla" : undefined}
+          onClick={() => onConfirmOpenChange(true)}
+        >
+          <DeleteIcon className="h-4 w-4 mr-1" /> Archivar
+        </Button>
+        <ConfirmDialog
+          open={confirmOpen}
+          onOpenChange={onConfirmOpenChange}
+          title="¿Archivar registro de mantenimiento?"
+          description={`${isClosed ? "La orden está cerrada: se conservan sus refacciones y mano de obra. " : ""}Se ocultará de los listados pero se conservará el historial del servicio "${serviceTypeLabel(log.service_type)}" del ${formatDateDisplay(log.performed_at)} para auditoría.`}
+          confirmLabel="Archivar"
+          destructive
+          loading={deletePending}
+          onConfirm={onDelete}
+        />
+      </div>
+    </>
   );
 }

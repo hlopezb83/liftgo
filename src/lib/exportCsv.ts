@@ -8,17 +8,36 @@ import Papa from "papaparse";
  * G-A6: se ignora el espacio/tab/salto de línea inicial (Excel también evalúa
  * `\t=1+1`) y los encabezados también se sanean, porque en varios reportes las
  * columnas se generan a partir de datos capturados por el usuario.
+ * Se usa comparación de caracteres (no regex) porque ESLint prohíbe rangos de
+ * control (`-`) en expresiones regulares (`no-control-regex`).
  */
-const FORMULA_PREFIX = /^[\s\u0000-\u001F]*[=+\-@]/;
+const FORMULA_CHARS = new Set(["=", "+", "-", "@"]);
+
+function isSkippableLeadingChar(ch: string): boolean {
+  const code = ch.codePointAt(0) ?? 0;
+  // Espacios en blanco y caracteres de control (<= 0x1F / DEL) al inicio:
+  // Excel también evalúa `\t=1+1`.
+  return code <= 0x20 || code === 0x7f || ch.trim() === "";
+}
+
+/** ¿El primer carácter significativo es un prefijo de fórmula? */
+function startsWithFormula(text: string): boolean {
+  for (const ch of text) {
+    if (isSkippableLeadingChar(ch)) continue;
+    return FORMULA_CHARS.has(ch);
+  }
+  return false;
+}
+
 export function sanitizeCsvCell(value: unknown): unknown {
-  if (typeof value === "string" && FORMULA_PREFIX.test(value)) {
+  if (typeof value === "string" && startsWithFormula(value)) {
     return `'${value}`;
   }
   return value;
 }
 
 function sanitizeHeader(key: string): string {
-  return FORMULA_PREFIX.test(key) ? `'${key}` : key;
+  return startsWithFormula(key) ? `'${key}` : key;
 }
 
 function sanitizeCsvRow<T extends Record<string, unknown>>(row: T): T {
@@ -43,7 +62,7 @@ export function exportToCsv<T extends Record<string, unknown>>(
   if (rows.length === 0) return;
 
   const csv = Papa.unparse(rows.map(sanitizeCsvRow), { header: true, newline: "\r\n" });
-  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
   const link = document.createElement("a");
   const url = URL.createObjectURL(blob);
   link.href = url;
