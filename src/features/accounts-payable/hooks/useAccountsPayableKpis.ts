@@ -1,5 +1,6 @@
 
 import { useMemo } from "react";
+import { isFxMissing } from "@/features/cash-flow";
 import { toYMD } from "@/lib/date/toYMD";
 import { toMxn } from "@/lib/money";
 import { visibleListRows } from "@/lib/supabase/constants";
@@ -14,6 +15,8 @@ export interface AccountsPayableKpis {
   totalPorAprobar: number;
   countPorAprobar: number;
   repPendientes: number;
+  /** G-B4: facturas en divisa sin tipo de cambio, excluidas de los totales. */
+  fxMissingCount: number;
 }
 
 interface KpiCtx { todayYmd: string; in7Ymd: string; monthPrefix: string }
