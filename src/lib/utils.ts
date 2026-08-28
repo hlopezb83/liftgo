@@ -88,7 +88,9 @@ export function formatMtyDate(
     }
     // Para date-only ya está en zona local; no aplicar toZonedTime (rompería el día).
     const zoned = isDateOnly ? date : toZonedTime(date, APP_CONFIG.TIMEZONE);
-    return format(zoned, pattern, locale ? { locale } : undefined);
+    // G-A7: el proyecto es es-MX; sin locale explícito date-fns imprimía
+    // "March"/"Monday" en cualquier patrón con nombres de mes o día.
+    return format(zoned, pattern, { locale: locale ?? es });
   } catch {
     return typeof value === "string" ? value : "—";
   }
