@@ -86,3 +86,50 @@ Deno.test("FIX-15: factura ya timbrada/cancelada -> no-op succeeded (no re-timbr
     "proceed",
   );
 });
+
+// FIX R6-02 / R6-08 / R6-22: deferrals con tope, backoff creciente y
+// discriminación del 409 aplazable vs terminal.
+import {
+  CANCELLATION_IN_PROGRESS_CODE,
+  is409Deferrable,
+  MAX_DEFERRALS,
+} from "./index.ts";
+
+Deno.test("R6-08: 409 de cancel_nc/cancel_rep siempre es aplazable", () => {
+  assertEquals(is409Deferrable("cancel_nc", { error: "x" }), true);
+  assertEquals(is409Deferrable("cancel_rep", { error: "x" }), true);
+});
+
+Deno.test("R6-08: 409 de cancel solo es aplazable con code de claim", () => {
+  assertEquals(
+    is409Deferrable("cancel", { code: CANCELLATION_IN_PROGRESS_CODE }),
+    true,
+  );
+  // Factura no cancelable (pagos aplicados) → terminal, no aplazable.
+  assertEquals(
+    is409Deferrable("cancel", { error: "Tiene pagos aplicados" }),
+    false,
+  );
+  assertEquals(is409Deferrable("cancel", null), false);
+});
+
+Deno.test("R6-08: stamp nunca entra al camino de deferral", () => {
+  assertEquals(
+    is409Deferrable("stamp", { code: CANCELLATION_IN_PROGRESS_CODE }),
+    false,
+  );
+});
+
+Deno.test("R6-22: el backoff crece con el contador de deferrals", () => {
+  const base = Date.now();
+  const d1 = nextRetryAt(1).getTime() - base;
+  const d3 = nextRetryAt(3).getTime() - base;
+  const dCap = nextRetryAt(20).getTime() - base;
+  assertEquals(d3 > d1, true);
+  // Tope de 60 min.
+  assertEquals(Math.round(dCap / 60_000), 60);
+});
+
+Deno.test("R6-02: existe un tope finito de deferrals", () => {
+  assertEquals(MAX_DEFERRALS > 0 && Number.isFinite(MAX_DEFERRALS), true);
+});
