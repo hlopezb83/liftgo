@@ -1,3 +1,10 @@
+## [7.373.2] - 2026-08-28
+### Ronda G (cierre): CxP multimoneda y expiración de sesión
+- `RegisterSupplierPaymentDialog` / `SupplierBillDetailContent` (G-B1): el saldo se formatea con `formatCurrencyWithCode` y la moneda real de la factura; antes una factura en USD mostraba el saldo como pesos y se dispersaba el monto equivocado.
+- `PaymentsExportTable` (G-B2): columna "Saldo" con código de moneda y badge para no-MXN en lotes mixtos.
+- `useExportablePayables` (G-B5): se agrega `exchange_rate` al SELECT para poder detectar tipos de cambio faltantes.
+- `lib/auth/sessionExpiry` + `AppProviders` (G-C3): un 401/`PGRST301` ahora ejecuta `signOut()` y redirige a `/auth?redirect=…` una sola vez; antes solo aparecía el toast "Tu sesión expiró" y la pantalla quedaba inservible hasta recargar a mano.
+
 ## [7.371.0] - 2026-08-28
 ### Ronda F: portal del cliente y PDFs fiscales
 - `PortalQuotes` / `PortalQuoteDetail` / `TotalsBreakdown` (F2): `formatCurrencyWithCode` con `quote.currency`; antes toda cotización se formateaba en MXN aunque estuviera en USD y el cliente podía aceptarla creyendo un monto ~18x menor.
