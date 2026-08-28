@@ -34,7 +34,13 @@ interface QueueRow {
   max_attempts: number;
   payload: Record<string, unknown>;
   status: string;
+  // FIX R6-02: contador de deferrals (reintentos que NO consumen `attempts`
+  // porque el 409 es un claim propio pendiente). Columna real en
+  // cfdi_retry_queue; permite topar el bucle y hacer crecer el backoff.
+  deferrals: number;
+  last_error: string | null;
 }
+
 
 // EC-A1 fix: alineado con OPERATION en cfdi_retry_queue (`stamp | cancel |
 // cancel_nc | cancel_rep`) y con los nombres reales de las edge functions.
