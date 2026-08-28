@@ -8,12 +8,12 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AuthSnapshotSync } from "@/features/users";
+import { handleSessionExpired } from "@/lib/auth/sessionExpiry";
 import {
   createBrowserPersister,
   shouldPersistQuery,
   PERSIST_MAX_AGE_MS,
 } from "@/lib/query/persister";
-import { handleSessionExpired } from "@/lib/auth/sessionExpiry";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { AuthQueryCacheSync } from "@/lib/ui/AuthQueryCacheSync";
 import type { ReactNode } from "react";
