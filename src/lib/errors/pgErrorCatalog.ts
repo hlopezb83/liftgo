@@ -161,6 +161,15 @@ const PRIORITY_TEXT_PATTERNS: Array<{ pattern: RegExp; entry: CatalogEntry }> = 
       severity: "warning",
     },
   },
+  {
+    // G-C2: el guard de rol vive ahora en el trigger `validate_prospect_close`.
+    pattern: /puede cerrar un prospecto como Ganado/i,
+    entry: {
+      title: "Acceso restringido",
+      message: "Solo un administrador o administrativo puede cerrar un prospecto como Ganado.",
+      severity: "warning",
+    },
+  },
 ];
 
 const TEXT_PATTERNS: Array<{ pattern: RegExp; entry: CatalogEntry }> = [

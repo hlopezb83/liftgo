@@ -1,3 +1,11 @@
+## [7.374.0] - 2026-08-28
+### Ronda G (cierre final): guard de cierre de deals y avisos de TC en CxP
+- `validate_prospect_close()` (G-C2): guard de rol en la base de datos para `cerrado_ganado` (`has_role((select auth.uid()), 'admin'|'administrativo')`, `ERRCODE = insufficient_privilege`). El rol `ventas` tiene `FOR ALL` sobre `prospects`, así que la regla del cliente (`useProspectGuard`) se podía rodear llamando a la API. Se respeta `app.e2e_seed` y se conserva `SET search_path = public`.
+- `pgErrorCatalog` (G-C2): mensaje prioritario en español para el nuevo error de cierre no autorizado.
+- `CuentasPorPagarPage` (G-B6): aviso con `fxMissingCount` — paridad con el reporte de antigüedad; los KPIs ya excluían esas facturas pero sin explicarlo.
+- `PaymentsExportTable` (G-B5): badge "Sin TC" en el saldo de facturas en divisa sin tipo de cambio.
+- `supabase/tests/g_c2_prospect_close_role_smoke.sql`: smoke del guard de rol.
+
 ## [7.373.2] - 2026-08-28
 ### Ronda G (cierre): CxP multimoneda y expiración de sesión
 - `RegisterSupplierPaymentDialog` / `SupplierBillDetailContent` (G-B1): el saldo se formatea con `formatCurrencyWithCode` y la moneda real de la factura; antes una factura en USD mostraba el saldo como pesos y se dispersaba el monto equivocado.

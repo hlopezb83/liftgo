@@ -71,7 +71,19 @@ export default function CuentasPorPagarPage() {
 
         }
         notice={
-          <ListTruncationNotice rows={bills} />
+          <>
+            <ListTruncationNotice rows={bills} />
+            {/* G-B6: paridad con el reporte de antigüedad. Las facturas en divisa
+                sin tipo de cambio se excluyen de los KPIs; sin aviso los totales
+                se veían menores sin explicación. */}
+            {!isError && kpis.fxMissingCount > 0 && (
+              <p className="rounded-md border border-warning/30 bg-warning/10 px-3 py-2 text-xs text-muted-foreground">
+                {kpis.fxMissingCount} factura{kpis.fxMissingCount === 1 ? "" : "s"} de proveedor en divisa sin
+                tipo de cambio {kpis.fxMissingCount === 1 ? "no suma" : "no suman"} a los totales en MXN.
+                Captura el tipo de cambio en la factura para incluirla.
+              </p>
+            )}
+          </>
         }
         filters={
           <div className="space-y-3">
