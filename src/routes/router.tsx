@@ -2,7 +2,7 @@
    Router raíz: exporta rutas + layout + helpers para code-splitting con `lazy`.
    No es un módulo de componentes puros — HMR de rutas requiere reload completo. */
 import { type ComponentType, type ReactElement, Suspense, lazy } from "react";
-import { createBrowserRouter, Navigate, type RouteObject } from "react-router";
+import { createBrowserRouter, Navigate, useSearchParams, type RouteObject } from "react-router";
 import { getAccessLevel, useRolePermissions, useUserRole } from "@/features/users";
 import { AdminRouteGuard } from "@/layouts/AdminRouteGuard";
 import { AuthGuard } from "@/layouts/AuthGuard";
@@ -89,6 +89,17 @@ function HomeRedirect() {
   return <Navigate to={target?.path ?? "/help"} replace />;
 }
 
+/**
+ * Destino tras el login: honra `?redirect=` sólo si es una ruta interna
+ * (empieza con "/" y no es "//" — evita open redirects a dominios ajenos).
+ */
+function LoginRedirect() {
+  const [params] = useSearchParams();
+  const redirect = params.get("redirect");
+  const safe = redirect && redirect.startsWith("/") && !redirect.startsWith("//") ? redirect : "/";
+  return <Navigate to={safe} replace />;
+}
+
 const authenticatedChildren: RouteObject[] = [
   // Redirect legacy: `<Navigate replace />` evita el flash blanco del loader.
   { path: "/expenses", element: <Navigate to="/cuentas-por-pagar" replace /> },
@@ -108,7 +119,9 @@ const authenticatedChildren: RouteObject[] = [
   // GUI-FE-09 (G-UX-08): /login no existía → 404 con sesión activa.
   // Sin sesión, AuthGuard muestra la pantalla de login inline; con sesión,
   // "/" resuelve el módulo correcto por rol vía HomeRedirect.
-  { path: "/login", element: <Navigate to="/" replace /> },
+  // G-C3 follow-up: sessionExpiry manda a /login?redirect=<ruta original>;
+  // tras el login se respeta ese destino en vez de caer en 404 o en "/".
+  { path: "/login", element: <LoginRedirect /> },
   {
     path: "/",
     element: (
