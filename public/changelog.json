@@ -1,5 +1,17 @@
 [
   {
+    "version": "7.374.4",
+    "date": "2026-08-29",
+    "type": "patch",
+    "title": "Sesión expirada ya no manda a \"Página no encontrada\"",
+    "description": "Cuando la sesión expiraba, la app enviaba al usuario a una dirección inexistente (/auth); al volver a iniciar sesión caía en \"Página no encontrada\" y perdía la pantalla donde estaba trabajando. Ahora se usa /login y, tras iniciar sesión, se regresa a la página original.",
+    "changes": [
+      "sessionExpiry: la redirección por sesión expirada ahora apunta a /login (ruta existente) en vez de /auth.",
+      "Router: /login respeta el parámetro redirect y regresa al usuario a su página original tras el login, con validación contra open redirects.",
+      "El guard de \"ya estoy en acceso\" ahora reconoce /login."
+    ]
+  },
+  {
     "version": "7.374.3",
     "date": "2026-08-28",
     "type": "patch",
