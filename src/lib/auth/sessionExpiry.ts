@@ -40,7 +40,9 @@ export async function handleSessionExpired(error: unknown): Promise<boolean> {
   if (handling) return true;
   if (typeof window === "undefined") return true;
   // Ya estamos en la pantalla de acceso: no hace falta expulsar de nuevo.
-  if (window.location.pathname.startsWith("/auth")) return true;
+  // (AuthGuard muestra AuthPage inline en cualquier ruta sin sesión; /login es
+  // el alias canónico — /auth no existe en el router y caía en 404 tras login.)
+  if (window.location.pathname.startsWith("/login")) return true;
 
   handling = true;
   notifyWarning("Tu sesión expiró", {
@@ -53,6 +55,6 @@ export async function handleSessionExpired(error: unknown): Promise<boolean> {
     // Un signOut fallido no debe impedir la redirección.
   }
   const back = `${window.location.pathname}${window.location.search}`;
-  window.location.assign(`/auth?redirect=${encodeURIComponent(back)}`);
+  window.location.assign(`/login?redirect=${encodeURIComponent(back)}`);
   return true;
 }
