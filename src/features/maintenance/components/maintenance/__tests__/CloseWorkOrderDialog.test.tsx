@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { fireEvent, render, screen } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
+import { MemoryRouter } from "react-router";
 import { createQueryWrapper } from "@/test/helpers/queryClient";
 import { CloseWorkOrderDialog } from "../CloseWorkOrderDialog";
 
@@ -32,7 +33,9 @@ function renderDialog() {
   const { queryClient } = createQueryWrapper();
   render(
     <QueryClientProvider client={queryClient}>
-      <CloseWorkOrderDialog open onOpenChange={onOpenChange} log={baseLog} />
+      <MemoryRouter>
+        <CloseWorkOrderDialog open onOpenChange={onOpenChange} log={baseLog} />
+      </MemoryRouter>
     </QueryClientProvider>,
   );
   return { onOpenChange };
@@ -45,9 +48,10 @@ describe("CloseWorkOrderDialog — bloqueo de cierre con daño abierto (R8-FE-03
 
     const submit = screen.getByRole("button", { name: /cerrar ot/i });
     expect(submit).toBeDisabled();
-    expect(
-      screen.getByText(/no se puede cerrar: hay un daño abierto ligado a esta ot/i),
-    ).toBeInTheDocument();
+    // Bloque explicable: qué está bloqueado → por qué → qué sigue.
+    expect(screen.getByText(/no puedes cerrar esta orden de trabajo/i)).toBeInTheDocument();
+    expect(screen.getByText(/daño: llanta ponchada/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /resolver daño/i })).toBeInTheDocument();
   });
 
   it("no invoca la mutación de cierre aunque se intente enviar el form con daño abierto", () => {
