@@ -205,7 +205,11 @@ const ERROR_PATTERNS: Array<{ pattern: RegExp; code: BusinessBlockCode }> = [
   { pattern: /excede el saldo|exceeds .*balance|payment_exceeds/i, code: "payment_exceeds_balance" },
   { pattern: /extensi(ó|o)n .*ya fue facturada/i, code: "extension_already_billed" },
   { pattern: /etapa Negociaci(ó|o)n/i, code: "prospect_stage_not_negotiation" },
+  // Guard `trg_guard_supplier_payment_delete` (BEFORE DELETE en supplier_payments).
+  { pattern: /REP fiscal recibido/i, code: "supplier_payment_rep_received" },
+  { pattern: /factura de proveedor est(á|a) cancelada/i, code: "supplier_bill_cancelled" },
 ];
+
 
 /** Restricciones con nombre que corresponden a un bloqueo explicable. */
 const CONSTRAINT_BLOCKS: Record<string, BusinessBlockCode> = {
