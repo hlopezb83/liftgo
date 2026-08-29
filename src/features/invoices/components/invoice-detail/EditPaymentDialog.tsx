@@ -2,6 +2,7 @@ import { parseISO } from "date-fns";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { BlockedActionNotice } from "@/components/feedback/BlockedActionNotice";
 import {
   CurrencyField,
   DateField,
@@ -16,6 +17,7 @@ import { Form } from "@/components/ui/form";
 import { toYMD } from "@/lib/date/toYMD";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { roundMoney } from "@/lib/money";
+import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { positiveAmount } from "@/lib/schemas";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { nowMty } from "@/lib/utils";
@@ -118,9 +120,7 @@ export function EditPaymentDialog({ open, onOpenChange, payment, balance }: Prop
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           {isRepStamped ? (
-            <div className="rounded-md bg-warning/10 border border-warning/30 p-2 text-xs text-warning">
-              ⚠️ Este pago tiene un Complemento de Pago (REP) timbrado. Monto y Fecha no se pueden modificar; cancela el REP primero si necesitas corregirlos.
-            </div>
+            <BlockedActionNotice block={describeBusinessBlock("payment_rep_stamped_locked")} />
           ) : null}
           <CurrencyField control={form.control} name="amount" label="Monto" required disabled={isRepStamped} />
           <DateField

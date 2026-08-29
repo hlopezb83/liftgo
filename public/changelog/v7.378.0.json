@@ -1,0 +1,12 @@
+{
+  "description": "Más acciones bloqueadas por el estado del negocio se explican en pantalla (qué está bloqueado, por qué y qué sigue) en vez de desaparecer o mostrar un mensaje técnico. No cambia ninguna regla, permiso ni cálculo.",
+  "changes": [
+    "Cuentas por pagar: Registrar pago permanece visible y deshabilitado cuando la factura está pagada, cancelada, rechazada o pendiente de aprobación, con el motivo y el siguiente paso.",
+    "Cuentas por pagar: eliminar un pago con REP recibido explica que primero hay que revertir el REP.",
+    "Facturas: el candado por complemento de pago timbrado ahora se explica igual en la lista de pagos y en la ventana de edición.",
+    "Daños: Archivar sigue visible y deshabilitada hasta que el daño esté reparado o cobrado en una factura.",
+    "CRM: cerrar un prospecto como Ganado fuera de la etapa Negociación se explica en el botón.",
+    "Cotizaciones: aceptar una cotización vencida y convertir una ya convertida se explican; además se agrega acceso directo a la reserva ligada.",
+    "Portal de clientes: si el saldo ya está cubierto por pagos reportados, se explica por qué no se puede reportar otro pago."
+  ]
+}

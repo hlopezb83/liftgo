@@ -1,11 +1,13 @@
 import { useState } from "react";
+import { BlockedActionButton } from "@/components/feedback/BlockedActionButton";
 import { EditIcon, DeleteIcon, TrophyIcon, ErrorIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { RoleGuard } from "@/layouts/RoleGuard";
+import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { useProspectGuard } from "../../hooks/useProspectGuard";
 import { useDeleteProspect, useUpdateProspect, type Prospect } from "../../hooks/useProspects";
-import { canCloseAsWon, wonBlockedReasonFull } from "../../lib/prospectCloseRules";
+import { canCloseAsWon, wonBlockedReasonFull, WON_SOURCE_STAGE } from "../../lib/prospectCloseRules";
 import { CloseLostDialog } from "../CloseLostDialog";
 import { CloseWonDialog } from "../CloseWonDialog";
 
@@ -26,6 +28,10 @@ export function ProspectActions({ prospect, onEdit, onClose }: Props) {
 
   // N-6: las etapas cerradas son TERMINALES en la DB (validate_transition).
   // No se ofrece "Reabrir" — la DB rechazaría la mutación de todas formas.
+  const stageBlock = prospect.stage === WON_SOURCE_STAGE
+    ? null
+    : describeBusinessBlock("prospect_stage_not_negotiation");
+
   const isClosed = prospect.stage === "cerrado_ganado" || prospect.stage === "cerrado_perdido";
 
   const handleDelete = () => {
@@ -37,17 +43,18 @@ export function ProspectActions({ prospect, onEdit, onClose }: Props) {
       <div className="space-y-2">
         {!isClosed && (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-            <Button
+            {/* V3-2: la DB solo permite cerrar desde 'negociacion'. El estado
+                del negocio se explica con la primitiva compartida; el bloqueo
+                por rol conserva su manejo actual (guard + toast). */}
+            <BlockedActionButton
               onClick={() => { if (assertCanClose("save")) setWonOpen(true); }}
               className="bg-success hover:bg-success/90 text-success-foreground"
-              // V3-2: la DB solo permite cerrar desde 'negociacion' — sin este
-              // gate el clic terminaba en un error SQL crudo de validate_transition.
+              block={stageBlock}
               disabled={!canCloseAsWon(prospect.stage, canCloseDeal)}
-              title={wonBlockedReasonFull(prospect.stage, canCloseDeal)}
+              title={stageBlock ? undefined : wonBlockedReasonFull(prospect.stage, canCloseDeal)}
             >
-
               <TrophyIcon className="h-4 w-4 mr-1" /> Ganado
-            </Button>
+            </BlockedActionButton>
             <Button variant="destructive" onClick={() => setLostOpen(true)}>
               <ErrorIcon className="h-4 w-4 mr-1" /> Perdido
             </Button>

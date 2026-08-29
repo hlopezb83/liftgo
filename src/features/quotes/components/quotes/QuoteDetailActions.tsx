@@ -1,5 +1,6 @@
 
 import { useState } from "react";
+import { BlockedActionButton } from "@/components/feedback/BlockedActionButton";
 import { EditIcon, DeliveryIcon, SuccessIcon, ErrorIcon, BookOpen, DeleteIcon, InvoiceIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
@@ -9,8 +10,10 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import type { Tables } from "@/integrations/supabase/types";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { toYMD } from "@/lib/date/toYMD";
+import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { isQuoteEditable, canConvertQuote } from "@/lib/rules/quotes";
 import { nowMty, parseDateLocal } from "@/lib/utils";
+import { ROUTES } from "@/routes/routes";
 import { QuotePDFButton } from "./QuotePDFButton";
 import { RejectQuoteDialog } from "./RejectQuoteDialog";
 
@@ -18,6 +21,8 @@ interface Props {
   quote: Tables<"quotes">;
   isSale: boolean;
   alreadyConverted: boolean;
+  /** Reserva ya creada desde esta cotización (si la relación ya está cargada). */
+  linkedBookingId?: string | null;
   alreadyInvoiced: boolean;
   isConverting: boolean;
   canInvoice: boolean;
@@ -27,15 +32,29 @@ interface Props {
   onDelete: () => void;
 }
 
-function ConvertButton({ quote, isSale, alreadyConverted, isConverting, onConvertClick }: {
-  quote: Tables<"quotes">; isSale: boolean; alreadyConverted: boolean; isConverting: boolean; onConvertClick: () => void;
+function ConvertButton({ quote, isSale, alreadyConverted, linkedBookingId, isConverting, onConvertClick }: {
+  quote: Tables<"quotes">; isSale: boolean; alreadyConverted: boolean;
+  linkedBookingId?: string | null; isConverting: boolean; onConvertClick: () => void;
 }) {
+  const navigate = useNavigateTransition();
   const canConvert = canConvertQuote(quote, { isSale, alreadyConverted });
   if (alreadyConverted) {
     return (
-      <Button size="sm" variant="outline" disabled className="opacity-70">
-        <BookOpen className="h-4 w-4 mr-1" />Ya convertida a Reserva
-      </Button>
+      <>
+        <BlockedActionButton
+          size="sm"
+          variant="outline"
+          className="opacity-70"
+          block={describeBusinessBlock("quote_already_converted")}
+        >
+          <BookOpen className="h-4 w-4 mr-1" />Ya convertida a Reserva
+        </BlockedActionButton>
+        {linkedBookingId && (
+          <Button size="sm" variant="outline" onClick={() => navigate(ROUTES.bookings.detail(linkedBookingId))}>
+            Ver reserva
+          </Button>
+        )}
+      </>
     );
   }
   if (!canConvert) return null;
@@ -129,7 +148,7 @@ function CancelQuoteButton({ quoteNumber, onCancel }: { quoteNumber: string; onC
 }
 
 export function QuoteDetailActions({
-  quote, isSale, alreadyConverted, alreadyInvoiced, isConverting,
+  quote, isSale, alreadyConverted, linkedBookingId, alreadyInvoiced, isConverting,
   canInvoice, invoiceBlockedReason,
   onSetStatus, onConvertClick, onDelete,
 }: Props) {
@@ -152,7 +171,7 @@ export function QuoteDetailActions({
       )}
       <ConvertButton
         quote={quote} isSale={isSale} alreadyConverted={alreadyConverted}
-        isConverting={isConverting} onConvertClick={onConvertClick}
+        linkedBookingId={linkedBookingId} isConverting={isConverting} onConvertClick={onConvertClick}
       />
       <InvoiceButton
         quote={quote} isSale={isSale} alreadyInvoiced={alreadyInvoiced}
@@ -168,22 +187,14 @@ export function QuoteDetailActions({
         const isExpired = !!validUntil && !!today && validUntil.getTime() < today.getTime();
         return (
           <>
-            {isExpired ? (
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span>
-                    <Button size="sm" variant="default" disabled>
-                      <SuccessIcon className="h-4 w-4 mr-1" />Aceptar
-                    </Button>
-                  </span>
-                </TooltipTrigger>
-                <TooltipContent>Cotización vencida. Actualiza la vigencia para aceptarla.</TooltipContent>
-              </Tooltip>
-            ) : (
-              <Button size="sm" variant="default" onClick={() => onSetStatus("accepted")}>
-                <SuccessIcon className="h-4 w-4 mr-1" />Aceptar
-              </Button>
-            )}
+            <BlockedActionButton
+              size="sm"
+              variant="default"
+              block={isExpired ? describeBusinessBlock("quote_expired") : null}
+              onClick={() => onSetStatus("accepted")}
+            >
+              <SuccessIcon className="h-4 w-4 mr-1" />Aceptar
+            </BlockedActionButton>
             {/* DB3-06: el dominio de la BD usa 'rejected' (no 'declined'). */}
             <Button size="sm" variant="destructive" onClick={() => setRejectOpen(true)}>
               <ErrorIcon className="h-4 w-4 mr-1" />Rechazar

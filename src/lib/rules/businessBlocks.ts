@@ -29,7 +29,15 @@ export type BusinessBlockCode =
   | "supplier_bill_paid"
   | "supplier_bill_cancelled"
   | "payment_exceeds_balance"
-  | "extension_already_billed";
+  | "extension_already_billed"
+  | "supplier_bill_pending_approval"
+  | "supplier_payment_rep_received"
+  | "payment_rep_stamped_locked"
+  | "portal_payment_fully_reported"
+  | "damage_not_repaired"
+  | "prospect_stage_not_negotiation"
+  | "quote_expired"
+  | "quote_already_converted";
 
 /** `info` para restricciones normales del negocio; `warning` para riesgo real. */
 export type BusinessBlockTone = "info" | "warning";
@@ -120,6 +128,54 @@ export const BUSINESS_BLOCKS: Record<BusinessBlockCode, BlockCopy> = {
     nextStep: "Consulta la factura ligada para revisar el cobro.",
     tone: "info",
   },
+  supplier_bill_pending_approval: {
+    action: "No puedes registrar el pago de esta factura",
+    reason: "La factura todavía está pendiente de aprobación.",
+    nextStep: "Pide que se apruebe la factura y vuelve a registrar el pago.",
+    tone: "info",
+  },
+  supplier_payment_rep_received: {
+    action: "No puedes eliminar este pago",
+    reason: "Ya se registró el REP fiscal que el proveedor entregó por este pago.",
+    nextStep: "Revierte primero el REP recibido y después elimina el pago.",
+    tone: "info",
+  },
+  payment_rep_stamped_locked: {
+    action: "No puedes modificar el monto ni la fecha de este pago",
+    reason: "El pago tiene un complemento de pago (REP) timbrado ante el SAT.",
+    nextStep: "Cancela el REP si necesitas corregir el monto o la fecha.",
+    tone: "info",
+  },
+  portal_payment_fully_reported: {
+    action: "No puedes reportar otro pago de esta factura",
+    reason: "El saldo pendiente ya está cubierto por los pagos que reportaste y siguen en revisión.",
+    nextStep: "Espera la validación de tu reporte; te avisaremos cuando se aplique.",
+    tone: "info",
+  },
+  damage_not_repaired: {
+    action: "No puedes archivar este daño",
+    reason: "El daño sigue abierto: aún no está reparado ni cobrado en una factura.",
+    nextStep: "Marca el daño como reparado o genera el cobro y después archívalo.",
+    tone: "info",
+  },
+  prospect_stage_not_negotiation: {
+    action: "No puedes cerrar este prospecto como ganado",
+    reason: "Sólo se puede cerrar un deal que está en etapa Negociación.",
+    nextStep: "Mueve el prospecto a Negociación y vuelve a intentarlo.",
+    tone: "info",
+  },
+  quote_expired: {
+    action: "No puedes aceptar esta cotización",
+    reason: "La vigencia de la cotización ya venció.",
+    nextStep: "Actualiza la fecha de vigencia desde Editar y vuelve a aceptarla.",
+    tone: "info",
+  },
+  quote_already_converted: {
+    action: "No puedes convertir esta cotización otra vez",
+    reason: "Ya existe una reserva creada a partir de esta cotización.",
+    nextStep: "Consulta la reserva ligada para darle seguimiento.",
+    tone: "info",
+  },
 };
 
 /** Devuelve la copia canónica del bloqueo, con overrides opcionales. */
@@ -148,6 +204,7 @@ const ERROR_PATTERNS: Array<{ pattern: RegExp; code: BusinessBlockCode }> = [
   { pattern: /cancelaci(ó|o)n en proceso|cancellation_in_progress|cancelaci(ó|o)n pendiente/i, code: "invoice_cancellation_pending" },
   { pattern: /excede el saldo|exceeds .*balance|payment_exceeds/i, code: "payment_exceeds_balance" },
   { pattern: /extensi(ó|o)n .*ya fue facturada/i, code: "extension_already_billed" },
+  { pattern: /etapa Negociaci(ó|o)n/i, code: "prospect_stage_not_negotiation" },
 ];
 
 /** Restricciones con nombre que corresponden a un bloqueo explicable. */

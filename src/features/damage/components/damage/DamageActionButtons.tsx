@@ -1,5 +1,7 @@
+import { BlockedActionButton } from "@/components/feedback/BlockedActionButton";
 import { MaintenanceIcon, InvoiceIcon, SuccessIcon, DeleteIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 
 interface DamageActionButtonsProps {
   status: string;
@@ -10,7 +12,8 @@ interface DamageActionButtonsProps {
   costMissing: boolean;
   damageBlockReason?: string;
   chargeBlockReason?: string;
-  archiveBlockReason?: string;
+  /** Bloqueo explicable de archivado (daño aún abierto). */
+  archiveBlock?: BusinessBlock | null;
   isCreatingWorkOrder: boolean;
   isUpdating: boolean;
   isArchiving: boolean;
@@ -19,6 +22,7 @@ interface DamageActionButtonsProps {
   onCreateInvoice: () => void;
   onArchive: () => void;
 }
+
 
 /** Botonera pura del panel de daños (sin lógica de permisos ni mutaciones). */
 export function DamageActionButtons({
@@ -30,7 +34,7 @@ export function DamageActionButtons({
   costMissing,
   damageBlockReason,
   chargeBlockReason,
-  archiveBlockReason,
+  archiveBlock = null,
   isCreatingWorkOrder,
   isUpdating,
   isArchiving,
@@ -65,11 +69,18 @@ export function DamageActionButtons({
           </Button>
         </span>
       )}
-      <span title={archiveBlockReason}>
-        <Button variant="ghost" size="sm" disabled={!canManageDamage || !canArchive || isArchiving} onClick={onArchive}>
-          <DeleteIcon className="h-3.5 w-3.5 mr-1" />Archivar
-        </Button>
-      </span>
+      {/* El bloqueo de archivado (daño aún abierto) usa la primitiva compartida;
+          el permiso de rol se sigue manejando con `canManageDamage`. */}
+      <BlockedActionButton
+        variant="ghost"
+        size="sm"
+        block={archiveBlock}
+        disabled={!canManageDamage || !canArchive || isArchiving}
+        onClick={onArchive}
+      >
+        <DeleteIcon className="h-3.5 w-3.5 mr-1" />Archivar
+      </BlockedActionButton>
+
     </>
   );
 }

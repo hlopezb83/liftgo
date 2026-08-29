@@ -46,6 +46,34 @@ function deleteReason(bill: Bill, hasPayments: boolean): BusinessBlockCode | nul
   return null;
 }
 
+/**
+ * Bloqueo de negocio para "Registrar pago". Refleja exactamente las mismas
+ * condiciones que ya deshabilitaban el botón (pagada, cancelada, pendiente de
+ * aprobación o rechazada); no cambia si el pago está permitido.
+ */
+export function supplierBillPaymentBlock(bill: Bill): BusinessBlock | null {
+  if (bill.status === "cancelled") {
+    return describeBusinessBlock("supplier_bill_cancelled", {
+      action: "No puedes registrar el pago de esta factura",
+      nextStep: "Registra una factura nueva si necesitas volver a pagarla.",
+    });
+  }
+  if (bill.status === "paid") {
+    return describeBusinessBlock("supplier_bill_paid", {
+      action: "No puedes registrar el pago de esta factura",
+      nextStep: "Revisa los pagos aplicados si algo no cuadra.",
+    });
+  }
+  if (bill.approval_status === "pending") return describeBusinessBlock("supplier_bill_pending_approval");
+  if (bill.approval_status === "rejected") {
+    return describeBusinessBlock("supplier_bill_rejected", {
+      action: "No puedes registrar el pago de esta factura",
+      nextStep: "Registra una factura nueva con los datos corregidos.",
+    });
+  }
+  return null;
+}
+
 function toBlock(code: BusinessBlockCode | null): BusinessBlock | null {
   return code ? describeBusinessBlock(code) : null;
 }

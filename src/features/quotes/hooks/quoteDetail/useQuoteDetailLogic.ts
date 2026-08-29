@@ -21,6 +21,7 @@ export function useQuoteDetailLogic(id: string | undefined) {
     quoteType: data.quoteType,
     isSale: data.isSale,
     alreadyConverted: data.alreadyConverted,
+    linkedBookingId: data.linkedBookingId,
     alreadyInvoiced: data.alreadyInvoiced,
     durationDays: data.durationDays,
     rentalMeta: data.rentalMeta,

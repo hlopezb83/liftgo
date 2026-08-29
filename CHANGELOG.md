@@ -1,3 +1,14 @@
+## [7.378.0] - 2026-08-29
+### Feature: bloqueos de negocio explicables (lote 3, solo presentación)
+- `businessBlocks`: nuevos códigos `supplier_bill_pending_approval`, `supplier_payment_rep_received`, `payment_rep_stamped_locked`, `portal_payment_fully_reported`, `damage_not_repaired`, `prospect_stage_not_negotiation`, `quote_expired` y `quote_already_converted`, más el patrón de error para el cierre de prospecto fuera de Negociación.
+- CxP: `supplierBillPaymentBlock` explica "Registrar pago" bloqueado (pagada, cancelada, pendiente de aprobación, rechazada) con las mismas condiciones que ya deshabilitaban el botón; eliminar pago de proveedor con REP recibido usa el bloque compartido.
+- Facturas: el candado por REP timbrado (columna de pagos y `EditPaymentDialog`) se unifica en `payment_rep_stamped_locked`, sin tocar timbrado ni cancelación.
+- Daños: `damageArchiveBlockReason` devuelve el bloque explicable con la condición real (`invoice_id` o `repaired`); "Archivar" queda visible y deshabilitada.
+- CRM: cerrar como Ganado fuera de Negociación se explica con el bloque compartido; la denegación por rol sigue en `RoleGuard`.
+- Cotizaciones: "Aceptar" vencida y "Ya convertida a Reserva" usan el patrón compartido; se agrega "Ver reserva" reutilizando la relación ya cargada (sin consultas nuevas).
+- Portal: reportar pago con saldo reportable en cero se explica; la condición técnica (datos del cliente aún cargando) se mantiene aparte.
+- Sin cambios en SQL, RLS, RPC guards, máquinas de estado, lógica fiscal ni permisos.
+
 ## [7.377.0] - 2026-08-29
 ### Feature: bloqueos de negocio explicables (fase 2, solo UX/contrato de error)
 - `businessBlocks`: nueva `describeForkliftRentalBlock(targetStatus)` — una sola regla canónica de renta activa con título contextual (vender / dar de baja / mantenimiento / disponible); motivo y siguiente paso alineados a la devolución pendiente. `StatusChangeCard` la usa tanto en la prevención en UI como al mapear el rechazo del RPC.
