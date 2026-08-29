@@ -542,7 +542,7 @@ Solo cuando se cumple **al menos uno**:
 - Cuando un helper interno duplica una librería canónica → marcarlo `@deprecated` con `// TODO(deps): migrar a <lib>` y abrir entrada de changelog.
 - Migración **incremental**: features nuevas usan la dependencia; el legacy se migra cuando se toca por otra razón.
 - Migraciones grandes (jsPDF → react-pdf, cálculos → currency.js) se hacen como olas dedicadas y se registran como `major` o `minor` con resumen en `public/changelog/v<X.Y.Z>.json`.
-- **Estado actual de la auditoría**: ver `docs/dependency-audit.md` (regenerar con `python3 scripts/dependency_audit.py`).
+- **Estado actual del stack canónico**: §20.4 de este documento es la fuente de verdad; `package.json` refleja las versiones vigentes.
 
 ### 20.7 Anti-patrones
 
