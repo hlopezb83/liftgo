@@ -36,4 +36,4 @@ done
 
 echo ""
 echo "✅ Reportes guardados en ${OUT_DIR}/"
-echo "   Actualiza docs/lighthouse/baseline.md con los scores nuevos."
+echo "   Compara los scores contra la corrida anterior (no se versiona baseline)."
