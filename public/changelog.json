@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.375.0",
+    "date": "2026-08-29",
+    "type": "minor",
+    "title": "Limpieza extensa de la documentación",
+    "description": "El repositorio tenía 157 archivos de documentación, casi todos planes y auditorías viejas que ya no reflejaban el sistema actual. Se conservan solo 12 documentos vivos y se actualizaron para que digan la verdad. No hay cambios en la aplicación.",
+    "changes": [
+      "Se borraron 130 planes archivados y 10 reportes de auditoría con fecha fija; el historial funcional queda en el changelog.",
+      "Se borraron 5 README de carpeta dentro de src/ que repetían convenciones ya documentadas.",
+      "architecture.md y README.md actualizados: pruebas E2E y RLS reales, stack de PDF correcto y una sección clara de documentación vigente.",
+      "La carpeta de planes archivados ahora se ignora en Git para que no vuelva a acumularse."
+    ]
+  },
+  {
+
     "version": "7.374.4",
     "date": "2026-08-29",
     "type": "patch",
