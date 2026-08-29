@@ -89,6 +89,17 @@ function HomeRedirect() {
   return <Navigate to={target?.path ?? "/help"} replace />;
 }
 
+/**
+ * Destino tras el login: honra `?redirect=` sólo si es una ruta interna
+ * (empieza con "/" y no es "//" — evita open redirects a dominios ajenos).
+ */
+function LoginRedirect() {
+  const [params] = useSearchParams();
+  const redirect = params.get("redirect");
+  const safe = redirect && redirect.startsWith("/") && !redirect.startsWith("//") ? redirect : "/";
+  return <Navigate to={safe} replace />;
+}
+
 const authenticatedChildren: RouteObject[] = [
   // Redirect legacy: `<Navigate replace />` evita el flash blanco del loader.
   { path: "/expenses", element: <Navigate to="/cuentas-por-pagar" replace /> },
