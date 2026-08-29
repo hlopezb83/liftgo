@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.guard_supplier_payment_delete() FROM PUBLIC, anon, authenticated;

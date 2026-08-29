@@ -1,3 +1,11 @@
+## [7.379.0] - 2026-08-29
+### Fix (P0 integridad): guard de borrado de pagos a proveedor en la BD
+- Nueva función `public.guard_supplier_payment_delete()` (SECURITY DEFINER, `SET search_path = public`) y trigger `trg_guard_supplier_payment_delete` (BEFORE DELETE en `public.supplier_payments`): rechaza el borrado si `rep_status = 'received'` (P0001), si la factura de proveedor está `cancelled` (P0001) o si el usuario no es `admin` (42501).
+- Convención preservada: sin sesión (`auth.uid() IS NULL`, service_role/tareas) y con `app.e2e_seed = 'on'` el guard no interviene, igual que `validate_prospect_close()`.
+- `businessBlocks`: los mensajes del guard se mapean a `supplier_payment_rep_received` y `supplier_bill_cancelled`; `useDeleteSupplierPayment` acepta `onBusinessBlock` y `useSupplierPaymentActions` muestra el bloqueo del servidor con la misma copia que la prevención en UI.
+- Sin cambios en cálculos de saldo, emisión/recepción de REP, conciliación bancaria (`ON DELETE SET NULL` intacto) ni en la máquina de estados de facturas de proveedor.
+- Pruebas: `supabase/tests/r_fix33_supplier_payment_delete_guard_smoke.sql` (catálogo + comportamiento real por rol) y `src/lib/rules/__tests__/supplierPaymentDeleteGuard.test.ts`.
+
 ## [7.378.0] - 2026-08-29
 ### Feature: bloqueos de negocio explicables (lote 3, solo presentación)
 - `businessBlocks`: nuevos códigos `supplier_bill_pending_approval`, `supplier_payment_rep_received`, `payment_rep_stamped_locked`, `portal_payment_fully_reported`, `damage_not_repaired`, `prospect_stage_not_negotiation`, `quote_expired` y `quote_already_converted`, más el patrón de error para el cierre de prospecto fuera de Negociación.
