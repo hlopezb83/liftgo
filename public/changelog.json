@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.376.0",
+    "date": "2026-08-29",
+    "type": "minor",
+    "title": "Bloqueos de negocio explicables: qué está bloqueado, por qué y qué sigue",
+    "description": "Cuando el sistema impide una acción por una regla del negocio (unidad rentada, daño abierto, contrato firmado, factura de proveedor con pagos), ya no se muestra un error técnico ni desaparece el botón: la acción queda visible y deshabilitada, con una explicación clara y el siguiente paso. No cambia ninguna regla ni permiso.",
+    "changes": [
+      "Nuevo catálogo de bloqueos de negocio con textos en español mexicano: qué quedó bloqueado, por qué y qué hacer después.",
+      "Nuevos componentes reutilizables: aviso explicativo dentro de la pantalla y botón que se queda visible pero deshabilitado con la explicación en el tooltip.",
+      "Flotilla: al intentar vender, dar de baja o mandar a mantenimiento una unidad rentada se explica que primero hay que registrar la devolución; si el servidor lo rechaza, se ve la misma explicación en vez de un error genérico.",
+      "Mantenimiento: el cierre de orden de trabajo con daño abierto muestra el daño y un botón directo para resolverlo.",
+      "Contratos: los contratos firmados o completados ya muestran el botón Editar deshabilitado con el motivo, en vez de esconderlo.",
+      "Cuentas por pagar: editar, eliminar y cancelar facturas de proveedor explican el motivo exacto (tiene pagos, ya aprobada, rechazada, pagada o cancelada) y el siguiente paso."
+    ]
+  },
+  {
     "version": "7.375.0",
     "date": "2026-08-29",
     "type": "minor",
@@ -13,7 +28,6 @@
     ]
   },
   {
-
     "version": "7.374.4",
     "date": "2026-08-29",
     "type": "patch",

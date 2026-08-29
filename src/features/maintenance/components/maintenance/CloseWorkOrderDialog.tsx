@@ -1,16 +1,17 @@
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { BlockedActionNotice } from "@/components/feedback/BlockedActionNotice";
 import { DateField, TextareaField } from "@/components/forms/fields";
 import { FormActions } from "@/components/forms/FormActions";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormSection } from "@/components/forms/FormSection";
-import { WarnIcon } from "@/components/icons";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Form } from "@/components/ui/form";
 import { serviceTypeLabel } from "@/lib/constants";
 import { toYMD } from "@/lib/date/toYMD";
 import { zodResolver } from "@/lib/forms/zodResolver";
+import { businessBlockSummary, describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { nowMty } from "@/lib/utils";
+import { ROUTES } from "@/routes/routes";
 import { useCloseWorkOrder, useOpenDamageForLog } from "../../hooks/maintenance/useWorkOrderClose";
 import { WorkOrderCloseSummary } from "./WorkOrderCloseSummary";
 import type { MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
@@ -37,6 +38,7 @@ interface Props {
 export function CloseWorkOrderDialog({ open, onOpenChange, log, onClosed, onCancel }: Props) {
   const close = useCloseWorkOrder();
   const { data: openDamage } = useOpenDamageForLog(open ? log?.id : null);
+  const damageBlock = openDamage ? describeBusinessBlock("maintenance_open_damage") : null;
 
   const form = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -85,15 +87,12 @@ export function CloseWorkOrderDialog({ open, onOpenChange, log, onClosed, onCanc
             {/* R13-FE-02 (P1): `cost` es el total (manual + refacciones + MO).
                 Pasarlo como "costo manual" duplicaba refacciones y mano de obra. */}
             {log && <WorkOrderCloseSummary maintenanceLogId={log.id} storedCost={Number(log.cost || 0)} manualCost={Number(log.manual_cost || 0)} />}
-            {openDamage && (
-              <Alert variant="destructive">
-                <WarnIcon className="h-4 w-4" />
-                <AlertTitle>Hay un daño abierto ligado a esta OT</AlertTitle>
-                <AlertDescription>
-                  {openDamage.description} — marca el daño como reparado antes de cerrar.
-                  El cierre está bloqueado mientras el daño siga abierto.
-                </AlertDescription>
-              </Alert>
+            {damageBlock && openDamage && (
+              <BlockedActionNotice
+                block={damageBlock}
+                details={`Daño: ${openDamage.description}`}
+                link={{ label: "Resolver daño", to: ROUTES.damage }}
+              />
             )}
           </FormSection>
 
@@ -116,8 +115,8 @@ export function CloseWorkOrderDialog({ open, onOpenChange, log, onClosed, onCanc
               submitLabel="Cerrar OT"
               isPending={close.isPending}
               onCancel={handleCancel}
-              submitDisabled={!!openDamage}
-              submitDisabledReason="No se puede cerrar: hay un daño abierto ligado a esta OT."
+              submitDisabled={!!damageBlock}
+              submitDisabledReason={damageBlock ? businessBlockSummary(damageBlock) : undefined}
             />
           </FormDialogFooter>
         </form>

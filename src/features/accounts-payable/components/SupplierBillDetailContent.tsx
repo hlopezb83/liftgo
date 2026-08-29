@@ -181,6 +181,8 @@ export function SupplierBillDetailContent({ bill, perms, isAdmin, dialogs, onClo
           canDelete={perms.canDelete}
           editBlockedReason={perms.editBlockedReason}
           deleteBlockedReason={perms.deleteBlockedReason}
+          editBlock={perms.editBlock}
+          deleteBlock={perms.deleteBlock}
           onPayClick={() => dialogs.setPayDialog(true)}
           onCancelClick={() => dialogs.setCancelDialog(true)}
           onEditClick={() => dialogs.setEditDialog(true)}

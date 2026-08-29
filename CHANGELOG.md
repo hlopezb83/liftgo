@@ -1,3 +1,12 @@
+## [7.376.0] - 2026-08-29
+### Feature: bloqueos de negocio explicables (fase 1, solo UX/contrato de error)
+- Nuevo `src/lib/rules/businessBlocks.ts`: catálogo tipado de bloqueos (`action` / `reason` / `nextStep` / `tone`) y `resolveBusinessBlock(error)`, que se apoya en `translatePgError` (constraint → SQLSTATE → texto) sin duplicar el catálogo de Postgres.
+- Nuevos `src/components/feedback/BlockedActionNotice.tsx` (Alert `info`/`warning`, detalle contextual y enlace "Ver…/Resolver…" vía `ROUTES`) y `BlockedActionButton.tsx` (acción visible pero deshabilitada, motivo en tooltip).
+- `useEntityMutation`: nueva opción `onBusinessBlock` — si el error corresponde a una regla catalogada, la vista muestra el bloque explicativo y se suprime el toast genérico.
+- Flujos convertidos: `StatusChangeCard` (renta activa, con prevención en UI y manejo de carrera desde el RPC), `CloseWorkOrderDialog` (daño abierto + "Resolver daño"), `ContractDetailActions` (contrato firmado/completado), `SupplierBillPaymentActions` + `billPermissions` (pagos, aprobada, rechazada, pagada, cancelada).
+- Sin cambios en SQL, RLS, RPC guards, máquinas de estado ni permisos: el backend sigue siendo la autoridad final.
+- Pruebas nuevas: `src/lib/rules/__tests__/businessBlocks.test.ts`, `src/components/feedback/__tests__/BlockedAction.test.tsx`, `src/features/accounts-payable/lib/__tests__/billPermissions.test.ts`.
+
 ## [7.375.0] - 2026-08-29
 ### Docs: limpieza extensa de archivos Markdown (157 → 12)
 - Eliminados 130 planes archivados (`.lovable/*.md` y `.lovable/plan/*.md`); `.lovable/plan/` se agregó a `.gitignore`. El contenido efectivo de cada plan ya está en este changelog y en el código.

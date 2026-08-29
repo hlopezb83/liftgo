@@ -1,6 +1,8 @@
+import { BlockedActionButton } from "@/components/feedback/BlockedActionButton";
 import { CreditCard, ErrorIcon, EditIcon, DeleteIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import type { BillPermissions } from "../lib/billPermissions";
 import type { ReactNode } from "react";
 
@@ -32,6 +34,12 @@ function isPayBlocked(bill: BillActionsState): boolean {
     || bill.approval_status === "rejected";
 }
 
+function cancelBlock(bill: BillActionsState) {
+  if (bill.status === "cancelled") return describeBusinessBlock("supplier_bill_cancelled");
+  if (bill.payments.length > 0) return describeBusinessBlock("supplier_bill_has_payments");
+  return null;
+}
+
 function GuardedButton({
   disabled, reason, children, onClick, variant = "default",
 }: {
@@ -56,7 +64,7 @@ function GuardedButton({
 }
 
 export function SupplierBillPaymentActions({
-  bill, isAdmin, canEdit, canDelete, editBlockedReason, deleteBlockedReason,
+  bill, isAdmin, canEdit, canDelete, editBlock, deleteBlock,
   onPayClick, onCancelClick, onEditClick, onDeleteClick,
 }: Props) {
   return (
@@ -65,20 +73,35 @@ export function SupplierBillPaymentActions({
         <GuardedButton disabled={isPayBlocked(bill)} reason={payBlockReason(bill.approval_status)} onClick={onPayClick}>
           <CreditCard className="h-4 w-4 mr-1" /> Registrar pago
         </GuardedButton>
-        <Button variant="outline"
-          disabled={bill.status === "cancelled" || bill.payments.length > 0}
-          onClick={onCancelClick}>
+        <BlockedActionButton
+          variant="outline"
+          className="flex-1"
+          block={cancelBlock(bill)}
+          onClick={onCancelClick}
+        >
           <ErrorIcon className="h-4 w-4 mr-1" /> Cancelar
-        </Button>
+        </BlockedActionButton>
       </div>
       <div className="flex gap-2">
-        <GuardedButton variant="outline" disabled={!canEdit} reason={!canEdit ? editBlockedReason : null} onClick={onEditClick}>
+        {/* La acción permanece visible y deshabilitada: el tooltip explica el
+            motivo de negocio y el siguiente paso (los permisos se ocultan aparte). */}
+        <BlockedActionButton
+          variant="outline"
+          className="flex-1"
+          block={canEdit ? null : editBlock}
+          onClick={onEditClick}
+        >
           <EditIcon className="h-4 w-4 mr-1" /> Editar
-        </GuardedButton>
+        </BlockedActionButton>
         {isAdmin && (
-          <GuardedButton variant="destructive" disabled={!canDelete} reason={!canDelete ? deleteBlockedReason : null} onClick={onDeleteClick}>
+          <BlockedActionButton
+            variant="destructive"
+            className="flex-1"
+            block={canDelete ? null : deleteBlock}
+            onClick={onDeleteClick}
+          >
             <DeleteIcon className="h-4 w-4 mr-1" /> Eliminar
-          </GuardedButton>
+          </BlockedActionButton>
         )}
       </div>
     </div>
