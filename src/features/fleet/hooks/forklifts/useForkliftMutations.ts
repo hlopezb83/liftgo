@@ -3,6 +3,7 @@ import { reportKeys } from "@/features/reports";
 import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { notifyError } from "@/lib/ui/appFeedback";
 import type { Forklift } from "@/types/rental";
 // FIX-R3-05: alta/estado de unidades alimenta utilización y utilidad por unidad.
@@ -100,7 +101,7 @@ export function useDeleteForklift() {
 }
 
 
-export function useUpdateStatus() {
+export function useUpdateStatus(opts?: { onBusinessBlock?: (block: BusinessBlock) => void }) {
   // R8 Bloque 3: la transición se delega al RPC `change_forklift_status`, que valida
   // renta activa, exige razón para maintenance/sold/retired e inserta el status_log
   // de forma atómica. `fromStatus` se mantiene en la firma por compatibilidad con los
@@ -120,5 +121,8 @@ export function useUpdateStatus() {
     errorTitle: "Error al actualizar estado de montacargas",
     // Sprint 4 (Fix 4.4): mostrar el mensaje del servidor (p.ej. renta activa).
     errorMessage: (error) => error.message,
+    // Si el RPC rechaza por una regla catalogada (renta activa), la vista
+    // muestra el bloque explicativo y se suprime el toast genérico.
+    onBusinessBlock: opts?.onBusinessBlock ? (block) => opts.onBusinessBlock?.(block) : undefined,
   });
 }

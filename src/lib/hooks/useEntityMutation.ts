@@ -25,6 +25,7 @@
 import { useMutation, useQueryClient, type QueryKey, type UseMutationResult } from "@tanstack/react-query";
 import { useRef } from "react";
 import { translateDbError } from "@/lib/errors/dbErrors";
+import { resolveBusinessBlock, type BusinessBlock } from "@/lib/rules/businessBlocks";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 
 export interface UseEntityMutationOptions<TVar, TData> {
@@ -52,6 +53,12 @@ export interface UseEntityMutationOptions<TVar, TData> {
    * como info en vez de error — R7 Bloque 12).
    */
   onError?: (error: Error, vars: TVar) => boolean | void;
+  /**
+   * Bloqueos de negocio explicables: si el error corresponde a una regla
+   * catalogada en `lib/rules/businessBlocks`, se entrega aquí y se suprime el
+   * toast genérico para que la UI muestre el bloque explicativo en su lugar.
+   */
+  onBusinessBlock?: (block: BusinessBlock, error: Error, vars: TVar) => void;
   /** Severidad del toast de error. Default `critical` (persistente). */
   errorSeverity?: "critical" | "warning";
 }
@@ -69,6 +76,7 @@ export function useEntityMutation<TVar, TData>(
     successMsg,
     onSuccess,
     onError,
+    onBusinessBlock,
     errorSeverity,
   } = options;
 
@@ -87,6 +95,10 @@ export function useEntityMutation<TVar, TData>(
       // R7 Bloque 12: callback custom puede suprimir el toast estándar
       // devolviendo `true` (p.ej. reclasificar 409 "ya en proceso" como info).
       if (onError && onError(error, vars) === true) return;
+      if (onBusinessBlock) {
+        const block = resolveBusinessBlock(error);
+        if (block) { onBusinessBlock(block, error, vars); return; }
+      }
       const translated = translateDbError(error, errorTitle);
       if (translated.matched) {
         notifyError({

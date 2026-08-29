@@ -1,0 +1,176 @@
+import { translatePgError } from "@/lib/errors/pgErrorCatalog";
+
+/**
+ * Catálogo de *bloqueos de negocio explicables* (fase 1).
+ *
+ * Un bloqueo de negocio NO es un error técnico: es una regla del ERP que el
+ * backend ya impone (trigger, RPC, constraint o RLS) y que la UI debe explicar
+ * con la misma jerarquía siempre:
+ *
+ *   1. `action`   — qué quedó bloqueado ("No puedes vender esta unidad").
+ *   2. `reason`   — por qué ("La unidad sigue rentada").
+ *   3. `nextStep` — qué hacer ("Primero registra la devolución…").
+ *
+ * Este módulo es SOLO presentación: no valida nada ni sustituye al backend,
+ * que sigue siendo la autoridad final. Los mensajes crudos de Postgres/SAT se
+ * siguen traduciendo en `pgErrorCatalog`; aquí únicamente se les da forma de
+ * bloque explicable cuando el error corresponde a una regla conocida.
+ */
+
+export type BusinessBlockCode =
+  | "forklift_active_rental"
+  | "maintenance_open_damage"
+  | "contract_signed_locked"
+  | "invoice_stamped_locked"
+  | "invoice_cancellation_pending"
+  | "supplier_bill_has_payments"
+  | "supplier_bill_approved"
+  | "supplier_bill_rejected"
+  | "supplier_bill_paid"
+  | "supplier_bill_cancelled"
+  | "payment_exceeds_balance"
+  | "extension_already_billed";
+
+/** `info` para restricciones normales del negocio; `warning` para riesgo real. */
+export type BusinessBlockTone = "info" | "warning";
+
+export interface BusinessBlock {
+  code: BusinessBlockCode;
+  /** Qué quedó bloqueado, en segunda persona. */
+  action: string;
+  /** Por qué está bloqueado, sin jerga técnica. */
+  reason: string;
+  /** Siguiente paso accionable para el usuario. */
+  nextStep: string;
+  tone: BusinessBlockTone;
+}
+
+type BlockCopy = Omit<BusinessBlock, "code">;
+
+export const BUSINESS_BLOCKS: Record<BusinessBlockCode, BlockCopy> = {
+  forklift_active_rental: {
+    action: "No puedes vender ni dar de baja esta unidad",
+    reason: "La unidad sigue rentada: tiene una reserva activa.",
+    nextStep: "Primero registra la devolución y cierra la reserva.",
+    tone: "info",
+  },
+  maintenance_open_damage: {
+    action: "No puedes cerrar esta orden de trabajo",
+    reason: "Hay un daño abierto ligado a esta orden.",
+    nextStep: "Marca el daño como reparado y vuelve a cerrar la orden.",
+    tone: "info",
+  },
+  contract_signed_locked: {
+    action: "No puedes editar este contrato",
+    reason: "El contrato ya está firmado y sus condiciones quedaron en firme.",
+    nextStep: "Genera un contrato nuevo si necesitas cambiar las condiciones.",
+    tone: "info",
+  },
+  invoice_stamped_locked: {
+    action: "No puedes editar esta factura",
+    reason: "La factura ya fue timbrada ante el SAT.",
+    nextStep: "Cancela el CFDI o emite una nota de crédito para corregirla.",
+    tone: "info",
+  },
+  invoice_cancellation_pending: {
+    action: "No puedes registrar pagos en esta factura",
+    reason: "Hay una cancelación solicitada y el SAT aún no responde.",
+    nextStep: "Actualiza el estado ante el SAT y vuelve a intentarlo.",
+    tone: "warning",
+  },
+  supplier_bill_has_payments: {
+    action: "No puedes modificar esta factura de proveedor",
+    reason: "Ya tiene pagos registrados.",
+    nextStep: "Cancela los pagos si necesitas corregir el documento.",
+    tone: "info",
+  },
+  supplier_bill_approved: {
+    action: "No puedes modificar esta factura de proveedor",
+    reason: "Ya fue aprobada para pago.",
+    nextStep: "Usa Cancelar en lugar de editar o eliminar.",
+    tone: "info",
+  },
+  supplier_bill_rejected: {
+    action: "No puedes modificar esta factura de proveedor",
+    reason: "Fue rechazada en la revisión.",
+    nextStep: "Registra una factura nueva con los datos corregidos.",
+    tone: "info",
+  },
+  supplier_bill_paid: {
+    action: "No puedes modificar esta factura de proveedor",
+    reason: "Ya está pagada por completo.",
+    nextStep: "Revisa los pagos aplicados si algo no cuadra.",
+    tone: "info",
+  },
+  supplier_bill_cancelled: {
+    action: "No puedes modificar esta factura de proveedor",
+    reason: "Ya está cancelada.",
+    nextStep: "Registra una factura nueva si necesitas volver a cargarla.",
+    tone: "info",
+  },
+  payment_exceeds_balance: {
+    action: "No puedes registrar este pago",
+    reason: "El monto es mayor que el saldo pendiente de la factura.",
+    nextStep: "Ajusta el monto al saldo pendiente o registra el excedente aparte.",
+    tone: "info",
+  },
+  extension_already_billed: {
+    action: "No puedes facturar esta extensión",
+    reason: "La extensión ya fue facturada.",
+    nextStep: "Consulta la factura ligada para revisar el cobro.",
+    tone: "info",
+  },
+};
+
+/** Devuelve la copia canónica del bloqueo, con overrides opcionales. */
+export function describeBusinessBlock(
+  code: BusinessBlockCode,
+  overrides?: Partial<BlockCopy>,
+): BusinessBlock {
+  return { code, ...BUSINESS_BLOCKS[code], ...overrides };
+}
+
+/** Resumen de una línea para tooltips y botones deshabilitados. */
+export function businessBlockSummary(block: BusinessBlock): string {
+  return `${block.reason} ${block.nextStep}`;
+}
+
+/**
+ * Patrones de los mensajes que el backend ya emite hoy (triggers, RPC guards y
+ * constraints). Solo reconocen reglas existentes: si el backend cambia el
+ * texto, el flujo degrada al toast traducido de siempre.
+ */
+const ERROR_PATTERNS: Array<{ pattern: RegExp; code: BusinessBlockCode }> = [
+  { pattern: /renta activa|sigue rentad|completa la devoluci/i, code: "forklift_active_rental" },
+  { pattern: /da(ñ|n)o abierto/i, code: "maintenance_open_damage" },
+  { pattern: /contrato firmado|signed contract|contrato ya fue firmado/i, code: "contract_signed_locked" },
+  { pattern: /ya fue timbrada|cfdi timbrado|factura timbrada/i, code: "invoice_stamped_locked" },
+  { pattern: /cancelaci(ó|o)n en proceso|cancellation_in_progress|cancelaci(ó|o)n pendiente/i, code: "invoice_cancellation_pending" },
+  { pattern: /excede el saldo|exceeds .*balance|payment_exceeds/i, code: "payment_exceeds_balance" },
+  { pattern: /extensi(ó|o)n .*ya fue facturada/i, code: "extension_already_billed" },
+];
+
+/** Restricciones con nombre que corresponden a un bloqueo explicable. */
+const CONSTRAINT_BLOCKS: Record<string, BusinessBlockCode> = {
+  booking_extensions_invoice_id_uniq: "extension_already_billed",
+};
+
+/**
+ * Traduce un error del backend a un bloqueo de negocio conocido, o `null` si
+ * no corresponde a ninguna regla catalogada (el caller mantiene su manejo
+ * actual de errores). Se apoya en `translatePgError` para no duplicar la
+ * extracción/normalización de errores.
+ */
+export function resolveBusinessBlock(error: unknown): BusinessBlock | null {
+  const translated = translatePgError(error);
+  const constraintCode = translated.constraint
+    ? CONSTRAINT_BLOCKS[translated.constraint]
+    : undefined;
+  if (constraintCode) return describeBusinessBlock(constraintCode);
+
+  const haystack = `${translated.message} ${String((error as { message?: unknown })?.message ?? "")}`;
+  for (const { pattern, code } of ERROR_PATTERNS) {
+    if (pattern.test(haystack)) return describeBusinessBlock(code);
+  }
+  return null;
+}
