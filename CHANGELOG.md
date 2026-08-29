@@ -1,3 +1,9 @@
+## [7.374.4] - 2026-08-29
+### Fix: sesión expirada ya no termina en "Página no encontrada"
+- `sessionExpiry.handleSessionExpired` redirigía a `/auth?redirect=…`, ruta inexistente en el router: sin sesión se veía el login inline, pero tras autenticarse la URL `/auth` caía en el catch-all 404 y el usuario perdía su pantalla. Ahora redirige a `/login?redirect=…`.
+- Router: la ruta `/login` pasa de `<Navigate to="/">` a `LoginRedirect`, que honra `?redirect=` (validado: sólo rutas internas que empiezan con "/" y no "//", contra open redirects) y regresa al usuario a la página donde estaba.
+- El guard "ya estoy en acceso" de `sessionExpiry` ahora reconoce `/login`.
+
 ## [7.374.3] - 2026-08-28
 ### CI: actions oficiales de GitHub al día
 - `actions/checkout` v6 → **v7** (20 usos en `ci.yml`, `codeql.yml`, `bundle-size.yml`, `gitleaks.yml`, `lighthouse.yml`, `rls-db-tests.yml`, `changelog-check.yml`): endurece el manejo de credenciales en PRs de forks; mismas entradas.
