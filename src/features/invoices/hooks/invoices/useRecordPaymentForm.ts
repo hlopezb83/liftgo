@@ -1,6 +1,11 @@
 import { useState } from "react";
 import { toYMD } from "@/lib/format/dateFormats";
 import { roundMoney } from "@/lib/money";
+import {
+  describeBusinessBlock,
+  resolveBusinessBlock,
+  type BusinessBlock,
+} from "@/lib/rules/businessBlocks";
 import { notifyError, notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { nowMty } from "@/lib/utils";
 import { satCodeForMethod } from "../../lib/paymentMethods";
@@ -43,6 +48,9 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
   const [reference, setReference] = useState("");
   const [notes, setNotes] = useState("");
   const [stampRep, setStampRep] = useState(true);
+  // Bloqueo devuelto por el backend cuando la UI no lo pudo anticipar (carrera
+  // con otro pago). El backend sigue siendo la autoridad final.
+  const [serverBlock, setServerBlock] = useState<BusinessBlock | null>(null);
   const createPayment = useCreatePayment();
   const stampComplement = useStampPaymentComplement();
 
@@ -95,7 +103,20 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
   const setCurrency = (_next: string) => setCurrencyState(lockedCurrency);
 
 
+  // BL-11 (misma regla que valida el submit): si el monto capturado ya excede
+  // el saldo, se explica de antemano en vez de esperar al toast de validación.
+  const balanceRounded = roundMoney(balance);
+  const parsedAmount = roundMoney(Number(amount));
+  const exceedsBalance =
+    Number.isFinite(parsedAmount) && parsedAmount - balanceRounded > 0.01;
+  const amountBlock: BusinessBlock | null = exceedsBalance
+    ? describeBusinessBlock("payment_exceeds_balance", {
+        reason: `El monto es mayor que el saldo pendiente ($${balanceRounded.toFixed(2)}).`,
+      })
+    : serverBlock;
+
   const handleSubmit = async () => {
+    setServerBlock(null);
     const amt = roundMoney(Number(amount));
     if (!amt || amt <= 0) { notifyValidation({ message: "Monto inválido" }); return; }
     // L-7: techo de monto — rechaza capturas absurdas antes de persistir.
@@ -124,7 +145,6 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
     }
     // BL-11: rechazar sobrepagos. Antes se permitía registrar un pago mayor al
     // saldo (creando saldos negativos invisibles). Ahora bloqueamos en submit.
-    const balanceRounded = roundMoney(balance);
     if (amt - balanceRounded > 0.01) {
       notifyValidation({
         message: `El monto excede el saldo pendiente ($${balanceRounded.toFixed(2)}). Ajusta la cantidad.`,
@@ -165,7 +185,16 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
           setReference("");
           setNotes("");
         },
-        onError: (err) => notifyError({ error: err }),
+        onError: (err) => {
+          // Carrera: otro pago consumió el saldo. Se muestra el mismo bloque
+          // explicable en vez de un toast técnico.
+          const block = resolveBusinessBlock(err);
+          if (block) {
+            setServerBlock(block);
+            return;
+          }
+          notifyError({ error: err });
+        },
       },
     );
   };
@@ -184,6 +213,7 @@ export function useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, inv
     exchangeRate, setExchangeRate, reference, setReference,
     notes, setNotes, stampRep, setStampRep,
     createPayment, stampComplement, handleSubmit, isDirty,
+    amountBlock, exceedsBalance,
   };
 }
 

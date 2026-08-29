@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FORKLIFT_STATUSES, STATUS_LABELS } from "@/lib/constants";
-import { describeBusinessBlock, type BusinessBlock } from "@/lib/rules/businessBlocks";
+import { describeForkliftRentalBlock, type BusinessBlock } from "@/lib/rules/businessBlocks";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { useUpdateStatus } from "../../hooks/forklifts/useForklifts";
 
@@ -33,9 +33,15 @@ export function StatusChangeCard({ forkliftId, currentStatus }: StatusChangeCard
   // se explica de antemano cuando el estado actual ya la determina.
   const rentedBlock =
     currentStatus === "rented" && BLOCKED_WHILE_RENTED.has(newStatus)
-      ? describeBusinessBlock("forklift_active_rental")
+      ? describeForkliftRentalBlock(newStatus)
       : null;
-  const block = rentedBlock ?? serverBlock;
+  // Si el backend rechazó por renta activa (carrera), se muestra el mismo
+  // bloqueo pero titulado con el estado que el usuario intentó aplicar.
+  const contextualServerBlock =
+    serverBlock?.code === "forklift_active_rental"
+      ? describeForkliftRentalBlock(newStatus)
+      : serverBlock;
+  const block = rentedBlock ?? contextualServerBlock;
   const canSubmit =
     !!newStatus &&
     newStatus !== currentStatus &&

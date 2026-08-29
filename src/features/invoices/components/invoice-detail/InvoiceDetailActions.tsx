@@ -1,10 +1,11 @@
 import { useState } from "react";
+import { BlockedActionButton } from "@/components/feedback/BlockedActionButton";
 import { EditIcon, StampIcon, ErrorIcon, PaymentIcon, DeleteIcon, RefreshIcon, DocumentIcon, FileCode2 } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Tables } from "@/integrations/supabase/types";
 import { RoleGuard } from "@/layouts/RoleGuard";
+import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { computeInvoiceFlags, type InvoiceActionFlags } from "@/lib/rules/invoices";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { useRefreshCancellationStatus } from "../../hooks/invoices/cfdi/useRefreshCancellationStatus";
@@ -208,11 +209,19 @@ export function InvoiceDetailActions({
           <XmlPendingBlock invoiceId={invoice.id} onRecovered={onRecoveredXml ?? (() => {})} />
         </RoleGuard>
       ) : null}
-      {flags.canEdit ? (
+      {flags.canEdit || flags.isStamped ? (
         <RoleGuard module="Facturas" minAccess="full" fallback={null}>
-          <Button size="sm" variant="outline" onClick={onEdit}>
+          {/* El estado fiscal bloquea la edición, pero la acción sigue visible
+              y explicada; los permisos los sigue resolviendo RoleGuard. */}
+          <BlockedActionButton
+            block={flags.canEdit ? null : describeBusinessBlock("invoice_stamped_locked")}
+            size="sm"
+            variant="outline"
+            onClick={onEdit}
+            data-testid="invoice-edit"
+          >
             <EditIcon className="h-4 w-4 mr-1" /> Editar
-          </Button>
+          </BlockedActionButton>
         </RoleGuard>
       ) : null}
       <RoleGuard module="Facturas" minAccess="full" fallback={null}>
@@ -227,18 +236,13 @@ export function InvoiceDetailActions({
       ) : null}
       {flags.paymentBlockedByPendingCancellation ? (
         <RoleGuard module="Facturas" minAccess="full" fallback={null}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span>
-                <Button size="sm" disabled data-testid="invoice-register-payment-blocked">
-                  <PaymentIcon className="h-4 w-4 mr-1" />Registrar pago
-                </Button>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent>
-              Cancelación en proceso ante el SAT (esperando aceptación del receptor)
-            </TooltipContent>
-          </Tooltip>
+          <BlockedActionButton
+            block={describeBusinessBlock("invoice_cancellation_pending")}
+            size="sm"
+            data-testid="invoice-register-payment-blocked"
+          >
+            <PaymentIcon className="h-4 w-4 mr-1" />Registrar pago
+          </BlockedActionButton>
         </RoleGuard>
       ) : null}
       {pdfMode !== "hidden" ? (

@@ -1,3 +1,12 @@
+## [7.377.0] - 2026-08-29
+### Feature: bloqueos de negocio explicables (fase 2, solo UX/contrato de error)
+- `businessBlocks`: nueva `describeForkliftRentalBlock(targetStatus)` — una sola regla canónica de renta activa con título contextual (vender / dar de baja / mantenimiento / disponible); motivo y siguiente paso alineados a la devolución pendiente. `StatusChangeCard` la usa tanto en la prevención en UI como al mapear el rechazo del RPC.
+- `InvoiceDetailActions`: `invoice_stamped_locked` conectado — con permiso `Facturas: full`, Editar queda visible y deshabilitado en facturas timbradas (antes se ocultaba). `invoice_cancellation_pending` sustituye el tooltip ad-hoc del botón "Registrar pago" bloqueado.
+- `useRecordPaymentForm` / `RecordPaymentDialog`: `payment_exceeds_balance` conectado — el sobrepago se explica junto al monto y deshabilita el submit (misma regla BL-11, sin duplicar el cálculo de saldo); el rechazo del backend por carrera se mapea con `resolveBusinessBlock` en vez de un toast técnico.
+- `BookingExtensionsCard`: `extension_already_billed` conectado — "Facturar extensión" se muestra deshabilitada con el motivo y se conserva "Ver factura" (ahora vía `ROUTES.invoices.detail`).
+- Sin cambios en SQL, RLS, RPC guards, máquinas de estado, lógica fiscal ni permisos.
+- Pruebas: `useRecordPaymentForm.blocks.test.ts`, `BookingExtensionsCard.test.tsx` y cobertura contextual en `businessBlocks.test.ts`.
+
 ## [7.376.0] - 2026-08-29
 ### Feature: bloqueos de negocio explicables (fase 1, solo UX/contrato de error)
 - Nuevo `src/lib/rules/businessBlocks.ts`: catálogo tipado de bloqueos (`action` / `reason` / `nextStep` / `tone`) y `resolveBusinessBlock(error)`, que se apoya en `translatePgError` (constraint → SQLSTATE → texto) sin duplicar el catálogo de Postgres.
