@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useReconciliationStatus } from "@/features/bank-reconciliation";
 import { useUserRole } from "@/features/users";
-import { businessBlockSummary, describeBusinessBlock } from "@/lib/rules/businessBlocks";
+import { businessBlockSummary, describeBusinessBlock, type BusinessBlock } from "@/lib/rules/businessBlocks";
 import { formatDateDisplay } from "@/lib/utils";
 import { useDeleteSupplierPayment } from "./useDeleteSupplierPayment";
 import { useRejectSupplierRep, useResetSupplierRep } from "./useSupplierRepMutations";
