@@ -1,4 +1,5 @@
 import { getAccessLevel, useRolePermissions, useUserRole } from "@/features/users";
+import { businessBlockSummary, describeBusinessBlock } from "@/lib/rules/businessBlocks";
 
 export interface DamagePermissions {
   canManageDamage: boolean;
@@ -36,10 +37,10 @@ export function useDamagePermissions(): DamagePermissions {
  */
 export function damageArchiveBlockReason(record: { invoice_id: string | null; status: string }) {
   const canArchive = record.invoice_id != null || record.status === "repaired";
+  const archiveBlock = canArchive ? null : describeBusinessBlock("damage_not_repaired");
   return {
     canArchive,
-    archiveBlockReason: canArchive
-      ? undefined
-      : "Para archivar, primero factura el cargo (Cobrar) o marca el daño como reparado",
+    archiveBlock,
+    archiveBlockReason: archiveBlock ? businessBlockSummary(archiveBlock) : undefined,
   };
 }

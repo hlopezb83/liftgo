@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ReconciliationBadge } from "@/features/bank-reconciliation";
 import type { Tables } from "@/integrations/supabase/types";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { businessBlockSummary, describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { notifyError } from "@/lib/ui/appFeedback";
 import { formatDateDisplay } from "@/lib/utils";
 import { RepBadge } from "../../components/invoice-detail/RepBadge";
@@ -162,11 +163,10 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
       cell: ({ row }) => {
         const p = row.original;
         // R10 Bloque 6: si el pago tiene REP timbrado, editar montos/fecha
-        // rompería el complemento CFDI. Bloqueamos el botón con tooltip.
+        // rompería el complemento CFDI. Bloqueo explicable compartido.
         const repLocked = (p.rep_cfdi_status as string | null) === "stamped";
-        const title = repLocked
-          ? "El pago tiene un complemento (REP) timbrado; cancélalo primero para modificarlo."
-          : "Editar pago";
+        const block = repLocked ? describeBusinessBlock("payment_rep_stamped_locked") : null;
+        const title = block ? businessBlockSummary(block) : "Editar pago";
         return (
           <Button
             variant="ghost" size="icon" className="h-7 w-7"

@@ -32,7 +32,7 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
   const [chargeOpen, setChargeOpen] = useState(false);
 
   const { canManageDamage, canChargeDamage, damageBlockReason, chargeBlockReason } = useDamagePermissions();
-  const { canArchive, archiveBlockReason } = damageArchiveBlockReason(record);
+  const { canArchive, archiveBlock, archiveBlockReason } = damageArchiveBlockReason(record);
 
   const handleCreateWorkOrder = async () => {
     try {
@@ -107,7 +107,7 @@ export function DamageActions({ record, onClose }: DamageActionsProps) {
         costMissing={cost == null}
         damageBlockReason={damageBlockReason}
         chargeBlockReason={chargeBlockReason}
-        archiveBlockReason={archiveBlockReason}
+        archiveBlock={archiveBlock}
         isCreatingWorkOrder={createMaintenance.isPending}
         isUpdating={updateDamage.isPending}
         isArchiving={archiveDamage.isPending}

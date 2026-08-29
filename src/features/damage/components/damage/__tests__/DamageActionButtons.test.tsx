@@ -1,5 +1,6 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
+import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { DamageActionButtons } from "../DamageActionButtons";
 
 const baseProps = {
@@ -34,5 +35,21 @@ describe("DamageActionButtons", () => {
   it("no muestra 'Marcar reparado' en status repaired ni invoiced", () => {
     render(<DamageActionButtons status="repaired" {...baseProps} />);
     expect(screen.queryByRole("button", { name: /marcar reparado/i })).not.toBeInTheDocument();
+  });
+});
+
+describe("DamageActionButtons · archivar bloqueado", () => {
+  it("mantiene 'Archivar' visible y deshabilitada con el bloqueo de negocio", () => {
+    const onArchive = vi.fn();
+    render(
+      <DamageActionButtons
+        status="reported"
+        {...baseProps}
+        onArchive={onArchive}
+        archiveBlock={describeBusinessBlock("damage_not_repaired")}
+      />,
+    );
+    const archive = screen.getByRole("button", { name: /archivar/i });
+    expect(archive).toBeDisabled();
   });
 });

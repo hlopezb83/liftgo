@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useReconciliationStatus } from "@/features/bank-reconciliation";
 import { useUserRole } from "@/features/users";
+import { businessBlockSummary, describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { formatDateDisplay } from "@/lib/utils";
 import { useDeleteSupplierPayment } from "./useDeleteSupplierPayment";
 import { useRejectSupplierRep, useResetSupplierRep } from "./useSupplierRepMutations";
@@ -23,10 +24,18 @@ export function useSupplierPaymentActions(p: SupplierPayment, billId: string, bi
   const { data: reconciliation } = useReconciliationStatus({ supplierPaymentId: p.id });
   const repStatus = (p.rep_status as SupplierRepStatus | null) ?? "not_required";
 
-  const deleteBlocked =
-    repStatus === "received" ? "Revierte primero el REP fiscal recibido" :
-    billCancelled ? "La factura está cancelada" : null;
-  const canDelete = isAdmin && !deleteBlocked;
+  // Mismas condiciones de siempre; sólo cambia cómo se explican.
+  const deleteBlock =
+    repStatus === "received" ? describeBusinessBlock("supplier_payment_rep_received") :
+    billCancelled
+      ? describeBusinessBlock("supplier_bill_cancelled", {
+          action: "No puedes eliminar este pago",
+          reason: "La factura de proveedor está cancelada.",
+          nextStep: "Registra una factura nueva si necesitas rehacer el pago.",
+        })
+      : null;
+  const deleteBlocked = deleteBlock ? businessBlockSummary(deleteBlock) : null;
+  const canDelete = isAdmin && !deleteBlock;
 
   const reconciledMsg = reconciliation
     ? ` Este pago está conciliado con ${reconciliation.bank_account_name}${reconciliation.bank_last4 ? ` ····${reconciliation.bank_last4}` : ""} el ${formatDateDisplay(reconciliation.matched_at)}; al eliminarlo, esa línea bancaria volverá a quedar sin conciliar.`
@@ -44,7 +53,7 @@ export function useSupplierPaymentActions(p: SupplierPayment, billId: string, bi
 
   return {
     role, canAct, isAdmin, repStatus,
-    canDelete, deleteBlocked, reconciledMsg,
+    canDelete, deleteBlock, deleteBlocked, reconciledMsg,
     uploadOpen, setUploadOpen,
     rejectOpen, setRejectOpen,
     resetOpen, setResetOpen,

@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useParams } from "react-router";
+import { BlockedActionButton } from "@/components/feedback/BlockedActionButton";
+import { BlockedActionNotice } from "@/components/feedback/BlockedActionNotice";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -14,6 +16,7 @@ import {
   usePortalCustomer,
 } from "@/features/customers";
 import { formatCurrency, formatCurrencyWithCode } from "@/lib/format/formatCurrency";
+import { describeBusinessBlock, type BusinessBlock } from "@/lib/rules/businessBlocks";
 import { formatDateDisplay } from "@/lib/utils";
 import { ReportTransferDialog } from "../components/ReportTransferDialog";
 import { StpTransferCard } from "../components/StpTransferCard";
@@ -74,26 +77,31 @@ function ForeignCurrencyNotice({ moneda, balanceLabel }: { moneda: string; balan
   );
 }
 
-function MxnPaymentSection({ balance, concept, pendingReported, canReport, onReport }: {
+function MxnPaymentSection({ balance, concept, pendingReported, canReport, reportBlock, onReport }: {
   balance: number;
   concept: string;
   pendingReported: number;
   canReport: boolean;
+  /** Estado de negocio: el saldo reportable ya quedó cubierto por reportes en revisión. */
+  reportBlock: BusinessBlock | null;
   onReport: () => void;
 }) {
   return (
     <>
       <StpTransferCard amount={balance} concept={concept} />
       <div className="flex gap-2">
-        <Button onClick={onReport} disabled={!canReport}>
+        {/* `canReport` cubre la condición técnica (datos del cliente aún no
+            disponibles); el bloqueo de negocio se explica aparte. */}
+        <BlockedActionButton onClick={onReport} disabled={!canReport} block={reportBlock}>
           Ya transferí — reportar pago
-        </Button>
+        </BlockedActionButton>
         {pendingReported > 0 && (
           <p className="text-xs text-muted-foreground self-center">
             Tienes {formatCurrency(pendingReported)} en revisión.
           </p>
         )}
       </div>
+      {reportBlock && <BlockedActionNotice block={reportBlock} />}
     </>
   );
 }
@@ -140,6 +148,7 @@ interface PaymentSectionArgs {
   isMxn: boolean;
   balanceLabel: string;
   canReport: boolean;
+  reportBlock: BusinessBlock | null;
   onReport: () => void;
 }
 
@@ -152,6 +161,7 @@ function renderPaymentSection(args: PaymentSectionArgs) {
         concept={args.concept}
         pendingReported={args.pendingReported}
         canReport={args.canReport}
+        reportBlock={args.reportBlock}
         onReport={args.onReport}
       />
     );
@@ -239,7 +249,10 @@ function PaymentBody({
     moneda,
     isMxn,
     balanceLabel,
-    canReport: !!customer && reportableBalance > 0,
+    // Bloqueo de negocio real: ya no queda saldo por reportar (todo cubierto
+    // por pagos aplicados o reportes en revisión).
+    canReport: !!customer,
+    reportBlock: reportableBalance > 0 ? null : describeBusinessBlock("portal_payment_fully_reported"),
     onReport: () => setDlgOpen(true),
   });
 

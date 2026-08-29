@@ -29,13 +29,18 @@ const quote = {
 
 const acceptedQuote = { ...quote, status: "accepted" } as unknown as Tables<"quotes">;
 
-function renderActions(onSetStatus: (status: string) => void, quoteOverride: Tables<"quotes"> = quote) {
+function renderActions(
+  onSetStatus: (status: string) => void,
+  quoteOverride: Tables<"quotes"> = quote,
+  extra: { alreadyConverted?: boolean; linkedBookingId?: string | null } = {},
+) {
   render(
     <BrowserRouter>
       <QuoteDetailActions
         quote={quoteOverride}
         isSale={false}
-        alreadyConverted={false}
+        alreadyConverted={extra.alreadyConverted ?? false}
+        linkedBookingId={extra.linkedBookingId}
         alreadyInvoiced={false}
         isConverting={false}
         canInvoice={false}
@@ -107,5 +112,23 @@ describe("QuoteDetailActions - Cancelar cotización (FE4-03 / N-R4-C)", () => {
     const dialog = screen.getByRole("alertdialog");
     fireEvent.click(within(dialog).getByRole("button", { name: "Cancelar cotización" }));
     expect(onSetStatus).toHaveBeenCalledWith("cancelled");
+  });
+});
+
+describe("QuoteDetailActions · bloqueos explicables (lote 3)", () => {
+  it("mantiene 'Aceptar' visible pero deshabilitada cuando la cotización venció", () => {
+    const expired = { ...quote, valid_until: "2020-01-01" } as unknown as Tables<"quotes">;
+    const onSetStatus = vi.fn();
+    renderActions(onSetStatus, expired);
+    const accept = screen.getByRole("button", { name: /aceptar/i });
+    expect(accept).toBeDisabled();
+    fireEvent.click(accept);
+    expect(onSetStatus).not.toHaveBeenCalled();
+  });
+
+  it("ofrece 'Ver reserva' cuando la cotización ya fue convertida", () => {
+    renderActions(vi.fn(), quote, { alreadyConverted: true, linkedBookingId: "b-1" });
+    expect(screen.getByRole("button", { name: /ya convertida a reserva/i })).toBeDisabled();
+    expect(screen.getByRole("button", { name: /ver reserva/i })).toBeInTheDocument();
   });
 });

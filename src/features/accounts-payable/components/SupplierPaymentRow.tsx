@@ -71,7 +71,7 @@ export function SupplierPaymentRow({ payment: p, billId, currency, billCancelled
       {a.isAdmin && (
         <SupplierPaymentDeleteButton
           canDelete={a.canDelete}
-          deleteBlocked={a.deleteBlocked}
+          deleteBlock={a.deleteBlock}
           isPending={a.deletePayment.isPending}
           onClick={() => a.setDeleteOpen(true)}
         />

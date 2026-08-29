@@ -68,6 +68,8 @@ export function useQuoteDetailData(id: string | undefined) {
   // convertida — se trata como "ya convertida" para bloquear el botón en vez
   // de habilitarlo por defecto (evita duplicados por fallas de red).
   const alreadyConverted = (linkedBookings?.length ?? 0) > 0 || isBookingsError;
+  // Ya está en memoria: no se agrega ninguna consulta nueva.
+  const linkedBookingId = linkedBookings?.[0]?.id ?? null;
 
   const { data: linkedInvoices, isError: isInvoicesError } = useQuery({
     queryKey: invoiceKeys.byFilter({ quote_id: id ?? "" }),
@@ -100,6 +102,6 @@ export function useQuoteDetailData(id: string | undefined) {
   return {
     quote, isLoading, isError, refetchQuote: refetch, customers, forklifts, equipmentModels,
     customerMatch, quoteType, isSale, lineItems, durationDays,
-    rentalMeta, isModelBasedQuote, unitCount, alreadyConverted, alreadyInvoiced,
+    rentalMeta, isModelBasedQuote, unitCount, alreadyConverted, linkedBookingId, alreadyInvoiced,
   };
 }
