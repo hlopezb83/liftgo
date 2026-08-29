@@ -49,9 +49,9 @@ type BlockCopy = Omit<BusinessBlock, "code">;
 
 export const BUSINESS_BLOCKS: Record<BusinessBlockCode, BlockCopy> = {
   forklift_active_rental: {
-    action: "No puedes vender ni dar de baja esta unidad",
-    reason: "La unidad sigue rentada: tiene una reserva activa.",
-    nextStep: "Primero registra la devolución y cierra la reserva.",
+    action: "No puedes cambiar el estado de esta unidad",
+    reason: "La unidad sigue rentada y aún no tiene registrada su devolución.",
+    nextStep: "Primero registra la devolución; después podrás cambiar el estado.",
     tone: "info",
   },
   maintenance_open_damage: {
@@ -173,4 +173,22 @@ export function resolveBusinessBlock(error: unknown): BusinessBlock | null {
     if (pattern.test(haystack)) return describeBusinessBlock(code);
   }
   return null;
+}
+
+/**
+ * Título contextual del bloqueo por renta activa, según el estado destino que
+ * el usuario eligió. La regla es la misma (`change_forklift_status` en el
+ * backend); solo cambia cómo se nombra la acción bloqueada.
+ */
+const FORKLIFT_TARGET_ACTIONS: Record<string, string> = {
+  sold: "No puedes vender esta unidad",
+  retired: "No puedes dar de baja esta unidad",
+  maintenance: "No puedes mandar esta unidad a mantenimiento",
+  available: "No puedes marcar esta unidad como disponible",
+};
+
+/** Bloqueo de renta activa con el título correcto para el estado solicitado. */
+export function describeForkliftRentalBlock(targetStatus: string): BusinessBlock {
+  const action = FORKLIFT_TARGET_ACTIONS[targetStatus];
+  return describeBusinessBlock("forklift_active_rental", action ? { action } : undefined);
 }
