@@ -48,7 +48,9 @@ export function BookingExtensionsCard({ extensions, recurringBilling }: Props) {
         )}
         {extensions.map((ext) => {
           const range = extensionBillableRange(ext.original_end_date, ext.new_end_date);
-          const isBilled = !!ext.invoice_id;
+          const invoiceId = ext.invoice_id ?? null;
+          const isBilled = !!invoiceId;
+
           // La acción permitida por permisos permanece visible: si ya está
           // facturada se muestra deshabilitada con el motivo, junto al enlace
           // directo a la factura existente.
@@ -71,15 +73,17 @@ export function BookingExtensionsCard({ extensions, recurringBilling }: Props) {
                       ? "Facturada"
                       : `${range.days} día(s) por facturar`}
                   </Badge>
-                  {ext.invoice_id && (
+                  {invoiceId && (
                     <Button
                       size="sm"
                       variant="ghost"
-                      onClick={() => navigate(ROUTES.invoices.detail(ext.invoice_id))}
+                      onClick={() => navigate(ROUTES.invoices.detail(invoiceId))}
                     >
                       Ver factura
                     </Button>
                   )}
+
+
                   {showBillAction && (
                     <BlockedActionButton
                       block={isBilled ? describeBusinessBlock("extension_already_billed") : null}
