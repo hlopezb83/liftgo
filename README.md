@@ -11,7 +11,7 @@ CFDI 4.0, mantenimiento y portal de clientes. Localizado en español mexicano
   Functions Deno, Storage, Auth y Vault.
 - **Estado remoto:** TanStack Query v5 (persister en `localStorage`).
 - **Testing:** Vitest para unit/integration; Playwright para E2E.
-- **PDF:** jsPDF (lazy-loaded) — ver `mem://tech/security/vulnerabilities`.
+- **PDF:** `@react-pdf/renderer` (lazy-loaded) — ver `src/lib/pdf/`.
 
 ## Cómo trabajar en este proyecto
 
