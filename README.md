@@ -11,7 +11,7 @@ CFDI 4.0, mantenimiento y portal de clientes. Localizado en español mexicano
   Functions Deno, Storage, Auth y Vault.
 - **Estado remoto:** TanStack Query v5 (persister en `localStorage`).
 - **Testing:** Vitest para unit/integration; Playwright para E2E.
-- **PDF:** jsPDF (lazy-loaded) — ver `mem://tech/security/vulnerabilities`.
+- **PDF:** `@react-pdf/renderer` (lazy-loaded) — ver `src/lib/pdf/`.
 
 ## Cómo trabajar en este proyecto
 
@@ -38,8 +38,20 @@ UI muestre la versión sin descargar el changelog completo.
 - `src/components/*` — componentes UI reutilizables.
 - `supabase/functions/*` — Edge Functions Deno.
 - `supabase/migrations/*` — schema + RLS.
-- `tests/e2e/*` — specs Playwright.
-- `.lovable/plan.md` — plan activo (si aplica).
+- `tests/e2e/*` — specs Playwright (ver `tests/e2e/README.md`).
+- `supabase/tests/*` — smokes SQL y suites de RLS (ver `supabase/tests/rls/README.md`).
+
+## Documentación
+
+Solo estos documentos se mantienen al día; todo lo demás (auditorías, planes,
+reportes puntuales) vive en el historial de cambios:
+
+- `architecture.md` — arquitectura, convenciones y reglas de negocio críticas.
+- `docs/architecture-guardrails.md` — checks de capas que gatean el merge.
+- `docs/paginacion-cursor.md` — patrón de listados y cuándo migrar a cursor.
+- `CHANGELOG.md` + `public/changelog/` — historial funcional versión por versión.
+
+
 
 ## Convenciones
 

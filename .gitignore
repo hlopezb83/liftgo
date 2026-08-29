@@ -35,3 +35,6 @@ test-results/
 
 # Lovable: borrador de plan (los planes aprobados en .lovable/plan/ sí se versionan)
 .lovable/plan.md
+
+# Lovable: planes archivados (el historial funcional vive en CHANGELOG.md)
+.lovable/plan/

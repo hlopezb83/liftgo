@@ -1,0 +1,11 @@
+{
+  "description": "Limpieza extensa de la documentación del repositorio: de 157 archivos Markdown se pasa a 12. Se eliminaron 130 planes archivados y 10 reportes de auditoría con fecha fija que ya no describían el estado actual del sistema, y se actualizaron los documentos que sí se mantienen vivos. No hay cambios en la aplicación.",
+  "changes": [
+    "Eliminados los 130 planes archivados de .lovable/ y .lovable/plan/ (su contenido efectivo vive en el historial de cambios). La carpeta .lovable/plan/ ahora se ignora en Git.",
+    "Eliminados 10 reportes puntuales de docs/: matriz de cobertura R2, auditorías de dependencias, QA móvil v6.13.2, roadmap E2E, baseline de Lighthouse y la carpeta docs/audits (knip, toasts, cierre R4, H-6).",
+    "Eliminados 5 README de carpeta dentro de src/ que solo repetían convenciones ya escritas en architecture.md; se conservan los de components/domain y lib/domain.",
+    "architecture.md: sección de pruebas actualizada al estado real (suites E2E vigentes, auth por API, suites de RLS en CI) y referencias muertas reemplazadas.",
+    "README.md: stack de PDF corregido (@react-pdf/renderer) y nueva sección Documentación con los únicos archivos que se mantienen al día.",
+    "Retirado scripts/dependency_audit.py, que solo generaba un reporte ya eliminado."
+  ]
+}

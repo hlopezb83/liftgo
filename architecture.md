@@ -134,7 +134,7 @@ Página (orquestador)
 ### 5.2 Patrones reutilizables de UI
 
 - `useListPage` consolida filtros + orden + paginación + búsqueda para todas las páginas de listado.
-- Bloques composables: `useListFilters`, `useDebouncedValue`, `useSort`, `usePagination`, `useDialogState`. `useFormState` está `@deprecated` (`TODO(deps)` → migrar a `react-hook-form`, ver `docs/dependency-audit.md`).
+- Bloques composables: `useListFilters`, `useDebouncedValue`, `useSort`, `usePagination`, `useDialogState`. `useFormState` está `@deprecated` (`TODO(deps)` → migrar a `react-hook-form`).
 - Componentes estándar: `ListPageLayout`, `DetailPageHeader`, `FormPageHeader`, `TotalsSummary`, `EmptyState`, `StatusBadge`, `MobileCardList`, `ReadOnlyLineItemsTable`, `TablePagination`.
 - **Tablas avanzadas**: `DataTableV2` (`src/components/dataTable/v2/`) envuelve TanStack Table con `useLiftgoTable`; defaults seguros (`autoResetPageIndex: false`, sorting controlado, paginación cliente de 25). Reemplaza al antiguo `SortableTableHead` (eliminado en v6.12.x).
 - Multimedia: `DragDropImageUploader` + `ImageGalleryLightbox`, indexados por `entityType`/`entityId`.
@@ -344,27 +344,31 @@ Documentar aquí cualquier regla que NO sea evidente del código y que, si se vi
 
 ### 15.3 E2E (Playwright)
 
-- Suite en `tests/e2e/` con `playwright.config.ts` en raíz.
+- Suite en `tests/e2e/` con `playwright.config.ts` en raíz. Documentación operativa: `tests/e2e/README.md`.
 - Levanta `bun run preview` en puerto 4173 vía `webServer` y corre en chromium.
-- Auth: project `setup` (`global.setup.ts`) loguea con `E2E_TEST_EMAIL` / `E2E_TEST_PASSWORD` y guarda `storageState` en `tests/e2e/.auth/admin.json`. Los demás tests lo reusan.
+- Auth: project `setup` (`global.setup.ts`) pide la sesión a Supabase por API (`signInWithPassword`), valida que la cuenta sea staff y escribe `tests/e2e/.auth/admin.json`. Si hay credenciales por rol (`E2E_<ROL>_EMAIL/PASSWORD`) también cachea `.auth/<rol>.json`.
 - Project `portal` corre sin `storageState` para validar rutas públicas (`/portal/login`).
-- Cobertura actual: `auth.spec.ts` (dashboard tras login), `smoke-nav.spec.ts` (10 rutas críticas sin error boundary), `booking.spec.ts` / `quote-to-invoice.spec.ts` / `portal.spec.ts` (lista + skips marcados con `TODO` para happy-paths con seed).
+- Cobertura actual: `full-flow`, `smoke-nav`, `roles-matrix`, `fiscal-actions`, filtros (`filters-invoices`, `filters-quotes`, `daterange-picker`), kanbans (`crm-kanban`, `maintenance-kanban`), portal (`portal`, `portal-statement`), y flujos puntuales (`invoice-payment`, `quote-pdf`, `quote-edit-prefill`, `return-inspection`, `customer-create`, `bank-reconciliation`).
 - Comandos: `bun run test:e2e` (CI) y `bun run test:e2e:ui` (debugging local).
-- CI: job `e2e` en `.github/workflows/ci.yml` con `continue-on-error: true` hasta que se añadan los 2 secrets (`E2E_TEST_EMAIL`, `E2E_TEST_PASSWORD`). Los tests usan login normal con email/password y respetan RLS — no se requiere `SUPABASE_SERVICE_ROLE_KEY`. Quitar el flag después.
-- Convención: cada test < 30s. Para tests que requieren datos, preferir RPC de seed antes que UI clicks. Evitar selectores por copy: usar `data-testid` o `role` + `name` con regex flexible.
+- Datos: cada test corre bajo un `e2e_scope` único (`e2e_seed_scenario` + `e2e_teardown`). Nunca hardcodear IDs.
+- Convención: cada test < 30s. Timeouts vía `TIMEOUTS` de `fixtures/helpers.ts`, nunca números mágicos. Evitar selectores por copy: usar `data-testid` o `role` + `name`.
 
-### 15.4 Mobile QA
+### 15.4 Pruebas de RLS contra Postgres local
+
+- Suites SQL en `supabase/tests/rls/` (ver `supabase/tests/rls/README.md`) más los smokes de `supabase/tests/`.
+- Corren en el workflow `rls-db-tests.yml` contra un Postgres levantado por la CLI de Supabase.
+
+### 15.5 Mobile QA
 
 - Pasada manual antes de cada minor: viewport 375x812 (iPhone 13) en preview.
 - Checklist mínimo: sidebar colapsado, `MobileCardList` en listas, sin overflow horizontal, formularios sin clipping, modales caben.
-- Resultados se documentan en `docs/mobile-qa-v<X.Y.Z>.md` con findings clasificados (bloqueante / no bloqueante / mejora).
-- No se gatea CI con esto — es proceso humano.
+- No se gatea CI con esto — es proceso humano y el resultado se resume en la entrada de changelog correspondiente.
 
-### 15.5 Lighthouse baseline
+### 15.6 Lighthouse
 
-- Script: `scripts/lighthouse-baseline.sh` corre Lighthouse desktop contra rutas públicas (`/`, `/portal/login`) y guarda JSON en `docs/lighthouse/`.
-- Baseline tabular en `docs/lighthouse/baseline.md`. Rutas autenticadas se miden manualmente con Chrome DevTools.
-- No gatea CI — sirve para comparar regresiones entre versiones.
+- Script: `scripts/lighthouse-baseline.sh` corre Lighthouse desktop contra rutas públicas (`/`, `/portal/login`) y guarda JSON en `docs/lighthouse/` (no versionado).
+- Workflow `lighthouse.yml` con `lighthouserc.json`. No gatea el merge — sirve para comparar regresiones entre versiones.
+
 
 ---
 
@@ -538,7 +542,7 @@ Solo cuando se cumple **al menos uno**:
 - Cuando un helper interno duplica una librería canónica → marcarlo `@deprecated` con `// TODO(deps): migrar a <lib>` y abrir entrada de changelog.
 - Migración **incremental**: features nuevas usan la dependencia; el legacy se migra cuando se toca por otra razón.
 - Migraciones grandes (jsPDF → react-pdf, cálculos → currency.js) se hacen como olas dedicadas y se registran como `major` o `minor` con resumen en `public/changelog/v<X.Y.Z>.json`.
-- **Estado actual de la auditoría**: ver `docs/dependency-audit.md` (regenerar con `python3 scripts/dependency_audit.py`).
+- **Estado actual del stack canónico**: §20.4 de este documento es la fuente de verdad; `package.json` refleja las versiones vigentes.
 
 ### 20.7 Anti-patrones
 
@@ -694,7 +698,8 @@ Items identificados por la auditoría arquitectónica que **no se ejecutaron** e
 - `src/hooks/useRolePermissions.ts` — `MODULES` y `ROUTE_TO_MODULE`.
 - `src/components/dataTable/v2/` — patrón canónico de tablas (DataTableV2 + useLiftgoTable).
 - `src/lib/pdf/theme/tokens.ts` — fuente de tokens visuales para PDFs.
-- `docs/dependency-audit.md` y `scripts/dependency_audit.py` — estado de migración hacia el stack canónico (§20).
+- `docs/architecture-guardrails.md` — checks de capas que gatean el merge.
+- `docs/paginacion-cursor.md` — patrón de listados y disparador de migración a cursor.
 - `supabase/functions/` — backend serverless.
 - `supabase/migrations/` — historial SQL.
-- `.lovable/plan.md` — última auditoría arquitectónica.
+- `CHANGELOG.md` y `public/changelog/` — historial de cambios (incluye el detalle de cada auditoría cerrada).
