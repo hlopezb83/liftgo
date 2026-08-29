@@ -3,7 +3,6 @@ import { EditIcon, StampIcon, ErrorIcon, PaymentIcon, DeleteIcon, RefreshIcon, D
 import { BlockedActionButton } from "@/components/feedback/BlockedActionButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import type { Tables } from "@/integrations/supabase/types";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { computeInvoiceFlags, type InvoiceActionFlags } from "@/lib/rules/invoices";
