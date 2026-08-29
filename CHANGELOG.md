@@ -1,3 +1,13 @@
+## [7.375.0] - 2026-08-29
+### Docs: limpieza extensa de archivos Markdown (157 → 12)
+- Eliminados 130 planes archivados (`.lovable/*.md` y `.lovable/plan/*.md`); `.lovable/plan/` se agregó a `.gitignore`. El contenido efectivo de cada plan ya está en este changelog y en el código.
+- Eliminados 10 reportes con fecha fija: `docs/coverage-matrix-r2.md`, `docs/dependency-audit.md`, `docs/dependency-update-audit-2026-08-14.md`, `docs/mobile-qa-v6.13.2.md`, `docs/e2e-roadmap.md`, `docs/lighthouse/baseline.md` y toda la carpeta `docs/audits/` (knip, toasts, R4-cierre, H-6).
+- Eliminados 5 README de carpeta en `src/` (calendar/lib, operations/hooks, bookings/hooks, quotes/hooks, system/hooks); se conservan `src/components/domain/README.md` y `src/lib/domain/README.md` por contener reglas de decisión reales.
+- `architecture.md`: §15 reescrita (suites E2E vigentes, auth por API en `global.setup.ts`, nueva §15.4 de pruebas RLS, Lighthouse sin baseline versionado); §5.2, §20.6 y §24 sin referencias muertas.
+- `README.md`: PDF corregido a `@react-pdf/renderer`, nueva sección "Documentación" con los archivos vivos y punteros a `tests/e2e/README.md` y `supabase/tests/rls/README.md`.
+- Retirado `scripts/dependency_audit.py` (solo generaba el reporte eliminado) y ajustado el mensaje final de `scripts/lighthouse-baseline.sh`.
+- Documentos vivos: `README.md`, `architecture.md`, `CHANGELOG.md`, `docs/architecture-guardrails.md`, `docs/paginacion-cursor.md`, `.github/pull_request_template.md`, 2 README de `src/` y 2 de pruebas.
+
 ## [7.374.4] - 2026-08-29
 ### Fix: sesión expirada ya no termina en "Página no encontrada"
 - `sessionExpiry.handleSessionExpired` redirigía a `/auth?redirect=…`, ruta inexistente en el router: sin sesión se veía el login inline, pero tras autenticarse la URL `/auth` caía en el catch-all 404 y el usuario perdía su pantalla. Ahora redirige a `/login?redirect=…`.
