@@ -1,0 +1,10 @@
+{
+  "description": "Segunda tanda de acciones bloqueadas por reglas del negocio que ahora se explican en pantalla en vez de desaparecer o fallar con un error técnico. No cambia ninguna regla, permiso ni cálculo.",
+  "changes": [
+    "Flotilla: el aviso de unidad rentada ahora nombra la acción exacta que elegiste (vender, dar de baja, mandar a mantenimiento o marcar disponible) con el mismo motivo y siguiente paso.",
+    "Facturas: el botón Editar permanece visible y deshabilitado en facturas timbradas, explicando que hay que cancelar el CFDI o emitir una nota de crédito.",
+    "Facturas: el botón Registrar pago con cancelación en proceso ante el SAT usa el mismo formato explicativo.",
+    "Pagos: si el monto capturado supera el saldo pendiente se explica al momento junto al campo y el botón queda deshabilitado; si otro pago consumió el saldo primero, se muestra la misma explicación en vez de un error técnico.",
+    "Reservas: la acción Facturar extensión ya no desaparece cuando la extensión ya se facturó; se muestra deshabilitada con el motivo y se conserva el acceso directo a la factura."
+  ]
+}
