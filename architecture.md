@@ -698,7 +698,8 @@ Items identificados por la auditoría arquitectónica que **no se ejecutaron** e
 - `src/hooks/useRolePermissions.ts` — `MODULES` y `ROUTE_TO_MODULE`.
 - `src/components/dataTable/v2/` — patrón canónico de tablas (DataTableV2 + useLiftgoTable).
 - `src/lib/pdf/theme/tokens.ts` — fuente de tokens visuales para PDFs.
-- `docs/dependency-audit.md` y `scripts/dependency_audit.py` — estado de migración hacia el stack canónico (§20).
+- `docs/architecture-guardrails.md` — checks de capas que gatean el merge.
+- `docs/paginacion-cursor.md` — patrón de listados y disparador de migración a cursor.
 - `supabase/functions/` — backend serverless.
 - `supabase/migrations/` — historial SQL.
-- `.lovable/plan.md` — última auditoría arquitectónica.
+- `CHANGELOG.md` y `public/changelog/` — historial de cambios (incluye el detalle de cada auditoría cerrada).
