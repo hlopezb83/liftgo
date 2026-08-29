@@ -73,17 +73,16 @@ export function BookingExtensionsCard({ extensions, recurringBilling }: Props) {
                       ? "Facturada"
                       : `${range.days} día(s) por facturar`}
                   </Badge>
-                  {ext.invoice_id
-                    ? ((invoiceId: string) => (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => navigate(ROUTES.invoices.detail(invoiceId))}
-                        >
-                          Ver factura
-                        </Button>
-                      ))(ext.invoice_id)
-                    : null}
+                  {invoiceId && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => navigate(ROUTES.invoices.detail(invoiceId))}
+                    >
+                      Ver factura
+                    </Button>
+                  )}
+
 
                   {showBillAction && (
                     <BlockedActionButton
