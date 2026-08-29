@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   BUSINESS_BLOCKS,
+  describeForkliftRentalBlock,
   businessBlockSummary,
   describeBusinessBlock,
   resolveBusinessBlock,
@@ -52,5 +53,20 @@ describe("businessBlocks", () => {
       const text = `${copy.action} ${copy.reason} ${copy.nextStep}`;
       expect(text).not.toMatch(/\b\d{5}\b|constraint|_id_|violates/i);
     }
+  });
+
+  it("el bloqueo de renta activa nombra la acción según el estado destino", () => {
+    expect(describeForkliftRentalBlock("sold").action).toContain("vender");
+    expect(describeForkliftRentalBlock("retired").action).toContain("dar de baja");
+    expect(describeForkliftRentalBlock("maintenance").action).toContain("mantenimiento");
+    expect(describeForkliftRentalBlock("available").action).toContain("disponible");
+    // Motivo y siguiente paso son los mismos: una sola regla canónica.
+    expect(describeForkliftRentalBlock("sold").reason).toBe(
+      BUSINESS_BLOCKS.forklift_active_rental.reason,
+    );
+    // Estado desconocido → copia canónica sin override.
+    expect(describeForkliftRentalBlock("otro").action).toBe(
+      BUSINESS_BLOCKS.forklift_active_rental.action,
+    );
   });
 });
