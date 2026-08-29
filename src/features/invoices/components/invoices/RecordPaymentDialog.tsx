@@ -1,3 +1,4 @@
+import { BlockedActionNotice } from "@/components/feedback/BlockedActionNotice";
 import { DatePickerField } from "@/components/forms/DatePickerField";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
@@ -36,6 +37,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
     exchangeRate, setExchangeRate, reference, setReference,
     notes, setNotes, stampRep, setStampRep,
     createPayment, stampComplement, handleSubmit, isDirty,
+    amountBlock, exceedsBalance,
   } = useRecordPaymentForm({ open, balance, ppdStamped, invoiceId, invoiceCurrency, invoiceExchangeRate, invoiceIssuedAt, onOpenChange });
 
 
@@ -68,6 +70,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
               />
             </div>
             <p className="text-xs text-muted-foreground mt-1">Saldo pendiente: {formatCurrency(balance)}</p>
+            {amountBlock && <BlockedActionNotice block={amountBlock} className="mt-2" />}
           </div>
           <DatePickerField
             label="Fecha"
@@ -154,7 +157,7 @@ export function RecordPaymentDialog({ open, onOpenChange, invoiceId, balance, in
           <Button
             type="submit"
             data-testid="record-payment-submit"
-            disabled={createPayment.isPending || stampComplement.isPending}
+            disabled={createPayment.isPending || stampComplement.isPending || exceedsBalance}
           >
             {createPayment.isPending ? "Guardando…" : (stampComplement.isPending ? "Timbrando REP…" : "Registrar pago")}
           </Button>
