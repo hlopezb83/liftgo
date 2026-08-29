@@ -17,15 +17,19 @@ export function useSupplierPaymentActions(p: SupplierPayment, billId: string, bi
   const [rejectOpen, setRejectOpen] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
+  /** Bloqueo devuelto por el guard de la BD (estado obsoleto en pantalla). */
+  const [serverBlock, setServerBlock] = useState<BusinessBlock | null>(null);
 
   const reject = useRejectSupplierRep();
   const reset = useResetSupplierRep();
-  const deletePayment = useDeleteSupplierPayment();
+  const deletePayment = useDeleteSupplierPayment({
+    onBusinessBlock: (block) => { setServerBlock(block); setDeleteOpen(false); },
+  });
   const { data: reconciliation } = useReconciliationStatus({ supplierPaymentId: p.id });
   const repStatus = (p.rep_status as SupplierRepStatus | null) ?? "not_required";
 
   // Mismas condiciones de siempre; sólo cambia cómo se explican.
-  const deleteBlock =
+  const localBlock =
     repStatus === "received" ? describeBusinessBlock("supplier_payment_rep_received") :
     billCancelled
       ? describeBusinessBlock("supplier_bill_cancelled", {
@@ -34,8 +38,10 @@ export function useSupplierPaymentActions(p: SupplierPayment, billId: string, bi
           nextStep: "Registra una factura nueva si necesitas rehacer el pago.",
         })
       : null;
+  const deleteBlock = localBlock ?? serverBlock;
   const deleteBlocked = deleteBlock ? businessBlockSummary(deleteBlock) : null;
   const canDelete = isAdmin && !deleteBlock;
+
 
   const reconciledMsg = reconciliation
     ? ` Este pago está conciliado con ${reconciliation.bank_account_name}${reconciliation.bank_last4 ? ` ····${reconciliation.bank_last4}` : ""} el ${formatDateDisplay(reconciliation.matched_at)}; al eliminarlo, esa línea bancaria volverá a quedar sin conciliar.`
