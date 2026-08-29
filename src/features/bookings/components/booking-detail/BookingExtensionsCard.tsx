@@ -48,7 +48,9 @@ export function BookingExtensionsCard({ extensions, recurringBilling }: Props) {
         )}
         {extensions.map((ext) => {
           const range = extensionBillableRange(ext.original_end_date, ext.new_end_date);
-          const isBilled = !!ext.invoice_id;
+          const invoiceId = ext.invoice_id ?? null;
+          const isBilled = !!invoiceId;
+
           // La acción permitida por permisos permanece visible: si ya está
           // facturada se muestra deshabilitada con el motivo, junto al enlace
           // directo a la factura existente.
