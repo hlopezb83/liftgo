@@ -4,6 +4,7 @@ import {
   roundMoney,
   stampVariance,
   sumMoney,
+  sumLineTaxCents,
   sumMoneyCents,
   toCents,
 } from "./money.ts";
