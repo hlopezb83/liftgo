@@ -382,7 +382,7 @@ export async function handleStampCfdi(
         legal_name: legalName,
         tax_id: receptorRfc,
         tax_system: taxSystem,
-        address: { zip: inv.receptor_domicilio_fiscal_cp || "06600" },
+        address: { zip: zipCode },
       },
       items,
       payment_form: paymentForm,
