@@ -84,3 +84,21 @@ export function computeStampVariance(
     withinTolerance: Math.abs(variance) <= STAMP_VARIANCE_WARNING,
   };
 }
+
+/**
+ * A1-B2: IVA calculado LÍNEA POR LÍNEA y sumado, igual que
+ * `src/lib/domain/invoiceTotals.ts:computeTotals` y que el criterio de
+ * Facturapi al timbrar. Redondear una sola vez sobre el subtotal agregado
+ * produce varianzas de centavos que hacen fallar el timbrado (BL-A5).
+ */
+export function sumLineTaxCents(
+  amounts: ReadonlyArray<number | null | undefined>,
+  taxRatePct: number,
+): number {
+  if (!Number.isFinite(taxRatePct) || taxRatePct <= 0) return 0;
+  let acc = 0;
+  for (const amount of amounts) {
+    acc += Math.round(toCents(amount) * (taxRatePct / 100));
+  }
+  return acc;
+}
