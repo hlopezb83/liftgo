@@ -152,7 +152,7 @@ export function useInvoice(id: string | undefined) {
 }
 
 
-export function useCreateInvoice() {
+export function useCreateInvoice(opts?: { onBusinessBlock?: (block: BusinessBlock) => void }) {
   return useEntityMutation({
     mutationFn: async (invoice: Omit<TablesInsert<"invoices">, "invoice_number">) => {
       const { data: numData, error: numError } = await supabase.rpc("next_draft_invoice_number");
