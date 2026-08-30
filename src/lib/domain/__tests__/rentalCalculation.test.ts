@@ -302,3 +302,30 @@ describe("calculateRentalCost · cap BL-15 en extensiones", () => {
     expect(totalOf(29, false)).toBe(monthly);
   });
 });
+
+describe("calculateRentalCost — invariante timbrable (A1-B1)", () => {
+  const round2 = (n: number) => Math.round(n * 100) / 100;
+
+  const cases: Array<[string, Parameters<typeof calculateRentalCost>]> = [
+    ["extensión 29 días", [500, 2_000, 10_000, d("2026-01-01"), d("2026-01-29"), true]],
+    ["extensión 31 días", [450, 0, 9_000, d("2026-03-01"), d("2026-03-31"), true]],
+    ["extensión 30 días con semanal", [333, 1_777, 7_777, d("2026-05-01"), d("2026-05-30"), true]],
+    ["renta normal 45 días", [500, 2_000, 10_000, d("2026-01-01"), d("2026-02-14"), false]],
+  ];
+
+  it.each(cases)("%s: total === unit_price × quantity en toda línea", (_name, args) => {
+    const items = calculateRentalCost(...args);
+    expect(items.length).toBeGreaterThan(0);
+    for (const item of items) {
+      expect(round2(item.total)).toBe(round2(item.unit_price * item.quantity));
+    }
+  });
+
+  it("la línea de prorrateo de extensión sale con quantity 1", () => {
+    const items = calculateRentalCost(500, 2_000, 10_000, d("2026-01-01"), d("2026-01-29"), true);
+    const prorate = items.find((i) => i.description.startsWith("Renta mensual (prorrateo"));
+    expect(prorate).toBeDefined();
+    expect(prorate?.quantity).toBe(1);
+    expect(prorate?.unit_price).toBe(prorate?.total);
+  });
+});
