@@ -1,5 +1,5 @@
 import currency from "currency.js";
-import { differenceInDays, differenceInCalendarMonths, addMonths, addDays, isLastDayOfMonth } from "date-fns";
+import { differenceInDays, differenceInCalendarMonths, addMonths, addDays } from "date-fns";
 import type { Forklift } from "@/types/rental";
 import { money, type LineItem } from "./invoiceTotals";
 
