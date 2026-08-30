@@ -26,5 +26,10 @@ export interface CustomerSummaryInvoice {
 export interface CustomerSummary {
   bookings: CustomerSummaryBooking[];
   invoices: CustomerSummaryInvoice[];
-  totals: { total_invoiced: number; total_paid: number };
+  /**
+   * `outstanding_revenue` es la definición canónica de saldo por cobrar del
+   * ERP (facturas por cobrar en MXN, sin canceladas), la misma que aplica el
+   * backend al archivar un cliente.
+   */
+  totals: { total_invoiced: number; total_paid: number; outstanding_revenue?: number };
 }
