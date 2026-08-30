@@ -109,3 +109,22 @@ describe("buildFromQuote — taxRate", () => {
     expect(form.lineItems[0].unit_price).toBe(1000);
   });
 });
+
+describe("buildFromQuote — tipo de cambio (A5-02)", () => {
+  it("hereda el TC de la cotización USD", () => {
+    const form = buildFromQuote({ q: makeQuote({ currency: "USD", tipo_cambio: 18.4 }), assignments: undefined, forklifts: undefined, customers: undefined });
+    expect(form.cfdi.moneda).toBe("USD");
+    expect(form.cfdi.tipoCambio).toBe(18.4);
+  });
+
+  it("ignora TC inválido y deja el default", () => {
+    const form = buildFromQuote({ q: makeQuote({ currency: "USD", tipo_cambio: 0 }), assignments: undefined, forklifts: undefined, customers: undefined });
+    expect(form.cfdi.tipoCambio).toBe(1);
+  });
+
+  it("MXN no toca el TC", () => {
+    const form = buildFromQuote({ q: makeQuote({ currency: "MXN", tipo_cambio: 18.4 }), assignments: undefined, forklifts: undefined, customers: undefined });
+    expect(form.cfdi.moneda).toBe("MXN");
+    expect(form.cfdi.tipoCambio).toBe(1);
+  });
+});
