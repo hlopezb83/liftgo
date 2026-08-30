@@ -1,4 +1,5 @@
 import { render, screen } from "@testing-library/react";
+import { MemoryRouter } from "react-router";
 import { describe, expect, it, vi } from "vitest";
 import { describeBusinessBlock, resolveBusinessBlock } from "@/lib/rules/businessBlocks";
 import { CustomerDeleteDialog } from "../CustomerDeleteDialog";
@@ -39,7 +40,11 @@ describe("CustomerDeleteDialog", () => {
 
   it("muestra el bloque explicable cuando la BD rechaza por carrera", () => {
     const block = describeBusinessBlock("customer_outstanding_balance");
-    render(<CustomerDeleteDialog {...baseProps} outstanding={0} serverBlock={block} />);
+    render(
+      <MemoryRouter>
+        <CustomerDeleteDialog {...baseProps} outstanding={0} serverBlock={block} />
+      </MemoryRouter>,
+    );
     expect(screen.getByTestId("blocked-action-notice")).toBeInTheDocument();
     expect(screen.queryByRole("button", { name: "Archivar" })).not.toBeInTheDocument();
   });
