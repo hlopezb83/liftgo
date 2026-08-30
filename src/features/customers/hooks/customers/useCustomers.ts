@@ -3,9 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
-import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { customerKeys } from "../../lib/queryKeys";
 
 const sel = (s: string): string => s;
