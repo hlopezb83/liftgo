@@ -430,7 +430,15 @@ async function executePlan(supabase: any, items: PlanItem[]) {
           customerRate >= 0 && customerRate <= 100
         ? customerRate
         : 16;
-      const taxAmountCents = Math.round(subtotalCents * (taxRate / 100));
+      // A1-B2: IVA línea por línea (mismo criterio que computeTotals y que
+      // Facturapi al timbrar). Redondear una sola vez sobre el subtotal
+      // agregado generaba varianzas de centavos que dejaban la factura
+      // recurrente en cfdi_status='error' (BL-A5).
+      const taxAmountCents = sumLineTaxCents(
+        group.map((i) => i.billedAmount),
+        taxRate,
+      );
+
       const subtotal = fromCents(subtotalCents);
       const taxAmount = fromCents(taxAmountCents);
       const total = fromCents(subtotalCents + taxAmountCents);
