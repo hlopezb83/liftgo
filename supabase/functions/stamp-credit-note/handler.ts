@@ -35,9 +35,15 @@ type LineItem = {
   quantity?: number;
   unit_price?: number;
   product_key?: string;
+  clave_prod_serv?: string;
+  // A1-B3: la NC debe respetar el régimen fiscal de la línea de la factura
+  // origen (ObjetoImp y tasa por línea), igual que stamp-cfdi.
+  objeto_imp?: string;
+  tax_rate?: number;
   discount?: number;
   discount_type?: "%" | "$";
 };
+
 
 export async function handleStampCreditNote(
   req: Request,
@@ -239,24 +245,33 @@ export async function handleStampCreditNote(
     // si viene null usamos 16% (default corporativo). Antes: > 0 ? /100 : 0 → NCs
     // sobre facturas exentas timbraban al 0% pero la factura al 16% (inconsistente).
     const ncTaxRatePct = ncRow.tax_rate == null ? 16 : Number(ncRow.tax_rate);
-    const ncTaxRateFraction = ncTaxRatePct / 100;
     const items = Array.isArray(ncRow.line_items)
       ? (ncRow.line_items as LineItem[]).map((li) => {
         const quantity = li.quantity || 1;
         const unitPrice = li.unit_price || 0;
+        // A1-B3 (espejo de C-1/M19 en stamp-cfdi): ObjetoImp 01 = no objeto de
+        // impuesto → línea sin traslados; y la tasa se toma de la línea con
+        // fallback a la tasa de la NC. Antes se aplicaba la tasa global a TODA
+        // línea: una NC sobre factura con líneas exentas o con tasa distinta
+        // acreditaba IVA de más frente al SAT.
+        const objetoImp = li.objeto_imp ?? "02";
+        const lineRatePct =
+          typeof li.tax_rate === "number" && Number.isFinite(li.tax_rate)
+            ? li.tax_rate
+            : ncTaxRatePct;
         const item: Record<string, unknown> = {
           product: {
             description: li.description || "Nota de crédito",
-            product_key: li.product_key || "84111506",
+            product_key: li.clave_prod_serv || li.product_key || "84111506",
             price: unitPrice,
             tax_included: false,
-            taxes: [{
-              type: "IVA",
-              rate: ncTaxRateFraction,
-            }],
+            taxes: objetoImp === "01"
+              ? []
+              : [{ type: "IVA", rate: lineRatePct / 100 }],
           },
           quantity,
         };
+
         // M24 (espejo de BL-02 en stamp-cfdi): propagar el descuento de la
         // línea de la factura origen. Sin esto el CFDI de egreso acredita el
         // importe BRUTO — más de lo facturado neto.

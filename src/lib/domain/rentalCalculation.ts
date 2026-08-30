@@ -1,5 +1,5 @@
 import currency from "currency.js";
-import { differenceInDays, differenceInCalendarMonths, addMonths, addDays, isLastDayOfMonth } from "date-fns";
+import { differenceInDays, differenceInCalendarMonths, addMonths, addDays } from "date-fns";
 import type { Forklift } from "@/types/rental";
 import { money, type LineItem } from "./invoiceTotals";
 
@@ -63,20 +63,16 @@ function monthlyItems(monthlyRate: number, months: number): LineItem[] {
   ];
 }
 
-function isClampedShortMonthEnd(
-  months: number,
-  remaining: number,
-  remainderStart: Date,
-  startDate: Date,
-  endDate: Date,
-): boolean {
-  return (
-    months > 0 &&
-    remaining > 0 &&
-    remainderStart.getDate() !== startDate.getDate() &&
-    isLastDayOfMonth(endDate)
-  );
+/**
+ * F2 / A5-01: detecta que `addMonths` clampeó el ancla del remanente porque el
+ * día de inicio no existe en el mes destino (31-ene → 28-feb). El día clampeado
+ * pertenece al mes ya facturado, así que el remanente debe arrancar al día
+ * siguiente.
+ */
+function isClampedAnchor(months: number, remainderStart: Date, startDate: Date): boolean {
+  return months > 0 && remainderStart.getDate() !== startDate.getDate();
 }
+
 
 export function calculateRentalCost(
   dailyRate: number | null,
@@ -101,21 +97,18 @@ export function calculateRentalCost(
   const months = calcMonths(m, startDate, effectiveEnd);
   items.push(...monthlyItems(m, months));
 
-  const remainderStart = months > 0 ? addMonths(startDate, months) : startDate;
+  // F2 + A5-01: fin de mes corto. Si la renta arranca en un día que no existe
+  // en el mes destino (p. ej. 31-ene → feb), `addMonths` clampea el ancla al
+  // último día del mes (28-feb) y ese día YA quedó dentro del mes facturado.
+  // El remanente debe arrancar el día siguiente; si no, el 28-feb se cobra dos
+  // veces (31-ene → 01-mar facturaba 1 mes + 2 días en vez de 1 mes + 1 día).
+  let remainderStart = months > 0 ? addMonths(startDate, months) : startDate;
+  if (isClampedAnchor(months, remainderStart, startDate)) {
+    remainderStart = addDays(remainderStart, 1);
+  }
 
   let remaining = Math.max(0, differenceInDays(effectiveEnd, remainderStart));
 
-  // F2 (Sprint M1): fin de mes corto. Si la renta arranca en un día que no
-  // existe en el mes destino (p. ej. 31-ene → feb), `addMonths` clampea el
-  // ancla del remanente al último día del mes y deja un remanente espurio de
-  // 1 día → se facturaba "1 mes + 1 día" una renta que es exactamente un mes
-  // (31-ene → 28-feb). Cuando `endDate` ES el último día de su mes y el ancla
-  // clampeó (su día difiere del día de inicio), el tramo son exactamente
-  // `months` meses calendario: el remanente se trata como 0 días. Con
-  // remaining = 0 el cap BL-15 queda intacto (no hay remanente que capear).
-  if (isClampedShortMonthEnd(months, remaining, remainderStart, startDate, endDate)) {
-    remaining = 0;
-  }
 
   // Buffer separado para poder aplicar el cap BL-15 sin tocar los meses ya
   // facturados a tarifa mensual (esos representan calendario cerrado).
@@ -150,15 +143,20 @@ export function calculateRentalCost(
       if (isExtension) {
         // Fix 8.4: nunca cobrar el mes completo en una extensión — prorratear
         // en su lugar (mensual × días/30), capeando el costo escalonado.
+        // A1-B1: la línea se emite con `quantity: 1` para que se cumpla la
+        // invariante timbrable `total === unit_price × quantity`. Los días van
+        // en la descripción; con `quantity = días` la división dejaba centavos
+        // sueltos y Facturapi timbraba un importe distinto al de la factura.
         const prorated = money(m).multiply(remainderTotalDays).divide(DAYS_PER_MONTH_FALLBACK).value;
         const cappedTotal = Math.min(remainderCost, prorated);
         items.push({
-          description: "Renta mensual (prorrateo)",
-          quantity: remainderTotalDays,
-          unit_price: money(cappedTotal).divide(remainderTotalDays).value,
+          description: `Renta mensual (prorrateo ${remainderTotalDays} días)`,
+          quantity: 1,
+          unit_price: cappedTotal,
           total: cappedTotal,
           rate_type: "monthly",
         });
+
       } else {
         items.push({
           description: "Renta mensual",

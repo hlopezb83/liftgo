@@ -162,13 +162,37 @@ describe("calculateRentalCost — fin de mes corto (F2, Sprint M1)", () => {
     expect(items[0]).toMatchObject({ description: "Renta mensual", quantity: 1 });
   });
 
-  it("31 ene → 1 mar NO se altera: sigue siendo 1 mes + 2 días", () => {
-    // endDate no es fin de mes: el remanente real de 2 días debe conservarse.
+  it("A5-01: 31 ene → 1 mar es 1 mes + 1 día (el 28-feb ya va dentro del mes)", () => {
     const items = calculateRentalCost(500, 0, 10_000, d("2026-01-31"), d("2026-03-01"));
     expect(items[0]).toMatchObject({ description: "Renta mensual", quantity: 1 });
     const daily = items.find((i) => i.description === "Renta diaria");
+    expect(daily).toMatchObject({ quantity: 1, total: 500 });
+  });
+
+  it("A5-01: 31 ene → 2 mar es 1 mes + 2 días", () => {
+    const items = calculateRentalCost(500, 0, 10_000, d("2026-01-31"), d("2026-03-02"));
+    const daily = items.find((i) => i.description === "Renta diaria");
     expect(daily).toMatchObject({ quantity: 2, total: 1_000 });
   });
+
+  it("A5-01: 30 ene → 1 mar es 1 mes + 1 día (clamp a 28-feb)", () => {
+    const items = calculateRentalCost(500, 0, 10_000, d("2026-01-30"), d("2026-03-01"));
+    const daily = items.find((i) => i.description === "Renta diaria");
+    expect(daily).toMatchObject({ quantity: 1, total: 500 });
+  });
+
+  it("A5-01: 31 mar → 1 may es 1 mes + 1 día", () => {
+    const items = calculateRentalCost(500, 0, 10_000, d("2026-03-31"), d("2026-05-01"));
+    const daily = items.find((i) => i.description === "Renta diaria");
+    expect(daily).toMatchObject({ quantity: 1, total: 500 });
+  });
+
+  it("A5-01: mes sin clamp (15 ene → 16 feb) conserva su remanente real", () => {
+    const items = calculateRentalCost(500, 0, 10_000, d("2026-01-15"), d("2026-02-16"));
+    const daily = items.find((i) => i.description === "Renta diaria");
+    expect(daily).toMatchObject({ quantity: 2, total: 1_000 });
+  });
+
 });
 
 describe("generateLineItems — timezone stability (BL-14)", () => {
@@ -276,5 +300,32 @@ describe("calculateRentalCost · cap BL-15 en extensiones", () => {
 
   it("renta inicial de 29 días sí conserva el cap de mes completo", () => {
     expect(totalOf(29, false)).toBe(monthly);
+  });
+});
+
+describe("calculateRentalCost — invariante timbrable (A1-B1)", () => {
+  const round2 = (n: number) => Math.round(n * 100) / 100;
+
+  const cases: Array<[string, Parameters<typeof calculateRentalCost>]> = [
+    ["extensión 29 días", [500, 3_000, 10_000, d("2026-01-01"), d("2026-01-29"), true]],
+    ["extensión 31 días", [450, 0, 9_000, d("2026-03-01"), d("2026-03-31"), true]],
+    ["extensión 30 días con semanal", [333, 1_777, 7_777, d("2026-05-01"), d("2026-05-30"), true]],
+    ["renta normal 45 días", [500, 2_000, 10_000, d("2026-01-01"), d("2026-02-14"), false]],
+  ];
+
+  it.each(cases)("%s: total === unit_price × quantity en toda línea", (_name, args) => {
+    const items = calculateRentalCost(...args);
+    expect(items.length).toBeGreaterThan(0);
+    for (const item of items) {
+      expect(round2(item.total)).toBe(round2(item.unit_price * item.quantity));
+    }
+  });
+
+  it("la línea de prorrateo de extensión sale con quantity 1", () => {
+    const items = calculateRentalCost(500, 3_000, 10_000, d("2026-01-01"), d("2026-01-29"), true);
+    const prorate = items.find((i) => i.description.startsWith("Renta mensual (prorrateo"));
+    expect(prorate).toBeDefined();
+    expect(prorate?.quantity).toBe(1);
+    expect(prorate?.unit_price).toBe(prorate?.total);
   });
 });

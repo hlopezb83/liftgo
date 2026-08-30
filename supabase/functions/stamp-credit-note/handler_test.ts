@@ -400,3 +400,72 @@ Deno.test("handler: propaga discount al item de Facturapi cuando la línea trae 
     mock.restore();
   }
 });
+
+// A1-B3: la NC debe respetar ObjetoImp y la tasa por línea de la factura
+// origen. Antes aplicaba la tasa global a TODA línea → acreditaba IVA de más.
+Deno.test("handler: respeta objeto_imp 01 y tax_rate por línea en el payload", async () => {
+  let capturedBody: Record<string, unknown> | null = null;
+  const mock = installFacturapiMock({
+    "/invoices": (req) => {
+      if (req.method === "POST") {
+        return req.json().then((b) => {
+          capturedBody = b as Record<string, unknown>;
+          return facturapiOk({ id: "fapi_nc_tax", uuid: "NC-UUID-TAX" });
+        });
+      }
+      return new Response("not found", { status: 404 });
+    },
+    "/invoices/fapi_nc_tax/xml": () => xmlResponse("<xml/>"),
+    "/invoices/fapi_nc_tax/pdf": () =>
+      pdfResponse(new Uint8Array([0x25, 0x50, 0x44, 0x46])),
+  });
+  try {
+    const ncData = {
+      id: NC_ID,
+      invoice_id: INVOICE_ID,
+      tax_rate: 16,
+      currency: "MXN",
+      line_items: [
+        { description: "No objeto", quantity: 1, unit_price: 100, objeto_imp: "01" },
+        { description: "Tasa 8", quantity: 1, unit_price: 100, tax_rate: 8 },
+        { description: "Default", quantity: 1, unit_price: 100 },
+      ],
+    };
+    const { deps } = makeDeps({
+      env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          credit_notes: { data: ncData, error: null },
+          invoices: { data: STAMPED_INVOICE, error: null },
+          company_settings: { data: { facturapi_mode: "test" }, error: null },
+          billing_secrets: { data: null, error: null },
+        },
+        selectsSeq: {
+          credit_notes: [
+            { data: ncData, error: null },
+            { data: [], error: null },
+          ],
+        },
+        updatesSeq: {
+          credit_notes: [{ data: { id: NC_ID }, error: null }],
+        },
+        updates: { credit_notes: { data: null, error: null } },
+      },
+    });
+    const res = await handleStampCreditNote(
+      makeRequest({ credit_note_id: NC_ID }),
+      deps,
+    );
+    await res.json();
+    assertEquals(res.status, 200);
+    const items = (capturedBody as {
+      items?: Array<{ product?: { taxes?: Array<{ rate?: number }> } }>;
+    } | null)?.items;
+    assertEquals(items?.[0]?.product?.taxes?.length, 0);
+    assertEquals(items?.[1]?.product?.taxes?.[0]?.rate, 0.08);
+    assertEquals(items?.[2]?.product?.taxes?.[0]?.rate, 0.16);
+  } finally {
+    mock.restore();
+  }
+});

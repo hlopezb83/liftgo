@@ -1,3 +1,18 @@
+## [7.385.0] - 2026-08-30
+### Fix (auditoría QA — A6-1 archivado de OT, A4-04 datos fiscales genéricos)
+- **A6-1:** `trg_sync_forklift_on_maintenance` ahora es `AFTER INSERT OR UPDATE OF work_status, deleted_at`. Antes sólo escuchaba `work_status`, así que archivar una OT `in_progress` (vía `soft_delete_maintenance_log`) dejaba el montacargas atascado en `maintenance` para siempre. `sync_forklift_status_on_maintenance()` trata la transición `deleted_at NULL -> NOT NULL` como cancelación y conserva todos los frenos: rentas `confirmed` vigentes, daños `reported`/`in_repair` y otras OT `pending`/`in_progress` mantienen la unidad en mantenimiento con su nota en `status_logs`.
+- **A4-04:** `supabase/functions/stamp-cfdi/handler.ts` deja de usar los defaults genéricos `616` (régimen) y `06600` (CP) para receptores con RFC real. Si faltan `receptor_regimen_fiscal` o `receptor_domicilio_fiscal_cp` responde 400, libera el claim y no llama al PAC. Público en General (`XAXX010101000`) conserva su comportamiento actual.
+- Sin cambios en RLS, permisos, costos, inventario ni cálculos fiscales.
+- Pruebas: `supabase/tests/r_fix38_maintenance_archive_releases_forklift_smoke.sql` y `supabase/functions/stamp-cfdi/handler_test.ts` (16 pruebas).
+
+## [7.384.0] - 2026-08-30
+### Fix (auditoría QA — críticos A5-01, A1-B1, A1-B3)
+- **A5-01 (sobrecobro de 1 día):** `src/lib/domain/rentalCalculation.ts` avanza un día el ancla del remanente cuando `addMonths` clampeó por mes corto (31-ene → 28-feb). Antes sólo neutralizaba el remanente si `endDate` era fin de mes, así que 31-ene → 01-mar facturaba 1 mes + 2 días cobrando dos veces el 28-feb. Reemplaza `isClampedShortMonthEnd` por `isClampedAnchor`.
+- **A1-B1 (línea de prorrateo intimbrable):** la línea `Renta mensual (prorrateo N días)` de extensiones sale con `quantity: 1` y `unit_price = total`, cumpliendo la invariante `total === unit_price × quantity` que exige el timbrado. Antes la división entre días dejaba centavos sueltos.
+- **A1-B3 (IVA de notas de crédito):** `supabase/functions/stamp-credit-note/handler.ts` respeta `objeto_imp === "01"` (línea sin traslados) y `tax_rate` por línea con fallback a la tasa de la NC, espejo de `stamp-cfdi`. También usa `clave_prod_serv` de la línea antes del genérico `84111506`.
+- Sin cambios en SQL, RLS, permisos ni máquinas de estado.
+- Pruebas: `src/lib/domain/__tests__/rentalCalculation.test.ts` (4 casos de mes corto + invariante timbrable) y `supabase/functions/stamp-credit-note/handler_test.ts` (objeto_imp/tasa por línea).
+
 ## [7.383.1] - 2026-08-30
 ### Fix (QA): `StatusChangeCard` bloqueaba unidades ya devueltas
 - La prevención en UI usaba sólo `currentStatus === 'rented'`, más estricta que el backend: `public.change_forklift_status` sólo rechaza cuando además `public.has_open_rental()` (entrega completada sin devolución). Una unidad devuelta que quedó en estado `rented` no podía volver a disponible/mantenimiento/venta/baja.
