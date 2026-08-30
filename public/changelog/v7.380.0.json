@@ -1,0 +1,11 @@
+{
+  "description": "Protección en base de datos al archivar clientes (P1)",
+  "changes": [
+    "Archivar un cliente ahora obedece las mismas reglas duras aunque se intente por fuera de la pantalla normal.",
+    "Sólo administrador o personal administrativo pueden archivar un cliente; ventas ya no puede hacerlo con una edición directa.",
+    "No se puede archivar un cliente con reservas activas (confirmadas o en progreso).",
+    "El saldo pendiente sigue siendo una advertencia de la pantalla y no un bloqueo de la base de datos.",
+    "Desarchivar un cliente y cualquier otra edición normal siguen funcionando igual.",
+    "Procesos internos y sembrado de pruebas conservan su comportamiento."
+  ]
+}
