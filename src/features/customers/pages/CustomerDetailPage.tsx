@@ -140,6 +140,7 @@ export default function CustomerDetailPage() {
         invoicesCount={s.invoices.length}
         outstanding={s.outstanding}
         activeBookingsCount={s.activeBookingsCount}
+        serverBlock={s.archiveBlock}
         isPending={s.deleteCustomer.isPending}
         onDelete={() => s.handleDelete(s.activeBookingsCount)}
       />

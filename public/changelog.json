@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.383.0",
+    "date": "2026-08-30",
+    "type": "minor",
+    "title": "Un cliente con saldo pendiente ya no se puede archivar",
+    "description": "Ahora es una regla dura del sistema: mientras el cliente deba dinero, no se puede archivar, ni desde la pantalla ni por cambios directos. Antes sólo era una advertencia de la pantalla.",
+    "changes": [
+      "El saldo pendiente del cliente usa el mismo cálculo oficial que el resumen financiero (facturas por cobrar, sin canceladas).",
+      "Archivar un cliente con saldo pendiente queda rechazado tanto por la acción oficial como por cualquier cambio directo.",
+      "Se conservan las reglas actuales: sólo administrador o personal administrativo archivan, y las reservas activas siguen bloqueando.",
+      "No se modifica, cancela ni elimina ninguna factura, pago o cobranza: sólo se rechaza el archivado.",
+      "La pantalla de archivado usa el mensaje explicativo estándar y también explica el rechazo si el saldo cambia mientras se confirma.",
+      "Desarchivar y las ediciones normales del cliente siguen igual."
+    ]
+  },
+  {
     "version": "7.382.0",
     "date": "2026-08-30",
     "type": "minor",

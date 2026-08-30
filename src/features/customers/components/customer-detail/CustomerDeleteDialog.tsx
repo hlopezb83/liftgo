@@ -1,5 +1,7 @@
+import { BlockedActionNotice } from "@/components/feedback/BlockedActionNotice";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { formatCurrency } from "@/lib/format/formatCurrency";
+import { type BusinessBlock, describeBusinessBlock } from "@/lib/rules/businessBlocks";
 
 interface Props {
   open: boolean;
@@ -11,14 +13,18 @@ interface Props {
   /** Reservas activas (confirmed/active). Bloquean el archivado. R7-21.5. */
   activeBookingsCount: number;
   isPending: boolean;
+  /** Bloqueo devuelto por el backend (carrera: saldo/reservas cambiaron). */
+  serverBlock?: BusinessBlock | null;
   onDelete: () => void;
 }
 
 export function CustomerDeleteDialog({
   open, onOpenChange, customerName, bookingsCount, invoicesCount,
-  outstanding, activeBookingsCount, isPending, onDelete,
+  outstanding, activeBookingsCount, isPending, serverBlock, onDelete,
 }: Props) {
-  const hasOutstanding = outstanding > 0;
+  // Misma tolerancia monetaria que el backend (`customer_has_outstanding_balance`).
+  const hasOutstanding = outstanding > 0.01;
+  const outstandingBlock = describeBusinessBlock("customer_outstanding_balance");
   const hasActiveBookings = activeBookingsCount > 0;
   const blocked = hasOutstanding || hasActiveBookings;
 
@@ -29,7 +35,7 @@ export function CustomerDeleteDialog({
       <ul className="list-disc list-inside text-sm space-y-1 ml-2">
         {hasOutstanding && (
           <li className="text-destructive font-medium">
-            Saldo pendiente: {formatCurrency(outstanding)}
+            {outstandingBlock.reason} Saldo: {formatCurrency(outstanding)}
           </li>
         )}
         {hasActiveBookings && (
@@ -39,7 +45,9 @@ export function CustomerDeleteDialog({
         )}
       </ul>
       <p className="text-xs text-muted-foreground pt-2">
-        Liquida el saldo{hasActiveBookings ? " y cierra las reservas activas" : ""} antes de archivar.
+        {hasOutstanding
+          ? outstandingBlock.nextStep
+          : "Cierra las reservas activas antes de archivar."}
       </p>
     </div>
   ) : (
@@ -53,16 +61,22 @@ export function CustomerDeleteDialog({
     </div>
   );
 
+  const description = serverBlock ? (
+    <div className="space-y-2">
+      <BlockedActionNotice block={serverBlock} />
+    </div>
+  ) : descriptionNode;
+
   return (
     <ConfirmDialog
       open={open}
       onOpenChange={onOpenChange}
       title="¿Archivar cliente?"
-      descriptionNode={descriptionNode}
+      descriptionNode={description}
       confirmLabel="Archivar"
       destructive
       loading={isPending}
-      hideConfirm={blocked}
+      hideConfirm={blocked || !!serverBlock}
       onConfirm={onDelete}
     />
   );

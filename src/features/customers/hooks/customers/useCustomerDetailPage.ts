@@ -72,7 +72,11 @@ export function useCustomerDetailPage(id: string | undefined) {
 
   const totalInvoiced = Number(summary?.totals.total_invoiced ?? 0);
   const totalPaid = Number(summary?.totals.total_paid ?? 0);
-  const outstanding = totalInvoiced - totalPaid;
+  // Saldo pendiente canónico: mismo cálculo que impone el backend al archivar
+  // (`customer_outstanding_balance`). Fallback defensivo al neto facturado.
+  const outstanding = summary?.totals.outstanding_revenue != null
+    ? Number(summary.totals.outstanding_revenue)
+    : totalInvoiced - totalPaid;
   const hasPortalAccess = !!customer?.user_id;
   const hasDependencies = bookings.length > 0 || invoices.length > 0;
 

@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
+import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import { customerKeys } from "../../lib/queryKeys";
@@ -125,7 +126,10 @@ export function useUpdateCustomer() {
   });
 }
 
-export function useDeleteCustomer() {
+export function useDeleteCustomer(opts?: {
+  /** Bloqueos de negocio del backend (saldo pendiente, rentas activas). */
+  onBusinessBlock?: (block: BusinessBlock) => void;
+}) {
   return useEntityMutation({
     mutationFn: async (id: string) => {
       // Soft delete: preserva historial de facturas y bookings
@@ -134,5 +138,8 @@ export function useDeleteCustomer() {
     },
     invalidateKeys: [customerKeys.all],
     errorTitle: "Error al archivar cliente",
+    ...(opts?.onBusinessBlock
+      ? { onBusinessBlock: (block: BusinessBlock) => opts.onBusinessBlock?.(block) }
+      : {}),
   });
 }

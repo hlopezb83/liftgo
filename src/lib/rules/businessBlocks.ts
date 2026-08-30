@@ -38,7 +38,8 @@ export type BusinessBlockCode =
   | "prospect_stage_not_negotiation"
   | "quote_expired"
   | "quote_already_converted"
-  | "quote_sale_assignment_incomplete";
+  | "quote_sale_assignment_incomplete"
+  | "customer_outstanding_balance";
 
 /** `info` para restricciones normales del negocio; `warning` para riesgo real. */
 export type BusinessBlockTone = "info" | "warning";
@@ -183,6 +184,12 @@ export const BUSINESS_BLOCKS: Record<BusinessBlockCode, BlockCopy> = {
     nextStep: "Consulta la reserva ligada para darle seguimiento.",
     tone: "info",
   },
+  customer_outstanding_balance: {
+    action: "No puedes archivar a este cliente",
+    reason: "El cliente todavía tiene saldo pendiente por cobrar.",
+    nextStep: "Registra los pagos o notas de crédito hasta dejar el saldo en cero y vuelve a intentarlo.",
+    tone: "info",
+  },
 };
 
 /** Devuelve la copia canónica del bloqueo, con overrides opcionales. */
@@ -217,6 +224,8 @@ const ERROR_PATTERNS: Array<{ pattern: RegExp; code: BusinessBlockCode }> = [
   { pattern: /factura de proveedor est(á|a) cancelada/i, code: "supplier_bill_cancelled" },
   // Guard `trg_guard_invoice_sale_assignment` (BEFORE INSERT en invoices).
   { pattern: /cotizaci(ó|o)n de venta tiene .*sin asignar/i, code: "quote_sale_assignment_incomplete" },
+  // Guard `trg_guard_customer_archive` y RPC `soft_delete_customer`.
+  { pattern: /el cliente tiene saldo pendiente/i, code: "customer_outstanding_balance" },
 ];
 
 

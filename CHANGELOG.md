@@ -1,3 +1,11 @@
+## [7.383.0] - 2026-08-30
+### Feat (integridad): saldo pendiente como regla dura para archivar clientes
+- Nuevas funciones `public.customer_outstanding_balance(uuid)` y `public.customer_has_outstanding_balance(uuid)` (SECURITY DEFINER, `SET search_path = public`, `EXECUTE` revocado a `anon`/`authenticated`): definición canónica del saldo por cobrar reutilizando `v_invoices_with_balance` (`balance_mxn`, estados `sent`/`partial`/`overdue`, sin `cancellation_status = 'accepted'`) — la misma fuente que `get_customer_summary.outstanding_revenue`. Tolerancia monetaria 0.01, igual que los guards de pagos.
+- `public.soft_delete_customer()` y `public.guard_customer_archive()` aplican el MISMO helper: RPC y UPDATE directo no pueden divergir; la BD es la autoridad ante carreras. Rechazo de negocio con P0001 (`No se puede archivar: el cliente tiene saldo pendiente`); permisos siguen con 42501.
+- Sin cambios en v7.380.0: sólo admin/administrativo archivan, reservas `confirmed`/`in_progress` siguen bloqueando, desarchivar y ediciones normales intactas. No se borra, cancela ni desliga ninguna factura, pago o cobranza.
+- UX: nuevo código explicable `customer_outstanding_balance` en `lib/rules/businessBlocks` (+ patrón de reconocimiento); `CustomerDeleteDialog` usa esa copia canónica y muestra `BlockedActionNotice` si la BD rechaza por carrera (`useDeleteCustomer` acepta `onBusinessBlock`). El saldo mostrado usa `outstanding_revenue` canónico.
+- Pruebas: `supabase/tests/r_fix37_customer_outstanding_archive_smoke.sql` (catálogo + comportamiento, con ROLLBACK) y `CustomerDeleteDialog.test.tsx` (mapeo del bloqueo, copia canónica, carrera).
+
 ## [7.382.0] - 2026-08-30
 ### Fix (P2 integridad): el archivado de mantenimientos pasa siempre por el RPC canónico
 - Nueva función `public.guard_maintenance_archive()` (SECURITY DEFINER, `SET search_path = public`) y trigger `trg_guard_maintenance_archive` (BEFORE UPDATE OF `deleted_at` en `public.maintenance_logs`): sólo actúa en la transición `deleted_at IS NULL -> NOT NULL` y rechaza con 42501 (`El archivado de mantenimientos solo procede por soft_delete_maintenance_log`) cualquier UPDATE directo.
