@@ -82,8 +82,8 @@ SELECT pg_temp.expect_true(
 
 SELECT pg_temp.expect_true(
   'el saldo pendiente NO es bloqueo de base de datos',
-  pg_temp.fndef('guard_customer_archive') NOT LIKE '%invoice%'
-  AND pg_temp.fndef('guard_customer_archive') NOT LIKE '%payment%'
+  pg_temp.fndef('guard_customer_archive') NOT LIKE '%invoices%'
+  AND pg_temp.fndef('guard_customer_archive') NOT LIKE '%total_paid%'
 );
 
 -- ---------------------------------------------------------------------------
