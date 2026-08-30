@@ -304,7 +304,36 @@ export async function handleStampCfdi(
         inv.receptor_razon_social ?? inv.customer_name ?? "Público General",
       ),
     );
-    const taxSystem = isGlobal ? "616" : (inv.receptor_regimen_fiscal || "616");
+    const taxSystem = isGlobal ? "616" : String(inv.receptor_regimen_fiscal ?? "");
+    const zipCode = isGlobal
+      ? String(inv.receptor_domicilio_fiscal_cp ?? "06600")
+      : String(inv.receptor_domicilio_fiscal_cp ?? "");
+
+    // A4-04: para receptores con RFC real, el régimen fiscal y el CP fiscal
+    // deben venir del cliente. Los antiguos defaults ("616" / "06600")
+    // timbraban CFDI con datos fiscales genéricos que el SAT puede rechazar
+    // o dejar no deducibles para el cliente.
+    if (!isGlobal) {
+      const missingFiscal: string[] = [];
+      if (!taxSystem.trim()) missingFiscal.push("régimen fiscal del receptor");
+      if (!zipCode.trim()) missingFiscal.push("código postal fiscal del receptor");
+      if (missingFiscal.length > 0) {
+        await releaseClaim(
+          `Faltan datos fiscales del receptor: ${missingFiscal.join(", ")}`,
+        );
+        return json(
+          {
+            error: `Faltan datos fiscales del receptor: ${
+              missingFiscal.join(", ")
+            }. Captúralos en el cliente o en la factura antes de timbrar.`,
+          },
+          400,
+          jsonHeaders,
+        );
+      }
+    }
+
+
 
     if (isGlobal) {
       const missing: string[] = [];
