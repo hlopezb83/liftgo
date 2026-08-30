@@ -654,3 +654,58 @@ Deno.test("handler: timeout PAC deja factura en 'stamping' (top-10 #8 / EC-A2)",
     mock.restore();
   }
 });
+
+Deno.test("handler: A4-04 receptor sin régimen/CP fiscal responde 400 sin llamar al PAC", async () => {
+  const mock = installFacturapiMock({
+    "/invoices": () => facturapiOk({ id: "fapi_no", uuid: "NO-DEBE-TIMBRAR" }),
+  });
+
+  try {
+    const { deps, serviceState } = makeDeps({
+      env: { FACTURAPI_TEST_KEY: "sk_test_xxx" },
+      fetchImpl: globalThis.fetch,
+      service: {
+        selects: {
+          user_roles: { data: [{ role: "admin" }], error: null },
+          invoices: {
+            data: {
+              id: INVOICE_ID,
+              total: 1160,
+              subtotal: 1000,
+              tax_rate: 16,
+              line_items: [{ description: "Renta", quantity: 1, unit_price: 1000 }],
+              receptor_rfc: "AAA010101AAA",
+              // Sin receptor_regimen_fiscal ni receptor_domicilio_fiscal_cp.
+            },
+            error: null,
+          },
+          company_settings: { data: { facturapi_mode: "test" }, error: null },
+          billing_secrets: { data: null, error: null },
+        },
+        updates: { invoices: { data: null, error: null } },
+      },
+    });
+
+    const res = await handleStampCfdi(
+      makeRequest({ invoice_id: INVOICE_ID }),
+      deps,
+    );
+    const body = await res.json();
+    assertEquals(res.status, 400);
+    assert(String(body.error).includes("régimen fiscal del receptor"));
+    assert(String(body.error).includes("código postal fiscal del receptor"));
+
+    // No se invocó al PAC.
+    assertEquals(
+      mock.calls.filter((c) => c.method === "POST").length,
+      0,
+    );
+    // El claim se liberó: no queda la factura en 'stamping'.
+    assert(
+      !serviceState.updates.some((u) => u.patch?.cfdi_status === "stamped"),
+      "no debe marcarse como timbrada",
+    );
+  } finally {
+    mock.restore();
+  }
+});
