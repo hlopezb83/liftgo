@@ -97,21 +97,18 @@ export function calculateRentalCost(
   const months = calcMonths(m, startDate, effectiveEnd);
   items.push(...monthlyItems(m, months));
 
-  const remainderStart = months > 0 ? addMonths(startDate, months) : startDate;
+  // F2 + A5-01: fin de mes corto. Si la renta arranca en un día que no existe
+  // en el mes destino (p. ej. 31-ene → feb), `addMonths` clampea el ancla al
+  // último día del mes (28-feb) y ese día YA quedó dentro del mes facturado.
+  // El remanente debe arrancar el día siguiente; si no, el 28-feb se cobra dos
+  // veces (31-ene → 01-mar facturaba 1 mes + 2 días en vez de 1 mes + 1 día).
+  let remainderStart = months > 0 ? addMonths(startDate, months) : startDate;
+  if (isClampedAnchor(months, remainderStart, startDate)) {
+    remainderStart = addDays(remainderStart, 1);
+  }
 
   let remaining = Math.max(0, differenceInDays(effectiveEnd, remainderStart));
 
-  // F2 (Sprint M1): fin de mes corto. Si la renta arranca en un día que no
-  // existe en el mes destino (p. ej. 31-ene → feb), `addMonths` clampea el
-  // ancla del remanente al último día del mes y deja un remanente espurio de
-  // 1 día → se facturaba "1 mes + 1 día" una renta que es exactamente un mes
-  // (31-ene → 28-feb). Cuando `endDate` ES el último día de su mes y el ancla
-  // clampeó (su día difiere del día de inicio), el tramo son exactamente
-  // `months` meses calendario: el remanente se trata como 0 días. Con
-  // remaining = 0 el cap BL-15 queda intacto (no hay remanente que capear).
-  if (isClampedShortMonthEnd(months, remaining, remainderStart, startDate, endDate)) {
-    remaining = 0;
-  }
 
   // Buffer separado para poder aplicar el cap BL-15 sin tocar los meses ya
   // facturados a tarifa mensual (esos representan calendario cerrado).
