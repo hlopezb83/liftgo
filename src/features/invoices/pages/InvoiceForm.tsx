@@ -103,7 +103,9 @@ export default function InvoiceForm() {
     }
   };
 
-  if (f.saleAssignmentGuard.shouldBlock) {
+  // v7.381.1: además del bloqueo determinístico, el guard de BD pudo rechazar
+  // el INSERT por carrera/estado obsoleto — se reusa la misma pantalla.
+  if (f.saleAssignmentGuard.shouldBlock || f.serverSaleAssignmentBlock) {
     const { totalAssigned, totalRequired, missingByLine } = f.saleAssignmentGuard;
     return (
       <SaleAssignmentBlocked

@@ -1,3 +1,10 @@
+## [7.381.1] - 2026-08-30
+### Fix (UX): bloque explicable ante rechazo por carrera del guard de asignación de venta
+- `useCreateInvoice` ahora acepta `onBusinessBlock` (convención de fase 1/2); `useInvoiceFormSubmit` y `useInvoiceFormLogic` lo cablean sólo para el código `quote_sale_assignment_incomplete`.
+- Si `trg_guard_invoice_sale_assignment` rechaza el INSERT por carrera/estado obsoleto, el formulario reusa la pantalla existente `SaleAssignmentBlocked` en vez del toast genérico de error.
+- Sin cambios en SQL, reglas de negocio ni en la prevención determinística de la UI; los demás errores de facturación conservan su toast estándar.
+- Prueba de regresión: `useCreateInvoice.businessBlock.test.tsx` (bloque entregado + toast suprimido; errores no relacionados intactos).
+
 ## [7.381.0] - 2026-08-30
 ### Fix (P1-B integridad): guard de asignación completa para facturar cotizaciones de venta
 - Nueva función `public.quote_sale_units_unassigned(uuid)` (SECURITY DEFINER, `SET search_path = public`): espejo exacto de `useQuoteSaleAssignmentStatus` — partida de venta = descripción que termina en `- Venta de equipo`; requerido = `quantity` (0/NULL => 1); asignado = filas de `quote_assigned_forklifts` con ese `line_index`. `EXECUTE` revocado a `anon`/`authenticated`.

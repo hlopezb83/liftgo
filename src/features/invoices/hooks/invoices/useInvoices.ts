@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { Tables, TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { todayKeyMty } from "@/lib/format/dateFormats";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
+import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { e2eVisibilityFilter, LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
 import {
@@ -152,7 +153,7 @@ export function useInvoice(id: string | undefined) {
 }
 
 
-export function useCreateInvoice() {
+export function useCreateInvoice(opts?: { onBusinessBlock?: (block: BusinessBlock) => void }) {
   return useEntityMutation({
     mutationFn: async (invoice: Omit<TablesInsert<"invoices">, "invoice_number">) => {
       const { data: numData, error: numError } = await supabase.rpc("next_draft_invoice_number");
@@ -167,6 +168,10 @@ export function useCreateInvoice() {
     },
     invalidateKeys: [invoiceKeys.all, reportKeys.all],
     errorTitle: "Error al crear factura",
+    // v7.381.1: si el guard de BD `trg_guard_invoice_sale_assignment` rechaza
+    // por carrera/estado obsoleto (cotización de venta con equipos sin
+    // asignar), la UI muestra el bloque explicable en vez del toast genérico.
+    onBusinessBlock: opts?.onBusinessBlock,
   });
 }
 

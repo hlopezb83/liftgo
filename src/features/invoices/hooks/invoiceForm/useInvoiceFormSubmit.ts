@@ -6,6 +6,7 @@ import { computeTotals, type LineItem } from "@/lib/domain/invoiceHelpers";
 import { toJsonArray } from "@/lib/domain/lineItems";
 import { roundMoney } from "@/lib/money";
 import { nowMty } from "@/lib/utils";
+import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { useSyncInvoiceBookings } from "../invoices/useInvoiceBookings";
 import { useCreateInvoice, useUpdateInvoice } from "../invoices/useInvoices";
 import type { InvoiceFormValues, CfdiFormValues, LineItemValues } from "../../lib/invoiceFormSchema";
@@ -73,8 +74,16 @@ function buildCfdiPayload(cfdi: CfdiFormValues) {
 }
 
 
-export function useInvoiceFormSubmit() {
-  const createInvoice = useCreateInvoice();
+interface UseInvoiceFormSubmitOpts {
+  /**
+   * v7.381.1: rechazo del guard de BD (p.ej. `trg_guard_invoice_sale_assignment`
+   * por carrera/estado obsoleto) → bloque explicable en vez de toast genérico.
+   */
+  onBusinessBlock?: (block: BusinessBlock) => void;
+}
+
+export function useInvoiceFormSubmit(opts?: UseInvoiceFormSubmitOpts) {
+  const createInvoice = useCreateInvoice({ onBusinessBlock: opts?.onBusinessBlock });
   const updateInvoice = useUpdateInvoice();
   const updateQuote = useUpdateQuote();
   const syncInvoiceBookings = useSyncInvoiceBookings();

@@ -7,6 +7,7 @@ import { useForklifts, useQuoteAssignments } from "@/features/fleet";
 import { useQuote, useQuoteSaleAssignmentStatus, useQuotesByIds } from "@/features/quotes";
 import type { LineItem } from "@/lib/domain/invoiceHelpers";
 import { zodResolver } from "@/lib/forms/zodResolver";
+import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import {
   invoiceFormSchema,
   buildEmptyInvoiceValues,
@@ -153,7 +154,15 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     quoteType: sourceQuote?.quote_type,
   });
 
-  const submit = useInvoiceFormSubmit();
+  // v7.381.1: carrera/estado obsoleto — el guard de BD rechazó el INSERT porque
+  // la cotización de venta ya no está completamente asignada. La UI reusa el
+  // bloqueo determinístico (SaleAssignmentBlocked) con este disparador.
+  const [serverSaleAssignmentBlock, setServerSaleAssignmentBlock] = useState<BusinessBlock | null>(null);
+  const submit = useInvoiceFormSubmit({
+    onBusinessBlock: (block) => {
+      if (block.code === "quote_sale_assignment_incomplete") setServerSaleAssignmentBlock(block);
+    },
+  });
   const uniqueBookingQuoteIds = collectBookingQuoteIds(bookings);
   const { data: bookingSourceQuotes } = useQuotesByIds(uniqueBookingQuoteIds);
   const { handleCustomerSelect, handleBookingSelect, handleBookingsChange } = useInvoiceFormHandlers({ form, customers, bookings, forklifts, quotes: bookingSourceQuotes });
@@ -204,6 +213,7 @@ export function useInvoiceFormLogic({ id, fromQuoteId, extensionId = null }: Use
     customers, availableBookings,
     sourceQuote,
     saleAssignmentGuard,
+    serverSaleAssignmentBlock,
     extension,
     handleCustomerSelect, handleBookingSelect, handleBookingsChange,
     onSubmit,
