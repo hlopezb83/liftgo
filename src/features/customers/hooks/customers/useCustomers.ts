@@ -5,6 +5,7 @@ import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
 import { LIST_FETCH_LIMIT } from "@/lib/supabase/constants";
+import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { customerKeys } from "../../lib/queryKeys";
 
 const sel = (s: string): string => s;
