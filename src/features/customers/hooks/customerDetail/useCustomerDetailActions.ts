@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { useUpdateCustomer, useDeleteCustomer } from "../customers/useCustomers";
 import { useInviteCustomer } from "../customers/useInviteCustomer";
@@ -36,7 +38,10 @@ interface Params {
 export function useCustomerDetailActions({ id, expectedVersion, setInviteOpen, setEditOpen }: Params) {
   const navigate = useNavigateTransition();
   const updateCustomer = useUpdateCustomer();
-  const deleteCustomer = useDeleteCustomer();
+  // Carrera: la BD es la autoridad. Si el saldo cambió entre el render y el
+  // clic, el rechazo del backend se muestra como bloqueo explicable.
+  const [archiveBlock, setArchiveBlock] = useState<BusinessBlock | null>(null);
+  const deleteCustomer = useDeleteCustomer({ onBusinessBlock: setArchiveBlock });
   const inviteCustomer = useInviteCustomer();
 
   const handleInvite = (email: string) => {
@@ -65,6 +70,7 @@ export function useCustomerDetailActions({ id, expectedVersion, setInviteOpen, s
       });
       return;
     }
+    setArchiveBlock(null);
     deleteCustomer.mutate(id, {
       onSuccess: () => { notifySuccess("Cliente archivado"); navigate("/customers"); },
     });
@@ -73,6 +79,7 @@ export function useCustomerDetailActions({ id, expectedVersion, setInviteOpen, s
   return {
     inviteCustomer, updateCustomer, deleteCustomer,
     handleInvite, handleEditSubmit, handleDelete,
+    archiveBlock, setArchiveBlock,
     navigate,
   };
 }
