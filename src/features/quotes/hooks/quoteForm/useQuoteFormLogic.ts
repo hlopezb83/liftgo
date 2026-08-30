@@ -102,6 +102,7 @@ export function useQuoteFormLogic() {
       validUntil: resolveValidUntil(values.validUntil, values.dateRange?.to),
       notes: values.notes,
       currency: values.currency,
+      tipoCambio: values.tipoCambio,
     });
 
     if (id) {
