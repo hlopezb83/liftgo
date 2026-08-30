@@ -147,7 +147,7 @@ BEGIN
   END IF;
 
   PERFORM set_config('app.e2e_seed', 'on', true);
-  INSERT INTO public.maintenance_logs (forklift_id, type, description, work_status, date)
+  INSERT INTO public.maintenance_logs (forklift_id, service_type, description, work_status, performed_at)
   VALUES (v_forklift, 'preventive', 'SMOKE fix36 archivado', 'draft', now()::date)
   RETURNING id INTO v_log;
   PERFORM set_config('app.e2e_seed', 'off', true);
