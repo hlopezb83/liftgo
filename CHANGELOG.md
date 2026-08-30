@@ -1,3 +1,9 @@
+## [7.383.1] - 2026-08-30
+### Fix (QA): `StatusChangeCard` bloqueaba unidades ya devueltas
+- La prevención en UI usaba sólo `currentStatus === 'rented'`, más estricta que el backend: `public.change_forklift_status` sólo rechaza cuando además `public.has_open_rental()` (entrega completada sin devolución). Una unidad devuelta que quedó en estado `rented` no podía volver a disponible/mantenimiento/venta/baja.
+- Se elimina el pre-bloqueo determinista; el rechazo real del backend se sigue explicando con `describeForkliftRentalBlock` vía `onBusinessBlock`. Sin cambios en SQL, RPC ni reglas.
+- Prueba de regresión: `src/features/fleet/components/forklift-detail/__tests__/StatusChangeCard.test.tsx`.
+
 ## [7.383.0] - 2026-08-30
 ### Feat (integridad): saldo pendiente como regla dura para archivar clientes
 - Nuevas funciones `public.customer_outstanding_balance(uuid)` y `public.customer_has_outstanding_balance(uuid)` (SECURITY DEFINER, `SET search_path = public`, `EXECUTE` revocado a `anon`/`authenticated`): definición canónica del saldo por cobrar reutilizando `v_invoices_with_balance` (`balance_mxn`, estados `sent`/`partial`/`overdue`, sin `cancellation_status = 'accepted'`) — la misma fuente que `get_customer_summary.outstanding_revenue`. Tolerancia monetaria 0.01, igual que los guards de pagos.
