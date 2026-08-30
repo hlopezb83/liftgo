@@ -1,0 +1,9 @@
+{
+  "description": "Archivar mantenimientos sólo por la vía oficial (P2)",
+  "changes": [
+    "Archivar una orden de trabajo ahora sólo procede por la acción oficial del sistema, que aplica todas las reglas y la limpieza correspondiente.",
+    "Un cambio directo a la marca de archivado desde fuera de esa vía queda rechazado, para evitar registros archivados incompletos.",
+    "Se conservan tal cual: quién puede archivar, la regla de órdenes cerradas (sólo administrador), la devolución de refacciones al inventario en órdenes abiertas y el desarchivado.",
+    "Las ediciones normales de mantenimientos, los costos, el inventario y los daños no cambian."
+  ]
+}

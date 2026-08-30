@@ -1,3 +1,12 @@
+## [7.382.0] - 2026-08-30
+### Fix (P2 integridad): el archivado de mantenimientos pasa siempre por el RPC canónico
+- Nueva función `public.guard_maintenance_archive()` (SECURITY DEFINER, `SET search_path = public`) y trigger `trg_guard_maintenance_archive` (BEFORE UPDATE OF `deleted_at` en `public.maintenance_logs`): sólo actúa en la transición `deleted_at IS NULL -> NOT NULL` y rechaza con 42501 (`El archivado de mantenimientos solo procede por soft_delete_maintenance_log`) cualquier UPDATE directo.
+- Decisión: **forzar el RPC** en vez de espejear reglas. `soft_delete_maintenance_log` tiene efectos colaterales (regla de OT cerrada sólo-admin y limpieza de `maintenance_parts`/`maintenance_labor` de OT abiertas, con devolución de inventario y recálculo de costo por trigger); duplicarlos en un guard habría creado dos definiciones divergentes.
+- `soft_delete_maintenance_log` conserva su semántica intacta; sólo marca la transacción con `app.maintenance_archive_rpc = 'on'` (local) alrededor del UPDATE.
+- Sin bypass para `service_role` ni para admin por SQL directo: la integridad manda. Sólo `app.e2e_seed = 'on'` queda exento, como el resto de guards del repo. `EXECUTE` del guard revocado a `anon`/`authenticated`.
+- Sin cambios en transiciones de estado de OT, costos, inventario, daños, permisos, desarchivado ni ediciones ordinarias. La UI ya usaba el RPC: no requiere cambios.
+- Pruebas: `supabase/tests/r_fix36_maintenance_archive_guard_smoke.sql` (catálogo + comportamiento, transacción con ROLLBACK).
+
 ## [7.381.1] - 2026-08-30
 ### Fix (UX): bloque explicable ante rechazo por carrera del guard de asignación de venta
 - `useCreateInvoice` ahora acepta `onBusinessBlock` (convención de fase 1/2); `useInvoiceFormSubmit` y `useInvoiceFormLogic` lo cablean sólo para el código `quote_sale_assignment_incomplete`.

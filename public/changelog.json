@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.382.0",
+    "date": "2026-08-30",
+    "type": "minor",
+    "title": "Archivar mantenimientos sólo por la vía oficial (P2)",
+    "description": "Archivar una orden de trabajo ahora sólo puede hacerse por la acción oficial del sistema, que ya aplica todas las reglas y la limpieza de refacciones y mano de obra. Los cambios directos por fuera quedan rechazados.",
+    "changes": [
+      "Archivar una orden de trabajo ahora sólo procede por la acción oficial del sistema.",
+      "Un cambio directo a la marca de archivado queda rechazado, para evitar registros archivados incompletos.",
+      "Se conservan las reglas actuales: quién puede archivar, la regla de órdenes cerradas (sólo administrador), la devolución de refacciones al inventario en órdenes abiertas y el desarchivado.",
+      "Las ediciones normales de mantenimientos, los costos, el inventario y los daños no cambian."
+    ]
+  },
+  {
     "version": "7.381.1",
     "date": "2026-08-30",
     "type": "patch",
