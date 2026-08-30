@@ -1,5 +1,17 @@
 [
   {
+    "version": "7.381.1",
+    "date": "2026-08-30",
+    "type": "patch",
+    "title": "Explicación clara si la asignación cambia justo antes de facturar",
+    "description": "Si alguien modifica la asignación de equipos de una cotización de venta mientras otra persona estaba llenando la factura, la pantalla ahora muestra la explicación del bloqueo en vez de un error genérico.",
+    "changes": [
+      "El rechazo de la base de datos por asignación incompleta muestra la misma pantalla explicativa que la prevención normal.",
+      "El mensaje indica que faltan equipos por asignar y permite ir directo a la cotización.",
+      "Los demás errores al crear facturas se comportan igual que antes."
+    ]
+  },
+  {
     "version": "7.381.0",
     "date": "2026-08-30",
     "type": "minor",
