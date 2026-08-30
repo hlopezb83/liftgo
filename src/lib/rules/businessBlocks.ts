@@ -184,6 +184,12 @@ export const BUSINESS_BLOCKS: Record<BusinessBlockCode, BlockCopy> = {
     nextStep: "Consulta la reserva ligada para darle seguimiento.",
     tone: "info",
   },
+  customer_outstanding_balance: {
+    action: "No puedes archivar a este cliente",
+    reason: "El cliente todavía tiene saldo pendiente por cobrar.",
+    nextStep: "Registra los pagos o notas de crédito hasta dejar el saldo en cero y vuelve a intentarlo.",
+    tone: "info",
+  },
 };
 
 /** Devuelve la copia canónica del bloqueo, con overrides opcionales. */
