@@ -143,15 +143,20 @@ export function calculateRentalCost(
       if (isExtension) {
         // Fix 8.4: nunca cobrar el mes completo en una extensión — prorratear
         // en su lugar (mensual × días/30), capeando el costo escalonado.
+        // A1-B1: la línea se emite con `quantity: 1` para que se cumpla la
+        // invariante timbrable `total === unit_price × quantity`. Los días van
+        // en la descripción; con `quantity = días` la división dejaba centavos
+        // sueltos y Facturapi timbraba un importe distinto al de la factura.
         const prorated = money(m).multiply(remainderTotalDays).divide(DAYS_PER_MONTH_FALLBACK).value;
         const cappedTotal = Math.min(remainderCost, prorated);
         items.push({
-          description: "Renta mensual (prorrateo)",
-          quantity: remainderTotalDays,
-          unit_price: money(cappedTotal).divide(remainderTotalDays).value,
+          description: `Renta mensual (prorrateo ${remainderTotalDays} días)`,
+          quantity: 1,
+          unit_price: cappedTotal,
           total: cappedTotal,
           rate_type: "monthly",
         });
+
       } else {
         items.push({
           description: "Renta mensual",
