@@ -1,5 +1,17 @@
 [
   {
+    "version": "7.383.1",
+    "date": "2026-08-30",
+    "type": "patch",
+    "title": "Unidades marcadas como rentadas ya se pueden corregir",
+    "description": "El botón de actualizar estado se quedaba deshabilitado para cualquier montacargas en estado Rentado, aun cuando la renta ya había sido devuelta. Ahora sólo bloquea cuando realmente hay una renta abierta.",
+    "changes": [
+      "La tarjeta de cambio de estado ya no bloquea por el simple estado Rentado.",
+      "Si la unidad sí tiene renta abierta (entregada y sin devolución), el sistema la sigue bloqueando y explica el motivo.",
+      "Se conservan las demás reglas: razón obligatoria para mantenimiento, venta y baja."
+    ]
+  },
+  {
     "version": "7.383.0",
     "date": "2026-08-30",
     "type": "minor",
