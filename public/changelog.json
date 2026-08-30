@@ -1,5 +1,17 @@
 [
   {
+    "version": "7.385.0",
+    "date": "2026-08-30",
+    "type": "minor",
+    "title": "Archivar OT libera la unidad y datos fiscales obligatorios al timbrar",
+    "description": "Archivar una orden de trabajo abierta ya libera el montacargas, y el timbrado ya no emite facturas con datos fiscales genéricos del cliente.",
+    "changes": [
+      "Si archivas una orden de trabajo en proceso, la unidad regresa a Disponible en lugar de quedarse atorada en Mantenimiento.",
+      "La unidad sigue sin liberarse si tiene renta vigente, daños abiertos u otras órdenes de trabajo abiertas.",
+      "Al timbrar, si al cliente le falta régimen fiscal o código postal fiscal, se avisa antes de enviar al PAC en vez de usar datos genéricos."
+    ]
+  },
+  {
     "version": "7.384.0",
     "date": "2026-08-30",
     "type": "minor",
