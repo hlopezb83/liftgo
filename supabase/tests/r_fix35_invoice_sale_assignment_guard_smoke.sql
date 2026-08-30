@@ -84,7 +84,6 @@ DECLARE
   v_sale uuid;
   v_rent uuid;
   v_f1 uuid; v_f2 uuid; v_f3 uuid;
-  v_missing int;
   v_inv uuid;
   v_status_before text;
   v_asg_before int;
@@ -116,15 +115,8 @@ BEGIN
   ]'::jsonb)
   RETURNING id INTO v_rent;
 
-  -- 2.1 sin asignación: faltan 3 unidades
-  v_missing := public.quote_sale_units_unassigned(v_sale);
-  PERFORM pg_temp.expect_true(
-    'cotización de venta sin asignación: faltan 3 unidades (2+1)', v_missing = 3);
-
-  PERFORM pg_temp.expect_true(
-    'cotización de renta: no exige asignación',
-    public.quote_sale_units_unassigned(v_rent) = 0);
-
+  -- El helper no es invocable por roles de la Data API (por diseño); toda la
+  -- cobertura de semántica se verifica por el comportamiento del INSERT.
   -- 3.1 INSERT directo rechazado sin asignación
   BEGIN
     INSERT INTO public.invoices (invoice_number, customer_id, customer_name, quote_id)
@@ -139,10 +131,6 @@ BEGIN
   -- 2.2 asignación parcial (multi-unidad): 1 de 2 en la partida 0, 0 de 1 en la 1
   INSERT INTO public.quote_assigned_forklifts (quote_id, forklift_id, line_index)
   VALUES (v_sale, v_f1, 0);
-  PERFORM pg_temp.expect_true(
-    'asignación parcial multi-unidad: siguen faltando 2',
-    public.quote_sale_units_unassigned(v_sale) = 2);
-
   v_status_before := (SELECT status FROM public.forklifts WHERE id = v_f1);
   v_asg_before := (SELECT count(*) FROM public.quote_assigned_forklifts WHERE quote_id = v_sale);
 
@@ -182,10 +170,6 @@ BEGIN
   -- 2.3 asignación completa -> factura permitida
   INSERT INTO public.quote_assigned_forklifts (quote_id, forklift_id, line_index)
   VALUES (v_sale, v_f2, 0), (v_sale, v_f3, 1);
-  PERFORM pg_temp.expect_true(
-    'cotización de venta totalmente asignada: 0 pendientes',
-    public.quote_sale_units_unassigned(v_sale) = 0);
-
   INSERT INTO public.invoices (invoice_number, customer_id, customer_name, quote_id)
   VALUES ('ZZ-F-fix35-f', v_cust, 'ZZ Smoke fix35', v_sale) RETURNING id INTO v_inv;
   PERFORM pg_temp.expect_true(
