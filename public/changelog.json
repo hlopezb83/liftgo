@@ -1,5 +1,18 @@
 [
   {
+    "version": "7.384.0",
+    "date": "2026-08-30",
+    "type": "minor",
+    "title": "Correcciones críticas de cobro y de IVA en notas de crédito",
+    "description": "Se corrigió un sobrecobro de un día en rentas que cruzan meses cortos, se hizo timbrable la línea de prorrateo de extensiones y las notas de crédito ahora respetan el IVA real de cada línea de la factura origen.",
+    "changes": [
+      "Rentas que inician el 30 o 31 y cruzan a un mes corto (por ejemplo 31-ene a 1-mar) ya no cobran un día extra.",
+      "La línea de prorrateo de una extensión se emite con cantidad 1 y su importe exacto, para que el CFDI cuadre con la factura.",
+      "Las notas de crédito ya no acreditan IVA de más: respetan las líneas no objeto de impuesto y la tasa de cada línea.",
+      "La clave de producto SAT de la nota de crédito ahora reutiliza la de la línea original cuando existe."
+    ]
+  },
+  {
     "version": "7.383.1",
     "date": "2026-08-30",
     "type": "patch",
