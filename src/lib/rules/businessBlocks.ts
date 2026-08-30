@@ -216,7 +216,7 @@ const ERROR_PATTERNS: Array<{ pattern: RegExp; code: BusinessBlockCode }> = [
   { pattern: /REP fiscal recibido/i, code: "supplier_payment_rep_received" },
   { pattern: /factura de proveedor est(á|a) cancelada/i, code: "supplier_bill_cancelled" },
   // Guard `trg_guard_invoice_sale_assignment` (BEFORE INSERT en invoices).
-  { pattern: /equipo\(s\) sin asignar|sin asignar/i, code: "quote_sale_assignment_incomplete" },
+  { pattern: /cotizaci(ó|o)n de venta tiene .*sin asignar/i, code: "quote_sale_assignment_incomplete" },
 ];
 
 
