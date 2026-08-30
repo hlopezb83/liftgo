@@ -1,5 +1,17 @@
 [
   {
+    "version": "7.386.0",
+    "date": "2026-08-30",
+    "type": "minor",
+    "title": "IVA exacto en facturas recurrentes y tipo de cambio en cotizaciones",
+    "description": "Las facturas recurrentes agrupadas calculan el IVA partida por partida y las cotizaciones en dólares ya piden el tipo de cambio, que se hereda al facturar.",
+    "changes": [
+      "El IVA de las facturas recurrentes agrupadas se calcula por partida, igual que en el resto del sistema y que el PAC.",
+      "Las cotizaciones en USD ahora exigen capturar el tipo de cambio (mayor a 0).",
+      "El tipo de cambio capturado se guarda en la cotización y se hereda al crear la factura, en vez de quedarse en 1."
+    ]
+  },
+  {
     "version": "7.385.0",
     "date": "2026-08-30",
     "type": "minor",
