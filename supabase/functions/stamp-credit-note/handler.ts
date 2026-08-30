@@ -35,9 +35,15 @@ type LineItem = {
   quantity?: number;
   unit_price?: number;
   product_key?: string;
+  clave_prod_serv?: string;
+  // A1-B3: la NC debe respetar el régimen fiscal de la línea de la factura
+  // origen (ObjetoImp y tasa por línea), igual que stamp-cfdi.
+  objeto_imp?: string;
+  tax_rate?: number;
   discount?: number;
   discount_type?: "%" | "$";
 };
+
 
 export async function handleStampCreditNote(
   req: Request,
