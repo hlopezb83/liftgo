@@ -63,20 +63,16 @@ function monthlyItems(monthlyRate: number, months: number): LineItem[] {
   ];
 }
 
-function isClampedShortMonthEnd(
-  months: number,
-  remaining: number,
-  remainderStart: Date,
-  startDate: Date,
-  endDate: Date,
-): boolean {
-  return (
-    months > 0 &&
-    remaining > 0 &&
-    remainderStart.getDate() !== startDate.getDate() &&
-    isLastDayOfMonth(endDate)
-  );
+/**
+ * F2 / A5-01: detecta que `addMonths` clampeó el ancla del remanente porque el
+ * día de inicio no existe en el mes destino (31-ene → 28-feb). El día clampeado
+ * pertenece al mes ya facturado, así que el remanente debe arrancar al día
+ * siguiente.
+ */
+function isClampedAnchor(months: number, remainderStart: Date, startDate: Date): boolean {
+  return months > 0 && remainderStart.getDate() !== startDate.getDate();
 }
+
 
 export function calculateRentalCost(
   dailyRate: number | null,
