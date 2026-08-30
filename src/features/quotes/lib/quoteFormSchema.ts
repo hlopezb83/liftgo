@@ -151,8 +151,19 @@ export const quoteFormSchema = z.object({
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["insuranceCost"], message: "Ingresa el costo del seguro" });
   }
 
+  // A5-02: moneda foránea exige tipo de cambio > 0 (mismo criterio que
+  // `invoiceFormSchema`); un TC 0/1 falsearía la conversión a MXN.
+  if (val.currency !== "MXN" && !(val.tipoCambio > 0)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["tipoCambio"],
+      message: "El tipo de cambio debe ser mayor a 0 para moneda distinta de MXN",
+    });
+  }
+
   checkValidUntil(val.validUntil, val.dateRange?.from, ctx);
 });
+
 
 const atMidnight = (d: Date): number => {
   const x = new Date(d);
