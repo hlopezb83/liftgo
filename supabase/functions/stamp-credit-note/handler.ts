@@ -245,7 +245,6 @@ export async function handleStampCreditNote(
     // si viene null usamos 16% (default corporativo). Antes: > 0 ? /100 : 0 → NCs
     // sobre facturas exentas timbraban al 0% pero la factura al 16% (inconsistente).
     const ncTaxRatePct = ncRow.tax_rate == null ? 16 : Number(ncRow.tax_rate);
-    const ncTaxRateFraction = ncTaxRatePct / 100;
     const items = Array.isArray(ncRow.line_items)
       ? (ncRow.line_items as LineItem[]).map((li) => {
         const quantity = li.quantity || 1;
