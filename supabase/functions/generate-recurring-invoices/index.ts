@@ -4,7 +4,7 @@ import { authenticateCronRequest } from "../_shared/cronAuth.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 import { computeProrate } from "./prorate.ts";
-import { fromCents, sumMoneyCents } from "../_shared/money.ts";
+import { fromCents, sumLineTaxCents, sumMoneyCents } from "../_shared/money.ts";
 
 const TZ = "America/Monterrey";
 
