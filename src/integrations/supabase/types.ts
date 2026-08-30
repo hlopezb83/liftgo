@@ -4318,6 +4318,10 @@ export type Database = {
       purge_e2e_audit_logs: { Args: never; Returns: number }
       purge_e2e_data: { Args: never; Returns: Json }
       purge_old_notifications: { Args: never; Returns: number }
+      quote_sale_units_unassigned: {
+        Args: { p_quote_id: string }
+        Returns: number
+      }
       recalc_supplier_bill: { Args: { p_bill_id: string }; Returns: undefined }
       reconcile_expired_bookings: {
         Args: never

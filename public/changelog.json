@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.381.0",
+    "date": "2026-08-30",
+    "type": "minor",
+    "title": "Protección en base de datos al facturar cotizaciones de venta (P1-B)",
+    "description": "Una cotización de venta con equipos sin asignar ya no puede convertirse en factura, aunque se intente por fuera de la pantalla normal. Las facturas de renta y las que no vienen de una cotización no cambian.",
+    "changes": [
+      "Facturar una cotización de venta exige que cada partida de venta tenga asignadas tantas unidades como su cantidad.",
+      "La regla ahora vive en la base de datos, así que no se puede evadir saltándose la pantalla.",
+      "Si faltan equipos, la aplicación explica cuántos faltan y cómo asignarlos.",
+      "Facturas sin cotización, cotizaciones de renta y cotizaciones completamente asignadas funcionan exactamente igual que antes.",
+      "El guard sólo acepta o rechaza el alta de la factura: no cambia asignaciones ni el estatus de las unidades.",
+      "El sembrado de pruebas automatizadas conserva su comportamiento."
+    ]
+  },
+  {
     "version": "7.380.0",
     "date": "2026-08-30",
     "type": "minor",

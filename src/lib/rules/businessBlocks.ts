@@ -37,7 +37,8 @@ export type BusinessBlockCode =
   | "damage_not_repaired"
   | "prospect_stage_not_negotiation"
   | "quote_expired"
-  | "quote_already_converted";
+  | "quote_already_converted"
+  | "quote_sale_assignment_incomplete";
 
 /** `info` para restricciones normales del negocio; `warning` para riesgo real. */
 export type BusinessBlockTone = "info" | "warning";
@@ -170,6 +171,12 @@ export const BUSINESS_BLOCKS: Record<BusinessBlockCode, BlockCopy> = {
     nextStep: "Actualiza la fecha de vigencia desde Editar y vuelve a aceptarla.",
     tone: "info",
   },
+  quote_sale_assignment_incomplete: {
+    action: "No puedes facturar esta cotización de venta",
+    reason: "Faltan equipos del inventario por asignar en las partidas de venta.",
+    nextStep: "Asigna las unidades pendientes desde la cotización y vuelve a facturar.",
+    tone: "info",
+  },
   quote_already_converted: {
     action: "No puedes convertir esta cotización otra vez",
     reason: "Ya existe una reserva creada a partir de esta cotización.",
@@ -208,6 +215,8 @@ const ERROR_PATTERNS: Array<{ pattern: RegExp; code: BusinessBlockCode }> = [
   // Guard `trg_guard_supplier_payment_delete` (BEFORE DELETE en supplier_payments).
   { pattern: /REP fiscal recibido/i, code: "supplier_payment_rep_received" },
   { pattern: /factura de proveedor est(á|a) cancelada/i, code: "supplier_bill_cancelled" },
+  // Guard `trg_guard_invoice_sale_assignment` (BEFORE INSERT en invoices).
+  { pattern: /cotizaci(ó|o)n de venta tiene .*sin asignar/i, code: "quote_sale_assignment_incomplete" },
 ];
 
 

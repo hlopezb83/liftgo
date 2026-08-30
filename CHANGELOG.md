@@ -1,3 +1,12 @@
+## [7.381.0] - 2026-08-30
+### Fix (P1-B integridad): guard de asignación completa para facturar cotizaciones de venta
+- Nueva función `public.quote_sale_units_unassigned(uuid)` (SECURITY DEFINER, `SET search_path = public`): espejo exacto de `useQuoteSaleAssignmentStatus` — partida de venta = descripción que termina en `- Venta de equipo`; requerido = `quantity` (0/NULL => 1); asignado = filas de `quote_assigned_forklifts` con ese `line_index`. `EXECUTE` revocado a `anon`/`authenticated`.
+- Nueva función `public.guard_invoice_sale_assignment()` y trigger `trg_guard_invoice_sale_assignment` (BEFORE INSERT en `public.invoices`): si la factura referencia una cotización con partidas de venta incompletas, rechaza con P0001 indicando cuántas unidades faltan. Cubre todas las rutas de alta (UI, RPC, edge functions, SQL directo).
+- Sin cambios para facturas sin `quote_id`, cotizaciones de renta ni cotizaciones totalmente asignadas. El guard no muta asignaciones ni el estatus de las unidades.
+- `service_role`/tareas internas también quedan sujetas a la regla (es invariante de integridad); sólo `app.e2e_seed = 'on'` está exento, como el resto de guards del repo.
+- `businessBlocks`: nuevo código `quote_sale_assignment_incomplete` con la copia canónica; el rechazo del backend por carrera/estado obsoleto se explica igual que la prevención de la UI (`SaleAssignmentBlocked`).
+- Pruebas: `supabase/tests/r_fix35_invoice_sale_assignment_guard_smoke.sql` y `src/lib/rules/__tests__/invoiceSaleAssignmentGuard.test.ts`.
+
 ## [7.380.0] - 2026-08-30
 ### Fix (P1 integridad): guard de archivado de clientes en la BD
 - Nueva función `public.guard_customer_archive()` (SECURITY DEFINER, `SET search_path = public`) y trigger `trg_guard_customer_archive` (BEFORE UPDATE OF `deleted_at` en `public.customers`): sólo actúa en la transición `deleted_at IS NULL -> NOT NULL`. Rechaza con 42501 si quien archiva no es `admin`/`administrativo` (ventas incluido, pese a la policy amplia) y con P0001 si el cliente tiene reservas activas.
