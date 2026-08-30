@@ -3958,6 +3958,14 @@ export type Database = {
         Args: { p_customer_id: string }
         Returns: boolean
       }
+      customer_has_outstanding_balance: {
+        Args: { p_customer_id: string }
+        Returns: boolean
+      }
+      customer_outstanding_balance: {
+        Args: { p_customer_id: string }
+        Returns: number
+      }
       customer_owns_invoice: {
         Args: { p_invoice_id: string }
         Returns: boolean
