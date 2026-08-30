@@ -162,13 +162,37 @@ describe("calculateRentalCost — fin de mes corto (F2, Sprint M1)", () => {
     expect(items[0]).toMatchObject({ description: "Renta mensual", quantity: 1 });
   });
 
-  it("31 ene → 1 mar NO se altera: sigue siendo 1 mes + 2 días", () => {
-    // endDate no es fin de mes: el remanente real de 2 días debe conservarse.
+  it("A5-01: 31 ene → 1 mar es 1 mes + 1 día (el 28-feb ya va dentro del mes)", () => {
     const items = calculateRentalCost(500, 0, 10_000, d("2026-01-31"), d("2026-03-01"));
     expect(items[0]).toMatchObject({ description: "Renta mensual", quantity: 1 });
     const daily = items.find((i) => i.description === "Renta diaria");
+    expect(daily).toMatchObject({ quantity: 1, total: 500 });
+  });
+
+  it("A5-01: 31 ene → 2 mar es 1 mes + 2 días", () => {
+    const items = calculateRentalCost(500, 0, 10_000, d("2026-01-31"), d("2026-03-02"));
+    const daily = items.find((i) => i.description === "Renta diaria");
     expect(daily).toMatchObject({ quantity: 2, total: 1_000 });
   });
+
+  it("A5-01: 30 ene → 1 mar es 1 mes + 1 día (clamp a 28-feb)", () => {
+    const items = calculateRentalCost(500, 0, 10_000, d("2026-01-30"), d("2026-03-01"));
+    const daily = items.find((i) => i.description === "Renta diaria");
+    expect(daily).toMatchObject({ quantity: 1, total: 500 });
+  });
+
+  it("A5-01: 31 mar → 1 may es 1 mes + 1 día", () => {
+    const items = calculateRentalCost(500, 0, 10_000, d("2026-03-31"), d("2026-05-01"));
+    const daily = items.find((i) => i.description === "Renta diaria");
+    expect(daily).toMatchObject({ quantity: 1, total: 500 });
+  });
+
+  it("A5-01: mes sin clamp (15 ene → 16 feb) conserva su remanente real", () => {
+    const items = calculateRentalCost(500, 0, 10_000, d("2026-01-15"), d("2026-02-16"));
+    const daily = items.find((i) => i.description === "Renta diaria");
+    expect(daily).toMatchObject({ quantity: 2, total: 1_000 });
+  });
+
 });
 
 describe("generateLineItems — timezone stability (BL-14)", () => {
