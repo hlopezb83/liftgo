@@ -101,8 +101,8 @@ BEGIN
 
   -- Cotización de venta: partida 0 con 2 unidades + partida 1 con 1 unidad
   -- (+ una partida de servicio que NO exige asignación).
-  INSERT INTO public.quotes (quote_number, customer_id, customer_name, line_items)
-  VALUES ('ZZ-COT-VENTA-fix35', v_cust, 'ZZ Smoke fix35', '[
+  INSERT INTO public.quotes (quote_number, customer_id, customer_name, subtotal, tax_amount, total, line_items)
+  VALUES ('ZZ-COT-VENTA-fix35', v_cust, 'ZZ Smoke fix35', 350, 56, 406, '[
     {"description":"LIFT GO FD50 - Venta de equipo","quantity":2,"unit_price":100,"total":200},
     {"description":"LIFT GO FB25 - Venta de equipo","quantity":1,"unit_price":100,"total":100},
     {"description":"Servicio de Logística","quantity":1,"unit_price":50,"total":50}
@@ -110,8 +110,8 @@ BEGIN
   RETURNING id INTO v_sale;
 
   -- Cotización de renta: sin partidas de venta.
-  INSERT INTO public.quotes (quote_number, customer_id, customer_name, line_items)
-  VALUES ('ZZ-COT-RENTA-fix35', v_cust, 'ZZ Smoke fix35', '[
+  INSERT INTO public.quotes (quote_number, customer_id, customer_name, subtotal, tax_amount, total, line_items)
+  VALUES ('ZZ-COT-RENTA-fix35', v_cust, 'ZZ Smoke fix35', 100, 16, 116, '[
     {"description":"Renta mensual LIFT GO FD50","quantity":1,"unit_price":100,"total":100}
   ]'::jsonb)
   RETURNING id INTO v_rent;
