@@ -18,8 +18,6 @@ interface StatusChangeCardProps {
 // destino manual; y para maintenance/sold/retired la razón es obligatoria.
 const REASON_REQUIRED = new Set(["maintenance", "sold", "retired"]);
 const MANUAL_TARGETS = FORKLIFT_STATUSES.filter((s) => s !== "rented");
-/** Destinos que el backend bloquea mientras la unidad tenga renta activa. */
-const BLOCKED_WHILE_RENTED = new Set(["maintenance", "available", "sold", "retired"]);
 
 export function StatusChangeCard({ forkliftId, currentStatus }: StatusChangeCardProps) {
   const [newStatus, setNewStatus] = useState("");
@@ -29,23 +27,21 @@ export function StatusChangeCard({ forkliftId, currentStatus }: StatusChangeCard
   const updateStatus = useUpdateStatus({ onBusinessBlock: setServerBlock });
 
   const reasonRequired = REASON_REQUIRED.has(newStatus);
-  // Prevención en UI: la regla la impone `change_forklift_status`, aquí solo
-  // se explica de antemano cuando el estado actual ya la determina.
-  const rentedBlock =
-    currentStatus === "rented" && BLOCKED_WHILE_RENTED.has(newStatus)
-      ? describeForkliftRentalBlock(newStatus)
-      : null;
-  // Si el backend rechazó por renta activa (carrera), se muestra el mismo
+  // La regla real la impone `change_forklift_status`: bloquea sólo si la unidad
+  // tiene RENTA ABIERTA (entrega completada sin devolución), no por el simple
+  // hecho de estar en estado 'rented'. Una unidad ya devuelta que quedó marcada
+  // como rentada debe poder corregirse desde aquí, así que no se pre-bloquea:
+  // si el backend rechaza, se explica con el mismo bloqueo.
+  // Si el backend rechazó por renta activa, se muestra el
   // bloqueo pero titulado con el estado que el usuario intentó aplicar.
   const contextualServerBlock =
     serverBlock?.code === "forklift_active_rental"
       ? describeForkliftRentalBlock(newStatus)
       : serverBlock;
-  const block = rentedBlock ?? contextualServerBlock;
+  const block = contextualServerBlock;
   const canSubmit =
     !!newStatus &&
     newStatus !== currentStatus &&
-    !rentedBlock &&
     (!reasonRequired || statusNote.trim().length > 0) &&
     !updateStatus.isPending;
 
