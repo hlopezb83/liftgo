@@ -3954,6 +3954,10 @@ export type Database = {
         Args: { p_name: string }
         Returns: boolean
       }
+      customer_has_active_bookings: {
+        Args: { p_customer_id: string }
+        Returns: boolean
+      }
       customer_owns_invoice: {
         Args: { p_invoice_id: string }
         Returns: boolean

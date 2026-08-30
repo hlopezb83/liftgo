@@ -1,3 +1,11 @@
+## [7.380.0] - 2026-08-30
+### Fix (P1 integridad): guard de archivado de clientes en la BD
+- Nueva función `public.guard_customer_archive()` (SECURITY DEFINER, `SET search_path = public`) y trigger `trg_guard_customer_archive` (BEFORE UPDATE OF `deleted_at` en `public.customers`): sólo actúa en la transición `deleted_at IS NULL -> NOT NULL`. Rechaza con 42501 si quien archiva no es `admin`/`administrativo` (ventas incluido, pese a la policy amplia) y con P0001 si el cliente tiene reservas activas.
+- Nuevo helper `public.customer_has_active_bookings(uuid)` con la definición canónica de reserva activa (`confirmed`, `in_progress`); `soft_delete_customer` lo reutiliza para evitar lógica duplicada. `EXECUTE` revocado a `anon`/`authenticated`.
+- El saldo pendiente NO se convierte en regla de base de datos: sigue siendo advertencia/bloqueo de UI (decisión de producto separada).
+- Desarchivar (`deleted_at` -> NULL) y las ediciones normales de clientes quedan sin cambios. Sin sesión (service_role/tareas) y con `app.e2e_seed = 'on'` el guard no interviene.
+- Pruebas: `supabase/tests/r_fix34_customer_archive_guard_smoke.sql` (catálogo + comportamiento por rol, transacción con ROLLBACK).
+
 ## [7.379.0] - 2026-08-29
 ### Fix (P0 integridad): guard de borrado de pagos a proveedor en la BD
 - Nueva función `public.guard_supplier_payment_delete()` (SECURITY DEFINER, `SET search_path = public`) y trigger `trg_guard_supplier_payment_delete` (BEFORE DELETE en `public.supplier_payments`): rechaza el borrado si `rep_status = 'received'` (P0001), si la factura de proveedor está `cancelled` (P0001) o si el usuario no es `admin` (42501).
