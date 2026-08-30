@@ -125,7 +125,10 @@ export function useUpdateCustomer() {
   });
 }
 
-export function useDeleteCustomer() {
+export function useDeleteCustomer(opts?: {
+  /** Bloqueos de negocio del backend (saldo pendiente, rentas activas). */
+  onBusinessBlock?: (block: BusinessBlock) => void;
+}) {
   return useEntityMutation({
     mutationFn: async (id: string) => {
       // Soft delete: preserva historial de facturas y bookings
@@ -134,5 +137,8 @@ export function useDeleteCustomer() {
     },
     invalidateKeys: [customerKeys.all],
     errorTitle: "Error al archivar cliente",
+    ...(opts?.onBusinessBlock
+      ? { onBusinessBlock: (block: BusinessBlock) => opts.onBusinessBlock?.(block) }
+      : {}),
   });
 }
