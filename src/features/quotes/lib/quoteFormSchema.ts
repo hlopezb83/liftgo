@@ -84,6 +84,11 @@ export const quoteFormSchema = z.object({
   customerId: z.string().trim().min(1, "Selecciona un cliente"),
   customerName: z.string().default(""),
   currency: z.enum(["MXN", "USD"]),
+  // A5-02: el tipo de cambio se captura en la cotización y se propaga a la
+  // reserva y a la factura. Antes nunca se almacenaba y `quotes.tipo_cambio`
+  // quedaba en su DEFAULT 1 (paridad ficticia USD 1:1).
+  tipoCambio: nonNegative.default(1),
+
   taxRate: z.string().regex(/^\d+(\.\d+)?$/, "Tasa inválida"),
   notes: z.string().default(""),
   validUntil: z.date().optional(),
