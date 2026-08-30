@@ -38,7 +38,8 @@ export type BusinessBlockCode =
   | "prospect_stage_not_negotiation"
   | "quote_expired"
   | "quote_already_converted"
-  | "quote_sale_assignment_incomplete";
+  | "quote_sale_assignment_incomplete"
+  | "customer_outstanding_balance";
 
 /** `info` para restricciones normales del negocio; `warning` para riesgo real. */
 export type BusinessBlockTone = "info" | "warning";
