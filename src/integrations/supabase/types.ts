@@ -668,6 +668,7 @@ export type Database = {
           id: string
           logo_url: string | null
           lugar_expedicion: string
+          maintenance_buffer_days: number
           razon_social: string
           regimen_fiscal: string
           rfc: string
@@ -683,6 +684,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           lugar_expedicion: string
+          maintenance_buffer_days?: number
           razon_social: string
           regimen_fiscal: string
           rfc: string
@@ -698,6 +700,7 @@ export type Database = {
           id?: string
           logo_url?: string | null
           lugar_expedicion?: string
+          maintenance_buffer_days?: number
           razon_social?: string
           regimen_fiscal?: string
           rfc?: string
@@ -4411,6 +4414,7 @@ export type Database = {
           isSetofReturn: true
         }
       }
+      maintenance_buffer_days: { Args: never; Returns: number }
       mark_overdue_supplier_bills: { Args: never; Returns: number }
       mark_started_bookings_rented: { Args: never; Returns: number }
       mark_supplier_rep_rejected: {

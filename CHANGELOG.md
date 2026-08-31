@@ -1,3 +1,9 @@
+## [7.395.0] - 2026-08-31
+### Feature (buffer de mantenimiento configurable)
+- **A6R2-7:** el buffer de días alrededor del próximo servicio deja de estar hardcodeado; ahora vive en `company_settings.maintenance_buffer_days` (default 3, rango 0-30) y lo leen `create_booking`, `extend_booking` y `get_available_forklifts` vía `public.maintenance_buffer_days()`.
+- Nueva tarjeta **Buffer de Mantenimiento** en Configuración > Pólizas de Mantenimiento (`MaintenanceBufferCard`) con los hooks `useMaintenanceBuffer` / `useUpdateMaintenanceBuffer`.
+- Sin cambios en RLS, permisos ni máquinas de estado.
+
 ## [7.394.0] - 2026-08-31
 ### Fix (residuales fiscales y devoluciones)
 - **B5-02:** el PDF de estado de cuenta resta `total_credited` al saldo y muestra la tarjeta de notas de crédito.

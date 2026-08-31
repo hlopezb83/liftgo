@@ -20,6 +20,7 @@ import {
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifyValidation } from "@/lib/ui/appFeedback";
+import { MaintenanceBufferCard } from "./MaintenanceBufferCard";
 import { MaintenancePolicyForm } from "./MaintenancePolicyForm";
 import { EMPTY_POLICY_FORM, type MaintenancePolicyFormValues } from "./maintenancePolicyFormTypes";
 
@@ -136,6 +137,8 @@ export function MaintenancePoliciesTab() {
 
   return (
     <div className="space-y-4 mt-4">
+      <MaintenanceBufferCard />
+
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
           Configura pólizas de mantenimiento con proveedores externos. Se generará un registro automático cada mes para cada montacargas rentado con póliza activa.
