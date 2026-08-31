@@ -3,6 +3,7 @@ import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { notifySuccess } from "@/lib/ui/appFeedback";
 import { bankImportKeys } from "../../lib/queryKeys";
 import { bankLinesKey } from "../useBankStatementLines";
+import { assignOccurrences } from "../../lib/bankParseUtils";
 import type { ParsedBankLine } from "../../lib/csvParsers";
 
 interface ImportArgs {
@@ -29,7 +30,10 @@ export function useImportBankStatement() {
         .single();
       if (impErr) throw impErr;
 
-      const rows = args.lines.map((l) => ({
+      // A5-09: la dedup es (bank_account_id, hash, occurrence). `occurrence`
+      // numera las repeticiones de un movimiento identico dentro del archivo,
+      // asi que el resultado no depende del orden de las lineas.
+      const rows = assignOccurrences(args.lines).map((l) => ({
         import_id: imp.id,
         bank_account_id: args.bankAccountId,
         posted_date: l.posted_date,
@@ -38,6 +42,7 @@ export function useImportBankStatement() {
         reference: l.reference,
         line_seq: l.line_seq,
         hash: l.hash,
+        occurrence: l.occurrence,
       }));
 
       // M-12: upsert en lotes de 1000 filas. Un único upsert con archivos
@@ -52,7 +57,7 @@ export function useImportBankStatement() {
           // R23-11: `select()` nos dice cuántas líneas eran realmente nuevas.
           const { data: inserted, error: insErr } = await supabase
             .from("bank_statement_lines")
-            .upsert(chunk, { onConflict: "bank_account_id,hash", ignoreDuplicates: true })
+            .upsert(chunk, { onConflict: "bank_account_id,hash,occurrence", ignoreDuplicates: true })
             .select("id");
           if (insErr) throw insErr;
           insertedCount += inserted?.length ?? 0;

@@ -205,6 +205,7 @@ export type Database = {
           matched_by: string | null
           matched_payment_id: string | null
           matched_supplier_payment_id: string | null
+          occurrence: number
           posted_date: string
           reference: string | null
           signed_amount: number
@@ -227,6 +228,7 @@ export type Database = {
           matched_by?: string | null
           matched_payment_id?: string | null
           matched_supplier_payment_id?: string | null
+          occurrence?: number
           posted_date: string
           reference?: string | null
           signed_amount: number
@@ -249,6 +251,7 @@ export type Database = {
           matched_by?: string | null
           matched_payment_id?: string | null
           matched_supplier_payment_id?: string | null
+          occurrence?: number
           posted_date?: string
           reference?: string | null
           signed_amount?: number
@@ -882,6 +885,8 @@ export type Database = {
           lookup_attempts: number
           motive: string
           reason_text: string
+          stamp_variance: number | null
+          stamp_variance_checked_at: string | null
           stamping_attempts: number
           status: string
           substitution_uuid: string | null
@@ -916,6 +921,8 @@ export type Database = {
           lookup_attempts?: number
           motive: string
           reason_text: string
+          stamp_variance?: number | null
+          stamp_variance_checked_at?: string | null
           stamping_attempts?: number
           status?: string
           substitution_uuid?: string | null
@@ -950,6 +957,8 @@ export type Database = {
           lookup_attempts?: number
           motive?: string
           reason_text?: string
+          stamp_variance?: number | null
+          stamp_variance_checked_at?: string | null
           stamping_attempts?: number
           status?: string
           substitution_uuid?: string | null

@@ -17,7 +17,7 @@ import {
   isFacturapiTimeout,
   sdkCallWithTimeout,
 } from "../_shared/facturapi/withTimeout.ts";
-import { roundMoney } from "../_shared/money.ts";
+import { computeStampVariance, roundMoney } from "../_shared/money.ts";
 
 export type { SupabaseLike };
 export interface StampCreditNoteDeps {
@@ -432,14 +432,47 @@ export async function handleStampCreditNote(
       });
     }
 
+    // A1-B3 (residual): reconciliación de varianza, espejo de BL-A5 en
+    // stamp-cfdi. Si el total del CFDI de egreso no coincide con
+    // `credit_notes.total`, se persiste la identidad fiscal (el CFDI ya existe
+    // ante el SAT y debe poder cancelarse) pero con `cfdi_status='error'`.
+    const stampedTotal = (fa as { total?: unknown }).total;
+    const varianceCheck = computeStampVariance(ncRow.total, stampedTotal);
+    const hasVariance = Boolean(
+      varianceCheck && !varianceCheck.withinTolerance,
+    );
+    const varianceMessage = hasVariance && varianceCheck
+      ? `Error BL-A5: el total timbrado (${
+        Number(stampedTotal).toFixed(2)
+      }) difiere del total de la nota de crédito (${
+        Number(ncRow.total).toFixed(2)
+      }); varianza ${
+        varianceCheck.variance.toFixed(2)
+      }. El CFDI de egreso existe ante el SAT: cancélalo y corrige tasas/descuentos.`
+      : null;
+    if (hasVariance && varianceCheck) {
+      console.error("[stamp-credit-note] BL-A5 stamp variance detectada", {
+        credit_note_id,
+        credit_note_total: ncRow.total,
+        stamped_total: stampedTotal,
+        variance: varianceCheck.variance,
+      });
+    }
+
     const updRes = await supabase.from("credit_notes").update({
       facturapi_invoice_id: facturApiId,
       cfdi_uuid: cfdiUuid,
-      cfdi_status: "stamped",
-      status: "stamped",
+      cfdi_status: hasVariance ? "error" : "stamped",
+      ...(hasVariance ? {} : { status: "stamped" }),
       cfdi_xml_url: xmlPath,
       cfdi_pdf_url: pdfPath,
-      cfdi_error_message: null,
+      cfdi_error_message: varianceMessage,
+      ...(varianceCheck
+        ? {
+          stamp_variance: varianceCheck.variance,
+          stamp_variance_checked_at: new Date().toISOString(),
+        }
+        : {}),
     }).eq("id", credit_note_id);
 
     const updErr = (updRes as { error: unknown }).error;
@@ -454,6 +487,19 @@ export async function handleStampCreditNote(
         jsonHeaders,
       );
     }
+
+    if (hasVariance) {
+      return json(
+        {
+          error: varianceMessage ??
+            "Stamp variance exceeds tolerance; credit note not stamped",
+          cfdi_uuid: cfdiUuid,
+        },
+        502,
+        jsonHeaders,
+      );
+    }
+
 
     // Folio diferido: si el credit_note_number sigue siendo placeholder
     // BORRADOR-NC-XXXX y Facturapi devolvió folio, promovemos a NC-<folio>.
