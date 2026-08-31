@@ -137,6 +137,9 @@ export function CustomerStatementDocument(props: CustomerStatementDocumentProps)
         <View style={{ flexDirection: "row", gap: 8 }}>
           <SummaryCard label="TOTAL FACTURADO (MXN)" value={formatCurrency(totalInvoiced)} />
           <SummaryCard label="TOTAL PAGADO (MXN)" value={formatCurrency(totalPaid)} />
+          {totalCredited > 0 && (
+            <SummaryCard label="NOTAS DE CRÉDITO (MXN)" value={formatCurrency(totalCredited)} />
+          )}
           <SummaryCard label="SALDO PENDIENTE (MXN)" value={formatCurrency(balance)} danger={balance > 0} />
         </View>
 
