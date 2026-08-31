@@ -64,6 +64,8 @@ interface DetailBill extends BillData {
   approval_status: string;
   approval_notes: string | null;
   approved_at: string | null;
+  rejected_at?: string | null;
+
   balance: number | string;
   issue_date: string;
   due_date: string | null;
