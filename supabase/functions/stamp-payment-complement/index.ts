@@ -278,6 +278,28 @@ Deno.serve(async (req) => {
       dataEntry.exchange = paymentExchange;
     }
 
+    // Residual (a): sin defaults genéricos "616"/"06600" para receptores con
+    // RFC real; el REP debe llevar los datos fiscales del cliente.
+    const repTaxId = String(invoice.receptor_rfc || "XAXX010101000")
+      .toUpperCase();
+    const repIsGlobal = repTaxId === "XAXX010101000";
+    const repTaxSystem = repIsGlobal
+      ? String(invoice.receptor_regimen_fiscal || "616")
+      : String(invoice.receptor_regimen_fiscal ?? "").trim();
+    const repZip = repIsGlobal
+      ? String(invoice.receptor_domicilio_fiscal_cp || "06600")
+      : String(invoice.receptor_domicilio_fiscal_cp ?? "").trim();
+    if (!repIsGlobal && (!repTaxSystem || !repZip)) {
+      const missing = [
+        !repTaxSystem ? "régimen fiscal del receptor" : null,
+        !repZip ? "código postal fiscal del receptor" : null,
+      ].filter(Boolean).join(", ");
+      const msg =
+        `Faltan datos fiscales del receptor: ${missing}. Captúralos en el cliente o en la factura antes de timbrar el complemento de pago.`;
+      await releaseClaim(msg);
+      return jsonError(req, 400, msg);
+    }
+
     const payload = {
       type: "P",
       // H4: external_id = payment_id. Si el PAC timbra pero la respuesta se
@@ -287,9 +309,9 @@ Deno.serve(async (req) => {
       customer: {
         legal_name: invoice.receptor_razon_social || invoice.customer_name ||
           "Público General",
-        tax_id: invoice.receptor_rfc || "XAXX010101000",
-        tax_system: invoice.receptor_regimen_fiscal || "616",
-        address: { zip: invoice.receptor_domicilio_fiscal_cp || "06600" },
+        tax_id: repTaxId,
+        tax_system: repTaxSystem,
+        address: { zip: repZip },
       },
       complements: [{ type: "pago", data: [dataEntry] }],
     };
