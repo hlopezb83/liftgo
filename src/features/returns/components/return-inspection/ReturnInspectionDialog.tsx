@@ -82,6 +82,7 @@ export function ReturnInspectionDialog({
             control={form.control}
             name="inspectedAt"
             disabledMatcher={{ after: new Date() }}
+            disabledMatcher={{ after: new Date() }}
             label="Fecha de Inspección"
             required
           />
