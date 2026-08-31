@@ -1,3 +1,9 @@
+## [7.392.0] - 2026-08-31
+### Fix (catálogo QA — segregación de funciones CxP y utilización del tablero)
+- **CxP:** `approve_supplier_bill` rechaza la auto-aprobación (`created_by = auth.uid()`) con `check_violation`; se agregó el bloqueo explicable `supplier_bill_self_approval`.
+- **2A-7:** `get_dashboard_stats` excluye reservas `is_e2e` en `overdue_bookings`, `utilization` y `monthly_utilization`.
+- Sin cambios en RLS, permisos, máquinas de estado ni cálculos fiscales.
+
 ## [7.391.0] - 2026-08-31
 ### Fix (catálogo QA — lotes 2/3: A6R2-3, A6R2-4, 2A-9, A3B-03, A4B-05, estado de resultados FX)
 - **A6R2-3:** `capture_contract_signed_snapshot` + `contracts.signed_snapshot` guardan contrato, cliente, unidad y plantilla al firmar; el snapshot es inmutable y `src/lib/pdf/contract/fetchers.ts` lo usa para rendir el PDF de contratos firmados.
