@@ -1,5 +1,15 @@
 [
   {
+    "version": "7.393.1",
+    "date": "2026-08-31",
+    "type": "patch",
+    "title": "Limpieza interna de arquitectura",
+    "description": "Ajuste técnico en la organización del código; sin cambios visibles para el usuario.",
+    "changes": [
+      "Los módulos ahora se comunican por sus puntos de entrada oficiales."
+    ]
+  },
+  {
     "version": "7.393.0",
     "date": "2026-08-31",
     "type": "minor",

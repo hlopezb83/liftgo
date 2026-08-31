@@ -1,3 +1,8 @@
+## [7.393.1] - 2026-08-31
+### Chore (arquitectura)
+- Se eliminaron los 2 imports profundos entre features detectados por `arch:check`: `useDamagePrefill` y `useAgingReport` ahora importan desde los barrels públicos `@/features/damage` y `@/features/cash-flow`.
+- Sin cambios funcionales, de RLS, permisos ni cálculos.
+
 ## [7.393.0] - 2026-08-31
 ### Fix (bugs abiertos — lotes 2 y 3)
 - **A6R2-5:** el kanban de mantenimiento ya no permite arrastrar una OT `completed`/`cancelled` a un estado abierto; muestra el bloqueo explicable `maintenance_work_order_closed` y la reapertura formal sigue siendo por `reopen_work_order` (admin + motivo).
