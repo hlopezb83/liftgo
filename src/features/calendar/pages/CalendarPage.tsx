@@ -13,6 +13,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useBookingsRange, bookingKeys } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
+import { useMaintenanceLogs } from "@/features/maintenance";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { formatDateMty, formatDayMonthMty } from "@/lib/format/dateFormats";
 import { formatMonthLongEs } from "@/lib/format/formatMonthEs";
@@ -170,7 +171,13 @@ export default function CalendarPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <GanttChart forklifts={forklifts} bookings={bookings} rangeStart={rangeStart} rangeEnd={rangeEnd} />
+            <GanttChart
+              forklifts={forklifts}
+              bookings={bookings}
+              rangeStart={rangeStart}
+              rangeEnd={rangeEnd}
+              maintenanceWindows={maintenanceWindows}
+            />
           </CardContent>
         </Card>
       ) : (
