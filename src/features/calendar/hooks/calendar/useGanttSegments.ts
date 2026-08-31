@@ -48,7 +48,15 @@ export function useGanttSegments(
   rangeStart: Date,
   rangeEnd: Date,
   maintenanceWindows?: MaintenanceWindow[],
+  /**
+   * A5-07: días de holgura alrededor del próximo servicio. Es el mismo valor
+   * configurable (`company_settings.maintenance_buffer_days`) que usan las RPC
+   * de reservas, para que el Gantt dibuje la ventana real de bloqueo y no un
+   * marcador de un solo día.
+   */
+  maintenanceBufferDays = 0,
 ) {
+
   const days = eachDayOfInterval({ start: rangeStart, end: rangeEnd });
   const totalDays = days.length;
 
