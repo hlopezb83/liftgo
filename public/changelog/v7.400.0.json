@@ -1,0 +1,10 @@
+{
+  "description": "Archivar ya no borra información, se pueden restaurar órdenes de trabajo y daños archivados, y las cotizaciones convertidas regresan a 'Aceptada' cuando todas sus reservas se cancelan.",
+  "changes": [
+    "Archivar una orden de trabajo abierta ya no borra sus refacciones ni su mano de obra: solo se oculta el registro y se conserva el costo histórico.",
+    "Nueva vista 'Archivados' en Mantenimiento y en Seguimiento de Daños, con botón para restaurar (solo administradores). Cada restauración queda en la bitácora del equipo.",
+    "Una cotización convertida vuelve automáticamente a 'Aceptada' cuando todas sus reservas quedan canceladas, en lugar de quedar bloqueada.",
+    "Al cancelar o eliminar una factura de daños, la liberación del daño queda registrada en la bitácora del equipo con el folio de la factura.",
+    "Se unificó el criterio de 'unidad devuelta': ahora se reconoce por la inspección de retorno registrada. Antes algunas validaciones buscaban un tipo de movimiento que la app nunca genera."
+  ]
+}
