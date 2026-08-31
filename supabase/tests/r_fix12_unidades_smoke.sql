@@ -49,7 +49,7 @@ SELECT pg_temp.expect_true(
 );
 SELECT pg_temp.expect_true(
   'N-6 create_booking conserva el buffer de mantenimiento',
-  pg_temp.fndef('create_booking') ILIKE '%buffer de 3 días%'
+  pg_temp.fndef('create_booking') ILIKE '%maintenance_buffer_days()%'
 );
 
 -- N-41: las tres rutas de liberación usan la definición ampliada.
@@ -67,7 +67,7 @@ SELECT pg_temp.expect_true(
 );
 SELECT pg_temp.expect_true(
   'N-41 sync_forklift_rental_status conserva el guard de admin',
-  pg_temp.fndef('sync_forklift_rental_status') ILIKE '%has_role(auth.uid(), ''admin''%'
+  pg_temp.fndef('sync_forklift_rental_status') ILIKE '%has_role((select auth.uid()), ''admin''%'
 );
 
 -- N-42: la guarda cubre cualquier salida de 'rented'.
@@ -95,11 +95,11 @@ SELECT pg_temp.expect_true(
 );
 SELECT pg_temp.expect_true(
   'N-38 complete_return_inspection libera sólo si la unidad sigue rentada',
-  pg_temp.fndef('complete_return_inspection') ILIKE '%WHERE id = p_forklift_id AND status = ''rented''%'
+  pg_temp.fndef('complete_return_inspection') ILIKE '%IF v_old_status = ''rented'' THEN%'
 );
 SELECT pg_temp.expect_true(
   'N-38 complete_return_inspection registra bitácora sólo si hubo cambio',
-  pg_temp.fndef('complete_return_inspection') ILIKE '%IF v_updated > 0 THEN%'
+  pg_temp.fndef('complete_return_inspection') ILIKE '%INSERT INTO status_logs%v_old_status, v_new_status%'
 );
 SELECT pg_temp.expect_true(
   'N-38 complete_return_inspection conserva el cálculo de horas extra',

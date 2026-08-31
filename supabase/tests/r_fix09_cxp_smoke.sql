@@ -20,7 +20,7 @@ END; $$;
 -- 1) R-1: el default del parametro de fecha usa today_mty(), no CURRENT_DATE.
 SELECT pg_temp.expect_true(
   'R-1 register_supplier_payment usa today_mty() como default',
-  pg_get_functiondef(p.oid) ILIKE '%DEFAULT public.today_mty()%'
+  pg_get_functiondef(p.oid) ILIKE '%DEFAULT today_mty()%'
   AND pg_get_functiondef(p.oid) NOT ILIKE '%DEFAULT CURRENT_DATE%'
 )
 FROM pg_proc p
@@ -57,7 +57,7 @@ BEGIN
   VALUES ('SMOKE FIX09 Proveedor')
   RETURNING id INTO v_supplier;
 
-  INSERT INTO public.supplier_bills (supplier_id, subtotal, tax_amount, total, status, approval_status, bill_date)
+  INSERT INTO public.supplier_bills (supplier_id, subtotal, tax_amount, total, status, approval_status, issue_date)
   VALUES (v_supplier, 1000, 0, 1000, 'pending', 'approved', public.today_mty())
   RETURNING id INTO v_bill;
 

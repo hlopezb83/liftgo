@@ -37,14 +37,14 @@ SELECT pg_temp.expect_true(
 
 -- 2) N-1: la sincronizacion exige un pago real para marcar 'paid'.
 SELECT pg_temp.expect_true(
-  'N-1 sync_invoice_status_from_payments exige v_paid > 0 para paid',
-  pg_temp.fndef('sync_invoice_status_from_payments') ILIKE '%AND v_paid > 0%'
+  'N-1 sync_invoice_status exige v_paid > 0 para paid',
+  pg_temp.fndef('sync_invoice_status') ILIKE '%AND v_paid > 0%'
 );
 
 -- 3) N-21: ambos guards usan el criterio de la UI.
 SELECT pg_temp.expect_true(
-  'N-21 sync_invoice_status_from_payments usa cfdi_status/cancellation_status',
-  pg_temp.fndef('sync_invoice_status_from_payments') ILIKE '%cancellation_status IS DISTINCT FROM ''accepted''%'
+  'N-21 sync_invoice_status usa cfdi_status/cancellation_status',
+  pg_temp.fndef('sync_invoice_status') ILIKE '%cancellation_status IS DISTINCT FROM ''accepted''%'
 );
 SELECT pg_temp.expect_true(
   'N-21 enforce_payment_within_invoice_total usa cfdi_status/cancellation_status',
@@ -76,7 +76,7 @@ BEGIN
   VALUES ('SMOKE FIX10 Proveedor')
   RETURNING id INTO v_supplier;
 
-  INSERT INTO public.supplier_bills (supplier_id, subtotal, tax_amount, total, status, approval_status, bill_date)
+  INSERT INTO public.supplier_bills (supplier_id, subtotal, tax_amount, total, status, approval_status, issue_date)
   VALUES (v_supplier, 1000, 0, 1000, 'pending', 'approved', public.today_mty())
   RETURNING id INTO v_bill;
 
