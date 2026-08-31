@@ -29,34 +29,54 @@ function timingSafeEqualStr(a: string, b: string): boolean {
   return diff === 0;
 }
 
-export async function authenticateCronRequest(
-  req: Request,
-): Promise<CronAuthResult> {
-  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
+export interface CronAuthOptions {
+  /** Inyectable en tests para no abrir un cliente Supabase real. */
+  getVaultSecret?: () => Promise<string>;
+}
 
-  // FIX 401-CRON: antes sólo consultábamos el Vault cuando `CRON_SECRET` del
-  // entorno estaba vacío. En producción existían AMBOS con valores distintos
-  // (pg_cron firma con el del Vault) y toda llamada terminaba en 401.
-  // Ahora aceptamos cualquiera de los dos secretos válidos.
-  const candidates: string[] = [];
-  const envSecret = Deno.env.get("CRON_SECRET") ?? "";
-  if (envSecret.length > 0) candidates.push(envSecret);
-
+async function defaultVaultSecret(): Promise<string> {
   try {
     const admin = getAdminClient();
-    const { data: vaultSecret } = await admin.rpc("internal_get_cron_secret");
-    if (typeof vaultSecret === "string" && vaultSecret.length > 0) {
-      if (!candidates.includes(vaultSecret)) candidates.push(vaultSecret);
-    }
+    const { data } = await admin.rpc("internal_get_cron_secret");
+    return typeof data === "string" ? data : "";
   } catch {
     // Vault opcional; si falla seguimos con el secreto del entorno.
+    return "";
   }
+}
+
+export async function authenticateCronRequest(
+  req: Request,
+  opts: CronAuthOptions = {},
+): Promise<CronAuthResult> {
+  const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
   const headerSecret = req.headers.get("x-cron-secret") ?? "";
   const authHeader = req.headers.get("authorization") ?? "";
   const bearer = authHeader.startsWith("Bearer ")
     ? authHeader.slice("Bearer ".length).trim()
     : "";
+
+  const matches = (secret: string) =>
+    secret.length > 0 &&
+    (timingSafeEqualStr(headerSecret, secret) ||
+      timingSafeEqualStr(bearer, secret));
+
+  // FIX 401-CRON: antes sólo consultábamos el Vault cuando `CRON_SECRET` del
+  // entorno estaba vacío. En producción existían AMBOS con valores distintos
+  // (pg_cron firma con el del Vault) y toda llamada terminaba en 401.
+  // Ahora aceptamos cualquiera de los dos secretos válidos.
+  const envSecret = Deno.env.get("CRON_SECRET") ?? "";
+  if (matches(envSecret)) return { ok: true, via: "cron_secret" };
+
+  if (serviceKey.length > 0 && timingSafeEqualStr(bearer, serviceKey)) {
+    return { ok: true, via: "service_role" };
+  }
+
+  const vaultSecret = await (opts.getVaultSecret ?? defaultVaultSecret)();
+  if (matches(vaultSecret)) return { ok: true, via: "cron_secret" };
+
+
 
   for (const secret of candidates) {
     if (
