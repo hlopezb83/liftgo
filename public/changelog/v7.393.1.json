@@ -1,0 +1,6 @@
+{
+  "description": "Ajuste técnico en la organización del código; sin cambios visibles para el usuario.",
+  "changes": [
+    "Los módulos ahora se comunican por sus puntos de entrada oficiales."
+  ]
+}

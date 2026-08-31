@@ -1,0 +1,9 @@
+{
+  "description": "El estado de cuenta ya resta las notas de crédito, la facturación recurrente no inventa datos fiscales y una devolución no puede registrarse con fecha futura.",
+  "changes": [
+    "El PDF de estado de cuenta resta las notas de crédito del saldo.",
+    "El timbrado de notas de crédito y complementos de pago exige el régimen y código postal reales del cliente.",
+    "La facturación recurrente ya no mezcla monedas en una misma factura y pide el uso de CFDI del cliente.",
+    "La inspección de devolución sólo acepta fechas hasta hoy."
+  ]
+}

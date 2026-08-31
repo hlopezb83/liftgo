@@ -1,0 +1,6 @@
+{
+  "description": "Reorganización técnica de algunos archivos; sin cambios visibles para el usuario.",
+  "changes": [
+    "Código de cotizaciones, contratos y calendario dividido en piezas más pequeñas."
+  ]
+}

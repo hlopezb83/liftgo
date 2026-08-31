@@ -1,0 +1,10 @@
+{
+  "description": "Las cancelaciones de facturas, notas de crédito y complementos de pago que quedan esperando respuesta del timbrador ya no se reintentan indefinidamente: ahora hay un tope, la espera entre intentos crece y, si el SAT ya confirmó la cancelación, la tarea se cierra sola.",
+  "changes": [
+    "Las cancelaciones aplazadas tienen un tope de 10 aplazamientos; al superarlo la tarea se marca como agotada con el detalle del error.",
+    "La espera entre reintentos crece (2, 4, 8… minutos, máximo 60) en vez de reintentar cada 2 minutos.",
+    "Si al consultar al timbrador la cancelación ya quedó confirmada, la tarea se cierra como exitosa.",
+    "La consulta al timbrador tiene límite de 10 segundos y deja registro cuando falla.",
+    "Las cancelaciones de factura que se quedaron a medias también se reintentan; las facturas que no son cancelables siguen fallando de inmediato."
+  ]
+}

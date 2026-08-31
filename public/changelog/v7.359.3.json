@@ -1,0 +1,7 @@
+{
+  "description": "Al correr las pruebas divididas en shards, un shard podía apagar el interruptor de datos de prueba mientras el otro seguía trabajando, provocando fallos por 'E2E seeding disabled'. Ahora el seeding se auto-repara y el apagado se omite en corridas por shards.",
+  "changes": [
+    "tests/e2e/fixtures/seed.ts vuelve a habilitar allow_e2e_seed y reintenta una vez si el RPC responde 'seeding disabled'.",
+    "tests/e2e/global.teardown.ts conserva el interruptor cuando la corrida usa --shard o E2E_KEEP_SEED_FLAG=1."
+  ]
+}

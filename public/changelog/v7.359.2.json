@@ -1,0 +1,7 @@
+{
+  "description": "El interruptor que permite generar datos de prueba (seeding E2E) ya está apagado en el entorno actual. Las pruebas automatizadas lo encienden al iniciar y ahora también lo vuelven a apagar al terminar, así no queda habilitado entre corridas.",
+  "changes": [
+    "R5-07: UPDATE de company_settings deja allow_e2e_seed en false (el valor por defecto para entornos nuevos ya era false).",
+    "tests/e2e/global.teardown.ts apaga allow_e2e_seed después de purge_e2e_data, incluso si la purga falla."
+  ]
+}
