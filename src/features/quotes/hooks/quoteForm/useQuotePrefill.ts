@@ -44,23 +44,28 @@ function rebuildSaleLines(items: LineItem[], models: EquipmentModel[]): SaleLine
   });
 }
 
-function lineToRentalLine(item: LineItem, found: EquipmentModel): RentalLineValues {
+function lineToRentalLine(item: LineItem, found: EquipmentModel, rentalDays?: number): RentalLineValues {
   // A1-6: preservar cantidad/tarifa pactadas de la cotización guardada; el
   // catálogo sólo es fallback cuando la partida no trae el dato (legacy sin
   // `unit_price`). Antes se colapsaba `quantity` a 1 y se sustituían las
   // tarifas acordadas por las del catálogo al re-editar, mostrando montos
   // distintos a los originalmente cotizados.
   const unitPrice = Number(item.unit_price ?? item.total) || 0;
+  // A1-6: respetar la periodicidad de la partida (rate_type / descripción).
+  // Antes toda tarifa se colocaba en `dailyRate`, inflando totales mensuales.
+  const field = rentalRateField(item.description, item, rentalDays);
+  const rate = unitPrice > 0 ? unitPrice : found.default_daily_rate ?? 0;
   return {
     modelId: found.id,
     quantity: Number(item.quantity ?? legacyQty(item)) || 1,
-    dailyRate: unitPrice > 0 ? unitPrice : found.default_daily_rate ?? 0,
-    weeklyRate: found.default_weekly_rate ?? 0,
-    monthlyRate: found.default_monthly_rate ?? 0,
+    dailyRate: field === "dailyRate" ? rate : found.default_daily_rate ?? 0,
+    weeklyRate: field === "weeklyRate" ? rate : found.default_weekly_rate ?? 0,
+    monthlyRate: field === "monthlyRate" ? rate : found.default_monthly_rate ?? 0,
     discount: item.discount || 0,
     discountType: (item.discount_type || "%") as "%" | "$",
   };
 }
+
 
 /**
  * R9VTA-04: fallback para cotizaciones legacy sin `rental_meta` cuyas
