@@ -17,6 +17,9 @@ interface Props {
   forklifts: ForkliftOption[] | undefined;
   hasActive?: boolean;
   onClear?: () => void;
+  /** R5-A6: alterna entre órdenes activas y archivadas (para restaurarlas). */
+  archived?: boolean;
+  onArchivedChange?: (v: boolean) => void;
 }
 
 export function MaintenanceFiltersBar({
@@ -27,6 +30,8 @@ export function MaintenanceFiltersBar({
   forklifts,
   hasActive,
   onClear,
+  archived = false,
+  onArchivedChange,
 }: Props) {
   return (
     <FiltersToolbar>
@@ -46,6 +51,17 @@ export function MaintenanceFiltersBar({
           ))}
         </SelectContent>
       </Select>
+      {onArchivedChange && (
+        <Select value={archived ? "archived" : "active"} onValueChange={(v) => onArchivedChange(v === "archived")}>
+          <SelectTrigger className="w-full sm:w-[160px] h-9">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active">Activos</SelectItem>
+            <SelectItem value="archived">Archivados</SelectItem>
+          </SelectContent>
+        </Select>
+      )}
       {onClear && (
         <FiltersToolbar.ClearAll visible={!!hasActive} onClick={onClear} />
       )}
