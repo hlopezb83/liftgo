@@ -3,6 +3,7 @@ import { handleCors } from "../_shared/cors.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { enforceRateLimit, requireRole } from "../_shared/auth.ts";
 import { aiChatCompletion, AiGatewayError } from "../_shared/ai.ts";
+import { normalizeRegimenFiscal } from "../_shared/regimenFiscal.ts";
 
 const MAX_PDF_BYTES = 5 * 1024 * 1024; // 5 MB
 
@@ -120,7 +121,13 @@ Si un campo no se encuentra, devuelve una cadena vacía.`;
           "No se pudieron extraer datos del documento",
         );
       }
-      return jsonResponse(req, toolArguments);
+      // R6 A4B-08: el modelo puede devolver "601 - General de Ley…".
+      // Sólo se entrega al formulario el código puro del catálogo SAT;
+      // si no se puede derivar uno válido, se deja vacío para captura manual.
+      const parsed = toolArguments as Record<string, unknown>;
+      parsed.regimen_fiscal =
+        normalizeRegimenFiscal(parsed.regimen_fiscal as string | null) ?? "";
+      return jsonResponse(req, parsed);
     } catch (aiErr) {
       if (aiErr instanceof AiGatewayError) {
         return jsonError(req, aiErr.status, aiErr.message);

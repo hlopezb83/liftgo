@@ -25,6 +25,7 @@ import {
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import { isUsoCfdiCompatible } from "../_shared/cfdiUsoRegimen.ts";
+import { isValidRegimenFiscalCode } from "../_shared/regimenFiscal.ts";
 import { validateRfcOrMessage } from "../_shared/rfcChecksum.ts";
 
 // Re-exports públicos preservados (tests + consumidores).
@@ -343,6 +344,17 @@ export async function handleStampCfdi(
           jsonHeaders,
         );
       }
+
+      // R6 A4B-08: fail-fast del régimen fiscal. Un valor con descripción
+      // ("601 - General de Ley…") o fuera del catálogo c_RegimenFiscal llegaba
+      // crudo a Facturapi y el PAC lo rechazaba (o peor: quedaba persistido).
+      if (!isValidRegimenFiscalCode(taxSystem)) {
+        const msg =
+          `El régimen fiscal del receptor "${taxSystem}" no es un código válido del catálogo del SAT (c_RegimenFiscal). Debe ser el código de 3 dígitos, p. ej. "601". Corrígelo en el cliente antes de timbrar.`;
+        await releaseClaim(msg);
+        return json({ error: msg }, 422, jsonHeaders);
+      }
+
 
       // A4B-07: el default "G03" (Gastos en general) no es válido para todos
       // los regímenes (p. ej. 616 "Sin obligaciones fiscales" sólo admite

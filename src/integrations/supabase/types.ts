@@ -4580,6 +4580,10 @@ export type Database = {
         Args: { p_bill_id: string; p_notes: string }
         Returns: undefined
       }
+      release_stale_payment_locks: {
+        Args: { p_older_than_hours?: number }
+        Returns: number
+      }
       reopen_work_order: {
         Args: { p_log_id: string; p_reason: string }
         Returns: undefined
