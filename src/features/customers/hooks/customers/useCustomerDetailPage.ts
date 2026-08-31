@@ -61,10 +61,8 @@ export function useCustomerDetailPage(id: string | undefined) {
   });
 
   const totals = computeCustomerTotals(summary);
-  const bookings = totals.bookings;
-  const invoices = totals.invoices;
+  const { bookings, invoices, activeBookingsCount, totalInvoiced, totalPaid, outstanding, hasDependencies } = totals;
   const hasPortalAccess = !!customer?.user_id;
-
 
   return {
     isLoading, isError, refetch, customer: customer ?? undefined, summary, profitability, role,
