@@ -29,8 +29,8 @@ import {
 
 const STATUS_LABEL: Record<SatValidationStatus, string> = {
   not_validated: "Sin validar",
-  valid: "Coincide con el SAT",
-  mismatch: "Diferencias",
+  valid: "Sin observaciones",
+  mismatch: "Con observaciones (EFOS 69-B)",
   error: "Error / datos faltantes",
 };
 
@@ -76,7 +76,7 @@ function SatValidationContent() {
       <div className="space-y-4">
         <PageHeader
           title="Validación fiscal contra el SAT"
-          subtitle="Compara los datos fiscales de tus clientes con su Constancia de Situación Fiscal. No consume timbres."
+          subtitle="Revisa el RFC de tus clientes contra la lista EFOS (art. 69-B) del SAT y detecta datos fiscales incompletos. No consume timbres."
           backHref={ROUTES.customers.list}
           backLabel="Volver a clientes"
           actions={
@@ -100,7 +100,7 @@ function SatValidationContent() {
             [
               ["Total con RFC", rows.length],
               ["Sin validar", pending],
-              ["Con diferencias", countBy(rows, "mismatch")],
+              ["Con observaciones", countBy(rows, "mismatch")],
               ["Con error", countBy(rows, "error")],
             ] as const
           ).map(([label, value]) => (
@@ -142,7 +142,7 @@ function SatValidationContent() {
                       <TableHead>RFC</TableHead>
                       <TableHead>Estado</TableHead>
                       <TableHead>Última validación</TableHead>
-                      <TableHead>Diferencias</TableHead>
+                      <TableHead>Detalle</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -161,12 +161,17 @@ function SatValidationContent() {
                           {r.sat_validated_at ? formatDateMty(r.sat_validated_at) : "—"}
                         </TableCell>
                         <TableCell className="text-xs">
-                          {r.sat_validation_errors.length === 0
-                            ? "—"
-                            : r.sat_validation_errors
-                                .map((e) => e.message)
-                                .filter(Boolean)
-                                .join(" · ")}
+                          {(() => {
+                            const detalle = r.sat_validation_errors
+                              .map((e) => e.message)
+                              .filter(Boolean)
+                              .join(" · ");
+                            if (detalle) return detalle;
+                            if (r.sat_validation_status === "mismatch") {
+                              return "Sin detalle del SAT. Vuelve a validar para obtener el motivo.";
+                            }
+                            return "—";
+                          })()}
                         </TableCell>
                       </TableRow>
                     ))}

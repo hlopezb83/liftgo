@@ -73,21 +73,108 @@ export async function validateTaxIdWithPac(
     };
   }
 
-  let parsed: { is_valid?: boolean; errors?: TaxIdValidationError[] } = {};
+  let parsed: Record<string, unknown> = {};
   try {
-    parsed = JSON.parse(rawText);
+    parsed = JSON.parse(rawText) as Record<string, unknown>;
   } catch {
     parsed = {};
   }
 
-  if (parsed.is_valid === true) return { kind: "valid", errors: [] };
+  // El PAC responde `{ efos: { is_valid, data } }`: la validación disponible
+  // sin registrar al cliente es la lista EFOS (art. 69-B). Aceptamos también
+  // un `is_valid` de primer nivel por compatibilidad.
+  const efos = (parsed.efos ?? null) as Record<string, unknown> | null;
+  const isValid = parsed.is_valid === true ||
+    (efos !== null && efos.is_valid === true);
+  if (isValid) return { kind: "valid", errors: [] };
 
-  return {
-    kind: "mismatch",
-    errors: (parsed.errors ?? []).map((e) => ({
-      path: e.path ?? "",
-      message: e.message ?? "",
-      code: e.code,
-    })),
-  };
+  const errors = normalizeTaxIdErrors(parsed);
+  if (errors.length === 0) {
+    const efosData = (efos?.data ?? null) as Record<string, unknown> | null;
+    const mensaje = typeof efosData?.mensaje === "string"
+      ? efosData.mensaje
+      : "";
+    console.warn(
+      "[validateTaxIdWithPac] respuesta sin detalle:",
+      rawText.slice(0, 400),
+    );
+    errors.push({
+      path: "",
+      message: mensaje ||
+        "El RFC aparece con observaciones en el SAT. Revisa la Constancia de Situación Fiscal.",
+      code: "SAT_MISMATCH",
+    });
+  }
+
+  return { kind: "mismatch", errors };
 }
+
+
+const FIELD_LABEL: Record<string, string> = {
+  tax_id: "RFC",
+  legal_name: "Razón social",
+  tax_system: "Régimen fiscal",
+  zip: "C.P. fiscal",
+};
+
+function labelFor(path: string): string {
+  return FIELD_LABEL[path] ?? path;
+}
+
+/**
+ * El PAC no siempre devuelve el mismo formato de errores: puede mandar un
+ * arreglo de objetos, un arreglo de textos, un mapa campo → mensaje, o sólo
+ * un `message` general. Normalizamos todos esos casos a una lista legible.
+ */
+export function normalizeTaxIdErrors(
+  parsed: Record<string, unknown>,
+): TaxIdValidationError[] {
+  const out: TaxIdValidationError[] = [];
+  const raw = parsed.errors ?? parsed.error ?? null;
+
+  const pushEntry = (path: string, message: string, code?: string) => {
+    const trimmed = message.trim();
+    if (!trimmed && !path) return;
+    const label = labelFor(path);
+    out.push({
+      path,
+      message: label && trimmed
+        ? `${label}: ${trimmed}`
+        : (trimmed || `${label} no coincide con el SAT`),
+      code,
+    });
+  };
+
+  const consume = (entry: unknown, keyHint = "") => {
+    if (typeof entry === "string") {
+      pushEntry(keyHint, entry);
+      return;
+    }
+    if (entry && typeof entry === "object") {
+      const e = entry as Record<string, unknown>;
+      const path = String(e.path ?? e.field ?? e.param ?? keyHint ?? "");
+      const message = String(
+        e.message ?? e.description ?? e.detail ?? e.reason ?? "",
+      );
+      pushEntry(path, message, e.code ? String(e.code) : undefined);
+    }
+  };
+
+  if (Array.isArray(raw)) {
+    for (const entry of raw) consume(entry);
+  } else if (raw && typeof raw === "object") {
+    for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+      if (Array.isArray(value)) for (const v of value) consume(v, key);
+      else consume(value, key);
+    }
+  } else if (typeof raw === "string") {
+    consume(raw);
+  }
+
+  if (out.length === 0 && typeof parsed.message === "string") {
+    pushEntry("", parsed.message);
+  }
+
+  return out;
+}
+
