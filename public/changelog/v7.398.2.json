@@ -1,0 +1,13 @@
+{
+  "version": "7.398.2",
+  "date": "2026-09-01",
+  "type": "patch",
+  "category": "fix",
+  "title": "Cierre de pendientes de la auditoría R5: cotizaciones en limbo, ventana de mantenimiento y pruebas por zona horaria",
+  "description": "Se liberó el borrado de cotizaciones cuyas reservas fueron todas canceladas, el calendario dibuja la ventana real de mantenimiento y las pruebas dejan de depender de la zona horaria del servidor.",
+  "changes": [
+    "Una cotización cuyas reservas fueron todas canceladas ya puede eliminarse; las que tienen reservas vigentes o están aceptadas siguen protegidas.",
+    "En el calendario, el mantenimiento se dibuja como la ventana completa (fecha del servicio ± los días de holgura configurados) en lugar de una marca de un solo día.",
+    "Las pruebas automáticas se ejecutan con zona horaria fija, eliminando una falla intermitente en el cálculo de vencimientos de facturas de proveedor."
+  ]
+}

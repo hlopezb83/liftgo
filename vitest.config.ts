@@ -34,6 +34,11 @@ export default defineConfig({
     maxWorkers: CPUS,
     minWorkers: Math.min(4, CPUS),
 
+    // Zona horaria fija: la aritmética de fechas de negocio (vencimientos,
+    // periodos de renta) daba resultados distintos según el TZ del runner.
+    env: { TZ: "UTC" },
+
+
     // En CI emitimos JUnit + JSON para que el job pueda subir artifacts y
     // GitHub muestre el resumen de tests fallidos sin perder la salida humana.
     // Cuando VITEST_RLS_JUNIT=1 (script test:rls), el JUnit apunta al archivo

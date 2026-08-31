@@ -1,8 +1,13 @@
 import { parseISO, isToday } from "date-fns";
 import type { BookingWithForklift } from "@/features/bookings";
+import {
+  DEFAULT_MAINTENANCE_BUFFER_DAYS,
+  useMaintenanceBuffer,
+} from "@/features/company-settings";
 import type { Tables } from "@/integrations/supabase/types";
 import { BOOKING_STATUS } from "@/lib/constants";
 import { useGanttSegments, type MaintenanceWindow } from "../../hooks/calendar/useGanttSegments";
+
 import { GanttHeader } from "./GanttHeader";
 import { GanttLegend } from "./GanttLegend";
 import { GanttRow } from "./GanttRow";
@@ -57,12 +62,17 @@ function ChipCloud({ groups }: { groups: Array<{ key: string; count: number }> }
 }
 
 export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd, maintenanceWindows }: GanttChartProps) {
+  // A5-07: el buffer configurable de mantenimiento (mismo valor que usan las
+  // RPC de reservas) define el ancho real de la ventana dibujada.
+  const { data: buffer } = useMaintenanceBuffer();
   const { days, getSegments, getMaintenanceSegments, customerColorMap } = useGanttSegments(
     bookings,
     rangeStart,
     rangeEnd,
     maintenanceWindows,
+    buffer?.days ?? DEFAULT_MAINTENANCE_BUFFER_DAYS,
   );
+
 
   const forkliftsWithActivity = (() => {
     const set = new Set<string>();
