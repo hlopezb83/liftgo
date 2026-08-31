@@ -36,12 +36,14 @@ describe("buildFinancials", () => {
   it("usa defaults 0 cuando faltan KPIs", () => {
     expect(buildFinancials(undefined)).toEqual({
       mrr: 0, dso: 0, overdueTotal: 0, overdueFxMissingCount: 0,
+      mrrFxMissingCount: 0, mrrPrevFxMissingCount: 0,
     });
   });
 
   it("propaga valores presentes", () => {
     expect(buildFinancials({ mrr: 100000, dso: 35, overdue_total: 5000 })).toEqual({
       mrr: 100000, dso: 35, overdueTotal: 5000, overdueFxMissingCount: 0,
+      mrrFxMissingCount: 0, mrrPrevFxMissingCount: 0,
     });
   });
 
@@ -49,9 +51,23 @@ describe("buildFinancials", () => {
   it("propaga el conteo de facturas sin tipo de cambio", () => {
     expect(
       buildFinancials({ mrr: 0, dso: 0, overdue_total: 5000, overdue_fx_missing_count: 3 }),
-    ).toEqual({ mrr: 0, dso: 0, overdueTotal: 5000, overdueFxMissingCount: 3 });
+    ).toEqual({
+      mrr: 0, dso: 0, overdueTotal: 5000, overdueFxMissingCount: 3,
+      mrrFxMissingCount: 0, mrrPrevFxMissingCount: 0,
+    });
+  });
+
+  // A2-7: el MRR (vigente y previo) excluye rentas en divisa sin TC y lo informa.
+  it("propaga el conteo de rentas sin tipo de cambio", () => {
+    expect(
+      buildFinancials({ mrr: 90000, dso: 0, mrr_fx_missing_count: 2, mrr_prev_fx_missing_count: 1 }),
+    ).toEqual({
+      mrr: 90000, dso: 0, overdueTotal: 0, overdueFxMissingCount: 0,
+      mrrFxMissingCount: 2, mrrPrevFxMissingCount: 1,
+    });
   });
 });
+
 
 describe("mapMaintenanceAlerts", () => {
   it("transforma snake_case a camelCase", () => {
