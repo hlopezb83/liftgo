@@ -35,3 +35,13 @@ describe("catálogo de bloqueos (lote 3)", () => {
     expect(block?.code).toBe("prospect_stage_not_negotiation");
   });
 });
+
+describe("auto-aprobación de facturas de proveedor", () => {
+  it("reconoce el error del RPC approve_supplier_bill", () => {
+    const block = resolveBusinessBlock({
+      message: "No puedes aprobar una factura que tú mismo registraste. Debe aprobarla otro administrador.",
+    });
+    expect(block?.code).toBe("supplier_bill_self_approval");
+    expect(block?.nextStep).toMatch(/otro administrador/i);
+  });
+});
