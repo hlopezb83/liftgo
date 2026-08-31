@@ -2,7 +2,7 @@ import { ShieldAlert } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { InsuranceAlertsData } from "@/features/fleet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { formatDateDisplay } from "@/lib/utils";
+import { formatDateMty } from "@/lib/format/dateFormats";
 
 interface InsuranceAlertProps {
   data: InsuranceAlertsData | undefined;
@@ -37,7 +37,7 @@ export function InsuranceAlert({ data }: InsuranceAlertProps) {
               <span className={`tabular-nums font-semibold ${f.days_left <= 0 ? "text-destructive" : "text-warning"}`}>
                 {f.days_left <= 0 ? "Vencida" : `${f.days_left} días`}
               </span>
-              <p className="text-xs text-muted-foreground">Vence: {formatDateDisplay(f.insurance_expiry)}</p>
+              <p className="text-xs text-muted-foreground">Vence: {formatDateMty(f.insurance_expiry)}</p>
             </div>
           </div>
         ))}

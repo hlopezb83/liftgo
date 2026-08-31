@@ -1,6 +1,7 @@
 import { CalendarIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDateDisplay, formatDateRange } from "@/lib/utils";
+import { formatDateMty } from "@/lib/format/dateFormats";
+import { formatDateRange } from "@/lib/utils";
 
 interface Props {
   isSale: boolean;
@@ -22,7 +23,7 @@ export function QuoteDatesCard({ isSale, startDate, endDate, validUntil }: Props
         {!isSale && (
           <p><span className="text-muted-foreground">Periodo:</span> {formatDateRange(startDate, endDate)}</p>
         )}
-        <p><span className="text-muted-foreground">Válida Hasta:</span> {formatDateDisplay(validUntil)}</p>
+        <p><span className="text-muted-foreground">Válida Hasta:</span> {formatDateMty(validUntil)}</p>
       </CardContent>
     </Card>
   );

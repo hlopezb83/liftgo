@@ -1,3 +1,11 @@
+## [7.397.0] - 2026-08-31
+### Refactor (pulido YAGNI)
+- El historial de cambios abre mostrando las versiones recientes y carga el archivo completo solo cuando se pide, reduciendo la descarga inicial de ~650 KB a ~56 KB.
+- Se eliminaron tres funciones de servidor que ya no tenían consumidores.
+- Todas las pantallas usan un único formateador de fechas (zona horaria Monterrey), eliminando la variante duplicada en 61 archivos.
+- Se documentó en la arquitectura por qué se conservan las librerías con un solo punto de uso.
+- Sin cambios en reglas de negocio, permisos, RLS ni base de datos.
+
 ## [7.396.2] - 2026-08-31
 ### Fix (pruebas SQL de humo y permisos de periodos fiscales)
 - Las pruebas de humo dejaron de referenciar la columna inexistente `bill_date` (ahora `issue_date`) y apuntan a `sync_invoice_status`, donde vive la lógica de saldos.

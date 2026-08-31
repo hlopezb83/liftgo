@@ -6,8 +6,8 @@ import { WarnIcon } from "@/components/icons";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
 import { BOOKING_STATUS_LABELS, getValidTransitions } from "../../hooks/bookingActions/useBookingActionsLogic";
 
 interface StatusChangeDialogProps {
@@ -84,7 +84,7 @@ export function BookingExtendDialog({
       open={open}
       onOpenChange={onOpenChange}
       title="Extender Reserva"
-      description={`Fecha de fin actual: ${formatDateDisplay(currentEndDate)}`}
+      description={`Fecha de fin actual: ${formatDateMty(currentEndDate)}`}
     >
       <div className="space-y-4">
         <DatePickerField label="Nueva Fecha de Fin" date={newEndDate} onSelect={setNewEndDate} />

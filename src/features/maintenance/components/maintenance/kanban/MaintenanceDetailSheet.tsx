@@ -3,8 +3,8 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { MAINTENANCE_WORK_STATUS_LABELS, serviceTypeLabel } from "@/lib/constants";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
 import { MaintenanceLaborSection } from "../MaintenanceLaborSection";
 import { MaintenancePartsSection } from "../MaintenancePartsSection";
 import type { MaintenanceLog } from "../../../hooks/maintenance/useMaintenanceLogs";
@@ -30,7 +30,7 @@ export function MaintenanceDetailSheet({ log, onClose }: Props) {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                 <div>
                   <p className="text-muted-foreground">Fecha</p>
-                  <p className="font-medium">{formatDateDisplay(log.performed_at)}</p>
+                  <p className="font-medium">{formatDateMty(log.performed_at)}</p>
                 </div>
                 <div>
                   <p className="text-muted-foreground">Realizado por</p>

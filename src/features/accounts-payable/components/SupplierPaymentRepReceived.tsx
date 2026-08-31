@@ -1,7 +1,7 @@
 import { OpenLinkIcon, X, ResetIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { openStorageFile } from "@/lib/storage/openStorageFile";
-import { formatDateDisplay } from "@/lib/utils";
 import type { SupplierPayment } from "../hooks/useSupplierBill";
 
 const BUCKET = "cfdi-files";
@@ -24,7 +24,7 @@ export function SupplierPaymentRepReceived({
         <p className="text-muted-foreground">UUID: <span className="font-mono">{p.rep_cfdi_uuid}</span></p>
       )}
       {p.rep_received_at && (
-        <p className="text-muted-foreground">Recibido: {formatDateDisplay(p.rep_received_at)}</p>
+        <p className="text-muted-foreground">Recibido: {formatDateMty(p.rep_received_at)}</p>
       )}
       <div className="flex gap-2 flex-wrap">
         {p.rep_xml_url && (

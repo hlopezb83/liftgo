@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useReconciliationStatus } from "@/features/bank-reconciliation";
 import { useUserRole } from "@/features/users";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { businessBlockSummary, describeBusinessBlock, type BusinessBlock } from "@/lib/rules/businessBlocks";
-import { formatDateDisplay } from "@/lib/utils";
 import { useDeleteSupplierPayment } from "./useDeleteSupplierPayment";
 import { useRejectSupplierRep, useResetSupplierRep } from "./useSupplierRepMutations";
 import type { SupplierPayment } from "./useSupplierBill";
@@ -44,7 +44,7 @@ export function useSupplierPaymentActions(p: SupplierPayment, billId: string, bi
 
 
   const reconciledMsg = reconciliation
-    ? ` Este pago está conciliado con ${reconciliation.bank_account_name}${reconciliation.bank_last4 ? ` ····${reconciliation.bank_last4}` : ""} el ${formatDateDisplay(reconciliation.matched_at)}; al eliminarlo, esa línea bancaria volverá a quedar sin conciliar.`
+    ? ` Este pago está conciliado con ${reconciliation.bank_account_name}${reconciliation.bank_last4 ? ` ····${reconciliation.bank_last4}` : ""} el ${formatDateMty(reconciliation.matched_at)}; al eliminarlo, esa línea bancaria volverá a quedar sin conciliar.`
     : "";
 
   const confirmReject = (notes: string) => {

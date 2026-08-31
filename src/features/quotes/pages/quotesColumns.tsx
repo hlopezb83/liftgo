@@ -4,8 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Untranslated } from "@/components/ui/Untranslated";
 import { STATUS_LABELS } from "@/lib/constants";
 import { toYMD } from "@/lib/date/toYMD";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { formatDateDisplay, formatDateRange, nowMty, parseDateLocal } from "@/lib/utils";
+import { formatDateRange, nowMty, parseDateLocal } from "@/lib/utils";
 import { quoteStatusLabel as quoteLabel } from "../constants";
 import { isPublicoGeneral } from "../hooks/quoteDetail/useQuoteDetailData";
 
@@ -94,7 +95,7 @@ export function buildQuotesColumns<Q extends {
       id: "valid_until",
       header: "Vigencia",
       accessorFn: (q) => q.valid_until || "",
-      cell: ({ row }) => <span className="whitespace-nowrap">{formatDateDisplay(row.original.valid_until)}</span>,
+      cell: ({ row }) => <span className="whitespace-nowrap">{formatDateMty(row.original.valid_until)}</span>,
     },
   ];
 }

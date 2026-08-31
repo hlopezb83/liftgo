@@ -12,8 +12,8 @@ import { useForkliftMap } from "@/features/fleet";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useToggleDialog } from "@/hooks/useDialogState";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { visibleListRows } from "@/lib/supabase/constants";
-import { formatDateDisplay } from "@/lib/utils";
 import { DeliveryFormDialog } from "../components/deliveries/DeliveryFormDialog";
 import { useDeliveries, deliveryQueries } from "../hooks/useDeliveries";
 import { countOverdueDeliveries, deliveryOverdueDays, deliveryOverdueLabel } from "../lib/deliveryOverdue";
@@ -70,7 +70,7 @@ function buildDeliveryColumns(forkliftMap: ForkliftMap): ColumnDef<Delivery>[] {
         return (
           <div className="flex items-center gap-2">
             <span className="font-mono text-sm">
-              {formatDateDisplay(row.original.scheduled_date)}
+              {formatDateMty(row.original.scheduled_date)}
               {row.original.scheduled_time ? ` ${row.original.scheduled_time}` : ""}
             </span>
             {overdue > 0 && (
@@ -124,7 +124,7 @@ function DeliveryMobileCard({ d, forkliftMap, onClick }: { d: Delivery; forklift
           )}
         </div>
         <p className="text-sm font-medium">{forkliftMap.get(d.forklift_id)?.name ? <Untranslated>{forkliftMap.get(d.forklift_id)?.name}</Untranslated> : "—"}</p>
-        <p className="text-xs text-muted-foreground mt-1">{formatDateDisplay(d.scheduled_date)}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</p>
+        <p className="text-xs text-muted-foreground mt-1">{formatDateMty(d.scheduled_date)}{d.scheduled_time ? ` ${d.scheduled_time}` : ""}</p>
         {d.address && <p className="text-xs text-muted-foreground truncate">{d.address}</p>}
         {d.driver_name && <p className="text-xs text-muted-foreground">Operador: {d.driver_name}</p>}
       </CardContent>

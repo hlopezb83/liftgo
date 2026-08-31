@@ -9,8 +9,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
 
 export interface PortalPayment {
   id: string;
@@ -60,7 +60,7 @@ function PaymentDetailTable({ payments }: { payments: PortalPayment[] }) {
       <TableBody>
         {payments.map((p) => (
           <TableRow key={p.id}>
-            <TableCell>{formatDateDisplay(p.payment_date)}</TableCell>
+            <TableCell>{formatDateMty(p.payment_date)}</TableCell>
             <TableCell>{p.payment_method ?? "—"}</TableCell>
             <TableCell>{p.reference_number ?? "—"}</TableCell>
             <TableCell className="text-right font-mono tabular-nums">
@@ -97,8 +97,8 @@ function InvoiceRow({ row, isOpen, onToggle }: { row: PortalInvoiceRow; isOpen: 
             )}
           </span>
         </TableCell>
-        <TableCell className="hidden md:table-cell">{formatDateDisplay(r.inv.issued_at)}</TableCell>
-        <TableCell>{r.inv.due_date ? formatDateDisplay(r.inv.due_date) : "—"}</TableCell>
+        <TableCell className="hidden md:table-cell">{formatDateMty(r.inv.issued_at)}</TableCell>
+        <TableCell>{r.inv.due_date ? formatDateMty(r.inv.due_date) : "—"}</TableCell>
         <TableCell className="text-right font-mono tabular-nums">{formatCurrency(Number(r.inv.total))}</TableCell>
         <TableCell className="hidden md:table-cell text-right font-mono tabular-nums text-status-available">{formatCurrency(r.paid)}</TableCell>
         <TableCell

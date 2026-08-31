@@ -2,7 +2,7 @@ import { DocumentIcon, RefreshIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { formatDateDisplay } from "@/lib/utils";
+import { formatDateMty } from "@/lib/format/dateFormats";
 
 interface ExpiringContract {
   id: string;
@@ -51,7 +51,7 @@ export function ExpiringContractsAlert({ contracts }: ExpiringContractsAlertProp
                 <span className={`tabular-nums font-semibold ${c.days_remaining <= 7 ? "text-destructive" : "text-warning"}`}>
                   {c.days_remaining} días
                 </span>
-                <p className="text-xs text-muted-foreground">Vence: {formatDateDisplay(c.end_date)}</p>
+                <p className="text-xs text-muted-foreground">Vence: {formatDateMty(c.end_date)}</p>
               </div>
               <Button
                 variant="ghost"

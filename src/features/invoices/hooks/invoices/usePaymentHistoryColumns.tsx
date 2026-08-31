@@ -5,10 +5,10 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ReconciliationBadge } from "@/features/bank-reconciliation";
 import type { Tables } from "@/integrations/supabase/types";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { businessBlockSummary, describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { notifyError } from "@/lib/ui/appFeedback";
-import { formatDateDisplay } from "@/lib/utils";
 import { RepBadge } from "../../components/invoice-detail/RepBadge";
 import { downloadCfdiBlob, type CfdiFormat } from "../../lib/downloadCfdiBlob";
 import { PAYMENT_METHODS } from "../../lib/paymentMethods";
@@ -48,7 +48,7 @@ export function usePaymentHistoryColumns(ppdStamped: boolean, allowRepMutations:
     const base: ColumnDef<Payment>[] = [
       {
         id: "payment_date", header: "Fecha", accessorKey: "payment_date",
-        cell: ({ row }) => <span className="text-sm">{formatDateDisplay(row.original.payment_date)}</span>,
+        cell: ({ row }) => <span className="text-sm">{formatDateMty(row.original.payment_date)}</span>,
       },
       {
         id: "payment_method", header: "Método", accessorKey: "payment_method",

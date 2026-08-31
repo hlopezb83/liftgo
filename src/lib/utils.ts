@@ -34,15 +34,6 @@ export function parseDateLocal(
 }
 
 /**
- * @deprecated Usa `formatDateMty` de `@/lib/format/dateFormats`.
- * Se mantiene como alias delgado sobre `formatMtyDate("dd/MM/yyyy")` para no
- * romper los ~150 callsites existentes; consolidar en R7 (deuda acumulada).
- */
-export function formatDateDisplay(dateStr: string | null | undefined): string {
-  return formatMtyDate(dateStr, "dd/MM/yyyy");
-}
-
-/**
  * Formato compacto para rango de fechas. Si inicio == fin muestra una sola fecha.
  * Usa guión largo y sin saltos de línea (whitespace-nowrap recomendado en celda).
  */
@@ -50,12 +41,14 @@ export function formatDateRange(
   start: string | null | undefined,
   end: string | null | undefined,
 ): string {
+  const fmt = (v: string | null | undefined) => formatMtyDate(v, "dd/MM/yyyy");
   if (!start && !end) return "—";
-  if (!end) return formatDateDisplay(start);
-  if (!start) return formatDateDisplay(end);
-  if (start === end) return formatDateDisplay(start);
-  return `${formatDateDisplay(start)} – ${formatDateDisplay(end)}`;
+  if (!end) return fmt(start);
+  if (!start) return fmt(end);
+  if (start === end) return fmt(start);
+  return `${fmt(start)} – ${fmt(end)}`;
 }
+
 
 /** Detecta strings date-only (YYYY-MM-DD o YYYY-MM) sin componente horario. */
 const DATE_ONLY_RE = /^\d{4}-\d{2}(-\d{2})?$/;

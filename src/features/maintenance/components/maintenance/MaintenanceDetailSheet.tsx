@@ -10,9 +10,9 @@ import { useSuppliers } from "@/features/suppliers";
 import { useUserRole } from "@/features/users";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { serviceTypeLabel } from "@/lib/constants";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifySuccess } from "@/lib/ui/appFeedback";
-import { formatDateDisplay } from "@/lib/utils";
 import { useDeleteMaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
 import { CloseWorkOrderDialog } from "./CloseWorkOrderDialog";
 import { MaintenanceLaborSection } from "./MaintenanceLaborSection";
@@ -77,7 +77,7 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
 
           {isClosed && (
             <div className="rounded-md border border-success/30 bg-success/10 px-3 py-2 flex items-center justify-between gap-2">
-              <span className="text-sm">OT cerrada el {formatDateDisplay(log.performed_at)}</span>
+              <span className="text-sm">OT cerrada el {formatDateMty(log.performed_at)}</span>
               <span className="font-mono text-sm font-semibold">{formatCurrency(log.cost || 0)}</span>
             </div>
           )}
@@ -85,10 +85,10 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
 
           <div className="space-y-1">
             <DetailRow icon={FleetIcon} label="Montacargas" value={forkliftName} />
-            <DetailRow icon={CalendarIcon} label="Fecha de Servicio" value={formatDateDisplay(log.performed_at)} />
+            <DetailRow icon={CalendarIcon} label="Fecha de Servicio" value={formatDateMty(log.performed_at)} />
             <DetailRow icon={UserIcon} label="Realizado Por" value={log.performed_by} />
             <DetailRow icon={CostIcon} label="Costo" value={formatCurrency(log.cost || 0)} />
-            <DetailRow icon={CalendarIcon} label="Próximo Servicio" value={formatDateDisplay(log.next_service_date)} />
+            <DetailRow icon={CalendarIcon} label="Próximo Servicio" value={formatDateMty(log.next_service_date)} />
             {supplier && <DetailRow icon={FleetIcon} label="Proveedor" value={supplier.name} />}
           </div>
 
@@ -194,7 +194,7 @@ function MaintenanceDetailActions({
           open={confirmOpen}
           onOpenChange={onConfirmOpenChange}
           title="¿Archivar registro de mantenimiento?"
-          description={`${isClosed ? "La orden está cerrada: se conservan sus refacciones y mano de obra. " : ""}Se ocultará de los listados pero se conservará el historial del servicio "${serviceTypeLabel(log.service_type)}" del ${formatDateDisplay(log.performed_at)} para auditoría.`}
+          description={`${isClosed ? "La orden está cerrada: se conservan sus refacciones y mano de obra. " : ""}Se ocultará de los listados pero se conservará el historial del servicio "${serviceTypeLabel(log.service_type)}" del ${formatDateMty(log.performed_at)} para auditoría.`}
           confirmLabel="Archivar"
           destructive
           loading={deletePending}

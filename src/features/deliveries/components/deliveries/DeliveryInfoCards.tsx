@@ -1,8 +1,9 @@
 import { format } from "date-fns";
 import { CalendarDays, FleetIcon, LocationIcon, CalendarIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { formatDateDisplay, parseDateLocal, formatDateRange } from "@/lib/utils";
+import { parseDateLocal, formatDateRange } from "@/lib/utils";
 
 interface InfoRowProps { label: string; value: string }
 
@@ -30,7 +31,7 @@ export function DeliveryStatusCard({ type, scheduledDate, scheduledTime, complet
       </CardHeader>
       <CardContent className="space-y-3">
         <InfoRow label="Tipo" value={type === "delivery" ? "Entrega" : "Recolección"} />
-        <InfoRow label="Fecha programada" value={formatDateDisplay(scheduledDate)} />
+        <InfoRow label="Fecha programada" value={formatDateMty(scheduledDate)} />
         {scheduledTime && <InfoRow label="Hora" value={scheduledTime} />}
         {completedAt && <InfoRow label="Completado" value={format(parseDateLocal(completedAt), "dd/MM/yyyy HH:mm")} />}
       </CardContent>

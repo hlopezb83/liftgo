@@ -14,9 +14,9 @@ import {
   usePortalPayments,
   usePortalCustomer,
 } from "@/features/customers";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency, formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { describeBusinessBlock, type BusinessBlock } from "@/lib/rules/businessBlocks";
-import { formatDateDisplay } from "@/lib/utils";
 import { ReportTransferDialog } from "../components/ReportTransferDialog";
 import { StpTransferCard } from "../components/StpTransferCard";
 import { usePortalPaymentIntents } from "../hooks/usePortalExtras";
@@ -43,7 +43,7 @@ function PortalIntentsTable({ intents }: { intents: Intent[] }) {
           <TableBody>
             {intents.map((i) => (
               <TableRow key={i.id}>
-                <TableCell>{formatDateDisplay(i.transfer_date)}</TableCell>
+                <TableCell>{formatDateMty(i.transfer_date)}</TableCell>
                 <TableCell className="font-mono">{formatCurrency(Number(i.amount))}</TableCell>
                 <TableCell
                   className="font-mono max-w-[10rem] truncate"

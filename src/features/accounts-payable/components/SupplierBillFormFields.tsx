@@ -7,7 +7,7 @@ import {
   Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { toYMD } from "@/lib/date/toYMD";
-import { formatDateDisplay } from "@/lib/utils";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import {
   EXPENSE_CATEGORY_LABELS,
   EXPENSE_CATEGORY_GROUPS,
@@ -80,7 +80,7 @@ export function SupplierBillFormFields({ form, currency, currencyOptions, select
           <DateField control={form.control} name="due_date" label="Vencimiento" />
           {suggestedDueDate && selectedSupplier?.default_payment_terms_days != null && (
             <p className="text-xs text-muted-foreground">
-              Sugerido: {formatDateDisplay(toYMD(suggestedDueDate) ?? "")} (proveedor a {selectedSupplier.default_payment_terms_days} días)
+              Sugerido: {formatDateMty(toYMD(suggestedDueDate) ?? "")} (proveedor a {selectedSupplier.default_payment_terms_days} días)
             </p>
           )}
         </div>

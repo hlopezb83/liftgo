@@ -3,7 +3,7 @@ import type { ColumnDef } from "@/components/dataTable/v2";
 import { DeleteIcon } from "@/components/icons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatDateDisplay } from "@/lib/utils";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import type { useBankStatementImports } from "../hooks/useBankStatementImports";
 
 export type ImportRow = NonNullable<ReturnType<typeof useBankStatementImports>["data"]>[number];
@@ -19,7 +19,7 @@ export function useBankImportsColumns(
         header: "Fecha import",
         accessorKey: "created_at",
         cell: ({ row }) => (
-          <span className="text-xs">{formatDateDisplay(row.original.created_at)}</span>
+          <span className="text-xs">{formatDateMty(row.original.created_at)}</span>
         ),
       },
       {
@@ -52,7 +52,7 @@ export function useBankImportsColumns(
         cell: ({ row }) => (
           <span className="text-xs">
             {row.original.period_start && row.original.period_end
-              ? `${formatDateDisplay(row.original.period_start)} → ${formatDateDisplay(row.original.period_end)}`
+              ? `${formatDateMty(row.original.period_start)} → ${formatDateMty(row.original.period_end)}`
               : "—"}
           </span>
         ),

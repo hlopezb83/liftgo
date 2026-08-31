@@ -1,5 +1,20 @@
 [
   {
+    "version": "7.397.0",
+    "date": "2026-08-31",
+    "type": "minor",
+    "category": "refactor",
+    "title": "Pulido YAGNI: changelog progresivo, limpieza de backend y fechas unificadas",
+    "description": "Se aligeró la carga del historial de cambios, se retiraron funciones de backend sin uso y se unificó el formateo de fechas en toda la aplicación.",
+    "changes": [
+      "El historial de cambios abre mostrando las versiones recientes y carga el archivo completo solo cuando se pide, reduciendo la descarga inicial de ~650 KB a ~56 KB.",
+      "Se eliminaron tres funciones de servidor que ya no tenían consumidores.",
+      "Todas las pantallas usan un único formateador de fechas (zona horaria Monterrey), eliminando la variante duplicada en 61 archivos.",
+      "Se documentó en la arquitectura por qué se conservan las librerías con un solo punto de uso.",
+      "Sin cambios en reglas de negocio, permisos, RLS ni base de datos."
+    ]
+  },
+  {
     "version": "7.396.3",
     "date": "2026-08-31",
     "type": "patch",

@@ -94,13 +94,33 @@ export function sortEntries<T extends { date: string; version: string }>(entries
   });
 }
 
-export async function fetchChangelogIndex(): Promise<ChangelogIndexEntry[]> {
-  const res = await fetch("/changelog.json", { cache: "default" });
+async function fetchIndexFrom(url: string): Promise<ChangelogIndexEntry[]> {
+  const res = await fetch(url, { cache: "default" });
   if (!res.ok) throw new Error(`No se pudo cargar el changelog (HTTP ${res.status})`);
   const json: unknown = await res.json();
-  if (!Array.isArray(json)) throw new Error("changelog.json no es un arreglo");
+  if (!Array.isArray(json)) throw new Error(`${url} no es un arreglo`);
   return sortEntries(json.map(parseIndexEntry));
 }
+
+/**
+ * Índice ligero: solo las versiones recientes (`public/changelog-recent.json`,
+ * generado en el prebuild). Evita descargar los ~650 KB del histórico completo
+ * en cada visita a `/changelog`.
+ */
+export async function fetchChangelogIndex(): Promise<ChangelogIndexEntry[]> {
+  try {
+    return await fetchIndexFrom("/changelog-recent.json");
+  } catch {
+    // Fallback para entornos donde el prebuild no corrió (dev local recién clonado).
+    return fetchIndexFrom("/changelog.json");
+  }
+}
+
+/** Histórico completo — solo bajo demanda del usuario. */
+export async function fetchChangelogArchive(): Promise<ChangelogIndexEntry[]> {
+  return fetchIndexFrom("/changelog.json");
+}
+
 
 export async function fetchChangelogDetail(version: string): Promise<ChangelogDetail> {
   const res = await fetch(`/changelog/v${version}.json`, { cache: "default" });

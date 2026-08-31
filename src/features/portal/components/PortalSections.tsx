@@ -1,8 +1,9 @@
 import { Link } from "react-router";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
-import { formatDateDisplay, formatDateRange } from "@/lib/utils";
+import { formatDateRange } from "@/lib/utils";
 
 interface Booking {
   id: string;
@@ -61,7 +62,7 @@ export function PortalRecentInvoicesCard({
           <div key={inv.id} className="flex items-center justify-between p-3 rounded-lg bg-muted/40 text-sm">
             <div>
               <p className="font-medium">{inv.invoice_number}</p>
-              <p className="text-xs text-muted-foreground">{formatDateDisplay(inv.issued_at)}</p>
+              <p className="text-xs text-muted-foreground">{formatDateMty(inv.issued_at)}</p>
             </div>
             <div className="flex items-center gap-3">
               {/* Auditoría R19: mostrar código de moneda para no confundir USD con MXN. */}

@@ -1,7 +1,7 @@
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatLegalAddress } from "@/lib/format/formatLegalAddress";
 import { numeroALetras } from "@/lib/format/numeroALetras";
-import { formatDateDisplay } from "@/lib/utils";
 import type { ContractData } from "./fetchers";
 
 interface CompanyInfo {
@@ -19,7 +19,7 @@ interface ForkliftInfo {
   acquisition_cost?: number | null;
 }
 
-const fmtDate = (d?: string | null) => (d ? (formatDateDisplay(d) || "[Fecha]") : "[Fecha]");
+const fmtDate = (d?: string | null) => (d ? (formatDateMty(d) || "[Fecha]") : "[Fecha]");
 const num = (v: number | string | null | undefined) => Number(v || 0);
 /** v7.302.1: respeta el 0 capturado (antes `|| fallback` lo trataba como vacío). */
 const numOr = (v: number | null | undefined, fallback: number): number => (v == null ? fallback : v);

@@ -1,7 +1,7 @@
 import type { ColumnDef } from "@/components/dataTable/v2";
 import { serviceTypeLabel } from "@/lib/constants";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
 import type { EnrichedMaintenanceLog } from "../lib/maintenancePageHelpers";
 
 export const maintenanceColumns: ColumnDef<EnrichedMaintenanceLog>[] = [
@@ -9,7 +9,7 @@ export const maintenanceColumns: ColumnDef<EnrichedMaintenanceLog>[] = [
     id: "performed_at",
     header: "Fecha",
     accessorKey: "performed_at",
-    cell: ({ row }) => <span className="font-mono text-sm">{formatDateDisplay(row.original.performed_at)}</span>,
+    cell: ({ row }) => <span className="font-mono text-sm">{formatDateMty(row.original.performed_at)}</span>,
   },
   {
     id: "forklift_name",
@@ -41,7 +41,7 @@ export const maintenanceColumns: ColumnDef<EnrichedMaintenanceLog>[] = [
     header: "Próximo Servicio",
     accessorFn: (l) => l.next_service_date ?? "",
     cell: ({ row }) => (
-      <span className="text-sm text-muted-foreground">{formatDateDisplay(row.original.next_service_date)}</span>
+      <span className="text-sm text-muted-foreground">{formatDateMty(row.original.next_service_date)}</span>
     ),
   },
 ];

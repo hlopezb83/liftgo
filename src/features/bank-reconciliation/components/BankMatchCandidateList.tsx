@@ -10,8 +10,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useDebouncedValue } from "@/hooks/useDebouncedValue";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
-import { formatDateDisplay, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import {
   useBankMatchCandidates,
   DATE_WINDOW_OPTIONS,
@@ -102,7 +103,7 @@ export function BankMatchCandidateList({
               <div className="min-w-0 space-y-1">
                 <p className="truncate font-medium">{c.label}</p>
                 <p className="text-muted-foreground">
-                  {formatDateDisplay(c.candidate_date)} ·{" "}
+                  {formatDateMty(c.candidate_date)} ·{" "}
                   <span className="font-mono tabular-nums">{formatCurrencyWithCode(c.amount, currency)}</span>
                   {c.reference ? ` · ${c.reference}` : ""}
                 </p>

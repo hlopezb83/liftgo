@@ -4,8 +4,8 @@ import { InvoiceIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getAccessLevel, useRolePermissions, useUserRole } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
 
 interface InvoiceRow {
   id: string;
@@ -52,8 +52,8 @@ export function CustomerInvoicesList({ invoices }: { invoices: InvoiceRow[] }) {
                 <div>
                   <p className="font-medium">{inv.invoice_number}</p>
                   <p className="text-xs text-muted-foreground">
-                    {formatDateDisplay(inv.issued_at)}
-                    {inv.due_date ? ` — Vence: ${formatDateDisplay(inv.due_date)}` : ""}
+                    {formatDateMty(inv.issued_at)}
+                    {inv.due_date ? ` — Vence: ${formatDateMty(inv.due_date)}` : ""}
                   </p>
                 </div>
                 <div className="flex items-center gap-3">

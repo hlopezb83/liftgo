@@ -11,8 +11,8 @@ import { Untranslated } from "@/components/ui/Untranslated";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { RoleGuard } from "@/layouts/RoleGuard";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { visibleListRows } from "@/lib/supabase/constants";
-import { formatDateDisplay } from "@/lib/utils";
 import { ContractMobileCard } from "../components/contracts/ContractMobileCard";
 import { useContracts, contractQueries } from "../hooks/useContracts";
 import { getContractExpiryLabel, getContractExpiryState } from "../lib/contractExpiry";
@@ -79,7 +79,7 @@ export default function ContractsPage() {
         id: "start_date",
         header: "Inicio",
         accessorFn: (c) => c.start_date,
-        cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateDisplay(row.original.start_date)}</span>,
+        cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateMty(row.original.start_date)}</span>,
       },
       {
         id: "end_date",
@@ -90,7 +90,7 @@ export default function ContractsPage() {
           const label = getContractExpiryLabel(expiry);
           return (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">{formatDateDisplay(row.original.end_date)}</span>
+              <span className="text-sm text-muted-foreground">{formatDateMty(row.original.end_date)}</span>
               {label && (
                 <Badge
                   variant={expiry === "expired" ? "destructive" : "outline"}

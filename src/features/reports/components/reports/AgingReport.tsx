@@ -8,10 +8,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useInvoicesWithBalance } from "@/features/invoices";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { exportToCsv } from "@/lib/exportCsv";
-import { toYMD } from "@/lib/format/dateFormats";
+import { formatDateMty, toYMD } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { toMxn } from "@/lib/money";
-import { formatDateDisplay, nowMty } from "@/lib/utils";
+import { nowMty } from "@/lib/utils";
 import { AgingBucketCards } from "./drilldown/AgingBucketCards";
 
 
@@ -77,7 +77,7 @@ export function AgingReport({ startDate: _startDate, endDate: _endDate }: AgingR
         ? <span className="text-warning" title="Factura en divisa sin tipo de cambio capturado">Sin T.C.</span>
         : formatCurrency(row.original.balance_mxn)
     ) },
-    { id: "due_date", header: "Vencimiento", accessorKey: "due_date", cell: ({ row }) => formatDateDisplay(row.original.due_date) },
+    { id: "due_date", header: "Vencimiento", accessorKey: "due_date", cell: ({ row }) => formatDateMty(row.original.due_date) },
     { id: "days_overdue", header: "Días", accessorKey: "days_overdue", meta: { kind: "money" }, cell: ({ row }) => <span className="font-mono font-semibold text-destructive">{row.original.days_overdue}</span> },
     { id: "bucket", header: "Bucket", accessorKey: "bucket", cell: ({ row }) => `${row.original.bucket}d` },
   ];

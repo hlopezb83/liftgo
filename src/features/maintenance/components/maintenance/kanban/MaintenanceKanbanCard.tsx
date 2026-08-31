@@ -1,7 +1,8 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { serviceTypeLabel } from "@/lib/constants";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { formatDateDisplay, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { MaintenanceLog } from "../../../hooks/maintenance/useMaintenanceLogs";
 
 interface Props {
@@ -26,7 +27,7 @@ export function MaintenanceKanbanCard({ log, isDragging, onSelect }: Props) {
         </div>
         <p className="text-sm text-muted-foreground truncate">{log.forklift_name || "—"}</p>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="font-mono">{formatDateDisplay(log.performed_at)}</span>
+          <span className="font-mono">{formatDateMty(log.performed_at)}</span>
           {log.performed_by && <span className="truncate">• {log.performed_by}</span>}
         </div>
       </CardContent>

@@ -9,8 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePortalInvoices } from "@/features/customers";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
 
 type Invoice = NonNullable<ReturnType<typeof usePortalInvoices>["data"]>[number];
 
@@ -31,14 +31,14 @@ export default function PortalInvoices() {
         header: "Fecha",
         accessorKey: "issued_at",
         meta: { kind: "date" },
-        cell: ({ row }) => formatDateDisplay(row.original.issued_at),
+        cell: ({ row }) => formatDateMty(row.original.issued_at),
       },
       {
         id: "due_date",
         header: "Vencimiento",
         accessorKey: "due_date",
         meta: { kind: "date" },
-        cell: ({ row }) => formatDateDisplay(row.original.due_date),
+        cell: ({ row }) => formatDateMty(row.original.due_date),
       },
       {
         id: "total",
@@ -98,13 +98,13 @@ export default function PortalInvoices() {
                         <StatusBadge status={inv.status} />
                       </div>
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <span>{formatDateDisplay(inv.issued_at)}</span>
+                        <span>{formatDateMty(inv.issued_at)}</span>
                         <span className="tabular-nums font-semibold text-foreground">
                           {formatCurrencyWithCode(Number(inv.total), inv.moneda ?? "MXN")}
                         </span>
                       </div>
                       <div className="text-xs text-muted-foreground">
-                        Vence: {formatDateDisplay(inv.due_date)}
+                        Vence: {formatDateMty(inv.due_date)}
                       </div>
                     </CardContent>
                   </Card>

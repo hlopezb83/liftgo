@@ -8,8 +8,8 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
 import { usePortalQuotes } from "../hooks/usePortalExtras";
 import { quoteStatusLabel } from "../lib/quoteStatus";
 
@@ -24,9 +24,9 @@ export default function PortalQuotes() {
     { id: "quote_number", header: "Cotización #", accessorKey: "quote_number",
       cell: ({ row }) => <span className="font-medium">{row.original.quote_number}</span> },
     { id: "created_at", header: "Fecha", accessorKey: "created_at", meta: { kind: "date" },
-      cell: ({ row }) => formatDateDisplay(row.original.created_at) },
+      cell: ({ row }) => formatDateMty(row.original.created_at) },
     { id: "valid_until", header: "Válida hasta", accessorKey: "valid_until", meta: { kind: "date" },
-      cell: ({ row }) => row.original.valid_until ? formatDateDisplay(row.original.valid_until) : "—" },
+      cell: ({ row }) => row.original.valid_until ? formatDateMty(row.original.valid_until) : "—" },
     { id: "total", header: "Total", accessorFn: (q) => Number(q.total), meta: { kind: "money" },
       cell: ({ row }) => <span className="font-mono">{formatCurrencyWithCode(Number(row.original.total), row.original.currency ?? "MXN")}</span> },
     { id: "status", header: "Estado", accessorKey: "status", meta: { kind: "badge" },
@@ -73,14 +73,14 @@ export default function PortalQuotes() {
                         <StatusBadge status={q.status} label={quoteStatusLabel(q.status)} />
                       </div>
                       <div className="flex items-center justify-between text-sm text-muted-foreground">
-                        <span>{formatDateDisplay(q.created_at)}</span>
+                        <span>{formatDateMty(q.created_at)}</span>
                         <span className="tabular-nums font-semibold text-foreground">
                           {formatCurrencyWithCode(Number(q.total), q.currency ?? "MXN")}
                         </span>
                       </div>
                       {q.valid_until ? (
                         <div className="text-xs text-muted-foreground">
-                          Válida hasta: {formatDateDisplay(q.valid_until)}
+                          Válida hasta: {formatDateMty(q.valid_until)}
                         </div>
                       ) : null}
                     </CardContent>

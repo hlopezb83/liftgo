@@ -3,8 +3,8 @@ import { type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Untranslated } from "@/components/ui/Untranslated";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
 import { EXPENSE_CATEGORY_LABELS, SUPPLIER_BILL_STATUS_LABELS, APPROVAL_STATUS_LABELS } from "../lib/supplierBillConstants";
 import type { SupplierBillListItem } from "../hooks/useSupplierBills";
 
@@ -21,7 +21,7 @@ export function useSupplierBillColumns(): ColumnDef<SupplierBillListItem>[] {
     },
     {
       id: "issue_date", header: "Emisión", accessorKey: "issue_date",
-      cell: ({ row }) => formatDateDisplay(row.original.issue_date),
+      cell: ({ row }) => formatDateMty(row.original.issue_date),
     },
     {
       id: "due_date", header: "Vence",
@@ -29,7 +29,7 @@ export function useSupplierBillColumns(): ColumnDef<SupplierBillListItem>[] {
       // FIX A7: sin fecha de vencimiento la factura se veía como si estuviera
       // al corriente; ahora se marca para que se capture.
       cell: ({ row }) => row.original.due_date
-        ? formatDateDisplay(row.original.due_date)
+        ? formatDateMty(row.original.due_date)
         : <span className="text-warning">Sin vencimiento</span>,
     },
     {
@@ -91,7 +91,7 @@ export function renderSupplierBillMobileCard(
           <span className="font-mono font-semibold">{formatCurrencyWithCode(Number(b.balance), b.currency)}</span>
         </div>
         <div className="flex items-center justify-between text-xs text-muted-foreground">
-          <span>{b.due_date ? `Vence: ${formatDateDisplay(b.due_date)}` : "Sin vencimiento"}</span>
+          <span>{b.due_date ? `Vence: ${formatDateMty(b.due_date)}` : "Sin vencimiento"}</span>
           <span>{formatCurrencyWithCode(Number(b.total), b.currency)}</span>
         </div>
       </CardContent>

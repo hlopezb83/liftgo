@@ -5,8 +5,8 @@ import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { exportToCsv } from "@/lib/exportCsv";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
 import { invoiceTotalMxn, type DrilldownInvoice } from "../../../lib/drilldown";
 
 interface Props {
@@ -86,7 +86,7 @@ export function RevenueMonthDetailSheet({
                     <div className="min-w-0">
                       <p className="font-medium truncate">{inv.invoice_number}</p>
                       <p className="text-muted-foreground truncate">
-                        {inv.customer_name || "—"} · {formatDateDisplay(inv.issued_at)}
+                        {inv.customer_name || "—"} · {formatDateMty(inv.issued_at)}
                         {inv.moneda && inv.moneda !== "MXN" ? ` · ${inv.moneda}` : ""}
                       </p>
                     </div>

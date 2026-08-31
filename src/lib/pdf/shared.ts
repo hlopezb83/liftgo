@@ -1,6 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { loadCompanyLogo } from "@/lib/pdf/assets/logo";
-import { formatDateDisplay } from "@/lib/utils";
 
 // ─── Types ────────────────────────────────────────────
 
@@ -44,6 +44,6 @@ export async function fetchCompanyDataAndLogo(): Promise<{
 
 export function fmtDate(d: string | null): string {
   if (!d) return "—";
-  const s = formatDateDisplay(d);
+  const s = formatDateMty(d);
   return s || "—";
 }

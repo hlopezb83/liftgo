@@ -7,9 +7,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CREDIT_NOTE_MOTIVE_LABELS as MOTIVE_LABELS } from "@/features/invoices/lib/creditNoteMotives";
 import type { Tables } from "@/integrations/supabase/types";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifyError } from "@/lib/ui/appFeedback";
-import { formatDateDisplay } from "@/lib/utils";
 import {
   useCreditNotesForInvoice,
   useStampCreditNote,
@@ -119,7 +119,7 @@ export function InvoiceCreditNotesCard({ invoice }: Props) {
                 {creditNotes.map((cn) => (
                   <TableRow key={cn.id}>
                     <TableCell className="font-mono text-xs">{cn.credit_note_number}</TableCell>
-                    <TableCell className="text-sm">{formatDateDisplay(cn.issued_at)}</TableCell>
+                    <TableCell className="text-sm">{formatDateMty(cn.issued_at)}</TableCell>
                     <TableCell className="text-sm">{MOTIVE_LABELS[cn.motive] ?? cn.motive}</TableCell>
                     <TableCell className="text-right font-mono">{formatCurrency(Number(cn.total))}</TableCell>
                     <TableCell><CnBadge cn={cn} /></TableCell>

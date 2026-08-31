@@ -7,9 +7,10 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { canActOnPortalQuote, isQuoteAccepted } from "@/lib/rules/quotes";
-import { formatDateDisplay, nowMty, parseDateLocal } from "@/lib/utils";
+import { nowMty, parseDateLocal } from "@/lib/utils";
 import { PortalQuoteActionCard } from "../components/PortalQuoteActionCard";
 import { TotalsBreakdown } from "../components/TotalsBreakdown";
 import {
@@ -75,8 +76,8 @@ export default function PortalQuoteDetail() {
       <div className="text-sm text-muted-foreground -mt-2">
         <span className="inline-flex items-center gap-2">
           <StatusBadge status={quote.status} label={quoteStatusLabel(quote.status)} />
-          <span>Emitida {formatDateDisplay(quote.created_at)}</span>
-          {quote.valid_until && <span>· Válida hasta {formatDateDisplay(quote.valid_until)}</span>}
+          <span>Emitida {formatDateMty(quote.created_at)}</span>
+          {quote.valid_until && <span>· Válida hasta {formatDateMty(quote.valid_until)}</span>}
         </span>
       </div>
 
@@ -129,7 +130,7 @@ export default function PortalQuoteDetail() {
             <div className="text-sm">
               <p className="font-semibold">Cotización aceptada</p>
               <p className="text-muted-foreground">
-                {quote.accepted_at ? `El ${formatDateDisplay(quote.accepted_at)}.` : ""} Nuestro equipo te contactará para programar la entrega.
+                {quote.accepted_at ? `El ${formatDateMty(quote.accepted_at)}.` : ""} Nuestro equipo te contactará para programar la entrega.
               </p>
             </div>
           </CardContent>
@@ -141,7 +142,7 @@ export default function PortalQuoteDetail() {
           <CardContent className="pt-4 text-sm">
             <p className="font-semibold">Cotización vencida</p>
             <p className="text-muted-foreground">
-              Esta cotización perdió vigencia el {formatDateDisplay(quote.valid_until)}. Solicita una actualización a tu ejecutivo para poder aceptarla.
+              Esta cotización perdió vigencia el {formatDateMty(quote.valid_until)}. Solicita una actualización a tu ejecutivo para poder aceptarla.
             </p>
           </CardContent>
         </Card>

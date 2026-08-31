@@ -197,7 +197,7 @@ Página (orquestador)
 - Validan identidad con `getClaims()` (compatible con tokens nuevos y legacy).
 - CORS restringido y centralizado en `supabase/functions/_shared/cors.ts`.
 - Validación de inputs en `supabase/functions/_shared/validate.ts`.
-- Casos de uso: timbrado/cancelación CFDI (`stamp-cfdi`, `cancel-cfdi`), invitaciones (`invite-user`, `invite-customer`, `delete-user`, `reset-user-password`, `toggle-user-status`), generación recurrente (`generate-recurring-invoices`, `generate-recurring-maintenance`), parseo de CSF (`parse-csf`), generación del manual (`generate-manual`), generación de PDF de factura server-side (`generate-invoice-pdf`).
+- Casos de uso: timbrado/cancelación CFDI (`stamp-cfdi`, `cancel-cfdi`), invitaciones (`invite-user`, `invite-customer`, `delete-user`, `reset-user-password`, `toggle-user-status`), generación recurrente (`generate-recurring-invoices`, `generate-recurring-maintenance`), parseo de CSF (`parse-csf`), generación del manual (`generate-manual`).
 - `verify_jwt` se configura por función en `supabase/config.toml` cuando aplica.
 
 ---
@@ -519,15 +519,16 @@ Solo cuando se cumple **al menos uno**:
 | Iconos | `lucide-react` | SVGs inline duplicados |
 | PDF | `@react-pdf/renderer` | jsPDF imperativo / dibujo X-Y |
 | Cálculos monetarios | `currency.js` | Aritmética flotante directa |
-| CSV | helper `exportCsv.ts`; escalar a `papaparse` si crece | Concatenación manual de strings |
+| CSV | `papaparse` (vía `exportCsv.ts`) | Concatenación manual de strings |
 | Toasts | `sonner` | `alert()` / banners propios |
 | Drag & drop archivos | `react-dropzone` | Listeners HTML5 manuales |
-| Markdown | `react-markdown` + `remark-gfm` | Regex / parsers propios |
+| Markdown | `marked` + `dompurify` (vía `features/help/lib/markdown.ts`) | Regex / parsers propios |
 | Class merging | `clsx` + `tailwind-merge` (vía `cn`) | Concatenación de strings |
-| Animaciones | `tailwindcss-animate` (+ `framer-motion` puntual) | `setTimeout` + clases |
+| Animaciones | `tailwindcss-animate` | `setTimeout` + clases |
 | Testing | `vitest` + `@testing-library/react` | Asserts manuales |
-| Descargas blob | `file-saver` (lazy import) | `URL.createObjectURL` + `link.click` ad-hoc duplicado |
-| Captura screenshot DOM | `html2canvas` (lazy import, solo feedback) | Re-render manual a canvas |
+| Descargas blob | `src/lib/pdf/renderAndSave.tsx` | `URL.createObjectURL` + `link.click` ad-hoc duplicado |
+| Captura screenshot DOM | `html-to-image` (lazy, solo feedback) | Re-render manual a canvas |
+
 
 ### 20.5 Proceso para introducir una dependencia nueva
 
@@ -551,6 +552,20 @@ Solo cuando se cumple **al menos uno**:
 - Wrappers triviales sobre una librería que solo renombran su API.
 - Forks internos de librerías sin razón documentada.
 - Dependencias one-off que duplican algo del stack canónico.
+
+### 20.8 Dependencias de un solo punto de uso (auditoría YAGNI)
+
+Estas librerías tienen **un único consumidor** en el repo. No son deuda: cada una encapsula un problema con casos borde que no vale la pena reimplementar. Se documentan aquí para que una futura auditoría no las elimine por "poco usadas".
+
+| Dependencia | Único consumidor | Por qué se conserva |
+|---|---|---|
+| `marked` | `src/features/help/lib/markdown.ts` | Parser CommonMark completo para los artículos de ayuda; un regex propio rompe en tablas, listas anidadas y código. |
+| `dompurify` | `src/features/help/lib/markdown.ts` | Sanitiza el HTML resultante antes de inyectarlo. Requisito de seguridad: **nunca** sustituir por escapado manual. |
+| `papaparse` | `src/lib/exportCsv.ts` | Serialización CSV con comillas, separadores y saltos de línea dentro de celdas; el helper manual anterior corrompía datos con comas. |
+| `html-to-image` | `src/features/feedback/lib/captureScreenshot.ts` | Captura DOM → PNG solo en el widget de feedback; import diferido, no entra al bundle principal. |
+
+Regla: si el único consumidor desaparece, **la dependencia se elimina en el mismo PR**.
+
 
 ---
 
