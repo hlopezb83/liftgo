@@ -152,12 +152,17 @@ export function BillApprovalSection({
             <strong>Notas:</strong> {approvalNotes}
           </p>
         )}
-        {approvedAt && approvalStatus !== "pending" && (
+        {approvalStatus === "approved" && approvedAt && (
           <p className="text-xs text-muted-foreground">
-            {approvalStatus === "approved" ? "Aprobada" : "Rechazada"} el{" "}
-            {formatDateDisplay(approvedAt)}
+            Aprobada el {formatDateDisplay(approvedAt)}
           </p>
         )}
+        {approvalStatus === "rejected" && (rejectedAt ?? approvedAt) && (
+          <p className="text-xs text-muted-foreground">
+            Rechazada el {formatDateDisplay((rejectedAt ?? approvedAt) as string)}
+          </p>
+        )}
+
 
         <ApprovalActions
           status={approvalStatus}
