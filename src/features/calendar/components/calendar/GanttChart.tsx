@@ -1,8 +1,13 @@
 import { parseISO, isToday } from "date-fns";
 import type { BookingWithForklift } from "@/features/bookings";
+import {
+  DEFAULT_MAINTENANCE_BUFFER_DAYS,
+  useMaintenanceBuffer,
+} from "@/features/company-settings";
 import type { Tables } from "@/integrations/supabase/types";
 import { BOOKING_STATUS } from "@/lib/constants";
 import { useGanttSegments, type MaintenanceWindow } from "../../hooks/calendar/useGanttSegments";
+
 import { GanttHeader } from "./GanttHeader";
 import { GanttLegend } from "./GanttLegend";
 import { GanttRow } from "./GanttRow";
