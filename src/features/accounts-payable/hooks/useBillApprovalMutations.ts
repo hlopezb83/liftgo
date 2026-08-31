@@ -1,6 +1,7 @@
 import { cashFlowProjectionQueries } from "@/features/cash-flow";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { callRpc } from "@/lib/rpc";
+import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { billApprovalQueries } from "./useBillApprovalHistory";
 import { exportablePayableQueries } from "./useExportablePayables";
 import { supplierBillKeys } from "./useSupplierBills";
