@@ -105,7 +105,10 @@ export function CustomerStatementDocument(props: CustomerStatementDocumentProps)
   const { summary } = props;
   const totalInvoiced = roundMoney(Number(summary.totals.total_invoiced ?? 0));
   const totalPaid = roundMoney(Number(summary.totals.total_paid ?? 0));
-  const balance = roundMoney(totalInvoiced - totalPaid);
+  // B5-02: las notas de crédito reducen el adeudo real; antes el PDF mostraba
+  // un saldo inflado porque sólo restaba los pagos.
+  const totalCredited = roundMoney(Number(summary.totals.total_credited ?? 0));
+  const balance = roundMoney(totalInvoiced - totalPaid - totalCredited);
   const today = nowMty();
   const openInvoices = summary.invoices.filter((i) => i.status !== "paid" && i.status !== "cancelled");
   const paidInvoices = summary.invoices.filter((i) => i.status === "paid");
