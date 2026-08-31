@@ -3,12 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { nowMty } from "@/lib/utils";
 import {
-  buildPaidByInvoice,
   invoiceToItem,
   billToItem,
   type BillRow,
   type InvoiceRow,
-  type PaymentRow,
 } from "./cashFlowTransformers";
 import {
   bucketByWeek,
@@ -77,11 +75,6 @@ async function countBillsWithoutDueDate(): Promise<number> {
 export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projection", {
   list: (filter?: Readonly<Record<string, unknown>>) => async (): Promise<CashFlowProjectionResult> => {
     const { weeks, initialBalance, safetyBuffer } = (filter ?? {}) as CashFlowProjectionFilter;
-    // Tanda 3 P2-7: se acota `payments` a los invoice_id vigentes.
-    // Antes se descargaba TODA la tabla `payments` (sin límite ni rango) solo
-    // para construir `paidByInvoice` sobre las facturas activas listadas más
-    // abajo. Ahora primero traemos las facturas/bills activas y filtramos los
-    // pagos por su `invoice_id` → payload proporcional a lo que se proyecta.
     const [invRes, billRes, noDueInvoices, noDueBills] = await Promise.all([
       supabase.from("v_invoices_with_balance")
         .select("id, invoice_number, total, due_date, customer_name, moneda, tipo_cambio, credited_amount, balance_mxn")
