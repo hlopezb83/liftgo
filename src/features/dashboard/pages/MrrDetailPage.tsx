@@ -6,7 +6,6 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
 import { TableFooter, TableRow, TableCell } from "@/components/ui/table";
 import { useIsTabletOrBelow } from "@/hooks/use-mobile";
 import { formatCurrency } from "@/lib/format/formatCurrency";
