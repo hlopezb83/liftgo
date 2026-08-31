@@ -1,5 +1,17 @@
 [
   {
+    "version": "7.396.3",
+    "date": "2026-08-31",
+    "type": "patch",
+    "title": "Detalle completo del historial de cambios",
+    "category": "docs",
+    "description": "Se completaron los archivos de detalle de 28 versiones históricas del historial de cambios, de modo que la validación de versiones ya no reporta faltantes.",
+    "changes": [
+      "Cada versión del historial tiene ahora su archivo de detalle con descripción y lista de cambios.",
+      "La validación automática de versiones pasa sin advertencias."
+    ]
+  },
+  {
     "version": "7.396.2",
     "date": "2026-08-31",
     "type": "patch",
