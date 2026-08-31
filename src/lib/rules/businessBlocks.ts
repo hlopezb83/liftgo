@@ -40,6 +40,7 @@ export type BusinessBlockCode =
   | "quote_expired"
   | "quote_already_converted"
   | "quote_sale_assignment_incomplete"
+  | "supplier_bill_self_approval"
   | "customer_outstanding_balance";
 
 /** `info` para restricciones normales del negocio; `warning` para riesgo real. */
