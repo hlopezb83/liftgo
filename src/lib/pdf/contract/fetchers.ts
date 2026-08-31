@@ -48,9 +48,38 @@ export interface TemplateData {
 }
 
 export async function fetchRelatedData(contract: ContractData) {
+  // A6R2-3: contrato firmado con snapshot → cliente y unidad desde la copia.
+  const snapshot = readSignedSnapshot(contract);
   // R-arq 13: columnas explícitas por PDF renderer (evita traer campos ocultos
   // como notes internos, PII bancaria o umbrales financieros al bundle).
   const [companyRes, customerRes, forkliftRes] = await Promise.all([
+    supabase
+      .from("company_settings")
+      .select("razon_social, rfc, regimen_fiscal, lugar_expedicion, logo_url")
+      .limit(1)
+      .maybeSingle(),
+    snapshot?.customer
+      ? Promise.resolve({ data: snapshot.customer })
+      : contract.customer_id
+      ? supabase
+          .from("customers")
+          .select("name, rfc, address, contact_person, representante_legal, domicilio_fiscal_cp")
+          .eq("id", contract.customer_id)
+          .single()
+      : Promise.resolve({ data: null }),
+    snapshot?.forklift
+      ? Promise.resolve({ data: snapshot.forklift })
+      : contract.forklift_id
+      ? supabase
+          .from("forklifts")
+          .select("manufacturer, model, serial_number, capacity_kg, fuel_type, acquisition_cost")
+          .eq("id", contract.forklift_id)
+          .single()
+      : Promise.resolve({ data: null }),
+  ]);
+  return { company: companyRes.data, customer: customerRes.data, forklift: forkliftRes.data };
+}
+
     supabase
       .from("company_settings")
       .select("razon_social, rfc, regimen_fiscal, lugar_expedicion, logo_url")
