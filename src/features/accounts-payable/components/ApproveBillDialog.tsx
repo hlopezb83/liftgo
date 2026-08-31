@@ -1,12 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { BlockedActionNotice } from "@/components/feedback/BlockedActionNotice";
 import { TextareaField } from "@/components/forms/fields";
 import { FormDialog, FormDialogFooter } from "@/components/forms/FormDialog";
 import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButton";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { zodResolver } from "@/lib/forms/zodResolver";
+import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { useApproveSupplierBill } from "../hooks/useBillApprovalMutations";
 
 interface Props {
@@ -22,7 +24,9 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export function ApproveBillDialog({ open, onOpenChange, billId, billNumber }: Props) {
-  const approve = useApproveSupplierBill();
+  // Segregación de funciones: el backend rechaza aprobar tu propia factura.
+  const [block, setBlock] = useState<BusinessBlock | null>(null);
+  const approve = useApproveSupplierBill({ onBusinessBlock: setBlock });
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { notes: "" },
@@ -33,6 +37,7 @@ export function ApproveBillDialog({ open, onOpenChange, billId, billNumber }: Pr
   }, [open, form]);
 
   const onSubmit = (values: FormValues) => {
+    setBlock(null);
     approve.mutate(
       { billId, notes: values.notes.trim() || undefined },
       { onSuccess: () => onOpenChange(false) },
@@ -49,6 +54,7 @@ export function ApproveBillDialog({ open, onOpenChange, billId, billNumber }: Pr
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          {block && <BlockedActionNotice block={block} />}
           <TextareaField
             control={form.control}
             name="notes"

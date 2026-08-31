@@ -1,6 +1,7 @@
 import { cashFlowProjectionQueries } from "@/features/cash-flow";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { callRpc } from "@/lib/rpc";
+import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { billApprovalQueries } from "./useBillApprovalHistory";
 import { exportablePayableQueries } from "./useExportablePayables";
 import { supplierBillKeys } from "./useSupplierBills";
@@ -20,13 +21,19 @@ const invalidationKeys = (billId: string) => [
   billApprovalQueries.list({ billId }).queryKey,
 ];
 
-export function useApproveSupplierBill() {
+export function useApproveSupplierBill(opts?: {
+  /** Bloqueo de negocio del backend (segregación de funciones: auto-aprobación). */
+  onBusinessBlock?: (block: BusinessBlock) => void;
+}) {
   return useEntityMutation({
     mutationFn: async ({ billId, notes }: { billId: string; notes?: string }) =>
       callRpc<null>("approve_supplier_bill", { p_bill_id: billId, p_notes: notes ?? null }),
     invalidateKeysFn: (_d, vars) => invalidationKeys(vars.billId),
     successMsg: "Factura aprobada",
     errorTitle: "No se pudo aprobar la factura",
+    ...(opts?.onBusinessBlock
+      ? { onBusinessBlock: (block: BusinessBlock) => opts.onBusinessBlock?.(block) }
+      : {}),
   });
 }
 

@@ -1,0 +1,6 @@
+{
+  "description": "Aviso explicable al intentar aprobar tu propia factura de proveedor",
+  "changes": [
+    "El diálogo de aprobación muestra el bloqueo explicable de segregación de funciones."
+  ]
+}

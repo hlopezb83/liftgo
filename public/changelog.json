@@ -1,5 +1,15 @@
 [
   {
+    "version": "7.392.1",
+    "date": "2026-08-31",
+    "type": "patch",
+    "title": "Aviso explicable al intentar aprobar tu propia factura de proveedor",
+    "description": "Cuando un administrador intenta aprobar una factura que él mismo registró, el sistema explica el motivo dentro del diálogo en vez de mostrar un error genérico.",
+    "changes": [
+      "El diálogo de aprobación muestra el bloqueo explicable de segregación de funciones."
+    ]
+  },
+  {
     "version": "7.392.0",
     "date": "2026-08-31",
     "type": "minor",
