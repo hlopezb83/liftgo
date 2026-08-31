@@ -95,6 +95,7 @@ async function fetchInvoicePage(filters: InvoiceListFilters, pageIndex: number) 
   const to = from + INVOICE_PAGE_SIZE - 1;
   const { data, error } = await baseInvoiceQuery(filters)
     .order("created_at", { ascending: false })
+    .order("id", { ascending: false })
     .range(from, to)
     .returns<InvoiceRow[]>();
   if (error) throw error;
