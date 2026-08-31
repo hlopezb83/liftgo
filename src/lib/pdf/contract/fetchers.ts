@@ -14,7 +14,29 @@ export type ContractData = Pick<ContractViewModel,
   | "status" | "signed_at" | "signed_by" | "usage_location" | "max_hours_per_month"
   | "extra_hour_rate" | "payment_frequency" | "late_interest_rate" | "contract_city"
   | "witness_1" | "witness_2"
-> & { customer_name?: string | null };
+> & {
+  customer_name?: string | null;
+  /**
+   * A6R2-3: copia inmutable capturada al firmar (cliente, unidad y plantilla).
+   * Cuando existe, el PDF del contrato firmado se rinde desde aquí para que no
+   * cambie si después se editan el cliente, la unidad o la plantilla.
+   */
+  signed_snapshot?: unknown;
+};
+
+interface SignedSnapshot {
+  customer?: Record<string, unknown> | null;
+  forklift?: Record<string, unknown> | null;
+  template?: Partial<TemplateData> | null;
+}
+
+/** Devuelve el snapshot del contrato firmado, o null si no aplica. */
+export function readSignedSnapshot(contract: ContractData): SignedSnapshot | null {
+  if (contract.status !== "signed") return null;
+  const snap = contract.signed_snapshot;
+  if (!snap || typeof snap !== "object") return null;
+  return snap as SignedSnapshot;
+}
 
 export interface TemplateData {
   intro_text: string | null;
