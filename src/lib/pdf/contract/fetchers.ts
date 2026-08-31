@@ -82,16 +82,17 @@ export async function fetchRelatedData(contract: ContractData) {
 
 
 
-export async function fetchTemplate(): Promise<TemplateData> {
-  // v7.282.0: orden explícito — si existiera más de una plantilla marcada como
-  // predeterminada, gana la editada más recientemente (antes era arbitrario).
-  const { data } = await supabase
+export async function fetchTemplate(contract?: ContractData): Promise<TemplateData> {
+  // A6R2-3: si el contrato firmado guardó su plantilla, se usa esa copia.
+  const snapshotTpl = contract ? readSignedSnapshot(contract)?.template : null;
+  const data = snapshotTpl ?? (await supabase
     .from("contract_templates")
     .select("intro_text, declarations_landlord, declarations_tenant, clauses, checklist_sections, pagare_text, updated_at")
     .eq("is_default", true)
     .order("updated_at", { ascending: false })
     .limit(1)
-    .maybeSingle();
+    .maybeSingle()).data;
+
 
 
   if (!data) {
