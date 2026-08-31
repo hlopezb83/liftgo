@@ -72,3 +72,16 @@ export function useArchiveDamageRecord() {
     errorTitle: "Error al archivar registro de daño",
   });
 }
+
+/** R5-A6: restaura un daño archivado (solo admin; la RPC revalida el rol). */
+export function useRestoreDamageRecord() {
+  return useEntityMutation({
+    mutationFn: async (id: string) => {
+      await callRpc<void>("restore_damage_record", { p_damage_id: id });
+      return id;
+    },
+    invalidateKeys: [damageRecordQueries.keys.all, reportKeys.all],
+    successMsg: "Registro de daño restaurado",
+    errorTitle: "No se pudo restaurar el registro de daño",
+  });
+}

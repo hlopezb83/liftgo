@@ -77,3 +77,17 @@ export function useDeleteMaintenanceLog() {
     errorTitle: "Error al archivar registro de mantenimiento",
   });
 }
+
+/** R5-A6: restaura una OT archivada (solo admin; la RPC revalida el rol). */
+export function useRestoreMaintenanceLog() {
+  return useEntityMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.rpc("restore_maintenance_log", { p_log_id: id });
+      if (error) throw error;
+      return id;
+    },
+    invalidateKeys: [maintenanceLogKeys.all, reportKeys.all],
+    successMsg: "Orden de trabajo restaurada",
+    errorTitle: "No se pudo restaurar la orden de trabajo",
+  });
+}
