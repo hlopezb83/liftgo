@@ -31,6 +31,7 @@ export type BusinessBlockCode =
   | "payment_exceeds_balance"
   | "extension_already_billed"
   | "supplier_bill_pending_approval"
+  | "supplier_bill_draft"
   | "supplier_payment_rep_received"
   | "payment_rep_stamped_locked"
   | "portal_payment_fully_reported"
@@ -134,6 +135,12 @@ export const BUSINESS_BLOCKS: Record<BusinessBlockCode, BlockCopy> = {
     action: "No puedes registrar el pago de esta factura",
     reason: "La factura todavía está pendiente de aprobación.",
     nextStep: "Pide que se apruebe la factura y vuelve a registrar el pago.",
+    tone: "info",
+  },
+  supplier_bill_draft: {
+    action: "No puedes registrar el pago de esta factura",
+    reason: "La factura del proveedor sigue en borrador.",
+    nextStep: "Envía la factura a revisión o aprobación antes de pagarla.",
     tone: "info",
   },
   supplier_payment_rep_received: {

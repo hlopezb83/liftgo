@@ -4,6 +4,8 @@
 // completa es injusto: sólo se rentaron algunos días. Este helper devuelve
 // el monto y el # de días facturables cuando corresponde prorratear.
 
+import { fromCents, toCents } from "../_shared/money.ts";
+
 export type ProrateResult = {
   billedAmount: number;
   isProrated: boolean;
@@ -30,7 +32,10 @@ export function computeProrate(
     };
   }
   const proratedDays = daysInMonth - startDay + 1;
-  const raw = monthlyRate * proratedDays / daysInMonth;
-  const billedAmount = Math.round(raw * 100) / 100;
+  // A5-06: el prorrateo se calcula en centavos enteros para evitar el drift
+  // de punto flotante (p. ej. 0.005 que redondeaba hacia el lado incorrecto).
+  const billedAmount = fromCents(
+    Math.round((toCents(monthlyRate) * proratedDays) / daysInMonth),
+  );
   return { billedAmount, isProrated: true, proratedDays, daysInMonth };
 }

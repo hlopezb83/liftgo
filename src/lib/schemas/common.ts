@@ -13,6 +13,7 @@
  * mejor tree-shaking y por evitar los helpers deprecados de `z.string()`.
  */
 import { z } from "zod";
+import { hasValidRfcChecksum } from "@/lib/fiscal/rfcChecksum";
 
 // ---------------------------------------------------------------------------
 // Email opcional — acepta cadena vacía o email válido.
@@ -60,7 +61,11 @@ export const rfcRequired = () =>
     .string()
     .min(1, "RFC requerido")
     .transform((v) => v.trim().toUpperCase())
-    .refine((v) => RFC_REGEX.test(v), { message: "RFC inválido (formato AAAA000000AAA)" });
+    .refine((v) => RFC_REGEX.test(v), { message: "RFC inválido (formato AAAA000000AAA)" })
+    // A4-05: además del formato, se verifica el dígito verificador del SAT.
+    .refine((v) => !RFC_REGEX.test(v) || hasValidRfcChecksum(v), {
+      message: "RFC inválido: el dígito verificador no coincide",
+    });
 
 // ---------------------------------------------------------------------------
 // CLABE bancaria (18 dígitos, México)

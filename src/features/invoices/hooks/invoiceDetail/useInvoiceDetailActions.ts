@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useUpdateBooking } from "@/features/bookings";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import type { Tables } from "@/integrations/supabase/types";
 import { STATUS_LABELS } from "@/lib/constants";
@@ -16,7 +15,6 @@ export function useInvoiceDetailActions(invoice: Tables<"invoices"> | undefined,
   const navigate = useNavigateTransition();
   const updateInvoice = useUpdateInvoice();
   const deleteInvoice = useDeleteInvoice();
-  const updateBooking = useUpdateBooking();
   const { stampCfdi, run: runStamp, stampError, clearStampError } = useStampInvoiceFlow(refetch);
   const downloadXml = useDownloadInvoiceXml();
 
@@ -31,14 +29,11 @@ export function useInvoiceDetailActions(invoice: Tables<"invoices"> | undefined,
     updateInvoice.mutate(
       { id, status, ...(paidAt ? { paid_at: paidAt } : {}) },
       {
-        onSuccess: (data) => {
+        onSuccess: () => {
           notifySuccess(`Factura marcada como ${STATUS_LABELS[status] ?? status}`);
-          if (status === "paid" && data.booking_id) {
-            updateBooking.mutate(
-              { id: data.booking_id, status: "completed" },
-              { onSuccess: () => notifySuccess("Reserva vinculada marcada como completada") }
-            );
-          }
+          // A3-04: la reserva NO se completa desde aquí. Completar una renta
+          // exige la inspección de devolución (guard_booking_completion la
+          // rechaza), así que el UPDATE directo sólo generaba un error.
         },
       }
     );

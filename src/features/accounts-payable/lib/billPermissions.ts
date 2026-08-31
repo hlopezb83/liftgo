@@ -52,6 +52,9 @@ function deleteReason(bill: Bill, hasPayments: boolean): BusinessBlockCode | nul
  * aprobación o rechazada); no cambia si el pago está permitido.
  */
 export function supplierBillPaymentBlock(bill: Bill): BusinessBlock | null {
+  if (bill.status === "draft") {
+    return describeBusinessBlock("supplier_bill_draft");
+  }
   if (bill.status === "cancelled") {
     return describeBusinessBlock("supplier_bill_cancelled", {
       action: "No puedes registrar el pago de esta factura",

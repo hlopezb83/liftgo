@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { quoteStatusLabel } from "../../constants";
@@ -17,6 +18,7 @@ type StateResult = ReturnType<typeof useQuoteConversionState>;
  */
 export function useQuoteConversionActions(id: string | undefined, data: DataResult, state: StateResult) {
   const navigate = useNavigateTransition();
+  const queryClient = useQueryClient();
   const updateQuote = useUpdateQuote();
   const deleteQuote = useDeleteQuote();
   const { createBookingsFor, convertLegacy } = useQuoteBookingCreator(data, state);
@@ -90,11 +92,20 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
     if (!quote) return;
     if (isPublicoGeneral(quote.customer_name)) {
       if (!payload.customerId) return;
-      await updateQuote.mutateAsync({
-        id: quote.id,
-        customer_id: payload.customerId,
-        customer_name: payload.customerName,
+      // A3-01: `lock_accepted_quote_amounts` bloquea el UPDATE directo del
+      // cliente en una cotización aceptada. La reasignación va por la RPC
+      // dedicada, que valida rol y estado antes de permitir el cambio.
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { error } = await supabase.rpc("reassign_quote_customer", {
+        p_quote_id: quote.id,
+        p_customer_id: payload.customerId,
+        p_customer_name: payload.customerName,
       });
+      if (error) {
+        notifyError(error.message || "No se pudo reasignar el cliente");
+        return;
+      }
+      await queryClient.invalidateQueries({ queryKey: ["quotes"] });
       notifySuccess("Cliente actualizado");
     }
     state.setShowConvertDialog(false);
