@@ -31,5 +31,11 @@ export interface CustomerSummary {
    * ERP (facturas por cobrar en MXN, sin canceladas), la misma que aplica el
    * backend al archivar un cliente.
    */
-  totals: { total_invoiced: number; total_paid: number; outstanding_revenue?: number };
+  totals: {
+    total_invoiced: number;
+    total_paid: number;
+    /** B5-02: notas de crédito aplicadas (MXN), restan al saldo del estado de cuenta. */
+    total_credited?: number;
+    outstanding_revenue?: number;
+  };
 }
