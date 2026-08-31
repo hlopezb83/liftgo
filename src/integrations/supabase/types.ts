@@ -3946,6 +3946,7 @@ export type Database = {
           p_customer_id: string
           p_customer_name: string
           p_line_items: Json
+          p_moneda?: string
           p_receptor_domicilio_fiscal_cp: string
           p_receptor_razon_social: string
           p_receptor_regimen_fiscal: string
@@ -3953,6 +3954,7 @@ export type Database = {
           p_subtotal: number
           p_tax_amount: number
           p_tax_rate: number
+          p_tipo_cambio?: number
           p_total: number
           p_uso_cfdi: string
         }

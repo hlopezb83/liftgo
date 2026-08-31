@@ -1,3 +1,19 @@
+## [7.390.0] - 2026-08-31
+### Fix (catálogo QA — lote 1: A4B-01/02/03/04/06, A3B-01/02/04/05/06, A1-1, 2A-1(parcial), 2A-3, 2A-4, 2A-5, 2A-6, A6R2-1, A6R2-8, A4B-08/09/10, B5-01, B5-07, B5-08)
+- **A4B-01/02/03:** `get_forklift_financials`, `get_customer_profitability` y `get_sidebar_badge_counts` excluyen OTs archivadas (`deleted_at`) y `is_e2e`.
+- **A4B-04:** `audit_fleet_status_consistency` y `guard_forklift_status_change` dejan de tratar OTs archivadas como abiertas.
+- **A4B-06:** `create_booking` rechaza montacargas archivados.
+- **A3B-02:** `sync_forklift_status_on_maintenance` devuelve la unidad a `rented` (no `available`) cuando sigue habiendo renta activa.
+- **A3B-06:** `sync_forklift_rental_status` no degrada unidades con daño/OT abierta y escribe `status_logs`.
+- **A3B-01/A3B-05:** `guard_quote_cancellation` cubre también `converted → cancelled`.
+- **A3B-04:** `cancel_booking` bloquea la cancelación si hay facturas emitidas vigentes ligadas.
+- **A1-1:** `create_recurring_invoice` recibe `p_moneda`/`p_tipo_cambio` (TC obligatorio en divisa) y `generate-recurring-invoices` los propaga desde la reserva.
+- **2A-4:** `prepare_payment_complement` descuenta NCs timbradas vigentes del `prior_balance`.
+- **A6R2-1:** `set_supplier_bill_approval_status` ahora corre en `INSERT OR UPDATE OF total, currency, exchange_rate`; reevalúa el umbral y bloquea cambios con pagos o ya aprobada.
+- **2A-5:** `parseAmount` interpreta `"1.500"` como miles.
+- Frontend: 2A-3 (rechazadas fuera de KPIs/aging), 2A-6 (fechas imposibles), B5-07 (Windows-1252), A4B-10 (5 MB CSF), A6R2-8 (reintento de captura), A4B-08/09 (catálogo SAT y validación RFC↔régimen), B5-08 (mes calendario), B5-01/B5-02/B5-04/B5-06 (moneda, tarifas legacy, redondeo por partida, saneado de búsqueda).
+- Sin cambios en permisos, RLS ni máquinas de estado.
+
 ## [7.389.1] - 2026-08-31
 ### Fix (QA — dígito verificador RFC)
 - `src/lib/fiscal/rfcChecksum.ts` mapeaba mal el módulo 11 del algoritmo SAT: el dígito correcto es `11 - (sum % 11)` con 11→"0" y 10→"A"; el código producía "10" (imposible) cuando el residuo era 1 y esperaba "A" cuando debía ser "1". ~2/11 de los RFCs reales eran rechazados en `rfcRequired()` (datos fiscales de la empresa, facturación).
