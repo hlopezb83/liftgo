@@ -1,5 +1,16 @@
 [
   {
+    "version": "7.389.1",
+    "date": "2026-08-31",
+    "type": "patch",
+    "title": "RFCs válidos ya no se rechazan en los datos fiscales",
+    "description": "La validación del dígito verificador del RFC calculaba mal dos casos del algoritmo del SAT, así que cerca de 2 de cada 11 RFCs reales se rechazaban al guardar los datos fiscales de la empresa. Ya se corrigió el mapeo y las pruebas ahora cubren esos casos borde.",
+    "changes": [
+      "Guardar un RFC real en los datos fiscales de la empresa o al capturar facturas ya no marca el error “el dígito verificador no coincide” por un cálculo incorrecto.",
+      "Las pruebas del validador ahora verifican el dígito esperado con una implementación de referencia independiente, incluyendo los casos que terminan en “A” y en “1”."
+    ]
+  },
+  {
     "version": "7.389.0",
     "date": "2026-08-31",
     "type": "minor",

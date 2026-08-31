@@ -1,3 +1,8 @@
+## [7.389.1] - 2026-08-31
+### Fix (QA — dígito verificador RFC)
+- `src/lib/fiscal/rfcChecksum.ts` mapeaba mal el módulo 11 del algoritmo SAT: el dígito correcto es `11 - (sum % 11)` con 11→"0" y 10→"A"; el código producía "10" (imposible) cuando el residuo era 1 y esperaba "A" cuando debía ser "1". ~2/11 de los RFCs reales eran rechazados en `rfcRequired()` (datos fiscales de la empresa, facturación).
+- `rfcChecksum.test.ts` ahora valida contra una implementación de referencia independiente y cubre los casos borde "0", "A" y "1".
+
 ## [7.389.0] - 2026-08-31
 ### Fix (auditoría QA — cierre de hallazgos abiertos: A1-B3, A2-3, A3-07, A5-05, A5-09)
 - **A1-B3:** `supabase/functions/stamp-credit-note/handler.ts` reconcilia el total devuelto por Facturapi contra `credit_notes.total` con `computeStampVariance` (mismo contrato que `stamp-cfdi`/BL-A5). Fuera de tolerancia persiste identidad fiscal + `cfdi_status='error'`, `stamp_variance`/`stamp_variance_checked_at` (columnas nuevas) y responde 502.
