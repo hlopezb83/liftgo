@@ -1,0 +1,12 @@
+{
+  "version": "7.387.0",
+  "date": "2026-08-30",
+  "type": "minor",
+  "title": "Flujo de efectivo usa el saldo real de cada factura",
+  "description": "La proyección de flujo de efectivo toma el saldo oficial de la factura (ya convertido a pesos) en vez de recalcularlo con los pagos, evitando montos incorrectos cuando el pago fue en otra moneda.",
+  "changes": [
+    "El saldo proyectado de cada factura viene de la misma fuente que cobranza y el portal.",
+    "Un pago en pesos sobre una factura en dólares ya no hace desaparecer ni subestimar la factura en la proyección.",
+    "La pantalla carga más rápido: ya no descarga la tabla de pagos para recalcular saldos."
+  ]
+}

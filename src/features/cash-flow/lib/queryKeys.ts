@@ -3,12 +3,10 @@ import { supabase } from "@/integrations/supabase/client";
 import { defineEntityQueries } from "@/lib/query/defineEntityQueries";
 import { nowMty } from "@/lib/utils";
 import {
-  buildPaidByInvoice,
   invoiceToItem,
   billToItem,
   type BillRow,
   type InvoiceRow,
-  type PaymentRow,
 } from "./cashFlowTransformers";
 import {
   bucketByWeek,
@@ -77,14 +75,9 @@ async function countBillsWithoutDueDate(): Promise<number> {
 export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projection", {
   list: (filter?: Readonly<Record<string, unknown>>) => async (): Promise<CashFlowProjectionResult> => {
     const { weeks, initialBalance, safetyBuffer } = (filter ?? {}) as CashFlowProjectionFilter;
-    // Tanda 3 P2-7: se acota `payments` a los invoice_id vigentes.
-    // Antes se descargaba TODA la tabla `payments` (sin límite ni rango) solo
-    // para construir `paidByInvoice` sobre las facturas activas listadas más
-    // abajo. Ahora primero traemos las facturas/bills activas y filtramos los
-    // pagos por su `invoice_id` → payload proporcional a lo que se proyecta.
     const [invRes, billRes, noDueInvoices, noDueBills] = await Promise.all([
       supabase.from("v_invoices_with_balance")
-        .select("id, invoice_number, total, due_date, customer_name, moneda, tipo_cambio, credited_amount")
+        .select("id, invoice_number, total, due_date, customer_name, moneda, tipo_cambio, credited_amount, balance_mxn")
         .in("status", ACTIVE_INVOICE_STATUSES)
         .not("due_date", "is", null)
         .returns<InvoiceRow[]>(),
@@ -100,21 +93,12 @@ export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projecti
     if (invRes.error) throw invRes.error;
     if (billRes.error) throw billRes.error;
 
-    const activeInvoiceIds = (invRes.data ?? []).map((i) => i.id).filter(Boolean);
-    let payments: PaymentRow[] = [];
-    if (activeInvoiceIds.length > 0) {
-      const payRes = await supabase.from("payments")
-        .select("invoice_id, amount, currency, exchange_rate")
-        .in("invoice_id", activeInvoiceIds)
-        .returns<PaymentRow[]>();
-      if (payRes.error) throw payRes.error;
-      payments = payRes.data ?? [];
-    }
-
-    const paidByInvoice = buildPaidByInvoice(payments);
+    // A2-1: ya no se recalcula el saldo con `payments` en el cliente; la vista
+    // `v_invoices_with_balance` expone `balance_mxn` FX-aware. Además ahorra
+    // una query completa de pagos por cada carga de la proyección.
     const items: CashFlowItem[] = [];
     for (const inv of invRes.data ?? []) {
-      const item = invoiceToItem(inv, paidByInvoice);
+      const item = invoiceToItem(inv);
       if (item) items.push(item);
     }
     for (const b of billRes.data ?? []) {

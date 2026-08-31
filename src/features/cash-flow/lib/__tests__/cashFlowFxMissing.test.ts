@@ -20,14 +20,12 @@ describe("isFxMissing", () => {
 
 describe("invoiceToItem con FX faltante", () => {
   it("excluye la factura foránea sin tipo de cambio", () => {
-    const item = invoiceToItem(
-      {
-        id: "i2", invoice_number: "FAC-002", total: 1000,
-        due_date: "2026-07-01", customer_name: "Acme",
-        moneda: "USD", tipo_cambio: null, credited_amount: null,
-      },
-      new Map(),
-    );
+    const item = invoiceToItem({
+      id: "i2", invoice_number: "FAC-002", total: 1000,
+      due_date: "2026-07-01", customer_name: "Acme",
+      moneda: "USD", tipo_cambio: null, credited_amount: null,
+      balance_mxn: null,
+    });
     expect(item).toBeNull();
   });
 });

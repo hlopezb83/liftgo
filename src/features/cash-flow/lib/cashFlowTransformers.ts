@@ -37,6 +37,13 @@ export interface InvoiceRow {
   tipo_cambio: number | string | null;
   /** v7.209.0 A4: NCs timbradas restadas por la vista `v_invoices_with_balance`. */
   credited_amount?: number | string | null;
+  /**
+   * A2-1: saldo canónico ya convertido a MXN por `v_invoices_with_balance`
+   * (pagos en otra moneda convertidos con el TC del pago o del documento,
+   * NCs timbradas descontadas). `null` cuando falta el TC de una factura
+   * en moneda foránea.
+   */
+  balance_mxn?: number | string | null;
 }
 
 export interface BillRow {
@@ -58,11 +65,14 @@ export interface PaymentRow {
 
 
 /**
- * Mapa de pagos acumulados EN MONEDA DEL DOCUMENTO (no MXN), agrupados por
- * invoice_id. El Fix 3.2 garantiza que un pago se registra en la misma
- * moneda que la factura, así que sumamos el monto crudo sin convertir:
- * convertir cada pago a MXN con su propio TC y luego restar del total en MXN
- * mezclaba tipos de cambio distintos y producía saldos irreales (Fix 6.4).
+ * A2-1 (auditoría QA): DEPRECADO para el cash flow. Sumaba `p.amount` crudo
+ * asumiendo que el pago siempre viene en la moneda de la factura, lo cual la
+ * base de datos NO garantiza (`trg_payments_currency_matches_invoice` admite
+ * cruce con tipo de cambio). Un pago de $850 MXN a una factura USD contaba
+ * como 850 USD y subestimaba (o desaparecía) el saldo proyectado.
+ *
+ * El saldo canónico ahora viene de `v_invoices_with_balance.balance_mxn`.
+ * Se conserva sólo por retro-compatibilidad de importadores externos.
  */
 export function buildPaidByInvoice(payments: ReadonlyArray<PaymentRow>): Map<string, number> {
   const map = new Map<string, number>();
@@ -80,22 +90,19 @@ export function buildPaidByInvoice(payments: ReadonlyArray<PaymentRow>): Map<str
 const MIN_PROJECTABLE_BALANCE_MXN = 0.005;
 
 /** Transforma una factura en `CashFlowItem` (entrada), o null si no aplica. */
-export function invoiceToItem(
-  inv: InvoiceRow,
-  paidByInvoice: ReadonlyMap<string, number>,
-): CashFlowItem | null {
+export function invoiceToItem(inv: InvoiceRow): CashFlowItem | null {
   if (!inv.due_date) return null;
   // FX faltante → excluir de la proyección en vez de asumir USD 1:1 como MXN.
   if (isFxMissing(inv.moneda, inv.tipo_cambio)) return null;
-  // Fix 6.4: el saldo se calcula EN MONEDA DEL DOCUMENTO (total - pagos -
-  // NCs, todos ya en esa moneda) y solo el residual se convierte a MXN con
-  // el TC del documento. Antes se convertía cada pieza por separado a MXN
-  // con su propio TC, mezclando tipos de cambio distintos.
-  const paidDoc = paidByInvoice.get(inv.id) ?? 0;
-  const creditedDoc = Number(inv.credited_amount ?? 0);
-  const balanceDoc = Number(inv.total) - paidDoc - creditedDoc;
-  const balanceMxn = toMxn(balanceDoc, inv.moneda ?? "MXN", inv.tipo_cambio);
-  if (balanceMxn < MIN_PROJECTABLE_BALANCE_MXN) return null;
+  // A2-1: el saldo lo calcula `v_invoices_with_balance` (misma definición que
+  // usan cobranza y el portal): total − pagos convertidos a moneda del
+  // documento − NCs timbradas, y luego a MXN con el TC del documento.
+  // Antes se recalculaba en el cliente sumando `payments.amount` crudo, lo que
+  // subestimaba el saldo cuando el pago venía en otra moneda.
+  const raw = inv.balance_mxn;
+  if (raw === null || raw === undefined) return null;
+  const balanceMxn = Number(raw);
+  if (!Number.isFinite(balanceMxn) || balanceMxn < MIN_PROJECTABLE_BALANCE_MXN) return null;
   return {
     id: inv.id,
     number: inv.invoice_number,
