@@ -22,10 +22,12 @@ describe("hasValidRfcChecksum", () => {
     // Implementación de referencia independiente: dígito = 11 - (sum % 11),
     // donde 11 -> "0" y 10 -> "A" (algoritmo SAT).
     const DICT = "0123456789ABCDEFGHIJKLMN&OPQRSTUVWXYZ Ñ";
-    const refDigit = (body12: string): string => {
-      // body12 = primeros 12 caracteres de un RFC de 13 (persona física).
+    const refDigit = (rfc12: string): string => {
+      // rfc12 = RFC completo de 12 caracteres (persona moral); el SAT lo
+      // alinea a 13 posiciones con un espacio inicial.
+      const padded = ` ${rfc12}`;
       let sum = 0;
-      for (let i = 0; i < 12; i++) sum += DICT.indexOf(body12[i]) * (13 - i);
+      for (let i = 0; i < 12; i++) sum += DICT.indexOf(padded[i]) * (13 - i);
       const v = 11 - (sum % 11);
       return v === 11 ? "0" : v === 10 ? "A" : String(v);
     };
