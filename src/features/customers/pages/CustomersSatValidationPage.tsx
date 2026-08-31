@@ -161,12 +161,17 @@ function SatValidationContent() {
                           {r.sat_validated_at ? formatDateMty(r.sat_validated_at) : "—"}
                         </TableCell>
                         <TableCell className="text-xs">
-                          {r.sat_validation_errors.length === 0
-                            ? "—"
-                            : r.sat_validation_errors
-                                .map((e) => e.message)
-                                .filter(Boolean)
-                                .join(" · ")}
+                          {(() => {
+                            const detalle = r.sat_validation_errors
+                              .map((e) => e.message)
+                              .filter(Boolean)
+                              .join(" · ");
+                            if (detalle) return detalle;
+                            if (r.sat_validation_status === "mismatch") {
+                              return "Sin detalle del SAT. Vuelve a validar para obtener los campos con diferencia.";
+                            }
+                            return "—";
+                          })()}
                         </TableCell>
                       </TableRow>
                     ))}
