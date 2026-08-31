@@ -1,3 +1,13 @@
+## [7.391.0] - 2026-08-31
+### Fix (catálogo QA — lotes 2/3: A6R2-3, A6R2-4, 2A-9, A3B-03, A4B-05, estado de resultados FX)
+- **A6R2-3:** `capture_contract_signed_snapshot` + `contracts.signed_snapshot` guardan contrato, cliente, unidad y plantilla al firmar; el snapshot es inmutable y `src/lib/pdf/contract/fetchers.ts` lo usa para rendir el PDF de contratos firmados.
+- **A6R2-4:** `contracts.deposit_status/deposit_settled_at/deposit_settled_amount/deposit_notes` + RPC `set_contract_deposit_status` (admin/administrativo, monto ≤ depósito) y `ContractDepositCard`.
+- **Estado de resultados:** `get_income_statement` excluye documentos en divisa sin TC válido y facturas de proveedor `rejected`; expone `fx_missing`.
+- **2A-9:** `recurringBookingItems` proyecta las rentas recurrentes no facturadas dentro del horizonte del flujo de efectivo (FX-aware, marcadas `isProjected`).
+- **A3B-03:** la inspección de devolución rechaza fechas futuras.
+- **A4B-05:** RPCs `restore_customer` / `restore_supplier` (sólo admin). Falta la vista de archivados en UI.
+- Sin cambios en RLS, permisos, máquinas de estado ni cálculos fiscales existentes.
+
 ## [7.390.0] - 2026-08-31
 ### Fix (catálogo QA — lote 1: A4B-01/02/03/04/06, A3B-01/02/04/05/06, A1-1, 2A-1(parcial), 2A-3, 2A-4, 2A-5, 2A-6, A6R2-1, A6R2-8, A4B-08/09/10, B5-01, B5-07, B5-08)
 - **A4B-01/02/03:** `get_forklift_financials`, `get_customer_profitability` y `get_sidebar_badge_counts` excluyen OTs archivadas (`deleted_at`) y `is_e2e`.
