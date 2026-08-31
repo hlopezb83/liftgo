@@ -20,8 +20,9 @@ export function useIncomeStatementData({
   startDate, endDate, accountingBasis = "accrual",
 }: UseIncomeStatementDataProps) {
   const {
-    data, rentedWithoutCost, soldWithoutCost, isError, isFetching, refetch,
+    data, rentedWithoutCost, soldWithoutCost, fxMissingCount, isError, isFetching, refetch,
   } = useMonthlyData({ startDate, endDate, accountingBasis });
+
   const {
     filteredData, totals, yearTotals,
     availableYears, selectedYear, setSelectedYear, isComparison,
