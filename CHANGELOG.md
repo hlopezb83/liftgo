@@ -1,3 +1,11 @@
+## [7.393.0] - 2026-08-31
+### Fix (bugs abiertos — lotes 2 y 3)
+- **A6R2-5:** el kanban de mantenimiento ya no permite arrastrar una OT `completed`/`cancelled` a un estado abierto; muestra el bloqueo explicable `maintenance_work_order_closed` y la reapertura formal sigue siendo por `reopen_work_order` (admin + motivo).
+- **A6R2-6:** nuevo trigger `trg_release_damage_on_invoice_cancel` (+ borrado) que desliga el daño de la factura cancelada y lo regresa a `repaired`, para que vuelva a ser facturable.
+- **2A-8:** nueva vista `v_booking_occupancy` (entrega real / devolución real, rentas vencidas cuentan hasta hoy) usada por `utilization` y `monthly_utilization` en `get_dashboard_stats`.
+- **B5-06:** `sanitizeInvoiceSearchForQuery` también neutraliza `_`, que es comodín de `ilike`.
+- Sin cambios en RLS, permisos, máquinas de estado ni cálculos fiscales.
+
 ## [7.392.1] - 2026-08-31
 ### Fix (UX de bloqueos explicables — CxP)
 - `useApproveSupplierBill` acepta `onBusinessBlock` y `ApproveBillDialog` muestra `BlockedActionNotice` con el código `supplier_bill_self_approval` en vez del toast genérico.
