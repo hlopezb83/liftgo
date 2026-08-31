@@ -23,10 +23,31 @@ export interface BarSegment {
   durationDays: number;
 }
 
+/**
+ * A5-07: ventana de mantenimiento que se dibuja como capa sobre la fila del
+ * equipo, para que al programar una renta se vea que la unidad ya está
+ * comprometida por servicio. Es sólo visualización: no crea reglas nuevas.
+ */
+export interface MaintenanceWindow {
+  id: string;
+  forklift_id: string;
+  date: string;
+  label: string;
+}
+
+export interface MaintenanceSegment {
+  id: string;
+  leftPercent: number;
+  widthPercent: number;
+  label: string;
+  date: string;
+}
+
 export function useGanttSegments(
   bookings: BookingWithForklift[] | undefined,
   rangeStart: Date,
   rangeEnd: Date,
+  maintenanceWindows?: MaintenanceWindow[],
 ) {
   const days = eachDayOfInterval({ start: rangeStart, end: rangeEnd });
   const totalDays = days.length;
@@ -66,6 +87,34 @@ export function useGanttSegments(
     return segments;
   };
 
+  const maintenanceByForklift = (() => {
+    const map = new Map<string, MaintenanceWindow[]>();
+    maintenanceWindows?.forEach((m) => {
+      const list = map.get(m.forklift_id);
+      if (list) list.push(m);
+      else map.set(m.forklift_id, [m]);
+    });
+    return map;
+  })();
+
+  const getMaintenanceSegments = (forkliftId: string): MaintenanceSegment[] => {
+    const items = maintenanceByForklift.get(forkliftId) || [];
+    const segments: MaintenanceSegment[] = [];
+    for (const m of items) {
+      const day = parseISO(m.date);
+      if (day < rangeStart || day > rangeEnd) continue;
+      const idx = differenceInDays(day, rangeStart);
+      segments.push({
+        id: m.id,
+        leftPercent: (idx / totalDays) * 100,
+        widthPercent: (1 / totalDays) * 100,
+        label: m.label,
+        date: m.date,
+      });
+    }
+    return segments;
+  };
+
   const customerColorMap = (() => {
     const map = new Map<string, string>();
     bookings?.forEach((b) => {
@@ -79,5 +128,5 @@ export function useGanttSegments(
     return map;
   })();
 
-  return { days, totalDays, getSegments, customerColorMap };
+  return { days, totalDays, getSegments, getMaintenanceSegments, customerColorMap };
 }

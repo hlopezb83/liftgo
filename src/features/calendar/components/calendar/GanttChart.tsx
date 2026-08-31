@@ -2,7 +2,7 @@ import { parseISO, isToday } from "date-fns";
 import type { BookingWithForklift } from "@/features/bookings";
 import type { Tables } from "@/integrations/supabase/types";
 import { BOOKING_STATUS } from "@/lib/constants";
-import { useGanttSegments } from "../../hooks/calendar/useGanttSegments";
+import { useGanttSegments, type MaintenanceWindow } from "../../hooks/calendar/useGanttSegments";
 import { GanttHeader } from "./GanttHeader";
 import { GanttLegend } from "./GanttLegend";
 import { GanttRow } from "./GanttRow";
@@ -13,6 +13,7 @@ interface GanttChartProps {
   bookings: BookingWithForklift[] | undefined;
   rangeStart: Date;
   rangeEnd: Date;
+  maintenanceWindows?: MaintenanceWindow[];
 }
 
 type Forklift = Tables<"forklifts">;
@@ -55,8 +56,13 @@ function ChipCloud({ groups }: { groups: Array<{ key: string; count: number }> }
   );
 }
 
-export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd }: GanttChartProps) {
-  const { days, getSegments, customerColorMap } = useGanttSegments(bookings, rangeStart, rangeEnd);
+export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd, maintenanceWindows }: GanttChartProps) {
+  const { days, getSegments, getMaintenanceSegments, customerColorMap } = useGanttSegments(
+    bookings,
+    rangeStart,
+    rangeEnd,
+    maintenanceWindows,
+  );
 
   const forkliftsWithActivity = (() => {
     const set = new Set<string>();
@@ -99,7 +105,13 @@ export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd }: GanttC
 
         {active.length > 0 && <SectionHeader label="Con renta activa o futura" count={active.length} />}
         {active.map((fl) => (
-          <GanttRow key={fl.id} forklift={fl} segments={getSegments(fl.id)} days={days} />
+          <GanttRow
+            key={fl.id}
+            forklift={fl}
+            segments={getSegments(fl.id)}
+            maintenanceSegments={getMaintenanceSegments(fl.id)}
+            days={days}
+          />
         ))}
 
         {available.length > 0 && <SectionHeader label="Disponibles" count={available.length} />}
