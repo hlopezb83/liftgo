@@ -25,6 +25,7 @@ import {
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import { isUsoCfdiCompatible } from "../_shared/cfdiUsoRegimen.ts";
+import { isValidRegimenFiscalCode } from "../_shared/regimenFiscal.ts";
 import { validateRfcOrMessage } from "../_shared/rfcChecksum.ts";
 
 // Re-exports públicos preservados (tests + consumidores).
