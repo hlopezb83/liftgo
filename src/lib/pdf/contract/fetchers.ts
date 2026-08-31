@@ -105,8 +105,8 @@ export async function fetchTemplate(contract?: ContractData): Promise<TemplateDa
 
   const declLandlord = parseJsonbArray<string>(data.declarations_landlord);
   const declTenant = parseJsonbArray<string>(data.declarations_tenant);
-  const clauses = parseJsonbArray<ContractClause>(data.clauses);
-  const checklist = parseJsonbArray<ChecklistSection>(data.checklist_sections);
+  const clauses = parseJsonbArray<ContractClause>(data.clauses as never);
+  const checklist = parseJsonbArray<ChecklistSection>(data.checklist_sections as never);
 
   return {
     intro_text: (data.intro_text as string) || DEFAULT_INTRO,
