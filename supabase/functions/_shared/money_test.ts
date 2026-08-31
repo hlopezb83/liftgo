@@ -4,6 +4,7 @@ import {
   roundMoney,
   stampVariance,
   sumMoney,
+  sumLineTaxCents,
   sumMoneyCents,
   toCents,
 } from "./money.ts";
@@ -49,4 +50,21 @@ Deno.test("stampVariance devuelve diff absoluta en pesos", () => {
   assertEquals(stampVariance(100.5, 100.49), 0.01);
   assertEquals(stampVariance(99.99, 100), 0.01);
   assertEquals(stampVariance(null, 100), 100);
+});
+
+Deno.test("sumLineTaxCents: A1-B2 IVA por línea, no sobre el subtotal agregado", () => {
+  const lines = Array.from({ length: 10 }, () => 333.33);
+  // Agregado: round(333330 * .16) = 53333 centavos.
+  // Por línea: 10 * round(33333 * .16) = 10 * 5333 = 53330 centavos.
+  assertEquals(sumLineTaxCents(lines, 16), 53330);
+  assertEquals(sumMoneyCents(lines), 333330);
+});
+
+Deno.test("sumLineTaxCents: tasa 0 o inválida no genera IVA", () => {
+  assertEquals(sumLineTaxCents([100, 200], 0), 0);
+  assertEquals(sumLineTaxCents([100, 200], Number.NaN), 0);
+});
+
+Deno.test("sumLineTaxCents: tasa frontera 8%", () => {
+  assertEquals(sumLineTaxCents([1000, 1000], 8), 16000);
 });

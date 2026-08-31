@@ -18,6 +18,7 @@ export function defaultQuoteFormValues(): QuoteFormValues {
     customerId: "",
     customerName: "",
     currency: "MXN",
+    tipoCambio: 1,
     taxRate: "16",
     notes: "",
     // R13-P2-03: a medianoche — con la hora del día el picker mostraba un

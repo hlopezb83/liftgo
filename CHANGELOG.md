@@ -1,3 +1,10 @@
+## [7.386.0] - 2026-08-30
+### Fix (auditoría QA — A1-B2 IVA de recurrentes, A5-02 tipo de cambio en cotizaciones)
+- **A1-B2:** `supabase/functions/generate-recurring-invoices/index.ts` calculaba el IVA con un solo `Math.round` sobre el subtotal agrupado, divergiendo de `computeTotals` y de Facturapi (que redondean por partida). Nuevo helper `sumLineTaxCents` en `supabase/functions/_shared/money.ts`.
+- **A5-02:** las cotizaciones en moneda distinta a MXN capturan `tipoCambio` (obligatorio > 0, mismo criterio que `invoiceFormSchema`), se persiste en `quotes.tipo_cambio` desde `buildQuotePayload` y `buildFromQuote` lo hereda al prellenar el CFDI. Antes quedaba en el DEFAULT 1 (paridad ficticia USD 1:1).
+- Sin cambios en SQL, RLS, permisos ni máquinas de estado.
+- Pruebas: `supabase/functions/_shared/money_test.ts`, `quoteFormPayload.test.ts` e `invoiceFormBuilders.test.ts`.
+
 ## [7.385.0] - 2026-08-30
 ### Fix (auditoría QA — A6-1 archivado de OT, A4-04 datos fiscales genéricos)
 - **A6-1:** `trg_sync_forklift_on_maintenance` ahora es `AFTER INSERT OR UPDATE OF work_status, deleted_at`. Antes sólo escuchaba `work_status`, así que archivar una OT `in_progress` (vía `soft_delete_maintenance_log`) dejaba el montacargas atascado en `maintenance` para siempre. `sync_forklift_status_on_maintenance()` trata la transición `deleted_at NULL -> NOT NULL` como cancelación y conserva todos los frenos: rentas `confirmed` vigentes, daños `reported`/`in_repair` y otras OT `pending`/`in_progress` mantienen la unidad en mantenimiento con su nota en `status_logs`.

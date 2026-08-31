@@ -22,6 +22,7 @@ export interface BuildQuotePayloadArgs {
   validUntil?: Date | null;
   notes: string;
   currency: string;
+  tipoCambio?: number;
 }
 
 /**
@@ -73,6 +74,8 @@ export function buildQuotePayload(a: BuildQuotePayloadArgs) {
     notes: a.notes || null,
     quote_type: a.quoteType,
     currency: a.currency,
+    // A5-02: MXN siempre 1; moneda foránea usa el TC capturado (schema exige > 0).
+    tipo_cambio: a.currency === "MXN" ? 1 : Number(a.tipoCambio) || 1,
     rental_meta: a.quoteType === "rental" ? toJsonArray(a.rentalLines) : null,
   };
 }

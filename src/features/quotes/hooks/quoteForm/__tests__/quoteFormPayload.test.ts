@@ -87,3 +87,15 @@ describe("buildQuotePayload", () => {
     expect(p.equipment_model_id).toBeNull();
   });
 });
+
+describe("buildQuotePayload — tipo de cambio (A5-02)", () => {
+  it("MXN siempre persiste tipo_cambio = 1", () => {
+    const p = buildQuotePayload(args({ currency: "MXN", tipoCambio: 18.5 })) as { tipo_cambio: number };
+    expect(p.tipo_cambio).toBe(1);
+  });
+
+  it("USD persiste el tipo de cambio capturado", () => {
+    const p = buildQuotePayload(args({ currency: "USD", tipoCambio: 18.75 })) as { tipo_cambio: number };
+    expect(p.tipo_cambio).toBe(18.75);
+  });
+});

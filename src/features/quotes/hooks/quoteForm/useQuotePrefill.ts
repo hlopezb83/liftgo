@@ -13,7 +13,7 @@ export type ExistingQuote = {
   id?: string;
   quote_type?: string; customer_id?: string | null; customer_name?: string | null;
   start_date?: string | null; end_date?: string | null;
-  tax_rate: number | string; currency?: string; notes?: string | null;
+  tax_rate: number | string; currency?: string; tipo_cambio?: number | string | null; notes?: string | null;
   valid_until?: string | null; line_items?: unknown; rental_meta?: unknown;
 };
 
@@ -223,6 +223,7 @@ export function buildPrefillValues(q: ExistingQuote, models: EquipmentModel[]): 
     customerId: q.customer_id || "",
     customerName: q.customer_name || "",
     currency: (q.currency as "MXN" | "USD") || "MXN",
+    tipoCambio: Number(q.tipo_cambio) || 1,
     taxRate: String(q.tax_rate),
     notes: q.notes || "",
     validUntil: q.valid_until ? parseDateLocal(q.valid_until) : undefined,
