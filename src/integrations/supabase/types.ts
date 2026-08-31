@@ -3949,6 +3949,7 @@ export type Database = {
           status_esperado: string
         }[]
       }
+      booking_is_returned: { Args: { p_booking_id: string }; Returns: boolean }
       cancel_booking: {
         Args: { p_booking_id: string; p_reason?: string }
         Returns: undefined
@@ -4665,7 +4666,15 @@ export type Database = {
         Returns: undefined
       }
       restore_customer: { Args: { p_customer_id: string }; Returns: undefined }
+      restore_damage_record: {
+        Args: { p_damage_id: string }
+        Returns: undefined
+      }
       restore_forklift: { Args: { p_forklift_id: string }; Returns: undefined }
+      restore_maintenance_log: {
+        Args: { p_log_id: string }
+        Returns: undefined
+      }
       restore_supplier: { Args: { p_supplier_id: string }; Returns: undefined }
       revert_audit_log: { Args: { p_audit_log_id: string }; Returns: string }
       revoke_user_sessions: { Args: { _user_id: string }; Returns: undefined }
