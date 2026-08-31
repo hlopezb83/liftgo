@@ -11,6 +11,7 @@ export interface CashFlowItem {
   amountMxn: number;
   kind: "in" | "out";
   navigatePath: string;
+  isProjected?: boolean;
 }
 
 export interface CashFlowBucket {

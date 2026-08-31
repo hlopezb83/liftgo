@@ -1,0 +1,15 @@
+{
+  "version": "7.391.0",
+  "date": "2026-08-31",
+  "type": "minor",
+  "title": "Lote 2/3 del catálogo QA: contratos firmados, depósito en garantía, estado de resultados y flujo de efectivo",
+  "description": "El PDF de un contrato firmado ahora es inmutable, el depósito en garantía tiene ciclo de vida propio, el estado de resultados excluye documentos en divisa sin tipo de cambio y la proyección de flujo de efectivo ya considera las rentas recurrentes futuras.",
+  "changes": [
+    "Al firmar un contrato se guarda una copia inmutable de sus datos, del cliente, de la unidad y de la plantilla; el PDF del contrato firmado ya no cambia si después se editan esos datos.",
+    "El depósito en garantía tiene estado (retenido, aplicado o devuelto), fecha, monto liquidado y notas, con una acción controlada para administradores y personal administrativo.",
+    "Estado de resultados: se excluyen facturas, notas de crédito y facturas de proveedor en divisa sin tipo de cambio válido y las facturas de proveedor rechazadas; el reporte informa cuántos documentos quedaron fuera.",
+    "Flujo de efectivo: la proyección incluye las rentas recurrentes aún no facturadas dentro del horizonte, marcadas como proyectadas y excluyendo divisas sin tipo de cambio.",
+    "Inspección de devolución: ya no se aceptan fechas futuras.",
+    "Nuevas acciones de restauración (desarchivar) para clientes y proveedores, disponibles sólo para administradores."
+  ]
+}

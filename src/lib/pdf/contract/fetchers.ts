@@ -14,7 +14,29 @@ export type ContractData = Pick<ContractViewModel,
   | "status" | "signed_at" | "signed_by" | "usage_location" | "max_hours_per_month"
   | "extra_hour_rate" | "payment_frequency" | "late_interest_rate" | "contract_city"
   | "witness_1" | "witness_2"
-> & { customer_name?: string | null };
+> & {
+  customer_name?: string | null;
+  /**
+   * A6R2-3: copia inmutable capturada al firmar (cliente, unidad y plantilla).
+   * Cuando existe, el PDF del contrato firmado se rinde desde aquí para que no
+   * cambie si después se editan el cliente, la unidad o la plantilla.
+   */
+  signed_snapshot?: unknown;
+};
+
+interface SignedSnapshot {
+  customer?: Record<string, unknown> | null;
+  forklift?: Record<string, unknown> | null;
+  template?: Partial<TemplateData> | null;
+}
+
+/** Devuelve el snapshot del contrato firmado, o null si no aplica. */
+export function readSignedSnapshot(contract: ContractData): SignedSnapshot | null {
+  if (contract.status !== "signed") return null;
+  const snap = contract.signed_snapshot;
+  if (!snap || typeof snap !== "object") return null;
+  return snap as SignedSnapshot;
+}
 
 export interface TemplateData {
   intro_text: string | null;
@@ -26,6 +48,8 @@ export interface TemplateData {
 }
 
 export async function fetchRelatedData(contract: ContractData) {
+  // A6R2-3: contrato firmado con snapshot → cliente y unidad desde la copia.
+  const snapshot = readSignedSnapshot(contract);
   // R-arq 13: columnas explícitas por PDF renderer (evita traer campos ocultos
   // como notes internos, PII bancaria o umbrales financieros al bundle).
   const [companyRes, customerRes, forkliftRes] = await Promise.all([
@@ -34,14 +58,18 @@ export async function fetchRelatedData(contract: ContractData) {
       .select("razon_social, rfc, regimen_fiscal, lugar_expedicion, logo_url")
       .limit(1)
       .maybeSingle(),
-    contract.customer_id
+    snapshot?.customer
+      ? Promise.resolve({ data: snapshot.customer })
+      : contract.customer_id
       ? supabase
           .from("customers")
           .select("name, rfc, address, contact_person, representante_legal, domicilio_fiscal_cp")
           .eq("id", contract.customer_id)
           .single()
       : Promise.resolve({ data: null }),
-    contract.forklift_id
+    snapshot?.forklift
+      ? Promise.resolve({ data: snapshot.forklift })
+      : contract.forklift_id
       ? supabase
           .from("forklifts")
           .select("manufacturer, model, serial_number, capacity_kg, fuel_type, acquisition_cost")
@@ -52,16 +80,19 @@ export async function fetchRelatedData(contract: ContractData) {
   return { company: companyRes.data, customer: customerRes.data, forklift: forkliftRes.data };
 }
 
-export async function fetchTemplate(): Promise<TemplateData> {
-  // v7.282.0: orden explícito — si existiera más de una plantilla marcada como
-  // predeterminada, gana la editada más recientemente (antes era arbitrario).
-  const { data } = await supabase
+
+
+export async function fetchTemplate(contract?: ContractData): Promise<TemplateData> {
+  // A6R2-3: si el contrato firmado guardó su plantilla, se usa esa copia.
+  const snapshotTpl = contract ? readSignedSnapshot(contract)?.template : null;
+  const data = snapshotTpl ?? (await supabase
     .from("contract_templates")
     .select("intro_text, declarations_landlord, declarations_tenant, clauses, checklist_sections, pagare_text, updated_at")
     .eq("is_default", true)
     .order("updated_at", { ascending: false })
     .limit(1)
-    .maybeSingle();
+    .maybeSingle()).data;
+
 
 
   if (!data) {
@@ -74,8 +105,8 @@ export async function fetchTemplate(): Promise<TemplateData> {
 
   const declLandlord = parseJsonbArray<string>(data.declarations_landlord);
   const declTenant = parseJsonbArray<string>(data.declarations_tenant);
-  const clauses = parseJsonbArray<ContractClause>(data.clauses);
-  const checklist = parseJsonbArray<ChecklistSection>(data.checklist_sections);
+  const clauses = parseJsonbArray<ContractClause>(data.clauses as never);
+  const checklist = parseJsonbArray<ChecklistSection>(data.checklist_sections as never);
 
   return {
     intro_text: (data.intro_text as string) || DEFAULT_INTRO,

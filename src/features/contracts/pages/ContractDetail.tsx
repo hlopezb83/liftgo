@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { ContractConditionsCard } from "../components/contracts/ContractConditionsCard";
+import { ContractDepositCard } from "../components/contracts/ContractDepositCard";
 import { ContractDetailActions } from "../components/contracts/ContractDetailActions";
 import { ContractDetailsCard, ContractTextCard } from "../components/contracts/ContractDetailCards";
 import { RentalFinancialSummary } from "../components/contracts/RentalFinancialSummary";
@@ -91,6 +92,15 @@ export default function ContractDetail() {
         monthlyRate={contract.monthly_rate}
         signedAt={contract.signed_at}
         signedBy={contract.signed_by}
+      />
+
+      <ContractDepositCard
+        contractId={id}
+        depositAmount={contract.deposit_amount}
+        depositStatus={contract.deposit_status ?? null}
+        depositSettledAt={contract.deposit_settled_at ?? null}
+        depositSettledAmount={contract.deposit_settled_amount ?? null}
+        depositNotes={contract.deposit_notes ?? null}
       />
 
       <ContractConditionsCard contract={contract} />

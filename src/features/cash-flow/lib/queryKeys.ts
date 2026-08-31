@@ -5,8 +5,10 @@ import { nowMty } from "@/lib/utils";
 import {
   invoiceToItem,
   billToItem,
+  recurringBookingItems,
   type BillRow,
   type InvoiceRow,
+  type RecurringBookingRow,
 } from "./cashFlowTransformers";
 import {
   bucketByWeek,
@@ -75,7 +77,7 @@ async function countBillsWithoutDueDate(): Promise<number> {
 export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projection", {
   list: (filter?: Readonly<Record<string, unknown>>) => async (): Promise<CashFlowProjectionResult> => {
     const { weeks, initialBalance, safetyBuffer } = (filter ?? {}) as CashFlowProjectionFilter;
-    const [invRes, billRes, noDueInvoices, noDueBills] = await Promise.all([
+    const [invRes, billRes, bookingRes, noDueInvoices, noDueBills] = await Promise.all([
       supabase.from("v_invoices_with_balance")
         .select("id, invoice_number, total, due_date, customer_name, moneda, tipo_cambio, credited_amount, balance_mxn")
         .in("status", ACTIVE_INVOICE_STATUSES)
@@ -87,11 +89,18 @@ export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projecti
         .in("approval_status", ["not_required", "approved"])
         .not("due_date", "is", null)
         .returns<BillRow[]>(),
+      // 2A-9: rentas recurrentes vigentes, para proyectar los periodos aún no facturados.
+      supabase.from("bookings")
+        .select("id, booking_number, customer_name, start_date, end_date, last_billed_date, monthly_rate, currency, tipo_cambio")
+        .eq("recurring_billing", true)
+        .in("status", ["confirmed", "in_progress"])
+        .returns<RecurringBookingRow[]>(),
       countInvoicesWithoutDueDate(),
       countBillsWithoutDueDate(),
     ]);
     if (invRes.error) throw invRes.error;
     if (billRes.error) throw billRes.error;
+    if (bookingRes.error) throw bookingRes.error;
 
     // A2-1: ya no se recalcula el saldo con `payments` en el cliente; la vista
     // `v_invoices_with_balance` expone `balance_mxn` FX-aware. Además ahorra
@@ -106,8 +115,11 @@ export const cashFlowProjectionQueries = defineEntityQueries("cash_flow_projecti
       if (item) items.push(item);
     }
     const today = nowMty();
-    const buckets = bucketByWeek(items, today, weeks, initialBalance, safetyBuffer);
+    const horizonBuckets = buildWeekBuckets(today, weeks);
+    const horizonEnd = horizonBuckets[horizonBuckets.length - 1]?.endDate ?? format(today, "yyyy-MM-dd");
     const todayYmd = format(today, "yyyy-MM-dd");
+    items.push(...recurringBookingItems(bookingRes.data ?? [], todayYmd, horizonEnd));
+    const buckets = bucketByWeek(items, today, weeks, initialBalance, safetyBuffer);
     return {
       buckets,
       excludedNoDueDate: noDueInvoices + noDueBills,

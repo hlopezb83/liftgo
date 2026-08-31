@@ -752,6 +752,10 @@ export type Database = {
           customer_id: string | null
           daily_rate: number | null
           deposit_amount: number | null
+          deposit_notes: string | null
+          deposit_settled_amount: number | null
+          deposit_settled_at: string | null
+          deposit_status: string
           end_date: string | null
           extra_hour_rate: number | null
           forklift_id: string | null
@@ -763,6 +767,7 @@ export type Database = {
           payment_frequency: string | null
           signed_at: string | null
           signed_by: string | null
+          signed_snapshot: Json | null
           start_date: string | null
           status: string
           terms_text: string | null
@@ -780,6 +785,10 @@ export type Database = {
           customer_id?: string | null
           daily_rate?: number | null
           deposit_amount?: number | null
+          deposit_notes?: string | null
+          deposit_settled_amount?: number | null
+          deposit_settled_at?: string | null
+          deposit_status?: string
           end_date?: string | null
           extra_hour_rate?: number | null
           forklift_id?: string | null
@@ -791,6 +800,7 @@ export type Database = {
           payment_frequency?: string | null
           signed_at?: string | null
           signed_by?: string | null
+          signed_snapshot?: Json | null
           start_date?: string | null
           status?: string
           terms_text?: string | null
@@ -808,6 +818,10 @@ export type Database = {
           customer_id?: string | null
           daily_rate?: number | null
           deposit_amount?: number | null
+          deposit_notes?: string | null
+          deposit_settled_amount?: number | null
+          deposit_settled_at?: string | null
+          deposit_status?: string
           end_date?: string | null
           extra_hour_rate?: number | null
           forklift_id?: string | null
@@ -819,6 +833,7 @@ export type Database = {
           payment_frequency?: string | null
           signed_at?: string | null
           signed_by?: string | null
+          signed_snapshot?: Json | null
           start_date?: string | null
           status?: string
           terms_text?: string | null
@@ -4528,9 +4543,20 @@ export type Database = {
         Args: { p_payment_id: string }
         Returns: undefined
       }
+      restore_customer: { Args: { p_customer_id: string }; Returns: undefined }
       restore_forklift: { Args: { p_forklift_id: string }; Returns: undefined }
+      restore_supplier: { Args: { p_supplier_id: string }; Returns: undefined }
       revert_audit_log: { Args: { p_audit_log_id: string }; Returns: string }
       revoke_user_sessions: { Args: { _user_id: string }; Returns: undefined }
+      set_contract_deposit_status: {
+        Args: {
+          p_amount?: number
+          p_contract_id: string
+          p_notes?: string
+          p_status: string
+        }
+        Returns: undefined
+      }
       soft_delete_customer: {
         Args: { p_customer_id: string }
         Returns: undefined
