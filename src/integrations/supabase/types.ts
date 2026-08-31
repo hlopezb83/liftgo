@@ -1148,6 +1148,9 @@ export type Database = {
           regimen_fiscal: string | null
           representante_legal: string | null
           rfc: string | null
+          sat_validated_at: string | null
+          sat_validation_errors: Json
+          sat_validation_status: string
           tax_id: string | null
           tax_rate: number
           updated_at: string
@@ -1176,6 +1179,9 @@ export type Database = {
           regimen_fiscal?: string | null
           representante_legal?: string | null
           rfc?: string | null
+          sat_validated_at?: string | null
+          sat_validation_errors?: Json
+          sat_validation_status?: string
           tax_id?: string | null
           tax_rate?: number
           updated_at?: string
@@ -1204,6 +1210,9 @@ export type Database = {
           regimen_fiscal?: string | null
           representante_legal?: string | null
           rfc?: string | null
+          sat_validated_at?: string | null
+          sat_validation_errors?: Json
+          sat_validation_status?: string
           tax_id?: string | null
           tax_rate?: number
           updated_at?: string
