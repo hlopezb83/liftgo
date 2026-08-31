@@ -200,27 +200,21 @@ function rebuildRentalLines(items: LineItem[], q: ExistingQuote, models: Equipme
   if (meta && meta.length > 0) return meta;
   if (items.length === 0) return [{ ...EMPTY_RENTAL_LINE }];
   const rentalDays = quoteRentalDays(q.start_date, q.end_date);
-  const matched = new Map<string, RentalLineValues>();
-  const fallbackDescriptions = new Set<string>();
-  const fallbackLines: RentalLineValues[] = [];
-  for (const item of items) {
+  // A1-6: deduplicar por ocurrencia (descripción de la partida), NO por
+  // modelo. Antes dos partidas del mismo modelo con cantidades o tarifas
+  // distintas colapsaban en una sola y se perdía la segunda.
+  const seen = new Set<string>();
+  const lines: RentalLineValues[] = [];
+  items.forEach((item, index) => {
+    const key = item.description ?? `__sin_descripcion_${index}`;
+    if (seen.has(key)) return;
+    seen.add(key);
     const found = matchModel(item, models);
-    if (found) {
-      if (!matched.has(found.id)) matched.set(found.id, lineToRentalLine(item, found));
-      continue;
-    }
-    // R9VTA-04: sin match de modelo, conservar la partida histórica en vez
-    // de descartarla (dedupe por descripción para no duplicar breakdown
-    // diario/semanal/mensual de una misma partida legacy).
-    const key = item.description ?? "";
-    if (!fallbackDescriptions.has(key)) {
-      fallbackDescriptions.add(key);
-      fallbackLines.push(lineToRentalLineFallback(item, rentalDays));
-    }
-  }
-  const arr = [...matched.values(), ...fallbackLines];
-  return arr.length > 0 ? arr : [{ ...EMPTY_RENTAL_LINE }];
+    lines.push(found ? lineToRentalLine(item, found, rentalDays) : lineToRentalLineFallback(item, rentalDays));
+  });
+  return lines.length > 0 ? lines : [{ ...EMPTY_RENTAL_LINE }];
 }
+
 
 export function buildPrefillValues(q: ExistingQuote, models: EquipmentModel[]): QuoteFormValues {
   const isSale = q.quote_type === "sale";
