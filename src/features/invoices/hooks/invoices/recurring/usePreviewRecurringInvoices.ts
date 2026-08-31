@@ -26,6 +26,12 @@ export interface RecurringPreviewLine {
   isProrated: boolean;
   proratedDays?: number;
   eligible: boolean;
+  /**
+   * R6-F5: la reserva se actualizó DESPUÉS del fin de este periodo, por lo que
+   * la tarifa pudo cambiar. El edge NO factura estos periodos salvo
+   * confirmación explícita del operador (`allowStaleRate`).
+   */
+  rateWarning?: boolean;
   reason?: PreviewReason;
   existingInvoiceId?: string;
   existingInvoiceNumber?: string;

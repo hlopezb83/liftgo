@@ -18,6 +18,10 @@ const REASON_LABEL: Record<NonNullable<RecurringPreviewLine["reason"]>, string> 
 interface Props {
   isLoading: boolean;
   lines: RecurringPreviewLine[];
+  /** R6-F5: confirmación para incluir periodos con tarifa posiblemente cambiada. */
+  allowStaleRate: boolean;
+  staleCount: number;
+  onAllowStaleRateChange: (value: boolean) => void;
   eligibleCount: number;
   selectedCount: number;
   totalSelected: number;
@@ -75,22 +79,56 @@ function IneligibleBadge({ line }: { line: RecurringPreviewLine }) {
   );
 }
 
+/** R6-F5: aviso de tarifa modificada después del periodo. */
+function StaleRateNotice({
+  staleCount,
+  allowStaleRate,
+  onChange,
+}: {
+  staleCount: number;
+  allowStaleRate: boolean;
+  onChange: (value: boolean) => void;
+}) {
+  if (staleCount === 0) return null;
+  return (
+    <div className="flex items-start gap-3 rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+      <Checkbox
+        checked={allowStaleRate}
+        onCheckedChange={(v) => onChange(v === true)}
+        aria-label="Confirmar facturación de periodos con tarifa modificada"
+        className="mt-0.5"
+      />
+      <div>
+        <p className="font-medium">
+          {staleCount} periodo{staleCount === 1 ? "" : "s"} con tarifa modificada después del periodo
+        </p>
+        <p className="text-xs text-muted-foreground">
+          La reserva se editó después de que terminó el periodo, así que la tarifa
+          pudo cambiar. No se facturan hasta que confirmes aquí.
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function LineRow({
   line,
   selected,
   onToggle,
+  selectable,
 }: {
   line: RecurringPreviewLine;
   selected: Set<string>;
   onToggle: (id: string) => void;
+  selectable: boolean;
 }) {
   return (
     <div className="flex items-center gap-3 px-3 py-2 text-sm">
       {/* Selección por reserva: el edge factura todos los períodos pendientes
           de la reserva, por eso alternar una línea alterna toda la reserva. */}
       <Checkbox
-        checked={line.eligible && selected.has(line.bookingId)}
-        disabled={!line.eligible}
+        checked={selectable && selected.has(line.bookingId)}
+        disabled={!selectable}
         onCheckedChange={() => onToggle(line.bookingId)}
         aria-label={`Incluir la reserva ${line.bookingCode ?? line.bookingId}`}
       />
@@ -128,14 +166,16 @@ function CustomerGroup({
   selected,
   onToggle,
   onToggleGroup,
+  isSelectable,
 }: {
   customer: string;
   groupLines: RecurringPreviewLine[];
   selected: Set<string>;
   onToggle: (id: string) => void;
   onToggleGroup: (groupLines: RecurringPreviewLine[]) => void;
+  isSelectable: (line: RecurringPreviewLine) => boolean;
 }) {
-  const groupEligible = groupLines.filter((l) => l.eligible);
+  const groupEligible = groupLines.filter(isSelectable);
   const allSelected = groupEligible.length > 0 && groupEligible.every((l) => selected.has(l.bookingId));
   return (
     <div className="border rounded-md overflow-hidden">
@@ -159,6 +199,7 @@ function CustomerGroup({
             line={line}
             selected={selected}
             onToggle={onToggle}
+            selectable={isSelectable(line)}
           />
         ))}
       </div>
@@ -176,7 +217,12 @@ export function RecurringPreviewBody({
   selected,
   onToggle,
   onToggleGroup,
+  allowStaleRate,
+  staleCount,
+  onAllowStaleRateChange,
 }: Props) {
+  const isSelectable = (l: RecurringPreviewLine) =>
+    l.eligible && (!l.rateWarning || allowStaleRate);
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -198,6 +244,13 @@ export function RecurringPreviewBody({
   return (
     <>
       <SummaryBar eligibleCount={eligibleCount} selectedCount={selectedCount} totalSelected={totalSelected} />
+      <div className="mt-3">
+        <StaleRateNotice
+          staleCount={staleCount}
+          allowStaleRate={allowStaleRate}
+          onChange={onAllowStaleRateChange}
+        />
+      </div>
       {/* v7.307.0: aclarar el alcance — aquí sólo entran rentas mensuales recurrentes. */}
       <p className="text-xs text-muted-foreground">
         Sólo se listan reservas confirmadas con facturación recurrente mensual. Las extensiones de
@@ -216,6 +269,7 @@ export function RecurringPreviewBody({
               selected={selected}
               onToggle={onToggle}
               onToggleGroup={onToggleGroup}
+              isSelectable={isSelectable}
             />
           ))}
         </div>

@@ -424,17 +424,41 @@ async function buildPlan(supabase: any): Promise<{
 }
 
 // deno-lint-ignore no-explicit-any
-async function executePlan(supabase: any, items: PlanItem[]) {
+async function executePlan(
+  supabase: any,
+  items: PlanItem[],
+  allowStaleRate = false,
+) {
   const created: Array<{
     bookingIds: string[];
     invoiceId: string;
     invoiceNumber: string | null;
   }> = [];
   const failed: Array<{ bookingIds: string[]; error: string }> = [];
-  // B5-01: periodos catch-up facturados posiblemente con tarifa desactualizada.
+  // R6-F5: fail-closed. Un periodo cuya reserva se actualizó DESPUÉS del fin
+  // del periodo pudo cambiar de tarifa; no se factura salvo confirmación
+  // explícita del operador (allowStaleRate). El cron nunca la envía.
+  const skippedStaleRate: Array<
+    { bookingIds: string[]; periodStart: string; periodEnd: string }
+  > = [];
+  // B5-01: periodos catch-up facturados con tarifa posiblemente desactualizada
+  // (sólo cuando el operador confirmó explícitamente).
   const rateWarnings: Array<
     { bookingIds: string[]; periodStart: string; periodEnd: string }
   > = [];
+
+  if (!allowStaleRate) {
+    const stale = items.filter((i) => i.rateWarning);
+    for (const i of stale) {
+      skippedStaleRate.push({
+        bookingIds: [i.bookingId],
+        periodStart: i.startStr,
+        periodEnd: i.endStr,
+      });
+    }
+    items = items.filter((i) => !i.rateWarning);
+  }
+
 
   // Agrupar por (customer_id, período)
   const groups = new Map<string, PlanItem[]>();
@@ -571,7 +595,7 @@ async function executePlan(supabase: any, items: PlanItem[]) {
     }
   }
 
-  return { created, failed, rateWarnings };
+  return { created, failed, rateWarnings, skippedStaleRate };
 }
 
 Deno.serve(async (req) => {
@@ -591,7 +615,11 @@ Deno.serve(async (req) => {
     }
 
     // Parse body (may be empty for legacy callers)
-    let body: { preview?: boolean; bookingIds?: string[] } = {};
+    let body: {
+      preview?: boolean;
+      bookingIds?: string[];
+      allowStaleRate?: boolean;
+    } = {};
     try {
       const text = await req.text();
       if (text) body = JSON.parse(text);
@@ -610,10 +638,16 @@ Deno.serve(async (req) => {
       ? allItems.filter((i) => body.bookingIds!.includes(i.bookingId))
       : allItems;
 
-    const { created, failed, rateWarnings } = await executePlan(
-      supabase,
-      targetItems,
-    );
+    // R6-F5: sólo un operador autenticado (no el cron) puede confirmar
+    // facturar periodos cuya tarifa pudo cambiar después del periodo.
+    const allowStaleRate = !cronAuth.ok && body.allowStaleRate === true;
+
+    const { created, failed, rateWarnings, skippedStaleRate } =
+      await executePlan(
+        supabase,
+        targetItems,
+        allowStaleRate,
+      );
     const invoicesCreated = created.length;
     const bookingsBilled = created.reduce(
       (acc, c) => acc + c.bookingIds.length,
@@ -628,7 +662,10 @@ Deno.serve(async (req) => {
       failed,
       // B5-01: periodos catch-up facturados con posible tarifa desactualizada.
       rateWarnings,
+      // R6-F5: periodos NO facturados por tarifa potencialmente desactualizada.
+      skippedStaleRate,
     });
+
   } catch (err) {
     console.error("[generate-recurring-invoices]", err);
     return jsonError(req, 500, "Internal server error");

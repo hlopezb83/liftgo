@@ -46,7 +46,7 @@ describe("useGenerateRecurringInvoices", () => {
     const { Wrapper } = createQueryWrapper();
     const { result } = renderHook(() => useGenerateRecurringInvoices(), { wrapper: Wrapper });
 
-    result.current.mutate(["b1", "b2", "b3"]);
+    result.current.mutate({ bookingIds: ["b1", "b2", "b3"] });
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
     expect(result.current.data?.invoicesCreated).toBe(3);
   });
@@ -106,6 +106,30 @@ describe("useGenerateRecurringInvoices", () => {
       expect.objectContaining({
         title: "2 reserva(s) no se facturaron",
         description: "Cliente sin RFC configurado",
+      }),
+    );
+  });
+
+  it("R6-F5: skippedStaleRate[] → notifyWarning por tarifa modificada", async () => {
+    invokeResp = {
+      data: {
+        invoicesCreated: 0,
+        created: [],
+        failed: [],
+        skippedStaleRate: [
+          { bookingIds: ["b9"], periodStart: "2026-01-01", periodEnd: "2026-01-31" },
+        ],
+      },
+      error: null,
+    };
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useGenerateRecurringInvoices(), { wrapper: Wrapper });
+
+    result.current.mutate(undefined);
+    await waitFor(() => expect(result.current.isSuccess).toBe(true));
+    expect(notifyWarningMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        title: "1 periodo(s) no facturados por cambio de tarifa",
       }),
     );
   });
