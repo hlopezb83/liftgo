@@ -1,3 +1,16 @@
+## [7.400.0] - 2026-09-01
+### Fix (auditoría R5 · integridad)
+- Archivar una orden de trabajo abierta ya no borra sus refacciones ni su mano de obra.
+- Nueva vista "Archivados" en Mantenimiento y Seguimiento de Daños con restauración para administradores (queda en bitácora).
+- Una cotización convertida vuelve a "Aceptada" cuando todas sus reservas se cancelan.
+- La liberación de un daño al cancelar/eliminar su factura queda registrada en la bitácora del equipo.
+- Criterio único de "unidad devuelta" basado en la inspección de retorno.
+
+## [7.399.0] - 2026-09-01
+### Feature (auditoría R5)
+- Los administradores pueden reabrir una OT cerrada por error desde el detalle de mantenimiento (con motivo obligatorio).
+- Los cambios de estatus de reserva usan bloqueo optimista: si otro usuario ya la movió, el sistema avisa en vez de pisar el cambio.
+
 ## [7.398.2] - 2026-09-01
 ### Fix (auditoría R5)
 - Una cotización cuyas reservas fueron todas canceladas ya puede eliminarse; las que tienen reservas vigentes o están aceptadas siguen protegidas.

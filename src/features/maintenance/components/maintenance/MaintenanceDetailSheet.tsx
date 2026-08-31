@@ -13,7 +13,7 @@ import { serviceTypeLabel } from "@/lib/constants";
 import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifySuccess } from "@/lib/ui/appFeedback";
-import { useDeleteMaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
+import { useDeleteMaintenanceLog, useRestoreMaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
 import { CloseWorkOrderDialog } from "./CloseWorkOrderDialog";
 import { MaintenanceLaborSection } from "./MaintenanceLaborSection";
 import { MaintenancePartsSection } from "./MaintenancePartsSection";
@@ -38,6 +38,7 @@ interface Props {
 
 export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, onEdit }: Props) {
   const deleteLog = useDeleteMaintenanceLog();
+  const restoreLog = useRestoreMaintenanceLog();
   // E1: una OT cerrada ya trae costos capturados; solo admin puede archivarla
   // (el RPC lo valida en el servidor, aqui evitamos el intento fallido).
   const { data: role } = useUserRole();
@@ -50,6 +51,7 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
   const supplier = suppliers?.find((s) => s.id === log.supplier_id);
   const status = STATUS_LABELS[log.work_status] || { label: log.work_status, variant: "secondary" as const };
   const isClosed = log.work_status === "completed";
+  const isArchived = log.deleted_at !== null;
 
   const handleDelete = () => {
     deleteLog.mutate(log.id, {
@@ -122,20 +124,38 @@ export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, 
 
           <Separator />
           <RoleGuard module="Mantenimiento" minAccess="full" fallback={null}>
-            <MaintenanceDetailActions
-              log={log}
-              forkliftName={forkliftName}
-              isClosed={isClosed}
-              canArchiveClosed={role === "admin"}
-              deletePending={deleteLog.isPending}
-              closeOpen={closeOpen}
-              onCloseOpenChange={setCloseOpen}
-              confirmOpen={confirmOpen}
-              onConfirmOpenChange={setConfirmOpen}
-              onEdit={() => { onEdit(log); onOpenChange(false); }}
-              onDelete={handleDelete}
-              onSheetClose={() => onOpenChange(false)}
-            />
+            {isArchived ? (
+              // R5-A6: una OT archivada solo admite restaurarse (solo admin).
+              <div className="space-y-2">
+                <p className="text-sm text-muted-foreground">
+                  Esta orden está archivada. Sus refacciones y mano de obra se conservan.
+                </p>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  disabled={role !== "admin" || restoreLog.isPending}
+                  title={role !== "admin" ? "Solo un administrador puede restaurar" : undefined}
+                  onClick={() => restoreLog.mutate(log.id, { onSuccess: () => onOpenChange(false) })}
+                >
+                  <MaintenanceIcon className="h-4 w-4 mr-1" /> Restaurar orden
+                </Button>
+              </div>
+            ) : (
+              <MaintenanceDetailActions
+                log={log}
+                forkliftName={forkliftName}
+                isClosed={isClosed}
+                canArchiveClosed={role === "admin"}
+                deletePending={deleteLog.isPending}
+                closeOpen={closeOpen}
+                onCloseOpenChange={setCloseOpen}
+                confirmOpen={confirmOpen}
+                onConfirmOpenChange={setConfirmOpen}
+                onEdit={() => { onEdit(log); onOpenChange(false); }}
+                onDelete={handleDelete}
+                onSheetClose={() => onOpenChange(false)}
+              />
+            )}
           </RoleGuard>
         </div>
         </Activity>

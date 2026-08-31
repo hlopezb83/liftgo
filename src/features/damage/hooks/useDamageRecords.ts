@@ -11,16 +11,18 @@ export type { DamageRecord } from "@/types/rental";
 
 type DamageListRow = Awaited<ReturnType<typeof fetchDamageList>>[number];
 
-async function fetchDamageList() {
+async function fetchDamageList(archived = false) {
   // Ronda D·#1: sin `.limit()` PostgREST truncaba en 1000 filas en silencio y
   // los reportes de costos de daños subestimaban el total. Pedimos limit+1 para
   // poder detectar truncamiento aguas arriba.
-  const { data, error } = await supabase
+  let q = supabase
     .from("damage_records")
     .select("*, forklifts(name, model), customers(name)")
-    .is("deleted_at", null)
     .order("created_at", { ascending: false })
     .limit(LIST_FETCH_LIMIT);
+  // R5-A6: vista de archivados para poder restaurarlos.
+  q = archived ? q.not("deleted_at", "is", null) : q.is("deleted_at", null);
+  const { data, error } = await q;
   if (error) throw error;
   return data ?? [];
 }
@@ -28,12 +30,12 @@ async function fetchDamageList() {
 export const damageRecordQueries = defineEntityQueries<"damage_records", DamageListRow[], never>(
   "damage_records",
   {
-    list: () => fetchDamageList,
+    list: (filter) => () => fetchDamageList(filter?.archived === true),
   },
 );
 
-export function useDamageRecords() {
-  return useQuery(damageRecordQueries.list());
+export function useDamageRecords(archived = false) {
+  return useQuery(damageRecordQueries.list({ archived }));
 }
 
 export function useCreateDamageRecord() {
@@ -70,5 +72,18 @@ export function useArchiveDamageRecord() {
     },
     invalidateKeys: [damageRecordQueries.keys.all, reportKeys.all],
     errorTitle: "Error al archivar registro de daño",
+  });
+}
+
+/** R5-A6: restaura un daño archivado (solo admin; la RPC revalida el rol). */
+export function useRestoreDamageRecord() {
+  return useEntityMutation({
+    mutationFn: async (id: string) => {
+      await callRpc<void>("restore_damage_record", { p_damage_id: id });
+      return id;
+    },
+    invalidateKeys: [damageRecordQueries.keys.all, reportKeys.all],
+    successMsg: "Registro de daño restaurado",
+    errorTitle: "No se pudo restaurar el registro de daño",
   });
 }

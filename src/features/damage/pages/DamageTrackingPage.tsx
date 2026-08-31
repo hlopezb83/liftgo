@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
@@ -5,6 +6,7 @@ import { Camera } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useDialogState, useToggleDialog } from "@/hooks/useDialogState";
@@ -25,7 +27,9 @@ const DAMAGE_STATUS_OPTIONS = [
 ];
 
 export default function DamageTrackingPage() {
-  const { data: records, isLoading, isError, refetch } = useDamageRecords();
+  // R5-A6: vista de archivados para poder restaurarlos.
+  const [showArchived, setShowArchived] = useState(false);
+  const { data: records, isLoading, isError, refetch } = useDamageRecords(showArchived);
   const { data: photoCounts } = useDamagePhotoCounts();
   const detail = useDialogState<DamageRecordWithJoins>();
   // Control externo del diálogo de reporte para poder abrirlo también desde
@@ -76,6 +80,15 @@ export default function DamageTrackingPage() {
               onChange={(v) => set("status", v as DamageStatus | "all")}
               options={DAMAGE_STATUS_OPTIONS}
             />
+            <Select value={showArchived ? "archived" : "active"} onValueChange={(v) => setShowArchived(v === "archived")}>
+              <SelectTrigger className="w-full sm:w-[160px] h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="active">Activos</SelectItem>
+                <SelectItem value="archived">Archivados</SelectItem>
+              </SelectContent>
+            </Select>
             <FiltersToolbar.ClearAll visible={hasActive} onClick={reset} />
           </FiltersToolbar>
         }
