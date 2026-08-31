@@ -40,6 +40,7 @@ export type BusinessBlockCode =
   | "quote_expired"
   | "quote_already_converted"
   | "quote_sale_assignment_incomplete"
+  | "supplier_bill_self_approval"
   | "customer_outstanding_balance";
 
 /** `info` para restricciones normales del negocio; `warning` para riesgo real. */
@@ -137,6 +138,12 @@ export const BUSINESS_BLOCKS: Record<BusinessBlockCode, BlockCopy> = {
     nextStep: "Pide que se apruebe la factura y vuelve a registrar el pago.",
     tone: "info",
   },
+  supplier_bill_self_approval: {
+    action: "No puedes aprobar esta factura de proveedor",
+    reason: "Tú la registraste y la aprobación requiere una segunda persona.",
+    nextStep: "Pide a otro administrador que la revise y la apruebe.",
+    tone: "info",
+  },
   supplier_bill_draft: {
     action: "No puedes registrar el pago de esta factura",
     reason: "La factura del proveedor sigue en borrador.",
@@ -231,6 +238,8 @@ const ERROR_PATTERNS: Array<{ pattern: RegExp; code: BusinessBlockCode }> = [
   { pattern: /factura de proveedor est(á|a) cancelada/i, code: "supplier_bill_cancelled" },
   // Guard `trg_guard_invoice_sale_assignment` (BEFORE INSERT en invoices).
   { pattern: /cotizaci(ó|o)n de venta tiene .*sin asignar/i, code: "quote_sale_assignment_incomplete" },
+  // RPC `approve_supplier_bill`: segregación de funciones (quien registra no aprueba).
+  { pattern: /aprobar una factura que t(ú|u) mismo registraste/i, code: "supplier_bill_self_approval" },
   // Guard `trg_guard_customer_archive` y RPC `soft_delete_customer`.
   { pattern: /el cliente tiene saldo pendiente/i, code: "customer_outstanding_balance" },
 ];
