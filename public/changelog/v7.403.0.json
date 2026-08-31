@@ -1,0 +1,9 @@
+{
+  "description": "Se eliminó el riesgo de contar dos veces un mismo gasto y el indicador de renta mensual ahora avisa cuando deja fuera rentas en dólares sin tipo de cambio.",
+  "changes": [
+    "Los gastos operativos quedaron ligados a su factura de proveedor correspondiente (131 de 142 registros históricos), de modo que el Estado de Resultados deja de depender de una coincidencia por monto y fecha.",
+    "La base de datos ahora impide que dos gastos apunten a la misma factura de proveedor.",
+    "El KPI de Ingreso Mensual Recurrente muestra un aviso con cuántas rentas en divisa quedaron fuera por no tener tipo de cambio registrado (antes se omitían sin avisar), tanto del mes vigente como del mes previo.",
+    "En ningún cálculo se convierte dólares a pesos con paridad 1:1."
+  ]
+}

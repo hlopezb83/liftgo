@@ -90,6 +90,8 @@ type KpisLike = {
   dso?: number;
   overdue_total?: number;
   overdue_fx_missing_count?: number;
+  mrr_fx_missing_count?: number;
+  mrr_prev_fx_missing_count?: number;
   expiring_contracts?: unknown;
 };
 
@@ -100,8 +102,12 @@ export function buildFinancials(kpis?: KpisLike) {
     overdueTotal: kpis?.overdue_total ?? 0,
     // N-15: facturas en divisa sin tipo de cambio quedan fuera del total.
     overdueFxMissingCount: kpis?.overdue_fx_missing_count ?? 0,
+    // A2-7: rentas en divisa sin tipo de cambio quedan fuera del MRR (vigente y previo).
+    mrrFxMissingCount: kpis?.mrr_fx_missing_count ?? 0,
+    mrrPrevFxMissingCount: kpis?.mrr_prev_fx_missing_count ?? 0,
   };
 }
+
 
 export function buildAlertsProps<B, I, C>(
   stats: { overdue_bookings?: B[] } | undefined,

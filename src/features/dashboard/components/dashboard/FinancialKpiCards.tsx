@@ -10,6 +10,10 @@ interface FinancialKpiCardsProps {
   overdueTotal: number;
   /** N-15: facturas vencidas en divisa sin tipo de cambio (excluidas del total). */
   overdueFxMissingCount?: number;
+  /** A2-7: rentas en divisa sin tipo de cambio, excluidas del MRR vigente. */
+  mrrFxMissingCount?: number;
+  /** A2-7: idem para el MRR del mes previo (usado en comparativos). */
+  mrrPrevFxMissingCount?: number;
 }
 
 export function FinancialKpiCards({
@@ -18,7 +22,10 @@ export function FinancialKpiCards({
   dso,
   overdueTotal,
   overdueFxMissingCount = 0,
+  mrrFxMissingCount = 0,
+  mrrPrevFxMissingCount = 0,
 }: FinancialKpiCardsProps) {
+  const mrrFxTotal = Math.max(mrrFxMissingCount, mrrPrevFxMissingCount);
   const kpis: Array<{
     label: string;
     value: string;
@@ -35,7 +42,16 @@ export function FinancialKpiCards({
       color: "text-success",
       bgColor: "bg-success/10",
       href: "/mrr",
+      // A2-7: nunca se convierte 1:1; las rentas sin tipo de cambio se excluyen y se avisan.
+      hint: mrrFxTotal > 0
+        ? (
+          <span className="text-xs text-warning">
+            {mrrFxTotal} renta(s) en divisa sin tipo de cambio no se incluyen
+          </span>
+        )
+        : undefined,
     },
+
     {
       label: "Utilización de Flota",
       value: `${utilizationPercent}%`,
