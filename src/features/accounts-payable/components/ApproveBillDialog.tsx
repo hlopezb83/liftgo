@@ -33,13 +33,11 @@ export function ApproveBillDialog({ open, onOpenChange, billId, billNumber }: Pr
   });
 
   useEffect(() => {
-    if (open) {
-      form.reset({ notes: "" });
-      setBlock(null);
-    }
+    if (open) form.reset({ notes: "" });
   }, [open, form]);
 
   const onSubmit = (values: FormValues) => {
+    setBlock(null);
     approve.mutate(
       { billId, notes: values.notes.trim() || undefined },
       { onSuccess: () => onOpenChange(false) },
