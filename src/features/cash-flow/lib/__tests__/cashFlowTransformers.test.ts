@@ -40,6 +40,9 @@ describe("cashFlowTransformers", () => {
   });
 
   describe("invoiceToItem", () => {
+    // A2-1: el saldo viene ya calculado y convertido a MXN por
+    // `v_invoices_with_balance.balance_mxn` (FX-aware, NCs timbradas
+    // descontadas). El transformer sólo filtra y mapea.
     const base = {
       id: "i1",
       invoice_number: "FAC-001",
@@ -49,55 +52,40 @@ describe("cashFlowTransformers", () => {
       moneda: "MXN",
       tipo_cambio: null,
       credited_amount: null,
+      balance_mxn: 1000,
     };
     it("devuelve null si no hay fecha de vencimiento", () => {
-      expect(invoiceToItem({ ...base, due_date: null }, new Map())).toBeNull();
+      expect(invoiceToItem({ ...base, due_date: null })).toBeNull();
     });
     it("devuelve null si está totalmente pagada", () => {
-      expect(invoiceToItem(base, new Map([["i1", 1000]]))).toBeNull();
+      expect(invoiceToItem({ ...base, balance_mxn: 0 })).toBeNull();
     });
-    it("calcula el saldo pendiente en MXN", () => {
-      const item = invoiceToItem(base, new Map([["i1", 200]]));
+    it("usa el saldo en MXN de la vista", () => {
+      const item = invoiceToItem({ ...base, balance_mxn: 800 });
       expect(item?.amountMxn).toBe(800);
       expect(item?.kind).toBe("in");
     });
-    // v7.209.0 A4: forecast descuenta NCs timbradas
-    it("descuenta credited_amount (NC timbrada) en MXN", () => {
-      const item = invoiceToItem(
-        { ...base, total: 10000, credited_amount: 6000 },
-        new Map(),
-      );
-      expect(item?.amountMxn).toBe(4000);
-    });
-    it("descuenta credited_amount convertido por tipo_cambio en USD", () => {
-      const item = invoiceToItem(
-        { ...base, total: 1000, moneda: "USD", tipo_cambio: 20, credited_amount: 100 },
-        new Map(),
-      );
-      // (1000 - 100) * 20 = 18000
+    it("usa el saldo convertido de una factura USD", () => {
+      const item = invoiceToItem({ ...base, moneda: "USD", tipo_cambio: 20, balance_mxn: 18000 });
       expect(item?.amountMxn).toBe(18000);
     });
-    it("null si NC deja el saldo en cero", () => {
-      const item = invoiceToItem(
-        { ...base, total: 1000, credited_amount: 1000 },
-        new Map(),
-      );
-      expect(item).toBeNull();
+    // A2-1: pago en MXN sobre factura USD. Antes el cliente restaba el monto
+    // crudo (8500 "USD" sobre 1000) y la factura desaparecía de la proyección.
+    it("no desaparece por un pago en otra moneda (regresión A2-1)", () => {
+      const item = invoiceToItem({
+        ...base, total: 1000, moneda: "USD", tipo_cambio: 17, balance_mxn: 8500,
+      });
+      expect(item?.amountMxn).toBe(8500);
+    });
+    it("null si la vista no pudo calcular el saldo (TC faltante)", () => {
+      expect(invoiceToItem({ ...base, balance_mxn: null })).toBeNull();
     });
     // R17-X#1: saldo de $0.01 debe proyectarse
     it("incluye saldos de $0.01", () => {
-      const item = invoiceToItem(
-        { ...base, total: 0.01, credited_amount: 0 },
-        new Map(),
-      );
-      expect(item?.amountMxn).toBe(0.01);
+      expect(invoiceToItem({ ...base, balance_mxn: 0.01 })?.amountMxn).toBe(0.01);
     });
     it("descarta saldos menores a $0.005", () => {
-      const item = invoiceToItem(
-        { ...base, total: 1000.004, credited_amount: 1000 },
-        new Map(),
-      );
-      expect(item).toBeNull();
+      expect(invoiceToItem({ ...base, balance_mxn: 0.004 })).toBeNull();
     });
   });
 
