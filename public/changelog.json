@@ -1,5 +1,19 @@
 [
   {
+    "version": "7.389.0",
+    "date": "2026-08-31",
+    "type": "minor",
+    "title": "Cierre de la auditoría QA: notas de crédito, entregas, lotes de pago y estados de cuenta",
+    "description": "Se cerraron los últimos hallazgos abiertos de la auditoría: las notas de crédito verifican que el CFDI timbrado cuadre con el documento, las entregas registradas como completadas respetan la ventana de renta, un lote de pagos fallido libera sus facturas y la importación bancaria deja de duplicar movimientos.",
+    "changes": [
+      "Si el CFDI de una nota de crédito no cuadra con el total del sistema, queda marcada como error para revisarla y cancelarla, en vez de darse por buena.",
+      "Registrar una entrega como “ya completada” ahora exige que la reserva esté confirmada y que la fecha caiga dentro del periodo de renta.",
+      "Si falla la generación del Excel de pagos, el lote se cancela solo y las facturas quedan liberadas para volver a exportarse.",
+      "La importación de estados de cuenta detecta duplicados por el contenido del movimiento, así que reimportar un archivo traslapado ya no duplica líneas y dos movimientos legítimamente idénticos sí se conservan.",
+      "Al editar una reserva se puede avisar si otro usuario la modificó antes, en vez de sobrescribir su cambio."
+    ]
+  },
+  {
     "version": "7.388.0",
     "date": "2026-08-31",
     "type": "minor",

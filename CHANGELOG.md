@@ -1,3 +1,12 @@
+## [7.389.0] - 2026-08-31
+### Fix (auditoría QA — cierre de hallazgos abiertos: A1-B3, A2-3, A3-07, A5-05, A5-09)
+- **A1-B3:** `supabase/functions/stamp-credit-note/handler.ts` reconcilia el total devuelto por Facturapi contra `credit_notes.total` con `computeStampVariance` (mismo contrato que `stamp-cfdi`/BL-A5). Fuera de tolerancia persiste identidad fiscal + `cfdi_status='error'`, `stamp_variance`/`stamp_variance_checked_at` (columnas nuevas) y responde 502.
+- **A2-3:** nuevo `useCancelPaymentBatch` (RPC `cancel_supplier_payment_batch`); si `useExportPaymentsForm` crea el lote pero falla la descarga del Excel, el lote huérfano se cancela y libera las facturas. Las reglas de cancelabilidad siguen en el RPC.
+- **A3-07:** `validate_delivery_booking_integrity()` ya sólo exime del checklist a los UPDATE. Insertar una entrega con `status='completed'` vuelve a exigir reserva `confirmed` y fecha dentro de `start_date`/`end_date`.
+- **A5-05:** `useUpdateBooking` acepta `expectedVersion` opcional (patrón M-11a/R4-25) y distingue `stale_write` de un fallo por RLS; los cambios de estado internos conservan el comportamiento previo.
+- **A5-09:** `bank_statement_lines.occurrence` + índice único `(bank_account_id, hash, occurrence)`; `buildLine` calcula el hash sólo con el contenido del movimiento y `assignOccurrences` numera las repeticiones idénticas. Reimportar un archivo traslapado o reordenado ya no duplica, y dos movimientos legítimamente iguales se conservan.
+- Sin cambios en permisos, máquinas de estado, cálculos de totales ni RLS.
+
 ## [7.388.0] - 2026-08-31
 ### Fix (auditoría QA — A5-03, A2-9, A4-05, A5-05, A5-06, A5-07, A5-08)
 - **A5-03 (PUE):** `enforce_payment_within_invoice_total` rechaza pagos que dejen saldo pendiente en facturas con `metodo_pago='PUE'` y `cfdi_status='stamped'` (`check_violation`).
