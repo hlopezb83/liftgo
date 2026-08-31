@@ -49,12 +49,13 @@ function resolveRentalMeta(
   return allItems[0]?._rentalMeta ?? [];
 }
 
-export function useQuoteDetailData(id: string | undefined) {
-  const { data: quote, isLoading, isError, refetch } = useQuote(id);
-  const { data: customers } = useCustomers();
-  const { data: forklifts } = useForklifts();
-  const { data: equipmentModels } = useEquipmentModels();
-
+/**
+ * Reservas y facturas ya generadas desde la cotización.
+ * Fix 5.2: si la query falla, no hay certeza de que la cotización NO esté
+ * convertida — se trata como "ya convertida" para bloquear el botón en vez
+ * de habilitarlo por defecto (evita duplicados por fallas de red).
+ */
+function useQuoteLinks(id: string | undefined) {
   const { data: linkedBookings, isError: isBookingsError } = useQuery({
     queryKey: bookingKeys.byFilter({ quote_id: id ?? "" }),
     enabled: !!id,
@@ -64,12 +65,6 @@ export function useQuoteDetailData(id: string | undefined) {
       return data || [];
     },
   });
-  // Fix 5.2: si la query falla, no hay certeza de que la cotización NO esté
-  // convertida — se trata como "ya convertida" para bloquear el botón en vez
-  // de habilitarlo por defecto (evita duplicados por fallas de red).
-  const alreadyConverted = (linkedBookings?.length ?? 0) > 0 || isBookingsError;
-  // Ya está en memoria: no se agrega ninguna consulta nueva.
-  const linkedBookingId = linkedBookings?.[0]?.id ?? null;
 
   const { data: linkedInvoices, isError: isInvoicesError } = useQuery({
     queryKey: invoiceKeys.byFilter({ quote_id: id ?? "" }),
@@ -83,8 +78,22 @@ export function useQuoteDetailData(id: string | undefined) {
       return data || [];
     },
   });
-  const alreadyInvoiced = (linkedInvoices ?? []).some((i) => i.status !== "cancelled") || isInvoicesError;
 
+  return {
+    alreadyConverted: (linkedBookings?.length ?? 0) > 0 || isBookingsError,
+    // Ya está en memoria: no se agrega ninguna consulta nueva.
+    linkedBookingId: linkedBookings?.[0]?.id ?? null,
+    alreadyInvoiced: (linkedInvoices ?? []).some((i) => i.status !== "cancelled") || isInvoicesError,
+  };
+}
+
+export function useQuoteDetailData(id: string | undefined) {
+  const { data: quote, isLoading, isError, refetch } = useQuote(id);
+  const { data: customers } = useCustomers();
+  const { data: forklifts } = useForklifts();
+  const { data: equipmentModels } = useEquipmentModels();
+
+  const { alreadyConverted, linkedBookingId, alreadyInvoiced } = useQuoteLinks(id);
 
   const customerMatch = customers?.find((c) => c.id === quote?.customer_id);
   const quoteType = quote?.quote_type || "rental";
@@ -98,6 +107,7 @@ export function useQuoteDetailData(id: string | undefined) {
   const isModelBasedQuote = rentalMeta.length > 0;
 
   const unitCount = countQuoteUnits(quote, forklifts, rentalMeta, isModelBasedQuote);
+
 
   return {
     quote, isLoading, isError, refetchQuote: refetch, customers, forklifts, equipmentModels,

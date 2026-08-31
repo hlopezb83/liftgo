@@ -1,5 +1,15 @@
 [
   {
+    "version": "7.393.2",
+    "date": "2026-08-31",
+    "type": "patch",
+    "title": "Limpieza interna de código",
+    "description": "Reorganización técnica de algunos archivos; sin cambios visibles para el usuario.",
+    "changes": [
+      "Código de cotizaciones, contratos y calendario dividido en piezas más pequeñas."
+    ]
+  },
+  {
     "version": "7.393.1",
     "date": "2026-08-31",
     "type": "patch",

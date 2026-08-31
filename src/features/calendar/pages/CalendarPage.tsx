@@ -2,7 +2,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { startOfMonth, endOfMonth, addMonths, subMonths, differenceInDays, startOfWeek, endOfWeek, addWeeks, subWeeks } from "date-fns";
 import { useMemo, useState } from "react";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
-import { ChevronLeftIcon, ChevronRightIcon, RefreshIcon, WarnIcon } from "@/components/icons";
+import { RefreshIcon, WarnIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { PageTransition } from "@/components/layout/PageTransition";
@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { useBookingsRange, bookingKeys } from "@/features/bookings";
 import { useForkliftMap } from "@/features/fleet";
 import { useMaintenanceLogs } from "@/features/maintenance";
@@ -21,7 +20,8 @@ import { notifyAsync } from "@/lib/ui/appFeedback";
 import { nowMty, formatMtyDate } from "@/lib/utils";
 import { CalendarStatCards } from "../components/calendar/CalendarStatCards";
 import { EquipmentListView } from "../components/calendar/EquipmentListView";
-import { GanttChart } from "../components/calendar/GanttChart";
+import { GanttCard, type MaintenanceWindow } from "../components/calendar/GanttCard";
+
 
 function rangeFns(mode: "month" | "week") {
   return mode === "month"
@@ -52,35 +52,13 @@ export default function CalendarPage() {
   // A5-07: los mantenimientos programados (próximo servicio) y las órdenes de
   // trabajo abiertas se pintan como franjas sobre la fila del equipo, para que
   // al agendar una renta se vea que la unidad ya está comprometida.
-  const { data: maintenanceLogs } = useMaintenanceLogs();
-  const maintenanceWindows = useMemo(
-    () =>
-      (maintenanceLogs ?? []).flatMap((log) => {
-        const windows: Array<{ id: string; forklift_id: string; date: string; label: string }> = [];
-        if (log.next_service_date) {
-          windows.push({
-            id: `${log.id}-next`,
-            forklift_id: log.forklift_id,
-            date: log.next_service_date,
-            label: `Próximo servicio: ${log.service_type ?? "mantenimiento"}`,
-          });
-        }
-        if (log.work_status !== "completed" && log.performed_at) {
-          windows.push({
-            id: `${log.id}-open`,
-            forklift_id: log.forklift_id,
-            date: log.performed_at.slice(0, 10),
-            label: `OT abierta: ${log.service_type ?? "mantenimiento"}`,
-          });
-        }
-        return windows;
-      }),
-    [maintenanceLogs],
-  );
+  const maintenanceWindows = useMaintenanceWindows();
 
   const navigateBack = () => setCurrentDate(fns.prev(currentDate, 1));
   const navigateForward = () => setCurrentDate(fns.next(currentDate, 1));
   const navigateToday = () => setCurrentDate(nowMty());
+
+
 
   const rangeLabel = ganttRange === "month"
     ? formatMonthLongEs(currentDate)
@@ -101,8 +79,6 @@ export default function CalendarPage() {
     });
   }, [bookings, todayTs]);
 
-
-
   // R22-C: el calendario necesita reservas Y equipos; reintentar ambos.
   if (bError || fError) {
     return (
@@ -121,6 +97,21 @@ export default function CalendarPage() {
     return <CalendarLoadingSkeleton />;
   }
 
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await notifyAsync(
+        qc.refetchQueries({ queryKey: bookingKeys.all, type: "active" }),
+        {
+          loading: "Actualizando calendario…",
+          success: "Calendario actualizado",
+          error: "No se pudo actualizar el calendario",
+        },
+      );
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   return (
     <PageTransition>
@@ -139,76 +130,23 @@ export default function CalendarPage() {
         ganttRange={ganttRange}
         setGanttRange={setGanttRange}
         isRefreshing={isRefreshing}
-        onRefresh={async () => {
-          setIsRefreshing(true);
-          try {
-            await notifyAsync(
-              qc.refetchQueries({ queryKey: bookingKeys.all, type: "active" }),
-              {
-                loading: "Actualizando calendario…",
-                success: "Calendario actualizado",
-                error: "No se pudo actualizar el calendario",
-              },
-            );
-          } finally {
-            setIsRefreshing(false);
-          }
-        }}
+        onRefresh={() => { void handleRefresh(); }}
       />
 
-
-
       {viewMode === "gantt" ? (
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between pb-3">
-            <CardTitle className="text-base">{rangeLabel ? rangeLabel.charAt(0).toUpperCase() + rangeLabel.slice(1) : rangeLabel}</CardTitle>
-            <div className="flex gap-1">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={navigateBack}
-                    aria-label={fns.prevLabel}
-                  >
-                    <ChevronLeftIcon className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>{fns.prevLabel}</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="sm" onClick={navigateToday} aria-label="Ir a hoy">
-                    Hoy
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>Ir a la fecha actual</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={navigateForward}
-                    aria-label={fns.nextLabel}
-                  >
-                    <ChevronRightIcon className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>{fns.nextLabel}</TooltipContent>
-              </Tooltip>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <GanttChart
-              forklifts={forklifts}
-              bookings={bookings}
-              rangeStart={rangeStart}
-              rangeEnd={rangeEnd}
-              maintenanceWindows={maintenanceWindows}
-            />
-          </CardContent>
-        </Card>
+        <GanttCard
+          rangeLabel={rangeLabel}
+          prevLabel={fns.prevLabel}
+          nextLabel={fns.nextLabel}
+          onPrev={navigateBack}
+          onNext={navigateForward}
+          onToday={navigateToday}
+          forklifts={forklifts}
+          bookings={bookings}
+          rangeStart={rangeStart}
+          rangeEnd={rangeEnd}
+          maintenanceWindows={maintenanceWindows}
+        />
       ) : (
         <Card>
           <CardHeader>
@@ -224,6 +162,37 @@ export default function CalendarPage() {
     </PageTransition>
   );
 }
+
+/** Franjas de mantenimiento (próximo servicio y OT abiertas) por equipo. */
+function useMaintenanceWindows(): MaintenanceWindow[] {
+  const { data: maintenanceLogs } = useMaintenanceLogs();
+  return useMemo(
+    () =>
+      (maintenanceLogs ?? []).flatMap((log) => {
+        const windows: MaintenanceWindow[] = [];
+        if (log.next_service_date) {
+          windows.push({
+            id: `${log.id}-next`,
+            forklift_id: log.forklift_id,
+            date: log.next_service_date,
+            label: `Próximo servicio: ${log.service_type ?? "mantenimiento"}`,
+          });
+        }
+        if (log.work_status !== "completed" && log.performed_at) {
+          windows.push({
+            id: `${log.id}-open`,
+            forklift_id: log.forklift_id,
+            date: log.performed_at.slice(0, 10),
+            label: `OT abierta: ${log.service_type ?? "mantenimiento"}`,
+          });
+        }
+        return windows;
+      }),
+    [maintenanceLogs],
+  );
+}
+
+
 
 type ForkliftLike = { id: string; name: string };
 type BookingLike = { id: string; forklift_id: string; customer_name: string | null; end_date: string };

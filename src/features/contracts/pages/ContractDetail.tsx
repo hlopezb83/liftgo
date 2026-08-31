@@ -14,14 +14,38 @@ import { RentalFinancialSummary } from "../components/contracts/RentalFinancialS
 import { useContractDetailLogic } from "../hooks/contractDetail/useContractDetailLogic";
 import { CONTRACT_STATUS_LABELS } from "../lib/contractStatusLabels";
 
+type ContractData = NonNullable<ReturnType<typeof useContractDetailLogic>["contract"]>;
+
 function contractDates(contract: { start_date: string | null; end_date: string | null }) {
   return { start: contract.start_date ?? "", end: contract.end_date ?? "" };
 }
 
-export default function ContractDetail() {
-  const navigate = useNavigateTransition();
-  const { id, contract, isLoading, isError, refetch, setStatus } = useContractDetailLogic();
+/** Normaliza las columnas opcionales del depósito a `null`. */
+function depositProps(contract: ContractData, contractId: string) {
+  return {
+    contractId,
+    depositAmount: contract.deposit_amount,
+    depositStatus: contract.deposit_status ?? null,
+    depositSettledAt: contract.deposit_settled_at ?? null,
+    depositSettledAmount: contract.deposit_settled_amount ?? null,
+    depositNotes: contract.deposit_notes ?? null,
+  };
+}
 
+function InfoCard({ title, value }: { title: string; value: string | null | undefined }) {
+  return (
+    <Card>
+      <CardHeader><CardTitle className="text-base">{title}</CardTitle></CardHeader>
+      <CardContent className="text-sm">
+        <p className="font-medium">{value ?? "—"}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ContractDetailFallback({
+  isLoading, isError, refetch, onBack,
+}: { isLoading: boolean; isError: boolean; refetch: () => void; onBack: () => void }) {
   if (isLoading) {
     return (
       <PageContainer className="space-y-4">
@@ -33,19 +57,29 @@ export default function ContractDetail() {
   if (isError) {
     return (
       <PageContainer>
-        <QueryErrorState entity="el contrato" onRetry={() => { void refetch(); }} />
+        <QueryErrorState entity="el contrato" onRetry={refetch} />
       </PageContainer>
     );
   }
-  if (!contract || !id) {
+  return (
+    <PageContainer>
+      <EmptyState title="Contrato no encontrado" actionLabel="Volver" onAction={onBack} />
+    </PageContainer>
+  );
+}
+
+export default function ContractDetail() {
+  const navigate = useNavigateTransition();
+  const { id, contract, isLoading, isError, refetch, setStatus } = useContractDetailLogic();
+
+  if (isLoading || isError || !contract || !id) {
     return (
-      <PageContainer>
-        <EmptyState
-          title="Contrato no encontrado"
-          actionLabel="Volver"
-          onAction={() => navigate("/contracts")}
-        />
-      </PageContainer>
+      <ContractDetailFallback
+        isLoading={isLoading}
+        isError={isError}
+        refetch={() => { void refetch(); }}
+        onBack={() => navigate("/contracts")}
+      />
     );
   }
 
@@ -69,18 +103,8 @@ export default function ContractDetail() {
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader><CardTitle className="text-base">Cliente</CardTitle></CardHeader>
-          <CardContent className="text-sm">
-            <p className="font-medium">{contract.customer_name ?? "—"}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader><CardTitle className="text-base">Equipo</CardTitle></CardHeader>
-          <CardContent className="text-sm">
-            <p className="font-medium">{contract.forklift_name ?? "—"}</p>
-          </CardContent>
-        </Card>
+        <InfoCard title="Cliente" value={contract.customer_name} />
+        <InfoCard title="Equipo" value={contract.forklift_name} />
       </div>
 
       <ContractDetailsCard
@@ -94,14 +118,7 @@ export default function ContractDetail() {
         signedBy={contract.signed_by}
       />
 
-      <ContractDepositCard
-        contractId={id}
-        depositAmount={contract.deposit_amount}
-        depositStatus={contract.deposit_status ?? null}
-        depositSettledAt={contract.deposit_settled_at ?? null}
-        depositSettledAmount={contract.deposit_settled_amount ?? null}
-        depositNotes={contract.deposit_notes ?? null}
-      />
+      <ContractDepositCard {...depositProps(contract, id)} />
 
       <ContractConditionsCard contract={contract} />
 
@@ -126,3 +143,4 @@ export default function ContractDetail() {
     </PageContainer>
   );
 }
+

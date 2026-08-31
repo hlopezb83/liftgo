@@ -1,3 +1,8 @@
+## [7.393.2] - 2026-08-31
+### Chore (calidad de código)
+- Se redujo la complejidad reportada por ESLint: `quoteFormSchema` divide su `superRefine` en `refineRentalLines`/`refineSaleLines`/`refineDateRange`, `useQuoteDetailData` extrae `useQuoteLinks`, `ContractDetail` usa `ContractDetailFallback`/`InfoCard`/`depositProps` y `CalendarPage` mueve el Gantt a `components/calendar/GanttCard.tsx` con el hook `useMaintenanceWindows`.
+- Sin cambios funcionales, de validaciones, RLS, permisos ni cálculos.
+
 ## [7.393.1] - 2026-08-31
 ### Chore (arquitectura)
 - Se eliminaron los 2 imports profundos entre features detectados por `arch:check`: `useDamagePrefill` y `useAgingReport` ahora importan desde los barrels públicos `@/features/damage` y `@/features/cash-flow`.

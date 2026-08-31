@@ -101,47 +101,11 @@ export const quoteFormSchema = z.object({
   insuranceCost: nonNegative.default(0),
 }).superRefine((val, ctx) => {
   if (val.quoteType === "rental") {
-    // R14-FE-01: "Agregar modelo" deja una fila-draft prístina que invalidaba
-    // el submit sin feedback global. Se ignoran (tampoco llegan al payload).
-    const isPristine = (l: (typeof val.rentalLines)[number]) =>
-      l.modelId === "" && !l.legacyTotal &&
-      l.dailyRate === 0 && l.weeklyRate === 0 && l.monthlyRate === 0;
-    const lines = val.rentalLines.filter((l) => !isPristine(l));
-    if (lines.length === 0) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["rentalLines"], message: "Agrega al menos una partida" });
-    }
-    val.rentalLines.forEach((line, i) => {
-      if (isPristine(line)) return;
-      const r = rentalLineSchema.safeParse(line);
-      if (!r.success) {
-        for (const issue of r.error.issues) {
-          ctx.addIssue({ ...issue, path: ["rentalLines", i, ...issue.path] });
-        }
-      }
-    });
-    if (!val.dateRange?.from || !val.dateRange?.to) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["dateRange"], message: "Selecciona el rango de renta" });
-    } else if (val.dateRange.to < val.dateRange.from) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["dateRange"], message: "La fecha final debe ser posterior a la inicial" });
-    }
+    refineRentalLines(val.rentalLines, ctx);
+    refineDateRange(val.dateRange, ctx);
   } else if (val.quoteType === "sale") {
-    const isPristineSale = (l: (typeof val.saleLines)[number]) =>
-      l.modelId === "" && l.unitPrice === 0;
-    const lines = val.saleLines.filter((l) => !isPristineSale(l));
-    if (lines.length === 0) {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["saleLines"], message: "Agrega al menos una partida" });
-    }
-    val.saleLines.forEach((line, i) => {
-      if (isPristineSale(line)) return;
-      const r = saleLineSchema.safeParse(line);
-      if (!r.success) {
-        for (const issue of r.error.issues) {
-          ctx.addIssue({ ...issue, path: ["saleLines", i, ...issue.path] });
-        }
-      }
-    });
+    refineSaleLines(val.saleLines, ctx);
   }
-
 
   if (val.includeLogistics && val.logisticsCost <= 0) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["logisticsCost"], message: "Ingresa el costo logístico" });
@@ -163,6 +127,59 @@ export const quoteFormSchema = z.object({
 
   checkValidUntil(val.validUntil, val.dateRange?.from, ctx);
 });
+
+/** Copia las incidencias de una partida al path indexado del arreglo. */
+function pushLineIssues(
+  result: { success: true } | { success: false; error: { issues: z.ZodIssue[] } },
+  key: "rentalLines" | "saleLines",
+  index: number,
+  ctx: z.RefinementCtx,
+): void {
+
+  if (result.success) return;
+  for (const issue of result.error.issues) {
+    ctx.addIssue({ ...issue, path: [key, index, ...issue.path] });
+  }
+}
+
+/**
+ * R14-FE-01: "Agregar modelo" deja una fila-draft prístina que invalidaba
+ * el submit sin feedback global. Se ignoran (tampoco llegan al payload).
+ */
+function isPristineRental(l: z.infer<typeof rentalLineBase>): boolean {
+  return l.modelId === "" && !l.legacyTotal &&
+    l.dailyRate === 0 && l.weeklyRate === 0 && l.monthlyRate === 0;
+}
+
+function refineRentalLines(lines: z.infer<typeof rentalLineBase>[], ctx: z.RefinementCtx): void {
+  if (lines.filter((l) => !isPristineRental(l)).length === 0) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["rentalLines"], message: "Agrega al menos una partida" });
+  }
+  lines.forEach((line, i) => {
+    if (isPristineRental(line)) return;
+    pushLineIssues(rentalLineSchema.safeParse(line), "rentalLines", i, ctx);
+  });
+}
+
+function refineSaleLines(lines: z.infer<typeof saleLineBase>[], ctx: z.RefinementCtx): void {
+  const isPristine = (l: z.infer<typeof saleLineBase>) => l.modelId === "" && l.unitPrice === 0;
+  if (lines.filter((l) => !isPristine(l)).length === 0) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["saleLines"], message: "Agrega al menos una partida" });
+  }
+  lines.forEach((line, i) => {
+    if (isPristine(line)) return;
+    pushLineIssues(saleLineSchema.safeParse(line), "saleLines", i, ctx);
+  });
+}
+
+function refineDateRange(range: { from?: Date; to?: Date } | undefined, ctx: z.RefinementCtx): void {
+  if (!range?.from || !range?.to) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["dateRange"], message: "Selecciona el rango de renta" });
+  } else if (range.to < range.from) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["dateRange"], message: "La fecha final debe ser posterior a la inicial" });
+  }
+}
+
 
 
 const atMidnight = (d: Date): number => {
