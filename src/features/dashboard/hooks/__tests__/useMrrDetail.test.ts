@@ -58,7 +58,7 @@ describe("useMrrDetail", () => {
     const { result } = renderHook(() => useMrrDetail(), { wrapper: Wrapper });
 
     await waitFor(() => expect(result.current.isSuccess).toBe(true));
-    expect(result.current.data).toEqual({ items: [], total_mrr: 0 });
+    expect(result.current.data).toEqual({ items: [], total_mrr: 0, fx_missing_count: 0 });
   });
 
   it("propaga errores del RPC", async () => {
