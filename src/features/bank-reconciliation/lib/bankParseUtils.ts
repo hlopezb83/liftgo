@@ -8,9 +8,16 @@ export interface ParsedBankLine {
   description: string;
   signed_amount: number; // positivo = abono, negativo = cargo
   reference: string | null;
-  line_seq: number; // indice de la linea dentro del archivo (discriminador de dedup)
+  line_seq: number; // indice de la linea dentro del archivo (solo referencia visual)
   hash: string;
+  /**
+   * A5-09: n-esima repeticion de un movimiento con contenido identico dentro
+   * del archivo (1-based). Junto con el hash forma la llave de dedup
+   * `(bank_account_id, hash, occurrence)`, independiente del orden del archivo.
+   */
+  occurrence: number;
 }
+
 
 export interface ParseResult {
   lines: ParsedBankLine[];
@@ -120,15 +127,33 @@ export async function buildLine(input: {
     signed_amount: signedAmount,
     reference,
     line_seq: lineSeq,
-    // N-23: el indice de linea discrimina movimientos identicos dentro del
-    // mismo archivo (mismo monto/fecha/referencia) sin romper la dedup de
-    // reimportaciones, que conservan el mismo orden de lineas.
-    // A5-09: NO quitar `lineSeq` del hash sin antes cambiar el indice unico
-    // (bank_account_id, hash): dos movimientos legitimamente identicos en el
-    // mismo estado de cuenta chocarian al importar.
-    hash: await hashLine([String(lineSeq), postedDate, signedAmount.toFixed(2), reference ?? "", description.slice(0, 80)]),
+    // A5-09: el hash depende SOLO del contenido del movimiento. Antes incluia
+    // `lineSeq`, asi que un archivo traslapado o con las lineas en otro orden
+    // producia hashes distintos para el mismo movimiento y se insertaban
+    // duplicados. Los movimientos legitimamente identicos se distinguen ahora
+    // con `occurrence` (ver `assignOccurrences`), y el indice unico de la BD es
+    // (bank_account_id, hash, occurrence).
+    hash: await hashLine([postedDate, signedAmount.toFixed(2), reference ?? "", description.slice(0, 80)]),
+    occurrence: 1,
   };
 }
+
+/**
+ * A5-09: numera las repeticiones de movimientos con contenido identico dentro
+ * del archivo (1-based, en el orden en que aparecen). El resultado NO depende
+ * de la posicion absoluta de cada linea, solo de cuantas veces se repite el
+ * mismo contenido, asi que reimportar el mismo movimiento (en otro archivo o en
+ * otro orden) produce la misma llave y la BD lo descarta como duplicado.
+ */
+export function assignOccurrences(lines: ParsedBankLine[]): ParsedBankLine[] {
+  const seen = new Map<string, number>();
+  return lines.map((l) => {
+    const next = (seen.get(l.hash) ?? 0) + 1;
+    seen.set(l.hash, next);
+    return { ...l, occurrence: next };
+  });
+}
+
 
 /** cargo/abono separados -> abono - |cargo|. */
 export function signedFromChargeCredit(charge: number | null, credit: number | null): number {
