@@ -10,7 +10,11 @@ export interface QueryBuilderLike {
   eq: (col: string, val: unknown) => QueryBuilderLike;
   in: (col: string, vals: unknown[]) => QueryBuilderLike;
   is: (col: string, val: unknown) => QueryBuilderLike;
+  neq: (col: string, val: unknown) => QueryBuilderLike;
+  not: (col: string, op: string, val: unknown) => QueryBuilderLike;
+  order: (col: string, opts?: Record<string, unknown>) => QueryBuilderLike;
   limit: (n: number) => QueryBuilderLike;
+
   single: () => Promise<{ data: unknown; error: unknown }>;
   maybeSingle: () => Promise<{ data: unknown; error: unknown }>;
   then: <T>(
