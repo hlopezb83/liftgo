@@ -1,3 +1,8 @@
+## [7.396.1] - 2026-08-31
+### Fix (pruebas)
+- Las pruebas de `rfcOptional` usaban RFCs inventados sin dígito verificador válido y fallaban desde que A4-05 activó el checksum SAT; ahora usan ejemplos consistentes.
+- Sin cambios funcionales, de RLS ni de permisos.
+
 ## [7.396.0] - 2026-08-31
 ### Fix (estado de resultados, MRR, rechazo de CxP y quick wins)
 - **2A-1:** `get_income_statement` convierte gastos y facturas de proveedor en divisa con su tipo de cambio, excluye borradores y rechazadas, y reporta `fx_missing`; el reporte muestra un aviso cuando hay documentos sin tipo de cambio.
