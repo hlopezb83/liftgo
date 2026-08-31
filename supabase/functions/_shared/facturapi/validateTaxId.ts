@@ -80,24 +80,35 @@ export async function validateTaxIdWithPac(
     parsed = {};
   }
 
-  if (parsed.is_valid === true) return { kind: "valid", errors: [] };
+  // El PAC responde `{ efos: { is_valid, data } }`: la validación disponible
+  // sin registrar al cliente es la lista EFOS (art. 69-B). Aceptamos también
+  // un `is_valid` de primer nivel por compatibilidad.
+  const efos = (parsed.efos ?? null) as Record<string, unknown> | null;
+  const isValid = parsed.is_valid === true ||
+    (efos !== null && efos.is_valid === true);
+  if (isValid) return { kind: "valid", errors: [] };
 
   const errors = normalizeTaxIdErrors(parsed);
   if (errors.length === 0) {
+    const efosData = (efos?.data ?? null) as Record<string, unknown> | null;
+    const mensaje = typeof efosData?.mensaje === "string"
+      ? efosData.mensaje
+      : "";
     console.warn(
-      "[validateTaxIdWithPac] respuesta sin detalle de diferencias:",
+      "[validateTaxIdWithPac] respuesta sin detalle:",
       rawText.slice(0, 400),
     );
     errors.push({
       path: "",
-      message:
-        "El SAT no confirmó los datos. Revisa RFC, razón social, régimen fiscal y C.P. contra la Constancia de Situación Fiscal.",
+      message: mensaje ||
+        "El RFC aparece con observaciones en el SAT. Revisa la Constancia de Situación Fiscal.",
       code: "SAT_MISMATCH",
     });
   }
 
   return { kind: "mismatch", errors };
 }
+
 
 const FIELD_LABEL: Record<string, string> = {
   tax_id: "RFC",
