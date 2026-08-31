@@ -236,6 +236,9 @@ export function businessBlockSummary(block: BusinessBlock): string {
 const ERROR_PATTERNS: Array<{ pattern: RegExp; code: BusinessBlockCode }> = [
   { pattern: /renta activa|sigue rentad|completa la devoluci/i, code: "forklift_active_rental" },
   { pattern: /da(ñ|n)o abierto/i, code: "maintenance_open_damage" },
+  // Guard `trg_guard_maintenance_reopen` (BEFORE UPDATE OF work_status).
+  { pattern: /orden de trabajo ya est(á|a) cerrada/i, code: "maintenance_work_order_closed" },
+
   { pattern: /contrato firmado|signed contract|contrato ya fue firmado/i, code: "contract_signed_locked" },
   { pattern: /ya fue timbrada|cfdi timbrado|factura timbrada/i, code: "invoice_stamped_locked" },
   { pattern: /cancelaci(ó|o)n en proceso|cancellation_in_progress|cancelaci(ó|o)n pendiente/i, code: "invoice_cancellation_pending" },
