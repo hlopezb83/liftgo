@@ -19,6 +19,8 @@ export default function MrrDetailPage() {
   const columns = useMrrColumns();
   const items = data?.items ?? [];
   const totalMrr = data?.total_mrr ?? 0;
+  const fxMissingCount = data?.fx_missing_count ?? 0;
+
 
   const table = useLiftgoTable<MrrItem>({
     data: items,
