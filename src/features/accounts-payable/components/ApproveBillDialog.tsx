@@ -23,14 +23,19 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 export function ApproveBillDialog({ open, onOpenChange, billId, billNumber }: Props) {
-  const approve = useApproveSupplierBill();
+  // Segregación de funciones: el backend rechaza aprobar tu propia factura.
+  const [block, setBlock] = useState<BusinessBlock | null>(null);
+  const approve = useApproveSupplierBill({ onBusinessBlock: setBlock });
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { notes: "" },
   });
 
   useEffect(() => {
-    if (open) form.reset({ notes: "" });
+    if (open) {
+      form.reset({ notes: "" });
+      setBlock(null);
+    }
   }, [open, form]);
 
   const onSubmit = (values: FormValues) => {
