@@ -48,7 +48,14 @@ export function useBookingActions(booking: BookingWithForklift) {
       if (newStatus === "cancelled") {
         await cancelBooking.mutateAsync({ bookingId: booking.id, reason: null });
       } else {
-        await updateBooking.mutateAsync({ id: booking.id, status: newStatus });
+        // A2 (R5): bloqueo optimista — si otro usuario ya movió la reserva,
+        // el UPDATE afecta 0 filas y abortamos en vez de pisar su cambio.
+        await updateBooking.mutateAsync({
+          id: booking.id,
+          status: newStatus,
+          expectedVersion: booking.version ?? null,
+        });
+
       }
       notifySuccess(`Estatus cambiado a ${BOOKING_STATUS_LABELS[newStatus] || newStatus}`);
       onSuccess();

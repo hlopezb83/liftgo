@@ -17,7 +17,9 @@ import { useDeleteMaintenanceLog } from "../../hooks/maintenance/useMaintenanceL
 import { CloseWorkOrderDialog } from "./CloseWorkOrderDialog";
 import { MaintenanceLaborSection } from "./MaintenanceLaborSection";
 import { MaintenancePartsSection } from "./MaintenancePartsSection";
+import { ReopenWorkOrderDialog } from "./ReopenWorkOrderDialog";
 import type { MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
+
 
 const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   pending: { label: "Pendiente", variant: "secondary" },
@@ -164,6 +166,10 @@ function MaintenanceDetailActions({
   onEdit, onDelete, onSheetClose,
 }: ActionsProps) {
   const archiveBlocked = isClosed && !canArchiveClosed;
+  // A1 (R5): la RPC `reopen_work_order` existía sin ningún llamador en la app.
+  // Solo admin y solo sobre una OT cerrada; el servidor revalida ambas cosas.
+  const [reopenOpen, setReopenOpen] = useState(false);
+  const canReopen = isClosed && canArchiveClosed;
   return (
     <>
       {!isClosed && (
@@ -171,12 +177,23 @@ function MaintenanceDetailActions({
           <SuccessIcon className="h-4 w-4 mr-1" /> Cerrar OT
         </Button>
       )}
+      {canReopen && (
+        <Button variant="outline" className="w-full mb-2" onClick={() => setReopenOpen(true)}>
+          <MaintenanceIcon className="h-4 w-4 mr-1" /> Reabrir OT
+        </Button>
+      )}
+      <ReopenWorkOrderDialog
+        open={reopenOpen}
+        onOpenChange={setReopenOpen}
+        log={{ ...log, forklift_name: forkliftName }}
+      />
       <CloseWorkOrderDialog
         open={closeOpen}
         onOpenChange={onCloseOpenChange}
         log={{ ...log, forklift_name: forkliftName }}
         onClosed={onSheetClose}
       />
+
       <div className="flex gap-2">
         <Button variant="outline" className="flex-1" onClick={onEdit}>
           <EditIcon className="h-4 w-4 mr-1" /> Editar

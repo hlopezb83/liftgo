@@ -1,0 +1,8 @@
+{
+  "description": "Los administradores ya pueden reabrir una OT cerrada por error desde la app, y los cambios de estatus de reserva dejan de pisar los cambios de otro usuario.",
+  "changes": [
+    "Nuevo botón “Reabrir OT” en el detalle de mantenimiento, visible sólo para administradores cuando la orden está cerrada. Pide un motivo obligatorio y deja registro en la bitácora.",
+    "Al reabrir, la orden vuelve a estado “En progreso” y se pueden capturar refacciones y mano de obra nuevamente.",
+    "Los cambios de estatus de una reserva ahora usan bloqueo optimista: si otra persona modificó la reserva mientras la tenías abierta, se avisa en lugar de sobrescribir su cambio."
+  ]
+}
