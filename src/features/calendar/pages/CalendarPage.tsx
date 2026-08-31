@@ -49,6 +49,35 @@ export default function CalendarPage() {
   const rangeStart = fns.start(currentDate);
   const rangeEnd = fns.end(currentDate);
 
+  // A5-07: los mantenimientos programados (próximo servicio) y las órdenes de
+  // trabajo abiertas se pintan como franjas sobre la fila del equipo, para que
+  // al agendar una renta se vea que la unidad ya está comprometida.
+  const { data: maintenanceLogs } = useMaintenanceLogs();
+  const maintenanceWindows = useMemo(
+    () =>
+      (maintenanceLogs ?? []).flatMap((log) => {
+        const windows: Array<{ id: string; forklift_id: string; date: string; label: string }> = [];
+        if (log.next_service_date) {
+          windows.push({
+            id: `${log.id}-next`,
+            forklift_id: log.forklift_id,
+            date: log.next_service_date,
+            label: `Próximo servicio: ${log.service_type ?? "mantenimiento"}`,
+          });
+        }
+        if (log.work_status !== "completed" && log.performed_at) {
+          windows.push({
+            id: `${log.id}-open`,
+            forklift_id: log.forklift_id,
+            date: log.performed_at.slice(0, 10),
+            label: `OT abierta: ${log.service_type ?? "mantenimiento"}`,
+          });
+        }
+        return windows;
+      }),
+    [maintenanceLogs],
+  );
+
   const navigateBack = () => setCurrentDate(fns.prev(currentDate, 1));
   const navigateForward = () => setCurrentDate(fns.next(currentDate, 1));
   const navigateToday = () => setCurrentDate(nowMty());
