@@ -1,3 +1,8 @@
+## [7.403.0] - 2026-09-01
+### Fix (auditoría R6 · gastos + MRR)
+- `operating_expenses.supplier_bill_id` poblado por backfill 1:1 (131/142) y con índice único parcial; la heurística monto+fecha queda sólo como respaldo legacy.
+- `get_financial_kpis` expone `mrr_prev_fx_missing_count`; el KPI de MRR avisa las rentas en divisa excluidas por falta de TC (nunca 1:1).
+
 ## [7.402.0] - 2026-09-01
 ### Fix (auditoría R6 · recurrentes + contratos)
 - Los periodos recurrentes cuya reserva se editó después del periodo ya no se facturan sin confirmación explícita del operador (fail-closed); el cron nunca los factura.
