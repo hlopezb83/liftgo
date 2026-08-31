@@ -50,6 +50,8 @@ export function useIncomeStatementData({
     expenseDetailBreakdownByCategory,
     rentedWithoutCost,
     soldWithoutCost,
+    fxMissingCount,
+
     availableYears, selectedYear, setSelectedYear, isComparison,
   };
 }
