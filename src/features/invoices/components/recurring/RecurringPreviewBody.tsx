@@ -166,14 +166,16 @@ function CustomerGroup({
   selected,
   onToggle,
   onToggleGroup,
+  isSelectable,
 }: {
   customer: string;
   groupLines: RecurringPreviewLine[];
   selected: Set<string>;
   onToggle: (id: string) => void;
   onToggleGroup: (groupLines: RecurringPreviewLine[]) => void;
+  isSelectable: (line: RecurringPreviewLine) => boolean;
 }) {
-  const groupEligible = groupLines.filter((l) => l.eligible);
+  const groupEligible = groupLines.filter(isSelectable);
   const allSelected = groupEligible.length > 0 && groupEligible.every((l) => selected.has(l.bookingId));
   return (
     <div className="border rounded-md overflow-hidden">
@@ -197,6 +199,7 @@ function CustomerGroup({
             line={line}
             selected={selected}
             onToggle={onToggle}
+            selectable={isSelectable(line)}
           />
         ))}
       </div>
@@ -214,7 +217,12 @@ export function RecurringPreviewBody({
   selected,
   onToggle,
   onToggleGroup,
+  allowStaleRate,
+  staleCount,
+  onAllowStaleRateChange,
 }: Props) {
+  const isSelectable = (l: RecurringPreviewLine) =>
+    l.eligible && (!l.rateWarning || allowStaleRate);
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -236,6 +244,13 @@ export function RecurringPreviewBody({
   return (
     <>
       <SummaryBar eligibleCount={eligibleCount} selectedCount={selectedCount} totalSelected={totalSelected} />
+      <div className="mt-3">
+        <StaleRateNotice
+          staleCount={staleCount}
+          allowStaleRate={allowStaleRate}
+          onChange={onAllowStaleRateChange}
+        />
+      </div>
       {/* v7.307.0: aclarar el alcance — aquí sólo entran rentas mensuales recurrentes. */}
       <p className="text-xs text-muted-foreground">
         Sólo se listan reservas confirmadas con facturación recurrente mensual. Las extensiones de
@@ -254,6 +269,7 @@ export function RecurringPreviewBody({
               selected={selected}
               onToggle={onToggle}
               onToggleGroup={onToggleGroup}
+              isSelectable={isSelectable}
             />
           ))}
         </div>
