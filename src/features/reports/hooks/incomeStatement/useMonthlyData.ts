@@ -47,7 +47,10 @@ interface RpcResult {
   months: RpcMonthRow[];
   rented_without_cost: { id: string; name: string }[];
   sold_without_cost: { id: string; name: string }[];
+  /** 2A-1: documentos en divisa sin tipo de cambio, excluidos del reporte. */
+  fx_missing?: { invoices?: number; supplier_bills?: number };
 }
+
 
 export const incomeStatementQueries = defineEntityQueries<
   typeof incomeStatementKeys.all[number],
