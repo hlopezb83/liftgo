@@ -21,7 +21,10 @@ interface Props {
   approvalStatus: SupplierBillApprovalStatus;
   approvalNotes: string | null;
   approvedAt: string | null;
+  /** A6R2-2: el rechazo tiene su propia fecha; ya no reusa la de aprobación. */
+  rejectedAt?: string | null;
 }
+
 
 // Mapea el estado de aprobación al tono semántico del StatusBadge global.
 const APPROVAL_STATUS_MAP: Record<SupplierBillApprovalStatus, string> = {
