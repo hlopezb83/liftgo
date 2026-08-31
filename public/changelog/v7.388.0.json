@@ -1,0 +1,15 @@
+{
+  "version": "7.388.0",
+  "date": "2026-08-31",
+  "type": "minor",
+  "title": "Blindajes fiscales, gastos sin duplicados y mantenimientos en el calendario",
+  "description": "Las facturas timbradas como PUE ya no aceptan pagos parciales, los gastos operativos se pueden ligar a su factura de proveedor para no contarse dos veces, el RFC valida su dígito verificador y el Gantt muestra los mantenimientos programados.",
+  "changes": [
+    "Una factura timbrada como PUE (pago en una sola exhibición) sólo acepta el pago completo; para pagos parciales debe emitirse como PPD.",
+    "Cada gasto operativo puede ligarse a la factura de proveedor correspondiente, evitando que el estado de resultados lo cuente dos veces.",
+    "El RFC ahora valida su dígito verificador, no sólo el formato.",
+    "El Gantt del calendario muestra franjas de mantenimiento programado y órdenes de trabajo abiertas por equipo.",
+    "Al editar una cotización se avisa si otro usuario la modificó antes, en vez de sobrescribir su cambio.",
+    "El prorrateo de rentas recurrentes se calcula en centavos exactos y el año de vigencia del seguro ya no se corre por zona horaria."
+  ]
+}

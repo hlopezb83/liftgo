@@ -1,3 +1,15 @@
+## [7.388.0] - 2026-08-31
+### Fix (auditoría QA — A5-03, A2-9, A4-05, A5-05, A5-06, A5-07, A5-08)
+- **A5-03 (PUE):** `enforce_payment_within_invoice_total` rechaza pagos que dejen saldo pendiente en facturas con `metodo_pago='PUE'` y `cfdi_status='stamped'` (`check_violation`).
+- **A2-9:** nueva columna `operating_expenses.supplier_bill_id` (FK, `ON DELETE SET NULL`) e índice parcial; `get_income_statement` excluye del dedup heurístico los gastos ya ligados explícitamente.
+- **A4-05:** `src/lib/fiscal/rfcChecksum.ts` valida el dígito verificador SAT (con excepción de RFC genéricos) y se aplica en `rfcRequired`.
+- **A5-05:** `useUpdateQuote` acepta `version` opcional y aplica bloqueo optimista, avisando en vez de sobrescribir cambios ajenos.
+- **A5-06:** `generate-recurring-invoices/prorate.ts` prorratea en centavos enteros.
+- **A5-07:** `useGanttSegments`/`GanttRow`/`GanttChart`/`CalendarPage` pintan mantenimientos programados y OT abiertas como capa del Gantt.
+- **A5-08:** `forkliftFormSchema` obtiene el año de vigencia del seguro del string `YYYY-MM-DD`, sin `new Date(string)`.
+- **A3-01/A3-04:** la reasignación de cliente en cotizaciones aceptadas usa la RPC `reassign_quote_customer`; se retiró el cierre directo de reservas al marcar factura pagada.
+- Pendiente documentado: **A5-09** (hash de líneas bancarias) requiere rediseñar el índice único `bank_statement_lines_account_hash_uq` antes de quitar `lineSeq`.
+
 ## [7.387.0] - 2026-08-30
 ### Fix (auditoría QA — A2-1 saldo FX-aware en flujo de efectivo)
 - **A2-1:** `src/features/cash-flow/lib/cashFlowTransformers.ts` recalculaba el saldo sumando `payments.amount` crudo, asumiendo que el pago siempre viene en la moneda de la factura. La BD permite el cruce con tipo de cambio, así que un pago en MXN sobre una factura USD subestimaba (o desaparecía) el saldo proyectado.
