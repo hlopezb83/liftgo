@@ -131,9 +131,19 @@ export function useCreateQuote() {
 
 export function useUpdateQuote() {
   return useEntityMutation({
-    mutationFn: async ({ id, ...updates }: TablesUpdate<"quotes"> & { id: string }) => {
-      const { data, error } = await supabase.from("quotes").update(updates).eq("id", id).select().single();
+    // A5-05: bloqueo optimista opt-in. Si quien edita conoce la `version` que
+    // leyó, el UPDATE sólo aplica sobre esa versión; si otro usuario guardó
+    // antes, no se sobrescribe su cambio y se avisa en lugar de perderlo.
+    mutationFn: async ({ id, version, ...updates }: TablesUpdate<"quotes"> & { id: string; version?: number | null }) => {
+      let query = supabase.from("quotes").update(updates).eq("id", id);
+      if (typeof version === "number") query = query.eq("version", version);
+      const { data, error } = await query.select().maybeSingle();
       if (error) throw error;
+      if (!data) {
+        throw new Error(
+          "Otro usuario modificó esta cotización mientras la editabas. Recarga la página para ver los cambios más recientes.",
+        );
+      }
       return data;
     },
     invalidateKeys: [quoteKeys.lists()],
