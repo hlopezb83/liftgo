@@ -38,6 +38,7 @@ interface Props {
 
 export function MaintenanceDetailSheet({ log, open, onOpenChange, forkliftName, onEdit }: Props) {
   const deleteLog = useDeleteMaintenanceLog();
+  const restoreLog = useRestoreMaintenanceLog();
   // E1: una OT cerrada ya trae costos capturados; solo admin puede archivarla
   // (el RPC lo valida en el servidor, aqui evitamos el intento fallido).
   const { data: role } = useUserRole();
