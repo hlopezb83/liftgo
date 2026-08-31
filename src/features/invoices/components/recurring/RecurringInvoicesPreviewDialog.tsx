@@ -17,7 +17,7 @@ interface Props {
   data: RecurringPreviewResponse | undefined;
   isLoading: boolean;
   isGenerating: boolean;
-  onConfirm: (bookingIds: string[]) => void;
+  onConfirm: (bookingIds: string[], allowStaleRate: boolean) => void;
 }
 
 function periodTitle(period: string | null): string {
@@ -41,7 +41,13 @@ export function RecurringInvoicesPreviewDialog({
   // NO es válida para el patrón "adjust state during render". Usamos una
   // clave string estable derivada de los ids elegibles.
   const lines = data?.lines ?? [];
-  const eligibleIds = lines.filter((l) => l.eligible).map((l) => l.bookingId);
+  // R6-F5: los periodos con `rateWarning` (reserva actualizada después del
+  // periodo) sólo se pueden facturar con confirmación explícita.
+  const [allowStaleRate, setAllowStaleRate] = useState(false);
+  const isSelectable = (l: RecurringPreviewLine) =>
+    l.eligible && (!l.rateWarning || allowStaleRate);
+  const staleCount = lines.filter((l) => l.eligible && l.rateWarning).length;
+  const eligibleIds = lines.filter(isSelectable).map((l) => l.bookingId);
   const eligibleKey = eligibleIds.join("|");
   const [selected, setSelected] = useState<Set<string>>(() => new Set(eligibleIds));
 
@@ -83,7 +89,7 @@ export function RecurringInvoicesPreviewDialog({
   };
 
   const toggleGroup = (groupLines: RecurringPreviewLine[]) => {
-    const groupEligibleIds = groupLines.filter((l) => l.eligible).map((l) => l.bookingId);
+    const groupEligibleIds = groupLines.filter(isSelectable).map((l) => l.bookingId);
     const allSelected = groupEligibleIds.every((id) => selected.has(id));
     setSelected((prev) => {
       const next = new Set(prev);
@@ -95,7 +101,7 @@ export function RecurringInvoicesPreviewDialog({
 
   // R14-I: el edge genera UNA factura por línea (período pendiente). Contar
   // facturas reales para que el botón no mienta ("Generar 1" cuando serán 3).
-  const selectedCount = lines.filter((l) => l.eligible && selected.has(l.bookingId)).length;
+  const selectedCount = lines.filter((l) => isSelectable(l) && selected.has(l.bookingId)).length;
 
   return (
     <FormDialog
@@ -117,6 +123,9 @@ export function RecurringInvoicesPreviewDialog({
       <RecurringPreviewBody
         isLoading={isLoading}
         lines={lines}
+        allowStaleRate={allowStaleRate}
+        staleCount={staleCount}
+        onAllowStaleRateChange={setAllowStaleRate}
         eligibleCount={eligibleIds.length}
         selectedCount={selectedCount}
         totalSelected={totalSelected}
@@ -129,7 +138,7 @@ export function RecurringInvoicesPreviewDialog({
       <FormDialogFooter>
         <FormDialogCancelButton onCancel={() => onOpenChange(false)} disabled={isGenerating} />
         <Button
-          onClick={() => onConfirm(Array.from(selected))}
+          onClick={() => onConfirm(Array.from(selected), allowStaleRate)}
           disabled={isLoading || isGenerating || selectedCount === 0}
         >
           {isGenerating
