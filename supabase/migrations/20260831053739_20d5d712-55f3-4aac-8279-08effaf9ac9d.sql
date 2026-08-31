@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.create_recurring_invoice(uuid[], uuid, text, jsonb, numeric, numeric, numeric, numeric, date, date, text, text, text, text, text);
