@@ -31,7 +31,7 @@ export function isSessionExpiredError(error: unknown): boolean {
 }
 
 /** Sólo para pruebas: reinicia el candado de "ya estoy cerrando sesión". */
-export function resetSessionExpiryGuard(): void {
+function resetSessionExpiryGuard(): void {
   handling = false;
 }
 
