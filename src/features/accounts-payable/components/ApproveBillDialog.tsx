@@ -8,6 +8,7 @@ import { FormDialogCancelButton } from "@/components/forms/FormDialogCancelButto
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { zodResolver } from "@/lib/forms/zodResolver";
+import type { BusinessBlock } from "@/lib/rules/businessBlocks";
 import { useApproveSupplierBill } from "../hooks/useBillApprovalMutations";
 
 interface Props {
