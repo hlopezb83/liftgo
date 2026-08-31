@@ -1,5 +1,6 @@
 import { calculateRentalCost, applyDiscountToBase, lineItemTotal } from "@/lib/domain/invoiceHelpers";
-import { money, sumMoney } from "@/lib/domain/invoiceTotals";
+import { money } from "@/lib/domain/invoiceTotals";
+import { sumMoney } from "@/lib/money";
 import type { RentalLine } from "./RentalLineItems";
 
 /**
