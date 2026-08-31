@@ -1,0 +1,20 @@
+{
+  "version": "7.390.0",
+  "date": "2026-08-31",
+  "type": "minor",
+  "title": "Lote 1 de correcciones del catálogo QA: flota, reservas, CxP y facturación en divisa",
+  "description": "Se corrigieron hallazgos vigentes de la auditoría: órdenes de trabajo archivadas ya no distorsionan reportes ni bloquean cambios de estatus, las unidades rentadas regresan correctamente a “Rentado” al cerrar mantenimiento, la facturación recurrente respeta moneda y tipo de cambio, los complementos de pago descuentan notas de crédito y editar el monto de una factura de proveedor vuelve a exigir aprobación.",
+  "changes": [
+    "Reportes de rentabilidad, ROI y el contador de mantenimiento abierto ya no cuentan órdenes de trabajo archivadas ni datos de prueba.",
+    "Cerrar, cancelar o archivar una orden de trabajo de una unidad con renta activa la regresa a “Rentado” en vez de dejarla atorada en “Mantenimiento”.",
+    "La sincronización de estatus ya no libera unidades con daños u órdenes de trabajo abiertas y deja registro en la bitácora.",
+    "No se puede reservar un montacargas archivado, ni cancelar una reserva con facturas emitidas vigentes.",
+    "Cancelar una cotización ya convertida pasa por las mismas validaciones que una aceptada.",
+    "Las facturas recurrentes se generan con la moneda y el tipo de cambio de la reserva; sin tipo de cambio válido no se factura.",
+    "El complemento de pago (REP) descuenta las notas de crédito timbradas al calcular el saldo anterior.",
+    "Cambiar monto, moneda o tipo de cambio de una factura de proveedor reevalúa el umbral de aprobación y se bloquea si ya tiene pagos o está aprobada.",
+    "Importación bancaria: “1.500” se interpreta como mil quinientos, no como 1.50.",
+    "CxP: las facturas rechazadas ya no suman en los indicadores ni en la antigüedad de saldos.",
+    "Validaciones de fechas imposibles, archivos de estado de cuenta en Windows-1252, límite de 5 MB para la constancia fiscal, catálogo SAT de régimen fiscal y facturación recurrente por mes calendario."
+  ]
+}
