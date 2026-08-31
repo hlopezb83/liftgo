@@ -13,6 +13,7 @@
  * mejor tree-shaking y por evitar los helpers deprecados de `z.string()`.
  */
 import { z } from "zod";
+import { isValidRegimenFiscalCode, regimenAplicaPersona, tipoPersonaFromRfc } from "@/lib/fiscal/regimenFiscal";
 import { hasValidRfcChecksum } from "@/lib/fiscal/rfcChecksum";
 
 // ---------------------------------------------------------------------------
