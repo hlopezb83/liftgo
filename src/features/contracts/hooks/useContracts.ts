@@ -96,3 +96,27 @@ export function useUpdateContract() {
     errorTitle: "Error al actualizar contrato",
   });
 }
+
+export type DepositStatus = "held" | "applied" | "returned";
+
+/**
+ * A6R2-4: registra el destino del depósito en garantía (retenido/aplicado/
+ * devuelto). La validación real (rol, monto ≤ depósito) vive en la RPC
+ * `set_contract_deposit_status`.
+ */
+export function useSetContractDepositStatus() {
+  return useEntityMutation({
+    mutationFn: async (input: { contractId: string; status: DepositStatus; amount?: number | null; notes?: string | null }) => {
+      const { error } = await supabase.rpc("set_contract_deposit_status", {
+        p_contract_id: input.contractId,
+        p_status: input.status,
+        p_amount: input.amount ?? undefined,
+        p_notes: input.notes ?? undefined,
+      });
+      if (error) throw error;
+    },
+    invalidateKeys: [contractKeys.all],
+    successMessage: "Depósito actualizado",
+    errorTitle: "Error al actualizar el depósito",
+  });
+}
