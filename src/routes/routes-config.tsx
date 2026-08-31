@@ -37,6 +37,7 @@ const rawRoutes: RawRoute[] = [
   { path: "/bookings/new", loader: () => import("@/features/bookings/pages/BookingForm"), module: "Reservas", minAccess: "full", adminOnly: true },
   { path: "/bookings/:id", loader: () => import("@/features/bookings/pages/BookingDetail"), module: "Reservas" },
   { path: "/customers", loader: () => import("@/features/customers/pages/CustomersPage"), module: "Clientes" },
+  { path: "/customers/validacion-sat", loader: () => import("@/features/customers/pages/CustomersSatValidationPage"), module: "Clientes", minAccess: "full" },
   { path: "/customers/:id", loader: () => import("@/features/customers/pages/CustomerDetailPage"), module: "Clientes" },
   { path: "/maintenance", loader: () => import("@/features/maintenance/pages/MaintenancePage"), module: "Mantenimiento" },
   { path: "/invoices", loader: () => import("@/features/invoices/pages/InvoicesPage"), module: "Facturas" },

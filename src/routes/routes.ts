@@ -50,6 +50,7 @@ export const ROUTES = {
   customers: {
     list: "/customers",
     new: "/customers/new",
+    satValidation: "/customers/validacion-sat",
     detail: (id: string) => `/customers/${id}`,
   },
   quotes: {

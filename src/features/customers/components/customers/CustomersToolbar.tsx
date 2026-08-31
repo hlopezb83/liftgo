@@ -1,8 +1,10 @@
+import { Link } from "react-router";
 import { FiltersToolbar } from "@/components/filters/FiltersToolbar";
 import { PlusCircle, DownloadIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { RoleGuard } from "@/layouts/RoleGuard";
 import { exportToCsv } from "@/lib/exportCsv";
+import { ROUTES } from "@/routes/routes";
 import type { Customer } from "../../hooks/customers/useCustomers";
 
 interface Props {
@@ -35,6 +37,11 @@ export function CustomersActions({ filtered, onCreate }: Pick<Props, "filtered" 
       >
         <DownloadIcon className="h-4 w-4 mr-1" />Exportar CSV
       </Button>
+      <RoleGuard module="Clientes" minAccess="full" fallback={null}>
+        <Button asChild variant="outline" size="sm">
+          <Link to={ROUTES.customers.satValidation}>Validar SAT</Link>
+        </Button>
+      </RoleGuard>
       {/* R7 Bloque 8: Nuevo cliente exige `full` según matriz de permisos. */}
       <RoleGuard module="Clientes" minAccess="full" fallback={null}>
         <Button onClick={onCreate} size="sm" aria-label="Agregar cliente"><PlusCircle className="h-4 w-4 mr-1" /> Nuevo cliente</Button>
