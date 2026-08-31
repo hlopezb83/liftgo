@@ -17,6 +17,23 @@ interface Props {
   accountingBasis?: "accrual" | "cash";
 }
 
+/** 2A-1: aviso de documentos en divisa excluidos por falta de tipo de cambio. */
+function FxMissingAlert({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <Alert variant="warning">
+      <WarnIcon className="h-4 w-4" />
+      <AlertTitle>Documentos en divisa sin tipo de cambio</AlertTitle>
+      <AlertDescription>
+        {count} documento{count === 1 ? "" : "s"} en divisa sin tipo de cambio
+        {count === 1 ? " se excluyó" : " se excluyeron"} de este reporte. Captura el tipo de cambio
+        en la factura o en la factura de proveedor para incluirlos.
+      </AlertDescription>
+    </Alert>
+  );
+}
+
+
 export function IncomeStatementReport({ startDate, endDate, accountingBasis = "accrual" }: Props) {
   const {
     filteredData, totals, statementRows, comparisonRows, yearTotals,
@@ -28,6 +45,8 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
     expenseDetailBreakdownByCategory,
     rentedWithoutCost,
     soldWithoutCost,
+    fxMissingCount,
+
     availableYears, selectedYear, setSelectedYear, isComparison,
     isError, isFetching, refetch,
   } = useIncomeStatementData({ startDate, endDate, accountingBasis });
@@ -79,7 +98,11 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
 
   return (
     <>
+      <FxMissingAlert count={fxMissingCount} />
+
+
       {rentedWithoutCost.length > 0 && (
+
         <Alert variant="warning">
           <WarnIcon className="h-4 w-4" />
           <AlertTitle>Equipos sin costo de adquisición</AlertTitle>

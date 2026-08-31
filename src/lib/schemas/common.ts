@@ -44,14 +44,20 @@ const RFC_REGEX = /^[A-ZÑ&]{3,4}[0-9]{6}[A-Z0-9]{3}$/;
 
 /**
  * RFC opcional. Trim + uppercase para normalizar entrada del usuario.
- * Valida formato solo si hay valor.
+ * Valida formato y dígito verificador solo si hay valor.
  */
 export const rfcOptional = () =>
   z
     .string()
     .default("")
     .transform((v) => v.trim().toUpperCase())
-    .refine((v) => !v || RFC_REGEX.test(v), { message: "RFC inválido (formato AAAA000000AAA)" });
+    .refine((v) => !v || RFC_REGEX.test(v), { message: "RFC inválido (formato AAAA000000AAA)" })
+    // A4-05: el RFC capturado en clientes/proveedores termina en el CFDI; se
+    // valida el dígito verificador desde la captura, no hasta el timbrado.
+    .refine((v) => !v || !RFC_REGEX.test(v) || hasValidRfcChecksum(v), {
+      message: "RFC inválido: el dígito verificador no coincide",
+    });
+
 
 /**
  * RFC obligatorio (uso fiscal: emisor, receptor de CFDI).

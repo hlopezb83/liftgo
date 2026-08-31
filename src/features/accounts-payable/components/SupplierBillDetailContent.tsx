@@ -64,6 +64,8 @@ interface DetailBill extends BillData {
   approval_status: string;
   approval_notes: string | null;
   approved_at: string | null;
+  rejected_at?: string | null;
+
   balance: number | string;
   issue_date: string;
   due_date: string | null;
@@ -170,7 +172,9 @@ export function SupplierBillDetailContent({ bill, perms, isAdmin, dialogs, onClo
         approvalStatus={bill.approval_status as "approved" | "not_required" | "pending" | "rejected"}
         approvalNotes={bill.approval_notes}
         approvedAt={bill.approved_at}
+        rejectedAt={bill.rejected_at ?? null}
       />
+
 
       <Separator />
       <RoleGuard module="Facturas de Proveedor" minAccess="full" fallback={null}>

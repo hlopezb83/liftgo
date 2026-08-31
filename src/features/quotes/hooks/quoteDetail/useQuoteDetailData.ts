@@ -57,14 +57,21 @@ function resolveRentalMeta(
  */
 function useQuoteLinks(id: string | undefined) {
   const { data: linkedBookings, isError: isBookingsError } = useQuery({
-    queryKey: bookingKeys.byFilter({ quote_id: id ?? "" }),
+    queryKey: bookingKeys.byFilter({ quote_id: id ?? "", exclude_cancelled: "1" }),
     enabled: !!id,
     queryFn: async () => {
-      const { data, error } = await supabase.from("bookings").select("id").eq("quote_id", id ?? "");
+      // A3B-05: las reservas canceladas no cuentan como conversión vigente;
+      // el RPC `convert_quote_to_bookings` permite reconvertir en ese caso.
+      const { data, error } = await supabase
+        .from("bookings")
+        .select("id")
+        .eq("quote_id", id ?? "")
+        .neq("status", "cancelled");
       if (error) throw error;
       return data || [];
     },
   });
+
 
   const { data: linkedInvoices, isError: isInvoicesError } = useQuery({
     queryKey: invoiceKeys.byFilter({ quote_id: id ?? "" }),

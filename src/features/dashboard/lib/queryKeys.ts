@@ -38,6 +38,8 @@ export interface MrrItem {
 export interface MrrDetail {
   items: MrrItem[];
   total_mrr: number;
+  /** A2-7: rentas recurrentes en divisa sin tipo de cambio, excluidas del total. */
+  fx_missing_count: number;
 }
 
 export const mrrDetailQueries = defineEntityQueries<"dashboard-mrr-detail", MrrDetail>(
@@ -48,8 +50,10 @@ export const mrrDetailQueries = defineEntityQueries<"dashboard-mrr-detail", MrrD
       return {
         items: result?.items ?? [],
         total_mrr: roundMoney(result?.total_mrr ?? 0),
+        fx_missing_count: Number(result?.fx_missing_count ?? 0),
       };
     },
+
   },
 );
 

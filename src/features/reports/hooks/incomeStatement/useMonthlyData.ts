@@ -47,7 +47,10 @@ interface RpcResult {
   months: RpcMonthRow[];
   rented_without_cost: { id: string; name: string }[];
   sold_without_cost: { id: string; name: string }[];
+  /** 2A-1: documentos en divisa sin tipo de cambio, excluidos del reporte. */
+  fx_missing?: { invoices?: number; supplier_bills?: number };
 }
+
 
 export const incomeStatementQueries = defineEntityQueries<
   typeof incomeStatementKeys.all[number],
@@ -147,7 +150,10 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
   const data: MonthData[] = (rpc?.months ?? []).map(mapMonthRow);
   const rentedWithoutCost = rpc?.rented_without_cost ?? [];
   const soldWithoutCost = rpc?.sold_without_cost ?? [];
+  const fxMissingCount =
+    Number(rpc?.fx_missing?.invoices ?? 0) + Number(rpc?.fx_missing?.supplier_bills ?? 0);
 
-  return { data, rentedWithoutCost, soldWithoutCost, isError, isFetching, refetch };
+  return { data, rentedWithoutCost, soldWithoutCost, fxMissingCount, isError, isFetching, refetch };
+
 }
 

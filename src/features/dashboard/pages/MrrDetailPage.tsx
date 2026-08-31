@@ -1,9 +1,10 @@
 import { DataTableV2, useLiftgoTable } from "@/components/dataTable/v2";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { QueryErrorState } from "@/components/feedback/QueryErrorState";
-import { FleetIcon } from "@/components/icons";
+import { FleetIcon, WarnIcon } from "@/components/icons";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TableFooter, TableRow, TableCell } from "@/components/ui/table";
 import { useIsTabletOrBelow } from "@/hooks/use-mobile";
@@ -19,6 +20,8 @@ export default function MrrDetailPage() {
   const columns = useMrrColumns();
   const items = data?.items ?? [];
   const totalMrr = data?.total_mrr ?? 0;
+  const fxMissingCount = data?.fx_missing_count ?? 0;
+
 
   const table = useLiftgoTable<MrrItem>({
     data: items,
@@ -43,7 +46,20 @@ export default function MrrDetailPage() {
         <QueryErrorState entity="el detalle de ingreso mensual recurrente" onRetry={() => { void refetch(); }} />
       ) : (
       <>
+      {fxMissingCount > 0 && (
+        <Alert variant="warning">
+          <WarnIcon className="h-4 w-4" />
+          <AlertTitle>Rentas en divisa sin tipo de cambio</AlertTitle>
+          <AlertDescription>
+            {fxMissingCount} renta{fxMissingCount === 1 ? "" : "s"} recurrente
+            {fxMissingCount === 1 ? "" : "s"} en divisa sin tipo de cambio
+            {fxMissingCount === 1 ? " no se incluyó" : " no se incluyeron"} en el total.
+            Captura el tipo de cambio en la reserva para que sume al MRR.
+          </AlertDescription>
+        </Alert>
+      )}
       <MrrKpiCluster items={items} totalMrr={totalMrr} isLoading={isLoading} />
+
 
       <Card>
         <CardHeader className="pb-2">

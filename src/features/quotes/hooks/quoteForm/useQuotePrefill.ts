@@ -44,23 +44,28 @@ function rebuildSaleLines(items: LineItem[], models: EquipmentModel[]): SaleLine
   });
 }
 
-function lineToRentalLine(item: LineItem, found: EquipmentModel): RentalLineValues {
+function lineToRentalLine(item: LineItem, found: EquipmentModel, rentalDays?: number): RentalLineValues {
   // A1-6: preservar cantidad/tarifa pactadas de la cotización guardada; el
   // catálogo sólo es fallback cuando la partida no trae el dato (legacy sin
   // `unit_price`). Antes se colapsaba `quantity` a 1 y se sustituían las
   // tarifas acordadas por las del catálogo al re-editar, mostrando montos
   // distintos a los originalmente cotizados.
   const unitPrice = Number(item.unit_price ?? item.total) || 0;
+  // A1-6: respetar la periodicidad de la partida (rate_type / descripción).
+  // Antes toda tarifa se colocaba en `dailyRate`, inflando totales mensuales.
+  const field = rentalRateField(item.description, item, rentalDays);
+  const rate = unitPrice > 0 ? unitPrice : found.default_daily_rate ?? 0;
   return {
     modelId: found.id,
     quantity: Number(item.quantity ?? legacyQty(item)) || 1,
-    dailyRate: unitPrice > 0 ? unitPrice : found.default_daily_rate ?? 0,
-    weeklyRate: found.default_weekly_rate ?? 0,
-    monthlyRate: found.default_monthly_rate ?? 0,
+    dailyRate: field === "dailyRate" ? rate : found.default_daily_rate ?? 0,
+    weeklyRate: field === "weeklyRate" ? rate : found.default_weekly_rate ?? 0,
+    monthlyRate: field === "monthlyRate" ? rate : found.default_monthly_rate ?? 0,
     discount: item.discount || 0,
     discountType: (item.discount_type || "%") as "%" | "$",
   };
 }
+
 
 /**
  * R9VTA-04: fallback para cotizaciones legacy sin `rental_meta` cuyas
@@ -195,27 +200,21 @@ function rebuildRentalLines(items: LineItem[], q: ExistingQuote, models: Equipme
   if (meta && meta.length > 0) return meta;
   if (items.length === 0) return [{ ...EMPTY_RENTAL_LINE }];
   const rentalDays = quoteRentalDays(q.start_date, q.end_date);
-  const matched = new Map<string, RentalLineValues>();
-  const fallbackDescriptions = new Set<string>();
-  const fallbackLines: RentalLineValues[] = [];
-  for (const item of items) {
+  // A1-6: deduplicar por ocurrencia (descripción de la partida), NO por
+  // modelo. Antes dos partidas del mismo modelo con cantidades o tarifas
+  // distintas colapsaban en una sola y se perdía la segunda.
+  const seen = new Set<string>();
+  const lines: RentalLineValues[] = [];
+  items.forEach((item, index) => {
+    const key = item.description ?? `__sin_descripcion_${index}`;
+    if (seen.has(key)) return;
+    seen.add(key);
     const found = matchModel(item, models);
-    if (found) {
-      if (!matched.has(found.id)) matched.set(found.id, lineToRentalLine(item, found));
-      continue;
-    }
-    // R9VTA-04: sin match de modelo, conservar la partida histórica en vez
-    // de descartarla (dedupe por descripción para no duplicar breakdown
-    // diario/semanal/mensual de una misma partida legacy).
-    const key = item.description ?? "";
-    if (!fallbackDescriptions.has(key)) {
-      fallbackDescriptions.add(key);
-      fallbackLines.push(lineToRentalLineFallback(item, rentalDays));
-    }
-  }
-  const arr = [...matched.values(), ...fallbackLines];
-  return arr.length > 0 ? arr : [{ ...EMPTY_RENTAL_LINE }];
+    lines.push(found ? lineToRentalLine(item, found, rentalDays) : lineToRentalLineFallback(item, rentalDays));
+  });
+  return lines.length > 0 ? lines : [{ ...EMPTY_RENTAL_LINE }];
 }
+
 
 export function buildPrefillValues(q: ExistingQuote, models: EquipmentModel[]): QuoteFormValues {
   const isSale = q.quote_type === "sale";
