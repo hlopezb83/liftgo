@@ -1,4 +1,3 @@
-import { useQueryClient } from "@tanstack/react-query";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { notifyError, notifySuccess } from "@/lib/ui/appFeedback";
 import { quoteStatusLabel } from "../../constants";
@@ -18,7 +17,6 @@ type StateResult = ReturnType<typeof useQuoteConversionState>;
  */
 export function useQuoteConversionActions(id: string | undefined, data: DataResult, state: StateResult) {
   const navigate = useNavigateTransition();
-  const queryClient = useQueryClient();
   const updateQuote = useUpdateQuote();
   const deleteQuote = useDeleteQuote();
   const { createBookingsFor, convertLegacy } = useQuoteBookingCreator(data, state);
@@ -105,7 +103,7 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
         notifyError(error.message || "No se pudo reasignar el cliente");
         return;
       }
-      await queryClient.invalidateQueries({ queryKey: ["quotes"] });
+      await data.refetchQuote?.();
       notifySuccess("Cliente actualizado");
     }
     state.setShowConvertDialog(false);
