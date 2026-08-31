@@ -1,0 +1,9 @@
+{
+  "description": "Se corrigieron aserciones obsoletas de las pruebas SQL de humo y se cerró el acceso público a la tabla de periodos fiscales.",
+  "changes": [
+    "Las pruebas de humo usan `issue_date` (la columna `bill_date` ya no existe) y apuntan a `sync_invoice_status`.",
+    "Se actualizaron los textos verificados de `create_booking`, `sync_forklift_rental_status`, `complete_return_inspection`, `validate_transition`, `trg_payment_amount_mxn`, `soft_delete_maintenance_log` y `e2e_seed_portal_scenario`.",
+    "Los periodos fiscales ya no otorgan permisos al rol anónimo.",
+    "`useCustomerDetailPage` se simplificó para cumplir el límite de complejidad de ESLint."
+  ]
+}

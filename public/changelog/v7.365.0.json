@@ -1,0 +1,11 @@
+{
+  "description": "Nueva ronda de revisión encontró listas que se cortaban en silencio, montos formateados siempre en pesos aunque el pago fuera en dólares y sumas con centavos desviados. Todo quedó corregido.",
+  "changes": [
+    "Daños: la lista ya no se corta silenciosamente en 1000 registros, así los reportes de costos de reparación cuadran.",
+    "Conciliación fiscal: el total timbrado y los huecos de folio ya consideran rangos grandes sin truncarse.",
+    "Pagos: el monto se muestra en su propia moneda (por ejemplo USD) en lugar de formatearse siempre como pesos.",
+    "Órdenes de trabajo: los costos de refacciones y mano de obra se suman en centavos, sin desviaciones de redondeo.",
+    "Contratos: si las tarifas están en moneda extranjera, el balance restante ya no se compara 1:1 contra lo facturado en pesos.",
+    "Refacciones: las fechas de creación y actualización se muestran en horario de Monterrey."
+  ]
+}

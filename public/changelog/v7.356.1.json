@@ -1,0 +1,7 @@
+{
+  "description": "Las pruebas de extremo a extremo fallaban con \"E2E seeding disabled on this environment\" porque el permiso de datos de prueba quedó apagado en el entorno de pruebas. Ahora la preparación de la suite lo habilita automáticamente con la sesión de administrador, sin cambiar el valor por defecto (apagado) para entornos nuevos.",
+  "changes": [
+    "global.setup.ts habilita allow_e2e_seed en company_settings antes de correr la suite y falla con mensaje claro si no puede.",
+    "Se reactivó allow_e2e_seed en el entorno de desarrollo/pruebas; el DEFAULT sigue en false (R4-21)."
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "description": "Quien registra una factura de proveedor ya no puede aprobarla: se requiere un segundo administrador. Además, el tablero deja de contar reservas de prueba en rentas vencidas y en la utilización mensual.",
+  "changes": [
+    "Una factura de proveedor debe ser aprobada por un administrador distinto al que la registró.",
+    "Mensaje explicable cuando se intenta la auto-aprobación.",
+    "El tablero excluye reservas de prueba (E2E) de rentas vencidas y de la utilización de flota."
+  ]
+}

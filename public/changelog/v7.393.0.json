@@ -1,0 +1,9 @@
+{
+  "description": "El tablero calcula la utilización con las fechas reales de entrega y devolución, un daño vuelve a ser cobrable si su factura se cancela, y una orden de trabajo cerrada sólo se reabre con el proceso formal.",
+  "changes": [
+    "La utilización usa entregas y devoluciones reales; las rentas vencidas cuentan hasta hoy.",
+    "Al cancelar la factura de un daño, el daño regresa a 'reparado' y puede facturarse de nuevo.",
+    "No se puede arrastrar una orden cerrada a un estado abierto; se explica el motivo.",
+    "La búsqueda de facturas ignora el comodín '_'."
+  ]
+}

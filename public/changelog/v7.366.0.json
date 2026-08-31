@@ -1,0 +1,11 @@
+{
+  "description": "Se corrigieron seis fallas de fondo: el recálculo del estatus de factura al registrar o cancelar notas de crédito podía tronar, los pagos en dólares sobre facturas en pesos se rechazaban aunque hubiera tipo de cambio, y ciertos permisos internos temporales quedaban encendidos cuando una operación fallaba.",
+  "changes": [
+    "Notas de crédito: al crearlas, timbrarlas o cancelarlas, el estatus de la factura se recalcula correctamente y ya no falla.",
+    "Pagos: se acepta un pago en dólares sobre una factura en pesos (o al revés) siempre que exista tipo de cambio; sin tipo de cambio se sigue rechazando con un mensaje claro.",
+    "Pagos: si se edita el monto o el tipo de cambio de un pago existente, se vuelve a validar la conversión.",
+    "Reservas, devoluciones y sincronización de flota: los permisos internos temporales siempre se apagan, incluso si la operación falla a medio camino.",
+    "Panel: el desglose de facturas por estatus convierte los montos en dólares a pesos antes de sumarlos.",
+    "Indicadores: los contratos por vencer ya no incluyen clientes de prueba ni unidades eliminadas, y siguen apareciendo los contratos sin unidad asignada."
+  ]
+}

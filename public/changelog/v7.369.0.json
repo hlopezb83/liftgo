@@ -1,0 +1,11 @@
+{
+  "description": "Se corrigió la protección contra ediciones simultáneas: ya no se pisan cambios de otro usuario ni aparecen avisos falsos de conflicto, y abrir una factura inexistente muestra un mensaje claro en vez de quedarse cargando.",
+  "changes": [
+    "Clientes: al abrir el diálogo de edición se fija la versión del registro, para que un refresco de datos no anule la protección contra ediciones simultáneas.",
+    "Clientes y montacargas: si el guardado falla por falta de permisos ya no se muestra el mensaje engañoso de que otro usuario modificó el registro.",
+    "Montacargas: la protección usa la fecha del registro tal como se cargó el formulario y se reinicia al cambiar de unidad.",
+    "Facturas: al pasar de editar una factura a otra ya no se arrastra la protección de la anterior.",
+    "Facturas: si el guardado funciona pero falla la vinculación de reservas, volver a presionar Guardar ya no reporta un conflicto falso.",
+    "Facturas: abrir una factura inexistente o sin permisos muestra un aviso con botón para volver al listado."
+  ]
+}

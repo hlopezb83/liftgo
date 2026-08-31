@@ -1,0 +1,10 @@
+{
+  "description": "Las entregas programadas con fecha vencida ya se distinguen en la lista, la tabla muestra el tipo de movimiento y se pueden filtrar por estado y tipo. Además, los cortes de fechas del CRM y de los pagos usan el reloj del negocio en vez del reloj de la computadora.",
+  "changes": [
+    "Entregas: aviso y etiqueta 'Vencida' con los días de atraso en cada entrega programada fuera de fecha.",
+    "Entregas: nueva columna 'Tipo' (entrega, recolección, devolución) en la vista de escritorio.",
+    "Entregas: buscador y filtros por estado y tipo, con opción de limpiar filtros.",
+    "CRM: los indicadores del mes y de 30 días usan la fecha de Monterrey.",
+    "Pagos y factura global: los selectores de fecha bloquean el futuro según la fecha de Monterrey."
+  ]
+}

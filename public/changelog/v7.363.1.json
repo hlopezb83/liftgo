@@ -1,0 +1,8 @@
+{
+  "description": "Al facturar una reserva, si el periodo de facturación quedaba vacío la factura era rechazada con un mensaje técnico. Ahora el periodo se completa solo con el mes de la fecha de emisión y, si algo falla, el aviso explica exactamente qué capturar.",
+  "changes": [
+    "Facturas: el periodo de facturación se deriva del mes de emisión cuando la factura está ligada a una reserva y el periodo viene vacío.",
+    "Errores: mensaje claro 'Falta el periodo de facturación' en lugar del texto técnico de la base de datos.",
+    "Errores: los mensajes de negocio ya no quedan tapados por el código genérico de validación."
+  ]
+}

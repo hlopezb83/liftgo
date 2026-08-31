@@ -1,0 +1,8 @@
+{
+  "description": "Marcar un prospecto como Cerrado Ganado ahora requiere permisos de administrador también a nivel base de datos, y Cuentas por Pagar avisa cuándo una factura en divisa queda fuera de los totales.",
+  "changes": [
+    "Solo administradores o personal administrativo pueden cerrar un prospecto como Ganado; la regla ya no depende únicamente de la pantalla.",
+    "La portada de Cuentas por Pagar avisa cuántas facturas en divisa sin tipo de cambio quedaron fuera de los totales en pesos.",
+    "La tabla de exportación de pagos marca con la etiqueta \"Sin TC\" las facturas en divisa sin tipo de cambio capturado."
+  ]
+}

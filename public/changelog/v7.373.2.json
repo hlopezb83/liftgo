@@ -1,0 +1,9 @@
+{
+  "description": "Los saldos por pagar se muestran con su moneda real, la exportación del lote distingue dólares de pesos y una sesión vencida te lleva de vuelta al acceso en lugar de dejar la pantalla muerta.",
+  "changes": [
+    "El diálogo de registro de pago a proveedor muestra el saldo con el código de moneda de la factura (USD/MXN), no siempre en pesos.",
+    "La tabla de exportación de pagos marca con una etiqueta las facturas en moneda extranjera.",
+    "Si tu sesión expira, la app cierra sesión y te regresa a la pantalla de acceso conservando la página en la que estabas.",
+    "Los nombres de meses y días en fechas ya salen en español de forma predeterminada."
+  ]
+}

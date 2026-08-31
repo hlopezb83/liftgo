@@ -1,0 +1,7 @@
+{
+  "description": "La limpieza automática de los datos de prueba dejó de intentar borrar archivos directamente del almacenamiento, algo que la plataforma bloquea y que hacía fallar toda la limpieza.",
+  "changes": [
+    "La limpieza de escenarios de prueba ya no se interrumpe con el error \"Direct deletion from storage tables is not allowed\".",
+    "Se corrigió la prueba del pagaré para reflejar que un 0% de mora capturado a propósito se respeta."
+  ]
+}

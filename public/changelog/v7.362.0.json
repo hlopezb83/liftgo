@@ -1,0 +1,11 @@
+{
+  "description": "Un fallo de carga en el CRM se veía como historial vacío, el saldo de una factura restaba pagos de otra moneda 1 a 1, el estado de resultados sumaba gastos de proveedor en dólares como pesos y las facturas de proveedor sin fecha de vencimiento aparecían como si estuvieran al corriente.",
+  "changes": [
+    "CRM cerrados: si la consulta falla se muestra el error con botón de reintento en vez de listas vacías.",
+    "Detalle de proveedor: aviso cuando las listas de gastos y mantenimiento están truncadas y los totales no son completos.",
+    "Detalle de factura: los pagos se convierten a la moneda del documento y se avisa de los pagos sin tipo de cambio.",
+    "Estado de resultados: los gastos de proveedor se convierten a pesos y ya no se cuentan las facturas en borrador.",
+    "MRR y KPIs financieros: las rentas pactadas en dólares se convierten a pesos.",
+    "Antigüedad de saldos y Cuentas por pagar: columna y marca 'Sin vencimiento' para las facturas sin fecha."
+  ]
+}
