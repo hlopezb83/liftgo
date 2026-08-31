@@ -1,3 +1,12 @@
+## [7.394.0] - 2026-08-31
+### Fix (residuales fiscales y devoluciones)
+- **B5-02:** el PDF de estado de cuenta resta `total_credited` al saldo y muestra la tarjeta de notas de crédito.
+- **Residual (a):** `stamp-credit-note` y `stamp-payment-complement` ya no usan los defaults `616`/`06600`; exigen régimen y CP fiscal reales salvo receptor genérico `XAXX010101000`.
+- **Residual (b):** `create_recurring_invoice` ya no aplica `G03` por default; si el cliente no tiene uso de CFDI, el periodo falla con mensaje explicable.
+- **Residual (c):** la llave de agrupación de `generate-recurring-invoices` incluye moneda y tipo de cambio (ya no se mezclan MXN y USD en una factura).
+- **A3B-03:** `complete_return_inspection` rechaza `inspected_at` futuro (antes permitía hasta 30 días adelante).
+- Sin cambios en RLS, permisos ni máquinas de estado.
+
 ## [7.393.2] - 2026-08-31
 ### Chore (calidad de código)
 - Se redujo la complejidad reportada por ESLint: `quoteFormSchema` divide su `superRefine` en `refineRentalLines`/`refineSaleLines`/`refineDateRange`, `useQuoteDetailData` extrae `useQuoteLinks`, `ContractDetail` usa `ContractDetailFallback`/`InfoCard`/`depositProps` y `CalendarPage` mueve el Gantt a `components/calendar/GanttCard.tsx` con el hook `useMaintenanceWindows`.
