@@ -37,7 +37,7 @@ function Section({ title, items, kind, onClick }: { title: string; items: CashFl
                 className="w-full h-auto flex items-center justify-between gap-3 text-left rounded-md border p-2 text-xs font-normal"
               >
                 <div className="min-w-0">
-                  <p className="font-medium truncate">{it.number}</p>
+                  <p className="font-medium truncate">{it.isProjected ? "PROYECTADO" : it.number}</p>
                   <p className="text-muted-foreground truncate">{it.partyName} · vence {formatDateDisplay(it.dueDate)}</p>
                 </div>
                 <span className="font-mono font-bold shrink-0">{formatCurrency(it.amountMxn)}</span>
