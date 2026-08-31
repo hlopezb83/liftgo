@@ -7,7 +7,6 @@ import {
 import type { Tables } from "@/integrations/supabase/types";
 import { BOOKING_STATUS } from "@/lib/constants";
 import { useGanttSegments, type MaintenanceWindow } from "../../hooks/calendar/useGanttSegments";
-
 import { GanttHeader } from "./GanttHeader";
 import { GanttLegend } from "./GanttLegend";
 import { GanttRow } from "./GanttRow";
