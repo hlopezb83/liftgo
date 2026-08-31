@@ -1,5 +1,5 @@
 import { useEffect, useRef } from "react";
-import { chargeableDamageCost } from "@/features/damage/lib/chargeableDamageCost";
+import { chargeableDamageCost } from "@/features/damage";
 import { supabase } from "@/integrations/supabase/client";
 import type { Tables } from "@/integrations/supabase/types";
 import { notifyError, notifyWarning } from "@/lib/ui/appFeedback";

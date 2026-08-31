@@ -3,3 +3,4 @@
 // Generado automáticamente; ampliar manualmente si hace falta.
 export * from "./components/damage/DamagePhotosSection";
 export * from "./hooks/useDamageRecords";
+export { chargeableDamageCost } from "./lib/chargeableDamageCost";
