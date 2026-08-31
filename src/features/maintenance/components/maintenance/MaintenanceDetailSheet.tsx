@@ -18,8 +18,8 @@ import { CloseWorkOrderDialog } from "./CloseWorkOrderDialog";
 import { MaintenanceLaborSection } from "./MaintenanceLaborSection";
 import { MaintenancePartsSection } from "./MaintenancePartsSection";
 import { ReopenWorkOrderDialog } from "./ReopenWorkOrderDialog";
-
 import type { MaintenanceLog } from "../../hooks/maintenance/useMaintenanceLogs";
+
 
 const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "outline" | "destructive" }> = {
   pending: { label: "Pendiente", variant: "secondary" },
