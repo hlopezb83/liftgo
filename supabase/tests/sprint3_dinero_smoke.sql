@@ -44,10 +44,10 @@ SELECT pg_temp.expect_true(
 -- Fix 3.2 — la rama 'sent' del sync de pagos respeta la fecha de vencimiento.
 -- ---------------------------------------------------------------------------
 SELECT pg_temp.expect_true(
-  'S3-3.2 sync_invoice_status_from_payments considera NCs timbradas',
+  'S3-3.2 sync_invoice_status considera NCs timbradas',
   EXISTS (
     SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
-     WHERE n.nspname = 'public' AND p.proname = 'sync_invoice_status_from_payments'
+     WHERE n.nspname = 'public' AND p.proname = 'sync_invoice_status'
        AND p.prosrc ILIKE '%credit_notes%'
        AND p.prosrc ILIKE '%stamped%'
   )
@@ -57,7 +57,7 @@ SELECT pg_temp.expect_true(
   'S3-3.2 rama sin pagos evalúa due_date contra today_mty()',
   EXISTS (
     SELECT 1 FROM pg_proc p JOIN pg_namespace n ON n.oid = p.pronamespace
-     WHERE n.nspname = 'public' AND p.proname = 'sync_invoice_status_from_payments'
+     WHERE n.nspname = 'public' AND p.proname = 'sync_invoice_status'
        AND p.prosrc ILIKE '%overdue%'
        AND p.prosrc ILIKE '%today_mty()%'
        AND p.prosrc !~* '(current_date|now\(\)::date)'

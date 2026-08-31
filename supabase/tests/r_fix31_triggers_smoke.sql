@@ -90,8 +90,8 @@ SELECT pg_temp.expect_true(
   pg_temp.fndef('complete_return_inspection') LIKE '%EXCEPTION WHEN OTHERS%booking_rpc%'
 );
 SELECT pg_temp.expect_true(
-  'R6-17 e2e_seed_portal_scenario resetea app.e2e_seed',
-  pg_temp.fndef('e2e_seed_portal_scenario') LIKE '%EXCEPTION WHEN OTHERS%e2e_seed%'
+  'R6-17 e2e_seed_portal_scenario activa app.e2e_seed sólo dentro de la transacción',
+  pg_temp.fndef('e2e_seed_portal_scenario') LIKE '%set_config(''app.e2e_seed'', ''on'', true)%'
 );
 
 -- R6-20: filtros de contratos por vencer sin perder contratos sin unidad

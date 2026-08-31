@@ -48,7 +48,7 @@ SELECT pg_temp.expect_true(
 SELECT pg_temp.expect_true(
   'S4-4.4 guard de renta activa en forklifts',
   (SELECT prosrc FROM pg_proc WHERE proname = 'validate_transition')
-    ILIKE '%completa la devolución antes de venderla%'
+    ILIKE '%completa la devolución antes de cambiar su estado%'
 );
 
 -- Fix 4.4 (semántica): "renta activa" = entrega completada sin devolución.

@@ -26,7 +26,7 @@ SELECT pg_temp.expect_true(
 SELECT pg_temp.expect_true(
   'R3-01 soft_delete_maintenance_log setea el flag local a la transacción',
   (SELECT prosrc FROM pg_proc WHERE proname = 'soft_delete_maintenance_log' LIMIT 1)
-    ILIKE '%set_config(''app.maintenance_soft_delete''%'
+    ILIKE '%set_config(''app.maintenance_archive_rpc''%'
 );
 
 SELECT pg_temp.expect_true(

@@ -67,7 +67,7 @@ SELECT pg_temp.expect_true(
 SELECT pg_temp.expect_true(
   'N-19 trg_payment_amount_mxn prioriza NEW.exchange_rate',
   pg_temp.fndef('trg_payment_amount_mxn')
-    LIKE '%COALESCE(NULLIF(NEW.exchange_rate, 0), NULLIF(v_tipo_cambio, 0), 1)%'
+    LIKE '%COALESCE(NULLIF(NEW.exchange_rate, 0), NULLIF(v_tipo_cambio, 0))%'
 );
 
 -- N-20: el bloque de pagos ya no cae a 1:1.

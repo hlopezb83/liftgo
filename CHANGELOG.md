@@ -1,3 +1,10 @@
+## [7.396.2] - 2026-08-31
+### Fix (pruebas SQL de humo y permisos de periodos fiscales)
+- Las pruebas de humo dejaron de referenciar la columna inexistente `bill_date` (ahora `issue_date`) y apuntan a `sync_invoice_status`, donde vive la lógica de saldos.
+- Se actualizaron aserciones de texto desfasadas: buffer de mantenimiento configurable en `create_booking`, guard `(select auth.uid())` en `sync_forklift_rental_status`, liberación en `complete_return_inspection`, mensaje de `validate_transition`, FX en `trg_payment_amount_mxn`, bandera `app.maintenance_archive_rpc` y `app.e2e_seed`.
+- Se revocaron los permisos heredados del rol anónimo sobre `fiscal_periods` (las policies ya lo bloqueaban).
+- `useCustomerDetailPage` extrae el cálculo de totales para bajar la complejidad reportada por ESLint.
+
 ## [7.396.1] - 2026-08-31
 ### Fix (pruebas)
 - Las pruebas de `rfcOptional` usaban RFCs inventados sin dígito verificador válido y fallaban desde que A4-05 activó el checksum SAT; ahora usan ejemplos consistentes.
