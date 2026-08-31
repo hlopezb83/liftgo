@@ -369,6 +369,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "booking_extensions_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "v_booking_occupancy"
+            referencedColumns: ["booking_id"]
+          },
+          {
             foreignKeyName: "booking_extensions_invoice_id_fkey"
             columns: ["invoice_id"]
             isOneToOne: false
@@ -852,6 +859,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "contracts_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "v_booking_occupancy"
+            referencedColumns: ["booking_id"]
+          },
+          {
             foreignKeyName: "contracts_customer_id_fkey"
             columns: ["customer_id"]
             isOneToOne: false
@@ -1264,6 +1278,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "damage_records_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "v_booking_occupancy"
+            referencedColumns: ["booking_id"]
+          },
+          {
             foreignKeyName: "damage_records_customer_id_fkey"
             columns: ["customer_id"]
             isOneToOne: false
@@ -1392,6 +1413,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "bookings"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deliveries_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "v_booking_occupancy"
+            referencedColumns: ["booking_id"]
           },
           {
             foreignKeyName: "deliveries_forklift_id_fkey"
@@ -1786,6 +1814,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "invoice_bookings_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "v_booking_occupancy"
+            referencedColumns: ["booking_id"]
+          },
+          {
             foreignKeyName: "invoice_bookings_invoice_id_fkey"
             columns: ["invoice_id"]
             isOneToOne: false
@@ -2014,6 +2049,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "bookings"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "v_booking_occupancy"
+            referencedColumns: ["booking_id"]
           },
           {
             foreignKeyName: "invoices_customer_id_fkey"
@@ -2931,6 +2973,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "return_inspections_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "v_booking_occupancy"
+            referencedColumns: ["booking_id"]
+          },
+          {
             foreignKeyName: "return_inspections_forklift_id_fkey"
             columns: ["forklift_id"]
             isOneToOne: false
@@ -3621,6 +3670,48 @@ export type Database = {
         }
         Relationships: []
       }
+      v_booking_occupancy: {
+        Row: {
+          booking_id: string | null
+          forklift_id: string | null
+          is_e2e: boolean | null
+          occ_end: string | null
+          occ_start: string | null
+          status: string | null
+        }
+        Insert: {
+          booking_id?: string | null
+          forklift_id?: string | null
+          is_e2e?: boolean | null
+          occ_end?: never
+          occ_start?: never
+          status?: string | null
+        }
+        Update: {
+          booking_id?: string | null
+          forklift_id?: string | null
+          is_e2e?: boolean | null
+          occ_end?: never
+          occ_start?: never
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: false
+            referencedRelation: "forklift_current_location"
+            referencedColumns: ["forklift_id"]
+          },
+          {
+            foreignKeyName: "bookings_forklift_id_fkey"
+            columns: ["forklift_id"]
+            isOneToOne: false
+            referencedRelation: "forklifts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_invoice_forklift_revenue: {
         Row: {
           forklift_id: string | null
@@ -3700,6 +3791,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "bookings"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "v_booking_occupancy"
+            referencedColumns: ["booking_id"]
           },
           {
             foreignKeyName: "invoices_customer_id_fkey"
@@ -4460,6 +4558,10 @@ export type Database = {
       }
       reject_supplier_bill: {
         Args: { p_bill_id: string; p_notes: string }
+        Returns: undefined
+      }
+      reopen_work_order: {
+        Args: { p_log_id: string; p_reason: string }
         Returns: undefined
       }
       reorder_prospect_stage: {

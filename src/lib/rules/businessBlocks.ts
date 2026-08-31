@@ -20,6 +20,8 @@ import { translatePgError } from "@/lib/errors/pgErrorCatalog";
 export type BusinessBlockCode =
   | "forklift_active_rental"
   | "maintenance_open_damage"
+  | "maintenance_work_order_closed"
+
   | "contract_signed_locked"
   | "invoice_stamped_locked"
   | "invoice_cancellation_pending"
@@ -72,6 +74,13 @@ export const BUSINESS_BLOCKS: Record<BusinessBlockCode, BlockCopy> = {
     nextStep: "Marca el daño como reparado y vuelve a cerrar la orden.",
     tone: "info",
   },
+  maintenance_work_order_closed: {
+    action: "No puedes regresar esta orden de trabajo a un estado abierto",
+    reason: "La orden ya está cerrada y sus costos ya se reportaron.",
+    nextStep: "Pide a un administrador que la reabra indicando el motivo.",
+    tone: "info",
+  },
+
   contract_signed_locked: {
     action: "No puedes editar este contrato",
     reason: "El contrato ya está firmado y sus condiciones quedaron en firme.",
@@ -227,6 +236,9 @@ export function businessBlockSummary(block: BusinessBlock): string {
 const ERROR_PATTERNS: Array<{ pattern: RegExp; code: BusinessBlockCode }> = [
   { pattern: /renta activa|sigue rentad|completa la devoluci/i, code: "forklift_active_rental" },
   { pattern: /da(ñ|n)o abierto/i, code: "maintenance_open_damage" },
+  // Guard `trg_guard_maintenance_reopen` (BEFORE UPDATE OF work_status).
+  { pattern: /orden de trabajo ya est(á|a) cerrada/i, code: "maintenance_work_order_closed" },
+
   { pattern: /contrato firmado|signed contract|contrato ya fue firmado/i, code: "contract_signed_locked" },
   { pattern: /ya fue timbrada|cfdi timbrado|factura timbrada/i, code: "invoice_stamped_locked" },
   { pattern: /cancelaci(ó|o)n en proceso|cancellation_in_progress|cancelaci(ó|o)n pendiente/i, code: "invoice_cancellation_pending" },
