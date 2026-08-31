@@ -57,12 +57,17 @@ function ChipCloud({ groups }: { groups: Array<{ key: string; count: number }> }
 }
 
 export function GanttChart({ forklifts, bookings, rangeStart, rangeEnd, maintenanceWindows }: GanttChartProps) {
+  // A5-07: el buffer configurable de mantenimiento (mismo valor que usan las
+  // RPC de reservas) define el ancho real de la ventana dibujada.
+  const { data: buffer } = useMaintenanceBuffer();
   const { days, getSegments, getMaintenanceSegments, customerColorMap } = useGanttSegments(
     bookings,
     rangeStart,
     rangeEnd,
     maintenanceWindows,
+    buffer?.days ?? DEFAULT_MAINTENANCE_BUFFER_DAYS,
   );
+
 
   const forkliftsWithActivity = (() => {
     const set = new Set<string>();
