@@ -33,6 +33,8 @@ function totalMxn(b: SupplierBillListItem): number {
 
 function accumulateBill(acc: AccountsPayableKpis, b: SupplierBillListItem, ctx: KpiCtx) {
   if (b.status === "cancelled") return;
+  // QA 2A-3: una factura rechazada en aprobación no es deuda vigente.
+  if (b.approval_status === "rejected") return;
   // G-B4: misma regla que el reporte de antigüedad. Una factura en divisa sin
   // tipo de cambio se sumaba 1:1 e inflaba "Total pendiente/vencido", dejando
   // la portada de CxP descuadrada contra el aging (que sí la excluye).

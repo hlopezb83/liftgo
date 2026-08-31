@@ -93,7 +93,13 @@ type PreviewLine = {
     | "no_customer"
     | "no_monthly_rate"
     | "period_in_future"
-    | "booking_ended";
+    | "booking_ended"
+    | "no_exchange_rate";
+  // A1-1: bandera para exponer al operador que la reserva no es MXN.
+  currency?: string;
+  // B5-01: la tarifa pudo cambiar después de este período (booking.updated_at
+  // posterior al fin del período facturado) — advertencia, no bloqueo.
+  rateWarning?: boolean;
   existingInvoiceId?: string;
   existingInvoiceNumber?: string;
 };
@@ -117,6 +123,11 @@ type PlanItem = {
   billingEnd: Date;
   startStr: string;
   endStr: string;
+  // A1-1: moneda/tipo de cambio de la reserva, propagados al RPC.
+  currency: string;
+  tipoCambio: number;
+  // B5-01: advertencia de tarifa potencialmente desactualizada para el periodo.
+  rateWarning: boolean;
 };
 
 // deno-lint-ignore no-explicit-any
@@ -127,7 +138,7 @@ async function buildPlan(supabase: any): Promise<{
   const { data: bookings, error: bErr } = await supabase
     .from("bookings")
     .select(
-      "id, booking_number, customer_id, customer_name, start_date, end_date, last_billed_date, monthly_rate, forklifts(name, monthly_rate, serial_number)",
+      "id, booking_number, customer_id, customer_name, start_date, end_date, last_billed_date, monthly_rate, currency, tipo_cambio, updated_at, forklifts(name, monthly_rate, serial_number)",
     )
     .eq("recurring_billing", true)
     .eq("status", "confirmed");

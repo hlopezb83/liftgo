@@ -56,7 +56,8 @@ export function useAgingReport() {
       // R7 Bloque 6: normalizamos a MXN para no mezclar monedas en buckets/totales.
       const balance = toMxn(Number(b.balance), b.currency, b.exchange_rate);
       // R12-FE-08 (P2 r11): la antigüedad excluye también borradores.
-      if (b.status === "cancelled" || b.status === "draft" || balance <= 0) continue;
+      // QA 2A-3: una factura rechazada en aprobación no es deuda vigente.
+      if (b.status === "cancelled" || b.status === "draft" || b.approval_status === "rejected" || balance <= 0) continue;
       // M-14c: moneda foránea sin TC válido ⇒ toMxn devolvió el monto 1:1;
       // envejecerlo distorsiona la cartera. Se excluye del reporte.
       if (isFxMissing(b.currency, b.exchange_rate)) {
