@@ -98,6 +98,25 @@ describe("useBillApprovalMutations", () => {
     expect(toastSuccess).toHaveBeenCalledWith("Factura rechazada");
   });
 
+  it("auto-aprobación → onBusinessBlock recibe el bloque, sin toast genérico", async () => {
+    approveResp = {
+      data: null,
+      error: { message: "No puedes aprobar una factura que tú mismo registraste" },
+    };
+    const onBusinessBlock = vi.fn();
+    const { Wrapper } = createQueryWrapper();
+    const { result } = renderHook(() => useApproveSupplierBill({ onBusinessBlock }), {
+      wrapper: Wrapper,
+    });
+
+    result.current.mutate({ billId: "b-1" });
+    await waitFor(() => expect(result.current.isError).toBe(true));
+
+    expect(onBusinessBlock).toHaveBeenCalledTimes(1);
+    expect(onBusinessBlock.mock.calls[0][0].code).toBe("supplier_bill_self_approval");
+    expect(notifyErrorMock).not.toHaveBeenCalled();
+  });
+
   it("approve falla → notifyError, no toast success", async () => {
     approveResp = { data: null, error: { message: "Sin permisos" } };
     const { Wrapper } = createQueryWrapper();
