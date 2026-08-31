@@ -34,15 +34,22 @@ export async function authenticateCronRequest(
 ): Promise<CronAuthResult> {
   const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "";
 
-  let cronSecret = Deno.env.get("CRON_SECRET") ?? "";
-  if (!cronSecret) {
-    try {
-      const admin = getAdminClient();
-      const { data: vaultSecret } = await admin.rpc("internal_get_cron_secret");
-      cronSecret = typeof vaultSecret === "string" ? vaultSecret : "";
-    } catch {
-      // Vault opcional; si falla, seguimos con env vacío y validamos abajo.
+  // FIX 401-CRON: antes sólo consultábamos el Vault cuando `CRON_SECRET` del
+  // entorno estaba vacío. En producción existían AMBOS con valores distintos
+  // (pg_cron firma con el del Vault) y toda llamada terminaba en 401.
+  // Ahora aceptamos cualquiera de los dos secretos válidos.
+  const candidates: string[] = [];
+  const envSecret = Deno.env.get("CRON_SECRET") ?? "";
+  if (envSecret.length > 0) candidates.push(envSecret);
+
+  try {
+    const admin = getAdminClient();
+    const { data: vaultSecret } = await admin.rpc("internal_get_cron_secret");
+    if (typeof vaultSecret === "string" && vaultSecret.length > 0) {
+      if (!candidates.includes(vaultSecret)) candidates.push(vaultSecret);
     }
+  } catch {
+    // Vault opcional; si falla seguimos con el secreto del entorno.
   }
 
   const headerSecret = req.headers.get("x-cron-secret") ?? "";
@@ -51,10 +58,10 @@ export async function authenticateCronRequest(
     ? authHeader.slice("Bearer ".length).trim()
     : "";
 
-  if (cronSecret.length > 0) {
+  for (const secret of candidates) {
     if (
-      timingSafeEqualStr(headerSecret, cronSecret) ||
-      timingSafeEqualStr(bearer, cronSecret)
+      timingSafeEqualStr(headerSecret, secret) ||
+      timingSafeEqualStr(bearer, secret)
     ) {
       return { ok: true, via: "cron_secret" };
     }
@@ -66,3 +73,4 @@ export async function authenticateCronRequest(
 
   return { ok: false, status: 401, error: "Unauthorized" };
 }
+
