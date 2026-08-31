@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { ContractConditionsCard } from "../components/contracts/ContractConditionsCard";
+import { ContractDepositCard } from "../components/contracts/ContractDepositCard";
 import { ContractDetailActions } from "../components/contracts/ContractDetailActions";
 import { ContractDetailsCard, ContractTextCard } from "../components/contracts/ContractDetailCards";
 import { RentalFinancialSummary } from "../components/contracts/RentalFinancialSummary";
