@@ -2320,6 +2320,7 @@ export type Database = {
           description: string | null
           expense_date: string
           id: string
+          supplier_bill_id: string | null
           supplier_id: string | null
           updated_at: string
         }
@@ -2331,6 +2332,7 @@ export type Database = {
           description?: string | null
           expense_date?: string
           id?: string
+          supplier_bill_id?: string | null
           supplier_id?: string | null
           updated_at?: string
         }
@@ -2342,10 +2344,18 @@ export type Database = {
           description?: string | null
           expense_date?: string
           id?: string
+          supplier_bill_id?: string | null
           supplier_id?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "operating_expenses_supplier_bill_id_fkey"
+            columns: ["supplier_bill_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_bills"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "operating_expenses_supplier_id_fkey"
             columns: ["supplier_id"]
