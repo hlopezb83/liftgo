@@ -3186,6 +3186,8 @@ export type Database = {
           payment_method_sat: string | null
           pdf_url: string | null
           receptor_rfc: string | null
+          rejected_at: string | null
+          rejected_by: string | null
           retention_isr: number
           retention_iva: number
           serie: string | null
@@ -3228,6 +3230,8 @@ export type Database = {
           payment_method_sat?: string | null
           pdf_url?: string | null
           receptor_rfc?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
           retention_isr?: number
           retention_iva?: number
           serie?: string | null
@@ -3270,6 +3274,8 @@ export type Database = {
           payment_method_sat?: string | null
           pdf_url?: string | null
           receptor_rfc?: string | null
+          rejected_at?: string | null
+          rejected_by?: string | null
           retention_isr?: number
           retention_iva?: number
           serie?: string | null
