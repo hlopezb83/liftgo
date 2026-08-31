@@ -165,7 +165,12 @@ Deno.serve(async (req) => {
     const prep = prepRes.data;
     const installmentNumber = Number(prep.installment_number);
     const priorBalance = Number(prep.prior_balance);
-    const amount = Number(payment.amount);
+    // A1-5: el RPC devuelve el monto ya convertido a la moneda de la factura
+    // (MonedaDR). `payment.amount` crudo mezclaba monedas en el payload.
+    const amount = Number(
+      prep.amount_in_invoice_currency ?? payment.amount,
+    );
+
 
     // Cargar los campos de invoice que el RPC no devuelve pero el payload de
     // Facturapi necesita (razón social, RFC, régimen, domicilio, uso CFDI).
