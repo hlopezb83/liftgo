@@ -101,6 +101,8 @@ export default function MaintenancePage() {
               forklifts={forklifts}
               hasActive={hasActive}
               onClear={reset}
+              archived={showArchived}
+              onArchivedChange={setShowArchived}
             />
           </div>
         }
