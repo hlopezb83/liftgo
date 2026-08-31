@@ -615,7 +615,11 @@ Deno.serve(async (req) => {
     }
 
     // Parse body (may be empty for legacy callers)
-    let body: { preview?: boolean; bookingIds?: string[] } = {};
+    let body: {
+      preview?: boolean;
+      bookingIds?: string[];
+      allowStaleRate?: boolean;
+    } = {};
     try {
       const text = await req.text();
       if (text) body = JSON.parse(text);
@@ -634,10 +638,16 @@ Deno.serve(async (req) => {
       ? allItems.filter((i) => body.bookingIds!.includes(i.bookingId))
       : allItems;
 
-    const { created, failed, rateWarnings } = await executePlan(
-      supabase,
-      targetItems,
-    );
+    // R6-F5: sólo un operador autenticado (no el cron) puede confirmar
+    // facturar periodos cuya tarifa pudo cambiar después del periodo.
+    const allowStaleRate = !cronAuth.ok && body.allowStaleRate === true;
+
+    const { created, failed, rateWarnings, skippedStaleRate } =
+      await executePlan(
+        supabase,
+        targetItems,
+        allowStaleRate,
+      );
     const invoicesCreated = created.length;
     const bookingsBilled = created.reduce(
       (acc, c) => acc + c.bookingIds.length,
@@ -652,7 +662,10 @@ Deno.serve(async (req) => {
       failed,
       // B5-01: periodos catch-up facturados con posible tarifa desactualizada.
       rateWarnings,
+      // R6-F5: periodos NO facturados por tarifa potencialmente desactualizada.
+      skippedStaleRate,
     });
+
   } catch (err) {
     console.error("[generate-recurring-invoices]", err);
     return jsonError(req, 500, "Internal server error");
