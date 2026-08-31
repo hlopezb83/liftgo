@@ -3,6 +3,7 @@ import { handleCors } from "../_shared/cors.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { enforceRateLimit, requireRole } from "../_shared/auth.ts";
 import { aiChatCompletion, AiGatewayError } from "../_shared/ai.ts";
+import { normalizeRegimenFiscal } from "../_shared/regimenFiscal.ts";
 
 const MAX_PDF_BYTES = 5 * 1024 * 1024; // 5 MB
 
