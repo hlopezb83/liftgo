@@ -14,6 +14,7 @@ import {
   isFacturapiTimeout,
   sdkCallWithTimeout,
 } from "../_shared/facturapi/withTimeout.ts";
+import { validateRfcOrMessage } from "../_shared/rfcChecksum.ts";
 import {
   claimRejectionMessage,
   computeRepExchange,
@@ -289,6 +290,12 @@ Deno.serve(async (req) => {
     const repZip = repIsGlobal
       ? String(invoice.receptor_domicilio_fiscal_cp || "06600")
       : String(invoice.receptor_domicilio_fiscal_cp ?? "").trim();
+    // A4-05: dígito verificador del RFC validado también en el servidor.
+    const repRfcError = validateRfcOrMessage(repTaxId);
+    if (repRfcError) {
+      await releaseClaim(repRfcError);
+      return jsonError(req, 400, repRfcError);
+    }
     if (!repIsGlobal && (!repTaxSystem || !repZip)) {
       const missing = [
         !repTaxSystem ? "régimen fiscal del receptor" : null,

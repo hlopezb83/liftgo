@@ -25,6 +25,7 @@ import {
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import { isUsoCfdiCompatible } from "../_shared/cfdiUsoRegimen.ts";
+import { validateRfcOrMessage } from "../_shared/rfcChecksum.ts";
 
 // Re-exports públicos preservados (tests + consumidores).
 export { computeStampVariance, sanitizeLegalName, STAMP_VARIANCE_TOLERANCE };
@@ -292,6 +293,16 @@ export async function handleStampCfdi(
     const receptorRfc = String(inv.receptor_rfc ?? "XAXX010101000")
       .toUpperCase();
     const isGlobal = receptorRfc === "XAXX010101000";
+
+    // A4-05: dígito verificador del RFC validado en el servidor; el regex de
+    // formato por sí solo acepta RFCs inventados y el timbre se pierde.
+    {
+      const rfcError = validateRfcOrMessage(receptorRfc);
+      if (rfcError) {
+        await releaseClaim(rfcError);
+        return json({ error: rfcError }, 400, jsonHeaders);
+      }
+    }
 
     // Overrides fiscales obligatorios para Público en General (CFDI 4.0)
     const paymentMethod = isGlobal ? "PUE" : (inv.metodo_pago || "PUE");

@@ -4,6 +4,7 @@ import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
+import { validateRfcOrMessage } from "../_shared/rfcChecksum.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 import {
   binaryToBytes,
@@ -305,6 +306,13 @@ export async function handleStampCreditNote(
     const zip = isGlobalReceptor
       ? String(inv.receptor_domicilio_fiscal_cp || "06600")
       : String(inv.receptor_domicilio_fiscal_cp ?? "").trim();
+
+    // A4-05: dígito verificador del RFC validado también en el servidor.
+    const ncRfcError = validateRfcOrMessage(taxId);
+    if (ncRfcError) {
+      await releaseClaim(ncRfcError);
+      return json({ error: ncRfcError }, 400, jsonHeaders);
+    }
 
     if (!isGlobalReceptor) {
       const missingFiscal: string[] = [];
