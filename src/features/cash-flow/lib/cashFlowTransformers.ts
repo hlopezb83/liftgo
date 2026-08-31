@@ -140,3 +140,63 @@ export function billToItem(b: BillRow): CashFlowItem | null {
     navigatePath: `/cuentas-por-pagar?bill=${b.id}`,
   };
 }
+
+/** Reserva con facturación recurrente (2A-9). */
+export interface RecurringBookingRow {
+  id: string;
+  booking_number: string;
+  customer_name: string | null;
+  start_date: string;
+  end_date: string;
+  last_billed_date: string | null;
+  monthly_rate: number | string | null;
+  currency: string | null;
+  tipo_cambio: number | string | null;
+}
+
+function addMonthsYmd(ymd: string, months: number): string {
+  const [y, m, d] = ymd.split("-").map(Number);
+  const date = new Date(Date.UTC(y, m - 1 + months, 1));
+  const lastDay = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0)).getUTCDate();
+  const day = Math.min(d, lastDay);
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+}
+
+/**
+ * 2A-9: rentas recurrentes aún NO facturadas dentro del horizonte.
+ * Sólo proyecta periodos mensuales completos posteriores al último facturado
+ * y hasta el fin de la reserva; excluye monedas foráneas sin TC válido.
+ * No crea reglas de negocio: es una estimación visual marcada como proyectada.
+ */
+export function recurringBookingItems(
+  bookings: ReadonlyArray<RecurringBookingRow>,
+  todayYmd: string,
+  horizonEndYmd: string,
+): CashFlowItem[] {
+  const items: CashFlowItem[] = [];
+  for (const b of bookings) {
+    if (isFxMissing(b.currency, b.tipo_cambio)) continue;
+    const rate = Number(b.monthly_rate ?? 0);
+    if (!Number.isFinite(rate) || rate <= 0) continue;
+    const amountMxn = toMxn(rate, b.currency, b.tipo_cambio);
+    if (!Number.isFinite(amountMxn) || amountMxn < MIN_PROJECTABLE_BALANCE_MXN) continue;
+
+    const anchor = b.last_billed_date && b.last_billed_date > b.start_date ? b.last_billed_date : b.start_date;
+    for (let i = 1; i <= 24; i++) {
+      const dueDate = addMonthsYmd(anchor, i);
+      if (dueDate > horizonEndYmd || dueDate > b.end_date) break;
+      if (dueDate < todayYmd) continue;
+      items.push({
+        id: `recurring:${b.id}:${dueDate}`,
+        number: b.booking_number,
+        partyName: b.customer_name ?? "—",
+        dueDate,
+        amountMxn,
+        kind: "in",
+        navigatePath: `/bookings/${b.id}`,
+        isProjected: true,
+      });
+    }
+  }
+  return items;
+}
