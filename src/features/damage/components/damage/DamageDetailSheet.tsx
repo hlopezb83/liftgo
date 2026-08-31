@@ -2,12 +2,14 @@ import { Activity } from "react";
 import { DetailRow } from "@/components/domain/DetailRow";
 import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { WarnIcon, FleetIcon, UserIcon, DocumentIcon, CostIcon, CalendarIcon } from "@/components/icons";
+import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { APP_LOCALE } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { formatMtyDate } from "@/lib/utils";
 import type { DamageRecordWithJoins } from "@/types/rental";
+import { useRestoreDamageRecord } from "../../hooks/useDamageRecords";
 import { shouldShowActualCost } from "../../lib/showActualCost";
 import { DamageActions } from "./DamageActions";
 import { DamagePhotosSection } from "./DamagePhotosSection";
@@ -19,6 +21,7 @@ interface Props {
 }
 
 export function DamageDetailSheet({ record, open, onOpenChange }: Props) {
+  const restore = useRestoreDamageRecord();
   if (!record) return null;
 
 
