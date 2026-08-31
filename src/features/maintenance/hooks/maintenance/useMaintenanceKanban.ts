@@ -1,8 +1,8 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { businessBlockSummary, describeBusinessBlock } from "@/lib/rules/businessBlocks";
-import { notifyValidation } from "@/lib/ui/appFeedback";
-import { notifyError } from "@/lib/ui/appFeedback";
+import { notifyError, notifyValidation } from "@/lib/ui/appFeedback";
+
 import { maintenanceLogKeys } from "../../lib/queryKeys";
 import {
   useUpdateMaintenanceLog,
