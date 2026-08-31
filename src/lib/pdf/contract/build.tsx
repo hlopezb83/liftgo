@@ -8,7 +8,7 @@ export async function buildContractPdf(contract: ContractData, mode: PDFMode): P
     await import("@/lib/pdf/contract/data");
 
   const { company, customer, forklift } = await fetchRelatedData(contract);
-  const tpl = await fetchTemplate();
+  const tpl = await fetchTemplate(contract);
   const vars = buildPlaceholderVars(contract, company, customer, forklift);
   const logoBase64 = await fetchLogoBase64(company?.logo_url);
 
