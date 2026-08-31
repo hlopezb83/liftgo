@@ -138,6 +138,12 @@ export const BUSINESS_BLOCKS: Record<BusinessBlockCode, BlockCopy> = {
     nextStep: "Pide que se apruebe la factura y vuelve a registrar el pago.",
     tone: "info",
   },
+  supplier_bill_self_approval: {
+    action: "No puedes aprobar esta factura de proveedor",
+    reason: "Tú la registraste y la aprobación requiere una segunda persona.",
+    nextStep: "Pide a otro administrador que la revise y la apruebe.",
+    tone: "info",
+  },
   supplier_bill_draft: {
     action: "No puedes registrar el pago de esta factura",
     reason: "La factura del proveedor sigue en borrador.",
