@@ -79,6 +79,13 @@ export function parseAmount(value: string): number | null {
   // No aplica a decimales por coma: "1,50" (2 dígitos) sigue siendo 1.50.
   if (lastDot === -1 && /^-?\d{1,3}(,\d{3})+$/.test(inner)) {
     inner = inner.replace(/,/g, "");
+    // 2A-5: es-MX/europeo SIN decimales: "1.500" / "12.345.678" — punto(s) con
+    // exactamente 3 dígitos por grupo y sin coma → separadores de miles.
+    // Sin esta regla "1.500" se leía como 1.50 (corrupción ÷1000).
+    // No aplica a "1.50" (2 dígitos) ni a "1234.567" (grupo inicial >3).
+  } else if (lastComma === -1 && /^-?\d{1,3}(\.\d{3})+$/.test(inner)) {
+    inner = inner.replace(/\./g, "");
+
   } else if (lastComma > lastDot) {
     // Coma decimal (es-MX / europeo): puntos son separadores de miles.
     inner = inner.replace(/\./g, "").replace(",", ".");
