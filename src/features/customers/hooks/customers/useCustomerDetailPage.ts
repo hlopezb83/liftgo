@@ -27,6 +27,29 @@ function buildEditInitialData(customer: Customer | undefined | null): Record<Edi
   return result;
 }
 
+type CustomerSummary = NonNullable<ReturnType<typeof useCustomerSummary>["data"]>;
+
+// R7-21.5: reservas activas = estados que impiden archivar el cliente.
+// Coherente con la máquina de estados de bookings (confirmed/active).
+const ACTIVE_BOOKING_STATUSES = new Set(["confirmed", "active"]);
+
+function computeCustomerTotals(summary: CustomerSummary | undefined) {
+  const bookings = summary?.bookings ?? [];
+  const invoices = summary?.invoices ?? [];
+  const activeBookingsCount = bookings.filter((b) => ACTIVE_BOOKING_STATUSES.has(b.status)).length;
+  const totalInvoiced = Number(summary?.totals.total_invoiced ?? 0);
+  const totalPaid = Number(summary?.totals.total_paid ?? 0);
+  // Saldo pendiente canónico: mismo cálculo que impone el backend al archivar
+  // (`customer_outstanding_balance`). Fallback defensivo al neto facturado.
+  const outstanding = summary?.totals.outstanding_revenue != null
+    ? Number(summary.totals.outstanding_revenue)
+    : totalInvoiced - totalPaid - Number(summary?.totals.total_credited ?? 0);
+  return {
+    bookings, invoices, activeBookingsCount, totalInvoiced, totalPaid, outstanding,
+    hasDependencies: bookings.length > 0 || invoices.length > 0,
+  };
+}
+
 export function useCustomerDetailPage(id: string | undefined) {
   // R9 (defensa): si el segmento de ruta no es un UUID válido (p. ej. "new"
   // colado por una ruta mal armada) no disparamos ningún fetch — se muestra
