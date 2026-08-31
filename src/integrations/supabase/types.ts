@@ -4462,6 +4462,10 @@ export type Database = {
         Args: { p_bill_id: string; p_notes: string }
         Returns: undefined
       }
+      reopen_work_order: {
+        Args: { p_log_id: string; p_reason: string }
+        Returns: undefined
+      }
       reorder_prospect_stage: {
         Args: {
           p_new_index: number
