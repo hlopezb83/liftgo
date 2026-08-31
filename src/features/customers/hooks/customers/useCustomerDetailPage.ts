@@ -76,7 +76,7 @@ export function useCustomerDetailPage(id: string | undefined) {
   // (`customer_outstanding_balance`). Fallback defensivo al neto facturado.
   const outstanding = summary?.totals.outstanding_revenue != null
     ? Number(summary.totals.outstanding_revenue)
-    : totalInvoiced - totalPaid;
+    : totalInvoiced - totalPaid - Number(summary?.totals.total_credited ?? 0);
   const hasPortalAccess = !!customer?.user_id;
   const hasDependencies = bookings.length > 0 || invoices.length > 0;
 
