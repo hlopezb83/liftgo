@@ -63,10 +63,25 @@ export function DamageDetailSheet({ record, open, onOpenChange }: Props) {
           <DamagePhotosSection entityType="damage_record" entityId={record.id} title="Fotos de Daño" />
 
           <Separator />
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground">Acciones:</span>
-            <DamageActions record={record} onClose={() => onOpenChange(false)} />
-          </div>
+          {record.deleted_at ? (
+            // R5-A6: un daño archivado solo admite restaurarse (solo admin).
+            <div className="space-y-2">
+              <p className="text-sm text-muted-foreground">Este registro está archivado.</p>
+              <Button
+                variant="outline"
+                className="w-full"
+                disabled={restore.isPending}
+                onClick={() => restore.mutate(record.id, { onSuccess: () => onOpenChange(false) })}
+              >
+                Restaurar registro
+              </Button>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Acciones:</span>
+              <DamageActions record={record} onClose={() => onOpenChange(false)} />
+            </div>
+          )}
 
           <div className="text-xs text-muted-foreground space-y-1">
             <p>Creado: {formatMtyDate(record.created_at, "dd MMM yyyy, HH:mm", APP_LOCALE)}</p>
