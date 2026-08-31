@@ -118,56 +118,27 @@ export async function handleValidateReceptor(
       );
     }
 
-    const qs = new URLSearchParams({
-      tax_id: sent.tax_id,
-      legal_name: sent.legal_name,
-      tax_system: sent.tax_system,
-      zip: sent.zip,
-    }).toString();
+    // La llamada al PAC vive en `_shared/facturapi/validateTaxId.ts` y la
+    // comparte la validación masiva de la cartera.
+    const outcome = await validateTaxIdWithPac(sent, apiKey, deps.fetchImpl);
 
-    let res: Response;
-    try {
-      // ARQ2-A1: timeout duro al PAC (30s por defecto).
-      res = await fetchWithTimeout(
-        `${FACTURAPI_BASE}/tools/tax_id_validation?${qs}`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-          },
-        },
-        undefined,
-        deps.fetchImpl,
-      );
-    } catch (err) {
-      if (err instanceof FacturapiTimeoutError) {
-        return json(
-          {
-            error: "PAC no respondió a tiempo, reintenta",
-            code: "TIMEOUT",
-            transient: true,
-          },
-          504,
-          jsonHeaders,
-        );
-      }
-      throw err;
-    }
-
-    const rawText = await res.text();
-    let parsed: unknown = null;
-    try {
-      parsed = JSON.parse(rawText);
-    } catch {
-      parsed = null;
-    }
-
-    if (!res.ok) {
+    if (outcome.kind === "timeout") {
       return json(
         {
-          error: `Facturapi validation error: ${res.status}`,
-          detail: rawText.slice(0, 2000),
+          error: "PAC no respondió a tiempo, reintenta",
+          code: "TIMEOUT",
+          transient: true,
+        },
+        504,
+        jsonHeaders,
+      );
+    }
+
+    if (outcome.kind === "http_error") {
+      return json(
+        {
+          error: `Facturapi validation error: ${outcome.status}`,
+          detail: outcome.message,
           sent,
         },
         502,
@@ -175,22 +146,14 @@ export async function handleValidateReceptor(
       );
     }
 
-    const data = (parsed ?? {}) as {
-      is_valid?: boolean;
-      errors?: Array<{ path?: string; message?: string; code?: string }>;
-    };
-
     const result: ValidationResult = {
-      is_valid: data.is_valid === true,
-      errors: (data.errors ?? []).map((e) => ({
-        path: e.path ?? "",
-        message: e.message ?? "",
-        code: e.code,
-      })),
+      is_valid: outcome.kind === "valid",
+      errors: outcome.errors,
       sent,
     };
 
     return json(result, 200, jsonHeaders);
+
   } catch (err) {
     console.error("[validate-receptor-tax-info] unhandled", {
       message: err instanceof Error ? err.message : String(err),
