@@ -1,3 +1,8 @@
+## [7.392.1] - 2026-08-31
+### Fix (UX de bloqueos explicables — CxP)
+- `useApproveSupplierBill` acepta `onBusinessBlock` y `ApproveBillDialog` muestra `BlockedActionNotice` con el código `supplier_bill_self_approval` en vez del toast genérico.
+- Sin cambios en RLS, permisos, RPC ni cálculos.
+
 ## [7.392.0] - 2026-08-31
 ### Fix (catálogo QA — segregación de funciones CxP y utilización del tablero)
 - **CxP:** `approve_supplier_bill` rechaza la auto-aprobación (`created_by = auth.uid()`) con `check_violation`; se agregó el bloqueo explicable `supplier_bill_self_approval`.
