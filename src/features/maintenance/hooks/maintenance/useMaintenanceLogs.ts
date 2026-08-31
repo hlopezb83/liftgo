@@ -22,13 +22,15 @@ export const maintenanceLogQueries = defineEntityQueries<"maintenance_logs", Mai
   {
     list: (filter) => async () => {
       const forkliftId = filter?.forkliftId as string | undefined;
+      // R5-A6: vista de archivados para poder restaurar OTs archivadas por error.
+      const archived = filter?.archived === true;
       let q = supabase
         .from("maintenance_logs")
         .select(MAINTENANCE_LOG_COLUMNS)
-        .is("deleted_at", null)
         .or(e2eVisibilityFilter())
         .order("performed_at", { ascending: false })
         .limit(LIST_FETCH_LIMIT);
+      q = archived ? q.not("deleted_at", "is", null) : q.is("deleted_at", null);
       if (forkliftId) q = q.eq("forklift_id", forkliftId);
       const { data, error } = await q.returns<MaintenanceLog[]>();
       if (error) throw error;
@@ -37,8 +39,8 @@ export const maintenanceLogQueries = defineEntityQueries<"maintenance_logs", Mai
   },
 );
 
-export function useMaintenanceLogs(forkliftId?: string) {
-  return useQuery(maintenanceLogQueries.list({ forkliftId: forkliftId ?? null }));
+export function useMaintenanceLogs(forkliftId?: string, archived = false) {
+  return useQuery(maintenanceLogQueries.list({ forkliftId: forkliftId ?? null, archived }));
 }
 
 export function useCreateMaintenanceLog() {
