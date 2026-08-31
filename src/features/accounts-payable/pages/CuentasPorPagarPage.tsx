@@ -63,6 +63,19 @@ export default function CuentasPorPagarPage() {
               <span className="hidden sm:inline">Exportar pagos</span>
             </Button>
             <RoleGuard module="Facturas de Proveedor" minAccess="full" fallback={null}>
+              {/* R6 A2-3: lotes abandonados dejaban facturas marcadas como
+                  "pago en proceso". El RPC decide cuáles son liberables. */}
+              {lockedCount > 0 && (
+                <Button
+                  variant="outline"
+                  onClick={() => { releaseLocks.mutate(24); }}
+                  disabled={releaseLocks.isPending}
+                  aria-label="Liberar bloqueos de pago"
+                >
+                  <Unlock className="h-4 w-4 sm:mr-1" />
+                  <span className="hidden sm:inline">Liberar bloqueos</span>
+                </Button>
+              )}
               <Button onClick={createDialog.openDialog}>
                 <AddIcon className="h-4 w-4 mr-1" />Nueva factura
               </Button>
