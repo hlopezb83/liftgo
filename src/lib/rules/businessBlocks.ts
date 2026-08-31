@@ -74,6 +74,13 @@ export const BUSINESS_BLOCKS: Record<BusinessBlockCode, BlockCopy> = {
     nextStep: "Marca el daño como reparado y vuelve a cerrar la orden.",
     tone: "info",
   },
+  maintenance_work_order_closed: {
+    action: "No puedes regresar esta orden de trabajo a un estado abierto",
+    reason: "La orden ya está cerrada y sus costos ya se reportaron.",
+    nextStep: "Pide a un administrador que la reabra indicando el motivo.",
+    tone: "info",
+  },
+
   contract_signed_locked: {
     action: "No puedes editar este contrato",
     reason: "El contrato ya está firmado y sus condiciones quedaron en firme.",
