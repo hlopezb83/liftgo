@@ -12,9 +12,12 @@ function computeBillDueDate(
 ): string | null {
   if (providedDueDate) return providedDueDate;
   if (defaultDays == null) return null;
-  const d = new Date(`${issueDateYmd}T00:00:00`);
+  // Anclado a mediodía local: con `T00:00:00` el `toISOString()` retrocedía un
+  // día en zonas horarias al este de UTC (p.ej. TZ=Asia/Shanghai en CI).
+  const d = new Date(`${issueDateYmd}T12:00:00`);
   d.setDate(d.getDate() + defaultDays);
   return d.toISOString().slice(0, 10);
+
 }
 
 describe("supplier_bills auto due_date", () => {
