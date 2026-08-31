@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router";
 import { useLiftgoTable } from "@/components/dataTable/v2";
 import { ListTruncationNotice } from "@/components/feedback/ListTruncationNotice";
-import { AddIcon, FileClock, ChartIcon, FileSpreadsheet } from "@/components/icons";
+import { AddIcon, FileClock, ChartIcon, FileSpreadsheet, KeyIcon } from "@/components/icons";
 import { ListPageLayout } from "@/components/layout/ListPageLayout";
 import { Button } from "@/components/ui/button";
 import { usePageActions } from "@/contexts/pageActions";
@@ -21,6 +21,7 @@ import { SupplierBillFormDialog } from "../components/SupplierBillFormDialog";
 import { SupplierBillsFilters } from "../components/SupplierBillsFilters";
 import { useAccountsPayableFilters } from "../hooks/useAccountsPayableFilters";
 import { useAccountsPayableKpis } from "../hooks/useAccountsPayableKpis";
+import { useReleaseStalePaymentLocks } from "../hooks/useReleaseStalePaymentLocks";
 import type { SupplierBillListItem } from "../hooks/useSupplierBills";
 
 export default function CuentasPorPagarPage() {
@@ -32,6 +33,10 @@ export default function CuentasPorPagarPage() {
   const createDialog = useToggleDialog();
   const exportDialog = useToggleDialog();
   const [selectedId, setSelectedId] = useState<string | null>(null);
+
+  const releaseLocks = useReleaseStalePaymentLocks();
+  // Solo tiene sentido ofrecer el barrido si hay facturas marcadas en proceso.
+  const lockedCount = visibleListRows(bills).filter((b) => b.payment_in_progress_at !== null).length;
 
   const canCreate = useHasModuleAccess("Facturas de Proveedor", "full");
   usePageActions({ onNew: canCreate ? createDialog.openDialog : undefined, newLabel: "Nueva factura de proveedor" });
@@ -72,7 +77,7 @@ export default function CuentasPorPagarPage() {
                   disabled={releaseLocks.isPending}
                   aria-label="Liberar bloqueos de pago"
                 >
-                  <Unlock className="h-4 w-4 sm:mr-1" />
+                  <KeyIcon className="h-4 w-4 sm:mr-1" />
                   <span className="hidden sm:inline">Liberar bloqueos</span>
                 </Button>
               )}
