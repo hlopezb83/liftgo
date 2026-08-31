@@ -1,3 +1,14 @@
+## [7.396.0] - 2026-08-31
+### Fix (estado de resultados, MRR, rechazo de CxP y quick wins)
+- **2A-1:** `get_income_statement` convierte gastos y facturas de proveedor en divisa con su tipo de cambio, excluye borradores y rechazadas, y reporta `fx_missing`; el reporte muestra un aviso cuando hay documentos sin tipo de cambio.
+- **A2-7:** `get_mrr_detail` excluye rentas recurrentes en divisa sin tipo de cambio y devuelve `fx_missing_count`; la pantalla de MRR avisa cuántas quedaron fuera.
+- **A6R2-2:** `supplier_bills` gana `rejected_by` / `rejected_at`; `reject_supplier_bill` deja de escribir en `approved_by` y el detalle muestra la fecha real de rechazo.
+- **A3B-05:** una cotización cuyas reservas fueron todas canceladas vuelve a ser convertible (RPC y UI ignoran reservas canceladas).
+- **A4-05:** el RFC opcional de clientes y proveedores valida el dígito verificador desde la captura.
+- **A5-05:** el formulario de cotización envía la versión leída (bloqueo optimista) y avisa si otro usuario guardó antes.
+- **A1-6:** al reeditar cotizaciones antiguas las partidas se deduplican por ocurrencia (no por modelo) y respetan el tipo de tarifa (diaria/semanal/mensual).
+- Sin cambios en RLS, permisos ni máquinas de estado.
+
 ## [7.395.0] - 2026-08-31
 ### Feature (buffer de mantenimiento configurable)
 - **A6R2-7:** el buffer de días alrededor del próximo servicio deja de estar hardcodeado; ahora vive en `company_settings.maintenance_buffer_days` (default 3, rango 0-30) y lo leen `create_booking`, `extend_booking` y `get_available_forklifts` vía `public.maintenance_buffer_days()`.
