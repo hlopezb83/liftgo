@@ -60,25 +60,11 @@ export function useCustomerDetailPage(id: string | undefined) {
     setEditOpen: dialogs.setEditOpen,
   });
 
-  const bookings = summary?.bookings ?? [];
-  const invoices = summary?.invoices ?? [];
-
-  // R7-21.5: reservas activas = estados que impiden archivar el cliente.
-  // Coherente con la máquina de estados de bookings (confirmed/active).
-  const ACTIVE_BOOKING_STATUSES = new Set(["confirmed", "active"]);
-  const activeBookingsCount = bookings.filter((b) =>
-    ACTIVE_BOOKING_STATUSES.has(b.status),
-  ).length;
-
-  const totalInvoiced = Number(summary?.totals.total_invoiced ?? 0);
-  const totalPaid = Number(summary?.totals.total_paid ?? 0);
-  // Saldo pendiente canónico: mismo cálculo que impone el backend al archivar
-  // (`customer_outstanding_balance`). Fallback defensivo al neto facturado.
-  const outstanding = summary?.totals.outstanding_revenue != null
-    ? Number(summary.totals.outstanding_revenue)
-    : totalInvoiced - totalPaid - Number(summary?.totals.total_credited ?? 0);
+  const totals = computeCustomerTotals(summary);
+  const bookings = totals.bookings;
+  const invoices = totals.invoices;
   const hasPortalAccess = !!customer?.user_id;
-  const hasDependencies = bookings.length > 0 || invoices.length > 0;
+
 
   return {
     isLoading, isError, refetch, customer: customer ?? undefined, summary, profitability, role,
