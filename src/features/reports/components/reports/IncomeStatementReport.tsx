@@ -28,6 +28,8 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
     expenseDetailBreakdownByCategory,
     rentedWithoutCost,
     soldWithoutCost,
+    fxMissingCount,
+
     availableYears, selectedYear, setSelectedYear, isComparison,
     isError, isFetching, refetch,
   } = useIncomeStatementData({ startDate, endDate, accountingBasis });
