@@ -118,3 +118,37 @@ export const positiveAmountCoerced = (message = "El monto debe ser mayor a 0") =
  */
 export const nonNegativeAmountCoerced = (message = "No puede ser negativo") =>
   z.coerce.number({ error: message }).nonnegative(message);
+
+
+// ---------------------------------------------------------------------------
+// Régimen fiscal SAT (A4B-08 / A4B-09)
+// ---------------------------------------------------------------------------
+import { isValidRegimenFiscalCode, regimenAplicaPersona, tipoPersonaFromRfc } from "@/lib/fiscal/regimenFiscal";
+
+/**
+ * Régimen fiscal opcional validado contra el catálogo vigente del SAT.
+ * Permite cadena vacía (registros incompletos). `rfcFieldName` indica el
+ * campo del mismo objeto del que se deriva el tipo de persona (12 = moral,
+ * 13 = física) para el refinement cruzado de aplicabilidad.
+ */
+export const regimenFiscalOptional = () =>
+  z
+    .string()
+    .default("")
+    .refine((v) => v === "" || isValidRegimenFiscalCode(v), {
+      message: "Régimen fiscal inválido: no pertenece al catálogo del SAT",
+    });
+
+/**
+ * Refinement cruzado a agregar con `.superRefine` (o `.refine` a nivel
+ * objeto): valida que el régimen fiscal capturado aplique al tipo de persona
+ * derivado del RFC. Si el RFC o el régimen están vacíos, o el RFC no tiene
+ * una longitud reconocible, no se valida (evita bloquear registros
+ * incompletos).
+ */
+export function regimenFiscalMatchesRfc(rfc: string, regimenFiscal: string): boolean {
+  if (!rfc || !regimenFiscal) return true;
+  const tipoPersona = tipoPersonaFromRfc(rfc);
+  if (!tipoPersona) return true;
+  return regimenAplicaPersona(regimenFiscal, tipoPersona);
+}

@@ -1,11 +1,11 @@
 import { z } from "zod";
-import { optionalEmail, rfcOptional } from "@/lib/schemas";
+import { optionalEmail, regimenFiscalMatchesRfc, regimenFiscalOptional, rfcOptional } from "@/lib/schemas";
 
 /**
  * Schema validacional del formulario de Proveedor.
  * Alineado con el patrón usado en CustomerFormSchema (RHF + Zod).
  */
-export const supplierFormSchema = z.object({
+const supplierFormBaseSchema = z.object({
   name: z.string().trim().min(1, "El nombre es requerido").max(200, "Máximo 200 caracteres"),
   contact_person: z.string().trim().max(200, "Máximo 200 caracteres").default(""),
   email: optionalEmail(),
@@ -13,7 +13,7 @@ export const supplierFormSchema = z.object({
   website: z.string().trim().max(200, "Máximo 200 caracteres").default(""),
   address: z.string().max(500, "Máximo 500 caracteres").default(""),
   rfc: rfcOptional(),
-  regimen_fiscal: z.string().default(""),
+  regimen_fiscal: regimenFiscalOptional(),
   category: z.string().default(""),
   notes: z.string().max(2000, "Máximo 2000 caracteres").default(""),
   default_payment_terms_days: z
@@ -26,6 +26,14 @@ export const supplierFormSchema = z.object({
       return Number.isFinite(n) && n >= 0 && n <= 365;
     }, { message: "Debe ser un número entre 0 y 365" }),
 });
+
+export const supplierFormSchema = supplierFormBaseSchema.refine(
+  (data) => regimenFiscalMatchesRfc(data.rfc, data.regimen_fiscal),
+  {
+    message: "El régimen fiscal no aplica para el tipo de persona del RFC capturado",
+    path: ["regimen_fiscal"],
+  },
+);
 
 export type SupplierFormData = z.infer<typeof supplierFormSchema>;
 

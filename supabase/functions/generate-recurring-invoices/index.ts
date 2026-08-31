@@ -173,14 +173,18 @@ async function buildPlan(supabase: any): Promise<{
 
   for (const booking of bookings || []) {
     const forklift = (booking.forklifts as Forklift | null) ?? null;
-    // BL-31 (v7.92.0): preferir tarifa pactada en la reserva; fallback a la maestra.
-    // N-7c/R4-32: nullish, no `||` — una tarifa pactada de 0 es un dato válido
-    // (cortesía/canje) y NO debe confundirse con "sin tarifa configurada".
-    // configuredRate = null sólo cuando ni la reserva ni la maestra tienen valor.
-    const configuredRate = booking.monthly_rate != null
-      ? Number(booking.monthly_rate)
-      : (forklift?.monthly_rate != null ? Number(forklift.monthly_rate) : null);
-    const monthlyRate = configuredRate ?? 0;
+
+    // A1-1: moneda y tipo de cambio de la reserva (default MXN/1 si no hay dato).
+    const bookingCurrency = String(booking.currency ?? "MXN").toUpperCase();
+    const bookingTipoCambio = Number(booking.tipo_cambio ?? 1);
+    const hasValidExchangeRate = bookingCurrency === "MXN" ||
+      (Number.isFinite(bookingTipoCambio) && bookingTipoCambio > 0);
+
+    // B5-01: última actualización de la reserva, usada como proxy de "última
+    // actualización de tarifa" (no existe historial de tarifas dedicado).
+    const bookingUpdatedAt = booking.updated_at
+      ? new Date(booking.updated_at as string)
+      : null;
 
     // Derivar last_billed_date desde el historial REAL de facturas vinculadas
     // (source of truth). Ignora bookings.last_billed_date cuando el historial lo
@@ -220,6 +224,20 @@ async function buildPlan(supabase: any): Promise<{
     let firstIteration = true;
 
     for (let iter = 0; iter < MAX_CATCHUP_ITERATIONS; iter++) {
+      // B5-01: la tarifa se recalcula EN CADA iteración del catch-up (antes se
+      // calculaba una sola vez fuera del loop y todos los periodos atrasados
+      // se facturaban a la tarifa vigente al momento de correr el cron).
+      // BL-31 (v7.92.0): preferir tarifa pactada en la reserva; fallback a la
+      // maestra. N-7c/R4-32: nullish, no `||` — una tarifa pactada de 0 es un
+      // dato válido (cortesía/canje) y NO debe confundirse con "sin tarifa
+      // configurada". configuredRate = null sólo cuando ni la reserva ni la
+      // maestra tienen valor.
+      const configuredRate = booking.monthly_rate != null
+        ? Number(booking.monthly_rate)
+        : (forklift?.monthly_rate != null
+          ? Number(forklift.monthly_rate)
+          : null);
+      const monthlyRate = configuredRate ?? 0;
       let billingStart: Date;
       let isProrated = false;
       if (virtualLastBilled) {
@@ -273,6 +291,11 @@ async function buildPlan(supabase: any): Promise<{
       const billedAmount = prorate.billedAmount;
       const proratedPeriod = isProrated || isEndProrated;
 
+      // B5-01: advertencia (no bloqueo) cuando la reserva se actualizó DESPUÉS
+      // del fin de este periodo — la tarifa vigente pudo cambiar desde entonces
+      // y el periodo atrasado se está facturando con la tarifa actual.
+      const rateWarning = !!bookingUpdatedAt && bookingUpdatedAt > billingEnd;
+
       const baseLine: PreviewLine = {
         bookingId: booking.id,
         bookingCode: booking.booking_number ?? null,
@@ -284,6 +307,8 @@ async function buildPlan(supabase: any): Promise<{
         periodLabel,
         monthlyRate,
         billedAmount,
+        currency: bookingCurrency,
+        rateWarning,
         taxRate: booking.customer_id
           ? taxRateByCustomer.get(booking.customer_id) ?? null
           : null,
@@ -320,6 +345,14 @@ async function buildPlan(supabase: any): Promise<{
       }
       if (!booking.customer_id) {
         lines.push({ ...baseLine, eligible: false, reason: "no_customer" });
+        break;
+      }
+      // A1-1: reserva en moneda distinta a MXN sin tipo de cambio válido → no
+      // facturar este periodo (ni los siguientes, ya que la moneda/TC son
+      // atributos de la reserva, no del periodo). Se reporta explícitamente
+      // en vez de facturar en MXN con TC=1 por default (bug crítico).
+      if (!hasValidExchangeRate) {
+        lines.push({ ...baseLine, eligible: false, reason: "no_exchange_rate" });
         break;
       }
       // R4-32: sólo se omite cuando NO hay tarifa configurada (null en la
@@ -376,6 +409,11 @@ async function buildPlan(supabase: any): Promise<{
         billingEnd,
         startStr,
         endStr,
+        // A1-1
+        currency: bookingCurrency,
+        tipoCambio: bookingCurrency === "MXN" ? 1 : bookingTipoCambio,
+        // B5-01
+        rateWarning,
       });
       virtualLastBilled = endStr;
       firstIteration = false;
@@ -393,6 +431,10 @@ async function executePlan(supabase: any, items: PlanItem[]) {
     invoiceNumber: string | null;
   }> = [];
   const failed: Array<{ bookingIds: string[]; error: string }> = [];
+  // B5-01: periodos catch-up facturados posiblemente con tarifa desactualizada.
+  const rateWarnings: Array<
+    { bookingIds: string[]; periodStart: string; periodEnd: string }
+  > = [];
 
   // Agrupar por (customer_id, período)
   const groups = new Map<string, PlanItem[]>();
@@ -454,6 +496,14 @@ async function executePlan(supabase: any, items: PlanItem[]) {
       const taxAmount = fromCents(taxAmountCents);
       const total = fromCents(subtotalCents + taxAmountCents);
 
+      if (group.some((i) => i.rateWarning)) {
+        rateWarnings.push({
+          bookingIds,
+          periodStart: first.startStr,
+          periodEnd: first.endStr,
+        });
+      }
+
       // BL-B5 (Ola 2.2): RPC atómico — invoice + pivot + last_billed_date
       // en una sola transacción con advisory lock por reserva. Evita facturas
       // huérfanas si falla el pivot y previene duplicados en corridas paralelas.
@@ -476,6 +526,14 @@ async function executePlan(supabase: any, items: PlanItem[]) {
           p_receptor_regimen_fiscal: customer?.regimen_fiscal ?? null,
           p_receptor_domicilio_fiscal_cp: customer?.domicilio_fiscal_cp ?? null,
           p_uso_cfdi: customer?.uso_cfdi ?? "G03",
+          // A1-1: moneda/tipo de cambio de la reserva. NOTA PARA MIGRACIÓN:
+          // el RPC `create_recurring_invoice` todavía NO declara
+          // `p_moneda`/`p_tipo_cambio` — hay que agregarlos con defaults
+          // 'MXN'/1 y usarlos en el INSERT de `invoices` en vez de los
+          // literales fijos 'MXN', 1 actuales. Mientras la migración no se
+          // aplique, Postgres ignorará/rechazará estos parámetros extra.
+          p_moneda: first.currency,
+          p_tipo_cambio: first.tipoCambio,
         },
       );
 
@@ -507,7 +565,7 @@ async function executePlan(supabase: any, items: PlanItem[]) {
     }
   }
 
-  return { created, failed };
+  return { created, failed, rateWarnings };
 }
 
 Deno.serve(async (req) => {
@@ -546,7 +604,10 @@ Deno.serve(async (req) => {
       ? allItems.filter((i) => body.bookingIds!.includes(i.bookingId))
       : allItems;
 
-    const { created, failed } = await executePlan(supabase, targetItems);
+    const { created, failed, rateWarnings } = await executePlan(
+      supabase,
+      targetItems,
+    );
     const invoicesCreated = created.length;
     const bookingsBilled = created.reduce(
       (acc, c) => acc + c.bookingIds.length,
@@ -559,6 +620,8 @@ Deno.serve(async (req) => {
       bookingsBilled,
       created,
       failed,
+      // B5-01: periodos catch-up facturados con posible tarifa desactualizada.
+      rateWarnings,
     });
   } catch (err) {
     console.error("[generate-recurring-invoices]", err);
