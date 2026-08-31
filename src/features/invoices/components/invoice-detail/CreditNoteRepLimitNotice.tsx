@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
 import type { Payment } from "../../hooks/usePayments";
 
 interface Props {
@@ -52,7 +52,7 @@ export function CreditNoteRepLimitNotice({
         {repPayments.map((p) => (
           <li key={p.id} className="flex items-center justify-between gap-2">
             <span className="font-mono">{p.rep_number ?? p.rep_folio ?? "REP"}</span>
-            <span className="text-muted-foreground">{formatDateDisplay(p.payment_date)}</span>
+            <span className="text-muted-foreground">{formatDateMty(p.payment_date)}</span>
             <span className="font-mono tabular-nums">{formatCurrency(Number(p.amount) || 0)}</span>
             <Badge variant="outline" className="border-warning/30 text-warning">Timbrado</Badge>
           </li>

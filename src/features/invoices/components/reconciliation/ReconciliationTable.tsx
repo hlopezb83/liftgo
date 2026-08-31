@@ -7,8 +7,8 @@ import {
 } from "@/components/dataTable/v2";
 import { Badge } from "@/components/ui/badge";
 import { STATUS_LABELS } from "@/lib/constants";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
 
 interface Row {
   id: string;
@@ -55,7 +55,7 @@ export function ReconciliationTable({ rows, isLoading }: { rows: Row[]; isLoadin
         id: "issued_at",
         header: "Fecha",
         accessorKey: "issued_at",
-        cell: ({ row }) => formatDateDisplay(row.original.issued_at),
+        cell: ({ row }) => formatDateMty(row.original.issued_at),
       },
       {
         id: "customer_name",

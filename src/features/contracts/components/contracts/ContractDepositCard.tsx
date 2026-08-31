@@ -6,8 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { RoleGuard } from "@/layouts/RoleGuard";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
 import { useSetContractDepositStatus, type DepositStatus } from "../../hooks/useContracts";
 
 const DEPOSIT_STATUS_LABELS: Record<DepositStatus, string> = {
@@ -64,7 +64,7 @@ export function ContractDepositCard({
           <div><span className="text-muted-foreground block">Monto</span>{formatCurrency(amount)}</div>
           <div><span className="text-muted-foreground block">Estado</span>{DEPOSIT_STATUS_LABELS[current]}</div>
           {depositSettledAt && (
-            <div><span className="text-muted-foreground block">Fecha</span>{formatDateDisplay(depositSettledAt)}</div>
+            <div><span className="text-muted-foreground block">Fecha</span>{formatDateMty(depositSettledAt)}</div>
           )}
           {depositSettledAmount !== null && depositSettledAmount !== undefined && (
             <div>

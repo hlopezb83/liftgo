@@ -4,8 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { useAdminPaymentIntents } from "@/features/invoices/hooks/paymentIntents";
 import { PAYMENT_INTENT_STATUS as STATUS_LABEL } from "@/features/invoices/lib/paymentIntentStatus";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
 
 export type PaymentIntent = NonNullable<
   ReturnType<typeof useAdminPaymentIntents>["data"]
@@ -28,7 +28,7 @@ export function usePaymentIntentsColumns({
         id: "transfer_date",
         header: "Fecha",
         accessorKey: "transfer_date",
-        cell: ({ row }) => formatDateDisplay(row.original.transfer_date),
+        cell: ({ row }) => formatDateMty(row.original.transfer_date),
       },
       {
         id: "amount",

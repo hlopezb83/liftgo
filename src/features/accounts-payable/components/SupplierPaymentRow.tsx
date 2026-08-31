@@ -1,9 +1,9 @@
 import { SpinnerIcon, OpenLinkIcon } from "@/components/icons";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { ReconciliationBadge } from "@/features/bank-reconciliation";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { openStoredFile } from "@/lib/storage/openStorageFile";
-import { formatDateDisplay } from "@/lib/utils";
 import { useSupplierPaymentActions } from "../hooks/useSupplierPaymentActions";
 import { PAYMENT_METHOD_LABELS } from "../lib/supplierBillConstants";
 import { SupplierPaymentDeleteButton } from "./SupplierPaymentDeleteButton";
@@ -25,7 +25,7 @@ function PaymentHeader({ p, currency }: { p: SupplierPayment; currency: string }
   return (
     <>
       <div className="flex items-center justify-between">
-        <span className="font-medium">{formatDateDisplay(p.payment_date)}</span>
+        <span className="font-medium">{formatDateMty(p.payment_date)}</span>
         <span className="font-mono font-bold">{formatCurrencyWithCode(Number(p.amount), currency)}</span>
       </div>
       <ReconciliationBadge supplierPaymentId={p.id} />

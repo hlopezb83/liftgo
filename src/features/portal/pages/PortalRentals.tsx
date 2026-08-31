@@ -8,7 +8,7 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { usePortalBookings } from "@/features/customers";
 import { useIsMobile } from "@/hooks/use-mobile";
-import { formatDateDisplay } from "@/lib/utils";
+import { formatDateMty } from "@/lib/format/dateFormats";
 
 type Booking = NonNullable<ReturnType<typeof usePortalBookings>["data"]>[number];
 
@@ -32,14 +32,14 @@ export default function PortalRentals() {
         header: "Fecha Inicio",
         accessorKey: "start_date",
         meta: { kind: "date" },
-        cell: ({ row }) => formatDateDisplay(row.original.start_date),
+        cell: ({ row }) => formatDateMty(row.original.start_date),
       },
       {
         id: "end_date",
         header: "Fecha Fin",
         accessorKey: "end_date",
         meta: { kind: "date" },
-        cell: ({ row }) => formatDateDisplay(row.original.end_date),
+        cell: ({ row }) => formatDateMty(row.original.end_date),
       },
       {
         id: "status",
@@ -92,7 +92,7 @@ export default function PortalRentals() {
                         <StatusBadge status={b.status} />
                       </div>
                       <div className="text-sm text-muted-foreground">
-                        {formatDateDisplay(b.start_date)} → {formatDateDisplay(b.end_date)}
+                        {formatDateMty(b.start_date)} → {formatDateMty(b.end_date)}
                       </div>
                     </CardContent>
                   </Card>

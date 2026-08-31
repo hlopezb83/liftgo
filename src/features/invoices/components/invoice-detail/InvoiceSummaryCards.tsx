@@ -1,7 +1,7 @@
 import { UserIcon, CalendarIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { formatStoredCfdiError } from "@/features/invoices/lib/formatStoredCfdiError";
-import { formatDateDisplay } from "@/lib/utils";
+import { formatDateMty } from "@/lib/format/dateFormats";
 
 
 type Props = {
@@ -58,9 +58,9 @@ export function InvoiceSummaryCards({
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-1 text-sm">
-            <p><span className="text-muted-foreground">Emitida:</span> {formatDateDisplay(issuedAt)}</p>
-            <p><span className="text-muted-foreground">Vencimiento:</span> {formatDateDisplay(dueDate)}</p>
-            {paidAt && <p><span className="text-muted-foreground">Pagada:</span> {formatDateDisplay(paidAt)}</p>}
+            <p><span className="text-muted-foreground">Emitida:</span> {formatDateMty(issuedAt)}</p>
+            <p><span className="text-muted-foreground">Vencimiento:</span> {formatDateMty(dueDate)}</p>
+            {paidAt && <p><span className="text-muted-foreground">Pagada:</span> {formatDateMty(paidAt)}</p>}
           </CardContent>
         </Card>
       </div>

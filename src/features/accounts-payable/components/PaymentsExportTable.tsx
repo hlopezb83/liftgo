@@ -4,8 +4,9 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { isFxMissing } from "@/features/cash-flow";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
-import { cn, formatDateDisplay } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { ExportablePayable } from "../hooks/useExportablePayables";
 
 interface RowState {
@@ -101,7 +102,7 @@ export function PaymentsExportTable({
       header: "Vence",
       accessorKey: "due_date",
       cell: ({ row }) => (
-        <span className="text-xs">{formatDateDisplay(row.original.due_date)}</span>
+        <span className="text-xs">{formatDateMty(row.original.due_date)}</span>
       ),
     },
     {

@@ -6,8 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { toYMD } from "@/lib/date/toYMD";
-import { formatDateTimeMty } from "@/lib/format/dateFormats";
-import { formatDateDisplay } from "@/lib/utils";
+import { formatDateMty, formatDateTimeMty } from "@/lib/format/dateFormats";
 import { useCollectionNotes, useCreateCollectionNote } from "../../hooks/invoices/collections/useCollectionNotes";
 
 interface CollectionNotesCardProps {
@@ -78,7 +77,7 @@ export function CollectionNotesCard({ invoiceId }: CollectionNotesCardProps) {
               <span>{n.created_at ? formatDateTimeMty(n.created_at) : "—"}</span>
               {n.next_followup_date && (
                 <span className="flex items-center gap-1 text-primary">
-                  <CalendarIcon className="h-3 w-3" /> Seguimiento: {formatDateDisplay(n.next_followup_date)}
+                  <CalendarIcon className="h-3 w-3" /> Seguimiento: {formatDateMty(n.next_followup_date)}
                 </span>
               )}
             </div>

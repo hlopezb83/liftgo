@@ -5,8 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useHasModuleAccess } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
-import { formatDateDisplay, formatDateRange } from "@/lib/utils";
+import { formatDateRange } from "@/lib/utils";
 import { ROUTES } from "@/routes/routes";
 import { extensionBillableRange } from "../../lib/extensionBilling";
 
@@ -62,7 +63,7 @@ export function BookingExtensionsCard({ extensions, recurringBilling }: Props) {
                   {formatDateRange(ext.original_end_date, ext.new_end_date)}
                 </span>
                 <span className="text-xs text-muted-foreground">
-                  {formatDateDisplay(ext.created_at)}
+                  {formatDateMty(ext.created_at)}
                 </span>
               </div>
               {ext.reason && <p className="text-xs">{ext.reason}</p>}

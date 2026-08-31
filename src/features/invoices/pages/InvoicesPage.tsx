@@ -11,10 +11,10 @@ import { useHasModuleAccess } from "@/features/users";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import type { Tables } from "@/integrations/supabase/types";
 import { exportToCsv } from "@/lib/exportCsv";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 // hasReachedListLimit ya no es necesario: paginación real vía useInvoicesInfinite.
 import { notifySuccess } from "@/lib/ui/appFeedback";
-import { formatDateDisplay } from "@/lib/utils";
 import { InvoicesActionsBar, InvoicesFiltersBar } from "../components/list/InvoicesToolbar";
 import { RecurringInvoicesPreviewDialog } from "../components/recurring/RecurringInvoicesPreviewDialog";
 import { RecurringInvoicesResultDialog } from "../components/recurring/RecurringInvoicesResultDialog";
@@ -78,9 +78,9 @@ function useInvoiceColumns(): ColumnDef<Invoice>[] {
       { id: "status", header: "Estado", accessorKey: "status",
         cell: ({ row }) => <StatusBadge status={row.original.status} /> },
       { id: "issued_at", header: "Emitida", accessorKey: "issued_at",
-        cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateDisplay(row.original.issued_at)}</span> },
+        cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateMty(row.original.issued_at)}</span> },
       { id: "due_date", header: "Vencimiento", accessorFn: (i) => i.due_date,
-        cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateDisplay(row.original.due_date)}</span> },
+        cell: ({ row }) => <span className="text-sm text-muted-foreground">{formatDateMty(row.original.due_date)}</span> },
       { id: "view", header: "", enableSorting: false, meta: { cellClassName: "w-12" },
         cell: () => <ViewIcon className="h-4 w-4 text-muted-foreground" /> },
     ];
@@ -99,8 +99,8 @@ function InvoiceCard({ inv, onClick }: { inv: Invoice; onClick: () => void }) {
         </p>
         <div className="flex items-center justify-between mt-3 pt-3 border-t">
           <div className="text-xs text-muted-foreground">
-            <span>{formatDateDisplay(inv.issued_at)}</span>
-            {inv.due_date && <span> → {formatDateDisplay(inv.due_date)}</span>}
+            <span>{formatDateMty(inv.issued_at)}</span>
+            {inv.due_date && <span> → {formatDateMty(inv.due_date)}</span>}
           </div>
           <div className="flex items-center gap-1">
             {(() => {

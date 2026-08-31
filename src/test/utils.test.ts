@@ -1,13 +1,6 @@
 import { describe, it, expect } from "vitest";
-import {
-  cn,
-  parseDateLocal,
-  formatDateDisplay,
-  formatDateRange,
-  formatMtyDate,
-  capitalize,
-  nowMty,
-} from "@/lib/utils";
+import { cn, parseDateLocal, formatDateRange, formatMtyDate, capitalize, nowMty } from "@/lib/utils";
+import { formatDateMty } from "@/lib/format/dateFormats";
 
 describe("cn", () => {
   it("combina clases y deduplica tailwind", () => {
@@ -31,15 +24,15 @@ describe("parseDateLocal", () => {
   });
 });
 
-describe("formatDateDisplay", () => {
+describe("formatDateMty", () => {
   it("formatea en DD/MM/YYYY", () => {
-    expect(formatDateDisplay("2026-05-26")).toBe("26/05/2026");
+    expect(formatDateMty("2026-05-26")).toBe("26/05/2026");
   });
 
   it("devuelve '—' para null/undefined/empty", () => {
-    expect(formatDateDisplay(null)).toBe("—");
-    expect(formatDateDisplay(undefined)).toBe("—");
-    expect(formatDateDisplay("")).toBe("—");
+    expect(formatDateMty(null)).toBe("—");
+    expect(formatDateMty(undefined)).toBe("—");
+    expect(formatDateMty("")).toBe("—");
   });
 });
 

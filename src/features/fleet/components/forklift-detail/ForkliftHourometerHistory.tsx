@@ -2,7 +2,7 @@
 import { DataTableV2, useLiftgoTable, type ColumnDef } from "@/components/dataTable/v2";
 import { ClockIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { formatDateDisplay } from "@/lib/utils";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import type { ForkliftFinancials } from "../../hooks/forklifts/useForkliftFinancials";
 
 interface ForkliftHourometerHistoryProps {
@@ -17,7 +17,7 @@ export function ForkliftHourometerHistory({ history }: ForkliftHourometerHistory
         id: "date",
         header: "Fecha",
         accessorKey: "date",
-        cell: ({ row }) => <span className="text-sm">{formatDateDisplay(row.original.date)}</span>,
+        cell: ({ row }) => <span className="text-sm">{formatDateMty(row.original.date)}</span>,
       },
       {
         id: "delivery_number",

@@ -15,6 +15,24 @@ export function useChangelog() {
   return query;
 }
 
+/**
+ * Histórico completo (`/changelog.json`, ~650 KB). Solo se activa cuando el
+ * usuario pide ver todas las versiones desde `/changelog`.
+ */
+export function useChangelogArchive(enabled: boolean) {
+  const query = useQuery({
+    ...changelogQueries.list({ scope: "archive" }),
+    enabled,
+    gcTime: Infinity,
+    retry: 1,
+  });
+  useEffect(() => {
+    if (query.error) notifyError({ error: query.error, message: "No se pudo cargar el historial completo" });
+  }, [query.error]);
+  return query;
+}
+
+
 export function useChangelogEntry(version: string | null, enabled = true) {
   return useQuery({
     ...changelogQueries.detail(version ?? ""),

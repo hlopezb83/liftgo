@@ -4,8 +4,9 @@ import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { formatDateDisplay, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useConfirmBankMatches, useIgnoreBankLines } from "../hooks/mutations/useBankBulkActions";
 import { BANK_LINE_STATUS_LABELS } from "../lib/bankReconciliationConstants";
 import type { BankStatementLine } from "../hooks/useBankStatementLines";
@@ -34,7 +35,7 @@ const columns: ColumnDef<BankStatementLine>[] = [
     accessorKey: "posted_date",
     meta: { kind: "date" },
     cell: ({ row }) => (
-      <span className="whitespace-nowrap">{formatDateDisplay(row.original.posted_date)}</span>
+      <span className="whitespace-nowrap">{formatDateMty(row.original.posted_date)}</span>
     ),
   },
   {

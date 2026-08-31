@@ -93,6 +93,19 @@ function main(): void {
   }
 
 
+  // v7.397.0: el índice ligero que consume la página debe ser prefijo exacto
+  // del índice completo (lo genera `scripts/gen-version.mjs` en el prebuild).
+  const RECENT_PATH = "public/changelog-recent.json";
+  if (!existsSync(RECENT_PATH)) {
+    console.error(`::error file=${RECENT_PATH}::Falta el índice ligero. Corre \`node scripts/gen-version.mjs\`.`);
+    failed = true;
+  } else {
+    const recent: Entry[] = JSON.parse(readFileSync(RECENT_PATH, "utf8"));
+    if (JSON.stringify(entries.slice(0, recent.length)) !== JSON.stringify(recent)) {
+      console.error(`::error file=${RECENT_PATH}::Desincronizado con ${INDEX_PATH}. Corre \`node scripts/gen-version.mjs\`.`);
+      failed = true;
+    }
+  }
 
   // Orden descendente: parsed[0] > parsed[1] > ...
   for (let i = 1; i < parsed.length; i++) {

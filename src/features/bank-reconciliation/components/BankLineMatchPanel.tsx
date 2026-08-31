@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
-import { formatDateDisplay, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import {
   useConfirmBankMatch,
   useIgnoreBankLine,
@@ -48,7 +49,7 @@ function BankLineSummary({ line, isCharge, currency }: { line: BankStatementLine
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
           <p className="text-xs text-muted-foreground">
-            {isCharge ? "Cargo" : "Abono"} · {formatDateDisplay(line.posted_date)}
+            {isCharge ? "Cargo" : "Abono"} · {formatDateMty(line.posted_date)}
           </p>
           <p className="truncate text-sm font-medium">{line.description || "—"}</p>
         </div>

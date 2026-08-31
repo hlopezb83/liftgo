@@ -2,8 +2,8 @@ import { StatusBadge } from "@/components/feedback/StatusBadge";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Separator } from "@/components/ui/separator";
 import { RoleGuard } from "@/layouts/RoleGuard";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
 import {
   SUPPLIER_BILL_STATUS_LABELS,
   EXPENSE_CATEGORY_LABELS,
@@ -119,8 +119,8 @@ function BillMetadataRows({ bill }: { bill: DetailBill }) {
       <Row label="Proveedor" value={bill.suppliers?.name} />
       <Row label="RFC" value={bill.suppliers?.rfc} />
       <Row label="Categoría" value={bill.category ? EXPENSE_CATEGORY_LABELS[bill.category as keyof typeof EXPENSE_CATEGORY_LABELS] : "—"} />
-      <Row label="Emisión" value={formatDateDisplay(bill.issue_date)} />
-      <Row label="Vencimiento" value={formatDateDisplay(bill.due_date)} />
+      <Row label="Emisión" value={formatDateMty(bill.issue_date)} />
+      <Row label="Vencimiento" value={formatDateMty(bill.due_date)} />
     </div>
   );
 }

@@ -15,9 +15,9 @@ import { useSupplierBills } from "@/features/accounts-payable";
 import { DocumentAttachments, useForkliftMap } from "@/features/fleet";
 import { useMaintenanceLogs } from "@/features/maintenance";
 import { RoleGuard } from "@/layouts/RoleGuard";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { toMxn } from "@/lib/money";
-import { formatDateDisplay } from "@/lib/utils";
 import { SupplierBankAccountsSection } from "../components/suppliers/SupplierBankAccountsSection";
 import { SupplierContactCard } from "../components/suppliers/SupplierContactCard";
 import { SupplierContactsSection } from "../components/suppliers/SupplierContactsSection";
@@ -57,14 +57,14 @@ export default function SupplierDetailPage() {
   const totalMaintenance = linkedMaintenance.reduce((sum, m) => sum + (m.cost || 0), 0);
 
   const expenseColumns: ColumnDef<LinkedExpense>[] = [
-    { id: "expense_date", header: "Fecha", accessorKey: "expense_date", cell: ({ row }) => <span className="font-mono text-sm">{formatDateDisplay(row.original.expense_date)}</span> },
+    { id: "expense_date", header: "Fecha", accessorKey: "expense_date", cell: ({ row }) => <span className="font-mono text-sm">{formatDateMty(row.original.expense_date)}</span> },
     { id: "category", header: "Categoría", accessorKey: "category", cell: ({ row }) => <Badge variant="outline">{row.original.category}</Badge> },
     { id: "description", header: "Descripción", accessorKey: "description", cell: ({ row }) => <span className="text-muted-foreground">{row.original.description || "—"}</span> },
     { id: "amount", header: "Monto", accessorKey: "amount", meta: { kind: "money" }, cell: ({ row }) => formatCurrency(row.original.amount) },
   ];
 
   const maintenanceColumns: ColumnDef<LinkedMaintenance>[] = [
-    { id: "performed_at", header: "Fecha", accessorKey: "performed_at", cell: ({ row }) => <span className="font-mono text-sm">{formatDateDisplay(row.original.performed_at)}</span> },
+    { id: "performed_at", header: "Fecha", accessorKey: "performed_at", cell: ({ row }) => <span className="font-mono text-sm">{formatDateMty(row.original.performed_at)}</span> },
     { id: "forklift", header: "Montacargas", accessorFn: (m) => forkliftMap.get(m.forklift_id)?.name ?? "", cell: ({ row }) => forkliftMap.get(row.original.forklift_id)?.name || "—" },
     { id: "service_type", header: "Tipo de Servicio", accessorKey: "service_type", cell: ({ row }) => row.original.service_type },
     { id: "cost", header: "Costo", accessorFn: (m) => m.cost ?? 0, meta: { kind: "money" }, cell: ({ row }) => formatCurrency(row.original.cost || 0) },

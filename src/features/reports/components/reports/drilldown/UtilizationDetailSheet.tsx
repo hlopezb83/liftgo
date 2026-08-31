@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
-import { formatDateDisplay } from "@/lib/utils";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { hasOverlappingBookings, type ClampedBooking } from "../../../lib/drilldown";
 
 interface Props {
@@ -81,7 +81,7 @@ export function UtilizationDetailSheet({
                           {b.booking_number} · {b.customer_name || "—"}
                         </p>
                         <p className="text-muted-foreground truncate">
-                          {formatDateDisplay(b.clampedStart)} – {formatDateDisplay(b.clampedEnd)}
+                          {formatDateMty(b.clampedStart)} – {formatDateMty(b.clampedEnd)}
                         </p>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">

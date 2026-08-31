@@ -1,10 +1,11 @@
 import { Document, Page, Text, View, Image } from "@react-pdf/renderer";
 import { format } from "date-fns";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { AccentBar } from "@/lib/pdf/components/AccentBar";
 import { Footer } from "@/lib/pdf/components/Footer";
 import type { TemplateData, ContractData } from "@/lib/pdf/contract/data";
 import { sharedStyles, contractStyles } from "@/lib/pdf/theme/styles";
-import { formatDateDisplay, nowMty } from "@/lib/utils";
+import { nowMty } from "@/lib/utils";
 import { ChecklistAnnex } from "./contract/ChecklistAnnex";
 import { ContractBody } from "./contract/ContractBody";
 import { PagareAnnex } from "./contract/PagareAnnex";
@@ -94,7 +95,7 @@ export function ContractDocument(props: ContractDocumentProps) {
   const city = vars.ciudad;
   // v7.282.0: la fecha impresa es la de firma (o inicio de vigencia), no "hoy".
   const signingDate = contract.signed_at || contract.start_date || null;
-  const formattedDate = (signingDate && formatDateDisplay(signingDate)) || format(nowMty(), "dd/MM/yyyy");
+  const formattedDate = (signingDate && formatDateMty(signingDate)) || format(nowMty(), "dd/MM/yyyy");
   const wrapperProps = { company, logoBase64, contractNumber: contract.contract_number };
 
   return (

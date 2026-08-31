@@ -4,7 +4,7 @@ import { SuccessIcon, X, ResetIcon, SecurityIcon, ShieldAlert, SpinnerIcon } fro
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useUserRole } from "@/features/users";
-import { formatDateDisplay } from "@/lib/utils";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { useSupplierBillApprovals } from "../hooks/useBillApprovalHistory";
 import { useRequestBillReapproval } from "../hooks/useBillApprovalMutations";
 import {
@@ -64,7 +64,7 @@ function ApprovalTimeline({ history, isLoading }: { history: HistoryEntry[] | un
             <li key={h.id} className="rounded-md border p-2 text-xs space-y-0.5">
               <div className="flex items-center justify-between">
                 <span className="font-medium">{APPROVAL_ACTION_LABELS[h.action] ?? h.action}</span>
-                <span className="text-muted-foreground">{formatDateDisplay(h.created_at)}</span>
+                <span className="text-muted-foreground">{formatDateMty(h.created_at)}</span>
               </div>
               <p className="text-muted-foreground">
                 {h.actor_name ?? "Sistema"}
@@ -154,12 +154,12 @@ export function BillApprovalSection({
         )}
         {approvalStatus === "approved" && approvedAt && (
           <p className="text-xs text-muted-foreground">
-            Aprobada el {formatDateDisplay(approvedAt)}
+            Aprobada el {formatDateMty(approvedAt)}
           </p>
         )}
         {approvalStatus === "rejected" && (rejectedAt ?? approvedAt) && (
           <p className="text-xs text-muted-foreground">
-            Rechazada el {formatDateDisplay((rejectedAt ?? approvedAt) as string)}
+            Rechazada el {formatDateMty((rejectedAt ?? approvedAt) as string)}
           </p>
         )}
 

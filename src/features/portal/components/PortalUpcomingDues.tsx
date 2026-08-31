@@ -1,9 +1,9 @@
 import { Link } from "react-router";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
 import { nowMty } from "@/lib/utils";
-import { formatDateDisplay } from "@/lib/utils";
 
 export interface UpcomingDueInvoice {
   id: string;
@@ -58,7 +58,7 @@ export function PortalUpcomingDues({ invoices }: { invoices: UpcomingDueInvoice[
             <div key={inv.id} className="flex items-center justify-between gap-3 p-3 rounded-lg bg-muted/40 text-sm">
               <div className="min-w-0">
                 <p className="font-medium truncate">{inv.invoice_number ?? "—"}</p>
-                <p className="text-xs text-muted-foreground">{formatDateDisplay(inv.due_date)}</p>
+                <p className="text-xs text-muted-foreground">{formatDateMty(inv.due_date)}</p>
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 <span className="font-mono font-semibold tabular-nums">

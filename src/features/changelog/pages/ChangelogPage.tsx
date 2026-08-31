@@ -11,7 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTableFilters } from "@/hooks/filters/useTableFilters";
 import { useListPage } from "@/hooks/useListPage";
 import { ChangelogEntryCard } from "../components/changelog/ChangelogEntryCard";
-import { useChangelog } from "../hooks/useChangelog";
+import { useChangelog, useChangelogArchive } from "../hooks/useChangelog";
 import { useChangelogDeepLink } from "../hooks/useChangelogDeepLink";
 import { getCurrentVersion } from "../lib/changelog";
 import {
@@ -23,8 +23,14 @@ const TYPE_OPTIONS = TYPE_FILTERS.filter((t) => t.value !== "all").map((t) => t.
 const CATEGORY_OPTIONS = CATEGORY_FILTERS.filter((c) => c.value !== "all").map((c) => c.value) as string[];
 
 export default function ChangelogPage() {
-  const { data: changelog = [], isLoading, error, refetch } = useChangelog();
+  // Por defecto solo cargamos las versiones recientes (~40 KB). El histórico
+  // completo (~650 KB) se descarga solo si el usuario lo pide.
+  const [showArchive, setShowArchive] = useState(false);
+  const { data: recent = [], isLoading, error, refetch } = useChangelog();
+  const { data: archive, isFetching: isFetchingArchive } = useChangelogArchive(showArchive);
+  const changelog = archive ?? recent;
   const { expanded, highlighted, toggle } = useChangelogDeepLink(changelog);
+
 
   // Oleada 1 sidebar: al visitar el changelog marcamos la versión como vista
   // → el punto ámbar del ítem "Changelog" desaparece hasta el próximo bump.
@@ -92,8 +98,9 @@ export default function ChangelogPage() {
     <PageContainer maxWidth="form">
       <PageHeader
         title="Historial de Cambios"
-        subtitle={`Versión actual: v${getCurrentVersion(changelog)} · ${changelog.length} entradas`}
+        subtitle={`Versión actual: v${getCurrentVersion(changelog)} · ${changelog.length} entradas${archive ? "" : " recientes"}`}
       />
+
 
       <FiltersToolbar>
         <SearchBar
@@ -153,6 +160,20 @@ export default function ChangelogPage() {
       )}
 
       <TablePagination page={page} totalPages={totalPages} onPageChange={setPage} />
+
+      {!archive && (
+        <div className="flex justify-center">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={isFetchingArchive}
+            onClick={() => setShowArchive(true)}
+          >
+            {isFetchingArchive ? "Cargando historial completo…" : "Ver historial completo"}
+          </Button>
+        </div>
+      )}
+
     </PageContainer>
   );
 }

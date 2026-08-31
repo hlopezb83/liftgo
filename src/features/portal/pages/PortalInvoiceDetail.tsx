@@ -10,8 +10,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrencyWithCode } from "@/lib/format/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
 import { InvoiceSummaryCards } from "../components/InvoiceSummaryCards";
 import { TotalsBreakdown } from "../components/TotalsBreakdown";
 import { useCfdiDownload } from "../hooks/useCfdiDownload";
@@ -33,7 +33,7 @@ function buildLineColumns(currency: string): ColumnDef<LineItem>[] {
 
 function buildPaymentColumns(currency: string): ColumnDef<Payment>[] {
   return [
-    { id: "payment_date", header: "Fecha", accessorKey: "payment_date", cell: ({ row }) => formatDateDisplay(row.original.payment_date) },
+    { id: "payment_date", header: "Fecha", accessorKey: "payment_date", cell: ({ row }) => formatDateMty(row.original.payment_date) },
     { id: "payment_method", header: "Método", accessorKey: "payment_method", enableSorting: false, cell: ({ row }) => row.original.payment_method || "—" },
     { id: "reference_number", header: "Referencia", accessorKey: "reference_number", enableSorting: false, cell: ({ row }) => row.original.reference_number || "—" },
     { id: "amount", header: "Monto", accessorFn: (p) => Number(p.amount), meta: { kind: "money" }, cell: ({ row }) => formatCurrencyWithCode(Number(row.original.amount), currency) },
@@ -135,7 +135,7 @@ export default function PortalInvoiceDetail() {
       />
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
         <StatusBadge status={invoice.status} />
-        <span>Emitida: {formatDateDisplay(invoice.issued_at)}</span>
+        <span>Emitida: {formatDateMty(invoice.issued_at)}</span>
       </div>
 
       <InvoiceSummaryCards

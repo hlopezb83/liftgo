@@ -38,6 +38,25 @@ if (expected !== actual) {
 
 console.log(`[check-version] OK — version.json = changelog[0] = ${expected}`);
 
+// YAGNI v7.397.0: `public/changelog-recent.json` es el índice ligero que carga
+// la página. Debe ser un prefijo exacto de `changelog.json`.
+try {
+  const recent = JSON.parse(await readFile(resolve(root, "public/changelog-recent.json"), "utf8"));
+  if (!Array.isArray(recent) || recent.length === 0) throw new Error("vacío");
+  const head = changelog.slice(0, recent.length);
+  if (JSON.stringify(head) !== JSON.stringify(recent)) {
+    console.error("[check-version] changelog-recent.json no coincide con el inicio de changelog.json");
+    console.error("[check-version] Corre `node scripts/gen-version.mjs` y vuelve a commitear.");
+    process.exit(1);
+  }
+  console.log(`[check-version] OK — changelog-recent.json = ${recent.length} entradas`);
+} catch (err) {
+  console.error(`[check-version] changelog-recent.json inválido o ausente: ${err.message}`);
+  console.error("[check-version] Corre `node scripts/gen-version.mjs` y vuelve a commitear.");
+  process.exit(1);
+}
+
+
 // Guard v7.331.1: valida el esquema que consume el cliente (`changelog.ts`).
 // Un `type` faltante rompía toda la página /changelog ("Entrada #0: type inválido").
 const TYPES = new Set(["major", "minor", "patch"]);

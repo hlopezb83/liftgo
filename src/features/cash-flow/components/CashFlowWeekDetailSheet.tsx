@@ -3,8 +3,9 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { formatDateDisplay, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { CashFlowBucket, CashFlowItem } from "../lib/cashFlowUtils";
 
 interface Props {
@@ -38,7 +39,7 @@ function Section({ title, items, kind, onClick }: { title: string; items: CashFl
               >
                 <div className="min-w-0">
                   <p className="font-medium truncate">{it.isProjected ? "Proyectado (renta recurrente)" : it.number}</p>
-                  <p className="text-muted-foreground truncate">{it.partyName} · vence {formatDateDisplay(it.dueDate)}</p>
+                  <p className="text-muted-foreground truncate">{it.partyName} · vence {formatDateMty(it.dueDate)}</p>
                 </div>
                 <span className="font-mono font-bold shrink-0">{formatCurrency(it.amountMxn)}</span>
               </Button>

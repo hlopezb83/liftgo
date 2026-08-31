@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { useUpdateInvoice } from "@/features/invoices";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { toYMD } from "@/lib/date/toYMD";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
 import { notifySuccess } from "@/lib/ui/appFeedback";
-import { formatDateDisplay, nowMty } from "@/lib/utils";
+import { nowMty } from "@/lib/utils";
 import { AlertCard, AlertRow } from "./AlertCard";
 import type { MouseEvent as ReactMouseEvent } from "react";
 
@@ -130,7 +131,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
               secondary={inv.customer_name}
               onClick={() => navigate(`/invoices/${inv.id}`)}
               rightTop={<span className="tabular-nums font-semibold text-destructive text-sm sm:text-base whitespace-nowrap">{formatCurrency(Number(inv.total))}</span>}
-              rightBottom={`Vence: ${formatDateDisplay(inv.due_date)}`}
+              rightBottom={`Vence: ${formatDateMty(inv.due_date)}`}
               action={{ icon: SuccessIcon, title: "Marcar pagada", onClick: (e) => handleMarkPaid(inv, e), className: "text-status-available" }}
             />
           ))}
@@ -163,7 +164,7 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
               secondary={ob.customer_name}
               onClick={() => navigate(`/returns?booking_id=${ob.booking_id}`)}
               rightTop={<span className="tabular-nums font-semibold text-warning whitespace-nowrap">{ob.days_overdue} días</span>}
-              rightBottom={`Venció: ${formatDateDisplay(ob.end_date)}`}
+              rightBottom={`Venció: ${formatDateMty(ob.end_date)}`}
               action={{
                 icon: ClipboardList,
                 title: "Registrar devolución",

@@ -1,8 +1,8 @@
 import { MaintenanceIcon } from "@/components/icons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import type { Tables } from "@/integrations/supabase/types";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { formatCurrency } from "@/lib/format/formatCurrency";
-import { formatDateDisplay } from "@/lib/utils";
 
 
 interface ForkliftMaintenanceListProps {
@@ -24,7 +24,7 @@ export function ForkliftMaintenanceList({ logs }: ForkliftMaintenanceListProps) 
                   {m.description && <p className="text-xs text-muted-foreground mt-0.5">{m.description}</p>}
                 </div>
                 <div className="text-right shrink-0">
-                  <span className="text-xs text-muted-foreground">{formatDateDisplay(m.performed_at)}</span>
+                  <span className="text-xs text-muted-foreground">{formatDateMty(m.performed_at)}</span>
                   {m.cost ? <p className="text-xs font-medium">{formatCurrency(m.cost)}</p> : null}
                 </div>
               </div>

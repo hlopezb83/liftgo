@@ -8,9 +8,10 @@ import { TrophyIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { toYMD } from "@/lib/date/toYMD";
+import { formatDateMty } from "@/lib/format/dateFormats";
 import { zodResolver } from "@/lib/forms/zodResolver";
 import { positiveAmount } from "@/lib/schemas";
-import { nowMty, formatDateDisplay } from "@/lib/utils";
+import { nowMty } from "@/lib/utils";
 import type { Prospect } from "../hooks/useProspects";
 
 interface Props {
@@ -51,7 +52,7 @@ export function CloseWonDialog({ prospect, open, onOpenChange, onConfirm, isPend
     const ymd = toYMD(values.closedAt);
     const baseNotes = prospect.notes ? `${prospect.notes}\n\n` : "";
     const trimmedNote = values.extraNote.trim();
-    const closingNote = trimmedNote ? `[Cierre Ganado ${formatDateDisplay(ymd)}] ${trimmedNote}` : null;
+    const closingNote = trimmedNote ? `[Cierre Ganado ${formatDateMty(ymd)}] ${trimmedNote}` : null;
     onConfirm({
       final_amount: values.finalAmount,
       closed_at: values.closedAt.toISOString(),
