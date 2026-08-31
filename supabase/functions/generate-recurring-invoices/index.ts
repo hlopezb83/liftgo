@@ -439,7 +439,11 @@ async function executePlan(supabase: any, items: PlanItem[]) {
   // Agrupar por (customer_id, período)
   const groups = new Map<string, PlanItem[]>();
   for (const item of items) {
-    const key = `${item.customerId}|${item.startStr}|${item.endStr}`;
+    // Residual (c): la llave debe incluir moneda y tipo de cambio; agrupar
+    // reservas MXN y USD del mismo cliente/periodo emitía una sola factura con
+    // la moneda de la primera reserva y montos de otra divisa sumados 1:1.
+    const key =
+      `${item.customerId}|${item.startStr}|${item.endStr}|${item.currency}|${item.tipoCambio}`;
     const arr = groups.get(key) ?? [];
     arr.push(item);
     groups.set(key, arr);
