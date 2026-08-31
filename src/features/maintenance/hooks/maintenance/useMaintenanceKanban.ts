@@ -40,10 +40,20 @@ export function useMaintenanceKanban() {
 
     if (!newStatus || !sourceStatus || sourceStatus === newStatus) return;
 
+    // A6R2-5: una OT cerrada no se reabre arrastrando la tarjeta; el guard
+    // `trg_guard_maintenance_reopen` ya lo rechaza en la base de datos y aquí
+    // se explica en vez de dejar pasar el error crudo.
+    if (sourceStatus === "completed" || sourceStatus === "cancelled") {
+      const block = describeBusinessBlock("maintenance_work_order_closed");
+      notifyValidation({ title: block.action, message: businessBlockSummary(block) });
+      return;
+    }
+
     if (newStatus === "completed") {
       setPendingCloseId(logId);
       return;
     }
+
 
     queryClient.setQueryData<MaintenanceLog[]>(
       maintenanceLogKeys.byFilter({ forkliftId: null }),
