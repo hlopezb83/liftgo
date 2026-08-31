@@ -1,5 +1,7 @@
 import { Activity } from "react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { WarnIcon, ResetIcon } from "@/components/icons";
 import { Separator } from "@/components/ui/separator";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { usePrefillEffect } from "@/hooks/usePrefillEffect";
@@ -21,7 +23,7 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
   const statusUpdate = useFeedbackStatusUpdate(report);
   const classify = useClassifyFeedback();
   const { data: history } = useFeedbackHistory(report?.id ?? null);
-  const { data: signedUrl } = useFeedbackScreenshotUrl(report?.screenshot_url);
+  const { data: signedUrl, isError: screenshotError, refetch: refetchScreenshot } = useFeedbackScreenshotUrl(report?.screenshot_url);
 
   // Auto-trigger AI classification when report opens with no classification yet.
   usePrefillEffect(() => {
@@ -95,6 +97,20 @@ export function FeedbackDetailSheet({ report, onClose }: Props) {
             <a href={signedUrl} target="_blank" rel="noreferrer" className="block">
               <img src={signedUrl} alt="Captura" className="max-h-64 w-full object-contain rounded-md border" />
             </a>
+          )}
+
+          {/* A6R2-8: si hay screenshot_url pero la URL firmada falló al cargar
+              (bucket/red), mostramos un estado de error distinguible del caso
+              "sin captura" (que simplemente no renderiza nada). */}
+          {report.screenshot_url && screenshotError && (
+            <div className="flex items-center gap-3 rounded-md border border-dashed p-3 text-sm text-muted-foreground">
+              <WarnIcon className="h-4 w-4 text-destructive shrink-0" />
+              <span className="flex-1">No se pudo cargar la captura</span>
+              <Button variant="outline" size="sm" onClick={() => void refetchScreenshot()}>
+                <ResetIcon className="mr-2 h-4 w-4" />
+                Reintentar
+              </Button>
+            </div>
           )}
 
           <Separator />

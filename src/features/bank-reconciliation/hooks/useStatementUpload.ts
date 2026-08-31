@@ -4,6 +4,7 @@ import { type StatementProfile, XML_PROFILES } from "../lib/bankReconciliationCo
 import { parseBankCsv } from "../lib/csvParsers";
 import { parseBankXml, type XmlFieldMapping } from "../lib/xmlParsers";
 import { useImportBankStatement } from "./useBankReconciliationMutations";
+import { decodeStatementFile } from "../lib/decodeStatementFile";
 import type { ParseResult } from "../lib/bankParseUtils";
 
 const mappingKey = (bankAccountId: string) => `liftgo:bank-xml-mapping:${bankAccountId}`;
@@ -65,7 +66,7 @@ export function useStatementUpload(bankAccountId: string) {
       });
       return;
     }
-    const text = await file.text();
+    const text = await decodeStatementFile(file);
     setContent(text);
     const useXml = isXml(text) || XML_PROFILES.includes(profile) || file.name.toLowerCase().endsWith(".xml");
     const parsed = useXml ? await runXml(text, loadMapping(bankAccountId)) : await parseBankCsv(text, profile);

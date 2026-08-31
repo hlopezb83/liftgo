@@ -1,4 +1,4 @@
-import { differenceInDays } from "date-fns";
+import { differenceInCalendarMonths, addMonths } from "date-fns";
 import { useWatch } from "react-hook-form";
 import { DateRangePickerField } from "@/components/forms/DateRangePickerField";
 import { SwitchField } from "@/components/forms/fields";
@@ -35,7 +35,13 @@ export default function BookingForm() {
 
   const startDate = dateRange?.from;
   const endDate = dateRange?.to;
-  const showRecurring = Boolean(startDate && endDate && differenceInDays(endDate, startDate) >= 30);
+  // B5-08: usa la misma noción de "mes calendario" que el motor de
+  // facturación (rentalCalculation.ts) en vez de un umbral de 30 días fijo,
+  // para que la oferta de facturación recurrente coincida con cuándo el
+  // motor realmente generará al menos una línea "Renta mensual".
+  const showRecurring = Boolean(
+    startDate && endDate && addMonths(startDate, 1) <= endDate && differenceInCalendarMonths(endDate, startDate) >= 1,
+  );
   const forkliftName = selectedForklift?.name ?? "";
   // GUI-FE-11b (G-ADM-06): advertencia no bloqueante para fechas pasadas.
   const startYmd = toYMD(startDate);

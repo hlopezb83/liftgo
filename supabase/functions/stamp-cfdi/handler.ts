@@ -24,6 +24,7 @@ import {
 } from "../_shared/money.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
+import { isUsoCfdiCompatible } from "../_shared/cfdiUsoRegimen.ts";
 
 // Re-exports públicos preservados (tests + consumidores).
 export { computeStampVariance, sanitizeLegalName, STAMP_VARIANCE_TOLERANCE };
@@ -330,6 +331,17 @@ export async function handleStampCfdi(
           400,
           jsonHeaders,
         );
+      }
+
+      // A4B-07: el default "G03" (Gastos en general) no es válido para todos
+      // los regímenes (p. ej. 616 "Sin obligaciones fiscales" sólo admite
+      // S01/CP01). Rechazar ANTES de timbrar en vez de dejar que el SAT
+      // regrese el CFDI rechazado tras consumir el timbre.
+      if (!isUsoCfdiCompatible(usoCfdi, taxSystem)) {
+        const msg =
+          `El uso de CFDI "${usoCfdi}" no es válido para el régimen fiscal ${taxSystem} del receptor. Corrige el uso de CFDI del cliente o de la factura antes de timbrar.`;
+        await releaseClaim(msg);
+        return json({ error: msg }, 422, jsonHeaders);
       }
     }
 

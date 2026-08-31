@@ -12,7 +12,7 @@ interface Props<T> {
   mapData: (data: ParsedCsfData) => Partial<T>;
 }
 
-const MAX_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_SIZE_BYTES = 5 * 1024 * 1024;
 
 /** Mensaje user-facing en español para cada ErrorCode nativo de la librería. */
 function messageFor(rejection: FileRejection): string {
@@ -21,7 +21,7 @@ function messageFor(rejection: FileRejection): string {
     case ErrorCode.FileInvalidType:
       return "Solo se aceptan archivos PDF";
     case ErrorCode.FileTooLarge:
-      return "El archivo no debe superar 10 MB";
+      return "El archivo no debe superar 5 MB";
     case ErrorCode.TooManyFiles:
       return "Sólo puedes subir un archivo a la vez";
     default:
@@ -119,7 +119,7 @@ export function CsfDropzone<T>({ onParsed, mapData }: Props<T>) {
                 : "Arrastra tu CSF aquí o haz clic para seleccionar"}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              Constancia de Situación Fiscal del SAT (PDF, máx. 10 MB)
+              Constancia de Situación Fiscal del SAT (PDF, máx. 5 MB)
             </p>
           </div>
         </div>

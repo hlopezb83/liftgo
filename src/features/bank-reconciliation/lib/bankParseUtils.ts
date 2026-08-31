@@ -32,25 +32,56 @@ const MONTHS_ES: Record<string, string> = {
   jan: "01", apr: "04", aug: "08", dec: "12",
 };
 
+/**
+ * Valida que year/month/day formen una fecha real (rechaza 31/02/2026,
+ * 30/02/2026, 31/04/2026, etc.) usando round-trip contra un `Date` en UTC:
+ * si JS "desborda" el día/mes hacia otra fecha, los componentes no coinciden.
+ */
+function isRealCalendarDate(year: number, month: number, day: number): boolean {
+  if (!Number.isInteger(year) || !Number.isInteger(month) || !Number.isInteger(day)) return false;
+  if (month < 1 || month > 12 || day < 1 || day > 31) return false;
+  const d = new Date(Date.UTC(year, month - 1, day));
+  return (
+    d.getUTCFullYear() === year &&
+    d.getUTCMonth() === month - 1 &&
+    d.getUTCDate() === day
+  );
+}
+
 /** Acepta YYYY-MM-DD, ISO con hora, DD/MM/YYYY, DD/MM/YY y DDMMMYYYY (01JUL2026). */
 export function parseDateFlexible(value: string): string | null {
   const v = (value ?? "").trim();
   if (!v) return null;
 
   let m = v.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T\s].*)?$/);
-  if (m) return `${m[1]}-${m[2]}-${m[3]}`;
+  if (m) {
+    const [, y, mo, d] = m;
+    if (!isRealCalendarDate(Number(y), Number(mo), Number(d))) return null;
+    return `${y}-${mo}-${d}`;
+  }
 
   m = v.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})/);
-  if (m) return `${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+  if (m) {
+    const [, d, mo, y] = m;
+    if (!isRealCalendarDate(Number(y), Number(mo), Number(d))) return null;
+    return `${y}-${mo.padStart(2, "0")}-${d.padStart(2, "0")}`;
+  }
 
   m = v.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{2})$/);
-  if (m) return `20${m[3]}-${m[2].padStart(2, "0")}-${m[1].padStart(2, "0")}`;
+  if (m) {
+    const [, d, mo, y2] = m;
+    const y = `20${y2}`;
+    if (!isRealCalendarDate(Number(y), Number(mo), Number(d))) return null;
+    return `${y}-${mo.padStart(2, "0")}-${d.padStart(2, "0")}`;
+  }
 
   // 01JUL2026 / 01-JUL-2026 / 01 JUL 2026
   m = v.match(/^(\d{1,2})[\s-]?([A-Za-zÁÉÍÓÚáéíóú]{3})[\s-]?(\d{4})$/);
   if (m) {
     const mm = MONTHS_ES[m[2].toLowerCase()];
-    if (mm) return `${m[3]}-${mm}-${m[1].padStart(2, "0")}`;
+    if (mm && isRealCalendarDate(Number(m[3]), Number(mm), Number(m[1]))) {
+      return `${m[3]}-${mm}-${m[1].padStart(2, "0")}`;
+    }
   }
   return null;
 }
@@ -79,6 +110,13 @@ export function parseAmount(value: string): number | null {
   // No aplica a decimales por coma: "1,50" (2 dígitos) sigue siendo 1.50.
   if (lastDot === -1 && /^-?\d{1,3}(,\d{3})+$/.test(inner)) {
     inner = inner.replace(/,/g, "");
+    // 2A-5: es-MX/europeo SIN decimales: "1.500" / "12.345.678" — punto(s) con
+    // exactamente 3 dígitos por grupo y sin coma → separadores de miles.
+    // Sin esta regla "1.500" se leía como 1.50 (corrupción ÷1000).
+    // No aplica a "1.50" (2 dígitos) ni a "1234.567" (grupo inicial >3).
+  } else if (lastComma === -1 && /^-?\d{1,3}(\.\d{3})+$/.test(inner)) {
+    inner = inner.replace(/\./g, "");
+
   } else if (lastComma > lastDot) {
     // Coma decimal (es-MX / europeo): puntos son separadores de miles.
     inner = inner.replace(/\./g, "").replace(",", ".");

@@ -15,6 +15,10 @@ type Booking = {
   daily_rate?: number | null;
   weekly_rate?: number | null;
   monthly_rate?: number | null;
+  /** A1-2: moneda/TC pactados en la reserva; se heredan si no son MXN para no
+   *  facturar en MXN montos cotizados/rentados en USD. */
+  currency?: string | null;
+  tipo_cambio?: number | string | null;
 };
 
 type QuoteSource = { id: string; line_items: unknown };
@@ -70,6 +74,20 @@ function applyPrimaryCustomer(
   if (customer) applyCfdiPatch(form, customer);
 }
 
+/**
+ * A1-2: hereda moneda/TC de la reserva primaria cuando no es MXN, evitando
+ * facturar en MXN montos pactados en USD (mismo patrón que `buildFromQuote`
+ * para cotizaciones en `invoiceFormBuilders.ts`).
+ */
+function applyPrimaryCurrency(form: UseFormReturn<InvoiceFormValues>, first: Booking) {
+  if (first.currency !== "USD") return;
+  form.setValue("cfdi.moneda", "USD", { shouldDirty: true });
+  const fx = Number(first.tipo_cambio);
+  if (Number.isFinite(fx) && fx > 0) {
+    form.setValue("cfdi.tipoCambio", fx, { shouldDirty: true });
+  }
+}
+
 function collectExtraLinesFromQuotes(
   selected: Booking[],
   quotes: QuoteSource[] | undefined,
@@ -118,6 +136,7 @@ export function useInvoiceFormHandlers({ form, customers, bookings, forklifts, q
     if (selected.length === 0) return;
 
     applyPrimaryCustomer(form, selected[0], customers);
+    applyPrimaryCurrency(form, selected[0]);
 
     const rentalLines = selected.flatMap((b) => buildLinesForBooking(b, forklifts));
     const extraLines = collectExtraLinesFromQuotes(selected, quotes);
