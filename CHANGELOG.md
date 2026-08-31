@@ -1,3 +1,11 @@
+## [7.398.0] - 2026-08-31
+### Feature (cron CFDI + validación masiva SAT)
+- Las tareas programadas (reintentos de timbrado, reconciliación, facturación y mantenimiento recurrente) vuelven a ejecutarse: ahora aceptan tanto el secreto del entorno como el guardado en la bóveda de la base de datos.
+- Se eliminaron tareas programadas obsoletas y se reagendaron las vigentes con la firma correcta.
+- Nueva pantalla “Validación fiscal contra el SAT” en Clientes: valida en lote hasta 40 clientes por corrida, sin consumir timbres, y muestra el estado (coincide, diferencias, error) con la fecha de la última validación.
+- Cada cliente guarda su estado de validación fiscal, la fecha y el detalle de diferencias.
+- La validación fiscal de facturas y la masiva comparten la misma lógica de consulta al PAC.
+
 ## [7.397.0] - 2026-08-31
 ### Refactor (pulido YAGNI)
 - El historial de cambios abre mostrando las versiones recientes y carga el archivo completo solo cuando se pide, reduciendo la descarga inicial de ~650 KB a ~56 KB.

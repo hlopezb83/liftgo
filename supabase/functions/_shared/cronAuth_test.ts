@@ -47,7 +47,7 @@ Deno.test("cronAuth: Bearer <service_role> válido → ok (via service_role)", a
 
 Deno.test("cronAuth: sin headers → 401", async () => {
   reset();
-  const res = await authenticateCronRequest(makeReq());
+  const res = await authenticateCronRequest(makeReq(), { getVaultSecret: () => Promise.resolve("") });
   assertStrictEquals(res.ok, false);
   if (!res.ok) assertEquals(res.status, 401);
 });
@@ -56,6 +56,7 @@ Deno.test("cronAuth: diferencia de longitud → 401 sin fugar tiempo (early-retu
   reset();
   const res = await authenticateCronRequest(
     makeReq({ "x-cron-secret": CRON.slice(0, -1) }),
+    { getVaultSecret: () => Promise.resolve("") },
   );
   assertStrictEquals(res.ok, false);
 });
@@ -65,6 +66,7 @@ Deno.test("cronAuth: Bearer con secreto incorrecto (misma longitud) → 401", as
   const wrong = "z".repeat(CRON.length);
   const res = await authenticateCronRequest(
     makeReq({ Authorization: `Bearer ${wrong}` }),
+    { getVaultSecret: () => Promise.resolve("") },
   );
   assertStrictEquals(res.ok, false);
 });

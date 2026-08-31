@@ -110,7 +110,17 @@ export function buildSupabaseMock(cfg: MockConfig): MockState {
         filters.push({ col, val });
         return builder;
       },
+      neq: (col, val) => {
+        filters.push({ col, val });
+        return builder;
+      },
+      not: (col, _op, val) => {
+        filters.push({ col, val });
+        return builder;
+      },
+      order: () => builder,
       limit: () => builder,
+
       // Legacy: single/maybeSingle en cadena update devuelven `selects[table]`
       // (varios tests confían en esto para simular update-returning). Opt-in
       // v7.222.0: si `updatesSeq[table]` está definido, se consume aquí para
