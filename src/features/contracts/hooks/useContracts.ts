@@ -116,7 +116,7 @@ export function useSetContractDepositStatus() {
       if (error) throw error;
     },
     invalidateKeys: [contractKeys.all],
-    successMessage: "Depósito actualizado",
+    successMsg: "Depósito actualizado",
     errorTitle: "Error al actualizar el depósito",
   });
 }
