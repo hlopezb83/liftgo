@@ -107,21 +107,28 @@ export function useGanttSegments(
 
   const getMaintenanceSegments = (forkliftId: string): MaintenanceSegment[] => {
     const items = maintenanceByForklift.get(forkliftId) || [];
+    const buffer = Math.max(0, Math.trunc(maintenanceBufferDays));
     const segments: MaintenanceSegment[] = [];
     for (const m of items) {
       const day = parseISO(m.date);
-      if (day < rangeStart || day > rangeEnd) continue;
-      const idx = differenceInDays(day, rangeStart);
+      const winStart = addDays(day, -buffer);
+      const winEnd = addDays(day, buffer);
+      if (winEnd < rangeStart || winStart > rangeEnd) continue;
+      const clampedStart = winStart < rangeStart ? rangeStart : winStart;
+      const clampedEnd = winEnd > rangeEnd ? rangeEnd : winEnd;
+      const startIdx = differenceInDays(clampedStart, rangeStart);
+      const span = differenceInDays(clampedEnd, clampedStart) + 1;
       segments.push({
         id: m.id,
-        leftPercent: (idx / totalDays) * 100,
-        widthPercent: (1 / totalDays) * 100,
-        label: m.label,
+        leftPercent: (startIdx / totalDays) * 100,
+        widthPercent: (span / totalDays) * 100,
+        label: buffer > 0 ? `${m.label} (±${buffer} d)` : m.label,
         date: m.date,
       });
     }
     return segments;
   };
+
 
   const customerColorMap = (() => {
     const map = new Map<string, string>();
