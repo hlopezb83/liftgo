@@ -113,6 +113,11 @@ export function createInvoiceListQueryKey(input?: Partial<InvoiceListFilters>): 
   ];
 }
 
+/**
+ * B5-06: `_` también es comodín en `ilike` (coincide con cualquier carácter),
+ * por eso se neutraliza junto con `%`, comas y paréntesis del filtro `or()`.
+ */
 export function sanitizeInvoiceSearchForQuery(value: string): string {
-  return value.replace(/[%,()]/g, " ").trim();
+  return value.replace(/[%_,()]/g, " ").trim();
 }
+
