@@ -1,9 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { notifySuccess } from "@/lib/ui/appFeedback";
+import { assignOccurrences } from "../../lib/bankParseUtils";
 import { bankImportKeys } from "../../lib/queryKeys";
 import { bankLinesKey } from "../useBankStatementLines";
-import { assignOccurrences } from "../../lib/bankParseUtils";
 import type { ParsedBankLine } from "../../lib/csvParsers";
 
 interface ImportArgs {

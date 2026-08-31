@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { auditKeys, auditLogsQueries, type AuditLogFilters } from "../lib/queryKeys";
 
-export type { AuditLog, AuditLogFilters, AuditOrigin, AuditSource } from "../lib/queryKeys";
+export type { AuditLog, AuditLogFilters, AuditOrigin } from "../lib/queryKeys";
 
 export function useAuditLogs(filters?: AuditLogFilters) {
   return useQuery(auditLogsQueries.list(filters ?? {}));

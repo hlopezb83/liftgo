@@ -30,11 +30,6 @@ export function isSessionExpiredError(error: unknown): boolean {
   return typeof e.message === "string" && EXPIRED_MESSAGE_RE.test(e.message);
 }
 
-/** Sólo para pruebas: reinicia el candado de "ya estoy cerrando sesión". */
-export function resetSessionExpiryGuard(): void {
-  handling = false;
-}
-
 export async function handleSessionExpired(error: unknown): Promise<boolean> {
   if (!isSessionExpiredError(error)) return false;
   if (handling) return true;

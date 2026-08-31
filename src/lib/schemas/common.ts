@@ -13,6 +13,7 @@
  * mejor tree-shaking y por evitar los helpers deprecados de `z.string()`.
  */
 import { z } from "zod";
+import { isValidRegimenFiscalCode, regimenAplicaPersona, tipoPersonaFromRfc } from "@/lib/fiscal/regimenFiscal";
 import { hasValidRfcChecksum } from "@/lib/fiscal/rfcChecksum";
 
 // ---------------------------------------------------------------------------
@@ -123,7 +124,7 @@ export const nonNegativeAmountCoerced = (message = "No puede ser negativo") =>
 // ---------------------------------------------------------------------------
 // Régimen fiscal SAT (A4B-08 / A4B-09)
 // ---------------------------------------------------------------------------
-import { isValidRegimenFiscalCode, regimenAplicaPersona, tipoPersonaFromRfc } from "@/lib/fiscal/regimenFiscal";
+
 
 /**
  * Régimen fiscal opcional validado contra el catálogo vigente del SAT.
