@@ -158,6 +158,7 @@ export default function PortalInvoiceDetail() {
               taxRate={invoice.tax_rate}
               taxAmount={invoice.tax_amount}
               total={invoice.total}
+              currency={currency}
             />
           </div>
         </CardContent>
