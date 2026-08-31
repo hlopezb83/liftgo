@@ -93,6 +93,15 @@ export default function ContractDetail() {
         signedBy={contract.signed_by}
       />
 
+      <ContractDepositCard
+        contractId={id}
+        depositAmount={contract.deposit_amount}
+        depositStatus={contract.deposit_status ?? null}
+        depositSettledAt={contract.deposit_settled_at ?? null}
+        depositSettledAmount={contract.deposit_settled_amount ?? null}
+        depositNotes={contract.deposit_notes ?? null}
+      />
+
       <ContractConditionsCard contract={contract} />
 
       {showFinancials && (
