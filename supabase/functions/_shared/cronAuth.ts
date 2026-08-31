@@ -78,19 +78,6 @@ export async function authenticateCronRequest(
 
 
 
-  for (const secret of candidates) {
-    if (
-      timingSafeEqualStr(headerSecret, secret) ||
-      timingSafeEqualStr(bearer, secret)
-    ) {
-      return { ok: true, via: "cron_secret" };
-    }
-  }
-
-  if (serviceKey.length > 0 && timingSafeEqualStr(bearer, serviceKey)) {
-    return { ok: true, via: "service_role" };
-  }
-
   return { ok: false, status: 401, error: "Unauthorized" };
 }
 
