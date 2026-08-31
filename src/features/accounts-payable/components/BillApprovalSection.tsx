@@ -114,8 +114,9 @@ function ApprovalActions({
 }
 
 export function BillApprovalSection({
-  billId, billNumber, approvalStatus, approvalNotes, approvedAt,
+  billId, billNumber, approvalStatus, approvalNotes, approvedAt, rejectedAt,
 }: Props) {
+
   const { data: role } = useUserRole();
   const isAdmin = role === "admin";
   const isAdministrativo = role === "administrativo";
