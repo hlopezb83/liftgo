@@ -595,7 +595,7 @@ async function executePlan(
     }
   }
 
-  return { created, failed, rateWarnings };
+  return { created, failed, rateWarnings, skippedStaleRate };
 }
 
 Deno.serve(async (req) => {
