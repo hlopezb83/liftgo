@@ -439,7 +439,11 @@ async function executePlan(supabase: any, items: PlanItem[]) {
   // Agrupar por (customer_id, período)
   const groups = new Map<string, PlanItem[]>();
   for (const item of items) {
-    const key = `${item.customerId}|${item.startStr}|${item.endStr}`;
+    // Residual (c): la llave debe incluir moneda y tipo de cambio; agrupar
+    // reservas MXN y USD del mismo cliente/periodo emitía una sola factura con
+    // la moneda de la primera reserva y montos de otra divisa sumados 1:1.
+    const key =
+      `${item.customerId}|${item.startStr}|${item.endStr}|${item.currency}|${item.tipoCambio}`;
     const arr = groups.get(key) ?? [];
     arr.push(item);
     groups.set(key, arr);
@@ -525,7 +529,9 @@ async function executePlan(supabase: any, items: PlanItem[]) {
             null,
           p_receptor_regimen_fiscal: customer?.regimen_fiscal ?? null,
           p_receptor_domicilio_fiscal_cp: customer?.domicilio_fiscal_cp ?? null,
-          p_uso_cfdi: customer?.uso_cfdi ?? "G03",
+          // Residual (b): sin default "G03"; el uso de CFDI debe venir del
+          // cliente (la RPC rechaza el periodo si falta y se reporta el error).
+          p_uso_cfdi: customer?.uso_cfdi ?? null,
           // A1-1: moneda/tipo de cambio de la reserva. NOTA PARA MIGRACIÓN:
           // el RPC `create_recurring_invoice` todavía NO declara
           // `p_moneda`/`p_tipo_cambio` — hay que agregarlos con defaults

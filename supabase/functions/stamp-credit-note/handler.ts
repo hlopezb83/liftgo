@@ -295,8 +295,29 @@ export async function handleStampCreditNote(
     );
 
     const taxId = String(inv.receptor_rfc || "XAXX010101000").toUpperCase();
-    const taxSystem = String(inv.receptor_regimen_fiscal || "616");
-    const zip = String(inv.receptor_domicilio_fiscal_cp || "06600");
+    // Residual (a): los defaults "616"/"06600" timbraban la NC con datos
+    // fiscales genéricos. Se exigen los datos reales del receptor salvo en el
+    // CFDI global (RFC genérico XAXX010101000).
+    const isGlobalReceptor = taxId === "XAXX010101000";
+    const taxSystem = isGlobalReceptor
+      ? String(inv.receptor_regimen_fiscal || "616")
+      : String(inv.receptor_regimen_fiscal ?? "").trim();
+    const zip = isGlobalReceptor
+      ? String(inv.receptor_domicilio_fiscal_cp || "06600")
+      : String(inv.receptor_domicilio_fiscal_cp ?? "").trim();
+
+    if (!isGlobalReceptor) {
+      const missingFiscal: string[] = [];
+      if (!taxSystem) missingFiscal.push("régimen fiscal del receptor");
+      if (!zip) missingFiscal.push("código postal fiscal del receptor");
+      if (missingFiscal.length > 0) {
+        const msg = `Faltan datos fiscales del receptor: ${
+          missingFiscal.join(", ")
+        }. Captúralos en el cliente o en la factura antes de timbrar.`;
+        await releaseClaim(msg);
+        return json({ error: msg }, 400, jsonHeaders);
+      }
+    }
 
     // BL-16: propagar payment_method y exchange reales de la factura origen.
     // Antes se hardcodeaba PUE + exchange 1: NC sobre PPD emitía documento no

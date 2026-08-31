@@ -105,7 +105,10 @@ export function CustomerStatementDocument(props: CustomerStatementDocumentProps)
   const { summary } = props;
   const totalInvoiced = roundMoney(Number(summary.totals.total_invoiced ?? 0));
   const totalPaid = roundMoney(Number(summary.totals.total_paid ?? 0));
-  const balance = roundMoney(totalInvoiced - totalPaid);
+  // B5-02: las notas de crédito reducen el adeudo real; antes el PDF mostraba
+  // un saldo inflado porque sólo restaba los pagos.
+  const totalCredited = roundMoney(Number(summary.totals.total_credited ?? 0));
+  const balance = roundMoney(totalInvoiced - totalPaid - totalCredited);
   const today = nowMty();
   const openInvoices = summary.invoices.filter((i) => i.status !== "paid" && i.status !== "cancelled");
   const paidInvoices = summary.invoices.filter((i) => i.status === "paid");
@@ -134,6 +137,9 @@ export function CustomerStatementDocument(props: CustomerStatementDocumentProps)
         <View style={{ flexDirection: "row", gap: 8 }}>
           <SummaryCard label="TOTAL FACTURADO (MXN)" value={formatCurrency(totalInvoiced)} />
           <SummaryCard label="TOTAL PAGADO (MXN)" value={formatCurrency(totalPaid)} />
+          {totalCredited > 0 && (
+            <SummaryCard label="NOTAS DE CRÉDITO (MXN)" value={formatCurrency(totalCredited)} />
+          )}
           <SummaryCard label="SALDO PENDIENTE (MXN)" value={formatCurrency(balance)} danger={balance > 0} />
         </View>
 
