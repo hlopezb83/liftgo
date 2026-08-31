@@ -67,6 +67,11 @@ export interface FinancialKpis {
   overdue_total: number;
   /** N-15: facturas vencidas en divisa sin tipo de cambio, excluidas del total. */
   overdue_fx_missing_count?: number;
+  /** A2-7: rentas en divisa sin tipo de cambio, excluidas del MRR vigente. */
+  mrr_fx_missing_count?: number;
+  /** A2-7: idem para el MRR del mes previo. */
+  mrr_prev_fx_missing_count?: number;
+
   expiring_contracts: Array<{
     id: string;
     contract_number: string;
