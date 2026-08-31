@@ -20,6 +20,8 @@ import { translatePgError } from "@/lib/errors/pgErrorCatalog";
 export type BusinessBlockCode =
   | "forklift_active_rental"
   | "maintenance_open_damage"
+  | "maintenance_work_order_closed"
+
   | "contract_signed_locked"
   | "invoice_stamped_locked"
   | "invoice_cancellation_pending"
