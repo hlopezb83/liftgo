@@ -100,7 +100,7 @@ export function useQuoteConversionActions(id: string | undefined, data: DataResu
         p_customer_name: payload.customerName,
       });
       if (error) {
-        notifyError({ error, fallback: "No se pudo reasignar el cliente" });
+        notifyError({ error, title: "No se pudo reasignar el cliente" });
         return;
       }
       await data.refetchQuote?.();
