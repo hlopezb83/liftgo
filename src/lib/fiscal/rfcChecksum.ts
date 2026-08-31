@@ -36,7 +36,7 @@ export function hasValidRfcChecksum(rfcRaw: string): boolean {
   for (let i = 0; i < 12; i++) {
     sum += charValue(body[i]) * (13 - i);
   }
-  const remainder = sum % 11;
-  const digit = remainder === 0 ? "0" : remainder === 10 ? "A" : String(11 - remainder);
+  const value = 11 - (sum % 11);
+  const digit = value === 11 ? "0" : value === 10 ? "A" : String(value);
   return digit === expected;
 }
