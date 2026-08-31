@@ -1,0 +1,9 @@
+{
+  "description": "El timbrado rechaza de inmediato un régimen fiscal inválido, la lectura de la Constancia de Situación Fiscal entrega solo el código del SAT, y las facturas de proveedor ya no se quedan atoradas por un lote de pago abandonado.",
+  "changes": [
+    "Antes de timbrar, el sistema verifica que el régimen fiscal del receptor sea un código válido de 3 dígitos del catálogo del SAT y explica el error en vez de consumir un timbre en un CFDI que el PAC rechazaría.",
+    "Al leer una Constancia de Situación Fiscal, el régimen fiscal se guarda como código puro (por ejemplo '601'); si no se puede reconocer, el campo queda vacío para captura manual.",
+    "Si se elimina un lote de pago a proveedores, las facturas del lote que no tienen pagos registrados se liberan automáticamente del estado 'pago en proceso'.",
+    "Nuevo botón 'Liberar bloqueos' en Facturas de Proveedor (solo administradores): libera facturas marcadas como 'pago en proceso' hace más de 24 horas cuyo lote ya no existe y que no tienen pagos registrados."
+  ]
+}

@@ -1,3 +1,10 @@
+## [7.401.0] - 2026-09-01
+### Fix (auditoría R6 · fiscal + CxP)
+- El timbrado valida que el régimen fiscal del receptor sea un código de 3 dígitos del catálogo SAT (c_RegimenFiscal) y responde 422 explicando el error antes de llamar al PAC.
+- `parse-csf` normaliza el régimen fiscal extraído al código puro; si no es reconocible, deja el campo vacío.
+- Al eliminar un lote de pago a proveedores, se liberan las facturas sin pagos registrados (`payment_in_progress_at`).
+- Nuevo RPC `release_stale_payment_locks` (admin/administrativo) y botón "Liberar bloqueos" en Facturas de Proveedor para facturas atoradas >24 h sin lote vivo ni pagos.
+
 ## [7.400.0] - 2026-09-01
 ### Fix (auditoría R5 · integridad)
 - Archivar una orden de trabajo abierta ya no borra sus refacciones ni su mano de obra.
