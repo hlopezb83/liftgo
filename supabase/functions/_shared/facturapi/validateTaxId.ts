@@ -73,21 +73,98 @@ export async function validateTaxIdWithPac(
     };
   }
 
-  let parsed: { is_valid?: boolean; errors?: TaxIdValidationError[] } = {};
+  let parsed: Record<string, unknown> = {};
   try {
-    parsed = JSON.parse(rawText);
+    parsed = JSON.parse(rawText) as Record<string, unknown>;
   } catch {
     parsed = {};
   }
 
   if (parsed.is_valid === true) return { kind: "valid", errors: [] };
 
-  return {
-    kind: "mismatch",
-    errors: (parsed.errors ?? []).map((e) => ({
-      path: e.path ?? "",
-      message: e.message ?? "",
-      code: e.code,
-    })),
+  const errors = normalizeTaxIdErrors(parsed);
+  if (errors.length === 0) {
+    console.warn(
+      "[validateTaxIdWithPac] respuesta sin detalle de diferencias:",
+      rawText.slice(0, 400),
+    );
+    errors.push({
+      path: "",
+      message:
+        "El SAT no confirmó los datos. Revisa RFC, razón social, régimen fiscal y C.P. contra la Constancia de Situación Fiscal.",
+      code: "SAT_MISMATCH",
+    });
+  }
+
+  return { kind: "mismatch", errors };
+}
+
+const FIELD_LABEL: Record<string, string> = {
+  tax_id: "RFC",
+  legal_name: "Razón social",
+  tax_system: "Régimen fiscal",
+  zip: "C.P. fiscal",
+};
+
+function labelFor(path: string): string {
+  return FIELD_LABEL[path] ?? path;
+}
+
+/**
+ * El PAC no siempre devuelve el mismo formato de errores: puede mandar un
+ * arreglo de objetos, un arreglo de textos, un mapa campo → mensaje, o sólo
+ * un `message` general. Normalizamos todos esos casos a una lista legible.
+ */
+export function normalizeTaxIdErrors(
+  parsed: Record<string, unknown>,
+): TaxIdValidationError[] {
+  const out: TaxIdValidationError[] = [];
+  const raw = parsed.errors ?? parsed.error ?? null;
+
+  const pushEntry = (path: string, message: string, code?: string) => {
+    const trimmed = message.trim();
+    if (!trimmed && !path) return;
+    const label = labelFor(path);
+    out.push({
+      path,
+      message: label && trimmed
+        ? `${label}: ${trimmed}`
+        : (trimmed || `${label} no coincide con el SAT`),
+      code,
+    });
   };
+
+  const consume = (entry: unknown, keyHint = "") => {
+    if (typeof entry === "string") {
+      pushEntry(keyHint, entry);
+      return;
+    }
+    if (entry && typeof entry === "object") {
+      const e = entry as Record<string, unknown>;
+      const path = String(e.path ?? e.field ?? e.param ?? keyHint ?? "");
+      const message = String(
+        e.message ?? e.description ?? e.detail ?? e.reason ?? "",
+      );
+      pushEntry(path, message, e.code ? String(e.code) : undefined);
+    }
+  };
+
+  if (Array.isArray(raw)) {
+    for (const entry of raw) consume(entry);
+  } else if (raw && typeof raw === "object") {
+    for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+      if (Array.isArray(value)) for (const v of value) consume(v, key);
+      else consume(value, key);
+    }
+  } else if (typeof raw === "string") {
+    consume(raw);
+  }
+
+  if (out.length === 0 && typeof parsed.message === "string") {
+    pushEntry("", parsed.message);
+  }
+
+  return out;
+}
+
 }
