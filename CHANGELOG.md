@@ -1,3 +1,11 @@
+## [7.387.0] - 2026-08-30
+### Fix (auditoría QA — A2-1 saldo FX-aware en flujo de efectivo)
+- **A2-1:** `src/features/cash-flow/lib/cashFlowTransformers.ts` recalculaba el saldo sumando `payments.amount` crudo, asumiendo que el pago siempre viene en la moneda de la factura. La BD permite el cruce con tipo de cambio, así que un pago en MXN sobre una factura USD subestimaba (o desaparecía) el saldo proyectado.
+- `invoiceToItem(inv)` ahora consume `v_invoices_with_balance.balance_mxn`, el saldo canónico que ya usan cobranza y el portal: pagos convertidos con el TC del pago o del documento, NCs timbradas descontadas y conversión final a MXN. `balance_mxn` nulo (TC faltante) excluye la factura, igual que antes.
+- `cashFlowProjectionQueries.list` deja de descargar `payments`; `buildPaidByInvoice` queda deprecado para este flujo.
+- Sin cambios en SQL, RLS, permisos, máquinas de estado ni lógica fiscal.
+- Pruebas: `cashFlowTransformers.test.ts` y `cashFlowFxMissing.test.ts` (31 pruebas de cash-flow verdes).
+
 ## [7.386.0] - 2026-08-30
 ### Fix (auditoría QA — A1-B2 IVA de recurrentes, A5-02 tipo de cambio en cotizaciones)
 - **A1-B2:** `supabase/functions/generate-recurring-invoices/index.ts` calculaba el IVA con un solo `Math.round` sobre el subtotal agrupado, divergiendo de `computeTotals` y de Facturapi (que redondean por partida). Nuevo helper `sumLineTaxCents` en `supabase/functions/_shared/money.ts`.
