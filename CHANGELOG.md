@@ -1,3 +1,10 @@
+## [7.398.1] - 2026-08-31
+### Fix (validación fiscal SAT)
+- Se corrigió la lectura de la respuesta del PAC: la consulta valida el RFC contra la lista EFOS (art. 69-B) del SAT y devuelve el resultado dentro de `efos`, que antes no se interpretaba y marcaba a todos como con diferencias.
+- Cuando el SAT responde sin detalle, se guarda y muestra el mensaje textual del SAT en vez de dejar la columna en blanco.
+- Los mensajes de error del PAC se normalizan a un texto legible con el nombre del campo (RFC, razón social, régimen fiscal, C.P.).
+- Se ajustaron los textos de la pantalla para reflejar lo que realmente se valida: “Sin observaciones” / “Con observaciones (EFOS 69-B)” y datos fiscales incompletos.
+
 ## [7.398.0] - 2026-08-31
 ### Feature (cron CFDI + validación masiva SAT)
 - Las tareas programadas (reintentos de timbrado, reconciliación, facturación y mantenimiento recurrente) vuelven a ejecutarse: ahora aceptan tanto el secreto del entorno como el guardado en la bóveda de la base de datos.
