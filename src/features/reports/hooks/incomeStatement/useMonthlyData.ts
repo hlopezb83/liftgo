@@ -150,7 +150,10 @@ export function useMonthlyData({ startDate, endDate, accountingBasis }: Props) {
   const data: MonthData[] = (rpc?.months ?? []).map(mapMonthRow);
   const rentedWithoutCost = rpc?.rented_without_cost ?? [];
   const soldWithoutCost = rpc?.sold_without_cost ?? [];
+  const fxMissingCount =
+    Number(rpc?.fx_missing?.invoices ?? 0) + Number(rpc?.fx_missing?.supplier_bills ?? 0);
 
-  return { data, rentedWithoutCost, soldWithoutCost, isError, isFetching, refetch };
+  return { data, rentedWithoutCost, soldWithoutCost, fxMissingCount, isError, isFetching, refetch };
+
 }
 
