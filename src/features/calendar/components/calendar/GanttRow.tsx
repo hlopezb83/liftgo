@@ -4,7 +4,7 @@ import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import type { Tables } from "@/integrations/supabase/types";
 import { BOOKING_STATUS } from "@/lib/constants";
 import { formatMtyDate } from "@/lib/utils";
-import type { BarSegment } from "../../hooks/calendar/useGanttSegments";
+import type { BarSegment, MaintenanceSegment } from "../../hooks/calendar/useGanttSegments";
 
 const BOOKING_STATUS_LABELS: Record<string, string> = {
   confirmed: "Confirmada",
@@ -18,9 +18,10 @@ interface Props {
   forklift: Tables<"forklifts">;
   segments: BarSegment[];
   days: Date[];
+  maintenanceSegments?: MaintenanceSegment[];
 }
 
-export function GanttRow({ forklift, segments, days }: Props) {
+export function GanttRow({ forklift, segments, days, maintenanceSegments = [] }: Props) {
   const navigate = useNavigateTransition();
   return (
     <div className="flex items-center border-b py-1.5 hover:bg-muted/30">
@@ -43,6 +44,23 @@ export function GanttRow({ forklift, segments, days }: Props) {
             );
           })}
         </div>
+        {/* A5-07: capa de mantenimiento programado debajo de las barras de renta. */}
+        {maintenanceSegments.map((m) => (
+          <Tooltip key={`mtto-${m.id}`}>
+            <TooltipTrigger asChild>
+              <div
+                aria-label={`Mantenimiento ${m.label}`}
+                className="absolute top-0 h-6 rounded-sm bg-[repeating-linear-gradient(45deg,hsl(var(--warning)/0.55)_0px,hsl(var(--warning)/0.55)_3px,transparent_3px,transparent_6px)] border border-warning/60"
+                style={{ left: `${m.leftPercent}%`, width: `${m.widthPercent}%` }}
+              />
+            </TooltipTrigger>
+            <TooltipContent side="top" className="text-xs space-y-1">
+              <p className="font-semibold">Mantenimiento</p>
+              <p>{m.label}</p>
+              <p className="text-muted-foreground">{formatMtyDate(m.date)}</p>
+            </TooltipContent>
+          </Tooltip>
+        ))}
         {segments.map((seg) => {
           const isConfirmed = seg.booking.status === BOOKING_STATUS.confirmed;
           const showLabel = seg.durationDays > 3;

@@ -123,6 +123,9 @@ export async function buildLine(input: {
     // N-23: el indice de linea discrimina movimientos identicos dentro del
     // mismo archivo (mismo monto/fecha/referencia) sin romper la dedup de
     // reimportaciones, que conservan el mismo orden de lineas.
+    // A5-09: NO quitar `lineSeq` del hash sin antes cambiar el indice unico
+    // (bank_account_id, hash): dos movimientos legitimamente identicos en el
+    // mismo estado de cuenta chocarian al importar.
     hash: await hashLine([String(lineSeq), postedDate, signedAmount.toFixed(2), reference ?? "", description.slice(0, 80)]),
   };
 }

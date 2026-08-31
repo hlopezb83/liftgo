@@ -1,6 +1,5 @@
 import { MaintenanceIcon, SuccessIcon, ClipboardList, OverdueIcon } from "@/components/icons";
 import { Button } from "@/components/ui/button";
-import { useUpdateBooking } from "@/features/bookings";
 import { useUpdateInvoice } from "@/features/invoices";
 import { useNavigateTransition } from "@/hooks/useNavigateTransition";
 import { toYMD } from "@/lib/date/toYMD";
@@ -46,7 +45,6 @@ interface AlertsRowProps {
 export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, overdueBookings }: AlertsRowProps) {
   const navigate = useNavigateTransition();
   const updateInvoice = useUpdateInvoice();
-  const updateBooking = useUpdateBooking();
 
   if (overdueInvoices.length === 0 && maintenanceAlerts.length === 0 && overdueBookings.length === 0) return null;
 
@@ -55,14 +53,10 @@ export function AlertsRow({ overdueInvoices, maintenanceAlerts, agingBuckets, ov
     updateInvoice.mutate(
       { id: inv.id, status: "paid", paid_at: toYMD(nowMty()) },
       {
-        onSuccess: (data) => {
+        onSuccess: () => {
           notifySuccess(`${inv.invoice_number} marcada como pagada`);
-          if (data.booking_id) {
-            updateBooking.mutate(
-              { id: data.booking_id, status: "completed" },
-              { onSuccess: () => notifySuccess("Reserva vinculada completada") }
-            );
-          }
+          // A3-04: completar la reserva requiere la inspección de devolución;
+          // no se fuerza con un UPDATE directo desde el tablero.
         },
       }
     );

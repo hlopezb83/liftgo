@@ -8,7 +8,9 @@ const CURRENT_YEAR = new Date().getFullYear();
 /** L-7: rango razonable 2000–2100 para la vigencia del seguro. */
 function validateInsuranceExpiry(value: string | undefined, ctx: z.RefinementCtx) {
   if (!value) return;
-  const expiryYear = new Date(value).getFullYear();
+  // A5-08: `new Date("2025-01-01")` se interpreta en UTC y podía devolver el
+  // año anterior en husos negativos. El año se lee del propio string YYYY-MM-DD.
+  const expiryYear = Number(value.slice(0, 4));
   if (!Number.isFinite(expiryYear) || expiryYear < 2000 || expiryYear > 2100) {
     ctx.addIssue({
       code: z.ZodIssueCode.custom,

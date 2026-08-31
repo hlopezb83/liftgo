@@ -2320,6 +2320,7 @@ export type Database = {
           description: string | null
           expense_date: string
           id: string
+          supplier_bill_id: string | null
           supplier_id: string | null
           updated_at: string
         }
@@ -2331,6 +2332,7 @@ export type Database = {
           description?: string | null
           expense_date?: string
           id?: string
+          supplier_bill_id?: string | null
           supplier_id?: string | null
           updated_at?: string
         }
@@ -2342,10 +2344,18 @@ export type Database = {
           description?: string | null
           expense_date?: string
           id?: string
+          supplier_bill_id?: string | null
           supplier_id?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "operating_expenses_supplier_bill_id_fkey"
+            columns: ["supplier_bill_id"]
+            isOneToOne: false
+            referencedRelation: "supplier_bills"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "operating_expenses_supplier_id_fkey"
             columns: ["supplier_id"]
@@ -3803,6 +3813,10 @@ export type Database = {
         Args: { p_booking_id: string; p_reason?: string }
         Returns: undefined
       }
+      cancel_supplier_payment_batch: {
+        Args: { p_batch_id: string }
+        Returns: undefined
+      }
       change_feedback_status: {
         Args: { _comment?: string; _new_status: string; _report_id: string }
         Returns: {
@@ -4329,6 +4343,14 @@ export type Database = {
       quote_sale_units_unassigned: {
         Args: { p_quote_id: string }
         Returns: number
+      }
+      reassign_quote_customer: {
+        Args: {
+          p_customer_id: string
+          p_customer_name: string
+          p_quote_id: string
+        }
+        Returns: undefined
       }
       recalc_supplier_bill: { Args: { p_bill_id: string }; Returns: undefined }
       reconcile_expired_bookings: {
