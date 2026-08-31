@@ -1,5 +1,16 @@
 [
   {
+    "version": "7.396.1",
+    "date": "2026-08-31",
+    "type": "patch",
+    "title": "Pruebas de RFC alineadas al dígito verificador",
+    "description": "Se ajustaron las pruebas automáticas para usar RFCs con dígito verificador válido; sin cambios funcionales en la app.",
+    "changes": [
+      "Las pruebas del validador de RFC usan ejemplos con dígito verificador correcto.",
+      "Suite completa de pruebas en verde."
+    ]
+  },
+  {
     "version": "7.394.0",
     "date": "2026-08-31",
     "type": "minor",

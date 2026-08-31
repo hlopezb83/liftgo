@@ -1,0 +1,7 @@
+{
+  "description": "Se ajustaron las pruebas automáticas del validador de RFC para usar ejemplos con dígito verificador válido; sin cambios funcionales en la app.",
+  "changes": [
+    "Las pruebas de RFC opcional usan ejemplos con dígito verificador correcto (checksum SAT).",
+    "Suite completa de pruebas en verde."
+  ]
+}

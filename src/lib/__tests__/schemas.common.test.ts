@@ -38,10 +38,10 @@ describe("schemas/common — rfcOptional", () => {
     expect(schema.safeParse("ABC").success).toBe(false);
   });
   it("acepta RFC persona moral (12 chars)", () => {
-    expect(schema.safeParse("ABC010101XYZ").success).toBe(true);
+    expect(schema.safeParse("ABC010101XY2").success).toBe(true);
   });
   it("acepta RFC persona física (13 chars)", () => {
-    expect(schema.safeParse("ABCD010101XYZ").success).toBe(true);
+    expect(schema.safeParse("ABCD010101XY1").success).toBe(true);
   });
 });
 
