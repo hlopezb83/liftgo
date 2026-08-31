@@ -4,7 +4,6 @@ import { supabase } from "@/integrations/supabase/client";
 import type { TablesInsert, TablesUpdate } from "@/integrations/supabase/types";
 import { useEntityMutation } from "@/lib/hooks/useEntityMutation";
 import { assertRowsAffected } from "@/lib/supabase/assertRowsAffected";
-
 import { bookingKeys } from "../../lib/queryKeys";
 
 export function useCreateBooking() {
