@@ -12,6 +12,7 @@ export interface CashFlowItem {
   kind: "in" | "out";
   navigatePath: string;
   isProjected?: boolean;
+  isProjected?: boolean;
 }
 
 export interface CashFlowBucket {
