@@ -26,17 +26,17 @@ describe("parseBankCsv", () => {
     expect(res.lines[1].signed_amount).toBe(-1500);
   });
 
-  // N-23: el hash incluye la posición de la línea, así que dos movimientos
-  // idénticos dentro del mismo archivo ya NO comparten hash (antes el segundo
-  // se descartaba en silencio en el upsert). La dedup de reimportaciones sigue
-  // funcionando porque el mismo archivo conserva el mismo orden de líneas.
-  it("hash distingue líneas distintas y también movimientos idénticos del mismo archivo", async () => {
+  // A5-09: el hash depende solo del contenido, así que dos movimientos
+  // idénticos del mismo archivo comparten hash y se distinguen con
+  // `occurrence`. Movimientos distintos siguen teniendo hashes distintos y la
+  // reimportación del mismo archivo es estable.
+  it("hash distingue movimientos distintos y repite en movimientos idénticos", async () => {
     const csv = `Fecha,Desc,Monto,Ref
 05/05/2026,A,-100,R1
 05/05/2026,A,-100,R1
 05/05/2026,B,-100,R1`;
     const res = await parseBankCsv(csv, "generico");
-    expect(res.lines[0].hash).not.toBe(res.lines[1].hash);
+    expect(res.lines[0].hash).toBe(res.lines[1].hash);
     expect(res.lines[0].hash).not.toBe(res.lines[2].hash);
     const again = await parseBankCsv(csv, "generico");
     expect(again.lines.map((l) => l.hash)).toEqual(res.lines.map((l) => l.hash));
