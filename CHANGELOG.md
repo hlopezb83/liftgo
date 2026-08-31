@@ -1,3 +1,9 @@
+## [7.398.2] - 2026-09-01
+### Fix (auditoría R5)
+- Una cotización cuyas reservas fueron todas canceladas ya puede eliminarse; las que tienen reservas vigentes o están aceptadas siguen protegidas.
+- En el calendario, el mantenimiento se dibuja como la ventana completa (fecha del servicio ± los días de holgura configurados) en lugar de una marca de un solo día.
+- Las pruebas automáticas se ejecutan con zona horaria fija, eliminando una falla intermitente en el cálculo de vencimientos de facturas de proveedor.
+
 ## [7.398.1] - 2026-08-31
 ### Fix (validación fiscal SAT)
 - Se corrigió la lectura de la respuesta del PAC: la consulta valida el RFC contra la lista EFOS (art. 69-B) del SAT y devuelve el resultado dentro de `efos`, que antes no se interpretaba y marcaba a todos como con diferencias.
