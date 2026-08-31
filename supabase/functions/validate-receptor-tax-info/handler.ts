@@ -7,10 +7,7 @@ import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 import { getFacturapiConfig } from "../_shared/facturapi/client.ts";
-import {
-  FacturapiTimeoutError,
-  fetchWithTimeout,
-} from "../_shared/facturapi/withTimeout.ts";
+import { validateTaxIdWithPac } from "../_shared/facturapi/validateTaxId.ts";
 import type { SupabaseLike } from "../_shared/types.ts";
 import {
   authenticateWithDeps,
@@ -18,8 +15,6 @@ import {
 } from "../_shared/authWithDeps.ts";
 
 export type { SupabaseLike };
-
-const FACTURAPI_BASE = "https://www.facturapi.io/v2";
 
 export interface ValidateReceptorDeps {
   createCallerClient: (authHeader: string) => CallerLike;
