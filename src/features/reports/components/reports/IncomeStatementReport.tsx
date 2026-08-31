@@ -81,7 +81,20 @@ export function IncomeStatementReport({ startDate, endDate, accountingBasis = "a
 
   return (
     <>
+      {fxMissingCount > 0 && (
+        <Alert variant="warning">
+          <WarnIcon className="h-4 w-4" />
+          <AlertTitle>Documentos en divisa sin tipo de cambio</AlertTitle>
+          <AlertDescription>
+            {fxMissingCount} documento{fxMissingCount === 1 ? "" : "s"} en divisa sin tipo de cambio
+            {fxMissingCount === 1 ? " se excluyó" : " se excluyeron"} de este reporte. Captura el tipo
+            de cambio en la factura o en la factura de proveedor para incluirlos.
+          </AlertDescription>
+        </Alert>
+      )}
+
       {rentedWithoutCost.length > 0 && (
+
         <Alert variant="warning">
           <WarnIcon className="h-4 w-4" />
           <AlertTitle>Equipos sin costo de adquisición</AlertTitle>
