@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { notifySuccess, notifyValidation } from "@/lib/ui/appFeedback";
 import { downloadPaymentsXlsx, type PaymentExportRow } from "../lib/buildPaymentsXlsx";
+import { useCancelPaymentBatch } from "./useCancelPaymentBatch";
 import { useCreatePaymentBatch } from "./useCreatePaymentBatch";
 import { useExportablePayables } from "./useExportablePayables";
 import { usePaymentSelection } from "./usePaymentSelection";
@@ -16,6 +17,7 @@ import { usePaymentSelection } from "./usePaymentSelection";
 export function useExportPaymentsForm(open: boolean, onClose: () => void) {
   const { data: bills, isLoading } = useExportablePayables();
   const createBatch = useCreatePaymentBatch();
+  const cancelBatch = useCancelPaymentBatch();
   const selection = usePaymentSelection(open, bills);
   const [notes, setNotes] = useState("");
 
@@ -47,8 +49,9 @@ export function useExportPaymentsForm(open: boolean, onClose: () => void) {
       notifyValidation({ message: "Hay montos que exceden el saldo pendiente de la factura. Ajusta los renglones marcados." });
       return;
     }
+    let batchId: string | null = null;
     try {
-      await createBatch.mutateAsync({ items, notes: notes || undefined });
+      batchId = await createBatch.mutateAsync({ items, notes: notes || undefined });
       const rows: PaymentExportRow[] = selection.selected.map((b) => {
         const amount = Number((selection.rowState[b.id]?.amount ?? b.balance).toFixed(2));
         return {
@@ -71,6 +74,20 @@ export function useExportPaymentsForm(open: boolean, onClose: () => void) {
       setNotes("");
       onClose();
     } catch {
+      // A2-3: si el lote ya se creó pero la generación/descarga del Excel
+      // falló, el usuario se queda sin layout bancario y las facturas
+      // quedarían reservadas en un lote huérfano. Lo cancelamos para
+      // liberarlas; las reglas de cancelabilidad las valida el RPC.
+      if (batchId) {
+        try {
+          await cancelBatch.mutateAsync(batchId);
+          notifyValidation({
+            message: "No se pudo generar el Excel. El lote de pagos se canceló y las facturas quedaron liberadas.",
+          });
+        } catch {
+          /* notifyError del hook ya informa que el lote quedó pendiente */
+        }
+      }
       /* notifyError already shown by hook */
     }
   };
@@ -87,7 +104,7 @@ export function useExportPaymentsForm(open: boolean, onClose: () => void) {
     setSelected: selection.setSelected,
     setAmount: selection.setAmount,
     canExport,
-    isSubmitting: createBatch.isPending,
+    isSubmitting: createBatch.isPending || cancelBatch.isPending,
     handleExport,
   };
 }
