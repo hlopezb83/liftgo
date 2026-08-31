@@ -55,6 +55,7 @@ export function ApproveBillDialog({ open, onOpenChange, billId, billNumber }: Pr
     >
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          {block && <BlockedActionNotice block={block} />}
           <TextareaField
             control={form.control}
             name="notes"
