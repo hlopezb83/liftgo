@@ -25,7 +25,9 @@ import { maintenanceColumns } from "./maintenanceColumns";
 
 export default function MaintenancePage() {
   const { forkliftMap, forklifts } = useForkliftMap();
-  const { data: logsRaw, isLoading, isError, refetch } = useMaintenanceLogs();
+  // R5-A6: vista de archivados para restaurar OTs archivadas por error.
+  const [showArchived, setShowArchived] = useState(false);
+  const { data: logsRaw, isLoading, isError, refetch } = useMaintenanceLogs(undefined, showArchived);
   const logs = visibleListRows(logsRaw);
   const { data: activeMechanics } = useActiveMechanics();
   const generateRecurring = useGenerateRecurringMaintenance();
