@@ -80,28 +80,7 @@ export async function fetchRelatedData(contract: ContractData) {
   return { company: companyRes.data, customer: customerRes.data, forklift: forkliftRes.data };
 }
 
-    supabase
-      .from("company_settings")
-      .select("razon_social, rfc, regimen_fiscal, lugar_expedicion, logo_url")
-      .limit(1)
-      .maybeSingle(),
-    contract.customer_id
-      ? supabase
-          .from("customers")
-          .select("name, rfc, address, contact_person, representante_legal, domicilio_fiscal_cp")
-          .eq("id", contract.customer_id)
-          .single()
-      : Promise.resolve({ data: null }),
-    contract.forklift_id
-      ? supabase
-          .from("forklifts")
-          .select("manufacturer, model, serial_number, capacity_kg, fuel_type, acquisition_cost")
-          .eq("id", contract.forklift_id)
-          .single()
-      : Promise.resolve({ data: null }),
-  ]);
-  return { company: companyRes.data, customer: customerRes.data, forklift: forkliftRes.data };
-}
+
 
 export async function fetchTemplate(): Promise<TemplateData> {
   // v7.282.0: orden explícito — si existiera más de una plantilla marcada como
