@@ -1,0 +1,9 @@
+{
+  "description": "Los periodos atrasados ya no se facturan automáticamente con una tarifa que pudo cambiar: requieren confirmación del operador. Además, todos los contratos firmados tienen su copia inmutable de cliente, unidad y plantilla.",
+  "changes": [
+    "Si una reserva se editó después de que terminó el periodo a facturar, ese periodo ya no se factura solo: queda pendiente y la vista previa pide confirmación explícita antes de incluirlo.",
+    "La tarea automática nunca puede confirmar por su cuenta esos periodos; solo un usuario administrador desde la vista previa.",
+    "La respuesta de la generación informa cuántos periodos se omitieron por posible cambio de tarifa y se avisa con un mensaje en pantalla.",
+    "Los contratos ya firmados que no tenían respaldo recibieron su copia inmutable (cliente, unidad y plantilla), para que el PDF firmado no cambie si esos datos se editan después."
+  ]
+}

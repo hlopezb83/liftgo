@@ -1,3 +1,9 @@
+## [7.402.0] - 2026-09-01
+### Fix (auditoría R6 · recurrentes + contratos)
+- Los periodos recurrentes cuya reserva se editó después del periodo ya no se facturan sin confirmación explícita del operador (fail-closed); el cron nunca los factura.
+- La vista previa marca esos periodos y exige confirmar antes de incluirlos; la respuesta reporta `skippedStaleRate`.
+- Backfill: los contratos firmados sin respaldo ahora tienen su copia inmutable de cliente, unidad y plantilla.
+
 ## [7.401.0] - 2026-09-01
 ### Fix (auditoría R6 · fiscal + CxP)
 - El timbrado valida que el régimen fiscal del receptor sea un código de 3 dígitos del catálogo SAT (c_RegimenFiscal) y responde 422 explicando el error antes de llamar al PAC.
