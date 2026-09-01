@@ -1,0 +1,10 @@
+{
+  "description": "Se recortaron las verificaciones automatizadas de R9 a lo mínimo que cubre cada caso reproducido: se elimina el escaneo global de \"deriva\" de tipo de cambio y una comprobación duplicada de utilización. Sin cambios de comportamiento en la aplicación.",
+  "changes": [
+    "Se retira el escaneo tipo lint que revisaba todas las funciones y vistas de la base buscando reglas de tipo de cambio propias: no había un caso confirmado que lo justificara y bastaba con verificar los consumidores concretos que sí se migraron.",
+    "Se elimina una comprobación de utilización que repetía el mismo cálculo dos veces y no podía fallar; la paridad entre el reporte por unidad y por modelo se verifica sobre la definición real de ambas funciones.",
+    "No se agregaron tablas, colas, estados ni mecanismos de reparación nuevos en la ronda R9; los avisos del cron de mantenimiento son mensajes dentro del reporte existente.",
+    "R9-17 (límite de 12 meses), R9-18 (selección por reserva y periodo), R9-15, R9-19, R9-20 y R9-22 quedan intencionalmente fuera.",
+    "Sin cambios en pantallas, cálculos, permisos ni base de datos."
+  ]
+}
