@@ -30,7 +30,7 @@ function line(over: Partial<RecurringPreviewLine> & { bookingId: string }): Recu
 /** R9-18: la selección se llavea por reserva + periodo. */
 const K = (id: string, start = "2026-08-01") => `${id}|${start}`;
 const ids = (s: { selected: ReadonlySet<string> }) =>
-  ids(s).map((k) => k.split("|")[0]).sort();
+  [...s.selected].map((k) => k.split("|")[0]).sort();
 
 const reconcile = (
   prev: ReturnType<typeof emptyRecurringSelection>,
