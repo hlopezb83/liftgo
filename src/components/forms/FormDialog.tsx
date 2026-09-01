@@ -87,8 +87,9 @@ export function FormDialog({
             {description ? <DialogDescription>{description}</DialogDescription> : null}
           </DialogHeader>
           <FormDialogCloseContext.Provider value={closeValue}>
-            <div className="pt-2 pb-20">{children}</div>
+            <div className="pt-2">{children}</div>
           </FormDialogCloseContext.Provider>
+
         </DialogContent>
       </Dialog>
 
