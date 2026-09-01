@@ -1,3 +1,11 @@
+## [7.412.0] - 2026-09-01
+### Fix (facturación recurrente manual)
+- Se desprogramó el cron `generate-recurring-invoices-daily` (migración con `cron.unschedule`): los borradores de renta mensual ya no se crean solos, porque agrupar/separar reservas en una factura es decisión del operador.
+- `supabase/functions/generate-recurring-invoices/index.ts`: si la llamada viene autenticada como cron y no es `preview`, la función responde `skipped: "automatic_generation_disabled"` sin escribir nada (fail-safe si el job se reagenda por error).
+- Vista previa: cuando el siguiente periodo aún no empieza y el mes EN CURSO ya está facturado, se agrega una línea `already_invoiced` con el número y la liga de la factura existente, además de la línea `period_in_future`.
+- `RecurringPreviewBody.tsx`: nuevo aviso "El periodo en curso ya está facturado" cuando no hay líneas elegibles.
+- Sin cambios en prorrateo, FX, IVA, `allowStaleRate`, agrupación ni en el RPC `create_recurring_invoice`.
+
 ## [7.411.1] - 2026-09-01
 ### Refactor (YAGNI · verificaciones R9)
 - `supabase/tests/r9_fx_canonical_guard.sql`: se elimina el bloque 2 (escaneo global de deriva FX sobre todas las funciones y vistas de `public` buscando `tipo_cambio > 0` / `COALESCE(..., 1)`). Era un lint arquitectónico sin caso confirmado; se conservan las aserciones directas sobre los consumidores migrados, la matriz de `fx_to_mxn`/`fx_convert_amount` y los checks de las vistas.

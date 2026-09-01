@@ -335,6 +335,49 @@ async function buildPlan(supabase: any): Promise<{
       // preview y sepa cuándo tocará facturar).
       if (nowMty < billingStart) {
         if (firstIteration) {
+          // BUG-SEP1: cuando el mes EN CURSO ya quedó facturado, el cursor
+          // salta al mes siguiente y el operador sólo veía "Período futuro"
+          // (octubre) sin explicación. Reportamos también el periodo del mes
+          // en curso como `already_invoiced`, con su factura, para que quede
+          // claro que ya existe y no falta nada por generar.
+          const currentMonthStart = firstOfMonth(nowMty);
+          if (
+            virtualLastBilled &&
+            dateOnlyToMty(virtualLastBilled) >= currentMonthStart
+          ) {
+            const prevEndStr = virtualLastBilled;
+            const prevStartStr = toIsoDate(currentMonthStart);
+            const { data: prevInvoice } = await supabase
+              .from("invoice_bookings")
+              .select(
+                "invoice_id, invoices!inner(id, invoice_number, billing_period_start, billing_period_end, status, cfdi_status)",
+              )
+              .eq("booking_id", booking.id)
+              .eq("invoices.billing_period_start", prevStartStr)
+              .eq("invoices.billing_period_end", prevEndStr)
+              .neq("invoices.status", "cancelled")
+              .neq("invoices.cfdi_status", "cancelled")
+              .limit(1)
+              .maybeSingle();
+            if (prevInvoice) {
+              const inv = prevInvoice.invoices as {
+                id: string;
+                invoice_number: string;
+              };
+              lines.push({
+                ...baseLine,
+                periodStart: prevStartStr,
+                periodEnd: prevEndStr,
+                periodLabel: `${fmtMx(currentMonthStart)} al ${
+                  fmtMx(dateOnlyToMty(prevEndStr))
+                }`,
+                eligible: false,
+                reason: "already_invoiced",
+                existingInvoiceId: inv.id,
+                existingInvoiceNumber: inv.invoice_number,
+              });
+            }
+          }
           lines.push({
             ...baseLine,
             eligible: false,
@@ -343,6 +386,7 @@ async function buildPlan(supabase: any): Promise<{
         }
         break;
       }
+
       if (!booking.customer_id) {
         lines.push({ ...baseLine, eligible: false, reason: "no_customer" });
         break;
@@ -625,7 +669,28 @@ Deno.serve(async (req) => {
       if (text) body = JSON.parse(text);
     } catch { /* legacy no-body call */ }
 
+    // POLÍTICA (v7.412.0): la facturación recurrente NUNCA se genera sola.
+    // Armar los borradores es una decisión del operador (puede juntar o
+    // separar reservas en una misma factura), así que el cron sólo puede
+    // consultar; cualquier intento de generar desde el cron es no-op.
+    if (cronAuth.ok && !body.preview) {
+      console.log(
+        "[generate-recurring-invoices] cron generation disabled (manual-only policy)",
+      );
+      return jsonResponse(req, {
+        success: true,
+        skipped: "automatic_generation_disabled",
+        invoicesCreated: 0,
+        bookingsBilled: 0,
+        created: [],
+        failed: [],
+        rateWarnings: [],
+        skippedStaleRate: [],
+      });
+    }
+
     const { lines, items: allItems } = await buildPlan(supabase);
+
 
     const eligibleLines = lines.filter((l) => l.eligible);
     const periodMonth = eligibleLines[0]?.periodStart?.slice(0, 7) ?? null;

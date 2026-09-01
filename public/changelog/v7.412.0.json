@@ -1,0 +1,19 @@
+{
+  "version": "7.412.0",
+  "date": "2026-09-01",
+  "type": "minor",
+  "category": "fix",
+  "title": "Las facturas recurrentes ya no se generan solas y la vista previa explica el mes en curso",
+  "tags": [
+    "facturacion",
+    "recurrente",
+    "ux"
+  ],
+  "description": "Se desactivó la tarea automática que creaba los borradores de renta mensual: ahora los genera el operador desde el asistente, que además avisa cuando el mes en curso ya está facturado en vez de mostrar solo el periodo siguiente.",
+  "changes": [
+    "Se desprogramó el cron diario `generate-recurring-invoices-daily`; la función solo responde consultas (vista previa) cuando la llama una tarea programada.",
+    "La vista previa muestra el periodo del mes en curso como \"Ya facturada\" con liga a la factura, en lugar de saltar directo al mes siguiente marcado como \"Período futuro\".",
+    "Nuevo aviso en el asistente cuando no hay nada elegible porque el periodo actual ya está facturado.",
+    "Sin cambios en prorrateo, tipo de cambio, IVA, agrupación ni en el RPC `create_recurring_invoice`."
+  ]
+}

@@ -32,3 +32,5 @@ Cambios propuestos (solo en la vista previa; la generación real no se toca):
 ## Pregunta abierta
 
 Si prefieres que además la tarea automática **no** genere los borradores el día 1 y deje esa decisión al operador, es un cambio distinto (de política, no de UI) y lo planeo aparte.
+
+No queremos que las facturas se generen de manera automática porque el proceso de generar los borradores es mas complejo. Por ejemplo, el operador puede juntar o separar reservas en una sola factura.  Que hacemos con lo queya se genero?
