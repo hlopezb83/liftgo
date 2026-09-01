@@ -29,6 +29,33 @@ export function computeRepExchange(input: RepExchangeInput): {
   return { invoiceCurrency, invoiceExchange };
 }
 
+/**
+ * R9-02 (paquete final): el `EquivalenciaDR` que se envía al PAC sale del
+ * tipo de cambio de la FACTURA relacionada, pero `computeRepExchange` cae a 1
+ * en silencio si ese TC falta, es 0 o no es numérico. Cuando la moneda de la
+ * factura difiere de la del pago SÍ hay conversión, así que un 1 ahí es el
+ * sentinel inválido (mismo criterio que el gate de timbrado): se bloquea antes
+ * de llamar al PAC. Con monedas iguales la equivalencia 1 sigue siendo válida.
+ */
+export function validateRelatedInvoiceExchange(
+  input: RepExchangeInput,
+): PaymentExchangeValidation {
+  const paymentCurrency = (input.paymentCurrency ?? "MXN").toUpperCase();
+  const invoiceCurrency = (input.invoiceCurrency ?? "MXN").toUpperCase();
+  if (invoiceCurrency === paymentCurrency) return { ok: true };
+  const rate = Number(input.invoiceTipoCambio ?? NaN);
+  if (!Number.isFinite(rate) || rate <= 0 || rate === 1) {
+    return {
+      ok: false,
+      message:
+        `La factura relacionada está en ${invoiceCurrency} y el pago en ${paymentCurrency}, ` +
+        `pero la factura no tiene un tipo de cambio válido (debe ser numérico, mayor a 0 y distinto de 1). ` +
+        `Corrige el tipo de cambio de la factura antes de timbrar el REP.`,
+    };
+  }
+  return { ok: true };
+}
+
 // v7.320.6: guardia defensiva para moneda extranjera. La edge function es la
 // última línea antes del PAC; `payments.exchange_rate` es NUMERIC DEFAULT 1 sin
 // check constraint, así que un pago USD sembrado con TC=1 (o nulo/0) pasaría
