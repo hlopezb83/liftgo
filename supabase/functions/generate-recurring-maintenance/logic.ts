@@ -251,7 +251,24 @@ export async function generateForPolicies(
         `✓ ${policy.forklifts?.name ?? "(sin nombre)"} (${monthFirstDay})`,
       );
     }
+
+    // R9-17: si quedaron meses sin procesar (tope de 12 o corte por error),
+    // se informa explícitamente. El cursor NO se mueve más allá de lo
+    // realmente creado, así la siguiente corrida continúa desde ahí.
+    const remaining = remainingMonthsCount(lastOkMonth, currentMonth);
+    if (remaining > 0) {
+      pendingRemaining += remaining;
+      details.push(
+        `⏳ ${
+          policy.forklifts?.name ?? policy.id
+        } — quedan ${remaining} período(s) pendiente(s); ` +
+          `la siguiente corrida continúa desde ${
+            lastOkMonth ? nextMonth(lastOkMonth) : currentMonth
+          }`,
+      );
+    }
   }
 
-  return { generated, skipped, details };
+  return { generated, skipped, details, pendingRemaining };
 }
+
