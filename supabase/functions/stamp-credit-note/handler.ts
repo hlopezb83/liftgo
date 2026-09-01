@@ -20,6 +20,7 @@ import {
   sdkCallWithTimeout,
 } from "../_shared/facturapi/withTimeout.ts";
 import { computeStampVariance, roundMoney } from "../_shared/money.ts";
+import { checkStampFx } from "../_shared/fxGate.ts";
 
 export type { SupabaseLike };
 export interface StampCreditNoteDeps {
@@ -63,6 +64,15 @@ export async function handleStampCreditNote(
   // atómico ante excepciones inesperadas y evitar que la NC quede en "stamping".
   let supabaseRef: SupabaseLike | null = null;
   let claimed = false;
+  // R9-13: una vez que Facturapi confirma la emisión, el CFDI de egreso YA
+  // EXISTE ante el SAT. Si algo falla después (persistencia, red, excepción
+  // inesperada), el outer-catch NO debe marcar 'error' ni permitir reintento
+  // ciego — eso duplicaría el timbrado. En ese caso la NC se deja en
+  // 'stamping' (con evidencia si se alcanzó a capturar) para que
+  // `reconcile-stamping-invoices` la reconcilie por external_id/facturapi_id.
+  let pacEmitted = false;
+  let emittedFacturapiId: string | null = null;
+  let emittedCfdiUuid: string | null = null;
   try {
     const auth = await authenticateWithDeps({
       req,
@@ -127,6 +137,9 @@ export async function handleStampCreditNote(
     claimed = true;
 
     // BL-03: helper para revertir claim atómico si algo falla antes de timbrar.
+    // R9-13: `.eq("cfdi_status", "stamping")` hace la salida CONDICIONAL — si
+    // el estado ya avanzó (p. ej. el PAC emitió y otro camino ya lo persistió)
+    // este UPDATE no lo pisa.
     const releaseClaim = async (errorMessage?: string) => {
       await supabase.from("credit_notes")
         .update({
@@ -135,7 +148,8 @@ export async function handleStampCreditNote(
             ? { cfdi_error_message: errorMessage.slice(0, 1000) }
             : {}),
         })
-        .eq("id", credit_note_id);
+        .eq("id", credit_note_id)
+        .eq("cfdi_status", "stamping");
     };
 
     const { data: invoice, error: invErr } = await supabase
@@ -340,10 +354,22 @@ export async function handleStampCreditNote(
     // Antes se hardcodeaba PUE + exchange 1: NC sobre PPD emitía documento no
     // relacionable ante el SAT; NC sobre USD ignoraba tipo de cambio.
     const invPaymentMethod = String(inv.metodo_pago || "PUE");
-    const invCurrency = String(ncRow.currency || inv.moneda || "MXN");
-    const invExchange = invCurrency === "MXN"
-      ? 1
-      : Number(inv.tipo_cambio || 1) || 1;
+    // R9-02: gate canónico de tipo de cambio ANTES de llamar al PAC. El viejo
+    // fallback `|| 1` timbraba NC en moneda foránea con paridad 1:1 falsa.
+    const fxCurrency = (ncRow.currency ?? inv.moneda ?? "MXN") as
+      | string
+      | null
+      | undefined;
+    const fxGate = checkStampFx(
+      fxCurrency,
+      inv.tipo_cambio as number | string | null | undefined,
+    );
+    if (!fxGate.ok) {
+      await releaseClaim(fxGate.message);
+      return json({ error: fxGate.message }, 422, jsonHeaders);
+    }
+    const invCurrency = fxGate.currency;
+    const invExchange = fxGate.exchange;
 
     const payload: Record<string, unknown> = {
       type: "E",
@@ -403,12 +429,17 @@ export async function handleStampCreditNote(
         code: desc.code,
         message: desc.message,
       });
+      // R9-13: este catch sólo se alcanza cuando la LLAMADA al PAC rechazó o
+      // falló (p. ej. 4xx de validación) — Facturapi nunca confirmó emisión,
+      // así que es seguro marcar 'error' y permitir reintento. `.eq` condicional
+      // por si algo más avanzó el estado en paralelo.
       await supabase.from("credit_notes")
         .update({
           cfdi_status: "error",
           cfdi_error_message: desc.detail.slice(0, 1000),
         })
-        .eq("id", credit_note_id);
+        .eq("id", credit_note_id)
+        .eq("cfdi_status", "stamping");
       return json(
         { error: `Facturapi error: ${desc.status}`, detail: desc.detail },
         502,
@@ -416,8 +447,16 @@ export async function handleStampCreditNote(
       );
     }
 
+    // R9-13: a partir de aquí Facturapi YA EMITIÓ el CFDI de egreso ante el
+    // SAT. Cualquier falla posterior (persistencia, red, excepción inesperada)
+    // NO puede tratarse como "nunca se timbró": el outer-catch usa estas
+    // referencias para dejar la NC en 'stamping' (reconciliable) en vez de
+    // reabrirla para un reintento que duplicaría el timbre.
+    pacEmitted = true;
     const facturApiId = fa.id;
     const cfdiUuid = fa.uuid;
+    emittedFacturapiId = facturApiId;
+    emittedCfdiUuid = cfdiUuid;
 
     let xmlPath: string | null = null;
     let pdfPath: string | null = null;
@@ -497,6 +536,9 @@ export async function handleStampCreditNote(
       });
     }
 
+    // R9-13: `.eq("cfdi_status","stamping")` — salida condicional del estado
+    // en curso; no pisa un estado que ya haya avanzado por otro camino
+    // (p. ej. reconcile-stamping-invoices llegó primero tras un timeout).
     const updRes = await supabase.from("credit_notes").update({
       facturapi_invoice_id: facturApiId,
       cfdi_uuid: cfdiUuid,
@@ -511,17 +553,28 @@ export async function handleStampCreditNote(
           stamp_variance_checked_at: new Date().toISOString(),
         }
         : {}),
-    }).eq("id", credit_note_id);
+    }).eq("id", credit_note_id).eq("cfdi_status", "stamping");
 
     const updErr = (updRes as { error: unknown }).error;
     if (updErr) {
+      // R9-13: el CFDI YA EXISTE ante el SAT (facturApiId/cfdiUuid) pero la
+      // persistencia local falló. NO se toca cfdi_status (sigue en
+      // 'stamping'): reconcile-stamping-invoices la recuperará por
+      // facturapi_invoice_id/external_id. Reintentar el timbrado aquí
+      // produciría un segundo CFDI de egreso duplicado.
       console.error("[stamp-credit-note] DB update failed after stamp", {
         credit_note_id,
         cfdiUuid,
+        facturApiId,
       });
       return json(
-        { error: "Stamped but failed to save to DB" },
-        500,
+        {
+          error:
+            "El CFDI se timbró pero no se pudo guardar en la base de datos. Se reconciliará automáticamente; no reintentes el timbrado manualmente.",
+          cfdi_uuid: cfdiUuid,
+          reconciling: true,
+        },
+        502,
         jsonHeaders,
       );
     }
@@ -589,19 +642,41 @@ export async function handleStampCreditNote(
     console.error("[stamp-credit-note] unhandled exception", {
       credit_note_id,
       userId,
+      pacEmitted,
       message: err instanceof Error ? err.message : String(err),
       stack: err instanceof Error ? err.stack : undefined,
     });
-    // BL-03 (cierre): liberar el claim atómico ante excepción no manejada.
-    // Sin esto la NC queda en 'stamping' para siempre.
+    // BL-03 (cierre) + R9-13: liberar el claim atómico ante excepción no
+    // manejada — PERO sólo cuando el PAC nunca confirmó emisión. Si
+    // `pacEmitted` es true, el CFDI de egreso ya existe ante el SAT y
+    // marcar 'error' (re-timbrable) produciría un doble timbrado. En ese
+    // caso dejamos la NC en 'stamping' con la evidencia que se alcanzó a
+    // capturar para que `reconcile-stamping-invoices` la reconcilie.
     if (claimed && supabaseRef && credit_note_id) {
       try {
-        await supabaseRef.from("credit_notes")
-          .update({
-            cfdi_status: "error",
-            cfdi_error_message: "Internal error during stamping",
-          })
-          .eq("id", credit_note_id);
+        if (pacEmitted) {
+          await supabaseRef.from("credit_notes")
+            .update({
+              // No tocamos cfdi_status (permanece 'stamping' = reconciliable).
+              ...(emittedFacturapiId
+                ? { facturapi_invoice_id: emittedFacturapiId }
+                : {}),
+              ...(emittedCfdiUuid ? { cfdi_uuid: emittedCfdiUuid } : {}),
+              cfdi_error_message:
+                "CFDI emitido en Facturapi pero la persistencia local falló tras una excepción inesperada. Pendiente de reconciliación automática.",
+            })
+            .eq("id", credit_note_id)
+            .eq("cfdi_status", "stamping");
+        } else {
+          // Camino seguro: el PAC nunca fue invocado o falló antes de emitir.
+          await supabaseRef.from("credit_notes")
+            .update({
+              cfdi_status: "error",
+              cfdi_error_message: "Internal error during stamping",
+            })
+            .eq("id", credit_note_id)
+            .eq("cfdi_status", "stamping");
+        }
       } catch (releaseErr) {
         console.error("[stamp-credit-note] release-on-exception failed", {
           credit_note_id,
@@ -610,6 +685,16 @@ export async function handleStampCreditNote(
             : String(releaseErr),
         });
       }
+    }
+    if (pacEmitted) {
+      return json(
+        {
+          error:
+            "El CFDI se timbró pero ocurrió un error interno al finalizar. Se reconciliará automáticamente; no reintentes el timbrado manualmente.",
+          reconciling: true,
+        },
+        502,
+      );
     }
     return json({ error: "Internal server error" }, 500);
   }

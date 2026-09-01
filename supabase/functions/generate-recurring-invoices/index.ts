@@ -4,7 +4,7 @@ import { authenticateCronRequest } from "../_shared/cronAuth.ts";
 import { jsonError, jsonResponse } from "../_shared/http.ts";
 import { getAdminClient } from "../_shared/supabaseClients.ts";
 import { computeProrate } from "./prorate.ts";
-import { fromCents, sumLineTaxCents, sumMoneyCents } from "../_shared/money.ts";
+import { fromCents, resolveVatRatePercent, sumLineTaxCents, sumMoneyCents } from "../_shared/money.ts";
 
 const TZ = "America/Monterrey";
 
@@ -506,11 +506,11 @@ async function executePlan(
       // y aritmética en centavos enteros (_shared/money.ts) en vez de floats
       // con Math.round — elimina el drift de centavos acumulado por período.
       const subtotalCents = sumMoneyCents(group.map((i) => i.billedAmount));
-      const customerRate = Number(customer?.tax_rate);
-      const taxRate = Number.isFinite(customerRate) &&
-          customerRate >= 0 && customerRate <= 100
-        ? customerRate
-        : 16;
+      // R9-14: `resolveVatRatePercent` distingue "sin dato" (null/undefined/NaN
+      // -> DEFAULT_VAT_RATE_PERCENT) de "0% explícito" (se respeta). Antes
+      // `Number(customer?.tax_rate)` convertía null en 0 y generaba IVA 0%
+      // inesperado cuando el cliente no tenía tasa capturada.
+      const taxRate = resolveVatRatePercent(customer?.tax_rate);
       // A1-B2: IVA línea por línea (mismo criterio que computeTotals y que
       // Facturapi al timbrar). Redondear una sola vez sobre el subtotal
       // agregado generaba varianzas de centavos que dejaban la factura

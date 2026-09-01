@@ -7,6 +7,8 @@
 // Este helper se importa desde index.ts y desde el test, de modo que el fix
 // no puede regresar sin romper el suite.
 
+import { checkStampFx } from "../_shared/fxGate.ts";
+
 export interface RepExchangeInput {
   paymentCurrency: string | null | undefined;
   invoiceCurrency: string | null | undefined;
@@ -46,15 +48,12 @@ export type PaymentExchangeValidation =
 export function validatePaymentExchange(
   input: PaymentExchangeInput,
 ): PaymentExchangeValidation {
-  const currency = (input.paymentCurrency ?? "MXN").toUpperCase();
-  if (currency === "MXN") return { ok: true };
-  const tc = Number(input.exchangeRate);
-  if (!Number.isFinite(tc) || tc <= 0) {
-    return {
-      ok: false,
-      message:
-        "El Tipo de Cambio es obligatorio y debe ser mayor a 0 para pagos en moneda extranjera.",
-    };
+  // R9-02: delega en el gate canónico compartido (moneda != MXN exige TC
+  // finito, > 0 y != 1) para no duplicar la regla que ya rige stamp-cfdi y
+  // stamp-credit-note.
+  const gate = checkStampFx(input.paymentCurrency, input.exchangeRate);
+  if (!gate.ok) {
+    return { ok: false, message: gate.message! };
   }
   return { ok: true };
 }

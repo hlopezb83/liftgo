@@ -68,7 +68,7 @@ export default function MaintenancePage() {
   });
 
   const isBoard = viewMode === "board";
-  const kanbanContent = isBoard ? <MaintenanceKanban logs={filtered} /> : undefined;
+  const kanbanContent = isBoard ? <MaintenanceKanban logs={filtered} archived={showArchived} /> : undefined;
 
   const totalCost = sumCost(logs);
   const exportCsv = () => exportToCsv("mantenimiento.csv", maintenanceCsvRows(logs, forkliftMap));

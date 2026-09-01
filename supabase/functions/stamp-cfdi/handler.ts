@@ -27,6 +27,7 @@ import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import { isUsoCfdiCompatible } from "../_shared/cfdiUsoRegimen.ts";
 import { isValidRegimenFiscalCode, resolveReceptorRegimenFiscal } from "../_shared/regimenFiscal.ts";
 import { validateRfcOrMessage } from "../_shared/rfcChecksum.ts";
+import { checkStampFx } from "../_shared/fxGate.ts";
 
 // Re-exports públicos preservados (tests + consumidores).
 export { computeStampVariance, sanitizeLegalName, STAMP_VARIANCE_TOLERANCE };
@@ -393,24 +394,19 @@ export async function handleStampCfdi(
       }
     }
 
-    // S2-2.1: moneda foránea sin tipo de cambio válido → 422 sin llamar al PAC.
-    // El SAT exige TipoCambio > 0 cuando Moneda != MXN; el viejo fallback
-    // `|| 1` timbraba con paridad 1:1 y falseaba los importes en pesos.
-    const moneda = String(inv.moneda ?? "MXN").toUpperCase();
-    const tipoCambio = typeof inv.tipo_cambio === "number"
-      ? inv.tipo_cambio
-      : Number(inv.tipo_cambio ?? NaN);
-    if (moneda !== "MXN" && (!Number.isFinite(tipoCambio) || tipoCambio <= 0)) {
-      await releaseClaim(`Factura en ${moneda} sin tipo de cambio`);
-      return json(
-        {
-          error:
-            `La factura en ${moneda} no tiene tipo de cambio válido. Captura el tipo de cambio antes de timbrar.`,
-        },
-        422,
-        jsonHeaders,
-      );
+    // R9-02: gate canónico de tipo de cambio (moneda != MXN exige TC finito,
+    // > 0 y != 1) ANTES de construir el payload / llamar a Facturapi. Ver
+    // `_shared/fxGate.ts` — misma regla que ya rige CxP/Cash-Flow/Portal.
+    const fxGate = checkStampFx(
+      inv.moneda as string | null | undefined,
+      inv.tipo_cambio as number | string | null | undefined,
+    );
+    if (!fxGate.ok) {
+      await releaseClaim(fxGate.message);
+      return json({ error: fxGate.message }, 422, jsonHeaders);
     }
+    const moneda = fxGate.currency;
+    const tipoCambio = fxGate.exchange;
 
     const payload: Record<string, unknown> = {
       type: "I",

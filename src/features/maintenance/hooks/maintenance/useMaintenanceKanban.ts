@@ -19,15 +19,17 @@ import type { DragEndEvent } from "@dnd-kit/core";
  * se expone `pendingCloseId` para que la vista pida confirmación con el
  * resumen de costos antes de aplicar el cambio.
  */
-// El kanban lee la lista activa (no archivada) sin filtro de montacargas;
-// la key debe coincidir exactamente con la de `useMaintenanceLogs`.
-const KANBAN_LIST_KEY = maintenanceLogQueries.list({ forkliftId: null, archived: false })
-  .queryKey as readonly unknown[];
-
-export function useMaintenanceKanban() {
+export function useMaintenanceKanban(archived = false) {
   const updateLog = useUpdateMaintenanceLog();
   const queryClient = useQueryClient();
   const [pendingCloseId, setPendingCloseId] = useState<string | null>(null);
+  // R9-21: el kanban puede mostrarse tanto en la vista activa como en la de
+  // archivados (`MaintenancePage` alterna `showArchived`); la key patcheada
+  // debe coincidir EXACTAMENTE con la que usa `useMaintenanceLogs` para la
+  // vista actualmente visible, o el drag & drop en archivados no refresca su
+  // propia caché y además contamina la lista activa con datos ajenos.
+  const kanbanListKey = maintenanceLogQueries.list({ forkliftId: null, archived })
+    .queryKey as readonly unknown[];
 
   const onDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
@@ -60,7 +62,7 @@ export function useMaintenanceKanban() {
 
 
     queryClient.setQueryData<MaintenanceLog[]>(
-      KANBAN_LIST_KEY,
+      kanbanListKey,
       (old) => old?.map((l) => (l.id === logId ? { ...l, work_status: newStatus } : l)),
     );
 
@@ -74,7 +76,7 @@ export function useMaintenanceKanban() {
           const nextStatus = (serverRow as { work_status?: string }).work_status;
           if (!nextStatus || nextStatus === newStatus) return;
           queryClient.setQueryData<MaintenanceLog[]>(
-            KANBAN_LIST_KEY,
+            kanbanListKey,
             (old) => old?.map((l) => (l.id === logId ? { ...l, work_status: nextStatus } : l)),
           );
         },

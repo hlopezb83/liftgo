@@ -3798,6 +3798,7 @@ export type Database = {
           notes: string | null
           paid_amount: number | null
           paid_at: string | null
+          payments_fx_missing: number | null
           quote_id: string | null
           receptor_domicilio_fiscal_cp: string | null
           receptor_razon_social: string | null
@@ -3855,6 +3856,7 @@ export type Database = {
           customer_name: string | null
           days_overdue: number | null
           due_date: string | null
+          fx_missing: boolean | null
           id: string | null
           invoice_number: string | null
           total: number | null
@@ -3961,6 +3963,15 @@ export type Database = {
           status_actual: string
           status_esperado: string
         }[]
+      }
+      bank_amount_in_account_currency: {
+        Args: {
+          p_account_currency: string
+          p_amount: number
+          p_pay_currency: string
+          p_rate: number
+        }
+        Returns: number
       }
       booking_is_returned: { Args: { p_booking_id: string }; Returns: boolean }
       cancel_booking: {
@@ -4170,9 +4181,23 @@ export type Database = {
         }
         Returns: string
       }
+      fx_convert_amount: {
+        Args: {
+          p_amount: number
+          p_from: string
+          p_from_rate: number
+          p_to: string
+          p_to_rate: number
+        }
+        Returns: number
+      }
       fx_is_missing: {
         Args: { p_currency: string; p_rate: number }
         Returns: boolean
+      }
+      fx_to_mxn: {
+        Args: { p_amount: number; p_currency: string; p_rate: number }
+        Returns: number
       }
       generate_feedback_number: { Args: never; Returns: string }
       get_activity_metrics: {
@@ -4427,6 +4452,7 @@ export type Database = {
           notes: string | null
           paid_amount: number | null
           paid_at: string | null
+          payments_fx_missing: number | null
           quote_id: string | null
           receptor_domicilio_fiscal_cp: string | null
           receptor_razon_social: string | null

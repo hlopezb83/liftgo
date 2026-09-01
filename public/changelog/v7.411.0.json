@@ -1,0 +1,22 @@
+{
+  "description": "Se cerraron 17 hallazgos de la auditoría R9: una sola regla de tipo de cambio en facturas, bancos, reportes y KPIs; el timbrado deja de poder duplicar una nota de crédito; y los reportes de utilización, depreciación e IVA recurrente dejan de mezclar universos o suponer datos.",
+  "changes": [
+    "R9-01 (CxP): corregir el total de una factura de proveedor ya no puede pasar inadvertido para el clasificador de aprobación cuando falta el tipo de cambio; la comparación ahora incluye el total en moneda original.",
+    "R9-02 (CFDI): las funciones de timbrado comparten un mismo control de tipo de cambio: una factura en divisa sin tipo de cambio válido no se timbra.",
+    "R9-03 (Clientes): el resumen del cliente y el PDF de estado de cuenta se calculan desde la vista canónica de saldos y avisan cuántas facturas quedaron fuera por falta de tipo de cambio, en vez de convertir 1:1.",
+    "R9-13 (Notas de crédito): se elimina la posibilidad de timbrar dos veces la misma nota de crédito; el reintento verifica primero si el PAC ya emitió el documento.",
+    "R9-06 / R9-07 (Saldos): la vista de facturas con saldo soporta pagos en moneda distinta a la factura en ambos sentidos y expone si el pago no se pudo convertir; la vista de vencidas deja de asumir 1:1.",
+    "R9-09 (Reportes): seis consumidores financieros (reportes, tablero y rentabilidad) pasan a los ayudantes canónicos de conversión, con un guard automatizado para que no vuelvan a duplicarse reglas de tipo de cambio.",
+    "R9-10 (Recurrentes): la generación de facturas recurrentes falla en seguro si la reserva está en divisa y no hay tipo de cambio válido.",
+    "R9-11 (CxP): una factura en divisa sin tipo de cambio sigue contando en \"Por aprobar\" (sin sumar un importe inventado), en vez de desaparecer del indicador.",
+    "R9-04 (Bancos): auto-conciliación, candidatos y confirmación usan una sola conversión al tipo de moneda de la cuenta; sin tipo de cambio no hay candidato en lugar de comparar importes crudos.",
+    "R9-23 (Bancos): deshacer una conciliación ya no borra el motivo de una línea ignorada; sólo se pueden revertir líneas conciliadas o sugeridas.",
+    "R9-05 (Mantenimiento): si el cron no logra reclamar un mes, verifica que el registro exista realmente antes de avanzar, y un rollback fallido se reporta para revisión en vez de quedarse en silencio.",
+    "R9-08 (Reportes): la depreciación del estado de resultados excluye el equipo archivado.",
+    "R9-12 (SAT): los regímenes 629 y 630 se marcan como aplicables sólo a persona física.",
+    "R9-14 (Recurrentes): se distingue un IVA de 0% capturado a propósito de la ausencia de dato (que usa 16%).",
+    "R9-16 (Operación): utilización por unidad y por modelo comparten el mismo universo de flota (sin archivados, vendidos, retirados ni datos de prueba).",
+    "R9-21 (Mantenimiento): mover tarjetas en el tablero de archivados ya no ensucia la caché del tablero activo.",
+    "Pruebas: smoke SQL de los lotes A/B/C, guard de reglas FX duplicadas, pruebas de IVA recurrente y pruebas Deno del cron y de los controles de tipo de cambio en timbrado."
+  ]
+}

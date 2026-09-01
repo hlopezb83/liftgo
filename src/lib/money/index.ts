@@ -72,4 +72,31 @@ export function applyVat(amount: number, rate: number = DEFAULT_VAT_RATE): numbe
   return amount * (1 + rate);
 }
 
+/**
+ * R9-14: tasa de IVA por defecto EN PORCENTAJE (0-100), espejo exacto de
+ * `DEFAULT_VAT_RATE_PERCENT` en `supabase/functions/_shared/money.ts`. Úsala
+ * junto con `resolveVatRatePercent` en vez de un `16` suelto para que el
+ * preview de la UI y la Edge Function `generate-recurring-invoices` nunca
+ * diverjan sobre qué tasa aplicar cuando el dato del cliente falta.
+ */
+export const DEFAULT_VAT_RATE_PERCENT = 16;
+
+/**
+ * Resuelve la tasa de IVA (en porcentaje, 0-100) a partir del `tax_rate` del
+ * cliente. Reglas (R9-14):
+ *  - null/undefined/NaN/fuera de [0,100] → `DEFAULT_VAT_RATE_PERCENT` (16).
+ *  - 0 explícito → 0 (tasa exenta válida, NO se reemplaza por el default).
+ *  - cualquier número finito en [0,100] → se respeta tal cual.
+ *
+ * IMPORTANTE: no usar `Number(rate)` de entrada sin este helper — `Number(null)`
+ * es `0`, lo que confundía "sin dato" con "0% explícito" y producía facturas
+ * con IVA 0% inesperado.
+ */
+export function resolveVatRatePercent(rate: number | string | null | undefined): number {
+  if (rate === null || rate === undefined) return DEFAULT_VAT_RATE_PERCENT;
+  const n = Number(rate);
+  if (!Number.isFinite(n) || n < 0 || n > 100) return DEFAULT_VAT_RATE_PERCENT;
+  return n;
+}
+
 
