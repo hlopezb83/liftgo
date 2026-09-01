@@ -1,3 +1,10 @@
+## [7.414.1] - 2026-09-01
+### Fix (primer ciclo: días al precio diario)
+- `prorateMonthlyLine()` (`src/lib/domain/firstBillingPeriod.ts`): devuelve `quantity = días facturados`, `unitPrice = renta mensual / días del mes` (6 decimales, CFDI 4.0) y `total = round2(qty × precio)`. Reemplaza a `prorateMonthlyAmount()` (eliminado, sin otros consumidores).
+- `buildLinesForBooking`: la partida del primer ciclo ya no es `1 × importe prorrateado`; ahora es `N días × precio diario` con descripción `Renta <mes año> (N días al precio diario)` y `clave_unidad: DAY`.
+- Sin cambios en el motor recurrente, esquema, RLS, RPC, permisos ni reglas fiscales.
+- Pruebas actualizadas en `firstBillingPeriod.test.ts` y `useInvoiceFormHandlers.test.ts` (28/30/31 días e inicio día 1).
+
 ## [7.414.0] - 2026-09-01
 ### Feature (primer ciclo prorrateado en facturas desde reserva)
 - `src/lib/domain/firstBillingPeriod.ts` (nuevo): `firstBillingPeriod(start,end)` recorta el primer periodo al fin del mes de inicio cuando la reserva se extiende más allá, y `prorateMonthlyAmount()` replica la fórmula en centavos de `generate-recurring-invoices/prorate.ts`.

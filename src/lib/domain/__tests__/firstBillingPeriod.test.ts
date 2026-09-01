@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { firstBillingPeriod, prorateMonthlyAmount } from "../firstBillingPeriod";
+import { firstBillingPeriod, prorateMonthlyLine } from "../firstBillingPeriod";
 
 describe("firstBillingPeriod", () => {
   it("recorta al fin de mes cuando la reserva dura más de un mes", () => {
@@ -29,18 +29,27 @@ describe("firstBillingPeriod", () => {
   });
 });
 
-describe("prorateMonthlyAmount", () => {
-  it("prorratea por días con redondeo a centavos", () => {
-    expect(prorateMonthlyAmount(10_000, 17, 31)).toBe(5_483.87);
-    expect(prorateMonthlyAmount(30_000, 19, 30)).toBe(19_000);
+describe("prorateMonthlyLine", () => {
+  it("cobra los días restantes al precio diario derivado de la mensual", () => {
+    expect(prorateMonthlyLine(30_000, 19, 30)).toEqual({
+      quantity: 19,
+      unitPrice: 1_000,
+      total: 19_000,
+    });
   });
 
-  it("mes completo devuelve la tarifa íntegra", () => {
-    expect(prorateMonthlyAmount(10_000, 31, 31)).toBe(10_000);
+  it("mes de 31 días: precio diario con decimales y total a centavos", () => {
+    const line = prorateMonthlyLine(10_000, 17, 31);
+    expect(line).toEqual({ quantity: 17, unitPrice: 322.580645, total: 5_483.87 });
   });
 
-  it("tarifa 0 o días inválidos devuelven 0", () => {
-    expect(prorateMonthlyAmount(0, 17, 31)).toBe(0);
-    expect(prorateMonthlyAmount(10_000, 0, 31)).toBe(0);
+  it("febrero de 28 días", () => {
+    const line = prorateMonthlyLine(28_000, 10, 28);
+    expect(line).toEqual({ quantity: 10, unitPrice: 1_000, total: 10_000 });
+  });
+
+  it("tarifa 0 o días inválidos devuelven null", () => {
+    expect(prorateMonthlyLine(0, 17, 31)).toBeNull();
+    expect(prorateMonthlyLine(10_000, 0, 31)).toBeNull();
   });
 });

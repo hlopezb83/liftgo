@@ -1,6 +1,6 @@
 import type { Forklift } from "@/features/fleet";
 import { monthBounds } from "@/lib/date/monthBounds";
-import { firstBillingPeriod, prorateMonthlyAmount } from "@/lib/domain/firstBillingPeriod";
+import { firstBillingPeriod, prorateMonthlyLine } from "@/lib/domain/firstBillingPeriod";
 import { generateLineItems } from "@/lib/domain/invoiceHelpers";
 import { extractNonRentalLines } from "@/lib/domain/nonRentalLines";
 import { nowMty } from "@/lib/utils";
@@ -48,6 +48,12 @@ const SAT_LINE_DEFAULTS = {
   objeto_imp: "02",
 } as const;
 
+function monthLabel(ymd: string): string {
+  const [y, m] = ymd.split("-").map(Number);
+  const name = new Date(y, (m ?? 1) - 1, 1).toLocaleDateString("es-MX", { month: "long" });
+  return `${name} ${y}`;
+}
+
 export function buildLinesForBooking(booking: Booking, forklifts: Forklift[] | undefined): LineItemValues[] {
   const forklift = forklifts?.find((f) => f.id === booking.forklift_id);
   if (!forklift) return [];
@@ -67,14 +73,14 @@ export function buildLinesForBooking(booking: Booking, forklifts: Forklift[] | u
   const period = firstBillingPeriod(booking.start_date, booking.end_date);
   if (period?.truncated) {
     const monthly = rated.monthly_rate ?? 0;
-    if (period.isProrated && monthly > 0) {
-      const amount = prorateMonthlyAmount(monthly, period.billedDays, period.daysInMonth);
+    const prorated = period.isProrated ? prorateMonthlyLine(monthly, period.billedDays, period.daysInMonth) : null;
+    if (prorated) {
       return [{
-        description: `${forklift.name} — Renta mensual (prorrateo ${period.billedDays} días)`,
-        // quantity 1 para preservar la invariante timbrable total = qty × precio.
-        quantity: 1,
-        unit_price: amount,
-        total: amount,
+        description:
+          `${forklift.name} — Renta ${monthLabel(period.start)} (${prorated.quantity} días al precio diario)`,
+        quantity: prorated.quantity,
+        unit_price: prorated.unitPrice,
+        total: prorated.total,
         ...SAT_LINE_DEFAULTS,
       }];
     }

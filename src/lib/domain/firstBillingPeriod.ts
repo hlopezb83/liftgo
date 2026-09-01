@@ -49,20 +49,29 @@ export function firstBillingPeriod(
   };
 }
 
+export interface ProratedLineAmounts {
+  /** Días facturados = cantidad de la partida. */
+  quantity: number;
+  /** Precio diario derivado de la renta mensual (hasta 6 decimales, CFDI 4.0). */
+  unitPrice: number;
+  /** Importe de la partida = quantity × unitPrice redondeado a centavos. */
+  total: number;
+}
+
 /**
- * Prorrateo de la tarifa mensual por días facturados. Misma fórmula que
- * `computeProrate` del edge function (redondeo a centavos) para que ambos
- * caminos den exactamente el mismo importe.
+ * Desglose de la primera factura por DÍAS al precio diario derivado de la renta
+ * mensual (renta / días del mes). Se mantiene la invariante timbrable
+ * `total = quantity × unitPrice` (redondeada a centavos), quedando a lo sumo un
+ * centavo del prorrateo mensual exacto que aplica el motor recurrente.
  */
-export function prorateMonthlyAmount(
+export function prorateMonthlyLine(
   monthlyRate: number,
   billedDays: number,
   daysInMonth: number,
-): number {
-  if (!(monthlyRate > 0) || !(daysInMonth > 0) || billedDays <= 0) return 0;
-  if (billedDays >= daysInMonth) return currency(monthlyRate).value;
-  const cents = currency(monthlyRate).intValue;
-  return currency(Math.round((cents * billedDays) / daysInMonth), {
-    fromCents: true,
-  }).value;
+): ProratedLineAmounts | null {
+  if (!(monthlyRate > 0) || !(daysInMonth > 0) || billedDays <= 0) return null;
+  const quantity = Math.min(billedDays, daysInMonth);
+  const unitPrice = Math.round((monthlyRate / daysInMonth) * 1e6) / 1e6;
+  const total = currency(unitPrice * quantity).value;
+  return { quantity, unitPrice, total };
 }
