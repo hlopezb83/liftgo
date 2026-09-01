@@ -90,10 +90,33 @@ export function pendingMonthsFor(
   return months;
 }
 
+/**
+ * R9-17: cuántos meses siguen pendientes después de `lastOkMonth` (sin tope).
+ * Sirve sólo para INFORMAR el remanente; no crea cola ni cambia el cursor.
+ */
+export function remainingMonthsCount(
+  lastOkMonth: string | null,
+  currentMonth: string,
+): number {
+  let cursor = lastOkMonth ? nextMonth(lastOkMonth) : currentMonth;
+  let count = 0;
+  while (cursor <= currentMonth) {
+    count += 1;
+    cursor = nextMonth(cursor);
+  }
+  return count;
+}
+
 export interface GenerationResult {
   generated: number;
   skipped: number;
   details: string[];
+  /**
+   * R9-17: total de meses que quedaron pendientes al terminar la corrida
+   * (por el tope de 12 meses por póliza o por un corte de error). La próxima
+   * corrida retoma exactamente en el primer mes no procesado.
+   */
+  pendingRemaining: number;
 }
 
 export async function generateForPolicies(
@@ -103,10 +126,12 @@ export async function generateForPolicies(
 ): Promise<GenerationResult> {
   let generated = 0;
   let skipped = 0;
+  let pendingRemaining = 0;
   const details: string[] = [];
 
   for (const policy of candidates) {
     let lastOkMonth = policy.last_generated_month;
+
 
     for (const month of pendingMonthsFor(lastOkMonth, currentMonth)) {
       const monthFirstDay = `${month}-01`;
