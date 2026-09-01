@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { CalendarPlus, UndoIcon, ErrorIcon, DocumentIcon, DeleteIcon, RefreshIcon } from "@/components/icons";
+import { BlockedActionButton } from "@/components/feedback/BlockedActionButton";
 import { Button } from "@/components/ui/button";
+import { describeBusinessBlock } from "@/lib/rules/businessBlocks";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
@@ -63,11 +65,23 @@ export function BookingActions({ booking }: BookingActionsProps) {
     />
   );
 
+  // La RPC `delete_booking` sólo acepta reservas canceladas/completadas; con
+  // la reserva confirmada el botón queda visible pero bloqueado y explicado,
+  // en vez de fallar con un reporte de error tras el clic.
+  const deleteBlock = booking.status === "confirmed"
+    ? describeBusinessBlock("booking_not_final_for_delete")
+    : null;
+
   const deleteButton = (
     <>
-      <Button variant="destructive" size="sm" onClick={() => setDeleteOpen(true)}>
+      <BlockedActionButton
+        variant="destructive"
+        size="sm"
+        block={deleteBlock}
+        onClick={() => setDeleteOpen(true)}
+      >
         <DeleteIcon className="h-4 w-4 mr-1" />Eliminar
-      </Button>
+      </BlockedActionButton>
       {deleteDialog}
     </>
   );
