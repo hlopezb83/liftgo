@@ -21,7 +21,11 @@ import { SupplierBillFormDialog } from "../components/SupplierBillFormDialog";
 import { SupplierBillsFilters } from "../components/SupplierBillsFilters";
 import { useAccountsPayableFilters } from "../hooks/useAccountsPayableFilters";
 import { useAccountsPayableKpis } from "../hooks/useAccountsPayableKpis";
-import { useReleaseStalePaymentLocks } from "../hooks/useReleaseStalePaymentLocks";
+import {
+  useReleasablePaymentLocksCount,
+  useReleaseStalePaymentLocks,
+  STALE_LOCK_HOURS,
+} from "../hooks/useReleaseStalePaymentLocks";
 import type { SupplierBillListItem } from "../hooks/useSupplierBills";
 
 export default function CuentasPorPagarPage() {
