@@ -1,3 +1,7 @@
+## [7.406.2] - 2026-09-01
+### Fix (monitoreo)
+- Kanban de mantenimiento: el optimistic update usaba la key `{forkliftId: null}` mientras la lista se cachea como `{forkliftId: null, archived: false}`; ahora ambos comparten `maintenanceLogQueries.list(...)`, así la tarjeta se queda en la columna destino sin esperar el refetch.
+
 ## [7.406.1] - 2026-09-01
 ### Fix (auditoría R8 · cron de mantenimiento)
 - `generate-recurring-maintenance`: el catch-up mensual se extrajo a `logic.ts` (testeable sin red) manteniendo las reglas de negocio.
