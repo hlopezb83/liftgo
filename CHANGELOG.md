@@ -1,3 +1,10 @@
+## [7.409.0] - 2026-09-01
+### Fix (auditoría R8 · CFDI régimen fiscal) — R8-06 / R8-09
+- R8-06: nuevo helper compartido resolveReceptorRegimenFiscal; el receptor global (XAXX010101000) envía exactamente `616` al PAC en stamp-credit-note y stamp-payment-complement (antes podía ir la etiqueta heredada "616 - Sin obligaciones fiscales").
+- R8-09: aplicabilidad explícita para 607, 609, 611, 615, 628, 629 y 630; se elimina el fallback permisivo que aceptaba persona física y moral para códigos sin matriz.
+- Fallback conservador: un código sin aplicabilidad declarada ya no aplica a nadie (falla cerrado).
+- Pruebas nuevas: `supabase/functions/_shared/regimenFiscal_test.ts` (3) y `src/lib/fiscal/regimenFiscal.test.ts` (5, incluye paridad de catálogos cliente/servidor).
+
 ## [7.408.0] - 2026-09-01
 ### Fix (auditoría R8 · facturación recurrente) — R8-05 / R8-12
 - Nuevo reducer puro `src/features/invoices/lib/recurringSelection.ts`: la selección del asistente se reconcilia contra las filas actuales del preview en vez de reconstruirse desde cero.

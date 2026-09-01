@@ -51,3 +51,21 @@ export function normalizeRegimenFiscal(value: string | null | undefined): string
   if (!match) return null;
   return REGIMEN_FISCAL_CODES.has(match[1]) ? match[1] : null;
 }
+
+/** RFC genérico del CFDI global (público en general). */
+export const RFC_GENERICO_NACIONAL = "XAXX010101000";
+
+/**
+ * R8-06: resuelve el régimen fiscal del receptor antes de armar el payload
+ * del PAC. Para el receptor global (XAXX010101000) el SAT exige exactamente
+ * "616"; valores heredados como "616 - Sin obligaciones fiscales" ya no se
+ * envían crudos. Para receptores reales se devuelve el valor recortado, que
+ * después pasa por `isValidRegimenFiscalCode`.
+ */
+export function resolveReceptorRegimenFiscal(
+  isGlobalReceptor: boolean,
+  rawValue: string | null | undefined,
+): string {
+  if (isGlobalReceptor) return "616";
+  return String(rawValue ?? "").trim();
+}

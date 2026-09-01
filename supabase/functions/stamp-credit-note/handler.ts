@@ -2,7 +2,7 @@
 import { handleCors } from "../_shared/cors.ts";
 import { jsonResponse } from "../_shared/http.ts";
 import { isUUID } from "../_shared/validate.ts";
-import { isValidRegimenFiscalCode } from "../_shared/regimenFiscal.ts";
+import { isValidRegimenFiscalCode, resolveReceptorRegimenFiscal } from "../_shared/regimenFiscal.ts";
 import { sanitizeLegalName } from "../_shared/sanitizeLegalName.ts";
 import { authenticateWithDeps } from "../_shared/authWithDeps.ts";
 import { validateRfcOrMessage } from "../_shared/rfcChecksum.ts";
@@ -301,9 +301,9 @@ export async function handleStampCreditNote(
     // fiscales genéricos. Se exigen los datos reales del receptor salvo en el
     // CFDI global (RFC genérico XAXX010101000).
     const isGlobalReceptor = taxId === "XAXX010101000";
-    const taxSystem = isGlobalReceptor
-      ? String(inv.receptor_regimen_fiscal || "616")
-      : String(inv.receptor_regimen_fiscal ?? "").trim();
+    // R8-06: el receptor global siempre timbra con el código puro "616".
+    const taxSystem = resolveReceptorRegimenFiscal(isGlobalReceptor, inv.receptor_regimen_fiscal);
+
     const zip = isGlobalReceptor
       ? String(inv.receptor_domicilio_fiscal_cp || "06600")
       : String(inv.receptor_domicilio_fiscal_cp ?? "").trim();
