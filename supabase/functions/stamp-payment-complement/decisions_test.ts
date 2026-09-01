@@ -106,7 +106,6 @@ Deno.test("dos monedas extranjeras distintas → falla cerrada (sin fórmula ine
   assertEquals(r.ok, false);
 });
 
-
 Deno.test("normalización de mayúsculas: 'mxn'/'usd' se tratan como MXN/USD", () => {
   assertEquals(
     computeRepExchange({

@@ -93,7 +93,10 @@ export function computeRepExchange(input: RepExchangeInput): {
 } {
   const res = resolveRepExchange(input);
   if (!res.ok) throw new Error(res.message);
-  return { invoiceCurrency: res.invoiceCurrency, invoiceExchange: res.invoiceExchange };
+  return {
+    invoiceCurrency: res.invoiceCurrency,
+    invoiceExchange: res.invoiceExchange,
+  };
 }
 
 export function validateRelatedInvoiceExchange(
@@ -102,7 +105,6 @@ export function validateRelatedInvoiceExchange(
   const res = resolveRepExchange(input);
   return res.ok ? { ok: true } : { ok: false, message: res.message };
 }
-
 
 // v7.320.6: guardia defensiva para moneda extranjera. La edge function es la
 // última línea antes del PAC; `payments.exchange_rate` es NUMERIC DEFAULT 1 sin
