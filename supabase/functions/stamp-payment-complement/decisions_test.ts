@@ -277,3 +277,56 @@ Deno.test("validatePaymentExchange: USD con TC válido > 0 → ok", () => {
     { ok: true },
   );
 });
+
+// R9-02: el TC de la factura relacionada también se valida (EquivalenciaDR).
+Deno.test("validateRelatedInvoiceExchange: factura USD TC=1 + pago MXN → bloqueo", () => {
+  const r = validateRelatedInvoiceExchange({
+    paymentCurrency: "MXN",
+    invoiceCurrency: "USD",
+    invoiceTipoCambio: 1,
+  });
+  assertEquals(r.ok, false);
+});
+
+Deno.test("validateRelatedInvoiceExchange: TC faltante/0/no numérico entre monedas distintas → bloqueo", () => {
+  for (const tc of [null, undefined, 0, -3, "abc"]) {
+    assertEquals(
+      validateRelatedInvoiceExchange({
+        paymentCurrency: "MXN",
+        invoiceCurrency: "USD",
+        invoiceTipoCambio: tc as never,
+      }).ok,
+      false,
+    );
+  }
+});
+
+Deno.test("validateRelatedInvoiceExchange: misma moneda conserva equivalencia 1", () => {
+  assertEquals(
+    validateRelatedInvoiceExchange({
+      paymentCurrency: "USD",
+      invoiceCurrency: "USD",
+      invoiceTipoCambio: 1,
+    }),
+    { ok: true },
+  );
+  assertEquals(
+    validateRelatedInvoiceExchange({
+      paymentCurrency: "MXN",
+      invoiceCurrency: "MXN",
+      invoiceTipoCambio: null,
+    }),
+    { ok: true },
+  );
+});
+
+Deno.test("validateRelatedInvoiceExchange: monedas distintas con TC válido → ok", () => {
+  assertEquals(
+    validateRelatedInvoiceExchange({
+      paymentCurrency: "MXN",
+      invoiceCurrency: "USD",
+      invoiceTipoCambio: "18.9",
+    }),
+    { ok: true },
+  );
+});
